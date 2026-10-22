@@ -1,0 +1,16 @@
+[
+  {
+    "kind": 0,
+    "range": {
+      "pos": 38,
+      "end": 59
+    },
+    "message": {
+      "id": "unsafeTypeAssertion",
+      "description": "Unsafe type assertion: type 'string | boolean' is more narrow than the original type.",
+      "help": "The original expression has type `string | undefined`, and the assertion changes it to `string | boolean`. Use a type guard to narrow the value before asserting a more specific type."
+    },
+    "file_path": "file.ts",
+    "rule": "no-unsafe-type-assertion"
+  }
+]

@@ -1,0 +1,24 @@
+[
+  {
+    "kind": 0,
+    "rule": "return-await",
+    "message": {
+      "id": "disallowedPromiseAwait",
+      "description": "Returning an awaited promise is not allowed in this context."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "end": 218,
+      "pos": 203
+    },
+    "fixes": [
+      {
+        "text": "",
+        "range": {
+          "end": 209,
+          "pos": 203
+        }
+      }
+    ]
+  }
+]

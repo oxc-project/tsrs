@@ -1,0 +1,31 @@
+[
+  {
+    "file_path": "file.ts",
+    "range": {
+      "pos": 104,
+      "end": 137
+    },
+    "fixes": [
+      {
+        "text": "(someCondition ?? true)",
+        "range": {
+          "pos": 102,
+          "end": 138
+        }
+      },
+      {
+        "text": "!",
+        "range": {
+          "end": 102,
+          "pos": 102
+        }
+      }
+    ],
+    "kind": 0,
+    "rule": "no-unnecessary-boolean-literal-compare",
+    "message": {
+      "id": "negated",
+      "description": "This expression unnecessarily compares a boolean value to a boolean instead of negating it."
+    }
+  }
+]

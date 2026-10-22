@@ -1,0 +1,15 @@
+[
+  {
+    "kind": 0,
+    "rule": "strict-void-return",
+    "message": {
+      "id": "nonVoidFunc",
+      "description": "Value-returning function used in a context where a void function is expected."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "end": 59,
+      "pos": 57
+    }
+  }
+]

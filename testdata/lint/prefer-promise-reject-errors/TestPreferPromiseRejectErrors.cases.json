@@ -1,0 +1,2685 @@
+{
+  "Name": "prefer-promise-reject-errors",
+  "TSConfig": "tsconfig.minimal.json",
+  "Valid": [
+    {
+      "Code": "Promise.resolve(5);",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "Promise.reject();",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "allowEmptyReject": true,
+        "allowThrowingAny": false,
+        "allowThrowingUnknown": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        declare const someAnyValue: any;\n        Promise.reject(someAnyValue);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "allowEmptyReject": false,
+        "allowThrowingAny": true,
+        "allowThrowingUnknown": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        declare const someUnknownValue: unknown;\n        Promise.reject(someUnknownValue);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "allowEmptyReject": false,
+        "allowThrowingAny": false,
+        "allowThrowingUnknown": true
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "Promise.reject(new Error());",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "Promise.reject(new TypeError());",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "Promise.reject(new Error('foo'));",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      class CustomError extends Error {}\n      Promise.reject(new CustomError());\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      declare const foo: () => { err: SyntaxError };\n      Promise.reject(foo().err);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      declare const foo: () => Promise<Error>;\n      Promise.reject(await foo());\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "Promise.reject((foo = new Error()));",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      const foo = Promise;\n      foo.reject(new Error());\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "Promise['reject'](new Error());",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "Promise.reject(true && new Error());",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      const foo = false;\n      Promise.reject(false || new Error());\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      declare const foo: Readonly<Error>;\n      Promise.reject(foo);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      declare const foo: Readonly<Error> | Readonly<TypeError>;\n      Promise.reject(foo);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      declare const foo: Readonly<Error> & Readonly<TypeError>;\n      Promise.reject(foo);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      declare const foo: Readonly<Error> & { foo: 'bar' };\n      Promise.reject(foo);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      declare const foo: Readonly<Error & { bar: 'foo' }> & { foo: 'bar' };\n      Promise.reject(foo);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      declare const foo: Readonly<Readonly<Error>>;\n      Promise.reject(foo);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      declare const foo: Readonly<Readonly<Readonly<Error>>>;\n      Promise.reject(foo);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      declare const foo: Readonly<\n        Readonly<Readonly<Error & { bar: 'foo' }> & { foo: 'bar' }> & {\n          fooBar: 'barFoo';\n        }\n      > & { barFoo: 'fooBar' };\n      Promise.reject(foo);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      declare const foo:\n        | Readonly<Readonly<Error> | Readonly<TypeError & string>>\n        | Readonly<Error>;\n      Promise.reject(foo);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      type Wrapper<T> = { foo: Readonly<T>[] };\n      declare const foo: Wrapper<Error>['foo'][5];\n      Promise.reject(foo);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      declare const foo: Error[];\n      Promise.reject(foo[5]);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      declare const foo: ReadonlyArray<Error>;\n      Promise.reject(foo[5]);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      declare const foo: [Error];\n      Promise.reject(foo[0]);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      new Promise(function (resolve, reject) {\n        resolve(5);\n      });\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      new Promise(function (resolve, reject) {\n        reject(new Error());\n      });\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      new Promise((resolve, reject) => {\n        reject(new Error());\n      });\n\t\t\t",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "new Promise((resolve, reject) => reject(new Error()));",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        new Promise(function (resolve, reject) {\n          reject();\n        });\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "allowEmptyReject": true,
+        "allowThrowingAny": false,
+        "allowThrowingUnknown": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "new Promise((yes, no) => no(new Error()));",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "new Promise();",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "new Promise(5);",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "new Promise((resolve, { apply }) => {});",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "new Promise((resolve, reject) => {});",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "new Promise((resolve, reject) => reject);",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      class CustomError extends Error {}\n      new Promise(function (resolve, reject) {\n        reject(new CustomError());\n      });\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      declare const foo: () => { err: SyntaxError };\n      new Promise(function (resolve, reject) {\n        reject(foo().err);\n      });\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "new Promise((resolve, reject) => reject((foo = new Error())));",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      new Foo((resolve, reject) => reject(5));\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      class Foo {\n        constructor(\n          executor: (resolve: () => void, reject: (reason?: any) => void) => void,\n        ): Promise<any> {}\n      }\n      new Foo((resolve, reject) => reject(5));\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      new Promise((resolve, reject) => {\n        return function (reject) {\n          reject(5);\n        };\n      });\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "new Promise((resolve, reject) => resolve(5, reject));",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      class C {\n        #error: Error;\n        foo() {\n          Promise.reject(this.#error);\n        }\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      const foo = Promise;\n      new foo((resolve, reject) => reject(new Error()));\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      declare const foo: Readonly<Error>;\n      new Promise((resolve, reject) => reject(foo));\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      declare const foo: Readonly<Error> | Readonly<TypeError>;\n      new Promise((resolve, reject) => reject(foo));\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      declare const foo: Readonly<Error> & Readonly<TypeError>;\n      new Promise((resolve, reject) => reject(foo));\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      declare const foo: Readonly<Error> & { foo: 'bar' };\n      new Promise((resolve, reject) => reject(foo));\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      declare const foo: Readonly<Error & { bar: 'foo' }> & { foo: 'bar' };\n      new Promise((resolve, reject) => reject(foo));\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      declare const foo: Readonly<Readonly<Error>>;\n      new Promise((resolve, reject) => reject(foo));\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      declare const foo: Readonly<Readonly<Readonly<Error>>>;\n      new Promise((resolve, reject) => reject(foo));\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      declare const foo: Readonly<\n        Readonly<Readonly<Error & { bar: 'foo' }> & { foo: 'bar' }> & {\n          fooBar: 'barFoo';\n        }\n      > & { barFoo: 'fooBar' };\n      new Promise((resolve, reject) => reject(foo));\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      declare const foo:\n        | Readonly<Readonly<Error> | Readonly<TypeError & string>>\n        | Readonly<Error>;\n      new Promise((resolve, reject) => reject(foo));\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      type Wrapper<T> = { foo: Readonly<T>[] };\n      declare const foo: Wrapper<Error>['foo'][5];\n      new Promise((resolve, reject) => reject(foo));\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      declare const foo: Error[];\n      new Promise((resolve, reject) => reject(foo[5]));\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      declare const foo: ReadonlyArray<Error>;\n      new Promise((resolve, reject) => reject(foo[5]));\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      declare const foo: [Error];\n      new Promise((resolve, reject) => reject(foo[0]));\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      class Foo extends Promise<number> {}\n      Foo.reject(new Error());\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      class Foo extends Promise<number> {}\n      new Foo((resolve, reject) => reject(new Error()));\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      declare const someRandomCall: {\n        reject(arg: any): void;\n      };\n      someRandomCall.reject(5);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      declare const foo: PromiseConstructor;\n      foo.reject(new Error());\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "console[Symbol.iterator]();",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      class A {\n        a = [];\n        [Symbol.iterator]() {\n          return this.a[Symbol.iterator]();\n        }\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      declare const foo: PromiseConstructor;\n      function fun<T extends Error>(t: T): void {\n        foo.reject(t);\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        declare const someAnyValue: any;\n        Promise.reject(someAnyValue);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "allowEmptyReject": false,
+        "allowThrowingAny": true,
+        "allowThrowingUnknown": true
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        declare const someUnknownValue: unknown;\n        Promise.reject(someUnknownValue);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "allowEmptyReject": false,
+        "allowThrowingAny": true,
+        "allowThrowingUnknown": true
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        class CustomRejection {}\n        Promise.reject(new CustomRejection());\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "allow": [
+          {
+            "from": "file",
+            "name": [
+              "CustomRejection"
+            ]
+          }
+        ],
+        "allowEmptyReject": false,
+        "allowThrowingAny": false,
+        "allowThrowingUnknown": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        class CustomRejection {}\n        Promise.reject(new CustomRejection());\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "allow": [
+          "CustomRejection"
+        ],
+        "allowEmptyReject": false,
+        "allowThrowingAny": false,
+        "allowThrowingUnknown": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        Promise.reject(new Date());\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "allow": [
+          {
+            "from": "lib",
+            "name": [
+              "Date"
+            ]
+          }
+        ],
+        "allowEmptyReject": false,
+        "allowThrowingAny": false,
+        "allowThrowingUnknown": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        new Promise((resolve, reject) => reject(new Date()));\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "allow": [
+          {
+            "from": "lib",
+            "name": [
+              "Date"
+            ]
+          }
+        ],
+        "allowEmptyReject": false,
+        "allowThrowingAny": false,
+        "allowThrowingUnknown": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        import { createError } from 'errors';\n        Promise.reject(createError());\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "allow": [
+          {
+            "name": [
+              "ErrorLike"
+            ],
+            "package": "errors",
+            "from": "package"
+          }
+        ],
+        "allowEmptyReject": false,
+        "allowThrowingAny": false,
+        "allowThrowingUnknown": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {
+        "node_modules/errors/package.json": "{\n          \"name\": \"errors\",\n          \"version\": \"1.0.0\",\n          \"types\": \"index.d.ts\"\n        }",
+        "node_modules/errors/index.d.ts": "\n          export interface ErrorLike extends Error {}\n          export function createError(): ErrorLike;\n        "
+      }
+    },
+    {
+      "Code": "\n        import { createError } from 'errors';\n        new Promise((resolve, reject) => reject(createError()));\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "allow": [
+          {
+            "from": "package",
+            "name": [
+              "ErrorLike"
+            ],
+            "package": "errors"
+          }
+        ],
+        "allowEmptyReject": false,
+        "allowThrowingAny": false,
+        "allowThrowingUnknown": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {
+        "node_modules/errors/package.json": "{\n          \"name\": \"errors\",\n          \"version\": \"1.0.0\",\n          \"types\": \"index.d.ts\"\n        }",
+        "node_modules/errors/index.d.ts": "\n          export interface ErrorLike extends Error {}\n          export function createError(): ErrorLike;\n        "
+      }
+    }
+  ],
+  "Invalid": [
+    {
+      "Code": "Promise.reject(5);",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "rejectAnError",
+          "Line": 1,
+          "Column": 1,
+          "EndLine": 1,
+          "EndColumn": 18,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "Promise.reject('foo');",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "rejectAnError",
+          "Line": 1,
+          "Column": 1,
+          "EndLine": 1,
+          "EndColumn": 22,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "Promise.reject(`foo`);",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "rejectAnError",
+          "Line": 1,
+          "Column": 1,
+          "EndLine": 1,
+          "EndColumn": 22,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "Promise.reject('foo', somethingElse);",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "rejectAnError",
+          "Line": 1,
+          "Column": 1,
+          "EndLine": 1,
+          "EndColumn": 37,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "Promise.reject(false);",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "rejectAnError",
+          "Line": 1,
+          "Column": 1,
+          "EndLine": 1,
+          "EndColumn": 22,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "Promise.reject(void `foo`);",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "rejectAnError",
+          "Line": 1,
+          "Column": 1,
+          "EndLine": 1,
+          "EndColumn": 27,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "Promise.reject();",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "rejectAnError",
+          "Line": 1,
+          "Column": 1,
+          "EndLine": 1,
+          "EndColumn": 17,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "Promise.reject(undefined);",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "rejectAnError",
+          "Line": 1,
+          "Column": 1,
+          "EndLine": 1,
+          "EndColumn": 26,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "Promise.reject(undefined);",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "rejectAnError",
+          "Line": 1,
+          "Column": 1,
+          "EndLine": 1,
+          "EndColumn": 26,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "allowEmptyReject": true,
+        "allowThrowingAny": false,
+        "allowThrowingUnknown": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "Promise.reject(null);",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "rejectAnError",
+          "Line": 1,
+          "Column": 1,
+          "EndLine": 1,
+          "EndColumn": 21,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "Promise.reject({ foo: 1 });",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "rejectAnError",
+          "Line": 1,
+          "Column": 1,
+          "EndLine": 1,
+          "EndColumn": 27,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "Promise.reject([1, 2, 3]);",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "rejectAnError",
+          "Line": 1,
+          "Column": 1,
+          "EndLine": 1,
+          "EndColumn": 26,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const foo: Error | undefined;\nPromise.reject(foo);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "rejectAnError",
+          "Line": 3,
+          "Column": 1,
+          "EndLine": 3,
+          "EndColumn": 20,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const foo: () => Promise<string>;\nPromise.reject(await foo());\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "rejectAnError",
+          "Line": 3,
+          "Column": 1,
+          "EndLine": 3,
+          "EndColumn": 28,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const foo: boolean;\nPromise.reject(foo && new Error());\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "rejectAnError",
+          "Line": 3,
+          "Column": 1,
+          "EndLine": 3,
+          "EndColumn": 35,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst foo = Promise;\nfoo.reject();\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "rejectAnError",
+          "Line": 3,
+          "Column": 1,
+          "EndLine": 3,
+          "EndColumn": 13,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "Promise.reject?.(5);",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "rejectAnError",
+          "Line": 1,
+          "Column": 1,
+          "EndLine": 1,
+          "EndColumn": 20,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "Promise?.reject(5);",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "rejectAnError",
+          "Line": 1,
+          "Column": 1,
+          "EndLine": 1,
+          "EndColumn": 19,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "Promise?.reject?.(5);",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "rejectAnError",
+          "Line": 1,
+          "Column": 1,
+          "EndLine": 1,
+          "EndColumn": 21,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "(Promise?.reject)(5);",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "rejectAnError",
+          "Line": 1,
+          "Column": 1,
+          "EndLine": 1,
+          "EndColumn": 21,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "(Promise?.reject)?.(5);",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "rejectAnError",
+          "Line": 1,
+          "Column": 1,
+          "EndLine": 1,
+          "EndColumn": 23,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "Promise['reject'](5);",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "rejectAnError",
+          "Line": 1,
+          "Column": 1,
+          "EndLine": 1,
+          "EndColumn": 21,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "Promise.reject((foo += new Error()));",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "rejectAnError",
+          "Line": 1,
+          "Column": 1,
+          "EndLine": 1,
+          "EndColumn": 37,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "Promise.reject((foo -= new Error()));",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "rejectAnError",
+          "Line": 1,
+          "Column": 1,
+          "EndLine": 1,
+          "EndColumn": 37,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "Promise.reject((foo **= new Error()));",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "rejectAnError",
+          "Line": 1,
+          "Column": 1,
+          "EndLine": 1,
+          "EndColumn": 38,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "Promise.reject((foo <<= new Error()));",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "rejectAnError",
+          "Line": 1,
+          "Column": 1,
+          "EndLine": 1,
+          "EndColumn": 38,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "Promise.reject((foo |= new Error()));",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "rejectAnError",
+          "Line": 1,
+          "Column": 1,
+          "EndLine": 1,
+          "EndColumn": 37,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "Promise.reject((foo &= new Error()));",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "rejectAnError",
+          "Line": 1,
+          "Column": 1,
+          "EndLine": 1,
+          "EndColumn": 37,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const foo: never;\nPromise.reject(foo);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "rejectAnError",
+          "Line": 3,
+          "Column": 1,
+          "EndLine": 3,
+          "EndColumn": 20,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const foo: unknown;\nPromise.reject(foo);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "rejectAnError",
+          "Line": 3,
+          "Column": 1,
+          "EndLine": 3,
+          "EndColumn": 20,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype FakeReadonly<T> = { 'fake readonly': T };\ndeclare const foo: FakeReadonly<Error>;\nPromise.reject(foo);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "rejectAnError",
+          "Line": 4,
+          "Column": 1,
+          "EndLine": 4,
+          "EndColumn": 20,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const foo: Readonly<'error'>;\nPromise.reject(foo);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "rejectAnError",
+          "Line": 3,
+          "Column": 1,
+          "EndLine": 3,
+          "EndColumn": 20,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const foo: Readonly<Error | 'error'>;\nPromise.reject(foo);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "rejectAnError",
+          "Line": 3,
+          "Column": 1,
+          "EndLine": 3,
+          "EndColumn": 20,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const foo: Readonly<Error> | 'error';\nPromise.reject(foo);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "rejectAnError",
+          "Line": 3,
+          "Column": 1,
+          "EndLine": 3,
+          "EndColumn": 20,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const foo: Readonly<Error> | Readonly<TypeError> | Readonly<'error'>;\nPromise.reject(foo);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "rejectAnError",
+          "Line": 3,
+          "Column": 1,
+          "EndLine": 3,
+          "EndColumn": 20,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const foo: Readonly<Readonly<'error'>>;\nPromise.reject(foo);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "rejectAnError",
+          "Line": 3,
+          "Column": 1,
+          "EndLine": 3,
+          "EndColumn": 20,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const foo: Readonly<Readonly<Readonly<Error> | 'error'>>;\nPromise.reject(foo);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "rejectAnError",
+          "Line": 3,
+          "Column": 1,
+          "EndLine": 3,
+          "EndColumn": 20,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const foo: Readonly<Readonly<Readonly<Error> & TypeError>> | 'error';\nPromise.reject(foo);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "rejectAnError",
+          "Line": 3,
+          "Column": 1,
+          "EndLine": 3,
+          "EndColumn": 20,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const foo: Readonly<Readonly<Error>> | Readonly<TypeError> | 'error';\nPromise.reject(foo);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "rejectAnError",
+          "Line": 3,
+          "Column": 1,
+          "EndLine": 3,
+          "EndColumn": 20,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype Wrapper<T> = { foo: Readonly<T>[] };\ndeclare const foo: Wrapper<Error | 'error'>['foo'][5];\nPromise.reject(foo);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "rejectAnError",
+          "Line": 4,
+          "Column": 1,
+          "EndLine": 4,
+          "EndColumn": 20,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const foo: Error[];\nPromise.reject(foo);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "rejectAnError",
+          "Line": 3,
+          "Column": 1,
+          "EndLine": 3,
+          "EndColumn": 20,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const foo: ReadonlyArray<Error>;\nPromise.reject(foo);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "rejectAnError",
+          "Line": 3,
+          "Column": 1,
+          "EndLine": 3,
+          "EndColumn": 20,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const foo: [Error];\nPromise.reject(foo);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "rejectAnError",
+          "Line": 3,
+          "Column": 1,
+          "EndLine": 3,
+          "EndColumn": 20,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nnew Promise(function (resolve, reject) {\n  reject();\n});\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "rejectAnError",
+          "Line": 3,
+          "Column": 3,
+          "EndLine": 3,
+          "EndColumn": 11,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nnew Promise(function (resolve, reject) {\n  reject(5);\n});\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "rejectAnError",
+          "Line": 3,
+          "Column": 3,
+          "EndLine": 3,
+          "EndColumn": 12,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nnew Promise((resolve, reject) => {\n  reject();\n});\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "rejectAnError",
+          "Line": 3,
+          "Column": 3,
+          "EndLine": 3,
+          "EndColumn": 11,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "new Promise((resolve, reject) => reject(5));",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "rejectAnError",
+          "Line": 1,
+          "Column": 34,
+          "EndLine": 1,
+          "EndColumn": 43,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nnew Promise((resolve, reject) => {\n  fs.readFile('foo.txt', (err, file) => {\n    if (err) reject('File not found');\n    else resolve(file);\n  });\n});\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "rejectAnError",
+          "Line": 4,
+          "Column": 14,
+          "EndLine": 4,
+          "EndColumn": 38,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "new Promise((yes, no) => no(5));",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "rejectAnError",
+          "Line": 1,
+          "Column": 26,
+          "EndLine": 1,
+          "EndColumn": 31,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "new Promise(({ foo, bar, baz }, reject) => reject(5));",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "rejectAnError",
+          "Line": 1,
+          "Column": 44,
+          "EndLine": 1,
+          "EndColumn": 53,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nnew Promise(function (reject, reject) {\n  reject(5);\n});\n      ",
+      "Only": false,
+      "Skip": true,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "rejectAnError",
+          "Line": 3,
+          "Column": 3,
+          "EndLine": 3,
+          "EndColumn": 12,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nnew Promise(function (foo, arguments) {\n  arguments(5);\n});\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "rejectAnError",
+          "Line": 3,
+          "Column": 3,
+          "EndLine": 3,
+          "EndColumn": 15,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "new Promise((foo, arguments) => arguments(5));",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "rejectAnError",
+          "Line": 1,
+          "Column": 33,
+          "EndLine": 1,
+          "EndColumn": 45,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nnew Promise(function ({}, reject) {\n  reject(5);\n});\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "rejectAnError",
+          "Line": 3,
+          "Column": 3,
+          "EndLine": 3,
+          "EndColumn": 12,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "new Promise(({}, reject) => reject(5));",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "rejectAnError",
+          "Line": 1,
+          "Column": 29,
+          "EndLine": 1,
+          "EndColumn": 38,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "new Promise((resolve, reject, somethingElse = reject(5)) => {});",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "rejectAnError",
+          "Line": 1,
+          "Column": 47,
+          "EndLine": 1,
+          "EndColumn": 56,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const foo: {\n  bar: PromiseConstructor;\n};\nnew foo.bar((resolve, reject) => reject(5));\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "rejectAnError",
+          "Line": 5,
+          "Column": 34,
+          "EndLine": 5,
+          "EndColumn": 43,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const foo: {\n  bar: PromiseConstructor;\n};\nnew (foo?.bar)((resolve, reject) => reject(5));\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "rejectAnError",
+          "Line": 5,
+          "Column": 37,
+          "EndLine": 5,
+          "EndColumn": 46,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst foo = Promise;\nnew foo((resolve, reject) => reject(5));\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "rejectAnError",
+          "Line": 3,
+          "Column": 30,
+          "EndLine": 3,
+          "EndColumn": 39,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const foo: never;\nnew Promise((resolve, reject) => reject(foo));\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "rejectAnError",
+          "Line": 3,
+          "Column": 34,
+          "EndLine": 3,
+          "EndColumn": 45,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const foo: unknown;\nnew Promise((resolve, reject) => reject(foo));\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "rejectAnError",
+          "Line": 3,
+          "Column": 34,
+          "EndLine": 3,
+          "EndColumn": 45,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype FakeReadonly<T> = { 'fake readonly': T };\ndeclare const foo: FakeReadonly<Error>;\nnew Promise((resolve, reject) => reject(foo));\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "rejectAnError",
+          "Line": 4,
+          "Column": 34,
+          "EndLine": 4,
+          "EndColumn": 45,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const foo: Readonly<'error'>;\nnew Promise((resolve, reject) => reject(foo));\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "rejectAnError",
+          "Line": 3,
+          "Column": 34,
+          "EndLine": 3,
+          "EndColumn": 45,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const foo: Readonly<Error | 'error'>;\nnew Promise((resolve, reject) => reject(foo));\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "rejectAnError",
+          "Line": 3,
+          "Column": 34,
+          "EndLine": 3,
+          "EndColumn": 45,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const foo: Readonly<Error> | 'error';\nnew Promise((resolve, reject) => reject(foo));\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "rejectAnError",
+          "Line": 3,
+          "Column": 34,
+          "EndLine": 3,
+          "EndColumn": 45,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const foo: Readonly<Error> | Readonly<TypeError> | Readonly<'error'>;\nnew Promise((resolve, reject) => reject(foo));\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "rejectAnError",
+          "Line": 3,
+          "Column": 34,
+          "EndLine": 3,
+          "EndColumn": 45,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const foo: Readonly<Readonly<'error'>>;\nnew Promise((resolve, reject) => reject(foo));\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "rejectAnError",
+          "Line": 3,
+          "Column": 34,
+          "EndLine": 3,
+          "EndColumn": 45,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const foo: Readonly<Readonly<Readonly<Error> | 'error'>>;\nnew Promise((resolve, reject) => reject(foo));\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "rejectAnError",
+          "Line": 3,
+          "Column": 34,
+          "EndLine": 3,
+          "EndColumn": 45,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const foo: Readonly<Readonly<Readonly<Error> & TypeError>> | 'error';\nnew Promise((resolve, reject) => reject(foo));\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "rejectAnError",
+          "Line": 3,
+          "Column": 34,
+          "EndLine": 3,
+          "EndColumn": 45,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const foo: Readonly<Readonly<Error>> | Readonly<TypeError> | 'error';\nnew Promise((resolve, reject) => reject(foo));\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "rejectAnError",
+          "Line": 3,
+          "Column": 34,
+          "EndLine": 3,
+          "EndColumn": 45,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype Wrapper<T> = { foo: Readonly<T>[] };\ndeclare const foo: Wrapper<Error | 'error'>['foo'][5];\nnew Promise((resolve, reject) => reject(foo));\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "rejectAnError",
+          "Line": 4,
+          "Column": 34,
+          "EndLine": 4,
+          "EndColumn": 45,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const foo: Error[];\nnew Promise((resolve, reject) => reject(foo));\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "rejectAnError",
+          "Line": 3,
+          "Column": 34,
+          "EndLine": 3,
+          "EndColumn": 45,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const foo: ReadonlyArray<Error>;\nnew Promise((resolve, reject) => reject(foo));\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "rejectAnError",
+          "Line": 3,
+          "Column": 34,
+          "EndLine": 3,
+          "EndColumn": 45,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const foo: [Error];\nnew Promise((resolve, reject) => reject(foo));\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "rejectAnError",
+          "Line": 3,
+          "Column": 34,
+          "EndLine": 3,
+          "EndColumn": 45,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass Foo extends Promise<number> {}\nFoo.reject(5);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "rejectAnError",
+          "Line": 3,
+          "Column": 1,
+          "EndLine": 3,
+          "EndColumn": 14,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const foo: PromiseConstructor & string;\nfoo.reject(5);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "rejectAnError",
+          "Line": 3,
+          "Column": 1,
+          "EndLine": 3,
+          "EndColumn": 14,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass Foo extends Promise<number> {}\nclass Bar extends Foo {}\nBar.reject(5);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "rejectAnError",
+          "Line": 4,
+          "Column": 1,
+          "EndLine": 4,
+          "EndColumn": 14,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const foo: PromiseConstructor;\nfunction fun<T extends number>(t: T): void {\n  foo.reject(t);\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "rejectAnError",
+          "Line": 4,
+          "Column": 3,
+          "EndLine": 4,
+          "EndColumn": 16,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        declare const someAnyValue: any;\n        Promise.reject(someAnyValue);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "rejectAnError",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "allowEmptyReject": false,
+        "allowThrowingAny": false,
+        "allowThrowingUnknown": true
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        declare const someUnknownValue: unknown;\n        Promise.reject(someUnknownValue);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "rejectAnError",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "allowEmptyReject": false,
+        "allowThrowingAny": true,
+        "allowThrowingUnknown": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        declare const someUnknownValue: unknown;\n        Promise.reject(someUnknownValue);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "rejectAnError",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        declare const someAnyValue: any;\n        Promise.reject(someAnyValue);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "rejectAnError",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass CustomRejection {}\nPromise.reject(new CustomRejection());\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "rejectAnError",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nPromise.reject(new Date());\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "rejectAnError",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nimport { createError } from 'errors';\nPromise.reject(createError());\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "rejectAnError",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nimport { createError } from 'errors';\nnew Promise((resolve, reject) => reject(createError()));\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "rejectAnError",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    }
+  ]
+}

@@ -1,0 +1,46 @@
+[
+  {
+    "message": {
+      "id": "preferNullishOverOr",
+      "description": "Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 94,
+      "end": 96
+    },
+    "suggestions": [
+      {
+        "message": {
+          "id": "suggestNullishCoalescing",
+          "description": "Change to the nullish coalescing operator."
+        },
+        "fixes": [
+          {
+            "text": "(",
+            "range": {
+              "end": 92,
+              "pos": 92
+            }
+          },
+          {
+            "text": ")",
+            "range": {
+              "pos": 98,
+              "end": 98
+            }
+          },
+          {
+            "text": "??",
+            "range": {
+              "pos": 94,
+              "end": 96
+            }
+          }
+        ]
+      }
+    ],
+    "kind": 0,
+    "rule": "prefer-nullish-coalescing"
+  }
+]

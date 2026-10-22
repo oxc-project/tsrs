@@ -1,0 +1,16 @@
+[
+  {
+    "message": {
+      "id": "conditionErrorNullableNumber",
+      "description": "Unexpected nullable number value in conditional.",
+      "help": "Handle the nullish and zero cases explicitly."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 17,
+      "end": 18
+    },
+    "kind": 0,
+    "rule": "strict-boolean-expressions"
+  }
+]

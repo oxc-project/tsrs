@@ -1,0 +1,28 @@
+[
+  {
+    "range": {
+      "pos": 125,
+      "end": 139
+    },
+    "kind": 0,
+    "rule": "no-unsafe-argument",
+    "message": {
+      "id": "unsafeArgument",
+      "description": "Unsafe argument of type Set<any> assigned to a parameter of type Set<string>."
+    },
+    "file_path": "file.ts"
+  },
+  {
+    "file_path": "file.ts",
+    "range": {
+      "pos": 141,
+      "end": 145
+    },
+    "kind": 0,
+    "rule": "no-unsafe-argument",
+    "message": {
+      "id": "unsafeTupleSpread",
+      "description": "Unsafe spread of a tuple type. The argument is of type Map<any, string> and is assigned to a parameter of type Map<string, string>."
+    }
+  }
+]

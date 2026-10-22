@@ -1,0 +1,30 @@
+[
+  {
+    "kind": 0,
+    "range": {
+      "pos": 26,
+      "end": 45
+    },
+    "message": {
+      "id": "unsafeTypeAssertion",
+      "description": "Unsafe type assertion: type '\"bar\"' is more narrow than the original type.",
+      "help": "The original expression has type `\"foo\"`, and the assertion changes it to `\"bar\"`. Use a type guard to narrow the value before asserting a more specific type."
+    },
+    "file_path": "file.ts",
+    "rule": "no-unsafe-type-assertion"
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 26,
+      "end": 36
+    },
+    "message": {
+      "id": "unsafeTypeAssertion",
+      "description": "Unsafe type assertion: type '\"foo\"' is more narrow than the original type.",
+      "help": "The original expression has type `string`, and the assertion changes it to `\"foo\"`. Use a type guard to narrow the value before asserting a more specific type."
+    },
+    "file_path": "file.ts",
+    "rule": "no-unsafe-type-assertion"
+  }
+]

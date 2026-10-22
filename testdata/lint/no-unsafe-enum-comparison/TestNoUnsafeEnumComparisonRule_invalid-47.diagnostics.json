@@ -1,0 +1,32 @@
+[
+  {
+    "range": {
+      "pos": 130,
+      "end": 139
+    },
+    "labeled_ranges": [
+      {
+        "label": "Left operand: E",
+        "range": {
+          "pos": 130,
+          "end": 131
+        }
+      },
+      {
+        "label": "Right operand: \"a\"",
+        "range": {
+          "pos": 136,
+          "end": 139
+        }
+      }
+    ],
+    "kind": 0,
+    "rule": "no-unsafe-enum-comparison",
+    "message": {
+      "id": "mismatchedCondition",
+      "description": "The two values in this comparison do not have a shared enum type.",
+      "help": "Compare enum values to members of the same enum, or convert both sides to the same primitive type before comparing them."
+    },
+    "file_path": "file.ts"
+  }
+]

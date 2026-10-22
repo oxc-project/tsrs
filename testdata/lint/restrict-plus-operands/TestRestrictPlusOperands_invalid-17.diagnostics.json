@@ -1,0 +1,31 @@
+[
+  {
+    "rule": "restrict-plus-operands",
+    "message": {
+      "id": "bigintAndNumber",
+      "description": "Numeric '+' operations must either be both bigints or both numbers."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 10,
+      "end": 16
+    },
+    "labeled_ranges": [
+      {
+        "label": "Type: number",
+        "range": {
+          "pos": 10,
+          "end": 11
+        }
+      },
+      {
+        "label": "Type: bigint",
+        "range": {
+          "pos": 14,
+          "end": 16
+        }
+      }
+    ],
+    "kind": 0
+  }
+]

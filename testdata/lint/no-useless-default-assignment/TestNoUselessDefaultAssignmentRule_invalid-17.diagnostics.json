@@ -1,0 +1,42 @@
+[
+  {
+    "file_path": "file.ts",
+    "range": {
+      "pos": 21,
+      "end": 26
+    },
+    "suggestions": [
+      {
+        "message": {
+          "id": "removeDefaultAssignment",
+          "description": "Remove the default value."
+        },
+        "fixes": [
+          {
+            "text": "",
+            "range": {
+              "pos": 18,
+              "end": 26
+            }
+          }
+        ]
+      }
+    ],
+    "labeled_ranges": [
+      {
+        "label": "Default value",
+        "range": {
+          "pos": 21,
+          "end": 26
+        }
+      }
+    ],
+    "kind": 0,
+    "rule": "no-useless-default-assignment",
+    "message": {
+      "id": "uselessDefaultAssignment",
+      "description": "Default value is useless because the property is not nullish. This default assignment will never be used.",
+      "help": "Remove the default assignment"
+    }
+  }
+]

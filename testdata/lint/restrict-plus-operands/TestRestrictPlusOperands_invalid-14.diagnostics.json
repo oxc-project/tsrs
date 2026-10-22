@@ -1,0 +1,30 @@
+[
+  {
+    "message": {
+      "id": "invalid",
+      "description": "Invalid operand of type '{ first: number; second: string; }' for a '+' operation.",
+      "help": "Operands must each be a number or string."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 50,
+      "end": 54
+    },
+    "kind": 0,
+    "rule": "restrict-plus-operands"
+  },
+  {
+    "message": {
+      "id": "invalid",
+      "description": "Invalid operand of type '{ first: number; second: string; }' for a '+' operation.",
+      "help": "Operands must each be a number or string."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 57,
+      "end": 61
+    },
+    "kind": 0,
+    "rule": "restrict-plus-operands"
+  }
+]

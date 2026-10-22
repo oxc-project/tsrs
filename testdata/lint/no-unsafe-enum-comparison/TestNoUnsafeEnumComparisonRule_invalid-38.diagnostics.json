@@ -1,0 +1,49 @@
+[
+  {
+    "kind": 0,
+    "rule": "no-unsafe-enum-comparison",
+    "message": {
+      "id": "mismatchedCondition",
+      "description": "The two values in this comparison do not have a shared enum type.",
+      "help": "Compare enum values to members of the same enum, or convert both sides to the same primitive type before comparing them."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 141,
+      "end": 158
+    },
+    "suggestions": [
+      {
+        "message": {
+          "id": "replaceValueWithEnum",
+          "description": "Replace with an enum value comparison."
+        },
+        "fixes": [
+          {
+            "text": "ComputedKey[`test-key`]",
+            "range": {
+              "pos": 157,
+              "end": 158
+            }
+          }
+        ]
+      }
+    ],
+    "labeled_ranges": [
+      {
+        "label": "Left operand: ComputedKey",
+        "range": {
+          "pos": 141,
+          "end": 152
+        }
+      },
+      {
+        "label": "Right operand: 1",
+        "range": {
+          "pos": 157,
+          "end": 158
+        }
+      }
+    ]
+  }
+]

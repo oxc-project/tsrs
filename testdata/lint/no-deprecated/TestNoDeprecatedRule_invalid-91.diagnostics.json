@@ -1,0 +1,15 @@
+[
+  {
+    "message": {
+      "id": "deprecated",
+      "description": "`normalFunction` is deprecated."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 68,
+      "end": 82
+    },
+    "kind": 0,
+    "rule": "no-deprecated"
+  }
+]

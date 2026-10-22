@@ -1,0 +1,24 @@
+[
+  {
+    "range": {
+      "pos": 44,
+      "end": 46
+    },
+    "labeled_ranges": [
+      {
+        "range": {
+          "end": 46,
+          "pos": 44
+        },
+        "label": "This callback has type `() => Promise<boolean>`."
+      }
+    ],
+    "kind": 0,
+    "rule": "no-misused-promises",
+    "message": {
+      "id": "predicate",
+      "description": "Expected a non-Promise value to be returned."
+    },
+    "file_path": "file.ts"
+  }
+]

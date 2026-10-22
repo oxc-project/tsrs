@@ -1,0 +1,94 @@
+[
+  {
+    "labeled_ranges": [
+      {
+        "label": "This is the only usage of type parameter CB1 in the signature.",
+        "range": {
+          "pos": 167,
+          "end": 170
+        }
+      }
+    ],
+    "kind": 0,
+    "rule": "no-unnecessary-type-parameters",
+    "message": {
+      "id": "sole",
+      "description": "Type parameter CB1 is used only once in the function signature."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 68,
+      "end": 103
+    },
+    "suggestions": [
+      {
+        "message": {
+          "id": "replaceUsagesWithConstraint",
+          "description": "Replace all usages of type parameter with its constraint."
+        },
+        "fixes": [
+          {
+            "text": "(...args: Args) => void",
+            "range": {
+              "pos": 167,
+              "end": 170
+            }
+          },
+          {
+            "text": "",
+            "range": {
+              "end": 103,
+              "pos": 56
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "kind": 0,
+    "rule": "no-unnecessary-type-parameters",
+    "message": {
+      "id": "sole",
+      "description": "Type parameter CB2 is used only once in the function signature."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 115,
+      "end": 150
+    },
+    "suggestions": [
+      {
+        "message": {
+          "id": "replaceUsagesWithConstraint",
+          "description": "Replace all usages of type parameter with its constraint."
+        },
+        "fixes": [
+          {
+            "text": "(...args: Args) => void",
+            "range": {
+              "end": 180,
+              "pos": 177
+            }
+          },
+          {
+            "text": "",
+            "range": {
+              "pos": 103,
+              "end": 150
+            }
+          }
+        ]
+      }
+    ],
+    "labeled_ranges": [
+      {
+        "label": "This is the only usage of type parameter CB2 in the signature.",
+        "range": {
+          "pos": 177,
+          "end": 180
+        }
+      }
+    ]
+  }
+]

@@ -1,0 +1,62 @@
+[
+  {
+    "kind": 0,
+    "rule": "return-await",
+    "message": {
+      "id": "disallowedPromiseAwait",
+      "description": "Returning an awaited promise is not allowed in this context."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 68,
+      "end": 92
+    },
+    "suggestions": [
+      {
+        "message": {
+          "id": "disallowedPromiseAwaitSuggestion",
+          "description": "Remove `await` before the expression. Use caution as this may impact control flow."
+        },
+        "fixes": [
+          {
+            "text": "",
+            "range": {
+              "end": 74,
+              "pos": 68
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "file_path": "file.ts",
+    "range": {
+      "pos": 137,
+      "end": 161
+    },
+    "suggestions": [
+      {
+        "message": {
+          "id": "disallowedPromiseAwaitSuggestion",
+          "description": "Remove `await` before the expression. Use caution as this may impact control flow."
+        },
+        "fixes": [
+          {
+            "text": "",
+            "range": {
+              "pos": 137,
+              "end": 143
+            }
+          }
+        ]
+      }
+    ],
+    "kind": 0,
+    "rule": "return-await",
+    "message": {
+      "id": "disallowedPromiseAwait",
+      "description": "Returning an awaited promise is not allowed in this context."
+    }
+  }
+]

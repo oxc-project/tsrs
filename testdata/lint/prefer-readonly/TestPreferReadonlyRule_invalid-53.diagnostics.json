@@ -1,0 +1,32 @@
+[
+  {
+    "kind": 0,
+    "range": {
+      "pos": 32,
+      "end": 44
+    },
+    "message": {
+      "id": "preferReadonly",
+      "description": "Member 'prop' is never reassigned.",
+      "help": "Mark it as `readonly`."
+    },
+    "file_path": "file.ts",
+    "rule": "prefer-readonly",
+    "fixes": [
+      {
+        "text": "readonly ",
+        "range": {
+          "pos": 40,
+          "end": 40
+        }
+      },
+      {
+        "text": ": number",
+        "range": {
+          "pos": 44,
+          "end": 44
+        }
+      }
+    ]
+  }
+]

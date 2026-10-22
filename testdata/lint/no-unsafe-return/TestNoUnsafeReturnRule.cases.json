@@ -1,0 +1,1142 @@
+{
+  "Name": "no-unsafe-return",
+  "TSConfig": "tsconfig.noImplicitThis.json",
+  "Valid": [
+    {
+      "Code": "\nfunction foo() {\n  return;\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction foo() {\n  return 1;\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction foo() {\n  return '';\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction foo() {\n  return true;\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction foo() {\n  return [];\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction foo(): any {\n  return {} as any;\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare function foo(arg: () => any): void;\nfoo((): any => 'foo' as any);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare function foo(arg: null | (() => any)): void;\nfoo((): any => 'foo' as any);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction foo(): any[] {\n  return [] as any[];\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction foo(): Set<any> {\n  return new Set<any>();\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nasync function foo(): Promise<any> {\n  return Promise.resolve({} as any);\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nasync function foo(): Promise<any> {\n  return {} as any;\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction foo(): object {\n  return Promise.resolve({} as any);\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction foo(): ReadonlySet<number> {\n  return new Set<any>();\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction foo(): Set<number> {\n  return new Set([1]);\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      type Foo<T = number> = { prop: T };\n      function foo(): Foo {\n        return { prop: 1 } as Foo<number>;\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      type Foo = { prop: any };\n      function foo(): Foo {\n        return { prop: '' } as Foo;\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      function fn<T extends any>(x: T) {\n        return x;\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      function fn<T extends any>(x: T): unknown {\n        return x as any;\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      function fn<T extends any>(x: T): unknown[] {\n        return x as any[];\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      function fn<T extends any>(x: T): Set<unknown> {\n        return x as Set<any>;\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      async function fn<T extends any>(x: T): Promise<unknown> {\n        return x as any;\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      function fn<T extends any>(x: T): Promise<unknown> {\n        return Promise.resolve(x as any);\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      function test(): Map<string, string> {\n        return new Map();\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      function foo(): any {\n        return [] as any[];\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      function foo(): unknown {\n        return [] as any[];\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      declare const value: Promise<any>;\n      function foo() {\n        return value;\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "const foo: (() => void) | undefined = () => 1;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      class Foo {\n        public foo(): this {\n          return this;\n        }\n\n        protected then(resolve: () => void): void {\n          resolve();\n        }\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface Schema<Output = any> {\n  readonly _output: Output;\n  parse(input: unknown): Output;\n}\ntype Infer<S extends Schema> = S['_output'];\nconst parse = <S extends Schema>(schema: S, input: unknown): Infer<S> =>\n  schema.parse(input) as Infer<S>;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction f<T extends Set<any>>(x: T): Set<string> {\n  return x;\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n/** @callback Fn */\n\n/** @type {Fn} */\nconst f = function () {\n  return 1;\n};",
+      "Only": false,
+      "Skip": false,
+      "FileName": "repro.js",
+      "Options": null,
+      "TSConfig": "tsconfig.checkJs.json",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n/** @callback Fn */\n\n/** @type {Fn} */\nconst f = () => 1;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "repro.js",
+      "Options": null,
+      "TSConfig": "tsconfig.checkJs.json",
+      "Tsx": false,
+      "Files": {}
+    }
+  ],
+  "Invalid": [
+    {
+      "Code": "\nfunction foo() {\n  return 1 as any;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unsafeReturn",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction foo() {\n  return Object.create(null);\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unsafeReturn",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst foo = () => {\n  return 1 as any;\n};\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unsafeReturn",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "const foo = () => Object.create(null);",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unsafeReturn",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction foo() {\n  return [] as any[];\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unsafeReturn",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction foo() {\n  return [] as Array<any>;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unsafeReturn",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction foo() {\n  return [] as readonly any[];\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unsafeReturn",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction foo() {\n  return [] as Readonly<any[]>;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unsafeReturn",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst foo = () => {\n  return [] as any[];\n};\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unsafeReturn",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "const foo = () => [] as any[];",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unsafeReturn",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction foo(): Set<string> {\n  return new Set<any>();\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unsafeReturnAssignment",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction foo(): Map<string, string> {\n  return new Map<string, any>();\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unsafeReturnAssignment",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction foo(): Set<string[]> {\n  return new Set<any[]>();\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unsafeReturnAssignment",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction foo(): Set<Set<Set<string>>> {\n  return new Set<Set<Set<any>>>();\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unsafeReturnAssignment",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype Fn = () => Set<string>;\nconst foo1: Fn = () => new Set<any>();\nconst foo2: Fn = function test() {\n  return new Set<any>();\n};\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unsafeReturnAssignment",
+          "Line": 3,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "unsafeReturnAssignment",
+          "Line": 5,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype Fn = () => Set<string>;\nfunction receiver(arg: Fn) {}\nreceiver(() => new Set<any>());\nreceiver(function test() {\n  return new Set<any>();\n});\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unsafeReturnAssignment",
+          "Line": 4,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "unsafeReturnAssignment",
+          "Line": 6,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction foo() {\n  return this;\n}\n\nfunction bar() {\n  return () => this;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unsafeReturnThis",
+          "Line": 3,
+          "Column": 3,
+          "EndLine": 0,
+          "EndColumn": 15,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "unsafeReturnThis",
+          "Line": 7,
+          "Column": 16,
+          "EndLine": 0,
+          "EndColumn": 20,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare function foo(arg: null | (() => any)): void;\nfoo(() => 'foo' as any);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unsafeReturn",
+          "Line": 3,
+          "Column": 11,
+          "EndLine": 0,
+          "EndColumn": 23,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nlet value: NotKnown;\n\nfunction example() {\n  return value;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unsafeReturn",
+          "Line": 5,
+          "Column": 3,
+          "EndLine": 0,
+          "EndColumn": 16,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const value: any;\nasync function foo() {\n  return value;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unsafeReturn",
+          "Line": 4,
+          "Column": 3,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const value: Promise<any>;\nasync function foo(): Promise<number> {\n  return value;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unsafeReturn",
+          "Line": 4,
+          "Column": 3,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nasync function foo(arg: number) {\n  return arg as Promise<any>;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unsafeReturn",
+          "Line": 3,
+          "Column": 3,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction foo(): Promise<any> {\n  return {} as any;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unsafeReturn",
+          "Line": 3,
+          "Column": 3,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction foo(): Promise<object> {\n  return {} as any;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unsafeReturn",
+          "Line": 3,
+          "Column": 3,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nasync function foo(): Promise<object> {\n  return Promise.resolve<any>({});\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unsafeReturn",
+          "Line": 3,
+          "Column": 3,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nasync function foo(): Promise<object> {\n  return Promise.resolve<Promise<Promise<any>>>({} as Promise<any>);\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unsafeReturn",
+          "Line": 3,
+          "Column": 3,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nasync function foo(): Promise<object> {\n  return {} as Promise<Promise<Promise<Promise<any>>>>;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unsafeReturn",
+          "Line": 3,
+          "Column": 3,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nasync function foo() {\n  return {} as Promise<Promise<Promise<Promise<any>>>>;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unsafeReturn",
+          "Line": 3,
+          "Column": 3,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nasync function foo() {\n  return {} as Promise<any> | Promise<object>;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unsafeReturn",
+          "Line": 3,
+          "Column": 3,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nasync function foo() {\n  return {} as Promise<any | object>;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unsafeReturn",
+          "Line": 3,
+          "Column": 3,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nasync function foo() {\n  return {} as Promise<any> & { __brand: 'any' };\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unsafeReturn",
+          "Line": 3,
+          "Column": 3,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface Alias<T> extends Promise<any> {\n  foo: 'bar';\n}\n\ndeclare const value: Alias<number>;\nasync function foo() {\n  return value;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unsafeReturn",
+          "Line": 8,
+          "Column": 3,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nimport type { Fn } from 'return-types';\nconst foo: Fn = () => new Set<any>();\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unsafeReturnAssignment",
+          "Line": 3,
+          "Column": 23,
+          "EndLine": 0,
+          "EndColumn": 37,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {
+        "node_modules/return-types/package.json": "{\n  \"name\": \"return-types\",\n  \"version\": \"1.0.0\",\n  \"types\": \"index.d.ts\"\n}",
+        "node_modules/return-types/index.d.ts": "export type Fn = () => Set<string>;"
+      }
+    },
+    {
+      "Code": "\ninterface Schema<Output = any> {\n  readonly _output: Output;\n}\ntype Infer<S extends Schema> = S['_output'];\nconst getOutput = <S extends Schema>(schema: S): Infer<S> =>\n  schema._output;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unsafeReturn",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n/**\n * @callback Fn\n * @param {*} value\n */\n\n/** @type {Fn} */\nconst f = function (value) {\n  return value;\n};",
+      "Only": false,
+      "Skip": false,
+      "FileName": "repro.js",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unsafeReturn",
+          "Line": 9,
+          "Column": 3,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "tsconfig.checkJs.json",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n/**\n * @callback Fn\n * @param {*} value\n */\n\n/** @type {Fn} */\nconst f = value => value;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "repro.js",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unsafeReturn",
+          "Line": 8,
+          "Column": 20,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "tsconfig.checkJs.json",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n/**\n * @callback Fn\n * @param {*} value\n * @returns {number}\n */\n\n/** @type {Fn} */\nconst f = value => value;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "repro.js",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unsafeReturn",
+          "Line": 9,
+          "Column": 20,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "tsconfig.checkJs.json",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    }
+  ]
+}

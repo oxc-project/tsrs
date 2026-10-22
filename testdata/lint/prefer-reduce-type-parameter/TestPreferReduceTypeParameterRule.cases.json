@@ -1,0 +1,500 @@
+{
+  "Name": "prefer-reduce-type-parameter",
+  "TSConfig": "tsconfig.minimal.json",
+  "Valid": [
+    {
+      "Code": "\n      new (class Mine {\n        reduce() {}\n      })().reduce(() => {}, 1 as any);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      class Mine {\n        reduce() {}\n      }\n\n      new Mine().reduce(() => {}, 1 as any);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      import { Reducable } from './class';\n\n      new Reducable().reduce(() => {}, 1 as any);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "[1, 2, 3]['reduce']((sum, num) => sum + num, 0);",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "[1, 2, 3][null]((sum, num) => sum + num, 0);",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "[1, 2, 3]?.[null]((sum, num) => sum + num, 0);",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "[1, 2, 3].reduce((sum, num) => sum + num, 0);",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "[1, 2, 3].reduce<number[]>((a, s) => a.concat(s * 2), []);",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "[1, 2, 3]?.reduce<number[]>((a, s) => a.concat(s * 2), []);",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      declare const tuple: [number, number, number];\n      tuple.reduce<number[]>((a, s) => a.concat(s * 2), []);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      type Reducer = { reduce: (callback: (arg: any) => any, arg: any) => any };\n      declare const tuple: [number, number, number] | Reducer;\n      tuple.reduce(a => {\n        return a.concat(1);\n      }, [] as number[]);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      type Reducer = { reduce: (callback: (arg: any) => any, arg: any) => any };\n      declare const arrayOrReducer: number[] & Reducer;\n      arrayOrReducer.reduce(a => {\n        return a.concat(1);\n      }, [] as number[]);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      ['a', 'b'].reduce(\n        (accum, name) => ({\n          ...accum,\n          [name]: true,\n        }),\n        {} as Record<'a' | 'b', boolean>,\n      );\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      ['a', 'b'].reduce(\n        (accum, name) => ({\n          ...accum,\n          [name]: true,\n        }),\n        { a: true, b: false, c: true } as Record<'a' | 'b', boolean>,\n      );\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      function f<T extends Record<string, boolean>>() {\n        ['a', 'b'].reduce(\n          (accum, name) => ({\n            ...accum,\n            [name]: true,\n          }),\n          {} as T,\n        );\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      function f<T>() {\n        ['a', 'b'].reduce(\n          (accum, name) => ({\n            ...accum,\n            [name]: true,\n          }),\n          {} as T,\n        );\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      ['a', 'b'].reduce((accum, name) => `${accum} | hello ${name}!`);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    }
+  ],
+  "Invalid": [
+    {
+      "Code": "\ndeclare const arr: string[];\narr.reduce<string | undefined>(acc => acc, arr.shift() as string | undefined);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\ndeclare const arr: string[];\narr.reduce<string | undefined>(acc => acc, arr.shift());\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferTypeParameter",
+          "Line": 3,
+          "Column": 44,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "[1, 2, 3].reduce((a, s) => a.concat(s * 2), [] as number[]);",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "[1, 2, 3].reduce< number[]>((a, s) => a.concat(s * 2), []);"
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferTypeParameter",
+          "Line": 1,
+          "Column": 45,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "[1, 2, 3].reduce((a, s) => a.concat(s * 2), <number[]>[]);",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "[1, 2, 3].reduce<number[]>((a, s) => a.concat(s * 2),[]);"
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferTypeParameter",
+          "Line": 1,
+          "Column": 45,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "[1, 2, 3]?.reduce((a, s) => a.concat(s * 2), [] as number[]);",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "[1, 2, 3]?.reduce< number[]>((a, s) => a.concat(s * 2), []);"
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferTypeParameter",
+          "Line": 1,
+          "Column": 46,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "[1, 2, 3]?.reduce((a, s) => a.concat(s * 2), <number[]>[]);",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "[1, 2, 3]?.reduce<number[]>((a, s) => a.concat(s * 2),[]);"
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferTypeParameter",
+          "Line": 1,
+          "Column": 46,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst names = ['a', 'b', 'c'];\n\nnames.reduce(\n  (accum, name) => ({\n    ...accum,\n    [name]: true,\n  }),\n  {} as Record<string, boolean>,\n);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nconst names = ['a', 'b', 'c'];\n\nnames.reduce< Record<string, boolean>>(\n  (accum, name) => ({\n    ...accum,\n    [name]: true,\n  }),\n  {},\n);\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferTypeParameter",
+          "Line": 9,
+          "Column": 3,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n['a', 'b'].reduce(\n  (accum, name) => ({\n    ...accum,\n    [name]: true,\n  }),\n  <Record<string, boolean>>{},\n);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n['a', 'b'].reduce<Record<string, boolean>>(\n  (accum, name) => ({\n    ...accum,\n    [name]: true,\n  }),{},\n);\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferTypeParameter",
+          "Line": 7,
+          "Column": 3,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n['a', 'b']['reduce'](\n  (accum, name) => ({\n    ...accum,\n    [name]: true,\n  }),\n  {} as Record<string, boolean>,\n);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n['a', 'b']['reduce']< Record<string, boolean>>(\n  (accum, name) => ({\n    ...accum,\n    [name]: true,\n  }),\n  {},\n);\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferTypeParameter",
+          "Line": 7,
+          "Column": 3,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction f<T, U extends T[]>(a: U) {\n  return a.reduce(() => {}, {} as Record<string, boolean>);\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nfunction f<T, U extends T[]>(a: U) {\n  return a.reduce< Record<string, boolean>>(() => {}, {});\n}\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferTypeParameter",
+          "Line": 3,
+          "Column": 29,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const tuple: [number, number, number];\ntuple.reduce((a, s) => a.concat(s * 2), [] as number[]);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\ndeclare const tuple: [number, number, number];\ntuple.reduce< number[]>((a, s) => a.concat(s * 2), []);\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferTypeParameter",
+          "Line": 3,
+          "Column": 41,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const tupleOrArray: [number, number, number] | number[];\ntupleOrArray.reduce((a, s) => a.concat(s * 2), [] as number[]);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\ndeclare const tupleOrArray: [number, number, number] | number[];\ntupleOrArray.reduce< number[]>((a, s) => a.concat(s * 2), []);\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferTypeParameter",
+          "Line": 3,
+          "Column": 48,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const tuple: [number, number, number] & number[];\ntuple.reduce((a, s) => a.concat(s * 2), [] as number[]);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\ndeclare const tuple: [number, number, number] & number[];\ntuple.reduce< number[]>((a, s) => a.concat(s * 2), []);\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferTypeParameter",
+          "Line": 3,
+          "Column": 41,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n['a', 'b'].reduce(\n  (accum, name) => ({\n    ...accum,\n    [name]: true,\n  }),\n  {} as Record<string, boolean>,\n);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n['a', 'b'].reduce< Record<string, boolean>>(\n  (accum, name) => ({\n    ...accum,\n    [name]: true,\n  }),\n  {},\n);\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferTypeParameter",
+          "Line": 7,
+          "Column": 3,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction f<T extends Record<string, boolean>>(t: T) {\n  ['a', 'b'].reduce(\n    (accum, name) => ({\n      ...accum,\n      [name]: true,\n    }),\n    t as Record<string, boolean | number>,\n  );\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nfunction f<T extends Record<string, boolean>>(t: T) {\n  ['a', 'b'].reduce< Record<string, boolean | number>>(\n    (accum, name) => ({\n      ...accum,\n      [name]: true,\n    }),\n    t,\n  );\n}\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferTypeParameter",
+          "Line": 8,
+          "Column": 5,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    }
+  ]
+}

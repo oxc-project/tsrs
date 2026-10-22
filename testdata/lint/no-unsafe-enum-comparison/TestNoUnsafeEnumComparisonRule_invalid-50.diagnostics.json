@@ -1,0 +1,92 @@
+[
+  {
+    "kind": 0,
+    "rule": "no-unsafe-enum-comparison",
+    "message": {
+      "id": "mismatchedCondition",
+      "description": "The two values in this comparison do not have a shared enum type.",
+      "help": "Compare enum values to members of the same enum, or convert both sides to the same primitive type before comparing them."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 325,
+      "end": 356
+    },
+    "labeled_ranges": [
+      {
+        "label": "Left operand: string",
+        "range": {
+          "pos": 325,
+          "end": 338
+        }
+      },
+      {
+        "label": "Right operand: UXSortDir.asc",
+        "range": {
+          "pos": 343,
+          "end": 356
+        }
+      }
+    ]
+  },
+  {
+    "range": {
+      "pos": 366,
+      "end": 396
+    },
+    "labeled_ranges": [
+      {
+        "label": "Left operand: SortDir",
+        "range": {
+          "pos": 366,
+          "end": 378
+        }
+      },
+      {
+        "label": "Right operand: UXSortDir.asc",
+        "range": {
+          "pos": 383,
+          "end": 396
+        }
+      }
+    ],
+    "kind": 0,
+    "rule": "no-unsafe-enum-comparison",
+    "message": {
+      "id": "mismatchedCondition",
+      "description": "The two values in this comparison do not have a shared enum type.",
+      "help": "Compare enum values to members of the same enum, or convert both sides to the same primitive type before comparing them."
+    },
+    "file_path": "file.ts"
+  },
+  {
+    "kind": 0,
+    "rule": "no-unsafe-enum-comparison",
+    "message": {
+      "id": "mismatchedCondition",
+      "description": "The two values in this comparison do not have a shared enum type.",
+      "help": "Compare enum values to members of the same enum, or convert both sides to the same primitive type before comparing them."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 406,
+      "end": 442
+    },
+    "labeled_ranges": [
+      {
+        "label": "Left operand: \"asc\" | \"desc\"",
+        "range": {
+          "pos": 406,
+          "end": 424
+        }
+      },
+      {
+        "label": "Right operand: UXSortDir.asc",
+        "range": {
+          "pos": 429,
+          "end": 442
+        }
+      }
+    ]
+  }
+]

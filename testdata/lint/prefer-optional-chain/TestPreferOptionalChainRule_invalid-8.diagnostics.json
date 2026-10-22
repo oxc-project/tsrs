@@ -1,0 +1,62 @@
+[
+  {
+    "message": {
+      "id": "preferOptionalChain",
+      "description": "Prefer using an optional chain expression instead, as it's more concise and easier to read."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "end": 30,
+      "pos": 0
+    },
+    "suggestions": [
+      {
+        "message": {
+          "id": "optionalChainSuggest",
+          "description": "Change to an optional chain."
+        },
+        "fixes": [
+          {
+            "text": "(foo1 || {}).foo2?.foo3",
+            "range": {
+              "end": 30,
+              "pos": 0
+            }
+          }
+        ]
+      }
+    ],
+    "kind": 0,
+    "rule": "prefer-optional-chain"
+  },
+  {
+    "kind": 0,
+    "rule": "prefer-optional-chain",
+    "message": {
+      "id": "preferOptionalChain",
+      "description": "Prefer using an optional chain expression instead, as it's more concise and easier to read."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 1,
+      "end": 18
+    },
+    "suggestions": [
+      {
+        "message": {
+          "id": "optionalChainSuggest",
+          "description": "Change to an optional chain."
+        },
+        "fixes": [
+          {
+            "text": "foo1?.foo2",
+            "range": {
+              "pos": 1,
+              "end": 18
+            }
+          }
+        ]
+      }
+    ]
+  }
+]

@@ -1,0 +1,32 @@
+[
+  {
+    "file_path": "file.ts",
+    "range": {
+      "pos": 11,
+      "end": 186
+    },
+    "suggestions": [
+      {
+        "message": {
+          "id": "optionalChainSuggest",
+          "description": "Change to an optional chain."
+        },
+        "fixes": [
+          {
+            "text": "null !== foo?.bar?.baz &&\n            'undefined' !== typeof foo.bar.baz",
+            "range": {
+              "pos": 11,
+              "end": 186
+            }
+          }
+        ]
+      }
+    ],
+    "kind": 0,
+    "rule": "prefer-optional-chain",
+    "message": {
+      "id": "preferOptionalChain",
+      "description": "Prefer using an optional chain expression instead, as it's more concise and easier to read."
+    }
+  }
+]

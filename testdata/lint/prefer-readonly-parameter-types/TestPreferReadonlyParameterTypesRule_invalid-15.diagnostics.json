@@ -1,0 +1,15 @@
+[
+  {
+    "range": {
+      "end": 117,
+      "pos": 108
+    },
+    "kind": 0,
+    "rule": "prefer-readonly-parameter-types",
+    "message": {
+      "id": "shouldBeReadonly",
+      "description": "Parameter should be a readonly type."
+    },
+    "file_path": "file.ts"
+  }
+]

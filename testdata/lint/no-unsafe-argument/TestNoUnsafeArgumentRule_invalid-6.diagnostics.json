@@ -1,0 +1,15 @@
+[
+  {
+    "kind": 0,
+    "rule": "no-unsafe-argument",
+    "message": {
+      "id": "unsafeArraySpread",
+      "description": "Unsafe spread of an any[] array type."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 62,
+      "end": 77
+    }
+  }
+]

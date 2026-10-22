@@ -1,0 +1,38 @@
+[
+  {
+    "kind": 0,
+    "rule": "prefer-includes",
+    "message": {
+      "id": "preferStringIncludes",
+      "description": "Use `String#includes()` method with a string instead."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 49,
+      "end": 71
+    },
+    "fixes": [
+      {
+        "text": "",
+        "range": {
+          "pos": 49,
+          "end": 60
+        }
+      },
+      {
+        "text": "",
+        "range": {
+          "pos": 70,
+          "end": 71
+        }
+      },
+      {
+        "text": ".includes('bar')",
+        "range": {
+          "end": 70,
+          "pos": 70
+        }
+      }
+    ]
+  }
+]

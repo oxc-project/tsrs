@@ -1,0 +1,15 @@
+[
+  {
+    "file_path": "file.ts",
+    "range": {
+      "pos": 57,
+      "end": 67
+    },
+    "kind": 0,
+    "rule": "use-unknown-in-catch-callback-variable",
+    "message": {
+      "id": "useUnknownObjectDestructuringPattern",
+      "description": "Prefer the safe `: unknown` for a `catch` callback variable. The thrown error may be nullable, or may not have the expected shape."
+    }
+  }
+]

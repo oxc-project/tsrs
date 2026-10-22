@@ -1,0 +1,15 @@
+[
+  {
+    "kind": 0,
+    "rule": "no-misused-spread",
+    "message": {
+      "id": "noArraySpreadInObject",
+      "description": "Using the spread operator on an array in an object will result in a list of indices."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 52,
+      "end": 58
+    }
+  }
+]

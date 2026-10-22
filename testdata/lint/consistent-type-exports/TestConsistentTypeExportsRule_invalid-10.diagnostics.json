@@ -1,0 +1,40 @@
+[
+  {
+    "kind": 0,
+    "rule": "consistent-type-exports",
+    "message": {
+      "id": "multipleExportsAreTypes",
+      "description": "Type exports Alias and IFace are not values and should be exported using `export type`."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 0,
+      "end": 0
+    },
+    "fixes": [
+      {
+        "text": "export type { Alias, IFace };\nexport { TypeNS };",
+        "range": {
+          "pos": 101,
+          "end": 133
+        }
+      }
+    ],
+    "labeled_ranges": [
+      {
+        "label": "Alias is a type export, try `type Alias`",
+        "range": {
+          "pos": 110,
+          "end": 115
+        }
+      },
+      {
+        "label": "IFace is a type export, try `type IFace`",
+        "range": {
+          "pos": 117,
+          "end": 122
+        }
+      }
+    ]
+  }
+]

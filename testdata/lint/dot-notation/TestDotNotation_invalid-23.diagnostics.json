@@ -1,0 +1,31 @@
+[
+  {
+    "rule": "dot-notation",
+    "message": {
+      "id": "useDot",
+      "description": "[\"key_baz\"] is better written in dot notation."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 71,
+      "end": 80
+    },
+    "fixes": [
+      {
+        "text": ".",
+        "range": {
+          "pos": 70,
+          "end": 70
+        }
+      },
+      {
+        "text": "key_baz",
+        "range": {
+          "pos": 70,
+          "end": 81
+        }
+      }
+    ],
+    "kind": 0
+  }
+]

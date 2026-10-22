@@ -1,0 +1,16 @@
+[
+  {
+    "kind": 0,
+    "range": {
+      "pos": 26,
+      "end": 36
+    },
+    "message": {
+      "id": "anyAssignmentThis",
+      "description": "Unsafe assignment of an any value. `this` is typed as `any`.",
+      "help": "Assigned value has type `any`, so the target is also inferred as `any`. Enable `noImplicitThis` or add an explicit `this` parameter to the function."
+    },
+    "file_path": "file.ts",
+    "rule": "no-unsafe-assignment"
+  }
+]

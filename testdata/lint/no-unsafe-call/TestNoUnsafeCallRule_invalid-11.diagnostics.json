@@ -1,0 +1,30 @@
+[
+  {
+    "kind": 0,
+    "rule": "no-unsafe-call",
+    "message": {
+      "id": "unsafeCallThis",
+      "description": "Unsafe call of a(n) `any` typed value. `this` is typed as `any`.\n",
+      "help": "You can try to fix this by turning on the `noImplicitThis` compiler option, or adding a `this` parameter to the function."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "end": 56,
+      "pos": 44
+    }
+  },
+  {
+    "kind": 0,
+    "rule": "no-unsafe-call",
+    "message": {
+      "id": "unsafeCallThis",
+      "description": "Unsafe call of a(n) `any` typed value. `this` is typed as `any`.\n",
+      "help": "You can try to fix this by turning on the `noImplicitThis` compiler option, or adding a `this` parameter to the function."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 124,
+      "end": 128
+    }
+  }
+]

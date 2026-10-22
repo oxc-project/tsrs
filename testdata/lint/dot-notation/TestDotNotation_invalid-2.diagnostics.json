@@ -1,0 +1,31 @@
+[
+  {
+    "message": {
+      "id": "useDot",
+      "description": "[\"true\"] is better written in dot notation."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 2,
+      "end": 8
+    },
+    "fixes": [
+      {
+        "text": ".",
+        "range": {
+          "pos": 1,
+          "end": 1
+        }
+      },
+      {
+        "text": "true",
+        "range": {
+          "pos": 1,
+          "end": 9
+        }
+      }
+    ],
+    "kind": 0,
+    "rule": "dot-notation"
+  }
+]

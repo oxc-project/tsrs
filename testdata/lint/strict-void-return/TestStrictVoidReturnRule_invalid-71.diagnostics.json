@@ -1,0 +1,15 @@
+[
+  {
+    "rule": "strict-void-return",
+    "message": {
+      "id": "asyncFunc",
+      "description": "Async function used in a context where a void function is expected."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 63,
+      "end": 123
+    },
+    "kind": 0
+  }
+]

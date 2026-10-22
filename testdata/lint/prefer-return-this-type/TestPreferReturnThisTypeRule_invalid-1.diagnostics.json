@@ -1,0 +1,24 @@
+[
+  {
+    "kind": 0,
+    "rule": "prefer-return-this-type",
+    "message": {
+      "id": "useThisType",
+      "description": "Use `this` type instead."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 32,
+      "end": 35
+    },
+    "fixes": [
+      {
+        "text": "this",
+        "range": {
+          "pos": 32,
+          "end": 35
+        }
+      }
+    ]
+  }
+]

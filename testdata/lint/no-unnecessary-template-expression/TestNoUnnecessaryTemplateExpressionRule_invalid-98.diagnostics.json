@@ -1,0 +1,38 @@
+[
+  {
+    "message": {
+      "id": "noUnnecessaryTemplateExpression",
+      "description": "Template literal expression is unnecessary and can be simplified."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 55,
+      "end": 84
+    },
+    "fixes": [
+      {
+        "text": "",
+        "range": {
+          "pos": 55,
+          "end": 57
+        }
+      },
+      {
+        "text": "",
+        "range": {
+          "pos": 83,
+          "end": 84
+        }
+      },
+      {
+        "text": "but it isn\\'t whitespace",
+        "range": {
+          "pos": 57,
+          "end": 83
+        }
+      }
+    ],
+    "kind": 0,
+    "rule": "no-unnecessary-template-expression"
+  }
+]

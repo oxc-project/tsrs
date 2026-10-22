@@ -1,0 +1,39 @@
+[
+  {
+    "suggestions": [
+      {
+        "message": {
+          "id": "requiredPromiseAwaitSuggestion",
+          "description": "Add `await` before the expression. Use caution as this may impact control flow."
+        },
+        "fixes": [
+          {
+            "text": "await (",
+            "range": {
+              "pos": 69,
+              "end": 69
+            }
+          },
+          {
+            "text": ")",
+            "range": {
+              "pos": 82,
+              "end": 82
+            }
+          }
+        ]
+      }
+    ],
+    "kind": 0,
+    "rule": "return-await",
+    "message": {
+      "id": "requiredPromiseAwait",
+      "description": "Returning an awaited promise is required in this context."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 69,
+      "end": 82
+    }
+  }
+]

@@ -1,0 +1,3878 @@
+{
+  "Name": "no-misused-promises",
+  "TSConfig": "tsconfig.minimal.json",
+  "Valid": [
+    {
+      "Code": "\nif (true) {\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nif (Promise.resolve()) {\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "checksConditionals": false,
+        "checksSpreads": true,
+        "checksVoidReturn": true
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nif (true) {\n} else if (false) {\n} else {\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nif (Promise.resolve()) {\n} else if (Promise.resolve()) {\n} else {\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "checksConditionals": false,
+        "checksSpreads": true,
+        "checksVoidReturn": true
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "for (;;) {}",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "for (let i; i < 10; i++) {}",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "for (let i; Promise.resolve(); i++) {}",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "checksConditionals": false,
+        "checksSpreads": true,
+        "checksVoidReturn": true
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "do {} while (true);",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "do {} while (Promise.resolve());",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "checksConditionals": false,
+        "checksSpreads": true,
+        "checksVoidReturn": true
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "while (true) {}",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "while (Promise.resolve()) {}",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "checksConditionals": false,
+        "checksSpreads": true,
+        "checksVoidReturn": true
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "true ? 123 : 456;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "Promise.resolve() ? 123 : 456;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "checksConditionals": false,
+        "checksSpreads": true,
+        "checksVoidReturn": true
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nif (!true) {\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nif (!Promise.resolve()) {\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "checksConditionals": false,
+        "checksSpreads": true,
+        "checksVoidReturn": true
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "(await Promise.resolve()) || false;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "Promise.resolve() || false;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "checksConditionals": false,
+        "checksSpreads": true,
+        "checksVoidReturn": true
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "(true && (await Promise.resolve())) || false;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "(true && Promise.resolve()) || false;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "checksConditionals": false,
+        "checksSpreads": true,
+        "checksVoidReturn": true
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "false || (true && Promise.resolve());",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "(true && Promise.resolve()) || false;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nasync function test() {\n  if (await Promise.resolve()) {\n  }\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nasync function test() {\n  const mixed: Promise | undefined = Promise.resolve();\n  if (mixed) {\n    await mixed;\n  }\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nif (~Promise.resolve()) {\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface NotQuiteThenable {\n  then(param: string): void;\n  then(): void;\n}\nconst value: NotQuiteThenable = { then() {} };\nif (value) {\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "[1, 2, 3].forEach(val => {});",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "[1, 2, 3].forEach(async val => {});",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "checksConditionals": true,
+        "checksSpreads": true,
+        "checksVoidReturn": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "new Promise((resolve, reject) => resolve());",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "new Promise(async (resolve, reject) => resolve());",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "checksConditionals": true,
+        "checksSpreads": true,
+        "checksVoidReturn": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nPromise.all(\n  ['abc', 'def'].map(async val => {\n    await val;\n  }),\n);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst fn: (arg: () => Promise<void> | void) => void = () => {};\nfn(() => Promise.resolve());\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const returnsPromise: (() => Promise<void>) | null;\nif (returnsPromise?.()) {\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const returnsPromise: { call: () => Promise<void> } | null;\nif (returnsPromise?.call()) {\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "Promise.resolve() ?? false;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction test(a: Promise<void> | undefined) {\n  const foo = a ?? Promise.reject();\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction test(p: Promise<boolean> | undefined, bool: boolean) {\n  if (p ?? bool) {\n  }\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nasync function test(p: Promise<boolean | undefined>, bool: boolean) {\n  if ((await p) ?? bool) {\n  }\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nasync function test(p: Promise<boolean> | undefined) {\n  if (await (p ?? Promise.reject())) {\n  }\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare let a: Promise<string> | undefined\n\ndeclare let b: Promise<string>\n\na = a ?? b\n\t\t",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nlet f;\nf = async () => 10;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nlet f: () => Promise<void>;\nf = async () => 10;\nconst g = async () => 0;\nconst h: () => Promise<void> = async () => 10;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst obj = {\n  f: async () => 10,\n};\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst f = async () => 123;\nconst obj = {\n  f,\n};\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst obj = {\n  async f() {\n    return 0;\n  },\n};\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype O = { f: () => Promise<void>; g: () => Promise<void> };\nconst g = async () => 0;\nconst obj: O = {\n  f: async () => 10,\n  g,\n};\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype O = { f: () => Promise<void> };\nconst name = 'f';\nconst obj: O = {\n  async [name]() {\n    return 10;\n  },\n};\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst obj: number = {\n  g() {\n    return 10;\n  },\n};\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst obj = {\n  f: async () => 'foo',\n  async g() {\n    return 0;\n  },\n};\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction f() {\n  return async () => 0;\n}\nfunction g() {\n  return;\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype O = {\n  bool: boolean;\n  func: () => Promise<void>;\n};\nconst Component = (obj: O) => null;\n<Component bool func={async () => 10} />;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": true,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst Component: any = () => null;\n<Component func={async () => 10} />;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": true,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare namespace JSX {\n  interface IntrinsicElements { div: { onClick?: () => void }; }\n}\nfunction MyComponent() { return <div onClick={} />; }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": true,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface ItLike {\n  (name: string, callback: () => Promise<void>): void;\n  (name: string, callback: () => void): void;\n}\n\ndeclare const it: ItLike;\n\nit('', async () => {});\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface ItLike {\n  (name: string, callback: () => void): void;\n  (name: string, callback: () => Promise<void>): void;\n}\n\ndeclare const it: ItLike;\n\nit('', async () => {});\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface ItLike {\n  (name: string, callback: () => void): void;\n}\ninterface ItLike {\n  (name: string, callback: () => Promise<void>): void;\n}\n\ndeclare const it: ItLike;\n\nit('', async () => {});\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface ItLike {\n  (name: string, callback: () => Promise<void>): void;\n}\ninterface ItLike {\n  (name: string, callback: () => void): void;\n}\n\ndeclare const it: ItLike;\n\nit('', async () => {});\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface Props {\n  onEvent: (() => void) | (() => Promise<void>);\n}\n\ndeclare function Component(props: Props): any;\n\nconst _ = <Component onEvent={async () => {}} />;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": true,
+      "Files": {}
+    },
+    {
+      "Code": "\nconsole.log({ ...(await Promise.resolve({ key: 42 })) });\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst getData = () => Promise.resolve({ key: 42 });\n\nconsole.log({\n  someData: 42,\n  ...(await getData()),\n});\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const condition: boolean;\n\nconsole.log({ ...(condition && (await Promise.resolve({ key: 42 }))) });\nconsole.log({ ...(condition || (await Promise.resolve({ key: 42 }))) });\nconsole.log({ ...(condition ? {} : await Promise.resolve({ key: 42 })) });\nconsole.log({ ...(condition ? await Promise.resolve({ key: 42 }) : {}) });\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconsole.log([...(await Promise.resolve(42))]);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconsole.log({ ...Promise.resolve({ key: 42 }) });\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "checksConditionals": true,
+        "checksSpreads": false,
+        "checksVoidReturn": true
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst getData = () => Promise.resolve({ key: 42 });\n\nconsole.log({\n  someData: 42,\n  ...getData(),\n});\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "checksConditionals": true,
+        "checksSpreads": false,
+        "checksVoidReturn": true
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const condition: boolean;\n\nconsole.log({ ...(condition && Promise.resolve({ key: 42 })) });\nconsole.log({ ...(condition || Promise.resolve({ key: 42 })) });\nconsole.log({ ...(condition ? {} : Promise.resolve({ key: 42 })) });\nconsole.log({ ...(condition ? Promise.resolve({ key: 42 }) : {}) });\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "checksConditionals": true,
+        "checksSpreads": false,
+        "checksVoidReturn": true
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n// This is invalid Typescript, but it shouldn't trigger this linter specifically\nconsole.log([...Promise.resolve(42)]);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "checksConditionals": true,
+        "checksSpreads": false,
+        "checksVoidReturn": true
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction spreadAny(..._args: any): void {}\n\nspreadAny(\n  true,\n  () => Promise.resolve(1),\n  () => Promise.resolve(false),\n);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction spreadArrayAny(..._args: Array<any>): void {}\n\nspreadArrayAny(\n  true,\n  () => Promise.resolve(1),\n  () => Promise.resolve(false),\n);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction spreadArrayUnknown(..._args: Array<unknown>): void {}\n\nspreadArrayUnknown(() => Promise.resolve(true), 1, 2);\n\nfunction spreadArrayFuncPromise(\n  ..._args: Array<() => Promise<undefined>>\n): void {}\n\nspreadArrayFuncPromise(\n  () => Promise.resolve(undefined),\n  () => Promise.resolve(undefined),\n);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass TakeCallbacks {\n  constructor(...callbacks: Array<() => void>) {}\n}\n\nnew TakeCallbacks;\nnew TakeCallbacks();\nnew TakeCallbacks(\n  () => 1,\n  () => true,\n);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass Foo {\n  public static doThing(): void {}\n}\n\nclass Bar extends Foo {\n  public async doThing(): Promise<void> {}\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass Foo {\n  public doThing(): void {}\n}\n\nclass Bar extends Foo {\n  public static async doThing(): Promise<void> {}\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass Foo {\n  public doThing = (): void => {};\n}\n\nclass Bar extends Foo {\n  public static doThing = async (): Promise<void> => {};\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass Foo {\n  public doThing = (): void => {};\n}\n\nclass Bar extends Foo {\n  public static accessor doThing = async (): Promise<void> => {};\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass Foo {\n  public accessor doThing = (): void => {};\n}\n\nclass Bar extends Foo {\n  public static accessor doThing = (): void => {};\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass Foo {\n  [key: string]: void;\n}\n\nclass Bar extends Foo {\n  [key: string]: Promise<void>;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "checksConditionals": true,
+        "checksSpreads": true,
+        "checksVoidReturn": {
+          "inheritedMethods": true
+        }
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction restTuple(...args: []): void;\nfunction restTuple(...args: [string]): void;\nfunction restTuple(..._args: string[]): void {}\n\nrestTuple();\nrestTuple('Hello');\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      let value: Record<string, () => void>;\n      value.sync = () => {};\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      type ReturnsRecord = () => Record<string, () => void>;\n\n      const test: ReturnsRecord = () => {\n        return { sync: () => {} };\n      };\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      type ReturnsRecord = () => Record<string, () => void>;\n\n      function sync() {}\n\n      const test: ReturnsRecord = () => {\n        return { sync };\n      };\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      function withTextRecurser<Text extends string>(\n        recurser: (text: Text) => void,\n      ): (text: Text) => void {\n        return (text: Text): void => {\n          if (text.length) {\n            return;\n          }\n\n          return recurser(node);\n        };\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare function foo(cb: undefined | (() => void));\ndeclare const bar: undefined | (() => void);\nfoo(bar);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        type OnSelectNodeFn = (node: string | null) => void;\n\n        interface ASTViewerBaseProps {\n          readonly onSelectNode?: OnSelectNodeFn;\n        }\n\n        declare function ASTViewer(props: ASTViewerBaseProps): null;\n        declare const onSelectFn: OnSelectNodeFn;\n\n        <ASTViewer onSelectNode={onSelectFn} />;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "checksConditionals": true,
+        "checksSpreads": true,
+        "checksVoidReturn": {
+          "attributes": true
+        }
+      },
+      "TSConfig": "",
+      "Tsx": true,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass MyClass {\n  setThing(): void {\n    return;\n  }\n}\n\nclass MySubclassExtendsMyClass extends MyClass {\n  setThing(): void {\n    return;\n  }\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "checksConditionals": true,
+        "checksSpreads": true,
+        "checksVoidReturn": {
+          "inheritedMethods": true
+        }
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass MyClass {\n  async setThing(): Promise<void> {\n    await Promise.resolve();\n  }\n}\n\nclass MySubclassExtendsMyClass extends MyClass {\n  async setThing(): Promise<void> {\n    await Promise.resolve();\n  }\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "checksConditionals": true,
+        "checksSpreads": true,
+        "checksVoidReturn": {
+          "inheritedMethods": true
+        }
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass MyClass {\n  setThing(): void {\n    return;\n  }\n}\n\nclass MySubclassExtendsMyClass extends MyClass {\n  async setThing(): Promise<void> {\n    await Promise.resolve();\n  }\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "checksConditionals": true,
+        "checksSpreads": true,
+        "checksVoidReturn": {
+          "inheritedMethods": false
+        }
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass MyClass {\n  setThing(): void {\n    return;\n  }\n}\n\nabstract class MyAbstractClassExtendsMyClass extends MyClass {\n  abstract setThing(): void;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "checksConditionals": true,
+        "checksSpreads": true,
+        "checksVoidReturn": {
+          "inheritedMethods": true
+        }
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass MyClass {\n  setThing(): void {\n    return;\n  }\n}\n\nabstract class MyAbstractClassExtendsMyClass extends MyClass {\n  abstract setThing(): Promise<void>;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "checksConditionals": true,
+        "checksSpreads": true,
+        "checksVoidReturn": {
+          "inheritedMethods": false
+        }
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass MyClass {\n  setThing(): void {\n    return;\n  }\n}\n\ninterface MyInterfaceExtendsMyClass extends MyClass {\n  setThing(): void;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "checksConditionals": true,
+        "checksSpreads": true,
+        "checksVoidReturn": {
+          "inheritedMethods": true
+        }
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass MyClass {\n  setThing(): void {\n    return;\n  }\n}\n\ninterface MyInterfaceExtendsMyClass extends MyClass {\n  setThing(): Promise<void>;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "checksConditionals": true,
+        "checksSpreads": true,
+        "checksVoidReturn": {
+          "inheritedMethods": false
+        }
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nabstract class MyAbstractClass {\n  abstract setThing(): void;\n}\n\nclass MySubclassExtendsMyAbstractClass extends MyAbstractClass {\n  setThing(): void {\n    return;\n  }\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "checksConditionals": true,
+        "checksSpreads": true,
+        "checksVoidReturn": {
+          "inheritedMethods": true
+        }
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nabstract class MyAbstractClass {\n  abstract setThing(): void;\n}\n\nclass MySubclassExtendsMyAbstractClass extends MyAbstractClass {\n  async setThing(): Promise<void> {\n    await Promise.resolve();\n  }\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "checksConditionals": true,
+        "checksSpreads": true,
+        "checksVoidReturn": {
+          "inheritedMethods": false
+        }
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nabstract class MyAbstractClass {\n  abstract setThing(): void;\n}\n\nabstract class MyAbstractSubclassExtendsMyAbstractClass extends MyAbstractClass {\n  abstract setThing(): void;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "checksConditionals": true,
+        "checksSpreads": true,
+        "checksVoidReturn": {
+          "inheritedMethods": true
+        }
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nabstract class MyAbstractClass {\n  abstract setThing(): void;\n}\n\nabstract class MyAbstractSubclassExtendsMyAbstractClass extends MyAbstractClass {\n  abstract setThing(): Promise<void>;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "checksConditionals": true,
+        "checksSpreads": true,
+        "checksVoidReturn": {
+          "inheritedMethods": false
+        }
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nabstract class MyAbstractClass {\n  abstract setThing(): void;\n}\n\ninterface MyInterfaceExtendsMyAbstractClass extends MyAbstractClass {\n  setThing(): void;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "checksConditionals": true,
+        "checksSpreads": true,
+        "checksVoidReturn": {
+          "inheritedMethods": true
+        }
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nabstract class MyAbstractClass {\n  abstract setThing(): void;\n}\n\ninterface MyInterfaceExtendsMyAbstractClass extends MyAbstractClass {\n  setThing(): Promise<void>;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "checksConditionals": true,
+        "checksSpreads": true,
+        "checksVoidReturn": {
+          "inheritedMethods": false
+        }
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface MyInterface {\n  setThing(): void;\n}\n\ninterface MySubInterfaceExtendsMyInterface extends MyInterface {\n  setThing(): void;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "checksConditionals": true,
+        "checksSpreads": true,
+        "checksVoidReturn": {
+          "inheritedMethods": true
+        }
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface MyInterface {\n  setThing(): void;\n}\n\ninterface MySubInterfaceExtendsMyInterface extends MyInterface {\n  setThing(): Promise<void>;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "checksConditionals": true,
+        "checksSpreads": true,
+        "checksVoidReturn": {
+          "inheritedMethods": false
+        }
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface MyInterface {\n  setThing(): void;\n}\n\nclass MyClassImplementsMyInterface implements MyInterface {\n  setThing(): void {\n    return;\n  }\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "checksConditionals": true,
+        "checksSpreads": true,
+        "checksVoidReturn": {
+          "inheritedMethods": true
+        }
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface MyInterface {\n  setThing(): void;\n}\n\nclass MyClassImplementsMyInterface implements MyInterface {\n  async setThing(): Promise<void> {\n    await Promise.resolve();\n  }\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "checksConditionals": true,
+        "checksSpreads": true,
+        "checksVoidReturn": {
+          "inheritedMethods": false
+        }
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface MyInterface {\n  setThing(): void;\n}\n\nabstract class MyAbstractClassImplementsMyInterface implements MyInterface {\n  abstract setThing(): void;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "checksConditionals": true,
+        "checksSpreads": true,
+        "checksVoidReturn": {
+          "inheritedMethods": true
+        }
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface MyInterface {\n  setThing(): void;\n}\n\nabstract class MyAbstractClassImplementsMyInterface implements MyInterface {\n  abstract setThing(): Promise<void>;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "checksConditionals": true,
+        "checksSpreads": true,
+        "checksVoidReturn": {
+          "inheritedMethods": false
+        }
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype MyTypeLiteralsIntersection = { setThing(): void } & { thing: number };\n\nclass MyClass implements MyTypeLiteralsIntersection {\n  thing = 1;\n  setThing(): void {\n    return;\n  }\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "checksConditionals": true,
+        "checksSpreads": true,
+        "checksVoidReturn": {
+          "inheritedMethods": true
+        }
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype MyTypeLiteralsIntersection = { setThing(): void } & { thing: number };\n\nclass MyClass implements MyTypeLiteralsIntersection {\n  thing = 1;\n  async setThing(): Promise<void> {\n    await Promise.resolve();\n  }\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "checksConditionals": true,
+        "checksSpreads": true,
+        "checksVoidReturn": {
+          "inheritedMethods": false
+        }
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype MyGenericType<IsAsync extends boolean = true> = IsAsync extends true\n  ? { setThing(): Promise<void> }\n  : { setThing(): void };\n\ninterface MyAsyncInterface extends MyGenericType {\n  setThing(): Promise<void>;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "checksConditionals": true,
+        "checksSpreads": true,
+        "checksVoidReturn": {
+          "inheritedMethods": true
+        }
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype MyGenericType<IsAsync extends boolean = true> = IsAsync extends true\n  ? { setThing(): Promise<void> }\n  : { setThing(): void };\n\ninterface MyAsyncInterface extends MyGenericType<false> {\n  setThing(): Promise<void>;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "checksConditionals": true,
+        "checksSpreads": true,
+        "checksVoidReturn": {
+          "inheritedMethods": false
+        }
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface MyInterface {\n  setThing(): void;\n}\n\ninterface MyOtherInterface {\n  setThing(): void;\n}\n\ninterface MyThirdInterface extends MyInterface, MyOtherInterface {\n  setThing(): void;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "checksConditionals": true,
+        "checksSpreads": true,
+        "checksVoidReturn": {
+          "inheritedMethods": true
+        }
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass MyClass {\n  setThing(): void {\n    return;\n  }\n}\n\nclass MyOtherClass {\n  setThing(): void {\n    return;\n  }\n}\n\ninterface MyInterface extends MyClass, MyOtherClass {\n  setThing(): void;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "checksConditionals": true,
+        "checksSpreads": true,
+        "checksVoidReturn": {
+          "inheritedMethods": true
+        }
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface MyInterface {\n  setThing(): void;\n}\n\ninterface MyOtherInterface {\n  setThing(): void;\n}\n\nclass MyClass {\n  setThing(): void {\n    return;\n  }\n}\n\nclass MySubclass extends MyClass implements MyInterface, MyOtherInterface {\n  setThing(): void {\n    return;\n  }\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "checksConditionals": true,
+        "checksSpreads": true,
+        "checksVoidReturn": {
+          "inheritedMethods": true
+        }
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass MyClass {\n  setThing(): void {\n    return;\n  }\n}\n\nconst MyClassExpressionExtendsMyClass = class extends MyClass {\n  setThing(): void {\n    return;\n  }\n};\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "checksConditionals": true,
+        "checksSpreads": true,
+        "checksVoidReturn": {
+          "inheritedMethods": true
+        }
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst MyClassExpression = class {\n  setThing(): void {\n    return;\n  }\n};\n\nclass MyClassExtendsMyClassExpression extends MyClassExpression {\n  setThing(): void {\n    return;\n  }\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "checksConditionals": true,
+        "checksSpreads": true,
+        "checksVoidReturn": {
+          "inheritedMethods": true
+        }
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst MyClassExpression = class {\n  setThing(): void {\n    return;\n  }\n};\ntype MyClassExpressionType = typeof MyClassExpression;\n\ninterface MyInterfaceExtendsMyClassExpression extends MyClassExpressionType {\n  setThing(): void;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "checksConditionals": true,
+        "checksSpreads": true,
+        "checksVoidReturn": {
+          "inheritedMethods": true
+        }
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface MySyncCallSignatures {\n  (): void;\n  (arg: string): void;\n}\ninterface MyAsyncInterface extends MySyncCallSignatures {\n  (): Promise<void>;\n  (arg: string): Promise<void>;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "checksConditionals": true,
+        "checksSpreads": true,
+        "checksVoidReturn": {
+          "inheritedMethods": true
+        }
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface MySyncConstructSignatures {\n  new (): void;\n  new (arg: string): void;\n}\ninterface ThisIsADifferentIssue extends MySyncConstructSignatures {\n  new (): Promise<void>;\n  new (arg: string): Promise<void>;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "checksConditionals": true,
+        "checksSpreads": true,
+        "checksVoidReturn": {
+          "inheritedMethods": true
+        }
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface MySyncIndexSignatures {\n  [key: string]: void;\n  [key: number]: void;\n}\ninterface ThisIsADifferentIssue extends MySyncIndexSignatures {\n  [key: string]: Promise<void>;\n  [key: number]: Promise<void>;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "checksConditionals": true,
+        "checksSpreads": true,
+        "checksVoidReturn": {
+          "inheritedMethods": true
+        }
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface MySyncInterfaceSignatures {\n  (): void;\n  (arg: string): void;\n  new (): void;\n  [key: string]: () => void;\n  [key: number]: () => void;\n}\ninterface MyAsyncInterface extends MySyncInterfaceSignatures {\n  (): Promise<void>;\n  (arg: string): Promise<void>;\n  new (): Promise<void>;\n  [key: string]: () => Promise<void>;\n  [key: number]: () => Promise<void>;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "checksConditionals": true,
+        "checksSpreads": true,
+        "checksVoidReturn": {
+          "inheritedMethods": true
+        }
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface MyCall {\n  (): void;\n  (arg: string): void;\n}\n\ninterface MyIndex {\n  [key: string]: () => void;\n  [key: number]: () => void;\n}\n\ninterface MyConstruct {\n  new (): void;\n  new (arg: string): void;\n}\n\ninterface MyMethods {\n  doSyncThing(): void;\n  doOtherSyncThing(): void;\n  syncMethodProperty: () => void;\n}\ninterface MyInterface extends MyCall, MyIndex, MyConstruct, MyMethods {\n  (): void;\n  (arg: string): void;\n  new (): void;\n  new (arg: string): void;\n  [key: string]: () => void;\n  [key: number]: () => void;\n  doSyncThing(): void;\n  doAsyncThing(): Promise<void>;\n  syncMethodProperty: () => void;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "checksConditionals": true,
+        "checksSpreads": true,
+        "checksVoidReturn": {
+          "inheritedMethods": true
+        }
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "const notAFn1: string = '';",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "const notAFn2: number = 1;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "const notAFn3: boolean = true;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "const notAFn4: { prop: 1 } = { prop: 1 };",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "const notAFn5: {} = {};",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst array: number[] = [1, 2, 3];\narray.filter(a => a > 1);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype ReturnsPromiseVoid = () => Promise<void>;\ndeclare const useCallback: <T extends (...args: unknown[]) => unknown>(\n  fn: T,\n) => T;\nuseCallback<ReturnsPromiseVoid>(async () => {});\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype ReturnsVoid = () => void;\ntype ReturnsPromiseVoid = () => Promise<void>;\ndeclare const useCallback: <T extends (...args: unknown[]) => unknown>(\n  fn: T,\n) => T;\nuseCallback<ReturnsVoid | ReturnsPromiseVoid>(async () => {});\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "if (process.env.SKIP) { return x; }",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst sent: string[] = [];\nconst send = (message: string): Promise<void> => (sent.push(message), Promise.resolve());\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst sent: string[] = [];\ndeclare const pending: Promise<void>;\nconst all = ['a', 'b'].map(message => (sent.push(message), pending));\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst sent: string[] = [];\ndeclare const pending: Promise<void>;\nconst last = (sent.push('c'), pending);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst sent: string[] = [];\ndeclare const pending: Promise<void>;\nlet assigned: Promise<void>;\nassigned = (sent.push('a'), pending);\nfunction returned(): Promise<void> {\n  return (sent.push('b'), pending);\n}\n(sent.push('c'), pending);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    }
+  ],
+  "Invalid": [
+    {
+      "Code": "\nif (Promise.resolve()) {\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "conditional",
+          "Line": 2,
+          "Column": 5,
+          "EndLine": 2,
+          "EndColumn": 22,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nif (Promise.resolve()) {\n} else if (Promise.resolve()) {\n} else {\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "conditional",
+          "Line": 2,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "conditional",
+          "Line": 3,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "for (let i; Promise.resolve(); i++) {}",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "conditional",
+          "Line": 1,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "do {} while (Promise.resolve());",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "conditional",
+          "Line": 1,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "while (Promise.resolve()) {}",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "conditional",
+          "Line": 1,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "Promise.resolve() ? 123 : 456;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "conditional",
+          "Line": 1,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nif (!Promise.resolve()) {\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "conditional",
+          "Line": 2,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "Promise.resolve() || false;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "conditional",
+          "Line": 1,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n[Promise.resolve(), Promise.reject()].forEach(async val => {\n  await val;\n});\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "voidReturnArgument",
+          "Line": 2,
+          "Column": 57,
+          "EndLine": 2,
+          "EndColumn": 59,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nnew Promise(async (resolve, reject) => {\n  await Promise.resolve();\n  resolve();\n});\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "voidReturnArgument",
+          "Line": 2,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst fnWithCallback = (arg: string, cb: (err: any, res: string) => void) => {\n  cb(null, arg);\n};\n\nfnWithCallback('val', async (err, res) => {\n  await res;\n});\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "voidReturnArgument",
+          "Line": 6,
+          "Column": 40,
+          "EndLine": 6,
+          "EndColumn": 42,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst fnWithCallback = (arg: string, cb: (err: any, res: string) => void) => {\n  cb(null, arg);\n};\n\nfnWithCallback('val', (err, res) => Promise.resolve(res));\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "voidReturnArgument",
+          "Line": 6,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst fnWithCallback = (arg: string, cb: (err: any, res: string) => void) => {\n  cb(null, arg);\n};\n\nfnWithCallback('val', (err, res) => {\n  if (err) {\n    return 'abc';\n  } else {\n    return Promise.resolve(res);\n  }\n});\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "voidReturnArgument",
+          "Line": 6,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst fnWithCallback:\n  | ((arg: string, cb: (err: any, res: string) => void) => void)\n  | null = (arg, cb) => {\n  cb(null, arg);\n};\n\nfnWithCallback?.('val', (err, res) => Promise.resolve(res));\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "voidReturnArgument",
+          "Line": 8,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst fnWithCallback:\n  | ((arg: string, cb: (err: any, res: string) => void) => void)\n  | null = (arg, cb) => {\n  cb(null, arg);\n};\n\nfnWithCallback('val', (err, res) => {\n  if (err) {\n    return 'abc';\n  } else {\n    return Promise.resolve(res);\n  }\n});\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "voidReturnArgument",
+          "Line": 8,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction test(bool: boolean, p: Promise<void>) {\n  if (bool || p) {\n  }\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "conditional",
+          "Line": 3,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction test(bool: boolean, p: Promise<void>) {\n  if (bool && p) {\n  }\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "conditional",
+          "Line": 3,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction test(a: any, p: Promise<void>) {\n  if (a ?? p) {\n  }\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "conditional",
+          "Line": 3,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction test(p: Promise<void> | undefined) {\n  if (p ?? Promise.reject()) {\n  }\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "conditional",
+          "Line": 3,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nlet f: () => void;\nf = async () => {\n  return 3;\n};\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "voidReturnVariable",
+          "Line": 3,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nlet f: () => void;\nf = async () => {\n  return 3;\n};\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "voidReturnVariable",
+          "Line": 3,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "checksConditionals": true,
+        "checksSpreads": true,
+        "checksVoidReturn": {
+          "variables": true
+        }
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst f: () => void = async () => {\n  return 0;\n};\nconst g = async () => 1,\n  h: () => void = async () => {};\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "voidReturnVariable",
+          "Line": 2,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "voidReturnVariable",
+          "Line": 6,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst obj: {\n  f?: () => void;\n} = {};\nobj.f = async () => {\n  return 0;\n};\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "voidReturnVariable",
+          "Line": 5,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype O = { f: () => void };\nconst obj: O = {\n  f: async () => 'foo',\n};\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "voidReturnProperty",
+          "Line": 4,
+          "Column": 15,
+          "EndLine": 4,
+          "EndColumn": 17,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype O = { f: () => void };\nconst obj: O = {\n  f: async () => 'foo',\n};\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "voidReturnProperty",
+          "Line": 4,
+          "Column": 15,
+          "EndLine": 4,
+          "EndColumn": 17,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "checksConditionals": true,
+        "checksSpreads": true,
+        "checksVoidReturn": {
+          "properties": true
+        }
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype O = { f: () => void };\nconst f = async () => 0;\nconst obj: O = {\n  f,\n};\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "voidReturnProperty",
+          "Line": 5,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype O = { f: () => void };\nconst obj: O = {\n  async f() {\n    return 0;\n  },\n};\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "voidReturnProperty",
+          "Line": 4,
+          "Column": 3,
+          "EndLine": 4,
+          "EndColumn": 10,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype O = { f: () => void; g: () => void; h: () => void };\nfunction f(): O {\n  const h = async () => 0;\n  return {\n    async f() {\n      return 123;\n    },\n    g: async () => 0,\n    h,\n  };\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "voidReturnProperty",
+          "Line": 6,
+          "Column": 5,
+          "EndLine": 6,
+          "EndColumn": 12,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "voidReturnProperty",
+          "Line": 9,
+          "Column": 17,
+          "EndLine": 9,
+          "EndColumn": 19,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "voidReturnProperty",
+          "Line": 10,
+          "Column": 5,
+          "EndLine": 10,
+          "EndColumn": 6,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction f(): () => void {\n  return async () => 0;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "voidReturnReturnValue",
+          "Line": 3,
+          "Column": 19,
+          "EndLine": 3,
+          "EndColumn": 21,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction f(): () => void {\n  return async () => 0;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "voidReturnReturnValue",
+          "Line": 3,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "checksConditionals": true,
+        "checksSpreads": true,
+        "checksVoidReturn": {
+          "returns": true
+        }
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype O = {\n  func: () => void;\n};\nconst Component = (obj: O) => null;\n<Component func={async () => 0} />;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "voidReturnAttribute",
+          "Line": 6,
+          "Column": 27,
+          "EndLine": 6,
+          "EndColumn": 29,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": true,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype O = {\n  func: () => void;\n};\nconst Component = (obj: O) => null;\n<Component func={async () => 0} />;\n      ",
+      "Only": false,
+      "Skip": true,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "voidReturnAttribute",
+          "Line": 6,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "checksConditionals": true,
+        "checksSpreads": true,
+        "checksVoidReturn": {
+          "attributes": true
+        }
+      },
+      "Tsx": true,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype O = {\n  func: () => void;\n};\nconst g = async () => 'foo';\nconst Component = (obj: O) => null;\n<Component func={g} />;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "voidReturnAttribute",
+          "Line": 7,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": true,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface ItLike {\n  (name: string, callback: () => number): void;\n  (name: string, callback: () => void): void;\n}\n\ndeclare const it: ItLike;\n\nit('', async () => {});\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "voidReturnArgument",
+          "Line": 9,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface ItLike {\n  (name: string, callback: () => number): void;\n}\ninterface ItLike {\n  (name: string, callback: () => void): void;\n}\n\ndeclare const it: ItLike;\n\nit('', async () => {});\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "voidReturnArgument",
+          "Line": 11,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface ItLike {\n  (name: string, callback: () => void): void;\n}\ninterface ItLike {\n  (name: string, callback: () => number): void;\n}\n\ndeclare const it: ItLike;\n\nit('', async () => {});\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "voidReturnArgument",
+          "Line": 11,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconsole.log({ ...Promise.resolve({ key: 42 }) });\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "spread",
+          "Line": 2,
+          "Column": 15,
+          "EndLine": 2,
+          "EndColumn": 18,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst getData = () => Promise.resolve({ key: 42 });\n\nconsole.log({\n  someData: 42,\n  ...getData(),\n});\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "spread",
+          "Line": 6,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const condition: boolean;\n\nconsole.log({ ...(condition && Promise.resolve({ key: 42 })) });\nconsole.log({ ...(condition || Promise.resolve({ key: 42 })) });\nconsole.log({ ...(condition ? {} : Promise.resolve({ key: 42 })) });\nconsole.log({ ...(condition ? Promise.resolve({ key: 42 }) : {}) });\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "spread",
+          "Line": 4,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "spread",
+          "Line": 5,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "spread",
+          "Line": 6,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "spread",
+          "Line": 7,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction restPromises(first: Boolean, ...callbacks: Array<() => void>): void {}\n\nrestPromises(\n  true,\n  () => Promise.resolve(true),\n  () => Promise.resolve(null),\n  () => true,\n  () => Promise.resolve('Hello'),\n);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "voidReturnArgument",
+          "Line": 6,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "voidReturnArgument",
+          "Line": 7,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "voidReturnArgument",
+          "Line": 9,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype MyUnion = (() => void) | boolean;\n\nfunction restUnion(first: string, ...callbacks: Array<MyUnion>): void {}\nrestUnion('Testing', false, () => Promise.resolve(true));\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "voidReturnArgument",
+          "Line": 5,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction restTupleOne(first: string, ...callbacks: [() => void]): void {}\nrestTupleOne('My string', () => Promise.resolve(1));\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "voidReturnArgument",
+          "Line": 3,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction restTupleTwo(\n  first: boolean,\n  ...callbacks: [undefined, () => void, undefined]\n): void {}\n\nrestTupleTwo(true, undefined, () => Promise.resolve(true), undefined);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "voidReturnArgument",
+          "Line": 7,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction restTupleFour(\n  first: number,\n  ...callbacks: [() => void, boolean, () => void, () => void]\n): void;\n\nrestTupleFour(\n  1,\n  () => Promise.resolve(true),\n  false,\n  () => {},\n  () => Promise.resolve(1),\n);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "voidReturnArgument",
+          "Line": 9,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "voidReturnArgument",
+          "Line": 12,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass TakesVoidCb {\n  constructor(first: string, ...args: Array<() => void>);\n}\n\nnew TakesVoidCb;\nnew TakesVoidCb();\nnew TakesVoidCb(\n  'Testing',\n  () => {},\n  () => Promise.resolve(true),\n);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "voidReturnArgument",
+          "Line": 11,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction restTuple(...args: []): void;\nfunction restTuple(...args: [boolean, () => void]): void;\nfunction restTuple(..._args: any[]): void {}\n\nrestTuple();\nrestTuple(true, () => Promise.resolve(1));\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "voidReturnArgument",
+          "Line": 7,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype ReturnsRecord = () => Record<string, () => void>;\n\nconst test: ReturnsRecord = () => {\n  return { asynchronous: async () => {} };\n};\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "voidReturnProperty",
+          "Line": 5,
+          "Column": 35,
+          "EndLine": 5,
+          "EndColumn": 37,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nlet value: Record<string, () => void>;\nvalue.asynchronous = async () => {};\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "voidReturnVariable",
+          "Line": 3,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype ReturnsRecord = () => Record<string, () => void>;\n\nasync function asynchronous() {}\n\nconst test: ReturnsRecord = () => {\n  return { asynchronous };\n};\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "voidReturnProperty",
+          "Line": 7,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare function foo(cb: undefined | (() => void));\ndeclare const bar: undefined | (() => Promise<void>);\nfoo(bar);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "voidReturnArgument",
+          "Line": 4,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare function foo(cb: string & (() => void));\ndeclare const bar: string & (() => Promise<void>);\nfoo(bar);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "voidReturnArgument",
+          "Line": 4,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction consume(..._callbacks: Array<() => void>): void {}\nlet cbs: Array<() => Promise<boolean>> = [\n  () => Promise.resolve(true),\n  () => Promise.resolve(true),\n];\nconsume(...cbs);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "voidReturnArgument",
+          "Line": 7,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction consume(..._callbacks: Array<() => void>): void {}\nlet cbs = [() => Promise.resolve(true), () => Promise.resolve(true)] as const;\nconsume(...cbs);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "voidReturnArgument",
+          "Line": 4,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction consume(..._callbacks: Array<() => void>): void {}\nlet cbs = [() => Promise.resolve(true), () => Promise.resolve(true)];\nconsume(...cbs);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "voidReturnArgument",
+          "Line": 4,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass MyClass {\n  setThing(): void {\n    return;\n  }\n}\n\nclass MySubclassExtendsMyClass extends MyClass {\n  async setThing(): Promise<void> {\n    await Promise.resolve();\n  }\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "voidReturnInheritedMethod",
+          "Line": 9,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass MyClass {\n  setThing(): void {\n    return;\n  }\n}\n\nabstract class MyAbstractClassExtendsMyClass extends MyClass {\n  abstract setThing(): Promise<void>;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "voidReturnInheritedMethod",
+          "Line": 9,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass MyClass {\n  setThing(): void {\n    return;\n  }\n}\n\ninterface MyInterfaceExtendsMyClass extends MyClass {\n  setThing(): Promise<void>;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "voidReturnInheritedMethod",
+          "Line": 9,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nabstract class MyAbstractClass {\n  abstract setThing(): void;\n}\n\nclass MySubclassExtendsMyAbstractClass extends MyAbstractClass {\n  async setThing(): Promise<void> {\n    await Promise.resolve();\n  }\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "voidReturnInheritedMethod",
+          "Line": 7,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nabstract class MyAbstractClass {\n  abstract setThing(): void;\n}\n\nabstract class MyAbstractSubclassExtendsMyAbstractClass extends MyAbstractClass {\n  abstract setThing(): Promise<void>;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "voidReturnInheritedMethod",
+          "Line": 7,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nabstract class MyAbstractClass {\n  abstract setThing(): void;\n}\n\ninterface MyInterfaceExtendsMyAbstractClass extends MyAbstractClass {\n  setThing(): Promise<void>;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "voidReturnInheritedMethod",
+          "Line": 7,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface MyInterface {\n  setThing(): void;\n}\n\nclass MyInterfaceSubclass implements MyInterface {\n  async setThing(): Promise<void> {\n    await Promise.resolve();\n  }\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "voidReturnInheritedMethod",
+          "Line": 7,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface MyInterface {\n  setThing(): void;\n}\n\nabstract class MyAbstractClassImplementsMyInterface implements MyInterface {\n  abstract setThing(): Promise<void>;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "voidReturnInheritedMethod",
+          "Line": 7,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass MyClass {\n  accessor setThing = (): void => {\n    return;\n  };\n}\n\nclass MySubclassExtendsMyClass extends MyClass {\n  accessor setThing = async (): Promise<void> => {\n    await Promise.resolve();\n  };\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "voidReturnInheritedMethod",
+          "Line": 9,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nabstract class MyClass {\n  abstract accessor setThing: () => void;\n}\n\nabstract class MySubclassExtendsMyClass extends MyClass {\n  abstract accessor setThing: () => Promise<void>;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "voidReturnInheritedMethod",
+          "Line": 7,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface MyInterface {\n  setThing(): void;\n}\n\ninterface MySubInterface extends MyInterface {\n  setThing(): Promise<void>;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "voidReturnInheritedMethod",
+          "Line": 7,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype MyTypeIntersection = { setThing(): void } & { thing: number };\n\nclass MyClassImplementsMyTypeIntersection implements MyTypeIntersection {\n  thing = 1;\n  async setThing(): Promise<void> {\n    await Promise.resolve();\n  }\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "voidReturnInheritedMethod",
+          "Line": 6,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype MyGenericType<IsAsync extends boolean = true> = IsAsync extends true\n  ? { setThing(): Promise<void> }\n  : { setThing(): void };\n\ninterface MyAsyncInterface extends MyGenericType<false> {\n  setThing(): Promise<void>;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "voidReturnInheritedMethod",
+          "Line": 7,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface MyInterface {\n  setThing(): void;\n}\n\ninterface MyOtherInterface {\n  setThing(): void;\n}\n\ninterface MyThirdInterface extends MyInterface, MyOtherInterface {\n  setThing(): Promise<void>;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "voidReturnInheritedMethod",
+          "Line": 11,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "voidReturnInheritedMethod",
+          "Line": 11,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass MyClass {\n  setThing(): void {\n    return;\n  }\n}\n\nclass MyOtherClass {\n  setThing(): void {\n    return;\n  }\n}\n\ninterface MyInterface extends MyClass, MyOtherClass {\n  setThing(): Promise<void>;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "voidReturnInheritedMethod",
+          "Line": 15,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "voidReturnInheritedMethod",
+          "Line": 15,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface MyAsyncInterface {\n  setThing(): Promise<void>;\n}\n\ninterface MySyncInterface {\n  setThing(): void;\n}\n\nclass MyClass {\n  setThing(): void {\n    return;\n  }\n}\n\nclass MySubclass extends MyClass implements MyAsyncInterface, MySyncInterface {\n  async setThing(): Promise<void> {\n    await Promise.resolve();\n  }\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "voidReturnInheritedMethod",
+          "Line": 17,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "voidReturnInheritedMethod",
+          "Line": 17,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface MyInterface {\n  setThing(): void;\n}\n\nconst MyClassExpressionExtendsMyClass = class implements MyInterface {\n  setThing(): Promise<void> {\n    await Promise.resolve();\n  }\n};\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "voidReturnInheritedMethod",
+          "Line": 7,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst MyClassExpression = class {\n  setThing(): void {\n    return;\n  }\n};\n\nclass MyClassExtendsMyClassExpression extends MyClassExpression {\n  async setThing(): Promise<void> {\n    await Promise.resolve();\n  }\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "voidReturnInheritedMethod",
+          "Line": 9,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst MyClassExpression = class {\n  setThing(): void {\n    return;\n  }\n};\ntype MyClassExpressionType = typeof MyClassExpression;\n\ninterface MyInterfaceExtendsMyClassExpression extends MyClassExpressionType {\n  setThing(): Promise<void>;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "voidReturnInheritedMethod",
+          "Line": 10,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface MySyncInterface {\n  (): void;\n  (arg: string): void;\n  new (): void;\n  [key: string]: () => void;\n  [key: number]: () => void;\n  myMethod(): void;\n}\ninterface MyAsyncInterface extends MySyncInterface {\n  (): Promise<void>;\n  (arg: string): Promise<void>;\n  new (): Promise<void>;\n  [key: string]: () => Promise<void>;\n  [key: number]: () => Promise<void>;\n  myMethod(): Promise<void>;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "voidReturnInheritedMethod",
+          "Line": 16,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface MyCall {\n  (): void;\n  (arg: string): void;\n}\n\ninterface MyIndex {\n  [key: string]: () => void;\n  [key: number]: () => void;\n}\n\ninterface MyConstruct {\n  new (): void;\n  new (arg: string): void;\n}\n\ninterface MyMethods {\n  doSyncThing(): void;\n  doOtherSyncThing(): void;\n  syncMethodProperty: () => void;\n}\ninterface MyInterface extends MyCall, MyIndex, MyConstruct, MyMethods {\n  (): void;\n  (arg: string): Promise<void>;\n  new (): void;\n  new (arg: string): void;\n  [key: string]: () => Promise<void>;\n  [key: number]: () => void;\n  doSyncThing(): Promise<void>;\n  doAsyncThing(): Promise<void>;\n  syncMethodProperty: () => Promise<void>;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "voidReturnInheritedMethod",
+          "Line": 29,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "voidReturnInheritedMethod",
+          "Line": 31,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare function isTruthy(value: unknown): Promise<boolean>;\n[0, 1, 2].filter(isTruthy);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "predicate",
+          "Line": 3,
+          "Column": 18,
+          "EndLine": 3,
+          "EndColumn": 26,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst array: number[] = [];\narray.every(() => Promise.resolve(true));\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "predicate",
+          "Line": 3,
+          "Column": 16,
+          "EndLine": 3,
+          "EndColumn": 18,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst array: (string[] & { foo: 'bar' }) | (number[] & { bar: 'foo' }) = [];\narray.every(() => Promise.resolve(true));\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "predicate",
+          "Line": 3,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst tuple: [number, number, number] = [1, 2, 3];\ntuple.find(() => Promise.resolve(false));\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "predicate",
+          "Line": 3,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "checksConditionals": true,
+        "checksSpreads": true,
+        "checksVoidReturn": true
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype ReturnsVoid = () => void;\ndeclare const useCallback: <T extends (...args: unknown[]) => unknown>(\n  fn: T,\n) => T;\ndeclare const useCallbackReturningVoid: typeof useCallback<ReturnsVoid>;\nuseCallbackReturningVoid(async () => {});\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "voidReturnArgument",
+          "Line": 7,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype ReturnsVoid = () => void;\ndeclare const useCallback: <T extends (...args: unknown[]) => unknown>(\n  fn: T,\n) => T;\nuseCallback<ReturnsVoid>(async () => {});\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "voidReturnArgument",
+          "Line": 6,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface Foo<T> {\n  (callback: () => T): void;\n  (callback: () => number): void;\n}\ndeclare const foo: Foo<void>;\n\nfoo(async () => {});\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "voidReturnArgument",
+          "Line": 8,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare function tupleFn<T extends (...args: unknown[]) => unknown>(\n  ...fns: [T, string, T]\n): void;\ntupleFn<() => void>(\n  async () => {},\n  'foo',\n  async () => {},\n);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "voidReturnArgument",
+          "Line": 6,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "voidReturnArgument",
+          "Line": 8,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare function arrayFn<T extends (...args: unknown[]) => unknown>(\n  ...fns: (T | string)[]\n): void;\narrayFn<() => void>(\n  async () => {},\n  'foo',\n  async () => {},\n);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "voidReturnArgument",
+          "Line": 6,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "voidReturnArgument",
+          "Line": 8,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype HasVoidMethod = {\n  f(): void;\n};\n\nconst o: HasVoidMethod = {\n  async f() {\n    return 3;\n  },\n};\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "voidReturnProperty",
+          "Line": 7,
+          "Column": 3,
+          "EndLine": 7,
+          "EndColumn": 10,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype HasVoidMethod = {\n  f(): void;\n};\n\nconst o: HasVoidMethod = {\n  async f(): Promise<number> {\n    return 3;\n  },\n};\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "voidReturnProperty",
+          "Line": 7,
+          "Column": 14,
+          "EndLine": 7,
+          "EndColumn": 29,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype HasVoidMethod = {\n  f(): void;\n};\nconst obj: HasVoidMethod = {\n  f() {\n    return Promise.resolve('foo');\n  },\n};\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "voidReturnProperty",
+          "Line": 6,
+          "Column": 3,
+          "EndLine": 6,
+          "EndColumn": 4,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype HasVoidMethod = {\n  f(): void;\n};\nconst obj: HasVoidMethod = {\n  f(): Promise<void> {\n    throw new Error();\n  },\n};\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "voidReturnProperty",
+          "Line": 6,
+          "Column": 8,
+          "EndLine": 6,
+          "EndColumn": 21,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype O = { f: () => void };\nconst asyncFunction = async () => 'foo';\nconst obj: O = {\n  f: asyncFunction,\n};\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "voidReturnProperty",
+          "Line": 5,
+          "Column": 6,
+          "EndLine": 5,
+          "EndColumn": 19,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype O = { f: () => void };\nconst obj: O = {\n  f: async (): Promise<string> => 'foo',\n};\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "voidReturnProperty",
+          "Line": 4,
+          "Column": 16,
+          "EndLine": 4,
+          "EndColumn": 31,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare function on(this: void, ...callbacks: Array<() => void>): void;\non(async () => {}, async () => {});\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "voidReturnArgument",
+          "Line": 3,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "voidReturnArgument",
+          "Line": 3,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass C {\n  private _handler: ((x: number) => Promise<void>) | undefined;\n\n  set handler(handler: undefined | ((x: number) => void)) {\n    this._handler = handler as ((x: number) => Promise<void>) | undefined;\n  }\n\n  get handler() {\n    return this._handler;\n  }\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "voidReturnReturnValue",
+          "Line": 10,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare function takesCb(cb: () => void): void;\nfunction f<T extends () => Promise<void>>(t: T) {\n  takesCb({ ...t });\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "voidReturnArgument",
+          "Line": 4,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction f<T extends () => Promise<void>>(t: T) {\n  const cb: () => void = { ...t };\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "voidReturnVariable",
+          "Line": 3,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface String {\n  (): Promise<void>;\n}\ndeclare function takesCb(cb: () => void): void;\ntakesCb('literal');\ntakesCb(`template`);\nconst cb: () => void = 'literal';\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "voidReturnArgument",
+          "Line": 6,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "voidReturnArgument",
+          "Line": 7,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "voidReturnVariable",
+          "Line": 8,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface Number {\n  (): Promise<void>;\n}\ndeclare function takesCb(cb: () => void): void;\ntakesCb(123);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "voidReturnArgument",
+          "Line": 6,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface Array<T> {\n  (): Promise<void>;\n}\ndeclare function takesCb(cb: () => void): void;\ntakesCb([1, 2]);\nconst cb: () => void = [1, 2];\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "voidReturnArgument",
+          "Line": 6,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "voidReturnVariable",
+          "Line": 7,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst sent: string[] = [];\ndeclare const pending: Promise<void>;\n(sent.push('x'), pending) ? 1 : 2;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "conditional",
+          "Line": 4,
+          "Column": 2,
+          "EndLine": 4,
+          "EndColumn": 25,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst sent: string[] = [];\ndeclare const pending: Promise<void>;\n(sent.push('x'), pending) || false;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "conditional",
+          "Line": 4,
+          "Column": 2,
+          "EndLine": 4,
+          "EndColumn": 25,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst sent: string[] = [];\ndeclare const pending: Promise<void>;\nif (sent.push('a'), pending) {}\n!(sent.push('b'), pending);\n(sent.push('c'), pending) && true;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "conditional",
+          "Line": 4,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "conditional",
+          "Line": 5,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "conditional",
+          "Line": 6,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    }
+  ]
+}

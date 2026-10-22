@@ -1,0 +1,15 @@
+[
+  {
+    "message": {
+      "id": "deprecatedWithReason",
+      "description": "`searchPaths` is deprecated. use newMethod() instead"
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 219,
+      "end": 230
+    },
+    "kind": 0,
+    "rule": "no-deprecated"
+  }
+]

@@ -1,0 +1,56 @@
+[
+  {
+    "range": {
+      "pos": 25,
+      "end": 30
+    },
+    "suggestions": [
+      {
+        "message": {
+          "id": "removeAwait",
+          "description": "Remove unnecessary `await`."
+        },
+        "fixes": [
+          {
+            "text": "",
+            "range": {
+              "pos": 25,
+              "end": 31
+            }
+          },
+          {
+            "text": "(",
+            "range": {
+              "pos": 45,
+              "end": 45
+            }
+          },
+          {
+            "text": ")",
+            "range": {
+              "pos": 53,
+              "end": 53
+            }
+          }
+        ]
+      }
+    ],
+    "labeled_ranges": [
+      {
+        "label": "This expression is not Promise-like",
+        "range": {
+          "pos": 45,
+          "end": 53
+        }
+      }
+    ],
+    "kind": 0,
+    "rule": "await-thenable",
+    "message": {
+      "id": "await",
+      "description": "Unexpected `await` of a non-Promise (non-\"Thenable\") value.",
+      "help": "Remove `await` if the value is synchronous, or change the expression to return a Promise or Thenable before awaiting it."
+    },
+    "file_path": "file.ts"
+  }
+]

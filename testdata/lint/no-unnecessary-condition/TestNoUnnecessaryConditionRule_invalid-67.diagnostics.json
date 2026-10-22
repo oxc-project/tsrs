@@ -1,0 +1,15 @@
+[
+  {
+    "file_path": "file.ts",
+    "range": {
+      "end": 9,
+      "pos": 8
+    },
+    "kind": 0,
+    "rule": "no-unnecessary-condition",
+    "message": {
+      "id": "alwaysTruthy",
+      "description": "Unnecessary conditional, value is always truthy."
+    }
+  }
+]

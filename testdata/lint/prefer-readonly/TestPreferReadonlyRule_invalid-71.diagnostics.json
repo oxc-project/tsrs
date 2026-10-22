@@ -1,0 +1,32 @@
+[
+  {
+    "kind": 0,
+    "range": {
+      "pos": 29,
+      "end": 45
+    },
+    "message": {
+      "id": "preferReadonly",
+      "description": "Member '_isValid' is never reassigned.",
+      "help": "Mark it as `readonly`."
+    },
+    "file_path": "file.ts",
+    "rule": "prefer-readonly",
+    "fixes": [
+      {
+        "text": "readonly ",
+        "range": {
+          "pos": 37,
+          "end": 37
+        }
+      },
+      {
+        "text": ": boolean",
+        "range": {
+          "pos": 45,
+          "end": 45
+        }
+      }
+    ]
+  }
+]

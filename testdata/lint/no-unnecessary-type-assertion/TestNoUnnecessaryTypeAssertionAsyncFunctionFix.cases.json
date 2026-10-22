@@ -1,0 +1,237 @@
+{
+  "Name": "no-unnecessary-type-assertion",
+  "TSConfig": "tsconfig.minimal.json",
+  "Valid": [],
+  "Invalid": [
+    {
+      "Code": "<number>async function() {}.length;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "(async function() {}.length);"
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryAssertion",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "<number>async function named() {}.length;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "(async function named() {}.length);"
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryAssertion",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "<number>async function*() {}.length;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "(async function*() {}.length);"
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryAssertion",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "<number>async /* comment */ function() {}.length;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "(async /* comment */ function() {}.length);"
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryAssertion",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "const length = () => <number>async function() {}.length;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "const length = () => async function() {}.length;"
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryAssertion",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "<number>(async function() {}.length);",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "(async function() {}.length);"
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryAssertion",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "const length = <number>async function() {}.length;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "const length = async function() {}.length;"
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryAssertion",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "declare const async: { length: number };\n<number>async.length;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "declare const async: { length: number };\nasync.length;"
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryAssertion",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "(<number>async function() {}.length);",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "(async function() {}.length);"
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryAssertion",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "declare const async: number;\n<number>async\nfunction named() {}",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "declare const async: number;\nasync\nfunction named() {}"
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryAssertion",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    }
+  ]
+}

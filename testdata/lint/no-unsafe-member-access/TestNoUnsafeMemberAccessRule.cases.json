@@ -1,0 +1,638 @@
+{
+  "Name": "no-unsafe-member-access",
+  "TSConfig": "tsconfig.noImplicitThis.json",
+  "Valid": [
+    {
+      "Code": "\nfunction foo(x: { a: number }, y: any) {\n  x[y++];\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction foo(x: { a: number }) {\n  x.a;\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction foo(x?: { a: number }) {\n  x?.a;\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction foo(x: { a: number }) {\n  x['a'];\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction foo(x?: { a: number }) {\n  x?.['a'];\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction foo(x: { a: number }, y: string) {\n  x[y];\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction foo(x?: { a: number }, y: string) {\n  x?.[y];\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction foo(x: string[]) {\n  x[1];\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass B implements FG.A {}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface B extends FG.A {}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass B implements F.S.T.A {}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface B extends F.S.T.A {}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction foo(x?: { a: number }) {\n  x?.a;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "allowOptionalChaining": true
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction foo(x?: { a: number }, y: string) {\n  x?.[y];\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "allowOptionalChaining": true
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction foo(x: { a: number }, y: 'a') {\n  x?.[y];\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "allowOptionalChaining": true
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction foo(x: { a: number }, y: NotKnown) {\n  x?.[y];\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "allowOptionalChaining": true
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    }
+  ],
+  "Invalid": [
+    {
+      "Code": "\nfunction foo(x: any) {\n  x.a;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unsafeMemberExpression",
+          "Line": 3,
+          "Column": 5,
+          "EndLine": 0,
+          "EndColumn": 6,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction foo(x: any) {\n  x.a.b.c.d.e.f.g;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unsafeMemberExpression",
+          "Line": 3,
+          "Column": 5,
+          "EndLine": 0,
+          "EndColumn": 6,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction foo(x: { a: any }) {\n  x.a.b.c.d.e.f.g;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unsafeMemberExpression",
+          "Line": 3,
+          "Column": 7,
+          "EndLine": 0,
+          "EndColumn": 8,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction foo(x: any) {\n  x['a'];\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unsafeMemberExpression",
+          "Line": 3,
+          "Column": 5,
+          "EndLine": 0,
+          "EndColumn": 8,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction foo(x: any) {\n  x['a']['b']['c'];\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unsafeMemberExpression",
+          "Line": 3,
+          "Column": 5,
+          "EndLine": 0,
+          "EndColumn": 8,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nlet value: NotKnown;\n\nvalue.property;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unsafeMemberExpression",
+          "Line": 4,
+          "Column": 7,
+          "EndLine": 0,
+          "EndColumn": 15,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction foo(x: { a: number }, y: any) {\n  x[y];\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unsafeComputedMemberAccess",
+          "Line": 3,
+          "Column": 5,
+          "EndLine": 0,
+          "EndColumn": 6,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction foo(x?: { a: number }, y: any) {\n  x?.[y];\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unsafeComputedMemberAccess",
+          "Line": 3,
+          "Column": 7,
+          "EndLine": 0,
+          "EndColumn": 8,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction foo(x: { a: number }, y: any) {\n  x[(y += 1)];\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unsafeComputedMemberAccess",
+          "Line": 3,
+          "Column": 5,
+          "EndLine": 0,
+          "EndColumn": 13,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction foo(x: { a: number }, y: any) {\n  x[1 as any];\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unsafeComputedMemberAccess",
+          "Line": 3,
+          "Column": 5,
+          "EndLine": 0,
+          "EndColumn": 13,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction foo(x: { a: number }, y: any) {\n  x[y()];\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unsafeComputedMemberAccess",
+          "Line": 3,
+          "Column": 5,
+          "EndLine": 0,
+          "EndColumn": 8,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction foo(x: string[], y: any) {\n  x[y];\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unsafeComputedMemberAccess",
+          "Line": 3,
+          "Column": 5,
+          "EndLine": 0,
+          "EndColumn": 6,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction foo(x: { a: number }, y: NotKnown) {\n  x[y];\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unsafeComputedMemberAccess",
+          "Line": 3,
+          "Column": 5,
+          "EndLine": 0,
+          "EndColumn": 6,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst methods = {\n  methodA() {\n    return this.methodB()\n  },\n  methodB() {\n    const getProperty = () => Math.random() > 0.5 ? 'methodB' : 'methodC'\n    return this[getProperty()]()\n  },\n  methodC() {\n    return true\n  },\n  methodD() {\n    return (this?.methodA)?.()\n  }\n};\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unsafeThisMemberExpression",
+          "Line": 4,
+          "Column": 17,
+          "EndLine": 0,
+          "EndColumn": 24,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "unsafeThisMemberExpression",
+          "Line": 8,
+          "Column": 17,
+          "EndLine": 0,
+          "EndColumn": 30,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "unsafeThisMemberExpression",
+          "Line": 14,
+          "Column": 19,
+          "EndLine": 0,
+          "EndColumn": 26,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass C {\n  getObs$: any;\n  getPopularDepartments(): void {\n    this.getObs$.pipe().subscribe(res => {\n      log(res);\n    });\n  }\n}\nfunction log(arg: unknown) {}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unsafeMemberExpression",
+          "Line": 5,
+          "Column": 25,
+          "EndLine": 0,
+          "EndColumn": 34,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "unsafeMemberExpression",
+          "Line": 5,
+          "Column": 18,
+          "EndLine": 0,
+          "EndColumn": 22,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nlet value: any;\n\nvalue?.middle.inner;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unsafeMemberExpression",
+          "Line": 4,
+          "Column": 15,
+          "EndLine": 0,
+          "EndColumn": 20,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "allowOptionalChaining": true
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nlet value: any;\n\nvalue?.outer.middle.inner;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unsafeMemberExpression",
+          "Line": 4,
+          "Column": 14,
+          "EndLine": 0,
+          "EndColumn": 20,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "allowOptionalChaining": true
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nlet value: any;\n\nvalue.outer?.middle.inner;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unsafeMemberExpression",
+          "Line": 4,
+          "Column": 21,
+          "EndLine": 0,
+          "EndColumn": 26,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "unsafeMemberExpression",
+          "Line": 4,
+          "Column": 7,
+          "EndLine": 0,
+          "EndColumn": 12,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "allowOptionalChaining": true
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nlet value: any;\n\nvalue.outer.middle?.inner;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unsafeMemberExpression",
+          "Line": 4,
+          "Column": 7,
+          "EndLine": 0,
+          "EndColumn": 12,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "allowOptionalChaining": true
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction foo(x: { a: number }, y: NotKnown) {\n  x[y];\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unsafeComputedMemberAccess",
+          "Line": 3,
+          "Column": 5,
+          "EndLine": 0,
+          "EndColumn": 6,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "allowOptionalChaining": true
+      },
+      "Tsx": false,
+      "Files": {}
+    }
+  ]
+}

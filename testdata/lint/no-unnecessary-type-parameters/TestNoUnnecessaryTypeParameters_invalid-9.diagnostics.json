@@ -1,0 +1,94 @@
+[
+  {
+    "labeled_ranges": [
+      {
+        "label": "This is the only usage of type parameter T in the signature.",
+        "range": {
+          "pos": 57,
+          "end": 58
+        }
+      }
+    ],
+    "kind": 0,
+    "rule": "no-unnecessary-type-parameters",
+    "message": {
+      "id": "sole",
+      "description": "Type parameter T is used only once in the function signature."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 44,
+      "end": 45
+    },
+    "suggestions": [
+      {
+        "message": {
+          "id": "replaceUsagesWithConstraint",
+          "description": "Replace all usages of type parameter with its constraint."
+        },
+        "fixes": [
+          {
+            "text": "unknown",
+            "range": {
+              "end": 58,
+              "pos": 57
+            }
+          },
+          {
+            "text": "",
+            "range": {
+              "pos": 44,
+              "end": 47
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "kind": 0,
+    "rule": "no-unnecessary-type-parameters",
+    "message": {
+      "id": "sole",
+      "description": "Type parameter U is used only once in the function signature."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 47,
+      "end": 48
+    },
+    "suggestions": [
+      {
+        "message": {
+          "id": "replaceUsagesWithConstraint",
+          "description": "Replace all usages of type parameter with its constraint."
+        },
+        "fixes": [
+          {
+            "text": "unknown",
+            "range": {
+              "pos": 61,
+              "end": 62
+            }
+          },
+          {
+            "text": "",
+            "range": {
+              "pos": 45,
+              "end": 48
+            }
+          }
+        ]
+      }
+    ],
+    "labeled_ranges": [
+      {
+        "label": "This is the only usage of type parameter U in the signature.",
+        "range": {
+          "end": 62,
+          "pos": 61
+        }
+      }
+    ]
+  }
+]

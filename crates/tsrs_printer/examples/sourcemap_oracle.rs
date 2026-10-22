@@ -20,6 +20,7 @@ fn main() {
             jsx: false,
             force: false,
         },
+        legacy_string_escapes: false,
     };
     let file = tsrs_parser::parse_source_file(
         opts,

@@ -1,0 +1,62 @@
+[
+  {
+    "suggestions": [
+      {
+        "message": {
+          "id": "addMissingCases",
+          "description": "Add branches for missing cases."
+        },
+        "fixes": [
+          {
+            "text": "\n  case Aaa.Bar: { throw new Error('Not implemented yet: Aaa.Bar case') }",
+            "range": {
+              "pos": 131,
+              "end": 131
+            }
+          }
+        ]
+      }
+    ],
+    "kind": 0,
+    "rule": "switch-exhaustiveness-check",
+    "message": {
+      "id": "switchIsNotExhaustive",
+      "description": "Switch is not exhaustive. Cases not matched: Aaa.Bar"
+    },
+    "file_path": "file.ts",
+    "range": {
+      "end": 80,
+      "pos": 75
+    }
+  },
+  {
+    "range": {
+      "pos": 75,
+      "end": 80
+    },
+    "suggestions": [
+      {
+        "message": {
+          "id": "addMissingCases",
+          "description": "Add branches for missing cases."
+        },
+        "fixes": [
+          {
+            "text": "\n  default: { throw new Error('default case') }",
+            "range": {
+              "pos": 131,
+              "end": 131
+            }
+          }
+        ]
+      }
+    ],
+    "kind": 0,
+    "rule": "switch-exhaustiveness-check",
+    "message": {
+      "id": "switchIsNotExhaustive",
+      "description": "Switch is not exhaustive. Cases not matched: default"
+    },
+    "file_path": "file.ts"
+  }
+]

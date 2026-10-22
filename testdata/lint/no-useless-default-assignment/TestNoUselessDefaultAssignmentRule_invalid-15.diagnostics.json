@@ -1,0 +1,62 @@
+[
+  {
+    "kind": 0,
+    "rule": "no-useless-default-assignment",
+    "message": {
+      "id": "noStrictNullCheck",
+      "description": "This rule requires the `strictNullChecks` compiler option to be turned on to function correctly."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 0,
+      "end": 0
+    }
+  },
+  {
+    "kind": 0,
+    "rule": "no-useless-default-assignment",
+    "message": {
+      "id": "uselessDefaultAssignment",
+      "description": "Default value is useless because the property has type `string` (not nullish). This default assignment will never be used.",
+      "help": "Remove the default assignment"
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 30,
+      "end": 32
+    },
+    "suggestions": [
+      {
+        "message": {
+          "id": "removeDefaultAssignment",
+          "description": "Remove the default value."
+        },
+        "fixes": [
+          {
+            "text": "",
+            "range": {
+              "end": 32,
+              "pos": 27
+            }
+          }
+        ]
+      }
+    ],
+    "labeled_ranges": [
+      {
+        "label": "Default value",
+        "range": {
+          "pos": 30,
+          "end": 32
+        }
+      },
+      {
+        "label": "property type `string` is not nullish",
+        "range": {
+          "pos": 24,
+          "end": 27
+        }
+      }
+    ]
+  }
+]

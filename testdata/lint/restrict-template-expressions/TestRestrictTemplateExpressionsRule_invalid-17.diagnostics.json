@@ -1,0 +1,24 @@
+[
+  {
+    "range": {
+      "pos": 64,
+      "end": 69
+    },
+    "labeled_ranges": [
+      {
+        "label": "Type: never",
+        "range": {
+          "pos": 64,
+          "end": 69
+        }
+      }
+    ],
+    "kind": 0,
+    "rule": "restrict-template-expressions",
+    "message": {
+      "id": "invalidType",
+      "description": "Invalid type used in template literal expression."
+    },
+    "file_path": "file.ts"
+  }
+]

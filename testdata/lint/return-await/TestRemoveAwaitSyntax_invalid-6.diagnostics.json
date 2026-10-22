@@ -1,0 +1,38 @@
+[
+  {
+    "rule": "return-await",
+    "message": {
+      "id": "nonPromiseAwait",
+      "description": "Returning an awaited value that is not a promise is not allowed."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 25,
+      "end": 53
+    },
+    "fixes": [
+      {
+        "text": "",
+        "range": {
+          "pos": 25,
+          "end": 31
+        }
+      },
+      {
+        "text": "(",
+        "range": {
+          "pos": 45,
+          "end": 45
+        }
+      },
+      {
+        "text": ")",
+        "range": {
+          "pos": 53,
+          "end": 53
+        }
+      }
+    ],
+    "kind": 0
+  }
+]

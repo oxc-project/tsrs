@@ -1,0 +1,270 @@
+{
+  "default": [
+    {
+      "kind": 0,
+      "range": {
+        "pos": 859,
+        "end": 894
+      },
+      "message": {
+        "id": "requireCompare",
+        "description": "Require 'compare' argument."
+      },
+      "rule": "require-array-sort-compare"
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 896,
+        "end": 915
+      },
+      "message": {
+        "id": "requireCompare",
+        "description": "Require 'compare' argument."
+      },
+      "rule": "require-array-sort-compare"
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 917,
+        "end": 936
+      },
+      "message": {
+        "id": "requireCompare",
+        "description": "Require 'compare' argument."
+      },
+      "rule": "require-array-sort-compare"
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 938,
+        "end": 954
+      },
+      "message": {
+        "id": "requireCompare",
+        "description": "Require 'compare' argument."
+      },
+      "rule": "require-array-sort-compare"
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 1087,
+        "end": 1109
+      },
+      "message": {
+        "id": "requireCompare",
+        "description": "Require 'compare' argument."
+      },
+      "rule": "require-array-sort-compare"
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 1111,
+        "end": 1128
+      },
+      "message": {
+        "id": "requireCompare",
+        "description": "Require 'compare' argument."
+      },
+      "rule": "require-array-sort-compare"
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 1216,
+        "end": 1242
+      },
+      "message": {
+        "id": "requireCompare",
+        "description": "Require 'compare' argument."
+      },
+      "rule": "require-array-sort-compare"
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 1529,
+        "end": 1547
+      },
+      "message": {
+        "id": "requireCompare",
+        "description": "Require 'compare' argument."
+      },
+      "rule": "require-array-sort-compare"
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 1623,
+        "end": 1636
+      },
+      "message": {
+        "id": "requireCompare",
+        "description": "Require 'compare' argument."
+      },
+      "rule": "require-array-sort-compare"
+    }
+  ],
+  "required": [
+    {
+      "kind": 0,
+      "range": {
+        "pos": 859,
+        "end": 894
+      },
+      "message": {
+        "id": "requireCompare",
+        "description": "Require 'compare' argument."
+      },
+      "rule": "require-array-sort-compare"
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 896,
+        "end": 915
+      },
+      "message": {
+        "id": "requireCompare",
+        "description": "Require 'compare' argument."
+      },
+      "rule": "require-array-sort-compare"
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 917,
+        "end": 936
+      },
+      "message": {
+        "id": "requireCompare",
+        "description": "Require 'compare' argument."
+      },
+      "rule": "require-array-sort-compare"
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 938,
+        "end": 954
+      },
+      "message": {
+        "id": "requireCompare",
+        "description": "Require 'compare' argument."
+      },
+      "rule": "require-array-sort-compare"
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 1071,
+        "end": 1085
+      },
+      "message": {
+        "id": "requireCompare",
+        "description": "Require 'compare' argument."
+      },
+      "rule": "require-array-sort-compare"
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 1087,
+        "end": 1109
+      },
+      "message": {
+        "id": "requireCompare",
+        "description": "Require 'compare' argument."
+      },
+      "rule": "require-array-sort-compare"
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 1111,
+        "end": 1128
+      },
+      "message": {
+        "id": "requireCompare",
+        "description": "Require 'compare' argument."
+      },
+      "rule": "require-array-sort-compare"
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 1175,
+        "end": 1196
+      },
+      "message": {
+        "id": "requireCompare",
+        "description": "Require 'compare' argument."
+      },
+      "rule": "require-array-sort-compare"
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 1216,
+        "end": 1242
+      },
+      "message": {
+        "id": "requireCompare",
+        "description": "Require 'compare' argument."
+      },
+      "rule": "require-array-sort-compare"
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 1244,
+        "end": 1270
+      },
+      "message": {
+        "id": "requireCompare",
+        "description": "Require 'compare' argument."
+      },
+      "rule": "require-array-sort-compare"
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 1511,
+        "end": 1525
+      },
+      "message": {
+        "id": "requireCompare",
+        "description": "Require 'compare' argument."
+      },
+      "rule": "require-array-sort-compare"
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 1529,
+        "end": 1547
+      },
+      "message": {
+        "id": "requireCompare",
+        "description": "Require 'compare' argument."
+      },
+      "rule": "require-array-sort-compare"
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 1623,
+        "end": 1636
+      },
+      "message": {
+        "id": "requireCompare",
+        "description": "Require 'compare' argument."
+      },
+      "rule": "require-array-sort-compare"
+    }
+  ]
+}

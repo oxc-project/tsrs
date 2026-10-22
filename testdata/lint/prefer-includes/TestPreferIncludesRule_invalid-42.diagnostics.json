@@ -1,0 +1,38 @@
+[
+  {
+    "message": {
+      "id": "preferStringIncludes",
+      "description": "Use `String#includes()` method with a string instead."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 94,
+      "end": 109
+    },
+    "fixes": [
+      {
+        "text": "",
+        "range": {
+          "pos": 94,
+          "end": 107
+        }
+      },
+      {
+        "text": "",
+        "range": {
+          "pos": 108,
+          "end": 109
+        }
+      },
+      {
+        "text": ".includes('café')",
+        "range": {
+          "pos": 108,
+          "end": 108
+        }
+      }
+    ],
+    "kind": 0,
+    "rule": "prefer-includes"
+  }
+]

@@ -17,6 +17,7 @@ fn signature_diagnostic_prints_go_position_and_length() {
             path: Path::new(file_name.to_string()),
             external_module_indicator_options:
                 tsrs_ast::parseoptions::ExternalModuleIndicatorOptions::default(),
+            legacy_string_escapes: false,
         },
         "const a = class { private p = 10; };",
         get_script_kind_from_file_name(file_name),

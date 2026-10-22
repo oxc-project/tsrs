@@ -1,0 +1,31 @@
+[
+  {
+    "labeled_ranges": [
+      {
+        "label": "This callback has type `() => Promise<void>`.",
+        "range": {
+          "pos": 131,
+          "end": 179
+        }
+      },
+      {
+        "range": {
+          "pos": 56,
+          "end": 66
+        },
+        "label": "This context accepts a `void`-returning callback through type `() => void`."
+      }
+    ],
+    "kind": 0,
+    "rule": "no-misused-promises",
+    "message": {
+      "id": "voidReturnInheritedMethod",
+      "description": "Promise-returning method provided where a void return was expected by extended/implemented type 'MyClass'."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 131,
+      "end": 179
+    }
+  }
+]

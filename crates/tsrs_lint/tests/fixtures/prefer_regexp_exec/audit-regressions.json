@@ -1,0 +1,299 @@
+{
+  "source": "export {}; declare const text: string;\ntext.match(\"[[:́:]-0]\");\ntext.match(\"[[:‿:]-0]\");\ntext.match(\"[[:‌:]-0]\");\ntext.match(\"[[:‍:]-0]\");\ntext.match(\"[[:²:]-0]\");\ntext.match(\"[[:Ᲊ:]-0]\");\ntext.match(\"(?<Ᲊ>a)\");\ntext.match(\"(?<𐗀>a)\");\ntext.match(\"(?<𐵐>a)\");\ntext.match(\"(?<a\\\\u1c89>a)\");\ntext.match(\"(?<\\\\u1c89>a)\");\ntext.match(\"(?<a\\\\u0301>a)\");\ntext.match(\"(?(a\\\\k<q>)b)\");\ntext.match(\"(?(a\\\\z)b)\");\ntext.match(\"(?(a\\\\u0062)b)\");\ntext.match(\"(?(?=a)(?i))\");\ntext.match(\"(?(?=a)(?i:b)|c)\");\ntext.match(\"(?(?=a)b(?i)|c)\");\ntext.match(\"(?(?=a)((?i)b)|c)\");\ntext.match(\"(a)(?(1)(?i)b|c)\");\ntext.match(\"(?<x>a)(?(x)(?i)b|c)\");\ntext.match(\"(?(x)(?i)b|c)(?<x>a)\");\ntext.match(\"(?(x)(?i)b|c)\");\ntext.match(\"(?(x)b|c)\");\ntext.match(\"(?(?=a)(?-))\");\ntext.match(\"(?<x>a)(?(x)(?-)b|c)\");\n",
+  "diagnostics": [
+    {
+      "kind": 0,
+      "range": {
+        "pos": 151,
+        "end": 156
+      },
+      "message": {
+        "id": "regExpExecOverStringMatch",
+        "description": "Use the `RegExp#exec()` method instead."
+      },
+      "rule": "prefer-regexp-exec",
+      "fixes": [
+        {
+          "text": "/[[:²:]-0]/.exec(text)",
+          "range": {
+            "pos": 146,
+            "end": 170
+          }
+        }
+      ]
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 204,
+        "end": 209
+      },
+      "message": {
+        "id": "regExpExecOverStringMatch",
+        "description": "Use the `RegExp#exec()` method instead."
+      },
+      "rule": "prefer-regexp-exec",
+      "fixes": [
+        {
+          "text": "/(?<Ᲊ>a)/.exec(text)",
+          "range": {
+            "pos": 199,
+            "end": 222
+          }
+        }
+      ]
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 229,
+        "end": 234
+      },
+      "message": {
+        "id": "regExpExecOverStringMatch",
+        "description": "Use the `RegExp#exec()` method instead."
+      },
+      "rule": "prefer-regexp-exec",
+      "fixes": [
+        {
+          "text": "/(?<𐗀>a)/.exec(text)",
+          "range": {
+            "pos": 224,
+            "end": 248
+          }
+        }
+      ]
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 255,
+        "end": 260
+      },
+      "message": {
+        "id": "regExpExecOverStringMatch",
+        "description": "Use the `RegExp#exec()` method instead."
+      },
+      "rule": "prefer-regexp-exec",
+      "fixes": [
+        {
+          "text": "/(?<𐵐>a)/.exec(text)",
+          "range": {
+            "pos": 250,
+            "end": 274
+          }
+        }
+      ]
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 281,
+        "end": 286
+      },
+      "message": {
+        "id": "regExpExecOverStringMatch",
+        "description": "Use the `RegExp#exec()` method instead."
+      },
+      "rule": "prefer-regexp-exec",
+      "fixes": [
+        {
+          "text": "/(?<a\\u1c89>a)/.exec(text)",
+          "range": {
+            "pos": 276,
+            "end": 304
+          }
+        }
+      ]
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 311,
+        "end": 316
+      },
+      "message": {
+        "id": "regExpExecOverStringMatch",
+        "description": "Use the `RegExp#exec()` method instead."
+      },
+      "rule": "prefer-regexp-exec",
+      "fixes": [
+        {
+          "text": "/(?<\\u1c89>a)/.exec(text)",
+          "range": {
+            "pos": 306,
+            "end": 333
+          }
+        }
+      ]
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 340,
+        "end": 345
+      },
+      "message": {
+        "id": "regExpExecOverStringMatch",
+        "description": "Use the `RegExp#exec()` method instead."
+      },
+      "rule": "prefer-regexp-exec",
+      "fixes": [
+        {
+          "text": "/(?<a\\u0301>a)/.exec(text)",
+          "range": {
+            "pos": 335,
+            "end": 363
+          }
+        }
+      ]
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 425,
+        "end": 430
+      },
+      "message": {
+        "id": "regExpExecOverStringMatch",
+        "description": "Use the `RegExp#exec()` method instead."
+      },
+      "rule": "prefer-regexp-exec",
+      "fixes": [
+        {
+          "text": "/(?(a\\u0062)b)/.exec(text)",
+          "range": {
+            "pos": 420,
+            "end": 448
+          }
+        }
+      ]
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 546,
+        "end": 551
+      },
+      "message": {
+        "id": "regExpExecOverStringMatch",
+        "description": "Use the `RegExp#exec()` method instead."
+      },
+      "rule": "prefer-regexp-exec",
+      "fixes": [
+        {
+          "text": "/(?(?=a)((?i)b)|c)/.exec(text)",
+          "range": {
+            "pos": 541,
+            "end": 572
+          }
+        }
+      ]
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 579,
+        "end": 584
+      },
+      "message": {
+        "id": "regExpExecOverStringMatch",
+        "description": "Use the `RegExp#exec()` method instead."
+      },
+      "rule": "prefer-regexp-exec",
+      "fixes": [
+        {
+          "text": "/(a)(?(1)(?i)b|c)/.exec(text)",
+          "range": {
+            "pos": 574,
+            "end": 604
+          }
+        }
+      ]
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 611,
+        "end": 616
+      },
+      "message": {
+        "id": "regExpExecOverStringMatch",
+        "description": "Use the `RegExp#exec()` method instead."
+      },
+      "rule": "prefer-regexp-exec",
+      "fixes": [
+        {
+          "text": "/(?<x>a)(?(x)(?i)b|c)/.exec(text)",
+          "range": {
+            "pos": 606,
+            "end": 640
+          }
+        }
+      ]
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 647,
+        "end": 652
+      },
+      "message": {
+        "id": "regExpExecOverStringMatch",
+        "description": "Use the `RegExp#exec()` method instead."
+      },
+      "rule": "prefer-regexp-exec",
+      "fixes": [
+        {
+          "text": "/(?(x)(?i)b|c)(?<x>a)/.exec(text)",
+          "range": {
+            "pos": 642,
+            "end": 676
+          }
+        }
+      ]
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 712,
+        "end": 717
+      },
+      "message": {
+        "id": "regExpExecOverStringMatch",
+        "description": "Use the `RegExp#exec()` method instead."
+      },
+      "rule": "prefer-regexp-exec",
+      "fixes": [
+        {
+          "text": "/(?(x)b|c)/.exec(text)",
+          "range": {
+            "pos": 707,
+            "end": 730
+          }
+        }
+      ]
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 765,
+        "end": 770
+      },
+      "message": {
+        "id": "regExpExecOverStringMatch",
+        "description": "Use the `RegExp#exec()` method instead."
+      },
+      "rule": "prefer-regexp-exec",
+      "fixes": [
+        {
+          "text": "/(?<x>a)(?(x)(?-)b|c)/.exec(text)",
+          "range": {
+            "pos": 760,
+            "end": 794
+          }
+        }
+      ]
+    }
+  ]
+}

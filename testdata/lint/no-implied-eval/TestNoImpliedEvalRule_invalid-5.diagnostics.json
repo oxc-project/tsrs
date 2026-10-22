@@ -1,0 +1,58 @@
+[
+  {
+    "kind": 0,
+    "range": {
+      "pos": 66,
+      "end": 73
+    },
+    "message": {
+      "id": "noImpliedEvalError",
+      "description": "Implied eval.",
+      "help": "Consider passing a function."
+    },
+    "file_path": "file.ts",
+    "rule": "no-implied-eval"
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 91,
+      "end": 98
+    },
+    "message": {
+      "id": "noImpliedEvalError",
+      "description": "Implied eval.",
+      "help": "Consider passing a function."
+    },
+    "file_path": "file.ts",
+    "rule": "no-implied-eval"
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 117,
+      "end": 124
+    },
+    "message": {
+      "id": "noImpliedEvalError",
+      "description": "Implied eval.",
+      "help": "Consider passing a function."
+    },
+    "file_path": "file.ts",
+    "rule": "no-implied-eval"
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 138,
+      "end": 145
+    },
+    "message": {
+      "id": "noImpliedEvalError",
+      "description": "Implied eval.",
+      "help": "Consider passing a function."
+    },
+    "file_path": "file.ts",
+    "rule": "no-implied-eval"
+  }
+]

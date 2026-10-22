@@ -1,0 +1,16 @@
+[
+  {
+    "kind": 0,
+    "range": {
+      "pos": 110,
+      "end": 116
+    },
+    "message": {
+      "id": "unsafeTypeAssertionAssignableToConstraint",
+      "description": "Unsafe type assertion: the original type is assignable to the constraint of type 'T', but 'T' could be instantiated with a different subtype of its constraint.",
+      "help": "The original expression has type `Obj`, and the assertion changes it to `T`. Use a type guard to narrow the value before asserting a more specific type."
+    },
+    "file_path": "file.ts",
+    "rule": "no-unsafe-type-assertion"
+  }
+]

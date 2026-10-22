@@ -1,0 +1,24 @@
+[
+  {
+    "message": {
+      "id": "predicate",
+      "description": "Expected a non-Promise value to be returned."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 93,
+      "end": 95
+    },
+    "labeled_ranges": [
+      {
+        "label": "This callback has type `() => Promise<boolean>`.",
+        "range": {
+          "pos": 93,
+          "end": 95
+        }
+      }
+    ],
+    "kind": 0,
+    "rule": "no-misused-promises"
+  }
+]

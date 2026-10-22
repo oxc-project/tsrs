@@ -1,0 +1,15 @@
+[
+  {
+    "file_path": "file.ts",
+    "range": {
+      "pos": 9,
+      "end": 16
+    },
+    "kind": 0,
+    "rule": "no-redundant-type-constituents",
+    "message": {
+      "id": "overridden",
+      "description": "'unknown' is overridden by other types in this intersection type."
+    }
+  }
+]

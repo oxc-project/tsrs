@@ -1,0 +1,15 @@
+[
+  {
+    "range": {
+      "pos": 247,
+      "end": 257
+    },
+    "kind": 0,
+    "rule": "no-deprecated",
+    "message": {
+      "id": "deprecatedWithReason",
+      "description": "`statusCode` is deprecated. Use status instead."
+    },
+    "file_path": "file.ts"
+  }
+]

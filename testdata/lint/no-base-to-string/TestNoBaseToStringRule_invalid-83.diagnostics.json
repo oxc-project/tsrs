@@ -1,0 +1,16 @@
+[
+  {
+    "kind": 0,
+    "rule": "no-base-to-string",
+    "message": {
+      "id": "baseArrayJoin",
+      "description": "Using `join()` for foo([{ foo: 'foo' }, 'bar']) may use Object's default stringification format ('[object Object]') when stringified.",
+      "help": "Consider mapping the values to a meaningful string (e.g. pick a property or call a formatter) before calling `join()`, or implementing a custom `toString()`/`toLocaleString()` on the element type."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "end": 173,
+      "pos": 145
+    }
+  }
+]

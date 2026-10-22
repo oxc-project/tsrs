@@ -1,0 +1,1458 @@
+{
+  "Name": "no-unnecessary-type-conversion",
+  "TSConfig": "tsconfig.minimal.json",
+  "Valid": [
+    {
+      "Code": "String(1);",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "(1).toString();",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "`${1}`;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "'' + 1;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "1 + '';",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      let str = 1;\n      str += '';\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "const obj = { prop: 'asdf' }; obj.prop += '';",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "const arr = ['asdf']; arr[0] += '';",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "Number('2');",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "+'2';",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "~~'2';",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "~~1.1;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "~~-1.1;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "~~(1.5 + 2.3);",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "~~(1 / 3);",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "Boolean(0);",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "!!0;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "BigInt(3);",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "new String('asdf');",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "new Number(2);",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "new Boolean(true);",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "!false;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "~2;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      function String(value: unknown) {\n        return value;\n      }\n      String('asdf');\n      export {};\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      function Number(value: unknown) {\n        return value;\n      }\n      Number(2);\n      export {};\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      function Boolean(value: unknown) {\n        return value;\n      }\n      Boolean(true);\n      export {};\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      function BigInt(value: unknown) {\n        return value;\n      }\n      BigInt(3n);\n      export {};\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      function toString(value: unknown) {\n        return value;\n      }\n      toString('asdf');\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      export {};\n      declare const toString: string;\n      toString.toUpperCase();\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "String(...(['asdf'] as [string]));",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "String('asdf', console.log('extra'));",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "'asdf'.toString(console.log('extra'));",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "String(new String());",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "new String().toString();",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "'' + new String();",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "new String() + '';",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      let str = new String();\n      str += '';\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "Number(new Number());",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "+new Number();",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "~~new Number();",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "Boolean(new Boolean());",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "!!new Boolean();",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      enum CustomIds {\n        Id1 = 'id1',\n        Id2 = 'id2',\n      }\n      const customId = 'id1';\n      const compareWithToString = customId === CustomIds.Id1.toString();\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    }
+  ],
+  "Invalid": [
+    {
+      "Code": "String('asdf');",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryTypeConversion",
+          "Line": 0,
+          "Column": 1,
+          "EndLine": 0,
+          "EndColumn": 7,
+          "Suggestions": [
+            {
+              "MessageId": "suggestRemove",
+              "Output": "'asdf';"
+            },
+            {
+              "MessageId": "suggestSatisfies",
+              "Output": "'asdf' satisfies string;"
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "'asdf'.toString();",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryTypeConversion",
+          "Line": 0,
+          "Column": 8,
+          "EndLine": 0,
+          "EndColumn": 18,
+          "Suggestions": [
+            {
+              "MessageId": "suggestRemove",
+              "Output": "'asdf';"
+            },
+            {
+              "MessageId": "suggestSatisfies",
+              "Output": "'asdf' satisfies string;"
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "'' + 'asdf';",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryTypeConversion",
+          "Line": 0,
+          "Column": 1,
+          "EndLine": 0,
+          "EndColumn": 6,
+          "Suggestions": [
+            {
+              "MessageId": "suggestRemove",
+              "Output": "'asdf';"
+            },
+            {
+              "MessageId": "suggestSatisfies",
+              "Output": "'asdf' satisfies string;"
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "'asdf' + '';",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryTypeConversion",
+          "Line": 0,
+          "Column": 7,
+          "EndLine": 0,
+          "EndColumn": 12,
+          "Suggestions": [
+            {
+              "MessageId": "suggestRemove",
+              "Output": "'asdf';"
+            },
+            {
+              "MessageId": "suggestSatisfies",
+              "Output": "'asdf' satisfies string;"
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nlet str = 'asdf';\nstr += '';\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryTypeConversion",
+          "Line": 3,
+          "Column": 1,
+          "EndLine": 3,
+          "EndColumn": 10,
+          "Suggestions": [
+            {
+              "MessageId": "suggestRemove",
+              "Output": "\nlet str = 'asdf';\n\n      "
+            },
+            {
+              "MessageId": "suggestSatisfies",
+              "Output": "\nlet str = 'asdf';\nstr satisfies string;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nlet str = 'asdf';\n'asdf' + (str += '');\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryTypeConversion",
+          "Line": 3,
+          "Column": 11,
+          "EndLine": 3,
+          "EndColumn": 20,
+          "Suggestions": [
+            {
+              "MessageId": "suggestRemove",
+              "Output": "\nlet str = 'asdf';\n'asdf' + (str);\n      "
+            },
+            {
+              "MessageId": "suggestSatisfies",
+              "Output": "\nlet str = 'asdf';\n'asdf' + (str satisfies string);\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "Number(123);",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryTypeConversion",
+          "Line": 0,
+          "Column": 1,
+          "EndLine": 0,
+          "EndColumn": 7,
+          "Suggestions": [
+            {
+              "MessageId": "suggestRemove",
+              "Output": "123;"
+            },
+            {
+              "MessageId": "suggestSatisfies",
+              "Output": "123 satisfies number;"
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "+123;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryTypeConversion",
+          "Line": 0,
+          "Column": 1,
+          "EndLine": 0,
+          "EndColumn": 2,
+          "Suggestions": [
+            {
+              "MessageId": "suggestRemove",
+              "Output": "123;"
+            },
+            {
+              "MessageId": "suggestSatisfies",
+              "Output": "123 satisfies number;"
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "~~123;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryTypeConversion",
+          "Line": 0,
+          "Column": 1,
+          "EndLine": 0,
+          "EndColumn": 3,
+          "Suggestions": [
+            {
+              "MessageId": "suggestRemove",
+              "Output": "123;"
+            },
+            {
+              "MessageId": "suggestSatisfies",
+              "Output": "123 satisfies number;"
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "Boolean(true);",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryTypeConversion",
+          "Line": 0,
+          "Column": 1,
+          "EndLine": 0,
+          "EndColumn": 8,
+          "Suggestions": [
+            {
+              "MessageId": "suggestRemove",
+              "Output": "true;"
+            },
+            {
+              "MessageId": "suggestSatisfies",
+              "Output": "true satisfies boolean;"
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "!!true;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryTypeConversion",
+          "Line": 0,
+          "Column": 1,
+          "EndLine": 0,
+          "EndColumn": 3,
+          "Suggestions": [
+            {
+              "MessageId": "suggestRemove",
+              "Output": "true;"
+            },
+            {
+              "MessageId": "suggestSatisfies",
+              "Output": "true satisfies boolean;"
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "BigInt(3n);",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryTypeConversion",
+          "Line": 0,
+          "Column": 1,
+          "EndLine": 0,
+          "EndColumn": 7,
+          "Suggestions": [
+            {
+              "MessageId": "suggestRemove",
+              "Output": "3n;"
+            },
+            {
+              "MessageId": "suggestSatisfies",
+              "Output": "3n satisfies bigint;"
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        function f<T extends string>(x: T) {\n          return String(x);\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryTypeConversion",
+          "Line": 3,
+          "Column": 18,
+          "EndLine": 3,
+          "EndColumn": 24,
+          "Suggestions": [
+            {
+              "MessageId": "suggestRemove",
+              "Output": "\n        function f<T extends string>(x: T) {\n          return x;\n        }\n      "
+            },
+            {
+              "MessageId": "suggestSatisfies",
+              "Output": "\n        function f<T extends string>(x: T) {\n          return x satisfies string;\n        }\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        function f<T extends number>(x: T) {\n          return Number(x);\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryTypeConversion",
+          "Line": 3,
+          "Column": 18,
+          "EndLine": 3,
+          "EndColumn": 24,
+          "Suggestions": [
+            {
+              "MessageId": "suggestRemove",
+              "Output": "\n        function f<T extends number>(x: T) {\n          return x;\n        }\n      "
+            },
+            {
+              "MessageId": "suggestSatisfies",
+              "Output": "\n        function f<T extends number>(x: T) {\n          return x satisfies number;\n        }\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        function f<T extends boolean>(x: T) {\n          return Boolean(x);\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryTypeConversion",
+          "Line": 3,
+          "Column": 18,
+          "EndLine": 3,
+          "EndColumn": 25,
+          "Suggestions": [
+            {
+              "MessageId": "suggestRemove",
+              "Output": "\n        function f<T extends boolean>(x: T) {\n          return x;\n        }\n      "
+            },
+            {
+              "MessageId": "suggestSatisfies",
+              "Output": "\n        function f<T extends boolean>(x: T) {\n          return x satisfies boolean;\n        }\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        function f<T extends bigint>(x: T) {\n          return BigInt(x);\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryTypeConversion",
+          "Line": 3,
+          "Column": 18,
+          "EndLine": 3,
+          "EndColumn": 24,
+          "Suggestions": [
+            {
+              "MessageId": "suggestRemove",
+              "Output": "\n        function f<T extends bigint>(x: T) {\n          return x;\n        }\n      "
+            },
+            {
+              "MessageId": "suggestSatisfies",
+              "Output": "\n        function f<T extends bigint>(x: T) {\n          return x satisfies bigint;\n        }\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "function f<T extends string>(x: T) { return x + ''; }",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryTypeConversion",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestRemove",
+              "Output": "function f<T extends string>(x: T) { return x; }"
+            },
+            {
+              "MessageId": "suggestSatisfies",
+              "Output": "function f<T extends string>(x: T) { return x satisfies string; }"
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "function f<T extends string>(x: T) { return '' + x; }",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryTypeConversion",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestRemove",
+              "Output": "function f<T extends string>(x: T) { return x; }"
+            },
+            {
+              "MessageId": "suggestSatisfies",
+              "Output": "function f<T extends string>(x: T) { return x satisfies string; }"
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "function f<T extends string>(x: T) {\nx += '';\nreturn x;\n}\n",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryTypeConversion",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestRemove",
+              "Output": "function f<T extends string>(x: T) {\n\nreturn x;\n}\n"
+            },
+            {
+              "MessageId": "suggestSatisfies",
+              "Output": "function f<T extends string>(x: T) {\nx satisfies string;\nreturn x;\n}\n"
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "function f<T extends number>(x: T) { return +x; }",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryTypeConversion",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestRemove",
+              "Output": "function f<T extends number>(x: T) { return x; }"
+            },
+            {
+              "MessageId": "suggestSatisfies",
+              "Output": "function f<T extends number>(x: T) { return x satisfies number; }"
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "function f<T extends boolean>(x: T) { return !!x; }",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryTypeConversion",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestRemove",
+              "Output": "function f<T extends boolean>(x: T) { return x; }"
+            },
+            {
+              "MessageId": "suggestSatisfies",
+              "Output": "function f<T extends boolean>(x: T) { return x satisfies boolean; }"
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "function f<T extends 3 | 4>(x: T) { return ~~x; }",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryTypeConversion",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestRemove",
+              "Output": "function f<T extends 3 | 4>(x: T) { return x; }"
+            },
+            {
+              "MessageId": "suggestSatisfies",
+              "Output": "function f<T extends 3 | 4>(x: T) { return x satisfies number; }"
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "String('a' + 'b').length;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryTypeConversion",
+          "Line": 0,
+          "Column": 1,
+          "EndLine": 0,
+          "EndColumn": 7,
+          "Suggestions": [
+            {
+              "MessageId": "suggestRemove",
+              "Output": "('a' + 'b').length;"
+            },
+            {
+              "MessageId": "suggestSatisfies",
+              "Output": "(('a' + 'b') satisfies string).length;"
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "('a' + 'b').toString().length;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryTypeConversion",
+          "Line": 0,
+          "Column": 13,
+          "EndLine": 0,
+          "EndColumn": 23,
+          "Suggestions": [
+            {
+              "MessageId": "suggestRemove",
+              "Output": "('a' + 'b').length;"
+            },
+            {
+              "MessageId": "suggestSatisfies",
+              "Output": "(('a' + 'b') satisfies string).length;"
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "2 * +(2 + 2);",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryTypeConversion",
+          "Line": 0,
+          "Column": 5,
+          "EndLine": 0,
+          "EndColumn": 6,
+          "Suggestions": [
+            {
+              "MessageId": "suggestRemove",
+              "Output": "2 * (2 + 2);"
+            },
+            {
+              "MessageId": "suggestSatisfies",
+              "Output": "2 * ((2 + 2) satisfies number);"
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "2 * Number(2 + 2);",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryTypeConversion",
+          "Line": 0,
+          "Column": 5,
+          "EndLine": 0,
+          "EndColumn": 11,
+          "Suggestions": [
+            {
+              "MessageId": "suggestRemove",
+              "Output": "2 * (2 + 2);"
+            },
+            {
+              "MessageId": "suggestSatisfies",
+              "Output": "2 * ((2 + 2) satisfies number);"
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "false && !!(false || true);",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryTypeConversion",
+          "Line": 0,
+          "Column": 10,
+          "EndLine": 0,
+          "EndColumn": 12,
+          "Suggestions": [
+            {
+              "MessageId": "suggestRemove",
+              "Output": "false && (false || true);"
+            },
+            {
+              "MessageId": "suggestSatisfies",
+              "Output": "false && ((false || true) satisfies boolean);"
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "false && Boolean(false || true);",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryTypeConversion",
+          "Line": 0,
+          "Column": 10,
+          "EndLine": 0,
+          "EndColumn": 17,
+          "Suggestions": [
+            {
+              "MessageId": "suggestRemove",
+              "Output": "false && (false || true);"
+            },
+            {
+              "MessageId": "suggestSatisfies",
+              "Output": "false && ((false || true) satisfies boolean);"
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "2n * BigInt(2n + 2n);",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryTypeConversion",
+          "Line": 0,
+          "Column": 6,
+          "EndLine": 0,
+          "EndColumn": 12,
+          "Suggestions": [
+            {
+              "MessageId": "suggestRemove",
+              "Output": "2n * (2n + 2n);"
+            },
+            {
+              "MessageId": "suggestSatisfies",
+              "Output": "2n * ((2n + 2n) satisfies bigint);"
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        let str = 'asdf';\n        String(str).length;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryTypeConversion",
+          "Line": 3,
+          "Column": 9,
+          "EndLine": 3,
+          "EndColumn": 15,
+          "Suggestions": [
+            {
+              "MessageId": "suggestRemove",
+              "Output": "\n        let str = 'asdf';\n        str.length;\n      "
+            },
+            {
+              "MessageId": "suggestSatisfies",
+              "Output": "\n        let str = 'asdf';\n        (str satisfies string).length;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        let str = 'asdf';\n        str.toString().length;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryTypeConversion",
+          "Line": 0,
+          "Column": 13,
+          "EndLine": 0,
+          "EndColumn": 23,
+          "Suggestions": [
+            {
+              "MessageId": "suggestRemove",
+              "Output": "\n        let str = 'asdf';\n        str.length;\n      "
+            },
+            {
+              "MessageId": "suggestSatisfies",
+              "Output": "\n        let str = 'asdf';\n        (str satisfies string).length;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "~~1;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryTypeConversion",
+          "Line": 0,
+          "Column": 1,
+          "EndLine": 0,
+          "EndColumn": 3,
+          "Suggestions": [
+            {
+              "MessageId": "suggestRemove",
+              "Output": "1;"
+            },
+            {
+              "MessageId": "suggestSatisfies",
+              "Output": "1 satisfies number;"
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "~~-1;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryTypeConversion",
+          "Line": 0,
+          "Column": 1,
+          "EndLine": 0,
+          "EndColumn": 3,
+          "Suggestions": [
+            {
+              "MessageId": "suggestRemove",
+              "Output": "(-1);"
+            },
+            {
+              "MessageId": "suggestSatisfies",
+              "Output": "(-1) satisfies number;"
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        declare const threeOrFour: 3 | 4;\n        ~~threeOrFour;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryTypeConversion",
+          "Line": 3,
+          "Column": 9,
+          "EndLine": 0,
+          "EndColumn": 11,
+          "Suggestions": [
+            {
+              "MessageId": "suggestRemove",
+              "Output": "\n        declare const threeOrFour: 3 | 4;\n        threeOrFour;\n      "
+            },
+            {
+              "MessageId": "suggestSatisfies",
+              "Output": "\n        declare const threeOrFour: 3 | 4;\n        threeOrFour satisfies number;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    }
+  ]
+}

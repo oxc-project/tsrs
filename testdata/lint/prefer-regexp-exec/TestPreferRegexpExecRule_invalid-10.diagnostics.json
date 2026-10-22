@@ -1,0 +1,46 @@
+[
+  {
+    "range": {
+      "pos": 44,
+      "end": 49
+    },
+    "fixes": [
+      {
+        "text": "new RegExp(`${'hello'}`).exec(text)",
+        "range": {
+          "pos": 39,
+          "end": 75
+        }
+      }
+    ],
+    "kind": 0,
+    "rule": "prefer-regexp-exec",
+    "message": {
+      "id": "regExpExecOverStringMatch",
+      "description": "Use the `RegExp#exec()` method instead."
+    },
+    "file_path": "file.ts"
+  },
+  {
+    "message": {
+      "id": "regExpExecOverStringMatch",
+      "description": "Use the `RegExp#exec()` method instead."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 84,
+      "end": 89
+    },
+    "fixes": [
+      {
+        "text": "new RegExp(`${'hello'.toString()}`).exec(text)",
+        "range": {
+          "pos": 79,
+          "end": 126
+        }
+      }
+    ],
+    "kind": 0,
+    "rule": "prefer-regexp-exec"
+  }
+]

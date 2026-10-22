@@ -1,0 +1,24 @@
+[
+  {
+    "kind": 0,
+    "range": {
+      "pos": 32,
+      "end": 46
+    },
+    "message": {
+      "id": "unnecessaryAssertion",
+      "description": "This assertion is unnecessary since it does not change the type of the expression."
+    },
+    "file_path": "file.ts",
+    "rule": "no-unnecessary-type-assertion",
+    "fixes": [
+      {
+        "text": "",
+        "range": {
+          "pos": 39,
+          "end": 46
+        }
+      }
+    ]
+  }
+]

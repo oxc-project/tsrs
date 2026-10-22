@@ -1,0 +1,56 @@
+[
+  {
+    "rule": "no-unnecessary-type-conversion",
+    "message": {
+      "id": "unnecessaryTypeConversion",
+      "description": "This type conversion does not change the type or value of the expression."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 44,
+      "end": 45
+    },
+    "suggestions": [
+      {
+        "message": {
+          "id": "suggestRemove",
+          "description": "Remove the type conversion."
+        },
+        "fixes": [
+          {
+            "text": "x",
+            "range": {
+              "pos": 44,
+              "end": 46
+            }
+          }
+        ]
+      },
+      {
+        "message": {
+          "id": "suggestSatisfies",
+          "description": "Instead, assert that the value satisfies the primitive type."
+        },
+        "fixes": [
+          {
+            "text": "x satisfies number",
+            "range": {
+              "end": 46,
+              "pos": 44
+            }
+          }
+        ]
+      }
+    ],
+    "labeled_ranges": [
+      {
+        "label": "This expression already has type 'number'.",
+        "range": {
+          "pos": 45,
+          "end": 46
+        }
+      }
+    ],
+    "kind": 0
+  }
+]

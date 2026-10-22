@@ -1,0 +1,119 @@
+{
+  "Name": "no-deprecated",
+  "TSConfig": "tsconfig.minimal.json",
+  "Valid": [
+    {
+      "Code": "async function probe() {\n  const { deprecatedValue } = await import('./deprecated');\n}",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "allow": [
+          {
+            "path": "./deprecated.ts",
+            "from": "file",
+            "name": [
+              "deprecatedValue"
+            ]
+          }
+        ]
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {
+        "deprecated.ts": "/** @deprecated */\nexport const deprecatedValue = 1;"
+      }
+    },
+    {
+      "Code": "async function probe() {\n  const { deprecatedValue: renamed } = await import('./deprecated');\n}",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "allow": [
+          {
+            "name": [
+              "deprecatedValue",
+              "renamed"
+            ],
+            "path": "./deprecated.ts",
+            "from": "file"
+          }
+        ]
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {
+        "deprecated.ts": "/** @deprecated */\nexport const deprecatedValue = 1;"
+      }
+    }
+  ],
+  "Invalid": [
+    {
+      "Code": "async function probe() {\n  const { deprecatedValue } = await import('./deprecated');\n}",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "deprecated",
+          "Line": 2,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "allow": [
+          {
+            "from": "file",
+            "name": [
+              "deprecatedValue"
+            ],
+            "path": "./file.ts"
+          }
+        ]
+      },
+      "Tsx": false,
+      "Files": {
+        "deprecated.ts": "/** @deprecated */\nexport const deprecatedValue = 1;"
+      }
+    },
+    {
+      "Code": "async function probe() {\n  const { deprecatedValue } = await import('./deprecated');\n}",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "deprecated",
+          "Line": 2,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "allow": [
+          {
+            "path": "./missing.ts",
+            "from": "file",
+            "name": [
+              "deprecatedValue"
+            ]
+          }
+        ]
+      },
+      "Tsx": false,
+      "Files": {
+        "deprecated.ts": "/** @deprecated */\nexport const deprecatedValue = 1;"
+      }
+    }
+  ]
+}

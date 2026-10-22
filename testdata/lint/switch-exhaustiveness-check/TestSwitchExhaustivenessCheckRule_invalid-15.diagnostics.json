@@ -1,0 +1,62 @@
+[
+  {
+    "kind": 0,
+    "rule": "switch-exhaustiveness-check",
+    "message": {
+      "id": "switchIsNotExhaustive",
+      "description": "Switch is not exhaustive. Cases not matched: false | true"
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 48,
+      "end": 53
+    },
+    "suggestions": [
+      {
+        "message": {
+          "id": "addMissingCases",
+          "description": "Add branches for missing cases."
+        },
+        "fixes": [
+          {
+            "text": "\n  case false: { throw new Error('Not implemented yet: false case') }\n  case true: { throw new Error('Not implemented yet: true case') }",
+            "range": {
+              "pos": 77,
+              "end": 77
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "kind": 0,
+    "rule": "switch-exhaustiveness-check",
+    "message": {
+      "id": "switchIsNotExhaustive",
+      "description": "Switch is not exhaustive. Cases not matched: default"
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 48,
+      "end": 53
+    },
+    "suggestions": [
+      {
+        "message": {
+          "id": "addMissingCases",
+          "description": "Add branches for missing cases."
+        },
+        "fixes": [
+          {
+            "text": "\n  default: { throw new Error('default case') }",
+            "range": {
+              "pos": 77,
+              "end": 77
+            }
+          }
+        ]
+      }
+    ]
+  }
+]

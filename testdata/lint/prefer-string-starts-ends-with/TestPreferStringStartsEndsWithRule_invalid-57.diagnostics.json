@@ -1,0 +1,15 @@
+[
+  {
+    "kind": 0,
+    "rule": "prefer-string-starts-ends-with",
+    "message": {
+      "id": "preferEndsWith",
+      "description": "Use 'String#endsWith' method instead."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "end": 68,
+      "pos": 43
+    }
+  }
+]

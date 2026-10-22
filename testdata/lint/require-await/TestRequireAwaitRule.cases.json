@@ -1,0 +1,898 @@
+{
+  "Name": "require-await",
+  "TSConfig": "tsconfig.minimal.json",
+  "Valid": [
+    {
+      "Code": "\nfunction numberOne(): number {\n  return 1;\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst numberOne = function (): number {\n  return 1;\n};\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      const numberOne = (): number => 1;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst numberOne = (): number => {\n  return 1;\n};\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction delay() {\n  return Promise.resolve();\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst delay = () => {\n  return Promise.resolve();\n};\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "const delay = () => Promise.resolve();",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nasync function numberOne(): Promise<number> {\n  return await 1;\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst numberOne = async function (): Promise<number> {\n  return await 1;\n};\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "const numberOne = async (): Promise<number> => await 1;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst numberOne = async (): Promise<number> => {\n  return await 1;\n};\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nasync function numberOne(): Promise<number> {\n  return Promise.resolve(1);\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst numberOne = async function (): Promise<number> {\n  return Promise.resolve(1);\n};\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "const numberOne = async (): Promise<number> => Promise.resolve(1);",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst numberOne = async (): Promise<number> => {\n  return Promise.resolve(1);\n};\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nasync function numberOne(): Promise<number> {\n  return getAsyncNumber(1);\n}\nasync function getAsyncNumber(x: number): Promise<number> {\n  return Promise.resolve(x);\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst numberOne = async function (): Promise<number> {\n  return getAsyncNumber(1);\n};\nconst getAsyncNumber = async function (x: number): Promise<number> {\n  return Promise.resolve(x);\n};\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst numberOne = async (): Promise<number> => getAsyncNumber(1);\nconst getAsyncNumber = async function (x: number): Promise<number> {\n  return Promise.resolve(x);\n};\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst numberOne = async (): Promise<number> => {\n  return getAsyncNumber(1);\n};\nconst getAsyncNumber = async function (x: number): Promise<number> {\n  return Promise.resolve(x);\n};\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nasync function testFunction(): Promise<void> {\n  await Promise.all(\n    [1, 2, 3].map(\n      // this should not trigger an error on the parent function\n      async value => Promise.resolve(value),\n    ),\n  );\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction* test6() {\n  yield* syncGenerator();\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction* syncGenerator() {\n  yield 1;\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nasync function* asyncGenerator() {\n  await Promise.resolve();\n  yield 1;\n}\nasync function* test1() {\n  yield* asyncGenerator();\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nasync function* asyncGenerator() {\n  await Promise.resolve();\n  yield 1;\n}\nasync function* test1() {\n  yield* asyncGenerator();\n  yield* 2;\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nasync function* test(source: AsyncIterable<any>) {\n  yield* source;\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nasync function* test(source: Iterable<any> & AsyncIterable<any>) {\n  yield* source;\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nasync function* test(source: Iterable<any> | AsyncIterable<any>) {\n  yield* source;\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype MyType = {\n  [Symbol.iterator](): Iterator<any>;\n  [Symbol.asyncIterator](): AsyncIterator<any>;\n};\nasync function* test(source: MyType) {\n  yield* source;\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype MyType = {\n  [Symbol.asyncIterator]: () => AsyncIterator<any>;\n};\nasync function* test(source: MyType) {\n  yield* source;\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype MyFunctionType = () => AsyncIterator<any>;\ntype MyType = {\n  [Symbol.asyncIterator]: MyFunctionType;\n};\nasync function* test(source: MyType) {\n  yield* source;\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nasync function* foo(): Promise<string> {\n  return new Promise(res => res(`hello`));\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      async function* f() {\n        let x!: Omit<\n          {\n            [Symbol.asyncIterator](): AsyncIterator<any>;\n          },\n          'z'\n        >;\n        yield* x;\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      const fn = async () => {\n        await using foo = new Bar();\n      };\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      async function* test1() {\n        yield Promise.resolve(1);\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      function asyncFunction() {\n        return Promise.resolve(1);\n      }\n      async function* test1() {\n        yield asyncFunction();\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      declare const asyncFunction: () => Promise<void>;\n      async function* test1() {\n        yield asyncFunction();\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      async function* test1() {\n        yield new Promise(() => {});\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    }
+  ],
+  "Invalid": [
+    {
+      "Code": "\nasync function numberOne(): Promise<number> {\n  return 1;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "missingAwait",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "removeAsync",
+              "Output": "\nfunction numberOne(): number {\n  return 1;\n}\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst numberOne = async function (): Promise<number> {\n  return 1;\n};\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "missingAwait",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "removeAsync",
+              "Output": "\nconst numberOne = function (): number {\n  return 1;\n};\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "const numberOne = async (): Promise<number> => 1;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "missingAwait",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "removeAsync",
+              "Output": "const numberOne = (): number => 1;"
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nasync function values(): Promise<Array<number>> {\n  return [1];\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "missingAwait",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "removeAsync",
+              "Output": "\nfunction values(): Array<number> {\n  return [1];\n}\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        async function foo() {\n          function nested() {\n            await doSomething();\n          }\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "missingAwait",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "removeAsync",
+              "Output": "\n        function foo() {\n          function nested() {\n            await doSomething();\n          }\n        }\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nasync function* foo(): void {\n  doSomething();\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "missingAwait",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "removeAsync",
+              "Output": "\nfunction* foo(): void {\n  doSomething();\n}\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nasync function* foo() {\n  yield 1;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "missingAwait",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "removeAsync",
+              "Output": "\nfunction* foo() {\n  yield 1;\n}\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst foo = async function* () {\n  console.log('bar');\n};\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "missingAwait",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "removeAsync",
+              "Output": "\nconst foo = function* () {\n  console.log('bar');\n};\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nasync function* asyncGenerator() {\n  yield 1;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "missingAwait",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "removeAsync",
+              "Output": "\nfunction* asyncGenerator() {\n  yield 1;\n}\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nasync function* asyncGenerator(source: Iterable<any>) {\n  yield* source;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "missingAwait",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "removeAsync",
+              "Output": "\nfunction* asyncGenerator(source: Iterable<any>) {\n  yield* source;\n}\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction isAsyncIterable(value: unknown): value is AsyncIterable<any> {\n  return true;\n}\nasync function* asyncGenerator(source: Iterable<any> | AsyncIterable<any>) {\n  if (!isAsyncIterable(source)) {\n    yield* source;\n  }\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "missingAwait",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "removeAsync",
+              "Output": "\nfunction isAsyncIterable(value: unknown): value is AsyncIterable<any> {\n  return true;\n}\nfunction* asyncGenerator(source: Iterable<any> | AsyncIterable<any>) {\n  if (!isAsyncIterable(source)) {\n    yield* source;\n  }\n}\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction* syncGenerator() {\n  yield 1;\n}\nasync function* asyncGenerator() {\n  yield* syncGenerator();\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "missingAwait",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "removeAsync",
+              "Output": "\nfunction* syncGenerator() {\n  yield 1;\n}\nfunction* asyncGenerator() {\n  yield* syncGenerator();\n}\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nasync function* asyncGenerator() {\n  yield* anotherAsyncGenerator(); // Unknown function.\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "missingAwait",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "removeAsync",
+              "Output": "\nfunction* asyncGenerator() {\n  yield* anotherAsyncGenerator(); // Unknown function.\n}\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        const fn = async () => {\n          using foo = new Bar();\n        };\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "missingAwait",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "removeAsync",
+              "Output": "\n        const fn = () => {\n          using foo = new Bar();\n        };\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        // intentional TS error\n        async function* foo(): Promise<number> {\n          yield 1;\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "missingAwait",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "removeAsync",
+              "Output": "\n        // intentional TS error\n        function* foo(): Promise<number> {\n          yield 1;\n        }\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        async function* foo(): AsyncGenerator {\n          yield 1;\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "missingAwait",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "removeAsync",
+              "Output": "\n        function* foo(): Generator {\n          yield 1;\n        }\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        async function* foo(): AsyncGenerator<number> {\n          yield 1;\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "missingAwait",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "removeAsync",
+              "Output": "\n        function* foo(): Generator<number> {\n          yield 1;\n        }\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        async function foo(): globalThis.Promise<number> {\n          return 1;\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "missingAwait",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "removeAsync",
+              "Output": "\n        function foo(): number {\n          return 1;\n        }\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        declare namespace Bluebird {\n          type Promise<T> = { value: T };\n        }\n        async function foo(): Bluebird.Promise<number> {\n          return 1;\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "missingAwait",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "removeAsync",
+              "Output": "\n        declare namespace Bluebird {\n          type Promise<T> = { value: T };\n        }\n        function foo(): Bluebird.Promise<number> {\n          return 1;\n        }\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        async function* foo(): globalThis.AsyncGenerator<number> {\n          yield 1;\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "missingAwait",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "removeAsync",
+              "Output": "\n        function* foo(): Generator<number> {\n          yield 1;\n        }\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    }
+  ]
+}

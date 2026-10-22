@@ -1,0 +1,94 @@
+[
+  {
+    "kind": 0,
+    "rule": "no-unnecessary-type-parameters",
+    "message": {
+      "id": "sole",
+      "description": "Type parameter A is used only once in the function signature."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 24,
+      "end": 25
+    },
+    "suggestions": [
+      {
+        "message": {
+          "id": "replaceUsagesWithConstraint",
+          "description": "Replace all usages of type parameter with its constraint."
+        },
+        "fixes": [
+          {
+            "text": "unknown",
+            "range": {
+              "pos": 36,
+              "end": 37
+            }
+          },
+          {
+            "text": "",
+            "range": {
+              "end": 27,
+              "pos": 24
+            }
+          }
+        ]
+      }
+    ],
+    "labeled_ranges": [
+      {
+        "label": "This is the only usage of type parameter A in the signature.",
+        "range": {
+          "pos": 36,
+          "end": 37
+        }
+      }
+    ]
+  },
+  {
+    "rule": "no-unnecessary-type-parameters",
+    "message": {
+      "id": "sole",
+      "description": "Type parameter B is used only once in the function signature."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 27,
+      "end": 28
+    },
+    "suggestions": [
+      {
+        "message": {
+          "id": "replaceUsagesWithConstraint",
+          "description": "Replace all usages of type parameter with its constraint."
+        },
+        "fixes": [
+          {
+            "text": "unknown",
+            "range": {
+              "pos": 42,
+              "end": 43
+            }
+          },
+          {
+            "text": "",
+            "range": {
+              "pos": 25,
+              "end": 28
+            }
+          }
+        ]
+      }
+    ],
+    "labeled_ranges": [
+      {
+        "range": {
+          "pos": 42,
+          "end": 43
+        },
+        "label": "This is the only usage of type parameter B in the signature."
+      }
+    ],
+    "kind": 0
+  }
+]

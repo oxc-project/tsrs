@@ -1,0 +1,31 @@
+[
+  {
+    "rule": "no-misused-promises",
+    "message": {
+      "id": "voidReturnProperty",
+      "description": "Promise-returning function provided to property where a void return was expected."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 92,
+      "end": 105
+    },
+    "labeled_ranges": [
+      {
+        "range": {
+          "pos": 92,
+          "end": 105
+        },
+        "label": "This callback has type `() => Promise<string>`."
+      },
+      {
+        "label": "This context accepts a `void`-returning callback through type `() => void`.",
+        "range": {
+          "end": 25,
+          "pos": 15
+        }
+      }
+    ],
+    "kind": 0
+  }
+]

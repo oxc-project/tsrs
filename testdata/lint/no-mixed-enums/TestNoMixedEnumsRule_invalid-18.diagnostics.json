@@ -1,0 +1,15 @@
+[
+  {
+    "range": {
+      "end": 103,
+      "pos": 100
+    },
+    "kind": 0,
+    "rule": "no-mixed-enums",
+    "message": {
+      "id": "mixed",
+      "description": "Mixing number and string enums can be confusing."
+    },
+    "file_path": "file.ts"
+  }
+]

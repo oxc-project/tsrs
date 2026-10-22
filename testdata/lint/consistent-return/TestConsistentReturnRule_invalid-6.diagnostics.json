@@ -1,0 +1,15 @@
+[
+  {
+    "range": {
+      "pos": 125,
+      "end": 132
+    },
+    "kind": 0,
+    "rule": "consistent-return",
+    "message": {
+      "id": "missingReturnValue",
+      "description": "Async function 'foo' expected a return value."
+    },
+    "file_path": "file.ts"
+  }
+]

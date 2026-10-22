@@ -252,3 +252,8 @@ the command line to include config-read timing.
 
 - Gate the macOS release binary on the conformance suite too (the Linux builds already run it in `bolt.sh`).
 - Optionally target an older glibc for Linux (e.g. `cargo zigbuild --target x86_64-unknown-linux-gnu.2.17`).
+
+## Type-aware linting
+
+The source-built `tsrs-lint` binary currently implements all 60 pinned tsgolint rules.
+It is not included in npm artifacts; see [progress](../testdata/lint/PROGRESS.md).

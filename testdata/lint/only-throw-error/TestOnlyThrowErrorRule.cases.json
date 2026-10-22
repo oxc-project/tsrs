@@ -1,0 +1,1622 @@
+{
+  "Name": "only-throw-error",
+  "TSConfig": "tsconfig.minimal.json",
+  "Valid": [
+    {
+      "Code": "throw new Error();",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "throw new Error('error');",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "throw Error('error');",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst e = new Error();\nthrow e;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntry {\n  throw new Error();\n} catch (e) {\n  throw e;\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction foo() {\n  return new Error();\n}\nthrow foo();\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst foo = {\n  bar: new Error(),\n};\nthrow foo.bar;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst foo = {\n  bar: new Error(),\n};\n\nthrow foo['bar'];\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst foo = {\n  bar: new Error(),\n};\n\nconst bar = 'bar';\nthrow foo[bar];\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass CustomError extends Error {}\nthrow new CustomError();\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass CustomError1 extends Error {}\nclass CustomError2 extends CustomError1 {}\nthrow new CustomError2();\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "throw (foo = new Error());",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "throw (1, 2, new Error());",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "throw 'literal' && new Error();",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "throw new Error() || 'literal';",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "throw foo ? new Error() : new Error();",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction* foo() {\n  let index = 0;\n  throw yield index++;\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nasync function foo() {\n  throw await bar;\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nimport { Error } from './missing';\nthrow Error;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass CustomError<T, C> extends Error {}\nthrow new CustomError<string, string>();\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass CustomError<T = {}> extends Error {}\nthrow new CustomError();\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass CustomError<T extends object> extends Error {}\nthrow new CustomError();\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction foo() {\n  throw Object.assign(new Error('message'), { foo: 'bar' });\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst foo: Error | SyntaxError = bar();\nfunction bar() {\n  throw foo;\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const foo: Error | string;\nthrow foo as Error;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "throw new Error() as Error;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const nullishError: Error | undefined;\nthrow nullishError ?? new Error();\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const nullishError: Error | undefined;\nthrow nullishError || new Error();\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const nullishError: Error | undefined;\nthrow nullishError ? nullishError : new Error();\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction fun(value: any) {\n  throw value;\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction fun(value: unknown) {\n  throw value;\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction fun<T extends Error>(t: T): void {\n  throw t;\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nthrow undefined;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "allow": [
+          {
+            "from": "lib",
+            "name": [
+              "undefined"
+            ]
+          }
+        ],
+        "allowRethrowing": true,
+        "allowThrowingAny": false,
+        "allowThrowingUnknown": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass CustomError implements Error {}\nthrow new CustomError();\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "allow": [
+          {
+            "from": "file",
+            "name": [
+              "CustomError"
+            ]
+          }
+        ],
+        "allowRethrowing": true,
+        "allowThrowingAny": false,
+        "allowThrowingUnknown": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nthrow new Map();\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "allow": [
+          {
+            "from": "lib",
+            "name": [
+              "Map"
+            ]
+          }
+        ],
+        "allowRethrowing": true,
+        "allowThrowingAny": false,
+        "allowThrowingUnknown": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntry {\n} catch (e) {\n  throw e;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "allowRethrowing": true,
+        "allowThrowingAny": false,
+        "allowThrowingUnknown": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntry {\n} catch (eOuter) {\n  try {\n    if (Math.random() > 0.5) {\n      throw eOuter;\n    }\n  } catch (eInner) {\n    if (Math.random() > 0.5) {\n      throw eOuter;\n    } else {\n      throw eInner;\n    }\n  }\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "allowRethrowing": true,
+        "allowThrowingAny": false,
+        "allowThrowingUnknown": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nPromise.reject('foo').catch(e => {\n  throw e;\n});\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "allowRethrowing": true,
+        "allowThrowingAny": false,
+        "allowThrowingUnknown": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        import { createError } from 'errors';\n        throw createError();\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "allow": [
+          {
+            "from": "package",
+            "name": [
+              "ErrorLike"
+            ],
+            "package": "errors"
+          }
+        ],
+        "allowRethrowing": true,
+        "allowThrowingAny": false,
+        "allowThrowingUnknown": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {
+        "node_modules/errors/package.json": "{\n          \"name\": \"errors\",\n          \"version\": \"1.0.0\",\n          \"types\": \"index.d.ts\"\n        }",
+        "node_modules/errors/index.d.ts": "\n          export interface ErrorLike extends Error {}\n          export function createError(): ErrorLike;\n        "
+      }
+    },
+    {
+      "Code": "\n        import type { ErrorLike } from '@apollo/client/core/types';\n\n        declare const error: ErrorLike;\n        throw error;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "allow": [
+          {
+            "name": [
+              "ErrorLike"
+            ],
+            "package": "@apollo/client",
+            "from": "package"
+          }
+        ],
+        "allowRethrowing": true,
+        "allowThrowingAny": false,
+        "allowThrowingUnknown": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {
+        "node_modules/@apollo/client/package.json": "{\n          \"name\": \"@apollo/client\",\n          \"version\": \"1.0.0\",\n          \"types\": \"core/types.d.ts\"\n        }",
+        "node_modules/@apollo/client/core/types.d.ts": "\n          export interface ErrorLike extends Error {}\n        "
+      }
+    },
+    {
+      "Code": "\n        import { createError } from 'errors-like';\n        throw createError();\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "allow": [
+          {
+            "from": "package",
+            "name": [
+              "ErrorLike"
+            ],
+            "package": "errors-like"
+          }
+        ],
+        "allowRethrowing": true,
+        "allowThrowingAny": false,
+        "allowThrowingUnknown": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {
+        "node_modules/@types/errors-like/index.d.ts": "\n          export interface ErrorLike extends Error {}\n          export function createError(): ErrorLike;\n        ",
+        "node_modules/@types/errors-like/package.json": "{\n          \"name\": \"@types/errors-like\",\n          \"version\": \"1.0.0\",\n          \"types\": \"index.d.ts\"\n        }"
+      }
+    },
+    {
+      "Code": "\nasync function foo() {\n  throw await Promise.resolve(new Error('error'));\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "allowRethrowing": true,
+        "allowThrowingAny": false,
+        "allowThrowingUnknown": true
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction *foo(): Generator<number, void, Error> {\n  throw yield 303;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "allowRethrowing": true,
+        "allowThrowingAny": false,
+        "allowThrowingUnknown": true
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    }
+  ],
+  "Invalid": [
+    {
+      "Code": "throw undefined;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "undef",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "throw new String('');",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "object",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "throw 'error';",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "object",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "throw 0;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "object",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "throw false;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "object",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "throw null;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "object",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "throw {};",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "object",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "throw 'a' + 'b';",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "object",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst a = '';\nthrow a + 'b';\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "object",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "throw (foo = 'error');",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "object",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "throw (new Error(), 1, 2, 3);",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "object",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "throw 'literal' && 'not an Error';",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "object",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "throw 'literal' || new Error();",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "object",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "throw new Error() && 'literal';",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "object",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "throw 'literal' ?? new Error();",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "object",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "throw foo ? 'not an Error' : 'literal';",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "object",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "throw foo ? new Error() : 'literal';",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "object",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "throw foo ? 'literal' : new Error();",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "object",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "throw `${err}`;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "object",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst err = 'error';\nthrow err;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "object",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction foo(msg) {}\nthrow foo('error');\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "object",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst foo = {\n  msg: 'error',\n};\nthrow foo.msg;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "object",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst foo = {\n  msg: undefined,\n};\nthrow foo.msg;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "undef",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass CustomError {}\nthrow new CustomError();\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "object",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass Foo {}\nclass CustomError extends Foo {}\nthrow new CustomError();\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "object",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst Error = null;\nthrow Error;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "object",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nimport { Error } from './class';\nthrow new Error();\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "object",
+          "Line": 3,
+          "Column": 7,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass CustomError<T extends object> extends Foo {}\nthrow new CustomError();\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "object",
+          "Line": 3,
+          "Column": 7,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction foo<T>() {\n  const res: T;\n  throw res;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "object",
+          "Line": 4,
+          "Column": 9,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction foo<T>(fn: () => Promise<T>) {\n  const promise = fn();\n  const res = promise.then(() => {}).catch(() => {});\n  throw res;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "object",
+          "Line": 5,
+          "Column": 9,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction foo() {\n  throw Object.assign({ foo: 'foo' }, { bar: 'bar' });\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "object",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst foo: Error | { bar: string } = bar();\nfunction bar() {\n  throw foo;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "object",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const foo: Error | string;\nthrow foo as string;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "object",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction fun(value: any) {\n  throw value;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "object",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "allowRethrowing": true,
+        "allowThrowingAny": false,
+        "allowThrowingUnknown": true
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction fun(value: unknown) {\n  throw value;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "object",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "allowRethrowing": true,
+        "allowThrowingAny": true,
+        "allowThrowingUnknown": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction fun<T extends number>(t: T): void {\n  throw t;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "object",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass UnknownError implements Error {}\nthrow new UnknownError();\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "object",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "allow": [
+          {
+            "from": "file",
+            "name": [
+              "CustomError"
+            ]
+          }
+        ],
+        "allowRethrowing": true,
+        "allowThrowingAny": false,
+        "allowThrowingUnknown": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nasync function foo() {\n  throw await bar;\n}\n\t\t\t",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "object",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "allowRethrowing": true,
+        "allowThrowingAny": false,
+        "allowThrowingUnknown": true
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nasync function foo() {\n  throw await Promise.resolve<number>(303);\n}\n\t\t\t",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "object",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction *foo(): Generator<number, void, string> {\n  throw yield 303;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "object",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "allowRethrowing": true,
+        "allowThrowingAny": false,
+        "allowThrowingUnknown": true
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nlet x = 1;\nPromise.reject('foo').catch(e => {\n  throw x;\n});\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "object",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "allowRethrowing": true,
+        "allowThrowingAny": false,
+        "allowThrowingUnknown": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nPromise.reject('foo').catch((...e) => {\n  throw e;\n});\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "object",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "allowRethrowing": true,
+        "allowThrowingAny": false,
+        "allowThrowingUnknown": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const x: any[];\nPromise.reject('foo').catch(...x, e => {\n  throw e;\n});\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "object",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "allowRethrowing": true,
+        "allowThrowingAny": false,
+        "allowThrowingUnknown": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const x: any[];\nPromise.reject('foo').then(...x, e => {\n  throw e;\n});\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "object",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "allowRethrowing": true,
+        "allowThrowingAny": false,
+        "allowThrowingUnknown": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const onFulfilled: any;\ndeclare const x: any[];\nPromise.reject('foo').then(onFulfilled, ...x, e => {\n  throw e;\n});\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "object",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "allowRethrowing": true,
+        "allowThrowingAny": false,
+        "allowThrowingUnknown": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nPromise.reject('foo').then((...e) => {\n  throw e;\n});\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "object",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "allowRethrowing": true,
+        "allowThrowingAny": false,
+        "allowThrowingUnknown": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nPromise.reject('foo').then(e => {\n  throw globalThis;\n});\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "object",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "allowRethrowing": true,
+        "allowThrowingAny": false,
+        "allowThrowingUnknown": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nimport { createError } from 'errors-like';\nthrow createError();\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "object",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "allow": [
+          {
+            "from": "package",
+            "name": [
+              "ErrorLike"
+            ],
+            "package": "errors"
+          }
+        ],
+        "allowRethrowing": true,
+        "allowThrowingAny": false,
+        "allowThrowingUnknown": false
+      },
+      "Tsx": false,
+      "Files": {
+        "node_modules/errors-like/package.json": "{\n  \"name\": \"errors-like\",\n  \"version\": \"1.0.0\",\n  \"types\": \"index.d.ts\"\n}",
+        "node_modules/errors-like/index.d.ts": "\nexport interface ErrorLike {\n  message: string;\n}\nexport function createError(): ErrorLike;\n"
+      }
+    }
+  ]
+}

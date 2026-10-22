@@ -1,0 +1,33 @@
+{
+  "Name": "only-throw-error",
+  "TSConfig": "tsconfig.minimal.json",
+  "Valid": [
+    {
+      "Code": "import type { ErrorLike } from \"s.mver\"; declare const error: ErrorLike; throw error;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "allow": [
+          {
+            "from": "package",
+            "name": [
+              "ErrorLike"
+            ],
+            "package": "s.mver"
+          }
+        ],
+        "allowRethrowing": false,
+        "allowThrowingAny": false,
+        "allowThrowingUnknown": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {
+        "node_modules/s.mver/package.json": "{\"name\": \"s.mver\", \"version\": \"1.0.0\", \"types\": \"lib/index.d.ts\"}",
+        "node_modules/s.mver/lib/index.d.ts": "export interface ErrorLike { message: string }"
+      }
+    }
+  ],
+  "Invalid": []
+}

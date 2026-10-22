@@ -1,0 +1,15 @@
+[
+  {
+    "file_path": "file.ts",
+    "range": {
+      "pos": 18,
+      "end": 23
+    },
+    "kind": 0,
+    "rule": "no-redundant-type-constituents",
+    "message": {
+      "id": "overridden",
+      "description": "'never' is overridden by other types in this union type."
+    }
+  }
+]

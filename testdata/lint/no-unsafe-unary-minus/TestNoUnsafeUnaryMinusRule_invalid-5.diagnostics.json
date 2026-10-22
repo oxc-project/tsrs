@@ -1,0 +1,15 @@
+[
+  {
+    "kind": 0,
+    "rule": "no-unsafe-unary-minus",
+    "message": {
+      "id": "unaryMinus",
+      "description": "Argument of unary negation should be assignable to number | bigint but is { x: number; } instead."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 22,
+      "end": 24
+    }
+  }
+]

@@ -1,0 +1,16 @@
+[
+  {
+    "range": {
+      "pos": 10,
+      "end": 28
+    },
+    "kind": 0,
+    "rule": "no-confusing-void-expression",
+    "message": {
+      "id": "invalidVoidExpr",
+      "description": "Placing a void expression inside another expression is forbidden.",
+      "help": "Move it to its own statement instead."
+    },
+    "file_path": "file.ts"
+  }
+]

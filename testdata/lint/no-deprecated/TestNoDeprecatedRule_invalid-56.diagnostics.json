@@ -1,0 +1,15 @@
+[
+  {
+    "range": {
+      "pos": 59,
+      "end": 63
+    },
+    "kind": 0,
+    "rule": "no-deprecated",
+    "message": {
+      "id": "deprecatedWithReason",
+      "description": "`fail` is deprecated. since v10.0.0 - use fail([message]) or other assert functions instead."
+    },
+    "file_path": "file.ts"
+  }
+]

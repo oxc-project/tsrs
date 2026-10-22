@@ -1,0 +1,2720 @@
+{
+  "Name": "prefer-readonly",
+  "TSConfig": "tsconfig.minimal.json",
+  "Valid": [
+    {
+      "Code": "function ignore() {}",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "const ignore = function () {};",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "const ignore = () => {};",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      const container = { member: true };\n      container.member;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      const container = { member: 1 };\n      +container.member;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      const container = { member: 1 };\n      ++container.member;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      const container = { member: 1 };\n      container.member++;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      const container = { member: 1 };\n      -container.member;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      const container = { member: 1 };\n      --container.member;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      const container = { member: 1 };\n      container.member--;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "class TestEmpty {}",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      class TestReadonlyStatic {\n        private static readonly correctlyReadonlyStatic = 7;\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      class TestReadonlyStatic {\n        static readonly #correctlyReadonlyStatic = 7;\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      class TestModifiableStatic {\n        private static correctlyModifiableStatic = 7;\n\n        public constructor() {\n          TestModifiableStatic.correctlyModifiableStatic += 1;\n        }\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      class TestModifiableStatic {\n        static #correctlyModifiableStatic = 7;\n\n        public constructor() {\n          TestModifiableStatic.#correctlyModifiableStatic += 1;\n        }\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      class TestModifiableByParameterProperty {\n        private static readonly correctlyModifiableByParameterProperty = 7;\n\n        public constructor(\n          public correctlyModifiablePublicParameter: number = (() => {\n            return (TestModifiableStatic.correctlyModifiableByParameterProperty += 1);\n          })(),\n        ) {}\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      class TestModifiableByParameterProperty {\n        static readonly #correctlyModifiableByParameterProperty = 7;\n\n        public constructor(\n          public correctlyModifiablePublicParameter: number = (() => {\n            return (TestModifiableStatic.#correctlyModifiableByParameterProperty += 1);\n          })(),\n        ) {}\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      class TestReadonlyInline {\n        private readonly correctlyReadonlyInline = 7;\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      class TestReadonlyInline {\n        readonly #correctlyReadonlyInline = 7;\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      class TestReadonlyDelayed {\n        private readonly correctlyReadonlyDelayed = 7;\n\n        public constructor() {\n          this.correctlyReadonlyDelayed += 1;\n        }\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      class TestReadonlyDelayed {\n        readonly #correctlyReadonlyDelayed = 7;\n\n        public constructor() {\n          this.#correctlyReadonlyDelayed += 1;\n        }\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      class TestModifiableInline {\n        private correctlyModifiableInline = 7;\n\n        public mutate() {\n          this.correctlyModifiableInline += 1;\n\n          return class {\n            private correctlyModifiableInline = 7;\n\n            mutate() {\n              this.correctlyModifiableInline += 1;\n            }\n          };\n        }\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      class TestModifiableInline {\n        #correctlyModifiableInline = 7;\n\n        public mutate() {\n          this.#correctlyModifiableInline += 1;\n\n          return class {\n            #correctlyModifiableInline = 7;\n\n            mutate() {\n              this.#correctlyModifiableInline += 1;\n            }\n          };\n        }\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      class TestModifiableDelayed {\n        private correctlyModifiableDelayed = 7;\n\n        public mutate() {\n          this.correctlyModifiableDelayed += 1;\n        }\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      class TestModifiableDelayed {\n        #correctlyModifiableDelayed = 7;\n\n        public mutate() {\n          this.#correctlyModifiableDelayed += 1;\n        }\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      class TestModifiableDeleted {\n        private correctlyModifiableDeleted = 7;\n\n        public mutate() {\n          delete this.correctlyModifiableDeleted;\n        }\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      class TestModifiableWithinConstructor {\n        private correctlyModifiableWithinConstructor = 7;\n\n        public constructor() {\n          (() => {\n            this.correctlyModifiableWithinConstructor += 1;\n          })();\n        }\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      class TestModifiableWithinConstructor {\n        #correctlyModifiableWithinConstructor = 7;\n\n        public constructor() {\n          (() => {\n            this.#correctlyModifiableWithinConstructor += 1;\n          })();\n        }\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      class TestModifiableWithinConstructorArrowFunction {\n        private correctlyModifiableWithinConstructorArrowFunction = 7;\n\n        public constructor() {\n          (() => {\n            this.correctlyModifiableWithinConstructorArrowFunction += 1;\n          })();\n        }\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      class TestModifiableWithinConstructorArrowFunction {\n        #correctlyModifiableWithinConstructorArrowFunction = 7;\n\n        public constructor() {\n          (() => {\n            this.#correctlyModifiableWithinConstructorArrowFunction += 1;\n          })();\n        }\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      class TestModifiableWithinConstructorInFunctionExpression {\n        private correctlyModifiableWithinConstructorInFunctionExpression = 7;\n\n        public constructor() {\n          const self = this;\n\n          (() => {\n            self.correctlyModifiableWithinConstructorInFunctionExpression += 1;\n          })();\n        }\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      class TestModifiableWithinConstructorInFunctionExpression {\n        #correctlyModifiableWithinConstructorInFunctionExpression = 7;\n\n        public constructor() {\n          const self = this;\n\n          (() => {\n            self.#correctlyModifiableWithinConstructorInFunctionExpression += 1;\n          })();\n        }\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      class TestModifiableWithinConstructorInGetAccessor {\n        private correctlyModifiableWithinConstructorInGetAccessor = 7;\n\n        public constructor() {\n          const self = this;\n\n          const confusingObject = {\n            get accessor() {\n              return (self.correctlyModifiableWithinConstructorInGetAccessor += 1);\n            },\n          };\n        }\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      class TestModifiableWithinConstructorInGetAccessor {\n        #correctlyModifiableWithinConstructorInGetAccessor = 7;\n\n        public constructor() {\n          const self = this;\n\n          const confusingObject = {\n            get accessor() {\n              return (self.#correctlyModifiableWithinConstructorInGetAccessor += 1);\n            },\n          };\n        }\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      class TestModifiableWithinConstructorInMethodDeclaration {\n        private correctlyModifiableWithinConstructorInMethodDeclaration = 7;\n\n        public constructor() {\n          const self = this;\n\n          const confusingObject = {\n            methodDeclaration() {\n              self.correctlyModifiableWithinConstructorInMethodDeclaration = 7;\n            },\n          };\n        }\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      class TestModifiableWithinConstructorInMethodDeclaration {\n        #correctlyModifiableWithinConstructorInMethodDeclaration = 7;\n\n        public constructor() {\n          const self = this;\n\n          const confusingObject = {\n            methodDeclaration() {\n              self.#correctlyModifiableWithinConstructorInMethodDeclaration = 7;\n            },\n          };\n        }\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      class TestModifiableWithinConstructorInSetAccessor {\n        private correctlyModifiableWithinConstructorInSetAccessor = 7;\n\n        public constructor() {\n          const self = this;\n\n          const confusingObject = {\n            set accessor(value: number) {\n              self.correctlyModifiableWithinConstructorInSetAccessor += value;\n            },\n          };\n        }\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      class TestModifiableWithinConstructorInSetAccessor {\n        #correctlyModifiableWithinConstructorInSetAccessor = 7;\n\n        public constructor() {\n          const self = this;\n\n          const confusingObject = {\n            set accessor(value: number) {\n              self.#correctlyModifiableWithinConstructorInSetAccessor += value;\n            },\n          };\n        }\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      class TestModifiablePostDecremented {\n        private correctlyModifiablePostDecremented = 7;\n\n        public mutate() {\n          this.correctlyModifiablePostDecremented -= 1;\n        }\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      class TestModifiablePostDecremented {\n        #correctlyModifiablePostDecremented = 7;\n\n        public mutate() {\n          this.#correctlyModifiablePostDecremented -= 1;\n        }\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      class TestyModifiablePostIncremented {\n        private correctlyModifiablePostIncremented = 7;\n\n        public mutate() {\n          this.correctlyModifiablePostIncremented += 1;\n        }\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      class TestyModifiablePostIncremented {\n        #correctlyModifiablePostIncremented = 7;\n\n        public mutate() {\n          this.#correctlyModifiablePostIncremented += 1;\n        }\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      class TestModifiablePreDecremented {\n        private correctlyModifiablePreDecremented = 7;\n\n        public mutate() {\n          --this.correctlyModifiablePreDecremented;\n        }\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      class TestModifiablePreDecremented {\n        #correctlyModifiablePreDecremented = 7;\n\n        public mutate() {\n          --this.#correctlyModifiablePreDecremented;\n        }\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      class TestModifiablePreIncremented {\n        private correctlyModifiablePreIncremented = 7;\n\n        public mutate() {\n          ++this.correctlyModifiablePreIncremented;\n        }\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      class TestModifiablePreIncremented {\n        #correctlyModifiablePreIncremented = 7;\n\n        public mutate() {\n          ++this.#correctlyModifiablePreIncremented;\n        }\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      class TestProtectedModifiable {\n        protected protectedModifiable = 7;\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      class TestPublicModifiable {\n        public publicModifiable = 7;\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      class TestReadonlyParameter {\n        public constructor(private readonly correctlyReadonlyParameter = 7) {}\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      class TestCorrectlyModifiableParameter {\n        public constructor(private correctlyModifiableParameter = 7) {}\n\n        public mutate() {\n          this.correctlyModifiableParameter += 1;\n        }\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        class TestCorrectlyNonInlineLambdas {\n          private correctlyNonInlineLambda = 7;\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "onlyInlineLambdas": true
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        class TestCorrectlyNonInlineLambdas {\n          #correctlyNonInlineLambda = 7;\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "onlyInlineLambdas": true
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        class TestCorrectlyNoInitializer {\n          private correctlyNoInitializer: number;\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "onlyInlineLambdas": true
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        class TestCorrectlyNoInitializer {\n          #correctlyNoInitializer: number;\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "onlyInlineLambdas": true
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      class TestComputedParameter {\n        public mutate() {\n          this['computed'] = 1;\n        }\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      class TestComputedParameter {\n        private ['computed-ignored-by-rule'] = 1;\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass Foo {\n  private value: number = 0;\n\n  bar(newValue: { value: number }) {\n    ({ value: this.value } = newValue);\n    return this.value;\n  }\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass Foo {\n  #value: number = 0;\n\n  bar(newValue: { value: number }) {\n    ({ value: this.#value } = newValue);\n    return this.#value;\n  }\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction ClassWithName<TBase extends new (...args: any[]) => {}>(Base: TBase) {\n  return class extends Base {\n    private _name: string;\n\n    public test(value: string) {\n      this._name = value;\n    }\n  };\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction ClassWithName<TBase extends new (...args: any[]) => {}>(Base: TBase) {\n  return class extends Base {\n    #name: string;\n\n    public test(value: string) {\n      this.#name = value;\n    }\n  };\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass Foo {\n  private value: Record<string, number> = {};\n\n  bar(newValue: Record<string, number>) {\n    ({ ...this.value } = newValue);\n    return this.value;\n  }\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass Foo {\n  #value: Record<string, number> = {};\n\n  bar(newValue: Record<string, number>) {\n    ({ ...this.#value } = newValue);\n    return this.#value;\n  }\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass Foo {\n  private value: number[] = [];\n\n  bar(newValue: number[]) {\n    [...this.value] = newValue;\n    return this.value;\n  }\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass Foo {\n  #value: number[] = [];\n\n  bar(newValue: number[]) {\n    [...this.#value] = newValue;\n    return this.#value;\n  }\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass Foo {\n  private value: number = 0;\n\n  bar(newValue: number[]) {\n    [this.value] = newValue;\n    return this.value;\n  }\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass Foo {\n  #value: number = 0;\n\n  bar(newValue: number[]) {\n    [this.#value] = newValue;\n    return this.#value;\n  }\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        class Test {\n          private testObj = {\n            prop: '',\n          };\n\n          public test(): void {\n            this.testObj = '';\n          }\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        class Test {\n          #testObj = {\n            prop: '',\n          };\n\n          public test(): void {\n            this.#testObj = '';\n          }\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        class TestObject {\n          public prop: number;\n        }\n\n        class Test {\n          private testObj = new TestObject();\n\n          public test(): void {\n            this.testObj = new TestObject();\n          }\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        class TestObject {\n          public prop: number;\n        }\n\n        class Test {\n          #testObj = new TestObject();\n\n          public test(): void {\n            this.#testObj = new TestObject();\n          }\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      class TestIntersection {\n        private prop: number = 3;\n\n        test() {\n          const that = {} as this & { _foo: 'bar' };\n          that.prop = 1;\n        }\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      class TestUnion {\n        private prop: number = 3;\n\n        test() {\n          const that = {} as this | (this & { _foo: 'bar' });\n          that.prop = 1;\n        }\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      class TestStaticIntersection {\n        private static prop: number;\n\n        test() {\n          const that = {} as typeof TestStaticIntersection & { _foo: 'bar' };\n          that.prop = 1;\n        }\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      class TestStaticUnion {\n        private static prop: number = 1;\n\n        test() {\n          const that = {} as\n            | typeof TestStaticUnion\n            | (typeof TestStaticUnion & { _foo: 'bar' });\n          that.prop = 1;\n        }\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      class TestBothIntersection {\n        private prop1: number = 1;\n        private static prop2: number;\n\n        test() {\n          const that = {} as typeof TestBothIntersection & this;\n          that.prop1 = 1;\n          that.prop2 = 1;\n        }\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      class TestBothIntersection {\n        private prop1: number = 1;\n        private static prop2: number;\n\n        test() {\n          const that = {} as this & typeof TestBothIntersection;\n          that.prop1 = 1;\n          that.prop2 = 1;\n        }\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      class TestStaticPrivateAccessor {\n        private static accessor staticAcc = 1;\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      class TestStaticPrivateFieldAccessor {\n        static accessor #staticAcc = 1;\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      class TestPrivateAccessor {\n        private accessor acc = 3;\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      class TestPrivateFieldAccessor {\n        accessor #acc = 3;\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    }
+  ],
+  "Invalid": [
+    {
+      "Code": "\n        class TestIncorrectlyModifiableStatic {\n          private static incorrectlyModifiableStatic = 7;\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        class TestIncorrectlyModifiableStatic {\n          private static readonly incorrectlyModifiableStatic = 7;\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferReadonly",
+          "Line": 3,
+          "Column": 11,
+          "EndLine": 3,
+          "EndColumn": 53,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        class TestIncorrectlyModifiableStatic {\n          static #incorrectlyModifiableStatic = 7;\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        class TestIncorrectlyModifiableStatic {\n          static readonly #incorrectlyModifiableStatic = 7;\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferReadonly",
+          "Line": 3,
+          "Column": 11,
+          "EndLine": 3,
+          "EndColumn": 46,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        class TestIncorrectlyModifiableStaticArrow {\n          private static incorrectlyModifiableStaticArrow = () => 7;\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        class TestIncorrectlyModifiableStaticArrow {\n          private static readonly incorrectlyModifiableStaticArrow = () => 7;\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferReadonly",
+          "Line": 3,
+          "Column": 11,
+          "EndLine": 3,
+          "EndColumn": 58,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        class TestIncorrectlyModifiableStaticArrow {\n          static #incorrectlyModifiableStaticArrow = () => 7;\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        class TestIncorrectlyModifiableStaticArrow {\n          static readonly #incorrectlyModifiableStaticArrow = () => 7;\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferReadonly",
+          "Line": 3,
+          "Column": 11,
+          "EndLine": 3,
+          "EndColumn": 51,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        class TestIncorrectlyModifiableInline {\n          private incorrectlyModifiableInline = 7;\n\n          public createConfusingChildClass() {\n            return class {\n              private incorrectlyModifiableInline = 7;\n            };\n          }\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        class TestIncorrectlyModifiableInline {\n          private readonly incorrectlyModifiableInline = 7;\n\n          public createConfusingChildClass() {\n            return class {\n              private readonly incorrectlyModifiableInline = 7;\n            };\n          }\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferReadonly",
+          "Line": 3,
+          "Column": 11,
+          "EndLine": 3,
+          "EndColumn": 46,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "preferReadonly",
+          "Line": 7,
+          "Column": 15,
+          "EndLine": 7,
+          "EndColumn": 50,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        class TestIncorrectlyModifiableInline {\n          #incorrectlyModifiableInline = 7;\n\n          public createConfusingChildClass() {\n            return class {\n              #incorrectlyModifiableInline = 7;\n            };\n          }\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        class TestIncorrectlyModifiableInline {\n          readonly #incorrectlyModifiableInline = 7;\n\n          public createConfusingChildClass() {\n            return class {\n              readonly #incorrectlyModifiableInline = 7;\n            };\n          }\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferReadonly",
+          "Line": 3,
+          "Column": 11,
+          "EndLine": 3,
+          "EndColumn": 39,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "preferReadonly",
+          "Line": 7,
+          "Column": 15,
+          "EndLine": 7,
+          "EndColumn": 43,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        class TestIncorrectlyModifiableDelayed {\n          private incorrectlyModifiableDelayed = 7;\n\n          public constructor() {\n            this.incorrectlyModifiableDelayed = 7;\n          }\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        class TestIncorrectlyModifiableDelayed {\n          private readonly incorrectlyModifiableDelayed: number = 7;\n\n          public constructor() {\n            this.incorrectlyModifiableDelayed = 7;\n          }\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferReadonly",
+          "Line": 3,
+          "Column": 11,
+          "EndLine": 3,
+          "EndColumn": 47,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        class TestIncorrectlyModifiableDelayed {\n          #incorrectlyModifiableDelayed = 7;\n\n          public constructor() {\n            this.#incorrectlyModifiableDelayed = 7;\n          }\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        class TestIncorrectlyModifiableDelayed {\n          readonly #incorrectlyModifiableDelayed = 7;\n\n          public constructor() {\n            this.#incorrectlyModifiableDelayed = 7;\n          }\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferReadonly",
+          "Line": 3,
+          "Column": 11,
+          "EndLine": 3,
+          "EndColumn": 40,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        class TestChildClassExpressionModifiable {\n          private childClassExpressionModifiable = 7;\n\n          public createConfusingChildClass() {\n            return class {\n              private childClassExpressionModifiable = 7;\n\n              mutate() {\n                this.childClassExpressionModifiable += 1;\n              }\n            };\n          }\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        class TestChildClassExpressionModifiable {\n          private readonly childClassExpressionModifiable = 7;\n\n          public createConfusingChildClass() {\n            return class {\n              private childClassExpressionModifiable = 7;\n\n              mutate() {\n                this.childClassExpressionModifiable += 1;\n              }\n            };\n          }\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferReadonly",
+          "Line": 3,
+          "Column": 11,
+          "EndLine": 3,
+          "EndColumn": 49,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        class TestChildClassExpressionModifiable {\n          #childClassExpressionModifiable = 7;\n\n          public createConfusingChildClass() {\n            return class {\n              #childClassExpressionModifiable = 7;\n\n              mutate() {\n                this.#childClassExpressionModifiable += 1;\n              }\n            };\n          }\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        class TestChildClassExpressionModifiable {\n          readonly #childClassExpressionModifiable = 7;\n\n          public createConfusingChildClass() {\n            return class {\n              #childClassExpressionModifiable = 7;\n\n              mutate() {\n                this.#childClassExpressionModifiable += 1;\n              }\n            };\n          }\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferReadonly",
+          "Line": 3,
+          "Column": 11,
+          "EndLine": 3,
+          "EndColumn": 42,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        class TestIncorrectlyModifiablePostMinus {\n          private incorrectlyModifiablePostMinus = 7;\n\n          public mutate() {\n            this.incorrectlyModifiablePostMinus - 1;\n          }\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        class TestIncorrectlyModifiablePostMinus {\n          private readonly incorrectlyModifiablePostMinus = 7;\n\n          public mutate() {\n            this.incorrectlyModifiablePostMinus - 1;\n          }\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferReadonly",
+          "Line": 3,
+          "Column": 11,
+          "EndLine": 3,
+          "EndColumn": 49,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        class TestIncorrectlyModifiablePostMinus {\n          #incorrectlyModifiablePostMinus = 7;\n\n          public mutate() {\n            this.#incorrectlyModifiablePostMinus - 1;\n          }\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        class TestIncorrectlyModifiablePostMinus {\n          readonly #incorrectlyModifiablePostMinus = 7;\n\n          public mutate() {\n            this.#incorrectlyModifiablePostMinus - 1;\n          }\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferReadonly",
+          "Line": 3,
+          "Column": 11,
+          "EndLine": 3,
+          "EndColumn": 42,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        class TestIncorrectlyModifiablePostPlus {\n          private incorrectlyModifiablePostPlus = 7;\n\n          public mutate() {\n            this.incorrectlyModifiablePostPlus + 1;\n          }\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        class TestIncorrectlyModifiablePostPlus {\n          private readonly incorrectlyModifiablePostPlus = 7;\n\n          public mutate() {\n            this.incorrectlyModifiablePostPlus + 1;\n          }\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferReadonly",
+          "Line": 3,
+          "Column": 11,
+          "EndLine": 3,
+          "EndColumn": 48,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        class TestIncorrectlyModifiablePostPlus {\n          #incorrectlyModifiablePostPlus = 7;\n\n          public mutate() {\n            this.#incorrectlyModifiablePostPlus + 1;\n          }\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        class TestIncorrectlyModifiablePostPlus {\n          readonly #incorrectlyModifiablePostPlus = 7;\n\n          public mutate() {\n            this.#incorrectlyModifiablePostPlus + 1;\n          }\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferReadonly",
+          "Line": 3,
+          "Column": 11,
+          "EndLine": 3,
+          "EndColumn": 41,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        class TestIncorrectlyModifiablePreMinus {\n          private incorrectlyModifiablePreMinus = 7;\n\n          public mutate() {\n            -this.incorrectlyModifiablePreMinus;\n          }\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        class TestIncorrectlyModifiablePreMinus {\n          private readonly incorrectlyModifiablePreMinus = 7;\n\n          public mutate() {\n            -this.incorrectlyModifiablePreMinus;\n          }\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferReadonly",
+          "Line": 3,
+          "Column": 11,
+          "EndLine": 3,
+          "EndColumn": 48,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        class TestIncorrectlyModifiablePreMinus {\n          #incorrectlyModifiablePreMinus = 7;\n\n          public mutate() {\n            -this.#incorrectlyModifiablePreMinus;\n          }\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        class TestIncorrectlyModifiablePreMinus {\n          readonly #incorrectlyModifiablePreMinus = 7;\n\n          public mutate() {\n            -this.#incorrectlyModifiablePreMinus;\n          }\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferReadonly",
+          "Line": 3,
+          "Column": 11,
+          "EndLine": 3,
+          "EndColumn": 41,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        class TestIncorrectlyModifiablePrePlus {\n          private incorrectlyModifiablePrePlus = 7;\n\n          public mutate() {\n            +this.incorrectlyModifiablePrePlus;\n          }\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        class TestIncorrectlyModifiablePrePlus {\n          private readonly incorrectlyModifiablePrePlus = 7;\n\n          public mutate() {\n            +this.incorrectlyModifiablePrePlus;\n          }\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferReadonly",
+          "Line": 3,
+          "Column": 11,
+          "EndLine": 3,
+          "EndColumn": 47,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        class TestIncorrectlyModifiablePrePlus {\n          #incorrectlyModifiablePrePlus = 7;\n\n          public mutate() {\n            +this.#incorrectlyModifiablePrePlus;\n          }\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        class TestIncorrectlyModifiablePrePlus {\n          readonly #incorrectlyModifiablePrePlus = 7;\n\n          public mutate() {\n            +this.#incorrectlyModifiablePrePlus;\n          }\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferReadonly",
+          "Line": 3,
+          "Column": 11,
+          "EndLine": 3,
+          "EndColumn": 40,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        class TestOverlappingClassVariable {\n          private overlappingClassVariable = 7;\n\n          public workWithSimilarClass(other: SimilarClass) {\n            other.overlappingClassVariable = 7;\n          }\n        }\n\n        class SimilarClass {\n          public overlappingClassVariable = 7;\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        class TestOverlappingClassVariable {\n          private readonly overlappingClassVariable = 7;\n\n          public workWithSimilarClass(other: SimilarClass) {\n            other.overlappingClassVariable = 7;\n          }\n        }\n\n        class SimilarClass {\n          public overlappingClassVariable = 7;\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferReadonly",
+          "Line": 3,
+          "Column": 11,
+          "EndLine": 3,
+          "EndColumn": 43,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        class TestIncorrectlyModifiableParameter {\n          public constructor(private incorrectlyModifiableParameter = 7) {}\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        class TestIncorrectlyModifiableParameter {\n          public constructor(private readonly incorrectlyModifiableParameter = 7) {}\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferReadonly",
+          "Line": 3,
+          "Column": 30,
+          "EndLine": 3,
+          "EndColumn": 68,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        class TestIncorrectlyModifiableParameter {\n          public constructor(\n            public ignore: boolean,\n            private incorrectlyModifiableParameter = 7,\n          ) {}\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        class TestIncorrectlyModifiableParameter {\n          public constructor(\n            public ignore: boolean,\n            private readonly incorrectlyModifiableParameter = 7,\n          ) {}\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferReadonly",
+          "Line": 5,
+          "Column": 13,
+          "EndLine": 5,
+          "EndColumn": 51,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        class TestCorrectlyNonInlineLambdas {\n          private incorrectlyInlineLambda = () => 7;\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        class TestCorrectlyNonInlineLambdas {\n          private readonly incorrectlyInlineLambda = () => 7;\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferReadonly",
+          "Line": 3,
+          "Column": 11,
+          "EndLine": 3,
+          "EndColumn": 42,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "onlyInlineLambdas": true
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction ClassWithName<TBase extends new (...args: any[]) => {}>(Base: TBase) {\n  return class extends Base {\n    private _name: string;\n  };\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nfunction ClassWithName<TBase extends new (...args: any[]) => {}>(Base: TBase) {\n  return class extends Base {\n    private readonly _name: string;\n  };\n}\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferReadonly",
+          "Line": 4,
+          "Column": 5,
+          "EndLine": 4,
+          "EndColumn": 18,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction ClassWithName<TBase extends new (...args: any[]) => {}>(Base: TBase) {\n  return class extends Base {\n    #name: string;\n  };\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nfunction ClassWithName<TBase extends new (...args: any[]) => {}>(Base: TBase) {\n  return class extends Base {\n    readonly #name: string;\n  };\n}\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferReadonly",
+          "Line": 4,
+          "Column": 5,
+          "EndLine": 4,
+          "EndColumn": 10,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        class Test {\n          private testObj = {\n            prop: '',\n          };\n\n          public test(): void {\n            this.testObj.prop = '';\n          }\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        class Test {\n          private readonly testObj = {\n            prop: '',\n          };\n\n          public test(): void {\n            this.testObj.prop = '';\n          }\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferReadonly",
+          "Line": 3,
+          "Column": 11,
+          "EndLine": 3,
+          "EndColumn": 26,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        class Test {\n          #testObj = {\n            prop: '',\n          };\n\n          public test(): void {\n            this.#testObj.prop = '';\n          }\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        class Test {\n          readonly #testObj = {\n            prop: '',\n          };\n\n          public test(): void {\n            this.#testObj.prop = '';\n          }\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferReadonly",
+          "Line": 3,
+          "Column": 11,
+          "EndLine": 3,
+          "EndColumn": 19,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        class TestObject {\n          public prop: number;\n        }\n\n        class Test {\n          private testObj = new TestObject();\n\n          public test(): void {\n            this.testObj.prop = 10;\n          }\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        class TestObject {\n          public prop: number;\n        }\n\n        class Test {\n          private readonly testObj = new TestObject();\n\n          public test(): void {\n            this.testObj.prop = 10;\n          }\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferReadonly",
+          "Line": 7,
+          "Column": 11,
+          "EndLine": 7,
+          "EndColumn": 26,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        class TestObject {\n          public prop: number;\n        }\n\n        class Test {\n          #testObj = new TestObject();\n\n          public test(): void {\n            this.#testObj.prop = 10;\n          }\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        class TestObject {\n          public prop: number;\n        }\n\n        class Test {\n          readonly #testObj = new TestObject();\n\n          public test(): void {\n            this.#testObj.prop = 10;\n          }\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferReadonly",
+          "Line": 7,
+          "Column": 11,
+          "EndLine": 7,
+          "EndColumn": 19,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        class Test {\n          private testObj = {\n            prop: '',\n          };\n          public test(): void {\n            this.testObj.prop;\n          }\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        class Test {\n          private readonly testObj = {\n            prop: '',\n          };\n          public test(): void {\n            this.testObj.prop;\n          }\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferReadonly",
+          "Line": 3,
+          "Column": 11,
+          "EndLine": 3,
+          "EndColumn": 26,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        class Test {\n          #testObj = {\n            prop: '',\n          };\n          public test(): void {\n            this.#testObj.prop;\n          }\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        class Test {\n          readonly #testObj = {\n            prop: '',\n          };\n          public test(): void {\n            this.#testObj.prop;\n          }\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferReadonly",
+          "Line": 3,
+          "Column": 11,
+          "EndLine": 3,
+          "EndColumn": 19,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        class Test {\n          private testObj = {};\n          public test(): void {\n            this.testObj?.prop;\n          }\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        class Test {\n          private readonly testObj = {};\n          public test(): void {\n            this.testObj?.prop;\n          }\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferReadonly",
+          "Line": 3,
+          "Column": 11,
+          "EndLine": 3,
+          "EndColumn": 26,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        class Test {\n          #testObj = {};\n          public test(): void {\n            this.#testObj?.prop;\n          }\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        class Test {\n          readonly #testObj = {};\n          public test(): void {\n            this.#testObj?.prop;\n          }\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferReadonly",
+          "Line": 3,
+          "Column": 11,
+          "EndLine": 3,
+          "EndColumn": 19,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        class Test {\n          private testObj = {};\n          public test(): void {\n            this.testObj!.prop;\n          }\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        class Test {\n          private readonly testObj = {};\n          public test(): void {\n            this.testObj!.prop;\n          }\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferReadonly",
+          "Line": 3,
+          "Column": 11,
+          "EndLine": 3,
+          "EndColumn": 26,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        class Test {\n          #testObj = {};\n          public test(): void {\n            this.#testObj!.prop;\n          }\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        class Test {\n          readonly #testObj = {};\n          public test(): void {\n            this.#testObj!.prop;\n          }\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferReadonly",
+          "Line": 3,
+          "Column": 11,
+          "EndLine": 3,
+          "EndColumn": 19,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        class Test {\n          private testObj = {};\n          public test(): void {\n            this.testObj.prop.prop = '';\n          }\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        class Test {\n          private readonly testObj = {};\n          public test(): void {\n            this.testObj.prop.prop = '';\n          }\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferReadonly",
+          "Line": 3,
+          "Column": 11,
+          "EndLine": 3,
+          "EndColumn": 26,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        class Test {\n          #testObj = {};\n          public test(): void {\n            this.#testObj.prop.prop = '';\n          }\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        class Test {\n          readonly #testObj = {};\n          public test(): void {\n            this.#testObj.prop.prop = '';\n          }\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferReadonly",
+          "Line": 3,
+          "Column": 11,
+          "EndLine": 3,
+          "EndColumn": 19,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        class Test {\n          private testObj = {};\n          public test(): void {\n            this.testObj.prop.doesSomething();\n          }\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        class Test {\n          private readonly testObj = {};\n          public test(): void {\n            this.testObj.prop.doesSomething();\n          }\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferReadonly",
+          "Line": 3,
+          "Column": 11,
+          "EndLine": 3,
+          "EndColumn": 26,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        class Test {\n          #testObj = {};\n          public test(): void {\n            this.#testObj.prop.doesSomething();\n          }\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        class Test {\n          readonly #testObj = {};\n          public test(): void {\n            this.#testObj.prop.doesSomething();\n          }\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferReadonly",
+          "Line": 3,
+          "Column": 11,
+          "EndLine": 3,
+          "EndColumn": 19,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        class Test {\n          private testObj = {};\n          public test(): void {\n            this.testObj?.prop.prop;\n          }\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        class Test {\n          private readonly testObj = {};\n          public test(): void {\n            this.testObj?.prop.prop;\n          }\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferReadonly",
+          "Line": 3,
+          "Column": 11,
+          "EndLine": 3,
+          "EndColumn": 26,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        class Test {\n          #testObj = {};\n          public test(): void {\n            this.#testObj?.prop.prop;\n          }\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        class Test {\n          readonly #testObj = {};\n          public test(): void {\n            this.#testObj?.prop.prop;\n          }\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferReadonly",
+          "Line": 3,
+          "Column": 11,
+          "EndLine": 3,
+          "EndColumn": 19,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        class Test {\n          private testObj = {};\n          public test(): void {\n            this.testObj?.prop?.prop;\n          }\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        class Test {\n          private readonly testObj = {};\n          public test(): void {\n            this.testObj?.prop?.prop;\n          }\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferReadonly",
+          "Line": 3,
+          "Column": 11,
+          "EndLine": 3,
+          "EndColumn": 26,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        class Test {\n          #testObj = {};\n          public test(): void {\n            this.#testObj?.prop?.prop;\n          }\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        class Test {\n          readonly #testObj = {};\n          public test(): void {\n            this.#testObj?.prop?.prop;\n          }\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferReadonly",
+          "Line": 3,
+          "Column": 11,
+          "EndLine": 3,
+          "EndColumn": 19,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        class Test {\n          private testObj = {};\n          public test(): void {\n            this.testObj.prop?.prop;\n          }\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        class Test {\n          private readonly testObj = {};\n          public test(): void {\n            this.testObj.prop?.prop;\n          }\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferReadonly",
+          "Line": 3,
+          "Column": 11,
+          "EndLine": 3,
+          "EndColumn": 26,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        class Test {\n          #testObj = {};\n          public test(): void {\n            this.#testObj.prop?.prop;\n          }\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        class Test {\n          readonly #testObj = {};\n          public test(): void {\n            this.#testObj.prop?.prop;\n          }\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferReadonly",
+          "Line": 3,
+          "Column": 11,
+          "EndLine": 3,
+          "EndColumn": 19,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        class Test {\n          private testObj = {};\n          public test(): void {\n            this.testObj!.prop?.prop;\n          }\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        class Test {\n          private readonly testObj = {};\n          public test(): void {\n            this.testObj!.prop?.prop;\n          }\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferReadonly",
+          "Line": 3,
+          "Column": 11,
+          "EndLine": 3,
+          "EndColumn": 26,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        class Test {\n          #testObj = {};\n          public test(): void {\n            this.#testObj!.prop?.prop;\n          }\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        class Test {\n          readonly #testObj = {};\n          public test(): void {\n            this.#testObj!.prop?.prop;\n          }\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferReadonly",
+          "Line": 3,
+          "Column": 11,
+          "EndLine": 3,
+          "EndColumn": 19,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        class Test {\n          private prop: number = 3;\n\n          test() {\n            const that = {} as this & { _foo: 'bar' };\n            that._foo = 1;\n          }\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        class Test {\n          private readonly prop: number = 3;\n\n          test() {\n            const that = {} as this & { _foo: 'bar' };\n            that._foo = 1;\n          }\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferReadonly",
+          "Line": 3,
+          "Column": 11,
+          "EndLine": 3,
+          "EndColumn": 23,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        class Test {\n          private prop: number = 3;\n\n          test() {\n            const that = {} as this | (this & { _foo: 'bar' });\n            that.prop;\n          }\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        class Test {\n          private readonly prop: number = 3;\n\n          test() {\n            const that = {} as this | (this & { _foo: 'bar' });\n            that.prop;\n          }\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferReadonly",
+          "Line": 3,
+          "Column": 11,
+          "EndLine": 3,
+          "EndColumn": 23,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        class Test {\n          private prop: number;\n\n          constructor() {\n            const that = {} as this & { _foo: 'bar' };\n            that.prop = 1;\n          }\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        class Test {\n          private readonly prop: number;\n\n          constructor() {\n            const that = {} as this & { _foo: 'bar' };\n            that.prop = 1;\n          }\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferReadonly",
+          "Line": 3,
+          "Column": 11,
+          "EndLine": 3,
+          "EndColumn": 23,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        class Test {\n          private prop = 'hello';\n\n          constructor() {\n            this.prop = 'world';\n          }\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        class Test {\n          private readonly prop: string = 'hello';\n\n          constructor() {\n            this.prop = 'world';\n          }\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferReadonly",
+          "Line": 3,
+          "Column": 11,
+          "EndLine": 3,
+          "EndColumn": 23,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        class Test {\n          private prop = 'hello';\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        class Test {\n          private readonly prop = 'hello';\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferReadonly",
+          "Line": 3,
+          "Column": 11,
+          "EndLine": 3,
+          "EndColumn": 23,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        declare const hello: 'hello';\n\n        class Test {\n          private prop = hello;\n\n          constructor() {\n            this.prop = 'world';\n          }\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        declare const hello: 'hello';\n\n        class Test {\n          private readonly prop = hello;\n\n          constructor() {\n            this.prop = 'world';\n          }\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferReadonly",
+          "Line": 5,
+          "Column": 11,
+          "EndLine": 5,
+          "EndColumn": 23,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        declare const hello: 'hello';\n\n        class Test {\n          private prop = hello;\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        declare const hello: 'hello';\n\n        class Test {\n          private readonly prop = hello;\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferReadonly",
+          "Line": 5,
+          "Column": 11,
+          "EndLine": 5,
+          "EndColumn": 23,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        class Test {\n          private prop = 10;\n\n          constructor() {\n            this.prop = 11;\n          }\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        class Test {\n          private readonly prop: number = 10;\n\n          constructor() {\n            this.prop = 11;\n          }\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferReadonly",
+          "Line": 3,
+          "Column": 11,
+          "EndLine": 3,
+          "EndColumn": 23,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        class Test {\n          private prop = 10;\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        class Test {\n          private readonly prop = 10;\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferReadonly",
+          "Line": 3,
+          "Column": 11,
+          "EndLine": 3,
+          "EndColumn": 23,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        declare const hello: 10;\n\n        class Test {\n          private prop = hello;\n\n          constructor() {\n            this.prop = 11;\n          }\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        declare const hello: 10;\n\n        class Test {\n          private readonly prop = hello;\n\n          constructor() {\n            this.prop = 11;\n          }\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferReadonly",
+          "Line": 5,
+          "Column": 11,
+          "EndLine": 5,
+          "EndColumn": 23,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        class Test {\n          private prop = true;\n\n          constructor() {\n            this.prop = false;\n          }\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        class Test {\n          private readonly prop: boolean = true;\n\n          constructor() {\n            this.prop = false;\n          }\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferReadonly",
+          "Line": 3,
+          "Column": 11,
+          "EndLine": 3,
+          "EndColumn": 23,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        class Test {\n          private prop = true;\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        class Test {\n          private readonly prop = true;\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferReadonly",
+          "Line": 3,
+          "Column": 11,
+          "EndLine": 3,
+          "EndColumn": 23,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        declare const hello: true;\n\n        class Test {\n          private prop = hello;\n\n          constructor() {\n            this.prop = false;\n          }\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        declare const hello: true;\n\n        class Test {\n          private readonly prop = hello;\n\n          constructor() {\n            this.prop = false;\n          }\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferReadonly",
+          "Line": 5,
+          "Column": 11,
+          "EndLine": 5,
+          "EndColumn": 23,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        enum Foo {\n          Bar,\n          Bazz,\n        }\n\n        class Test {\n          private prop = Foo.Bar;\n\n          constructor() {\n            this.prop = Foo.Bazz;\n          }\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        enum Foo {\n          Bar,\n          Bazz,\n        }\n\n        class Test {\n          private readonly prop: Foo = Foo.Bar;\n\n          constructor() {\n            this.prop = Foo.Bazz;\n          }\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferReadonly",
+          "Line": 8,
+          "Column": 11,
+          "EndLine": 8,
+          "EndColumn": 23,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        enum Foo {\n          Bar,\n          Bazz,\n        }\n\n        class Test {\n          private prop = Foo.Bar;\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        enum Foo {\n          Bar,\n          Bazz,\n        }\n\n        class Test {\n          private readonly prop = Foo.Bar;\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferReadonly",
+          "Line": 8,
+          "Column": 11,
+          "EndLine": 8,
+          "EndColumn": 23,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        enum Foo {\n          Bar,\n          Bazz,\n        }\n\n        const foo = Foo.Bar;\n\n        class Test {\n          private prop = foo;\n\n          constructor() {\n            this.prop = foo;\n          }\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        enum Foo {\n          Bar,\n          Bazz,\n        }\n\n        const foo = Foo.Bar;\n\n        class Test {\n          private readonly prop: Foo = foo;\n\n          constructor() {\n            this.prop = foo;\n          }\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferReadonly",
+          "Line": 10,
+          "Column": 11,
+          "EndLine": 10,
+          "EndColumn": 23,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        enum Foo {\n          Bar,\n          Bazz,\n        }\n\n        const foo = Foo.Bar;\n\n        class Test {\n          private prop = foo;\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        enum Foo {\n          Bar,\n          Bazz,\n        }\n\n        const foo = Foo.Bar;\n\n        class Test {\n          private readonly prop = foo;\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferReadonly",
+          "Line": 10,
+          "Column": 11,
+          "EndLine": 10,
+          "EndColumn": 23,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        enum Foo {\n          Bar,\n          Bazz,\n        }\n\n        declare const foo: Foo;\n\n        class Test {\n          private prop = foo;\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        enum Foo {\n          Bar,\n          Bazz,\n        }\n\n        declare const foo: Foo;\n\n        class Test {\n          private readonly prop = foo;\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferReadonly",
+          "Line": 10,
+          "Column": 11,
+          "EndLine": 10,
+          "EndColumn": 23,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        enum Foo {\n          Bar,\n          Bazz,\n        }\n\n        const bar = Foo.Bar;\n\n        function wrapper() {\n          const Foo = 10;\n\n          class Test {\n            private prop = bar;\n\n            constructor() {\n              this.prop = bar;\n            }\n          }\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        enum Foo {\n          Bar,\n          Bazz,\n        }\n\n        const bar = Foo.Bar;\n\n        function wrapper() {\n          const Foo = 10;\n\n          class Test {\n            private readonly prop = bar;\n\n            constructor() {\n              this.prop = bar;\n            }\n          }\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferReadonly",
+          "Line": 13,
+          "Column": 13,
+          "EndLine": 13,
+          "EndColumn": 25,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        enum Foo {\n          Bar,\n          Bazz,\n        }\n\n        const bar = Foo.Bar;\n\n        function wrapper() {\n          type Foo = 10;\n\n          class Test {\n            private prop = bar;\n\n            constructor() {\n              this.prop = bar;\n            }\n          }\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        enum Foo {\n          Bar,\n          Bazz,\n        }\n\n        const bar = Foo.Bar;\n\n        function wrapper() {\n          type Foo = 10;\n\n          class Test {\n            private readonly prop = bar;\n\n            constructor() {\n              this.prop = bar;\n            }\n          }\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferReadonly",
+          "Line": 13,
+          "Column": 13,
+          "EndLine": 13,
+          "EndColumn": 25,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        const Bar = (function () {\n          enum Foo {\n            Bar,\n            Bazz,\n          }\n\n          return Foo;\n        })();\n\n        const bar = Bar.Bar;\n\n        class Test {\n          private prop = bar;\n\n          constructor() {\n            this.prop = bar;\n          }\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        const Bar = (function () {\n          enum Foo {\n            Bar,\n            Bazz,\n          }\n\n          return Foo;\n        })();\n\n        const bar = Bar.Bar;\n\n        class Test {\n          private readonly prop = bar;\n\n          constructor() {\n            this.prop = bar;\n          }\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferReadonly",
+          "Line": 14,
+          "Column": 11,
+          "EndLine": 14,
+          "EndColumn": 23,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        class Test {\n          private prop = { foo: 'bar' };\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        class Test {\n          private readonly prop = { foo: 'bar' };\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferReadonly",
+          "Line": 3,
+          "Column": 11,
+          "EndLine": 3,
+          "EndColumn": 23,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        class Test {\n          private prop = { foo: 'bar' };\n\n          constructor() {\n            this.prop = { foo: 'bazz' };\n          }\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        class Test {\n          private readonly prop = { foo: 'bar' };\n\n          constructor() {\n            this.prop = { foo: 'bazz' };\n          }\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferReadonly",
+          "Line": 3,
+          "Column": 11,
+          "EndLine": 3,
+          "EndColumn": 23,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        class Test {\n          private prop = [1, 2, 'three'];\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        class Test {\n          private readonly prop = [1, 2, 'three'];\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferReadonly",
+          "Line": 3,
+          "Column": 11,
+          "EndLine": 3,
+          "EndColumn": 23,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        class Test {\n          private prop = [1, 2, 'three'];\n\n          constructor() {\n            this.prop = [1, 2, 'four'];\n          }\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        class Test {\n          private readonly prop = [1, 2, 'three'];\n\n          constructor() {\n            this.prop = [1, 2, 'four'];\n          }\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferReadonly",
+          "Line": 3,
+          "Column": 11,
+          "EndLine": 3,
+          "EndColumn": 23,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        class X {\n          private _isValid = true;\n\n          getIsValid = () => this._isValid;\n\n          constructor(data?: {}) {\n            if (!data) {\n              this._isValid = false;\n            }\n          }\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        class X {\n          private readonly _isValid: boolean = true;\n\n          getIsValid = () => this._isValid;\n\n          constructor(data?: {}) {\n            if (!data) {\n              this._isValid = false;\n            }\n          }\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferReadonly",
+          "Line": 3,
+          "Column": 11,
+          "EndLine": 3,
+          "EndColumn": 27,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        class Test {\n          private prop: string = 'hello';\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        class Test {\n          private readonly prop: string = 'hello';\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferReadonly",
+          "Line": 3,
+          "Column": 11,
+          "EndLine": 3,
+          "EndColumn": 23,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        class Test {\n          private prop: string | number = 'hello';\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        class Test {\n          private readonly prop: string | number = 'hello';\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferReadonly",
+          "Line": 3,
+          "Column": 11,
+          "EndLine": 3,
+          "EndColumn": 23,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        class Test {\n          private prop: string;\n\n          constructor() {\n            this.prop = 'hello';\n          }\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        class Test {\n          private readonly prop: string;\n\n          constructor() {\n            this.prop = 'hello';\n          }\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferReadonly",
+          "Line": 3,
+          "Column": 11,
+          "EndLine": 3,
+          "EndColumn": 23,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        class Test {\n          private prop;\n\n          constructor() {\n            this.prop = 'hello';\n          }\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        class Test {\n          private readonly prop;\n\n          constructor() {\n            this.prop = 'hello';\n          }\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferReadonly",
+          "Line": 3,
+          "Column": 11,
+          "EndLine": 3,
+          "EndColumn": 23,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        class Test {\n          private prop;\n\n          constructor(x: boolean) {\n            if (x) {\n              this.prop = 'hello';\n            } else {\n              this.prop = 10;\n            }\n          }\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        class Test {\n          private readonly prop;\n\n          constructor(x: boolean) {\n            if (x) {\n              this.prop = 'hello';\n            } else {\n              this.prop = 10;\n            }\n          }\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferReadonly",
+          "Line": 3,
+          "Column": 11,
+          "EndLine": 3,
+          "EndColumn": 23,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        declare const hello: 'hello' | 10;\n\n        class Test {\n          private prop = hello;\n\n          constructor() {\n            this.prop = 10;\n          }\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        declare const hello: 'hello' | 10;\n\n        class Test {\n          private readonly prop = hello;\n\n          constructor() {\n            this.prop = 10;\n          }\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferReadonly",
+          "Line": 5,
+          "Column": 11,
+          "EndLine": 5,
+          "EndColumn": 23,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        class Test {\n          private prop = null;\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        class Test {\n          private readonly prop = null;\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferReadonly",
+          "Line": 3,
+          "Column": 11,
+          "EndLine": 3,
+          "EndColumn": 23,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        class Test {\n          private prop = null;\n\n          constructor() {\n            this.prop = null;\n          }\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        class Test {\n          private readonly prop = null;\n\n          constructor() {\n            this.prop = null;\n          }\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferReadonly",
+          "Line": 3,
+          "Column": 11,
+          "EndLine": 3,
+          "EndColumn": 23,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        class Test {\n          private prop = 'hello' as string;\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        class Test {\n          private readonly prop = 'hello' as string;\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferReadonly",
+          "Line": 3,
+          "Column": 11,
+          "EndLine": 3,
+          "EndColumn": 23,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        class Test {\n          private prop = Promise.resolve('hello');\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        class Test {\n          private readonly prop = Promise.resolve('hello');\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferReadonly",
+          "Line": 3,
+          "Column": 11,
+          "EndLine": 3,
+          "EndColumn": 23,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    }
+  ]
+}

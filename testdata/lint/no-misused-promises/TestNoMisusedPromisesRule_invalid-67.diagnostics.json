@@ -1,0 +1,60 @@
+[
+  {
+    "kind": 0,
+    "rule": "no-misused-promises",
+    "message": {
+      "id": "voidReturnInheritedMethod",
+      "description": "Promise-returning method provided where a void return was expected by extended/implemented type 'MyInterface'."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 181,
+      "end": 194
+    },
+    "labeled_ranges": [
+      {
+        "label": "This callback has type `() => Promise<void>`.",
+        "range": {
+          "pos": 181,
+          "end": 194
+        }
+      },
+      {
+        "label": "This context accepts a `void`-returning callback through type `() => void`.",
+        "range": {
+          "pos": 39,
+          "end": 43
+        }
+      }
+    ]
+  },
+  {
+    "kind": 0,
+    "rule": "no-misused-promises",
+    "message": {
+      "id": "voidReturnInheritedMethod",
+      "description": "Promise-returning method provided where a void return was expected by extended/implemented type 'MyOtherInterface'."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 181,
+      "end": 194
+    },
+    "labeled_ranges": [
+      {
+        "label": "This callback has type `() => Promise<void>`.",
+        "range": {
+          "pos": 181,
+          "end": 194
+        }
+      },
+      {
+        "range": {
+          "pos": 91,
+          "end": 95
+        },
+        "label": "This context accepts a `void`-returning callback through type `() => void`."
+      }
+    ]
+  }
+]

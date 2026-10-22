@@ -1,0 +1,31 @@
+[
+  {
+    "message": {
+      "id": "useDot",
+      "description": "[\"protected_prop\"] is better written in dot notation."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 69,
+      "end": 85
+    },
+    "fixes": [
+      {
+        "text": ".",
+        "range": {
+          "pos": 68,
+          "end": 68
+        }
+      },
+      {
+        "text": "protected_prop",
+        "range": {
+          "end": 86,
+          "pos": 68
+        }
+      }
+    ],
+    "kind": 0,
+    "rule": "dot-notation"
+  }
+]

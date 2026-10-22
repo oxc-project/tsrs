@@ -1,0 +1,16 @@
+[
+  {
+    "kind": 0,
+    "range": {
+      "pos": 51,
+      "end": 66
+    },
+    "message": {
+      "id": "unsafeTypeAssertion",
+      "description": "Unsafe type assertion: type 'number[]' is more narrow than the original type.",
+      "help": "The original expression has type `readonly number[]`, and the assertion changes it to `number[]`. Use a type guard to narrow the value before asserting a more specific type."
+    },
+    "file_path": "file.ts",
+    "rule": "no-unsafe-type-assertion"
+  }
+]

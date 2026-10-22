@@ -1,0 +1,15 @@
+[
+  {
+    "kind": 0,
+    "rule": "no-redundant-type-constituents",
+    "message": {
+      "id": "primitiveOverridden",
+      "description": "bigint is overridden by the -1n in this intersection type."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 15,
+      "end": 21
+    }
+  }
+]

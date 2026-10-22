@@ -1,0 +1,33 @@
+[
+  {
+    "range": {
+      "pos": 130,
+      "end": 139
+    },
+    "suggestions": [
+      {
+        "message": {
+          "id": "suggestRemoveOptionalChain",
+          "description": "Remove unnecessary optional chain"
+        },
+        "fixes": [
+          {
+            "text": ".",
+            "range": {
+              "end": 138,
+              "pos": 136
+            }
+          }
+        ]
+      }
+    ],
+    "kind": 0,
+    "rule": "no-unnecessary-condition",
+    "message": {
+      "id": "neverOptionalChain",
+      "description": "Unnecessary optional chain on a non-nullish value.",
+      "help": "The checked value has type `{ a: 1; }`. Remove the optional chain; the value cannot be `null` or `undefined`."
+    },
+    "file_path": "file.ts"
+  }
+]

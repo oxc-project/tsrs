@@ -1,0 +1,79 @@
+{
+  "Name": "no-unsafe-type-assertion",
+  "TSConfig": "tsconfig.minimal.json",
+  "Valid": [
+    {
+      "Code": "\nclass Foo {}\ndeclare const a: Foo;\na as Foo | number;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass Foo {}\nclass Bar {}\ndeclare const a: Foo;\na as Bar;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass Foo {\n  hello() {}\n}\nclass Bar {}\ndeclare const a: Foo;\na as Bar;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass Foo {\n  hello() {}\n}\nclass Bar extends Foo {}\ndeclare const a: Bar;\na as Foo;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass Foo {\n  hello() {}\n}\nclass Bar extends Foo {}\ndeclare const a: Foo;\na as Bar;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    }
+  ],
+  "Invalid": [
+    {
+      "Code": "\nclass Foo {\n  hello() {}\n}\nclass Bar extends Foo {\n  world() {}\n}\ndeclare const a: Foo;\na as Bar;\n        ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unsafeTypeAssertion",
+          "Line": 9,
+          "Column": 1,
+          "EndLine": 9,
+          "EndColumn": 9,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    }
+  ]
+}

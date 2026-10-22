@@ -1,0 +1,2083 @@
+{
+  "Name": "prefer-readonly-parameter-types",
+  "TSConfig": "tsconfig.minimal.json",
+  "Valid": [
+    {
+      "Code": "function foo() {}",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "function foo(arg: boolean) {}",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "function foo(arg: true) {}",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "function foo(arg: string) {}",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "function foo(arg: 'a') {}",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "function foo(arg: number) {}",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "function foo(arg: 1) {}",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "function foo(arg: symbol) {}",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "function foo(arg: any) {}",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "function foo(arg: unknown) {}",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "function foo(arg: never) {}",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "function foo(arg: null) {}",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "function foo(arg: undefined) {}",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      const symb = Symbol('a');\n      function foo(arg: typeof symb) {}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      enum Enum {\n        a,\n        b,\n      }\n      function foo(arg: Enum) {}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "function foo(arg: readonly string[]) {}",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "function foo(arg: Readonly<string[]>) {}",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "function foo(arg: ReadonlyArray<string>) {}",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "function foo(arg: readonly [string]) {}",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "function foo(arg: Readonly<[string]>) {}",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "function foo(arg: readonly (readonly string[])[]) {}",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "function foo(arg: Readonly<Readonly<string[]>[]>) {}",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "function foo(arg: ReadonlyArray<ReadonlyArray<string>>) {}",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "function foo(arg: () => void) {}",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "function foo(arg: string | null) {}",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "function foo(arg: string | ReadonlyArray<string>) {}",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "function foo(arg: string | (() => void)) {}",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "function foo(arg: ReadonlyArray<string> | ReadonlyArray<number>) {}",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "function foo(arg: Readonly<{ foo: '' }>) {}",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "function foo(arg: Readonly<{ foo: readonly string[] }>) {}",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "function foo(arg: Readonly<{ foo(): void }>) {}",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      function foo(arg: {\n        readonly foo: {\n          readonly bar: string;\n        };\n      }) {}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      function foo(arg: { readonly [k: string]: string }) {}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      function foo(arg: { readonly [k: number]: string }) {}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      interface Empty {}\n      function foo(arg: Empty) {}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface Test {\n  (): void;\n  readonly property: boolean;\n}\nfunction foo(arg: Test) {}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype Test = (() => void) & {\n  readonly property: boolean;\n};\nfunction foo(arg: Test) {}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      interface Test extends ReadonlyArray<string> {\n        readonly property: boolean;\n      }\n      function foo(arg: Readonly<Test>) {}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      type Test = readonly string[] & {\n        readonly property: boolean;\n      };\n      function foo(arg: Readonly<Test>) {}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      type Test = string & number;\n      function foo(arg: Test) {}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      class Foo {\n        readonly bang = 1;\n      }\n      interface Foo {\n        readonly prop: string;\n      }\n      interface Foo {\n        readonly prop2: string;\n      }\n      function foo(arg: Foo) {}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      class Foo {\n        method() {}\n      }\n      function foo(arg: Readonly<Foo>) {}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      type MyType = Readonly<{\n        prop: string;\n        method(): string;\n      }>;\n      function foo(arg: MyType) {}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      type MyType = {\n        readonly prop: string;\n        readonly method: () => string;\n      };\n      function bar(arg: MyType) {}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        class Foo {\n          #privateField: string[] = [];\n          #privateMember() {}\n        }\n        function foo(arg: Foo) {}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        class HasText {\n          readonly #text: string;\n        }\n\n        export function onDone(task: HasText): void {}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        class PrivateMutable {\n          private values = new Map<string, unknown>();\n        }\n        function f(value: Readonly<PrivateMutable>): void {}\n\n        class PrivateReadonly {\n          private readonly values = new Map<string, unknown>();\n        }\n        function g(value: Readonly<PrivateReadonly>): void {}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "checkParameterProperties": true,
+        "ignoreInferredTypes": false,
+        "treatMethodsAsReadonly": true
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        class PrivateMutableArray {\n          private values: string[] = [];\n        }\n        function f(value: Readonly<PrivateMutableArray>): void {}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "checkParameterProperties": true,
+        "ignoreInferredTypes": false,
+        "treatMethodsAsReadonly": true
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        type MyType = {\n          readonly prop: string;\n          method(): string;\n        };\n        function foo(arg: MyType) {}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "checkParameterProperties": true,
+        "ignoreInferredTypes": false,
+        "treatMethodsAsReadonly": true
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        class Foo {\n          method() {}\n        }\n        function foo(arg: Foo) {}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "checkParameterProperties": true,
+        "ignoreInferredTypes": false,
+        "treatMethodsAsReadonly": true
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        interface Foo {\n          method(): void;\n        }\n        function foo(arg: Foo) {}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "checkParameterProperties": true,
+        "ignoreInferredTypes": false,
+        "treatMethodsAsReadonly": true
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        function foo(arg: ReadonlySet<string>) {}\n        function bar(arg: ReadonlyMap<string, string>) {}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "checkParameterProperties": true,
+        "ignoreInferredTypes": false,
+        "treatMethodsAsReadonly": true
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        class Foo {\n          constructor(\n            private arg1: readonly string[],\n            public arg2: readonly string[],\n            protected arg3: readonly string[],\n            readonly arg4: readonly string[],\n          ) {}\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "checkParameterProperties": true,
+        "ignoreInferredTypes": false,
+        "treatMethodsAsReadonly": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        class Foo {\n          constructor(\n            private arg1: string[],\n            public arg2: string[],\n            protected arg3: string[],\n            readonly arg4: string[],\n          ) {}\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "checkParameterProperties": false,
+        "ignoreInferredTypes": false,
+        "treatMethodsAsReadonly": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      interface Foo {\n        (arg: readonly string[]): void;\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      interface Foo {\n        new (arg: readonly string[]): void;\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "class Foo { foo(arg: readonly string[]): void; };",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "function foo(arg: readonly string[]);",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "type Foo = (arg: readonly string[]) => void;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      interface Foo {\n        foo(arg: readonly string[]): void;\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      interface Foo {\n        readonly prop: Foo;\n      }\n      function foo(arg: Foo) {}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      type MyType = string | readonly MyType[];\n\n      function foo<A extends MyType[]>(a: A): MyType[] {\n        return [];\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      interface Foo {\n        readonly prop: Bar;\n      }\n      interface Bar {\n        readonly prop: Foo;\n      }\n      function foo(arg: Foo) {}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      interface Foo {\n        prop: Readonly<Bar>;\n      }\n      interface Bar {\n        prop: Readonly<Foo>;\n      }\n      function foo(arg: Readonly<Foo>) {}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      const sym = Symbol('sym');\n\n      interface WithSymbol {\n        [sym]: number;\n      }\n\n      const willNotCrash = (foo: Readonly<WithSymbol>) => {};\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype TaggedBigInt = bigint & {\n  readonly __tag: unique symbol;\n};\nfunction custom1(arg: TaggedBigInt) {}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype TaggedNumber = number & {\n  readonly __tag: unique symbol;\n};\nfunction custom1(arg: TaggedNumber) {}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype TaggedString = string & {\n  readonly __tag: unique symbol;\n};\nfunction custom1(arg: TaggedString) {}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype TaggedString = string & {\n  readonly __tagA: unique symbol;\n  readonly __tagB: unique symbol;\n};\nfunction custom1(arg: TaggedString) {}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype TaggedString = string & {\n  readonly __tag: unique symbol;\n};\n\ntype OtherSpecialString = string & {\n  readonly ' __other_tag': unique symbol;\n};\n\nfunction custom1(arg: TaggedString | OtherSpecialString) {}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype TaggedTemplateLiteral = `${string}-${string}` & {\n  readonly __tag: unique symbol;\n};\nfunction custom1(arg: TaggedTemplateLiteral) {}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype TaggedNumber = 1 & {\n  readonly __tag: unique symbol;\n};\n\nfunction custom1(arg: TaggedNumber) {}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype TaggedNumber = (1 | 2) & {\n  readonly __tag: unique symbol;\n};\n\nfunction custom1(arg: TaggedNumber) {}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype TaggedString = ('a' | 'b') & {\n  readonly __tag: unique symbol;\n};\n\nfunction custom1(arg: TaggedString) {}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype Strings = 'one' | 'two' | 'three';\n\ntype TaggedString = Strings & {\n  readonly __tag: unique symbol;\n};\n\nfunction custom1(arg: TaggedString) {}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype Strings = 'one' | 'two' | 'three';\n\ntype TaggedString = Strings & {\n  __tag: unique symbol;\n};\n\nfunction custom1(arg: TaggedString) {}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype TaggedString = string & {\n  __tag: unique symbol;\n} & {\n  __tag: unique symbol;\n};\nfunction custom1(arg: TaggedString) {}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype TaggedString = string & {\n  __tagA: unique symbol;\n} & {\n  __tagB: unique symbol;\n};\nfunction custom1(arg: TaggedString) {}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype TaggedString = string &\n  ({ __tag: unique symbol } | { __tag: unique symbol });\nfunction custom1(arg: TaggedString) {}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype TaggedFunction = (() => void) & {\n  readonly __tag: unique symbol;\n};\nfunction custom1(arg: TaggedFunction) {}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        type Callback<T> = (options: T) => void;\n\n        declare const acceptsCallback: <T>(callback: Callback<T>) => void;\n\n        interface CallbackOptions {\n          prop: string;\n        }\n\n        acceptsCallback<CallbackOptions>(options => {});\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "checkParameterProperties": true,
+        "ignoreInferredTypes": true,
+        "treatMethodsAsReadonly": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        interface Obj {\n          readonly [K: string]: Obj;\n        }\n\n        function foo(event: Obj): void {}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "checkParameterProperties": true,
+        "ignoreInferredTypes": false,
+        "treatMethodsAsReadonly": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        interface Obj1 {\n          readonly [K: string]: Obj2;\n        }\n\n        interface Obj2 {\n          readonly [K: string]: Obj1;\n        }\n\n        function foo(event: Obj1): void {}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "checkParameterProperties": true,
+        "ignoreInferredTypes": false,
+        "treatMethodsAsReadonly": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        interface Foo {\n          readonly prop: RegExp;\n        }\n\n        function foo(arg: Foo) {}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "allow": [
+          {
+            "from": "lib",
+            "name": [
+              "RegExp"
+            ]
+          }
+        ],
+        "checkParameterProperties": true,
+        "ignoreInferredTypes": false,
+        "treatMethodsAsReadonly": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        interface Foo {\n          prop: RegExp;\n        }\n\n        function foo(arg: Readonly<Foo>) {}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "allow": [
+          {
+            "from": "lib",
+            "name": [
+              "RegExp"
+            ]
+          }
+        ],
+        "checkParameterProperties": true,
+        "ignoreInferredTypes": false,
+        "treatMethodsAsReadonly": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        interface Foo {\n          prop: string;\n        }\n\n        function foo(arg: Foo) {}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "allow": [
+          {
+            "from": "file",
+            "name": [
+              "Foo"
+            ]
+          }
+        ],
+        "checkParameterProperties": true,
+        "ignoreInferredTypes": false,
+        "treatMethodsAsReadonly": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        interface Bar {\n          prop: string;\n        }\n        interface Foo {\n          readonly prop: Bar;\n        }\n\n        function foo(arg: Foo) {}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "allow": [
+          {
+            "name": [
+              "Foo"
+            ],
+            "from": "file"
+          }
+        ],
+        "checkParameterProperties": true,
+        "ignoreInferredTypes": false,
+        "treatMethodsAsReadonly": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        interface Bar {\n          prop: string;\n        }\n        interface Foo {\n          readonly prop: Bar;\n        }\n\n        function foo(arg: Foo) {}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "allow": [
+          {
+            "from": "file",
+            "name": [
+              "Bar"
+            ]
+          }
+        ],
+        "checkParameterProperties": true,
+        "ignoreInferredTypes": false,
+        "treatMethodsAsReadonly": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        interface ViewStyle {\n          field1: number;\n        }\n        type Falsy = undefined | null | false | '';\n\n        interface RecursiveArray<T> extends Array<\n          T | ReadonlyArray<T> | RecursiveArray<T>\n        > {}\n\n        type RegisteredStyle<T> = number & { __registeredStyleBrand: T };\n\n        type StyleProp<T> =\n          | T\n          | RegisteredStyle<T>\n          | RecursiveArray<T | RegisteredStyle<T> | Falsy>\n          | Falsy;\n\n        function process(arg1: ViewStyle, arg2: StyleProp<ViewStyle>): void {}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "allow": [
+          {
+            "from": "file",
+            "name": [
+              "StyleProp",
+              "ViewStyle"
+            ]
+          }
+        ],
+        "checkParameterProperties": true,
+        "ignoreInferredTypes": false,
+        "treatMethodsAsReadonly": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        type MyArray<T> = T | T[] | null;\n        interface Item {\n          value: string;\n        }\n        function process(items: MyArray<Item>): void {}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "allow": [
+          {
+            "from": "file",
+            "name": [
+              "MyArray",
+              "Item"
+            ]
+          }
+        ],
+        "checkParameterProperties": true,
+        "ignoreInferredTypes": false,
+        "treatMethodsAsReadonly": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        declare function foo<T>(callback: (arg: T) => void): void;\n        foo<readonly string[]>(arg => {});\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        type MyReadonlyType = Readonly<{\n          prop: string;\n        }>;\n\n        function foo(arg: MyReadonlyType) {}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "allow": [
+          "OtherType"
+        ],
+        "checkParameterProperties": true,
+        "ignoreInferredTypes": false,
+        "treatMethodsAsReadonly": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    }
+  ],
+  "Invalid": [
+    {
+      "Code": "function foo(arg: string[]) {}",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "shouldBeReadonly",
+          "Line": 0,
+          "Column": 14,
+          "EndLine": 0,
+          "EndColumn": 27,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "function foo(arg: Array<string>) {}",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "shouldBeReadonly",
+          "Line": 0,
+          "Column": 14,
+          "EndLine": 0,
+          "EndColumn": 32,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "function foo(arg: [string]) {}",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "shouldBeReadonly",
+          "Line": 0,
+          "Column": 14,
+          "EndLine": 0,
+          "EndColumn": 27,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "function foo(arg: readonly string[][]) {}",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "shouldBeReadonly",
+          "Line": 0,
+          "Column": 14,
+          "EndLine": 0,
+          "EndColumn": 38,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "function foo(arg: Readonly<string[][]>) {}",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "shouldBeReadonly",
+          "Line": 0,
+          "Column": 14,
+          "EndLine": 0,
+          "EndColumn": 39,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "function foo(arg: ReadonlyArray<Array<string>>) {}",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "shouldBeReadonly",
+          "Line": 0,
+          "Column": 14,
+          "EndLine": 0,
+          "EndColumn": 47,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "function foo(arg: { foo: '' }) {}",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "shouldBeReadonly",
+          "Line": 0,
+          "Column": 14,
+          "EndLine": 0,
+          "EndColumn": 30,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "function foo(arg: { foo: readonly string[] }) {}",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "shouldBeReadonly",
+          "Line": 0,
+          "Column": 14,
+          "EndLine": 0,
+          "EndColumn": 45,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "function foo(arg: { foo(): void }) {}",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "shouldBeReadonly",
+          "Line": 0,
+          "Column": 14,
+          "EndLine": 0,
+          "EndColumn": 34,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        function foo(arg: {\n          readonly foo: {\n            bar: string;\n          };\n        }) {}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "shouldBeReadonly",
+          "Line": 2,
+          "Column": 22,
+          "EndLine": 6,
+          "EndColumn": 10,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        function foo(arg: { [key: string]: string }) {}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "shouldBeReadonly",
+          "Line": 2,
+          "Column": 22,
+          "EndLine": 2,
+          "EndColumn": 52,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        function foo(arg: { [key: number]: string }) {}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "shouldBeReadonly",
+          "Line": 2,
+          "Column": 22,
+          "EndLine": 2,
+          "EndColumn": 52,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface Test {\n  (): void;\n  property: boolean;\n}\nfunction foo(arg: Test) {}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "shouldBeReadonly",
+          "Line": 6,
+          "Column": 14,
+          "EndLine": 6,
+          "EndColumn": 23,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype Test = (() => void) & {\n  property: boolean;\n};\nfunction foo(arg: Test) {}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "shouldBeReadonly",
+          "Line": 5,
+          "Column": 14,
+          "EndLine": 5,
+          "EndColumn": 23,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        interface Test extends Array<string> {\n          readonly property: boolean;\n        }\n        function foo(arg: Test) {}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "shouldBeReadonly",
+          "Line": 5,
+          "Column": 22,
+          "EndLine": 5,
+          "EndColumn": 31,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        interface Test extends Array<string> {\n          property: boolean;\n        }\n        function foo(arg: Test) {}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "shouldBeReadonly",
+          "Line": 5,
+          "Column": 22,
+          "EndLine": 5,
+          "EndColumn": 31,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        class Foo {\n          constructor(\n            private arg1: string[],\n            public arg2: string[],\n            protected arg3: string[],\n            readonly arg4: string[],\n          ) {}\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "shouldBeReadonly",
+          "Line": 4,
+          "Column": 21,
+          "EndLine": 4,
+          "EndColumn": 35,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "shouldBeReadonly",
+          "Line": 5,
+          "Column": 20,
+          "EndLine": 5,
+          "EndColumn": 34,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "shouldBeReadonly",
+          "Line": 6,
+          "Column": 23,
+          "EndLine": 6,
+          "EndColumn": 37,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "shouldBeReadonly",
+          "Line": 7,
+          "Column": 22,
+          "EndLine": 7,
+          "EndColumn": 36,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "checkParameterProperties": true,
+        "ignoreInferredTypes": false,
+        "treatMethodsAsReadonly": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        class Foo {\n          constructor(\n            private arg1: readonly string[],\n            public arg2: readonly string[],\n            protected arg3: readonly string[],\n            readonly arg4: readonly string[],\n            arg5: string[],\n          ) {}\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "shouldBeReadonly",
+          "Line": 8,
+          "Column": 13,
+          "EndLine": 8,
+          "EndColumn": 27,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "checkParameterProperties": false,
+        "ignoreInferredTypes": false,
+        "treatMethodsAsReadonly": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        interface Foo {\n          (arg: string[]): void;\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "shouldBeReadonly",
+          "Line": 0,
+          "Column": 12,
+          "EndLine": 0,
+          "EndColumn": 25,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        interface Foo {\n          new (arg: string[]): void;\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "shouldBeReadonly",
+          "Line": 0,
+          "Column": 16,
+          "EndLine": 0,
+          "EndColumn": 29,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "class Foo { foo(arg: string[]): void; };",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "shouldBeReadonly",
+          "Line": 0,
+          "Column": 17,
+          "EndLine": 0,
+          "EndColumn": 30,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "function foo(arg: string[]);",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "shouldBeReadonly",
+          "Line": 0,
+          "Column": 14,
+          "EndLine": 0,
+          "EndColumn": 27,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "type Foo = (arg: string[]) => void;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "shouldBeReadonly",
+          "Line": 0,
+          "Column": 13,
+          "EndLine": 0,
+          "EndColumn": 26,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        interface Foo {\n          foo(arg: string[]): void;\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "shouldBeReadonly",
+          "Line": 0,
+          "Column": 15,
+          "EndLine": 0,
+          "EndColumn": 28,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        interface Foo {\n          prop: Foo;\n        }\n        function foo(arg: Foo) {}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "shouldBeReadonly",
+          "Line": 5,
+          "Column": 22,
+          "EndLine": 0,
+          "EndColumn": 30,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        interface Foo {\n          prop: Foo;\n        }\n        function foo(arg: Readonly<Foo>) {}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "shouldBeReadonly",
+          "Line": 5,
+          "Column": 22,
+          "EndLine": 0,
+          "EndColumn": 40,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        interface Foo {\n          prop: Bar;\n        }\n        interface Bar {\n          readonly prop: Foo;\n        }\n        function foo(arg: Foo) {}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "shouldBeReadonly",
+          "Line": 8,
+          "Column": 22,
+          "EndLine": 0,
+          "EndColumn": 30,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        interface Foo {\n          prop: Bar;\n        }\n        interface Bar {\n          readonly prop: Foo;\n        }\n        function foo(arg: Readonly<Foo>) {}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "shouldBeReadonly",
+          "Line": 8,
+          "Column": 22,
+          "EndLine": 0,
+          "EndColumn": 40,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        interface Foo {\n          prop: Readonly<Bar>;\n        }\n        interface Bar {\n          prop: Readonly<Foo>;\n        }\n        function foo(arg: Foo) {}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "shouldBeReadonly",
+          "Line": 8,
+          "Column": 22,
+          "EndLine": 0,
+          "EndColumn": 30,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass ClassExample {}\ntype Test = typeof ClassExample & {\n  readonly property: boolean;\n};\nfunction foo(arg: Test) {}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "shouldBeReadonly",
+          "Line": 6,
+          "Column": 14,
+          "EndLine": 0,
+          "EndColumn": 23,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        const sym = Symbol('sym');\n\n        interface WithSymbol {\n          [sym]: number;\n        }\n\n        const willNot = (foo: WithSymbol) => {};\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "shouldBeReadonly",
+          "Line": 8,
+          "Column": 26,
+          "EndLine": 0,
+          "EndColumn": 41,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        type Callback<T> = (options: T) => void;\n\n        declare const acceptsCallback: <T>(callback: Callback<T>) => void;\n\n        interface CallbackOptions {\n          prop: string;\n        }\n\n        acceptsCallback<CallbackOptions>((options: CallbackOptions) => {});\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "shouldBeReadonly",
+          "Line": 10,
+          "Column": 43,
+          "EndLine": 0,
+          "EndColumn": 67,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "checkParameterProperties": true,
+        "ignoreInferredTypes": true,
+        "treatMethodsAsReadonly": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        type MyType = {\n          readonly prop: string;\n          method(): string;\n        };\n        function foo(arg: MyType) {}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "shouldBeReadonly",
+          "Line": 6,
+          "Column": 22,
+          "EndLine": 0,
+          "EndColumn": 33,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        type MyType<T> = {\n          [K in keyof T]: 'cat' | 'dog' | T[K];\n        };\n\n        function method<A extends any[] = string[]>(value: MyType<A>) {\n          return value;\n        }\n\n        method(['cat', 'dog']);\n        method<'mouse'[]>(['cat', 'mouse']);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "shouldBeReadonly",
+          "Line": 6,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        declare const fooFactory: <T>(x: readonly T[]) => (f: (x: T) => void) => void;\n        fooFactory([{ abc: 42 }])(x => {});\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "shouldBeReadonly",
+          "Line": 3,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        function foo(arg: RegExp) {}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "shouldBeReadonly",
+          "Line": 2,
+          "Column": 22,
+          "EndLine": 0,
+          "EndColumn": 33,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "allow": [
+          {
+            "name": [
+              "Foo"
+            ],
+            "from": "file"
+          }
+        ],
+        "checkParameterProperties": true,
+        "ignoreInferredTypes": false,
+        "treatMethodsAsReadonly": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        interface Foo {\n          readonly prop: RegExp;\n        }\n\n        function foo(arg: Foo) {}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "shouldBeReadonly",
+          "Line": 6,
+          "Column": 22,
+          "EndLine": 0,
+          "EndColumn": 30,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "allow": [
+          {
+            "from": "file",
+            "name": [
+              "Bar"
+            ]
+          }
+        ],
+        "checkParameterProperties": true,
+        "ignoreInferredTypes": false,
+        "treatMethodsAsReadonly": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        interface Foo {\n          readonly prop: RegExp;\n        }\n\n        function foo(arg: Foo) {}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "shouldBeReadonly",
+          "Line": 6,
+          "Column": 22,
+          "EndLine": 0,
+          "EndColumn": 30,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "allow": [
+          {
+            "from": "lib",
+            "name": [
+              "Foo"
+            ]
+          }
+        ],
+        "checkParameterProperties": true,
+        "ignoreInferredTypes": false,
+        "treatMethodsAsReadonly": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        interface Foo {\n          readonly prop: RegExp;\n        }\n\n        function foo(arg: Foo) {}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "shouldBeReadonly",
+          "Line": 6,
+          "Column": 22,
+          "EndLine": 0,
+          "EndColumn": 30,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "allow": [
+          {
+            "from": "package",
+            "name": [
+              "Foo"
+            ],
+            "package": "foo-lib"
+          }
+        ],
+        "checkParameterProperties": true,
+        "ignoreInferredTypes": false,
+        "treatMethodsAsReadonly": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        function foo(arg: RegExp) {}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "shouldBeReadonly",
+          "Line": 2,
+          "Column": 22,
+          "EndLine": 0,
+          "EndColumn": 33,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "allow": [
+          {
+            "name": [
+              "RegExp"
+            ],
+            "path": "internal/rules",
+            "from": "file"
+          }
+        ],
+        "checkParameterProperties": true,
+        "ignoreInferredTypes": false,
+        "treatMethodsAsReadonly": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        function foo(arg: RegExp) {}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "shouldBeReadonly",
+          "Line": 2,
+          "Column": 22,
+          "EndLine": 0,
+          "EndColumn": 33,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "allow": [
+          {
+            "from": "package",
+            "name": [
+              "RegExp"
+            ],
+            "package": "regexp-lib"
+          }
+        ],
+        "checkParameterProperties": true,
+        "ignoreInferredTypes": false,
+        "treatMethodsAsReadonly": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        declare function foo<T>(callback: (arg: T) => void): void;\n        foo<string[]>(arg => {});\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "shouldBeReadonly",
+          "Line": 3,
+          "Column": 23,
+          "EndLine": 0,
+          "EndColumn": 26,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "class PrivateMutable { private values = new Map<string, unknown>(); }\nfunction f(value: PrivateMutable): void {}",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "shouldBeReadonly",
+          "Line": 2,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "checkParameterProperties": true,
+        "ignoreInferredTypes": false,
+        "treatMethodsAsReadonly": true
+      },
+      "Tsx": false,
+      "Files": {}
+    }
+  ]
+}

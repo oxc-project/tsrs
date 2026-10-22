@@ -1,0 +1,40 @@
+[
+  {
+    "rule": "no-duplicate-type-constituents",
+    "message": {
+      "id": "duplicate",
+      "description": "Union type constituent is duplicated with  string."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 23,
+      "end": 29
+    },
+    "fixes": [
+      {
+        "text": "",
+        "range": {
+          "pos": 23,
+          "end": 29
+        }
+      },
+      {
+        "text": "",
+        "range": {
+          "pos": 21,
+          "end": 22
+        }
+      }
+    ],
+    "labeled_ranges": [
+      {
+        "label": "Type 'string' is first declared here.",
+        "range": {
+          "pos": 14,
+          "end": 20
+        }
+      }
+    ],
+    "kind": 0
+  }
+]

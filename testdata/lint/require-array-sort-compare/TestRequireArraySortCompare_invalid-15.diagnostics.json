@@ -1,0 +1,15 @@
+[
+  {
+    "file_path": "file.ts",
+    "range": {
+      "pos": 45,
+      "end": 57
+    },
+    "kind": 0,
+    "rule": "require-array-sort-compare",
+    "message": {
+      "id": "requireCompare",
+      "description": "Require 'compare' argument."
+    }
+  }
+]

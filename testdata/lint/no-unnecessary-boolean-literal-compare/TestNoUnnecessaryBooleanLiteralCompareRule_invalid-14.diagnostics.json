@@ -1,0 +1,45 @@
+[
+  {
+    "range": {
+      "pos": 38,
+      "end": 69
+    },
+    "fixes": [
+      {
+        "text": "typeof x === 'string'",
+        "range": {
+          "pos": 38,
+          "end": 69
+        }
+      },
+      {
+        "text": "!",
+        "range": {
+          "pos": 38,
+          "end": 38
+        }
+      },
+      {
+        "text": "(",
+        "range": {
+          "pos": 38,
+          "end": 38
+        }
+      },
+      {
+        "text": ")",
+        "range": {
+          "end": 69,
+          "pos": 69
+        }
+      }
+    ],
+    "kind": 0,
+    "rule": "no-unnecessary-boolean-literal-compare",
+    "message": {
+      "id": "direct",
+      "description": "This expression unnecessarily compares a boolean value to a boolean instead of using it directly."
+    },
+    "file_path": "file.ts"
+  }
+]

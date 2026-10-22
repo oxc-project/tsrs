@@ -1,0 +1,222 @@
+[
+  {
+    "kind": 0,
+    "range": {
+      "pos": 73,
+      "end": 85
+    },
+    "message": {
+      "id": "floatingVoid",
+      "description": "Promises must be awaited, add void operator to ignore.",
+      "help": "The promise must end with a call to .catch, or end with a call to .then with a rejection handler, or be explicitly marked as ignored with the `void` operator."
+    },
+    "file_path": "file.ts",
+    "labeled_ranges": [
+      {
+        "label": "This unhandled promise-like value has type `Promise<number>`.",
+        "range": {
+          "pos": 73,
+          "end": 85
+        }
+      }
+    ],
+    "rule": "no-floating-promises",
+    "suggestions": [
+      {
+        "message": {
+          "id": "floatingFixVoid",
+          "description": "Add void operator to ignore."
+        },
+        "fixes": [
+          {
+            "text": "void ",
+            "range": {
+              "pos": 73,
+              "end": 73
+            }
+          }
+        ]
+      },
+      {
+        "message": {
+          "id": "floatingFixAwait",
+          "description": "Add await operator."
+        },
+        "fixes": [
+          {
+            "text": "await ",
+            "range": {
+              "pos": 73,
+              "end": 73
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 89,
+      "end": 116
+    },
+    "message": {
+      "id": "floatingVoid",
+      "description": "Promises must be awaited, add void operator to ignore.",
+      "help": "The promise must end with a call to .catch, or end with a call to .then with a rejection handler, or be explicitly marked as ignored with the `void` operator."
+    },
+    "file_path": "file.ts",
+    "labeled_ranges": [
+      {
+        "label": "This unhandled promise-like value has type `Promise<void>`.",
+        "range": {
+          "pos": 89,
+          "end": 116
+        }
+      }
+    ],
+    "rule": "no-floating-promises",
+    "suggestions": [
+      {
+        "message": {
+          "id": "floatingFixVoid",
+          "description": "Add void operator to ignore."
+        },
+        "fixes": [
+          {
+            "text": "void ",
+            "range": {
+              "pos": 89,
+              "end": 89
+            }
+          }
+        ]
+      },
+      {
+        "message": {
+          "id": "floatingFixAwait",
+          "description": "Add await operator."
+        },
+        "fixes": [
+          {
+            "text": "await ",
+            "range": {
+              "pos": 89,
+              "end": 89
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 120,
+      "end": 140
+    },
+    "message": {
+      "id": "floatingVoid",
+      "description": "Promises must be awaited, add void operator to ignore.",
+      "help": "The promise must end with a call to .catch, or end with a call to .then with a rejection handler, or be explicitly marked as ignored with the `void` operator."
+    },
+    "file_path": "file.ts",
+    "labeled_ranges": [
+      {
+        "label": "This unhandled promise-like value has type `Promise<number>`.",
+        "range": {
+          "pos": 120,
+          "end": 140
+        }
+      }
+    ],
+    "rule": "no-floating-promises",
+    "suggestions": [
+      {
+        "message": {
+          "id": "floatingFixVoid",
+          "description": "Add void operator to ignore."
+        },
+        "fixes": [
+          {
+            "text": "void ",
+            "range": {
+              "pos": 120,
+              "end": 120
+            }
+          }
+        ]
+      },
+      {
+        "message": {
+          "id": "floatingFixAwait",
+          "description": "Add await operator."
+        },
+        "fixes": [
+          {
+            "text": "await ",
+            "range": {
+              "pos": 120,
+              "end": 120
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 144,
+      "end": 166
+    },
+    "message": {
+      "id": "floatingVoid",
+      "description": "Promises must be awaited, add void operator to ignore.",
+      "help": "The promise must end with a call to .catch, or end with a call to .then with a rejection handler, or be explicitly marked as ignored with the `void` operator."
+    },
+    "file_path": "file.ts",
+    "labeled_ranges": [
+      {
+        "label": "This unhandled promise-like value has type `Promise<number>`.",
+        "range": {
+          "pos": 144,
+          "end": 166
+        }
+      }
+    ],
+    "rule": "no-floating-promises",
+    "suggestions": [
+      {
+        "message": {
+          "id": "floatingFixVoid",
+          "description": "Add void operator to ignore."
+        },
+        "fixes": [
+          {
+            "text": "void ",
+            "range": {
+              "pos": 144,
+              "end": 144
+            }
+          }
+        ]
+      },
+      {
+        "message": {
+          "id": "floatingFixAwait",
+          "description": "Add await operator."
+        },
+        "fixes": [
+          {
+            "text": "await ",
+            "range": {
+              "pos": 144,
+              "end": 144
+            }
+          }
+        ]
+      }
+    ]
+  }
+]

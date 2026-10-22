@@ -1,0 +1,84 @@
+{
+  "Name": "non-nullable-type-assertion-style",
+  "TSConfig": "tsconfig.noUncheckedIndexedAccess.json",
+  "Valid": [
+    {
+      "Code": "\nfunction first<T>(array: ArrayLike<T>): T | null {\n  return array.length > 0 ? (array[0] as T) : null;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction first<T extends string | null>(array: ArrayLike<T>): T | null {\n  return array.length > 0 ? (array[0] as T) : null;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction first<T extends string | undefined>(array: ArrayLike<T>): T | null {\n  return array.length > 0 ? (array[0] as T) : null;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction first<T extends string | null | undefined>(\n  array: ArrayLike<T>,\n): T | null {\n  return array.length > 0 ? (array[0] as T) : null;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype A = 'a' | 'A';\ntype B = 'b' | 'B';\nfunction first<T extends A | B | null>(array: ArrayLike<T>): T | null {\n  return array.length > 0 ? (array[0] as T) : null;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    }
+  ],
+  "Invalid": [
+    {
+      "Code": "\nfunction first<T extends string | number>(array: ArrayLike<T>): T | null {\n  return array.length > 0 ? (array[0] as T) : null;\n}\n        ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNonNullAssertion",
+          "Line": 3,
+          "Column": 30,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "preferNonNullAssertion",
+              "Output": "\nfunction first<T extends string | number>(array: ArrayLike<T>): T | null {\n  return array.length > 0 ? (array[0]!) : null;\n}\n        "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    }
+  ]
+}

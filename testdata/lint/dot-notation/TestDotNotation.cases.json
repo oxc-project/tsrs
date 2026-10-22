@@ -1,0 +1,1302 @@
+{
+  "Name": "dot-notation",
+  "TSConfig": "tsconfig.minimal.json",
+  "Valid": [
+    {
+      "Code": "a.b;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "a.b.c;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "a['12'];",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "a[b];",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "a[0];",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "a.b.c;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "allowIndexSignaturePropertyAccess": false,
+        "allowKeywords": false,
+        "allowPrivateClassPropertyAccess": false,
+        "allowProtectedClassPropertyAccess": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "a.arguments;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "allowIndexSignaturePropertyAccess": false,
+        "allowKeywords": false,
+        "allowPrivateClassPropertyAccess": false,
+        "allowProtectedClassPropertyAccess": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "a.let;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "allowIndexSignaturePropertyAccess": false,
+        "allowKeywords": false,
+        "allowPrivateClassPropertyAccess": false,
+        "allowProtectedClassPropertyAccess": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "a.yield;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "allowIndexSignaturePropertyAccess": false,
+        "allowKeywords": false,
+        "allowPrivateClassPropertyAccess": false,
+        "allowProtectedClassPropertyAccess": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "a.eval;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "allowIndexSignaturePropertyAccess": false,
+        "allowKeywords": false,
+        "allowPrivateClassPropertyAccess": false,
+        "allowProtectedClassPropertyAccess": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "a[0];",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "allowIndexSignaturePropertyAccess": false,
+        "allowKeywords": false,
+        "allowPrivateClassPropertyAccess": false,
+        "allowProtectedClassPropertyAccess": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "a['while'];",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "allowIndexSignaturePropertyAccess": false,
+        "allowKeywords": false,
+        "allowPrivateClassPropertyAccess": false,
+        "allowProtectedClassPropertyAccess": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "a['true'];",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "allowIndexSignaturePropertyAccess": false,
+        "allowKeywords": false,
+        "allowPrivateClassPropertyAccess": false,
+        "allowProtectedClassPropertyAccess": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "a['null'];",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "allowIndexSignaturePropertyAccess": false,
+        "allowKeywords": false,
+        "allowPrivateClassPropertyAccess": false,
+        "allowProtectedClassPropertyAccess": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "a[true];",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "allowIndexSignaturePropertyAccess": false,
+        "allowKeywords": false,
+        "allowPrivateClassPropertyAccess": false,
+        "allowProtectedClassPropertyAccess": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "a[null];",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "allowIndexSignaturePropertyAccess": false,
+        "allowKeywords": false,
+        "allowPrivateClassPropertyAccess": false,
+        "allowProtectedClassPropertyAccess": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "a.true;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "allowIndexSignaturePropertyAccess": false,
+        "allowKeywords": true,
+        "allowPrivateClassPropertyAccess": false,
+        "allowProtectedClassPropertyAccess": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "a.null;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "allowIndexSignaturePropertyAccess": false,
+        "allowKeywords": true,
+        "allowPrivateClassPropertyAccess": false,
+        "allowProtectedClassPropertyAccess": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "a['snake_case'];",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "allowIndexSignaturePropertyAccess": false,
+        "allowKeywords": true,
+        "allowPattern": "^[a-z]+(_[a-z]+)+$",
+        "allowPrivateClassPropertyAccess": false,
+        "allowProtectedClassPropertyAccess": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "a['lots_of_snake_case'];",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "allowIndexSignaturePropertyAccess": false,
+        "allowKeywords": true,
+        "allowPattern": "^[a-z]+(_[a-z]+)+$",
+        "allowPrivateClassPropertyAccess": false,
+        "allowProtectedClassPropertyAccess": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "a[`time${range}`];",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "a[`while`];",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "allowIndexSignaturePropertyAccess": false,
+        "allowKeywords": false,
+        "allowPrivateClassPropertyAccess": false,
+        "allowProtectedClassPropertyAccess": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "a[`time range`];",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "a.true;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "a.null;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "a[undefined];",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "a[void 0];",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "a[b()];",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "a[/(?<zero>0)/];",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass X {\n  private priv_prop = 123;\n}\n\nconst x = new X();\nx['priv_prop'] = 123;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "allowIndexSignaturePropertyAccess": false,
+        "allowKeywords": true,
+        "allowPrivateClassPropertyAccess": true,
+        "allowProtectedClassPropertyAccess": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass X {\n  protected protected_prop = 123;\n}\n\nconst x = new X();\nx['protected_prop'] = 123;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "allowIndexSignaturePropertyAccess": false,
+        "allowKeywords": true,
+        "allowPrivateClassPropertyAccess": false,
+        "allowProtectedClassPropertyAccess": true
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass X {\n  prop: string;\n  [key: string]: number;\n}\n\nconst x = new X();\nx['hello'] = 3;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "allowIndexSignaturePropertyAccess": true,
+        "allowKeywords": true,
+        "allowPrivateClassPropertyAccess": false,
+        "allowProtectedClassPropertyAccess": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface Nested {\n  property: string;\n  [key: string]: number | string;\n}\n\nclass Dingus {\n  nested: Nested;\n}\n\nlet dingus: Dingus | undefined;\n\ndingus?.nested.property;\ndingus?.nested['hello'];\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "allowIndexSignaturePropertyAccess": true,
+        "allowKeywords": true,
+        "allowPrivateClassPropertyAccess": false,
+        "allowProtectedClassPropertyAccess": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass X {\n  private priv_prop = 123;\n}\n\nlet x: X | undefined;\nconsole.log(x?.['priv_prop']);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "allowIndexSignaturePropertyAccess": false,
+        "allowKeywords": true,
+        "allowPrivateClassPropertyAccess": true,
+        "allowProtectedClassPropertyAccess": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass X {\n  protected priv_prop = 123;\n}\n\nlet x: X | undefined;\nconsole.log(x?.['priv_prop']);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "allowIndexSignaturePropertyAccess": false,
+        "allowKeywords": true,
+        "allowPrivateClassPropertyAccess": false,
+        "allowProtectedClassPropertyAccess": true
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype Foo = {\n  bar: boolean;\n  [key: `key_${string}`]: number;\n};\ndeclare const foo: Foo;\nfoo['key_baz'];\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "tsconfig.noPropertyAccessFromIndexSignature.json",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype Key = Lowercase<string>;\ntype Foo = {\n  BAR: boolean;\n  [key: Lowercase<string>]: number;\n};\ndeclare const foo: Foo;\nfoo['bar'];\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "tsconfig.noPropertyAccessFromIndexSignature.json",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype ExtraKey = `extra${string}`;\n\ntype Foo = {\n  foo: string;\n  [extraKey: ExtraKey]: number;\n};\n\nfunction f<T extends Foo>(x: T) {\n  x['extraKey'];\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "tsconfig.noPropertyAccessFromIndexSignature.json",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype Foo = {\n  [key: string]: number;\n};\ndeclare const foo: Foo;\nfoo[`key_baz`];\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "tsconfig.noPropertyAccessFromIndexSignature.json",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "a['X-Amzn-Trace-Id'];",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "a['X-Amzn-Trace-Id'];",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": true,
+      "Files": {}
+    },
+    {
+      "Code": "a['Prénom'];",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "a['π'];",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "a['has space'];",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass Example {\n  private _a = 0;\n  public get prot(): number {\n    return this._a;\n  }\n  protected set prot(v: number) {\n    this._a = v;\n  }\n}\n\ndeclare const obj: Example;\n\nobj['prot'] = 1;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "allowIndexSignaturePropertyAccess": false,
+        "allowKeywords": true,
+        "allowPrivateClassPropertyAccess": false,
+        "allowProtectedClassPropertyAccess": true
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass Example {\n  private _b = 0;\n  public get priv(): number {\n    return this._b;\n  }\n  private set priv(v: number) {\n    this._b = v;\n  }\n}\n\ndeclare const obj: Example;\n\nobj['priv'] = 1;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "allowIndexSignaturePropertyAccess": false,
+        "allowKeywords": true,
+        "allowPrivateClassPropertyAccess": true,
+        "allowProtectedClassPropertyAccess": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass Example {\n  private _a = 0;\n  public get prot(): number {\n    return this._a;\n  }\n  protected set prot(v: number) {\n    this._a = v;\n  }\n\n  private _b = 0;\n  public get priv(): number {\n    return this._b;\n  }\n  private set priv(v: number) {\n    this._b = v;\n  }\n}\n\ndeclare const obj: Example;\n\nobj['prot'] = 1;\nobj['priv'] = 1;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "allowIndexSignaturePropertyAccess": false,
+        "allowKeywords": true,
+        "allowPrivateClassPropertyAccess": true,
+        "allowProtectedClassPropertyAccess": true
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    }
+  ],
+  "Invalid": [
+    {
+      "Code": "\nclass X {\n  private priv_prop = 123;\n}\n\nconst x = new X();\nx['priv_prop'] = 123;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nclass X {\n  private priv_prop = 123;\n}\n\nconst x = new X();\nx.priv_prop = 123;\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "useDot",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "allowIndexSignaturePropertyAccess": false,
+        "allowKeywords": true,
+        "allowPrivateClassPropertyAccess": false,
+        "allowProtectedClassPropertyAccess": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass X {\n  public pub_prop = 123;\n}\n\nconst x = new X();\nx['pub_prop'] = 123;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nclass X {\n  public pub_prop = 123;\n}\n\nconst x = new X();\nx.pub_prop = 123;\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "useDot",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "a['true'];",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "a.true;"
+      ],
+      "Errors": [
+        {
+          "MessageId": "useDot",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "a['time'];",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "a.time;"
+      ],
+      "Errors": [
+        {
+          "MessageId": "useDot",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "a[null];",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "a.null;"
+      ],
+      "Errors": [
+        {
+          "MessageId": "useDot",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "a[true];",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "a.true;"
+      ],
+      "Errors": [
+        {
+          "MessageId": "useDot",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "a[false];",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "a.false;"
+      ],
+      "Errors": [
+        {
+          "MessageId": "useDot",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "a['b'];",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "a.b;"
+      ],
+      "Errors": [
+        {
+          "MessageId": "useDot",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "a.b['c'];",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "a.b.c;"
+      ],
+      "Errors": [
+        {
+          "MessageId": "useDot",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "a['_dangle'];",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "a._dangle;"
+      ],
+      "Errors": [
+        {
+          "MessageId": "useDot",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "allowIndexSignaturePropertyAccess": false,
+        "allowKeywords": true,
+        "allowPattern": "^[a-z]+(_[a-z]+)+$",
+        "allowPrivateClassPropertyAccess": false,
+        "allowProtectedClassPropertyAccess": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "a['SHOUT_CASE'];",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "a.SHOUT_CASE;"
+      ],
+      "Errors": [
+        {
+          "MessageId": "useDot",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "allowIndexSignaturePropertyAccess": false,
+        "allowKeywords": true,
+        "allowPattern": "^[a-z]+(_[a-z]+)+$",
+        "allowPrivateClassPropertyAccess": false,
+        "allowProtectedClassPropertyAccess": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\na\n  ['SHOUT_CASE'];\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\na\n  .SHOUT_CASE;\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "useDot",
+          "Line": 3,
+          "Column": 4,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "getResource()\n    .then(function(){})\n    [\"catch\"](function(){})\n    .then(function(){})\n    [\"catch\"](function(){});",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "getResource()\n    .then(function(){})\n    .catch(function(){})\n    .then(function(){})\n    .catch(function(){});"
+      ],
+      "Errors": [
+        {
+          "MessageId": "useDot",
+          "Line": 3,
+          "Column": 6,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "useDot",
+          "Line": 5,
+          "Column": 6,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfoo\n  .while;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nfoo\n  [\"while\"];\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "useBrackets",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "allowIndexSignaturePropertyAccess": false,
+        "allowKeywords": false,
+        "allowPrivateClassPropertyAccess": false,
+        "allowProtectedClassPropertyAccess": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "foo[/* comment */ 'bar'];",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "foo.bar;"
+      ],
+      "Errors": [
+        {
+          "MessageId": "useDot",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "foo['bar' /* comment */];",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "foo.bar;"
+      ],
+      "Errors": [
+        {
+          "MessageId": "useDot",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "foo['bar'];",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "foo.bar;"
+      ],
+      "Errors": [
+        {
+          "MessageId": "useDot",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "foo./* comment */ while;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "foo/* comment */ [\"while\"];"
+      ],
+      "Errors": [
+        {
+          "MessageId": "useBrackets",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "allowIndexSignaturePropertyAccess": false,
+        "allowKeywords": false,
+        "allowPrivateClassPropertyAccess": false,
+        "allowProtectedClassPropertyAccess": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "foo[null];",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "foo.null;"
+      ],
+      "Errors": [
+        {
+          "MessageId": "useDot",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "foo['bar'] instanceof baz;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "foo.bar instanceof baz;"
+      ],
+      "Errors": [
+        {
+          "MessageId": "useDot",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "let.if();",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "useBrackets",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "allowIndexSignaturePropertyAccess": false,
+        "allowKeywords": false,
+        "allowPrivateClassPropertyAccess": false,
+        "allowProtectedClassPropertyAccess": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass X {\n  protected protected_prop = 123;\n}\n\nconst x = new X();\nx['protected_prop'] = 123;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nclass X {\n  protected protected_prop = 123;\n}\n\nconst x = new X();\nx.protected_prop = 123;\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "useDot",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "allowIndexSignaturePropertyAccess": false,
+        "allowKeywords": true,
+        "allowPrivateClassPropertyAccess": false,
+        "allowProtectedClassPropertyAccess": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass X {\n  prop: string;\n  [key: string]: number;\n}\n\nconst x = new X();\nx['prop'] = 'hello';\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nclass X {\n  prop: string;\n  [key: string]: number;\n}\n\nconst x = new X();\nx.prop = 'hello';\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "useDot",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "allowIndexSignaturePropertyAccess": true,
+        "allowKeywords": true,
+        "allowPrivateClassPropertyAccess": false,
+        "allowProtectedClassPropertyAccess": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype Foo = {\n  bar: boolean;\n  [key: `key_${string}`]: number;\n};\nfoo['key_baz'];\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\ntype Foo = {\n  bar: boolean;\n  [key: `key_${string}`]: number;\n};\nfoo.key_baz;\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "useDot",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype ExtraKey = `extra${string}`;\n\ntype Foo = {\n  foo: string;\n  [extraKey: ExtraKey]: number;\n};\n\nfunction f<T extends Foo>(x: T) {\n  x['extraKey'];\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\ntype ExtraKey = `extra${string}`;\n\ntype Foo = {\n  foo: string;\n  [extraKey: ExtraKey]: number;\n};\n\nfunction f<T extends Foo>(x: T) {\n  x.extraKey;\n}\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "useDot",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype Foo = {\n  prop: boolean;\n  [key: string]: number | boolean;\n};\ndeclare const foo: Foo;\nfoo[`prop`];\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\ntype Foo = {\n  prop: boolean;\n  [key: string]: number | boolean;\n};\ndeclare const foo: Foo;\nfoo.prop;\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "useDot",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "tsconfig.noPropertyAccessFromIndexSignature.json",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "foo?.['bar'];",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "foo?.bar;"
+      ],
+      "Errors": [
+        {
+          "MessageId": "useDot",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass Example {\n  private _a = 0;\n  public get prot(): number {\n    return this._a;\n  }\n  protected set prot(v: number) {\n    this._a = v;\n  }\n}\n\ndeclare const obj: Example;\n\nobj['prot'];",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nclass Example {\n  private _a = 0;\n  public get prot(): number {\n    return this._a;\n  }\n  protected set prot(v: number) {\n    this._a = v;\n  }\n}\n\ndeclare const obj: Example;\n\nobj.prot;"
+      ],
+      "Errors": [
+        {
+          "MessageId": "useDot",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "allowIndexSignaturePropertyAccess": false,
+        "allowKeywords": true,
+        "allowPrivateClassPropertyAccess": false,
+        "allowProtectedClassPropertyAccess": true
+      },
+      "Tsx": false,
+      "Files": {}
+    }
+  ]
+}

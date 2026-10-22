@@ -1,0 +1,31 @@
+[
+  {
+    "range": {
+      "pos": 105,
+      "end": 108
+    },
+    "labeled_ranges": [
+      {
+        "label": "This callback has type `string & (() => Promise<void>)`.",
+        "range": {
+          "pos": 105,
+          "end": 108
+        }
+      },
+      {
+        "label": "This context accepts a `void`-returning callback through type `string & (() => void)`.",
+        "range": {
+          "pos": 26,
+          "end": 47
+        }
+      }
+    ],
+    "kind": 0,
+    "rule": "no-misused-promises",
+    "message": {
+      "id": "voidReturnArgument",
+      "description": "Promise returned in function argument where a void return was expected."
+    },
+    "file_path": "file.ts"
+  }
+]

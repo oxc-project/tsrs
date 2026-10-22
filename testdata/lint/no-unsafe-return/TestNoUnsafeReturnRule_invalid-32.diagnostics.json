@@ -1,0 +1,16 @@
+[
+  {
+    "rule": "no-unsafe-return",
+    "message": {
+      "id": "unsafeReturnAssignment",
+      "description": "Unsafe return of type `Set<any>` from function with return type `Set<string>`.",
+      "help": "Returned expression has type `Set<any>`; the function return type is `Set<string>`. Return a safely typed value or narrow the value before returning it."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 63,
+      "end": 77
+    },
+    "kind": 0
+  }
+]

@@ -1,0 +1,41 @@
+[
+  {
+    "rule": "no-deprecated",
+    "message": {
+      "id": "deprecatedWithReason",
+      "description": "`oldConst` is deprecated. Use replacementConst instead."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 203,
+      "end": 211
+    },
+    "kind": 0
+  },
+  {
+    "kind": 0,
+    "rule": "no-deprecated",
+    "message": {
+      "id": "deprecatedWithReason",
+      "description": "`oldLet` is deprecated. Use replacementLet instead."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 213,
+      "end": 219
+    }
+  },
+  {
+    "rule": "no-deprecated",
+    "message": {
+      "id": "deprecatedWithReason",
+      "description": "`oldVar` is deprecated. Use replacementVar instead."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 221,
+      "end": 227
+    },
+    "kind": 0
+  }
+]

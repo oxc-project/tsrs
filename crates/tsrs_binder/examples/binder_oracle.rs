@@ -235,6 +235,7 @@ fn dump_unit(out: &mut String, name: &str, text: &str) {
         path: Path::new(file_name.clone()),
         external_module_indicator_options:
             tsrs_ast::parseoptions::ExternalModuleIndicatorOptions::default(),
+        legacy_string_escapes: false,
     };
     let file = tsrs_parser::parse_source_file(opts, text, script_kind);
     tsrs_binder::bind_source_file(file);

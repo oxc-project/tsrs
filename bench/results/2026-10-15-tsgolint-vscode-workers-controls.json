@@ -1,0 +1,1404 @@
+{
+  "metadata": {
+    "oxlint_commit": "9a424c209ea0df16becbf3141d63bcc293ede237",
+    "vscode_commit": "b029fb142d7a1c7a656d8be926525d4e44c6d635",
+    "corpus": "/Users/cameron/github/microsoft/vscode/src",
+    "go_package": "oxlint-tsgolint 7.0.2004",
+    "go_module_revision": "a61289117febcb1a60cf3bc75ef2b6bbccc4b665+dirty",
+    "machine": "Mac14,5 (Apple M2 Max)",
+    "logical_cpus": 12,
+    "memory_bytes": 103079215104,
+    "os": "macOS 27.0.1",
+    "rustc": "1.99.0 (b940084d7 2026-09-28)",
+    "file_count": 9324,
+    "rules": [
+      "await-thenable",
+      "consistent-return",
+      "consistent-type-exports",
+      "dot-notation",
+      "no-array-delete",
+      "no-base-to-string",
+      "no-confusing-void-expression",
+      "no-deprecated",
+      "no-duplicate-type-constituents",
+      "no-floating-promises",
+      "no-for-in-array",
+      "no-generated-empty-object-type",
+      "no-implied-eval",
+      "no-meaningless-void-operator",
+      "no-misused-promises",
+      "no-misused-spread",
+      "no-mixed-enums",
+      "no-redundant-type-constituents",
+      "no-unnecessary-boolean-literal-compare",
+      "no-unnecessary-condition",
+      "no-unnecessary-qualifier",
+      "no-unnecessary-template-expression",
+      "no-unnecessary-type-arguments",
+      "no-unnecessary-type-assertion",
+      "no-unnecessary-type-conversion",
+      "no-unnecessary-type-parameters",
+      "no-unsafe-argument",
+      "no-unsafe-assignment",
+      "no-unsafe-call",
+      "no-unsafe-enum-comparison",
+      "no-unsafe-member-access",
+      "no-unsafe-return",
+      "no-unsafe-type-assertion",
+      "no-unsafe-unary-minus",
+      "no-useless-default-assignment",
+      "non-nullable-type-assertion-style",
+      "only-throw-error",
+      "prefer-find",
+      "prefer-includes",
+      "prefer-nullish-coalescing",
+      "prefer-optional-chain",
+      "prefer-promise-reject-errors",
+      "prefer-readonly",
+      "prefer-readonly-parameter-types",
+      "prefer-reduce-type-parameter",
+      "prefer-regexp-exec",
+      "prefer-return-this-type",
+      "prefer-string-starts-ends-with",
+      "promise-function-async",
+      "related-getter-setter-pairs",
+      "require-array-sort-compare",
+      "require-await",
+      "restrict-plus-operands",
+      "restrict-template-expressions",
+      "return-await",
+      "strict-boolean-expressions",
+      "strict-void-return",
+      "switch-exhaustiveness-check",
+      "unbound-method",
+      "use-unknown-in-catch-callback-variable"
+    ],
+    "source_extensions": {
+      ".ts": 9281,
+      ".tsx": 2,
+      ".js": 38,
+      ".cjs": 3
+    },
+    "config_sha256": "3214db0d97f0c832d208c9b29dcffe7769ea7efe9c10689bf539105b58fc4fdd",
+    "vscode_package_lock_sha256": "051d7a94c503b86cb2a066facd9f06edf240cfaf7689dac029c1b93cb5ea0931",
+    "fix": false,
+    "base_commit": "8dbe8842",
+    "rust_profile": "release; opt-level=3, fat LTO, one codegen unit; no PGO/BOLT",
+    "workers_before": "serial program construction, binding, semantic checking and lint evaluation",
+    "workers_after": "serial construction/binding; up to four semantic/lint workers, separate checker histories; positive RAYON_NUM_THREADS override or available parallelism, capped at four",
+    "go_workers": "default GOMAXPROCS, compiler checker scheduling; single mode retains multiple checker states",
+    "source_sha256": {
+      "Cargo.lock": "ed5e70a501a08b6f8671555b0a8c717241811fa05fa4dbc1c576f5271583b6ef",
+      "Cargo.toml": "5df7ff0192ba8c97b14a6e54910f11ffb7d982343d584105d7d6d0528dd393fc",
+      "crates/tsrs_lint/Cargo.toml": "2c9c6f9cb340b8f8fe7704bf85ecabb44f007a7d103ee5ddc6db22c78dbd5020",
+      "crates/tsrs_lint/src/engine.rs": "05303fecc79c77734c4a65a806ee50f3546896b79ceb1c5a6ef8d7d0f8fed4a2",
+      "crates/tsrs_lint/src/main.rs": "2c0bb6c3c46473f9b8b269b12aefa71426cf71b3e61d3c4754f302b284ad89ef",
+      "crates/tsrs_compiler/src/program.rs": "17ebffaf84f22d0aec6159490418af6bbf96d94f1f6238f8f944dd3f3ad04766",
+      "crates/tsrs_core/src/arena.rs": "a1064d6cdcd04a68d4258e80cd270b6f36c323ace9ff704a020315f3920c727a",
+      "crates/tsrs_lint/tests/headless.rs": "48eaef94030f7a19351af33abad31784a1367d6a2d02dc18f2c835636078154d",
+      "crates/tsrs_lint/tests/lifecycle.rs": "47f403487b55fd8f8b2740cb9ca3be38ba63038673eb5702ac27d7bcd9c2567f",
+      "bench/tsgolint.py": "61394a34faded1bbde08e2b6f28eadeb7f4d9f7528f8c0caf51cb2aaad7af364"
+    },
+    "original_payload_sha256": "d25d1de47a9be423fc6f53a8d0408e42ddd28caca87fd43c2bc33e312e1d34ca",
+    "binary_sha256": {
+      "before": "af752428c85b782cf5dfd23acc267d0cd0692a1ed744bea95c440527e5a3119f",
+      "after": "1281619ff0c41e7c3369a5a9c8537172686214b061731606457246397658e03e",
+      "go": "d40de2b828d91ac188e3dc897991be8a512b29935fddae5f223a9f9bde356fb1",
+      "oxlint": "8d1983f6603870f657418f443376cec3d0ffc2a2e6fab83c2cf17992055c6349"
+    },
+    "profile_mode": "default",
+    "profile_environment": {},
+    "e2e_note": "One frontend sample per helper per variant; illustrative, not repeated medians."
+  },
+  "summary": {
+    "lint": {
+      "single": {
+        "after": {
+          "wall_s": 14.745982417021878,
+          "rss_bytes": 2317713408,
+          "instructions": 154181404835,
+          "cpu_cycles": 49439282425,
+          "user": 13.87,
+          "sys": 0.66,
+          "n": 1,
+          "wall_min_s": 14.745982417021878,
+          "wall_max_s": 14.745982417021878,
+          "diagnostic_multisets": [
+            "2b812c5d6a361504d9c29d27b54b6b5b512a1f5924382d7e58d5e7e094fc0027"
+          ],
+          "diagnostics": [
+            275891
+          ]
+        },
+        "before": {
+          "wall_s": 16.320327416993678,
+          "rss_bytes": 2285699072,
+          "instructions": 164681820426,
+          "cpu_cycles": 51756349656,
+          "user": 14.53,
+          "sys": 0.71,
+          "n": 1,
+          "wall_min_s": 16.320327416993678,
+          "wall_max_s": 16.320327416993678,
+          "diagnostic_multisets": [
+            "2b812c5d6a361504d9c29d27b54b6b5b512a1f5924382d7e58d5e7e094fc0027"
+          ],
+          "diagnostics": [
+            275891
+          ]
+        },
+        "go": {
+          "wall_s": 42.87800279201474,
+          "rss_bytes": 8922644480,
+          "instructions": 462134519323,
+          "cpu_cycles": 144944954398,
+          "user": 41.29,
+          "sys": 1.46,
+          "n": 1,
+          "wall_min_s": 42.87800279201474,
+          "wall_max_s": 42.87800279201474,
+          "diagnostic_multisets": [
+            "4c8e215ab333ea299be2a798d32095f9eaf98f33955a37331c81071854b06664"
+          ],
+          "diagnostics": [
+            275834
+          ]
+        }
+      }
+    },
+    "lint-typecheck": {
+      "single": {
+        "after": {
+          "wall_s": 21.01440929202363,
+          "rss_bytes": 3055828992,
+          "instructions": 212059521266,
+          "cpu_cycles": 70870354854,
+          "user": 20.06,
+          "sys": 0.78,
+          "n": 1,
+          "wall_min_s": 21.01440929202363,
+          "wall_max_s": 21.01440929202363,
+          "diagnostic_multisets": [
+            "df7ecb643f7fd6faf865741114b587d04c1d6658224ffb5979e091de05c78b01"
+          ],
+          "diagnostics": [
+            276925
+          ]
+        },
+        "before": {
+          "wall_s": 21.780715083004907,
+          "rss_bytes": 3109289984,
+          "instructions": 225831382600,
+          "cpu_cycles": 73446819506,
+          "user": 20.82,
+          "sys": 0.78,
+          "n": 1,
+          "wall_min_s": 21.780715083004907,
+          "wall_max_s": 21.780715083004907,
+          "diagnostic_multisets": [
+            "df7ecb643f7fd6faf865741114b587d04c1d6658224ffb5979e091de05c78b01"
+          ],
+          "diagnostics": [
+            276925
+          ]
+        },
+        "go": {
+          "wall_s": 63.4509012500057,
+          "rss_bytes": 13516193792,
+          "instructions": 658456359739,
+          "cpu_cycles": 214528396277,
+          "user": 61.14,
+          "sys": 2.15,
+          "n": 1,
+          "wall_min_s": 63.4509012500057,
+          "wall_max_s": 63.4509012500057,
+          "diagnostic_multisets": [
+            "460322663abf3e66aebb84754deb5e6b53bcaea1267ba1ba2a15669062aba303"
+          ],
+          "diagnostics": [
+            276860
+          ]
+        }
+      }
+    },
+    "setup": {
+      "default": {
+        "after": {
+          "wall_s": 1.7420440000714734,
+          "rss_bytes": 1171144704,
+          "instructions": 21152363365,
+          "cpu_cycles": 6936976090,
+          "user": 1.41,
+          "sys": 0.66,
+          "n": 1,
+          "wall_min_s": 1.7420440000714734,
+          "wall_max_s": 1.7420440000714734,
+          "diagnostic_multisets": [
+            "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          ],
+          "diagnostics": [
+            0
+          ]
+        },
+        "before": {
+          "wall_s": 2.1889479169622064,
+          "rss_bytes": 1164771328,
+          "instructions": 26693099686,
+          "cpu_cycles": 11012557171,
+          "user": 1.72,
+          "sys": 1.67,
+          "n": 1,
+          "wall_min_s": 2.1889479169622064,
+          "wall_max_s": 2.1889479169622064,
+          "diagnostic_multisets": [
+            "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          ],
+          "diagnostics": [
+            0
+          ]
+        },
+        "go": {
+          "wall_s": 1.0266642500646412,
+          "rss_bytes": 3080536064,
+          "instructions": 69873350902,
+          "cpu_cycles": 25133363007,
+          "user": 7.13,
+          "sys": 1.19,
+          "n": 1,
+          "wall_min_s": 1.0266642500646412,
+          "wall_max_s": 1.0266642500646412,
+          "diagnostic_multisets": [
+            "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          ],
+          "diagnostics": [
+            0
+          ]
+        }
+      }
+    },
+    "typecheck": {
+      "default": {
+        "after": {
+          "wall_s": 4.411008749972098,
+          "rss_bytes": 2200961024,
+          "instructions": 84915140186,
+          "cpu_cycles": 33775373917,
+          "user": 8.46,
+          "sys": 1.87,
+          "n": 1,
+          "wall_min_s": 4.411008749972098,
+          "wall_max_s": 4.411008749972098,
+          "diagnostic_multisets": [
+            "d59aeaa3495055908ed594857db171f581190467644499fb24726d0bf99d8193"
+          ],
+          "diagnostics": [
+            1034
+          ]
+        },
+        "before": {
+          "wall_s": 9.525147667038254,
+          "rss_bytes": 2001813504,
+          "instructions": 88861754669,
+          "cpu_cycles": 32764758133,
+          "user": 7.93,
+          "sys": 1.87,
+          "n": 1,
+          "wall_min_s": 9.525147667038254,
+          "wall_max_s": 9.525147667038254,
+          "diagnostic_multisets": [
+            "d59aeaa3495055908ed594857db171f581190467644499fb24726d0bf99d8193"
+          ],
+          "diagnostics": [
+            1034
+          ]
+        },
+        "go": {
+          "wall_s": 7.360148916020989,
+          "rss_bytes": 7886602240,
+          "instructions": 290380275834,
+          "cpu_cycles": 112828553963,
+          "user": 34.0,
+          "sys": 1.83,
+          "n": 1,
+          "wall_min_s": 7.360148916020989,
+          "wall_max_s": 7.360148916020989,
+          "diagnostic_multisets": [
+            "787b727b87374cfc479a71bfad73a5ce35063fdcc8e54e67e3f79ae2cdd0d918"
+          ],
+          "diagnostics": [
+            1028
+          ]
+        }
+      }
+    }
+  },
+  "samples": [
+    {
+      "helper": "before",
+      "variant": "lint",
+      "mode": "single",
+      "rep": 0,
+      "warmup": false,
+      "wall_s": 16.320327416993678,
+      "exit_code": 0,
+      "rss_bytes": 2285699072,
+      "instructions": 164681820426,
+      "cpu_cycles": 51756349656,
+      "time_real": 16.28,
+      "user": 14.53,
+      "sys": 0.71,
+      "diagnostics": 275891,
+      "diagnostics_by_rule": {
+        "await-thenable": 307,
+        "consistent-return": 965,
+        "consistent-type-exports": 20,
+        "dot-notation": 3034,
+        "no-array-delete": 7,
+        "no-base-to-string": 200,
+        "no-confusing-void-expression": 9693,
+        "no-deprecated": 2217,
+        "no-duplicate-type-constituents": 195,
+        "no-floating-promises": 6416,
+        "no-for-in-array": 6,
+        "no-generated-empty-object-type": 10,
+        "no-implied-eval": 4,
+        "no-meaningless-void-operator": 10,
+        "no-misused-promises": 2032,
+        "no-misused-spread": 61,
+        "no-mixed-enums": 3,
+        "no-redundant-type-constituents": 401,
+        "no-unnecessary-boolean-literal-compare": 480,
+        "no-unnecessary-condition": 9554,
+        "no-unnecessary-qualifier": 64,
+        "no-unnecessary-template-expression": 120,
+        "no-unnecessary-type-arguments": 274,
+        "no-unnecessary-type-assertion": 3334,
+        "no-unnecessary-type-conversion": 494,
+        "no-unnecessary-type-parameters": 331,
+        "no-unsafe-argument": 2507,
+        "no-unsafe-assignment": 5417,
+        "no-unsafe-call": 2100,
+        "no-unsafe-enum-comparison": 1690,
+        "no-unsafe-member-access": 6634,
+        "no-unsafe-return": 1037,
+        "no-unsafe-type-assertion": 13014,
+        "no-useless-default-assignment": 83,
+        "non-nullable-type-assertion-style": 96,
+        "only-throw-error": 65,
+        "prefer-find": 65,
+        "prefer-includes": 403,
+        "prefer-nullish-coalescing": 4136,
+        "prefer-optional-chain": 1277,
+        "prefer-promise-reject-errors": 181,
+        "prefer-readonly": 3369,
+        "prefer-readonly-parameter-types": 140291,
+        "prefer-reduce-type-parameter": 20,
+        "prefer-regexp-exec": 301,
+        "prefer-return-this-type": 56,
+        "prefer-string-starts-ends-with": 223,
+        "promise-function-async": 10090,
+        "related-getter-setter-pairs": 6,
+        "require-array-sort-compare": 37,
+        "require-await": 8366,
+        "restrict-plus-operands": 42,
+        "restrict-template-expressions": 643,
+        "return-await": 292,
+        "strict-boolean-expressions": 26745,
+        "strict-void-return": 4220,
+        "switch-exhaustiveness-check": 617,
+        "unbound-method": 940,
+        "use-unknown-in-catch-callback-variable": 696
+      },
+      "diagnostic_multiset_sha256": "2b812c5d6a361504d9c29d27b54b6b5b512a1f5924382d7e58d5e7e094fc0027"
+    },
+    {
+      "helper": "after",
+      "variant": "lint",
+      "mode": "single",
+      "rep": 0,
+      "warmup": false,
+      "wall_s": 14.745982417021878,
+      "exit_code": 0,
+      "rss_bytes": 2317713408,
+      "instructions": 154181404835,
+      "cpu_cycles": 49439282425,
+      "time_real": 14.69,
+      "user": 13.87,
+      "sys": 0.66,
+      "diagnostics": 275891,
+      "diagnostics_by_rule": {
+        "await-thenable": 307,
+        "consistent-return": 965,
+        "consistent-type-exports": 20,
+        "dot-notation": 3034,
+        "no-array-delete": 7,
+        "no-base-to-string": 200,
+        "no-confusing-void-expression": 9693,
+        "no-deprecated": 2217,
+        "no-duplicate-type-constituents": 195,
+        "no-floating-promises": 6416,
+        "no-for-in-array": 6,
+        "no-generated-empty-object-type": 10,
+        "no-implied-eval": 4,
+        "no-meaningless-void-operator": 10,
+        "no-misused-promises": 2032,
+        "no-misused-spread": 61,
+        "no-mixed-enums": 3,
+        "no-redundant-type-constituents": 401,
+        "no-unnecessary-boolean-literal-compare": 480,
+        "no-unnecessary-condition": 9554,
+        "no-unnecessary-qualifier": 64,
+        "no-unnecessary-template-expression": 120,
+        "no-unnecessary-type-arguments": 274,
+        "no-unnecessary-type-assertion": 3334,
+        "no-unnecessary-type-conversion": 494,
+        "no-unnecessary-type-parameters": 331,
+        "no-unsafe-argument": 2507,
+        "no-unsafe-assignment": 5417,
+        "no-unsafe-call": 2100,
+        "no-unsafe-enum-comparison": 1690,
+        "no-unsafe-member-access": 6634,
+        "no-unsafe-return": 1037,
+        "no-unsafe-type-assertion": 13014,
+        "no-useless-default-assignment": 83,
+        "non-nullable-type-assertion-style": 96,
+        "only-throw-error": 65,
+        "prefer-find": 65,
+        "prefer-includes": 403,
+        "prefer-nullish-coalescing": 4136,
+        "prefer-optional-chain": 1277,
+        "prefer-promise-reject-errors": 181,
+        "prefer-readonly": 3369,
+        "prefer-readonly-parameter-types": 140291,
+        "prefer-reduce-type-parameter": 20,
+        "prefer-regexp-exec": 301,
+        "prefer-return-this-type": 56,
+        "prefer-string-starts-ends-with": 223,
+        "promise-function-async": 10090,
+        "related-getter-setter-pairs": 6,
+        "require-array-sort-compare": 37,
+        "require-await": 8366,
+        "restrict-plus-operands": 42,
+        "restrict-template-expressions": 643,
+        "return-await": 292,
+        "strict-boolean-expressions": 26745,
+        "strict-void-return": 4220,
+        "switch-exhaustiveness-check": 617,
+        "unbound-method": 940,
+        "use-unknown-in-catch-callback-variable": 696
+      },
+      "diagnostic_multiset_sha256": "2b812c5d6a361504d9c29d27b54b6b5b512a1f5924382d7e58d5e7e094fc0027"
+    },
+    {
+      "helper": "go",
+      "variant": "lint",
+      "mode": "single",
+      "rep": 0,
+      "warmup": false,
+      "wall_s": 42.87800279201474,
+      "exit_code": 0,
+      "rss_bytes": 8922644480,
+      "instructions": 462134519323,
+      "cpu_cycles": 144944954398,
+      "time_real": 42.86,
+      "user": 41.29,
+      "sys": 1.46,
+      "diagnostics": 275834,
+      "diagnostics_by_rule": {
+        "await-thenable": 307,
+        "consistent-return": 965,
+        "consistent-type-exports": 20,
+        "dot-notation": 3034,
+        "no-array-delete": 7,
+        "no-base-to-string": 200,
+        "no-confusing-void-expression": 9693,
+        "no-deprecated": 2287,
+        "no-duplicate-type-constituents": 192,
+        "no-floating-promises": 6416,
+        "no-for-in-array": 6,
+        "no-generated-empty-object-type": 10,
+        "no-implied-eval": 4,
+        "no-meaningless-void-operator": 10,
+        "no-misused-promises": 2032,
+        "no-misused-spread": 61,
+        "no-mixed-enums": 3,
+        "no-redundant-type-constituents": 401,
+        "no-unnecessary-boolean-literal-compare": 480,
+        "no-unnecessary-condition": 9540,
+        "no-unnecessary-qualifier": 64,
+        "no-unnecessary-template-expression": 120,
+        "no-unnecessary-type-arguments": 274,
+        "no-unnecessary-type-assertion": 3277,
+        "no-unnecessary-type-conversion": 494,
+        "no-unnecessary-type-parameters": 331,
+        "no-unsafe-argument": 2507,
+        "no-unsafe-assignment": 5417,
+        "no-unsafe-call": 2100,
+        "no-unsafe-enum-comparison": 1690,
+        "no-unsafe-member-access": 6634,
+        "no-unsafe-return": 1031,
+        "no-unsafe-type-assertion": 13015,
+        "no-useless-default-assignment": 83,
+        "non-nullable-type-assertion-style": 96,
+        "only-throw-error": 65,
+        "prefer-find": 65,
+        "prefer-includes": 403,
+        "prefer-nullish-coalescing": 4136,
+        "prefer-optional-chain": 1230,
+        "prefer-promise-reject-errors": 181,
+        "prefer-readonly": 3369,
+        "prefer-readonly-parameter-types": 140291,
+        "prefer-reduce-type-parameter": 20,
+        "prefer-regexp-exec": 301,
+        "prefer-return-this-type": 56,
+        "prefer-string-starts-ends-with": 223,
+        "promise-function-async": 10090,
+        "related-getter-setter-pairs": 6,
+        "require-array-sort-compare": 37,
+        "require-await": 8366,
+        "restrict-plus-operands": 42,
+        "restrict-template-expressions": 643,
+        "return-await": 292,
+        "strict-boolean-expressions": 26745,
+        "strict-void-return": 4220,
+        "switch-exhaustiveness-check": 617,
+        "unbound-method": 939,
+        "use-unknown-in-catch-callback-variable": 696
+      },
+      "diagnostic_multiset_sha256": "4c8e215ab333ea299be2a798d32095f9eaf98f33955a37331c81071854b06664"
+    },
+    {
+      "helper": "before",
+      "variant": "lint-typecheck",
+      "mode": "single",
+      "rep": 0,
+      "warmup": false,
+      "wall_s": 21.780715083004907,
+      "exit_code": 0,
+      "rss_bytes": 3109289984,
+      "instructions": 225831382600,
+      "cpu_cycles": 73446819506,
+      "time_real": 21.74,
+      "user": 20.82,
+      "sys": 0.78,
+      "diagnostics": 276925,
+      "diagnostics_by_rule": {
+        "<compiler>": 1034,
+        "await-thenable": 307,
+        "consistent-return": 965,
+        "consistent-type-exports": 20,
+        "dot-notation": 3034,
+        "no-array-delete": 7,
+        "no-base-to-string": 200,
+        "no-confusing-void-expression": 9693,
+        "no-deprecated": 2217,
+        "no-duplicate-type-constituents": 195,
+        "no-floating-promises": 6416,
+        "no-for-in-array": 6,
+        "no-generated-empty-object-type": 10,
+        "no-implied-eval": 4,
+        "no-meaningless-void-operator": 10,
+        "no-misused-promises": 2032,
+        "no-misused-spread": 61,
+        "no-mixed-enums": 3,
+        "no-redundant-type-constituents": 401,
+        "no-unnecessary-boolean-literal-compare": 480,
+        "no-unnecessary-condition": 9554,
+        "no-unnecessary-qualifier": 64,
+        "no-unnecessary-template-expression": 120,
+        "no-unnecessary-type-arguments": 274,
+        "no-unnecessary-type-assertion": 3334,
+        "no-unnecessary-type-conversion": 494,
+        "no-unnecessary-type-parameters": 331,
+        "no-unsafe-argument": 2507,
+        "no-unsafe-assignment": 5417,
+        "no-unsafe-call": 2100,
+        "no-unsafe-enum-comparison": 1690,
+        "no-unsafe-member-access": 6634,
+        "no-unsafe-return": 1037,
+        "no-unsafe-type-assertion": 13014,
+        "no-useless-default-assignment": 83,
+        "non-nullable-type-assertion-style": 96,
+        "only-throw-error": 65,
+        "prefer-find": 65,
+        "prefer-includes": 403,
+        "prefer-nullish-coalescing": 4136,
+        "prefer-optional-chain": 1277,
+        "prefer-promise-reject-errors": 181,
+        "prefer-readonly": 3369,
+        "prefer-readonly-parameter-types": 140291,
+        "prefer-reduce-type-parameter": 20,
+        "prefer-regexp-exec": 301,
+        "prefer-return-this-type": 56,
+        "prefer-string-starts-ends-with": 223,
+        "promise-function-async": 10090,
+        "related-getter-setter-pairs": 6,
+        "require-array-sort-compare": 37,
+        "require-await": 8366,
+        "restrict-plus-operands": 42,
+        "restrict-template-expressions": 643,
+        "return-await": 292,
+        "strict-boolean-expressions": 26745,
+        "strict-void-return": 4220,
+        "switch-exhaustiveness-check": 617,
+        "unbound-method": 940,
+        "use-unknown-in-catch-callback-variable": 696
+      },
+      "diagnostic_multiset_sha256": "df7ecb643f7fd6faf865741114b587d04c1d6658224ffb5979e091de05c78b01"
+    },
+    {
+      "helper": "after",
+      "variant": "lint-typecheck",
+      "mode": "single",
+      "rep": 0,
+      "warmup": false,
+      "wall_s": 21.01440929202363,
+      "exit_code": 0,
+      "rss_bytes": 3055828992,
+      "instructions": 212059521266,
+      "cpu_cycles": 70870354854,
+      "time_real": 20.99,
+      "user": 20.06,
+      "sys": 0.78,
+      "diagnostics": 276925,
+      "diagnostics_by_rule": {
+        "<compiler>": 1034,
+        "await-thenable": 307,
+        "consistent-return": 965,
+        "consistent-type-exports": 20,
+        "dot-notation": 3034,
+        "no-array-delete": 7,
+        "no-base-to-string": 200,
+        "no-confusing-void-expression": 9693,
+        "no-deprecated": 2217,
+        "no-duplicate-type-constituents": 195,
+        "no-floating-promises": 6416,
+        "no-for-in-array": 6,
+        "no-generated-empty-object-type": 10,
+        "no-implied-eval": 4,
+        "no-meaningless-void-operator": 10,
+        "no-misused-promises": 2032,
+        "no-misused-spread": 61,
+        "no-mixed-enums": 3,
+        "no-redundant-type-constituents": 401,
+        "no-unnecessary-boolean-literal-compare": 480,
+        "no-unnecessary-condition": 9554,
+        "no-unnecessary-qualifier": 64,
+        "no-unnecessary-template-expression": 120,
+        "no-unnecessary-type-arguments": 274,
+        "no-unnecessary-type-assertion": 3334,
+        "no-unnecessary-type-conversion": 494,
+        "no-unnecessary-type-parameters": 331,
+        "no-unsafe-argument": 2507,
+        "no-unsafe-assignment": 5417,
+        "no-unsafe-call": 2100,
+        "no-unsafe-enum-comparison": 1690,
+        "no-unsafe-member-access": 6634,
+        "no-unsafe-return": 1037,
+        "no-unsafe-type-assertion": 13014,
+        "no-useless-default-assignment": 83,
+        "non-nullable-type-assertion-style": 96,
+        "only-throw-error": 65,
+        "prefer-find": 65,
+        "prefer-includes": 403,
+        "prefer-nullish-coalescing": 4136,
+        "prefer-optional-chain": 1277,
+        "prefer-promise-reject-errors": 181,
+        "prefer-readonly": 3369,
+        "prefer-readonly-parameter-types": 140291,
+        "prefer-reduce-type-parameter": 20,
+        "prefer-regexp-exec": 301,
+        "prefer-return-this-type": 56,
+        "prefer-string-starts-ends-with": 223,
+        "promise-function-async": 10090,
+        "related-getter-setter-pairs": 6,
+        "require-array-sort-compare": 37,
+        "require-await": 8366,
+        "restrict-plus-operands": 42,
+        "restrict-template-expressions": 643,
+        "return-await": 292,
+        "strict-boolean-expressions": 26745,
+        "strict-void-return": 4220,
+        "switch-exhaustiveness-check": 617,
+        "unbound-method": 940,
+        "use-unknown-in-catch-callback-variable": 696
+      },
+      "diagnostic_multiset_sha256": "df7ecb643f7fd6faf865741114b587d04c1d6658224ffb5979e091de05c78b01"
+    },
+    {
+      "helper": "go",
+      "variant": "lint-typecheck",
+      "mode": "single",
+      "rep": 0,
+      "warmup": false,
+      "wall_s": 63.4509012500057,
+      "exit_code": 0,
+      "rss_bytes": 13516193792,
+      "instructions": 658456359739,
+      "cpu_cycles": 214528396277,
+      "time_real": 63.39,
+      "user": 61.14,
+      "sys": 2.15,
+      "diagnostics": 276860,
+      "diagnostics_by_rule": {
+        "<compiler>": 1028,
+        "await-thenable": 307,
+        "consistent-return": 965,
+        "consistent-type-exports": 20,
+        "dot-notation": 3034,
+        "no-array-delete": 7,
+        "no-base-to-string": 200,
+        "no-confusing-void-expression": 9693,
+        "no-deprecated": 2287,
+        "no-duplicate-type-constituents": 192,
+        "no-floating-promises": 6416,
+        "no-for-in-array": 6,
+        "no-generated-empty-object-type": 10,
+        "no-implied-eval": 4,
+        "no-meaningless-void-operator": 10,
+        "no-misused-promises": 2032,
+        "no-misused-spread": 61,
+        "no-mixed-enums": 3,
+        "no-redundant-type-constituents": 401,
+        "no-unnecessary-boolean-literal-compare": 480,
+        "no-unnecessary-condition": 9540,
+        "no-unnecessary-qualifier": 64,
+        "no-unnecessary-template-expression": 120,
+        "no-unnecessary-type-arguments": 274,
+        "no-unnecessary-type-assertion": 3293,
+        "no-unnecessary-type-conversion": 494,
+        "no-unnecessary-type-parameters": 331,
+        "no-unsafe-argument": 2507,
+        "no-unsafe-assignment": 5417,
+        "no-unsafe-call": 2100,
+        "no-unsafe-enum-comparison": 1690,
+        "no-unsafe-member-access": 6634,
+        "no-unsafe-return": 1030,
+        "no-unsafe-type-assertion": 12997,
+        "no-useless-default-assignment": 83,
+        "non-nullable-type-assertion-style": 97,
+        "only-throw-error": 65,
+        "prefer-find": 65,
+        "prefer-includes": 403,
+        "prefer-nullish-coalescing": 4136,
+        "prefer-optional-chain": 1230,
+        "prefer-promise-reject-errors": 181,
+        "prefer-readonly": 3369,
+        "prefer-readonly-parameter-types": 140291,
+        "prefer-reduce-type-parameter": 20,
+        "prefer-regexp-exec": 301,
+        "prefer-return-this-type": 56,
+        "prefer-string-starts-ends-with": 223,
+        "promise-function-async": 10090,
+        "related-getter-setter-pairs": 6,
+        "require-array-sort-compare": 37,
+        "require-await": 8366,
+        "restrict-plus-operands": 42,
+        "restrict-template-expressions": 643,
+        "return-await": 292,
+        "strict-boolean-expressions": 26745,
+        "strict-void-return": 4220,
+        "switch-exhaustiveness-check": 617,
+        "unbound-method": 939,
+        "use-unknown-in-catch-callback-variable": 696
+      },
+      "diagnostic_multiset_sha256": "460322663abf3e66aebb84754deb5e6b53bcaea1267ba1ba2a15669062aba303"
+    },
+    {
+      "helper": "before",
+      "variant": "typecheck",
+      "mode": "default",
+      "rep": 0,
+      "warmup": false,
+      "wall_s": 9.525147667038254,
+      "exit_code": 0,
+      "rss_bytes": 2001813504,
+      "instructions": 88861754669,
+      "cpu_cycles": 32764758133,
+      "time_real": 9.48,
+      "user": 7.93,
+      "sys": 1.87,
+      "diagnostics": 1034,
+      "diagnostics_by_rule": {
+        "<compiler>": 1034
+      },
+      "diagnostic_multiset_sha256": "d59aeaa3495055908ed594857db171f581190467644499fb24726d0bf99d8193"
+    },
+    {
+      "helper": "after",
+      "variant": "typecheck",
+      "mode": "default",
+      "rep": 0,
+      "warmup": false,
+      "wall_s": 4.411008749972098,
+      "exit_code": 0,
+      "rss_bytes": 2200961024,
+      "instructions": 84915140186,
+      "cpu_cycles": 33775373917,
+      "time_real": 4.38,
+      "user": 8.46,
+      "sys": 1.87,
+      "diagnostics": 1034,
+      "diagnostics_by_rule": {
+        "<compiler>": 1034
+      },
+      "diagnostic_multiset_sha256": "d59aeaa3495055908ed594857db171f581190467644499fb24726d0bf99d8193"
+    },
+    {
+      "helper": "go",
+      "variant": "typecheck",
+      "mode": "default",
+      "rep": 0,
+      "warmup": false,
+      "wall_s": 7.360148916020989,
+      "exit_code": 0,
+      "rss_bytes": 7886602240,
+      "instructions": 290380275834,
+      "cpu_cycles": 112828553963,
+      "time_real": 7.33,
+      "user": 34.0,
+      "sys": 1.83,
+      "diagnostics": 1028,
+      "diagnostics_by_rule": {
+        "<compiler>": 1028
+      },
+      "diagnostic_multiset_sha256": "787b727b87374cfc479a71bfad73a5ce35063fdcc8e54e67e3f79ae2cdd0d918"
+    },
+    {
+      "helper": "before",
+      "variant": "setup",
+      "mode": "default",
+      "rep": 0,
+      "warmup": false,
+      "wall_s": 2.1889479169622064,
+      "exit_code": 0,
+      "rss_bytes": 1164771328,
+      "instructions": 26693099686,
+      "cpu_cycles": 11012557171,
+      "time_real": 2.16,
+      "user": 1.72,
+      "sys": 1.67,
+      "diagnostics": 0,
+      "diagnostics_by_rule": {},
+      "diagnostic_multiset_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    {
+      "helper": "after",
+      "variant": "setup",
+      "mode": "default",
+      "rep": 0,
+      "warmup": false,
+      "wall_s": 1.7420440000714734,
+      "exit_code": 0,
+      "rss_bytes": 1171144704,
+      "instructions": 21152363365,
+      "cpu_cycles": 6936976090,
+      "time_real": 1.73,
+      "user": 1.41,
+      "sys": 0.66,
+      "diagnostics": 0,
+      "diagnostics_by_rule": {},
+      "diagnostic_multiset_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    {
+      "helper": "go",
+      "variant": "setup",
+      "mode": "default",
+      "rep": 0,
+      "warmup": false,
+      "wall_s": 1.0266642500646412,
+      "exit_code": 0,
+      "rss_bytes": 3080536064,
+      "instructions": 69873350902,
+      "cpu_cycles": 25133363007,
+      "time_real": 1.01,
+      "user": 7.13,
+      "sys": 1.19,
+      "diagnostics": 0,
+      "diagnostics_by_rule": {},
+      "diagnostic_multiset_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    }
+  ],
+  "e2e_samples": [
+    {
+      "variant": "lint",
+      "helper": "e2e-rust",
+      "mode": "default",
+      "rep": 1,
+      "profile": false,
+      "e2e": true,
+      "warmup": false,
+      "wall_s": 11.202168124960735,
+      "exit_code": 1,
+      "rss_bytes": 2588098560,
+      "instructions": 59659472658,
+      "cpu_cycles": 21184905846,
+      "time_real": 11.19,
+      "user": 20.54,
+      "sys": 1.88,
+      "diagnostics": 275906,
+      "reported_files": 9324
+    },
+    {
+      "variant": "lint",
+      "helper": "e2e-go",
+      "mode": "default",
+      "rep": 1,
+      "profile": false,
+      "e2e": true,
+      "warmup": false,
+      "wall_s": 15.404901791946031,
+      "exit_code": 1,
+      "rss_bytes": 8402649088,
+      "instructions": 60081614595,
+      "cpu_cycles": 24778057536,
+      "time_real": 15.37,
+      "user": 60.59,
+      "sys": 4.97,
+      "diagnostics": 275849,
+      "reported_files": 9324
+    },
+    {
+      "variant": "lint-typecheck",
+      "helper": "e2e-rust",
+      "mode": "default",
+      "rep": 1,
+      "profile": false,
+      "e2e": true,
+      "warmup": false,
+      "wall_s": 13.963249749969691,
+      "exit_code": 1,
+      "rss_bytes": 3583574016,
+      "instructions": 61390035440,
+      "cpu_cycles": 26691758321,
+      "time_real": 13.94,
+      "user": 27.8,
+      "sys": 3.81,
+      "diagnostics": 276940,
+      "reported_files": 9324
+    },
+    {
+      "variant": "lint-typecheck",
+      "helper": "e2e-go",
+      "mode": "default",
+      "rep": 1,
+      "profile": false,
+      "e2e": true,
+      "warmup": false,
+      "wall_s": 20.74506037507672,
+      "exit_code": 1,
+      "rss_bytes": 12108152832,
+      "instructions": 60815017755,
+      "cpu_cycles": 25648927762,
+      "time_real": 20.69,
+      "user": 84.15,
+      "sys": 5.75,
+      "diagnostics": 276920,
+      "reported_files": 9324
+    }
+  ],
+  "instrumented_after": {
+    "variant": "lint",
+    "helper": "after",
+    "mode": "default",
+    "rep": 1,
+    "profile": true,
+    "e2e": false,
+    "warmup": false,
+    "wall_s": 7.820804166025482,
+    "exit_code": 0,
+    "rss_bytes": 2610724864,
+    "instructions": 203964289191,
+    "cpu_cycles": 64468601022,
+    "time_real": 7.75,
+    "user": 17.86,
+    "sys": 1.82,
+    "diagnostics": 275891,
+    "diagnostics_by_rule": {
+      "dot-notation": 3034,
+      "no-deprecated": 2217,
+      "strict-boolean-expressions": 26745,
+      "prefer-nullish-coalescing": 4136,
+      "prefer-string-starts-ends-with": 223,
+      "prefer-readonly-parameter-types": 140291,
+      "no-unnecessary-condition": 9554,
+      "prefer-optional-chain": 1277,
+      "promise-function-async": 10090,
+      "no-unsafe-assignment": 5417,
+      "prefer-includes": 403,
+      "no-unsafe-call": 2100,
+      "no-unsafe-member-access": 6634,
+      "unbound-method": 940,
+      "no-unsafe-argument": 2507,
+      "require-await": 8366,
+      "no-unsafe-type-assertion": 13014,
+      "no-unsafe-return": 1037,
+      "no-floating-promises": 6416,
+      "no-misused-promises": 2032,
+      "strict-void-return": 4220,
+      "switch-exhaustiveness-check": 617,
+      "no-confusing-void-expression": 9693,
+      "prefer-regexp-exec": 301,
+      "no-unnecessary-type-conversion": 494,
+      "related-getter-setter-pairs": 6,
+      "prefer-promise-reject-errors": 181,
+      "no-unnecessary-template-expression": 120,
+      "prefer-readonly": 3369,
+      "restrict-plus-operands": 42,
+      "no-unnecessary-type-assertion": 3334,
+      "no-unnecessary-type-parameters": 331,
+      "no-useless-default-assignment": 83,
+      "no-base-to-string": 200,
+      "non-nullable-type-assertion-style": 96,
+      "consistent-return": 965,
+      "no-unnecessary-boolean-literal-compare": 480,
+      "no-unsafe-enum-comparison": 1690,
+      "prefer-return-this-type": 56,
+      "use-unknown-in-catch-callback-variable": 696,
+      "no-duplicate-type-constituents": 195,
+      "restrict-template-expressions": 643,
+      "no-redundant-type-constituents": 401,
+      "only-throw-error": 65,
+      "no-unnecessary-qualifier": 64,
+      "no-unnecessary-type-arguments": 274,
+      "prefer-reduce-type-parameter": 20,
+      "no-generated-empty-object-type": 10,
+      "await-thenable": 307,
+      "return-await": 292,
+      "no-misused-spread": 61,
+      "no-meaningless-void-operator": 10,
+      "no-mixed-enums": 3,
+      "prefer-find": 65,
+      "require-array-sort-compare": 37,
+      "consistent-type-exports": 20,
+      "no-array-delete": 7,
+      "no-implied-eval": 4,
+      "no-for-in-array": 6
+    },
+    "rule_timings": [
+      {
+        "rule_name": "no-misused-promises",
+        "duration": 3080619101,
+        "calls": 4042929
+      },
+      {
+        "rule_name": "no-floating-promises",
+        "duration": 2258658495,
+        "calls": 492724
+      },
+      {
+        "rule_name": "no-unsafe-assignment",
+        "duration": 1908222292,
+        "calls": 1257605
+      },
+      {
+        "rule_name": "no-unsafe-argument",
+        "duration": 856545224,
+        "calls": 1010488
+      },
+      {
+        "rule_name": "no-deprecated",
+        "duration": 803814122,
+        "calls": 5919392
+      },
+      {
+        "rule_name": "no-unsafe-return",
+        "duration": 612186031,
+        "calls": 255709
+      },
+      {
+        "rule_name": "strict-void-return",
+        "duration": 610660625,
+        "calls": 2607466
+      },
+      {
+        "rule_name": "no-unsafe-member-access",
+        "duration": 536209706,
+        "calls": 1489329
+      },
+      {
+        "rule_name": "no-confusing-void-expression",
+        "duration": 436463343,
+        "calls": 992359
+      },
+      {
+        "rule_name": "no-unnecessary-condition",
+        "duration": 309255762,
+        "calls": 2851771
+      },
+      {
+        "rule_name": "no-unnecessary-qualifier",
+        "duration": 223882296,
+        "calls": 2922456
+      },
+      {
+        "rule_name": "no-unnecessary-type-arguments",
+        "duration": 216804601,
+        "calls": 1331811
+      },
+      {
+        "rule_name": "consistent-return",
+        "duration": 212979139,
+        "calls": 603072
+      },
+      {
+        "rule_name": "unbound-method",
+        "duration": 198422836,
+        "calls": 1461647
+      },
+      {
+        "rule_name": "strict-boolean-expressions",
+        "duration": 179200511,
+        "calls": 1418795
+      },
+      {
+        "rule_name": "prefer-readonly-parameter-types",
+        "duration": 165970578,
+        "calls": 258540
+      },
+      {
+        "rule_name": "no-unsafe-call",
+        "duration": 165664732,
+        "calls": 1010488
+      },
+      {
+        "rule_name": "no-unnecessary-type-assertion",
+        "duration": 134437780,
+        "calls": 39436
+      },
+      {
+        "rule_name": "no-base-to-string",
+        "duration": 115143969,
+        "calls": 1242093
+      },
+      {
+        "rule_name": "prefer-readonly",
+        "duration": 98801144,
+        "calls": 1961065
+      },
+      {
+        "rule_name": "prefer-promise-reject-errors",
+        "duration": 93544124,
+        "calls": 929203
+      },
+      {
+        "rule_name": "await-thenable",
+        "duration": 93341154,
+        "calls": 1286810
+      },
+      {
+        "rule_name": "no-unsafe-type-assertion",
+        "duration": 76391803,
+        "calls": 28889
+      },
+      {
+        "rule_name": "prefer-string-starts-ends-with",
+        "duration": 70343125,
+        "calls": 1218005
+      },
+      {
+        "rule_name": "no-unnecessary-type-parameters",
+        "duration": 67765519,
+        "calls": 264184
+      },
+      {
+        "rule_name": "no-misused-spread",
+        "duration": 67468118,
+        "calls": 1253516
+      },
+      {
+        "rule_name": "use-unknown-in-catch-callback-variable",
+        "duration": 64264424,
+        "calls": 929203
+      },
+      {
+        "rule_name": "no-unnecessary-type-conversion",
+        "duration": 58192323,
+        "calls": 1273792
+      },
+      {
+        "rule_name": "require-await",
+        "duration": 58133509,
+        "calls": 960865
+      },
+      {
+        "rule_name": "no-generated-empty-object-type",
+        "duration": 51942983,
+        "calls": 320811
+      },
+      {
+        "rule_name": "dot-notation",
+        "duration": 49098324,
+        "calls": 1489329
+      },
+      {
+        "rule_name": "prefer-includes",
+        "duration": 49023332,
+        "calls": 1218005
+      },
+      {
+        "rule_name": "prefer-find",
+        "duration": 47792496,
+        "calls": 966093
+      },
+      {
+        "rule_name": "prefer-optional-chain",
+        "duration": 46974991,
+        "calls": 298126
+      },
+      {
+        "rule_name": "prefer-nullish-coalescing",
+        "duration": 45891642,
+        "calls": 438168
+      },
+      {
+        "rule_name": "no-implied-eval",
+        "duration": 44494338,
+        "calls": 1010132
+      },
+      {
+        "rule_name": "prefer-regexp-exec",
+        "duration": 40598680,
+        "calls": 929203
+      },
+      {
+        "rule_name": "return-await",
+        "duration": 38139225,
+        "calls": 603072
+      },
+      {
+        "rule_name": "prefer-reduce-type-parameter",
+        "duration": 37724449,
+        "calls": 929203
+      },
+      {
+        "rule_name": "no-unsafe-enum-comparison",
+        "duration": 36931910,
+        "calls": 306884
+      },
+      {
+        "rule_name": "require-array-sort-compare",
+        "duration": 36432559,
+        "calls": 929203
+      },
+      {
+        "rule_name": "promise-function-async",
+        "duration": 32604720,
+        "calls": 230043
+      },
+      {
+        "rule_name": "restrict-plus-operands",
+        "duration": 32197653,
+        "calls": 298126
+      },
+      {
+        "rule_name": "no-duplicate-type-constituents",
+        "duration": 25608576,
+        "calls": 61460
+      },
+      {
+        "rule_name": "only-throw-error",
+        "duration": 20115275,
+        "calls": 17203
+      },
+      {
+        "rule_name": "no-unnecessary-boolean-literal-compare",
+        "duration": 18174799,
+        "calls": 298126
+      },
+      {
+        "rule_name": "switch-exhaustiveness-check",
+        "duration": 15977184,
+        "calls": 11217
+      },
+      {
+        "rule_name": "prefer-return-this-type",
+        "duration": 13658520,
+        "calls": 122288
+      },
+      {
+        "rule_name": "no-redundant-type-constituents",
+        "duration": 12397499,
+        "calls": 61460
+      },
+      {
+        "rule_name": "restrict-template-expressions",
+        "duration": 10014136,
+        "calls": 33412
+      },
+      {
+        "rule_name": "no-useless-default-assignment",
+        "duration": 9995629,
+        "calls": 274940
+      },
+      {
+        "rule_name": "non-nullable-type-assertion-style",
+        "duration": 9312802,
+        "calls": 28889
+      },
+      {
+        "rule_name": "no-meaningless-void-operator",
+        "duration": 6619540,
+        "calls": 10383
+      },
+      {
+        "rule_name": "no-unnecessary-template-expression",
+        "duration": 5603251,
+        "calls": 33452
+      },
+      {
+        "rule_name": "no-unsafe-unary-minus",
+        "duration": 4806469,
+        "calls": 65111
+      },
+      {
+        "rule_name": "related-getter-setter-pairs",
+        "duration": 4654126,
+        "calls": 56129
+      },
+      {
+        "rule_name": "consistent-type-exports",
+        "duration": 2514218,
+        "calls": 10420
+      },
+      {
+        "rule_name": "no-mixed-enums",
+        "duration": 1219618,
+        "calls": 10971
+      },
+      {
+        "rule_name": "no-for-in-array",
+        "duration": 1121961,
+        "calls": 9564
+      },
+      {
+        "rule_name": "no-array-delete",
+        "duration": 885832,
+        "calls": 9843
+      }
+    ]
+  },
+  "all_60_callback_counts_match_previous": true,
+  "validation": {
+    "baseline_cases_passed": 7169,
+    "upstream_baseline_skips": 36,
+    "headless_tests_passed": 100,
+    "unit_tests_passed": 2,
+    "protocol_tests_passed": 8,
+    "lifecycle_tests_passed": 2,
+    "poison_lifecycle_tests_passed": 2,
+    "oxlint_rust_suites_passed": true,
+    "oxlint_js_passed": 642,
+    "oxlint_js_skipped": 1,
+    "workspace_clippy_passed": true,
+    "source_checks_passed": true,
+    "rust_diagnostic_multiset_sha256": {
+      "lint": "2b812c5d6a361504d9c29d27b54b6b5b512a1f5924382d7e58d5e7e094fc0027",
+      "lint-typecheck": "df7ecb643f7fd6faf865741114b587d04c1d6658224ffb5979e091de05c78b01",
+      "typecheck": "d59aeaa3495055908ed594857db171f581190467644499fb24726d0bf99d8193",
+      "setup": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "rust_diagnostic_delta": "zero additions, removals or content changes for every measured variant/mode and warm-up",
+    "review": "three reviewer wave; two resource findings fixed and focused verification clear"
+  }
+}

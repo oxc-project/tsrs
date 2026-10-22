@@ -1,0 +1,1856 @@
+{
+  "Name": "await-thenable",
+  "TSConfig": "tsconfig.minimal.json",
+  "Valid": [
+    {
+      "Code": "\nasync function test() {\n  await Promise.resolve('value');\n  await Promise.reject(new Error('message'));\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nasync function test() {\n  await (async () => true)();\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nasync function test() {\n  function returnsPromise() {\n    return Promise.resolve('value');\n  }\n  await returnsPromise();\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nasync function test() {\n  async function returnsPromiseAsync() {}\n  await returnsPromiseAsync();\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nasync function test() {\n  let anyValue: any;\n  await anyValue;\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nasync function test() {\n  let unknownValue: unknown;\n  await unknownValue;\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nasync function test() {\n  const numberPromise: Promise<number>;\n  await numberPromise;\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nasync function test() {\n  class Foo extends Promise<number> {}\n  const foo: Foo = Foo.resolve(2);\n  await foo;\n\n  class Bar extends Foo {}\n  const bar: Bar = Bar.resolve(2);\n  await bar;\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nasync function test() {\n  await (Math.random() > 0.5 ? numberPromise : 0);\n  await (Math.random() > 0.5 ? foo : 0);\n  await (Math.random() > 0.5 ? bar : 0);\n\n  const intersectionPromise: Promise<number> & number;\n  await intersectionPromise;\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nasync function test() {\n  class Thenable {\n    then(callback: () => {}) {}\n  }\n  const thenable = new Thenable();\n\n  await thenable;\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n// https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/types/promise-polyfill/index.d.ts\n// Type definitions for promise-polyfill 6.0\n// Project: https://github.com/taylorhakes/promise-polyfill\n// Definitions by: Steve Jenkins <https://github.com/skysteve>\n//                 Daniel Cassidy <https://github.com/djcsdy>\n// Definitions: https://github.com/DefinitelyTyped/DefinitelyTyped\n\ninterface PromisePolyfillConstructor extends PromiseConstructor {\n  _immediateFn?: (handler: (() => void) | string) => void;\n}\n\ndeclare const PromisePolyfill: PromisePolyfillConstructor;\n\nasync function test() {\n  const promise = new PromisePolyfill(() => {});\n\n  await promise;\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n// https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/types/bluebird/index.d.ts\n// Type definitions for bluebird 3.5\n// Project: https://github.com/petkaantonov/bluebird\n// Definitions by: Leonard Hecker <https://github.com/lhecker>\n// Definitions: https://github.com/DefinitelyTyped/DefinitelyTyped\n// TypeScript Version: 2.8\n\n/*!\n * The code following this comment originates from:\n *   https://github.com/types/npm-bluebird\n *\n * Note for browser users: use bluebird-global typings instead of this one\n * if you want to use Bluebird via the global Promise symbol.\n *\n * Licensed under:\n *   The MIT License (MIT)\n *\n *   Copyright (c) 2016 unional\n *\n *   Permission is hereby granted, free of charge, to any person obtaining a copy\n *   of this software and associated documentation files (the \"Software\"), to deal\n *   in the Software without restriction, including without limitation the rights\n *   to use, copy, modify, merge, publish, distribute, sublicense, and/or sell\n *   copies of the Software, and to permit persons to whom the Software is\n *   furnished to do so, subject to the following conditions:\n *\n *   The above copyright notice and this permission notice shall be included in\n *   all copies or substantial portions of the Software.\n *\n *   THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\n *   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\n *   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\n *   AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\n *   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\n *   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN\n *   THE SOFTWARE.\n */\n\ntype Constructor<E> = new (...args: any[]) => E;\ntype CatchFilter<E> = ((error: E) => boolean) | (object & E);\ntype IterableItem<R> = R extends Iterable<infer U> ? U : never;\ntype IterableOrNever<R> = Extract<R, Iterable<any>>;\ntype Resolvable<R> = R | PromiseLike<R>;\ntype IterateFunction<T, R> = (\n  item: T,\n  index: number,\n  arrayLength: number,\n) => Resolvable<R>;\n\ndeclare class Bluebird<R> implements PromiseLike<R> {\n  then<U>(\n    onFulfill?: (value: R) => Resolvable<U>,\n    onReject?: (error: any) => Resolvable<U>,\n  ): Bluebird<U>; // For simpler signature help.\n  then<TResult1 = R, TResult2 = never>(\n    onfulfilled?: ((value: R) => Resolvable<TResult1>) | null,\n    onrejected?: ((reason: any) => Resolvable<TResult2>) | null,\n  ): Bluebird<TResult1 | TResult2>;\n}\n\ndeclare const bluebird: Bluebird;\n\nasync function test() {\n  await bluebird;\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst doSomething = async (\n  obj1: { a?: { b?: { c?: () => Promise<void> } } },\n  obj2: { a?: { b?: { c: () => Promise<void> } } },\n  obj3: { a?: { b: { c?: () => Promise<void> } } },\n  obj4: { a: { b: { c?: () => Promise<void> } } },\n  obj5: { a?: () => { b?: { c?: () => Promise<void> } } },\n  obj6?: { a: { b: { c?: () => Promise<void> } } },\n  callback?: () => Promise<void>,\n): Promise<void> => {\n  await obj1.a?.b?.c?.();\n  await obj2.a?.b?.c();\n  await obj3.a?.b.c?.();\n  await obj4.a.b.c?.();\n  await obj5.a?.().b?.c?.();\n  await obj6?.a.b.c?.();\n\n  await callback?.();\n};\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nasync function* asyncYieldNumbers() {\n  yield 1;\n  yield 2;\n  yield 3;\n}\nfor await (const value of asyncYieldNumbers()) {\n  console.log(value);\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const anee: any;\nasync function forAwait() {\n  for await (const value of anee) {\n    console.log(value);\n  }\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const asyncIter: AsyncIterable<string> | Iterable<string>;\nfor await (const s of asyncIter) {\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const d: AsyncDisposable;\n\nawait using foo = d;\n\nexport {};\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nusing foo = {\n  [Symbol.dispose]() {},\n};\n\nexport {};\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nawait using foo = 3 as any;\n\nexport {};\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nusing foo = {\n  async [Symbol.dispose]() {},\n};\n\nexport {};\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const maybeAsyncDisposable: Disposable | AsyncDisposable;\nasync function foo() {\n  await using _ = maybeAsyncDisposable;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nasync function iterateUsing(arr: Array<AsyncDisposable>) {\n  for (await using foo of arr) {\n  }\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nasync function wrapper<T>(value: T) {\n  return await value;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nasync function wrapper<T extends unknown>(value: T) {\n  return await value;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nasync function wrapper<T extends any>(value: T) {\n  return await value;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nasync function wrapper<T extends Promise<unknown>>(value: T) {\n  return await value;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nasync function wrapper<T extends number | Promise<unknown>>(value: T) {\n  return await value;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass C<T> {\n  async wrapper<T>(value: T) {\n    return await value;\n  }\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass C<R> {\n  async wrapper<T extends R>(value: T) {\n    return await value;\n  }\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass C<R extends unknown> {\n  async wrapper<T extends R>(value: T) {\n    return await value;\n  }\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n// @ts-expect-error\nPromise.all();\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nPromise.all([,]);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const x: unknown;\n\n// @ts-expect-error\nPromise.all(x);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const x: any;\nPromise.all(x);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const x: Array<Promise<unknown>>;\nPromise.all(x);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const x: Array<Promise<number>> | Array<Promise<string>>;\nPromise.all(x);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const x: Array<Promise<number> | Promise<string>>;\nPromise.all(x);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction f<T>(x: Array<Promise<T>>) {\n  Promise.all(x);\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction f<T extends Promise<unknown>>(x: Array<T>) {\n  Promise.all(x);\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const x: Array<unknown>;\nPromise.all(x);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const x: Array<any>;\nPromise.all(x);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const x: number | Array<Promise<number>>;\n\n// @ts-expect-error\nPromise.all(x);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const x: [Promise<unknown>, Promise<void>];\nPromise.all(x);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const x: [Promise<number>] | [Promise<string>];\nPromise.all(x);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const x: [Promise<number> | Promise<string>];\nPromise.all(x);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction f<T>(x: [Promise<T>]) {\n  Promise.all(x);\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction f<T extends Promise<unknown>>(x: [T]) {\n  Promise.all(x);\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const x: [unknown, any];\nPromise.all(x);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const x: number | [Promise<number>];\n\n// @ts-expect-error\nPromise.all(x);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const x: Iterable<Promise<unknown>>;\nPromise.all(x);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const x: Iterable<Promise<number>> | Iterable<Promise<string>>;\n\n// @ts-expect-error\nPromise.all(x);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const x: Iterable<Promise<number | string>>;\nPromise.all(x);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction f<T>(x: Iterable<Promise<T>>) {\n  Promise.all(x);\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction f<T extends Promise<unknown>>(x: Iterable<T>) {\n  Promise.all(x);\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const x: Iterable<unknown>;\nPromise.all(x);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const x: Iterable<any>;\nPromise.all(x);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const x: number | Iterable<Promise<number>>;\n\n// @ts-expect-error\nPromise.all(x);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const x: Iterable<Promise<unknown>, number>;\nPromise.all(x);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare class Foo<A, B> implements Iterable<B> {\n  [Symbol.iterator](): Iterator<B>;\n}\ndeclare const x: Foo<Promise<string>, number>;\n\nPromise.all(x);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare class Foo<A, B> implements Iterable<B> {\n  [Symbol.iterator](): Iterator<B>;\n}\ndeclare const x: Foo<number, Promise<string>>;\n\nPromise.all([...x]);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const x: number[] | Promise<number>[];\n\nPromise.all([...x]);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const x: Iterable<Promise<string>> | Array<Promise<string>>;\nPromise.all(x);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const x:\n  | Iterable<Promise<string>>\n  | [Promise<string>, Promise<unknown>];\nPromise.all(x);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const x: Array<Promise<string>> | [Promise<string>, Promise<unknown>];\nPromise.all(x);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n// @ts-expect-error\nPromise.all(1);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const x: Promise<number>;\n\n// @ts-expect-error\nPromise.all(x);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface MyArray<Unused, T> extends Array<T> {}\ndeclare const x: MyArray<null, Promise<void>>;\n\nPromise.all(x);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction* x() {\n  yield Promise.resolve(1);\n  yield Promise.resolve(2);\n  yield Promise.resolve(3);\n}\n\nPromise.all(x());\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction* x() {\n  yield 1 as unknown;\n}\n\nPromise.all(x());\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction* x() {\n  yield 1 as any;\n}\n\nPromise.all(x());\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const x: Generator<Promise<number>>;\nPromise.all(x);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const x: Generator<unknown>;\nPromise.all(x);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const x: Generator<any>;\nPromise.all(x);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const x: ReadonlyArray<Promise<number>>;\nPromise.all(x);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const x: ReadonlyArray<unknown>;\nPromise.all(x);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const x: ReadonlyArray<any>;\nPromise.all(x);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nPromise.all([Promise.resolve(1), Promise.resolve(2), Promise.resolve(3)]);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const _unknown_: unknown;\n\nPromise.all([\n  _unknown_,\n  Promise.resolve(1),\n  Promise.resolve(2),\n  Promise.resolve(3),\n]);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const _any_: any;\n\nPromise.all([\n  _any_,\n  Promise.resolve(1),\n  Promise.resolve(2),\n  Promise.resolve(3),\n]);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const _promise_: Promise<number | string>;\n\nPromise.all([\n  _promise_,\n  Promise.resolve(1),\n  Promise.resolve(2),\n  Promise.resolve(3),\n]);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nPromise.all([\n  Promise.resolve(1),\n  Promise.resolve(2),\n  Promise.resolve(3),\n  ...[Promise.resolve(4), Promise.resolve(5), Promise.resolve(6)],\n]);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const maybePromise: Promise<number> | number;\n\nPromise.all([\n  maybePromise,\n  Promise.resolve(1),\n  Promise.resolve(2),\n  Promise.resolve(3),\n]);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    }
+  ],
+  "Invalid": [
+    {
+      "Code": "await 0;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "await",
+          "Line": 1,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "removeAwait",
+              "Output": "0;"
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "await 'value';",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "await",
+          "Line": 1,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "removeAwait",
+              "Output": "'value';"
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "async () => await (Math.random() > 0.5 ? '' : 0);",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "await",
+          "Line": 1,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "removeAwait",
+              "Output": "async () => (Math.random() > 0.5 ? '' : 0);"
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "async () => await(Math.random() > 0.5 ? '' : 0);",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "await",
+          "Line": 1,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "removeAwait",
+              "Output": "async () => (Math.random() > 0.5 ? '' : 0);"
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass NonPromise extends Array {}\nawait new NonPromise();\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "await",
+          "Line": 3,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "removeAwait",
+              "Output": "\nclass NonPromise extends Array {}\nnew NonPromise();\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nasync function test() {\n  class IncorrectThenable {\n    then() {}\n  }\n  const thenable = new IncorrectThenable();\n\n  await thenable;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "await",
+          "Line": 8,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "removeAwait",
+              "Output": "\nasync function test() {\n  class IncorrectThenable {\n    then() {}\n  }\n  const thenable = new IncorrectThenable();\n\n  thenable;\n}\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const callback: (() => void) | undefined;\nawait callback?.();\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "await",
+          "Line": 3,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "removeAwait",
+              "Output": "\ndeclare const callback: (() => void) | undefined;\ncallback?.();\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const obj: { a?: { b?: () => void } };\nawait obj.a?.b?.();\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "await",
+          "Line": 3,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "removeAwait",
+              "Output": "\ndeclare const obj: { a?: { b?: () => void } };\nobj.a?.b?.();\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const obj: { a: { b: { c?: () => void } } } | undefined;\nawait obj?.a.b.c?.();\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "await",
+          "Line": 3,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "removeAwait",
+              "Output": "\ndeclare const obj: { a: { b: { c?: () => void } } } | undefined;\nobj?.a.b.c?.();\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction* yieldNumbers() {\n  yield 1;\n  yield 2;\n  yield 3;\n}\nfor await (const value of yieldNumbers()) {\n  console.log(value);\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "forAwaitOfNonAsyncIterable",
+          "Line": 7,
+          "Column": 1,
+          "EndLine": 7,
+          "EndColumn": 42,
+          "Suggestions": [
+            {
+              "MessageId": "convertToOrdinaryFor",
+              "Output": "\nfunction* yieldNumbers() {\n  yield 1;\n  yield 2;\n  yield 3;\n}\nfor (const value of yieldNumbers()) {\n  console.log(value);\n}\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction* yieldNumberPromises() {\n  yield Promise.resolve(1);\n  yield Promise.resolve(2);\n  yield Promise.resolve(3);\n}\nfor await (const value of yieldNumberPromises()) {\n  console.log(value);\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "forAwaitOfNonAsyncIterable",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "convertToOrdinaryFor",
+              "Output": "\nfunction* yieldNumberPromises() {\n  yield Promise.resolve(1);\n  yield Promise.resolve(2);\n  yield Promise.resolve(3);\n}\nfor (const value of yieldNumberPromises()) {\n  console.log(value);\n}\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const disposable: Disposable;\nasync function foo() {\n  await using d = disposable;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "awaitUsingOfNonAsyncDisposable",
+          "Line": 4,
+          "Column": 19,
+          "EndLine": 4,
+          "EndColumn": 29,
+          "Suggestions": [
+            {
+              "MessageId": "removeAwait",
+              "Output": "\ndeclare const disposable: Disposable;\nasync function foo() {\n  using d = disposable;\n}\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nasync function foo() {\n  await using _ = {\n    async [Symbol.dispose]() {},\n  };\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "awaitUsingOfNonAsyncDisposable",
+          "Line": 3,
+          "Column": 19,
+          "EndLine": 5,
+          "EndColumn": 4,
+          "Suggestions": [
+            {
+              "MessageId": "removeAwait",
+              "Output": "\nasync function foo() {\n  using _ = {\n    async [Symbol.dispose]() {},\n  };\n}\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const disposable: Disposable;\ndeclare const asyncDisposable: AsyncDisposable;\nasync function foo() {\n  await using a = disposable,\n    b = asyncDisposable,\n    c = disposable,\n    d = asyncDisposable,\n    e = disposable;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "awaitUsingOfNonAsyncDisposable",
+          "Line": 5,
+          "Column": 19,
+          "EndLine": 5,
+          "EndColumn": 29,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "awaitUsingOfNonAsyncDisposable",
+          "Line": 7,
+          "Column": 9,
+          "EndLine": 7,
+          "EndColumn": 19,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "awaitUsingOfNonAsyncDisposable",
+          "Line": 9,
+          "Column": 9,
+          "EndLine": 9,
+          "EndColumn": 19,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const anee: any;\ndeclare const disposable: Disposable;\nasync function foo() {\n  await using a = anee,\n    b = disposable;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "awaitUsingOfNonAsyncDisposable",
+          "Line": 6,
+          "Column": 9,
+          "EndLine": 6,
+          "EndColumn": 19,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nasync function wrapper<T extends number>(value: T) {\n  return await value;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "await",
+          "Line": 3,
+          "Column": 10,
+          "EndLine": 3,
+          "EndColumn": 15,
+          "Suggestions": [
+            {
+              "MessageId": "removeAwait",
+              "Output": "\nasync function wrapper<T extends number>(value: T) {\n  return value;\n}\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass C<T> {\n  async wrapper<T extends string>(value: T) {\n    return await value;\n  }\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "await",
+          "Line": 4,
+          "Column": 12,
+          "EndLine": 4,
+          "EndColumn": 17,
+          "Suggestions": [
+            {
+              "MessageId": "removeAwait",
+              "Output": "\nclass C<T> {\n  async wrapper<T extends string>(value: T) {\n    return value;\n  }\n}\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass C<R extends number> {\n  async wrapper<T extends R>(value: T) {\n    return await value;\n  }\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "await",
+          "Line": 4,
+          "Column": 12,
+          "EndLine": 4,
+          "EndColumn": 17,
+          "Suggestions": [
+            {
+              "MessageId": "removeAwait",
+              "Output": "\nclass C<R extends number> {\n  async wrapper<T extends R>(value: T) {\n    return value;\n  }\n}\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const x: Array<number>;\nPromise.all(x);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "invalidPromiseAggregatorInput",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const x: Array<number> | Array<Promise<number>>;\nPromise.race(x);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "invalidPromiseAggregatorInput",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const x: Array<number> | Array<string>;\nPromise.allSettled(x);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "invalidPromiseAggregatorInput",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const x: Array<number | Promise<number>>;\nPromise.any(x);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "invalidPromiseAggregatorInput",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const x: [number];\nPromise.all(x);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "invalidPromiseAggregatorInput",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const x: [number] | [Promise<number>];\nPromise.all(x);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "invalidPromiseAggregatorInput",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const x: [number | Promise<number>];\nPromise.all(x);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "invalidPromiseAggregatorInput",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const x: [Promise<number>, number];\nPromise.all(x);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "invalidPromiseAggregatorInput",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const x: Iterable<number>;\nPromise.all(x);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "invalidPromiseAggregatorInput",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const x: Iterable<number> | Iterable<Promise<number>>;\nPromise.all(x);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "invalidPromiseAggregatorInput",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const x: Iterable<number | Promise<number>>;\nPromise.all(x);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "invalidPromiseAggregatorInput",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const x: Iterable<string> | Array<Promise<unknown>>;\nPromise.all(x);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "invalidPromiseAggregatorInput",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const x: Iterable<Promise<string>> | [string, Promise<unknown>];\nPromise.all(x);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "invalidPromiseAggregatorInput",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const x: Array<string> | [Promise<string>, Promise<unknown>];\nPromise.all(x);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "invalidPromiseAggregatorInput",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const x: Array<Array<Promise<number>>>;\nPromise.all(x);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "invalidPromiseAggregatorInput",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface MyArray<Unused, T> extends Array<T> {}\ndeclare const x: MyArray<Promise<void>, null>;\n\nPromise.all(x);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "invalidPromiseAggregatorInput",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare class Foo<A, B> implements Iterable<B> {\n  [Symbol.iterator](): Iterator<B>;\n}\ndeclare const x: Foo<number, Promise<string>>;\n\nPromise.all(x);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "invalidPromiseAggregatorInput",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction* x() {\n  yield 1;\n  yield 2;\n  yield 3;\n}\n\nPromise.all(x());\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "invalidPromiseAggregatorInput",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction* x() {\n  yield 1 as number;\n}\n\nPromise.all(x());\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "invalidPromiseAggregatorInput",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction* x() {\n  yield 1 as number | Promise<number>;\n}\n\nPromise.all(x());\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "invalidPromiseAggregatorInput",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const x: Generator<number>;\nPromise.all(x);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "invalidPromiseAggregatorInput",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const x: ReadonlyArray<number>;\nPromise.all(x);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "invalidPromiseAggregatorInput",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const x: ReadonlyArray<number | Promise<string>>;\nPromise.all(x);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "invalidPromiseAggregatorInput",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nPromise.all([Promise.resolve(1), 2, Promise.resolve(3)]);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "invalidPromiseAggregatorInput",
+          "Line": 2,
+          "Column": 34,
+          "EndLine": 0,
+          "EndColumn": 35,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nPromise.all([1, 2, Promise.resolve(3)]);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "invalidPromiseAggregatorInput",
+          "Line": 2,
+          "Column": 14,
+          "EndLine": 0,
+          "EndColumn": 15,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "invalidPromiseAggregatorInput",
+          "Line": 2,
+          "Column": 17,
+          "EndLine": 0,
+          "EndColumn": 18,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nPromise.all([...[1, 2, 3]]);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "invalidPromiseAggregatorInput",
+          "Line": 2,
+          "Column": 14,
+          "EndLine": 0,
+          "EndColumn": 26,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    }
+  ]
+}

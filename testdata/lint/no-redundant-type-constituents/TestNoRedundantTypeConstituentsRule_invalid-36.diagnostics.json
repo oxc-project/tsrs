@@ -1,0 +1,15 @@
+[
+  {
+    "kind": 0,
+    "rule": "no-redundant-type-constituents",
+    "message": {
+      "id": "errorTypeOverrides",
+      "description": "'NotKnown' is an 'error' type that acts as 'any' and overrides all other types in this intersection type."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 18,
+      "end": 26
+    }
+  }
+]

@@ -1,0 +1,24 @@
+[
+  {
+    "kind": 0,
+    "rule": "restrict-template-expressions",
+    "message": {
+      "id": "invalidType",
+      "description": "Invalid type used in template literal expression."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 69,
+      "end": 72
+    },
+    "labeled_ranges": [
+      {
+        "range": {
+          "pos": 69,
+          "end": 72
+        },
+        "label": "Type: RegExp"
+      }
+    ]
+  }
+]

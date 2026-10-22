@@ -1,0 +1,40 @@
+[
+  {
+    "kind": 0,
+    "rule": "no-duplicate-type-constituents",
+    "message": {
+      "id": "duplicate",
+      "description": "Intersection type constituent is duplicated with  true."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 16,
+      "end": 20
+    },
+    "fixes": [
+      {
+        "text": "",
+        "range": {
+          "pos": 16,
+          "end": 20
+        }
+      },
+      {
+        "text": "",
+        "range": {
+          "end": 15,
+          "pos": 14
+        }
+      }
+    ],
+    "labeled_ranges": [
+      {
+        "label": "Type 'true' is first declared here.",
+        "range": {
+          "pos": 9,
+          "end": 13
+        }
+      }
+    ]
+  }
+]

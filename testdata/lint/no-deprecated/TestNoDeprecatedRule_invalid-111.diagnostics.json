@@ -1,0 +1,15 @@
+[
+  {
+    "kind": 0,
+    "rule": "no-deprecated",
+    "message": {
+      "id": "deprecatedWithReason",
+      "description": "`ReexportedClassWithDeprecatedConstructor` is deprecated. Reason"
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 81,
+      "end": 121
+    }
+  }
+]

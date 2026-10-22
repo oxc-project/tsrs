@@ -1,0 +1,33 @@
+{
+  "Name": "only-throw-error",
+  "TSConfig": "tsconfig.minimal.json",
+  "Valid": [
+    {
+      "Code": "import type { ErrorLike } from \"@babel/code-frame\"; declare const error: ErrorLike; throw error;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "allow": [
+          {
+            "name": [
+              "ErrorLike"
+            ],
+            "package": "@types/babel__code-frame",
+            "from": "package"
+          }
+        ],
+        "allowRethrowing": false,
+        "allowThrowingAny": false,
+        "allowThrowingUnknown": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {
+        "node_modules/@types/babel__code-frame/lib/index.d.ts": "export interface ErrorLike { message: string }",
+        "node_modules/@types/babel__code-frame/package.json": "{\"name\": \"@types/babel__code-frame\", \"version\": \"1.0.0\", \"types\": \"lib/index.d.ts\"}"
+      }
+    }
+  ],
+  "Invalid": []
+}

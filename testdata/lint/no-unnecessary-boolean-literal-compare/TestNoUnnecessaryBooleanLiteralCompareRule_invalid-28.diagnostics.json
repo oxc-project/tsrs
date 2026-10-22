@@ -1,0 +1,112 @@
+[
+  {
+    "message": {
+      "id": "comparingNullableToTrueDirect",
+      "description": "This expression unnecessarily compares a nullable boolean value to true instead of using it directly."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 125,
+      "end": 137
+    },
+    "fixes": [
+      {
+        "text": " foo",
+        "range": {
+          "pos": 125,
+          "end": 137
+        }
+      }
+    ],
+    "kind": 0,
+    "rule": "no-unnecessary-boolean-literal-compare"
+  },
+  {
+    "file_path": "file.ts",
+    "range": {
+      "pos": 172,
+      "end": 184
+    },
+    "fixes": [
+      {
+        "text": "(!!foo)",
+        "range": {
+          "pos": 172,
+          "end": 184
+        }
+      }
+    ],
+    "kind": 0,
+    "rule": "no-unnecessary-boolean-literal-compare",
+    "message": {
+      "id": "comparingNullableToTrueDirect",
+      "description": "This expression unnecessarily compares a nullable boolean value to true instead of using it directly."
+    }
+  },
+  {
+    "message": {
+      "id": "comparingNullableToTrueNegated",
+      "description": "This expression unnecessarily compares a nullable boolean value to true instead of negating it."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 227,
+      "end": 239
+    },
+    "fixes": [
+      {
+        "text": "(!!foo)",
+        "range": {
+          "pos": 225,
+          "end": 240
+        }
+      }
+    ],
+    "kind": 0,
+    "rule": "no-unnecessary-boolean-literal-compare"
+  },
+  {
+    "range": {
+      "pos": 257,
+      "end": 269
+    },
+    "fixes": [
+      {
+        "text": "(!!foo)",
+        "range": {
+          "pos": 257,
+          "end": 269
+        }
+      }
+    ],
+    "kind": 0,
+    "rule": "no-unnecessary-boolean-literal-compare",
+    "message": {
+      "id": "comparingNullableToTrueDirect",
+      "description": "This expression unnecessarily compares a nullable boolean value to true instead of using it directly."
+    },
+    "file_path": "file.ts"
+  },
+  {
+    "kind": 0,
+    "rule": "no-unnecessary-boolean-literal-compare",
+    "message": {
+      "id": "comparingNullableToTrueDirect",
+      "description": "This expression unnecessarily compares a nullable boolean value to true instead of using it directly."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "end": 314,
+      "pos": 302
+    },
+    "fixes": [
+      {
+        "text": "(!!foo)",
+        "range": {
+          "pos": 302,
+          "end": 314
+        }
+      }
+    ]
+  }
+]

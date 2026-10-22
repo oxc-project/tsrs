@@ -1,0 +1,62 @@
+[
+  {
+    "kind": 0,
+    "rule": "no-duplicate-type-constituents",
+    "message": {
+      "id": "duplicate",
+      "description": "Intersection type constituent is duplicated with  number."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 28,
+      "end": 34
+    },
+    "fixes": [
+      {
+        "text": "",
+        "range": {
+          "pos": 28,
+          "end": 34
+        }
+      },
+      {
+        "text": "",
+        "range": {
+          "pos": 35,
+          "end": 36
+        }
+      }
+    ],
+    "labeled_ranges": [
+      {
+        "label": "Type 'number' is first declared here.",
+        "range": {
+          "pos": 9,
+          "end": 15
+        }
+      }
+    ]
+  },
+  {
+    "file_path": "file.ts",
+    "range": {
+      "pos": 37,
+      "end": 43
+    },
+    "labeled_ranges": [
+      {
+        "label": "Type 'string' is first declared here.",
+        "range": {
+          "pos": 18,
+          "end": 24
+        }
+      }
+    ],
+    "kind": 0,
+    "rule": "no-duplicate-type-constituents",
+    "message": {
+      "id": "duplicate",
+      "description": "Intersection type constituent is duplicated with  string."
+    }
+  }
+]

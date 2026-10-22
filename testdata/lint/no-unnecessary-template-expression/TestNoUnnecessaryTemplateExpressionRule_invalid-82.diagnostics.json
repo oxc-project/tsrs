@@ -1,0 +1,117 @@
+[
+  {
+    "kind": 0,
+    "rule": "no-unnecessary-template-expression",
+    "message": {
+      "id": "noUnnecessaryTemplateExpression",
+      "description": "Template literal expression is unnecessary and can be simplified."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 13,
+      "end": 20
+    },
+    "fixes": [
+      {
+        "text": "",
+        "range": {
+          "pos": 13,
+          "end": 15
+        }
+      },
+      {
+        "text": "",
+        "range": {
+          "pos": 19,
+          "end": 20
+        }
+      },
+      {
+        "text": "{}",
+        "range": {
+          "pos": 15,
+          "end": 19
+        }
+      }
+    ]
+  },
+  {
+    "fixes": [
+      {
+        "text": "",
+        "range": {
+          "pos": 8,
+          "end": 10
+        }
+      },
+      {
+        "text": "",
+        "range": {
+          "pos": 12,
+          "end": 13
+        }
+      },
+      {
+        "text": "",
+        "range": {
+          "end": 12,
+          "pos": 10
+        }
+      }
+    ],
+    "kind": 0,
+    "rule": "no-unnecessary-template-expression",
+    "message": {
+      "id": "noUnnecessaryTemplateExpression",
+      "description": "Template literal expression is unnecessary and can be simplified."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 8,
+      "end": 13
+    }
+  },
+  {
+    "fixes": [
+      {
+        "text": "",
+        "range": {
+          "end": 5,
+          "pos": 3
+        }
+      },
+      {
+        "text": "",
+        "range": {
+          "pos": 7,
+          "end": 8
+        }
+      },
+      {
+        "text": "",
+        "range": {
+          "end": 7,
+          "pos": 5
+        }
+      },
+      {
+        "text": "\\$",
+        "range": {
+          "pos": 2,
+          "end": 3
+        }
+      }
+    ],
+    "kind": 0,
+    "rule": "no-unnecessary-template-expression",
+    "message": {
+      "id": "noUnnecessaryTemplateExpression",
+      "description": "Template literal expression is unnecessary and can be simplified."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 3,
+      "end": 8
+    }
+  }
+]

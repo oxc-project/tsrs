@@ -1,0 +1,16 @@
+[
+  {
+    "kind": 0,
+    "rule": "no-misused-spread",
+    "message": {
+      "id": "noStringSpread",
+      "description": "Using the spread operator on a string can mishandle special characters, because it produces Unicode code points, which will break complex characters (like emojis) into multiple parts.",
+      "help": "Consider using `Intl.Segmenter` for locale-aware string decomposition. Otherwise, if you don't need to preserve emojis or other non-ASCII characters, disable this lint rule on this line or configure the 'allow' rule option."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 56,
+      "end": 63
+    }
+  }
+]

@@ -1,0 +1,110 @@
+[
+  {
+    "kind": 0,
+    "rule": "no-unnecessary-template-expression",
+    "message": {
+      "id": "noUnnecessaryTemplateExpression",
+      "description": "Template literal expression is unnecessary and can be simplified."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "end": 21,
+      "pos": 16
+    },
+    "fixes": [
+      {
+        "text": "",
+        "range": {
+          "pos": 16,
+          "end": 18
+        }
+      },
+      {
+        "text": "",
+        "range": {
+          "end": 21,
+          "pos": 20
+        }
+      },
+      {
+        "text": "",
+        "range": {
+          "pos": 18,
+          "end": 20
+        }
+      }
+    ]
+  },
+  {
+    "message": {
+      "id": "noUnnecessaryTemplateExpression",
+      "description": "Template literal expression is unnecessary and can be simplified."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 11,
+      "end": 16
+    },
+    "fixes": [
+      {
+        "text": "",
+        "range": {
+          "pos": 11,
+          "end": 13
+        }
+      },
+      {
+        "text": "",
+        "range": {
+          "pos": 15,
+          "end": 16
+        }
+      },
+      {
+        "text": "",
+        "range": {
+          "pos": 13,
+          "end": 15
+        }
+      }
+    ],
+    "kind": 0,
+    "rule": "no-unnecessary-template-expression"
+  },
+  {
+    "fixes": [
+      {
+        "text": "",
+        "range": {
+          "end": 4,
+          "pos": 2
+        }
+      },
+      {
+        "text": "",
+        "range": {
+          "pos": 10,
+          "end": 11
+        }
+      },
+      {
+        "text": "foo\\$",
+        "range": {
+          "pos": 4,
+          "end": 10
+        }
+      }
+    ],
+    "kind": 0,
+    "rule": "no-unnecessary-template-expression",
+    "message": {
+      "id": "noUnnecessaryTemplateExpression",
+      "description": "Template literal expression is unnecessary and can be simplified."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 2,
+      "end": 11
+    }
+  }
+]

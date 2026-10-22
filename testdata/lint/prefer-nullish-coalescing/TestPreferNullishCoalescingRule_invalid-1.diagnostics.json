@@ -1,0 +1,15 @@
+[
+  {
+    "range": {
+      "pos": 0,
+      "end": 0
+    },
+    "kind": 0,
+    "rule": "prefer-nullish-coalescing",
+    "message": {
+      "id": "noStrictNullCheck",
+      "description": "This rule requires the `strictNullChecks` compiler option to be turned on to function correctly."
+    },
+    "file_path": "file.ts"
+  }
+]

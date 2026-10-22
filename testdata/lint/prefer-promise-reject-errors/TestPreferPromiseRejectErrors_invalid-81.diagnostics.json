@@ -1,0 +1,15 @@
+[
+  {
+    "kind": 0,
+    "rule": "prefer-promise-reject-errors",
+    "message": {
+      "id": "rejectAnError",
+      "description": "Expected the Promise rejection reason to be an Error."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "end": 78,
+      "pos": 50
+    }
+  }
+]

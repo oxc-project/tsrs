@@ -1,0 +1,32 @@
+[
+  {
+    "message": {
+      "id": "preferNullishOverTernary",
+      "description": "Prefer using nullish coalescing operator (`??`) instead of a ternary expression, as it is simpler to read."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 120,
+      "end": 162
+    },
+    "suggestions": [
+      {
+        "message": {
+          "id": "suggestNullishCoalescing",
+          "description": "Change to the nullish coalescing operator."
+        },
+        "fixes": [
+          {
+            "text": "defaultBox ?? getFallbackBox()",
+            "range": {
+              "pos": 120,
+              "end": 162
+            }
+          }
+        ]
+      }
+    ],
+    "kind": 0,
+    "rule": "prefer-nullish-coalescing"
+  }
+]

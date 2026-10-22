@@ -1,0 +1,16 @@
+[
+  {
+    "kind": 0,
+    "range": {
+      "pos": 64,
+      "end": 68
+    },
+    "message": {
+      "id": "alwaysTruthyFunc",
+      "description": "This callback should return a conditional, but return is always truthy.",
+      "help": "The callback returns type `true`."
+    },
+    "file_path": "file.ts",
+    "rule": "no-unnecessary-condition"
+  }
+]

@@ -1,0 +1,15 @@
+[
+  {
+    "file_path": "file.ts",
+    "range": {
+      "end": 51,
+      "pos": 17
+    },
+    "kind": 0,
+    "rule": "strict-boolean-expressions",
+    "message": {
+      "id": "predicateCannotBeAsync",
+      "description": "Predicate function should not be 'async'; expected a boolean return type."
+    }
+  }
+]

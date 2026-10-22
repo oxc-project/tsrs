@@ -1,0 +1,28 @@
+[
+  {
+    "file_path": "file.ts",
+    "range": {
+      "pos": 103,
+      "end": 116
+    },
+    "kind": 0,
+    "rule": "strict-void-return",
+    "message": {
+      "id": "nonVoidReturn",
+      "description": "Value returned in a context where a void return is expected."
+    }
+  },
+  {
+    "file_path": "file.ts",
+    "range": {
+      "end": 140,
+      "pos": 126
+    },
+    "kind": 0,
+    "rule": "strict-void-return",
+    "message": {
+      "id": "nonVoidReturn",
+      "description": "Value returned in a context where a void return is expected."
+    }
+  }
+]

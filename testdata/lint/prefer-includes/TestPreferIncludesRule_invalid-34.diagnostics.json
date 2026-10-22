@@ -1,0 +1,31 @@
+[
+  {
+    "file_path": "file.ts",
+    "range": {
+      "pos": 98,
+      "end": 117
+    },
+    "fixes": [
+      {
+        "text": "includes",
+        "range": {
+          "pos": 100,
+          "end": 107
+        }
+      },
+      {
+        "text": "",
+        "range": {
+          "pos": 110,
+          "end": 117
+        }
+      }
+    ],
+    "kind": 0,
+    "rule": "prefer-includes",
+    "message": {
+      "id": "preferIncludes",
+      "description": "Use 'includes()' method instead."
+    }
+  }
+]

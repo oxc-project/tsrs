@@ -1,0 +1,16 @@
+[
+  {
+    "rule": "restrict-plus-operands",
+    "message": {
+      "id": "invalid",
+      "description": "Invalid operand of type 'Valued' for a '+' operation.",
+      "help": "Operands must each be a number or string."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 83,
+      "end": 88
+    },
+    "kind": 0
+  }
+]

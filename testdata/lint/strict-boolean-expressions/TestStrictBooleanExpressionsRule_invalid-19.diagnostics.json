@@ -1,0 +1,15 @@
+[
+  {
+    "range": {
+      "pos": 39,
+      "end": 40
+    },
+    "kind": 0,
+    "rule": "strict-boolean-expressions",
+    "message": {
+      "id": "conditionErrorNullish",
+      "description": "Unexpected nullish value in conditional. The expression is always falsy."
+    },
+    "file_path": "file.ts"
+  }
+]

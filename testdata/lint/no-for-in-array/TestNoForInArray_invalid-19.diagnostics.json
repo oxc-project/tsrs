@@ -1,0 +1,16 @@
+[
+  {
+    "file_path": "file.ts",
+    "range": {
+      "pos": 64,
+      "end": 86
+    },
+    "kind": 0,
+    "rule": "no-for-in-array",
+    "message": {
+      "id": "forInViolation",
+      "description": "For-in loops over arrays skips holes, returns indices as strings, and may visit the prototype chain or other enumerable properties.",
+      "help": "Use a more robust iteration method such as for-of or array.forEach instead."
+    }
+  }
+]

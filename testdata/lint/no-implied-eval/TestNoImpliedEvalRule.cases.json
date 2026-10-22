@@ -1,0 +1,1382 @@
+{
+  "Name": "no-implied-eval",
+  "TSConfig": "tsconfig.minimal.json",
+  "Valid": [
+    {
+      "Code": "foo.setImmediate(null);",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "foo.setInterval(null);",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "foo.execScript(null);",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "foo.setTimeout(null);",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "foo();",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "(function () {})();",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "setTimeout(() => {}, 0);",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "window.setTimeout(() => {}, 0);",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "window['setTimeout'](() => {}, 0);",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "setInterval(() => {}, 0);",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "window.setInterval(() => {}, 0);",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "window['setInterval'](() => {}, 0);",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "setImmediate(() => {});",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "window.setImmediate(() => {});",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "window['setImmediate'](() => {});",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "execScript(() => {});",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "window.execScript(() => {});",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "window['execScript'](() => {});",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst foo = () => {};\n\nsetTimeout(foo, 0);\nsetInterval(foo, 0);\nsetImmediate(foo);\nexecScript(foo);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst foo = function () {};\n\nsetTimeout(foo, 0);\nsetInterval(foo, 0);\nsetImmediate(foo);\nexecScript(foo);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction foo() {}\n\nsetTimeout(foo, 0);\nsetInterval(foo, 0);\nsetImmediate(foo);\nexecScript(foo);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst foo = {\n  fn: () => {},\n};\n\nsetTimeout(foo.fn, 0);\nsetInterval(foo.fn, 0);\nsetImmediate(foo.fn);\nexecScript(foo.fn);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst foo = {\n  fn: function () {},\n};\n\nsetTimeout(foo.fn, 0);\nsetInterval(foo.fn, 0);\nsetImmediate(foo.fn);\nexecScript(foo.fn);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst foo = {\n  fn: function foo() {},\n};\n\nsetTimeout(foo.fn, 0);\nsetInterval(foo.fn, 0);\nsetImmediate(foo.fn);\nexecScript(foo.fn);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst foo = {\n  fn() {},\n};\n\nsetTimeout(foo.fn, 0);\nsetInterval(foo.fn, 0);\nsetImmediate(foo.fn);\nexecScript(foo.fn);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst foo = {\n  fn: () => {},\n};\nconst fn = 'fn';\n\nsetTimeout(foo[fn], 0);\nsetInterval(foo[fn], 0);\nsetImmediate(foo[fn]);\nexecScript(foo[fn]);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst foo = {\n  fn: () => {},\n};\n\nsetTimeout(foo['fn'], 0);\nsetInterval(foo['fn'], 0);\nsetImmediate(foo['fn']);\nexecScript(foo['fn']);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst foo: () => void = () => {};\n\nsetTimeout(foo, 0);\nsetInterval(foo, 0);\nsetImmediate(foo);\nexecScript(foo);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst foo: () => () => void = () => {\n  return () => {};\n};\n\nsetTimeout(foo(), 0);\nsetInterval(foo(), 0);\nsetImmediate(foo());\nexecScript(foo());\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst foo: () => () => void = () => () => {};\n\nsetTimeout(foo(), 0);\nsetInterval(foo(), 0);\nsetImmediate(foo());\nexecScript(foo());\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst foo = () => () => {};\n\nsetTimeout(foo(), 0);\nsetInterval(foo(), 0);\nsetImmediate(foo());\nexecScript(foo());\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst foo = function foo() {\n  return function foo() {};\n};\n\nsetTimeout(foo(), 0);\nsetInterval(foo(), 0);\nsetImmediate(foo());\nexecScript(foo());\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst foo = function () {\n  return function () {\n    return '';\n  };\n};\n\nsetTimeout(foo(), 0);\nsetInterval(foo(), 0);\nsetImmediate(foo());\nexecScript(foo());\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst foo: () => () => void = function foo() {\n  return function foo() {};\n};\n\nsetTimeout(foo(), 0);\nsetInterval(foo(), 0);\nsetImmediate(foo());\nexecScript(foo());\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction foo() {\n  return function foo() {\n    return () => {};\n  };\n}\n\nsetTimeout(foo()(), 0);\nsetInterval(foo()(), 0);\nsetImmediate(foo()());\nexecScript(foo()());\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass Foo {\n  static fn = () => {};\n}\n\nsetTimeout(Foo.fn, 0);\nsetInterval(Foo.fn, 0);\nsetImmediate(Foo.fn);\nexecScript(Foo.fn);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass Foo {\n  fn() {}\n}\n\nconst foo = new Foo();\n\nsetTimeout(foo.fn, 0);\nsetInterval(foo.fn, 0);\nsetImmediate(foo.fn);\nexecScript(foo.fn);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass Foo {\n  fn() {}\n}\nconst foo = new Foo();\nconst fn = foo.fn;\n\nsetTimeout(fn.bind(null), 0);\nsetInterval(fn.bind(null), 0);\nsetImmediate(fn.bind(null));\nexecScript(fn.bind(null));\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst fn = (foo: () => void) => {\n  setTimeout(foo, 0);\n  setInterval(foo, 0);\n  setImmediate(foo);\n  execScript(foo);\n};\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nimport { Function } from './class';\nnew Function('foo');\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst foo = (callback: Function) => {\n  setTimeout(callback, 0);\n};\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst foo = () => {};\nconst bar = () => {};\n\nsetTimeout(Math.radom() > 0.5 ? foo : bar, 0);\nsetTimeout(foo || bar, 500);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass Foo {\n  func1() {}\n  func2(): void {\n    setTimeout(this.func1.bind(this), 1);\n  }\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass Foo {\n  private a = {\n    b: {\n      c: function () {},\n    },\n  };\n  funcw(): void {\n    setTimeout(this.a.b.c.bind(this), 1);\n  }\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction setTimeout(input: string, value: number) {}\n\nsetTimeout('', 0);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare module 'my-timers-promises' {\n  export function setTimeout(ms: number): void;\n}\n\nimport { setTimeout } from 'my-timers-promises';\n\nsetTimeout(1000);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction setTimeout() {}\n\n{\n  setTimeout(100);\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction setTimeout() {}\n\n{\n  setTimeout(\"alert('evil!')\");\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    }
+  ],
+  "Invalid": [
+    {
+      "Code": "\nsetTimeout('x = 1', 0);\nsetInterval('x = 1', 0);\nsetImmediate('x = 1');\nexecScript('x = 1');\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noImpliedEvalError",
+          "Line": 2,
+          "Column": 12,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "noImpliedEvalError",
+          "Line": 3,
+          "Column": 13,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "noImpliedEvalError",
+          "Line": 4,
+          "Column": 14,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "noImpliedEvalError",
+          "Line": 5,
+          "Column": 12,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nsetTimeout(undefined, 0);\nsetInterval(undefined, 0);\nsetImmediate(undefined);\nexecScript(undefined);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noImpliedEvalError",
+          "Line": 2,
+          "Column": 12,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "noImpliedEvalError",
+          "Line": 3,
+          "Column": 13,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "noImpliedEvalError",
+          "Line": 4,
+          "Column": 14,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "noImpliedEvalError",
+          "Line": 5,
+          "Column": 12,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nsetTimeout(1 + '' + (() => {}), 0);\nsetInterval(1 + '' + (() => {}), 0);\nsetImmediate(1 + '' + (() => {}));\nexecScript(1 + '' + (() => {}));\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noImpliedEvalError",
+          "Line": 2,
+          "Column": 12,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "noImpliedEvalError",
+          "Line": 3,
+          "Column": 13,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "noImpliedEvalError",
+          "Line": 4,
+          "Column": 14,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "noImpliedEvalError",
+          "Line": 5,
+          "Column": 12,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst foo = 'x = 1';\n\nsetTimeout(foo, 0);\nsetInterval(foo, 0);\nsetImmediate(foo);\nexecScript(foo);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noImpliedEvalError",
+          "Line": 4,
+          "Column": 12,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "noImpliedEvalError",
+          "Line": 5,
+          "Column": 13,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "noImpliedEvalError",
+          "Line": 6,
+          "Column": 14,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "noImpliedEvalError",
+          "Line": 7,
+          "Column": 12,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst foo = function () {\n  return 'x + 1';\n};\n\nsetTimeout(foo(), 0);\nsetInterval(foo(), 0);\nsetImmediate(foo());\nexecScript(foo());\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noImpliedEvalError",
+          "Line": 6,
+          "Column": 12,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "noImpliedEvalError",
+          "Line": 7,
+          "Column": 13,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "noImpliedEvalError",
+          "Line": 8,
+          "Column": 14,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "noImpliedEvalError",
+          "Line": 9,
+          "Column": 12,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst foo = function () {\n  return () => 'x + 1';\n};\n\nsetTimeout(foo()(), 0);\nsetInterval(foo()(), 0);\nsetImmediate(foo()());\nexecScript(foo()());\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noImpliedEvalError",
+          "Line": 6,
+          "Column": 12,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "noImpliedEvalError",
+          "Line": 7,
+          "Column": 13,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "noImpliedEvalError",
+          "Line": 8,
+          "Column": 14,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "noImpliedEvalError",
+          "Line": 9,
+          "Column": 12,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst fn = function () {};\n\nsetTimeout(fn + '', 0);\nsetInterval(fn + '', 0);\nsetImmediate(fn + '');\nexecScript(fn + '');\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noImpliedEvalError",
+          "Line": 4,
+          "Column": 12,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "noImpliedEvalError",
+          "Line": 5,
+          "Column": 13,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "noImpliedEvalError",
+          "Line": 6,
+          "Column": 14,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "noImpliedEvalError",
+          "Line": 7,
+          "Column": 12,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst foo: string = 'x + 1';\n\nsetTimeout(foo, 0);\nsetInterval(foo, 0);\nsetImmediate(foo);\nexecScript(foo);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noImpliedEvalError",
+          "Line": 4,
+          "Column": 12,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "noImpliedEvalError",
+          "Line": 5,
+          "Column": 13,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "noImpliedEvalError",
+          "Line": 6,
+          "Column": 14,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "noImpliedEvalError",
+          "Line": 7,
+          "Column": 12,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst foo = new String('x + 1');\n\nsetTimeout(foo, 0);\nsetInterval(foo, 0);\nsetImmediate(foo);\nexecScript(foo);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noImpliedEvalError",
+          "Line": 4,
+          "Column": 12,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "noImpliedEvalError",
+          "Line": 5,
+          "Column": 13,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "noImpliedEvalError",
+          "Line": 6,
+          "Column": 14,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "noImpliedEvalError",
+          "Line": 7,
+          "Column": 12,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst foo = 'x + 1';\n\nsetTimeout(foo as any, 0);\nsetInterval(foo as any, 0);\nsetImmediate(foo as any);\nexecScript(foo as any);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noImpliedEvalError",
+          "Line": 4,
+          "Column": 12,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "noImpliedEvalError",
+          "Line": 5,
+          "Column": 13,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "noImpliedEvalError",
+          "Line": 6,
+          "Column": 14,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "noImpliedEvalError",
+          "Line": 7,
+          "Column": 12,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst fn = (foo: string | any) => {\n  setTimeout(foo, 0);\n  setInterval(foo, 0);\n  setImmediate(foo);\n  execScript(foo);\n};\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noImpliedEvalError",
+          "Line": 3,
+          "Column": 14,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "noImpliedEvalError",
+          "Line": 4,
+          "Column": 15,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "noImpliedEvalError",
+          "Line": 5,
+          "Column": 16,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "noImpliedEvalError",
+          "Line": 6,
+          "Column": 14,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst foo = 'foo';\nconst bar = () => {};\n\nsetTimeout(Math.radom() > 0.5 ? foo : bar, 0);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noImpliedEvalError",
+          "Line": 5,
+          "Column": 12,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nwindow.setTimeout(``, 0);\nwindow['setTimeout'](``, 0);\n\nwindow.setInterval(``, 0);\nwindow['setInterval'](``, 0);\n\nwindow.setImmediate(``);\nwindow['setImmediate'](``);\n\nwindow.execScript(``);\nwindow['execScript'](``);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noImpliedEvalError",
+          "Line": 2,
+          "Column": 19,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "noImpliedEvalError",
+          "Line": 3,
+          "Column": 22,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "noImpliedEvalError",
+          "Line": 5,
+          "Column": 20,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "noImpliedEvalError",
+          "Line": 6,
+          "Column": 23,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "noImpliedEvalError",
+          "Line": 8,
+          "Column": 21,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "noImpliedEvalError",
+          "Line": 9,
+          "Column": 24,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "noImpliedEvalError",
+          "Line": 11,
+          "Column": 19,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "noImpliedEvalError",
+          "Line": 12,
+          "Column": 22,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nglobal.setTimeout(``, 0);\nglobal['setTimeout'](``, 0);\n\nglobal.setInterval(``, 0);\nglobal['setInterval'](``, 0);\n\nglobal.setImmediate(``);\nglobal['setImmediate'](``);\n\nglobal.execScript(``);\nglobal['execScript'](``);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noImpliedEvalError",
+          "Line": 2,
+          "Column": 19,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "noImpliedEvalError",
+          "Line": 3,
+          "Column": 22,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "noImpliedEvalError",
+          "Line": 5,
+          "Column": 20,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "noImpliedEvalError",
+          "Line": 6,
+          "Column": 23,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "noImpliedEvalError",
+          "Line": 8,
+          "Column": 21,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "noImpliedEvalError",
+          "Line": 9,
+          "Column": 24,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "noImpliedEvalError",
+          "Line": 11,
+          "Column": 19,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "noImpliedEvalError",
+          "Line": 12,
+          "Column": 22,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nglobalThis.setTimeout(``, 0);\nglobalThis['setTimeout'](``, 0);\n\nglobalThis.setInterval(``, 0);\nglobalThis['setInterval'](``, 0);\n\nglobalThis.setImmediate(``);\nglobalThis['setImmediate'](``);\n\nglobalThis.execScript(``);\nglobalThis['execScript'](``);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noImpliedEvalError",
+          "Line": 2,
+          "Column": 23,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "noImpliedEvalError",
+          "Line": 3,
+          "Column": 26,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "noImpliedEvalError",
+          "Line": 5,
+          "Column": 24,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "noImpliedEvalError",
+          "Line": 6,
+          "Column": 27,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "noImpliedEvalError",
+          "Line": 8,
+          "Column": 25,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "noImpliedEvalError",
+          "Line": 9,
+          "Column": 28,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "noImpliedEvalError",
+          "Line": 11,
+          "Column": 23,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "noImpliedEvalError",
+          "Line": 12,
+          "Column": 26,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst foo: string | undefined = 'hello';\nconst bar = () => {};\n\nsetTimeout(foo || bar, 500);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noImpliedEvalError",
+          "Line": 5,
+          "Column": 12,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "const fn = Function();",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noFunctionConstructor",
+          "Line": 1,
+          "Column": 12,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "const fn = new Function('a', 'b', 'return a + b');",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noFunctionConstructor",
+          "Line": 1,
+          "Column": 12,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "const fn = window.Function();",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noFunctionConstructor",
+          "Line": 1,
+          "Column": 12,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "const fn = new window.Function();",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noFunctionConstructor",
+          "Line": 1,
+          "Column": 12,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "const fn = window['Function']();",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noFunctionConstructor",
+          "Line": 1,
+          "Column": 12,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "const fn = new window['Function']();",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noFunctionConstructor",
+          "Line": 1,
+          "Column": 12,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    }
+  ]
+}

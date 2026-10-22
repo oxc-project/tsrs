@@ -1,0 +1,40 @@
+[
+  {
+    "fixes": [
+      {
+        "text": "",
+        "range": {
+          "pos": 20,
+          "end": 28
+        }
+      },
+      {
+        "text": "",
+        "range": {
+          "pos": 18,
+          "end": 19
+        }
+      }
+    ],
+    "labeled_ranges": [
+      {
+        "label": "Type 'string[]' is first declared here.",
+        "range": {
+          "pos": 9,
+          "end": 17
+        }
+      }
+    ],
+    "kind": 0,
+    "rule": "no-duplicate-type-constituents",
+    "message": {
+      "id": "duplicate",
+      "description": "Union type constituent is duplicated with  string[]."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 20,
+      "end": 28
+    }
+  }
+]

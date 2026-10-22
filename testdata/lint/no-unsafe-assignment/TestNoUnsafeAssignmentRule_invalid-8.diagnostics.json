@@ -1,0 +1,30 @@
+[
+  {
+    "kind": 0,
+    "range": {
+      "pos": 14,
+      "end": 22
+    },
+    "message": {
+      "id": "unsafeArrayPatternFromTuple",
+      "description": "Unsafe array destructuring of a tuple element with an error typed value.",
+      "help": "The destructured value has type `error`, and this binding receives `error`. Use a safely typed source or narrow the value before destructuring it."
+    },
+    "file_path": "file.ts",
+    "rule": "no-unsafe-assignment"
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 30,
+      "end": 39
+    },
+    "message": {
+      "id": "anyAssignment",
+      "description": "Unsafe assignment of an error typed value.",
+      "help": "Assigned value has type `error`; the target has type `{ y: any; }`. Use a safely typed value or `unknown`, and narrow it before use."
+    },
+    "file_path": "file.ts",
+    "rule": "no-unsafe-assignment"
+  }
+]

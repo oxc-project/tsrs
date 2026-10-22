@@ -1,0 +1,44 @@
+{
+  "Name": "only-throw-error",
+  "TSConfig": "tsconfig.minimal.json",
+  "Valid": [],
+  "Invalid": [
+    {
+      "Code": "import type { ErrorLike } from \"typescript\"; declare const error: ErrorLike; throw error;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "object",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "allow": [
+          {
+            "from": "package",
+            "name": [
+              "ErrorLike"
+            ],
+            "package": "script"
+          }
+        ],
+        "allowRethrowing": false,
+        "allowThrowingAny": false,
+        "allowThrowingUnknown": false
+      },
+      "Tsx": false,
+      "Files": {
+        "node_modules/typescript/package.json": "{\"name\": \"typescript\", \"version\": \"1.0.0\", \"types\": \"lib/index.d.ts\"}",
+        "node_modules/typescript/lib/index.d.ts": "export interface ErrorLike { message: string }"
+      }
+    }
+  ]
+}

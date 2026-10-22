@@ -1,0 +1,15 @@
+[
+  {
+    "message": {
+      "id": "literalOverridden",
+      "description": "1n | -1n is overridden by bigint in this union type."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 9,
+      "end": 19
+    },
+    "kind": 0,
+    "rule": "no-redundant-type-constituents"
+  }
+]

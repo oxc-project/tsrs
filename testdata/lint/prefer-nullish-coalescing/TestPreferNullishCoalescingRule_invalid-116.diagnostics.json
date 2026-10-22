@@ -1,0 +1,32 @@
+[
+  {
+    "kind": 0,
+    "rule": "prefer-nullish-coalescing",
+    "message": {
+      "id": "preferNullishOverTernary",
+      "description": "Prefer using nullish coalescing operator (`??`) instead of a ternary expression, as it is simpler to read."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "end": 98,
+      "pos": 81
+    },
+    "suggestions": [
+      {
+        "message": {
+          "id": "suggestNullishCoalescing",
+          "description": "Change to the nullish coalescing operator."
+        },
+        "fixes": [
+          {
+            "text": "a ?? (b ? 1 : 2)",
+            "range": {
+              "pos": 81,
+              "end": 98
+            }
+          }
+        ]
+      }
+    ]
+  }
+]

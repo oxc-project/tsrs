@@ -1,0 +1,32 @@
+[
+  {
+    "range": {
+      "end": 33,
+      "pos": 26
+    },
+    "suggestions": [
+      {
+        "message": {
+          "id": "addUnknownTypeAnnotationSuggestion",
+          "description": "Add an explicit `: unknown` type annotation to the rejection callback variable."
+        },
+        "fixes": [
+          {
+            "text": ": unknown",
+            "range": {
+              "pos": 29,
+              "end": 29
+            }
+          }
+        ]
+      }
+    ],
+    "kind": 0,
+    "rule": "use-unknown-in-catch-callback-variable",
+    "message": {
+      "id": "useUnknown",
+      "description": "Prefer the safe `: unknown` for a `catch` callback variable."
+    },
+    "file_path": "file.ts"
+  }
+]

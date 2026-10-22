@@ -1,0 +1,44 @@
+[
+  {
+    "rule": "no-unsafe-member-access",
+    "message": {
+      "id": "unsafeThisMemberExpression",
+      "description": "Unsafe member access .methodB on an `any` value. `this` is typed as `any`.",
+      "help": "You can try to fix this by turning on the `noImplicitThis` compiler option, or adding a `this` parameter to the function."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 49,
+      "end": 56
+    },
+    "kind": 0
+  },
+  {
+    "range": {
+      "pos": 168,
+      "end": 181
+    },
+    "kind": 0,
+    "rule": "no-unsafe-member-access",
+    "message": {
+      "id": "unsafeThisMemberExpression",
+      "description": "Unsafe member access [getProperty()] on an `any` value. `this` is typed as `any`.",
+      "help": "You can try to fix this by turning on the `noImplicitThis` compiler option, or adding a `this` parameter to the function."
+    },
+    "file_path": "file.ts"
+  },
+  {
+    "kind": 0,
+    "rule": "no-unsafe-member-access",
+    "message": {
+      "id": "unsafeThisMemberExpression",
+      "description": "Unsafe member access .methodA on an `any` value. `this` is typed as `any`.",
+      "help": "You can try to fix this by turning on the `noImplicitThis` compiler option, or adding a `this` parameter to the function."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 257,
+      "end": 264
+    }
+  }
+]

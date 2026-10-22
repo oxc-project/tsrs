@@ -1,0 +1,68 @@
+[
+  {
+    "message": {
+      "id": "conditional",
+      "description": "Expected non-Promise value in a boolean conditional."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 70,
+      "end": 93
+    },
+    "labeled_ranges": [
+      {
+        "label": "This expression has type `Promise<void>`.",
+        "range": {
+          "pos": 70,
+          "end": 93
+        }
+      }
+    ],
+    "kind": 0,
+    "rule": "no-misused-promises"
+  },
+  {
+    "file_path": "file.ts",
+    "range": {
+      "pos": 100,
+      "end": 123
+    },
+    "labeled_ranges": [
+      {
+        "label": "This expression has type `Promise<void>`.",
+        "range": {
+          "pos": 100,
+          "end": 123
+        }
+      }
+    ],
+    "kind": 0,
+    "rule": "no-misused-promises",
+    "message": {
+      "id": "conditional",
+      "description": "Expected non-Promise value in a boolean conditional."
+    }
+  },
+  {
+    "message": {
+      "id": "conditional",
+      "description": "Expected non-Promise value in a boolean conditional."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "end": 150,
+      "pos": 127
+    },
+    "labeled_ranges": [
+      {
+        "label": "This expression has type `Promise<void>`.",
+        "range": {
+          "pos": 127,
+          "end": 150
+        }
+      }
+    ],
+    "kind": 0,
+    "rule": "no-misused-promises"
+  }
+]

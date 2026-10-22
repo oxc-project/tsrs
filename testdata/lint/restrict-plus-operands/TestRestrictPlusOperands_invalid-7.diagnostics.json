@@ -1,0 +1,16 @@
+[
+  {
+    "file_path": "file.ts",
+    "range": {
+      "pos": 16,
+      "end": 18
+    },
+    "kind": 0,
+    "rule": "restrict-plus-operands",
+    "message": {
+      "id": "invalid",
+      "description": "Invalid operand of type '{}' for a '+' operation.",
+      "help": "Operands must each be a number or string, allowing a string + any of: `any`, `boolean`, `null`, `RegExp`, `undefined`."
+    }
+  }
+]

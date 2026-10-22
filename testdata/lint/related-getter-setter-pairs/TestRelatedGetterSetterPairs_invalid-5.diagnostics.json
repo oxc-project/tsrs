@@ -1,0 +1,15 @@
+[
+  {
+    "rule": "related-getter-setter-pairs",
+    "message": {
+      "id": "mismatch",
+      "description": "`get()` type should be assignable to its equivalent `set()` type."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 111,
+      "end": 118
+    },
+    "kind": 0
+  }
+]

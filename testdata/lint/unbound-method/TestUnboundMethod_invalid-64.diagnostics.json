@@ -1,0 +1,24 @@
+[
+  {
+    "file_path": "file.ts",
+    "range": {
+      "pos": 68,
+      "end": 85
+    },
+    "labeled_ranges": [
+      {
+        "label": "This reference may be unbound and lose `this` context",
+        "range": {
+          "pos": 78,
+          "end": 85
+        }
+      }
+    ],
+    "kind": 0,
+    "rule": "unbound-method",
+    "message": {
+      "id": "unbound",
+      "description": "Avoid referencing unbound methods which may cause unintentional scoping of `this`."
+    }
+  }
+]

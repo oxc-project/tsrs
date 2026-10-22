@@ -1,0 +1,1122 @@
+{
+  "Name": "promise-function-async",
+  "TSConfig": "tsconfig.minimal.json",
+  "Valid": [
+    {
+      "Code": "\nconst nonAsyncNonPromiseArrowFunction = (n: number) => n;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction nonAsyncNonPromiseFunctionDeclaration(n: number) {\n  return n;\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst asyncPromiseFunctionExpressionA = async function (p: Promise<void>) {\n  return p;\n};\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst asyncPromiseFunctionExpressionB = async function () {\n  return new Promise<void>();\n};\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass Test {\n  public nonAsyncNonPromiseArrowFunction = (n: number) => n;\n  public nonAsyncNonPromiseMethod() {\n    return 0;\n  }\n\n  public async asyncPromiseMethodA(p: Promise<void>) {\n    return p;\n  }\n\n  public async asyncPromiseMethodB() {\n    return new Promise<void>();\n  }\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass InvalidAsyncModifiers {\n  public constructor() {\n    return new Promise<void>();\n  }\n  public get asyncGetter() {\n    return new Promise<void>();\n  }\n  public set asyncGetter(p: Promise<void>) {\n    return p;\n  }\n  public get asyncGetterFunc() {\n    return async () => new Promise<void>();\n  }\n  public set asyncGetterFunc(p: () => Promise<void>) {\n    return p;\n  }\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst invalidAsyncModifiers = {\n  get asyncGetter() {\n    return new Promise<void>();\n  },\n  set asyncGetter(p: Promise<void>) {\n    return p;\n  },\n  get asyncGetterFunc() {\n    return async () => new Promise<void>();\n  },\n  set asyncGetterFunc(p: () => Promise<void>) {\n    return p;\n  },\n};\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      export function valid(n: number) {\n        return n;\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      export default function invalid(n: number) {\n        return n;\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      class Foo {\n        constructor() {}\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass Foo {\n  async catch<T>(arg: Promise<T>) {\n    return arg;\n  }\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction returnsAny(): any {\n  return 0;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "allowAny": true,
+        "checkArrowFunctions": true,
+        "checkFunctionDeclarations": true,
+        "checkFunctionExpressions": true,
+        "checkMethodDeclarations": true
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction returnsUnknown(): unknown {\n  return 0;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "allowAny": true,
+        "checkArrowFunctions": true,
+        "checkFunctionDeclarations": true,
+        "checkFunctionExpressions": true,
+        "checkMethodDeclarations": true
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface ReadableStream {}\ninterface Options {\n  stream: ReadableStream;\n}\n\ntype Return = ReadableStream | Promise<void>;\nconst foo = (options: Options): Return => {\n  return options.stream ? asStream(options) : asPromise(options);\n};\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction foo(): Promise<string> | boolean {\n  return Math.random() > 0.5 ? Promise.resolve('value') : false;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nabstract class Test {\n  abstract test1(): Promise<number>;\n\n  // abstract method with body is always an error but it still parses into valid AST\n  abstract test2(): Promise<number> {\n    return Promise.resolve(1);\n  }\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction promiseInUnionWithExplicitReturnType(\n  p: boolean,\n): Promise<number> | number {\n  return p ? Promise.resolve(5) : 5;\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction explicitReturnWithPromiseInUnion(): Promise<number> | number {\n  return 5;\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nasync function asyncFunctionReturningUnion(p: boolean) {\n  return p ? Promise.resolve(5) : 5;\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction overloadingThatCanReturnPromise(): Promise<number>;\nfunction overloadingThatCanReturnPromise(a: boolean): number;\nfunction overloadingThatCanReturnPromise(\n  a?: boolean,\n): Promise<number> | number {\n  return Promise.resolve(5);\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction overloadingThatCanReturnPromise(a: boolean): number;\nfunction overloadingThatCanReturnPromise(): Promise<number>;\nfunction overloadingThatCanReturnPromise(\n  a?: boolean,\n): Promise<number> | number {\n  return Promise.resolve(5);\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction a(): Promise<void>;\nfunction a(x: boolean): void;\nfunction a(x?: boolean) {\n  if (x == null) return Promise.reject(new Error());\n  throw new Error();\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction overloadingThatIncludeUnknown(): number;\nfunction overloadingThatIncludeUnknown(a: boolean): unknown;\nfunction overloadingThatIncludeUnknown(a?: boolean): unknown | number {\n  return Promise.resolve(5);\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "allowAny": true,
+        "checkArrowFunctions": true,
+        "checkFunctionDeclarations": true,
+        "checkFunctionExpressions": true,
+        "checkMethodDeclarations": true
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction overloadingThatIncludeAny(): number;\nfunction overloadingThatIncludeAny(a: boolean): any;\nfunction overloadingThatIncludeAny(a?: boolean): any | number {\n  return Promise.resolve(5);\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "allowAny": true,
+        "checkArrowFunctions": true,
+        "checkFunctionDeclarations": true,
+        "checkFunctionExpressions": true,
+        "checkMethodDeclarations": true
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    }
+  ],
+  "Invalid": [
+    {
+      "Code": "\nfunction returnsAny(): any {\n  return 0;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "missingAsync",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "allowAny": false,
+        "checkArrowFunctions": true,
+        "checkFunctionDeclarations": true,
+        "checkFunctionExpressions": true,
+        "checkMethodDeclarations": true
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction returnsUnknown(): unknown {\n  return 0;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "missingAsync",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "allowAny": false,
+        "checkArrowFunctions": true,
+        "checkFunctionDeclarations": true,
+        "checkFunctionExpressions": true,
+        "checkMethodDeclarations": true
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst nonAsyncPromiseFunctionExpressionA = function (p: Promise<void>) {\n  return p;\n};\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nconst nonAsyncPromiseFunctionExpressionA =  async function (p: Promise<void>) {\n  return p;\n};\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "missingAsync",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst nonAsyncPromiseFunctionExpressionB = function () {\n  return new Promise<void>();\n};\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nconst nonAsyncPromiseFunctionExpressionB =  async function () {\n  return new Promise<void>();\n};\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "missingAsync",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction nonAsyncPromiseFunctionDeclarationA(p: Promise<void>) {\n  return p;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n async function nonAsyncPromiseFunctionDeclarationA(p: Promise<void>) {\n  return p;\n}\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "missingAsync",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction nonAsyncPromiseFunctionDeclarationB() {\n  return new Promise<void>();\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n async function nonAsyncPromiseFunctionDeclarationB() {\n  return new Promise<void>();\n}\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "missingAsync",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nexport function nonAsyncExportedPromiseFunction() {\n  return new Promise<void>();\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nexport async function nonAsyncExportedPromiseFunction() {\n  return new Promise<void>();\n}\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "missingAsync",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nexport default function nonAsyncDefaultExportedPromiseFunction() {\n  return new Promise<void>();\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nexport default async function nonAsyncDefaultExportedPromiseFunction() {\n  return new Promise<void>();\n}\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "missingAsync",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst nonAsyncPromiseArrowFunctionA = (p: Promise<void>) => p;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nconst nonAsyncPromiseArrowFunctionA =  async (p: Promise<void>) => p;\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "missingAsync",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst nonAsyncPromiseArrowFunctionB = () => new Promise<void>();\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nconst nonAsyncPromiseArrowFunctionB =  async () => new Promise<void>();\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "missingAsync",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst functions = {\n  nonAsyncPromiseMethod() {\n    return Promise.resolve(1);\n  },\n};\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nconst functions = {\n   async nonAsyncPromiseMethod() {\n    return Promise.resolve(1);\n  },\n};\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "missingAsync",
+          "Line": 3,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass Test {\n  public nonAsyncPromiseMethodA(p: Promise<void>) {\n    return p;\n  }\n\n  public static nonAsyncPromiseMethodB() {\n    return new Promise<void>();\n  }\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nclass Test {\n  public  async nonAsyncPromiseMethodA(p: Promise<void>) {\n    return p;\n  }\n\n  public static  async nonAsyncPromiseMethodB() {\n    return new Promise<void>();\n  }\n}\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "missingAsync",
+          "Line": 3,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "missingAsync",
+          "Line": 7,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst nonAsyncPromiseFunctionExpression = function (p: Promise<void>) {\n  return p;\n};\n\nfunction nonAsyncPromiseFunctionDeclaration(p: Promise<void>) {\n  return p;\n}\n\nconst nonAsyncPromiseArrowFunction = (p: Promise<void>) => p;\n\nclass Test {\n  public nonAsyncPromiseMethod(p: Promise<void>) {\n    return p;\n  }\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nconst nonAsyncPromiseFunctionExpression =  async function (p: Promise<void>) {\n  return p;\n};\n\n async function nonAsyncPromiseFunctionDeclaration(p: Promise<void>) {\n  return p;\n}\n\nconst nonAsyncPromiseArrowFunction = (p: Promise<void>) => p;\n\nclass Test {\n  public  async nonAsyncPromiseMethod(p: Promise<void>) {\n    return p;\n  }\n}\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "missingAsync",
+          "Line": 2,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "missingAsync",
+          "Line": 6,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "missingAsync",
+          "Line": 13,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "allowAny": true,
+        "checkArrowFunctions": false,
+        "checkFunctionDeclarations": true,
+        "checkFunctionExpressions": true,
+        "checkMethodDeclarations": true
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst nonAsyncPromiseFunctionExpression = function (p: Promise<void>) {\n  return p;\n};\n\nfunction nonAsyncPromiseFunctionDeclaration(p: Promise<void>) {\n  return p;\n}\n\nconst nonAsyncPromiseArrowFunction = (p: Promise<void>) => p;\n\nclass Test {\n  public nonAsyncPromiseMethod(p: Promise<void>) {\n    return p;\n  }\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nconst nonAsyncPromiseFunctionExpression =  async function (p: Promise<void>) {\n  return p;\n};\n\nfunction nonAsyncPromiseFunctionDeclaration(p: Promise<void>) {\n  return p;\n}\n\nconst nonAsyncPromiseArrowFunction =  async (p: Promise<void>) => p;\n\nclass Test {\n  public  async nonAsyncPromiseMethod(p: Promise<void>) {\n    return p;\n  }\n}\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "missingAsync",
+          "Line": 2,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "missingAsync",
+          "Line": 10,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "missingAsync",
+          "Line": 13,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "allowAny": true,
+        "checkArrowFunctions": true,
+        "checkFunctionDeclarations": false,
+        "checkFunctionExpressions": true,
+        "checkMethodDeclarations": true
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst nonAsyncPromiseFunctionExpression = function (p: Promise<void>) {\n  return p;\n};\n\nfunction nonAsyncPromiseFunctionDeclaration(p: Promise<void>) {\n  return p;\n}\n\nconst nonAsyncPromiseArrowFunction = (p: Promise<void>) => p;\n\nclass Test {\n  public nonAsyncPromiseMethod(p: Promise<void>) {\n    return p;\n  }\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nconst nonAsyncPromiseFunctionExpression = function (p: Promise<void>) {\n  return p;\n};\n\n async function nonAsyncPromiseFunctionDeclaration(p: Promise<void>) {\n  return p;\n}\n\nconst nonAsyncPromiseArrowFunction =  async (p: Promise<void>) => p;\n\nclass Test {\n  public  async nonAsyncPromiseMethod(p: Promise<void>) {\n    return p;\n  }\n}\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "missingAsync",
+          "Line": 6,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "missingAsync",
+          "Line": 10,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "missingAsync",
+          "Line": 13,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "allowAny": true,
+        "checkArrowFunctions": true,
+        "checkFunctionDeclarations": true,
+        "checkFunctionExpressions": false,
+        "checkMethodDeclarations": true
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst nonAsyncPromiseFunctionExpression = function (p: Promise<void>) {\n  return p;\n};\n\nfunction nonAsyncPromiseFunctionDeclaration(p: Promise<void>) {\n  return p;\n}\n\nconst nonAsyncPromiseArrowFunction = (p: Promise<void>) => p;\n\nclass Test {\n  public nonAsyncPromiseMethod(p: Promise<void>) {\n    return p;\n  }\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nconst nonAsyncPromiseFunctionExpression =  async function (p: Promise<void>) {\n  return p;\n};\n\n async function nonAsyncPromiseFunctionDeclaration(p: Promise<void>) {\n  return p;\n}\n\nconst nonAsyncPromiseArrowFunction =  async (p: Promise<void>) => p;\n\nclass Test {\n  public nonAsyncPromiseMethod(p: Promise<void>) {\n    return p;\n  }\n}\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "missingAsync",
+          "Line": 2,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "missingAsync",
+          "Line": 6,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "missingAsync",
+          "Line": 10,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "allowAny": true,
+        "checkArrowFunctions": true,
+        "checkFunctionDeclarations": true,
+        "checkFunctionExpressions": true,
+        "checkMethodDeclarations": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass PromiseType {}\n\nconst returnAllowedType = () => new PromiseType();\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nclass PromiseType {}\n\nconst returnAllowedType =  async () => new PromiseType();\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "missingAsync",
+          "Line": 4,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "allowAny": true,
+        "allowedPromiseNames": [
+          "PromiseType"
+        ],
+        "checkArrowFunctions": true,
+        "checkFunctionDeclarations": true,
+        "checkFunctionExpressions": true,
+        "checkMethodDeclarations": true
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface SPromise<T> extends Promise<T> {}\nfunction foo(): Promise<string> | SPromise<boolean> {\n  return Math.random() > 0.5\n    ? Promise.resolve('value')\n    : Promise.resolve(false);\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\ninterface SPromise<T> extends Promise<T> {}\n async function foo(): Promise<string> | SPromise<boolean> {\n  return Math.random() > 0.5\n    ? Promise.resolve('value')\n    : Promise.resolve(false);\n}\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "missingAsync",
+          "Line": 3,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "allowAny": true,
+        "allowedPromiseNames": [
+          "SPromise"
+        ],
+        "checkArrowFunctions": true,
+        "checkFunctionDeclarations": true,
+        "checkFunctionExpressions": true,
+        "checkMethodDeclarations": true
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass Test {\n  @decorator\n  public test() {\n    return Promise.resolve(123);\n  }\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nclass Test {\n  @decorator\n  public  async test() {\n    return Promise.resolve(123);\n  }\n}\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "missingAsync",
+          "Line": 3,
+          "Column": 3,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass Test {\n  @decorator(async () => {})\n  static protected[(1)]() {\n    return Promise.resolve(1);\n  }\n  public'bar'() {\n    return Promise.resolve(2);\n  }\n  private['baz']() {\n    return Promise.resolve(3);\n  }\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nclass Test {\n  @decorator(async () => {})\n  static protected async [(1)]() {\n    return Promise.resolve(1);\n  }\n  public async 'bar'() {\n    return Promise.resolve(2);\n  }\n  private async ['baz']() {\n    return Promise.resolve(3);\n  }\n}\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "missingAsync",
+          "Line": 3,
+          "Column": 3,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "missingAsync",
+          "Line": 7,
+          "Column": 3,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "missingAsync",
+          "Line": 10,
+          "Column": 3,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass Foo {\n  catch() {\n    return Promise.resolve(1);\n  }\n\n  public default() {\n    return Promise.resolve(2);\n  }\n\n  @decorator\n  private case<T>() {\n    return Promise.resolve(3);\n  }\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nclass Foo {\n   async catch() {\n    return Promise.resolve(1);\n  }\n\n  public  async default() {\n    return Promise.resolve(2);\n  }\n\n  @decorator\n  private  async case<T>() {\n    return Promise.resolve(3);\n  }\n}\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "missingAsync",
+          "Line": 3,
+          "Column": 3,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "missingAsync",
+          "Line": 7,
+          "Column": 3,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "missingAsync",
+          "Line": 11,
+          "Column": 3,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst foo = {\n  catch() {\n    return Promise.resolve(1);\n  },\n};\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nconst foo = {\n   async catch() {\n    return Promise.resolve(1);\n  },\n};\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "missingAsync",
+          "Line": 3,
+          "Column": 3,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction promiseInUnionWithoutExplicitReturnType(p: boolean) {\n  return p ? Promise.resolve(5) : 5;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "missingAsyncHybridReturn",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "missingAsyncHybridReturnSuggestion",
+              "Output": "\n async function promiseInUnionWithoutExplicitReturnType(p: boolean) {\n  return p ? Promise.resolve(5) : 5;\n}\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nexport function exportedPromiseInUnionWithoutExplicitReturnType(p: boolean) {\n  return p ? Promise.resolve(5) : 5;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "missingAsyncHybridReturn",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "missingAsyncHybridReturnSuggestion",
+              "Output": "\nexport async function exportedPromiseInUnionWithoutExplicitReturnType(p: boolean) {\n  return p ? Promise.resolve(5) : 5;\n}\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction test1(): 'one' | Promise<'one'>;\nfunction test1(a: number): Promise<number>;\nfunction test1(a?: number) {\n  if (a) {\n    return Promise.resolve(a);\n  }\n\n  return Math.random() > 0.5 ? 'one' : Promise.resolve('one');\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "missingAsyncHybridReturn",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "missingAsyncHybridReturnSuggestion",
+              "Output": "\nfunction test1(): 'one' | Promise<'one'>;\nfunction test1(a: number): Promise<number>;\n async function test1(a?: number) {\n  if (a) {\n    return Promise.resolve(a);\n  }\n\n  return Math.random() > 0.5 ? 'one' : Promise.resolve('one');\n}\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass PromiseType {\n  s?: string;\n}\n\nfunction promiseInUnionWithoutExplicitReturnType(p: boolean) {\n  return p ? new PromiseType() : 5;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "missingAsyncHybridReturn",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "missingAsyncHybridReturnSuggestion",
+              "Output": "\nclass PromiseType {\n  s?: string;\n}\n\n async function promiseInUnionWithoutExplicitReturnType(p: boolean) {\n  return p ? new PromiseType() : 5;\n}\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "allowAny": true,
+        "allowedPromiseNames": [
+          "PromiseType"
+        ],
+        "checkArrowFunctions": true,
+        "checkFunctionDeclarations": true,
+        "checkFunctionExpressions": true,
+        "checkMethodDeclarations": true
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction overloadingThatCanReturnPromise(): Promise<number>;\nfunction overloadingThatCanReturnPromise(a: boolean): Promise<string>;\nfunction overloadingThatCanReturnPromise(\n  a?: boolean,\n): Promise<number | string> {\n  return Promise.resolve(5);\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nfunction overloadingThatCanReturnPromise(): Promise<number>;\nfunction overloadingThatCanReturnPromise(a: boolean): Promise<string>;\n async function overloadingThatCanReturnPromise(\n  a?: boolean,\n): Promise<number | string> {\n  return Promise.resolve(5);\n}\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "missingAsync",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction overloadingThatIncludeAny(): number;\nfunction overloadingThatIncludeAny(a: boolean): any;\nfunction overloadingThatIncludeAny(a?: boolean): any | number {\n  return Promise.resolve(5);\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "missingAsync",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "allowAny": false,
+        "checkArrowFunctions": true,
+        "checkFunctionDeclarations": true,
+        "checkFunctionExpressions": true,
+        "checkMethodDeclarations": true
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction overloadingThatIncludeUnknown(): number;\nfunction overloadingThatIncludeUnknown(a: boolean): unknown;\nfunction overloadingThatIncludeUnknown(a?: boolean): unknown | number {\n  return Promise.resolve(5);\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "missingAsync",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "allowAny": false,
+        "checkArrowFunctions": true,
+        "checkFunctionDeclarations": true,
+        "checkFunctionExpressions": true,
+        "checkMethodDeclarations": true
+      },
+      "Tsx": false,
+      "Files": {}
+    }
+  ]
+}

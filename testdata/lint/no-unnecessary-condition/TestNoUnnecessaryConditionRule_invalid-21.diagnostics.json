@@ -1,0 +1,16 @@
+[
+  {
+    "kind": 0,
+    "range": {
+      "pos": 1,
+      "end": 10
+    },
+    "message": {
+      "id": "comparisonBetweenLiteralTypes",
+      "description": "Unnecessary comparison between literal values.",
+      "help": "The left side has type `2.3`, and the right side has type `2.3`."
+    },
+    "file_path": "file.ts",
+    "rule": "no-unnecessary-condition"
+  }
+]

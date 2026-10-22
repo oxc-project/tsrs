@@ -1,0 +1,31 @@
+[
+  {
+    "message": {
+      "id": "voidReturnArgument",
+      "description": "Promise returned in function argument where a void return was expected."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 111,
+      "end": 114
+    },
+    "labeled_ranges": [
+      {
+        "label": "This expression has type `(() => Promise<void>) | undefined`.",
+        "range": {
+          "end": 114,
+          "pos": 111
+        }
+      },
+      {
+        "label": "This context accepts a `void`-returning callback through type `(() => void) | undefined`.",
+        "range": {
+          "end": 50,
+          "pos": 26
+        }
+      }
+    ],
+    "kind": 0,
+    "rule": "no-misused-promises"
+  }
+]

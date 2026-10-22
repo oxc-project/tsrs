@@ -1,0 +1,16 @@
+[
+  {
+    "kind": 0,
+    "range": {
+      "pos": 11,
+      "end": 50
+    },
+    "message": {
+      "id": "unsafeTypeAssertion",
+      "description": "Unsafe type assertion: type '{ bar: number; bas: string; }' is more narrow than the original type.",
+      "help": "The original expression has type `{}`, and the assertion changes it to `{ bar: number; bas: string; }`. Use a type guard to narrow the value before asserting a more specific type."
+    },
+    "file_path": "file.ts",
+    "rule": "no-unsafe-type-assertion"
+  }
+]

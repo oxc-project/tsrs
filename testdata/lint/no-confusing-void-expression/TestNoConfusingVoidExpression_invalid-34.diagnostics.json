@@ -1,0 +1,24 @@
+[
+  {
+    "message": {
+      "id": "invalidVoidExprArrowWrapVoid",
+      "description": "Void expressions returned from an arrow function shorthand must be marked explicitly with the `void` operator."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "end": 30,
+      "pos": 14
+    },
+    "fixes": [
+      {
+        "text": "void ",
+        "range": {
+          "pos": 14,
+          "end": 14
+        }
+      }
+    ],
+    "kind": 0,
+    "rule": "no-confusing-void-expression"
+  }
+]

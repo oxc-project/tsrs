@@ -1,0 +1,40 @@
+[
+  {
+    "message": {
+      "id": "duplicate",
+      "description": "Union type constituent is duplicated with  null."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 16,
+      "end": 20
+    },
+    "fixes": [
+      {
+        "text": "",
+        "range": {
+          "pos": 16,
+          "end": 20
+        }
+      },
+      {
+        "text": "",
+        "range": {
+          "pos": 14,
+          "end": 15
+        }
+      }
+    ],
+    "labeled_ranges": [
+      {
+        "label": "Type 'null' is first declared here.",
+        "range": {
+          "pos": 9,
+          "end": 13
+        }
+      }
+    ],
+    "kind": 0,
+    "rule": "no-duplicate-type-constituents"
+  }
+]

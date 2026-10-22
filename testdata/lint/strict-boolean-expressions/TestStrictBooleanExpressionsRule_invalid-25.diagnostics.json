@@ -1,0 +1,15 @@
+[
+  {
+    "range": {
+      "pos": 20,
+      "end": 21
+    },
+    "kind": 0,
+    "rule": "strict-boolean-expressions",
+    "message": {
+      "id": "conditionErrorObject",
+      "description": "Unexpected object value in conditional. An object is always truthy."
+    },
+    "file_path": "file.ts"
+  }
+]

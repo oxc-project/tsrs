@@ -1,0 +1,24 @@
+[
+  {
+    "kind": 0,
+    "rule": "prefer-regexp-exec",
+    "message": {
+      "id": "regExpExecOverStringMatch",
+      "description": "Use the `RegExp#exec()` method instead."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "end": 37,
+      "pos": 32
+    },
+    "fixes": [
+      {
+        "text": "/a/.exec(s)",
+        "range": {
+          "pos": 30,
+          "end": 42
+        }
+      }
+    ]
+  }
+]

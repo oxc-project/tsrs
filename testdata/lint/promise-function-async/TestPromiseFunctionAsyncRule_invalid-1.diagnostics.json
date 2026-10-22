@@ -1,0 +1,15 @@
+[
+  {
+    "rule": "promise-function-async",
+    "message": {
+      "id": "missingAsync",
+      "description": "Functions that return promises must be async."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 1,
+      "end": 51
+    },
+    "kind": 0
+  }
+]

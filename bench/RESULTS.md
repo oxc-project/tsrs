@@ -288,3 +288,71 @@ tsrs is about 1.9x faster at every thread count; tsrs uses 7-25% more memory. `b
 
 [Benchmark methodology](README.md) explains how everything is measured and how to rerun it. The published numbers
 use the PGO-optimized release build, which is 7-14% faster than a plain `cargo build --release`.
+
+## Type-aware linting on VS Code (local, 2026-10-15)
+
+Two local release-build publishes on the same Apple M2 Max (12 logical CPUs, 96 GiB), macOS 27.0.1.
+All 60 rules on the same 9,324-path public VS Code corpus. Each cell is the median of three alternating runs;
+publish 1 includes warm-ups. These are separate from the CI type-check-only scoreboard above.
+Before: `8dbe8842` release helper; after: the reviewed worker change. No PGO/BOLT.
+
+| Publish | Workload | Rust before | Rust after | Go | Improvement |
+| --- | --- | ---: | ---: | ---: | ---: |
+| [1](results/2026-10-15-tsgolint-vscode-workers-1.json) | lint | 22.398 s | 9.214 s | 14.060 s | 58.9% |
+| [1](results/2026-10-15-tsgolint-vscode-workers-1.json) | lint-typecheck | 33.053 s | 13.045 s | 20.907 s | 60.5% |
+| [2](results/2026-10-15-tsgolint-vscode-workers-2.json) | lint | 15.246 s | 6.785 s | 11.005 s | 55.5% |
+| [2](results/2026-10-15-tsgolint-vscode-workers-2.json) | lint-typecheck | 22.043 s | 9.589 s | 16.014 s | 56.5% |
+
+`lint` includes on-demand types for rules; `lint-typecheck` also collects full compiler diagnostics.
+Workers increase Rust peak RSS. [Instructions, RSS, single-worker controls, diagnostic checks and reproduction](../notes/perf-tsgolint-workers.md).
+
+### Rust lint worker scaling: 4 / 8 / 12
+
+Same VS Code payload and machine, one release binary, five interleaved runs per count/variant after warm-ups.
+
+| Workers | Full checking off | Peak RSS | Full checking on | Peak RSS |
+| ---: | ---: | ---: | ---: | ---: |
+| 4 | 9.141 s | 2.419 GiB | 12.972 s | 3.329 GiB |
+| 8 | 6.508 s | 2.637 GiB | 8.598 s | 3.644 GiB |
+| 12 | 6.093 s | 2.737 GiB | 7.830 s | 3.847 GiB |
+
+[Instructions, ranges, diagnostic parity, configuration and reproduction](../notes/perf-tsgolint-worker-scaling.md).
+
+### Rust lint available-thread default (second publish)
+
+Same VS Code payload and M2 Max as the first publish above; five interleaved release runs, thread overrides unset.
+
+| Default | Full checking off | Peak RSS | Full checking on | Peak RSS |
+| --- | ---: | ---: | ---: | ---: |
+| four | 9.463 s | 2.425 GiB | 13.208 s | 3.326 GiB |
+| available | 6.151 s | 2.749 GiB | 7.928 s | 3.849 GiB |
+
+[Instructions, diagnostic parity and reproduction](../notes/perf-tsgolint-worker-scaling.md#available-thread-default-follow-up).
+
+### Rebased Rust versus Go: full Oxlint on VS Code
+
+Release frontend and helpers, all 60 rules, available-thread Rust default, alternating fresh processes.
+Medians of 5 measured runs after warm-ups, on the same M2 Max.
+
+| Workload | Rust helper | Go helper | Go / Rust |
+| --- | ---: | ---: | ---: |
+| lint | 12.355 s | 20.214 s | 1.64× |
+| lint-typecheck | 14.424 s | 27.242 s | 1.89× |
+
+[Helper timings/RSS, instruction counts, ranges, diagnostics and reproduction](../notes/bench-tsgolint-vscode-rebased.md).
+
+### Rust lint parallel program construction
+
+Direct helper lifecycle; no Oxlint frontend. Release builds, default threads, three measured runs per cell,
+one warm-up, two consecutive local publishes on the same M2 Max.
+
+| Publish | Workload | Rust before | Rust after | Go | Rust reduction | Go / Rust after |
+| --- | --- | ---: | ---: | ---: | ---: | ---: |
+| 1 | lint | 4.237 s | 2.869 s | 10.795 s | 32.3% | 3.76× |
+| 1 | lint-typecheck | 5.542 s | 4.212 s | 15.810 s | 24.0% | 3.75× |
+| 1 | setup | 1.741 s | 0.378 s | 1.057 s | 78.3% | 2.80× |
+| 2 | lint | 4.325 s | 2.921 s | 10.674 s | 32.5% | 3.65× |
+| 2 | lint-typecheck | 5.531 s | 4.216 s | 15.515 s | 23.8% | 3.68× |
+| 2 | setup | 1.836 s | 0.376 s | 1.049 s | 79.5% | 2.79× |
+
+[Instructions, peak RSS, controls, diagnostic parity and reproduction](../notes/perf-tsgolint-parallel-load.md).

@@ -1,0 +1,258 @@
+{
+  "Name": "no-unsafe-type-assertion",
+  "TSConfig": "tsconfig.minimal.json",
+  "Valid": [
+    {
+      "Code": "\ndeclare const a: [string];\na as [string | number];\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const a: [string, number];\na as [string, string | number];\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const a: [string];\na as [unknown];\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const a: [{ hello: 'world'; foo: 'bar' }];\na as [{ hello: 'world' }];\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    }
+  ],
+  "Invalid": [
+    {
+      "Code": "\ndeclare const a: [string | number];\na as [string];\n        ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unsafeTypeAssertion",
+          "Line": 3,
+          "Column": 1,
+          "EndLine": 3,
+          "EndColumn": 14,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const a: [string, number];\na as [string, string];\n        ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unsafeTypeAssertion",
+          "Line": 3,
+          "Column": 1,
+          "EndLine": 3,
+          "EndColumn": 22,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const a: [string];\na as [string, number];\n        ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unsafeTypeAssertion",
+          "Line": 3,
+          "Column": 1,
+          "EndLine": 3,
+          "EndColumn": 22,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const a: [string, number];\na as [string];\n        ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unsafeTypeAssertion",
+          "Line": 3,
+          "Column": 1,
+          "EndLine": 3,
+          "EndColumn": 14,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const a: [any];\na as [number];\n        ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unsafeOfAnyTypeAssertion",
+          "Line": 3,
+          "Column": 1,
+          "EndLine": 3,
+          "EndColumn": 14,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const a: [number, any];\na as [number, number];\n        ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unsafeOfAnyTypeAssertion",
+          "Line": 3,
+          "Column": 1,
+          "EndLine": 3,
+          "EndColumn": 22,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const a: [number];\na as [any];\n        ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unsafeToAnyTypeAssertion",
+          "Line": 3,
+          "Column": 1,
+          "EndLine": 3,
+          "EndColumn": 11,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const a: [unknown];\na as [number];\n        ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unsafeTypeAssertion",
+          "Line": 3,
+          "Column": 1,
+          "EndLine": 3,
+          "EndColumn": 14,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const a: [number];\na as [never];\n        ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unsafeTypeAssertion",
+          "Line": 3,
+          "Column": 1,
+          "EndLine": 3,
+          "EndColumn": 13,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const a: [Promise<string | number>];\na as [Promise<string>];\n        ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unsafeTypeAssertion",
+          "Line": 3,
+          "Column": 1,
+          "EndLine": 3,
+          "EndColumn": 23,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    }
+  ]
+}

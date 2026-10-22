@@ -1,0 +1,78 @@
+[
+  {
+    "kind": 0,
+    "rule": "no-duplicate-type-constituents",
+    "message": {
+      "id": "duplicate",
+      "description": "Union type constituent is duplicated with number."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 29,
+      "end": 35
+    },
+    "fixes": [
+      {
+        "text": "",
+        "range": {
+          "pos": 29,
+          "end": 35
+        }
+      },
+      {
+        "text": "",
+        "range": {
+          "pos": 27,
+          "end": 28
+        }
+      }
+    ],
+    "labeled_ranges": [
+      {
+        "label": "Type 'number' is first declared here.",
+        "range": {
+          "pos": 10,
+          "end": 16
+        }
+      }
+    ]
+  },
+  {
+    "kind": 0,
+    "rule": "no-duplicate-type-constituents",
+    "message": {
+      "id": "duplicate",
+      "description": "Union type constituent is duplicated with  string."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "end": 44,
+      "pos": 38
+    },
+    "fixes": [
+      {
+        "text": "",
+        "range": {
+          "pos": 38,
+          "end": 44
+        }
+      },
+      {
+        "text": "",
+        "range": {
+          "pos": 36,
+          "end": 37
+        }
+      }
+    ],
+    "labeled_ranges": [
+      {
+        "range": {
+          "pos": 19,
+          "end": 25
+        },
+        "label": "Type 'string' is first declared here."
+      }
+    ]
+  }
+]

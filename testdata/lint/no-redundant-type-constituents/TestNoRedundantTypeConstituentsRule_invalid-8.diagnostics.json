@@ -1,0 +1,15 @@
+[
+  {
+    "rule": "no-redundant-type-constituents",
+    "message": {
+      "id": "overrides",
+      "description": "'unknown' overrides all other types in this union type."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "end": 25,
+      "pos": 18
+    },
+    "kind": 0
+  }
+]

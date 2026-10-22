@@ -1,0 +1,16 @@
+[
+  {
+    "rule": "no-base-to-string",
+    "message": {
+      "id": "baseToString",
+      "description": "'tuple' may use Object's default stringification format ('[object Object]') when stringified.",
+      "help": "Consider picking a property (e.g. `user.name`), using a formatter (or `JSON.stringify`), or implementing a custom `toString()`/`toLocaleString()` on the type."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 129,
+      "end": 134
+    },
+    "kind": 0
+  }
+]

@@ -1,0 +1,56 @@
+[
+  {
+    "file_path": "file.ts",
+    "range": {
+      "pos": 0,
+      "end": 1
+    },
+    "suggestions": [
+      {
+        "message": {
+          "id": "suggestRemove",
+          "description": "Remove the type conversion."
+        },
+        "fixes": [
+          {
+            "text": "123",
+            "range": {
+              "pos": 0,
+              "end": 4
+            }
+          }
+        ]
+      },
+      {
+        "message": {
+          "id": "suggestSatisfies",
+          "description": "Instead, assert that the value satisfies the primitive type."
+        },
+        "fixes": [
+          {
+            "text": "123 satisfies number",
+            "range": {
+              "pos": 0,
+              "end": 4
+            }
+          }
+        ]
+      }
+    ],
+    "labeled_ranges": [
+      {
+        "label": "This expression already has type '123'.",
+        "range": {
+          "pos": 1,
+          "end": 4
+        }
+      }
+    ],
+    "kind": 0,
+    "rule": "no-unnecessary-type-conversion",
+    "message": {
+      "id": "unnecessaryTypeConversion",
+      "description": "This type conversion does not change the type or value of the expression."
+    }
+  }
+]

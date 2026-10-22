@@ -1,0 +1,1650 @@
+{
+  "Name": "no-duplicate-type-constituents",
+  "TSConfig": "tsconfig.minimal.json",
+  "Valid": [
+    {
+      "Code": "type T = 1 | 2;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "type T = 1 | '1';",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "type T = true & boolean;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "type T = null | undefined;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "type T = any | unknown;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "type T = { a: string } | { b: string };",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "type T = { a: string; b: number } | { b: number; a: string };",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "type T = { a: string | number };",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "type T = Set<string> | Set<number>;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "type T = Class<string> | Class<number>;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "type T = string[] | number[];",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "type T = string[][] | string[];",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "type T = [1, 2, 3] | [1, 2, 4];",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "type T = [1, 2, 3] | [1, 2, 3, 4];",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "type T = 'A' | string[];",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "type T = (() => string) | (() => void);",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "type T = () => string | void;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "type T = () => null | undefined;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "type T = (arg: string | number) => void;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "type T = A | A;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype A = 'A';\ntype B = 'B';\ntype T = A | B;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype A = 'A';\ntype B = 'B';\nconst a: A | B = 'A';\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype A = 'A';\ntype B = 'B';\ntype T = A | /* comment */ B;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype A = 'A';\ntype B = 'B';\ntype T = 'A' | 'B';\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype A = 'A';\ntype B = 'B';\ntype C = 'C';\ntype T = A | B | C;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "type T = readonly string[] | string[];",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype A = 'A';\ntype B = 'B';\ntype C = 'C';\ntype D = 'D';\ntype T = (A | B) | (C | D);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype A = 'A';\ntype B = 'B';\ntype T = (A | B) | (A & B);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype A = 'A';\ntype B = 'B';\ntype T = Record<string, A | B>;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "type T = A | A;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "ignoreIntersections": false,
+        "ignoreUnions": true
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "type T = A & A;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "ignoreIntersections": true,
+        "ignoreUnions": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "type T = Class<string> | Class<string>;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "type T = A | A | string;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "(a: string | undefined) => {};",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "export class A { constructor(readonly name?: string | undefined) {} }",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "class A { constructor(public name?: string | undefined) {} }",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "class A { constructor(protected name?: string | undefined) {} }",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "class A { constructor(private name?: string | undefined) {} }",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype U = undefined;\nclass A { constructor(private readonly name?: string | U) {} }\n",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    }
+  ],
+  "Invalid": [
+    {
+      "Code": "type T = 1 | 1;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "type T = 1  ;"
+      ],
+      "Errors": [
+        {
+          "MessageId": "duplicate",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "type T = true & true;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "type T = true  ;"
+      ],
+      "Errors": [
+        {
+          "MessageId": "duplicate",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "type T = null | null;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "type T = null  ;"
+      ],
+      "Errors": [
+        {
+          "MessageId": "duplicate",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "type T = any | any;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "type T = any  ;"
+      ],
+      "Errors": [
+        {
+          "MessageId": "duplicate",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "type T = { a: string | string };",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "type T = { a: string   };"
+      ],
+      "Errors": [
+        {
+          "MessageId": "duplicate",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "type T = { a: string } | { a: string };",
+      "Only": false,
+      "Skip": true,
+      "FileName": "",
+      "Output": [
+        "type T = { a: string }  ;"
+      ],
+      "Errors": [
+        {
+          "MessageId": "duplicate",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "type T = { a: string; b: number } | { a: string; b: number };",
+      "Only": false,
+      "Skip": true,
+      "FileName": "",
+      "Output": [
+        "type T = { a: string; b: number }  ;"
+      ],
+      "Errors": [
+        {
+          "MessageId": "duplicate",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "type T = Set<string> | Set<string>;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "type T = Set<string>  ;"
+      ],
+      "Errors": [
+        {
+          "MessageId": "duplicate",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype IsArray<T> = T extends any[] ? true : false;\ntype ActuallyDuplicated = IsArray<number> | IsArray<string>;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\ntype IsArray<T> = T extends any[] ? true : false;\ntype ActuallyDuplicated = IsArray<number>  ;\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "duplicate",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "type T = string[] | string[];",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "type T = string[]  ;"
+      ],
+      "Errors": [
+        {
+          "MessageId": "duplicate",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "type T = string[][] | string[][];",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "type T = string[][]  ;"
+      ],
+      "Errors": [
+        {
+          "MessageId": "duplicate",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "type T = [1, 2, 3] | [1, 2, 3];",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "type T = [1, 2, 3]  ;"
+      ],
+      "Errors": [
+        {
+          "MessageId": "duplicate",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "type T = () => string | string;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "type T = () => string  ;"
+      ],
+      "Errors": [
+        {
+          "MessageId": "duplicate",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "type T = () => null | null;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "type T = () => null  ;"
+      ],
+      "Errors": [
+        {
+          "MessageId": "duplicate",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "type T = (arg: string | string) => void;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "type T = (arg: string  ) => void;"
+      ],
+      "Errors": [
+        {
+          "MessageId": "duplicate",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "type T = 'A' | 'A';",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "type T = 'A'  ;"
+      ],
+      "Errors": [
+        {
+          "MessageId": "duplicate",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype A = 'A';\ntype T = A | A;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\ntype A = 'A';\ntype T = A  ;\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "duplicate",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype A = 'A';\nconst a: A | A = 'A';\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\ntype A = 'A';\nconst a: A   = 'A';\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "duplicate",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype A = 'A';\ntype T = A | /* comment */ A;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\ntype A = 'A';\ntype T = A  /* comment */ ;\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "duplicate",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype A1 = 'A';\ntype A2 = 'A';\ntype A3 = 'A';\ntype T = A1 | A2 | A3;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\ntype A1 = 'A';\ntype A2 = 'A';\ntype A3 = 'A';\ntype T = A1    ;\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "duplicate",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "duplicate",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype A = 'A';\ntype B = 'B';\ntype T = A | B | A;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\ntype A = 'A';\ntype B = 'B';\ntype T = A | B  ;\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "duplicate",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype A = 'A';\ntype B = 'B';\ntype T = A | B | A | B;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\ntype A = 'A';\ntype B = 'B';\ntype T = A | B    ;\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "duplicate",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "duplicate",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype A = 'A';\ntype B = 'B';\ntype T = A | B | A | A;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\ntype A = 'A';\ntype B = 'B';\ntype T = A | B    ;\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "duplicate",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "duplicate",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype A = 'A';\ntype B = 'B';\ntype C = 'C';\ntype T = A | B | A | C;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\ntype A = 'A';\ntype B = 'B';\ntype C = 'C';\ntype T = A | B   | C;\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "duplicate",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype A = 'A';\ntype B = 'B';\ntype T = (A | B) | (A | B);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\ntype A = 'A';\ntype B = 'B';\ntype T = (A | B)  ;\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "duplicate",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype A = 'A';\ntype T = A | (A | A);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\ntype A = 'A';\ntype T = A  ;\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "duplicate",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype A = 'A';\ntype B = 'B';\ntype C = 'C';\ntype D = 'D';\ntype F = (A | B) | (A | B) | ((C | D) & (A | B)) | (A | B);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\ntype A = 'A';\ntype B = 'B';\ntype C = 'C';\ntype D = 'D';\ntype F = (A | B)   | ((C | D) & (A | B))  ;\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "duplicate",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "duplicate",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype A = 'A';\ntype B = 'B';\ntype C = (A | B) | A | B | (A | B);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\ntype A = 'A';\ntype B = 'B';\ntype C = (A | B)      ;\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "duplicate",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "duplicate",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "duplicate",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "type A = (number | string) | number | string;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "type A = (number | string)    ;"
+      ],
+      "Errors": [
+        {
+          "MessageId": "duplicate",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "duplicate",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "type A = (number | (string | null)) | (string | (null | number));",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "type A = (number | (string | null))  ;"
+      ],
+      "Errors": [
+        {
+          "MessageId": "duplicate",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "type A = (number & string) & number & string;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "type A = (number & string)    ;"
+      ],
+      "Errors": [
+        {
+          "MessageId": "duplicate",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "duplicate",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "type A = number & string & (number & string);",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "type A = number & string & (  string);",
+        "type A = number & string  ;"
+      ],
+      "Errors": [
+        {
+          "MessageId": "duplicate",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "duplicate",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype A = 'A';\ntype T = Record<string, A | A>;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\ntype A = 'A';\ntype T = Record<string, A  >;\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "duplicate",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "type T = A | A | string | string;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "type T = A | A | string  ;"
+      ],
+      "Errors": [
+        {
+          "MessageId": "duplicate",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "(a?: string | undefined) => {};",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "(a?: string  ) => {};"
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessary",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        type T = undefined;\n        (arg?: T | string) => {};\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        type T = undefined;\n        (arg?:   string) => {};\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessary",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        interface F {\n          (a?: string | undefined): void;\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        interface F {\n          (a?: string  ): void;\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessary",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "type fn = new (a?: string | undefined) => void;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "type fn = new (a?: string  ) => void;"
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessary",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "function f(a?: string | undefined) {}",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "function f(a?: string  ) {}"
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessary",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "f = function (a?: string | undefined) {};",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "f = function (a?: string  ) {};"
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessary",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "declare function f(a?: string | undefined): void;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "declare function f(a?: string  ): void;"
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessary",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        declare class bb {\n          f(a?: string | undefined): void;\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        declare class bb {\n          f(a?: string  ): void;\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessary",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        interface ee {\n          f(a?: string | undefined): void;\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        interface ee {\n          f(a?: string  ): void;\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessary",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        interface ee {\n          new (a?: string | undefined): void;\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        interface ee {\n          new (a?: string  ): void;\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessary",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "type fn = (a?: string | undefined) => void;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "type fn = (a?: string  ) => void;"
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessary",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "type fn = (a?: string | (undefined | number)) => void;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "type fn = (a?: string | (  number)) => void;"
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessary",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "type fn = (a?: (undefined | number) | string) => void;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "type fn = (a?: (  number) | string) => void;"
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessary",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        abstract class cc {\n          abstract f(a?: string | undefined): void;\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        abstract class cc {\n          abstract f(a?: string  ): void;\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessary",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "class A { constructor(name?: string | undefined) {} }",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "class A { constructor(name?: string  ) {} }"
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessary",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "class A { constructor(readonly name?: string | string | undefined) {} }",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "class A { constructor(readonly name?: string   | undefined) {} }"
+      ],
+      "Errors": [
+        {
+          "MessageId": "duplicate",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "class A { constructor(readonly name?: string | undefined | undefined) {} }",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "class A { constructor(readonly name?: string | undefined  ) {} }"
+      ],
+      "Errors": [
+        {
+          "MessageId": "duplicate",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    }
+  ]
+}

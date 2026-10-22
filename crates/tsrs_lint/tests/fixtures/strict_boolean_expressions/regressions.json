@@ -1,0 +1,769 @@
+[
+  {
+    "name": "utf8-logical",
+    "source": "export {}; declare const café: string | null; declare const néant: number | null; if (/* 😀 */ ((café && néant))) {} café && néant; !(café || néant);",
+    "options": null,
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 101,
+          "end": 106
+        },
+        "message": {
+          "id": "conditionErrorNullableString",
+          "description": "Unexpected nullable string value in conditional.",
+          "help": "Handle the nullish and empty string cases explicitly."
+        },
+        "rule": "strict-boolean-expressions"
+      },
+      {
+        "kind": 0,
+        "range": {
+          "pos": 110,
+          "end": 116
+        },
+        "message": {
+          "id": "conditionErrorNullableNumber",
+          "description": "Unexpected nullable number value in conditional.",
+          "help": "Handle the nullish and zero cases explicitly."
+        },
+        "rule": "strict-boolean-expressions"
+      },
+      {
+        "kind": 0,
+        "range": {
+          "pos": 123,
+          "end": 128
+        },
+        "message": {
+          "id": "conditionErrorNullableString",
+          "description": "Unexpected nullable string value in conditional.",
+          "help": "Handle the nullish and empty string cases explicitly."
+        },
+        "rule": "strict-boolean-expressions"
+      },
+      {
+        "kind": 0,
+        "range": {
+          "pos": 142,
+          "end": 147
+        },
+        "message": {
+          "id": "conditionErrorNullableString",
+          "description": "Unexpected nullable string value in conditional.",
+          "help": "Handle the nullish and empty string cases explicitly."
+        },
+        "rule": "strict-boolean-expressions"
+      },
+      {
+        "kind": 0,
+        "range": {
+          "pos": 151,
+          "end": 157
+        },
+        "message": {
+          "id": "conditionErrorNullableNumber",
+          "description": "Unexpected nullable number value in conditional.",
+          "help": "Handle the nullish and zero cases explicitly."
+        },
+        "rule": "strict-boolean-expressions"
+      }
+    ]
+  },
+  {
+    "name": "primitive-defaults",
+    "source": "export {}; declare const s: string; declare const n: number; declare const a: any; if (s) {} if (n) {} if(a) {}",
+    "options": null,
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 106,
+          "end": 107
+        },
+        "message": {
+          "id": "conditionErrorAny",
+          "description": "Unexpected any value in conditional.",
+          "help": "Use a more specific type to ensure type safety."
+        },
+        "rule": "strict-boolean-expressions"
+      }
+    ]
+  },
+  {
+    "name": "primitive-disabled",
+    "source": "export {}; declare const s: string; declare const n: number; declare const a: any; if (s) {} if (n) {} if(a) {}",
+    "options": {
+      "allowString": false,
+      "allowNumber": false,
+      "allowAny": true
+    },
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 87,
+          "end": 88
+        },
+        "message": {
+          "id": "conditionErrorString",
+          "description": "Unexpected string value in conditional. A string can be falsy (empty string) or truthy."
+        },
+        "rule": "strict-boolean-expressions"
+      },
+      {
+        "kind": 0,
+        "range": {
+          "pos": 97,
+          "end": 98
+        },
+        "message": {
+          "id": "conditionErrorNumber",
+          "description": "Unexpected number value in conditional. A number can be falsy (0, NaN) or truthy."
+        },
+        "rule": "strict-boolean-expressions"
+      }
+    ]
+  },
+  {
+    "name": "null-option-defaults",
+    "source": "export {}; declare const s: string | null; declare const n: number; if (s) {} if (n) {}",
+    "options": {
+      "allowString": null,
+      "allowNumber": null,
+      "allowNullableString": null,
+      "unknown": 42
+    },
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 72,
+          "end": 73
+        },
+        "message": {
+          "id": "conditionErrorNullableString",
+          "description": "Unexpected nullable string value in conditional.",
+          "help": "Handle the nullish and empty string cases explicitly."
+        },
+        "rule": "strict-boolean-expressions"
+      }
+    ]
+  },
+  {
+    "name": "all-nullable-allowed",
+    "source": "export {}; declare const a: any; declare const b: boolean | null; declare const n: number | null; declare const s: string | null; declare const o: object | null; enum E { Z, A } declare const e: E | null; if(a){} if(b){} if(n){} if(s){} if(o){} if(e){}",
+    "options": {
+      "allowAny": true,
+      "allowNullableBoolean": true,
+      "allowNullableNumber": true,
+      "allowNullableString": true,
+      "allowNullableObject": true,
+      "allowNullableEnum": true
+    },
+    "diagnostics": []
+  },
+  {
+    "name": "object-disabled",
+    "source": "export {}; declare const o: object | null; declare const s: symbol | undefined; if(o){} if(s){}",
+    "options": {
+      "allowNullableObject": false
+    },
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 83,
+          "end": 84
+        },
+        "message": {
+          "id": "conditionErrorNullableObject",
+          "description": "Unexpected nullable object value in conditional.",
+          "help": "Handle the nullish case explicitly."
+        },
+        "rule": "strict-boolean-expressions"
+      },
+      {
+        "kind": 0,
+        "range": {
+          "pos": 91,
+          "end": 92
+        },
+        "message": {
+          "id": "conditionErrorNullableObject",
+          "description": "Unexpected nullable object value in conditional.",
+          "help": "Handle the nullish case explicitly."
+        },
+        "rule": "strict-boolean-expressions"
+      }
+    ]
+  },
+  {
+    "name": "constraints",
+    "source": "export {}; function f<T extends string | null, U extends T, V, B extends boolean & {brand: true}>(t:T,u:U,v:V,b:B) { if(t){} if(u){} if(v){} if(b){} }",
+    "options": null,
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 120,
+          "end": 121
+        },
+        "message": {
+          "id": "conditionErrorNullableString",
+          "description": "Unexpected nullable string value in conditional.",
+          "help": "Handle the nullish and empty string cases explicitly."
+        },
+        "rule": "strict-boolean-expressions"
+      },
+      {
+        "kind": 0,
+        "range": {
+          "pos": 128,
+          "end": 129
+        },
+        "message": {
+          "id": "conditionErrorNullableString",
+          "description": "Unexpected nullable string value in conditional.",
+          "help": "Handle the nullish and empty string cases explicitly."
+        },
+        "rule": "strict-boolean-expressions"
+      },
+      {
+        "kind": 0,
+        "range": {
+          "pos": 136,
+          "end": 137
+        },
+        "message": {
+          "id": "conditionErrorAny",
+          "description": "Unexpected any value in conditional.",
+          "help": "Use a more specific type to ensure type safety."
+        },
+        "rule": "strict-boolean-expressions"
+      }
+    ]
+  },
+  {
+    "name": "truthy-nullable",
+    "source": "export {}; declare const s: \"é\" | null; declare const n: 3 | null; declare const t: true | null; declare const b: 0n | null; if(s){} if(n){} if(t){} if(b){}",
+    "options": null,
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 153,
+          "end": 154
+        },
+        "message": {
+          "id": "conditionErrorNullableNumber",
+          "description": "Unexpected nullable number value in conditional.",
+          "help": "Handle the nullish and zero cases explicitly."
+        },
+        "rule": "strict-boolean-expressions"
+      }
+    ]
+  },
+  {
+    "name": "falsy-nullable",
+    "source": "export {}; declare const s: \"\" | null; declare const n: 0 | null; declare const t: false | null; if(s){} if(n){} if(t){}",
+    "options": null,
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 100,
+          "end": 101
+        },
+        "message": {
+          "id": "conditionErrorNullableString",
+          "description": "Unexpected nullable string value in conditional.",
+          "help": "Handle the nullish and empty string cases explicitly."
+        },
+        "rule": "strict-boolean-expressions"
+      },
+      {
+        "kind": 0,
+        "range": {
+          "pos": 108,
+          "end": 109
+        },
+        "message": {
+          "id": "conditionErrorNullableNumber",
+          "description": "Unexpected nullable number value in conditional.",
+          "help": "Handle the nullish and zero cases explicitly."
+        },
+        "rule": "strict-boolean-expressions"
+      },
+      {
+        "kind": 0,
+        "range": {
+          "pos": 116,
+          "end": 117
+        },
+        "message": {
+          "id": "conditionErrorNullableBoolean",
+          "description": "Unexpected nullable boolean value in conditional.",
+          "help": "Handle the nullish case explicitly."
+        },
+        "rule": "strict-boolean-expressions"
+      }
+    ]
+  },
+  {
+    "name": "enum-mixed",
+    "source": "export {}; enum E { A = \"é\", Z = 0 } declare const a: E | null; declare const b: E | object; if(a){} if(b){}",
+    "options": null,
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 97,
+          "end": 98
+        },
+        "message": {
+          "id": "conditionErrorNullableEnum",
+          "description": "Unexpected nullable enum value in conditional.",
+          "help": "Handle the nullish and falsy enum cases explicitly."
+        },
+        "rule": "strict-boolean-expressions"
+      }
+    ]
+  },
+  {
+    "name": "branded-primitives",
+    "source": "export {}; declare const s: string & {brand: true}; declare const n: number & {brand: true}; declare const b: boolean & {brand: true}; if(s){} if(n){} if(b){}",
+    "options": null,
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 138,
+          "end": 139
+        },
+        "message": {
+          "id": "conditionErrorObject",
+          "description": "Unexpected object value in conditional. An object is always truthy."
+        },
+        "rule": "strict-boolean-expressions"
+      },
+      {
+        "kind": 0,
+        "range": {
+          "pos": 146,
+          "end": 147
+        },
+        "message": {
+          "id": "conditionErrorObject",
+          "description": "Unexpected object value in conditional. An object is always truthy."
+        },
+        "rule": "strict-boolean-expressions"
+      }
+    ]
+  },
+  {
+    "name": "assertion-union",
+    "source": "export {}; declare const f: ((x: unknown) => asserts x) | ((x: unknown) => void); declare const café: string | null; f(café);",
+    "options": null,
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 120,
+          "end": 125
+        },
+        "message": {
+          "id": "conditionErrorNullableString",
+          "description": "Unexpected nullable string value in conditional.",
+          "help": "Handle the nullish and empty string cases explicitly."
+        },
+        "rule": "strict-boolean-expressions"
+      }
+    ]
+  },
+  {
+    "name": "assertion-spreads",
+    "source": "export {}; declare function f(x: unknown, y: unknown): asserts y; declare const a: any; declare const b: [unknown]; f(a, ...b); f(...b, a); f(a, a);",
+    "options": null,
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 145,
+          "end": 146
+        },
+        "message": {
+          "id": "conditionErrorAny",
+          "description": "Unexpected any value in conditional.",
+          "help": "Use a more specific type to ensure type safety."
+        },
+        "rule": "strict-boolean-expressions"
+      }
+    ]
+  },
+  {
+    "name": "assertion-typed",
+    "source": "export {}; declare function f(x: unknown): asserts x is string; declare const a: any; f(a);",
+    "options": null,
+    "diagnostics": []
+  },
+  {
+    "name": "logical-value-context",
+    "source": "export {}; declare const a: object; declare const b: object; declare const c: object; const x = (a && b) || c; const y = a ?? b; if (a ?? b) {}",
+    "options": null,
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 97,
+          "end": 98
+        },
+        "message": {
+          "id": "conditionErrorObject",
+          "description": "Unexpected object value in conditional. An object is always truthy."
+        },
+        "rule": "strict-boolean-expressions"
+      },
+      {
+        "kind": 0,
+        "range": {
+          "pos": 102,
+          "end": 103
+        },
+        "message": {
+          "id": "conditionErrorObject",
+          "description": "Unexpected object value in conditional. An object is always truthy."
+        },
+        "rule": "strict-boolean-expressions"
+      },
+      {
+        "kind": 0,
+        "range": {
+          "pos": 133,
+          "end": 139
+        },
+        "message": {
+          "id": "conditionErrorObject",
+          "description": "Unexpected object value in conditional. An object is always truthy."
+        },
+        "rule": "strict-boolean-expressions"
+      }
+    ]
+  },
+  {
+    "name": "nested-negation",
+    "source": "export {}; declare const café: object; if (!(!((café)))) {}",
+    "options": null,
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 49,
+          "end": 54
+        },
+        "message": {
+          "id": "conditionErrorObject",
+          "description": "Unexpected object value in conditional. An object is always truthy."
+        },
+        "rule": "strict-boolean-expressions"
+      }
+    ]
+  },
+  {
+    "name": "loops-conditional",
+    "source": "export {}; declare const a: any; while(a) {break;} do {} while(a); for(;a;) {break;} for(;;) {break;} const x = a ? 1 : 0;",
+    "options": null,
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 39,
+          "end": 40
+        },
+        "message": {
+          "id": "conditionErrorAny",
+          "description": "Unexpected any value in conditional.",
+          "help": "Use a more specific type to ensure type safety."
+        },
+        "rule": "strict-boolean-expressions"
+      },
+      {
+        "kind": 0,
+        "range": {
+          "pos": 63,
+          "end": 64
+        },
+        "message": {
+          "id": "conditionErrorAny",
+          "description": "Unexpected any value in conditional.",
+          "help": "Use a more specific type to ensure type safety."
+        },
+        "rule": "strict-boolean-expressions"
+      },
+      {
+        "kind": 0,
+        "range": {
+          "pos": 72,
+          "end": 73
+        },
+        "message": {
+          "id": "conditionErrorAny",
+          "description": "Unexpected any value in conditional.",
+          "help": "Use a more specific type to ensure type safety."
+        },
+        "rule": "strict-boolean-expressions"
+      },
+      {
+        "kind": 0,
+        "range": {
+          "pos": 112,
+          "end": 113
+        },
+        "message": {
+          "id": "conditionErrorAny",
+          "description": "Unexpected any value in conditional.",
+          "help": "Use a more specific type to ensure type safety."
+        },
+        "rule": "strict-boolean-expressions"
+      }
+    ]
+  },
+  {
+    "name": "async-predicates",
+    "source": "export {}; [1].filter(async café => café > 0); const f = async (x: number) => x > 0; [1].some(f); [1].find(async function (x) {return x > 0;});",
+    "options": null,
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 22,
+          "end": 46
+        },
+        "message": {
+          "id": "predicateCannotBeAsync",
+          "description": "Predicate function should not be 'async'; expected a boolean return type."
+        },
+        "rule": "strict-boolean-expressions"
+      },
+      {
+        "kind": 0,
+        "range": {
+          "pos": 87,
+          "end": 98
+        },
+        "message": {
+          "id": "conditionErrorObject",
+          "description": "Unexpected object value in conditional. An object is always truthy."
+        },
+        "rule": "strict-boolean-expressions"
+      },
+      {
+        "kind": 0,
+        "range": {
+          "pos": 109,
+          "end": 143
+        },
+        "message": {
+          "id": "predicateCannotBeAsync",
+          "description": "Predicate function should not be 'async'; expected a boolean return type."
+        },
+        "rule": "strict-boolean-expressions"
+      }
+    ]
+  },
+  {
+    "name": "computed-predicates",
+    "source": "export {}; declare const a: number[]; a[\"every\"](() => \"\"); a?.filter(() => undefined); a.findLastIndex(() => ({}));",
+    "options": {
+      "allowString": false
+    },
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 38,
+          "end": 58
+        },
+        "message": {
+          "id": "conditionErrorString",
+          "description": "Unexpected string value in conditional. A string can be falsy (empty string) or truthy."
+        },
+        "rule": "strict-boolean-expressions"
+      },
+      {
+        "kind": 0,
+        "range": {
+          "pos": 60,
+          "end": 86
+        },
+        "message": {
+          "id": "conditionErrorNullish",
+          "description": "Unexpected nullish value in conditional. The expression is always falsy."
+        },
+        "rule": "strict-boolean-expressions"
+      },
+      {
+        "kind": 0,
+        "range": {
+          "pos": 88,
+          "end": 115
+        },
+        "message": {
+          "id": "conditionErrorObject",
+          "description": "Unexpected object value in conditional. An object is always truthy."
+        },
+        "rule": "strict-boolean-expressions"
+      }
+    ]
+  },
+  {
+    "name": "generic-predicates",
+    "source": "export {}; declare function a<T extends number>(): T; declare function b<T>(): T; [1].filter(a); [1].some(b);",
+    "options": {
+      "allowNumber": false
+    },
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 82,
+          "end": 95
+        },
+        "message": {
+          "id": "conditionErrorNumber",
+          "description": "Unexpected number value in conditional. A number can be falsy (0, NaN) or truthy."
+        },
+        "rule": "strict-boolean-expressions"
+      },
+      {
+        "kind": 0,
+        "range": {
+          "pos": 97,
+          "end": 108
+        },
+        "message": {
+          "id": "conditionErrorAny",
+          "description": "Unexpected any value in conditional.",
+          "help": "Use a more specific type to ensure type safety."
+        },
+        "rule": "strict-boolean-expressions"
+      }
+    ]
+  },
+  {
+    "name": "overload-predicates",
+    "source": "export {}; declare function f(x: number): boolean; declare function f(x: string): string; [1].every(f);",
+    "options": null,
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 90,
+          "end": 102
+        },
+        "message": {
+          "id": "conditionErrorOther",
+          "description": "Unexpected value in conditional. A union of different types has inconsistent truthiness."
+        },
+        "rule": "strict-boolean-expressions"
+      }
+    ]
+  },
+  {
+    "name": "no-signature-predicate",
+    "source": "export {}; [1].every(42); [1].filter({});",
+    "options": null,
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 11,
+          "end": 24
+        },
+        "message": {
+          "id": "conditionErrorOther",
+          "description": "Unexpected value in conditional. A union of different types has inconsistent truthiness."
+        },
+        "rule": "strict-boolean-expressions"
+      },
+      {
+        "kind": 0,
+        "range": {
+          "pos": 26,
+          "end": 40
+        },
+        "message": {
+          "id": "conditionErrorOther",
+          "description": "Unexpected value in conditional. A union of different types has inconsistent truthiness."
+        },
+        "rule": "strict-boolean-expressions"
+      }
+    ]
+  },
+  {
+    "name": "strict-disabled",
+    "source": "export {}; declare const café: any; if(café){}",
+    "options": null,
+    "strict": false,
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 0,
+          "end": 0
+        },
+        "message": {
+          "id": "noStrictNullCheck",
+          "description": "This rule requires the `strictNullChecks` compiler option to be turned on to function correctly."
+        },
+        "rule": "strict-boolean-expressions"
+      },
+      {
+        "kind": 0,
+        "range": {
+          "pos": 40,
+          "end": 45
+        },
+        "message": {
+          "id": "conditionErrorAny",
+          "description": "Unexpected any value in conditional.",
+          "help": "Use a more specific type to ensure type safety."
+        },
+        "rule": "strict-boolean-expressions"
+      }
+    ]
+  },
+  {
+    "name": "explicit-strict-disabled",
+    "source": "export {}; declare const café: object | null; if(café){}",
+    "options": null,
+    "strict": false,
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 0,
+          "end": 0
+        },
+        "message": {
+          "id": "noStrictNullCheck",
+          "description": "This rule requires the `strictNullChecks` compiler option to be turned on to function correctly."
+        },
+        "rule": "strict-boolean-expressions"
+      },
+      {
+        "kind": 0,
+        "range": {
+          "pos": 50,
+          "end": 55
+        },
+        "message": {
+          "id": "conditionErrorObject",
+          "description": "Unexpected object value in conditional. An object is always truthy."
+        },
+        "rule": "strict-boolean-expressions"
+      }
+    ]
+  }
+]

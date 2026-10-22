@@ -1,0 +1,25 @@
+[
+  {
+    "message": {
+      "id": "singleExportIsType",
+      "description": "Type export T is not a value and should be exported using `export type`.",
+      "help": "Try adding the `type` keyword: `type T`"
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 43,
+      "end": 44
+    },
+    "fixes": [
+      {
+        "text": "export type { T, T };\nexport { x };",
+        "range": {
+          "pos": 26,
+          "end": 50
+        }
+      }
+    ],
+    "kind": 0,
+    "rule": "consistent-type-exports"
+  }
+]

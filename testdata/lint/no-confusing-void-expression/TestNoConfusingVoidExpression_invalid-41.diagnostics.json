@@ -1,0 +1,32 @@
+[
+  {
+    "range": {
+      "pos": 24,
+      "end": 42
+    },
+    "fixes": [
+      {
+        "text": "{ ",
+        "range": {
+          "pos": 23,
+          "end": 23
+        }
+      },
+      {
+        "text": "; }",
+        "range": {
+          "pos": 42,
+          "end": 42
+        }
+      }
+    ],
+    "kind": 0,
+    "rule": "no-confusing-void-expression",
+    "message": {
+      "id": "invalidVoidExprArrow",
+      "description": "Returning a void expression from an arrow function shorthand is forbidden.",
+      "help": "Add braces to the arrow function."
+    },
+    "file_path": "file.ts"
+  }
+]

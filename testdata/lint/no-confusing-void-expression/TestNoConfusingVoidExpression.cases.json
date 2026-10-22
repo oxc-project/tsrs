@@ -1,0 +1,2125 @@
+{
+  "Name": "no-confusing-void-expression",
+  "TSConfig": "tsconfig.json",
+  "Valid": [
+    {
+      "Code": "() => Math.random();",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "console.log('foo');",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "foo && console.log(foo);",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "foo || console.log(foo);",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "foo ? console.log(true) : console.log(false);",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "console?.log('foo');",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        () => console.log('foo');\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "ignoreArrowShorthand": true,
+        "ignoreVoidOperator": false,
+        "ignoreVoidReturningFunctions": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        foo => foo && console.log(foo);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "ignoreArrowShorthand": true,
+        "ignoreVoidOperator": false,
+        "ignoreVoidReturningFunctions": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        foo => foo || console.log(foo);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "ignoreArrowShorthand": true,
+        "ignoreVoidOperator": false,
+        "ignoreVoidReturningFunctions": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        foo => (foo ? console.log(true) : console.log(false));\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "ignoreArrowShorthand": true,
+        "ignoreVoidOperator": false,
+        "ignoreVoidReturningFunctions": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        !void console.log('foo');\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "ignoreArrowShorthand": false,
+        "ignoreVoidOperator": true,
+        "ignoreVoidReturningFunctions": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        +void (foo && console.log(foo));\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "ignoreArrowShorthand": false,
+        "ignoreVoidOperator": true,
+        "ignoreVoidReturningFunctions": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        -void (foo || console.log(foo));\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "ignoreArrowShorthand": false,
+        "ignoreVoidOperator": true,
+        "ignoreVoidReturningFunctions": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        () => void ((foo && void console.log(true)) || console.log(false));\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "ignoreArrowShorthand": false,
+        "ignoreVoidOperator": true,
+        "ignoreVoidReturningFunctions": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        const x = void (foo ? console.log(true) : console.log(false));\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "ignoreArrowShorthand": false,
+        "ignoreVoidOperator": true,
+        "ignoreVoidReturningFunctions": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        !(foo && void console.log(foo));\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "ignoreArrowShorthand": false,
+        "ignoreVoidOperator": true,
+        "ignoreVoidReturningFunctions": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        !!(foo || void console.log(foo));\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "ignoreArrowShorthand": false,
+        "ignoreVoidOperator": true,
+        "ignoreVoidReturningFunctions": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        const x = (foo && void console.log(true)) || void console.log(false);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "ignoreArrowShorthand": false,
+        "ignoreVoidOperator": true,
+        "ignoreVoidReturningFunctions": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        () => (foo ? void console.log(true) : void console.log(false));\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "ignoreArrowShorthand": false,
+        "ignoreVoidOperator": true,
+        "ignoreVoidReturningFunctions": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        return void console.log('foo');\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "ignoreArrowShorthand": false,
+        "ignoreVoidOperator": true,
+        "ignoreVoidReturningFunctions": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction cool(input: string) {\n  return console.log(input), input;\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction cool(input: string) {\n  return input, console.log(input), input;\n}\n      ",
+      "Only": false,
+      "Skip": true,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction test(): void {\n  return console.log('bar');\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "ignoreArrowShorthand": false,
+        "ignoreVoidOperator": false,
+        "ignoreVoidReturningFunctions": true
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst test = (): void => {\n  return console.log('bar');\n};\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "ignoreArrowShorthand": false,
+        "ignoreVoidOperator": false,
+        "ignoreVoidReturningFunctions": true
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst test = (): void => console.log('bar');\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "ignoreArrowShorthand": false,
+        "ignoreVoidOperator": false,
+        "ignoreVoidReturningFunctions": true
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction test(): void {\n  {\n    return console.log('foo');\n  }\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "ignoreArrowShorthand": false,
+        "ignoreVoidOperator": false,
+        "ignoreVoidReturningFunctions": true
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst obj = {\n  test(): void {\n    return console.log('foo');\n  },\n};\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "ignoreArrowShorthand": false,
+        "ignoreVoidOperator": false,
+        "ignoreVoidReturningFunctions": true
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass Foo {\n  test(): void {\n    return console.log('foo');\n  }\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "ignoreArrowShorthand": false,
+        "ignoreVoidOperator": false,
+        "ignoreVoidReturningFunctions": true
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction test() {\n  function nestedTest(): void {\n    return console.log('foo');\n  }\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "ignoreArrowShorthand": false,
+        "ignoreVoidOperator": false,
+        "ignoreVoidReturningFunctions": true
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype Foo = () => void;\nconst test = (() => console.log()) as Foo;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "ignoreArrowShorthand": false,
+        "ignoreVoidOperator": false,
+        "ignoreVoidReturningFunctions": true
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype Foo = {\n  foo: () => void;\n};\nconst test: Foo = {\n  foo: () => console.log(),\n};\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "ignoreArrowShorthand": false,
+        "ignoreVoidOperator": false,
+        "ignoreVoidReturningFunctions": true
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst test = {\n  foo: () => console.log(),\n} as {\n  foo: () => void;\n};\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "ignoreArrowShorthand": false,
+        "ignoreVoidOperator": false,
+        "ignoreVoidReturningFunctions": true
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst test: {\n  foo: () => void;\n} = {\n  foo: () => console.log(),\n};\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "ignoreArrowShorthand": false,
+        "ignoreVoidOperator": false,
+        "ignoreVoidReturningFunctions": true
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype Foo = {\n  foo: { bar: () => void };\n};\n\nconst test = {\n  foo: { bar: () => console.log() },\n} as Foo;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "ignoreArrowShorthand": false,
+        "ignoreVoidOperator": false,
+        "ignoreVoidReturningFunctions": true
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype Foo = {\n  foo: { bar: () => void };\n};\n\nconst test: Foo = {\n  foo: { bar: () => console.log() },\n};\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "ignoreArrowShorthand": false,
+        "ignoreVoidOperator": false,
+        "ignoreVoidReturningFunctions": true
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype MethodType = () => void;\n\nclass App {\n  private method: MethodType = () => console.log();\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "ignoreArrowShorthand": false,
+        "ignoreVoidOperator": false,
+        "ignoreVoidReturningFunctions": true
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface Foo {\n  foo: () => void;\n}\n\nfunction bar(): Foo {\n  return {\n    foo: () => console.log(),\n  };\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "ignoreArrowShorthand": false,
+        "ignoreVoidOperator": false,
+        "ignoreVoidReturningFunctions": true
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype Foo = () => () => () => void;\nconst x: Foo = () => () => () => console.log();\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "ignoreArrowShorthand": false,
+        "ignoreVoidOperator": false,
+        "ignoreVoidReturningFunctions": true
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype Foo = {\n  foo: () => void;\n};\n\nconst test = {\n  foo: () => console.log(),\n} as Foo;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "ignoreArrowShorthand": false,
+        "ignoreVoidOperator": false,
+        "ignoreVoidReturningFunctions": true
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype Foo = () => void;\nconst test: Foo = () => console.log('foo');\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "ignoreArrowShorthand": false,
+        "ignoreVoidOperator": false,
+        "ignoreVoidReturningFunctions": true
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface Props {\n  onEvent: () => void\n}\n\ndeclare function Component(props: Props): any;\n\n<Component onEvent={() => console.log()} />;\n\t\t\t",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "ignoreArrowShorthand": false,
+        "ignoreVoidOperator": false,
+        "ignoreVoidReturningFunctions": true
+      },
+      "TSConfig": "",
+      "Tsx": true,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare function foo(arg: () => void): void;\nfoo(() => console.log());\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "ignoreArrowShorthand": false,
+        "ignoreVoidOperator": false,
+        "ignoreVoidReturningFunctions": true
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare function foo(arg: (() => void) | (() => string)): void;\nfoo(() => console.log());\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "ignoreArrowShorthand": false,
+        "ignoreVoidOperator": false,
+        "ignoreVoidReturningFunctions": true
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare function foo(arg: (() => void) | (() => string) | string): void;\nfoo(() => console.log());\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "ignoreArrowShorthand": false,
+        "ignoreVoidOperator": false,
+        "ignoreVoidReturningFunctions": true
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare function foo(arg: () => void | string): void;\nfoo(() => console.log());\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "ignoreArrowShorthand": false,
+        "ignoreVoidOperator": false,
+        "ignoreVoidReturningFunctions": true
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare function foo(options: { cb: () => void }): void;\nfoo({ cb: () => console.log() });\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "ignoreArrowShorthand": false,
+        "ignoreVoidOperator": false,
+        "ignoreVoidReturningFunctions": true
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst obj = {\n  foo: { bar: () => console.log() },\n} as {\n  foo: { bar: () => void };\n};\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "ignoreArrowShorthand": false,
+        "ignoreVoidOperator": false,
+        "ignoreVoidReturningFunctions": true
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction test(): void & void {\n  return console.log('foo');\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "ignoreArrowShorthand": false,
+        "ignoreVoidOperator": false,
+        "ignoreVoidReturningFunctions": true
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype Foo = void;\n\ndeclare function foo(): Foo;\n\nfunction test(): Foo {\n  return foo();\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "ignoreArrowShorthand": false,
+        "ignoreVoidOperator": false,
+        "ignoreVoidReturningFunctions": true
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype Foo = void;\nconst test = (): Foo => console.log('err');\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "ignoreArrowShorthand": false,
+        "ignoreVoidOperator": false,
+        "ignoreVoidReturningFunctions": true
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst test: () => any = (): void => console.log();\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "ignoreArrowShorthand": false,
+        "ignoreVoidOperator": false,
+        "ignoreVoidReturningFunctions": true
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction test(): void | string {\n  return console.log('bar');\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "ignoreArrowShorthand": false,
+        "ignoreVoidOperator": false,
+        "ignoreVoidReturningFunctions": true
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nexport function makeDate(): Date;\nexport function makeDate(m: number): void;\nexport function makeDate(m?: number): Date | void {\n  if (m !== undefined) {\n    return console.log('123');\n  }\n  return new Date();\n}\n\ndeclare const test: (cb: () => void) => void;\n\ntest((() => {\n  return console.log('123');\n}) as typeof makeDate | (() => string));\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "ignoreArrowShorthand": false,
+        "ignoreVoidOperator": false,
+        "ignoreVoidReturningFunctions": true
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    }
+  ],
+  "Invalid": [
+    {
+      "Code": "\n        const x = console.log('foo');\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "invalidVoidExpr",
+          "Line": 0,
+          "Column": 19,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        const x = console?.log('foo');\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "invalidVoidExpr",
+          "Line": 0,
+          "Column": 19,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        console.error(console.log('foo'));\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "invalidVoidExpr",
+          "Line": 0,
+          "Column": 23,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        [console.log('foo')];\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "invalidVoidExpr",
+          "Line": 0,
+          "Column": 10,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        ({ x: console.log('foo') });\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "invalidVoidExpr",
+          "Line": 0,
+          "Column": 15,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        void console.log('foo');\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "invalidVoidExpr",
+          "Line": 0,
+          "Column": 14,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        console.log('foo') ? true : false;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "invalidVoidExpr",
+          "Line": 0,
+          "Column": 9,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        (console.log('foo') && true) || false;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "invalidVoidExpr",
+          "Line": 0,
+          "Column": 10,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        (cond && console.log('ok')) || console.log('error');\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "invalidVoidExpr",
+          "Line": 0,
+          "Column": 18,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        !console.log('foo');\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "invalidVoidExpr",
+          "Line": 0,
+          "Column": 10,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction notcool(input: string) {\n  return input, console.log(input);\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "invalidVoidExpr",
+          "Line": 3,
+          "Column": 17,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "() => console.log('foo');",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "() =>{  console.log('foo'); };"
+      ],
+      "Errors": [
+        {
+          "MessageId": "invalidVoidExprArrow",
+          "Line": 1,
+          "Column": 7,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "foo => foo && console.log(foo);",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "invalidVoidExprArrow",
+          "Line": 1,
+          "Column": 15,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "(foo: undefined) => foo && console.log(foo);",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "(foo: undefined) =>{  foo && console.log(foo); };"
+      ],
+      "Errors": [
+        {
+          "MessageId": "invalidVoidExprArrow",
+          "Line": 1,
+          "Column": 28,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "foo => foo || console.log(foo);",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "invalidVoidExprArrow",
+          "Line": 1,
+          "Column": 15,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "(foo: undefined) => foo || console.log(foo);",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "(foo: undefined) =>{  foo || console.log(foo); };"
+      ],
+      "Errors": [
+        {
+          "MessageId": "invalidVoidExprArrow",
+          "Line": 1,
+          "Column": 28,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "(foo: void) => foo || console.log(foo);",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "(foo: void) =>{  foo || console.log(foo); };"
+      ],
+      "Errors": [
+        {
+          "MessageId": "invalidVoidExprArrow",
+          "Line": 1,
+          "Column": 23,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "foo => (foo ? console.log(true) : console.log(false));",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "foo =>{ foo ? console.log(true) : console.log(false); };"
+      ],
+      "Errors": [
+        {
+          "MessageId": "invalidVoidExprArrow",
+          "Line": 1,
+          "Column": 15,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "invalidVoidExprArrow",
+          "Line": 1,
+          "Column": 35,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        function f() {\n          return console.log('foo');\n          console.log('bar');\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        function f() {\n           console.log('foo');; return;\n          console.log('bar');\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "invalidVoidExprReturn",
+          "Line": 3,
+          "Column": 18,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        function f() {\n          console.log('foo')\n          return ['bar', 'baz'].forEach(console.log)\n          console.log('quux')\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        function f() {\n          console.log('foo')\n          ; ['bar', 'baz'].forEach(console.log); return;\n          console.log('quux')\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "invalidVoidExprReturn",
+          "Line": 4,
+          "Column": 18,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        function f() {\n          console.log('foo');\n          return console.log('bar');\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        function f() {\n          console.log('foo');\n           console.log('bar');\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "invalidVoidExprReturnLast",
+          "Line": 4,
+          "Column": 18,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        function f() {\n          console.log('foo')\n          return ['bar', 'baz'].forEach(console.log)\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        function f() {\n          console.log('foo')\n          ; ['bar', 'baz'].forEach(console.log)\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "invalidVoidExprReturnLast",
+          "Line": 4,
+          "Column": 18,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        const f = () => {\n          if (cond) {\n            return console.error('foo');\n          }\n          console.log('bar');\n        };\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        const f = () => {\n          if (cond) {\n             console.error('foo');; return;\n          }\n          console.log('bar');\n        };\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "invalidVoidExprReturn",
+          "Line": 4,
+          "Column": 20,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        const f = function () {\n          if (cond) return console.error('foo');\n          console.log('bar');\n        };\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        const f = function () {\n          if (cond) {  console.error('foo');; return; }\n          console.log('bar');\n        };\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "invalidVoidExprReturn",
+          "Line": 3,
+          "Column": 28,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        const f = function () {\n          let num = 1;\n          return num ? console.log('foo') : num;\n        };\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "invalidVoidExprReturnLast",
+          "Line": 4,
+          "Column": 24,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        const f = function () {\n          let undef = undefined;\n          return undef ? console.log('foo') : undef;\n        };\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        const f = function () {\n          let undef = undefined;\n           undef ? console.log('foo') : undef;\n        };\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "invalidVoidExprReturnLast",
+          "Line": 4,
+          "Column": 26,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        const f = function () {\n          let num = 1;\n          return num || console.log('foo');\n        };\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "invalidVoidExprReturnLast",
+          "Line": 4,
+          "Column": 25,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        const f = function () {\n          let bar = void 0;\n          return bar || console.log('foo');\n        };\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        const f = function () {\n          let bar = void 0;\n           bar || console.log('foo');\n        };\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "invalidVoidExprReturnLast",
+          "Line": 4,
+          "Column": 25,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        let num = 1;\n        const foo = () => (num ? console.log('foo') : num);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "invalidVoidExprArrow",
+          "Line": 3,
+          "Column": 34,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        let bar = void 0;\n        const foo = () => (bar ? console.log('foo') : bar);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        let bar = void 0;\n        const foo = () =>{ bar ? console.log('foo') : bar; };\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "invalidVoidExprArrow",
+          "Line": 3,
+          "Column": 34,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "return console.log('foo');",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "return void console.log('foo');"
+      ],
+      "Errors": [
+        {
+          "MessageId": "invalidVoidExprReturnWrapVoid",
+          "Line": 1,
+          "Column": 8,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "ignoreArrowShorthand": false,
+        "ignoreVoidOperator": true,
+        "ignoreVoidReturningFunctions": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "console.error(console.log('foo'));",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "invalidVoidExprWrapVoid",
+          "Line": 1,
+          "Column": 15,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "voidExprWrapVoid",
+              "Output": "console.error(void console.log('foo'));"
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "ignoreArrowShorthand": false,
+        "ignoreVoidOperator": true,
+        "ignoreVoidReturningFunctions": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "console.log('foo') ? true : false;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "invalidVoidExprWrapVoid",
+          "Line": 1,
+          "Column": 1,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "voidExprWrapVoid",
+              "Output": "void console.log('foo') ? true : false;"
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "ignoreArrowShorthand": false,
+        "ignoreVoidOperator": true,
+        "ignoreVoidReturningFunctions": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "const x = foo ?? console.log('foo');",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "invalidVoidExprWrapVoid",
+          "Line": 1,
+          "Column": 18,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "voidExprWrapVoid",
+              "Output": "const x = foo ?? void console.log('foo');"
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "ignoreArrowShorthand": false,
+        "ignoreVoidOperator": true,
+        "ignoreVoidReturningFunctions": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "foo => foo || console.log(foo);",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "foo => foo || void console.log(foo);"
+      ],
+      "Errors": [
+        {
+          "MessageId": "invalidVoidExprArrowWrapVoid",
+          "Line": 1,
+          "Column": 15,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "ignoreArrowShorthand": false,
+        "ignoreVoidOperator": true,
+        "ignoreVoidReturningFunctions": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "!!console.log('foo');",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "invalidVoidExprWrapVoid",
+          "Line": 1,
+          "Column": 3,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "voidExprWrapVoid",
+              "Output": "!!void console.log('foo');"
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "ignoreArrowShorthand": false,
+        "ignoreVoidOperator": true,
+        "ignoreVoidReturningFunctions": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction test() {\n  return console.log('foo');\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nfunction test() {\n   console.log('foo');\n}\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "invalidVoidExprReturnLast",
+          "Line": 3,
+          "Column": 10,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "ignoreArrowShorthand": false,
+        "ignoreVoidOperator": false,
+        "ignoreVoidReturningFunctions": true
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "const test = () => console.log('foo');",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "const test = () =>{  console.log('foo'); };"
+      ],
+      "Errors": [
+        {
+          "MessageId": "invalidVoidExprArrow",
+          "Line": 1,
+          "Column": 20,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "ignoreArrowShorthand": false,
+        "ignoreVoidOperator": false,
+        "ignoreVoidReturningFunctions": true
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst test = () => {\n  return console.log('foo');\n};\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nconst test = () => {\n   console.log('foo');\n};\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "invalidVoidExprReturnLast",
+          "Line": 3,
+          "Column": 10,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "ignoreArrowShorthand": false,
+        "ignoreVoidOperator": false,
+        "ignoreVoidReturningFunctions": true
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction foo(): void {\n  const bar = () => {\n    return console.log();\n  };\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nfunction foo(): void {\n  const bar = () => {\n     console.log();\n  };\n}\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "invalidVoidExprReturnLast",
+          "Line": 4,
+          "Column": 12,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "ignoreArrowShorthand": false,
+        "ignoreVoidOperator": false,
+        "ignoreVoidReturningFunctions": true
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        (): any => console.log('foo');\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        (): any =>{  console.log('foo'); };\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "invalidVoidExprArrow",
+          "Line": 2,
+          "Column": 20,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "ignoreArrowShorthand": false,
+        "ignoreVoidOperator": false,
+        "ignoreVoidReturningFunctions": true
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        (): unknown => console.log('foo');\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        (): unknown =>{  console.log('foo'); };\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "invalidVoidExprArrow",
+          "Line": 2,
+          "Column": 24,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "ignoreArrowShorthand": false,
+        "ignoreVoidOperator": false,
+        "ignoreVoidReturningFunctions": true
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction test(): void {\n  () => () => console.log();\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nfunction test(): void {\n  () => () =>{  console.log(); };\n}\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "invalidVoidExprArrow",
+          "Line": 3,
+          "Column": 15,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "ignoreArrowShorthand": false,
+        "ignoreVoidOperator": false,
+        "ignoreVoidReturningFunctions": true
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype Foo = any;\n(): Foo => console.log();\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\ntype Foo = any;\n(): Foo =>{  console.log(); };\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "invalidVoidExprArrow",
+          "Line": 3,
+          "Column": 12,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "ignoreArrowShorthand": false,
+        "ignoreVoidOperator": false,
+        "ignoreVoidReturningFunctions": true
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype Foo = unknown;\n(): Foo => console.log();\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\ntype Foo = unknown;\n(): Foo =>{  console.log(); };\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "invalidVoidExprArrow",
+          "Line": 3,
+          "Column": 12,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "ignoreArrowShorthand": false,
+        "ignoreVoidOperator": false,
+        "ignoreVoidReturningFunctions": true
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction test(): any {\n  () => () => console.log();\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nfunction test(): any {\n  () => () =>{  console.log(); };\n}\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "invalidVoidExprArrow",
+          "Line": 3,
+          "Column": 15,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "ignoreArrowShorthand": false,
+        "ignoreVoidOperator": false,
+        "ignoreVoidReturningFunctions": true
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction test(): unknown {\n  return console.log();\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nfunction test(): unknown {\n   console.log();\n}\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "invalidVoidExprReturnLast",
+          "Line": 3,
+          "Column": 10,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "ignoreArrowShorthand": false,
+        "ignoreVoidOperator": false,
+        "ignoreVoidReturningFunctions": true
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction test(): any {\n  return console.log();\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nfunction test(): any {\n   console.log();\n}\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "invalidVoidExprReturnLast",
+          "Line": 3,
+          "Column": 10,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "ignoreArrowShorthand": false,
+        "ignoreVoidOperator": false,
+        "ignoreVoidReturningFunctions": true
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype Foo = () => any;\n(): Foo => () => console.log();\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\ntype Foo = () => any;\n(): Foo => () =>{  console.log(); };\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "invalidVoidExprArrow",
+          "Line": 3,
+          "Column": 18,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "ignoreArrowShorthand": false,
+        "ignoreVoidOperator": false,
+        "ignoreVoidReturningFunctions": true
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype Foo = () => unknown;\n(): Foo => () => console.log();\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\ntype Foo = () => unknown;\n(): Foo => () =>{  console.log(); };\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "invalidVoidExprArrow",
+          "Line": 3,
+          "Column": 18,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "ignoreArrowShorthand": false,
+        "ignoreVoidOperator": false,
+        "ignoreVoidReturningFunctions": true
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype Foo = () => any;\nconst test: Foo = () => console.log();\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\ntype Foo = () => any;\nconst test: Foo = () =>{  console.log(); };\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "invalidVoidExprArrow",
+          "Line": 3,
+          "Column": 25,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "ignoreArrowShorthand": false,
+        "ignoreVoidOperator": false,
+        "ignoreVoidReturningFunctions": true
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype Foo = () => unknown;\nconst test: Foo = () => console.log();\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\ntype Foo = () => unknown;\nconst test: Foo = () =>{  console.log(); };\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "invalidVoidExprArrow",
+          "Line": 3,
+          "Column": 25,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "ignoreArrowShorthand": false,
+        "ignoreVoidOperator": false,
+        "ignoreVoidReturningFunctions": true
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype Foo = () => void;\n\nconst foo: Foo = function () {\n  function bar() {\n    return console.log();\n  }\n};\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\ntype Foo = () => void;\n\nconst foo: Foo = function () {\n  function bar() {\n     console.log();\n  }\n};\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "invalidVoidExprReturnLast",
+          "Line": 6,
+          "Column": 12,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "ignoreArrowShorthand": false,
+        "ignoreVoidOperator": false,
+        "ignoreVoidReturningFunctions": true
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst foo = function () {\n  function bar() {\n    return console.log();\n  }\n};\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nconst foo = function () {\n  function bar() {\n     console.log();\n  }\n};\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "invalidVoidExprReturnLast",
+          "Line": 4,
+          "Column": 12,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "ignoreArrowShorthand": false,
+        "ignoreVoidOperator": false,
+        "ignoreVoidReturningFunctions": true
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nreturn console.log('foo');\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n{  console.log('foo');; return; }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "invalidVoidExprReturn",
+          "Line": 2,
+          "Column": 8,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "ignoreArrowShorthand": false,
+        "ignoreVoidOperator": false,
+        "ignoreVoidReturningFunctions": true
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction test(): void;\nfunction test(arg: string): any;\nfunction test(arg?: string): any | void {\n  if (arg) {\n    return arg;\n  }\n  return console.log();\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nfunction test(): void;\nfunction test(arg: string): any;\nfunction test(arg?: string): any | void {\n  if (arg) {\n    return arg;\n  }\n   console.log();\n}\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "invalidVoidExprReturnLast",
+          "Line": 8,
+          "Column": 10,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "ignoreArrowShorthand": false,
+        "ignoreVoidOperator": false,
+        "ignoreVoidReturningFunctions": true
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction test(arg: string): any;\nfunction test(): void;\nfunction test(arg?: string): any | void {\n  if (arg) {\n    return arg;\n  }\n  return console.log();\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nfunction test(arg: string): any;\nfunction test(): void;\nfunction test(arg?: string): any | void {\n  if (arg) {\n    return arg;\n  }\n   console.log();\n}\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "invalidVoidExprReturnLast",
+          "Line": 8,
+          "Column": 10,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "ignoreArrowShorthand": false,
+        "ignoreVoidOperator": false,
+        "ignoreVoidReturningFunctions": true
+      },
+      "Tsx": false,
+      "Files": {}
+    }
+  ]
+}

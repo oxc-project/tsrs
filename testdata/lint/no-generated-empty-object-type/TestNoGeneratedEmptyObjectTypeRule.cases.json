@@ -1,0 +1,397 @@
+{
+  "Name": "no-generated-empty-object-type",
+  "TSConfig": "tsconfig.minimal.json",
+  "Valid": [
+    {
+      "Code": "type Constructor = new () => object; type Alias = Exclude<Constructor, undefined>;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "type Data = { a: string }; type Result = (Omit<Data, 'a'>) & { b: number };",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype Data = { name: string; num: number };\ntype Expected = Omit<Data, 'name'>;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype Data = { name: string; num: number };\ndeclare function doSomething<T extends Omit<Data, 'name'>>(param: T): void;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype Names = Array<string>;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype Empty = {};\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype Explicit = {} | { value: number };\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface Empty {}\ntype Alias = Empty;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass Empty {}\ntype Alias = Empty;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype Dictionary = Record<string, never>;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype Callable = () => void;\ntype Aliased = Exclude<Callable, undefined>;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype Data = { name: string; num: number };\ntype NullableData = null | Data;\ntype Intersected = Omit<NullableData, 'name'> & { other: string };\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype Data = { name: string; value: number };\ntype Data2 = { name: string };\ntype DistributiveOmit<T, K extends PropertyKey> = T extends unknown\n  ? Omit<T, K>\n  : never;\ntype Expected = DistributiveOmit<Data | Data2, 'name'> & {\n  other: string;\n};\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare function getEnumNames<T extends string>(\n  myEnum: Record<T, unknown>,\n): T[];\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype MakeRequired<Base, Key extends keyof Base> = Omit<Base, Key> &\n  Required<Record<Key, NonNullable<Base[Key]>>>;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype Emptied<T> = Omit<T, keyof T>;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype Keys<T> = T extends infer U ? keyof U : never;\ntype Mapped<T extends object> = { [Key in Keys<T>]: Key };\ntype Referenced<T extends object> = Mapped<T>;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype Keys<T> = T extends infer U ? keyof U : never;\ntype Mapped<T extends object> = { [Key in Keys<T>]: Key };\ntype Indexed<T extends object> = Mapped<T>[Keys<T>];\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype Keys<T> = T extends infer U ? keyof U : never;\ntype Remapped<T extends object> = {\n  [Key in Keys<T> as `get${string & Key}`]: () => void;\n};\ntype Referenced<T extends object> = Remapped<T>;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype Keys<T> = T extends infer U ? keyof U : never;\ntype ReadonlyMapped<T extends object> = { readonly [Key in Keys<T>]: number };\ntype Referenced<T extends object> = ReadonlyMapped<T>;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    }
+  ],
+  "Invalid": [
+    {
+      "Code": "\ntype Data = { name: string; num: number };\ntype NullableData = null | Data;\ntype Unexpected = Omit<NullableData, 'name'>;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noGeneratedEmptyObjectType",
+          "Line": 4,
+          "Column": 19,
+          "EndLine": 4,
+          "EndColumn": 45,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype Data = { name: string; num: number };\ntype NullableData = null | Data;\nfunction doSomething<T extends Omit<NullableData, 'name'>>(param: T) {}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noGeneratedEmptyObjectType",
+          "Line": 4,
+          "Column": 32,
+          "EndLine": 4,
+          "EndColumn": 58,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype Data = { name: string; num: number };\ntype Unexpected = Pick<Data, never>;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noGeneratedEmptyObjectType",
+          "Line": 3,
+          "Column": 19,
+          "EndLine": 3,
+          "EndColumn": 36,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype Unexpected = NonNullable<unknown>;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noGeneratedEmptyObjectType",
+          "Line": 2,
+          "Column": 19,
+          "EndLine": 2,
+          "EndColumn": 39,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype Data = { name: string; num: number };\ntype NullableData = null | Data;\ndeclare const unexpected: Omit<NullableData, 'name'>;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noGeneratedEmptyObjectType",
+          "Line": 4,
+          "Column": 27,
+          "EndLine": 4,
+          "EndColumn": 53,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype Data = { name: string; num: number };\ntype NullableData = null | Data;\ntype Unexpected = Omit<NullableData, 'name'>;\ntype Referencing = Unexpected;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noGeneratedEmptyObjectType",
+          "Line": 4,
+          "Column": 19,
+          "EndLine": 4,
+          "EndColumn": 45,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype Data = { name: string; num: number };\ntype NullableData = null | Data;\ntype Unexpected = Array<Omit<NullableData, 'name'>>;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noGeneratedEmptyObjectType",
+          "Line": 4,
+          "Column": 25,
+          "EndLine": 4,
+          "EndColumn": 51,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype Data = { name: string; value: number };\ntype Data2 = { name: string };\ntype DistributiveOmit<T, K extends PropertyKey> = T extends unknown\n  ? Omit<T, K>\n  : never;\ntype Unexpected = DistributiveOmit<Data | Data2, 'name'>;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noGeneratedEmptyObjectType",
+          "Line": 7,
+          "Column": 19,
+          "EndLine": 7,
+          "EndColumn": 57,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype Data = { a: string };\ntype Unexpected = Omit<Data, 'a'> & Omit<Data, 'a'>;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noGeneratedEmptyObjectType",
+          "Line": 3,
+          "Column": 19,
+          "EndLine": 3,
+          "EndColumn": 52,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    }
+  ]
+}

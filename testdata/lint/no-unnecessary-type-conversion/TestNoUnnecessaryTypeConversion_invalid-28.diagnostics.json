@@ -1,0 +1,56 @@
+[
+  {
+    "rule": "no-unnecessary-type-conversion",
+    "message": {
+      "id": "unnecessaryTypeConversion",
+      "description": "This type conversion does not change the type or value of the expression."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 5,
+      "end": 11
+    },
+    "suggestions": [
+      {
+        "message": {
+          "id": "suggestRemove",
+          "description": "Remove the type conversion."
+        },
+        "fixes": [
+          {
+            "text": "(2n + 2n)",
+            "range": {
+              "pos": 5,
+              "end": 20
+            }
+          }
+        ]
+      },
+      {
+        "message": {
+          "id": "suggestSatisfies",
+          "description": "Instead, assert that the value satisfies the primitive type."
+        },
+        "fixes": [
+          {
+            "text": "((2n + 2n) satisfies bigint)",
+            "range": {
+              "pos": 5,
+              "end": 20
+            }
+          }
+        ]
+      }
+    ],
+    "labeled_ranges": [
+      {
+        "range": {
+          "end": 19,
+          "pos": 12
+        },
+        "label": "This expression already has type 'bigint'."
+      }
+    ],
+    "kind": 0
+  }
+]

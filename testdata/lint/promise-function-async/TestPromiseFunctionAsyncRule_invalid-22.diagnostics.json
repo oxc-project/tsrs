@@ -1,0 +1,33 @@
+[
+  {
+    "range": {
+      "end": 102,
+      "pos": 1
+    },
+    "suggestions": [
+      {
+        "message": {
+          "id": "missingAsyncHybridReturnSuggestion",
+          "description": "Add `async` keyword to the function."
+        },
+        "fixes": [
+          {
+            "text": " async ",
+            "range": {
+              "pos": 1,
+              "end": 1
+            }
+          }
+        ]
+      }
+    ],
+    "kind": 0,
+    "rule": "promise-function-async",
+    "message": {
+      "id": "missingAsyncHybridReturn",
+      "description": "Functions that return promises must be async.",
+      "help": "Consider adding an explicit return type annotation if the function is intended to return a union of promise and non-promise types."
+    },
+    "file_path": "file.ts"
+  }
+]

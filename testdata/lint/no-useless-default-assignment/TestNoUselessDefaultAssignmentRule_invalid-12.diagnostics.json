@@ -1,0 +1,33 @@
+[
+  {
+    "suggestions": [
+      {
+        "message": {
+          "id": "removeDefaultAssignment",
+          "description": "Remove the default value."
+        },
+        "fixes": [
+          {
+            "text": "",
+            "range": {
+              "pos": 25,
+              "end": 37
+            }
+          }
+        ]
+      }
+    ],
+    "kind": 0,
+    "rule": "no-useless-default-assignment",
+    "message": {
+      "id": "uselessUndefined",
+      "description": "Default value is useless because it is undefined. Optional properties are already undefined by default.",
+      "help": "Remove the default assignment"
+    },
+    "file_path": "file.ts",
+    "range": {
+      "end": 37,
+      "pos": 28
+    }
+  }
+]

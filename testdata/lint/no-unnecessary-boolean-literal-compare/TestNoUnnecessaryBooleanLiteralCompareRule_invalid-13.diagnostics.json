@@ -1,0 +1,45 @@
+[
+  {
+    "message": {
+      "id": "direct",
+      "description": "This expression unnecessarily compares a boolean value to a boolean instead of using it directly."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 38,
+      "end": 66
+    },
+    "fixes": [
+      {
+        "text": "x instanceof Error",
+        "range": {
+          "pos": 38,
+          "end": 66
+        }
+      },
+      {
+        "text": "!",
+        "range": {
+          "pos": 38,
+          "end": 38
+        }
+      },
+      {
+        "text": "(",
+        "range": {
+          "pos": 38,
+          "end": 38
+        }
+      },
+      {
+        "text": ")",
+        "range": {
+          "pos": 66,
+          "end": 66
+        }
+      }
+    ],
+    "kind": 0,
+    "rule": "no-unnecessary-boolean-literal-compare"
+  }
+]

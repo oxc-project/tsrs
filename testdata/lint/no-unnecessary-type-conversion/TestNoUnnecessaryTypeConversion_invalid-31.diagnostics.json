@@ -1,0 +1,56 @@
+[
+  {
+    "kind": 0,
+    "rule": "no-unnecessary-type-conversion",
+    "message": {
+      "id": "unnecessaryTypeConversion",
+      "description": "This type conversion does not change the type or value of the expression."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "end": 2,
+      "pos": 0
+    },
+    "suggestions": [
+      {
+        "message": {
+          "id": "suggestRemove",
+          "description": "Remove the type conversion."
+        },
+        "fixes": [
+          {
+            "text": "1",
+            "range": {
+              "pos": 0,
+              "end": 3
+            }
+          }
+        ]
+      },
+      {
+        "message": {
+          "id": "suggestSatisfies",
+          "description": "Instead, assert that the value satisfies the primitive type."
+        },
+        "fixes": [
+          {
+            "text": "1 satisfies number",
+            "range": {
+              "pos": 0,
+              "end": 3
+            }
+          }
+        ]
+      }
+    ],
+    "labeled_ranges": [
+      {
+        "label": "This expression already has type '1'.",
+        "range": {
+          "pos": 2,
+          "end": 3
+        }
+      }
+    ]
+  }
+]

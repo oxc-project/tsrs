@@ -238,7 +238,16 @@ fn write_string(out: &mut String, s: &str) {
 }
 
 pub fn unmarshal(input: &str) -> Result<Value, String> {
-    let mut p = JsonParser { s: input.as_bytes(), pos: 0 };
+    unmarshal_with_options(input, false)
+}
+
+/// Decodes JSON while rejecting unpaired UTF-16 surrogate escapes instead of replacing them with U+FFFD.
+pub fn unmarshal_strict(input: &str) -> Result<Value, String> {
+    unmarshal_with_options(input, true)
+}
+
+fn unmarshal_with_options(input: &str, reject_invalid_surrogates: bool) -> Result<Value, String> {
+    let mut p = JsonParser { s: input.as_bytes(), pos: 0, reject_invalid_surrogates };
     p.skip_ws();
     let v = p.parse_value(0)?;
     p.skip_ws();
@@ -258,6 +267,7 @@ const MAX_NESTING_DEPTH: usize = 10000;
 struct JsonParser<'a> {
     s: &'a [u8],
     pos: usize,
+    reject_invalid_surrogates: bool,
 }
 
 impl JsonParser<'_> {
@@ -462,7 +472,13 @@ impl JsonParser<'_> {
                                     self.pos = save;
                                 }
                             }
-                            out.push(char::from_u32(r).unwrap_or('\u{FFFD}'));
+                            match char::from_u32(r) {
+                                Some(c) => out.push(c),
+                                None if self.reject_invalid_surrogates => {
+                                    return self.err("invalid surrogate pair");
+                                }
+                                None => out.push('\u{FFFD}'),
+                            }
                         }
                         _ => return self.err("invalid escape sequence"),
                     }
@@ -556,6 +572,85 @@ mod tests {
     }
 
     #[test]
+    fn strict_surrogates_preserve_default_replacement() {
+        for (text, expected) in [
+            (r#""\ud800""#, "�"),
+            (r#""\udbff""#, "�"),
+            (r#""\udc00""#, "�"),
+            (r#""\udfff""#, "�"),
+            (r#""\ud800x\udc00""#, "�x�"),
+            (r#""\ud800\n\udc00""#, "�\n�"),
+            (r#""\ud800\u0041""#, "�A"),
+            (r#""\ud800\ud800""#, "��"),
+            (r#""\udc00\ud800""#, "��"),
+            (r#""\udc00\udfff""#, "��"),
+            (r#""\ud800\ud800\udc00""#, "�𐀀"),
+            (r#""\ud800\\udc00""#, "�\\udc00"),
+        ] {
+            assert_eq!(unmarshal(text).unwrap(), Value::String(expected.into()), "{text}");
+            for input in
+                [text.to_string(), format!(r"{{{text}:0}}"), format!(r#"{{"a":[{text}]}}"#)]
+            {
+                assert!(unmarshal(&input).is_ok(), "{input}");
+                assert!(
+                    unmarshal_strict(&input)
+                        .unwrap_err()
+                        .starts_with("jsontext: invalid surrogate pair"),
+                    "{input}"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn strict_strings_accept_unicode_and_other_escapes() {
+        for (text, expected) in [
+            (r#""\ud800\udc00""#, "𐀀"),
+            (r#""\udbff\udfff""#, "\u{10FFFF}"),
+            (r#""\uD83D\uDE00""#, "😀"),
+            (r#""a\ud83d\ude00b\ud800\udc00""#, "a😀b𐀀"),
+            (r#""�\ufffdé中😀""#, "��é中😀"),
+            (r#""\\ud800\\udc00""#, r"\ud800\udc00"),
+            (r#""\"\\\/\b\f\n\r\t\u0041""#, "\"\\/\x08\x0c\n\r\tA"),
+        ] {
+            assert_eq!(unmarshal_strict(text).unwrap(), Value::String(expected.into()), "{text}");
+            for input in
+                [text.to_string(), format!(r"{{{text}:0}}"), format!(r#"{{"a":[{text}]}}"#)]
+            {
+                assert_eq!(unmarshal_strict(&input), unmarshal(&input), "{input}");
+            }
+        }
+    }
+
+    #[test]
+    fn strict_mode_preserves_other_values_and_errors() {
+        for text in [
+            "null",
+            "true",
+            "false",
+            "0",
+            "-0",
+            "1234567890123456",
+            "1.5e-7",
+            r#"{"a":[null,false,-42,2e3],"b":{}}"#,
+            r#"{"a":1,"\u0061":2}"#,
+            "[1,]",
+            "01",
+            "1e",
+            "1e999",
+            "true false",
+            r#""\u+041""#,
+            r#""\ud83d\u+e00""#,
+            r#""\q""#,
+            "\"\n\"",
+            "{",
+            "",
+        ] {
+            assert_eq!(unmarshal_strict(text), unmarshal(text), "{text}");
+        }
+    }
+
+    #[test]
     fn max_nesting_depth() {
         // Recursion to the limit needs more than the default test thread stack in an unoptimized build.
         std::thread::Builder::new()
@@ -589,6 +684,14 @@ mod tests {
                     ))
                     .is_ok()
                 );
+                for text in [
+                    nested("[", "]", MAX_NESTING_DEPTH),
+                    nested("[", "]", MAX_NESTING_DEPTH + 1),
+                    deep_object,
+                    format!("{}1{}", "[".repeat(MAX_NESTING_DEPTH), "]".repeat(MAX_NESTING_DEPTH)),
+                ] {
+                    assert_eq!(unmarshal_strict(&text), unmarshal(&text));
+                }
             })
             .unwrap()
             .join()

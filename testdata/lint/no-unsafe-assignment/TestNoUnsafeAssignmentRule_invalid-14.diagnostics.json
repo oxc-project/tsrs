@@ -1,0 +1,16 @@
+[
+  {
+    "kind": 0,
+    "range": {
+      "pos": 6,
+      "end": 41
+    },
+    "message": {
+      "id": "unsafeAssignment",
+      "description": "Unsafe assignment between incompatible types.",
+      "help": "Assigned value has type `Set<any[]>`; the target has type `Set<string[]>`. Use a safely typed value or `unknown`, and narrow it before use."
+    },
+    "file_path": "file.ts",
+    "rule": "no-unsafe-assignment"
+  }
+]

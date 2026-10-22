@@ -1,0 +1,468 @@
+{
+  "Name": "no-for-in-array",
+  "TSConfig": "tsconfig.json",
+  "Valid": [
+    {
+      "Code": "\nfor (const x of [3, 4, 5]) {\n  console.log(x);\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfor (const x in { a: 1, b: 2, c: 3 }) {\n  console.log(x);\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const nullish: null | undefined;\n// @ts-expect-error\nfor (const k in nullish) {\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const obj: {\n  [key: number]: number;\n};\n\nfor (const key in obj) {\n  console.log(key);\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    }
+  ],
+  "Invalid": [
+    {
+      "Code": "\nfor (const x in [3, 4, 5]) {\n  console.log(x);\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "forInViolation",
+          "Line": 2,
+          "Column": 1,
+          "EndLine": 2,
+          "EndColumn": 27,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst z = [3, 4, 5];\nfor (const x in z) {\n  console.log(x);\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "forInViolation",
+          "Line": 3,
+          "Column": 1,
+          "EndLine": 3,
+          "EndColumn": 19,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst fn = (arr: number[]) => {\n  for (const x in arr) {\n    console.log(x);\n  }\n};\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "forInViolation",
+          "Line": 3,
+          "Column": 3,
+          "EndLine": 3,
+          "EndColumn": 23,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst fn = (arr: number[] | string[]) => {\n  for (const x in arr) {\n    console.log(x);\n  }\n};\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "forInViolation",
+          "Line": 3,
+          "Column": 3,
+          "EndLine": 3,
+          "EndColumn": 23,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst fn = <T extends any[]>(arr: T) => {\n  for (const x in arr) {\n    console.log(x);\n  }\n};\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "forInViolation",
+          "Line": 3,
+          "Column": 3,
+          "EndLine": 3,
+          "EndColumn": 23,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfor (const x\n  in\n    (\n      (\n        (\n          [3, 4, 5]\n        )\n      )\n    )\n  )\n  // weird\n  /* spot for a */\n  // comment\n  /* ) */\n  /* ( */\n  {\n  console.log(x);\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "forInViolation",
+          "Line": 2,
+          "Column": 1,
+          "EndLine": 11,
+          "EndColumn": 4,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfor (const x\n  in\n    (\n      (\n        (\n          [3, 4, 5]\n        )\n      )\n    )\n  )\n  // weird\n  /* spot for a */\n  // comment\n  /* ) */\n  /* ( */\n\n  ((((console.log('body without braces ')))));\n\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "forInViolation",
+          "Line": 2,
+          "Column": 1,
+          "EndLine": 11,
+          "EndColumn": 4,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const array: string[] | null;\n\nfor (const key in array) {\n  console.log(key);\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "forInViolation",
+          "Line": 4,
+          "Column": 1,
+          "EndLine": 4,
+          "EndColumn": 25,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const array: number[] | undefined;\n\nfor (const key in array) {\n  console.log(key);\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "forInViolation",
+          "Line": 4,
+          "Column": 1,
+          "EndLine": 4,
+          "EndColumn": 25,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const array: boolean[] | { a: 1; b: 2; c: 3 };\n\nfor (const key in array) {\n  console.log(key);\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "forInViolation",
+          "Line": 4,
+          "Column": 1,
+          "EndLine": 4,
+          "EndColumn": 25,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const array: [number, string];\n\nfor (const key in array) {\n  console.log(key);\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "forInViolation",
+          "Line": 4,
+          "Column": 1,
+          "EndLine": 4,
+          "EndColumn": 25,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const array: [number, string] | { a: 1; b: 2; c: 3 };\n\nfor (const key in array) {\n  console.log(key);\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "forInViolation",
+          "Line": 4,
+          "Column": 1,
+          "EndLine": 4,
+          "EndColumn": 25,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const array: string[] | Record<number, string>;\n\nfor (const key in array) {\n  console.log(key);\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "forInViolation",
+          "Line": 4,
+          "Column": 1,
+          "EndLine": 4,
+          "EndColumn": 25,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst arrayLike = /fe/.exec('foo');\n\nfor (const x in arrayLike) {\n  console.log(x);\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "forInViolation",
+          "Line": 4,
+          "Column": 1,
+          "EndLine": 4,
+          "EndColumn": 27,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const arrayLike: HTMLCollection;\n\nfor (const x in arrayLike) {\n  console.log(x);\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "forInViolation",
+          "Line": 4,
+          "Column": 1,
+          "EndLine": 4,
+          "EndColumn": 27,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const arrayLike: NodeList;\n\nfor (const x in arrayLike) {\n  console.log(x);\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "forInViolation",
+          "Line": 4,
+          "Column": 1,
+          "EndLine": 4,
+          "EndColumn": 27,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction foo() {\n  for (const a in arguments) {\n    console.log(a);\n  }\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "forInViolation",
+          "Line": 3,
+          "Column": 3,
+          "EndLine": 3,
+          "EndColumn": 29,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const array:\n  | (({ a: string } & string[]) | Record<string, boolean>)\n  | Record<number, string>;\n\nfor (const key in array) {\n  console.log(key);\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "forInViolation",
+          "Line": 6,
+          "Column": 1,
+          "EndLine": 6,
+          "EndColumn": 25,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const array:\n  | (({ a: string } & RegExpExecArray) | Record<string, boolean>)\n  | Record<number, string>;\n\nfor (const key in array) {\n  console.log(k);\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "forInViolation",
+          "Line": 6,
+          "Column": 1,
+          "EndLine": 6,
+          "EndColumn": 25,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const obj: {\n  [key: number]: number;\n  length: 1;\n};\n\nfor (const key in obj) {\n  console.log(key);\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "forInViolation",
+          "Line": 7,
+          "Column": 1,
+          "EndLine": 7,
+          "EndColumn": 23,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    }
+  ]
+}

@@ -1,0 +1,31 @@
+[
+  {
+    "message": {
+      "id": "useDot",
+      "description": "[null] is better written in dot notation."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "end": 6,
+      "pos": 2
+    },
+    "fixes": [
+      {
+        "text": ".",
+        "range": {
+          "pos": 1,
+          "end": 1
+        }
+      },
+      {
+        "text": "null",
+        "range": {
+          "pos": 1,
+          "end": 7
+        }
+      }
+    ],
+    "kind": 0,
+    "rule": "dot-notation"
+  }
+]

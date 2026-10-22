@@ -1,0 +1,24 @@
+[
+  {
+    "range": {
+      "pos": 5,
+      "end": 22
+    },
+    "labeled_ranges": [
+      {
+        "label": "This expression has type `Promise<void>`.",
+        "range": {
+          "pos": 5,
+          "end": 22
+        }
+      }
+    ],
+    "kind": 0,
+    "rule": "no-misused-promises",
+    "message": {
+      "id": "conditional",
+      "description": "Expected non-Promise value in a boolean conditional."
+    },
+    "file_path": "file.ts"
+  }
+]

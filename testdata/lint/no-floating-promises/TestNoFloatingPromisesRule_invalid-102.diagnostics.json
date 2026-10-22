@@ -1,0 +1,64 @@
+[
+  {
+    "labeled_ranges": [
+      {
+        "label": "This unhandled promise-like value has type `Promise<never>`.",
+        "range": {
+          "pos": 1,
+          "end": 52
+        }
+      },
+      {
+        "label": "This rejection handler has type `undefined`, which is not callable.",
+        "range": {
+          "pos": 24,
+          "end": 33
+        }
+      }
+    ],
+    "kind": 0,
+    "rule": "no-floating-promises",
+    "message": {
+      "id": "floatingUselessRejectionHandlerVoid",
+      "description": "Promises must be awaited, add void operator to ignore.",
+      "help": "The promise must end with a call to .catch, or end with a call to .then with a rejection handler, or be explicitly marked as ignored with the `void` operator. A rejection handler that is not a function will be ignored."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 1,
+      "end": 52
+    },
+    "suggestions": [
+      {
+        "message": {
+          "id": "floatingFixVoid",
+          "description": "Add void operator to ignore."
+        },
+        "fixes": [
+          {
+            "text": "void ",
+            "range": {
+              "pos": 1,
+              "end": 1
+            }
+          }
+        ]
+      },
+      {
+        "message": {
+          "id": "floatingFixAwait",
+          "description": "Add await operator."
+        },
+        "fixes": [
+          {
+            "text": "await ",
+            "range": {
+              "pos": 1,
+              "end": 1
+            }
+          }
+        ]
+      }
+    ]
+  }
+]

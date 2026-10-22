@@ -1,0 +1,15 @@
+[
+  {
+    "kind": 0,
+    "rule": "switch-exhaustiveness-check",
+    "message": {
+      "id": "dangerousDefaultCase",
+      "description": "The switch statement is exhaustive, so the default case is unnecessary."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 164,
+      "end": 189
+    }
+  }
+]

@@ -1,0 +1,32 @@
+[
+  {
+    "kind": 0,
+    "rule": "use-unknown-in-catch-callback-variable",
+    "message": {
+      "id": "useUnknown",
+      "description": "Prefer the safe `: unknown` for a `catch` callback variable."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "end": 33,
+      "pos": 26
+    },
+    "suggestions": [
+      {
+        "message": {
+          "id": "addUnknownRestTypeAnnotationSuggestion",
+          "description": "Add an explicit `: [unknown]` type annotation to the rejection callback rest variable."
+        },
+        "fixes": [
+          {
+            "text": ": [unknown]",
+            "range": {
+              "end": 33,
+              "pos": 33
+            }
+          }
+        ]
+      }
+    ]
+  }
+]

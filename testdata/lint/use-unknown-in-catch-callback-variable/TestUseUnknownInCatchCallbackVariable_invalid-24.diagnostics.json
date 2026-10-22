@@ -1,0 +1,76 @@
+[
+  {
+    "message": {
+      "id": "useUnknown",
+      "description": "Prefer the safe `: unknown` for a `then` rejection callback variable."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 85,
+      "end": 88
+    },
+    "suggestions": [
+      {
+        "message": {
+          "id": "addUnknownTypeAnnotationSuggestion",
+          "description": "Add an explicit `: unknown` type annotation to the rejection callback variable."
+        },
+        "fixes": [
+          {
+            "text": "(",
+            "range": {
+              "end": 85,
+              "pos": 85
+            }
+          },
+          {
+            "text": ": unknown)",
+            "range": {
+              "end": 88,
+              "pos": 88
+            }
+          }
+        ]
+      }
+    ],
+    "kind": 0,
+    "rule": "use-unknown-in-catch-callback-variable"
+  },
+  {
+    "kind": 0,
+    "rule": "use-unknown-in-catch-callback-variable",
+    "message": {
+      "id": "useUnknown",
+      "description": "Prefer the safe `: unknown` for a `then` rejection callback variable."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "end": 100,
+      "pos": 97
+    },
+    "suggestions": [
+      {
+        "message": {
+          "id": "addUnknownTypeAnnotationSuggestion",
+          "description": "Add an explicit `: unknown` type annotation to the rejection callback variable."
+        },
+        "fixes": [
+          {
+            "text": "(",
+            "range": {
+              "pos": 97,
+              "end": 97
+            }
+          },
+          {
+            "text": ": unknown)",
+            "range": {
+              "pos": 100,
+              "end": 100
+            }
+          }
+        ]
+      }
+    ]
+  }
+]

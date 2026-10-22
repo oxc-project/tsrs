@@ -1,0 +1,15 @@
+[
+  {
+    "rule": "strict-void-return",
+    "message": {
+      "id": "nonVoidReturn",
+      "description": "Value returned in a context where a void return is expected."
+    },
+    "file_path": "react.tsx",
+    "range": {
+      "pos": 84,
+      "end": 85
+    },
+    "kind": 0
+  }
+]

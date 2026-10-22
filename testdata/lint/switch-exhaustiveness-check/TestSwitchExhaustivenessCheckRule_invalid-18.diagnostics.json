@@ -1,0 +1,32 @@
+[
+  {
+    "kind": 0,
+    "rule": "switch-exhaustiveness-check",
+    "message": {
+      "id": "switchIsNotExhaustive",
+      "description": "Switch is not exhaustive. Cases not matched: \"Friday\" | \"Saturday\" | \"Sunday\" | \"Thursday\" | \"Tuesday\" | \"Wednesday\""
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 167,
+      "end": 170
+    },
+    "suggestions": [
+      {
+        "message": {
+          "id": "addMissingCases",
+          "description": "Add branches for missing cases."
+        },
+        "fixes": [
+          {
+            "text": "\n  case \"Friday\": { throw new Error('Not implemented yet: \"Friday\" case') }\n  case \"Saturday\": { throw new Error('Not implemented yet: \"Saturday\" case') }\n  case \"Sunday\": { throw new Error('Not implemented yet: \"Sunday\" case') }\n  case \"Thursday\": { throw new Error('Not implemented yet: \"Thursday\" case') }\n  case \"Tuesday\": { throw new Error('Not implemented yet: \"Tuesday\" case') }\n  case \"Wednesday\": { throw new Error('Not implemented yet: \"Wednesday\" case') }",
+            "range": {
+              "pos": 223,
+              "end": 223
+            }
+          }
+        ]
+      }
+    ]
+  }
+]

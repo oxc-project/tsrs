@@ -1,0 +1,15 @@
+[
+  {
+    "message": {
+      "id": "overrides",
+      "description": "'never' overrides all other types in this intersection type."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 9,
+      "end": 14
+    },
+    "kind": 0,
+    "rule": "no-redundant-type-constituents"
+  }
+]

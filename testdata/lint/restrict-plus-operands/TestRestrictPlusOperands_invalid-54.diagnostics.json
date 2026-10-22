@@ -1,0 +1,30 @@
+[
+  {
+    "rule": "restrict-plus-operands",
+    "message": {
+      "id": "invalid",
+      "description": "Invalid operand of type 'any' for a '+' operation.",
+      "help": "Operands must each be a number or string, allowing a string + any of: `null`, `RegExp`, `undefined`."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 35,
+      "end": 36
+    },
+    "kind": 0
+  },
+  {
+    "range": {
+      "pos": 39,
+      "end": 40
+    },
+    "kind": 0,
+    "rule": "restrict-plus-operands",
+    "message": {
+      "id": "invalid",
+      "description": "Invalid operand of type 'boolean' for a '+' operation.",
+      "help": "Operands must each be a number or string, allowing a string + any of: `null`, `RegExp`, `undefined`."
+    },
+    "file_path": "file.ts"
+  }
+]

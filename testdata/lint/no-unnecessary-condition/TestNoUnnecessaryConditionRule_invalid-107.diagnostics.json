@@ -1,0 +1,16 @@
+[
+  {
+    "rule": "no-unnecessary-condition",
+    "message": {
+      "id": "alwaysNullish",
+      "description": "Unnecessary conditional, value is always nullish.",
+      "help": "The checked value has type `null`."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 131,
+      "end": 141
+    },
+    "kind": 0
+  }
+]

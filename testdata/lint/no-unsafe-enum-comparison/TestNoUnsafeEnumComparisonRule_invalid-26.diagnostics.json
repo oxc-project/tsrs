@@ -1,0 +1,49 @@
+[
+  {
+    "range": {
+      "pos": 108,
+      "end": 119
+    },
+    "suggestions": [
+      {
+        "message": {
+          "id": "replaceValueWithEnum",
+          "description": "Replace with an enum value comparison."
+        },
+        "fixes": [
+          {
+            "text": "Str.B",
+            "range": {
+              "end": 119,
+              "pos": 116
+            }
+          }
+        ]
+      }
+    ],
+    "labeled_ranges": [
+      {
+        "label": "Left operand: Str",
+        "range": {
+          "pos": 108,
+          "end": 111
+        }
+      },
+      {
+        "label": "Right operand: \"b\"",
+        "range": {
+          "pos": 116,
+          "end": 119
+        }
+      }
+    ],
+    "kind": 0,
+    "rule": "no-unsafe-enum-comparison",
+    "message": {
+      "id": "mismatchedCondition",
+      "description": "The two values in this comparison do not have a shared enum type.",
+      "help": "Compare enum values to members of the same enum, or convert both sides to the same primitive type before comparing them."
+    },
+    "file_path": "file.ts"
+  }
+]

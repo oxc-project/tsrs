@@ -1,0 +1,15 @@
+[
+  {
+    "file_path": "react.tsx",
+    "range": {
+      "pos": 81,
+      "end": 82
+    },
+    "kind": 0,
+    "rule": "no-deprecated",
+    "message": {
+      "id": "deprecated",
+      "description": "`A` is deprecated."
+    }
+  }
+]

@@ -1,0 +1,122 @@
+[
+  {
+    "kind": 0,
+    "rule": "no-floating-promises",
+    "message": {
+      "id": "floating",
+      "description": "Promises must be awaited, add await operator.",
+      "help": "The promise must end with a call to .catch, or end with a call to .then with a rejection handler."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 60,
+      "end": 78
+    },
+    "suggestions": [
+      {
+        "message": {
+          "id": "floatingFixAwait",
+          "description": "Add await operator."
+        },
+        "fixes": [
+          {
+            "text": "await ",
+            "range": {
+              "end": 60,
+              "pos": 60
+            }
+          }
+        ]
+      }
+    ],
+    "labeled_ranges": [
+      {
+        "label": "This unhandled promise-like value has type `Promise<void>`.",
+        "range": {
+          "end": 78,
+          "pos": 60
+        }
+      }
+    ]
+  },
+  {
+    "rule": "no-floating-promises",
+    "message": {
+      "id": "floating",
+      "description": "Promises must be awaited, add await operator.",
+      "help": "The promise must end with a call to .catch, or end with a call to .then with a rejection handler."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 144,
+      "end": 153
+    },
+    "suggestions": [
+      {
+        "message": {
+          "id": "floatingFixAwait",
+          "description": "Add await operator."
+        },
+        "fixes": [
+          {
+            "text": "await ",
+            "range": {
+              "pos": 144,
+              "end": 144
+            }
+          }
+        ]
+      }
+    ],
+    "labeled_ranges": [
+      {
+        "range": {
+          "pos": 144,
+          "end": 153
+        },
+        "label": "This unhandled promise-like value has type `Promise<void>`."
+      }
+    ],
+    "kind": 0
+  },
+  {
+    "rule": "no-floating-promises",
+    "message": {
+      "id": "floating",
+      "description": "Promises must be awaited, add await operator.",
+      "help": "The promise must end with a call to .catch, or end with a call to .then with a rejection handler."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 155,
+      "end": 172
+    },
+    "suggestions": [
+      {
+        "message": {
+          "id": "floatingFixAwait",
+          "description": "Add await operator."
+        },
+        "fixes": [
+          {
+            "text": "await ",
+            "range": {
+              "end": 155,
+              "pos": 155
+            }
+          }
+        ]
+      }
+    ],
+    "labeled_ranges": [
+      {
+        "label": "This unhandled promise-like value has type `Promise<void>`.",
+        "range": {
+          "pos": 155,
+          "end": 172
+        }
+      }
+    ],
+    "kind": 0
+  }
+]

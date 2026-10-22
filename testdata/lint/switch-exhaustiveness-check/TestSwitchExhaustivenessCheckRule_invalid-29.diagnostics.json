@@ -1,0 +1,32 @@
+[
+  {
+    "suggestions": [
+      {
+        "message": {
+          "id": "addMissingCases",
+          "description": "Add branches for missing cases."
+        },
+        "fixes": [
+          {
+            "text": "{\n  case Enum['9test']: { throw new Error('Not implemented yet: Enum[\\'9test\\'] case') }\n  case Enum.test: { throw new Error('Not implemented yet: Enum.test case') }\n  }",
+            "range": {
+              "pos": 117,
+              "end": 122
+            }
+          }
+        ]
+      }
+    ],
+    "kind": 0,
+    "rule": "switch-exhaustiveness-check",
+    "message": {
+      "id": "switchIsNotExhaustive",
+      "description": "Switch is not exhaustive. Cases not matched: (typeof Enum)[\"9test\"] | Enum.test"
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 112,
+      "end": 115
+    }
+  }
+]

@@ -1,0 +1,64 @@
+[
+  {
+    "kind": 0,
+    "range": {
+      "pos": 65,
+      "end": 83
+    },
+    "message": {
+      "id": "neverOptionalChain",
+      "description": "Unnecessary optional chain on a non-nullish value.",
+      "help": "The checked value has type `{ qux?: (() => {}) | undefined; }`. Remove the optional chain; the value cannot be `null` or `undefined`."
+    },
+    "file_path": "file.ts",
+    "rule": "no-unnecessary-condition",
+    "suggestions": [
+      {
+        "message": {
+          "id": "suggestRemoveOptionalChain",
+          "description": "Remove unnecessary optional chain"
+        },
+        "fixes": [
+          {
+            "text": ".",
+            "range": {
+              "pos": 78,
+              "end": 80
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 65,
+      "end": 78
+    },
+    "message": {
+      "id": "neverOptionalChain",
+      "description": "Unnecessary optional chain on a non-nullish value.",
+      "help": "The checked value has type `{ baz: { qux?: (() => {}) | undefined; }; }`. Remove the optional chain; the value cannot be `null` or `undefined`."
+    },
+    "file_path": "file.ts",
+    "rule": "no-unnecessary-condition",
+    "suggestions": [
+      {
+        "message": {
+          "id": "suggestRemoveOptionalChain",
+          "description": "Remove unnecessary optional chain"
+        },
+        "fixes": [
+          {
+            "text": ".",
+            "range": {
+              "pos": 73,
+              "end": 75
+            }
+          }
+        ]
+      }
+    ]
+  }
+]

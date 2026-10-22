@@ -1,0 +1,54 @@
+[
+  {
+    "message": {
+      "id": "noMapSpreadInObject",
+      "description": "Using the spread operator on a Map in an object will result in an empty object.",
+      "help": "Did you mean to use `Object.fromEntries(map)` instead?"
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 77,
+      "end": 83
+    },
+    "suggestions": [
+      {
+        "message": {
+          "id": "replaceMapSpreadInObject",
+          "description": "Replace map spread in object with `Object.fromEntries()`"
+        },
+        "fixes": [
+          {
+            "text": "",
+            "range": {
+              "pos": 75,
+              "end": 76
+            }
+          },
+          {
+            "text": "Object.fromEntries(",
+            "range": {
+              "end": 80,
+              "pos": 77
+            }
+          },
+          {
+            "text": ")",
+            "range": {
+              "pos": 83,
+              "end": 83
+            }
+          },
+          {
+            "text": "",
+            "range": {
+              "pos": 84,
+              "end": 85
+            }
+          }
+        ]
+      }
+    ],
+    "kind": 0,
+    "rule": "no-misused-spread"
+  }
+]

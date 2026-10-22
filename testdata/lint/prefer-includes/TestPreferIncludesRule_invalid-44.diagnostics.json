@@ -1,0 +1,38 @@
+[
+  {
+    "kind": 0,
+    "rule": "prefer-includes",
+    "message": {
+      "id": "preferStringIncludes",
+      "description": "Use `String#includes()` method with a string instead."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 81,
+      "end": 96
+    },
+    "fixes": [
+      {
+        "text": "",
+        "range": {
+          "pos": 81,
+          "end": 94
+        }
+      },
+      {
+        "text": "",
+        "range": {
+          "pos": 95,
+          "end": 96
+        }
+      },
+      {
+        "text": ".includes('word')",
+        "range": {
+          "pos": 95,
+          "end": 95
+        }
+      }
+    ]
+  }
+]

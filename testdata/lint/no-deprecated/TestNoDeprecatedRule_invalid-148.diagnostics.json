@@ -1,0 +1,15 @@
+[
+  {
+    "kind": 0,
+    "rule": "no-deprecated",
+    "message": {
+      "id": "deprecated",
+      "description": "`field` is deprecated."
+    },
+    "file_path": "react.tsx",
+    "range": {
+      "pos": 132,
+      "end": 137
+    }
+  }
+]

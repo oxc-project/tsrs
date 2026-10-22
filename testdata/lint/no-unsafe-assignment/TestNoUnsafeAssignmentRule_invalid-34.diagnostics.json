@@ -1,0 +1,16 @@
+[
+  {
+    "kind": 0,
+    "range": {
+      "pos": 12,
+      "end": 25
+    },
+    "message": {
+      "id": "unsafeArraySpread",
+      "description": "Unsafe spread of an any value in an array.",
+      "help": "The spread value has type `any`. Use a safely typed array or narrow the value before spreading it."
+    },
+    "file_path": "file.ts",
+    "rule": "no-unsafe-assignment"
+  }
+]

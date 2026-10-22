@@ -1,0 +1,24 @@
+[
+  {
+    "kind": 0,
+    "rule": "no-misused-promises",
+    "message": {
+      "id": "voidReturnReturnValue",
+      "description": "Promise-returning function provided to return value where a void return was expected."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 245,
+      "end": 258
+    },
+    "labeled_ranges": [
+      {
+        "label": "This expression has type `((x: number) => Promise<void>) | undefined`.",
+        "range": {
+          "pos": 245,
+          "end": 258
+        }
+      }
+    ]
+  }
+]

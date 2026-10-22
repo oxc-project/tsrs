@@ -1,0 +1,318 @@
+{
+  "Name": "no-unnecessary-qualifier",
+  "TSConfig": "tsconfig.minimal.json",
+  "Valid": [
+    {
+      "Code": "\nnamespace X {\n  export type T = number;\n}\n\nnamespace Y {\n  export const x: X.T = 3;\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nnamespace A {}\nnamespace A.B {\n  export type Z = 1;\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nenum A {\n  X,\n  Y,\n}\n\nenum B {\n  Z = A.X,\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nnamespace X {\n  export type T = number;\n  namespace Y {\n    type T = string;\n    const x: X.T = 0;\n  }\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "const x: A.B = 3;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nnamespace X {\n  const z = X.y;\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nenum Foo {\n  One,\n}\n\nnamespace Foo {\n  export function bar() {\n    return Foo.One;\n  }\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nnamespace Foo {\n  export enum Foo {\n    One,\n  }\n}\n\nnamespace Foo {\n  export function bar() {\n    return Foo.One;\n  }\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    }
+  ],
+  "Invalid": [
+    {
+      "Code": "\nnamespace A {\n  export type B = number;\n  const x: A.B = 3;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nnamespace A {\n  export type B = number;\n  const x: B = 3;\n}\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryQualifier",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nnamespace A {\n  export const x = 3;\n  export const y = A.x;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nnamespace A {\n  export const x = 3;\n  export const y = x;\n}\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryQualifier",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nnamespace A {\n  export type T = number;\n  export namespace B {\n    const x: A.T = 3;\n  }\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nnamespace A {\n  export type T = number;\n  export namespace B {\n    const x: T = 3;\n  }\n}\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryQualifier",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nnamespace A {\n  export namespace B {\n    export type T = number;\n    const x: A.B.T = 3;\n  }\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nnamespace A {\n  export namespace B {\n    export type T = number;\n    const x: T = 3;\n  }\n}\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryQualifier",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nnamespace A {\n  export namespace B.C {\n    export type D = number;\n    const x: A.B.C.D = 3;\n  }\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nnamespace A {\n  export namespace B.C {\n    export type D = number;\n    const x: D = 3;\n  }\n}\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryQualifier",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nnamespace Outer {\n  export type T = number;\n  export namespace A.B {}\n  const x: Outer.T = 3;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nnamespace Outer {\n  export type T = number;\n  export namespace A.B {}\n  const x: T = 3;\n}\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryQualifier",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nnamespace A {\n  export namespace B {\n    export const x = 3;\n    const y = A.B.x;\n  }\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nnamespace A {\n  export namespace B {\n    export const x = 3;\n    const y = x;\n  }\n}\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryQualifier",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nenum A {\n  B,\n  C = A.B,\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nenum A {\n  B,\n  C = B,\n}\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryQualifier",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nnamespace Foo {\n  export enum A {\n    B,\n    C = Foo.A.B,\n  }\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nnamespace Foo {\n  export enum A {\n    B,\n    C = B,\n  }\n}\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryQualifier",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nimport * as Foo from './foo';\ndeclare module './foo' {\n  const x: Foo.T = 3;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nimport * as Foo from './foo';\ndeclare module './foo' {\n  const x: T = 3;\n}\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryQualifier",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    }
+  ]
+}

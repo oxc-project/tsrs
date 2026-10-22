@@ -1,0 +1,15 @@
+[
+  {
+    "kind": 0,
+    "rule": "no-deprecated",
+    "message": {
+      "id": "deprecatedWithReason",
+      "description": "`isReceiver` is deprecated. This param is not used and will be removed in the future."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 302,
+      "end": 312
+    }
+  }
+]

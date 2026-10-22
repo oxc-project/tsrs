@@ -1,0 +1,1113 @@
+[
+  {
+    "name": "utf8_inline_empty",
+    "source": "export {};\ndeclare const été: 'été' | '☃' | '😀';\n/*é😀*/ switch (été) {}",
+    "options": null,
+    "expected": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 77,
+          "end": 82
+        },
+        "message": {
+          "id": "switchIsNotExhaustive",
+          "description": "Switch is not exhaustive. Cases not matched: \"été\" | \"☃\" | \"😀\""
+        },
+        "rule": "switch-exhaustiveness-check",
+        "suggestions": [
+          {
+            "message": {
+              "id": "addMissingCases",
+              "description": "Add branches for missing cases."
+            },
+            "fixes": [
+              {
+                "text": "{\n        case \"été\": { throw new Error('Not implemented yet: \"été\" case') }\n        case \"☃\": { throw new Error('Not implemented yet: \"☃\" case') }\n        case \"😀\": { throw new Error('Not implemented yet: \"😀\" case') }\n        }",
+                "range": {
+                  "pos": 84,
+                  "end": 86
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "literal_and_default",
+    "source": "export {};\ndeclare const été: 'été' | number;\nswitch (été) {\n  case 1: break;\n}",
+    "options": {
+      "requireDefaultForNonUnion": true
+    },
+    "expected": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 58,
+          "end": 63
+        },
+        "message": {
+          "id": "switchIsNotExhaustive",
+          "description": "Switch is not exhaustive. Cases not matched: \"été\""
+        },
+        "rule": "switch-exhaustiveness-check",
+        "suggestions": [
+          {
+            "message": {
+              "id": "addMissingCases",
+              "description": "Add branches for missing cases."
+            },
+            "fixes": [
+              {
+                "text": "\n  case \"été\": { throw new Error('Not implemented yet: \"été\" case') }",
+                "range": {
+                  "pos": 83,
+                  "end": 83
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "kind": 0,
+        "range": {
+          "pos": 58,
+          "end": 63
+        },
+        "message": {
+          "id": "switchIsNotExhaustive",
+          "description": "Switch is not exhaustive. Cases not matched: default"
+        },
+        "rule": "switch-exhaustiveness-check",
+        "suggestions": [
+          {
+            "message": {
+              "id": "addMissingCases",
+              "description": "Add branches for missing cases."
+            },
+            "fixes": [
+              {
+                "text": "\n  default: { throw new Error('default case') }",
+                "range": {
+                  "pos": 83,
+                  "end": 83
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "default_first",
+    "source": "export {};\ndeclare const état: 'été' | '☃';\nswitch (état) {\n  default: break;\n\tcase 'été': break;\n}",
+    "options": null,
+    "expected": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 57,
+          "end": 62
+        },
+        "message": {
+          "id": "switchIsNotExhaustive",
+          "description": "Switch is not exhaustive. Cases not matched: \"☃\""
+        },
+        "rule": "switch-exhaustiveness-check",
+        "suggestions": [
+          {
+            "message": {
+              "id": "addMissingCases",
+              "description": "Add branches for missing cases."
+            },
+            "fixes": [
+              {
+                "text": "case \"☃\": { throw new Error('Not implemented yet: \"☃\" case') }\n ",
+                "range": {
+                  "pos": 68,
+                  "end": 68
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "default_middle_crlf",
+    "source": "export {};\ndeclare const état: 'été' | '☃' | '😀';\r\nswitch (état) {\r\n  case 'été': break;\r\n  default: break;\r\n  case '☃': break;\r\n}",
+    "options": null,
+    "expected": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 67,
+          "end": 72
+        },
+        "message": {
+          "id": "switchIsNotExhaustive",
+          "description": "Switch is not exhaustive. Cases not matched: \"😀\""
+        },
+        "rule": "switch-exhaustiveness-check",
+        "suggestions": [
+          {
+            "message": {
+              "id": "addMissingCases",
+              "description": "Add branches for missing cases."
+            },
+            "fixes": [
+              {
+                "text": "case \"😀\": { throw new Error('Not implemented yet: \"😀\" case') }\n  ",
+                "range": {
+                  "pos": 103,
+                  "end": 103
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "generic_constraint",
+    "source": "export {};\nfunction f<T extends 'été' | 2n | undefined>(état: T) {\n  switch (état) { case 'été': break; }\n}",
+    "options": null,
+    "expected": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 80,
+          "end": 85
+        },
+        "message": {
+          "id": "switchIsNotExhaustive",
+          "description": "Switch is not exhaustive. Cases not matched: undefined | 2n"
+        },
+        "rule": "switch-exhaustiveness-check",
+        "suggestions": [
+          {
+            "message": {
+              "id": "addMissingCases",
+              "description": "Add branches for missing cases."
+            },
+            "fixes": [
+              {
+                "text": "\n                  case undefined: { throw new Error('Not implemented yet: undefined case') }\n                  case 2n: { throw new Error('Not implemented yet: 2n case') }",
+                "range": {
+                  "pos": 109,
+                  "end": 109
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "undefined_cases",
+    "source": "export {};\nfunction f(état?: 'été') {\n  switch (état) { case undefined: break; }\n  switch (état) { case 'été': break; }\n}",
+    "options": null,
+    "expected": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 51,
+          "end": 56
+        },
+        "message": {
+          "id": "switchIsNotExhaustive",
+          "description": "Switch is not exhaustive. Cases not matched: \"été\""
+        },
+        "rule": "switch-exhaustiveness-check",
+        "suggestions": [
+          {
+            "message": {
+              "id": "addMissingCases",
+              "description": "Add branches for missing cases."
+            },
+            "fixes": [
+              {
+                "text": "\n                  case \"été\": { throw new Error('Not implemented yet: \"été\" case') }",
+                "range": {
+                  "pos": 82,
+                  "end": 82
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "kind": 0,
+        "range": {
+          "pos": 95,
+          "end": 100
+        },
+        "message": {
+          "id": "switchIsNotExhaustive",
+          "description": "Switch is not exhaustive. Cases not matched: undefined"
+        },
+        "rule": "switch-exhaustiveness-check",
+        "suggestions": [
+          {
+            "message": {
+              "id": "addMissingCases",
+              "description": "Add branches for missing cases."
+            },
+            "fixes": [
+              {
+                "text": "\n                  case undefined: { throw new Error('Not implemented yet: undefined case') }",
+                "range": {
+                  "pos": 124,
+                  "end": 124
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "brands_and_duplicates",
+    "source": "export {};\ndeclare const état: ('été' & {a:1}) | ('été' & {b:2}) | ('☃' & {a:1});\nswitch (état) { case 'été': break; }",
+    "options": null,
+    "expected": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 97,
+          "end": 102
+        },
+        "message": {
+          "id": "switchIsNotExhaustive",
+          "description": "Switch is not exhaustive. Cases not matched: \"☃\""
+        },
+        "rule": "switch-exhaustiveness-check",
+        "suggestions": [
+          {
+            "message": {
+              "id": "addMissingCases",
+              "description": "Add branches for missing cases."
+            },
+            "fixes": [
+              {
+                "text": "\n                case \"☃\": { throw new Error('Not implemented yet: \"☃\" case') }",
+                "range": {
+                  "pos": 126,
+                  "end": 126
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "constrained_case",
+    "source": "export {};\nfunction f<T extends 'été'>(état: 'été' | '☃', matched: T) {\n  switch (état) { case matched: break; }\n}",
+    "options": null,
+    "expected": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 89,
+          "end": 94
+        },
+        "message": {
+          "id": "switchIsNotExhaustive",
+          "description": "Switch is not exhaustive. Cases not matched: \"☃\""
+        },
+        "rule": "switch-exhaustiveness-check",
+        "suggestions": [
+          {
+            "message": {
+              "id": "addMissingCases",
+              "description": "Add branches for missing cases."
+            },
+            "fixes": [
+              {
+                "text": "\n                  case \"☃\": { throw new Error('Not implemented yet: \"☃\" case') }",
+                "range": {
+                  "pos": 118,
+                  "end": 118
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "symbols",
+    "source": "export {};\ndeclare const été: unique symbol;\ndeclare const 雪: unique symbol;\ndeclare const état: typeof été | typeof 雪;\nswitch (état) { case été: break; }",
+    "options": null,
+    "expected": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 137,
+          "end": 142
+        },
+        "message": {
+          "id": "switchIsNotExhaustive",
+          "description": "Switch is not exhaustive. Cases not matched: typeof 雪"
+        },
+        "rule": "switch-exhaustiveness-check",
+        "suggestions": [
+          {
+            "message": {
+              "id": "addMissingCases",
+              "description": "Add branches for missing cases."
+            },
+            "fixes": [
+              {
+                "text": "\n                case 雪: { throw new Error('Not implemented yet: 雪 case') }",
+                "range": {
+                  "pos": 164,
+                  "end": 164
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "enum_escaping",
+    "source": "export {};\nenum Énum { 'a\\'b' = 0, 'ligne\\n\\u0001\\u0085\\u2028\\u2029' = 1, 雪 = 2 }\ndeclare const état: Énum;\nswitch (état) {}",
+    "options": null,
+    "expected": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 121,
+          "end": 126
+        },
+        "message": {
+          "id": "switchIsNotExhaustive",
+          "description": "Switch is not exhaustive. Cases not matched: (typeof Énum)[\"a'b\"] | (typeof Énum)[\"ligne\\n\\u0001\\u0085\\u2028\\u2029\"] | Énum.雪"
+        },
+        "rule": "switch-exhaustiveness-check",
+        "suggestions": [
+          {
+            "message": {
+              "id": "addMissingCases",
+              "description": "Add branches for missing cases."
+            },
+            "fixes": [
+              {
+                "text": "{\ncase Énum['a\\'b']: { throw new Error('Not implemented yet: Énum[\\'a\\\\\\'b\\'] case') }\ncase Énum['ligne\\n\\u0001\\u0085\\u2028\\u2029']: { throw new Error('Not implemented yet: Énum[\\'ligne\\\\n\\\\u0001\\\\u0085\\\\u2028\\\\u2029\\'] case') }\ncase Énum.雪: { throw new Error('Not implemented yet: Énum.雪 case') }\n}",
+                "range": {
+                  "pos": 128,
+                  "end": 130
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "unnecessary_default",
+    "source": "export {};\ndeclare const état: 'été';\nswitch (état) { case 'été': break; default: { /*😀*/ break; } }",
+    "options": {
+      "allowDefaultCaseForExhaustiveSwitch": false
+    },
+    "expected": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 79,
+          "end": 107
+        },
+        "message": {
+          "id": "dangerousDefaultCase",
+          "description": "The switch statement is exhaustive, so the default case is unnecessary."
+        },
+        "rule": "switch-exhaustiveness-check"
+      }
+    ]
+  },
+  {
+    "name": "never_default",
+    "source": "export {};\ndeclare const état: never;\nswitch (état) { default: break; }",
+    "options": {
+      "allowDefaultCaseForExhaustiveSwitch": false
+    },
+    "expected": []
+  },
+  {
+    "name": "consider_default",
+    "source": "export {};\ndeclare const état: 'été' | '☃';\nswitch (état) { default: break; }",
+    "options": {
+      "considerDefaultExhaustiveForUnions": true,
+      "allowDefaultCaseForExhaustiveSwitch": false
+    },
+    "expected": []
+  },
+  {
+    "name": "consider_and_unnecessary",
+    "source": "export {};\ndeclare const état: 'été';\nswitch (état) { case 'été': break; default: break; }",
+    "options": {
+      "considerDefaultExhaustiveForUnions": true,
+      "allowDefaultCaseForExhaustiveSwitch": false
+    },
+    "expected": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 79,
+          "end": 94
+        },
+        "message": {
+          "id": "dangerousDefaultCase",
+          "description": "The switch statement is exhaustive, so the default case is unnecessary."
+        },
+        "rule": "switch-exhaustiveness-check"
+      }
+    ]
+  },
+  {
+    "name": "null_defaults",
+    "source": "export {};\ndeclare const état: 'été' | '☃';\nswitch (état) { default: break; }",
+    "options": {
+      "allowDefaultCaseForExhaustiveSwitch": null,
+      "considerDefaultExhaustiveForUnions": null,
+      "requireDefaultForNonUnion": null,
+      "defaultCaseCommentPattern": null
+    },
+    "expected": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 57,
+          "end": 62
+        },
+        "message": {
+          "id": "switchIsNotExhaustive",
+          "description": "Switch is not exhaustive. Cases not matched: \"été\" | \"☃\""
+        },
+        "rule": "switch-exhaustiveness-check",
+        "suggestions": [
+          {
+            "message": {
+              "id": "addMissingCases",
+              "description": "Add branches for missing cases."
+            },
+            "fixes": [
+              {
+                "text": "case \"été\": { throw new Error('Not implemented yet: \"été\" case') }\n                case \"☃\": { throw new Error('Not implemented yet: \"☃\" case') }\n                ",
+                "range": {
+                  "pos": 66,
+                  "end": 66
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "comment_pattern_unused",
+    "source": "export {};\ndeclare const état: 'été' | '☃';\nswitch (état) {\n  // omitted\n}\n",
+    "options": {
+      "defaultCaseCommentPattern": "[",
+      "unknown": 42
+    },
+    "expected": [],
+    "error": "invalid defaultCaseCommentPattern"
+  },
+  {
+    "name": "non_literal_empty",
+    "source": "export {};\ndeclare const état: unknown;\n/*😀*/ switch (état) {}",
+    "options": {
+      "requireDefaultForNonUnion": true
+    },
+    "expected": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 58,
+          "end": 63
+        },
+        "message": {
+          "id": "switchIsNotExhaustive",
+          "description": "Switch is not exhaustive. Cases not matched: default"
+        },
+        "rule": "switch-exhaustiveness-check",
+        "suggestions": [
+          {
+            "message": {
+              "id": "addMissingCases",
+              "description": "Add branches for missing cases."
+            },
+            "fixes": [
+              {
+                "text": "{\n       default: { throw new Error('default case') }\n       }",
+                "range": {
+                  "pos": 65,
+                  "end": 67
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "ecma_line_separators",
+    "source": "export {};\ndeclare const état: 'été' | '☃';   switch (état) {     case 'été': break;   }",
+    "options": null,
+    "expected": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 61,
+          "end": 66
+        },
+        "message": {
+          "id": "switchIsNotExhaustive",
+          "description": "Switch is not exhaustive. Cases not matched: \"☃\""
+        },
+        "rule": "switch-exhaustiveness-check",
+        "suggestions": [
+          {
+            "message": {
+              "id": "addMissingCases",
+              "description": "Add branches for missing cases."
+            },
+            "fixes": [
+              {
+                "text": "\n    case \"☃\": { throw new Error('Not implemented yet: \"☃\" case') }",
+                "range": {
+                  "pos": 96,
+                  "end": 96
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "nested_switches",
+    "source": "export {};\ndeclare const état: 'été' | '☃';\nswitch (état) { case 'été': { switch (état) {} break; } }",
+    "options": null,
+    "expected": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 57,
+          "end": 62
+        },
+        "message": {
+          "id": "switchIsNotExhaustive",
+          "description": "Switch is not exhaustive. Cases not matched: \"☃\""
+        },
+        "rule": "switch-exhaustiveness-check",
+        "suggestions": [
+          {
+            "message": {
+              "id": "addMissingCases",
+              "description": "Add branches for missing cases."
+            },
+            "fixes": [
+              {
+                "text": "\n                case \"☃\": { throw new Error('Not implemented yet: \"☃\" case') }",
+                "range": {
+                  "pos": 108,
+                  "end": 108
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "kind": 0,
+        "range": {
+          "pos": 90,
+          "end": 95
+        },
+        "message": {
+          "id": "switchIsNotExhaustive",
+          "description": "Switch is not exhaustive. Cases not matched: \"été\""
+        },
+        "rule": "switch-exhaustiveness-check",
+        "suggestions": [
+          {
+            "message": {
+              "id": "addMissingCases",
+              "description": "Add branches for missing cases."
+            },
+            "fixes": [
+              {
+                "text": "{\n                              case \"été\": { throw new Error('Not implemented yet: \"été\" case') }\n                              }",
+                "range": {
+                  "pos": 97,
+                  "end": 99
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "empty_options",
+    "source": "export {};\ndeclare const état: 'été' | '☃';\nswitch (état) { default: break; }",
+    "options": {},
+    "expected": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 57,
+          "end": 62
+        },
+        "message": {
+          "id": "switchIsNotExhaustive",
+          "description": "Switch is not exhaustive. Cases not matched: \"été\" | \"☃\""
+        },
+        "rule": "switch-exhaustiveness-check",
+        "suggestions": [
+          {
+            "message": {
+              "id": "addMissingCases",
+              "description": "Add branches for missing cases."
+            },
+            "fixes": [
+              {
+                "text": "case \"été\": { throw new Error('Not implemented yet: \"été\" case') }\n                case \"☃\": { throw new Error('Not implemented yet: \"☃\" case') }\n                ",
+                "range": {
+                  "pos": 66,
+                  "end": 66
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "comment_pattern_lookahead",
+    "source": "export {}; declare const value: 'a' | 'b'; switch(value) { case 'a': break;\n// skip default\n}",
+    "options": {
+      "considerDefaultExhaustiveForUnions": true,
+      "defaultCaseCommentPattern": "^(?=skip)skip\\sdefault$"
+    },
+    "expected": []
+  },
+  {
+    "name": "comment_pattern_backreference",
+    "source": "export {}; declare const value: 'a' | 'b'; switch(value) { case 'a': break;\n// skip skip\n}",
+    "options": {
+      "considerDefaultExhaustiveForUnions": true,
+      "defaultCaseCommentPattern": "^(skip)\\s\\1$"
+    },
+    "expected": []
+  },
+  {
+    "name": "comment_pattern_ascii_word",
+    "source": "export {}; declare const value: 'a' | 'b'; switch(value) { case 'a': break;\n// été\n}",
+    "options": {
+      "considerDefaultExhaustiveForUnions": true,
+      "defaultCaseCommentPattern": "^\\w+$"
+    },
+    "expected": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 50,
+          "end": 55
+        },
+        "message": {
+          "id": "switchIsNotExhaustive",
+          "description": "Switch is not exhaustive. Cases not matched: \"b\""
+        },
+        "rule": "switch-exhaustiveness-check",
+        "suggestions": [
+          {
+            "message": {
+              "id": "addMissingCases",
+              "description": "Add branches for missing cases."
+            },
+            "fixes": [
+              {
+                "text": "\n                                                           case \"b\": { throw new Error('Not implemented yet: \"b\" case') }",
+                "range": {
+                  "pos": 75,
+                  "end": 75
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "comment_pattern_unicode_property",
+    "source": "export {}; declare const value: 'a' | 'b'; switch(value) { case 'a': break;\n// été\n}",
+    "options": {
+      "considerDefaultExhaustiveForUnions": true,
+      "defaultCaseCommentPattern": "^\\p{L}+$"
+    },
+    "expected": []
+  },
+  {
+    "name": "comment_pattern_inline_flags",
+    "source": "export {}; declare const value: 'a' | 'b'; switch(value) { case 'a': break;\n// skip default\n}",
+    "options": {
+      "considerDefaultExhaustiveForUnions": true,
+      "defaultCaseCommentPattern": "(?i)^SKIP DEFAULT$"
+    },
+    "expected": []
+  },
+  {
+    "name": "comment_pattern_inline_middle",
+    "source": "export {}; declare const value: 'a' | 'b'; switch(value) { case 'a': break;\n// skip DEFAULT\n}",
+    "options": {
+      "considerDefaultExhaustiveForUnions": true,
+      "defaultCaseCommentPattern": "^skip (?i)default$"
+    },
+    "expected": []
+  },
+  {
+    "name": "comment_pattern_inline_alternation",
+    "source": "export {}; declare const value: 'a' | 'b'; switch(value) { case 'a': break;\n// SKIP DEFAULT\n}",
+    "options": {
+      "considerDefaultExhaustiveForUnions": true,
+      "defaultCaseCommentPattern": "^omit(?i)|^skip default$"
+    },
+    "expected": []
+  },
+  {
+    "name": "comment_pattern_nested_flags",
+    "source": "export {}; declare const value: 'a' | 'b'; switch(value) { case 'a': break;\n// omit\n}",
+    "options": {
+      "considerDefaultExhaustiveForUnions": true,
+      "defaultCaseCommentPattern": "^(skip(?i) default)|OMIT$"
+    },
+    "expected": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 50,
+          "end": 55
+        },
+        "message": {
+          "id": "switchIsNotExhaustive",
+          "description": "Switch is not exhaustive. Cases not matched: \"b\""
+        },
+        "rule": "switch-exhaustiveness-check",
+        "suggestions": [
+          {
+            "message": {
+              "id": "addMissingCases",
+              "description": "Add branches for missing cases."
+            },
+            "fixes": [
+              {
+                "text": "\n                                                           case \"b\": { throw new Error('Not implemented yet: \"b\" case') }",
+                "range": {
+                  "pos": 75,
+                  "end": 75
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "comment_pattern_scoped_flags",
+    "source": "export {}; declare const value: 'a' | 'b'; switch(value) { case 'a': break;\n// SKIP DEFAULT\n}",
+    "options": {
+      "considerDefaultExhaustiveForUnions": true,
+      "defaultCaseCommentPattern": "^(?i:skip(?-i) default)$"
+    },
+    "expected": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 50,
+          "end": 55
+        },
+        "message": {
+          "id": "switchIsNotExhaustive",
+          "description": "Switch is not exhaustive. Cases not matched: \"b\""
+        },
+        "rule": "switch-exhaustiveness-check",
+        "suggestions": [
+          {
+            "message": {
+              "id": "addMissingCases",
+              "description": "Add branches for missing cases."
+            },
+            "fixes": [
+              {
+                "text": "\n                                                           case \"b\": { throw new Error('Not implemented yet: \"b\" case') }",
+                "range": {
+                  "pos": 75,
+                  "end": 75
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "comment_pattern_inline_quantifier",
+    "source": "export {}; declare const value: 'a' | 'b'; switch(value) { case 'a': break;\n// sKIPP default\n}",
+    "options": {
+      "considerDefaultExhaustiveForUnions": true,
+      "defaultCaseCommentPattern": "^s(?i)kip+(?-i) default$"
+    },
+    "expected": []
+  },
+  {
+    "name": "comment_pattern_literal_braces",
+    "source": "export {}; declare const value: 'a' | 'b'; switch(value) { case 'a': break;\n// {abc}\n}",
+    "options": {
+      "considerDefaultExhaustiveForUnions": true,
+      "defaultCaseCommentPattern": "(?i){abc}"
+    },
+    "expected": []
+  },
+  {
+    "name": "comment_pattern_literal_open_brace",
+    "source": "export {}; declare const value: 'a' | 'b'; switch(value) { case 'a': break;\n// {\n}",
+    "options": {
+      "considerDefaultExhaustiveForUnions": true,
+      "defaultCaseCommentPattern": "(?i){"
+    },
+    "expected": []
+  },
+  {
+    "name": "comment_pattern_literal_close_brace",
+    "source": "export {}; declare const value: 'a' | 'b'; switch(value) { case 'a': break;\n// }\n}",
+    "options": {
+      "considerDefaultExhaustiveForUnions": true,
+      "defaultCaseCommentPattern": "^}$"
+    },
+    "expected": []
+  },
+  {
+    "name": "comment_pattern_literal_bracket",
+    "source": "export {}; declare const value: 'a' | 'b'; switch(value) { case 'a': break;\n// ]\n}",
+    "options": {
+      "considerDefaultExhaustiveForUnions": true,
+      "defaultCaseCommentPattern": "^]$"
+    },
+    "expected": []
+  },
+  {
+    "name": "comment_pattern_regex_comment",
+    "source": "export {}; declare const value: 'a' | 'b'; switch(value) { case 'a': break;\n// skip default\n}",
+    "options": {
+      "considerDefaultExhaustiveForUnions": true,
+      "defaultCaseCommentPattern": "^skip(?#note) default$"
+    },
+    "expected": []
+  },
+  {
+    "name": "comment_pattern_regex_comment_quantifier",
+    "source": "export {}; declare const value: 'a' | 'b'; switch(value) { case 'a': break;\n// sss\n}",
+    "options": {
+      "considerDefaultExhaustiveForUnions": true,
+      "defaultCaseCommentPattern": "^s(?#note)+$"
+    },
+    "expected": []
+  },
+  {
+    "name": "comment_pattern_identity_escapes",
+    "source": "export {}; declare const value: 'a' | 'b'; switch(value) { case 'a': break;\n// QskipE\n}",
+    "options": {
+      "considerDefaultExhaustiveForUnions": true,
+      "defaultCaseCommentPattern": "^\\Qskip\\E$"
+    },
+    "expected": []
+  },
+  {
+    "name": "comment_pattern_literal_bad_quantifier",
+    "source": "export {}; declare const value: 'a' | 'b'; switch(value) { case 'a': break;\n// {1,2,3}\n}",
+    "options": {
+      "considerDefaultExhaustiveForUnions": true,
+      "defaultCaseCommentPattern": "^{1,2,3}$"
+    },
+    "expected": []
+  },
+  {
+    "name": "comment_pattern_unicode_escape",
+    "source": "export {}; declare const value: 'a' | 'b'; switch(value) { case 'a': break;\n// skip\n}",
+    "options": {
+      "considerDefaultExhaustiveForUnions": true,
+      "defaultCaseCommentPattern": "^\\u{73}kip$"
+    },
+    "expected": []
+  },
+  {
+    "name": "comment_pattern_absolute_anchors",
+    "source": "export {}; declare const value: 'a' | 'b'; switch(value) { case 'a': break;\n/*skip*/\n}",
+    "options": {
+      "considerDefaultExhaustiveForUnions": true,
+      "defaultCaseCommentPattern": "\\Askip\\z"
+    },
+    "expected": []
+  },
+  {
+    "name": "comment_pattern_final_newline_anchor",
+    "source": "export {}; declare const value: 'a' | 'b'; switch(value) { case 'a': break;\n/*skip*/\n}",
+    "options": {
+      "considerDefaultExhaustiveForUnions": true,
+      "defaultCaseCommentPattern": "\\Askip\\Z"
+    },
+    "expected": []
+  },
+  {
+    "name": "comment_pattern_search_start_anchor",
+    "source": "export {}; declare const value: 'a' | 'b'; switch(value) { case 'a': break;\n/*skip*/\n}",
+    "options": {
+      "considerDefaultExhaustiveForUnions": true,
+      "defaultCaseCommentPattern": "\\Gskip"
+    },
+    "expected": []
+  },
+  {
+    "name": "comment_pattern_absolute_multiline",
+    "source": "export {}; declare const value: 'a' | 'b'; switch(value) { case 'a': break;\n/*other\nskip*/\n}",
+    "options": {
+      "considerDefaultExhaustiveForUnions": true,
+      "defaultCaseCommentPattern": "(?m)\\Askip\\z"
+    },
+    "expected": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 50,
+          "end": 55
+        },
+        "message": {
+          "id": "switchIsNotExhaustive",
+          "description": "Switch is not exhaustive. Cases not matched: \"b\""
+        },
+        "rule": "switch-exhaustiveness-check",
+        "suggestions": [
+          {
+            "message": {
+              "id": "addMissingCases",
+              "description": "Add branches for missing cases."
+            },
+            "fixes": [
+              {
+                "text": "\n                                                           case \"b\": { throw new Error('Not implemented yet: \"b\" case') }",
+                "range": {
+                  "pos": 75,
+                  "end": 75
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "comment_pattern_absolute_suffix",
+    "source": "export {}; declare const value: 'a' | 'b'; switch(value) { case 'a': break;\n/*skip other*/\n}",
+    "options": {
+      "considerDefaultExhaustiveForUnions": true,
+      "defaultCaseCommentPattern": "\\Askip\\z"
+    },
+    "expected": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 50,
+          "end": 55
+        },
+        "message": {
+          "id": "switchIsNotExhaustive",
+          "description": "Switch is not exhaustive. Cases not matched: \"b\""
+        },
+        "rule": "switch-exhaustiveness-check",
+        "suggestions": [
+          {
+            "message": {
+              "id": "addMissingCases",
+              "description": "Add branches for missing cases."
+            },
+            "fixes": [
+              {
+                "text": "\n                                                           case \"b\": { throw new Error('Not implemented yet: \"b\" case') }",
+                "range": {
+                  "pos": 75,
+                  "end": 75
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "comment_pattern_search_start_negative",
+    "source": "export {}; declare const value: 'a' | 'b'; switch(value) { case 'a': break;\n/*other skip*/\n}",
+    "options": {
+      "considerDefaultExhaustiveForUnions": true,
+      "defaultCaseCommentPattern": "\\Gskip"
+    },
+    "expected": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 50,
+          "end": 55
+        },
+        "message": {
+          "id": "switchIsNotExhaustive",
+          "description": "Switch is not exhaustive. Cases not matched: \"b\""
+        },
+        "rule": "switch-exhaustiveness-check",
+        "suggestions": [
+          {
+            "message": {
+              "id": "addMissingCases",
+              "description": "Add branches for missing cases."
+            },
+            "fixes": [
+              {
+                "text": "\n                                                           case \"b\": { throw new Error('Not implemented yet: \"b\" case') }",
+                "range": {
+                  "pos": 75,
+                  "end": 75
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]

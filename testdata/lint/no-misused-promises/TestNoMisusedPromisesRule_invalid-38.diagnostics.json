@@ -1,0 +1,90 @@
+[
+  {
+    "kind": 0,
+    "rule": "no-misused-promises",
+    "message": {
+      "id": "spread",
+      "description": "Expected a non-Promise value to be spread in an object."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 50,
+      "end": 53
+    },
+    "labeled_ranges": [
+      {
+        "label": "This expression has type `false | Promise<{ key: number; }>`.",
+        "range": {
+          "pos": 54,
+          "end": 95
+        }
+      }
+    ]
+  },
+  {
+    "kind": 0,
+    "rule": "no-misused-promises",
+    "message": {
+      "id": "spread",
+      "description": "Expected a non-Promise value to be spread in an object."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 115,
+      "end": 118
+    },
+    "labeled_ranges": [
+      {
+        "label": "This expression has type `true | Promise<{ key: number; }>`.",
+        "range": {
+          "end": 160,
+          "pos": 119
+        }
+      }
+    ]
+  },
+  {
+    "kind": 0,
+    "rule": "no-misused-promises",
+    "message": {
+      "id": "spread",
+      "description": "Expected a non-Promise value to be spread in an object."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 180,
+      "end": 183
+    },
+    "labeled_ranges": [
+      {
+        "label": "This expression has type `Promise<{ key: number; }> | {}`.",
+        "range": {
+          "end": 229,
+          "pos": 184
+        }
+      }
+    ]
+  },
+  {
+    "kind": 0,
+    "rule": "no-misused-promises",
+    "message": {
+      "id": "spread",
+      "description": "Expected a non-Promise value to be spread in an object."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "end": 252,
+      "pos": 249
+    },
+    "labeled_ranges": [
+      {
+        "label": "This expression has type `Promise<{ key: number; }> | {}`.",
+        "range": {
+          "pos": 253,
+          "end": 298
+        }
+      }
+    ]
+  }
+]

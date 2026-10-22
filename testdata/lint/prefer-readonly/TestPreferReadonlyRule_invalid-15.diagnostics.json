@@ -1,0 +1,25 @@
+[
+  {
+    "kind": 0,
+    "range": {
+      "pos": 61,
+      "end": 91
+    },
+    "message": {
+      "id": "preferReadonly",
+      "description": "Member '#incorrectlyModifiablePreMinus' is never reassigned.",
+      "help": "Mark it as `readonly`."
+    },
+    "file_path": "file.ts",
+    "rule": "prefer-readonly",
+    "fixes": [
+      {
+        "text": "readonly ",
+        "range": {
+          "pos": 61,
+          "end": 61
+        }
+      }
+    ]
+  }
+]

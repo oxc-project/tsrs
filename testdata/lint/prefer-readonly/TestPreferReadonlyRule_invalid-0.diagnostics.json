@@ -1,0 +1,25 @@
+[
+  {
+    "kind": 0,
+    "range": {
+      "pos": 59,
+      "end": 101
+    },
+    "message": {
+      "id": "preferReadonly",
+      "description": "Member 'incorrectlyModifiableStatic' is never reassigned.",
+      "help": "Mark it as `readonly`."
+    },
+    "file_path": "file.ts",
+    "rule": "prefer-readonly",
+    "fixes": [
+      {
+        "text": "readonly ",
+        "range": {
+          "pos": 74,
+          "end": 74
+        }
+      }
+    ]
+  }
+]

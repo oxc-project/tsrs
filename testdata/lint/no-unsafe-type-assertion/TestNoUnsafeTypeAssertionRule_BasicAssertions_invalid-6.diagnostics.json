@@ -1,0 +1,16 @@
+[
+  {
+    "kind": 0,
+    "range": {
+      "pos": 26,
+      "end": 94
+    },
+    "message": {
+      "id": "unsafeTypeAssertion",
+      "description": "Unsafe type assertion: type 'Omit<Required<Readonly<{ hello: \"world\"; foo: \"bar\"; }>>, \"foo\">' is more narrow than the original type.",
+      "help": "The original expression has type `string`, and the assertion changes it to `Omit<Required<Readonly<{ hello: \"world\"; foo: \"bar\"; }>>, \"foo\">`. Use a type guard to narrow the value before asserting a more specific type."
+    },
+    "file_path": "file.ts",
+    "rule": "no-unsafe-type-assertion"
+  }
+]

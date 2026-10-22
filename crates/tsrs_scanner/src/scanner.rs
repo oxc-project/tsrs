@@ -325,6 +325,7 @@ pub struct Scanner {
     language_variant: LanguageVariant,
     script_target: ScriptTarget,
     on_error: bool,
+    legacy_string_escapes: bool,
     errors: Vec<ScanError>,
     skip_trivia: bool,
     pub(crate) state: ScannerState,
@@ -599,6 +600,10 @@ impl Scanner {
 
     pub fn rewind(&mut self, state: ScannerState) {
         self.state = state;
+    }
+
+    pub fn set_legacy_string_escapes(&mut self, enabled: bool) {
+        self.legacy_string_escapes = enabled;
     }
 
     /// Go: `onError != nil`. Enables buffering of scanner diagnostics (see the module docs).
@@ -2595,6 +2600,9 @@ impl Scanner {
                     let Some(code_point) = code_point else {
                         return Cow::Borrowed(self.slice(start, self.state.pos));
                     };
+                    if self.legacy_string_escapes && !flags.intersects(EscapeSequenceScanningFlags::RegularExpression) {
+                        return Cow::Owned(rune_string(code_point));
+                    }
                     // In string literals, a high surrogate \u{...} followed by a low
                     // surrogate escape forms a single code point, exactly as adjacent
                     // UTF-16 code units would in a JavaScript string.
@@ -2608,6 +2616,17 @@ impl Scanner {
                 let Some(code_point) = code_point else {
                     return Cow::Borrowed(self.slice(start, self.state.pos));
                 };
+                if self.legacy_string_escapes && !flags.intersects(EscapeSequenceScanningFlags::RegularExpression) {
+                    if stringutil::is_high_surrogate(code_point) && self.char() == Some(b'\\') && self.char_at(1) == Some(b'u') && self.char_at(2) != Some(b'{') {
+                        let saved_pos = self.state.pos;
+                        let next_code_point = self.scan_unicode_escape(flags.intersects(EscapeSequenceScanningFlags::ReportInvalidEscapeErrors));
+                        if let Some(next_code_point) = next_code_point.filter(|&ch| stringutil::is_low_surrogate(ch)) {
+                            return Cow::Owned(rune_string(stringutil::surrogate_pair_to_code_point(code_point, next_code_point)));
+                        }
+                        self.state.pos = saved_pos;
+                    }
+                    return Cow::Owned(rune_string(code_point));
+                }
                 if stringutil::is_high_surrogate(code_point) {
                     if !flags.intersects(EscapeSequenceScanningFlags::RegularExpression) {
                         // Combine \uHigh followed by any low surrogate escape (\uLow or

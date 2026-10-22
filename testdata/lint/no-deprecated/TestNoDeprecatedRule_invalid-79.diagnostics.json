@@ -1,0 +1,28 @@
+[
+  {
+    "range": {
+      "pos": 83,
+      "end": 98
+    },
+    "kind": 0,
+    "rule": "no-deprecated",
+    "message": {
+      "id": "deprecated",
+      "description": "`DeprecatedClass` is deprecated."
+    },
+    "file_path": "file.ts"
+  },
+  {
+    "file_path": "file.ts",
+    "range": {
+      "end": 120,
+      "pos": 117
+    },
+    "kind": 0,
+    "rule": "no-deprecated",
+    "message": {
+      "id": "deprecated",
+      "description": "`foo` is deprecated."
+    }
+  }
+]

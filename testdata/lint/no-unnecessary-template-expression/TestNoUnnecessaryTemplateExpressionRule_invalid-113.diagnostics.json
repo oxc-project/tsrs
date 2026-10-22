@@ -1,0 +1,46 @@
+[
+  {
+    "fixes": [
+      {
+        "text": "`${Foo}`",
+        "range": {
+          "pos": 34,
+          "end": 47
+        }
+      }
+    ],
+    "kind": 0,
+    "rule": "no-unnecessary-template-expression",
+    "message": {
+      "id": "noUnnecessaryTemplateExpression",
+      "description": "Template literal expression is unnecessary and can be simplified."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 35,
+      "end": 46
+    }
+  },
+  {
+    "kind": 0,
+    "rule": "no-unnecessary-template-expression",
+    "message": {
+      "id": "noUnnecessaryTemplateExpression",
+      "description": "Template literal expression is unnecessary and can be simplified."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "end": 44,
+      "pos": 38
+    },
+    "fixes": [
+      {
+        "text": "Foo",
+        "range": {
+          "end": 45,
+          "pos": 37
+        }
+      }
+    ]
+  }
+]

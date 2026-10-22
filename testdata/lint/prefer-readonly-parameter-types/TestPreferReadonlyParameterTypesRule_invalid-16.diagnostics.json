@@ -1,0 +1,54 @@
+[
+  {
+    "kind": 0,
+    "rule": "prefer-readonly-parameter-types",
+    "message": {
+      "id": "shouldBeReadonly",
+      "description": "Parameter should be a readonly type."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 64,
+      "end": 78
+    }
+  },
+  {
+    "kind": 0,
+    "rule": "prefer-readonly-parameter-types",
+    "message": {
+      "id": "shouldBeReadonly",
+      "description": "Parameter should be a readonly type."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "end": 113,
+      "pos": 99
+    }
+  },
+  {
+    "range": {
+      "pos": 137,
+      "end": 151
+    },
+    "kind": 0,
+    "rule": "prefer-readonly-parameter-types",
+    "message": {
+      "id": "shouldBeReadonly",
+      "description": "Parameter should be a readonly type."
+    },
+    "file_path": "file.ts"
+  },
+  {
+    "message": {
+      "id": "shouldBeReadonly",
+      "description": "Parameter should be a readonly type."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 174,
+      "end": 188
+    },
+    "kind": 0,
+    "rule": "prefer-readonly-parameter-types"
+  }
+]

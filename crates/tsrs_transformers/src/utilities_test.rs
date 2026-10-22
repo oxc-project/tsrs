@@ -15,6 +15,7 @@ fn a_synthesized_original_node_is_single_line() {
             path: Path::new(file_name.to_string()),
             external_module_indicator_options:
                 tsrs_ast::parseoptions::ExternalModuleIndicatorOptions::default(),
+            legacy_string_escapes: false,
         },
         "const a = 1;\nconst b = 2;\n",
         get_script_kind_from_file_name(file_name),

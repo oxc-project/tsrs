@@ -1,0 +1,15 @@
+[
+  {
+    "kind": 0,
+    "rule": "no-deprecated",
+    "message": {
+      "id": "deprecated",
+      "description": "`anchor` is deprecated."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 165,
+      "end": 171
+    }
+  }
+]

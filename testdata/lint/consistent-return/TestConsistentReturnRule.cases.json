@@ -1,0 +1,470 @@
+{
+  "Name": "consistent-return",
+  "TSConfig": "tsconfig.minimal.json",
+  "Valid": [
+    {
+      "Code": "\n      function foo() {\n        return;\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      const foo = (flag: boolean) => {\n        if (flag) return true;\n        return false;\n      };\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      class A {\n        foo() {\n          if (a) return true;\n          return false;\n        }\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        const foo = (flag: boolean) => {\n          if (flag) return;\n          else return undefined;\n        };\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "treatUndefinedAsUnspecified": true
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      declare function bar(): void;\n      function foo(flag: boolean): void {\n        if (flag) {\n          return bar();\n        }\n        return;\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      declare function bar(): void;\n      const foo = (flag: boolean): void => {\n        if (flag) {\n          return;\n        }\n        return bar();\n      };\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      function foo(flag?: boolean): number | void {\n        if (flag) {\n          return 42;\n        }\n        return;\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      function foo(): boolean;\n      function foo(flag: boolean): void;\n      function foo(flag?: boolean): boolean | void {\n        if (flag) {\n          return;\n        }\n        return true;\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      class Foo {\n        baz(): void {}\n        bar(flag: boolean): void {\n          if (flag) return baz();\n          return;\n        }\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      declare function bar(): void;\n      function foo(flag: boolean): void {\n        function fn(): string {\n          return '1';\n        }\n        if (flag) {\n          return bar();\n        }\n        return;\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      class Foo {\n        foo(flag: boolean): void {\n          const bar = (): void => {\n            if (flag) return;\n            return this.foo();\n          };\n          if (flag) {\n            return this.bar();\n          }\n          return;\n        }\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      declare function bar(): void;\n      async function foo(flag?: boolean): Promise<void> {\n        if (flag) {\n          return bar();\n        }\n        return;\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      declare function bar(): Promise<void>;\n      async function foo(flag?: boolean): Promise<ReturnType<typeof bar>> {\n        if (flag) {\n          return bar();\n        }\n        return;\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      async function foo(flag?: boolean): Promise<Promise<void | undefined>> {\n        if (flag) {\n          return undefined;\n        }\n        return;\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      type PromiseVoidNumber = Promise<void | number>;\n      async function foo(flag?: boolean): PromiseVoidNumber {\n        if (flag) {\n          return 42;\n        }\n        return;\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      class Foo {\n        baz(): void {}\n        async bar(flag: boolean): Promise<void> {\n          if (flag) return baz();\n          return;\n        }\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        declare const undef: undefined;\n        function foo(flag: boolean) {\n          if (flag) {\n            return undef;\n          }\n          return 'foo';\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "treatUndefinedAsUnspecified": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        function foo(flag: boolean): undefined {\n          if (flag) {\n            return undefined;\n          }\n          return;\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "treatUndefinedAsUnspecified": true
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        declare const undef: undefined;\n        function foo(flag: boolean): undefined {\n          if (flag) {\n            return undef;\n          }\n          return;\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "treatUndefinedAsUnspecified": true
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    }
+  ],
+  "Invalid": [
+    {
+      "Code": "\n        function foo(flag: boolean): any {\n          if (flag) return true;\n          else return;\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "missingReturnValue",
+          "Line": 4,
+          "Column": 16,
+          "EndLine": 4,
+          "EndColumn": 23,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        function bar(): undefined {}\n        function foo(flag: boolean): undefined {\n          if (flag) return bar();\n          return;\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "missingReturnValue",
+          "Line": 5,
+          "Column": 11,
+          "EndLine": 5,
+          "EndColumn": 18,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        function foo(flag: boolean) {\n          if (flag) {\n            return 1;\n          }\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "missingReturnValue",
+          "Line": 2,
+          "Column": 9,
+          "EndLine": 6,
+          "EndColumn": 10,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        declare function foo(): void;\n        function bar(flag: boolean): undefined {\n          function baz(): undefined {\n            if (flag) return;\n            return undefined;\n          }\n          if (flag) return baz();\n          return;\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unexpectedReturnValue",
+          "Line": 6,
+          "Column": 13,
+          "EndLine": 6,
+          "EndColumn": 30,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "missingReturnValue",
+          "Line": 9,
+          "Column": 11,
+          "EndLine": 9,
+          "EndColumn": 18,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        function foo(flag: boolean): Promise<void> {\n          if (flag) return Promise.resolve(void 0);\n          else return;\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "missingReturnValue",
+          "Line": 4,
+          "Column": 16,
+          "EndLine": 4,
+          "EndColumn": 23,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        async function foo(flag: boolean): Promise<string> {\n          if (flag) return;\n          else return 'value';\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unexpectedReturnValue",
+          "Line": 4,
+          "Column": 16,
+          "EndLine": 4,
+          "EndColumn": 31,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        async function foo(flag: boolean): Promise<string | undefined> {\n          if (flag) return 'value';\n          else return;\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "missingReturnValue",
+          "Line": 4,
+          "Column": 16,
+          "EndLine": 4,
+          "EndColumn": 23,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        async function foo(flag: boolean) {\n          if (flag) return;\n          return 1;\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unexpectedReturnValue",
+          "Line": 4,
+          "Column": 11,
+          "EndLine": 4,
+          "EndColumn": 20,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        function foo(flag: boolean): Promise<string | undefined> {\n          if (flag) return;\n          else return 'value';\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unexpectedReturnValue",
+          "Line": 4,
+          "Column": 16,
+          "EndLine": 4,
+          "EndColumn": 31,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        declare function bar(): Promise<void>;\n        function foo(flag?: boolean): Promise<void> {\n          if (flag) {\n            return bar();\n          }\n          return;\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "missingReturnValue",
+          "Line": 7,
+          "Column": 11,
+          "EndLine": 7,
+          "EndColumn": 18,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        function foo(flag: boolean): undefined | boolean {\n          if (flag) {\n            return undefined;\n          }\n          return true;\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unexpectedReturnValue",
+          "Line": 6,
+          "Column": 11,
+          "EndLine": 6,
+          "EndColumn": 23,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "treatUndefinedAsUnspecified": true
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        declare const undefOrNum: undefined | number;\n        function foo(flag: boolean) {\n          if (flag) {\n            return;\n          }\n          return undefOrNum;\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unexpectedReturnValue",
+          "Line": 7,
+          "Column": 11,
+          "EndLine": 7,
+          "EndColumn": 29,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "treatUndefinedAsUnspecified": true
+      },
+      "Tsx": false,
+      "Files": {}
+    }
+  ]
+}

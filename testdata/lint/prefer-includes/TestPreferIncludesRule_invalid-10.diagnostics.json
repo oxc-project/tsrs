@@ -1,0 +1,38 @@
+[
+  {
+    "range": {
+      "pos": 49,
+      "end": 62
+    },
+    "fixes": [
+      {
+        "text": "",
+        "range": {
+          "pos": 49,
+          "end": 60
+        }
+      },
+      {
+        "text": "",
+        "range": {
+          "end": 62,
+          "pos": 61
+        }
+      },
+      {
+        "text": ".includes('bar')",
+        "range": {
+          "pos": 61,
+          "end": 61
+        }
+      }
+    ],
+    "kind": 0,
+    "rule": "prefer-includes",
+    "message": {
+      "id": "preferStringIncludes",
+      "description": "Use `String#includes()` method with a string instead."
+    },
+    "file_path": "file.ts"
+  }
+]

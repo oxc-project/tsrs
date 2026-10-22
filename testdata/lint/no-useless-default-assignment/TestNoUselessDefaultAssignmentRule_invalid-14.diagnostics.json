@@ -1,0 +1,39 @@
+[
+  {
+    "suggestions": [
+      {
+        "message": {
+          "id": "useOptionalSyntax",
+          "description": "Use the `?` optional syntax instead."
+        },
+        "fixes": [
+          {
+            "text": "",
+            "range": {
+              "end": 177,
+              "pos": 133
+            }
+          },
+          {
+            "text": "?",
+            "range": {
+              "pos": 90,
+              "end": 90
+            }
+          }
+        ]
+      }
+    ],
+    "kind": 0,
+    "rule": "no-useless-default-assignment",
+    "message": {
+      "id": "preferOptionalSyntax",
+      "description": "Using `= undefined` to make a parameter optional adds unnecessary runtime logic."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 168,
+      "end": 177
+    }
+  }
+]

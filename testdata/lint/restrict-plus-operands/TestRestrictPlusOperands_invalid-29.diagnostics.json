@@ -1,0 +1,16 @@
+[
+  {
+    "kind": 0,
+    "rule": "restrict-plus-operands",
+    "message": {
+      "id": "invalid",
+      "description": "Invalid operand of type '{ a: 1; } & { b: 2; }' for a '+' operation.",
+      "help": "Operands must each be a number or string."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 98,
+      "end": 99
+    }
+  }
+]

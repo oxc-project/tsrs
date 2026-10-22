@@ -1,0 +1,94 @@
+[
+  {
+    "message": {
+      "id": "sole",
+      "description": "Type parameter T1 is used only once in the function signature."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 102,
+      "end": 104
+    },
+    "suggestions": [
+      {
+        "message": {
+          "id": "replaceUsagesWithConstraint",
+          "description": "Replace all usages of type parameter with its constraint."
+        },
+        "fixes": [
+          {
+            "text": "unknown",
+            "range": {
+              "pos": 111,
+              "end": 113
+            }
+          },
+          {
+            "text": "",
+            "range": {
+              "pos": 101,
+              "end": 105
+            }
+          }
+        ]
+      }
+    ],
+    "labeled_ranges": [
+      {
+        "label": "This is the only usage of type parameter T1 in the signature.",
+        "range": {
+          "pos": 111,
+          "end": 113
+        }
+      }
+    ],
+    "kind": 0,
+    "rule": "no-unnecessary-type-parameters"
+  },
+  {
+    "labeled_ranges": [
+      {
+        "label": "This is the only usage of type parameter T2 in the signature.",
+        "range": {
+          "pos": 165,
+          "end": 167
+        }
+      }
+    ],
+    "kind": 0,
+    "rule": "no-unnecessary-type-parameters",
+    "message": {
+      "id": "sole",
+      "description": "Type parameter T2 is used only once in the function signature."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 156,
+      "end": 158
+    },
+    "suggestions": [
+      {
+        "message": {
+          "id": "replaceUsagesWithConstraint",
+          "description": "Replace all usages of type parameter with its constraint."
+        },
+        "fixes": [
+          {
+            "text": "unknown",
+            "range": {
+              "pos": 165,
+              "end": 167
+            }
+          },
+          {
+            "text": "",
+            "range": {
+              "pos": 155,
+              "end": 159
+            }
+          }
+        ]
+      }
+    ]
+  }
+]

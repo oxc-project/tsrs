@@ -1,0 +1,60 @@
+[
+  {
+    "rule": "dot-notation",
+    "message": {
+      "id": "useDot",
+      "description": "[\"catch\"] is better written in dot notation."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 43,
+      "end": 50
+    },
+    "fixes": [
+      {
+        "text": ".",
+        "range": {
+          "pos": 42,
+          "end": 42
+        }
+      },
+      {
+        "text": "catch",
+        "range": {
+          "pos": 42,
+          "end": 51
+        }
+      }
+    ],
+    "kind": 0
+  },
+  {
+    "message": {
+      "id": "useDot",
+      "description": "[\"catch\"] is better written in dot notation."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 95,
+      "end": 102
+    },
+    "fixes": [
+      {
+        "text": ".",
+        "range": {
+          "pos": 94,
+          "end": 94
+        }
+      },
+      {
+        "text": "catch",
+        "range": {
+          "pos": 94,
+          "end": 103
+        }
+      }
+    ],
+    "kind": 0,
+    "rule": "dot-notation"
+  }
+]

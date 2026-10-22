@@ -1,0 +1,32 @@
+[
+  {
+    "kind": 0,
+    "rule": "switch-exhaustiveness-check",
+    "message": {
+      "id": "switchIsNotExhaustive",
+      "description": "Switch is not exhaustive. Cases not matched: Enum.a | (typeof Enum)[\"'a' `b` \\\"c\\\"\"]"
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 130,
+      "end": 131
+    },
+    "suggestions": [
+      {
+        "message": {
+          "id": "addMissingCases",
+          "description": "Add branches for missing cases."
+        },
+        "fixes": [
+          {
+            "text": "{\n        case Enum.a: { throw new Error('Not implemented yet: Enum.a case') }\n        case Enum['\\'a\\' `b` \"c\"']: { throw new Error('Not implemented yet: Enum[\\'\\\\\\'a\\\\\\' `b` \"c\"\\'] case') }\n        }",
+            "range": {
+              "pos": 133,
+              "end": 135
+            }
+          }
+        ]
+      }
+    ]
+  }
+]

@@ -42,6 +42,8 @@ Source 101 creates private Unix API socket directories and restricts Windows API
 Source 102 makes sync SDK generator instances single-use across batch calls, matching upstream TypeScript.
 Source 104 rejects network filesystem paths before OS access and reports TS5116 for affected config and source references.
 Source 109 lets sync and async Node API clients write a timing snapshot on close when `TS_API_TIMING_DIR` is set.
+Type-aware linting is being ported separately; the source-built
+`tsrs-lint` binary currently implements all 60 pinned tsgolint rules; see [rule progress](testdata/lint/PROGRESS.md).
 
 <a href="https://github.com/oxc-project/tsrs/blob/main/bench/RESULTS.md">
   <picture>

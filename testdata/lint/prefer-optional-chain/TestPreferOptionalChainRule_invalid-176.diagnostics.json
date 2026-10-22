@@ -1,0 +1,46 @@
+[
+  {
+    "message": {
+      "id": "preferOptionalChain",
+      "description": "Prefer using an optional chain expression instead, as it's more concise and easier to read."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 0,
+      "end": 68
+    },
+    "fixes": [
+      {
+        "text": "foo1?.bar != null",
+        "range": {
+          "end": 32,
+          "pos": 0
+        }
+      }
+    ],
+    "kind": 0,
+    "rule": "prefer-optional-chain"
+  },
+  {
+    "fixes": [
+      {
+        "text": "foo2?.bar != null",
+        "range": {
+          "pos": 36,
+          "end": 68
+        }
+      }
+    ],
+    "kind": 0,
+    "rule": "prefer-optional-chain",
+    "message": {
+      "id": "preferOptionalChain",
+      "description": "Prefer using an optional chain expression instead, as it's more concise and easier to read."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 0,
+      "end": 68
+    }
+  }
+]

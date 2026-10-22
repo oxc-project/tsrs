@@ -512,6 +512,7 @@ impl Parser {
         );
 
         self.scanner.reset();
+        self.scanner.set_legacy_string_escapes(opts.legacy_string_escapes);
         self.opts = opts;
         self.source_text = source_text;
         self.source_text_index = ast::NO_SOURCE_TEXT;

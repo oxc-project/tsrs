@@ -1,0 +1,25 @@
+[
+  {
+    "fixes": [
+      {
+        "text": "export type { /* */T, /* */T, T };",
+        "range": {
+          "pos": 13,
+          "end": 55
+        }
+      }
+    ],
+    "kind": 0,
+    "rule": "consistent-type-exports",
+    "message": {
+      "id": "typeOverValue",
+      "description": "All exports in the declaration are only used as types.",
+      "help": "Use `export type`."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 13,
+      "end": 19
+    }
+  }
+]

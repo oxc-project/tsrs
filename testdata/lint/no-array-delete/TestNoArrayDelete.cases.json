@@ -1,0 +1,670 @@
+{
+  "Name": "no-array-delete",
+  "TSConfig": "tsconfig.minimal.json",
+  "Valid": [
+    {
+      "Code": "\n      declare const obj: { a: 1; b: 2 };\n      delete obj.a;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      declare const obj: { a: 1; b: 2 };\n      delete obj['a'];\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      declare const arr: { a: 1; b: 2 }[][][][];\n      delete arr[0][0][0][0].a;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      declare const maybeArray: any;\n      delete maybeArray[0];\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      declare const maybeArray: unknown;\n      delete maybeArray[0];\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      declare function getObject<T extends { a: 1; b: 2 }>(): T;\n      delete getObject().a;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      declare function getObject<T extends number>(): { a: T; b: 2 };\n      delete getObject().a;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      declare const test: never;\n      delete test[0];\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      delete console.log();\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    }
+  ],
+  "Invalid": [
+    {
+      "Code": "\n        declare const arr: number[];\n        delete arr[0];\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noArrayDelete",
+          "Line": 3,
+          "Column": 9,
+          "EndLine": 0,
+          "EndColumn": 15,
+          "Suggestions": [
+            {
+              "MessageId": "useSplice",
+              "Output": "\n        declare const arr: number[];\n         arr.splice(0, 1);\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        declare const arr: number[];\n        declare const key: number;\n        delete arr[key];\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noArrayDelete",
+          "Line": 4,
+          "Column": 9,
+          "EndLine": 0,
+          "EndColumn": 15,
+          "Suggestions": [
+            {
+              "MessageId": "useSplice",
+              "Output": "\n        declare const arr: number[];\n        declare const key: number;\n         arr.splice(key, 1);\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        declare const arr: number[];\n\n        enum Keys {\n          A,\n          B,\n        }\n\n        delete arr[Keys.A];\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noArrayDelete",
+          "Line": 9,
+          "Column": 9,
+          "EndLine": 0,
+          "EndColumn": 15,
+          "Suggestions": [
+            {
+              "MessageId": "useSplice",
+              "Output": "\n        declare const arr: number[];\n\n        enum Keys {\n          A,\n          B,\n        }\n\n         arr.splice(Keys.A, 1);\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        declare const arr: number[];\n        declare function doWork(): void;\n        delete arr[(doWork(), 1)];\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noArrayDelete",
+          "Line": 4,
+          "Column": 9,
+          "EndLine": 0,
+          "EndColumn": 15,
+          "Suggestions": [
+            {
+              "MessageId": "useSplice",
+              "Output": "\n        declare const arr: number[];\n        declare function doWork(): void;\n         arr.splice((doWork(), 1), 1);\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        declare const arr: Array<number>;\n        delete arr[0];\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noArrayDelete",
+          "Line": 3,
+          "Column": 9,
+          "EndLine": 0,
+          "EndColumn": 15,
+          "Suggestions": [
+            {
+              "MessageId": "useSplice",
+              "Output": "\n        declare const arr: Array<number>;\n         arr.splice(0, 1);\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "delete [1, 2, 3][0];",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noArrayDelete",
+          "Line": 1,
+          "Column": 1,
+          "EndLine": 0,
+          "EndColumn": 7,
+          "Suggestions": [
+            {
+              "MessageId": "useSplice",
+              "Output": " [1, 2, 3].splice(0, 1);"
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        declare const arr: unknown[];\n        delete arr[Math.random() ? 0 : 1];\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noArrayDelete",
+          "Line": 3,
+          "Column": 9,
+          "EndLine": 0,
+          "EndColumn": 15,
+          "Suggestions": [
+            {
+              "MessageId": "useSplice",
+              "Output": "\n        declare const arr: unknown[];\n         arr.splice(Math.random() ? 0 : 1, 1);\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        declare const arr: number[] | string[] | boolean[];\n        delete arr[0];\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noArrayDelete",
+          "Line": 3,
+          "Column": 9,
+          "EndLine": 0,
+          "EndColumn": 15,
+          "Suggestions": [
+            {
+              "MessageId": "useSplice",
+              "Output": "\n        declare const arr: number[] | string[] | boolean[];\n         arr.splice(0, 1);\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        declare const arr: number[] & unknown;\n        delete arr[0];\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noArrayDelete",
+          "Line": 3,
+          "Column": 9,
+          "EndLine": 0,
+          "EndColumn": 15,
+          "Suggestions": [
+            {
+              "MessageId": "useSplice",
+              "Output": "\n        declare const arr: number[] & unknown;\n         arr.splice(0, 1);\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        declare const arr: (number | string)[];\n        delete arr[0];\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noArrayDelete",
+          "Line": 3,
+          "Column": 9,
+          "EndLine": 0,
+          "EndColumn": 15,
+          "Suggestions": [
+            {
+              "MessageId": "useSplice",
+              "Output": "\n        declare const arr: (number | string)[];\n         arr.splice(0, 1);\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        declare const obj: { a: { b: { c: number[] } } };\n        delete obj.a.b.c[0];\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noArrayDelete",
+          "Line": 3,
+          "Column": 9,
+          "EndLine": 0,
+          "EndColumn": 15,
+          "Suggestions": [
+            {
+              "MessageId": "useSplice",
+              "Output": "\n        declare const obj: { a: { b: { c: number[] } } };\n         obj.a.b.c.splice(0, 1);\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        declare function getArray<T extends number[]>(): T;\n        delete getArray()[0];\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noArrayDelete",
+          "Line": 3,
+          "Column": 9,
+          "EndLine": 0,
+          "EndColumn": 15,
+          "Suggestions": [
+            {
+              "MessageId": "useSplice",
+              "Output": "\n        declare function getArray<T extends number[]>(): T;\n         getArray().splice(0, 1);\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        declare function getArray<T extends number>(): T[];\n        delete getArray()[0];\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noArrayDelete",
+          "Line": 3,
+          "Column": 9,
+          "EndLine": 0,
+          "EndColumn": 15,
+          "Suggestions": [
+            {
+              "MessageId": "useSplice",
+              "Output": "\n        declare function getArray<T extends number>(): T[];\n         getArray().splice(0, 1);\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        function deleteFromArray(a: number[]) {\n          delete a[0];\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noArrayDelete",
+          "Line": 3,
+          "Column": 11,
+          "EndLine": 0,
+          "EndColumn": 17,
+          "Suggestions": [
+            {
+              "MessageId": "useSplice",
+              "Output": "\n        function deleteFromArray(a: number[]) {\n           a.splice(0, 1);\n        }\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        function deleteFromArray<T extends number>(a: T[]) {\n          delete a[0];\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noArrayDelete",
+          "Line": 3,
+          "Column": 11,
+          "EndLine": 0,
+          "EndColumn": 17,
+          "Suggestions": [
+            {
+              "MessageId": "useSplice",
+              "Output": "\n        function deleteFromArray<T extends number>(a: T[]) {\n           a.splice(0, 1);\n        }\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        function deleteFromArray<T extends number[]>(a: T) {\n          delete a[0];\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noArrayDelete",
+          "Line": 3,
+          "Column": 11,
+          "EndLine": 0,
+          "EndColumn": 17,
+          "Suggestions": [
+            {
+              "MessageId": "useSplice",
+              "Output": "\n        function deleteFromArray<T extends number[]>(a: T) {\n           a.splice(0, 1);\n        }\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        declare const tuple: [number, string];\n        delete tuple[0];\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noArrayDelete",
+          "Line": 3,
+          "Column": 9,
+          "EndLine": 0,
+          "EndColumn": 15,
+          "Suggestions": [
+            {
+              "MessageId": "useSplice",
+              "Output": "\n        declare const tuple: [number, string];\n         tuple.splice(0, 1);\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        declare const a: number[];\n        declare const b: number;\n\n        delete [...a, ...a][b];\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noArrayDelete",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "useSplice",
+              "Output": "\n        declare const a: number[];\n        declare const b: number;\n\n         [...a, ...a].splice(b, 1);\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        declare const a: number[];\n        declare const b: number;\n\n        // before expression\n        delete /** multi\n        line */ a[((\n        // single-line\n        b /* inline */ /* another-inline */ )\n        ) /* another-one */ ] /* before semicolon */; /* after semicolon */\n        // after expression\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noArrayDelete",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "useSplice",
+              "Output": "\n        declare const a: number[];\n        declare const b: number;\n\n        // before expression\n         /** multi\n        line */ a.splice(((\n        // single-line\n        b /* inline */ /* another-inline */ )\n        ) /* another-one */ , 1) /* before semicolon */; /* after semicolon */\n        // after expression\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        declare const a: number[];\n        declare const b: number;\n\n        delete ((a[((b))]));\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noArrayDelete",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "useSplice",
+              "Output": "\n        declare const a: number[];\n        declare const b: number;\n\n         ((a.splice(((b)), 1)));\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        declare const a: number[];\n        declare const b: number;\n\n        delete a[(b + 1) * (b + 2)];\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noArrayDelete",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "useSplice",
+              "Output": "\n        declare const a: number[];\n        declare const b: number;\n\n         a.splice((b + 1) * (b + 2), 1);\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        declare const arr: string & Array<number>;\n        delete arr[0];\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noArrayDelete",
+          "Line": 3,
+          "Column": 9,
+          "EndLine": 0,
+          "EndColumn": 15,
+          "Suggestions": [
+            {
+              "MessageId": "useSplice",
+              "Output": "\n        declare const arr: string & Array<number>;\n         arr.splice(0, 1);\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    }
+  ]
+}

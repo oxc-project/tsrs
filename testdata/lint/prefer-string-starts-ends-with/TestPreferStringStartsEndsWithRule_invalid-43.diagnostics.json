@@ -1,0 +1,38 @@
+[
+  {
+    "fixes": [
+      {
+        "text": ".startsWith",
+        "range": {
+          "pos": 88,
+          "end": 94
+        }
+      },
+      {
+        "text": "\"bar\"",
+        "range": {
+          "end": 102,
+          "pos": 95
+        }
+      },
+      {
+        "text": "",
+        "range": {
+          "pos": 103,
+          "end": 111
+        }
+      }
+    ],
+    "kind": 0,
+    "rule": "prefer-string-starts-ends-with",
+    "message": {
+      "id": "preferStartsWith",
+      "description": "Use 'String#startsWith' method instead."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 87,
+      "end": 111
+    }
+  }
+]

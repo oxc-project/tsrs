@@ -1,0 +1,16 @@
+[
+  {
+    "kind": 0,
+    "rule": "no-unnecessary-condition",
+    "message": {
+      "id": "neverNullish",
+      "description": "Unnecessary conditional, expected left-hand side of `??` operator to be possibly null or undefined.",
+      "help": "The checked value has type `string`."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 47,
+      "end": 53
+    }
+  }
+]

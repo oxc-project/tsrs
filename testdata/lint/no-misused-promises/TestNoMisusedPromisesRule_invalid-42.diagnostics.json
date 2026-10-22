@@ -1,0 +1,31 @@
+[
+  {
+    "file_path": "file.ts",
+    "range": {
+      "end": 140,
+      "pos": 138
+    },
+    "labeled_ranges": [
+      {
+        "label": "This callback has type `() => Promise<boolean>`.",
+        "range": {
+          "pos": 138,
+          "end": 140
+        }
+      },
+      {
+        "range": {
+          "pos": 58,
+          "end": 92
+        },
+        "label": "This context accepts a `void`-returning callback through type `() => void`."
+      }
+    ],
+    "kind": 0,
+    "rule": "no-misused-promises",
+    "message": {
+      "id": "voidReturnArgument",
+      "description": "Promise returned in function argument where a void return was expected."
+    }
+  }
+]

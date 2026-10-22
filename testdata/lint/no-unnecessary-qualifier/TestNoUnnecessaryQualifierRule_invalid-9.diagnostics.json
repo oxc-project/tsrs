@@ -1,0 +1,24 @@
+[
+  {
+    "range": {
+      "pos": 67,
+      "end": 70
+    },
+    "fixes": [
+      {
+        "text": "",
+        "range": {
+          "pos": 67,
+          "end": 71
+        }
+      }
+    ],
+    "kind": 0,
+    "rule": "no-unnecessary-qualifier",
+    "message": {
+      "id": "unnecessaryQualifier",
+      "description": "Qualifier is unnecessary since 'T' is in scope."
+    },
+    "file_path": "file.ts"
+  }
+]

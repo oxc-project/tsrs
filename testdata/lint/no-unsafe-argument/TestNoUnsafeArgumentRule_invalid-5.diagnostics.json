@@ -1,0 +1,15 @@
+[
+  {
+    "message": {
+      "id": "unsafeSpread",
+      "description": "Unsafe spread of an any type."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 62,
+      "end": 75
+    },
+    "kind": 0,
+    "rule": "no-unsafe-argument"
+  }
+]

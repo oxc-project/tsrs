@@ -1,0 +1,45 @@
+[
+  {
+    "fixes": [
+      {
+        "text": "varBoolean instanceof Event",
+        "range": {
+          "pos": 56,
+          "end": 92
+        }
+      },
+      {
+        "text": "!",
+        "range": {
+          "pos": 56,
+          "end": 56
+        }
+      },
+      {
+        "text": "(",
+        "range": {
+          "pos": 56,
+          "end": 56
+        }
+      },
+      {
+        "text": ")",
+        "range": {
+          "pos": 92,
+          "end": 92
+        }
+      }
+    ],
+    "kind": 0,
+    "rule": "no-unnecessary-boolean-literal-compare",
+    "message": {
+      "id": "direct",
+      "description": "This expression unnecessarily compares a boolean value to a boolean instead of using it directly."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 56,
+      "end": 92
+    }
+  }
+]

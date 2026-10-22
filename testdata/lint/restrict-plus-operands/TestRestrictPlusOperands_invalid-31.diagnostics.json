@@ -1,0 +1,16 @@
+[
+  {
+    "message": {
+      "id": "invalid",
+      "description": "Invalid operand of type 'A2' for a '+' operation.",
+      "help": "Operands must each be a number or string."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "end": 189,
+      "pos": 188
+    },
+    "kind": 0,
+    "rule": "restrict-plus-operands"
+  }
+]

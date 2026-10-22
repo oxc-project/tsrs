@@ -1,0 +1,56 @@
+[
+  {
+    "message": {
+      "id": "unnecessaryTypeConversion",
+      "description": "This type conversion does not change the type or value of the expression."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 6,
+      "end": 11
+    },
+    "suggestions": [
+      {
+        "message": {
+          "id": "suggestRemove",
+          "description": "Remove the type conversion."
+        },
+        "fixes": [
+          {
+            "text": "'asdf'",
+            "range": {
+              "pos": 0,
+              "end": 11
+            }
+          }
+        ]
+      },
+      {
+        "message": {
+          "id": "suggestSatisfies",
+          "description": "Instead, assert that the value satisfies the primitive type."
+        },
+        "fixes": [
+          {
+            "text": "'asdf' satisfies string",
+            "range": {
+              "pos": 0,
+              "end": 11
+            }
+          }
+        ]
+      }
+    ],
+    "labeled_ranges": [
+      {
+        "range": {
+          "pos": 0,
+          "end": 6
+        },
+        "label": "This expression already has type '\"asdf\"'."
+      }
+    ],
+    "kind": 0,
+    "rule": "no-unnecessary-type-conversion"
+  }
+]

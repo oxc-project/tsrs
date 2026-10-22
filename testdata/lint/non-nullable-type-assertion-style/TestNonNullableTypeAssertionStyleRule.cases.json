@@ -1,0 +1,352 @@
+{
+  "Name": "non-nullable-type-assertion-style",
+  "TSConfig": "tsconfig.minimal.json",
+  "Valid": [
+    {
+      "Code": "\ndeclare const original: number | string;\nconst cast = original as string;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const original: number | undefined;\nconst cast = original as string | number | undefined;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const original: number | any;\nconst cast = original as string | number | undefined;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const original: number | undefined;\nconst cast = original as any;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const original: number | null | undefined;\nconst cast = original as number | null;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype Type = { value: string };\ndeclare const original: Type | number;\nconst cast = original as Type;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype T = string;\ndeclare const x: T | number;\n\nconst y = x as NonNullable<T>;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype T = string | null;\ndeclare const x: T | number;\n\nconst y = x as NonNullable<T>;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst foo = [] as const;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst x = 1 as 1;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare function foo<T = any>(): T;\nconst bar = foo() as number;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    }
+  ],
+  "Invalid": [
+    {
+      "Code": "\ndeclare const maybe: string | undefined;\nconst bar = maybe as string;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNonNullAssertion",
+          "Line": 3,
+          "Column": 13,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "preferNonNullAssertion",
+              "Output": "\ndeclare const maybe: string | undefined;\nconst bar = maybe!;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const maybe: string | null;\nconst bar = maybe as string;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNonNullAssertion",
+          "Line": 3,
+          "Column": 13,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "preferNonNullAssertion",
+              "Output": "\ndeclare const maybe: string | null;\nconst bar = maybe!;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const maybe: string | null | undefined;\nconst bar = maybe as string;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNonNullAssertion",
+          "Line": 3,
+          "Column": 13,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "preferNonNullAssertion",
+              "Output": "\ndeclare const maybe: string | null | undefined;\nconst bar = maybe!;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype Type = { value: string };\ndeclare const maybe: Type | undefined;\nconst bar = maybe as Type;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNonNullAssertion",
+          "Line": 4,
+          "Column": 13,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "preferNonNullAssertion",
+              "Output": "\ntype Type = { value: string };\ndeclare const maybe: Type | undefined;\nconst bar = maybe!;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface Interface {\n  value: string;\n}\ndeclare const maybe: Interface | undefined;\nconst bar = maybe as Interface;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNonNullAssertion",
+          "Line": 6,
+          "Column": 13,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "preferNonNullAssertion",
+              "Output": "\ninterface Interface {\n  value: string;\n}\ndeclare const maybe: Interface | undefined;\nconst bar = maybe!;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype T = string | null;\ndeclare const x: T;\n\nconst y = x as NonNullable<T>;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNonNullAssertion",
+          "Line": 5,
+          "Column": 11,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "preferNonNullAssertion",
+              "Output": "\ntype T = string | null;\ndeclare const x: T;\n\nconst y = x!;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype T = string | null | undefined;\ndeclare const x: T;\n\nconst y = x as NonNullable<T>;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNonNullAssertion",
+          "Line": 5,
+          "Column": 11,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "preferNonNullAssertion",
+              "Output": "\ntype T = string | null | undefined;\ndeclare const x: T;\n\nconst y = x!;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare function nullablePromise(): Promise<string | null>;\n\nasync function fn(): Promise<string> {\n  return (await nullablePromise()) as string;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNonNullAssertion",
+          "Line": 5,
+          "Column": 10,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "preferNonNullAssertion",
+              "Output": "\ndeclare function nullablePromise(): Promise<string | null>;\n\nasync function fn(): Promise<string> {\n  return (await nullablePromise())!;\n}\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const a: string | null;\n\nconst b = (a || undefined) as string;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNonNullAssertion",
+          "Line": 4,
+          "Column": 11,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "preferNonNullAssertion",
+              "Output": "\ndeclare const a: string | null;\n\nconst b = (a || undefined)!;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    }
+  ]
+}

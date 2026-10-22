@@ -1,0 +1,42 @@
+[
+  {
+    "file_path": "file.ts",
+    "range": {
+      "pos": 80,
+      "end": 90
+    },
+    "suggestions": [
+      {
+        "message": {
+          "id": "removeAwait",
+          "description": "Remove unnecessary `await`."
+        },
+        "fixes": [
+          {
+            "text": "",
+            "range": {
+              "pos": 64,
+              "end": 70
+            }
+          }
+        ]
+      }
+    ],
+    "labeled_ranges": [
+      {
+        "label": "This value is not async disposable",
+        "range": {
+          "pos": 80,
+          "end": 90
+        }
+      }
+    ],
+    "kind": 0,
+    "rule": "await-thenable",
+    "message": {
+      "id": "awaitUsingOfNonAsyncDisposable",
+      "description": "Unexpected `await using` of a value that is not async disposable.",
+      "help": "Use plain `using` for synchronous disposables, or change the value to implement `Symbol.asyncDispose`."
+    }
+  }
+]

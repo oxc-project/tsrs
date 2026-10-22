@@ -1,0 +1,81 @@
+[
+  {
+    "fixes": [
+      {
+        "text": "",
+        "range": {
+          "pos": 58,
+          "end": 63
+        }
+      },
+      {
+        "text": "",
+        "range": {
+          "pos": 78,
+          "end": 80
+        }
+      },
+      {
+        "text": "",
+        "range": {
+          "pos": 63,
+          "end": 64
+        }
+      },
+      {
+        "text": "",
+        "range": {
+          "pos": 77,
+          "end": 78
+        }
+      }
+    ],
+    "kind": 0,
+    "rule": "no-unnecessary-template-expression",
+    "message": {
+      "id": "noUnnecessaryTemplateExpression",
+      "description": "Template literal expression is unnecessary and can be simplified."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 58,
+      "end": 80
+    }
+  },
+  {
+    "kind": 0,
+    "rule": "no-unnecessary-template-expression",
+    "message": {
+      "id": "noUnnecessaryTemplateExpression",
+      "description": "Template literal expression is unnecessary and can be simplified."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "end": 77,
+      "pos": 66
+    },
+    "fixes": [
+      {
+        "text": "",
+        "range": {
+          "pos": 66,
+          "end": 70
+        }
+      },
+      {
+        "text": "",
+        "range": {
+          "pos": 74,
+          "end": 77
+        }
+      },
+      {
+        "text": "ss",
+        "range": {
+          "pos": 70,
+          "end": 74
+        }
+      }
+    ]
+  }
+]

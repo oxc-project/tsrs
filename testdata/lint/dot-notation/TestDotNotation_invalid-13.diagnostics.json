@@ -1,0 +1,31 @@
+[
+  {
+    "rule": "dot-notation",
+    "message": {
+      "id": "useBrackets",
+      "description": ".while is a syntax error."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 8,
+      "end": 13
+    },
+    "fixes": [
+      {
+        "text": "",
+        "range": {
+          "end": 8,
+          "pos": 7
+        }
+      },
+      {
+        "text": "[\"while\"]",
+        "range": {
+          "pos": 8,
+          "end": 13
+        }
+      }
+    ],
+    "kind": 0
+  }
+]

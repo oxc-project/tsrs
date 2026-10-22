@@ -1,0 +1,16 @@
+[
+  {
+    "range": {
+      "pos": 131,
+      "end": 133
+    },
+    "kind": 0,
+    "rule": "no-unnecessary-condition",
+    "message": {
+      "id": "alwaysFalsy",
+      "description": "Unnecessary conditional, value is always falsy.",
+      "help": "The checked value has type `{ __brandA: string; } & \"\"`."
+    },
+    "file_path": "file.ts"
+  }
+]

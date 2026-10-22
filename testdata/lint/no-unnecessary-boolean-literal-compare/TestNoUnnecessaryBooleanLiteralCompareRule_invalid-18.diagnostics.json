@@ -1,0 +1,24 @@
+[
+  {
+    "range": {
+      "pos": 58,
+      "end": 78
+    },
+    "fixes": [
+      {
+        "text": "varBoolean",
+        "range": {
+          "pos": 56,
+          "end": 79
+        }
+      }
+    ],
+    "kind": 0,
+    "rule": "no-unnecessary-boolean-literal-compare",
+    "message": {
+      "id": "direct",
+      "description": "This expression unnecessarily compares a boolean value to a boolean instead of using it directly."
+    },
+    "file_path": "file.ts"
+  }
+]

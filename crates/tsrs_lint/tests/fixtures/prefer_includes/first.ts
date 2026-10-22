@@ -1,0 +1,10 @@
+export {};
+declare const 值: string;
+值.indexOf("é") === -1;
+const 模式 = new RegExp("café", "i");
+模式.test( 值 + "!");
+new RegExp("direct").test(值);
+(/wrapped/).test(值);
+type TextSensitive = { indexOf(x: string): number; includes( x: string): boolean };
+declare const custom: TextSensitive;
+custom.indexOf("é") !== -1;

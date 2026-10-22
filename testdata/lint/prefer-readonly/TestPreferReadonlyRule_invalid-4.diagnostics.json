@@ -1,0 +1,48 @@
+[
+  {
+    "kind": 0,
+    "range": {
+      "pos": 59,
+      "end": 94
+    },
+    "message": {
+      "id": "preferReadonly",
+      "description": "Member 'incorrectlyModifiableInline' is never reassigned.",
+      "help": "Mark it as `readonly`."
+    },
+    "file_path": "file.ts",
+    "rule": "prefer-readonly",
+    "fixes": [
+      {
+        "text": "readonly ",
+        "range": {
+          "pos": 67,
+          "end": 67
+        }
+      }
+    ]
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 189,
+      "end": 224
+    },
+    "message": {
+      "id": "preferReadonly",
+      "description": "Member 'incorrectlyModifiableInline' is never reassigned.",
+      "help": "Mark it as `readonly`."
+    },
+    "file_path": "file.ts",
+    "rule": "prefer-readonly",
+    "fixes": [
+      {
+        "text": "readonly ",
+        "range": {
+          "pos": 197,
+          "end": 197
+        }
+      }
+    ]
+  }
+]

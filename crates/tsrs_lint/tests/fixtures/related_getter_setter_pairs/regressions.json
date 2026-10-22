@@ -1,0 +1,417 @@
+[
+  {
+    "name": "utf8-setter-first",
+    "source": "export {}; interface Café { set café(value: number); get café(): /* 😀 */ \"é\"; }",
+    "options": null,
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 79,
+          "end": 83
+        },
+        "message": {
+          "id": "mismatch",
+          "description": "`get()` type should be assignable to its equivalent `set()` type."
+        },
+        "rule": "related-getter-setter-pairs"
+      }
+    ]
+  },
+  {
+    "name": "class-expression",
+    "source": "export {}; const C = class { set a(value: number) {} get a(): boolean { return true; } };",
+    "options": true,
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 62,
+          "end": 69
+        },
+        "message": {
+          "id": "mismatch",
+          "description": "`get()` type should be assignable to its equivalent `set()` type."
+        },
+        "rule": "related-getter-setter-pairs"
+      }
+    ]
+  },
+  {
+    "name": "generic-constraint",
+    "source": "export {}; declare class C<T extends string> { get a(): T; set a(value: string); get b(): string; set b(value: T); }",
+    "options": [],
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 90,
+          "end": 96
+        },
+        "message": {
+          "id": "mismatch",
+          "description": "`get()` type should be assignable to its equivalent `set()` type."
+        },
+        "rule": "related-getter-setter-pairs"
+      }
+    ]
+  },
+  {
+    "name": "structural-types",
+    "source": "export {}; interface C { get a(): { a: string; b: number }; set a(value: { a: string }); get b(): { a: string }; set b(value: { a: string; b: number }); }",
+    "options": 1,
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 98,
+          "end": 111
+        },
+        "message": {
+          "id": "mismatch",
+          "description": "`get()` type should be assignable to its equivalent `set()` type."
+        },
+        "rule": "related-getter-setter-pairs"
+      }
+    ]
+  },
+  {
+    "name": "computed-identifier",
+    "source": "export {}; declare class C { get [\"café\"](): number; set café(value: string); }",
+    "options": "ignored",
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 46,
+          "end": 52
+        },
+        "message": {
+          "id": "mismatch",
+          "description": "`get()` type should be assignable to its equivalent `set()` type."
+        },
+        "rule": "related-getter-setter-pairs"
+      }
+    ]
+  },
+  {
+    "name": "computed-quoted",
+    "source": "export {}; declare class C { get [\"a-b\"](): number; set \"a-b\"(value: string); }",
+    "options": {
+      "anything": false
+    },
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 44,
+          "end": 50
+        },
+        "message": {
+          "id": "mismatch",
+          "description": "`get()` type should be assignable to its equivalent `set()` type."
+        },
+        "rule": "related-getter-setter-pairs"
+      }
+    ]
+  },
+  {
+    "name": "computed-single-quoted",
+    "source": "export {}; declare class C { get ['a-b'](): number; set 'a-b'(value: string); }",
+    "options": null,
+    "diagnostics": []
+  },
+  {
+    "name": "raw-quoted-identifier",
+    "source": "export {}; declare class C { get \"café\"(): number; set café(value: string); }",
+    "options": null,
+    "diagnostics": []
+  },
+  {
+    "name": "computed-expression",
+    "source": "export {}; declare const key: unique symbol; declare class C { get [key](): number; set [key](value: string); }",
+    "options": null,
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 76,
+          "end": 82
+        },
+        "message": {
+          "id": "mismatch",
+          "description": "`get()` type should be assignable to its equivalent `set()` type."
+        },
+        "rule": "related-getter-setter-pairs"
+      }
+    ]
+  },
+  {
+    "name": "computed-spacing",
+    "source": "export {}; declare const key: unique symbol; declare class C { get [key](): number; set [ key ](value: string); }",
+    "options": null,
+    "diagnostics": []
+  },
+  {
+    "name": "computed-keyword",
+    "source": "export {}; declare class C { get [true](): number; set [true](value: string); }",
+    "options": null,
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 43,
+          "end": 49
+        },
+        "message": {
+          "id": "mismatch",
+          "description": "`get()` type should be assignable to its equivalent `set()` type."
+        },
+        "rule": "related-getter-setter-pairs"
+      }
+    ]
+  },
+  {
+    "name": "computed-numeric",
+    "source": "export {}; declare class C { get [1](): number; set \"1\"(value: string); get [2](): number; set 2(value: string); }",
+    "options": null,
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 40,
+          "end": 46
+        },
+        "message": {
+          "id": "mismatch",
+          "description": "`get()` type should be assignable to its equivalent `set()` type."
+        },
+        "rule": "related-getter-setter-pairs"
+      }
+    ]
+  },
+  {
+    "name": "computed-template",
+    "source": "export {}; declare class C { get [`café`](): number; set café(value: string); }",
+    "options": null,
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 46,
+          "end": 52
+        },
+        "message": {
+          "id": "mismatch",
+          "description": "`get()` type should be assignable to its equivalent `set()` type."
+        },
+        "rule": "related-getter-setter-pairs"
+      }
+    ]
+  },
+  {
+    "name": "private-name",
+    "source": "export {}; declare class C { get #café(): number; set #café(value: string); }",
+    "options": null,
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 43,
+          "end": 49
+        },
+        "message": {
+          "id": "mismatch",
+          "description": "`get()` type should be assignable to its equivalent `set()` type."
+        },
+        "rule": "related-getter-setter-pairs"
+      }
+    ]
+  },
+  {
+    "name": "static-instance-pair",
+    "source": "export {}; declare class C { static get a(): number; set a(value: string); }",
+    "options": null,
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 45,
+          "end": 51
+        },
+        "message": {
+          "id": "mismatch",
+          "description": "`get()` type should be assignable to its equivalent `set()` type."
+        },
+        "rule": "related-getter-setter-pairs"
+      }
+    ]
+  },
+  {
+    "name": "nested-scopes",
+    "source": "export {}; declare class C { get a(): number; set b(value: string); get nested(): { get a(): number; set a(value: string); }; } interface D { set a(value: string); }",
+    "options": null,
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 93,
+          "end": 99
+        },
+        "message": {
+          "id": "mismatch",
+          "description": "`get()` type should be assignable to its equivalent `set()` type."
+        },
+        "rule": "related-getter-setter-pairs"
+      }
+    ]
+  },
+  {
+    "name": "object-excluded",
+    "source": "export {}; const c = { get a(): number { return 1; }, set a(value: string) {} };",
+    "options": null,
+    "diagnostics": []
+  },
+  {
+    "name": "missing-types-parameters",
+    "source": "export {}; class C { get a() { return 1; } set a(value: string) {} get b(): number { return 1; } set b() {} get c(): number { return 1; } set c(a: string, b: string) {} }",
+    "options": null,
+    "diagnostics": []
+  },
+  {
+    "name": "duplicate-setters-after",
+    "source": "export {}; interface C { get a(): number; set a(value: string); set a(value: boolean); }",
+    "options": null,
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 34,
+          "end": 40
+        },
+        "message": {
+          "id": "mismatch",
+          "description": "`get()` type should be assignable to its equivalent `set()` type."
+        },
+        "rule": "related-getter-setter-pairs"
+      },
+      {
+        "kind": 0,
+        "range": {
+          "pos": 34,
+          "end": 40
+        },
+        "message": {
+          "id": "mismatch",
+          "description": "`get()` type should be assignable to its equivalent `set()` type."
+        },
+        "rule": "related-getter-setter-pairs"
+      }
+    ]
+  },
+  {
+    "name": "duplicate-setters-before",
+    "source": "export {}; interface C { set a(value: string); set a(value: number); get a(): number; }",
+    "options": null,
+    "diagnostics": []
+  },
+  {
+    "name": "duplicate-getters-before",
+    "source": "export {}; interface C { get a(): number; get a(): boolean; set a(value: string); }",
+    "options": null,
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 51,
+          "end": 58
+        },
+        "message": {
+          "id": "mismatch",
+          "description": "`get()` type should be assignable to its equivalent `set()` type."
+        },
+        "rule": "related-getter-setter-pairs"
+      }
+    ]
+  },
+  {
+    "name": "duplicate-getters-after",
+    "source": "export {}; interface C { set a(value: string); get a(): number; get a(): boolean; }",
+    "options": null,
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 56,
+          "end": 62
+        },
+        "message": {
+          "id": "mismatch",
+          "description": "`get()` type should be assignable to its equivalent `set()` type."
+        },
+        "rule": "related-getter-setter-pairs"
+      },
+      {
+        "kind": 0,
+        "range": {
+          "pos": 73,
+          "end": 80
+        },
+        "message": {
+          "id": "mismatch",
+          "description": "`get()` type should be assignable to its equivalent `set()` type."
+        },
+        "rule": "related-getter-setter-pairs"
+      }
+    ]
+  },
+  {
+    "name": "nullish-unions",
+    "source": "export {}; interface C { get a(): string | undefined; set a(value: string); get b(): never; set b(value: string); get c(): unknown; set c(value: number); }",
+    "options": null,
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 34,
+          "end": 52
+        },
+        "message": {
+          "id": "mismatch",
+          "description": "`get()` type should be assignable to its equivalent `set()` type."
+        },
+        "rule": "related-getter-setter-pairs"
+      },
+      {
+        "kind": 0,
+        "range": {
+          "pos": 123,
+          "end": 130
+        },
+        "message": {
+          "id": "mismatch",
+          "description": "`get()` type should be assignable to its equivalent `set()` type."
+        },
+        "rule": "related-getter-setter-pairs"
+      }
+    ]
+  },
+  {
+    "name": "computed-regexp",
+    "source": "export {}; declare class C { get [/a/](): number; set \"a\"(value: string); }",
+    "options": null,
+    "diagnostics": []
+  },
+  {
+    "name": "unpaired-getter",
+    "source": "export {}; interface C { get value(): number; }",
+    "options": null,
+    "diagnostics": []
+  },
+  {
+    "name": "unpaired-setter",
+    "source": "export {}; interface C { set value(value: string); }",
+    "options": null,
+    "diagnostics": []
+  }
+]

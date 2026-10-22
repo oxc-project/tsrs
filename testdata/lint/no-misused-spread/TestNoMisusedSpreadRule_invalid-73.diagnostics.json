@@ -1,0 +1,15 @@
+[
+  {
+    "kind": 0,
+    "rule": "no-misused-spread",
+    "message": {
+      "id": "noClassInstanceSpreadInObject",
+      "description": "Using the spread operator on class instances will lose their class prototype."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 123,
+      "end": 132
+    }
+  }
+]

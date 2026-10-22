@@ -1,0 +1,15 @@
+[
+  {
+    "message": {
+      "id": "unsafeTupleSpread",
+      "description": "Unsafe spread of a tuple type. The argument is of type any and is assigned to a parameter of type number."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 98,
+      "end": 102
+    },
+    "kind": 0,
+    "rule": "no-unsafe-argument"
+  }
+]

@@ -1,0 +1,397 @@
+{
+  "Name": "prefer-return-this-type",
+  "TSConfig": "tsconfig.minimal.json",
+  "Valid": [
+    {
+      "Code": "\nclass Foo {\n  f1() {}\n  f2(): Foo {\n    return new Foo();\n  }\n  f3() {\n    return this;\n  }\n  f4(): this {\n    return this;\n  }\n  f5(): any {\n    return this;\n  }\n  f6(): unknown {\n    return this;\n  }\n  f7(foo: Foo): Foo {\n    return Math.random() > 0.5 ? foo : this;\n  }\n  f10(this: Foo, that: Foo): Foo;\n  f11(): Foo {\n    return;\n  }\n  f13(this: Foo): Foo {\n    return this;\n  }\n  f14(): { f14: Function } {\n    return this;\n  }\n  f15(): Foo | this {\n    return Math.random() > 0.5 ? new Foo() : this;\n  }\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass Foo {\n  f1 = () => {};\n  f2 = (): Foo => {\n    return new Foo();\n  };\n  f3 = () => this;\n  f4 = (): this => {\n    return this;\n  };\n  f5 = (): Foo => new Foo();\n  f6 = '';\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst Foo = class {\n  bar() {\n    return this;\n  }\n};\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass Base {}\nclass Derived extends Base {\n  f(): Base {\n    return this;\n  }\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass Foo {\n  accessor f = () => {\n    return this;\n  };\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass Foo {\n  accessor f = (): this => {\n    return this;\n  };\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass Foo {\n  f?: string;\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst Foo = class {\n\tbar(): this {\n    return this;\n  }\n};\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass A {\n  static C = class B {\n    d(): B {\n      return new B();\n    }\n  };\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    }
+  ],
+  "Invalid": [
+    {
+      "Code": "\nclass Foo {\n  f(): Foo {\n    return this;\n  }\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nclass Foo {\n  f(): this {\n    return this;\n  }\n}\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "useThisType",
+          "Line": 3,
+          "Column": 8,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass Foo {\n  f = function (): Foo {\n    return this;\n  };\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nclass Foo {\n  f = function (): this {\n    return this;\n  };\n}\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "useThisType",
+          "Line": 3,
+          "Column": 20,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass Foo {\n  f(): Foo {\n    const self = this;\n    return self;\n  }\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nclass Foo {\n  f(): this {\n    const self = this;\n    return self;\n  }\n}\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "useThisType",
+          "Line": 3,
+          "Column": 8,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass Foo {\n  f = (): Foo => {\n    return this;\n  };\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nclass Foo {\n  f = (): this => {\n    return this;\n  };\n}\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "useThisType",
+          "Line": 3,
+          "Column": 11,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass Foo {\n  f = (): Foo => {\n    const self = this;\n    return self;\n  };\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nclass Foo {\n  f = (): this => {\n    const self = this;\n    return self;\n  };\n}\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "useThisType",
+          "Line": 3,
+          "Column": 11,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass Foo {\n  f = (): Foo => this;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nclass Foo {\n  f = (): this => this;\n}\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "useThisType",
+          "Line": 3,
+          "Column": 11,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass Foo {\n  accessor f = (): Foo => {\n    return this;\n  };\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nclass Foo {\n  accessor f = (): this => {\n    return this;\n  };\n}\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "useThisType",
+          "Line": 3,
+          "Column": 20,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass Foo {\n  accessor f = (): Foo => this;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nclass Foo {\n  accessor f = (): this => this;\n}\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "useThisType",
+          "Line": 3,
+          "Column": 20,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass Foo {\n  f1(): Foo | undefined {\n    return this;\n  }\n  f2(): this | undefined {\n    return this;\n  }\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nclass Foo {\n  f1(): this | undefined {\n    return this;\n  }\n  f2(): this | undefined {\n    return this;\n  }\n}\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "useThisType",
+          "Line": 3,
+          "Column": 9,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass Foo {\n  bar(): Foo | undefined {\n    if (Math.random() > 0.5) {\n      return this;\n    }\n  }\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nclass Foo {\n  bar(): this | undefined {\n    if (Math.random() > 0.5) {\n      return this;\n    }\n  }\n}\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "useThisType",
+          "Line": 3,
+          "Column": 10,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass Foo {\n  bar(num: 1 | 2): Foo {\n    switch (num) {\n      case 1:\n        return this;\n      case 2:\n        return this;\n    }\n  }\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nclass Foo {\n  bar(num: 1 | 2): this {\n    switch (num) {\n      case 1:\n        return this;\n      case 2:\n        return this;\n    }\n  }\n}\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "useThisType",
+          "Line": 3,
+          "Column": 20,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass Animal<T> {\n  eat(): Animal<T> {\n    console.log(\"I'm moving!\");\n    return this;\n  }\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nclass Animal<T> {\n  eat(): this {\n    console.log(\"I'm moving!\");\n    return this;\n  }\n}\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "useThisType",
+          "Line": 3,
+          "Column": 10,
+          "EndLine": 0,
+          "EndColumn": 19,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst Foo = class FooClass {\n  f(): FooClass {\n    return this;\n  }\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nconst Foo = class FooClass {\n  f(): this {\n    return this;\n  }\n}\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "useThisType",
+          "Line": 3,
+          "Column": 8,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    }
+  ]
+}

@@ -1,0 +1,38 @@
+[
+  {
+    "kind": 0,
+    "rule": "no-unnecessary-template-expression",
+    "message": {
+      "id": "noUnnecessaryTemplateExpression",
+      "description": "Template literal expression is unnecessary and can be simplified."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 5,
+      "end": 18
+    },
+    "fixes": [
+      {
+        "text": "",
+        "range": {
+          "end": 10,
+          "pos": 5
+        }
+      },
+      {
+        "text": "",
+        "range": {
+          "pos": 16,
+          "end": 18
+        }
+      },
+      {
+        "text": "less",
+        "range": {
+          "end": 16,
+          "pos": 10
+        }
+      }
+    ]
+  }
+]

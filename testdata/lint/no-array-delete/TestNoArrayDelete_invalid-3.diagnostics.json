@@ -1,0 +1,55 @@
+[
+  {
+    "rule": "no-array-delete",
+    "message": {
+      "id": "noArrayDelete",
+      "description": "Using the `delete` operator with an array expression is unsafe."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 87,
+      "end": 93
+    },
+    "suggestions": [
+      {
+        "message": {
+          "id": "useSplice",
+          "description": "Use `array.splice()` instead."
+        },
+        "fixes": [
+          {
+            "text": "",
+            "range": {
+              "pos": 87,
+              "end": 93
+            }
+          },
+          {
+            "text": ".splice(",
+            "range": {
+              "pos": 97,
+              "end": 98
+            }
+          },
+          {
+            "text": ", 1)",
+            "range": {
+              "pos": 111,
+              "end": 112
+            }
+          }
+        ]
+      }
+    ],
+    "labeled_ranges": [
+      {
+        "label": "This expression evaluates to an array.",
+        "range": {
+          "pos": 94,
+          "end": 97
+        }
+      }
+    ],
+    "kind": 0
+  }
+]

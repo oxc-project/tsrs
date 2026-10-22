@@ -1,0 +1,24 @@
+[
+  {
+    "labeled_ranges": [
+      {
+        "label": "This callback has type `() => Promise<void>`.",
+        "range": {
+          "pos": 127,
+          "end": 129
+        }
+      }
+    ],
+    "kind": 0,
+    "rule": "no-misused-promises",
+    "message": {
+      "id": "voidReturnProperty",
+      "description": "Promise-returning function provided to property where a void return was expected."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 127,
+      "end": 129
+    }
+  }
+]

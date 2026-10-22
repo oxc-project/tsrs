@@ -1,0 +1,32 @@
+[
+  {
+    "kind": 0,
+    "rule": "no-meaningless-void-operator",
+    "message": {
+      "id": "meaninglessVoidOperator",
+      "description": "void operator shouldn't be used on never; it should convey that a return value is being ignored"
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 28,
+      "end": 34
+    },
+    "suggestions": [
+      {
+        "message": {
+          "id": "removeVoid",
+          "description": "Remove 'void'"
+        },
+        "fixes": [
+          {
+            "text": "",
+            "range": {
+              "pos": 28,
+              "end": 32
+            }
+          }
+        ]
+      }
+    ]
+  }
+]

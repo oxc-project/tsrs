@@ -1,0 +1,16 @@
+[
+  {
+    "kind": 0,
+    "rule": "no-unsafe-return",
+    "message": {
+      "id": "unsafeReturn",
+      "description": "Unsafe return of a value of type `Promise<any>`.",
+      "help": "Returned expression has type `Promise<any>`; the function return type is `Promise<number>`. Return a safely typed value or narrow the value before returning it."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 78,
+      "end": 91
+    }
+  }
+]

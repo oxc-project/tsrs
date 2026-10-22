@@ -1,0 +1,16 @@
+[
+  {
+    "kind": 0,
+    "range": {
+      "pos": 25,
+      "end": 38
+    },
+    "message": {
+      "id": "unsafeOfAnyTypeAssertion",
+      "description": "Unsafe assertion from `any` detected.",
+      "help": "The original expression has type `[any]`, and the assertion changes it to `[number]`. Use a type guard to check the value before asserting its type."
+    },
+    "file_path": "file.ts",
+    "rule": "no-unsafe-type-assertion"
+  }
+]

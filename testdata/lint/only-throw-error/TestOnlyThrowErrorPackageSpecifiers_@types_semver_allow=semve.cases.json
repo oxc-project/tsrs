@@ -1,0 +1,44 @@
+{
+  "Name": "only-throw-error",
+  "TSConfig": "tsconfig.minimal.json",
+  "Valid": [],
+  "Invalid": [
+    {
+      "Code": "import type { ErrorLike } from \"semver\"; declare const error: ErrorLike; throw error;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "object",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "allow": [
+          {
+            "package": "semve",
+            "from": "package",
+            "name": [
+              "ErrorLike"
+            ]
+          }
+        ],
+        "allowRethrowing": false,
+        "allowThrowingAny": false,
+        "allowThrowingUnknown": false
+      },
+      "Tsx": false,
+      "Files": {
+        "node_modules/@types/semver/package.json": "{\"name\": \"@types/semver\", \"version\": \"1.0.0\", \"types\": \"lib/index.d.ts\"}",
+        "node_modules/@types/semver/lib/index.d.ts": "export interface ErrorLike { message: string }"
+      }
+    }
+  ]
+}

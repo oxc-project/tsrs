@@ -1,0 +1,1686 @@
+[
+  [
+    {
+      "kind": 0,
+      "range": {
+        "pos": 146,
+        "end": 159
+      },
+      "message": {
+        "id": "preferReadonly",
+        "description": "Member 'value' is never reassigned.",
+        "help": "Mark it as `readonly`."
+      },
+      "rule": "prefer-readonly"
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 543,
+        "end": 561
+      },
+      "message": {
+        "id": "anyAssignment",
+        "description": "Unsafe assignment of an any value.",
+        "help": "Assigned value has type `any`; the target has type `any`. Use a safely typed value or `unknown`, and narrow it before use."
+      },
+      "rule": "no-unsafe-assignment"
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 891,
+        "end": 933
+      },
+      "message": {
+        "id": "floatingVoid",
+        "description": "Promises must be awaited, add void operator to ignore.",
+        "help": "The promise must end with a call to .catch, or end with a call to .then with a rejection handler, or be explicitly marked as ignored with the `void` operator."
+      },
+      "labeled_ranges": [
+        {
+          "label": "This unhandled promise-like value has type `Promise<unknown>`.",
+          "range": {
+            "pos": 891,
+            "end": 933
+          }
+        }
+      ],
+      "rule": "no-floating-promises"
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 205,
+        "end": 211
+      },
+      "message": {
+        "id": "mismatch",
+        "description": "`get()` type should be assignable to its equivalent `set()` type."
+      },
+      "rule": "related-getter-setter-pairs"
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 252,
+        "end": 262
+      },
+      "message": {
+        "id": "missingAwait",
+        "description": "Function has no 'await' expression."
+      },
+      "rule": "require-await"
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 310,
+        "end": 318
+      },
+      "message": {
+        "id": "unboundWithoutThisAnnotation",
+        "description": "Avoid referencing unbound methods which may cause unintentional scoping of `this`.",
+        "help": "If your function does not access `this`, you can annotate it with `this: void`, or consider using an arrow function instead."
+      },
+      "labeled_ranges": [
+        {
+          "label": "This reference may be unbound and lose `this` context",
+          "range": {
+            "pos": 312,
+            "end": 318
+          }
+        }
+      ],
+      "rule": "unbound-method"
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 341,
+        "end": 355
+      },
+      "message": {
+        "id": "requireCompare",
+        "description": "Require 'compare' argument."
+      },
+      "rule": "require-array-sort-compare"
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 369,
+        "end": 394
+      },
+      "message": {
+        "id": "preferFind",
+        "description": "Prefer .find(...) instead of .filter(...)[0]."
+      },
+      "rule": "prefer-find"
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 406,
+        "end": 429
+      },
+      "message": {
+        "id": "preferIncludes",
+        "description": "Use 'includes()' method instead."
+      },
+      "rule": "prefer-includes"
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 456,
+        "end": 457
+      },
+      "message": {
+        "id": "baseToString",
+        "description": "'c' will use Object's default stringification format ('[object Object]') when stringified.",
+        "help": "Consider picking a property (e.g. `user.name`), using a formatter (or `JSON.stringify`), or implementing a custom `toString()`/`toLocaleString()` on the type."
+      },
+      "rule": "no-base-to-string"
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 456,
+        "end": 457
+      },
+      "message": {
+        "id": "invalidType",
+        "description": "Invalid type used in template literal expression."
+      },
+      "labeled_ranges": [
+        {
+          "label": "Type: C",
+          "range": {
+            "pos": 456,
+            "end": 457
+          }
+        }
+      ],
+      "rule": "restrict-template-expressions"
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 460,
+        "end": 467
+      },
+      "message": {
+        "id": "invalidType",
+        "description": "Invalid type used in template literal expression."
+      },
+      "labeled_ranges": [
+        {
+          "label": "Type: number[]",
+          "range": {
+            "pos": 460,
+            "end": 467
+          }
+        }
+      ],
+      "rule": "restrict-template-expressions"
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 522,
+        "end": 524
+      },
+      "message": {
+        "id": "preferNullishOverOr",
+        "description": "Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator."
+      },
+      "rule": "prefer-nullish-coalescing"
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 487,
+        "end": 498
+      },
+      "message": {
+        "id": "conditionErrorNullableString",
+        "description": "Unexpected nullable string value in conditional.",
+        "help": "Handle the nullish and empty string cases explicitly."
+      },
+      "rule": "strict-boolean-expressions"
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 487,
+        "end": 520
+      },
+      "message": {
+        "id": "preferOptionalChain",
+        "description": "Prefer using an optional chain expression instead, as it's more concise and easier to read."
+      },
+      "rule": "prefer-optional-chain"
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 622,
+        "end": 627
+      },
+      "message": {
+        "id": "useUnknown",
+        "description": "Prefer the safe `: unknown` for a `catch` callback variable."
+      },
+      "rule": "use-unknown-in-catch-callback-variable"
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 648,
+        "end": 655
+      },
+      "message": {
+        "id": "unsafeMemberExpression",
+        "description": "Unsafe member access .message on an `any` value."
+      },
+      "rule": "no-unsafe-member-access"
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 721,
+        "end": 728
+      },
+      "message": {
+        "id": "useUnknown",
+        "description": "Prefer the safe `: unknown` for a `then` rejection callback variable."
+      },
+      "rule": "use-unknown-in-catch-callback-variable"
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 815,
+        "end": 816
+      },
+      "message": {
+        "id": "nonVoidReturn",
+        "description": "Value returned in a context where a void return is expected."
+      },
+      "rule": "strict-void-return"
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 832,
+        "end": 840
+      },
+      "message": {
+        "id": "conditionErrorAny",
+        "description": "Unexpected any value in conditional.",
+        "help": "Use a more specific type to ensure type safety."
+      },
+      "rule": "strict-boolean-expressions"
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 864,
+        "end": 872
+      },
+      "message": {
+        "id": "switchIsNotExhaustive",
+        "description": "Switch is not exhaustive. Cases not matched: E.B"
+      },
+      "rule": "switch-exhaustiveness-check"
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 921,
+        "end": 932
+      },
+      "message": {
+        "id": "invalidVoidExprArrow",
+        "description": "Returning a void expression from an arrow function shorthand is forbidden.",
+        "help": "Add braces to the arrow function."
+      },
+      "rule": "no-confusing-void-expression"
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 921,
+        "end": 932
+      },
+      "message": {
+        "id": "rejectAnError",
+        "description": "Expected the Promise rejection reason to be an Error."
+      },
+      "rule": "prefer-promise-reject-errors"
+    }
+  ],
+  [
+    {
+      "kind": 0,
+      "range": {
+        "pos": 146,
+        "end": 159
+      },
+      "message": {
+        "id": "preferReadonly",
+        "description": "Member 'value' is never reassigned.",
+        "help": "Mark it as `readonly`."
+      },
+      "rule": "prefer-readonly",
+      "fixes": [
+        {
+          "text": "readonly ",
+          "range": {
+            "pos": 154,
+            "end": 154
+          }
+        }
+      ]
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 543,
+        "end": 561
+      },
+      "message": {
+        "id": "anyAssignment",
+        "description": "Unsafe assignment of an any value.",
+        "help": "Assigned value has type `any`; the target has type `any`. Use a safely typed value or `unknown`, and narrow it before use."
+      },
+      "rule": "no-unsafe-assignment"
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 891,
+        "end": 933
+      },
+      "message": {
+        "id": "floatingVoid",
+        "description": "Promises must be awaited, add void operator to ignore.",
+        "help": "The promise must end with a call to .catch, or end with a call to .then with a rejection handler, or be explicitly marked as ignored with the `void` operator."
+      },
+      "labeled_ranges": [
+        {
+          "label": "This unhandled promise-like value has type `Promise<unknown>`.",
+          "range": {
+            "pos": 891,
+            "end": 933
+          }
+        }
+      ],
+      "rule": "no-floating-promises"
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 205,
+        "end": 211
+      },
+      "message": {
+        "id": "mismatch",
+        "description": "`get()` type should be assignable to its equivalent `set()` type."
+      },
+      "rule": "related-getter-setter-pairs"
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 252,
+        "end": 262
+      },
+      "message": {
+        "id": "missingAwait",
+        "description": "Function has no 'await' expression."
+      },
+      "rule": "require-await"
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 310,
+        "end": 318
+      },
+      "message": {
+        "id": "unboundWithoutThisAnnotation",
+        "description": "Avoid referencing unbound methods which may cause unintentional scoping of `this`.",
+        "help": "If your function does not access `this`, you can annotate it with `this: void`, or consider using an arrow function instead."
+      },
+      "labeled_ranges": [
+        {
+          "label": "This reference may be unbound and lose `this` context",
+          "range": {
+            "pos": 312,
+            "end": 318
+          }
+        }
+      ],
+      "rule": "unbound-method"
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 341,
+        "end": 355
+      },
+      "message": {
+        "id": "requireCompare",
+        "description": "Require 'compare' argument."
+      },
+      "rule": "require-array-sort-compare"
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 369,
+        "end": 394
+      },
+      "message": {
+        "id": "preferFind",
+        "description": "Prefer .find(...) instead of .filter(...)[0]."
+      },
+      "rule": "prefer-find"
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 406,
+        "end": 429
+      },
+      "message": {
+        "id": "preferIncludes",
+        "description": "Use 'includes()' method instead."
+      },
+      "rule": "prefer-includes",
+      "fixes": [
+        {
+          "text": "includes",
+          "range": {
+            "pos": 414,
+            "end": 421
+          }
+        },
+        {
+          "text": "",
+          "range": {
+            "pos": 424,
+            "end": 429
+          }
+        }
+      ]
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 456,
+        "end": 457
+      },
+      "message": {
+        "id": "baseToString",
+        "description": "'c' will use Object's default stringification format ('[object Object]') when stringified.",
+        "help": "Consider picking a property (e.g. `user.name`), using a formatter (or `JSON.stringify`), or implementing a custom `toString()`/`toLocaleString()` on the type."
+      },
+      "rule": "no-base-to-string"
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 456,
+        "end": 457
+      },
+      "message": {
+        "id": "invalidType",
+        "description": "Invalid type used in template literal expression."
+      },
+      "labeled_ranges": [
+        {
+          "label": "Type: C",
+          "range": {
+            "pos": 456,
+            "end": 457
+          }
+        }
+      ],
+      "rule": "restrict-template-expressions"
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 460,
+        "end": 467
+      },
+      "message": {
+        "id": "invalidType",
+        "description": "Invalid type used in template literal expression."
+      },
+      "labeled_ranges": [
+        {
+          "label": "Type: number[]",
+          "range": {
+            "pos": 460,
+            "end": 467
+          }
+        }
+      ],
+      "rule": "restrict-template-expressions"
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 522,
+        "end": 524
+      },
+      "message": {
+        "id": "preferNullishOverOr",
+        "description": "Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator."
+      },
+      "rule": "prefer-nullish-coalescing"
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 487,
+        "end": 498
+      },
+      "message": {
+        "id": "conditionErrorNullableString",
+        "description": "Unexpected nullable string value in conditional.",
+        "help": "Handle the nullish and empty string cases explicitly."
+      },
+      "rule": "strict-boolean-expressions"
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 487,
+        "end": 520
+      },
+      "message": {
+        "id": "preferOptionalChain",
+        "description": "Prefer using an optional chain expression instead, as it's more concise and easier to read."
+      },
+      "rule": "prefer-optional-chain",
+      "fixes": [
+        {
+          "text": "maybeString?.trim()",
+          "range": {
+            "pos": 487,
+            "end": 520
+          }
+        }
+      ]
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 622,
+        "end": 627
+      },
+      "message": {
+        "id": "useUnknown",
+        "description": "Prefer the safe `: unknown` for a `catch` callback variable."
+      },
+      "rule": "use-unknown-in-catch-callback-variable"
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 648,
+        "end": 655
+      },
+      "message": {
+        "id": "unsafeMemberExpression",
+        "description": "Unsafe member access .message on an `any` value."
+      },
+      "rule": "no-unsafe-member-access"
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 721,
+        "end": 728
+      },
+      "message": {
+        "id": "useUnknown",
+        "description": "Prefer the safe `: unknown` for a `then` rejection callback variable."
+      },
+      "rule": "use-unknown-in-catch-callback-variable"
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 815,
+        "end": 816
+      },
+      "message": {
+        "id": "nonVoidReturn",
+        "description": "Value returned in a context where a void return is expected."
+      },
+      "rule": "strict-void-return"
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 832,
+        "end": 840
+      },
+      "message": {
+        "id": "conditionErrorAny",
+        "description": "Unexpected any value in conditional.",
+        "help": "Use a more specific type to ensure type safety."
+      },
+      "rule": "strict-boolean-expressions"
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 864,
+        "end": 872
+      },
+      "message": {
+        "id": "switchIsNotExhaustive",
+        "description": "Switch is not exhaustive. Cases not matched: E.B"
+      },
+      "rule": "switch-exhaustiveness-check"
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 921,
+        "end": 932
+      },
+      "message": {
+        "id": "invalidVoidExprArrow",
+        "description": "Returning a void expression from an arrow function shorthand is forbidden.",
+        "help": "Add braces to the arrow function."
+      },
+      "rule": "no-confusing-void-expression",
+      "fixes": [
+        {
+          "text": "{ ",
+          "range": {
+            "pos": 921,
+            "end": 921
+          }
+        },
+        {
+          "text": "; }",
+          "range": {
+            "pos": 932,
+            "end": 932
+          }
+        }
+      ]
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 921,
+        "end": 932
+      },
+      "message": {
+        "id": "rejectAnError",
+        "description": "Expected the Promise rejection reason to be an Error."
+      },
+      "rule": "prefer-promise-reject-errors"
+    }
+  ],
+  [
+    {
+      "kind": 0,
+      "range": {
+        "pos": 146,
+        "end": 159
+      },
+      "message": {
+        "id": "preferReadonly",
+        "description": "Member 'value' is never reassigned.",
+        "help": "Mark it as `readonly`."
+      },
+      "rule": "prefer-readonly"
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 543,
+        "end": 561
+      },
+      "message": {
+        "id": "anyAssignment",
+        "description": "Unsafe assignment of an any value.",
+        "help": "Assigned value has type `any`; the target has type `any`. Use a safely typed value or `unknown`, and narrow it before use."
+      },
+      "rule": "no-unsafe-assignment"
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 891,
+        "end": 933
+      },
+      "message": {
+        "id": "floatingVoid",
+        "description": "Promises must be awaited, add void operator to ignore.",
+        "help": "The promise must end with a call to .catch, or end with a call to .then with a rejection handler, or be explicitly marked as ignored with the `void` operator."
+      },
+      "labeled_ranges": [
+        {
+          "label": "This unhandled promise-like value has type `Promise<unknown>`.",
+          "range": {
+            "pos": 891,
+            "end": 933
+          }
+        }
+      ],
+      "rule": "no-floating-promises",
+      "suggestions": [
+        {
+          "message": {
+            "id": "floatingFixVoid",
+            "description": "Add void operator to ignore."
+          },
+          "fixes": [
+            {
+              "text": "void ",
+              "range": {
+                "pos": 891,
+                "end": 891
+              }
+            }
+          ]
+        },
+        {
+          "message": {
+            "id": "floatingFixAwait",
+            "description": "Add await operator."
+          },
+          "fixes": [
+            {
+              "text": "await ",
+              "range": {
+                "pos": 891,
+                "end": 891
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 205,
+        "end": 211
+      },
+      "message": {
+        "id": "mismatch",
+        "description": "`get()` type should be assignable to its equivalent `set()` type."
+      },
+      "rule": "related-getter-setter-pairs"
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 252,
+        "end": 262
+      },
+      "message": {
+        "id": "missingAwait",
+        "description": "Function has no 'await' expression."
+      },
+      "rule": "require-await",
+      "suggestions": [
+        {
+          "message": {
+            "id": "removeAsync",
+            "description": "Remove 'async'."
+          },
+          "fixes": [
+            {
+              "text": "",
+              "range": {
+                "pos": 252,
+                "end": 258
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 310,
+        "end": 318
+      },
+      "message": {
+        "id": "unboundWithoutThisAnnotation",
+        "description": "Avoid referencing unbound methods which may cause unintentional scoping of `this`.",
+        "help": "If your function does not access `this`, you can annotate it with `this: void`, or consider using an arrow function instead."
+      },
+      "labeled_ranges": [
+        {
+          "label": "This reference may be unbound and lose `this` context",
+          "range": {
+            "pos": 312,
+            "end": 318
+          }
+        }
+      ],
+      "rule": "unbound-method"
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 341,
+        "end": 355
+      },
+      "message": {
+        "id": "requireCompare",
+        "description": "Require 'compare' argument."
+      },
+      "rule": "require-array-sort-compare"
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 369,
+        "end": 394
+      },
+      "message": {
+        "id": "preferFind",
+        "description": "Prefer .find(...) instead of .filter(...)[0]."
+      },
+      "rule": "prefer-find",
+      "suggestions": [
+        {
+          "message": {
+            "id": "preferFindSuggestion",
+            "description": "Use .find(...) instead of .filter(...)[0]."
+          },
+          "fixes": [
+            {
+              "text": "find",
+              "range": {
+                "pos": 377,
+                "end": 383
+              }
+            },
+            {
+              "text": "",
+              "range": {
+                "pos": 391,
+                "end": 394
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 406,
+        "end": 429
+      },
+      "message": {
+        "id": "preferIncludes",
+        "description": "Use 'includes()' method instead."
+      },
+      "rule": "prefer-includes"
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 456,
+        "end": 457
+      },
+      "message": {
+        "id": "baseToString",
+        "description": "'c' will use Object's default stringification format ('[object Object]') when stringified.",
+        "help": "Consider picking a property (e.g. `user.name`), using a formatter (or `JSON.stringify`), or implementing a custom `toString()`/`toLocaleString()` on the type."
+      },
+      "rule": "no-base-to-string"
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 456,
+        "end": 457
+      },
+      "message": {
+        "id": "invalidType",
+        "description": "Invalid type used in template literal expression."
+      },
+      "labeled_ranges": [
+        {
+          "label": "Type: C",
+          "range": {
+            "pos": 456,
+            "end": 457
+          }
+        }
+      ],
+      "rule": "restrict-template-expressions"
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 460,
+        "end": 467
+      },
+      "message": {
+        "id": "invalidType",
+        "description": "Invalid type used in template literal expression."
+      },
+      "labeled_ranges": [
+        {
+          "label": "Type: number[]",
+          "range": {
+            "pos": 460,
+            "end": 467
+          }
+        }
+      ],
+      "rule": "restrict-template-expressions"
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 522,
+        "end": 524
+      },
+      "message": {
+        "id": "preferNullishOverOr",
+        "description": "Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator."
+      },
+      "rule": "prefer-nullish-coalescing",
+      "suggestions": [
+        {
+          "message": {
+            "id": "suggestNullishCoalescing",
+            "description": "Change to the nullish coalescing operator."
+          },
+          "fixes": [
+            {
+              "text": "??",
+              "range": {
+                "pos": 522,
+                "end": 524
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 487,
+        "end": 498
+      },
+      "message": {
+        "id": "conditionErrorNullableString",
+        "description": "Unexpected nullable string value in conditional.",
+        "help": "Handle the nullish and empty string cases explicitly."
+      },
+      "rule": "strict-boolean-expressions"
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 487,
+        "end": 520
+      },
+      "message": {
+        "id": "preferOptionalChain",
+        "description": "Prefer using an optional chain expression instead, as it's more concise and easier to read."
+      },
+      "rule": "prefer-optional-chain"
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 622,
+        "end": 627
+      },
+      "message": {
+        "id": "useUnknown",
+        "description": "Prefer the safe `: unknown` for a `catch` callback variable."
+      },
+      "rule": "use-unknown-in-catch-callback-variable",
+      "suggestions": [
+        {
+          "message": {
+            "id": "addUnknownTypeAnnotationSuggestion",
+            "description": "Add an explicit `: unknown` type annotation to the rejection callback variable."
+          },
+          "fixes": [
+            {
+              "text": "(",
+              "range": {
+                "pos": 622,
+                "end": 622
+              }
+            },
+            {
+              "text": ": unknown)",
+              "range": {
+                "pos": 627,
+                "end": 627
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 648,
+        "end": 655
+      },
+      "message": {
+        "id": "unsafeMemberExpression",
+        "description": "Unsafe member access .message on an `any` value."
+      },
+      "rule": "no-unsafe-member-access"
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 721,
+        "end": 728
+      },
+      "message": {
+        "id": "useUnknown",
+        "description": "Prefer the safe `: unknown` for a `then` rejection callback variable."
+      },
+      "rule": "use-unknown-in-catch-callback-variable",
+      "suggestions": [
+        {
+          "message": {
+            "id": "wrongTypeAnnotationSuggestion",
+            "description": "Change existing type annotation to `: unknown`."
+          },
+          "fixes": [
+            {
+              "text": "unknown",
+              "range": {
+                "pos": 725,
+                "end": 728
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 815,
+        "end": 816
+      },
+      "message": {
+        "id": "nonVoidReturn",
+        "description": "Value returned in a context where a void return is expected."
+      },
+      "rule": "strict-void-return"
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 832,
+        "end": 840
+      },
+      "message": {
+        "id": "conditionErrorAny",
+        "description": "Unexpected any value in conditional.",
+        "help": "Use a more specific type to ensure type safety."
+      },
+      "rule": "strict-boolean-expressions"
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 864,
+        "end": 872
+      },
+      "message": {
+        "id": "switchIsNotExhaustive",
+        "description": "Switch is not exhaustive. Cases not matched: E.B"
+      },
+      "rule": "switch-exhaustiveness-check",
+      "suggestions": [
+        {
+          "message": {
+            "id": "addMissingCases",
+            "description": "Add branches for missing cases."
+          },
+          "fixes": [
+            {
+              "text": "\n                 case E.B: { throw new Error('Not implemented yet: E.B case') }",
+              "range": {
+                "pos": 889,
+                "end": 889
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 921,
+        "end": 932
+      },
+      "message": {
+        "id": "invalidVoidExprArrow",
+        "description": "Returning a void expression from an arrow function shorthand is forbidden.",
+        "help": "Add braces to the arrow function."
+      },
+      "rule": "no-confusing-void-expression"
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 921,
+        "end": 932
+      },
+      "message": {
+        "id": "rejectAnError",
+        "description": "Expected the Promise rejection reason to be an Error."
+      },
+      "rule": "prefer-promise-reject-errors"
+    }
+  ],
+  [
+    {
+      "kind": 0,
+      "range": {
+        "pos": 146,
+        "end": 159
+      },
+      "message": {
+        "id": "preferReadonly",
+        "description": "Member 'value' is never reassigned.",
+        "help": "Mark it as `readonly`."
+      },
+      "rule": "prefer-readonly",
+      "fixes": [
+        {
+          "text": "readonly ",
+          "range": {
+            "pos": 154,
+            "end": 154
+          }
+        }
+      ]
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 543,
+        "end": 561
+      },
+      "message": {
+        "id": "anyAssignment",
+        "description": "Unsafe assignment of an any value.",
+        "help": "Assigned value has type `any`; the target has type `any`. Use a safely typed value or `unknown`, and narrow it before use."
+      },
+      "rule": "no-unsafe-assignment"
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 891,
+        "end": 933
+      },
+      "message": {
+        "id": "floatingVoid",
+        "description": "Promises must be awaited, add void operator to ignore.",
+        "help": "The promise must end with a call to .catch, or end with a call to .then with a rejection handler, or be explicitly marked as ignored with the `void` operator."
+      },
+      "labeled_ranges": [
+        {
+          "label": "This unhandled promise-like value has type `Promise<unknown>`.",
+          "range": {
+            "pos": 891,
+            "end": 933
+          }
+        }
+      ],
+      "rule": "no-floating-promises",
+      "suggestions": [
+        {
+          "message": {
+            "id": "floatingFixVoid",
+            "description": "Add void operator to ignore."
+          },
+          "fixes": [
+            {
+              "text": "void ",
+              "range": {
+                "pos": 891,
+                "end": 891
+              }
+            }
+          ]
+        },
+        {
+          "message": {
+            "id": "floatingFixAwait",
+            "description": "Add await operator."
+          },
+          "fixes": [
+            {
+              "text": "await ",
+              "range": {
+                "pos": 891,
+                "end": 891
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 205,
+        "end": 211
+      },
+      "message": {
+        "id": "mismatch",
+        "description": "`get()` type should be assignable to its equivalent `set()` type."
+      },
+      "rule": "related-getter-setter-pairs"
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 252,
+        "end": 262
+      },
+      "message": {
+        "id": "missingAwait",
+        "description": "Function has no 'await' expression."
+      },
+      "rule": "require-await",
+      "suggestions": [
+        {
+          "message": {
+            "id": "removeAsync",
+            "description": "Remove 'async'."
+          },
+          "fixes": [
+            {
+              "text": "",
+              "range": {
+                "pos": 252,
+                "end": 258
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 310,
+        "end": 318
+      },
+      "message": {
+        "id": "unboundWithoutThisAnnotation",
+        "description": "Avoid referencing unbound methods which may cause unintentional scoping of `this`.",
+        "help": "If your function does not access `this`, you can annotate it with `this: void`, or consider using an arrow function instead."
+      },
+      "labeled_ranges": [
+        {
+          "label": "This reference may be unbound and lose `this` context",
+          "range": {
+            "pos": 312,
+            "end": 318
+          }
+        }
+      ],
+      "rule": "unbound-method"
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 341,
+        "end": 355
+      },
+      "message": {
+        "id": "requireCompare",
+        "description": "Require 'compare' argument."
+      },
+      "rule": "require-array-sort-compare"
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 369,
+        "end": 394
+      },
+      "message": {
+        "id": "preferFind",
+        "description": "Prefer .find(...) instead of .filter(...)[0]."
+      },
+      "rule": "prefer-find",
+      "suggestions": [
+        {
+          "message": {
+            "id": "preferFindSuggestion",
+            "description": "Use .find(...) instead of .filter(...)[0]."
+          },
+          "fixes": [
+            {
+              "text": "find",
+              "range": {
+                "pos": 377,
+                "end": 383
+              }
+            },
+            {
+              "text": "",
+              "range": {
+                "pos": 391,
+                "end": 394
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 406,
+        "end": 429
+      },
+      "message": {
+        "id": "preferIncludes",
+        "description": "Use 'includes()' method instead."
+      },
+      "rule": "prefer-includes",
+      "fixes": [
+        {
+          "text": "includes",
+          "range": {
+            "pos": 414,
+            "end": 421
+          }
+        },
+        {
+          "text": "",
+          "range": {
+            "pos": 424,
+            "end": 429
+          }
+        }
+      ]
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 456,
+        "end": 457
+      },
+      "message": {
+        "id": "baseToString",
+        "description": "'c' will use Object's default stringification format ('[object Object]') when stringified.",
+        "help": "Consider picking a property (e.g. `user.name`), using a formatter (or `JSON.stringify`), or implementing a custom `toString()`/`toLocaleString()` on the type."
+      },
+      "rule": "no-base-to-string"
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 456,
+        "end": 457
+      },
+      "message": {
+        "id": "invalidType",
+        "description": "Invalid type used in template literal expression."
+      },
+      "labeled_ranges": [
+        {
+          "label": "Type: C",
+          "range": {
+            "pos": 456,
+            "end": 457
+          }
+        }
+      ],
+      "rule": "restrict-template-expressions"
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 460,
+        "end": 467
+      },
+      "message": {
+        "id": "invalidType",
+        "description": "Invalid type used in template literal expression."
+      },
+      "labeled_ranges": [
+        {
+          "label": "Type: number[]",
+          "range": {
+            "pos": 460,
+            "end": 467
+          }
+        }
+      ],
+      "rule": "restrict-template-expressions"
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 522,
+        "end": 524
+      },
+      "message": {
+        "id": "preferNullishOverOr",
+        "description": "Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator."
+      },
+      "rule": "prefer-nullish-coalescing",
+      "suggestions": [
+        {
+          "message": {
+            "id": "suggestNullishCoalescing",
+            "description": "Change to the nullish coalescing operator."
+          },
+          "fixes": [
+            {
+              "text": "??",
+              "range": {
+                "pos": 522,
+                "end": 524
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 487,
+        "end": 498
+      },
+      "message": {
+        "id": "conditionErrorNullableString",
+        "description": "Unexpected nullable string value in conditional.",
+        "help": "Handle the nullish and empty string cases explicitly."
+      },
+      "rule": "strict-boolean-expressions"
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 487,
+        "end": 520
+      },
+      "message": {
+        "id": "preferOptionalChain",
+        "description": "Prefer using an optional chain expression instead, as it's more concise and easier to read."
+      },
+      "rule": "prefer-optional-chain",
+      "fixes": [
+        {
+          "text": "maybeString?.trim()",
+          "range": {
+            "pos": 487,
+            "end": 520
+          }
+        }
+      ]
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 622,
+        "end": 627
+      },
+      "message": {
+        "id": "useUnknown",
+        "description": "Prefer the safe `: unknown` for a `catch` callback variable."
+      },
+      "rule": "use-unknown-in-catch-callback-variable",
+      "suggestions": [
+        {
+          "message": {
+            "id": "addUnknownTypeAnnotationSuggestion",
+            "description": "Add an explicit `: unknown` type annotation to the rejection callback variable."
+          },
+          "fixes": [
+            {
+              "text": "(",
+              "range": {
+                "pos": 622,
+                "end": 622
+              }
+            },
+            {
+              "text": ": unknown)",
+              "range": {
+                "pos": 627,
+                "end": 627
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 648,
+        "end": 655
+      },
+      "message": {
+        "id": "unsafeMemberExpression",
+        "description": "Unsafe member access .message on an `any` value."
+      },
+      "rule": "no-unsafe-member-access"
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 721,
+        "end": 728
+      },
+      "message": {
+        "id": "useUnknown",
+        "description": "Prefer the safe `: unknown` for a `then` rejection callback variable."
+      },
+      "rule": "use-unknown-in-catch-callback-variable",
+      "suggestions": [
+        {
+          "message": {
+            "id": "wrongTypeAnnotationSuggestion",
+            "description": "Change existing type annotation to `: unknown`."
+          },
+          "fixes": [
+            {
+              "text": "unknown",
+              "range": {
+                "pos": 725,
+                "end": 728
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 815,
+        "end": 816
+      },
+      "message": {
+        "id": "nonVoidReturn",
+        "description": "Value returned in a context where a void return is expected."
+      },
+      "rule": "strict-void-return"
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 832,
+        "end": 840
+      },
+      "message": {
+        "id": "conditionErrorAny",
+        "description": "Unexpected any value in conditional.",
+        "help": "Use a more specific type to ensure type safety."
+      },
+      "rule": "strict-boolean-expressions"
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 864,
+        "end": 872
+      },
+      "message": {
+        "id": "switchIsNotExhaustive",
+        "description": "Switch is not exhaustive. Cases not matched: E.B"
+      },
+      "rule": "switch-exhaustiveness-check",
+      "suggestions": [
+        {
+          "message": {
+            "id": "addMissingCases",
+            "description": "Add branches for missing cases."
+          },
+          "fixes": [
+            {
+              "text": "\n                 case E.B: { throw new Error('Not implemented yet: E.B case') }",
+              "range": {
+                "pos": 889,
+                "end": 889
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 921,
+        "end": 932
+      },
+      "message": {
+        "id": "invalidVoidExprArrow",
+        "description": "Returning a void expression from an arrow function shorthand is forbidden.",
+        "help": "Add braces to the arrow function."
+      },
+      "rule": "no-confusing-void-expression",
+      "fixes": [
+        {
+          "text": "{ ",
+          "range": {
+            "pos": 921,
+            "end": 921
+          }
+        },
+        {
+          "text": "; }",
+          "range": {
+            "pos": 932,
+            "end": 932
+          }
+        }
+      ]
+    },
+    {
+      "kind": 0,
+      "range": {
+        "pos": 921,
+        "end": 932
+      },
+      "message": {
+        "id": "rejectAnError",
+        "description": "Expected the Promise rejection reason to be an Error."
+      },
+      "rule": "prefer-promise-reject-errors"
+    }
+  ]
+]

@@ -1,0 +1,24 @@
+[
+  {
+    "kind": 0,
+    "rule": "no-misused-promises",
+    "message": {
+      "id": "spread",
+      "description": "Expected a non-Promise value to be spread in an object."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 86,
+      "end": 89
+    },
+    "labeled_ranges": [
+      {
+        "label": "This expression has type `Promise<{ key: number; }>`.",
+        "range": {
+          "end": 98,
+          "pos": 89
+        }
+      }
+    ]
+  }
+]

@@ -1,0 +1,24 @@
+[
+  {
+    "fixes": [
+      {
+        "text": "void ",
+        "range": {
+          "pos": 7,
+          "end": 7
+        }
+      }
+    ],
+    "kind": 0,
+    "rule": "no-confusing-void-expression",
+    "message": {
+      "id": "invalidVoidExprReturnWrapVoid",
+      "description": "Void expressions returned from a function must be marked explicitly with the `void` operator."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "end": 25,
+      "pos": 7
+    }
+  }
+]

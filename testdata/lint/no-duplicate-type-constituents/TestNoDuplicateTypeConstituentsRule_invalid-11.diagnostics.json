@@ -1,0 +1,40 @@
+[
+  {
+    "file_path": "file.ts",
+    "range": {
+      "pos": 21,
+      "end": 30
+    },
+    "fixes": [
+      {
+        "text": "",
+        "range": {
+          "end": 30,
+          "pos": 21
+        }
+      },
+      {
+        "text": "",
+        "range": {
+          "end": 20,
+          "pos": 19
+        }
+      }
+    ],
+    "labeled_ranges": [
+      {
+        "label": "Type '[1, 2, 3]' is first declared here.",
+        "range": {
+          "end": 18,
+          "pos": 9
+        }
+      }
+    ],
+    "kind": 0,
+    "rule": "no-duplicate-type-constituents",
+    "message": {
+      "id": "duplicate",
+      "description": "Union type constituent is duplicated with  [1, 2, 3]."
+    }
+  }
+]

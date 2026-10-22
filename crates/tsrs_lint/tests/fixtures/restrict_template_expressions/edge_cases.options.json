@@ -1,0 +1,45 @@
+[
+  null,
+  {},
+  {
+    "allow": null,
+    "allowAny": null,
+    "allowArray": null,
+    "allowBoolean": null,
+    "allowNever": null,
+    "allowNullish": null,
+    "allowNumber": null,
+    "allowRegExp": null
+  },
+  {
+    "allow": [],
+    "allowAny": false,
+    "allowArray": true,
+    "allowBoolean": false,
+    "allowNever": false,
+    "allowNullish": false,
+    "allowNumber": false,
+    "allowRegExp": false
+  },
+  {
+    "allowArray": true
+  },
+  {
+    "allowArray": true,
+    "allowNever": true,
+    "allow": [
+      "CustomRegExp"
+    ]
+  },
+  {
+    "allow": [
+      {
+        "from": "file",
+        "name": [
+          "Custom",
+          "CustomRegExp"
+        ]
+      }
+    ]
+  }
+]

@@ -1,0 +1,73 @@
+{
+  "Name": "no-floating-promises",
+  "TSConfig": "tsconfig.minimal.json",
+  "Valid": [],
+  "Invalid": [
+    {
+      "Code": "import { trusted as frameworkTrusted } from \"./trusted.js\";\nframeworkTrusted();\nfunction trusted(): Promise<void> { return Promise.resolve(); }\ntrusted();\nPromise.resolve();",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "floating",
+          "Line": 2,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "floatingFixAwait",
+              "Output": "import { trusted as frameworkTrusted } from \"./trusted.js\";\nawait frameworkTrusted();\nfunction trusted(): Promise<void> { return Promise.resolve(); }\ntrusted();\nPromise.resolve();"
+            }
+          ]
+        },
+        {
+          "MessageId": "floating",
+          "Line": 4,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "floatingFixAwait",
+              "Output": "import { trusted as frameworkTrusted } from \"./trusted.js\";\nframeworkTrusted();\nfunction trusted(): Promise<void> { return Promise.resolve(); }\nawait trusted();\nPromise.resolve();"
+            }
+          ]
+        },
+        {
+          "MessageId": "floating",
+          "Line": 5,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "floatingFixAwait",
+              "Output": "import { trusted as frameworkTrusted } from \"./trusted.js\";\nframeworkTrusted();\nfunction trusted(): Promise<void> { return Promise.resolve(); }\ntrusted();\nawait Promise.resolve();"
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "allowForKnownSafeCalls": [
+          {
+            "from": "lib",
+            "name": [
+              "trusted"
+            ]
+          }
+        ],
+        "checkThenables": false,
+        "ignoreIIFE": false,
+        "ignoreVoid": false
+      },
+      "Tsx": false,
+      "Files": {
+        "trusted.d.ts": "export declare function trusted(): Promise<void>;"
+      }
+    }
+  ]
+}

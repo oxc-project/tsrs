@@ -1,0 +1,16 @@
+[
+  {
+    "range": {
+      "pos": 41,
+      "end": 42
+    },
+    "kind": 0,
+    "rule": "restrict-plus-operands",
+    "message": {
+      "id": "invalid",
+      "description": "Invalid operand of type 'RegExp' for a '+' operation.",
+      "help": "Operands must each be a number or string, allowing a string + any of: `any`, `boolean`, `null`, `RegExp`, `undefined`."
+    },
+    "file_path": "file.ts"
+  }
+]

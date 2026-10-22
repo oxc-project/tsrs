@@ -1,0 +1,1659 @@
+{
+  "Name": "no-unsafe-enum-comparison",
+  "TSConfig": "tsconfig.minimal.json",
+  "Valid": [
+    {
+      "Code": "'a' > 'b';",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "'a' < 'b';",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "'a' == 'b';",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "'a' === 'b';",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "1 > 2;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "1 < 2;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "1 == 2;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "1 === 2;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      enum Fruit {\n        Apple,\n      }\n      Fruit.Apple === ({} as any);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      enum Fruit {\n        Apple,\n      }\n      Fruit.Apple === undefined;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      enum Fruit {\n        Apple,\n      }\n      Fruit.Apple === null;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      enum Fruit {\n        Apple,\n      }\n      declare const fruit: Fruit | -1;\n      fruit === -1;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      enum Fruit {\n        Apple,\n      }\n      declare const fruit: Fruit | number;\n      fruit === -1;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      enum Fruit {\n        Apple,\n      }\n      declare const fruit: Fruit | 'apple';\n      fruit === 'apple';\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      enum Fruit {\n        Apple,\n      }\n      declare const fruit: Fruit | string;\n      fruit === 'apple';\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      enum Fruit {\n        Apple = 'apple',\n      }\n      declare const fruit: Fruit | 'apple';\n      fruit === 'apple';\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      enum Fruit {\n        Apple = 'apple',\n      }\n      declare const fruit: Fruit | string;\n      fruit === 'apple';\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      enum Fruit {\n        Apple = 'apple',\n      }\n      declare const fruit: Fruit | 0;\n      fruit === 0;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      enum Fruit {\n        Apple = 'apple',\n      }\n      declare const fruit: Fruit | number;\n      fruit === 0;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      enum Fruit {\n        Apple,\n      }\n      declare const fruit: Fruit | 'apple';\n      fruit === Math.random() > 0.5 ? 'apple' : Fruit.Apple;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      enum Fruit {\n        Apple = 'apple',\n      }\n      declare const fruit: Fruit | 'apple';\n      fruit === Math.random() > 0.5 ? 'apple' : Fruit.Apple;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      enum Fruit {\n        Apple = 'apple',\n      }\n      declare const fruit: Fruit | string;\n      fruit === Math.random() > 0.5 ? 'apple' : Fruit.Apple;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      enum Fruit {\n        Apple = 'apple',\n      }\n      declare const fruit: Fruit | 0;\n      fruit === Math.random() > 0.5 ? 0 : Fruit.Apple;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      enum Fruit {\n        Apple = 'apple',\n      }\n      declare const fruit: Fruit | number;\n      fruit === Math.random() > 0.5 ? 0 : Fruit.Apple;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      enum Fruit {\n        Apple,\n        Banana,\n      }\n      Fruit.Apple === Fruit.Banana;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      enum Fruit {\n        Apple = 0,\n        Banana = 1,\n      }\n      Fruit.Apple === Fruit.Banana;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      enum Fruit {\n        Apple = 'apple',\n        Banana = 'banana',\n      }\n      Fruit.Apple === Fruit.Banana;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      enum Fruit {\n        Apple,\n        Banana,\n      }\n      const fruit = Fruit.Apple;\n      fruit === Fruit.Banana;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      enum Vegetable {\n        Asparagus = 'asparagus',\n        Beet = 'beet',\n        Celery = 'celery',\n      }\n      const vegetable = Vegetable.Asparagus;\n      vegetable === Vegetable.Beet;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      enum Fruit {\n        Apple,\n        Banana,\n        Cherry,\n      }\n      const fruit1 = Fruit.Apple;\n      const fruit2 = Fruit.Banana;\n      fruit1 === fruit2;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      enum Vegetable {\n        Asparagus = 'asparagus',\n        Beet = 'beet',\n        Celery = 'celery',\n      }\n      const vegetable1 = Vegetable.Asparagus;\n      const vegetable2 = Vegetable.Beet;\n      vegetable1 === vegetable2;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      enum Fruit {\n        Apple,\n        Banana,\n        Cherry,\n      }\n      enum Fruit2 {\n        Apple2,\n        Banana2,\n        Cherry2,\n      }\n      declare const left: number | Fruit;\n      declare const right: number | Fruit2;\n      left === right;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      enum Vegetable {\n        Asparagus = 'asparagus',\n        Beet = 'beet',\n        Celery = 'celery',\n      }\n      enum Vegetable2 {\n        Asparagus2 = 'asparagus2',\n        Beet2 = 'beet2',\n        Celery2 = 'celery2',\n      }\n      declare const left: string | Vegetable;\n      declare const right: string | Vegetable2;\n      left === right;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      enum Vegetable {\n        Asparagus = 'asparagus',\n        Beet = 'beet',\n        Celery = 'celery',\n      }\n      const foo = {};\n      const vegetable = Vegetable.Asparagus;\n      vegetable in foo;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      enum Fruit {\n        Apple,\n        Banana,\n        Cherry,\n      }\n      declare const fruitOrBoolean: Fruit | boolean;\n      fruitOrBoolean === true;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      enum Str {\n        A = 'a',\n      }\n      enum Num {\n        B = 1,\n      }\n      enum Mixed {\n        A = 'a',\n        B = 1,\n      }\n\n      declare const str: Str;\n      declare const strOrString: Str | string;\n\n      declare const num: Num;\n      declare const numOrNumber: Num | number;\n\n      declare const mixed: Mixed;\n      declare const mixedOrStringOrNumber: Mixed | string | number;\n\n      function someFunction() {}\n\n      // following are all ignored due to the presence of \"| string\" or \"| number\"\n      strOrString === 'a';\n      numOrNumber === 1;\n      mixedOrStringOrNumber === 'a';\n      mixedOrStringOrNumber === 1;\n\n      // following are all ignored because the value can never be an enum value\n      str === 1;\n      num === 'a';\n      str === {};\n      num === {};\n      mixed === {};\n      str === true;\n      num === true;\n      mixed === true;\n      str === someFunction;\n      num === someFunction;\n      mixed === someFunction;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      enum Fruit {\n        Apple,\n      }\n\n      const bitShift = 1 << Fruit.Apple;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      enum Fruit {\n        Apple,\n      }\n\n      const bitShift = 1 >> Fruit.Apple;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      enum Fruit {\n        Apple,\n      }\n\n      declare const fruit: Fruit;\n\n      switch (fruit) {\n        case Fruit.Apple: {\n          break;\n        }\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      enum Vegetable {\n        Asparagus = 'asparagus',\n      }\n\n      declare const vegetable: Vegetable;\n\n      switch (vegetable) {\n        case Vegetable.Asparagus: {\n          break;\n        }\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      enum Vegetable {\n        Asparagus = 'asparagus',\n      }\n\n      declare const vegetable: Vegetable;\n\n      switch (vegetable) {\n        default: {\n          break;\n        }\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      enum Fruit {\n        Apple,\n      }\n      enum Vegetable {\n        Asparagus = 'asparagus',\n      }\n      declare const numberOrBoolean: number | boolean;\n      declare const stringOrBoolean: string | boolean;\n      numberOrBoolean === Fruit.Apple;\n      stringOrBoolean === Vegetable.Asparagus;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    }
+  ],
+  "Invalid": [
+    {
+      "Code": "\n        enum Fruit {\n          Apple,\n        }\n        Fruit.Apple < 1;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "mismatchedCondition",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        enum Fruit {\n          Apple,\n        }\n        Fruit.Apple > 1;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "mismatchedCondition",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        enum Fruit {\n          Apple,\n        }\n        Fruit.Apple == 1;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "mismatchedCondition",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        enum Fruit {\n          Apple,\n        }\n        Fruit.Apple === 1;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "mismatchedCondition",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        enum Fruit {\n          Apple,\n        }\n        Fruit.Apple != 1;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "mismatchedCondition",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        enum Fruit {\n          Apple,\n        }\n        Fruit.Apple !== 1;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "mismatchedCondition",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        enum Fruit {\n          Apple = 0,\n          Banana = 'banana',\n        }\n        Fruit.Apple === 0;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "mismatchedCondition",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "replaceValueWithEnum",
+              "Output": "\n        enum Fruit {\n          Apple = 0,\n          Banana = 'banana',\n        }\n        Fruit.Apple === Fruit.Apple;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        enum Fruit {\n          Apple = 0,\n          Banana = 'banana',\n        }\n        Fruit.Banana === '';\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "mismatchedCondition",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        enum Vegetable {\n          Asparagus = 'asparagus',\n          Beet = 'beet',\n          Celery = 'celery',\n        }\n        Vegetable.Asparagus === 'beet';\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "mismatchedCondition",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        enum Fruit {\n          Apple,\n          Banana,\n          Cherry,\n        }\n        1 === Fruit.Apple;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "mismatchedCondition",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        enum Vegetable {\n          Asparagus = 'asparagus',\n          Beet = 'beet',\n          Celery = 'celery',\n        }\n        'beet' === Vegetable.Asparagus;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "mismatchedCondition",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        enum Fruit {\n          Apple,\n          Banana,\n          Cherry,\n        }\n        const fruit = Fruit.Apple;\n        fruit === 1;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "mismatchedCondition",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        enum Vegetable {\n          Asparagus = 'asparagus',\n          Beet = 'beet',\n          Celery = 'celery',\n        }\n        const vegetable = Vegetable.Asparagus;\n        vegetable === 'beet';\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "mismatchedCondition",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        enum Fruit {\n          Apple,\n          Banana,\n          Cherry,\n        }\n        const fruit = Fruit.Apple;\n        1 === fruit;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "mismatchedCondition",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        enum Vegetable {\n          Asparagus = 'asparagus',\n          Beet = 'beet',\n          Celery = 'celery',\n        }\n        const vegetable = Vegetable.Asparagus;\n        'beet' === vegetable;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "mismatchedCondition",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "enum Fruit { Apple, Banana, Cherry }enum Fruit2 {\n  Apple2,\n  Banana2,\n  Cherry2,\n}\n      Fruit.Apple === Fruit2.Apple2;\n        ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "mismatchedCondition",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        enum Vegetable {\n          Asparagus = 'asparagus',\n          Beet = 'beet',\n          Celery = 'celery',\n        }\n        enum Vegetable2 {\n          Asparagus2 = 'asparagus2',\n          Beet2 = 'beet2',\n          Celery2 = 'celery2',\n        }\n        Vegetable.Asparagus === Vegetable2.Asparagus2;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "mismatchedCondition",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "enum Fruit { Apple, Banana, Cherry }enum Fruit2 {\n  Apple2,\n  Banana2,\n  Cherry2,\n}\n      const fruit = Fruit.Apple;\n      fruit === Fruit2.Apple2;\n        ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "mismatchedCondition",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        enum Vegetable {\n          Asparagus = 'asparagus',\n          Beet = 'beet',\n          Celery = 'celery',\n        }\n        enum Vegetable2 {\n          Asparagus2 = 'asparagus2',\n          Beet2 = 'beet2',\n          Celery2 = 'celery2',\n        }\n        const vegetable = Vegetable.Asparagus;\n        vegetable === Vegetable2.Asparagus2;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "mismatchedCondition",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        enum Str {\n          A = 'a',\n        }\n        enum Num {\n          B = 1,\n        }\n        enum Mixed {\n          A = 'a',\n          B = 1,\n        }\n\n        declare const str: Str;\n        declare const num: Num;\n        declare const mixed: Mixed;\n\n        // following are all errors because the value might be an enum value\n        str === 'a';\n        num === 1;\n        mixed === 'a';\n        mixed === 1;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "mismatchedCondition",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "replaceValueWithEnum",
+              "Output": "\n        enum Str {\n          A = 'a',\n        }\n        enum Num {\n          B = 1,\n        }\n        enum Mixed {\n          A = 'a',\n          B = 1,\n        }\n\n        declare const str: Str;\n        declare const num: Num;\n        declare const mixed: Mixed;\n\n        // following are all errors because the value might be an enum value\n        str === Str.A;\n        num === 1;\n        mixed === 'a';\n        mixed === 1;\n      "
+            }
+          ]
+        },
+        {
+          "MessageId": "mismatchedCondition",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "replaceValueWithEnum",
+              "Output": "\n        enum Str {\n          A = 'a',\n        }\n        enum Num {\n          B = 1,\n        }\n        enum Mixed {\n          A = 'a',\n          B = 1,\n        }\n\n        declare const str: Str;\n        declare const num: Num;\n        declare const mixed: Mixed;\n\n        // following are all errors because the value might be an enum value\n        str === 'a';\n        num === Num.B;\n        mixed === 'a';\n        mixed === 1;\n      "
+            }
+          ]
+        },
+        {
+          "MessageId": "mismatchedCondition",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "replaceValueWithEnum",
+              "Output": "\n        enum Str {\n          A = 'a',\n        }\n        enum Num {\n          B = 1,\n        }\n        enum Mixed {\n          A = 'a',\n          B = 1,\n        }\n\n        declare const str: Str;\n        declare const num: Num;\n        declare const mixed: Mixed;\n\n        // following are all errors because the value might be an enum value\n        str === 'a';\n        num === 1;\n        mixed === Mixed.A;\n        mixed === 1;\n      "
+            }
+          ]
+        },
+        {
+          "MessageId": "mismatchedCondition",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "replaceValueWithEnum",
+              "Output": "\n        enum Str {\n          A = 'a',\n        }\n        enum Num {\n          B = 1,\n        }\n        enum Mixed {\n          A = 'a',\n          B = 1,\n        }\n\n        declare const str: Str;\n        declare const num: Num;\n        declare const mixed: Mixed;\n\n        // following are all errors because the value might be an enum value\n        str === 'a';\n        num === 1;\n        mixed === 'a';\n        mixed === Mixed.B;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        enum Fruit {\n          Apple = 'apple',\n        }\n        type __String =\n          | (string & { __escapedIdentifier: void })\n          | (void & { __escapedIdentifier: void })\n          | Fruit;\n        declare const weirdString: __String;\n        weirdString === 'someArbitraryValue';\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "mismatchedCondition",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        enum Fruit {\n          Apple,\n        }\n\n        declare const fruit: Fruit;\n\n        switch (fruit) {\n          case 0: {\n            break;\n          }\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "mismatchedCase",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        enum Fruit {\n          Apple,\n          Banana,\n        }\n\n        declare const fruit: Fruit;\n\n        switch (fruit) {\n          case Fruit.Apple: {\n            break;\n          }\n          case 1: {\n            break;\n          }\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "mismatchedCase",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        enum Vegetable {\n          Asparagus = 'asparagus',\n        }\n\n        declare const vegetable: Vegetable;\n\n        switch (vegetable) {\n          case 'asparagus': {\n            break;\n          }\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "mismatchedCase",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        enum Vegetable {\n          Asparagus = 'asparagus',\n          Beet = 'beet',\n        }\n\n        declare const vegetable: Vegetable;\n\n        switch (vegetable) {\n          case Vegetable.Asparagus: {\n            break;\n          }\n          case 'beet': {\n            break;\n          }\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "mismatchedCase",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        enum Vegetable {\n          Asparagus = 'asparagus',\n          Beet = 'beet',\n        }\n\n        declare const vegetable: Vegetable;\n\n        switch (vegetable) {\n          case Vegetable.Asparagus: {\n            break;\n          }\n          case 'beet': {\n            break;\n          }\n          default: {\n            break;\n          }\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "mismatchedCase",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        enum Str {\n          A = 'a',\n          B = 'b',\n        }\n        declare const str: Str;\n        str === 'b';\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "mismatchedCondition",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "replaceValueWithEnum",
+              "Output": "\n        enum Str {\n          A = 'a',\n          B = 'b',\n        }\n        declare const str: Str;\n        str === Str.B;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        enum Str {\n          A = 'a',\n          AB = 'ab',\n        }\n        declare const str: Str;\n        str === 'a' + 'b';\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "mismatchedCondition",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "replaceValueWithEnum",
+              "Output": "\n        enum Str {\n          A = 'a',\n          AB = 'ab',\n        }\n        declare const str: Str;\n        str === Str.AB;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        enum Num {\n          A = 1,\n          B = 2,\n        }\n        declare const num: Num;\n        1 === num;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "mismatchedCondition",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "replaceValueWithEnum",
+              "Output": "\n        enum Num {\n          A = 1,\n          B = 2,\n        }\n        declare const num: Num;\n        Num.A === num;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        enum Num {\n          A = 1,\n          B = 2,\n        }\n        declare const num: Num;\n        1 /* with */ === /* comment */ num;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "mismatchedCondition",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "replaceValueWithEnum",
+              "Output": "\n        enum Num {\n          A = 1,\n          B = 2,\n        }\n        declare const num: Num;\n        Num.A /* with */ === /* comment */ num;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        enum Num {\n          A = 1,\n          B = 2,\n        }\n        declare const num: Num;\n        1 + 1 === num;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "mismatchedCondition",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "replaceValueWithEnum",
+              "Output": "\n        enum Num {\n          A = 1,\n          B = 2,\n        }\n        declare const num: Num;\n        Num.B === num;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        enum Mixed {\n          A = 1,\n          B = 'b',\n        }\n        declare const mixed: Mixed;\n        mixed === 1;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "mismatchedCondition",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "replaceValueWithEnum",
+              "Output": "\n        enum Mixed {\n          A = 1,\n          B = 'b',\n        }\n        declare const mixed: Mixed;\n        mixed === Mixed.A;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        enum Mixed {\n          A = 1,\n          B = 'b',\n        }\n        declare const mixed: Mixed;\n        mixed === 'b';\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "mismatchedCondition",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "replaceValueWithEnum",
+              "Output": "\n        enum Mixed {\n          A = 1,\n          B = 'b',\n        }\n        declare const mixed: Mixed;\n        mixed === Mixed.B;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        enum StringKey {\n          'test-key' /* with comment */ = 1,\n        }\n        declare const stringKey: StringKey;\n        stringKey === 1;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "mismatchedCondition",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "replaceValueWithEnum",
+              "Output": "\n        enum StringKey {\n          'test-key' /* with comment */ = 1,\n        }\n        declare const stringKey: StringKey;\n        stringKey === StringKey['test-key'];\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        enum StringKey {\n          \"key-'with-single'-quotes\" = 1,\n        }\n        declare const stringKey: StringKey;\n        stringKey === 1;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "mismatchedCondition",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "replaceValueWithEnum",
+              "Output": "\n        enum StringKey {\n          \"key-'with-single'-quotes\" = 1,\n        }\n        declare const stringKey: StringKey;\n        stringKey === StringKey['key-\\'with-single\\'-quotes'];\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        enum StringKey {\n          'key-\"with-double\"-quotes' = 1,\n        }\n        declare const stringKey: StringKey;\n        stringKey === 1;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "mismatchedCondition",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "replaceValueWithEnum",
+              "Output": "\n        enum StringKey {\n          'key-\"with-double\"-quotes' = 1,\n        }\n        declare const stringKey: StringKey;\n        stringKey === StringKey['key-\"with-double\"-quotes'];\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        enum StringKey {\n          'key-`with-backticks`-quotes' = 1,\n        }\n        declare const stringKey: StringKey;\n        stringKey === 1;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "mismatchedCondition",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "replaceValueWithEnum",
+              "Output": "\n        enum StringKey {\n          'key-`with-backticks`-quotes' = 1,\n        }\n        declare const stringKey: StringKey;\n        stringKey === StringKey['key-`with-backticks`-quotes'];\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        enum ComputedKey {\n          ['test-key' /* with comment */] = 1,\n        }\n        declare const computedKey: ComputedKey;\n        computedKey === 1;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "mismatchedCondition",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "replaceValueWithEnum",
+              "Output": "\n        enum ComputedKey {\n          ['test-key' /* with comment */] = 1,\n        }\n        declare const computedKey: ComputedKey;\n        computedKey === ComputedKey['test-key'];\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        enum ComputedKey {\n          [`test-key` /* with comment */] = 1,\n        }\n        declare const computedKey: ComputedKey;\n        computedKey === 1;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "mismatchedCondition",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "replaceValueWithEnum",
+              "Output": "\n        enum ComputedKey {\n          [`test-key` /* with comment */] = 1,\n        }\n        declare const computedKey: ComputedKey;\n        computedKey === ComputedKey[`test-key`];\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        enum ComputedKey {\n          [`test-\n          key` /* with comment */] = 1,\n        }\n        declare const computedKey: ComputedKey;\n        computedKey === 1;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "mismatchedCondition",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "replaceValueWithEnum",
+              "Output": "\n        enum ComputedKey {\n          [`test-\n          key` /* with comment */] = 1,\n        }\n        declare const computedKey: ComputedKey;\n        computedKey === ComputedKey[`test-\n          key`];\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        enum Fruit {\n          Apple,\n        }\n        declare const foo: number & {};\n        if (foo === Fruit.Apple) {\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "mismatchedCondition",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        enum Fruit {\n          Apple,\n        }\n        declare const foo: number & { __someBrand: void };\n        if (foo === Fruit.Apple) {\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "mismatchedCondition",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        enum Vegetable {\n          Asparagus = 'asparagus',\n        }\n        declare const foo: string & {};\n        if (foo === Vegetable.Asparagus) {\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "mismatchedCondition",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        enum Vegetable {\n          Asparagus = 'asparagus',\n        }\n        declare const foo: string & { __someBrand: void };\n        if (foo === Vegetable.Asparagus) {\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "mismatchedCondition",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        enum Str {\n          Zero = '0',\n          NegativeZero = '-0',\n        }\n        declare const str: Str;\n        str === '' + -0;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "mismatchedCondition",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "replaceValueWithEnum",
+              "Output": "\n        enum Str {\n          Zero = '0',\n          NegativeZero = '-0',\n        }\n        declare const str: Str;\n        str === Str.Zero;"
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        enum Str {\n          Decimal = '100000000000000000000',\n          Exponential = '1e+20',\n        }\n        declare const str: Str;\n        str === '' + 1e20;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "mismatchedCondition",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "replaceValueWithEnum",
+              "Output": "\n        enum Str {\n          Decimal = '100000000000000000000',\n          Exponential = '1e+20',\n        }\n        declare const str: Str;\n        str === Str.Decimal;"
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        namespace N {\n          export enum E {\n            A = 'a',\n            B = 'b',\n          }\n        }\n        N.E.A === 'a';",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "mismatchedCondition",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "replaceValueWithEnum",
+              "Output": "\n        namespace N {\n          export enum E {\n            A = 'a',\n            B = 'b',\n          }\n        }\n        N.E.A === N.E.A;"
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        namespace N {\n          export enum E {\n            A = 'a',\n          }\n        }\n        declare const e: N.E;\n        e === 'a';",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "mismatchedCondition",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        enum E {\n          A = 'a',\n        }\n        declare const box: { value: E };\n        box.value === 'a';",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "mismatchedCondition",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "replaceValueWithEnum",
+              "Output": "\n        enum E {\n          A = 'a',\n        }\n        declare const box: { value: E };\n        box.value === E.A;"
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        enum StringKey {\n          'line\\nbreak' = 1,\n        }\n        declare const stringKey: StringKey;\n        stringKey === 1;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "mismatchedCondition",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "replaceValueWithEnum",
+              "Output": "\n        enum StringKey {\n          'line\\nbreak' = 1,\n        }\n        declare const stringKey: StringKey;\n        stringKey === StringKey['line\\nbreak'];"
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        enum UXSortDir {\n          asc = 'asc',\n          desc = 'desc',\n        }\n        type SortDir = 'asc' | 'desc';\n        declare const stringSortDir: string;\n        declare const unionSortDir: SortDir;\n        declare const inlineUnionSortDir: 'asc' | 'desc';\n        declare const enumSortDir: UXSortDir;\n        stringSortDir === UXSortDir.asc;\n        unionSortDir === UXSortDir.asc;\n        inlineUnionSortDir === UXSortDir.asc;\n        enumSortDir === UXSortDir.asc;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "mismatchedCondition",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "mismatchedCondition",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "mismatchedCondition",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    }
+  ]
+}

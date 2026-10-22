@@ -1,0 +1,31 @@
+[
+  {
+    "file_path": "react.tsx",
+    "range": {
+      "pos": 97,
+      "end": 99
+    },
+    "labeled_ranges": [
+      {
+        "range": {
+          "end": 99,
+          "pos": 97
+        },
+        "label": "This callback has type `() => Promise<number>`."
+      },
+      {
+        "label": "This context accepts a `void`-returning callback through type `() => void`.",
+        "range": {
+          "pos": 20,
+          "end": 30
+        }
+      }
+    ],
+    "kind": 0,
+    "rule": "no-misused-promises",
+    "message": {
+      "id": "voidReturnAttribute",
+      "description": "Promise-returning function provided to attribute where a void return was expected."
+    }
+  }
+]

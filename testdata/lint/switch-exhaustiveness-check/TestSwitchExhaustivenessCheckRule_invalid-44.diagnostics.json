@@ -1,0 +1,32 @@
+[
+  {
+    "kind": 0,
+    "rule": "switch-exhaustiveness-check",
+    "message": {
+      "id": "switchIsNotExhaustive",
+      "description": "Switch is not exhaustive. Cases not matched: MyEnum.Bar | MyEnum.Baz"
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 102,
+      "end": 108
+    },
+    "suggestions": [
+      {
+        "message": {
+          "id": "addMissingCases",
+          "description": "Add branches for missing cases."
+        },
+        "fixes": [
+          {
+            "text": "case MyEnum.Bar: { throw new Error('Not implemented yet: MyEnum.Bar case') }\n  case MyEnum.Baz: { throw new Error('Not implemented yet: MyEnum.Baz case') }\n  ",
+            "range": {
+              "pos": 144,
+              "end": 144
+            }
+          }
+        ]
+      }
+    ]
+  }
+]

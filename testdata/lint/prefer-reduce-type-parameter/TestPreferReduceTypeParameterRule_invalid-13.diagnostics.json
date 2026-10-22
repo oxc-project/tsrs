@@ -1,0 +1,31 @@
+[
+  {
+    "kind": 0,
+    "rule": "prefer-reduce-type-parameter",
+    "message": {
+      "id": "preferTypeParameter",
+      "description": "Unnecessary assertion: Array#reduce accepts a type parameter for the default value."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 148,
+      "end": 185
+    },
+    "fixes": [
+      {
+        "text": "",
+        "range": {
+          "pos": 149,
+          "end": 185
+        }
+      },
+      {
+        "text": "< Record<string, boolean | number>>",
+        "range": {
+          "pos": 74,
+          "end": 74
+        }
+      }
+    ]
+  }
+]

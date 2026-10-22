@@ -1,0 +1,33 @@
+[
+  {
+    "rule": "no-misused-spread",
+    "message": {
+      "id": "noPromiseSpreadInObject",
+      "description": "Using the spread operator on Promise in an object can cause unexpected behavior.",
+      "help": "Did you forget to await the promise before spreading it?"
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 96,
+      "end": 111
+    },
+    "suggestions": [
+      {
+        "message": {
+          "id": "addAwait",
+          "description": "Add await operator."
+        },
+        "fixes": [
+          {
+            "text": "await ",
+            "range": {
+              "pos": 99,
+              "end": 99
+            }
+          }
+        ]
+      }
+    ],
+    "kind": 0
+  }
+]

@@ -1,0 +1,32 @@
+[
+  {
+    "range": {
+      "pos": 157,
+      "end": 162
+    },
+    "suggestions": [
+      {
+        "message": {
+          "id": "addMissingCases",
+          "description": "Add branches for missing cases."
+        },
+        "fixes": [
+          {
+            "text": "\n    case b: { throw new Error('Not implemented yet: b case') }\n    case c: { throw new Error('Not implemented yet: c case') }",
+            "range": {
+              "pos": 193,
+              "end": 193
+            }
+          }
+        ]
+      }
+    ],
+    "kind": 0,
+    "rule": "switch-exhaustiveness-check",
+    "message": {
+      "id": "switchIsNotExhaustive",
+      "description": "Switch is not exhaustive. Cases not matched: typeof b | typeof c"
+    },
+    "file_path": "file.ts"
+  }
+]

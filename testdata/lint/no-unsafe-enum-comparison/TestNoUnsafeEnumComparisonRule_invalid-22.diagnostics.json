@@ -1,0 +1,32 @@
+[
+  {
+    "rule": "no-unsafe-enum-comparison",
+    "message": {
+      "id": "mismatchedCase",
+      "description": "The case statement does not have a shared enum type with the switch predicate.",
+      "help": "Compare against a member of the same enum as the switch value, or normalize both sides to the same primitive representation first."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 201,
+      "end": 241
+    },
+    "labeled_ranges": [
+      {
+        "label": "Switch value: Fruit",
+        "range": {
+          "pos": 121,
+          "end": 126
+        }
+      },
+      {
+        "label": "Case value: 1",
+        "range": {
+          "pos": 206,
+          "end": 207
+        }
+      }
+    ],
+    "kind": 0
+  }
+]

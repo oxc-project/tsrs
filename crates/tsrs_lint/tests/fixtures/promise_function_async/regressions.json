@@ -1,0 +1,493 @@
+[
+  {
+    "source": "export {}; const 前 = '😀'; export default function café(/*é*/ p: Promise<number>) { return p; }",
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 31,
+          "end": 101
+        },
+        "message": {
+          "id": "missingAsync",
+          "description": "Functions that return promises must be async."
+        },
+        "file_path": "0.ts",
+        "rule": "promise-function-async",
+        "fixes": [
+          {
+            "text": " async",
+            "range": {
+              "pos": 45,
+              "end": 45
+            }
+          }
+        ]
+      }
+    ],
+    "options": null
+  },
+  {
+    "source": "export {}; const 前 = '😀'; export function café(p: Promise<number>, b: boolean) { return b ? p : 'é'; }",
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 31,
+          "end": 109
+        },
+        "message": {
+          "id": "missingAsyncHybridReturn",
+          "description": "Functions that return promises must be async.",
+          "help": "Consider adding an explicit return type annotation if the function is intended to return a union of promise and non-promise types."
+        },
+        "file_path": "1.ts",
+        "rule": "promise-function-async",
+        "suggestions": [
+          {
+            "message": {
+              "id": "missingAsyncHybridReturnSuggestion",
+              "description": "Add `async` keyword to the function."
+            },
+            "fixes": [
+              {
+                "text": " async",
+                "range": {
+                  "pos": 37,
+                  "end": 37
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "options": null
+  },
+  {
+    "source": "export {}; class C { @déco static protected['café'](p: Promise<number>) { return p; } }",
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 21,
+          "end": 87
+        },
+        "message": {
+          "id": "missingAsync",
+          "description": "Functions that return promises must be async."
+        },
+        "file_path": "2.ts",
+        "rule": "promise-function-async",
+        "fixes": [
+          {
+            "text": " async ",
+            "range": {
+              "pos": 44,
+              "end": 44
+            }
+          }
+        ]
+      }
+    ],
+    "options": null
+  },
+  {
+    "source": "export {}; function café<T extends Promise<number>>(p: T) { return p; } function f<T extends Promise<number>>(p: T): T { return p; }",
+    "options": null,
+    "diagnostics": []
+  },
+  {
+    "source": "export {}; interface P<T> extends Promise<T> {} interface N { n: number } interface Both<T> extends P<T>, N {} declare const p: Both<number>; const café = () => p; const naïve = (): Both<number> => p;",
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 180,
+          "end": 201
+        },
+        "message": {
+          "id": "missingAsync",
+          "description": "Functions that return promises must be async."
+        },
+        "file_path": "4.ts",
+        "rule": "promise-function-async",
+        "fixes": [
+          {
+            "text": " async ",
+            "range": {
+              "pos": 180,
+              "end": 180
+            }
+          }
+        ]
+      }
+    ],
+    "options": null
+  },
+  {
+    "source": "export {}; declare const p: Promise<number> & {brand: 'é'}; const café = () => p; const naïve = (): typeof p => p;",
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 75,
+          "end": 82
+        },
+        "message": {
+          "id": "missingAsync",
+          "description": "Functions that return promises must be async."
+        },
+        "file_path": "5.ts",
+        "rule": "promise-function-async",
+        "fixes": [
+          {
+            "text": " async ",
+            "range": {
+              "pos": 75,
+              "end": 75
+            }
+          }
+        ]
+      }
+    ],
+    "options": null
+  },
+  {
+    "source": "export {}; function café(): number; function café(x: boolean): any; function café(x?: boolean): any { return x; }",
+    "options": {
+      "allowAny": false
+    },
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 70,
+          "end": 116
+        },
+        "message": {
+          "id": "missingAsync",
+          "description": "Functions that return promises must be async."
+        },
+        "file_path": "6.ts",
+        "rule": "promise-function-async"
+      }
+    ]
+  },
+  {
+    "source": "export {}; declare const é: unknown; const café = () => é; function naïve(): any { return 1; }",
+    "options": {
+      "allowAny": false
+    },
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 52,
+          "end": 60
+        },
+        "message": {
+          "id": "missingAsync",
+          "description": "Functions that return promises must be async."
+        },
+        "file_path": "7.ts",
+        "rule": "promise-function-async"
+      },
+      {
+        "kind": 0,
+        "range": {
+          "pos": 62,
+          "end": 98
+        },
+        "message": {
+          "id": "missingAsync",
+          "description": "Functions that return promises must be async."
+        },
+        "file_path": "7.ts",
+        "rule": "promise-function-async"
+      }
+    ]
+  },
+  {
+    "source": "export {}; declare const é: unknown; const café = () => é; function naïve(): any { return 1; }",
+    "options": {
+      "allowAny": null
+    },
+    "diagnostics": []
+  },
+  {
+    "source": "export {}; class Allowed { é = 1; } const café = () => new Allowed();",
+    "options": {
+      "allowedPromiseNames": [
+        "Allowed",
+        null
+      ]
+    },
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 51,
+          "end": 70
+        },
+        "message": {
+          "id": "missingAsync",
+          "description": "Functions that return promises must be async."
+        },
+        "file_path": "9.ts",
+        "rule": "promise-function-async",
+        "fixes": [
+          {
+            "text": " async ",
+            "range": {
+              "pos": 51,
+              "end": 51
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "source": "export {}; class Allowed { é = 1; } const café = () => new Allowed();",
+    "options": null,
+    "diagnostics": []
+  },
+  {
+    "source": "export {}; class Allowed { é = 1; } const café = () => new Allowed();",
+    "options": {
+      "allowedPromiseNames": null
+    },
+    "diagnostics": []
+  },
+  {
+    "source": "export {}; function café(p: Promise<number>) { const nested = () => p; return p; } const expr = function(p: Promise<number>) { return p; }; class C { method(p: Promise<number>) { return p; } }",
+    "options": {
+      "checkFunctionDeclarations": false,
+      "checkArrowFunctions": true,
+      "checkFunctionExpressions": false,
+      "checkMethodDeclarations": false
+    },
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 63,
+          "end": 70
+        },
+        "message": {
+          "id": "missingAsync",
+          "description": "Functions that return promises must be async."
+        },
+        "file_path": "12.ts",
+        "rule": "promise-function-async",
+        "fixes": [
+          {
+            "text": " async ",
+            "range": {
+              "pos": 63,
+              "end": 63
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "source": "export {}; function café(p: Promise<number>) { const nested = () => p; return p; } const expr = function(p: Promise<number>) { return p; }; class C { method(p: Promise<number>) { return p; } }",
+    "options": {
+      "checkFunctionDeclarations": null,
+      "checkArrowFunctions": null,
+      "checkFunctionExpressions": null,
+      "checkMethodDeclarations": null
+    },
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 11,
+          "end": 83
+        },
+        "message": {
+          "id": "missingAsync",
+          "description": "Functions that return promises must be async."
+        },
+        "file_path": "13.ts",
+        "rule": "promise-function-async",
+        "fixes": [
+          {
+            "text": " async ",
+            "range": {
+              "pos": 11,
+              "end": 11
+            }
+          }
+        ]
+      },
+      {
+        "kind": 0,
+        "range": {
+          "pos": 63,
+          "end": 70
+        },
+        "message": {
+          "id": "missingAsync",
+          "description": "Functions that return promises must be async."
+        },
+        "file_path": "13.ts",
+        "rule": "promise-function-async",
+        "fixes": [
+          {
+            "text": " async ",
+            "range": {
+              "pos": 63,
+              "end": 63
+            }
+          }
+        ]
+      },
+      {
+        "kind": 0,
+        "range": {
+          "pos": 97,
+          "end": 139
+        },
+        "message": {
+          "id": "missingAsync",
+          "description": "Functions that return promises must be async."
+        },
+        "file_path": "13.ts",
+        "rule": "promise-function-async",
+        "fixes": [
+          {
+            "text": " async ",
+            "range": {
+              "pos": 97,
+              "end": 97
+            }
+          }
+        ]
+      },
+      {
+        "kind": 0,
+        "range": {
+          "pos": 151,
+          "end": 191
+        },
+        "message": {
+          "id": "missingAsync",
+          "description": "Functions that return promises must be async."
+        },
+        "file_path": "13.ts",
+        "rule": "promise-function-async",
+        "fixes": [
+          {
+            "text": " async ",
+            "range": {
+              "pos": 151,
+              "end": 151
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "source": "export {}; namespace N { export interface Promise<T> { value: T } export function café(p: Promise<number>) { return p; } }",
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 66,
+          "end": 121
+        },
+        "message": {
+          "id": "missingAsync",
+          "description": "Functions that return promises must be async."
+        },
+        "file_path": "14.ts",
+        "rule": "promise-function-async",
+        "fixes": [
+          {
+            "text": " async",
+            "range": {
+              "pos": 72,
+              "end": 72
+            }
+          }
+        ]
+      }
+    ],
+    "options": null
+  },
+  {
+    "source": "export {}; const café = async (p: Promise<number>) => p; abstract class C { abstract method(): Promise<number> { return Promise.resolve(1); } get value() { return Promise.resolve(1); } }",
+    "options": null,
+    "diagnostics": []
+  },
+  {
+    "source": "export {}; class C { *café(): Promise<number> { return Promise.resolve(1); } }",
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 21,
+          "end": 77
+        },
+        "message": {
+          "id": "missingAsync",
+          "description": "Functions that return promises must be async."
+        },
+        "file_path": "16.ts",
+        "rule": "promise-function-async",
+        "fixes": [
+          {
+            "text": " async ",
+            "range": {
+              "pos": 22,
+              "end": 22
+            }
+          }
+        ]
+      }
+    ],
+    "options": null
+  },
+  {
+    "source": "export {}; interface Promise<T> { value: T } declare const p: Promise<number>; const café = (b: boolean) => b ? p : undefined; const naïve = (b: boolean): Promise<number> | undefined => b ? p : undefined;",
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 93,
+          "end": 126
+        },
+        "message": {
+          "id": "missingAsyncHybridReturn",
+          "description": "Functions that return promises must be async.",
+          "help": "Consider adding an explicit return type annotation if the function is intended to return a union of promise and non-promise types."
+        },
+        "file_path": "17.ts",
+        "rule": "promise-function-async",
+        "suggestions": [
+          {
+            "message": {
+              "id": "missingAsyncHybridReturnSuggestion",
+              "description": "Add `async` keyword to the function."
+            },
+            "fixes": [
+              {
+                "text": " async ",
+                "range": {
+                  "pos": 93,
+                  "end": 93
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "options": null
+  }
+]

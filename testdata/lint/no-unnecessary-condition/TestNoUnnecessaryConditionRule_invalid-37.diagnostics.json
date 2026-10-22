@@ -1,0 +1,114 @@
+[
+  {
+    "kind": 0,
+    "range": {
+      "pos": 41,
+      "end": 56
+    },
+    "message": {
+      "id": "noOverlapBooleanExpression",
+      "description": "This condition will always return the same value since the types have no overlap.",
+      "help": "The left side has type `string`, and the right side has type `undefined`."
+    },
+    "file_path": "file.ts",
+    "rule": "no-unnecessary-condition"
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 71,
+      "end": 86
+    },
+    "message": {
+      "id": "noOverlapBooleanExpression",
+      "description": "This condition will always return the same value since the types have no overlap.",
+      "help": "The left side has type `undefined`, and the right side has type `string`."
+    },
+    "file_path": "file.ts",
+    "rule": "no-unnecessary-condition"
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 101,
+      "end": 116
+    },
+    "message": {
+      "id": "noOverlapBooleanExpression",
+      "description": "This condition will always return the same value since the types have no overlap.",
+      "help": "The left side has type `string`, and the right side has type `undefined`."
+    },
+    "file_path": "file.ts",
+    "rule": "no-unnecessary-condition"
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 131,
+      "end": 146
+    },
+    "message": {
+      "id": "noOverlapBooleanExpression",
+      "description": "This condition will always return the same value since the types have no overlap.",
+      "help": "The left side has type `undefined`, and the right side has type `string`."
+    },
+    "file_path": "file.ts",
+    "rule": "no-unnecessary-condition"
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 161,
+      "end": 171
+    },
+    "message": {
+      "id": "noOverlapBooleanExpression",
+      "description": "This condition will always return the same value since the types have no overlap.",
+      "help": "The left side has type `string`, and the right side has type `null`."
+    },
+    "file_path": "file.ts",
+    "rule": "no-unnecessary-condition"
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 186,
+      "end": 196
+    },
+    "message": {
+      "id": "noOverlapBooleanExpression",
+      "description": "This condition will always return the same value since the types have no overlap.",
+      "help": "The left side has type `null`, and the right side has type `string`."
+    },
+    "file_path": "file.ts",
+    "rule": "no-unnecessary-condition"
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 211,
+      "end": 221
+    },
+    "message": {
+      "id": "noOverlapBooleanExpression",
+      "description": "This condition will always return the same value since the types have no overlap.",
+      "help": "The left side has type `string`, and the right side has type `null`."
+    },
+    "file_path": "file.ts",
+    "rule": "no-unnecessary-condition"
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 236,
+      "end": 246
+    },
+    "message": {
+      "id": "noOverlapBooleanExpression",
+      "description": "This condition will always return the same value since the types have no overlap.",
+      "help": "The left side has type `null`, and the right side has type `string`."
+    },
+    "file_path": "file.ts",
+    "rule": "no-unnecessary-condition"
+  }
+]

@@ -1,0 +1,16 @@
+[
+  {
+    "kind": 0,
+    "range": {
+      "pos": 13,
+      "end": 31
+    },
+    "message": {
+      "id": "unsafeToAnyTypeAssertion",
+      "description": "Unsafe assertion to error typed detected.",
+      "help": "The original expression has type `\"foo\"`, and the assertion changes it to `error`. Keep the original type or use `unknown` and narrow the value before use."
+    },
+    "file_path": "file.ts",
+    "rule": "no-unsafe-type-assertion"
+  }
+]

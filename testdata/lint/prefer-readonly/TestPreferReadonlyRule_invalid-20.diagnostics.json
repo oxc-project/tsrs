@@ -1,0 +1,25 @@
+[
+  {
+    "kind": 0,
+    "range": {
+      "pos": 130,
+      "end": 168
+    },
+    "message": {
+      "id": "preferReadonly",
+      "description": "Member 'incorrectlyModifiableParameter' is never reassigned.",
+      "help": "Mark it as `readonly`."
+    },
+    "file_path": "file.ts",
+    "rule": "prefer-readonly",
+    "fixes": [
+      {
+        "text": "readonly ",
+        "range": {
+          "pos": 138,
+          "end": 138
+        }
+      }
+    ]
+  }
+]

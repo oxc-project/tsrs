@@ -1,0 +1,31 @@
+[
+  {
+    "file_path": "file.ts",
+    "range": {
+      "end": 186,
+      "pos": 180
+    },
+    "fixes": [
+      {
+        "text": ".",
+        "range": {
+          "pos": 179,
+          "end": 179
+        }
+      },
+      {
+        "text": "prot",
+        "range": {
+          "pos": 179,
+          "end": 187
+        }
+      }
+    ],
+    "kind": 0,
+    "rule": "dot-notation",
+    "message": {
+      "id": "useDot",
+      "description": "[\"prot\"] is better written in dot notation."
+    }
+  }
+]

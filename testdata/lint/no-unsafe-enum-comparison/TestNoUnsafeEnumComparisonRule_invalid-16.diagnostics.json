@@ -1,0 +1,32 @@
+[
+  {
+    "rule": "no-unsafe-enum-comparison",
+    "message": {
+      "id": "mismatchedCondition",
+      "description": "The two values in this comparison do not have a shared enum type.",
+      "help": "Compare enum values to members of the same enum, or convert both sides to the same primitive type before comparing them."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 264,
+      "end": 309
+    },
+    "labeled_ranges": [
+      {
+        "label": "Left operand: Vegetable.Asparagus",
+        "range": {
+          "pos": 264,
+          "end": 283
+        }
+      },
+      {
+        "label": "Right operand: Vegetable2.Asparagus2",
+        "range": {
+          "pos": 288,
+          "end": 309
+        }
+      }
+    ],
+    "kind": 0
+  }
+]

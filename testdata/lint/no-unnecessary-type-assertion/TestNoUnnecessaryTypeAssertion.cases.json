@@ -1,0 +1,5473 @@
+{
+  "Name": "no-unnecessary-type-assertion",
+  "TSConfig": "tsconfig.minimal.json",
+  "Valid": [
+    {
+      "Code": "\nimport { TSESTree } from '@typescript-eslint/utils';\ndeclare const member: TSESTree.TSEnumMember;\nif (\n  member.id.type === AST_NODE_TYPES.Literal &&\n  typeof member.id.value === 'string'\n) {\n  const name = member.id as TSESTree.StringLiteral;\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      const c = 1;\n      let z = c as number;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      const c = 1;\n      let z = c as const;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      const c = 1;\n      let z = c as 1;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      type Bar = 'bar';\n      const data = {\n        x: 'foo' as 'foo',\n        y: 'bar' as Bar,\n      };\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "[1, 2, 3, 4, 5].map(x => [x, 'A' + x] as [number, string]);",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      let x: Array<[number, string]> = [1, 2, 3, 4, 5].map(\n        x => [x, 'A' + x] as [number, string],\n      );\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "let y = 1 as 1;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "const foo = 3 as number;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "const foo = <number>3;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype Tuple = [3, 'hi', 'bye'];\nconst foo = [3, 'hi', 'bye'] as Tuple;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype PossibleTuple = {};\nconst foo = {} as PossibleTuple;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype PossibleTuple = { hello: 'hello' };\nconst foo = { hello: 'hello' } as PossibleTuple;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype PossibleTuple = { 0: 'hello'; 5: 'hello' };\nconst foo = { 0: 'hello', 5: 'hello' } as PossibleTuple;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst a = {};\na as Record<string, string>;\ntype Dict = Record<string, string>;\na as Dict;\na as { [key: string]: string };\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nlet bar: number | undefined = x;\nlet foo: number = bar!;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const a: { data?: unknown };\n\nconst x = a.data!;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare function foo(arg?: number): number | void;\nconst bar: number = foo()!;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype Foo = number;\nconst foo = (3 + 5) as Foo;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "checkLiteralConstAssertions": false,
+        "typesToIgnore": [
+          "Foo"
+        ]
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "const foo = (3 + 5) as any;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "checkLiteralConstAssertions": false,
+        "typesToIgnore": [
+          "any"
+        ]
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "(Syntax as any).ArrayExpression = 'foo';",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "checkLiteralConstAssertions": false,
+        "typesToIgnore": [
+          "any"
+        ]
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "const foo = (3 + 5) as string;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "checkLiteralConstAssertions": false,
+        "typesToIgnore": [
+          "string"
+        ]
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype Foo = number;\nconst foo = <Foo>(3 + 5);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "checkLiteralConstAssertions": false,
+        "typesToIgnore": [
+          "Foo"
+        ]
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nlet bar: number;\nbar! + 1;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nlet bar: undefined | number;\nbar! + 1;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nlet bar: number, baz: number;\nbar! + 1;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction foo<T extends string | undefined>(bar: T) {\n  return bar!;\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare function nonNull(s: string);\nlet s: string | null = null;\nnonNull(s!);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst x: number | null = null;\nconst y: number = x!;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst x: number | null = null;\nclass Foo {\n  prop: number = x!;\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass T {\n  a = 'a' as const;\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass T {\n  a = 3 as 3;\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst foo = 'foo';\n\nclass T {\n  readonly test = `${foo}` as const;\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass T {\n  readonly a = { foo: 'foo' } as const;\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      declare const y: number | null;\n      console.log(y!);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare function foo(str?: string): void;\ndeclare const str: string | null;\n\nfoo(str!);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare function a(a: string): any;\ndeclare const b: string | null;\nclass Mx {\n  @a(b!)\n  private prop = 1;\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction testFunction(_param: string | undefined): void {\n  /* noop */\n}\nconst value = 'test' as string | null | undefined;\ntestFunction(value!);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction testFunction(_param: string | null): void {\n  /* noop */\n}\nconst value = 'test' as string | null | undefined;\ntestFunction(value!);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare namespace JSX {\n  interface IntrinsicElements {\n    div: { key?: string | number };\n  }\n}\n\nfunction Test(props: { id?: null | string | number }) {\n  return <div key={props.id!} />;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": true,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst a = [1, 2];\nconst b = [3, 4];\nconst c = [...a, ...b] as const;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "const a = [1, 2] as const;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "const a = { foo: 'foo' } as const;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst a = [1, 2];\nconst b = [3, 4];\nconst c = <const>[...a, ...b];\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "const a = <const>[1, 2];",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "const a = <const>{ foo: 'foo' };",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nlet a: number | undefined;\nlet b: number | undefined;\nlet c: number;\na = b;\nc = b!;\na! -= 1;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nlet a: { b?: string } | undefined;\na!.b = '';\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nlet value: number | undefined;\nlet values: number[] = [];\n\nvalue = values.pop()!;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare function foo(): number | undefined;\nconst a = foo()!;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare function foo(): number | undefined;\nconst a = foo() as number;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare function foo(): number | undefined;\nconst a = <number>foo();\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const arr: (object | undefined)[];\nconst item = arr[0]!;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const arr: (object | undefined)[];\nconst item = arr[0] as object;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const arr: (object | undefined)[];\nconst item = <object>arr[0];\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction foo(item: string) {}\nfunction bar(items: string[]) {\n  for (let i = 0; i < items.length; i++) {\n    foo(items[i]!);\n  }\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "./tsconfig.noUncheckedIndexedAccess.json",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const myString: 'foo';\nconst templateLiteral = `${myString}-somethingElse` as const;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const myString: 'foo';\nconst templateLiteral = <const>`${myString}-somethingElse`;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst myString = 'foo';\nconst templateLiteral = `${myString}-somethingElse` as const;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "let a = `a` as const;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const foo: {\n  a?: string;\n};\nconst bar = foo.a as string;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "./tsconfig.exactOptionalPropertyTypes.json",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const foo: {\n  a?: string | undefined;\n};\nconst bar = foo.a as string;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "./tsconfig.exactOptionalPropertyTypes.json",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const foo: {\n  a: string;\n};\nconst bar = foo.a as string | undefined;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "./tsconfig.exactOptionalPropertyTypes.json",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const foo: {\n  a?: string | null | number;\n};\nconst bar = foo.a as string | undefined;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "./tsconfig.exactOptionalPropertyTypes.json",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const foo: {\n  a?: string | number;\n};\nconst bar = foo.a as string | undefined | bigint;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "./tsconfig.exactOptionalPropertyTypes.json",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nif (Math.random()) {\n  {\n    var x = 1;\n  }\n}\nx!;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nenum T {\n  Value1,\n  Value2,\n}\n\ndeclare const a: T.Value1;\nconst b = a as T.Value2;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nenum T {\n  Value1,\n  Value2,\n}\n\ndeclare const a: T.Value1;\nconst b = a as T;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nenum T {\n  Value1 = 0,\n  Value2 = 1,\n}\n\nconst b = 1 as T.Value2;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst foo: unknown = {};\nconst baz: {} = foo!;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst foo: unknown = {};\nconst bar: object = foo!;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare function foo<T extends unknown>(bar: T): T;\nconst baz: unknown = {};\nfoo(baz!);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const foo: any;\nfoo!;\n\t\t",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "const a = `a` as const;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "const a = 'a' as const;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "<const>'a';",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass T {\n  readonly a = 'a' as const;\n}\n\t\t",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nenum T {\n  Value1,\n  Value2,\n}\ndeclare const a: T.Value1;\nconst b = a as const;\n\t\t",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction filterProps(props: PropertyKey[]): string[] {\n  return props.filter((prop) =>\n    !['foo', 'bar'].includes(prop as string)\n  ) as string[];\n}\n\t\t",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction filterProps(props: PropertyKey[]): string[] {\n  return <string[]>props.filter((prop) =>\n    !['foo', 'bar'].includes(<string>prop)\n  );\n}\n\t\t",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nasync function mergeWithDefaults(loadModule: () => Promise<unknown>) {\n  const mod = (await loadModule()) as Record<string, unknown>;\n  return { ...mod, extra: true };\n}\n\t\t",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nasync function mergeWithDefaults(loadModule: () => Promise<unknown>) {\n  const mod = <Record<string, unknown>>(await loadModule());\n  return { ...mod, extra: true };\n}\n\t\t",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype Wrapper<T> = { value: number; meta: T };\n\nfunction unwrap<T>(input: number | string | Wrapper<T>): number {\n  return typeof input === 'string' ? parseFloat(input) : (input as number);\n}\n\t\t",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype Wrapper<T> = { value: number; meta: T };\n\nfunction unwrap<T>(input: number | string | Wrapper<T>): number {\n  return typeof input === 'string' ? parseFloat(input) : <number>input;\n}\n\t\t",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst value = ((<T>(input: T): T | undefined => input)(1)) as number;\n\t\t",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface Element {\n  tagName: string;\n}\n\ninterface HTMLCanvasElement extends Element {\n  getContext(contextId: string): unknown;\n}\n\ninterface HTMLElementTagNameMap {\n  canvas: HTMLCanvasElement;\n}\n\ndeclare const document: {\n  querySelector<K extends keyof HTMLElementTagNameMap>(selectors: K): HTMLElementTagNameMap[K] | null;\n  querySelector<E extends Element = Element>(selectors: string): E | null;\n};\n\nexport const a = document.querySelector('.foo') as HTMLCanvasElement | null;\n\t\t",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface Element { tagName: string; }\n\ninterface HTMLCanvasElement extends Element { getContext(contextId: string): unknown; }\n\ninterface Factory { new <E extends Element = Element>(): E | null; }\n\ndeclare const CanvasFactory: Factory;\n\nexport const a = new CanvasFactory() as HTMLCanvasElement | null;\n\t\t",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface Element { tagName: string; }\n\ninterface HTMLCanvasElement extends Element { getContext(contextId: string): unknown; }\n\ndeclare const query: { <E extends Element = Element>(strings: TemplateStringsArray): E | null; };\n\nexport const a = query`.foo` as HTMLCanvasElement | null;\n\t\t",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare function load<T = unknown>(): Promise<T>;\n\nexport async function main() {\n  const actual = (await load()) as Record<string, unknown>;\n  return { ...actual };\n}\n\t\t",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare function load<T = unknown>(): Promise<Promise<T>>;\n\nexport async function main() {\n  const actual = (await await load()) as Record<string, unknown>;\n  return { ...actual };\n}\n\t\t",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare function load<T = unknown>(): Promise<T>;\nexport async function main() {\n  const actual = <Record<string, unknown>>(await load());\n  return { ...actual };\n}\n\t\t",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype NumberValueType = number | string;\ntype NumberValuePairType = [NumberValueType, NumberValueType];\n\ntype NumberCellValueType<T extends NumberValuePairType | NumberValueType> =\n  T extends NumberValuePairType ? NumberValuePairType : NumberValueType;\n\nfunction processValue<T extends NumberValuePairType | NumberValueType>(\n  value: NumberCellValueType<T>\n): number {\n  if (Array.isArray(value)) {\n    return 0;\n  }\n\n  const numberValue = typeof value === \"string\" ? parseFloat(value) : (value as number);\n  //                                                                   ^^^^^^^^^^^^^^^^\n  // tsgolint: \"This assertion is unnecessary since it does not change the type of the expression.\"\n  const negative = numberValue < 0;\n  return negative ? -1 : 1;\n}\n\t\t",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "const cb = async (importOriginal: unknown) => { const actual = (await importOriginal()) as Record<string, unknown>; return { ...actual, useLocation: vi.fn() }; });",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype Data<T> = { value?: T };\ntype ValueType<TData> = TData extends Data<infer T> ? T : never;\n\nexport const foo = <TData extends Data<any>>(data: TData) => {\n  const getValue = () => data.value as ValueType<TData> | undefined;\n  const value: ValueType<TData> = getValue()!;\n  return value;\n};\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction bar<T extends any>(value: T | undefined): T {\n  return value!;\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst array: object[] = [{}];\n\nlet nullish: object | undefined;\nnullish ??= array[1] as object | undefined;\n\nlet falsy: object | undefined;\nfalsy ||= array[1] as object | undefined;\n\nlet truthy: object | undefined = {};\ntruthy &&= array[1] as object | undefined;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "const a = <const>'a';",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass T {\n  readonly a = 'a' as const;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nenum T {\n  Value1,\n  Value2,\n}\ndeclare const a: T.Value1;\nconst b = a as const;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n(() => {})() as undefined;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst f = () => {};\nf() as undefined;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n(function () {})() as undefined;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface Overloaded {\n  (): undefined;\n  (value: string): void;\n}\n\n((value => {}) as Overloaded)('') as undefined;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface Overloaded {\n  (): void;\n  (value: string): undefined;\n}\n\n((() => {}) as Overloaded)() as undefined;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface GenericOverloaded {\n  <T extends string>(value: T): void;\n  (): undefined;\n}\n((value => {}) as GenericOverloaded)('') as undefined;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface Unioned {\n  (): undefined | void;\n}\n\n((() => {}) as Unioned)() as undefined;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction fn<T>(items: ReadonlyArray<T>) {}\nfn([42] as const);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const a: any;\ndeclare function foo(arg: string): void;\nfoo(a as string);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const a: object;\nconst b = a as { id?: number };\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const array: any[];\nfunction foo(strings: string[]): void {}\nfoo(array as string[]);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const record: Record<string, unknown>;\nconst obj = record as { id?: number };\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const obj: { [key: string]: unknown };\nconst foo = obj as {};\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface Empty {}\ndeclare function getAny(): any;\nconst result = getAny() as Empty;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface Empty {}\ndeclare function getObject(): object;\nconst result = getObject() as Empty;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface Obj {\n  id: number;\n}\ndeclare const obj: Readonly<Obj>;\nconst obj2 = obj as Obj;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const record: Record<string, unknown>;\nconst obj = record as { [additionalProperties: string]: unknown; id?: number };\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface PropsA {\n  a?: number;\n}\ninterface PropsB extends PropsA {\n  b?: string;\n}\ndeclare const propsB: PropsB;\nconst propsA = propsB as PropsA;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface PropsA {\n  a?: number;\n}\ninterface PropsB extends PropsA {\n  b?: string;\n}\ndeclare const propsB: PropsB[];\nconst propsA = propsB as PropsA[];\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass Box<T> {\n  value: T;\n}\nclass PairBox<T, U> {\n  value: T;\n}\ndeclare const pairBox: PairBox<string, number>;\nconst box = pairBox as Box<string>;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype ObjectLike = Record<string, unknown>;\ndeclare const result: ObjectLike;\ndeclare const key: string;\nresult[key] = { ...(result[key] as ObjectLike) };\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface AST {\n  comments: string[] | undefined;\n}\nconst ast: AST = {\n  comments: [],\n};\nconst { comments } = ast as { comments: string[] };\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype Tuple = [string | undefined, number];\nconst tuple: Tuple = ['hello', 42];\nconst [first, second] = tuple as [string, number];\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface Wide {\n  name?: string;\n}\ninterface Narrow {\n  name: string;\n}\ndeclare const narrow: Narrow;\nconst obj = { value: narrow as Wide } satisfies Record<string, Wide>;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface Wide {\n  name?: string;\n}\ninterface Narrow {\n  name: string;\n}\ndeclare const narrow: Narrow;\nconst value = narrow as Wide satisfies Wide;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface Wide {\n  name?: string;\n}\ninterface Narrow {\n  name: string;\n}\ndeclare const narrow: Narrow;\ndeclare function identity<T>(x: T): T;\nconst result = identity({ value: narrow as Wide }) satisfies { value: Wide };\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const x: string | number;\nconst result: { tag: string; value: string | number } | { value: number } = {\n  value: x as number,\n};\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const x: string | number;\nfunction fn(): { tag: string; value: string | number } | { value: number } {\n  return {\n    value: x as number,\n  };\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface A {\n  a: string;\n}\ninterface B extends A {\n  b: string;\n}\ndeclare const a: A;\nlet result;\nresult = a as B;\nresult.b;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface A {\n  a: string;\n}\ninterface B extends A {\n  b: string;\n}\ninterface C extends B {\n  c: string;\n}\ndeclare let a: A;\ndeclare let b: B;\nconst c = (a = b as C);\nc.c;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype NumberRecord = { readonly [P in number]: number };\nfunction fn<T extends NumberRecord>(record: T) {\n  for (const key of Object.keys(record)) {\n    const index = +key as keyof T & number;\n    record[index] = record[index] + 1;\n  }\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface ReadonlyMap<K, V> {\n  get(key: K): V | undefined;\n}\ntype T = { get<K>(key: K): K };\ndeclare const x: ReadonlyMap<string, string>;\ndeclare let y: T;\ny = x as T;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare function find<T>(array: readonly T[] | undefined): T | undefined;\ndeclare const array: string[] | number[];\nfind(array as (string | number)[]);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface A {\n  a: string;\n}\ninterface B extends A {\n  b: string;\n}\ndeclare function mapDefined<T>(fn: () => T): T;\ndeclare const b: B;\ndeclare const arrayA: A[];\nconst a = mapDefined(() => b as A);\n[a].concat(arrayA);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface A {\n  a: string;\n}\ninterface B extends A {\n  b: string;\n}\ndeclare function mapDefined<T>(fn: () => T): T;\ndeclare const b: B;\ndeclare const arrayA: A[];\nconst a = mapDefined(() =>\n  Math.random() > 0.5 ? (b as A) : (null as unknown as A),\n);\n[a].concat(arrayA);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface Params {\n  a?: string;\n  b?: string;\n}\ndeclare const params: Omit<Params, 'a'> & { c?: string };\n(params as Params).a = 'c';\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst text: string | null = null as string | null;\nif (text) {\n  text.toLowerCase();\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst text: string | undefined = undefined as string | undefined;\nif (text) {\n  text.toLowerCase();\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype Infer<T> = T extends ObjectConstructor\n  ? never\n  : T extends () => infer V\n    ? V\n    : never;\ndeclare function fn<T>(o: { p: T }): { [K in keyof T]: Infer<T[K]> };\nconst result = fn({ p: { a: Object as () => string } });\nresult.a.toLowerCase();\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype Accessor<T> = () => T;\ndeclare function inner<T>(): Accessor<T>;\nfunction outer<T>(): Accessor<T> {\n  return inner<string>() as Accessor<any>;\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface InjectionConstraint<T> {}\ntype InjectionKey<T> = symbol & InjectionConstraint<T>;\ndeclare function inject<T>(key: InjectionKey<T>): T;\nconst context = Symbol('ctx') as InjectionKey<{ value: string }>;\ninject(context).value;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare function fn<U>(g: (memo: U) => U, initial: U): U;\ndeclare function fn<T>(g: (memo: T) => T): T | undefined;\nenum E {\n  A = 1,\n}\nconst x: E = fn(n => n | 0, 0 as E);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype BasePayload = { id: string };\n\nabstract class AbstractHandler {\n  constructor(_ctx: { token: number }) {}\n}\n\nabstract class AbstractPayloadHandler<\n  TPayload extends BasePayload = BasePayload,\n> extends AbstractHandler {}\n\ntype HandlerCtor = new (ctx: { token: number }) => AbstractHandler;\n\ndeclare const registeredHandlers: HandlerCtor[];\n\nfunction example<TItem extends BasePayload>(\n  handlerClass: typeof AbstractPayloadHandler<TItem>,\n) {\n  registeredHandlers.includes(\n    handlerClass as new (...args: any[]) => AbstractPayloadHandler<TItem>,\n  );\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction fn<T extends { type: string }, K extends string, V>(\n  node: T,\n): T & Record<K, V> {\n  return node as T & Record<K, V>;\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare function fn<T extends boolean>(\n  options: {\n    a: T extends true ? never : unknown;\n  } & {\n    b: T;\n  },\n): void;\n\nfn({\n  a: true,\n  b: true as any,\n});\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const a: number[] | number | undefined;\nconst b: number[] = a ?? ([0] as any);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst context: { meta: Record<string, unknown> | undefined } = { meta: {} };\nconst meta = context.meta as { schema?: object } | undefined;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype Test<T extends Record<string, unknown>> = {};\n\nfunction inferred<T extends Test<never>[]>(_input: {\n  addons?: T;\n}): {\n  options: T extends Test<infer C>[] ? C : never;\n} {\n  return {\n    options: {} as T extends Test<infer C>[] ? C : never,\n  };\n}\n\nconst test = inferred({\n  addons: [{} as Test<{ parameters: { potato: boolean } }>],\n});\n\nconsole.log(test.options.parameters.potato);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare function fn(value: string | null): void;\nfn((null) as string | null);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst value: undefined = (() => {})() as undefined;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype RecursiveConditional<T> =\n  (value: T extends string ? any : number) => RecursiveConditional<string>;\n\ndeclare const callable: RecursiveConditional<number>;\ndeclare function consume(value: unknown): void;\nconsume(callable as unknown);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype RecursiveCallable<Options = {}> =\n  & (<NewOptions = {}>(options: NewOptions) => RecursiveCallable<Options & NewOptions>)\n  & ((command: string) => void);\n\ndeclare const callable: RecursiveCallable;\nconst value = callable as unknown;\nconst contextualValue: unknown = callable as unknown;\ndeclare function consume(value: unknown): void;\nconsume(callable as unknown);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype Item = { id: string | number };\n\ndeclare function combine<T1, T2 extends T1>(a: readonly T1[], b: readonly T2[]): T1[];\n\ndeclare const items: Item[];\n\nconst result = combine([{ id: 0 } as Item], items);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype Item = { id: string | number };\n\ninterface Combiner {\n  new <T1, T2 extends T1>(a: readonly T1[], b: readonly T2[]): unknown;\n}\n\ndeclare const Combiner: Combiner;\ndeclare const items: Item[];\n\nconst result = new Combiner([{ id: 0 } as Item], items);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype Item = { id: string | number };\n\ndeclare function combine<T1, T2 extends T1>(\n  ...args: [label: string, a: readonly T1[], b: readonly T2[]]\n): T1[];\n\ndeclare const items: Item[];\n\nconst result = combine('items', [{ id: 0 } as Item], items);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype Item = { id: string | number };\n\ndeclare function combine<T>(\n  enabled: boolean,\n  ...args: [a: readonly T[], b: readonly Item[]]\n): T[];\n\ndeclare const items: Item[];\n\nconst result = combine(true, [{ id: 0 } as Item], items);\nresult[0].id = 'x';\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype Item = { id: string | number };\n\ndeclare function combine<T1, T2 extends T1>(\n  ...args: [a: readonly T1[], b: readonly T2[]]\n): T1[];\n\ndeclare const items: Item[];\n\nconst result = combine(...[[{ id: 0 } as Item], items]);\nresult[0].id = 'x';\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype IAnyObject = Record<any, any>;\n\nconst { isArray } = Array;\n\nconst isPlainObject = <InferredType extends IAnyObject = IAnyObject>(\n  val: unknown,\n): val is InferredType => Object.prototype.toString.call(val) === '[object Object]';\n\nexport const deepAssign = <\n  TargetObject extends IAnyObject,\n  MergedObject extends IAnyObject = TargetObject,\n  FinalObject extends Partial<TargetObject> & Partial<MergedObject> = TargetObject & MergedObject,\n>(\n  originObject: TargetObject,\n  ...overrideObjects: (MergedObject | null | undefined)[]\n): FinalObject => {\n  if (overrideObjects.length === 0) return originObject as unknown as FinalObject;\n\n  const assignObject = overrideObjects.shift();\n\n  if (assignObject) {\n    Object.entries(assignObject).forEach(([property, value]) => {\n      if (property === '__proto__' || property === 'constructor') return;\n      if (isPlainObject(originObject[property]) && isPlainObject(value)) {\n        deepAssign(originObject[property], value);\n      } else if (isArray(value)) {\n        (originObject as IAnyObject)[property] = [...(value as unknown[])];\n      } else if (isPlainObject(value)) {\n        (originObject as IAnyObject)[property] = {\n          ...value,\n        };\n      } else {\n        (originObject as IAnyObject)[property] = assignObject[property] as unknown;\n      }\n    });\n  }\n\n  return deepAssign(originObject, ...overrideObjects);\n};\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype AccountId = string & { __brand: 'AccountId' };\n\ninterface Req {\n  params: Record<string, string>;\n  query: Record<string, string>;\n  method: string;\n}\n\ndeclare const accountId: AccountId;\n\nexport const req = {\n  params: { id: accountId } as any,\n  query: {},\n} as Req;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nenum Lang {\n  EN = 'en-US',\n  SV = 'sv-SE',\n}\n\nconst LANGUAGE_NAMES: Record<Lang, string> = {\n  [Lang.EN]: 'English',\n  [Lang.SV]: 'Svenska',\n};\n\nexport const options = Object.values(Lang)\n  .map(lang => ({\n    label: LANGUAGE_NAMES[lang],\n    value: lang as string,\n  }))\n  .concat([{ label: 'български език', value: 'bg-BG' }]);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype AnyObject = Record<string, any>;\n\ndeclare function isEditArray(item: unknown): item is { type: string }[];\n\nexport function getEdits(bucket: { data: unknown }): { type: string }[] {\n  const { data } = bucket;\n  if (!data) return [];\n\n  const { edits } = data as AnyObject;\n\n  if (!isEditArray(edits)) return [];\n  return edits;\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nenum AppTracker {\n  MOOD = 1,\n  ENERGY = 2,\n}\n\nexport function categoryFor(tracker: string): string {\n  return AppTracker[Number(tracker) as AppTracker];\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "./tsconfig.noUncheckedIndexedAccess.json",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nenum GuideId {\n  MEASURE = 'measure',\n}\n\ninterface Guide {\n  id: GuideId;\n  title: string;\n  thumbnailUrl: string;\n}\n\ninterface GlossaryItem {\n  id: string;\n  title: string;\n}\n\nexport const item: { content: Guide | GlossaryItem } = {\n  content: {\n    id: 'how-to-measure' as any,\n    title: 'How to measure',\n    thumbnailUrl: 'https://example.com/thumb.jpg',\n  },\n};\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface Node { id: string }\nfunction transform<NodeOut extends Node | null>(\n  nodeIn: Node,\n  visit: (node: Node) => NodeOut,\n): NodeOut {\n  let transformedNode = visit(nodeIn);\n  if (!transformedNode) return transformedNode;\n  if (transformedNode === nodeIn) {\n    transformedNode = { ...transformedNode };\n  }\n  transformedNode = transformedNode as NonNullable<NodeOut>;\n  console.log(transformedNode.id);\n  return transformedNode;\n}\n",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction narrow(value: string | undefined) {\n  value = value as string;\n  return value.length;\n}\n",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction narrow(value: string | undefined) {\n  value = ((<string>value));\n  return value.length;\n}\n",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction narrow(value: string | undefined) {\n  value = value as unknown as string;\n  return value.length;\n}\n",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction narrow(value: string | undefined, condition: boolean) {\n  value = condition ? (value as string) : \"\";\n  return value.length;\n}\n",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction narrow(value: string | undefined) {\n  value = (value as string) && \"\";\n  return value.length;\n}\n",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction narrow(value: string | undefined) {\n  value ||= (value as string);\n  return value.length;\n}\n",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction narrow(value: string | undefined) {\n  value ??= (value as unknown as string);\n  return value.length;\n}\n",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nenum NumericEnum { a = 1, b = 2 }\nconst key: \"a\" | \"b\" = \"a\";\nexport const widened = NumericEnum[key] as number;\nexport const narrowed = (1 as number) as NumericEnum;\n",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nenum NumericEnum { a = 1, b = 2 }\ndeclare const value: NumericEnum | undefined;\ndeclare const numberValue: number | undefined;\nexport const widened = value as number | undefined;\nexport const narrowed = numberValue as NumericEnum | undefined;\n",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nenum NumericEnum { a = 1, b = 2 }\ndeclare const value: NumericEnum;\ndeclare const numberValue: number;\nexport const widened = <number>value;\nexport const narrowed = <NumericEnum>numberValue;\n",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction narrow(value: string | undefined) {\n  value = (console.log(), value as string);\n  return value.length;\n}\n",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction narrow(value: string | undefined) {\n  [value] = [value as string];\n  return value.length;\n}\n",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction narrow(value: string | undefined) {\n  ({ value } = { value: value as string });\n  return value.length;\n}\n",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nenum E { A = 1, B = 2 }\ndeclare const value: number & { brand: \"x\" };\nconst result = value as E & { brand: \"x\" };\nconst onlyMembers: 1 | 2 = result;\n",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nenum E { A = 1, B = 2 }\ndeclare const value: E & { brand: \"x\" };\nconst result = value as number & { brand: \"x\" };\n",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction narrow(value: string | undefined) {\n  ({ value } = { ...{ value: value as string } });\n  return value.length;\n}\n",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction narrow(value: string | undefined, condition: boolean) {\n  let x: unknown, y: unknown;\n  [x, y, value] = condition\n    ? [...[\"a\", \"b\"] as const, value as string]\n    : [undefined, undefined, \"\"];\n  return value.length;\n}\n",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction narrow(value: string | null | undefined) {\n  ({ value = '' } = { value: value as string });\n  return value.length;\n}\n",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction narrow(value: string | undefined, fallback: { value?: string }) {\n  ({ value } = { ...{ value: value as string }, ...fallback });\n  return value.length;\n}\n",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass Fallback {\n  get value() { return ''; }\n}\nfunction narrow(value: string | undefined) {\n  ({ value } = { ...{ value: value as string }, ...new Fallback() });\n  return value.length;\n}\n",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction narrow(value: string | undefined, other: string) {\n  value = other && (value as string);\n  return value.length;\n}\n",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction narrow(value: string | undefined, a: string | undefined, b: string | undefined) {\n  ({ value: a = '', value: b } = { value: value as string });\n  return b.length;\n}\n",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction narrow(value: string | undefined, a: string | undefined, b: string | undefined) {\n  ({ nested: { value: a = '' }, nested: { value: b } } = { nested: { value: value as string } });\n  return b.length;\n}\n",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction narrow(value: string | undefined, a: string | undefined, b: string | undefined) {\n  ({ value: a = '', ['value']: b } = { value: value as string });\n  return b.length;\n}\n",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction f<T extends () => any>(value: T) {\n  const result = value as NonNullable<T>;\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface Empty<X> {}\ntype Alias<T> = T & Empty<any>;\n\nfunction f<T extends object>(value: T) {\n  const result = value as Alias<T>;\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface Empty<X> {}\ntype Alias<T> = T & Empty<Promise<any>>;\n\nfunction f<T extends object>(value: T) {\n  const result = value as Alias<T>;\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface Empty<X> {}\ntype Alias<T> = T & Empty<() => any>;\n\nfunction f<T extends object>(value: T) {\n  const result = value as Alias<T>;\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction f<T extends { (...args: any[]): unknown }>(value: T) {\n  const result = value as NonNullable<T>;\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype RecursiveCallable<T> = (value: T) => RecursiveCallable<{ value: T }>;\n\nfunction f<T extends RecursiveCallable<string>>(value: T) {\n  const result = value as NonNullable<T>;\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface Empty<X> {}\ntype Alias<T, U> = T & Empty<U>;\n\nfunction f<T extends object, U>(value: T) {\n  const result = value as Alias<T, U>;\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface Source<T> {\n  value: T;\n}\ninterface Target<T> {\n  value: T;\n}\n\ndeclare const source: Source<any>;\nconst result = source as Target<any>;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype Layer0<T> = T;\ntype Layer1<T> = (value: Layer0<T>) => Layer0<T>;\ntype Layer2<T> = (value: Layer1<T>) => Layer1<T>;\ntype Layer3<T> = (value: Layer2<T>) => Layer2<T>;\ntype Layer4<T> = (value: Layer3<T>) => Layer3<T>;\n\ntype Watcher<T> = ((handler: Layer4<T>) => void) & { readonly kind: 'watcher' };\ntype Subscription<T> = ((handler: T) => void) & { readonly kind: 'subscription' };\n\ndeclare const watcher: Watcher<string>;\nconst subscription = watcher as Subscription<string>;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    }
+  ],
+  "Invalid": [
+    {
+      "Code": "const foo = <3>3;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "const foo = 3;"
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryAssertion",
+          "Line": 1,
+          "Column": 13,
+          "EndLine": 1,
+          "EndColumn": 17,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "const foo = 3 as 3;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "const foo = 3;"
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryAssertion",
+          "Line": 1,
+          "Column": 13,
+          "EndLine": 1,
+          "EndColumn": 19,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst num = 42;\nconst alsoRedundant = num as 42;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nconst num = 42;\nconst alsoRedundant = num;\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryAssertion",
+          "Line": 3,
+          "Column": 23,
+          "EndLine": 3,
+          "EndColumn": 32,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst str: string = 'hello';\nconst redundant =  str as string;\n\t      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nconst str: string = 'hello';\nconst redundant =  str;\n\t      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryAssertion",
+          "Line": 3,
+          "Column": 20,
+          "EndLine": 3,
+          "EndColumn": 33,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        type Foo = 3;\n        const foo = <Foo>3;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        type Foo = 3;\n        const foo = 3;\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryAssertion",
+          "Line": 3,
+          "Column": 21,
+          "EndLine": 3,
+          "EndColumn": 27,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        type Foo = 3;\n        const foo = 3 as Foo;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        type Foo = 3;\n        const foo = 3;\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryAssertion",
+          "Line": 3,
+          "Column": 21,
+          "EndLine": 3,
+          "EndColumn": 29,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst foo = 3;\nconst bar = foo!;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nconst foo = 3;\nconst bar = foo;\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryAssertion",
+          "Line": 3,
+          "Column": 13,
+          "EndLine": 3,
+          "EndColumn": 17,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst foo = (3 + 5) as number;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nconst foo = (3 + 5);\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryAssertion",
+          "Line": 2,
+          "Column": 13,
+          "EndLine": 2,
+          "EndColumn": 30,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst foo = <number>(3 + 5);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nconst foo = (3 + 5);\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryAssertion",
+          "Line": 2,
+          "Column": 13,
+          "EndLine": 2,
+          "EndColumn": 28,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype Foo = number;\nconst foo = (3 + 5) as Foo;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\ntype Foo = number;\nconst foo = (3 + 5);\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryAssertion",
+          "Line": 3,
+          "Column": 13,
+          "EndLine": 3,
+          "EndColumn": 27,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype Foo = number;\nconst foo = <Foo>(3 + 5);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\ntype Foo = number;\nconst foo = (3 + 5);\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryAssertion",
+          "Line": 3,
+          "Column": 13,
+          "EndLine": 3,
+          "EndColumn": 25,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nlet bar: number = 1;\nbar! + 1;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nlet bar: number = 1;\nbar + 1;\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryAssertion",
+          "Line": 3,
+          "Column": 1,
+          "EndLine": 3,
+          "EndColumn": 5,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nlet bar!: number;\nbar! + 1;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nlet bar!: number;\nbar + 1;\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryAssertion",
+          "Line": 3,
+          "Column": 1,
+          "EndLine": 3,
+          "EndColumn": 5,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nlet bar: number | undefined;\nbar = 1;\nbar! + 1;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nlet bar: number | undefined;\nbar = 1;\nbar + 1;\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryAssertion",
+          "Line": 4,
+          "Column": 1,
+          "EndLine": 4,
+          "EndColumn": 5,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        declare const y: number;\n        console.log(y!);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        declare const y: number;\n        console.log(y);\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryAssertion",
+          "Line": 3,
+          "Column": 21,
+          "EndLine": 3,
+          "EndColumn": 23,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "Proxy!;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "Proxy;"
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryAssertion",
+          "Line": 1,
+          "Column": 1,
+          "EndLine": 1,
+          "EndColumn": 7,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction foo<T extends string>(bar: T) {\n  return bar!;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nfunction foo<T extends string>(bar: T) {\n  return bar;\n}\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryAssertion",
+          "Line": 3,
+          "Column": 10,
+          "EndLine": 3,
+          "EndColumn": 14,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const foo: Foo;\nconst bar = <Foo>foo;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\ndeclare const foo: Foo;\nconst bar = foo;\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryAssertion",
+          "Line": 3,
+          "Column": 13,
+          "EndLine": 3,
+          "EndColumn": 21,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const prop: string;\n['foo', 'bar'].includes(prop as string);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\ndeclare const prop: string;\n['foo', 'bar'].includes(prop);\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryAssertion",
+          "Line": 3,
+          "Column": 25,
+          "EndLine": 3,
+          "EndColumn": 39,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nasync function mergeWithDefaults(loadModule: () => Promise<Record<string, unknown>>) {\n  const mod = (await loadModule()) as Record<string, unknown>;\n  return { ...mod, extra: true };\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nasync function mergeWithDefaults(loadModule: () => Promise<Record<string, unknown>>) {\n  const mod = (await loadModule());\n  return { ...mod, extra: true };\n}\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryAssertion",
+          "Line": 3,
+          "Column": 15,
+          "EndLine": 3,
+          "EndColumn": 62,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction unwrap(input: string | number): number {\n  return typeof input === 'string' ? parseFloat(input) : (input as number);\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nfunction unwrap(input: string | number): number {\n  return typeof input === 'string' ? parseFloat(input) : (input);\n}\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryAssertion",
+          "Line": 3,
+          "Column": 59,
+          "EndLine": 3,
+          "EndColumn": 74,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare function nonNull(s: string | null);\nlet s: string | null = null;\nnonNull(s!);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\ndeclare function nonNull(s: string | null);\nlet s: string | null = null;\nnonNull(s);\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "contextuallyUnnecessary",
+          "Line": 4,
+          "Column": 9,
+          "EndLine": 4,
+          "EndColumn": 11,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst x: number | null = null;\nconst y: number | null = x!;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nconst x: number | null = null;\nconst y: number | null = x;\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "contextuallyUnnecessary",
+          "Line": 3,
+          "Column": 26,
+          "EndLine": 3,
+          "EndColumn": 28,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst x: number | null = null;\nclass Foo {\n  prop: number | null = x!;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nconst x: number | null = null;\nclass Foo {\n  prop: number | null = x;\n}\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "contextuallyUnnecessary",
+          "Line": 4,
+          "Column": 25,
+          "EndLine": 4,
+          "EndColumn": 27,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare function a(a: string): any;\nconst b = 'asdf';\nclass Mx {\n  @a(b!)\n  private prop = 1;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\ndeclare function a(a: string): any;\nconst b = 'asdf';\nclass Mx {\n  @a(b)\n  private prop = 1;\n}\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryAssertion",
+          "Line": 5,
+          "Column": 6,
+          "EndLine": 5,
+          "EndColumn": 8,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare namespace JSX {\n  interface IntrinsicElements {\n    div: { key?: string | number };\n  }\n}\n\nfunction Test(props: { id?: string | number }) {\n  return <div key={props.id!} />;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\ndeclare namespace JSX {\n  interface IntrinsicElements {\n    div: { key?: string | number };\n  }\n}\n\nfunction Test(props: { id?: string | number }) {\n  return <div key={props.id} />;\n}\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "contextuallyUnnecessary",
+          "Line": 9,
+          "Column": 20,
+          "EndLine": 9,
+          "EndColumn": 29,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": true,
+      "Files": {}
+    },
+    {
+      "Code": "\nlet x: number | undefined;\nlet y: number | undefined;\ny = x!;\ny! = 0;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nlet x: number | undefined;\nlet y: number | undefined;\ny = x!;\ny = 0;\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "contextuallyUnnecessary",
+          "Line": 5,
+          "Column": 1,
+          "EndLine": 5,
+          "EndColumn": 3,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare function foo(arg?: number): number | void;\nconst bar: number | void = foo()!;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\ndeclare function foo(arg?: number): number | void;\nconst bar: number | void = foo();\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "contextuallyUnnecessary",
+          "Line": 3,
+          "Column": 28,
+          "EndLine": 3,
+          "EndColumn": 34,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare function foo(): number;\nconst a = foo()!;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\ndeclare function foo(): number;\nconst a = foo();\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryAssertion",
+          "Line": 3,
+          "Column": 11,
+          "EndLine": 3,
+          "EndColumn": 17,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst b = new Date()!;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nconst b = new Date();\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryAssertion",
+          "Line": 2,
+          "Column": 11,
+          "EndLine": 2,
+          "EndColumn": 22,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst b = (1 + 1)!;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nconst b = (1 + 1);\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryAssertion",
+          "Line": 2,
+          "Column": 11,
+          "EndLine": 2,
+          "EndColumn": 19,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare function foo(): number;\nconst a = foo() as number;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\ndeclare function foo(): number;\nconst a = foo();\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryAssertion",
+          "Line": 3,
+          "Column": 11,
+          "EndLine": 3,
+          "EndColumn": 26,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare function foo(): number;\nconst a = <number>foo();\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\ndeclare function foo(): number;\nconst a = foo();\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryAssertion",
+          "Line": 3,
+          "Column": 11,
+          "EndLine": 3,
+          "EndColumn": 24,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype RT = { log: () => void };\ndeclare function foo(): RT;\n(foo() as RT).log;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\ntype RT = { log: () => void };\ndeclare function foo(): RT;\n(foo()).log;\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryAssertion",
+          "Line": 4,
+          "Column": 2,
+          "EndLine": 4,
+          "EndColumn": 13,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const arr: object[];\nconst item = arr[0]!;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\ndeclare const arr: object[];\nconst item = arr[0];\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryAssertion",
+          "Line": 3,
+          "Column": 14,
+          "EndLine": 3,
+          "EndColumn": 21,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst foo = (  3 + 5  ) as number;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nconst foo = (  3 + 5  );\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryAssertion",
+          "Line": 2,
+          "Column": 13,
+          "EndLine": 2,
+          "EndColumn": 34,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst foo = (  3 + 5  ) /*as*/ as number;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nconst foo = (  3 + 5  ) /*as*/;\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryAssertion",
+          "Line": 2,
+          "Column": 13,
+          "EndLine": 2,
+          "EndColumn": 41,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "// Preserve the comment before as.\nconst foo = (  3 + 5\n  ) /*as*/ as //as\n  (\n    number\n  );\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "// Preserve the comment before as.\nconst foo = (  3 + 5\n  ) /*as*/;\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryAssertion",
+          "Line": 2,
+          "Column": 13,
+          "EndLine": 6,
+          "EndColumn": 4,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst foo = (3 + (5 as number) ) as number;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nconst foo = (3 + (5 as number) );\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryAssertion",
+          "Line": 2,
+          "Column": 13,
+          "EndLine": 2,
+          "EndColumn": 43,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst foo = 3 + 5/*as*/ as number;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nconst foo = 3 + 5/*as*/;\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryAssertion",
+          "Line": 2,
+          "Column": 13,
+          "EndLine": 2,
+          "EndColumn": 34,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst foo = 3 + 5/*a*/ /*b*/ as number;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nconst foo = 3 + 5/*a*/ /*b*/;\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryAssertion",
+          "Line": 2,
+          "Column": 13,
+          "EndLine": 2,
+          "EndColumn": 39,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst foo = <(number)>(3 + 5);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nconst foo = (3 + 5);\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryAssertion",
+          "Line": 2,
+          "Column": 13,
+          "EndLine": 2,
+          "EndColumn": 30,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst foo = < ( number ) >( 3 + 5 );\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nconst foo = ( 3 + 5 );\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryAssertion",
+          "Line": 2,
+          "Column": 13,
+          "EndLine": 2,
+          "EndColumn": 36,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst foo = <number> /* a */ (3 + 5);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nconst foo =  /* a */ (3 + 5);\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryAssertion",
+          "Line": 2,
+          "Column": 13,
+          "EndLine": 2,
+          "EndColumn": 37,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst foo = <number /* a */>(3 + 5);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nconst foo = (3 + 5);\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryAssertion",
+          "Line": 2,
+          "Column": 13,
+          "EndLine": 2,
+          "EndColumn": 36,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction foo(item: string) {}\nfunction bar(items: string[]) {\n  for (let i = 0; i < items.length; i++) {\n    foo(items[i]!);\n  }\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nfunction foo(item: string) {}\nfunction bar(items: string[]) {\n  for (let i = 0; i < items.length; i++) {\n    foo(items[i]);\n  }\n}\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryAssertion",
+          "Line": 5,
+          "Column": 9,
+          "EndLine": 5,
+          "EndColumn": 18,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const foo: {\n  a?: string;\n};\nconst bar = foo.a as string | undefined;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\ndeclare const foo: {\n  a?: string;\n};\nconst bar = foo.a;\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryAssertion",
+          "Line": 5,
+          "Column": 13,
+          "EndLine": 5,
+          "EndColumn": 40,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "./tsconfig.exactOptionalPropertyTypes.json",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const foo: {\n  a?: string | undefined;\n};\nconst bar = foo.a as string | undefined;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\ndeclare const foo: {\n  a?: string | undefined;\n};\nconst bar = foo.a;\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryAssertion",
+          "Line": 5,
+          "Column": 13,
+          "EndLine": 5,
+          "EndColumn": 40,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "./tsconfig.exactOptionalPropertyTypes.json",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nvarDeclarationFromFixture!;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nvarDeclarationFromFixture;\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryAssertion",
+          "Line": 2,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nvar x = 1;\nx!;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nvar x = 1;\nx;\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryAssertion",
+          "Line": 3,
+          "Column": 1,
+          "EndLine": 3,
+          "EndColumn": 3,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nvar x = 1;\n{\n  x!;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nvar x = 1;\n{\n  x;\n}\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryAssertion",
+          "Line": 4,
+          "Column": 3,
+          "EndLine": 4,
+          "EndColumn": 5,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass T {\n  readonly a = 3 as 3;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nclass T {\n  readonly a = 3;\n}\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryAssertion",
+          "Line": 3,
+          "Column": 16,
+          "EndLine": 3,
+          "EndColumn": 22,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype S = 10;\n\nclass T {\n  readonly a = 10 as S;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\ntype S = 10;\n\nclass T {\n  readonly a = 10;\n}\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryAssertion",
+          "Line": 5,
+          "Column": 16,
+          "EndLine": 5,
+          "EndColumn": 23,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass T {\n  readonly a = (3 + 5) as number;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nclass T {\n  readonly a = (3 + 5);\n}\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryAssertion",
+          "Line": 3,
+          "Column": 16,
+          "EndLine": 3,
+          "EndColumn": 33,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst a = '';\nconst b: string | undefined = (a ? undefined : a)!;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nconst a = '';\nconst b: string | undefined = (a ? undefined : a);\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "contextuallyUnnecessary",
+          "Line": 3,
+          "Column": 31,
+          "EndLine": 3,
+          "EndColumn": 51,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nenum T {\n  Value1,\n  Value2,\n}\n\ndeclare const a: T.Value1;\nconst b = a as T.Value1;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nenum T {\n  Value1,\n  Value2,\n}\n\ndeclare const a: T.Value1;\nconst b = a;\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryAssertion",
+          "Line": 8,
+          "Column": 11,
+          "EndLine": 8,
+          "EndColumn": 24,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst foo: unknown = {};\nconst bar: unknown = foo!;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nconst foo: unknown = {};\nconst bar: unknown = foo;\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "contextuallyUnnecessary",
+          "Line": 3,
+          "Column": 22,
+          "EndLine": 3,
+          "EndColumn": 26,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction foo(bar: unknown) {}\nconst baz: unknown = {};\nfoo(baz!);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nfunction foo(bar: unknown) {}\nconst baz: unknown = {};\nfoo(baz);\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "contextuallyUnnecessary",
+          "Line": 4,
+          "Column": 5,
+          "EndLine": 4,
+          "EndColumn": 9,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const foo: string | RegExp;\n\ndeclare function isString(v: unknown): v is string\n\nif (isString(foo)) {\n  <string>foo;\n}\n\t\t\t",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\ndeclare const foo: string | RegExp;\n\ndeclare function isString(v: unknown): v is string\n\nif (isString(foo)) {\n  foo;\n}\n\t\t\t"
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryAssertion",
+          "Line": 7,
+          "Column": 3,
+          "EndLine": 7,
+          "EndColumn": 14,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass Foo extends Promise {}\ndeclare const bar: Promise<Foo>;\n<Promise<Foo>>bar;\n\t\t\t",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nclass Foo extends Promise {}\ndeclare const bar: Promise<Foo>;\nbar;\n\t\t\t"
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryAssertion",
+          "Line": 4,
+          "Column": 1,
+          "EndLine": 4,
+          "EndColumn": 18,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "const a = true as const;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "const a = true;"
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryAssertion",
+          "Line": 1,
+          "Column": 11,
+          "EndLine": 1,
+          "EndColumn": 24,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "checkLiteralConstAssertions": true
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "const a = <const>true;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "const a = true;"
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryAssertion",
+          "Line": 1,
+          "Column": 11,
+          "EndLine": 1,
+          "EndColumn": 22,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "checkLiteralConstAssertions": true
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "const a = 1 as const;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "const a = 1;"
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryAssertion",
+          "Line": 1,
+          "Column": 11,
+          "EndLine": 1,
+          "EndColumn": 21,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "checkLiteralConstAssertions": true
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "const a = <const>1;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "const a = 1;"
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryAssertion",
+          "Line": 1,
+          "Column": 11,
+          "EndLine": 1,
+          "EndColumn": 19,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "checkLiteralConstAssertions": true
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "const a = 1n as const;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "const a = 1n;"
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryAssertion",
+          "Line": 1,
+          "Column": 11,
+          "EndLine": 1,
+          "EndColumn": 22,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "checkLiteralConstAssertions": true
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "const a = <const>1n;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "const a = 1n;"
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryAssertion",
+          "Line": 1,
+          "Column": 11,
+          "EndLine": 1,
+          "EndColumn": 20,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "checkLiteralConstAssertions": true
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "const a = `a` as const;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "const a = `a`;"
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryAssertion",
+          "Line": 1,
+          "Column": 11,
+          "EndLine": 1,
+          "EndColumn": 23,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "checkLiteralConstAssertions": true
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "const a = 'a' as const;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "const a = 'a';"
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryAssertion",
+          "Line": 1,
+          "Column": 11,
+          "EndLine": 1,
+          "EndColumn": 23,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "checkLiteralConstAssertions": true
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "const a = <const>'a';",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "const a = 'a';"
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryAssertion",
+          "Line": 1,
+          "Column": 11,
+          "EndLine": 1,
+          "EndColumn": 21,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "checkLiteralConstAssertions": true
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass T {\n  readonly a = 'a' as const;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nclass T {\n  readonly a = 'a';\n}\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryAssertion",
+          "Line": 3,
+          "Column": 16,
+          "EndLine": 3,
+          "EndColumn": 28,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "checkLiteralConstAssertions": true
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nenum T {\n  Value1,\n  Value2,\n}\n\ndeclare const a: T.Value1;\nconst b = a as const;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nenum T {\n  Value1,\n  Value2,\n}\n\ndeclare const a: T.Value1;\nconst b = a;\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryAssertion",
+          "Line": 8,
+          "Column": 11,
+          "EndLine": 8,
+          "EndColumn": 21,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "checkLiteralConstAssertions": true
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "/** @type {string} */\nconst s = \"foo\";\n\nconst s2 = /** @type {string} */ (s);\n",
+      "Only": false,
+      "Skip": false,
+      "FileName": "repro.js",
+      "Output": [
+        "/** @type {string} */\nconst s = \"foo\";\n\nconst s2 = (s);\n"
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryAssertion",
+          "Line": 4,
+          "Column": 12,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "./tsconfig.checkJs.json",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n((): undefined => {})() as undefined;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n((): undefined => {})();\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryAssertion",
+          "Line": 2,
+          "Column": 1,
+          "EndLine": 2,
+          "EndColumn": 37,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n(() => 1)() as number;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n(() => 1)();\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryAssertion",
+          "Line": 2,
+          "Column": 1,
+          "EndLine": 2,
+          "EndColumn": 22,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface Overloaded {\n  (): void;\n  (value: string): undefined;\n}\n\n((value => {}) as Overloaded)('') as undefined;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\ninterface Overloaded {\n  (): void;\n  (value: string): undefined;\n}\n\n((value => {}) as Overloaded)('');\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryAssertion",
+          "Line": 7,
+          "Column": 1,
+          "EndLine": 7,
+          "EndColumn": 47,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction doThing(a: number) {}\ndoThing(5 as any);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nfunction doThing(a: number) {}\ndoThing(5);\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "contextuallyUnnecessary",
+          "Line": 3,
+          "Column": 9,
+          "EndLine": 3,
+          "EndColumn": 17,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface A {\n  required: string;\n  alsoRequired: number;\n}\nfunction doThing(a: A) {}\ndoThing({ required: 'yes', alsoRequired: 1 } as any);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\ninterface A {\n  required: string;\n  alsoRequired: number;\n}\nfunction doThing(a: A) {}\ndoThing({ required: 'yes', alsoRequired: 1 });\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "contextuallyUnnecessary",
+          "Line": 7,
+          "Column": 9,
+          "EndLine": 7,
+          "EndColumn": 52,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "const x = 5 as any as 5;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "const x = 5;"
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryAssertion",
+          "Line": 1,
+          "Column": 11,
+          "EndLine": 1,
+          "EndColumn": 24,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst v: number = 5;\nconst x = v as unknown as number;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nconst v: number = 5;\nconst x = v;\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryAssertion",
+          "Line": 3,
+          "Column": 11,
+          "EndLine": 3,
+          "EndColumn": 33,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst v: number = 5;\nconst x = v as any as number;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nconst v: number = 5;\nconst x = v;\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryAssertion",
+          "Line": 3,
+          "Column": 11,
+          "EndLine": 3,
+          "EndColumn": 29,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst x = (1 + 1) as any as number;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nconst x = 1 + 1;\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryAssertion",
+          "Line": 2,
+          "Column": 11,
+          "EndLine": 2,
+          "EndColumn": 35,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst x = 2 * ((1 + 1) as any as number);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nconst x = 2 * (1 + 1);\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryAssertion",
+          "Line": 2,
+          "Column": 16,
+          "EndLine": 2,
+          "EndColumn": 40,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst v: number = 5;\nconst x = <number>(<any>v);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nconst v: number = 5;\nconst x = v;\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryAssertion",
+          "Line": 3,
+          "Column": 11,
+          "EndLine": 3,
+          "EndColumn": 27,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst obj = { id: '' };\nconst obj2 = obj as { id: string };\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nconst obj = { id: '' };\nconst obj2 = obj;\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryAssertion",
+          "Line": 3,
+          "Column": 14,
+          "EndLine": 3,
+          "EndColumn": 35,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst obj = { id: '' };\nconst obj2 = obj as any as { id: string };\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nconst obj = { id: '' };\nconst obj2 = obj;\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryAssertion",
+          "Line": 3,
+          "Column": 14,
+          "EndLine": 3,
+          "EndColumn": 42,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst obj = { id: '' };\nconst obj2 = obj as unknown as { id: string };\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nconst obj = { id: '' };\nconst obj2 = obj;\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryAssertion",
+          "Line": 3,
+          "Column": 14,
+          "EndLine": 3,
+          "EndColumn": 46,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst array = ['a', 'b'];\nconst array2 = array as any as string[];\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nconst array = ['a', 'b'];\nconst array2 = array;\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryAssertion",
+          "Line": 3,
+          "Column": 16,
+          "EndLine": 3,
+          "EndColumn": 40,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst array = ['a', 'b'];\nconst array2 = array as unknown as string[];\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nconst array = ['a', 'b'];\nconst array2 = array;\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryAssertion",
+          "Line": 3,
+          "Column": 16,
+          "EndLine": 3,
+          "EndColumn": 44,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype A = 'a';\ntype B = 'b';\ntype AorB = A | B;\nfunction fn(aorb: AorB) {}\nconst a: A = 'a';\nfn(a as AorB);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\ntype A = 'a';\ntype B = 'b';\ntype AorB = A | B;\nfunction fn(aorb: AorB) {}\nconst a: A = 'a';\nfn(a);\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "contextuallyUnnecessary",
+          "Line": 7,
+          "Column": 4,
+          "EndLine": 7,
+          "EndColumn": 13,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface Props {\n  a: number;\n}\nconst x = { a: 1 } as unknown as Props;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\ninterface Props {\n  a: number;\n}\nconst x = { a: 1 };\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryAssertion",
+          "Line": 5,
+          "Column": 11,
+          "EndLine": 5,
+          "EndColumn": 39,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface Props {\n  a: number;\n}\nconst x = { a: 1 } as Props;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\ninterface Props {\n  a: number;\n}\nconst x = { a: 1 };\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryAssertion",
+          "Line": 5,
+          "Column": 11,
+          "EndLine": 5,
+          "EndColumn": 28,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface Props {\n  a: number;\n}\nconst fn = (): Props => ({ a: 1 }) as unknown as Props;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\ninterface Props {\n  a: number;\n}\nconst fn = (): Props => ({ a: 1 });\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryAssertion",
+          "Line": 5,
+          "Column": 25,
+          "EndLine": 5,
+          "EndColumn": 55,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare function fn(param: number): void;\nfn(42 as unknown as number);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\ndeclare function fn(param: number): void;\nfn(42);\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "contextuallyUnnecessary",
+          "Line": 3,
+          "Column": 4,
+          "EndLine": 3,
+          "EndColumn": 27,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare function fn(param: number): void;\nfn(42 as any as number);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\ndeclare function fn(param: number): void;\nfn(42);\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "contextuallyUnnecessary",
+          "Line": 3,
+          "Column": 4,
+          "EndLine": 3,
+          "EndColumn": 23,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare function fn(params: { param: number });\nfn({ param: 42 as number });\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\ndeclare function fn(params: { param: number });\nfn({ param: 42 });\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "contextuallyUnnecessary",
+          "Line": 3,
+          "Column": 13,
+          "EndLine": 3,
+          "EndColumn": 25,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare function fn(params: { param: number });\nfn({ param: 42 as any });\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\ndeclare function fn(params: { param: number });\nfn({ param: 42 });\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "contextuallyUnnecessary",
+          "Line": 3,
+          "Column": 13,
+          "EndLine": 3,
+          "EndColumn": 22,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype StringOrNumber = string | number;\ndeclare function fn(param: StringOrNumber);\nfn(42 as any as StringOrNumber);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\ntype StringOrNumber = string | number;\ndeclare function fn(param: StringOrNumber);\nfn(42);\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "contextuallyUnnecessary",
+          "Line": 4,
+          "Column": 4,
+          "EndLine": 4,
+          "EndColumn": 31,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype NumbersRecord = { [key: string]: number };\ndeclare function fn(params: { data: NumbersRecord });\nconst data = { a: 1 };\nfn({ data: data as NumbersRecord });\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\ntype NumbersRecord = { [key: string]: number };\ndeclare function fn(params: { data: NumbersRecord });\nconst data = { a: 1 };\nfn({ data: data });\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "contextuallyUnnecessary",
+          "Line": 5,
+          "Column": 12,
+          "EndLine": 5,
+          "EndColumn": 33,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype NumbersRecord = { [key: string]: number };\ndeclare function fn(params: { data: NumbersRecord });\nfn({\n  data: {\n    a: 1,\n  } as NumbersRecord,\n});\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\ntype NumbersRecord = { [key: string]: number };\ndeclare function fn(params: { data: NumbersRecord });\nfn({\n  data: {\n    a: 1,\n  },\n});\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "contextuallyUnnecessary",
+          "Line": 5,
+          "Column": 9,
+          "EndLine": 7,
+          "EndColumn": 21,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype Json = string | number | boolean | null | { [key: string]: Json } | Json[];\ntype Tables<T extends 'my_table'> = { my_table: { my_column: Json } }[T];\ndeclare const updatedColumn: Json;\nconst result = updatedColumn as unknown as Tables<'my_table'>['my_column'];\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\ntype Json = string | number | boolean | null | { [key: string]: Json } | Json[];\ntype Tables<T extends 'my_table'> = { my_table: { my_column: Json } }[T];\ndeclare const updatedColumn: Json;\nconst result = updatedColumn;\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryAssertion",
+          "Line": 5,
+          "Column": 16,
+          "EndLine": 5,
+          "EndColumn": 75,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface T {\n  a: string;\n}\ndeclare function fn<U extends T>(args: Pick<U, 'a'>): void;\nfn<T>({ a: '' as string });\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\ninterface T {\n  a: string;\n}\ndeclare function fn<U extends T>(args: Pick<U, 'a'>): void;\nfn<T>({ a: '' });\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "contextuallyUnnecessary",
+          "Line": 6,
+          "Column": 12,
+          "EndLine": 6,
+          "EndColumn": 24,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare function update<T extends string>(value: T): void;\nupdate('hi' as unknown as string);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\ndeclare function update<T extends string>(value: T): void;\nupdate('hi');\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "contextuallyUnnecessary",
+          "Line": 3,
+          "Column": 8,
+          "EndLine": 3,
+          "EndColumn": 33,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare function update<T extends string>(value: T): void;\nupdate('hi' as string);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\ndeclare function update<T extends string>(value: T): void;\nupdate('hi');\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "contextuallyUnnecessary",
+          "Line": 3,
+          "Column": 8,
+          "EndLine": 3,
+          "EndColumn": 22,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare function fn(x: string[]): void;\nfn(['hello'] as any);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\ndeclare function fn(x: string[]): void;\nfn(['hello']);\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "contextuallyUnnecessary",
+          "Line": 3,
+          "Column": 4,
+          "EndLine": 3,
+          "EndColumn": 20,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype ChatMessage = { message: string };\ntype Json = string | { [key: string]: Json };\ndeclare function update(values: { chat: Json[] }): void;\ndeclare const chat: ChatMessage[];\nupdate({ chat: chat as Json[] });\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\ntype ChatMessage = { message: string };\ntype Json = string | { [key: string]: Json };\ndeclare function update(values: { chat: Json[] }): void;\ndeclare const chat: ChatMessage[];\nupdate({ chat: chat });\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "contextuallyUnnecessary",
+          "Line": 6,
+          "Column": 16,
+          "EndLine": 6,
+          "EndColumn": 30,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype ChatMessage = { message: string };\ntype Json = string | { [key: string]: Json };\ndeclare function update<Row extends { chat: Json[] }>(values: Row): void;\ndeclare const chat: ChatMessage[];\nupdate({ chat: chat as Json[] });\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\ntype ChatMessage = { message: string };\ntype Json = string | { [key: string]: Json };\ndeclare function update<Row extends { chat: Json[] }>(values: Row): void;\ndeclare const chat: ChatMessage[];\nupdate({ chat: chat });\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "contextuallyUnnecessary",
+          "Line": 6,
+          "Column": 16,
+          "EndLine": 6,
+          "EndColumn": 30,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface Node {\n  parent: Node;\n}\ndeclare function fn<T extends Node>(node: T): T;\nfunction fn2<T extends Node>(node: T): void {\n  fn(node as NonNullable<T>);\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\ninterface Node {\n  parent: Node;\n}\ndeclare function fn<T extends Node>(node: T): T;\nfunction fn2<T extends Node>(node: T): void {\n  fn(node);\n}\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryAssertion",
+          "Line": 7,
+          "Column": 6,
+          "EndLine": 7,
+          "EndColumn": 28,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface A {\n  a: string;\n}\ninterface B extends A {\n  b: string;\n}\ndeclare function fn(a: A): A;\ndeclare function fn(a: A): A | undefined;\ndeclare const a: A;\nfn(a as B);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\ninterface A {\n  a: string;\n}\ninterface B extends A {\n  b: string;\n}\ndeclare function fn(a: A): A;\ndeclare function fn(a: A): A | undefined;\ndeclare const a: A;\nfn(a);\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "contextuallyUnnecessary",
+          "Line": 11,
+          "Column": 4,
+          "EndLine": 11,
+          "EndColumn": 10,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const a: string[];\ndeclare const b: readonly string[];\nconst fileNames: string[] = a.concat(b as string[]);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\ndeclare const a: string[];\ndeclare const b: readonly string[];\nconst fileNames: string[] = a.concat(b);\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "contextuallyUnnecessary",
+          "Line": 4,
+          "Column": 38,
+          "EndLine": 4,
+          "EndColumn": 51,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare function fn(text: any): void;\ndeclare const value: string | number;\nfn(value as number);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\ndeclare function fn(text: any): void;\ndeclare const value: string | number;\nfn(value);\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "contextuallyUnnecessary",
+          "Line": 4,
+          "Column": 4,
+          "EndLine": 4,
+          "EndColumn": 19,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface A {\n  type: 'a';\n  a: string;\n}\ninterface B {\n  type: 'b';\n}\ndeclare const a: '1' | '2';\nconst schema: A | B = {\n  type: 'a',\n  a: a as string,\n};\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\ninterface A {\n  type: 'a';\n  a: string;\n}\ninterface B {\n  type: 'b';\n}\ndeclare const a: '1' | '2';\nconst schema: A | B = {\n  type: 'a',\n  a: a,\n};\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "contextuallyUnnecessary",
+          "Line": 12,
+          "Column": 6,
+          "EndLine": 12,
+          "EndColumn": 17,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface A {\n  type: 'a';\n  a?: string;\n}\ninterface B {\n  type: 'b';\n}\ndeclare const a: '1' | '2';\nconst schema: A | B = {\n  type: 'a',\n  a: a as string,\n};\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\ninterface A {\n  type: 'a';\n  a?: string;\n}\ninterface B {\n  type: 'b';\n}\ndeclare const a: '1' | '2';\nconst schema: A | B = {\n  type: 'a',\n  a: a,\n};\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "contextuallyUnnecessary",
+          "Line": 12,
+          "Column": 6,
+          "EndLine": 12,
+          "EndColumn": 17,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare function fn1<T>(fn: () => void): void;\ndeclare function fn2(text: string): void;\nfn1(() => {\n  fn2('hi' as any);\n});\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\ndeclare function fn1<T>(fn: () => void): void;\ndeclare function fn2(text: string): void;\nfn1(() => {\n  fn2('hi');\n});\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "contextuallyUnnecessary",
+          "Line": 5,
+          "Column": 7,
+          "EndLine": 5,
+          "EndColumn": 18,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype Empty<T> = {};\ndeclare function fn(value: Empty<string>): void;\nfn({} as Empty<number>);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\ntype Empty<T> = {};\ndeclare function fn(value: Empty<string>): void;\nfn({});\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "contextuallyUnnecessary",
+          "Line": 4,
+          "Column": 4,
+          "EndLine": 4,
+          "EndColumn": 23,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype Empty<T> = {};\ntype Box<T> = { value: T };\ndeclare const box: Box<Empty<number>>;\ndeclare function identity<T>(value: T): T;\nconst result: { item: Box<Empty<string>> } = identity({\n  item: box as Box<Empty<boolean>>,\n});\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\ntype Empty<T> = {};\ntype Box<T> = { value: T };\ndeclare const box: Box<Empty<number>>;\ndeclare function identity<T>(value: T): T;\nconst result: { item: Box<Empty<string>> } = identity({\n  item: box,\n});\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "contextuallyUnnecessary",
+          "Line": 7,
+          "Column": 9,
+          "EndLine": 7,
+          "EndColumn": 35,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const value: (text: string) => string;\nconst callback: <T extends string>(value: T) => void =\n  value as (text: string) => void;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\ndeclare const value: (text: string) => string;\nconst callback: <T extends string>(value: T) => void =\n  value;"
+      ],
+      "Errors": [
+        {
+          "MessageId": "contextuallyUnnecessary",
+          "Line": 4,
+          "Column": 3,
+          "EndLine": 4,
+          "EndColumn": 34,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction f<T extends string>(value: string) {\n  const target: string = value as T;\n}",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nfunction f<T extends string>(value: string) {\n  const target: string = value;\n}"
+      ],
+      "Errors": [
+        {
+          "MessageId": "contextuallyUnnecessary",
+          "Line": 3,
+          "Column": 26,
+          "EndLine": 3,
+          "EndColumn": 36,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare function fn(value: {}): void;\nfn({} as string extends string ? {} : never);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\ndeclare function fn(value: {}): void;\nfn({});\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "contextuallyUnnecessary",
+          "Line": 3,
+          "Column": 4,
+          "EndLine": 3,
+          "EndColumn": 44,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare function fn(value: void): void;\nfn((() => {})() as undefined);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\ndeclare function fn(value: void): void;\nfn((() => {})());\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "contextuallyUnnecessary",
+          "Line": 3,
+          "Column": 4,
+          "EndLine": 3,
+          "EndColumn": 29,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare function fn(value: unknown): void;\nfn((() => {})() as undefined);",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\ndeclare function fn(value: unknown): void;\nfn((() => {})());"
+      ],
+      "Errors": [
+        {
+          "MessageId": "contextuallyUnnecessary",
+          "Line": 3,
+          "Column": 4,
+          "EndLine": 3,
+          "EndColumn": 29,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "const x: string | null = 'a' as string | null;\nvoid x;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "const x: string | null = 'a';\nvoid x;"
+      ],
+      "Errors": [
+        {
+          "MessageId": "contextuallyUnnecessary",
+          "Line": 1,
+          "Column": 26,
+          "EndLine": 1,
+          "EndColumn": 46,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare function consume(value: unknown): void;\nconsume(42 as unknown);\nconst value: unknown = 42 as unknown;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\ndeclare function consume(value: unknown): void;\nconsume(42);\nconst value: unknown = 42;"
+      ],
+      "Errors": [
+        {
+          "MessageId": "contextuallyUnnecessary",
+          "Line": 3,
+          "Column": 9,
+          "EndLine": 3,
+          "EndColumn": 22,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "contextuallyUnnecessary",
+          "Line": 4,
+          "Column": 24,
+          "EndLine": 4,
+          "EndColumn": 37,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "declare function f<T>(xs: string[], tag: T): void;\nf(['x' as string], 1);",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "declare function f<T>(xs: string[], tag: T): void;\nf(['x'], 1);"
+      ],
+      "Errors": [
+        {
+          "MessageId": "contextuallyUnnecessary",
+          "Line": 2,
+          "Column": 4,
+          "EndLine": 2,
+          "EndColumn": 17,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "type StringsWithMeta<T> = string[] & { meta?: T };\ndeclare function f<T>(xs: StringsWithMeta<T>, tag: T): void;\nf(['x' as string], 1);",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "type StringsWithMeta<T> = string[] & { meta?: T };\ndeclare function f<T>(xs: StringsWithMeta<T>, tag: T): void;\nf(['x'], 1);"
+      ],
+      "Errors": [
+        {
+          "MessageId": "contextuallyUnnecessary",
+          "Line": 3,
+          "Column": 4,
+          "EndLine": 3,
+          "EndColumn": 17,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare function f(xs: string[]): void;\ndeclare function f<T>(value: T): void;\nf(['x' as string]);",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\ndeclare function f(xs: string[]): void;\ndeclare function f<T>(value: T): void;\nf(['x']);"
+      ],
+      "Errors": [
+        {
+          "MessageId": "contextuallyUnnecessary",
+          "Line": 4,
+          "Column": 4,
+          "EndLine": 4,
+          "EndColumn": 17,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare function f<T>(pair: readonly [T, string], tag: T): void;\nf([1, 'x' as string], 1);",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\ndeclare function f<T>(pair: readonly [T, string], tag: T): void;\nf([1, 'x'], 1);"
+      ],
+      "Errors": [
+        {
+          "MessageId": "contextuallyUnnecessary",
+          "Line": 3,
+          "Column": 7,
+          "EndLine": 3,
+          "EndColumn": 20,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype AnyRecord = Record<any, any>;\ndeclare const value: AnyRecord;\n(value as AnyRecord)['property'] = 1;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\ntype AnyRecord = Record<any, any>;\ndeclare const value: AnyRecord;\n(value)['property'] = 1;"
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryAssertion",
+          "Line": 4,
+          "Column": 2,
+          "EndLine": 4,
+          "EndColumn": 20,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction identity<T>(value: T): T {\n  return value as unknown as T;\n}",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nfunction identity<T>(value: T): T {\n  return value;\n}"
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryAssertion",
+          "Line": 3,
+          "Column": 10,
+          "EndLine": 3,
+          "EndColumn": 31,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction upcast<T, U extends T>(value: U): T {\n  return value as unknown as T;\n}",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nfunction upcast<T, U extends T>(value: U): T {\n  return value;\n}"
+      ],
+      "Errors": [
+        {
+          "MessageId": "contextuallyUnnecessary",
+          "Line": 3,
+          "Column": 10,
+          "EndLine": 3,
+          "EndColumn": 31,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction upcast<T, U extends T & { id: string }>(value: U): T {\n  return value as unknown as T;\n}",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nfunction upcast<T, U extends T & { id: string }>(value: U): T {\n  return value;\n}"
+      ],
+      "Errors": [
+        {
+          "MessageId": "contextuallyUnnecessary",
+          "Line": 3,
+          "Column": 10,
+          "EndLine": 3,
+          "EndColumn": 31,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst alreadyNumber: number = 1;\nexport const genuineNoOp = alreadyNumber as number;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nconst alreadyNumber: number = 1;\nexport const genuineNoOp = alreadyNumber;"
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryAssertion",
+          "Line": 3,
+          "Column": 28,
+          "EndLine": 3,
+          "EndColumn": 51,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction unchanged(value: string) {\n  value = value as string;\n  return value.length;\n}",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nfunction unchanged(value: string) {\n  value = value;\n  return value.length;\n}"
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryAssertion",
+          "Line": 3,
+          "Column": 11,
+          "EndLine": 3,
+          "EndColumn": 26,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nenum NumericEnum { a = 1, b = 2 }\nconst value = NumericEnum.a;\nexport const sameMember = value as NumericEnum.a;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nenum NumericEnum { a = 1, b = 2 }\nconst value = NumericEnum.a;\nexport const sameMember = value;"
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryAssertion",
+          "Line": 4,
+          "Column": 27,
+          "EndLine": 4,
+          "EndColumn": 49,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nenum NumericEnum { a = 1, b = 2 }\ndeclare const value: NumericEnum | undefined;\nexport const sameEnum = value as NumericEnum | undefined;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nenum NumericEnum { a = 1, b = 2 }\ndeclare const value: NumericEnum | undefined;\nexport const sameEnum = value;"
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryAssertion",
+          "Line": 4,
+          "Column": 25,
+          "EndLine": 4,
+          "EndColumn": 57,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "let value: number;\nvalue = 1 as number;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "let value: number;\nvalue = 1;"
+      ],
+      "Errors": [
+        {
+          "MessageId": "contextuallyUnnecessary",
+          "Line": 2,
+          "Column": 9,
+          "EndLine": 2,
+          "EndColumn": 20,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "let value: string | undefined;\nvalue = 'x' as string;\nconsole.log(value.length);",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "let value: string | undefined;\nvalue = 'x';\nconsole.log(value.length);"
+      ],
+      "Errors": [
+        {
+          "MessageId": "contextuallyUnnecessary",
+          "Line": 2,
+          "Column": 9,
+          "EndLine": 2,
+          "EndColumn": 22,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "let value: unknown;\nvalue = 1 as number;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "let value: unknown;\nvalue = 1;"
+      ],
+      "Errors": [
+        {
+          "MessageId": "contextuallyUnnecessary",
+          "Line": 2,
+          "Column": 9,
+          "EndLine": 2,
+          "EndColumn": 20,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "let value: string | undefined;\n[value] = ['x' as string];",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "let value: string | undefined;\n[value] = ['x'];"
+      ],
+      "Errors": [
+        {
+          "MessageId": "contextuallyUnnecessary",
+          "Line": 2,
+          "Column": 12,
+          "EndLine": 2,
+          "EndColumn": 25,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "let value: string | undefined;\n({ value } = { value: 'x' as string });",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "let value: string | undefined;\n({ value } = { value: 'x' });"
+      ],
+      "Errors": [
+        {
+          "MessageId": "contextuallyUnnecessary",
+          "Line": 2,
+          "Column": 23,
+          "EndLine": 2,
+          "EndColumn": 36,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "function narrow(value: string | undefined) {\n  value = (value as string) || \"\";\n  return value.length;\n}",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "function narrow(value: string | undefined) {\n  value = (value) || \"\";\n  return value.length;\n}"
+      ],
+      "Errors": [
+        {
+          "MessageId": "contextuallyUnnecessary",
+          "Line": 2,
+          "Column": 12,
+          "EndLine": 2,
+          "EndColumn": 27,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "function narrow(value: string | undefined) {\n  value = (value as string) ?? \"\";\n  return value.length;\n}",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "function narrow(value: string | undefined) {\n  value = (value) ?? \"\";\n  return value.length;\n}"
+      ],
+      "Errors": [
+        {
+          "MessageId": "contextuallyUnnecessary",
+          "Line": 2,
+          "Column": 12,
+          "EndLine": 2,
+          "EndColumn": 27,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "function narrow(value: string | undefined, condition: boolean) {\n  value = condition ? value as string : undefined;\n}",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "function narrow(value: string | undefined, condition: boolean) {\n  value = condition ? value : undefined;\n}"
+      ],
+      "Errors": [
+        {
+          "MessageId": "contextuallyUnnecessary",
+          "Line": 2,
+          "Column": 23,
+          "EndLine": 2,
+          "EndColumn": 38,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "function narrow(value: string | undefined, condition: boolean) {\n  value = condition ? undefined : value as string;\n}",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "function narrow(value: string | undefined, condition: boolean) {\n  value = condition ? undefined : value;\n}"
+      ],
+      "Errors": [
+        {
+          "MessageId": "contextuallyUnnecessary",
+          "Line": 2,
+          "Column": 35,
+          "EndLine": 2,
+          "EndColumn": 50,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "let value: string | undefined;\n({ value } = { ...{ value: 'x' as string } });",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "let value: string | undefined;\n({ value } = { ...{ value: 'x' } });"
+      ],
+      "Errors": [
+        {
+          "MessageId": "contextuallyUnnecessary",
+          "Line": 2,
+          "Column": 28,
+          "EndLine": 2,
+          "EndColumn": 41,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "function narrow(value: string | undefined) {\n  ({ value } = { ...{ value: value as string }, value: '' });\n  return value.length;\n}",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "function narrow(value: string | undefined) {\n  ({ value } = { ...{ value: value }, value: '' });\n  return value.length;\n}"
+      ],
+      "Errors": [
+        {
+          "MessageId": "contextuallyUnnecessary",
+          "Line": 2,
+          "Column": 30,
+          "EndLine": 2,
+          "EndColumn": 45,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "function narrow(value: string | undefined, condition: boolean) {\n  ({ value } = condition ? { value: value as string } : { value: undefined });\n}",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "function narrow(value: string | undefined, condition: boolean) {\n  ({ value } = condition ? { value: value } : { value: undefined });\n}"
+      ],
+      "Errors": [
+        {
+          "MessageId": "contextuallyUnnecessary",
+          "Line": 2,
+          "Column": 37,
+          "EndLine": 2,
+          "EndColumn": 52,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "function narrow(value: string | undefined, condition: boolean) {\n  [value] = condition ? [value as string] : [undefined];\n}",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "function narrow(value: string | undefined, condition: boolean) {\n  [value] = condition ? [value] : [undefined];\n}"
+      ],
+      "Errors": [
+        {
+          "MessageId": "contextuallyUnnecessary",
+          "Line": 2,
+          "Column": 26,
+          "EndLine": 2,
+          "EndColumn": 41,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "function narrow(value: string | undefined) {\n  ({ value = '' } = { value: value as string });\n  return value.length;\n}",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "function narrow(value: string | undefined) {\n  ({ value = '' } = { value: value });\n  return value.length;\n}"
+      ],
+      "Errors": [
+        {
+          "MessageId": "contextuallyUnnecessary",
+          "Line": 2,
+          "Column": 30,
+          "EndLine": 2,
+          "EndColumn": 45,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "function narrow(value: string | undefined) {\n  ({ value } = { ...{ value: value as string }, ...{ value: '' } });\n  return value.length;\n}",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "function narrow(value: string | undefined) {\n  ({ value } = { ...{ value: value }, ...{ value: '' } });\n  return value.length;\n}"
+      ],
+      "Errors": [
+        {
+          "MessageId": "contextuallyUnnecessary",
+          "Line": 2,
+          "Column": 30,
+          "EndLine": 2,
+          "EndColumn": 45,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "function narrow(value: string | undefined, other: string | undefined) {\n  value = other && (value as string);\n}",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "function narrow(value: string | undefined, other: string | undefined) {\n  value = other && (value);\n}"
+      ],
+      "Errors": [
+        {
+          "MessageId": "contextuallyUnnecessary",
+          "Line": 2,
+          "Column": 21,
+          "EndLine": 2,
+          "EndColumn": 36,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    }
+  ]
+}

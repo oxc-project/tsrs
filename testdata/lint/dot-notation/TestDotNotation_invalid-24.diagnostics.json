@@ -1,0 +1,31 @@
+[
+  {
+    "message": {
+      "id": "useDot",
+      "description": "[\"extraKey\"] is better written in dot notation."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 138,
+      "end": 148
+    },
+    "fixes": [
+      {
+        "text": ".",
+        "range": {
+          "pos": 137,
+          "end": 137
+        }
+      },
+      {
+        "text": "extraKey",
+        "range": {
+          "end": 149,
+          "pos": 137
+        }
+      }
+    ],
+    "kind": 0,
+    "rule": "dot-notation"
+  }
+]

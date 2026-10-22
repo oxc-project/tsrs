@@ -1,0 +1,24 @@
+[
+  {
+    "kind": 0,
+    "range": {
+      "pos": 51,
+      "end": 72
+    },
+    "message": {
+      "id": "unnecessaryAssertion",
+      "description": "This assertion is unnecessary since it does not change the type of the expression."
+    },
+    "file_path": "repro.js",
+    "rule": "no-unnecessary-type-assertion",
+    "fixes": [
+      {
+        "text": "",
+        "range": {
+          "pos": 51,
+          "end": 73
+        }
+      }
+    ]
+  }
+]

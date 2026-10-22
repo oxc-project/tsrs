@@ -1,0 +1,48 @@
+[
+  {
+    "message": {
+      "id": "sole",
+      "description": "Type parameter T is used only once in the class signature."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "end": 47,
+      "pos": 22
+    },
+    "suggestions": [
+      {
+        "message": {
+          "id": "replaceUsagesWithConstraint",
+          "description": "Replace all usages of type parameter with its constraint."
+        },
+        "fixes": [
+          {
+            "text": "string | number",
+            "range": {
+              "pos": 70,
+              "end": 71
+            }
+          },
+          {
+            "text": "",
+            "range": {
+              "pos": 21,
+              "end": 48
+            }
+          }
+        ]
+      }
+    ],
+    "labeled_ranges": [
+      {
+        "label": "This is the only usage of type parameter T in the signature.",
+        "range": {
+          "pos": 70,
+          "end": 71
+        }
+      }
+    ],
+    "kind": 0,
+    "rule": "no-unnecessary-type-parameters"
+  }
+]

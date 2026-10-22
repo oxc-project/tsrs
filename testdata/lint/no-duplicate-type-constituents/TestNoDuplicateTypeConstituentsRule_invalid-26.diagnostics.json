@@ -1,0 +1,78 @@
+[
+  {
+    "labeled_ranges": [
+      {
+        "label": "Type '(A | B)' is first declared here.",
+        "range": {
+          "pos": 66,
+          "end": 73
+        }
+      }
+    ],
+    "kind": 0,
+    "rule": "no-duplicate-type-constituents",
+    "message": {
+      "id": "duplicate",
+      "description": "Union type constituent is duplicated with  (A | B)."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 76,
+      "end": 83
+    },
+    "fixes": [
+      {
+        "text": "",
+        "range": {
+          "end": 83,
+          "pos": 76
+        }
+      },
+      {
+        "text": "",
+        "range": {
+          "pos": 74,
+          "end": 75
+        }
+      }
+    ]
+  },
+  {
+    "rule": "no-duplicate-type-constituents",
+    "message": {
+      "id": "duplicate",
+      "description": "Union type constituent is duplicated with  (A | B)."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "end": 115,
+      "pos": 108
+    },
+    "fixes": [
+      {
+        "text": "",
+        "range": {
+          "pos": 108,
+          "end": 115
+        }
+      },
+      {
+        "text": "",
+        "range": {
+          "pos": 106,
+          "end": 107
+        }
+      }
+    ],
+    "labeled_ranges": [
+      {
+        "label": "Type '(A | B)' is first declared here.",
+        "range": {
+          "pos": 66,
+          "end": 73
+        }
+      }
+    ],
+    "kind": 0
+  }
+]

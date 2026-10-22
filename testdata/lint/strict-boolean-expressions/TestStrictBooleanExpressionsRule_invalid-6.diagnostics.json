@@ -1,0 +1,41 @@
+[
+  {
+    "file_path": "file.ts",
+    "range": {
+      "pos": 53,
+      "end": 55
+    },
+    "kind": 0,
+    "rule": "strict-boolean-expressions",
+    "message": {
+      "id": "conditionErrorString",
+      "description": "Unexpected string value in conditional. A string can be falsy (empty string) or truthy."
+    }
+  },
+  {
+    "range": {
+      "pos": 59,
+      "end": 61
+    },
+    "kind": 0,
+    "rule": "strict-boolean-expressions",
+    "message": {
+      "id": "conditionErrorObject",
+      "description": "Unexpected object value in conditional. An object is always truthy."
+    },
+    "file_path": "file.ts"
+  },
+  {
+    "file_path": "file.ts",
+    "range": {
+      "pos": 74,
+      "end": 80
+    },
+    "kind": 0,
+    "rule": "strict-boolean-expressions",
+    "message": {
+      "id": "conditionErrorNullish",
+      "description": "Unexpected nullish value in conditional. The expression is always falsy."
+    }
+  }
+]

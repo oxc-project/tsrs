@@ -1,0 +1,16 @@
+[
+  {
+    "range": {
+      "end": 88,
+      "pos": 87
+    },
+    "kind": 0,
+    "rule": "no-unnecessary-condition",
+    "message": {
+      "id": "typeGuardAlreadyIsType",
+      "description": "Type predicate is unnecessary as the parameter type already satisfies the predicate.",
+      "help": "Type `string` already satisfies predicate type `string`. Remove the redundant type check."
+    },
+    "file_path": "file.ts"
+  }
+]

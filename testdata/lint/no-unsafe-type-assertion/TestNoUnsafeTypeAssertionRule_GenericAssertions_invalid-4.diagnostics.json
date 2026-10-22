@@ -1,0 +1,16 @@
+[
+  {
+    "kind": 0,
+    "range": {
+      "pos": 48,
+      "end": 54
+    },
+    "message": {
+      "id": "unsafeToUnconstrainedTypeAssertion",
+      "description": "Unsafe type assertion: 'T' could be instantiated with an arbitrary type which could be unrelated to the original type.",
+      "help": "The original expression has type `string`, and the assertion changes it to `T`. Use a type guard to narrow the value before asserting a more specific type."
+    },
+    "file_path": "file.ts",
+    "rule": "no-unsafe-type-assertion"
+  }
+]

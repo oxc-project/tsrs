@@ -1,0 +1,15 @@
+[
+  {
+    "range": {
+      "pos": 36,
+      "end": 50
+    },
+    "kind": 0,
+    "rule": "only-throw-error",
+    "message": {
+      "id": "undef",
+      "description": "Do not throw undefined."
+    },
+    "file_path": "file.ts"
+  }
+]

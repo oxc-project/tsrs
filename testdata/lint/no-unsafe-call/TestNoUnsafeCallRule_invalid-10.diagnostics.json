@@ -1,0 +1,15 @@
+[
+  {
+    "rule": "no-unsafe-call",
+    "message": {
+      "id": "unsafeTemplateTag",
+      "description": "Unsafe use of a(n) `any` typed template tag."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 35,
+      "end": 40
+    },
+    "kind": 0
+  }
+]

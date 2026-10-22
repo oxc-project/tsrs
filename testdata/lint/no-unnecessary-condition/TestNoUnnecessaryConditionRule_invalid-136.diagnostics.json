@@ -1,0 +1,16 @@
+[
+  {
+    "message": {
+      "id": "alwaysTruthy",
+      "description": "Unnecessary conditional, value is always truthy.",
+      "help": "The checked value has type `(123 | true) & { __brand: string; }`."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 93,
+      "end": 95
+    },
+    "kind": 0,
+    "rule": "no-unnecessary-condition"
+  }
+]

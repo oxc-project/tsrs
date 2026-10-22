@@ -1,0 +1,31 @@
+[
+  {
+    "message": {
+      "id": "useDot",
+      "description": "[\"SHOUT_CASE\"] is better written in dot notation."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 6,
+      "end": 18
+    },
+    "fixes": [
+      {
+        "text": ".",
+        "range": {
+          "end": 5,
+          "pos": 5
+        }
+      },
+      {
+        "text": "SHOUT_CASE",
+        "range": {
+          "pos": 5,
+          "end": 19
+        }
+      }
+    ],
+    "kind": 0,
+    "rule": "dot-notation"
+  }
+]

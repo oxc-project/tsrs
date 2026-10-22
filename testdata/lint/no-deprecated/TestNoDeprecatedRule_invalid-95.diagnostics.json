@@ -1,0 +1,15 @@
+[
+  {
+    "kind": 0,
+    "rule": "no-deprecated",
+    "message": {
+      "id": "deprecated",
+      "description": "`deprecatedFunctionWithOverloads` is deprecated."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 81,
+      "end": 112
+    }
+  }
+]

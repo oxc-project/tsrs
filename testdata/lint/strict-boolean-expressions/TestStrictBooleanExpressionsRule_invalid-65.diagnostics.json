@@ -1,0 +1,16 @@
+[
+  {
+    "range": {
+      "end": 172,
+      "pos": 165
+    },
+    "kind": 0,
+    "rule": "strict-boolean-expressions",
+    "message": {
+      "id": "conditionErrorNullableEnum",
+      "description": "Unexpected nullable enum value in conditional.",
+      "help": "Handle the nullish and falsy enum cases explicitly."
+    },
+    "file_path": "file.ts"
+  }
+]

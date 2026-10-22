@@ -1,0 +1,40 @@
+[
+  {
+    "kind": 0,
+    "rule": "no-duplicate-type-constituents",
+    "message": {
+      "id": "duplicate",
+      "description": "Union type constituent is duplicated with  Set<string>."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 23,
+      "end": 34
+    },
+    "fixes": [
+      {
+        "text": "",
+        "range": {
+          "pos": 23,
+          "end": 34
+        }
+      },
+      {
+        "text": "",
+        "range": {
+          "pos": 21,
+          "end": 22
+        }
+      }
+    ],
+    "labeled_ranges": [
+      {
+        "label": "Type 'Set<string>' is first declared here.",
+        "range": {
+          "end": 20,
+          "pos": 9
+        }
+      }
+    ]
+  }
+]

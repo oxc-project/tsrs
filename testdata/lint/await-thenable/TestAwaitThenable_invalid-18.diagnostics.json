@@ -1,0 +1,25 @@
+[
+  {
+    "message": {
+      "id": "invalidPromiseAggregatorInput",
+      "description": "Unexpected iterable of non-Promise (non-\"Thenable\") values passed to promise aggregator.",
+      "help": "Pass an iterable of Promise-like values, or wrap each synchronous value in `Promise.resolve(...)` before calling the aggregator."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 45,
+      "end": 46
+    },
+    "labeled_ranges": [
+      {
+        "label": "This expression is not Promise-like",
+        "range": {
+          "pos": 45,
+          "end": 46
+        }
+      }
+    ],
+    "kind": 0,
+    "rule": "await-thenable"
+  }
+]

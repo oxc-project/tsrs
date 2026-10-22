@@ -1,0 +1,16 @@
+[
+  {
+    "file_path": "file.ts",
+    "range": {
+      "pos": 41,
+      "end": 71
+    },
+    "kind": 0,
+    "rule": "no-unsafe-return",
+    "message": {
+      "id": "unsafeReturnAssignment",
+      "description": "Unsafe return of type `Map<string, any>` from function with return type `Map<string, string>`.",
+      "help": "Returned expression has type `Map<string, any>`; the function return type is `Map<string, string>`. Return a safely typed value or narrow the value before returning it."
+    }
+  }
+]

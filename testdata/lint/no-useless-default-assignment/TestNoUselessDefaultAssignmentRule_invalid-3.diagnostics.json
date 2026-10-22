@@ -1,0 +1,49 @@
+[
+  {
+    "range": {
+      "end": 30,
+      "pos": 28
+    },
+    "suggestions": [
+      {
+        "message": {
+          "id": "removeDefaultAssignment",
+          "description": "Remove the default value."
+        },
+        "fixes": [
+          {
+            "text": "",
+            "range": {
+              "pos": 25,
+              "end": 30
+            }
+          }
+        ]
+      }
+    ],
+    "labeled_ranges": [
+      {
+        "label": "Default value",
+        "range": {
+          "pos": 28,
+          "end": 30
+        }
+      },
+      {
+        "label": "parameter type `number` is not nullish",
+        "range": {
+          "pos": 24,
+          "end": 25
+        }
+      }
+    ],
+    "kind": 0,
+    "rule": "no-useless-default-assignment",
+    "message": {
+      "id": "uselessDefaultAssignment",
+      "description": "Default value is useless because the parameter has type `number` (not nullish). This default assignment will never be used.",
+      "help": "Remove the default assignment"
+    },
+    "file_path": "file.ts"
+  }
+]

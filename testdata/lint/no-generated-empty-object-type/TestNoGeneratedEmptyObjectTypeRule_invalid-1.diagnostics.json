@@ -1,0 +1,15 @@
+[
+  {
+    "file_path": "file.ts",
+    "range": {
+      "pos": 108,
+      "end": 134
+    },
+    "kind": 0,
+    "rule": "no-generated-empty-object-type",
+    "message": {
+      "id": "noGeneratedEmptyObjectType",
+      "description": "This type resolves to `{}`, the empty object type. This was likely not intentional."
+    }
+  }
+]

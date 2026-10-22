@@ -1,0 +1,1354 @@
+{
+  "Name": "no-useless-default-assignment",
+  "TSConfig": "tsconfig.minimal.json",
+  "Valid": [
+    {
+      "Code": "\n      function Bar({ foo = '' }: { foo?: string }) {\n        return foo;\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      const { foo } = { foo: 'bar' };\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      [1, 2, 3, undefined].map((a = 42) => a + 1);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      function test(a?: number) {\n        return a;\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      const obj: { a?: string } = {};\n      const { a = 'default' } = obj;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      function test(options?: { offset?: number }) {\n        const { offset = 5 } = { ...options };\n        offset.toString();\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "tsconfig.exactOptionalPropertyTypes.json",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      function test(a: string | undefined = 'default') {\n        return a;\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      (a: string = 'default') => a;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      function test(a: string = 'default') {\n        return a;\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      class C {\n        public test(a: string = 'default') {\n          return a;\n        }\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      const obj: { a: string | undefined } = { a: undefined };\n      const { a = 'default' } = obj;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      function test(arr: number[] | undefined = []) {\n        return arr;\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      function Bar({ nested: { foo = '' } = {} }: { nested?: { foo?: string } }) {\n        return foo;\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      function test(a: any = 'default') {\n        return a;\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      function test(a: unknown = 'default') {\n        return a;\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      function test(a = 5) {\n        return a;\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      function createValidator(): () => void {\n        return (param = 5) => {};\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      function Bar({ foo = '' }: { foo: any }) {\n        return foo;\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      function Bar({ foo = '' }: { foo: unknown }) {\n        return foo;\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      function getValue(): undefined;\n      function getValue(box: { value: string }): string;\n      function getValue({ value = '' }: { value?: string } = {}): string | undefined {\n        return value;\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      function getValueObject({ value = '' }: Partial<{ value: string }>) {\n        return value;\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      const { value = 'default' } = someUnknownFunction();\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      const [value = 'default'] = someUnknownFunction();\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      for (const { value = 'default' } of []) {\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      for (const [value = 'default'] of []) {\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      declare const x: [[number | undefined]];\n      const [[a = 1]] = x;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      function foo(x: string = '') {}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      class C {\n        method(x: string = '') {}\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      const foo = (x: string = '') => {};\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      const obj = { ab: { x: 1 } };\n      const {\n        ['a' + 'b']: { x = 1 },\n      } = obj;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      const obj = { ab: 1 };\n      const { ['a' + 'b']: x = 1 } = obj;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      for ([[a = 1]] of []) {\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        declare const g: Array<string>;\n        const [foo = ''] = g;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "tsconfig.noUncheckedIndexedAccess.json",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        declare const g: Record<string, string>;\n        const { foo = '' } = g;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "tsconfig.noUncheckedIndexedAccess.json",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        declare const h: { [key: string]: string };\n        const { bar = '' } = h;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "tsconfig.noUncheckedIndexedAccess.json",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      declare const g: Array<string>;\n      const [foo = ''] = g;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      declare const g: Record<string, string>;\n      const { foo = '' } = g;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      declare const h: { [key: string]: string };\n      const { bar = '' } = h;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      type Merge = boolean | ((incoming: string[]) => void);\n\n      const policy: { merge: Merge } = {\n        merge: (incoming: string[] = []) => {\n          incoming;\n        },\n      };\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      const [a, b = ''] = 'somestr'.split('.');\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      declare const params: string[];\n      const [c = '123'] = params;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      declare function useCallback<T>(callback: T);\n      useCallback((value: number[] = []) => {});\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      declare const tuple: [string];\n      const [a, b = 'default'] = tuple;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      const run = (cb: (...args: unknown[]) => void) => cb();\n      const cb = (p: boolean = true) => null;\n      run(cb);\n      run((p: boolean = true) => null);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      const { a = 'default' } = Math.random() > 0.5 ? { a: 'Hello' } : {};\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      const { a = 'default' } =\n        Math.random() > 0.5 ? (Math.random() > 0.5 ? { a: 'Hello' } : {}) : {};\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      function findPosts({\n        category,\n        maxResults = 100,\n      }: {\n        category: string;\n        maxResults?: number;\n      }): Promise<string[]> {\n        return Promise.resolve([category, String(maxResults)]);\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      const { a = 'baz' } = cond ? {} : { a: 'bar' };\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      const { a = 'baz' } = cond ? foo : { a: 'bar' };\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      const { a = 'baz' } = foo && { a: 'bar' };\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      const { a = 'baz' } = cond ? { a: 'foo', ...extra } : { a: 'bar' };\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      const { a = 'baz' } = cond ? { ...foo } : { a: 'bar' };\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      const key = Math.random() > 0.5 ? 'a' : 'b';\n      const { a = 'baz' } = cond ? { [key]: 'foo' } : { [key]: 'bar' };\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      const { a = 'baz' } = cond ? foo && { a: 'bar' } : { a: 'baz' };\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      const obj: unknown = { a: 'bar' };\n      const { a = 'baz' } = cond ? obj : { a: 'bar' };\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      const sym = Symbol('a');\n      const { a = 'baz' } = cond ? { [sym]: 'foo' } : { [sym]: 'bar' };\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      const { a = 'baz' } = cond ? { [`a${1}`]: 'foo' } : { a: 'bar' };\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      class AbstractEntity {\n        public a: string | undefined;\n        public static fromJson<T extends { a: string }>(\n          this: new () => T,\n          { inner = { a: 'test' } }: { inner?: { a: string } },\n        ): T {\n          const entity = new this();\n          entity.a = inner?.a;\n          return entity;\n        }\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      type FetchFn<TParams> =\n        Partial<TParams> extends TParams\n          ? (params?: TParams) => void\n          : (params: TParams) => void;\n\n      function createFetcher<TParams>() {\n        type Params = TParams;\n\n        const fn: FetchFn<TParams> = (\n          params: Partial<Params> = {} as Partial<Params>,\n        ) => {\n          console.log(params);\n        };\n\n        return fn;\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      interface Foos {\n        bar?: number;\n      }\n      const foos: Foos[] = [];\n      foos.flatMap(({ bar = 42 }) => bar);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      function f(this: void, { bar = 42 }: { bar?: number }) {\n        return bar;\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "declare const commands: [string, ...string[]];\nconst [cmd, arg = 'run'] = commands;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "declare const commands: readonly [string, ...string[]];\nconst [cmd, arg = 'run'] = commands;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "function run([cmd, arg = 'run']: [string, ...string[]]) {}",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "declare const mixed: [boolean, ...number[], string];\nconst [a, b, c = 0] = mixed;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "declare const items: [...string[], string | undefined];\nconst [first = 'fallback'] = items;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "declare const x: [...string[], number, boolean | undefined];\nconst [first, second = 'fallback'] = x;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "declare const x: [...string[], number | undefined, boolean];\nconst [first = 'fallback'] = x;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    }
+  ],
+  "Invalid": [
+    {
+      "Code": "\n        function Bar({ foo = '' }: { foo: string }) {\n          return foo;\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "uselessDefaultAssignment",
+          "Line": 2,
+          "Column": 30,
+          "EndLine": 0,
+          "EndColumn": 32,
+          "Suggestions": [
+            {
+              "MessageId": "removeDefaultAssignment",
+              "Output": "\n        function Bar({ foo }: { foo: string }) {\n          return foo;\n        }\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        class C {\n          public method({ foo = '' }: { foo: string }) {\n            return foo;\n          }\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "uselessDefaultAssignment",
+          "Line": 3,
+          "Column": 33,
+          "EndLine": 0,
+          "EndColumn": 35,
+          "Suggestions": [
+            {
+              "MessageId": "removeDefaultAssignment",
+              "Output": "\n        class C {\n          public method({ foo }: { foo: string }) {\n            return foo;\n          }\n        }\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        const { 'literal-key': literalKey = 'default' } = { 'literal-key': 'value' };\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "uselessDefaultAssignment",
+          "Line": 2,
+          "Column": 45,
+          "EndLine": 0,
+          "EndColumn": 54,
+          "Suggestions": [
+            {
+              "MessageId": "removeDefaultAssignment",
+              "Output": "\n        const { 'literal-key': literalKey } = { 'literal-key': 'value' };\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        [1, 2, 3].map((a = 42) => a + 1);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "uselessDefaultAssignment",
+          "Line": 2,
+          "Column": 28,
+          "EndLine": 0,
+          "EndColumn": 30,
+          "Suggestions": [
+            {
+              "MessageId": "removeDefaultAssignment",
+              "Output": "\n        [1, 2, 3].map((a) => a + 1);\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        function getValue(): undefined;\n        function getValue(box: { value: string }): string;\n        function getValue({ value = '' }: { value: string } = {}): string | undefined {\n          return value;\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "uselessDefaultAssignment",
+          "Line": 4,
+          "Column": 37,
+          "EndLine": 0,
+          "EndColumn": 39,
+          "Suggestions": [
+            {
+              "MessageId": "removeDefaultAssignment",
+              "Output": "\n        function getValue(): undefined;\n        function getValue(box: { value: string }): string;\n        function getValue({ value }: { value: string } = {}): string | undefined {\n          return value;\n        }\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        function getValue([value = '']: [string]) {\n          return value;\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "uselessDefaultAssignment",
+          "Line": 2,
+          "Column": 36,
+          "EndLine": 0,
+          "EndColumn": 38,
+          "Suggestions": [
+            {
+              "MessageId": "removeDefaultAssignment",
+              "Output": "\n        function getValue([value]: [string]) {\n          return value;\n        }\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        declare const x: { hello: { world: string } };\n\n        const {\n          hello: { world = '' },\n        } = x;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "uselessDefaultAssignment",
+          "Line": 5,
+          "Column": 28,
+          "EndLine": 0,
+          "EndColumn": 30,
+          "Suggestions": [
+            {
+              "MessageId": "removeDefaultAssignment",
+              "Output": "\n        declare const x: { hello: { world: string } };\n\n        const {\n          hello: { world },\n        } = x;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        declare const x: { hello: Array<{ world: string }> };\n\n        const {\n          hello: [{ world = '' }],\n        } = x;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "uselessDefaultAssignment",
+          "Line": 5,
+          "Column": 29,
+          "EndLine": 0,
+          "EndColumn": 31,
+          "Suggestions": [
+            {
+              "MessageId": "removeDefaultAssignment",
+              "Output": "\n        declare const x: { hello: Array<{ world: string }> };\n\n        const {\n          hello: [{ world }],\n        } = x;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        interface B {\n          foo: (b: boolean | string) => void;\n        }\n\n        const h: B = {\n          foo: (b = false) => {},\n        };\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "uselessDefaultAssignment",
+          "Line": 7,
+          "Column": 21,
+          "EndLine": 0,
+          "EndColumn": 26,
+          "Suggestions": [
+            {
+              "MessageId": "removeDefaultAssignment",
+              "Output": "\n        interface B {\n          foo: (b: boolean | string) => void;\n        }\n\n        const h: B = {\n          foo: (b) => {},\n        };\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        function foo(a = undefined) {}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "uselessUndefined",
+          "Line": 2,
+          "Column": 26,
+          "EndLine": 0,
+          "EndColumn": 35,
+          "Suggestions": [
+            {
+              "MessageId": "removeDefaultAssignment",
+              "Output": "\n        function foo(a) {}\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        const { a = undefined } = {};\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "uselessUndefined",
+          "Line": 2,
+          "Column": 21,
+          "EndLine": 0,
+          "EndColumn": 30,
+          "Suggestions": [
+            {
+              "MessageId": "removeDefaultAssignment",
+              "Output": "\n        const { a } = {};\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        const [a = undefined] = [];\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "uselessUndefined",
+          "Line": 2,
+          "Column": 20,
+          "EndLine": 0,
+          "EndColumn": 29,
+          "Suggestions": [
+            {
+              "MessageId": "removeDefaultAssignment",
+              "Output": "\n        const [a] = [];\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        function foo({ a = undefined }) {}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "uselessUndefined",
+          "Line": 2,
+          "Column": 28,
+          "EndLine": 0,
+          "EndColumn": 37,
+          "Suggestions": [
+            {
+              "MessageId": "removeDefaultAssignment",
+              "Output": "\n        function foo({ a }) {}\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        function myFunction(p1: string, p2: number | undefined = undefined) {\n          console.log(p1, p2);\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferOptionalSyntax",
+          "Line": 2,
+          "Column": 66,
+          "EndLine": 0,
+          "EndColumn": 75,
+          "Suggestions": [
+            {
+              "MessageId": "useOptionalSyntax",
+              "Output": "\n        function myFunction(p1: string, p2?: number | undefined) {\n          console.log(p1, p2);\n        }\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        type SomeType = number | undefined;\n        function f(\n          /* comment */ x /* comment 2 */ : /* comment 3 */ SomeType /* comment 4 */ = /* comment 5 */ undefined,\n        ) {}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferOptionalSyntax",
+          "Line": 4,
+          "Column": 104,
+          "EndLine": 0,
+          "EndColumn": 113,
+          "Suggestions": [
+            {
+              "MessageId": "useOptionalSyntax",
+              "Output": "\n        type SomeType = number | undefined;\n        function f(\n          /* comment */ x? /* comment 2 */ : /* comment 3 */ SomeType,\n        ) {}\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        function Bar({ foo = '' }: { foo: string }) {\n          return foo;\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noStrictNullCheck",
+          "Line": 0,
+          "Column": 1,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "uselessDefaultAssignment",
+          "Line": 2,
+          "Column": 30,
+          "EndLine": 0,
+          "EndColumn": 32,
+          "Suggestions": [
+            {
+              "MessageId": "removeDefaultAssignment",
+              "Output": "\n        function Bar({ foo }: { foo: string }) {\n          return foo;\n        }\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "tsconfig.unstrict.json",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        function foo(a = undefined) {}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noStrictNullCheck",
+          "Line": 0,
+          "Column": 1,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "uselessUndefined",
+          "Line": 2,
+          "Column": 26,
+          "EndLine": 0,
+          "EndColumn": 35,
+          "Suggestions": [
+            {
+              "MessageId": "removeDefaultAssignment",
+              "Output": "\n        function foo(a) {}\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "tsconfig.unstrict.json",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        const { a = 'baz' } = Math.random() < 0.5 ? { a: 'foo' } : { a: 'bar' };\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "uselessDefaultAssignment",
+          "Line": 2,
+          "Column": 21,
+          "EndLine": 0,
+          "EndColumn": 26,
+          "Suggestions": [
+            {
+              "MessageId": "removeDefaultAssignment",
+              "Output": "\n        const { a } = Math.random() < 0.5 ? { a: 'foo' } : { a: 'bar' };\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        const { a = 'baz' } =\n          Math.random() < 0.5\n            ? { a: 'foo' }\n            : Math.random() > 0.2\n              ? { a: 'bar' }\n              : { a: 'qux' };\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "uselessDefaultAssignment",
+          "Line": 2,
+          "Column": 21,
+          "EndLine": 0,
+          "EndColumn": 26,
+          "Suggestions": [
+            {
+              "MessageId": "removeDefaultAssignment",
+              "Output": "\n        const { a } =\n          Math.random() < 0.5\n            ? { a: 'foo' }\n            : Math.random() > 0.2\n              ? { a: 'bar' }\n              : { a: 'qux' };\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        const { a = 'baz' } = cond ? { ['a']: 'foo' } : { ['a']: 'bar' };\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "uselessDefaultAssignment",
+          "Line": 2,
+          "Column": 21,
+          "EndLine": 0,
+          "EndColumn": 26,
+          "Suggestions": [
+            {
+              "MessageId": "removeDefaultAssignment",
+              "Output": "\n        const { a } = cond ? { ['a']: 'foo' } : { ['a']: 'bar' };\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        const { a = 'baz' } = cond ? { a() {} } : { a: 'bar' };\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "uselessDefaultAssignment",
+          "Line": 2,
+          "Column": 21,
+          "EndLine": 0,
+          "EndColumn": 26,
+          "Suggestions": [
+            {
+              "MessageId": "removeDefaultAssignment",
+              "Output": "\n        const { a } = cond ? { a() {} } : { a: 'bar' };\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        const { a = 'b' } = Math.random() < 0.5 ? { [`a`]: 'a' } : { a: 'b' };\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "uselessDefaultAssignment",
+          "Line": 2,
+          "Column": 21,
+          "EndLine": 0,
+          "EndColumn": 24,
+          "Suggestions": [
+            {
+              "MessageId": "removeDefaultAssignment",
+              "Output": "\n        const { a } = Math.random() < 0.5 ? { [`a`]: 'a' } : { a: 'b' };\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "declare const mixed: [boolean, ...number[], string];\nconst [a, b = 0] = mixed;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "uselessDefaultAssignment",
+          "Line": 2,
+          "Column": 15,
+          "EndLine": 0,
+          "EndColumn": 16,
+          "Suggestions": [
+            {
+              "MessageId": "removeDefaultAssignment",
+              "Output": "declare const mixed: [boolean, ...number[], string];\nconst [a, b] = mixed;"
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "declare const x: [...string[], number, boolean | undefined];\nconst [first = 'fallback'] = x;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "uselessDefaultAssignment",
+          "Line": 2,
+          "Column": 16,
+          "EndLine": 0,
+          "EndColumn": 26,
+          "Suggestions": [
+            {
+              "MessageId": "removeDefaultAssignment",
+              "Output": "declare const x: [...string[], number, boolean | undefined];\nconst [first] = x;"
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "declare const x: [boolean, ...string[], number, boolean | undefined];\nconst [head, first = 'fallback'] = x;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "uselessDefaultAssignment",
+          "Line": 2,
+          "Column": 22,
+          "EndLine": 0,
+          "EndColumn": 32,
+          "Suggestions": [
+            {
+              "MessageId": "removeDefaultAssignment",
+              "Output": "declare const x: [boolean, ...string[], number, boolean | undefined];\nconst [head, first] = x;"
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    }
+  ]
+}

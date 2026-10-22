@@ -1,0 +1,757 @@
+{
+  "Name": "no-mixed-enums",
+  "TSConfig": "tsconfig.minimal.json",
+  "Valid": [
+    {
+      "Code": "\n      enum Fruit {}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      enum Fruit {\n        Apple,\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      enum Fruit {\n        Apple = false,\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      enum Fruit {\n        Apple,\n        Banana,\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      enum Fruit {\n        Apple = 0,\n        Banana,\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      enum Fruit {\n        Apple,\n        Banana = 1,\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      enum Fruit {\n        Apple = 0,\n        Banana = 1,\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      enum Fruit {\n        Apple,\n        Banana = false,\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      const getValue = () => 0;\n      enum Fruit {\n        Apple,\n        Banana = getValue(),\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      const getValue = () => 0;\n      enum Fruit {\n        Apple = getValue(),\n        Banana = getValue(),\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      const getValue = () => '';\n      enum Fruit {\n        Apple = '',\n        Banana = getValue(),\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      const getValue = () => '';\n      enum Fruit {\n        Apple = getValue(),\n        Banana = '',\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      const getValue = () => '';\n      enum Fruit {\n        Apple = getValue(),\n        Banana = getValue(),\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      enum First {\n        A = 1,\n      }\n\n      enum Second {\n        A = First.A,\n        B = 2,\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      enum First {\n        A = '',\n      }\n\n      enum Second {\n        A = First.A,\n        B = 'b',\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      enum Foo {\n        A,\n      }\n      enum Foo {\n        B,\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      enum Foo {\n        A = 0,\n      }\n      enum Foo {\n        B,\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      enum Foo {\n        A,\n      }\n      enum Foo {\n        B = 1,\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      enum Foo {\n        A = 0,\n      }\n      enum Foo {\n        B = 1,\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      enum Foo {\n        A = 'a',\n      }\n      enum Foo {\n        B = 'b',\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      declare const Foo: any;\n      enum Foo {\n        A,\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nenum Foo {\n  A = 1,\n}\nenum Foo {\n  B = 2,\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nenum Foo {\n  A = `A`,\n}\nenum Foo {\n  B = `B`,\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nenum Foo {\n  A = false, // (TS error)\n}\nenum Foo {\n  B = `B`,\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nenum Foo {\n  A = 'A',\n}\nenum Foo {\n  B = false, // (TS error)\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nimport { Enum } from './mixed-enums-decl';\n\ndeclare module './mixed-enums-decl' {\n  enum Enum {\n    StringLike = 'StringLike',\n  }\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nimport { Enum } from \"module-that-does't-exist\";\n\ndeclare module \"module-that-doesn't-exist\" {\n  enum Enum {\n    StringLike = 'StringLike',\n  }\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nnamespace Test {\n  export enum Bar {\n    A = 1,\n  }\n}\nnamespace Test {\n  export enum Bar {\n    B = 2,\n  }\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nnamespace Outer {\n  namespace Test {\n    export enum Bar {\n      A = 1,\n    }\n  }\n}\nnamespace Outer {\n  namespace Test {\n    export enum Bar {\n      B = 'B',\n    }\n  }\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nnamespace Outer {\n  namespace Test {\n    export enum Bar {\n      A = 1,\n    }\n  }\n}\nnamespace Different {\n  namespace Test {\n    export enum Bar {\n      B = 'B',\n    }\n  }\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    }
+  ],
+  "Invalid": [
+    {
+      "Code": "\n        enum Fruit {\n          Apple,\n          Banana = 'banana',\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "mixed",
+          "Line": 4,
+          "Column": 20,
+          "EndLine": 0,
+          "EndColumn": 28,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        enum Fruit {\n          Apple,\n          Banana = 'banana',\n          Cherry = 'cherry',\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "mixed",
+          "Line": 4,
+          "Column": 20,
+          "EndLine": 0,
+          "EndColumn": 28,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        enum Fruit {\n          Apple,\n          Banana,\n          Cherry = 'cherry',\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "mixed",
+          "Line": 5,
+          "Column": 20,
+          "EndLine": 0,
+          "EndColumn": 28,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        enum Fruit {\n          Apple = 0,\n          Banana = 'banana',\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "mixed",
+          "Line": 4,
+          "Column": 20,
+          "EndLine": 0,
+          "EndColumn": 28,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        const getValue = () => 0;\n        enum Fruit {\n          Apple = getValue(),\n          Banana = 'banana',\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "mixed",
+          "Line": 5,
+          "Column": 20,
+          "EndLine": 0,
+          "EndColumn": 28,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        const getValue = () => '';\n        enum Fruit {\n          Apple,\n          Banana = getValue(),\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "mixed",
+          "Line": 5,
+          "Column": 20,
+          "EndLine": 0,
+          "EndColumn": 30,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        const getValue = () => '';\n        enum Fruit {\n          Apple = getValue(),\n          Banana = 0,\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "mixed",
+          "Line": 5,
+          "Column": 20,
+          "EndLine": 0,
+          "EndColumn": 21,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        enum First {\n          A = 1,\n        }\n\n        enum Second {\n          A = First.A,\n          B = 'b',\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "mixed",
+          "Line": 8,
+          "Column": 15,
+          "EndLine": 0,
+          "EndColumn": 18,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        enum First {\n          A = 'a',\n        }\n\n        enum Second {\n          A = First.A,\n          B = 1,\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "mixed",
+          "Line": 8,
+          "Column": 15,
+          "EndLine": 0,
+          "EndColumn": 16,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        enum Foo {\n          A,\n        }\n        enum Foo {\n          B = 'b',\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "mixed",
+          "Line": 6,
+          "Column": 15,
+          "EndLine": 0,
+          "EndColumn": 18,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        enum Foo {\n          A = 1,\n        }\n        enum Foo {\n          B = 'b',\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "mixed",
+          "Line": 6,
+          "Column": 15,
+          "EndLine": 0,
+          "EndColumn": 18,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        enum Foo {\n          A = 'a',\n        }\n        enum Foo {\n          B,\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "mixed",
+          "Line": 6,
+          "Column": 11,
+          "EndLine": 0,
+          "EndColumn": 12,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        enum Foo {\n          A = 'a',\n        }\n        enum Foo {\n          B = 0,\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "mixed",
+          "Line": 6,
+          "Column": 15,
+          "EndLine": 0,
+          "EndColumn": 16,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        enum Foo {\n          A,\n        }\n        enum Foo {\n          B = 'b',\n        }\n        enum Foo {\n          C = 'c',\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "mixed",
+          "Line": 6,
+          "Column": 15,
+          "EndLine": 0,
+          "EndColumn": 18,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "mixed",
+          "Line": 9,
+          "Column": 15,
+          "EndLine": 0,
+          "EndColumn": 18,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        enum Foo {\n          A,\n        }\n        enum Foo {\n          B = 'b',\n        }\n        enum Foo {\n          C,\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "mixed",
+          "Line": 6,
+          "Column": 15,
+          "EndLine": 0,
+          "EndColumn": 18,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        enum Foo {\n          A,\n        }\n        enum Foo {\n          B,\n        }\n        enum Foo {\n          C = 'c',\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "mixed",
+          "Line": 9,
+          "Column": 15,
+          "EndLine": 0,
+          "EndColumn": 18,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nimport { Enum } from './mixed-enums-decl';\n\ndeclare module './mixed-enums-decl' {\n  enum Enum {\n    Numeric = 0,\n  }\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "mixed",
+          "Line": 6,
+          "Column": 15,
+          "EndLine": 0,
+          "EndColumn": 16,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nenum Foo {\n  A = 1,\n}\nenum Foo {\n  B = 'B',\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "mixed",
+          "Line": 6,
+          "Column": 7,
+          "EndLine": 0,
+          "EndColumn": 10,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nnamespace Test {\n  export enum Bar {\n    A = 1,\n  }\n}\nnamespace Test {\n  export enum Bar {\n    B = 'B',\n  }\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "mixed",
+          "Line": 9,
+          "Column": 9,
+          "EndLine": 0,
+          "EndColumn": 12,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nnamespace Test {\n  export enum Bar {\n    A,\n  }\n}\nnamespace Test {\n  export enum Bar {\n    B = 'B',\n  }\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "mixed",
+          "Line": 9,
+          "Column": 9,
+          "EndLine": 0,
+          "EndColumn": 12,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nnamespace Outer {\n  export namespace Test {\n    export enum Bar {\n      A = 1,\n    }\n  }\n}\nnamespace Outer {\n  export namespace Test {\n    export enum Bar {\n      B = 'B',\n    }\n  }\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "mixed",
+          "Line": 12,
+          "Column": 11,
+          "EndLine": 0,
+          "EndColumn": 14,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    }
+  ]
+}

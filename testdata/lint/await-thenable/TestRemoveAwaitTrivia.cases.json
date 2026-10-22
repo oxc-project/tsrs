@@ -1,0 +1,59 @@
+{
+  "Name": "await-thenable",
+  "TSConfig": "tsconfig.minimal.json",
+  "Valid": [],
+  "Invalid": [
+    {
+      "Code": "async function test() { for await /* comment */ (const value of [1]) {} }",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "forAwaitOfNonAsyncIterable",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "convertToOrdinaryFor",
+              "Output": "async function test() { for /* comment */ (const value of [1]) {} }"
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "declare const disposable: Disposable; async function test() { await /* comment */ using d = disposable; }",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "awaitUsingOfNonAsyncDisposable",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "removeAwait",
+              "Output": "declare const disposable: Disposable; async function test() { /* comment */ using d = disposable; }"
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    }
+  ]
+}

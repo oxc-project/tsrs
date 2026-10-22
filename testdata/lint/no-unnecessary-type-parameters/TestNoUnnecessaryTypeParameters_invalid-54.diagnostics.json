@@ -1,0 +1,48 @@
+[
+  {
+    "file_path": "file.ts",
+    "range": {
+      "pos": 51,
+      "end": 52
+    },
+    "suggestions": [
+      {
+        "message": {
+          "id": "replaceUsagesWithConstraint",
+          "description": "Replace all usages of type parameter with its constraint."
+        },
+        "fixes": [
+          {
+            "text": "unknown",
+            "range": {
+              "pos": 85,
+              "end": 86
+            }
+          },
+          {
+            "text": "",
+            "range": {
+              "pos": 49,
+              "end": 52
+            }
+          }
+        ]
+      }
+    ],
+    "labeled_ranges": [
+      {
+        "label": "This is the only usage of type parameter V in the signature.",
+        "range": {
+          "pos": 85,
+          "end": 86
+        }
+      }
+    ],
+    "kind": 0,
+    "rule": "no-unnecessary-type-parameters",
+    "message": {
+      "id": "sole",
+      "description": "Type parameter V is used only once in the function signature."
+    }
+  }
+]

@@ -1,0 +1,40 @@
+[
+  {
+    "labeled_ranges": [
+      {
+        "label": "Type 'string' is first declared here.",
+        "range": {
+          "end": 21,
+          "pos": 15
+        }
+      }
+    ],
+    "kind": 0,
+    "rule": "no-duplicate-type-constituents",
+    "message": {
+      "id": "duplicate",
+      "description": "Union type constituent is duplicated with  string."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 24,
+      "end": 30
+    },
+    "fixes": [
+      {
+        "text": "",
+        "range": {
+          "end": 30,
+          "pos": 24
+        }
+      },
+      {
+        "text": "",
+        "range": {
+          "pos": 22,
+          "end": 23
+        }
+      }
+    ]
+  }
+]

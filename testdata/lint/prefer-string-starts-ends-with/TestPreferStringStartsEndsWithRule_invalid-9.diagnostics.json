@@ -1,0 +1,31 @@
+[
+  {
+    "file_path": "file.ts",
+    "range": {
+      "pos": 43,
+      "end": 66
+    },
+    "fixes": [
+      {
+        "text": ".endsWith(",
+        "range": {
+          "pos": 44,
+          "end": 63
+        }
+      },
+      {
+        "text": ")",
+        "range": {
+          "pos": 66,
+          "end": 66
+        }
+      }
+    ],
+    "kind": 0,
+    "rule": "prefer-string-starts-ends-with",
+    "message": {
+      "id": "preferEndsWith",
+      "description": "Use 'String#endsWith' method instead."
+    }
+  }
+]

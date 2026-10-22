@@ -1,0 +1,28 @@
+[
+  {
+    "kind": 0,
+    "rule": "no-unsafe-argument",
+    "message": {
+      "id": "unsafeArgument",
+      "description": "Unsafe argument of type any assigned to a parameter of type number."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 88,
+      "end": 96
+    }
+  },
+  {
+    "file_path": "file.ts",
+    "range": {
+      "pos": 98,
+      "end": 108
+    },
+    "kind": 0,
+    "rule": "no-unsafe-argument",
+    "message": {
+      "id": "unsafeArgument",
+      "description": "Unsafe argument of type any assigned to a parameter of type string."
+    }
+  }
+]

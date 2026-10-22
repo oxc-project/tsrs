@@ -1,0 +1,28 @@
+[
+  {
+    "kind": 0,
+    "rule": "no-redundant-type-constituents",
+    "message": {
+      "id": "primitiveOverridden",
+      "description": "1 | 2 is overridden by the number in this intersection type."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 70,
+      "end": 71
+    }
+  },
+  {
+    "kind": 0,
+    "rule": "no-redundant-type-constituents",
+    "message": {
+      "id": "primitiveOverridden",
+      "description": "1 | 2 is overridden by the string in this intersection type."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 74,
+      "end": 75
+    }
+  }
+]

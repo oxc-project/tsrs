@@ -1,0 +1,52 @@
+[
+  {
+    "range": {
+      "pos": 91,
+      "end": 110
+    },
+    "fixes": [
+      {
+        "text": "",
+        "range": {
+          "pos": 91,
+          "end": 104
+        }
+      },
+      {
+        "text": "",
+        "range": {
+          "pos": 109,
+          "end": 110
+        }
+      },
+      {
+        "text": "(",
+        "range": {
+          "pos": 104,
+          "end": 104
+        }
+      },
+      {
+        "text": ")",
+        "range": {
+          "end": 109,
+          "pos": 109
+        }
+      },
+      {
+        "text": ".includes('bar')",
+        "range": {
+          "pos": 109,
+          "end": 109
+        }
+      }
+    ],
+    "kind": 0,
+    "rule": "prefer-includes",
+    "message": {
+      "id": "preferStringIncludes",
+      "description": "Use `String#includes()` method with a string instead."
+    },
+    "file_path": "file.ts"
+  }
+]

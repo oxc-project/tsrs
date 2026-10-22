@@ -1,0 +1,89 @@
+[
+  {
+    "message": {
+      "id": "voidReturnProperty",
+      "description": "Promise-returning function provided to property where a void return was expected."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 119,
+      "end": 126
+    },
+    "labeled_ranges": [
+      {
+        "label": "This callback has type `() => Promise<number>`.",
+        "range": {
+          "end": 126,
+          "pos": 119
+        }
+      },
+      {
+        "range": {
+          "pos": 15,
+          "end": 25
+        },
+        "label": "This context accepts a `void`-returning callback through type `() => void`."
+      }
+    ],
+    "kind": 0,
+    "rule": "no-misused-promises"
+  },
+  {
+    "kind": 0,
+    "rule": "no-misused-promises",
+    "message": {
+      "id": "voidReturnProperty",
+      "description": "Promise-returning function provided to property where a void return was expected."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 172,
+      "end": 174
+    },
+    "labeled_ranges": [
+      {
+        "label": "This callback has type `() => Promise<number>`.",
+        "range": {
+          "pos": 172,
+          "end": 174
+        }
+      },
+      {
+        "label": "This context accepts a `void`-returning callback through type `() => void`.",
+        "range": {
+          "pos": 30,
+          "end": 40
+        }
+      }
+    ]
+  },
+  {
+    "rule": "no-misused-promises",
+    "message": {
+      "id": "voidReturnProperty",
+      "description": "Promise-returning function provided to property where a void return was expected."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 182,
+      "end": 183
+    },
+    "labeled_ranges": [
+      {
+        "label": "This callback has type `() => Promise<number>`.",
+        "range": {
+          "pos": 182,
+          "end": 183
+        }
+      },
+      {
+        "label": "This context accepts a `void`-returning callback through type `() => void`.",
+        "range": {
+          "pos": 45,
+          "end": 55
+        }
+      }
+    ],
+    "kind": 0
+  }
+]

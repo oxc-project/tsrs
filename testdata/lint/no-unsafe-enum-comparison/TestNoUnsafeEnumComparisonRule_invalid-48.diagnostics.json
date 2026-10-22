@@ -1,0 +1,49 @@
+[
+  {
+    "rule": "no-unsafe-enum-comparison",
+    "message": {
+      "id": "mismatchedCondition",
+      "description": "The two values in this comparison do not have a shared enum type.",
+      "help": "Compare enum values to members of the same enum, or convert both sides to the same primitive type before comparing them."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 96,
+      "end": 113
+    },
+    "suggestions": [
+      {
+        "message": {
+          "id": "replaceValueWithEnum",
+          "description": "Replace with an enum value comparison."
+        },
+        "fixes": [
+          {
+            "text": "E.A",
+            "range": {
+              "pos": 110,
+              "end": 113
+            }
+          }
+        ]
+      }
+    ],
+    "labeled_ranges": [
+      {
+        "label": "Left operand: E",
+        "range": {
+          "pos": 96,
+          "end": 105
+        }
+      },
+      {
+        "label": "Right operand: \"a\"",
+        "range": {
+          "pos": 110,
+          "end": 113
+        }
+      }
+    ],
+    "kind": 0
+  }
+]

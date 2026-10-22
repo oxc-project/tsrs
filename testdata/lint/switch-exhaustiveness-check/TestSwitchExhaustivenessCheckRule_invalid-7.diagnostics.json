@@ -1,0 +1,32 @@
+[
+  {
+    "range": {
+      "pos": 47,
+      "end": 52
+    },
+    "suggestions": [
+      {
+        "message": {
+          "id": "addMissingCases",
+          "description": "Add branches for missing cases."
+        },
+        "fixes": [
+          {
+            "text": "\n  default: { throw new Error('default case') }",
+            "range": {
+              "pos": 76,
+              "end": 76
+            }
+          }
+        ]
+      }
+    ],
+    "kind": 0,
+    "rule": "switch-exhaustiveness-check",
+    "message": {
+      "id": "switchIsNotExhaustive",
+      "description": "Switch is not exhaustive. Cases not matched: default"
+    },
+    "file_path": "file.ts"
+  }
+]

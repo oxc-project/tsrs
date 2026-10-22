@@ -1,0 +1,16 @@
+[
+  {
+    "kind": 0,
+    "rule": "strict-boolean-expressions",
+    "message": {
+      "id": "conditionErrorAny",
+      "description": "Unexpected any value in conditional.",
+      "help": "Use a more specific type to ensure type safety."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 15,
+      "end": 16
+    }
+  }
+]

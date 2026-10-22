@@ -1,0 +1,101 @@
+{
+  "Name": "unbound-method",
+  "TSConfig": "tsconfig.minimal.json",
+  "Valid": [
+    {
+      "Code": "\nclass MyCollator extends Intl.Collator {}\nconst f = new MyCollator().compare;\n",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass MyCollator extends Intl.Collator {}\nfunction sort({ compare }: MyCollator, values: string[]) {\n  values.sort(compare);\n}\n",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass MyCollator extends Intl.Collator {}\nclass DerivedCollator extends MyCollator {}\nconst { compare } = new DerivedCollator();\n",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    }
+  ],
+  "Invalid": [
+    {
+      "Code": "\nclass MyCollator extends Intl.Collator {\n  compare(a: string, b: string): number { return a.length - b.length; }\n}\nconst f = new MyCollator().compare;\n",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unboundWithoutThisAnnotation",
+          "Line": 5,
+          "Column": 11,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass MyCollator extends Intl.Collator {\n  compare(a: string, b: string): number { return a.length - b.length; }\n}\nfunction sort({ compare }: MyCollator) {}\n",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unboundWithoutThisAnnotation",
+          "Line": 5,
+          "Column": 17,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface CustomCollator { compare(a: string, b: string): number; }\nclass MyCollator extends Intl.Collator {}\nfunction sort({ compare }: MyCollator | CustomCollator) {}\n",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unboundWithoutThisAnnotation",
+          "Line": 4,
+          "Column": 17,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    }
+  ]
+}

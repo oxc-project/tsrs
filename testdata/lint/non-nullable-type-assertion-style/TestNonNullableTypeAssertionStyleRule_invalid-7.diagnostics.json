@@ -1,0 +1,39 @@
+[
+  {
+    "range": {
+      "pos": 110,
+      "end": 145
+    },
+    "suggestions": [
+      {
+        "message": {
+          "id": "preferNonNullAssertion",
+          "description": "Use a ! assertion to more succinctly remove null and undefined from the type."
+        },
+        "fixes": [
+          {
+            "text": "",
+            "range": {
+              "pos": 135,
+              "end": 145
+            }
+          },
+          {
+            "text": "!",
+            "range": {
+              "end": 135,
+              "pos": 135
+            }
+          }
+        ]
+      }
+    ],
+    "kind": 0,
+    "rule": "non-nullable-type-assertion-style",
+    "message": {
+      "id": "preferNonNullAssertion",
+      "description": "Use a ! assertion to more succinctly remove null and undefined from the type."
+    },
+    "file_path": "file.ts"
+  }
+]

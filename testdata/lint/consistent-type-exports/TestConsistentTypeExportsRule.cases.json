@@ -1,0 +1,831 @@
+{
+  "Name": "consistent-type-exports",
+  "TSConfig": "tsconfig.json",
+  "Valid": [
+    {
+      "Code": "export { Foo } from 'foo';",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "export type { Type1 } from './consistent-type-exports';",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "export { value1 } from './consistent-type-exports';",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "export { value1 as \"🍎\" } from './consistent-type-exports';",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "export type { value1 } from './consistent-type-exports';",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst variable = 1;\nclass Class {}\nenum Enum {}\nfunction Func() {}\nnamespace ValueNS {\n  export const x = 1;\n}\n\nexport { variable, Class, Enum, Func, ValueNS };\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype Alias = 1;\ninterface IFace {}\nnamespace TypeNS {\n  export type x = 1;\n}\n\nexport type { Alias, IFace, TypeNS };\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst foo = 1;\nexport type { foo };\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nnamespace NonTypeNS {\n  export const x = 1;\n}\n\nexport { NonTypeNS };\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "export * from './unknown-module';",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "export * from './consistent-type-exports';",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "export type * from './consistent-type-exports/type-only-exports';",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "export type * from './consistent-type-exports/type-only-reexport';",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "export * from './consistent-type-exports/value-reexport';",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "export * as foo from './consistent-type-exports';",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "export type * as foo from './consistent-type-exports/type-only-exports';",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "export type * as foo from './consistent-type-exports/type-only-reexport';",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "export * as foo from './consistent-type-exports/value-reexport';",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nimport * as Foo from './consistent-type-exports';\ntype Foo = 1;\nexport { Foo }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nimport { Type1 } from './consistent-type-exports';\nconst Type1 = 1;\nexport { Type1 };\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nexport { A } from './consistent-type-exports/reexport-2-named';\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nimport { A } from './consistent-type-exports/reexport-2-named';\nexport { A };\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nexport { A } from './consistent-type-exports/reexport-2-namespace';\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nimport { A } from './consistent-type-exports/reexport-2-namespace';\nexport { A };\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    }
+  ],
+  "Invalid": [
+    {
+      "Code": "export { Type1 } from './consistent-type-exports';",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "export type { Type1 } from './consistent-type-exports';"
+      ],
+      "Errors": [
+        {
+          "MessageId": "typeOverValue",
+          "Line": 1,
+          "Column": 1,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "export { Type1 as \"🍎\" } from './consistent-type-exports';",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "export type { Type1 as \"🍎\" } from './consistent-type-exports';"
+      ],
+      "Errors": [
+        {
+          "MessageId": "typeOverValue",
+          "Line": 1,
+          "Column": 1,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "export { Type1, value1 } from './consistent-type-exports';",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "export type { Type1 } from './consistent-type-exports';\nexport { value1 } from './consistent-type-exports';"
+      ],
+      "Errors": [
+        {
+          "MessageId": "singleExportIsType",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nexport { Type1, value1, value2 } from './consistent-type-exports';\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nexport type { Type1 } from './consistent-type-exports';\nexport { value1, value2 } from './consistent-type-exports';\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "singleExportIsType",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nexport { Type1, value1, Type2, value2 } from './consistent-type-exports';\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nexport type { Type1, Type2 } from './consistent-type-exports';\nexport { value1, value2 } from './consistent-type-exports';\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "multipleExportsAreTypes",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "export { Type2 as Foo } from './consistent-type-exports';",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "export type { Type2 as Foo } from './consistent-type-exports';"
+      ],
+      "Errors": [
+        {
+          "MessageId": "typeOverValue",
+          "Line": 1,
+          "Column": 1,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nexport { Type2 as Foo, value1 } from './consistent-type-exports';\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nexport type { Type2 as Foo } from './consistent-type-exports';\nexport { value1 } from './consistent-type-exports';\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "singleExportIsType",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nexport {\n  Type2 as Foo,\n  value1 as BScope,\n  value2 as CScope,\n} from './consistent-type-exports';\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nexport type { Type2 as Foo } from './consistent-type-exports';\nexport { value1 as BScope, value2 as CScope } from './consistent-type-exports';\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "singleExportIsType",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nimport { Type2 } from './consistent-type-exports';\nexport { Type2 };\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nimport { Type2 } from './consistent-type-exports';\nexport type { Type2 };\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "typeOverValue",
+          "Line": 3,
+          "Column": 1,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nimport { value2, Type2 } from './consistent-type-exports';\nexport { value2, Type2 };\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nimport { value2, Type2 } from './consistent-type-exports';\nexport type { Type2 };\nexport { value2 };\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "singleExportIsType",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype Alias = 1;\ninterface IFace {}\nnamespace TypeNS {\n  export type x = 1;\n  export const f = 1;\n}\n\nexport { Alias, IFace, TypeNS };\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\ntype Alias = 1;\ninterface IFace {}\nnamespace TypeNS {\n  export type x = 1;\n  export const f = 1;\n}\n\nexport type { Alias, IFace };\nexport { TypeNS };\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "multipleExportsAreTypes",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nnamespace TypeNS {\n  export interface Foo {}\n}\n\nexport { TypeNS };\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nnamespace TypeNS {\n  export interface Foo {}\n}\n\nexport type { TypeNS };\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "typeOverValue",
+          "Line": 6,
+          "Column": 1,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype T = 1;\nexport { type T, T };\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\ntype T = 1;\nexport type { T, T };\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "typeOverValue",
+          "Line": 3,
+          "Column": 1,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype T = 1;\nexport { type/* */T, type     /* */T, T };\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\ntype T = 1;\nexport type { /* */T, /* */T, T };\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "typeOverValue",
+          "Line": 3,
+          "Column": 1,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype T = 1;\nconst x = 1;\nexport { type T, T, x };\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\ntype T = 1;\nconst x = 1;\nexport type { T, T };\nexport { x };\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "singleExportIsType",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype T = 1;\nconst x = 1;\nexport { T, x };\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\ntype T = 1;\nconst x = 1;\nexport { type T, x };\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "singleExportIsType",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "fixMixedExportsWithInlineTypeSpecifier": true
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype T = 1;\nexport { type T, T };\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\ntype T = 1;\nexport type { T, T };\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "typeOverValue",
+          "Line": 3,
+          "Column": 1,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "fixMixedExportsWithInlineTypeSpecifier": true
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nexport {\n  Type1,\n  Type2 as Foo,\n  type value1 as BScope,\n  value2 as CScope,\n} from './consistent-type-exports';\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nexport type { Type1, Type2 as Foo, value1 as BScope } from './consistent-type-exports';\nexport { value2 as CScope } from './consistent-type-exports';\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "multipleExportsAreTypes",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "fixMixedExportsWithInlineTypeSpecifier": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nexport {\n  Type1,\n  Type2 as Foo,\n  type value1 as BScope,\n  value2 as CScope,\n} from './consistent-type-exports';\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nexport {\n  type Type1,\n  type Type2 as Foo,\n  type value1 as BScope,\n  value2 as CScope,\n} from './consistent-type-exports';\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "multipleExportsAreTypes",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "fixMixedExportsWithInlineTypeSpecifier": true
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        export * from './consistent-type-exports/type-only-exports';\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        export type * from './consistent-type-exports/type-only-exports';\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "typeOverValue",
+          "Line": 2,
+          "Column": 9,
+          "EndLine": 2,
+          "EndColumn": 15,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        /* comment 1 */ export\n          /* comment 2 */ *\n            // comment 3\n            from './consistent-type-exports/type-only-exports';\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        /* comment 1 */ export\n          /* comment 2 */ type *\n            // comment 3\n            from './consistent-type-exports/type-only-exports';\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "typeOverValue",
+          "Line": 2,
+          "Column": 25,
+          "EndLine": 2,
+          "EndColumn": 31,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        export * from './consistent-type-exports/type-only-reexport';\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        export type * from './consistent-type-exports/type-only-reexport';\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "typeOverValue",
+          "Line": 2,
+          "Column": 9,
+          "EndLine": 2,
+          "EndColumn": 15,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        export * as foo from './consistent-type-exports/type-only-reexport';\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        export type * as foo from './consistent-type-exports/type-only-reexport';\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "typeOverValue",
+          "Line": 2,
+          "Column": 9,
+          "EndLine": 2,
+          "EndColumn": 15,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        import type * as Foo from './consistent-type-exports';\n        type Foo = 1;\n        export { Foo };\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        import type * as Foo from './consistent-type-exports';\n        type Foo = 1;\n        export type { Foo };\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "typeOverValue",
+          "Line": 4,
+          "Column": 9,
+          "EndLine": 4,
+          "EndColumn": 15,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        import { type NAME as Foo } from './consistent-type-exports';\n        export { Foo };\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        import { type NAME as Foo } from './consistent-type-exports';\n        export type { Foo };\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "typeOverValue",
+          "Line": 3,
+          "Column": 9,
+          "EndLine": 3,
+          "EndColumn": 15,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    }
+  ]
+}

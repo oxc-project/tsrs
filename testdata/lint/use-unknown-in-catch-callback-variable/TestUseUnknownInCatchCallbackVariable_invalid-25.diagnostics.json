@@ -1,0 +1,113 @@
+[
+  {
+    "kind": 0,
+    "rule": "use-unknown-in-catch-callback-variable",
+    "message": {
+      "id": "useUnknown",
+      "description": "Prefer the safe `: unknown` for a `catch` callback variable."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 196,
+      "end": 199
+    },
+    "suggestions": [
+      {
+        "message": {
+          "id": "addUnknownTypeAnnotationSuggestion",
+          "description": "Add an explicit `: unknown` type annotation to the rejection callback variable."
+        },
+        "fixes": [
+          {
+            "text": "(",
+            "range": {
+              "pos": 196,
+              "end": 196
+            }
+          },
+          {
+            "text": ": unknown)",
+            "range": {
+              "pos": 199,
+              "end": 199
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "file_path": "file.ts",
+    "range": {
+      "pos": 229,
+      "end": 232
+    },
+    "suggestions": [
+      {
+        "message": {
+          "id": "addUnknownTypeAnnotationSuggestion",
+          "description": "Add an explicit `: unknown` type annotation to the rejection callback variable."
+        },
+        "fixes": [
+          {
+            "text": "(",
+            "range": {
+              "pos": 229,
+              "end": 229
+            }
+          },
+          {
+            "text": ": unknown)",
+            "range": {
+              "pos": 232,
+              "end": 232
+            }
+          }
+        ]
+      }
+    ],
+    "kind": 0,
+    "rule": "use-unknown-in-catch-callback-variable",
+    "message": {
+      "id": "useUnknown",
+      "description": "Prefer the safe `: unknown` for a `catch` callback variable."
+    }
+  },
+  {
+    "suggestions": [
+      {
+        "message": {
+          "id": "addUnknownTypeAnnotationSuggestion",
+          "description": "Add an explicit `: unknown` type annotation to the rejection callback variable."
+        },
+        "fixes": [
+          {
+            "text": "(",
+            "range": {
+              "pos": 245,
+              "end": 245
+            }
+          },
+          {
+            "text": ": unknown)",
+            "range": {
+              "pos": 248,
+              "end": 248
+            }
+          }
+        ]
+      }
+    ],
+    "kind": 0,
+    "rule": "use-unknown-in-catch-callback-variable",
+    "message": {
+      "id": "useUnknown",
+      "description": "Prefer the safe `: unknown` for a `catch` callback variable."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 245,
+      "end": 248
+    }
+  }
+]

@@ -1,0 +1,25 @@
+[
+  {
+    "kind": 0,
+    "range": {
+      "pos": 101,
+      "end": 116
+    },
+    "message": {
+      "id": "preferReadonly",
+      "description": "Member 'testObj' is never reassigned.",
+      "help": "Mark it as `readonly`."
+    },
+    "file_path": "file.ts",
+    "rule": "prefer-readonly",
+    "fixes": [
+      {
+        "text": "readonly ",
+        "range": {
+          "pos": 109,
+          "end": 109
+        }
+      }
+    ]
+  }
+]

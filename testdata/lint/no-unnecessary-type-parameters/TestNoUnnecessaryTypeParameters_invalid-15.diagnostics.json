@@ -1,0 +1,62 @@
+[
+  {
+    "message": {
+      "id": "sole",
+      "description": "Type parameter T is used only once in the function signature."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 14,
+      "end": 15
+    },
+    "suggestions": [
+      {
+        "message": {
+          "id": "replaceUsagesWithConstraint",
+          "description": "Replace all usages of type parameter with its constraint."
+        },
+        "fixes": [
+          {
+            "text": "unknown",
+            "range": {
+              "pos": 20,
+              "end": 21
+            }
+          },
+          {
+            "text": "unknown",
+            "range": {
+              "pos": 56,
+              "end": 57
+            }
+          },
+          {
+            "text": "unknown",
+            "range": {
+              "pos": 78,
+              "end": 79
+            }
+          },
+          {
+            "text": "",
+            "range": {
+              "end": 16,
+              "pos": 13
+            }
+          }
+        ]
+      }
+    ],
+    "labeled_ranges": [
+      {
+        "label": "This is the only usage of type parameter T in the signature.",
+        "range": {
+          "pos": 20,
+          "end": 21
+        }
+      }
+    ],
+    "kind": 0,
+    "rule": "no-unnecessary-type-parameters"
+  }
+]

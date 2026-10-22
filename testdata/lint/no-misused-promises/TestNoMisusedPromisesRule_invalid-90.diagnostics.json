@@ -1,0 +1,60 @@
+[
+  {
+    "range": {
+      "pos": 85,
+      "end": 87
+    },
+    "labeled_ranges": [
+      {
+        "label": "This callback has type `() => Promise<void>`.",
+        "range": {
+          "pos": 85,
+          "end": 87
+        }
+      },
+      {
+        "label": "This context accepts a `void`-returning callback through type `() => void`.",
+        "range": {
+          "pos": 47,
+          "end": 64
+        }
+      }
+    ],
+    "kind": 0,
+    "rule": "no-misused-promises",
+    "message": {
+      "id": "voidReturnArgument",
+      "description": "Promise returned in function argument where a void return was expected."
+    },
+    "file_path": "file.ts"
+  },
+  {
+    "file_path": "file.ts",
+    "range": {
+      "pos": 101,
+      "end": 103
+    },
+    "labeled_ranges": [
+      {
+        "range": {
+          "pos": 101,
+          "end": 103
+        },
+        "label": "This callback has type `() => Promise<void>`."
+      },
+      {
+        "label": "This context accepts a `void`-returning callback through type `() => void`.",
+        "range": {
+          "pos": 47,
+          "end": 64
+        }
+      }
+    ],
+    "kind": 0,
+    "rule": "no-misused-promises",
+    "message": {
+      "id": "voidReturnArgument",
+      "description": "Promise returned in function argument where a void return was expected."
+    }
+  }
+]

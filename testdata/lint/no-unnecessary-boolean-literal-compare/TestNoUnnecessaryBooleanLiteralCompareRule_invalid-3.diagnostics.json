@@ -1,0 +1,31 @@
+[
+  {
+    "range": {
+      "end": 66,
+      "pos": 50
+    },
+    "fixes": [
+      {
+        "text": "varTrue",
+        "range": {
+          "end": 66,
+          "pos": 50
+        }
+      },
+      {
+        "text": "!",
+        "range": {
+          "pos": 50,
+          "end": 50
+        }
+      }
+    ],
+    "kind": 0,
+    "rule": "no-unnecessary-boolean-literal-compare",
+    "message": {
+      "id": "negated",
+      "description": "This expression unnecessarily compares a boolean value to a boolean instead of negating it."
+    },
+    "file_path": "file.ts"
+  }
+]

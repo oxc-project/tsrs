@@ -1,0 +1,40 @@
+[
+  {
+    "range": {
+      "pos": 15,
+      "end": 18
+    },
+    "fixes": [
+      {
+        "text": "",
+        "range": {
+          "pos": 15,
+          "end": 18
+        }
+      },
+      {
+        "text": "",
+        "range": {
+          "pos": 13,
+          "end": 14
+        }
+      }
+    ],
+    "labeled_ranges": [
+      {
+        "label": "Type 'any' is first declared here.",
+        "range": {
+          "pos": 9,
+          "end": 12
+        }
+      }
+    ],
+    "kind": 0,
+    "rule": "no-duplicate-type-constituents",
+    "message": {
+      "id": "duplicate",
+      "description": "Union type constituent is duplicated with  any."
+    },
+    "file_path": "file.ts"
+  }
+]

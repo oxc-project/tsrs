@@ -1,0 +1,1018 @@
+{
+  "Name": "use-unknown-in-catch-callback-variable",
+  "TSConfig": "tsconfig.minimal.json",
+  "Valid": [
+    {
+      "Code": "\n      Promise.resolve().catch((err: unknown) => {\n        throw err;\n      });\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      let x = Math.random() ? 'ca' + 'tch' : 'catch';\n      Promise.resolve()[x]((err: Error) => {});\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      Promise.resolve().then(\n        () => {},\n        (err: unknown) => {\n          throw err;\n        },\n      );\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      Promise.resolve().catch(() => {\n        throw new Error();\n      });\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      Promise.reject(new Error()).catch(\"not this rule's problem\");\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      declare const crappyHandler: (() => void) | 2;\n      Promise.reject(new Error()).catch(crappyHandler);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      Promise.resolve().catch((...args: [unknown]) => {\n        throw args[0];\n      });\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      Promise.resolve().catch((...args: [a: unknown]) => {\n        const err = args[0];\n      });\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      Promise.resolve().catch((...args: readonly unknown[]) => {\n        throw args[0];\n      });\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      declare const notAPromise: { catch: (f: Function) => void };\n      notAPromise.catch((...args: [a: string, string]) => {\n        throw args[0];\n      });\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      declare const catchArgs: [(x: unknown) => void];\n      Promise.reject(new Error()).catch(...catchArgs);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      declare const catchArgs: [\n        string | (() => never),\n        (shouldntFlag: string) => void,\n        number,\n      ];\n      Promise.reject(new Error()).catch(...catchArgs);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      declare const catchArgs: ['not callable'];\n      Promise.reject(new Error()).catch(...catchArgs);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      declare const emptySpread: [];\n      Promise.reject(new Error()).catch(...emptySpread);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      Promise.resolve().catch(\n        (\n          ...err: [unknown, string | ((number | unknown) & { b: () => void }), string]\n        ) => {\n          throw err;\n        },\n      );\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      declare const notAMemberExpression: (...args: any[]) => {};\n      notAMemberExpression(\n        'This helps get 100% code cov',\n        \"but doesn't test anything useful related to the rule.\",\n      );\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      Promise.resolve().catch((...[args]: [unknown]) => {\n        console.log(args);\n      });\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      Promise.resolve().catch((...{ find }: [unknown]) => {\n        console.log(find);\n      });\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "Promise.resolve.then();",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "Promise.resolve().then(() => {});",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      declare const singleTupleArg: [() => void];\n      Promise.resolve().then(...singleTupleArg, (error: unknown) => {});\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      declare const arrayArg: (() => void)[];\n      Promise.resolve().then(...arrayArg, error => {});\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare let iPromiseImAPromise: Promise<any>;\ndeclare const catchArgs: [(x: any) => void];\niPromiseImAPromise.catch(...catchArgs);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const catchArgs: [\n  string | (() => never) | ((x: string) => void),\n  number,\n];\nPromise.reject(new Error()).catch(...catchArgs);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const you: [];\ndeclare const cannot: [];\ndeclare const fool: [];\ndeclare const me: [(x: Error) => void] | undefined;\nPromise.resolve(undefined).catch(...you, ...cannot, ...fool, ...me!);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const really: undefined[];\ndeclare const dumb: [];\ndeclare const code: (x: Error) => void;\nPromise.resolve(undefined).catch(...really, ...dumb, code);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const x: ((x: any) => string)[];\nPromise.resolve('string promise').catch(...x);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const x: any;\nPromise.resolve().catch(...x);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const thenArgs: [() => {}, (err: any) => {}];\nPromise.resolve().then(...thenArgs);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const yoloHandler: (x: any) => void;\nPromise.reject(new Error('I will reject!')).catch(yoloHandler);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype InvalidHandler = (arg: any) => void;\nPromise.resolve().catch(<InvalidHandler>(\n  function (err /* awkward spot for comment */) {\n    throw err;\n  }\n));\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    }
+  ],
+  "Invalid": [
+    {
+      "Code": "\nPromise.resolve().catch((err: Error) => {\n  throw err;\n});\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "useUnknown",
+          "Line": 2,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "wrongTypeAnnotationSuggestion",
+              "Output": "\nPromise.resolve().catch((err: unknown) => {\n  throw err;\n});\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        let method = 'catch';\n        Promise.resolve()[method]((error: Error) => {});\n      ",
+      "Only": false,
+      "Skip": true,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "useUnknown",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "wrongTypeAnnotationSuggestion",
+              "Output": "\n        let method = 'catch';\n        Promise.resolve()[method]((error: unknown) => {});\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nPromise.resolve().catch((e, ...rest: []) => {\n  throw err;\n});\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "useUnknown",
+          "Line": 2,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "addUnknownTypeAnnotationSuggestion",
+              "Output": "\nPromise.resolve().catch((e: unknown, ...rest: []) => {\n  throw err;\n});\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nPromise.resolve().catch(\n  (err: string | ((number | unknown) & { b: () => void })) => {\n    throw err;\n  },\n);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "useUnknown",
+          "Line": 3,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "wrongTypeAnnotationSuggestion",
+              "Output": "\nPromise.resolve().catch(\n  (err: unknown) => {\n    throw err;\n  },\n);\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nPromise.resolve().catch(\n  (\n    ...err: [\n      unknown[],\n      string | ((number | unknown) & { b: () => void }),\n      string,\n    ]\n  ) => {\n    throw err;\n  },\n);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "useUnknown",
+          "Line": 4,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "wrongRestTypeAnnotationSuggestion",
+              "Output": "\nPromise.resolve().catch(\n  (\n    ...err: [unknown]\n  ) => {\n    throw err;\n  },\n);\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nPromise.resolve().catch(function (err: string) {\n  throw err;\n});\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "useUnknown",
+          "Line": 2,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "wrongTypeAnnotationSuggestion",
+              "Output": "\nPromise.resolve().catch(function (err: unknown) {\n  throw err;\n});\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nPromise.resolve().catch(function (err /* awkward spot for comment */) {\n  throw err;\n});\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "useUnknown",
+          "Line": 2,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "addUnknownTypeAnnotationSuggestion",
+              "Output": "\nPromise.resolve().catch(function (err: unknown /* awkward spot for comment */) {\n  throw err;\n});\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nPromise.resolve().catch(function namedCallback(err: string) {\n  throw err;\n});\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "useUnknown",
+          "Line": 2,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "wrongTypeAnnotationSuggestion",
+              "Output": "\nPromise.resolve().catch(function namedCallback(err: unknown) {\n  throw err;\n});\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nPromise.resolve().catch(err => {\n  throw err;\n});\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "useUnknown",
+          "Line": 2,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "addUnknownTypeAnnotationSuggestion",
+              "Output": "\nPromise.resolve().catch((err: unknown) => {\n  throw err;\n});\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nPromise.resolve().then(\n  () => {},\n  error => {},\n);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "useUnknown",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "addUnknownTypeAnnotationSuggestion",
+              "Output": "\nPromise.resolve().then(\n  () => {},\n  (error: unknown) => {},\n);\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nPromise.resolve().catch((err?) => {\n  throw err;\n});\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "useUnknown",
+          "Line": 2,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "addUnknownTypeAnnotationSuggestion",
+              "Output": "\nPromise.resolve().catch((err?: unknown) => {\n  throw err;\n});\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nPromise.resolve().catch((err?: string) => {\n  throw err;\n});\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "useUnknown",
+          "Line": 2,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "wrongTypeAnnotationSuggestion",
+              "Output": "\nPromise.resolve().catch((err?: unknown) => {\n  throw err;\n});\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nPromise.resolve().catch(err/* with comment */=> {\n  throw err;\n});\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "useUnknown",
+          "Line": 2,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "addUnknownTypeAnnotationSuggestion",
+              "Output": "\nPromise.resolve().catch((err: unknown)/* with comment */=> {\n  throw err;\n});\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nPromise.resolve().catch((err = 2) => {\n  throw err;\n});\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "useUnknown",
+          "Line": 2,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "addUnknownTypeAnnotationSuggestion",
+              "Output": "\nPromise.resolve().catch((err: unknown = 2) => {\n  throw err;\n});\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nPromise.resolve().catch((err: any /* comment 1 */ = /* comment 2 */ 2) => {\n  throw err;\n});\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "useUnknown",
+          "Line": 2,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "wrongTypeAnnotationSuggestion",
+              "Output": "\nPromise.resolve().catch((err: unknown /* comment 1 */ = /* comment 2 */ 2) => {\n  throw err;\n});\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nPromise.resolve().catch((...args) => {\n  throw args[0];\n});\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "useUnknown",
+          "Line": 2,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "addUnknownRestTypeAnnotationSuggestion",
+              "Output": "\nPromise.resolve().catch((...args: [unknown]) => {\n  throw args[0];\n});\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nPromise.reject(new Error('I will reject!')).catch(([err]: [unknown]) => {\n  console.log(err);\n});\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "useUnknownArrayDestructuringPattern",
+          "Line": 2,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nPromise.resolve(' a string ').catch(\n  (a: any, b: () => any, c: (x: string & number) => void) => {},\n);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "useUnknown",
+          "Line": 3,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "wrongTypeAnnotationSuggestion",
+              "Output": "\nPromise.resolve(' a string ').catch(\n  (a: unknown, b: () => any, c: (x: string & number) => void) => {},\n);\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nPromise.resolve('object destructuring').catch(({}) => {});\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "useUnknownObjectDestructuringPattern",
+          "Line": 2,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nPromise.resolve('object destructuring').catch(function ({ gotcha }) {\n  return null;\n});\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "useUnknownObjectDestructuringPattern",
+          "Line": 2,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nPromise.resolve()['catch']((x: any) => 'return');\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "useUnknown",
+          "Line": 2,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "wrongTypeAnnotationSuggestion",
+              "Output": "\nPromise.resolve()['catch']((x: unknown) => 'return');\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nPromise.reject().catch((...x: any) => {});\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "useUnknown",
+          "Line": 2,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "wrongRestTypeAnnotationSuggestion",
+              "Output": "\nPromise.reject().catch((...x: [unknown]) => {});\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nPromise.resolve().catch((...[args]: [string]) => {\n  console.log(args);\n});\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "useUnknown",
+          "Line": 2,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "wrongRestTypeAnnotationSuggestion",
+              "Output": "\nPromise.resolve().catch((...[args]: [unknown]) => {\n  console.log(args);\n});\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nPromise.resolve().catch((...{ find }: [string]) => {\n  console.log(find);\n});\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "useUnknown",
+          "Line": 2,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "wrongRestTypeAnnotationSuggestion",
+              "Output": "\nPromise.resolve().catch((...{ find }: [unknown]) => {\n  console.log(find);\n});\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const condition: boolean;\nPromise.resolve('foo').then(() => {}, condition ? err => {} : err => {});\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "useUnknown",
+          "Line": 3,
+          "Column": 51,
+          "EndLine": 3,
+          "EndColumn": 54,
+          "Suggestions": [
+            {
+              "MessageId": "addUnknownTypeAnnotationSuggestion",
+              "Output": "\ndeclare const condition: boolean;\nPromise.resolve('foo').then(() => {}, condition ? (err: unknown) => {} : err => {});\n      "
+            }
+          ]
+        },
+        {
+          "MessageId": "useUnknown",
+          "Line": 3,
+          "Column": 63,
+          "EndLine": 3,
+          "EndColumn": 66,
+          "Suggestions": [
+            {
+              "MessageId": "addUnknownTypeAnnotationSuggestion",
+              "Output": "\ndeclare const condition: boolean;\nPromise.resolve('foo').then(() => {}, condition ? err => {} : (err: unknown) => {});\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const condition: boolean;\ndeclare const maybeNullishHandler: null | ((err: any) => void);\nPromise.resolve('foo').catch(\n  condition\n    ? ((err => {}, err => {}, maybeNullishHandler) ?? (err => {}))\n    : (condition && (err => {})) || (err => {}),\n);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "useUnknown",
+          "Line": 6,
+          "Column": 56,
+          "EndLine": 6,
+          "EndColumn": 59,
+          "Suggestions": [
+            {
+              "MessageId": "addUnknownTypeAnnotationSuggestion",
+              "Output": "\ndeclare const condition: boolean;\ndeclare const maybeNullishHandler: null | ((err: any) => void);\nPromise.resolve('foo').catch(\n  condition\n    ? ((err => {}, err => {}, maybeNullishHandler) ?? ((err: unknown) => {}))\n    : (condition && (err => {})) || (err => {}),\n);\n      "
+            }
+          ]
+        },
+        {
+          "MessageId": "useUnknown",
+          "Line": 7,
+          "Column": 22,
+          "EndLine": 7,
+          "EndColumn": 25,
+          "Suggestions": [
+            {
+              "MessageId": "addUnknownTypeAnnotationSuggestion",
+              "Output": "\ndeclare const condition: boolean;\ndeclare const maybeNullishHandler: null | ((err: any) => void);\nPromise.resolve('foo').catch(\n  condition\n    ? ((err => {}, err => {}, maybeNullishHandler) ?? (err => {}))\n    : (condition && ((err: unknown) => {})) || (err => {}),\n);\n      "
+            }
+          ]
+        },
+        {
+          "MessageId": "useUnknown",
+          "Line": 7,
+          "Column": 38,
+          "EndLine": 7,
+          "EndColumn": 41,
+          "Suggestions": [
+            {
+              "MessageId": "addUnknownTypeAnnotationSuggestion",
+              "Output": "\ndeclare const condition: boolean;\ndeclare const maybeNullishHandler: null | ((err: any) => void);\nPromise.resolve('foo').catch(\n  condition\n    ? ((err => {}, err => {}, maybeNullishHandler) ?? (err => {}))\n    : (condition && (err => {})) || ((err: unknown) => {}),\n);\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    }
+  ]
+}

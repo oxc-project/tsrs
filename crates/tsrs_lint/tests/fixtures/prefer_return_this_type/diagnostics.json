@@ -1,0 +1,244 @@
+[
+  {
+    "kind": 0,
+    "range": {
+      "pos": 51,
+      "end": 59
+    },
+    "message": {
+      "id": "useThisType",
+      "description": "Use `this` type instead."
+    },
+    "file_path": "first.ts",
+    "rule": "prefer-return-this-type",
+    "fixes": [
+      {
+        "text": "this",
+        "range": {
+          "pos": 51,
+          "end": 59
+        }
+      }
+    ]
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 99,
+      "end": 107
+    },
+    "message": {
+      "id": "useThisType",
+      "description": "Use `this` type instead."
+    },
+    "file_path": "first.ts",
+    "rule": "prefer-return-this-type",
+    "fixes": [
+      {
+        "text": "this",
+        "range": {
+          "pos": 99,
+          "end": 107
+        }
+      }
+    ]
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 306,
+      "end": 314
+    },
+    "message": {
+      "id": "useThisType",
+      "description": "Use `this` type instead."
+    },
+    "file_path": "first.ts",
+    "rule": "prefer-return-this-type",
+    "fixes": [
+      {
+        "text": "this",
+        "range": {
+          "pos": 306,
+          "end": 314
+        }
+      }
+    ]
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 614,
+      "end": 622
+    },
+    "message": {
+      "id": "useThisType",
+      "description": "Use `this` type instead."
+    },
+    "file_path": "first.ts",
+    "rule": "prefer-return-this-type",
+    "fixes": [
+      {
+        "text": "this",
+        "range": {
+          "pos": 614,
+          "end": 622
+        }
+      }
+    ]
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 660,
+      "end": 668
+    },
+    "message": {
+      "id": "useThisType",
+      "description": "Use `this` type instead."
+    },
+    "file_path": "first.ts",
+    "rule": "prefer-return-this-type",
+    "fixes": [
+      {
+        "text": "this",
+        "range": {
+          "pos": 660,
+          "end": 668
+        }
+      }
+    ]
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 743,
+      "end": 751
+    },
+    "message": {
+      "id": "useThisType",
+      "description": "Use `this` type instead."
+    },
+    "file_path": "first.ts",
+    "rule": "prefer-return-this-type",
+    "fixes": [
+      {
+        "text": "this",
+        "range": {
+          "pos": 743,
+          "end": 751
+        }
+      }
+    ]
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 977,
+      "end": 980
+    },
+    "message": {
+      "id": "useThisType",
+      "description": "Use `this` type instead."
+    },
+    "file_path": "first.ts",
+    "rule": "prefer-return-this-type",
+    "fixes": [
+      {
+        "text": "this",
+        "range": {
+          "pos": 977,
+          "end": 980
+        }
+      }
+    ]
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 77,
+      "end": 82
+    },
+    "message": {
+      "id": "useThisType",
+      "description": "Use `this` type instead."
+    },
+    "file_path": "second.ts",
+    "rule": "prefer-return-this-type",
+    "fixes": [
+      {
+        "text": "this",
+        "range": {
+          "pos": 77,
+          "end": 82
+        }
+      }
+    ]
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 113,
+      "end": 118
+    },
+    "message": {
+      "id": "useThisType",
+      "description": "Use `this` type instead."
+    },
+    "file_path": "second.ts",
+    "rule": "prefer-return-this-type",
+    "fixes": [
+      {
+        "text": "this",
+        "range": {
+          "pos": 113,
+          "end": 118
+        }
+      }
+    ]
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 174,
+      "end": 179
+    },
+    "message": {
+      "id": "useThisType",
+      "description": "Use `this` type instead."
+    },
+    "file_path": "second.ts",
+    "rule": "prefer-return-this-type",
+    "fixes": [
+      {
+        "text": "this",
+        "range": {
+          "pos": 174,
+          "end": 179
+        }
+      }
+    ]
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 337,
+      "end": 342
+    },
+    "message": {
+      "id": "useThisType",
+      "description": "Use `this` type instead."
+    },
+    "file_path": "second.ts",
+    "rule": "prefer-return-this-type",
+    "fixes": [
+      {
+        "text": "this",
+        "range": {
+          "pos": 337,
+          "end": 342
+        }
+      }
+    ]
+  }
+]

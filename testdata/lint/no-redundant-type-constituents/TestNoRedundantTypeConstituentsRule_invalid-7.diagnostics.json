@@ -1,0 +1,15 @@
+[
+  {
+    "message": {
+      "id": "overridden",
+      "description": "'never' is overridden by other types in this union type."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 9,
+      "end": 14
+    },
+    "kind": 0,
+    "rule": "no-redundant-type-constituents"
+  }
+]

@@ -1,0 +1,32 @@
+[
+  {
+    "message": {
+      "id": "preferOptionalChain",
+      "description": "Prefer using an optional chain expression instead, as it's more concise and easier to read."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 0,
+      "end": 28
+    },
+    "suggestions": [
+      {
+        "message": {
+          "id": "optionalChainSuggest",
+          "description": "Change to an optional chain."
+        },
+        "fixes": [
+          {
+            "text": "(foo ?? undefined)?.bar",
+            "range": {
+              "end": 28,
+              "pos": 0
+            }
+          }
+        ]
+      }
+    ],
+    "kind": 0,
+    "rule": "prefer-optional-chain"
+  }
+]

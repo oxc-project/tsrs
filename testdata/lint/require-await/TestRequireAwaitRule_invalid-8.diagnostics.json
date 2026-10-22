@@ -1,0 +1,32 @@
+[
+  {
+    "rule": "require-await",
+    "message": {
+      "id": "missingAwait",
+      "description": "Function has no 'await' expression."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 1,
+      "end": 31
+    },
+    "suggestions": [
+      {
+        "message": {
+          "id": "removeAsync",
+          "description": "Remove 'async'."
+        },
+        "fixes": [
+          {
+            "text": "",
+            "range": {
+              "pos": 1,
+              "end": 7
+            }
+          }
+        ]
+      }
+    ],
+    "kind": 0
+  }
+]

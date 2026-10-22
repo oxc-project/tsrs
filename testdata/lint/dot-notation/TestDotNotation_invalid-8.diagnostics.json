@@ -1,0 +1,31 @@
+[
+  {
+    "kind": 0,
+    "rule": "dot-notation",
+    "message": {
+      "id": "useDot",
+      "description": "[\"c\"] is better written in dot notation."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 4,
+      "end": 7
+    },
+    "fixes": [
+      {
+        "text": ".",
+        "range": {
+          "pos": 3,
+          "end": 3
+        }
+      },
+      {
+        "text": "c",
+        "range": {
+          "pos": 3,
+          "end": 8
+        }
+      }
+    ]
+  }
+]

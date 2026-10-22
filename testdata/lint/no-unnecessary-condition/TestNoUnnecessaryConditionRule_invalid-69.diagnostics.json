@@ -1,0 +1,126 @@
+[
+  {
+    "kind": 0,
+    "range": {
+      "pos": 26,
+      "end": 34
+    },
+    "message": {
+      "id": "neverOptionalChain",
+      "description": "Unnecessary optional chain on a non-nullish value.",
+      "help": "The checked value has type `{ bar: boolean; }`. Remove the optional chain; the value cannot be `null` or `undefined`."
+    },
+    "file_path": "file.ts",
+    "rule": "no-unnecessary-condition",
+    "suggestions": [
+      {
+        "message": {
+          "id": "suggestRemoveOptionalChain",
+          "description": "Remove unnecessary optional chain"
+        },
+        "fixes": [
+          {
+            "text": ".",
+            "range": {
+              "pos": 29,
+              "end": 31
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 36,
+      "end": 46
+    },
+    "message": {
+      "id": "neverOptionalChain",
+      "description": "Unnecessary optional chain on a non-nullish value.",
+      "help": "The checked value has type `{ bar: boolean; }`. Remove the optional chain; the value cannot be `null` or `undefined`."
+    },
+    "file_path": "file.ts",
+    "rule": "no-unnecessary-condition",
+    "suggestions": [
+      {
+        "message": {
+          "id": "suggestRemoveOptionalChain",
+          "description": "Remove unnecessary optional chain"
+        },
+        "fixes": [
+          {
+            "text": ".",
+            "range": {
+              "pos": 40,
+              "end": 42
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 48,
+      "end": 60
+    },
+    "message": {
+      "id": "neverOptionalChain",
+      "description": "Unnecessary optional chain on a non-nullish value.",
+      "help": "The checked value has type `{ bar: boolean; }`. Remove the optional chain; the value cannot be `null` or `undefined`."
+    },
+    "file_path": "file.ts",
+    "rule": "no-unnecessary-condition",
+    "suggestions": [
+      {
+        "message": {
+          "id": "suggestRemoveOptionalChain",
+          "description": "Remove unnecessary optional chain"
+        },
+        "fixes": [
+          {
+            "text": ".",
+            "range": {
+              "pos": 52,
+              "end": 54
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 62,
+      "end": 74
+    },
+    "message": {
+      "id": "neverOptionalChain",
+      "description": "Unnecessary optional chain on a non-nullish value.",
+      "help": "The checked value has type `{ bar: boolean; }`. Remove the optional chain; the value cannot be `null` or `undefined`."
+    },
+    "file_path": "file.ts",
+    "rule": "no-unnecessary-condition",
+    "suggestions": [
+      {
+        "message": {
+          "id": "suggestRemoveOptionalChain",
+          "description": "Remove unnecessary optional chain"
+        },
+        "fixes": [
+          {
+            "text": ".",
+            "range": {
+              "pos": 68,
+              "end": 70
+            }
+          }
+        ]
+      }
+    ]
+  }
+]

@@ -1,0 +1,15 @@
+[
+  {
+    "kind": 0,
+    "rule": "no-misused-spread",
+    "message": {
+      "id": "noClassDeclarationSpreadInObject",
+      "description": "Using the spread operator on class declarations will spread only their static properties, and will lose their class prototype."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 50,
+      "end": 54
+    }
+  }
+]

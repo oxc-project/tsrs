@@ -1,0 +1,24 @@
+[
+  {
+    "file_path": "file.ts",
+    "range": {
+      "pos": 6,
+      "end": 11
+    },
+    "fixes": [
+      {
+        "text": "bar",
+        "range": {
+          "pos": 5,
+          "end": 12
+        }
+      }
+    ],
+    "kind": 0,
+    "rule": "dot-notation",
+    "message": {
+      "id": "useDot",
+      "description": "[\"bar\"] is better written in dot notation."
+    }
+  }
+]

@@ -1,0 +1,15 @@
+[
+  {
+    "range": {
+      "end": 62,
+      "pos": 49
+    },
+    "kind": 0,
+    "rule": "strict-void-return",
+    "message": {
+      "id": "nonVoidReturn",
+      "description": "Value returned in a context where a void return is expected."
+    },
+    "file_path": "file.ts"
+  }
+]

@@ -1,0 +1,28 @@
+[
+  {
+    "kind": 0,
+    "rule": "consistent-return",
+    "message": {
+      "id": "unexpectedReturnValue",
+      "description": "Function 'baz' expected no return value."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 168,
+      "end": 185
+    }
+  },
+  {
+    "range": {
+      "pos": 242,
+      "end": 249
+    },
+    "kind": 0,
+    "rule": "consistent-return",
+    "message": {
+      "id": "missingReturnValue",
+      "description": "Function 'bar' expected a return value."
+    },
+    "file_path": "file.ts"
+  }
+]

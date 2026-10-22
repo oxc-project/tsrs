@@ -1,0 +1,15 @@
+[
+  {
+    "rule": "only-throw-error",
+    "message": {
+      "id": "object",
+      "description": "Expected an error object to be thrown."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 6,
+      "end": 30
+    },
+    "kind": 0
+  }
+]

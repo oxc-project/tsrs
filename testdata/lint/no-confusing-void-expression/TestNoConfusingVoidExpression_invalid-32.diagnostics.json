@@ -1,0 +1,32 @@
+[
+  {
+    "range": {
+      "end": 18,
+      "pos": 0
+    },
+    "suggestions": [
+      {
+        "message": {
+          "id": "voidExprWrapVoid",
+          "description": "Mark with an explicit `void` operator."
+        },
+        "fixes": [
+          {
+            "text": "void ",
+            "range": {
+              "pos": 0,
+              "end": 0
+            }
+          }
+        ]
+      }
+    ],
+    "kind": 0,
+    "rule": "no-confusing-void-expression",
+    "message": {
+      "id": "invalidVoidExprWrapVoid",
+      "description": "Void expressions used inside another expression must be moved to its own statement or marked explicitly with the `void` operator."
+    },
+    "file_path": "file.ts"
+  }
+]

@@ -1,0 +1,31 @@
+[
+  {
+    "kind": 0,
+    "rule": "no-unnecessary-boolean-literal-compare",
+    "message": {
+      "id": "comparingNullableToTrueNegated",
+      "description": "This expression unnecessarily compares a nullable boolean value to true instead of negating it."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "end": 88,
+      "pos": 65
+    },
+    "fixes": [
+      {
+        "text": "varFalseOrNull",
+        "range": {
+          "pos": 65,
+          "end": 88
+        }
+      },
+      {
+        "text": "!",
+        "range": {
+          "pos": 65,
+          "end": 65
+        }
+      }
+    ]
+  }
+]

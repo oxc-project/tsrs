@@ -1,0 +1,24 @@
+[
+  {
+    "kind": 0,
+    "range": {
+      "pos": 142,
+      "end": 153
+    },
+    "message": {
+      "id": "contextuallyUnnecessary",
+      "description": "This assertion is unnecessary since the receiver accepts the original type of the expression."
+    },
+    "file_path": "file.ts",
+    "rule": "no-unnecessary-type-assertion",
+    "fixes": [
+      {
+        "text": "",
+        "range": {
+          "pos": 143,
+          "end": 153
+        }
+      }
+    ]
+  }
+]

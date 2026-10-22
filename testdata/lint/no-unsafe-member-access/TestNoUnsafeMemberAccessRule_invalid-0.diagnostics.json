@@ -1,0 +1,15 @@
+[
+  {
+    "kind": 0,
+    "rule": "no-unsafe-member-access",
+    "message": {
+      "id": "unsafeMemberExpression",
+      "description": "Unsafe member access .a on an `any` value."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 28,
+      "end": 29
+    }
+  }
+]

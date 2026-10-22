@@ -1,0 +1,15 @@
+[
+  {
+    "kind": 0,
+    "rule": "no-deprecated",
+    "message": {
+      "id": "deprecated",
+      "description": "`normalVariable` is deprecated."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 68,
+      "end": 82
+    }
+  }
+]

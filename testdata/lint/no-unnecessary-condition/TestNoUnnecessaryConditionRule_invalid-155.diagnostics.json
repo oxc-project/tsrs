@@ -1,0 +1,16 @@
+[
+  {
+    "kind": 0,
+    "rule": "no-unnecessary-condition",
+    "message": {
+      "id": "noOverlapBooleanExpression",
+      "description": "This condition will always return the same value since the types have no overlap.",
+      "help": "The left side has type `string`, and the right side has type `undefined`."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 60,
+      "end": 69
+    }
+  }
+]

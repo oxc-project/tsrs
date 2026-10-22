@@ -1,0 +1,2600 @@
+{
+  "Name": "no-misused-spread",
+  "TSConfig": "tsconfig.minimal.json",
+  "Valid": [
+    {
+      "Code": "const a = [...[1, 2, 3]];",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "const a = [...([1, 2, 3] as const)];",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      declare const data: any;\n      const a = [...data];\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      declare const data: unknown;\n      const a = [...data];\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      const a = [1, 2, 3];\n      const b = [...a];\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      const a = [1, 2, 3] as const;\n      const b = [...a];\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      declare function getArray(): number[];\n      const a = [...getArray()];\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      declare function getTuple(): readonly number[];\n      const a = [...getTuple()];\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      const iterator = {\n        *[Symbol.iterator]() {\n          yield 1;\n          yield 2;\n          yield 3;\n        },\n      };\n\n      const a = [...iterator];\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      declare const data: Iterable<number> | number[];\n\n      const a = [...data];\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      declare const data: Iterable<number> & number[];\n\n      const a = [...data];\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      declare function getIterable(): Iterable<number>;\n\n      const a = [...getIterable()];\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      declare const data: Uint8Array;\n\n      const a = [...data];\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      declare const data: TypedArray;\n\n      const a = [...data];\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "const o = { ...{ a: 1, b: 2 } };",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "const o = { ...({ a: 1, b: 2 } as const) };",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      declare const obj: any;\n\n      const o = { ...obj };\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      declare const obj: { a: number; b: number } | any;\n\n      const o = { ...obj };\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      declare const obj: { a: number; b: number } & any;\n\n      const o = { ...obj };\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      const obj = { a: 1, b: 2 };\n      const o = { ...obj };\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      declare const obj: { a: number; b: number };\n      const o = { ...obj };\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      declare function getObject(): { a: number; b: number };\n      const o = { ...getObject() };\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      function f() {}\n\n      f.prop = 1;\n\n      const o = { ...f };\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      const f = () => {};\n\n      f.prop = 1;\n\n      const o = { ...f };\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      function* generator() {}\n\n      generator.prop = 1;\n\n      const o = { ...generator };\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      declare const promiseLike: PromiseLike<number>;\n\n      const o = { ...promiseLike };\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        const obj = { a: 1, b: 2 };\n        const o = <div {...x} />;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": true,
+      "Files": {}
+    },
+    {
+      "Code": "\n        declare const obj: { a: number; b: number } | any;\n        const o = <div {...x} />;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": true,
+      "Files": {}
+    },
+    {
+      "Code": "\n        const promise = new Promise(() => {});\n        const o = { ...promise };\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "allow": [
+          {
+            "from": "lib",
+            "name": [
+              "Promise"
+            ]
+          }
+        ]
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      interface A {}\n\n      declare const a: A;\n\n      const o = { ...a };\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      const o = { ...'test' };\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        const str: string = 'test';\n        const a = [...str];\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "allow": [
+          {
+            "name": [
+              "string"
+            ],
+            "from": "lib"
+          }
+        ]
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        function f() {}\n\n        const a = { ...f };\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "allow": [
+          {
+            "from": "file",
+            "name": [
+              "f"
+            ]
+          }
+        ]
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        declare const iterator: Iterable<string>;\n\n        const a = { ...iterator };\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "allow": [
+          {
+            "from": "lib",
+            "name": [
+              "Iterable"
+            ]
+          }
+        ]
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        type BrandedString = string & { __brand: 'safe' };\n\n        declare const brandedString: BrandedString;\n\n        const spreadBrandedString = [...brandedString];\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "allow": [
+          {
+            "from": "file",
+            "name": [
+              "BrandedString"
+            ]
+          }
+        ]
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        type CustomIterable = {\n          [Symbol.iterator]: () => Generator<string>;\n        };\n\n        declare const iterator: CustomIterable;\n\n        const a = { ...iterator };\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "allow": [
+          {
+            "name": [
+              "CustomIterable"
+            ],
+            "from": "file"
+          }
+        ]
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        type CustomIterable = {\n          [Symbol.iterator]: () => string;\n        };\n\n        declare const iterator: CustomIterable;\n\n        const a = { ...iterator };\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "allow": [
+          {
+            "from": "file",
+            "name": [
+              "CustomIterable"
+            ]
+          }
+        ]
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        declare module 'module' {\n          export type CustomIterable = {\n            [Symbol.iterator]: () => string;\n          };\n        }\n\n        import { CustomIterable } from 'module';\n\n        declare const iterator: CustomIterable;\n\n        const a = { ...iterator };\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "allow": [
+          {
+            "from": "package",
+            "name": [
+              "CustomIterable"
+            ],
+            "package": "module"
+          }
+        ]
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        class A {\n          a = 1;\n        }\n\n        const a = new A();\n\n        const o = { ...a };\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "allow": [
+          {
+            "from": "file",
+            "name": [
+              "A"
+            ]
+          }
+        ]
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        const a = {\n          ...class A {\n            static value = 1;\n          },\n        };\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "allow": [
+          {
+            "from": "file",
+            "name": [
+              "A"
+            ]
+          }
+        ]
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    }
+  ],
+  "Invalid": [
+    {
+      "Code": "const a = [...'test'];",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noStringSpread",
+          "Line": 1,
+          "Column": 12,
+          "EndLine": 0,
+          "EndColumn": 21,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        function withText<Text extends string>(text: Text) {\n          return [...text];\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noStringSpread",
+          "Line": 3,
+          "Column": 19,
+          "EndLine": 0,
+          "EndColumn": 26,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        const test = 'hello';\n        const a = [...test];\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noStringSpread",
+          "Line": 3,
+          "Column": 20,
+          "EndLine": 0,
+          "EndColumn": 27,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        const test = `he${'ll'}o`;\n        const a = [...test];\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noStringSpread",
+          "Line": 3,
+          "Column": 20,
+          "EndLine": 0,
+          "EndColumn": 27,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        declare const test: string;\n        const a = [...test];\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noStringSpread",
+          "Line": 3,
+          "Column": 20,
+          "EndLine": 0,
+          "EndColumn": 27,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        declare const test: string | number[];\n        const a = [...test];\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noStringSpread",
+          "Line": 3,
+          "Column": 20,
+          "EndLine": 0,
+          "EndColumn": 27,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        declare const test: string & { __brand: 'test' };\n        const a = [...test];\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noStringSpread",
+          "Line": 3,
+          "Column": 20,
+          "EndLine": 0,
+          "EndColumn": 27,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        declare const test: number | (boolean | (string & { __brand: true }));\n        const a = [...test];\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noStringSpread",
+          "Line": 3,
+          "Column": 20,
+          "EndLine": 0,
+          "EndColumn": 27,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        declare function getString(): string;\n        const a = [...getString()];\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noStringSpread",
+          "Line": 3,
+          "Column": 20,
+          "EndLine": 0,
+          "EndColumn": 34,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        declare function textIdentity(...args: string[]);\n\n        declare const text: string;\n\n        textIdentity(...text);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noStringSpread",
+          "Line": 6,
+          "Column": 22,
+          "EndLine": 0,
+          "EndColumn": 29,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        declare function textIdentity(...args: string[]);\n\n        declare const text: string;\n\n        textIdentity(...text, 'and', ...text);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noStringSpread",
+          "Line": 6,
+          "Column": 22,
+          "EndLine": 0,
+          "EndColumn": 29,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "noStringSpread",
+          "Line": 6,
+          "Column": 38,
+          "EndLine": 0,
+          "EndColumn": 45,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        declare function textIdentity(...args: string[]);\n\n        function withText<Text extends string>(text: Text) {\n          textIdentity(...text);\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noStringSpread",
+          "Line": 5,
+          "Column": 24,
+          "EndLine": 0,
+          "EndColumn": 31,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        declare function getString<T extends string>(): T;\n        const a = [...getString()];\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noStringSpread",
+          "Line": 3,
+          "Column": 20,
+          "EndLine": 0,
+          "EndColumn": 34,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        declare function getString(): string & { __brand: 'test' };\n        const a = [...getString()];\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noStringSpread",
+          "Line": 3,
+          "Column": 20,
+          "EndLine": 0,
+          "EndColumn": 34,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "const o = { ...[1, 2, 3] };",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noArraySpreadInObject",
+          "Line": 1,
+          "Column": 13,
+          "EndLine": 0,
+          "EndColumn": 25,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        const arr = [1, 2, 3];\n        const o = { ...arr };\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noArraySpreadInObject",
+          "Line": 3,
+          "Column": 21,
+          "EndLine": 0,
+          "EndColumn": 27,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        const arr = [1, 2, 3] as const;\n        const o = { ...arr };\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noArraySpreadInObject",
+          "Line": 3,
+          "Column": 21,
+          "EndLine": 0,
+          "EndColumn": 27,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        declare const arr: number[];\n        const o = { ...arr };\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noArraySpreadInObject",
+          "Line": 3,
+          "Column": 21,
+          "EndLine": 0,
+          "EndColumn": 27,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        declare const arr: readonly number[];\n        const o = { ...arr };\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noArraySpreadInObject",
+          "Line": 3,
+          "Column": 21,
+          "EndLine": 0,
+          "EndColumn": 27,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        declare const arr: number[] | string[];\n        const o = { ...arr };\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noArraySpreadInObject",
+          "Line": 3,
+          "Column": 21,
+          "EndLine": 0,
+          "EndColumn": 27,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        declare const arr: number[] & string[];\n        const o = { ...arr };\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noArraySpreadInObject",
+          "Line": 3,
+          "Column": 21,
+          "EndLine": 0,
+          "EndColumn": 27,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        declare function getArray(): number[];\n        const o = { ...getArray() };\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noArraySpreadInObject",
+          "Line": 3,
+          "Column": 21,
+          "EndLine": 0,
+          "EndColumn": 34,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        declare function getArray(): readonly number[];\n        const o = { ...getArray() };\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noArraySpreadInObject",
+          "Line": 3,
+          "Column": 21,
+          "EndLine": 0,
+          "EndColumn": 34,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "const o = { ...new Set([1, 2, 3]) };",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noIterableSpreadInObject",
+          "Line": 1,
+          "Column": 13,
+          "EndLine": 0,
+          "EndColumn": 34,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        const set = new Set([1, 2, 3]);\n        const o = { ...set };\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noIterableSpreadInObject",
+          "Line": 3,
+          "Column": 21,
+          "EndLine": 0,
+          "EndColumn": 27,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        declare const set: Set<number>;\n        const o = { ...set };\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noIterableSpreadInObject",
+          "Line": 3,
+          "Column": 21,
+          "EndLine": 0,
+          "EndColumn": 27,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        declare const set: WeakSet<object>;\n        const o = { ...set };\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noClassInstanceSpreadInObject",
+          "Line": 3,
+          "Column": 21,
+          "EndLine": 0,
+          "EndColumn": 27,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        declare const set: ReadonlySet<number>;\n        const o = { ...set };\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noIterableSpreadInObject",
+          "Line": 3,
+          "Column": 21,
+          "EndLine": 0,
+          "EndColumn": 27,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        declare const set: Set<number> | { a: number };\n        const o = { ...set };\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noIterableSpreadInObject",
+          "Line": 3,
+          "Column": 21,
+          "EndLine": 0,
+          "EndColumn": 27,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        declare function getSet(): Set<number>;\n        const o = { ...getSet() };\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noIterableSpreadInObject",
+          "Line": 3,
+          "Column": 21,
+          "EndLine": 0,
+          "EndColumn": 32,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        const o = {\n          ...new Map([\n            ['test-1', 1],\n            ['test-2', 2],\n          ]),\n        };\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noMapSpreadInObject",
+          "Line": 3,
+          "Column": 11,
+          "EndLine": 6,
+          "EndColumn": 13,
+          "Suggestions": [
+            {
+              "MessageId": "replaceMapSpreadInObject",
+              "Output": "\n        const o = \n          Object.fromEntries(new Map([\n            ['test-1', 1],\n            ['test-2', 2],\n          ]))\n        ;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        const map = new Map([\n          ['test-1', 1],\n          ['test-2', 2],\n        ]);\n\n        const o = { ...map };\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noMapSpreadInObject",
+          "Line": 7,
+          "Column": 21,
+          "EndLine": 0,
+          "EndColumn": 27,
+          "Suggestions": [
+            {
+              "MessageId": "replaceMapSpreadInObject",
+              "Output": "\n        const map = new Map([\n          ['test-1', 1],\n          ['test-2', 2],\n        ]);\n\n        const o =  Object.fromEntries(map) ;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        declare const map: Map<string, number>;\n        const o = { ...map };\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noMapSpreadInObject",
+          "Line": 3,
+          "Column": 21,
+          "EndLine": 0,
+          "EndColumn": 27,
+          "Suggestions": [
+            {
+              "MessageId": "replaceMapSpreadInObject",
+              "Output": "\n        declare const map: Map<string, number>;\n        const o =  Object.fromEntries(map) ;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        declare const map: Map<string, number>;\n        const o = { ...(map) };\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noMapSpreadInObject",
+          "Line": 3,
+          "Column": 21,
+          "EndLine": 0,
+          "EndColumn": 29,
+          "Suggestions": [
+            {
+              "MessageId": "replaceMapSpreadInObject",
+              "Output": "\n        declare const map: Map<string, number>;\n        const o =  Object.fromEntries((map)) ;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        declare const map: Map<string, number>;\n        const o = { ...(map, map) };\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noMapSpreadInObject",
+          "Line": 3,
+          "Column": 21,
+          "EndLine": 0,
+          "EndColumn": 34,
+          "Suggestions": [
+            {
+              "MessageId": "replaceMapSpreadInObject",
+              "Output": "\n        declare const map: Map<string, number>;\n        const o =  Object.fromEntries((map, map)) ;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        declare const map: Map<string, number>;\n        const others = { a: 1 };\n        const o = { ...map, ...others };\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noMapSpreadInObject",
+          "Line": 4,
+          "Column": 21,
+          "EndLine": 0,
+          "EndColumn": 27,
+          "Suggestions": [
+            {
+              "MessageId": "replaceMapSpreadInObject",
+              "Output": "\n        declare const map: Map<string, number>;\n        const others = { a: 1 };\n        const o = { ...Object.fromEntries(map), ...others };\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        declare const map: Map<string, number>;\n        const o = { other: 1, ...map };\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noMapSpreadInObject",
+          "Line": 3,
+          "Column": 31,
+          "EndLine": 0,
+          "EndColumn": 37,
+          "Suggestions": [
+            {
+              "MessageId": "replaceMapSpreadInObject",
+              "Output": "\n        declare const map: Map<string, number>;\n        const o = { other: 1, ...Object.fromEntries(map) };\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        declare const map: ReadonlyMap<string, number>;\n        const o = { ...map };\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noMapSpreadInObject",
+          "Line": 3,
+          "Column": 21,
+          "EndLine": 0,
+          "EndColumn": 27,
+          "Suggestions": [
+            {
+              "MessageId": "replaceMapSpreadInObject",
+              "Output": "\n        declare const map: ReadonlyMap<string, number>;\n        const o =  Object.fromEntries(map) ;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        declare const map: WeakMap<{ a: number }, string>;\n        const o = { ...map };\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noMapSpreadInObject",
+          "Line": 3,
+          "Column": 21,
+          "EndLine": 0,
+          "EndColumn": 27,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        declare const map: Map<string, number> | { a: number };\n        const o = { ...map };\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noMapSpreadInObject",
+          "Line": 3,
+          "Column": 21,
+          "EndLine": 0,
+          "EndColumn": 27,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        declare function getMap(): Map<string, number>;\n        const o = { ...getMap() };\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noMapSpreadInObject",
+          "Line": 3,
+          "Column": 21,
+          "EndLine": 0,
+          "EndColumn": 32,
+          "Suggestions": [
+            {
+              "MessageId": "replaceMapSpreadInObject",
+              "Output": "\n        declare function getMap(): Map<string, number>;\n        const o =  Object.fromEntries(getMap()) ;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        declare const a: Map<boolean, string> & Set<number>;\n        const o = { ...a };\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noMapSpreadInObject",
+          "Line": 3,
+          "Column": 21,
+          "EndLine": 0,
+          "EndColumn": 25,
+          "Suggestions": [
+            {
+              "MessageId": "replaceMapSpreadInObject",
+              "Output": "\n        declare const a: Map<boolean, string> & Set<number>;\n        const o =  Object.fromEntries(a) ;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        const ref = new WeakRef({ a: 1 });\n        const o = { ...ref };\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noClassInstanceSpreadInObject",
+          "Line": 3,
+          "Column": 21,
+          "EndLine": 0,
+          "EndColumn": 27,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        const promise = new Promise(() => {});\n        const o = { ...promise };\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noPromiseSpreadInObject",
+          "Line": 3,
+          "Column": 21,
+          "EndLine": 0,
+          "EndColumn": 31,
+          "Suggestions": [
+            {
+              "MessageId": "addAwait",
+              "Output": "\n        const promise = new Promise(() => {});\n        const o = { ...await promise };\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        declare const promise: Promise<{ a: 1 }>;\n        async function foo() {\n          return { ...(promise || {}) };\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noPromiseSpreadInObject",
+          "Line": 4,
+          "Column": 20,
+          "EndLine": 0,
+          "EndColumn": 38,
+          "Suggestions": [
+            {
+              "MessageId": "addAwait",
+              "Output": "\n        declare const promise: Promise<{ a: 1 }>;\n        async function foo() {\n          return { ...(await (promise || {})) };\n        }\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        declare const promise: Promise<any>;\n        async function foo() {\n          return { ...(Math.random() < 0.5 ? promise : {}) };\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noPromiseSpreadInObject",
+          "Line": 4,
+          "Column": 20,
+          "EndLine": 0,
+          "EndColumn": 59,
+          "Suggestions": [
+            {
+              "MessageId": "addAwait",
+              "Output": "\n        declare const promise: Promise<any>;\n        async function foo() {\n          return { ...(await (Math.random() < 0.5 ? promise : {})) };\n        }\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        function withPromise<P extends Promise<void>>(promise: P) {\n          return { ...promise };\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noPromiseSpreadInObject",
+          "Line": 3,
+          "Column": 20,
+          "EndLine": 0,
+          "EndColumn": 30,
+          "Suggestions": [
+            {
+              "MessageId": "addAwait",
+              "Output": "\n        function withPromise<P extends Promise<void>>(promise: P) {\n          return { ...await promise };\n        }\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        declare const maybePromise: Promise<number> | { a: number };\n        const o = { ...maybePromise };\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noPromiseSpreadInObject",
+          "Line": 3,
+          "Column": 21,
+          "EndLine": 0,
+          "EndColumn": 36,
+          "Suggestions": [
+            {
+              "MessageId": "addAwait",
+              "Output": "\n        declare const maybePromise: Promise<number> | { a: number };\n        const o = { ...await maybePromise };\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        declare const promise: Promise<number> & { a: number };\n        const o = { ...promise };\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noPromiseSpreadInObject",
+          "Line": 3,
+          "Column": 21,
+          "EndLine": 0,
+          "EndColumn": 31,
+          "Suggestions": [
+            {
+              "MessageId": "addAwait",
+              "Output": "\n        declare const promise: Promise<number> & { a: number };\n        const o = { ...await promise };\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        declare function getPromise(): Promise<number>;\n        const o = { ...getPromise() };\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noPromiseSpreadInObject",
+          "Line": 3,
+          "Column": 21,
+          "EndLine": 0,
+          "EndColumn": 36,
+          "Suggestions": [
+            {
+              "MessageId": "addAwait",
+              "Output": "\n        declare function getPromise(): Promise<number>;\n        const o = { ...await getPromise() };\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        declare function getPromise<T extends Promise<number>>(arg: T): T;\n        const o = { ...getPromise() };\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noPromiseSpreadInObject",
+          "Line": 3,
+          "Column": 21,
+          "EndLine": 0,
+          "EndColumn": 36,
+          "Suggestions": [
+            {
+              "MessageId": "addAwait",
+              "Output": "\n        declare function getPromise<T extends Promise<number>>(arg: T): T;\n        const o = { ...await getPromise() };\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        function f() {}\n\n        const o = { ...f };\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noFunctionSpreadInObject",
+          "Line": 4,
+          "Column": 21,
+          "EndLine": 0,
+          "EndColumn": 25,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        interface FunctionWithProps {\n          (): string;\n          prop: boolean;\n        }\n\n        type FunctionWithoutProps = () => string;\n\n        declare const obj: FunctionWithProps | FunctionWithoutProps | object;\n\n        const o = { ...obj };\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noFunctionSpreadInObject",
+          "Line": 11,
+          "Column": 21,
+          "EndLine": 0,
+          "EndColumn": 27,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        const f = () => {};\n\n        const o = { ...f };\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noFunctionSpreadInObject",
+          "Line": 4,
+          "Column": 21,
+          "EndLine": 0,
+          "EndColumn": 25,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        declare function f(): void;\n\n        const o = { ...f };\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noFunctionSpreadInObject",
+          "Line": 4,
+          "Column": 21,
+          "EndLine": 0,
+          "EndColumn": 25,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        declare function getFunction(): () => void;\n\n        const o = { ...getFunction() };\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noFunctionSpreadInObject",
+          "Line": 4,
+          "Column": 21,
+          "EndLine": 0,
+          "EndColumn": 37,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        declare const f: () => void;\n\n        const o = { ...f };\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noFunctionSpreadInObject",
+          "Line": 4,
+          "Column": 21,
+          "EndLine": 0,
+          "EndColumn": 25,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        declare const f: () => void | { a: number };\n\n        const o = { ...f };\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noFunctionSpreadInObject",
+          "Line": 4,
+          "Column": 21,
+          "EndLine": 0,
+          "EndColumn": 25,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        function* generator() {}\n\n        const o = { ...generator };\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noFunctionSpreadInObject",
+          "Line": 4,
+          "Column": 21,
+          "EndLine": 0,
+          "EndColumn": 33,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        const iterator = {\n          *[Symbol.iterator]() {\n            yield 'test';\n          },\n        };\n\n        const o = { ...iterator };\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noIterableSpreadInObject",
+          "Line": 8,
+          "Column": 21,
+          "EndLine": 0,
+          "EndColumn": 32,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        type CustomIterable = {\n          [Symbol.iterator]: () => Generator<string>;\n        };\n\n        const iterator: CustomIterable = {\n          *[Symbol.iterator]() {\n            yield 'test';\n          },\n        };\n\n        const a = { ...iterator };\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noIterableSpreadInObject",
+          "Line": 12,
+          "Column": 21,
+          "EndLine": 0,
+          "EndColumn": 32,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "allow": [
+          {
+            "from": "file",
+            "name": [
+              "AnotherIterable"
+            ]
+          }
+        ]
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        declare module 'module' {\n          export type CustomIterable = {\n            [Symbol.iterator]: () => string;\n          };\n        }\n\n        import { CustomIterable } from 'module';\n\n        declare const iterator: CustomIterable;\n\n        const a = { ...iterator };\n      ",
+      "Only": false,
+      "Skip": true,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noIterableSpreadInObject",
+          "Line": 12,
+          "Column": 21,
+          "EndLine": 0,
+          "EndColumn": 32,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "allow": [
+          {
+            "name": [
+              "Nothing"
+            ],
+            "package": "module",
+            "from": "package"
+          }
+        ]
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        declare const iterator: Iterable<string>;\n\n        const o = { ...iterator };\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noIterableSpreadInObject",
+          "Line": 4,
+          "Column": 21,
+          "EndLine": 0,
+          "EndColumn": 32,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        declare const iterator: Iterable<string> | { a: number };\n\n        const o = { ...iterator };\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noIterableSpreadInObject",
+          "Line": 4,
+          "Column": 21,
+          "EndLine": 0,
+          "EndColumn": 32,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        declare function getIterable(): Iterable<string>;\n\n        const o = { ...getIterable() };\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noIterableSpreadInObject",
+          "Line": 4,
+          "Column": 21,
+          "EndLine": 0,
+          "EndColumn": 37,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        class A {\n          [Symbol.iterator]() {\n            return {\n              next() {\n                return { done: true, value: undefined };\n              },\n            };\n          }\n        }\n\n        const a = { ...new A() };\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noIterableSpreadInObject",
+          "Line": 12,
+          "Column": 21,
+          "EndLine": 0,
+          "EndColumn": 31,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        const o = { ...new Date() };\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noClassInstanceSpreadInObject",
+          "Line": 2,
+          "Column": 21,
+          "EndLine": 0,
+          "EndColumn": 34,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        declare class HTMLElementLike {}\n        declare const element: HTMLElementLike;\n        const o = { ...element };\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noClassInstanceSpreadInObject",
+          "Line": 4,
+          "Column": 21,
+          "EndLine": 0,
+          "EndColumn": 31,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        declare const regex: RegExp;\n        const o = { ...regex };\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noClassInstanceSpreadInObject",
+          "Line": 3,
+          "Column": 21,
+          "EndLine": 0,
+          "EndColumn": 29,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        class A {\n          a = 1;\n          public b = 2;\n          private c = 3;\n          protected d = 4;\n          static e = 5;\n        }\n\n        const o = { ...new A() };\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noClassInstanceSpreadInObject",
+          "Line": 10,
+          "Column": 21,
+          "EndLine": 0,
+          "EndColumn": 31,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        class A {\n          a = 1;\n        }\n\n        const a = new A();\n\n        const o = { ...a };\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noClassInstanceSpreadInObject",
+          "Line": 8,
+          "Column": 21,
+          "EndLine": 0,
+          "EndColumn": 25,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        class A {\n          a = 1;\n        }\n\n        declare const a: A;\n\n        const o = { ...a };\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noClassInstanceSpreadInObject",
+          "Line": 8,
+          "Column": 21,
+          "EndLine": 0,
+          "EndColumn": 25,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        class A {\n          a = 1;\n        }\n\n        declare function getA(): A;\n\n        const o = { ...getA() };\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noClassInstanceSpreadInObject",
+          "Line": 8,
+          "Column": 21,
+          "EndLine": 0,
+          "EndColumn": 30,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        class A {\n          a = 1;\n        }\n\n        declare function getA<T extends A>(arg: T): T;\n\n        const o = { ...getA() };\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noClassInstanceSpreadInObject",
+          "Line": 8,
+          "Column": 21,
+          "EndLine": 0,
+          "EndColumn": 30,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        class A {\n          a = 1;\n        }\n\n        class B extends A {}\n\n        const o = { ...new B() };\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noClassInstanceSpreadInObject",
+          "Line": 8,
+          "Column": 21,
+          "EndLine": 0,
+          "EndColumn": 31,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        class A {\n          a = 1;\n        }\n\n        declare const a: A | { b: string };\n\n        const o = { ...a };\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noClassInstanceSpreadInObject",
+          "Line": 8,
+          "Column": 21,
+          "EndLine": 0,
+          "EndColumn": 25,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        class A {\n          a = 1;\n        }\n\n        declare const a: A & { b: string };\n\n        const o = { ...a };\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noClassInstanceSpreadInObject",
+          "Line": 8,
+          "Column": 21,
+          "EndLine": 0,
+          "EndColumn": 25,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        class A {}\n\n        const o = { ...A };\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noClassDeclarationSpreadInObject",
+          "Line": 4,
+          "Column": 21,
+          "EndLine": 0,
+          "EndColumn": 25,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        const A = class {};\n\n        const o = { ...A };\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noClassDeclarationSpreadInObject",
+          "Line": 4,
+          "Column": 21,
+          "EndLine": 0,
+          "EndColumn": 25,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        class Declaration {\n          declaration?: boolean;\n        }\n        const Expression = class {\n          expression?: boolean;\n        };\n\n        declare const either: typeof Declaration | typeof Expression;\n\n        const o = { ...either };\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noClassDeclarationSpreadInObject",
+          "Line": 11,
+          "Column": 21,
+          "EndLine": 0,
+          "EndColumn": 30,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        const A = Set<number>;\n\n        const o = { ...A };\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noClassDeclarationSpreadInObject",
+          "Line": 4,
+          "Column": 21,
+          "EndLine": 0,
+          "EndColumn": 25,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        const a = {\n          ...class A {\n            static value = 1;\n            nonStatic = 2;\n          },\n        };\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noClassDeclarationSpreadInObject",
+          "Line": 3,
+          "Column": 11,
+          "EndLine": 6,
+          "EndColumn": 12,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        const a = { ...(class A { static value = 1 }) }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noClassDeclarationSpreadInObject",
+          "Line": 2,
+          "Column": 21,
+          "EndLine": 0,
+          "EndColumn": 54,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        const a = { ...new (class A { static value = 1; })() };\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noClassInstanceSpreadInObject",
+          "Line": 2,
+          "Column": 21,
+          "EndLine": 0,
+          "EndColumn": 61,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        const o = <div {...[1, 2, 3]} />;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noArraySpreadInObject",
+          "Line": 2,
+          "Column": 24,
+          "EndLine": 0,
+          "EndColumn": 38,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": true,
+      "Files": {}
+    },
+    {
+      "Code": "\n        class A {}\n\n        const o = <div {...A} />;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noClassDeclarationSpreadInObject",
+          "Line": 4,
+          "Column": 24,
+          "EndLine": 0,
+          "EndColumn": 30,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": true,
+      "Files": {}
+    },
+    {
+      "Code": "\n        const o = <div {...new Date()} />;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noClassInstanceSpreadInObject",
+          "Line": 2,
+          "Column": 24,
+          "EndLine": 0,
+          "EndColumn": 39,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": true,
+      "Files": {}
+    },
+    {
+      "Code": "\n        function f() {}\n\n        const o = <div {...f} />;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noFunctionSpreadInObject",
+          "Line": 4,
+          "Column": 24,
+          "EndLine": 0,
+          "EndColumn": 30,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": true,
+      "Files": {}
+    },
+    {
+      "Code": "\n        const o = <div {...new Set([1, 2, 3])} />;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noIterableSpreadInObject",
+          "Line": 2,
+          "Column": 24,
+          "EndLine": 0,
+          "EndColumn": 47,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": true,
+      "Files": {}
+    },
+    {
+      "Code": "\n        declare const map: Map<string, number>;\n\n        const o = <div {...map} />;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noMapSpreadInObject",
+          "Line": 4,
+          "Column": 24,
+          "EndLine": 0,
+          "EndColumn": 32,
+          "Suggestions": [
+            {
+              "MessageId": "replaceMapSpreadInObject",
+              "Output": "\n        declare const map: Map<string, number>;\n\n        const o = <div {...Object.fromEntries(map)} />;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": true,
+      "Files": {}
+    },
+    {
+      "Code": "\n        const promise = new Promise(() => {});\n\n        const o = <div {...promise} />;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noPromiseSpreadInObject",
+          "Line": 4,
+          "Column": 24,
+          "EndLine": 0,
+          "EndColumn": 36,
+          "Suggestions": [
+            {
+              "MessageId": "addAwait",
+              "Output": "\n        const promise = new Promise(() => {});\n\n        const o = <div {...await promise} />;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": true,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const map: Map<object, string> | WeakMap<object, string>;\nconst o = { other: 1, ...map };",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noMapSpreadInObject",
+          "Line": 3,
+          "Column": 23,
+          "EndLine": 0,
+          "EndColumn": 29,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass CustomWeakMap extends WeakMap<object, string> {}\ndeclare const map: CustomWeakMap;\nconst o = { ...map };",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noMapSpreadInObject",
+          "Line": 4,
+          "Column": 13,
+          "EndLine": 0,
+          "EndColumn": 19,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const map: WeakMap<object, string>;\nconst element = <Component {...map} />;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noMapSpreadInObject",
+          "Line": 3,
+          "Column": 28,
+          "EndLine": 0,
+          "EndColumn": 36,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": true,
+      "Files": {}
+    }
+  ]
+}

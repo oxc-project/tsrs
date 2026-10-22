@@ -1,0 +1,25 @@
+[
+  {
+    "message": {
+      "id": "unboundWithoutThisAnnotation",
+      "description": "Avoid referencing unbound methods which may cause unintentional scoping of `this`.",
+      "help": "If your function does not access `this`, you can annotate it with `this: void`, or consider using an arrow function instead."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "end": 150,
+      "pos": 126
+    },
+    "labeled_ranges": [
+      {
+        "label": "This reference may be unbound and lose `this` context",
+        "range": {
+          "pos": 143,
+          "end": 150
+        }
+      }
+    ],
+    "kind": 0,
+    "rule": "unbound-method"
+  }
+]

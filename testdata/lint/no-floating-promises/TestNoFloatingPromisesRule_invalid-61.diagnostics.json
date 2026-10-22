@@ -1,0 +1,25 @@
+[
+  {
+    "kind": 0,
+    "range": {
+      "pos": 77,
+      "end": 95
+    },
+    "message": {
+      "id": "floatingPromiseArray",
+      "description": "An array of Promises may be unintentional.",
+      "help": "Consider handling the promises' fulfillment or rejection with Promise.all or similar."
+    },
+    "file_path": "file.ts",
+    "labeled_ranges": [
+      {
+        "label": "This array contains Promises and has type `Promise<unknown>[]`.",
+        "range": {
+          "pos": 77,
+          "end": 95
+        }
+      }
+    ],
+    "rule": "no-floating-promises"
+  }
+]

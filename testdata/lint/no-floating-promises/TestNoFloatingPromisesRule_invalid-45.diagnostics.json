@@ -1,0 +1,49 @@
+[
+  {
+    "kind": 0,
+    "range": {
+      "pos": 53,
+      "end": 100
+    },
+    "message": {
+      "id": "floatingUselessRejectionHandler",
+      "description": "Promises must be awaited, add await operator.",
+      "help": "The promise must end with a call to .catch, or end with a call to .then with a rejection handler. A rejection handler that is not a function will be ignored."
+    },
+    "file_path": "file.ts",
+    "labeled_ranges": [
+      {
+        "label": "This unhandled promise-like value has type `Promise<void>`.",
+        "range": {
+          "pos": 53,
+          "end": 100
+        }
+      },
+      {
+        "label": "This rejection handler has type `string | (() => void)`, which is not callable.",
+        "range": {
+          "pos": 86,
+          "end": 99
+        }
+      }
+    ],
+    "rule": "no-floating-promises",
+    "suggestions": [
+      {
+        "message": {
+          "id": "floatingFixAwait",
+          "description": "Add await operator."
+        },
+        "fixes": [
+          {
+            "text": "await ",
+            "range": {
+              "pos": 53,
+              "end": 53
+            }
+          }
+        ]
+      }
+    ]
+  }
+]

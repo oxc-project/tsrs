@@ -1,0 +1,31 @@
+[
+  {
+    "kind": 0,
+    "rule": "dot-notation",
+    "message": {
+      "id": "useDot",
+      "description": "[\"prop\"] is better written in dot notation."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 76,
+      "end": 82
+    },
+    "fixes": [
+      {
+        "text": ".",
+        "range": {
+          "end": 75,
+          "pos": 75
+        }
+      },
+      {
+        "text": "prop",
+        "range": {
+          "end": 83,
+          "pos": 75
+        }
+      }
+    ]
+  }
+]

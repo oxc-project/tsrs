@@ -1,0 +1,190 @@
+[
+  {
+    "range": {
+      "pos": 349,
+      "end": 360
+    },
+    "suggestions": [
+      {
+        "message": {
+          "id": "replaceValueWithEnum",
+          "description": "Replace with an enum value comparison."
+        },
+        "fixes": [
+          {
+            "text": "Str.A",
+            "range": {
+              "pos": 357,
+              "end": 360
+            }
+          }
+        ]
+      }
+    ],
+    "labeled_ranges": [
+      {
+        "label": "Left operand: Str",
+        "range": {
+          "pos": 349,
+          "end": 352
+        }
+      },
+      {
+        "label": "Right operand: \"a\"",
+        "range": {
+          "end": 360,
+          "pos": 357
+        }
+      }
+    ],
+    "kind": 0,
+    "rule": "no-unsafe-enum-comparison",
+    "message": {
+      "id": "mismatchedCondition",
+      "description": "The two values in this comparison do not have a shared enum type.",
+      "help": "Compare enum values to members of the same enum, or convert both sides to the same primitive type before comparing them."
+    },
+    "file_path": "file.ts"
+  },
+  {
+    "rule": "no-unsafe-enum-comparison",
+    "message": {
+      "id": "mismatchedCondition",
+      "description": "The two values in this comparison do not have a shared enum type.",
+      "help": "Compare enum values to members of the same enum, or convert both sides to the same primitive type before comparing them."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 370,
+      "end": 379
+    },
+    "suggestions": [
+      {
+        "message": {
+          "id": "replaceValueWithEnum",
+          "description": "Replace with an enum value comparison."
+        },
+        "fixes": [
+          {
+            "text": "Num.B",
+            "range": {
+              "end": 379,
+              "pos": 378
+            }
+          }
+        ]
+      }
+    ],
+    "labeled_ranges": [
+      {
+        "label": "Left operand: Num",
+        "range": {
+          "pos": 370,
+          "end": 373
+        }
+      },
+      {
+        "label": "Right operand: 1",
+        "range": {
+          "pos": 378,
+          "end": 379
+        }
+      }
+    ],
+    "kind": 0
+  },
+  {
+    "rule": "no-unsafe-enum-comparison",
+    "message": {
+      "id": "mismatchedCondition",
+      "description": "The two values in this comparison do not have a shared enum type.",
+      "help": "Compare enum values to members of the same enum, or convert both sides to the same primitive type before comparing them."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 389,
+      "end": 402
+    },
+    "suggestions": [
+      {
+        "message": {
+          "id": "replaceValueWithEnum",
+          "description": "Replace with an enum value comparison."
+        },
+        "fixes": [
+          {
+            "text": "Mixed.A",
+            "range": {
+              "pos": 399,
+              "end": 402
+            }
+          }
+        ]
+      }
+    ],
+    "labeled_ranges": [
+      {
+        "label": "Left operand: Mixed",
+        "range": {
+          "end": 394,
+          "pos": 389
+        }
+      },
+      {
+        "range": {
+          "end": 402,
+          "pos": 399
+        },
+        "label": "Right operand: \"a\""
+      }
+    ],
+    "kind": 0
+  },
+  {
+    "kind": 0,
+    "rule": "no-unsafe-enum-comparison",
+    "message": {
+      "id": "mismatchedCondition",
+      "description": "The two values in this comparison do not have a shared enum type.",
+      "help": "Compare enum values to members of the same enum, or convert both sides to the same primitive type before comparing them."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "end": 423,
+      "pos": 412
+    },
+    "suggestions": [
+      {
+        "message": {
+          "id": "replaceValueWithEnum",
+          "description": "Replace with an enum value comparison."
+        },
+        "fixes": [
+          {
+            "text": "Mixed.B",
+            "range": {
+              "pos": 422,
+              "end": 423
+            }
+          }
+        ]
+      }
+    ],
+    "labeled_ranges": [
+      {
+        "label": "Left operand: Mixed",
+        "range": {
+          "end": 417,
+          "pos": 412
+        }
+      },
+      {
+        "label": "Right operand: 1",
+        "range": {
+          "pos": 422,
+          "end": 423
+        }
+      }
+    ]
+  }
+]

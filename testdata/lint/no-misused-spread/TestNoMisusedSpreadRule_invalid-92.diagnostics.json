@@ -1,0 +1,16 @@
+[
+  {
+    "kind": 0,
+    "rule": "no-misused-spread",
+    "message": {
+      "id": "noMapSpreadInObject",
+      "description": "Using the spread operator on a Map in an object will result in an empty object.",
+      "help": "Did you mean to use `Object.fromEntries(map)` instead?"
+    },
+    "file_path": "file.ts",
+    "range": {
+      "end": 108,
+      "pos": 102
+    }
+  }
+]

@@ -1,0 +1,30 @@
+[
+  {
+    "kind": 0,
+    "rule": "no-unsafe-return",
+    "message": {
+      "id": "unsafeReturnThis",
+      "description": "Unsafe return of a value of type `any`. `this` is typed as `any`.",
+      "help": "Returned expression has type `any`. Enable `noImplicitThis` or add an explicit `this` parameter to the function."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 20,
+      "end": 32
+    }
+  },
+  {
+    "rule": "no-unsafe-return",
+    "message": {
+      "id": "unsafeReturnThis",
+      "description": "Unsafe return of a value of type `any`. `this` is typed as `any`.",
+      "help": "Returned expression has type `any`. Enable `noImplicitThis` or add an explicit `this` parameter to the function."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "end": 72,
+      "pos": 68
+    },
+    "kind": 0
+  }
+]

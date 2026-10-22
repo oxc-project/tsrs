@@ -1,0 +1,6 @@
+Expected records from tsgolint HEAD 8897346fff24a9bd0c719099dc1af8e7200572c1,
+compiler 2bd066d87f5bafd315be9f40889d0a60b9e58e0b with all six shipped patches; Go 1.27.1.
+Binary SHA-256: 4bf2bd341d7bd53b69c59228820c2045da45eb7ea0e25119a906a28524972d87
+Physical fixture tree with matching source overrides; all four fix modes replayed.
+All 24 local inputs/options preserved; ESNext, no ambient types, strict configuration
+per case, explicit files lists. All fix modes produce equal diagnostic multisets.

@@ -1,0 +1,16 @@
+[
+  {
+    "message": {
+      "id": "invalid",
+      "description": "Invalid operand of type 'boolean' for a '+' operation.",
+      "help": "Operands must each be a number or string, allowing a string + any of: `any`, `null`, `RegExp`, `undefined`."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 25,
+      "end": 28
+    },
+    "kind": 0,
+    "rule": "restrict-plus-operands"
+  }
+]

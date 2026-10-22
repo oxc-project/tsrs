@@ -1,0 +1,16 @@
+[
+  {
+    "kind": 0,
+    "range": {
+      "pos": 7,
+      "end": 19
+    },
+    "message": {
+      "id": "anyAssignment",
+      "description": "Unsafe assignment of an error typed value.",
+      "help": "Assigned value has type `error`, so the target is also inferred as `error`. Use a safely typed value or `unknown`, and narrow it before use."
+    },
+    "file_path": "file.ts",
+    "rule": "no-unsafe-assignment"
+  }
+]

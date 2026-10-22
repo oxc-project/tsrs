@@ -1,0 +1,16 @@
+[
+  {
+    "range": {
+      "end": 25,
+      "pos": 24
+    },
+    "kind": 0,
+    "rule": "strict-boolean-expressions",
+    "message": {
+      "id": "conditionErrorNullableObject",
+      "description": "Unexpected nullable object value in conditional.",
+      "help": "Handle the nullish case explicitly."
+    },
+    "file_path": "file.ts"
+  }
+]

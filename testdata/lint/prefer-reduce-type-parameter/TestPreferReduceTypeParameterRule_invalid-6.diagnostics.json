@@ -1,0 +1,31 @@
+[
+  {
+    "fixes": [
+      {
+        "text": "",
+        "range": {
+          "pos": 79,
+          "end": 107
+        }
+      },
+      {
+        "text": "<Record<string, boolean>>",
+        "range": {
+          "end": 18,
+          "pos": 18
+        }
+      }
+    ],
+    "kind": 0,
+    "rule": "prefer-reduce-type-parameter",
+    "message": {
+      "id": "preferTypeParameter",
+      "description": "Unnecessary assertion: Array#reduce accepts a type parameter for the default value."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 82,
+      "end": 109
+    }
+  }
+]

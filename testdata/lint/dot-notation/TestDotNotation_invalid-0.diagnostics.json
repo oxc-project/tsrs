@@ -1,0 +1,31 @@
+[
+  {
+    "rule": "dot-notation",
+    "message": {
+      "id": "useDot",
+      "description": "[\"priv_prop\"] is better written in dot notation."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 62,
+      "end": 73
+    },
+    "fixes": [
+      {
+        "text": ".",
+        "range": {
+          "end": 61,
+          "pos": 61
+        }
+      },
+      {
+        "text": "priv_prop",
+        "range": {
+          "pos": 61,
+          "end": 74
+        }
+      }
+    ],
+    "kind": 0
+  }
+]

@@ -1,0 +1,56 @@
+[
+  {
+    "rule": "no-unnecessary-type-conversion",
+    "message": {
+      "id": "unnecessaryTypeConversion",
+      "description": "This type conversion does not change the type or value of the expression."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "end": 49,
+      "pos": 39
+    },
+    "suggestions": [
+      {
+        "message": {
+          "id": "suggestRemove",
+          "description": "Remove the type conversion."
+        },
+        "fixes": [
+          {
+            "text": "str",
+            "range": {
+              "pos": 35,
+              "end": 49
+            }
+          }
+        ]
+      },
+      {
+        "message": {
+          "id": "suggestSatisfies",
+          "description": "Instead, assert that the value satisfies the primitive type."
+        },
+        "fixes": [
+          {
+            "text": "(str satisfies string)",
+            "range": {
+              "pos": 35,
+              "end": 49
+            }
+          }
+        ]
+      }
+    ],
+    "labeled_ranges": [
+      {
+        "range": {
+          "end": 38,
+          "pos": 35
+        },
+        "label": "This expression already has type 'string'."
+      }
+    ],
+    "kind": 0
+  }
+]

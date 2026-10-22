@@ -1,0 +1,16 @@
+[
+  {
+    "kind": 0,
+    "range": {
+      "pos": 49,
+      "end": 50
+    },
+    "message": {
+      "id": "alwaysFalsy",
+      "description": "Unnecessary conditional, value is always falsy.",
+      "help": "The checked value has type `false`."
+    },
+    "file_path": "file.ts",
+    "rule": "no-unnecessary-condition"
+  }
+]

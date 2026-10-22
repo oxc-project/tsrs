@@ -1,0 +1,41 @@
+[
+  {
+    "kind": 0,
+    "rule": "strict-void-return",
+    "message": {
+      "id": "nonVoidReturn",
+      "description": "Value returned in a context where a void return is expected."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 81,
+      "end": 86
+    }
+  },
+  {
+    "rule": "strict-void-return",
+    "message": {
+      "id": "nonVoidReturn",
+      "description": "Value returned in a context where a void return is expected."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 96,
+      "end": 97
+    },
+    "kind": 0
+  },
+  {
+    "kind": 0,
+    "rule": "strict-void-return",
+    "message": {
+      "id": "nonVoidReturn",
+      "description": "Value returned in a context where a void return is expected."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 107,
+      "end": 109
+    }
+  }
+]

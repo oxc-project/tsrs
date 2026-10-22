@@ -1,0 +1,32 @@
+[
+  {
+    "suggestions": [
+      {
+        "message": {
+          "id": "addMissingCases",
+          "description": "Add branches for missing cases."
+        },
+        "fixes": [
+          {
+            "text": "{\n        case Enum.a: { throw new Error('Not implemented yet: Enum.a case') }\n        case Enum['key-with\\n\\n          new-line']: { throw new Error('Not implemented yet: Enum[\\'key-with\\\\n\\\\n          new-line\\'] case') }\n        }",
+            "range": {
+              "pos": 150,
+              "end": 161
+            }
+          }
+        ]
+      }
+    ],
+    "kind": 0,
+    "rule": "switch-exhaustiveness-check",
+    "message": {
+      "id": "switchIsNotExhaustive",
+      "description": "Switch is not exhaustive. Cases not matched: Enum.a | (typeof Enum)[\"key-with\\n\\n          new-line\"]"
+    },
+    "file_path": "file.ts",
+    "range": {
+      "end": 148,
+      "pos": 147
+    }
+  }
+]

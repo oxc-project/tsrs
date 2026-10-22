@@ -1,0 +1,94 @@
+[
+  {
+    "suggestions": [
+      {
+        "message": {
+          "id": "replaceUsagesWithConstraint",
+          "description": "Replace all usages of type parameter with its constraint."
+        },
+        "fixes": [
+          {
+            "text": "unknown",
+            "range": {
+              "pos": 57,
+              "end": 58
+            }
+          },
+          {
+            "text": "",
+            "range": {
+              "end": 28,
+              "pos": 25
+            }
+          }
+        ]
+      }
+    ],
+    "labeled_ranges": [
+      {
+        "label": "This is the only usage of type parameter T in the signature.",
+        "range": {
+          "pos": 57,
+          "end": 58
+        }
+      }
+    ],
+    "kind": 0,
+    "rule": "no-unnecessary-type-parameters",
+    "message": {
+      "id": "sole",
+      "description": "Type parameter T is used only once in the class signature."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 25,
+      "end": 26
+    }
+  },
+  {
+    "labeled_ranges": [
+      {
+        "range": {
+          "pos": 61,
+          "end": 62
+        },
+        "label": "This is the only usage of type parameter U in the signature."
+      }
+    ],
+    "kind": 0,
+    "rule": "no-unnecessary-type-parameters",
+    "message": {
+      "id": "sole",
+      "description": "Type parameter U is used only once in the class signature."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 28,
+      "end": 29
+    },
+    "suggestions": [
+      {
+        "message": {
+          "id": "replaceUsagesWithConstraint",
+          "description": "Replace all usages of type parameter with its constraint."
+        },
+        "fixes": [
+          {
+            "text": "unknown",
+            "range": {
+              "end": 62,
+              "pos": 61
+            }
+          },
+          {
+            "text": "",
+            "range": {
+              "pos": 26,
+              "end": 29
+            }
+          }
+        ]
+      }
+    ]
+  }
+]

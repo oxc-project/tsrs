@@ -1,0 +1,32 @@
+[
+  {
+    "kind": 0,
+    "range": {
+      "pos": 60,
+      "end": 96
+    },
+    "message": {
+      "id": "preferReadonly",
+      "description": "Member 'incorrectlyModifiableDelayed' is never reassigned.",
+      "help": "Mark it as `readonly`."
+    },
+    "file_path": "file.ts",
+    "rule": "prefer-readonly",
+    "fixes": [
+      {
+        "text": "readonly ",
+        "range": {
+          "pos": 68,
+          "end": 68
+        }
+      },
+      {
+        "text": ": number",
+        "range": {
+          "pos": 96,
+          "end": 96
+        }
+      }
+    ]
+  }
+]

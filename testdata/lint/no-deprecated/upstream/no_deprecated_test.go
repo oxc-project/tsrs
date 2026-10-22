@@ -1,0 +1,3028 @@
+package no_deprecated
+
+import (
+	"testing"
+
+	"github.com/typescript-eslint/tsgolint/internal/rule_tester"
+	"github.com/typescript-eslint/tsgolint/internal/rules/fixtures"
+)
+
+func TestNoDeprecatedRule(t *testing.T) {
+	t.Parallel()
+	rule_tester.RunRuleTester(fixtures.GetRootDir(), "tsconfig.includeTypes.json", t, &NoDeprecatedRule, []rule_tester.ValidTestCase{
+		{Code: `/** @deprecated */ var a;`},
+		{Code: `/** @deprecated */ var a = 1;`},
+		{Code: `/** @deprecated */ let a;`},
+		{Code: `/** @deprecated */ let a = 1;`},
+		{Code: `/** @deprecated */ const a = 1;`},
+		{Code: `/** @deprecated */ declare var a: number;`},
+		{Code: `/** @deprecated */ declare let a: number;`},
+		{Code: `/** @deprecated */ declare const a: number;`},
+		{Code: `/** @deprecated */ export var a = 1;`},
+		{Code: `/** @deprecated */ export let a = 1;`},
+		{Code: `/** @deprecated */ export const a = 1;`},
+		{Code: `const [/** @deprecated */ a] = [b];`},
+		{Code: `const [/** @deprecated */ a] = b;`},
+		{Code: `
+      const a = {
+        b: 1,
+        /** @deprecated */ c: 2,
+      };
+
+      a.b;
+    `},
+		{Code: `
+      const a = {
+        b: 1,
+        /** @deprecated */ c: 2,
+      };
+
+      a?.b;
+    `},
+		{Code: `
+      declare const a: {
+        b: 1;
+        /** @deprecated */ c: 2;
+      };
+
+      a.b;
+    `},
+		{Code: `
+      class A {
+        b: 1;
+        /** @deprecated */ c: 2;
+      }
+
+      new A().b;
+    `},
+		{Code: `
+      class A {
+        accessor b: 1;
+        /** @deprecated */ accessor c: 2;
+      }
+
+      new A().b;
+    `},
+		{Code: `
+      declare class A {
+        /** @deprecated */
+        static b: string;
+        static c: string;
+      }
+
+      A.c;
+    `},
+		{Code: `
+      declare class A {
+        /** @deprecated */
+        static accessor b: string;
+        static accessor c: string;
+      }
+
+      A.c;
+    `},
+		{Code: `
+      namespace A {
+        /** @deprecated */
+        export const b = '';
+        export const c = '';
+      }
+
+      A.c;
+    `},
+		{Code: `
+      enum A {
+        /** @deprecated */
+        b = 'b',
+        c = 'c',
+      }
+
+      A.c;
+    `},
+		{Code: `
+      function a(value: 'b' | undefined): void;
+      /** @deprecated */
+      function a(value: 'c' | undefined): void;
+      function a(value: string | undefined): void {
+        // ...
+      }
+
+      a('b');
+    `},
+		{Code: `
+      function a(value: 'b' | undefined): void;
+      /** @deprecated */
+      function a(value: 'c' | undefined): void;
+      function a(value: string | undefined): void {
+        // ...
+      }
+
+      export default a('b');
+    `},
+		{Code: `
+      function notDeprecated(): object {
+        return {};
+      }
+
+      export default notDeprecated();
+    `},
+		{Code: `
+      import { deprecatedFunctionWithOverloads } from './deprecated';
+
+      const foo = deprecatedFunctionWithOverloads();
+    `},
+		{Code: `
+      import * as imported from './deprecated';
+
+      const foo = imported.deprecatedFunctionWithOverloads();
+    `},
+		{Code: `
+      import { ClassWithDeprecatedConstructor } from './deprecated';
+
+      const foo = new ClassWithDeprecatedConstructor();
+    `},
+		{Code: `
+      import * as imported from './deprecated';
+
+      const foo = new imported.ClassWithDeprecatedConstructor();
+    `},
+		{Code: `
+      class A {
+        a(value: 'b'): void;
+        /** @deprecated */
+        a(value: 'c'): void;
+      }
+      declare const foo: A;
+      foo.a('b');
+    `},
+		{Code: `
+      const A = class {
+        /** @deprecated */
+        constructor();
+        constructor(arg: string);
+        constructor(arg?: string) {}
+      };
+
+      new A('a');
+    `},
+		{Code: `
+      type A = {
+        (value: 'b'): void;
+        /** @deprecated */
+        (value: 'c'): void;
+      };
+      declare const foo: A;
+      foo('b');
+    `},
+		{Code: `
+      declare const a: {
+        new (value: 'b'): void;
+        /** @deprecated */
+        new (value: 'c'): void;
+      };
+      new a('b');
+    `},
+		{Code: `
+      namespace assert {
+        export function fail(message?: string | Error): never;
+        /** @deprecated since v10.0.0 - use fail([message]) or other assert functions instead. */
+        export function fail(actual: unknown, expected: unknown): never;
+      }
+
+      assert.fail('');
+    `},
+		{Code: `
+      import assert from 'node:assert';
+
+      assert.fail('');
+    `},
+		{Code: `
+      declare module 'deprecations' {
+        /** @deprecated */
+        export const value = true;
+      }
+
+      import { value } from 'deprecations';
+    `},
+		{Code: `
+      /** @deprecated Use ts directly. */
+      export * as ts from 'typescript';
+    `},
+		{Code: `
+      export {
+        /** @deprecated Use ts directly. */
+        default as ts,
+      } from 'typescript';
+    `},
+		{Code: `
+      export { deprecatedFunction as 'bur' } from './deprecated';
+    `},
+		{Code: `
+      export { 'deprecatedFunction' } from './deprecated';
+    `},
+		{Code: `
+      namespace A {
+        /** @deprecated */
+        export type B = string;
+        export type C = string;
+        export type D = string;
+      }
+
+      export type D = A.C | A.D;
+    `},
+		{Code: `
+      interface Props {
+        anchor: 'foo';
+      }
+      declare const x: Props;
+      const { anchor = '' } = x;
+    `},
+		{Code: `
+      namespace Foo {}
+
+      /**
+       * @deprecated
+       */
+      export import Bar = Foo;
+    `},
+		{Code: `
+      /**
+       * @deprecated
+       */
+      export import Bar = require('./deprecated');
+    `},
+		{Code: `
+      interface Props {
+        anchor: 'foo';
+      }
+      declare const x: { bar: Props };
+      const {
+        bar: { anchor = '' },
+      } = x;
+    `},
+		{Code: `
+      interface Props {
+        anchor: 'foo';
+      }
+      declare const x: [item: Props];
+      const [{ anchor = 'bar' }] = x;
+    `},
+		{Code: `function fn(/** @deprecated */ foo = 4) {}`},
+		{Code: `
+        async function fn() {
+          const d = await import('./deprecated.js');
+          d.default;
+        }
+      `, TSConfig: "./tsconfig.moduleResolution-node16.json"},
+		{Code: `call();`},
+		{Code: `
+      class Foo implements Foo {
+        get bar(): number {
+          return 42;
+        }
+
+        baz(): number {
+          return this.bar;
+        }
+      }
+    `},
+		{Code: `
+      declare namespace JSX {}
+
+      <foo bar={1} />;
+    `},
+		{Code: `
+      declare namespace JSX {
+        interface IntrinsicElements {
+          foo: any;
+        }
+      }
+
+      <foo bar={1} />;
+    `},
+		{Code: `
+      declare namespace JSX {
+        interface IntrinsicElements {
+          foo: unknown;
+        }
+      }
+
+      <foo bar={1} />;
+    `},
+		{Code: `
+      declare namespace JSX {
+        interface IntrinsicElements {
+          foo: {
+            bar: any;
+          };
+        }
+      }
+      <foo bar={1} />;
+    `},
+		{Code: `
+      declare namespace JSX {
+        interface IntrinsicElements {
+          foo: {
+            bar: unknown;
+          };
+        }
+      }
+      <foo bar={1} />;
+    `},
+		{Code: `
+      export {
+        /** @deprecated */
+        foo,
+      };
+    `},
+		{
+			Tsx: true,
+			Code: `
+/** @deprecated */
+function A() {
+  return <div />;
+}
+
+const a = <A></A>;
+      `, Options: rule_tester.OptionsFromJSON[NoDeprecatedOptions](`{"allow": [{"from": "file", "name": "A"}]}`)},
+		{Code: `
+/** @deprecated */
+declare class A {}
+
+new A();
+      `, Options: rule_tester.OptionsFromJSON[NoDeprecatedOptions](`{"allow": [{"from": "file", "name": "A"}]}`)},
+		{Code: `
+/** @deprecated */
+const deprecatedValue = 45;
+const bar = deprecatedValue;
+      `, Options: rule_tester.OptionsFromJSON[NoDeprecatedOptions](`{"allow": [{"from": "file", "name": "deprecatedValue"}]}`)},
+		{Code: `
+class MyClass {
+  /** @deprecated */
+  #privateProp = 42;
+  value = this.#privateProp;
+}
+      `, Options: rule_tester.OptionsFromJSON[NoDeprecatedOptions](`{"allow": [{"from": "file", "name": "privateProp"}]}`)},
+		{Code: `
+/** @deprecated */
+const deprecatedValue = 45;
+const bar = deprecatedValue;
+      `, Options: rule_tester.OptionsFromJSON[NoDeprecatedOptions](`{"allow": [{"from": "file", "name": "deprecatedValue"}]}`)},
+		{Code: `
+import { exists } from 'fs';
+exists('/foo');
+      `, Options: rule_tester.OptionsFromJSON[NoDeprecatedOptions](`{"allow": [{"from": "package", "name": "exists", "package": "fs"}]}`)},
+		{Code: `
+const { exists } = import('fs');
+exists('/foo');
+      `, Options: rule_tester.OptionsFromJSON[NoDeprecatedOptions](`{"allow": [{"from": "package", "name": "exists", "package": "fs"}]}`)},
+		{Code: `
+      declare const test: string;
+      const bar = { test };
+    `},
+		{Code: `
+      const a = {
+        /** @deprecated */
+        b: 'string',
+      };
+
+      const complex = Symbol() as any;
+      const c = a[complex];
+    `},
+		{Code: `
+      const a = {
+        b: 'string',
+      };
+
+      const c = a['b'];
+    `},
+		{Code: `
+        interface AllowedType {
+          /** @deprecated */
+          prop: string;
+        }
+
+        const obj: AllowedType = {
+          prop: 'test',
+        };
+
+        const value = obj['prop'];
+      `, Options: rule_tester.OptionsFromJSON[NoDeprecatedOptions](`{"allow": [{"from": "file", "name": "AllowedType"}]}`)},
+		{Code: `
+      const a = {
+        /** @deprecated */
+        b: 'string',
+      };
+
+      const key = {};
+      const c = a[key as any];
+    `},
+		{Code: `
+      const a = {
+        /** @deprecated */
+        b: 'string',
+      };
+
+      const key = Symbol();
+      const c = a[key as any];
+    `},
+		{Code: `
+      const a = {
+        /** @deprecated */
+        b: 'string',
+      };
+
+      const key = undefined;
+      const c = a[key as any];
+    `},
+		{Code: `
+      const a = {
+        /** @deprecated */
+        b: 'string',
+      };
+
+      const c = a['nonExistentProperty'];
+    `},
+		{Code: `
+      const a = {
+        /** @deprecated */
+        b: 'string',
+      };
+
+      function getKey() {
+        return 'c';
+      }
+
+      const c = a[getKey()];
+    `},
+		{Code: `
+      const a = {
+        /** @deprecated */
+        b: 'string',
+      };
+
+      const key = {};
+      const c = a[key];
+    `},
+		{Code: `
+      const stringObj = new String('b');
+      const a = {
+        /** @deprecated */
+        b: 'string',
+      };
+      const c = a[stringObj];
+    `},
+		{Code: `
+      const a = {
+        /** @deprecated */
+        b: 'string',
+      };
+
+      const key = Symbol('key');
+      const c = a[key];
+    `},
+		{Code: `
+      const a = {
+        /** @deprecated */
+        b: 'string',
+      };
+
+		const key = null;
+		const c = a[key as any];
+	`},
+		{Code: `
+		interface MyInterface {
+			/** @deprecated */
+			prop: string;
+		}
+		declare const obj: MyInterface;
+		const key = 'prop';
+		const { [key]: value } = obj;
+	`},
+		{Code: `
+		interface MyInterface {
+			/** @deprecated */
+			prop: string;
+		}
+		declare const obj: MyInterface;
+		declare const key: string;
+		const { [key]: value } = obj;
+	`},
+		{Code: `
+		declare const key: string;
+		const obj = {
+			[key]: 'value',
+		};
+	`},
+		{Code: `
+		export class Test {
+	/** @deprecated Use something else instead */
+	public get foo(): number {
+		return 42;
+	}
+}
+		`},
+		{Code: `const DISALLOWED_CATEGORY_ITEM_REGEXP: RegExp = /regexp/;
+			const content = "";
+			const result = [...content.matchAll(DISALLOWED_CATEGORY_ITEM_REGEXP)].map(([, term, description, name, link]) => ({ link, }));`,
+		},
+		{Code: `
+export interface ErrorOptions {
+  /** @deprecated Use status instead. */
+  statusCode?: number;
+
+  status?: number;
+}
+
+const x: ErrorOptions = null!
+
+x.statusCode;
+      `, Options: rule_tester.OptionsFromJSON[NoDeprecatedOptions](`{"allow": ["statusCode"]}`)},
+		{Code: `
+        interface ErrorOptions {
+          /** @deprecated Use status instead. */
+          statusCode?: number;
+
+          status?: number;
+        }
+
+        declare function showError(error: ErrorOptions): void;
+        declare const statusCodeName: 'statusCode';
+
+        showError({
+          ['statusCode']: 500,
+        });
+
+        showError({
+          [statusCodeName]: 500,
+        });
+      `, Options: rule_tester.OptionsFromJSON[NoDeprecatedOptions](`{"allow": [{"from": "file", "name": "statusCode"}]}`)},
+		{Code: `
+        declare module 'error-options' {
+          export interface ErrorOptions {
+            /** @deprecated Use status instead. */
+            statusCode?: number;
+
+            status?: number;
+          }
+
+          export function showError(error: ErrorOptions): void;
+        }
+
+        import { showError } from 'error-options';
+
+        declare const statusCodeName: 'statusCode';
+
+        showError({
+          ['statusCode']: 500,
+        });
+
+        showError({
+          [statusCodeName]: 500,
+        });
+      `, Options: rule_tester.OptionsFromJSON[NoDeprecatedOptions](`{"allow": [{"from": "package", "name": "statusCode", "package": "error-options"}]}`)},
+		{Code: `
+        declare module 'error-options' {
+          export interface ErrorOptions {
+            /** @deprecated Use status instead. */
+            statusCode?: number;
+
+            status?: number;
+          }
+
+          export function showError(error: ErrorOptions): void;
+        }
+
+        import { showError } from 'error-options';
+
+        declare const statusCodeName: 'statusCode';
+
+        showError({
+          ['statusCode']: 500,
+        });
+
+        showError({
+          [statusCodeName]: 500,
+        });
+      `, Options: rule_tester.OptionsFromJSON[NoDeprecatedOptions](`{"allow": ["statusCode"]}`)},
+		{Code: `
+			interface NavItemOptions { text: string; icon?: string }
+			interface AutoLinkOptions extends NavItemOptions { link: string }
+			interface SidebarGroupOptions extends NavItemOptions {
+				prefix?: string;
+				link?: string;
+				children: SidebarItemOptions[];
+			}
+			interface SidebarStructureOptions extends NavItemOptions {
+				prefix?: string;
+				link?: string;
+				children: "structure";
+			}
+			type SidebarItemOptions = AutoLinkOptions | SidebarGroupOptions | SidebarStructureOptions | string;
+			type SidebarArrayOptions = SidebarItemOptions[];
+			type SidebarObjectOptions = Record<string, SidebarArrayOptions | "structure" | false>;
+			type SidebarOptions = SidebarArrayOptions | SidebarObjectOptions | "structure" | false;
+			declare const sidebar: (options: SidebarOptions) => SidebarOptions;
+
+			sidebar({
+				"/": [{
+					text: "Demo",
+					prefix: "demo/",
+					link: "demo/",
+					children: "structure",
+				}],
+			});
+		`},
+		{
+			Code: `import { normalVariable } from './release-port-normal';
+void { normalVariable };`,
+			Files: map[string]string{
+				"release-port-normal.ts": "export const normalVariable = 1;",
+			},
+		},
+	}, []rule_tester.InvalidTestCase{
+		{
+			Tsx: true,
+			Code: `
+        interface AProps {
+          /** @deprecated */
+          b: number | string;
+        }
+
+        function A(props: AProps) {
+          return <div />;
+        }
+
+        const a = <A b="" />;
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        /** @deprecated */ var a = undefined;
+        a;
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        /** @deprecated */ export var a = undefined;
+        a;
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        /** @deprecated */ let a = undefined;
+        a;
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        /** @deprecated */ export let a = undefined;
+        a;
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        /** @deprecated */ let aLongName = undefined;
+        aLongName;
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        /** @deprecated */ const a = { b: 1 };
+        const c = a;
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        /** @deprecated Reason. */ const a = { b: 1 };
+        const c = a;
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecatedWithReason",
+				},
+			},
+		},
+		{
+			Code: `
+        /** @deprecated */ const a = { b: 1 };
+        const { c = a } = {};
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        /** @deprecated */ const a = { b: 1 };
+        const [c = a] = [];
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        /** @deprecated */ const a = { b: 1 };
+        console.log(a);
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: "\n        /** @deprecated */ const a = 'foo';\n        import(`./path/${a}.js`);\n      ",
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        declare function log(...args: unknown): void;
+
+        /** @deprecated */ const a = { b: 1 };
+
+        log(a);
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        /** @deprecated */ const a = { b: 1 };
+        console.log(a.b);
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        /** @deprecated */ const a = { b: 1 };
+        console.log(a?.b);
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        /** @deprecated */ const a = { b: { c: 1 } };
+        a.b.c;
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        /** @deprecated */ const a = { b: { c: 1 } };
+        a.b?.c;
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        /** @deprecated */ const a = { b: { c: 1 } };
+        a?.b?.c;
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        const a = {
+          /** @deprecated */ b: { c: 1 },
+        };
+        a.b.c;
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        declare const a: {
+          /** @deprecated */ b: { c: 1 };
+        };
+        a.b.c;
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        /** @deprecated */ const a = { b: 1 };
+        const c = a.b;
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        /** @deprecated */ const a = { b: 1 };
+        const { c } = a.b;
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        /** @deprecated */
+        declare const test: string;
+        const myObj = {
+          prop: test,
+          deep: {
+            prop: test,
+          },
+        };
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        /** @deprecated */
+        declare const test: string;
+        const bar = {
+          test,
+        };
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        /** @deprecated */ const a = { b: 1 };
+        const { c = 'd' } = a.b;
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        /** @deprecated */ const a = { b: 1 };
+        const { c: d } = a.b;
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        /** @deprecated */
+        declare const a: string[];
+        const [b] = [a];
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        /** @deprecated */
+        class A {}
+
+        new A();
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        /** @deprecated */
+        export class A {}
+
+        new A();
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        /** @deprecated */
+        const A = class {};
+
+        new A();
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        /** @deprecated */
+        declare class A {}
+
+        new A();
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        const A = class {
+          /** @deprecated */
+          constructor() {}
+        };
+
+        new A();
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        const A = class {
+          /** @deprecated */
+          constructor();
+          constructor(arg: string);
+          constructor(arg?: string) {}
+        };
+
+        new A();
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        declare const A: {
+          /** @deprecated */
+          new (): string;
+        };
+
+        new A();
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        /** @deprecated */
+        declare class A {
+          constructor();
+        }
+
+        new A();
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        class A {
+          /** @deprecated */
+          b: string;
+        }
+
+        declare const a: A;
+
+        const { b } = a;
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        declare class A {
+          /** @deprecated */
+          b(): string;
+        }
+
+        declare const a: A;
+
+        a.b;
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        declare class A {
+          /** @deprecated */
+          b(): string;
+        }
+
+        declare const a: A;
+
+        a.b();
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        declare class A {
+          /** @deprecated */
+          b: () => string;
+        }
+
+        declare const a: A;
+
+        a.b;
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        declare class A {
+          /** @deprecated */
+          b: () => string;
+        }
+
+        declare const a: A;
+
+        a.b();
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        interface A {
+          /** @deprecated */
+          b: () => string;
+        }
+
+        declare const a: A;
+
+        a.b();
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        class A {
+          /** @deprecated */
+          b(): string {
+            return '';
+          }
+        }
+
+        declare const a: A;
+
+        a.b();
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        declare class A {
+          /** @deprecated Use b(value). */
+          b(): string;
+          b(value: string): string;
+        }
+
+        declare const a: A;
+
+        a.b();
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecatedWithReason",
+				},
+			},
+		},
+		{
+			Code: `
+        declare class A {
+          /** @deprecated */
+          static b: string;
+        }
+
+        A.b;
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        declare const a: {
+          /** @deprecated */
+          b: string;
+        };
+
+        a.b;
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        interface A {
+          /** @deprecated */
+          b: string;
+        }
+
+        declare const a: A;
+
+        a.b;
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        export interface A {
+          /** @deprecated */
+          b: string;
+        }
+
+        declare const a: A;
+
+        a.b;
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        interface A {
+          /** @deprecated */
+          b: string;
+        }
+
+        declare const a: A;
+
+        const { b } = a;
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        type A = {
+          /** @deprecated */
+          b: string;
+        };
+
+        declare const a: A;
+
+        const { b } = a;
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        export type A = {
+          /** @deprecated */
+          b: string;
+        };
+
+        declare const a: A;
+
+        const { b } = a;
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        type A = () => {
+          /** @deprecated */
+          b: string;
+        };
+
+        declare const a: A;
+
+        const { b } = a();
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        /** @deprecated */
+        type A = string[];
+
+        declare const a: A;
+
+        const [b] = a;
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        namespace A {
+          /** @deprecated */
+          export const b = '';
+        }
+
+        A.b;
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        export namespace A {
+          /** @deprecated */
+          export const b = '';
+        }
+
+        A.b;
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        namespace A {
+          /** @deprecated */
+          export function b() {}
+        }
+
+        A.b();
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        namespace assert {
+          export function fail(message?: string | Error): never;
+          /** @deprecated since v10.0.0 - use fail([message]) or other assert functions instead. */
+          export function fail(actual: unknown, expected: unknown): never;
+        }
+
+        assert.fail({}, {});
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecatedWithReason",
+				},
+			},
+		},
+		{
+			Code: `
+        import assert from 'node:assert';
+
+        assert.fail({}, {});
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecatedWithReason",
+				},
+			},
+		},
+		{
+			Code: `
+        /** @deprecated */
+        enum A {
+          a,
+        }
+
+        A.a;
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        enum A {
+          /** @deprecated */
+          a,
+        }
+
+        A.a;
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        /** @deprecated */
+        function a() {}
+
+        a();
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        /** @deprecated */
+        function a(): void;
+        function a() {}
+
+        a();
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        function a(): void;
+        /** @deprecated */
+        function a(value: string): void;
+        function a(value?: string) {}
+
+        a('');
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        type A = {
+          (value: 'b'): void;
+          /** @deprecated */
+          (value: 'c'): void;
+        };
+        declare const foo: A;
+        foo('c');
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        function a(
+          /** @deprecated */
+          b?: boolean,
+        ) {
+          return b;
+        }
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        export function isTypeFlagSet(
+          type: ts.Type,
+          flagsToCheck: ts.TypeFlags,
+          /** @deprecated This param is not used and will be removed in the future. */
+          isReceiver?: boolean,
+        ): boolean {
+          const flags = getTypeFlags(type);
+
+          if (isReceiver && flags & ANY_OR_UNKNOWN) {
+            return true;
+          }
+
+          return (flags & flagsToCheck) !== 0;
+        }
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecatedWithReason",
+				},
+			},
+		},
+		{
+			Code: "\n        /** @deprecated */\n        declare function a(...args: unknown[]): string;\n\n        a``;\n      ",
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Tsx: true,
+			Code: `
+        /** @deprecated */
+        const A = () => <div />;
+
+        const a = <A />;
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Tsx: true,
+			Code: `
+        /** @deprecated */
+        const A = () => <div />;
+
+        const a = <A></A>;
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Tsx: true,
+			Code: `
+        /** @deprecated */
+        function A() {
+          return <div />;
+        }
+
+        const a = <A />;
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Tsx: true,
+			Code: `
+        /** @deprecated */
+        function A() {
+          return <div />;
+        }
+
+        const a = <A></A>;
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        /** @deprecated */
+        export type A = string;
+        export type B = string;
+        export type C = string;
+
+        export type D = A | B | C;
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        namespace A {
+          /** @deprecated */
+          export type B = string;
+          export type C = string;
+          export type D = string;
+        }
+
+        export type D = A.B | A.C | A.D;
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        interface Props {
+          /** @deprecated */
+          anchor: 'foo';
+        }
+        declare const x: Props;
+        const { anchor = '' } = x;
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        interface Props {
+          /** @deprecated */
+          anchor: 'foo';
+        }
+        declare const x: { bar: Props };
+        const {
+          bar: { anchor = '' },
+        } = x;
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        interface Props {
+          /** @deprecated */
+          anchor: 'foo';
+        }
+        declare const x: [item: Props];
+        const [{ anchor = 'bar' }] = x;
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        interface Props {
+          /** @deprecated */
+          foo: Props;
+        }
+        declare const x: Props;
+        const { foo = x } = x;
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        import { DeprecatedClass } from './deprecated';
+
+        const foo = new DeprecatedClass();
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        import { DeprecatedClass } from './deprecated';
+
+        declare function inject(something: new () => unknown): void;
+
+        inject(DeprecatedClass);
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        import { deprecatedVariable } from './deprecated';
+
+        const foo = deprecatedVariable;
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        import { DeprecatedClass } from './deprecated';
+
+        declare const x: DeprecatedClass;
+
+        const { foo } = x;
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        import { deprecatedFunction } from './deprecated';
+
+        deprecatedFunction();
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        import * as imported from './deprecated';
+
+        const foo = new imported.NormalClass();
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        import { NormalClass } from './deprecated';
+
+        const foo = new NormalClass();
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        import * as imported from './deprecated';
+
+        const foo = imported.NormalClass;
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        import { NormalClass } from './deprecated';
+
+        const foo = NormalClass;
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        import { normalVariable } from './deprecated';
+
+        const foo = normalVariable;
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        import * as imported from './deprecated';
+
+        const foo = imported.normalVariable;
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        import * as imported from './deprecated';
+
+        const { normalVariable } = imported;
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        import { deprecatedVariable } from './deprecated';
+
+        const test = {
+          someField: deprecatedVariable,
+        };
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        import { normalFunction } from './deprecated';
+
+        const foo = normalFunction;
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        import * as imported from './deprecated';
+
+        const foo = imported.normalFunction;
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        import * as imported from './deprecated';
+
+        const { normalFunction } = imported;
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        import { normalFunction } from './deprecated';
+
+        const foo = normalFunction();
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        import * as imported from './deprecated';
+
+        const foo = imported.normalFunction();
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        import { deprecatedFunctionWithOverloads } from './deprecated';
+
+        const foo = deprecatedFunctionWithOverloads('a');
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        import * as imported from './deprecated';
+
+        const foo = imported.deprecatedFunctionWithOverloads('a');
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Skip: true, // Behavior doesn't make sense - detecting alias deprecation reasons is not implemented
+			Code: `
+        import { reexportedDeprecatedFunctionWithOverloads } from './deprecated';
+
+        const foo = reexportedDeprecatedFunctionWithOverloads;
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecatedWithReason",
+				},
+			},
+		},
+		{
+			Skip: true,
+			Code: `
+        import * as imported from './deprecated';
+
+        const foo = imported.reexportedDeprecatedFunctionWithOverloads;
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecatedWithReason",
+				},
+			},
+		},
+		{
+			Skip: true, // Behavior doesn't make sense - detecting alias deprecation reasons is not implemented
+			Code: `
+        import * as imported from './deprecated';
+
+        const { reexportedDeprecatedFunctionWithOverloads } = imported;
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecatedWithReason",
+				},
+			},
+		},
+		{
+			Skip: true, // Behavior doesn't make sense - detecting alias deprecation reasons is not implemented
+			Code: `
+        import { reexportedDeprecatedFunctionWithOverloads } from './deprecated';
+
+        const foo = reexportedDeprecatedFunctionWithOverloads();
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecatedWithReason",
+				},
+			},
+		},
+		{
+			Skip: true, // Behavior doesn't make sense - detecting alias deprecation reasons is not implemented
+			Code: `
+        import * as imported from './deprecated';
+
+        const foo = imported.reexportedDeprecatedFunctionWithOverloads();
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecatedWithReason",
+				},
+			},
+		},
+		{
+			Skip: true, // Behavior doesn't make sense - detecting alias deprecation reasons is not implemented
+			Code: `
+        import { reexportedDeprecatedFunctionWithOverloads } from './deprecated';
+
+        const foo = reexportedDeprecatedFunctionWithOverloads('a');
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecatedWithReason",
+				},
+			},
+		},
+		{
+			Skip: true, // Behavior doesn't make sense - detecting alias deprecation reasons is not implemented
+			Code: `
+        import * as imported from './deprecated';
+
+        const foo = imported.reexportedDeprecatedFunctionWithOverloads('a');
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecatedWithReason",
+				},
+			},
+		},
+		{
+			Code: `
+        import { ClassWithDeprecatedConstructor } from './deprecated';
+
+        const foo = new ClassWithDeprecatedConstructor('a');
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        import * as imported from './deprecated';
+
+        const foo = new imported.ClassWithDeprecatedConstructor('a');
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        import { ReexportedClassWithDeprecatedConstructor } from './deprecated';
+
+        const foo = ReexportedClassWithDeprecatedConstructor;
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecatedWithReason",
+				},
+			},
+		},
+		{
+			Code: `
+        import * as imported from './deprecated';
+
+        const foo = imported.ReexportedClassWithDeprecatedConstructor;
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecatedWithReason",
+				},
+			},
+		},
+		{
+			Code: `
+        import * as imported from './deprecated';
+
+        const { ReexportedClassWithDeprecatedConstructor } = imported;
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecatedWithReason",
+				},
+			},
+		},
+		{
+			Code: `
+        import { ReexportedClassWithDeprecatedConstructor } from './deprecated';
+
+        const foo = ReexportedClassWithDeprecatedConstructor();
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecatedWithReason",
+				},
+			},
+		},
+		{
+			Code: `
+        import * as imported from './deprecated';
+
+        const foo = imported.ReexportedClassWithDeprecatedConstructor();
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecatedWithReason",
+				},
+			},
+		},
+		{
+			Code: `
+        import { ReexportedClassWithDeprecatedConstructor } from './deprecated';
+
+        const foo = ReexportedClassWithDeprecatedConstructor('a');
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecatedWithReason",
+				},
+			},
+		},
+		{
+			Code: `
+        import * as imported from './deprecated';
+
+        const foo = imported.ReexportedClassWithDeprecatedConstructor('a');
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecatedWithReason",
+				},
+			},
+		},
+		{
+			Skip: true, // Default import deprecation not fully supported
+			Code: `
+        import imported from './deprecated';
+
+        imported;
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        async function fn() {
+          const d = await import('./deprecated.js');
+          d.default.default;
+        }
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        /** @deprecated */
+        interface Foo {}
+
+        class Bar implements Foo {}
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        /** @deprecated */
+        interface Foo {}
+
+        export class Bar implements Foo {}
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        /** @deprecated */
+        interface Foo {}
+
+        interface Baz {}
+
+        export class Bar implements Baz, Foo {}
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        /** @deprecated */
+        class Foo {}
+
+        export class Bar extends Foo {}
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        /** @deprecated */
+        declare function decorator(constructor: Function);
+
+        @decorator
+        export class Foo {}
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        /** @deprecated */
+        function a(): object {
+          return {};
+        }
+
+        export default a();
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+class A {
+  /** @deprecated */
+  constructor() {}
+}
+
+class B extends A {
+  constructor() {
+    /** should report but does not */
+    super();
+  }
+}
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+class A {
+  /** @deprecated test reason*/
+  constructor() {}
+}
+
+class B extends A {
+  constructor() {
+    /** should report but does not */
+    super();
+  }
+}
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecatedWithReason",
+				},
+			},
+		},
+		{
+			Skip: true, // Requires React type definitions to detect deprecated HTML/ARIA attributes like aria-grabbed
+			Tsx:  true,
+			Code: `const a = <div aria-grabbed></div>;`,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecatedWithReason",
+				},
+			},
+		},
+		{
+			Skip: true, // JSX attribute deprecation not fully implemented
+			Code: `
+        declare namespace JSX {
+          interface IntrinsicElements {
+            'foo-bar:baz-bam': {
+              name: string;
+              /**
+               * @deprecated
+               */
+              deprecatedProp: string;
+            };
+          }
+        }
+
+        const componentDashed = <foo-bar:baz-bam name="e" deprecatedProp="oh no" />;
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Skip: true, // JSX attribute deprecation not fully implemented
+			Tsx:  true,
+			Code: `
+        import * as React from 'react';
+
+        interface Props {
+          /**
+           * @deprecated
+           */
+          deprecatedProp: string;
+        }
+
+        interface Tab {
+          List: React.FC<Props>;
+        }
+
+        const Tab: Tab = {
+          List: () => <div>Hi</div>,
+        };
+
+        const anotherExample = <Tab.List deprecatedProp="oh no" />;
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+import { exists } from 'fs';
+exists('/foo');
+      `,
+			Options: rule_tester.OptionsFromJSON[NoDeprecatedOptions](`{"allow": [{"from": "package", "name": "exists", "package": "hoge"}]}`),
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecatedWithReason",
+				},
+			},
+		},
+		{
+			Code: `
+        declare class A {
+          /** @deprecated */
+          accessor b: () => string;
+        }
+
+        declare const a: A;
+
+        a.b;
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        declare class A {
+          /** @deprecated */
+          accessor b: () => string;
+        }
+
+        declare const a: A;
+
+        a.b();
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        class A {
+          /** @deprecated */
+          accessor b = (): string => {
+            return '';
+          };
+        }
+
+        declare const a: A;
+
+        a.b();
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        declare class A {
+          /** @deprecated */
+          static accessor b: () => string;
+        }
+
+        A.b();
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        class A {
+          /** @deprecated */
+          #b = () => {};
+
+          c() {
+            this.#b();
+          }
+        }
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        const a = {
+          /** @deprecated */
+          b: 'string',
+        };
+
+        const c = a['b'];
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        const a = {
+          /** @deprecated */
+          b: 'string',
+        };
+        const x = 'b';
+        const c = a[x];
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        const a = {
+          /** @deprecated */
+          [2]: 'string',
+        };
+        const x = 'b';
+        const c = a[2];
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        const a = {
+          /** @deprecated reason for deprecation */
+          b: 'string',
+        };
+
+        const key = 'b';
+        const stringKey = key as const;
+        const c = a[stringKey];
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecatedWithReason",
+				},
+			},
+		},
+		{
+			Code: `
+        enum Keys {
+          B = 'b',
+        }
+
+        const a = {
+          /** @deprecated reason for deprecation */
+          b: 'string',
+        };
+
+        const key = Keys.B;
+        const c = a[key];
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecatedWithReason",
+				},
+			},
+		},
+		{
+			Code: "\n        const a = {\n          /** @deprecated */\n          b: 'string',\n        };\n\n        const key = `b`;\n        const c = a[key];\n      ",
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        const stringObj = 'b';
+        const a = {
+          /** @deprecated */
+          b: 'string',
+        };
+        const c = a[stringObj];
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        import { deprecatedFunction } from './deprecated';
+
+        export { deprecatedFunction };
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        export { deprecatedFunction } from './deprecated';
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        export type { T, U } from './deprecated';
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecatedWithReason",
+				},
+			},
+		},
+		{
+			Skip: true, // Default import re-export deprecation not fully supported
+			Code: `
+        export { default as foo } from './deprecated';
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        export { deprecatedFunction as bar } from './deprecated';
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		// Case 1: inherited method call (no override in Child)
+		{
+			Code: `
+        class Base {
+          /** @deprecated */
+          searchPaths(): string[] { return []; }
+        }
+        class Child extends Base {}
+        const child = new Child();
+        child.searchPaths();
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `
+        class Base {
+          /** @deprecated use newMethod() instead */
+          searchPaths(): string[] { return []; }
+        }
+        class Child extends Base {}
+        const child = new Child();
+        child.searchPaths();
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecatedWithReason",
+				},
+			},
+		},
+		{
+			Code: `
+        interface ErrorOptions {
+          /** @deprecated Use code instead. */
+          "": number;
+
+          /** @deprecated Use status instead. */
+          statusCode?: number;
+
+          status?: number;
+        }
+
+        interface MethodOptions {
+          /** @deprecated Use status instead. */
+          statusCode(): number;
+        }
+
+        declare function showError(error: ErrorOptions): void;
+        declare function showMethodError(error: MethodOptions): void;
+        declare const emptyName: '';
+        declare const statusCode: number;
+        declare const statusCodeName: 'statusCode';
+
+        showError({
+          "": 500,
+        });
+
+        showError({
+          [""]: 500,
+        });
+
+        showError({
+          [emptyName]: 500,
+        });
+
+        showError({
+          statusCode: 500,
+        });
+
+        showError({
+          statusCode,
+        });
+
+        showError({
+          ['statusCode']: 500,
+        });
+
+        showError({
+          [statusCodeName]: 500,
+        });
+
+        showError({
+          get statusCode() {
+            return 500;
+          },
+        });
+
+        showError({
+          set statusCode(value: number) {},
+        });
+
+        showMethodError({
+          statusCode() {
+            return 500;
+          },
+        });
+      `,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecatedWithReason",
+					Line:      24,
+					Column:    11,
+					EndColumn: 13,
+				},
+				{
+					MessageId: "deprecatedWithReason",
+					Line:      28,
+					Column:    11,
+					EndColumn: 15,
+				},
+				{
+					MessageId: "deprecatedWithReason",
+					Line:      32,
+					Column:    11,
+					EndColumn: 22,
+				},
+				{
+					MessageId: "deprecatedWithReason",
+					Line:      36,
+					Column:    11,
+					EndColumn: 21,
+				},
+				{
+					MessageId: "deprecatedWithReason",
+					Line:      40,
+					Column:    11,
+					EndColumn: 21,
+				},
+				{
+					MessageId: "deprecatedWithReason",
+					Line:      44,
+					Column:    11,
+					EndColumn: 25,
+				},
+				{
+					MessageId: "deprecatedWithReason",
+					Line:      48,
+					Column:    11,
+					EndColumn: 27,
+				},
+				{
+					MessageId: "deprecatedWithReason",
+					Line:      52,
+					Column:    15,
+					EndColumn: 25,
+				},
+				{
+					MessageId: "deprecatedWithReason",
+					Line:      58,
+					Column:    15,
+					EndColumn: 25,
+				},
+				{
+					MessageId: "deprecatedWithReason",
+					Line:      62,
+					Column:    11,
+					EndColumn: 21,
+				},
+			},
+		},
+		{
+			Code: `
+        interface ErrorOptions {
+          /** @deprecated Use status instead. */
+          statusCode?: number;
+
+          status?: number;
+        }
+
+        declare function showError(error: ErrorOptions): void;
+
+        showError({
+          statusCode: 500,
+        });
+      `,
+			Options: rule_tester.OptionsFromJSON[NoDeprecatedOptions](`{"allow": [{"from": "file", "name": "statusCode", "path": "other-file.ts"}]}`),
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecatedWithReason",
+					Line:      12,
+					Column:    11,
+					EndColumn: 21,
+				},
+			},
+		},
+		{
+			Code: `interface Something {
+  /**
+   * @deprecated
+   */
+  field: number;
+}
+function bar(_options: Something) {
+}
+bar({ field: 0 });`,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+					Line:      9,
+					Column:    7,
+					EndColumn: 12,
+				},
+			},
+		},
+		{
+			Tsx: true,
+			Code: `interface SomethingProps {
+  /**
+   * @deprecated
+   */
+  field: number;
+}
+function Foo(props: SomethingProps) {
+}
+const jsx = <Foo field={0} />;`,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+					Line:      9,
+					Column:    18,
+					EndColumn: 23,
+				},
+			},
+		},
+		{
+			Code: `import { deprecatedVariable } from './deprecated';
+void { deprecatedVariable };`,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+					Line:      2,
+					Column:    8,
+					EndColumn: 26,
+				},
+			},
+		},
+		{
+			Code: `import { normalVariable } from './deprecated';
+void { normalVariable };`,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+					Line:      2,
+					Column:    8,
+					EndColumn: 22,
+				},
+			},
+		},
+		{
+			Code: `import { deprecatedVariable } from './deprecated';
+deprecatedVariable;`,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{
+					MessageId: "deprecated",
+				},
+			},
+		},
+		{
+			Code: `/** @deprecated Use replacementConst instead. */
+const oldConst = 1;
+/** @deprecated Use replacementLet instead. */
+let oldLet: number = 1;
+/** @deprecated Use replacementVar instead. */
+var oldVar = 1;
+oldConst;
+oldLet;
+oldVar;`,
+			Errors: []rule_tester.InvalidTestCaseError{
+				{MessageId: "deprecatedWithReason", Line: 7},
+				{MessageId: "deprecatedWithReason", Line: 8},
+				{MessageId: "deprecatedWithReason", Line: 9},
+			},
+		},
+		{
+			Code: `import { constA, constMultiline, constTyped, letA, constReexported, constInline } from './variable-reasons';
+constA;
+constMultiline();
+constTyped;
+letA;
+constReexported;
+constInline;`,
+			Files: map[string]string{
+				"variable-reasons.ts": `/** @deprecated reason for constA */
+export const constA = 1;
+/**
+ * @deprecated reason for constMultiline
+ */
+export const constMultiline = () => 1;
+/** @deprecated reason for constTyped */
+export const constTyped: number = 1;
+/** @deprecated reason for letA */
+export let letA = 1;
+/** @deprecated reason for constReexported */
+const constReexported = 1;
+export { constReexported };
+export const /** @deprecated reason for constInline */ constInline = 1;`,
+			},
+			Errors: []rule_tester.InvalidTestCaseError{
+				{MessageId: "deprecatedWithReason", Line: 2},
+				{MessageId: "deprecatedWithReason", Line: 3},
+				{MessageId: "deprecatedWithReason", Line: 4},
+				{MessageId: "deprecatedWithReason", Line: 5},
+				{MessageId: "deprecatedWithReason", Line: 6},
+				{MessageId: "deprecatedWithReason", Line: 7},
+			},
+		},
+		{
+			Code: `/** @deprecated Statement reason. */
+const /** @deprecated Inline reason. */ oldValue = 1;
+oldValue;`,
+			Errors: []rule_tester.InvalidTestCaseError{{MessageId: "deprecatedWithReason", Line: 3}},
+		},
+		{
+			Code: `/** @deprecated Statement reason. */
+const /** @deprecated */ oldValue = 1;
+oldValue;`,
+			Errors: []rule_tester.InvalidTestCaseError{{MessageId: "deprecated", Line: 3}},
+		},
+	})
+}
+
+func TestNoDeprecatedShorthandAllowanceSources(t *testing.T) {
+	t.Parallel()
+	const code = `import { deprecatedValue } from './deprecated';
+void { deprecatedValue };`
+	files := map[string]string{
+		"deprecated.ts": "/** @deprecated */\nexport const deprecatedValue = 1;",
+	}
+	rule_tester.RunRuleTester(fixtures.GetRootDir(), "tsconfig.minimal.json", t, &NoDeprecatedRule, []rule_tester.ValidTestCase{{
+		Code:    code,
+		Files:   files,
+		Options: rule_tester.OptionsFromJSON[NoDeprecatedOptions](`{"allow":[{"from":"file","path":"./deprecated.ts","name":"deprecatedValue"}]}`),
+	}}, []rule_tester.InvalidTestCase{
+		{
+			Code:    code,
+			Files:   files,
+			Options: rule_tester.OptionsFromJSON[NoDeprecatedOptions](`{"allow":[{"from":"file","path":"./file.ts","name":"deprecatedValue"}]}`),
+			Errors:  []rule_tester.InvalidTestCaseError{{MessageId: "deprecated", Line: 2}},
+		},
+		{
+			Code:    code,
+			Files:   files,
+			Options: rule_tester.OptionsFromJSON[NoDeprecatedOptions](`{"allow":[{"from":"file","path":"./missing.ts","name":"deprecatedValue"}]}`),
+			Errors:  []rule_tester.InvalidTestCaseError{{MessageId: "deprecated", Line: 2}},
+		},
+	})
+}
+
+func TestNoDeprecatedDestructuredAllowanceSources(t *testing.T) {
+	t.Parallel()
+	const code = `async function probe() {
+  const { deprecatedValue } = await import('./deprecated');
+}`
+	files := map[string]string{
+		"deprecated.ts": "/** @deprecated */\nexport const deprecatedValue = 1;",
+	}
+	rule_tester.RunRuleTester(fixtures.GetRootDir(), "tsconfig.minimal.json", t, &NoDeprecatedRule, []rule_tester.ValidTestCase{
+		{
+			Code:    code,
+			Files:   files,
+			Options: rule_tester.OptionsFromJSON[NoDeprecatedOptions](`{"allow":[{"from":"file","path":"./deprecated.ts","name":"deprecatedValue"}]}`),
+		},
+		{
+			Code: `async function probe() {
+  const { deprecatedValue: renamed } = await import('./deprecated');
+}`,
+			Files:   files,
+			Options: rule_tester.OptionsFromJSON[NoDeprecatedOptions](`{"allow":[{"from":"file","path":"./deprecated.ts","name":["deprecatedValue","renamed"]}]}`),
+		},
+	}, []rule_tester.InvalidTestCase{
+		{
+			Code:    code,
+			Files:   files,
+			Options: rule_tester.OptionsFromJSON[NoDeprecatedOptions](`{"allow":[{"from":"file","path":"./file.ts","name":"deprecatedValue"}]}`),
+			Errors:  []rule_tester.InvalidTestCaseError{{MessageId: "deprecated", Line: 2}},
+		},
+		{
+			Code:    code,
+			Files:   files,
+			Options: rule_tester.OptionsFromJSON[NoDeprecatedOptions](`{"allow":[{"from":"file","path":"./missing.ts","name":"deprecatedValue"}]}`),
+			Errors:  []rule_tester.InvalidTestCaseError{{MessageId: "deprecated", Line: 2}},
+		},
+	})
+}

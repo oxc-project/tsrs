@@ -1,0 +1,9 @@
+Original local inputs/options preserved. Expected diagnostics refreshed from tsgolint HEAD
+8897346fff24a9bd0c719099dc1af8e7200572c1, compiler 2bd066d87f5bafd315be9f40889d0a60b9e58e0b
+with all six shipped patches; Go 1.27.1 build.
+Binary SHA-256: 4bf2bd341d7bd53b69c59228820c2045da45eb7ea0e25119a906a28524972d87
+Replayed 19 original valid cases plus twenty-five regexp compatibility cases together: strict ESNext,
+no ambient types, explicit files list, physical files and matching source overrides.
+All four fix modes verified against complete diagnostic multisets with suggestions gated.
+The original invalid pattern `[` remains an error case. Go HEAD panics for all four flags;
+Rust returns a structured protocol error. Its source and options are unchanged.

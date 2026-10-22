@@ -1,0 +1,1739 @@
+[
+  {
+    "name": "utf8-constructor",
+    "source": "export {}; const café = '☕'; class Café { private café = 'é'; #π = 1; private static fixe = 0; constructor(private é = 1) { this.café = 'è'; this.#π++; } }",
+    "options": null,
+    "expected": [
+      [
+        {
+          "kind": 0,
+          "range": {
+            "pos": 46,
+            "end": 59
+          },
+          "message": {
+            "id": "preferReadonly",
+            "description": "Member 'café' is never reassigned.",
+            "help": "Mark it as `readonly`."
+          },
+          "rule": "prefer-readonly"
+        },
+        {
+          "kind": 0,
+          "range": {
+            "pos": 68,
+            "end": 71
+          },
+          "message": {
+            "id": "preferReadonly",
+            "description": "Member '#π' is never reassigned.",
+            "help": "Mark it as `readonly`."
+          },
+          "rule": "prefer-readonly"
+        },
+        {
+          "kind": 0,
+          "range": {
+            "pos": 114,
+            "end": 124
+          },
+          "message": {
+            "id": "preferReadonly",
+            "description": "Member 'é' is never reassigned.",
+            "help": "Mark it as `readonly`."
+          },
+          "rule": "prefer-readonly"
+        },
+        {
+          "kind": 0,
+          "range": {
+            "pos": 77,
+            "end": 96
+          },
+          "message": {
+            "id": "preferReadonly",
+            "description": "Member 'fixe' is never reassigned.",
+            "help": "Mark it as `readonly`."
+          },
+          "rule": "prefer-readonly"
+        }
+      ],
+      [
+        {
+          "kind": 0,
+          "range": {
+            "pos": 46,
+            "end": 59
+          },
+          "message": {
+            "id": "preferReadonly",
+            "description": "Member 'café' is never reassigned.",
+            "help": "Mark it as `readonly`."
+          },
+          "rule": "prefer-readonly",
+          "fixes": [
+            {
+              "text": "readonly ",
+              "range": {
+                "pos": 54,
+                "end": 54
+              }
+            },
+            {
+              "text": ": string",
+              "range": {
+                "pos": 59,
+                "end": 59
+              }
+            }
+          ]
+        },
+        {
+          "kind": 0,
+          "range": {
+            "pos": 68,
+            "end": 71
+          },
+          "message": {
+            "id": "preferReadonly",
+            "description": "Member '#π' is never reassigned.",
+            "help": "Mark it as `readonly`."
+          },
+          "rule": "prefer-readonly",
+          "fixes": [
+            {
+              "text": "readonly ",
+              "range": {
+                "pos": 68,
+                "end": 68
+              }
+            }
+          ]
+        },
+        {
+          "kind": 0,
+          "range": {
+            "pos": 114,
+            "end": 124
+          },
+          "message": {
+            "id": "preferReadonly",
+            "description": "Member 'é' is never reassigned.",
+            "help": "Mark it as `readonly`."
+          },
+          "rule": "prefer-readonly",
+          "fixes": [
+            {
+              "text": "readonly ",
+              "range": {
+                "pos": 122,
+                "end": 122
+              }
+            }
+          ]
+        },
+        {
+          "kind": 0,
+          "range": {
+            "pos": 77,
+            "end": 96
+          },
+          "message": {
+            "id": "preferReadonly",
+            "description": "Member 'fixe' is never reassigned.",
+            "help": "Mark it as `readonly`."
+          },
+          "rule": "prefer-readonly",
+          "fixes": [
+            {
+              "text": "readonly ",
+              "range": {
+                "pos": 92,
+                "end": 92
+              }
+            }
+          ]
+        }
+      ],
+      [
+        {
+          "kind": 0,
+          "range": {
+            "pos": 46,
+            "end": 59
+          },
+          "message": {
+            "id": "preferReadonly",
+            "description": "Member 'café' is never reassigned.",
+            "help": "Mark it as `readonly`."
+          },
+          "rule": "prefer-readonly"
+        },
+        {
+          "kind": 0,
+          "range": {
+            "pos": 68,
+            "end": 71
+          },
+          "message": {
+            "id": "preferReadonly",
+            "description": "Member '#π' is never reassigned.",
+            "help": "Mark it as `readonly`."
+          },
+          "rule": "prefer-readonly"
+        },
+        {
+          "kind": 0,
+          "range": {
+            "pos": 114,
+            "end": 124
+          },
+          "message": {
+            "id": "preferReadonly",
+            "description": "Member 'é' is never reassigned.",
+            "help": "Mark it as `readonly`."
+          },
+          "rule": "prefer-readonly"
+        },
+        {
+          "kind": 0,
+          "range": {
+            "pos": 77,
+            "end": 96
+          },
+          "message": {
+            "id": "preferReadonly",
+            "description": "Member 'fixe' is never reassigned.",
+            "help": "Mark it as `readonly`."
+          },
+          "rule": "prefer-readonly"
+        }
+      ],
+      [
+        {
+          "kind": 0,
+          "range": {
+            "pos": 46,
+            "end": 59
+          },
+          "message": {
+            "id": "preferReadonly",
+            "description": "Member 'café' is never reassigned.",
+            "help": "Mark it as `readonly`."
+          },
+          "rule": "prefer-readonly",
+          "fixes": [
+            {
+              "text": "readonly ",
+              "range": {
+                "pos": 54,
+                "end": 54
+              }
+            },
+            {
+              "text": ": string",
+              "range": {
+                "pos": 59,
+                "end": 59
+              }
+            }
+          ]
+        },
+        {
+          "kind": 0,
+          "range": {
+            "pos": 68,
+            "end": 71
+          },
+          "message": {
+            "id": "preferReadonly",
+            "description": "Member '#π' is never reassigned.",
+            "help": "Mark it as `readonly`."
+          },
+          "rule": "prefer-readonly",
+          "fixes": [
+            {
+              "text": "readonly ",
+              "range": {
+                "pos": 68,
+                "end": 68
+              }
+            }
+          ]
+        },
+        {
+          "kind": 0,
+          "range": {
+            "pos": 114,
+            "end": 124
+          },
+          "message": {
+            "id": "preferReadonly",
+            "description": "Member 'é' is never reassigned.",
+            "help": "Mark it as `readonly`."
+          },
+          "rule": "prefer-readonly",
+          "fixes": [
+            {
+              "text": "readonly ",
+              "range": {
+                "pos": 122,
+                "end": 122
+              }
+            }
+          ]
+        },
+        {
+          "kind": 0,
+          "range": {
+            "pos": 77,
+            "end": 96
+          },
+          "message": {
+            "id": "preferReadonly",
+            "description": "Member 'fixe' is never reassigned.",
+            "help": "Mark it as `readonly`."
+          },
+          "rule": "prefer-readonly",
+          "fixes": [
+            {
+              "text": "readonly ",
+              "range": {
+                "pos": 92,
+                "end": 92
+              }
+            }
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "name": "nested-functions",
+    "source": "export {}; class A { private a = 1; private b = 2; private c = 3; private d = 4; constructor() { this.a++; (() => { this.b++; })(); function f(a: A) { a.c = 5; } const f2 = function(a: A) { a.d = 6; }; } }",
+    "options": {},
+    "expected": [
+      [
+        {
+          "kind": 0,
+          "range": {
+            "pos": 21,
+            "end": 30
+          },
+          "message": {
+            "id": "preferReadonly",
+            "description": "Member 'a' is never reassigned.",
+            "help": "Mark it as `readonly`."
+          },
+          "rule": "prefer-readonly"
+        }
+      ],
+      [
+        {
+          "kind": 0,
+          "range": {
+            "pos": 21,
+            "end": 30
+          },
+          "message": {
+            "id": "preferReadonly",
+            "description": "Member 'a' is never reassigned.",
+            "help": "Mark it as `readonly`."
+          },
+          "rule": "prefer-readonly",
+          "fixes": [
+            {
+              "text": "readonly ",
+              "range": {
+                "pos": 29,
+                "end": 29
+              }
+            },
+            {
+              "text": ": number",
+              "range": {
+                "pos": 30,
+                "end": 30
+              }
+            }
+          ]
+        }
+      ],
+      [
+        {
+          "kind": 0,
+          "range": {
+            "pos": 21,
+            "end": 30
+          },
+          "message": {
+            "id": "preferReadonly",
+            "description": "Member 'a' is never reassigned.",
+            "help": "Mark it as `readonly`."
+          },
+          "rule": "prefer-readonly"
+        }
+      ],
+      [
+        {
+          "kind": 0,
+          "range": {
+            "pos": 21,
+            "end": 30
+          },
+          "message": {
+            "id": "preferReadonly",
+            "description": "Member 'a' is never reassigned.",
+            "help": "Mark it as `readonly`."
+          },
+          "rule": "prefer-readonly",
+          "fixes": [
+            {
+              "text": "readonly ",
+              "range": {
+                "pos": 29,
+                "end": 29
+              }
+            },
+            {
+              "text": ": number",
+              "range": {
+                "pos": 30,
+                "end": 30
+              }
+            }
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "name": "nested-classes",
+    "source": "export {}; class A { private outer = 1; private static first = 1; method() { return class { #inner = 1; }; } private last = 2; } const B = class { private next = 1; };",
+    "options": {},
+    "expected": [
+      [
+        {
+          "kind": 0,
+          "range": {
+            "pos": 21,
+            "end": 34
+          },
+          "message": {
+            "id": "preferReadonly",
+            "description": "Member 'outer' is never reassigned.",
+            "help": "Mark it as `readonly`."
+          },
+          "rule": "prefer-readonly"
+        },
+        {
+          "kind": 0,
+          "range": {
+            "pos": 109,
+            "end": 121
+          },
+          "message": {
+            "id": "preferReadonly",
+            "description": "Member 'last' is never reassigned.",
+            "help": "Mark it as `readonly`."
+          },
+          "rule": "prefer-readonly"
+        },
+        {
+          "kind": 0,
+          "range": {
+            "pos": 40,
+            "end": 60
+          },
+          "message": {
+            "id": "preferReadonly",
+            "description": "Member 'first' is never reassigned.",
+            "help": "Mark it as `readonly`."
+          },
+          "rule": "prefer-readonly"
+        },
+        {
+          "kind": 0,
+          "range": {
+            "pos": 92,
+            "end": 98
+          },
+          "message": {
+            "id": "preferReadonly",
+            "description": "Member '#inner' is never reassigned.",
+            "help": "Mark it as `readonly`."
+          },
+          "rule": "prefer-readonly"
+        },
+        {
+          "kind": 0,
+          "range": {
+            "pos": 147,
+            "end": 159
+          },
+          "message": {
+            "id": "preferReadonly",
+            "description": "Member 'next' is never reassigned.",
+            "help": "Mark it as `readonly`."
+          },
+          "rule": "prefer-readonly"
+        }
+      ],
+      [
+        {
+          "kind": 0,
+          "range": {
+            "pos": 21,
+            "end": 34
+          },
+          "message": {
+            "id": "preferReadonly",
+            "description": "Member 'outer' is never reassigned.",
+            "help": "Mark it as `readonly`."
+          },
+          "rule": "prefer-readonly",
+          "fixes": [
+            {
+              "text": "readonly ",
+              "range": {
+                "pos": 29,
+                "end": 29
+              }
+            }
+          ]
+        },
+        {
+          "kind": 0,
+          "range": {
+            "pos": 109,
+            "end": 121
+          },
+          "message": {
+            "id": "preferReadonly",
+            "description": "Member 'last' is never reassigned.",
+            "help": "Mark it as `readonly`."
+          },
+          "rule": "prefer-readonly",
+          "fixes": [
+            {
+              "text": "readonly ",
+              "range": {
+                "pos": 117,
+                "end": 117
+              }
+            }
+          ]
+        },
+        {
+          "kind": 0,
+          "range": {
+            "pos": 40,
+            "end": 60
+          },
+          "message": {
+            "id": "preferReadonly",
+            "description": "Member 'first' is never reassigned.",
+            "help": "Mark it as `readonly`."
+          },
+          "rule": "prefer-readonly",
+          "fixes": [
+            {
+              "text": "readonly ",
+              "range": {
+                "pos": 55,
+                "end": 55
+              }
+            }
+          ]
+        },
+        {
+          "kind": 0,
+          "range": {
+            "pos": 92,
+            "end": 98
+          },
+          "message": {
+            "id": "preferReadonly",
+            "description": "Member '#inner' is never reassigned.",
+            "help": "Mark it as `readonly`."
+          },
+          "rule": "prefer-readonly",
+          "fixes": [
+            {
+              "text": "readonly ",
+              "range": {
+                "pos": 92,
+                "end": 92
+              }
+            }
+          ]
+        },
+        {
+          "kind": 0,
+          "range": {
+            "pos": 147,
+            "end": 159
+          },
+          "message": {
+            "id": "preferReadonly",
+            "description": "Member 'next' is never reassigned.",
+            "help": "Mark it as `readonly`."
+          },
+          "rule": "prefer-readonly",
+          "fixes": [
+            {
+              "text": "readonly ",
+              "range": {
+                "pos": 155,
+                "end": 155
+              }
+            }
+          ]
+        }
+      ],
+      [
+        {
+          "kind": 0,
+          "range": {
+            "pos": 21,
+            "end": 34
+          },
+          "message": {
+            "id": "preferReadonly",
+            "description": "Member 'outer' is never reassigned.",
+            "help": "Mark it as `readonly`."
+          },
+          "rule": "prefer-readonly"
+        },
+        {
+          "kind": 0,
+          "range": {
+            "pos": 109,
+            "end": 121
+          },
+          "message": {
+            "id": "preferReadonly",
+            "description": "Member 'last' is never reassigned.",
+            "help": "Mark it as `readonly`."
+          },
+          "rule": "prefer-readonly"
+        },
+        {
+          "kind": 0,
+          "range": {
+            "pos": 40,
+            "end": 60
+          },
+          "message": {
+            "id": "preferReadonly",
+            "description": "Member 'first' is never reassigned.",
+            "help": "Mark it as `readonly`."
+          },
+          "rule": "prefer-readonly"
+        },
+        {
+          "kind": 0,
+          "range": {
+            "pos": 92,
+            "end": 98
+          },
+          "message": {
+            "id": "preferReadonly",
+            "description": "Member '#inner' is never reassigned.",
+            "help": "Mark it as `readonly`."
+          },
+          "rule": "prefer-readonly"
+        },
+        {
+          "kind": 0,
+          "range": {
+            "pos": 147,
+            "end": 159
+          },
+          "message": {
+            "id": "preferReadonly",
+            "description": "Member 'next' is never reassigned.",
+            "help": "Mark it as `readonly`."
+          },
+          "rule": "prefer-readonly"
+        }
+      ],
+      [
+        {
+          "kind": 0,
+          "range": {
+            "pos": 21,
+            "end": 34
+          },
+          "message": {
+            "id": "preferReadonly",
+            "description": "Member 'outer' is never reassigned.",
+            "help": "Mark it as `readonly`."
+          },
+          "rule": "prefer-readonly",
+          "fixes": [
+            {
+              "text": "readonly ",
+              "range": {
+                "pos": 29,
+                "end": 29
+              }
+            }
+          ]
+        },
+        {
+          "kind": 0,
+          "range": {
+            "pos": 109,
+            "end": 121
+          },
+          "message": {
+            "id": "preferReadonly",
+            "description": "Member 'last' is never reassigned.",
+            "help": "Mark it as `readonly`."
+          },
+          "rule": "prefer-readonly",
+          "fixes": [
+            {
+              "text": "readonly ",
+              "range": {
+                "pos": 117,
+                "end": 117
+              }
+            }
+          ]
+        },
+        {
+          "kind": 0,
+          "range": {
+            "pos": 40,
+            "end": 60
+          },
+          "message": {
+            "id": "preferReadonly",
+            "description": "Member 'first' is never reassigned.",
+            "help": "Mark it as `readonly`."
+          },
+          "rule": "prefer-readonly",
+          "fixes": [
+            {
+              "text": "readonly ",
+              "range": {
+                "pos": 55,
+                "end": 55
+              }
+            }
+          ]
+        },
+        {
+          "kind": 0,
+          "range": {
+            "pos": 92,
+            "end": 98
+          },
+          "message": {
+            "id": "preferReadonly",
+            "description": "Member '#inner' is never reassigned.",
+            "help": "Mark it as `readonly`."
+          },
+          "rule": "prefer-readonly",
+          "fixes": [
+            {
+              "text": "readonly ",
+              "range": {
+                "pos": 92,
+                "end": 92
+              }
+            }
+          ]
+        },
+        {
+          "kind": 0,
+          "range": {
+            "pos": 147,
+            "end": 159
+          },
+          "message": {
+            "id": "preferReadonly",
+            "description": "Member 'next' is never reassigned.",
+            "help": "Mark it as `readonly`."
+          },
+          "rule": "prefer-readonly",
+          "fixes": [
+            {
+              "text": "readonly ",
+              "range": {
+                "pos": 155,
+                "end": 155
+              }
+            }
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "name": "only-lambdas",
+    "source": "export {}; class A { private café = () => 1; private f = function() {}; private n = 1; #π = () => 2; constructor(private p = () => 0) {} }",
+    "options": {
+      "onlyInlineLambdas": true
+    },
+    "expected": [
+      [
+        {
+          "kind": 0,
+          "range": {
+            "pos": 21,
+            "end": 34
+          },
+          "message": {
+            "id": "preferReadonly",
+            "description": "Member 'café' is never reassigned.",
+            "help": "Mark it as `readonly`."
+          },
+          "rule": "prefer-readonly"
+        },
+        {
+          "kind": 0,
+          "range": {
+            "pos": 88,
+            "end": 91
+          },
+          "message": {
+            "id": "preferReadonly",
+            "description": "Member '#π' is never reassigned.",
+            "help": "Mark it as `readonly`."
+          },
+          "rule": "prefer-readonly"
+        },
+        {
+          "kind": 0,
+          "range": {
+            "pos": 115,
+            "end": 124
+          },
+          "message": {
+            "id": "preferReadonly",
+            "description": "Member 'p' is never reassigned.",
+            "help": "Mark it as `readonly`."
+          },
+          "rule": "prefer-readonly"
+        }
+      ],
+      [
+        {
+          "kind": 0,
+          "range": {
+            "pos": 21,
+            "end": 34
+          },
+          "message": {
+            "id": "preferReadonly",
+            "description": "Member 'café' is never reassigned.",
+            "help": "Mark it as `readonly`."
+          },
+          "rule": "prefer-readonly",
+          "fixes": [
+            {
+              "text": "readonly ",
+              "range": {
+                "pos": 29,
+                "end": 29
+              }
+            }
+          ]
+        },
+        {
+          "kind": 0,
+          "range": {
+            "pos": 88,
+            "end": 91
+          },
+          "message": {
+            "id": "preferReadonly",
+            "description": "Member '#π' is never reassigned.",
+            "help": "Mark it as `readonly`."
+          },
+          "rule": "prefer-readonly",
+          "fixes": [
+            {
+              "text": "readonly ",
+              "range": {
+                "pos": 88,
+                "end": 88
+              }
+            }
+          ]
+        },
+        {
+          "kind": 0,
+          "range": {
+            "pos": 115,
+            "end": 124
+          },
+          "message": {
+            "id": "preferReadonly",
+            "description": "Member 'p' is never reassigned.",
+            "help": "Mark it as `readonly`."
+          },
+          "rule": "prefer-readonly",
+          "fixes": [
+            {
+              "text": "readonly ",
+              "range": {
+                "pos": 123,
+                "end": 123
+              }
+            }
+          ]
+        }
+      ],
+      [
+        {
+          "kind": 0,
+          "range": {
+            "pos": 21,
+            "end": 34
+          },
+          "message": {
+            "id": "preferReadonly",
+            "description": "Member 'café' is never reassigned.",
+            "help": "Mark it as `readonly`."
+          },
+          "rule": "prefer-readonly"
+        },
+        {
+          "kind": 0,
+          "range": {
+            "pos": 88,
+            "end": 91
+          },
+          "message": {
+            "id": "preferReadonly",
+            "description": "Member '#π' is never reassigned.",
+            "help": "Mark it as `readonly`."
+          },
+          "rule": "prefer-readonly"
+        },
+        {
+          "kind": 0,
+          "range": {
+            "pos": 115,
+            "end": 124
+          },
+          "message": {
+            "id": "preferReadonly",
+            "description": "Member 'p' is never reassigned.",
+            "help": "Mark it as `readonly`."
+          },
+          "rule": "prefer-readonly"
+        }
+      ],
+      [
+        {
+          "kind": 0,
+          "range": {
+            "pos": 21,
+            "end": 34
+          },
+          "message": {
+            "id": "preferReadonly",
+            "description": "Member 'café' is never reassigned.",
+            "help": "Mark it as `readonly`."
+          },
+          "rule": "prefer-readonly",
+          "fixes": [
+            {
+              "text": "readonly ",
+              "range": {
+                "pos": 29,
+                "end": 29
+              }
+            }
+          ]
+        },
+        {
+          "kind": 0,
+          "range": {
+            "pos": 88,
+            "end": 91
+          },
+          "message": {
+            "id": "preferReadonly",
+            "description": "Member '#π' is never reassigned.",
+            "help": "Mark it as `readonly`."
+          },
+          "rule": "prefer-readonly",
+          "fixes": [
+            {
+              "text": "readonly ",
+              "range": {
+                "pos": 88,
+                "end": 88
+              }
+            }
+          ]
+        },
+        {
+          "kind": 0,
+          "range": {
+            "pos": 115,
+            "end": 124
+          },
+          "message": {
+            "id": "preferReadonly",
+            "description": "Member 'p' is never reassigned.",
+            "help": "Mark it as `readonly`."
+          },
+          "rule": "prefer-readonly",
+          "fixes": [
+            {
+              "text": "readonly ",
+              "range": {
+                "pos": 123,
+                "end": 123
+              }
+            }
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "name": "null-option",
+    "source": "export {}; class A { private n = 1; private f = () => 0; }",
+    "options": {
+      "onlyInlineLambdas": null,
+      "ignored": 1
+    },
+    "expected": [
+      [
+        {
+          "kind": 0,
+          "range": {
+            "pos": 21,
+            "end": 30
+          },
+          "message": {
+            "id": "preferReadonly",
+            "description": "Member 'n' is never reassigned.",
+            "help": "Mark it as `readonly`."
+          },
+          "rule": "prefer-readonly"
+        },
+        {
+          "kind": 0,
+          "range": {
+            "pos": 36,
+            "end": 45
+          },
+          "message": {
+            "id": "preferReadonly",
+            "description": "Member 'f' is never reassigned.",
+            "help": "Mark it as `readonly`."
+          },
+          "rule": "prefer-readonly"
+        }
+      ],
+      [
+        {
+          "kind": 0,
+          "range": {
+            "pos": 21,
+            "end": 30
+          },
+          "message": {
+            "id": "preferReadonly",
+            "description": "Member 'n' is never reassigned.",
+            "help": "Mark it as `readonly`."
+          },
+          "rule": "prefer-readonly",
+          "fixes": [
+            {
+              "text": "readonly ",
+              "range": {
+                "pos": 29,
+                "end": 29
+              }
+            }
+          ]
+        },
+        {
+          "kind": 0,
+          "range": {
+            "pos": 36,
+            "end": 45
+          },
+          "message": {
+            "id": "preferReadonly",
+            "description": "Member 'f' is never reassigned.",
+            "help": "Mark it as `readonly`."
+          },
+          "rule": "prefer-readonly",
+          "fixes": [
+            {
+              "text": "readonly ",
+              "range": {
+                "pos": 44,
+                "end": 44
+              }
+            }
+          ]
+        }
+      ],
+      [
+        {
+          "kind": 0,
+          "range": {
+            "pos": 21,
+            "end": 30
+          },
+          "message": {
+            "id": "preferReadonly",
+            "description": "Member 'n' is never reassigned.",
+            "help": "Mark it as `readonly`."
+          },
+          "rule": "prefer-readonly"
+        },
+        {
+          "kind": 0,
+          "range": {
+            "pos": 36,
+            "end": 45
+          },
+          "message": {
+            "id": "preferReadonly",
+            "description": "Member 'f' is never reassigned.",
+            "help": "Mark it as `readonly`."
+          },
+          "rule": "prefer-readonly"
+        }
+      ],
+      [
+        {
+          "kind": 0,
+          "range": {
+            "pos": 21,
+            "end": 30
+          },
+          "message": {
+            "id": "preferReadonly",
+            "description": "Member 'n' is never reassigned.",
+            "help": "Mark it as `readonly`."
+          },
+          "rule": "prefer-readonly",
+          "fixes": [
+            {
+              "text": "readonly ",
+              "range": {
+                "pos": 29,
+                "end": 29
+              }
+            }
+          ]
+        },
+        {
+          "kind": 0,
+          "range": {
+            "pos": 36,
+            "end": 45
+          },
+          "message": {
+            "id": "preferReadonly",
+            "description": "Member 'f' is never reassigned.",
+            "help": "Mark it as `readonly`."
+          },
+          "rule": "prefer-readonly",
+          "fixes": [
+            {
+              "text": "readonly ",
+              "range": {
+                "pos": 44,
+                "end": 44
+              }
+            }
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "name": "write-forms",
+    "source": "export {}; class A { private a = 1; private b = 1; private c = 1; private d = 1; private e = 1; private f = 1; private g = 1; private static s = 1; m() { [this.a] = [2]; ({x: this.b} = {x: 2}); delete this.c; ++this.d; this.e += 1; this['f'] = 2; (this.g) = 2; A.s++; } }",
+    "options": {},
+    "expected": [
+      [
+        {
+          "kind": 0,
+          "range": {
+            "pos": 96,
+            "end": 105
+          },
+          "message": {
+            "id": "preferReadonly",
+            "description": "Member 'f' is never reassigned.",
+            "help": "Mark it as `readonly`."
+          },
+          "rule": "prefer-readonly"
+        }
+      ],
+      [
+        {
+          "kind": 0,
+          "range": {
+            "pos": 96,
+            "end": 105
+          },
+          "message": {
+            "id": "preferReadonly",
+            "description": "Member 'f' is never reassigned.",
+            "help": "Mark it as `readonly`."
+          },
+          "rule": "prefer-readonly",
+          "fixes": [
+            {
+              "text": "readonly ",
+              "range": {
+                "pos": 104,
+                "end": 104
+              }
+            }
+          ]
+        }
+      ],
+      [
+        {
+          "kind": 0,
+          "range": {
+            "pos": 96,
+            "end": 105
+          },
+          "message": {
+            "id": "preferReadonly",
+            "description": "Member 'f' is never reassigned.",
+            "help": "Mark it as `readonly`."
+          },
+          "rule": "prefer-readonly"
+        }
+      ],
+      [
+        {
+          "kind": 0,
+          "range": {
+            "pos": 96,
+            "end": 105
+          },
+          "message": {
+            "id": "preferReadonly",
+            "description": "Member 'f' is never reassigned.",
+            "help": "Mark it as `readonly`."
+          },
+          "rule": "prefer-readonly",
+          "fixes": [
+            {
+              "text": "readonly ",
+              "range": {
+                "pos": 104,
+                "end": 104
+              }
+            }
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "name": "relations",
+    "source": "export {}; class A { private x = 1; private y = 1; private z = 1; m<T extends A>(t: T, both: A & typeof A, union: A | (A & {n: 1})) { t.x = 2; both.y = 2; union.z = 2; } }",
+    "options": {},
+    "expected": [
+      [
+        {
+          "kind": 0,
+          "range": {
+            "pos": 21,
+            "end": 30
+          },
+          "message": {
+            "id": "preferReadonly",
+            "description": "Member 'x' is never reassigned.",
+            "help": "Mark it as `readonly`."
+          },
+          "rule": "prefer-readonly"
+        }
+      ],
+      [
+        {
+          "kind": 0,
+          "range": {
+            "pos": 21,
+            "end": 30
+          },
+          "message": {
+            "id": "preferReadonly",
+            "description": "Member 'x' is never reassigned.",
+            "help": "Mark it as `readonly`."
+          },
+          "rule": "prefer-readonly",
+          "fixes": [
+            {
+              "text": "readonly ",
+              "range": {
+                "pos": 29,
+                "end": 29
+              }
+            }
+          ]
+        }
+      ],
+      [
+        {
+          "kind": 0,
+          "range": {
+            "pos": 21,
+            "end": 30
+          },
+          "message": {
+            "id": "preferReadonly",
+            "description": "Member 'x' is never reassigned.",
+            "help": "Mark it as `readonly`."
+          },
+          "rule": "prefer-readonly"
+        }
+      ],
+      [
+        {
+          "kind": 0,
+          "range": {
+            "pos": 21,
+            "end": 30
+          },
+          "message": {
+            "id": "preferReadonly",
+            "description": "Member 'x' is never reassigned.",
+            "help": "Mark it as `readonly`."
+          },
+          "rule": "prefer-readonly",
+          "fixes": [
+            {
+              "text": "readonly ",
+              "range": {
+                "pos": 29,
+                "end": 29
+              }
+            }
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "name": "enum-shadow",
+    "source": "export {}; enum E { A, B } const e = E.A; function f() { const E = 1; class A { private x = e; constructor() { this.x = e; } } } class B { private x = E.A; constructor() { this.x = E.B; } }",
+    "options": {},
+    "expected": [
+      [
+        {
+          "kind": 0,
+          "range": {
+            "pos": 80,
+            "end": 89
+          },
+          "message": {
+            "id": "preferReadonly",
+            "description": "Member 'x' is never reassigned.",
+            "help": "Mark it as `readonly`."
+          },
+          "rule": "prefer-readonly"
+        },
+        {
+          "kind": 0,
+          "range": {
+            "pos": 139,
+            "end": 148
+          },
+          "message": {
+            "id": "preferReadonly",
+            "description": "Member 'x' is never reassigned.",
+            "help": "Mark it as `readonly`."
+          },
+          "rule": "prefer-readonly"
+        }
+      ],
+      [
+        {
+          "kind": 0,
+          "range": {
+            "pos": 80,
+            "end": 89
+          },
+          "message": {
+            "id": "preferReadonly",
+            "description": "Member 'x' is never reassigned.",
+            "help": "Mark it as `readonly`."
+          },
+          "rule": "prefer-readonly",
+          "fixes": [
+            {
+              "text": "readonly ",
+              "range": {
+                "pos": 88,
+                "end": 88
+              }
+            }
+          ]
+        },
+        {
+          "kind": 0,
+          "range": {
+            "pos": 139,
+            "end": 148
+          },
+          "message": {
+            "id": "preferReadonly",
+            "description": "Member 'x' is never reassigned.",
+            "help": "Mark it as `readonly`."
+          },
+          "rule": "prefer-readonly",
+          "fixes": [
+            {
+              "text": "readonly ",
+              "range": {
+                "pos": 147,
+                "end": 147
+              }
+            },
+            {
+              "text": ": E",
+              "range": {
+                "pos": 148,
+                "end": 148
+              }
+            }
+          ]
+        }
+      ],
+      [
+        {
+          "kind": 0,
+          "range": {
+            "pos": 80,
+            "end": 89
+          },
+          "message": {
+            "id": "preferReadonly",
+            "description": "Member 'x' is never reassigned.",
+            "help": "Mark it as `readonly`."
+          },
+          "rule": "prefer-readonly"
+        },
+        {
+          "kind": 0,
+          "range": {
+            "pos": 139,
+            "end": 148
+          },
+          "message": {
+            "id": "preferReadonly",
+            "description": "Member 'x' is never reassigned.",
+            "help": "Mark it as `readonly`."
+          },
+          "rule": "prefer-readonly"
+        }
+      ],
+      [
+        {
+          "kind": 0,
+          "range": {
+            "pos": 80,
+            "end": 89
+          },
+          "message": {
+            "id": "preferReadonly",
+            "description": "Member 'x' is never reassigned.",
+            "help": "Mark it as `readonly`."
+          },
+          "rule": "prefer-readonly",
+          "fixes": [
+            {
+              "text": "readonly ",
+              "range": {
+                "pos": 88,
+                "end": 88
+              }
+            }
+          ]
+        },
+        {
+          "kind": 0,
+          "range": {
+            "pos": 139,
+            "end": 148
+          },
+          "message": {
+            "id": "preferReadonly",
+            "description": "Member 'x' is never reassigned.",
+            "help": "Mark it as `readonly`."
+          },
+          "rule": "prefer-readonly",
+          "fixes": [
+            {
+              "text": "readonly ",
+              "range": {
+                "pos": 147,
+                "end": 147
+              }
+            },
+            {
+              "text": ": E",
+              "range": {
+                "pos": 148,
+                "end": 148
+              }
+            }
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "name": "declaration-exclusions",
+    "source": "export {}; class A { private accessor x = 1; private readonly y = 1; private ['z'] = 1; private 'é' = 1; private static 'π' = 1; }",
+    "options": {},
+    "expected": [
+      [
+        {
+          "kind": 0,
+          "range": {
+            "pos": 88,
+            "end": 100
+          },
+          "message": {
+            "id": "preferReadonly",
+            "description": "Member ''é'' is never reassigned.",
+            "help": "Mark it as `readonly`."
+          },
+          "rule": "prefer-readonly"
+        },
+        {
+          "kind": 0,
+          "range": {
+            "pos": 106,
+            "end": 125
+          },
+          "message": {
+            "id": "preferReadonly",
+            "description": "Member ''π'' is never reassigned.",
+            "help": "Mark it as `readonly`."
+          },
+          "rule": "prefer-readonly"
+        }
+      ],
+      [
+        {
+          "kind": 0,
+          "range": {
+            "pos": 88,
+            "end": 100
+          },
+          "message": {
+            "id": "preferReadonly",
+            "description": "Member ''é'' is never reassigned.",
+            "help": "Mark it as `readonly`."
+          },
+          "rule": "prefer-readonly",
+          "fixes": [
+            {
+              "text": "readonly ",
+              "range": {
+                "pos": 96,
+                "end": 96
+              }
+            }
+          ]
+        },
+        {
+          "kind": 0,
+          "range": {
+            "pos": 106,
+            "end": 125
+          },
+          "message": {
+            "id": "preferReadonly",
+            "description": "Member ''π'' is never reassigned.",
+            "help": "Mark it as `readonly`."
+          },
+          "rule": "prefer-readonly",
+          "fixes": [
+            {
+              "text": "readonly ",
+              "range": {
+                "pos": 121,
+                "end": 121
+              }
+            }
+          ]
+        }
+      ],
+      [
+        {
+          "kind": 0,
+          "range": {
+            "pos": 88,
+            "end": 100
+          },
+          "message": {
+            "id": "preferReadonly",
+            "description": "Member ''é'' is never reassigned.",
+            "help": "Mark it as `readonly`."
+          },
+          "rule": "prefer-readonly"
+        },
+        {
+          "kind": 0,
+          "range": {
+            "pos": 106,
+            "end": 125
+          },
+          "message": {
+            "id": "preferReadonly",
+            "description": "Member ''π'' is never reassigned.",
+            "help": "Mark it as `readonly`."
+          },
+          "rule": "prefer-readonly"
+        }
+      ],
+      [
+        {
+          "kind": 0,
+          "range": {
+            "pos": 88,
+            "end": 100
+          },
+          "message": {
+            "id": "preferReadonly",
+            "description": "Member ''é'' is never reassigned.",
+            "help": "Mark it as `readonly`."
+          },
+          "rule": "prefer-readonly",
+          "fixes": [
+            {
+              "text": "readonly ",
+              "range": {
+                "pos": 96,
+                "end": 96
+              }
+            }
+          ]
+        },
+        {
+          "kind": 0,
+          "range": {
+            "pos": 106,
+            "end": 125
+          },
+          "message": {
+            "id": "preferReadonly",
+            "description": "Member ''π'' is never reassigned.",
+            "help": "Mark it as `readonly`."
+          },
+          "rule": "prefer-readonly",
+          "fixes": [
+            {
+              "text": "readonly ",
+              "range": {
+                "pos": 121,
+                "end": 121
+              }
+            }
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "name": "state-after-writes",
+    "source": "export {}; class A { private a = 1; m() { this.a = 2; } } class B { private a = 1; }",
+    "options": {},
+    "expected": [
+      [
+        {
+          "kind": 0,
+          "range": {
+            "pos": 68,
+            "end": 77
+          },
+          "message": {
+            "id": "preferReadonly",
+            "description": "Member 'a' is never reassigned.",
+            "help": "Mark it as `readonly`."
+          },
+          "rule": "prefer-readonly"
+        }
+      ],
+      [
+        {
+          "kind": 0,
+          "range": {
+            "pos": 68,
+            "end": 77
+          },
+          "message": {
+            "id": "preferReadonly",
+            "description": "Member 'a' is never reassigned.",
+            "help": "Mark it as `readonly`."
+          },
+          "rule": "prefer-readonly",
+          "fixes": [
+            {
+              "text": "readonly ",
+              "range": {
+                "pos": 76,
+                "end": 76
+              }
+            }
+          ]
+        }
+      ],
+      [
+        {
+          "kind": 0,
+          "range": {
+            "pos": 68,
+            "end": 77
+          },
+          "message": {
+            "id": "preferReadonly",
+            "description": "Member 'a' is never reassigned.",
+            "help": "Mark it as `readonly`."
+          },
+          "rule": "prefer-readonly"
+        }
+      ],
+      [
+        {
+          "kind": 0,
+          "range": {
+            "pos": 68,
+            "end": 77
+          },
+          "message": {
+            "id": "preferReadonly",
+            "description": "Member 'a' is never reassigned.",
+            "help": "Mark it as `readonly`."
+          },
+          "rule": "prefer-readonly",
+          "fixes": [
+            {
+              "text": "readonly ",
+              "range": {
+                "pos": 76,
+                "end": 76
+              }
+            }
+          ]
+        }
+      ]
+    ]
+  }
+]

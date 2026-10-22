@@ -1,0 +1,95 @@
+[
+  {
+    "message": {
+      "id": "neverOptionalChain",
+      "description": "Unnecessary optional chain on a non-nullish value.",
+      "help": "The checked value has type `{ value: \"value\"; }`. Remove the optional chain; the value cannot be `null` or `undefined`."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 348,
+      "end": 364
+    },
+    "suggestions": [
+      {
+        "message": {
+          "id": "suggestRemoveOptionalChain",
+          "description": "Remove unnecessary optional chain"
+        },
+        "fixes": [
+          {
+            "text": ".",
+            "range": {
+              "pos": 357,
+              "end": 359
+            }
+          }
+        ]
+      }
+    ],
+    "kind": 0,
+    "rule": "no-unnecessary-condition"
+  },
+  {
+    "message": {
+      "id": "neverOptionalChain",
+      "description": "Unnecessary optional chain on a non-nullish value.",
+      "help": "The checked value has type `{ [name: Lowercase<string>]: { value: \"value\"; }; }`. Remove the optional chain; the value cannot be `null` or `undefined`."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "end": 357,
+      "pos": 348
+    },
+    "suggestions": [
+      {
+        "message": {
+          "id": "suggestRemoveOptionalChain",
+          "description": "Remove unnecessary optional chain"
+        },
+        "fixes": [
+          {
+            "text": ".",
+            "range": {
+              "pos": 354,
+              "end": 356
+            }
+          }
+        ]
+      }
+    ],
+    "kind": 0,
+    "rule": "no-unnecessary-condition"
+  },
+  {
+    "kind": 0,
+    "rule": "no-unnecessary-condition",
+    "message": {
+      "id": "neverOptionalChain",
+      "description": "Unnecessary optional chain on a non-nullish value.",
+      "help": "The checked value has type `{ [name: Lowercase<string>]: { [name: Lowercase<string>]: { value: \"value\"; }; }; }`. Remove the optional chain; the value cannot be `null` or `undefined`."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 348,
+      "end": 354
+    },
+    "suggestions": [
+      {
+        "message": {
+          "id": "suggestRemoveOptionalChain",
+          "description": "Remove unnecessary optional chain"
+        },
+        "fixes": [
+          {
+            "text": ".",
+            "range": {
+              "pos": 351,
+              "end": 353
+            }
+          }
+        ]
+      }
+    ]
+  }
+]

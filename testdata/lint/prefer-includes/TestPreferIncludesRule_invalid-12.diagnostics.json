@@ -1,0 +1,38 @@
+[
+  {
+    "kind": 0,
+    "rule": "prefer-includes",
+    "message": {
+      "id": "preferStringIncludes",
+      "description": "Use `String#includes()` method with a string instead."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 49,
+      "end": 82
+    },
+    "fixes": [
+      {
+        "text": "",
+        "range": {
+          "pos": 49,
+          "end": 80
+        }
+      },
+      {
+        "text": "",
+        "range": {
+          "pos": 81,
+          "end": 82
+        }
+      },
+      {
+        "text": ".includes('\\\\0\\'\\\\\\\\\\\\n\\\\r\\\\v\\\\t\\\\f')",
+        "range": {
+          "pos": 81,
+          "end": 81
+        }
+      }
+    ]
+  }
+]

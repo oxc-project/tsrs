@@ -1,0 +1,78 @@
+[
+  {
+    "message": {
+      "id": "duplicate",
+      "description": "Union type constituent is duplicated with  A1."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 60,
+      "end": 62
+    },
+    "fixes": [
+      {
+        "text": "",
+        "range": {
+          "pos": 60,
+          "end": 62
+        }
+      },
+      {
+        "text": "",
+        "range": {
+          "pos": 58,
+          "end": 59
+        }
+      }
+    ],
+    "labeled_ranges": [
+      {
+        "label": "Type 'A1' is first declared here.",
+        "range": {
+          "pos": 55,
+          "end": 57
+        }
+      }
+    ],
+    "kind": 0,
+    "rule": "no-duplicate-type-constituents"
+  },
+  {
+    "labeled_ranges": [
+      {
+        "label": "Type 'A1' is first declared here.",
+        "range": {
+          "pos": 55,
+          "end": 57
+        }
+      }
+    ],
+    "kind": 0,
+    "rule": "no-duplicate-type-constituents",
+    "message": {
+      "id": "duplicate",
+      "description": "Union type constituent is duplicated with  A1."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 65,
+      "end": 67
+    },
+    "fixes": [
+      {
+        "text": "",
+        "range": {
+          "pos": 65,
+          "end": 67
+        }
+      },
+      {
+        "text": "",
+        "range": {
+          "pos": 63,
+          "end": 64
+        }
+      }
+    ]
+  }
+]

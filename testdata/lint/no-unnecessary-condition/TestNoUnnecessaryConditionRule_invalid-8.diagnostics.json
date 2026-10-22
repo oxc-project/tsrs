@@ -1,0 +1,16 @@
+[
+  {
+    "kind": 0,
+    "range": {
+      "pos": 64,
+      "end": 66
+    },
+    "message": {
+      "id": "never",
+      "description": "Unnecessary conditional, value is `never`.",
+      "help": "The checked value has type `never`."
+    },
+    "file_path": "file.ts",
+    "rule": "no-unnecessary-condition"
+  }
+]

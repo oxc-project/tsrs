@@ -1,0 +1,168 @@
+{
+  "Name": "return-await",
+  "TSConfig": "tsconfig.minimal.json",
+  "Valid": [],
+  "Invalid": [
+    {
+      "Code": "const test = async () => await { a: 1 };",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "const test = async () => ({ a: 1 });"
+      ],
+      "Errors": [
+        {
+          "MessageId": "nonPromiseAwait",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "const test = async () => await { a: 1 }.a;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "const test = async () => ({ a: 1 }.a);"
+      ],
+      "Errors": [
+        {
+          "MessageId": "nonPromiseAwait",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "const test = async () => await ({ a: 1 });",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "const test = async () => ({ a: 1 });"
+      ],
+      "Errors": [
+        {
+          "MessageId": "nonPromiseAwait",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "const test = async () => (await { a: 1 });",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "const test = async () => ({ a: 1 });"
+      ],
+      "Errors": [
+        {
+          "MessageId": "nonPromiseAwait",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "const test = async () => (true ? await { a: 1 } : 2);",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "const test = async () => (true ? { a: 1 } : 2);"
+      ],
+      "Errors": [
+        {
+          "MessageId": "nonPromiseAwait",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "const test = async () => await /* comment */ 1;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "const test = async () => /* comment */ 1;"
+      ],
+      "Errors": [
+        {
+          "MessageId": "nonPromiseAwait",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "const test = async () => await /* comment */ { a: 1 };",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "const test = async () => /* comment */ ({ a: 1 });"
+      ],
+      "Errors": [
+        {
+          "MessageId": "nonPromiseAwait",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    }
+  ]
+}

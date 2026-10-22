@@ -1,0 +1,1282 @@
+{
+  "Name": "prefer-includes",
+  "TSConfig": "tsconfig.json",
+  "Valid": [
+    {
+      "Code": "\n      function f(a: string): void {\n        a.indexOf(b);\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      function f(a: string): void {\n        a.indexOf(b) + 0;\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      function f(a: string | { value: string }): void {\n        a.indexOf(b) !== -1;\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      type UserDefined = {\n        indexOf(x: any): number; // don't have 'includes'\n      };\n      function f(a: UserDefined): void {\n        a.indexOf(b) !== -1;\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      type UserDefined = {\n        indexOf(x: any, fromIndex?: number): number;\n        includes(x: any): boolean; // different parameters\n      };\n      function f(a: UserDefined): void {\n        a.indexOf(b) !== -1;\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      type UserDefined = {\n        indexOf(x: any, fromIndex?: number): number;\n        includes(x: any, fromIndex: number): boolean; // different parameters\n      };\n      function f(a: UserDefined): void {\n        a.indexOf(b) !== -1;\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      type UserDefined = {\n        indexOf(x: any, fromIndex?: number): number;\n        includes: boolean; // different type\n      };\n      function f(a: UserDefined): void {\n        a.indexOf(b) !== -1;\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      function f(a: string): void {\n        /bar/i.test(a);\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      function f(a: string): void {\n        /foo[rz]/.test(a);\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      function f(a: string): void {\n        /foo|bar/.test(a);\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      function f(a: string): void {\n        /bar/.test();\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      function f(a: string): void {\n        something.test(a);\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      const pattern = new RegExp('bar');\n      function f(a) {\n        return pattern.test(a);\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      const numbers = /\\d/;\n      function f(password: string): void {\n        if (numbers.test(password)) {\n          // Should not be flagged - \\d is a regex metacharacter\n        }\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      function f(password: string): void {\n        /\\d/.test(password);\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      function f(text: string): void {\n        /\\w+/.test(text);\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      function f(text: string): void {\n        /\\s/.test(text);\n      }\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    }
+  ],
+  "Invalid": [
+    {
+      "Code": "\n        function f(a: string): void {\n          a.indexOf(b) !== -1;\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        function f(a: string): void {\n          a.includes(b);\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferIncludes",
+          "Line": 3,
+          "Column": 11,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        function f(a: string): void {\n          a.indexOf(b) != -1;\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        function f(a: string): void {\n          a.includes(b);\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferIncludes",
+          "Line": 3,
+          "Column": 11,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        function f(a: string): void {\n          a.indexOf(b) > -1;\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        function f(a: string): void {\n          a.includes(b);\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferIncludes",
+          "Line": 3,
+          "Column": 11,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        function f(a: string): void {\n          a.indexOf(b) >= 0;\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        function f(a: string): void {\n          a.includes(b);\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferIncludes",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        function f(a: string): void {\n          a.indexOf(b) === -1;\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        function f(a: string): void {\n          !a.includes(b);\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferIncludes",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        function f(a: string): void {\n          a.indexOf(b) == -1;\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        function f(a: string): void {\n          !a.includes(b);\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferIncludes",
+          "Line": 3,
+          "Column": 11,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        function f(a: string): void {\n          a.indexOf(b) <= -1;\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        function f(a: string): void {\n          !a.includes(b);\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferIncludes",
+          "Line": 3,
+          "Column": 11,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        function f(a: string): void {\n          a.indexOf(b) < 0;\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        function f(a: string): void {\n          !a.includes(b);\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferIncludes",
+          "Line": 3,
+          "Column": 11,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        function f(a?: string): void {\n          a?.indexOf(b) === -1;\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        function f(a?: string): void {\n          !a?.includes(b);\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferIncludes",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        function f(a?: string): void {\n          a?.indexOf(b) !== -1;\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        function f(a?: string): void {\n          a?.includes(b);\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferIncludes",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        function f(a: string): void {\n          /bar/.test(a);\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        function f(a: string): void {\n          a.includes('bar');\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferStringIncludes",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        function f(a: string): void {\n          /bar/.test((1 + 1, a));\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        function f(a: string): void {\n          (1 + 1, a).includes('bar');\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferStringIncludes",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        function f(a: string): void {\n          /\\\\0'\\\\\\\\\\\\n\\\\r\\\\v\\\\t\\\\f/.test(a);\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        function f(a: string): void {\n          a.includes('\\\\0\\'\\\\\\\\\\\\n\\\\r\\\\v\\\\t\\\\f');\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferStringIncludes",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        const pattern = new RegExp('bar');\n        function f(a: string): void {\n          pattern.test(a);\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        const pattern = new RegExp('bar');\n        function f(a: string): void {\n          a.includes('bar');\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferStringIncludes",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        const pattern = /bar/;\n        function f(a: string, b: string): void {\n          pattern.test(a + b);\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        const pattern = /bar/;\n        function f(a: string, b: string): void {\n          (a + b).includes('bar');\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferStringIncludes",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        function f(a: any[]): void {\n          a.indexOf(b) !== -1;\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        function f(a: any[]): void {\n          a.includes(b);\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferIncludes",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        function f(a: ReadonlyArray<any>): void {\n          a.indexOf(b) !== -1;\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        function f(a: ReadonlyArray<any>): void {\n          a.includes(b);\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferIncludes",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        function f(a: Int8Array): void {\n          a.indexOf(b) !== -1;\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        function f(a: Int8Array): void {\n          a.includes(b);\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferIncludes",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        function f(a: Int16Array): void {\n          a.indexOf(b) !== -1;\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        function f(a: Int16Array): void {\n          a.includes(b);\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferIncludes",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        function f(a: Int32Array): void {\n          a.indexOf(b) !== -1;\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        function f(a: Int32Array): void {\n          a.includes(b);\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferIncludes",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        function f(a: Uint8Array): void {\n          a.indexOf(b) !== -1;\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        function f(a: Uint8Array): void {\n          a.includes(b);\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferIncludes",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        function f(a: Uint16Array): void {\n          a.indexOf(b) !== -1;\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        function f(a: Uint16Array): void {\n          a.includes(b);\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferIncludes",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        function f(a: Uint32Array): void {\n          a.indexOf(b) !== -1;\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        function f(a: Uint32Array): void {\n          a.includes(b);\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferIncludes",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        function f(a: Float32Array): void {\n          a.indexOf(b) !== -1;\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        function f(a: Float32Array): void {\n          a.includes(b);\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferIncludes",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        function f(a: Float64Array): void {\n          a.indexOf(b) !== -1;\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        function f(a: Float64Array): void {\n          a.includes(b);\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferIncludes",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        function f<T>(a: T[] | ReadonlyArray<T>): void {\n          a.indexOf(b) !== -1;\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        function f<T>(a: T[] | ReadonlyArray<T>): void {\n          a.includes(b);\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferIncludes",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        function f<\n          T,\n          U extends\n            | T[]\n            | ReadonlyArray<T>\n            | Int8Array\n            | Uint8Array\n            | Int16Array\n            | Uint16Array\n            | Int32Array\n            | Uint32Array\n            | Float32Array\n            | Float64Array,\n        >(a: U): void {\n          a.indexOf(b) !== -1;\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        function f<\n          T,\n          U extends\n            | T[]\n            | ReadonlyArray<T>\n            | Int8Array\n            | Uint8Array\n            | Int16Array\n            | Uint16Array\n            | Int32Array\n            | Uint32Array\n            | Float32Array\n            | Float64Array,\n        >(a: U): void {\n          a.includes(b);\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferIncludes",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        type UserDefined = {\n          indexOf(x: any): number;\n          includes(x: any): boolean;\n        };\n        function f(a: UserDefined): void {\n          a.indexOf(b) !== -1;\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        type UserDefined = {\n          indexOf(x: any): number;\n          includes(x: any): boolean;\n        };\n        function f(a: UserDefined): void {\n          a.includes(b);\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferIncludes",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        function f(a: Readonly<any[]>): void {\n          a.indexOf(b) !== -1;\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        function f(a: Readonly<any[]>): void {\n          a.includes(b);\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferIncludes",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        declare const b: any;\n        function f(a: any[]): void {\n          a.indexOf(b) !== -1;\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        declare const b: any;\n        function f(a: any[]): void {\n          a.includes(b);\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferIncludes",
+          "Line": 4,
+          "Column": 11,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        declare const b: any;\n        function f(a: ReadonlyArray<any>): void {\n          a.indexOf(b) !== -1;\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        declare const b: any;\n        function f(a: ReadonlyArray<any>): void {\n          a.includes(b);\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferIncludes",
+          "Line": 4,
+          "Column": 11,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        declare const b: any;\n        function f(a: Int8Array): void {\n          a.indexOf(b) !== -1;\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        declare const b: any;\n        function f(a: Int8Array): void {\n          a.includes(b);\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferIncludes",
+          "Line": 4,
+          "Column": 11,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        declare const b: any;\n        function f(a: Uint32Array): void {\n          a.indexOf(b) !== -1;\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        declare const b: any;\n        function f(a: Uint32Array): void {\n          a.includes(b);\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferIncludes",
+          "Line": 4,
+          "Column": 11,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        declare const b: any;\n        function f(a: Float64Array): void {\n          a.indexOf(b) !== -1;\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        declare const b: any;\n        function f(a: Float64Array): void {\n          a.includes(b);\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferIncludes",
+          "Line": 4,
+          "Column": 11,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        declare const b: any;\n        function f<T>(a: T[] | ReadonlyArray<T>): void {\n          a.indexOf(b) !== -1;\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        declare const b: any;\n        function f<T>(a: T[] | ReadonlyArray<T>): void {\n          a.includes(b);\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferIncludes",
+          "Line": 4,
+          "Column": 11,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        declare const b: any;\n        type UserDefined = {\n          indexOf(x: any): number;\n          includes(x: any): boolean;\n        };\n        function f(a: UserDefined): void {\n          a.indexOf(b) !== -1;\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        declare const b: any;\n        type UserDefined = {\n          indexOf(x: any): number;\n          includes(x: any): boolean;\n        };\n        function f(a: UserDefined): void {\n          a.includes(b);\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferIncludes",
+          "Line": 8,
+          "Column": 11,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        declare const b: any;\n        function f(a: Readonly<any[]>): void {\n          a.indexOf(b) !== -1;\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        declare const b: any;\n        function f(a: Readonly<any[]>): void {\n          a.includes(b);\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferIncludes",
+          "Line": 4,
+          "Column": 11,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        function f(a: string): void {\n          /word/.test(a);\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        function f(a: string): void {\n          a.includes('word');\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferStringIncludes",
+          "Line": 3,
+          "Column": 11,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        function f(a: string): void {\n          /\\0'\\\\n\\r\\v\\t\\f/.test(a);\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        function f(a: string): void {\n          a.includes('\\0\\'\\\\n\\r\\v\\t\\f');\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferStringIncludes",
+          "Line": 3,
+          "Column": 11,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        const pattern = new RegExp('word');\n        function f(a: string): void {\n          pattern.test(a);\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        const pattern = new RegExp('word');\n        function f(a: string): void {\n          a.includes('word');\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferStringIncludes",
+          "Line": 4,
+          "Column": 11,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        const pattern = /word/;\n        function f(a: string, b: string): void {\n          pattern.test(a + b);\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        const pattern = /word/;\n        function f(a: string, b: string): void {\n          (a + b).includes('word');\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferStringIncludes",
+          "Line": 4,
+          "Column": 11,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        function f(a: string): void {\n          /café/.test(a);\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        function f(a: string): void {\n          a.includes('café');\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferStringIncludes",
+          "Line": 3,
+          "Column": 11,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        const pattern = new RegExp('café');\n        function f(a: string): void {\n          pattern.test(a);\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        const pattern = new RegExp('café');\n        function f(a: string): void {\n          a.includes('café');\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferStringIncludes",
+          "Line": 4,
+          "Column": 11,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        function f(a: string): void {\n          /word/.test((1 + 1, a));\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        function f(a: string): void {\n          (1 + 1, a).includes('word');\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferStringIncludes",
+          "Line": 3,
+          "Column": 11,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        const pattern = /word/;\n        function f(a: string): void {\n          pattern.test(a);\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        const pattern = /word/;\n        function f(a: string): void {\n          a.includes('word');\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferStringIncludes",
+          "Line": 4,
+          "Column": 11,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        function getString(): string { return \"test\"; }\n        function f(): void {\n          /word/.test(getString());\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        function getString(): string { return \"test\"; }\n        function f(): void {\n          getString().includes('word');\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferStringIncludes",
+          "Line": 4,
+          "Column": 11,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        function f(obj: { value: string }): void {\n          /word/.test(obj.value);\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        function f(obj: { value: string }): void {\n          obj.value.includes('word');\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferStringIncludes",
+          "Line": 3,
+          "Column": 11,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n        function f(arr: string[]): void {\n          /word/.test(arr[0]);\n        }\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\n        function f(arr: string[]): void {\n          arr[0].includes('word');\n        }\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "preferStringIncludes",
+          "Line": 3,
+          "Column": 11,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    }
+  ]
+}

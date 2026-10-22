@@ -1,0 +1,16 @@
+[
+  {
+    "range": {
+      "pos": 64,
+      "end": 76
+    },
+    "kind": 0,
+    "rule": "no-unsafe-return",
+    "message": {
+      "id": "unsafeReturn",
+      "description": "Unsafe return of a value of type `any`.",
+      "help": "Returned expression has type `any`; the function return type is `any`. Return a safely typed value or narrow the value before returning it."
+    },
+    "file_path": "file.ts"
+  }
+]

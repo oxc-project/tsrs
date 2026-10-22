@@ -1,0 +1,15 @@
+[
+  {
+    "range": {
+      "end": 52,
+      "pos": 51
+    },
+    "kind": 0,
+    "rule": "no-unsafe-member-access",
+    "message": {
+      "id": "unsafeComputedMemberAccess",
+      "description": "Computed name [y] resolves to an `error` typed value."
+    },
+    "file_path": "file.ts"
+  }
+]

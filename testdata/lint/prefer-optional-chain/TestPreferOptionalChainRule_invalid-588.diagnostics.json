@@ -1,0 +1,24 @@
+[
+  {
+    "file_path": "file.ts",
+    "range": {
+      "end": 193,
+      "pos": 120
+    },
+    "fixes": [
+      {
+        "text": "foo.bar?.baz?.buzz?.()",
+        "range": {
+          "pos": 120,
+          "end": 193
+        }
+      }
+    ],
+    "kind": 0,
+    "rule": "prefer-optional-chain",
+    "message": {
+      "id": "preferOptionalChain",
+      "description": "Prefer using an optional chain expression instead, as it's more concise and easier to read."
+    }
+  }
+]

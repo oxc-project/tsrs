@@ -1112,6 +1112,7 @@ pub(crate) fn parse_options_for(
             &options,
             metadata,
         ),
+        legacy_string_escapes: false,
     }
 }
 

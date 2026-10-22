@@ -8,6 +8,8 @@ pub struct SourceFileParseOptions {
     pub file_name: String,
     pub path: Path,
     pub external_module_indicator_options: ExternalModuleIndicatorOptions,
+    /// Use the pinned tsgolint scanner behavior for lone and extended surrogate escapes.
+    pub legacy_string_escapes: bool,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Default)]

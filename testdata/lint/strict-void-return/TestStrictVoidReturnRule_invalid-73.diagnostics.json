@@ -1,0 +1,28 @@
+[
+  {
+    "kind": 0,
+    "rule": "strict-void-return",
+    "message": {
+      "id": "nonVoidFunc",
+      "description": "Value-returning function used in a context where a void function is expected."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 81,
+      "end": 83
+    }
+  },
+  {
+    "kind": 0,
+    "rule": "strict-void-return",
+    "message": {
+      "id": "nonVoidReturn",
+      "description": "Value returned in a context where a void return is expected."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 91,
+      "end": 95
+    }
+  }
+]

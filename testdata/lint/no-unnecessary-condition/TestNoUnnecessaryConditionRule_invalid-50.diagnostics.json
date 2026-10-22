@@ -1,0 +1,68 @@
+[
+  {
+    "kind": 0,
+    "range": {
+      "pos": 24,
+      "end": 28
+    },
+    "message": {
+      "id": "alwaysTruthy",
+      "description": "Unnecessary conditional, value is always truthy."
+    },
+    "file_path": "file.ts",
+    "rule": "no-unnecessary-condition"
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 52,
+      "end": 71
+    },
+    "message": {
+      "id": "alwaysFalsy",
+      "description": "Unnecessary conditional, value is always falsy.",
+      "help": "The callback returns type `false`."
+    },
+    "file_path": "file.ts",
+    "rule": "no-unnecessary-condition"
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 157,
+      "end": 162
+    },
+    "message": {
+      "id": "alwaysFalsy",
+      "description": "Unnecessary conditional, value is always falsy."
+    },
+    "file_path": "file.ts",
+    "rule": "no-unnecessary-condition"
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 256,
+      "end": 261
+    },
+    "message": {
+      "id": "alwaysFalsy",
+      "description": "Unnecessary conditional, value is always falsy."
+    },
+    "file_path": "file.ts",
+    "rule": "no-unnecessary-condition"
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 345,
+      "end": 350
+    },
+    "message": {
+      "id": "alwaysFalsy",
+      "description": "Unnecessary conditional, value is always falsy."
+    },
+    "file_path": "file.ts",
+    "rule": "no-unnecessary-condition"
+  }
+]

@@ -1,0 +1,64 @@
+[
+  {
+    "kind": 0,
+    "rule": "no-unnecessary-condition",
+    "message": {
+      "id": "neverOptionalChain",
+      "description": "Unnecessary optional chain on a non-nullish value.",
+      "help": "The checked value has type `{ z: object; }`. Remove the optional chain; the value cannot be `null` or `undefined`."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 57,
+      "end": 74
+    },
+    "suggestions": [
+      {
+        "message": {
+          "id": "suggestRemoveOptionalChain",
+          "description": "Remove unnecessary optional chain"
+        },
+        "fixes": [
+          {
+            "text": ".",
+            "range": {
+              "end": 73,
+              "pos": 71
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "kind": 0,
+    "rule": "no-unnecessary-condition",
+    "message": {
+      "id": "neverOptionalChain",
+      "description": "Unnecessary optional chain on a non-nullish value.",
+      "help": "The checked value has type `{ y: { z: object; }; }`. Remove the optional chain; the value cannot be `null` or `undefined`."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "end": 71,
+      "pos": 57
+    },
+    "suggestions": [
+      {
+        "message": {
+          "id": "suggestRemoveOptionalChain",
+          "description": "Remove unnecessary optional chain"
+        },
+        "fixes": [
+          {
+            "text": ".",
+            "range": {
+              "pos": 68,
+              "end": 70
+            }
+          }
+        ]
+      }
+    ]
+  }
+]

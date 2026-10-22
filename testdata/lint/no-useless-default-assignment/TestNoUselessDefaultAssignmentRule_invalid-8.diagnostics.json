@@ -1,0 +1,42 @@
+[
+  {
+    "message": {
+      "id": "uselessDefaultAssignment",
+      "description": "Default value is useless because the parameter is not nullish. This default assignment will never be used.",
+      "help": "Remove the default assignment"
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 123,
+      "end": 128
+    },
+    "suggestions": [
+      {
+        "message": {
+          "id": "removeDefaultAssignment",
+          "description": "Remove the default value."
+        },
+        "fixes": [
+          {
+            "text": "",
+            "range": {
+              "pos": 120,
+              "end": 128
+            }
+          }
+        ]
+      }
+    ],
+    "labeled_ranges": [
+      {
+        "label": "Default value",
+        "range": {
+          "pos": 123,
+          "end": 128
+        }
+      }
+    ],
+    "kind": 0,
+    "rule": "no-useless-default-assignment"
+  }
+]

@@ -1,0 +1,31 @@
+[
+  {
+    "range": {
+      "pos": 2,
+      "end": 8
+    },
+    "fixes": [
+      {
+        "text": ".",
+        "range": {
+          "pos": 1,
+          "end": 1
+        }
+      },
+      {
+        "text": "time",
+        "range": {
+          "pos": 1,
+          "end": 9
+        }
+      }
+    ],
+    "kind": 0,
+    "rule": "dot-notation",
+    "message": {
+      "id": "useDot",
+      "description": "[\"time\"] is better written in dot notation."
+    },
+    "file_path": "file.ts"
+  }
+]

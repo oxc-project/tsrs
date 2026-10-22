@@ -1,0 +1,49 @@
+[
+  {
+    "range": {
+      "pos": 104,
+      "end": 117
+    },
+    "suggestions": [
+      {
+        "message": {
+          "id": "replaceValueWithEnum",
+          "description": "Replace with an enum value comparison."
+        },
+        "fixes": [
+          {
+            "text": "Num.B",
+            "range": {
+              "pos": 104,
+              "end": 109
+            }
+          }
+        ]
+      }
+    ],
+    "labeled_ranges": [
+      {
+        "label": "Left operand: number",
+        "range": {
+          "pos": 104,
+          "end": 109
+        }
+      },
+      {
+        "label": "Right operand: Num",
+        "range": {
+          "pos": 114,
+          "end": 117
+        }
+      }
+    ],
+    "kind": 0,
+    "rule": "no-unsafe-enum-comparison",
+    "message": {
+      "id": "mismatchedCondition",
+      "description": "The two values in this comparison do not have a shared enum type.",
+      "help": "Compare enum values to members of the same enum, or convert both sides to the same primitive type before comparing them."
+    },
+    "file_path": "file.ts"
+  }
+]

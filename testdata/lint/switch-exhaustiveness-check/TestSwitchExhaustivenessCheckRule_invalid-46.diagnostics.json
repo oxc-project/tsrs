@@ -1,0 +1,32 @@
+[
+  {
+    "message": {
+      "id": "switchIsNotExhaustive",
+      "description": "Switch is not exhaustive. Cases not matched: undefined"
+    },
+    "file_path": "file.ts",
+    "range": {
+      "end": 43,
+      "pos": 39
+    },
+    "suggestions": [
+      {
+        "message": {
+          "id": "addMissingCases",
+          "description": "Add branches for missing cases."
+        },
+        "fixes": [
+          {
+            "text": "\n    case undefined: { throw new Error('Not implemented yet: undefined case') }",
+            "range": {
+              "pos": 74,
+              "end": 74
+            }
+          }
+        ]
+      }
+    ],
+    "kind": 0,
+    "rule": "switch-exhaustiveness-check"
+  }
+]

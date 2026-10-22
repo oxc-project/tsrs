@@ -1,0 +1,25 @@
+[
+  {
+    "rule": "consistent-type-exports",
+    "message": {
+      "id": "typeOverValue",
+      "description": "All exports in the declaration are only used as types.",
+      "help": "Use `export type`."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 79,
+      "end": 85
+    },
+    "fixes": [
+      {
+        "text": "export type { Foo };",
+        "range": {
+          "pos": 79,
+          "end": 94
+        }
+      }
+    ],
+    "kind": 0
+  }
+]

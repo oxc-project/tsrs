@@ -1,0 +1,2016 @@
+{
+  "base_commit": "d501c471",
+  "upstream_fix": "47e98b4f4caa48154d014e5c69a63a03d7a51a41",
+  "base_metadata": {
+    "rust_commit": "ab2eb669e40eb3047694835b8277094d20ba799e",
+    "oxlint_commit": "9a424c209ea0df16becbf3141d63bcc293ede237",
+    "vscode_commit": "b029fb142d7a1c7a656d8be926525d4e44c6d635",
+    "corpus": "/Users/cameron/github/microsoft/vscode/src",
+    "go_package": "oxlint-tsgolint 7.0.2004",
+    "go_module_revision": "a61289117febcb1a60cf3bc75ef2b6bbccc4b665+dirty",
+    "modes": [
+      "default"
+    ],
+    "repetitions": 3,
+    "profile_repetitions": 1,
+    "e2e_repetitions": 1,
+    "fix": false,
+    "report_semantic": false,
+    "report_syntactic": false,
+    "machine": "Mac14,5 (Apple M2 Max)",
+    "logical_cpus": 12,
+    "memory_bytes": 103079215104,
+    "os": "macOS 27.0.1",
+    "rustc": "1.99.0 (b940084d7 2026-09-28)",
+    "payload_sha256": "d25d1de47a9be423fc6f53a8d0408e42ddd28caca87fd43c2bc33e312e1d34ca",
+    "file_count": 9324,
+    "rules": [
+      "await-thenable",
+      "consistent-return",
+      "consistent-type-exports",
+      "dot-notation",
+      "no-array-delete",
+      "no-base-to-string",
+      "no-confusing-void-expression",
+      "no-deprecated",
+      "no-duplicate-type-constituents",
+      "no-floating-promises",
+      "no-for-in-array",
+      "no-generated-empty-object-type",
+      "no-implied-eval",
+      "no-meaningless-void-operator",
+      "no-misused-promises",
+      "no-misused-spread",
+      "no-mixed-enums",
+      "no-redundant-type-constituents",
+      "no-unnecessary-boolean-literal-compare",
+      "no-unnecessary-condition",
+      "no-unnecessary-qualifier",
+      "no-unnecessary-template-expression",
+      "no-unnecessary-type-arguments",
+      "no-unnecessary-type-assertion",
+      "no-unnecessary-type-conversion",
+      "no-unnecessary-type-parameters",
+      "no-unsafe-argument",
+      "no-unsafe-assignment",
+      "no-unsafe-call",
+      "no-unsafe-enum-comparison",
+      "no-unsafe-member-access",
+      "no-unsafe-return",
+      "no-unsafe-type-assertion",
+      "no-unsafe-unary-minus",
+      "no-useless-default-assignment",
+      "non-nullable-type-assertion-style",
+      "only-throw-error",
+      "prefer-find",
+      "prefer-includes",
+      "prefer-nullish-coalescing",
+      "prefer-optional-chain",
+      "prefer-promise-reject-errors",
+      "prefer-readonly",
+      "prefer-readonly-parameter-types",
+      "prefer-reduce-type-parameter",
+      "prefer-regexp-exec",
+      "prefer-return-this-type",
+      "prefer-string-starts-ends-with",
+      "promise-function-async",
+      "related-getter-setter-pairs",
+      "require-array-sort-compare",
+      "require-await",
+      "restrict-plus-operands",
+      "restrict-template-expressions",
+      "return-await",
+      "strict-boolean-expressions",
+      "strict-void-return",
+      "switch-exhaustiveness-check",
+      "unbound-method",
+      "use-unknown-in-catch-callback-variable"
+    ],
+    "binary_sha256": {
+      "rust": "6dcea15891dc46c5bcd2e1da5143b15b4239464949c26645ee86c95b4e02759d",
+      "go": "d40de2b828d91ac188e3dc897991be8a512b29935fddae5f223a9f9bde356fb1",
+      "oxlint": "8d1983f6603870f657418f443376cec3d0ffc2a2e6fab83c2cf17992055c6349"
+    },
+    "profile_mode": "single",
+    "e2e_note": "One validation sample per helper; end-to-end times are illustrative, not a repeated median.",
+    "config_sha256": "3214db0d97f0c832d208c9b29dcffe7769ea7efe9c10689bf539105b58fc4fdd",
+    "vscode_package_lock_sha256": "051d7a94c503b86cb2a066facd9f06edf240cfaf7689dac029c1b93cb5ea0931",
+    "source_extensions": {
+      ".ts": 9281,
+      ".tsx": 2,
+      ".js": 38,
+      ".cjs": 3
+    },
+    "environment_overrides_default": {},
+    "profile_environment": {
+      "GOMAXPROCS": "1",
+      "RAYON_NUM_THREADS": "1"
+    }
+  },
+  "source_sha256": {
+    "crates/tsrs_lint/src/rules/no_unnecessary_type_parameters.rs": "e439668e3c8975efc6265541b3d6b420969e04c537182077b5a297aec12cfd5f",
+    "crates/tsrs_lint/tests/headless.rs": "376de3c9453f3c8c9e7161b53eaccf50744e260afb03857373869cfe02871651",
+    "crates/tsrs_lint/tests/fixtures/type_parameter_references/regressions.json": "0936ee87cf76de8ba929ca6923dd18535221ab04473a3dc7aa207fcd27b978fa"
+  },
+  "after_binary_sha256": "af752428c85b782cf5dfd23acc267d0cd0692a1ed744bea95c440527e5a3119f",
+  "infrastructure_before": {
+    "rust": {
+      "wall_s": 18.956433542072773,
+      "rss_bytes": 2289025024,
+      "instructions": 216538725246,
+      "user": 18.14,
+      "sys": 1.88,
+      "wall_range_s": [
+        18.954702415969223,
+        19.215742792002857
+      ],
+      "diagnostic_counts": [
+        275890
+      ]
+    },
+    "go": {
+      "wall_s": 10.906640624976717,
+      "rss_bytes": 8419377152,
+      "instructions": 479765142334,
+      "user": 54.68,
+      "sys": 3.3,
+      "wall_range_s": [
+        10.623048165929504,
+        10.915152749978006
+      ],
+      "diagnostic_counts": [
+        275834
+      ]
+    }
+  },
+  "original_before": {
+    "n": 3,
+    "wall_s": 153.9079980419483,
+    "rss_bytes": 2429812736,
+    "instructions": 2800060679280,
+    "user": 217.06,
+    "sys": 159.42,
+    "wall_min_s": 153.58502608397976,
+    "wall_max_s": 155.38517449994106,
+    "diagnostics": [
+      275890
+    ]
+  },
+  "after_default": {
+    "rust": {
+      "wall_s": 15.25401912489906,
+      "rss_bytes": 2279833600,
+      "instructions": 164298484639,
+      "user": 14.39,
+      "sys": 1.89,
+      "wall_range_s": [
+        15.213001249940135,
+        15.276203208020888
+      ]
+    },
+    "go": {
+      "wall_s": 10.866305291070603,
+      "rss_bytes": 8437858304,
+      "instructions": 482752958494,
+      "user": 55.16,
+      "sys": 3.34,
+      "wall_range_s": [
+        10.632910000043921,
+        10.996794207952917
+      ]
+    }
+  },
+  "before_single_instrumented": {
+    "helper": "rust",
+    "mode": "single",
+    "rep": 0,
+    "profile": true,
+    "e2e": false,
+    "warmup": false,
+    "wall_s": 22.35765091702342,
+    "exit_code": 0,
+    "rss_bytes": 2289926144,
+    "instructions": 269253369096,
+    "cpu_cycles": 74771549696,
+    "time_real": 22.32,
+    "user": 21.3,
+    "sys": 0.69,
+    "diagnostics": 275890,
+    "diagnostics_by_rule": {
+      "dot-notation": 3034,
+      "no-deprecated": 2217,
+      "strict-boolean-expressions": 26745,
+      "prefer-nullish-coalescing": 4136,
+      "prefer-string-starts-ends-with": 223,
+      "prefer-readonly-parameter-types": 140291,
+      "no-unnecessary-condition": 9554,
+      "prefer-optional-chain": 1277,
+      "promise-function-async": 10090,
+      "no-unsafe-assignment": 5417,
+      "prefer-includes": 403,
+      "no-unsafe-call": 2100,
+      "no-unsafe-member-access": 6634,
+      "unbound-method": 940,
+      "no-unsafe-argument": 2507,
+      "require-await": 8366,
+      "no-unsafe-type-assertion": 13014,
+      "no-unsafe-return": 1037,
+      "no-floating-promises": 6416,
+      "no-misused-promises": 2032,
+      "strict-void-return": 4220,
+      "switch-exhaustiveness-check": 617,
+      "no-confusing-void-expression": 9693,
+      "prefer-regexp-exec": 301,
+      "no-unnecessary-type-conversion": 494,
+      "related-getter-setter-pairs": 6,
+      "prefer-promise-reject-errors": 181,
+      "no-unnecessary-template-expression": 120,
+      "prefer-readonly": 3369,
+      "restrict-plus-operands": 42,
+      "no-unnecessary-type-assertion": 3334,
+      "no-unnecessary-type-parameters": 330,
+      "no-useless-default-assignment": 83,
+      "no-base-to-string": 200,
+      "non-nullable-type-assertion-style": 96,
+      "consistent-return": 965,
+      "no-unnecessary-boolean-literal-compare": 480,
+      "no-unsafe-enum-comparison": 1690,
+      "prefer-return-this-type": 56,
+      "use-unknown-in-catch-callback-variable": 696,
+      "no-duplicate-type-constituents": 195,
+      "restrict-template-expressions": 643,
+      "no-redundant-type-constituents": 401,
+      "only-throw-error": 65,
+      "no-unnecessary-qualifier": 64,
+      "no-unnecessary-type-arguments": 274,
+      "prefer-reduce-type-parameter": 20,
+      "no-generated-empty-object-type": 10,
+      "await-thenable": 307,
+      "return-await": 292,
+      "no-misused-spread": 61,
+      "no-meaningless-void-operator": 10,
+      "no-mixed-enums": 3,
+      "prefer-find": 65,
+      "require-array-sort-compare": 37,
+      "consistent-type-exports": 20,
+      "no-array-delete": 7,
+      "no-implied-eval": 4,
+      "no-for-in-array": 6
+    },
+    "rule_timings": [
+      {
+        "rule_name": "no-unnecessary-type-parameters",
+        "duration": 3793152598,
+        "calls": 264184
+      },
+      {
+        "rule_name": "no-misused-promises",
+        "duration": 2886294724,
+        "calls": 4042929
+      },
+      {
+        "rule_name": "no-floating-promises",
+        "duration": 2085458794,
+        "calls": 492724
+      },
+      {
+        "rule_name": "no-unsafe-assignment",
+        "duration": 1726268779,
+        "calls": 1257605
+      },
+      {
+        "rule_name": "no-unsafe-argument",
+        "duration": 877506217,
+        "calls": 1010488
+      },
+      {
+        "rule_name": "no-deprecated",
+        "duration": 834177560,
+        "calls": 5919392
+      },
+      {
+        "rule_name": "strict-void-return",
+        "duration": 633643930,
+        "calls": 2607466
+      },
+      {
+        "rule_name": "no-unsafe-return",
+        "duration": 563758309,
+        "calls": 255709
+      },
+      {
+        "rule_name": "no-unsafe-member-access",
+        "duration": 533327020,
+        "calls": 1489329
+      },
+      {
+        "rule_name": "no-confusing-void-expression",
+        "duration": 429839541,
+        "calls": 992359
+      },
+      {
+        "rule_name": "no-unnecessary-condition",
+        "duration": 324663475,
+        "calls": 2851771
+      },
+      {
+        "rule_name": "no-unnecessary-qualifier",
+        "duration": 234224031,
+        "calls": 2922456
+      },
+      {
+        "rule_name": "no-unnecessary-type-arguments",
+        "duration": 223074460,
+        "calls": 1331811
+      },
+      {
+        "rule_name": "consistent-return",
+        "duration": 207900056,
+        "calls": 603072
+      },
+      {
+        "rule_name": "unbound-method",
+        "duration": 205309912,
+        "calls": 1461647
+      },
+      {
+        "rule_name": "strict-boolean-expressions",
+        "duration": 197685117,
+        "calls": 1418795
+      },
+      {
+        "rule_name": "no-unsafe-call",
+        "duration": 172797446,
+        "calls": 1010488
+      },
+      {
+        "rule_name": "prefer-readonly-parameter-types",
+        "duration": 155299795,
+        "calls": 258540
+      },
+      {
+        "rule_name": "no-base-to-string",
+        "duration": 131081186,
+        "calls": 1242093
+      },
+      {
+        "rule_name": "prefer-readonly",
+        "duration": 117042618,
+        "calls": 1961065
+      },
+      {
+        "rule_name": "no-unnecessary-type-assertion",
+        "duration": 116272737,
+        "calls": 39436
+      },
+      {
+        "rule_name": "await-thenable",
+        "duration": 96059689,
+        "calls": 1286810
+      },
+      {
+        "rule_name": "prefer-promise-reject-errors",
+        "duration": 93765189,
+        "calls": 929203
+      },
+      {
+        "rule_name": "no-unsafe-type-assertion",
+        "duration": 80524149,
+        "calls": 28889
+      },
+      {
+        "rule_name": "prefer-string-starts-ends-with",
+        "duration": 78901737,
+        "calls": 1218005
+      },
+      {
+        "rule_name": "no-misused-spread",
+        "duration": 69781841,
+        "calls": 1253516
+      },
+      {
+        "rule_name": "use-unknown-in-catch-callback-variable",
+        "duration": 68703165,
+        "calls": 929203
+      },
+      {
+        "rule_name": "no-unnecessary-type-conversion",
+        "duration": 67867650,
+        "calls": 1273792
+      },
+      {
+        "rule_name": "require-await",
+        "duration": 66976153,
+        "calls": 960865
+      },
+      {
+        "rule_name": "prefer-includes",
+        "duration": 65411731,
+        "calls": 1218005
+      },
+      {
+        "rule_name": "prefer-find",
+        "duration": 58713127,
+        "calls": 966093
+      },
+      {
+        "rule_name": "dot-notation",
+        "duration": 57780370,
+        "calls": 1489329
+      },
+      {
+        "rule_name": "no-implied-eval",
+        "duration": 52450849,
+        "calls": 1010132
+      },
+      {
+        "rule_name": "prefer-optional-chain",
+        "duration": 51787323,
+        "calls": 298126
+      },
+      {
+        "rule_name": "no-generated-empty-object-type",
+        "duration": 50720061,
+        "calls": 320811
+      },
+      {
+        "rule_name": "prefer-regexp-exec",
+        "duration": 47323394,
+        "calls": 929203
+      },
+      {
+        "rule_name": "prefer-nullish-coalescing",
+        "duration": 47313184,
+        "calls": 438168
+      },
+      {
+        "rule_name": "prefer-reduce-type-parameter",
+        "duration": 47161645,
+        "calls": 929203
+      },
+      {
+        "rule_name": "return-await",
+        "duration": 42572204,
+        "calls": 603072
+      },
+      {
+        "rule_name": "require-array-sort-compare",
+        "duration": 41855815,
+        "calls": 929203
+      },
+      {
+        "rule_name": "no-unsafe-enum-comparison",
+        "duration": 39885769,
+        "calls": 306884
+      },
+      {
+        "rule_name": "restrict-plus-operands",
+        "duration": 35753757,
+        "calls": 298126
+      },
+      {
+        "rule_name": "promise-function-async",
+        "duration": 33618393,
+        "calls": 230043
+      },
+      {
+        "rule_name": "only-throw-error",
+        "duration": 20213414,
+        "calls": 17203
+      },
+      {
+        "rule_name": "no-duplicate-type-constituents",
+        "duration": 18633730,
+        "calls": 61460
+      },
+      {
+        "rule_name": "no-unnecessary-boolean-literal-compare",
+        "duration": 17294300,
+        "calls": 298126
+      },
+      {
+        "rule_name": "switch-exhaustiveness-check",
+        "duration": 14244713,
+        "calls": 11217
+      },
+      {
+        "rule_name": "no-redundant-type-constituents",
+        "duration": 14169448,
+        "calls": 61460
+      },
+      {
+        "rule_name": "prefer-return-this-type",
+        "duration": 13835536,
+        "calls": 122288
+      },
+      {
+        "rule_name": "no-useless-default-assignment",
+        "duration": 11509677,
+        "calls": 274940
+      },
+      {
+        "rule_name": "restrict-template-expressions",
+        "duration": 10127069,
+        "calls": 33412
+      },
+      {
+        "rule_name": "non-nullable-type-assertion-style",
+        "duration": 9406619,
+        "calls": 28889
+      },
+      {
+        "rule_name": "no-meaningless-void-operator",
+        "duration": 6429727,
+        "calls": 10383
+      },
+      {
+        "rule_name": "no-unnecessary-template-expression",
+        "duration": 5617835,
+        "calls": 33452
+      },
+      {
+        "rule_name": "related-getter-setter-pairs",
+        "duration": 5041889,
+        "calls": 56129
+      },
+      {
+        "rule_name": "no-unsafe-unary-minus",
+        "duration": 5028938,
+        "calls": 65111
+      },
+      {
+        "rule_name": "consistent-type-exports",
+        "duration": 2561633,
+        "calls": 10420
+      },
+      {
+        "rule_name": "no-mixed-enums",
+        "duration": 1310920,
+        "calls": 10971
+      },
+      {
+        "rule_name": "no-for-in-array",
+        "duration": 1072744,
+        "calls": 9564
+      },
+      {
+        "rule_name": "no-array-delete",
+        "duration": 942099,
+        "calls": 9843
+      }
+    ]
+  },
+  "after_single_instrumented": {
+    "helper": "rust",
+    "mode": "single",
+    "rep": 0,
+    "profile": true,
+    "e2e": false,
+    "warmup": false,
+    "wall_s": 19.2697503749514,
+    "exit_code": 0,
+    "rss_bytes": 2278621184,
+    "instructions": 217315862378,
+    "cpu_cycles": 62536067737,
+    "time_real": 19.25,
+    "user": 17.67,
+    "sys": 0.75,
+    "diagnostics": 275891,
+    "diagnostics_by_rule": {
+      "dot-notation": 3034,
+      "no-deprecated": 2217,
+      "strict-boolean-expressions": 26745,
+      "prefer-nullish-coalescing": 4136,
+      "prefer-string-starts-ends-with": 223,
+      "prefer-readonly-parameter-types": 140291,
+      "no-unnecessary-condition": 9554,
+      "prefer-optional-chain": 1277,
+      "promise-function-async": 10090,
+      "no-unsafe-assignment": 5417,
+      "prefer-includes": 403,
+      "no-unsafe-call": 2100,
+      "no-unsafe-member-access": 6634,
+      "unbound-method": 940,
+      "no-unsafe-argument": 2507,
+      "require-await": 8366,
+      "no-unsafe-type-assertion": 13014,
+      "no-unsafe-return": 1037,
+      "no-floating-promises": 6416,
+      "no-misused-promises": 2032,
+      "strict-void-return": 4220,
+      "switch-exhaustiveness-check": 617,
+      "no-confusing-void-expression": 9693,
+      "prefer-regexp-exec": 301,
+      "no-unnecessary-type-conversion": 494,
+      "related-getter-setter-pairs": 6,
+      "prefer-promise-reject-errors": 181,
+      "no-unnecessary-template-expression": 120,
+      "prefer-readonly": 3369,
+      "restrict-plus-operands": 42,
+      "no-unnecessary-type-assertion": 3334,
+      "no-unnecessary-type-parameters": 331,
+      "no-useless-default-assignment": 83,
+      "no-base-to-string": 200,
+      "non-nullable-type-assertion-style": 96,
+      "consistent-return": 965,
+      "no-unnecessary-boolean-literal-compare": 480,
+      "no-unsafe-enum-comparison": 1690,
+      "prefer-return-this-type": 56,
+      "use-unknown-in-catch-callback-variable": 696,
+      "no-duplicate-type-constituents": 195,
+      "restrict-template-expressions": 643,
+      "no-redundant-type-constituents": 401,
+      "only-throw-error": 65,
+      "no-unnecessary-qualifier": 64,
+      "no-unnecessary-type-arguments": 274,
+      "prefer-reduce-type-parameter": 20,
+      "no-generated-empty-object-type": 10,
+      "await-thenable": 307,
+      "return-await": 292,
+      "no-misused-spread": 61,
+      "no-meaningless-void-operator": 10,
+      "no-mixed-enums": 3,
+      "prefer-find": 65,
+      "require-array-sort-compare": 37,
+      "consistent-type-exports": 20,
+      "no-array-delete": 7,
+      "no-implied-eval": 4,
+      "no-for-in-array": 6
+    },
+    "rule_timings": [
+      {
+        "rule_name": "no-misused-promises",
+        "duration": 2917661622,
+        "calls": 4042929
+      },
+      {
+        "rule_name": "no-floating-promises",
+        "duration": 2103374356,
+        "calls": 492724
+      },
+      {
+        "rule_name": "no-unsafe-assignment",
+        "duration": 1749425197,
+        "calls": 1257605
+      },
+      {
+        "rule_name": "no-unsafe-argument",
+        "duration": 875847009,
+        "calls": 1010488
+      },
+      {
+        "rule_name": "no-deprecated",
+        "duration": 835423976,
+        "calls": 5919392
+      },
+      {
+        "rule_name": "strict-void-return",
+        "duration": 630964175,
+        "calls": 2607466
+      },
+      {
+        "rule_name": "no-unsafe-return",
+        "duration": 569545017,
+        "calls": 255709
+      },
+      {
+        "rule_name": "no-unsafe-member-access",
+        "duration": 538517244,
+        "calls": 1489329
+      },
+      {
+        "rule_name": "no-confusing-void-expression",
+        "duration": 429645171,
+        "calls": 992359
+      },
+      {
+        "rule_name": "no-unnecessary-condition",
+        "duration": 326392186,
+        "calls": 2851771
+      },
+      {
+        "rule_name": "no-unnecessary-qualifier",
+        "duration": 237356455,
+        "calls": 2922456
+      },
+      {
+        "rule_name": "no-unnecessary-type-arguments",
+        "duration": 221279756,
+        "calls": 1331811
+      },
+      {
+        "rule_name": "consistent-return",
+        "duration": 213704764,
+        "calls": 603072
+      },
+      {
+        "rule_name": "unbound-method",
+        "duration": 206421664,
+        "calls": 1461647
+      },
+      {
+        "rule_name": "strict-boolean-expressions",
+        "duration": 196398065,
+        "calls": 1418795
+      },
+      {
+        "rule_name": "no-unsafe-call",
+        "duration": 168872395,
+        "calls": 1010488
+      },
+      {
+        "rule_name": "prefer-readonly-parameter-types",
+        "duration": 158256408,
+        "calls": 258540
+      },
+      {
+        "rule_name": "no-base-to-string",
+        "duration": 131670187,
+        "calls": 1242093
+      },
+      {
+        "rule_name": "prefer-readonly",
+        "duration": 117774303,
+        "calls": 1961065
+      },
+      {
+        "rule_name": "no-unnecessary-type-assertion",
+        "duration": 116023081,
+        "calls": 39436
+      },
+      {
+        "rule_name": "await-thenable",
+        "duration": 97263083,
+        "calls": 1286810
+      },
+      {
+        "rule_name": "prefer-promise-reject-errors",
+        "duration": 93914599,
+        "calls": 929203
+      },
+      {
+        "rule_name": "no-unsafe-type-assertion",
+        "duration": 80809245,
+        "calls": 28889
+      },
+      {
+        "rule_name": "prefer-string-starts-ends-with",
+        "duration": 78508388,
+        "calls": 1218005
+      },
+      {
+        "rule_name": "no-misused-spread",
+        "duration": 69998127,
+        "calls": 1253516
+      },
+      {
+        "rule_name": "use-unknown-in-catch-callback-variable",
+        "duration": 68831819,
+        "calls": 929203
+      },
+      {
+        "rule_name": "require-await",
+        "duration": 67622334,
+        "calls": 960865
+      },
+      {
+        "rule_name": "no-unnecessary-type-conversion",
+        "duration": 66289116,
+        "calls": 1273792
+      },
+      {
+        "rule_name": "prefer-includes",
+        "duration": 66021394,
+        "calls": 1218005
+      },
+      {
+        "rule_name": "no-unnecessary-type-parameters",
+        "duration": 61253874,
+        "calls": 264184
+      },
+      {
+        "rule_name": "prefer-find",
+        "duration": 59188986,
+        "calls": 966093
+      },
+      {
+        "rule_name": "dot-notation",
+        "duration": 58123034,
+        "calls": 1489329
+      },
+      {
+        "rule_name": "no-implied-eval",
+        "duration": 52816327,
+        "calls": 1010132
+      },
+      {
+        "rule_name": "prefer-optional-chain",
+        "duration": 52255585,
+        "calls": 298126
+      },
+      {
+        "rule_name": "no-generated-empty-object-type",
+        "duration": 50986036,
+        "calls": 320811
+      },
+      {
+        "rule_name": "prefer-nullish-coalescing",
+        "duration": 48082303,
+        "calls": 438168
+      },
+      {
+        "rule_name": "prefer-regexp-exec",
+        "duration": 47948065,
+        "calls": 929203
+      },
+      {
+        "rule_name": "prefer-reduce-type-parameter",
+        "duration": 47838872,
+        "calls": 929203
+      },
+      {
+        "rule_name": "return-await",
+        "duration": 42687339,
+        "calls": 603072
+      },
+      {
+        "rule_name": "require-array-sort-compare",
+        "duration": 41276868,
+        "calls": 929203
+      },
+      {
+        "rule_name": "no-unsafe-enum-comparison",
+        "duration": 40147773,
+        "calls": 306884
+      },
+      {
+        "rule_name": "restrict-plus-operands",
+        "duration": 35007308,
+        "calls": 298126
+      },
+      {
+        "rule_name": "promise-function-async",
+        "duration": 34050743,
+        "calls": 230043
+      },
+      {
+        "rule_name": "only-throw-error",
+        "duration": 19335540,
+        "calls": 17203
+      },
+      {
+        "rule_name": "no-duplicate-type-constituents",
+        "duration": 18712033,
+        "calls": 61460
+      },
+      {
+        "rule_name": "no-unnecessary-boolean-literal-compare",
+        "duration": 17990805,
+        "calls": 298126
+      },
+      {
+        "rule_name": "switch-exhaustiveness-check",
+        "duration": 14654894,
+        "calls": 11217
+      },
+      {
+        "rule_name": "no-redundant-type-constituents",
+        "duration": 14452594,
+        "calls": 61460
+      },
+      {
+        "rule_name": "prefer-return-this-type",
+        "duration": 13828503,
+        "calls": 122288
+      },
+      {
+        "rule_name": "no-useless-default-assignment",
+        "duration": 11455070,
+        "calls": 274940
+      },
+      {
+        "rule_name": "restrict-template-expressions",
+        "duration": 10226336,
+        "calls": 33412
+      },
+      {
+        "rule_name": "non-nullable-type-assertion-style",
+        "duration": 9694361,
+        "calls": 28889
+      },
+      {
+        "rule_name": "no-meaningless-void-operator",
+        "duration": 6241482,
+        "calls": 10383
+      },
+      {
+        "rule_name": "no-unnecessary-template-expression",
+        "duration": 5659109,
+        "calls": 33452
+      },
+      {
+        "rule_name": "related-getter-setter-pairs",
+        "duration": 5120364,
+        "calls": 56129
+      },
+      {
+        "rule_name": "no-unsafe-unary-minus",
+        "duration": 5108983,
+        "calls": 65111
+      },
+      {
+        "rule_name": "consistent-type-exports",
+        "duration": 2619091,
+        "calls": 10420
+      },
+      {
+        "rule_name": "no-mixed-enums",
+        "duration": 1314014,
+        "calls": 10971
+      },
+      {
+        "rule_name": "no-for-in-array",
+        "duration": 1103542,
+        "calls": 9564
+      },
+      {
+        "rule_name": "no-array-delete",
+        "duration": 971112,
+        "calls": 9843
+      }
+    ]
+  },
+  "added_diagnostic": {
+    "file_path": "/Users/cameron/github/microsoft/vscode/src/vs/workbench/contrib/browserView/electron-browser/browserEditor.ts",
+    "kind": 0,
+    "labeled_ranges": [
+      {
+        "label": "This is the only usage of type parameter Services in the signature.",
+        "range": {
+          "end": 18594,
+          "pos": 18586
+        }
+      }
+    ],
+    "message": {
+      "description": "Type parameter Services is used only once in the function signature.",
+      "id": "sole"
+    },
+    "range": {
+      "end": 18536,
+      "pos": 18503
+    },
+    "rule": "no-unnecessary-type-parameters"
+  },
+  "removed_diagnostics": [],
+  "added_diagnostic_present_in_go": true,
+  "after_samples": [
+    {
+      "helper": "rust",
+      "mode": "default",
+      "rep": -1,
+      "profile": false,
+      "e2e": false,
+      "warmup": true,
+      "wall_s": 15.291858374956064,
+      "exit_code": 0,
+      "rss_bytes": 2288435200,
+      "instructions": 163947532021,
+      "cpu_cycles": 54588341493,
+      "time_real": 15.24,
+      "user": 14.11,
+      "sys": 1.85,
+      "diagnostics": 275891,
+      "diagnostics_by_rule": {
+        "dot-notation": 3034,
+        "no-deprecated": 2217,
+        "strict-boolean-expressions": 26745,
+        "prefer-nullish-coalescing": 4136,
+        "prefer-string-starts-ends-with": 223,
+        "prefer-readonly-parameter-types": 140291,
+        "no-unnecessary-condition": 9554,
+        "prefer-optional-chain": 1277,
+        "promise-function-async": 10090,
+        "no-unsafe-assignment": 5417,
+        "prefer-includes": 403,
+        "no-unsafe-call": 2100,
+        "no-unsafe-member-access": 6634,
+        "unbound-method": 940,
+        "no-unsafe-argument": 2507,
+        "require-await": 8366,
+        "no-unsafe-type-assertion": 13014,
+        "no-unsafe-return": 1037,
+        "no-floating-promises": 6416,
+        "no-misused-promises": 2032,
+        "strict-void-return": 4220,
+        "switch-exhaustiveness-check": 617,
+        "no-confusing-void-expression": 9693,
+        "prefer-regexp-exec": 301,
+        "no-unnecessary-type-conversion": 494,
+        "related-getter-setter-pairs": 6,
+        "prefer-promise-reject-errors": 181,
+        "no-unnecessary-template-expression": 120,
+        "prefer-readonly": 3369,
+        "restrict-plus-operands": 42,
+        "no-unnecessary-type-assertion": 3334,
+        "no-unnecessary-type-parameters": 331,
+        "no-useless-default-assignment": 83,
+        "no-base-to-string": 200,
+        "non-nullable-type-assertion-style": 96,
+        "consistent-return": 965,
+        "no-unnecessary-boolean-literal-compare": 480,
+        "no-unsafe-enum-comparison": 1690,
+        "prefer-return-this-type": 56,
+        "use-unknown-in-catch-callback-variable": 696,
+        "no-duplicate-type-constituents": 195,
+        "restrict-template-expressions": 643,
+        "no-redundant-type-constituents": 401,
+        "only-throw-error": 65,
+        "no-unnecessary-qualifier": 64,
+        "no-unnecessary-type-arguments": 274,
+        "prefer-reduce-type-parameter": 20,
+        "no-generated-empty-object-type": 10,
+        "await-thenable": 307,
+        "return-await": 292,
+        "no-misused-spread": 61,
+        "no-meaningless-void-operator": 10,
+        "no-mixed-enums": 3,
+        "prefer-find": 65,
+        "require-array-sort-compare": 37,
+        "consistent-type-exports": 20,
+        "no-array-delete": 7,
+        "no-implied-eval": 4,
+        "no-for-in-array": 6
+      }
+    },
+    {
+      "helper": "go",
+      "mode": "default",
+      "rep": -1,
+      "profile": false,
+      "e2e": false,
+      "warmup": true,
+      "wall_s": 10.964430624968372,
+      "exit_code": 0,
+      "rss_bytes": 8427864064,
+      "instructions": 478086198819,
+      "cpu_cycles": 181837442997,
+      "time_real": 10.91,
+      "user": 54.5,
+      "sys": 3.5,
+      "diagnostics": 275832,
+      "diagnostics_by_rule": {
+        "dot-notation": 3034,
+        "prefer-optional-chain": 1230,
+        "no-unsafe-member-access": 6634,
+        "no-unsafe-assignment": 5417,
+        "no-unnecessary-condition": 9540,
+        "strict-boolean-expressions": 26745,
+        "prefer-readonly-parameter-types": 140291,
+        "prefer-includes": 403,
+        "prefer-nullish-coalescing": 4136,
+        "consistent-return": 965,
+        "no-unsafe-argument": 2507,
+        "prefer-string-starts-ends-with": 223,
+        "no-unsafe-call": 2100,
+        "no-confusing-void-expression": 9693,
+        "prefer-readonly": 3369,
+        "no-unsafe-type-assertion": 13013,
+        "no-unsafe-return": 1031,
+        "no-deprecated": 2287,
+        "unbound-method": 939,
+        "require-await": 8366,
+        "promise-function-async": 10090,
+        "no-unnecessary-type-parameters": 331,
+        "restrict-template-expressions": 643,
+        "prefer-return-this-type": 56,
+        "strict-void-return": 4220,
+        "no-unnecessary-type-assertion": 3277,
+        "no-unsafe-enum-comparison": 1690,
+        "no-redundant-type-constituents": 401,
+        "no-unnecessary-qualifier": 64,
+        "no-unnecessary-type-arguments": 274,
+        "prefer-regexp-exec": 301,
+        "no-floating-promises": 6416,
+        "no-duplicate-type-constituents": 192,
+        "switch-exhaustiveness-check": 617,
+        "restrict-plus-operands": 42,
+        "no-unnecessary-template-expression": 120,
+        "no-base-to-string": 200,
+        "no-useless-default-assignment": 83,
+        "use-unknown-in-catch-callback-variable": 696,
+        "only-throw-error": 65,
+        "prefer-promise-reject-errors": 181,
+        "no-generated-empty-object-type": 10,
+        "await-thenable": 307,
+        "return-await": 292,
+        "no-misused-promises": 2032,
+        "prefer-reduce-type-parameter": 20,
+        "no-unnecessary-boolean-literal-compare": 480,
+        "no-unnecessary-type-conversion": 494,
+        "no-misused-spread": 61,
+        "prefer-find": 65,
+        "non-nullable-type-assertion-style": 96,
+        "no-meaningless-void-operator": 10,
+        "consistent-type-exports": 20,
+        "no-mixed-enums": 3,
+        "related-getter-setter-pairs": 6,
+        "no-for-in-array": 6,
+        "no-array-delete": 7,
+        "require-array-sort-compare": 37,
+        "no-implied-eval": 4
+      }
+    },
+    {
+      "helper": "rust",
+      "mode": "default",
+      "rep": 0,
+      "profile": false,
+      "e2e": false,
+      "warmup": false,
+      "wall_s": 15.213001249940135,
+      "exit_code": 0,
+      "rss_bytes": 2277408768,
+      "instructions": 164233470700,
+      "cpu_cycles": 54819978932,
+      "time_real": 15.19,
+      "user": 14.39,
+      "sys": 1.89,
+      "diagnostics": 275891,
+      "diagnostics_by_rule": {
+        "dot-notation": 3034,
+        "no-deprecated": 2217,
+        "strict-boolean-expressions": 26745,
+        "prefer-nullish-coalescing": 4136,
+        "prefer-string-starts-ends-with": 223,
+        "prefer-readonly-parameter-types": 140291,
+        "no-unnecessary-condition": 9554,
+        "prefer-optional-chain": 1277,
+        "promise-function-async": 10090,
+        "no-unsafe-assignment": 5417,
+        "prefer-includes": 403,
+        "no-unsafe-call": 2100,
+        "no-unsafe-member-access": 6634,
+        "unbound-method": 940,
+        "no-unsafe-argument": 2507,
+        "require-await": 8366,
+        "no-unsafe-type-assertion": 13014,
+        "no-unsafe-return": 1037,
+        "no-floating-promises": 6416,
+        "no-misused-promises": 2032,
+        "strict-void-return": 4220,
+        "switch-exhaustiveness-check": 617,
+        "no-confusing-void-expression": 9693,
+        "prefer-regexp-exec": 301,
+        "no-unnecessary-type-conversion": 494,
+        "related-getter-setter-pairs": 6,
+        "prefer-promise-reject-errors": 181,
+        "no-unnecessary-template-expression": 120,
+        "prefer-readonly": 3369,
+        "restrict-plus-operands": 42,
+        "no-unnecessary-type-assertion": 3334,
+        "no-unnecessary-type-parameters": 331,
+        "no-useless-default-assignment": 83,
+        "no-base-to-string": 200,
+        "non-nullable-type-assertion-style": 96,
+        "consistent-return": 965,
+        "no-unnecessary-boolean-literal-compare": 480,
+        "no-unsafe-enum-comparison": 1690,
+        "prefer-return-this-type": 56,
+        "use-unknown-in-catch-callback-variable": 696,
+        "no-duplicate-type-constituents": 195,
+        "restrict-template-expressions": 643,
+        "no-redundant-type-constituents": 401,
+        "only-throw-error": 65,
+        "no-unnecessary-qualifier": 64,
+        "no-unnecessary-type-arguments": 274,
+        "prefer-reduce-type-parameter": 20,
+        "no-generated-empty-object-type": 10,
+        "await-thenable": 307,
+        "return-await": 292,
+        "no-misused-spread": 61,
+        "no-meaningless-void-operator": 10,
+        "no-mixed-enums": 3,
+        "prefer-find": 65,
+        "require-array-sort-compare": 37,
+        "consistent-type-exports": 20,
+        "no-array-delete": 7,
+        "no-implied-eval": 4,
+        "no-for-in-array": 6
+      }
+    },
+    {
+      "helper": "go",
+      "mode": "default",
+      "rep": 0,
+      "profile": false,
+      "e2e": false,
+      "warmup": false,
+      "wall_s": 10.996794207952917,
+      "exit_code": 0,
+      "rss_bytes": 8436432896,
+      "instructions": 482752958494,
+      "cpu_cycles": 183337879645,
+      "time_real": 10.94,
+      "user": 55.18,
+      "sys": 3.31,
+      "diagnostics": 275832,
+      "diagnostics_by_rule": {
+        "dot-notation": 3034,
+        "prefer-optional-chain": 1230,
+        "no-unsafe-member-access": 6634,
+        "no-unsafe-assignment": 5417,
+        "no-unnecessary-condition": 9540,
+        "strict-boolean-expressions": 26745,
+        "prefer-readonly-parameter-types": 140291,
+        "prefer-includes": 403,
+        "prefer-nullish-coalescing": 4136,
+        "no-unsafe-argument": 2507,
+        "consistent-return": 965,
+        "prefer-string-starts-ends-with": 223,
+        "no-unsafe-call": 2100,
+        "no-confusing-void-expression": 9693,
+        "prefer-readonly": 3369,
+        "no-unsafe-type-assertion": 13013,
+        "no-unsafe-return": 1031,
+        "no-deprecated": 2287,
+        "unbound-method": 939,
+        "require-await": 8366,
+        "promise-function-async": 10090,
+        "no-unnecessary-type-parameters": 331,
+        "restrict-template-expressions": 643,
+        "prefer-return-this-type": 56,
+        "strict-void-return": 4220,
+        "no-unnecessary-type-assertion": 3277,
+        "no-unsafe-enum-comparison": 1690,
+        "no-redundant-type-constituents": 401,
+        "no-unnecessary-qualifier": 64,
+        "no-unnecessary-type-arguments": 274,
+        "prefer-regexp-exec": 301,
+        "switch-exhaustiveness-check": 617,
+        "restrict-plus-operands": 42,
+        "no-unnecessary-template-expression": 120,
+        "no-duplicate-type-constituents": 192,
+        "no-base-to-string": 200,
+        "no-floating-promises": 6416,
+        "no-useless-default-assignment": 83,
+        "use-unknown-in-catch-callback-variable": 696,
+        "only-throw-error": 65,
+        "prefer-promise-reject-errors": 181,
+        "no-generated-empty-object-type": 10,
+        "await-thenable": 307,
+        "return-await": 292,
+        "no-misused-promises": 2032,
+        "prefer-reduce-type-parameter": 20,
+        "no-unnecessary-boolean-literal-compare": 480,
+        "no-unnecessary-type-conversion": 494,
+        "no-misused-spread": 61,
+        "prefer-find": 65,
+        "non-nullable-type-assertion-style": 96,
+        "no-meaningless-void-operator": 10,
+        "consistent-type-exports": 20,
+        "no-mixed-enums": 3,
+        "related-getter-setter-pairs": 6,
+        "no-for-in-array": 6,
+        "no-array-delete": 7,
+        "require-array-sort-compare": 37,
+        "no-implied-eval": 4
+      }
+    },
+    {
+      "helper": "go",
+      "mode": "default",
+      "rep": 1,
+      "profile": false,
+      "e2e": false,
+      "warmup": false,
+      "wall_s": 10.866305291070603,
+      "exit_code": 0,
+      "rss_bytes": 8437858304,
+      "instructions": 483710682350,
+      "cpu_cycles": 183314780026,
+      "time_real": 10.84,
+      "user": 55.16,
+      "sys": 3.34,
+      "diagnostics": 275832,
+      "diagnostics_by_rule": {
+        "dot-notation": 3034,
+        "prefer-optional-chain": 1230,
+        "no-unsafe-member-access": 6634,
+        "no-unsafe-assignment": 5417,
+        "no-unnecessary-condition": 9540,
+        "strict-boolean-expressions": 26745,
+        "prefer-readonly-parameter-types": 140291,
+        "prefer-includes": 403,
+        "prefer-nullish-coalescing": 4136,
+        "no-unsafe-argument": 2507,
+        "consistent-return": 965,
+        "prefer-string-starts-ends-with": 223,
+        "no-unsafe-call": 2100,
+        "no-confusing-void-expression": 9693,
+        "prefer-readonly": 3369,
+        "no-unsafe-type-assertion": 13013,
+        "no-unsafe-return": 1031,
+        "no-deprecated": 2287,
+        "unbound-method": 939,
+        "require-await": 8366,
+        "promise-function-async": 10090,
+        "no-unnecessary-type-parameters": 331,
+        "restrict-template-expressions": 643,
+        "prefer-return-this-type": 56,
+        "strict-void-return": 4220,
+        "no-unnecessary-type-assertion": 3277,
+        "no-unsafe-enum-comparison": 1690,
+        "no-redundant-type-constituents": 401,
+        "no-unnecessary-qualifier": 64,
+        "no-unnecessary-type-arguments": 274,
+        "prefer-regexp-exec": 301,
+        "no-floating-promises": 6416,
+        "no-duplicate-type-constituents": 192,
+        "switch-exhaustiveness-check": 617,
+        "restrict-plus-operands": 42,
+        "no-unnecessary-template-expression": 120,
+        "no-base-to-string": 200,
+        "no-useless-default-assignment": 83,
+        "use-unknown-in-catch-callback-variable": 696,
+        "prefer-promise-reject-errors": 181,
+        "only-throw-error": 65,
+        "no-generated-empty-object-type": 10,
+        "await-thenable": 307,
+        "return-await": 292,
+        "no-misused-promises": 2032,
+        "prefer-reduce-type-parameter": 20,
+        "no-unnecessary-boolean-literal-compare": 480,
+        "no-unnecessary-type-conversion": 494,
+        "no-misused-spread": 61,
+        "prefer-find": 65,
+        "non-nullable-type-assertion-style": 96,
+        "no-meaningless-void-operator": 10,
+        "consistent-type-exports": 20,
+        "no-mixed-enums": 3,
+        "related-getter-setter-pairs": 6,
+        "no-for-in-array": 6,
+        "no-array-delete": 7,
+        "require-array-sort-compare": 37,
+        "no-implied-eval": 4
+      }
+    },
+    {
+      "helper": "rust",
+      "mode": "default",
+      "rep": 1,
+      "profile": false,
+      "e2e": false,
+      "warmup": false,
+      "wall_s": 15.276203208020888,
+      "exit_code": 0,
+      "rss_bytes": 2279833600,
+      "instructions": 164298484639,
+      "cpu_cycles": 54655547130,
+      "time_real": 15.21,
+      "user": 14.39,
+      "sys": 1.82,
+      "diagnostics": 275891,
+      "diagnostics_by_rule": {
+        "dot-notation": 3034,
+        "no-deprecated": 2217,
+        "strict-boolean-expressions": 26745,
+        "prefer-nullish-coalescing": 4136,
+        "prefer-string-starts-ends-with": 223,
+        "prefer-readonly-parameter-types": 140291,
+        "no-unnecessary-condition": 9554,
+        "prefer-optional-chain": 1277,
+        "promise-function-async": 10090,
+        "no-unsafe-assignment": 5417,
+        "prefer-includes": 403,
+        "no-unsafe-call": 2100,
+        "no-unsafe-member-access": 6634,
+        "unbound-method": 940,
+        "no-unsafe-argument": 2507,
+        "require-await": 8366,
+        "no-unsafe-type-assertion": 13014,
+        "no-unsafe-return": 1037,
+        "no-floating-promises": 6416,
+        "no-misused-promises": 2032,
+        "strict-void-return": 4220,
+        "switch-exhaustiveness-check": 617,
+        "no-confusing-void-expression": 9693,
+        "prefer-regexp-exec": 301,
+        "no-unnecessary-type-conversion": 494,
+        "related-getter-setter-pairs": 6,
+        "prefer-promise-reject-errors": 181,
+        "no-unnecessary-template-expression": 120,
+        "prefer-readonly": 3369,
+        "restrict-plus-operands": 42,
+        "no-unnecessary-type-assertion": 3334,
+        "no-unnecessary-type-parameters": 331,
+        "no-useless-default-assignment": 83,
+        "no-base-to-string": 200,
+        "non-nullable-type-assertion-style": 96,
+        "consistent-return": 965,
+        "no-unnecessary-boolean-literal-compare": 480,
+        "no-unsafe-enum-comparison": 1690,
+        "prefer-return-this-type": 56,
+        "use-unknown-in-catch-callback-variable": 696,
+        "no-duplicate-type-constituents": 195,
+        "restrict-template-expressions": 643,
+        "no-redundant-type-constituents": 401,
+        "only-throw-error": 65,
+        "no-unnecessary-qualifier": 64,
+        "no-unnecessary-type-arguments": 274,
+        "prefer-reduce-type-parameter": 20,
+        "no-generated-empty-object-type": 10,
+        "await-thenable": 307,
+        "return-await": 292,
+        "no-misused-spread": 61,
+        "no-meaningless-void-operator": 10,
+        "no-mixed-enums": 3,
+        "prefer-find": 65,
+        "require-array-sort-compare": 37,
+        "consistent-type-exports": 20,
+        "no-array-delete": 7,
+        "no-implied-eval": 4,
+        "no-for-in-array": 6
+      }
+    },
+    {
+      "helper": "rust",
+      "mode": "default",
+      "rep": 2,
+      "profile": false,
+      "e2e": false,
+      "warmup": false,
+      "wall_s": 15.25401912489906,
+      "exit_code": 0,
+      "rss_bytes": 2288058368,
+      "instructions": 164308154438,
+      "cpu_cycles": 55083705655,
+      "time_real": 15.23,
+      "user": 14.4,
+      "sys": 1.96,
+      "diagnostics": 275891,
+      "diagnostics_by_rule": {
+        "dot-notation": 3034,
+        "no-deprecated": 2217,
+        "strict-boolean-expressions": 26745,
+        "prefer-nullish-coalescing": 4136,
+        "prefer-string-starts-ends-with": 223,
+        "prefer-readonly-parameter-types": 140291,
+        "no-unnecessary-condition": 9554,
+        "prefer-optional-chain": 1277,
+        "promise-function-async": 10090,
+        "no-unsafe-assignment": 5417,
+        "prefer-includes": 403,
+        "no-unsafe-call": 2100,
+        "no-unsafe-member-access": 6634,
+        "unbound-method": 940,
+        "no-unsafe-argument": 2507,
+        "require-await": 8366,
+        "no-unsafe-type-assertion": 13014,
+        "no-unsafe-return": 1037,
+        "no-floating-promises": 6416,
+        "no-misused-promises": 2032,
+        "strict-void-return": 4220,
+        "switch-exhaustiveness-check": 617,
+        "no-confusing-void-expression": 9693,
+        "prefer-regexp-exec": 301,
+        "no-unnecessary-type-conversion": 494,
+        "related-getter-setter-pairs": 6,
+        "prefer-promise-reject-errors": 181,
+        "no-unnecessary-template-expression": 120,
+        "prefer-readonly": 3369,
+        "restrict-plus-operands": 42,
+        "no-unnecessary-type-assertion": 3334,
+        "no-unnecessary-type-parameters": 331,
+        "no-useless-default-assignment": 83,
+        "no-base-to-string": 200,
+        "non-nullable-type-assertion-style": 96,
+        "consistent-return": 965,
+        "no-unnecessary-boolean-literal-compare": 480,
+        "no-unsafe-enum-comparison": 1690,
+        "prefer-return-this-type": 56,
+        "use-unknown-in-catch-callback-variable": 696,
+        "no-duplicate-type-constituents": 195,
+        "restrict-template-expressions": 643,
+        "no-redundant-type-constituents": 401,
+        "only-throw-error": 65,
+        "no-unnecessary-qualifier": 64,
+        "no-unnecessary-type-arguments": 274,
+        "prefer-reduce-type-parameter": 20,
+        "no-generated-empty-object-type": 10,
+        "await-thenable": 307,
+        "return-await": 292,
+        "no-misused-spread": 61,
+        "no-meaningless-void-operator": 10,
+        "no-mixed-enums": 3,
+        "prefer-find": 65,
+        "require-array-sort-compare": 37,
+        "consistent-type-exports": 20,
+        "no-array-delete": 7,
+        "no-implied-eval": 4,
+        "no-for-in-array": 6
+      }
+    },
+    {
+      "helper": "go",
+      "mode": "default",
+      "rep": 2,
+      "profile": false,
+      "e2e": false,
+      "warmup": false,
+      "wall_s": 10.632910000043921,
+      "exit_code": 0,
+      "rss_bytes": 9009889280,
+      "instructions": 454061276103,
+      "cpu_cycles": 169541387344,
+      "time_real": 10.59,
+      "user": 50.48,
+      "sys": 3.37,
+      "diagnostics": 275832,
+      "diagnostics_by_rule": {
+        "prefer-optional-chain": 1230,
+        "no-unsafe-member-access": 6634,
+        "no-unsafe-assignment": 5417,
+        "dot-notation": 3034,
+        "no-unnecessary-condition": 9540,
+        "strict-boolean-expressions": 26745,
+        "prefer-includes": 403,
+        "prefer-nullish-coalescing": 4136,
+        "prefer-readonly-parameter-types": 140291,
+        "consistent-return": 965,
+        "no-unsafe-argument": 2507,
+        "prefer-string-starts-ends-with": 223,
+        "no-unsafe-call": 2100,
+        "no-confusing-void-expression": 9693,
+        "prefer-readonly": 3369,
+        "no-unsafe-type-assertion": 13013,
+        "no-unsafe-return": 1031,
+        "no-deprecated": 2287,
+        "unbound-method": 939,
+        "require-await": 8366,
+        "promise-function-async": 10090,
+        "no-unnecessary-type-parameters": 331,
+        "restrict-template-expressions": 643,
+        "prefer-return-this-type": 56,
+        "strict-void-return": 4220,
+        "no-unnecessary-type-assertion": 3277,
+        "no-unsafe-enum-comparison": 1690,
+        "no-redundant-type-constituents": 401,
+        "no-unnecessary-qualifier": 64,
+        "no-unnecessary-type-arguments": 274,
+        "prefer-regexp-exec": 301,
+        "no-floating-promises": 6416,
+        "no-duplicate-type-constituents": 192,
+        "switch-exhaustiveness-check": 617,
+        "restrict-plus-operands": 42,
+        "no-unnecessary-template-expression": 120,
+        "no-base-to-string": 200,
+        "no-useless-default-assignment": 83,
+        "use-unknown-in-catch-callback-variable": 696,
+        "only-throw-error": 65,
+        "prefer-promise-reject-errors": 181,
+        "no-generated-empty-object-type": 10,
+        "await-thenable": 307,
+        "return-await": 292,
+        "no-misused-promises": 2032,
+        "prefer-reduce-type-parameter": 20,
+        "no-unnecessary-boolean-literal-compare": 480,
+        "no-unnecessary-type-conversion": 494,
+        "no-misused-spread": 61,
+        "prefer-find": 65,
+        "non-nullable-type-assertion-style": 96,
+        "no-meaningless-void-operator": 10,
+        "consistent-type-exports": 20,
+        "no-mixed-enums": 3,
+        "related-getter-setter-pairs": 6,
+        "no-for-in-array": 6,
+        "no-array-delete": 7,
+        "require-array-sort-compare": 37,
+        "no-implied-eval": 4
+      }
+    },
+    {
+      "helper": "rust",
+      "mode": "single",
+      "rep": 0,
+      "profile": true,
+      "e2e": false,
+      "warmup": false,
+      "wall_s": 19.2697503749514,
+      "exit_code": 0,
+      "rss_bytes": 2278621184,
+      "instructions": 217315862378,
+      "cpu_cycles": 62536067737,
+      "time_real": 19.25,
+      "user": 17.67,
+      "sys": 0.75,
+      "diagnostics": 275891,
+      "diagnostics_by_rule": {
+        "dot-notation": 3034,
+        "no-deprecated": 2217,
+        "strict-boolean-expressions": 26745,
+        "prefer-nullish-coalescing": 4136,
+        "prefer-string-starts-ends-with": 223,
+        "prefer-readonly-parameter-types": 140291,
+        "no-unnecessary-condition": 9554,
+        "prefer-optional-chain": 1277,
+        "promise-function-async": 10090,
+        "no-unsafe-assignment": 5417,
+        "prefer-includes": 403,
+        "no-unsafe-call": 2100,
+        "no-unsafe-member-access": 6634,
+        "unbound-method": 940,
+        "no-unsafe-argument": 2507,
+        "require-await": 8366,
+        "no-unsafe-type-assertion": 13014,
+        "no-unsafe-return": 1037,
+        "no-floating-promises": 6416,
+        "no-misused-promises": 2032,
+        "strict-void-return": 4220,
+        "switch-exhaustiveness-check": 617,
+        "no-confusing-void-expression": 9693,
+        "prefer-regexp-exec": 301,
+        "no-unnecessary-type-conversion": 494,
+        "related-getter-setter-pairs": 6,
+        "prefer-promise-reject-errors": 181,
+        "no-unnecessary-template-expression": 120,
+        "prefer-readonly": 3369,
+        "restrict-plus-operands": 42,
+        "no-unnecessary-type-assertion": 3334,
+        "no-unnecessary-type-parameters": 331,
+        "no-useless-default-assignment": 83,
+        "no-base-to-string": 200,
+        "non-nullable-type-assertion-style": 96,
+        "consistent-return": 965,
+        "no-unnecessary-boolean-literal-compare": 480,
+        "no-unsafe-enum-comparison": 1690,
+        "prefer-return-this-type": 56,
+        "use-unknown-in-catch-callback-variable": 696,
+        "no-duplicate-type-constituents": 195,
+        "restrict-template-expressions": 643,
+        "no-redundant-type-constituents": 401,
+        "only-throw-error": 65,
+        "no-unnecessary-qualifier": 64,
+        "no-unnecessary-type-arguments": 274,
+        "prefer-reduce-type-parameter": 20,
+        "no-generated-empty-object-type": 10,
+        "await-thenable": 307,
+        "return-await": 292,
+        "no-misused-spread": 61,
+        "no-meaningless-void-operator": 10,
+        "no-mixed-enums": 3,
+        "prefer-find": 65,
+        "require-array-sort-compare": 37,
+        "consistent-type-exports": 20,
+        "no-array-delete": 7,
+        "no-implied-eval": 4,
+        "no-for-in-array": 6
+      },
+      "rule_timings": [
+        {
+          "rule_name": "no-misused-promises",
+          "duration": 2917661622,
+          "calls": 4042929
+        },
+        {
+          "rule_name": "no-floating-promises",
+          "duration": 2103374356,
+          "calls": 492724
+        },
+        {
+          "rule_name": "no-unsafe-assignment",
+          "duration": 1749425197,
+          "calls": 1257605
+        },
+        {
+          "rule_name": "no-unsafe-argument",
+          "duration": 875847009,
+          "calls": 1010488
+        },
+        {
+          "rule_name": "no-deprecated",
+          "duration": 835423976,
+          "calls": 5919392
+        },
+        {
+          "rule_name": "strict-void-return",
+          "duration": 630964175,
+          "calls": 2607466
+        },
+        {
+          "rule_name": "no-unsafe-return",
+          "duration": 569545017,
+          "calls": 255709
+        },
+        {
+          "rule_name": "no-unsafe-member-access",
+          "duration": 538517244,
+          "calls": 1489329
+        },
+        {
+          "rule_name": "no-confusing-void-expression",
+          "duration": 429645171,
+          "calls": 992359
+        },
+        {
+          "rule_name": "no-unnecessary-condition",
+          "duration": 326392186,
+          "calls": 2851771
+        },
+        {
+          "rule_name": "no-unnecessary-qualifier",
+          "duration": 237356455,
+          "calls": 2922456
+        },
+        {
+          "rule_name": "no-unnecessary-type-arguments",
+          "duration": 221279756,
+          "calls": 1331811
+        },
+        {
+          "rule_name": "consistent-return",
+          "duration": 213704764,
+          "calls": 603072
+        },
+        {
+          "rule_name": "unbound-method",
+          "duration": 206421664,
+          "calls": 1461647
+        },
+        {
+          "rule_name": "strict-boolean-expressions",
+          "duration": 196398065,
+          "calls": 1418795
+        },
+        {
+          "rule_name": "no-unsafe-call",
+          "duration": 168872395,
+          "calls": 1010488
+        },
+        {
+          "rule_name": "prefer-readonly-parameter-types",
+          "duration": 158256408,
+          "calls": 258540
+        },
+        {
+          "rule_name": "no-base-to-string",
+          "duration": 131670187,
+          "calls": 1242093
+        },
+        {
+          "rule_name": "prefer-readonly",
+          "duration": 117774303,
+          "calls": 1961065
+        },
+        {
+          "rule_name": "no-unnecessary-type-assertion",
+          "duration": 116023081,
+          "calls": 39436
+        },
+        {
+          "rule_name": "await-thenable",
+          "duration": 97263083,
+          "calls": 1286810
+        },
+        {
+          "rule_name": "prefer-promise-reject-errors",
+          "duration": 93914599,
+          "calls": 929203
+        },
+        {
+          "rule_name": "no-unsafe-type-assertion",
+          "duration": 80809245,
+          "calls": 28889
+        },
+        {
+          "rule_name": "prefer-string-starts-ends-with",
+          "duration": 78508388,
+          "calls": 1218005
+        },
+        {
+          "rule_name": "no-misused-spread",
+          "duration": 69998127,
+          "calls": 1253516
+        },
+        {
+          "rule_name": "use-unknown-in-catch-callback-variable",
+          "duration": 68831819,
+          "calls": 929203
+        },
+        {
+          "rule_name": "require-await",
+          "duration": 67622334,
+          "calls": 960865
+        },
+        {
+          "rule_name": "no-unnecessary-type-conversion",
+          "duration": 66289116,
+          "calls": 1273792
+        },
+        {
+          "rule_name": "prefer-includes",
+          "duration": 66021394,
+          "calls": 1218005
+        },
+        {
+          "rule_name": "no-unnecessary-type-parameters",
+          "duration": 61253874,
+          "calls": 264184
+        },
+        {
+          "rule_name": "prefer-find",
+          "duration": 59188986,
+          "calls": 966093
+        },
+        {
+          "rule_name": "dot-notation",
+          "duration": 58123034,
+          "calls": 1489329
+        },
+        {
+          "rule_name": "no-implied-eval",
+          "duration": 52816327,
+          "calls": 1010132
+        },
+        {
+          "rule_name": "prefer-optional-chain",
+          "duration": 52255585,
+          "calls": 298126
+        },
+        {
+          "rule_name": "no-generated-empty-object-type",
+          "duration": 50986036,
+          "calls": 320811
+        },
+        {
+          "rule_name": "prefer-nullish-coalescing",
+          "duration": 48082303,
+          "calls": 438168
+        },
+        {
+          "rule_name": "prefer-regexp-exec",
+          "duration": 47948065,
+          "calls": 929203
+        },
+        {
+          "rule_name": "prefer-reduce-type-parameter",
+          "duration": 47838872,
+          "calls": 929203
+        },
+        {
+          "rule_name": "return-await",
+          "duration": 42687339,
+          "calls": 603072
+        },
+        {
+          "rule_name": "require-array-sort-compare",
+          "duration": 41276868,
+          "calls": 929203
+        },
+        {
+          "rule_name": "no-unsafe-enum-comparison",
+          "duration": 40147773,
+          "calls": 306884
+        },
+        {
+          "rule_name": "restrict-plus-operands",
+          "duration": 35007308,
+          "calls": 298126
+        },
+        {
+          "rule_name": "promise-function-async",
+          "duration": 34050743,
+          "calls": 230043
+        },
+        {
+          "rule_name": "only-throw-error",
+          "duration": 19335540,
+          "calls": 17203
+        },
+        {
+          "rule_name": "no-duplicate-type-constituents",
+          "duration": 18712033,
+          "calls": 61460
+        },
+        {
+          "rule_name": "no-unnecessary-boolean-literal-compare",
+          "duration": 17990805,
+          "calls": 298126
+        },
+        {
+          "rule_name": "switch-exhaustiveness-check",
+          "duration": 14654894,
+          "calls": 11217
+        },
+        {
+          "rule_name": "no-redundant-type-constituents",
+          "duration": 14452594,
+          "calls": 61460
+        },
+        {
+          "rule_name": "prefer-return-this-type",
+          "duration": 13828503,
+          "calls": 122288
+        },
+        {
+          "rule_name": "no-useless-default-assignment",
+          "duration": 11455070,
+          "calls": 274940
+        },
+        {
+          "rule_name": "restrict-template-expressions",
+          "duration": 10226336,
+          "calls": 33412
+        },
+        {
+          "rule_name": "non-nullable-type-assertion-style",
+          "duration": 9694361,
+          "calls": 28889
+        },
+        {
+          "rule_name": "no-meaningless-void-operator",
+          "duration": 6241482,
+          "calls": 10383
+        },
+        {
+          "rule_name": "no-unnecessary-template-expression",
+          "duration": 5659109,
+          "calls": 33452
+        },
+        {
+          "rule_name": "related-getter-setter-pairs",
+          "duration": 5120364,
+          "calls": 56129
+        },
+        {
+          "rule_name": "no-unsafe-unary-minus",
+          "duration": 5108983,
+          "calls": 65111
+        },
+        {
+          "rule_name": "consistent-type-exports",
+          "duration": 2619091,
+          "calls": 10420
+        },
+        {
+          "rule_name": "no-mixed-enums",
+          "duration": 1314014,
+          "calls": 10971
+        },
+        {
+          "rule_name": "no-for-in-array",
+          "duration": 1103542,
+          "calls": 9564
+        },
+        {
+          "rule_name": "no-array-delete",
+          "duration": 971112,
+          "calls": 9843
+        }
+      ]
+    },
+    {
+      "helper": "go",
+      "mode": "default",
+      "rep": 0,
+      "profile": false,
+      "e2e": true,
+      "warmup": false,
+      "wall_s": 15.55278700008057,
+      "exit_code": 1,
+      "rss_bytes": 8442380288,
+      "instructions": 60629506154,
+      "cpu_cycles": 26579046894,
+      "time_real": 15.49,
+      "user": 60.96,
+      "sys": 5.62,
+      "diagnostics": 275847,
+      "reported_files": 9324
+    },
+    {
+      "helper": "rust",
+      "mode": "default",
+      "rep": 0,
+      "profile": false,
+      "e2e": true,
+      "warmup": false,
+      "wall_s": 19.220805499935523,
+      "exit_code": 1,
+      "rss_bytes": 2292318208,
+      "instructions": 60489612032,
+      "cpu_cycles": 24977904595,
+      "time_real": 19.16,
+      "user": 19.88,
+      "sys": 3.1,
+      "diagnostics": 275906,
+      "reported_files": 9324
+    }
+  ],
+  "validation": {
+    "pinned_rule_cases": 164,
+    "headless_tests": 99,
+    "new_go_snapshot_checks": 20,
+    "oxlint_js_passed": 642,
+    "oxlint_js_skipped": 1
+  }
+}

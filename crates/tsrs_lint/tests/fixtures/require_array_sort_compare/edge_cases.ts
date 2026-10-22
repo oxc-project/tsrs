@@ -1,0 +1,54 @@
+export {};
+declare const café: number[];
+declare const strings: string[];
+declare const stringUnion: string[] | readonly string[];
+declare const mixedUnion: number[] | string[];
+declare const structuralUnion: number[] | { sort(): void };
+declare const brandedArray: number[] & { brand: true };
+declare const brandedStrings: (string & { brand: true })[];
+declare const nullable: number[] | undefined;
+declare const readonlyNumbers: readonly number[];
+declare const readonlyStrings: readonly string[];
+declare const tuple: ["é", "β"];
+declare const optionalTuple: ["é"?];
+declare const emptyTuple: [];
+declare const restTuple: [string, ...string[]];
+declare const readonlyTuple: readonly ["é", "β"];
+declare const sortKey: "sort";
+declare const dynamicKey: string;
+declare const unknownValue: unknown;
+declare const anyValue: any;
+declare const args: [];
+café /* β */ ["sort"] /* é */ ();
+café?.toSorted?.();
+café[`toSorted`]();
+café[sortKey]();
+café[dynamicKey]();
+(café.sort)();
+café.sort(undefined);
+café.sort(...args);
+new café.sort();
+café.sort`é`;
+strings.sort();
+stringUnion.toSorted();
+mixedUnion.sort();
+structuralUnion.sort();
+brandedArray.sort();
+brandedStrings.sort();
+nullable?.sort();
+readonlyNumbers.toSorted();
+readonlyStrings.toSorted();
+tuple.sort();
+optionalTuple.sort();
+emptyTuple.sort();
+restTuple.sort();
+readonlyTuple.toSorted();
+unknownValue.sort();
+anyValue.sort();
+function constrained<T extends string, U extends T[], V extends number[]>(strings: U, numbers: V) {
+  strings.sort();
+  numbers.toSorted();
+}
+function constrainedUnion<T extends string[] | number[]>(values: T) {
+  values.sort();
+}

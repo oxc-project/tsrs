@@ -1,0 +1,25 @@
+[
+  {
+    "rule": "consistent-type-exports",
+    "message": {
+      "id": "singleExportIsType",
+      "description": "Type export Type2 as Foo is not a value and should be exported using `export type`.",
+      "help": "Try adding the `type` keyword: `type Type2 as Foo`"
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 10,
+      "end": 22
+    },
+    "fixes": [
+      {
+        "text": "export type { Type2 as Foo } from './consistent-type-exports';\nexport { value1 } from './consistent-type-exports';",
+        "range": {
+          "pos": 1,
+          "end": 66
+        }
+      }
+    ],
+    "kind": 0
+  }
+]

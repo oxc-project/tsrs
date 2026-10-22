@@ -1,0 +1,49 @@
+[
+  {
+    "file_path": "file.ts",
+    "range": {
+      "pos": 100,
+      "end": 102
+    },
+    "suggestions": [
+      {
+        "message": {
+          "id": "removeDefaultAssignment",
+          "description": "Remove the default value."
+        },
+        "fixes": [
+          {
+            "text": "",
+            "range": {
+              "pos": 97,
+              "end": 102
+            }
+          }
+        ]
+      }
+    ],
+    "labeled_ranges": [
+      {
+        "label": "Default value",
+        "range": {
+          "pos": 100,
+          "end": 102
+        }
+      },
+      {
+        "label": "property type `string` is not nullish",
+        "range": {
+          "pos": 92,
+          "end": 97
+        }
+      }
+    ],
+    "kind": 0,
+    "rule": "no-useless-default-assignment",
+    "message": {
+      "id": "uselessDefaultAssignment",
+      "description": "Default value is useless because the property has type `string` (not nullish). This default assignment will never be used.",
+      "help": "Remove the default assignment"
+    }
+  }
+]

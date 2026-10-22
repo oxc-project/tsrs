@@ -1,0 +1,46 @@
+[
+  {
+    "message": {
+      "id": "noStrictNullCheck",
+      "description": "This rule requires the `strictNullChecks` compiler option to be turned on to function correctly."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 0,
+      "end": 0
+    },
+    "kind": 0,
+    "rule": "no-useless-default-assignment"
+  },
+  {
+    "kind": 0,
+    "rule": "no-useless-default-assignment",
+    "message": {
+      "id": "uselessUndefined",
+      "description": "Default value is useless because it is undefined. Optional parameters are already undefined by default.",
+      "help": "Remove the default assignment"
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 26,
+      "end": 35
+    },
+    "suggestions": [
+      {
+        "message": {
+          "id": "removeDefaultAssignment",
+          "description": "Remove the default value."
+        },
+        "fixes": [
+          {
+            "text": "",
+            "range": {
+              "pos": 23,
+              "end": 35
+            }
+          }
+        ]
+      }
+    ]
+  }
+]

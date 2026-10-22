@@ -1,0 +1,15 @@
+[
+  {
+    "range": {
+      "pos": 85,
+      "end": 96
+    },
+    "kind": 0,
+    "rule": "no-deprecated",
+    "message": {
+      "id": "deprecated",
+      "description": "`NormalClass` is deprecated."
+    },
+    "file_path": "file.ts"
+  }
+]

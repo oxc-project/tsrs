@@ -1,0 +1,38 @@
+[
+  {
+    "message": {
+      "id": "noUnnecessaryTemplateExpression",
+      "description": "Template literal expression is unnecessary and can be simplified."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 2,
+      "end": 22
+    },
+    "fixes": [
+      {
+        "text": "",
+        "range": {
+          "end": 5,
+          "pos": 2
+        }
+      },
+      {
+        "text": "",
+        "range": {
+          "pos": 20,
+          "end": 22
+        }
+      },
+      {
+        "text": "A\\u0307\\u0323",
+        "range": {
+          "pos": 5,
+          "end": 20
+        }
+      }
+    ],
+    "kind": 0,
+    "rule": "no-unnecessary-template-expression"
+  }
+]

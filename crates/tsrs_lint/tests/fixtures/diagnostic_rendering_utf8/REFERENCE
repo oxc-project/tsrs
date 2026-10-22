@@ -1,0 +1,6 @@
+Diagnostic records: oxlint-tsgolint 7.0.2004, darwin-arm64.
+Go build module revision: a61289117febcb1a60cf3bc75ef2b6bbccc4b665 (modified build).
+Binary SHA-256: d40de2b828d91ac188e3dc897991be8a512b29935fddae5f223a9f9bde356fb1
+Source used to port diagnostics: codex/fix-single-range-diagnostics at 29cf475f7938019f5c0d18d06d7872bade29f737.
+Optional-chain suggestions and assertion fix outputs are refreshed from the same binary.
+Additional regression sources are local; all 72 mode-specific snapshots come from the recorded Go binary.

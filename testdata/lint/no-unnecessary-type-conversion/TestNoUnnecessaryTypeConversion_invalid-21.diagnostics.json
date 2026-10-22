@@ -1,0 +1,56 @@
+[
+  {
+    "message": {
+      "id": "unnecessaryTypeConversion",
+      "description": "This type conversion does not change the type or value of the expression."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 43,
+      "end": 45
+    },
+    "suggestions": [
+      {
+        "message": {
+          "id": "suggestRemove",
+          "description": "Remove the type conversion."
+        },
+        "fixes": [
+          {
+            "text": "x",
+            "range": {
+              "pos": 43,
+              "end": 46
+            }
+          }
+        ]
+      },
+      {
+        "message": {
+          "id": "suggestSatisfies",
+          "description": "Instead, assert that the value satisfies the primitive type."
+        },
+        "fixes": [
+          {
+            "text": "x satisfies number",
+            "range": {
+              "end": 46,
+              "pos": 43
+            }
+          }
+        ]
+      }
+    ],
+    "labeled_ranges": [
+      {
+        "label": "This expression already has type '3 | 4'.",
+        "range": {
+          "pos": 45,
+          "end": 46
+        }
+      }
+    ],
+    "kind": 0,
+    "rule": "no-unnecessary-type-conversion"
+  }
+]

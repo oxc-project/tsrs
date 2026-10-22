@@ -694,6 +694,7 @@ fn normalize_type(input: &str) -> String {
             path: TsPath::new("/expect-type.ts".to_string()),
             external_module_indicator_options:
                 tsrs_ast::parseoptions::ExternalModuleIndicatorOptions::default(),
+            legacy_string_escapes: false,
         },
         &source,
         ScriptKind::TS,

@@ -1,0 +1,25 @@
+[
+  {
+    "rule": "await-thenable",
+    "message": {
+      "id": "awaitUsingOfNonAsyncDisposable",
+      "description": "Unexpected `await using` of a value that is not async disposable.",
+      "help": "Use plain `using` for synchronous disposables, or change the value to implement `Symbol.asyncDispose`."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 119,
+      "end": 129
+    },
+    "labeled_ranges": [
+      {
+        "label": "This value is not async disposable",
+        "range": {
+          "pos": 119,
+          "end": 129
+        }
+      }
+    ],
+    "kind": 0
+  }
+]

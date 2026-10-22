@@ -1,0 +1,31 @@
+[
+  {
+    "range": {
+      "end": 95,
+      "pos": 80
+    },
+    "fixes": [
+      {
+        "text": "",
+        "range": {
+          "pos": 80,
+          "end": 93
+        }
+      },
+      {
+        "text": ".startsWith(\"\\\"quoted\\\"\"",
+        "range": {
+          "pos": 94,
+          "end": 94
+        }
+      }
+    ],
+    "kind": 0,
+    "rule": "prefer-string-starts-ends-with",
+    "message": {
+      "id": "preferStartsWith",
+      "description": "Use 'String#startsWith' method instead."
+    },
+    "file_path": "file.ts"
+  }
+]

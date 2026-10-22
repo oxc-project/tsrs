@@ -1,0 +1,40 @@
+[
+  {
+    "labeled_ranges": [
+      {
+        "label": "Type '(number | (string | null))' is first declared here.",
+        "range": {
+          "pos": 9,
+          "end": 35
+        }
+      }
+    ],
+    "kind": 0,
+    "rule": "no-duplicate-type-constituents",
+    "message": {
+      "id": "duplicate",
+      "description": "Union type constituent is duplicated with  (number | (string | null))."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 38,
+      "end": 64
+    },
+    "fixes": [
+      {
+        "text": "",
+        "range": {
+          "pos": 38,
+          "end": 64
+        }
+      },
+      {
+        "text": "",
+        "range": {
+          "pos": 36,
+          "end": 37
+        }
+      }
+    ]
+  }
+]

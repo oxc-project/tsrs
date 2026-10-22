@@ -1,0 +1,62 @@
+[
+  {
+    "rule": "switch-exhaustiveness-check",
+    "message": {
+      "id": "switchIsNotExhaustive",
+      "description": "Switch is not exhaustive. Cases not matched: undefined | null | \"1\" | 1"
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 86,
+      "end": 91
+    },
+    "suggestions": [
+      {
+        "message": {
+          "id": "addMissingCases",
+          "description": "Add branches for missing cases."
+        },
+        "fixes": [
+          {
+            "text": "{\ncase undefined: { throw new Error('Not implemented yet: undefined case') }\ncase null: { throw new Error('Not implemented yet: null case') }\ncase \"1\": { throw new Error('Not implemented yet: \"1\" case') }\ncase 1: { throw new Error('Not implemented yet: 1 case') }\n}",
+            "range": {
+              "pos": 93,
+              "end": 96
+            }
+          }
+        ]
+      }
+    ],
+    "kind": 0
+  },
+  {
+    "file_path": "file.ts",
+    "range": {
+      "pos": 86,
+      "end": 91
+    },
+    "suggestions": [
+      {
+        "message": {
+          "id": "addMissingCases",
+          "description": "Add branches for missing cases."
+        },
+        "fixes": [
+          {
+            "text": "{\ndefault: { throw new Error('default case') }\n}",
+            "range": {
+              "pos": 93,
+              "end": 96
+            }
+          }
+        ]
+      }
+    ],
+    "kind": 0,
+    "rule": "switch-exhaustiveness-check",
+    "message": {
+      "id": "switchIsNotExhaustive",
+      "description": "Switch is not exhaustive. Cases not matched: default"
+    }
+  }
+]

@@ -1,0 +1,322 @@
+{
+  "Name": "no-meaningless-void-operator",
+  "TSConfig": "tsconfig.minimal.json",
+  "Valid": [
+    {
+      "Code": "\n(() => {})();\n\nfunction foo() {}\nfoo(); // nothing to discard\n\nfunction bar(x: number) {\n  void x;\n  return 2;\n}\nvoid bar(); // discarding a number\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction bar(x: never) {\n  void x;\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "declare let x: number; void (x = 1);",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "declare let x: number; () => void (x = 1);",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "declare let x: number; void (x += 1);",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "declare let x: number; declare let y: number; void (x = y = 1);",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "declare let x: string; declare function getValue(): string; void (x = getValue());",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "declare const obj: { prop: number }; void (obj.prop = 1);",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "declare let x: number; declare let y: number; void ((x = 1), (y = 2));",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "declare let x: undefined; () => void (((x = undefined)));",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "declare let x: void; declare function fn(): void; void (x = fn());",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "declare let x: undefined; void (x ??= undefined);",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "declare let x: undefined; void ((x = undefined) as undefined);",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "declare let x: undefined; void (<undefined>(x = undefined));",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "declare let x: undefined; void ((x = undefined) satisfies undefined);",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "declare let x: undefined; void ((x = undefined), (x = undefined));",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "declare let x: undefined; void ((x = undefined)!, ((x = undefined) as undefined));",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "declare let x: undefined; void ((x = undefined)!);",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "checkNever": true
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "declare let x: never; declare function fail(): never; void (x = fail());",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "checkNever": true
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    }
+  ],
+  "Invalid": [
+    {
+      "Code": "void (() => {})();",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        " (() => {})();"
+      ],
+      "Errors": [
+        {
+          "MessageId": "meaninglessVoidOperator",
+          "Line": 1,
+          "Column": 1,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction foo() {}\nvoid foo();\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nfunction foo() {}\n foo();\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "meaninglessVoidOperator",
+          "Line": 3,
+          "Column": 1,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction bar(x: never) {\n  void x;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "meaninglessVoidOperator",
+          "Line": 3,
+          "Column": 3,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "removeVoid",
+              "Output": "\nfunction bar(x: never) {\n   x;\n}\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "checkNever": true
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst foo = (() => {}) as (() => void) | undefined;\nvoid foo?.();\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nconst foo = (() => {}) as (() => void) | undefined;\n foo?.();\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "meaninglessVoidOperator",
+          "Line": 3,
+          "Column": 1,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "declare let x: undefined; declare function fn(): void; void ((x = undefined), fn());",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "declare let x: undefined; declare function fn(): void;  ((x = undefined), fn());"
+      ],
+      "Errors": [
+        {
+          "MessageId": "meaninglessVoidOperator",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    }
+  ]
+}

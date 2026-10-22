@@ -1,0 +1,15 @@
+[
+  {
+    "message": {
+      "id": "literalOverridden",
+      "description": "0 | 1 | 2 is overridden by number in this union type."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 9,
+      "end": 22
+    },
+    "kind": 0,
+    "rule": "no-redundant-type-constituents"
+  }
+]

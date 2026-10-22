@@ -1,0 +1,415 @@
+{
+  "Name": "no-unsafe-type-assertion",
+  "TSConfig": "tsconfig.minimal.json",
+  "Valid": [
+    {
+      "Code": "\ntype Obj = { foo: string };\nfunction func<T extends Obj>(a: T) {\n  const b = a as T;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction parameterExtendsOtherParameter<T extends string | number, V extends T>(\n  x: T,\n  y: V,\n) {\n  y as T;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction parameterExtendsUnconstrainedParameter<T, V extends T>(x: T, y: V) {\n  y as T;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction unconstrainedToUnknown<T>(x: T) {\n  x as unknown;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction stringToWider<T extends string>(x: T) {\n  x as number | string; // allowed\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    }
+  ],
+  "Invalid": [
+    {
+      "Code": "\ntype Obj = { foo: string };\nfunction func<T extends Obj>() {\n  const myObj = { foo: 'hi' } as T;\n}\n        ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unsafeTypeAssertionAssignableToConstraint",
+          "Line": 4,
+          "Column": 17,
+          "EndLine": 4,
+          "EndColumn": 35,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype Obj = { foo: string };\nfunction func<T extends Obj>() {\n  const o: Obj = { foo: 'hi' };\n  const myObj = o as T;\n}\n        ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unsafeTypeAssertionAssignableToConstraint",
+          "Line": 5,
+          "Column": 17,
+          "EndLine": 5,
+          "EndColumn": 23,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nexport function myfunc<CustomObjectT extends string>(\n  input: number,\n): CustomObjectT {\n  const newCustomObject = input as CustomObjectT;\n  return newCustomObject;\n}\n        ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unsafeTypeAssertion",
+          "Line": 5,
+          "Column": 27,
+          "EndLine": 5,
+          "EndColumn": 49,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction unknownConstraint<T extends unknown>(x: T, y: string) {\n  y as T; // banned; generic arbitrary subtype\n}\n        ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unsafeTypeAssertionAssignableToConstraint",
+          "Line": 3,
+          "Column": 3,
+          "EndLine": 3,
+          "EndColumn": 9,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction unconstrained<T>(x: T, y: string) {\n  y as T;\n}\n        ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unsafeToUnconstrainedTypeAssertion",
+          "Line": 3,
+          "Column": 3,
+          "EndLine": 3,
+          "EndColumn": 9,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n// constraint of any functions like constraint of `unknown`\n// (even the TS error message has this verbiage)\nfunction anyConstraint<T extends any>(x: T, y: string) {\n  y as T; // banned; generic arbitrary subtype\n}\n        ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unsafeTypeAssertionAssignableToConstraint",
+          "Line": 5,
+          "Column": 3,
+          "EndLine": 5,
+          "EndColumn": 9,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction constraintWiderThanUncastType<T extends string | number>(\n  x: T,\n  y: string,\n) {\n  y as T; // banned; assignable to constraint\n}\n        ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unsafeTypeAssertionAssignableToConstraint",
+          "Line": 6,
+          "Column": 3,
+          "EndLine": 6,
+          "EndColumn": 9,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction constraintEqualUncastType<T extends string>(x: T, y: string) {\n  y as T; // banned; assignable to constraint\n}\n        ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unsafeTypeAssertionAssignableToConstraint",
+          "Line": 3,
+          "Column": 3,
+          "EndLine": 3,
+          "EndColumn": 9,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction constraintNarrowerThanUncastType<T extends string>(\n  x: T,\n  y: string | number,\n) {\n  y as T; // banned; *not* assignable to constraint\n}\n        ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unsafeTypeAssertion",
+          "Line": 6,
+          "Column": 3,
+          "EndLine": 6,
+          "EndColumn": 9,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction assertFromAny<T extends string | number>(x: T, y: any) {\n  y as T; // banned; just an `any` complaint. Not a generic subtype.\n}\n        ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unsafeOfAnyTypeAssertion",
+          "Line": 3,
+          "Column": 3,
+          "EndLine": 3,
+          "EndColumn": 9,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction parameterExtendsOtherParameter<T extends string | number, V extends T>(\n  x: T,\n  y: V,\n) {\n  x as V; // banned; assignable to constraint\n}\n        ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unsafeTypeAssertionAssignableToConstraint",
+          "Line": 6,
+          "Column": 3,
+          "EndLine": 6,
+          "EndColumn": 9,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction parameterExtendsUnconstrainedParameter<T, V extends T>(x: T, y: V) {\n  x as V; // banned; unconstrained arbitrary type\n}\n        ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unsafeToUnconstrainedTypeAssertion",
+          "Line": 3,
+          "Column": 3,
+          "EndLine": 3,
+          "EndColumn": 9,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction twoUnconstrained<T, V>(x: T, y: V) {\n  y as T;\n}\n        ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unsafeToUnconstrainedTypeAssertion",
+          "Line": 3,
+          "Column": 3,
+          "EndLine": 3,
+          "EndColumn": 9,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction toNarrower<T>(x: T, y: string) {\n  x as string; // banned; ordinary 'string' narrower than 'T'.\n}\n        ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unsafeTypeAssertion",
+          "Line": 3,
+          "Column": 3,
+          "EndLine": 3,
+          "EndColumn": 14,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction unconstrainedToAny<T>(x: T) {\n  x as any;\n}\n        ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unsafeToAnyTypeAssertion",
+          "Line": 3,
+          "Column": 3,
+          "EndLine": 3,
+          "EndColumn": 11,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction stringToAny<T extends string>(x: T) {\n  x as any;\n}\n        ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unsafeToAnyTypeAssertion",
+          "Line": 3,
+          "Column": 3,
+          "EndLine": 3,
+          "EndColumn": 11,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction stringToNarrower<T extends string>(x: T) {\n  x as 'a' | 'b';\n}\n        ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unsafeTypeAssertion",
+          "Line": 3,
+          "Column": 3,
+          "EndLine": 3,
+          "EndColumn": 17,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    }
+  ]
+}

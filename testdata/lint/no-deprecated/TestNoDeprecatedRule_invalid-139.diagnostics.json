@@ -1,0 +1,15 @@
+[
+  {
+    "kind": 0,
+    "rule": "no-deprecated",
+    "message": {
+      "id": "deprecated",
+      "description": "`deprecatedFunction` is deprecated."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "end": 36,
+      "pos": 18
+    }
+  }
+]

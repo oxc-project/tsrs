@@ -1,0 +1,40 @@
+[
+  {
+    "message": {
+      "id": "duplicate",
+      "description": "Union type constituent is duplicated with  string[][]."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 22,
+      "end": 32
+    },
+    "fixes": [
+      {
+        "text": "",
+        "range": {
+          "pos": 22,
+          "end": 32
+        }
+      },
+      {
+        "text": "",
+        "range": {
+          "end": 21,
+          "pos": 20
+        }
+      }
+    ],
+    "labeled_ranges": [
+      {
+        "range": {
+          "pos": 9,
+          "end": 19
+        },
+        "label": "Type 'string[][]' is first declared here."
+      }
+    ],
+    "kind": 0,
+    "rule": "no-duplicate-type-constituents"
+  }
+]

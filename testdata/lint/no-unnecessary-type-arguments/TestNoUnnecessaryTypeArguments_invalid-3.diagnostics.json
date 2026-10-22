@@ -1,0 +1,24 @@
+[
+  {
+    "message": {
+      "id": "unnecessaryTypeParameter",
+      "description": "This is the default value for this type parameter, so it can be omitted."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 40,
+      "end": 46
+    },
+    "fixes": [
+      {
+        "text": "",
+        "range": {
+          "end": 47,
+          "pos": 39
+        }
+      }
+    ],
+    "kind": 0,
+    "rule": "no-unnecessary-type-arguments"
+  }
+]

@@ -1,0 +1,32 @@
+[
+  {
+    "kind": 0,
+    "rule": "switch-exhaustiveness-check",
+    "message": {
+      "id": "switchIsNotExhaustive",
+      "description": "Switch is not exhaustive. Cases not matched: 1 | true"
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 140,
+      "end": 145
+    },
+    "suggestions": [
+      {
+        "message": {
+          "id": "addMissingCases",
+          "description": "Add branches for missing cases."
+        },
+        "fixes": [
+          {
+            "text": "\n    case 1: { throw new Error('Not implemented yet: 1 case') }\n    case true: { throw new Error('Not implemented yet: true case') }",
+            "range": {
+              "pos": 178,
+              "end": 178
+            }
+          }
+        ]
+      }
+    ]
+  }
+]

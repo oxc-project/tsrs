@@ -421,6 +421,7 @@ impl<'a> Decoder<'a> {
                 jsx: parse_opts & 1 != 0,
                 force: parse_opts & 2 != 0,
             },
+            legacy_string_escapes: false,
         };
         let mut stmts = None;
         let mut end_of_file = None;

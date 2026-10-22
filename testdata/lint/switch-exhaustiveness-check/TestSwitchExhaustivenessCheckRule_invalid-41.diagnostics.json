@@ -1,0 +1,32 @@
+[
+  {
+    "rule": "switch-exhaustiveness-check",
+    "message": {
+      "id": "switchIsNotExhaustive",
+      "description": "Switch is not exhaustive. Cases not matched: \"b\""
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 44,
+      "end": 51
+    },
+    "suggestions": [
+      {
+        "message": {
+          "id": "addMissingCases",
+          "description": "Add branches for missing cases."
+        },
+        "fixes": [
+          {
+            "text": "\n  case \"b\": { throw new Error('Not implemented yet: \"b\" case') }",
+            "range": {
+              "pos": 77,
+              "end": 77
+            }
+          }
+        ]
+      }
+    ],
+    "kind": 0
+  }
+]

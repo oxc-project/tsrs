@@ -1,0 +1,15 @@
+[
+  {
+    "file_path": "file.ts",
+    "range": {
+      "pos": 68,
+      "end": 74
+    },
+    "kind": 0,
+    "rule": "no-unsafe-call",
+    "message": {
+      "id": "unsafeCall",
+      "description": "Unsafe call of a(n) `Function` typed value."
+    }
+  }
+]

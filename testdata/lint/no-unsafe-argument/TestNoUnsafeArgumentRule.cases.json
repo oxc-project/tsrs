@@ -1,0 +1,709 @@
+{
+  "Name": "no-unsafe-argument",
+  "TSConfig": "tsconfig.minimal.json",
+  "Valid": [
+    {
+      "Code": "\ndoesNotExist(1 as any);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst foo = 1;\nfoo(1 as any);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare function foo(arg: number): void;\nfoo(1, 1 as any, 2 as any);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare function foo(arg: number, arg2: string): void;\nfoo(1, 'a');\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare function foo(arg: any): void;\nfoo(1 as any);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare function foo(arg: unknown): void;\nfoo(1 as any);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare function foo(...arg: number[]): void;\nfoo(1, 2, 3);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare function foo(...arg: any[]): void;\nfoo(1, 2, 3, 4 as any);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare function foo(arg: number, arg2: number): void;\nconst x = [1, 2] as const;\nfoo(...x);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare function foo(arg: any, arg2: number): void;\nconst x = [1 as any, 2] as const;\nfoo(...x);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare function foo(arg1: string, arg2: string): void;\nconst x: string[] = [];\nfoo(...x);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction foo(arg1: number, arg2: number) {}\nfoo(...([1, 1, 1] as [number, number, number]));\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare function foo(arg1: Set<string>, arg2: Map<string, string>): void;\n\nconst x = [new Map<string, string>()] as const;\nfoo(new Set<string>(), ...x);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare function foo(arg1: unknown, arg2: Set<unknown>, arg3: unknown[]): void;\nfoo(1 as any, new Set<any>(), [] as any[]);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare function foo(...params: [number, string, any]): void;\nfoo(1, 'a', 1 as any);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare function foo<E extends string[]>(...params: E): void;\n\nfoo('a', 'b', 1 as any);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare function toHaveBeenCalledWith<E extends any[]>(...params: E): void;\ntoHaveBeenCalledWith(1 as any);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare function acceptsMap(arg: Map<string, string>): void;\nacceptsMap(new Map());\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype T = [number, T[]];\ndeclare function foo(t: T): void;\ndeclare const t: T;\n\nfoo(t);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype T = Array<T>;\ndeclare function foo<T>(t: T): T;\nconst t: T = [];\nfoo(t);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction foo(templates: TemplateStringsArray) {}\nfoo``;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction foo(templates: TemplateStringsArray, arg: any) {}\nfoo`${1 as any}`;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    }
+  ],
+  "Invalid": [
+    {
+      "Code": "\ndeclare function foo(arg: number): void;\nfoo(1 as any);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unsafeArgument",
+          "Line": 3,
+          "Column": 5,
+          "EndLine": 0,
+          "EndColumn": 13,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare function foo(arg: number): void;\nfoo(error);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unsafeArgument",
+          "Line": 3,
+          "Column": 5,
+          "EndLine": 0,
+          "EndColumn": 10,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare function foo(arg1: number, arg2: string): void;\nfoo(1, 1 as any);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unsafeArgument",
+          "Line": 3,
+          "Column": 8,
+          "EndLine": 0,
+          "EndColumn": 16,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare function foo(...arg: number[]): void;\nfoo(1, 2, 3, 1 as any);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unsafeArgument",
+          "Line": 3,
+          "Column": 14,
+          "EndLine": 0,
+          "EndColumn": 22,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare function foo(arg: string, ...arg: number[]): void;\nfoo(1 as any, 1 as any);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unsafeArgument",
+          "Line": 3,
+          "Column": 5,
+          "EndLine": 0,
+          "EndColumn": 13,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "unsafeArgument",
+          "Line": 3,
+          "Column": 15,
+          "EndLine": 0,
+          "EndColumn": 23,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare function foo(arg1: string, arg2: number): void;\n\nfoo(...(x as any));\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unsafeSpread",
+          "Line": 4,
+          "Column": 5,
+          "EndLine": 0,
+          "EndColumn": 18,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare function foo(arg1: string, arg2: number): void;\n\nfoo(...(x as any[]));\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unsafeArraySpread",
+          "Line": 4,
+          "Column": 5,
+          "EndLine": 0,
+          "EndColumn": 20,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare function foo(arg1: string, arg2: number): void;\n\ndeclare const errors: error[];\n\nfoo(...errors);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unsafeArraySpread",
+          "Line": 6,
+          "Column": 5,
+          "EndLine": 0,
+          "EndColumn": 14,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare function foo(arg1: string, arg2: number): void;\n\nconst x = ['a', 1 as any] as const;\nfoo(...x);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unsafeTupleSpread",
+          "Line": 5,
+          "Column": 5,
+          "EndLine": 0,
+          "EndColumn": 9,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare function foo(arg1: string, arg2: number): void;\n\nconst x = ['a', error] as const;\nfoo(...x);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unsafeTupleSpread",
+          "Line": 5,
+          "Column": 5,
+          "EndLine": 0,
+          "EndColumn": 9,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare function foo(arg1: string, arg2: number): void;\nfoo(...(['foo', 1, 2] as [string, any, number]));\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unsafeTupleSpread",
+          "Line": 3,
+          "Column": 5,
+          "EndLine": 0,
+          "EndColumn": 48,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare function foo(arg1: string, arg2: number, arg2: string): void;\n\nconst x = [1] as const;\nfoo('a', ...x, 1 as any);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unsafeArgument",
+          "Line": 5,
+          "Column": 16,
+          "EndLine": 0,
+          "EndColumn": 24,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare function foo(arg1: string, arg2: number, ...rest: string[]): void;\n\nconst x = [1, 2] as [number, ...number[]];\nfoo('a', ...x, 1 as any);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unsafeArgument",
+          "Line": 5,
+          "Column": 16,
+          "EndLine": 0,
+          "EndColumn": 24,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare function foo(arg1: Set<string>, arg2: Map<string, string>): void;\n\nconst x = [new Map<any, string>()] as const;\nfoo(new Set<any>(), ...x);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unsafeArgument",
+          "Line": 5,
+          "Column": 5,
+          "EndLine": 0,
+          "EndColumn": 19,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "unsafeTupleSpread",
+          "Line": 5,
+          "Column": 21,
+          "EndLine": 0,
+          "EndColumn": 25,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare function foo(...params: [number, string, any]): void;\nfoo(1 as any, 'a' as any, 1 as any);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unsafeArgument",
+          "Line": 3,
+          "Column": 5,
+          "EndLine": 0,
+          "EndColumn": 13,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "unsafeArgument",
+          "Line": 3,
+          "Column": 15,
+          "EndLine": 0,
+          "EndColumn": 25,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare function foo(param1: string, ...params: [number, string, any]): void;\nfoo('a', 1 as any, 'a' as any, 1 as any);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unsafeArgument",
+          "Line": 3,
+          "Column": 10,
+          "EndLine": 0,
+          "EndColumn": 18,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "unsafeArgument",
+          "Line": 3,
+          "Column": 20,
+          "EndLine": 0,
+          "EndColumn": 30,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype T = [number, T[]];\ndeclare function foo(t: T): void;\ndeclare const t: T;\nfoo(t as any);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unsafeArgument",
+          "Line": 5,
+          "Column": 5,
+          "EndLine": 0,
+          "EndColumn": 13,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction foo(\n  templates: TemplateStringsArray,\n  arg1: number,\n  arg2: any,\n  arg3: string,\n) {}\ndeclare const arg: any;\nfoo<number>`${arg}${arg}${arg}`;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unsafeArgument",
+          "Line": 9,
+          "Column": 15,
+          "EndLine": 0,
+          "EndColumn": 18,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "unsafeArgument",
+          "Line": 9,
+          "Column": 27,
+          "EndLine": 0,
+          "EndColumn": 30,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction foo(templates: TemplateStringsArray, arg: number) {}\ndeclare const arg: any;\nfoo`${arg}`;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unsafeArgument",
+          "Line": 4,
+          "Column": 7,
+          "EndLine": 0,
+          "EndColumn": 10,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype T = [number, T[]];\nfunction foo(templates: TemplateStringsArray, arg: T) {}\ndeclare const arg: any;\nfoo`${arg}`;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unsafeArgument",
+          "Line": 5,
+          "Column": 7,
+          "EndLine": 0,
+          "EndColumn": 10,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare function foo(arg: { x: number }): void;\ndeclare const anyValue: any;\nfoo({ ...anyValue });\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "unsafeArgument",
+          "Line": 4,
+          "Column": 5,
+          "EndLine": 0,
+          "EndColumn": 20,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    }
+  ]
+}

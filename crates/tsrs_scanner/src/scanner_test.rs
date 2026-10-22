@@ -151,3 +151,33 @@ fn test_get_text_of_node_from_jsdoc_type_preserves_asterisk_type() {
         "*"
     );
 }
+
+#[test]
+fn test_legacy_string_escapes_and_reset() {
+    let cases = [
+        (r#""\uD800""#, "�"),
+        (r#""\uDC00""#, "�"),
+        (r#""\uD800\uDC00""#, "𐀀"),
+        (r#""\u{D800}""#, "�"),
+        (r#""\u{DC00}""#, "�"),
+        (r#""\u{D800}\u{DC00}""#, "��"),
+        (r#""\uD800\u{DC00}""#, "��"),
+        (r#""\u{D800}\uDC00""#, "��"),
+        (r#""\\uD800""#, r"\uD800"),
+    ];
+    let mut scanner = Scanner::new();
+    for (source, expected) in cases {
+        scanner.reset();
+        scanner.set_legacy_string_escapes(true);
+        scanner.set_text(source);
+        assert_eq!(scanner.scan(), Kind::StringLiteral);
+        assert_eq!(scanner.token_value(), expected, "{source}");
+    }
+    scanner.reset();
+    scanner.set_text(r#""\uD800""#);
+    assert_eq!(scanner.scan(), Kind::StringLiteral);
+    assert_eq!(
+        scanner.token_value().as_bytes(),
+        stringutil::encode_js_string_rune(0xd800).as_bytes()
+    );
+}

@@ -1,0 +1,89 @@
+[
+  {
+    "message": {
+      "id": "voidReturnArgument",
+      "description": "Promise returned in function argument where a void return was expected."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 99,
+      "end": 108
+    },
+    "labeled_ranges": [
+      {
+        "range": {
+          "pos": 99,
+          "end": 108
+        },
+        "label": "This callback has type `\"literal\"`."
+      },
+      {
+        "label": "This context accepts a `void`-returning callback through type `() => void`.",
+        "range": {
+          "pos": 72,
+          "end": 82
+        }
+      }
+    ],
+    "kind": 0,
+    "rule": "no-misused-promises"
+  },
+  {
+    "kind": 0,
+    "rule": "no-misused-promises",
+    "message": {
+      "id": "voidReturnArgument",
+      "description": "Promise returned in function argument where a void return was expected."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 119,
+      "end": 129
+    },
+    "labeled_ranges": [
+      {
+        "label": "This callback has type `\"template\"`.",
+        "range": {
+          "pos": 119,
+          "end": 129
+        }
+      },
+      {
+        "label": "This context accepts a `void`-returning callback through type `() => void`.",
+        "range": {
+          "pos": 72,
+          "end": 82
+        }
+      }
+    ]
+  },
+  {
+    "range": {
+      "pos": 155,
+      "end": 164
+    },
+    "labeled_ranges": [
+      {
+        "label": "This callback has type `\"literal\"`.",
+        "range": {
+          "pos": 155,
+          "end": 164
+        }
+      },
+      {
+        "label": "This context accepts a `void`-returning callback through type `() => void`.",
+        "range": {
+          "end": 152,
+          "pos": 142
+        }
+      }
+    ],
+    "kind": 0,
+    "rule": "no-misused-promises",
+    "message": {
+      "id": "voidReturnVariable",
+      "description": "Promise-returning function provided to variable where a void return was expected."
+    },
+    "file_path": "file.ts"
+  }
+]

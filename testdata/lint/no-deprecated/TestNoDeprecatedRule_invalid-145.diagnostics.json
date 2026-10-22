@@ -1,0 +1,132 @@
+[
+  {
+    "file_path": "file.ts",
+    "range": {
+      "pos": 644,
+      "end": 646
+    },
+    "kind": 0,
+    "rule": "no-deprecated",
+    "message": {
+      "id": "deprecatedWithReason",
+      "description": "`\"\"` is deprecated. Use code instead."
+    }
+  },
+  {
+    "message": {
+      "id": "deprecatedWithReason",
+      "description": "`\"\"` is deprecated. Use code instead."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 696,
+      "end": 700
+    },
+    "kind": 0,
+    "rule": "no-deprecated"
+  },
+  {
+    "kind": 0,
+    "rule": "no-deprecated",
+    "message": {
+      "id": "deprecatedWithReason",
+      "description": "`\"\"` is deprecated. Use code instead."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 750,
+      "end": 761
+    }
+  },
+  {
+    "kind": 0,
+    "rule": "no-deprecated",
+    "message": {
+      "id": "deprecatedWithReason",
+      "description": "`statusCode` is deprecated. Use status instead."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 811,
+      "end": 821
+    }
+  },
+  {
+    "rule": "no-deprecated",
+    "message": {
+      "id": "deprecatedWithReason",
+      "description": "`statusCode` is deprecated. Use status instead."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 871,
+      "end": 881
+    },
+    "kind": 0
+  },
+  {
+    "range": {
+      "pos": 926,
+      "end": 940
+    },
+    "kind": 0,
+    "rule": "no-deprecated",
+    "message": {
+      "id": "deprecatedWithReason",
+      "description": "`statusCode` is deprecated. Use status instead."
+    },
+    "file_path": "file.ts"
+  },
+  {
+    "rule": "no-deprecated",
+    "message": {
+      "id": "deprecatedWithReason",
+      "description": "`statusCode` is deprecated. Use status instead."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 990,
+      "end": 1006
+    },
+    "kind": 0
+  },
+  {
+    "message": {
+      "id": "deprecatedWithReason",
+      "description": "`statusCode` is deprecated. Use status instead."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "end": 1070,
+      "pos": 1060
+    },
+    "kind": 0,
+    "rule": "no-deprecated"
+  },
+  {
+    "kind": 0,
+    "rule": "no-deprecated",
+    "message": {
+      "id": "deprecatedWithReason",
+      "description": "`statusCode` is deprecated. Use status instead."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 1159,
+      "end": 1169
+    }
+  },
+  {
+    "kind": 0,
+    "rule": "no-deprecated",
+    "message": {
+      "id": "deprecatedWithReason",
+      "description": "`statusCode` is deprecated. Use status instead."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 1238,
+      "end": 1248
+    }
+  }
+]

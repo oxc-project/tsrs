@@ -1,0 +1,16 @@
+[
+  {
+    "file_path": "file.ts",
+    "range": {
+      "end": 62,
+      "pos": 58
+    },
+    "kind": 0,
+    "rule": "no-misused-spread",
+    "message": {
+      "id": "noFunctionSpreadInObject",
+      "description": "Using the spread operator on a function without additional properties can cause unexpected behavior.",
+      "help": "Did you forget to call the function?"
+    }
+  }
+]

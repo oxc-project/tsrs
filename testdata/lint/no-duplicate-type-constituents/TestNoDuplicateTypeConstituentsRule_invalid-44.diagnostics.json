@@ -1,0 +1,31 @@
+[
+  {
+    "rule": "no-duplicate-type-constituents",
+    "message": {
+      "id": "unnecessary",
+      "description": "Explicit undefined is unnecessary on an optional parameter."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "end": 33,
+      "pos": 24
+    },
+    "fixes": [
+      {
+        "text": "",
+        "range": {
+          "end": 33,
+          "pos": 24
+        }
+      },
+      {
+        "text": "",
+        "range": {
+          "pos": 22,
+          "end": 23
+        }
+      }
+    ],
+    "kind": 0
+  }
+]

@@ -1,0 +1,24 @@
+[
+  {
+    "labeled_ranges": [
+      {
+        "label": "Type: {}",
+        "range": {
+          "end": 76,
+          "pos": 73
+        }
+      }
+    ],
+    "kind": 0,
+    "rule": "restrict-template-expressions",
+    "message": {
+      "id": "invalidType",
+      "description": "Invalid type used in template literal expression."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 73,
+      "end": 76
+    }
+  }
+]

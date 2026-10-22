@@ -1,0 +1,32 @@
+[
+  {
+    "range": {
+      "end": 18,
+      "pos": 10
+    },
+    "labeled_ranges": [
+      {
+        "label": "Type: string",
+        "range": {
+          "pos": 10,
+          "end": 13
+        }
+      },
+      {
+        "range": {
+          "pos": 16,
+          "end": 18
+        },
+        "label": "Type: bigint"
+      }
+    ],
+    "kind": 0,
+    "rule": "restrict-plus-operands",
+    "message": {
+      "id": "mismatched",
+      "description": "Operands of '+' operations must be of the same type.",
+      "help": "Operands must both be a number or both be string, allowing a string + any of: `any`, `boolean`, `null`, `RegExp`, `undefined`."
+    },
+    "file_path": "file.ts"
+  }
+]

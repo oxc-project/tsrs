@@ -1,0 +1,49 @@
+[
+  {
+    "kind": 0,
+    "rule": "no-useless-default-assignment",
+    "message": {
+      "id": "uselessDefaultAssignment",
+      "description": "Default value is useless because the property has type `\"value\"` (not nullish). This default assignment will never be used.",
+      "help": "Remove the default assignment"
+    },
+    "file_path": "file.ts",
+    "range": {
+      "end": 54,
+      "pos": 45
+    },
+    "suggestions": [
+      {
+        "message": {
+          "id": "removeDefaultAssignment",
+          "description": "Remove the default value."
+        },
+        "fixes": [
+          {
+            "text": "",
+            "range": {
+              "pos": 42,
+              "end": 54
+            }
+          }
+        ]
+      }
+    ],
+    "labeled_ranges": [
+      {
+        "label": "Default value",
+        "range": {
+          "end": 54,
+          "pos": 45
+        }
+      },
+      {
+        "label": "property type `\"value\"` is not nullish",
+        "range": {
+          "pos": 32,
+          "end": 42
+        }
+      }
+    ]
+  }
+]

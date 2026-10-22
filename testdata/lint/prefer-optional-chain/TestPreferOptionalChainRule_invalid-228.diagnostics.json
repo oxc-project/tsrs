@@ -1,0 +1,32 @@
+[
+  {
+    "rule": "prefer-optional-chain",
+    "message": {
+      "id": "preferOptionalChain",
+      "description": "Prefer using an optional chain expression instead, as it's more concise and easier to read."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 77,
+      "end": 139
+    },
+    "suggestions": [
+      {
+        "message": {
+          "id": "optionalChainSuggest",
+          "description": "Change to an optional chain."
+        },
+        "fixes": [
+          {
+            "text": "obj.prop?.nested",
+            "range": {
+              "pos": 77,
+              "end": 139
+            }
+          }
+        ]
+      }
+    ],
+    "kind": 0
+  }
+]

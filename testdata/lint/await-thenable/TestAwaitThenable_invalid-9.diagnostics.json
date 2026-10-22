@@ -1,0 +1,42 @@
+[
+  {
+    "suggestions": [
+      {
+        "message": {
+          "id": "convertToOrdinaryFor",
+          "description": "Convert to an ordinary `for...of` loop."
+        },
+        "fixes": [
+          {
+            "text": "",
+            "range": {
+              "pos": 67,
+              "end": 73
+            }
+          }
+        ]
+      }
+    ],
+    "labeled_ranges": [
+      {
+        "label": "This value is not async iterable",
+        "range": {
+          "pos": 89,
+          "end": 103
+        }
+      }
+    ],
+    "kind": 0,
+    "rule": "await-thenable",
+    "message": {
+      "id": "forAwaitOfNonAsyncIterable",
+      "description": "Unexpected `for await...of` of a value that is not async iterable.",
+      "help": "Use `for...of` for synchronous iterables, or change the iterable to implement `Symbol.asyncIterator`."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 63,
+      "end": 104
+    }
+  }
+]

@@ -1,0 +1,80 @@
+[
+  {
+    "kind": 0,
+    "rule": "no-deprecated",
+    "message": {
+      "id": "deprecatedWithReason",
+      "description": "`constA` is deprecated. reason for constA"
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 109,
+      "end": 115
+    }
+  },
+  {
+    "message": {
+      "id": "deprecatedWithReason",
+      "description": "`constMultiline` is deprecated. reason for constMultiline"
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 117,
+      "end": 131
+    },
+    "kind": 0,
+    "rule": "no-deprecated"
+  },
+  {
+    "kind": 0,
+    "rule": "no-deprecated",
+    "message": {
+      "id": "deprecatedWithReason",
+      "description": "`constTyped` is deprecated. reason for constTyped"
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 135,
+      "end": 145
+    }
+  },
+  {
+    "kind": 0,
+    "rule": "no-deprecated",
+    "message": {
+      "id": "deprecatedWithReason",
+      "description": "`letA` is deprecated. reason for letA"
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 147,
+      "end": 151
+    }
+  },
+  {
+    "rule": "no-deprecated",
+    "message": {
+      "id": "deprecatedWithReason",
+      "description": "`constReexported` is deprecated. reason for constReexported"
+    },
+    "file_path": "file.ts",
+    "range": {
+      "end": 168,
+      "pos": 153
+    },
+    "kind": 0
+  },
+  {
+    "file_path": "file.ts",
+    "range": {
+      "pos": 170,
+      "end": 181
+    },
+    "kind": 0,
+    "rule": "no-deprecated",
+    "message": {
+      "id": "deprecatedWithReason",
+      "description": "`constInline` is deprecated. reason for constInline"
+    }
+  }
+]

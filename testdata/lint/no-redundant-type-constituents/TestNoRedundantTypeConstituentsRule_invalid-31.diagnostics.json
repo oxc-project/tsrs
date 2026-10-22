@@ -1,0 +1,15 @@
+[
+  {
+    "range": {
+      "end": 53,
+      "pos": 46
+    },
+    "kind": 0,
+    "rule": "no-redundant-type-constituents",
+    "message": {
+      "id": "primitiveOverridden",
+      "description": "boolean is overridden by the false in this intersection type."
+    },
+    "file_path": "file.ts"
+  }
+]

@@ -1,0 +1,15 @@
+[
+  {
+    "message": {
+      "id": "unsafeComputedMemberAccess",
+      "description": "Computed name [y()] resolves to an `any` value."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 46,
+      "end": 49
+    },
+    "kind": 0,
+    "rule": "no-unsafe-member-access"
+  }
+]

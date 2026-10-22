@@ -1,0 +1,41 @@
+[
+  {
+    "range": {
+      "pos": 13,
+      "end": 14
+    },
+    "kind": 0,
+    "rule": "strict-boolean-expressions",
+    "message": {
+      "id": "conditionErrorNumber",
+      "description": "Unexpected number value in conditional. A number can be falsy (0, NaN) or truthy."
+    },
+    "file_path": "file.ts"
+  },
+  {
+    "file_path": "file.ts",
+    "range": {
+      "end": 20,
+      "pos": 18
+    },
+    "kind": 0,
+    "rule": "strict-boolean-expressions",
+    "message": {
+      "id": "conditionErrorObject",
+      "description": "Unexpected object value in conditional. An object is always truthy."
+    }
+  },
+  {
+    "file_path": "file.ts",
+    "range": {
+      "pos": 26,
+      "end": 29
+    },
+    "kind": 0,
+    "rule": "strict-boolean-expressions",
+    "message": {
+      "id": "conditionErrorString",
+      "description": "Unexpected string value in conditional. A string can be falsy (empty string) or truthy."
+    }
+  }
+]

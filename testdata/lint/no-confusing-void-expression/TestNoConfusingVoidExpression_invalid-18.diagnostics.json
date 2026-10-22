@@ -1,0 +1,32 @@
+[
+  {
+    "kind": 0,
+    "rule": "no-confusing-void-expression",
+    "message": {
+      "id": "invalidVoidExprReturn",
+      "description": "Returning a void expression from a function is forbidden.",
+      "help": "Move it before the `return` statement."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 41,
+      "end": 59
+    },
+    "fixes": [
+      {
+        "text": "",
+        "range": {
+          "pos": 34,
+          "end": 40
+        }
+      },
+      {
+        "text": "; return;",
+        "range": {
+          "pos": 60,
+          "end": 60
+        }
+      }
+    ]
+  }
+]

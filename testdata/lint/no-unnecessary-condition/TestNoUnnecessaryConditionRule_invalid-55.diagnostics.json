@@ -1,0 +1,44 @@
+[
+  {
+    "kind": 0,
+    "range": {
+      "pos": 73,
+      "end": 79
+    },
+    "message": {
+      "id": "alwaysTruthyFunc",
+      "description": "This callback should return a conditional, but return is always truthy.",
+      "help": "The callback returns type `never[]`."
+    },
+    "file_path": "file.ts",
+    "rule": "no-unnecessary-condition"
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 97,
+      "end": 102
+    },
+    "message": {
+      "id": "alwaysFalsyFunc",
+      "description": "This callback should return a conditional, but return is always falsy.",
+      "help": "The callback returns type `void`."
+    },
+    "file_path": "file.ts",
+    "rule": "no-unnecessary-condition"
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 129,
+      "end": 134
+    },
+    "message": {
+      "id": "alwaysFalsyFunc",
+      "description": "This callback should return a conditional, but return is always falsy.",
+      "help": "The callback returns type `void`."
+    },
+    "file_path": "file.ts",
+    "rule": "no-unnecessary-condition"
+  }
+]

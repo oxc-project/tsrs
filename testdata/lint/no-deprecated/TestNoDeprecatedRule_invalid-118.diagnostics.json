@@ -1,0 +1,15 @@
+[
+  {
+    "message": {
+      "id": "deprecated",
+      "description": "`decorator` is deprecated."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 97,
+      "end": 106
+    },
+    "kind": 0,
+    "rule": "no-deprecated"
+  }
+]

@@ -1,0 +1,15 @@
+[
+  {
+    "kind": 0,
+    "rule": "no-unsafe-argument",
+    "message": {
+      "id": "unsafeArgument",
+      "description": "Unsafe argument of type any assigned to a parameter of type T."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 112,
+      "end": 115
+    }
+  }
+]

@@ -1,0 +1,5214 @@
+{
+  "Name": "prefer-nullish-coalescing",
+  "TSConfig": "tsconfig.json",
+  "Valid": [
+    {
+      "Code": "x !== undefined && x !== null ? x : y;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": false,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignoreTernaryTests": true
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare let foo: { a: string } | null;\ndeclare function makeFoo(): { a: string };\n\nfunction lazyInitialize() {\n  if (!foo) {\n    foo = makeFoo();\n  }\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": false,
+        "ignoreIfStatements": true,
+        "ignoreMixedLogicalExpressions": false,
+        "ignoreTernaryTests": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare let foo: { a: string } | null;\ndeclare function makeFoo(): { a: string };\n\nfunction lazyInitialize() {\n  if (!foo) foo = makeFoo();\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": false,
+        "ignoreIfStatements": true,
+        "ignoreMixedLogicalExpressions": false,
+        "ignoreTernaryTests": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      declare let x: never;\n      declare let y: number;\n      x || y;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      declare let x: never;\n      declare let y: number;\n      x ? x : y;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n      declare let x: never;\n      declare let y: number;\n      !x ? y : x;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface Box {\n  value: string;\n}\ndeclare function getFallbackBox(): Box;\ndeclare const defaultBoxOptional: { a?: { b?: Box | undefined } };\n\ndefaultBoxOptional.a?.b !== null ? defaultBoxOptional.a?.b : getFallbackBox();\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface Box {\n  value: string;\n}\ndeclare function getFallbackBox(): Box;\ndeclare const defaultBoxOptional: { a?: { b?: Box | null } };\n\ndefaultBoxOptional.a?.b !== null ? defaultBoxOptional.a?.b : getFallbackBox();\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface Box {\n  value: string;\n}\ndeclare function getFallbackBox(): Box;\ndeclare const defaultBoxOptional: { a?: { b?: Box | null } };\n\ndefaultBoxOptional.a?.b !== undefined\n  ? defaultBoxOptional.a?.b\n  : getFallbackBox();\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface Box {\n  value: string;\n}\ndeclare function getFallbackBox(): Box;\ndeclare const defaultBoxOptional: { a?: { b?: Box | null } };\n\ndefaultBoxOptional.a?.b !== undefined\n  ? defaultBoxOptional.a.b\n  : getFallbackBox();\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare let x: 0 | 1 | 0n | 1n | undefined;\nx || y;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": true,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignorePrimitives": {
+          "bigint": true,
+          "boolean": true,
+          "number": false,
+          "string": true
+        },
+        "ignoreTernaryTests": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare let x: 0 | 1 | 0n | 1n | undefined;\nx || y;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": true,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignorePrimitives": {
+          "bigint": false,
+          "boolean": true,
+          "number": true,
+          "string": true
+        },
+        "ignoreTernaryTests": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare let x: 0 | 'foo' | undefined;\nx || y;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": true,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignorePrimitives": {
+          "bigint": false,
+          "boolean": false,
+          "number": true,
+          "string": true
+        },
+        "ignoreTernaryTests": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare let x: 0 | 'foo' | undefined;\nx || y;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": true,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignorePrimitives": {
+          "bigint": false,
+          "boolean": false,
+          "number": true,
+          "string": false
+        },
+        "ignoreTernaryTests": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nenum Enum {\n  A = 0,\n  B = 1,\n  C = 2,\n}\ndeclare let x: Enum | undefined;\nx || y;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": true,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignorePrimitives": {
+          "bigint": false,
+          "boolean": false,
+          "number": true,
+          "string": false
+        },
+        "ignoreTernaryTests": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nenum Enum {\n  A = 0,\n  B = 1,\n  C = 2,\n}\ndeclare let x: Enum.A | Enum.B | undefined;\nx || y;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": true,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignorePrimitives": {
+          "bigint": false,
+          "boolean": false,
+          "number": true,
+          "string": false
+        },
+        "ignoreTernaryTests": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nenum Enum {\n  A = 'a',\n  B = 'b',\n  C = 'c',\n}\ndeclare let x: Enum | undefined;\nx || y;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": true,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignorePrimitives": {
+          "bigint": false,
+          "boolean": false,
+          "number": false,
+          "string": true
+        },
+        "ignoreTernaryTests": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nenum Enum {\n  A = 'a',\n  B = 'b',\n  C = 'c',\n}\ndeclare let x: Enum.A | Enum.B | undefined;\nx || y;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": true,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignorePrimitives": {
+          "bigint": false,
+          "boolean": false,
+          "number": false,
+          "string": true
+        },
+        "ignoreTernaryTests": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare let x: 0 | 1 | 0n | 1n | undefined;\nx ? x : y;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": true,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignorePrimitives": {
+          "bigint": true,
+          "boolean": true,
+          "number": false,
+          "string": true
+        },
+        "ignoreTernaryTests": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare let x: 0 | 1 | 0n | 1n | undefined;\n!x ? y : x;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": true,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignorePrimitives": {
+          "bigint": true,
+          "boolean": true,
+          "number": false,
+          "string": true
+        },
+        "ignoreTernaryTests": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare let x: 0 | 1 | 0n | 1n | undefined;\nx ? x : y;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": true,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignorePrimitives": {
+          "bigint": false,
+          "boolean": true,
+          "number": true,
+          "string": true
+        },
+        "ignoreTernaryTests": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare let x: 0 | 1 | 0n | 1n | undefined;\n!x ? y : x;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": true,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignorePrimitives": {
+          "bigint": false,
+          "boolean": true,
+          "number": true,
+          "string": true
+        },
+        "ignoreTernaryTests": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare let x: 0 | 'foo' | undefined;\nx ? x : y;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": true,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignorePrimitives": {
+          "bigint": false,
+          "boolean": false,
+          "number": true,
+          "string": true
+        },
+        "ignoreTernaryTests": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare let x: 0 | 'foo' | undefined;\n!x ? y : x;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": true,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignorePrimitives": {
+          "bigint": false,
+          "boolean": false,
+          "number": true,
+          "string": true
+        },
+        "ignoreTernaryTests": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare let x: 0 | 'foo' | undefined;\nx ? x : y;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": true,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignorePrimitives": {
+          "bigint": false,
+          "boolean": false,
+          "number": true,
+          "string": false
+        },
+        "ignoreTernaryTests": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare let x: 0 | 'foo' | undefined;\n!x ? y : x;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": true,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignorePrimitives": {
+          "bigint": false,
+          "boolean": false,
+          "number": true,
+          "string": false
+        },
+        "ignoreTernaryTests": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nenum Enum {\n  A = 0,\n  B = 1,\n  C = 2,\n}\ndeclare let x: Enum | undefined;\nx ? x : y;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": true,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignorePrimitives": {
+          "bigint": false,
+          "boolean": false,
+          "number": true,
+          "string": false
+        },
+        "ignoreTernaryTests": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nenum Enum {\n  A = 0,\n  B = 1,\n  C = 2,\n}\ndeclare let x: Enum | undefined;\n!x ? y : x;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": true,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignorePrimitives": {
+          "bigint": false,
+          "boolean": false,
+          "number": true,
+          "string": false
+        },
+        "ignoreTernaryTests": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nenum Enum {\n  A = 0,\n  B = 1,\n  C = 2,\n}\ndeclare let x: Enum.A | Enum.B | undefined;\nx ? x : y;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": true,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignorePrimitives": {
+          "bigint": false,
+          "boolean": false,
+          "number": true,
+          "string": false
+        },
+        "ignoreTernaryTests": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nenum Enum {\n  A = 0,\n  B = 1,\n  C = 2,\n}\ndeclare let x: Enum.A | Enum.B | undefined;\n!x ? y : x;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": true,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignorePrimitives": {
+          "bigint": false,
+          "boolean": false,
+          "number": true,
+          "string": false
+        },
+        "ignoreTernaryTests": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nenum Enum {\n  A = 'a',\n  B = 'b',\n  C = 'c',\n}\ndeclare let x: Enum | undefined;\nx ? x : y;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": true,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignorePrimitives": {
+          "bigint": false,
+          "boolean": false,
+          "number": false,
+          "string": true
+        },
+        "ignoreTernaryTests": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nenum Enum {\n  A = 'a',\n  B = 'b',\n  C = 'c',\n}\ndeclare let x: Enum | undefined;\n!x ? y : x;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": true,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignorePrimitives": {
+          "bigint": false,
+          "boolean": false,
+          "number": false,
+          "string": true
+        },
+        "ignoreTernaryTests": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nenum Enum {\n  A = 'a',\n  B = 'b',\n  C = 'c',\n}\ndeclare let x: Enum.A | Enum.B | undefined;\nx ? x : y;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": true,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignorePrimitives": {
+          "bigint": false,
+          "boolean": false,
+          "number": false,
+          "string": true
+        },
+        "ignoreTernaryTests": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nenum Enum {\n  A = 'a',\n  B = 'b',\n  C = 'c',\n}\ndeclare let x: Enum.A | Enum.B | undefined;\n!x ? y : x;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": true,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignorePrimitives": {
+          "bigint": false,
+          "boolean": false,
+          "number": false,
+          "string": true
+        },
+        "ignoreTernaryTests": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nlet a: string | true | undefined;\nlet b: string | boolean | undefined;\n\nconst x = Boolean(a || b);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "ignoreBooleanCoercion": true,
+        "ignoreConditionalTests": false,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignoreTernaryTests": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nlet a: string | boolean | undefined;\nlet b: string | boolean | undefined;\nlet c: string | boolean | undefined;\n\nconst test = Boolean(a || b || c);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "ignoreBooleanCoercion": true,
+        "ignoreConditionalTests": false,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignoreTernaryTests": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nlet a: string | boolean | undefined;\nlet b: string | boolean | undefined;\nlet c: string | boolean | undefined;\n\nconst test = Boolean(a || (b && c));\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "ignoreBooleanCoercion": true,
+        "ignoreConditionalTests": false,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignoreTernaryTests": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nlet a: string | boolean | undefined;\nlet b: string | boolean | undefined;\nlet c: string | boolean | undefined;\n\nconst test = Boolean((a || b) ?? c);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "ignoreBooleanCoercion": true,
+        "ignoreConditionalTests": false,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignoreTernaryTests": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nlet a: string | boolean | undefined;\nlet b: string | boolean | undefined;\nlet c: string | boolean | undefined;\n\nconst test = Boolean(a ?? (b || c));\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "ignoreBooleanCoercion": true,
+        "ignoreConditionalTests": false,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignoreTernaryTests": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nlet a: string | boolean | undefined;\nlet b: string | boolean | undefined;\nlet c: string | boolean | undefined;\n\nconst test = Boolean(a ? b || c : 'fail');\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "ignoreBooleanCoercion": true,
+        "ignoreConditionalTests": false,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignoreTernaryTests": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nlet a: string | boolean | undefined;\nlet b: string | boolean | undefined;\nlet c: string | boolean | undefined;\n\nconst test = Boolean(a ? 'success' : b || c);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "ignoreBooleanCoercion": true,
+        "ignoreConditionalTests": false,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignoreTernaryTests": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nlet a: string | boolean | undefined;\nlet b: string | boolean | undefined;\nlet c: string | boolean | undefined;\n\nconst test = Boolean(((a = b), b || c));\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "ignoreBooleanCoercion": true,
+        "ignoreConditionalTests": false,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignoreTernaryTests": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nlet a: string | boolean | undefined;\nlet b: string | boolean | undefined;\nlet c: string | boolean | undefined;\n\nconst test = Boolean((a ? a : b) || c);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "ignoreBooleanCoercion": true,
+        "ignoreConditionalTests": false,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignoreTernaryTests": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nlet a: string | boolean | undefined;\nlet b: string | boolean | undefined;\nlet c: string | boolean | undefined;\n\nconst test = Boolean(c || (!a ? b : a));\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "ignoreBooleanCoercion": true,
+        "ignoreConditionalTests": false,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignoreTernaryTests": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nlet a: string | boolean | undefined;\nlet b: string | boolean | undefined;\nlet c: string | boolean | undefined;\n\nif (a || b || c) {\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": true,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignoreTernaryTests": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nlet a: string | boolean | undefined;\nlet b: string | boolean | undefined;\nlet c: string | boolean | undefined;\n\nif (a || (b && c)) {\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": true,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignoreTernaryTests": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nlet a: string | boolean | undefined;\nlet b: string | boolean | undefined;\nlet c: string | boolean | undefined;\n\nif ((a || b) ?? c) {\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": true,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignoreTernaryTests": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nlet a: string | boolean | undefined;\nlet b: string | boolean | undefined;\nlet c: string | boolean | undefined;\n\nif (a ?? (b || c)) {\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": true,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignoreTernaryTests": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nlet a: string | boolean | undefined;\nlet b: string | boolean | undefined;\nlet c: string | boolean | undefined;\n\nif (a ? b || c : 'fail') {\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": true,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignoreTernaryTests": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nlet a: string | boolean | undefined;\nlet b: string | boolean | undefined;\nlet c: string | boolean | undefined;\n\nif (a ? 'success' : b || c) {\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": true,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignoreTernaryTests": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nlet a: string | boolean | undefined;\nlet b: string | boolean | undefined;\nlet c: string | boolean | undefined;\n\nif (((a = b), b || c)) {\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": true,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignoreTernaryTests": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nlet a: string | undefined;\nlet b: string | undefined;\n\nif (!(a || b)) {\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": true,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignoreTernaryTests": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nlet a: string | undefined;\nlet b: string | undefined;\n\nif (!!(a || b)) {\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": true,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignoreTernaryTests": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nlet a: string | true | undefined;\nlet b: string | boolean | undefined;\n\nif (a ? a : b) {\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": true,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignoreTernaryTests": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nlet a: string | boolean | undefined;\nlet b: string | boolean | undefined;\n\nif (!a ? b : a) {\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": true,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignoreTernaryTests": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nlet a: string | boolean | undefined;\nlet b: string | boolean | undefined;\nlet c: string | boolean | undefined;\n\nif ((a ? a : b) || c) {\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": true,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignoreTernaryTests": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nlet a: string | boolean | undefined;\nlet b: string | boolean | undefined;\nlet c: string | boolean | undefined;\n\nif (c || (!a ? b : a)) {\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": true,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignoreTernaryTests": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const a: any;\ndeclare const b: any;\na ? a : b;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": false,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignorePrimitives": true,
+        "ignoreTernaryTests": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const a: any;\ndeclare const b: any;\na ? a : b;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": true,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignorePrimitives": {
+          "bigint": false,
+          "boolean": false,
+          "number": true,
+          "string": false
+        },
+        "ignoreTernaryTests": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const a: unknown;\nconst b = a || 'bar';\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": true,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignorePrimitives": {
+          "bigint": true,
+          "boolean": false,
+          "number": false,
+          "string": false
+        },
+        "ignoreTernaryTests": false
+      },
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    }
+  ],
+  "Invalid": [
+    {
+      "Code": "this != undefined ? this : y;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverTernary",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "this ?? y;"
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare let x: string[] | null;\nif (x) {\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "noStrictNullCheck",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "tsconfig.unstrict.json",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare let x: string | undefined;\nx || y;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverOr",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\ndeclare let x: string | undefined;\nx ?? y;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": true,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignorePrimitives": {
+          "bigint": true,
+          "boolean": true,
+          "number": true,
+          "string": false
+        },
+        "ignoreTernaryTests": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare let x: number | undefined;\nx || y;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverOr",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\ndeclare let x: number | undefined;\nx ?? y;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": true,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignorePrimitives": {
+          "bigint": true,
+          "boolean": true,
+          "number": false,
+          "string": true
+        },
+        "ignoreTernaryTests": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare let x: boolean | undefined;\nx || y;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverOr",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\ndeclare let x: boolean | undefined;\nx ?? y;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": true,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignorePrimitives": {
+          "bigint": true,
+          "boolean": false,
+          "number": true,
+          "string": true
+        },
+        "ignoreTernaryTests": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare let x: bigint | undefined;\nx || y;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverOr",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\ndeclare let x: bigint | undefined;\nx ?? y;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": true,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignorePrimitives": {
+          "bigint": false,
+          "boolean": true,
+          "number": true,
+          "string": true
+        },
+        "ignoreTernaryTests": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare let x: string | undefined;\nx ? x : y;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverTernary",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\ndeclare let x: string | undefined;\nx ?? y;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": true,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignorePrimitives": {
+          "bigint": true,
+          "boolean": true,
+          "number": true,
+          "string": false
+        },
+        "ignoreTernaryTests": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare let x: number | undefined;\nx ? x : y;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverTernary",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\ndeclare let x: number | undefined;\nx ?? y;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": true,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignorePrimitives": {
+          "bigint": true,
+          "boolean": true,
+          "number": false,
+          "string": true
+        },
+        "ignoreTernaryTests": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare let x: boolean | undefined;\nx ? x : y;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverTernary",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\ndeclare let x: boolean | undefined;\nx ?? y;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": true,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignorePrimitives": {
+          "bigint": true,
+          "boolean": false,
+          "number": true,
+          "string": true
+        },
+        "ignoreTernaryTests": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare let x: bigint | undefined;\nx ? x : y;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverTernary",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\ndeclare let x: bigint | undefined;\nx ?? y;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": true,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignorePrimitives": {
+          "bigint": false,
+          "boolean": true,
+          "number": true,
+          "string": true
+        },
+        "ignoreTernaryTests": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare let x: '' | undefined;\nx || y;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverOr",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\ndeclare let x: '' | undefined;\nx ?? y;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": true,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignorePrimitives": {
+          "bigint": true,
+          "boolean": true,
+          "number": true,
+          "string": false
+        },
+        "ignoreTernaryTests": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare let x: `` | undefined;\nx || y;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverOr",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\ndeclare let x: `` | undefined;\nx ?? y;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": true,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignorePrimitives": {
+          "bigint": true,
+          "boolean": true,
+          "number": true,
+          "string": false
+        },
+        "ignoreTernaryTests": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare let x: 0 | undefined;\nx || y;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverOr",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\ndeclare let x: 0 | undefined;\nx ?? y;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": true,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignorePrimitives": {
+          "bigint": true,
+          "boolean": true,
+          "number": false,
+          "string": true
+        },
+        "ignoreTernaryTests": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare let x: 0n | undefined;\nx || y;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverOr",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\ndeclare let x: 0n | undefined;\nx ?? y;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": true,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignorePrimitives": {
+          "bigint": false,
+          "boolean": true,
+          "number": true,
+          "string": true
+        },
+        "ignoreTernaryTests": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare let x: false | undefined;\nx || y;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverOr",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\ndeclare let x: false | undefined;\nx ?? y;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": true,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignorePrimitives": {
+          "bigint": true,
+          "boolean": false,
+          "number": true,
+          "string": true
+        },
+        "ignoreTernaryTests": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare let x: '' | undefined;\nx ? x : y;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverTernary",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\ndeclare let x: '' | undefined;\nx ?? y;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": true,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignorePrimitives": {
+          "bigint": true,
+          "boolean": true,
+          "number": true,
+          "string": false
+        },
+        "ignoreTernaryTests": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare let x: `` | undefined;\nx ? x : y;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverTernary",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\ndeclare let x: `` | undefined;\nx ?? y;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": true,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignorePrimitives": {
+          "bigint": true,
+          "boolean": true,
+          "number": true,
+          "string": false
+        },
+        "ignoreTernaryTests": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare let x: 0 | undefined;\nx ? x : y;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverTernary",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\ndeclare let x: 0 | undefined;\nx ?? y;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": true,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignorePrimitives": {
+          "bigint": true,
+          "boolean": true,
+          "number": false,
+          "string": true
+        },
+        "ignoreTernaryTests": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare let x: 0n | undefined;\nx ? x : y;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverTernary",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\ndeclare let x: 0n | undefined;\nx ?? y;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": true,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignorePrimitives": {
+          "bigint": false,
+          "boolean": true,
+          "number": true,
+          "string": true
+        },
+        "ignoreTernaryTests": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare let x: false | undefined;\nx ? x : y;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverTernary",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\ndeclare let x: false | undefined;\nx ?? y;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": true,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignorePrimitives": {
+          "bigint": true,
+          "boolean": false,
+          "number": true,
+          "string": true
+        },
+        "ignoreTernaryTests": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare let x: 'a' | undefined;\nx || y;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverOr",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\ndeclare let x: 'a' | undefined;\nx ?? y;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": true,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignorePrimitives": {
+          "bigint": true,
+          "boolean": true,
+          "number": true,
+          "string": false
+        },
+        "ignoreTernaryTests": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare let x: `hello${'string'}` | undefined;\nx || y;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverOr",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\ndeclare let x: `hello${'string'}` | undefined;\nx ?? y;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": true,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignorePrimitives": {
+          "bigint": true,
+          "boolean": true,
+          "number": true,
+          "string": false
+        },
+        "ignoreTernaryTests": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare let x: 1 | undefined;\nx || y;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverOr",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\ndeclare let x: 1 | undefined;\nx ?? y;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": true,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignorePrimitives": {
+          "bigint": true,
+          "boolean": true,
+          "number": false,
+          "string": true
+        },
+        "ignoreTernaryTests": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare let x: 1n | undefined;\nx || y;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverOr",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\ndeclare let x: 1n | undefined;\nx ?? y;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": true,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignorePrimitives": {
+          "bigint": false,
+          "boolean": true,
+          "number": true,
+          "string": true
+        },
+        "ignoreTernaryTests": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare let x: true | undefined;\nx || y;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverOr",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\ndeclare let x: true | undefined;\nx ?? y;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": true,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignorePrimitives": {
+          "bigint": true,
+          "boolean": false,
+          "number": true,
+          "string": true
+        },
+        "ignoreTernaryTests": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare let x: 'a' | undefined;\nx ? x : y;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverTernary",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\ndeclare let x: 'a' | undefined;\nx ?? y;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": true,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignorePrimitives": {
+          "bigint": true,
+          "boolean": true,
+          "number": true,
+          "string": false
+        },
+        "ignoreTernaryTests": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare let x: 'a' | undefined;\n!x ? y : x;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverTernary",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\ndeclare let x: 'a' | undefined;\nx ?? y;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": true,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignorePrimitives": {
+          "bigint": true,
+          "boolean": true,
+          "number": true,
+          "string": false
+        },
+        "ignoreTernaryTests": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare let x: `hello${'string'}` | undefined;\nx ? x : y;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverTernary",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\ndeclare let x: `hello${'string'}` | undefined;\nx ?? y;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": true,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignorePrimitives": {
+          "bigint": true,
+          "boolean": true,
+          "number": true,
+          "string": false
+        },
+        "ignoreTernaryTests": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare let x: `hello${'string'}` | undefined;\n!x ? y : x;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverTernary",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\ndeclare let x: `hello${'string'}` | undefined;\nx ?? y;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": true,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignorePrimitives": {
+          "bigint": true,
+          "boolean": true,
+          "number": true,
+          "string": false
+        },
+        "ignoreTernaryTests": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare let x: 1 | undefined;\nx ? x : y;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverTernary",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\ndeclare let x: 1 | undefined;\nx ?? y;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": true,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignorePrimitives": {
+          "bigint": true,
+          "boolean": true,
+          "number": false,
+          "string": true
+        },
+        "ignoreTernaryTests": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare let x: 1 | undefined;\n!x ? y : x;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverTernary",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\ndeclare let x: 1 | undefined;\nx ?? y;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": true,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignorePrimitives": {
+          "bigint": true,
+          "boolean": true,
+          "number": false,
+          "string": true
+        },
+        "ignoreTernaryTests": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare let x: 1n | undefined;\nx ? x : y;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverTernary",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\ndeclare let x: 1n | undefined;\nx ?? y;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": true,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignorePrimitives": {
+          "bigint": false,
+          "boolean": true,
+          "number": true,
+          "string": true
+        },
+        "ignoreTernaryTests": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare let x: 1n | undefined;\n!x ? y : x;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverTernary",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\ndeclare let x: 1n | undefined;\nx ?? y;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": true,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignorePrimitives": {
+          "bigint": false,
+          "boolean": true,
+          "number": true,
+          "string": true
+        },
+        "ignoreTernaryTests": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare let x: true | undefined;\nx ? x : y;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverTernary",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\ndeclare let x: true | undefined;\nx ?? y;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": true,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignorePrimitives": {
+          "bigint": true,
+          "boolean": false,
+          "number": true,
+          "string": true
+        },
+        "ignoreTernaryTests": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare let x: true | undefined;\n!x ? y : x;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverTernary",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\ndeclare let x: true | undefined;\nx ?? y;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": true,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignorePrimitives": {
+          "bigint": true,
+          "boolean": false,
+          "number": true,
+          "string": true
+        },
+        "ignoreTernaryTests": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare let x: 'a' | 'b' | undefined;\nx || y;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverOr",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\ndeclare let x: 'a' | 'b' | undefined;\nx ?? y;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": true,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignorePrimitives": {
+          "bigint": true,
+          "boolean": true,
+          "number": true,
+          "string": false
+        },
+        "ignoreTernaryTests": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare let x: 'a' | `b` | undefined;\nx || y;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverOr",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\ndeclare let x: 'a' | `b` | undefined;\nx ?? y;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": true,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignorePrimitives": {
+          "bigint": true,
+          "boolean": true,
+          "number": true,
+          "string": false
+        },
+        "ignoreTernaryTests": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare let x: 0 | 1 | undefined;\nx || y;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverOr",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\ndeclare let x: 0 | 1 | undefined;\nx ?? y;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": true,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignorePrimitives": {
+          "bigint": true,
+          "boolean": true,
+          "number": false,
+          "string": true
+        },
+        "ignoreTernaryTests": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare let x: 1 | 2 | 3 | undefined;\nx || y;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverOr",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\ndeclare let x: 1 | 2 | 3 | undefined;\nx ?? y;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": true,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignorePrimitives": {
+          "bigint": true,
+          "boolean": true,
+          "number": false,
+          "string": true
+        },
+        "ignoreTernaryTests": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare let x: 0n | 1n | undefined;\nx || y;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverOr",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\ndeclare let x: 0n | 1n | undefined;\nx ?? y;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": true,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignorePrimitives": {
+          "bigint": false,
+          "boolean": true,
+          "number": true,
+          "string": true
+        },
+        "ignoreTernaryTests": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare let x: 1n | 2n | 3n | undefined;\nx || y;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverOr",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\ndeclare let x: 1n | 2n | 3n | undefined;\nx ?? y;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": true,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignorePrimitives": {
+          "bigint": false,
+          "boolean": true,
+          "number": true,
+          "string": true
+        },
+        "ignoreTernaryTests": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare let x: true | false | undefined;\nx || y;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverOr",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\ndeclare let x: true | false | undefined;\nx ?? y;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": true,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignorePrimitives": {
+          "bigint": true,
+          "boolean": false,
+          "number": true,
+          "string": true
+        },
+        "ignoreTernaryTests": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare let x: 'a' | 'b' | undefined;\nx ? x : y;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverTernary",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\ndeclare let x: 'a' | 'b' | undefined;\nx ?? y;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": true,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignorePrimitives": {
+          "bigint": true,
+          "boolean": true,
+          "number": true,
+          "string": false
+        },
+        "ignoreTernaryTests": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare let x: 'a' | 'b' | undefined;\n!x ? y : x;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverTernary",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\ndeclare let x: 'a' | 'b' | undefined;\nx ?? y;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": true,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignorePrimitives": {
+          "bigint": true,
+          "boolean": true,
+          "number": true,
+          "string": false
+        },
+        "ignoreTernaryTests": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare let x: 'a' | `b` | undefined;\nx ? x : y;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverTernary",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\ndeclare let x: 'a' | `b` | undefined;\nx ?? y;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": true,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignorePrimitives": {
+          "bigint": true,
+          "boolean": true,
+          "number": true,
+          "string": false
+        },
+        "ignoreTernaryTests": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare let x: 'a' | `b` | undefined;\n!x ? y : x;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverTernary",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\ndeclare let x: 'a' | `b` | undefined;\nx ?? y;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": true,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignorePrimitives": {
+          "bigint": true,
+          "boolean": true,
+          "number": true,
+          "string": false
+        },
+        "ignoreTernaryTests": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare let x: 0 | 1 | undefined;\nx ? x : y;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverTernary",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\ndeclare let x: 0 | 1 | undefined;\nx ?? y;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": true,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignorePrimitives": {
+          "bigint": true,
+          "boolean": true,
+          "number": false,
+          "string": true
+        },
+        "ignoreTernaryTests": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare let x: 0 | 1 | undefined;\n!x ? y : x;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverTernary",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\ndeclare let x: 0 | 1 | undefined;\nx ?? y;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": true,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignorePrimitives": {
+          "bigint": true,
+          "boolean": true,
+          "number": false,
+          "string": true
+        },
+        "ignoreTernaryTests": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare let x: 1 | 2 | 3 | undefined;\nx ? x : y;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverTernary",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\ndeclare let x: 1 | 2 | 3 | undefined;\nx ?? y;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": true,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignorePrimitives": {
+          "bigint": true,
+          "boolean": true,
+          "number": false,
+          "string": true
+        },
+        "ignoreTernaryTests": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare let x: 1 | 2 | 3 | undefined;\n!x ? y : x;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverTernary",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\ndeclare let x: 1 | 2 | 3 | undefined;\nx ?? y;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": true,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignorePrimitives": {
+          "bigint": true,
+          "boolean": true,
+          "number": false,
+          "string": true
+        },
+        "ignoreTernaryTests": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare let x: 0n | 1n | undefined;\nx ? x : y;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverTernary",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\ndeclare let x: 0n | 1n | undefined;\nx ?? y;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": true,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignorePrimitives": {
+          "bigint": false,
+          "boolean": true,
+          "number": true,
+          "string": true
+        },
+        "ignoreTernaryTests": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare let x: 0n | 1n | undefined;\n!x ? y : x;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverTernary",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\ndeclare let x: 0n | 1n | undefined;\nx ?? y;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": true,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignorePrimitives": {
+          "bigint": false,
+          "boolean": true,
+          "number": true,
+          "string": true
+        },
+        "ignoreTernaryTests": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare let x: 1n | 2n | 3n | undefined;\nx ? x : y;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverTernary",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\ndeclare let x: 1n | 2n | 3n | undefined;\nx ?? y;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": true,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignorePrimitives": {
+          "bigint": false,
+          "boolean": true,
+          "number": true,
+          "string": true
+        },
+        "ignoreTernaryTests": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare let x: 1n | 2n | 3n | undefined;\n!x ? y : x;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverTernary",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\ndeclare let x: 1n | 2n | 3n | undefined;\nx ?? y;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": true,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignorePrimitives": {
+          "bigint": false,
+          "boolean": true,
+          "number": true,
+          "string": true
+        },
+        "ignoreTernaryTests": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare let x: true | false | undefined;\nx ? x : y;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverTernary",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\ndeclare let x: true | false | undefined;\nx ?? y;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": true,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignorePrimitives": {
+          "bigint": true,
+          "boolean": false,
+          "number": true,
+          "string": true
+        },
+        "ignoreTernaryTests": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare let x: true | false | undefined;\n!x ? y : x;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverTernary",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\ndeclare let x: true | false | undefined;\nx ?? y;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": true,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignorePrimitives": {
+          "bigint": true,
+          "boolean": false,
+          "number": true,
+          "string": true
+        },
+        "ignoreTernaryTests": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare let x: 0 | 1 | 0n | 1n | undefined;\nx || y;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverOr",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\ndeclare let x: 0 | 1 | 0n | 1n | undefined;\nx ?? y;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": true,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignorePrimitives": {
+          "bigint": false,
+          "boolean": true,
+          "number": false,
+          "string": true
+        },
+        "ignoreTernaryTests": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare let x: true | false | null | undefined;\nx || y;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverOr",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\ndeclare let x: true | false | null | undefined;\nx ?? y;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": true,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignorePrimitives": {
+          "bigint": true,
+          "boolean": false,
+          "number": true,
+          "string": true
+        },
+        "ignoreTernaryTests": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare let x: 0 | 1 | 0n | 1n | undefined;\nx ? x : y;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverTernary",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\ndeclare let x: 0 | 1 | 0n | 1n | undefined;\nx ?? y;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": true,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignorePrimitives": {
+          "bigint": false,
+          "boolean": true,
+          "number": false,
+          "string": true
+        },
+        "ignoreTernaryTests": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare let x: 0 | 1 | 0n | 1n | undefined;\n!x ? y : x;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverTernary",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\ndeclare let x: 0 | 1 | 0n | 1n | undefined;\nx ?? y;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": true,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignorePrimitives": {
+          "bigint": false,
+          "boolean": true,
+          "number": false,
+          "string": true
+        },
+        "ignoreTernaryTests": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare let x: true | false | null | undefined;\nx ? x : y;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverTernary",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\ndeclare let x: true | false | null | undefined;\nx ?? y;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": true,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignorePrimitives": {
+          "bigint": true,
+          "boolean": false,
+          "number": true,
+          "string": true
+        },
+        "ignoreTernaryTests": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare let x: true | false | null | undefined;\n!x ? y : x;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverTernary",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\ndeclare let x: true | false | null | undefined;\nx ?? y;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": true,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignorePrimitives": {
+          "bigint": true,
+          "boolean": false,
+          "number": true,
+          "string": true
+        },
+        "ignoreTernaryTests": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare let x: null;\nx || y;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverOr",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\ndeclare let x: null;\nx ?? y;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst x = undefined;\nx || y;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverOr",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\nconst x = undefined;\nx ?? y;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nnull || y;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverOr",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\nnull ?? y;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nundefined || y;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverOr",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\nundefined ?? y;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nenum Enum {\n  A = 0,\n  B = 1,\n  C = 2,\n}\ndeclare let x: Enum | undefined;\nx || y;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverOr",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\nenum Enum {\n  A = 0,\n  B = 1,\n  C = 2,\n}\ndeclare let x: Enum | undefined;\nx ?? y;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nenum Enum {\n  A = 0,\n  B = 1,\n  C = 2,\n}\ndeclare let x: Enum.A | Enum.B | undefined;\nx || y;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverOr",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\nenum Enum {\n  A = 0,\n  B = 1,\n  C = 2,\n}\ndeclare let x: Enum.A | Enum.B | undefined;\nx ?? y;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nenum Enum {\n  A = 'a',\n  B = 'b',\n  C = 'c',\n}\ndeclare let x: Enum | undefined;\nx || y;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverOr",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\nenum Enum {\n  A = 'a',\n  B = 'b',\n  C = 'c',\n}\ndeclare let x: Enum | undefined;\nx ?? y;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nenum Enum {\n  A = 'a',\n  B = 'b',\n  C = 'c',\n}\ndeclare let x: Enum.A | Enum.B | undefined;\nx || y;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverOr",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\nenum Enum {\n  A = 'a',\n  B = 'b',\n  C = 'c',\n}\ndeclare let x: Enum.A | Enum.B | undefined;\nx ?? y;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nlet a: string | true | undefined;\nlet b: string | boolean | undefined;\nlet c: boolean | undefined;\n\nconst x = Boolean(a || b);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverOr",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\nlet a: string | true | undefined;\nlet b: string | boolean | undefined;\nlet c: boolean | undefined;\n\nconst x = Boolean(a ?? b);\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": false,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignoreTernaryTests": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nlet a: string | true | undefined;\nlet b: string | boolean | undefined;\n\nconst x = String(a || b);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverOr",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\nlet a: string | true | undefined;\nlet b: string | boolean | undefined;\n\nconst x = String(a ?? b);\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "ignoreBooleanCoercion": true,
+        "ignoreConditionalTests": false,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignoreTernaryTests": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nlet a: string | true | undefined;\nlet b: string | boolean | undefined;\n\nconst x = Boolean(() => a || b);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverOr",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\nlet a: string | true | undefined;\nlet b: string | boolean | undefined;\n\nconst x = Boolean(() => a ?? b);\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "ignoreBooleanCoercion": true,
+        "ignoreConditionalTests": false,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignoreTernaryTests": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nlet a: string | true | undefined;\nlet b: string | boolean | undefined;\n\nconst x = Boolean(function weird() {\n  return a || b;\n});\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverOr",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\nlet a: string | true | undefined;\nlet b: string | boolean | undefined;\n\nconst x = Boolean(function weird() {\n  return a ?? b;\n});\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "ignoreBooleanCoercion": true,
+        "ignoreConditionalTests": false,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignoreTernaryTests": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nlet a: string | true | undefined;\nlet b: string | boolean | undefined;\n\ndeclare function f(x: unknown): unknown;\n\nconst x = Boolean(f(a || b));\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverOr",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\nlet a: string | true | undefined;\nlet b: string | boolean | undefined;\n\ndeclare function f(x: unknown): unknown;\n\nconst x = Boolean(f(a ?? b));\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "ignoreBooleanCoercion": true,
+        "ignoreConditionalTests": false,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignoreTernaryTests": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nlet a: string | true | undefined;\nlet b: string | boolean | undefined;\n\nconst x = Boolean(1 + (a || b));\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverOr",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\nlet a: string | true | undefined;\nlet b: string | boolean | undefined;\n\nconst x = Boolean(1 + (a ?? b));\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "ignoreBooleanCoercion": true,
+        "ignoreConditionalTests": false,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignoreTernaryTests": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nlet a: string | true | undefined;\nlet b: string | boolean | undefined;\n\nconst x = Boolean(a ? a : b);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverTernary",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\nlet a: string | true | undefined;\nlet b: string | boolean | undefined;\n\nconst x = Boolean(a ?? b);\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "ignoreBooleanCoercion": true,
+        "ignoreConditionalTests": false,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignoreTernaryTests": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nlet a: string | boolean | undefined;\nlet b: string | boolean | undefined;\n\nconst test = Boolean(!a ? b : a);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverTernary",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\nlet a: string | boolean | undefined;\nlet b: string | boolean | undefined;\n\nconst test = Boolean(a ?? b);\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "ignoreBooleanCoercion": true,
+        "ignoreConditionalTests": false,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignoreTernaryTests": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nlet a: string | true | undefined;\nlet b: string | boolean | undefined;\n\ndeclare function f(x: unknown): unknown;\n\nif (f(a || b)) {\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverOr",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\nlet a: string | true | undefined;\nlet b: string | boolean | undefined;\n\ndeclare function f(x: unknown): unknown;\n\nif (f(a ?? b)) {\n}\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": true,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignoreTernaryTests": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const a: string | undefined;\ndeclare const b: string;\n\nif (+(a || b)) {\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverOr",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\ndeclare const a: string | undefined;\ndeclare const b: string;\n\nif (+(a ?? b)) {\n}\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": true,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignoreTernaryTests": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface Box {\n  value: string;\n}\ndeclare function getFallbackBox(): Box;\ndeclare const defaultBox: Box | undefined;\n\ndefaultBox || getFallbackBox();\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverOr",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\ninterface Box {\n  value: string;\n}\ndeclare function getFallbackBox(): Box;\ndeclare const defaultBox: Box | undefined;\n\ndefaultBox ?? getFallbackBox();\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface Box {\n  value: string;\n}\ndeclare function getFallbackBox(): Box;\ndeclare const defaultBox: Box | undefined;\n\ndefaultBox ? defaultBox : getFallbackBox();\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverTernary",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\ninterface Box {\n  value: string;\n}\ndeclare function getFallbackBox(): Box;\ndeclare const defaultBox: Box | undefined;\n\ndefaultBox ?? getFallbackBox();\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": false,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignoreTernaryTests": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface Box {\n  value: string;\n}\ndeclare function getFallbackBox(): Box;\ndeclare const defaultBoxOptional: { a?: { b?: Box | undefined } };\n\ndefaultBoxOptional.a?.b != null ? defaultBoxOptional.a?.b : getFallbackBox();\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverTernary",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\ninterface Box {\n  value: string;\n}\ndeclare function getFallbackBox(): Box;\ndeclare const defaultBoxOptional: { a?: { b?: Box | undefined } };\n\ndefaultBoxOptional.a?.b ?? getFallbackBox();\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": false,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignoreTernaryTests": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const x: any;\ndeclare const y: any;\nx || y;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverOr",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\ndeclare const x: any;\ndeclare const y: any;\nx ?? y;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const x: unknown;\ndeclare const y: any;\nx || y;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverOr",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\ndeclare const x: unknown;\ndeclare const y: any;\nx ?? y;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface Box {\n  value: string;\n}\ndeclare function getFallbackBox(): Box;\ndeclare const defaultBoxOptional: { a?: { b?: Box | undefined } };\n\ndefaultBoxOptional.a?.b != null ? defaultBoxOptional.a.b : getFallbackBox();\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverTernary",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\ninterface Box {\n  value: string;\n}\ndeclare function getFallbackBox(): Box;\ndeclare const defaultBoxOptional: { a?: { b?: Box | undefined } };\n\ndefaultBoxOptional.a?.b ?? getFallbackBox();\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": false,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignoreTernaryTests": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface Box {\n  value: string;\n}\ndeclare function getFallbackBox(): Box;\ndeclare const defaultBoxOptional: { a?: { b?: Box | undefined } };\n\ndefaultBoxOptional.a?.b ? defaultBoxOptional.a?.b : getFallbackBox();\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverTernary",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\ninterface Box {\n  value: string;\n}\ndeclare function getFallbackBox(): Box;\ndeclare const defaultBoxOptional: { a?: { b?: Box | undefined } };\n\ndefaultBoxOptional.a?.b ?? getFallbackBox();\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": false,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignoreTernaryTests": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface Box {\n  value: string;\n}\ndeclare function getFallbackBox(): Box;\ndeclare const defaultBoxOptional: { a?: { b?: Box | undefined } };\n\ndefaultBoxOptional.a?.b ? defaultBoxOptional.a.b : getFallbackBox();\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverTernary",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\ninterface Box {\n  value: string;\n}\ndeclare function getFallbackBox(): Box;\ndeclare const defaultBoxOptional: { a?: { b?: Box | undefined } };\n\ndefaultBoxOptional.a?.b ?? getFallbackBox();\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": false,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignoreTernaryTests": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface Box {\n  value: string;\n}\ndeclare function getFallbackBox(): Box;\ndeclare const defaultBoxOptional: { a?: { b?: Box | undefined } };\n\ndefaultBoxOptional.a?.b !== undefined\n  ? defaultBoxOptional.a?.b\n  : getFallbackBox();\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverTernary",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\ninterface Box {\n  value: string;\n}\ndeclare function getFallbackBox(): Box;\ndeclare const defaultBoxOptional: { a?: { b?: Box | undefined } };\n\ndefaultBoxOptional.a?.b ?? getFallbackBox();\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": false,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignoreTernaryTests": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface Box {\n  value: string;\n}\ndeclare function getFallbackBox(): Box;\ndeclare const defaultBoxOptional: { a?: { b?: Box | undefined } };\n\ndefaultBoxOptional.a?.b !== undefined\n  ? defaultBoxOptional.a.b\n  : getFallbackBox();\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverTernary",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\ninterface Box {\n  value: string;\n}\ndeclare function getFallbackBox(): Box;\ndeclare const defaultBoxOptional: { a?: { b?: Box | undefined } };\n\ndefaultBoxOptional.a?.b ?? getFallbackBox();\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": false,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignoreTernaryTests": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface Box {\n  value: string;\n}\ndeclare function getFallbackBox(): Box;\ndeclare const defaultBoxOptional: { a?: { b?: Box | undefined } };\n\ndefaultBoxOptional.a?.b !== undefined && defaultBoxOptional.a?.b !== null\n  ? defaultBoxOptional.a?.b\n  : getFallbackBox();\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverTernary",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\ninterface Box {\n  value: string;\n}\ndeclare function getFallbackBox(): Box;\ndeclare const defaultBoxOptional: { a?: { b?: Box | undefined } };\n\ndefaultBoxOptional.a?.b ?? getFallbackBox();\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": false,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignoreTernaryTests": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface Box {\n  value: string;\n}\ndeclare function getFallbackBox(): Box;\ndeclare const defaultBoxOptional: { a?: { b?: Box | undefined } };\n\ndefaultBoxOptional.a?.b !== undefined && defaultBoxOptional.a?.b !== null\n  ? defaultBoxOptional.a.b\n  : getFallbackBox();\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverTernary",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\ninterface Box {\n  value: string;\n}\ndeclare function getFallbackBox(): Box;\ndeclare const defaultBoxOptional: { a?: { b?: Box | undefined } };\n\ndefaultBoxOptional.a?.b ?? getFallbackBox();\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": {
+        "ignoreBooleanCoercion": false,
+        "ignoreConditionalTests": false,
+        "ignoreIfStatements": false,
+        "ignoreMixedLogicalExpressions": false,
+        "ignoreTernaryTests": false
+      },
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare let x: unknown;\ndeclare let y: number;\n!x ? y : x;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverTernary",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\ndeclare let x: unknown;\ndeclare let y: number;\nx ?? y;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare let x: unknown;\ndeclare let y: number;\nx ? x : y;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverTernary",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\ndeclare let x: unknown;\ndeclare let y: number;\nx ?? y;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare let x: { n: unknown };\n!x.n ? y : x.n;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverTernary",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\ndeclare let x: { n: unknown };\nx.n ?? y;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare let x: { a: string } | null;\n\nx?.['a'] != null ? x['a'] : 'foo';\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverTernary",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\ndeclare let x: { a: string } | null;\n\nx?.['a'] ?? 'foo';\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare let x: { a: string } | null;\n\nx?.['a'] != null ? x.a : 'foo';\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverTernary",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\ndeclare let x: { a: string } | null;\n\nx?.['a'] ?? 'foo';\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare let x: { a: string } | null;\n\nx?.a != null ? x['a'] : 'foo';\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverTernary",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\ndeclare let x: { a: string } | null;\n\nx?.a ?? 'foo';\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst a = 'b';\ndeclare let x: { a: string; b: string } | null;\n\nx?.[a] != null ? x[a] : 'foo';\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverTernary",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\nconst a = 'b';\ndeclare let x: { a: string; b: string } | null;\n\nx?.[a] ?? 'foo';\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare let foo: { a: string } | null;\ndeclare function makeFoo(): { a: string };\n\nfunction lazyInitialize() {\n  if (!foo) {\n    foo = makeFoo();\n  }\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverAssignment",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\ndeclare let foo: { a: string } | null;\ndeclare function makeFoo(): { a: string };\n\nfunction lazyInitialize() {\n  foo ??= makeFoo();\n}\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare let foo: { a: string } | null;\ndeclare function makeFoo(): { a: string };\n\nfunction lazyInitialize() {\n  if (foo == null) {\n    foo = makeFoo();\n  }\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverAssignment",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\ndeclare let foo: { a: string } | null;\ndeclare function makeFoo(): { a: string };\n\nfunction lazyInitialize() {\n  foo ??= makeFoo();\n}\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare let foo: { a: string } | null;\ndeclare function makeFoo(): { a: string };\n\nfunction lazyInitialize() {\n  if (foo == null) {\n    foo ??= makeFoo();\n  }\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverAssignment",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\ndeclare let foo: { a: string } | null;\ndeclare function makeFoo(): { a: string };\n\nfunction lazyInitialize() {\n  foo ??= makeFoo();\n}\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare let foo: { a: string } | null;\ndeclare function makeFoo(): { a: string };\n\nfunction lazyInitialize() {\n  if (foo == null) {\n    foo ||= makeFoo();\n  }\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverAssignment",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\ndeclare let foo: { a: string } | null;\ndeclare function makeFoo(): { a: string };\n\nfunction lazyInitialize() {\n  foo ??= makeFoo();\n}\n      "
+            }
+          ]
+        },
+        {
+          "MessageId": "preferNullishOverOr",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\ndeclare let foo: { a: string } | null;\ndeclare function makeFoo(): { a: string };\n\nfunction lazyInitialize() {\n  if (foo == null) {\n    foo ??= makeFoo();\n  }\n}\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare let foo: { a: string } | null;\ndeclare function makeFoo(): { a: string };\n\nfunction lazyInitialize() {\n  if (foo === null) {\n    foo = makeFoo();\n  }\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverAssignment",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\ndeclare let foo: { a: string } | null;\ndeclare function makeFoo(): { a: string };\n\nfunction lazyInitialize() {\n  foo ??= makeFoo();\n}\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare let foo: { a: string } | null;\ndeclare function makeFoo(): { a: string };\n\nfunction lazyInitialize() {\n  if (foo == null) foo = makeFoo();\n  const bar = 42;\n  return bar;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverAssignment",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\ndeclare let foo: { a: string } | null;\ndeclare function makeFoo(): { a: string };\n\nfunction lazyInitialize() {\n  foo ??= makeFoo();\n  const bar = 42;\n  return bar;\n}\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare let foo: { a: string } | null;\ndeclare function makeFoo(): { a: string };\n\nfunction lazyInitialize() {\n  if (foo == null) foo ??= makeFoo();\n  const bar = 42;\n  return bar;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverAssignment",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\ndeclare let foo: { a: string } | null;\ndeclare function makeFoo(): { a: string };\n\nfunction lazyInitialize() {\n  foo ??= makeFoo();\n  const bar = 42;\n  return bar;\n}\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare let foo: { a: string } | null;\ndeclare function makeFoo(): { a: string };\n\nfunction lazyInitialize() {\n  if (foo == null) foo ||= makeFoo();\n  const bar = 42;\n  return bar;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverAssignment",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\ndeclare let foo: { a: string } | null;\ndeclare function makeFoo(): { a: string };\n\nfunction lazyInitialize() {\n  foo ??= makeFoo();\n  const bar = 42;\n  return bar;\n}\n      "
+            }
+          ]
+        },
+        {
+          "MessageId": "preferNullishOverOr",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\ndeclare let foo: { a: string } | null;\ndeclare function makeFoo(): { a: string };\n\nfunction lazyInitialize() {\n  if (foo == null) foo ??= makeFoo();\n  const bar = 42;\n  return bar;\n}\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare let foo: { a: string } | undefined;\ndeclare function makeFoo(): { a: string };\n\nfunction lazyInitialize() {\n  if (foo === undefined) {\n    foo = makeFoo();\n  }\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverAssignment",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\ndeclare let foo: { a: string } | undefined;\ndeclare function makeFoo(): { a: string };\n\nfunction lazyInitialize() {\n  foo ??= makeFoo();\n}\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare let foo: { a: string } | null | undefined;\ndeclare function makeFoo(): { a: string };\n\nfunction lazyInitialize() {\n  if (foo === undefined || foo === null) {\n    foo = makeFoo();\n  }\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverAssignment",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\ndeclare let foo: { a: string } | null | undefined;\ndeclare function makeFoo(): { a: string };\n\nfunction lazyInitialize() {\n  foo ??= makeFoo();\n}\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare let foo: { a: string } | null;\ndeclare function makeFoo(): string;\n\nfunction lazyInitialize() {\n  if (foo.a == null) {\n    foo.a = makeFoo();\n  }\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverAssignment",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\ndeclare let foo: { a: string } | null;\ndeclare function makeFoo(): string;\n\nfunction lazyInitialize() {\n  foo.a ??= makeFoo();\n}\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare let foo: { a: string } | null;\ndeclare function makeFoo(): string;\n\nfunction lazyInitialize() {\n  if (foo?.a == null) {\n    foo.a = makeFoo();\n  }\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverAssignment",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\ndeclare let foo: { a: string } | null;\ndeclare function makeFoo(): string;\n\nfunction lazyInitialize() {\n  foo.a ??= makeFoo();\n}\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare let foo: string | null;\ndeclare function makeFoo(): string;\n\nfunction lazyInitialize() {\n  // comment\n  if (foo == null) {\n    foo = makeFoo();\n  }\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverAssignment",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\ndeclare let foo: string | null;\ndeclare function makeFoo(): string;\n\nfunction lazyInitialize() {\n  // comment\n  foo ??= makeFoo();\n}\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare let foo: string | null;\ndeclare function makeFoo(): string;\n\nif (foo == null) {\n  // comment before 1\n  /* comment before 2 */\n  /* comment before 3\n    which is multiline\n  */\n  /**\n   * comment before 4\n   * which is also multiline\n   */\n  foo = makeFoo(); // comment inline\n  // comment after 1\n  /* comment after 2 */\n  /* comment after 3\n    which is multiline\n  */\n  /**\n   * comment after 4\n   * which is also multiline\n   */\n}\n      ",
+      "Only": false,
+      "Skip": true,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverAssignment",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\ndeclare let foo: string | null;\ndeclare function makeFoo(): string;\n\n// comment before 1\n/* comment before 2 */\n/* comment before 3\n    which is multiline\n  */\n/**\n   * comment before 4\n   * which is also multiline\n   */\nfoo ??= makeFoo(); // comment inline\n// comment after 1\n/* comment after 2 */\n/* comment after 3\n    which is multiline\n  */\n/**\n   * comment after 4\n   * which is also multiline\n   */\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare let foo: string | null;\ndeclare function makeFoo(): string;\n\nif (foo == null) {\n  // comment before 1\n  /* comment before 2 */\n  /* comment before 3\n    which is multiline\n  */\n  /**\n   * comment before 4\n   * which is also multiline\n   */\n  foo = makeFoo(); // comment inline\n  // comment after 1\n  /* comment after 2 */\n  /* comment after 3\n    which is multiline\n  */\n  /**\n   * comment after 4\n   * which is also multiline\n   */\n}\n      ",
+      "Only": false,
+      "Skip": true,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverAssignment",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\ndeclare let foo: string | null;\ndeclare function makeFoo(): string;\n\n// comment before 1\n/* comment before 2 */\n/* comment before 3\n    which is multiline\n  */\n/**\n   * comment before 4\n   * which is also multiline\n   */\nfoo ??= makeFoo(); // comment inline\n// comment after 1\n/* comment after 2 */\n/* comment after 3\n    which is multiline\n  */\n/**\n   * comment after 4\n   * which is also multiline\n   */\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare let foo: string | null;\ndeclare function makeFoo(): string;\n\nif (foo == null) /* comment before 1 */ /* comment before 2 */ foo = makeFoo(); // comment inline\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverAssignment",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\ndeclare let foo: string | null;\ndeclare function makeFoo(): string;\n\n/* comment before 1 */ /* comment before 2 */ foo ??= makeFoo(); // comment inline\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare let foo: { a: string | null };\ndeclare function makeString(): string;\n\nfunction weirdParens() {\n  if (((((foo.a)) == null))) {\n    ((((((((foo).a))))) = makeString()));\n  }\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverAssignment",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\ndeclare let foo: { a: string | null };\ndeclare function makeString(): string;\n\nfunction weirdParens() {\n  ((foo).a) ??= makeString();\n}\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nlet a: string | undefined;\nlet b: { message: string } | undefined;\n\nconst foo = a ? a : b ? 1 : 2;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverTernary",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\nlet a: string | undefined;\nlet b: { message: string } | undefined;\n\nconst foo = a ?? (b ? 1 : 2);\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nlet a: string | undefined;\nlet b: { message: string } | undefined;\n\nconst foo = a ? a : (b ? 1 : 2);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverTernary",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\nlet a: string | undefined;\nlet b: { message: string } | undefined;\n\nconst foo = a ?? (b ? 1 : 2);\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const c: string | null;\nc !== null ? c : c ? 1 : 2;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverTernary",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\ndeclare const c: string | null;\nc ?? (c ? 1 : 2);\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare let a: string | null;\ndeclare let b: string;\ndeclare let c: string;\nconst x = (a && b) || c || 'd';\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverOr",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\ndeclare let a: string | null;\ndeclare let b: string;\ndeclare let c: string;\nconst x = ((a && b) ?? c) || 'd';\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare let a: string | null;\ndeclare let b: string;\ndeclare let c: string;\nconst x = ((a && b)) || c || 'd';\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverOr",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\ndeclare let a: string | null;\ndeclare let b: string;\ndeclare let c: string;\nconst x = (((a && b)) ?? c) || 'd';\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare let a: string | null;\ndeclare let b: string;\ndeclare let c: string;\nconst x = a && b || c || 'd';\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverOr",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\ndeclare let a: string | null;\ndeclare let b: string;\ndeclare let c: string;\nconst x = a && (b ?? c) || 'd';\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const isLoading: boolean;\ndeclare const isPending: boolean | undefined;\ndeclare const fallback: boolean;\nexport const result = isLoading || isPending || fallback;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverOr",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\ndeclare const isLoading: boolean;\ndeclare const isPending: boolean | undefined;\ndeclare const fallback: boolean;\nexport const result = (isLoading || isPending) ?? fallback;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const value: string | undefined;\ndeclare const fallback: string;\ndeclare const alternate: string;\nexport const result = value || fallback && alternate;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverOr",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\ndeclare const value: string | undefined;\ndeclare const fallback: string;\ndeclare const alternate: string;\nexport const result = value ?? (fallback && alternate);\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const value: string | undefined;\ndeclare const fallback: string;\ndeclare const alternate: string;\nexport const result = value || (fallback && alternate);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverOr",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\ndeclare const value: string | undefined;\ndeclare const fallback: string;\ndeclare const alternate: string;\nexport const result = value ?? (fallback && alternate);\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const value: string | undefined;\ndeclare const fallback: string;\ndeclare const alternate: string;\ndeclare const finalFallback: string;\nexport const result = value || fallback && alternate || finalFallback;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [],
+      "Errors": [
+        {
+          "MessageId": "preferNullishOverOr",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": [
+            {
+              "MessageId": "suggestNullishCoalescing",
+              "Output": "\ndeclare const value: string | undefined;\ndeclare const fallback: string;\ndeclare const alternate: string;\ndeclare const finalFallback: string;\nexport const result = (value ?? (fallback && alternate)) || finalFallback;\n      "
+            }
+          ]
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    }
+  ]
+}

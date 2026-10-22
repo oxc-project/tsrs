@@ -1,0 +1,519 @@
+{
+  "Name": "prefer-regexp-exec",
+  "TSConfig": "tsconfig.minimal.json",
+  "Valid": [
+    {
+      "Code": "'something'.match();",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "'something'.match(/thing/g);",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst text = 'something';\nconst search = /thing/g;\ntext.match(search);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst match = (s: RegExp) => 'something';\nmatch(/thing/);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst a = { match: (s: RegExp) => 'something' };\na.match(/thing/);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction f(s: string | string[]) {\n  s.match(/e/);\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "(Math.random() > 0.5 ? 'abc' : 123).match(2);",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "'212'.match(2);",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "'212'.match(+2);",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "'oNaNo'.match(NaN);",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "'Infinity contains -Infinity and +Infinity in JavaScript.'.match(Infinity);",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "'Infinity contains -Infinity and +Infinity in JavaScript.'.match(+Infinity);",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "'Infinity contains -Infinity and +Infinity in JavaScript.'.match(-Infinity);",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "'void and null'.match(null);",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst matchers = ['package-lock.json', /regexp/];\nconst file = '';\nmatchers.some(matcher => !!file.match(matcher));\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst matchers = [/regexp/, 'package-lock.json'];\nconst file = '';\nmatchers.some(matcher => !!file.match(matcher));\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst matchers = [{ match: (s: RegExp) => false }];\nconst file = '';\nmatchers.some(matcher => !!file.match(matcher));\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction test(pattern: string) {\n  'hello hello'.match(RegExp(pattern, 'g'))?.reduce(() => []);\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction test(pattern: string) {\n  'hello hello'.match(new RegExp(pattern, 'gi'))?.reduce(() => []);\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction test(text: string, pattern: string, flags: string) {\n  text.match(new RegExp(pattern, flags));\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst matchCount = (str: string, re: RegExp) => {\n  return (str.match(re) || []).length;\n};\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction test(str: string) {\n  str.match('[a-z');\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst text = 'something';\ndeclare const search: RegExp;\ntext.match(search);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst text = 'something';\ndeclare const obj: { search: RegExp };\ntext.match(obj.search);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst text = 'something';\ndeclare function returnsRegexp(): RegExp;\ntext.match(returnsRegexp());\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    }
+  ],
+  "Invalid": [
+    {
+      "Code": "'something'.match(/thing/);",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "/thing/.exec('something');"
+      ],
+      "Errors": [
+        {
+          "MessageId": "regExpExecOverStringMatch",
+          "Line": 1,
+          "Column": 13,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "'something'.match('^[a-z]+thing/?$');",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "/^[a-z]+thing\\/?$/.exec('something');"
+      ],
+      "Errors": [
+        {
+          "MessageId": "regExpExecOverStringMatch",
+          "Line": 1,
+          "Column": 13,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst text = 'something';\nconst search = /thing/;\ntext.match(search);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nconst text = 'something';\nconst search = /thing/;\nsearch.exec(text);\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "regExpExecOverStringMatch",
+          "Line": 4,
+          "Column": 6,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst text = 'something';\nconst search = 'thing';\ntext.match(search);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nconst text = 'something';\nconst search = 'thing';\nRegExp(search).exec(text);\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "regExpExecOverStringMatch",
+          "Line": 4,
+          "Column": 6,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction test(text: string, pattern: string) {\n  text.match(pattern);\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nfunction test(text: string, pattern: string) {\n  RegExp(pattern).exec(text);\n}\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "regExpExecOverStringMatch",
+          "Line": 3,
+          "Column": 8,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction f(s: 'a' | 'b') {\n  s.match('a');\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nfunction f(s: 'a' | 'b') {\n  /a/.exec(s);\n}\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "regExpExecOverStringMatch",
+          "Line": 3,
+          "Column": 5,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype SafeString = string & { __HTML_ESCAPED__: void };\nfunction f(s: SafeString) {\n  s.match(/thing/);\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\ntype SafeString = string & { __HTML_ESCAPED__: void };\nfunction f(s: SafeString) {\n  /thing/.exec(s);\n}\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "regExpExecOverStringMatch",
+          "Line": 4,
+          "Column": 5,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction f<T extends 'a' | 'b'>(s: T) {\n  s.match(/thing/);\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nfunction f<T extends 'a' | 'b'>(s: T) {\n  /thing/.exec(s);\n}\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "regExpExecOverStringMatch",
+          "Line": 3,
+          "Column": 5,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst text = 'something';\nconst search = new RegExp('test', '');\ntext.match(search);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nconst text = 'something';\nconst search = new RegExp('test', '');\nsearch.exec(text);\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "regExpExecOverStringMatch",
+          "Line": 4,
+          "Column": 6,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction test(pattern: string) {\n  'check'.match(new RegExp(pattern, undefined));\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nfunction test(pattern: string) {\n  new RegExp(pattern, undefined).exec('check');\n}\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "regExpExecOverStringMatch",
+          "Line": 3,
+          "Column": 11,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction temp(text: string): void {\n  text.match(new RegExp(`${'hello'}`));\n  text.match(new RegExp(`${'hello'.toString()}`));\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nfunction temp(text: string): void {\n  new RegExp(`${'hello'}`).exec(text);\n  new RegExp(`${'hello'.toString()}`).exec(text);\n}\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "regExpExecOverStringMatch",
+          "Line": 3,
+          "Column": 8,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        },
+        {
+          "MessageId": "regExpExecOverStringMatch",
+          "Line": 4,
+          "Column": 8,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    }
+  ]
+}

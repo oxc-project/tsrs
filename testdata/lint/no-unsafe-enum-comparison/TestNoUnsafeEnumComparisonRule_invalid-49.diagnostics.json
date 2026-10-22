@@ -1,0 +1,49 @@
+[
+  {
+    "range": {
+      "pos": 117,
+      "end": 132
+    },
+    "suggestions": [
+      {
+        "message": {
+          "id": "replaceValueWithEnum",
+          "description": "Replace with an enum value comparison."
+        },
+        "fixes": [
+          {
+            "text": "StringKey['line\\nbreak']",
+            "range": {
+              "pos": 131,
+              "end": 132
+            }
+          }
+        ]
+      }
+    ],
+    "labeled_ranges": [
+      {
+        "label": "Left operand: StringKey",
+        "range": {
+          "end": 126,
+          "pos": 117
+        }
+      },
+      {
+        "label": "Right operand: 1",
+        "range": {
+          "pos": 131,
+          "end": 132
+        }
+      }
+    ],
+    "kind": 0,
+    "rule": "no-unsafe-enum-comparison",
+    "message": {
+      "id": "mismatchedCondition",
+      "description": "The two values in this comparison do not have a shared enum type.",
+      "help": "Compare enum values to members of the same enum, or convert both sides to the same primitive type before comparing them."
+    },
+    "file_path": "file.ts"
+  }
+]

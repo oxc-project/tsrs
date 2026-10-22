@@ -1,0 +1,32 @@
+[
+  {
+    "kind": 0,
+    "rule": "switch-exhaustiveness-check",
+    "message": {
+      "id": "switchIsNotExhaustive",
+      "description": "Switch is not exhaustive. Cases not matched: Enum.B"
+    },
+    "file_path": "file.ts",
+    "range": {
+      "end": 78,
+      "pos": 73
+    },
+    "suggestions": [
+      {
+        "message": {
+          "id": "addMissingCases",
+          "description": "Add branches for missing cases."
+        },
+        "fixes": [
+          {
+            "text": "\n    case Enum.B: { throw new Error('Not implemented yet: Enum.B case') }",
+            "range": {
+              "pos": 114,
+              "end": 114
+            }
+          }
+        ]
+      }
+    ]
+  }
+]

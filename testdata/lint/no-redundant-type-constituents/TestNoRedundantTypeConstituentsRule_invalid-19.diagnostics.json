@@ -1,0 +1,15 @@
+[
+  {
+    "rule": "no-redundant-type-constituents",
+    "message": {
+      "id": "literalOverridden",
+      "description": " is overridden by string in this union type."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 9,
+      "end": 11
+    },
+    "kind": 0
+  }
+]

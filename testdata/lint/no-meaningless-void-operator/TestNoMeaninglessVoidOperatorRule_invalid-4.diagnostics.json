@@ -1,0 +1,24 @@
+[
+  {
+    "fixes": [
+      {
+        "text": "",
+        "range": {
+          "end": 59,
+          "pos": 55
+        }
+      }
+    ],
+    "kind": 0,
+    "rule": "no-meaningless-void-operator",
+    "message": {
+      "id": "meaninglessVoidOperator",
+      "description": "void operator shouldn't be used on void; it should convey that a return value is being ignored"
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 55,
+      "end": 83
+    }
+  }
+]

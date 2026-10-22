@@ -1,0 +1,15 @@
+[
+  {
+    "file_path": "file.ts",
+    "range": {
+      "end": 146,
+      "pos": 134
+    },
+    "kind": 0,
+    "rule": "consistent-return",
+    "message": {
+      "id": "unexpectedReturnValue",
+      "description": "Function 'foo' expected no return value."
+    }
+  }
+]

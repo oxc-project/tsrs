@@ -1,0 +1,55 @@
+[
+  {
+    "labeled_ranges": [
+      {
+        "label": "This expression evaluates to an array.",
+        "range": {
+          "pos": 76,
+          "end": 79
+        }
+      }
+    ],
+    "kind": 0,
+    "rule": "no-array-delete",
+    "message": {
+      "id": "noArrayDelete",
+      "description": "Using the `delete` operator with an array expression is unsafe."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 69,
+      "end": 75
+    },
+    "suggestions": [
+      {
+        "message": {
+          "id": "useSplice",
+          "description": "Use `array.splice()` instead."
+        },
+        "fixes": [
+          {
+            "text": "",
+            "range": {
+              "end": 75,
+              "pos": 69
+            }
+          },
+          {
+            "text": ".splice(",
+            "range": {
+              "end": 80,
+              "pos": 79
+            }
+          },
+          {
+            "text": ", 1)",
+            "range": {
+              "pos": 81,
+              "end": 82
+            }
+          }
+        ]
+      }
+    ]
+  }
+]

@@ -1,0 +1,40 @@
+[
+  {
+    "file_path": "file.ts",
+    "range": {
+      "pos": 95,
+      "end": 110
+    },
+    "fixes": [
+      {
+        "text": "",
+        "range": {
+          "pos": 95,
+          "end": 110
+        }
+      },
+      {
+        "text": "",
+        "range": {
+          "pos": 93,
+          "end": 94
+        }
+      }
+    ],
+    "labeled_ranges": [
+      {
+        "label": "Type 'IsArray<number>' is first declared here.",
+        "range": {
+          "pos": 77,
+          "end": 92
+        }
+      }
+    ],
+    "kind": 0,
+    "rule": "no-duplicate-type-constituents",
+    "message": {
+      "id": "duplicate",
+      "description": "Union type constituent is duplicated with  IsArray<number>."
+    }
+  }
+]

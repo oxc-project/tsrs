@@ -1,0 +1,25 @@
+[
+  {
+    "kind": 0,
+    "range": {
+      "pos": 62,
+      "end": 93
+    },
+    "message": {
+      "id": "preferReadonly",
+      "description": "Member '#childClassExpressionModifiable' is never reassigned.",
+      "help": "Mark it as `readonly`."
+    },
+    "file_path": "file.ts",
+    "rule": "prefer-readonly",
+    "fixes": [
+      {
+        "text": "readonly ",
+        "range": {
+          "pos": 62,
+          "end": 62
+        }
+      }
+    ]
+  }
+]

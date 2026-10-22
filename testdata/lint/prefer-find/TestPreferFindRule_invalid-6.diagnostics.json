@@ -1,0 +1,39 @@
+[
+  {
+    "kind": 0,
+    "rule": "prefer-find",
+    "message": {
+      "id": "preferFind",
+      "description": "Prefer .find(...) instead of .filter(...)[0]."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 46,
+      "end": 89
+    },
+    "suggestions": [
+      {
+        "message": {
+          "id": "preferFindSuggestion",
+          "description": "Use .find(...) instead of .filter(...)[0]."
+        },
+        "fixes": [
+          {
+            "text": "find",
+            "range": {
+              "end": 56,
+              "pos": 50
+            }
+          },
+          {
+            "text": "",
+            "range": {
+              "pos": 80,
+              "end": 89
+            }
+          }
+        ]
+      }
+    ]
+  }
+]

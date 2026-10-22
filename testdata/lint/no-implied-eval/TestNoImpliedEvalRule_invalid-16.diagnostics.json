@@ -1,0 +1,15 @@
+[
+  {
+    "kind": 0,
+    "rule": "no-implied-eval",
+    "message": {
+      "id": "noFunctionConstructor",
+      "description": "Implied eval. Do not use the Function constructor to create functions."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 11,
+      "end": 21
+    }
+  }
+]

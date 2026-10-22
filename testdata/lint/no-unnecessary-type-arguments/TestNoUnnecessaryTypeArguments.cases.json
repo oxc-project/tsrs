@@ -1,0 +1,1495 @@
+{
+  "Name": "no-unnecessary-type-arguments",
+  "TSConfig": "tsconfig.json",
+  "Valid": [
+    {
+      "Code": "f();",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "f<string>();",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "class Foo extends Bar {}",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "class Foo extends Bar<string> {}",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "class Foo implements Bar {}",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "class Foo implements Bar<string> {}",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction f<T = number>() {}\nf();\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction f<T = number>() {}\nf<string>();\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const f: (<T = number>() => void) | null;\nf?.();\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const f: (<T = number>() => void) | null;\nf?.<string>();\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const f: any;\nf();\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const f: any;\nf<string>();\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const f: unknown;\nf();\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const f: unknown;\nf<string>();\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction g<T = number, U = string>() {}\ng<number, number>();\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const g: any;\ng<string, string>();\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const g: unknown;\ng<string, string>();\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const f: unknown;\nf<string>``;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction f<T = number>(template: TemplateStringsArray) {}\nf<string>``;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass C<T = number> {}\nnew C<string>();\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const C: any;\nnew C<string>();\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const C: unknown;\nnew C<string>();\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass C<T = number> {}\nclass D extends C<string> {}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const C: any;\nclass D extends C<string> {}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const C: unknown;\nclass D extends C<string> {}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface I<T = number> {}\nclass Impl implements I<string> {}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass C<TC = number> {}\nclass D<TD = number> extends C {}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const C: any;\nclass D<TD = number> extends C {}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare const C: unknown;\nclass D<TD = number> extends C {}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "let a: A<number>;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass Foo<T> {}\nconst foo = new Foo<number>();\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "type Foo<T> = import('foo').Foo<T>;",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass Bar<T = number> {}\nclass Foo<T = number> extends Bar<T> {}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface Bar<T = number> {}\nclass Foo<T = number> implements Bar<T> {}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass Bar<T = number> {}\nclass Foo<T = number> extends Bar<string> {}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface Bar<T = number> {}\nclass Foo<T = number> implements Bar<string> {}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nimport { F } from './missing';\nfunction bar<T = F>() {}\nbar<F<number>>();\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype A<T = Element> = T;\ntype B = A<HTMLInputElement>;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "tsconfig.lib-dom.json",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype A<T = Map<string, string>> = T;\ntype B = A<Map<string, number>>;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype A = Map<string, string>;\ntype B<T = A> = T;\ntype C2 = B<Map<string, number>>;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface Foo<T = string> {}\ndeclare var Foo: {\n  new <T>(type: T): any;\n};\nclass Bar extends Foo<string> {}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface Foo<T = string> {}\nclass Foo<T> {}\nclass Bar extends Foo<string> {}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass Foo<T = string> {}\ninterface Foo<T> {}\nclass Bar implements Foo<string> {}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass Foo<T> {}\nnamespace Foo {\n  export class Bar {}\n}\nclass Bar extends Foo<string> {}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction Button<T>() {\n  return <div></div>;\n}\nconst button = <Button<string>></Button>;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": true,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction Button<T>() {\n  return <div></div>;\n}\nconst button = <Button<string> />;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": true,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction f<T = number>() {}\nconst g = f<number>;\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction f<T = number>() {}\nfunction takesFn(fn: () => void) {}\ntakesFn(f<number>);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction f<T>(x: T) {}\nf(10);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction f<T>(x: T) {}\nf<10>(10);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction f<T>(x: T) {}\ndeclare const x: any;\nf<string>(x);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction f<T>(x: T) {}\nf<Record<string, boolean>>({});\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction f<T>(x: T) {}\ndeclare const x: {};\nf<Record<string, boolean>>(x);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction f<T>(x: T) {}\ndeclare const x: Record<string, never>;\nf<Record<string, boolean>>(x);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction f<T>(x: T) {}\ndeclare const x: any;\nf<{}>(x);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction f<T>(x: T) {}\ndeclare const x: {};\nf<any>(x);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction f<T>(x: T) {}\ninterface F {}\ndeclare const x: {};\nf<F>(x);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction f<T>(x: T) {}\nf<number[]>([]);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction f<T = number>(x: T) {}\nf(10);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction f<T extends number>(x: T) {}\nf(10);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction f<T extends number | string>(x: T) {}\nf(10);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction f<T extends number | string>(x: T) {}\nf<number | string>(10);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst curried =\n  <Outer,>(outer: Outer) =>\n  <Inner,>(inner: Inner) => {};\ncurried(10)(10);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nconst curried =\n  <Outer,>(outer: Outer) =>\n  <Inner,>(inner: Inner) => {};\ncurried<10>(10)<10>(10);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare function f<T>(x: T | (() => T)): [T, (x: T) => void];\ndeclare function f<T>(): [T | undefined, (x: T | undefined) => void];\nf(10);\nf<number>();\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction f<T>(x: T) {}\nf<boolean | null>(true);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass C<T> {}\nnew C<string>();\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass Foo<T> {\n  constructor<T>(x: T) {}\n}\nconst foo = new Foo(10);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction f<T>() {}\nf<number, number>();\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass Foo<T> {\n  public constructor(a: any, b: any, c: any, d: any) {}\n}\ninterface Bar {\n  val: any;\n}\nlet foo = new Foo<Bar>(0, 0, 0, { val: 0 });\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction f<T = string>() {}\nf<any>();\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction f<T = any>() {}\nf<string>();\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare function useState<T>(initialState: T | (() => T)): [T, (value: T) => void];\nconst [bookmarkedIds, setBookmarkedIds] = useState<Set<string>>(new Set());\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare function useRef<T>(initialValue: T): { current: T };\nconst activeIndexesRef = useRef<Set<number>>(new Set());\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype OneParam<T = any> = T;\ninterface TestInterface {\n  prop?: OneParam<string, number>;  // TypeScript error, but shouldn't panic\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype OneParam<T = any, U = any, V = any> = T;\ninterface TestInterface {\n  prop?: OneParam<string, number>;  // TypeScript error, but shouldn't panic\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype Data = Record<never, never>\n\ntype LocaleData<T extends Data = Data> = Record<string, T>\n\ninterface Data1 { a: string }\n\ntype Data2 = Partial<Data1>\n\ntype LocaleData2 = LocaleData<Data2>\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype Data = Record<never, never>\n\ntype LocaleData<T extends Data = Data> = Record<string, T>\n\ninterface Data1 { a: string }\n\ntype Data2 = Partial<Data1>\n\ninterface Wrapper {\n  value: LocaleData<Data2>\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\n\ntype SessionDataT = Record<string, any>\ntype SessionData<T extends SessionDataT = SessionDataT> = Partial<T>;\ndeclare function useSession<T extends SessionData = SessionData>(): any;\n\n\nexport function scoped() {\n  interface SessionData {\n    userId?: string;\n  }\n\n  return useSession<SessionData>()\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface Foo {\n\tfoo?: string\n}\ninterface Bar extends Foo {\n\tbar?: string\n}\n\nfunction f<T = Foo>() {}\nf<Bar>();\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype SessionDataT = Record<string, any>;\ntype H3SessionData<T extends SessionDataT = SessionDataT> = T;\ninterface SessionManager<T extends SessionDataT = SessionDataT> {\n  readonly data: H3SessionData<T>;\n}\ninterface SessionConfig {\n  password: string;\n  name: string;\n  cookie: {\n    sameSite: 'strict';\n    httpOnly: true;\n    secure: true;\n  };\n}\ninterface EventHandlerRequest {}\ndeclare class H3Event<_RequestT extends EventHandlerRequest = EventHandlerRequest> {}\ndeclare function useSession<T extends SessionDataT = SessionDataT>(\n  event: H3Event,\n  config: SessionConfig,\n): Promise<SessionManager<T>>;\n\ninterface SessionData {\n  userId?: string;\n}\n\nfunction getSessionConfig(): SessionConfig {\n  return {\n    password: '',\n    name: '',\n    cookie: {\n      sameSite: 'strict',\n      httpOnly: true,\n      secure: true,\n    },\n  };\n}\n\nasync function useAppSession(event: H3Event) {\n  const config = getSessionConfig();\n\n  return useSession<SessionData>(event, config);\n}\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype RecordToTuple<T> = {\n  [K in keyof T]: [K, T[K]];\n}[keyof T][];\n\nclass RequestContext<\n  Values extends Record<string, unknown> | unknown = unknown,\n> {\n  constructor(\n    _iterable?: Values extends Record<string, unknown>\n      ? RecordToTuple<Partial<Values>>\n      : Iterable<readonly [string, unknown]>,\n  ) {}\n\n  set<K extends Values extends Record<string, unknown> ? keyof Values : string>(\n    _key: K,\n    _value: Values extends Record<string, unknown>\n      ? K extends keyof Values\n        ? Values[K]\n        : never\n      : unknown,\n  ): void {}\n}\n\ntype UntypedRequestContext = RequestContext;\n\nfunction acceptsUntypedContext(_context: UntypedRequestContext): void {}\n\nconst context = new RequestContext<unknown>([\n  ['instructions', 'Reply for the agent.'],\n  ['tools', {}],\n]);\n\nacceptsUntypedContext(context);\n    ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Options": null,
+      "TSConfig": "",
+      "Tsx": false,
+      "Files": {}
+    }
+  ],
+  "Invalid": [
+    {
+      "Code": "\nfunction f<T = number>() {}\nf<number>();\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nfunction f<T = number>() {}\nf();\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryTypeParameter",
+          "Line": 0,
+          "Column": 3,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction g<T = number, U = string>() {}\ng<string, string>();\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nfunction g<T = number, U = string>() {}\ng<string>();\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryTypeParameter",
+          "Line": 0,
+          "Column": 11,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction f<T = number>(templates: TemplateStringsArray, arg: T) {}\nf<number>`${1}`;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nfunction f<T = number>(templates: TemplateStringsArray, arg: T) {}\nf`${1}`;\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryTypeParameter",
+          "Line": 0,
+          "Column": 3,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass C<T = number> {}\nfunction h(c: C<number>) {}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nclass C<T = number> {}\nfunction h(c: C) {}\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryTypeParameter",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass C<T = number> {}\nnew C<number>();\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nclass C<T = number> {}\nnew C();\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryTypeParameter",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass C<T = number> {}\nclass D extends C<number> {}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nclass C<T = number> {}\nclass D extends C {}\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryTypeParameter",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface I<T = number> {}\nclass Impl implements I<number> {}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\ninterface I<T = number> {}\nclass Impl implements I {}\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryTypeParameter",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass Foo<T = number> {}\nconst foo = new Foo<number>();\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nclass Foo<T = number> {}\nconst foo = new Foo();\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryTypeParameter",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface Bar<T = string> {}\nclass Foo<T = number> implements Bar<string> {}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\ninterface Bar<T = string> {}\nclass Foo<T = number> implements Bar {}\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryTypeParameter",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass Bar<T = string> {}\nclass Foo<T = number> extends Bar<string> {}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nclass Bar<T = string> {}\nclass Foo<T = number> extends Bar {}\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryTypeParameter",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nimport { F } from './missing';\nfunction bar<T = F<string>>() {}\nbar<F<string>>();\n      ",
+      "Only": false,
+      "Skip": true,
+      "FileName": "",
+      "Output": [
+        "\nimport { F } from './missing';\nfunction bar<T = F<string>>() {}\nbar();\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryTypeParameter",
+          "Line": 4,
+          "Column": 5,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype DefaultE = { foo: string };\ntype T<E = DefaultE> = { box: E };\ntype G = T<DefaultE>;\ndeclare module 'bar' {\n  type DefaultE = { somethingElse: true };\n  type G = T<DefaultE>;\n}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\ntype DefaultE = { foo: string };\ntype T<E = DefaultE> = { box: E };\ntype G = T;\ndeclare module 'bar' {\n  type DefaultE = { somethingElse: true };\n  type G = T<DefaultE>;\n}\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryTypeParameter",
+          "Line": 4,
+          "Column": 12,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype A<T = Map<string, string>> = T;\ntype B = A<Map<string, string>>;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\ntype A<T = Map<string, string>> = T;\ntype B = A;\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryTypeParameter",
+          "Line": 3,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype A = Map<string, string>;\ntype B<T = A> = T;\ntype C = B<A>;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\ntype A = Map<string, string>;\ntype B<T = A> = T;\ntype C = B;\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryTypeParameter",
+          "Line": 4,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype A = Map<string, string>;\ntype B<T = A> = T;\ntype C = B<Map<string, string>>;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\ntype A = Map<string, string>;\ntype B<T = A> = T;\ntype C = B;\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryTypeParameter",
+          "Line": 4,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype A = Map<string, string>;\ntype B = Map<string, string>;\ntype C<T = A> = T;\ntype D = C<B>;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\ntype A = Map<string, string>;\ntype B = Map<string, string>;\ntype C<T = A> = T;\ntype D = C;\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryTypeParameter",
+          "Line": 5,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype A = Map<string, string>;\ntype B = A;\ntype C = Map<string, string>;\ntype D = C;\ntype E<T = B> = T;\ntype F = E<D>;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\ntype A = Map<string, string>;\ntype B = A;\ntype C = Map<string, string>;\ntype D = C;\ntype E<T = B> = T;\ntype F = E;\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryTypeParameter",
+          "Line": 7,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ninterface Foo {}\ndeclare var Foo: {\n  new <T = string>(type: T): any;\n};\nclass Bar extends Foo<string> {}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\ninterface Foo {}\ndeclare var Foo: {\n  new <T = string>(type: T): any;\n};\nclass Bar extends Foo {}\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryTypeParameter",
+          "Line": 6,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare var Foo: {\n  new <T = string>(type: T): any;\n};\ninterface Foo {}\nclass Bar extends Foo<string> {}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\ndeclare var Foo: {\n  new <T = string>(type: T): any;\n};\ninterface Foo {}\nclass Bar extends Foo {}\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryTypeParameter",
+          "Line": 6,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass Foo<T> {}\ninterface Foo<T = string> {}\nclass Bar implements Foo<string> {}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nclass Foo<T> {}\ninterface Foo<T = string> {}\nclass Bar implements Foo {}\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryTypeParameter",
+          "Line": 4,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass Foo<T = string> {}\nnamespace Foo {\n  export class Bar {}\n}\nclass Bar extends Foo<string> {}\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nclass Foo<T = string> {}\nnamespace Foo {\n  export class Bar {}\n}\nclass Bar extends Foo {}\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryTypeParameter",
+          "Line": 6,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction Button<T = string>() {\n  return <div></div>;\n}\nconst button = <Button<string>></Button>;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nfunction Button<T = string>() {\n  return <div></div>;\n}\nconst button = <Button></Button>;\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryTypeParameter",
+          "Line": 5,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": true,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction Button<T = string>() {\n  return <div></div>;\n}\nconst button = <Button<string> />;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nfunction Button<T = string>() {\n  return <div></div>;\n}\nconst button = <Button />;\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryTypeParameter",
+          "Line": 5,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": true,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction f<T = number>(x: T) {}\nf<number>(10);\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nfunction f<T = number>(x: T) {}\nf(10);\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryTypeParameter",
+          "Line": 0,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nfunction foo<T = any>() {}\nfoo<any>();\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nfunction foo<T = any>() {}\nfoo();\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryTypeParameter",
+          "Line": 3,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype Foo<T> = any & T\nfunction foo<T = Foo<string>>() {}\nfoo<Foo<number>>();\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\ntype Foo<T> = any & T\nfunction foo<T = Foo<string>>() {}\nfoo();\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryTypeParameter",
+          "Line": 4,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ndeclare type MessageEventHandler = ((ev: MessageEvent<any>) => any) | null;\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\ndeclare type MessageEventHandler = ((ev: MessageEvent) => any) | null;\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryTypeParameter",
+          "Line": 2,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\ntype Default = Record<string, any>;\ntype Alias = Default;\nfunction f<T = Default>() {}\nf<Alias>();\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\ntype Default = Record<string, any>;\ntype Alias = Default;\nfunction f<T = Default>() {}\nf();\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryTypeParameter",
+          "Line": 5,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    },
+    {
+      "Code": "\nclass C<T, U = unknown> {\n  constructor(_value: U) {}\n}\nnew C<string, unknown>('value');\n      ",
+      "Only": false,
+      "Skip": false,
+      "FileName": "",
+      "Output": [
+        "\nclass C<T, U = unknown> {\n  constructor(_value: U) {}\n}\nnew C<string>('value');\n      "
+      ],
+      "Errors": [
+        {
+          "MessageId": "unnecessaryTypeParameter",
+          "Line": 5,
+          "Column": 0,
+          "EndLine": 0,
+          "EndColumn": 0,
+          "Suggestions": []
+        }
+      ],
+      "TSConfig": "",
+      "Options": null,
+      "Tsx": false,
+      "Files": {}
+    }
+  ]
+}

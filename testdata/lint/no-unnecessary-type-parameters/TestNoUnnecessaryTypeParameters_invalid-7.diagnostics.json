@@ -1,0 +1,41 @@
+[
+  {
+    "range": {
+      "pos": 25,
+      "end": 26
+    },
+    "suggestions": [
+      {
+        "message": {
+          "id": "replaceUsagesWithConstraint",
+          "description": "Replace all usages of type parameter with its constraint."
+        },
+        "fixes": [
+          {
+            "text": "",
+            "range": {
+              "pos": 24,
+              "end": 27
+            }
+          }
+        ]
+      }
+    ],
+    "labeled_ranges": [
+      {
+        "label": "This is the only usage of type parameter V in the signature.",
+        "range": {
+          "pos": 25,
+          "end": 26
+        }
+      }
+    ],
+    "kind": 0,
+    "rule": "no-unnecessary-type-parameters",
+    "message": {
+      "id": "sole",
+      "description": "Type parameter V is never used in the class signature."
+    },
+    "file_path": "file.ts"
+  }
+]

@@ -1,0 +1,15 @@
+[
+  {
+    "rule": "strict-boolean-expressions",
+    "message": {
+      "id": "conditionErrorOther",
+      "description": "Unexpected value in conditional. A union of different types has inconsistent truthiness."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 47,
+      "end": 48
+    },
+    "kind": 0
+  }
+]

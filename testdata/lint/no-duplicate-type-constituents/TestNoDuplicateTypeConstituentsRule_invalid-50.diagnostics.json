@@ -1,0 +1,40 @@
+[
+  {
+    "labeled_ranges": [
+      {
+        "label": "Type 'undefined' is first declared here.",
+        "range": {
+          "end": 56,
+          "pos": 47
+        }
+      }
+    ],
+    "kind": 0,
+    "rule": "no-duplicate-type-constituents",
+    "message": {
+      "id": "duplicate",
+      "description": "Union type constituent is duplicated with  undefined."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 59,
+      "end": 68
+    },
+    "fixes": [
+      {
+        "text": "",
+        "range": {
+          "pos": 59,
+          "end": 68
+        }
+      },
+      {
+        "text": "",
+        "range": {
+          "pos": 57,
+          "end": 58
+        }
+      }
+    ]
+  }
+]

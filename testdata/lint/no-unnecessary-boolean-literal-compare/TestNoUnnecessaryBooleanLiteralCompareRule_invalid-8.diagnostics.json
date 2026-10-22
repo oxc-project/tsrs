@@ -1,0 +1,38 @@
+[
+  {
+    "kind": 0,
+    "rule": "no-unnecessary-boolean-literal-compare",
+    "message": {
+      "id": "comparingNullableToFalse",
+      "description": "This expression unnecessarily compares a nullable boolean value to false instead of using the ?? operator to provide a default."
+    },
+    "file_path": "file.ts",
+    "range": {
+      "pos": 133,
+      "end": 168
+    },
+    "fixes": [
+      {
+        "text": "varTrueOrFalseOrUndefined",
+        "range": {
+          "end": 168,
+          "pos": 133
+        }
+      },
+      {
+        "text": "(",
+        "range": {
+          "pos": 133,
+          "end": 133
+        }
+      },
+      {
+        "text": " ?? true)",
+        "range": {
+          "pos": 168,
+          "end": 168
+        }
+      }
+    ]
+  }
+]

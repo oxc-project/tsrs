@@ -163,7 +163,7 @@ jobs:
           path: ${{ runner.tool_cache }}/Python/3.15.*
           key: release-python-v1-${{ matrix.os }}-${{ runner.arch }}-${{ steps.python-image.outputs.version }}-${{ hashFiles('.github/workflows/release.yml') }}
 
-      - uses: actions/setup-python@e797f83bcb11b83ae66e0230d6156d7c80228e7c # v6.0.0
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: '3.15'
 
@@ -452,9 +452,9 @@ jobs:
         with:
           restore-cache: false
 
-      - uses: taiki-e/install-action@8cca0918f8471c33515202b73f56ab27f2bed283 # v2.87.29
+      - uses: taiki-e/install-action@a4d3f3f761dcd95cce1b72cb61cb6d1963438177 # v2.87.30
         with:
-          tool: cargo-zigbuild@0.23.4
+          tool: cargo-zigbuild@0.24.0
           fallback: none
 
       - uses: goto-bus-stop/setup-zig@abea47f85e598557f500fa1fd2ab7464fcb39406 # v2.2.1

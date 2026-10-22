@@ -30,7 +30,9 @@ test("tsrs checks, emits, shares, and runs code without a JS TypeScript compiler
   expect(
     requests.some(
       (url) =>
-        url.includes("/vs/language/typescript/") || url.includes("/typescript/lib/typescript"),
+        url.includes("/vs/language/typescript/") ||
+        url.includes("/vs/languages/features/typescript/") ||
+        url.includes("/typescript/lib/typescript"),
     ),
   ).toBe(false);
   expect(errors).toEqual([]);

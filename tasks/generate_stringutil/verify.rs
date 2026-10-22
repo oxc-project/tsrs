@@ -1,4 +1,5 @@
 use sha2::{Digest as _, Sha512};
+use std::fmt::Write as _;
 
 #[path = "../../crates/tsrs_core/src/stringutil/js_case_generated.rs"]
 mod compact;
@@ -50,8 +51,12 @@ fn all_mappings_and_properties_match_the_pinned_unicode_table() {
             }
         }
     }
+    let mut digest = String::with_capacity(128);
+    for byte in hash.finalize() {
+        write!(digest, "{byte:02x}").unwrap();
+    }
     assert_eq!(
-        format!("{:x}", hash.finalize()),
+        digest,
         concat!(
             "a3fe150422a1dc546d09b7ec55acb4b4830d86b2189c3c6fd1f75dd072c0f6ef4b51",
             "a92cd3bf89c07c3a99eb3e77ff02edac6324418852c6d4594848b4f9ef05"

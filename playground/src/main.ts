@@ -1,7 +1,7 @@
-import * as Monaco from "monaco-editor/esm/vs/editor/editor.api";
-import "monaco-editor/esm/vs/basic-languages/typescript/typescript.contribution";
-import "monaco-editor/esm/vs/basic-languages/javascript/javascript.contribution";
-import EditorWorker from "monaco-editor/esm/vs/editor/editor.worker?worker";
+import * as Monaco from "monaco-editor/editor/editor.api.js";
+import "monaco-editor/languages/definitions/typescript/register.js";
+import "monaco-editor/languages/definitions/javascript/register.js";
+import EditorWorker from "monaco-editor/editor/editor.worker.js?worker";
 import React from "react";
 import ReactDOM from "react-dom";
 import metadata from "./generated/compiler.json";

@@ -23,7 +23,7 @@ The Go implementation at the commit in `Cargo.toml` (`[workspace.metadata.typesc
 
 ## Build
 
-Requirements: rustup (it installs the Rust version `rust-toolchain.toml` pins), Node.js 24 (`.node-version`), pnpm 12.10.1 (for `npm/build.mjs` and the JS tooling) and git.
+Requirements: rustup (it installs the Rust version `rust-toolchain.toml` pins), Node.js 24 (`.node-version`), pnpm 12.15.0 (for `npm/build.mjs` and the JS tooling) and git.
 The Fourslash suite also needs Python 3.12+ and Go with `GOTOOLCHAIN=auto` to select the pinned reference's version.
 Run `pnpm install --frozen-lockfile` from the repository root to install the npm workspace tooling.
 

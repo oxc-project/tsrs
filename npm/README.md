@@ -69,7 +69,7 @@ compiler version so `.tsbuildinfo` files and `typesVersions` agree with the refe
 
 ## Building packages locally
 
-Use pnpm 12.10.1, pinned in the root `package.json`, for the build tooling, packing and publishing.
+Use pnpm 12.15.0, pinned in the root `package.json`, for the build tooling, packing and publishing.
 
 ```sh
 cargo build --release -p tsrs_cli
@@ -208,7 +208,7 @@ What maintainers must configure before the first release:
 - The `@tsrs` npm org and each package must exist. Configure a GitHub Actions trusted publisher for `tsrs`,
   `@tsrs/wasm` and each platform package, including `@tsrs/darwin-x64` and `@tsrs/win32-x64`: owner `oxc-project`,
   repository `tsrs`, workflow filename `release.yml`, no environment name, with direct publishing allowed.
-- The publish job uses pnpm 12.10.1 and `id-token: write` to authenticate through GitHub Actions OIDC. No registry publish
+- The publish job uses pnpm 12.15.0 and `id-token: write` to authenticate through GitHub Actions OIDC. No registry publish
   token or repository secret is required. See [npm trusted publishing](https://docs.npmjs.com/trusted-publishers/)
   for configuration and first-publish validation requirements.
 - Provenance: npm only accepts `--provenance` from public repositories. The workflow adds `--provenance` automatically

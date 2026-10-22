@@ -47,7 +47,7 @@ jobs:
         with:
           save-cache: ${{ github.ref_name == 'main' }}
           cache-key: codspeed-${{ matrix.mode }}
-          tools: cargo-codspeed@5.0.3
+          tools: cargo-codspeed@6.0.0
 
       # The release profile without the PGO training of the npm binaries, whose profile changes with every build and
       # would move the counts. Symbols kept for CodSpeed's flame graphs.
@@ -90,7 +90,7 @@ jobs:
         with:
           save-cache: ${{ github.ref_name == 'main' }}
           cache-key: codspeed-walltime-arm64
-          tools: cargo-codspeed@5.0.3
+          tools: cargo-codspeed@6.0.0
 
       - name: Build benchmarks
         # mimalloc v3 enables ARMv8.1 LSE atomics by default on arm64. The Graviton Macro Runner cannot execute
@@ -150,7 +150,7 @@ jobs:
         uses: oxc-project/setup-rust@3d6fb132fbe7cdcb66bf8ec193911c2945369d12 # v1.0.17
         with:
           restore-cache: false
-          tools: cargo-codspeed@5.0.3
+          tools: cargo-codspeed@6.0.0
 
       - name: Download benchmarks
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
@@ -230,7 +230,7 @@ jobs:
         uses: oxc-project/setup-rust@3d6fb132fbe7cdcb66bf8ec193911c2945369d12 # v1.0.17
         with:
           restore-cache: false
-          tools: cargo-codspeed@5.0.3
+          tools: cargo-codspeed@6.0.0
 
       - name: Download benchmarks
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2

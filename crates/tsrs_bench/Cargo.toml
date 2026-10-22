@@ -17,7 +17,7 @@ tsrs_vfs.workspace = true
 rustc-hash.workspace = true
 
 [dev-dependencies]
-codspeed = "4.7.0"
+codspeed = "6.0.0"
 criterion2.workspace = true
 mimalloc-safe.workspace = true
 

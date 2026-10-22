@@ -18,7 +18,7 @@ Copied paths preserve their upstream layout beneath this directory:
 - Website English labels, their small library dependencies, Microsoft logo asset, `static/fonts/`,
   DocSearch assets, `src/style/globals.scss`, and `gatsby-ssr.js` (theme initialization reference).
 - `LICENSE-CODE` and `LICENSE`: MIT code license and CC BY 4.0 content license, respectively.
-- `requirejs/LICENSE`: the plugin loader's MIT license from the RequireJS `2.3.7` tag, omitted by its npm tarball.
+- `requirejs/LICENSE`: the plugin loader's MIT license from the RequireJS `2.3.8` tag, omitted by its npm tarball.
 
 The playground page and its website shell are rendered directly from vendored source. Their files and fonts
 remain byte-for-byte upstream; `WEBSITE-MANIFEST.json` is verified on every build. No custom stylesheet overrides
@@ -26,7 +26,9 @@ the official styles. The Gatsby build application is replaced by a small Vite ho
 the tsrs adapter, worker, virtual-file mapping, and diagnostic/output panes using the upstream design system.
 The reference sandbox and TypeScript worker are not
 browser entrypoints and are not bundled. Static compiler-option metadata is generated from build-time TypeScript
-6.0.2; removed TypeScript 7 options are excluded from dropdowns. TypeScript metadata is not a runtime compiler.
+6.0.3; removed TypeScript 7 options are excluded from dropdowns. TypeScript metadata is not a runtime compiler.
+TypeScript 6 retains the JavaScript compiler API used to generate this metadata. React 18 matches the supported
+peer range of the vendored website's react-helmet/react-side-effect dependencies.
 
 Local modifications to upstream source:
 

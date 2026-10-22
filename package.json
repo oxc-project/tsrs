@@ -2,12 +2,12 @@
     "name": "tsrs-tooling",
     "version": "0.19.0-ts7.1.0-beta",
     "private": true,
-    "packageManager": "pnpm@12.10.1",
+    "packageManager": "pnpm@12.15.0",
     "scripts": {
         "bench": "node bench/bench.mjs",
         "test:bench": "node --test bench/bench.test.mjs"
     },
     "devDependencies": {
-        "void": "0.28.0"
+        "void": "1.2.1"
     }
 }

@@ -33,7 +33,8 @@ export default defineConfig({
           for (const id of artifact.moduleIds) {
             if (
               /\/typescript\/lib\/(?:typescript|tsserverlibrary)\.js/.test(id) ||
-              id.includes("/vs/language/typescript/")
+              id.includes("/vs/language/typescript/") ||
+              id.includes("/vs/languages/features/typescript/")
             )
               throw new Error(`JavaScript TypeScript runtime must not be bundled: ${id}`);
           }

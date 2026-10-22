@@ -54,7 +54,9 @@ export function createSandbox(monaco: typeof Monaco) {
     filetype === "js" ? "javascript" : "typescript",
     monaco.Uri.file(fileName()),
   );
-  model.updateOptions({ bracketColorizationOptions: { enabled: true } });
+  model.updateOptions({
+    bracketColorizationOptions: { enabled: true, independentColorPoolPerBracketType: false },
+  });
   const editor = monaco.editor.create(document.getElementById("monaco-editor-embed")!, {
     model,
     automaticLayout: true,
@@ -66,7 +68,7 @@ export function createSandbox(monaco: typeof Monaco) {
     quickSuggestions: false,
     parameterHints: { enabled: false },
     suggestOnTriggerCharacters: false,
-    wordBasedSuggestions: false,
+    wordBasedSuggestions: "off",
   });
   const selection = ["ssl", "ssc", "pln", "pc"].map((key) => Number(params.get(key)));
   if (selection.every((value) => value > 0))

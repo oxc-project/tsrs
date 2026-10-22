@@ -158,7 +158,7 @@ export function prepareAssets() {
     "",
   ];
   for (const dependency of dependencies) {
-    const directory = path.dirname(require.resolve(dependency + "/package.json"));
+    const directory = path.join(root, "node_modules", dependency);
     for (const filename of [
       "LICENSE",
       "LICENSE.txt",

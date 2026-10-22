@@ -15,7 +15,7 @@ use crate::configfileregistry::{
     configuredContentMappers, new_config_file_entry, new_extended_config_file_entry,
 };
 use crate::dirty::{self, Shared, SyncMapEntry};
-use crate::extendedconfigcache::{ExtendedConfigCache, ExtendedConfigParseArgs, assume_static};
+use crate::extendedconfigcache::{ExtendedConfigCache, ExtendedConfigParseArgs};
 use crate::filechange::FileChangeSummary;
 use crate::logging::LogTree;
 use crate::project::{ID, PendingReload};
@@ -208,7 +208,7 @@ impl configFileRegistryBuilder {
                     path.clone(),
                     existing_options.as_ref(),
                     None, /*optionsRaw*/
-                    assume_static::<dyn ParseConfigHost>(self),
+                    self,
                     Some(self as &dyn ExtendedConfigCacheTrait),
                 );
                 entry.command_line = command_line.map(P::new);
@@ -1068,7 +1068,7 @@ impl ExtendedConfigCacheTrait for configFileRegistryBuilder {
         file_name: &str,
         path: &Path,
         resolution_stack: &[Path],
-        host: &'static dyn ParseConfigHost,
+        host: &dyn ParseConfigHost,
     ) -> P<tsoptions::ExtendedConfigCacheEntry> {
         let mut content = String::new();
         if let Some(fh) = self.fs.get_file_by_path(file_name, path) {
@@ -1085,7 +1085,7 @@ impl ExtendedConfigCacheTrait for configFileRegistryBuilder {
                     fs: self.fs.source(),
                     resolution_stack: resolution_stack.to_vec(),
                     host,
-                    cache: assume_static::<dyn ExtendedConfigCacheTrait>(self),
+                    cache: self,
                 },
             )
             .extended_config_cache_entry

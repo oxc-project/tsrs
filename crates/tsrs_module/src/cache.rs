@@ -210,7 +210,7 @@ pub struct ResolutionData {
     pub(crate) package_json_info_cache: P<InfoCache>,
 }
 
-pub(crate) fn new_resolution_data(opts: ResolverOptions) -> P<ResolutionData> {
+pub(crate) fn new_resolution_data(opts: ResolverOptions<'_>) -> P<ResolutionData> {
     let package_json_info_cache = match opts.package_json_cache {
         Some(cache) => cache,
         None => P::new(packagejson::new_info_cache(
@@ -243,7 +243,7 @@ impl ResolutionData {
         self.package_json_info_cache.range(f);
     }
 
-    pub fn new_resolver(&'static self, host: &'static dyn ResolutionHost) -> DefaultResolver {
+    pub fn new_resolver<'h>(&'static self, host: &'h dyn ResolutionHost) -> DefaultResolver<'h> {
         DefaultResolver::new_from_resolution_data(P::from_static(self), host)
     }
 }
@@ -259,7 +259,7 @@ pub(crate) fn redirect_config_name(redirect: Option<&dyn ResolvedProjectReferenc
     }
 }
 
-impl Deref for DefaultResolver {
+impl Deref for DefaultResolver<'_> {
     type Target = ResolutionData;
     fn deref(&self) -> &ResolutionData {
         &self.resolution_data

@@ -51,7 +51,7 @@ impl ParseConfigHost for VfsParseConfigHost {
     }
 }
 
-// Hosts are leaked: config parsing keeps `&'static dyn ParseConfigHost` (the module resolver requires it).
+// The hosts live in the arena for the test's life; config parsing only borrows them.
 pub fn new_vfs_parse_config_host(
     files: &[(&str, &str)],
     current_directory: &str,

@@ -656,6 +656,11 @@ fn regions_of_directories(directories: &SharedMap<Path, directory>) -> Vec<Regio
 }
 
 // The registry builder keeps the clone host for the duration of `clone_registry` only (see there).
+//
+// Still a lifetime extension (issue #646): the module resolver now borrows its host for any lifetime, but the alias
+// resolver built from this host is arena-allocated and handed to `new_checker(&'static dyn Program)`, and
+// `wrapvfs::wrap` and `get_package_realpath_funcs` take `&'static dyn FS`. Removing this is blocked on the
+// program/checker ownership item of #646; a lifetime here would have to reach the checker's stored program.
 fn assume_static(host: &dyn RegistryCloneHost) -> &'static dyn RegistryCloneHost {
     // SAFETY: every value built from the host (resolvers, alias resolvers, checkers, extractors) lives in the
     // update's scratch region or on the stack of `clone_registry`, which frees them before it returns, before the

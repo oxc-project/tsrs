@@ -623,7 +623,7 @@ impl Project {
             let factory = self.module_resolver_factory.clone();
             let cleanup_module_resolver = Arc::clone(&cleanup_module_resolver);
             let ctx = host.builder_ctx();
-            Arc::new(move |options: ResolverOptions| -> Box<dyn Resolver> {
+            Arc::new(move |options: ResolverOptions<'static>| -> Box<dyn Resolver> {
                 let Some(factory) = &factory else {
                     return Box::new(module::new_resolver(options));
                 };

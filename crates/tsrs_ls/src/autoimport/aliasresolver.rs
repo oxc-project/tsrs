@@ -28,7 +28,7 @@ pub(crate) type OnFailedAmbientModuleLookup = Box<dyn Fn(P<SourceFile>, &str) + 
 pub(crate) struct aliasResolver {
     to_path: ToPathFunc,
     host: &'static dyn RegistryCloneHost,
-    module_resolver: &'static DefaultResolver,
+    module_resolver: &'static DefaultResolver<'static>,
 
     pub(crate) root_files: Vec<P<SourceFile>>,
     // symlinks maps from realpath to symlinked path and file name
@@ -47,7 +47,7 @@ pub(crate) fn new_alias_resolver(
     root_files: Vec<P<SourceFile>>,
     symlinks: FxHashMap<Path, pathAndFileName>,
     host: &'static dyn RegistryCloneHost,
-    module_resolver: &'static DefaultResolver,
+    module_resolver: &'static DefaultResolver<'static>,
     to_path: ToPathFunc,
     on_failed_ambient_module_lookup: OnFailedAmbientModuleLookup,
 ) -> aliasResolver {

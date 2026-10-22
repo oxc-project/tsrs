@@ -120,7 +120,7 @@ impl Session {
         let command_line = p.strings("commandLine")?;
         Ok(config_file_response(&tsrs_tsoptions::parse_command_line(
             &command_line,
-            self.parse_config_host,
+            &self.parse_config_host,
         )))
     }
 
@@ -165,7 +165,7 @@ impl Session {
         };
         let parsed = tsrs_tsoptions::parse_json_config_file_content(
             json_to_options_value(p.get("json")),
-            self.parse_config_host,
+            &self.parse_config_host,
             &base_path,
             None,
             &config_file_name,
@@ -189,7 +189,7 @@ impl Session {
         );
         let parsed = tsrs_tsoptions::parse_json_source_file_config_file_content(
             source,
-            self.parse_config_host,
+            &self.parse_config_host,
             &config_dir,
             None,
             None,

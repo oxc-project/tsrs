@@ -117,8 +117,7 @@ pub struct Session {
     /// Go `projectSession`: the language server's project session, for sessions created by `new_lsp_session`.
     pub(crate) project_session: Option<Arc<tsrs_project::Session>>,
     pub(crate) language_server: Mutex<LanguageServerState>,
-    /// Leaked once per session: tsoptions requires a `&'static dyn ParseConfigHost`.
-    pub(crate) parse_config_host: &'static crate::config::ApiParseConfigHost,
+    pub(crate) parse_config_host: crate::config::ApiParseConfigHost,
     binary_responses: bool,
     /// Registered snapshots with their API reference count (Go `snapshotData.refCount`).
     snapshots: RwLock<FxHashMap<SnapshotID, (Arc<SnapshotData>, usize)>>,
@@ -193,11 +192,10 @@ impl Session {
         binary_responses: bool,
     ) -> Arc<Session> {
         // Go parses configs with the snapshot host as the `ParseConfigHost`.
-        let parse_config_host: &'static crate::config::ApiParseConfigHost =
-            Box::leak(Box::new(crate::config::ApiParseConfigHost {
-                fs: snapshot_host.shared_fs(),
-                cwd: snapshot_host.get_current_directory().to_string(),
-            }));
+        let parse_config_host = crate::config::ApiParseConfigHost {
+            fs: snapshot_host.shared_fs(),
+            cwd: snapshot_host.get_current_directory().to_string(),
+        };
         let id = SESSION_ID_COUNTER.fetch_add(1, Ordering::SeqCst) + 1;
         Arc::new_cyclic(|weak_self| Session {
             id: format!("api-session-{id}"),

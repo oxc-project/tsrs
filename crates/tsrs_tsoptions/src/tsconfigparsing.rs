@@ -220,7 +220,7 @@ pub trait ExtendedConfigCache: Sync {
         file_name: &str,
         path: &Path,
         resolution_stack: &[Path],
-        host: &'static dyn ParseConfigHost,
+        host: &dyn ParseConfigHost,
     ) -> P<ExtendedConfigCacheEntry>;
 }
 
@@ -250,7 +250,7 @@ pub(crate) struct ParsedTsconfig {
 
 fn parse_own_config_of_json_source_file(
     source_file: P<SourceFile>,
-    host: &'static dyn ParseConfigHost,
+    host: &dyn ParseConfigHost,
     base_path: &str,
     config_file_name: &str,
 ) -> (ParsedTsconfig, Vec<P<Diagnostic>>) {
@@ -746,7 +746,7 @@ pub(crate) fn convert_json_option(
 
 fn get_extends_config_path_or_array(
     value: &CompilerOptionsValue,
-    host: &'static dyn ParseConfigHost,
+    host: &dyn ParseConfigHost,
     base_path: &str,
     config_file_name: &str,
     property_assignment: Option<P<Node>>,
@@ -826,7 +826,7 @@ fn get_extends_config_path_or_array(
 
 fn get_extends_config_path(
     extended_config: &str,
-    host: &'static dyn ParseConfigHost,
+    host: &dyn ParseConfigHost,
     base_path: &str,
     value_expression: Option<P<Node>>,
     source_file: Option<P<SourceFile>>,
@@ -866,11 +866,11 @@ fn get_extends_config_path(
         return (extended_config_path, errors);
     }
     // If the path isn't a rooted or relative path, resolve like a module
-    let resolver_host: &'static ResolverHost = P::new(ResolverHost { host }).get();
+    let resolver_host = ResolverHost { host };
     let resolved = tsrs_module::resolve_config(
         &extended_config,
         &tspath::combine_paths(base_path, &["tsconfig.json"]),
-        resolver_host,
+        &resolver_host,
     );
     if resolved.is_resolved() {
         return (resolved.resolved_file_name.to_string(), errors);
@@ -1071,11 +1071,13 @@ pub trait ParseConfigHost: Send + Sync {
     fn get_current_directory(&self) -> &str;
 }
 
-pub(crate) struct ResolverHost {
-    pub(crate) host: &'static dyn ParseConfigHost,
+// Adapts a parse host for the module resolver while one `extends` or content-mapper lookup runs; it lives on that
+// call's stack and the resolver borrows it (issue #646).
+pub(crate) struct ResolverHost<'h> {
+    pub(crate) host: &'h dyn ParseConfigHost,
 }
 
-impl tsrs_module::ResolutionHost for ResolverHost {
+impl tsrs_module::ResolutionHost for ResolverHost<'_> {
     fn fs(&self) -> &dyn FS {
         self.host.fs()
     }
@@ -1087,7 +1089,7 @@ impl tsrs_module::ResolutionHost for ResolverHost {
 
 pub fn parse_json_source_file_config_file_content(
     source_file: P<TsConfigSourceFile>,
-    host: &'static dyn ParseConfigHost,
+    host: &dyn ParseConfigHost,
     base_path: &str,
     existing_options: Option<&CompilerOptions>,
     existing_options_raw: Option<&CompilerOptionsValue>,
@@ -1312,7 +1314,7 @@ fn convert_property_value_to_json(
 // basePath: A root directory to resolve relative path entries in the config file to. e.g. outDir
 pub fn parse_json_config_file_content(
     json: CompilerOptionsValue,
-    host: &'static dyn ParseConfigHost,
+    host: &dyn ParseConfigHost,
     base_path: &str,
     existing_options: Option<&CompilerOptions>,
     config_file_name: &str,
@@ -1433,7 +1435,7 @@ fn convert_type_acquisition_from_json_worker(
 
 fn parse_own_config_of_json(
     mut json: OrderedMap<String, CompilerOptionsValue>,
-    host: &'static dyn ParseConfigHost,
+    host: &dyn ParseConfigHost,
     base_path: &str,
     config_file_name: &str,
 ) -> (ParsedTsconfig, Vec<P<Diagnostic>>) {
@@ -1540,7 +1542,7 @@ fn read_json_config_file(
 fn get_extended_config(
     source_file: Option<P<TsConfigSourceFile>>,
     extended_config_file_name: &str,
-    host: &'static dyn ParseConfigHost,
+    host: &dyn ParseConfigHost,
     resolution_stack: &[Path],
     extended_config_cache: Option<&dyn ExtendedConfigCache>,
     result: &mut ExtendsResult,
@@ -1594,7 +1596,7 @@ pub fn parse_extended_config(
     file_name: &str,
     path: Path,
     resolution_stack: &[Path],
-    host: &'static dyn ParseConfigHost,
+    host: &dyn ParseConfigHost,
     extended_config_cache: Option<&dyn ExtendedConfigCache>,
 ) -> P<ExtendedConfigCacheEntry> {
     let (extended_result, read_errors) =
@@ -1635,7 +1637,7 @@ pub fn parse_extended_config(
 fn parse_config(
     json: Option<OrderedMap<String, CompilerOptionsValue>>,
     source_file: Option<P<TsConfigSourceFile>>,
-    host: &'static dyn ParseConfigHost,
+    host: &dyn ParseConfigHost,
     base_path: &str,
     config_file_name: &str,
     resolution_stack: &[Path],
@@ -1776,7 +1778,7 @@ fn apply_extended_config(
     extended_config_path: &str,
     own_config: &ParsedTsconfig,
     source_file: Option<P<TsConfigSourceFile>>,
-    host: &'static dyn ParseConfigHost,
+    host: &dyn ParseConfigHost,
     base_path: &str,
     resolution_stack: &[Path],
     extended_config_cache: Option<&dyn ExtendedConfigCache>,
@@ -1898,7 +1900,7 @@ fn is_string_value(value: &CompilerOptionsValue) -> bool {
 fn parse_json_config_file_content_worker(
     json: Option<OrderedMap<String, CompilerOptionsValue>>,
     source_file: Option<P<TsConfigSourceFile>>,
-    host: &'static dyn ParseConfigHost,
+    host: &dyn ParseConfigHost,
     base_path: &str,
     existing_options: Option<&CompilerOptions>,
     existing_options_raw: Option<&CompilerOptionsValue>,
@@ -3240,7 +3242,7 @@ pub fn get_parsed_command_line_of_config_file(
     config_file_name: &str,
     options: Option<&CompilerOptions>,
     options_raw: Option<&CompilerOptionsValue>,
-    sys: &'static dyn ParseConfigHost,
+    sys: &dyn ParseConfigHost,
     extended_config_cache: Option<&dyn ExtendedConfigCache>,
 ) -> (Option<ParsedCommandLine>, Vec<P<Diagnostic>>) {
     let config_file_name =
@@ -3265,7 +3267,7 @@ pub fn get_parsed_command_line_of_config_file_path(
     path: Path,
     options: Option<&CompilerOptions>,
     options_raw: Option<&CompilerOptionsValue>,
-    sys: &'static dyn ParseConfigHost,
+    sys: &dyn ParseConfigHost,
     extended_config_cache: Option<&dyn ExtendedConfigCache>,
 ) -> (Option<ParsedCommandLine>, Vec<P<Diagnostic>>) {
     let (config_file_text, errors) =

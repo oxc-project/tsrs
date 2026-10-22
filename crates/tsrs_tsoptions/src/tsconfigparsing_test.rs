@@ -979,11 +979,11 @@ export {}",
 }
 // END GENERATED
 
-type GetParsed = fn(&TestConfig, &'static VfsParseConfigHost, &str) -> ParsedCommandLine;
+type GetParsed = fn(&TestConfig, &VfsParseConfigHost, &str) -> ParsedCommandLine;
 
 fn get_parsed_with_json_api(
     config: &TestConfig,
-    host: &'static VfsParseConfigHost,
+    host: &VfsParseConfigHost,
     base_path: &str,
 ) -> ParsedCommandLine {
     let config_file_name = tspath::get_normalized_absolute_path(config.config_file_name, base_path);
@@ -1006,7 +1006,7 @@ fn get_parsed_with_json_api(
 
 fn get_parsed_with_json_source_file_api(
     config: &TestConfig,
-    host: &'static VfsParseConfigHost,
+    host: &VfsParseConfigHost,
     base_path: &str,
 ) -> ParsedCommandLine {
     let config_file_name = tspath::get_normalized_absolute_path(config.config_file_name, base_path);
@@ -2262,7 +2262,7 @@ impl ExtendedConfigCache for MemoCache {
         file_name: &str,
         path: &Path,
         resolution_stack: &[Path],
-        host: &'static dyn ParseConfigHost,
+        host: &dyn ParseConfigHost,
     ) -> P<ExtendedConfigCacheEntry> {
         if let Some(e) = self.m.lock().unwrap().get(path) {
             return *e;
@@ -2274,7 +2274,7 @@ impl ExtendedConfigCache for MemoCache {
 }
 
 fn parse_config_with_cache(
-    host: &'static VfsParseConfigHost,
+    host: &VfsParseConfigHost,
     config_file_name: &str,
     cache: &MemoCache,
 ) -> ParsedCommandLine {
@@ -2531,4 +2531,29 @@ fn smoke_parse_project_from_env() {
     if let Ok(out) = std::env::var("TSRS_TSOPTIONS_SMOKE_OUT") {
         std::fs::write(out, parsed.file_names().join("\n") + "\n").unwrap();
     }
+}
+
+// Not in Go. The hosts are borrowed for the parse (issue #646): a host on the test's stack serves a config whose
+// `extends` resolves through node_modules, which builds a module resolver on a borrow of that host.
+#[test]
+fn test_parse_config_borrows_host() {
+    let files: &[(&str, &str)] = &[
+        ("/tsconfig.json", r#"{ "extends": "@scope/base/tsconfig.json", "files": ["app.ts"] }"#),
+        ("/node_modules/@scope/base/package.json", r#"{ "name": "@scope/base" }"#),
+        ("/node_modules/@scope/base/tsconfig.json", r#"{ "compilerOptions": { "strict": true } }"#),
+        ("/app.ts", "export {}"),
+    ];
+    let host = VfsParseConfigHost {
+        vfs: P::new(tsrs_vfs::vfstest::from_map(
+            files.iter().map(|(k, v)| (*k, v.to_string())),
+            true, /*useCaseSensitiveFileNames*/
+        ))
+        .get(),
+        current_directory: "/".to_string(),
+    };
+    let cache = MemoCache::default();
+    let parsed = parse_config_with_cache(&host, "/tsconfig.json", &cache);
+    let codes: Vec<_> = parsed.errors.iter().map(|d| d.code()).collect();
+    assert!(codes.is_empty(), "unexpected diagnostics: {codes:?}");
+    assert!(parsed.compiler_options().unwrap().strict.is_true());
 }

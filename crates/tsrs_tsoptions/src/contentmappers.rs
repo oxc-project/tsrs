@@ -217,13 +217,13 @@ pub struct OptionPathSegment {
 // the mapper could not be resolved; on success the diagnostic is nil.
 // contentmappers.go:17
 pub(crate) fn resolve_content_mapper_manifest(
-    host: &'static dyn ParseConfigHost,
+    host: &dyn ParseConfigHost,
     containing_file: &str,
     package_name: &str,
 ) -> (Manifest, String, Option<P<Diagnostic>>) {
-    let resolver_host: &'static ResolverHost = P::new(ResolverHost { host }).get();
+    let resolver_host = ResolverHost { host };
     let resolver = tsrs_module::new_resolver(tsrs_module::ResolverOptions::new(
-        resolver_host,
+        &resolver_host,
         P::new(CompilerOptions {
             module_resolution: ModuleResolutionKind::Bundler,
             ..Default::default()

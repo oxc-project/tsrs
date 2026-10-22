@@ -5,17 +5,24 @@ use tsrs_core::tspath::Path;
 use tsrs_tsoptions::{self as tsoptions, ParseConfigHost};
 
 use crate::overlayfs::Hash128;
-use crate::ownercache::{OwnerCache, new_owner_cache};
+use crate::ownercache::{LoadArgs, OwnerCache, new_owner_cache};
 use crate::snapshotfs::FileSource;
 
-pub struct ExtendedConfigParseArgs {
+pub struct ExtendedConfigParseArgs<'a> {
     pub file_name: String,
     pub content: String,
     pub fs: Arc<dyn FileSource>,
     pub resolution_stack: Vec<Path>,
-    // tsoptions keeps hosts as `&'static dyn` (see `assume_static`); both live for the duration of the parse.
-    pub host: &'static dyn ParseConfigHost,
-    pub cache: &'static dyn tsoptions::ExtendedConfigCache,
+    // Borrowed by the one load that uses them; the parse retains neither (issue #646).
+    pub host: &'a dyn ParseConfigHost,
+    pub cache: &'a dyn tsoptions::ExtendedConfigCache,
+}
+
+// The loader argument family of `ExtendedConfigCache` (`ownercache::LoadArgs`): each load borrows its own hosts.
+pub struct ExtendedConfigLoadArgs;
+
+impl LoadArgs for ExtendedConfigLoadArgs {
+    type Args<'a> = ExtendedConfigParseArgs<'a>;
 }
 
 pub struct ExtendedConfigCacheEntry {
@@ -25,12 +32,12 @@ pub struct ExtendedConfigCacheEntry {
 }
 
 pub type ExtendedConfigCache =
-    OwnerCache<Path, Arc<ExtendedConfigCacheEntry>, ExtendedConfigParseArgs>;
+    OwnerCache<Path, Arc<ExtendedConfigCacheEntry>, ExtendedConfigLoadArgs>;
 
 // extendedconfigcache.go:25
 pub fn new_extended_config_cache() -> ExtendedConfigCache {
     new_owner_cache(
-        |path: &Path, args: &ExtendedConfigParseArgs| {
+        |path: &Path, args: &ExtendedConfigParseArgs<'_>| {
             let extended_config_cache_entry = tsoptions::parse_extended_config(
                 &args.file_name,
                 path.clone(),
@@ -44,7 +51,7 @@ pub fn new_extended_config_cache() -> ExtendedConfigCache {
         Some(Box::new(
             |_path: &Path,
              entry: &Arc<ExtendedConfigCacheEntry>,
-             args: &ExtendedConfigParseArgs| {
+             args: &ExtendedConfigParseArgs<'_>| {
                 entry.hash == 0 || entry.hash != hash(&entry.extended_config_cache_entry, args)
             },
         )),
@@ -52,7 +59,10 @@ pub fn new_extended_config_cache() -> ExtendedConfigCache {
 }
 
 // extendedconfigcache.go:40
-fn hash(entry: &tsoptions::ExtendedConfigCacheEntry, args: &ExtendedConfigParseArgs) -> Hash128 {
+fn hash(
+    entry: &tsoptions::ExtendedConfigCacheEntry,
+    args: &ExtendedConfigParseArgs<'_>,
+) -> Hash128 {
     let mut hasher = xxhash_rust::xxh3::Xxh3::new();
     hasher.update(args.content.as_bytes());
     for file_name in entry.extended_file_names() {
@@ -62,13 +72,4 @@ fn hash(entry: &tsoptions::ExtendedConfigCacheEntry, args: &ExtendedConfigParseA
         hasher.update(fh.content().as_bytes());
     }
     hasher.digest128()
-}
-
-// tsoptions takes `&'static dyn ParseConfigHost` / `ExtendedConfigCache` (the CLI leaks its hosts), but reads them
-// only while the parse call runs (the resolver host it allocates in the arena is never read afterwards). The
-// project system's hosts are per-snapshot builders, so they are passed with an assumed 'static lifetime that
-// the call does not outlive.
-pub(crate) fn assume_static<T: ?Sized>(r: &T) -> &'static T {
-    // SAFETY: see above; callers pass references that stay valid until the tsoptions call returns.
-    unsafe { &*std::ptr::from_ref::<T>(r) }
 }

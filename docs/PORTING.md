@@ -77,7 +77,9 @@ programs and file versions ([LSP.md](LSP.md#memory-management)). The rules are:
   Rust `static` is an `SP<T>`. Packed words store `p.to_bits()` / `p.key()`, never addresses.
 - Go `*T` that can be nil -> `Option<P<T>>`. Go `*T` that is never nil -> `P<T>`.
   Decide from the Go code (nil checks, `return nil`). When unsure, use `Option`.
-- There are **no lifetime parameters** anywhere in this codebase. Arena data is `'static`.
+- There are **no lifetime parameters** anywhere in this codebase. Arena data is `'static`. One exception (issue #646):
+  `tsrs_module::DefaultResolver<'h>` borrows its resolution host and config parsing takes `&dyn ParseConfigHost`, so
+  the project system and content-mapper lookups pass hosts that live on the caller's stack instead of faking `'static`.
 - Arena objects remain live until their arena is released, unless an explicit recycling site proves them dead
   (rolled-back parses, dropped flow labels, scratch mappers and inference contexts whose escape
   bit is clear; `tsrs_core::arena`, notes/mem-recycle.md). A struct field that keeps a mapper must be a `MapperCell`.

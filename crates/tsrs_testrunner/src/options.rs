@@ -380,7 +380,7 @@ pub fn parse_test_ts_config(
         tspath::get_normalized_absolute_path(&data.name, current_directory),
         data.content.clone(),
     );
-    // Config parsing keeps `&'static dyn ParseConfigHost`; the host is leaked like everything in the arena.
+    // The host lives in the arena like everything else here; config parsing only borrows it.
     let parse_config_host: &'static VfsParseConfigHost =
         P::new(new_vfs_parse_config_host_with_symlinks(
             &all_files,

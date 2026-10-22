@@ -156,7 +156,7 @@ pub trait ModuleResolverFactory: Send + Sync {
     fn new_resolver(
         &self,
         ctx: &Context,
-        options: ResolverOptions,
+        options: ResolverOptions<'static>,
     ) -> (Box<dyn Resolver>, Box<dyn FnOnce() + Send>);
 }
 

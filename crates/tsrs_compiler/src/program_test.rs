@@ -191,7 +191,7 @@ fn program_hosts_and_factories() {
     }));
     let resolvers_c = std::sync::Arc::clone(&resolvers);
     opts.create_module_resolver = Some(Arc::new(
-        move |options: tsrs_module::ResolverOptions| -> Box<dyn tsrs_module::Resolver> {
+        move |options: tsrs_module::ResolverOptions<'static>| -> Box<dyn tsrs_module::Resolver> {
             resolvers_c.fetch_add(1, Ordering::Relaxed);
             Box::new(tsrs_module::new_resolver(options))
         },

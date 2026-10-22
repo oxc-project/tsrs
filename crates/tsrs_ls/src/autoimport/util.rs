@@ -377,12 +377,12 @@ impl ResolutionHost for resolutionHost {
 }
 
 // util.go:333
-// The resolver keeps its host for its whole life (module.ResolverOptions.Host is 'static); the host lives in the
+// The resolver borrows its host for its whole life; the host lives in the
 // current arena, which is the registry update's scratch region (registry.go `Clone`), like the resolver.
 pub(crate) fn get_module_resolver(
     host: &'static dyn RegistryCloneHost,
     realpath: PathFunc,
-) -> DefaultResolver {
+) -> DefaultResolver<'static> {
     let rh: &'static resolutionHost = tsrs_core::alloc(resolutionHost {
         fs: wrapvfs::wrap(
             host.fs(),

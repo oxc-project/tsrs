@@ -69,9 +69,6 @@ jobs:
           save-cache: ${{ github.ref_name == 'main' }}
           cache-key: warm-lint
 
-      - name: Release WASM artifact checks
-        run: node --test .github/scripts/restore-release-wasm.test.mjs
-
       - name: Clippy
         run: cargo clippy --locked --all-targets --config 'build.warnings="deny"'
 

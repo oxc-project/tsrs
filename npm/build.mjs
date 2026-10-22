@@ -337,6 +337,7 @@ function main() {
             else fs.copyFileSync(from, path.join(mainDir, entry));
         }
         fs.chmodSync(path.join(mainDir, "bin", "tsrs"), 0o755);
+        fs.chmodSync(path.join(mainDir, "tsdk", "tsgo"), 0o755);
         fs.writeFileSync(path.join(mainDir, "LICENSE"), license);
         fs.writeFileSync(path.join(mainDir, "NOTICE.txt"), notice);
         writeJson(path.join(mainDir, "package.json"), {

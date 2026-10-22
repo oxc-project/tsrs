@@ -14,20 +14,30 @@ editors' documented mechanisms.
 
 **VS Code** — the TypeScript 7 extension (`TypeScriptTeam.native-preview`, source in
 `ts-ref/packages/vscode-typescript`) starts `<tsdk>/tsgo --lsp --stdio` when `js/ts.tsdk.path` points at a directory
-that contains an executable named `tsgo` or `tsc` (`src/util.ts`: `tsdkConfigSources`, `packagedExeBaseNames`). So:
+that contains an executable named `tsgo` or `tsc` (`src/util.ts`: `tsdkConfigSources`, `packagedExeBaseNames`).
+Starting with 0.19.0, the npm package includes `tsdk/tsgo` for macOS and Linux. Install `tsrs` as a dev dependency
+and commit this `.vscode/settings.json` so each teammate's editor uses the version in the project's lockfile:
+
+```jsonc
+{
+  "js/ts.experimental.useTsgo": true,
+  "js/ts.tsdk.path": "./node_modules/tsrs/tsdk",
+  "js/ts.trace.server": "verbose"   // optional: protocol log in the "TypeScript 7" output channel
+}
+```
+
+The extension asks for workspace trust and consent before running a workspace SDK. The launcher uses the
+installed package's platform binary, just like `pnpm exec tsrs`; it does not add a `tsgo` command to
+`node_modules/.bin`. Windows SDK discovery requires a native `tsgo.exe` or `tsc.exe`, so this Node launcher
+does not provide a Windows SDK.
+
+For an older npm release or a local build on macOS/Linux, create a symlink instead:
 
 ```sh
 mkdir -p ~/.tsrs-tsdk && ln -sf "$PWD/target/release/tsrs" ~/.tsrs-tsdk/tsgo
 ```
 
-```jsonc
-// settings.json (user settings; a workspace-level tsdk asks for workspace trust and consent)
-{
-  "js/ts.tsdk.path": "/Users/<you>/.tsrs-tsdk",
-  "js/ts.trace.server": "verbose"   // optional: protocol log in the "TypeScript 7" output channel
-}
-```
-
+Then set `js/ts.tsdk.path` in user settings to that directory's absolute path, such as `/Users/<you>/.tsrs-tsdk`.
 Run "TypeScript 7: Restart Server" (or reload the window); the output channel names the executable it started.
 The server does not run content mappers yet (`js/ts.contentMappers.enabled`); turn them off if a workspace
 contributes any. `tsrs -p` and `tsrs -b` do run them.

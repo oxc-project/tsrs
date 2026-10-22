@@ -10,7 +10,7 @@ tsrs ships on npm the way TypeScript 7 ships its native compiler (`typescript@7`
 
 Platforms since 0.14.0: `darwin-arm64`, `linux-x64-gnu`, `linux-arm64-gnu`, `linux-x64-musl` and `linux-arm64-musl`
 (earlier releases use unsuffixed GNU names; `darwin-x64` was published up to 0.2.1). The release workflow now also
-builds `win32-x64`; releases through 0.18.0 do not contain that platform package.
+builds `darwin-x64` and `win32-x64`; releases from 0.14.0 through 0.18.0 do not contain those platform packages.
 
 The main package name is set in `npm/tsrs/package.json`; platform packages are `@tsrs/<os>-<cpu>` with `-gnu` or
 `-musl` on Linux. The launcher derives that name from the current platform, architecture and libc at runtime.
@@ -175,8 +175,9 @@ To prepare a release, bump `[workspace.package] version` in `Cargo.toml`, refres
 `.github/workflows/release.yml` publishes when that root package version is bumped on `main`:
 
 1. checks the root package version against `Cargo.toml`, requires release notes, and runs `cargo check`;
-2. builds PGO release binaries (`release` profile, trained by `.github/scripts/pgo-train.sh`) for macOS arm64 and Linux
-   x64 and arm64 GNU (`ubuntu-22.04`), and a Windows x64 PGO binary trained on the conformance suite and a CLI project;
+2. builds PGO release binaries (`release` profile, trained by `.github/scripts/pgo-train.sh`) for macOS arm64 (`macos-14`),
+   macOS x64 (`macos-15-intel`, with native PGO training and installed-package smoke tests), and Linux x64 and arm64 GNU
+   (`ubuntu-22.04`), and a Windows x64 PGO binary trained on the conformance suite and a CLI project;
    on GNU, BOLT-optimizes them and runs the conformance and fourslash gates on the
    BOLT-optimized binaries (`.github/scripts/bolt.sh`); smoke-runs the native ones (`--version`, exit code 2 on a type
    error) and the installed package (`npm/sdk/smoke-consumer.mjs`);
@@ -196,7 +197,7 @@ To prepare a release, bump `[workspace.package] version` in `Cargo.toml`, refres
    browser playground.
 
 The conformance and Go fourslash gates run on the GNU Linux release runners (`bolt.sh`), with Fourslash driving
-the BOLT-optimized `fourslash_server` task binary. Unix PGO training uses the same Go harness. The macOS binary gets only the
+the BOLT-optimized `fourslash_server` task binary. Unix PGO training uses the same Go harness. The macOS binaries get only the
 smoke tests; Windows gets CLI smoke tests in the release job. The broader WebAssembly differential gate (`tools/wasm/gate.sh`) is
 available locally; the release's WebAssembly package checks remain active.
 
@@ -205,8 +206,8 @@ available locally; the release's WebAssembly package checks remain active.
 What maintainers must configure before the first release:
 
 - The `@tsrs` npm org and each package must exist. Configure a GitHub Actions trusted publisher for `tsrs`,
-  `@tsrs/wasm` and each platform package, including `@tsrs/win32-x64`: owner `oxc-project`, repository `tsrs`, workflow
-  filename `release.yml`, no environment name, with direct publishing allowed.
+  `@tsrs/wasm` and each platform package, including `@tsrs/darwin-x64` and `@tsrs/win32-x64`: owner `oxc-project`,
+  repository `tsrs`, workflow filename `release.yml`, no environment name, with direct publishing allowed.
 - The publish job uses pnpm 12.10.1 and `id-token: write` to authenticate through GitHub Actions OIDC. No registry publish
   token or repository secret is required. See [npm trusted publishing](https://docs.npmjs.com/trusted-publishers/)
   for configuration and first-publish validation requirements.

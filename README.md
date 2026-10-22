@@ -16,6 +16,9 @@ pnpm exec tsrs --noEmit
 You can try `tsrs` today and give us feedback on performance, memory usage, and conformance.
 Try checking and emitting code in the [browser playground](https://tsrs-playground.void.app).
 
+Prebuilt binaries cover macOS arm64 and Linux x64/arm64 (glibc and musl). The next release also adds Intel macOS
+and Windows x64.
+
 ## Conformance
 
 The 0.19.0 source upgrade targets [microsoft/TypeScript `v7.1-beta` at `3e9236361fa9`](https://github.com/microsoft/TypeScript/tree/3e9236361fa97a9e6c685f4833ac457ae2d8c50a).

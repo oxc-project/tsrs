@@ -135,29 +135,14 @@ jobs:
       - name: Build correctness binaries
         run: cargo build --profile dev --locked -p tsrs_cli -p tsrs_testrunner
 
-      - name: Conformance suite
-        env:
-          BASELINES: types,symbols
+      - name: Conformance suite (all baselines)
         run: .github/scripts/conformance-gate.sh
 
-      - name: Conformance suite (default checker mode)
+      - name: Conformance suite (all baselines, default checker mode)
         env:
           TS_TEST_PROGRAM_SINGLE_THREADED: "false"
           TSRS_HISTORY: canonical
-          BASELINES: types,symbols
           TSRS_TEST_RESULTS: ${{ github.workspace }}/target/test-results-default
-        run: .github/scripts/conformance-gate.sh
-
-      - name: Conformance suite (emit and source maps)
-        env:
-          TSRS_TEST_RESULTS: ${{ github.workspace }}/target/test-results-emit
-        run: .github/scripts/conformance-gate.sh
-
-      - name: Conformance suite (default checker mode, emit and source maps)
-        env:
-          TS_TEST_PROGRAM_SINGLE_THREADED: "false"
-          TSRS_HISTORY: canonical
-          TSRS_TEST_RESULTS: ${{ github.workspace }}/target/test-results-default-emit
         run: .github/scripts/conformance-gate.sh
 
       - name: Regression cases
@@ -177,14 +162,10 @@ jobs:
             target/test-results/summary.json
             target/test-results-default/*.txt
             target/test-results-default/summary.json
-            target/test-results-emit/*.txt
-            target/test-results-emit/summary.json
-            target/test-results-default-emit/*.txt
-            target/test-results-default-emit/summary.json
           if-no-files-found: ignore
 
   node-api-clients:
-    name: Node API upstream clients
+    name: Node API clients and parity
     runs-on: ubuntu-latest
     timeout-minutes: 90
     permissions:
@@ -230,14 +211,20 @@ jobs:
       - name: Set up pinned upstream client and Go oracle
         run: tools/node-api/setup.sh
 
-      - name: Go oracle sync and async client suites
-        run: node tools/node-api/run-upstream.mjs --binary tools/node-api/.work/oracle/tsc --label go-oracle --suite upstream --no-trace
+      - name: Check vendored SDK against upstream
+        run: node npm/sdk/sync-upstream.mjs --check
+
+      - name: Check generated compiler sources
+        run: tools/gen-check.sh
+
+      - name: Go oracle client and parity suites
+        run: node tools/node-api/run-upstream.mjs --binary tools/node-api/.work/oracle/tsc --label go-oracle --suite all --no-trace
 
       - name: Build tsrs API server
         run: cargo build --profile dev --locked -p tsrs_cli
 
-      - name: tsrs sync and async client suites
-        run: node tools/node-api/run-upstream.mjs --binary target/debug/tsrs --label tsrs --suite upstream --no-trace
+      - name: tsrs client and parity suites
+        run: node tools/node-api/run-upstream.mjs --binary target/debug/tsrs --label tsrs --suite all --no-trace
 
       - name: Upload Node API client results
         if: always()

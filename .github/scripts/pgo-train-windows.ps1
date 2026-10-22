@@ -11,7 +11,7 @@ $env:TSRS_LIB_PATH = Join-Path $env:GITHUB_WORKSPACE "crates/tsrs_vfs/libs"
 $env:TSRS_TEST_RESULTS = Join-Path $env:RUNNER_TEMP "pgo/test-results"
 
 $env:LLVM_PROFILE_FILE = Join-Path $RawDir "suite-%m.profraw"
-& (Join-Path $BinDir "tsrs-test.exe") run --suite all --jobs 2 --timeout 120
+& (Join-Path $BinDir "tsrs-test.exe") run --suite all --baselines all --jobs 2 --timeout 120
 if ($LASTEXITCODE -ne 0) { throw "tsrs-test exited with $LASTEXITCODE" }
 
 $summary = Join-Path $env:TSRS_TEST_RESULTS "summary.json"

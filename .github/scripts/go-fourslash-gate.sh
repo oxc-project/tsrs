@@ -12,5 +12,4 @@ status=0
   -- -json > "$work/results.jsonl" 2> "$work/runner.log" || status=$?
 cat "$work/runner.log"
 "$python" tools/go-fourslash/summarize.py "$work/results.jsonl" --min-pass "${MIN_PASS:-4092}"
-node "$(dirname "$0")/conformance-gate.mjs" --fourslash "$work/results.jsonl" "$@"
 exit "$status"

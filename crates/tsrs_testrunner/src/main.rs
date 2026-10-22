@@ -36,7 +36,8 @@ use crate::harnessutil::OptionTable;
 const USAGE: &str = "usage:
   tsrs-test run [--suite compiler|conformance|all] [--filter <substr|regex>] [--list <file>]
                 [--jobs N] [--timeout S] [--recycle N] [--mem-limit MB] [--json <path>] [--panic-summary]
-                [--baselines types,symbols,js | --types --symbols --js]   also compare .types/.symbols/.js baselines
+                [--baselines all|types,symbols,js,jsmap,sourcemap | --types --symbols --js]
+                                      all: compare errors, types, symbols, JavaScript/declarations and source maps
                   (js: emit through Go's pre-/post-emit programs, docs/EMIT.md section 8)
                   (results: <suite>/<name>.{types,symbols}.{actual,diff}, lists types-<class>.txt, symbols-<class>.txt)
   tsrs-test show <name> [--full] [--types] [--symbols] [--js]
@@ -77,7 +78,7 @@ fn parse_baselines(v: &str) -> u8 {
             "errors" => 0,
             "types" => EXTRA_TYPES,
             "symbols" => EXTRA_SYMBOLS,
-            "all" => EXTRA_TYPES | EXTRA_SYMBOLS,
+            "all" => EXTRA_TYPES | EXTRA_SYMBOLS | EXTRA_JS | EXTRA_JSMAP | EXTRA_SOURCEMAP,
             "js" => EXTRA_JS,
             "jsmap" => EXTRA_JSMAP,
             "sourcemap" => EXTRA_SOURCEMAP,
@@ -247,7 +248,7 @@ fn cmd_run(mut args: Args) {
     let items = sel.select(&table);
     if items.is_empty() {
         println!("no tests selected");
-        return;
+        std::process::exit(1);
     }
     if !quiet {
         eprintln!("running {} test variants with {jobs} workers", items.len());
@@ -318,6 +319,15 @@ fn cmd_run(mut args: Args) {
     println!("{:.1}s; results in {}", started.elapsed().as_secs_f64(), dir.display());
     if panic_summary {
         report::print_crashes(&this_run, 15, 2);
+    }
+    let failed = |class| !matches!(class, Class::Pass | Class::Skip);
+    if this_run.values().any(|entry| {
+        failed(entry.class)
+            || report::EXTRA_EXTS
+                .iter()
+                .any(|ext| entry.extra(ext).is_some_and(|(class, _)| failed(*class)))
+    }) {
+        std::process::exit(1);
     }
 }
 

@@ -14,8 +14,9 @@ The source and package metadata now target `microsoft/TypeScript@3e9236361fa97a9
 [port log](../notes/typescript-7.1-beta-ports.md). The candidate package version is
 `0.19.0-ts7.1.0-beta`; 0.18.0 remains the latest published release until this candidate ships.
 
-The pinned compiler passes 13,696 of 13,700 error baselines and all 12,998 `.types` and `.symbols` baselines in
-both checker histories. Emit passes all 13,626 `.js`, 149 `.js.map`, and 156 `.sourcemap.txt` baselines. The
+With the upstream emit sequence, the pinned compiler passes all 13,700 error baselines and all 12,998 `.types` and
+`.symbols` baselines in both checker histories. Emit passes all 13,626 `.js`, 149 `.js.map`, and 156 `.sourcemap.txt`
+baselines. Checking-only harness runs retain four diagnostic artifacts. The
 [compatibility table](COMPATIBILITY.md#what-it-does-and-doesnt-do) records remaining gaps. Source 75 increased peak
 RSS by about 20% in a synthetic two-builder graph; source 79's mapper fixtures remain partly skipped by the
 compiler and Fourslash harnesses. The LSP API-session initialization hook is not ported.

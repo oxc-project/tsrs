@@ -61,7 +61,7 @@ git -C ts-ref sparse-checkout set tsc packages/typescript/src \
   packages/typescript/lib packages/typescript/vendor tools/scripts/tsc
 git -C ts-ref checkout "$commit"
 
-./target/debug/tsrs-test run --suite all                          # summary table; lists in target/test-results/
+./target/debug/tsrs-test run --suite all --baselines all          # every supported baseline; lists in target/test-results/
 ./target/debug/tsrs-test run --filter <substring>                 # one test or a cluster
 ./target/debug/tsrs-test show <suite/name>                        # expected vs actual
 ./target/debug/tsrs-test run --suite all --baselines types,symbols # type and symbol baselines
@@ -72,19 +72,14 @@ tools/ci/determinism.sh --self-test && tools/ci/determinism.sh target/debug/tsrs
 cargo test --locked                                             # all workspace unit and integration tests (CI)
 ```
 
-CI checks both tsgo's checker history and the default mode
-(`TS_TEST_PROGRAM_SINGLE_THREADED=false TSRS_HISTORY=canonical`), with and without emit. The gate defaults to all
-six baseline kinds; `BASELINES=types,symbols` selects checking only. Named pass and skip sets must match
-`.github/conformance-baselines.json`; only the four recorded checking-only diagnostic artifacts are allowed.
-The gate rejects a testdata checkout at a different TypeScript source pin. Release BOLT gates cover emit and maps
-in both histories too.
+CI and release BOLT gates compare every supported compiler baseline in both tsgo's checker history and the default
+mode (`TS_TEST_PROGRAM_SINGLE_THREADED=false TSRS_HISTORY=canonical`). `--baselines all` includes errors, types,
+symbols, JavaScript/declaration emit, JavaScript maps and source-map records. The runner exits unsuccessfully on any
+baseline difference, crash, timeout or empty selection. The gate also rejects a testdata checkout at a different
+TypeScript source pin. Unsupported cases remain reported as skips.
 
-After reviewing complete before/after pass and skip lists for a conformance improvement or source upgrade, run
-`BASELINES=types,symbols .github/scripts/conformance-gate.sh --update` and
-`.github/scripts/conformance-gate.sh --update`, then verify both histories and commit the snapshot. Updating refuses
-new diagnostic differences, crashes, or timeouts; new failures need a compiler fix, not a snapshot refresh.
-For reviewed Fourslash coverage changes, run `.github/scripts/go-fourslash-gate.sh --update` to refresh its named
-pass and skip fingerprints in the same snapshot.
+The Node API job verifies generated compiler sources and the vendored SDK, then runs all existing upstream client
+and local parity cases against both the Go oracle and tsrs.
 
 A change must not lose passing tests: compare `target/test-results/pass.txt` before and after
 (`comm -23 <(sort before.txt) <(sort target/test-results/pass.txt)` must print nothing). `docs/DEBUGGING.md`

@@ -62,7 +62,7 @@ for b in "${bins[@]}"; do
   grep -E 'BOLT-INFO: (basic block reordering|splitting|ICF)' "$work/$b.bolt.log" || true
 done
 
-# Gates on the BOLT-optimized binaries (same named outcomes as ci.yml).
+# All compiler baselines on the BOLT-optimized binaries, in both checker histories.
 if [ ${#bins[@]} -gt 1 ]; then
   TSRS_TEST="$work/tsrs-test.bolt" TSRS_TEST_RESULTS="$work/test-results" .github/scripts/conformance-gate.sh | tail -1
   TS_TEST_PROGRAM_SINGLE_THREADED=false TSRS_HISTORY=canonical TSRS_TEST="$work/tsrs-test.bolt" \

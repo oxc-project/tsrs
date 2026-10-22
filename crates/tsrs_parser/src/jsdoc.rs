@@ -453,22 +453,35 @@ impl Parser {
 
         let mut preceding_line_break = self.scanner.has_preceding_line_break();
         let mut seen_line_break = false;
-        let mut indents: Vec<&'static str> = Vec::with_capacity(4);
+        // The tokens since the last line break are adjacent in the text (JSDoc scanning returns trivia as
+        // tokens), so the indent is one slice of it, not a list of token texts joined at the end.
+        let mut indent_start: Option<u32> = None;
+        let mut indent_end: u32 = 0;
         while (preceding_line_break && self.token == Kind::AsteriskToken)
             || self.token == Kind::WhitespaceTrivia
             || self.token == Kind::NewLineTrivia
         {
-            indents.push(self.scanner.token_text());
             if self.token == Kind::NewLineTrivia {
                 preceding_line_break = true;
                 seen_line_break = true;
-                indents.clear();
-            } else if self.token == Kind::AsteriskToken {
-                preceding_line_break = false;
+                indent_start = None;
+            } else {
+                if indent_start.is_none() {
+                    indent_start = Some(self.scanner.token_start());
+                }
+                indent_end = self.scanner.token_end();
+                if self.token == Kind::AsteriskToken {
+                    preceding_line_break = false;
+                }
             }
             self.next_token_jsdoc();
         }
-        if seen_line_break { indents.concat() } else { String::new() }
+        match (seen_line_break, indent_start) {
+            (true, Some(start)) => {
+                self.scanner.text()[start as usize..indent_end as usize].to_string()
+            }
+            _ => String::new(),
+        }
     }
 
     pub(crate) fn parse_tag(&mut self, tags: &[P<Node>], margin: u32) -> P<Node> {

@@ -1055,7 +1055,7 @@ pub(crate) fn source_file_meta_data(
         .get_resolution_data()
         .get()
         .new_resolver(project_references.host)
-        .get_package_scope_for_path(&tspath::get_directory_path(file_name));
+        .get_package_scope_for_path(&tspath::get_directory_path_cow(file_name));
     let module_resolution_kind =
         opts.config.compiler_options().unwrap().get_module_resolution_kind();
 
@@ -1212,7 +1212,7 @@ fn tripleslash_reference_lookup(
     module_name: &str,
     containing_file: &str,
 ) -> (String, (String, Option<sourceFileFromReferenceDiagnostic>)) {
-    let base_path = tspath::get_directory_path(containing_file);
+    let base_path = tspath::get_directory_path_cow(containing_file);
     let mut referenced_file_name = module_name.to_string();
 
     if !tspath::is_rooted_disk_path(module_name) {

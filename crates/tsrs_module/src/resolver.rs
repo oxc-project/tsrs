@@ -2,7 +2,7 @@ use std::fmt;
 
 use tsrs_ast::Diagnostic;
 use tsrs_core::PathSubstitutions;
-use tsrs_core::collections::{OrderedMap, Set, new_set_with_size_hint};
+use tsrs_core::collections::{OrderedMap, Set, SyncMap, new_set_with_size_hint};
 use tsrs_core::tspath::{self, ComparePathsOptions};
 use tsrs_core::{
     CompilerOptions, ModuleKind, ModuleResolutionKind, P, Pattern, PatternKind, ResolutionMode,
@@ -169,7 +169,9 @@ pub(crate) struct ResolutionState<'r> {
     is_config_lookup: bool,
     features: NodeResolutionFeatures,
     esm_mode: bool,
-    conditions: Vec<String>,
+    // Shared by every resolution with the same options and mode (`DefaultResolver::conditions`): the list is
+    // read-only, and building it per resolution was four heap allocations each.
+    conditions: Option<std::sync::Arc<[String]>>,
     extensions: Extensions,
     compiler_options: P<CompilerOptions>,
     resolve_package_directory_only: bool,
@@ -206,7 +208,7 @@ fn new_resolution_state<'r>(
         is_config_lookup: false,
         features: NodeResolutionFeatures::None,
         esm_mode: false,
-        conditions: Vec::new(),
+        conditions: None,
         extensions: Extensions::empty(),
         resolve_package_directory_only: false,
         candidate_ending_is_from_config: false,
@@ -231,16 +233,16 @@ fn new_resolution_state<'r>(
         ModuleResolutionKind::Node16 => {
             state.features = NodeResolutionFeatures::Node16Default;
             state.esm_mode = resolution_mode == ModuleKind::ESNext;
-            state.conditions = get_conditions(&compiler_options, resolution_mode);
+            state.conditions = Some(resolver.conditions(compiler_options, resolution_mode));
         }
         ModuleResolutionKind::NodeNext => {
             state.features = NodeResolutionFeatures::NodeNextDefault;
             state.esm_mode = resolution_mode == ModuleKind::ESNext;
-            state.conditions = get_conditions(&compiler_options, resolution_mode);
+            state.conditions = Some(resolver.conditions(compiler_options, resolution_mode));
         }
         ModuleResolutionKind::Bundler => {
             state.features = get_node_resolution_features(&compiler_options);
-            state.conditions = get_conditions(&compiler_options, resolution_mode);
+            state.conditions = Some(resolver.conditions(compiler_options, resolution_mode));
         }
         _ => {}
     }
@@ -271,6 +273,9 @@ pub struct DefaultResolver {
     // path mappings themselves. This does not handle other path patterns such
     // as `typesVersions`.
     pub(crate) parsed_patterns_for_paths: ParsedPatternsCache,
+
+    // `get_conditions` per (options, resolution mode), shared by the resolutions that use it.
+    conditions_cache: SyncMap<(usize, ResolutionMode), std::sync::Arc<[String]>>,
 }
 
 pub struct ResolverOptions {
@@ -315,7 +320,24 @@ impl DefaultResolver {
             module_resolution_cache: ModuleResolutionCache::default(),
             type_ref_directive_resolution_cache: TypeRefDirectiveResolutionCache::default(),
             parsed_patterns_for_paths: ParsedPatternsCache::default(),
+            conditions_cache: SyncMap::default(),
         }
+    }
+
+    /// `get_conditions(options, resolution_mode)`, computed once per options object and mode. The options are
+    /// keyed by address: a `P<CompilerOptions>` is never freed while its resolver lives, and its fields do not
+    /// change.
+    fn conditions(
+        &self,
+        options: P<CompilerOptions>,
+        resolution_mode: ResolutionMode,
+    ) -> std::sync::Arc<[String]> {
+        let key = (options.addr(), resolution_mode);
+        if let Some(conditions) = self.conditions_cache.load(&key) {
+            return conditions;
+        }
+        let conditions: std::sync::Arc<[String]> = get_conditions(&options, resolution_mode).into();
+        self.conditions_cache.load_or_store(key, conditions).0
     }
 
     pub fn get_resolution_data(&self) -> P<ResolutionData> {
@@ -431,7 +453,7 @@ impl DefaultResolver {
         let (result, trace) = self.resolve_module_name_worker(
             module_name,
             containing_file,
-            &tspath::get_directory_path(containing_file),
+            &tspath::get_directory_path_cow(containing_file),
             resolution_mode,
             redirected_reference,
         );
@@ -469,18 +491,23 @@ impl DefaultResolver {
     ) -> (P<ResolvedModule>, Vec<DiagAndArgs>) {
         let mut trace_builder = self.new_trace_builder();
 
+        // Look the cache up by the arguments: a hit allocates nothing (the owned key is built on a miss, below).
+        if trace_builder.is_none() {
+            if let Some(cached) = self.module_resolution_cache.get_parts(
+                containing_directory,
+                module_name,
+                resolution_mode,
+                crate::cache::redirect_config_name(redirected_reference),
+            ) {
+                return (cached, Vec::new());
+            }
+        }
         let cache_key = ModuleResolutionCacheKey {
             containing_directory: containing_directory.to_string(),
             module_name: module_name.to_string(),
             resolution_mode,
             redirect_config_name: get_redirect_config_name(redirected_reference),
         };
-
-        if trace_builder.is_none() {
-            if let Some(cached) = self.module_resolution_cache.get(&cache_key) {
-                return (cached, Vec::new());
-            }
-        }
 
         let compiler_options =
             get_compiler_options_with_redirect(self.compiler_options, redirected_reference);
@@ -744,7 +771,7 @@ impl<'r> ResolutionState<'r> {
             is_config_lookup: false,
             features: NodeResolutionFeatures::None,
             esm_mode: false,
-            conditions: Vec::new(),
+            conditions: None,
             extensions: Extensions::empty(),
             compiler_options,
             resolve_package_directory_only: false,
@@ -921,8 +948,14 @@ impl<'r> ResolutionState<'r> {
 
     fn resolve_node_like(&mut self) -> ResolvedModule {
         if let Some(t) = self.tracer.as_mut() {
-            let conditions =
-                self.conditions.iter().map(|c| format!("'{c}'")).collect::<Vec<_>>().join(", ");
+            let conditions = self
+                .conditions
+                .as_deref()
+                .unwrap_or(&[])
+                .iter()
+                .map(|c| format!("'{c}'"))
+                .collect::<Vec<_>>()
+                .join(", ");
             if self.esm_mode {
                 t.write(
                     &diagnostics::Resolving_in_0_mode_with_conditions_1,
@@ -944,7 +977,7 @@ impl<'r> ResolutionState<'r> {
             && result.is_resolved()
             && result.is_external_library_import
             && !extension_is_ok(Extensions::TypeScript | Extensions::Declaration, result.extension)
-            && self.conditions.iter().any(|c| c == "import")
+            && self.conditions.as_deref().unwrap_or(&[]).iter().any(|c| c == "import")
         {
             trace!(
                 self.tracer,
@@ -1689,7 +1722,7 @@ impl<'r> ResolutionState<'r> {
         let containing_directory = self.containing_directory.clone();
         tspath::for_each_ancestor_directory(&containing_directory, |directory| {
             // !!! stop at global cache
-            if tspath::get_base_file_name(directory) != "node_modules" {
+            if &*tspath::get_base_file_name_cow(directory) != "node_modules" {
                 return self.load_module_from_immediate_node_modules_directory(
                     ext,
                     directory,
@@ -2312,7 +2345,7 @@ impl<'r> ResolutionState<'r> {
         extensions: Extensions,
         candidate: &str,
     ) -> Option<Resolved> {
-        let base = tspath::get_base_file_name(candidate);
+        let base = tspath::get_base_file_name_cow(candidate);
         if !base.contains('.') {
             return continue_searching(); // extensionless import, no lookups performed, since we don't support extensionless files
         }
@@ -3051,10 +3084,12 @@ impl<'r> ResolutionState<'r> {
     }
 
     fn condition_matches(&self, condition: &str) -> bool {
-        if condition == "default" || self.conditions.iter().any(|c| c == condition) {
+        if condition == "default"
+            || self.conditions.as_deref().unwrap_or(&[]).iter().any(|c| c == condition)
+        {
             return true;
         }
-        if !self.conditions.iter().any(|c| c == "types") {
+        if !self.conditions.as_deref().unwrap_or(&[]).iter().any(|c| c == "types") {
             return false; // only apply versioned types conditions if the types condition is applied
         }
         is_applicable_versioned_types_key(condition)

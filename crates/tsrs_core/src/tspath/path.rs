@@ -162,20 +162,25 @@ pub fn combine_paths(first_path: &str, paths: &[&str]) -> String {
             get_root_length(p) != 0
         }
     };
-    let (mut result, paths) = match paths.iter().rposition(|p| is_absolute(p)) {
-        Some(last_absolute) => {
-            (normalize_slashes(paths[last_absolute]), &paths[last_absolute + 1..])
-        }
-        None => (normalize_slashes(first_path), paths),
+    let (first, paths) = match paths.iter().rposition(|p| is_absolute(p)) {
+        Some(last_absolute) => (paths[last_absolute], &paths[last_absolute + 1..]),
+        None => (first_path, paths),
     };
+    // One allocation for the result (a profile of the front end had this function reallocating on every
+    // `push_str`): it holds `first`, and a separator and each trailing path at most.
+    let first = normalize_slashes_cow(first);
+    let mut result =
+        String::with_capacity(first.len() + paths.iter().map(|p| p.len() + 1).sum::<usize>());
+    result.push_str(&first);
     for &trailing_path in paths {
         if trailing_path.is_empty() {
             continue;
         }
-        let trailing_path = normalize_slashes(trailing_path);
+        let trailing_path = normalize_slashes_cow(trailing_path);
         if result.is_empty() || get_root_length(&trailing_path) != 0 {
             // `trailingPath` is absolute.
-            result = trailing_path;
+            result.clear();
+            result.push_str(&trailing_path);
         } else {
             if !has_trailing_directory_separator(&result) {
                 result.push('/');
@@ -326,7 +331,13 @@ fn last_index_byte(s: &str, b: u8) -> Option<usize> {
 }
 
 pub fn get_directory_path(path: &str) -> String {
-    let path = normalize_slashes(path);
+    get_directory_path_cow(path).into_owned()
+}
+
+/// `get_directory_path` borrowing from `path` when it has no backslash (the common case): the directory is a
+/// prefix of the path.
+pub fn get_directory_path_cow(path: &str) -> std::borrow::Cow<'_, str> {
+    let path = normalize_slashes_cow(path);
 
     // If the path provided is itself a root, then return it.
     let root_length = get_root_length(&path);
@@ -336,10 +347,17 @@ pub fn get_directory_path(path: &str) -> String {
 
     // return the leading portion of the path up to the last (non-terminal) directory separator
     // but not including any trailing directory separator.
-    let path = remove_trailing_directory_separator(&path);
-    let directory_end =
-        last_index_byte(path, b'/').map_or(root_length, |index| root_length.max(index));
-    path[..directory_end].to_string()
+    let directory_end = {
+        let trimmed = remove_trailing_directory_separator(&path);
+        last_index_byte(trimmed, b'/').map_or(root_length, |index| root_length.max(index))
+    };
+    match path {
+        std::borrow::Cow::Borrowed(p) => std::borrow::Cow::Borrowed(&p[..directory_end]),
+        std::borrow::Cow::Owned(mut p) => {
+            p.truncate(directory_end);
+            std::borrow::Cow::Owned(p)
+        }
+    }
 }
 
 impl Path {
@@ -373,6 +391,41 @@ pub fn normalize_slashes(path: &str) -> String {
         return path.to_string();
     }
     path.replace('\\', "/")
+}
+
+/// `normalize_slashes` without a copy when the path has no backslash (every path on POSIX).
+pub fn normalize_slashes_cow(path: &str) -> std::borrow::Cow<'_, str> {
+    if !path.as_bytes().contains(&b'\\') {
+        return std::borrow::Cow::Borrowed(path);
+    }
+    std::borrow::Cow::Owned(path.replace('\\', "/"))
+}
+
+/// `reduce_path_components(&path_components(path, get_root_length(path)))` as slices of `path`, which must have
+/// forward slashes only (the output of `combine_paths`).
+fn reduced_path_components_of_combined(path: &str) -> Vec<&str> {
+    let root_length = get_root_length(path);
+    let mut reduced: Vec<&str> = Vec::with_capacity(8);
+    reduced.push(&path[..root_length]);
+    for component in path[root_length..].split('/') {
+        // An empty component is the trailing separator `path_components` drops, or a repeated separator
+        // `reduce_path_components` skips; either way it goes.
+        if component.is_empty() || component == "." {
+            continue;
+        }
+        if component == ".." {
+            if reduced.len() > 1 {
+                if reduced[reduced.len() - 1] != ".." {
+                    reduced.pop();
+                    continue;
+                }
+            } else if !reduced[0].is_empty() {
+                continue;
+            }
+        }
+        reduced.push(component);
+    }
+    reduced
 }
 
 fn reduce_path_components(components: &[String]) -> Vec<String> {
@@ -673,6 +726,17 @@ fn dot_segment_at(p: &[u8], start: usize) -> bool {
     }
 }
 
+/// `normalize_path` borrowing from `path` when it is already normal (no backslash, no `.` or `..` segment, no
+/// repeated separator): a file name from the file system usually is.
+pub fn normalize_path_cow(path: &str) -> std::borrow::Cow<'_, str> {
+    if !path.as_bytes().contains(&b'\\') {
+        if let Some(normalized) = simple_normalize_path(path) {
+            return normalized;
+        }
+    }
+    std::borrow::Cow::Owned(normalize_path(path))
+}
+
 pub fn normalize_path(path: &str) -> String {
     // normalize_slashes without copying a path that has no backslash (the common case; the result is copied once)
     let slashed;
@@ -795,6 +859,11 @@ pub fn to_file_name_lower_case(file_name: &str) -> String {
 }
 
 pub fn to_path(file_name: &str, base_path: &str, use_case_sensitive_file_names: bool) -> Path {
+    if use_case_sensitive_file_names && is_rooted_disk_path(file_name) {
+        // The common case on Linux: an absolute, already normal file name becomes a `Path` with one allocation
+        // (the `Arc`), not a normalized `String` copied into one.
+        return Path::from(&*normalize_path_cow(file_name));
+    }
     let mut non_canonicalized_path = if is_rooted_disk_path(file_name) {
         normalize_path(file_name)
     } else {
@@ -975,21 +1044,33 @@ pub fn get_relative_path_to_directory_or_url(
 //	GetBaseFileName("http://typescriptlang.org/") == ""
 //	GetBaseFileName("http://typescriptlang.org") == ""
 pub fn get_base_file_name(path: &str) -> String {
-    let path = normalize_slashes(path);
+    get_base_file_name_cow(path).into_owned()
+}
+
+/// `get_base_file_name` borrowing from `path` when it has no backslash (the common case): the base name is a
+/// slice of the path.
+pub fn get_base_file_name_cow(path: &str) -> std::borrow::Cow<'_, str> {
+    let path = normalize_slashes_cow(path);
 
     // if the path provided is itself the root, then it has no file name.
     let root_length = get_root_length(&path);
     if root_length == path.len() {
-        return String::new();
+        return std::borrow::Cow::Borrowed("");
     }
 
     // return the trailing portion of the path starting after the last (non-terminal) directory
     // separator but not including any trailing directory separator.
-    let path = remove_trailing_directory_separator(&path);
-    let root_length = get_root_length(path);
-    let base_start = last_index_byte(path, DIRECTORY_SEPARATOR)
-        .map_or(root_length, |index| root_length.max(index + 1));
-    path[base_start..].to_string()
+    let (base_start, base_end) = {
+        let trimmed = remove_trailing_directory_separator(&path);
+        let root_length = get_root_length(trimmed);
+        let base_start = last_index_byte(trimmed, DIRECTORY_SEPARATOR)
+            .map_or(root_length, |index| root_length.max(index + 1));
+        (base_start, trimmed.len())
+    };
+    match path {
+        std::borrow::Cow::Borrowed(p) => std::borrow::Cow::Borrowed(&p[base_start..base_end]),
+        std::borrow::Cow::Owned(p) => std::borrow::Cow::Owned(p[base_start..base_end].to_string()),
+    }
 }
 
 // Gets the file extension for a path.
@@ -1205,8 +1286,10 @@ pub fn contains_path(parent: &str, child: &str, options: &ComparePathsOptions) -
     if parent == child {
         return true;
     }
-    let parent_components = reduce_path_components(&get_path_components(&parent, ""));
-    let child_components = reduce_path_components(&get_path_components(&child, ""));
+    // `reduce_path_components(&get_path_components(path, ""))` over slices of the combined (slash-normalized)
+    // paths: one allocation per path instead of one per component (a program checks every file against its root).
+    let parent_components = reduced_path_components_of_combined(&parent);
+    let child_components = reduced_path_components_of_combined(&child);
     if child_components.len() < parent_components.len() {
         return false;
     }
@@ -1215,7 +1298,7 @@ pub fn contains_path(parent: &str, child: &str, options: &ComparePathsOptions) -
     if parent_components.iter().enumerate().any(|(i, parent_component)| {
         let comparer: fn(&str, &str) -> bool =
             if i == 0 { stringutil::equate_string_case_insensitive } else { component_comparer };
-        !comparer(parent_component, &child_components[i])
+        !comparer(parent_component, child_components[i])
     }) {
         return false;
     }
@@ -1269,13 +1352,20 @@ pub fn for_each_ancestor_directory<T>(
     directory: &str,
     mut callback: impl FnMut(&str) -> Option<T>,
 ) -> Option<T> {
-    let mut directory = directory.to_string();
+    // Every ancestor of a slash-normalized path is a prefix of it, so the walk borrows (a resolution walks the
+    // ancestors of its containing directory on every node_modules lookup).
+    let slashed = normalize_slashes_cow(directory);
+    let mut directory: &str = &slashed;
     loop {
-        if let Some(result) = callback(&directory) {
+        if let Some(result) = callback(directory) {
             return Some(result);
         }
 
-        let parent_path = get_directory_path(&directory);
+        let parent_path = match get_directory_path_cow(directory) {
+            std::borrow::Cow::Borrowed(parent) => parent,
+            // Unreachable: `directory` has no backslash.
+            std::borrow::Cow::Owned(_) => return None,
+        };
         if parent_path == directory {
             return None;
         }

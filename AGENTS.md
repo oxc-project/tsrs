@@ -28,18 +28,20 @@ different, and say what in the brief or the pull request: new evidence, a change
 note gave for revisiting it.
 
 **Bring numbers.** A performance change needs instructions retired and peak RSS, before and after, in the pull
-request.
+request. Include wall time when claiming a speedup.
 
-**Clear the bar.** A change lands only if it gains at least one of:
+**Accept measured improvements.** A change may land when measurements show repeatable reductions in wall time,
+instructions retired or peak RSS on most `bench/projects.json` projects, or a significant, repeatable reduction on
+one catalog project. There is no fixed minimum percentage threshold. Report results across the catalog, including
+regressions and tradeoffs. Earlier experiments rejected solely for missing the old percentage thresholds may be
+revisited under this policy.
 
-- 1% of single-threaded instructions on at least one `bench/projects.json` project (`node bench/bench.mjs count`, deterministic);
-- 2% of wall time in the wall-time table in [`bench/RESULTS.md`](bench/RESULTS.md), read across two publishes on
-  the same hardware;
-- 5% of peak memory at the default checker count.
-
-A change that adds a thread, a cache, an overlap between phases or an invariant later code must keep needs a clear
-margin over that bar: a sub-percent gain never justifies it, whichever measure it is on (notes/perf-serial-steps.md
-has why). A change below the bar does not land.
+**Measure consistently.** Prefer `xcrun xctrace` on macOS to find bottlenecks and Hyperfine 2 with hardware counters
+to measure wall time, retired instructions and peak RSS. Profile release binaries with full debug symbols and
+stripping disabled (`profile.release.debug=true`, `profile.release.strip=false`). Compare baseline and candidate
+with the same build configuration, hardware, workload and checker count. Use warmups and repeated, interleaved runs
+to distinguish improvements from run-to-run variation; measure single-threaded instructions and default-checker
+peak RSS.
 
 ## Keep the capability table current
 

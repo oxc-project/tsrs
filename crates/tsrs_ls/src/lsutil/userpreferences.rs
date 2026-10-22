@@ -1575,7 +1575,7 @@ pub fn parse_user_preferences(items: &JsonMap) -> UserPreferences {
 
 /// Decode the API's `userPreferences` object, starting from Go's default preferences.
 /// Unlike LSP configuration, the API value is itself a flat/raw preference object.
-pub fn parse_api_user_preferences(config: &OrderedMap<String, Value>) -> UserPreferences {
+pub fn parse_api_user_preferences(config: &JsonMap) -> UserPreferences {
     new_default_user_preferences().with_config(config)
 }
 

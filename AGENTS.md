@@ -59,3 +59,5 @@ types or code. This holds in code, comments, notes, commit messages and pull req
 ## Scripts and automation
 
 Write new scripts and ad hoc automation in JavaScript, not Python.
+
+Do not write tests for tooling scripts. Validate script changes with a direct run or a focused smoke check instead.

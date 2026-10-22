@@ -118,10 +118,17 @@ def discover(count: int, shards: int, out: Path) -> dict:
     repos = {}
     for page in range(1, 11):
         query = urlencode(dict(q=QUERY, sort="stars", order="desc", per_page=100, page=page))
-        with urlopen(Request("https://api.github.com/search/repositories?" + query, headers=headers), timeout=60) as response:
-            data = json.load(response)
-        if data.get("incomplete_results"):
-            raise RuntimeError("GitHub returned an incomplete repository search; retry discovery")
+        for attempt in range(1, 6):
+            with urlopen(Request("https://api.github.com/search/repositories?" + query, headers=headers), timeout=60) as response:
+                data = json.load(response)
+            if not data.get("incomplete_results"):
+                break
+            if attempt == 5:
+                raise RuntimeError(f"GitHub returned an incomplete repository search for page {page} after {attempt} attempts")
+            delay = 5 * 2 ** (attempt - 1)
+            print(f"GitHub returned an incomplete repository search for page {page} (attempt {attempt}/5); "
+                  f"retrying in {delay}s", file=sys.stderr, flush=True)
+            time.sleep(delay)
         for repo in data["items"]:
             name = repo["full_name"]
             if not NAME.fullmatch(name):

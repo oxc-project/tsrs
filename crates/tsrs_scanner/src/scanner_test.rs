@@ -75,7 +75,20 @@ fn test_saved_state_preserves_directives_across_text_changes() {
     let directive = s.comment_directives()[0];
     let saved = s.take_state();
     s.set_text("// @ts-expect-error\nc");
+    let temporary_start = s.mark();
     assert_eq!(s.scan(), Kind::Identifier);
+    assert_eq!(s.comment_directives().len(), 1);
+    s.rewind(temporary_start);
+    assert_eq!(s.comment_directives().len(), 0);
+    assert_eq!(s.scan(), Kind::Identifier);
+    assert_eq!(s.comment_directives()[0].kind, tsrs_ast::CommentDirectiveKind::ExpectError);
+    let temporary = s.take_state();
+    s.set_text("d");
+    assert_eq!(s.scan(), Kind::Identifier);
+    assert_eq!(s.comment_directives().len(), 0);
+    s.set_text("// @ts-expect-error\nc");
+    s.restore_state(temporary);
+    assert_eq!(s.token_value(), "c");
     assert_eq!(s.comment_directives().len(), 1);
     s.set_text(text);
     s.restore_state(saved);
@@ -91,10 +104,7 @@ fn test_saved_state_preserves_directives_across_text_changes() {
 
 #[test]
 fn test_comment_directives_scale_linearly() {
-    // Before the fix, each directive copied the whole collected slice, giving
-    // quadratic time and memory. With enough directives that would OOM the runner
-    // (about 75,000 directives retain ~6 * n * (n + 1) bytes of arena copies);
-    // after the fix only the final list is retained, so the same input stays small.
+    // Copying every preceding directive would retain over 30 GB for this input.
     let mut source = String::from("export const values: number[] = [];\n");
     for _ in 0..75000 {
         source.push_str("// @ts-ignore -- note\n");

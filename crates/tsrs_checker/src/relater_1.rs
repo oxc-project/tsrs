@@ -281,7 +281,11 @@ impl Checker {
     /// every other member of the enum (three quarters of the calls on the Compiler-Unions benchmark); of the
     /// worker's tests only the enum-literal one can answer such a pair, with the values equal and the enums
     /// related, since neither type is a union, a base primitive, `any`, `unknown`, `never`, null or undefined.
-    #[inline]
+    #[expect(
+        clippy::inline_always,
+        reason = "The profiled enum-member fast path otherwise retains an out-of-line register-save frame."
+    )]
+    #[inline(always)]
     pub(crate) fn is_simple_type_related_to(
         &mut self,
         source: P<Type>,

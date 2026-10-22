@@ -1,4 +1,4 @@
-// @generated from tsc/internal/api/proto.go through microsoft/TypeScript c0ca4744c9. One row per Method constant.
+// @generated from tsc/internal/api/proto.go at microsoft/TypeScript 3e9236361fa9. One row per Method constant.
 // Lane: Checker = owned by the checker lane; Ls = language-service backed (unassigned, needs core decision); Other = owned by another lane.
 use crate::checker::coverage_types::{Lane::*, Row, Status::*};
 

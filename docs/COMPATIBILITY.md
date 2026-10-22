@@ -37,13 +37,15 @@ Updating this table (../AGENTS.md says when; commands and paths below are relati
 - Measure numbers at the commit you describe: `tsrs-test run --suite all --baselines types,symbols,js,jsmap,sourcemap`,
   `.github/scripts/go-fourslash-gate.sh` and `tools/oracle/emit/` (docs/EMIT.md, docs/LSP.md). If you copy a number from notes/ or a PR
   instead, say so in the PR description.
-- Compare against tsgo built from the pinned commit (Cargo.toml, [workspace.metadata.typescript]), not the npm nightly.
+- Compare against the exact published Go compiler identified by Cargo's version and source commit, using
+  `node tools/lib/typescript-reference.mjs --binary`. Source-built internal oracles use that same verified checkout.
 - Keep the status column to a short state: `yes`, `no`, `ignored`, or the condition it needs (such as `--incremental`).
   Put numbers and caveats in the evidence column.
 - Keep the root and npm README summaries, docs/EMIT.md, docs/LSP.md and docs/STATUS.md consistent with the table.
 -->
 
-"Identical" below means identical to tsgo built from the same reference commit. Conformance counts include the
+"Identical" below means identical to tsgo at the same reference commit. The recorded beta counts use its
+source-built compiler; nightly package parity also checks the published version stamp. Conformance counts include the
 completed source upgrade described above. [Differences from pinned TypeScript](DEFAULTS.md) details changed
 defaults, unsupported features and known parity gaps. The reference-default checker settings and fast preset
 have been available since 0.20.0.

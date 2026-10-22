@@ -12,7 +12,7 @@ publish = false
 # The microsoft/TypeScript commit this port follows. Read by crates/tsrs_execute/build.rs (`tsrs --version`), by
 # npm/build.mjs (npm version = "<workspace version>-ts<version>") and by CI (conformance testdata checkout).
 # `nightly` is the npm `typescript` package matching `commit` (a nightly or prerelease; its package.json `gitHead`
-# is `commit`, or a later commit that changes nothing under tsc/). Release builds stamp it
+# is exactly `commit`). Published-version and release builds stamp it
 # as TypeScript's version (TSRS_TS_VERSION, crates/tsrs_core/src/version.rs), as the package's own build does, so the
 # tsbuildinfo `version`, `typesVersions` matching and `--version` agree with that tsgo; the release checks both.
 [workspace.metadata.typescript]

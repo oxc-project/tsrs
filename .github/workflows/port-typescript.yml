@@ -1,0 +1,190 @@
+# The GitHub App needs Contents, Issues and Pull requests write access.
+# Only the publication job receives CAPTAIN_ID/CAPTAIN_KEY. The worker uses
+# CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_GATEWAY_ID and CLOUDFLARE_AI_GATEWAY_TOKEN.
+name: Sync TypeScript nightlies
+
+on:
+  schedule:
+    - cron: '17 * * * *'
+  workflow_dispatch:
+    inputs:
+      retry_version:
+        description: 'Exact published nightly version to retry after intervention'
+        required: false
+        type: string
+
+permissions: {}
+
+concurrency:
+  group: typescript-nightly-sync
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    if: github.repository == 'oxc-project/tsrs' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      checks: read
+      statuses: read
+      issues: read
+      pull-requests: read
+    outputs:
+      status: ${{ steps.queue.outputs.status }}
+      metadata: ${{ steps.queue.outputs.metadata }}
+      automation_commit: ${{ steps.queue.outputs.automation_commit }}
+    steps:
+      - uses: taiki-e/checkout-action@7d1e50e93dc4fb3bba58f85018fadf77898aee8b # v1.4.2
+
+      - uses: ./.github/actions/setup-node-tools
+
+      - name: Select a published nightly or wait for the active PR
+        id: queue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RETRY_VERSION: ${{ inputs.retry_version }}
+        run: node tools/port/continuous.mjs prepare
+
+  agent:
+    needs: prepare
+    if: needs.prepare.outputs.status == 'ready'
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    permissions:
+      contents: read
+    outputs:
+      success: ${{ steps.port.outcome == 'success' }}
+    steps:
+      - name: Check out trusted automation
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ needs.prepare.outputs.automation_commit }}
+          persist-credentials: false
+      - name: Check out the nightly candidate
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ fromJSON(needs.prepare.outputs.metadata).base }}
+          path: candidate
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Check out the pinned TypeScript source and fixtures
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: microsoft/TypeScript
+          ref: ${{ fromJSON(needs.prepare.outputs.metadata).sha }}
+          path: candidate/ts-ref
+          fetch-depth: 0
+          sparse-checkout: |
+            tsc
+            packages/typescript
+            tools/scripts/tsc
+          persist-credentials: false
+
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: candidate/ts-ref/tsc/go.mod
+          cache: false
+
+      - uses: ./.github/actions/setup-node-tools
+
+      - uses: oxc-project/setup-rust@3d6fb132fbe7cdcb66bf8ec193911c2945369d12 # v1.0.17
+        with:
+          save-cache: false
+          cache-key: warm-test
+          target-dir: ${{ github.workspace }}/candidate/target
+
+      - name: Prepare WebAssembly compile check
+        run: rustup target add wasm32-wasip1
+
+      - name: Port and validate the complete nightly
+        id: port
+        continue-on-error: true
+        working-directory: candidate
+        env:
+          PORT_METADATA: ${{ needs.prepare.outputs.metadata }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_GATEWAY_ID: ${{ secrets.CLOUDFLARE_GATEWAY_ID }}
+          CLOUDFLARE_AI_GATEWAY_TOKEN: ${{ secrets.CLOUDFLARE_AI_GATEWAY_TOKEN }}
+        run: node "$GITHUB_WORKSPACE/tools/port/continuous.mjs" agent
+
+      - name: Upload worker data
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: nightly-worker
+          path: |
+            candidate/target/port-agent/port.patch
+            candidate/target/port-agent/report.md
+            candidate/target/port-agent/failure.txt
+          if-no-files-found: ignore
+          retention-days: 7
+
+  publish:
+    needs: [prepare, agent]
+    if: >-
+      always() && !cancelled() &&
+      (needs.prepare.outputs.status == 'ready' || needs.prepare.outputs.status == 'blocked')
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - name: Check out trusted automation on a fresh runner
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ needs.prepare.outputs.automation_commit }}
+          persist-credentials: false
+      - name: Check out the publication base
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ fromJSON(needs.prepare.outputs.metadata).base }}
+          path: candidate
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: ./.github/actions/setup-node-tools
+
+      - name: Download worker data
+        if: needs.prepare.outputs.status == 'ready'
+        continue-on-error: true
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: nightly-worker
+          path: artifact
+
+      - name: Create oxc-guard token
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        id: app-token
+        with:
+          client-id: ${{ secrets.CAPTAIN_ID }}
+          private-key: ${{ secrets.CAPTAIN_KEY }}
+          permission-contents: write
+          permission-issues: write
+          permission-pull-requests: write
+
+      - name: Publish the verified patch using trusted code
+        if: needs.prepare.outputs.status == 'ready' && needs.agent.outputs.success == 'true'
+        id: publish
+        continue-on-error: true
+        working-directory: candidate
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          PORT_METADATA: ${{ needs.prepare.outputs.metadata }}
+          PORT_ARTIFACT: ${{ github.workspace }}/artifact
+        run: node "$GITHUB_WORKSPACE/tools/port/continuous.mjs" publish
+
+      - name: Report a blocker using trusted code
+        if: >-
+          always() &&
+          (needs.prepare.outputs.status == 'blocked' || needs.agent.outputs.success != 'true' ||
+           steps.publish.outcome == 'failure')
+        working-directory: candidate
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          PORT_METADATA: ${{ needs.prepare.outputs.metadata }}
+          PORT_ARTIFACT: ${{ github.workspace }}/artifact
+          PORT_BLOCK_REASON: ${{ steps.publish.outcome == 'failure' && 'Publication failed; see run logs.' || '' }}
+        run: node "$GITHUB_WORKSPACE/tools/port/continuous.mjs" block

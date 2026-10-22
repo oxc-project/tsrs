@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 // Copies the TypeScript 7 JS/TS API SDK (packages/typescript in microsoft/TypeScript) into npm/tsrs, from a checkout
-// recorded in npm/tsrs/UPSTREAM.json (the published Cargo pin can lag during a commit-by-commit port), or an
-// explicitly selected port commit. The copied files are committed, so
+// pinned in Cargo.toml, or an explicitly selected port commit. The copied files are committed, so
 // building the npm package needs no network or upstream checkout; rerun this for each SDK source port.
 //
 //   node npm/sdk/sync-upstream.mjs [--ts-ref <dir>] [--source-commit <sha>]   # copy (default checkout: ./ts-ref)
@@ -160,8 +159,7 @@ function sha256(data) {
 function main() {
     const opts = parseArgs(process.argv.slice(2));
     const manifestPath = path.join(pkgDir, "UPSTREAM.json");
-    const recordedCommit = fs.existsSync(manifestPath) ? JSON.parse(fs.readFileSync(manifestPath, "utf8")).commit : undefined;
-    const commit = opts.sourceCommit ?? recordedCommit ?? pinnedCommit();
+    const commit = opts.sourceCommit ?? pinnedCommit();
     if (!/^[0-9a-f]{40}$/.test(commit)) throw new Error(`invalid source commit ${commit}`);
     const head = execFileSync("git", ["-C", opts.tsRef, "rev-parse", "HEAD"], { encoding: "utf8" }).trim();
     if (head !== commit) throw new Error(`${opts.tsRef} is at ${head}, but the selected SDK source is ${commit}`);

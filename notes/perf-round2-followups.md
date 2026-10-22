@@ -140,6 +140,13 @@ with the switch off, which is why it is not in the default build.
 
 ## Measured and rejected (do not redo)
 
+- A symbol order file at link time (macOS, 2026-10-22; `notes/perf-binary-layout.md` section 7): an ld64
+  `-order_file` built from Time Profiler samples moves the checker's hot functions to the front of `__text` and halves
+  the page span of the code behind 90% of the samples; user CPU time within ±1.3% on six projects, the same band as
+  an identical-binary control, front-end stall share unchanged to half a point, output identical. The hot set is
+  340 KB for half the samples, larger than the 192 KB L1I in any layout. Not measured on the PGO build; on Mach-O
+  PGO does not place functions, so the lever is the same.
+
 - Unicode normalization library cleanup ([rust-stdlib-normalization.md](rust-stdlib-normalization.md)), applied at
   the user's request: unicode-normalization 0.1.25 matches the existing Unicode 17 NFD output. Five-pair Mac
   screening on Compiler/Compiler-Unions: -0.017% to -0.011% single instructions, -0.198% to -0.056% default RSS;

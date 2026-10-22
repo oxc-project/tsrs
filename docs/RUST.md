@@ -180,7 +180,10 @@ THP off for the whole process (`MIMALLOC_ALLOW_THP=0`, which also drops the aren
 `munmap` cost 3 ms and moved the ~15 ms teardown within noise, `madvise` from 16 threads was slower than one
 `munmap`; `notes/perf-front-end-fixed-costs.md`);
 `opt-level = "s"` for the language-server, API and emit crates (`.text` -6%, speed unchanged); adding vscode at eight
-checkers to the PGO training (-3% instructions, cycles unchanged).
+checkers to the PGO training (-3% instructions, cycles unchanged). A symbol order file at link time
+(`notes/perf-binary-layout.md`, section 7, macOS: an ld64 `-order_file` from profiler samples halves the page span of the
+hot text and changes nothing measurable; user CPU time within ±1.3% on six projects, the band of an identical-binary
+control, front-end stall share unchanged; the hot set is 340 KB for half the samples, bigger than the L1I either way).
 
 Not tried. Each needs a measurement before it is adopted; none is applied yet:
 
@@ -189,7 +192,6 @@ Not tried. Each needs a measurement before it is adopted; none is applied yet:
 | Allocation-count snapshot gate | oxc `tasks/track_memory_allocations` (`cargo allocs`, then `git diff --exit-code` in CI), Rolldown | A stray heap allocation on a hot path becomes a diff in a checked-in snapshot. Counts are exact on one thread. | A fixed corpus, one checker, and a new allocation-counting tool. |
 | Miri on all of `tsrs_core` | oxc (strict provenance, allocator and AST crates), rust-analyzer (`intern`), Bun (tree borrows, 17 crates) | Soundness of the handle and region code, where a third of the `unsafe` is. The focused arena free-list checks run in `.github/workflows/miri.yml` (`notes/fix-arena-recycle-uaf.md`). | Nightly and `--features plain-ptrs` (Miri does not support the compressed handles' `PROT_NONE` reservation). |
 | Conformance with `debug-assertions` and `overflow-checks` in an optimized profile | oxc `[profile.coverage]` | Overflow and failed debug assertions that release builds skip. | A profile and a second conformance run. |
-| A symbol order file at link time | Bun (order file from a function-entry trace) | Part of BOLT's gain without a post-link step, on every platform. | A function-entry trace and `-Wl,--symbol-ordering-file` / `-order_file`. |
 | Arena-backed temporaries | oxc (arena `Vec` and `HashMap`), Bun (hashbrown on its arenas through `allocator-api2`, the stable stand-in for the nightly `Allocator` API) | Scratch vectors and maps skip malloc and free. | A scratch allocator whose reset point is provable; scope regions were rejected (above), so per-call scratch is the experiment. |
 | Inline small vectors | `smallvec` in oxc, Rolldown, Ruff, Bun | No heap allocation for short temporaries. | An allocation profile showing which temporaries are short. |
 | Call-graph lints | mordant, used by Bun with a per-file baseline, advisory there | `forbidden_reach` ("nothing reachable from this function may allocate"), `generic_body_not_generic` (code compiled again per type for no reason). | A nightly with `rustc-dev` that compiles the workspace. |

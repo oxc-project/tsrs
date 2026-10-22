@@ -141,6 +141,32 @@ No single hot spot: `check_expression_ex` 4.0%, `SymbolMap::search` 3.5%, `NameR
 faults and a contended lock under KVM), libc 0.9%. Nothing here is a build-level lever; `assign_*_id` and the
 symbol-map search are candidates for the source-level work.
 
+## 7. A symbol order file at link time (macOS, 2026-10-22)
+
+The one candidate of docs/RUST.md's "Not tried" table that is pure build configuration, measured on an 18-core Apple
+Silicon machine at `467182f2` on the `release` profile (fat LTO, one codegen unit, `strip = "none"` on both sides so
+the profile's symbol names match the link), not the PGO build the macOS release ships: its training needs the `ts-ref`
+checkout and the Go fourslash gate, and on Mach-O PGO changes inlining, not placement, so the lever is the same.
+
+A is the plain build: 17,777 text symbols, 13.4 MB of `__text`. Two order files come from eight Time Profiler runs
+(`xcrun xctrace`, webpack and storybook at the default checker count, 13,990 samples mapped to symbols with
+`nm -n`): B orders 1,996 symbols by sample count (self plus callers), C by first appearance. ld64 honours
+`-C link-arg=-Wl,-order_file,<file>`: B's `__text` starts with `check_expression_worker`,
+`instantiate_type_with_alias_worker` and `structured_type_related_to_worker`, which sat at text ranks 4,267-4,973 in
+A, and the code behind 90% of the samples spans 127 pages of 16 KiB instead of 225 (half the samples: 44 instead of
+89). Output byte-identical at 1 and 4 checkers (42 comparisons).
+
+Interleaved against A and against A2, a copy of A as the noise control (`tools/perf/layout-measure.py` adapted to
+macOS: wall from `wait4`, counters from xctrace; 10 rounds on six projects at the default checker count and
+single-threaded, then 15 single-threaded rounds on mui-docs, mikro-orm and cal-diy; median of the per-round ratios),
+user CPU time is within ±1.3% for B and for C on every project, the same band as A2; wall-time medians swing -11% to
++7% for B and -10% to +2% for A2 (two other builds loaded the machine); peak RSS within ±0.7%. xctrace `CPU Counters`
+in bottleneck mode (single-threaded, one run per binary per project) puts the front-end share within half a point
+across A, B, C and A2 (mui-docs 27.3 / 27.4 / 26.5 / 27.0), so there is no fetch stall for an ordering to remove:
+the hot set is 340 KB for half the samples and 1.1 MB for 90%, larger than the 192 KB L1I in any layout, and the
+Linux counters above already had iTLB misses negligible. Not adopted. Not measured: an order file on the PGO binary
+itself.
+
 ## Build time on 64 vCPUs (probe, for scale)
 
 | step | time |

@@ -2,6 +2,8 @@
 # default-parallelism compilations for memory and walltime. Each project runs in its own process so arenas from
 # earlier compilations cannot inflate peak memory (walltime samples ten such processes). Walltime uses a Graviton Macro
 # Runner, with an arm64 build made on Ubuntu 22.04 to match its glibc. The broader Hyperfine comparison is in wallclock.yml.
+# Walltime is disabled by default after exhausting the included monthly Macro Runner minutes. Set the repository variable
+# CODSPEED_WALLTIME_ENABLED=true to re-enable its build and benchmarks; simulation and memory use GitHub-hosted runners.
 # Security: read-only GITHUB_TOKEN plus an OIDC token for the CodSpeed upload, no secrets.
 
 name: CodSpeed
@@ -74,6 +76,7 @@ jobs:
           retention-days: 7
 
   build-walltime:
+    if: vars.CODSPEED_WALLTIME_ENABLED == 'true'
     name: Build benchmarks (walltime arm64)
     runs-on: ubuntu-22.04-arm
     timeout-minutes: 90
@@ -178,6 +181,7 @@ jobs:
           run: cargo codspeed run -p tsrs_bench --bench compiler_default -m memory
 
   walltime:
+    if: vars.CODSPEED_WALLTIME_ENABLED == 'true'
     name: Benchmark (walltime, ${{ matrix.project }})
     needs: build-walltime
     runs-on: codspeed-macro-arm64-graviton-ubuntu-22-04

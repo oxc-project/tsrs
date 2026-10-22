@@ -1,13 +1,6 @@
 name: Update benchmarks
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - bench/projects.json
-      - bench/*.mjs
-      - pnpm-lock.yaml
-      - .github/workflows/update-benchmarks.yml
   pull_request:
     types: [opened, synchronize]
     paths:

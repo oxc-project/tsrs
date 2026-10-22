@@ -3,10 +3,11 @@
 # (notes/perf-order-independence.md). The single-threaded run of each project and regression case is the reference;
 # the default mode at 2 and 4 checkers (locality assignment and work stealing, so a different split every run) and
 # random static assignments with random visit orders (`--checkerAssignment random:<seed>`) at 2 and 4 checkers must
-# print the same bytes and exit with the same status. With --base, the single-threaded run also compares ordered
-# diagnostics and exit status against an earlier tsrs binary. Both history-dependent diagnostics of
-# notes/fix-history-dependent-diagnostics.md (nuxt's TS2320, drizzle-orm's TS2769) appeared under such assignments at
-# 2-4 checkers, so those two projects are in the default set with the two cheapest bench projects. The broader
+# print the same bytes and exit with the same status. The current compiler must always finish normally; identical
+# crashes fail too. With --base, the single-threaded run also compares ordered diagnostics and exit status against
+# an earlier tsrs binary, unless that base fails abnormally and the current compiler fixes it. Both history-dependent
+# diagnostics of notes/fix-history-dependent-diagnostics.md (nuxt's TS2320, drizzle-orm's TS2769) appeared under such
+# assignments at 2-4 checkers, so those two projects are in the default set with the two cheapest bench projects. The broader
 # base-build performance comparison remains available locally through tools/perf/verify.py; pr-verify.yml.bak is disabled.
 #
 #   tools/ci/determinism.sh <tsrs binary> [--base <base binary>]
@@ -76,11 +77,13 @@ sweep() {
   if [ -n "$base" ]; then
     (cd "$dir" && "$base" "${flags[@]}" --singleThreaded > "$out/$name-base.txt" 2>&1); base_status=$?
     runs=$((runs + 1))
-    if ! python3 "$repo/tools/ci/compare_diagnostics.py" --label "$name" \
-      --base "$out/$name-base.txt" --base-exit "$base_status" \
-      --new "$out/$name-single.txt" --new-exit "$ref_status"; then
-      fail=1
-    fi
+    set -- --base "$out/$name-base.txt" --base-exit "$base_status"
+  else
+    set --
+  fi
+  if ! python3 "$repo/tools/ci/compare_diagnostics.py" --label "$name" "$@" \
+    --new "$out/$name-single.txt" --new-exit "$ref_status"; then
+    fail=1
   fi
   for n in 2 4; do
     for rep in $(seq 1 "$default_reps"); do variant "$name" "$dir" "default-$n-$rep" --checkers "$n"; done
@@ -111,5 +114,5 @@ if [ "$regressions" = 1 ]; then
   done
   echo "testdata/regressions: $((runs - before)) runs compared"
 fi
-echo "determinism: $runs runs, $([ "$fail" = 0 ] && echo "all identical to the single-threaded output" || echo "DIFFERENCES FOUND")"
+echo "determinism: $runs runs, $([ "$fail" = 0 ] && echo "all current runs finished normally with identical output" || echo "FAILURES FOUND")"
 exit "$fail"

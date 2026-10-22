@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
-"""Compare ordered TypeScript diagnostics and exit codes from two compiler runs.
+"""Require a normal compiler run and compare it with a normally finishing base.
 
 The extraction matches tools/perf/verify.py: an `error TS` line and its
 indented continuation lines form the diagnostic stream. Other output is not a
-parity failure.
+parity failure. A failing base may be repaired by the new compiler, but a new
+compiler that fails abnormally never passes, even without a base.
 """
+
+from __future__ import annotations
 
 import argparse
 import contextlib
@@ -31,11 +34,23 @@ def diagnostics(output: str) -> list[str]:
     return lines
 
 
-def compare(base: str, base_exit: int, new: str, new_exit: int, label: str) -> bool:
+def finished_normally(output: str, code: int) -> bool:
+    return code in (0, 1, 2) and not any(CRASH_RE.match(line) for line in output.splitlines())
+
+
+def compare(base: str | None, base_exit: int | None, new: str, new_exit: int, label: str) -> bool:
+    if not finished_normally(new, new_exit):
+        print(f"FAIL {label}: new did not finish normally (exit {new_exit})")
+        return False
+    if base is None:
+        print(f"pass {label}: {len(diagnostics(new))} ordered diagnostic lines, exit {new_exit}")
+        return True
+    if not finished_normally(base, base_exit):
+        print(f"pass {label}: base did not finish normally (exit {base_exit}); "
+              f"new finished normally (exit {new_exit}), skipping base diagnostic comparison")
+        return True
+
     problems = []
-    for side, output, code in (("base", base, base_exit), ("new", new, new_exit)):
-        if code not in (0, 1, 2) or any(CRASH_RE.match(line) for line in output.splitlines()):
-            problems.append(f"{side} did not finish normally (exit {code})")
     if base_exit != new_exit:
         problems.append(f"exit differs: base {base_exit}, new {new_exit}")
 
@@ -83,9 +98,11 @@ def main() -> None:
     if args.self_test:
         self_test()
         return
-    if None in (args.base, args.base_exit, args.new, args.new_exit):
-        parser.error("--base, --base-exit, --new, and --new-exit are required")
-    if not compare(args.base.read_text(errors="replace"), args.base_exit,
+    if None in (args.new, args.new_exit):
+        parser.error("--new and --new-exit are required")
+    if (args.base is None) != (args.base_exit is None):
+        parser.error("--base and --base-exit must be supplied together")
+    if not compare(args.base.read_text(errors="replace") if args.base is not None else None, args.base_exit,
                    args.new.read_text(errors="replace"), args.new_exit, args.label):
         raise SystemExit(1)
 

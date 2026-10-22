@@ -387,9 +387,11 @@ jobs:
       - name: Set up determinism projects
         run: node bench/bench.mjs prepare --projects xstate-main,webpack,nuxt,drizzle-orm
 
-      # The four pinned projects and every regression case must be deterministic across checker schedules.
+      # The current compiler must finish normally on all four pinned projects and every regression case,
+      # with identical output across checker schedules. A base crash may be fixed by the current compiler.
       # On PRs and merge groups with the same TypeScript source pin, ordered diagnostics and exit codes
-      # must also match the base binary. A source-pin upgrade is checked against its new conformance baselines.
+      # must also match the base binary when it finishes normally. A source-pin upgrade is checked against its
+      # new conformance baselines.
       - name: Determinism and ordered diagnostics
         run: |
           python3 tools/ci/compare_diagnostics.py --self-test

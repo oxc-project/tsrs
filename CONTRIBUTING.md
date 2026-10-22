@@ -92,7 +92,10 @@ For a bug outside the suite, add a reproduction under `testdata/regressions/<nam
 - CI has five independent Linux jobs with separate
   Rust caches: `lint` runs Clippy and source checks; `test` runs Rust checks and all workspace tests, compiler conformance in
   both checker modes, and regressions; `determinism` compares checker output across four pinned projects and regression
-  cases; `fourslash` runs the server framing checks, gate checks, and
+  cases and rejects current-compiler crashes, including identical crashes across all schedules. When the TypeScript
+  source pin matches, it also compares ordered diagnostics and exit status with the base compiler wherever that base
+  finishes normally; a PR may fix a base crash. Regression output must still match the checked-in reference output;
+  `fourslash` runs the server framing checks, gate checks, and
   [Go fourslash subprocess gate](tools/go-fourslash/README.md#ci-gate); `node-api-clients` runs the pinned upstream
   sync and async client suites against both compilers.
   Source checks overlap Rust setup and Clippy in `lint`. Setup and checkout actions in `test` and `fourslash`

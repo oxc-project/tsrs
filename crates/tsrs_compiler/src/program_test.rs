@@ -97,7 +97,7 @@ fn source_phase_imports_do_not_resolve_or_keep_stale_programs() {
             program
                 .get_resolved_modules()
                 .get(file.path())
-                .is_none_or(rustc_hash::FxHashMap::is_empty)
+                .is_none_or(tsrs_module::ModeAwareCache::is_empty)
         );
         assert!(program.get_unresolved_imports().is_empty());
         assert!(program.unresolved_package_names().is_empty());

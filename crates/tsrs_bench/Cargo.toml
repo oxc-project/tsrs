@@ -34,7 +34,8 @@ required-features = ["codspeed"]
 [[bench]]
 name = "compiler_default"
 harness = false
-# One compilation per process: memory must not include earlier arena-heavy warmups.
+# One compilation per process: memory must not include earlier arena-heavy warmups. Walltime samples are child
+# processes.
 required-features = ["codspeed"]
 
 [lib]

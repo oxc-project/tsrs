@@ -1,7 +1,7 @@
 # CodSpeed (https://codspeed.io): single-threaded, in-memory CPU simulation plus one-shot, disk-backed
 # default-parallelism compilations for memory and walltime. Each project runs in its own process so arenas from
-# earlier compilations cannot inflate peak memory. Walltime uses a Graviton Macro Runner, with an arm64 build made
-# on Ubuntu 22.04 to match its glibc. The broader Hyperfine comparison is in wallclock.yml.
+# earlier compilations cannot inflate peak memory (walltime samples ten such processes). Walltime uses a Graviton Macro
+# Runner, with an arm64 build made on Ubuntu 22.04 to match its glibc. The broader Hyperfine comparison is in wallclock.yml.
 # Security: read-only GITHUB_TOKEN plus an OIDC token for the CodSpeed upload, no secrets.
 
 name: CodSpeed

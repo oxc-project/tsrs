@@ -265,7 +265,8 @@ the small projects move by a few hundred KiB), so peak memory is flagged when it
 
 ## CI
 
-CodSpeed runs on pushes to main, pull requests, and manual dispatch. `update-benchmarks.yml` publishes wall-time reports
+CodSpeed runs on pushes to main, pull requests, and manual dispatch. Its walltime benchmarks take ten one-shot
+compilations per project in child processes; one sample gave CodSpeed nothing to test against. `update-benchmarks.yml` publishes wall-time reports
 on changes to `bench/projects.json` or the workflow itself, and on manual dispatch. The comparison and probe workflows
 are disabled, including manual dispatch. Their definitions are preserved under `.github/workflows/`
 as `bench-compare.yml.bak`, `pr-verify.yml.bak` and `perf-probe.yml.bak`. The former `bench.yml` is available in Git history.

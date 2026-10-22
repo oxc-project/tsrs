@@ -56,6 +56,9 @@ Source 109 lets sync and async Node API clients write a timing snapshot on close
 [`@tsrs/wasm`](https://github.com/oxc-project/tsrs/blob/main/npm/tsrs-wasm/README.md) provides WebAssembly support
 targeting `wasm32-wasip1` (WASI Preview 1).
 
+[`@tsrs/napi`](https://github.com/oxc-project/tsrs/blob/main/napi/README.md) provides native `check()` and
+`checkSync()` project checking for Node.js, with an independent release workflow. Its first npm publication is pending.
+
 ## Learn more
 
 - [CLI usage and memory tuning](https://github.com/oxc-project/tsrs/blob/main/docs/USAGE.md)

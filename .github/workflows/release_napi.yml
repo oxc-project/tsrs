@@ -1,0 +1,23 @@
+# Independently versioned: bump napi/package.json on main, or dispatch to retry a release.
+# Configure npm trusted publishing for @tsrs/napi and its platform packages with this workflow.
+name: Release NAPI
+
+on:
+  push:
+    branches: [main]
+    paths: [napi/package.json]
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: release-napi-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    if: github.repository == 'oxc-project/tsrs' && github.ref == 'refs/heads/main'
+    uses: ./.github/workflows/reusable_release_napi.yml
+    permissions:
+      contents: read
+      id-token: write

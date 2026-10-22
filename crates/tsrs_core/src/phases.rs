@@ -14,6 +14,11 @@ pub enum PhaseValue {
 
 static PHASES: Mutex<Vec<(&'static str, PhaseValue)>> = Mutex::new(Vec::new());
 
+/// Starts a new serialized embedded invocation's diagnostic counters.
+pub fn reset() {
+    PHASES.lock().unwrap().clear();
+}
+
 pub fn record(name: &'static str, d: Duration) {
     let mut phases = PHASES.lock().unwrap();
     match phases.iter_mut().find(|(n, _)| *n == name) {

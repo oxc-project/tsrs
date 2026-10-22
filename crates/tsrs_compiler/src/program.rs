@@ -514,7 +514,9 @@ pub fn worker_pool() -> &'static rayon::ThreadPool {
                     .map_or(1, std::num::NonZero::get)
                     .min(PARSE_THREAD_CAP)
             });
-        rayon::ThreadPoolBuilder::new().num_threads(threads).stack_size(256 << 20).build().unwrap()
+        // 32-bit native addons must leave address space for Node and the checker threads too.
+        let stack_size = if cfg!(target_pointer_width = "32") { 16 << 20 } else { 256 << 20 };
+        rayon::ThreadPoolBuilder::new().num_threads(threads).stack_size(stack_size).build().unwrap()
     })
 }
 

@@ -24,7 +24,12 @@ pub(crate) struct sysParseConfigHost {
 
 /// The config parse host for `sys` (leaked: tsoptions keeps it for the parsed command line's lifetime).
 pub(crate) fn parse_config_host(sys: &'static dyn System) -> &'static sysParseConfigHost {
-    Box::leak(Box::new(sysParseConfigHost { sys, fs: sys.fs() }))
+    let host = sysParseConfigHost { sys, fs: sys.fs() };
+    if sys.compilation_scope().is_some() {
+        tsrs_core::alloc(host)
+    } else {
+        Box::leak(Box::new(host))
+    }
 }
 
 impl ParseConfigHost for sysParseConfigHost {
@@ -285,6 +290,7 @@ fn tsc_compilation(
         // the pool program construction uses next instead of starting rayon's global pool (one thread per vCPU, which
         // nothing else in a run needs).
         let (config_parse_result, errors) = tsrs_compiler::worker_pool().install(|| {
+            let _region = sys.compilation_scope().map(|scope| scope.regions.enter());
             tsoptions::get_parsed_command_line_of_config_file(
                 &config_file_name,
                 Some(&compiler_options_from_command_line),
@@ -413,13 +419,17 @@ fn perform_compilation(
         Some(get_trace_from_sys(sys, testing)),
         content_mapper_project,
     );
+    let host = sys
+        .compilation_scope()
+        .map_or_else(|| Arc::clone(&host), |scope| scope.host(Arc::clone(&host)));
 
     // tsrs-only (notes/mem-free-leaf-files.md): a `--noEmit` check frees the tree of each file that nothing else
     // refers to once it is checked. Not when anything reads the trees after the check pass: declaration
     // diagnostics (`declaration`, `composite`), `--explainFiles` (the import nodes of each file), the tsctests harness,
     // or Go's check history (`--checkerAssignment go`, a per-name cache that keeps another file's declarations).
     let options = config.compiler_options().unwrap();
-    let leaf_freeing_allowed = testing.is_none()
+    let leaf_freeing_allowed = sys.compilation_scope().is_none()
+        && testing.is_none()
         && options.no_emit.is_true()
         && !options.get_emit_declarations()
         && !options.explain_files.is_true()
@@ -436,7 +446,8 @@ fn perform_compilation(
     }
     // tsrs-only (notes/mem-lazy-dts-members.md): when no declaration file is type-checked, the member lists of
     // interfaces, classes and type literals in declaration files are parsed and bound on first use.
-    if testing.is_none()
+    if sys.compilation_scope().is_none()
+        && testing.is_none()
         && (options.skip_lib_check.is_true() || options.no_check.is_true())
         && tsrs_compiler::lazy_dts_allowed()
     {
@@ -445,11 +456,17 @@ fn perform_compilation(
     let mut program_options = ProgramOptions::new(config, host);
     program_options.leaf_files = leaf_settings.mode;
     program_options.checker_recycling = leaf_freeing_allowed;
+    if let Some(scope) = sys.compilation_scope() {
+        scope.options(&mut program_options);
+    }
 
     start_tracing_if_needed(sys, &config);
     let parse_start =
         tsc::DiagnosticTimer::new(sys, config.compiler_options().unwrap().diagnostics_enabled());
     let program = new_program(program_options);
+    if let Some(scope) = sys.compilation_scope() {
+        scope.retain(program);
+    }
     compile_times.parse_time = parse_start.elapsed();
     if let Some(content_mapper_host) = &content_mapper_host {
         compile_times.content_mapper_times = content_mapper_host.timings();
@@ -499,10 +516,14 @@ fn perform_incremental_compilation(
         Some(get_trace_from_sys(sys, testing)),
         content_mapper_project,
     );
+    let host = sys
+        .compilation_scope()
+        .map_or_else(|| Arc::clone(&host), |scope| scope.host(Arc::clone(&host)));
     // Go reads the old program and then builds the new one. The two are independent (the read only uses the
     // config and the host's file system, both thread-safe), so the read runs on its own thread while the program
     // is built; "BuildInfo read time" is the read's own duration. `--singleThreaded` keeps Go's order.
     let read_build_info = || {
+        let _region = sys.compilation_scope().map(|scope| scope.regions.enter());
         let start = tsc::DiagnosticTimer::new(
             sys,
             config.compiler_options().unwrap().diagnostics_enabled(),
@@ -519,7 +540,14 @@ fn perform_incremental_compilation(
             sys,
             config.compiler_options().unwrap().diagnostics_enabled(),
         );
-        let program = new_program(ProgramOptions::new(config, Arc::clone(&host)));
+        let mut options = ProgramOptions::new(config, Arc::clone(&host));
+        if let Some(scope) = sys.compilation_scope() {
+            scope.options(&mut options);
+        }
+        let program = new_program(options);
+        if let Some(scope) = sys.compilation_scope() {
+            scope.retain(program);
+        }
         (program, start.elapsed())
     };
     // Go starts tracing between the build info read and the program; nothing in between writes output.

@@ -1,4 +1,10 @@
 target/
+napi/*.node
+napi/src-js/*.node
+napi/src-js/binding.*
+napi/artifacts/
+napi/dist/
+napi/npm/
 *.log
 .DS_Store
 ts-ref

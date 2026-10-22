@@ -18,7 +18,7 @@
    `panic = "abort"` builds (notes/fix-arena-recycle-uaf.md). Take the block as a `P<T>`, an address or a raw slice.
    No baseline: every finding fails.
 
-Scans {crates,tasks}/*/src/**/*.rs, without test files (*_test.rs, tests.rs, tests/ directories)
+Scans {crates,tasks}/*/src/**/*.rs and napi/src/**/*.rs, without test files (*_test.rs, tests.rs, tests/ directories)
 and files whose first line says they are generated.
 """
 
@@ -41,7 +41,7 @@ FREE_CALL = re.compile(r"\b(free!|free_slice!|free_raw|free_slice_ptr)\s*\(\s*&?
 
 
 def source_files():
-    sources = sorted(Path(ROOT).glob("crates/*/src")) + sorted(Path(ROOT).glob("tasks/*/src"))
+    sources = sorted(Path(ROOT).glob("crates/*/src")) + sorted(Path(ROOT).glob("tasks/*/src")) + [Path(ROOT) / "napi/src"]
     for source in sources:
         src = str(source)
         for dirpath, _dirs, files in os.walk(src):

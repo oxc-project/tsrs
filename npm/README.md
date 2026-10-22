@@ -8,6 +8,9 @@ tsrs ships on npm the way TypeScript 7 ships its native compiler (`typescript@7`
 | `@tsrs/<os>-<arch>[-<libc>]` | the `tsrs` binary and default TypeScript libraries for one platform, with `os`/`cpu` (and `libc: glibc` or `musl` on Linux) so package managers install only the matching one |
 | `@tsrs/wasm` | the WebAssembly module (`npm/tsrs-wasm`, notes/wasm-build.md): a `tsrs-wasm` command and a `tsc()` API for Node 22+ and browsers, single-threaded; no platform packages |
 
+The native [`@tsrs/napi`](../napi/README.md) addon lives in `napi/`, with independent versions and a separate
+release workflow. It exposes `check()` and `checkSync()` for project checking. Its first npm publication is pending.
+
 Platforms since 0.14.0: `darwin-arm64`, `linux-x64-gnu`, `linux-arm64-gnu`, `linux-x64-musl` and `linux-arm64-musl`
 (earlier releases use unsuffixed GNU names; `darwin-x64` was published up to 0.2.1). The release workflow now also
 builds `win32-x64`; releases through 0.18.0 do not contain that platform package.

@@ -633,7 +633,7 @@ pub struct InferenceInfo {
 
 #[cfg(target_pointer_width = "64")]
 const _: () = assert!(
-    std::mem::size_of::<InferenceInfo>() == if tsrs_core::COMPRESSED_PTRS { 24 } else { 48 }
+    std::mem::size_of::<InferenceInfo>() == if tsrs_core::COMPRESSED_PTRS { 24 } else { 40 }
 );
 #[cfg(target_pointer_width = "32")]
 const _: () = assert!(std::mem::size_of::<InferenceInfo>() == 24);

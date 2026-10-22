@@ -148,7 +148,9 @@ impl std::ops::DerefMut for PooledChecker {
 }
 
 // Checkers recurse deeply (the single-threaded CLI runs on a 512 MB stack); each checker thread gets the same.
-pub const CHECKER_STACK_SIZE: usize = 512 << 20;
+// The native addon's 32-bit targets cannot reserve gigabytes of virtual addresses across these threads.
+pub const CHECKER_STACK_SIZE: usize =
+    if cfg!(target_pointer_width = "32") { 16 << 20 } else { 512 << 20 };
 
 // Go core.WorkGroup as used by the checker pool: runs `task(i)` for every index, each on its own OS thread,
 // and waits for all of them. Single-threaded runs execute the tasks in order on the calling thread.

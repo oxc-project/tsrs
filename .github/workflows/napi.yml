@@ -1,0 +1,51 @@
+name: NAPI
+
+on:
+  workflow_dispatch:
+  pull_request:
+  merge_group:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: napi-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref_name != 'main' }}
+
+jobs:
+  native:
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: ubuntu-latest, target: x86_64-unknown-linux-gnu }
+          - { os: macos-latest, target: aarch64-apple-darwin }
+          - { os: windows-latest, target: x86_64-pc-windows-msvc }
+          - { os: windows-latest, target: i686-pc-windows-msvc }
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: taiki-e/checkout-action@7d1e50e93dc4fb3bba58f85018fadf77898aee8b # v1.4.2
+      - uses: oxc-project/setup-node@f46a72f95efdc55273fcd042d61c84e723b2892c # v1.4.1
+      - uses: oxc-project/setup-rust@3d6fb132fbe7cdcb66bf8ec193911c2945369d12 # v1.0.17
+        with:
+          cache-key: napi-${{ matrix.target }}
+          save-cache: ${{ github.ref_name == 'main' }}
+      - run: rustup target add ${{ matrix.target }}
+      - run: pnpm --dir napi build-dev --target ${{ matrix.target }}
+      - run: cargo build --profile dev --locked -p tsrs_cli
+      - run: node napi/scripts/release.mjs assemble napi/src-js ${{ matrix.target }}
+      # Node 24 dropped Windows ia32; build with the normal tooling, then exercise the addon on Node 22.
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        if: matrix.target == 'i686-pc-windows-msvc'
+        with:
+          node-version: '22.12.0'
+          architecture: x86
+          package-manager-cache: false
+      - run: pnpm --dir napi test
+      - run: node napi/scripts/smoke.mjs

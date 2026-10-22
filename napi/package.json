@@ -1,0 +1,51 @@
+{
+  "name": "@tsrs/napi",
+  "version": "0.1.0",
+  "description": "Native TypeScript project checking with tsrs",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/oxc-project/tsrs.git",
+    "directory": "napi"
+  },
+  "main": "./src-js/index.cjs",
+  "types": "./src-js/index.d.cts",
+  "exports": {
+    ".": {
+      "import": { "types": "./src-js/index.d.mts", "default": "./src-js/index.mjs" },
+      "require": { "types": "./src-js/index.d.cts", "default": "./src-js/index.cjs" }
+    },
+    "./package.json": "./package.json"
+  },
+  "files": ["src-js", "LICENSE", "NOTICE"],
+  "engines": { "node": "^20.19.0 || >=22.12.0" },
+  "publishConfig": { "access": "public", "registry": "https://registry.npmjs.org/" },
+  "scripts": {
+    "build-dev": "node scripts/build.mjs",
+    "build": "node scripts/build.mjs --release",
+    "test": "node --test tests/*.test.mjs",
+    "pack-release": "node scripts/release.mjs assemble"
+  },
+  "devDependencies": { "@napi-rs/cli": "3.10.8", "semver": "7.8.5" },
+  "napi": {
+    "binaryName": "tsrs",
+    "packageName": "@tsrs/napi",
+    "targets": [
+      "aarch64-apple-darwin",
+      "aarch64-pc-windows-msvc",
+      "aarch64-unknown-linux-gnu",
+      "aarch64-unknown-linux-musl",
+      "armv7-unknown-linux-gnueabihf",
+      "armv7-unknown-linux-musleabihf",
+      "i686-pc-windows-msvc",
+      "powerpc64le-unknown-linux-gnu",
+      "riscv64gc-unknown-linux-gnu",
+      "riscv64gc-unknown-linux-musl",
+      "s390x-unknown-linux-gnu",
+      "x86_64-apple-darwin",
+      "x86_64-pc-windows-msvc",
+      "x86_64-unknown-linux-gnu",
+      "x86_64-unknown-linux-musl"
+    ]
+  }
+}

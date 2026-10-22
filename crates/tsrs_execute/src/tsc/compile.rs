@@ -8,6 +8,11 @@ use tsrs_core::{CompilerOptions, Locale, P};
 use tsrs_vfs::FS;
 
 pub trait System: Sync {
+    /// An embedded, one-shot invocation owns its compiler allocations until the driver has returned.
+    fn compilation_scope(&self) -> Option<&crate::embedded::CompilationScope> {
+        None
+    }
+
     fn fs(&self) -> Arc<dyn FS>;
     fn default_library_path(&self) -> &str;
     fn get_current_directory(&self) -> &str;

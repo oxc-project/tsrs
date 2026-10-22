@@ -2,6 +2,7 @@
 // (crates/tsrs_cli) runs it over the OS file system; crates/tsrs_wasm runs it over a host file system.
 
 pub mod build;
+pub mod embedded;
 pub mod execute;
 pub mod sys;
 pub mod tsc;

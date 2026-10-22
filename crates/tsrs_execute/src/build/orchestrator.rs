@@ -817,9 +817,9 @@ impl Orchestrator {
                 (result.program.take(), result.program_regions.take())
             };
             if let (true, Some(program)) = (self.frees_built_programs(), program) {
-                // On the free thread, so that the builder goes on to its next project: freeing inline took 4% of the
-                // wall time of a 3,000-project build at 64 builders on 8 cores.
-                self.freer.run(move || task.free_built_program(program, regions));
+                // Keep the free thread's overlap with building, but bound the completed programs it retains when
+                // builders outpace it. Watch-mode frees still run in FIFO order (`Freer::run`).
+                self.freer.run_bounded(4, move || task.free_built_program(program, regions));
             } else if let (true, Some(program)) = (self.api_mode.load(Ordering::SeqCst), program) {
                 // API builds free each project's program once it is built (its arenas go with the task region when
                 // the orchestrator is freed; this frees the heap side: program, checkers, processed data). It is a

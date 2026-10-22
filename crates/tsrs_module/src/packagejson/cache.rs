@@ -1,5 +1,5 @@
 use std::ops::Deref;
-use std::sync::{LazyLock, OnceLock};
+use std::sync::{Arc, LazyLock, OnceLock};
 
 use tsrs_core::P;
 use tsrs_core::collections::{OrderedMap, SyncMap, new_ordered_map_with_size_hint};
@@ -221,9 +221,9 @@ pub struct InfoCache {
     cache: SyncMap<Path, P<InfoCacheEntry>>,
     current_directory: String,
     use_case_sensitive_file_names: bool,
-    // Memory regions (docs/LSP.md "Memory plan"), not in Go: the address of the cache this one was cloned from,
-    // transitively (0: none). Clones share their entries, so new entries live with the original (`owner_addr`).
-    origin: usize,
+    // Clones copy entry pointers, so they keep the entries' allocation region alive together. The region is entered
+    // only to allocate an entry, never while reading files or waiting for loader jobs on another thread.
+    entries_region: Arc<OnceLock<tsrs_core::arena::Region>>,
 }
 
 pub fn new_info_cache(current_directory: &str, use_case_sensitive_file_names: bool) -> InfoCache {
@@ -231,27 +231,30 @@ pub fn new_info_cache(current_directory: &str, use_case_sensitive_file_names: bo
         cache: SyncMap::default(),
         current_directory: current_directory.to_string(),
         use_case_sensitive_file_names,
-        origin: 0,
+        entries_region: Arc::default(),
     }
 }
 
 impl InfoCache {
-    // The address that decides where a new entry is allocated (`arena::enter_table_owner`): the original cache's. A
-    // program's clones copy their predecessor's entries (`ResolutionData::clone_data`), so an entry added to one of
-    // them must outlive it: entries stay in the region that allocates the original cache (a full build's region,
-    // which every clone keeps; an auto-import update's scratch region) and go to the never-freed thread arena when
-    // added from anywhere else (a clone's construction, a checker, a parse worker).
-    pub fn owner_addr(&self) -> usize {
-        if self.origin != 0 {
-            return self.origin;
+    pub(crate) fn get_or_insert_with(
+        &self,
+        package_json_path: &str,
+        create: impl FnOnce() -> InfoCacheEntry,
+    ) -> P<InfoCacheEntry> {
+        let region = self.entries_region.get_or_init(|| tsrs_core::arena::Region::new(4 << 10));
+        let _scope = region.enter();
+        // The file was read and parsed before taking the region lock. Another worker may have filled the cache;
+        // discard that worker's losing parsed value before allocating it in the arena.
+        if let Some(existing) = self.get(package_json_path) {
+            return existing;
         }
-        std::ptr::from_ref::<InfoCache>(self) as usize
+        self.set(package_json_path, P::new(create()))
     }
 
     #[must_use]
     pub fn clone_cache(&self) -> InfoCache {
         let mut clone = new_info_cache(&self.current_directory, self.use_case_sensitive_file_names);
-        clone.origin = self.owner_addr();
+        clone.entries_region = Arc::clone(&self.entries_region);
         self.cache.range(|key, value| {
             clone.cache.store(key.clone(), *value);
             true

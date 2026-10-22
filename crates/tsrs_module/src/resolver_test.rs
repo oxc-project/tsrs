@@ -350,6 +350,48 @@ fn test_resolution_data_caches() {
     assert!(clone.get_package_scope_for_path("/missing-first").exists());
 }
 
+#[test]
+fn package_json_entries_are_freed_after_the_last_cache_generation() {
+    use std::sync::Arc;
+    use tsrs_core::arena::Region;
+
+    let fs = vfstest::from_map(
+        [("/src/package.json", r#"{"name":"pkg","dependencies":{"dep":"*"}}"#)],
+        true,
+    );
+    let options = bundler_options();
+    tsrs_core::arena::route_by_owner();
+    // ProgramRegions uses an unregistered loader region, entered without a scratch scope.
+    let loader_region = Region::new_scratch(4 << 10);
+    let freed = Arc::new(AtomicUsize::new(0));
+    let (clone, entry) = {
+        let _scope = loader_region.enter();
+        let resolver = new_resolver(ResolverOptions::new(host(fs, "/src"), options));
+        let entry = resolver.get_package_scope_for_path("/src").unwrap();
+        assert!(entry.exists());
+        assert!(!resolver.get_package_scope_for_path("/missing").exists());
+        let entries_region = Region::containing(entry.addr()).expect("reclaimable cache entries");
+        resolver.get_resolution_data().package_json_cache_entries(|_, cached| {
+            assert!(Region::containing(cached.addr()).unwrap().ptr_eq(&entries_region));
+            if let Some(contents) = cached.contents {
+                assert!(Region::containing(contents.addr()).unwrap().ptr_eq(&entries_region));
+            }
+            true
+        });
+        let freed = Arc::clone(&freed);
+        entries_region.on_free(Box::new(move || {
+            freed.fetch_add(1, Ordering::SeqCst);
+        }));
+        (resolver.get_resolution_data().package_json_info_cache.clone_cache(), entry)
+    };
+    drop(loader_region);
+    assert_eq!(freed.load(Ordering::SeqCst), 0);
+    assert_eq!(clone.get("/src/package.json"), Some(entry));
+    assert_eq!(entry.contents.unwrap().name.value, "pkg");
+    drop(clone);
+    assert_eq!(freed.load(Ordering::SeqCst), 1);
+}
+
 // A one-shot event, standing in for Go's `chan struct{}` that is closed once.
 #[derive(Default)]
 struct Gate {

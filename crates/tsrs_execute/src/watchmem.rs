@@ -8,8 +8,8 @@
 // (`FileRegions::take_unreachable`); the programs it replaced refer to old versions too, so the regions are freed on
 // the `Freer` thread after them.
 
-use std::sync::Mutex;
-use std::sync::mpsc;
+use std::sync::atomic::{AtomicUsize, Ordering};
+use std::sync::{Arc, Mutex, mpsc};
 
 use rustc_hash::{FxHashMap, FxHashSet};
 use tsrs_ast::SourceFile;
@@ -93,11 +93,16 @@ type FreeJob = Box<dyn FnOnce() + Send>;
 pub(crate) struct Freer {
     in_place: bool,
     tx: std::sync::OnceLock<Mutex<mpsc::Sender<FreeJob>>>,
+    bounded_pending: Arc<AtomicUsize>,
 }
 
 impl Freer {
     pub(crate) fn new(in_place: bool) -> Freer {
-        Freer { in_place: in_place || tsrs_core::NO_THREADS, tx: std::sync::OnceLock::new() }
+        Freer {
+            in_place: in_place || tsrs_core::NO_THREADS,
+            tx: std::sync::OnceLock::new(),
+            bounded_pending: Arc::new(AtomicUsize::new(0)),
+        }
     }
 
     fn sender(&self) -> &Mutex<mpsc::Sender<FreeJob>> {
@@ -140,5 +145,58 @@ impl Freer {
         }
         // The thread only ends when the sender is dropped, with the session.
         self.sender().lock().unwrap().send(Box::new(job)).expect("the free thread ended");
+    }
+
+    // Ordinary CLI builds only: their completed programs can be freed independently. Watch-mode jobs must stay in
+    // FIFO order, so they use `run`. Once the free thread falls behind, builders free their own programs instead of
+    // retaining an unbounded number of programs in its queue.
+    pub(crate) fn run_bounded(&self, max_pending: usize, job: impl FnOnce() + Send + 'static) {
+        if self.in_place
+            || self
+                .bounded_pending
+                .try_update(Ordering::SeqCst, Ordering::SeqCst, |pending| {
+                    (pending < max_pending).then_some(pending + 1)
+                })
+                .is_err()
+        {
+            job();
+            return;
+        }
+        let pending = Arc::clone(&self.bounded_pending);
+        self.run(move || {
+            job();
+            pending.fetch_sub(1, Ordering::SeqCst);
+        });
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::time::Duration;
+
+    use super::*;
+
+    #[test]
+    fn bounded_frees_run_overflow_inline_and_reuse_capacity() {
+        let freer = Freer::new(false);
+        let (release, blocked) = mpsc::channel();
+        let (started, running) = mpsc::channel();
+        freer.run_bounded(1, move || {
+            started.send(()).unwrap();
+            blocked.recv_timeout(Duration::from_secs(10)).unwrap();
+        });
+        running.recv_timeout(Duration::from_secs(10)).unwrap();
+
+        let caller = std::thread::current().id();
+        freer.run_bounded(1, move || assert_eq!(std::thread::current().id(), caller));
+        release.send(()).unwrap();
+
+        // The FIFO job runs after the first bounded job has released its slot.
+        let (done, completed) = mpsc::channel();
+        freer.run(move || done.send(()).unwrap());
+        completed.recv_timeout(Duration::from_secs(10)).unwrap();
+        let (done, completed) = mpsc::channel();
+        freer.run_bounded(1, move || done.send(std::thread::current().id()).unwrap());
+        assert_ne!(completed.recv_timeout(Duration::from_secs(10)).unwrap(), caller);
     }
 }

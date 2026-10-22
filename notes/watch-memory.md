@@ -92,8 +92,11 @@ ran out (poisoned memory is never reused), and the tsctests pass lists match the
   Ids are 32-bit (`assign_symbol_id` panics past `u32::MAX`), so a session that lasts long enough (about 5,900 edits
   or 850 full builds at these rates) panics. Fixing it means paging the index (memory only) or recycling or widening
   the ids; not done.
-- **package.json cache entries** (resolver.rs `get_package_json_info`): `enter_table_owner` puts them in the thread
-  arena unless the cache's registered region is current, about 0.7 MB per full build.
+
+The package.json cache-entry leak identified here was fixed for completed builds in #696: resolver cache clones
+now retain shared entry storage, released after the final cache generation. Entries no longer escape into
+permanent thread arenas; a still-live cache family keeps its entries
+([measurements and lifetime limits](mem-build-cache-backpressure.md)).
 
 Tried and dropped: carving file regions from slabs of their own (a third thread-local slab pool), on the theory
 that file regions sharing slabs with checker and emit regions pin them. No measurable change: what pinned slabs was

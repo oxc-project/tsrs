@@ -78,7 +78,7 @@ fn oracle_messages() {
     use tsrs_lsproto::jsonrpc;
     use tsrs_lsproto::*;
 
-    let req = RequestInfo::<NoParams, Null>::new(Method("x"))
+    let req = RequestInfo::<NoParams, Null>::new(Method("x".into()))
         .new_request_message(Some(jsonrpc::new_id_int(1)), NoParams);
     assert_eq!(
         marshal(&req.message()).unwrap(),

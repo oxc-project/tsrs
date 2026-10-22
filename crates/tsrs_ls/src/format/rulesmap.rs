@@ -5,22 +5,21 @@ use tsrs_ast::Kind;
 use super::*;
 
 // rulesmap.go:11
-pub(crate) fn get_rules(
-    context: &FormattingContext,
-    mut rules: Vec<&'static RuleImpl>,
-) -> Vec<&'static RuleImpl> {
-    let bucket = &get_rules_map()
+pub(crate) fn get_rules(context: &FormattingContext, mut rules: Vec<usize>) -> Vec<usize> {
+    let table = get_rules_map();
+    let bucket = &table.buckets
         [get_rule_bucket_index(context.current_token_span.kind, context.next_token_span.kind)];
     if !bucket.is_empty() {
         let mut rule_action_mask = RuleAction::None;
-        'outer: for &rule in bucket {
+        'outer: for &rule_index in bucket {
+            let rule = &table.rules[rule_index];
             let accept_rule_actions = !get_rule_action_exclusion(rule_action_mask);
             if rule.action() & accept_rule_actions != RuleAction::None {
                 let preds = rule.context();
                 if !preds.iter().all(|p| p(context)) {
                     continue 'outer;
                 }
-                rules.push(rule);
+                rules.push(rule_index);
                 rule_action_mask |= rule.action();
             }
         }
@@ -66,27 +65,40 @@ fn get_rule_action_exclusion(rule_action: RuleAction) -> RuleAction {
 }
 
 // rulesmap.go:66
-fn get_rules_map() -> &'static Vec<Vec<&'static RuleImpl>> {
-    static RULES_MAP: OnceLock<Vec<Vec<&'static RuleImpl>>> = OnceLock::new();
+struct RuleTable {
+    rules: Vec<RuleImpl>,
+    buckets: Vec<Vec<usize>>,
+}
+
+pub(crate) fn rule_by_index(index: usize) -> &'static RuleImpl {
+    &get_rules_map().rules[index]
+}
+
+fn get_rules_map() -> &'static RuleTable {
+    static RULES_MAP: OnceLock<RuleTable> = OnceLock::new();
     RULES_MAP.get_or_init(build_rules_map)
 }
 
 // rulesmap.go:68
-fn build_rules_map() -> Vec<Vec<&'static RuleImpl>> {
-    let rules = get_all_rules();
+fn build_rules_map() -> RuleTable {
+    let specs = get_all_rules();
     // Map from bucket index to array of rules
-    let mut m: Vec<Vec<&'static RuleImpl>> = vec![Vec::new(); MAP_ROW_LENGTH * MAP_ROW_LENGTH];
+    let mut m: Vec<Vec<usize>> = vec![Vec::new(); MAP_ROW_LENGTH * MAP_ROW_LENGTH];
+    let mut rules = Vec::with_capacity(specs.len());
     // This array is used only during construction of the rulesbucket in the map
     let mut rules_bucket_construction_state_list: Vec<u32> = vec![0; m.len()];
-    for rule in &rules {
-        let specific_rule = rule.left_token_range.is_specific && rule.right_token_range.is_specific;
+    for spec in specs {
+        let specific_rule = spec.left_token_range.is_specific && spec.right_token_range.is_specific;
+        let rule_index = rules.len();
+        rules.push(spec.rule);
 
-        for &left in &rule.left_token_range.tokens {
-            for &right in &rule.right_token_range.tokens {
+        for &left in &spec.left_token_range.tokens {
+            for &right in &spec.right_token_range.tokens {
                 let index = get_rule_bucket_index(left, right);
                 add_rule(
                     &mut m[index],
-                    rule.rule,
+                    &rules[rule_index],
+                    rule_index,
                     specific_rule,
                     &mut rules_bucket_construction_state_list,
                     index,
@@ -94,7 +106,7 @@ fn build_rules_map() -> Vec<Vec<&'static RuleImpl>> {
             }
         }
     }
-    m
+    RuleTable { rules, buckets: m }
 }
 
 // rulesmap.go:87
@@ -128,8 +140,9 @@ impl RulesPosition {
 // In order to insert a rule to the end of sub-bucket (3), we get the index by adding
 // the values in the bitmap segments 3rd, 2nd, and 1st.
 fn add_rule(
-    rules: &mut Vec<&'static RuleImpl>,
-    rule: &'static RuleImpl,
+    rules: &mut Vec<usize>,
+    rule: &RuleImpl,
+    rule_index: usize,
     specific_tokens: bool,
     construction_state: &mut [u32],
     rules_bucket_index: usize,
@@ -150,7 +163,7 @@ fn add_rule(
 
     let state = construction_state[rules_bucket_index];
 
-    rules.insert(get_rule_insertion_index(state, position), rule);
+    rules.insert(get_rule_insertion_index(state, position), rule_index);
     construction_state[rules_bucket_index] = increase_insertion_index(state, position);
 }
 

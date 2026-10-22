@@ -58,8 +58,8 @@ pub fn command_line_with_testing(
     if let Some(first) = command_line_args.first() {
         match first.to_lowercase().as_str() {
             "-b" | "--b" | "-build" | "--build" => {
-                let host = parse_config_host(sys);
-                let mut command = tsoptions::parse_build_command_line(&command_line_args, host);
+                let host = sysParseConfigHost { sys, fs: sys.fs() };
+                let mut command = tsoptions::parse_build_command_line(&command_line_args, &host);
                 if tsrs_core::NO_THREADS {
                     command.compiler_options.single_threaded = tsrs_core::Tristate::True;
                 }

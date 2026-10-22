@@ -47,7 +47,7 @@ pub(crate) struct TokenRange {
 pub(crate) struct RuleSpec {
     pub(crate) left_token_range: TokenRange,
     pub(crate) right_token_range: TokenRange,
-    pub(crate) rule: &'static RuleImpl,
+    pub(crate) rule: RuleImpl,
 }
 
 // Go's `rule` takes `left`/`right` as `any` (ast.Kind, []ast.Kind or tokenRange); toTokenRange dispatches on the type.
@@ -112,8 +112,7 @@ pub(crate) fn rule(
     }
     let left_range = to_token_range(left);
     let right_range = to_token_range(right);
-    let rule: &'static RuleImpl =
-        Box::leak(Box::new(RuleImpl { debug_name, context, action, flags: flag }));
+    let rule = RuleImpl { debug_name, context, action, flags: flag };
     RuleSpec { left_token_range: left_range, right_token_range: right_range, rule }
 }
 
@@ -123,7 +122,7 @@ fn to_token_range(e: impl ToTokenRange) -> TokenRange {
 }
 
 // rule.go:83
-pub(crate) type ContextPredicate = &'static (dyn Fn(&FormattingContext) -> bool + Send + Sync);
+pub(crate) type ContextPredicate = Box<dyn Fn(&FormattingContext) -> bool + Send + Sync>;
 
 // rule.go:85
 pub(crate) fn any_context() -> Vec<ContextPredicate> {

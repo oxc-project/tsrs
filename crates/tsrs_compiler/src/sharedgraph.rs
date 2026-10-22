@@ -102,15 +102,39 @@ unsafe impl Send for Base {}
 // SAFETY: as for `Send`.
 unsafe impl Sync for Base {}
 
-/// What the seed thread hands over: the seed checker, its region's chunks (to freeze) and when it started.
-struct SeedOut(&'static tsrs_checker::Checker, Vec<(usize, usize)>, tsrs_core::phases::Timer);
+/// What the seed thread hands over: the seed checker, its region, the chunks to freeze and when it started.
+struct SeedOut(
+    Box<tsrs_checker::Checker>,
+    tsrs_core::arena::Region,
+    Vec<(usize, usize)>,
+    tsrs_core::phases::Timer,
+);
+#[expect(
+    clippy::non_send_fields_in_send_ty,
+    reason = "the checker is moved only after the seed thread finishes"
+)]
 // SAFETY: the checker is handed from the seed thread, which ends, to the thread that freezes it; nothing else refers
 // to it until then.
 unsafe impl Send for SeedOut {}
 
+struct FrozenSeed {
+    checker: Box<tsrs_checker::Checker>,
+    // Keeps every arena object reachable from `checker` alive for the process lifetime.
+    _region: tsrs_core::arena::Region,
+}
+
+#[expect(
+    clippy::non_send_fields_in_send_ty,
+    reason = "the frozen checker is only read by forked checkers"
+)]
+// SAFETY: `wait_base` freezes the region before publishing the seed, and forks only read its checker.
+unsafe impl Send for FrozenSeed {}
+// SAFETY: as for `Send`.
+unsafe impl Sync for FrozenSeed {}
+
 static SEED_THREAD: std::sync::Mutex<Option<std::thread::JoinHandle<SeedOut>>> =
     std::sync::Mutex::new(None);
-static BASE: OnceLock<Base> = OnceLock::new();
+static BASE: OnceLock<FrozenSeed> = OnceLock::new();
 /// `type_count` of a fresh checker: a pool checker with more was used before the pass and is not replaced.
 static FRESH_TYPES: std::sync::atomic::AtomicU32 = std::sync::atomic::AtomicU32::new(u32::MAX);
 
@@ -152,13 +176,7 @@ pub(crate) fn start_seed(program: &'static Program, weights: Vec<i64>, recycle: 
             c.seed_mode = false;
             drop(scope);
             let chunks = region.chunks();
-            // Never freed: the forks read it for the rest of the process.
-            #[expect(
-                clippy::mem_forget,
-                reason = "the frozen seed region must outlive every fork, to the end of the process"
-            )]
-            std::mem::forget(region);
-            SeedOut(Box::leak(c), chunks, start)
+            SeedOut(c, region, chunks, start)
         })
         .expect("failed to spawn the seed checker thread");
     *SEED_THREAD.lock().unwrap() = Some(handle);
@@ -166,18 +184,19 @@ pub(crate) fn start_seed(program: &'static Program, weights: Vec<i64>, recycle: 
 
 /// The frozen seed: the first caller joins the seed thread and freezes its region; the others wait for it.
 fn wait_base() -> Base {
-    *BASE.get_or_init(|| {
+    let seed = BASE.get_or_init(|| {
         let handle =
             SEED_THREAD.lock().unwrap().take().expect("shared graph: the seed was not started");
         let out = handle.join().unwrap_or_else(|e| std::panic::resume_unwind(e));
-        tsrs_core::sharedgraph::freeze(&out.1);
+        tsrs_core::sharedgraph::freeze(&out.2);
         if debug_regions() {
-            let chunks: Vec<String> = out.1.iter().map(|&(s, n)| format!("{s:x}+{n:x}")).collect();
+            let chunks: Vec<String> = out.2.iter().map(|&(s, n)| format!("{s:x}+{n:x}")).collect();
             eprintln!("dbg-seed chunks={}", chunks.join(","));
         }
-        out.2.record("Checkers: seed");
-        Base(out.0)
-    })
+        out.3.record("Checkers: seed");
+        FrozenSeed { checker: out.0, _region: out.1 }
+    });
+    Base(&seed.checker)
 }
 
 /// The frozen seed if it is ready, without waiting (freezes it if the seed thread has finished).
@@ -185,8 +204,8 @@ pub(crate) fn try_base() -> Option<Base> {
     if !enabled() {
         return None;
     }
-    if let Some(b) = BASE.get() {
-        return Some(*b);
+    if let Some(seed) = BASE.get() {
+        return Some(Base(&seed.checker));
     }
     let finished =
         SEED_THREAD.lock().unwrap().as_ref().is_some_and(std::thread::JoinHandle::is_finished);

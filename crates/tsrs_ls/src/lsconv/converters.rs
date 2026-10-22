@@ -566,8 +566,8 @@ fn virtual_position_to_original(
 }
 
 // converters.go:290
-pub fn language_kind_to_script_kind(language_id: lsproto::LanguageKind) -> ScriptKind {
-    match language_id.0 {
+pub fn language_kind_to_script_kind(language_id: &lsproto::LanguageKind) -> ScriptKind {
+    match language_id.0.as_ref() {
         "typescript" => ScriptKind::TS,
         "typescriptreact" => ScriptKind::TSX,
         "javascript" => ScriptKind::JS,

@@ -1,4 +1,4 @@
-use std::sync::{Mutex, OnceLock};
+use std::sync::{Arc, Mutex, OnceLock};
 
 use rustc_hash::FxHashMap;
 use tsrs_ast::{self as ast, Diagnostic, DiagnosticsCollection, Node, new_compiler_diagnostic};
@@ -23,7 +23,7 @@ pub(crate) struct fileIncludeData {
 pub(crate) struct includeProcessor {
     pub(crate) reason_diagnostics: Mutex<FxHashMap<(P<FileIncludeReason>, bool), P<Diagnostic>>>,
     reason_to_reference_location:
-        Mutex<FxHashMap<P<FileIncludeReason>, &'static referenceFileLocation>>,
+        Mutex<FxHashMap<P<FileIncludeReason>, Arc<referenceFileLocation>>>,
     include_reason_to_related_info: Mutex<FxHashMap<P<FileIncludeReason>, Option<P<Diagnostic>>>>,
     redirect_and_file_format: Mutex<FxHashMap<Path, Option<Vec<P<Diagnostic>>>>>,
     computed_diagnostics: OnceLock<Mutex<DiagnosticsCollection>>,
@@ -74,13 +74,12 @@ impl includeProcessor {
         &self,
         r: P<FileIncludeReason>,
         program: &Program,
-    ) -> &'static referenceFileLocation {
+    ) -> Arc<referenceFileLocation> {
         if let Some(existing) = self.reason_to_reference_location.lock().unwrap().get(&r) {
-            return existing;
+            return Arc::clone(existing);
         }
-        let loc: &'static referenceFileLocation =
-            Box::leak(Box::new(get_referenced_location(r, program)));
-        self.reason_to_reference_location.lock().unwrap().entry(r).or_insert(loc)
+        let loc = Arc::new(get_referenced_location(r, program));
+        Arc::clone(self.reason_to_reference_location.lock().unwrap().entry(r).or_insert(loc))
     }
 
     pub(crate) fn get_compiler_options_object_literal_syntax(

@@ -747,7 +747,7 @@ impl overlayFS {
                     Some(_) => result.reopened = uri.clone(),
                 }
                 let mut script_kind =
-                    lsconv::language_kind_to_script_kind(open_change.language_kind);
+                    lsconv::language_kind_to_script_kind(&open_change.language_kind);
                 if script_kind == ScriptKind::Unknown {
                     script_kind = get_script_kind_from_file_name(&uri.file_name());
                 }
@@ -800,7 +800,7 @@ impl overlayFS {
                         if let Some(partial_change) = &text_change.partial {
                             let line_map = current.lsp_line_map();
                             let converters = lsconv::new_converters(
-                                self.position_encoding,
+                                self.position_encoding.clone(),
                                 move |_file_name: &str| Some(Arc::clone(&line_map)),
                             );
                             let ranges = converters.from_lsp_range(

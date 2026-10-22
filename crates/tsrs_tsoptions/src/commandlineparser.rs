@@ -60,7 +60,7 @@ pub(crate) struct CommandLineParser {
 
 pub fn parse_command_line(
     command_line: &[String],
-    host: &'static dyn ParseConfigHost,
+    host: &dyn ParseConfigHost,
 ) -> ParsedCommandLine {
     let parser = parse_command_line_worker(
         &COMPILER_OPTIONS_DID_YOU_MEAN_DIAGNOSTICS,
@@ -91,7 +91,7 @@ pub fn parse_command_line(
 
 pub fn parse_build_command_line(
     command_line: &[String],
-    host: &'static dyn ParseConfigHost,
+    host: &dyn ParseConfigHost,
 ) -> ParsedBuildCommandLine {
     let parser = parse_command_line_worker(
         &BUILD_OPTIONS_DID_YOU_MEAN_DIAGNOSTICS,

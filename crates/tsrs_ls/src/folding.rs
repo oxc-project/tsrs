@@ -88,8 +88,8 @@ fn key_for_folding_range(folding_range: &lsproto::FoldingRange) -> FoldingRangeK
         key.end_character = end_character;
         key.has_end_character = true;
     }
-    if let Some(kind) = folding_range.kind {
-        key.kind = kind;
+    if let Some(kind) = &folding_range.kind {
+        key.kind = kind.clone();
         key.has_kind = true;
     }
     if let Some(collapsed_text) = &folding_range.collapsed_text {
@@ -454,7 +454,7 @@ fn add_outlining_for_leading_comments_for_pos(
                 ctx,
                 first.expect("a comment group has a first position"),
                 last.expect("a comment group has a last position"),
-                folding_range_kind_comment,
+                folding_range_kind_comment.clone(),
                 source_file,
                 l,
             );
@@ -508,7 +508,7 @@ fn add_outlining_for_leading_comments_for_pos(
                     ctx,
                     comment_pos,
                     comment_end,
-                    folding_range_kind_comment,
+                    folding_range_kind_comment.clone(),
                     source_file,
                     l,
                 ) {
@@ -622,7 +622,7 @@ fn get_outlining_span_for_node(
             if fidelity.is_none() {
                 return None;
             }
-            Some(create_folding_range(ctx, text_range, lsproto::FoldingRangeKind(""), ""))
+            Some(create_folding_range(ctx, text_range, lsproto::FoldingRangeKind::default(), ""))
         }
         Kind::ModuleBlock => {
             span_for_node(ctx, n, Kind::OpenBraceToken, true /*useFullStart*/, source_file, l)
@@ -744,7 +744,7 @@ fn span_for_parenthesized_expression(
     if fidelity.is_none() {
         return None;
     }
-    Some(create_folding_range(ctx, text_range, lsproto::FoldingRangeKind(""), ""))
+    Some(create_folding_range(ctx, text_range, lsproto::FoldingRangeKind::default(), ""))
 }
 
 // folding.go:497
@@ -791,7 +791,7 @@ fn span_for_arrow_function(
     if fidelity.is_none() {
         return None;
     }
-    Some(create_folding_range(ctx, text_range, lsproto::FoldingRangeKind(""), ""))
+    Some(create_folding_range(ctx, text_range, lsproto::FoldingRangeKind::default(), ""))
 }
 
 // folding.go:522
@@ -808,7 +808,7 @@ fn span_for_template_literal(
         ctx,
         astnav::get_start_of_node(node, source_file, false /*includeJSDoc*/),
         node.end().expect_source("parsed nodes have source positions"),
-        lsproto::FoldingRangeKind(""),
+        lsproto::FoldingRangeKind::default(),
         source_file,
         l,
     )
@@ -843,7 +843,7 @@ fn span_for_jsx_element(
         return Some(create_folding_range(
             ctx,
             text_range,
-            lsproto::FoldingRangeKind(""),
+            lsproto::FoldingRangeKind::default(),
             &banner_text,
         ));
     }
@@ -864,7 +864,7 @@ fn span_for_jsx_element(
     if fidelity.is_none() {
         return None;
     }
-    Some(create_folding_range(ctx, text_range, lsproto::FoldingRangeKind(""), "<>...</>"))
+    Some(create_folding_range(ctx, text_range, lsproto::FoldingRangeKind::default(), "<>...</>"))
 }
 
 // folding.go:549
@@ -886,7 +886,7 @@ fn span_for_jsx_attributes(
         ctx,
         astnav::get_start_of_node(node, source_file, false /*includeJSDoc*/),
         node.end().expect_source("parsed nodes have source positions"),
-        lsproto::FoldingRangeKind(""),
+        lsproto::FoldingRangeKind::default(),
         source_file,
         l,
     )
@@ -916,7 +916,12 @@ fn span_for_node_array(
         if fidelity.is_none() {
             return None;
         }
-        return Some(create_folding_range(ctx, text_range, lsproto::FoldingRangeKind(""), ""));
+        return Some(create_folding_range(
+            ctx,
+            text_range,
+            lsproto::FoldingRangeKind::default(),
+            "",
+        ));
     }
     None
 }
@@ -965,7 +970,7 @@ fn range_between_tokens(
     if fidelity.is_none() {
         return None;
     }
-    Some(create_folding_range(ctx, text_range, lsproto::FoldingRangeKind(""), ""))
+    Some(create_folding_range(ctx, text_range, lsproto::FoldingRangeKind::default(), ""))
 }
 
 // folding.go:600

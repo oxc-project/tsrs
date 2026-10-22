@@ -34,26 +34,25 @@ struct workerPool {
     clippy::infinite_loop,
     reason = "background worker threads serve the process-wide queue until process exit"
 )]
-fn worker_pool() -> &'static workerPool {
-    static POOL: OnceLock<&'static workerPool> = OnceLock::new();
-    POOL.get_or_init(|| {
-        let pool: &'static workerPool = Box::leak(Box::new(workerPool {
-            tasks: Mutex::new(VecDeque::new()),
-            available: Condvar::new(),
-        }));
+fn worker_pool() -> Arc<workerPool> {
+    static POOL: OnceLock<Arc<workerPool>> = OnceLock::new();
+    Arc::clone(POOL.get_or_init(|| {
+        let pool =
+            Arc::new(workerPool { tasks: Mutex::new(VecDeque::new()), available: Condvar::new() });
         for i in 0..WORKER_COUNT {
+            let worker_pool = Arc::clone(&pool);
             std::thread::Builder::new()
                 .name(format!("project-background-{i}"))
                 .stack_size(WORKER_STACK_SIZE)
                 .spawn(move || {
                     loop {
                         let task = {
-                            let mut tasks = pool.tasks.lock().unwrap();
+                            let mut tasks = worker_pool.tasks.lock().unwrap();
                             loop {
                                 if let Some(task) = tasks.pop_front() {
                                     break task;
                                 }
-                                tasks = pool.available.wait(tasks).unwrap();
+                                tasks = worker_pool.available.wait(tasks).unwrap();
                             }
                         };
                         // Go: a panicking task crashes the process. Here the panic hook reports it and the shared
@@ -64,7 +63,7 @@ fn worker_pool() -> &'static workerPool {
                 .expect("failed to spawn background worker thread");
         }
         pool
-    })
+    }))
 }
 
 // Go `go f()` for work that is not tracked by a Queue (timer callbacks): runs `f` on the shared workers.

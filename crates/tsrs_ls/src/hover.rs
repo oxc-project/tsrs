@@ -104,7 +104,7 @@ impl LanguageService {
                     &mut c,
                     symbol,
                     range_node,
-                    content_format,
+                    &content_format,
                     Some(vc),
                     vs_capability,
                 );
@@ -126,7 +126,7 @@ impl LanguageService {
             let mut hover = lsproto::Hover {
                 contents: lsproto::MarkupContentOrStringOrMarkedStringWithLanguageOrMarkedStrings {
                     markup_content: Some(lsproto::MarkupContent {
-                        kind: content_format,
+                        kind: content_format.clone(),
                         value: content,
                     }),
                     ..Default::default()
@@ -246,7 +246,7 @@ impl LanguageService {
         c: &mut Checker,
         symbol: Option<P<Symbol>>,
         node: P<Node>,
-        content_format: lsproto::MarkupKind,
+        content_format: &lsproto::MarkupKind,
         vc: Option<P<VerbosityContext>>,
         vs_capability: bool,
     ) -> (String, String, String, Vec<lsproto::VSClassifiedTextRun>) {
@@ -292,7 +292,7 @@ impl LanguageService {
                 symbol,
                 node,
                 info.declaration,
-                lsproto::MarkupKind::PlainText,
+                &lsproto::MarkupKind::PlainText,
                 true, /*commentOnly*/
             );
         }
@@ -326,7 +326,7 @@ fn get_documentation_for_symbol(
     symbol: Option<P<Symbol>>,
     node: P<Node>,
     declaration: Option<P<Node>>,
-    content_format: lsproto::MarkupKind,
+    content_format: &lsproto::MarkupKind,
     comment_only: bool,
 ) -> String {
     let mut documentation = documentation_from_signature(
@@ -377,7 +377,7 @@ fn documentation_from_signature(
     symbol: Option<P<Symbol>>,
     node: Option<P<Node>>,
     location: P<Node>,
-    content_format: lsproto::MarkupKind,
+    content_format: &lsproto::MarkupKind,
     comment_only: bool,
 ) -> String {
     let Some(node) = node else {
@@ -409,7 +409,7 @@ fn documentation_from_alias(
     c: &mut Checker,
     symbol: Option<P<Symbol>>,
     node: P<Node>,
-    content_format: lsproto::MarkupKind,
+    content_format: &lsproto::MarkupKind,
     comment_only: bool,
 ) -> String {
     let Some(symbol) = symbol else {
@@ -461,7 +461,7 @@ fn documentation_from_root_symbols(
     c: &mut Checker,
     symbol: Option<P<Symbol>>,
     node: P<Node>,
-    content_format: lsproto::MarkupKind,
+    content_format: &lsproto::MarkupKind,
     comment_only: bool,
 ) -> String {
     let Some(symbol) = symbol else {
@@ -506,13 +506,13 @@ pub(crate) fn get_documentation_from_declaration(
     _symbol: Option<P<Symbol>>,
     declaration: Option<P<Node>>,
     _location: Option<P<Node>>,
-    content_format: lsproto::MarkupKind,
+    content_format: &lsproto::MarkupKind,
     comment_only: bool,
 ) -> String {
     let Some(declaration) = declaration else {
         return String::new();
     };
-    let is_markdown = content_format == lsproto::MarkupKind::Markdown;
+    let is_markdown = *content_format == lsproto::MarkupKind::Markdown;
     let mut b = String::new();
     if let Some(jsdoc) = get_jsdoc_or_tag(c, Some(declaration), &mut FxHashSet::default()) {
         if declaration.flags().intersects(NodeFlags::Reparsed) || !contains_typedef_tag(jsdoc) {

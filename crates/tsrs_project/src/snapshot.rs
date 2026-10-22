@@ -119,7 +119,7 @@ impl SnapshotHost {
             // Go passes the method value `s.LSPLineMap`; the closure holds the snapshot's file system rather than the
             // snapshot itself (which would form a reference cycle).
             converters: lsconv::new_converters(
-                self.options.position_encoding,
+                self.options.position_encoding.clone(),
                 move |file_name: &str| {
                     line_map_fs.get_file(file_name).map(|file| file.lsp_line_map())
                 },
@@ -662,7 +662,7 @@ impl Snapshot {
         let layered_fs = layer_overlay_file_system(
             &base_fs,
             overlays,
-            store.options.position_encoding,
+            store.options.position_encoding.clone(),
             Arc::clone(&store.to_path),
         );
         let overlays = layered_fs.overlays();

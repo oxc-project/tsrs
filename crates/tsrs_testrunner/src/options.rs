@@ -22,54 +22,50 @@ use tsrs_vfs::{FS, vfstest};
 use crate::harnessutil::{HarnessOptions, OptKind, OptionDecl, OptionTable, TestConfiguration};
 use crate::test_case_parser;
 
-fn new_option(name: &'static str, kind: CommandLineOptionKind) -> &'static CommandLineOption {
+const fn new_option(name: &'static str, kind: CommandLineOptionKind) -> CommandLineOption {
     let mut option = CommandLineOption::DEFAULT;
     option.name = name;
     option.kind = kind;
-    Box::leak(Box::new(option))
+    option
 }
+
+static EXTRA_COMPILER_OPTIONS: [CommandLineOption; 4] = [
+    new_option("allowNonTsExtensions", CommandLineOptionKind::Boolean),
+    new_option("noErrorTruncation", CommandLineOptionKind::Boolean),
+    new_option("suppressOutputPathCheck", CommandLineOptionKind::Boolean),
+    new_option("noCheck", CommandLineOptionKind::Boolean),
+];
 
 // harnessutil `compilerOptions`: the declared options plus harness-only compiler options.
 static HARNESS_COMPILER_OPTIONS: LazyLock<Vec<&'static CommandLineOption>> = LazyLock::new(|| {
-    let extra: [&'static CommandLineOption; 4] = [
-        new_option("allowNonTsExtensions", CommandLineOptionKind::Boolean),
-        new_option("noErrorTruncation", CommandLineOptionKind::Boolean),
-        new_option("suppressOutputPathCheck", CommandLineOptionKind::Boolean),
-        new_option("noCheck", CommandLineOptionKind::Boolean),
-    ];
-    tsoptions::OPTIONS_DECLARATIONS.iter().copied().chain(extra).collect()
+    tsoptions::OPTIONS_DECLARATIONS.iter().copied().chain(EXTRA_COMPILER_OPTIONS.iter()).collect()
 });
 
-static HARNESS_COMMAND_LINE_OPTIONS: LazyLock<Vec<&'static CommandLineOption>> =
-    LazyLock::new(|| {
-        let opt = new_option;
-        use CommandLineOptionKind::{Boolean, List, String};
-        vec![
-            opt("useCaseSensitiveFileNames", Boolean),
-            opt("baselineFile", String),
-            opt("includeBuiltFile", String),
-            opt("fileName", String),
-            opt("libFiles", List),
-            opt("noImplicitReferences", Boolean),
-            opt("currentDirectory", String),
-            opt("symlink", String),
-            opt("link", String),
-            opt("noTypesAndSymbols", Boolean),
-            // Emitted js baseline will print full paths for every output file
-            opt("fullEmitPaths", Boolean),
-            // used to enable error collection in `transpile` baselines
-            opt("reportDiagnostics", Boolean),
-            // Adds suggestion diagnostics to error baselines
-            opt("captureSuggestions", Boolean),
-        ]
-    });
+static HARNESS_COMMAND_LINE_OPTIONS: [CommandLineOption; 13] = [
+    new_option("useCaseSensitiveFileNames", CommandLineOptionKind::Boolean),
+    new_option("baselineFile", CommandLineOptionKind::String),
+    new_option("includeBuiltFile", CommandLineOptionKind::String),
+    new_option("fileName", CommandLineOptionKind::String),
+    new_option("libFiles", CommandLineOptionKind::List),
+    new_option("noImplicitReferences", CommandLineOptionKind::Boolean),
+    new_option("currentDirectory", CommandLineOptionKind::String),
+    new_option("symlink", CommandLineOptionKind::String),
+    new_option("link", CommandLineOptionKind::String),
+    new_option("noTypesAndSymbols", CommandLineOptionKind::Boolean),
+    // Emitted js baseline will print full paths for every output file
+    new_option("fullEmitPaths", CommandLineOptionKind::Boolean),
+    // used to enable error collection in `transpile` baselines
+    new_option("reportDiagnostics", CommandLineOptionKind::Boolean),
+    // Adds suggestion diagnostics to error baselines
+    new_option("captureSuggestions", CommandLineOptionKind::Boolean),
+];
 
 pub fn get_command_line_option(option: &str) -> Option<&'static CommandLineOption> {
     HARNESS_COMPILER_OPTIONS.iter().copied().find(|d| d.name.eq_ignore_ascii_case(option))
 }
 
 pub fn get_harness_option(name: &str) -> Option<&'static CommandLineOption> {
-    HARNESS_COMMAND_LINE_OPTIONS.iter().copied().find(|d| d.name.eq_ignore_ascii_case(name))
+    HARNESS_COMMAND_LINE_OPTIONS.iter().find(|d| d.name.eq_ignore_ascii_case(name))
 }
 
 // compilerVaryBy (compiler_runner.go getCompilerVaryByMap) and the option kinds used for variations.

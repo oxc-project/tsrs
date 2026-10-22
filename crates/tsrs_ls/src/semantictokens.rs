@@ -60,7 +60,7 @@ const TOKEN_MODIFIERS: [SemanticTokenModifier; 11] = [
     SemanticTokenModifier::Modification,
     SemanticTokenModifier::Documentation,
     SemanticTokenModifier::DefaultLibrary,
-    SemanticTokenModifier("local"),
+    SemanticTokenModifier(std::borrow::Cow::Borrowed("local")),
 ];
 
 // semantictokens.go:62 (only the values this file produces; the others are positions in TOKEN_TYPES)
@@ -98,7 +98,7 @@ pub fn semantic_tokens_legend(
 ) -> lsproto::SemanticTokensLegend {
     let mut types = Vec::with_capacity(TOKEN_TYPES.len());
     types.extend(TOKEN_TYPES.into_iter().filter_map(|t| {
-        if client_capabilities.token_types.iter().any(|c| c == t.0) {
+        if client_capabilities.token_types.iter().any(|c| c == t.0.as_ref()) {
             Some(t.0.to_string())
         } else {
             None
@@ -106,7 +106,7 @@ pub fn semantic_tokens_legend(
     }));
     let mut modifiers = Vec::with_capacity(TOKEN_MODIFIERS.len());
     modifiers.extend(TOKEN_MODIFIERS.into_iter().filter_map(|m| {
-        if client_capabilities.token_modifiers.iter().any(|c| c == m.0) {
+        if client_capabilities.token_modifiers.iter().any(|c| c == m.0.as_ref()) {
             Some(m.0.to_string())
         } else {
             None
@@ -652,7 +652,7 @@ fn encode_semantic_tokens(
             .iter()
             .enumerate()
             .filter(|(_, server_type)| {
-                client_capabilities.token_types.iter().any(|c| c == server_type.0)
+                client_capabilities.token_types.iter().any(|c| c == server_type.0.as_ref())
             })
             .enumerate()
             .map(|(client_idx, (i, _))| (i as TokenType, client_idx as u32)),
@@ -663,7 +663,7 @@ fn encode_semantic_tokens(
         TOKEN_MODIFIERS
             .into_iter()
             .filter(|server_modifier| {
-                client_capabilities.token_modifiers.iter().any(|c| c == server_modifier.0)
+                client_capabilities.token_modifiers.iter().any(|c| c == server_modifier.0.as_ref())
             })
             .enumerate()
             .map(|(client_bit, server_modifier)| (server_modifier, client_bit as u32)),

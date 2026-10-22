@@ -226,7 +226,7 @@ impl SnapshotHost {
         let file_system = new_overlay_fs(
             FsRef::Host(Arc::clone(&self.fs)),
             Arc::default(),
-            self.options.position_encoding,
+            self.options.position_encoding.clone(),
             Arc::clone(&self.to_path),
         );
         Arc::new(self.new_snapshot(

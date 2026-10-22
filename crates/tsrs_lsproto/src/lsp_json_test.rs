@@ -205,6 +205,23 @@ fn round_trip<T: Json + PartialEq + std::fmt::Debug>(value: &T) {
     assert_eq!(*value, result);
 }
 
+#[test]
+fn decoded_protocol_strings_own_unknown_values() {
+    let unknown_method = format!("custom/{}", "request");
+    let method_json = format!("\"{unknown_method}\"");
+    let method = unmarshal_str::<Method>(&method_json).unwrap();
+    drop(method_json);
+    assert_eq!(method.0, unknown_method);
+    assert!(matches!(method.0, std::borrow::Cow::Owned(_)));
+
+    let known = unmarshal_str::<Method>("\"textDocument/hover\"").unwrap();
+    assert!(matches!(known.0, std::borrow::Cow::Borrowed(_)));
+
+    let unknown_kind = unmarshal_str::<MarkupKind>("\"custom-markup\"").unwrap();
+    assert!(matches!(unknown_kind.0, std::borrow::Cow::Owned(_)));
+    assert_eq!(unknown_kind.0, "custom-markup");
+}
+
 // lsp_json_test.go:257
 #[test]
 fn test_marshal_unmarshal_round_trip() {

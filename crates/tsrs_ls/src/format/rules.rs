@@ -5,7 +5,7 @@ use crate::lsutil::SemicolonPreference;
 
 macro_rules! preds {
     ($($e:expr_2021),* $(,)?) => {
-        vec![$($e as ContextPredicate),*]
+        vec![$(Box::new($e) as ContextPredicate),*]
     };
 }
 

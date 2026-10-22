@@ -205,7 +205,7 @@ pub(crate) struct FormatSpanWorker {
     visiting_node_start_line: usize,
     visiting_undecorated_node_start_line: usize,
 
-    current_rules: Vec<&'static RuleImpl>,
+    current_rules: Vec<usize>,
 }
 
 // span.go:188
@@ -1051,7 +1051,8 @@ impl FormatSpanWorker {
             // Apply rules in reverse order so that higher priority rules (which are first in the array)
             // win in a conflict with lower priority rules.
             let rules = self.current_rules.clone();
-            for &rule in rules.iter().rev() {
+            for &rule_index in rules.iter().rev() {
+                let rule = rule_by_index(rule_index);
                 line_action = self.apply_rule_edits(
                     rule,
                     previous_item,
@@ -1123,7 +1124,7 @@ impl FormatSpanWorker {
     // span.go:700
     fn apply_rule_edits(
         &mut self,
-        rule: &'static RuleImpl,
+        rule: &RuleImpl,
         previous_range: TextRangeWithKind,
         previous_start_line: usize,
         current_range: TextRangeWithKind,

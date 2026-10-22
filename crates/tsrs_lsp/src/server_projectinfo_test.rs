@@ -10,10 +10,10 @@ use crate::lsptestutil::{
 fn expected_code_action_kinds() -> Vec<lsproto::CodeActionKind> {
     vec![
         lsproto::CodeActionKind::QuickFix,
-        lsproto::CodeActionKind("source.organizeImports.ts"),
-        lsproto::CodeActionKind("source.removeUnusedImports.ts"),
-        lsproto::CodeActionKind("source.sortImports.ts"),
-        lsproto::CodeActionKind("source.fixAll.ts"),
+        lsproto::CodeActionKind::SourceOrganizeImportsTs,
+        lsproto::CodeActionKind::SourceRemoveUnusedImportsTs,
+        lsproto::CodeActionKind::SourceSortImportsTs,
+        lsproto::CodeActionKind::SourceFixAllTs,
     ]
 }
 

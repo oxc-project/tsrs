@@ -118,7 +118,7 @@ impl LanguageService {
         let mut actions: Vec<lsproto::CommandOrCodeAction> = Vec::new();
 
         if let Some(only) = &params.context.only {
-            for &kind in only {
+            for kind in only {
                 let matching_kinds = get_organize_imports_actions_for_kind(kind);
                 actions.extend(matching_kinds.into_iter().map(|matching_kind| {
                     self.create_organize_imports_action(ctx, program, file, matching_kind)
@@ -327,8 +327,8 @@ impl LanguageService {
         file: P<SourceFile>,
         kind: lsproto::CodeActionKind,
     ) -> lsproto::CommandOrCodeAction {
-        let title = get_organize_imports_action_title(kind);
-        let changes = self.organize_imports(ctx, file, program, kind);
+        let title = get_organize_imports_action_title(&kind);
+        let changes = self.organize_imports(ctx, file, program, &kind);
         if changes.is_empty() {
             return lsproto::CommandOrCodeAction {
                 code_action: Some(lsproto::CodeAction {
@@ -404,8 +404,8 @@ pub(crate) fn is_fixable_diagnostic(diagnostic: P<Diagnostic>, error_codes: &[i3
 
 // codeactions.go:225
 // isFixAllKind returns true if the requested kind matches source.fixAll
-fn is_fix_all_kind(kind: lsproto::CodeActionKind) -> bool {
-    kind.contains(lsproto::CodeActionKind::SourceFixAllTs)
+fn is_fix_all_kind(kind: &lsproto::CodeActionKind) -> bool {
+    kind.contains(&lsproto::CodeActionKind::SourceFixAllTs)
 }
 
 // codeactions.go:231
@@ -418,17 +418,15 @@ fn wants_quick_fixes(only: Option<&[lsproto::CodeActionKind]>) -> bool {
     if only.is_empty() {
         return true;
     }
-    only.iter().any(|&kind| kind.contains(lsproto::CodeActionKind::QuickFix))
+    only.iter().any(|kind| kind.contains(&lsproto::CodeActionKind::QuickFix))
 }
 
 // codeactions.go:299
 // getOrganizeImportsActionTitle returns the appropriate title for the given organize imports kind
-fn get_organize_imports_action_title(kind: lsproto::CodeActionKind) -> String {
-    match kind {
-        lsproto::CodeActionKind::SourceRemoveUnusedImportsTs => {
-            diagnostics::Remove_Unused_Imports.localize(&[])
-        }
-        lsproto::CodeActionKind::SourceSortImportsTs => diagnostics::Sort_Imports.localize(&[]),
+fn get_organize_imports_action_title(kind: &lsproto::CodeActionKind) -> String {
+    match kind.0.as_ref() {
+        "source.removeUnusedImports.ts" => diagnostics::Remove_Unused_Imports.localize(&[]),
+        "source.sortImports.ts" => diagnostics::Sort_Imports.localize(&[]),
         _ => diagnostics::Organize_Imports.localize(&[]),
     }
 }
@@ -437,7 +435,7 @@ fn get_organize_imports_action_title(kind: lsproto::CodeActionKind) -> String {
 // getOrganizeImportsActionsForKind returns the organize imports code action kinds that should be
 // returned for the given requested kind.
 fn get_organize_imports_actions_for_kind(
-    requested_kind: lsproto::CodeActionKind,
+    requested_kind: &lsproto::CodeActionKind,
 ) -> Vec<lsproto::CodeActionKind> {
     let organize_imports_kinds = [
         lsproto::CodeActionKind::SourceOrganizeImportsTs,
@@ -449,11 +447,11 @@ fn get_organize_imports_actions_for_kind(
     result.extend(
         organize_imports_kinds
             .into_iter()
-            .filter(|&organize_kind| requested_kind.contains(organize_kind)),
+            .filter(|organize_kind| requested_kind.contains(organize_kind)),
     );
 
-    if result.contains(&requested_kind) {
-        return vec![requested_kind];
+    if result.contains(requested_kind) {
+        return vec![requested_kind.clone()];
     }
 
     result

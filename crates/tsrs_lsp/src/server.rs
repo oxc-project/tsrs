@@ -367,7 +367,7 @@ impl Server {
     }
 
     fn position_encoding(&self) -> lsproto::PositionEncodingKind {
-        self.position_encoding.get().copied().unwrap_or_default()
+        self.position_encoding.get().cloned().unwrap_or_default()
     }
 
     fn flake_logging(&self) -> lsproto::DiagnosticFlakeLogLevel {
@@ -1459,6 +1459,10 @@ impl Server {
     // server.go:1053
     // WARNING: this should only be called in the async portion of a request handler,
     // otherwise a deadlock can occur.
+    #[expect(
+        clippy::needless_pass_by_value,
+        reason = "typed request metadata follows the server API"
+    )]
     pub(crate) fn send_client_request<Req: Json, Resp: Json>(
         &self,
         ctx: &Context,
@@ -1503,6 +1507,10 @@ impl Server {
     // The response, if any, will be silently ignored by the read loop since no pending channel is registered.
     // This means any error returned by the client will not be observed. Use only for requests where the
     // response value is not needed (e.g., the client always returns null).
+    #[expect(
+        clippy::needless_pass_by_value,
+        reason = "typed request metadata follows the server API"
+    )]
     pub(crate) fn send_client_request_fire_and_forget<Req: Json, Resp: Json>(
         &self,
         info: lsproto::RequestInfo<Req, Resp>,
@@ -1543,6 +1551,10 @@ impl Server {
     }
 
     // server.go:1129
+    #[expect(
+        clippy::needless_pass_by_value,
+        reason = "typed notification metadata follows the server API"
+    )]
     pub(crate) fn send_notification<Params: Json>(
         &self,
         info: lsproto::NotificationInfo<Params>,
@@ -1581,7 +1593,7 @@ impl Server {
             };
             let do_async_work = match result {
                 Err(err) => {
-                    if let Some(resp) = content_mapper_fallback_response(req.method, &err) {
+                    if let Some(resp) = content_mapper_fallback_response(&req.method, &err) {
                         if !self.logger.is_tracing() {
                             self.logger.info(&format!(
                                 "handled method '{}'{} in {}",
@@ -1616,7 +1628,7 @@ impl Server {
             };
             if let Some(do_async_work) = do_async_work {
                 let s = Arc::clone(self);
-                let method = req.method;
+                let method = req.method.clone();
                 return Ok(Some(Box::new(move || {
                     // note: ctx.Err() has to be checked in the async work to allow async handlers to cleanup resources correctly
                     let async_work_err = do_async_work();
@@ -3031,7 +3043,7 @@ impl Server {
         _params: &lsproto::InitializeAPISessionParams,
         _req: &RequestMessage,
     ) -> Result<lsproto::CustomInitializeAPISessionResponse, Error> {
-        Err(not_yet_ported(Method::CustomInitializeAPISession))
+        Err(not_yet_ported(&Method::CustomInitializeAPISession))
     }
 
     // server.go:2363
@@ -3058,7 +3070,7 @@ impl Server {
         _params: lsproto::NoParams,
         _req: &RequestMessage,
     ) -> Result<lsproto::RunGCResponse, Error> {
-        Err(not_yet_ported(Method::CustomRunGC))
+        Err(not_yet_ported(&Method::CustomRunGC))
     }
 
     // server.go:2400
@@ -3072,7 +3084,7 @@ impl Server {
         _params: &lsproto::ProfileParams,
         _req: &RequestMessage,
     ) -> Result<lsproto::SaveHeapProfileResponse, Error> {
-        Err(not_yet_ported(Method::CustomSaveHeapProfile))
+        Err(not_yet_ported(&Method::CustomSaveHeapProfile))
     }
 
     // server.go:2409
@@ -3086,7 +3098,7 @@ impl Server {
         _params: &lsproto::ProfileParams,
         _req: &RequestMessage,
     ) -> Result<lsproto::SaveAllocProfileResponse, Error> {
-        Err(not_yet_ported(Method::CustomSaveAllocProfile))
+        Err(not_yet_ported(&Method::CustomSaveAllocProfile))
     }
 
     // server.go:2418
@@ -3100,7 +3112,7 @@ impl Server {
         _params: &lsproto::ProfileParams,
         _req: &RequestMessage,
     ) -> Result<lsproto::StartCPUProfileResponse, Error> {
-        Err(not_yet_ported(Method::CustomStartCPUProfile))
+        Err(not_yet_ported(&Method::CustomStartCPUProfile))
     }
 
     // server.go:2427
@@ -3114,7 +3126,7 @@ impl Server {
         _params: lsproto::NoParams,
         _req: &RequestMessage,
     ) -> Result<lsproto::StopCPUProfileResponse, Error> {
-        Err(not_yet_ported(Method::CustomStopCPUProfile))
+        Err(not_yet_ported(&Method::CustomStopCPUProfile))
     }
 
     // server.go:2436
@@ -3146,7 +3158,7 @@ impl Server {
         _params: &lsproto::SetContentMapperContributionsParams,
         _req: &RequestMessage,
     ) -> Result<lsproto::CustomSetContentMapperContributionsResponse, Error> {
-        Err(not_yet_ported(Method::CustomSetContentMapperContributions))
+        Err(not_yet_ported(&Method::CustomSetContentMapperContributions))
     }
 }
 
@@ -3205,12 +3217,12 @@ pub(crate) fn user_facing_request_failed_error(message: impl Into<String>) -> Er
 // unknown file types not handled by any content mapper. This typically serves a
 // short window in time between when the server has unregistered content mapper
 // extensions and when the client has stopped sending requests for those file types.
-fn content_mapper_fallback_response(method: Method, err: &Error) -> Option<lsproto::Value> {
+fn content_mapper_fallback_response(method: &Method, err: &Error) -> Option<lsproto::Value> {
     if !project::is_err_no_project_for_unknown_script_kind(err) {
         return None;
     }
-    match method {
-        Method::TextDocumentDiagnostic => Some(
+    match method.0.as_ref() {
+        "textDocument/diagnostic" => Some(
             lsproto::DocumentDiagnosticResponse {
                 full_document_diagnostic_report: Some(
                     lsproto::RelatedFullDocumentDiagnosticReport {
@@ -3222,15 +3234,15 @@ fn content_mapper_fallback_response(method: Method, err: &Error) -> Option<lspro
             }
             .to_json(),
         ),
-        Method::TextDocumentHover
-        | Method::TextDocumentSignatureHelp
-        | Method::TextDocumentDefinition
-        | Method::TextDocumentTypeDefinition
-        | Method::TextDocumentImplementation
-        | Method::TextDocumentReferences
-        | Method::TextDocumentDocumentHighlight
-        | Method::TextDocumentCompletion
-        | Method::TextDocumentRename => Some(lsproto::Null.to_json()),
+        "textDocument/hover"
+        | "textDocument/signatureHelp"
+        | "textDocument/definition"
+        | "textDocument/typeDefinition"
+        | "textDocument/implementation"
+        | "textDocument/references"
+        | "textDocument/documentHighlight"
+        | "textDocument/completion"
+        | "textDocument/rename" => Some(lsproto::Null.to_json()),
         _ => None,
     }
 }
@@ -3570,7 +3582,7 @@ impl handlerMap {
         Resp: Json + 'static,
     {
         self.0.insert(
-            info.method,
+            info.method.clone(),
             Box::new(move |s, ctx, req| {
                 // tsrs-only: Go has no session check here and panics on a request before `initialized`.
                 if s.session.get().is_none() {
@@ -3579,6 +3591,7 @@ impl handlerMap {
                 let params = req.unmarshal_params::<Req>()?;
                 check_uri(params.text_document_uri())?;
                 let uri = params.text_document_uri().clone();
+                let method = info.method.clone();
                 s.session().with_language_service_and_snapshot(ctx, &uri, |language_service, snapshot| {
                     let (s, ctx, req) = (Arc::clone(s), ctx.clone(), Arc::clone(req));
                     Ok(Some(Box::new(move || {
@@ -3592,7 +3605,7 @@ impl handlerMap {
                                 }
                                 resp = f(&s, &ctx, &language_service, &params);
                                 if matches!(&resp, Err(err) if tsrs_ls::is_err_needs_auto_imports(err)) {
-                                    panic!("{} returned ErrNeedsAutoImports even after enabling auto imports", info.method);
+                                    panic!("{method} returned ErrNeedsAutoImports even after enabling auto imports");
                                 }
                             }
                             let resp = resp?;
@@ -3751,7 +3764,7 @@ impl tsrs_ls::CrossProjectOrchestrator for crossProjectOrchestrator {
 
 // The handlers of out-of-scope features (content mappers, API sessions attached to the server, runGC and the profiling
 // commands) answer with this error.
-pub(crate) fn not_yet_ported(method: Method) -> Error {
+pub(crate) fn not_yet_ported(method: &Method) -> Error {
     Error::wrap_code(ErrorCode::MethodNotFound, Error::new(format!("{method} is not ported yet")))
 }
 

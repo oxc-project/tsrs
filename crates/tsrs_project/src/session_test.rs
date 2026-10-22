@@ -186,7 +186,7 @@ fn did_open_file_inferred_project_extensionless_file() {
         uri("file:///home/projects/TS/p1/script"),
         1,
         file(files, "/home/projects/TS/p1/script"),
-        lsproto::LanguageKind("plaintext"),
+        lsproto::LanguageKind("plaintext".into()),
     );
 
     let snapshot = session.snapshot();

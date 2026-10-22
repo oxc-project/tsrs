@@ -31,7 +31,7 @@ impl LanguageService {
         ctx: &Context,
         source_file: P<SourceFile>,
         program: &'static Program,
-        kind: lsproto::CodeActionKind,
+        kind: &lsproto::CodeActionKind,
     ) -> OrderedMap<String, Vec<lsproto::TextEdit>> {
         let mut change_tracker = change::new_tracker(
             ctx,
@@ -39,11 +39,11 @@ impl LanguageService {
             self.format_options(),
             Arc::clone(&self.converters),
         );
-        let should_sort = kind == lsproto::CodeActionKind::SourceSortImportsTs
-            || kind == lsproto::CodeActionKind::SourceOrganizeImportsTs;
+        let should_sort = *kind == lsproto::CodeActionKind::SourceSortImportsTs
+            || *kind == lsproto::CodeActionKind::SourceOrganizeImportsTs;
         let should_combine = should_sort;
-        let should_remove = kind == lsproto::CodeActionKind::SourceRemoveUnusedImportsTs
-            || kind == lsproto::CodeActionKind::SourceOrganizeImportsTs;
+        let should_remove = *kind == lsproto::CodeActionKind::SourceRemoveUnusedImportsTs
+            || *kind == lsproto::CodeActionKind::SourceOrganizeImportsTs;
         let top_level_import_decls =
             lsutil::filter_import_declarations(source_file.statements.nodes());
         let top_level_import_group_decls =
@@ -107,7 +107,7 @@ impl LanguageService {
             );
         }
 
-        if kind != lsproto::CodeActionKind::SourceRemoveUnusedImportsTs {
+        if *kind != lsproto::CodeActionKind::SourceRemoveUnusedImportsTs {
             let top_level_export_group_decls = get_top_level_export_groups(source_file);
             for export_group_decl in &top_level_export_group_decls {
                 organize_exports_worker(
@@ -150,7 +150,7 @@ impl LanguageService {
                 );
             }
 
-            if kind != lsproto::CodeActionKind::SourceRemoveUnusedImportsTs {
+            if *kind != lsproto::CodeActionKind::SourceRemoveUnusedImportsTs {
                 let ambient_module_export_decls: Vec<P<Node>> = module_body
                     .statements
                     .nodes()

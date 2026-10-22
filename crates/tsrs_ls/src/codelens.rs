@@ -120,7 +120,7 @@ impl LanguageService {
 }
 
 // codelens.go:66
-#[derive(Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Clone, PartialEq, Eq, Hash)]
 struct CodeLensKey {
     kind: lsproto::CodeLensKind,
     start_line: u32,
@@ -132,7 +132,7 @@ struct CodeLensKey {
 // codelens.go:71
 fn key_for_code_lens(code_lens: &lsproto::CodeLens) -> CodeLensKey {
     CodeLensKey {
-        kind: code_lens.data.as_ref().unwrap().kind,
+        kind: code_lens.data.as_ref().unwrap().kind.clone(),
         start_line: code_lens.range.start.line,
         start_character: code_lens.range.start.character,
         end_line: code_lens.range.end.line,
@@ -167,8 +167,8 @@ impl LanguageService {
         // (Go reads `locale.FromContext(ctx)`; only English is ported.)
         let mut locs: Vec<lsproto::Location> = Vec::new();
         let mut lens_title = String::new();
-        match data.kind {
-            lsproto::CodeLensKind::References => {
+        match data.kind.0.as_ref() {
+            "references" => {
                 let symbols_data = self
                     .provide_symbols_and_entries_at_position(
                         ctx, program, file, position, false, false,
@@ -198,7 +198,7 @@ impl LanguageService {
                     lens_title = diagnostics::X_0_references.localize(&[&locs.len()]);
                 }
             }
-            lsproto::CodeLensKind::Implementations => {
+            "implementations" => {
                 let symbols_data = self
                     .provide_symbols_and_entries_at_position(
                         ctx, program, file, position, false, true,

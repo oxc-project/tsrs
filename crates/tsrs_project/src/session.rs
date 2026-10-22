@@ -258,7 +258,7 @@ pub fn new_session(init: &SessionInit) -> Arc<Session> {
         fs: Arc::new(new_overlay_fs(
             FsRef::Host(Arc::clone(&snapshot_host.fs)),
             Arc::default(),
-            init.options.position_encoding,
+            init.options.position_encoding.clone(),
             Arc::clone(&snapshot_host.to_path),
         )),
         background_queue: new_queue(),

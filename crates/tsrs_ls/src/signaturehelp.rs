@@ -486,7 +486,7 @@ impl LanguageService {
                 enclosing_declaration,
                 source_file,
                 c,
-                doc_format,
+                &doc_format,
                 vs_capability,
             )
         }));
@@ -528,7 +528,7 @@ impl LanguageService {
             if let Some(doc) = &item.documentation {
                 documentation = Some(lsproto::StringOrMarkupContent {
                     markup_content: Some(lsproto::MarkupContent {
-                        kind: doc_format,
+                        kind: doc_format.clone(),
                         value: doc.clone(),
                     }),
                     ..Default::default()
@@ -629,7 +629,7 @@ impl LanguageService {
         enclosing_declaration: P<Node>,
         source_file: P<SourceFile>,
         c: &mut Checker,
-        doc_format: lsproto::MarkupKind,
+        doc_format: &lsproto::MarkupKind,
         vs_capability: bool,
     ) -> Vec<signatureInformation> {
         let emit_context = printer::new_emit_context();
@@ -752,7 +752,7 @@ impl LanguageService {
         c: &mut Checker,
         enclosing_declaration: P<Node>,
         source_file: P<SourceFile>,
-        _doc_format: lsproto::MarkupKind,
+        _doc_format: &lsproto::MarkupKind,
         vs_capability: bool,
         emit_context: P<printer::EmitContext>,
     ) -> Vec<signatureHelpItemInfo> {
@@ -791,7 +791,7 @@ impl LanguageService {
                 dpw.write_punctuation(", ");
             }
             let label = type_parameter.parameter_info.label.string.as_ref().unwrap();
-            dpw.write_classified(label, lsproto::ClassificationTypeName::TypeParameterName);
+            dpw.write_classified(label, &lsproto::ClassificationTypeName::TypeParameterName);
         }
         let greater_than_token = scanner::token_to_string(Kind::GreaterThanToken);
         dpw.write_punctuation(greater_than_token);
@@ -847,7 +847,7 @@ impl LanguageService {
         c: &mut Checker,
         enclosing_declaratipn: P<Node>,
         source_file: P<SourceFile>,
-        doc_format: lsproto::MarkupKind,
+        doc_format: &lsproto::MarkupKind,
         vs_capability: bool,
         emit_context: P<printer::EmitContext>,
     ) -> Vec<signatureHelpItemInfo> {
@@ -886,7 +886,7 @@ impl LanguageService {
                     dpw.write_punctuation(", ");
                 }
                 let label = type_parameter.parameter_info.label.string.as_ref().unwrap();
-                dpw.write_classified(label, lsproto::ClassificationTypeName::TypeParameterName);
+                dpw.write_classified(label, &lsproto::ClassificationTypeName::TypeParameterName);
             }
             let greater_than_token = scanner::token_to_string(Kind::GreaterThanToken);
             dpw.write_punctuation(greater_than_token);
@@ -945,7 +945,7 @@ impl LanguageService {
                     param,
                     &param_label,
                     c,
-                    doc_format,
+                    (*doc_format).clone(),
                 );
                 parameters.push(parameter);
             }
@@ -987,7 +987,7 @@ impl LanguageService {
                 None,
                 Some(value_declaration),
                 None,
-                doc_format,
+                &doc_format,
                 true, /*commentOnly*/
             );
             if !doc.is_empty() {

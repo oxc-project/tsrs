@@ -355,7 +355,7 @@ impl LanguageService {
             checker,
             Some(symbol),
             location,
-            doc_format,
+            &doc_format,
             None,
             false, /*vsCapability*/
         );

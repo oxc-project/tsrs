@@ -1229,7 +1229,7 @@ pub(crate) struct referencedSymbolDefinitionInfo {
 
 fn single_run(
     text: &str,
-    classification: lsproto::ClassificationTypeName,
+    classification: &lsproto::ClassificationTypeName,
 ) -> lsproto::VSClassifiedTextElement {
     lsproto::VSClassifiedTextElement {
         runs: vec![lsproto::VSClassifiedTextRun {
@@ -1287,7 +1287,7 @@ impl LanguageService {
                     location: loc,
                     display_text: Some(single_run(
                         node.text(),
-                        lsproto::ClassificationTypeName::Text,
+                        &lsproto::ClassificationTypeName::Text,
                     )),
                 })
             }
@@ -1301,7 +1301,7 @@ impl LanguageService {
                 )?;
                 Some(referencedSymbolDefinitionInfo {
                     location: loc,
-                    display_text: Some(single_run(name, lsproto::ClassificationTypeName::Keyword)),
+                    display_text: Some(single_run(name, &lsproto::ClassificationTypeName::Keyword)),
                 })
             }
 
@@ -1327,7 +1327,7 @@ impl LanguageService {
                     location: loc,
                     display_text: Some(single_run(
                         node.text(),
-                        lsproto::ClassificationTypeName::String,
+                        &lsproto::ClassificationTypeName::String,
                     )),
                 })
             }
@@ -1343,7 +1343,7 @@ impl LanguageService {
                 let text = format!("\"{}\"", triple_slash_file_ref.reference.unwrap().file_name);
                 Some(referencedSymbolDefinitionInfo {
                     location: loc,
-                    display_text: Some(single_run(&text, lsproto::ClassificationTypeName::String)),
+                    display_text: Some(single_run(&text, &lsproto::ClassificationTypeName::String)),
                 })
             }
         }
@@ -1385,7 +1385,7 @@ impl LanguageService {
         }
         // Fallback: single unclassified run with the full text
         let text = info.display_parts.as_str().to_string();
-        single_run(&text, lsproto::ClassificationTypeName::Text)
+        single_run(&text, &lsproto::ClassificationTypeName::Text)
     }
 
     // findallreferences.go:1016

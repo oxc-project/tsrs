@@ -1,9 +1,8 @@
+use std::borrow::Cow;
 use std::fmt;
 use std::marker::PhantomData;
 use std::ops::Deref;
-use std::sync::{Mutex, OnceLock};
 
-use rustc_hash::FxHashSet;
 use tsrs_core::tspath;
 
 use crate::error::Error;
@@ -523,14 +522,13 @@ impl IsZero for URI {
     }
 }
 
-// lsp.go:85. Method names and string enumeration values are open sets of short strings; they are
-// interned so that the types stay `Copy` and the known values can be matched as constants.
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
-pub struct Method(pub &'static str);
+// lsp.go:85. Known methods borrow their constant names; unknown methods own the decoded text.
+#[derive(Clone, Debug, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
+pub struct Method(pub Cow<'static, str>);
 
 impl fmt::Display for Method {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str(self.0)
+        f.write_str(&self.0)
     }
 }
 
@@ -550,21 +548,6 @@ impl IsZero for Method {
     fn is_zero(&self) -> bool {
         self.0.is_empty()
     }
-}
-
-// The process-lifetime string for `s` (Go converts a decoded string to a named string type).
-pub fn intern(s: &str) -> &'static str {
-    if s.is_empty() {
-        return "";
-    }
-    static TABLE: OnceLock<Mutex<FxHashSet<&'static str>>> = OnceLock::new();
-    let mut table = TABLE.get_or_init(Default::default).lock().unwrap();
-    if let Some(interned) = table.get(s) {
-        return interned;
-    }
-    let interned: &'static str = Box::leak(s.to_string().into_boxed_str());
-    table.insert(interned);
-    interned
 }
 
 // lsp.go:87
@@ -647,11 +630,9 @@ pub struct RequestInfo<Params, Resp> {
 
 impl<Params, Resp> Clone for RequestInfo<Params, Resp> {
     fn clone(&self) -> Self {
-        *self
+        Self { _marker: PhantomData, method: self.method.clone() }
     }
 }
-
-impl<Params, Resp> Copy for RequestInfo<Params, Resp> {}
 
 impl<Params, Resp> RequestInfo<Params, Resp> {
     pub const fn new(method: Method) -> Self {
@@ -678,7 +659,7 @@ impl<Params: Json, Resp: Json> RequestInfo<Params, Resp> {
         reason = "Go stores params in the message; senders hand over params built for it"
     )]
     pub fn new_request_message(&self, id: Option<ID>, params: Params) -> RequestMessage {
-        RequestMessage { id, method: self.method, params: Some(params.to_json()) }
+        RequestMessage { id, method: self.method.clone(), params: Some(params.to_json()) }
     }
 }
 
@@ -690,11 +671,9 @@ pub struct NotificationInfo<Params> {
 
 impl<Params> Clone for NotificationInfo<Params> {
     fn clone(&self) -> Self {
-        *self
+        Self { _marker: PhantomData, method: self.method.clone() }
     }
 }
-
-impl<Params> Copy for NotificationInfo<Params> {}
 
 impl<Params> NotificationInfo<Params> {
     pub const fn new(method: Method) -> Self {
@@ -709,7 +688,7 @@ impl<Params: Json> NotificationInfo<Params> {
         reason = "Go stores params in the message; senders hand over params built for it"
     )]
     pub fn new_notification_message(&self, params: Params) -> RequestMessage {
-        RequestMessage { id: None, method: self.method, params: Some(params.to_json()) }
+        RequestMessage { id: None, method: self.method.clone(), params: Some(params.to_json()) }
     }
 }
 
@@ -842,7 +821,7 @@ impl Json for EmptyObject {
 // or MarkupKindPlainText if the slice is empty.
 pub fn preferred_markup_kind(formats: &[MarkupKind]) -> MarkupKind {
     if !formats.is_empty() {
-        return formats[0];
+        return formats[0].clone();
     }
     MarkupKind::PlainText
 }
@@ -850,16 +829,18 @@ pub fn preferred_markup_kind(formats: &[MarkupKind]) -> MarkupKind {
 impl CodeActionKind {
     // lsp.go:310
     // Contains reports whether other is this code action kind or one of its children.
-    pub fn contains(self, other: CodeActionKind) -> bool {
+    pub fn contains(&self, other: &CodeActionKind) -> bool {
         self == other
-            || self == CodeActionKind::Empty
-            || other.0.strip_prefix(self.0).is_some_and(|rest| rest.starts_with('.'))
+            || self == &CodeActionKind::Empty
+            || other.0.strip_prefix(self.0.as_ref()).is_some_and(|rest| rest.starts_with('.'))
     }
 
     // lsp.go:316
-    pub const SourceFixAllTs: CodeActionKind = CodeActionKind("source.fixAll.ts");
-    pub const SourceOrganizeImportsTs: CodeActionKind = CodeActionKind("source.organizeImports.ts");
+    pub const SourceFixAllTs: CodeActionKind = CodeActionKind(Cow::Borrowed("source.fixAll.ts"));
+    pub const SourceOrganizeImportsTs: CodeActionKind =
+        CodeActionKind(Cow::Borrowed("source.organizeImports.ts"));
     pub const SourceRemoveUnusedImportsTs: CodeActionKind =
-        CodeActionKind("source.removeUnusedImports.ts");
-    pub const SourceSortImportsTs: CodeActionKind = CodeActionKind("source.sortImports.ts");
+        CodeActionKind(Cow::Borrowed("source.removeUnusedImports.ts"));
+    pub const SourceSortImportsTs: CodeActionKind =
+        CodeActionKind(Cow::Borrowed("source.sortImports.ts"));
 }

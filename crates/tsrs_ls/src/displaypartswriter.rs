@@ -26,7 +26,7 @@ pub(crate) fn new_display_parts_writer(vs_capability: bool) -> DisplayPartsWrite
 
 impl DisplayPartsWriter {
     // displaypartswriter.go:30
-    fn add_run(&mut self, classification: lsproto::ClassificationTypeName, text: &str) {
+    fn add_run(&mut self, classification: &lsproto::ClassificationTypeName, text: &str) {
         if text.is_empty() {
             return;
         }
@@ -46,7 +46,7 @@ impl DisplayPartsWriter {
     pub(crate) fn write_classified(
         &mut self,
         text: &str,
-        classification: lsproto::ClassificationTypeName,
+        classification: &lsproto::ClassificationTypeName,
     ) {
         self.add_run(classification, text);
     }
@@ -139,80 +139,80 @@ impl EmitTextWriter for DisplayPartsWriter {
 
     // displaypartswriter.go:103
     fn raw_write(&mut self, s: &str) {
-        self.add_run(lsproto::ClassificationTypeName::Text, s);
+        self.add_run(&lsproto::ClassificationTypeName::Text, s);
     }
 
     // displaypartswriter.go:107
     fn write(&mut self, s: &str) {
-        self.add_run(lsproto::ClassificationTypeName::Text, s);
+        self.add_run(&lsproto::ClassificationTypeName::Text, s);
     }
 
     // displaypartswriter.go:111
     fn write_comment(&mut self, text: &str) {
         // Strada's writeComment uses unknownWrite → SymbolDisplayPartKind.text → "text"
-        self.add_run(lsproto::ClassificationTypeName::Text, text);
+        self.add_run(&lsproto::ClassificationTypeName::Text, text);
     }
 
     // displaypartswriter.go:116
     fn write_keyword(&mut self, text: &str) {
-        self.add_run(lsproto::ClassificationTypeName::Keyword, text);
+        self.add_run(&lsproto::ClassificationTypeName::Keyword, text);
     }
 
     // displaypartswriter.go:120
     fn write_line(&mut self) {
-        self.add_run(lsproto::ClassificationTypeName::WhiteSpace, " ");
+        self.add_run(&lsproto::ClassificationTypeName::WhiteSpace, " ");
     }
 
     // displaypartswriter.go:124
     fn write_line_force(&mut self, _force: bool) {
-        self.add_run(lsproto::ClassificationTypeName::WhiteSpace, " ");
+        self.add_run(&lsproto::ClassificationTypeName::WhiteSpace, " ");
     }
 
     // displaypartswriter.go:128
     fn write_literal(&mut self, s: &str) {
         // Strada's writeLiteral → SymbolDisplayPartKind.stringLiteral → "string"
-        self.add_run(lsproto::ClassificationTypeName::String, s);
+        self.add_run(&lsproto::ClassificationTypeName::String, s);
     }
 
     // displaypartswriter.go:133
     fn write_operator(&mut self, text: &str) {
-        self.add_run(lsproto::ClassificationTypeName::Operator, text);
+        self.add_run(&lsproto::ClassificationTypeName::Operator, text);
     }
 
     // displaypartswriter.go:137
     fn write_parameter(&mut self, text: &str) {
-        self.add_run(lsproto::ClassificationTypeName::ParameterName, text);
+        self.add_run(&lsproto::ClassificationTypeName::ParameterName, text);
     }
 
     // displaypartswriter.go:141
     fn write_property(&mut self, text: &str) {
-        self.add_run(lsproto::ClassificationTypeName::PropertyName, text);
+        self.add_run(&lsproto::ClassificationTypeName::PropertyName, text);
     }
 
     // displaypartswriter.go:145
     fn write_punctuation(&mut self, text: &str) {
-        self.add_run(lsproto::ClassificationTypeName::Punctuation, text);
+        self.add_run(&lsproto::ClassificationTypeName::Punctuation, text);
     }
 
     // displaypartswriter.go:149
     fn write_space(&mut self, text: &str) {
-        self.add_run(lsproto::ClassificationTypeName::WhiteSpace, text);
+        self.add_run(&lsproto::ClassificationTypeName::WhiteSpace, text);
     }
 
     // displaypartswriter.go:153
     fn write_string_literal(&mut self, text: &str) {
-        self.add_run(lsproto::ClassificationTypeName::String, text);
+        self.add_run(&lsproto::ClassificationTypeName::String, text);
     }
 
     // displaypartswriter.go:157
     fn write_symbol(&mut self, text: &str, symbol: P<Symbol>) {
         let classification = classification_for_symbol(Some(symbol));
-        self.add_run(classification, text);
+        self.add_run(&classification, text);
     }
 
     // displaypartswriter.go:162
     fn write_trailing_semicolon(&mut self, text: &str) {
-        self.add_run(lsproto::ClassificationTypeName::Punctuation, text);
+        self.add_run(&lsproto::ClassificationTypeName::Punctuation, text);
     }
 }
 

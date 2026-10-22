@@ -30,10 +30,10 @@ struct timerThread {
     clippy::infinite_loop,
     reason = "the process-wide timer thread waits for deadlines until process exit"
 )]
-fn timer_thread() -> &'static timerThread {
-    static TIMERS: OnceLock<&'static timerThread> = OnceLock::new();
-    TIMERS.get_or_init(|| {
-        let t: &'static timerThread = Box::leak(Box::new(timerThread {
+fn timer_thread() -> Arc<timerThread> {
+    static TIMERS: OnceLock<Arc<timerThread>> = OnceLock::new();
+    Arc::clone(TIMERS.get_or_init(|| {
+        let t = Arc::new(timerThread {
             st: Mutex::new(timerState {
                 heap: BinaryHeap::new(),
                 pending: FxHashMap::default(),
@@ -41,18 +41,19 @@ fn timer_thread() -> &'static timerThread {
                 next_generation: 0,
             }),
             wake: Condvar::new(),
-        }));
+        });
+        let timer_thread = Arc::clone(&t);
         std::thread::Builder::new()
             .name("project-timers".to_string())
             .spawn(move || {
-                let mut st = t.st.lock().unwrap();
+                let mut st = timer_thread.st.lock().unwrap();
                 loop {
                     let now = Instant::now();
                     match st.heap.peek().copied() {
-                        None => st = t.wake.wait(st).unwrap(),
+                        None => st = timer_thread.wake.wait(st).unwrap(),
                         Some(Reverse((deadline, id, generation))) => {
                             if deadline > now {
-                                st = t.wake.wait_timeout(st, deadline - now).unwrap().0;
+                                st = timer_thread.wake.wait_timeout(st, deadline - now).unwrap().0;
                                 continue;
                             }
                             st.heap.pop();
@@ -70,7 +71,7 @@ fn timer_thread() -> &'static timerThread {
             })
             .expect("failed to spawn timer thread");
         t
-    })
+    }))
 }
 
 // Go `*time.Timer` created by `time.AfterFunc`.

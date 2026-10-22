@@ -134,42 +134,36 @@ pub(crate) fn option_equals<T: PartialEq + Copy + Send + Sync + 'static>(
     option_name: fn(&FormatCodeSettings) -> T,
     option_value: T,
 ) -> ContextPredicate {
-    Box::leak(Box::new(move |context: &FormattingContext| {
-        option_name(&context.options) == option_value
-    }))
+    Box::new(move |context: &FormattingContext| option_name(&context.options) == option_value)
 }
 
 // rulecontext.go:108
 pub(crate) fn is_option_enabled(option_name: OptionSelector) -> ContextPredicate {
-    Box::leak(Box::new(move |context: &FormattingContext| option_name(&context.options).is_true()))
+    Box::new(move |context: &FormattingContext| option_name(&context.options).is_true())
 }
 
 // rulecontext.go:114
 pub(crate) fn is_option_disabled(option_name: OptionSelector) -> ContextPredicate {
-    Box::leak(Box::new(move |context: &FormattingContext| option_name(&context.options).is_false()))
+    Box::new(move |context: &FormattingContext| option_name(&context.options).is_false())
 }
 
 // rulecontext.go:120
 pub(crate) fn is_option_disabled_or_undefined(option_name: OptionSelector) -> ContextPredicate {
-    Box::leak(Box::new(move |context: &FormattingContext| {
-        option_name(&context.options).is_false_or_unknown()
-    }))
+    Box::new(move |context: &FormattingContext| option_name(&context.options).is_false_or_unknown())
 }
 
 // rulecontext.go:126
 pub(crate) fn is_option_disabled_or_undefined_or_tokens_on_same_line(
     option_name: OptionSelector,
 ) -> ContextPredicate {
-    Box::leak(Box::new(move |context: &FormattingContext| {
+    Box::new(move |context: &FormattingContext| {
         option_name(&context.options).is_false_or_unknown() || context.tokens_are_on_same_line()
-    }))
+    })
 }
 
 // rulecontext.go:132
 pub(crate) fn is_option_enabled_or_undefined(option_name: OptionSelector) -> ContextPredicate {
-    Box::leak(Box::new(move |context: &FormattingContext| {
-        option_name(&context.options).is_true_or_unknown()
-    }))
+    Box::new(move |context: &FormattingContext| option_name(&context.options).is_true_or_unknown())
 }
 
 // rulecontext.go:138

@@ -39,7 +39,7 @@ pub fn get_symbol_documentation_comment(c: &mut Checker, symbol: Option<P<Symbol
             Some(symbol),
             Some(decl),
             Some(decl),
-            lsproto::MarkupKind::PlainText,
+            &lsproto::MarkupKind::PlainText,
             true, /*commentOnly*/
         );
         if !doc.is_empty() && !parts.contains(&doc) {

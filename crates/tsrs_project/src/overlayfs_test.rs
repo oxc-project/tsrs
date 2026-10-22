@@ -140,7 +140,7 @@ fn process_changes_open_falls_back_to_file_extension_for_unknown_language_kind()
         uri.clone(),
         1,
         "export const x = 1;",
-        lsproto::LanguageKind("mts"),
+        lsproto::LanguageKind("mts".into()),
     )]);
 
     let fh = fs.get_file(&uri.file_name()).unwrap();
@@ -153,7 +153,12 @@ fn process_changes_open_extensionless_file_preserves_unknown_script_kind() {
     let fs = create_overlay_fs();
     let uri = lsproto::DocumentUri("file:///script".to_string());
 
-    fs.process_changes(&[open(uri.clone(), 1, "const x = 1;", lsproto::LanguageKind("plaintext"))]);
+    fs.process_changes(&[open(
+        uri.clone(),
+        1,
+        "const x = 1;",
+        lsproto::LanguageKind("plaintext".into()),
+    )]);
 
     let fh = fs.get_file(&uri.file_name()).unwrap();
     assert_eq!(fh.kind(), ScriptKind::Unknown);

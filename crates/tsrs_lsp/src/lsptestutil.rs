@@ -271,6 +271,10 @@ impl LSPClient {
 
     // lspclient.go:253
     // SendRequest sends a typed request and waits for the response.
+    #[expect(
+        clippy::needless_pass_by_value,
+        reason = "typed request metadata follows the test client API"
+    )]
     pub fn send_request<Params: Json, Resp: Json>(
         &self,
         info: lsproto::RequestInfo<Params, Resp>,
@@ -295,6 +299,10 @@ impl LSPClient {
 
     // lspclient.go:316
     // SendNotification sends a typed notification.
+    #[expect(
+        clippy::needless_pass_by_value,
+        reason = "typed notification metadata follows the test client API"
+    )]
     pub fn send_notification<Params: Json>(
         &self,
         info: lsproto::NotificationInfo<Params>,
@@ -315,18 +323,15 @@ impl LSPClient {
 #[cfg(test)]
 // The `onServerRequest` handler of the lsp tests: acknowledge registrations and progress tokens.
 pub(crate) fn acknowledge_registrations() -> ServerRequestHandler {
-    Box::new(|req: &RequestMessage| {
-        use lsproto::Method;
-        match req.method {
-            Method::ClientRegisterCapability
-            | Method::ClientUnregisterCapability
-            | Method::WindowWorkDoneProgressCreate => Some(ResponseMessage {
-                id: req.id.clone(),
-                result: Some(lsproto::Null.to_json()),
-                ..Default::default()
-            }),
-            _ => None,
-        }
+    Box::new(|req: &RequestMessage| match req.method.0.as_ref() {
+        "client/registerCapability"
+        | "client/unregisterCapability"
+        | "window/workDoneProgress/create" => Some(ResponseMessage {
+            id: req.id.clone(),
+            result: Some(lsproto::Null.to_json()),
+            ..Default::default()
+        }),
+        _ => None,
     })
 }
 

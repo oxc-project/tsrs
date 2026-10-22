@@ -3,6 +3,8 @@
 `CONTRIBUTING.md` and `docs/PORTING.md` have the porting rules and the test workflow; `docs/RUST.md` has the Rust
 practices. This file adds the rules below.
 
+Do not update `README.md` files unless the user explicitly asks.
+
 ## Build and test
 
 Build with `cargo build --profile dev -p tsrs_cli -p tsrs_testrunner` and run `target/debug/tsrs-test`, not
@@ -49,8 +51,8 @@ peak RSS.
 capability with its status and evidence.
 Update it in the same pull request when a change ports a subsystem or emit wave, adds a feature, makes a capability
 start or stop being supported, become the default or ship in an npm release, changes a pass count the table cites,
-or closes or finds a known gap. How to update it is in a comment above the table. Keep the root and npm README
-compatibility summaries consistent with it.
+or closes or finds a known gap. How to update it is in a comment above the table. When explicitly asked to update
+README files, keep the root and npm README compatibility summaries consistent with it.
 
 ## Private code
 

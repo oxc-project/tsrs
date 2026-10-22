@@ -113,6 +113,16 @@ of size here, if a later change brings the rest of this path along. In particula
 extra checker on formbricks, reachable) are each checker's copy of the barrel files' merged exports. That is the
 shared-graph question, out of scope here.
 
+Addendum 2026-10-22: revisited under the AGENTS.md policy with no fixed threshold ("Earlier experiments rejected
+solely for missing the old percentage thresholds may be revisited under this policy"). The prototype was ported
+onto main at c6695157 (branch `max/perf2-export-star-tables`: `visit` returns `Option<SymbolTable>`,
+`extend_export_symbols` takes references, `clone_value` already existed) and re-measured on an 18-core Apple
+Silicon machine shared with two other agents' jobs: default checker count (16), one warm-up then five interleaved
+pairs, `/usr/bin/time -l` peak RSS, output byte-identical in every run. formbricks-web 2,040.4 -> 2,000.7 MiB
+(-1.6%, lower in 5 of 5 pairs), cal-diy 1,934.6 -> 1,903.0 (-2.1%, 5 of 5), t3code-server 2,125.3 -> 2,147.6 (+1.1%,
+inside its band), mui-docs, typeorm, Compiler and Compiler-Unions within +-0.3%. Instructions within noise
+everywhere (-0.3% to +0.8% at 16 checkers, +-0.15% single-threaded); single-threaded peak -0.2% to -0.7%.
+
 **Expression re-checks (t3code 1.7%).** Object literal and spread types, their members, property symbols and member
 tables, created by `checkExpressionWithContextualType` under `isSignatureApplicable` / `inferTypeArguments` /
 `instantiateSignatureInContextOf` and dropped after the candidate. notes/mem-recycle.md item 3 and

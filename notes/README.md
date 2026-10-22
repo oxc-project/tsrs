@@ -28,6 +28,8 @@ starting another experiment.
 - [Enum members in isSimpleTypeRelatedTo](perf-simple-relation-enum-members.md): the one flag pair behind three
   quarters of the calls on Compiler-Unions, answered inline.
 - [Memory round 4](mem-round4.md): the latest numbered memory round against Bun.
+- [Export-star tables as values](mem-checker-scratch.md): the 2026-10-22 addendum re-measures the one exact fix of
+  size there under the no-threshold policy.
 - [Benchmark workflow](../bench/README.md) and [published results](../bench/RESULTS.md): reproduce measurements
   and compare the released build configuration.
 

@@ -276,6 +276,12 @@ impl Checker {
     }
 
     // relater.go:205
+    /// tsrs: two enum members of one literal kind, and two structured types, answered inline before the worker's
+    /// chain of flag tests. Narrowing `kind === SyntaxKind.X` asks the comparable relation about a member against
+    /// every other member of the enum (three quarters of the calls on the Compiler-Unions benchmark); of the
+    /// worker's tests only the enum-literal one can answer such a pair, with the values equal and the enums
+    /// related, since neither type is a union, a base primitive, `any`, `unknown`, `never`, null or undefined.
+    #[inline]
     pub(crate) fn is_simple_type_related_to(
         &mut self,
         source: P<Type>,
@@ -283,11 +289,21 @@ impl Checker {
         relation: P<Relation>,
         error_reporter: Option<ErrorReporter<'_>>,
     ) -> bool {
-        let mut error_reporter = error_reporter;
         let s = source.flags();
         let t = target.flags();
-        // Two structured or instantiable types (most calls, from is_type_related_to and is_related_to_ex) pass none
-        // of the flag tests below; only the last one, a target union of undefined, null and {}, can answer true.
+        const NUMBER_MEMBER: TypeFlags = TypeFlags::NumberLiteral.union(TypeFlags::EnumLiteral);
+        const STRING_MEMBER: TypeFlags = TypeFlags::StringLiteral.union(TypeFlags::EnumLiteral);
+        if s == t && (s == NUMBER_MEMBER || s == STRING_MEMBER) {
+            return source.as_literal_type().value_equals(target.as_literal_type())
+                && self.is_enum_type_related_to(
+                    source.symbol().unwrap(),
+                    target.symbol().unwrap(),
+                    error_reporter,
+                );
+        }
+        // Two structured or instantiable types (most of the other calls, from is_type_related_to and
+        // is_related_to_ex) pass none of the worker's flag tests; only the last one, a target union of undefined,
+        // null and {}, can answer true.
         const STRUCTURED: TypeFlags = TypeFlags::Object
             .union(TypeFlags::Union)
             .union(TypeFlags::Intersection)
@@ -301,6 +317,20 @@ impl Checker {
                 && (relation == self.assignable_relation || relation == self.comparable_relation)
                 && self.is_unknown_like_union_type(target);
         }
+        self.is_simple_type_related_to_worker(source, target, relation, error_reporter)
+    }
+
+    #[inline(never)]
+    fn is_simple_type_related_to_worker(
+        &mut self,
+        source: P<Type>,
+        target: P<Type>,
+        relation: P<Relation>,
+        error_reporter: Option<ErrorReporter<'_>>,
+    ) -> bool {
+        let mut error_reporter = error_reporter;
+        let s = source.flags();
+        let t = target.flags();
         if t.intersects(TypeFlags::Any)
             || s.intersects(TypeFlags::Never)
             || source == self.wildcard_type

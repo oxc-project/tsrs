@@ -8,7 +8,7 @@ description: Write a tsrs pull request title and body for an automated parity fi
 Return only a title and Markdown body; do not create or modify the pull request.
 
 Use a concise title of the form `<area>: <what and why>`. In the body, follow
-`.github/pull_request_template.md` with `## What and why` and `## Evidence`:
+the headings `## What and why` and `## Evidence`:
 
 - explain the user-visible mismatch and the Go behavior now followed;
 - name the corresponding Go function and pinned commit when the triage report

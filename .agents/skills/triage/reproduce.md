@@ -27,17 +27,24 @@ try its minimal reproduction against the checkout.
 
 ## Build the two compilers
 
-Build tsrs from the repository root:
+First read `target/triage/compilers.json`. The action prepares the compilers
+after classification; reuse those exact binaries and the pinned `ts-ref/`
+checkout. If running locally without the manifest, prepare them once with:
 
 ```sh
-cargo build --release --locked -p tsrs_cli
+node .github/scripts/triage/prepare.mjs
 ```
 
 Compare it with the TypeScript Go compiler at the exact
-`workspace.metadata.typescript.commit` in `Cargo.toml`. Reuse a matching
-checkout in `<triageDir>/ts-ref` when present. Otherwise make a sparse checkout
-there, then build `./cmd/tsc` from its `tsc` directory with `GOTOOLCHAIN=auto`.
-Keep generated binaries and scratch data under `triageDir`.
+`workspace.metadata.typescript.commit` in `Cargo.toml`. The manifest records
+the pinned Go binary at `target/triage/tsgo`, its Go version, and the reference
+source under `ts-ref/tsc/internal/`. Never substitute JavaScript `tsc` or an npm
+nightly. Run a direct pinned-Go comparison before returning reproducible.
+
+Correctness work uses `cargo build --profile dev --locked -p tsrs_cli
+-p tsrs_testrunner` and `target/debug/` binaries. Reserve release builds for
+performance measurements or a demonstrated profile-specific failure. Keep
+reproduction inputs and captured output under `triageDir`.
 
 ## Run the reproduction
 

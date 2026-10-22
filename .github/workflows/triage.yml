@@ -42,17 +42,48 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
+      - name: Route using current issue state
+        id: route
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node .github/scripts/triage/route.mjs
+
       - name: Set up Node.js
-        uses: oxc-project/setup-node@f46a72f95efdc55273fcd042d61c84e723b2892c # v1.4.1
+        if: steps.route.outputs.route != 'skip'
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .node-version
+          package-manager-cache: false
 
       - name: Set up Rust
+        if: steps.route.outputs.route == 'triage' || steps.route.outputs.route == 'retriage'
         uses: oxc-project/setup-rust@3d6fb132fbe7cdcb66bf8ec193911c2945369d12 # v1.0.17
         with:
           # Issue events can restore main's caches but cannot save into that scope.
           save-cache: false
           cache-key: warm-test
 
+      - name: Read TypeScript reference commit
+        if: steps.route.outputs.route == 'triage' || steps.route.outputs.route == 'retriage'
+        id: reference
+        run: echo "commit=$(node npm/build.mjs --print-typescript-commit)" >> "$GITHUB_OUTPUT"
+
+      - name: Restore pinned reference compiler
+        if: steps.reference.outputs.commit != ''
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            ts-ref
+            target/triage/tsgo
+            target/triage/reference.json
+          key: triage-reference-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.reference.outputs.commit }}
+
+      - name: Prepare patched action
+        if: steps.route.outputs.route != 'skip'
+        uses: ./.github/actions/prepare-triagebot
+
       - name: Create oxc-guard token
+        if: steps.route.outputs.route != 'skip'
         uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
         id: app-token
         with:
@@ -63,6 +94,7 @@ jobs:
           permission-pull-requests: write
 
       - name: Configure Git identity
+        if: steps.route.outputs.route != 'skip'
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
@@ -73,22 +105,29 @@ jobs:
       # The pinned action expects its state labels plus at least one "- P" and
       # "pkg:" label, but does not create them itself.
       - name: Create missing triage labels
+        if: steps.route.outputs.route != 'skip' && steps.route.outputs.route != 'cleanup'
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
         run: .github/scripts/setup-triagebot-labels.sh
 
       - name: Triage the issue
-        # Cloudflare Workers AI support is newer than v0.4.0. Pin the upstream
-        # commit rather than following its moving main branch.
-        uses: withastro/triagebot-action@51d30da13c0bd571a3822fc56882de40fead0086 # main, 2026-08-28
+        if: steps.route.outputs.route != 'skip'
+        env:
+          GH_READ_TOKEN: ${{ github.token }}
+          GH_WRITE_TOKEN: ${{ steps.app-token.outputs.token }}
+          CLOUDFLARE_API_KEY: ${{ secrets.CLOUDFLARE_API_KEY }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          TSRS_TRIAGE_EVENT_PATH: ${{ steps.route.outputs.event-path }}
+        run: node .github/scripts/triage/run.mjs
+
+      - name: Retain triage evidence and timings
+        if: always() && (steps.route.outputs.route == 'triage' || steps.route.outputs.route == 'retriage')
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          read-token: ${{ github.token }}
-          write-token: ${{ steps.app-token.outputs.token }}
-          cloudflare-api-key: ${{ secrets.CLOUDFLARE_API_KEY }}
-          cloudflare-account-id: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          triage-model: cloudflare-workers-ai/@cf/moonshotai/kimi-k2.7-code
-          verification-model: cloudflare-workers-ai/@cf/moonshotai/kimi-k2.6
-          triage-skill: .agents/skills/triage
-          pr-skill: .agents/skills/pr-writer
-          auto-pr-on-fix: true
-          bot-logins: oxc-guard[bot]
+          name: triage-${{ github.event.issue.number }}-${{ github.run_attempt }}
+          path: |
+            triage/**/report.md
+            target/triage/*.json
+            target/triage/*.jsonl
+          if-no-files-found: ignore
+          retention-days: 14

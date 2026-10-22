@@ -1,0 +1,68 @@
+name: Warm triage caches
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - Cargo.toml
+      - .github/triagebot/**
+      - .github/scripts/triage/**
+      - .github/actions/prepare-triagebot/**
+      - .github/workflows/triage*.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: triage-cache-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  warm:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .node-version
+          package-manager-cache: false
+
+      - name: Prepare patched action
+        uses: ./.github/actions/prepare-triagebot
+        with:
+          save-cache: 'true'
+
+      - name: Read TypeScript reference commit
+        id: reference
+        run: echo "commit=$(node npm/build.mjs --print-typescript-commit)" >> "$GITHUB_OUTPUT"
+
+      # The exact source commit pins go.mod, go.sum, and the required Go version.
+      - name: Restore pinned reference compiler
+        id: cache
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            ts-ref
+            target/triage/tsgo
+            target/triage/reference.json
+          key: triage-reference-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.reference.outputs.commit }}
+
+      - name: Build pinned reference compiler
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: node .github/scripts/triage/prepare.mjs --reference-only
+
+      - name: Save pinned reference compiler from main
+        if: steps.cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            ts-ref
+            target/triage/tsgo
+            target/triage/reference.json
+          key: ${{ steps.cache.outputs.cache-primary-key }}

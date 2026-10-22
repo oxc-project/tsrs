@@ -1,0 +1,2 @@
+# Preserve the pinned upstream source's whitespace in patch context.
+upstream.patch -whitespace

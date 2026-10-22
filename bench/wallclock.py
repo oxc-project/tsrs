@@ -191,6 +191,22 @@ def checked_command(command: list[str], expected_exit: int) -> str:
     return f'{shlex.join(command)}; code=$?; [ "$code" -eq {expected_exit} ]'
 
 
+def hyperfine_time(result: dict) -> float:
+    # Hyperfine 2 stores per-run metrics in measurements; 1.x used times.
+    if "measurements" in result:
+        samples = result["measurements"]
+        if len(samples) != 1:
+            raise ValueError("Hyperfine did not return one time for each binary")
+        wall_time = samples[0]["time_wall_clock"]
+        if wall_time["unit"] != "second":
+            raise ValueError("Hyperfine did not return wall time in seconds")
+        return finite_positive(wall_time["value"])
+    times = result["times"]
+    if len(times) != 1:
+        raise ValueError("Hyperfine did not return one time for each binary")
+    return finite_positive(times[0])
+
+
 def timed_pairs(base_command: list[str], head_command: list[str], cwd: Path, raw: Path,
                 runs: int, base_exit: int, head_exit: int) -> list[dict]:
     if runs < 2:
@@ -204,9 +220,9 @@ def timed_pairs(base_command: list[str], head_command: list[str], cwd: Path, raw
                         "--export-json", str(raw), *(commands[name] for name in order)],
                        cwd=cwd, check=True, timeout=1800)
         results = json.loads(raw.read_text())["results"]
-        if len(results) != 2 or any(len(result["times"]) != 1 for result in results):
+        if len(results) != 2:
             raise ValueError("Hyperfine did not return one time for each binary")
-        pair = {name: finite_positive(result["times"][0]) for name, result in zip(order, results)}
+        pair = {name: hyperfine_time(result) for name, result in zip(order, results)}
         pairs.append(pair)
     raw.write_text(json.dumps({"pairs": pairs}, indent=2) + "\n")
     return pairs

@@ -1,0 +1,708 @@
+{
+  "schemaVersion": 1,
+  "kind": "publication",
+  "measuredAt": "2026-10-22T15:36:00.413Z",
+  "machine": {
+    "platform": "Linux x64",
+    "cpus": 8,
+    "cpu": "AMD EPYC",
+    "memory_gb": 16,
+    "libc": "glibc 2.39",
+    "label": "Namespace `nscloud-ubuntu-24.04-amd64-8x16` (8 vCPU, 16 GB RAM, Linux x64, AMD EPYC)"
+  },
+  "settings": {
+    "checkers": 4,
+    "workers": 8,
+    "memoryGiB": null,
+    "runs": 10,
+    "warmup": 3
+  },
+  "projects": [
+    {
+      "name": "Compiler-Unions",
+      "commit": "41f652ab2df5077b1115f73eaeefc2fe9f674132",
+      "overlaySha256": null
+    },
+    {
+      "name": "Compiler",
+      "commit": "41f652ab2df5077b1115f73eaeefc2fe9f674132",
+      "overlaySha256": null
+    },
+    {
+      "name": "cal-diy",
+      "commit": "54343aa685ae8f33159d2f485ec4a57bad5c574a",
+      "overlaySha256": "bd8a78fb6c563ab5"
+    },
+    {
+      "name": "date-fns",
+      "commit": "717ce0a807ea4c6b540d015b5c408723175b2838",
+      "overlaySha256": null
+    },
+    {
+      "name": "drizzle-orm",
+      "commit": "15454dbe49d827c6081f3d0231e2e7985e517295",
+      "overlaySha256": null
+    },
+    {
+      "name": "formbricks-web",
+      "commit": "ec45c28e4d20bd9daf3191c991b67981aabf5db8",
+      "overlaySha256": "635fefae1e3bede6"
+    },
+    {
+      "name": "mikro-orm",
+      "commit": "97fb2318067eae37ef52da57e2975eb7539ed729",
+      "overlaySha256": null
+    },
+    {
+      "name": "mui-docs",
+      "commit": "6780195595c12252a130aa5ae5c5bd461229c6b7",
+      "overlaySha256": null
+    },
+    {
+      "name": "next-packages-next",
+      "commit": "fa8dcf34f1629dacc62f1952ee8a66a2439781a5",
+      "overlaySha256": null
+    },
+    {
+      "name": "next-root",
+      "commit": "fa8dcf34f1629dacc62f1952ee8a66a2439781a5",
+      "overlaySha256": null
+    },
+    {
+      "name": "nuxt",
+      "commit": "85b8d54f6ce49f4d0f199e90513b1e5d5fa22196",
+      "overlaySha256": null
+    },
+    {
+      "name": "playwright",
+      "commit": "d469960fdfc461e2d5795a3fa48a58a52a91ecaf",
+      "overlaySha256": null
+    },
+    {
+      "name": "storybook",
+      "commit": "48dfcc6becd3ab813b9d1de7966ef7fd9c8c9bc0",
+      "overlaySha256": null
+    },
+    {
+      "name": "supabase-studio",
+      "commit": "12afe399995143a2cc699eabbbd29596f4e64945",
+      "overlaySha256": null
+    },
+    {
+      "name": "t3code-server",
+      "commit": "9bd1d8009a6b7c50f9dd9458e2bf27d481ff3b43",
+      "overlaySha256": null
+    },
+    {
+      "name": "typeorm",
+      "commit": "fe92394287516feeada6e9c308ebe22deca2458e",
+      "overlaySha256": "db6224934f2a60f5"
+    },
+    {
+      "name": "vscode",
+      "commit": "9cf0128b9822dcd8a533f08ef7312956a4390301",
+      "overlaySha256": null
+    },
+    {
+      "name": "webpack",
+      "commit": "b54c5e2aa26dd0267bc904d45402f811f100186c",
+      "overlaySha256": null
+    },
+    {
+      "name": "xstate-main",
+      "commit": "fbee62e7c1586315ed478c2fedf530d7e0ff5a3e",
+      "overlaySha256": null
+    }
+  ],
+  "compilerOrder": [
+    "tsrs",
+    "typescript_1",
+    "typescript_2"
+  ],
+  "compilers": {
+    "typescript_1": {
+      "package": "@typescript/typescript-linux-x64",
+      "version": "7.1.0-dev.20261022.1",
+      "label": "TypeScript",
+      "requested": "typescript@7.1.0-dev.20261022.1",
+      "dist": {
+        "shasum": "d88f4b007dbd5e1db59cb1f5208f1d9788d6f509",
+        "tarball": "https://registry.npmjs.org/@typescript/typescript-linux-x64/-/typescript-linux-x64-7.1.0-dev.20261022.1.tgz",
+        "fileCount": 122,
+        "integrity": "sha512-B9Zl/AUvlB3s9UzSxYc1jZQ3ASgkLcA1QyyUnz8n90axgFCl5PBk5b/sMH2MJWZqNZOl8TcsRpzyAcAiVYPLdA==",
+        "signatures": [
+          {
+            "sig": "MEYCIQCDuzW1k9iv268nk00IgYWnNJK1XbxKxzlfv8bYbQKmLwIhAI25dOsVhxLFDIx/dWLgbNn51/fuhRwEUznTNiguCR5c",
+            "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+          },
+          {
+            "sig": "MEYCIQCKCJ+TDTZ5z1v35Y+5pZ9Sddy5M3KSfWisXkd5WRID4AIhAJJYFfpD5qJDTAbVZG9Op0uBK6Fke8Gb1SaAIz/M1fNT",
+            "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+          }
+        ],
+        "unpackedSize": 28458998
+      },
+      "binary": "/home/runner/work/tsrs/tsrs/bench/.work/packages/typescript_1-7.1.0-dev.20261022.1/node_modules/@typescript/typescript-linux-x64/lib/tsc",
+      "sha256": "a401f7a509ac40a9a4a8d9bad6f60c28837d7cabcd700361fcb59c9f9626e0a0",
+      "version_output": "Version 7.1.0-dev.20261022.1"
+    },
+    "typescript_2": {
+      "package": "@typescript/typescript-linux-x64",
+      "version": "7.0.2",
+      "label": "TypeScript",
+      "requested": "typescript@7.0.2",
+      "dist": {
+        "shasum": "73269cb0baba50aea0ca060445a6b88e583f1ce2",
+        "tarball": "https://registry.npmjs.org/@typescript/typescript-linux-x64/-/typescript-linux-x64-7.0.2.tgz",
+        "fileCount": 114,
+        "integrity": "sha512-EYdf2cNg7rgCWJnxCdJ+F3V39O8ihb37eHAu1LK8oAFizgTQbPOK7zHHXbPt8rX24COqODXeI3sIf0fCXG7H/A==",
+        "signatures": [
+          {
+            "sig": "MEQCID5HnnxMfpqvK60MvUY0mrH43XXckjsaCowg3RUutmw7AiB8k8eQ1fJRg/fgDXqFeQApMd2iZuIXimCW7bduggkezw==",
+            "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+          }
+        ],
+        "unpackedSize": 27945990
+      },
+      "binary": "/home/runner/work/tsrs/tsrs/bench/.work/packages/typescript_2-7.0.2/node_modules/@typescript/typescript-linux-x64/lib/tsc",
+      "sha256": "4f2de678286401759b3fb4475bafe35b8f32b4b3a07d92642bbf37eadc9b34a4",
+      "version_output": "Version 7.0.2"
+    },
+    "tsrs": {
+      "version": "Version 7.1.0-beta (tsrs 0.19.0-ts7.1.0-beta, microsoft/TypeScript@3e9236361fa9)",
+      "label": "tsrs",
+      "binary": "/home/runner/work/_temp/benchmark-compilers/tsrs",
+      "requested": "/home/runner/work/_temp/benchmark-compilers/tsrs",
+      "sha256": "899157652bd8cbeec8e7b6cc20b1cc46898d97386da023aceddef6c261015c60",
+      "version_output": "Version 7.1.0-beta (tsrs 0.19.0-ts7.1.0-beta, microsoft/TypeScript@3e9236361fa9)"
+    }
+  },
+  "rows": [
+    {
+      "project": "Compiler-Unions",
+      "compiler": "tsrs",
+      "wallSeconds": 0.1121920032,
+      "instructions": 3301806842.1,
+      "peakRssBytes": 84846182.4,
+      "files": 48,
+      "diagnostics": 41
+    },
+    {
+      "project": "Compiler-Unions",
+      "compiler": "typescript_1",
+      "wallSeconds": 0.34812203510000006,
+      "instructions": 10452690051,
+      "peakRssBytes": 158024908.8,
+      "files": 48,
+      "diagnostics": 41
+    },
+    {
+      "project": "Compiler-Unions",
+      "compiler": "typescript_2",
+      "wallSeconds": 0.651368287,
+      "instructions": 15785551994.6,
+      "peakRssBytes": 254397235.2,
+      "files": 48,
+      "diagnostics": 41
+    },
+    {
+      "project": "Compiler",
+      "compiler": "tsrs",
+      "wallSeconds": 0.07944194490000002,
+      "instructions": 1757910606.6,
+      "peakRssBytes": 81235558.4,
+      "files": 53,
+      "diagnostics": 43
+    },
+    {
+      "project": "Compiler",
+      "compiler": "typescript_1",
+      "wallSeconds": 0.20785227609999998,
+      "instructions": 4524561586.7,
+      "peakRssBytes": 142243020.8,
+      "files": 53,
+      "diagnostics": 43
+    },
+    {
+      "project": "Compiler",
+      "compiler": "typescript_2",
+      "wallSeconds": 0.3527473816,
+      "instructions": 8306710046.1,
+      "peakRssBytes": 226701312,
+      "files": 53,
+      "diagnostics": 43
+    },
+    {
+      "project": "cal-diy",
+      "compiler": "tsrs",
+      "wallSeconds": 2.0486114657,
+      "instructions": 41876352823.7,
+      "peakRssBytes": 1201467392,
+      "files": 10173,
+      "diagnostics": 136
+    },
+    {
+      "project": "cal-diy",
+      "compiler": "typescript_1",
+      "wallSeconds": 4.5350639506,
+      "instructions": 144171111490.5,
+      "peakRssBytes": 3129699942.4,
+      "files": 10173,
+      "diagnostics": 136
+    },
+    {
+      "project": "cal-diy",
+      "compiler": "typescript_2",
+      "wallSeconds": 6.05977459,
+      "instructions": 216620566939.9,
+      "peakRssBytes": 4961648640,
+      "files": 10166,
+      "diagnostics": 136
+    },
+    {
+      "project": "date-fns",
+      "compiler": "tsrs",
+      "wallSeconds": 0.0920856199,
+      "instructions": 1489957439.6,
+      "peakRssBytes": 150521036.8,
+      "files": 2277,
+      "diagnostics": 1
+    },
+    {
+      "project": "date-fns",
+      "compiler": "typescript_1",
+      "wallSeconds": 0.2683482428,
+      "instructions": 6173525625.4,
+      "peakRssBytes": 260744806.4,
+      "files": 2277,
+      "diagnostics": 1
+    },
+    {
+      "project": "date-fns",
+      "compiler": "typescript_2",
+      "wallSeconds": 0.3196663707000001,
+      "instructions": 6736883699.6,
+      "peakRssBytes": 307375308.8,
+      "files": 2270,
+      "diagnostics": 1
+    },
+    {
+      "project": "drizzle-orm",
+      "compiler": "tsrs",
+      "wallSeconds": 0.0234449431,
+      "instructions": 879816937.2,
+      "peakRssBytes": 91200307.2,
+      "files": 1554,
+      "diagnostics": 2
+    },
+    {
+      "project": "drizzle-orm",
+      "compiler": "typescript_1",
+      "wallSeconds": 0.08902420800000001,
+      "instructions": 3425855307.3,
+      "peakRssBytes": 167649280,
+      "files": 1554,
+      "diagnostics": 2
+    },
+    {
+      "project": "drizzle-orm",
+      "compiler": "typescript_2",
+      "wallSeconds": 0.3330868627,
+      "instructions": 15948522658.8,
+      "peakRssBytes": 477997056,
+      "files": 1554,
+      "diagnostics": 2
+    },
+    {
+      "project": "formbricks-web",
+      "compiler": "tsrs",
+      "wallSeconds": 1.3853333165000001,
+      "instructions": 43754471462.5,
+      "peakRssBytes": 1498826342.4,
+      "files": 10458,
+      "diagnostics": 0
+    },
+    {
+      "project": "formbricks-web",
+      "compiler": "typescript_1",
+      "wallSeconds": 4.6134517551,
+      "instructions": 165756524949.6,
+      "peakRssBytes": 4549686886.4,
+      "files": 10458,
+      "diagnostics": 0
+    },
+    {
+      "project": "formbricks-web",
+      "compiler": "typescript_2",
+      "wallSeconds": 6.810817632700001,
+      "instructions": 232124059596.2,
+      "peakRssBytes": 6151312588.8,
+      "files": 10451,
+      "diagnostics": 0
+    },
+    {
+      "project": "mikro-orm",
+      "compiler": "tsrs",
+      "wallSeconds": 2.3757038801999997,
+      "instructions": 55361532933.2,
+      "peakRssBytes": 1406065868.8,
+      "files": 2820,
+      "diagnostics": 11
+    },
+    {
+      "project": "mikro-orm",
+      "compiler": "typescript_1",
+      "wallSeconds": 6.7812926949,
+      "instructions": 238311701667,
+      "peakRssBytes": 4230867763.2,
+      "files": 2820,
+      "diagnostics": 11
+    },
+    {
+      "project": "mikro-orm",
+      "compiler": "typescript_2",
+      "wallSeconds": 13.326799915699999,
+      "instructions": 382711947984.5,
+      "peakRssBytes": 7309568409.6,
+      "files": 2820,
+      "diagnostics": 2
+    },
+    {
+      "project": "mui-docs",
+      "compiler": "tsrs",
+      "wallSeconds": 1.0760035509,
+      "instructions": 50901708054.7,
+      "peakRssBytes": 1089230028.8,
+      "files": 16766,
+      "diagnostics": 0
+    },
+    {
+      "project": "mui-docs",
+      "compiler": "typescript_1",
+      "wallSeconds": 5.6337392282000005,
+      "instructions": 215125058577.7,
+      "peakRssBytes": 3558699008,
+      "files": 16766,
+      "diagnostics": 0
+    },
+    {
+      "project": "mui-docs",
+      "compiler": "typescript_2",
+      "wallSeconds": 14.5777450257,
+      "instructions": 565203184464.4,
+      "peakRssBytes": 8516073062.4,
+      "files": 16766,
+      "diagnostics": 0
+    },
+    {
+      "project": "next-packages-next",
+      "compiler": "tsrs",
+      "wallSeconds": 0.8293066842,
+      "instructions": 16829813218.8,
+      "peakRssBytes": 575916851.2,
+      "files": 2898,
+      "diagnostics": 3
+    },
+    {
+      "project": "next-packages-next",
+      "compiler": "typescript_1",
+      "wallSeconds": 3.0538120617,
+      "instructions": 62067952120.2,
+      "peakRssBytes": 1435786444.8,
+      "files": 2898,
+      "diagnostics": 3
+    },
+    {
+      "project": "next-packages-next",
+      "compiler": "typescript_2",
+      "wallSeconds": 4.7681169295,
+      "instructions": 84644932369.8,
+      "peakRssBytes": 2028981452.8,
+      "files": 2891,
+      "diagnostics": 3
+    },
+    {
+      "project": "next-root",
+      "compiler": "tsrs",
+      "wallSeconds": 0.3213609114,
+      "instructions": 13320157265.6,
+      "peakRssBytes": 439088332.8,
+      "files": 4001,
+      "diagnostics": 4
+    },
+    {
+      "project": "next-root",
+      "compiler": "typescript_1",
+      "wallSeconds": 1.1603997396,
+      "instructions": 42695311594.6,
+      "peakRssBytes": 1098808524.8,
+      "files": 4001,
+      "diagnostics": 4
+    },
+    {
+      "project": "next-root",
+      "compiler": "typescript_2",
+      "wallSeconds": 1.5308324878000001,
+      "instructions": 58073940317.8,
+      "peakRssBytes": 1546519756.8,
+      "files": 3994,
+      "diagnostics": 7
+    },
+    {
+      "project": "nuxt",
+      "compiler": "tsrs",
+      "wallSeconds": 0.34211199980000007,
+      "instructions": 9532705186.9,
+      "peakRssBytes": 378861568,
+      "files": 3705,
+      "diagnostics": 1
+    },
+    {
+      "project": "nuxt",
+      "compiler": "typescript_1",
+      "wallSeconds": 1.3057273196000003,
+      "instructions": 36294517475.1,
+      "peakRssBytes": 973209190.4,
+      "files": 3705,
+      "diagnostics": 1
+    },
+    {
+      "project": "nuxt",
+      "compiler": "typescript_2",
+      "wallSeconds": 1.8295288832,
+      "instructions": 46945995302.7,
+      "peakRssBytes": 1230785740.8,
+      "files": 3705,
+      "diagnostics": 3
+    },
+    {
+      "project": "playwright",
+      "compiler": "tsrs",
+      "wallSeconds": 0.3062010281,
+      "instructions": 8073214917.2,
+      "peakRssBytes": 332532940.8,
+      "files": 1527,
+      "diagnostics": 0
+    },
+    {
+      "project": "playwright",
+      "compiler": "typescript_1",
+      "wallSeconds": 1.0966960049,
+      "instructions": 29134395552.3,
+      "peakRssBytes": 817737728,
+      "files": 1527,
+      "diagnostics": 0
+    },
+    {
+      "project": "playwright",
+      "compiler": "typescript_2",
+      "wallSeconds": 1.5497485774000002,
+      "instructions": 44284184047.9,
+      "peakRssBytes": 1137580851.2,
+      "files": 1520,
+      "diagnostics": 0
+    },
+    {
+      "project": "storybook",
+      "compiler": "tsrs",
+      "wallSeconds": 0.29276737820000004,
+      "instructions": 10928663214.3,
+      "peakRssBytes": 393832857.6,
+      "files": 3548,
+      "diagnostics": 93
+    },
+    {
+      "project": "storybook",
+      "compiler": "typescript_1",
+      "wallSeconds": 1.4797252150000002,
+      "instructions": 40331490620.1,
+      "peakRssBytes": 1000956723.2,
+      "files": 3548,
+      "diagnostics": 93
+    },
+    {
+      "project": "storybook",
+      "compiler": "typescript_2",
+      "wallSeconds": 2.2151215021999997,
+      "instructions": 60709449172.8,
+      "peakRssBytes": 1484791398.4,
+      "files": 3541,
+      "diagnostics": 93
+    },
+    {
+      "project": "supabase-studio",
+      "compiler": "tsrs",
+      "wallSeconds": 1.4855148247,
+      "instructions": 50305297362.7,
+      "peakRssBytes": 1232036249.6,
+      "files": 12553,
+      "diagnostics": 9
+    },
+    {
+      "project": "supabase-studio",
+      "compiler": "typescript_1",
+      "wallSeconds": 4.746324199,
+      "instructions": 187184438078.6,
+      "peakRssBytes": 3327485542.4,
+      "files": 12553,
+      "diagnostics": 9
+    },
+    {
+      "project": "supabase-studio",
+      "compiler": "typescript_2",
+      "wallSeconds": 7.0635622826,
+      "instructions": 273739101928.3,
+      "peakRssBytes": 5173278720,
+      "files": 12546,
+      "diagnostics": 0
+    },
+    {
+      "project": "t3code-server",
+      "compiler": "tsrs",
+      "wallSeconds": 1.5292496447,
+      "instructions": 60293777727.3,
+      "peakRssBytes": 1215171379.2,
+      "files": 2948,
+      "diagnostics": 6
+    },
+    {
+      "project": "t3code-server",
+      "compiler": "typescript_1",
+      "wallSeconds": 8.577203464899998,
+      "instructions": 348144535909.6,
+      "peakRssBytes": 4646579814.4,
+      "files": 2948,
+      "diagnostics": 6
+    },
+    {
+      "project": "t3code-server",
+      "compiler": "typescript_2",
+      "wallSeconds": 11.450398581,
+      "instructions": 472198746123.4,
+      "peakRssBytes": 6823561216,
+      "files": 2941,
+      "diagnostics": 5
+    },
+    {
+      "project": "typeorm",
+      "compiler": "tsrs",
+      "wallSeconds": 0.28560630379999996,
+      "instructions": 5934289385.8,
+      "peakRssBytes": 229620121.6,
+      "files": 3575,
+      "diagnostics": 31
+    },
+    {
+      "project": "typeorm",
+      "compiler": "typescript_1",
+      "wallSeconds": 0.6091766203,
+      "instructions": 18419331134.5,
+      "peakRssBytes": 478592204.8,
+      "files": 3575,
+      "diagnostics": 31
+    },
+    {
+      "project": "typeorm",
+      "compiler": "typescript_2",
+      "wallSeconds": 1.0404863775000002,
+      "instructions": 28692935446,
+      "peakRssBytes": 831920128,
+      "files": 3575,
+      "diagnostics": 31
+    },
+    {
+      "project": "vscode",
+      "compiler": "tsrs",
+      "wallSeconds": 2.4960351925,
+      "instructions": 74951207351,
+      "peakRssBytes": 1867739955.2,
+      "files": 10427,
+      "diagnostics": 371
+    },
+    {
+      "project": "vscode",
+      "compiler": "typescript_1",
+      "wallSeconds": 10.1992383686,
+      "instructions": 235271777367.8,
+      "peakRssBytes": 5772033228.8,
+      "files": 10427,
+      "diagnostics": 371
+    },
+    {
+      "project": "vscode",
+      "compiler": "typescript_2",
+      "wallSeconds": 12.256102625099999,
+      "instructions": 318036818053.4,
+      "peakRssBytes": 7999045222.4,
+      "files": 10427,
+      "diagnostics": 359
+    },
+    {
+      "project": "webpack",
+      "compiler": "tsrs",
+      "wallSeconds": 0.26587078340000003,
+      "instructions": 10639174329.4,
+      "peakRssBytes": 391900774.4,
+      "files": 1607,
+      "diagnostics": 840
+    },
+    {
+      "project": "webpack",
+      "compiler": "typescript_1",
+      "wallSeconds": 0.8704167624000002,
+      "instructions": 34587679879.6,
+      "peakRssBytes": 905768960,
+      "files": 1607,
+      "diagnostics": 840
+    },
+    {
+      "project": "webpack",
+      "compiler": "typescript_2",
+      "wallSeconds": 1.2235443378,
+      "instructions": 49279757831.7,
+      "peakRssBytes": 1245551411.2,
+      "files": 1607,
+      "diagnostics": 848
+    },
+    {
+      "project": "xstate-main",
+      "compiler": "tsrs",
+      "wallSeconds": 0.16299527619999998,
+      "instructions": 5884341787.9,
+      "peakRssBytes": 237728972.8,
+      "files": 1539,
+      "diagnostics": 0
+    },
+    {
+      "project": "xstate-main",
+      "compiler": "typescript_1",
+      "wallSeconds": 0.6201806973999999,
+      "instructions": 20862407366,
+      "peakRssBytes": 586560716.8,
+      "files": 1539,
+      "diagnostics": 0
+    },
+    {
+      "project": "xstate-main",
+      "compiler": "typescript_2",
+      "wallSeconds": 0.7903244517,
+      "instructions": 28149503890,
+      "peakRssBytes": 776338636.8,
+      "files": 1532,
+      "diagnostics": 0
+    }
+  ],
+  "sourceBundleSha256": "ff10e93e5366685315829580be51eca4c6ef1a4fa2a3ea02f2da91049011cebb",
+  "renderer": {
+    "revision": "a70bc1890113c066f4b5781898b1a3604dcf0e3c",
+    "files": {
+      "render.mjs": "24b3205db011e437a7742e3914a3d1f868fa40bcb705d745c3496b9f635dcf6e",
+      "results.mjs": "b17dfd568df01bc62b6612d0d2847cf6ae647b4dfdada8f3c550e2f020667c6f",
+      "lib.mjs": "538804061143f5228d299ad2383baddc235fe7d697ceb26dd166f94d36c41b28",
+      "pnpm-lock.yaml": "ad501051834d8e8e423b55f5ffadc667e3595b1e1ada26340ff0e485f56456a4"
+    },
+    "sha256": "99f17b7b00df5e2d284f808f5dfc82899e41f884fd79a2051b6561cc9cf251d8"
+  },
+  "measuredCommit": "a70bc1890113c066f4b5781898b1a3604dcf0e3c",
+  "runUrl": "https://github.com/oxc-project/tsrs/actions/runs/39803245995"
+}

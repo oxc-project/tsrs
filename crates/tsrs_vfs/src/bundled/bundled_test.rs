@@ -55,6 +55,17 @@ fn test_default_lib_path() {
 
 #[test]
 #[cfg(feature = "noembed")]
+fn test_noembed_executable_realpath_uses_compiler_path_spelling() {
+    let executable = std::env::current_exe().unwrap();
+    let realpath = super::noembed::executable_realpath(&executable).unwrap();
+    let directory = realpath.parent().unwrap();
+    let path = tsrs_core::tspath::normalize_slashes(&directory.to_string_lossy());
+    assert!(!path.starts_with("//?/"), "verbatim prefix escaped into compiler path: {path}");
+    assert!(osvfs::fs().directory_exists(&path));
+}
+
+#[test]
+#[cfg(feature = "noembed")]
 fn test_noembed() {
     assert!(is_bundled("bundled:///libs/lib.d.ts"));
     assert!(embedded_file("bundled:///libs/lib.d.ts").is_none());

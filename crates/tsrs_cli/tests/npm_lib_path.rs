@@ -4,6 +4,8 @@
 use std::path::{Path, PathBuf};
 use std::process::{Command, Output};
 
+use tsrs_vfs::osvfs;
+
 fn scratch(name: &str) -> PathBuf {
     let dir =
         std::env::temp_dir().join(format!("tsrs-npm-lib-path-{}-{}", name, std::process::id()));
@@ -11,11 +13,17 @@ fn scratch(name: &str) -> PathBuf {
     std::fs::create_dir_all(dir.join("project")).unwrap();
     std::fs::write(
         dir.join("project/tsconfig.json"),
-        r#"{ "compilerOptions": { "target": "es2020", "lib": ["es2020"] }, "files": ["a.ts"] }"#,
+        include_str!("../../../testdata/regressions/noembed-adjacent-libraries/tsconfig.json"),
     )
     .unwrap();
-    std::fs::write(dir.join("project/a.ts"), "export const a = 1;\n").unwrap();
-    std::fs::canonicalize(dir).unwrap()
+    std::fs::write(
+        dir.join("project/a.ts"),
+        "const names: Array<string> = [\"ok\"];\nnames.push(\"next\");\n",
+    )
+    .unwrap();
+    // Compiler paths use ordinary drive paths on Windows, not canonicalize's
+    // verbatim paths. Resolve macOS's temporary-directory symlink as well.
+    PathBuf::from(osvfs::fs().realpath(&dir.to_string_lossy()))
 }
 
 // The test binary under `bin`, linked rather than copied where the file system allows it (it is large).
@@ -31,7 +39,7 @@ fn install_binary(dir: &Path) -> PathBuf {
 
 fn run(exe: &Path, dir: &Path) -> Output {
     Command::new(exe)
-        .args(["-p", "tsconfig.json", "--listFilesOnly"])
+        .args(["-p", "tsconfig.json", "--pretty", "false", "--listFiles"])
         .current_dir(dir.join("project"))
         .env_remove("TSRS_LIB_PATH")
         .output()
@@ -64,6 +72,21 @@ fn libraries_next_to_the_binary_follow_the_build_mode() {
     if cfg!(feature = "noembed") {
         assert!(files.contains(&format!("{bin}/lib.es5.d.ts")), "{files:?}");
         assert!(!files.iter().any(|f| f.starts_with("bundled:")), "{files:?}");
+        std::fs::write(
+            dir.join("project/a.ts"),
+            include_str!("../../../testdata/regressions/noembed-adjacent-libraries/a.ts"),
+        )
+        .unwrap();
+        let out = run(&exe, &dir);
+        assert_eq!(out.status.code(), Some(2), "{out:?}");
+        assert!(out.stderr.is_empty(), "{out:?}");
+        let stdout = String::from_utf8(out.stdout).unwrap();
+        let diagnostics: Vec<_> = stdout.lines().filter(|line| line.contains("error TS")).collect();
+        assert_eq!(
+            diagnostics.join("\n") + "\n",
+            include_str!("../../../testdata/regressions/noembed-adjacent-libraries/expected.txt"),
+            "{stdout}"
+        );
     } else {
         assert!(files.contains(&"bundled:///libs/lib.es5.d.ts".to_string()), "{files:?}");
         assert!(!files.iter().any(|f| f.starts_with(&bin)), "{files:?}");

@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+    "noEmit": true,
+    "target": "ES2024",
+    "lib": ["ES2024", "DOM"],
+    "types": [],
+    "skipLibCheck": true
+  },
+  "files": ["a.ts"]
+}

@@ -1,3 +1,5 @@
+use std::io;
+use std::path::{Path, PathBuf};
 use std::sync::LazyLock;
 
 use tsrs_core::tspath;
@@ -15,7 +17,7 @@ static LIB_PATH: LazyLock<String> = LazyLock::new(|| {
         return super::testing_lib_path();
     }
     let exe = std::env::current_exe()
-        .and_then(std::fs::canonicalize)
+        .and_then(|path| executable_realpath(&path))
         .expect("bundled: failed to get executable path");
     let dir = exe.parent().expect("bundled: executable has no directory");
     let libdts = dir.join("lib.d.ts");
@@ -26,6 +28,19 @@ static LIB_PATH: LazyLock<String> = LazyLock::new(|| {
     );
     tspath::normalize_slashes(&dir.to_string_lossy())
 });
+
+pub(super) fn executable_realpath(path: &Path) -> io::Result<PathBuf> {
+    // nativepath.Realpath removes Windows verbatim prefixes before paths reach
+    // the compiler's filesystem, which rejects device and network paths.
+    #[cfg(windows)]
+    {
+        crate::osvfs::native_realpath(&path.to_string_lossy()).map(PathBuf::from)
+    }
+    #[cfg(not(windows))]
+    {
+        std::fs::canonicalize(path)
+    }
+}
 
 pub(crate) fn lib_path() -> String {
     LIB_PATH.clone()

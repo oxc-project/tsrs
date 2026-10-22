@@ -29,12 +29,10 @@ using the active finish schema without a `result` or `comment` wrapper:
 - `verify`: read [verify.md](verify.md); return `verdict` and `confidence`.
 - `fix`: read [fix.md](fix.md); return `fixed` and `commitMessage`.
 
-For actionable reports, reproduction prepares both compilers once and writes
-their exact paths and revisions to `target/triage/compilers.json`. Reuse that
-manifest and the shared `ts-ref/` checkout in later stages. Batch independent
-`rg` searches and file reads; compare matching complete Go and Rust functions
-together. Reuse commands and evidence from the report instead of rediscovering
-them. Isolate the first divergence with a small trace before expanding a search.
+Batch independent `rg` searches and file reads; compare matching complete Go
+and Rust functions together. Reuse compiler binaries, commands, and evidence
+from reproduction instead of rediscovering them in each stage. Isolate the
+first divergence with a small trace before expanding a search.
 
 Do not run later stages early. Do not create commits, push branches, post on
 GitHub, or open pull requests; triagebot-action owns those operations.

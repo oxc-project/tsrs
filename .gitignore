@@ -2,7 +2,6 @@ target/
 *.log
 .DS_Store
 ts-ref
-/triage/
 __pycache__/
 npm/dist/
 bench/.work/

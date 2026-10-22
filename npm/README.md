@@ -4,7 +4,7 @@ tsrs ships on npm the way TypeScript 7 ships its native compiler (`typescript@7`
 
 | package | contents |
 | --- | --- |
-| `tsrs` | `bin/tsrs` (Node launcher), `tsdk/tsgo` (VS Code SDK launcher on macOS/Linux), `lib/` (binary lookup, `version.cjs`), `dist/` + `vendor/` (the JavaScript API, see below), `optionalDependencies` on every platform package |
+| `tsrs` | `bin/tsrs` (Node launcher), `lib/` (binary lookup, `version.cjs`), `dist/` + `vendor/` (the JavaScript API, see below), `optionalDependencies` on every platform package |
 | `@tsrs/<os>-<arch>[-<libc>]` | the `tsrs` binary and default TypeScript libraries for one platform, with `os`/`cpu` (and `libc: glibc` or `musl` on Linux) so package managers install only the matching one |
 | `@tsrs/wasm` | the WebAssembly module (`npm/tsrs-wasm`, notes/wasm-build.md): a `tsrs-wasm` command and a `tsc()` API for Node 22+ and browsers, single-threaded; no platform packages |
 
@@ -16,12 +16,6 @@ The main package name is set in `npm/tsrs/package.json`; platform packages are `
 `-musl` on Linux. The launcher derives that name from the current platform, architecture and libc at runtime.
 
 The repository's root `README.md` is also the main package README. `npm/build.mjs` copies it into the staged package.
-
-The 0.19.0 package adds a project-local VS Code SDK for macOS/Linux: set `js/ts.tsdk.path` to
-`./node_modules/tsrs/tsdk` to use the version in the project's lockfile (see [editor setup](../docs/LSP.md#editor-setup)).
-`tsdk/tsgo` delegates to `bin/tsrs`, sharing its binary lookup, argument forwarding, exit codes and signal handling.
-It is packaged as an executable without registering a global `tsgo` command. The extension requires a native
-`.exe` on Windows, so the Node SDK launcher is not supported there.
 
 ## How the launcher finds the binary
 

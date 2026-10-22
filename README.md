@@ -16,9 +16,6 @@ pnpm exec tsrs --noEmit
 You can try `tsrs` today and give us feedback on performance, memory usage, and conformance.
 Try checking and emitting code in the [browser playground](https://tsrs-playground.void.app).
 
-The upcoming 0.19.0 release adds a project-local VS Code SDK on macOS/Linux: set `js/ts.tsdk.path` to
-`./node_modules/tsrs/tsdk`. See [editor setup](https://github.com/oxc-project/tsrs/blob/main/docs/LSP.md#editor-setup).
-
 ## Conformance
 
 The 0.19.0 source upgrade targets [microsoft/TypeScript `v7.1-beta` at `3e9236361fa9`](https://github.com/microsoft/TypeScript/tree/3e9236361fa97a9e6c685f4833ac457ae2d8c50a).

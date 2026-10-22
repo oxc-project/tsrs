@@ -1,2 +1,8 @@
 a.js(1,58): error TS2339: Property 'nodeType' does not exist on type 'object'.
 a.js(2,9): error TS2591: Cannot find name 'fs'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node` and then add 'node' to the types field in your tsconfig.
+assigned.js(2,58): error TS2339: Property 'nodeType' does not exist on type 'object'.
+assigned.js(3,9): error TS2591: Cannot find name 'fs'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node` and then add 'node' to the types field in your tsconfig.
+nonempty.js(2,58): error TS2339: Property 'nodeType' does not exist on type 'typeof import("<dir>/nonempty")'.
+nonempty.js(3,9): error TS2591: Cannot find name 'fs'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node` and then add 'node' to the types field in your tsconfig.
+without-truthiness.js(1,47): error TS2339: Property 'nodeType' does not exist on type 'typeof import("<dir>/without-truthiness")'.
+without-truthiness.js(2,9): error TS2591: Cannot find name 'fs'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node` and then add 'node' to the types field in your tsconfig.

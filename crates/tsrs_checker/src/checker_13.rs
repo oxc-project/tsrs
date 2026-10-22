@@ -1412,25 +1412,20 @@ impl Checker {
 
     #[inline(never)]
     fn is_empty_anonymous_object_type_worker(&mut self, t: P<Type>) -> bool {
-        if t.object_flags_lazy().intersects(ObjectFlags::MembersResolved)
-            && self.is_empty_resolved_type(t.as_structured_type())
-        {
-            return true;
+        if t.object_flags_lazy().intersects(ObjectFlags::MembersResolved) {
+            if self.is_empty_resolved_type(t.as_structured_type()) {
+                return true;
+            }
+        } else {
+            // Resolving members can change this answer on a later flow walk. Do not memoize
+            // narrowing that depends on the unresolved member state.
+            self.flow_memo.taint(0);
         }
         let Some(symbol) = t.symbol() else {
             return false;
         };
         if symbol.flags().intersects(SymbolFlags::TypeLiteral) {
             return self.get_members_of_symbol(symbol).map_or(0, |m| m.len()) == 0;
-        }
-        // An empty CommonJS module instance (e.g., the type of `exports` in a file with no
-        // `module.exports` assignments) is structurally an empty anonymous object, but its
-        // symbol is a ValueModule rather than a TypeLiteral. Recognize it here so that
-        // `typeof x == "object"` narrowing can collapse it to `object` instead of preserving
-        // the import-type wrapper, matching the pinned Go compiler.
-        if symbol.flags().intersects(SymbolFlags::ValueModule) {
-            let exports = self.get_exports_of_symbol(symbol);
-            return exports.is_some_and(|e| e.is_empty());
         }
         false
     }

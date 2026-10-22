@@ -21,7 +21,7 @@ fn run(case: &Path, mode: &str) -> String {
         case.display(),
         String::from_utf8_lossy(&out.stderr)
     );
-    String::from_utf8(out.stdout).unwrap()
+    String::from_utf8(out.stdout).unwrap().replace(case.to_str().unwrap(), "<dir>")
 }
 
 #[test]
@@ -34,6 +34,13 @@ fn flow_memo_cases_match_tsgo() {
         .collect();
     cases.sort();
     assert!(cases.len() >= 9, "testdata/flow-memo has {} cases", cases.len());
+    cases.push(
+        root.parent()
+            .unwrap()
+            .join("regressions/commonjs-exports-empty-module-narrowing")
+            .canonicalize()
+            .unwrap(),
+    );
     for case in &cases {
         let expected = std::fs::read_to_string(case.join("expected.txt")).unwrap();
         for mode in ["1", "0", "shadow"] {

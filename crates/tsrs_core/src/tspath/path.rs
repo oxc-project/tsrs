@@ -615,7 +615,7 @@ pub fn get_normalized_absolute_path(file_name: &str, current_directory: &str) ->
                 }
             } else if !changed {
                 if normalized_up_to >= 1 {
-                    let last = last_index_byte(&file_name[..normalized_up_to - 1], b'/');
+                    let last = memchr::memrchr(b'/', &fb[..normalized_up_to - 1]);
                     normalized = file_name
                         [..last.map_or(root_length, |index| root_length.max(index))]
                         .to_string();

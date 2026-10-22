@@ -494,6 +494,28 @@ fn test_get_normalized_absolute_path() {
 }
 
 #[test]
+fn test_normalize_multibyte_parent_segments() {
+    for (path, current_directory, expected) in [
+        ("é/../a.ts", "", "a.ts"),
+        ("日本語/../a.ts", "", "a.ts"),
+        ("😀/../a.ts", "", "a.ts"),
+        ("日本語/..", "", ""),
+        ("日本語/../../a.ts", "", "../a.ts"),
+        ("/日本語/../a.ts", "", "/a.ts"),
+        ("../a.ts", "/日本語", "/a.ts"),
+        ("/親/日本語/../a.ts", "", "/親/a.ts"),
+        ("c:\\日本語\\..\\a.ts", "", "c:/a.ts"),
+        ("//server/日本語/../a.ts", "", "//server/a.ts"),
+        ("file:///日本語/../a.ts", "", "file:///a.ts"),
+    ] {
+        assert_eq!(get_normalized_absolute_path(path, current_directory), expected, "{path}");
+        if current_directory.is_empty() {
+            assert_eq!(normalize_path(path), expected, "{path}");
+        }
+    }
+}
+
+#[test]
 fn test_get_normalized_absolute_path_without_root() {
     assert_eq!(get_normalized_absolute_path_without_root("/a/b/c.txt", "/a/b"), "a/b/c.txt");
     assert_eq!(

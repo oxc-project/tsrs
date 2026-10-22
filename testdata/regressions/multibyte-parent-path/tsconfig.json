@@ -1,0 +1,4 @@
+{
+  "compilerOptions": { "noEmit": true },
+  "files": ["日本語/../a.ts"]
+}

@@ -90,7 +90,7 @@ fn source_phase_imports_do_not_resolve_or_keep_stale_programs() {
             ("/src/a.ts", "export const a = 1;"),
         ];
         let config = config_for(&files);
-        let program = new_program(ProgramOptions::new(config, host_for(&files)));
+        let program = new_program(ProgramOptions::new(config, host_for(&files))).leak();
         assert!(program.get_source_file("/src/a.ts").is_none());
         let file = program.get_source_file("/src/index.ts").unwrap();
         assert!(
@@ -110,6 +110,7 @@ fn source_phase_imports_do_not_resolve_or_keep_stale_programs() {
             None,
             None,
         );
+        let updated = updated.leak();
         assert!(!reused);
         assert!(updated.get_source_file("/src/a.ts").is_some());
         let updated_file = updated.get_source_file("/src/index.ts").unwrap();
@@ -503,7 +504,7 @@ fn repeated_js_and_declaration_emit_with_shared_context() {
             "export const value = { answer: 42 };\nexport function identity<T>(arg: T) { return arg; }\n",
         ),
     ];
-    let program = new_program(ProgramOptions::new(config_for(&files), host_for(&files)));
+    let program = new_program(ProgramOptions::new(config_for(&files), host_for(&files))).leak();
     let written = Mutex::new(Vec::<(String, String)>::new());
     let write_file = |name: &str, text: &str, _: &mut crate::WriteFileData| -> Result<(), String> {
         written.lock().unwrap().push((name.to_string(), text.to_string()));

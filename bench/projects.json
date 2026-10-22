@@ -92,7 +92,7 @@
       "name": "mikro-orm",
       "repo": "https://github.com/mikro-orm/mikro-orm.git",
       "commit": "97fb2318067eae37ef52da57e2975eb7539ed729",
-      "project": ".",
+      "project": "tests",
       "install": "pnpm --pm-on-fail=ignore dlx --package=@yarnpkg/cli-dist@4.18.1 yarn install --mode=skip-build"
     },
     {
@@ -100,14 +100,14 @@
       "repo": "https://github.com/vercel/next.js.git",
       "commit": "fa8dcf34f1629dacc62f1952ee8a66a2439781a5",
       "project": "packages/next",
-      "install": "pnpm --pm-on-fail=ignore dlx pnpm@10.33.0 install --frozen-lockfile --ignore-scripts"
+      "install": "pnpm --pm-on-fail=ignore dlx pnpm@10.33.0 install --frozen-lockfile --ignore-scripts && pnpm --pm-on-fail=ignore dlx pnpm@10.33.0 build"
     },
     {
       "name": "next-root",
       "repo": "https://github.com/vercel/next.js.git",
       "commit": "fa8dcf34f1629dacc62f1952ee8a66a2439781a5",
       "project": ".",
-      "install": "pnpm --pm-on-fail=ignore dlx pnpm@10.33.0 install --frozen-lockfile --ignore-scripts"
+      "install": "pnpm --pm-on-fail=ignore dlx pnpm@10.33.0 install --frozen-lockfile --ignore-scripts && pnpm --pm-on-fail=ignore dlx pnpm@10.33.0 build"
     },
     {
       "name": "storybook",
@@ -128,13 +128,13 @@
       "repo": "https://github.com/microsoft/playwright.git",
       "commit": "d469960fdfc461e2d5795a3fa48a58a52a91ecaf",
       "project": ".",
-      "install": "npm ci --ignore-scripts --no-audit --no-fund"
+      "install": "npm ci --ignore-scripts --no-audit --no-fund && npm run build"
     },
     {
       "name": "drizzle-orm",
       "repo": "https://github.com/drizzle-team/drizzle-orm.git",
       "commit": "15454dbe49d827c6081f3d0231e2e7985e517295",
-      "project": ".",
+      "project": "drizzle-orm/tsconfig.build.json",
       "install": "pnpm --pm-on-fail=ignore dlx pnpm@10.6.3 install --frozen-lockfile --ignore-scripts"
     },
     {

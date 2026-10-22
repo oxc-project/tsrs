@@ -4,14 +4,12 @@
 # the default mode at 2 and 4 checkers (locality assignment and work stealing, so a different split every run) and
 # random static assignments with random visit orders (`--checkerAssignment random:<seed>`) at 2 and 4 checkers must
 # print the same bytes and exit with the same status. With --base, the single-threaded run also compares ordered
-# diagnostics and exit status against an earlier tsrs binary. With --base-source, new or changed regression
-# baselines are checked against expected.txt instead, since they can intentionally expose a bug in the base.
-# Both history-dependent diagnostics of
+# diagnostics and exit status against an earlier tsrs binary. Both history-dependent diagnostics of
 # notes/fix-history-dependent-diagnostics.md (nuxt's TS2320, drizzle-orm's TS2769) appeared under such assignments at
 # 2-4 checkers, so those two projects are in the default set with the two cheapest bench projects. The broader
 # base-build performance comparison remains available locally through tools/perf/verify.py; pr-verify.yml.bak is disabled.
 #
-#   tools/ci/determinism.sh <tsrs binary> [--base <base binary>] [--base-source <base checkout>]
+#   tools/ci/determinism.sh <tsrs binary> [--base <base binary>]
 #                           [--projects xstate-main,webpack,nuxt,drizzle-orm] [--seeds 6]
 #                           [--default-reps 3] [--work-dir bench/.work] [--no-regressions]
 #
@@ -35,13 +33,12 @@ self_test() {
   echo "self-test: expected exit 1 with FAIL for random-2-2 and random-4-2 only, got exit $status:"; echo "$log"; return 1
 }
 [ "${1:-}" = "--self-test" ] && { self_test; exit $?; }
-[ $# -ge 1 ] || { echo "usage: $0 <tsrs binary> [--base binary] [--base-source DIR] [--projects a,b] [--seeds N] [--default-reps N] [--work-dir DIR] [--no-regressions]"; exit 2; }
+[ $# -ge 1 ] || { echo "usage: $0 <tsrs binary> [--base binary] [--projects a,b] [--seeds N] [--default-reps N] [--work-dir DIR] [--no-regressions]"; exit 2; }
 tsrs="$(cd "$(dirname "$1")" && pwd)/$(basename "$1")"; shift
-projects="xstate-main,webpack,nuxt,drizzle-orm"; seeds=6; default_reps=3; work="$repo/bench/.work"; regressions=1; base=""; base_source=""
+projects="xstate-main,webpack,nuxt,drizzle-orm"; seeds=6; default_reps=3; work="$repo/bench/.work"; regressions=1; base=""
 while [ $# -gt 0 ]; do
   case "$1" in
     --base) base=$2; shift 2 ;;
-    --base-source) base_source="$(cd "$2" && pwd)" || exit 2; shift 2 ;;
     --projects) projects=$2; shift 2 ;;
     --seeds) seeds=$2; shift 2 ;;
     --default-reps) default_reps=$2; shift 2 ;;
@@ -50,9 +47,6 @@ while [ $# -gt 0 ]; do
     *) echo "unknown argument $1"; exit 2 ;;
   esac
 done
-if [ -n "$base_source" ] && [ -z "$base" ]; then
-  echo "--base-source requires --base"; exit 2
-fi
 if [ -n "$base" ]; then
   [ -x "$base" ] || { echo "base binary is missing or not executable: $base"; exit 2; }
   base="$(cd "$(dirname "$base")" && pwd)/$(basename "$base")"
@@ -76,28 +70,11 @@ variant() {
 
 # sweep <name> <dir> <flags...>: the reference run and every variant of one project or case.
 sweep() {
-  local name=$1 dir=$2 n rep seed base_status compare_base=$base relative here actual; shift 2
+  local name=$1 dir=$2 n rep seed base_status; shift 2
   flags=("$@")
   (cd "$dir" && "$tsrs" "${flags[@]}" --singleThreaded > "$out/$name-single.txt" 2>&1); ref_status=$?
-  if [ -n "$base_source" ] && [[ "$dir" = "$repo/testdata/regressions/"* ]]; then
-    relative="${dir#"$repo/"}"
-    if ! cmp -s "$base_source/$relative/expected.txt" "$dir/expected.txt"; then
-      # The base may still have the bug this fixture was added or updated to catch.
-      # Require the committed Go output before comparing every checker schedule below.
-      here="$(cd "$dir" && pwd -P)"
-      actual="$(cat "$out/$name-single.txt")"
-      actual="${actual//"$here"/<dir>}"
-      if [[ ! "$ref_status" =~ ^[012]$ ]] || [ "$actual" != "$(cat "$dir/expected.txt")" ]; then
-        echo "FAIL $name: new or changed regression baseline does not match expected.txt (exit $ref_status)"
-        fail=1
-      else
-        echo "pass $name: new or changed regression matches expected.txt, exit $ref_status"
-      fi
-      compare_base=""
-    fi
-  fi
-  if [ -n "$compare_base" ]; then
-    (cd "$dir" && "$compare_base" "${flags[@]}" --singleThreaded > "$out/$name-base.txt" 2>&1); base_status=$?
+  if [ -n "$base" ]; then
+    (cd "$dir" && "$base" "${flags[@]}" --singleThreaded > "$out/$name-base.txt" 2>&1); base_status=$?
     runs=$((runs + 1))
     if ! python3 "$repo/tools/ci/compare_diagnostics.py" --label "$name" \
       --base "$out/$name-base.txt" --base-exit "$base_status" \

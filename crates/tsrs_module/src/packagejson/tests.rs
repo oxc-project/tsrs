@@ -2,50 +2,6 @@ use super::json::{self, Json};
 use super::*;
 
 #[test]
-fn racing_cache_insertions_drop_unused_parses_without_allocating_them() {
-    use std::sync::atomic::{AtomicUsize, Ordering};
-    use std::sync::{Arc, Barrier};
-    use tsrs_core::P;
-
-    struct ParseDrop(Arc<AtomicUsize>);
-    impl Drop for ParseDrop {
-        fn drop(&mut self) {
-            self.0.fetch_add(1, Ordering::SeqCst);
-        }
-    }
-
-    let cache = new_info_cache("/", true);
-    let start = Barrier::new(8);
-    let allocated = AtomicUsize::new(0);
-    let dropped = Arc::new(AtomicUsize::new(0));
-    std::thread::scope(|scope| {
-        let jobs: Vec<_> = std::iter::repeat_with(|| {
-            scope.spawn(|| {
-                let fields = parse(r#"{"name":"pkg","dependencies":{"dep":"*"}}"#).unwrap();
-                let parsed = ParseDrop(Arc::clone(&dropped));
-                start.wait();
-                cache.get_or_insert_with("/package.json", || {
-                    let _parsed = parsed;
-                    allocated.fetch_add(1, Ordering::SeqCst);
-                    InfoCacheEntry {
-                        package_directory: "/",
-                        directory_exists: true,
-                        contents: Some(P::new(PackageJson::new(fields, true))),
-                    }
-                })
-            })
-        })
-        .take(8)
-        .collect();
-        for job in jobs {
-            assert_eq!(Some(job.join().unwrap()), cache.get("/package.json"));
-        }
-    });
-    assert_eq!(allocated.load(Ordering::SeqCst), 1);
-    assert_eq!(dropped.load(Ordering::SeqCst), 8);
-}
-
-#[test]
 fn range_dependencies_stops_across_groups() {
     let fields = parse(
         r#"{

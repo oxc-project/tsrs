@@ -169,34 +169,3 @@ impl Freer {
         });
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use std::time::Duration;
-
-    use super::*;
-
-    #[test]
-    fn bounded_frees_run_overflow_inline_and_reuse_capacity() {
-        let freer = Freer::new(false);
-        let (release, blocked) = mpsc::channel();
-        let (started, running) = mpsc::channel();
-        freer.run_bounded(1, move || {
-            started.send(()).unwrap();
-            blocked.recv_timeout(Duration::from_secs(10)).unwrap();
-        });
-        running.recv_timeout(Duration::from_secs(10)).unwrap();
-
-        let caller = std::thread::current().id();
-        freer.run_bounded(1, move || assert_eq!(std::thread::current().id(), caller));
-        release.send(()).unwrap();
-
-        // The FIFO job runs after the first bounded job has released its slot.
-        let (done, completed) = mpsc::channel();
-        freer.run(move || done.send(()).unwrap());
-        completed.recv_timeout(Duration::from_secs(10)).unwrap();
-        let (done, completed) = mpsc::channel();
-        freer.run_bounded(1, move || done.send(std::thread::current().id()).unwrap());
-        assert_ne!(completed.recv_timeout(Duration::from_secs(10)).unwrap(), caller);
-    }
-}

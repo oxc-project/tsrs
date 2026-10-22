@@ -5,6 +5,7 @@ import argparse
 import json
 import os
 from pathlib import Path
+import re
 import selectors
 import subprocess
 import sys
@@ -25,7 +26,12 @@ def replace_once(source, old, new):
 
 
 def prepare(reference, work):
-    commit = tomllib.loads((ROOT / "Cargo.toml").read_text())["workspace"]["metadata"]["typescript"]["commit"]
+    # Rolling ports validate the same source selected by CI's reference checkout.
+    commit = os.environ.get("TS_REFERENCE_COMMIT") or tomllib.loads(
+        (ROOT / "Cargo.toml").read_text()
+    )["workspace"]["metadata"]["typescript"]["commit"]
+    if not re.fullmatch(r"[0-9a-f]{40}", commit):
+        raise ValueError("TS_REFERENCE_COMMIT must be a full lowercase commit SHA")
     checkout = work / "reference"
     stamp = checkout / ".tsrs-commit"
     if not stamp.exists() or stamp.read_text().strip() != commit:

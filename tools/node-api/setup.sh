@@ -5,12 +5,13 @@
 #   2. the upstream client's dev dependencies (pnpm, imported from the pinned upstream lockfile);
 #   3. the Go oracle server built from ts-ref/tsc (not from npm) at tools/node-api/.work/oracle/tsc.
 # An existing ts-ref at a different commit is an error; this script never moves someone else's checkout.
+# TS_REFERENCE_COMMIT overrides the published pin when validating a rolling port.
 set -euo pipefail
 
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 root="$(cd "$here/../.." && pwd)"
 ref="${TS_REF:-$root/ts-ref}"
-pin="$(node "$root/npm/build.mjs" --print-typescript-commit)"
+pin="${TS_REFERENCE_COMMIT:-$(node "$root/npm/build.mjs" --print-typescript-commit)}"
 [[ "$pin" =~ ^[0-9a-f]{40}$ ]] || { echo "could not read pinned commit" >&2; exit 2; }
 
 if [[ ! -d "$ref/.git" ]]; then

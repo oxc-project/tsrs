@@ -1,0 +1,109 @@
+# Repository setup: the oxc-guard GitHub App must have Contents, Issues and
+# Pull requests write access. Set CAPTAIN_ID and CAPTAIN_KEY as for triage.
+# Set CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_GATEWAY_ID, and
+# CLOUDFLARE_AI_GATEWAY_TOKEN. The gateway token needs Run permission; the
+# gateway needs Unified Billing credits or a stored OpenAI key (default alias).
+name: Port TypeScript commits
+
+on:
+  schedule:
+    - cron: '17 * * * *'
+  workflow_dispatch:
+    inputs:
+      retry_sha:
+        description: 'Full upstream SHA to retry after a blocker'
+        required: false
+        type: string
+
+permissions: {}
+
+concurrency:
+  group: typescript-port-queue
+  cancel-in-progress: false
+
+jobs:
+  port:
+    if: github.repository == 'oxc-project/tsrs'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 360
+    permissions:
+      contents: read
+      checks: read
+      issues: read
+      pull-requests: read
+    steps:
+      - name: Check out tsrs
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: main
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up Node.js and pnpm
+        uses: ./.github/actions/setup-node-tools
+
+      - name: Set up Rust
+        uses: oxc-project/setup-rust@3d6fb132fbe7cdcb66bf8ec193911c2945369d12 # v1.0.17
+        with:
+          save-cache: false
+          cache-key: warm-test
+
+      - name: Check queue and PR checks
+        id: prepare
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RETRY_SHA: ${{ inputs.retry_sha }}
+        run: node tools/port/continuous.mjs prepare
+
+      - name: Install OpenCode
+        if: steps.prepare.outputs.status == 'ready'
+        id: install
+        continue-on-error: true
+        run: npm install --global @opencode/cli@2.0.32
+
+      - name: Port and validate one commit
+        if: steps.prepare.outputs.status == 'ready' && steps.install.outcome == 'success'
+        id: agent
+        continue-on-error: true
+        timeout-minutes: 325
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_GATEWAY_ID: ${{ secrets.CLOUDFLARE_GATEWAY_ID }}
+          CLOUDFLARE_AI_GATEWAY_TOKEN: ${{ secrets.CLOUDFLARE_AI_GATEWAY_TOKEN }}
+        run: node tools/port/continuous.mjs agent
+
+      - name: Create oxc-guard token
+        if: >-
+          always() &&
+          (steps.prepare.outputs.status == 'ready' || steps.prepare.outputs.status == 'blocked')
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        id: app-token
+        with:
+          client-id: ${{ secrets.CAPTAIN_ID }}
+          private-key: ${{ secrets.CAPTAIN_KEY }}
+          permission-contents: write
+          permission-issues: write
+          permission-pull-requests: write
+
+      - name: Publish one corresponding commit
+        if: steps.prepare.outputs.status == 'ready' && steps.agent.outcome == 'success'
+        id: publish
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: |
+          git diff --exit-code HEAD -- tools/port .github/workflows
+          node tools/port/continuous.mjs publish
+
+      - name: Report blocker and stop
+        if: >-
+          always() &&
+          (steps.prepare.outputs.status == 'blocked' ||
+           (steps.prepare.outputs.status == 'ready' &&
+            (steps.install.outcome == 'failure' ||
+             steps.agent.outcome == 'failure' ||
+             steps.publish.outcome == 'failure')))
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          PORT_BLOCK_REASON: ${{ steps.install.outcome == 'failure' && 'OpenCode installation failed' || '' }}
+        run: node tools/port/continuous.mjs block

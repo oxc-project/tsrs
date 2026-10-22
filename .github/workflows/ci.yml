@@ -108,9 +108,9 @@ jobs:
 
       - name: Read TypeScript reference commit
         id: ts
-        run: echo "commit=$(node npm/build.mjs --print-typescript-commit)" >> "$GITHUB_OUTPUT"
+        run: echo "commit=$(node tools/port/reference-commit.mjs)" >> "$GITHUB_OUTPUT"
 
-      # The conformance suite and workspace tests need the pinned upstream fixtures.
+      # Rolling port PRs test their latest ledger SHA; other refs use the published pin.
       - name: Check out TypeScript test fixtures and clients
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -177,9 +177,9 @@ jobs:
 
       - name: Read TypeScript reference commit
         id: ts
-        run: echo "commit=$(node npm/build.mjs --print-typescript-commit)" >> "$GITHUB_OUTPUT"
+        run: echo "commit=$(node tools/port/reference-commit.mjs)" >> "$GITHUB_OUTPUT"
 
-      - name: Check out pinned TypeScript client and Go oracle
+      - name: Check out TypeScript client and Go oracle
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: microsoft/TypeScript
@@ -208,7 +208,9 @@ jobs:
           save-cache: ${{ github.ref_name == 'main' }}
           cache-key: warm-node-api-clients
 
-      - name: Set up pinned upstream client and Go oracle
+      - name: Set up upstream client and Go oracle
+        env:
+          TS_REFERENCE_COMMIT: ${{ steps.ts.outputs.commit }}
         run: tools/node-api/setup.sh
 
       - name: Go oracle sync and async client suites
@@ -256,6 +258,8 @@ jobs:
     steps:
       - uses: taiki-e/checkout-action@7d1e50e93dc4fb3bba58f85018fadf77898aee8b # v1.4.2
 
+      - uses: oxc-project/setup-node@f46a72f95efdc55273fcd042d61c84e723b2892c # v1.4.1
+
       # As above, setup and checkout actions must not race on GITHUB_EVENT_PATH.
       - uses: oxc-project/setup-rust@3d6fb132fbe7cdcb66bf8ec193911c2945369d12 # v1.0.17
         with:
@@ -268,8 +272,7 @@ jobs:
 
       - name: Read TypeScript reference commit
         id: ts
-        run: |
-          python3 -c 'import tomllib; print("commit=" + tomllib.load(open("Cargo.toml", "rb"))["workspace"]["metadata"]["typescript"]["commit"])' >> "$GITHUB_OUTPUT"
+        run: echo "commit=$(node tools/port/reference-commit.mjs)" >> "$GITHUB_OUTPUT"
 
       - name: Check out TypeScript source and testdata
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -296,6 +299,8 @@ jobs:
         run: python3 -m unittest discover -s tools/go-fourslash -p 'test_*.py'
 
       - name: Go Fourslash suite
+        env:
+          TS_REFERENCE_COMMIT: ${{ steps.ts.outputs.commit }}
         run: .github/scripts/go-fourslash-gate.sh
 
       - name: Upload Go Fourslash results

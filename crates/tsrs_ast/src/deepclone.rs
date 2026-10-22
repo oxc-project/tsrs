@@ -76,24 +76,44 @@ impl NodeFactory {
         self.with_deep_clone_visitor(true /*syntheticLocation*/, |v| v.visit_node(node))
     }
 
+    /// A reparse cloner (`deep_clone_reparse` and `deep_clone_reparse_modifiers`) whose visitor is built once.
+    ///
+    /// The four heap allocations of `get_deep_clone_visitor` (three hook closures and the visitor data) are paid
+    /// per cloner, not per clone. The parser keeps one per file (notes/perf-reparse-cloner.md).
+    pub fn reparse_cloner(&self) -> ReparseCloner {
+        ReparseCloner(get_deep_clone_visitor(self.clone(), false /*syntheticLocation*/))
+    }
+
     pub fn deep_clone_reparse(&self, node: Option<P<Node>>) -> Option<P<Node>> {
-        let node = node?;
-        let node = self
-            .with_deep_clone_visitor(false /*syntheticLocation*/, |v| v.visit_node(Some(node)))
-            .unwrap();
-        set_parent_in_children(node);
-        node.set_flags(node.flags() | NodeFlags::Reparsed);
-        Some(node)
+        self.reparse_cloner().clone_node(node)
     }
 
     pub fn deep_clone_reparse_modifiers(
         &self,
         modifiers: Option<P<ModifierList>>,
     ) -> Option<P<ModifierList>> {
-        self.with_deep_clone_visitor(
-            false, /*syntheticLocation*/
-            |v| v.visit_modifiers(modifiers),
-        )
+        self.reparse_cloner().clone_modifiers(modifiers)
+    }
+}
+
+/// `NodeFactory::reparse_cloner`: one deep-clone visitor, reused for every reparse clone of a file.
+pub struct ReparseCloner(NodeVisitor);
+
+impl ReparseCloner {
+    /// `deep_clone_reparse`: a copy of `node` with its source locations, parents set, flagged `Reparsed`.
+    pub fn clone_node(&mut self, node: Option<P<Node>>) -> Option<P<Node>> {
+        let node = self.0.visit_node(Some(node?)).unwrap();
+        set_parent_in_children(node);
+        node.set_flags(node.flags() | NodeFlags::Reparsed);
+        Some(node)
+    }
+
+    /// `deep_clone_reparse_modifiers`.
+    pub fn clone_modifiers(
+        &mut self,
+        modifiers: Option<P<ModifierList>>,
+    ) -> Option<P<ModifierList>> {
+        self.0.visit_modifiers(modifiers)
     }
 }
 
@@ -124,5 +144,20 @@ mod tests {
         let synthetic = f.deep_clone_node(Some(name)).unwrap();
         assert_eq!(synthetic.loc(), undefined_text_range());
         assert_eq!(synthetic.as_qualified_name().right.loc(), undefined_text_range());
+    }
+
+    #[test]
+    fn reparse_cloner_clones_repeatedly() {
+        let f = NodeFactory::default();
+        let mut cloner = f.reparse_cloner();
+        let a = f.new_identifier("a");
+        let b = f.new_identifier("b");
+        let ca = cloner.clone_node(Some(a)).unwrap();
+        let cb = cloner.clone_node(Some(b)).unwrap();
+        assert!(ca != a && cb != b && ca != cb);
+        assert_eq!(ca.text(), "a");
+        assert_eq!(cb.text(), "b");
+        assert!(cb.flags().intersects(NodeFlags::Reparsed));
+        assert!(cloner.clone_modifiers(None).is_none());
     }
 }

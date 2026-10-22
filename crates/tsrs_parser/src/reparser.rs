@@ -18,11 +18,17 @@ impl Parser {
         self.override_parent_in_immediate_children(node);
     }
 
+    // The file's reparse cloner, built on first use.
+    fn reparse_cloner(&mut self) -> &mut ast::deepclone::ReparseCloner {
+        let factory = &self.factory;
+        self.reparse_cloner.get_or_insert_with(|| factory.reparse_cloner())
+    }
+
     // Deep-clone the given node and add the clone to the reparsed clone list. The list is used by ast.GetReparsedNodeForNode
     // to locate reparsed clones of JSDoc nodes. Since the binder attaches symbols to reparsed nodes and not to JSDoc nodes, we
     // need the mapping when obtaining symbols and types from JSDoc nodes.
     pub(crate) fn add_deep_clone_reparse(&mut self, node: Option<P<Node>>) -> Option<P<Node>> {
-        let clone = self.factory.deep_clone_reparse(node);
+        let clone = self.reparse_cloner().clone_node(node);
         if let Some(clone) = clone {
             self.reparsed_clones.push(clone);
         }
@@ -132,7 +138,7 @@ impl Parser {
                 }
                 let import_clause = self.add_deep_clone_reparse(import_tag.import_clause).unwrap();
                 import_clause.as_import_clause().phase_modifier.set(Kind::TypeKeyword);
-                let modifiers = self.factory.deep_clone_reparse_modifiers(tag.modifiers());
+                let modifiers = self.reparse_cloner().clone_modifiers(tag.modifiers());
                 let module_specifier = self.add_deep_clone_reparse(Some(import_tag.module_specifier)).unwrap();
                 let attributes = self.add_deep_clone_reparse(import_tag.attributes);
                 let import_declaration = self.factory.new_js_import_declaration(modifiers, Some(import_clause), module_specifier, attributes);
@@ -170,11 +176,11 @@ impl Parser {
         tag: P<Node>,
         modifiers: Option<P<ModifierList>>,
     ) -> P<Node> {
-        let cloned_modifiers = self.factory.deep_clone_reparse_modifiers(modifiers);
+        let cloned_modifiers = self.reparse_cloner().clone_modifiers(modifiers);
         let signature = match fun.kind() {
             Kind::FunctionDeclaration => {
                 let checked = self.check_non_identifier_name(fun.name());
-                let name = self.factory.deep_clone_reparse(checked);
+                let name = self.reparse_cloner().clone_node(checked);
                 self.factory.new_function_declaration(
                     cloned_modifiers,
                     None,
@@ -188,7 +194,7 @@ impl Parser {
             }
             Kind::MethodDeclaration => {
                 let checked = self.check_non_identifier_name(fun.name());
-                let name = self.factory.deep_clone_reparse(checked).unwrap();
+                let name = self.reparse_cloner().clone_node(checked).unwrap();
                 self.factory.new_method_declaration(
                     cloned_modifiers,
                     None,
@@ -382,7 +388,7 @@ impl Parser {
             let cloned: Vec<P<Node>> = comment
                 .nodes()
                 .iter()
-                .map(|&n| self.factory.deep_clone_reparse(Some(n)).unwrap())
+                .map(|&n| self.reparse_cloner().clone_node(Some(n)).unwrap())
                 .collect();
             let new_comment = self.factory.new_node_list(cloned);
             new_comment.loc.set(comment.loc.get());
@@ -422,7 +428,7 @@ impl Parser {
             for &tp in tag.type_parameters() {
                 let reparse;
                 if let Some(constraint) = constraint.filter(|_| first_type_parameter) {
-                    let modifiers = self.factory.deep_clone_reparse_modifiers(tp.modifiers());
+                    let modifiers = self.reparse_cloner().clone_modifiers(tp.modifiers());
                     let checked = self.check_non_identifier_name(tp.name());
                     let name = self.add_deep_clone_reparse(checked).unwrap();
                     let constraint_type = self.add_deep_clone_reparse(constraint.type_node());

@@ -453,11 +453,11 @@ pub fn process_entrypoint_ending(
         match preferred_ending {
             ModuleSpecifierEnding::TsExtension | ModuleSpecifierEnding::JsExtension => {
                 // Map .d.ts -> .js, .d.mts -> .mjs, .d.cts -> .cjs
-                let js_extension = get_js_extension_for_declaration_file_extension(&dts_extension);
+                let js_extension = get_js_extension_for_declaration_file_extension(dts_extension);
                 return tspath::change_any_extension(
                     &specifier,
                     &js_extension,
-                    &[&dts_extension],
+                    &[dts_extension],
                     false,
                 );
             }
@@ -465,8 +465,7 @@ pub fn process_entrypoint_ending(
                 if entrypoint.ending == tsrs_module::Ending::Changeable {
                     // .d.mts/.d.cts must keep an extension; rewrite to .mjs/.cjs instead of dropping
                     if dts_extension == tspath::EXTENSION_DTS {
-                        specifier =
-                            tspath::remove_extension(&specifier, &dts_extension).to_string();
+                        specifier = tspath::remove_extension(&specifier, dts_extension).to_string();
                         if preferred_ending == ModuleSpecifierEnding::Minimal {
                             if let Some(s) = specifier.strip_suffix("/index") {
                                 specifier = s.to_string();
@@ -475,20 +474,20 @@ pub fn process_entrypoint_ending(
                         return specifier;
                     }
                     let js_extension =
-                        get_js_extension_for_declaration_file_extension(&dts_extension);
+                        get_js_extension_for_declaration_file_extension(dts_extension);
                     return tspath::change_any_extension(
                         &specifier,
                         &js_extension,
-                        &[&dts_extension],
+                        &[dts_extension],
                         false,
                     );
                 }
                 // EndingExtensionChangeable - can only change extension, not remove it
-                let js_extension = get_js_extension_for_declaration_file_extension(&dts_extension);
+                let js_extension = get_js_extension_for_declaration_file_extension(dts_extension);
                 return tspath::change_any_extension(
                     &specifier,
                     &js_extension,
-                    &[&dts_extension],
+                    &[dts_extension],
                     false,
                 );
             }

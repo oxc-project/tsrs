@@ -135,6 +135,9 @@ pub struct Parser {
 
     pub(crate) current_parent: Option<P<Node>>,
     pub(crate) reparsed_clones: Vec<P<Node>>,
+    // tsrs-only: the deep-clone visitor behind `add_deep_clone_reparse`, built on the file's first JSDoc clone and
+    // reused for the rest (notes/perf-reparse-cloner.md).
+    pub(crate) reparse_cloner: Option<ast::deepclone::ReparseCloner>,
 
     // tsrs-only: member lists of this declaration file are parsed lazily (`enable_lazy_dts`, tsrs_ast `lazylist`),
     // and the records of the lazy lists so far.
@@ -177,6 +180,7 @@ pub(crate) fn new_parser() -> Parser {
         reparse_list: Vec::new(),
         current_parent: None,
         reparsed_clones: Vec::new(),
+        reparse_cloner: None,
         lazy_dts: false,
         lazy_lists: Vec::new(),
         node_stack: Vec::new(),

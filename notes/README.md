@@ -30,6 +30,8 @@ starting another experiment.
 - [Narrowable references and the type-variable memo](perf-narrowable-reference-union-memo.md): a union whose
   `couldContainTypeVariables` memo is computed and false skips the per-constituent walk of
   `getNarrowableTypeForReference`.
+- [Front-end allocations, round two](perf-reparse-cloner.md): one reparse cloner per file instead of a visitor per
+  JSDoc clone, a borrowed declaration extension, and the profile that ranks what is left.
 - [Memory round 4](mem-round4.md): the latest numbered memory round against Bun.
 - [Benchmark workflow](../bench/README.md) and [published results](../bench/RESULTS.md): reproduce measurements
   and compare the released build configuration.

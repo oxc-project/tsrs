@@ -816,8 +816,8 @@ pub(crate) fn process_ending(
         &[tspath::EXTENSION_DMTS, tspath::EXTENSION_DCTS],
     ) {
         let input_ext = tspath::get_declaration_file_extension(file_name);
-        let ext = get_js_extension_for_declaration_file_extension(&input_ext);
-        return format!("{}{}", tspath::remove_extension(file_name, &input_ext), ext);
+        let ext = get_js_extension_for_declaration_file_extension(input_ext);
+        return format!("{}{}", tspath::remove_extension(file_name, input_ext), ext);
     }
     if tspath::file_extension_is_one_of(file_name, &[tspath::EXTENSION_MTS, tspath::EXTENSION_CTS])
     {

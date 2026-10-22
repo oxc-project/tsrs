@@ -119,12 +119,12 @@ impl LanguageService {
         }
         let dts_ext = tspath::get_declaration_file_extension(old_path);
         let original_extensions =
-            tspath::get_possible_original_input_extension_for_extension(&dts_ext);
+            tspath::get_possible_original_input_extension_for_extension(dts_ext);
         // tsrs-only: Go takes the new declaration extension from the old path, so the companion was renamed even when
         // the new name is another kind of declaration file (`foo.d.css.ts` -> `foo.d.ts` renamed `foo.css` too).
         let new_dts_ext = tspath::get_declaration_file_extension(new_path);
         let new_original_extensions =
-            tspath::get_possible_original_input_extension_for_extension(&new_dts_ext);
+            tspath::get_possible_original_input_extension_for_extension(new_dts_ext);
         document_changes.extend(original_extensions.iter().filter_map(|ext| {
             let old_original_path = tspath::change_full_extension(old_path, ext);
             if !self.host.file_exists(&old_original_path) || !new_original_extensions.contains(ext)

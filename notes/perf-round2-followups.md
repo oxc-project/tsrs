@@ -498,6 +498,11 @@ with the switch off, which is why it is not in the default build.
   (the note has the correction used); account for that when reading those measurements. Measured and not landed there:
   `somePropertyReducesToNever`'s count map from a per-checker pool, -0.88% mui-docs / -0.83% mikro-orm instructions
   (branch `perf/property-count-pool`; landed later with notes/perf-icount-alloc.md, -0.78% there with other pools).
+- The declaration transformer's boxed closure per visited node (`setup_diagnostic_context`;
+  notes/perf-reparse-cloner.md): it runs only under `--noCheck`, which still computes declaration diagnostics
+  (55% of typeorm's `--noCheck` allocations are the transformer), never in the catalog's `--noEmit` full check
+  (no `tsrs_declarations` frame in 713,672 sampled allocations of typeorm). Nothing to take for the catalog;
+  revisit only for a `--noCheck` workload.
 - From notes/perf-icount-alloc.md (exact VM counts, locality mode, a large private monorepo at 8 checkers): the
   arguments of a pending type alias held as a `Cow` (the alias's own list when unchanged, a pooled buffer when
   changed), together with pooled lists for template-literal instantiation: +0.20%, and +0.26% with the helpers out

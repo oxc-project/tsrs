@@ -202,10 +202,14 @@ fn force_encode_dynamic_uri_path_segment_with_suffix(segment: &str, suffix: &str
 
 fn split_dynamic_uri_file_extension(segment: &str) -> (&str, &str) {
     let base_name = segment.rsplit('\\').next().unwrap_or(segment);
-    let mut extension = get_declaration_file_extension(base_name);
-    if extension.is_empty() {
-        extension = get_any_extension_from_path(base_name, &[], true);
-    }
+    let declaration_extension = get_declaration_file_extension(base_name);
+    let any_extension;
+    let extension: &str = if declaration_extension.is_empty() {
+        any_extension = get_any_extension_from_path(base_name, &[], true);
+        &any_extension
+    } else {
+        declaration_extension
+    };
     if extension.is_empty() {
         (segment, "")
     } else {

@@ -1,4 +1,4 @@
-use super::path::{file_extension_is, get_any_extension_from_path, get_base_file_name};
+use super::path::{file_extension_is, get_any_extension_from_path, get_base_file_name_cow};
 
 pub const EXTENSION_TS: &str = ".ts";
 pub const EXTENSION_TSX: &str = ".tsx";
@@ -174,20 +174,28 @@ pub fn extension_is_one_of(ext: &str, extensions: &[&str]) -> bool {
     extensions.contains(&ext)
 }
 
-pub fn get_declaration_file_extension(file_name: &str) -> String {
-    let base = get_base_file_name(file_name);
-    if let Some(result) = SUPPORTED_DECLARATION_EXTENSIONS
-        .iter()
-        .find_map(|ext| if base.ends_with(ext) { Some(ext.to_string()) } else { None })
+/// The declaration extension at the end of `file_name`, as a slice of it; empty when there is none.
+///
+/// `.d.ts`, `.d.mts`, `.d.cts` or a custom `.d.x.ts`. Borrowed because every module-resolution probe asks
+/// `is_declaration_file_name` (notes/perf-reparse-cloner.md).
+pub fn get_declaration_file_extension(file_name: &str) -> &str {
+    let base = get_base_file_name_cow(file_name);
+    let len = if let Some(ext) =
+        SUPPORTED_DECLARATION_EXTENSIONS.iter().find(|ext| base.ends_with(*ext))
     {
-        return result;
+        ext.len()
+    } else if base.ends_with(EXTENSION_TS) {
+        base.find(".d.").map_or(0, |index| base.len() - index)
+    } else {
+        0
+    };
+    if len == 0 {
+        return "";
     }
-    if base.ends_with(EXTENSION_TS) {
-        if let Some(index) = base.find(".d.") {
-            return base[index..].to_string();
-        }
-    }
-    String::new()
+    // The base name is the last segment of the path with at most one trailing separator removed, so the extension
+    // is the tail of the path before that separator (an extension has no separator in it).
+    let trimmed = file_name.trim_end_matches(['/', '\\']);
+    &trimmed[trimmed.len() - len..]
 }
 
 pub fn get_declaration_emit_extension_for_path(path: &str) -> String {
@@ -275,4 +283,29 @@ pub fn get_possible_original_input_extension_for_extension(path: &str) -> Vec<St
         EXTENSION_JSX.to_string(),
         EXTENSION_JS.to_string(),
     ]
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn declaration_file_extension_is_a_slice_of_the_path() {
+        // The slice is taken from the path, not the base name, so the trailing-separator and Windows cases
+        // that make the base name a copy must still land on the extension.
+        for (path, ext) in [
+            ("a/b.d.ts", ".d.ts"),
+            ("a/b.d.mts", ".d.mts"),
+            ("b.d.json.ts", ".d.json.ts"),
+            ("a/b.d.ts/", ".d.ts"),
+            ("C:\\x\\b.d.cts", ".d.cts"),
+            ("a/b.ts", ""),
+            ("a/b.d.ts//", ""),
+            ("/", ""),
+            ("", ""),
+        ] {
+            assert_eq!(get_declaration_file_extension(path), ext, "{path:?}");
+            assert_eq!(is_declaration_file_name(path), !ext.is_empty(), "{path:?}");
+        }
+    }
 }

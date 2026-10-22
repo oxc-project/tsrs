@@ -11,8 +11,9 @@ append `DIAGNOSIS SKIPPED: no Go-versus-Rust difference` and return
 
 Use the Go source at the pinned commit as the specification. Its source is
 under `ts-ref/tsc/internal/`, prepared in `target/triage/compilers.json`.
-Reuse that checkout and the reproduction's compiler commands. Map its packages to Rust crates with
-`docs/PORTING.md`, then compare the complete Go function with its Rust port.
+Reuse that checkout and the reproduction's compiler commands. Map its packages
+to Rust crates with `docs/PORTING.md`, then compare the complete Go function
+with its Rust port.
 Do not reason from the old TypeScript JavaScript implementation or from memory.
 
 Narrow the first observable divergence with focused tests, backtraces, or

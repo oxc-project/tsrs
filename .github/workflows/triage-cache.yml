@@ -1,14 +1,13 @@
-name: Warm triage caches
+name: Warm triage reference cache
 
 on:
   push:
     branches: [main]
     paths:
       - Cargo.toml
-      - .github/triagebot/**
       - .github/scripts/triage/**
-      - .github/actions/prepare-triagebot/**
       - .github/workflows/triage*.yml
+      - .node-version
   workflow_dispatch:
 
 permissions:
@@ -32,11 +31,6 @@ jobs:
         with:
           node-version-file: .node-version
           package-manager-cache: false
-
-      - name: Prepare patched action
-        uses: ./.github/actions/prepare-triagebot
-        with:
-          save-cache: 'true'
 
       - name: Read TypeScript reference commit
         id: reference

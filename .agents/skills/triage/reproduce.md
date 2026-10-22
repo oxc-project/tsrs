@@ -6,7 +6,8 @@ Reproduce only; do not diagnose or edit tracked source files. Always write
 ## Decide whether to continue
 
 Read the issue body and all comments, with later maintainer or reporter
-clarifications taking precedence.
+clarifications taking precedence. Finish this screening before any build or
+installation. Write the report and return immediately for a supported skip.
 
 Return a skipped result when:
 
@@ -27,9 +28,9 @@ try its minimal reproduction against the checkout.
 
 ## Build the two compilers
 
-First read `target/triage/compilers.json`. The action prepares the compilers
-after classification; reuse those exact binaries and the pinned `ts-ref/`
-checkout. If running locally without the manifest, prepare them once with:
+For an actionable report, prepare both compilers once from the repository root.
+The helper validates and reuses a cached pinned Go binary, builds the Rust dev
+binaries, and writes their paths and revisions to `target/triage/compilers.json`:
 
 ```sh
 node .github/scripts/triage/prepare.mjs
@@ -41,8 +42,8 @@ the pinned Go binary at `target/triage/tsgo`, its Go version, and the reference
 source under `ts-ref/tsc/internal/`. Never substitute JavaScript `tsc` or an npm
 nightly. Run a direct pinned-Go comparison before returning reproducible.
 
-Correctness work uses `cargo build --profile dev --locked -p tsrs_cli
--p tsrs_testrunner` and `target/debug/` binaries. Reserve release builds for
+Correctness work uses `cargo build --profile dev --locked -p tsrs_cli -p tsrs_testrunner`
+and `target/debug/` binaries. Reserve release builds for
 performance measurements or a demonstrated profile-specific failure. Keep
 reproduction inputs and captured output under `triageDir`.
 

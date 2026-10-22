@@ -19,21 +19,19 @@ stage must read the existing `report.md`, if any, and write its result there so
 the next stage has durable evidence. Stop after two attempts at the same
 infrastructure failure and report what is known.
 
-The action supplies the exact skill/stage instructions and paths in the prompt.
-Use those paths directly; do not search for skills. Run only that stage and
-return the requested structured fields without a `result` or `comment` wrapper:
+The action supplies a `step` argument. Run only that stage, read its exact file
+at `.agents/skills/triage/<step>.md`, and return the requested structured fields
+using the active finish schema without a `result` or `comment` wrapper:
 
-- `classify`: read [classify.md](classify.md); return `actionable`,
-  `skippedReason`, and `reason`. Do not build or install anything.
 - `reproduce`: read [reproduce.md](reproduce.md); return `reproducible`,
   `skipped`, and `skippedReason`.
 - `diagnose`: read [diagnose.md](diagnose.md); return `confidence`.
 - `verify`: read [verify.md](verify.md); return `verdict` and `confidence`.
 - `fix`: read [fix.md](fix.md); return `fixed` and `commitMessage`.
 
-For actionable reports, the action prepares both compilers once and writes
+For actionable reports, reproduction prepares both compilers once and writes
 their exact paths and revisions to `target/triage/compilers.json`. Reuse that
-manifest and the shared `ts-ref/` checkout in every stage. Batch independent
+manifest and the shared `ts-ref/` checkout in later stages. Batch independent
 `rg` searches and file reads; compare matching complete Go and Rust functions
 together. Reuse commands and evidence from the report instead of rediscovering
 them. Isolate the first divergence with a small trace before expanding a search.

@@ -1999,13 +1999,15 @@ impl Checker {
         }
         // The ES6 spec permits export * declarations in a module to circularly reference the module itself. For example,
         // module 'a' can 'export * from "b"' and 'b' can 'export * from "a"' without error.
+        // tsrs: the tables are values. A nested module's table is merged into its importer's and then dropped (Go's
+        // GC frees it); only the outermost result moves into the arena, below.
         fn visit(
             c: &mut Checker,
             st: &mut VisitState,
             symbol: Option<P<Symbol>>,
             export_star: Option<P<Node>>,
             is_type_only: bool,
-        ) -> Option<P<SymbolTable>> {
+        ) -> Option<SymbolTable> {
             if !is_type_only {
                 if let Some(symbol) = symbol {
                     // Add non-type-only names before checking if we've visited this module,
@@ -2024,11 +2026,11 @@ impl Checker {
                 return None;
             }
             st.visited_symbols.push(symbol);
-            let symbols = symbol_exports.clone_table();
+            let symbols = symbol_exports.clone_value();
             // All export * declarations are collected in an __export symbol by the binder
             let export_stars = symbol_exports.lookup(InternalSymbolNameExportStar);
             if let Some(export_stars) = export_stars {
-                let nested_symbols = SymbolTable::new();
+                let nested_symbols = SymbolTable::default();
                 let mut lookup_table: ExportCollisionTable = FxHashMap::default();
                 let declarations = export_stars.declarations();
                 for &node in declarations {
@@ -2048,8 +2050,8 @@ impl Checker {
                         is_type_only || node.is_type_only(),
                     );
                     c.extend_export_symbols(
-                        nested_symbols,
-                        exported_symbols,
+                        &nested_symbols,
+                        exported_symbols.as_ref(),
                         Some(&mut lookup_table),
                         Some(node),
                     );
@@ -2070,7 +2072,7 @@ impl Checker {
                         c.add_diagnostic(create_diagnostic_for_node(Some(node), &diagnostics::Module_0_has_already_exported_a_member_named_1_Consider_explicitly_re_exporting_to_resolve_the_ambiguity, &[&s.specifier_text, id]));
                     }
                 }
-                c.extend_export_symbols(symbols, Some(nested_symbols), None, None);
+                c.extend_export_symbols(&symbols, Some(&nested_symbols), None, None);
             }
             if let Some(export_star) = export_star {
                 if export_star.is_type_only() {
@@ -2105,7 +2107,7 @@ impl Checker {
         let module_symbol = module_symbol
             .map(|m| self.resolve_external_module_symbol(m, false /*dontResolveAlias*/));
         let exports =
-            visit(self, &mut st, module_symbol, None, false).unwrap_or_else(SymbolTable::new);
+            visit(self, &mut st, module_symbol, None, false).map_or_else(SymbolTable::new, P::new);
         // A CommonJS module defined by an 'export=' might also export typedefs, stored on the original module
         if let Some(original_module) = original_module {
             let original_exports = original_module.exports().unwrap();
@@ -2141,8 +2143,8 @@ impl Checker {
     // checker.go:16558
     pub(crate) fn extend_export_symbols(
         &mut self,
-        target: P<SymbolTable>,
-        source: Option<P<SymbolTable>>,
+        target: &SymbolTable,
+        source: Option<&SymbolTable>,
         lookup_table: Option<&mut ExportCollisionTable>,
         export_node: Option<P<Node>>,
     ) {

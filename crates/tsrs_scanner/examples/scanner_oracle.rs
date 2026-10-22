@@ -139,6 +139,10 @@ fn pass(sb: &mut String, text: &'static str, variant: LanguageVariant, mode: i32
     }
 }
 
+#[expect(
+    clippy::disallowed_methods,
+    reason = "the scanner retains text across passes for this process-scoped oracle"
+)]
 fn dump(path: &str) -> Result<String, String> {
     let data = std::fs::read(path).map_err(|e| e.to_string())?;
     let text = String::from_utf8(data).map_err(|_| format!("{path}: not UTF-8"))?;

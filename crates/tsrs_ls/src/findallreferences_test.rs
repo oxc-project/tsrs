@@ -85,6 +85,7 @@ impl ParseConfigHost for parseConfigHost {
 // (quadratic growth roughly quadruples when K doubles; deduplicated growth roughly doubles).
 // findallreferences_test.go:35
 #[test]
+#[expect(clippy::disallowed_methods, reason = "the parsed test configuration retains its host")]
 fn test_implementations_worklist_does_not_blow_up() {
     let measure = |k: usize| -> (usize, usize) {
         let mut b = String::new();

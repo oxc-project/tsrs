@@ -50,6 +50,10 @@ impl RegistryCloneHost for fakeCloneHost {
 // aliasResolver standing in for a real program. This file has a type error, and
 // extracting exports should still complete without crashing.
 #[test]
+#[expect(
+    clippy::disallowed_methods,
+    reason = "the test resolver retains its host and graph by static references"
+)]
 fn test_alias_resolver_get_diagnostics_does_not_panic() {
     let file_name = "/pkg/index.ts";
     let text =

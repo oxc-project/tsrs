@@ -158,6 +158,10 @@ pub struct BenchmarkSystem {
 
 impl BenchmarkSystem {
     // The command-line driver keeps its System and program objects for the process lifetime.
+    #[expect(
+        clippy::disallowed_methods,
+        reason = "one benchmark system is retained for the benchmark process lifetime"
+    )]
     fn new(cwd: &str, lib_path: &str, fs: Arc<dyn FS>) -> &'static Self {
         Box::leak(Box::new(Self {
             fs,

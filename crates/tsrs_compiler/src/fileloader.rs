@@ -164,6 +164,10 @@ pub(crate) struct jsxRuntimeImportSpecifier {
 
 // fileloader.go:337 (Go runs it on the loader before creating the resolver; it only needs the options and the host,
 // and returns the builder the loader keeps)
+#[expect(
+    clippy::disallowed_methods,
+    reason = "program versions share the mapper; SharedProgramData::free reclaims it"
+)]
 fn add_project_reference_tasks(
     opts: &ProgramConfig,
     host: &Arc<dyn CompilerHost>,

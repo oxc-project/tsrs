@@ -23,6 +23,10 @@ impl ResolutionHost for ResolutionHostStub {
     }
 }
 
+#[expect(
+    clippy::disallowed_methods,
+    reason = "the test resolver retains its host by static reference"
+)]
 fn host(fs: impl FS + 'static, cwd: &str) -> &'static ResolutionHostStub {
     Box::leak(Box::new(ResolutionHostStub { fs: Box::new(fs), cwd: cwd.to_string() }))
 }
@@ -498,6 +502,10 @@ impl<T: FS> FS for FlipFileExistsFS<T> {
 // `package.json` after a cache miss; the loser of the insert race must still
 // see its own `PackageDirectory`.
 #[test]
+#[expect(
+    clippy::disallowed_methods,
+    reason = "the concurrent resolver test retains its file system"
+)]
 fn test_resolve_module_name_trailing_slash_race() {
     const PKG_JSON_PATH: &str = "/repo/node_modules/pkg/package.json";
     let (arrived_tx, arrived_rx) = mpsc::channel();
@@ -555,6 +563,10 @@ fn test_resolve_module_name_trailing_slash_race() {
 // The second lookup of the root package.json receives the first lookup's
 // nil-Contents cache entry; the typesVersions lookup must not dereference it.
 #[test]
+#[expect(
+    clippy::disallowed_methods,
+    reason = "the concurrent resolver test retains its file system"
+)]
 fn test_resolve_subpath_nil_contents_race() {
     const ROOT_PKG_JSON: &str = "/repo/node_modules/pkg/package.json";
     let fs: &'static FlipFileExistsFS<_> = Box::leak(Box::new(FlipFileExistsFS::new(
@@ -648,6 +660,10 @@ fn test_parse_node_module_from_path() {
 //
 // The peer package.json lookup must not dereference a nil-Contents cache entry.
 #[test]
+#[expect(
+    clippy::disallowed_methods,
+    reason = "the concurrent resolver test retains its file system"
+)]
 fn test_resolve_peer_dependency_nil_contents_race() {
     const PEER_PKG_JSON: &str = "/repo/node_modules/peer/package.json";
     let fs: &'static FlipFileExistsFS<_> = Box::leak(Box::new(FlipFileExistsFS::new(

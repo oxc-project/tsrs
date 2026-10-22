@@ -1284,6 +1284,7 @@ mod tests {
     }
 
     #[test]
+    #[expect(clippy::disallowed_methods, reason = "arena-backed symbols retain these test keys")]
     fn name_filter_keeps_every_key() {
         // Linear and indexed tables, keys up to and past 16 bytes, and an odd key (not its symbol's name).
         let small = SymbolTable::new();
@@ -1308,6 +1309,7 @@ mod tests {
     }
 
     #[test]
+    #[expect(clippy::disallowed_methods, reason = "arena-backed symbols retain these test keys")]
     fn index_finds_every_key_through_growth_and_deletes() {
         // Past the linear limit and 255 entries, presized and grown, with deletes, an odd key and a replaced symbol.
         for presized in [0, 20, 300] {

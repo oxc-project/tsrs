@@ -193,6 +193,10 @@ pub fn freeze(ranges: &[(usize, usize)]) {
     let lo = ranges.iter().map(|r| r.0).min().unwrap_or(0);
     let hi = ranges.iter().map(|r| r.0 + r.1).max().unwrap_or(0);
     let words = ((hi - lo) >> 6).div_ceil(64) + 1;
+    #[expect(
+        clippy::disallowed_methods,
+        reason = "the global shared graph reads this bitmap for the process lifetime"
+    )]
     let dirty: &'static mut [AtomicU64] =
         Box::leak(std::iter::repeat_with(|| AtomicU64::new(0)).take(words).collect());
     // Relaxed (both): published by the Release store of the span below.

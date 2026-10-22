@@ -142,6 +142,10 @@ impl CheckerPool for testPool {
     }
 }
 
+#[expect(
+    clippy::disallowed_methods,
+    reason = "the test language service retains its config host and checker state"
+)]
 fn setup(d: &dataset) -> (LanguageService, Context) {
     let a_path = format!("/{}", d.a_name);
     let files = [("/tsconfig.json", d.tsconfig), (a_path.as_str(), d.a), ("/b.ts", d.b)];

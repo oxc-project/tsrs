@@ -33,6 +33,7 @@ fn host_for(files: &[(&str, &str)]) -> Arc<dyn CompilerHost> {
 }
 
 #[test]
+#[expect(clippy::disallowed_methods, reason = "the parsed test configuration retains its host")]
 fn later_relative_import_restarts_package_imports_at_lower_depth() {
     let files = [
         (
@@ -129,6 +130,7 @@ fn source_phase_imports_do_not_resolve_or_keep_stale_programs() {
     }
 }
 
+#[expect(clippy::disallowed_methods, reason = "the parsed test configuration retains its host")]
 fn config_for(files: &[(&str, &str)]) -> P<tsoptions::ParsedCommandLine> {
     let fs: Arc<dyn FS> = Arc::new(vfstest::from_map(files.iter().map(|&(k, v)| (k, v)), true));
     let host: &'static parseConfigHost = Box::leak(Box::new(parseConfigHost { fs }));

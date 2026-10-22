@@ -11,9 +11,10 @@ disallowed-types = [
   { path = "std::collections::HashSet", reason = "SipHash; use rustc_hash::FxHashSet, or tsrs_core::collections::OrderedSet when order matters (docs/PORTING.md)" },
 ]
 
-# Unchecked operations trade a panic for undefined behavior. Each use needs
-# `#[expect(clippy::disallowed_methods, reason = "<the measurement that justifies it>")]`.
+# Unchecked operations trade a panic for undefined behavior. Each use needs a measured reason.
+# `Box::leak` needs a reason that identifies the required lifetime and any reclamation path.
 disallowed-methods = [
+  { path = "std::boxed::Box::leak", reason = "explain the required lifetime and any reclamation path" },
   { path = "slice::get_unchecked", reason = "keep the bounds check unless a measurement shows its cost" },
   { path = "slice::get_unchecked_mut", reason = "keep the bounds check unless a measurement shows its cost" },
   { path = "str::get_unchecked", reason = "keep the bounds check unless a measurement shows its cost" },

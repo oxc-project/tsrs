@@ -44,6 +44,10 @@ fn test_word_indices() {
     }
 }
 
+#[expect(
+    clippy::disallowed_methods,
+    reason = "the test compiler host retains this file system by static reference"
+)]
 fn leak_fs(fs: impl FS + 'static) -> &'static dyn FS {
     Box::leak(Box::new(fs))
 }

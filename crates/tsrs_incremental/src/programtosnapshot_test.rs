@@ -73,6 +73,7 @@ fn compiler_program(files: &[(&'static str, &'static str)]) -> &'static Compiler
     compiler_program_with(files, compiler_host(files))
 }
 
+#[expect(clippy::disallowed_methods, reason = "the parsed test configuration retains its host")]
 fn compiler_program_with(
     files: &[(&'static str, &'static str)],
     host: Arc<dyn CompilerHost>,

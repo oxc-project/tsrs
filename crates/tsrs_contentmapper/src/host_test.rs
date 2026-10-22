@@ -27,6 +27,10 @@ use crate::{
 
 // The tests build their mappers as Go does, with `&contentmapper.Mapper{...}`; the host keys them by address and holds
 // `&'static Mapper`s (the command line's arena list in the compiler), so a test mapper is leaked.
+#[expect(
+    clippy::disallowed_methods,
+    reason = "the host retains each test mapper by static reference"
+)]
 fn leak(mapper: Mapper) -> &'static Mapper {
     Box::leak(Box::new(mapper))
 }

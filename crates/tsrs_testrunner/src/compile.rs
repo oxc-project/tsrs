@@ -353,6 +353,10 @@ impl tsrs_incremental::BuildInfoReader for testBuildInfoReader {
 
 // harnessutil.go:970 (createProgram), used by the emit harness (`--baselines js`): an `incremental` program is
 // wrapped in `incremental.NewProgram` like Go's. The default mode (no emit baselines) keeps the plain program below.
+#[expect(
+    clippy::disallowed_methods,
+    reason = "the test harness retains the returned program by static reference"
+)]
 fn create_program_like(
     host: Arc<dyn CompilerHost>,
     config: P<ParsedCommandLine>,

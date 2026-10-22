@@ -44,6 +44,10 @@ impl Drop for ReleaseAtExit {
 }
 
 fn new_thread_arena() -> &'static Arena {
+    #[expect(
+        clippy::disallowed_methods,
+        reason = "thread arenas are reused across threads and live for the process"
+    )]
     let arena: &'static Arena = Box::leak(Box::new(Arena::new()));
     #[cfg(any(debug_assertions, feature = "checked-cells"))]
     shared_check::register(arena);
@@ -1802,6 +1806,7 @@ mod tests {
     }
 
     #[test]
+    #[expect(clippy::disallowed_methods, reason = "slice cells store static slices in this test")]
     fn thin_slices_keep_identity() {
         for len in
             [0usize, 1, 3, u16::MAX as usize - 1, u16::MAX as usize, u16::MAX as usize + 1, 200_000]
@@ -1821,6 +1826,7 @@ mod tests {
     }
 
     #[test]
+    #[expect(clippy::disallowed_methods, reason = "PackedStr stores static strings in this test")]
     fn packed_str() {
         let short: &'static str = "identifier";
         assert!(std::ptr::eq(PackedStr::new(short).as_str(), short));

@@ -51,6 +51,10 @@ fn run_with_output(request: &[u8], out: Box<dyn Write + Send>) -> (i32, Vec<u8>)
     let request = parse_request(request);
     let diagnostics =
         (request.flags & REQUEST_JSON_DIAGNOSTICS != 0).then(|| Arc::new(Mutex::new(Vec::new())));
+    #[expect(
+        clippy::disallowed_methods,
+        reason = "the command-line driver retains the system in its process-lifetime graph"
+    )]
     let sys: &'static sys::WasmSys = Box::leak(Box::new(sys::WasmSys::new(
         &request.cwd,
         request.flags & REQUEST_CASE_INSENSITIVE == 0,

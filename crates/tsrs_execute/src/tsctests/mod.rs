@@ -157,6 +157,10 @@ fn load_scenario(path: &FsPath) -> scenario {
 
 // sys.go newTestSys: the initial file system comes from the dump (it already contains the default libraries,
 // written after the test's own files like ensureLibPathExists does).
+#[expect(
+    clippy::disallowed_methods,
+    reason = "the command-line test retains its system by static reference"
+)]
 fn new_test_sys(test: &scenario) -> &'static TestSys {
     let clock = TestClock::new();
     let libs: FxHashSet<String> = test.default_libs.iter().cloned().collect();

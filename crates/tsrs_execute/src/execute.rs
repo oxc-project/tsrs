@@ -23,6 +23,10 @@ pub(crate) struct sysParseConfigHost {
 }
 
 /// The config parse host for `sys` (leaked: tsoptions keeps it for the parsed command line's lifetime).
+#[expect(
+    clippy::disallowed_methods,
+    reason = "the parsed command line retains this host for its lifetime"
+)]
 pub(crate) fn parse_config_host(sys: &'static dyn System) -> &'static sysParseConfigHost {
     Box::leak(Box::new(sysParseConfigHost { sys, fs: sys.fs() }))
 }

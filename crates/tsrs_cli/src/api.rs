@@ -250,12 +250,19 @@ impl Drop for CliOrchestrator {
             // SAFETY: as in `replace`; the handle is being disposed.
             unsafe { crate::build::free_api_orchestrator(o) };
         }
+        // SAFETY: `create` leaked this system for this handle alone. The orchestrator is gone and the handle's
+        // command line is no longer used, so nothing can borrow the system after this destructor returns.
+        unsafe { drop(Box::from_raw(std::ptr::from_ref(self.sys).cast_mut())) };
     }
 }
 
 impl BuildBackend for CliBuildBackend {
     fn create(&self, request: BuildRequest) -> Box<dyn BuildOrchestrator> {
-        // `&'static` system and command line: the CLI build module requires them (one small leak per orchestrator).
+        // `&'static` system and command line: the CLI build module requires them. `Drop` reclaims the system.
+        #[expect(
+            clippy::disallowed_methods,
+            reason = "the build command and orchestrator borrow this system; CliOrchestrator::drop reclaims it"
+        )]
         let sys: &'static ApiBuildSystem = Box::leak(Box::new(ApiBuildSystem {
             fs: request.fs,
             default_library_path: request.default_library_path,
@@ -357,6 +364,23 @@ mod tests {
         assert_eq!(f.cwd, "/x");
         assert_eq!(f.callbacks, vec!["readFile", "fileExists"]);
         assert!(parse_api_flags(&["--nope".into()]).is_err());
+    }
+
+    #[test]
+    fn build_handle_releases_its_system() {
+        let fs: Arc<dyn FS> =
+            Arc::new(tsrs_vfs::vfstest::from_map([("/tsconfig.json", "{}")], true));
+        let build = CliBuildBackend.create(BuildRequest {
+            fs: Arc::clone(&fs),
+            default_library_path: "/lib/lib.d.ts".to_string(),
+            current_directory: "/".to_string(),
+            root_names: vec!["/tsconfig.json".to_string()],
+            build_options: None,
+            compiler_options: None,
+        });
+        assert_eq!(Arc::strong_count(&fs), 2);
+        drop(build);
+        assert_eq!(Arc::strong_count(&fs), 1);
     }
 
     #[test]

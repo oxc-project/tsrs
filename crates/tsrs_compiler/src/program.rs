@@ -534,6 +534,10 @@ pub fn new_program(opts: ProgramOptions) -> &'static Program {
     let files = std::mem::take(&mut processed.files);
     let files_by_path = std::mem::take(&mut processed.files_by_path);
     let host = Arc::clone(&opts.host);
+    #[expect(
+        clippy::disallowed_methods,
+        reason = "SharedProgramData::free reclaims processed files after the last program version"
+    )]
     let mut p = Program {
         opts: opts.program_config(),
         // Go's NewProgram never sets `comparePathsOptions`: it is the zero value (no current directory,
@@ -582,6 +586,10 @@ pub fn new_program(opts: ProgramOptions) -> &'static Program {
         p.verify_compiler_options();
     });
     p.collect_content_mapper_option_diagnostics();
+    #[expect(
+        clippy::disallowed_methods,
+        reason = "free_program reclaims API and watch programs after their last user"
+    )]
     let p: &'static Program = Box::leak(Box::new(p));
     p.init_checker_pool(opts.create_checker_pool, None);
     p
@@ -863,6 +871,10 @@ impl Program {
             let _scope = result.own_region.as_ref().map(tsrs_core::arena::Region::enter);
             tsrs_core::alloc_vec(files)
         };
+        #[expect(
+            clippy::disallowed_methods,
+            reason = "free_program reclaims the updated program after its last user"
+        )]
         let result: &'static Program = Box::leak(Box::new(result));
         result.init_checker_pool(create_checker_pool, self.compiler_checker_pool());
         (Some(result), new_file, true)

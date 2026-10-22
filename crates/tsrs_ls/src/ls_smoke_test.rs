@@ -81,6 +81,7 @@ fn setup(files: &[(&str, &str)]) -> (LanguageService, Context) {
     setup_with(files, false)
 }
 
+#[expect(clippy::disallowed_methods, reason = "the parsed test configuration retains its host")]
 fn setup_with(files: &[(&str, &str)], vs: bool) -> (LanguageService, Context) {
     let fs: Arc<dyn FS> =
         Arc::new(bundled::wrap_fs(vfstest::from_map(files.iter().map(|&(k, v)| (k, v)), true)));

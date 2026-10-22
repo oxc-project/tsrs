@@ -52,6 +52,7 @@ fn strings(v: impl IntoIterator<Item = String>) -> Value {
     Value::Array(v.into_iter().map(Value::String).collect())
 }
 
+#[expect(clippy::disallowed_methods, reason = "the parsed test configuration retains its host")]
 fn run(s: &Value) -> Value {
     let cwd = str_field(s, "cwd");
     let case_sensitive = matches!(field(s, "caseSensitive"), Value::Bool(true));

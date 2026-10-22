@@ -183,6 +183,10 @@ impl CompilerHost for compilerHost {
     ) -> Option<P<ParsedCommandLine>> {
         // Go passes the host itself as the `ParseConfigHost`; tsoptions keeps it for the parsed command line's
         // lifetime, so it gets a leaked handle on the same file system and directory.
+        #[expect(
+            clippy::disallowed_methods,
+            reason = "the parsed command line retains its config host"
+        )]
         let sys: &'static dyn ParseConfigHost = Box::leak(Box::new(parseConfigHost {
             fs: Arc::clone(&self.fs),
             current_directory: self.current_directory.clone(),

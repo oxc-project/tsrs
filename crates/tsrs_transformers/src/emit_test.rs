@@ -23,6 +23,7 @@ impl ParseConfigHost for ConfigHost {
     }
 }
 
+#[expect(clippy::disallowed_methods, reason = "the parsed test configuration retains its host")]
 fn emit(files: &[(&str, &str)], file: &str, transforms: &[TransformerFactory]) -> String {
     let fs: Arc<dyn FS> = Arc::new(vfstest::from_map(files.iter().map(|&(k, v)| (k, v)), true));
     let host: &'static ConfigHost =

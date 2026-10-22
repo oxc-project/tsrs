@@ -50,6 +50,10 @@ impl ResolutionHost for compilerResolutionHost {
     }
 }
 
+#[expect(
+    clippy::disallowed_methods,
+    reason = "the program or mapper owns this host and frees it with its shared data"
+)]
 pub(crate) fn resolution_host_for(host: Arc<dyn CompilerHost>) -> &'static dyn ResolutionHost {
     Box::leak(Box::new(compilerResolutionHost(host)))
 }

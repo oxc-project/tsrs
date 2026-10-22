@@ -14,6 +14,10 @@ struct projectReferenceDtsFakingHost {
 }
 
 // projectreferencedtsfakinghost.go:22
+#[expect(
+    clippy::disallowed_methods,
+    reason = "the mapper owns this host and SharedProgramData::free reclaims it"
+)]
 pub(crate) fn new_project_reference_dts_faking_host(
     host: &'static dyn ResolutionHost,
     references: &'static projectReferenceFileMapper,
@@ -304,6 +308,10 @@ mod region_tests {
     // (a checker's, looking up a package.json for a module specifier): the host shared by later program versions must
     // not keep its records in that region.
     #[test]
+    #[expect(
+        clippy::disallowed_methods,
+        reason = "the test VFS retains its mapper by static reference"
+    )]
     fn symlinked_directory_first_seen_in_a_region_is_not_kept_there() {
         let fs: Arc<dyn FS> = Arc::new(vfstest::from_map(
             [

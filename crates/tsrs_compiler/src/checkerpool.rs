@@ -801,6 +801,10 @@ impl checkerPool {
                     }
                     *slots[i].lock().unwrap() = Some(CheckerSlot(Mutex::new(c)));
                 });
+                #[expect(
+                    clippy::disallowed_methods,
+                    reason = "poolState::drop reclaims the checker slice after all handles are gone"
+                )]
                 let checkers: &'static [CheckerSlot] = Box::leak(
                     slots
                         .into_iter()

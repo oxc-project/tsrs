@@ -112,6 +112,7 @@ fn project_files() -> Vec<(String, String)> {
     files
 }
 
+#[expect(clippy::disallowed_methods, reason = "the parsed test configuration retains its host")]
 fn setup(spec: &Value) -> (LanguageService, Context, Vec<(String, String)>) {
     let files = project_files();
     let fs: Arc<dyn FS> = Arc::new(bundled::wrap_fs(vfstest::from_map(

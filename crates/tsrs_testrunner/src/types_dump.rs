@@ -39,6 +39,7 @@ pub struct DumpArgs {
     pub sample: Option<String>,
 }
 
+#[expect(clippy::disallowed_methods, reason = "the parsed test configuration retains its host")]
 pub fn run(args: &DumpArgs) {
     let fs: Arc<dyn FS> = Arc::new(bundled::wrap_fs(osvfs::fs()));
     let cwd = tspath::normalize_path(&std::env::current_dir().unwrap().to_string_lossy());

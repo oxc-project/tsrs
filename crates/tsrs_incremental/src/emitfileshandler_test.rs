@@ -39,6 +39,7 @@ fn compiler_host() -> Arc<dyn CompilerHost> {
     new_compiler_host("/", fs, "", None, None, None)
 }
 
+#[expect(clippy::disallowed_methods, reason = "the parsed test configuration retains its host")]
 fn config() -> P<tsoptions::ParsedCommandLine> {
     let fs: Arc<dyn FS> = Arc::new(vfstest::from_map(FILES.iter().map(|&(k, v)| (k, v)), true));
     let host: &'static configHost = Box::leak(Box::new(configHost { fs }));
@@ -81,6 +82,10 @@ fn codes_and_files(diagnostics: &[P<tsrs_ast::Diagnostic>]) -> Vec<(i32, String)
 }
 
 #[test]
+#[expect(
+    clippy::disallowed_methods,
+    reason = "the incremental test borrows this program for its duration"
+)]
 fn incremental_emit_matches_a_plain_emit_file_by_file() {
     let ctx = Context::default();
     let plain = new_program(ProgramOptions::new(config(), compiler_host()));

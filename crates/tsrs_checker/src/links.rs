@@ -1108,6 +1108,10 @@ mod tests {
     }
 
     #[test]
+    #[expect(
+        clippy::disallowed_methods,
+        reason = "the fork requires a static frozen seed for this test"
+    )]
     fn node_value_link_fork_copies_a_frozen_record_on_first_write() {
         if !tsrs_core::sharedgraph::COMPILED_IN {
             return;

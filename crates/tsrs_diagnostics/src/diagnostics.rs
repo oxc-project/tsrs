@@ -178,6 +178,10 @@ pub fn stringify_args(args: &[&dyn fmt::Display]) -> Vec<String> {
     args.iter().map(std::string::ToString::to_string).collect()
 }
 
+#[expect(
+    clippy::disallowed_methods,
+    reason = "test diagnostics retain static message metadata and text"
+)]
 pub fn new_ad_hoc_message(message: &str) -> &'static Message {
     Box::leak(Box::new(Message {
         code: -1,

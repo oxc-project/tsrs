@@ -3317,6 +3317,7 @@ mod tests {
     // re-set and finds every remaining name after a delete shifts the hash index (wrong lookups would make the
     // binder/checker miss or duplicate members).
     #[test]
+    #[expect(clippy::disallowed_methods, reason = "arena-backed symbols retain these test keys")]
     fn symbol_table_indexed_order_and_delete() {
         let names: Vec<&'static str> =
             (0..20).map(|i| &*Box::leak(format!("n{i}").into_boxed_str())).collect();
@@ -3360,6 +3361,7 @@ mod tests {
     }
 
     #[test]
+    #[expect(clippy::disallowed_methods, reason = "arena-backed symbols retain these test keys")]
     fn symbol_table_long_names_share_the_capped_length() {
         // Entries store the key length capped at 63: keys longer than that are told apart by hash and text.
         let long = |c: char, n: usize| -> &'static str {

@@ -43,6 +43,10 @@ impl Closer for stdio {
 }
 
 // mapper_test.go:38
+#[expect(
+    clippy::disallowed_methods,
+    reason = "the test host retains its mapper by static reference"
+)]
 fn test_mapper() -> &'static Mapper {
     Box::leak(Box::new(Mapper {
         definition: Definition {

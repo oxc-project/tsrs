@@ -109,6 +109,10 @@ fn header_mapper_directory() -> String {
     directory.canonicalize().unwrap().to_string_lossy().into_owned()
 }
 
+#[expect(
+    clippy::disallowed_methods,
+    reason = "the host retains this test mapper by static reference"
+)]
 fn header_mapper(exec: &[&str]) -> &'static Mapper {
     Box::leak(Box::new(Mapper {
         manifest: Manifest {

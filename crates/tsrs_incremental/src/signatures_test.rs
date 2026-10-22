@@ -105,6 +105,7 @@ fn compiler_host(files: &[(&'static str, String)]) -> Arc<dyn CompilerHost> {
     new_compiler_host("/", fs, "", None, None, None)
 }
 
+#[expect(clippy::disallowed_methods, reason = "the parsed test configuration retains its host")]
 fn compiler_program(files: &[(&'static str, String)]) -> &'static CompilerProgram {
     let fs: Arc<dyn FS> =
         Arc::new(vfstest::from_map(files.iter().map(|(k, v)| (*k, v.as_str())), true));
@@ -188,6 +189,7 @@ fn splitmix(state: &mut u64) -> u64 {
 }
 
 // Returns the number of signatures computed and the number of steps whose diagnostics include a type error.
+#[expect(clippy::disallowed_methods, reason = "incremental snapshots retain these test programs")]
 fn run(config: &str, seed: u64, steps: usize) -> (usize, usize) {
     let ctx = Context::default();
     let mut rng = seed;
@@ -264,6 +266,7 @@ fn edits_invalidate_the_same_files_with_computed_signatures() {
 }
 
 #[test]
+#[expect(clippy::disallowed_methods, reason = "incremental snapshots retain this test program")]
 fn computed_signatures_replace_only_stand_ins() {
     let ctx = Context::default();
     let texts: BTreeMap<&'static str, String> =
@@ -289,6 +292,7 @@ fn computed_signatures_replace_only_stand_ins() {
 }
 
 #[test]
+#[expect(clippy::disallowed_methods, reason = "incremental snapshots retain this test program")]
 fn signatures_wait_for_pending_changes() {
     let ctx = Context::default();
     let texts: BTreeMap<&'static str, String> =

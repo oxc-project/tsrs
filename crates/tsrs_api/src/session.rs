@@ -151,6 +151,10 @@ impl Session {
             // transform content-mapped files yet (phase 2, notes/contentmappers.md): `--runExternalCode` is accepted
             // and recorded in the session options, and its projects get no content mapper project.
         };
+        #[expect(
+            clippy::disallowed_methods,
+            reason = "parsed configurations borrow this host for the session lifetime"
+        )]
         let parse_config_host: &'static crate::config::ApiParseConfigHost =
             Box::leak(Box::new(crate::config::ApiParseConfigHost {
                 fs: Arc::clone(&init.fs),

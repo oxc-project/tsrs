@@ -112,6 +112,10 @@ fn format_trace(d: &DiagAndArgs) -> String {
     parts.join("|")
 }
 
+#[expect(
+    clippy::disallowed_methods,
+    reason = "the test resolver retains its host by static reference"
+)]
 fn run(scenario: &Json) -> Vec<(String, String, String)> {
     let mut files: Vec<(String, vfstest::MapFile)> = Vec::new();
     if let Some(Json::Object(members)) = get(scenario, "files") {

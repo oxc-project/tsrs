@@ -58,6 +58,10 @@ const ERRORS: &str = "const s: string = 1;\n// é and 😀 move the UTF-16 offse
 // positions, source lines, file-less diagnostics), so `diagnostics: "json"` callers get a different shape than
 // the Node API returns.
 #[test]
+#[expect(
+    clippy::disallowed_methods,
+    reason = "the command-line test retains its system by static reference"
+)]
 fn json_reply_matches_the_api_encoder() {
     let _guard = setup(&[("/p/a.ts", ERRORS)]);
     let list = Arc::new(Mutex::new(Vec::<P<Diagnostic>>::new()));
@@ -94,6 +98,10 @@ fn json_reply_matches_the_api_encoder() {
 // Regression: emit through the host loses or changes files (writes, BOM, the declaration and map files) compared
 // with native tsrs over the OS file system.
 #[test]
+#[expect(
+    clippy::disallowed_methods,
+    reason = "the command-line test retains its native system by static reference"
+)]
 fn emit_through_the_host_matches_native() {
     let dir = std::env::temp_dir().join(format!("tsrs-wasm-emit-{}", std::process::id()));
     let _ = std::fs::remove_dir_all(&dir);
@@ -109,6 +117,7 @@ fn emit_through_the_host_matches_native() {
     struct OsSys {
         fs: Arc<dyn tsrs_vfs::FS>,
         cwd: String,
+        lib_path: String,
         start: std::time::Instant,
     }
     impl System for OsSys {
@@ -116,7 +125,7 @@ fn emit_through_the_host_matches_native() {
             Arc::clone(&self.fs)
         }
         fn default_library_path(&self) -> &str {
-            Box::leak(tsrs_vfs::bundled::lib_path().into_boxed_str())
+            &self.lib_path
         }
         fn get_current_directory(&self) -> &str {
             &self.cwd
@@ -152,6 +161,7 @@ fn emit_through_the_host_matches_native() {
     let native: &'static OsSys = Box::leak(Box::new(OsSys {
         fs: Arc::new(tsrs_vfs::bundled::wrap_fs(tsrs_vfs::osvfs::fs())),
         cwd: root.clone(),
+        lib_path: tsrs_vfs::bundled::lib_path(),
         start: std::time::Instant::now(),
     }));
     let native_status =

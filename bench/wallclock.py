@@ -331,7 +331,7 @@ def finite_positive(value: object) -> float:
 
 
 def join_results(args: argparse.Namespace) -> None:
-    cfg = json.loads((bench_run.BENCH / "projects.json").read_text())
+    cfg = json.loads((BENCH / "projects.json").read_text())
     projects = {}
     for name in (project["name"] for project in cfg["projects"]):
         path = args.results / f"{name}.json"

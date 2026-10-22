@@ -27,6 +27,9 @@ starting another experiment.
 - [Checker instruction-count round 4](perf-icount-round4.md): the later checker measurements and validation.
 - [Enum members in isSimpleTypeRelatedTo](perf-simple-relation-enum-members.md): the one flag pair behind three
   quarters of the calls on Compiler-Unions, answered inline.
+- [Narrowable references and the type-variable memo](perf-narrowable-reference-union-memo.md): a union whose
+  `couldContainTypeVariables` memo is computed and false skips the per-constituent walk of
+  `getNarrowableTypeForReference`.
 - [Memory round 4](mem-round4.md): the latest numbered memory round against Bun.
 - [Benchmark workflow](../bench/README.md) and [published results](../bench/RESULTS.md): reproduce measurements
   and compare the released build configuration.

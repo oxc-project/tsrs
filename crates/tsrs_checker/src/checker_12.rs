@@ -556,10 +556,14 @@ impl Checker {
     }
 
     // checker.go:24299
-    pub(crate) fn get_declared_type_of_type_parameter(&mut self, symbol: P<Symbol>) -> P<Type> {
+    pub(crate) fn get_declared_type_of_type_parameter(
+        &mut self,
+        symbol: impl Into<Option<P<Symbol>>>,
+    ) -> P<Type> {
+        let symbol = symbol.into();
         let links = self.declared_type_links.get(symbol);
         if links.declared_type.get().is_none() {
-            links.declared_type.set(Some(self.new_type_parameter(Some(symbol))));
+            links.declared_type.set(Some(self.new_type_parameter(symbol)));
         }
         links.declared_type.get().unwrap()
     }

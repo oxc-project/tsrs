@@ -1,0 +1,6 @@
+a.js(9,15): error TS8023: JSDoc '@extends Base' does not match the 'extends Base' clause.
+a.js(9,36): error TS2304: Cannot find name 'K'.
+a.js(12,16): error TS8023: JSDoc '@augments Base' does not match the 'extends Base' clause.
+a.js(12,37): error TS2304: Cannot find name 'K'.
+a.js(17,21): error TS2322: Type 'number' is not assignable to type '"key"'.
+a.js(18,22): error TS2322: Type 'number' is not assignable to type '"key"'.

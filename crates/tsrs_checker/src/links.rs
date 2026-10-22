@@ -123,8 +123,9 @@ impl<K: 'static, V: Default + LinkCopy + 'static> LinkStore<K, V> {
     /// registers where this is inlined); the first access probes again in `create`.
     #[inline]
     #[cfg_attr(feature = "site-counts", track_caller)]
-    pub fn get(&mut self, key: P<K>) -> P<V> {
-        let key = Self::address(key);
+    pub fn get(&mut self, key: impl Into<Option<P<K>>>) -> P<V> {
+        // Go pointer keys may be nil; zero is never an arena handle or address.
+        let key = key.into().map_or(0, Self::address);
         match self.index_by_pkey(key) {
             Some(index) => self.at(index),
             None => self.create(key),
@@ -1055,6 +1056,21 @@ impl<V: 'static> SymbolArenaLinkStore<V> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn link_store_preserves_nil_key_through_growth() {
+        let mut store = LinkStore::<u64, Cell<u32>>::default();
+        let nil_links = store.get(None);
+        nil_links.set(42);
+        for i in 0..4096 {
+            let key = P::new(i);
+            let links = store.get(key);
+            assert_ne!(links, nil_links);
+            links.set(i as u32);
+        }
+        assert_eq!(store.get(None), nil_links);
+        assert_eq!(nil_links.get().get(), 42);
+    }
 
     #[test]
     fn type_node_and_signature_links_keep_mixed_ids_separate() {

@@ -2432,11 +2432,9 @@ impl Checker {
     pub(crate) fn get_type_parameter_from_mapped_type(&mut self, t: P<Type>) -> P<Type> {
         let m = t.as_mapped_type();
         if m.type_parameter.get().is_none() {
-            let symbol = self
-                .get_symbol_of_declaration(
-                    m.declaration.get().unwrap().as_mapped_type_node().type_parameter,
-                )
-                .unwrap();
+            let symbol = self.get_symbol_of_declaration(
+                m.declaration.get().unwrap().as_mapped_type_node().type_parameter,
+            );
             let type_parameter = self.get_declared_type_of_type_parameter(symbol);
             m.type_parameter.set(Some(type_parameter));
         }

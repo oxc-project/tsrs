@@ -67,6 +67,29 @@ fn test_mark_rewind_restores_token_and_comment_directives() {
 }
 
 #[test]
+fn test_saved_state_preserves_directives_across_text_changes() {
+    let mut s = Scanner::new();
+    let text = "// @ts-ignore\na /* @ts-expect-error */ b";
+    s.set_text(text);
+    assert_eq!(s.scan(), Kind::Identifier);
+    let directive = s.comment_directives()[0];
+    let saved = s.take_state();
+    s.set_text("// @ts-expect-error\nc");
+    assert_eq!(s.scan(), Kind::Identifier);
+    assert_eq!(s.comment_directives().len(), 1);
+    s.set_text(text);
+    s.restore_state(saved);
+    assert_eq!(s.token_value(), "a");
+    assert_eq!(s.comment_directives().len(), 1);
+    assert_eq!(s.comment_directives()[0].loc, directive.loc);
+    assert_eq!(s.comment_directives()[0].kind, directive.kind);
+    assert_eq!(s.scan(), Kind::Identifier);
+    assert_eq!(s.token_value(), "b");
+    assert_eq!(s.comment_directives().len(), 2);
+    assert_eq!(s.comment_directives()[1].kind, tsrs_ast::CommentDirectiveKind::ExpectError);
+}
+
+#[test]
 fn test_comment_directives_scale_linearly() {
     // Before the fix, each directive copied the whole collected slice, giving
     // quadratic time and memory. With enough directives that would OOM the runner

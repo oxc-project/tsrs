@@ -175,7 +175,7 @@ impl Parser {
         let save_token = self.token;
         let save_context_flags = self.context_flags;
         let save_parsing_contexts = self.parsing_contexts;
-        let save_scanner_state = self.scanner.mark();
+        let save_scanner_state = self.scanner.take_state();
         let save_diagnostics_length = self.diagnostics.len();
         let save_has_parse_error = self.has_parse_error;
         let save_has_await_identifier = self.statement_has_await_identifier;
@@ -203,7 +203,7 @@ impl Parser {
         self.scanner.set_text(self.source_text);
         self.parsing_contexts = save_parsing_contexts;
         self.context_flags = save_context_flags;
-        self.scanner.rewind(save_scanner_state);
+        self.scanner.restore_state(save_scanner_state);
         self.token = save_token;
         self.has_parse_error = save_has_parse_error;
         self.statement_has_await_identifier = save_has_await_identifier;

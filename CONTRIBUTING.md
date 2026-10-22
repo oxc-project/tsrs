@@ -66,15 +66,25 @@ git -C ts-ref checkout "$commit"
 ./target/debug/tsrs-test show <suite/name>                        # expected vs actual
 ./target/debug/tsrs-test run --suite all --baselines types,symbols # type and symbol baselines
 PYTHON=python3.12 .github/scripts/go-fourslash-gate.sh             # language-server suite (Go assertions, Rust LSP)
-TSRS_TEST=target/debug/tsrs-test .github/scripts/conformance-gate.sh # what CI enforces: errors, .types, .symbols
+TSRS_TEST=target/debug/tsrs-test .github/scripts/conformance-gate.sh # errors, types, symbols, emit and source maps
 tools/regressions.sh target/debug/tsrs                            # testdata/regressions (CI runs it too)
 tools/ci/determinism.sh --self-test && tools/ci/determinism.sh target/debug/tsrs # checker assignment gate
 cargo test --locked                                             # all workspace unit and integration tests (CI)
 ```
 
-CI runs the gate twice: in tsgo's check history, which the baselines need, and in the default mode
-(`TS_TEST_PROGRAM_SINGLE_THREADED=false TSRS_HISTORY=canonical`, where `conformance/objectLiteralNormalization`'s
-`.types` / `.symbols` differ by design).
+CI checks both tsgo's checker history and the default mode
+(`TS_TEST_PROGRAM_SINGLE_THREADED=false TSRS_HISTORY=canonical`), with and without emit. The gate defaults to all
+six baseline kinds; `BASELINES=types,symbols` selects checking only. Named pass and skip sets must match
+`.github/conformance-baselines.json`; only the four recorded checking-only diagnostic artifacts are allowed.
+The gate rejects a testdata checkout at a different TypeScript source pin. Release BOLT gates cover emit and maps
+in both histories too.
+
+After reviewing complete before/after pass and skip lists for a conformance improvement or source upgrade, run
+`BASELINES=types,symbols .github/scripts/conformance-gate.sh --update` and
+`.github/scripts/conformance-gate.sh --update`, then verify both histories and commit the snapshot. Updating refuses
+new diagnostic differences, crashes, or timeouts; new failures need a compiler fix, not a snapshot refresh.
+For reviewed Fourslash coverage changes, run `.github/scripts/go-fourslash-gate.sh --update` to refresh its named
+pass and skip fingerprints in the same snapshot.
 
 A change must not lose passing tests: compare `target/test-results/pass.txt` before and after
 (`comm -23 <(sort before.txt) <(sort target/test-results/pass.txt)` must print nothing). `docs/DEBUGGING.md`

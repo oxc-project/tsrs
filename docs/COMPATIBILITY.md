@@ -16,6 +16,13 @@ baselines (the other four are test-harness artifacts) and on all 12,998 `.types`
 and canonical checker histories. It has also been run on a large private monorepo. See the
 [status log](STATUS.md) for conformance details.
 
+CI preserves the named pass and skip sets in `.github/conformance-baselines.json` for checking-only and full emit
+runs in both histories, including JavaScript, declaration and source-map baselines. New failures, timeouts, crashes
+or changes to those sets fail the gate. The four checking-only diagnostic artifacts are recorded explicitly; the
+full emit sequence has none. Release BOLT gates check full emit in both histories. The Fourslash gate requires at
+least 4,092 exercised groups and rejects all failing groups.
+It also preserves the named exercised and skipped groups, so a new pass cannot hide a lost group.
+
 [Top repository conformance](../tools/repo-conformance/README.md) compares diagnostics against pinned tsgo on 1,000
 popular TypeScript repositories after qualifying changes merge into `main`. Actions reports include diffs and coverage,
 and warn about parity differences; incomplete runs fail. The runner is also available locally.

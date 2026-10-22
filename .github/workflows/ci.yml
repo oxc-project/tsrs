@@ -136,15 +136,28 @@ jobs:
         run: cargo build --profile dev --locked -p tsrs_cli -p tsrs_testrunner
 
       - name: Conformance suite
+        env:
+          BASELINES: types,symbols
         run: .github/scripts/conformance-gate.sh
 
       - name: Conformance suite (default checker mode)
         env:
           TS_TEST_PROGRAM_SINGLE_THREADED: "false"
           TSRS_HISTORY: canonical
-          MIN_TYPES: "12778"
-          MIN_SYMBOLS: "12778"
+          BASELINES: types,symbols
           TSRS_TEST_RESULTS: ${{ github.workspace }}/target/test-results-default
+        run: .github/scripts/conformance-gate.sh
+
+      - name: Conformance suite (emit and source maps)
+        env:
+          TSRS_TEST_RESULTS: ${{ github.workspace }}/target/test-results-emit
+        run: .github/scripts/conformance-gate.sh
+
+      - name: Conformance suite (default checker mode, emit and source maps)
+        env:
+          TS_TEST_PROGRAM_SINGLE_THREADED: "false"
+          TSRS_HISTORY: canonical
+          TSRS_TEST_RESULTS: ${{ github.workspace }}/target/test-results-default-emit
         run: .github/scripts/conformance-gate.sh
 
       - name: Regression cases
@@ -161,7 +174,13 @@ jobs:
           name: conformance-results
           path: |
             target/test-results/*.txt
+            target/test-results/summary.json
             target/test-results-default/*.txt
+            target/test-results-default/summary.json
+            target/test-results-emit/*.txt
+            target/test-results-emit/summary.json
+            target/test-results-default-emit/*.txt
+            target/test-results-default-emit/summary.json
           if-no-files-found: ignore
 
   node-api-clients:

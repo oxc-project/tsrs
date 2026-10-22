@@ -48,6 +48,8 @@ jobs:
         with:
           save-cache: ${{ github.ref_name == 'main' }}
           cache-key: api-transport-windows
+      - name: Check checker layout
+        run: cargo check --locked -p tsrs_checker --config 'build.warnings="deny"'
       - run: cargo test --locked -p tsrs_api_transport --lib --config 'build.warnings="deny"'
 
   test:

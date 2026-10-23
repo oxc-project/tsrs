@@ -194,7 +194,7 @@ impl Checker {
 
     // This function assumes the constituent type list is sorted and deduplicated.
     // checker.go:26206
-    pub(crate) fn get_union_type_from_sorted_list(
+    fn get_union_type_from_sorted_list(
         &mut self,
         types: &[P<Type>],
         precomputed_object_flags: ObjectFlags,
@@ -239,10 +239,7 @@ impl Checker {
     /// `compare_types` ends with the type id, so distinct types never compare equal and every correct sort of the same
     /// list gives the same order. That holds only while `compare_symbols` is a total order
     /// (`Program::source_files_complete`); otherwise this sorts as Go does.
-    pub(crate) fn add_types_to_union(
-        &mut self,
-        source_types: &[P<Type>],
-    ) -> (Vec<P<Type>>, TypeFlags) {
+    fn add_types_to_union(&mut self, source_types: &[P<Type>]) -> (Vec<P<Type>>, TypeFlags) {
         fn add_type(c: &Checker, types: &mut Vec<P<Type>>, includes: &mut TypeFlags, t: P<Type>) {
             let flags = t.flags();
             // We ignore 'never' types in unions
@@ -361,7 +358,7 @@ impl Checker {
     }
 
     // checker.go:26294
-    pub(crate) fn add_named_unions(named_unions: &[P<Type>], types: &[P<Type>]) -> Vec<P<Type>> {
+    fn add_named_unions(named_unions: &[P<Type>], types: &[P<Type>]) -> Vec<P<Type>> {
         let mut named_unions = named_unions.to_vec();
         for &t in types {
             if t.flags().intersects(TypeFlags::Union) {
@@ -382,7 +379,7 @@ impl Checker {
     }
 
     // checker.go:26308
-    pub(crate) fn remove_redundant_literal_types(
+    fn remove_redundant_literal_types(
         &mut self,
         types: &[P<Type>],
         includes: TypeFlags,
@@ -421,7 +418,7 @@ impl Checker {
     }
 
     // checker.go:26327
-    pub(crate) fn remove_string_literals_matched_by_template_literals(
+    fn remove_string_literals_matched_by_template_literals(
         &mut self,
         types: &[P<Type>],
     ) -> Vec<P<Type>> {
@@ -464,7 +461,7 @@ impl Checker {
     }
 
     // checker.go:26344
-    pub(crate) fn is_type_matched_by_template_literal_or_string_mapping(
+    fn is_type_matched_by_template_literal_or_string_mapping(
         &mut self,
         t: P<Type>,
         template: P<Type>,
@@ -481,7 +478,7 @@ impl Checker {
     }
 
     // checker.go:26351
-    pub(crate) fn remove_constrained_type_variables(&mut self, types: &[P<Type>]) -> Vec<P<Type>> {
+    fn remove_constrained_type_variables(&mut self, types: &[P<Type>]) -> Vec<P<Type>> {
         let mut types = types.to_vec();
         let mut type_variables: Vec<P<Type>> = Vec::new();
         // First collect a list of the type variables occurring in constraining intersections.
@@ -547,7 +544,7 @@ impl Checker {
             reason = "without the census the wrapper is a forwarding call; inlined, callers call the body as before (notes/perf-checker-algorithms.md)"
         )
     )]
-    pub(crate) fn remove_subtypes(
+    fn remove_subtypes(
         &mut self,
         types: &[P<Type>],
         has_object_types: bool,
@@ -1095,7 +1092,7 @@ impl Checker {
     // Add the given types to the given type set. Order is preserved, freshness is removed from literal
     // types, duplicates are removed, and nested types of the given kind are flattened into the set.
     // checker.go:26721
-    pub(crate) fn add_types_to_intersection(
+    fn add_types_to_intersection(
         &mut self,
         type_set: &mut CheckerOrderedSet<P<Type>>,
         includes: TypeFlags,
@@ -1110,7 +1107,7 @@ impl Checker {
     }
 
     // checker.go:26728
-    pub(crate) fn add_type_to_intersection(
+    fn add_type_to_intersection(
         &mut self,
         type_set: &mut CheckerOrderedSet<P<Type>>,
         includes: TypeFlags,
@@ -1156,11 +1153,7 @@ impl Checker {
     }
 
     // checker.go:26765
-    pub(crate) fn remove_redundant_supertypes(
-        &mut self,
-        types: &mut Vec<P<Type>>,
-        includes: TypeFlags,
-    ) {
+    fn remove_redundant_supertypes(&mut self, types: &mut Vec<P<Type>>, includes: TypeFlags) {
         let mut i = types.len();
         while i > 0 {
             i -= 1;
@@ -1190,10 +1183,7 @@ impl Checker {
     // Returns true if the intersection of the template literals and string literals is the empty set,
     // for example `get${string}` & "setX", and should reduce to never.
     // checker.go:26787
-    pub(crate) fn extract_redundant_template_literals(
-        &mut self,
-        types: &[P<Type>],
-    ) -> (Vec<P<Type>>, bool) {
+    fn extract_redundant_template_literals(&mut self, types: &[P<Type>]) -> (Vec<P<Type>>, bool) {
         let mut types = types.to_vec();
         let literals: Vec<P<Type>> = types
             .iter()
@@ -1225,10 +1215,7 @@ impl Checker {
     // first with a union containing an intersection of those primitive types, then remove the
     // other unions and return true. Otherwise, do nothing and return false.
     // checker.go:26813
-    pub(crate) fn intersect_unions_of_primitive_types(
-        &mut self,
-        types: &[P<Type>],
-    ) -> (Vec<P<Type>>, bool) {
+    fn intersect_unions_of_primitive_types(&mut self, types: &[P<Type>]) -> (Vec<P<Type>>, bool) {
         let mut types = types.to_vec();
         let Some(index) = types.iter().position(|&t| is_primitive_union(t)) else {
             return (types, false);
@@ -1292,7 +1279,7 @@ impl Checker {
     // an identical type, and a literal type is additionally matched by its corresponding
     // primitive type, and missingType is matched by undefinedType (and vice versa).
     // checker.go:26866
-    pub(crate) fn each_union_contains(&mut self, union_types: &[P<Type>], t: P<Type>) -> bool {
+    fn each_union_contains(&mut self, union_types: &[P<Type>], t: P<Type>) -> bool {
         for &u in union_types {
             if !self.union_contains_type(u, t, true /*matchSymbol*/) {
                 return false;
@@ -1337,7 +1324,7 @@ impl Checker {
     }
 
     // checker.go:26900
-    pub(crate) fn get_cross_product_intersections(
+    fn get_cross_product_intersections(
         &mut self,
         types: &[P<Type>],
         flags: IntersectionFlags,
@@ -1390,7 +1377,7 @@ pub fn get_constituent_count_of_types(types: &[P<Type>]) -> usize {
 
 impl Checker {
     // checker.go:26940
-    pub(crate) fn filter_types(
+    fn filter_types(
         &mut self,
         types: &mut [P<Type>],
         mut predicate: impl FnMut(&mut Checker, P<Type>) -> bool,
@@ -1429,7 +1416,7 @@ impl Checker {
 
     // isEmptyResolvedType(resolveStructuredTypeMembers(t)); notes/mem-lazy.md L11: a type with a lazy member table
     // (an instantiated reference, never anyFunctionType) is asked without resolving it.
-    pub(crate) fn is_empty_structured_type(&mut self, t: P<Type>) -> bool {
+    fn is_empty_structured_type(&mut self, t: P<Type>) -> bool {
         if self.lazy_empty
             && let Some(lm) = self.get_ready_lazy_member_table(t)
         {
@@ -1445,7 +1432,7 @@ impl Checker {
     }
 
     // checker.go:26951
-    pub(crate) fn is_empty_resolved_type(&self, t: &'static StructuredType) -> bool {
+    fn is_empty_resolved_type(&self, t: &'static StructuredType) -> bool {
         !std::ptr::eq(t, self.any_function_type.as_structured_type())
             && t.properties().is_empty()
             && t.signatures().is_empty()
@@ -1870,7 +1857,7 @@ impl Checker {
 
     /// TS2590 at `current_node` for the too-complex evaluation `key` (`too_complex_key`), counted for
     /// `too_complex_since`.
-    pub(crate) fn report_too_complex(&mut self, key: u64) {
+    fn report_too_complex(&mut self, key: u64) {
         self.too_complex_reports = self.too_complex_reports.wrapping_add(1);
         match self.current_node {
             // tsrs-only: each file reports a too-complex type once, at the first site in it that evaluated the type,
@@ -1936,7 +1923,7 @@ impl Checker {
     }
 
     // checker.go:27130
-    pub(crate) fn get_cross_product_union_size(types: &[P<Type>]) -> usize {
+    fn get_cross_product_union_size(types: &[P<Type>]) -> usize {
         let mut size = 1usize;
         for &t in types {
             if t.flags().intersects(TypeFlags::Union) {
@@ -2035,7 +2022,7 @@ impl Checker {
     }
 
     // checker.go:27187
-    pub(crate) fn get_literal_type_from_properties(
+    fn get_literal_type_from_properties(
         &mut self,
         t: P<Type>,
         include: TypeFlags,
@@ -2137,7 +2124,7 @@ impl Checker {
     }
 
     // checker.go:27259
-    pub(crate) fn is_key_type_included(key_type: P<Type>, include: TypeFlags) -> bool {
+    fn is_key_type_included(key_type: P<Type>, include: TypeFlags) -> bool {
         key_type.flags().intersects(include)
             || key_type.flags().intersects(TypeFlags::Intersection)
                 && key_type.types().iter().any(|&t| Self::is_key_type_included(t, include))
@@ -2232,11 +2219,7 @@ impl Checker {
     }
 
     // checker.go:27323
-    pub(crate) fn get_index_type_for_generic_type(
-        &mut self,
-        t: P<Type>,
-        index_flags: IndexFlags,
-    ) -> P<Type> {
+    fn get_index_type_for_generic_type(&mut self, t: P<Type>, index_flags: IndexFlags) -> P<Type> {
         let key = CachedTypeKey {
             kind: if_else(
                 index_flags.intersects(IndexFlags::StringsOnly),
@@ -2402,7 +2385,7 @@ impl Checker {
             reason = "without the census the wrapper is a forwarding call; inlined, callers call the body as before (notes/perf-checker-algorithms.md)"
         )
     )]
-    pub fn get_indexed_access_type_or_undefined(
+    pub(crate) fn get_indexed_access_type_or_undefined(
         &mut self,
         object_type: P<Type>,
         index_type: P<Type>,
@@ -2639,7 +2622,7 @@ impl Checker {
     }
 
     // checker.go:27471
-    pub(crate) fn get_property_type_for_index_type(
+    fn get_property_type_for_index_type(
         &mut self,
         original_object_type: P<Type>,
         object_type: P<Type>,
@@ -3110,7 +3093,7 @@ impl Checker {
     }
 
     // checker.go:27701
-    pub(crate) fn get_suggestion_for_nonexistent_index_signature(
+    fn get_suggestion_for_nonexistent_index_signature(
         &mut self,
         object_type: P<Type>,
         expr: P<Node>,
@@ -3183,7 +3166,7 @@ pub fn get_index_node_for_access_expression(access_node: P<Node>) -> Option<P<No
 
 impl Checker {
     // checker.go:27739
-    pub(crate) fn error_if_writing_to_readonly_index(
+    fn error_if_writing_to_readonly_index(
         &mut self,
         index_info: Option<P<IndexInfo>>,
         object_type: P<Type>,
@@ -3350,7 +3333,7 @@ impl Checker {
     }
 
     // checker.go:27840
-    pub(crate) fn should_defer_indexed_access_type(
+    fn should_defer_indexed_access_type(
         &mut self,
         object_type: P<Type>,
         index_type: P<Type>,
@@ -3403,7 +3386,7 @@ impl Checker {
     }
 
     // checker.go:27871
-    pub(crate) fn is_no_infer_target_type(&mut self, t: P<Type>) -> bool {
+    fn is_no_infer_target_type(&mut self, t: P<Type>) -> bool {
         // This is effectively a more conservative and predictable form of couldContainTypeVariables. We want to
         // preserve NoInfer<T> only for types that could contain type variables, but we don't want to exhaustively
         // examine all object type members.
@@ -3436,7 +3419,7 @@ impl Checker {
     }
 
     // checker.go:27888
-    pub(crate) fn get_or_create_substitution_type(
+    fn get_or_create_substitution_type(
         &mut self,
         base_type: P<Type>,
         constraint: P<Type>,
@@ -3460,7 +3443,7 @@ impl Checker {
     }
 
     // checker.go:27906
-    pub fn get_base_constraint_of_type(&mut self, t: P<Type>) -> Option<P<Type>> {
+    pub(crate) fn get_base_constraint_of_type(&mut self, t: P<Type>) -> Option<P<Type>> {
         if t.flags().intersects(
             TypeFlags::InstantiableNonPrimitive
                 | TypeFlags::UnionOrIntersection
@@ -3560,7 +3543,7 @@ impl Checker {
     }
 
     // checker.go:27960
-    pub(crate) fn compute_base_constraint(
+    fn compute_base_constraint(
         &mut self,
         t: P<Type>,
         stack: BaseConstraintStack<'_>,
@@ -3704,7 +3687,7 @@ impl Checker {
 
     // Go passes nil (e.g. a missing type parameter constraint) and checks `t == nil` here.
     // checker.go:28063
-    pub(crate) fn get_next_base_constraint(
+    fn get_next_base_constraint(
         &mut self,
         t: Option<P<Type>>,
         stack: BaseConstraintStack<'_>,

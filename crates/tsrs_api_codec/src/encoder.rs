@@ -47,12 +47,12 @@ impl std::error::Error for EncodeError {}
 
 /// Go `NodeIndexTable`: encoder index → node (index 0 is the nil sentinel, `NodeList` records map to `None`).
 pub struct NodeIndexTable {
-    pub nodes: Vec<Option<P<Node>>>,
+    nodes: Vec<Option<P<Node>>>,
     sorted: OnceLock<Vec<u32>>,
 }
 
 impl NodeIndexTable {
-    pub fn new(nodes: Vec<Option<P<Node>>>) -> NodeIndexTable {
+    fn new(nodes: Vec<Option<P<Node>>>) -> NodeIndexTable {
         NodeIndexTable { nodes, sorted: OnceLock::new() }
     }
 
@@ -99,11 +99,11 @@ impl NodeIndexTable {
 }
 
 /// Mutable state threaded through the generated `record_extended_data` dispatch.
-pub struct EncodeContext {
-    pub strs: StringTable<'static>,
-    pub position_map: PositionMap,
-    pub extended_data: Vec<u8>,
-    pub structured_data: Vec<u8>,
+pub(crate) struct EncodeContext {
+    strs: StringTable<'static>,
+    position_map: PositionMap,
+    pub(crate) extended_data: Vec<u8>,
+    structured_data: Vec<u8>,
 }
 
 impl EncodeContext {
@@ -115,7 +115,7 @@ impl EncodeContext {
     }
 }
 
-pub(crate) fn append_u32s(buf: &mut Vec<u8>, values: &[u32]) {
+fn append_u32s(buf: &mut Vec<u8>, values: &[u32]) {
     buf.extend(values.iter().flat_map(|v| v.to_le_bytes()));
 }
 

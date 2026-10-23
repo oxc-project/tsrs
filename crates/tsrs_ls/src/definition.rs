@@ -36,7 +36,7 @@ impl LanguageService {
         clippy::unnecessary_wraps,
         reason = "Language service operations share the fallible response signature used by LSP and cross-project dispatch."
     )]
-    pub(crate) fn provide_definition_worker(
+    fn provide_definition_worker(
         &self,
         ctx: &Context,
         document_uri: &lsproto::DocumentUri,
@@ -479,7 +479,7 @@ fn create_locations_from_links(links: Vec<lsproto::LocationLink>) -> lsproto::De
 
 impl LanguageService {
     // definition.go:296
-    pub(crate) fn create_location_from_file_and_range(
+    fn create_location_from_file_and_range(
         &self,
         file: P<SourceFile>,
         text_range: TextRange,

@@ -106,11 +106,11 @@ impl<K: Hash + Eq + Clone, T: Cloneable + Clone> MapEntry<K, T> {
         self.st.lock().unwrap().value()
     }
 
-    pub fn original(&self) -> Option<Shared<T>> {
+    fn original(&self) -> Option<Shared<T>> {
         self.st.lock().unwrap().original()
     }
 
-    pub fn dirty(&self) -> bool {
+    fn dirty(&self) -> bool {
         self.st.lock().unwrap().dirty()
     }
 }

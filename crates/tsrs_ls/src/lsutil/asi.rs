@@ -19,7 +19,7 @@ pub fn position_is_asi_candidate(pos: u32, context: P<Node>, file: P<SourceFile>
 }
 
 // asi.go:21
-pub fn syntax_may_be_asi_candidate(kind: Kind) -> bool {
+fn syntax_may_be_asi_candidate(kind: Kind) -> bool {
     syntax_requires_trailing_comma_or_semicolon_or_asi(kind)
         || syntax_requires_trailing_function_block_or_semicolon_or_asi(kind)
         || syntax_requires_trailing_module_block_or_semicolon_or_asi(kind)
@@ -36,7 +36,7 @@ pub fn syntax_requires_trailing_comma_or_semicolon_or_asi(kind: Kind) -> bool {
 }
 
 // asi.go:36
-pub fn syntax_requires_trailing_function_block_or_semicolon_or_asi(kind: Kind) -> bool {
+fn syntax_requires_trailing_function_block_or_semicolon_or_asi(kind: Kind) -> bool {
     kind == Kind::FunctionDeclaration
         || kind == Kind::Constructor
         || kind == Kind::MethodDeclaration
@@ -45,7 +45,7 @@ pub fn syntax_requires_trailing_function_block_or_semicolon_or_asi(kind: Kind) -
 }
 
 // asi.go:44
-pub fn syntax_requires_trailing_module_block_or_semicolon_or_asi(kind: Kind) -> bool {
+fn syntax_requires_trailing_module_block_or_semicolon_or_asi(kind: Kind) -> bool {
     kind == Kind::ModuleDeclaration
 }
 
@@ -69,7 +69,7 @@ pub fn syntax_requires_trailing_semicolon_or_asi(kind: Kind) -> bool {
 }
 
 // asi.go:66
-pub fn node_is_asi_candidate(node: P<Node>, file: P<SourceFile>) -> bool {
+fn node_is_asi_candidate(node: P<Node>, file: P<SourceFile>) -> bool {
     let last_token = get_last_token(Some(node), file);
     if last_token.is_some_and(|t| t.kind() == Kind::SemicolonToken) {
         return false;

@@ -22,24 +22,24 @@ pub enum ErrorKind {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ApiError {
-    pub kind: ErrorKind,
-    pub message: String,
+    pub(crate) kind: ErrorKind,
+    pub(crate) message: String,
 }
 
 impl ApiError {
-    pub fn invalid_request(message: impl Into<String>) -> ApiError {
+    pub(crate) fn invalid_request(message: impl Into<String>) -> ApiError {
         ApiError { kind: ErrorKind::InvalidRequest, message: message.into() }
     }
-    pub fn client(message: impl Into<String>) -> ApiError {
+    pub(crate) fn client(message: impl Into<String>) -> ApiError {
         ApiError { kind: ErrorKind::ClientError, message: message.into() }
     }
-    pub fn unsupported(method: &str) -> ApiError {
+    pub(crate) fn unsupported(method: &str) -> ApiError {
         ApiError {
             kind: ErrorKind::Unsupported,
             message: format!("method {method:?} is not implemented by tsrs (see docs/NODE_API.md)"),
         }
     }
-    pub fn internal(message: impl Into<String>) -> ApiError {
+    pub(crate) fn internal(message: impl Into<String>) -> ApiError {
         ApiError { kind: ErrorKind::Internal, message: message.into() }
     }
 }
@@ -70,7 +70,7 @@ pub enum Response {
 }
 
 impl Response {
-    pub fn null() -> Response {
+    pub(crate) fn null() -> Response {
         Response::Json("null".to_string())
     }
 }

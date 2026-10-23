@@ -185,11 +185,7 @@ impl Checker {
     }
 
     // checker.go:8864
-    pub(crate) fn type_has_protected_accessible_base(
-        &mut self,
-        target: P<Symbol>,
-        t: P<Type>,
-    ) -> bool {
+    fn type_has_protected_accessible_base(&mut self, target: P<Symbol>, t: P<Type>) -> bool {
         let target_type = Self::get_target_type(t).unwrap();
         let base_types = self.get_base_types(target_type);
         if base_types.is_empty() {
@@ -348,7 +344,7 @@ impl Checker {
     // but is receiving too many arguments as part of the decorator invocation.
     // In those cases, a user may have meant to *call* the expression before using it as a decorator.
     // checker.go:8963
-    pub(crate) fn is_potentially_uncalled_decorator(
+    fn is_potentially_uncalled_decorator(
         &mut self,
         decorator: P<Node>,
         signatures: &[P<Signature>],
@@ -365,9 +361,7 @@ impl Checker {
 
     // Gets the localized diagnostic head message to use for errors when resolving a decorator as a call expression.
     // checker.go:8970
-    pub(crate) fn get_diagnostic_head_message_for_decorator_resolution(
-        node: P<Node>,
-    ) -> &'static Message {
+    fn get_diagnostic_head_message_for_decorator_resolution(node: P<Node>) -> &'static Message {
         match node.parent().unwrap().kind() {
             Kind::ClassDeclaration | Kind::ClassExpression => &diagnostics::UNABLE_TO_RESOLVE_SIGNATURE_OF_CLASS_DECORATOR_WHEN_CALLED_AS_AN_EXPRESSION,
             Kind::Parameter => &diagnostics::UNABLE_TO_RESOLVE_SIGNATURE_OF_PARAMETER_DECORATOR_WHEN_CALLED_AS_AN_EXPRESSION,
@@ -649,7 +643,7 @@ impl Checker {
     }
 
     // checker.go:9145
-    pub(crate) fn reorder_candidates(
+    fn reorder_candidates(
         &mut self,
         signatures: &[P<Signature>],
         call_chain_flags: SignatureFlags,
@@ -712,7 +706,7 @@ pub fn signature_has_literal_types(s: P<Signature>) -> bool {
 
 impl Checker {
     // checker.go:9199
-    pub(crate) fn get_optional_call_signature(
+    fn get_optional_call_signature(
         &mut self,
         signature: P<Signature>,
         call_chain_flags: SignatureFlags,
@@ -738,7 +732,7 @@ impl Checker {
     }
 
     // checker.go:9213
-    pub(crate) fn choose_overload(
+    fn choose_overload(
         &mut self,
         s: &mut CallState,
         relation: P<Relation>,
@@ -943,7 +937,7 @@ impl Checker {
     }
 
     // checker.go:9299
-    pub(crate) fn has_correct_arity(
+    fn has_correct_arity(
         &mut self,
         node: P<Node>,
         args: &[P<Node>],
@@ -1037,11 +1031,7 @@ pub fn accepts_void(t: P<Type>) -> bool {
 
 impl Checker {
     // checker.go:9375
-    pub(crate) fn get_decorator_argument_count(
-        &mut self,
-        node: P<Node>,
-        signature: P<Signature>,
-    ) -> usize {
+    fn get_decorator_argument_count(&mut self, node: P<Node>, signature: P<Signature>) -> usize {
         if self.compiler_options.experimental_decorators.is_true() {
             return self.get_legacy_decorator_argument_count(node, signature);
         }
@@ -1052,7 +1042,7 @@ impl Checker {
      * Returns the argument count for a decorator node that works like a function invocation.
      */
     // checker.go:9385
-    pub(crate) fn get_legacy_decorator_argument_count(
+    fn get_legacy_decorator_argument_count(
         &mut self,
         node: P<Node>,
         signature: P<Signature>,
@@ -1161,7 +1151,7 @@ impl Checker {
     }
 
     // checker.go:9448
-    pub(crate) fn is_signature_applicable(
+    fn is_signature_applicable(
         &mut self,
         node: P<Node>,
         args: &[P<Node>],
@@ -1310,7 +1300,7 @@ impl Checker {
     }
 
     // checker.go:9523
-    pub(crate) fn maybe_add_missing_await_info(
+    fn maybe_add_missing_await_info(
         &mut self,
         error_node: Option<P<Node>>,
         source: P<Type>,
@@ -1344,7 +1334,7 @@ impl Checker {
 
     // Returns the `this` argument node in calls like `x.f(...)` and `x[f](...)`. `nil` otherwise.
     // checker.go:9537
-    pub(crate) fn get_this_argument_of_call(&self, node: P<Node>) -> Option<P<Node>> {
+    fn get_this_argument_of_call(&self, node: P<Node>) -> Option<P<Node>> {
         if is_binary_expression(node) {
             return Some(node.as_binary_expression().right());
         }
@@ -1366,7 +1356,7 @@ impl Checker {
     }
 
     // checker.go:9559
-    pub(crate) fn get_this_argument_type(&mut self, node: Option<P<Node>>) -> P<Type> {
+    fn get_this_argument_type(&mut self, node: Option<P<Node>>) -> P<Type> {
         let Some(node) = node else {
             return self.void_type;
         };
@@ -1401,7 +1391,7 @@ impl Checker {
             reason = "without the census the wrapper is a forwarding call; inlined, callers call the body as before (notes/perf-checker-algorithms.md)"
         )
     )]
-    pub(crate) fn infer_type_arguments(
+    fn infer_type_arguments(
         &mut self,
         node: P<Node>,
         signature: P<Signature>,
@@ -1664,7 +1654,7 @@ impl Checker {
 
     // No signature was applicable. We have already reported the errors for the invalid signature.
     // checker.go:9690
-    pub(crate) fn get_candidate_for_overload_failure(
+    fn get_candidate_for_overload_failure(
         &mut self,
         node: P<Node>,
         candidates: &mut [P<Signature>],
@@ -1687,7 +1677,7 @@ impl Checker {
     }
 
     // checker.go:9702
-    pub(crate) fn pick_longest_candidate_signature(
+    fn pick_longest_candidate_signature(
         &mut self,
         node: P<Node>,
         candidates: &mut [P<Signature>],
@@ -1732,7 +1722,7 @@ impl Checker {
     }
 
     // checker.go:9733
-    pub(crate) fn get_longest_candidate_index(
+    fn get_longest_candidate_index(
         &mut self,
         candidates: &[P<Signature>],
         args_count: usize,
@@ -1753,7 +1743,7 @@ impl Checker {
     }
 
     // checker.go:9749
-    pub(crate) fn get_type_arguments_from_nodes(
+    fn get_type_arguments_from_nodes(
         &mut self,
         type_argument_nodes: &[P<Node>],
         type_parameters: &[P<Type>],
@@ -1778,7 +1768,7 @@ impl Checker {
     }
 
     // checker.go:9767
-    pub(crate) fn infer_signature_instantiation_for_overload_failure(
+    fn infer_signature_instantiation_for_overload_failure(
         &mut self,
         node: P<Node>,
         type_parameters: &[P<Type>],
@@ -1803,7 +1793,7 @@ impl Checker {
     }
 
     // checker.go:9773
-    pub(crate) fn create_union_of_signatures_for_overload_failure(
+    fn create_union_of_signatures_for_overload_failure(
         &mut self,
         candidates: &[P<Signature>],
     ) -> P<Signature> {
@@ -1880,7 +1870,7 @@ impl Checker {
     }
 
     // checker.go:9814
-    pub(crate) fn create_combined_symbol_from_types(
+    fn create_combined_symbol_from_types(
         &mut self,
         sources: &[P<Symbol>],
         types: &[P<Type>],
@@ -1890,7 +1880,7 @@ impl Checker {
     }
 
     // checker.go:9818
-    pub(crate) fn create_combined_symbol_for_overload_failure(
+    fn create_combined_symbol_for_overload_failure(
         &mut self,
         sources: &[P<Symbol>],
         t: P<Type>,
@@ -1908,10 +1898,7 @@ impl Checker {
     }
 
     // checker.go:9827
-    pub(crate) fn try_get_rest_type_of_signature(
-        &mut self,
-        signature: P<Signature>,
-    ) -> Option<P<Type>> {
+    fn try_get_rest_type_of_signature(&mut self, signature: P<Signature>) -> Option<P<Type>> {
         if !signature_has_rest_parameter(signature) {
             return None;
         }
@@ -1925,7 +1912,7 @@ impl Checker {
     }
 
     // checker.go:9841
-    pub(crate) fn report_call_resolution_errors(
+    fn report_call_resolution_errors(
         &mut self,
         node: P<Node>,
         s: &CallState,
@@ -2027,7 +2014,7 @@ impl Checker {
     }
 
     // checker.go:9877
-    pub(crate) fn add_implementation_success_elaboration(
+    fn add_implementation_success_elaboration(
         &mut self,
         s: &CallState,
         failed: P<Signature>,
@@ -2058,7 +2045,7 @@ impl Checker {
     }
 
     // checker.go:9897
-    pub(crate) fn get_argument_arity_error(
+    fn get_argument_arity_error(
         &mut self,
         node: P<Node>,
         signatures: &[P<Signature>],
@@ -2209,7 +2196,7 @@ impl Checker {
     }
 
     // checker.go:10015
-    pub(crate) fn is_promise_resolve_arity_error(&mut self, node: P<Node>) -> bool {
+    fn is_promise_resolve_arity_error(&mut self, node: P<Node>) -> bool {
         if !is_call_expression(node) || !is_identifier(node.expression().unwrap()) {
             return false;
         }
@@ -2260,7 +2247,7 @@ pub fn get_error_node_for_call_node(node: P<Node>) -> P<Node> {
 
 impl Checker {
     // checker.go:10045
-    pub(crate) fn get_type_argument_arity_error(
+    fn get_type_argument_arity_error(
         node: P<Node>,
         signatures: &[P<Signature>],
         type_arguments: &[P<Node>],
@@ -2411,7 +2398,7 @@ impl Checker {
     }
 
     // checker.go:10132
-    pub(crate) fn invocation_error_details(
+    fn invocation_error_details(
         &mut self,
         error_target: P<Node>,
         apparent_type: P<Type>,
@@ -2552,7 +2539,7 @@ impl Checker {
     }
 
     // checker.go:10197
-    pub(crate) fn invocation_error_recovery(
+    fn invocation_error_recovery(
         &mut self,
         apparent_type: P<Type>,
         kind: SignatureKind,
@@ -2669,7 +2656,7 @@ impl Checker {
     }
 
     // checker.go:10273
-    pub(crate) fn check_class_expression_external_helpers(&mut self, node: P<Node>) {
+    fn check_class_expression_external_helpers(&mut self, node: P<Node>) {
         if node.name().is_some() {
             return;
         }
@@ -2785,7 +2772,7 @@ impl Checker {
     }
 
     // checker.go:10347
-    pub(crate) fn contextually_check_function_expression_or_object_literal_method(
+    fn contextually_check_function_expression_or_object_literal_method(
         &mut self,
         node: P<Node>,
         check_mode: CheckMode,
@@ -2925,7 +2912,7 @@ impl Checker {
     }
 
     // checker.go:10436
-    pub(crate) fn infer_from_annotated_parameters_and_return(
+    fn infer_from_annotated_parameters_and_return(
         &mut self,
         sig: P<Signature>,
         context: P<Signature>,
@@ -3047,10 +3034,7 @@ impl Checker {
     }
 
     // checker.go:10511
-    pub(crate) fn get_intersected_signatures(
-        &mut self,
-        signatures: &[P<Signature>],
-    ) -> Option<P<Signature>> {
+    fn get_intersected_signatures(&mut self, signatures: &[P<Signature>]) -> Option<P<Signature>> {
         if !self.no_implicit_any {
             return None;
         }
@@ -3081,7 +3065,7 @@ impl Checker {
 
     /** If the contextual signature has fewer parameters than the function expression, do not use it */
     // checker.go:10530
-    pub(crate) fn is_arity_smaller(&mut self, signature: P<Signature>, target: P<Node>) -> bool {
+    fn is_arity_smaller(&mut self, signature: P<Signature>, target: P<Node>) -> bool {
         let parameters = target.parameters();
         let mut target_parameter_count = 0;
         while target_parameter_count < parameters.len() {
@@ -3102,11 +3086,7 @@ impl Checker {
     }
 
     // checker.go:10546
-    pub(crate) fn assign_contextual_parameter_types(
-        &mut self,
-        sig: P<Signature>,
-        context: P<Signature>,
-    ) {
+    fn assign_contextual_parameter_types(&mut self, sig: P<Signature>, context: P<Signature>) {
         if !context.type_parameters().is_empty() {
             if !sig.type_parameters().is_empty() {
                 // This signature has already has a contextual inference performed and cached on it
@@ -3166,7 +3146,7 @@ impl Checker {
     }
 
     // checker.go:10592
-    pub(crate) fn assign_non_contextual_parameter_types(&mut self, signature: P<Signature>) {
+    fn assign_non_contextual_parameter_types(&mut self, signature: P<Signature>) {
         if let Some(this_parameter) = signature.this_parameter() {
             self.assign_parameter_type(this_parameter, None);
         }
@@ -3176,11 +3156,7 @@ impl Checker {
     }
 
     // checker.go:10601
-    pub(crate) fn assign_parameter_type(
-        &mut self,
-        parameter: P<Symbol>,
-        contextual_type: Option<P<Type>>,
-    ) {
+    fn assign_parameter_type(&mut self, parameter: P<Symbol>, contextual_type: Option<P<Type>>) {
         let links = self.value_symbol_links.get(parameter);
         if links.resolved_type.get().is_some() {
             return;
@@ -3217,7 +3193,7 @@ impl Checker {
     // When contextual typing assigns a type to a parameter that contains a binding pattern, we also need to push
     // the destructured type into the contained binding elements.
     // checker.go:10627
-    pub(crate) fn assign_binding_element_types(&mut self, pattern: P<Node>, parent_type: P<Type>) {
+    fn assign_binding_element_types(&mut self, pattern: P<Node>, parent_type: P<Type>) {
         for &element in pattern.elements() {
             let name = element.name();
             if let Some(name) = name {
@@ -3261,7 +3237,7 @@ impl Checker {
     }
 
     // checker.go:10660
-    pub(crate) fn check_collision_with_require_exports_in_generated_code(
+    fn check_collision_with_require_exports_in_generated_code(
         &mut self,
         node: P<Node>,
         name: Option<P<Node>>,
@@ -3296,7 +3272,7 @@ impl Checker {
     }
 
     // checker.go:10680
-    pub(crate) fn check_collision_with_global_object_in_generated_code(
+    fn check_collision_with_global_object_in_generated_code(
         &mut self,
         node: P<Node>,
         name: Option<P<Node>>,
@@ -3326,7 +3302,7 @@ impl Checker {
     }
 
     // checker.go:10696
-    pub(crate) fn need_collision_check_for_identifier(
+    fn need_collision_check_for_identifier(
         node: P<Node>,
         identifier: Option<P<Node>>,
         name: &str,
@@ -3390,7 +3366,7 @@ impl Checker {
     }
 
     // checker.go:10736
-    pub(crate) fn record_potential_collision_with_weak_map_set_in_generated_code(
+    fn record_potential_collision_with_weak_map_set_in_generated_code(
         &mut self,
         node: P<Node>,
         name: P<Node>,
@@ -3406,7 +3382,7 @@ impl Checker {
     }
 
     // checker.go:10745
-    pub(crate) fn check_weak_map_set_collision(&mut self, node: P<Node>) {
+    fn check_weak_map_set_collision(&mut self, node: P<Node>) {
         let enclosing_block_scope = get_enclosing_block_scope_container(node).unwrap();
         if self
             .node_links
@@ -3425,7 +3401,7 @@ impl Checker {
     }
 
     // checker.go:10755
-    pub(crate) fn check_collision_with_global_promise_in_generated_code(
+    fn check_collision_with_global_promise_in_generated_code(
         &mut self,
         node: P<Node>,
         name: Option<P<Node>>,
@@ -3457,7 +3433,7 @@ impl Checker {
     }
 
     // checker.go:10771
-    pub(crate) fn record_potential_collision_with_reflect_in_generated_code(
+    fn record_potential_collision_with_reflect_in_generated_code(
         &mut self,
         node: P<Node>,
         name: Option<P<Node>>,
@@ -3473,7 +3449,7 @@ impl Checker {
     }
 
     // checker.go:10779
-    pub(crate) fn check_reflect_collision(&mut self, node: P<Node>) {
+    fn check_reflect_collision(&mut self, node: P<Node>) {
         let mut has_collision = false;
         if is_class_expression(node) {
             // ClassExpression names don't contribute to their containers, but do matter for any of their block-scoped members.
@@ -3522,7 +3498,7 @@ impl Checker {
     }
 
     // checker.go:10808
-    pub(crate) fn check_class_name_collision_with_object(&mut self, name: P<Node>) {
+    fn check_class_name_collision_with_object(&mut self, name: P<Node>) {
         if name.text() == "Object"
             && self.emit_module_format_of_file(get_source_file_of_node(name).unwrap())
                 < ModuleKind::ES2015
@@ -3550,7 +3526,7 @@ impl Checker {
     }
 
     // checker.go:10828
-    pub(crate) fn check_non_null_chain(&mut self, node: P<Node>) -> P<Type> {
+    fn check_non_null_chain(&mut self, node: P<Node>) -> P<Type> {
         let expression = node.expression().unwrap();
         let left_type = self.check_expression(expression);
         let non_optional_type = self.get_optional_expression_type(left_type, expression);

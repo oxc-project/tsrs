@@ -47,7 +47,7 @@ const FOR_AWAIT_HIERARCHY_FACTS_ITERATION_STATEMENT_EXCLUDES: ForAwaitHierarchyF
 
 // forawait.go:43
 pub struct ForawaitTransformer {
-    pub base: Transformer,
+    base: Transformer,
     super_access_state: SuperAccessState,
     pub compiler_options: P<CompilerOptions>,
 

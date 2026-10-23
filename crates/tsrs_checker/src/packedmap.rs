@@ -65,14 +65,14 @@ impl<K: PackedKey, V: Copy> PackedMap<K, V> {
     }
 
     /// A map holding one entry, with the capacity `FxHashMap::from_iter([(key, value)])` has.
-    pub fn from_one(key: K, value: V) -> Self {
+    pub(crate) fn from_one(key: K, value: V) -> Self {
         let mut m = PackedMap { table: hashbrown::HashTable::with_capacity(1) };
         m.insert(key, value);
         m
     }
 
     #[inline]
-    pub fn get(&self, key: &K) -> Option<V> {
+    pub(crate) fn get(&self, key: &K) -> Option<V> {
         let key = *key;
         self.table.find(key.packed_hash(), |slot| ({ slot.key }) == key).map(|slot| slot.value)
     }
@@ -84,7 +84,7 @@ impl<K: PackedKey, V: Copy> PackedMap<K, V> {
 
     /// Like `HashMap::insert`: returns the value the key had.
     #[inline]
-    pub fn insert(&mut self, key: K, value: V) -> Option<V> {
+    pub(crate) fn insert(&mut self, key: K, value: V) -> Option<V> {
         match self.table.entry(
             key.packed_hash(),
             |slot| ({ slot.key }) == key,
@@ -102,19 +102,19 @@ impl<K: PackedKey, V: Copy> PackedMap<K, V> {
         }
     }
 
-    pub fn len(&self) -> usize {
+    pub(crate) fn len(&self) -> usize {
         self.table.len()
     }
 
-    pub fn is_empty(&self) -> bool {
+    pub(crate) fn is_empty(&self) -> bool {
         self.table.is_empty()
     }
 
-    pub fn capacity(&self) -> usize {
+    pub(crate) fn capacity(&self) -> usize {
         self.table.capacity()
     }
 
-    pub fn clear(&mut self) {
+    pub(crate) fn clear(&mut self) {
         self.table.clear();
     }
 
@@ -138,7 +138,7 @@ impl<K: 'static, V: 'static> Default for GoPackedMap<K, V> {
 
 impl<K: PackedKey + 'static, V: Copy + 'static> GoPackedMap<K, V> {
     /// Go `m = make(map[K]V)`.
-    pub fn make(&self) {
+    pub(crate) fn make(&self) {
         // As `GoMap::make`: the table lives where the map field does (emit scratch regions).
         let scratch = tsrs_core::arena::scratch_contains(std::ptr::from_ref::<Self>(self) as usize);
         self.0.set(Some(P::new_in(scratch, RefCell::new(PackedMap::default()))));
@@ -150,13 +150,13 @@ impl<K: PackedKey + 'static, V: Copy + 'static> GoPackedMap<K, V> {
 
     /// Go `v, ok := m[k]` (reading a nil map is allowed).
     #[inline]
-    pub fn get(&self, key: &K) -> Option<V> {
+    pub(crate) fn get(&self, key: &K) -> Option<V> {
         let m = self.0.get()?;
         tsrs_core::sharedgraph::with_ref(&m, |m| m.get(key))
     }
 
     /// Go `m[k] = v`. Creates the map if it is nil, as `GoMap::set` does.
-    pub fn set(&self, key: K, value: V) {
+    pub(crate) fn set(&self, key: K, value: V) {
         let m = match self.0.get() {
             Some(m) if tsrs_core::sharedgraph::frozen(m.get()) => {
                 // Shared graph: this checker's copy of a frozen table.
@@ -210,7 +210,7 @@ impl StringLiteralTypes {
     }
 
     #[inline]
-    pub fn get(&self, value: &str) -> Option<P<Type>> {
+    pub(crate) fn get(&self, value: &str) -> Option<P<Type>> {
         let h = Self::hash(value);
         match self.table.find(h, |&t| Self::value_of(t) == value) {
             Some(&t) => Some(t),
@@ -225,12 +225,12 @@ impl StringLiteralTypes {
 
     /// Shared graph: an empty table that reads through to `self` (frozen).
     #[must_use]
-    pub fn fork(&'static self) -> Self {
+    pub(crate) fn fork(&'static self) -> Self {
         StringLiteralTypes { table: hashbrown::HashTable::new(), base: Some(self) }
     }
 
     /// Adds a string literal type whose value is not in the table yet.
-    pub fn insert_new(&mut self, t: P<Type>) {
+    pub(crate) fn insert_new(&mut self, t: P<Type>) {
         let value = Self::value_of(t);
         debug_assert!(self.get(value).is_none());
         self.table.insert_unique(Self::hash(value), t, |&t| Self::hash(Self::value_of(t)));

@@ -73,7 +73,7 @@ pub struct SplitConfig {
         clippy::option_option,
         reason = "Distinguishes disabled statistics, stderr output, and output to a file."
     )]
-    pub(crate) stats: Option<Option<String>>,
+    stats: Option<Option<String>>,
 }
 
 pub fn split_config() -> &'static SplitConfig {
@@ -174,7 +174,7 @@ const DONE: u8 = 2;
 // One file checked in pieces during one pass.
 pub struct SplitFile {
     pub(crate) file: P<SourceFile>,
-    pub(crate) pieces: Vec<Range<usize>>,
+    pieces: Vec<Range<usize>>,
     // Per piece: NOT_STARTED, RUNNING, DONE. Piece 0 is the owner's and never queued.
     states: Vec<AtomicU8>,
     // The diagnostics and suggestions of each finished piece, with the piece and whether another checker ran it.
@@ -353,7 +353,7 @@ impl SplitFile {
     }
 
     // (pieces, pieces another checker ran), after the pass.
-    pub(crate) fn piece_counts(&self) -> (usize, usize) {
+    fn piece_counts(&self) -> (usize, usize) {
         (self.pieces.len(), self.results.lock().unwrap().iter().filter(|r| r.by_other).count())
     }
 

@@ -12,13 +12,13 @@ use crate::message::{
 };
 use crate::protocol::{ProtocolReader, ProtocolWriter};
 
-pub const ERR_INVALID_HEADER: &str = "jsonrpc: invalid header";
-pub const ERR_INVALID_CONTENT_LENGTH: &str = "jsonrpc: invalid content length";
-pub const ERR_NO_CONTENT_LENGTH: &str = "jsonrpc: no content length";
+const ERR_INVALID_HEADER: &str = "jsonrpc: invalid header";
+const ERR_INVALID_CONTENT_LENGTH: &str = "jsonrpc: invalid content length";
+const ERR_NO_CONTENT_LENGTH: &str = "jsonrpc: no content length";
 
 /// Upper bound on one header line. Go's bufio `ReadBytes` is unbounded; a header line is never legitimately
 /// this long, so longer lines are rejected instead of buffered forever.
-pub const MAX_HEADER_LINE_BYTES: usize = 8 * 1024;
+const MAX_HEADER_LINE_BYTES: usize = 8 * 1024;
 
 /// baseproto.go Reader.
 pub struct FrameReader<R: Read> {
@@ -194,14 +194,14 @@ impl<W: Write> FrameWriter<W> {
 }
 
 /// Validates that `bytes` is exactly one JSON value, as json.Marshal of a json.Value does.
-pub fn validate_json(bytes: &[u8]) -> Result<&str, String> {
+pub(crate) fn validate_json(bytes: &[u8]) -> Result<&str, String> {
     let s = tsrs_core::utf8::compat::from_utf8(bytes)
         .map_err(|e| format!("invalid UTF-8 in JSON result: {e}"))?;
     serde_json::from_str::<&RawValue>(s).map_err(|e| format!("invalid JSON result: {e}"))?;
     Ok(s.trim_matches(|c: char| c == ' ' || c == '\t' || c == '\n' || c == '\r'))
 }
 
-pub fn encode_request(
+fn encode_request(
     id: Option<&Id>,
     method: &str,
     params: Option<&[u8]>,
@@ -222,7 +222,7 @@ pub fn encode_request(
     Ok(out.into_bytes())
 }
 
-pub fn encode_response(id: &Id, result: &Response) -> Result<Vec<u8>, TransportError> {
+fn encode_response(id: &Id, result: &Response) -> Result<Vec<u8>, TransportError> {
     let mut out = String::from("{\"jsonrpc\":\"2.0\",\"id\":");
     out.push_str(&id.to_json());
     out.push_str(",\"result\":");
@@ -244,7 +244,7 @@ pub fn encode_response(id: &Id, result: &Response) -> Result<Vec<u8>, TransportE
     Ok(out.into_bytes())
 }
 
-pub fn encode_error(id: &Id, err: &ResponseError) -> Vec<u8> {
+fn encode_error(id: &Id, err: &ResponseError) -> Vec<u8> {
     let mut out = String::from("{\"jsonrpc\":\"2.0\",\"id\":");
     out.push_str(&id.to_json());
     out.push_str(",\"error\":{\"code\":");

@@ -12,7 +12,7 @@ use tsrs_core::P;
 
 /// Go `PseudoChecker`, handled as `P<PseudoChecker>` (immutable; methods take `&self`).
 pub struct PseudoChecker {
-    pub strict_null_checks: bool,
+    pub(crate) strict_null_checks: bool,
     pub exact_optional_property_types: bool,
 }
 

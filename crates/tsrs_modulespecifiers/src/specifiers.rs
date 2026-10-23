@@ -38,7 +38,7 @@ pub fn get_module_specifiers(
 }
 
 // specifiers.go:41
-pub fn get_module_specifiers_with_info(
+fn get_module_specifiers_with_info(
     module_symbol: P<Symbol>,
     checker: &mut dyn CheckerShape,
     compiler_options: &CompilerOptions,
@@ -122,7 +122,7 @@ pub fn get_module_specifiers_for_file_with_info(
 }
 
 // specifiers.go:112
-pub fn try_get_module_name_from_ambient_module(
+fn try_get_module_name_from_ambient_module(
     module_symbol: P<Symbol>,
     checker: &mut dyn CheckerShape,
 ) -> AmbientModuleInfo {
@@ -236,7 +236,7 @@ pub fn get_all_module_paths(
 }
 
 // specifiers.go:203
-pub fn get_all_module_paths_worker(
+fn get_all_module_paths_worker(
     info: &Info,
     imported_file_name: &str,
     host: &dyn ModuleSpecifierGenerationHost,
@@ -292,20 +292,20 @@ pub fn get_all_module_paths_worker(
 // containsIgnoredPath checks if a path contains patterns that should be ignored.
 // This is a local helper that duplicates tspath.ContainsIgnoredPath for performance.
 // specifiers.go:252
-pub fn contains_ignored_path(s: &str) -> bool {
+fn contains_ignored_path(s: &str) -> bool {
     s.contains("/node_modules/.") || s.contains("/.git") || s.contains(".#")
 }
 
 // ContainsNodeModules checks if a path contains the node_modules directory.
 // specifiers.go:259
-pub fn contains_node_modules(s: &str) -> bool {
+fn contains_node_modules(s: &str) -> bool {
     s.contains("/node_modules/")
 }
 
 // GetEachFileNameOfModule returns all possible file paths for a module, including symlink alternatives.
 // This function handles symlink resolution and provides multiple path options for module resolution.
 // specifiers.go:265
-pub fn get_each_file_name_of_module(
+fn get_each_file_name_of_module(
     importing_file_name: &str,
     imported_file_name: &str,
     host: &dyn ModuleSpecifierGenerationHost,
@@ -419,7 +419,7 @@ pub fn get_each_file_name_of_module(
 }
 
 // specifiers.go:364
-pub fn compute_module_specifiers(
+fn compute_module_specifiers(
     module_paths: &[ModulePath],
     compiler_options: &CompilerOptions,
     importing_source_file: P<SourceFile>,
@@ -585,7 +585,7 @@ pub fn compute_module_specifiers(
 }
 
 // specifiers.go:490
-pub fn get_local_module_specifier(
+fn get_local_module_specifier(
     module_file_name: &str,
     info: &Info,
     compiler_options: &CompilerOptions,
@@ -785,7 +785,7 @@ pub fn get_local_module_specifier(
 }
 
 // specifiers.go:641
-pub fn process_ending(
+fn process_ending(
     file_name: &str,
     allowed_endings: &[ModuleSpecifierEnding],
     options: &CompilerOptions,
@@ -873,7 +873,7 @@ pub fn process_ending(
 }
 
 // specifiers.go:712
-pub fn try_get_module_name_from_root_dirs(
+fn try_get_module_name_from_root_dirs(
     root_dirs: &[String],
     module_file_name: &str,
     source_directory: &str,
@@ -1026,7 +1026,7 @@ pub fn try_get_module_name_as_node_module(
 }
 
 // specifiers.go:837
-pub fn try_directory_with_package_json(
+fn try_directory_with_package_json(
     parts: NodeModulePathParts,
     package_base_root_index: Option<usize>,
     path_obj: &ModulePath,
@@ -1241,7 +1241,7 @@ pub fn try_directory_with_package_json(
 }
 
 // specifiers.go:981
-pub fn try_get_module_name_from_exports(
+fn try_get_module_name_from_exports(
     options: &CompilerOptions,
     host: &dyn ModuleSpecifierGenerationHost,
     target_file_path: &str,
@@ -1299,7 +1299,7 @@ pub fn try_get_module_name_from_exports(
 }
 
 // specifiers.go:1024
-pub fn try_get_module_name_from_package_json_imports(
+fn try_get_module_name_from_package_json_imports(
     module_file_name: &str,
     source_directory: &str,
     options: &CompilerOptions,
@@ -1380,7 +1380,7 @@ fn cut<'a>(s: &'a str, sep: &str) -> (&'a str, &'a str, bool) {
 }
 
 // specifiers.go:1094
-pub fn try_get_module_name_from_paths(
+fn try_get_module_name_from_paths(
     relative_to_base_url: &str,
     paths: &OrderedMap<String, impl PathSubstitutions>,
     allowed_endings: &[ModuleSpecifierEnding],
@@ -1484,7 +1484,7 @@ pub fn try_get_module_name_from_paths(
 }
 
 // specifiers.go:1193
-pub fn validate_ending(
+fn validate_ending(
     c: &SpecPair,
     relative_to_base_url: &str,
     compiler_options: &CompilerOptions,
@@ -1503,7 +1503,7 @@ pub fn validate_ending(
 }
 
 // specifiers.go:1204
-pub fn try_get_module_name_from_exports_or_imports(
+fn try_get_module_name_from_exports_or_imports(
     options: &CompilerOptions,
     host: &dyn ModuleSpecifierGenerationHost,
     target_file_path: &str,
@@ -1839,7 +1839,7 @@ pub fn update_module_specifier(
 
 // `importing_source_file`: !!! | FutureSourceFile. `old_import_specifier`: used only in updatingModuleSpecifier.
 // specifiers.go:1376
-pub fn get_module_specifier_with_preferences(
+fn get_module_specifier_with_preferences(
     compiler_options: &CompilerOptions,
     host: &dyn ModuleSpecifierGenerationHost,
     importing_source_file: P<SourceFile>,

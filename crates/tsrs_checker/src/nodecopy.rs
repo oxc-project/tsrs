@@ -78,7 +78,7 @@ impl NodeBuilderImpl {
     // walkNodeForExpandability walks a reused AST node tree, calling checkTypeExpandability
     // on each type reference, type predicate, or import type node.
     // Short-circuits once canIncreaseExpansionDepth is set.
-    pub(crate) fn walk_node_for_expandability(&self, c: &mut Checker, node: Option<P<Node>>) {
+    fn walk_node_for_expandability(&self, c: &mut Checker, node: Option<P<Node>>) {
         let Some(node) = node else {
             return;
         };
@@ -108,7 +108,7 @@ impl NodeBuilderImpl {
 
 impl RecoveryBoundary {
     // nodecopy.go:109
-    pub(crate) fn mark_error(&self, f: Option<Box<dyn FnOnce()>>) {
+    fn mark_error(&self, f: Option<Box<dyn FnOnce()>>) {
         self.had_error.set(true);
         if let Some(f) = f {
             self.deferred_reports.borrow_mut().push(f);
@@ -116,7 +116,7 @@ impl RecoveryBoundary {
     }
 
     // nodecopy.go:122
-    pub(crate) fn start_recovery_scope(&self) -> OriginalRecoveryScopeState {
+    fn start_recovery_scope(&self) -> OriginalRecoveryScopeState {
         let tracked_symbols_top = self.ctx.tracked_symbols.borrow().len();
         let unreported_errors_top = self.deferred_reports.borrow().len();
         OriginalRecoveryScopeState {
@@ -127,7 +127,7 @@ impl RecoveryBoundary {
     }
 
     // nodecopy.go:128
-    pub(crate) fn end_recovery_scope(&self, state: OriginalRecoveryScopeState) {
+    fn end_recovery_scope(&self, state: OriginalRecoveryScopeState) {
         self.had_error.set(state.had_error);
         self.ctx.tracked_symbols.borrow_mut().truncate(state.tracked_symbols_top);
         self.deferred_reports.borrow_mut().truncate(state.unreported_errors_top);
@@ -136,17 +136,17 @@ impl RecoveryBoundary {
 
 impl WrappingTracker {
     // nodecopy.go:139
-    pub fn pop_error_fallback_node(&self) {
+    pub(crate) fn pop_error_fallback_node(&self) {
         self.wrapped.pop_error_fallback_node();
     }
 
     // nodecopy.go:143
-    pub fn push_error_fallback_node(&self, node: Option<P<Node>>) {
+    pub(crate) fn push_error_fallback_node(&self, node: Option<P<Node>>) {
         self.wrapped.push_error_fallback_node(node);
     }
 
     // nodecopy.go:147
-    pub fn report_cyclic_structure_error(&self) {
+    pub(crate) fn report_cyclic_structure_error(&self) {
         let wrapped = self.wrapped;
         self.bound.mark_error(Some(Box::new(move || {
             wrapped.report_cyclic_structure_error();
@@ -154,7 +154,7 @@ impl WrappingTracker {
     }
 
     // nodecopy.go:151
-    pub fn report_inaccessible_this_error(&self) {
+    pub(crate) fn report_inaccessible_this_error(&self) {
         let wrapped = self.wrapped;
         self.bound.mark_error(Some(Box::new(move || {
             wrapped.report_inaccessible_this_error();
@@ -162,7 +162,7 @@ impl WrappingTracker {
     }
 
     // nodecopy.go:155
-    pub fn report_inaccessible_unique_symbol_error(&self) {
+    pub(crate) fn report_inaccessible_unique_symbol_error(&self) {
         let wrapped = self.wrapped;
         self.bound.mark_error(Some(Box::new(move || {
             wrapped.report_inaccessible_unique_symbol_error();
@@ -170,12 +170,16 @@ impl WrappingTracker {
     }
 
     // nodecopy.go:159
-    pub fn report_inference_fallback(&self, c: &mut Checker, node: P<Node>) {
+    pub(crate) fn report_inference_fallback(&self, c: &mut Checker, node: P<Node>) {
         self.wrapped.report_inference_fallback(c, node); // Should this also be deferred?
     }
 
     // nodecopy.go:163
-    pub fn report_likely_unsafe_import_required_error(&self, specifier: &str, symbol_name: &str) {
+    pub(crate) fn report_likely_unsafe_import_required_error(
+        &self,
+        specifier: &str,
+        symbol_name: &str,
+    ) {
         let wrapped = self.wrapped;
         let specifier = specifier.to_string();
         let symbol_name = symbol_name.to_string();
@@ -185,7 +189,7 @@ impl WrappingTracker {
     }
 
     // nodecopy.go:167
-    pub fn report_non_serializable_property(&self, property_name: &str) {
+    pub(crate) fn report_non_serializable_property(&self, property_name: &str) {
         let wrapped = self.wrapped;
         let property_name = property_name.to_string();
         self.bound.mark_error(Some(Box::new(move || {
@@ -194,7 +198,7 @@ impl WrappingTracker {
     }
 
     // nodecopy.go:171
-    pub fn report_nonlocal_augmentation(
+    pub(crate) fn report_nonlocal_augmentation(
         &self,
         containing_file: P<SourceFile>,
         parent_symbol: P<Symbol>,
@@ -208,7 +212,7 @@ impl WrappingTracker {
     }
 
     // nodecopy.go:175
-    pub fn report_private_in_base_of_class_expression(&self, property_name: &str) {
+    pub(crate) fn report_private_in_base_of_class_expression(&self, property_name: &str) {
         let wrapped = self.wrapped;
         let property_name = property_name.to_string();
         self.bound.mark_error(Some(Box::new(move || {
@@ -217,12 +221,12 @@ impl WrappingTracker {
     }
 
     // nodecopy.go:179
-    pub fn report_truncation_error(&self) {
+    pub(crate) fn report_truncation_error(&self) {
         self.wrapped.report_truncation_error(); // Should this also be deferred?
     }
 
     // nodecopy.go:183
-    pub fn track_symbol(
+    pub(crate) fn track_symbol(
         &self,
         _c: &mut Checker,
         symbol: P<Symbol>,
@@ -248,7 +252,7 @@ pub fn new_wrapping_tracker(
 
 impl NodeBuilderImpl {
     // nodecopy.go:195
-    pub(crate) fn create_recovery_boundary(&self, c: &Checker) -> P<RecoveryBoundary> {
+    fn create_recovery_boundary(&self, c: &Checker) -> P<RecoveryBoundary> {
         c.check_not_canceled();
         let ctx = self.ctx();
         let bound = P::new_scratch(RecoveryBoundary {
@@ -271,7 +275,7 @@ impl NodeBuilderImpl {
     }
 
     // nodecopy.go:204
-    pub(crate) fn finalize_boundary(&self, c: &mut Checker, bound: P<RecoveryBoundary>) -> bool {
+    fn finalize_boundary(&self, c: &mut Checker, bound: P<RecoveryBoundary>) -> bool {
         let _ = c;
         let ctx = self.ctx();
         ctx.tracker.set(bound.old_tracker);
@@ -318,7 +322,7 @@ impl NodeBuilderImpl {
     }
 
     // nodecopy.go:234
-    pub(crate) fn get_module_specifier_override(
+    fn get_module_specifier_override(
         &self,
         c: &mut Checker,
         parent: P<Node>,
@@ -378,12 +382,7 @@ impl NodeBuilderImpl {
     }
 
     // nodecopy.go:270
-    pub(crate) fn rewrite_module_specifier(
-        &self,
-        c: &mut Checker,
-        parent: P<Node>,
-        lit: P<Node>,
-    ) -> P<Node> {
+    fn rewrite_module_specifier(&self, c: &mut Checker, parent: P<Node>, lit: P<Node>) -> P<Node> {
         let mut new_name = self.get_module_specifier_override(c, parent, lit);
         if new_name.is_empty() {
             let Some(rewritten) = self.rewrite_content_mapped_module_specifier(c, lit.text())
@@ -401,10 +400,7 @@ impl NodeBuilderImpl {
     }
 
     // nodecopy.go:280
-    pub(crate) fn get_enclosing_declaration_ignoring_fake_scope(
-        &self,
-        c: &Checker,
-    ) -> Option<P<Node>> {
+    fn get_enclosing_declaration_ignoring_fake_scope(&self, c: &Checker) -> Option<P<Node>> {
         let _ = c;
         let mut enc = self.ctx().enclosing_declaration.get();
         while let Some(e) = enc {

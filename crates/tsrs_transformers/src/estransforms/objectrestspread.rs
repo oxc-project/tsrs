@@ -2,14 +2,14 @@ use crate::*;
 use tsrs_core::TextRange;
 
 // objectrestspread.go:10
-pub struct ObjectRestSpreadTransformer {
-    pub base: Transformer,
-    pub compiler_options: P<CompilerOptions>,
+struct ObjectRestSpreadTransformer {
+    base: Transformer,
+    compiler_options: P<CompilerOptions>,
 
     in_exported_variable_statement: Cell<bool>,
     expression_result_is_unused: Cell<bool>,
 
-    pub parameters_with_preceding_object_rest_or_spread: RefCell<Option<FxHashSet<P<Node>>>>,
+    parameters_with_preceding_object_rest_or_spread: RefCell<Option<FxHashSet<P<Node>>>>,
 }
 
 impl ObjectRestSpreadTransformer {

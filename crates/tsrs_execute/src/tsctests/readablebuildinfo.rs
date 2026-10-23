@@ -109,7 +109,7 @@ impl Readable<'_> {
 }
 
 // readablebuildinfo.go:375
-pub fn to_readable_file_emit_kind(file_emit_kind: FileEmitKind) -> String {
+fn to_readable_file_emit_kind(file_emit_kind: FileEmitKind) -> String {
     let mut builder = String::new();
     let mut add_flags = |flags: &str| {
         if !builder.is_empty() {

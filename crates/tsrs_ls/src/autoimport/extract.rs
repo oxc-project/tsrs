@@ -36,7 +36,7 @@ pub struct SymbolExtractor<'a> {
 
 // extract.go:29
 pub struct ExportExtractor<'a> {
-    pub(crate) symbol_extractor: SymbolExtractor<'a>,
+    symbol_extractor: SymbolExtractor<'a>,
     module_resolver: &'a DefaultResolver<'a>,
 }
 

@@ -33,7 +33,7 @@ fn file_uri(file_name: &str) -> tsrs_lsproto::DocumentUri {
 
 impl DocumentIdentifier {
     /// Go `ToURI`.
-    pub fn to_uri(&self, cwd: &str) -> tsrs_lsproto::DocumentUri {
+    fn to_uri(&self, cwd: &str) -> tsrs_lsproto::DocumentUri {
         match self {
             DocumentIdentifier::Uri(u) => tsrs_lsproto::DocumentUri(u.clone()),
             DocumentIdentifier::FileName(_) => file_uri(&self.to_absolute_file_name(cwd)),
@@ -42,7 +42,7 @@ impl DocumentIdentifier {
 }
 
 /// Go `NewProjectResponse`.
-pub fn project_response(p: &Project) -> Value {
+fn project_response(p: &Project) -> Value {
     let command_line = p.command_line.expect("project_response called with unloaded project");
     let config_file_name =
         (p.kind == tsrs_project::Kind::Configured).then(|| s(p.config_file_name().to_string()));
@@ -815,7 +815,7 @@ pub(crate) struct ScopedFs {
 
 impl ScopedFs {
     /// Wraps `inner` when the current thread serves a transport request; otherwise returns `inner`.
-    pub(crate) fn wrap(inner: Arc<dyn tsrs_vfs::FS>) -> Arc<dyn tsrs_vfs::FS> {
+    fn wrap(inner: Arc<dyn tsrs_vfs::FS>) -> Arc<dyn tsrs_vfs::FS> {
         match tsrs_api_transport::reentrancy::RequestScope::current() {
             Some(scope) => Arc::new(ScopedFs { inner, scope }),
             None => inner,

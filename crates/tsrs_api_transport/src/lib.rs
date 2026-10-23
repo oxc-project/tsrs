@@ -5,7 +5,7 @@
 //! `tsc/internal/api/{protocol_msgpack.go,callbackfs.go}`. See README.md in this crate for the
 //! contract with the API session and the known gaps.
 
-pub mod base64;
+mod base64;
 pub mod callbackfs;
 pub mod conn_async;
 pub mod conn_sync;

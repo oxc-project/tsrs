@@ -17,7 +17,7 @@ pub fn diff_ordered_maps<K: Hash + Eq, V: PartialEq>(
     diff_ordered_maps_func(m1, m2, |a, b| a == b, on_added, on_removed, on_modified);
 }
 
-pub fn diff_ordered_maps_func<K: Hash + Eq, V>(
+fn diff_ordered_maps_func<K: Hash + Eq, V>(
     m1: &OrderedMap<K, V>,
     m2: &OrderedMap<K, V>,
     mut equal_values: impl FnMut(&V, &V) -> bool,

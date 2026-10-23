@@ -36,8 +36,8 @@ pub struct FileChange {
 pub struct MockWatchBackend {
     // The mock keeps closed watches (Go: `Dirs`), so "is watched" checks the closed flag.
     dirs: Mutex<FxHashMap<String, MockWatch>>,
-    pub(crate) directory_exists: Box<dyn Fn(&str) -> bool + Send + Sync>,
-    pub(crate) use_case_sensitive_file_names: bool,
+    directory_exists: Box<dyn Fn(&str) -> bool + Send + Sync>,
+    use_case_sensitive_file_names: bool,
 }
 
 impl MockWatchBackend {
@@ -57,7 +57,7 @@ impl MockWatchBackend {
     }
 
     /// Go `SendEvents`.
-    pub(crate) fn send_events(&self, events: &[Event]) {
+    fn send_events(&self, events: &[Event]) {
         // Snapshot callbacks under the lock, then invoke outside the lock (a callback may re-enter the mock).
         let mut targets: Vec<(String, WatchCallback, Vec<Event>)> = Vec::new();
         {
@@ -101,7 +101,7 @@ impl MockWatchBackend {
 
     /// Go `SendOverflow`.
     #[expect(dead_code, reason = "Go's mock API; the replayed scenarios do not overflow")]
-    pub(crate) fn send_overflow(&self) {
+    fn send_overflow(&self) {
         let callbacks: Vec<WatchCallback> = self
             .dirs
             .lock()

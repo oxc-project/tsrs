@@ -47,7 +47,7 @@ pub struct CheckerRegistry {
 
 impl CheckerRegistry {
     #[cfg(test)]
-    pub fn new() -> CheckerRegistry {
+    pub(crate) fn new() -> CheckerRegistry {
         CheckerRegistry::default()
     }
 
@@ -81,7 +81,7 @@ impl CheckerRegistry {
     }
 
     #[cfg(test)]
-    pub fn is_released(&self) -> bool {
+    pub(crate) fn is_released(&self) -> bool {
         self.lock().released
     }
 

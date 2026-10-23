@@ -7,9 +7,9 @@ use crate::error::eof;
 // https://microsoft.github.io/language-server-protocol/specifications/base/0.9/specification/
 
 // baseproto.go:16
-pub const ERR_INVALID_HEADER: &str = "jsonrpc: invalid header";
-pub const ERR_INVALID_CONTENT_LENGTH: &str = "jsonrpc: invalid content length";
-pub const ERR_NO_CONTENT_LENGTH: &str = "jsonrpc: no content length";
+const ERR_INVALID_HEADER: &str = "jsonrpc: invalid header";
+const ERR_INVALID_CONTENT_LENGTH: &str = "jsonrpc: invalid content length";
+const ERR_NO_CONTENT_LENGTH: &str = "jsonrpc: no content length";
 
 // bufio.NewReader's and bufio.NewWriter's default size.
 const BUFFER_SIZE: usize = 4096;
@@ -34,7 +34,7 @@ pub fn new_reader<R: Read>(r: R) -> Reader<R> {
 impl<R: Read> Reader<R> {
     // baseproto.go:34
     // Read reads the next message payload.
-    pub fn read(&mut self) -> Result<Vec<u8>, Error> {
+    pub(crate) fn read(&mut self) -> Result<Vec<u8>, Error> {
         let mut content_length: i64 = 0;
 
         loop {
@@ -110,7 +110,7 @@ pub fn new_writer<W: Write>(w: W) -> Writer<W> {
 impl<W: Write> Writer<W> {
     // baseproto.go:91
     // Write writes a message payload with Content-Length header.
-    pub fn write(&mut self, data: &[u8]) -> Result<(), Error> {
+    pub(crate) fn write(&mut self, data: &[u8]) -> Result<(), Error> {
         if let Some(err) = &self.err {
             return Err(err.clone());
         }
@@ -154,6 +154,6 @@ fn parse_int(s: &[u8]) -> Result<i64, String> {
 // Go's `%q` of a byte slice (strconv.Quote): printable runes as they are, the usual backslash escapes, `\x` for
 // invalid UTF-8 and ASCII controls, `\u` / `\U` for other non-printable runes. Go's unicode.IsPrint is
 // approximated: controls, white space other than ' ', and the format characters a header is likely to contain.
-pub fn go_quote(b: &[u8]) -> String {
+fn go_quote(b: &[u8]) -> String {
     tsrs_core::gocompat::quote(b, tsrs_core::gocompat::QuoteStyle::Header)
 }

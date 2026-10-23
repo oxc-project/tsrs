@@ -78,7 +78,7 @@ pub struct RefInfo {
 // findallreferences.go:55
 #[derive(Clone)]
 pub struct SymbolAndEntries {
-    pub(crate) definition: Option<Definition>,
+    definition: Option<Definition>,
     pub(crate) references: Vec<Rc<ReferenceEntry>>,
 }
 
@@ -109,17 +109,17 @@ pub enum DefinitionKind {
 // findallreferences.go:82
 #[derive(Clone, Copy)]
 pub struct Definition {
-    pub kind: DefinitionKind,
-    pub(crate) symbol: Option<P<Symbol>>,
-    pub(crate) node: Option<P<Node>>,
-    pub(crate) triple_slash_file_ref: Option<TripleSlashDefinition>,
+    kind: DefinitionKind,
+    symbol: Option<P<Symbol>>,
+    node: Option<P<Node>>,
+    triple_slash_file_ref: Option<TripleSlashDefinition>,
 }
 
 // findallreferences.go:88
 #[derive(Clone, Copy)]
 pub struct TripleSlashDefinition {
-    pub(crate) reference: Option<P<FileReference>>,
-    pub(crate) file: Option<P<SourceFile>>,
+    reference: Option<P<FileReference>>,
+    file: Option<P<SourceFile>>,
 }
 
 // findallreferences.go:93
@@ -139,19 +139,15 @@ pub enum EntryKind {
 pub struct ReferenceEntry {
     pub(crate) kind: EntryKind,
     pub(crate) node: Option<P<Node>>,
-    pub(crate) context: Option<P<Node>>, // !!! ContextWithStartAndEndNode, optional
+    context: Option<P<Node>>, // !!! ContextWithStartAndEndNode, optional
     pub(crate) source_file: Cell<Option<P<SourceFile>>>,
     pub(crate) text_range: Cell<Option<TextRange>>,
-    pub(crate) lsp_range: RefCell<Option<lsproto::Location>>,
-    pub(crate) unmappable: Cell<bool>,
+    lsp_range: RefCell<Option<lsproto::Location>>,
+    unmappable: Cell<bool>,
 }
 
 impl ReferenceEntry {
-    pub(crate) fn new(
-        kind: EntryKind,
-        node: Option<P<Node>>,
-        context: Option<P<Node>>,
-    ) -> ReferenceEntry {
+    fn new(kind: EntryKind, node: Option<P<Node>>, context: Option<P<Node>>) -> ReferenceEntry {
         ReferenceEntry {
             kind,
             node,
@@ -171,7 +167,7 @@ impl ReferenceEntry {
 
     // IsNodeEntry returns true if this is a node-backed reference entry.
     // findallreferences.go:120
-    pub fn is_node_entry(&self) -> bool {
+    fn is_node_entry(&self) -> bool {
         self.node.is_some()
     }
 
@@ -208,7 +204,7 @@ impl SymbolAndEntries {
     }
 
     // findallreferences.go:150
-    pub(crate) fn can_use_definition_symbol(&self) -> bool {
+    fn can_use_definition_symbol(&self) -> bool {
         let Some(definition) = &self.definition else {
             return false;
         };
@@ -245,7 +241,7 @@ impl LanguageService {
     }
 
     // findallreferences.go:181
-    pub(crate) fn get_location_of_entry_for_feature(
+    fn get_location_of_entry_for_feature(
         &self,
         entry: &ReferenceEntry,
         feature: Feature,
@@ -260,7 +256,7 @@ impl LanguageService {
     }
 
     // findallreferences.go:187
-    pub(crate) fn resolve_entry_source(entry: &ReferenceEntry) {
+    fn resolve_entry_source(entry: &ReferenceEntry) {
         if entry.source_file.get().is_none() {
             assert!(entry.node.is_some(), "reference entry must have a node or source file");
             entry.source_file.set(ast::get_source_file_of_node(entry.node.unwrap()));
@@ -860,9 +856,9 @@ pub struct SymbolEntryTransformOptions {
 // findallreferences.go:638
 #[derive(Clone, Default)]
 pub struct SymbolAndEntriesData {
-    pub original_node: Option<P<Node>>,
-    pub symbols_and_entries: Vec<SymbolAndEntries>,
-    pub position: u32,
+    pub(crate) original_node: Option<P<Node>>,
+    pub(crate) symbols_and_entries: Vec<SymbolAndEntries>,
+    position: u32,
 }
 
 impl LanguageService {
@@ -1002,7 +998,7 @@ impl LanguageService {
     }
 
     // findallreferences.go:726
-    pub(crate) fn get_symbol_and_entries(
+    fn get_symbol_and_entries(
         &self,
         ctx: &Context,
         position: u32,
@@ -1098,7 +1094,7 @@ impl LanguageService {
         clippy::unnecessary_wraps,
         reason = "Language service operations share the fallible response signature used by LSP and cross-project dispatch."
     )]
-    pub(crate) fn symbol_and_entries_to_references(
+    fn symbol_and_entries_to_references(
         &self,
         _ctx: &Context,
         params: &lsproto::ReferenceParams,
@@ -1124,7 +1120,7 @@ impl LanguageService {
         clippy::unnecessary_wraps,
         reason = "Language service operations share the fallible response signature used by LSP and cross-project dispatch."
     )]
-    pub(crate) fn symbol_and_entries_to_vs_references(
+    fn symbol_and_entries_to_vs_references(
         &self,
         ctx: &Context,
         _params: &lsproto::ReferenceParams,
@@ -1212,8 +1208,8 @@ impl LanguageService {
 // referencedSymbolDefinitionInfo holds the computed info for a definition
 // findallreferences.go:866 (Go's node field is never read)
 pub struct ReferencedSymbolDefinitionInfo {
-    pub(crate) location: lsproto::Location,
-    pub(crate) display_text: Option<lsproto::VSClassifiedTextElement>,
+    location: lsproto::Location,
+    display_text: Option<lsproto::VSClassifiedTextElement>,
 }
 
 fn single_run(
@@ -1233,7 +1229,7 @@ fn single_run(
 impl LanguageService {
     // definitionToReferencedSymbolDefinitionInfo converts a Definition to display info
     // findallreferences.go:873
-    pub(crate) fn definition_to_referenced_symbol_definition_info(
+    fn definition_to_referenced_symbol_definition_info(
         &self,
         ctx: &Context,
         def: &Definition,
@@ -1340,7 +1336,7 @@ impl LanguageService {
 
     // getDefinitionKindAndDisplayParts returns the classified display text for a symbol definition.
     // findallreferences.go:997
-    pub(crate) fn get_definition_kind_and_display_parts(
+    fn get_definition_kind_and_display_parts(
         &self,
         ctx: &Context,
         symbol: P<Symbol>,
@@ -1393,7 +1389,7 @@ impl LanguageService {
     }
 
     // findallreferences.go:1020
-    pub(crate) fn provide_implementations_ex(
+    fn provide_implementations_ex(
         &self,
         ctx: &Context,
         params: &lsproto::ImplementationParams,
@@ -1440,7 +1436,7 @@ impl LanguageService {
         clippy::unnecessary_wraps,
         reason = "Language service operations share the fallible response signature used by LSP and cross-project dispatch."
     )]
-    pub(crate) fn symbol_and_entries_to_implementations(
+    fn symbol_and_entries_to_implementations(
         &self,
         ctx: &Context,
         _params: &lsproto::ImplementationParams,
@@ -1479,7 +1475,7 @@ impl LanguageService {
 
     // == functions for conversions ==
     // findallreferences.go:1068
-    pub(crate) fn convert_symbol_and_entries_to_locations(
+    fn convert_symbol_and_entries_to_locations(
         &self,
         s: &SymbolAndEntries,
         include_declarations: bool,
@@ -1529,7 +1525,7 @@ pub fn is_declaration_of_symbol(node: Option<P<Node>>, target: Option<P<Symbol>>
 
 impl LanguageService {
     // findallreferences.go:1105
-    pub(crate) fn convert_entries_to_locations(
+    fn convert_entries_to_locations(
         &self,
         entries: &[Rc<ReferenceEntry>],
         feature: Feature,
@@ -1544,7 +1540,7 @@ impl LanguageService {
     }
 
     // findallreferences.go:1116
-    pub(crate) fn convert_entries_to_location_links(
+    fn convert_entries_to_location_links(
         &self,
         entries: &[Rc<ReferenceEntry>],
         feature: Feature,
@@ -1591,7 +1587,7 @@ impl LanguageService {
 
     // Go's variadic `referencesToMerge ...[]*SymbolAndEntries` is a Vec of groups.
     // findallreferences.go:1149
-    pub(crate) fn merge_references(
+    fn merge_references(
         &self,
         program: &'static Program,
         references_to_merge: Vec<Vec<SymbolAndEntries>>,
@@ -1916,7 +1912,7 @@ impl LanguageService {
     }
 
     // findallreferences.go:1354
-    pub(crate) fn get_references_for_string_literal(
+    fn get_references_for_string_literal(
         ctx: &Context,
         node: P<Node>, /*StringLiteralLike*/
         source_files: &[P<SourceFile>],
@@ -1988,7 +1984,7 @@ pub fn is_string_literal_property_reference(
 impl LanguageService {
     // Go returns nil (no module references) or a slice; `None` is Go's nil.
     // findallreferences.go:1401
-    pub(crate) fn get_referenced_symbols_for_module_if_declared_by_source_file(
+    fn get_referenced_symbols_for_module_if_declared_by_source_file(
         &self,
         ctx: &Context,
         symbol: Option<P<Symbol>>,
@@ -2539,7 +2535,7 @@ pub fn get_merged_aliased_symbol_of_namespace_export_declaration(
 
 impl LanguageService {
     // findallreferences.go:1735
-    pub(crate) fn get_referenced_symbols_for_module(
+    fn get_referenced_symbols_for_module(
         checker: &mut Checker,
         program: &'static Program,
         symbol: P<Symbol>,
@@ -2790,23 +2786,23 @@ pub fn get_referenced_symbols_for_symbol(
 // findallreferences.go:1885
 pub struct RefSearch {
     // If coming from an export, we will not recursively search for the imported symbol (since that's where we came from).
-    pub(crate) coming_from: ImpExpKind, // import, export
+    coming_from: ImpExpKind, // import, export
 
-    pub(crate) symbol: P<Symbol>,
-    pub(crate) text: String,
-    pub(crate) escaped_text: String,
+    symbol: P<Symbol>,
+    text: String,
+    escaped_text: String,
 
     // Only set if `options.implementations` is true. These are the symbols checked to get the implementations of a property access.
-    pub(crate) parents: Vec<P<Symbol>>,
+    parents: Vec<P<Symbol>>,
 
-    pub(crate) all_search_symbols: Vec<P<Symbol>>,
+    all_search_symbols: Vec<P<Symbol>>,
 }
 
 impl RefSearch {
     // Whether a symbol is in the search set.
     // Do not compare directly to `symbol` because there may be related symbols to search for. See `populateSearchSymbolSet`.
     // (Go: the `includes` closure built by createSearch.)
-    pub(crate) fn includes(&self, sym: Option<P<Symbol>>) -> bool {
+    fn includes(&self, sym: Option<P<Symbol>>) -> bool {
         sym.is_some_and(|sym| self.all_search_symbols.contains(&sym))
     }
 }
@@ -2820,22 +2816,22 @@ pub struct InheritKey {
 
 // findallreferences.go:1908
 pub struct RefState<'a> {
-    pub(crate) source_files: &'a [P<SourceFile>],
-    pub(crate) source_files_set: &'a Set<String>,
-    pub(crate) special_search_kind: &'static str, // "none", "constructor", or "class"
-    pub(crate) checker: &'a mut Checker,
-    pub(crate) ctx: &'a Context,
-    pub(crate) program: &'static Program,
-    pub(crate) search_meaning: SemanticMeaning,
-    pub(crate) options: RefOptions,
-    pub(crate) result: Vec<SymbolAndEntries>,
-    pub(crate) inherits_from_cache: FxHashMap<InheritKey, bool>,
-    pub(crate) seen_containing_type_references: FxHashSet<P<Node>>, // node seen tracker
-    pub(crate) seen_re_export_rhs: FxHashSet<P<Node>>,              // node seen tracker
-    pub(crate) import_tracker: Option<ImportTracker<'a>>,
+    source_files: &'a [P<SourceFile>],
+    source_files_set: &'a Set<String>,
+    special_search_kind: &'static str, // "none", "constructor", or "class"
+    checker: &'a mut Checker,
+    ctx: &'a Context,
+    program: &'static Program,
+    search_meaning: SemanticMeaning,
+    options: RefOptions,
+    result: Vec<SymbolAndEntries>,
+    inherits_from_cache: FxHashMap<InheritKey, bool>,
+    seen_containing_type_references: FxHashSet<P<Node>>, // node seen tracker
+    seen_re_export_rhs: FxHashSet<P<Node>>,              // node seen tracker
+    import_tracker: Option<ImportTracker<'a>>,
     // Go maps a symbol to its `*SymbolAndEntries` in `result`; the port keeps the index into `result`.
-    pub(crate) symbol_to_references: FxHashMap<P<Symbol>, usize>,
-    pub(crate) source_file_to_seen_symbols: FxHashMap<P<SourceFile>, FxHashSet<P<Symbol>>>,
+    symbol_to_references: FxHashMap<P<Symbol>, usize>,
+    source_file_to_seen_symbols: FxHashMap<P<SourceFile>, FxHashSet<P<Symbol>>>,
 }
 
 // findallreferences.go:1926
@@ -2870,12 +2866,12 @@ pub fn new_state<'a>(
 
 impl RefState<'_> {
     // findallreferences.go:1942
-    pub(crate) fn includes_source_file(&self, source_file: P<SourceFile>) -> bool {
+    fn includes_source_file(&self, source_file: P<SourceFile>) -> bool {
         self.source_files_set.has(&source_file.file_name().to_string())
     }
 
     // findallreferences.go:1946
-    pub(crate) fn get_import_searches(
+    fn get_import_searches(
         &mut self,
         export_symbol: P<Symbol>,
         export_info: ExportInfo,
@@ -2900,7 +2896,7 @@ impl RefState<'_> {
 
     // @param allSearchSymbols set of additional symbols for use by `includes`
     // findallreferences.go:1954
-    pub(crate) fn create_search(
+    fn create_search(
         &mut self,
         location: Option<P<Node>>,
         symbol: P<Symbol>,
@@ -2949,7 +2945,7 @@ impl RefState<'_> {
     // Go returns a closure that appends to the group; the port returns the group's index in `result`
     // (see `add_to_group`).
     // findallreferences.go:1991
-    pub(crate) fn reference_adder(&mut self, search_symbol: P<Symbol>) -> usize {
+    fn reference_adder(&mut self, search_symbol: P<Symbol>) -> usize {
         *self.symbol_to_references.entry(search_symbol).or_insert_with(|| {
             let symbol_and_entries = new_symbol_and_entries(
                 DefinitionKind::Symbol,
@@ -2967,12 +2963,7 @@ impl RefState<'_> {
     }
 
     // findallreferences.go:2003
-    pub(crate) fn add_reference(
-        &mut self,
-        reference_location: P<Node>,
-        symbol: P<Symbol>,
-        kind: EntryKind,
-    ) {
+    fn add_reference(&mut self, reference_location: P<Node>, symbol: P<Symbol>, kind: EntryKind) {
         // if rename symbol from default export anonymous function, for example `export default function() {}`, we do not need to add reference
         if self.options.use_ == ReferenceUse::Rename
             && reference_location.kind() == Kind::DefaultKeyword
@@ -3120,7 +3111,7 @@ pub fn for_each_descendant_of_kind(node: P<Node>, kind: Kind, action: &mut dyn F
 
 impl RefState<'_> {
     // findallreferences.go:2110
-    pub(crate) fn add_implementation_references(
+    fn add_implementation_references(
         &mut self,
         ref_node: P<Node>,
         add_ref: &mut dyn FnMut(P<Node>),
@@ -3201,11 +3192,7 @@ impl RefState<'_> {
     }
 
     // findallreferences.go:2170
-    pub(crate) fn get_references_in_container_or_files(
-        &mut self,
-        symbol: P<Symbol>,
-        search: &RefSearch,
-    ) {
+    fn get_references_in_container_or_files(&mut self, symbol: P<Symbol>, search: &RefSearch) {
         // Try to get the smallest valid scope that we can limit our search to;
         // otherwise we'll need to search globally (i.e. include each file).
         if let Some(scope) = get_symbol_scope(symbol) {
@@ -3227,7 +3214,7 @@ impl RefState<'_> {
     }
 
     // findallreferences.go:2185
-    pub(crate) fn get_references_in_source_file(
+    fn get_references_in_source_file(
         &mut self,
         source_file: P<SourceFile>,
         search: &RefSearch,
@@ -3243,7 +3230,7 @@ impl RefState<'_> {
     }
 
     // findallreferences.go:2190
-    pub(crate) fn get_references_in_container(
+    fn get_references_in_container(
         &mut self,
         container: P<Node>,
         source_file: P<SourceFile>,
@@ -3265,11 +3252,7 @@ impl RefState<'_> {
     }
 
     // findallreferences.go:2203
-    pub(crate) fn mark_searched_symbols(
-        &mut self,
-        source_file: P<SourceFile>,
-        symbols: &[P<Symbol>],
-    ) -> bool {
+    fn mark_searched_symbols(&mut self, source_file: P<SourceFile>, symbols: &[P<Symbol>]) -> bool {
         let seen_symbols = self.source_file_to_seen_symbols.entry(source_file).or_default();
         let mut any_new_symbols = false;
         any_new_symbols = symbols.iter().fold(any_new_symbols, |mut any_new_symbols, &sym| {
@@ -3283,7 +3266,7 @@ impl RefState<'_> {
     }
 
     // findallreferences.go:2218
-    pub(crate) fn get_references_at_location(
+    fn get_references_at_location(
         &mut self,
         source_file: P<SourceFile>,
         position: u32,
@@ -3386,7 +3369,7 @@ impl RefState<'_> {
     }
 
     // findallreferences.go:2289
-    pub(crate) fn add_constructor_references(
+    fn add_constructor_references(
         &mut self,
         reference_location: P<Node>,
         symbol: P<Symbol>,
@@ -3422,7 +3405,7 @@ impl RefState<'_> {
     }
 
     // findallreferences.go:2315
-    pub(crate) fn add_class_static_this_references(
+    fn add_class_static_this_references(
         &mut self,
         reference_location: P<Node>,
         symbol: P<Symbol>,
@@ -3466,7 +3449,7 @@ impl RefState<'_> {
     }
 
     // findallreferences.go:2352
-    pub(crate) fn find_inherited_constructor_references(
+    fn find_inherited_constructor_references(
         &mut self,
         class_declaration: P<Node>, /*ClassLikeDeclaration*/
     ) {
@@ -3479,7 +3462,7 @@ impl RefState<'_> {
     }
 
     // findallreferences.go:2361
-    pub(crate) fn get_import_or_export_references(
+    fn get_import_or_export_references(
         &mut self,
         reference_location: P<Node>,
         reference_symbol: P<Symbol>,
@@ -3508,12 +3491,12 @@ impl RefState<'_> {
     }
 
     // findallreferences.go:2375
-    pub(crate) fn mark_seen_re_export_rhs(&mut self, node: P<Node>) -> bool {
+    fn mark_seen_re_export_rhs(&mut self, node: P<Node>) -> bool {
         self.seen_re_export_rhs.insert(node)
     }
 
     // findallreferences.go:2379
-    pub(crate) fn get_references_at_export_specifier(
+    fn get_references_at_export_specifier(
         &mut self,
         reference_location: P<Node>,
         reference_symbol: Option<P<Symbol>>,
@@ -3613,7 +3596,7 @@ impl RefState<'_> {
 
     // Go to the symbol we imported from and find references for it.
     // findallreferences.go:2452
-    pub(crate) fn search_for_imported_symbol(&mut self, symbol: P<Symbol>) {
+    fn search_for_imported_symbol(&mut self, symbol: P<Symbol>) {
         for &declaration in symbol.declarations() {
             let exporting_file = ast::get_source_file_of_node(declaration).unwrap();
             // Need to search in the file even if it's not in the search-file set, because it might export the symbol.
@@ -3626,7 +3609,7 @@ impl RefState<'_> {
 
     // Search for all imports of a given exported symbol using `State.getImportSearches`. */
     // findallreferences.go:2461
-    pub(crate) fn search_for_imports_of_export(
+    fn search_for_imports_of_export(
         &mut self,
         export_location: P<Node>,
         export_symbol: P<Symbol>,
@@ -3695,7 +3678,7 @@ impl RefState<'_> {
     }
 
     // findallreferences.go:2498
-    pub(crate) fn should_add_single_reference(&self, single_ref: P<Node>) -> bool {
+    fn should_add_single_reference(&self, single_ref: P<Node>) -> bool {
         if !self.has_matching_meaning(single_ref) {
             return false;
         }
@@ -3714,12 +3697,12 @@ impl RefState<'_> {
     }
 
     // findallreferences.go:2513
-    pub(crate) fn has_matching_meaning(&self, reference_location: P<Node>) -> bool {
+    fn has_matching_meaning(&self, reference_location: P<Node>) -> bool {
         get_meaning_from_location(reference_location).intersects(self.search_meaning)
     }
 
     // findallreferences.go:2517
-    pub(crate) fn get_reference_for_shorthand_property(
+    fn get_reference_for_shorthand_property(
         &mut self,
         reference_symbol: P<Symbol>,
         search: &RefSearch,
@@ -3748,7 +3731,7 @@ impl RefState<'_> {
 
     // === search ===
     // findallreferences.go:2535
-    pub(crate) fn populate_search_symbol_set(
+    fn populate_search_symbol_set(
         &mut self,
         symbol: P<Symbol>,
         location: Option<P<Node>>,
@@ -3782,7 +3765,7 @@ impl RefState<'_> {
     }
 
     // findallreferences.go:2560
-    pub(crate) fn get_related_symbol(
+    fn get_related_symbol(
         &mut self,
         search: &RefSearch,
         reference_symbol: P<Symbol>,
@@ -3876,7 +3859,7 @@ impl RefState<'_> {
     }
 
     // findallreferences.go:2592
-    pub(crate) fn for_each_related_symbol(
+    fn for_each_related_symbol(
         &mut self,
         symbol: P<Symbol>,
         location: P<Node>,
@@ -4066,7 +4049,7 @@ impl RefState<'_> {
 
     // Search for all occurrences of an identifier in a source file (and filter out the ones that match).
     // findallreferences.go:2729
-    pub(crate) fn search_for_name(&mut self, source_file: P<SourceFile>, search: &RefSearch) {
+    fn search_for_name(&mut self, source_file: P<SourceFile>, search: &RefSearch) {
         if source_file.get_name_table().contains_key(search.escaped_text.as_str()) {
             self.get_references_in_source_file(
                 source_file,
@@ -4077,11 +4060,7 @@ impl RefState<'_> {
     }
 
     // findallreferences.go:2735
-    pub(crate) fn explicitly_inherits_from(
-        &mut self,
-        symbol: P<Symbol>,
-        parent: P<Symbol>,
-    ) -> bool {
+    fn explicitly_inherits_from(&mut self, symbol: P<Symbol>, parent: P<Symbol>) -> bool {
         if symbol == parent {
             return true;
         }

@@ -131,7 +131,7 @@ impl Checker {
     }
 
     // checker.go:13094
-    pub(crate) fn get_syntactic_truthy_semantics(&mut self, node: P<Node>) -> PredicateSemantics {
+    fn get_syntactic_truthy_semantics(&mut self, node: P<Node>) -> PredicateSemantics {
         let node = ast::skip_outer_expressions(node, OuterExpressionKinds::All);
         match node.kind() {
             Kind::NumericLiteral => {
@@ -223,7 +223,7 @@ impl Checker {
     }
 
     // checker.go:13144
-    pub(crate) fn check_nullish_coalesce_operand_left(&mut self, left: P<Node>) {
+    fn check_nullish_coalesce_operand_left(&mut self, left: P<Node>) {
         let left_target = ast::skip_outer_expressions(left, OuterExpressionKinds::All);
         let nullish_semantics = self.get_syntactic_nullishness_semantics(left_target);
         if nullish_semantics != PredicateSemantics::Sometimes {
@@ -236,10 +236,7 @@ impl Checker {
     }
 
     // checker.go:13156
-    pub(crate) fn get_syntactic_nullishness_semantics(
-        &mut self,
-        node: P<Node>,
-    ) -> PredicateSemantics {
+    fn get_syntactic_nullishness_semantics(&mut self, node: P<Node>) -> PredicateSemantics {
         let node = ast::skip_outer_expressions(node, OuterExpressionKinds::All);
         match node.kind() {
             Kind::AwaitExpression
@@ -493,7 +490,7 @@ impl Checker {
     }
 
     // checker.go:13319
-    pub(crate) fn has_empty_object_intersection(&mut self, t: P<Type>) -> bool {
+    fn has_empty_object_intersection(&mut self, t: P<Type>) -> bool {
         some_type(self, t, |c, t| {
             t == c.unknown_empty_object_type
                 || t.flags().intersects(TypeFlags::Intersection) && {
@@ -859,11 +856,7 @@ impl Checker {
     }
 
     // checker.go:13576
-    pub(crate) fn check_deprecated_property(
-        &mut self,
-        name: P<Node>,
-        contextual_type: Option<P<Type>>,
-    ) {
+    fn check_deprecated_property(&mut self, name: P<Node>, contextual_type: Option<P<Type>>) {
         let Some(contextual_type) = contextual_type else {
             return;
         };
@@ -1081,7 +1074,7 @@ impl Checker {
     }
 
     // checker.go:13715
-    pub(crate) fn get_index_info_with_readonly(info: P<IndexInfo>, readonly: bool) -> P<IndexInfo> {
+    fn get_index_info_with_readonly(info: P<IndexInfo>, readonly: bool) -> P<IndexInfo> {
         if info.is_readonly.get() != readonly {
             return Self::new_index_info(
                 info.key_type.get().unwrap(),
@@ -1136,7 +1129,7 @@ impl Checker {
     }
 
     // checker.go:13748
-    pub(crate) fn try_merge_union_of_object_type_and_empty_object(
+    fn try_merge_union_of_object_type_and_empty_object(
         &mut self,
         t: P<Type>,
         readonly: bool,
@@ -1211,7 +1204,7 @@ impl Checker {
 
     // We approximate own properties as non-methods plus methods that are inside the object literal
     // checker.go:13798
-    pub fn is_spreadable_property(prop: P<Symbol>) -> bool {
+    pub(crate) fn is_spreadable_property(prop: P<Symbol>) -> bool {
         let declarations = prop.declarations();
         !declarations.iter().any(|&d| ast::is_private_identifier_class_element_declaration(d))
             && !prop.flags().intersects(
@@ -1249,7 +1242,7 @@ impl Checker {
     }
 
     // checker.go:13822
-    pub(crate) fn is_empty_object_type_or_spreads_into_empty_object(&mut self, t: P<Type>) -> bool {
+    fn is_empty_object_type_or_spreads_into_empty_object(&mut self, t: P<Type>) -> bool {
         self.is_empty_object_type(t)
             || t.flags().intersects(
                 TypeFlags::Null
@@ -1314,7 +1307,7 @@ impl Checker {
     }
 
     // checker.go:13842
-    pub(crate) fn is_inline_import_attributes(node: P<Node>) -> bool {
+    fn is_inline_import_attributes(node: P<Node>) -> bool {
         if !ast::is_object_literal_expression(node)
             || !ast::is_property_assignment(node.parent().unwrap())
             || node.parent().unwrap().initializer() != Some(node)
@@ -1723,7 +1716,7 @@ impl Checker {
     }
 
     // checker.go:14064
-    pub(crate) fn is_readonly_assignment_declaration(&mut self, node: P<Node>) -> bool {
+    fn is_readonly_assignment_declaration(&mut self, node: P<Node>) -> bool {
         if !ast::is_call_expression(node) {
             return false;
         }
@@ -1750,7 +1743,7 @@ impl Checker {
     }
 
     // checker.go:14084
-    pub fn is_readonly_symbol(&mut self, symbol: P<Symbol>) -> bool {
+    pub(crate) fn is_readonly_symbol(&mut self, symbol: P<Symbol>) -> bool {
         // The following symbols are considered read-only:
         // Properties with a 'readonly' modifier
         // Variables declared with 'const'
@@ -1833,7 +1826,7 @@ impl Checker {
     }
 
     // checker.go:14125
-    pub fn get_resolved_symbol(&mut self, node: P<Node>) -> P<Symbol> {
+    pub(crate) fn get_resolved_symbol(&mut self, node: P<Node>) -> P<Symbol> {
         let links = self.symbol_node_links.get(node);
         if links.resolved_symbol.get().is_none() {
             let mut symbol: Option<P<Symbol>> = None;
@@ -1952,7 +1945,7 @@ impl Checker {
     // checker.go:14194
     // Go passes `&c.diagnostics` / `&c.suggestionDiagnostics`; the collections are plain Checker fields, so the
     // Rust port selects the collection with `suggestions` (true = `c.suggestionDiagnostics`).
-    pub(crate) fn get_diagnostics(
+    fn get_diagnostics(
         &mut self,
         ctx: &Context,
         source_file: P<SourceFile>,
@@ -2129,7 +2122,7 @@ impl Checker {
     }
 
     // checker.go:14289
-    pub fn is_deprecated_symbol(&mut self, symbol: P<Symbol>) -> bool {
+    pub(crate) fn is_deprecated_symbol(&mut self, symbol: P<Symbol>) -> bool {
         let parent_symbol = self.get_parent_of_symbol(symbol);
         let declarations = symbol.declarations();
         if let Some(parent_symbol) = parent_symbol
@@ -2354,7 +2347,7 @@ impl Checker {
     }
 
     // checker.go:14436
-    pub(crate) fn report_merge_symbol_error(&mut self, target: P<Symbol>, source: P<Symbol>) {
+    fn report_merge_symbol_error(&mut self, target: P<Symbol>, source: P<Symbol>) {
         let is_either_enum = target.flags().intersects(SymbolFlags::Enum)
             || source.flags().intersects(SymbolFlags::Enum);
         let is_either_block_scoped = target.flags().intersects(SymbolFlags::BlockScopedVariable)
@@ -2392,7 +2385,7 @@ impl Checker {
     }
 
     // checker.go:14461
-    pub(crate) fn add_duplicate_declaration_errors_for_symbols(
+    fn add_duplicate_declaration_errors_for_symbols(
         &mut self,
         target: P<Symbol>,
         message: &'static Message,
@@ -2407,7 +2400,7 @@ impl Checker {
     }
 
     // checker.go:14467
-    pub(crate) fn add_duplicate_declaration_error(
+    fn add_duplicate_declaration_error(
         &mut self,
         node: P<Node>,
         message: &'static Message,
@@ -2465,7 +2458,7 @@ pub fn get_adjusted_node_for_error(node: P<Node>) -> P<Node> {
 
 impl Checker {
     // checker.go:14505
-    pub(crate) fn lookup_or_issue_error(
+    fn lookup_or_issue_error(
         &mut self,
         location: P<Node>,
         message: &'static Message,
@@ -2574,7 +2567,7 @@ impl Checker {
     }
 
     // checker.go:14601
-    pub(crate) fn record_merged_symbol(&mut self, target: P<Symbol>, source: P<Symbol>) {
+    fn record_merged_symbol(&mut self, target: P<Symbol>, source: P<Symbol>) {
         self.merged_symbols.insert(source, target);
     }
 
@@ -2801,7 +2794,7 @@ impl Checker {
     // checker.go:14723
     // `resolved` is Option (Go passes the possibly-nil result of getSymbolOfPartOfRightHandSideOfImportEquals).
     // It is unused, as in Go.
-    pub(crate) fn check_and_report_error_for_resolving_import_alias_to_type_only_symbol(
+    fn check_and_report_error_for_resolving_import_alias_to_type_only_symbol(
         &mut self,
         node: P<Node>,
         _resolved: Option<P<Symbol>>,
@@ -2847,10 +2840,7 @@ impl Checker {
     }
 
     // checker.go:14750
-    pub(crate) fn get_type_only_declaration_of_entity_name(
-        &mut self,
-        name: P<Node>,
-    ) -> Option<P<Node>> {
+    fn get_type_only_declaration_of_entity_name(&mut self, name: P<Node>) -> Option<P<Node>> {
         if let Some(symbol) = self.resolve_entity_name(
             name,
             SymbolFlags::Value | SymbolFlags::Type | SymbolFlags::Namespace,
@@ -2899,7 +2889,7 @@ impl Checker {
 
     // checker.go:14765
     // returns Option (Go returns the possibly-nil exportDefaultSymbol).
-    pub(crate) fn get_target_of_module_default(
+    fn get_target_of_module_default(
         &mut self,
         module_symbol: P<Symbol>,
         node: P<Node>,
@@ -2995,7 +2985,7 @@ impl Checker {
     }
 
     // checker.go:14829
-    pub(crate) fn report_non_default_export(&mut self, module_symbol: P<Symbol>, node: P<Node>) {
+    fn report_non_default_export(&mut self, module_symbol: P<Symbol>, node: P<Node>) {
         if module_symbol.exports().is_some()
             && lookup_export(module_symbol, node.symbol().unwrap().name()).is_some()
         {
@@ -3045,7 +3035,7 @@ impl Checker {
 
     // checker.go:14853
     // returns Option (Go returns nil when the export does not exist).
-    pub(crate) fn resolve_export_by_name(
+    fn resolve_export_by_name(
         &mut self,
         module_symbol: P<Symbol>,
         name: &str,
@@ -3273,11 +3263,7 @@ impl Checker {
     }
 
     // checker.go:14981
-    pub(crate) fn get_property_of_variable(
-        &mut self,
-        symbol: P<Symbol>,
-        name: &str,
-    ) -> Option<P<Symbol>> {
+    fn get_property_of_variable(&mut self, symbol: P<Symbol>, name: &str) -> Option<P<Symbol>> {
         if symbol.flags().intersects(SymbolFlags::Variable) {
             let type_annotation = symbol.value_declaration().unwrap().type_node();
             if let Some(type_annotation) = type_annotation {
@@ -3308,7 +3294,7 @@ impl Checker {
     // An 'import { Point } from "graphics"' needs to create a symbol that combines the value side 'Point'
     // property with the type/namespace side interface 'Point'.
     // checker.go:15009
-    pub(crate) fn combine_value_and_type_symbols(
+    fn combine_value_and_type_symbols(
         &mut self,
         value_symbol: P<Symbol>,
         type_symbol: P<Symbol>,
@@ -3518,7 +3504,7 @@ impl Checker {
     }
 
     // checker.go:15127
-    pub(crate) fn error_no_module_member_symbol(
+    fn error_no_module_member_symbol(
         &mut self,
         module_symbol: P<Symbol>,
         target_symbol: P<Symbol>,
@@ -3556,7 +3542,7 @@ impl Checker {
     }
 
     // checker.go:15152
-    pub(crate) fn report_non_exported_member(
+    fn report_non_exported_member(
         &mut self,
         name: P<Node>,
         declaration_name: &str,
@@ -3633,7 +3619,7 @@ impl Checker {
     }
 
     // checker.go:15184
-    pub(crate) fn report_invalid_import_equals_export_member(
+    fn report_invalid_import_equals_export_member(
         &mut self,
         name: P<Node>,
         declaration_name: &str,

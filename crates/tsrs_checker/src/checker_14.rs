@@ -44,7 +44,7 @@ impl Checker {
     }
 
     // checker.go:28331
-    pub fn type_has_call_or_construct_signatures(&mut self, t: P<Type>) -> bool {
+    pub(crate) fn type_has_call_or_construct_signatures(&mut self, t: P<Type>) -> bool {
         t.flags().intersects(TypeFlags::StructuredType)
             && !self.resolve_structured_type_members(t).signatures().is_empty()
     }
@@ -119,7 +119,7 @@ impl Checker {
     }
 
     // checker.go:28446
-    pub(crate) fn get_simplified_index_type(&mut self, t: P<Type>) -> P<Type> {
+    fn get_simplified_index_type(&mut self, t: P<Type>) -> P<Type> {
         let target = t.as_index_type().target().unwrap();
         if self.is_generic_mapped_type(target)
             && self.get_name_type_from_mapped_type(target).is_some()
@@ -134,11 +134,7 @@ impl Checker {
     // the type itself if no transformation is possible. The writing flag indicates that the type is
     // the target of an assignment.
     // checker.go:28385
-    pub(crate) fn get_simplified_indexed_access_type(
-        &mut self,
-        t: P<Type>,
-        writing: bool,
-    ) -> P<Type> {
+    fn get_simplified_indexed_access_type(&mut self, t: P<Type>, writing: bool) -> P<Type> {
         let key = CachedTypeKey {
             kind: if_else(
                 writing,
@@ -161,11 +157,7 @@ impl Checker {
     }
 
     // checker.go:28400
-    pub(crate) fn get_simplified_indexed_access_type_worker(
-        &mut self,
-        t: P<Type>,
-        writing: bool,
-    ) -> P<Type> {
+    fn get_simplified_indexed_access_type_worker(&mut self, t: P<Type>, writing: bool) -> P<Type> {
         // We recursively simplify the object type as it may in turn be an indexed access type. For example, with
         // '{ [P in T]: { [Q in U]: number } }[T][U]' we want to first simplify the inner indexed access type.
         let object_type = self
@@ -231,7 +223,7 @@ impl Checker {
     }
 
     // checker.go:28445
-    pub(crate) fn distribute_object_over_index_type(
+    fn distribute_object_over_index_type(
         &mut self,
         object_type: P<Type>,
         index_type: P<Type>,
@@ -287,7 +279,7 @@ impl Checker {
     }
 
     // checker.go:28476
-    pub(crate) fn get_simplified_conditional_type(&mut self, t: P<Type>, writing: bool) -> P<Type> {
+    fn get_simplified_conditional_type(&mut self, t: P<Type>, writing: bool) -> P<Type> {
         let key = CachedTypeKey {
             kind: if_else(
                 writing,
@@ -304,11 +296,7 @@ impl Checker {
         result
     }
 
-    pub(crate) fn get_simplified_conditional_type_worker(
-        &mut self,
-        t: P<Type>,
-        writing: bool,
-    ) -> P<Type> {
+    fn get_simplified_conditional_type_worker(&mut self, t: P<Type>, writing: bool) -> P<Type> {
         let check_type = t.as_conditional_type().check_type.get().unwrap();
         let extends_type = t.as_conditional_type().extends_type.get().unwrap();
         let true_type = self.get_true_type_from_conditional_type(t);
@@ -347,7 +335,7 @@ impl Checker {
 
     // Invokes union simplification logic to determine if an intersection is considered empty as a union constituent
     // checker.go:28499
-    pub(crate) fn is_intersection_empty(&mut self, type1: P<Type>, type2: P<Type>) -> bool {
+    fn is_intersection_empty(&mut self, type1: P<Type>, type2: P<Type>) -> bool {
         let intersection = self.intersect_types(Some(type1), Some(type2)).unwrap();
         let never_type = self.never_type;
         self.get_union_type(&[intersection, never_type]).flags().intersects(TypeFlags::Never)
@@ -363,11 +351,7 @@ impl Checker {
     }
 
     // checker.go:28510
-    pub(crate) fn get_normalized_union_or_intersection_type(
-        &mut self,
-        t: P<Type>,
-        writing: bool,
-    ) -> P<Type> {
+    fn get_normalized_union_or_intersection_type(&mut self, t: P<Type>, writing: bool) -> P<Type> {
         let reduced = self.get_reduced_type(t);
         if reduced != t {
             return reduced;
@@ -389,7 +373,7 @@ impl Checker {
     }
 
     // checker.go:28530
-    pub(crate) fn should_normalize_intersection(&mut self, t: P<Type>) -> bool {
+    fn should_normalize_intersection(&mut self, t: P<Type>) -> bool {
         let flags = t.object_flags_lazy();
         if flags.intersects(ObjectFlags::ShouldNormalizeComputed) {
             return flags.intersects(ObjectFlags::ShouldNormalize);
@@ -419,7 +403,7 @@ impl Checker {
     }
 
     // checker.go:28543
-    pub(crate) fn get_normalized_tuple_type(&mut self, t: P<Type>, writing: bool) -> P<Type> {
+    fn get_normalized_tuple_type(&mut self, t: P<Type>, writing: bool) -> P<Type> {
         let elements = self.get_element_types(t);
         let normalized_elements = same_map(elements, |&t| {
             if t.flags().intersects(TypeFlags::Simplifiable) {
@@ -573,7 +557,7 @@ impl Checker {
     }
 
     // checker.go:28646
-    pub(crate) fn transform_type_of_members(
+    fn transform_type_of_members(
         &mut self,
         t: P<Type>,
         mut f: impl FnMut(&mut Checker, P<Type>) -> P<Type>,
@@ -875,7 +859,7 @@ pub fn is_internal_module_import_equals_declaration(node: P<Node>) -> bool {
 
 impl Checker {
     // checker.go:28867
-    pub(crate) fn mark_identifier_alias_referenced(&mut self, location: P<Node>) {
+    fn mark_identifier_alias_referenced(&mut self, location: P<Node>) {
         if is_this_in_type_query(location) {
             return;
         }
@@ -886,7 +870,7 @@ impl Checker {
     }
 
     // checker.go:28877
-    pub(crate) fn mark_property_alias_referenced(
+    fn mark_property_alias_referenced(
         &mut self,
         location: P<Node>,
         prop_symbol: Option<P<Symbol>>,
@@ -995,7 +979,7 @@ pub fn is_part_of_import_equals_module_reference(location: P<Node>) -> bool {
 
 impl Checker {
     // checker.go:28962
-    pub(crate) fn mark_export_assignment_alias_referenced(&mut self, location: P<Node>) {
+    fn mark_export_assignment_alias_referenced(&mut self, location: P<Node>) {
         let id = location.expression().unwrap();
         if is_identifier(id) {
             let resolved = self.resolve_entity_name(
@@ -1082,14 +1066,14 @@ impl Checker {
     }
 
     // checker.go:29018
-    pub(crate) fn mark_import_equals_alias_referenced(&mut self, location: P<Node>) {
+    fn mark_import_equals_alias_referenced(&mut self, location: P<Node>) {
         if has_syntactic_modifier(location, ModifierFlags::Export) {
             self.mark_export_as_referenced(location);
         }
     }
 
     // checker.go:29024
-    pub(crate) fn mark_export_specifier_alias_referenced(&mut self, location: P<Node>) {
+    fn mark_export_specifier_alias_referenced(&mut self, location: P<Node>) {
         let grandparent = location.parent().unwrap().parent().unwrap();
         if grandparent.module_specifier().is_none()
             && !location.is_type_only()
@@ -1204,18 +1188,14 @@ impl Checker {
     }
 
     // checker.go:29084
-    pub(crate) fn has_signature_with_arity_greater_than(
-        &mut self,
-        symbol: P<Symbol>,
-        arity: usize,
-    ) -> bool {
+    fn has_signature_with_arity_greater_than(&mut self, symbol: P<Symbol>, arity: usize) -> bool {
         self.get_signatures_of_symbol(Some(symbol))
             .into_iter()
             .any(|signature| self.get_parameter_count(signature) > arity)
     }
 
     // checker.go:29093
-    pub(crate) fn get_helper_names(&self, helper: ExternalEmitHelpers) -> Vec<String> {
+    fn get_helper_names(&self, helper: ExternalEmitHelpers) -> Vec<String> {
         let names: &[&str] = if helper == ExternalEmitHelpers::Rest {
             &["__rest"]
         } else if helper == ExternalEmitHelpers::Decorate {
@@ -1267,11 +1247,7 @@ impl Checker {
     }
 
     // checker.go:29143
-    pub(crate) fn resolve_helpers_module(
-        &mut self,
-        file: P<SourceFile>,
-        error_node: P<Node>,
-    ) -> P<Symbol> {
+    fn resolve_helpers_module(&mut self, file: P<SourceFile>, error_node: P<Node>) -> P<Symbol> {
         let links = self.source_file_links.get(file);
         if links.external_helpers_module.get().is_none() {
             let location = self.program.get_import_helpers_import_specifier(file.path());
@@ -1285,7 +1261,7 @@ impl Checker {
     }
 
     // checker.go:29156
-    pub(crate) fn mark_decorator_alias_referenced(&mut self, node: P<Node>) {
+    fn mark_decorator_alias_referenced(&mut self, node: P<Node>) {
         if self.compiler_options.emit_decorator_metadata.is_false_or_unknown() {
             return;
         }
@@ -1346,7 +1322,7 @@ impl Checker {
     }
 
     // checker.go:29204
-    pub(crate) fn get_parameter_type_node_for_decorator_check(node: P<Node>) -> Option<P<Node>> {
+    fn get_parameter_type_node_for_decorator_check(node: P<Node>) -> Option<P<Node>> {
         let type_node = node.type_node();
         if node.as_parameter_declaration().dot_dot_dot_token().is_some() {
             return get_rest_parameter_element_type(type_node);
@@ -1356,10 +1332,7 @@ impl Checker {
 
     // node Option<P<Node>>: Go passes getParameterTypeNodeForDecoratorCheck/Type() results, which can be nil
     // checker.go:29212
-    pub(crate) fn mark_decorator_medata_data_type_node_as_referenced(
-        &mut self,
-        node: Option<P<Node>>,
-    ) {
+    fn mark_decorator_medata_data_type_node_as_referenced(&mut self, node: Option<P<Node>>) {
         let entity_name = self.get_entity_name_for_decorator_metadata(node);
         if let Some(entity_name) = entity_name
             && is_entity_name(entity_name)
@@ -1370,10 +1343,7 @@ impl Checker {
 
     // node Option<P<Node>>: Go checks node == nil
     // checker.go:29219
-    pub(crate) fn get_entity_name_for_decorator_metadata(
-        &mut self,
-        node: Option<P<Node>>,
-    ) -> Option<P<Node>> {
+    fn get_entity_name_for_decorator_metadata(&mut self, node: Option<P<Node>>) -> Option<P<Node>> {
         let node = node?;
         match node.kind() {
             Kind::IntersectionType => self.get_entity_name_for_decorator_metadata_from_type_list(
@@ -1400,7 +1370,7 @@ impl Checker {
     }
 
     // checker.go:29240
-    pub(crate) fn get_entity_name_for_decorator_metadata_from_type_list(
+    fn get_entity_name_for_decorator_metadata_from_type_list(
         &mut self,
         type_nodes: &[P<Node>],
     ) -> Option<P<Node>> {
@@ -1446,7 +1416,7 @@ impl Checker {
     }
 
     // checker.go:29272
-    pub(crate) fn mark_alias_referenced(&mut self, symbol: P<Symbol>, location: P<Node>) {
+    fn mark_alias_referenced(&mut self, symbol: P<Symbol>, location: P<Node>) {
         if !self.can_collect_symbol_alias_accessibility_data {
             return;
         }
@@ -1484,7 +1454,7 @@ impl Checker {
     // we reach a non-alias or an exported entity (which is always considered referenced). We do this by checking the target of
     // the alias as an expression (which recursively takes us back here if the target references another alias).
     // checker.go:29294
-    pub(crate) fn mark_alias_symbol_as_referenced(&mut self, symbol: P<Symbol>) {
+    fn mark_alias_symbol_as_referenced(&mut self, symbol: P<Symbol>) {
         let links = self.alias_symbol_links.get(symbol);
         if !links.referenced.get() {
             links.referenced.set(true);
@@ -1510,7 +1480,7 @@ impl Checker {
     }
 
     // checker.go:29315
-    pub(crate) fn mark_export_as_referenced(&mut self, node: P<Node>) {
+    fn mark_export_as_referenced(&mut self, node: P<Node>) {
         let symbol = self.get_symbol_of_declaration(node).unwrap();
         let target = self.resolve_alias(symbol);
         let mark_alias = target == self.unknown_symbol
@@ -1527,7 +1497,7 @@ impl Checker {
     }
 
     // checker.go:29327
-    pub(crate) fn mark_entity_name_or_entity_expression_as_reference(
+    fn mark_entity_name_or_entity_expression_as_reference(
         &mut self,
         type_name: Option<P<Node>>,
         for_decorator_metadata: bool,
@@ -1843,7 +1813,7 @@ impl Checker {
     }
 
     // checker.go:29569
-    pub fn remove_missing_or_undefined_type(&mut self, t: P<Type>) -> P<Type> {
+    pub(crate) fn remove_missing_or_undefined_type(&mut self, t: P<Type>) -> P<Type> {
         if self.exact_optional_property_types {
             let missing_type = self.missing_type;
             return self.remove_type(t, missing_type);
@@ -1852,17 +1822,17 @@ impl Checker {
     }
 
     // checker.go:29576
-    pub fn remove_definitely_falsy_types(&mut self, t: P<Type>) -> P<Type> {
+    pub(crate) fn remove_definitely_falsy_types(&mut self, t: P<Type>) -> P<Type> {
         self.filter_type(t, |c, t| c.has_type_facts(t, TypeFacts::Truthy))
     }
 
     // checker.go:29580
-    pub fn extract_definitely_falsy_types(&mut self, t: P<Type>) -> P<Type> {
+    pub(crate) fn extract_definitely_falsy_types(&mut self, t: P<Type>) -> P<Type> {
         self.map_type(t, |c, t| Some(c.get_definitely_falsy_part_of_type(t))).unwrap()
     }
 
     // checker.go:29584
-    pub(crate) fn get_definitely_falsy_part_of_type(&self, t: P<Type>) -> P<Type> {
+    fn get_definitely_falsy_part_of_type(&self, t: P<Type>) -> P<Type> {
         if t.flags().intersects(TypeFlags::String) {
             self.empty_string_type
         } else if t.flags().intersects(TypeFlags::Number) {
@@ -1994,7 +1964,7 @@ impl Checker {
 
     // checker.go:29702
     /// Go `getTemplateStringForType`, appended to `sb` (without a temporary `String` for string literals).
-    pub(crate) fn push_template_string_for_type(sb: &mut String, t: P<Type>) {
+    fn push_template_string_for_type(sb: &mut String, t: P<Type>) {
         if t.flags().intersects(
             TypeFlags::StringLiteral
                 | TypeFlags::NumberLiteral
@@ -2110,7 +2080,7 @@ pub fn apply_string_mapping(symbol: P<Symbol>, str: &str) -> String {
 
 impl Checker {
     // checker.go:29747
-    pub(crate) fn apply_template_string_mapping(
+    fn apply_template_string_mapping(
         &mut self,
         symbol: P<Symbol>,
         texts: &[&str],
@@ -2140,7 +2110,7 @@ impl Checker {
     }
 
     // checker.go:29765
-    pub(crate) fn get_string_mapping_type_for_generic_type(
+    fn get_string_mapping_type_for_generic_type(
         &mut self,
         symbol: P<Symbol>,
         t: P<Type>,
@@ -2196,7 +2166,7 @@ impl Checker {
 
     // Return true if an indexed access with the given object and index types could access an optional property.
     // checker.go:29796
-    pub(crate) fn could_access_optional_property(
+    fn could_access_optional_property(
         &mut self,
         object_type: P<Type>,
         index_type: P<Type>,
@@ -2217,7 +2187,7 @@ impl Checker {
     }
 
     // checker.go:29803
-    pub fn get_type_of_property_or_index_signature_of_type(
+    pub(crate) fn get_type_of_property_or_index_signature_of_type(
         &mut self,
         t: P<Type>,
         name: &str,
@@ -2255,7 +2225,7 @@ impl Checker {
      * @returns the contextual type of an expression.
      */
     // checker.go:29832
-    pub fn get_contextual_type(
+    pub(crate) fn get_contextual_type(
         &mut self,
         node: P<Node>,
         context_flags: ContextFlags,
@@ -2359,7 +2329,7 @@ impl Checker {
     // Otherwise, in a binding pattern inside a variable or parameter declaration,
     // the contextual type of an initializer expression is the type annotation of the containing declaration, if present.
     // checker.go:29912
-    pub(crate) fn get_contextual_type_for_initializer_expression(
+    fn get_contextual_type_for_initializer_expression(
         &mut self,
         node: P<Node>,
         context_flags: ContextFlags,
@@ -2387,7 +2357,7 @@ impl Checker {
     }
 
     // checker.go:29927
-    pub(crate) fn get_contextual_type_for_variable_like_declaration(
+    fn get_contextual_type_for_variable_like_declaration(
         &mut self,
         declaration: P<Node>,
         context_flags: ContextFlags,
@@ -2610,7 +2580,7 @@ impl Checker {
     }
 
     // checker.go:30060
-    pub(crate) fn get_mutable_array_or_tuple_type(&mut self, t: P<Type>) -> P<Type> {
+    fn get_mutable_array_or_tuple_type(&mut self, t: P<Type>) -> P<Type> {
         if t.flags().intersects(TypeFlags::Union) {
             return self.map_type(t, |c, t| Some(c.get_mutable_array_or_tuple_type(t))).unwrap();
         }
@@ -2636,7 +2606,7 @@ impl Checker {
     }
 
     // checker.go:30072
-    pub(crate) fn get_contextual_type_for_binding_element(
+    fn get_contextual_type_for_binding_element(
         &mut self,
         declaration: P<Node>,
         context_flags: ContextFlags,
@@ -2685,7 +2655,7 @@ impl Checker {
     // checker.go:30101
     // Keep the static-property path out of its caller (notes/typescript-623-ports.md, entry 5).
     #[inline(never)]
-    pub(crate) fn get_contextual_type_for_static_property_declaration(
+    fn get_contextual_type_for_static_property_declaration(
         &mut self,
         declaration: P<Node>,
         context_flags: ContextFlags,
@@ -2704,7 +2674,7 @@ impl Checker {
     }
 
     // checker.go:30110
-    pub(crate) fn get_contextual_type_for_return_expression(
+    fn get_contextual_type_for_return_expression(
         &mut self,
         node: P<Node>,
         context_flags: ContextFlags,
@@ -2883,7 +2853,7 @@ impl Checker {
     }
 
     // checker.go:30208
-    pub(crate) fn get_contextual_type_for_yield_operand(
+    fn get_contextual_type_for_yield_operand(
         &mut self,
         node: P<Node>,
         context_flags: ContextFlags,
@@ -2945,7 +2915,7 @@ impl Checker {
     }
 
     // checker.go:30239
-    pub(crate) fn get_contextual_type_for_await_operand(
+    fn get_contextual_type_for_await_operand(
         &mut self,
         node: P<Node>,
         context_flags: ContextFlags,
@@ -2976,7 +2946,7 @@ impl Checker {
     }
 
     // checker.go:30261
-    pub fn get_contextual_type_for_argument_at_index(
+    pub(crate) fn get_contextual_type_for_argument_at_index(
         &mut self,
         call_target: P<Node>,
         arg_index: usize,
@@ -3021,10 +2991,7 @@ impl Checker {
     }
 
     // checker.go:30290
-    pub(crate) fn get_contextual_type_for_decorator(
-        &mut self,
-        decorator: P<Node>,
-    ) -> Option<P<Type>> {
+    fn get_contextual_type_for_decorator(&mut self, decorator: P<Node>) -> Option<P<Type>> {
         let signature = self.get_decorator_call_signature(decorator);
         if let Some(signature) = signature {
             return Some(self.get_or_create_type_from_signature(signature));
@@ -3033,7 +3000,7 @@ impl Checker {
     }
 
     // checker.go:30298
-    pub(crate) fn get_contextual_type_for_binary_operand(
+    fn get_contextual_type_for_binary_operand(
         &mut self,
         node: P<Node>,
         context_flags: ContextFlags,
@@ -3085,7 +3052,7 @@ impl Checker {
     }
 
     // checker.go:30332
-    pub(crate) fn get_contextual_type_for_assignment_expression(
+    fn get_contextual_type_for_assignment_expression(
         &mut self,
         binary: P<Node>,
     ) -> Option<P<Type>> {
@@ -3200,7 +3167,7 @@ impl Checker {
     }
 
     // checker.go:30409
-    pub fn get_contextual_type_for_object_literal_element(
+    pub(crate) fn get_contextual_type_for_object_literal_element(
         &mut self,
         element: P<Node>,
         context_flags: ContextFlags,

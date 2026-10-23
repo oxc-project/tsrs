@@ -32,7 +32,7 @@ impl<K: Hash + Eq + Clone, V: Clone> CopyOnWriteMap<K, V> {
         self.m.as_ref()?.get(k)
     }
 
-    pub fn has(&self, k: &K) -> bool {
+    fn has(&self, k: &K) -> bool {
         self.m.as_ref().is_some_and(|m| m.contains_key(k))
     }
 

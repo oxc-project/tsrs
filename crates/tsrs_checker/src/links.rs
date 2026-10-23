@@ -89,7 +89,7 @@ impl<K: 'static, V: 'static> LinkStore<K, V> {
     }
 
     #[inline]
-    pub fn try_get(&self, key: P<K>) -> Option<P<V>> {
+    pub(crate) fn try_get(&self, key: P<K>) -> Option<P<V>> {
         match self.index(key) {
             Some(index) => Some(self.at(index)),
             None => self.parent.filter(|_| tsrs_core::sharedgraph::COMPILED_IN)?.try_get(key),
@@ -97,7 +97,7 @@ impl<K: 'static, V: 'static> LinkStore<K, V> {
     }
 
     #[inline]
-    pub fn has(&self, key: P<K>) -> bool {
+    pub(crate) fn has(&self, key: P<K>) -> bool {
         self.index(key).is_some()
             || self
                 .parent
@@ -107,7 +107,7 @@ impl<K: 'static, V: 'static> LinkStore<K, V> {
 
     /// Shared graph: an empty store that reads through to `self` (frozen).
     #[must_use]
-    pub fn fork(&'static self) -> Self {
+    pub(crate) fn fork(&'static self) -> Self {
         LinkStore {
             slots: hashbrown::HashTable::new(),
             chunks: Vec::new(),
@@ -123,7 +123,7 @@ impl<K: 'static, V: Default + LinkCopy + 'static> LinkStore<K, V> {
     /// registers where this is inlined); the first access probes again in `create`.
     #[inline]
     #[cfg_attr(feature = "site-counts", track_caller)]
-    pub fn get(&mut self, key: impl Into<Option<P<K>>>) -> P<V> {
+    pub(crate) fn get(&mut self, key: impl Into<Option<P<K>>>) -> P<V> {
         // Go pointer keys may be nil; zero is never an arena handle or address.
         let key = key.into().map_or(0, Self::address);
         match self.index_by_pkey(key) {
@@ -169,7 +169,7 @@ pub trait LinkCopy {
 ///
 /// # Safety
 /// `V` holds only `Cell`s of `Copy` values with no pointer to a mutable side object of its own.
-pub unsafe fn copy_cells_bitwise<V>(dst: &V, src: &V) {
+pub(crate) unsafe fn copy_cells_bitwise<V>(dst: &V, src: &V) {
     const { assert!(!std::mem::needs_drop::<V>()) };
     // SAFETY: the caller's contract: every byte of `V` is inside a `Cell`, so writing through `dst` is a `Cell` write;
     // `src` and `dst` are distinct records (the frozen seed's and this checker's).
@@ -355,7 +355,7 @@ pub struct SymbolReferenceLinkStore {
 impl SymbolReferenceLinkStore {
     /// Shared graph: a copy (the slots are heap data of the frozen seed checker).
     #[must_use]
-    pub fn fork(&'static self) -> Self {
+    pub(crate) fn fork(&'static self) -> Self {
         SymbolReferenceLinkStore { slots: self.slots.clone() }
     }
 }
@@ -383,7 +383,7 @@ impl SymbolReferenceLinkStore {
     /// Go `c.symbolReferenceLinks.Get(symbol).referenceKinds |= meaning`: creates the record on first use.
     #[inline]
     #[cfg_attr(feature = "site-counts", track_caller)]
-    pub fn add_reference_kinds(&mut self, symbol: P<Symbol>, meaning: SymbolFlags) {
+    pub(crate) fn add_reference_kinds(&mut self, symbol: P<Symbol>, meaning: SymbolFlags) {
         let key = symbol.key();
         let slot = match self.slots.entry(Self::hash(key), |s| s.key == key, |s| Self::hash(s.key))
         {
@@ -399,7 +399,7 @@ impl SymbolReferenceLinkStore {
     /// Go `c.symbolReferenceLinks.Get(symbol).referenceKinds`, without creating a record for a symbol never
     /// referenced (`SymbolFlags::None` either way).
     #[inline]
-    pub fn reference_kinds(&self, symbol: P<Symbol>) -> SymbolFlags {
+    pub(crate) fn reference_kinds(&self, symbol: P<Symbol>) -> SymbolFlags {
         let key = symbol.key();
         self.slots.find(Self::hash(key), |s| s.key == key).map_or(SymbolFlags::None, |s| s.kinds)
     }
@@ -526,7 +526,7 @@ impl<V: 'static> IdLinkStore<V> {
     }
 
     #[inline]
-    pub fn try_get(&self, id: u64) -> Option<P<V>> {
+    fn try_get(&self, id: u64) -> Option<P<V>> {
         match self.slot(id) {
             Some(slot) => Some(self.at(slot)),
             None => self.parent.filter(|_| tsrs_core::sharedgraph::COMPILED_IN)?.try_get(id),
@@ -534,7 +534,7 @@ impl<V: 'static> IdLinkStore<V> {
     }
 
     #[inline]
-    pub fn has(&self, id: u64) -> bool {
+    fn has(&self, id: u64) -> bool {
         self.slot(id).is_some()
             || self
                 .parent
@@ -544,7 +544,7 @@ impl<V: 'static> IdLinkStore<V> {
 
     /// Shared graph: an empty store that reads through to `self` (frozen).
     #[must_use]
-    pub fn fork(&'static self) -> Self {
+    fn fork(&'static self) -> Self {
         IdLinkStore {
             index: Vec::new(),
             wide_slots: FxHashMap::default(),
@@ -558,7 +558,7 @@ impl<V: 'static> IdLinkStore<V> {
 impl<V: Default + LinkCopy + 'static> IdLinkStore<V> {
     #[inline]
     #[cfg_attr(feature = "site-counts", track_caller)]
-    pub fn get(&mut self, id: u64) -> P<V> {
+    fn get(&mut self, id: u64) -> P<V> {
         if let Some(slot) = self.slot(id) {
             return self.at(slot);
         }
@@ -675,7 +675,7 @@ impl<V: 'static> InlineIdStore<V> {
     }
 
     #[inline]
-    pub fn try_get(&self, id: u64) -> Option<&'static V> {
+    fn try_get(&self, id: u64) -> Option<&'static V> {
         let own = match u32::try_from(id) {
             Ok(id) => self.narrow(id),
             Err(_) => self.wide_get(id),
@@ -688,7 +688,7 @@ impl<V: 'static> InlineIdStore<V> {
 
     /// Shared graph: an empty store that reads through to `self` (frozen).
     #[must_use]
-    pub fn fork(&'static self) -> Self {
+    fn fork(&'static self) -> Self {
         InlineIdStore { blocks: Vec::new(), wide: FxHashMap::default(), parent: Some(self) }
     }
 
@@ -703,7 +703,7 @@ impl<V: 'static> InlineIdStore<V> {
 impl<V: Default + LinkCopy + 'static> InlineIdStore<V> {
     #[inline]
     #[cfg_attr(feature = "site-counts", track_caller)]
-    pub fn get(&mut self, id: u64) -> &'static V {
+    fn get(&mut self, id: u64) -> &'static V {
         if let Ok(narrow) = u32::try_from(id)
             && let Some(value) = self.narrow(narrow)
         {
@@ -806,7 +806,7 @@ impl<V: 'static> Default for NodeLinkStore<V> {
 impl<V: 'static> NodeLinkStore<V> {
     /// Shared graph: see `InlineIdStore::fork`.
     #[must_use]
-    pub fn fork(&'static self) -> Self {
+    pub(crate) fn fork(&'static self) -> Self {
         NodeLinkStore {
             generator: ast::NodeIdGenerator::default(),
             block_store: self.block_store.fork(),
@@ -819,7 +819,7 @@ impl<V: Default + LinkCopy + 'static> NodeLinkStore<V> {
     /// The node's links, created on first use. The reference stays valid for the store's lifetime (`InlineIdStore`).
     #[inline]
     #[cfg_attr(feature = "site-counts", track_caller)]
-    pub fn get(&mut self, node: P<Node>) -> &'static V {
+    pub(crate) fn get(&mut self, node: P<Node>) -> &'static V {
         let id = self.generator.get_node_id(node).0;
         if let Some(key) = dense_link_key(id) {
             self.block_store.get(key)
@@ -833,7 +833,7 @@ impl<V: 'static> NodeLinkStore<V> {
     /// `None` if no id of the node's group of 32 has links yet; otherwise the node's value, unset if the node itself
     /// never had links (`InlineIdStore`). Assigns the node an id, as Go's `TryGet` does.
     #[inline]
-    pub fn try_get(&self, node: P<Node>) -> Option<&'static V> {
+    pub(crate) fn try_get(&self, node: P<Node>) -> Option<&'static V> {
         let id = self.generator.get_node_id(node).0;
         if let Some(key) = dense_link_key(id) {
             self.block_store.try_get(key)
@@ -844,7 +844,7 @@ impl<V: 'static> NodeLinkStore<V> {
 
     /// `try_get` that returns `None` for a node without an id instead of assigning one (no side effect).
     #[inline]
-    pub fn try_get_if_id_assigned(&self, node: P<Node>) -> Option<&'static V> {
+    pub(crate) fn try_get_if_id_assigned(&self, node: P<Node>) -> Option<&'static V> {
         let id = ast::get_assigned_node_id(node)?.0;
         let (store, key) = match dense_link_key(id) {
             Some(key) => (&self.block_store, key),
@@ -906,18 +906,18 @@ impl<V: 'static> NodeValueLinkStore<V> {
     }
 
     #[inline]
-    pub fn try_get(&self, node: P<Node>) -> Option<P<V>> {
+    fn try_get(&self, node: P<Node>) -> Option<P<V>> {
         self.try_get_id(self.generator.get_node_id(node).0)
     }
 
     #[inline]
-    pub fn has(&self, node: P<Node>) -> bool {
+    pub(crate) fn has(&self, node: P<Node>) -> bool {
         self.try_get(node).is_some()
     }
 
     /// Shared graph: the fork reads the frozen store and copies a link on first mutation.
     #[must_use]
-    pub fn fork(&'static self) -> Self {
+    pub(crate) fn fork(&'static self) -> Self {
         Self { parent: Some(self), ..Self::default() }
     }
 }
@@ -925,7 +925,7 @@ impl<V: 'static> NodeValueLinkStore<V> {
 impl<V: Default + LinkCopy + 'static> NodeValueLinkStore<V> {
     #[inline]
     #[cfg_attr(feature = "site-counts", track_caller)]
-    pub fn get(&mut self, node: P<Node>) -> P<V> {
+    pub(crate) fn get(&mut self, node: P<Node>) -> P<V> {
         let id = self.generator.get_node_id(node).0;
         self.local(id).unwrap_or_else(|| self.create(id))
     }
@@ -989,7 +989,7 @@ impl<V: 'static> Default for SymbolArenaLinkStore<V> {
 impl<V: 'static> SymbolArenaLinkStore<V> {
     /// Shared graph: see `IdLinkStore::fork`.
     #[must_use]
-    pub fn fork(&'static self) -> Self {
+    pub(crate) fn fork(&'static self) -> Self {
         SymbolArenaLinkStore {
             generator: ast::SymbolIdGenerator::default(),
             block_store: self.block_store.fork(),
@@ -1001,7 +1001,7 @@ impl<V: 'static> SymbolArenaLinkStore<V> {
 impl<V: Default + LinkCopy + 'static> SymbolArenaLinkStore<V> {
     #[inline]
     #[cfg_attr(feature = "site-counts", track_caller)]
-    pub fn get(&mut self, symbol: P<Symbol>) -> P<V> {
+    pub(crate) fn get(&mut self, symbol: P<Symbol>) -> P<V> {
         let id = self.generator.get_symbol_id(symbol).0;
         if let Some(key) = dense_link_key(id) {
             self.block_store.get(key)
@@ -1013,7 +1013,7 @@ impl<V: Default + LinkCopy + 'static> SymbolArenaLinkStore<V> {
 
 impl<V: 'static> SymbolArenaLinkStore<V> {
     #[inline]
-    pub fn try_get(&self, symbol: P<Symbol>) -> Option<P<V>> {
+    pub(crate) fn try_get(&self, symbol: P<Symbol>) -> Option<P<V>> {
         let id = self.generator.get_symbol_id(symbol).0;
         if let Some(key) = dense_link_key(id) {
             self.block_store.try_get(key)
@@ -1025,7 +1025,7 @@ impl<V: 'static> SymbolArenaLinkStore<V> {
     /// `try_get` that returns `None` for a symbol without an id instead of assigning one (no side effect, no call:
     /// for fast paths whose fallback does the `get`).
     #[inline]
-    pub fn try_get_if_id_assigned(&self, symbol: P<Symbol>) -> Option<P<V>> {
+    pub(crate) fn try_get_if_id_assigned(&self, symbol: P<Symbol>) -> Option<P<V>> {
         let id = ast::get_assigned_symbol_id(symbol)?.0;
         let (store, key) = match dense_link_key(id) {
             Some(key) => (&self.block_store, key),
@@ -1043,7 +1043,7 @@ impl<V: 'static> SymbolArenaLinkStore<V> {
     }
 
     #[inline]
-    pub fn has(&self, symbol: P<Symbol>) -> bool {
+    pub(crate) fn has(&self, symbol: P<Symbol>) -> bool {
         let id = self.generator.get_symbol_id(symbol).0;
         if let Some(key) = dense_link_key(id) {
             self.block_store.has(key)

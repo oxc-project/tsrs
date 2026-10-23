@@ -26,7 +26,7 @@ impl LanguageService {
     //  1. Removing unused imports
     //  2. Coalescing imports from the same module
     //  3. Sorting imports
-    pub fn organize_imports(
+    pub(crate) fn organize_imports(
         &self,
         ctx: &Context,
         source_file: P<SourceFile>,

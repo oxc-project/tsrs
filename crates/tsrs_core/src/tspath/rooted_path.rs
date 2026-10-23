@@ -3,11 +3,11 @@ use super::{
     has_trailing_directory_separator, path_is_absolute,
 };
 
-pub fn rooted_path_from_absolute(path: &str) -> String {
+fn rooted_path_from_absolute(path: &str) -> String {
     try_rooted_path_from_absolute(path).unwrap_or_else(|| panic!("path must be absolute"))
 }
 
-pub fn try_rooted_path_from_absolute(path: &str) -> Option<String> {
+fn try_rooted_path_from_absolute(path: &str) -> Option<String> {
     if has_rooted_url_suffix(path) || !path_is_absolute(path) {
         return None;
     }

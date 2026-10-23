@@ -48,7 +48,7 @@ use crate::wire::Obj;
 /// releases every registered pointer.
 #[derive(Default)]
 pub struct CheckerSnapshotState {
-    pub(crate) registry: Arc<CheckerRegistry>,
+    registry: Arc<CheckerRegistry>,
 }
 
 impl Drop for CheckerSnapshotState {

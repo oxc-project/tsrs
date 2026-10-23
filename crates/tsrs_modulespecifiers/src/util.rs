@@ -59,7 +59,7 @@ pub fn is_excluded_by_regex(module_specifier: &str, excludes: &[String]) -> bool
 }
 
 // util.go:59
-pub fn string_to_regex(pattern: &str) -> Option<P<regex::Regex>> {
+fn string_to_regex(pattern: &str) -> Option<P<regex::Regex>> {
     let mut pattern = pattern;
     let mut case_insensitive = false;
 
@@ -186,7 +186,7 @@ pub fn get_js_extension_for_file(file_name: &str, options: &CompilerOptions) -> 
  * Path must have a valid extension.
  */
 // util.go:186
-pub fn extension_from_path(path: &str) -> String {
+fn extension_from_path(path: &str) -> String {
     let ext = tspath::try_get_extension_from_path(path);
     assert!(!ext.is_empty(), "File {path} has unknown extension.");
     ext.to_string()

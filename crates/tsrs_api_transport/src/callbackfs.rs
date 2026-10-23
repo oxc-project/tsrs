@@ -17,16 +17,16 @@ use tsrs_vfs::{Entries, FS, FileInfo, FileMode};
 
 use crate::handler::Caller;
 
-pub const CALLBACK_READ_FILE: &str = "readFile";
-pub const CALLBACK_FILE_EXISTS: &str = "fileExists";
-pub const CALLBACK_DIRECTORY_EXISTS: &str = "directoryExists";
-pub const CALLBACK_GET_ACCESSIBLE_ENTRIES: &str = "getAccessibleEntries";
-pub const CALLBACK_REALPATH: &str = "realpath";
-pub const CALLBACK_STAT: &str = "stat";
-pub const CALLBACK_WRITE_FILE: &str = "writeFile";
-pub const CALLBACK_REMOVE_FILE: &str = "removeFile";
+const CALLBACK_READ_FILE: &str = "readFile";
+const CALLBACK_FILE_EXISTS: &str = "fileExists";
+const CALLBACK_DIRECTORY_EXISTS: &str = "directoryExists";
+const CALLBACK_GET_ACCESSIBLE_ENTRIES: &str = "getAccessibleEntries";
+const CALLBACK_REALPATH: &str = "realpath";
+const CALLBACK_STAT: &str = "stat";
+const CALLBACK_WRITE_FILE: &str = "writeFile";
+const CALLBACK_REMOVE_FILE: &str = "removeFile";
 
-pub const CALLBACK_NAMES: [&str; 8] = [
+const CALLBACK_NAMES: [&str; 8] = [
     CALLBACK_READ_FILE,
     CALLBACK_FILE_EXISTS,
     CALLBACK_DIRECTORY_EXISTS,
@@ -37,7 +37,7 @@ pub const CALLBACK_NAMES: [&str; 8] = [
     CALLBACK_REMOVE_FILE,
 ];
 
-pub fn is_callback_name(name: &str) -> bool {
+fn is_callback_name(name: &str) -> bool {
     CALLBACK_NAMES.contains(&name)
 }
 
@@ -53,12 +53,12 @@ fn fail(message: impl Into<String>) -> ! {
 /// (Go panics with "unknown callback name: <name>").
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct CallbackConfig {
-    pub enabled: Vec<String>,
-    pub realpath_identity: bool,
-    pub fake_stat: bool,
-    pub write_file_noop: bool,
-    pub remove_file_noop: bool,
-    pub error_callbacks: Vec<String>,
+    enabled: Vec<String>,
+    realpath_identity: bool,
+    fake_stat: bool,
+    write_file_noop: bool,
+    remove_file_noop: bool,
+    error_callbacks: Vec<String>,
 }
 
 impl CallbackConfig {
@@ -450,7 +450,7 @@ fn base_file_name(path: &str) -> String {
 }
 
 /// callbackfs.go nodeFileModeToGoFileMode.
-pub fn node_file_mode_to_go_file_mode(mode: u32) -> FileMode {
+fn node_file_mode_to_go_file_mode(mode: u32) -> FileMode {
     let mut result = FileMode::from_bits_retain(mode & 0o777);
     if mode & 0o4000 != 0 {
         result |= FileMode::Setuid;
@@ -475,7 +475,7 @@ pub fn node_file_mode_to_go_file_mode(mode: u32) -> FileMode {
 }
 
 /// time.Parse(time.RFC3339Nano, s): `YYYY-MM-DDTHH:MM:SS[.frac](Z|±HH:MM)`.
-pub fn parse_rfc3339(s: &str) -> Result<SystemTime, String> {
+fn parse_rfc3339(s: &str) -> Result<SystemTime, String> {
     let b = s.as_bytes();
     let num = |range: std::ops::Range<usize>| -> Result<i64, String> {
         let part = b.get(range).ok_or("too short")?;

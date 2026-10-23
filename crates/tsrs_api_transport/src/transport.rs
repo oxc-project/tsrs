@@ -56,15 +56,15 @@ mod pipe_os {
 
 /// One accepted bidirectional stream.
 pub struct Stream {
-    pub reader: Box<dyn Read + Send>,
-    pub writer: Box<dyn Write + Send>,
+    reader: Box<dyn Read + Send>,
+    writer: Box<dyn Write + Send>,
     /// Shuts the stream down so a blocked reader wakes (sockets). None for stdio.
     pub closer: Option<Box<dyn Fn() + Send + Sync>>,
 }
 
 impl Stream {
     /// `StdioTransport`. Stdout is the wire: nothing else in the process may write to it.
-    pub fn stdio() -> Stream {
+    fn stdio() -> Stream {
         Stream {
             reader: Box::new(std::io::stdin()),
             writer: Box::new(std::io::stdout()),
@@ -147,11 +147,11 @@ impl Caller for LateCaller {
 
 #[derive(Clone, Debug)]
 pub struct ServeOptions {
-    pub protocol: WireProtocol,
+    protocol: WireProtocol,
     pub collect_timing: bool,
-    pub max_frame_bytes: u64,
+    max_frame_bytes: u64,
     /// See `ConnOptions::reentrancy_grace`.
-    pub reentrancy_grace: std::time::Duration,
+    reentrancy_grace: std::time::Duration,
     /// See `ConnOptions::shutdown`. The CLI cancels it on SIGINT/SIGTERM (Go signal.NotifyContext).
     pub shutdown: CancellationToken,
 }

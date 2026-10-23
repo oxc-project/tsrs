@@ -387,7 +387,7 @@ pub static SET_FUNCTION_NAME_HELPER: EmitHelper = EmitHelper {
 };
 
 // helpers.go:471
-pub static CREATE_BINDING_HELPER: EmitHelper = EmitHelper {
+static CREATE_BINDING_HELPER: EmitHelper = EmitHelper {
     name: "typescript:commonjscreatebinding",
     import_name: "__createBinding",
     scoped: false,
@@ -408,7 +408,7 @@ pub static CREATE_BINDING_HELPER: EmitHelper = EmitHelper {
 };
 
 // helpers.go:489
-pub static SET_MODULE_DEFAULT_HELPER: EmitHelper = EmitHelper {
+static SET_MODULE_DEFAULT_HELPER: EmitHelper = EmitHelper {
     name: "typescript:commonjscreatevalue",
     import_name: "__setModuleDefault",
     scoped: false,

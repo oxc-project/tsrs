@@ -192,7 +192,7 @@ impl IncludeProcessor {
 }
 
 impl FileIncludeData {
-    pub(crate) fn add_processing_diagnostic(&mut self, d: ProcessingDiagnostic) {
+    fn add_processing_diagnostic(&mut self, d: ProcessingDiagnostic) {
         self.processing_diagnostics.push(d);
     }
 

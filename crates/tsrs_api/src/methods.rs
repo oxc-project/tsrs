@@ -24,12 +24,12 @@ pub enum Status {
 }
 
 pub struct MethodInfo {
-    pub name: &'static str,
-    pub owner: Owner,
+    pub(crate) name: &'static str,
+    pub(crate) owner: Owner,
     pub status: Status,
 }
 
-pub const METHODS: [MethodInfo; 177] = [
+pub(crate) const METHODS: [MethodInfo; 177] = [
     MethodInfo { name: "release", owner: Owner::Core, status: Status::Supported },
     MethodInfo { name: "releaseSourceFile", owner: Owner::Core, status: Status::Supported },
     MethodInfo { name: "retainSourceFile", owner: Owner::Core, status: Status::Partial },
@@ -349,7 +349,7 @@ pub const METHODS: [MethodInfo; 177] = [
     MethodInfo { name: "saveHeapProfile", owner: Owner::Core, status: Status::NotImplemented },
 ];
 
-pub fn method_info(name: &str) -> Option<&'static MethodInfo> {
+pub(crate) fn method_info(name: &str) -> Option<&'static MethodInfo> {
     // Every request looks its method up: hash it instead of comparing it with each name in turn.
     static BY_NAME: LazyLock<FxHashMap<&'static str, &'static MethodInfo>> = LazyLock::new(|| {
         let mut by_name = FxHashMap::default();
@@ -362,7 +362,7 @@ pub fn method_info(name: &str) -> Option<&'static MethodInfo> {
 }
 // Go `unmarshalers` (proto.go): the params type each method decodes into, for Go's error text
 // `failed to unmarshal *api.<Type>`. `None` = `noParams`.
-pub const PARAMS_TYPES: &[(&str, Option<&str>)] = &[
+pub(crate) const PARAMS_TYPES: &[(&str, Option<&str>)] = &[
     ("batchRequests", Some("BatchRequestsParams")),
     ("release", Some("ReleaseParams")),
     ("releaseSourceFile", Some("ReleaseSourceFileParams")),
@@ -545,7 +545,7 @@ pub const PARAMS_TYPES: &[(&str, Option<&str>)] = &[
     ("saveHeapProfile", Some("ProfileParams")),
 ];
 
-pub fn params_type(method: &str) -> Option<&'static str> {
+pub(crate) fn params_type(method: &str) -> Option<&'static str> {
     // As `method_info`, the first entry for a method wins.
     static BY_METHOD: LazyLock<FxHashMap<&'static str, Option<&'static str>>> =
         LazyLock::new(|| {

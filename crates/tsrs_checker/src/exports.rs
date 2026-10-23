@@ -441,7 +441,7 @@ impl Checker {
     }
 
     // exports.go:300
-    pub fn get_jsx_fragment_factory(&mut self, location: P<Node>) -> String {
+    pub(crate) fn get_jsx_fragment_factory(&mut self, location: P<Node>) -> String {
         let entity = self.get_jsx_fragment_factory_entity(Some(location));
         if let Some(entity) = entity {
             return ast::get_first_identifier(entity).text().to_string();

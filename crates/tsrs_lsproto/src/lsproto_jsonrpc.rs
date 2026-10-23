@@ -157,7 +157,7 @@ impl Json for Message {
 pub struct RequestMessage {
     pub id: Option<ID>,
     pub method: Method,
-    pub params: Option<Value>,
+    pub(crate) params: Option<Value>,
 }
 
 impl RequestMessage {

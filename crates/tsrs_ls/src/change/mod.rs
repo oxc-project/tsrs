@@ -7,4 +7,4 @@ mod trackerimpl;
 mod trackerimpl_test;
 
 pub use tracker::*;
-pub use trackerimpl::get_format_code_settings_for_writing;
+pub(crate) use trackerimpl::get_format_code_settings_for_writing;

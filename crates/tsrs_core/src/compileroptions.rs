@@ -443,7 +443,7 @@ impl ModuleKind {
     pub const PRESERVE: ModuleKind = ModuleKind(200);
 
     /// The Go constant name of a named value.
-    pub fn name(self) -> Option<&'static str> {
+    fn name(self) -> Option<&'static str> {
         match self.0 {
             0 => Some("None"),
             1 => Some("CommonJS"),
@@ -546,7 +546,7 @@ impl ModuleResolutionKind {
     pub const BUNDLER: ModuleResolutionKind = ModuleResolutionKind(100);
 
     /// The Go constant name of a named value.
-    pub fn name(self) -> Option<&'static str> {
+    fn name(self) -> Option<&'static str> {
         match self.0 {
             0 => Some("Unknown"),
             1 => Some("Classic"),
@@ -675,7 +675,7 @@ impl ScriptTarget {
     pub const JSON: ScriptTarget = ScriptTarget(100);
 
     /// The Go constant name of a named value.
-    pub fn name(self) -> Option<&'static str> {
+    fn name(self) -> Option<&'static str> {
         match self.0 {
             0 => Some("None"),
             1 => Some("ES5"),
@@ -751,7 +751,7 @@ impl JsxEmit {
     pub const REACT_JSX_DEV: JsxEmit = JsxEmit(5);
 
     /// The Go constant name of a named value.
-    pub fn name(self) -> Option<&'static str> {
+    fn name(self) -> Option<&'static str> {
         match self.0 {
             0 => Some("None"),
             1 => Some("Preserve"),

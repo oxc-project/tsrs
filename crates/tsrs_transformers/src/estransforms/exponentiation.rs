@@ -1,8 +1,8 @@
 use crate::*;
 
 // exponentiation.go:8
-pub struct ExponentiationTransformer {
-    pub base: Transformer,
+struct ExponentiationTransformer {
+    base: Transformer,
 }
 
 impl ExponentiationTransformer {

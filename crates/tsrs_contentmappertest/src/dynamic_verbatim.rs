@@ -17,8 +17,8 @@ use crate::verbatim::VerbatimHandler;
 // dynamic_verbatim.go:14
 #[derive(Debug, Default)]
 pub struct ProjectLifecycle {
-    pub opens: AtomicUsize,
-    pub closes: AtomicUsize,
+    opens: AtomicUsize,
+    closes: AtomicUsize,
 }
 
 // dynamic_verbatim.go:19 (Go embeds verbatimHandler, which carries no state.)

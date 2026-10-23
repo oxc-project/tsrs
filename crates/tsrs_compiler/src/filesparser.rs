@@ -29,20 +29,20 @@ pub struct ParseTask {
     pub(crate) path: Path,
     pub(crate) file: Option<P<SourceFile>>,
     pub(crate) lib_file: Option<P<LibFile>>,
-    pub(crate) redirected_parse_task: Option<TaskId>,
+    redirected_parse_task: Option<TaskId>,
     pub(crate) sub_tasks: Vec<TaskId>,
-    pub(crate) loaded: bool,
-    pub(crate) started_sub_tasks: bool,
+    loaded: bool,
+    started_sub_tasks: bool,
     pub(crate) is_for_automatic_type_directive: bool,
-    pub(crate) is_content_mapper_supplemental: bool,
+    is_content_mapper_supplemental: bool,
     pub(crate) failed_lookup: bool,
     // Set when the metadata was computed ahead of time for a parallel parse.
-    pub(crate) metadata_loaded: bool,
+    metadata_loaded: bool,
     pub(crate) increase_depth: bool,
     pub(crate) elide_on_depth: bool,
     pub(crate) include_reason: Option<P<FileIncludeReason>>,
     pub(crate) package_id: PackageId,
-    pub(crate) loaded_task: Option<TaskId>,
+    loaded_task: Option<TaskId>,
     // Everything only a loaded (or metadata-prefetched) task fills, allocated on the first write: most tasks are
     // one per import edge and only point at the task that loads their file (`loaded_task`, filesParser::start).
     data: Option<Box<ParseTaskLoaded>>,
@@ -57,7 +57,7 @@ pub const NO_DATA: u32 = u32::MAX;
 
 #[derive(Default)]
 pub struct ParseTaskLoaded {
-    pub(crate) metadata: SourceFileMetaData,
+    metadata: SourceFileMetaData,
     pub(crate) prefetched_resolutions: Option<Box<PrefetchedResolutions>>,
     pub(crate) resolutions_in_file: ModeAwareCache<P<ResolvedModule>>,
     pub(crate) resolutions_trace: Vec<DiagAndArgs>,
@@ -67,7 +67,7 @@ pub struct ParseTaskLoaded {
     pub(crate) import_helpers_import_specifier: Option<P<Node>>,
     pub(crate) jsx_runtime_import_specifier: Option<P<JsxRuntimeImportSpecifier>>,
     // The task's path as the `FileIncludeReason`s of its references store it: one copy per file, not per reference.
-    pub(crate) reason_path: Option<&'static str>,
+    reason_path: Option<&'static str>,
 }
 
 impl ParseTask {
@@ -107,7 +107,7 @@ impl ParseTask {
 
     /// The task's data index when known (`data_id`).
     #[inline]
-    pub(crate) fn data_hint(&self) -> Option<DataId> {
+    fn data_hint(&self) -> Option<DataId> {
         (self.data_id != NO_DATA).then_some(self.data_id as DataId)
     }
 
@@ -116,7 +116,7 @@ impl ParseTask {
         self.data.get_or_insert_with(Default::default)
     }
 
-    pub(crate) fn data_ref(&self) -> Option<&ParseTaskLoaded> {
+    fn data_ref(&self) -> Option<&ParseTaskLoaded> {
         self.data.as_deref()
     }
 
@@ -125,7 +125,7 @@ impl ParseTask {
         self.data_ref().map(|d| d.metadata.clone()).unwrap_or_default()
     }
 
-    pub(crate) fn take_processing_diagnostics(&mut self) -> Vec<ProcessingDiagnostic> {
+    fn take_processing_diagnostics(&mut self) -> Vec<ProcessingDiagnostic> {
         self.data
             .as_mut()
             .map(|d| std::mem::take(&mut d.processing_diagnostics))

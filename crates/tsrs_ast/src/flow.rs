@@ -43,7 +43,7 @@ pub struct FlowNode {
     pub flags: OwnedCell<FlowFlags>,
     // Not in Go: the text index of the file whose binder made this flow node (`NO_SOURCE_TEXT` for the checker's);
     // compact identifiers read their text index from their flow node (identifier.rs).
-    pub text_index: u32,
+    text_index: u32,
     pub node: OwnedCell<Option<P<Node>>>, // Associated AST node
     link: OwnedCell<PKey>,
 }
@@ -79,7 +79,7 @@ impl FlowNode {
         self.node.get()
     }
     #[inline]
-    pub fn text_index(&self) -> u32 {
+    pub(crate) fn text_index(&self) -> u32 {
         self.text_index
     }
     /// Go `Antecedent` (antecedent for all but `FlowLabel`).

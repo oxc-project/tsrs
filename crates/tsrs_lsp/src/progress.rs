@@ -100,7 +100,7 @@ pub struct ProgressChannel {
 }
 
 pub struct ProgressChannelState {
-    pub(crate) events: VecDeque<ProgressEvent>,
+    events: VecDeque<ProgressEvent>,
     // Test support (Go's synctest.Wait): the run thread is blocked waiting for an event, the timer or done.
     idle: bool,
     exited: bool,
@@ -120,7 +120,7 @@ pub struct ProgressChannelState {
 // but will bail out if the server's background context is cancelled.
 pub struct ProjectLoadingProgress {
     reporter: Arc<dyn ProgressReporter>,
-    pub(crate) ch: Arc<ProgressChannel>,
+    ch: Arc<ProgressChannel>,
     delay: Duration, // time to wait before showing progress UI
 }
 

@@ -17,11 +17,11 @@ pub type AssignmentTarget = Node; // BinaryExpression | PrefixUnaryExpression | 
 
 /// orderedSetMapThreshold is the size at which an orderedSet materializes its dedup map. Below this,
 /// `contains()` scans the values slice.
-pub const ORDERED_SET_MAP_THRESHOLD: usize = 16;
+pub(crate) const ORDERED_SET_MAP_THRESHOLD: usize = 16;
 
 pub struct CheckerOrderedSet<T: Copy + Eq + std::hash::Hash> {
-    pub values_by_key: Option<FxHashSet<T>>,
-    pub values: Vec<T>,
+    pub(crate) values_by_key: Option<FxHashSet<T>>,
+    pub(crate) values: Vec<T>,
 }
 
 impl<T: Copy + Eq + std::hash::Hash> Default for CheckerOrderedSet<T> {
@@ -32,12 +32,12 @@ impl<T: Copy + Eq + std::hash::Hash> Default for CheckerOrderedSet<T> {
 
 #[derive(Clone, Copy, Debug)]
 pub struct FeatureMapEntry {
-    pub lib: &'static str,
-    pub props: &'static [&'static str],
+    pub(crate) lib: &'static str,
+    pub(crate) props: &'static [&'static str],
 }
 
 /// Go `var getFeatureMap = sync.OnceValue(...)`; call as `get_feature_map()`.
-pub fn get_feature_map() -> &'static FxHashMap<&'static str, Vec<FeatureMapEntry>> {
+pub(crate) fn get_feature_map() -> &'static FxHashMap<&'static str, Vec<FeatureMapEntry>> {
     static MAP: LazyLock<FxHashMap<&'static str, Vec<FeatureMapEntry>>> =
         LazyLock::new(build_feature_map);
     &MAP

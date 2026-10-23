@@ -13,7 +13,7 @@ use crate::project::{ConfiguredProjectID, ID, Project, SyntheticProjectID};
 
 #[derive(Clone)]
 pub struct ProjectCollection {
-    pub(crate) to_path: ToPath,
+    to_path: ToPath,
     pub(crate) config_file_registry: Arc<ConfigFileRegistry>,
     // fileDefaultProjects is a map of file paths to the ID of the default project
     // for that file. This map
@@ -36,7 +36,7 @@ pub struct ProjectCollection {
     pub(crate) api_state: APIState,
 
     // Go: openConfiguredProjectsOnce + openConfiguredProjects (not copied by clone()).
-    pub(crate) open_configured_projects: Arc<OnceLock<Arc<Set<ConfiguredProjectID>>>>,
+    open_configured_projects: Arc<OnceLock<Arc<Set<ConfiguredProjectID>>>>,
 }
 
 // APIState tracks the projects and files that API clients have explicitly opened.
@@ -113,7 +113,7 @@ impl ProjectCollection {
 
     // projectcollection.go:92
     // ConfiguredProjects returns all configured projects in a stable order.
-    pub fn configured_projects(&self) -> Vec<Shared<Project>> {
+    fn configured_projects(&self) -> Vec<Shared<Project>> {
         let mut projects = Vec::with_capacity(self.configured_projects.len());
         self.fill_configured_projects(&mut projects);
         projects
@@ -184,7 +184,7 @@ impl ProjectCollection {
     // projectcollection.go:165
     // GetLanguageServiceProjectsContainingFile does not consider synthetic projects
     // (ones created by API via createProgram)
-    pub fn get_language_service_projects_containing_file(
+    pub(crate) fn get_language_service_projects_containing_file(
         &self,
         path: &Path,
     ) -> Vec<Arc<dyn ls::Project>> {
@@ -208,7 +208,7 @@ impl ProjectCollection {
 
     // projectcollection.go:179
     // GetOpenConfiguredProjects returns configured projects containing at least one open file.
-    pub fn get_open_configured_projects(&self) -> Arc<Set<ConfiguredProjectID>> {
+    pub(crate) fn get_open_configured_projects(&self) -> Arc<Set<ConfiguredProjectID>> {
         Arc::clone(self.open_configured_projects.get_or_init(|| {
             let mut open_projects = new_set_with_size_hint(self.configured_projects.len());
             #[expect(

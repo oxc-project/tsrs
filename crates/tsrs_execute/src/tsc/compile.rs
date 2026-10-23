@@ -123,7 +123,7 @@ impl Drop for ContentMapperCloser {
 }
 
 #[cfg(unix)]
-pub fn format_local_time_03_04_05_pm(t: std::time::SystemTime) -> String {
+fn format_local_time_03_04_05_pm(t: std::time::SystemTime) -> String {
     let secs = t.duration_since(std::time::UNIX_EPOCH).map_or(0, |d| d.as_secs() as _);
     // SAFETY: `libc::tm` is C integers (and, on some platforms, a nullable `char *`), for which all zeros is valid.
     let mut tm: libc::tm = unsafe { std::mem::zeroed() };
@@ -232,22 +232,22 @@ pub struct CommandLineResult {
 
 #[derive(Default, Clone)]
 pub struct CompileTimes {
-    pub config_time: Duration,
-    pub parse_time: Duration,
-    pub content_mapper_times: contentmapper::Timings,
-    pub bind_time: Duration,
-    pub check_time: Duration,
-    pub total_time: Duration,
-    pub emit_time: Duration,
-    pub build_info_read_time: Duration,
-    pub changes_compute_time: Duration,
+    pub(crate) config_time: Duration,
+    pub(crate) parse_time: Duration,
+    pub(crate) content_mapper_times: contentmapper::Timings,
+    pub(crate) bind_time: Duration,
+    pub(crate) check_time: Duration,
+    pub(crate) total_time: Duration,
+    pub(crate) emit_time: Duration,
+    pub(crate) build_info_read_time: Duration,
+    pub(crate) changes_compute_time: Duration,
 }
 
 pub struct CompileAndEmitResult {
-    pub diagnostics: Vec<P<Diagnostic>>,
-    pub emit_skipped: bool,
+    pub(crate) diagnostics: Vec<P<Diagnostic>>,
+    pub(crate) emit_skipped: bool,
     // Go `EmitResult.EmittedFiles`.
-    pub emitted_files: Vec<String>,
-    pub status: ExitStatus,
-    pub times: CompileTimes,
+    pub(crate) emitted_files: Vec<String>,
+    pub(crate) status: ExitStatus,
+    pub(crate) times: CompileTimes,
 }

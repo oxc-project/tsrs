@@ -32,7 +32,7 @@ pub enum Status {
 
 #[derive(Clone, Copy, Debug)]
 pub struct Row {
-    pub method: &'static str,
-    pub lane: Lane,
-    pub status: Status,
+    pub(crate) method: &'static str,
+    pub(crate) lane: Lane,
+    pub(crate) status: Status,
 }

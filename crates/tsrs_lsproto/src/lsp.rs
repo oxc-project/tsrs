@@ -696,7 +696,7 @@ impl<Params> Clone for NotificationInfo<Params> {
 impl<Params> Copy for NotificationInfo<Params> {}
 
 impl<Params> NotificationInfo<Params> {
-    pub const fn new(method: Method) -> Self {
+    pub(crate) const fn new(method: Method) -> Self {
         NotificationInfo { _marker: PhantomData, method }
     }
 }

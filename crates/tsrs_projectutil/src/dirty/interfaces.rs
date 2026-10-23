@@ -33,7 +33,7 @@ impl<T> Shared<T> {
         &self.0
     }
 
-    pub fn make_mut(this: &mut Shared<T>) -> &mut T
+    pub(crate) fn make_mut(this: &mut Shared<T>) -> &mut T
     where
         T: Clone,
     {
@@ -44,7 +44,7 @@ impl<T> Shared<T> {
 impl<T: Cloneable> Shared<T> {
     // Go `v.Clone()` on the pointer.
     #[must_use]
-    pub fn clone_shared(&self) -> Shared<T> {
+    pub(crate) fn clone_shared(&self) -> Shared<T> {
         Shared(Arc::new(self.0.clone_value()))
     }
 }

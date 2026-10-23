@@ -260,7 +260,7 @@ impl SyncConn {
         })()
     }
 
-    pub fn notify(&self, method: &str, params: Option<&[u8]>) -> Result<(), TransportError> {
+    fn notify(&self, method: &str, params: Option<&[u8]>) -> Result<(), TransportError> {
         let mut io = self.lock();
         io.writer.write_notification(method, params)
     }

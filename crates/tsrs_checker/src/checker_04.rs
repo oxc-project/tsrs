@@ -63,7 +63,7 @@ impl Checker {
 
 impl IterationTypesResolver {
     // checker.go:6554
-    pub(crate) fn get_resolved_iteration_types(
+    fn get_resolved_iteration_types(
         &self,
         c: &mut Checker,
         yield_type: P<Type>,
@@ -96,7 +96,7 @@ impl Checker {
     }
 
     // checker.go:6566
-    pub(crate) fn is_reference_to_some_type(t: Option<P<Type>>, targets: &[P<Type>]) -> bool {
+    fn is_reference_to_some_type(t: Option<P<Type>>, targets: &[P<Type>]) -> bool {
         match t {
             Some(t) => {
                 t.object_flags().intersects(ObjectFlags::Reference)
@@ -142,7 +142,7 @@ impl Checker {
     }
 
     // checker.go:6598
-    pub(crate) fn get_iteration_type_union(
+    fn get_iteration_type_union(
         &mut self,
         iteration_types: &[IterationTypes],
         mut f: impl FnMut(&mut Checker, IterationTypes) -> Option<P<Type>>,
@@ -261,7 +261,7 @@ impl Checker {
     //
     // NOTE: You probably don't want to call this directly and should be calling `getIterationTypesOfIterator` instead.
     // checker.go:6665
-    pub(crate) fn get_iteration_types_of_iterator_worker(
+    fn get_iteration_types_of_iterator_worker(
         &mut self,
         t: P<Type>,
         r: P<IterationTypesResolver>,
@@ -283,7 +283,7 @@ impl Checker {
     }
 
     // checker.go:6676
-    pub(crate) fn get_iteration_types_of_iterator_fast(
+    fn get_iteration_types_of_iterator_fast(
         &mut self,
         t: P<Type>,
         r: P<IterationTypesResolver>,
@@ -333,7 +333,7 @@ impl Checker {
     }
 
     // checker.go:6703
-    pub(crate) fn get_iteration_types_of_iterator_slow(
+    fn get_iteration_types_of_iterator_slow(
         &mut self,
         t: P<Type>,
         r: P<IterationTypesResolver>,
@@ -360,7 +360,7 @@ impl Checker {
     }
 
     // checker.go:6711
-    pub(crate) fn get_iteration_types_of_method(
+    fn get_iteration_types_of_method(
         &mut self,
         t: P<Type>,
         resolver: P<IterationTypesResolver>,
@@ -527,7 +527,7 @@ impl Checker {
     // returned to indicate to the caller that it should handle the error. Otherwise, an
     // `IterationTypes` record is returned.
     // checker.go:6819
-    pub(crate) fn get_iteration_types_of_iterator_result(&mut self, t: P<Type>) -> IterationTypes {
+    fn get_iteration_types_of_iterator_result(&mut self, t: P<Type>) -> IterationTypes {
         if is_type_any(Some(t)) {
             return IterationTypes {
                 yield_type: Some(self.any_type),
@@ -587,17 +587,17 @@ impl Checker {
     }
 
     // checker.go:6852
-    pub(crate) fn is_yield_iterator_result(&mut self, t: P<Type>) -> bool {
+    fn is_yield_iterator_result(&mut self, t: P<Type>) -> bool {
         self.is_iterator_result(t, IterationTypeKind::Yield)
     }
 
     // checker.go:6856
-    pub(crate) fn is_return_iterator_result(&mut self, t: P<Type>) -> bool {
+    fn is_return_iterator_result(&mut self, t: P<Type>) -> bool {
         self.is_iterator_result(t, IterationTypeKind::Return)
     }
 
     // checker.go:6860
-    pub(crate) fn is_iterator_result(&mut self, t: P<Type>, kind: IterationTypeKind) -> bool {
+    fn is_iterator_result(&mut self, t: P<Type>, kind: IterationTypeKind) -> bool {
         // From https://tc39.github.io/ecma262/#sec-iteratorresult-interface:
         // > [done] is the result status of an iterator `next` method call. If the end of the iterator was reached `done` is `true`.
         // > If the end was not reached `done` is `false` and a value is available.
@@ -1057,7 +1057,7 @@ impl Checker {
     }
 
     // checker.go:7133
-    pub(crate) fn get_declaration_spaces(&mut self, node: P<Node>) -> DeclarationSpaces {
+    fn get_declaration_spaces(&mut self, node: P<Node>) -> DeclarationSpaces {
         fn alias_spaces(c: &mut Checker, node: P<Node>) -> DeclarationSpaces {
             let mut result = DeclarationSpaces::None;
             let symbol = c.get_symbol_of_declaration(node).unwrap();
@@ -1158,7 +1158,7 @@ impl Checker {
 
     // Check that type parameter defaults only reference previously declared type parameters */
     // checker.go:7194
-    pub(crate) fn check_type_parameters_not_referenced(
+    fn check_type_parameters_not_referenced(
         &mut self,
         root: P<Node>,
         type_parameters: &[P<Node>],
@@ -1242,12 +1242,12 @@ impl Checker {
     }
 
     // checker.go:7245
-    pub(crate) fn is_referenced(&self, symbol: P<Symbol>) -> bool {
+    fn is_referenced(&self, symbol: P<Symbol>) -> bool {
         !self.reference_kinds(symbol).is_empty()
     }
 
     // checker.go:7256
-    pub(crate) fn report_unused_variable(&mut self, location: P<Node>, diagnostic: P<Diagnostic>) {
+    fn report_unused_variable(&mut self, location: P<Node>, diagnostic: P<Diagnostic>) {
         let mut location = location;
         while is_binding_element(location) || is_binding_pattern(location) {
             location = location.parent().unwrap();
@@ -1261,12 +1261,7 @@ impl Checker {
     }
 
     // checker.go:7263
-    pub(crate) fn report_unused(
-        &mut self,
-        location: P<Node>,
-        kind: UnusedKind,
-        diagnostic: P<Diagnostic>,
-    ) {
+    fn report_unused(&mut self, location: P<Node>, kind: UnusedKind, diagnostic: P<Diagnostic>) {
         if !location
             .flags()
             .intersects(NodeFlags::Ambient | NodeFlags::ThisNodeOrAnySubNodesHasError)
@@ -1283,7 +1278,7 @@ impl Checker {
     }
 
     // checker.go:7276
-    pub(crate) fn unused_is_error(&self, kind: UnusedKind) -> bool {
+    fn unused_is_error(&self, kind: UnusedKind) -> bool {
         match kind {
             UnusedKind::Local => self.compiler_options.no_unused_locals.is_true(),
             UnusedKind::Parameter => self.compiler_options.no_unused_parameters.is_true(),
@@ -1291,7 +1286,7 @@ impl Checker {
     }
 
     // checker.go:7287
-    pub(crate) fn check_unused_class_members(&mut self, node: P<Node>) {
+    fn check_unused_class_members(&mut self, node: P<Node>) {
         for &member in node.members() {
             match member.kind() {
                 Kind::MethodDeclaration
@@ -1350,7 +1345,7 @@ impl Checker {
     }
 
     // checker.go:7312
-    pub(crate) fn check_unused_locals_and_parameters(&mut self, node: P<Node>) {
+    fn check_unused_locals_and_parameters(&mut self, node: P<Node>) {
         // Go iterates a map-based set and a map here; insertion-ordered collections keep the port deterministic.
         let mut variable_parents: OrderedSet<P<Node>> = OrderedSet::default();
         let mut import_clauses: OrderedMap<P<Node>, Vec<P<Node>>> = OrderedMap::default();
@@ -1402,7 +1397,7 @@ impl Checker {
     }
 
     // checker.go:7353
-    pub(crate) fn report_unused_local(&mut self, node: P<Node>, name: &str) {
+    fn report_unused_local(&mut self, node: P<Node>, name: &str) {
         let message: &'static Message = if is_type_declaration(node) {
             &diagnostics::X_0_IS_DECLARED_BUT_NEVER_USED
         } else {
@@ -1416,7 +1411,7 @@ impl Checker {
     }
 
     // checker.go:7358
-    pub(crate) fn report_unused_variables(&mut self, node: P<Node>) {
+    fn report_unused_variables(&mut self, node: P<Node>) {
         let declarations = node.as_variable_declaration_list().declarations.nodes();
         if declarations.len() > 1
             && declarations.iter().all(|&d| self.is_unreferenced_variable_declaration(d))
@@ -1435,12 +1430,12 @@ impl Checker {
     }
 
     // checker.go:7367
-    pub(crate) fn report_unused_parameters(&mut self, node: P<Node>) {
+    fn report_unused_parameters(&mut self, node: P<Node>) {
         self.report_unused_variable_declarations(node.parameters());
     }
 
     // checker.go:7371
-    pub(crate) fn report_unused_binding_elements(&mut self, node: P<Node>) {
+    fn report_unused_binding_elements(&mut self, node: P<Node>) {
         let declarations = node.elements();
         if declarations.len() > 1
             && declarations.iter().all(|&d| self.is_unreferenced_variable_declaration(d))
@@ -1459,7 +1454,7 @@ impl Checker {
     }
 
     // checker.go:7380
-    pub(crate) fn report_unused_variable_declarations(&mut self, declarations: &[P<Node>]) {
+    fn report_unused_variable_declarations(&mut self, declarations: &[P<Node>]) {
         for &declaration in declarations {
             let name = declaration.name();
             if let Some(name) = name
@@ -1483,7 +1478,7 @@ impl Checker {
     }
 
     // checker.go:7393
-    pub(crate) fn is_unreferenced_variable_declaration(&mut self, node: P<Node>) -> bool {
+    fn is_unreferenced_variable_declaration(&mut self, node: P<Node>) -> bool {
         let Some(name) = node.name() else {
             return true;
         };
@@ -1516,7 +1511,7 @@ impl Checker {
     }
 
     // checker.go:7420
-    pub(crate) fn report_unused_imports(&mut self, node: P<Node>, unuseds: &[P<Node>]) {
+    fn report_unused_imports(&mut self, node: P<Node>, unuseds: &[P<Node>]) {
         let mut declaration_count: usize = usize::from(node.name().is_some());
         let named_bindings = node.as_import_clause().named_bindings;
         if let Some(named_bindings) = named_bindings {
@@ -1560,7 +1555,7 @@ pub fn import_clause_from_imported(node: P<Node>) -> Option<P<Node>> {
 
 impl Checker {
     // checker.go:7454
-    pub(crate) fn check_unused_infer_type_parameter(&mut self, node: P<Node>) {
+    fn check_unused_infer_type_parameter(&mut self, node: P<Node>) {
         let type_parameter = node.as_infer_type_node().type_parameter;
         if self.is_unreferenced_type_parameter(type_parameter) {
             let name = type_parameter.name().unwrap();
@@ -1577,7 +1572,7 @@ impl Checker {
     }
 
     // checker.go:7461
-    pub(crate) fn check_unused_type_parameters(&mut self, node: P<Node>) {
+    fn check_unused_type_parameters(&mut self, node: P<Node>) {
         let symbol = self.get_symbol_of_declaration(node).unwrap();
         if !all_declarations_in_same_source_file(symbol) {
             return;
@@ -1614,7 +1609,7 @@ impl Checker {
     }
 
     // checker.go:7482
-    pub(crate) fn is_unreferenced_type_parameter(&mut self, type_parameter: P<Node>) -> bool {
+    fn is_unreferenced_type_parameter(&mut self, type_parameter: P<Node>) -> bool {
         let symbol = self.get_merged_symbol(type_parameter.symbol().unwrap());
         !self.reference_kinds(symbol).intersects(SymbolFlags::TypeParameter)
             && !is_identifier_that_starts_with_underscore(type_parameter.name().unwrap())
@@ -1734,7 +1729,7 @@ impl Checker {
     }
 
     // checker.go:7559
-    pub(crate) fn get_return_type_of_single_non_generic_signature(
+    fn get_return_type_of_single_non_generic_signature(
         &mut self,
         func_type: P<Type>,
         kind: SignatureKind,
@@ -1749,7 +1744,7 @@ impl Checker {
     }
 
     // checker.go:7567
-    pub(crate) fn get_return_type_of_single_non_generic_signature_of_call_chain(
+    fn get_return_type_of_single_non_generic_signature_of_call_chain(
         &mut self,
         expr: P<Node>,
     ) -> Option<P<Type>> {
@@ -1784,7 +1779,7 @@ impl Checker {
     }
 
     // checker.go:7585
-    pub(crate) fn check_non_null_type_with_reporter(
+    fn check_non_null_type_with_reporter(
         &mut self,
         t: P<Type>,
         node: P<Node>,
@@ -1838,11 +1833,7 @@ impl Checker {
     }
 
     // checker.go:7628
-    pub(crate) fn report_object_possibly_null_or_undefined_error(
-        &mut self,
-        node: P<Node>,
-        facts: TypeFacts,
-    ) {
+    fn report_object_possibly_null_or_undefined_error(&mut self, node: P<Node>, facts: TypeFacts) {
         let mut node_text = String::new();
         if is_entity_name_expression(node) {
             node_text = crate::entity_name_to_string(node);
@@ -1973,7 +1964,7 @@ impl Checker {
     }
 
     // checker.go:7677
-    pub(crate) fn get_context_node(node: P<Node>) -> Option<P<Node>> {
+    fn get_context_node(node: P<Node>) -> Option<P<Node>> {
         if is_jsx_attributes(node) && !is_jsx_self_closing_element(node.parent().unwrap()) {
             // Needs to be the root JsxElement, so it encompasses the attributes _and_ the children (which are essentially part of the attributes)
             return node.parent().unwrap().parent();
@@ -2016,7 +2007,7 @@ impl Checker {
     // and requesting the contextual type might cause a circularity or other bad behaviour.
     // It sets the contextual type of the node to any before calling getTypeOfExpression.
     // checker.go:7714
-    pub fn get_context_free_type_of_expression(&mut self, node: P<Node>) -> P<Type> {
+    pub(crate) fn get_context_free_type_of_expression(&mut self, node: P<Node>) -> P<Type> {
         if let Some(&cached) = self.context_free_types.get(&node) {
             return cached;
         }
@@ -2065,7 +2056,7 @@ impl Checker {
     }
 
     // checker.go:7745
-    pub(crate) fn check_const_enum_access(&mut self, node: P<Node>, t: P<Type>) {
+    fn check_const_enum_access(&mut self, node: P<Node>, t: P<Type>) {
         // enum object type for const enums are only permitted in:
         // - 'left' in property access
         // - 'object' in indexed access
@@ -2255,7 +2246,7 @@ impl Checker {
     }
 
     // checker.go:7856
-    pub(crate) fn get_unique_type_parameters(
+    fn get_unique_type_parameters(
         &mut self,
         context: P<InferenceContext>,
         type_parameters: &[P<Type>],
@@ -2315,11 +2306,7 @@ pub fn get_unique_type_parameter_name(type_parameters: &[P<Type>], base_name: &s
 
 impl Checker {
     // checker.go:7903
-    pub(crate) fn check_expression_worker(
-        &mut self,
-        node: P<Node>,
-        check_mode: CheckMode,
-    ) -> P<Type> {
+    fn check_expression_worker(&mut self, node: P<Node>, check_mode: CheckMode) -> P<Type> {
         match node.kind() {
             Kind::Identifier => self.check_identifier(node, check_mode),
             Kind::PrivateIdentifier => self.check_private_identifier_expression(node),
@@ -2400,7 +2387,7 @@ impl Checker {
     }
 
     // checker.go:8009
-    pub(crate) fn check_private_identifier_expression(&mut self, node: P<Node>) -> P<Type> {
+    fn check_private_identifier_expression(&mut self, node: P<Node>) -> P<Type> {
         self.check_grammar_private_identifier_expression(node);
         let symbol = self.get_symbol_for_private_identifier_expression(node);
         if let Some(symbol) = symbol {
@@ -2600,10 +2587,7 @@ impl Checker {
     }
 
     // checker.go:8136
-    pub(crate) fn is_in_constructor_argument_initializer(
-        node: P<Node>,
-        constructor_decl: P<Node>,
-    ) -> bool {
+    fn is_in_constructor_argument_initializer(node: P<Node>, constructor_decl: P<Node>) -> bool {
         find_ancestor_or_quit(node, |n| {
             if is_function_like_declaration(n) {
                 return FindAncestorResult::Quit;
@@ -2617,7 +2601,7 @@ impl Checker {
     }
 
     // checker.go:8148
-    pub(crate) fn check_template_expression(&mut self, node: P<Node>) -> P<Type> {
+    fn check_template_expression(&mut self, node: P<Node>) -> P<Type> {
         let expr = node.as_template_expression();
         let spans = expr.template_spans.nodes();
         let length = spans.len();
@@ -2667,7 +2651,7 @@ impl Checker {
     }
 
     // checker.go:8175
-    pub(crate) fn is_template_literal_context(node: P<Node>) -> bool {
+    fn is_template_literal_context(node: P<Node>) -> bool {
         let parent = node.parent().unwrap();
         is_parenthesized_expression(parent) && Self::is_template_literal_context(parent)
             || is_element_access_expression(parent)
@@ -2675,7 +2659,7 @@ impl Checker {
     }
 
     // checker.go:8180
-    pub(crate) fn is_template_literal_contextual_type(&mut self, t: P<Type>) -> bool {
+    fn is_template_literal_contextual_type(&mut self, t: P<Type>) -> bool {
         t.flags().intersects(TypeFlags::StringLiteral | TypeFlags::TemplateLiteral)
             || t.flags().intersects(TypeFlags::InstantiableNonPrimitive) && {
                 let constraint = self.get_base_constraint_of_type(t).unwrap_or(self.unknown_type);
@@ -2684,7 +2668,7 @@ impl Checker {
     }
 
     // checker.go:8184
-    pub(crate) fn check_regular_expression_literal(&mut self, node: P<Node>) -> P<Type> {
+    fn check_regular_expression_literal(&mut self, node: P<Node>) -> P<Type> {
         let node_links = self.node_links.get(node);
         if !node_links.flags.get().intersects(NodeCheckFlags::TypeChecked) {
             node_links.flags.set(node_links.flags.get() | NodeCheckFlags::TypeChecked);
@@ -2842,7 +2826,7 @@ impl Checker {
     }
 
     // checker.go:8275
-    pub(crate) fn create_array_literal_type(&mut self, t: P<Type>) -> P<Type> {
+    fn create_array_literal_type(&mut self, t: P<Type>) -> P<Type> {
         if !t.object_flags().intersects(ObjectFlags::Reference) {
             return t;
         }
@@ -2888,7 +2872,7 @@ impl Checker {
     }
 
     // checker.go:8305
-    pub(crate) fn check_indexed_access(&mut self, node: P<Node>, check_mode: CheckMode) -> P<Type> {
+    fn check_indexed_access(&mut self, node: P<Node>, check_mode: CheckMode) -> P<Type> {
         if node.flags().intersects(NodeFlags::OptionalChain) {
             return self.check_element_access_chain(node, check_mode);
         }
@@ -2897,11 +2881,7 @@ impl Checker {
     }
 
     // checker.go:8312
-    pub(crate) fn check_element_access_chain(
-        &mut self,
-        node: P<Node>,
-        check_mode: CheckMode,
-    ) -> P<Type> {
+    fn check_element_access_chain(&mut self, node: P<Node>, check_mode: CheckMode) -> P<Type> {
         let expression = node.expression().unwrap();
         let expr_type = self.check_expression(expression);
         let non_optional_type = self.get_optional_expression_type(expr_type, expression);
@@ -2911,7 +2891,7 @@ impl Checker {
     }
 
     // checker.go:8318
-    pub(crate) fn check_element_access_expression(
+    fn check_element_access_expression(
         &mut self,
         node: P<Node>,
         expr_type: P<Type>,
@@ -2981,7 +2961,7 @@ impl Checker {
     // Return true if given node is an expression consisting of an identifier (possibly parenthesized)
     // that references a for-in variable for an object with numeric property names.
     // checker.go:8351
-    pub(crate) fn is_for_in_variable_for_numeric_property_names(&mut self, expr: P<Node>) -> bool {
+    fn is_for_in_variable_for_numeric_property_names(&mut self, expr: P<Node>) -> bool {
         let e = skip_parentheses(expr);
         if is_identifier(e) {
             let symbol = self.get_resolved_symbol(e);
@@ -3009,7 +2989,7 @@ impl Checker {
 
     // Return the symbol of the for-in variable declared or referenced by the given for-in statement.
     // checker.go:8371
-    pub(crate) fn get_for_in_variable_symbol(&mut self, node: P<Node>) -> Option<P<Symbol>> {
+    fn get_for_in_variable_symbol(&mut self, node: P<Node>) -> Option<P<Symbol>> {
         let initializer = node.initializer().unwrap();
         if is_variable_declaration_list(initializer) {
             let declarations = initializer.as_variable_declaration_list().declarations.nodes();
@@ -3027,7 +3007,7 @@ impl Checker {
 
     // Return true if the given type is considered to have numeric property names.
     // checker.go:8388
-    pub(crate) fn has_numeric_property_names(&mut self, t: P<Type>) -> bool {
+    fn has_numeric_property_names(&mut self, t: P<Type>) -> bool {
         let number_type = self.number_type;
         self.get_index_infos_of_type(t).len() == 1
             && self.get_index_info_of_type(t, number_type).is_some()
@@ -3091,7 +3071,7 @@ impl Checker {
     }
 
     // checker.go:8429
-    pub(crate) fn get_constituent_property(
+    fn get_constituent_property(
         &mut self,
         object_type: P<Type>,
         property_name: &str,
@@ -3111,7 +3091,7 @@ impl Checker {
     }
 
     // checker.go:8439
-    pub(crate) fn check_import_call_expression(&mut self, node: P<Node>) -> P<Type> {
+    fn check_import_call_expression(&mut self, node: P<Node>) -> P<Type> {
         // Check grammar of dynamic import
         self.check_grammar_import_call_expression(node);
         let args = node.arguments();
@@ -3219,11 +3199,7 @@ impl Checker {
      * @returns On success, the expression's signature's return type. On failure, anyType.
      */
     // checker.go:8496
-    pub(crate) fn check_call_expression(
-        &mut self,
-        node: P<Node>,
-        check_mode: CheckMode,
-    ) -> P<Type> {
+    fn check_call_expression(&mut self, node: P<Node>, check_mode: CheckMode) -> P<Type> {
         if self.compiler_options.rewrite_relative_import_extensions.is_true()
             && is_in_js_file(node)
             && is_require_call(node, false /*requireStringLiteralLikeArgument*/)
@@ -3316,7 +3292,7 @@ impl Checker {
     }
 
     // checker.go:8549
-    pub(crate) fn add_deprecated_suggestion_with_signature(
+    fn add_deprecated_suggestion_with_signature(
         &mut self,
         location: P<Node>,
         declaration: P<Node>,
@@ -3337,7 +3313,7 @@ impl Checker {
     }
 
     // checker.go:8555
-    pub(crate) fn is_symbol_or_symbol_for_call(&mut self, node: P<Node>) -> bool {
+    fn is_symbol_or_symbol_for_call(&mut self, node: P<Node>) -> bool {
         if !is_call_expression(node) {
             return false;
         }
@@ -3371,7 +3347,7 @@ impl Checker {
      * @return a signature of the call-like expression or undefined if one can't be found
      */
     // checker.go:8581
-    pub fn get_resolved_signature(
+    pub(crate) fn get_resolved_signature(
         &mut self,
         node: P<Node>,
         candidates_out_array: Option<&mut Vec<P<Signature>>>,
@@ -3429,7 +3405,7 @@ impl Checker {
     }
 
     // checker.go:8627
-    pub(crate) fn resolve_signature(
+    fn resolve_signature(
         &mut self,
         node: P<Node>,
         candidates_out_array: Option<&mut Vec<P<Signature>>>,
@@ -3457,7 +3433,7 @@ impl Checker {
     }
 
     // checker.go:8645
-    pub(crate) fn resolve_call_expression(
+    fn resolve_call_expression(
         &mut self,
         node: P<Node>,
         candidates_out_array: Option<&mut Vec<P<Signature>>>,

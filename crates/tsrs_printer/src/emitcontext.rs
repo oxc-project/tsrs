@@ -224,7 +224,7 @@ impl EmitContext {
     }
 
     // Go's unexported `endAndMergeVariableEnvironment` (renamed: collides with the exported method after snake-casing).
-    pub(crate) fn end_and_merge_variable_environment_worker(
+    fn end_and_merge_variable_environment_worker(
         &self,
         statements: &[P<Node>],
     ) -> (Vec<P<Node>>, bool) {
@@ -265,7 +265,7 @@ impl EmitContext {
     //
     // NOTE: This is the equivalent of `transformContext.startBlockScope` in Strada.
     // NOTE: This is *not* the same as `startLexicalEnvironment` in Strada as that method is incorrectly named.
-    pub fn start_lexical_environment(&self) {
+    fn start_lexical_environment(&self) {
         self.let_scope_stack.borrow_mut().push(Rc::default());
     }
 
@@ -273,7 +273,7 @@ impl EmitContext {
     //
     // NOTE: This is the equivalent of `transformContext.endLexicalEnvironment` in Strada.
     // NOTE: This is *not* the same as `endLexicalEnvironment` in Strada as that method is incorrectly named.
-    pub fn end_lexical_environment(&self) -> Vec<P<Node>> {
+    fn end_lexical_environment(&self) -> Vec<P<Node>> {
         let scope = self.let_scope_stack.borrow_mut().pop();
         let variables = scope.borrow().variables.clone();
         let mut statements: Vec<P<Node>> = Vec::new();
@@ -320,7 +320,7 @@ impl EmitContext {
     // Invokes c.EndLexicalEnvironment() and merges the results into `statements`
     //
     // Go's unexported `endAndMergeLexicalEnvironment` (renamed: collides with the exported method after snake-casing).
-    pub(crate) fn end_and_merge_lexical_environment_worker(
+    fn end_and_merge_lexical_environment_worker(
         &self,
         statements: &[P<Node>],
     ) -> (Vec<P<Node>>, bool) {
@@ -366,7 +366,7 @@ impl EmitContext {
     }
 
     // Go's unexported `mergeEnvironment` (renamed: collides with the exported method after snake-casing).
-    pub(crate) fn merge_environment_worker(
+    fn merge_environment_worker(
         &self,
         statements: &[P<Node>],
         declarations: &[P<Node>],
@@ -514,15 +514,15 @@ impl EmitContext {
         (left, changed)
     }
 
-    pub(crate) fn is_custom_prologue(&self, node: P<Node>) -> bool {
+    fn is_custom_prologue(&self, node: P<Node>) -> bool {
         self.emit_flags(node).intersects(EmitFlags::CustomPrologue)
     }
 
-    pub(crate) fn is_hoisted_function(&self, node: P<Node>) -> bool {
+    fn is_hoisted_function(&self, node: P<Node>) -> bool {
         self.is_custom_prologue(node) && is_function_declaration(node)
     }
 
-    pub(crate) fn is_hoisted_variable_statement(&self, node: P<Node>) -> bool {
+    fn is_hoisted_variable_statement(&self, node: P<Node>) -> bool {
         self.is_custom_prologue(node)
             && is_variable_statement(node)
             && every(
@@ -724,7 +724,7 @@ impl EmitContext {
         self.emit_nodes.borrow_mut().entry(node).or_default().emit_flags |= flags;
     }
 
-    pub fn snippet_element(&self, node: P<Node>) -> Option<SnippetElement> {
+    pub(crate) fn snippet_element(&self, node: P<Node>) -> Option<SnippetElement> {
         if let Some(emit_node) = self.emit_nodes.borrow().get(&node) {
             return emit_node.rare()?.snippet_element;
         }
@@ -794,7 +794,7 @@ impl EmitContext {
     }
 
     // Gets the range for a token of a node when emitting source maps.
-    pub fn token_source_map_range(&self, node: P<Node>, kind: Kind) -> Option<TextRange> {
+    pub(crate) fn token_source_map_range(&self, node: P<Node>, kind: Kind) -> Option<TextRange> {
         if let Some(emit_node) = self.emit_nodes.borrow().get(&node)
             && let Some(ranges) = emit_node.rare().and_then(|r| r.token_source_map_ranges.as_ref())
             && let Some(loc) = ranges.get(&kind)
@@ -839,7 +839,7 @@ impl EmitContext {
         self.class_this.borrow_mut().insert(node, class_this);
     }
 
-    pub fn request_emit_helper(&self, helper: SP<EmitHelper>) {
+    pub(crate) fn request_emit_helper(&self, helper: SP<EmitHelper>) {
         assert!(!helper.scoped, "Cannot request a scoped emit helper");
         for h in helper.dependencies {
             self.request_emit_helper(*h);
@@ -895,7 +895,7 @@ impl EmitContext {
             .external_helpers_module_name = Some(name);
     }
 
-    pub fn has_recorded_external_helpers(&self, node: P<SourceFile>) -> bool {
+    pub(crate) fn has_recorded_external_helpers(&self, node: P<SourceFile>) -> bool {
         if let Some(parse_node) = self.parse_node(Some(node.as_node())) {
             let emit_nodes = self.emit_nodes.borrow();
             let emit_node = emit_nodes.get(&parse_node);
@@ -920,7 +920,7 @@ impl EmitContext {
     // Visitor Hooks
     //
 
-    pub fn visit_variable_environment(
+    fn visit_variable_environment(
         &self,
         nodes: Option<P<NodeList>>,
         visitor: &mut NodeVisitor,
@@ -956,7 +956,7 @@ impl EmitContext {
         nodes
     }
 
-    pub(crate) fn add_default_value_assignments_if_needed(
+    fn add_default_value_assignments_if_needed(
         &self,
         node_list: Option<P<NodeList>>,
     ) -> Option<P<NodeList>> {
@@ -979,7 +979,7 @@ impl EmitContext {
         Some(node_list)
     }
 
-    pub(crate) fn add_default_value_assignment_if_needed(&self, parameter: P<Node>) -> P<Node> {
+    fn add_default_value_assignment_if_needed(&self, parameter: P<Node>) -> P<Node> {
         let p = parameter.as_parameter_declaration();
         // A rest parameter cannot have a binding pattern or an initializer,
         // so let's just ignore it.
@@ -994,10 +994,7 @@ impl EmitContext {
         }
     }
 
-    pub(crate) fn add_default_value_assignment_for_binding_pattern(
-        &self,
-        parameter: P<Node>,
-    ) -> P<Node> {
+    fn add_default_value_assignment_for_binding_pattern(&self, parameter: P<Node>) -> P<Node> {
         let p = parameter.as_parameter_declaration();
         let init_node = if let Some(initializer) = p.initializer() {
             self.factory.new_conditional_expression(
@@ -1036,7 +1033,7 @@ impl EmitContext {
         )
     }
 
-    pub(crate) fn add_default_value_assignment_for_initializer(
+    fn add_default_value_assignment_for_initializer(
         &self,
         parameter: P<Node>,
         name: P<Node>,
@@ -1169,7 +1166,7 @@ impl EmitContext {
         Some(updated)
     }
 
-    pub fn visit_embedded_statement(
+    fn visit_embedded_statement(
         &self,
         node: Option<P<Node>>,
         visitor: &mut NodeVisitor,
@@ -1219,7 +1216,7 @@ impl EmitContext {
         node
     }
 
-    pub fn get_synthetic_leading_comments(&self, node: P<Node>) -> Vec<SynthesizedComment> {
+    pub(crate) fn get_synthetic_leading_comments(&self, node: P<Node>) -> Vec<SynthesizedComment> {
         if let Some(emit_node) = self.emit_nodes.borrow().get(&node) {
             return emit_node.rare().map_or_else(Vec::new, |r| r.leading_comments.clone());
         }
@@ -1255,7 +1252,7 @@ impl EmitContext {
         node
     }
 
-    pub fn get_synthetic_trailing_comments(&self, node: P<Node>) -> Vec<SynthesizedComment> {
+    pub(crate) fn get_synthetic_trailing_comments(&self, node: P<Node>) -> Vec<SynthesizedComment> {
         if let Some(emit_node) = self.emit_nodes.borrow().get(&node) {
             return emit_node.rare().map_or_else(Vec::new, |r| r.trailing_comments.clone());
         }
@@ -1270,7 +1267,7 @@ impl EmitContext {
     }
 
     // GetTypeNode gets the type node stored on a name node by the type eraser.
-    pub fn get_type_node(&self, node: P<Node>) -> Option<P<Node>> {
+    pub(crate) fn get_type_node(&self, node: P<Node>) -> Option<P<Node>> {
         if let Some(emit_node) = self.emit_nodes.borrow().get(&node) {
             return emit_node.rare()?.type_node;
         }
@@ -1287,7 +1284,7 @@ impl EmitContext {
 }
 
 // emitcontext.go:362 (package-level; used by `EmitContext::is_hoisted_variable_statement`)
-pub fn is_hoisted_variable(node: P<Node>) -> bool {
+fn is_hoisted_variable(node: P<Node>) -> bool {
     is_identifier(node.name().unwrap()) && node.initializer().is_none()
 }
 
@@ -1305,15 +1302,15 @@ pub fn next_auto_generate_id() -> AutoGenerateId {
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Debug, Default)]
-pub struct AutoGenerateId(pub u32);
+pub struct AutoGenerateId(pub(crate) u32);
 
 #[derive(Clone, Copy, Debug)]
 pub struct AutoGenerateInfo {
     pub flags: GeneratedIdentifierFlags, // Specifies whether to auto-generate the text for an identifier.
-    pub id: AutoGenerateId, // Ensures unique generated identifiers get unique names, but clones get the same name.
-    pub prefix: &'static str, // Optional prefix to apply to the start of the generated name
-    pub suffix: &'static str, // Optional suffix to apply to the end of the generated name
-    pub node: Option<P<Node>>, // For a GeneratedIdentifierFlagsNode, the node from which to generate an identifier
+    pub(crate) id: AutoGenerateId, // Ensures unique generated identifiers get unique names, but clones get the same name.
+    pub(crate) prefix: &'static str, // Optional prefix to apply to the start of the generated name
+    pub(crate) suffix: &'static str, // Optional suffix to apply to the end of the generated name
+    pub(crate) node: Option<P<Node>>, // For a GeneratedIdentifierFlagsNode, the node from which to generate an identifier
 }
 
 bitflags::bitflags! {
@@ -1340,11 +1337,11 @@ pub struct SnippetElement {
 
 #[derive(Clone, PartialEq, Eq, Debug)]
 pub struct SynthesizedComment {
-    pub kind: Kind,
-    pub loc: TextRange,
-    pub has_leading_new_line: bool,
-    pub has_trailing_new_line: bool,
-    pub text: String,
+    pub(crate) kind: Kind,
+    loc: TextRange,
+    pub(crate) has_leading_new_line: bool,
+    pub(crate) has_trailing_new_line: bool,
+    pub(crate) text: String,
 }
 
 // The checker's node builder sets emit flags on hundreds of thousands of synthesized nodes and nothing else, so the

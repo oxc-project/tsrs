@@ -27,7 +27,7 @@ pub struct WasmSys {
 impl WasmSys {
     /// `diagnostics`: collect diagnostics there (the JSON reply) instead of printing them.
     /// `out`: where tsc's text goes (stdout, which is WASI fd 1 in the module).
-    pub fn new(
+    pub(crate) fn new(
         cwd: &str,
         case_sensitive: bool,
         tty: bool,

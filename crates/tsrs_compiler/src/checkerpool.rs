@@ -279,8 +279,8 @@ impl std::ops::DerefMut for SlotChecker {
 // pool adds to those of the live checkers.
 #[derive(Default)]
 pub struct RetiredCheckers {
-    pub(crate) count: usize,
-    pub(crate) global_diagnostics: Vec<P<Diagnostic>>,
+    count: usize,
+    global_diagnostics: Vec<P<Diagnostic>>,
     pub(crate) symbol_count: u64,
     pub(crate) type_count: u64,
     pub(crate) instantiation_count: u64,
@@ -401,7 +401,7 @@ pub struct PoolState {
     // Estimated work per program file (checked_file_weights), what stealing balances.
     weights: Vec<i64>,
     // TSRS_FILE_TIMES only: (file, checker, seconds, thread CPU seconds) per checked file, in completion order.
-    pub(crate) file_times: Mutex<Vec<(P<SourceFile>, usize, f64, f64)>>,
+    file_times: Mutex<Vec<(P<SourceFile>, usize, f64, f64)>>,
     // Cost cache only: (file, thread CPU seconds) per checked file, per checker pass.
     file_cpu: Mutex<Vec<(P<SourceFile>, f64)>>,
     // Whether checkers live in regions and the type-check pass may retire them (`max_memory`).
@@ -739,7 +739,7 @@ impl CheckerPoolImpl {
     // checkerpool.go:331
     // GetChecker implements CheckerPool. When file is non-nil, returns the checker
     // associated with that file; otherwise returns the first checker.
-    pub(crate) fn get_checker_exclusive(&self, file: Option<P<SourceFile>>) -> CheckerHandle {
+    fn get_checker_exclusive(&self, file: Option<P<SourceFile>>) -> CheckerHandle {
         if let Some(file) = file {
             return self.get_checker_for_file_exclusive(file);
         }
@@ -1203,7 +1203,7 @@ impl PoolState {
     }
 
     // The checker that ran program file `i` (the static assignment unless the file was stolen).
-    pub(crate) fn owner_at(&self, i: usize) -> usize {
+    fn owner_at(&self, i: usize) -> usize {
         // See owner_of.
         self.owners[i].load(std::sync::atomic::Ordering::Relaxed) as usize
     }

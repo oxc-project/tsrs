@@ -61,12 +61,12 @@ impl LanguageService {
     }
 
     // languageservice.go:49
-    pub fn user_preferences(&self) -> &UserPreferences {
+    pub(crate) fn user_preferences(&self) -> &UserPreferences {
         &self.active_config
     }
 
     // languageservice.go:53
-    pub fn format_options(&self) -> FormatCodeSettings {
+    pub(crate) fn format_options(&self) -> FormatCodeSettings {
         self.active_config.format_code_settings.clone()
     }
 
@@ -94,7 +94,7 @@ impl LanguageService {
     }
 
     // languageservice.go:72
-    pub fn get_document_position_mapper(
+    pub(crate) fn get_document_position_mapper(
         &self,
         file_name: &str,
     ) -> Option<Arc<DocumentPositionMapper>> {
@@ -107,17 +107,17 @@ impl LanguageService {
     }
 
     // languageservice.go:81
-    pub fn read_file(&self, file_name: &str) -> Option<String> {
+    pub(crate) fn read_file(&self, file_name: &str) -> Option<String> {
         self.host.read_file(file_name)
     }
 
     // languageservice.go:85
-    pub fn use_case_sensitive_file_names(&self) -> bool {
+    pub(crate) fn use_case_sensitive_file_names(&self) -> bool {
         self.host.use_case_sensitive_file_names()
     }
 
     // languageservice.go:89
-    pub fn get_ecma_line_info(&self, file_name: &str) -> Option<Arc<ECMALineInfo>> {
+    fn get_ecma_line_info(&self, file_name: &str) -> Option<Arc<ECMALineInfo>> {
         self.host.get_ecma_line_info(file_name)
     }
 
@@ -173,13 +173,13 @@ impl LanguageService {
 
     // Used for module specifier completions.
     // languageservice.go:123
-    pub fn directory_exists(&self, path: &str) -> bool {
+    pub(crate) fn directory_exists(&self, path: &str) -> bool {
         self.host.directory_exists(path)
     }
 
     // Used for module specifier completions.
     // languageservice.go:128
-    pub fn read_directory(
+    pub(crate) fn read_directory(
         &self,
         path: &str,
         extensions: &[String],
@@ -196,7 +196,7 @@ impl LanguageService {
     }
 
     // languageservice.go:132
-    pub fn get_directories(&self, path: &str) -> Vec<String> {
+    pub(crate) fn get_directories(&self, path: &str) -> Vec<String> {
         self.host.get_directories(path)
     }
 }

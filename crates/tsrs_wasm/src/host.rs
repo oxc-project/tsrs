@@ -21,14 +21,14 @@ use tsrs_core::tspath;
 use tsrs_vfs::internal::{self, Common, IoDirEntry, IoFS};
 use tsrs_vfs::{Entries, FS, FileInfo, FileMode, FsError};
 
-pub const OP_READ: u32 = 0;
-pub const OP_STAT: u32 = 1;
-pub const OP_READ_DIR: u32 = 2;
-pub const OP_REALPATH: u32 = 3;
-pub const OP_WRITE: u32 = 4;
-pub const OP_APPEND: u32 = 5;
-pub const OP_REMOVE: u32 = 6;
-pub const OP_CHTIMES: u32 = 7;
+const OP_READ: u32 = 0;
+const OP_STAT: u32 = 1;
+const OP_READ_DIR: u32 = 2;
+const OP_REALPATH: u32 = 3;
+const OP_WRITE: u32 = 4;
+const OP_APPEND: u32 = 5;
+const OP_REMOVE: u32 = 6;
+const OP_CHTIMES: u32 = 7;
 
 pub enum HostError {
     NotFound,
@@ -278,7 +278,7 @@ pub struct HostFs {
 }
 
 impl HostFs {
-    pub fn new(case_sensitive: bool) -> HostFs {
+    pub(crate) fn new(case_sensitive: bool) -> HostFs {
         HostFs {
             common: Common {
                 root_for: Box::new(|root: &str| {

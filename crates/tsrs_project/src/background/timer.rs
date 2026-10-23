@@ -107,7 +107,7 @@ impl Timer {
     }
 
     // Go `t.Reset(d)`: re-arms the timer (also after it fired); reports whether it was pending.
-    pub fn reset(&self, d: Duration) -> bool {
+    pub(crate) fn reset(&self, d: Duration) -> bool {
         let t = timer_thread();
         let mut st = t.st.lock().unwrap();
         let was_pending = st.pending.contains_key(&self.id);

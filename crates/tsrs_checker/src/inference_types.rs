@@ -4,11 +4,11 @@ use crate::*;
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug, Default)]
 pub struct InferenceKey {
-    pub source: TypeId,
-    pub target: TypeId,
-    pub priority: InferencePriority,
-    pub contravariant: bool,
-    pub bivariant: bool,
+    pub(crate) source: TypeId,
+    pub(crate) target: TypeId,
+    pub(crate) priority: InferencePriority,
+    pub(crate) contravariant: bool,
+    pub(crate) bivariant: bool,
 }
 
 impl std::hash::Hash for InferenceKey {
@@ -26,21 +26,21 @@ impl std::hash::Hash for InferenceKey {
 /// Arena handle (`P<InferenceState>`), pooled through `Checker::freeinference_state` like Go.
 #[derive(Default)]
 pub struct InferenceState {
-    pub inferences: RefCell<Vec<P<InferenceInfo>>>,
-    pub original_source: Cell<Option<P<Type>>>,
-    pub original_target: Cell<Option<P<Type>>>,
-    pub priority: Cell<InferencePriority>,
-    pub inference_priority: Cell<InferencePriority>,
-    pub contravariant: Cell<bool>,
-    pub bivariant: Cell<bool>,
-    pub expanding_flags: Cell<ExpandingFlags>,
-    pub propagation_type: Cell<Option<P<Type>>>,
+    pub(crate) inferences: RefCell<Vec<P<InferenceInfo>>>,
+    pub(crate) original_source: Cell<Option<P<Type>>>,
+    pub(crate) original_target: Cell<Option<P<Type>>>,
+    pub(crate) priority: Cell<InferencePriority>,
+    pub(crate) inference_priority: Cell<InferencePriority>,
+    pub(crate) contravariant: Cell<bool>,
+    pub(crate) bivariant: Cell<bool>,
+    pub(crate) expanding_flags: Cell<ExpandingFlags>,
+    pub(crate) propagation_type: Cell<Option<P<Type>>>,
     // Scratch owned by this checker's inference-state pool. Forks start with an empty pool, so a
     // frozen seed's unused states are never reused and this table needs no shared-graph overlay.
-    pub visited: RefCell<FxHashMap<InferenceKey, InferencePriority>>,
-    pub source_stack: RefCell<Vec<P<Type>>>,
-    pub target_stack: RefCell<Vec<P<Type>>>,
-    pub next: Cell<Option<P<InferenceState>>>,
+    pub(crate) visited: RefCell<FxHashMap<InferenceKey, InferencePriority>>,
+    pub(crate) source_stack: RefCell<Vec<P<Type>>>,
+    pub(crate) target_stack: RefCell<Vec<P<Type>>>,
+    pub(crate) next: Cell<Option<P<InferenceState>>>,
     /// The walk called `clear_cached_inferences` (the inference memo, infermemo.rs).
-    pub cleared_inferences: Cell<bool>,
+    pub(crate) cleared_inferences: Cell<bool>,
 }

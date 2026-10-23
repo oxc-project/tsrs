@@ -147,7 +147,7 @@ const FSEVENTS_MAX_ROOT_STREAMS: usize = 256;
 
 #[derive(Clone)]
 pub struct FseventsWatchSnapshot {
-    pub(crate) w: Arc<DirWatch>,
+    w: Arc<DirWatch>,
     state: Arc<FseventsState>,
 }
 

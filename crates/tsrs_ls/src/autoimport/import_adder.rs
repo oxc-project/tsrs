@@ -480,7 +480,7 @@ pub fn type_to_auto_importable_type_node(
 // import_adder.go:398
 // TypeNodeToAutoImportableTypeNode converts import type references in a type node to
 // simple type references and registers needed imports with the import adder.
-pub fn type_node_to_auto_importable_type_node(
+fn type_node_to_auto_importable_type_node(
     mut type_node: P<Node>,
     import_adder: Option<&mut (dyn ImportAdder + 'static)>,
     id_to_symbol: IdToSymbol,

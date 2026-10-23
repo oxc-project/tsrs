@@ -413,7 +413,7 @@ pub fn combine_location_array<T: HasLocation + Clone>(
 }
 
 // crossproject.go:311
-pub fn combine_response_locations<T: HasLocations>(results: &[T]) -> Vec<lsproto::Location> {
+fn combine_response_locations<T: HasLocations>(results: &[T]) -> Vec<lsproto::Location> {
     let mut combined: Vec<lsproto::Location> = Vec::new();
     let mut seen_locations: Set<lsproto::Location> = Set::new();
     combined = results.iter().fold(combined, |mut combined, resp| {

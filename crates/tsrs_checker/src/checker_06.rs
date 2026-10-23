@@ -232,7 +232,7 @@ impl Checker {
     }
 
     // checker.go:10982
-    pub(crate) fn check_import_meta_property(&mut self, node: P<Node>) -> P<Type> {
+    fn check_import_meta_property(&mut self, node: P<Node>) -> P<Type> {
         if ModuleKind::NODE16 <= self.module_kind && self.module_kind <= ModuleKind::NODE_NEXT {
             let source_file_meta_data = self
                 .program
@@ -299,11 +299,7 @@ impl Checker {
     }
 
     // checker.go:11025
-    pub(crate) fn check_delete_expression_must_be_optional(
-        &mut self,
-        expr: P<Node>,
-        symbol: P<Symbol>,
-    ) {
+    fn check_delete_expression_must_be_optional(&mut self, expr: P<Node>, symbol: P<Symbol>) {
         let t = self.get_type_of_symbol(symbol);
         if self.strict_null_checks
             && !t.flags().intersects(TypeFlags::AnyOrUnknown | TypeFlags::Never)
@@ -462,7 +458,7 @@ impl Checker {
     }
 
     // checker.go:11123
-    pub(crate) fn get_unary_result_type(&mut self, operand_type: P<Type>) -> P<Type> {
+    fn get_unary_result_type(&mut self, operand_type: P<Type>) -> P<Type> {
         if self.maybe_type_of_kind(operand_type, TypeFlags::BigIntLike) {
             if self.is_type_assignable_to_kind(operand_type, TypeFlags::AnyOrUnknown)
                 || self.maybe_type_of_kind(operand_type, TypeFlags::NumberLike)
@@ -897,7 +893,7 @@ impl Checker {
     }
 
     // checker.go:11402
-    pub(crate) fn is_same_scoped_binding_element(node: P<Node>, declaration: P<Node>) -> bool {
+    fn is_same_scoped_binding_element(node: P<Node>, declaration: P<Node>) -> bool {
         if ast::is_binding_element(declaration) {
             let binding_element = ast::find_ancestor(node, ast::is_binding_element);
             return binding_element.is_some_and(|b| {
@@ -909,7 +905,7 @@ impl Checker {
 
     // Remove undefined from the annotated type of a parameter when there is an initializer (that doesn't include undefined)
     // checker.go:11411
-    pub(crate) fn remove_optionality_from_declared_type(
+    fn remove_optionality_from_declared_type(
         &mut self,
         declared_type: P<Type>,
         declaration: P<Node>,
@@ -926,10 +922,7 @@ impl Checker {
     }
 
     // checker.go:11419
-    pub(crate) fn parameter_initializer_contains_undefined(
-        &mut self,
-        declaration: P<Node>,
-    ) -> bool {
+    fn parameter_initializer_contains_undefined(&mut self, declaration: P<Node>) -> bool {
         let links = self.node_links.get(declaration);
         if !links.flags.get().intersects(NodeCheckFlags::InitializerIsUndefinedComputed) {
             if !self.push_type_resolution(
@@ -996,11 +989,7 @@ impl Checker {
     }
 
     // checker.go:11452
-    pub(crate) fn check_property_access_chain(
-        &mut self,
-        node: P<Node>,
-        check_mode: CheckMode,
-    ) -> P<Type> {
+    fn check_property_access_chain(&mut self, node: P<Node>, check_mode: CheckMode) -> P<Type> {
         let left_type = self.check_expression(node.expression().unwrap());
         let non_optional_type =
             self.get_optional_expression_type(left_type, node.expression().unwrap());
@@ -1445,7 +1434,7 @@ impl Checker {
     }
 
     // checker.go:11695
-    pub(crate) fn check_private_identifier_property_access(
+    fn check_private_identifier_property_access(
         &mut self,
         left_type: P<Type>,
         right: P<Node>,
@@ -1645,7 +1634,7 @@ impl Checker {
     }
 
     // checker.go:11794
-    pub(crate) fn get_suggested_lib_for_non_existent_property(
+    fn get_suggested_lib_for_non_existent_property(
         &mut self,
         missing_property: &str,
         containing_type: P<Type>,
@@ -1669,7 +1658,7 @@ impl Checker {
     }
 
     // checker.go:11809
-    pub(crate) fn get_suggested_symbol_for_nonexistent_property(
+    fn get_suggested_symbol_for_nonexistent_property(
         &mut self,
         name: P<Node>,
         containing_type: P<Type>,
@@ -1694,7 +1683,7 @@ impl Checker {
     // @param type the type whose property we are checking.
     // @param property the accessed property's symbol.
     // checker.go:11828
-    pub(crate) fn is_valid_property_access_for_completions(
+    fn is_valid_property_access_for_completions(
         &mut self,
         node: P<Node>,
         t: P<Type>,
@@ -1720,7 +1709,7 @@ impl Checker {
     // @param containingType type where the property comes from.
     // @param property property symbol.
     // checker.go:11841
-    pub fn is_property_accessible(
+    pub(crate) fn is_property_accessible(
         &mut self,
         node: P<Node>,
         is_super: bool,
@@ -1752,10 +1741,7 @@ impl Checker {
     }
 
     // checker.go:11855
-    pub(crate) fn container_seems_to_be_empty_dom_element(
-        &mut self,
-        containing_type: P<Type>,
-    ) -> bool {
+    fn container_seems_to_be_empty_dom_element(&mut self, containing_type: P<Type>) -> bool {
         !self
             .compiler_options
             .lib
@@ -1810,7 +1796,7 @@ impl Checker {
      * Climbs up parents to a heritage clause element and returns its entity name.
      */
     // checker.go:11879
-    pub(crate) fn get_entity_name_for_extending_interface(node: P<Node>) -> Option<P<Node>> {
+    fn get_entity_name_for_extending_interface(node: P<Node>) -> Option<P<Node>> {
         match node.kind() {
             Kind::Identifier | Kind::QualifiedName | Kind::PropertyAccessExpression => {
                 if let Some(parent) = node.parent() {
@@ -1856,7 +1842,7 @@ impl Checker {
     }
 
     // checker.go:11911
-    pub(crate) fn check_property_not_used_before_declaration(
+    fn check_property_not_used_before_declaration(
         &mut self,
         prop: P<Symbol>,
         node: P<Node>,
@@ -1910,14 +1896,14 @@ impl Checker {
     }
 
     // checker.go:11933
-    pub(crate) fn is_optional_property_declaration(node: P<Node>) -> bool {
+    fn is_optional_property_declaration(node: P<Node>) -> bool {
         ast::is_property_declaration(node)
             && !ast::has_accessor_modifier(node)
             && ast::is_question_token(node.postfix_token())
     }
 
     // checker.go:11937
-    pub(crate) fn is_property_declared_in_ancestor_class(&mut self, prop: P<Symbol>) -> bool {
+    fn is_property_declared_in_ancestor_class(&mut self, prop: P<Symbol>) -> bool {
         let parent = prop.parent().unwrap();
         if parent.flags().intersects(SymbolFlags::Class) {
             let declared_type = self.get_declared_type_of_symbol(parent);
@@ -1953,7 +1939,7 @@ impl Checker {
     }
 
     // checker.go:11959
-    pub(crate) fn check_property_accessibility_ex(
+    fn check_property_accessibility_ex(
         &mut self,
         node: P<Node>,
         is_super: bool,
@@ -1986,7 +1972,7 @@ impl Checker {
      * @param errorNode The node where we should report an invalid property access error, or undefined if we should not report errors.
      */
     // checker.go:11988
-    pub(crate) fn check_property_accessibility_at_location(
+    fn check_property_accessibility_at_location(
         &mut self,
         location: P<Node>,
         is_super: bool,
@@ -2150,14 +2136,14 @@ impl Checker {
     }
 
     // checker.go:12103
-    pub(crate) fn symbol_has_non_method_declaration(&mut self, symbol: P<Symbol>) -> bool {
+    fn symbol_has_non_method_declaration(&mut self, symbol: P<Symbol>) -> bool {
         self.for_each_property(symbol, |_, prop| !prop.flags().intersects(SymbolFlags::Method))
     }
 
     // Invoke the callback for each underlying property symbol of the given symbol and return the first
     // value that isn't undefined.
     // checker.go:12109
-    pub(crate) fn for_each_property(
+    fn for_each_property(
         &mut self,
         prop: P<Symbol>,
         mut callback: impl FnMut(&mut Checker, P<Symbol>) -> bool,
@@ -2218,7 +2204,7 @@ impl Checker {
     // Return true if some underlying source property is declared in a class that derives
     // from the given base class.
     // checker.go:12142
-    pub(crate) fn is_property_in_class_derived_from(
+    fn is_property_in_class_derived_from(
         &mut self,
         prop: P<Symbol>,
         base_class: Option<P<Type>>,
@@ -2233,7 +2219,7 @@ impl Checker {
     }
 
     // checker.go:12152
-    pub(crate) fn is_node_used_during_class_initialization(node: P<Node>) -> bool {
+    fn is_node_used_during_class_initialization(node: P<Node>) -> bool {
         ast::find_ancestor_or_quit(node, |element| {
             if ast::is_constructor_declaration(element) && ast::node_is_present(element.body())
                 || ast::is_property_declaration(element)
@@ -2258,7 +2244,7 @@ impl Checker {
     }
 
     // checker.go:12167
-    pub(crate) fn for_each_enclosing_class(
+    fn for_each_enclosing_class(
         &mut self,
         node: P<Node>,
         mut callback: impl FnMut(&mut Checker, P<Node>) -> bool,
@@ -2277,7 +2263,7 @@ impl Checker {
     // Return true if the given class derives from each of the declaring classes of the protected
     // constituents of the given property.
     // checker.go:12181
-    pub(crate) fn is_class_derived_from_declaring_classes(
+    fn is_class_derived_from_declaring_classes(
         &mut self,
         check_class: P<Type>,
         prop: P<Symbol>,
@@ -2295,10 +2281,7 @@ impl Checker {
     }
 
     // checker.go:12190
-    pub(crate) fn get_enclosing_class_from_this_parameter(
-        &mut self,
-        node: P<Node>,
-    ) -> Option<P<Type>> {
+    fn get_enclosing_class_from_this_parameter(&mut self, node: P<Node>) -> Option<P<Type>> {
         // 'this' type for a node comes from, in priority order...
         // 1. The type of a syntactic 'this' parameter in the enclosing function scope
         let this_parameter = get_this_parameter_from_node_context(node);
@@ -2508,7 +2491,7 @@ impl Checker {
     }
 
     // checker.go:12337
-    pub(crate) fn try_get_this_type_at(&mut self, node: P<Node>) -> Option<P<Type>> {
+    fn try_get_this_type_at(&mut self, node: P<Node>) -> Option<P<Type>> {
         self.try_get_this_type_at_ex(node, true /*includeGlobalThis*/, None /*container*/)
     }
 
@@ -2533,7 +2516,7 @@ impl Checker {
     }
 
     // checker.go:12349
-    pub(crate) fn try_get_this_type_at_ex(
+    fn try_get_this_type_at_ex(
         &mut self,
         node: P<Node>,
         include_global_this: bool,
@@ -2690,7 +2673,7 @@ impl Checker {
     }
 
     // checker.go:12457
-    pub(crate) fn check_this_in_static_class_field_initializer_in_decorated_class(
+    fn check_this_in_static_class_field_initializer_in_decorated_class(
         &mut self,
         this_expression: P<Node>,
         container: P<Node>,
@@ -2833,7 +2816,7 @@ impl Checker {
     }
 
     // checker.go:12539
-    pub(crate) fn check_binary_like_expression(
+    fn check_binary_like_expression(
         &mut self,
         left: P<Node>,
         operator_token: P<Node>,
@@ -3283,7 +3266,7 @@ impl Checker {
     }
 
     // checker.go:12788
-    pub(crate) fn check_object_literal_assignment(
+    fn check_object_literal_assignment(
         &mut self,
         node: P<Node>,
         source_type: P<Type>,
@@ -3411,7 +3394,7 @@ impl Checker {
     }
 
     // checker.go:12851
-    pub(crate) fn check_array_literal_assignment(
+    fn check_array_literal_assignment(
         &mut self,
         node: P<Node>,
         source_type: P<Type>,
@@ -3549,7 +3532,7 @@ impl Checker {
     }
 
     // checker.go:12912
-    pub(crate) fn check_reference_assignment(
+    fn check_reference_assignment(
         &mut self,
         target: P<Node>,
         source_type: P<Type>,
@@ -3581,7 +3564,7 @@ impl Checker {
     }
 
     // checker.go:12926
-    pub(crate) fn report_operator_error(
+    fn report_operator_error(
         &mut self,
         left_type: P<Type>,
         operator: Kind,
@@ -3627,7 +3610,7 @@ impl Checker {
     }
 
     // checker.go:12947
-    pub(crate) fn report_operator_error_unless(
+    fn report_operator_error_unless(
         &mut self,
         left_type: P<Type>,
         operator: Kind,
@@ -3647,7 +3630,7 @@ impl Checker {
     }
 
     // checker.go:12953
-    pub(crate) fn get_base_types_if_unrelated(
+    fn get_base_types_if_unrelated(
         &mut self,
         left_type: P<Type>,
         right_type: P<Type>,
@@ -3665,7 +3648,7 @@ impl Checker {
     }
 
     // checker.go:12965
-    pub(crate) fn check_assignment_operator(
+    fn check_assignment_operator(
         &mut self,
         left: P<Node>,
         operator: Kind,
@@ -3714,13 +3697,13 @@ impl Checker {
     }
 
     // checker.go:12991
-    pub(crate) fn both_are_big_int_like(&mut self, left: P<Type>, right: P<Type>) -> bool {
+    fn both_are_big_int_like(&mut self, left: P<Type>, right: P<Type>) -> bool {
         self.is_type_assignable_to_kind(left, TypeFlags::BigIntLike)
             && self.is_type_assignable_to_kind(right, TypeFlags::BigIntLike)
     }
 
     // checker.go:12995
-    pub(crate) fn get_suggested_boolean_operator(operator: Kind) -> Kind {
+    fn get_suggested_boolean_operator(operator: Kind) -> Kind {
         match operator {
             Kind::BarToken | Kind::BarEqualsToken => Kind::BarBarToken,
             Kind::CaretToken | Kind::CaretEqualsToken => Kind::ExclamationEqualsEqualsToken,
@@ -3730,7 +3713,7 @@ impl Checker {
     }
 
     // checker.go:13007
-    pub(crate) fn check_arithmetic_operand_type(
+    fn check_arithmetic_operand_type(
         &mut self,
         operand: P<Node>,
         t: P<Type>,
@@ -3753,7 +3736,7 @@ impl Checker {
 
     // Return true if there was no error, false if there was an error.
     // checker.go:13020
-    pub(crate) fn check_for_disallowed_es_symbol_operand(
+    fn check_for_disallowed_es_symbol_operand(
         &mut self,
         left: P<Node>,
         right: P<Node>,
@@ -3784,7 +3767,7 @@ impl Checker {
     }
 
     // checker.go:13035
-    pub(crate) fn check_nan_equality(
+    fn check_nan_equality(
         &mut self,
         error_node: Option<P<Node>>,
         operator: Kind,
@@ -3831,7 +3814,7 @@ impl Checker {
     }
 
     // checker.go:13061
-    pub(crate) fn is_global_nan(&mut self, expr: P<Node>) -> bool {
+    fn is_global_nan(&mut self, expr: P<Node>) -> bool {
         if ast::is_identifier(expr) && expr.text() == "NaN" {
             let global_nan_symbol = self.get_global_nan_symbol_or_nil();
             return global_nan_symbol.is_some()

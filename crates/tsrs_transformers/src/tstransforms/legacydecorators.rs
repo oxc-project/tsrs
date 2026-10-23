@@ -1,8 +1,8 @@
 use crate::*;
 use printer::{AssignedNameOptions, EmitFlags, NameOptions};
 
-pub struct LegacyDecoratorsTransformer {
-    pub base: Transformer,
+struct LegacyDecoratorsTransformer {
+    base: Transformer,
     language_version: ScriptTarget,
     reference_resolver: ReferenceResolverRef,
 
@@ -778,7 +778,7 @@ fn has_class_element_with_decorator_containing_private_identifier_in_expression(
 }
 
 // legacydecorators.go:652
-pub struct AllDecorators {
+struct AllDecorators {
     decorators: Vec<P<Node>>,
     parameters: Vec<Vec<P<Node>>>,
 }

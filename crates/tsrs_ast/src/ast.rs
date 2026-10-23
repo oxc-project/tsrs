@@ -72,7 +72,7 @@ pub(crate) fn visit_modifiers<V: FnMut(P<Node>) -> bool + ?Sized>(
 
 /// Go `core.Same` on slices: identity of the backing array and length.
 #[inline]
-pub fn same_slice<T>(a: &[T], b: &[T]) -> bool {
+pub(crate) fn same_slice<T>(a: &[T], b: &[T]) -> bool {
     a.len() == b.len() && std::ptr::eq(a.as_ptr(), b.as_ptr())
 }
 
@@ -96,12 +96,12 @@ pub struct NodeFactoryHooks {
 #[derive(Clone)]
 pub struct NodeFactory {
     pub(crate) hooks: NodeFactoryHooks,
-    pub(crate) node_count: Rc<Cell<usize>>,
+    node_count: Rc<Cell<usize>>,
     pub(crate) text_count: Rc<Cell<usize>>,
     /// tsrs-only: nodes and lists go to the thread's scratch region when one is entered (`P::new_scratch`), also
     /// while the checker has escaped from it: the factory of a per-file emit context, whose nodes die with the file
     /// (notes/mem-emit-regions.md).
-    pub(crate) scratch: bool,
+    scratch: bool,
     /// The common allocation path has neither a create hook nor scratch routing. Keeping that fact beside the
     /// factory folds the allocation-route and create-hook tests into one branch for every node it creates.
     plain_create: bool,
@@ -426,7 +426,7 @@ impl NodeList {
     }
 
     /// A list whose members are parsed on first use (`lazylist`), with its loc.
-    pub fn new_lazy(loc: TextRange, record: &'static crate::lazylist::LazyNodeList) -> NodeList {
+    fn new_lazy(loc: TextRange, record: &'static crate::lazylist::LazyNodeList) -> NodeList {
         NodeList { loc: OwnedCell::new(loc), nodes: ThinSlice::from_ref(record.head_ref()) }
     }
 
@@ -510,7 +510,7 @@ impl ModifierList {
         self.list.end()
     }
     #[inline]
-    pub fn has_trailing_comma(&self) -> bool {
+    pub(crate) fn has_trailing_comma(&self) -> bool {
         self.list.has_trailing_comma()
     }
 
@@ -622,7 +622,7 @@ const _: () = assert!(NodeHeaderWord::TAG_SHIFT + 9 == 63);
 /// the data at `offset_of!(NodeAlloc<T>, data)` (24 for every data struct: none is aligned to more than 8).
 #[repr(C)]
 pub(crate) struct NodeAlloc<T> {
-    pub(crate) node: Node,
+    node: Node,
     pub(crate) data: T,
 }
 
@@ -636,10 +636,10 @@ pub(crate) trait NodePayload: Sized + 'static {
 /// set at construction, and read as `None` otherwise. Only fields that are never written after construction can be
 /// rare (tools/gen-ast/gen-ast.ts `RARE_FIELDS`).
 #[repr(C)]
-pub(crate) struct NodeAllocRare<T, R> {
-    pub(crate) node: Node,
-    pub(crate) data: T,
-    pub(crate) rare: R,
+struct NodeAllocRare<T, R> {
+    node: Node,
+    data: T,
+    rare: R,
 }
 
 /// A node data struct with a rare tail (impls are generated).
@@ -682,7 +682,7 @@ impl Node {
     /// arena (Node has a crate-private field, so it cannot be constructed elsewhere), so `&self` is
     /// always a reference to a `'static` arena value.
     #[inline]
-    pub fn as_p(&self) -> P<Node> {
+    pub(crate) fn as_p(&self) -> P<Node> {
         // SAFETY: see above; nodes are never freed or moved.
         unsafe { P::from_arena(&*std::ptr::from_ref::<Node>(self)) }
     }
@@ -1832,7 +1832,7 @@ impl NodeFactory {
 
 impl ImportAttributes {
     /// Go `(*ImportAttributesNode).GetResolutionModeOverride`; `node` is the `ImportAttributes` node or None.
-    pub fn get_resolution_mode_override(
+    pub(crate) fn get_resolution_mode_override(
         node: Option<P<Node>>,
         mut grammar_error_on_node: Option<
             &mut dyn FnMut(
@@ -1927,8 +1927,8 @@ pub trait HasFileName {
 
 pub struct SourceFile {
     node: OwnedCell<Option<P<Node>>>, // back pointer to the SourceFile node, set by the factory
-    pub declaration_base: DeclarationBase,
-    pub locals_container_base: LocalsContainerBase,
+    pub(crate) declaration_base: DeclarationBase,
+    pub(crate) locals_container_base: LocalsContainerBase,
 
     // Fields set by NewSourceFile
     parse_options: SourceFileParseOptions,
@@ -1939,9 +1939,9 @@ pub struct SourceFile {
     pub end_of_file_token: P<Node>, // TokenNode[*EndOfFileToken]
 
     // Fields set by parser
-    pub diagnostics: OwnedCell<&'static [P<Diagnostic>]>,
-    pub js_diagnostics: OwnedCell<&'static [P<Diagnostic>]>,
-    pub jsdoc_diagnostics: OwnedCell<&'static [P<Diagnostic>]>,
+    diagnostics: OwnedCell<&'static [P<Diagnostic>]>,
+    js_diagnostics: OwnedCell<&'static [P<Diagnostic>]>,
+    jsdoc_diagnostics: OwnedCell<&'static [P<Diagnostic>]>,
     pub language_variant: OwnedCell<LanguageVariant>,
     pub script_kind: OwnedCell<ScriptKind>,
     pub is_declaration_file: OwnedCell<bool>,
@@ -1953,9 +1953,9 @@ pub struct SourceFile {
     pub ambient_module_names: OwnedCell<&'static [&'static str]>,
     pub comment_directives: OwnedCell<&'static [CommentDirective]>,
     // Written by the parser; with lazy JSDoc, also by any checker thread under `jsdoc_mu` (Go `jsdocMu`).
-    pub(crate) jsdoc_cache: FrozenCell<FxHashMap<P<Node>, &'static [P<Node>]>>,
+    jsdoc_cache: FrozenCell<FxHashMap<P<Node>, &'static [P<Node>]>>,
     jsdoc_mu: RwLock<()>,
-    pub(crate) has_lazy_jsdoc: OwnedCell<bool>,
+    has_lazy_jsdoc: OwnedCell<bool>,
     identifiers: OnceLock<Set<&'static str>>,
     // ast.go:2517 nameTableOnce/nameTable (Go map, random order; insertion order here)
     name_table: OnceLock<tsrs_core::collections::OrderedMap<&'static str, NameTableEntry>>,
@@ -1979,7 +1979,7 @@ pub struct SourceFile {
     // Fields set by binder
     is_bound: AtomicBool,
     bind_once: Once,
-    pub bind_diagnostics: OwnedCell<&'static [P<Diagnostic>]>,
+    bind_diagnostics: OwnedCell<&'static [P<Diagnostic>]>,
     pub symbol_count: OwnedCell<usize>,
     pub pattern_ambient_modules: OwnedCell<&'static [P<PatternAmbientModule>]>,
     pub global_exports: OwnedCell<Option<P<SymbolTable>>>,
@@ -2369,7 +2369,7 @@ impl SourceFile {
         self.has_lazy_jsdoc.set(lazy);
     }
 
-    pub(crate) fn resolve_jsdoc(&'static self, n: P<Node>) -> &'static [P<Node>] {
+    fn resolve_jsdoc(&'static self, n: P<Node>) -> &'static [P<Node>] {
         let Some(parse) = PARSE_JSDOC_FOR_NODE.get() else {
             panic!(
                 "resolveJSDoc called but parseJSDocForNode is not registered; ensure the parser package is imported"
@@ -2402,11 +2402,11 @@ impl SourceFile {
         self.bind_diagnostics.set(alloc_slice(diags));
     }
 
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    pub(crate) fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         visit_node_list(v, Some(self.statements)) || visit(v, Some(self.end_of_file_token))
     }
 
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    pub(crate) fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let statements = v.visit_top_level_statements_hooked(Some(self.statements)).unwrap();
         let end_of_file_token = v.visit_token_hooked(Some(self.end_of_file_token)).unwrap();
         v.factory.update_source_file(node, statements, end_of_file_token)
@@ -2439,7 +2439,7 @@ impl SourceFile {
         node.flags.set(node.flags.get() | other.as_node().flags.get());
     }
 
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    pub(crate) fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         let updated = f.new_source_file(
             self.parse_options.clone(),
             self.text,
@@ -2527,7 +2527,7 @@ impl SourceFile {
     pub fn comment_directives(&self) -> &'static [CommentDirective] {
         self.comment_directives.get()
     }
-    pub fn reparsed_clones(&self) -> &'static [P<Node>] {
+    pub(crate) fn reparsed_clones(&self) -> &'static [P<Node>] {
         self.reparsed_clones.get()
     }
     pub fn pragmas(&self) -> &'static [Pragma] {
@@ -2652,8 +2652,8 @@ impl NodeFactory {
 // ast.go:2441
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
 pub struct TokenCacheKey {
-    pub parent: P<Node>,
-    pub loc: TextRange,
+    parent: P<Node>,
+    loc: TextRange,
 }
 
 impl SourceFile {
@@ -2974,15 +2974,15 @@ pub const PRAGMA_KIND_DEFAULT: PragmaKindFlags = PRAGMA_KIND_ALL;
 
 #[derive(Clone, PartialEq, Eq, Debug)]
 pub struct PragmaArgumentSpecification {
-    pub name: &'static str,
-    pub optional: bool,
-    pub capture_span: bool,
+    name: &'static str,
+    optional: bool,
+    capture_span: bool,
 }
 
 #[derive(Clone, PartialEq, Eq, Debug)]
 pub struct PragmaSpecification {
-    pub args: &'static [PragmaArgumentSpecification],
-    pub kind: PragmaKindFlags,
+    args: &'static [PragmaArgumentSpecification],
+    kind: PragmaKindFlags,
 }
 
 impl PragmaSpecification {

@@ -85,7 +85,8 @@ pub struct ErrorOutputContainer {
 }
 
 /// Go `type ErrorReporter func(message *diagnostics.Message, args ...any)`, with the checker passed back.
-pub type ErrorReporter<'a> = &'a mut dyn FnMut(&mut Checker, &'static Message, &[&dyn Display]);
+pub(crate) type ErrorReporter<'a> =
+    &'a mut dyn FnMut(&mut Checker, &'static Message, &[&dyn Display]);
 
 /// Go `RecursionId{value any}` restricted to `*ast.Node | *ast.Symbol | *Type` (see `asRecursionId`).
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
@@ -173,8 +174,8 @@ const _: () = assert!(std::mem::size_of::<(PackedHashKey, u8)>() == 17);
 
 /// Go `TypeDiscriminator`; the `c` field is dropped (methods take `c: &mut Checker`).
 pub struct TypeDiscriminator<'a> {
-    pub props: Vec<P<Symbol>>,
-    pub is_related_to: &'a mut dyn FnMut(&mut Checker, P<Type>, P<Type>) -> Ternary,
+    pub(crate) props: Vec<P<Symbol>>,
+    pub(crate) is_related_to: &'a mut dyn FnMut(&mut Checker, P<Type>, P<Type>) -> Ternary,
 }
 
 /// Go `Discriminator` interface. Implementations delegate to the inherent (generated) methods.
@@ -186,20 +187,20 @@ pub trait Discriminator {
 
 #[derive(Default, Clone)]
 pub struct ErrorState {
-    pub error_chain: Option<P<ErrorChain>>,
-    pub related_info: Vec<P<Diagnostic>>,
+    pub(crate) error_chain: Option<P<ErrorChain>>,
+    pub(crate) related_info: Vec<P<Diagnostic>>,
 }
 
 pub struct ErrorChain {
-    pub next: Option<P<ErrorChain>>,
-    pub message: &'static Message,
-    pub args: Vec<String>,
+    pub(crate) next: Option<P<ErrorChain>>,
+    pub(crate) message: &'static Message,
+    pub(crate) args: Vec<String>,
 }
 
 /// An entry of a relater's source or target stack: the type, and the recursion identity of its recursion identity
 /// target once a deeply-nested test has computed it (`is_deeply_nested_on_stack`; 0 before).
 pub struct RelaterStackEntry {
-    pub t: P<Type>,
+    pub(crate) t: P<Type>,
     pub(crate) identity_key: Cell<u64>,
 }
 
@@ -213,39 +214,39 @@ impl RelaterStackEntry {
 /// dropped and every method takes `c: &mut Checker`.
 #[derive(Default)]
 pub struct Relater {
-    pub relation: Cell<Option<P<Relation>>>,
-    pub error_node: Cell<Option<P<Node>>>,
-    pub error_chain: Cell<Option<P<ErrorChain>>>,
-    pub related_info: RefCell<Vec<P<Diagnostic>>>,
-    pub maybe_keys: RefCell<Vec<RelationKey>>,
-    pub maybe_keys_set: RefCell<Set<RelationKey>>,
-    pub source_stack: RefCell<Vec<RelaterStackEntry>>,
-    pub target_stack: RefCell<Vec<RelaterStackEntry>>,
-    pub maybe_count: Cell<usize>,
-    pub source_depth: Cell<usize>,
-    pub target_depth: Cell<usize>,
-    pub expanding_flags: Cell<ExpandingFlags>,
-    pub overflow: Cell<bool>,
+    pub(crate) relation: Cell<Option<P<Relation>>>,
+    pub(crate) error_node: Cell<Option<P<Node>>>,
+    pub(crate) error_chain: Cell<Option<P<ErrorChain>>>,
+    pub(crate) related_info: RefCell<Vec<P<Diagnostic>>>,
+    pub(crate) maybe_keys: RefCell<Vec<RelationKey>>,
+    pub(crate) maybe_keys_set: RefCell<Set<RelationKey>>,
+    pub(crate) source_stack: RefCell<Vec<RelaterStackEntry>>,
+    pub(crate) target_stack: RefCell<Vec<RelaterStackEntry>>,
+    pub(crate) maybe_count: Cell<usize>,
+    pub(crate) source_depth: Cell<usize>,
+    pub(crate) target_depth: Cell<usize>,
+    pub(crate) expanding_flags: Cell<ExpandingFlags>,
+    pub(crate) overflow: Cell<bool>,
     // A remaining budget, not a collection length: Go keeps decrementing it
     // below zero while unwinding a relation and treats every value <= 0 as exhausted.
-    pub relation_count: Cell<isize>,
-    pub next: Cell<Option<P<Relater>>>,
+    pub(crate) relation_count: Cell<isize>,
+    pub(crate) next: Cell<Option<P<Relater>>>,
     // The `'static` comparers that wrap this relater's methods (Go passes the method values). They capture only the
     // relater handle (and the intersection state), so they are built once per relater instead of leaking one per call.
-    pub worker_comparer: Cell<Option<TypeComparer>>,
-    pub signature_comparers: RefCell<Vec<(IntersectionState, TypeComparer)>>,
+    worker_comparer: Cell<Option<TypeComparer>>,
+    pub(crate) signature_comparers: RefCell<Vec<(IntersectionState, TypeComparer)>>,
 }
 
 impl Relater {
     /// The arena handle of this relater, for closures that must be `'static` (`TypeComparer`), where Go passes
     /// `r.isRelatedToWorker` & co. as values.
-    pub fn as_p(&self) -> P<Relater> {
+    pub(crate) fn as_p(&self) -> P<Relater> {
         // SAFETY: relaters are only created with `P::new` (`Checker::get_relater`) and never freed or moved.
         unsafe { P::from_arena(&*std::ptr::from_ref::<Relater>(self)) }
     }
 
     /// `type_comparer` over `r.isRelatedToWorker`.
-    pub fn worker_comparer(&self) -> TypeComparer {
+    pub(crate) fn worker_comparer(&self) -> TypeComparer {
         if let Some(f) = self.worker_comparer.get() {
             return f;
         }

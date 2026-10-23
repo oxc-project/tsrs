@@ -179,11 +179,11 @@ pub struct VerbosityContext {
 /// `canQualifySymbol` builds a new context around the same map, hence the `Rc<RefCell<…>>`.
 #[derive(Clone)]
 pub struct AccessibleSymbolChainContext {
-    pub symbol: Option<P<Symbol>>, // nil when canQualifySymbol recurses on a symbol without a parent
-    pub enclosing_declaration: Option<P<Node>>,
-    pub meaning: SymbolFlags,
-    pub use_only_external_aliasing: bool,
-    pub visited_symbol_tables_map:
+    pub(crate) symbol: Option<P<Symbol>>, // nil when canQualifySymbol recurses on a symbol without a parent
+    pub(crate) enclosing_declaration: Option<P<Node>>,
+    pub(crate) meaning: SymbolFlags,
+    pub(crate) use_only_external_aliasing: bool,
+    pub(crate) visited_symbol_tables_map:
         std::rc::Rc<RefCell<FxHashMap<SymbolId, FxHashSet<SymbolTableID>>>>,
 }
 
@@ -192,9 +192,9 @@ pub struct AccessibleSymbolChainContext {
 /// Go `SymbolTrackerImpl`, handled as `P<SymbolTrackerImpl>` and passed on as `&'static dyn SymbolTracker`
 /// (`p.get()`); the inherent methods (printer.rs) take `&self`.
 pub struct SymbolTrackerImpl {
-    pub context: P<NodeBuilderContext>,
-    pub inner: Option<&'static dyn SymbolTracker>,
-    pub disable_track_symbol: Cell<bool>,
+    pub(crate) context: P<NodeBuilderContext>,
+    pub(crate) inner: Option<&'static dyn SymbolTracker>,
+    pub(crate) disable_track_symbol: Cell<bool>,
 }
 
 impl SymbolTracker for SymbolTrackerImpl {

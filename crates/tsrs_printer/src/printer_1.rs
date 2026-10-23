@@ -88,14 +88,14 @@ pub struct PrintHandlers {
 /// The state Go's `getTextOfNode`/`getLiteralTextOfNode` read from the printer, shared with the name generator's
 /// callbacks (which Go builds as closures over the printer).
 pub struct PrinterTextState {
-    pub(crate) emit_context: P<EmitContext>,
-    pub(crate) current_source_file: Cell<Option<P<SourceFile>>>,
+    emit_context: P<EmitContext>,
+    current_source_file: Cell<Option<P<SourceFile>>>,
     pub(crate) target: Cell<ScriptTarget>,
 }
 
 pub struct Printer {
-    pub print_handlers: PrintHandlers,
-    pub options: PrinterOptions,
+    pub(crate) print_handlers: PrintHandlers,
+    pub(crate) options: PrinterOptions,
     pub(crate) emit_context: P<EmitContext>,
     // Go `currentSourceFile` lives in `text_state` (see `current_source_file()`).
     pub(crate) text_state: Rc<PrinterTextState>,
@@ -104,7 +104,7 @@ pub struct Printer {
     pub(crate) next_list_element_pos: TextPos,
     pub(crate) writer: Option<Box<dyn EmitTextWriter>>,
     pub(crate) own_writer: Option<Box<dyn EmitTextWriter>>,
-    pub(crate) write_kind: WriteKind,
+    write_kind: WriteKind,
     pub(crate) source_maps_disabled: bool,
     // Borrowed from the caller of `write` for the duration of the call (Go `*sourcemap.Generator`); see
     // `source_map_generator()`.
@@ -120,7 +120,7 @@ pub struct Printer {
     pub(crate) declaration_list_container_end: TextPos,
     pub(crate) detached_comments_info: Vec<DetachedCommentsInfo>,
     pub(crate) comments_disabled: bool,
-    pub(crate) in_extends: bool, // whether we are emitting the `extends` clause of a ConditionalTypeNode or InferTypeNode
+    in_extends: bool, // whether we are emitting the `extends` clause of a ConditionalTypeNode or InferTypeNode
     pub(crate) name_generator: NameGenerator,
     pub id_to_symbol: Option<FxHashMap<P<Node>, P<Symbol>>>,
 }
@@ -217,7 +217,7 @@ pub fn new_printer(
 }
 
 /// Go `(*Printer).getLiteralTextOfNode` over the state it reads (see `printerTextState`).
-pub fn get_literal_text_of_node_worker(
+fn get_literal_text_of_node_worker(
     g: &mut NameGenerator,
     s: &PrinterTextState,
     node: P<Node>,
@@ -268,7 +268,7 @@ pub fn get_literal_text_of_node_worker(
 
 /// Go `(*Printer).getTextOfNode` over the state it reads (see `printerTextState`).
 // `node` must be one of Identifier | PrivateIdentifier | LiteralExpression | JsxNamespacedName
-pub fn get_text_of_node_worker(
+fn get_text_of_node_worker(
     g: &mut NameGenerator,
     s: &PrinterTextState,
     node: P<Node>,
@@ -327,7 +327,7 @@ pub fn get_text_of_node_worker(
 
 /// Go `(*Printer).isFileLevelUniqueNameInCurrentFile` over the state it reads.
 // Returns a value indicating whether a name is unique globally or within the current file.
-pub fn is_file_level_unique_name_in_current_file_worker(
+fn is_file_level_unique_name_in_current_file_worker(
     s: &PrinterTextState,
     has_global_name: Option<&dyn Fn(&str) -> bool>,
     name: &str,
@@ -368,7 +368,7 @@ impl Printer {
     }
 
     // `node` must be one of Identifier | PrivateIdentifier | LiteralExpression | JsxNamespacedName
-    pub(crate) fn get_text_of_node(&mut self, node: P<Node>, include_trivia: bool) -> String {
+    fn get_text_of_node(&mut self, node: P<Node>, include_trivia: bool) -> String {
         get_text_of_node_worker(&mut self.name_generator, &self.text_state, node, include_trivia)
     }
 }
@@ -393,7 +393,7 @@ pub enum WriteKind {
 }
 
 impl Printer {
-    pub(crate) fn write_as(&mut self, text: &str, write_kind: WriteKind) {
+    fn write_as(&mut self, text: &str, write_kind: WriteKind) {
         match write_kind {
             WriteKind::None => self.writer().write(text),
             WriteKind::Parameter => self.write_parameter(text),
@@ -408,11 +408,11 @@ impl Printer {
     }
 
     // Go `(*Printer).write`; suffixed because the exported `Write` takes the plain snake_case name.
-    pub(crate) fn write_(&mut self, text: &str) {
+    fn write_(&mut self, text: &str) {
         self.write_as(text, self.write_kind);
     }
 
-    pub(crate) fn write_symbol(&mut self, text: &str, opt_symbol: Option<P<Symbol>>) {
+    fn write_symbol(&mut self, text: &str, opt_symbol: Option<P<Symbol>>) {
         match opt_symbol {
             None => self.write_(text),
             Some(symbol) => self.writer().write_symbol(text, symbol),
@@ -435,11 +435,11 @@ impl Printer {
         self.writer().write_keyword(text);
     }
 
-    pub(crate) fn write_property(&mut self, text: &str) {
+    fn write_property(&mut self, text: &str) {
         self.writer().write_property(text);
     }
 
-    pub(crate) fn write_parameter(&mut self, text: &str) {
+    fn write_parameter(&mut self, text: &str) {
         self.writer().write_parameter(text);
     }
 
@@ -610,10 +610,7 @@ impl Printer {
         0
     }
 
-    pub(crate) fn get_effective_lines(
-        &self,
-        get_line_difference: impl Fn(bool) -> LineDifference,
-    ) -> usize {
+    fn get_effective_lines(&self, get_line_difference: impl Fn(bool) -> LineDifference) -> usize {
         // If 'preserveSourceNewlines' is disabled, we should never call this function
         // because it could be more expensive than alternative approximations.
         assert!(
@@ -974,7 +971,7 @@ impl Printer {
         self.emit_context.emit_flags(node).intersects(EmitFlags::Indented)
     }
 
-    pub(crate) fn should_elide_indentation(&self, node: P<Node>) -> bool {
+    fn should_elide_indentation(&self, node: P<Node>) -> bool {
         self.emit_context.emit_flags(node).intersects(EmitFlags::NoIndentation)
     }
 
@@ -986,7 +983,7 @@ impl Printer {
         self.emit_context.emit_flags(node).intersects(EmitFlags::MultiLine)
     }
 
-    pub(crate) fn should_emit_block_function_body_on_single_line(&self, body: P<Node>) -> bool {
+    fn should_emit_block_function_body_on_single_line(&self, body: P<Node>) -> bool {
         // We must emit a function body as a single-line body in the following case:
         // * The body has NodeEmitFlags.SingleLine specified.
 
@@ -1043,7 +1040,7 @@ impl Printer {
         true
     }
 
-    pub(crate) fn should_emit_on_new_line(&self, node: P<Node>, format: ListFormat) -> bool {
+    fn should_emit_on_new_line(&self, node: P<Node>, format: ListFormat) -> bool {
         if self.emit_context.emit_flags(node).intersects(EmitFlags::StartOnNewLine) {
             return true;
         }
@@ -1208,7 +1205,7 @@ impl Printer {
         self.emit_keyword_node_ex(node, tokenEmitFlags::None);
     }
 
-    pub(crate) fn emit_keyword_node_ex(&mut self, node: Option<P<Node>>, flags: tokenEmitFlags) {
+    fn emit_keyword_node_ex(&mut self, node: Option<P<Node>>, flags: tokenEmitFlags) {
         let Some(node) = node else {
             return;
         };
@@ -1222,11 +1219,7 @@ impl Printer {
         self.emit_punctuation_node_ex(node, tokenEmitFlags::None);
     }
 
-    pub(crate) fn emit_punctuation_node_ex(
-        &mut self,
-        node: Option<P<Node>>,
-        flags: tokenEmitFlags,
-    ) {
+    fn emit_punctuation_node_ex(&mut self, node: Option<P<Node>>, flags: tokenEmitFlags) {
         let Some(node) = node else {
             return;
         };
@@ -1270,7 +1263,7 @@ impl Printer {
     //	SyntaxKindTemplateHead
     //	SyntaxKindTemplateMiddle
     //	SyntaxKindTemplateTail
-    pub(crate) fn emit_literal(&mut self, node: P<Node>, flags: getLiteralTextFlags) {
+    fn emit_literal(&mut self, node: P<Node>, flags: getLiteralTextFlags) {
         let mut flags = flags;
         // Add NeverAsciiEscape flag if the printer option is set
         if self.options.never_ascii_escape {
@@ -1373,7 +1366,7 @@ impl Printer {
         }
     }
 
-    pub(crate) fn emit_tab_stop(&mut self, node: P<Node>, snippet_element: SnippetElement) {
+    fn emit_tab_stop(&mut self, node: P<Node>, snippet_element: SnippetElement) {
         assert!(
             node.kind() == Kind::EmptyStatement,
             "Snippet tab stops can only be emitted on empty statements"
@@ -1387,7 +1380,7 @@ impl Printer {
 //
 
 impl Printer {
-    pub(crate) fn emit_identifier_text(&mut self, node: P<Node>) {
+    fn emit_identifier_text(&mut self, node: P<Node>) {
         let f = get_source_file_of_node(node);
         assert!(
             f.is_none()
@@ -1418,7 +1411,7 @@ impl Printer {
         self.emit_identifier_name(node);
     }
 
-    pub(crate) fn get_unique_helper_name(&mut self, name: &str) -> P<Node> {
+    fn get_unique_helper_name(&mut self, name: &str) -> P<Node> {
         let helper_name = self.unique_helper_names.as_ref().unwrap().get(name).copied();
         match helper_name {
             None => {
@@ -1522,7 +1515,7 @@ impl Printer {
         self.exit_node(node, state);
     }
 
-    pub(crate) fn emit_entity_name(&mut self, node: P<Node>) {
+    fn emit_entity_name(&mut self, node: P<Node>) {
         match node.kind() {
             Kind::Identifier => self.emit_identifier_reference(node),
             Kind::QualifiedName => self.emit_qualified_name(node),
@@ -1761,7 +1754,7 @@ impl Printer {
         self.exit_node(node, state);
     }
 
-    pub(crate) fn emit_type_parameter_declaration_node(&mut self, node: P<Node>) {
+    fn emit_type_parameter_declaration_node(&mut self, node: P<Node>) {
         // NOTE: QuickInfo uses TypeFormatFlagsWriteTypeArgumentsOfSignature to instruct the NodeBuilder to store type arguments
         // (i.e. type nodes) instead of type parameter declarations in the type parameter list.
         if is_type_parameter_declaration(node) {
@@ -1771,7 +1764,7 @@ impl Printer {
         }
     }
 
-    pub(crate) fn emit_parameter_name(&mut self, node: Option<P<Node>>) {
+    fn emit_parameter_name(&mut self, node: Option<P<Node>>) {
         let saved_write_kind = self.write_kind;
         self.write_kind = WriteKind::Parameter;
         self.emit_binding_name(node);
@@ -1801,7 +1794,7 @@ impl Printer {
         self.exit_node(node, state);
     }
 
-    pub(crate) fn emit_parameter_declaration_node(&mut self, node: P<Node>) {
+    fn emit_parameter_declaration_node(&mut self, node: P<Node>) {
         self.emit_parameter(node);
     }
 
@@ -1812,7 +1805,7 @@ impl Printer {
         self.exit_node(node, state);
     }
 
-    pub(crate) fn emit_modifier_like(&mut self, node: P<Node>) {
+    fn emit_modifier_like(&mut self, node: P<Node>) {
         if is_decorator(node) {
             self.emit_decorator(node);
         } else if is_modifier(node) {
@@ -1871,17 +1864,13 @@ impl Printer {
         self.emit_expression(node, OperatorPrecedence::DISALLOW_COMMA);
     }
 
-    pub(crate) fn emit_parameters(
-        &mut self,
-        parent_node: P<Node>,
-        parameters: Option<P<NodeList>>,
-    ) {
+    fn emit_parameters(&mut self, parent_node: P<Node>, parameters: Option<P<NodeList>>) {
         self.generate_all_names(parameters);
         self.emit_list(Printer::emit_parameter_declaration_node, parent_node, parameters, ListFormat::Parameters /*|core.IfElse(p.shouldAllowTrailingComma(parentNode, parameters), LFAllowTrailingComma, LFNone)*/); // TODO: preserve trailing comma after Strada migration
     }
 }
 
-pub fn can_emit_simple_arrow_head(parent_node: P<Node>, parameters: P<NodeList>) -> bool {
+fn can_emit_simple_arrow_head(parent_node: P<Node>, parameters: P<NodeList>) -> bool {
     // only arrow functions with a single parameter may have simple arrow head
     if !is_arrow_function(parent_node) || parameters.nodes().len() != 1 {
         return false;
@@ -1923,7 +1912,7 @@ impl Printer {
         }
     }
 
-    pub(crate) fn emit_parameters_for_index_signature(
+    fn emit_parameters_for_index_signature(
         &mut self,
         parent_node: P<Node>,
         parameters: Option<P<NodeList>>,
@@ -2119,7 +2108,7 @@ impl Printer {
         self.exit_node(node, state);
     }
 
-    pub(crate) fn emit_accessor_declaration(&mut self, token: Kind, node: P<Node>) {
+    fn emit_accessor_declaration(&mut self, token: Kind, node: P<Node>) {
         let state = self.enter_node(node);
         let pos = self.emit_modifier_list(node, node.modifiers(), true /*allowDecorators*/);
         self.emit_token(token, pos, WriteKind::Keyword, node);
@@ -2232,11 +2221,11 @@ impl Printer {
 //
 
 impl Printer {
-    pub(crate) fn emit_keyword_type_node(&mut self, node: P<Node>) {
+    fn emit_keyword_type_node(&mut self, node: P<Node>) {
         self.emit_keyword_node(Some(node));
     }
 
-    pub(crate) fn emit_type_predicate_parameter_name(&mut self, node: P<Node>) {
+    fn emit_type_predicate_parameter_name(&mut self, node: P<Node>) {
         match node.kind() {
             Kind::Identifier => self.emit_identifier_reference(node),
             Kind::ThisType => self.emit_this_type(node),
@@ -2244,7 +2233,7 @@ impl Printer {
         }
     }
 
-    pub(crate) fn emit_type_predicate(&mut self, node: P<Node>) {
+    fn emit_type_predicate(&mut self, node: P<Node>) {
         let state = self.enter_node(node);
         let n = node.as_type_predicate_node();
         if n.asserts_modifier().is_some() {
@@ -2261,7 +2250,7 @@ impl Printer {
         self.exit_node(node, state);
     }
 
-    pub(crate) fn emit_type_argument(&mut self, node: P<Node>) {
+    fn emit_type_argument(&mut self, node: P<Node>) {
         self.emit_type_node_outside_extends(node);
     }
 
@@ -2281,7 +2270,7 @@ impl Printer {
     }
 
     // Emits the return type of a FunctionTypeNode or ConstructorTypeNode, including the arrow (`=>`)
-    pub(crate) fn emit_return_type(&mut self, node: Option<P<Node>>) {
+    fn emit_return_type(&mut self, node: Option<P<Node>>) {
         let Some(node) = node else {
             return;
         };
@@ -2307,7 +2296,7 @@ impl Printer {
         }
     }
 
-    pub(crate) fn emit_function_type(&mut self, node: P<Node>) {
+    fn emit_function_type(&mut self, node: P<Node>) {
         let state = self.enter_node(node);
         let n = node.as_function_type_node();
         let indented = self.should_emit_indented(node);
@@ -2323,7 +2312,7 @@ impl Printer {
         self.exit_node(node, state);
     }
 
-    pub(crate) fn emit_constructor_type(&mut self, node: P<Node>) {
+    fn emit_constructor_type(&mut self, node: P<Node>) {
         let state = self.enter_node(node);
         let n = node.as_constructor_type_node();
         self.emit_modifier_list(node, node.modifiers(), false /*allowDecorators*/);
@@ -2342,7 +2331,7 @@ impl Printer {
         self.exit_node(node, state);
     }
 
-    pub(crate) fn emit_type_query(&mut self, node: P<Node>) {
+    fn emit_type_query(&mut self, node: P<Node>) {
         let state = self.enter_node(node);
         let n = node.as_type_query_node();
         self.write_keyword("typeof");
@@ -2352,7 +2341,7 @@ impl Printer {
         self.exit_node(node, state);
     }
 
-    pub(crate) fn emit_type_literal(&mut self, node: P<Node>) {
+    fn emit_type_literal(&mut self, node: P<Node>) {
         let state = self.enter_node(node);
         let members = node.as_type_literal_node().members();
         self.push_name_generation_scope(Some(node));
@@ -2374,7 +2363,7 @@ impl Printer {
         self.exit_node(node, state);
     }
 
-    pub(crate) fn emit_array_type(&mut self, node: P<Node>) {
+    fn emit_array_type(&mut self, node: P<Node>) {
         let state = self.enter_node(node);
         self.emit_postfix_type_operand(node.as_array_type_node().element_type(), node);
         self.write_punctuation("[");
@@ -2389,7 +2378,7 @@ impl Printer {
     // factory rule wraps `TypeQuery` in `ParenthesizedType` only when a postfix type is constructed
     // via the factory, so parsed postfix types preserve the source as written during round-trip
     // emit while synthesized postfix types (e.g., from declaration emit) still get the parentheses.
-    pub(crate) fn emit_postfix_type_operand(&mut self, operand: P<Node>, parent: P<Node>) {
+    fn emit_postfix_type_operand(&mut self, operand: P<Node>, parent: P<Node>) {
         if is_parse_tree_node(parent) && operand.kind() == Kind::TypeQuery {
             self.emit_type_node(operand, TypePrecedence::TypeOperator);
             return;
@@ -2397,11 +2386,11 @@ impl Printer {
         self.emit_type_node(operand, TypePrecedence::Postfix);
     }
 
-    pub(crate) fn emit_tuple_element_type(&mut self, node: P<Node>) {
+    fn emit_tuple_element_type(&mut self, node: P<Node>) {
         self.emit_type_node_outside_extends(node);
     }
 
-    pub(crate) fn emit_tuple_type(&mut self, node: P<Node>) {
+    fn emit_tuple_type(&mut self, node: P<Node>) {
         let state = self.enter_node(node);
         let elements = node.as_tuple_type_node().elements();
         self.emit_token(Kind::OpenBracketToken, node.pos(), WriteKind::Punctuation, node);
@@ -2420,14 +2409,14 @@ impl Printer {
         self.exit_node(node, state);
     }
 
-    pub(crate) fn emit_rest_type(&mut self, node: P<Node>) {
+    fn emit_rest_type(&mut self, node: P<Node>) {
         let state = self.enter_node(node);
         self.write_punctuation("...");
         self.emit_type_node_outside_extends(node.as_rest_type_node().type_());
         self.exit_node(node, state);
     }
 
-    pub(crate) fn emit_optional_type(&mut self, node: P<Node>) {
+    fn emit_optional_type(&mut self, node: P<Node>) {
         let state = self.enter_node(node);
         // !!! May need extra parenthesization if we also have JSDocNullableType
         self.emit_postfix_type_operand(node.as_optional_type_node().type_(), node);
@@ -2435,7 +2424,7 @@ impl Printer {
         self.exit_node(node, state);
     }
 
-    pub(crate) fn emit_named_tuple_member(&mut self, node: P<Node>) {
+    fn emit_named_tuple_member(&mut self, node: P<Node>) {
         let state = self.enter_node(node);
         let n = node.as_named_tuple_member();
         self.emit_punctuation_node(n.dot_dot_dot_token());
@@ -2452,11 +2441,11 @@ impl Printer {
         self.exit_node(node, state);
     }
 
-    pub(crate) fn emit_union_type_constituent(&mut self, node: P<Node>) {
+    fn emit_union_type_constituent(&mut self, node: P<Node>) {
         self.emit_type_node(node, TypePrecedence::TypeOperator);
     }
 
-    pub(crate) fn emit_union_type(&mut self, node: P<Node>) {
+    fn emit_union_type(&mut self, node: P<Node>) {
         let state = self.enter_node(node);
         self.emit_list(
             Printer::emit_union_type_constituent,
@@ -2467,17 +2456,17 @@ impl Printer {
         self.exit_node(node, state);
     }
 
-    pub(crate) fn emit_intersection_type_constituent(&mut self, node: P<Node>) {
+    fn emit_intersection_type_constituent(&mut self, node: P<Node>) {
         self.emit_type_node(node, TypePrecedence::TypeOperator);
     }
 
-    pub(crate) fn emit_intersection_type(&mut self, node: P<Node>) {
+    fn emit_intersection_type(&mut self, node: P<Node>) {
         let state = self.enter_node(node);
         self.emit_list(Printer::emit_intersection_type_constituent, node, Some(node.as_intersection_type_node().types()), ListFormat::IntersectionTypeConstituents /*, parenthesizer.parenthesizeConstituentTypeOfIntersectionType*/); // !!!
         self.exit_node(node, state);
     }
 
-    pub(crate) fn emit_conditional_type(&mut self, node: P<Node>) {
+    fn emit_conditional_type(&mut self, node: P<Node>) {
         let state = self.enter_node(node);
         let n = node.as_conditional_type_node();
         self.emit_type_node(n.check_type(), TypePrecedence::Union);
@@ -2496,7 +2485,7 @@ impl Printer {
         self.exit_node(node, state);
     }
 
-    pub(crate) fn emit_infer_type_parameter(&mut self, node: P<Node>) {
+    fn emit_infer_type_parameter(&mut self, node: P<Node>) {
         let state = self.enter_node(node);
         let n = node.as_type_parameter_declaration();
         self.emit_binding_identifier(n.name());
@@ -2509,7 +2498,7 @@ impl Printer {
         self.exit_node(node, state);
     }
 
-    pub(crate) fn emit_infer_type(&mut self, node: P<Node>) {
+    fn emit_infer_type(&mut self, node: P<Node>) {
         let state = self.enter_node(node);
         self.write_keyword("infer");
         self.write_space();
@@ -2517,7 +2506,7 @@ impl Printer {
         self.exit_node(node, state);
     }
 
-    pub(crate) fn emit_parenthesized_type(&mut self, node: P<Node>) {
+    fn emit_parenthesized_type(&mut self, node: P<Node>) {
         let state = self.enter_node(node);
         self.write_punctuation("(");
         self.emit_type_node_outside_extends(node.as_parenthesized_type_node().type_());
@@ -2525,13 +2514,13 @@ impl Printer {
         self.exit_node(node, state);
     }
 
-    pub(crate) fn emit_this_type(&mut self, node: P<Node>) {
+    fn emit_this_type(&mut self, node: P<Node>) {
         let state = self.enter_node(node);
         self.write_keyword("this");
         self.exit_node(node, state);
     }
 
-    pub(crate) fn emit_type_operator(&mut self, node: P<Node>) {
+    fn emit_type_operator(&mut self, node: P<Node>) {
         let state = self.enter_node(node);
         let n = node.as_type_operator_node();
         self.emit_token(n.operator, node.pos(), WriteKind::Keyword, node);
@@ -2547,7 +2536,7 @@ impl Printer {
         self.exit_node(node, state);
     }
 
-    pub(crate) fn emit_indexed_access_type(&mut self, node: P<Node>) {
+    fn emit_indexed_access_type(&mut self, node: P<Node>) {
         let state = self.enter_node(node);
         let n = node.as_indexed_access_type_node();
         self.emit_postfix_type_operand(n.object_type(), node);
@@ -2557,7 +2546,7 @@ impl Printer {
         self.exit_node(node, state);
     }
 
-    pub(crate) fn emit_mapped_type_parameter(&mut self, node: P<Node>) {
+    fn emit_mapped_type_parameter(&mut self, node: P<Node>) {
         let state = self.enter_node(node);
         let n = node.as_type_parameter_declaration();
         self.emit_binding_identifier(n.name());
@@ -2568,7 +2557,7 @@ impl Printer {
         self.exit_node(node, state);
     }
 
-    pub(crate) fn emit_mapped_type(&mut self, node: P<Node>) {
+    fn emit_mapped_type(&mut self, node: P<Node>) {
         let state = self.enter_node(node);
         let n = node.as_mapped_type_node();
         let single_line = self.should_emit_on_single_line(node);
@@ -2632,13 +2621,13 @@ impl Printer {
         self.exit_node(node, state);
     }
 
-    pub(crate) fn emit_literal_type(&mut self, node: P<Node>) {
+    fn emit_literal_type(&mut self, node: P<Node>) {
         let state = self.enter_node(node);
         self.emit_expression(node.as_literal_type_node().literal(), OperatorPrecedence::Comma);
         self.exit_node(node, state);
     }
 
-    pub(crate) fn emit_template_type_span(&mut self, node: P<Node>) {
+    fn emit_template_type_span(&mut self, node: P<Node>) {
         let state = self.enter_node(node);
         let n = node.as_template_literal_type_span();
         self.emit_type_node_outside_extends(n.type_());
@@ -2646,11 +2635,11 @@ impl Printer {
         self.exit_node(node, state);
     }
 
-    pub(crate) fn emit_template_type_span_node(&mut self, node: P<Node>) {
+    fn emit_template_type_span_node(&mut self, node: P<Node>) {
         self.emit_template_type_span(node);
     }
 
-    pub(crate) fn emit_template_type(&mut self, node: P<Node>) {
+    fn emit_template_type(&mut self, node: P<Node>) {
         let state = self.enter_node(node);
         let n = node.as_template_literal_type_node();
         self.emit_template_head(n.head());
@@ -2663,7 +2652,7 @@ impl Printer {
         self.exit_node(node, state);
     }
 
-    pub(crate) fn emit_import_type_node_attributes(&mut self, node: P<Node>) {
+    fn emit_import_type_node_attributes(&mut self, node: P<Node>) {
         let state = self.enter_node(node);
         let n = node.as_import_attributes();
         self.write_punctuation("{");
@@ -2682,7 +2671,7 @@ impl Printer {
         self.exit_node(node, state);
     }
 
-    pub(crate) fn emit_import_type_node(&mut self, node: P<Node>) {
+    fn emit_import_type_node(&mut self, node: P<Node>) {
         let state = self.enter_node(node);
         let n = node.as_import_type_node();
         if n.is_type_of {
@@ -2707,7 +2696,7 @@ impl Printer {
     }
 
     // emits a Type node in the `extends` clause of a ConditionalType
-    pub(crate) fn emit_type_node_in_extends(&mut self, node: P<Node>) {
+    fn emit_type_node_in_extends(&mut self, node: P<Node>) {
         let saved_in_extends = self.in_extends;
         self.in_extends = true;
         self.emit_type_node_preserving_extends(node, TypePrecedence::LOWEST);
@@ -2723,11 +2712,7 @@ impl Printer {
     }
 
     // emits a Type node preserving whether or not we are currently in the `extends` clause of a ConditionalType or InferType
-    pub(crate) fn emit_type_node_preserving_extends(
-        &mut self,
-        node: P<Node>,
-        precedence: TypePrecedence,
-    ) {
+    fn emit_type_node_preserving_extends(&mut self, node: P<Node>, precedence: TypePrecedence) {
         self.emit_type_node(node, precedence);
     }
 
@@ -2860,36 +2845,36 @@ impl Printer {
         self.exit_node(node, state);
     }
 
-    pub(crate) fn emit_binding_element_node(&mut self, node: P<Node>) {
+    fn emit_binding_element_node(&mut self, node: P<Node>) {
         self.emit_binding_element(node);
     }
 
-    pub(crate) fn emit_jsdoc_all_type(&mut self, node: P<Node>) {
+    fn emit_jsdoc_all_type(&mut self, node: P<Node>) {
         self.emit_keyword_node(Some(node));
     }
 
-    pub(crate) fn emit_jsdoc_non_nullable_type(&mut self, node: P<Node>) {
+    fn emit_jsdoc_non_nullable_type(&mut self, node: P<Node>) {
         let state = self.enter_node(node);
         self.write_punctuation("!");
         self.emit_type_node(node.as_jsdoc_non_nullable_type().type_(), TypePrecedence::NonArray);
         self.exit_node(node, state);
     }
 
-    pub(crate) fn emit_jsdoc_nullable_type(&mut self, node: P<Node>) {
+    fn emit_jsdoc_nullable_type(&mut self, node: P<Node>) {
         let state = self.enter_node(node);
         self.write_punctuation("?");
         self.emit_type_node(node.as_jsdoc_nullable_type().type_(), TypePrecedence::NonArray);
         self.exit_node(node, state);
     }
 
-    pub(crate) fn emit_jsdoc_optional_type(&mut self, node: P<Node>) {
+    fn emit_jsdoc_optional_type(&mut self, node: P<Node>) {
         let state = self.enter_node(node);
         self.emit_type_node(node.as_jsdoc_optional_type().type_(), TypePrecedence::JSDoc);
         self.write_punctuation("=");
         self.exit_node(node, state);
     }
 
-    pub(crate) fn emit_jsdoc_variadic_type(&mut self, node: P<Node>) {
+    fn emit_jsdoc_variadic_type(&mut self, node: P<Node>) {
         let state = self.enter_node(node);
         self.write_punctuation("...");
         self.emit_type_node(node.as_jsdoc_variadic_type().type_(), TypePrecedence::JSDoc);

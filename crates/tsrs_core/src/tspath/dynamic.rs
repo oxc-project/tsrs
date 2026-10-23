@@ -14,7 +14,7 @@ pub fn is_encoded_dynamic_file_name(path: &str) -> bool {
     path.starts_with(DYNAMIC_URI_FILE_NAME_PREFIX)
 }
 
-pub fn canonical_dynamic_uri_path(path: &str) -> String {
+pub(super) fn canonical_dynamic_uri_path(path: &str) -> String {
     if is_encoded_dynamic_file_name(path)
         && get_root_length(path) == path.len()
         && !has_trailing_directory_separator(path)

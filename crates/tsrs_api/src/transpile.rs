@@ -105,15 +105,15 @@ impl FS for TranspileFS {
     }
 }
 
-pub struct TranspileOutput {
-    pub output_text: String,
+struct TranspileOutput {
+    output_text: String,
     /// Already serialized (the diagnostics themselves live in the freed scratch region).
-    pub diagnostics: Vec<Value>,
-    pub source_map_text: String,
+    diagnostics: Vec<Value>,
+    source_map_text: String,
 }
 
 /// Go `transpileWorker` in a scratch region (see the module comment).
-pub fn transpile(
+fn transpile(
     input: &str,
     base: Option<&CompilerOptions>,
     file_name: &str,

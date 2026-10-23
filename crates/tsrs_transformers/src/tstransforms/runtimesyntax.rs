@@ -9,8 +9,8 @@ use tsrs_core::TextPos;
 type DeclarationsOfName = Option<Rc<RefCell<FxHashMap<&'static str, P<Node>>>>>;
 
 // Transforms TypeScript-specific runtime syntax into JavaScript-compatible syntax.
-pub struct RuntimeSyntaxTransformer {
-    pub base: Transformer,
+struct RuntimeSyntaxTransformer {
+    base: Transformer,
     compiler_options: P<CompilerOptions>,
     parent_node: Cell<Option<P<Node>>>,
     current_node: Cell<Option<P<Node>>>,

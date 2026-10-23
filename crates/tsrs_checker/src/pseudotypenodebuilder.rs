@@ -53,11 +53,7 @@ impl NodeBuilderImpl {
 
     // pseudotypenodebuilder.go:48
     // Maps a pseudochecker's pseudotypes into ast nodes and reports any inference fallback errors the pseudotype structure implies
-    pub(crate) fn pseudo_type_to_node(
-        &self,
-        c: &mut Checker,
-        t: Option<P<PseudoType>>,
-    ) -> Option<P<Node>> {
+    fn pseudo_type_to_node(&self, c: &mut Checker, t: Option<P<PseudoType>>) -> Option<P<Node>> {
         assert!(t.is_some(), "Attempted to serialize nil pseudotype");
         let t = t.unwrap();
         match t.kind {
@@ -408,7 +404,7 @@ impl NodeBuilderImpl {
     }
 
     // pseudotypenodebuilder.go:327
-    pub(crate) fn pseudo_parameters_to_node_list(
+    fn pseudo_parameters_to_node_list(
         &self,
         c: &mut Checker,
         params: &[P<PseudoParameter>],
@@ -419,11 +415,7 @@ impl NodeBuilderImpl {
     }
 
     // pseudotypenodebuilder.go:335
-    pub(crate) fn pseudo_parameter_to_node(
-        &self,
-        c: &mut Checker,
-        p: P<PseudoParameter>,
-    ) -> P<Node> {
+    fn pseudo_parameter_to_node(&self, c: &mut Checker, p: P<PseudoParameter>) -> P<Node> {
         let mut dot_dot_dot: Option<P<Node>> = None;
         let mut question_mark: Option<P<Node>> = None;
         if p.rest {
@@ -832,7 +824,7 @@ impl NodeBuilderImpl {
     }
 
     // pseudotypenodebuilder.go:585
-    pub(crate) fn pseudo_parameters_equivalent_to_parameters(
+    fn pseudo_parameters_equivalent_to_parameters(
         &self,
         c: &mut Checker,
         params: &[P<PseudoParameter>],

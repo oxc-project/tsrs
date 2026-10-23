@@ -46,7 +46,7 @@ fn to_lower(r: Rune) -> Rune {
 
 impl<T: Named + Clone> Index<T> {
     // index.go:24
-    pub fn find(&self, name: &str, case_sensitive: bool) -> Vec<T> {
+    pub(crate) fn find(&self, name: &str, case_sensitive: bool) -> Vec<T> {
         if self.entries.is_empty() || name.is_empty() {
             return Vec::new();
         }
@@ -80,7 +80,7 @@ impl<T: Named + Clone> Index<T> {
     // the first character of 'prefix', and whose name contains all characters
     // of 'prefix' in order (case-insensitive). If 'filter' is provided, only entries
     // for which filter(entry) returns true are included.
-    pub fn search_word_prefix(&self, prefix: &str) -> Vec<T> {
+    pub(crate) fn search_word_prefix(&self, prefix: &str) -> Vec<T> {
         if self.entries.is_empty() {
             return Vec::new();
         }
@@ -161,7 +161,7 @@ impl<T: Named + Clone> Index<T> {
     // index.go:156
     // Clone creates a new Index containing only entries for which filter returns true.
     #[must_use]
-    pub fn clone_filtered(&self, filter: impl Fn(&T) -> bool) -> Index<T> {
+    pub(crate) fn clone_filtered(&self, filter: impl Fn(&T) -> bool) -> Index<T> {
         let mut new_idx =
             Index { entries: Vec::with_capacity(self.entries.len()), index: FxHashMap::default() };
 

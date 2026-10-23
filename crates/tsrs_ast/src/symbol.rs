@@ -998,7 +998,7 @@ impl SymbolMap {
 /// `Function`'s and `Object`'s) and testing it against a `NameFilter` without hashing it again for each.
 #[derive(Clone, Copy)]
 pub struct HashedName<'a> {
-    pub name: &'a str,
+    name: &'a str,
     hash: u32,
 }
 

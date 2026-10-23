@@ -72,7 +72,7 @@ impl LanguageService {
     }
 
     // diagnostics.go:53
-    pub(crate) fn to_lsp_diagnostics(
+    fn to_lsp_diagnostics(
         &self,
         ctx: &Context,
         diagnostics: &[&[P<Diagnostic>]],

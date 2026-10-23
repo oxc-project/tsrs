@@ -13,7 +13,7 @@ use tsrs_diagnostics as diagnostics;
 
 impl FlowType {
     // flow.go:24
-    pub(crate) fn is_nil(self) -> bool {
+    fn is_nil(self) -> bool {
         self.t.is_none()
     }
 }
@@ -59,7 +59,7 @@ fn is_flow_memo_checkpoint(flow: P<FlowNode>) -> bool {
 
 impl Checker {
     // flow.go:28
-    pub(crate) fn new_flow_type(&self, t: P<Type>, incomplete: bool) -> FlowType {
+    fn new_flow_type(&self, t: P<Type>, incomplete: bool) -> FlowType {
         let mut t = t;
         if incomplete && t.flags().intersects(TypeFlags::Never) {
             t = self.silent_never_type;
@@ -68,7 +68,7 @@ impl Checker {
     }
 
     // flow.go:52
-    pub(crate) fn get_flow_state(&mut self) -> P<FlowState> {
+    fn get_flow_state(&mut self) -> P<FlowState> {
         let f = match self.free_flow_state {
             Some(f) => f,
             None => P::new(FlowState::default()),
@@ -78,7 +78,7 @@ impl Checker {
     }
 
     // flow.go:61
-    pub(crate) fn put_flow_state(&mut self, f: P<FlowState>) {
+    fn put_flow_state(&mut self, f: P<FlowState>) {
         f.reference.set(None);
         f.declared_type.set(None);
         f.initial_type.set(None);
@@ -105,7 +105,7 @@ pub fn get_flow_node_of_node(node: P<Node>) -> Option<P<FlowNode>> {
 
 impl Checker {
     // flow.go:77
-    pub fn get_flow_type_of_reference(
+    pub(crate) fn get_flow_type_of_reference(
         &mut self,
         reference: P<Node>,
         declared_type: P<Type>,
@@ -254,7 +254,7 @@ impl Checker {
     }
 
     // flow.go:117
-    pub(crate) fn get_type_at_flow_node(&mut self, f: P<FlowState>, flow: P<FlowNode>) -> FlowType {
+    fn get_type_at_flow_node(&mut self, f: P<FlowState>, flow: P<FlowNode>) -> FlowType {
         let entry_flow = flow;
         let mut flow = flow;
         if f.depth.get() == FLOW_DEPTH_LIMIT {
@@ -673,11 +673,7 @@ pub fn get_branch_label_antecedents(
 
 impl Checker {
     // flow.go:220
-    pub(crate) fn get_type_at_flow_assignment(
-        &mut self,
-        f: P<FlowState>,
-        flow: P<FlowNode>,
-    ) -> FlowType {
+    fn get_type_at_flow_assignment(&mut self, f: P<FlowState>, flow: P<FlowNode>) -> FlowType {
         let node = flow.node().unwrap();
         // Assignments only narrow the computed type if the declared type is a union type. Thus, we
         // only need to evaluate the assigned type if the declared type is a union type.
@@ -756,11 +752,7 @@ impl Checker {
     }
 
     // flow.go:276
-    pub(crate) fn get_initial_or_assigned_type(
-        &mut self,
-        f: P<FlowState>,
-        flow: P<FlowNode>,
-    ) -> P<Type> {
+    fn get_initial_or_assigned_type(&mut self, f: P<FlowState>, flow: P<FlowNode>) -> P<Type> {
         let node = flow.node().unwrap();
         let t = if ast::is_variable_declaration(node) || ast::is_binding_element(node) {
             self.get_initial_type(node)
@@ -787,7 +779,7 @@ impl Checker {
     }
 
     // flow.go:283
-    pub(crate) fn is_empty_array_assignment(node: P<Node>) -> bool {
+    fn is_empty_array_assignment(node: P<Node>) -> bool {
         ast::is_variable_declaration(node)
             && node.initializer().is_some()
             && is_empty_array_literal(node.initializer().unwrap())
@@ -797,7 +789,7 @@ impl Checker {
     }
 
     // flow.go:288
-    pub(crate) fn get_type_at_flow_call(&mut self, f: P<FlowState>, flow: P<FlowNode>) -> FlowType {
+    fn get_type_at_flow_call(&mut self, f: P<FlowState>, flow: P<FlowNode>) -> FlowType {
         let node = flow.node().unwrap();
         let signature = self.get_effects_signature(node);
         if let Some(signature) = signature {
@@ -837,7 +829,7 @@ impl Checker {
     }
 
     // flow.go:316
-    pub(crate) fn narrow_type_by_type_predicate(
+    fn narrow_type_by_type_predicate(
         &mut self,
         f: P<FlowState>,
         t: P<Type>,
@@ -891,12 +883,7 @@ impl Checker {
     }
 
     // flow.go:338
-    pub(crate) fn narrow_type_by_assertion(
-        &mut self,
-        f: P<FlowState>,
-        t: P<Type>,
-        expr: P<Node>,
-    ) -> P<Type> {
+    fn narrow_type_by_assertion(&mut self, f: P<FlowState>, t: P<Type>, expr: P<Node>) -> P<Type> {
         let node = ast::skip_parentheses(expr);
         if node.kind() == Kind::FalseKeyword {
             return self.unreachable_never_type;
@@ -917,11 +904,7 @@ impl Checker {
     }
 
     // flow.go:354
-    pub(crate) fn get_type_at_flow_condition(
-        &mut self,
-        f: P<FlowState>,
-        flow: P<FlowNode>,
-    ) -> FlowType {
+    fn get_type_at_flow_condition(&mut self, f: P<FlowState>, flow: P<FlowNode>) -> FlowType {
         let flow_type = self.get_type_at_flow_node(f, flow.antecedent().unwrap());
         if f.memo_aborted.get() || flow_type.t.unwrap().flags().intersects(TypeFlags::Never) {
             return flow_type;
@@ -946,7 +929,7 @@ impl Checker {
     // Narrow the given type based on the given expression having the assumed boolean value. The returned type
     // will be a subtype or the same type as the argument.
     // flow.go:377
-    pub(crate) fn narrow_type(
+    fn narrow_type(
         &mut self,
         f: P<FlowState>,
         t: P<Type>,
@@ -1030,7 +1013,7 @@ impl Checker {
     }
 
     // flow.go:415
-    pub(crate) fn narrow_type_by_optionality(
+    fn narrow_type_by_optionality(
         &mut self,
         f: P<FlowState>,
         t: P<Type>,
@@ -1064,7 +1047,7 @@ impl Checker {
     }
 
     // flow.go:428
-    pub(crate) fn narrow_type_by_truthiness(
+    fn narrow_type_by_truthiness(
         &mut self,
         f: P<FlowState>,
         t: P<Type>,
@@ -1097,7 +1080,7 @@ impl Checker {
     }
 
     // flow.go:444
-    pub(crate) fn narrow_type_by_call_expression(
+    fn narrow_type_by_call_expression(
         &mut self,
         f: P<FlowState>,
         t: P<Type>,
@@ -1151,7 +1134,7 @@ impl Checker {
     }
 
     // flow.go:469
-    pub(crate) fn narrow_type_by_binary_expression(
+    fn narrow_type_by_binary_expression(
         &mut self,
         f: P<FlowState>,
         t: P<Type>,
@@ -1329,7 +1312,7 @@ impl Checker {
     }
 
     // flow.go:556
-    pub(crate) fn narrow_type_by_equality(
+    fn narrow_type_by_equality(
         &mut self,
         t: P<Type>,
         operator: Kind,
@@ -1412,7 +1395,7 @@ impl Checker {
     }
 
     // flow.go:614
-    pub(crate) fn narrow_type_by_typeof(
+    fn narrow_type_by_typeof(
         &mut self,
         f: P<FlowState>,
         t: P<Type>,
@@ -1449,7 +1432,7 @@ impl Checker {
     }
 
     // flow.go:646
-    pub(crate) fn narrow_type_by_literal_expression(
+    fn narrow_type_by_literal_expression(
         &mut self,
         t: P<Type>,
         literal: P<Node>,
@@ -1466,7 +1449,7 @@ impl Checker {
     }
 
     // flow.go:657
-    pub(crate) fn narrow_type_by_type_name(&mut self, t: P<Type>, type_name: &str) -> P<Type> {
+    fn narrow_type_by_type_name(&mut self, t: P<Type>, type_name: &str) -> P<Type> {
         match type_name {
             "string" => {
                 return self.narrow_type_by_type_facts(
@@ -1539,7 +1522,7 @@ impl Checker {
     }
 
     // flow.go:685
-    pub(crate) fn narrow_type_by_type_facts(
+    fn narrow_type_by_type_facts(
         &mut self,
         t: P<Type>,
         implied_type: P<Type>,
@@ -1562,7 +1545,7 @@ impl Checker {
     }
 
     // flow.go:702
-    pub(crate) fn narrow_type_by_discriminant_property(
+    fn narrow_type_by_discriminant_property(
         &mut self,
         t: P<Type>,
         access: P<Node>,
@@ -1603,7 +1586,7 @@ impl Checker {
     }
 
     // flow.go:725
-    pub(crate) fn narrow_type_by_discriminant(
+    fn narrow_type_by_discriminant(
         &mut self,
         t: P<Type>,
         access: P<Node>,
@@ -1641,11 +1624,7 @@ impl Checker {
     }
 
     // flow.go:750
-    pub(crate) fn is_matching_constructor_reference(
-        &mut self,
-        f: P<FlowState>,
-        expr: P<Node>,
-    ) -> bool {
+    fn is_matching_constructor_reference(&mut self, f: P<FlowState>, expr: P<Node>) -> bool {
         let mut name: Option<P<Node>> = None;
         if ast::is_property_access_expression(expr) {
             name = expr.name();
@@ -1660,7 +1639,7 @@ impl Checker {
     }
 
     // flow.go:760
-    pub(crate) fn narrow_type_by_constructor(
+    fn narrow_type_by_constructor(
         &mut self,
         t: P<Type>,
         operator: Kind,
@@ -1711,7 +1690,7 @@ impl Checker {
     }
 
     // flow.go:794
-    pub(crate) fn is_constructed_by(&mut self, source: P<Type>, target: P<Type>) -> bool {
+    fn is_constructed_by(&mut self, source: P<Type>, target: P<Type>) -> bool {
         // If either the source or target type are a class type then we need to check that they are the same exact type.
         // This is because you may have a class `A` that defines some set of properties, and another class `B`
         // that defines the same set of properties as class `A`, in that case they are structurally the same
@@ -1728,7 +1707,7 @@ impl Checker {
     }
 
     // flow.go:806
-    pub(crate) fn narrow_type_by_boolean_comparison(
+    fn narrow_type_by_boolean_comparison(
         &mut self,
         f: P<FlowState>,
         t: P<Type>,
@@ -1744,7 +1723,7 @@ impl Checker {
     }
 
     // flow.go:811
-    pub(crate) fn narrow_type_by_instanceof(
+    fn narrow_type_by_instanceof(
         &mut self,
         f: P<FlowState>,
         t: P<Type>,
@@ -1804,7 +1783,7 @@ impl Checker {
     }
 
     // flow.go:846
-    pub(crate) fn get_narrowed_type(
+    fn get_narrowed_type(
         &mut self,
         t: P<Type>,
         candidate: P<Type>,
@@ -1824,7 +1803,7 @@ impl Checker {
     }
 
     // flow.go:859
-    pub(crate) fn get_narrowed_type_worker(
+    fn get_narrowed_type_worker(
         &mut self,
         t: P<Type>,
         candidate: P<Type>,
@@ -1939,7 +1918,7 @@ impl Checker {
     }
 
     // flow.go:966
-    pub(crate) fn get_instance_type(&mut self, constructor_type: P<Type>) -> P<Type> {
+    fn get_instance_type(&mut self, constructor_type: P<Type>) -> P<Type> {
         let prototype_property_type =
             self.get_type_of_property_of_type(constructor_type, "prototype");
         if let Some(prototype_property_type) = prototype_property_type
@@ -1963,7 +1942,7 @@ impl Checker {
     }
 
     // flow.go:982
-    pub(crate) fn narrow_type_by_private_identifier_in_in_expression(
+    fn narrow_type_by_private_identifier_in_in_expression(
         &mut self,
         f: P<FlowState>,
         t: P<Type>,
@@ -1988,7 +1967,7 @@ impl Checker {
     }
 
     // flow.go:1001
-    pub(crate) fn narrow_type_by_in_keyword(
+    fn narrow_type_by_in_keyword(
         &mut self,
         _f: P<FlowState>,
         t: P<Type>,
@@ -2022,7 +2001,7 @@ impl Checker {
     }
 
     // flow.go:1024
-    pub(crate) fn is_type_presence_possible(
+    fn is_type_presence_possible(
         &mut self,
         t: P<Type>,
         prop_name: &str,
@@ -2038,7 +2017,7 @@ impl Checker {
     }
 
     // flow.go:1032
-    pub(crate) fn narrow_type_by_optional_chain_containment(
+    fn narrow_type_by_optional_chain_containment(
         &mut self,
         _f: P<FlowState>,
         t: P<Type>,
@@ -2078,11 +2057,7 @@ impl Checker {
     }
 
     // flow.go:1059
-    pub(crate) fn get_type_at_switch_clause(
-        &mut self,
-        f: P<FlowState>,
-        flow: P<FlowNode>,
-    ) -> FlowType {
+    fn get_type_at_switch_clause(&mut self, f: P<FlowState>, flow: P<FlowNode>) -> FlowType {
         let data = flow.node().unwrap();
         let expr = ast::skip_parentheses(
             data.as_flow_switch_clause_data().switch_statement.expression().unwrap(),
@@ -2126,11 +2101,7 @@ impl Checker {
     }
 
     // flow.go:1091
-    pub(crate) fn narrow_type_by_switch_on_discriminant(
-        &mut self,
-        t: P<Type>,
-        data: P<Node>,
-    ) -> P<Type> {
+    fn narrow_type_by_switch_on_discriminant(&mut self, t: P<Type>, data: P<Node>) -> P<Type> {
         let data = data.as_flow_switch_clause_data();
         // We only narrow if all case expressions specify
         // values with unit types, except for the case where
@@ -2206,11 +2177,7 @@ impl Checker {
     }
 
     // flow.go:1157
-    pub(crate) fn narrow_type_by_switch_on_type_of(
-        &mut self,
-        t: P<Type>,
-        data: P<Node>,
-    ) -> P<Type> {
+    fn narrow_type_by_switch_on_type_of(&mut self, t: P<Type>, data: P<Node>) -> P<Type> {
         let data = data.as_flow_switch_clause_data();
         let Some(witnesses) = self.get_switch_clause_type_of_witnesses(data.switch_statement)
         else {
@@ -2242,7 +2209,7 @@ impl Checker {
     }
 
     // flow.go:1187
-    pub(crate) fn narrow_type_by_switch_on_true(
+    fn narrow_type_by_switch_on_true(
         &mut self,
         f: P<FlowState>,
         t: P<Type>,
@@ -2294,7 +2261,7 @@ impl Checker {
     }
 
     // flow.go:1223
-    pub(crate) fn narrow_type_by_switch_optional_chain_containment(
+    fn narrow_type_by_switch_optional_chain_containment(
         &mut self,
         t: P<Type>,
         data: P<Node>,
@@ -2316,7 +2283,7 @@ impl Checker {
     }
 
     // flow.go:1231
-    pub(crate) fn narrow_type_by_switch_on_discriminant_property(
+    fn narrow_type_by_switch_on_discriminant_property(
         &mut self,
         t: P<Type>,
         access: P<Node>,
@@ -2351,7 +2318,7 @@ impl Checker {
     }
 
     // flow.go:1253
-    pub(crate) fn get_type_at_flow_branch_label(
+    fn get_type_at_flow_branch_label(
         &mut self,
         f: P<FlowState>,
         _flow: P<FlowNode>,
@@ -2444,7 +2411,7 @@ impl Checker {
     // is an evolving array type, we construct a combined evolving array type. Otherwise we
     // finalize all evolving array types.
     // flow.go:1314
-    pub(crate) fn get_union_or_evolving_array_type(
+    fn get_union_or_evolving_array_type(
         &mut self,
         f: P<FlowState>,
         types: &[P<Type>],
@@ -2473,11 +2440,7 @@ impl Checker {
     }
 
     // flow.go:1325
-    pub(crate) fn get_type_at_flow_loop_label(
-        &mut self,
-        f: P<FlowState>,
-        flow: P<FlowNode>,
-    ) -> FlowType {
+    fn get_type_at_flow_loop_label(&mut self, f: P<FlowState>, flow: P<FlowNode>) -> FlowType {
         if f.ref_key.get().is_zero() {
             let ref_key = self.get_flow_reference_key(f);
             f.ref_key.set(ref_key);
@@ -2587,11 +2550,7 @@ impl Checker {
     }
 
     // flow.go:1404
-    pub(crate) fn get_type_at_flow_array_mutation(
-        &mut self,
-        f: P<FlowState>,
-        flow: P<FlowNode>,
-    ) -> FlowType {
+    fn get_type_at_flow_array_mutation(&mut self, f: P<FlowState>, flow: P<FlowNode>) -> FlowType {
         if f.declared() == self.auto_type || f.declared() == self.auto_array_type {
             let node = flow.node().unwrap();
             let expr = if ast::is_call_expression(node) {
@@ -2640,7 +2599,7 @@ impl Checker {
     }
 
     // flow.go:1436
-    pub(crate) fn get_discriminant_property_access(
+    fn get_discriminant_property_access(
         &mut self,
         f: P<FlowState>,
         expr: P<Node>,
@@ -2673,7 +2632,7 @@ impl Checker {
     }
 
     // flow.go:1457
-    pub(crate) fn get_candidate_discriminant_property_access(
+    fn get_candidate_discriminant_property_access(
         &mut self,
         f: P<FlowState>,
         expr: P<Node>,
@@ -2755,7 +2714,7 @@ impl Checker {
     // array types are ultimately converted into manifest array types (using getFinalArrayType)
     // and never escape the getFlowTypeOfReference function.
     // flow.go:1509
-    pub(crate) fn get_evolving_array_type(&mut self, element_type: P<Type>) -> P<Type> {
+    fn get_evolving_array_type(&mut self, element_type: P<Type>) -> P<Type> {
         let key =
             CachedTypeKey { kind: CachedTypeKind::EvolvingArrayType, type_id: element_type.id };
         let result = self.cached_types.get(&key).copied();
@@ -2770,7 +2729,7 @@ impl Checker {
     }
 
     // flow.go:1520
-    pub(crate) fn get_element_type_of_evolving_array_type(&self, t: P<Type>) -> P<Type> {
+    fn get_element_type_of_evolving_array_type(&self, t: P<Type>) -> P<Type> {
         if t.object_flags().intersects(ObjectFlags::EvolvingArray) {
             return t.as_evolving_array_type().element_type.get().unwrap();
         }
@@ -2824,7 +2783,7 @@ impl Checker {
     // we defer subtype reduction until the evolving array type is finalized into a manifest
     // array type.
     // flow.go:1557
-    pub(crate) fn add_evolving_array_element_type(
+    fn add_evolving_array_element_type(
         &mut self,
         evolving_array_type: P<Type>,
         node: P<Node>,
@@ -2841,7 +2800,7 @@ impl Checker {
     }
 
     // flow.go:1566
-    pub(crate) fn finalize_evolving_array_type(&mut self, t: P<Type>) -> P<Type> {
+    fn finalize_evolving_array_type(&mut self, t: P<Type>) -> P<Type> {
         if t.object_flags().intersects(ObjectFlags::EvolvingArray) {
             return self.get_final_array_type(t.as_evolving_array_type());
         }
@@ -2849,7 +2808,7 @@ impl Checker {
     }
 
     // flow.go:1573
-    pub(crate) fn get_final_array_type(&mut self, t: &'static EvolvingArrayType) -> P<Type> {
+    fn get_final_array_type(&mut self, t: &'static EvolvingArrayType) -> P<Type> {
         if t.final_array_type.get().is_none() {
             let final_array_type = self.create_final_array_type(t.element_type.get().unwrap());
             t.final_array_type.set(Some(final_array_type));
@@ -2858,7 +2817,7 @@ impl Checker {
     }
 
     // flow.go:1580
-    pub(crate) fn create_final_array_type(&mut self, element_type: P<Type>) -> P<Type> {
+    fn create_final_array_type(&mut self, element_type: P<Type>) -> P<Type> {
         if element_type.flags().intersects(TypeFlags::Never) {
             return self.auto_array_type;
         } else if element_type.flags().intersects(TypeFlags::Union) {
@@ -2874,7 +2833,7 @@ impl Checker {
     }
 
     // flow.go:1590
-    pub(crate) fn report_flow_control_error(&mut self, node: P<Node>) {
+    fn report_flow_control_error(&mut self, node: P<Node>) {
         let block = ast::find_ancestor(node, ast::is_function_or_module_block).unwrap();
         let source_file = ast::get_source_file_of_node(node).unwrap();
         let span = tsrs_scanner::get_range_of_token_at_position(
@@ -2997,7 +2956,7 @@ impl Checker {
     // leftmost identifier followed by zero or more property names separated by dots.
     // The result is nonDottedNameCacheKey if the reference isn't a dotted name.
     // flow.go:1657
-    pub(crate) fn get_flow_reference_key(&mut self, f: P<FlowState>) -> CacheHashKey {
+    fn get_flow_reference_key(&mut self, f: P<FlowState>) -> CacheHashKey {
         let mut b = KeyBuilder::default();
         if self.write_flow_cache_key(
             &mut b,
@@ -3012,7 +2971,7 @@ impl Checker {
     }
 
     // flow.go:1665
-    pub(crate) fn write_flow_cache_key(
+    fn write_flow_cache_key(
         &mut self,
         b: &mut KeyBuilder,
         node: P<Node>,
@@ -3124,7 +3083,7 @@ impl Checker {
     // flow.go:1727
     // Public for lint rules (tsgolint's shim exposes Checker_getAccessedPropertyName).
     /// tsrs: a property access's name is borrowed from the node (the common case, asked per narrowing step).
-    pub fn get_accessed_property_name(
+    fn get_accessed_property_name(
         &mut self,
         access: P<Node>,
     ) -> (std::borrow::Cow<'static, str>, bool) {
@@ -3165,10 +3124,7 @@ impl Checker {
     }
 
     // flow.go:1753
-    pub(crate) fn try_get_name_from_entity_name_expression(
-        &mut self,
-        node: P<Node>,
-    ) -> (String, bool) {
+    fn try_get_name_from_entity_name_expression(&mut self, node: P<Node>) -> (String, bool) {
         let symbol = self.resolve_entity_name(
             node,
             SymbolFlags::Value,
@@ -3248,7 +3204,7 @@ impl Checker {
     }
 
     // flow.go:1806
-    pub(crate) fn get_literal_property_name_text(&mut self, name: P<Node>) -> (String, bool) {
+    fn get_literal_property_name_text(&mut self, name: P<Node>) -> (String, bool) {
         let t = self.get_literal_type_from_property_name(name);
         if t.flags().intersects(TypeFlags::StringLiteral | TypeFlags::NumberLiteral) {
             return (evaluator::any_to_string(t.as_literal_type().value.get().unwrap()), true);
@@ -3298,7 +3254,7 @@ impl Checker {
     }
 
     // flow.go:1841
-    pub(crate) fn contains_matching_reference(&mut self, source: P<Node>, target: P<Node>) -> bool {
+    fn contains_matching_reference(&mut self, source: P<Node>, target: P<Node>) -> bool {
         let mut source = source;
         while ast::is_access_expression(source) {
             source = source.expression().unwrap();
@@ -3310,11 +3266,7 @@ impl Checker {
     }
 
     // flow.go:1851
-    pub(crate) fn optional_chain_contains_reference(
-        &mut self,
-        source: P<Node>,
-        target: P<Node>,
-    ) -> bool {
+    fn optional_chain_contains_reference(&mut self, source: P<Node>, target: P<Node>) -> bool {
         let mut source = source;
         while ast::is_optional_chain(source) {
             source = source.expression().unwrap();
@@ -3326,7 +3278,7 @@ impl Checker {
     }
 
     // flow.go:1861
-    pub(crate) fn get_reference_candidate(node: P<Node>) -> P<Node> {
+    fn get_reference_candidate(node: P<Node>) -> P<Node> {
         match node.kind() {
             Kind::ParenthesizedExpression => {
                 return Self::get_reference_candidate(node.expression().unwrap());
@@ -3349,7 +3301,7 @@ impl Checker {
     }
 
     // flow.go:1876
-    pub(crate) fn get_reference_root(node: P<Node>) -> P<Node> {
+    fn get_reference_root(node: P<Node>) -> P<Node> {
         let parent = node.parent().unwrap();
         if ast::is_parenthesized_expression(parent)
             || ast::is_binary_expression(parent)
@@ -3386,11 +3338,7 @@ impl Checker {
     }
 
     // flow.go:1898
-    pub(crate) fn is_or_contains_matching_reference(
-        &mut self,
-        source: P<Node>,
-        target: P<Node>,
-    ) -> bool {
+    fn is_or_contains_matching_reference(&mut self, source: P<Node>, target: P<Node>) -> bool {
         self.is_matching_reference(source, target)
             || self.contains_matching_reference(source, target)
     }
@@ -3401,7 +3349,7 @@ impl Checker {
     // true intersection because it is more costly and, when applied to union types, generates a large number of
     // types we don't actually care about.
     // flow.go:1907
-    pub(crate) fn replace_primitives_with_literals(
+    fn replace_primitives_with_literals(
         &mut self,
         type_with_primitives: P<Type>,
         type_with_literals: P<Type>,
@@ -3464,7 +3412,7 @@ pub fn is_coercible_under_double_equals(source: P<Type>, target: P<Type>) -> boo
 
 impl Checker {
     // flow.go:1933
-    pub(crate) fn is_exhaustive_switch_statement(&mut self, node: P<Node>) -> bool {
+    fn is_exhaustive_switch_statement(&mut self, node: P<Node>) -> bool {
         let links = self.switch_statement_links.get(node);
         if links.exhaustive_state.get() == ExhaustiveState::Unknown {
             // Indicate resolution is in process
@@ -3485,7 +3433,7 @@ impl Checker {
     }
 
     // flow.go:1949
-    pub(crate) fn compute_exhaustive_switch_statement(&mut self, node: P<Node>) -> bool {
+    fn compute_exhaustive_switch_statement(&mut self, node: P<Node>) -> bool {
         let expression = node.expression().unwrap();
         if ast::is_type_of_expression(expression) {
             let Some(witnesses) = self.get_switch_clause_type_of_witnesses(node) else {
@@ -3521,7 +3469,7 @@ impl Checker {
     }
 
     // flow.go:1978
-    pub(crate) fn each_type_contained_in(source: P<Type>, types: &[P<Type>]) -> bool {
+    fn each_type_contained_in(source: P<Type>, types: &[P<Type>]) -> bool {
         if source.flags().intersects(TypeFlags::Union) {
             return !source.as_union_type().types().iter().any(|t| !types.contains(t));
         }
@@ -3531,7 +3479,7 @@ impl Checker {
     // Get the type names from all cases in a switch on `typeof`. The default clause and/or duplicate type names are
     // represented as empty strings. Return nil if one or more case clause expressions are not string literals.
     // flow.go:1989
-    pub(crate) fn get_switch_clause_type_of_witnesses(
+    fn get_switch_clause_type_of_witnesses(
         &mut self,
         node: P<Node>,
     ) -> Option<&'static [&'static str]> {
@@ -3561,7 +3509,7 @@ impl Checker {
 
     // Return the combined not-equal type facts for all cases except those between the start and end indices.
     // flow.go:2012
-    pub(crate) fn get_not_equal_facts_from_typeof_switch(
+    fn get_not_equal_facts_from_typeof_switch(
         start: usize,
         end: usize,
         witnesses: &[&str],
@@ -3580,7 +3528,7 @@ impl Checker {
     }
 
     // flow.go:2026
-    pub(crate) fn get_switch_clause_types(&mut self, node: P<Node>) -> Vec<P<Type>> {
+    fn get_switch_clause_types(&mut self, node: P<Node>) -> Vec<P<Type>> {
         let links = self.switch_statement_links.get(node);
         if !links.switch_types_computed.get() {
             let clauses = node.as_switch_statement().case_block.as_case_block().clauses.nodes();
@@ -3593,7 +3541,7 @@ impl Checker {
     }
 
     // flow.go:2040
-    pub(crate) fn get_type_of_switch_clause(&mut self, clause: P<Node>) -> P<Type> {
+    fn get_type_of_switch_clause(&mut self, clause: P<Node>) -> P<Type> {
         if clause.kind() == Kind::CaseClause {
             let t = self.get_type_of_expression(clause.expression().unwrap());
             return self.get_regular_type_of_literal_type(t);
@@ -3682,7 +3630,7 @@ impl Checker {
     }
 
     // flow.go:2107
-    pub fn get_property_name_for_known_symbol_name(&mut self, symbol_name: &str) -> String {
+    pub(crate) fn get_property_name_for_known_symbol_name(&mut self, symbol_name: &str) -> String {
         let ctor_type = self.get_global_es_symbol_constructor_symbol_or_nil();
         if let Some(ctor_type) = ctor_type {
             let ctor_symbol_type = self.get_type_of_symbol(ctor_type);
@@ -3752,7 +3700,7 @@ impl Checker {
     }
 
     // flow.go:2155
-    pub(crate) fn get_explicit_type_of_symbol(
+    fn get_explicit_type_of_symbol(
         &mut self,
         symbol: P<Symbol>,
         diagnostic: Option<P<Diagnostic>>,
@@ -3832,7 +3780,7 @@ impl Checker {
     }
 
     // flow.go:2197
-    pub(crate) fn is_declaration_with_explicit_type_annotation(node: P<Node>) -> bool {
+    fn is_declaration_with_explicit_type_annotation(node: P<Node>) -> bool {
         (ast::is_variable_declaration(node)
             || ast::is_property_declaration(node)
             || ast::is_property_signature_declaration(node)
@@ -3842,7 +3790,7 @@ impl Checker {
     }
 
     // flow.go:2202
-    pub(crate) fn is_expando_property_function_with_return_type_annotation(node: P<Node>) -> bool {
+    fn is_expando_property_function_with_return_type_annotation(node: P<Node>) -> bool {
         if ast::is_binary_expression(node) {
             let expr = node.as_binary_expression().right();
             if ast::is_function_like(expr) && expr.type_node().is_some() {
@@ -3853,7 +3801,7 @@ impl Checker {
     }
 
     // flow.go:2211
-    pub(crate) fn has_type_predicate_or_never_return_type(&mut self, sig: P<Signature>) -> bool {
+    fn has_type_predicate_or_never_return_type(&mut self, sig: P<Signature>) -> bool {
         if self.get_type_predicate_of_signature(sig).is_some() {
             return true;
         }
@@ -3868,7 +3816,7 @@ impl Checker {
     }
 
     // flow.go:2215
-    pub(crate) fn get_explicit_this_type(&mut self, node: P<Node>) -> Option<P<Type>> {
+    fn get_explicit_this_type(&mut self, node: P<Node>) -> Option<P<Type>> {
         let container = ast::get_this_container(
             node, false, /*includeArrowFunctions*/
             false, /*includeClassComputedPropertyName*/
@@ -3892,7 +3840,7 @@ impl Checker {
     }
 
     // flow.go:2234
-    pub(crate) fn get_initial_type(&mut self, node: P<Node>) -> P<Type> {
+    fn get_initial_type(&mut self, node: P<Node>) -> P<Type> {
         match node.kind() {
             Kind::VariableDeclaration => {
                 return self.get_initial_type_of_variable_declaration(node);
@@ -3904,7 +3852,7 @@ impl Checker {
     }
 
     // flow.go:2244
-    pub(crate) fn get_initial_type_of_variable_declaration(&mut self, node: P<Node>) -> P<Type> {
+    fn get_initial_type_of_variable_declaration(&mut self, node: P<Node>) -> P<Type> {
         if let Some(initializer) = node.initializer() {
             return self.get_type_of_initializer(initializer);
         }
@@ -3933,7 +3881,7 @@ impl Checker {
     }
 
     // flow.go:2273
-    pub(crate) fn get_initial_type_of_binding_element(&mut self, node: P<Node>) -> P<Type> {
+    fn get_initial_type_of_binding_element(&mut self, node: P<Node>) -> P<Type> {
         let pattern = node.parent().unwrap();
         let parent_type = self.get_initial_type(pattern.parent().unwrap());
         let t = if ast::is_object_binding_pattern(pattern) {
@@ -3955,7 +3903,7 @@ impl Checker {
     }
 
     // flow.go:2288
-    pub(crate) fn get_assigned_type(&mut self, node: P<Node>) -> P<Type> {
+    fn get_assigned_type(&mut self, node: P<Node>) -> P<Type> {
         let parent = node.parent().unwrap();
         match parent.kind() {
             Kind::ForInStatement => return self.string_type,
@@ -3980,7 +3928,7 @@ impl Checker {
     }
 
     // flow.go:2314
-    pub(crate) fn get_assigned_type_of_binary_expression(&mut self, node: P<Node>) -> P<Type> {
+    fn get_assigned_type_of_binary_expression(&mut self, node: P<Node>) -> P<Type> {
         let parent = node.parent().unwrap();
         let is_destructuring_default_assignment = ast::is_array_literal_expression(parent)
             && Self::is_destructuring_assignment_target(parent)
@@ -3995,7 +3943,7 @@ impl Checker {
     }
 
     // flow.go:2323
-    pub(crate) fn get_assigned_type_of_array_literal_element(
+    fn get_assigned_type_of_array_literal_element(
         &mut self,
         node: P<Node>,
         element: P<Node>,
@@ -4010,11 +3958,7 @@ impl Checker {
     }
 
     // flow.go:2327
-    pub(crate) fn get_type_of_destructured_array_element(
-        &mut self,
-        t: P<Type>,
-        index: usize,
-    ) -> P<Type> {
+    fn get_type_of_destructured_array_element(&mut self, t: P<Type>, index: usize) -> P<Type> {
         if every_type(self, t, super::checker::Checker::is_tuple_like_type)
             && let Some(element_type) = self.get_tuple_element_type(t, index)
         {
@@ -4039,13 +3983,13 @@ impl Checker {
     }
 
     // flow.go:2349
-    pub(crate) fn get_assigned_type_of_spread_expression(&mut self, node: P<Node>) -> P<Type> {
+    fn get_assigned_type_of_spread_expression(&mut self, node: P<Node>) -> P<Type> {
         let assigned_type = self.get_assigned_type(node.parent().unwrap());
         self.get_type_of_destructured_spread_expression(assigned_type)
     }
 
     // flow.go:2353
-    pub(crate) fn get_type_of_destructured_spread_expression(&mut self, t: P<Type>) -> P<Type> {
+    fn get_type_of_destructured_spread_expression(&mut self, t: P<Type>) -> P<Type> {
         let undefined_type = self.undefined_type;
         let element_type = self.check_iterated_type_or_element_type(
             IterationUse::Destructuring,
@@ -4057,17 +4001,13 @@ impl Checker {
     }
 
     // flow.go:2361
-    pub(crate) fn get_assigned_type_of_property_assignment(&mut self, node: P<Node>) -> P<Type> {
+    fn get_assigned_type_of_property_assignment(&mut self, node: P<Node>) -> P<Type> {
         let assigned_type = self.get_assigned_type(node.parent().unwrap());
         self.get_type_of_destructured_property(assigned_type, node.name().unwrap())
     }
 
     // flow.go:2365
-    pub(crate) fn get_type_of_destructured_property(
-        &mut self,
-        t: P<Type>,
-        name: P<Node>,
-    ) -> P<Type> {
+    fn get_type_of_destructured_property(&mut self, t: P<Type>, name: P<Node>) -> P<Type> {
         let name_type = self.get_literal_type_from_property_name(name);
         if !is_type_usable_as_property_name(name_type) {
             return self.error_type;
@@ -4083,10 +4023,7 @@ impl Checker {
     }
 
     // flow.go:2380
-    pub(crate) fn get_assigned_type_of_shorthand_property_assignment(
-        &mut self,
-        node: P<Node>,
-    ) -> P<Type> {
+    fn get_assigned_type_of_shorthand_property_assignment(&mut self, node: P<Node>) -> P<Type> {
         let assigned_type = self.get_assigned_type_of_property_assignment(node);
         self.get_type_with_default(
             assigned_type,
@@ -4102,7 +4039,7 @@ impl Checker {
     }
 
     // flow.go:2389
-    pub fn get_type_with_default(
+    fn get_type_with_default(
         &mut self,
         t: P<Type>,
         default_expression: Option<P<Node>>,
@@ -4119,7 +4056,7 @@ impl Checker {
     // For example, when a variable of type number | string | boolean is assigned a value of type number | boolean,
     // we remove type string.
     // flow.go:2399
-    pub fn get_assignment_reduced_type(
+    fn get_assignment_reduced_type(
         &mut self,
         declared_type: P<Type>,
         assigned_type: P<Type>,
@@ -4140,7 +4077,7 @@ impl Checker {
     }
 
     // flow.go:2415
-    pub(crate) fn get_assignment_reduced_type_worker(
+    fn get_assignment_reduced_type_worker(
         &mut self,
         declared_type: P<Type>,
         assigned_type: P<Type>,
@@ -4167,7 +4104,7 @@ impl Checker {
     }
 
     // flow.go:2434
-    pub(crate) fn type_maybe_assignable_to(&mut self, source: P<Type>, target: P<Type>) -> bool {
+    fn type_maybe_assignable_to(&mut self, source: P<Type>, target: P<Type>) -> bool {
         if !source.flags().intersects(TypeFlags::Union) {
             return self.is_type_assignable_to(source, target);
         }
@@ -4180,7 +4117,7 @@ impl Checker {
     }
 
     // flow.go:2451
-    pub(crate) fn get_type_predicate_argument(
+    fn get_type_predicate_argument(
         predicate: P<TypePredicate>,
         call_expression: P<Node>,
     ) -> Option<P<Node>> {
@@ -4307,7 +4244,7 @@ impl Checker {
     }
 
     // flow.go:2522
-    pub(crate) fn is_reachable_flow_node_worker(
+    fn is_reachable_flow_node_worker(
         &mut self,
         f: P<FlowState>,
         flow: P<FlowNode>,
@@ -4407,7 +4344,7 @@ impl Checker {
     }
 
     // flow.go:2589
-    pub(crate) fn is_false_expression(expr: P<Node>) -> bool {
+    fn is_false_expression(expr: P<Node>) -> bool {
         let node = ast::skip_parentheses(expr);
         if node.kind() == Kind::FalseKeyword {
             return true;
@@ -4439,7 +4376,7 @@ impl Checker {
     }
 
     // flow.go:2611
-    pub(crate) fn is_post_super_flow_node_worker(
+    fn is_post_super_flow_node_worker(
         &mut self,
         f: P<FlowState>,
         flow: P<FlowNode>,
@@ -4540,7 +4477,7 @@ impl Checker {
     }
 
     // flow.go:2674
-    pub(crate) fn ensure_assignments_marked(&mut self, symbol: P<Symbol>) {
+    fn ensure_assignments_marked(&mut self, symbol: P<Symbol>) {
         let Some(parent) =
             ast::find_ancestor(symbol.value_declaration(), ast::is_function_or_source_file)
         else {
@@ -4556,7 +4493,7 @@ impl Checker {
     }
 
     // flow.go:2688
-    pub(crate) fn has_parent_with_assignments_marked(&mut self, node: P<Node>) -> bool {
+    fn has_parent_with_assignments_marked(&mut self, node: P<Node>) -> bool {
         ast::find_ancestor(node.parent(), |node| {
             ast::is_function_or_source_file(node)
                 && self
@@ -4653,10 +4590,7 @@ impl Checker {
     // expression statement, compound statement, or class declaration occurring between the node and the given
     // declaration node.
     // flow.go:2749
-    pub(crate) fn extend_assignment_position(
-        node: Option<P<Node>>,
-        declaration: P<Node>,
-    ) -> TextPos {
+    fn extend_assignment_position(node: Option<P<Node>>, declaration: P<Node>) -> TextPos {
         let mut node = node;
         let mut pos = node.unwrap().pos();
         while let Some(n) = node {

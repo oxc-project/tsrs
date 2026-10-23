@@ -1,8 +1,8 @@
 use crate::*;
 
 // logicalassignment.go:8
-pub struct LogicalAssignmentTransformer {
-    pub base: Transformer,
+struct LogicalAssignmentTransformer {
+    base: Transformer,
 }
 
 impl LogicalAssignmentTransformer {

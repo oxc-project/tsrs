@@ -540,7 +540,7 @@ impl MapFS {
         );
     }
 
-    pub fn write_file(&self, path: &str, data: &str, perm: FileMode) -> Result<(), FsError> {
+    fn write_file(&self, path: &str, data: &str, perm: FileMode) -> Result<(), FsError> {
         let mut inner = self.inner.write().unwrap();
 
         let parent = dir_name(path);
@@ -590,7 +590,7 @@ impl MapFS {
         Ok(())
     }
 
-    pub fn append_file(&self, path: &str, data: &str, perm: FileMode) -> Result<(), FsError> {
+    fn append_file(&self, path: &str, data: &str, perm: FileMode) -> Result<(), FsError> {
         let mut inner = self.inner.write().unwrap();
 
         let parent = dir_name(path);
@@ -651,18 +651,13 @@ impl MapFS {
         clippy::unnecessary_wraps,
         reason = "The in-memory filesystem keeps the fallible Remove API shared with OS-backed file operations."
     )]
-    pub fn remove(&self, path: &str) -> Result<(), FsError> {
+    fn remove(&self, path: &str) -> Result<(), FsError> {
         let mut inner = self.inner.write().unwrap();
         self.remove_locked(&mut inner, path);
         Ok(())
     }
 
-    pub fn chtimes(
-        &self,
-        path: &str,
-        _a_time: SystemTime,
-        m_time: SystemTime,
-    ) -> Result<(), FsError> {
+    fn chtimes(&self, path: &str, _a_time: SystemTime, m_time: SystemTime) -> Result<(), FsError> {
         let mut inner = self.inner.write().unwrap();
         let canonical = self.get_canonical_path(path);
         let Some(file_info) = inner.m.get_mut(&canonical) else {

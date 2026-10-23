@@ -31,7 +31,7 @@ impl ParseConfigHost for ApiParseConfigHost {
 }
 
 /// Go `toProtocolJSONValue` composed with `json.Marshal` of the resulting `any`.
-pub fn options_value_to_json(v: &CompilerOptionsValue) -> Value {
+fn options_value_to_json(v: &CompilerOptionsValue) -> Value {
     match v {
         CompilerOptionsValue::Null | CompilerOptionsValue::NilArray => Value::Null,
         CompilerOptionsValue::Bool(b) => Value::Bool(*b),
@@ -64,7 +64,7 @@ pub fn options_value_to_json(v: &CompilerOptionsValue) -> Value {
 }
 
 /// Go `jsonValueToAny`: numbers are float64, arrays `[]any`, objects ordered maps.
-pub fn json_to_options_value(v: &Value) -> CompilerOptionsValue {
+fn json_to_options_value(v: &Value) -> CompilerOptionsValue {
     match v {
         Value::Null => CompilerOptionsValue::Null,
         Value::Bool(b) => CompilerOptionsValue::Bool(*b),
@@ -83,7 +83,7 @@ pub fn json_to_options_value(v: &Value) -> CompilerOptionsValue {
 }
 
 /// Go `NewConfigFileResponse`.
-pub fn config_file_response(parsed: &ParsedCommandLine) -> Value {
+pub(crate) fn config_file_response(parsed: &ParsedCommandLine) -> Value {
     let mut compile_on_save = parsed.compile_on_save;
     if compile_on_save.is_none()
         && let CompilerOptionsValue::Object(raw) = &parsed.raw

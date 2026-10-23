@@ -103,7 +103,7 @@ pub type ServerNotificationHandler = Box<dyn Fn(&RequestMessage) + Send + Sync>;
 
 // lspclient.go:59
 pub struct LSPClient {
-    pub server: Arc<Server>,
+    pub(crate) server: Arc<Server>,
     input_writer: Mutex<Box<dyn Writer>>,
     id: AtomicU32,
     ctx: Context,

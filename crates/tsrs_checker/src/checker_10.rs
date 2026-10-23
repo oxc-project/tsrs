@@ -146,7 +146,7 @@ impl Checker {
     }
 
     // checker.go:19673
-    pub(crate) fn create_signature_type_mapper(
+    fn create_signature_type_mapper(
         &mut self,
         sig: P<Signature>,
         type_arguments: &[P<Type>],
@@ -156,7 +156,7 @@ impl Checker {
     }
 
     // checker.go:19677
-    pub(crate) fn get_type_parameters_for_mapper(&mut self, sig: P<Signature>) -> Vec<P<Type>> {
+    fn get_type_parameters_for_mapper(&mut self, sig: P<Signature>) -> Vec<P<Type>> {
         same_map(sig.type_parameters(), |tp| self.instantiate_type(*tp, tp.mapper())).into_owned()
     }
 
@@ -278,7 +278,7 @@ impl Checker {
     }
 
     // checker.go:19763
-    pub(crate) fn create_canonical_signature(&mut self, signature: P<Signature>) -> P<Signature> {
+    fn create_canonical_signature(&mut self, signature: P<Signature>) -> P<Signature> {
         // Create an instantiation of the signature where each unconstrained type parameter is replaced with
         // its original. When a generic class or interface is instantiated, each generic method in the class or
         // interface is instantiated with a fresh set of cloned type parameters (which we need to handle scenarios
@@ -580,7 +580,7 @@ impl Checker {
     }
 
     // checker.go:19966
-    pub(crate) fn get_index_infos_of_symbol(&mut self, symbol: P<Symbol>) -> Vec<P<IndexInfo>> {
+    fn get_index_infos_of_symbol(&mut self, symbol: P<Symbol>) -> Vec<P<IndexInfo>> {
         let index_symbol = self.get_index_symbol(symbol);
         if let Some(index_symbol) = index_symbol {
             let members = self.get_members_of_symbol(symbol);
@@ -754,7 +754,7 @@ impl Checker {
     }
 
     // checker.go:20082
-    pub(crate) fn is_symbol_with_symbol_name(&mut self, symbol: P<Symbol>) -> bool {
+    fn is_symbol_with_symbol_name(&mut self, symbol: P<Symbol>) -> bool {
         if is_known_symbol(symbol) {
             return true;
         }
@@ -770,7 +770,7 @@ impl Checker {
     }
 
     // checker.go:20093
-    pub(crate) fn is_symbol_with_numeric_name(&mut self, symbol: P<Symbol>) -> bool {
+    fn is_symbol_with_numeric_name(&mut self, symbol: P<Symbol>) -> bool {
         if is_numeric_literal_name(symbol.name()) {
             return true;
         }
@@ -783,7 +783,7 @@ impl Checker {
     }
 
     // checker.go:20104
-    pub(crate) fn is_symbol_with_computed_name(symbol: P<Symbol>) -> bool {
+    fn is_symbol_with_computed_name(symbol: P<Symbol>) -> bool {
         let first = symbol.declarations().first().copied();
         if let Some(first) = first {
             let name = first.name();
@@ -793,7 +793,7 @@ impl Checker {
     }
 
     // checker.go:20112
-    pub(crate) fn is_numeric_name(&mut self, name: P<Node>) -> bool {
+    fn is_numeric_name(&mut self, name: P<Node>) -> bool {
         match name.kind() {
             Kind::ComputedPropertyName => return self.is_numeric_computed_name(name),
             Kind::Identifier | Kind::NumericLiteral | Kind::StringLiteral => {
@@ -805,7 +805,7 @@ impl Checker {
     }
 
     // checker.go:20122
-    pub(crate) fn is_numeric_computed_name(&mut self, name: P<Node>) -> bool {
+    fn is_numeric_computed_name(&mut self, name: P<Node>) -> bool {
         // It seems odd to consider an expression of type Any to result in a numeric name,
         // but this behavior is consistent with checkIndexedAccess
         let t = self.check_computed_property_name(name);
@@ -1003,7 +1003,7 @@ impl Checker {
     }
 
     // checker.go:20264
-    pub(crate) fn get_annotated_accessor_this_parameter(accessor: P<Node>) -> Option<P<Symbol>> {
+    fn get_annotated_accessor_this_parameter(accessor: P<Node>) -> Option<P<Symbol>> {
         let parameter = Self::get_accessor_this_parameter(accessor);
         if let Some(parameter) = parameter {
             return parameter.symbol();
@@ -1081,7 +1081,7 @@ impl Checker {
     }
 
     // checker.go:20327
-    pub(crate) fn is_type_usable_as_index_signature_declaration(&mut self, t: P<Type>) -> bool {
+    fn is_type_usable_as_index_signature_declaration(&mut self, t: P<Type>) -> bool {
         self.is_type_assignable_to(t, self.string_number_symbol_type)
     }
 }
@@ -1241,7 +1241,7 @@ impl Checker {
     }
 
     // checker.go:20432
-    pub(crate) fn get_return_type_of_full_signature(&mut self, node: P<Node>) -> Option<P<Type>> {
+    fn get_return_type_of_full_signature(&mut self, node: P<Node>) -> Option<P<Type>> {
         if let Some(signature) = self.get_signature_of_full_signature_type(node) {
             return Some(self.get_return_type_of_signature(signature));
         }
@@ -1475,7 +1475,7 @@ impl Checker {
 
     // Returns the aggregated list of return types, plus a bool indicating a never-returning function.
     // checker.go:20600
-    pub(crate) fn check_and_aggregate_return_expression_types(
+    fn check_and_aggregate_return_expression_types(
         &mut self,
         fn_: P<Node>,
         check_mode: CheckMode,
@@ -1560,7 +1560,7 @@ pub fn may_return_never(fn_: P<Node>) -> bool {
 
 impl Checker {
     // checker.go:20663
-    pub(crate) fn check_and_aggregate_yield_operand_types(
+    fn check_and_aggregate_yield_operand_types(
         &mut self,
         fn_: P<Node>,
         check_mode: CheckMode,
@@ -1697,7 +1697,7 @@ impl Checker {
     }
 
     // checker.go:20748
-    pub(crate) fn get_widened_literal_like_type_for_contextual_return_type_if_needed(
+    fn get_widened_literal_like_type_for_contextual_return_type_if_needed(
         &mut self,
         t: Option<P<Type>>,
         contextual_signature_return_type: Option<P<Type>>,
@@ -1725,7 +1725,7 @@ impl Checker {
     }
 
     // checker.go:20764
-    pub(crate) fn get_widened_literal_like_type_for_contextual_iteration_type_if_needed(
+    fn get_widened_literal_like_type_for_contextual_iteration_type_if_needed(
         &mut self,
         t: Option<P<Type>>,
         contextual_signature_return_type: Option<P<Type>>,
@@ -1812,7 +1812,7 @@ impl Checker {
     }
 
     // checker.go:20804
-    pub(crate) fn should_report_errors_from_widening_with_contextual_signature(
+    fn should_report_errors_from_widening_with_contextual_signature(
         &mut self,
         declaration: P<Node>,
         widening_kind: WideningKind,
@@ -1871,7 +1871,7 @@ impl Checker {
     // an object literal property (arbitrarily deeply), this function reports an error. If no error is
     // reported, reportImplicitAnyError is a suitable fallback to report a general error.
     // checker.go:20838
-    pub(crate) fn report_widening_errors_in_type(&mut self, t: P<Type>) -> bool {
+    fn report_widening_errors_in_type(&mut self, t: P<Type>) -> bool {
         let mut error_reported = false;
         if t.object_flags().intersects(ObjectFlags::ContainsWideningType) {
             if t.flags().intersects(TypeFlags::Union) {
@@ -1949,7 +1949,7 @@ impl Checker {
     }
 
     // checker.go:20906
-    pub(crate) fn check_if_expression_refines_any_parameter(
+    fn check_if_expression_refines_any_parameter(
         &mut self,
         fn_: P<Node>,
         expr: P<Node>,
@@ -1987,7 +1987,7 @@ impl Checker {
     }
 
     // checker.go:20926
-    pub(crate) fn check_if_expression_refines_parameter(
+    fn check_if_expression_refines_parameter(
         &mut self,
         fn_: P<Node>,
         expr: P<Node>,
@@ -2251,7 +2251,7 @@ impl Checker {
     }
 
     // checker.go:21070
-    pub(crate) fn create_instantiated_symbol_table(
+    fn create_instantiated_symbol_table(
         &mut self,
         symbols: &[P<Symbol>],
         m: P<TypeMapper>,
@@ -2448,10 +2448,7 @@ pub fn is_thisless_type_parameter(node: P<Node>) -> bool {
 
 impl Checker {
     // checker.go:21198
-    pub(crate) fn get_default_construct_signatures(
-        &mut self,
-        class_type: P<Type>,
-    ) -> Vec<P<Signature>> {
+    fn get_default_construct_signatures(&mut self, class_type: P<Type>) -> Vec<P<Signature>> {
         let base_constructor_type = self.get_base_constructor_type_of_class(class_type);
         let base_signatures =
             self.get_signatures_of_type(base_constructor_type, SignatureKind::Construct);
@@ -2611,7 +2608,7 @@ impl Checker {
     }
 
     // #64526 (behind `Checker::lazy_members`)
-    pub(crate) fn append_mapped_type_index_info(
+    fn append_mapped_type_index_info(
         &mut self,
         index_infos: Vec<P<IndexInfo>>,
         t: P<Type>,
@@ -2646,7 +2643,7 @@ impl Checker {
         self.append_index_info(&mut index_infos, index_info, true /*union*/)
     }
 
-    pub(crate) fn new_mapped_type_member(
+    fn new_mapped_type_member(
         &mut self,
         t: P<Type>,
         modifiers_type: P<Type>,
@@ -2704,14 +2701,14 @@ impl Checker {
 // Mapped types { [P in keyof T]: X } where T is an object type get a lazy table that creates
 // members and index infos as they are asked for, the way resolveMappedTypeMembers would.
 pub struct LazyMappedTable {
-    pub(crate) type_parameter: P<Type>,
-    pub(crate) modifiers_type: P<Type>,
-    pub(crate) template_modifiers: MappedTypeModifiers,
-    pub(crate) should_link_prop_declarations: bool,
-    pub(crate) members: RefCell<FxHashMap<String, Option<P<Symbol>>>>,
-    pub(crate) index_infos: Cell<&'static [P<IndexInfo>]>,
-    pub(crate) index_infos_ready: Cell<bool>,
-    pub(crate) resolving: Cell<bool>,
+    type_parameter: P<Type>,
+    modifiers_type: P<Type>,
+    template_modifiers: MappedTypeModifiers,
+    should_link_prop_declarations: bool,
+    members: RefCell<FxHashMap<String, Option<P<Symbol>>>>,
+    index_infos: Cell<&'static [P<IndexInfo>]>,
+    index_infos_ready: Cell<bool>,
+    resolving: Cell<bool>,
 }
 
 /// Shared graph: forks copy the seed's tables in parallel, so the copy must not touch the borrow flag.
@@ -3170,7 +3167,7 @@ impl Checker {
     }
 
     // checker.go:21412
-    pub(crate) fn get_array_member_call_signatures(&mut self, t: P<Type>) -> Vec<P<Signature>> {
+    fn get_array_member_call_signatures(&mut self, t: P<Type>) -> Vec<P<Signature>> {
         // Check if union is exclusively instantiations of a member of the global Array or ReadonlyArray type.
         let mut member_name: &'static str = "";
         for (i, &t) in t.types().iter().enumerate() {
@@ -3209,7 +3206,7 @@ impl Checker {
     }
 
     // checker.go:21435
-    pub(crate) fn is_array_or_tuple_symbol(&mut self, symbol: Option<P<Symbol>>) -> bool {
+    fn is_array_or_tuple_symbol(&mut self, symbol: Option<P<Symbol>>) -> bool {
         let Some(symbol) = symbol else {
             return false;
         };
@@ -3225,7 +3222,7 @@ impl Checker {
     }
 
     // checker.go:21442
-    pub(crate) fn is_readonly_array_symbol(&mut self, symbol: Option<P<Symbol>>) -> bool {
+    fn is_readonly_array_symbol(&mut self, symbol: Option<P<Symbol>>) -> bool {
         let Some(symbol) = symbol else {
             return false;
         };
@@ -3406,7 +3403,7 @@ impl Checker {
     }
 
     // checker.go:21563
-    pub(crate) fn combine_union_or_intersection_parameters(
+    fn combine_union_or_intersection_parameters(
         &mut self,
         left: P<Signature>,
         right: P<Signature>,
@@ -3508,7 +3505,7 @@ impl Checker {
     }
 
     // checker.go:21629
-    pub(crate) fn combine_union_or_intersection_this_param(
+    fn combine_union_or_intersection_this_param(
         &mut self,
         left: Option<P<Symbol>>,
         right: Option<P<Symbol>>,
@@ -3593,7 +3590,7 @@ impl Checker {
     }
 
     // checker.go:21676
-    pub(crate) fn append_signatures(
+    fn append_signatures(
         &mut self,
         signatures: &[P<Signature>],
         new_signatures: &[P<Signature>],
@@ -3626,7 +3623,7 @@ impl Checker {
     }
 
     // checker.go:21687
-    pub(crate) fn append_index_info(
+    fn append_index_info(
         &mut self,
         index_infos: &mut [P<IndexInfo>],
         new_info: P<IndexInfo>,
@@ -3682,7 +3679,7 @@ impl Checker {
     }
 
     // checker.go:21728
-    pub(crate) fn include_mixin_type(
+    fn include_mixin_type(
         &mut self,
         t: P<Type>,
         types: &[P<Type>],

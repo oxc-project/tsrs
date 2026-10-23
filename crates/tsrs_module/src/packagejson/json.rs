@@ -14,7 +14,7 @@ pub enum Json {
 
 impl Json {
     // The first byte of the value's JSON text, which Go's `Expected.UnmarshalJSON` switches on.
-    pub fn first_byte(&self) -> u8 {
+    pub(crate) fn first_byte(&self) -> u8 {
         match self {
             Json::Null => b'n',
             Json::Bool(true) => b't',
@@ -28,7 +28,7 @@ impl Json {
 
     // Reports whether any object in this value (recursively) repeats a member name. A plain
     // `json.Unmarshal` without `AllowDuplicateNames(true)` rejects such input.
-    pub fn has_duplicate_names(&self) -> bool {
+    pub(crate) fn has_duplicate_names(&self) -> bool {
         match self {
             Json::Array(elements) => elements.iter().any(Json::has_duplicate_names),
             Json::Object(members) => {
@@ -42,7 +42,7 @@ impl Json {
     }
 }
 
-pub fn parse(text: &str) -> Result<Json, String> {
+pub(crate) fn parse(text: &str) -> Result<Json, String> {
     let mut p = JsonParser { bytes: text.as_bytes(), text, pos: 0 };
     p.skip_whitespace();
     let value = p.parse_value(0)?;

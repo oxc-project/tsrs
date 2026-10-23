@@ -38,23 +38,23 @@ pub struct CallInvocation {
 // signaturehelp.go:33
 #[derive(Clone, Copy)]
 pub struct TypeArgsInvocation {
-    pub(crate) called: P<Node>,
+    called: P<Node>,
 }
 
 // signaturehelp.go:37
 #[derive(Clone, Copy)]
 pub struct ContextualInvocation {
-    pub(crate) signature: P<Signature>,
-    pub(crate) node: P<Node>, // Just for enclosingDeclaration for printing types
-    pub(crate) symbol: P<Symbol>,
+    signature: P<Signature>,
+    node: P<Node>, // Just for enclosingDeclaration for printing types
+    symbol: P<Symbol>,
 }
 
 // signaturehelp.go:43
 #[derive(Clone, Copy, Default)]
 pub struct Invocation {
     pub(crate) call_invocation: Option<CallInvocation>,
-    pub(crate) type_args_invocation: Option<TypeArgsInvocation>,
-    pub(crate) contextual_invocation: Option<ContextualInvocation>,
+    type_args_invocation: Option<TypeArgsInvocation>,
+    contextual_invocation: Option<ContextualInvocation>,
 }
 
 impl LanguageService {
@@ -95,7 +95,7 @@ impl LanguageService {
     }
 
     // signaturehelp.go:75
-    pub fn get_signature_help_items(
+    fn get_signature_help_items(
         &self,
         ctx: &Context,
         position: u32,
@@ -1299,7 +1299,7 @@ fn get_immediately_containing_argument_or_contextual_parameter_info(
 pub struct ArgumentListInfo {
     pub(crate) is_type_parameter_list: bool,
     pub(crate) invocation: Invocation,
-    pub(crate) arguments_span: TextRange,
+    arguments_span: TextRange,
     pub(crate) argument_index: usize,
     // argumentCount is the *apparent* number of arguments.
     pub(crate) argument_count: usize,

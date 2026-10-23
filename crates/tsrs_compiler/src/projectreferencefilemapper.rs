@@ -22,7 +22,7 @@ pub struct ProjectReferenceFileMapper {
     pub(crate) output_dts_to_project_reference: FxHashMap<Path, P<SourceOutputAndProjectReference>>,
 
     // Store all the realpath from dts in node_modules to source file from project reference needed during parsing so it can be used later
-    pub(crate) realpath_dts_to_source: SyncMap<Path, Option<P<SourceOutputAndProjectReference>>>,
+    realpath_dts_to_source: SyncMap<Path, Option<P<SourceOutputAndProjectReference>>>,
 
     // Go builds a new dts-faking host on every `resolutionHost` call; the mapper is immutable once built, so the
     // host is built once (its caches only memoize file system queries).
@@ -182,7 +182,7 @@ impl ProjectReferenceFileMapper {
     }
 
     // projectreferencefilemapper.go:99
-    pub(crate) fn get_redirect_for_resolution(
+    fn get_redirect_for_resolution(
         &self,
         file_name: &str,
         path: &Path,

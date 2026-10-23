@@ -1,8 +1,8 @@
 use super::*;
 
 // nullishcoalescing.go:8
-pub struct NullishCoalescingTransformer {
-    pub base: Transformer,
+struct NullishCoalescingTransformer {
+    base: Transformer,
 }
 
 impl NullishCoalescingTransformer {

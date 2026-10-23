@@ -80,7 +80,7 @@ impl<K: Hash + Eq + Clone + Send + Sync, T: Cloneable + Clone> SyncMapEntry<K, T
     }
 
     #[cfg(test)]
-    pub(crate) fn proxy_for(&self) -> Option<Arc<SyncMapEntry<K, T>>> {
+    fn proxy_for(&self) -> Option<Arc<SyncMapEntry<K, T>>> {
         self.mu.lock().unwrap().proxy_for.clone()
     }
 
@@ -93,12 +93,12 @@ impl<K: Hash + Eq + Clone + Send + Sync, T: Cloneable + Clone> SyncMapEntry<K, T
         st.e.value()
     }
 
-    pub fn original(&self) -> Option<Shared<T>> {
+    fn original(&self) -> Option<Shared<T>> {
         self.mu.lock().unwrap().e.original()
     }
 
     // syncmap.go:74
-    pub fn dirty(self: &Arc<Self>) -> bool {
+    fn dirty(self: &Arc<Self>) -> bool {
         let st = self.mu.lock().unwrap();
         if let Some(proxy_for) = &st.proxy_for {
             return proxy_for.dirty();

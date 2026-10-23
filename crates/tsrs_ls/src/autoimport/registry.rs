@@ -38,7 +38,7 @@ use crate::lsutil::UserPreferences;
 pub struct ProjectID(pub String);
 
 impl ProjectID {
-    pub fn string(&self) -> String {
+    fn string(&self) -> String {
         self.0.clone()
     }
 }
@@ -290,7 +290,7 @@ pub struct RegistryBucket {
     //
     // Paths is considered immutable after the bucket is finalized.
     // It should be fully replaced rather than mutated while changing a bucket.
-    pub paths: Arc<FxHashMap<Path, String>>,
+    paths: Arc<FxHashMap<Path, String>>,
     // PackageFiles maps package names to their file paths and file names.
     // All package directory names in node_modules are keys; indexed packages have
     // non-nil maps with path→fileName entries, unindexed packages have nil maps.
@@ -299,7 +299,7 @@ pub struct RegistryBucket {
     //
     // PackageFiles is considered immutable after the bucket is finalized.
     // It should be fully replaced rather than mutated while changing a bucket.
-    pub package_files: Option<Arc<PackageFiles>>,
+    pub(crate) package_files: Option<Arc<PackageFiles>>,
     // ResolvedPackageNames is only defined for project buckets. It is the set of
     // package names that were resolved from imports in the project's program files.
     // This is passed to node_modules buckets so they include packages that are
@@ -307,7 +307,7 @@ pub struct RegistryBucket {
     //
     // ResolvedPackageNames is considered immutable after the bucket is finalized.
     // It should be fully replaced rather than mutated while changing a bucket.
-    pub resolved_package_names: Option<Set<String>>,
+    pub(crate) resolved_package_names: Option<Set<String>>,
     // DependencyNames is only defined for node_modules buckets. It is the set of
     // package names that will be included in the bucket if present in the directory,
     // computed from package.json dependencies plus resolved package names from
@@ -317,16 +317,16 @@ pub struct RegistryBucket {
     //
     // DependencyNames is considered immutable after the bucket is finalized.
     // It should be fully replaced rather than mutated while changing a bucket.
-    pub dependency_names: Option<Set<String>>,
+    dependency_names: Option<Set<String>>,
     // AmbientModuleNames is only defined for node_modules buckets. It is the set of
     // ambient module names found while extracting exports in the bucket.
     //
     // AmbientModuleNames is considered immutable after the bucket is finalized.
     // It should be fully replaced rather than mutated while changing a bucket.
-    pub ambient_module_names: Arc<FxHashMap<String, Vec<String>>>,
+    ambient_module_names: Arc<FxHashMap<String, Vec<String>>>,
     // Index is considered immutable after the bucket is finalized.
     // It should be cloned and replaced rather than mutated while changing a bucket.
-    pub index: Option<Arc<Index<Arc<Export>>>>,
+    pub(crate) index: Option<Arc<Index<Arc<Export>>>>,
 }
 
 // registry.go:277
@@ -407,7 +407,7 @@ pub type SpecifierCache = Arc<SyncMap<Path, String>>;
 // registry.go:343
 pub struct Registry {
     to_path: ToPath,
-    pub(crate) user_preferences: UserPreferences,
+    user_preferences: UserPreferences,
 
     // exports      map[tspath.Path][]*RawExport
     pub(crate) directories: SharedMap<Path, Directory>,
@@ -471,7 +471,7 @@ impl RegistryExt for Option<Arc<Registry>> {
 }
 
 impl Registry {
-    pub fn to_path(&self, file_name: &str) -> Path {
+    fn to_path(&self, file_name: &str) -> Path {
         (self.to_path)(file_name)
     }
 

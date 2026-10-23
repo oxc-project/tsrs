@@ -2,12 +2,12 @@ use super::*;
 
 // impliedmodule.go:10
 pub struct ImpliedModuleTransformer {
-    pub base: Transformer,
-    pub opts: TransformOptions,
+    base: Transformer,
+    opts: TransformOptions,
     pub resolver: ReferenceResolverRef,
-    pub get_emit_module_format_of_file: Rc<dyn Fn(P<SourceFile>) -> ModuleKind>,
-    pub cjs_transformer: Cell<Option<P<Transformer>>>,
-    pub esm_transformer: Cell<Option<P<Transformer>>>,
+    get_emit_module_format_of_file: Rc<dyn Fn(P<SourceFile>) -> ModuleKind>,
+    cjs_transformer: Cell<Option<P<Transformer>>>,
+    esm_transformer: Cell<Option<P<Transformer>>>,
 }
 
 // impliedmodule.go:19

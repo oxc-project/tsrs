@@ -350,7 +350,7 @@ fn find_super_statement_index_path_worker(
 }
 
 // utilities.go:296
-pub fn get_super_call_from_statement(statement: P<Node>) -> Option<P<Node>> {
+fn get_super_call_from_statement(statement: P<Node>) -> Option<P<Node>> {
     if !ast::is_expression_statement(statement) {
         return None;
     }
@@ -426,7 +426,7 @@ pub fn get_non_assignment_operator_for_compound_assignment(kind: Kind) -> Kind {
 }
 
 // ast/utilities.go:2138 (Go ast.IsSuperCall; kept here because tsrs_checker has its own glob-imported copy)
-pub fn is_super_call(node: P<Node>) -> bool {
+fn is_super_call(node: P<Node>) -> bool {
     ast::is_call_expression(node) && node.expression().unwrap().kind() == Kind::SuperKeyword
 }
 

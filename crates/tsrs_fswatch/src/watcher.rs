@@ -33,7 +33,7 @@ impl Error {
         Error { message: message.into(), wraps: Vec::new(), errno: None }
     }
 
-    pub fn from_errno(errno: i32) -> Error {
+    pub(crate) fn from_errno(errno: i32) -> Error {
         Error {
             message: std::io::Error::from_raw_os_error(errno).to_string(),
             wraps: Vec::new(),
@@ -41,11 +41,12 @@ impl Error {
         }
     }
 
+    #[cfg(unix)]
     #[expect(
         clippy::needless_pass_by_value,
         reason = "a conversion: callers pass it to `map_err`, which hands over the error by value"
     )]
-    pub fn from_io(err: std::io::Error) -> Error {
+    pub(crate) fn from_io(err: std::io::Error) -> Error {
         Error { message: err.to_string(), wraps: Vec::new(), errno: err.raw_os_error() }
     }
 
@@ -959,7 +960,7 @@ pub trait WatcherImpl: Send + Sync + 'static {
 // Concrete backends embed it and override subscribe/closeWatch/start.
 #[derive(Default)]
 pub struct WatcherBase {
-    pub(crate) mu: Mutex<WatcherBaseState>,
+    mu: Mutex<WatcherBaseState>,
     started: Mutex<bool>,
     started_cv: Condvar,
 }
@@ -1108,12 +1109,12 @@ pub struct Callback {
 
 // dirWatchError associates an error with a specific directory watch.
 pub struct DirWatchError {
-    pub(crate) err: Error,
+    err: Error,
     #[expect(
         dead_code,
         reason = "read only by handle_watcher_error, whose Go caller (windows.go) is not ported"
     )]
-    pub(crate) dir_watch: Arc<DirWatch>,
+    dir_watch: Arc<DirWatch>,
 }
 
 impl From<DirWatchError> for Error {
@@ -1210,7 +1211,7 @@ impl DirWatch {
     // watcher.go:871
     // physicalPath maps a caller-visible path to the physical watched root.
     #[expect(dead_code, reason = "its only Go callers, in fanotify_linux.go, are not ported")]
-    pub(crate) fn physical_path(&self, display_path: &str) -> String {
+    fn physical_path(&self, display_path: &str) -> String {
         rebase_path(display_path, &self.dir, &self.physical_dir)
     }
 
@@ -1268,7 +1269,7 @@ impl DirWatch {
     }
 
     // watcher.go:944
-    pub(crate) fn notify_error(&self, err: &Error) {
+    fn notify_error(&self, err: &Error) {
         let cbs = std::mem::take(&mut self.mu.lock().unwrap().callbacks);
         for cb in cbs {
             (cb.f)(Vec::new(), Some(err.clone()));
@@ -1426,7 +1427,7 @@ impl DirWatch {
         dead_code,
         reason = "only Go tests call it (watcher_test.go, fsevents_darwin_shared_test.go), and those are not ported"
     )]
-    pub(crate) fn watch(
+    fn watch(
         &self,
         dir: &str,
         physical_dir: &str,
@@ -1476,7 +1477,7 @@ impl DirWatch {
     }
 
     // watcher.go:1146
-    pub(crate) fn unwatch(&self, id: u64) -> bool {
+    fn unwatch(&self, id: u64) -> bool {
         let mut st = self.mu.lock().unwrap();
         if let Some(i) = st.callbacks.iter().position(|cb| cb.id == id) {
             st.callbacks.remove(i);
@@ -1510,7 +1511,7 @@ impl Callback {
         dead_code,
         reason = "only a Go test calls it (TestConsolidatedSymlinkChildMapsSharedLogicalPath), and it is not ported"
     )]
-    pub(crate) fn map_event(&self, e: Event) -> Event {
+    fn map_event(&self, e: Event) -> Event {
         self.map_event_cached(e, None)
     }
 

@@ -10,7 +10,7 @@
 // - runtime: crates/tsrs_api_transport (MessagePack tuple protocol, JSON-RPC, sync/async conns).
 
 pub mod adapter;
-pub mod batch;
+pub(crate) mod batch;
 pub mod build;
 pub mod config;
 pub mod diagnostics;
@@ -19,11 +19,11 @@ pub mod methods;
 pub mod module_resolution;
 pub(crate) mod paramfields;
 pub(crate) mod predecode;
-pub mod printing;
-pub mod program;
+mod printing;
+pub(crate) mod program;
 mod raw_options;
 pub mod requestfs;
-pub mod resolution;
+mod resolution;
 pub mod session;
 pub mod snapshots;
 pub mod sourcefiles;

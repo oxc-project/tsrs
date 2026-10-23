@@ -2,7 +2,7 @@ use rustc_hash::FxHashSet;
 use std::sync::LazyLock;
 
 // require('module').builtinModules.filter(x => !x.match(/^(?:_|node:)/))
-pub static UNPREFIXED_NODE_CORE_MODULES: &[&str] = &[
+static UNPREFIXED_NODE_CORE_MODULES: &[&str] = &[
     "assert",
     "assert/strict",
     "async_hooks",
@@ -60,7 +60,7 @@ pub static UNPREFIXED_NODE_CORE_MODULES: &[&str] = &[
 ];
 
 // require('module').builtinModules.filter(x => x.startsWith('node:'))
-pub static EXCLUSIVELY_PREFIXED_NODE_CORE_MODULES: &[&str] =
+static EXCLUSIVELY_PREFIXED_NODE_CORE_MODULES: &[&str] =
     &["node:quic", "node:sea", "node:sqlite", "node:test", "node:test/reporters"];
 
 static NODE_CORE_MODULES: LazyLock<FxHashSet<String>> = LazyLock::new(|| {

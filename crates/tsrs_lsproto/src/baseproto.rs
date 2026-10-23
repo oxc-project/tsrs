@@ -8,7 +8,7 @@ use crate::jsonrpc;
 // baseproto.go:12
 // BaseReader wraps jsonrpc.Reader for backwards compatibility.
 pub struct BaseReader<R: Read> {
-    pub reader: jsonrpc::Reader<R>,
+    reader: jsonrpc::Reader<R>,
 }
 
 // baseproto.go:17
@@ -34,7 +34,7 @@ impl<R: Read> DerefMut for BaseReader<R> {
 // baseproto.go:24
 // BaseWriter wraps jsonrpc.Writer for backwards compatibility.
 pub struct BaseWriter<W: Write> {
-    pub writer: jsonrpc::Writer<W>,
+    writer: jsonrpc::Writer<W>,
 }
 
 // baseproto.go:29

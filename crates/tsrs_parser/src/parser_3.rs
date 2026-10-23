@@ -25,7 +25,7 @@ impl Parser {
         )
     }
 
-    pub(crate) fn parse_assignment_expression_or_higher_worker(
+    fn parse_assignment_expression_or_higher_worker(
         &mut self,
         allow_return_type_in_arrow_function: bool,
     ) -> P<Node> {
@@ -106,7 +106,7 @@ impl Parser {
         self.parse_conditional_expression_rest(expr, pos, allow_return_type_in_arrow_function)
     }
 
-    pub(crate) fn is_yield_expression(&mut self) -> bool {
+    fn is_yield_expression(&mut self) -> bool {
         if self.token == Kind::YieldKeyword {
             // If we have a 'yield' keyword, and this is a context where yield expressions are
             // allowed, then definitely parse out a yield expression.
@@ -134,7 +134,7 @@ impl Parser {
         false
     }
 
-    pub(crate) fn parse_yield_expression(&mut self) -> P<Node> {
+    fn parse_yield_expression(&mut self) -> P<Node> {
         let pos = self.node_pos();
         // YieldExpression[In] :
         //      yield
@@ -156,7 +156,7 @@ impl Parser {
         self.finish_node(result, pos)
     }
 
-    pub(crate) fn is_parenthesized_arrow_function_expression(&mut self) -> Tristate {
+    fn is_parenthesized_arrow_function_expression(&mut self) -> Tristate {
         if self.token == Kind::OpenParenToken
             || self.token == Kind::LessThanToken
             || self.token == Kind::AsyncKeyword
@@ -176,7 +176,7 @@ impl Parser {
         Tristate::False
     }
 
-    pub(crate) fn next_is_parenthesized_arrow_function_expression(&mut self) -> Tristate {
+    fn next_is_parenthesized_arrow_function_expression(&mut self) -> Tristate {
         if self.token == Kind::AsyncKeyword {
             self.next_token();
             if self.has_preceding_line_break() {
@@ -300,7 +300,7 @@ impl Parser {
     }
 
     #[inline]
-    pub(crate) fn try_parse_parenthesized_arrow_function_expression(
+    fn try_parse_parenthesized_arrow_function_expression(
         &mut self,
         allow_return_type_in_arrow_function: bool,
     ) -> Option<P<Node>> {
@@ -349,7 +349,7 @@ impl Parser {
         result
     }
 
-    pub(crate) fn parse_parenthesized_arrow_function_expression(
+    fn parse_parenthesized_arrow_function_expression(
         &mut self,
         allow_ambiguity: bool,
         allow_return_type_in_arrow_function: bool,
@@ -472,7 +472,7 @@ impl Parser {
         Some(result)
     }
 
-    pub(crate) fn parse_modifiers_for_arrow_function(&mut self) -> Option<P<ModifierList>> {
+    fn parse_modifiers_for_arrow_function(&mut self) -> Option<P<ModifierList>> {
         if self.token == Kind::AsyncKeyword {
             let pos = self.node_pos();
             self.next_token();
@@ -483,7 +483,7 @@ impl Parser {
         None
     }
 
-    pub(crate) fn parse_arrow_function_expression_body(
+    fn parse_arrow_function_expression_body(
         &mut self,
         is_async: bool,
         allow_return_type_in_arrow_function: bool,
@@ -529,7 +529,7 @@ impl Parser {
         node
     }
 
-    pub(crate) fn is_start_of_expression_statement(&mut self) -> bool {
+    fn is_start_of_expression_statement(&mut self) -> bool {
         // As per the grammar, none of '{' or 'function' or 'class' can start an expression statement.
         self.token != Kind::OpenBraceToken
             && self.token != Kind::FunctionKeyword
@@ -538,7 +538,7 @@ impl Parser {
             && self.is_start_of_expression()
     }
 
-    pub(crate) fn parse_possible_parenthesized_arrow_function_expression(
+    fn parse_possible_parenthesized_arrow_function_expression(
         &mut self,
         allow_return_type_in_arrow_function: bool,
     ) -> Option<P<Node>> {
@@ -556,7 +556,7 @@ impl Parser {
         result
     }
 
-    pub(crate) fn try_parse_async_simple_arrow_function_expression(
+    fn try_parse_async_simple_arrow_function_expression(
         &mut self,
         allow_return_type_in_arrow_function: bool,
     ) -> Option<P<Node>> {
@@ -579,7 +579,7 @@ impl Parser {
         None
     }
 
-    pub(crate) fn next_is_un_parenthesized_async_arrow_function(&mut self) -> bool {
+    fn next_is_un_parenthesized_async_arrow_function(&mut self) -> bool {
         // AsyncArrowFunctionExpression:
         //      1) async[no LineTerminator here]AsyncArrowBindingIdentifier[?Yield][no LineTerminator here]=>AsyncConciseBody[?In]
         //      2) CoverCallExpressionAndAsyncArrowHead[?Yield, ?Await][no LineTerminator here]=>AsyncConciseBody[?In]
@@ -600,7 +600,7 @@ impl Parser {
         false
     }
 
-    pub(crate) fn parse_simple_arrow_function_expression(
+    fn parse_simple_arrow_function_expression(
         &mut self,
         pos: u32,
         identifier: P<Node>,
@@ -643,7 +643,7 @@ impl Parser {
         result
     }
 
-    pub(crate) fn parse_conditional_expression_rest(
+    fn parse_conditional_expression_rest(
         &mut self,
         left_operand: P<Node>,
         pos: u32,
@@ -677,16 +677,13 @@ impl Parser {
         self.finish_node(node, pos)
     }
 
-    pub(crate) fn parse_binary_expression_or_higher(
-        &mut self,
-        precedence: OperatorPrecedence,
-    ) -> P<Node> {
+    fn parse_binary_expression_or_higher(&mut self, precedence: OperatorPrecedence) -> P<Node> {
         let pos = self.node_pos();
         let left_operand = self.parse_unary_expression_or_higher();
         self.parse_binary_expression_rest(precedence, left_operand, pos)
     }
 
-    pub(crate) fn parse_binary_expression_rest(
+    fn parse_binary_expression_rest(
         &mut self,
         precedence: OperatorPrecedence,
         left_operand: P<Node>,
@@ -769,11 +766,7 @@ impl Parser {
         left_operand
     }
 
-    pub(crate) fn make_satisfies_expression(
-        &mut self,
-        expression: P<Node>,
-        type_node: P<Node>,
-    ) -> P<Node> {
+    fn make_satisfies_expression(&mut self, expression: P<Node>, type_node: P<Node>) -> P<Node> {
         let node = self.factory.new_satisfies_expression(expression, type_node);
         let node = self.finish_node(
             node,
@@ -782,7 +775,7 @@ impl Parser {
         self.check_js_syntax(node)
     }
 
-    pub(crate) fn make_as_expression(&mut self, left: P<Node>, right: P<Node>) -> P<Node> {
+    fn make_as_expression(&mut self, left: P<Node>, right: P<Node>) -> P<Node> {
         let node = self.factory.new_as_expression(left, right);
         let node =
             self.finish_node(node, left.pos().expect_source("parsed nodes have source positions"));
@@ -862,7 +855,7 @@ impl Parser {
         }
     }
 
-    pub(crate) fn is_update_expression(&self) -> bool {
+    fn is_update_expression(&self) -> bool {
         match self.token {
             Kind::PlusToken
             | Kind::MinusToken
@@ -883,7 +876,7 @@ impl Parser {
         reason = "Measured on the Compiler, VS Code, and t3code parser corpora after outlining update operators"
     )]
     #[inline(always)]
-    pub(crate) fn parse_update_expression(&mut self) -> P<Node> {
+    fn parse_update_expression(&mut self) -> P<Node> {
         let pos = self.node_pos();
         if self.token == Kind::PlusPlusToken || self.token == Kind::MinusMinusToken {
             return self.parse_prefix_update_expression(pos);
@@ -925,7 +918,7 @@ impl Parser {
         self.finish_node(node, pos)
     }
 
-    pub(crate) fn parse_jsx_element_or_self_closing_element_or_fragment(
+    fn parse_jsx_element_or_self_closing_element_or_fragment(
         &mut self,
         in_expression_context: bool,
         top_invalid_node_position: Option<u32>,
@@ -1090,7 +1083,7 @@ impl Parser {
         result
     }
 
-    pub(crate) fn parse_jsx_children(&mut self, opening_tag: P<Node>) -> P<NodeList> {
+    fn parse_jsx_children(&mut self, opening_tag: P<Node>) -> P<NodeList> {
         let pos = self.node_pos();
         let save_parsing_contexts = self.parsing_contexts;
         self.parsing_contexts |= 1 << (ParsingContext::JsxChildren as u32);
@@ -1122,7 +1115,7 @@ impl Parser {
         self.finish_node_list(start, TextRange::new(pos, end))
     }
 
-    pub(crate) fn parse_jsx_child(&mut self, opening_tag: P<Node>, token: Kind) -> Option<P<Node>> {
+    fn parse_jsx_child(&mut self, opening_tag: P<Node>, token: Kind) -> Option<P<Node>> {
         match token {
             Kind::EndOfFile => {
                 // If we hit EOF, issue the error at the tag that lacks the closing element
@@ -1174,7 +1167,7 @@ impl Parser {
         }
     }
 
-    pub(crate) fn parse_jsx_text(&mut self) -> P<Node> {
+    fn parse_jsx_text(&mut self) -> P<Node> {
         let pos = self.node_pos();
         let text = self.scanner.token_value();
         let result = self.factory.new_jsx_text(text, self.token == Kind::JsxTextAllWhiteSpaces);
@@ -1182,7 +1175,7 @@ impl Parser {
         self.finish_node(result, pos)
     }
 
-    pub(crate) fn parse_jsx_expression(&mut self, in_expression_context: bool) -> Option<P<Node>> {
+    fn parse_jsx_expression(&mut self, in_expression_context: bool) -> Option<P<Node>> {
         let pos = self.node_pos();
         if !self.parse_expected(Kind::OpenBraceToken) {
             return None;
@@ -1207,29 +1200,25 @@ impl Parser {
         Some(self.finish_node(node, pos))
     }
 
-    pub(crate) fn scan_jsx_text(&mut self) -> Kind {
+    fn scan_jsx_text(&mut self) -> Kind {
         self.token = self.scanner.scan_jsx_token();
         self.report_scan_errors();
         self.token
     }
 
-    pub(crate) fn scan_jsx_identifier(&mut self) -> Kind {
+    fn scan_jsx_identifier(&mut self) -> Kind {
         self.token = self.scanner.scan_jsx_identifier();
         self.report_scan_errors();
         self.token
     }
 
-    pub(crate) fn scan_jsx_attribute_value(&mut self) -> Kind {
+    fn scan_jsx_attribute_value(&mut self) -> Kind {
         self.token = self.scanner.scan_jsx_attribute_value();
         self.report_scan_errors();
         self.token
     }
 
-    pub(crate) fn parse_jsx_closing_element(
-        &mut self,
-        open: P<Node>,
-        in_expression_context: bool,
-    ) -> P<Node> {
+    fn parse_jsx_closing_element(&mut self, open: P<Node>, in_expression_context: bool) -> P<Node> {
         let pos = self.node_pos();
         self.parse_expected(Kind::LessThanSlashToken);
         let tag_name = self.parse_jsx_element_name();
@@ -1249,7 +1238,7 @@ impl Parser {
         self.finish_node(node, pos)
     }
 
-    pub(crate) fn parse_jsx_opening_or_self_closing_element_or_opening_fragment(
+    fn parse_jsx_opening_or_self_closing_element_or_opening_fragment(
         &mut self,
         in_expression_context: bool,
     ) -> P<Node> {
@@ -1288,7 +1277,7 @@ impl Parser {
         self.finish_node(result, pos)
     }
 
-    pub(crate) fn parse_jsx_element_name(&mut self) -> P<Node> {
+    fn parse_jsx_element_name(&mut self) -> P<Node> {
         let pos = self.node_pos();
         // JsxElement can have name in the form of
         //      propertyAccessExpression
@@ -1317,7 +1306,7 @@ impl Parser {
         expression
     }
 
-    pub(crate) fn parse_jsx_tag_name(&mut self) -> P<Node> {
+    fn parse_jsx_tag_name(&mut self) -> P<Node> {
         let pos = self.node_pos();
         self.scan_jsx_identifier();
         let is_this = self.token == Kind::ThisKeyword;
@@ -1335,7 +1324,7 @@ impl Parser {
         tag_name
     }
 
-    pub(crate) fn parse_jsx_attributes(&mut self) -> P<Node> {
+    fn parse_jsx_attributes(&mut self) -> P<Node> {
         let pos = self.node_pos();
         let properties =
             self.parse_list(ParsingContext::JsxAttributes, Parser::parse_jsx_attribute);
@@ -1343,7 +1332,7 @@ impl Parser {
         self.finish_node(node, pos)
     }
 
-    pub(crate) fn parse_jsx_attribute(&mut self) -> P<Node> {
+    fn parse_jsx_attribute(&mut self) -> P<Node> {
         if self.token == Kind::OpenBraceToken {
             return self.parse_jsx_spread_attribute();
         }
@@ -1354,7 +1343,7 @@ impl Parser {
         self.finish_node(node, pos)
     }
 
-    pub(crate) fn parse_jsx_spread_attribute(&mut self) -> P<Node> {
+    fn parse_jsx_spread_attribute(&mut self) -> P<Node> {
         let pos = self.node_pos();
         self.parse_expected(Kind::OpenBraceToken);
         self.parse_expected(Kind::DotDotDotToken);
@@ -1364,7 +1353,7 @@ impl Parser {
         self.finish_node(node, pos)
     }
 
-    pub(crate) fn parse_jsx_attribute_name(&mut self) -> P<Node> {
+    fn parse_jsx_attribute_name(&mut self) -> P<Node> {
         let pos = self.node_pos();
         self.scan_jsx_identifier();
         let attr_name = self.parse_identifier_name_error_on_unicode_escape_sequence();
@@ -1377,7 +1366,7 @@ impl Parser {
         attr_name
     }
 
-    pub(crate) fn parse_jsx_attribute_value(&mut self) -> Option<P<Node>> {
+    fn parse_jsx_attribute_value(&mut self) -> Option<P<Node>> {
         if self.token == Kind::EqualsToken {
             if self.scan_jsx_attribute_value() == Kind::StringLiteral {
                 return Some(self.parse_literal_expression());
@@ -1397,7 +1386,7 @@ impl Parser {
         None
     }
 
-    pub(crate) fn parse_jsx_closing_fragment(&mut self, in_expression_context: bool) -> P<Node> {
+    fn parse_jsx_closing_fragment(&mut self, in_expression_context: bool) -> P<Node> {
         let pos = self.node_pos();
         self.parse_expected(Kind::LessThanSlashToken);
         if self.parse_expected_with_diagnostic(
@@ -1416,7 +1405,7 @@ impl Parser {
         self.finish_node(node, pos)
     }
 
-    pub(crate) fn parse_simple_unary_expression(&mut self) -> P<Node> {
+    fn parse_simple_unary_expression(&mut self) -> P<Node> {
         let token = self.token;
         match token {
             Kind::PlusToken | Kind::MinusToken | Kind::TildeToken | Kind::ExclamationToken => {
@@ -1452,7 +1441,7 @@ impl Parser {
         self.finish_node(node, pos)
     }
 
-    pub(crate) fn parse_delete_expression(&mut self) -> P<Node> {
+    fn parse_delete_expression(&mut self) -> P<Node> {
         let pos = self.node_pos();
         self.next_token();
         let expression = self.parse_simple_unary_expression();
@@ -1460,7 +1449,7 @@ impl Parser {
         self.finish_node(node, pos)
     }
 
-    pub(crate) fn parse_type_of_expression(&mut self) -> P<Node> {
+    fn parse_type_of_expression(&mut self) -> P<Node> {
         let pos = self.node_pos();
         self.next_token();
         let expression = self.parse_simple_unary_expression();
@@ -1468,7 +1457,7 @@ impl Parser {
         self.finish_node(node, pos)
     }
 
-    pub(crate) fn parse_void_expression(&mut self) -> P<Node> {
+    fn parse_void_expression(&mut self) -> P<Node> {
         let pos = self.node_pos();
         self.next_token();
         let expression = self.parse_simple_unary_expression();
@@ -1476,7 +1465,7 @@ impl Parser {
         self.finish_node(node, pos)
     }
 
-    pub(crate) fn is_await_expression(&mut self) -> bool {
+    fn is_await_expression(&mut self) -> bool {
         if self.token == Kind::AwaitKeyword {
             if self.in_await_context() {
                 return true;
@@ -1488,7 +1477,7 @@ impl Parser {
         false
     }
 
-    pub(crate) fn parse_await_expression(&mut self) -> P<Node> {
+    fn parse_await_expression(&mut self) -> P<Node> {
         let pos = self.node_pos();
         self.next_token();
         let expression = self.parse_simple_unary_expression();
@@ -1496,7 +1485,7 @@ impl Parser {
         self.finish_node(node, pos)
     }
 
-    pub(crate) fn parse_type_assertion(&mut self) -> P<Node> {
+    fn parse_type_assertion(&mut self) -> P<Node> {
         assert!(
             self.language_variant != LanguageVariant::JSX,
             "Type assertions should never be parsed in JSX; they should be parsed as comparisons or JSX elements/fragments."
@@ -1588,11 +1577,11 @@ impl Parser {
         expression
     }
 
-    pub(crate) fn next_token_is_dot(&mut self) -> bool {
+    fn next_token_is_dot(&mut self) -> bool {
         self.next_token() == Kind::DotToken
     }
 
-    pub(crate) fn parse_import_meta_property_name(&mut self) -> P<Node> {
+    fn parse_import_meta_property_name(&mut self) -> P<Node> {
         if matches!(self.token, Kind::DeferKeyword | Kind::SourceKeyword)
             && self.current_import_phase_modifier() == Kind::Unknown
         {
@@ -1604,7 +1593,7 @@ impl Parser {
         self.parse_identifier_name()
     }
 
-    pub(crate) fn parse_super_expression(&mut self) -> P<Node> {
+    fn parse_super_expression(&mut self) -> P<Node> {
         let pos = self.node_pos();
         let mut expression = self.parse_keyword_expression();
         if self.token == Kind::LessThanToken {
@@ -1652,12 +1641,12 @@ impl Parser {
         self.finish_node(node, pos)
     }
 
-    pub(crate) fn is_template_start_of_tagged_template(&self) -> bool {
+    fn is_template_start_of_tagged_template(&self) -> bool {
         self.token == Kind::NoSubstitutionTemplateLiteral || self.token == Kind::TemplateHead
     }
 
     #[inline]
-    pub(crate) fn try_parse_type_arguments_in_expression(&mut self) -> Option<P<NodeList>> {
+    fn try_parse_type_arguments_in_expression(&mut self) -> Option<P<NodeList>> {
         // TypeArguments must not be parsed in JavaScript files to avoid ambiguity with binary operators.
         // Check the cheap preconditions before saving the parser state: unless the current token is `<`
         // (or `<<`, which reScanLessThanToken would split), there is nothing to speculatively parse and
@@ -1692,7 +1681,7 @@ impl Parser {
         None
     }
 
-    pub(crate) fn can_follow_type_arguments_in_expression(&mut self) -> bool {
+    fn can_follow_type_arguments_in_expression(&mut self) -> bool {
         match self.token {
             // These tokens can follow a type argument list in a call expression:
             // foo<x>(
@@ -1716,7 +1705,7 @@ impl Parser {
             || !self.is_start_of_expression()
     }
 
-    pub(crate) fn parse_member_expression_or_higher(&mut self) -> P<Node> {
+    fn parse_member_expression_or_higher(&mut self) -> P<Node> {
         // Note: to make our lives simpler, we decompose the NewExpression productions and
         // place ObjectCreationExpression and FunctionExpression into PrimaryExpression.
         // like so:
@@ -1877,22 +1866,20 @@ impl Parser {
         }
     }
 
-    pub(crate) fn is_start_of_optional_property_or_element_access_chain(&mut self) -> bool {
+    fn is_start_of_optional_property_or_element_access_chain(&mut self) -> bool {
         self.token == Kind::QuestionDotToken
             && self
                 .look_ahead(Parser::next_token_is_identifier_or_keyword_or_open_bracket_or_template)
     }
 
-    pub(crate) fn next_token_is_identifier_or_keyword_or_open_bracket_or_template(
-        &mut self,
-    ) -> bool {
+    fn next_token_is_identifier_or_keyword_or_open_bracket_or_template(&mut self) -> bool {
         self.next_token();
         token_is_identifier_or_keyword(self.token)
             || self.token == Kind::OpenBracketToken
             || self.is_template_start_of_tagged_template()
     }
 
-    pub(crate) fn parse_property_access_expression_rest(
+    fn parse_property_access_expression_rest(
         &mut self,
         pos: u32,
         expression: P<Node>,
@@ -1939,7 +1926,7 @@ impl Parser {
     }
 
     #[inline]
-    pub(crate) fn try_reparse_optional_chain(node: P<Node>) -> bool {
+    fn try_reparse_optional_chain(node: P<Node>) -> bool {
         if node.flags().intersects(NodeFlags::OptionalChain) {
             return true;
         }
@@ -1969,7 +1956,7 @@ impl Parser {
         false
     }
 
-    pub(crate) fn parse_element_access_expression_rest(
+    fn parse_element_access_expression_rest(
         &mut self,
         pos: u32,
         expression: P<Node>,
@@ -2072,7 +2059,7 @@ impl Parser {
         expression
     }
 
-    pub(crate) fn parse_argument_list(&mut self) -> P<NodeList> {
+    fn parse_argument_list(&mut self) -> P<NodeList> {
         self.parse_expected(Kind::OpenParenToken);
         let result = self
             .parse_delimited_list(
@@ -2084,7 +2071,7 @@ impl Parser {
         result
     }
 
-    pub(crate) fn parse_argument_expression(&mut self) -> P<Node> {
+    fn parse_argument_expression(&mut self) -> P<Node> {
         self.do_in_context(
             NodeFlags::DisallowInContext | NodeFlags::DecoratorContext,
             false,
@@ -2092,7 +2079,7 @@ impl Parser {
         )
     }
 
-    pub(crate) fn parse_argument_or_array_literal_element(&mut self) -> P<Node> {
+    fn parse_argument_or_array_literal_element(&mut self) -> P<Node> {
         match self.token {
             Kind::DotDotDotToken => return self.parse_spread_element(),
             Kind::CommaToken => {
@@ -2105,7 +2092,7 @@ impl Parser {
         self.parse_assignment_expression_or_higher()
     }
 
-    pub(crate) fn parse_spread_element(&mut self) -> P<Node> {
+    fn parse_spread_element(&mut self) -> P<Node> {
         let pos = self.node_pos();
         self.parse_expected(Kind::DotDotDotToken);
         let expression = self.parse_assignment_expression_or_higher();
@@ -2113,7 +2100,7 @@ impl Parser {
         self.finish_node(node, pos)
     }
 
-    pub(crate) fn parse_tagged_template_rest(
+    fn parse_tagged_template_rest(
         &mut self,
         pos: u32,
         tag: P<Node>,
@@ -2139,7 +2126,7 @@ impl Parser {
         self.check_js_syntax(node)
     }
 
-    pub(crate) fn parse_template_expression(&mut self, is_tagged_template: bool) -> P<Node> {
+    fn parse_template_expression(&mut self, is_tagged_template: bool) -> P<Node> {
         let pos = self.node_pos();
         let head = self.parse_template_head(is_tagged_template);
         let spans = self.parse_template_spans(is_tagged_template);
@@ -2147,7 +2134,7 @@ impl Parser {
         self.finish_node(node, pos)
     }
 
-    pub(crate) fn parse_template_spans(&mut self, is_tagged_template: bool) -> P<NodeList> {
+    fn parse_template_spans(&mut self, is_tagged_template: bool) -> P<NodeList> {
         let pos = self.node_pos();
         let start = self.node_stack.len();
         loop {
@@ -2161,7 +2148,7 @@ impl Parser {
         self.finish_node_list(start, TextRange::new(pos, end))
     }
 
-    pub(crate) fn parse_template_span(&mut self, is_tagged_template: bool) -> P<Node> {
+    fn parse_template_span(&mut self, is_tagged_template: bool) -> P<Node> {
         let pos = self.node_pos();
         let expression = self.parse_expression_allow_in();
         let literal = self.parse_literal_of_template_span(is_tagged_template);
@@ -2171,7 +2158,7 @@ impl Parser {
 
     // Identifiers avoid the larger frame needed by the other primary expressions.
     #[inline]
-    pub(crate) fn parse_primary_expression(&mut self) -> P<Node> {
+    fn parse_primary_expression(&mut self) -> P<Node> {
         if self.token == Kind::Identifier {
             return self
                 .parse_identifier_with_diagnostic(Some(&diagnostics::EXPRESSION_EXPECTED), None);
@@ -2230,7 +2217,7 @@ impl Parser {
         self.parse_identifier_with_diagnostic(Some(&diagnostics::EXPRESSION_EXPECTED), None)
     }
 
-    pub(crate) fn parse_parenthesized_expression(&mut self) -> P<Node> {
+    fn parse_parenthesized_expression(&mut self) -> P<Node> {
         let pos = self.node_pos();
         let jsdoc = self.jsdoc_scanner_info();
         self.parse_expected(Kind::OpenParenToken);
@@ -2284,7 +2271,7 @@ impl Parser {
         self.finish_node(node, pos)
     }
 
-    pub(crate) fn parse_object_literal_element(&mut self) -> P<Node> {
+    fn parse_object_literal_element(&mut self) -> P<Node> {
         let pos = self.node_pos();
         let jsdoc = self.jsdoc_scanner_info();
         if self.parse_optional(Kind::DotDotDotToken) {
@@ -2386,7 +2373,7 @@ impl Parser {
         node
     }
 
-    pub(crate) fn parse_function_expression(&mut self) -> P<Node> {
+    fn parse_function_expression(&mut self) -> P<Node> {
         // GeneratorExpression:
         //      function* BindingIdentifier [Yield][opt](FormalParameters[Yield]){ GeneratorBody }
         //
@@ -2445,14 +2432,14 @@ impl Parser {
         result
     }
 
-    pub(crate) fn parse_optional_binding_identifier(&mut self) -> Option<P<Node>> {
+    fn parse_optional_binding_identifier(&mut self) -> Option<P<Node>> {
         if self.is_binding_identifier() {
             return Some(self.parse_binding_identifier());
         }
         None
     }
 
-    pub(crate) fn parse_decorated_expression(&mut self) -> P<Node> {
+    fn parse_decorated_expression(&mut self) -> P<Node> {
         let pos = self.node_pos();
         let jsdoc = self.jsdoc_scanner_info();
         let modifiers = self.parse_modifiers_ex(
@@ -2474,7 +2461,7 @@ impl Parser {
         self.finish_node(node, pos)
     }
 
-    pub(crate) fn unparse_expression_with_type_arguments(
+    fn unparse_expression_with_type_arguments(
         expression: Option<P<Node>>,
         type_arguments: Option<P<NodeList>>,
         result: P<Node>,
@@ -2490,7 +2477,7 @@ impl Parser {
         }
     }
 
-    pub(crate) fn parse_new_expression_or_new_dot_target(&mut self) -> P<Node> {
+    fn parse_new_expression_or_new_dot_target(&mut self) -> P<Node> {
         let pos = self.node_pos();
         self.parse_expected(Kind::NewKeyword);
         if self.parse_optional(Kind::DotToken) {
@@ -2625,7 +2612,7 @@ impl Parser {
         self.create_identifier_with_diagnostic(is_identifier, None, None)
     }
 
-    pub(crate) fn create_identifier_with_diagnostic(
+    fn create_identifier_with_diagnostic(
         &mut self,
         is_identifier: bool,
         diagnostic_message: Option<&'static Message>,
@@ -2938,7 +2925,7 @@ impl Parser {
         self.look_ahead(Parser::scan_start_of_declaration)
     }
 
-    pub(crate) fn scan_start_of_declaration(&mut self) -> bool {
+    fn scan_start_of_declaration(&mut self) -> bool {
         loop {
             match self.token {
                 Kind::VarKeyword
@@ -3168,7 +3155,7 @@ impl Parser {
         self.token == Kind::NumericLiteral || self.token == Kind::BigIntLiteral
     }
 
-    pub(crate) fn next_is_parenthesized_or_function_type(&mut self) -> bool {
+    fn next_is_parenthesized_or_function_type(&mut self) -> bool {
         self.next_token();
         self.token == Kind::CloseParenToken
             || self.is_start_of_parameter(false /*isJSDocParameter*/)
@@ -3190,20 +3177,20 @@ impl Parser {
             || self.is_binding_identifier()
     }
 
-    pub(crate) fn is_next_token_open_paren_or_less_than_or_dot(&mut self) -> bool {
+    fn is_next_token_open_paren_or_less_than_or_dot(&mut self) -> bool {
         self.look_ahead(Parser::next_token_is_open_paren_or_less_than_or_dot)
     }
 
-    pub(crate) fn next_token_is_open_paren_or_less_than_or_dot(&mut self) -> bool {
+    fn next_token_is_open_paren_or_less_than_or_dot(&mut self) -> bool {
         matches!(self.next_token(), Kind::OpenParenToken | Kind::LessThanToken | Kind::DotToken)
     }
 
-    pub(crate) fn next_token_is_identifier_on_same_line(&mut self) -> bool {
+    fn next_token_is_identifier_on_same_line(&mut self) -> bool {
         self.next_token();
         self.is_identifier() && !self.has_preceding_line_break()
     }
 
-    pub(crate) fn next_token_is_identifier_or_string_literal_on_same_line(&mut self) -> bool {
+    fn next_token_is_identifier_or_string_literal_on_same_line(&mut self) -> bool {
         self.next_token();
         (self.is_identifier() || self.token == Kind::StringLiteral)
             && !self.has_preceding_line_break()
@@ -3235,7 +3222,7 @@ impl Parser {
         token_is_identifier_or_keyword(self.token) || self.token == Kind::StringLiteral
     }
 
-    pub(crate) fn is_binary_operator(&self) -> bool {
+    fn is_binary_operator(&self) -> bool {
         if self.in_disallow_in_context() && self.token == Kind::InKeyword {
             return false;
         }
@@ -3246,7 +3233,7 @@ impl Parser {
         self.look_ahead(Parser::next_is_valid_heritage_clause_object_literal)
     }
 
-    pub(crate) fn next_is_valid_heritage_clause_object_literal(&mut self) -> bool {
+    fn next_is_valid_heritage_clause_object_literal(&mut self) -> bool {
         if self.next_token() == Kind::CloseBraceToken {
             // if we see "extends {}" then only treat the {} as what we're extending (and not
             // the class body) if we have:
@@ -3272,7 +3259,7 @@ impl Parser {
         self.is_heritage_clause() && self.look_ahead(Parser::next_is_start_of_expression)
     }
 
-    pub(crate) fn next_is_start_of_expression(&mut self) -> bool {
+    fn next_is_start_of_expression(&mut self) -> bool {
         self.next_token();
         self.is_start_of_expression()
     }
@@ -3288,14 +3275,14 @@ impl Parser {
         })
     }
 
-    pub(crate) fn next_token_is_equals_or_semicolon_or_colon_token(&mut self) -> bool {
+    fn next_token_is_equals_or_semicolon_or_colon_token(&mut self) -> bool {
         self.next_token();
         self.token == Kind::EqualsToken
             || self.token == Kind::SemicolonToken
             || self.token == Kind::ColonToken
     }
 
-    pub(crate) fn next_token_is_binding_identifier_or_start_of_destructuring_on_same_line(
+    fn next_token_is_binding_identifier_or_start_of_destructuring_on_same_line(
         &mut self,
         disallow_of: bool,
     ) -> bool {
@@ -3353,11 +3340,11 @@ impl Parser {
         result
     }
 
-    pub(crate) fn in_yield_context(&self) -> bool {
+    fn in_yield_context(&self) -> bool {
         self.context_flags.intersects(NodeFlags::YieldContext)
     }
 
-    pub(crate) fn in_disallow_in_context(&self) -> bool {
+    fn in_disallow_in_context(&self) -> bool {
         self.context_flags.intersects(NodeFlags::DisallowInContext)
     }
 
@@ -3365,7 +3352,7 @@ impl Parser {
         self.context_flags.intersects(NodeFlags::DisallowConditionalTypesContext)
     }
 
-    pub(crate) fn in_decorator_context(&self) -> bool {
+    fn in_decorator_context(&self) -> bool {
         self.context_flags.intersects(NodeFlags::DecoratorContext)
     }
 
@@ -3466,7 +3453,7 @@ impl Parser {
         context.lib_reference_directives.set(tsrs_core::alloc_vec(lib_reference_directives));
     }
 
-    pub(crate) fn parse_resolution_mode(
+    fn parse_resolution_mode(
         &mut self,
         mode: &str,
         pos: u32,
@@ -3490,7 +3477,7 @@ impl Parser {
         resolution_kind
     }
 
-    pub(crate) fn js_error_at_range(
+    fn js_error_at_range(
         &mut self,
         loc: TextRange,
         message: &'static Message,
@@ -3506,7 +3493,7 @@ impl Parser {
         self.js_diagnostics.push(ast::new_diagnostic(None, range, message, args));
     }
 
-    pub(crate) fn check_js_decorator_syntax(&mut self, node: P<Node>) {
+    fn check_js_decorator_syntax(&mut self, node: P<Node>) {
         let modifiers = node.modifier_nodes();
         if modifiers.is_empty() {
             return;

@@ -31,7 +31,7 @@ pub fn repo_root() -> PathBuf {
     dir
 }
 
-pub fn reference_baseline(subfolder: &str, name: &str) -> String {
+fn reference_baseline(subfolder: &str, name: &str) -> String {
     let path =
         repo_root().join("ts-ref/tsc/testdata/baselines/reference").join(subfolder).join(name);
     std::fs::read_to_string(&path).unwrap_or_else(|_| "<no content>".to_string())
@@ -49,10 +49,10 @@ pub fn check_baseline(failures: &mut Vec<String>, subfolder: &str, name: &str, a
     }
 }
 
-pub struct TestCommandLineParser {
-    pub(crate) file_names: Vec<String>,
-    pub(crate) options: OrderedMap<String, CompilerOptionsValue>,
-    pub(crate) errors: Vec<P<Diagnostic>>,
+struct TestCommandLineParser {
+    file_names: Vec<String>,
+    options: OrderedMap<String, CompilerOptionsValue>,
+    errors: Vec<P<Diagnostic>>,
 }
 
 fn get_test_parse_command_line_worker_diagnostics(
@@ -64,7 +64,7 @@ fn get_test_parse_command_line_worker_diagnostics(
     P::new(get_parse_command_line_worker_diagnostics(decls)).get()
 }
 
-pub fn parse_command_line_test_worker(
+fn parse_command_line_test_worker(
     decls: &[&'static CommandLineOption],
     command_line: &[String],
     fs: Option<&dyn FS>,

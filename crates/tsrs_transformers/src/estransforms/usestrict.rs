@@ -18,10 +18,10 @@ pub fn new_use_strict_transformer(opts: &TransformOptions) -> Option<P<Transform
 }
 
 // usestrict.go:17
-pub struct UseStrictTransformer {
-    pub base: Transformer,
-    pub compiler_options: P<CompilerOptions>,
-    pub get_emit_module_format_of_file: Rc<dyn Fn(P<SourceFile>) -> ModuleKind>,
+struct UseStrictTransformer {
+    base: Transformer,
+    compiler_options: P<CompilerOptions>,
+    get_emit_module_format_of_file: Rc<dyn Fn(P<SourceFile>) -> ModuleKind>,
 }
 
 impl UseStrictTransformer {

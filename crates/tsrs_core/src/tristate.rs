@@ -57,7 +57,7 @@ impl Tristate {
         }
     }
 
-    pub fn string(self) -> &'static str {
+    fn string(self) -> &'static str {
         match self {
             Tristate::Unknown => "TSUnknown",
             Tristate::False => "TSFalse",

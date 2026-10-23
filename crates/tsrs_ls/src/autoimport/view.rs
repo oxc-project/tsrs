@@ -22,7 +22,7 @@ use crate::lsutil;
 
 // view.go:21
 pub struct View {
-    pub(crate) registry: Option<Arc<Registry>>,
+    registry: Option<Arc<Registry>>,
     pub(crate) importing_file: P<SourceFile>,
     pub(crate) importing_file_path: Path,
     pub(crate) program: &'static Program,
@@ -31,7 +31,7 @@ pub struct View {
     // keeps the checker's address (see `checker()`).
     checker: NonNull<Checker>,
     pub(crate) preferences: modulespecifiers::UserPreferences,
-    pub(crate) project_id: ProjectID,
+    project_id: ProjectID,
 
     allowed_endings: OnceCell<Vec<ModuleSpecifierEnding>>,
     pub(crate) conditions: Set<String>,
@@ -110,7 +110,7 @@ impl View {
     }
 
     // view.go:83
-    pub fn search(&self, query: &str, kind: QueryKind) -> Vec<Arc<Export>> {
+    pub(crate) fn search(&self, query: &str, kind: QueryKind) -> Vec<Arc<Export>> {
         let search_fn = |bucket: &RegistryBucket| -> Vec<Arc<Export>> {
             let Some(index) = &bucket.index else {
                 return Vec::new();
@@ -126,7 +126,7 @@ impl View {
     }
 
     // view.go:100
-    pub fn search_by_export_id(&self, id: &ExportID) -> Vec<Arc<Export>> {
+    pub(crate) fn search_by_export_id(&self, id: &ExportID) -> Vec<Arc<Export>> {
         let search = |bucket: &RegistryBucket| -> Vec<Arc<Export>> {
             let Some(index) = &bucket.index else {
                 return Vec::new();
@@ -219,7 +219,7 @@ impl View {
     }
 
     // view.go:180
-    pub fn get_completions(
+    pub(crate) fn get_completions(
         &self,
         prefix: &str,
         position: lsproto::Position,
@@ -348,6 +348,6 @@ pub enum QueryKind {
 // view.go:175
 #[derive(Clone)]
 pub struct FixAndExport {
-    pub fix: Arc<Fix>,
-    pub export: Arc<Export>,
+    pub(crate) fix: Arc<Fix>,
+    pub(crate) export: Arc<Export>,
 }

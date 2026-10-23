@@ -41,7 +41,7 @@ use rustc_hash::FxHashMap;
 use crate::handler::RequestContext;
 use crate::message::ApiError;
 
-pub const DEFAULT_ASYNC_GRACE: Duration = Duration::from_secs(10);
+pub(crate) const DEFAULT_ASYNC_GRACE: Duration = Duration::from_secs(10);
 
 /// Per-request re-entrancy state: attributed client calls in flight and the request it is blocked on.
 #[derive(Debug, Default)]
@@ -80,12 +80,12 @@ impl CallbackState {
     }
 
     /// Client calls in flight on the connection (attributed or not).
-    pub fn waiting_on_client(&self) -> usize {
+    fn waiting_on_client(&self) -> usize {
         self.waiting.load(Ordering::SeqCst)
     }
 
     /// Client calls in flight that were made outside any request thread.
-    pub fn unattributed_waiting(&self) -> usize {
+    fn unattributed_waiting(&self) -> usize {
         self.unattributed.load(Ordering::SeqCst)
     }
 

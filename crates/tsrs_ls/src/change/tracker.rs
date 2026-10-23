@@ -23,10 +23,10 @@ use crate::spanmap::{self, Feature};
 #[derive(Clone, Debug, Default)]
 pub struct NodeOptions {
     // Text to be inserted before the new node
-    pub prefix: String,
+    pub(crate) prefix: String,
 
     // Text to be inserted after the new node
-    pub suffix: String,
+    pub(crate) suffix: String,
 
     // Text of inserted node will be formatted with this indentation, otherwise indentation will be inferred from the old node
     pub(crate) indentation: Option<i32>,
@@ -34,8 +34,8 @@ pub struct NodeOptions {
     // Text of inserted node will be formatted with this delta, otherwise delta will be inferred from the new node kind
     pub(crate) delta: Option<i32>,
 
-    pub leading_trivia_option: LeadingTriviaOption,
-    pub trailing_trivia_option: TrailingTriviaOption,
+    pub(crate) leading_trivia_option: LeadingTriviaOption,
+    pub(crate) trailing_trivia_option: TrailingTriviaOption,
     pub(crate) joiner: String,
 }
 
@@ -83,8 +83,8 @@ pub struct TrackerEdit {
 
 // tracker.go:78
 pub struct NodesInsertedAtStartState {
-    pub(crate) node: P<Node>,
-    pub(crate) source_file: P<SourceFile>,
+    node: P<Node>,
+    source_file: P<SourceFile>,
 }
 
 // tracker.go:83
@@ -94,14 +94,14 @@ pub struct Tracker {
     pub(crate) new_line: String,
     pub(crate) converters: Arc<Converters>,
     pub(crate) ctx: Context,
-    pub emit_context: P<EmitContext>,
+    pub(crate) emit_context: P<EmitContext>,
 
-    pub node_factory: NodeFactory,
+    pub(crate) node_factory: NodeFactory,
 
     // Go `collections.MultiMap` (random iteration order; the edits are sorted per file afterwards).
     pub(crate) changes: OrderedMap<P<SourceFile>, Vec<TrackerEdit>>,
-    pub(crate) deleted_nodes: Vec<DeletedNode>,
-    pub(crate) nodes_with_insertions_at_start: OrderedMap<P<Node>, NodesInsertedAtStartState>,
+    deleted_nodes: Vec<DeletedNode>,
+    nodes_with_insertions_at_start: OrderedMap<P<Node>, NodesInsertedAtStartState>,
 
     // unmappableFiles collects the files for which an edit could not be represented within a single
     // verbatim span of the original text. GetChanges drops their edits so a partial, corrupting change is
@@ -119,8 +119,8 @@ impl std::ops::Deref for Tracker {
 // tracker.go:107
 #[derive(Clone, Copy)]
 pub struct DeletedNode {
-    pub(crate) source_file: P<SourceFile>,
-    pub(crate) node: P<Node>,
+    source_file: P<SourceFile>,
+    node: P<Node>,
 }
 
 // tracker.go:112
@@ -167,7 +167,7 @@ impl Tracker {
         &self.new_line
     }
 
-    pub(crate) fn add_change(&mut self, source_file: P<SourceFile>, edit: TrackerEdit) {
+    fn add_change(&mut self, source_file: P<SourceFile>, edit: TrackerEdit) {
         self.changes.entry(source_file).or_default().push(edit);
     }
 
@@ -178,7 +178,9 @@ impl Tracker {
     // logical change atomic, and returning the result inline means a caller cannot forget to check it or
     // accidentally emit a partial, corrupting change.
     // Note: after calling this, the Tracker object must be discarded!
-    pub fn get_changes(&mut self) -> (OrderedMap<String, Vec<lsproto::TextEdit>>, Vec<String>) {
+    pub(crate) fn get_changes(
+        &mut self,
+    ) -> (OrderedMap<String, Vec<lsproto::TextEdit>>, Vec<String>) {
         self.finish_delete_declarations();
         self.finish_nodes_with_insertions_at_start();
         let mut changes = self.get_text_changes_from_changes();
@@ -258,7 +260,7 @@ impl Tracker {
     }
 
     // tracker.go:183
-    pub fn replace_node(
+    pub(crate) fn replace_node(
         &mut self,
         source_file: P<SourceFile>,
         old_node: P<Node>,
@@ -284,7 +286,7 @@ impl Tracker {
     }
 
     // tracker.go:194
-    pub fn replace_node_with_nodes(
+    pub(crate) fn replace_node_with_nodes(
         &mut self,
         source_file: P<SourceFile>,
         old_node: P<Node>,
@@ -308,7 +310,7 @@ impl Tracker {
 
     // tracker.go:205
     // ReplaceRange replaces textRange in sourceFile with newNode.
-    pub fn replace_range(
+    fn replace_range(
         &mut self,
         source_file: P<SourceFile>,
         text_range: TextRange,
@@ -331,7 +333,7 @@ impl Tracker {
     // tracker.go:211
     // ReplaceRangeWithText replaces an LSP range with text. For a content-mapped file, the LSP range is in the
     // original document; text may be placed at any exact projection because it does not need formatting context.
-    pub fn replace_range_with_text(
+    pub(crate) fn replace_range_with_text(
         &mut self,
         source_file: P<SourceFile>,
         lsproto_range: lsproto::Range,
@@ -344,7 +346,7 @@ impl Tracker {
     // tracker.go:217
     // ReplaceTextRangeWithText replaces textRange in sourceFile with text. For a content-mapped file, GetChanges
     // maps the range back to the original document and drops the file if the edit cannot be represented there.
-    pub fn replace_text_range_with_text(
+    pub(crate) fn replace_text_range_with_text(
         &mut self,
         source_file: P<SourceFile>,
         text_range: TextRange,
@@ -365,7 +367,7 @@ impl Tracker {
 
     // tracker.go:222
     // ReplaceRangeWithNodes replaces textRange in sourceFile with newNodes.
-    pub fn replace_range_with_nodes(
+    fn replace_range_with_nodes(
         &mut self,
         source_file: P<SourceFile>,
         text_range: TextRange,
@@ -391,18 +393,23 @@ impl Tracker {
 
     // tracker.go:231
     // insertTextAt inserts text at an offset in sourceFile.
-    pub(crate) fn insert_text_at(&mut self, source_file: P<SourceFile>, pos: u32, text: &str) {
+    fn insert_text_at(&mut self, source_file: P<SourceFile>, pos: u32, text: &str) {
         self.replace_text_range_with_text(source_file, TextRange::new(pos, pos), text);
     }
 
     // tracker.go:236
     // InsertText inserts text at an LSP position.
-    pub fn insert_text(&mut self, source_file: P<SourceFile>, pos: lsproto::Position, text: &str) {
+    pub(crate) fn insert_text(
+        &mut self,
+        source_file: P<SourceFile>,
+        pos: lsproto::Position,
+        text: &str,
+    ) {
         self.replace_range_with_text(source_file, lsproto::Range { start: pos, end: pos }, text);
     }
 
     // tracker.go:240
-    pub fn insert_node_at(
+    pub(crate) fn insert_node_at(
         &mut self,
         source_file: P<SourceFile>,
         pos: u32,
@@ -413,7 +420,7 @@ impl Tracker {
     }
 
     // tracker.go:244
-    pub fn insert_nodes_at(
+    fn insert_nodes_at(
         &mut self,
         source_file: P<SourceFile>,
         pos: u32,
@@ -424,7 +431,7 @@ impl Tracker {
     }
 
     // tracker.go:248
-    pub fn insert_node_after(
+    pub(crate) fn insert_node_after(
         &mut self,
         source_file: P<SourceFile>,
         after: P<Node>,
@@ -436,7 +443,7 @@ impl Tracker {
     }
 
     // tracker.go:253
-    pub fn insert_nodes_after(
+    pub(crate) fn insert_nodes_after(
         &mut self,
         source_file: P<SourceFile>,
         after: P<Node>,
@@ -448,7 +455,7 @@ impl Tracker {
     }
 
     // tracker.go:258
-    pub fn insert_node_before(
+    pub(crate) fn insert_node_before(
         &mut self,
         source_file: P<SourceFile>,
         before: P<Node>,
@@ -466,7 +473,7 @@ impl Tracker {
     // TryInsertTypeAnnotation inserts a type annotation after the appropriate position on a node
     // (after the close paren for function-like, after the name/exclamation/question for variable-like).
     // Returns true if successful.
-    pub fn try_insert_type_annotation(
+    pub(crate) fn try_insert_type_annotation(
         &mut self,
         source_file: P<SourceFile>,
         node: P<Node>,
@@ -514,7 +521,7 @@ impl Tracker {
     // tracker.go:304
     // ParenthesizeArrowParameters wraps the parameters of a paren-less arrow function in `(` and `)`.
     // This is a no-op if the arrow function already has parens.
-    pub fn parenthesize_arrow_parameters(
+    pub(crate) fn parenthesize_arrow_parameters(
         &mut self,
         source_file: P<SourceFile>,
         arrow_func: P<Node>,
@@ -539,7 +546,7 @@ impl Tracker {
 
     // tracker.go:320
     // InsertModifierBefore inserts a modifier token (like 'type') before a node with a trailing space.
-    pub fn insert_modifier_before(
+    pub(crate) fn insert_modifier_before(
         &mut self,
         source_file: P<SourceFile>,
         modifier: Kind,
@@ -560,13 +567,13 @@ impl Tracker {
     // tracker.go:330
     // Delete queues a node for deletion with smart handling of list items, imports, etc.
     // The actual deletion happens in finishDeleteDeclarations during GetChanges.
-    pub fn delete(&mut self, source_file: P<SourceFile>, node: P<Node>) {
+    pub(crate) fn delete(&mut self, source_file: P<SourceFile>, node: P<Node>) {
         self.deleted_nodes.push(DeletedNode { source_file, node });
     }
 
     // tracker.go:335
     // DeleteRange deletes a text range from the source file.
-    pub fn delete_range(&mut self, source_file: P<SourceFile>, text_range: TextRange) {
+    pub(crate) fn delete_range(&mut self, source_file: P<SourceFile>, text_range: TextRange) {
         self.replace_text_range_with_text(source_file, text_range, "");
     }
 
@@ -587,7 +594,7 @@ impl Tracker {
 
     // tracker.go:346
     // DeleteNodeRange deletes a range of nodes with specified trivia options.
-    pub fn delete_node_range(
+    pub(crate) fn delete_node_range(
         &mut self,
         source_file: P<SourceFile>,
         start_node: P<Node>,
@@ -692,7 +699,7 @@ impl Tracker {
      * i.e. arguments in arguments lists, parameters in parameter lists etc.
      * Note that separators are part of the node in statements and class elements.
      */
-    pub fn insert_node_in_list_after(
+    pub(crate) fn insert_node_in_list_after(
         &mut self,
         source_file: P<SourceFile>,
         after: P<Node>,
@@ -865,7 +872,7 @@ impl Tracker {
 
     // tracker.go:522
     // InsertImportSpecifierAtIndex inserts a new import specifier at the specified index in a NamedImports list
-    pub fn insert_import_specifier_at_index(
+    pub(crate) fn insert_import_specifier_at_index(
         &mut self,
         source_file: P<SourceFile>,
         new_specifier: P<Node>,
@@ -901,7 +908,7 @@ impl Tracker {
     }
 
     // tracker.go:543
-    pub fn insert_at_top_of_file(
+    pub(crate) fn insert_at_top_of_file(
         &mut self,
         source_file: P<SourceFile>,
         insert: &[P<Node>],
@@ -947,7 +954,7 @@ impl Tracker {
     }
 
     // tracker.go:582
-    pub fn insert_member_at_start(
+    pub(crate) fn insert_member_at_start(
         &mut self,
         source_file: P<SourceFile>,
         node: P<Node>,

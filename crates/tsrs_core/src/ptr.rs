@@ -126,7 +126,7 @@ fn with_scratch_arena<R>(f: impl FnOnce(&'static Arena) -> R) -> R {
 /// The layout `P::new` allocates for a `T`. Compressed handles count 8-byte units, so every `P` target is 8-aligned
 /// and padded to 8 (the padding keeps free-list classes, which assume 8-aligned blocks of `size` bytes, exact).
 #[inline]
-pub(crate) const fn p_layout<T>() -> std::alloc::Layout {
+const fn p_layout<T>() -> std::alloc::Layout {
     let l = std::alloc::Layout::new::<T>();
     if cfg!(compressed_ptrs) {
         match l.align_to(8) {
@@ -384,7 +384,7 @@ impl<T> P<T> {
     /// `self` must be an element of an arena array with at least `n` more elements.
     #[inline]
     #[must_use]
-    pub unsafe fn array_add(self, n: usize) -> P<T> {
+    unsafe fn array_add(self, n: usize) -> P<T> {
         #[cfg(compressed_ptrs)]
         {
             const {
@@ -727,7 +727,7 @@ impl<T> SP<T> {
         self.0
     }
     #[inline]
-    pub fn addr(self) -> usize {
+    fn addr(self) -> usize {
         std::ptr::from_ref::<T>(self.0) as usize
     }
 }
@@ -1145,7 +1145,7 @@ pub struct OptionThinSliceCell<T: 'static>(std::cell::Cell<Option<ThinSlice<T>>>
 
 impl<T> OptionThinSliceCell<T> {
     #[inline]
-    pub fn new(s: Option<&'static [T]>) -> Self {
+    fn new(s: Option<&'static [T]>) -> Self {
         OptionThinSliceCell(std::cell::Cell::new(s.map(ThinSlice::new)))
     }
     #[inline]
@@ -1239,7 +1239,7 @@ pub struct OptionSliceCell<T: 'static>(std::cell::Cell<PackedOptionSlice<T>>);
 
 impl<T> OptionSliceCell<T> {
     #[inline]
-    pub fn new(s: Option<&'static [T]>) -> Self {
+    fn new(s: Option<&'static [T]>) -> Self {
         OptionSliceCell(std::cell::Cell::new(Self::pack(s)))
     }
     #[inline]
@@ -1285,7 +1285,7 @@ pub struct StrCell(std::cell::Cell<PackedStr>);
 
 impl StrCell {
     #[inline]
-    pub fn new(s: &'static str) -> Self {
+    fn new(s: &'static str) -> Self {
         StrCell(std::cell::Cell::new(PackedStr::new(s)))
     }
     #[inline]
@@ -1516,7 +1516,7 @@ pub struct ArenaStringBuilder {
 impl ArenaStringBuilder {
     /// Creates an empty builder without allocating.
     #[inline]
-    pub fn new() -> ArenaStringBuilder {
+    fn new() -> ArenaStringBuilder {
         ArenaStringBuilder { ptr: std::ptr::NonNull::dangling(), len: 0, capacity: 0 }
     }
 
@@ -1738,7 +1738,7 @@ pub mod shared_check {
     }
 
     #[inline]
-    pub fn assert_not_shared<T: ?Sized>(object: &T, what: &str) {
+    pub(crate) fn assert_not_shared<T: ?Sized>(object: &T, what: &str) {
         if !enabled() {
             return;
         }

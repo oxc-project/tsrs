@@ -14,7 +14,7 @@ use rustc_hash::{FxHashMap, FxHashSet};
 use std::fmt::Write as _;
 use tsrs_core::json::{JsonMap, Key, Value, exact_integer_value};
 
-pub const MAX_DEPTH: usize = 10000;
+const MAX_DEPTH: usize = 10000;
 
 enum Frame {
     Object { keys: FxHashSet<String>, current: Option<String> },

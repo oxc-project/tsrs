@@ -99,7 +99,7 @@ impl Checker {
     }
 
     // jsx.go:131
-    pub(crate) fn check_jsx_opening_like_element_or_opening_fragment(&mut self, node: P<Node>) {
+    fn check_jsx_opening_like_element_or_opening_fragment(&mut self, node: P<Node>) {
         let is_node_opening_like_element = ast::is_jsx_opening_like_element(node);
         if is_node_opening_like_element {
             self.check_grammar_jsx_element(node);
@@ -143,7 +143,7 @@ impl Checker {
     }
 
     // jsx.go:160
-    pub(crate) fn check_jsx_preconditions(&mut self, error_node: P<Node>) {
+    fn check_jsx_preconditions(&mut self, error_node: P<Node>) {
         // Preconditions for using JSX
         if self.compiler_options.jsx == JsxEmit::NONE {
             self.error(
@@ -163,7 +163,7 @@ impl Checker {
     }
 
     // jsx.go:170
-    pub(crate) fn check_jsx_return_assignable_to_appropriate_bound(
+    fn check_jsx_return_assignable_to_appropriate_bound(
         &mut self,
         ref_kind: JsxReferenceKind,
         elem_instance_type: P<Type>,
@@ -310,7 +310,7 @@ impl Checker {
     }
 
     // jsx.go:242
-    pub(crate) fn get_contextual_type_for_child_jsx_expression(
+    fn get_contextual_type_for_child_jsx_expression(
         &mut self,
         node: P<Node>,
         child: P<Node>,
@@ -594,7 +594,7 @@ impl Checker {
     // jsx.go:376
     // Go returns a lazy iter.Seq; the port returns the equivalent pull function (`None` = exhausted) so that
     // element creation interleaves with the consumer's work exactly as in Go.
-    pub(crate) fn generate_jsx_children(
+    fn generate_jsx_children(
         node: P<Node>,
         get_invalid_text_diagnostic: InvalidTextDiagnosticFn,
     ) -> impl FnMut(&mut Checker) -> Option<JsxElaborationElement> + 'static + use<> {
@@ -621,7 +621,7 @@ impl Checker {
     }
 
     // jsx.go:393
-    pub(crate) fn get_elaboration_element_for_jsx_child(
+    fn get_elaboration_element_for_jsx_child(
         child: P<Node>,
         name_type: P<Type>,
         get_invalid_text_diagnostic: InvalidTextDiagnosticFn,
@@ -668,7 +668,7 @@ impl Checker {
     }
 
     // jsx.go:420
-    pub(crate) fn elaborate_iterable_or_array_like_target_elementwise(
+    fn elaborate_iterable_or_array_like_target_elementwise(
         &mut self,
         mut iterator: impl FnMut(&mut Checker) -> Option<JsxElaborationElement>,
         source: P<Type>,
@@ -844,7 +844,7 @@ impl Checker {
     }
 
     // jsx.go:500
-    pub(crate) fn get_jsx_fragment_type(&mut self, node: P<Node>) -> P<Type> {
+    fn get_jsx_fragment_type(&mut self, node: P<Node>) -> P<Type> {
         // An opening fragment is required in order for `getJsxNamespace` to give the fragment factory
         let links = self.source_file_links.get(ast::get_source_file_of_node(node).unwrap());
         if let Some(jsx_fragment_type) = links.jsx_fragment_type.get() {
@@ -1076,7 +1076,7 @@ impl Checker {
     // @return an anonymous type (similar to the one returned by checkObjectLiteral) in which its properties are attributes property.
     // @remarks Because this function calls getSpreadType, it needs to use the same checks as checkObjectLiteral,
     // which also calls getSpreadType.
-    pub(crate) fn create_jsx_attributes_type_from_attributes_property(
+    fn create_jsx_attributes_type_from_attributes_property(
         &mut self,
         opening_like_element: P<Node>,
         check_mode: CheckMode,
@@ -1356,11 +1356,7 @@ impl Checker {
     }
 
     // jsx.go:877
-    pub(crate) fn check_jsx_children(
-        &mut self,
-        node: P<Node>,
-        check_mode: CheckMode,
-    ) -> Vec<P<Type>> {
+    fn check_jsx_children(&mut self, node: P<Node>, check_mode: CheckMode) -> Vec<P<Type>> {
         let mut child_types: Vec<P<Type>> = Vec::new();
         child_types.extend(node.children().nodes().iter().filter_map(|&child| {
             // In React, JSX text that contains only whitespaces will be ignored so we don't want to type-check that
@@ -1384,7 +1380,7 @@ impl Checker {
     }
 
     // jsx.go:896
-    pub(crate) fn get_uninstantiated_jsx_signatures_of_type(
+    fn get_uninstantiated_jsx_signatures_of_type(
         &mut self,
         element_type: P<Type>,
         caller: P<Node>,
@@ -1444,7 +1440,7 @@ impl Checker {
     }
 
     // jsx.go:932
-    pub(crate) fn get_jsx_props_type_from_call_signature(
+    fn get_jsx_props_type_from_call_signature(
         &mut self,
         sig: P<Signature>,
         context: P<Node>,
@@ -1466,7 +1462,7 @@ impl Checker {
     }
 
     // jsx.go:942
-    pub(crate) fn get_jsx_props_type_from_class_type(
+    fn get_jsx_props_type_from_class_type(
         &mut self,
         sig: P<Signature>,
         context: P<Node>,
@@ -1549,7 +1545,7 @@ impl Checker {
     }
 
     // jsx.go:989
-    pub(crate) fn get_jsx_props_type_for_signature_from_member(
+    fn get_jsx_props_type_for_signature_from_member(
         &mut self,
         sig: P<Signature>,
         forced_lookup_location: &str,
@@ -1582,7 +1578,7 @@ impl Checker {
 
     // jsx.go:1018
     // ns is nil-able (getJsxNamespaceAt can return nil and getJsxLibraryManagedAttributes checks it).
-    pub(crate) fn get_jsx_managed_attributes_from_located_attributes(
+    fn get_jsx_managed_attributes_from_located_attributes(
         &mut self,
         context: P<Node>,
         ns: Option<P<Symbol>>,
@@ -1604,7 +1600,7 @@ impl Checker {
     }
 
     // jsx.go:1030
-    pub(crate) fn instantiate_alias_or_interface_with_defaults(
+    fn instantiate_alias_or_interface_with_defaults(
         &mut self,
         managed_sym: P<Symbol>,
         type_arguments: &[P<Type>],
@@ -1643,7 +1639,7 @@ impl Checker {
     }
 
     // jsx.go:1050
-    pub(crate) fn get_jsx_library_managed_attributes(
+    fn get_jsx_library_managed_attributes(
         &mut self,
         jsx_namespace: Option<P<Symbol>>,
     ) -> Option<P<Symbol>> {
@@ -1658,7 +1654,7 @@ impl Checker {
     }
 
     // jsx.go:1057
-    pub(crate) fn get_jsx_element_type_symbol(
+    fn get_jsx_element_type_symbol(
         &mut self,
         jsx_namespace: Option<P<Symbol>>,
     ) -> Option<P<Symbol>> {
@@ -1683,10 +1679,7 @@ impl Checker {
     //
     //	non-intrinsic elements' attributes type is the element instance type)
     // jsx_namespace is nil-able (Go passes getJsxNamespaceAt's result straight through).
-    pub(crate) fn get_jsx_element_properties_name(
-        &mut self,
-        jsx_namespace: Option<P<Symbol>>,
-    ) -> String {
+    fn get_jsx_element_properties_name(&mut self, jsx_namespace: Option<P<Symbol>>) -> String {
         self.get_name_from_jsx_element_attributes_container(
             JSX_NAMES.element_attributes_property_name_container,
             jsx_namespace,
@@ -1695,7 +1688,7 @@ impl Checker {
 
     // jsx.go:1077
     // jsx_namespace is nil-able (Go passes getJsxNamespaceAt's result straight through).
-    pub(crate) fn get_jsx_element_children_property_name(
+    fn get_jsx_element_children_property_name(
         &mut self,
         jsx_namespace: Option<P<Symbol>>,
     ) -> String {
@@ -1718,7 +1711,7 @@ impl Checker {
     // @param nameOfAttribPropContainer a string of value JsxNames.ElementAttributesPropertyNameContainer or JsxNames.ElementChildrenAttributeNameContainer
     //
     //	if other string is given or the container doesn't exist, return undefined.
-    pub(crate) fn get_name_from_jsx_element_attributes_container(
+    fn get_name_from_jsx_element_attributes_container(
         &mut self,
         name_of_attrib_prop_container: &str,
         jsx_namespace: Option<P<Symbol>>,
@@ -1762,10 +1755,7 @@ impl Checker {
     }
 
     // jsx.go:1114
-    pub(crate) fn get_static_type_of_referenced_jsx_constructor(
-        &mut self,
-        context: P<Node>,
-    ) -> P<Type> {
+    fn get_static_type_of_referenced_jsx_constructor(&mut self, context: P<Node>) -> P<Type> {
         if ast::is_jsx_opening_fragment(context) {
             return self.get_jsx_fragment_type(context);
         }
@@ -1789,7 +1779,7 @@ impl Checker {
     }
 
     // jsx.go:1135
-    pub(crate) fn get_intrinsic_attributes_type_from_string_literal_type(
+    fn get_intrinsic_attributes_type_from_string_literal_type(
         &mut self,
         t: P<Type>,
         location: P<Node>,
@@ -1819,7 +1809,7 @@ impl Checker {
     }
 
     // jsx.go:1157
-    pub(crate) fn get_jsx_reference_kind(&mut self, node: P<Node>) -> JsxReferenceKind {
+    fn get_jsx_reference_kind(&mut self, node: P<Node>) -> JsxReferenceKind {
         if is_jsx_intrinsic_tag_name(node.tag_name()) {
             return JsxReferenceKind::Mixed;
         }
@@ -1835,7 +1825,7 @@ impl Checker {
     }
 
     // jsx.go:1171
-    pub(crate) fn create_signature_for_jsx_intrinsic(
+    fn create_signature_for_jsx_intrinsic(
         &mut self,
         node: P<Node>,
         result: P<Type>,
@@ -1869,7 +1859,7 @@ impl Checker {
     // Get attributes type of the given intrinsic opening-like Jsx element by resolving the tag name.
     // The function is intended to be called from a function which has checked that the opening element is an intrinsic element.
     // @param node an intrinsic JSX opening-like element
-    pub(crate) fn get_intrinsic_attributes_type_from_jsx_opening_like_element(
+    fn get_intrinsic_attributes_type_from_jsx_opening_like_element(
         &mut self,
         node: P<Node>,
     ) -> Option<P<Type>> {
@@ -1972,7 +1962,7 @@ impl Checker {
     }
 
     // jsx.go:1257
-    pub(crate) fn get_jsx_stateless_element_type_at(&mut self, location: P<Node>) -> P<Type> {
+    fn get_jsx_stateless_element_type_at(&mut self, location: P<Node>) -> P<Type> {
         let jsx_element_type = self.get_jsx_element_type_at(location);
         // getJsxElementTypeAt never returns nil (getJsxType falls back to errorType), so Go's nil check is always false.
         let null_type = self.null_type;
@@ -1980,7 +1970,7 @@ impl Checker {
     }
 
     // jsx.go:1265
-    pub(crate) fn get_jsx_element_class_type_at(&mut self, location: P<Node>) -> Option<P<Type>> {
+    fn get_jsx_element_class_type_at(&mut self, location: P<Node>) -> Option<P<Type>> {
         let t = self.get_jsx_type(JSX_NAMES.element_class, location);
         if self.is_error_type(t) {
             return None;
@@ -1989,12 +1979,12 @@ impl Checker {
     }
 
     // jsx.go:1273
-    pub(crate) fn get_jsx_element_type_at(&mut self, location: P<Node>) -> P<Type> {
+    fn get_jsx_element_type_at(&mut self, location: P<Node>) -> P<Type> {
         self.get_jsx_type(JSX_NAMES.element, location)
     }
 
     // jsx.go:1277
-    pub(crate) fn get_jsx_element_type_type_at(&mut self, location: P<Node>) -> Option<P<Type>> {
+    fn get_jsx_element_type_type_at(&mut self, location: P<Node>) -> Option<P<Type>> {
         let ns = self.get_jsx_namespace_at(Some(location));
         ns?;
         let sym = self.get_jsx_element_type_symbol(ns)?;
@@ -2021,7 +2011,7 @@ impl Checker {
     }
 
     // jsx.go:1304
-    pub(crate) fn get_jsx_namespace_at(&mut self, location: Option<P<Node>>) -> Option<P<Symbol>> {
+    fn get_jsx_namespace_at(&mut self, location: Option<P<Node>>) -> Option<P<Symbol>> {
         let mut links: Option<P<JsxElementLinks>> = None;
         if let Some(location) = location {
             links = Some(self.jsx_element_links.get(location));
@@ -2140,7 +2130,7 @@ impl Checker {
     }
 
     // jsx.go:1388
-    pub(crate) fn get_local_jsx_namespace(&mut self, file: P<SourceFile>) -> String {
+    fn get_local_jsx_namespace(&mut self, file: P<SourceFile>) -> String {
         let links = self.source_file_links.get(file);
         if !links.local_jsx_namespace.get().is_empty() {
             return links.local_jsx_namespace.get().to_string();
@@ -2205,7 +2195,7 @@ impl Checker {
 
     // jsx.go:1435
     // parser.ParseIsolatedEntityName returns nil for an invalid entity name, so the result is nil-able.
-    pub(crate) fn parse_isolated_entity_name(name: &str) -> Option<P<Node>> {
+    fn parse_isolated_entity_name(name: &str) -> Option<P<Node>> {
         let result = tsrs_parser::parse_isolated_entity_name(name);
         if let Some(result) = result {
             mark_as_synthetic(result);
@@ -2284,10 +2274,7 @@ impl Checker {
     // jsx.go:1486
     // The specifier (the file loader's synthetic import) is None exactly when the file has no JSX runtime import
     // (empty module reference).
-    pub(crate) fn get_jsx_runtime_import_specifier(
-        &self,
-        file: P<SourceFile>,
-    ) -> (String, Option<P<Node>>) {
+    fn get_jsx_runtime_import_specifier(&self, file: P<SourceFile>) -> (String, Option<P<Node>>) {
         self.program.get_jsx_runtime_import_specifier(file.path())
     }
 }

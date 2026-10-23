@@ -589,7 +589,7 @@ impl<H: 'static> NameResolver<H> {
         result
     }
 
-    pub(crate) fn use_outer_variable_scope_in_parameter(
+    fn use_outer_variable_scope_in_parameter(
         &self,
         host: &mut H,
         result: P<Symbol>,
@@ -637,14 +637,14 @@ impl<H: 'static> NameResolver<H> {
         false
     }
 
-    pub(crate) fn requires_scope_change(&self, node: P<Node>) -> bool {
+    fn requires_scope_change(&self, node: P<Node>) -> bool {
         let d = node.as_parameter_declaration();
         self.requires_scope_change_worker(node.name().unwrap())
             || d.initializer()
                 .is_some_and(|initializer| self.requires_scope_change_worker(initializer))
     }
 
-    pub(crate) fn requires_scope_change_worker(&self, node: P<Node>) -> bool {
+    fn requires_scope_change_worker(&self, node: P<Node>) -> bool {
         match node.kind() {
             Kind::ArrowFunction
             | Kind::FunctionExpression
@@ -678,7 +678,7 @@ impl<H: 'static> NameResolver<H> {
         }
     }
 
-    pub(crate) fn error(
+    fn error(
         &self,
         host: &mut H,
         location: Option<P<Node>>,
@@ -691,11 +691,7 @@ impl<H: 'static> NameResolver<H> {
         // Default implementation does not report errors
     }
 
-    pub(crate) fn get_symbol_of_declaration(
-        &self,
-        host: &mut H,
-        node: P<Node>,
-    ) -> Option<P<Symbol>> {
+    fn get_symbol_of_declaration(&self, host: &mut H, node: P<Node>) -> Option<P<Symbol>> {
         if let Some(get_symbol_of_declaration) = self.get_symbol_of_declaration {
             return get_symbol_of_declaration(host, node);
         }
@@ -704,7 +700,7 @@ impl<H: 'static> NameResolver<H> {
         node.symbol()
     }
 
-    pub(crate) fn lookup(
+    fn lookup(
         &self,
         host: &mut H,
         symbols: Option<P<SymbolTable>>,
@@ -724,7 +720,7 @@ impl<H: 'static> NameResolver<H> {
         None
     }
 
-    pub(crate) fn arguments_symbol(&self) -> P<Symbol> {
+    fn arguments_symbol(&self) -> P<Symbol> {
         if let Some(arguments_symbol) = self.arguments_symbol.get() {
             return arguments_symbol;
         }
@@ -753,7 +749,7 @@ pub fn get_local_symbol_for_export_default(symbol: P<Symbol>) -> Option<P<Symbol
     None
 }
 
-pub fn is_export_default_symbol(symbol: Option<P<Symbol>>) -> bool {
+fn is_export_default_symbol(symbol: Option<P<Symbol>>) -> bool {
     let Some(symbol) = symbol else {
         return false;
     };
@@ -837,7 +833,7 @@ fn is_pass_through_scope_kind(kind: Kind) -> bool {
 /// tsrs: name resolution asks this of every ancestor of a reference (131M calls on the 38k-file codebase), and only
 /// these kinds can answer true; the test itself is out of line.
 #[inline]
-pub fn get_is_deferred_context(location: P<Node>, last_location: Option<P<Node>>) -> bool {
+fn get_is_deferred_context(location: P<Node>, last_location: Option<P<Node>>) -> bool {
     let kind = location.kind();
     if !matches!(
         kind,
@@ -874,10 +870,7 @@ fn get_is_deferred_context_worker(location: P<Node>, last_location: Option<P<Nod
     ast::get_immediately_invoked_function_expression(location).is_none()
 }
 
-pub fn is_type_parameter_symbol_declared_in_container(
-    symbol: P<Symbol>,
-    container: P<Node>,
-) -> bool {
+fn is_type_parameter_symbol_declared_in_container(symbol: P<Symbol>, container: P<Node>) -> bool {
     if symbol.declarations().iter().any(|&decl| {
         if decl.kind() == Kind::TypeParameter {
             let parent = decl.parent();
@@ -893,7 +886,7 @@ pub fn is_type_parameter_symbol_declared_in_container(
     false
 }
 
-pub fn is_self_reference_location(node: P<Node>, last_location: Option<P<Node>>) -> bool {
+fn is_self_reference_location(node: P<Node>, last_location: Option<P<Node>>) -> bool {
     match node.kind() {
         Kind::Parameter => last_location.is_some() && last_location == node.name(),
         Kind::FunctionDeclaration

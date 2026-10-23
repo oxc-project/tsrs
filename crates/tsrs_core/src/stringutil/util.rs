@@ -267,7 +267,7 @@ pub fn truncate_by_runes(str: &str, max_length: usize) -> &str {
 // SurrogateLowStart is the boundary between the high and low halves of the
 // UTF-16 surrogate range. unicode/utf16 only exposes IsSurrogate for the
 // whole range, so this split point is defined here to distinguish the two.
-pub const SURROGATE_LOW_START: Rune = 0xDC00;
+const SURROGATE_LOW_START: Rune = 0xDC00;
 
 pub fn is_high_surrogate(ch: Rune) -> bool {
     is_surrogate(ch) && ch < SURROGATE_LOW_START
@@ -277,7 +277,7 @@ pub fn is_low_surrogate(ch: Rune) -> bool {
     is_surrogate(ch) && ch >= SURROGATE_LOW_START
 }
 
-pub fn is_surrogate(ch: Rune) -> bool {
+pub(super) fn is_surrogate(ch: Rune) -> bool {
     (0xD800..0xE000).contains(&ch)
 }
 

@@ -1,8 +1,8 @@
 use super::*;
 
 // using.go:11
-pub struct UsingDeclarationTransformer {
-    pub base: Transformer,
+struct UsingDeclarationTransformer {
+    base: Transformer,
 
     export_bindings: RefCell<Option<FxHashMap<&'static str, P<Node>>>>,
     export_binding_names: RefCell<Vec<&'static str>>,

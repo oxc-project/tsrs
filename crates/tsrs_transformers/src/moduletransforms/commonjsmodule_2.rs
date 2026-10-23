@@ -30,7 +30,7 @@ impl CommonJSModuleTransformer {
 
     // Creates a call to the current file's export function to export a value.
     // commonjsmodule.go:577
-    pub(crate) fn create_export_statement(
+    fn create_export_statement(
         &self,
         name: P<Node>,
         value: P<Node>,
@@ -145,7 +145,7 @@ impl CommonJSModuleTransformer {
 
     // Creates a `require()` call to import an external module.
     // commonjsmodule.go:680
-    pub(crate) fn create_require_call(
+    fn create_require_call(
         &self,
         node: P<Node>, /*ImportDeclaration | ImportEqualsDeclaration | ExportDeclaration*/
     ) -> P<Node> {

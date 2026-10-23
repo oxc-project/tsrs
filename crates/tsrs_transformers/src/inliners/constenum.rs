@@ -1,8 +1,8 @@
 use crate::*;
 use tsrs_checker::LiteralValue;
 
-pub struct ConstEnumInliningTransformer {
-    pub base: Transformer,
+struct ConstEnumInliningTransformer {
+    base: Transformer,
     compiler_options: P<CompilerOptions>,
     emit_resolver: Option<Resolver>,
 }

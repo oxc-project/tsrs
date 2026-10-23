@@ -37,8 +37,8 @@ pub fn get_parsed_command_line(
 }
 
 pub struct VfsParseConfigHost {
-    pub vfs: &'static dyn FS,
-    pub current_directory: String,
+    pub(crate) vfs: &'static dyn FS,
+    pub(crate) current_directory: String,
 }
 
 impl ParseConfigHost for VfsParseConfigHost {

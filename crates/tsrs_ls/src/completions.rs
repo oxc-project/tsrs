@@ -188,8 +188,8 @@ impl CompletionItem {
 #[derive(Clone, Debug, Default)]
 pub struct CompletionList {
     pub is_incomplete: bool,
-    pub item_defaults: Option<lsproto::CompletionItemDefaults>,
-    pub apply_kind: Option<lsproto::CompletionItemApplyKinds>,
+    pub(crate) item_defaults: Option<lsproto::CompletionItemDefaults>,
+    pub(crate) apply_kind: Option<lsproto::CompletionItemApplyKinds>,
     pub items: Vec<CompletionItem>,
 }
 
@@ -312,12 +312,12 @@ impl CompletionDataData {
 // completions.go:195
 pub struct CompletionDataKeyword {
     pub(crate) keyword_completions: Vec<CompletionItem>,
-    pub(crate) is_new_identifier_location: bool,
+    is_new_identifier_location: bool,
 }
 
 // completions.go:204
 pub struct CompletionDataJSDocParameterName {
-    pub(crate) tag: P<Node>,
+    tag: P<Node>,
 }
 
 // completions.go:208
@@ -356,7 +356,7 @@ pub enum KeywordCompletionFilters {
 }
 
 impl KeywordCompletionFilters {
-    pub const LAST: KeywordCompletionFilters = KeywordCompletionFilters::TypeKeyword;
+    pub(crate) const LAST: KeywordCompletionFilters = KeywordCompletionFilters::TypeKeyword;
 }
 
 // completions.go:239
@@ -467,7 +467,7 @@ pub struct SymbolOriginInfo {
 }
 
 impl SymbolOriginInfo {
-    pub(crate) fn with_kind(kind: symbolOriginInfoKind) -> SymbolOriginInfo {
+    fn with_kind(kind: symbolOriginInfoKind) -> SymbolOriginInfo {
         SymbolOriginInfo { kind, ..Default::default() }
     }
 
@@ -520,13 +520,13 @@ pub struct SymbolOriginInfoTypeOnlyAlias {
         dead_code,
         reason = "Go has no reader yet either: `!!! fill in additionalTextEdits from code actions` (completions.go:5712)"
     )]
-    pub(crate) declaration: P<Node>,
+    declaration: P<Node>,
 }
 
 // completions.go:339
 #[derive(Clone)]
 pub struct SymbolOriginInfoComputedPropertyName {
-    pub(crate) symbol_name: String,
+    symbol_name: String,
 }
 
 // Special values for `CompletionInfo['source']` used to disambiguate
@@ -572,7 +572,7 @@ impl CompletionList {
         clippy::wrong_self_convention,
         reason = "The method name and mutable receiver match the upstream Go operation."
     )]
-    pub fn to_lsp(self) -> lsproto::CompletionList {
+    fn to_lsp(self) -> lsproto::CompletionList {
         let mut items = Vec::with_capacity(self.items.len());
         items.extend(self.items.into_iter().map(|entry| entry.completion_item));
         lsproto::CompletionList {
@@ -586,7 +586,7 @@ impl CompletionList {
 
 impl LanguageService {
     // completions.go:402
-    pub(crate) fn get_completions_at_position_internal(
+    fn get_completions_at_position_internal(
         &self,
         ctx: &Context,
         file: P<SourceFile>,

@@ -341,7 +341,7 @@ fn compose(
 
 /// Parsed `RequestFileSystem` params.
 pub struct RequestParams {
-    pub kind: Kind,
+    pub(crate) kind: Kind,
     files: Vec<(String, String)>,
     directories: Vec<(String, Entries)>,
     symlinks: Vec<(String, String, bool)>,
@@ -445,7 +445,7 @@ impl RequestParams {
 /// Go `requestFileSystem`.
 #[derive(Clone)]
 pub struct RequestFileSystem {
-    pub kind: Kind,
+    kind: Kind,
     base: Arc<dyn FS>,
     /// `base` as the snapshot sees it: the host file system, or (after rebasing) the snapshot overlay layer.
     base_ref: FsRef,
@@ -593,7 +593,7 @@ impl RequestFileSystem {
         Ok(r)
     }
 
-    pub fn is_full(&self) -> bool {
+    pub(crate) fn is_full(&self) -> bool {
         self.kind == Kind::Full
     }
 

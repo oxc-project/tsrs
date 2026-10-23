@@ -10,9 +10,9 @@ use crate::namemap::{BUILD_NAME_MAP, COMPILER_NAME_MAP, NameMap};
 
 pub struct DidYouMeanOptionsDiagnostics {
     pub(crate) alternate_mode: Option<AlternateModeDiagnostics>,
-    pub option_declarations: Vec<&'static CommandLineOption>,
-    pub unknown_option_diagnostic: &'static Message,
-    pub unknown_did_you_mean_diagnostic: &'static Message,
+    pub(crate) option_declarations: Vec<&'static CommandLineOption>,
+    pub(crate) unknown_option_diagnostic: &'static Message,
+    pub(crate) unknown_did_you_mean_diagnostic: &'static Message,
 }
 
 pub struct AlternateModeDiagnostics {
@@ -22,7 +22,7 @@ pub struct AlternateModeDiagnostics {
 
 pub struct ParseCommandLineWorkerDiagnostics {
     pub(crate) did_you_mean: DidYouMeanOptionsDiagnostics,
-    pub option_type_mismatch_diagnostic: &'static Message,
+    pub(crate) option_type_mismatch_diagnostic: &'static Message,
 }
 
 pub static COMPILER_OPTIONS_DID_YOU_MEAN_DIAGNOSTICS: LazyLock<ParseCommandLineWorkerDiagnostics> =

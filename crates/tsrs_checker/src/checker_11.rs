@@ -61,7 +61,7 @@ impl Checker {
     // without copying non-partial entries of the non-augmented cache into the augmented one: an augmented lookup
     // that misses reads them from the non-augmented cache, which is what the copy would have given it.
     #[cfg_attr(feature = "site-counts", track_caller)]
-    pub(crate) fn get_union_or_intersection_property_lazy_cache(
+    fn get_union_or_intersection_property_lazy_cache(
         &mut self,
         t: P<Type>,
         name: &str,
@@ -427,9 +427,9 @@ impl Checker {
 /// `collections.OrderedMap[string, int]` in `somePropertyReducesToNever`).
 #[derive(Default)]
 pub struct NameCounts {
-    pub(crate) lists: Vec<&'static [P<Symbol>]>,
+    lists: Vec<&'static [P<Symbol>]>,
     /// (name, name hash, count), in first-occurrence order.
-    pub(crate) entries: Vec<(&'static str, u32, i32)>,
+    entries: Vec<(&'static str, u32, i32)>,
     /// Open addressing over `entries`: 0 is empty, otherwise an entry index plus one.
     table: Vec<u32>,
 }
@@ -477,7 +477,7 @@ pub fn is_prototype_property(symbol: P<Symbol>) -> bool {
 
 impl Checker {
     // checker.go:22041
-    pub(crate) fn has_common_declaration(symbols: &[P<Symbol>]) -> bool {
+    fn has_common_declaration(symbols: &[P<Symbol>]) -> bool {
         let mut common_declarations: OrderedSet<P<Node>> = OrderedSet::default();
         for symbol in symbols {
             let symbol_declarations = symbol.declarations();
@@ -547,7 +547,7 @@ impl Checker {
     /// tsrs: the case that returns `t` itself (no flag below and not mapped: most object types) inline; called about
     /// 1.8G times on the 38k-file codebase, where the out-of-line body spent most of its instructions on its frame.
     #[inline]
-    pub fn get_apparent_type(&mut self, t: P<Type>) -> P<Type> {
+    pub(crate) fn get_apparent_type(&mut self, t: P<Type>) -> P<Type> {
         const SLOW: TypeFlags = TypeFlags::Instantiable
             .union(TypeFlags::Intersection)
             .union(TypeFlags::StringLike)
@@ -602,7 +602,7 @@ impl Checker {
     }
 
     // checker.go:22126
-    pub(crate) fn get_apparent_type_of_mapped_type(&mut self, t: P<Type>) -> P<Type> {
+    fn get_apparent_type_of_mapped_type(&mut self, t: P<Type>) -> P<Type> {
         let m = t.as_mapped_type();
         if m.resolved_apparent_type.get().is_none() {
             let resolved = self.get_resolved_apparent_type_of_mapped_type(t);
@@ -612,7 +612,7 @@ impl Checker {
     }
 
     // checker.go:22134
-    pub(crate) fn get_resolved_apparent_type_of_mapped_type(&mut self, t: P<Type>) -> P<Type> {
+    fn get_resolved_apparent_type_of_mapped_type(&mut self, t: P<Type>) -> P<Type> {
         let target = t.as_mapped_type().target.get().unwrap_or(t);
         let type_variable = self.get_homomorphic_type_variable(target);
         if let Some(type_variable) = type_variable
@@ -654,7 +654,7 @@ impl Checker {
     }
 
     // checker.go:22158
-    pub(crate) fn get_apparent_type_of_intersection_type(
+    fn get_apparent_type_of_intersection_type(
         &mut self,
         t: P<Type>,
         this_argument: P<Type>,
@@ -695,7 +695,7 @@ impl Checker {
     // checker.go:22181
     /// The common no-op cases inline; the rest (a large frame) out of line.
     #[inline]
-    pub fn get_reduced_type(&mut self, t: P<Type>) -> P<Type> {
+    pub(crate) fn get_reduced_type(&mut self, t: P<Type>) -> P<Type> {
         let flags = t.flags();
         if !flags.intersects(TypeFlags::UnionOrIntersection)
             || flags.intersects(TypeFlags::Union)
@@ -745,7 +745,7 @@ impl Checker {
     }
 
     // checker.go:22206
-    pub(crate) fn is_mapping_of_same_object_type(&mut self, types: &[P<Type>]) -> bool {
+    fn is_mapping_of_same_object_type(&mut self, types: &[P<Type>]) -> bool {
         if !types.is_empty() && types[0].object_flags().intersects(ObjectFlags::Mapped) {
             let first_type = self.get_modifiers_type_from_mapped_type(types[0]);
             if first_type.flags().intersects(TypeFlags::Object) {
@@ -762,7 +762,7 @@ impl Checker {
     }
 
     // checker.go:22220
-    pub(crate) fn some_property_reduces_to_never(&mut self, t: P<Type>) -> bool {
+    fn some_property_reduces_to_never(&mut self, t: P<Type>) -> bool {
         // Collect declaration counts for each property across all constituent types of the intersection.
         // A name that occurs in more than one constituent occurs in one other than skipped, so skipped
         // only needs its members looked up, which may not resolve them.
@@ -833,7 +833,7 @@ impl Checker {
     }
 
     // checker.go:22240
-    pub(crate) fn get_reduced_union_type(&mut self, union_type: P<Type>) -> P<Type> {
+    fn get_reduced_union_type(&mut self, union_type: P<Type>) -> P<Type> {
         let types = union_type.types();
         let mut reduced_types: Option<Vec<P<Type>>> = None;
         for (i, &t) in types.iter().enumerate() {
@@ -860,7 +860,7 @@ impl Checker {
     }
 
     // checker.go:22252
-    pub(crate) fn is_never_reduced_property(&mut self, prop: P<Symbol>) -> bool {
+    fn is_never_reduced_property(&mut self, prop: P<Symbol>) -> bool {
         self.is_discriminant_with_never_type(prop) || is_conflicting_private_property(prop)
     }
 
@@ -945,7 +945,7 @@ pub fn is_conflicting_private_property(prop: P<Symbol>) -> bool {
 
 impl Checker {
     // checker.go:22289
-    pub fn get_type_arguments(&mut self, t: P<Type>) -> &'static [P<Type>] {
+    pub(crate) fn get_type_arguments(&mut self, t: P<Type>) -> &'static [P<Type>] {
         let d = t.as_type_reference();
         if d.resolved_type_arguments.get().is_none() {
             let n = d.target.get().unwrap().as_interface_type();
@@ -1027,7 +1027,7 @@ impl Checker {
 
     // Gets the minimum number of type arguments needed to satisfy all non-optional type parameters.
     // checker.go:22334
-    pub fn get_min_type_argument_count(type_parameters: &[P<Type>]) -> usize {
+    pub(crate) fn get_min_type_argument_count(type_parameters: &[P<Type>]) -> usize {
         let mut min_type_argument_count = 0;
         min_type_argument_count = type_parameters.iter().enumerate().fold(
             min_type_argument_count,
@@ -1043,7 +1043,7 @@ impl Checker {
     }
 
     // checker.go:22344
-    pub(crate) fn has_type_parameter_default(t: P<Type>) -> bool {
+    fn has_type_parameter_default(t: P<Type>) -> bool {
         match t.symbol() {
             Some(symbol) => symbol.declarations().iter().any(|&d| {
                 is_type_parameter_declaration(d)
@@ -1054,7 +1054,7 @@ impl Checker {
     }
 
     // checker.go:22350
-    pub fn fill_missing_type_arguments<'a>(
+    pub(crate) fn fill_missing_type_arguments<'a>(
         &mut self,
         type_arguments: &'a [P<Type>],
         type_parameters: &[P<Type>],
@@ -1103,7 +1103,7 @@ impl Checker {
     }
 
     // checker.go:22382
-    pub(crate) fn get_default_type_argument_type(&self, is_in_java_script_file: bool) -> P<Type> {
+    fn get_default_type_argument_type(&self, is_in_java_script_file: bool) -> P<Type> {
         if is_in_java_script_file {
             return self.any_type;
         }
@@ -1409,7 +1409,7 @@ fn active_mapper_cache_key(t: P<Type>, alias: Option<P<TypeAlias>>) -> CacheHash
 
 impl Checker {
     // checker.go:22551
-    pub(crate) fn get_circular_type_names(&mut self) -> Vec<String> {
+    fn get_circular_type_names(&mut self) -> Vec<String> {
         let mut type_counts: FxHashMap<P<Type>, usize> = FxHashMap::default();
         let mut circular_type_names: Vec<String> = Vec::new();
         let stack = self.instantiation_stack.clone();
@@ -1436,7 +1436,7 @@ impl Checker {
     }
 
     // checker.go:22571
-    pub(crate) fn push_active_mapper(&mut self, mapper: P<TypeMapper>) {
+    fn push_active_mapper(&mut self, mapper: P<TypeMapper>) {
         self.active_mappers.push(mapper);
         // Go reuses a cleared map left in the slice capacity by popActiveMapper (here: a pool of cleared maps).
         let cache = self.free_type_mapper_caches.pop().unwrap_or_default();
@@ -1444,7 +1444,7 @@ impl Checker {
     }
 
     // checker.go:22586
-    pub(crate) fn pop_active_mapper(&mut self) {
+    fn pop_active_mapper(&mut self) {
         self.active_mappers.pop();
         // Go clears the map and leaves it in the list for later reuse.
         let mut cache = self.active_type_mappers_caches.pop().unwrap();
@@ -1458,7 +1458,7 @@ impl Checker {
     }
 
     // checker.go:22596
-    pub(crate) fn find_active_mapper(&self, mapper: P<TypeMapper>) -> Option<usize> {
+    fn find_active_mapper(&self, mapper: P<TypeMapper>) -> Option<usize> {
         find_last_index(&self.active_mappers, |&m| m == mapper)
     }
 
@@ -1522,7 +1522,7 @@ impl Checker {
     }
 
     // checker.go:22626
-    pub(crate) fn is_non_generic_top_level_type(t: P<Type>) -> bool {
+    fn is_non_generic_top_level_type(t: P<Type>) -> bool {
         if let Some(alias) = t.alias()
             && alias.type_arguments().is_empty()
         {
@@ -1547,7 +1547,7 @@ impl Checker {
     }
 
     // checker.go:22645
-    pub(crate) fn instantiate_type_worker(
+    fn instantiate_type_worker(
         &mut self,
         t: P<Type>,
         m: P<TypeMapper>,
@@ -1702,7 +1702,7 @@ impl Checker {
     // InstantiationExpressionType (ObjectFlagsInstantiationExpressionType)
     // MappedType (ObjectFlagsMapped)
     // checker.go:22729
-    pub(crate) fn get_object_type_instantiation(
+    fn get_object_type_instantiation(
         &mut self,
         t: P<Type>,
         m: Option<P<TypeMapper>>,
@@ -1902,7 +1902,7 @@ impl Checker {
     }
 
     // The `containsReference` closure of isTypeParameterPossiblyReferenced (checker.go:22830).
-    pub(crate) fn type_parameter_contains_reference(&mut self, tp: P<Type>, node: P<Node>) -> bool {
+    fn type_parameter_contains_reference(&mut self, tp: P<Type>, node: P<Node>) -> bool {
         match node.kind() {
             Kind::ThisType => {
                 return tp.as_type_parameter().is_this_type();
@@ -1960,7 +1960,7 @@ impl Checker {
     }
 
     // checker.go:22883
-    pub(crate) fn instantiate_anonymous_type(
+    fn instantiate_anonymous_type(
         &mut self,
         t: P<Type>,
         m: P<TypeMapper>,
@@ -2024,7 +2024,7 @@ impl Checker {
 
     // notes/mem-lazy.md L5: the effective mapper is combineTypeMappers(m1, mapper), which is only used to compute the
     // type arguments, so it is applied in place instead of being allocated.
-    pub(crate) fn get_conditional_type_instantiation_ex(
+    fn get_conditional_type_instantiation_ex(
         &mut self,
         t: P<Type>,
         m1: Option<P<TypeMapper>>,
@@ -2180,7 +2180,7 @@ impl Checker {
     }
 
     // checker.go:22960
-    pub(crate) fn instantiate_mapped_type(
+    fn instantiate_mapped_type(
         &mut self,
         t: P<Type>,
         m: P<TypeMapper>,
@@ -2269,7 +2269,7 @@ impl Checker {
     }
 
     // checker.go:23005
-    pub(crate) fn has_array_or_type_type_constraint(&mut self, type_variable: P<Type>) -> bool {
+    fn has_array_or_type_type_constraint(&mut self, type_variable: P<Type>) -> bool {
         let constraint = self.get_constraint_of_type_parameter(type_variable);
         match constraint {
             Some(constraint) => {
@@ -2280,7 +2280,7 @@ impl Checker {
     }
 
     // checker.go:23010
-    pub(crate) fn instantiate_mapped_array_type(
+    fn instantiate_mapped_array_type(
         &mut self,
         array_type: P<Type>,
         mapped_type: P<Type>,
@@ -2303,7 +2303,7 @@ impl Checker {
     }
 
     // checker.go:23018
-    pub(crate) fn instantiate_mapped_tuple_type(
+    fn instantiate_mapped_tuple_type(
         &mut self,
         tuple_type: P<Type>,
         mapped_type: P<Type>,
@@ -2374,7 +2374,7 @@ impl Checker {
     }
 
     // checker.go:23071
-    pub(crate) fn instantiate_mapped_type_template(
+    fn instantiate_mapped_type_template(
         &mut self,
         t: P<Type>,
         key: P<Type>,
@@ -2543,11 +2543,7 @@ impl Checker {
     }
 
     // checker.go:23167
-    pub(crate) fn instantiate_reverse_mapped_type(
-        &mut self,
-        t: P<Type>,
-        m: P<TypeMapper>,
-    ) -> P<Type> {
+    fn instantiate_reverse_mapped_type(&mut self, t: P<Type>, m: P<TypeMapper>) -> P<Type> {
         let r = t.as_reverse_mapped_type();
         let inner_mapped_type = self.instantiate_type(r.mapped_type.get().unwrap(), Some(m));
         if !inner_mapped_type.object_flags().intersects(ObjectFlags::Mapped) {
@@ -2586,7 +2582,7 @@ impl Checker {
 
     /// `instantiate_type_alias` for the alias argument of a cached type constructor (`AliasArg::Pending`): the type
     /// arguments are instantiated here, like Go, the `TypeAlias` is allocated only if a type is created with it.
-    pub(crate) fn instantiate_type_alias_pending(
+    fn instantiate_type_alias_pending(
         &mut self,
         alias: Option<P<TypeAlias>>,
         m: Option<P<TypeMapper>>,
@@ -2608,7 +2604,7 @@ impl Checker {
     /// `instantiate_types` for callers that only read the result: `None` when no element changed (where Go's
     /// `instantiateList` returns its input), else the new list in a buffer to hand back with `free_type_list`.
     /// Instantiates the same elements in the same order.
-    pub(crate) fn instantiate_types_changed(
+    fn instantiate_types_changed(
         &mut self,
         types: &[P<Type>],
         m: P<TypeMapper>,
@@ -2666,7 +2662,7 @@ impl Checker {
     // `core.Same(result, values)` compare the elements, which is equivalent because a new slice is only built
     // when some element changed.
     // checker.go:23208
-    pub(crate) fn instantiate_list<T: Copy + Eq + std::hash::Hash>(
+    fn instantiate_list<T: Copy + Eq + std::hash::Hash>(
         &mut self,
         values: &[T],
         m: Option<P<TypeMapper>>,
@@ -2696,13 +2692,13 @@ impl Checker {
     }
 
     // checker.go:23232
-    pub fn get_type_from_type_node(&mut self, node: P<Node>) -> P<Type> {
+    pub(crate) fn get_type_from_type_node(&mut self, node: P<Node>) -> P<Type> {
         let t = self.get_type_from_type_node_worker(node);
         self.get_conditional_flow_type_of_type(t, Some(node))
     }
 
     // checker.go:23236
-    pub(crate) fn get_type_from_type_node_worker(&mut self, node: P<Node>) -> P<Type> {
+    fn get_type_from_type_node_worker(&mut self, node: P<Node>) -> P<Type> {
         match node.kind() {
             Kind::AnyKeyword | Kind::JSDocAllType => self.any_type,
             Kind::JSDocNonNullableType | Kind::ParenthesizedType => {
@@ -2775,7 +2771,7 @@ impl Checker {
     }
 
     // checker.go:23333
-    pub(crate) fn get_this_type(&mut self, node: P<Node>) -> P<Type> {
+    fn get_this_type(&mut self, node: P<Node>) -> P<Type> {
         let container = ast::get_this_container(
             node, false, /*includeArrowFunctions*/
             false, /*includeClassComputedPropertyName*/
@@ -2797,7 +2793,7 @@ impl Checker {
     }
 
     // checker.go:23347
-    pub(crate) fn get_type_from_literal_type_node(&mut self, node: P<Node>) -> P<Type> {
+    fn get_type_from_literal_type_node(&mut self, node: P<Node>) -> P<Type> {
         if node.as_literal_type_node().literal.kind() == Kind::NullKeyword {
             return self.null_type;
         }
@@ -2858,7 +2854,7 @@ impl Checker {
     }
 
     // checker.go:23385
-    pub(crate) fn get_type_from_type_operator_node(&mut self, node: P<Node>) -> P<Type> {
+    fn get_type_from_type_operator_node(&mut self, node: P<Node>) -> P<Type> {
         let links = self.type_node_links.get(node);
         if links.resolved_type.get().is_none() {
             let arg_type = node.type_node().unwrap();
@@ -2938,7 +2934,7 @@ impl Checker {
     }
 
     // checker.go:23445
-    pub(crate) fn get_distributed_type_parameter(&mut self, node: P<Node>, t: P<Type>) -> P<Type> {
+    fn get_distributed_type_parameter(&mut self, node: P<Node>, t: P<Type>) -> P<Type> {
         if t.flags().intersects(TypeFlags::TypeParameter)
             && !t.as_type_parameter().is_distributed.get()
         {
@@ -2964,7 +2960,7 @@ impl Checker {
     }
 
     // checker.go:23460
-    pub(crate) fn get_distributed_type_from_type_parameter(&mut self, t: P<Type>) -> P<Type> {
+    fn get_distributed_type_from_type_parameter(&mut self, t: P<Type>) -> P<Type> {
         let tp = t.as_type_parameter();
         if tp.distributed_type.get().is_none() {
             let distributed_type = self.new_type_parameter(t.symbol());
@@ -3073,7 +3069,7 @@ impl Checker {
     }
 
     // checker.go:23538
-    pub(crate) fn get_symbol_from_type_reference(&mut self, node: P<Node>) -> P<Symbol> {
+    fn get_symbol_from_type_reference(&mut self, node: P<Node>) -> P<Symbol> {
         let links = self.symbol_node_links.get(node);
         if links.resolved_symbol.get().is_none() {
             // The `const` in a `const` assertion resolves to nothing; resolveName knows not to
@@ -3331,7 +3327,7 @@ impl Checker {
     // resolve their constituent types. We include SyntaxKind.TypeReference because type arguments
     // of type aliases are eagerly resolved.
     // checker.go:23718
-    pub(crate) fn is_resolved_by_type_alias(node: P<Node>) -> bool {
+    fn is_resolved_by_type_alias(node: P<Node>) -> bool {
         let parent = node.parent().unwrap();
         match parent.kind() {
             Kind::ParenthesizedType
@@ -3352,7 +3348,7 @@ impl Checker {
     // Return true if resolving the given node (i.e. getTypeFromTypeNode) possibly causes resolution
     // of a type alias.
     // checker.go:23732
-    pub(crate) fn may_resolve_type_alias(&mut self, node: P<Node>) -> bool {
+    fn may_resolve_type_alias(&mut self, node: P<Node>) -> bool {
         match node.kind() {
             Kind::TypeReference => self
                 .resolve_type_reference_name(node, SymbolFlags::Type, false)
@@ -3500,7 +3496,7 @@ impl Checker {
 
 impl TupleNormalizer {
     // checker.go:23825
-    pub(crate) fn normalize(
+    fn normalize(
         &mut self,
         c: &mut Checker,
         element_types: &[P<Type>],
@@ -3595,7 +3591,7 @@ impl TupleNormalizer {
     }
 
     // checker.go:23891
-    pub(crate) fn add(&mut self, c: &mut Checker, t: P<Type>, info: TupleElementInfo) {
+    fn add(&mut self, c: &mut Checker, t: P<Type>, info: TupleElementInfo) {
         if info.flags.intersects(ElementFlags::Required) {
             self.last_required_index = Some(self.types.len());
         }
@@ -3659,7 +3655,7 @@ impl Checker {
     }
 
     // checker.go:23942
-    pub fn is_array_type(&self, t: P<Type>) -> bool {
+    pub(crate) fn is_array_type(&self, t: P<Type>) -> bool {
         t.object_flags().intersects(ObjectFlags::Reference)
             && (t.target() == Some(self.global_array_type)
                 || t.target() == Some(self.global_readonly_array_type))

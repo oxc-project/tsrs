@@ -105,7 +105,7 @@ impl EmitResolver {
     }
 
     // emitresolver.go:111
-    pub(crate) fn is_declaration_visible(&self, c: &mut Checker, node: Option<P<Node>>) -> bool {
+    fn is_declaration_visible(&self, c: &mut Checker, node: Option<P<Node>>) -> bool {
         // node = r.emitContext.ParseNode(node)
         let Some(node) = node else {
             return false;
@@ -126,11 +126,7 @@ impl EmitResolver {
     }
 
     // emitresolver.go:131
-    pub(crate) fn determine_if_declaration_is_visible(
-        &self,
-        c: &mut Checker,
-        node: P<Node>,
-    ) -> bool {
+    fn determine_if_declaration_is_visible(&self, c: &mut Checker, node: P<Node>) -> bool {
         match node.kind() {
             Kind::JSDocCallbackTag
             // | Kind::JSDocEnumTag // !!! TODO: JSDoc @enum support?
@@ -259,7 +255,7 @@ pub fn is_common_js_module_exports(node: P<Node>) -> bool {
 
 impl EmitResolver {
     // emitresolver.go:260
-    pub(crate) fn alias_marking_visitor_worker(&self, c: &mut Checker, node: P<Node>) -> bool {
+    fn alias_marking_visitor_worker(&self, c: &mut Checker, node: P<Node>) -> bool {
         match node.kind() {
             Kind::BinaryExpression => {
                 if is_common_js_module_exports(node)
@@ -284,7 +280,7 @@ impl EmitResolver {
     // Sets the isVisible link on statements the Identifier or ExportName node points at
     // Follows chains of import d = a.b.c
     // emitresolver.go:278
-    pub(crate) fn mark_linked_aliases(&self, c: &mut Checker, node: P<Node>) {
+    fn mark_linked_aliases(&self, c: &mut Checker, node: P<Node>) {
         let mut export_symbol: Option<P<Symbol>> = None;
         if node.kind() != Kind::StringLiteral
             && node
@@ -788,7 +784,7 @@ impl EmitResolver {
     }
 
     // emitresolver.go:605
-    pub(crate) fn requires_adding_implicit_undefined_worker(
+    fn requires_adding_implicit_undefined_worker(
         &self,
         c: &mut Checker,
         parameter: P<Node>,
@@ -804,7 +800,7 @@ impl EmitResolver {
         clippy::unused_self,
         reason = "EmitResolver methods implement the instance resolver API used by declaration and JavaScript transforms."
     )]
-    pub(crate) fn declared_parameter_type_contains_undefined(
+    fn declared_parameter_type_contains_undefined(
         &self,
         c: &mut Checker,
         parameter: P<Node>,
@@ -821,7 +817,7 @@ impl EmitResolver {
     }
 
     // emitresolver.go:622
-    pub(crate) fn is_optional_uninitialized_parameter_property(
+    fn is_optional_uninitialized_parameter_property(
         &self,
         c: &mut Checker,
         parameter: P<Node>,
@@ -833,7 +829,7 @@ impl EmitResolver {
     }
 
     // emitresolver.go:629
-    pub(crate) fn is_required_initialized_parameter(
+    fn is_required_initialized_parameter(
         &self,
         c: &mut Checker,
         parameter: P<Node>,
@@ -856,7 +852,7 @@ impl EmitResolver {
         clippy::unused_self,
         reason = "EmitResolver methods implement the instance resolver API used by declaration and JavaScript transforms."
     )]
-    pub(crate) fn is_optional_parameter(&self, c: &mut Checker, node: P<Node>) -> bool {
+    fn is_optional_parameter(&self, c: &mut Checker, node: P<Node>) -> bool {
         c.is_optional_parameter(node)
     }
 
@@ -986,7 +982,7 @@ impl EmitResolver {
     }
 
     // emitresolver.go:735
-    pub(crate) fn is_value_alias_declaration_worker(&self, c: &mut Checker, node: P<Node>) -> bool {
+    fn is_value_alias_declaration_worker(&self, c: &mut Checker, node: P<Node>) -> bool {
         match node.kind() {
             Kind::ImportEqualsDeclaration => {
                 let symbol = c.get_symbol_of_declaration(node);
@@ -1044,7 +1040,7 @@ impl EmitResolver {
         clippy::unused_self,
         reason = "EmitResolver methods implement the instance resolver API used by declaration and JavaScript transforms."
     )]
-    pub(crate) fn is_alias_resolved_to_value(
+    fn is_alias_resolved_to_value(
         &self,
         c: &mut Checker,
         symbol: Option<P<Symbol>>,
@@ -1162,7 +1158,7 @@ impl EmitResolver {
     }
 
     // emitresolver.go:842
-    pub(crate) fn get_reference_resolver(&self, c: &Checker) -> P<ReferenceResolver<Checker>> {
+    fn get_reference_resolver(&self, c: &Checker) -> P<ReferenceResolver<Checker>> {
         *self.reference_resolver.get_or_init(|| {
             tsrs_binder::new_reference_resolver(
                 c.compiler_options,

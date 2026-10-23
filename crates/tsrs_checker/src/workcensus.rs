@@ -22,7 +22,7 @@ use tsrs_ast::{Node, Symbol};
 use tsrs_core::P;
 
 /// `TSRS_WORK_CENSUS_SLOW`=<ms>: print spans of a few categories that take longer (diagnosis only).
-pub fn slow_threshold_ns() -> u64 {
+pub(crate) fn slow_threshold_ns() -> u64 {
     static NS: OnceLock<u64> = OnceLock::new();
     *NS.get_or_init(|| {
         std::env::var("TSRS_WORK_CENSUS_SLOW")
@@ -33,7 +33,7 @@ pub fn slow_threshold_ns() -> u64 {
 }
 
 /// The output file; None unless the binary was built with `-p tsrs_checker --features tsrs_checker/work-census` and `TSRS_WORK_CENSUS` is set.
-pub fn census_path() -> Option<&'static str> {
+pub(crate) fn census_path() -> Option<&'static str> {
     static PATH: OnceLock<Option<String>> = OnceLock::new();
 
     if !cfg!(feature = "work-census") {
@@ -111,15 +111,15 @@ pub enum CKey {
 
 #[derive(Default, Clone, Copy)]
 pub struct Stat {
-    pub count: u64,
-    pub outer: u64,
-    pub incl_ns: u64,
+    pub(crate) count: u64,
+    outer: u64,
+    pub(crate) incl_ns: u64,
     /// Inclusive time of the spans not enclosed by a span with the same (category, active key).
-    pub key_incl_ns: u64,
-    pub self_ns: u64,
-    pub a: u64,
-    pub b: u64,
-    pub c: u64,
+    pub(crate) key_incl_ns: u64,
+    pub(crate) self_ns: u64,
+    pub(crate) a: u64,
+    pub(crate) b: u64,
+    c: u64,
 }
 
 #[derive(Clone, Copy)]
@@ -130,10 +130,10 @@ pub struct Span {
 
 #[derive(Clone, Copy)]
 pub struct Timing {
-    pub incl_ns: u64,
-    pub self_ns: u64,
-    pub outer: bool,
-    pub key_outer: bool,
+    pub(crate) incl_ns: u64,
+    pub(crate) self_ns: u64,
+    pub(crate) outer: bool,
+    pub(crate) key_outer: bool,
 }
 
 struct Frame {
@@ -151,35 +151,35 @@ pub struct Census {
     stack: Vec<Frame>,
     depth: [u32; CAT_COUNT],
     active: FxHashMap<(Cat, CKey), u32>,
-    pub frames: u64,
-    pub stats: FxHashMap<(Cat, CKey), Stat>,
+    frames: u64,
+    pub(crate) stats: FxHashMap<(Cat, CKey), Stat>,
     /// Distribution fan-out per conditional root and size bucket: count, constituents, never results, time.
-    pub fanout: FxHashMap<(P<ConditionalRoot>, u32), Stat>,
+    pub(crate) fanout: FxHashMap<(P<ConditionalRoot>, u32), Stat>,
     /// structuredTypeRelatedTo pairs (source id, target id) -> relation kinds seen.
-    pub rel_pairs: FxHashMap<(u32, u32), u8>,
+    pub(crate) rel_pairs: FxHashMap<(u32, u32), u8>,
     /// recursiveTypeRelatedTo cache per relation kind: hit, miss, maybe-stack hit.
-    pub rel_cache: [[u64; 3]; 6],
+    pub(crate) rel_cache: [[u64; 3]; 6],
     /// inferTypeArguments keyed by (signature, argument types, check mode, contextual type): count, time, first
     /// call node, repeats at another call node.
-    pub infer_keys: FxHashMap<u128, (u32, u64, usize, u32, Option<P<Node>>)>,
-    pub infer_args: Vec<u32>,
+    pub(crate) infer_keys: FxHashMap<u128, (u32, u64, usize, u32, Option<P<Node>>)>,
+    pub(crate) infer_args: Vec<u32>,
     pub infer_key_ok: Vec<bool>,
     /// Flow: steps walked in the current invocations (stack), per-invocation histogram, sampled re-walks.
-    pub flow_steps: u64,
-    pub flow_stack: Vec<(u64, u64, Option<u64>)>,
-    pub flow_hist: [Stat; 24],
-    pub flow_seen: FxHashSet<(u64, usize)>,
-    pub flow_sampled_steps: u64,
-    pub flow_sampled_repeats: u64,
-    pub flow_sampled_invocations: u64,
+    pub(crate) flow_steps: u64,
+    pub(crate) flow_stack: Vec<(u64, u64, Option<u64>)>,
+    pub(crate) flow_hist: [Stat; 24],
+    pub(crate) flow_seen: FxHashSet<(u64, usize)>,
+    pub(crate) flow_sampled_steps: u64,
+    pub(crate) flow_sampled_repeats: u64,
+    pub(crate) flow_sampled_invocations: u64,
     /// typeRelatedToSomeType outcomes: (source kind, key property state, exit) -> count, constituents tried, time.
-    pub rel_union: FxHashMap<(u8, u8, u8), Stat>,
+    pub(crate) rel_union: FxHashMap<(u8, u8, u8), Stat>,
     /// typeRelatedToSomeType loops: (union size bucket, 0 late success / 1 late success an index would find / 2 no
     /// success) -> calls, failed checks, of which cache hits, time in failed checks.
-    pub rel_union_late: FxHashMap<(u8, u8), Stat>,
+    pub(crate) rel_union_late: FxHashMap<(u8, u8), Stat>,
     /// The callee of the innermost resolveCall (for checkExpressionWithContextualType).
-    pub call_stack: Vec<Option<P<Node>>>,
-    pub file_wall_ns: u64,
+    pub(crate) call_stack: Vec<Option<P<Node>>>,
+    pub(crate) file_wall_ns: u64,
 }
 
 pub(crate) fn bucket(n: usize) -> u32 {
@@ -191,7 +191,7 @@ fn bucket_label(b: u32) -> String {
 }
 
 impl Census {
-    pub fn new() -> Box<Census> {
+    pub(crate) fn new() -> Box<Census> {
         let mut c = Box::new(Census {
             epoch: Instant::now(),
             pair_ns: 0.0,
@@ -241,7 +241,7 @@ impl Census {
     }
 
     #[inline]
-    pub fn begin(&mut self, cat: Cat, key: CKey) -> Span {
+    fn begin(&mut self, cat: Cat, key: CKey) -> Span {
         self.depth[cat as usize] += 1;
         *self.active.entry((cat, key)).or_insert(0) += 1;
         let start = self.now();
@@ -250,7 +250,7 @@ impl Census {
     }
 
     #[inline]
-    pub fn end(&mut self, span: Span) -> Timing {
+    fn end(&mut self, span: Span) -> Timing {
         let now = self.now();
         self.pending_end = now;
         let f = self.stack.pop().unwrap();
@@ -275,7 +275,7 @@ impl Census {
         Timing { incl_ns: incl, self_ns, outer, key_outer }
     }
 
-    pub fn record(&mut self, cat: Cat, key: CKey, t: Timing, a: u64, b: u64, c: u64) {
+    pub(crate) fn record(&mut self, cat: Cat, key: CKey, t: Timing, a: u64, b: u64, c: u64) {
         let s = self.stats.entry((cat, key)).or_default();
         s.count += 1;
         if t.outer {
@@ -294,7 +294,7 @@ impl Census {
 
     /// Charges the time since the last span's end (its record) to the enclosing span as overhead.
     #[inline]
-    pub fn charge_bookkeeping(&mut self) {
+    pub(crate) fn charge_bookkeeping(&mut self) {
         let now = self.now();
         let spent = now.saturating_sub(self.pending_end);
         self.pending_end = now;
@@ -304,13 +304,13 @@ impl Census {
     }
 
     #[inline]
-    pub fn now_ns(&self) -> u64 {
+    pub(crate) fn now_ns(&self) -> u64 {
         self.now()
     }
 
     /// Charges the time since `t0` to the innermost open span as overhead.
     #[inline]
-    pub fn charge_since(&mut self, t0: u64) {
+    pub(crate) fn charge_since(&mut self, t0: u64) {
         let now = self.now();
         if let Some(parent) = self.stack.last_mut() {
             parent.overhead_ns += now.saturating_sub(t0);
@@ -641,7 +641,7 @@ fn ms(ns: u64) -> f64 {
 }
 
 /// Writes the collected census to the file named by `TSRS_WORK_CENSUS`.
-pub fn census_report() {
+fn census_report() {
     let Some(path) = census_path() else { return };
     let guard = GLOBAL.lock().unwrap();
     let Some(g) = guard.as_ref() else { return };

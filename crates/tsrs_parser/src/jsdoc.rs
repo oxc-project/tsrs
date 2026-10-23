@@ -125,7 +125,7 @@ impl Parser {
         &[]
     }
 
-    pub(crate) fn parse_jsdoc_type_expression(&mut self, may_omit_braces: bool) -> P<Node> {
+    fn parse_jsdoc_type_expression(&mut self, may_omit_braces: bool) -> P<Node> {
         let pos = self.node_pos();
         let has_brace = if may_omit_braces {
             self.parse_optional(Kind::OpenBraceToken)
@@ -144,7 +144,7 @@ impl Parser {
         self.finish_node(node, pos)
     }
 
-    pub(crate) fn parse_jsdoc_name_reference(&mut self) -> P<Node> {
+    fn parse_jsdoc_name_reference(&mut self) -> P<Node> {
         let pos = self.node_pos();
         let has_brace = self.parse_optional(Kind::OpenBraceToken);
         let entity_name = self.parse_jsdoc_link_name();
@@ -158,7 +158,7 @@ impl Parser {
         self.finish_node(node, pos)
     }
 
-    pub(crate) fn parse_jsdoc_comment(
+    fn parse_jsdoc_comment(
         &mut self,
         _parent: P<Node>,
         start: u32,
@@ -215,7 +215,7 @@ impl Parser {
      * @param offset - the offset in the containing file
      * @param indent - the number of spaces to consider as the margin (applies to non-first lines only)
      */
-    pub(crate) fn parse_jsdoc_comment_worker(
+    fn parse_jsdoc_comment_worker(
         &mut self,
         start: u32,
         end: u32,
@@ -418,7 +418,7 @@ impl Parser {
         self.finish_node_with_end(jsdoc_comment, full_start, end)
     }
 
-    pub(crate) fn is_next_nonwhitespace_token_end_of_file(&mut self) -> bool {
+    fn is_next_nonwhitespace_token_end_of_file(&mut self) -> bool {
         // We must use infinite lookahead, as there could be any number of newlines :(
         loop {
             self.next_token_jsdoc();
@@ -431,7 +431,7 @@ impl Parser {
         }
     }
 
-    pub(crate) fn skip_whitespace(&mut self) {
+    fn skip_whitespace(&mut self) {
         if (self.token == Kind::WhitespaceTrivia || self.token == Kind::NewLineTrivia)
             && self.look_ahead(Parser::is_next_nonwhitespace_token_end_of_file)
         {
@@ -443,7 +443,7 @@ impl Parser {
         }
     }
 
-    pub(crate) fn skip_whitespace_or_asterisk(&mut self) -> String {
+    fn skip_whitespace_or_asterisk(&mut self) -> String {
         if (self.token == Kind::WhitespaceTrivia || self.token == Kind::NewLineTrivia)
             && self.look_ahead(Parser::is_next_nonwhitespace_token_end_of_file)
         {
@@ -484,7 +484,7 @@ impl Parser {
         }
     }
 
-    pub(crate) fn parse_tag(&mut self, tags: &[P<Node>], margin: u32) -> P<Node> {
+    fn parse_tag(&mut self, tags: &[P<Node>], margin: u32) -> P<Node> {
         assert!(self.token == Kind::AtToken, "should be called only at the start of a tag");
         let start = self.scanner.token_start();
         self.next_token_jsdoc();
@@ -565,7 +565,7 @@ impl Parser {
         }
     }
 
-    pub(crate) fn parse_trailing_tag_comments(
+    fn parse_trailing_tag_comments(
         &mut self,
         pos: u32,
         end: u32,
@@ -584,7 +584,7 @@ impl Parser {
         self.parse_tag_comments(margin, Some(initial_margin))
     }
 
-    pub(crate) fn parse_tag_comments(
+    fn parse_tag_comments(
         &mut self,
         indent: u32,
         initial_margin: Option<&'static str>,
@@ -765,7 +765,7 @@ impl Parser {
         result
     }
 
-    pub(crate) fn parse_jsdoc_link(&mut self, start: u32) -> Option<P<Node>> {
+    fn parse_jsdoc_link(&mut self, start: u32) -> Option<P<Node>> {
         let state = self.mark();
         let Some(link_type) = self.parse_jsdoc_link_prefix() else {
             self.rewind(state);
@@ -793,7 +793,7 @@ impl Parser {
         Some(self.finish_node_with_end(create, start, end))
     }
 
-    pub(crate) fn parse_jsdoc_link_name(&mut self) -> Option<P<Node>> {
+    fn parse_jsdoc_link_name(&mut self) -> Option<P<Node>> {
         if token_is_identifier_or_keyword(self.token) {
             let pos = self.node_pos();
             let mut name = self.parse_identifier_name();
@@ -819,7 +819,7 @@ impl Parser {
         None
     }
 
-    pub(crate) fn parse_jsdoc_link_prefix(&mut self) -> Option<&'static str> {
+    fn parse_jsdoc_link_prefix(&mut self) -> Option<&'static str> {
         self.skip_whitespace_or_asterisk();
         if self.token == Kind::OpenBraceToken
             && self.next_token_jsdoc() == Kind::AtToken
@@ -833,7 +833,7 @@ impl Parser {
         None
     }
 
-    pub(crate) fn parse_unknown_tag(
+    fn parse_unknown_tag(
         &mut self,
         start: u32,
         tag_name: P<Node>,
@@ -846,7 +846,7 @@ impl Parser {
         self.finish_node(node, start)
     }
 
-    pub(crate) fn try_parse_type_expression(&mut self) -> Option<P<Node>> {
+    fn try_parse_type_expression(&mut self) -> Option<P<Node>> {
         self.skip_whitespace_or_asterisk();
         if self.token == Kind::OpenBraceToken {
             Some(self.parse_jsdoc_type_expression(false /*mayOmitBraces*/))
@@ -855,7 +855,7 @@ impl Parser {
         }
     }
 
-    pub(crate) fn parse_bracket_name_in_property_and_param_tag(
+    fn parse_bracket_name_in_property_and_param_tag(
         &mut self,
         target: PropertyLikeParse,
     ) -> (P<Node>, bool) {
@@ -887,7 +887,7 @@ impl Parser {
         (name, is_bracketed)
     }
 
-    pub(crate) fn parse_parameter_or_property_tag(
+    fn parse_parameter_or_property_tag(
         &mut self,
         start: u32,
         tag_name: P<Node>,
@@ -931,7 +931,7 @@ impl Parser {
         self.finish_node(result, start)
     }
 
-    pub(crate) fn parse_nested_type_literal(
+    fn parse_nested_type_literal(
         &mut self,
         type_expression: Option<P<Node>>,
         name: P<Node>,
@@ -976,7 +976,7 @@ impl Parser {
         None
     }
 
-    pub(crate) fn parse_return_tag(
+    fn parse_return_tag(
         &mut self,
         previous_tags: &[P<Node>],
         start: u32,
@@ -1001,7 +1001,7 @@ impl Parser {
         self.finish_node(node, start)
     }
 
-    pub(crate) fn parse_type_tag(
+    fn parse_type_tag(
         &mut self,
         previous_tags: &[P<Node>],
         start: u32,
@@ -1029,7 +1029,7 @@ impl Parser {
         self.finish_node(node, start)
     }
 
-    pub(crate) fn parse_see_tag(
+    fn parse_see_tag(
         &mut self,
         start: u32,
         tag_name: P<Node>,
@@ -1050,7 +1050,7 @@ impl Parser {
         self.finish_node(node, start)
     }
 
-    pub(crate) fn parse_implements_tag(
+    fn parse_implements_tag(
         &mut self,
         start: u32,
         tag_name: P<Node>,
@@ -1064,7 +1064,7 @@ impl Parser {
         self.finish_node(node, start)
     }
 
-    pub(crate) fn parse_augments_tag(
+    fn parse_augments_tag(
         &mut self,
         start: u32,
         tag_name: P<Node>,
@@ -1078,7 +1078,7 @@ impl Parser {
         self.finish_node(node, start)
     }
 
-    pub(crate) fn parse_satisfies_tag(
+    fn parse_satisfies_tag(
         &mut self,
         start: u32,
         tag_name: P<Node>,
@@ -1092,7 +1092,7 @@ impl Parser {
         self.finish_node(node, start)
     }
 
-    pub(crate) fn parse_throws_tag(
+    fn parse_throws_tag(
         &mut self,
         start: u32,
         tag_name: P<Node>,
@@ -1106,7 +1106,7 @@ impl Parser {
         self.finish_node(node, start)
     }
 
-    pub(crate) fn parse_import_tag(
+    fn parse_import_tag(
         &mut self,
         start: u32,
         tag_name: P<Node>,
@@ -1141,7 +1141,7 @@ impl Parser {
         self.finish_node(node, start)
     }
 
-    pub(crate) fn parse_expression_with_type_arguments_for_augments(&mut self) -> P<Node> {
+    fn parse_expression_with_type_arguments_for_augments(&mut self) -> P<Node> {
         let used_brace = self.parse_optional(Kind::OpenBraceToken);
         let pos = self.node_pos();
         let expression = self.parse_property_access_entity_name_expression();
@@ -1157,7 +1157,7 @@ impl Parser {
         node
     }
 
-    pub(crate) fn parse_property_access_entity_name_expression(&mut self) -> P<Node> {
+    fn parse_property_access_entity_name_expression(&mut self) -> P<Node> {
         let pos = self.node_pos();
         let mut node = self.parse_jsdoc_identifier_name(Some(&diagnostics::IDENTIFIER_EXPECTED));
         while self.parse_optional(Kind::DotToken) {
@@ -1169,7 +1169,7 @@ impl Parser {
         node
     }
 
-    pub(crate) fn parse_simple_tag(
+    fn parse_simple_tag(
         &mut self,
         start: u32,
         create_tag: impl FnOnce(&mut Parser, P<Node>, Option<P<NodeList>>) -> P<Node>,
@@ -1183,7 +1183,7 @@ impl Parser {
         self.finish_node(node, start)
     }
 
-    pub(crate) fn parse_this_tag(
+    fn parse_this_tag(
         &mut self,
         start: u32,
         tag_name: P<Node>,
@@ -1198,7 +1198,7 @@ impl Parser {
         self.finish_node(result, start)
     }
 
-    pub(crate) fn parse_jsdoc_type_name_with_namespace(&mut self, nested: bool) -> Option<P<Node>> {
+    fn parse_jsdoc_type_name_with_namespace(&mut self, nested: bool) -> Option<P<Node>> {
         let start = self.scanner.token_start();
         if !token_is_identifier_or_keyword(self.token) {
             return None;
@@ -1227,7 +1227,7 @@ impl Parser {
         Some(type_name_or_namespace_name)
     }
 
-    pub(crate) fn parse_typedef_tag(
+    fn parse_typedef_tag(
         &mut self,
         start: u32,
         tag_name: P<Node>,
@@ -1348,7 +1348,7 @@ impl Parser {
         typedef_tag
     }
 
-    pub(crate) fn parse_callback_tag_parameters(&mut self, indent: u32) -> P<NodeList> {
+    fn parse_callback_tag_parameters(&mut self, indent: u32) -> P<NodeList> {
         let mut parameters: Vec<P<Node>> = Vec::new();
         let pos = self.node_pos();
         loop {
@@ -1376,7 +1376,7 @@ impl Parser {
         self.new_node_list(TextRange::new(pos, end), &parameters)
     }
 
-    pub(crate) fn parse_jsdoc_signature(&mut self, start: u32, indent: u32) -> P<Node> {
+    fn parse_jsdoc_signature(&mut self, start: u32, indent: u32) -> P<Node> {
         let parameters = self.parse_callback_tag_parameters(indent);
         let mut return_tag = None;
         let state = self.mark();
@@ -1393,7 +1393,7 @@ impl Parser {
         self.finish_node(node, start)
     }
 
-    pub(crate) fn parse_callback_tag(
+    fn parse_callback_tag(
         &mut self,
         start: u32,
         tag_name: P<Node>,
@@ -1423,7 +1423,7 @@ impl Parser {
         self.finish_node_with_end(node, start, end)
     }
 
-    pub(crate) fn parse_overload_tag(
+    fn parse_overload_tag(
         &mut self,
         start: u32,
         tag_name: P<Node>,
@@ -1446,11 +1446,11 @@ impl Parser {
         self.finish_node_with_end(node, start, end)
     }
 
-    pub(crate) fn parse_child_property_tag(&mut self, indent: u32) -> Option<P<Node>> {
+    fn parse_child_property_tag(&mut self, indent: u32) -> Option<P<Node>> {
         self.parse_child_parameter_or_property_tag(PropertyLikeParse::Property, indent, None)
     }
 
-    pub(crate) fn parse_child_parameter_or_property_tag(
+    fn parse_child_parameter_or_property_tag(
         &mut self,
         target: PropertyLikeParse,
         indent: u32,
@@ -1499,11 +1499,7 @@ impl Parser {
         }
     }
 
-    pub(crate) fn try_parse_child_tag(
-        &mut self,
-        target: PropertyLikeParse,
-        indent: u32,
-    ) -> Option<P<Node>> {
+    fn try_parse_child_tag(&mut self, target: PropertyLikeParse, indent: u32) -> Option<P<Node>> {
         assert!(self.token == Kind::AtToken, "should only be called when at @");
         let start = self.scanner.token_full_start();
         self.next_token_jsdoc();
@@ -1537,7 +1533,7 @@ impl Parser {
         Some(self.parse_parameter_or_property_tag(start, tag_name, target, indent))
     }
 
-    pub(crate) fn parse_template_tag_type_parameter(&mut self) -> Option<P<Node>> {
+    fn parse_template_tag_type_parameter(&mut self) -> Option<P<Node>> {
         let type_parameter_pos = self.node_pos();
         let is_bracketed = self.parse_optional_jsdoc(Kind::OpenBracketToken);
         if is_bracketed {
@@ -1572,7 +1568,7 @@ impl Parser {
         Some(self.finish_node(node, type_parameter_pos))
     }
 
-    pub(crate) fn parse_template_tag_type_parameters(&mut self) -> P<NodeList> {
+    fn parse_template_tag_type_parameters(&mut self) -> P<NodeList> {
         let mut nodes: Vec<P<Node>> = Vec::new();
         loop {
             // do-while loop
@@ -1590,7 +1586,7 @@ impl Parser {
         self.new_node_list(TextRange::new(0, 0), &nodes)
     }
 
-    pub(crate) fn parse_template_tag(
+    fn parse_template_tag(
         &mut self,
         start: u32,
         tag_name: P<Node>,
@@ -1620,7 +1616,7 @@ impl Parser {
         self.finish_node(result, start)
     }
 
-    pub(crate) fn parse_optional_jsdoc(&mut self, t: Kind) -> bool {
+    fn parse_optional_jsdoc(&mut self, t: Kind) -> bool {
         if self.token == t {
             self.next_token_jsdoc();
             return true;
@@ -1628,10 +1624,7 @@ impl Parser {
         false
     }
 
-    pub(crate) fn parse_jsdoc_entity_name(
-        &mut self,
-        diagnostic_message: Option<&'static Message>,
-    ) -> P<Node> {
+    fn parse_jsdoc_entity_name(&mut self, diagnostic_message: Option<&'static Message>) -> P<Node> {
         let mut entity = self.parse_jsdoc_identifier_name(diagnostic_message);
         if self.parse_optional(Kind::OpenBracketToken) {
             self.parse_expected(Kind::CloseBracketToken);
@@ -1651,7 +1644,7 @@ impl Parser {
         entity
     }
 
-    pub(crate) fn parse_jsdoc_identifier_name(
+    fn parse_jsdoc_identifier_name(
         &mut self,
         diagnostic_message: Option<&'static Message>,
     ) -> P<Node> {

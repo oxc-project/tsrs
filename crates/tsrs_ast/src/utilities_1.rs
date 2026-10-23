@@ -14,7 +14,7 @@ static NEXT_SYMBOL_BLOCK_ID: AtomicU64 = AtomicU64::new(0);
 
 /// Go reserves this part of the 64-bit id space for ids assigned by the checker's dense link stores.
 pub const BLOCK_ID_OFFSET: u64 = 0x1_0000_0000_0000;
-pub const BLOCK_ID_SIZE: u32 = tsrs_core::LINK_PAGE_SIZE as u32;
+const BLOCK_ID_SIZE: u32 = tsrs_core::LINK_PAGE_SIZE as u32;
 
 // Nodes and symbols keep a 32-bit id in the AST. The high bit tags a block id; the remaining bits are its
 // offset from BLOCK_ID_OFFSET. This preserves the Go-visible 64-bit id without enlarging every AST object.
@@ -538,7 +538,7 @@ pub fn is_optional_chain(node: P<Node>) -> bool {
     false
 }
 
-pub(crate) fn get_question_dot_token(node: P<Node>) -> Option<P<Node>> {
+fn get_question_dot_token(node: P<Node>) -> Option<P<Node>> {
     node.question_dot_token()
 }
 
@@ -581,7 +581,7 @@ pub fn is_assertion_expression(node: P<Node>) -> bool {
     kind == Kind::TypeAssertionExpression || kind == Kind::AsExpression
 }
 
-pub(crate) fn is_left_hand_side_expression_kind(kind: Kind) -> bool {
+fn is_left_hand_side_expression_kind(kind: Kind) -> bool {
     matches!(
         kind,
         Kind::PropertyAccessExpression
@@ -623,7 +623,7 @@ pub fn is_left_hand_side_expression(node: P<Node>) -> bool {
     is_left_hand_side_expression_kind(skip_partially_emitted_expressions(node).kind())
 }
 
-pub(crate) fn is_unary_expression_kind(kind: Kind) -> bool {
+fn is_unary_expression_kind(kind: Kind) -> bool {
     match kind {
         Kind::PrefixUnaryExpression
         | Kind::PostfixUnaryExpression
@@ -636,7 +636,7 @@ pub(crate) fn is_unary_expression_kind(kind: Kind) -> bool {
     }
 }
 
-pub(crate) fn is_expression_kind(kind: Kind) -> bool {
+fn is_expression_kind(kind: Kind) -> bool {
     match kind {
         Kind::ConditionalExpression
         | Kind::YieldExpression
@@ -685,7 +685,7 @@ pub fn is_access_expression(node: P<Node>) -> bool {
     node.kind() == Kind::PropertyAccessExpression || node.kind() == Kind::ElementAccessExpression
 }
 
-pub(crate) fn is_function_like_declaration_kind(kind: Kind) -> bool {
+fn is_function_like_declaration_kind(kind: Kind) -> bool {
     matches!(
         kind,
         Kind::FunctionDeclaration
@@ -843,7 +843,7 @@ pub fn is_jsx_attribute_like(node: P<Node>) -> bool {
     is_jsx_attribute(node) || is_jsx_spread_attribute(node)
 }
 
-pub(crate) fn is_declaration_statement_kind(kind: Kind) -> bool {
+fn is_declaration_statement_kind(kind: Kind) -> bool {
     matches!(
         kind,
         Kind::FunctionDeclaration
@@ -909,7 +909,7 @@ pub fn is_statement(node: P<Node>) -> bool {
 
 // Determines whether a node is a BlockStatement. If parents are available, this ensures the Block is
 // not part of a `try` statement, `catch` clause, or the Block-like body of a function
-pub(crate) fn is_block_statement(node: P<Node>) -> bool {
+fn is_block_statement(node: P<Node>) -> bool {
     if node.kind() != Kind::Block {
         return false;
     }
@@ -1672,10 +1672,7 @@ pub fn is_bindable_static_access_expression(node: P<Node>, exclude_this_keyword:
         || is_bindable_static_element_access_expression(node, exclude_this_keyword)
 }
 
-pub fn is_bindable_static_element_access_expression(
-    node: P<Node>,
-    exclude_this_keyword: bool,
-) -> bool {
+fn is_bindable_static_element_access_expression(node: P<Node>, exclude_this_keyword: bool) -> bool {
     is_literal_like_element_access(node)
         && ((!exclude_this_keyword && node.expression().unwrap().kind() == Kind::ThisKeyword)
             || is_entity_name_expression(node.expression().unwrap())
@@ -1694,7 +1691,7 @@ pub fn is_prototype_access(node: P<Node>) -> bool {
     false
 }
 
-pub fn is_literal_like_element_access(node: P<Node>) -> bool {
+fn is_literal_like_element_access(node: P<Node>) -> bool {
     is_element_access_expression(node)
         && is_string_or_numeric_literal_like(
             node.as_element_access_expression().argument_expression,

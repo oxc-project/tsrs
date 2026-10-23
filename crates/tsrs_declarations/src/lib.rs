@@ -58,6 +58,6 @@ mod util;
 
 pub(crate) use diagnostics_::*;
 pub use supplementalreferences::*;
-pub use tracker::*;
+pub(crate) use tracker::*;
 pub use transform_1::*;
 pub(crate) use util::*;

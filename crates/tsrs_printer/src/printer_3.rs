@@ -115,7 +115,7 @@ impl Printer {
         }
     }
 
-    pub(crate) fn has_trailing_comma(&self, parent_node: P<Node>, children: P<NodeList>) -> bool {
+    fn has_trailing_comma(&self, parent_node: P<Node>, children: P<NodeList>) -> bool {
         // NodeList.HasTrailingComma() is unreliable on transformed nodes as some nodes may have been removed. In the event
         // we believe we may need to emit a trailing comma, we must first look to the respective node list on the original
         // node first.
@@ -194,7 +194,7 @@ impl Printer {
         false
     }
 
-    pub(crate) fn write_delimiter(&mut self, format: ListFormat) {
+    fn write_delimiter(&mut self, format: ListFormat) {
         let delimiter = format & ListFormat::DelimitersMask;
         if delimiter == ListFormat::None {
             // no delimiter for this format
@@ -521,7 +521,7 @@ impl Printer {
         self.emit(source_file.as_node(), Some(source_file))
     }
 
-    pub(crate) fn set_source_file(&mut self, source_file: Option<P<SourceFile>>) {
+    fn set_source_file(&mut self, source_file: Option<P<SourceFile>>) {
         self.set_current_source_file(source_file);
         self.unique_helper_names = None;
         self.external_helpers_module_name = None;
@@ -706,7 +706,7 @@ impl Printer {
 //
 
 impl Printer {
-    pub(crate) fn emit_comments_before_node(&mut self, node: P<Node>) -> Option<CommentState> {
+    fn emit_comments_before_node(&mut self, node: P<Node>) -> Option<CommentState> {
         if !self.should_emit_comments(node) {
             return None;
         }
@@ -733,7 +733,7 @@ impl Printer {
         })
     }
 
-    pub(crate) fn emit_comments_after_node(&mut self, node: P<Node>, state: Option<CommentState>) {
+    fn emit_comments_after_node(&mut self, node: P<Node>, state: Option<CommentState>) {
         let Some(state) = state else {
             return;
         };
@@ -772,7 +772,7 @@ impl Printer {
         }
     }
 
-    pub(crate) fn emit_comments_before_token(
+    fn emit_comments_before_token(
         &mut self,
         _token: Kind,
         pos: TextPos,
@@ -825,7 +825,7 @@ impl Printer {
         (Some(CommentState::default()), pos)
     }
 
-    pub(crate) fn emit_comments_after_token(
+    fn emit_comments_after_token(
         &mut self,
         _token: Kind,
         pos: TextPos,
@@ -902,7 +902,7 @@ impl Printer {
         }
     }
 
-    pub(crate) fn emit_leading_comments_of_node(
+    fn emit_leading_comments_of_node(
         &mut self,
         node: P<Node>,
         emit_flags: EmitFlags,
@@ -953,7 +953,7 @@ impl Printer {
         }
     }
 
-    pub(crate) fn emit_trailing_comments_of_node(
+    fn emit_trailing_comments_of_node(
         &mut self,
         node: P<Node>,
         emit_flags: EmitFlags,
@@ -981,11 +981,7 @@ impl Printer {
         }
     }
 
-    pub(crate) fn emit_leading_synthetic_comments_of_node(
-        &mut self,
-        node: P<Node>,
-        emit_flags: EmitFlags,
-    ) {
+    fn emit_leading_synthetic_comments_of_node(&mut self, node: P<Node>, emit_flags: EmitFlags) {
         if emit_flags.intersects(EmitFlags::NoLeadingComments) {
             return;
         }
@@ -995,7 +991,7 @@ impl Printer {
         }
     }
 
-    pub(crate) fn emit_leading_synthesized_comment(&mut self, comment: &SynthesizedComment) {
+    fn emit_leading_synthesized_comment(&mut self, comment: &SynthesizedComment) {
         if comment.has_leading_new_line || comment.kind == Kind::SingleLineCommentTrivia {
             self.writer().write_line();
         }
@@ -1007,11 +1003,7 @@ impl Printer {
         }
     }
 
-    pub(crate) fn emit_trailing_synthetic_comments_of_node(
-        &mut self,
-        node: P<Node>,
-        emit_flags: EmitFlags,
-    ) {
+    fn emit_trailing_synthetic_comments_of_node(&mut self, node: P<Node>, emit_flags: EmitFlags) {
         if emit_flags.intersects(EmitFlags::NoTrailingComments) {
             return;
         }
@@ -1021,7 +1013,7 @@ impl Printer {
         }
     }
 
-    pub(crate) fn emit_trailing_synthesized_comment(&mut self, comment: &SynthesizedComment) {
+    fn emit_trailing_synthesized_comment(&mut self, comment: &SynthesizedComment) {
         if !self.writer().is_at_start_of_line() {
             self.writer().write_space(" ");
         }
@@ -1032,7 +1024,7 @@ impl Printer {
     }
 }
 
-pub fn format_synthesized_comment(comment: &SynthesizedComment) -> String {
+fn format_synthesized_comment(comment: &SynthesizedComment) -> String {
     if comment.kind == Kind::MultiLineCommentTrivia {
         return format!("/*{}*/", comment.text);
     }
@@ -1040,7 +1032,7 @@ pub fn format_synthesized_comment(comment: &SynthesizedComment) -> String {
 }
 
 impl Printer {
-    pub(crate) fn write_synthesized_comment(&mut self, comment: &SynthesizedComment) {
+    fn write_synthesized_comment(&mut self, comment: &SynthesizedComment) {
         let text = format_synthesized_comment(comment);
         let mut line_map: Vec<u32> = Vec::new();
         if comment.kind == Kind::MultiLineCommentTrivia {
@@ -1054,7 +1046,7 @@ impl Printer {
         );
     }
 
-    pub(crate) fn emit_leading_comments(&mut self, pos: TextPos, elided: bool) -> bool {
+    fn emit_leading_comments(&mut self, pos: TextPos, elided: bool) -> bool {
         // Emit the leading comments only if the container's pos doesn't match because the container should take care of emitting these comments
         let Some(current_source_file) = self.current_source_file() else {
             return false;
@@ -1113,7 +1105,7 @@ impl Printer {
         self.emit_comments(&comments, CommentSeparator::After)
     }
 
-    pub(crate) fn should_emit_comment_if_triple_slash(
+    fn should_emit_comment_if_triple_slash(
         &self,
         comment: CommentRange,
         triple_slash: Tristate,
@@ -1125,7 +1117,7 @@ impl Printer {
         }
     }
 
-    pub(crate) fn should_emit_new_line_before_leading_comment_of_position(
+    fn should_emit_new_line_before_leading_comment_of_position(
         &self,
         pos: u32,
         comment_pos: u32,
@@ -1238,10 +1230,7 @@ impl Printer {
         }
     }
 
-    pub(crate) fn emit_detached_comments_and_update_comments_info(
-        &mut self,
-        text_range: TextRange,
-    ) {
+    fn emit_detached_comments_and_update_comments_info(&mut self, text_range: TextRange) {
         if self.current_source_file().is_none() {
             return;
         }
@@ -1250,10 +1239,7 @@ impl Printer {
         }
     }
 
-    pub(crate) fn emit_detached_comments(
-        &mut self,
-        text_range: TextRange,
-    ) -> Option<DetachedCommentsInfo> {
+    fn emit_detached_comments(&mut self, text_range: TextRange) -> Option<DetachedCommentsInfo> {
         let current_source_file = self.current_source_file()?;
 
         let text = current_source_file.text();
@@ -1366,7 +1352,7 @@ pub enum CommentSeparator {
 }
 
 impl Printer {
-    pub(crate) fn emit_comments(
+    fn emit_comments(
         &mut self,
         comments: &[CommentRange],
         comment_separator: CommentSeparator,
@@ -1404,13 +1390,13 @@ impl Printer {
         true
     }
 
-    pub(crate) fn emit_comment(&mut self, comment: CommentRange) {
+    fn emit_comment(&mut self, comment: CommentRange) {
         self.emit_pos(comment.pos().into());
         self.write_comment_range(comment);
         self.emit_pos(comment.end().into());
     }
 
-    pub(crate) fn is_triple_slash_comment(&self, comment: CommentRange) -> bool {
+    fn is_triple_slash_comment(&self, comment: CommentRange) -> bool {
         self.current_source_file()
             .is_some_and(|f| is_recognized_triple_slash_comment(f.text(), comment))
     }
@@ -1429,7 +1415,7 @@ impl Printer {
     }
 
     // printer.go:5812
-    pub(crate) fn set_source_map_source(&mut self, source: SourceMapSource) {
+    fn set_source_map_source(&mut self, source: SourceMapSource) {
         if self.source_maps_disabled {
             return;
         }
@@ -1460,7 +1446,7 @@ impl Printer {
     }
 
     // printer.go:5840
-    pub(crate) fn emit_pos(&mut self, pos: TextPos) {
+    fn emit_pos(&mut self, pos: TextPos) {
         if self.source_maps_disabled
             || self.source_map_source.is_none()
             || self.source_map_generator.is_none()
@@ -1518,7 +1504,7 @@ impl Printer {
     // TODO: Support emitting nameIndex for source maps (Go emitPosName is commented out)
 
     // printer.go:5904
-    pub(crate) fn emit_source_pos(&mut self, source: Option<SourceMapSource>, pos: TextPos) {
+    fn emit_source_pos(&mut self, source: Option<SourceMapSource>, pos: TextPos) {
         if same_source_map_source(source, self.source_map_source) {
             self.emit_pos(pos);
         } else {
@@ -1535,7 +1521,7 @@ impl Printer {
 
     // TODO: Support emitting nameIndex for source maps (Go emitSourcePosName is commented out)
 
-    pub(crate) fn emit_source_maps_before_node(&mut self, node: P<Node>) -> Option<SourceMapState> {
+    fn emit_source_maps_before_node(&mut self, node: P<Node>) -> Option<SourceMapState> {
         if !self.should_emit_source_maps(node) {
             return None;
         }
@@ -1566,7 +1552,7 @@ impl Printer {
         })
     }
 
-    pub(crate) fn emit_source_maps_after_node(
+    fn emit_source_maps_after_node(
         &mut self,
         node: P<Node>,
         previous_state: Option<SourceMapState>,
@@ -1590,7 +1576,7 @@ impl Printer {
         }
     }
 
-    pub(crate) fn emit_source_maps_before_token(
+    fn emit_source_maps_before_token(
         &mut self,
         token: Kind,
         pos: TextPos,
@@ -1629,7 +1615,7 @@ impl Printer {
         })
     }
 
-    pub(crate) fn emit_source_maps_after_token(
+    fn emit_source_maps_after_token(
         &mut self,
         _token: Kind,
         pos: TextPos,
@@ -1660,7 +1646,7 @@ impl Printer {
 //
 
 impl Printer {
-    pub(crate) fn should_reuse_temp_variable_scope(&self, node: Option<P<Node>>) -> bool {
+    fn should_reuse_temp_variable_scope(&self, node: Option<P<Node>>) -> bool {
         node.is_some_and(|node| {
             self.emit_context.emit_flags(node).intersects(EmitFlags::ReuseTempVariableScope)
         })
@@ -1771,7 +1757,7 @@ impl Printer {
         }
     }
 
-    pub(crate) fn generate_member_names(&mut self, node: Option<P<Node>>) {
+    fn generate_member_names(&mut self, node: Option<P<Node>>) {
         let Some(node) = node else {
             return;
         };
@@ -1996,7 +1982,7 @@ bitflags::bitflags! {
     }
 }
 
-pub fn get_opening_bracket(format: ListFormat) -> &'static str {
+fn get_opening_bracket(format: ListFormat) -> &'static str {
     let brackets = format & ListFormat::BracketsMask;
     if brackets == ListFormat::Braces {
         "{"
@@ -2011,7 +1997,7 @@ pub fn get_opening_bracket(format: ListFormat) -> &'static str {
     }
 }
 
-pub fn get_closing_bracket(format: ListFormat) -> &'static str {
+fn get_closing_bracket(format: ListFormat) -> &'static str {
     let brackets = format & ListFormat::BracketsMask;
     if brackets == ListFormat::Braces {
         "}"

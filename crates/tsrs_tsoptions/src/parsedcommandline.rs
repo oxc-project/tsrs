@@ -25,7 +25,7 @@ impl ParsedCommandLine {
     // fileGlobPatterns returns the include file glob patterns for this command line, augmenting the
     // built-in patterns with the extensions registered by its content mappers so that created
     // content-mapped files are recognized as possible root files.
-    pub(crate) fn file_glob_patterns(&self) -> (String, String) {
+    fn file_glob_patterns(&self) -> (String, String) {
         let mapper_extensions = self.content_mapper_extensions();
         if mapper_extensions.is_empty() {
             return (FILE_GLOB_PATTERN.to_string(), RECURSIVE_FILE_GLOB_PATTERN.to_string());
@@ -235,7 +235,7 @@ impl ParsedCommandLine {
             .clone()
     }
 
-    pub(crate) fn check_source_files_belong_to_path(
+    fn check_source_files_belong_to_path(
         &self,
         source_files: &[String],
         root_directory: &str,
@@ -269,7 +269,7 @@ impl ParsedCommandLine {
         self.compare_paths_options.use_case_sensitive_file_names
     }
 
-    pub(crate) fn get_output_declaration_and_source_file_names(&self) -> Vec<(String, String)> {
+    fn get_output_declaration_and_source_file_names(&self) -> Vec<(String, String)> {
         let options = self.compiler_options().unwrap();
         let mut result = Vec::with_capacity(self.parsed_config.file_names.len());
         result.extend(self.parsed_config.file_names.iter().map(|file_name| {
@@ -350,7 +350,7 @@ impl ParsedCommandLine {
             .as_ref()
     }
 
-    pub fn wildcard_directory_globs(&self) -> &[Glob] {
+    fn wildcard_directory_globs(&self) -> &[Glob] {
         let Some(wildcard_directories) = self.wildcard_directories() else {
             return &[];
         };

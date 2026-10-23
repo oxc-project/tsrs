@@ -5,22 +5,22 @@ use super::*;
 
 // commonjsmodule.go:15
 pub struct CommonJSModuleTransformer {
-    pub base: Transformer,
-    pub(crate) top_level_visitor: OnceCell<NodeVisitor>, // visits statements at top level of a module
-    pub(crate) top_level_nested_visitor: OnceCell<NodeVisitor>, // visits nested statements at top level of a module
-    pub(crate) discarded_value_visitor: OnceCell<NodeVisitor>, // visits expressions whose values would be discarded at runtime
-    pub(crate) assignment_pattern_visitor: OnceCell<NodeVisitor>, // visits assignment patterns in a destructuring assignment
-    pub compiler_options: P<CompilerOptions>,
-    pub resolver: ReferenceResolverRef,
-    pub get_emit_module_format_of_file: Rc<dyn Fn(P<SourceFile>) -> ModuleKind>,
-    pub module_kind: ModuleKind,
-    pub language_version: ScriptTarget,
-    pub current_source_file: Cell<Option<P<SourceFile>>>,
-    pub(crate) current_module_info: RefCell<Option<Rc<ExternalModuleInfo>>>,
-    pub parent_node: Cell<Option<P<Node>>>, // used for ancestor tracking via pushNode/popNode to detect expression identifiers
-    pub current_node: Cell<Option<P<Node>>>, // used for ancestor tracking via pushNode/popNode to detect expression identifiers
-    pub content_mapper_extension_rewrites: Vec<tspath::ExtensionRewrite>,
-    pub use_case_sensitive_file_names: bool,
+    pub(crate) base: Transformer,
+    top_level_visitor: OnceCell<NodeVisitor>, // visits statements at top level of a module
+    top_level_nested_visitor: OnceCell<NodeVisitor>, // visits nested statements at top level of a module
+    discarded_value_visitor: OnceCell<NodeVisitor>, // visits expressions whose values would be discarded at runtime
+    assignment_pattern_visitor: OnceCell<NodeVisitor>, // visits assignment patterns in a destructuring assignment
+    pub(crate) compiler_options: P<CompilerOptions>,
+    pub(crate) resolver: ReferenceResolverRef,
+    pub(crate) get_emit_module_format_of_file: Rc<dyn Fn(P<SourceFile>) -> ModuleKind>,
+    pub(crate) module_kind: ModuleKind,
+    pub(crate) language_version: ScriptTarget,
+    pub(crate) current_source_file: Cell<Option<P<SourceFile>>>,
+    current_module_info: RefCell<Option<Rc<ExternalModuleInfo>>>,
+    pub(crate) parent_node: Cell<Option<P<Node>>>, // used for ancestor tracking via pushNode/popNode to detect expression identifiers
+    current_node: Cell<Option<P<Node>>>, // used for ancestor tracking via pushNode/popNode to detect expression identifiers
+    pub(crate) content_mapper_extension_rewrites: Vec<tspath::ExtensionRewrite>,
+    pub(crate) use_case_sensitive_file_names: bool,
 }
 
 // commonjsmodule.go:32
@@ -81,7 +81,7 @@ impl CommonJSModuleTransformer {
         self.base.visitor()
     }
 
-    pub(crate) fn top_level_visitor(&self) -> NodeVisitor {
+    fn top_level_visitor(&self) -> NodeVisitor {
         self.top_level_visitor.get().unwrap().clone()
     }
 

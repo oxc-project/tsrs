@@ -451,7 +451,7 @@ impl Checker {
     }
 
     // checker.go:1397
-    pub(crate) fn merge_global_symbol(&mut self, symbol: P<Symbol>) {
+    fn merge_global_symbol(&mut self, symbol: P<Symbol>) {
         let global_symbol = self.globals.lookup(symbol.name());
         let merged = if let Some(global_symbol) = global_symbol {
             self.merge_symbol(global_symbol, symbol, false /*unidirectional*/)
@@ -463,7 +463,7 @@ impl Checker {
 
     // Pattern ambient modules are merged together if they have the same pattern and identical import attributes type.
     // checker.go:1409
-    pub(crate) fn merge_pattern_ambient_modules(&mut self) {
+    fn merge_pattern_ambient_modules(&mut self) {
         let mut groups_by_pattern: FxHashMap<String, Vec<usize>> = FxHashMap::default();
         // Go builds fresh `&ast.PatternAmbientModule{...}` values and mutates their Symbol; they are only published at the end.
         let mut grouped: Vec<(tsrs_core::Pattern, P<Symbol>)> =
@@ -507,7 +507,7 @@ impl Checker {
     }
 
     // checker.go:1436
-    pub(crate) fn merge_module_augmentation(&mut self, module_name: P<Node>) {
+    fn merge_module_augmentation(&mut self, module_name: P<Node>) {
         let module_node = module_name.parent().unwrap();
         let module_augmentation_symbol = module_node.symbol().unwrap();
         if module_augmentation_symbol.declarations()[0] != module_node {
@@ -618,7 +618,7 @@ impl Checker {
     }
 
     // checker.go:1493
-    pub(crate) fn add_undefined_to_globals_or_error_on_redeclaration(&mut self) {
+    fn add_undefined_to_globals_or_error_on_redeclaration(&mut self) {
         let name = self.undefined_symbol.name();
         let target_symbol = self.globals.lookup(name);
         if let Some(target_symbol) = target_symbol {
@@ -729,12 +729,12 @@ impl Checker {
     }
 
     // checker.go:1544
-    pub(crate) fn get_requires_scope_change_cache(&mut self, node: P<Node>) -> Tristate {
+    fn get_requires_scope_change_cache(&mut self, node: P<Node>) -> Tristate {
         self.node_links.get(node).declaration_requires_scope_change.get()
     }
 
     // checker.go:1548
-    pub(crate) fn set_requires_scope_change_cache(&mut self, node: P<Node>, value: Tristate) {
+    fn set_requires_scope_change_cache(&mut self, node: P<Node>, value: Tristate) {
         self.node_links.get(node).declaration_requires_scope_change.set(value);
     }
 
@@ -742,7 +742,7 @@ impl Checker {
     // 1. When result is undefined, after checking for a missing "this."
     // 2. When result is defined
     // checker.go:1555
-    pub(crate) fn check_and_report_error_for_invalid_initializer(
+    fn check_and_report_error_for_invalid_initializer(
         &mut self,
         error_location: Option<P<Node>>,
         name: &str,
@@ -780,7 +780,7 @@ impl Checker {
     }
 
     // checker.go:1573
-    pub(crate) fn check_and_report_error_for_missing_prefix(
+    fn check_and_report_error_for_missing_prefix(
         &mut self,
         error_location: P<Node>,
         name: &str,
@@ -837,7 +837,7 @@ impl Checker {
     }
 
     // checker.go:1605
-    pub(crate) fn on_failed_to_resolve_symbol(
+    fn on_failed_to_resolve_symbol(
         &mut self,
         error_location: Option<P<Node>>,
         name: &str,
@@ -922,7 +922,7 @@ impl Checker {
     }
 
     // checker.go:1649
-    pub(crate) fn check_and_report_error_for_using_type_as_namespace(
+    fn check_and_report_error_for_using_type_as_namespace(
         &mut self,
         error_location: P<Node>,
         name: &str,
@@ -970,7 +970,7 @@ impl Checker {
     }
 
     // checker.go:1670
-    pub(crate) fn check_and_report_error_for_exporting_primitive_type(
+    fn check_and_report_error_for_exporting_primitive_type(
         &mut self,
         error_location: P<Node>,
         name: &str,
@@ -996,7 +996,7 @@ pub fn is_primitive_type_name(s: &str) -> bool {
 
 impl Checker {
     // checker.go:1682
-    pub(crate) fn check_and_report_error_for_using_namespace_as_type_or_value(
+    fn check_and_report_error_for_using_namespace_as_type_or_value(
         &mut self,
         error_location: P<Node>,
         name: &str,
@@ -1049,7 +1049,7 @@ impl Checker {
     }
 
     // checker.go:1703
-    pub(crate) fn check_and_report_error_for_using_type_as_value(
+    fn check_and_report_error_for_using_type_as_value(
         &mut self,
         error_location: P<Node>,
         name: &str,
@@ -1145,7 +1145,7 @@ pub fn is_es2015_or_later_constructor_name(s: &str) -> bool {
 
 impl Checker {
     // checker.go:1749
-    pub(crate) fn maybe_mapped_type(&mut self, node: P<Node>, symbol: P<Symbol>) -> bool {
+    fn maybe_mapped_type(&mut self, node: P<Node>, symbol: P<Symbol>) -> bool {
         let mut node = node;
         loop {
             node = node.parent().unwrap();
@@ -1168,7 +1168,7 @@ impl Checker {
     }
 
     // checker.go:1763
-    pub(crate) fn check_and_report_error_for_using_value_as_type(
+    fn check_and_report_error_for_using_value_as_type(
         &mut self,
         error_location: P<Node>,
         name: &str,
@@ -1196,7 +1196,7 @@ impl Checker {
     }
 
     // checker.go:1774
-    pub(crate) fn get_suggested_lib_for_non_existent_name(name: &str) -> String {
+    fn get_suggested_lib_for_non_existent_name(name: &str) -> String {
         let feature_map = get_feature_map();
         if let Some(type_features) = feature_map.get(name) {
             return type_features[0].lib.to_string();
@@ -1206,7 +1206,7 @@ impl Checker {
 
     // location Option<P<Node>>: onFailedToResolveSymbol passes a nil errorLocation (getGlobalSymbol).
     // checker.go:1782
-    pub(crate) fn get_suggested_symbol_for_nonexistent_symbol(
+    fn get_suggested_symbol_for_nonexistent_symbol(
         &mut self,
         location: Option<P<Node>>,
         outer_name: &str,
@@ -1237,7 +1237,7 @@ pub fn get_primitive_type_alias_suggestions(symbols: Option<P<SymbolTable>>) -> 
 
 impl Checker {
     // checker.go:1816
-    pub(crate) fn get_suggestion_for_symbol_name_lookup(
+    fn get_suggestion_for_symbol_name_lookup(
         &mut self,
         symbols: Option<P<SymbolTable>>,
         name: &str,
@@ -1307,7 +1307,7 @@ impl Checker {
     }
 
     // checker.go:1861
-    pub(crate) fn on_successfully_resolved_symbol(
+    fn on_successfully_resolved_symbol(
         &mut self,
         error_location: Option<P<Node>>,
         result: P<Symbol>,
@@ -1463,11 +1463,7 @@ impl Checker {
     }
 
     // checker.go:1929
-    pub(crate) fn check_resolved_block_scoped_variable(
-        &mut self,
-        result: P<Symbol>,
-        error_location: P<Node>,
-    ) {
+    fn check_resolved_block_scoped_variable(&mut self, result: P<Symbol>, error_location: P<Node>) {
         assert!(
             result.flags().intersects(SymbolFlags::BlockScopedVariable)
                 || result.flags().intersects(SymbolFlags::Class)
@@ -1695,7 +1691,7 @@ impl Checker {
     }
 
     // checker.go:2052
-    pub(crate) fn is_used_in_function_or_instance_property(
+    fn is_used_in_function_or_instance_property(
         &mut self,
         usage: P<Node>,
         declaration: P<Node>,

@@ -65,7 +65,7 @@ pub(crate) struct OpenState {
 /// Go `snapshotData`: one registered snapshot plus its per-snapshot registries.
 pub struct SnapshotData {
     pub handle: SnapshotID,
-    pub snapshot: Arc<Snapshot>,
+    pub(crate) snapshot: Arc<Snapshot>,
     /// Request filesystem the snapshot was created with (inherited by updates), if any.
     pub(crate) file_system: Option<Arc<crate::requestfs::RequestFileSystem>>,
     pub(crate) open_state: OpenState,
@@ -231,7 +231,7 @@ impl Session {
         self.build_backend.lock().unwrap().clone()
     }
 
-    pub fn default_library_path(&self) -> &str {
+    pub(crate) fn default_library_path(&self) -> &str {
         if let Some(project_session) = &self.project_session {
             return project_session.default_library_path();
         }
@@ -265,20 +265,20 @@ impl Session {
         self.conn.lock().unwrap().clone()
     }
 
-    pub fn binary_responses(&self) -> bool {
+    pub(crate) fn binary_responses(&self) -> bool {
         self.binary_responses
     }
 
-    pub fn current_directory(&self) -> &str {
+    pub(crate) fn current_directory(&self) -> &str {
         self.snapshot_host.get_current_directory()
     }
 
     /// Go `Session.FS()` for a standalone session: the host filesystem (possibly callback-backed).
-    pub fn base_fs(&self) -> &dyn FS {
+    pub(crate) fn base_fs(&self) -> &dyn FS {
         self.snapshot_host.fs()
     }
 
-    pub fn to_path(&self, file_name: &str) -> tsrs_core::tspath::Path {
+    pub(crate) fn to_path(&self, file_name: &str) -> tsrs_core::tspath::Path {
         tsrs_core::tspath::to_path(
             file_name,
             self.current_directory(),
@@ -286,7 +286,7 @@ impl Session {
         )
     }
 
-    pub fn use_case_sensitive_file_names(&self) -> bool {
+    pub(crate) fn use_case_sensitive_file_names(&self) -> bool {
         self.snapshot_host.fs().use_case_sensitive_file_names()
     }
 
@@ -642,7 +642,7 @@ impl Handler for Session {
 
 /// Runs `f` with a fresh arena region as the allocation target and frees the region afterwards. Only for
 /// work whose result is owned data (JSON values) and that stores nothing arena-allocated in longer-lived state.
-pub(crate) fn scratch<T>(f: impl FnOnce() -> T) -> T {
+fn scratch<T>(f: impl FnOnce() -> T) -> T {
     let region = tsrs_core::arena::Region::new(64 << 10);
     let result = {
         let _scope = region.enter();

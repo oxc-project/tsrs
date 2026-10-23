@@ -70,7 +70,7 @@ impl PseudoChecker {
     }
 
     // lookup.go:69
-    pub(crate) fn type_from_property_assignment(&self, node: P<Node>) -> P<PseudoType> {
+    fn type_from_property_assignment(&self, node: P<Node>) -> P<PseudoType> {
         let annotation = node.type_node();
         if let Some(annotation) = annotation {
             return new_pseudo_type_direct(annotation);
@@ -93,7 +93,7 @@ impl PseudoChecker {
 
     // lookup.go:88
     // This is _not_ redundant with the reparser; see how expandoFunctionSymbolProperty.ts and similar behaves
-    pub(crate) fn type_from_expando_property(node: P<Node>) -> P<PseudoType> {
+    fn type_from_expando_property(node: P<Node>) -> P<PseudoType> {
         let declared_type = node.type_node();
         if let Some(declared_type) = declared_type {
             return new_pseudo_type_direct(declared_type);
@@ -104,7 +104,7 @@ impl PseudoChecker {
     }
 
     // lookup.go:98
-    pub(crate) fn type_from_property(&self, node: P<Node>) -> P<PseudoType> {
+    fn type_from_property(&self, node: P<Node>) -> P<PseudoType> {
         let t = node.type_node();
         if let Some(t) = t {
             return new_pseudo_type_direct(t);
@@ -139,7 +139,7 @@ impl PseudoChecker {
     }
 
     // lookup.go:124
-    pub(crate) fn type_from_variable(&self, declaration: P<Node>) -> P<PseudoType> {
+    fn type_from_variable(&self, declaration: P<Node>) -> P<PseudoType> {
         let t = declaration.type_node();
         if let Some(t) = t {
             return new_pseudo_type_direct(t);
@@ -174,7 +174,7 @@ impl PseudoChecker {
         clippy::unnecessary_wraps,
         reason = "The pseudo-checker accessor hook returns None to let the caller fall back to full checker inference."
     )]
-    pub(crate) fn type_from_accessor(&self, accessor: P<Node>) -> Option<P<PseudoType>> {
+    fn type_from_accessor(&self, accessor: P<Node>) -> Option<P<PseudoType>> {
         let accessor_declarations = {
             let decls = accessor.declaration_data().unwrap().symbol().unwrap().declarations();
             get_all_accessor_declarations_for_declaration(accessor, decls)
@@ -209,7 +209,7 @@ impl PseudoChecker {
     }
 
     // lookup.go:166
-    pub(crate) fn get_type_annotation_from_all_accessor_declarations(
+    fn get_type_annotation_from_all_accessor_declarations(
         node: P<Node>,
         accessors: AllAccessorDeclarations,
     ) -> Option<P<Node>> {
@@ -227,7 +227,7 @@ impl PseudoChecker {
     }
 
     // lookup.go:177
-    pub(crate) fn get_type_annotation_from_accessor(node: P<Node>) -> Option<P<Node>> {
+    fn get_type_annotation_from_accessor(node: P<Node>) -> Option<P<Node>> {
         // !!! TODO: support ripping return type off of .FullSignature
         if node.kind() == Kind::GetAccessor {
             return node.as_get_accessor_declaration().type_();
@@ -249,7 +249,7 @@ impl PseudoChecker {
 }
 
 // lookup.go:196
-pub fn is_value_signature_declaration(node: P<Node>) -> bool {
+fn is_value_signature_declaration(node: P<Node>) -> bool {
     is_function_expression(node)
         || is_arrow_function(node)
         || is_method_declaration(node)
@@ -261,7 +261,7 @@ pub fn is_value_signature_declaration(node: P<Node>) -> bool {
 impl PseudoChecker {
     // lookup.go:201
     // does not return `nil`, returns a `NoResult` pseudotype instead
-    pub(crate) fn create_return_from_signature(&self, fn_: P<Node>) -> Option<P<PseudoType>> {
+    fn create_return_from_signature(&self, fn_: P<Node>) -> Option<P<PseudoType>> {
         if is_function_like(fn_) {
             let d = fn_.function_like_data().unwrap();
             // !!! TODO: support ripping return type off of .FullSignature
@@ -277,10 +277,7 @@ impl PseudoChecker {
     }
 
     // lookup.go:216
-    pub(crate) fn type_from_single_return_expression(
-        &self,
-        fn_: Option<P<Node>>,
-    ) -> Option<P<PseudoType>> {
+    fn type_from_single_return_expression(&self, fn_: Option<P<Node>>) -> Option<P<PseudoType>> {
         let mut candidate_expr: Option<P<Node>> = None;
         if let Some(f) = fn_
             && !node_is_missing(f.body())
@@ -332,7 +329,7 @@ impl PseudoChecker {
 
     // lookup.go:262
     // This is basically `checkExpression` for pseudotypes
-    pub(crate) fn type_from_expression(&self, node: P<Node>) -> Option<P<PseudoType>> {
+    fn type_from_expression(&self, node: P<Node>) -> Option<P<PseudoType>> {
         match node.kind() {
             Kind::OmittedExpression => return Some(*PSEUDO_TYPE_UNDEFINED),
             Kind::ParenthesizedExpression => {
@@ -424,7 +421,7 @@ impl PseudoChecker {
     }
 
     // lookup.go:315
-    pub(crate) fn type_from_object_literal(&self, node: P<Node>) -> P<PseudoType> {
+    fn type_from_object_literal(&self, node: P<Node>) -> P<PseudoType> {
         let error_nodes = Self::can_get_type_from_object_literal(node);
         if !error_nodes.is_empty() {
             return new_pseudo_type_inferred_with_errors(node, false, &error_nodes);
@@ -481,7 +478,7 @@ impl PseudoChecker {
 
     // lookup.go:363
     // roughly analogous to typeFromObjectLiteralAccessor in strada
-    pub(crate) fn get_accessor_member(
+    fn get_accessor_member(
         &self,
         accessor: P<Node>,
         name: P<Node>,
@@ -538,7 +535,7 @@ impl PseudoChecker {
     // canGetTypeFromObjectLiteral checks whether an object literal can be typed by the pseudochecker.
     // Returns nil if the object can be typed, or a slice of error nodes (shorthand/spread properties,
     // non-literal computed names) that prevent typing.
-    pub(crate) fn can_get_type_from_object_literal(node: P<Node>) -> Vec<P<Node>> {
+    fn can_get_type_from_object_literal(node: P<Node>) -> Vec<P<Node>> {
         let properties = node.properties();
         if properties.is_empty() {
             return Vec::new(); // empty object, ok
@@ -569,7 +566,7 @@ impl PseudoChecker {
     }
 
     // lookup.go:438
-    pub(crate) fn type_from_array_literal(&self, node: P<Node>) -> P<PseudoType> {
+    fn type_from_array_literal(&self, node: P<Node>) -> P<PseudoType> {
         let error_nodes = Self::can_get_type_from_array_literal(node);
         if !error_nodes.is_empty() {
             return new_pseudo_type_inferred_with_errors(node, false, &error_nodes);
@@ -589,7 +586,7 @@ impl PseudoChecker {
     // Returns nil if the array can be typed, or a slice of error nodes that prevent typing.
     // For non-const arrays, the error node is the array expression itself.
     // For const arrays with spreads, the error node is the spread element.
-    pub(crate) fn can_get_type_from_array_literal(node: P<Node>) -> Vec<P<Node>> {
+    fn can_get_type_from_array_literal(node: P<Node>) -> Vec<P<Node>> {
         if !is_in_const_context(node) {
             return vec![node];
         }
@@ -606,7 +603,7 @@ impl PseudoChecker {
 
 // lookup.go:470
 // See `isConstContext` in `checker.go` - this is basically any node kind mentioned in that
-pub fn is_const_context_propagating_kind(kind: Kind) -> bool {
+fn is_const_context_propagating_kind(kind: Kind) -> bool {
     matches!(
         kind,
         Kind::ArrayLiteralExpression
@@ -634,7 +631,7 @@ pub fn is_in_const_context(node: P<Node>) -> bool {
 
 impl PseudoChecker {
     // lookup.go:494
-    pub(crate) fn type_from_primitive_literal_prefix(node: P<Node>) -> Option<P<PseudoType>> {
+    fn type_from_primitive_literal_prefix(node: P<Node>) -> Option<P<PseudoType>> {
         let p = node.as_prefix_unary_expression();
         let mut expr = node;
         if p.operator == Kind::PlusToken {
@@ -659,7 +656,7 @@ impl PseudoChecker {
     }
 
     // lookup.go:510
-    pub(crate) fn type_from_type_assertion(
+    fn type_from_type_assertion(
         &self,
         expression: P<Node>,
         type_node: P<Node>,
@@ -671,7 +668,7 @@ impl PseudoChecker {
     }
 
     // lookup.go:517
-    pub(crate) fn type_from_function_like_expression(&self, node: P<Node>) -> P<PseudoType> {
+    fn type_from_function_like_expression(&self, node: P<Node>) -> P<PseudoType> {
         let d = node.function_like_data().unwrap();
         if let Some(full_signature) = d.full_signature() {
             return new_pseudo_type_direct(full_signature);
@@ -683,7 +680,7 @@ impl PseudoChecker {
     }
 
     // lookup.go:532
-    pub(crate) fn clone_type_parameters(nodes: Option<P<NodeList>>) -> Vec<P<Node>> {
+    fn clone_type_parameters(nodes: Option<P<NodeList>>) -> Vec<P<Node>> {
         let Some(nodes) = nodes else {
             return Vec::new();
         };
@@ -700,14 +697,14 @@ impl PseudoChecker {
 }
 
 // lookup.go:546
-pub fn is_undefined_pseudo_type(t: P<PseudoType>) -> bool {
+fn is_undefined_pseudo_type(t: P<PseudoType>) -> bool {
     t.kind == PseudoTypeKind::Undefined
         || (t.kind == PseudoTypeKind::MaybeConstLocation
             && is_undefined_pseudo_type(t.as_pseudo_type_maybe_const_location().const_type))
 }
 
 // lookup.go:550
-pub fn type_node_could_refer_to_undefined(node: P<Node>) -> bool {
+fn type_node_could_refer_to_undefined(node: P<Node>) -> bool {
     let mut node = node;
     while node.kind() == Kind::ParenthesizedType {
         node = node.as_parenthesized_type_node().type_;
@@ -775,7 +772,7 @@ pub fn could_already_refer_to_undefined_type(t: P<PseudoType>) -> bool {
 }
 
 // lookup.go:597
-pub fn is_optional_initialized_or_rest_parameter(node: P<Node>) -> bool {
+fn is_optional_initialized_or_rest_parameter(node: P<Node>) -> bool {
     let p = node.as_parameter_declaration();
     if p.dot_dot_dot_token().is_some() || p.initializer().is_some() || p.question_token().is_some()
     {
@@ -790,7 +787,7 @@ pub fn is_optional_initialized_or_rest_parameter(node: P<Node>) -> bool {
 // and no rest token. This is computed in a single reverse pass so callers can
 // determine "has required parameter after index i" with `i+1 < lastRequired`
 // (equivalently, `i < lastRequired-1`) in O(1).
-pub fn last_required_param_index(params: &[P<Node>]) -> usize {
+fn last_required_param_index(params: &[P<Node>]) -> usize {
     if let Some(result) = params.iter().enumerate().rev().into_iter().find_map(|(i, param)| {
         if is_optional_initialized_or_rest_parameter(*param) { None } else { Some(i + 1) }
     }) {
@@ -800,7 +797,7 @@ pub fn last_required_param_index(params: &[P<Node>]) -> usize {
 }
 
 // lookup.go:619
-pub fn add_undefined_if_definitely_required(expr: P<PseudoType>) -> P<PseudoType> {
+fn add_undefined_if_definitely_required(expr: P<PseudoType>) -> P<PseudoType> {
     // If `expr` doesn't already contain `| undefined` or a direct/inferred type that may contain `undefined`, add `| undefined`
     // in Strada, this reached into the checker to see if `undefined` was necessary, using `isRequiredOptionalParameter` from the emit resolver,
     // but that's not required on top of the syntactic checks to get the same behavior. (If we get the type wrong, it'll mismatch later and be discarded
@@ -814,7 +811,7 @@ pub fn add_undefined_if_definitely_required(expr: P<PseudoType>) -> P<PseudoType
 
 impl PseudoChecker {
     // lookup.go:631
-    pub(crate) fn type_from_parameter(&self, node: P<Node>) -> Option<P<PseudoType>> {
+    fn type_from_parameter(&self, node: P<Node>) -> Option<P<PseudoType>> {
         let parent = node.parent().unwrap();
         if parent.kind() == Kind::SetAccessor {
             return self.get_type_of_accessor(parent);
@@ -837,7 +834,7 @@ impl PseudoChecker {
     }
 
     // lookup.go:649
-    pub(crate) fn type_from_parameter_worker(
+    fn type_from_parameter_worker(
         &self,
         node: P<Node>,
         self_idx: usize,
@@ -892,7 +889,7 @@ impl PseudoChecker {
     }
 
     // lookup.go:687
-    pub(crate) fn clone_parameters(&self, nodes: Option<P<NodeList>>) -> Vec<P<PseudoParameter>> {
+    fn clone_parameters(&self, nodes: Option<P<NodeList>>) -> Vec<P<PseudoParameter>> {
         let Some(nodes) = nodes else {
             return Vec::new();
         };
@@ -922,7 +919,7 @@ impl PseudoChecker {
 }
 
 // lookup.go:715
-pub fn is_contextually_typed(node: P<Node>) -> bool {
+fn is_contextually_typed(node: P<Node>) -> bool {
     find_ancestor(node.parent(), |n| {
         // Functions calls or parent type annotations (but not the return type of a function expression) may impact the inferred type and local inference is unreliable
         if is_call_expression(n) {

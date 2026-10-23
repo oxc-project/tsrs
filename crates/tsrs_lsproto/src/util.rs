@@ -43,7 +43,7 @@ impl StringOrMarkupContent {
 
 impl IntegerOrString {
     // util.go:41
-    pub fn as_string(&self) -> String {
+    fn as_string(&self) -> String {
         if let Some(s) = &self.string {
             s.clone()
         } else if let Some(i) = self.integer {

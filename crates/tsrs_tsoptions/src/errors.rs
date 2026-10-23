@@ -26,7 +26,7 @@ pub fn create_diagnostic_for_invalid_enum_type(
     )
 }
 
-pub fn format_enum_type_keys(opt: &CommandLineOption, keys: Vec<&str>) -> String {
+fn format_enum_type_keys(opt: &CommandLineOption, keys: Vec<&str>) -> String {
     let mut keys = keys;
     if let Some(deprecated) = opt.deprecated_keys() {
         keys.retain(|key| !deprecated.contains(key));

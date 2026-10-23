@@ -9,7 +9,7 @@ use tsrs_core::*;
 // Program errors validate that `noEmit` or `emitDeclarationOnly` is also set,
 // so this function doesn't check them to avoid propagating errors.
 // preferences.go:14
-pub fn should_allow_importing_ts_extension(
+fn should_allow_importing_ts_extension(
     compiler_options: &CompilerOptions,
     from_file_name: &str,
 ) -> bool {
@@ -18,7 +18,7 @@ pub fn should_allow_importing_ts_extension(
 }
 
 // preferences.go:18
-pub fn uses_extensions_on_imports(file: P<SourceFile>) -> bool {
+fn uses_extensions_on_imports(file: P<SourceFile>) -> bool {
     if let Some(result) = file.imports().iter().find_map(|ref_| {
         let text = ref_.text();
         if tspath::path_is_relative(text)
@@ -40,7 +40,7 @@ pub fn uses_extensions_on_imports(file: P<SourceFile>) -> bool {
 }
 
 // preferences.go:28
-pub fn infer_preference(
+fn infer_preference(
     resolution_mode: ModuleKind,
     source_file: Option<P<SourceFile>>,
     module_resolution_is_node_next: bool,
@@ -93,7 +93,7 @@ fn module_resolution_is_node_next(compiler_options: &CompilerOptions) -> bool {
 }
 
 // preferences.go:69
-pub fn get_module_specifier_ending_preference(
+fn get_module_specifier_ending_preference(
     pref: ImportModuleSpecifierEndingPreference,
     resolution_mode: ModuleKind,
     compiler_options: &CompilerOptions,
@@ -142,7 +142,7 @@ pub fn get_module_specifier_ending_preference(
 }
 
 // preferences.go:114
-pub fn get_preferred_ending(
+fn get_preferred_ending(
     prefs: &UserPreferences,
     host: &dyn ModuleSpecifierGenerationHost,
     compiler_options: &CompilerOptions,

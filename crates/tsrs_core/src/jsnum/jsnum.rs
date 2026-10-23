@@ -5,7 +5,7 @@ use super::big;
 use super::math;
 
 pub const MAX_SAFE_INTEGER: Number = Number(((1u64 << 53) - 1) as f64);
-pub const MIN_SAFE_INTEGER: Number = Number(-MAX_SAFE_INTEGER.0);
+pub(super) const MIN_SAFE_INTEGER: Number = Number(-MAX_SAFE_INTEGER.0);
 
 // Number represents a JS-like number.
 //
@@ -60,7 +60,7 @@ impl Neg for Number {
     }
 }
 
-pub fn nan() -> Number {
+pub(super) fn nan() -> Number {
     Number(f64::from_bits(0x7FF8_0000_0000_0001))
 }
 
@@ -70,7 +70,7 @@ impl Number {
     }
 }
 
-pub fn inf(sign: i32) -> Number {
+pub(super) fn inf(sign: i32) -> Number {
     if sign >= 0 { Number(f64::INFINITY) } else { Number(f64::NEG_INFINITY) }
 }
 
@@ -80,7 +80,7 @@ impl Number {
     }
 }
 
-pub fn is_non_finite(x: f64) -> bool {
+fn is_non_finite(x: f64) -> bool {
     // This is equivalent to checking `math.IsNaN(x) || math.IsInf(x, 0)` in one operation.
     const MASK: u64 = 0x7FF0_0000_0000_0000;
     x.to_bits() & MASK == MASK
@@ -88,7 +88,7 @@ pub fn is_non_finite(x: f64) -> bool {
 
 impl Number {
     // https://tc39.es/ecma262/2024/multipage/abstract-operations.html#sec-touint32
-    pub(crate) fn to_uint32(self) -> u32 {
+    fn to_uint32(self) -> u32 {
         // The only difference between ToUint32 and ToInt32 is the interpretation of the bits.
         self.to_int32() as u32
     }
@@ -122,7 +122,7 @@ impl Number {
         x as i64 as i32
     }
 
-    pub(crate) fn to_shift_count(self) -> u32 {
+    fn to_shift_count(self) -> u32 {
         self.to_uint32() & 31
     }
 

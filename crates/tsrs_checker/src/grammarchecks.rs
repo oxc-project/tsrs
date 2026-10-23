@@ -70,7 +70,7 @@ impl Checker {
     }
 
     // grammarchecks.go:47
-    pub(crate) fn grammar_error_on_node_skipped_on_no_emit(
+    fn grammar_error_on_node_skipped_on_no_emit(
         &mut self,
         node: P<Node>,
         message: &'static Message,
@@ -1027,7 +1027,7 @@ impl Checker {
     }
 
     // grammarchecks.go:571
-    pub(crate) fn report_obvious_modifier_errors(&mut self, node: P<Node>) -> bool {
+    fn report_obvious_modifier_errors(&mut self, node: P<Node>) -> bool {
         let Some(modifier) = Self::find_first_illegal_modifier(node) else {
             return false;
         };
@@ -1035,10 +1035,7 @@ impl Checker {
     }
 
     // grammarchecks.go:579
-    pub(crate) fn find_first_modifier_except(
-        node: P<Node>,
-        allowed_modifier: Kind,
-    ) -> Option<P<Node>> {
+    fn find_first_modifier_except(node: P<Node>, allowed_modifier: Kind) -> Option<P<Node>> {
         let modifier = node.modifier_nodes().iter().copied().find(|&m| ast::is_modifier(m));
         if let Some(modifier) = modifier
             && modifier.kind() != allowed_modifier
@@ -1049,7 +1046,7 @@ impl Checker {
     }
 
     // grammarchecks.go:587
-    pub(crate) fn find_first_illegal_modifier(node: P<Node>) -> Option<P<Node>> {
+    fn find_first_illegal_modifier(node: P<Node>) -> Option<P<Node>> {
         match node.kind() {
             Kind::GetAccessor
             | Kind::SetAccessor
@@ -1115,7 +1112,7 @@ impl Checker {
     }
 
     // grammarchecks.go:642
-    pub(crate) fn report_obvious_decorator_errors(&mut self, node: P<Node>) -> bool {
+    fn report_obvious_decorator_errors(&mut self, node: P<Node>) -> bool {
         let Some(decorator) = Self::find_first_illegal_decorator(node) else {
             return false;
         };
@@ -1127,7 +1124,7 @@ impl Checker {
     }
 
     // grammarchecks.go:650
-    pub(crate) fn find_first_illegal_decorator(node: P<Node>) -> Option<P<Node>> {
+    fn find_first_illegal_decorator(node: P<Node>) -> Option<P<Node>> {
         if ast::can_have_illegal_decorators(node) {
             node.modifier_nodes().iter().copied().find(|&m| is_decorator(m))
         } else {
@@ -1136,7 +1133,7 @@ impl Checker {
     }
 
     // grammarchecks.go:659
-    pub(crate) fn check_grammar_async_modifier(
+    fn check_grammar_async_modifier(
         &mut self,
         node: P<Node>,
         async_modifier: Option<P<Node>>,
@@ -1180,7 +1177,7 @@ impl Checker {
     }
 
     // grammarchecks.go:678
-    pub(crate) fn check_grammar_type_parameter_list(
+    fn check_grammar_type_parameter_list(
         &mut self,
         type_parameters: Option<P<NodeList>>,
         file: P<SourceFile>,
@@ -1209,7 +1206,7 @@ impl Checker {
     }
 
     // grammarchecks.go:687
-    pub(crate) fn check_grammar_parameter_list(&mut self, parameters: P<NodeList>) -> bool {
+    fn check_grammar_parameter_list(&mut self, parameters: P<NodeList>) -> bool {
         let mut seen_optional_parameter = false;
         let parameter_count = parameters.nodes().len();
 
@@ -1270,10 +1267,7 @@ impl Checker {
     }
 
     // grammarchecks.go:722
-    pub(crate) fn check_grammar_for_use_strict_simple_parameter_list(
-        &mut self,
-        node: P<Node>,
-    ) -> bool {
+    fn check_grammar_for_use_strict_simple_parameter_list(&mut self, node: P<Node>) -> bool {
         if self.language_version >= ScriptTarget::ES2016 {
             let body = node.body();
             let mut use_strict_directive: Option<P<Node>> = None;
@@ -1353,11 +1347,7 @@ impl Checker {
     }
 
     // grammarchecks.go:772
-    pub(crate) fn check_grammar_arrow_function(
-        &mut self,
-        node: P<Node>,
-        file: P<SourceFile>,
-    ) -> bool {
+    fn check_grammar_arrow_function(&mut self, node: P<Node>, file: P<SourceFile>) -> bool {
         if !is_arrow_function(node) {
             return false;
         }
@@ -1397,7 +1387,7 @@ impl Checker {
     }
 
     // grammarchecks.go:796
-    pub(crate) fn check_grammar_index_signature_parameters(&mut self, node: P<Node>) -> bool {
+    fn check_grammar_index_signature_parameters(&mut self, node: P<Node>) -> bool {
         let index_signature = node.as_index_signature_declaration();
         let parameters = index_signature.function_like_base.parameters.get().unwrap();
         let param_nodes = parameters.nodes();
@@ -1485,7 +1475,7 @@ impl Checker {
     }
 
     // grammarchecks.go:845
-    pub(crate) fn check_grammar_for_at_least_one_type_argument(
+    fn check_grammar_for_at_least_one_type_argument(
         &mut self,
         node: P<Node>,
         type_arguments: Option<P<NodeList>>,
@@ -1542,7 +1532,7 @@ impl Checker {
     }
 
     // grammarchecks.go:866
-    pub(crate) fn check_grammar_heritage_clause(&mut self, node: P<Node>) -> bool {
+    fn check_grammar_heritage_clause(&mut self, node: P<Node>) -> bool {
         let heritage_clause = node.as_heritage_clause();
         let types = heritage_clause.types.get();
         if self.check_grammar_for_disallowed_trailing_comma(
@@ -1578,7 +1568,7 @@ impl Checker {
     }
 
     // grammarchecks.go:892
-    pub(crate) fn check_grammar_class_declaration_heritage_clauses(
+    fn check_grammar_class_declaration_heritage_clauses(
         &mut self,
         node: P<Node>,
         _file: P<SourceFile>,
@@ -1734,7 +1724,7 @@ impl Checker {
     }
 
     // grammarchecks.go:990
-    pub(crate) fn check_grammar_for_invalid_question_mark(
+    fn check_grammar_for_invalid_question_mark(
         &mut self,
         postfix_token: Option<P<Node>>,
         message: &'static Message,
@@ -1749,7 +1739,7 @@ impl Checker {
     }
 
     // grammarchecks.go:994
-    pub(crate) fn check_grammar_for_invalid_exclamation_token(
+    fn check_grammar_for_invalid_exclamation_token(
         &mut self,
         postfix_token: Option<P<Node>>,
         message: &'static Message,
@@ -1975,7 +1965,7 @@ impl Checker {
     }
 
     // grammarchecks.go:1162
-    pub(crate) fn check_grammar_jsx_name(&mut self, node: P<Node>) -> bool {
+    fn check_grammar_jsx_name(&mut self, node: P<Node>) -> bool {
         if is_property_access_expression(node) && is_jsx_namespaced_name(node.expression().unwrap())
         {
             return self.grammar_error_on_node(
@@ -2267,7 +2257,7 @@ impl Checker {
     //	A `get` accessor has no parameters or a single `this` parameter.
     //	A `set` accessor has one parameter or a `this` parameter and one more parameter.
     // grammarchecks.go:1345
-    pub(crate) fn does_accessor_have_correct_parameter_count(accessor: P<Node>) -> bool {
+    fn does_accessor_have_correct_parameter_count(accessor: P<Node>) -> bool {
         // `getAccessorThisParameter` returns `nil` if the accessor's arity is incorrect,
         // even if there is a `this` parameter declared.
         Self::get_accessor_this_parameter(accessor).is_some()
@@ -2329,7 +2319,7 @@ impl Checker {
     }
 
     // grammarchecks.go:1391
-    pub(crate) fn check_grammar_for_invalid_dynamic_name(
+    fn check_grammar_for_invalid_dynamic_name(
         &mut self,
         node: P<Node>,
         message: &'static Message,
@@ -2637,10 +2627,7 @@ impl Checker {
     }
 
     // grammarchecks.go:1596
-    pub(crate) fn check_grammar_for_es_module_marker_in_binding_name(
-        &mut self,
-        name: P<Node>,
-    ) -> bool {
+    fn check_grammar_for_es_module_marker_in_binding_name(&mut self, name: P<Node>) -> bool {
         if is_identifier(name) {
             if name.text() == "__esModule" {
                 return self.grammar_error_on_node_skipped_on_no_emit(name, &diagnostics::IDENTIFIER_EXPECTED_ES_MODULE_IS_RESERVED_AS_AN_EXPORTED_MARKER_WHEN_TRANSFORMING_ECMA_SCRIPT_MODULES, &[]);
@@ -2658,10 +2645,7 @@ impl Checker {
     }
 
     // grammarchecks.go:1611
-    pub(crate) fn check_grammar_name_in_let_or_const_declarations(
-        &mut self,
-        name: P<Node>,
-    ) -> bool {
+    fn check_grammar_name_in_let_or_const_declarations(&mut self, name: P<Node>) -> bool {
         if name.kind() == Kind::Identifier {
             if name.text() == "let" {
                 return self.grammar_error_on_node(name, &diagnostics::X_LET_IS_NOT_ALLOWED_TO_BE_USED_AS_A_NAME_IN_LET_OR_CONST_DECLARATIONS, &[]);
@@ -3148,7 +3132,7 @@ impl Checker {
     }
 
     // grammarchecks.go:1925
-    pub(crate) fn check_ambient_initializer(&mut self, node: P<Node>) -> bool {
+    fn check_ambient_initializer(&mut self, node: P<Node>) -> bool {
         let initializer: Option<P<Node>>;
         let type_node: Option<P<Node>>;
         match node.kind() {
@@ -3221,7 +3205,7 @@ pub fn is_initializer_big_int_literal_expression(expr: P<Node>) -> bool {
 
 impl Checker {
     // grammarchecks.go:1978
-    pub(crate) fn is_initializer_simple_literal_enum_reference(&mut self, expr: P<Node>) -> bool {
+    fn is_initializer_simple_literal_enum_reference(&mut self, expr: P<Node>) -> bool {
         if is_property_access_expression(expr) {
             return self.check_expression_cached(expr).flags().intersects(TypeFlags::EnumLike);
         }
@@ -3239,7 +3223,7 @@ impl Checker {
     }
 
     // grammarchecks.go:1994
-    pub(crate) fn check_grammar_top_level_element_for_required_declare_modifier(
+    fn check_grammar_top_level_element_for_required_declare_modifier(
         &mut self,
         node: P<Node>,
     ) -> bool {
@@ -3275,7 +3259,7 @@ impl Checker {
     }
 
     // grammarchecks.go:2014
-    pub(crate) fn check_grammar_top_level_elements_for_required_declare_modifier(
+    fn check_grammar_top_level_elements_for_required_declare_modifier(
         &mut self,
         file: P<SourceFile>,
     ) -> bool {
@@ -3483,7 +3467,7 @@ impl Checker {
     }
 
     // grammarchecks.go:2136
-    pub(crate) fn check_grammar_type_only_named_imports_or_exports(
+    fn check_grammar_type_only_named_imports_or_exports(
         &mut self,
         named_bindings: P<Node>,
     ) -> bool {

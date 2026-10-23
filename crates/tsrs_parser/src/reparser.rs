@@ -8,13 +8,13 @@ use tsrs_scanner as scanner;
 use crate::parser_1::{JSDocInfo, Parser, ParsingContext};
 
 impl Parser {
-    pub(crate) fn finish_reparsed_node(&mut self, node: P<Node>, location_node: P<Node>) {
+    fn finish_reparsed_node(&mut self, node: P<Node>, location_node: P<Node>) {
         node.set_flags(self.context_flags | NodeFlags::Reparsed);
         node.set_loc(location_node.loc());
         self.override_parent_in_immediate_children(node);
     }
 
-    pub(crate) fn finish_mutated_node(&mut self, node: P<Node>) {
+    fn finish_mutated_node(&mut self, node: P<Node>) {
         self.override_parent_in_immediate_children(node);
     }
 
@@ -27,7 +27,7 @@ impl Parser {
     // Deep-clone the given node and add the clone to the reparsed clone list. The list is used by ast.GetReparsedNodeForNode
     // to locate reparsed clones of JSDoc nodes. Since the binder attaches symbols to reparsed nodes and not to JSDoc nodes, we
     // need the mapping when obtaining symbols and types from JSDoc nodes.
-    pub(crate) fn add_deep_clone_reparse(&mut self, node: Option<P<Node>>) -> Option<P<Node>> {
+    fn add_deep_clone_reparse(&mut self, node: Option<P<Node>>) -> Option<P<Node>> {
         let clone = self.reparse_cloner().clone_node(node);
         if let Some(clone) = clone {
             self.reparsed_clones.push(clone);
@@ -35,14 +35,14 @@ impl Parser {
         clone
     }
 
-    pub(crate) fn add_transformed_reparse(&mut self, new_node: P<Node>, old: P<Node>) -> P<Node> {
+    fn add_transformed_reparse(&mut self, new_node: P<Node>, old: P<Node>) -> P<Node> {
         self.finish_reparsed_node(new_node, old);
         new_node.set_flags(new_node.flags() | NodeFlags::ReparserTransformedLiteral);
         self.reparsed_clones.push(new_node);
         new_node
     }
 
-    pub(crate) fn check_non_identifier_name(&mut self, name: Option<P<Node>>) -> Option<P<Node>> {
+    fn check_non_identifier_name(&mut self, name: Option<P<Node>>) -> Option<P<Node>> {
         // Handles the case of anonymous functions
         let name = name?;
         if ast::is_identifier(name) && !scanner::is_valid_identifier(name.as_identifier().text()) {
@@ -74,7 +74,7 @@ impl Parser {
         }
     }
 
-    pub(crate) fn reparse_unhosted(&mut self, tag: P<Node>, parent: P<Node>, js_doc: P<Node>) {
+    fn reparse_unhosted(&mut self, tag: P<Node>, parent: P<Node>, js_doc: P<Node>) {
         match tag.kind() {
             Kind::JSDocTypedefTag => {
                 let Some(type_expression) = tag.type_expression() else {
@@ -168,7 +168,7 @@ impl Parser {
         }
     }
 
-    pub(crate) fn reparse_jsdoc_signature(
+    fn reparse_jsdoc_signature(
         &mut self,
         js_signature: P<Node>,
         fun: P<Node>,
@@ -329,7 +329,7 @@ impl Parser {
         signature
     }
 
-    pub(crate) fn reparse_jsdoc_type_literal(&mut self, t: Option<P<Node>>) -> Option<P<Node>> {
+    fn reparse_jsdoc_type_literal(&mut self, t: Option<P<Node>>) -> Option<P<Node>> {
         let t = t?;
         if t.kind() == Kind::JSDocTypeLiteral {
             let jstypeliteral = t.as_jsdoc_type_literal();
@@ -383,7 +383,7 @@ impl Parser {
         self.add_deep_clone_reparse(Some(t))
     }
 
-    pub(crate) fn reparse_jsdoc_comment(&mut self, node: P<Node>, tag: P<Node>) {
+    fn reparse_jsdoc_comment(&mut self, node: P<Node>, tag: P<Node>) {
         if let Some(comment) = tag.comment_list() {
             let cloned: Vec<P<Node>> = comment
                 .nodes()
@@ -400,7 +400,7 @@ impl Parser {
         }
     }
 
-    pub(crate) fn gather_type_parameters(
+    fn gather_type_parameters(
         &mut self,
         j: P<Node>,
         typedef_or_callback: bool,
@@ -461,7 +461,7 @@ impl Parser {
         }
     }
 
-    pub(crate) fn reparse_hosted(&mut self, tag: P<Node>, parent: P<Node>, js_doc: P<Node>) {
+    fn reparse_hosted(&mut self, tag: P<Node>, parent: P<Node>, js_doc: P<Node>) {
         let mut parent = parent;
         match tag.kind() {
             Kind::JSDocTypeTag => {
@@ -878,7 +878,7 @@ impl Parser {
         self.finish_mutated_node(target);
     }
 
-    pub(crate) fn make_question_if_optional(&self, parameter: P<Node>) -> Option<P<Node>> {
+    fn make_question_if_optional(&self, parameter: P<Node>) -> Option<P<Node>> {
         let data = parameter.as_jsdoc_parameter_or_property_tag();
         let mut question_token = None;
         if data.is_bracketed
@@ -894,7 +894,7 @@ impl Parser {
         question_token
     }
 
-    pub(crate) fn make_new_cast(&mut self, t: P<Node>, e: P<Node>, is_assertion: bool) -> P<Node> {
+    fn make_new_cast(&mut self, t: P<Node>, e: P<Node>, is_assertion: bool) -> P<Node> {
         let assert = if is_assertion {
             self.factory.new_as_expression(e, t)
         } else {
@@ -908,7 +908,7 @@ impl Parser {
         assert
     }
 
-    pub(crate) fn create_export_modifier(&self, location_node: P<Node>) -> P<ModifierList> {
+    fn create_export_modifier(&self, location_node: P<Node>) -> P<ModifierList> {
         let export_modifier = self.factory.new_modifier(Kind::ExportKeyword);
         export_modifier.set_loc(location_node.loc());
         export_modifier.set_flags(self.context_flags | NodeFlags::Reparsed);
@@ -918,9 +918,7 @@ impl Parser {
     // getInnermostNameOfJSDocNamespace returns the innermost identifier from a
     // JSDoc namespace chain (ModuleDeclaration). For a simple identifier, it returns
     // the identifier itself. For "A.B.C", it returns the identifier "C".
-    pub(crate) fn get_innermost_name_of_jsdoc_namespace(
-        full_name: Option<P<Node>>,
-    ) -> Option<P<Node>> {
+    fn get_innermost_name_of_jsdoc_namespace(full_name: Option<P<Node>>) -> Option<P<Node>> {
         let mut full_name = full_name?;
         while full_name.kind() == Kind::ModuleDeclaration {
             let Some(body) = full_name.body() else {
@@ -939,7 +937,7 @@ impl Parser {
     //
     // If the name is a simple identifier (not a ModuleDeclaration), it returns the
     // statement as-is.
-    pub(crate) fn wrap_in_jsdoc_namespace(
+    fn wrap_in_jsdoc_namespace(
         &mut self,
         full_name: Option<P<Node>>,
         statement: P<Node>,

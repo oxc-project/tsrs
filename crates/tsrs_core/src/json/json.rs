@@ -247,7 +247,7 @@ pub fn unmarshal(input: &str) -> Result<Value, String> {
 }
 
 /// The f64 of a JSON number literal `text` (valid JSON number syntax), or `None` when it is out of range.
-pub fn number_value(text: &str) -> Option<f64> {
+fn number_value(text: &str) -> Option<f64> {
     if let Some(n) = exact_integer_value(text) {
         return Some(n);
     }

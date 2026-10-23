@@ -507,7 +507,7 @@ fn create_completion_item_for_literal(
 
 impl LanguageService {
     // completions.go:2178
-    pub(crate) fn create_completion_item(
+    fn create_completion_item(
         &self,
         ctx: &Context,
         type_checker: &mut Checker,

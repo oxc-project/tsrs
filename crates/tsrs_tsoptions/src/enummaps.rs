@@ -252,7 +252,7 @@ pub static LIB_MAP: LazyLock<OrderedMap<&'static str, CompilerOptionsValue>> =
     });
 
 pub static LIBS: LazyLock<Vec<&'static str>> = LazyLock::new(|| LIB_MAP.keys().copied().collect());
-pub static LIB_FILES_SET: LazyLock<FxHashSet<String>> =
+static LIB_FILES_SET: LazyLock<FxHashSet<String>> =
     LazyLock::new(|| LIB_MAP.values().map(|s| s.as_str().unwrap().to_string()).collect());
 
 pub fn get_lib_file_name(lib_name: &str) -> Option<String> {
@@ -349,24 +349,23 @@ pub static NEW_LINE_OPTION_MAP: LazyLock<OrderedMap<&'static str, CompilerOption
         ])
     });
 
-pub static TARGET_TO_LIB_MAP: LazyLock<FxHashMap<ScriptTarget, &'static str>> =
-    LazyLock::new(|| {
-        let mut m = FxHashMap::default();
-        m.insert(ScriptTarget::ES_NEXT, "lib.esnext.full.d.ts");
-        m.insert(ScriptTarget::ES2026, "lib.es2026.full.d.ts");
-        m.insert(ScriptTarget::ES2025, "lib.es2025.full.d.ts");
-        m.insert(ScriptTarget::ES2024, "lib.es2024.full.d.ts");
-        m.insert(ScriptTarget::ES2023, "lib.es2023.full.d.ts");
-        m.insert(ScriptTarget::ES2022, "lib.es2022.full.d.ts");
-        m.insert(ScriptTarget::ES2021, "lib.es2021.full.d.ts");
-        m.insert(ScriptTarget::ES2020, "lib.es2020.full.d.ts");
-        m.insert(ScriptTarget::ES2019, "lib.es2019.full.d.ts");
-        m.insert(ScriptTarget::ES2018, "lib.es2018.full.d.ts");
-        m.insert(ScriptTarget::ES2017, "lib.es2017.full.d.ts");
-        m.insert(ScriptTarget::ES2016, "lib.es2016.full.d.ts");
-        m.insert(ScriptTarget::ES2015, "lib.es6.d.ts"); // We don't use lib.es2015.full.d.ts due to breaking change.
-        m
-    });
+static TARGET_TO_LIB_MAP: LazyLock<FxHashMap<ScriptTarget, &'static str>> = LazyLock::new(|| {
+    let mut m = FxHashMap::default();
+    m.insert(ScriptTarget::ES_NEXT, "lib.esnext.full.d.ts");
+    m.insert(ScriptTarget::ES2026, "lib.es2026.full.d.ts");
+    m.insert(ScriptTarget::ES2025, "lib.es2025.full.d.ts");
+    m.insert(ScriptTarget::ES2024, "lib.es2024.full.d.ts");
+    m.insert(ScriptTarget::ES2023, "lib.es2023.full.d.ts");
+    m.insert(ScriptTarget::ES2022, "lib.es2022.full.d.ts");
+    m.insert(ScriptTarget::ES2021, "lib.es2021.full.d.ts");
+    m.insert(ScriptTarget::ES2020, "lib.es2020.full.d.ts");
+    m.insert(ScriptTarget::ES2019, "lib.es2019.full.d.ts");
+    m.insert(ScriptTarget::ES2018, "lib.es2018.full.d.ts");
+    m.insert(ScriptTarget::ES2017, "lib.es2017.full.d.ts");
+    m.insert(ScriptTarget::ES2016, "lib.es2016.full.d.ts");
+    m.insert(ScriptTarget::ES2015, "lib.es6.d.ts"); // We don't use lib.es2015.full.d.ts due to breaking change.
+    m
+});
 
 pub fn target_to_lib_map() -> &'static FxHashMap<ScriptTarget, &'static str> {
     &TARGET_TO_LIB_MAP

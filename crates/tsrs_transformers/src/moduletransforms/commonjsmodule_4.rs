@@ -1035,7 +1035,7 @@ impl CommonJSModuleTransformer {
 
     // Gets the exported names of an identifier, if it is exported.
     // commonjsmodule.go:2156
-    pub(crate) fn get_exports(&self, name: P<Node>) -> Vec<P<Node>> {
+    fn get_exports(&self, name: P<Node>) -> Vec<P<Node>> {
         let emit_context = self.emit_context();
         let info = self.module_info();
         if !is_generated_identifier(emit_context, name) {

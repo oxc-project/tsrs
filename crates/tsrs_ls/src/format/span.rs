@@ -1633,7 +1633,7 @@ impl FormatSpanWorker {
 }
 
 // span.go:998
-pub fn get_indentation_string(indentation: i32, options: &FormatCodeSettings) -> String {
+fn get_indentation_string(indentation: i32, options: &FormatCodeSettings) -> String {
     // go's `strings.Repeat` already has static, global caching for repeated tabs and spaces, so there's no need to cache here like in strada
     if options.convert_tabs_to_spaces.is_true() {
         " ".repeat(indentation.max(0) as usize)

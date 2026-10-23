@@ -18,7 +18,7 @@ pub struct ProgramRegions(Mutex<FxHashMap<ThreadId, Region>>);
 
 impl ProgramRegions {
     /// Makes this thread's region of the set the allocation target until the scope is dropped.
-    pub(crate) fn enter(&self) -> RegionScope {
+    fn enter(&self) -> RegionScope {
         let region = self
             .0
             .lock()

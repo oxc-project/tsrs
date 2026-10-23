@@ -13,7 +13,7 @@ pub use tsrs_compiler::{
     clippy::unnecessary_wraps,
     reason = "The incremental emit interface shares an optional result with paths that have no pending emit."
 )]
-pub fn compiler_program_emit(
+pub(crate) fn compiler_program_emit(
     program: &'static CompilerProgram,
     ctx: &Context,
     options: &EmitOptions,

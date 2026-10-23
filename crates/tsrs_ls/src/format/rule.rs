@@ -4,10 +4,10 @@ use super::*;
 
 // rule.go:5
 pub struct RuleImpl {
-    pub(crate) debug_name: &'static str,
-    pub(crate) context: Vec<ContextPredicate>,
-    pub(crate) action: RuleAction,
-    pub(crate) flags: RuleFlags,
+    debug_name: &'static str,
+    context: Vec<ContextPredicate>,
+    action: RuleAction,
+    flags: RuleFlags,
 }
 
 impl RuleImpl {
@@ -31,7 +31,7 @@ impl RuleImpl {
         dead_code,
         reason = "Go's String() makes ruleImpl a fmt.Stringer for debug output; no Go code calls it"
     )]
-    pub(crate) fn string(&self) -> &'static str {
+    fn string(&self) -> &'static str {
         self.debug_name
     }
 }
@@ -132,7 +132,7 @@ pub fn any_context() -> Vec<ContextPredicate> {
 
 // rule.go:87
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
-pub struct RuleAction(pub(crate) u32);
+pub struct RuleAction(u32);
 
 impl RuleAction {
     pub(crate) const NONE: RuleAction = RuleAction(0);

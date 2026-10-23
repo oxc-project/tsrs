@@ -40,7 +40,7 @@ pub use commandlineparser::*;
 pub use contentmappers::*;
 pub use declsbuild::*;
 pub use declscompiler::*;
-pub use diagnostics::*;
+
 pub use enummaps::*;
 pub use errors::*;
 pub use namemap::*;

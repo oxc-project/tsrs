@@ -302,8 +302,8 @@ pub fn fs_events_get_current_event_id() -> u64 {
 pub struct FsEventsCallbackPayload {
     pub(crate) num_events: usize,
     paths: CFTypeRef,
-    pub(crate) flags: *const u32,
-    pub(crate) ids: *const u64,
+    flags: *const u32,
+    ids: *const u64,
 }
 
 impl FsEventsCallbackPayload {
@@ -387,7 +387,7 @@ extern "C" fn dispatch_noop(_: *mut c_void) {}
 
 impl StreamCallback {
     // fsevents_darwin_ffi.go:565
-    pub(crate) fn wait_dispatch_queue(&self) {
+    fn wait_dispatch_queue(&self) {
         if !self.queue.is_null() {
             // SAFETY: `queue` is a live queue owned by this callback; the work function does nothing.
             unsafe { dispatch_sync_f(self.queue, std::ptr::null_mut(), dispatch_noop) }
@@ -396,7 +396,7 @@ impl StreamCallback {
 
     // fsevents_darwin_ffi.go:572
     // close releases resources.
-    pub(crate) fn close(&mut self) {
+    fn close(&mut self) {
         if !self.queue.is_null() {
             // SAFETY: the queue was created by `new_stream_callback` and is released exactly once.
             unsafe { dispatch_release(self.queue) };

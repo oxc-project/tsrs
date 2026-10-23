@@ -73,7 +73,7 @@ impl OperatorPrecedence {
     pub const COALESCE: OperatorPrecedence = OperatorPrecedence::LogicalOR;
 }
 
-pub(crate) fn get_operator(expression: P<Node>) -> Kind {
+fn get_operator(expression: P<Node>) -> Kind {
     match expression.kind() {
         Kind::BinaryExpression => expression.as_binary_expression().operator_token.kind(),
         Kind::PrefixUnaryExpression => expression.as_prefix_unary_expression().operator,
@@ -104,7 +104,7 @@ bitflags! {
 }
 
 // Gets the precedence of an operator
-pub fn get_operator_precedence(
+fn get_operator_precedence(
     node_kind: Kind,
     operator_kind: Kind,
     flags: OperatorPrecedenceFlags,

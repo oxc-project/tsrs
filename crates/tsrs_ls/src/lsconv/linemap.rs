@@ -8,7 +8,7 @@ pub type LSPLineStarts = Vec<u32>;
 #[derive(Clone, Debug, PartialEq, Eq, Default)]
 pub struct LSPLineMap {
     pub line_starts: LSPLineStarts,
-    pub ascii_only: bool, // TODO(jakebailey): collect ascii-only info per line
+    pub(crate) ascii_only: bool, // TODO(jakebailey): collect ascii-only info per line
 }
 
 // linemap.go:19

@@ -22,7 +22,7 @@ pub struct PositionMap {
 
 impl PositionMap {
     /// Go `ComputePositionMap`.
-    pub fn compute(text: &str) -> PositionMap {
+    pub(crate) fn compute(text: &str) -> PositionMap {
         let bytes = text.as_bytes();
         let mut entries = Vec::new();
         let mut delta = 0i64;
@@ -47,7 +47,7 @@ impl PositionMap {
     }
 
     /// Go `UTF8ToUTF16`.
-    pub fn utf8_to_utf16(&self, utf8_offset: i64) -> i64 {
+    pub(crate) fn utf8_to_utf16(&self, utf8_offset: i64) -> i64 {
         if self.ascii_only {
             return utf8_offset;
         }

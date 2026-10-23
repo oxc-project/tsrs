@@ -13,7 +13,7 @@ impl SourcePos {
     pub const MAX: u32 = u32::MAX - 1;
 
     #[inline]
-    pub const fn new(offset: u32) -> SourcePos {
+    const fn new(offset: u32) -> SourcePos {
         match NonZeroU32::new(offset.wrapping_add(1)) {
             Some(encoded) => SourcePos(encoded),
             None => source_position_overflow(),

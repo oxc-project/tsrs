@@ -144,7 +144,7 @@ pub fn statistics_from_program(input: &EmitInput, times: &CompileTimes) -> Stati
 }
 
 impl Statistics {
-    pub fn report(&self, w: &dyn Fn(&str), testing: Option<&dyn super::CommandLineTesting>) {
+    pub(crate) fn report(&self, w: &dyn Fn(&str), testing: Option<&dyn super::CommandLineTesting>) {
         if let Some(testing) = testing {
             testing.on_statistics_start(w);
         }
@@ -262,7 +262,7 @@ impl Statistics {
     }
 
     // statistics.go:155
-    pub fn aggregate(&mut self, stat: &Statistics) {
+    pub(crate) fn aggregate(&mut self, stat: &Statistics) {
         self.is_aggregate = true;
         // Aggregate statistics
         self.files += stat.files;
@@ -283,7 +283,7 @@ impl Statistics {
     }
 
     // statistics.go:178
-    pub fn set_total_time(&mut self, total_time: Duration) {
+    pub(crate) fn set_total_time(&mut self, total_time: Duration) {
         self.compile_times.total_time = total_time;
     }
 }

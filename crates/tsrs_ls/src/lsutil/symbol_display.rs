@@ -113,7 +113,7 @@ bitflags::bitflags! {
 
 impl ScriptElementKindModifier {
     #[expect(non_upper_case_globals, reason = "Keep the upstream bitflags constant name.")]
-    pub const None: ScriptElementKindModifier = ScriptElementKindModifier::empty();
+    pub(crate) const None: ScriptElementKindModifier = ScriptElementKindModifier::empty();
 }
 
 // symbol_display.go:108

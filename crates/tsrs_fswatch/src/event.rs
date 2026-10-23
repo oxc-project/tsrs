@@ -114,7 +114,7 @@ impl EventList {
         dead_code,
         reason = "its only Go caller, windows.go (windowsSubscription.processOne), is not ported"
     )]
-    pub(crate) fn remove_and_get_sequence(&self, path: &str) -> u64 {
+    fn remove_and_get_sequence(&self, path: &str) -> u64 {
         let mut el = self.mu.lock().unwrap();
         let seq = el.next_seq_locked();
         el.remove_locked(path, seq);

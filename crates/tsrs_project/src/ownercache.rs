@@ -43,7 +43,7 @@ pub fn new_owner_cache<K: Hash + Eq, V, A: LoadArgs>(
 
 impl<K: Hash + Eq + Clone, V: Clone, A: LoadArgs> OwnerCache<K, V, A> {
     // ownercache.go:38
-    pub fn load_and_acquire(&self, identity: &K, owner: u64, load_args: &A::Args<'_>) -> V {
+    pub(crate) fn load_and_acquire(&self, identity: &K, owner: u64, load_args: &A::Args<'_>) -> V {
         self.load_or_store_locked_entry(identity, |entry, loaded| {
             if !loaded
                 || self.is_expired.as_ref().is_some_and(|is_expired| {
@@ -71,7 +71,7 @@ impl<K: Hash + Eq + Clone, V: Clone, A: LoadArgs> OwnerCache<K, V, A> {
     // AddOwner adds an owner to an existing live entry. The entry must exist
     // and have at least one current owner; callers must ensure the entry is
     // kept alive (e.g. via snapshot ref counting).
-    pub fn add_owner(&self, identity: &K, owner: u64) {
+    pub(crate) fn add_owner(&self, identity: &K, owner: u64) {
         let Some(entry) = self.entries.load(identity) else {
             panic!("OwnerCache.AddOwner: entry not found");
         };
@@ -86,7 +86,7 @@ impl<K: Hash + Eq + Clone, V: Clone, A: LoadArgs> OwnerCache<K, V, A> {
     }
 
     // ownercache.go:78
-    pub fn release(&self, identity: &K, owner: u64) {
+    pub(crate) fn release(&self, identity: &K, owner: u64) {
         let Some(entry) = self.entries.load(identity) else {
             return;
         };

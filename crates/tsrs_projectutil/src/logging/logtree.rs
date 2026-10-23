@@ -110,13 +110,13 @@ impl LogTree {
     }
 
     // logtree.go:77
-    pub fn is_verbose(&self) -> bool {
+    fn is_verbose(&self) -> bool {
         // Relaxed: verbosity is an independent flag; it does not publish other data.
         self.0.as_ref().is_some_and(|c| c.verbose.load(Ordering::Relaxed))
     }
 
     // logtree.go:81
-    pub fn set_verbose(&self, verbose: bool) {
+    fn set_verbose(&self, verbose: bool) {
         if let Some(c) = &self.0 {
             c.verbose.store(verbose, Ordering::Relaxed);
         }

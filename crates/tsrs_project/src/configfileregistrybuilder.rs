@@ -850,7 +850,7 @@ impl ConfigFileRegistryBuilder {
     }
 
     // configfileregistrybuilder.go:669
-    pub(crate) fn compute_config_file_name(
+    fn compute_config_file_name(
         &self,
         file_name: &str,
         skip_search_in_directory_of_file: bool,

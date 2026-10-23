@@ -404,7 +404,7 @@ impl DeclarationTransformer {
     }
 
     // transform.go:2648
-    pub(crate) fn get_name_expression_preferring_identifier(&self, name_expr: P<Node>) -> P<Node> {
+    fn get_name_expression_preferring_identifier(&self, name_expr: P<Node>) -> P<Node> {
         let mut name_expr = name_expr;
         if ast::is_numeric_literal(name_expr) {
             // Numeric property names are string properties in JS; convert to string literal
@@ -531,7 +531,7 @@ impl DeclarationTransformer {
     }
 
     // transform.go:2734
-    pub(crate) fn transform_expando_assignment(&self, node: P<Node>) {
+    fn transform_expando_assignment(&self, node: P<Node>) {
         let left = node.as_binary_expression().left;
 
         let symbol = node.symbol();
@@ -705,7 +705,7 @@ impl DeclarationTransformer {
         cleanup_diagnostic_context();
     }
 
-    pub(crate) fn add_export_modifier_to_expando_members(&self, host_id: NodeId) {
+    fn add_export_modifier_to_expando_members(&self, host_id: NodeId) {
         // Add an `export` modifier to all existing expando members so they remain exported after the `export {}` is added
         let members = self.expando_members.borrow().get(&host_id).cloned().unwrap_or_default();
         for decl in members {
@@ -720,7 +720,7 @@ impl DeclarationTransformer {
     }
 
     // transform.go:2868
-    pub(crate) fn get_expando_host_id(&self, declaration: P<Node>) -> NodeId {
+    fn get_expando_host_id(&self, declaration: P<Node>) -> NodeId {
         let root = if ast::is_variable_declaration(declaration) {
             declaration.parent().unwrap().parent().unwrap()
         } else {
@@ -730,7 +730,7 @@ impl DeclarationTransformer {
     }
 
     // transform.go:2874
-    pub(crate) fn transform_expando_host(&self, name: P<Node>, declaration: P<Node>) {
+    fn transform_expando_host(&self, name: P<Node>, declaration: P<Node>) {
         let root = if ast::is_variable_declaration(declaration) {
             declaration.parent().unwrap().parent().unwrap()
         } else {
@@ -905,7 +905,7 @@ pub fn extract_expando_host_params(
 
 impl DeclarationTransformer {
     // transform.go:2994
-    pub(crate) fn try_get_property_name(&self, node: P<Node>) -> String {
+    fn try_get_property_name(&self, node: P<Node>) -> String {
         if ast::is_element_access_expression(node) {
             return self.resolver.get_element_access_expression_name(node);
         }

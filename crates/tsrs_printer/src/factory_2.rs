@@ -33,7 +33,7 @@ pub enum PrivateIdentifierKind {
 }
 
 impl PrivateIdentifierKind {
-    pub fn as_str(self) -> &'static str {
+    fn as_str(self) -> &'static str {
         match self {
             PrivateIdentifierKind::Field => "f",
             PrivateIdentifierKind::Method => "m",
@@ -505,7 +505,7 @@ impl crate::NodeFactory {
     }
 
     // factory.go:547
-    pub fn get_export_name_ex(&self, node: P<Node>, opts: AssignedNameOptions) -> P<Node> {
+    fn get_export_name_ex(&self, node: P<Node>, opts: AssignedNameOptions) -> P<Node> {
         self.get_name(Some(node), EmitFlags::ExportName, opts)
     }
 
@@ -1069,7 +1069,7 @@ impl crate::NodeFactory {
     }
 
     // factory.go:1009
-    pub fn new_es_decorate_class_element_access_get_method(
+    fn new_es_decorate_class_element_access_get_method(
         &self,
         name_computed: bool,
         name_expr: P<Node>,
@@ -1113,7 +1113,7 @@ impl crate::NodeFactory {
     }
 
     // factory.go:1033
-    pub fn new_es_decorate_class_element_access_set_method(
+    fn new_es_decorate_class_element_access_set_method(
         &self,
         name_computed: bool,
         name_expr: P<Node>,
@@ -1169,7 +1169,7 @@ impl crate::NodeFactory {
     }
 
     // factory.go:1062
-    pub fn new_es_decorate_class_element_access_has_method(
+    fn new_es_decorate_class_element_access_has_method(
         &self,
         name_computed: bool,
         name_expr: Option<P<Node>>,
@@ -1222,7 +1222,7 @@ impl crate::NodeFactory {
     //     a. Let _setAccess_ be a new Abstract Closure with parameters (_object_, _value_) that captures _kind_ and _name_ ...
     //     b. Perform ! CreateDataPropertyOrThrow(_access_, "set", _setAccess_).
     // factory.go:1098
-    pub fn new_es_decorate_class_element_access_object(
+    fn new_es_decorate_class_element_access_object(
         &self,
         name_computed: bool,
         name_expr: P<Node>,

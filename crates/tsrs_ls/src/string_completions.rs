@@ -291,7 +291,7 @@ impl LanguageService {
     }
 
     // string_completions.go:263
-    pub(crate) fn get_string_literal_completion_entries(
+    fn get_string_literal_completion_entries(
         &self,
         _ctx: &Context,
         file: P<SourceFile>,

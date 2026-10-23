@@ -116,7 +116,7 @@ impl<'a> Params<'a> {
         self.u64_typed(name, "uint64")
     }
 
-    pub(crate) fn u64_typed(&self, name: &str, go_type: &str) -> CheckerResult<u64> {
+    fn u64_typed(&self, name: &str, go_type: &str) -> CheckerResult<u64> {
         self.raw(name).map_or(Ok(0), |v| {
             unsigned64(v, self.value, name, || format!("{}/{name}", self.pointer), go_type)
         })
@@ -232,8 +232,8 @@ impl<'a> Params<'a> {
 /// Go `DocumentIdentifier`: `string | { uri: string }`.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct DocumentIdentifier {
-    pub(crate) file_name: String,
-    pub(crate) uri: String,
+    file_name: String,
+    uri: String,
 }
 
 impl DocumentIdentifier {

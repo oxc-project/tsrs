@@ -128,7 +128,7 @@ pub fn is_entity_name_expression(node: P<Node>) -> bool {
     is_entity_name_expression_ex(node, false /*allowJS*/)
 }
 
-pub fn is_entity_name_expression_ex(node: P<Node>, allow_js: bool) -> bool {
+fn is_entity_name_expression_ex(node: P<Node>, allow_js: bool) -> bool {
     is_identifier(node)
         || is_property_access_entity_name_expression(node, allow_js)
         || allow_js
@@ -142,7 +142,7 @@ pub fn is_property_access_entity_name_expression(node: P<Node>, allow_js: bool) 
         && is_entity_name_expression_ex(node.expression().unwrap(), allow_js)
 }
 
-pub(crate) fn is_element_access_entity_name_expression(node: P<Node>, allow_js: bool) -> bool {
+fn is_element_access_entity_name_expression(node: P<Node>, allow_js: bool) -> bool {
     is_element_access_expression(node)
         && is_string_or_numeric_literal_like(
             node.as_element_access_expression().argument_expression,
@@ -218,7 +218,7 @@ pub fn is_effective_external_module(
             && node.common_js_module_indicator().is_some())
 }
 
-pub(crate) fn is_common_js_containing_module_kind(kind: ModuleKind) -> bool {
+fn is_common_js_containing_module_kind(kind: ModuleKind) -> bool {
     kind == ModuleKind::COMMON_JS || ModuleKind::NODE16 <= kind && kind <= ModuleKind::NODE_NEXT
 }
 
@@ -295,7 +295,7 @@ pub fn get_heritage_clause(node: P<Node>, kind: Kind) -> Option<P<Node>> {
     None
 }
 
-pub(crate) fn get_heritage_clauses(node: P<Node>) -> Option<P<NodeList>> {
+fn get_heritage_clauses(node: P<Node>) -> Option<P<NodeList>> {
     match node.kind() {
         Kind::ClassDeclaration => node.as_class_declaration().heritage_clauses(),
         Kind::ClassExpression => node.as_class_expression().heritage_clauses(),
@@ -430,7 +430,7 @@ pub fn is_any_import_or_re_export(node: P<Node>) -> bool {
     is_import_node(node) || is_export_declaration(node)
 }
 
-pub fn is_import_node(node: P<Node>) -> bool {
+fn is_import_node(node: P<Node>) -> bool {
     is_any_import_syntax(node) || node_kind_is(node, &[Kind::JSImportDeclaration])
 }
 
@@ -495,7 +495,7 @@ pub fn get_import_attributes(node: P<Node>) -> Option<P<Node>> {
     }
 }
 
-pub(crate) fn get_import_type_node_literal(node: P<Node>) -> Option<P<Node>> {
+fn get_import_type_node_literal(node: P<Node>) -> Option<P<Node>> {
     if is_import_type_node(node) {
         let import_type_node = node.as_import_type_node();
         if is_literal_type_node(import_type_node.argument) {
@@ -682,7 +682,7 @@ pub fn is_part_of_type_node(node: P<Node>) -> bool {
     }
 }
 
-pub(crate) fn is_part_of_type_node_in_parent(node: P<Node>) -> bool {
+fn is_part_of_type_node_in_parent(node: P<Node>) -> bool {
     let parent = node.parent().unwrap();
     if parent.kind() == Kind::TypeQuery {
         return false;
@@ -726,7 +726,7 @@ pub(crate) fn is_part_of_type_node_in_parent(node: P<Node>) -> bool {
     }
 }
 
-pub(crate) fn is_part_of_type_expression_with_type_arguments(node: P<Node>) -> bool {
+fn is_part_of_type_expression_with_type_arguments(node: P<Node>) -> bool {
     let parent = node.parent().unwrap();
     is_heritage_clause(parent)
         && (!is_class_like(parent.parent().unwrap())
@@ -871,7 +871,7 @@ pub fn get_enclosing_block_scope_container(node: P<Node>) -> Option<P<Node>> {
     find_ancestor(node.parent(), |current| is_block_scope(current, current.parent()))
 }
 
-pub fn is_block_scope(node: P<Node>, parent_node: Option<P<Node>>) -> bool {
+fn is_block_scope(node: P<Node>, parent_node: Option<P<Node>>) -> bool {
     match node.kind() {
         Kind::SourceFile
         | Kind::CaseBlock
@@ -959,7 +959,7 @@ pub fn is_label_name(node: P<Node>) -> bool {
     is_label_of_labeled_statement(node) || is_jump_statement_target(node)
 }
 
-pub fn is_label_of_labeled_statement(node: P<Node>) -> bool {
+fn is_label_of_labeled_statement(node: P<Node>) -> bool {
     if !is_identifier(node) {
         return false;
     }
@@ -993,7 +993,7 @@ pub fn is_break_or_continue_statement(node: P<Node>) -> bool {
 // Go passes the ancestor stack by value (append/reslice); the port copies it where Go's slice semantics would.
 
 // Push a virtual parent pointer onto `ancestors` and return it.
-pub(crate) fn push_ancestor(ancestors: &[P<Node>], parent: P<Node>) -> Vec<P<Node>> {
+fn push_ancestor(ancestors: &[P<Node>], parent: P<Node>) -> Vec<P<Node>> {
     let mut result = ancestors.to_vec();
     result.push(parent);
     result
@@ -1001,7 +1001,7 @@ pub(crate) fn push_ancestor(ancestors: &[P<Node>], parent: P<Node>) -> Vec<P<Nod
 
 // If a virtual `Parent` exists on the stack, returns the previous stack entry and the virtual `Parent“.
 // Otherwise, we return `nil` and the value of `node.Parent`.
-pub(crate) fn pop_ancestor(ancestors: &[P<Node>], node: P<Node>) -> (&[P<Node>], Option<P<Node>>) {
+fn pop_ancestor(ancestors: &[P<Node>], node: P<Node>) -> (&[P<Node>], Option<P<Node>>) {
     if ancestors.is_empty() {
         return (&[], node.parent());
     }
@@ -1024,7 +1024,7 @@ pub fn get_module_instance_state(node: P<Node>) -> ModuleInstanceState {
 }
 
 // Go `getModuleInstanceState` (unexported); renamed to avoid clashing with the exported wrapper.
-pub(crate) fn get_module_instance_state_ex(
+fn get_module_instance_state_ex(
     node: P<Node>,
     ancestors: &[P<Node>],
     visited: &mut FxHashMap<NodeId, ModuleInstanceState>,
@@ -1037,7 +1037,7 @@ pub(crate) fn get_module_instance_state_ex(
     }
 }
 
-pub(crate) fn get_module_instance_state_cached(
+fn get_module_instance_state_cached(
     node: P<Node>,
     ancestors: &[P<Node>],
     visited: &mut FxHashMap<NodeId, ModuleInstanceState>,
@@ -1060,7 +1060,7 @@ pub(crate) fn get_module_instance_state_cached(
     result
 }
 
-pub(crate) fn get_module_instance_state_worker(
+fn get_module_instance_state_worker(
     node: P<Node>,
     ancestors: &[P<Node>],
     visited: &mut FxHashMap<NodeId, ModuleInstanceState>,
@@ -1139,7 +1139,7 @@ pub(crate) fn get_module_instance_state_worker(
     ModuleInstanceState::Instantiated
 }
 
-pub(crate) fn get_module_instance_state_for_alias_target(
+fn get_module_instance_state_for_alias_target(
     node: P<Node>,
     ancestors: &[P<Node>],
     visited: &mut FxHashMap<NodeId, ModuleInstanceState>,
@@ -1189,7 +1189,7 @@ pub fn is_instantiated_module(node: P<Node>, preserve_const_enums: bool) -> bool
         || (preserve_const_enums && module_state == ModuleInstanceState::ConstEnumOnly)
 }
 
-pub fn node_has_name(statement: P<Node>, id: P<Node>) -> bool {
+fn node_has_name(statement: P<Node>, id: P<Node>) -> bool {
     if let Some(name) = statement.name() {
         return is_identifier(name) && name.text() == id.text();
     }
@@ -1454,7 +1454,7 @@ pub fn get_node_at_position(file: P<SourceFile>, position: u32, include_jsdoc: b
     }
 }
 
-pub(crate) fn node_contains_position(node: P<Node>, position: u32) -> bool {
+fn node_contains_position(node: P<Node>, position: u32) -> bool {
     let (Some(pos), Some(end)) = (node.pos().source_offset(), node.end().source_offset()) else {
         return false;
     };
@@ -1465,7 +1465,7 @@ pub(crate) fn node_contains_position(node: P<Node>, position: u32) -> bool {
 
 // Go scans for the first 'i' or 'r' and compares; the first "import" or "require" at or after `start` is the
 // same position, found here with two substring searches (the "require" search stops where "import" was found).
-pub(crate) fn find_import_or_require(text: &str, start: u32) -> Option<(u32, u32)> {
+fn find_import_or_require(text: &str, start: u32) -> Option<(u32, u32)> {
     static IMPORT: LazyLock<memchr::memmem::Finder<'static>> =
         LazyLock::new(|| memchr::memmem::Finder::new("import"));
     static REQUIRE: LazyLock<memchr::memmem::Finder<'static>> =
@@ -1586,7 +1586,7 @@ pub fn get_pragma_from_source_file(
     result
 }
 
-pub fn get_pragma_argument(pragma: Option<&'static Pragma>, name: &str) -> &'static str {
+fn get_pragma_argument(pragma: Option<&'static Pragma>, name: &str) -> &'static str {
     if let Some(pragma) = pragma
         && let Some(arg) = pragma.args.get(name)
     {
@@ -1629,7 +1629,7 @@ pub fn is_variable_declaration_initialized_to_bare_or_accessed_require(node: P<N
     )
 }
 
-pub(crate) fn is_variable_declaration_initialized_with_require_helper(
+fn is_variable_declaration_initialized_with_require_helper(
     node: P<Node>,
     allow_accessed_require: bool,
 ) -> bool {
@@ -1717,7 +1717,7 @@ pub fn is_type_only_import_declaration(node: P<Node>) -> bool {
     }
 }
 
-pub(crate) fn is_type_only_export_declaration(node: P<Node>) -> bool {
+fn is_type_only_export_declaration(node: P<Node>) -> bool {
     match node.kind() {
         Kind::ExportSpecifier => {
             node.is_type_only() || node.parent().unwrap().parent().unwrap().is_type_only()

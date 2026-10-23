@@ -159,7 +159,7 @@ macro_rules! trace {
     };
 }
 
-pub struct ResolutionState<'r> {
+struct ResolutionState<'r> {
     resolver: &'r DefaultResolver<'r>,
     tracer: Option<Tracer>,
 
@@ -312,7 +312,7 @@ pub fn new_resolver(opts: ResolverOptions<'_>) -> DefaultResolver<'_> {
 
 impl<'h> DefaultResolver<'h> {
     // Go's `(*ResolutionData).NewResolver`.
-    pub fn new_from_resolution_data(
+    pub(crate) fn new_from_resolution_data(
         d: P<ResolutionData>,
         host: &'h dyn ResolutionHost,
     ) -> DefaultResolver<'h> {
@@ -375,7 +375,7 @@ impl Tracer {
 }
 
 impl DefaultResolver<'_> {
-    pub fn resolve_type_reference_directive(
+    pub(crate) fn resolve_type_reference_directive(
         &self,
         type_reference_directive_name: &str,
         containing_file: &str,
@@ -466,7 +466,7 @@ impl DefaultResolver<'_> {
         clippy::unnecessary_wraps,
         reason = "The module resolver interface returns errors for custom resolver implementations as well as resolved modules."
     )]
-    pub fn resolve_module_name_from_directory(
+    fn resolve_module_name_from_directory(
         &self,
         module_name: &str,
         containing_directory: &str,
@@ -3451,7 +3451,7 @@ pub enum Ending {
 #[derive(Clone, Debug, Default)]
 pub struct ResolvedEntrypoint {
     // OriginalFileName is the symlink path if the entrypoint was discovered at a symlink. Empty otherwise.
-    pub original_file_name: String,
+    original_file_name: String,
     // ResolvedFileName is the real path to the entrypoint file.
     pub resolved_file_name: String,
     pub module_specifier: String,

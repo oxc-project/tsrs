@@ -31,11 +31,11 @@ use crate::utilities::get_container_node;
 pub type DocSym = Rc<RefCell<DocSymData>>;
 
 pub struct DocSymData {
-    pub(crate) name: String,
-    pub(crate) kind: lsproto::SymbolKind,
-    pub(crate) range: lsproto::Range,
-    pub(crate) selection_range: lsproto::Range,
-    pub(crate) children: Option<Vec<DocSym>>,
+    name: String,
+    kind: lsproto::SymbolKind,
+    range: lsproto::Range,
+    selection_range: lsproto::Range,
+    children: Option<Vec<DocSym>>,
 }
 
 pub fn doc_sym_to_lsp(symbol: &DocSym) -> lsproto::DocumentSymbol {
@@ -391,7 +391,7 @@ impl DocumentSymbolsVisitor<'_> {
 
 impl LanguageService {
     // symbols.go:94
-    pub(crate) fn get_document_symbols_for_children(
+    fn get_document_symbols_for_children(
         &self,
         ctx: &Context,
         node: P<Node>,
@@ -424,7 +424,7 @@ const MAX_LENGTH: usize = 150;
 
 impl LanguageService {
     // symbols.go:292
-    pub(crate) fn new_document_symbol(
+    fn new_document_symbol(
         &self,
         node: P<Node>,
         name: Option<P<Node>>,

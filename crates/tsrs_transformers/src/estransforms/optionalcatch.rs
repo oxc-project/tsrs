@@ -1,8 +1,8 @@
 use crate::*;
 
 // optionalcatch.go:8
-pub struct OptionalCatchTransformer {
-    pub base: Transformer,
+struct OptionalCatchTransformer {
+    base: Transformer,
 }
 
 impl OptionalCatchTransformer {

@@ -9,13 +9,13 @@ use crate::ownercache::{LoadArgs, OwnerCache, new_owner_cache};
 use crate::snapshotfs::FileSource;
 
 pub struct ExtendedConfigParseArgs<'a> {
-    pub file_name: String,
-    pub content: String,
-    pub fs: Arc<dyn FileSource>,
-    pub resolution_stack: Vec<Path>,
+    pub(crate) file_name: String,
+    pub(crate) content: String,
+    pub(crate) fs: Arc<dyn FileSource>,
+    pub(crate) resolution_stack: Vec<Path>,
     // Borrowed by the one load that uses them; the parse retains neither (issue #646).
-    pub host: &'a dyn ParseConfigHost,
-    pub cache: &'a dyn tsoptions::ExtendedConfigCache,
+    pub(crate) host: &'a dyn ParseConfigHost,
+    pub(crate) cache: &'a dyn tsoptions::ExtendedConfigCache,
 }
 
 // The loader argument family of `ExtendedConfigCache` (`ownercache::LoadArgs`): each load borrows its own hosts.
@@ -27,8 +27,8 @@ impl LoadArgs for ExtendedConfigLoadArgs {
 
 pub struct ExtendedConfigCacheEntry {
     // Go embeds *tsoptions.ExtendedConfigCacheEntry.
-    pub extended_config_cache_entry: P<tsoptions::ExtendedConfigCacheEntry>,
-    pub hash: Hash128,
+    pub(crate) extended_config_cache_entry: P<tsoptions::ExtendedConfigCacheEntry>,
+    hash: Hash128,
 }
 
 pub type ExtendedConfigCache =

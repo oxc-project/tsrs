@@ -20,7 +20,7 @@ use super::symbol_index::source_file_symbol;
 /// A snapshot + project without a checker (Go `getSnapshotData` + `params.Project`), used by the property
 /// handlers that Go serves straight from the registries.
 pub struct SnapshotCtx<'h> {
-    pub(crate) host: &'h dyn CheckerHost,
+    host: &'h dyn CheckerHost,
     pub(crate) scope: SnapshotScope,
     pub(crate) project: String,
 }
@@ -117,11 +117,11 @@ impl<'h> SnapshotCtx<'h> {
 
 /// Go `checkerSetup`. Field order matters: the checker handle is released before the snapshot scope.
 pub struct Setup<'h> {
-    pub(crate) checker: CheckerHandle,
+    checker: CheckerHandle,
     // Dropped after `checker`: the gate is released only once the checker slot is free again.
     _lease: super::lease::ApiCheckerLease,
     pub(crate) checker_id: u32,
-    pub(crate) program: &'static Program,
+    program: &'static Program,
     pub(crate) sd: SnapshotCtx<'h>,
 }
 
@@ -147,7 +147,7 @@ impl<'h> Setup<'h> {
         &mut self.checker
     }
 
-    pub(crate) fn symbol_response(&self, symbol: P<Symbol>) -> CheckerResult<Value> {
+    fn symbol_response(&self, symbol: P<Symbol>) -> CheckerResult<Value> {
         self.sd.symbol_response(symbol, &self.sd.project)
     }
 

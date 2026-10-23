@@ -145,7 +145,7 @@ impl Cloneable for ConfigFileEntry {
 
 impl ConfigFileRegistry {
     // configfileregistry.go:123
-    pub fn get_config(&self, path: &Path) -> Option<P<ParsedCommandLine>> {
+    pub(crate) fn get_config(&self, path: &Path) -> Option<P<ParsedCommandLine>> {
         self.configs.get(path)?.command_line
     }
 
@@ -155,7 +155,7 @@ impl ConfigFileRegistry {
     }
 
     // configfileregistry.go:135
-    pub fn get_config_file_name(&self, path: &Path) -> String {
+    pub(crate) fn get_config_file_name(&self, path: &Path) -> String {
         match self.config_file_names.get(path) {
             Some(entry) => entry.nearest_config_file_name.clone(),
             None => String::new(),
@@ -163,7 +163,11 @@ impl ConfigFileRegistry {
     }
 
     // configfileregistry.go:142
-    pub fn get_ancestor_config_file_name(&self, path: &Path, higher_than_config: &str) -> String {
+    pub(crate) fn get_ancestor_config_file_name(
+        &self,
+        path: &Path,
+        higher_than_config: &str,
+    ) -> String {
         match self.config_file_names.get(path) {
             Some(entry) => entry
                 .ancestors

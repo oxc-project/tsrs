@@ -99,15 +99,15 @@ fn build_rules_map() -> Vec<Vec<&'static RuleImpl>> {
 
 // rulesmap.go:87
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
-pub struct RulesPosition(pub u32);
+pub struct RulesPosition(u32);
 
 impl RulesPosition {
-    pub const STOP_RULES_SPECIFIC: RulesPosition = RulesPosition(0);
-    pub const STOP_RULES_ANY: RulesPosition = RulesPosition(MASK_BIT_SIZE);
-    pub const CONTEXT_RULES_SPECIFIC: RulesPosition = RulesPosition(MASK_BIT_SIZE * 2);
-    pub const CONTEXT_RULES_ANY: RulesPosition = RulesPosition(MASK_BIT_SIZE * 3);
-    pub const NO_CONTEXT_RULES_SPECIFIC: RulesPosition = RulesPosition(MASK_BIT_SIZE * 4);
-    pub const NO_CONTEXT_RULES_ANY: RulesPosition = RulesPosition(MASK_BIT_SIZE * 5);
+    const STOP_RULES_SPECIFIC: RulesPosition = RulesPosition(0);
+    const STOP_RULES_ANY: RulesPosition = RulesPosition(MASK_BIT_SIZE);
+    const CONTEXT_RULES_SPECIFIC: RulesPosition = RulesPosition(MASK_BIT_SIZE * 2);
+    const CONTEXT_RULES_ANY: RulesPosition = RulesPosition(MASK_BIT_SIZE * 3);
+    const NO_CONTEXT_RULES_SPECIFIC: RulesPosition = RulesPosition(MASK_BIT_SIZE * 4);
+    const NO_CONTEXT_RULES_ANY: RulesPosition = RulesPosition(MASK_BIT_SIZE * 5);
 }
 
 // rulesmap.go:114

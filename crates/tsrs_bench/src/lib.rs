@@ -12,9 +12,9 @@ use tsrs_vfs::{FS, bundled, osvfs};
 
 use snapshot::RecordingFs;
 
-pub const PROJECTS: &[&str] = &["Compiler-Unions", "xstate-main", "webpack", "drizzle-orm"];
+const PROJECTS: &[&str] = &["Compiler-Unions", "xstate-main", "webpack", "drizzle-orm"];
 
-pub fn project_config(name: &str) -> &'static str {
+fn project_config(name: &str) -> &'static str {
     match name {
         "Compiler-Unions" => "bench/.work/suite/cases/solutions/Compiler-Unions/tsconfig.json",
         "xstate-main" => "bench/.work/solutions/xstate-main/tsconfig.json",

@@ -79,7 +79,7 @@ pub fn new_program(
 // old snapshot and answers the questions the harness asks (Program::testing_semantic_diagnostics_state).
 pub struct TestingData {
     old_snapshot: Option<P<Snapshot>>,
-    pub updated_signature_kinds: FxHashMap<Path, SignatureUpdateKind>,
+    pub(crate) updated_signature_kinds: FxHashMap<Path, SignatureUpdateKind>,
 }
 
 // The tsctests "SemanticDiagnostics::" line of a file.

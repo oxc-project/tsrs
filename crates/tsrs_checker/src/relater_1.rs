@@ -95,7 +95,7 @@ impl Relation {
 
 impl Checker {
     // relater.go:117
-    pub fn is_type_identical_to(&mut self, source: P<Type>, target: P<Type>) -> bool {
+    pub(crate) fn is_type_identical_to(&mut self, source: P<Type>, target: P<Type>) -> bool {
         let relation = self.identity_relation;
         self.is_type_related_to(source, target, relation)
     }
@@ -110,11 +110,7 @@ impl Checker {
     }
 
     // relater.go:128
-    pub(crate) fn compare_types_assignable_simple(
-        &mut self,
-        source: P<Type>,
-        target: P<Type>,
-    ) -> Ternary {
+    fn compare_types_assignable_simple(&mut self, source: P<Type>, target: P<Type>) -> Ternary {
         let relation = self.assignable_relation;
         if self.is_type_related_to(source, target, relation) {
             return Ternary::TRUE;
@@ -138,7 +134,7 @@ impl Checker {
     }
 
     // relater.go:142
-    pub(crate) fn compare_types_subtype_of(&mut self, source: P<Type>, target: P<Type>) -> Ternary {
+    fn compare_types_subtype_of(&mut self, source: P<Type>, target: P<Type>) -> Ternary {
         let relation = self.subtype_relation;
         if self.is_type_related_to(source, target, relation) {
             return Ternary::TRUE;
@@ -147,7 +143,7 @@ impl Checker {
     }
 
     // relater.go:149
-    pub fn is_type_assignable_to(&mut self, source: P<Type>, target: P<Type>) -> bool {
+    pub(crate) fn is_type_assignable_to(&mut self, source: P<Type>, target: P<Type>) -> bool {
         let relation = self.assignable_relation;
         self.is_type_related_to(source, target, relation)
     }
@@ -467,7 +463,7 @@ impl Checker {
     }
 
     // relater.go:281
-    pub(crate) fn is_enum_type_related_to(
+    fn is_enum_type_related_to(
         &mut self,
         source: P<Symbol>,
         target: P<Symbol>,
@@ -951,14 +947,14 @@ impl Checker {
     }
 
     // relater.go:474
-    pub(crate) fn is_or_has_generic_conditional(t: P<Type>) -> bool {
+    fn is_or_has_generic_conditional(t: P<Type>) -> bool {
         t.flags().intersects(TypeFlags::Conditional)
             || (t.flags().intersects(TypeFlags::Intersection)
                 && t.types().iter().any(|&t| Self::is_or_has_generic_conditional(t)))
     }
 
     // relater.go:478
-    pub(crate) fn elaborate_did_you_mean_to_call_or_construct(
+    fn elaborate_did_you_mean_to_call_or_construct(
         &mut self,
         node: P<Node>,
         source: P<Type>,
@@ -1015,7 +1011,7 @@ impl Checker {
     }
 
     // relater.go:496
-    pub(crate) fn elaborate_object_literal(
+    fn elaborate_object_literal(
         &mut self,
         node: P<Node>,
         source: P<Type>,
@@ -1083,7 +1079,7 @@ impl Checker {
     }
 
     // relater.go:520
-    pub(crate) fn elaborate_array_literal(
+    fn elaborate_array_literal(
         &mut self,
         node: P<Node>,
         source: P<Type>,
@@ -1344,7 +1340,7 @@ impl Checker {
     }
 
     // relater.go:639
-    pub(crate) fn elaborate_arrow_function(
+    fn elaborate_arrow_function(
         &mut self,
         node: P<Node>,
         source: P<Type>,
@@ -1917,7 +1913,7 @@ impl Checker {
     }
 
     // relater.go:891
-    pub(crate) fn find_matching_type_reference_or_type_alias_reference(
+    fn find_matching_type_reference_or_type_alias_reference(
         source: P<Type>,
         union_target: P<Type>,
     ) -> Option<P<Type>> {
@@ -1947,7 +1943,7 @@ impl Checker {
     }
 
     // relater.go:909
-    pub(crate) fn find_best_type_for_invokable(
+    fn find_best_type_for_invokable(
         &mut self,
         source: P<Type>,
         union_target: P<Type>,
@@ -1965,7 +1961,7 @@ impl Checker {
     }
 
     // relater.go:916
-    pub(crate) fn find_most_overlappy_type(
+    fn find_most_overlappy_type(
         &mut self,
         source: P<Type>,
         union_target: P<Type>,
@@ -2005,7 +2001,7 @@ impl Checker {
     }
 
     // relater.go:945
-    pub(crate) fn find_best_type_for_object_literal(
+    fn find_best_type_for_object_literal(
         &mut self,
         source: P<Type>,
         union_target: P<Type>,
@@ -2112,7 +2108,7 @@ impl Checker {
     }
 
     // relater.go:977
-    pub(crate) fn get_unmatched_properties_worker(
+    fn get_unmatched_properties_worker(
         &mut self,
         source: P<Type>,
         target: P<Type>,
@@ -2235,7 +2231,7 @@ impl Checker {
     // properties) and getNamedMembers (members declared in the class or interface first, each part sorted with
     // compareSymbols). A declared member has its instantiation's name, flags and declarations, and names are unique
     // in a member table, so the order is the same. Kept in the table: bases share it instead of being walked again.
-    pub(crate) fn get_lazy_properties_in_order(&mut self, t: P<Type>) -> Option<Vec<P<Symbol>>> {
+    fn get_lazy_properties_in_order(&mut self, t: P<Type>) -> Option<Vec<P<Symbol>>> {
         let reduced = self.get_reduced_apparent_type(t);
         if !reduced.flags().intersects(TypeFlags::Object) {
             return None;
@@ -2480,7 +2476,7 @@ impl Checker {
     }
 
     // relater.go:1132
-    pub(crate) fn compute_key_property_name_and_map(
+    fn compute_key_property_name_and_map(
         &mut self,
         t: P<Type>,
     ) -> (String, FxHashMap<P<Type>, P<Type>>) {
@@ -2511,7 +2507,7 @@ pub fn is_object_or_instantiable_non_primitive(t: P<Type>) -> bool {
 
 impl Checker {
     // relater.go:1152
-    pub(crate) fn get_key_property_candidate_name(&mut self, types: &[P<Type>]) -> String {
+    fn get_key_property_candidate_name(&mut self, types: &[P<Type>]) -> String {
         for &t in types {
             if t.flags().intersects(TypeFlags::Object | TypeFlags::InstantiableNonPrimitive) {
                 for p in self.get_properties_of_type(t).iter().copied() {
@@ -2531,7 +2527,7 @@ impl Checker {
     // has a non-literal type or if less than 10 or less than 50% of the constituents have a unique key.
     // Entries with duplicate keys have unknownType as the value.
     // (An empty map stands for Go's nil map.)
-    pub(crate) fn map_types_by_key_property(
+    fn map_types_by_key_property(
         &mut self,
         types: &[P<Type>],
         key_property_name: &str,
@@ -2756,10 +2752,7 @@ impl Checker {
     }
 
     // relater.go:1294
-    pub(crate) fn symbol_value_declaration_is_context_sensitive(
-        &mut self,
-        symbol: Option<P<Symbol>>,
-    ) -> bool {
+    fn symbol_value_declaration_is_context_sensitive(&mut self, symbol: Option<P<Symbol>>) -> bool {
         let Some(symbol) = symbol else {
             return false;
         };
@@ -2816,7 +2809,7 @@ impl Checker {
     // generic type are structurally compared. We infer the variance information by comparing
     // instantiations of the generic type for type arguments with known relations. The function
     // returns an empty slice when invoked recursively for the given generic type.
-    pub(crate) fn get_variances_worker(
+    fn get_variances_worker(
         &mut self,
         symbol: P<Symbol>,
         type_parameters: &'static [P<Type>],
@@ -2939,7 +2932,7 @@ impl Checker {
     }
 
     // relater.go:1437
-    pub(crate) fn get_variance_stack_index(&self, symbol: P<Symbol>) -> Option<usize> {
+    fn get_variance_stack_index(&self, symbol: P<Symbol>) -> Option<usize> {
         for (i, entry) in self.variance_stack.iter().enumerate() {
             if entry.symbol == symbol {
                 return Some(i);
@@ -3325,7 +3318,7 @@ impl Checker {
     }
 
     // relater.go:1675
-    pub(crate) fn compare_type_predicate_related_to(
+    fn compare_type_predicate_related_to(
         &mut self,
         source: P<TypePredicate>,
         target: P<TypePredicate>,
@@ -3390,7 +3383,7 @@ impl Checker {
 
     // relater.go:1708
     // Returns true if `s` is `(...args: A) => R` where `A` is `any`, `any[]`, `never`, or `never[]`, and `R` is `any` or `unknown`.
-    pub(crate) fn is_top_signature(&mut self, s: P<Signature>) -> bool {
+    fn is_top_signature(&mut self, s: P<Signature>) -> bool {
         if s.type_parameters().is_empty()
             && (s.this_parameter().is_none() || {
                 let this_type = self.get_type_of_parameter(s.this_parameter().unwrap());
@@ -3491,7 +3484,7 @@ impl Checker {
     }
 
     // relater.go:1782
-    pub fn has_effective_rest_parameter(&mut self, signature: P<Signature>) -> bool {
+    pub(crate) fn has_effective_rest_parameter(&mut self, signature: P<Signature>) -> bool {
         if signature_has_rest_parameter(signature) {
             let rest_type =
                 self.get_type_of_symbol(signature.parameters()[signature.parameters().len() - 1]);
@@ -3550,11 +3543,7 @@ impl Checker {
     // Return the rest type at the given position, transforming `any[]` into just `any`. We do this because
     // in signatures we want `any[]` in a rest position to be compatible with anything, but `any[]` isn't
     // assignable to tuple types with required elements.
-    pub(crate) fn get_rest_or_any_type_at_position(
-        &mut self,
-        source: P<Signature>,
-        pos: usize,
-    ) -> P<Type> {
+    fn get_rest_or_any_type_at_position(&mut self, source: P<Signature>, pos: usize) -> P<Type> {
         let rest_type = self.get_rest_type_at_position(source, pos, false);
         if let Some(element_type) = self.get_element_type_of_array_type(rest_type)
             && is_type_any(Some(element_type))
@@ -3611,7 +3600,7 @@ impl Checker {
     }
 
     // relater.go:1860
-    pub(crate) fn get_nameable_declaration_at_position(
+    fn get_nameable_declaration_at_position(
         &mut self,
         signature: P<Signature>,
         pos: usize,
@@ -3648,7 +3637,7 @@ impl Checker {
     }
 
     // relater.go:1887
-    pub(crate) fn is_valid_declaration_for_tuple_label(d: P<Node>) -> bool {
+    fn is_valid_declaration_for_tuple_label(d: P<Node>) -> bool {
         is_named_tuple_member(d)
             || is_parameter_declaration(d) && d.name().is_some() && is_identifier(d.name().unwrap())
     }
@@ -3728,7 +3717,7 @@ impl Checker {
     }
 
     // relater.go:1940
-    pub(crate) fn get_rest_array_type_of_tuple_type(&mut self, t: P<Type>) -> Option<P<Type>> {
+    fn get_rest_array_type_of_tuple_type(&mut self, t: P<Type>) -> Option<P<Type>> {
         if let Some(rest_type) = self.get_rest_type_of_tuple_type(t) {
             return Some(self.create_array_type(rest_type));
         }
@@ -3747,11 +3736,7 @@ impl Checker {
     }
 
     // relater.go:1954
-    pub(crate) fn is_instantiated_generic_parameter(
-        &mut self,
-        signature: P<Signature>,
-        pos: usize,
-    ) -> bool {
+    fn is_instantiated_generic_parameter(&mut self, signature: P<Signature>, pos: usize) -> bool {
         let Some(target) = signature.target() else {
             return false;
         };
@@ -3805,7 +3790,7 @@ impl Checker {
     }
 
     // relater.go:1992
-    pub(crate) fn get_tuple_element_label_from_binding_element(
+    fn get_tuple_element_label_from_binding_element(
         node: P<Node>,
         index: usize,
         element_flags: ElementFlags,
@@ -3935,7 +3920,7 @@ impl Checker {
     }
 
     // relater.go:2083
-    pub(crate) fn get_union_or_intersection_type_predicate(
+    fn get_union_or_intersection_type_predicate(
         &mut self,
         signatures: &[P<Signature>],
         is_union: bool,
@@ -3984,7 +3969,7 @@ impl Checker {
     }
 
     // relater.go:2117
-    pub(crate) fn create_type_predicate_from_type_predicate_node(
+    fn create_type_predicate_from_type_predicate_node(
         &mut self,
         node: P<Node>,
         signature: P<Signature>,
@@ -4261,7 +4246,7 @@ impl Checker {
     }
 
     // relater.go:2260
-    pub(crate) fn is_matching_signature(
+    fn is_matching_signature(
         &mut self,
         source: P<Signature>,
         target: P<Signature>,
@@ -4323,7 +4308,7 @@ impl Checker {
     }
 
     // relater.go:2303
-    pub(crate) fn compare_type_predicates_identical(
+    fn compare_type_predicates_identical(
         &mut self,
         source: Option<P<TypePredicate>>,
         target: Option<P<TypePredicate>>,
@@ -4505,7 +4490,7 @@ impl Checker {
     // the first inference is the template literal type `<${string}>`. The remainder of the source makes up the second
     // inference, the template literal type `<${number}-${number}>`.
     // (An empty result stands for Go's nil.)
-    pub(crate) fn infer_from_literal_parts_to_template_literal(
+    fn infer_from_literal_parts_to_template_literal(
         &mut self,
         source_texts: &[&str],
         source_types: &[P<Type>],
@@ -4610,7 +4595,7 @@ impl Checker {
     }
 
     // relater.go:2502
-    pub(crate) fn get_string_like_type_for_type(&mut self, t: P<Type>) -> P<Type> {
+    fn get_string_like_type_for_type(&mut self, t: P<Type>) -> P<Type> {
         if t.flags().intersects(TypeFlags::Any | TypeFlags::StringLike) {
             return t;
         }
@@ -4618,7 +4603,7 @@ impl Checker {
     }
 
     // relater.go:2509
-    pub(crate) fn is_valid_type_for_template_literal_placeholder(
+    fn is_valid_type_for_template_literal_placeholder(
         &mut self,
         source: P<Type>,
         target: P<Type>,
@@ -4690,7 +4675,7 @@ impl Checker {
     }
 
     // relater.go:2551
-    pub(crate) fn apply_target_string_mapping_to_source(
+    fn apply_target_string_mapping_to_source(
         &mut self,
         source: P<Type>,
         target: P<Type>,

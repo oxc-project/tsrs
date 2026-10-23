@@ -4,12 +4,12 @@ use tsrs_core::json::Value;
 // formatcodeoptions.go:11
 // Go `type IndentStyle int`: parseIndentStyle stores any number it is given, so the type is an open set.
 #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Debug, Default)]
-pub struct IndentStyle(pub i32);
+pub struct IndentStyle(pub(crate) i32);
 
 impl IndentStyle {
-    pub const NONE: IndentStyle = IndentStyle(0);
-    pub const BLOCK: IndentStyle = IndentStyle(1);
-    pub const SMART: IndentStyle = IndentStyle(2);
+    pub(crate) const NONE: IndentStyle = IndentStyle(0);
+    pub(crate) const BLOCK: IndentStyle = IndentStyle(1);
+    pub(crate) const SMART: IndentStyle = IndentStyle(2);
 }
 
 // formatcodeoptions.go:19
@@ -64,39 +64,39 @@ pub fn parse_semicolon_preference(v: &Value) -> SemicolonPreference {
 // formatcodeoptions.go:60
 #[derive(Clone, Debug, PartialEq, Eq, Default)]
 pub struct EditorSettings {
-    pub base_indent_size: i32,
+    pub(crate) base_indent_size: i32,
     pub indent_size: i32,
-    pub tab_size: i32,
+    pub(crate) tab_size: i32,
     pub new_line_character: String,
-    pub convert_tabs_to_spaces: Tristate,
-    pub indent_style: IndentStyle,
-    pub trim_trailing_whitespace: Tristate,
+    pub(crate) convert_tabs_to_spaces: Tristate,
+    pub(crate) indent_style: IndentStyle,
+    pub(crate) trim_trailing_whitespace: Tristate,
 }
 
 // formatcodeoptions.go:70
 #[derive(Clone, Debug, PartialEq, Eq, Default)]
 pub struct FormatCodeSettings {
-    pub editor_settings: EditorSettings,
-    pub insert_space_after_comma_delimiter: Tristate,
-    pub insert_space_after_semicolon_in_for_statements: Tristate,
-    pub insert_space_before_and_after_binary_operators: Tristate,
-    pub insert_space_after_constructor: Tristate,
-    pub insert_space_after_keywords_in_control_flow_statements: Tristate,
-    pub insert_space_after_function_keyword_for_anonymous_functions: Tristate,
-    pub insert_space_after_opening_and_before_closing_nonempty_parenthesis: Tristate,
-    pub insert_space_after_opening_and_before_closing_nonempty_brackets: Tristate,
-    pub insert_space_after_opening_and_before_closing_nonempty_braces: Tristate,
-    pub insert_space_after_opening_and_before_closing_empty_braces: Tristate,
-    pub insert_space_after_opening_and_before_closing_template_string_braces: Tristate,
-    pub insert_space_after_opening_and_before_closing_jsx_expression_braces: Tristate,
-    pub insert_space_after_type_assertion: Tristate,
-    pub insert_space_before_function_parenthesis: Tristate,
-    pub place_open_brace_on_new_line_for_functions: Tristate,
-    pub place_open_brace_on_new_line_for_control_blocks: Tristate,
-    pub insert_space_before_type_annotation: Tristate,
-    pub indent_multi_line_object_literal_beginning_on_blank_line: Tristate,
-    pub semicolons: SemicolonPreference,
-    pub indent_switch_case: Tristate,
+    pub(crate) editor_settings: EditorSettings,
+    pub(crate) insert_space_after_comma_delimiter: Tristate,
+    pub(crate) insert_space_after_semicolon_in_for_statements: Tristate,
+    pub(crate) insert_space_before_and_after_binary_operators: Tristate,
+    pub(crate) insert_space_after_constructor: Tristate,
+    pub(crate) insert_space_after_keywords_in_control_flow_statements: Tristate,
+    pub(crate) insert_space_after_function_keyword_for_anonymous_functions: Tristate,
+    pub(crate) insert_space_after_opening_and_before_closing_nonempty_parenthesis: Tristate,
+    pub(crate) insert_space_after_opening_and_before_closing_nonempty_brackets: Tristate,
+    pub(crate) insert_space_after_opening_and_before_closing_nonempty_braces: Tristate,
+    pub(crate) insert_space_after_opening_and_before_closing_empty_braces: Tristate,
+    pub(crate) insert_space_after_opening_and_before_closing_template_string_braces: Tristate,
+    pub(crate) insert_space_after_opening_and_before_closing_jsx_expression_braces: Tristate,
+    pub(crate) insert_space_after_type_assertion: Tristate,
+    pub(crate) insert_space_before_function_parenthesis: Tristate,
+    pub(crate) place_open_brace_on_new_line_for_functions: Tristate,
+    pub(crate) place_open_brace_on_new_line_for_control_blocks: Tristate,
+    pub(crate) insert_space_before_type_annotation: Tristate,
+    pub(crate) indent_multi_line_object_literal_beginning_on_blank_line: Tristate,
+    pub(crate) semicolons: SemicolonPreference,
+    pub(crate) indent_switch_case: Tristate,
 }
 
 impl std::ops::Deref for FormatCodeSettings {

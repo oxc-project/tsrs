@@ -11,7 +11,7 @@ pub enum LanguageVariant {
 }
 
 impl LanguageVariant {
-    pub fn string(self) -> &'static str {
+    fn string(self) -> &'static str {
         match self {
             LanguageVariant::Standard => "LanguageVariantStandard",
             LanguageVariant::JSX => "LanguageVariantJSX",

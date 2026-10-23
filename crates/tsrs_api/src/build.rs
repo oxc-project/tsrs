@@ -25,22 +25,22 @@ use crate::wire::{Obj, Params, strings};
 /// Go `build.OrchestratorResult` fields the API reports.
 #[derive(Default)]
 pub struct BuildOutcome {
-    pub status: i32,
-    pub diagnostics: Vec<P<Diagnostic>>,
-    pub projects: usize,
-    pub projects_built: usize,
-    pub timestamp_updates: usize,
-    pub files_deleted: Vec<String>,
+    status: i32,
+    diagnostics: Vec<P<Diagnostic>>,
+    projects: usize,
+    projects_built: usize,
+    timestamp_updates: usize,
+    files_deleted: Vec<String>,
 }
 
 /// Inputs of Go `handleCreateBuildOrchestrator` (`apiBuildSystem` + `ParseBuildCommandLine`).
 pub struct BuildRequest {
-    pub fs: Arc<dyn FS>,
-    pub default_library_path: String,
-    pub current_directory: String,
-    pub root_names: Vec<String>,
-    pub build_options: Option<BuildOptions>,
-    pub compiler_options: Option<CompilerOptions>,
+    fs: Arc<dyn FS>,
+    default_library_path: String,
+    current_directory: String,
+    root_names: Vec<String>,
+    build_options: Option<BuildOptions>,
+    compiler_options: Option<CompilerOptions>,
 }
 
 pub trait BuildOrchestrator: Send {

@@ -43,9 +43,9 @@ pub struct ModuleSpecifiersResult {
 
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct ModulePath {
-    pub file_name: String,
-    pub is_in_node_modules: bool,
-    pub is_redirect: bool,
+    pub(crate) file_name: String,
+    pub(crate) is_in_node_modules: bool,
+    pub(crate) is_redirect: bool,
 }
 
 /// Go `ModuleSpecifierGenerationHost`.
@@ -209,8 +209,8 @@ pub enum MatchingMode {
 /// compiler_options, mode)` (preferences.rs) takes the other two from the caller, which always holds the same
 /// ones Go captured.
 pub struct ModuleSpecifierPreferences {
-    pub relative_preference: RelativePreferenceKind,
-    pub exclude_regexes: Vec<String>,
+    pub(crate) relative_preference: RelativePreferenceKind,
+    pub(crate) exclude_regexes: Vec<String>,
     pub(crate) prefs: UserPreferences,
     pub(crate) importing_source_file: P<SourceFile>,
     pub(crate) old_import_specifier: String,
@@ -220,8 +220,8 @@ pub struct ModuleSpecifierPreferences {
 
 #[derive(Clone, PartialEq, Eq, Hash, Debug)]
 pub struct RegexPatternCacheKey {
-    pub pattern: String,
-    pub case_insensitive: bool,
+    pub(crate) pattern: String,
+    pub(crate) case_insensitive: bool,
 }
 
 /// Go `regexPatternCache` guarded by `regexPatternCacheMu` (one `RwLock`).
@@ -234,7 +234,7 @@ pub struct NodeModulePathParts {
     pub top_level_node_modules_index: usize,
     pub top_level_package_name_index: usize,
     pub package_root_index: Option<usize>,
-    pub file_name_index: usize,
+    pub(crate) file_name_index: usize,
 }
 
 #[repr(u8)]
@@ -250,27 +250,27 @@ pub enum NodeModulesPathParseState {
 
 #[derive(Clone, Debug, Default)]
 pub struct AmbientModuleInfo {
-    pub name: String,
-    pub symbol: Option<P<Symbol>>,
+    pub(crate) name: String,
+    pub(crate) symbol: Option<P<Symbol>>,
 }
 
 #[derive(Clone, Debug, Default)]
 pub struct Info {
-    pub use_case_sensitive_file_names: bool,
-    pub importing_source_file_name: String,
-    pub source_directory: String,
+    pub(crate) use_case_sensitive_file_names: bool,
+    pub(crate) importing_source_file_name: String,
+    pub(crate) source_directory: String,
 }
 
 #[derive(Clone, Debug, Default)]
 pub struct PkgJsonDirAttemptResult {
-    pub module_file_to_try: String,
-    pub package_root_path: String,
-    pub blocked_by_exports: bool,
-    pub verbatim_from_exports: bool,
+    pub(crate) module_file_to_try: String,
+    pub(crate) package_root_path: String,
+    pub(crate) blocked_by_exports: bool,
+    pub(crate) verbatim_from_exports: bool,
 }
 
 #[derive(Clone, Debug)]
 pub struct SpecPair {
-    pub ending: ModuleSpecifierEnding,
-    pub value: String,
+    pub(crate) ending: ModuleSpecifierEnding,
+    pub(crate) value: String,
 }

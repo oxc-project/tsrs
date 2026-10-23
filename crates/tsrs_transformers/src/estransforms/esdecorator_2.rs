@@ -22,7 +22,7 @@ pub type CreateDescriptorFunc =
 
 impl EsDecoratorTransformer {
     // esdecorator.go:1244
-    pub(crate) fn partial_transform_class_element(
+    fn partial_transform_class_element(
         &self,
         member: P<Node>,
         ci: Option<P<ClassInfo>>,
@@ -250,7 +250,7 @@ impl EsDecoratorTransformer {
     // esdecorator.go:1447
     // appendDecorationStatement appends an __esDecorate statement to the appropriate
     // decoration statement list on classInfo based on the member's kind and static-ness.
-    pub(crate) fn append_decoration_statement(ci: P<ClassInfo>, member: P<Node>, stmt: P<Node>) {
+    fn append_decoration_statement(ci: P<ClassInfo>, member: P<Node>, stmt: P<Node>) {
         if ast::is_method_or_accessor(member) || ast::is_auto_accessor_property_declaration(member)
         {
             if ast::is_static(member) {
@@ -1028,10 +1028,7 @@ impl EsDecoratorTransformer {
     }
 
     // esdecorator.go:2099
-    pub(crate) fn visit_referenced_property_name(
-        &self,
-        node: P<Node>,
-    ) -> (Option<P<Node>>, P<Node>) {
+    fn visit_referenced_property_name(&self, node: P<Node>) -> (Option<P<Node>>, P<Node>) {
         let f = self.base.factory();
         if ast::is_property_name_literal(node) || ast::is_private_identifier(node) {
             return (
@@ -1060,7 +1057,7 @@ impl EsDecoratorTransformer {
     }
 
     // esdecorator.go:2118
-    pub(crate) fn visit_property_name(&self, node: P<Node>) -> P<Node> {
+    fn visit_property_name(&self, node: P<Node>) -> P<Node> {
         if ast::is_computed_property_name(node) {
             return self.visit_computed_property_name(node);
         }
@@ -1083,7 +1080,7 @@ impl EsDecoratorTransformer {
 
 impl EsDecoratorTransformer {
     // esdecorator.go:2134
-    pub(crate) fn visit_destructuring_assignment_target(&self, node: P<Node>) -> P<Node> {
+    fn visit_destructuring_assignment_target(&self, node: P<Node>) -> P<Node> {
         if ast::is_object_literal_expression(node) || ast::is_array_literal_expression(node) {
             return self.visit_assignment_pattern(node);
         }
@@ -1121,7 +1118,7 @@ impl EsDecoratorTransformer {
     }
 
     // esdecorator.go:2168
-    pub(crate) fn visit_assignment_element(&self, node: P<Node>) -> P<Node> {
+    fn visit_assignment_element(&self, node: P<Node>) -> P<Node> {
         // 13.15.5.5 RS: IteratorDestructuringAssignmentEvaluation (see esdecorator.go)
         if ast::is_assignment_expression(node, true /*excludeCompoundAssignment*/) {
             let f = self.base.factory();
@@ -1156,7 +1153,7 @@ impl EsDecoratorTransformer {
     }
 
     // esdecorator.go:2190
-    pub(crate) fn visit_assignment_rest_element(&self, node: P<Node>) -> P<Node> {
+    fn visit_assignment_rest_element(&self, node: P<Node>) -> P<Node> {
         let se_expression = node.as_spread_element().expression;
         if ast::is_left_hand_side_expression(se_expression) {
             let expression = self.visit_destructuring_assignment_target(se_expression);
@@ -1178,7 +1175,7 @@ impl EsDecoratorTransformer {
     }
 
     // esdecorator.go:2211
-    pub(crate) fn visit_assignment_property_node(&self, node: P<Node>) -> P<Node> {
+    fn visit_assignment_property_node(&self, node: P<Node>) -> P<Node> {
         // AssignmentProperty : PropertyName `:` AssignmentElement (see esdecorator.go for the spec steps)
         let f = self.base.factory();
         let pa = node.as_property_assignment();
@@ -1196,7 +1193,7 @@ impl EsDecoratorTransformer {
     }
 
     // esdecorator.go:2237
-    pub(crate) fn visit_shorthand_assignment_property(&self, node: P<Node>) -> P<Node> {
+    fn visit_shorthand_assignment_property(&self, node: P<Node>) -> P<Node> {
         // AssignmentProperty : IdentifierReference Initializer? (see esdecorator.go for the spec steps)
         let mut node = node;
         if is_named_evaluation_and(
@@ -1217,7 +1214,7 @@ impl EsDecoratorTransformer {
     }
 
     // esdecorator.go:2253
-    pub(crate) fn visit_assignment_rest_property(&self, node: P<Node>) -> P<Node> {
+    fn visit_assignment_rest_property(&self, node: P<Node>) -> P<Node> {
         let sa_expression = node.as_spread_assignment().expression;
         if ast::is_left_hand_side_expression(sa_expression) {
             let expression = self.visit_destructuring_assignment_target(sa_expression);
@@ -1242,7 +1239,7 @@ impl EsDecoratorTransformer {
     }
 
     // esdecorator.go:2277
-    pub(crate) fn visit_assignment_pattern(&self, node: P<Node>) -> P<Node> {
+    fn visit_assignment_pattern(&self, node: P<Node>) -> P<Node> {
         let f = self.base.factory();
         if ast::is_array_literal_expression(node) {
             let ale = node.as_array_literal_expression();
@@ -1302,7 +1299,7 @@ impl EsDecoratorTransformer {
     // esdecorator.go:2329
     // prependExpressions prepends a list of expressions before a target expression, preserving
     // parenthesization. If expression is nil, the pending expressions are inlined alone.
-    pub(crate) fn prepend_expressions(
+    fn prepend_expressions(
         &self,
         pending: &[P<Node>],
         expression: Option<P<Node>>,
@@ -1328,7 +1325,7 @@ impl EsDecoratorTransformer {
     }
 
     // esdecorator.go:2350
-    pub(crate) fn inject_pending_expressions(&self, expression: P<Node>) -> P<Node> {
+    fn inject_pending_expressions(&self, expression: P<Node>) -> P<Node> {
         let pending = self.pending_expressions.borrow().clone().unwrap_or_default();
         let result = self.prepend_expressions(&pending, Some(expression));
         assert!(result.is_some());
@@ -1339,7 +1336,7 @@ impl EsDecoratorTransformer {
     }
 
     // esdecorator.go:2359
-    pub(crate) fn inject_pending_initializers(
+    fn inject_pending_initializers(
         &self,
         ci: P<ClassInfo>,
         is_static: bool,
@@ -1371,7 +1368,7 @@ impl EsDecoratorTransformer {
 
     // esdecorator.go:2386
     // Transforms a decorator into an expression.
-    pub(crate) fn transform_decorator(&self, decorator: P<Node>) -> P<Node> {
+    fn transform_decorator(&self, decorator: P<Node>) -> P<Node> {
         let f = self.base.factory();
         let expression =
             self.base.visitor().visit_node(Some(decorator.as_decorator().expression)).unwrap();
@@ -1392,7 +1389,7 @@ impl EsDecoratorTransformer {
     }
 
     // esdecorator.go:2400
-    pub(crate) fn create_call_binding(&self, expression: P<Node>) -> (P<Node>, P<Node>) {
+    fn create_call_binding(&self, expression: P<Node>) -> (P<Node>, P<Node>) {
         let f = self.base.factory();
         let ec = self.base.emit_context();
         let callee = ast::skip_outer_expressions(expression, OuterExpressionKinds::All);
@@ -1441,7 +1438,7 @@ impl EsDecoratorTransformer {
     }
 
     // esdecorator.go:2441
-    pub(crate) fn should_be_captured_in_temp_variable(node: P<Node>) -> bool {
+    fn should_be_captured_in_temp_variable(node: P<Node>) -> bool {
         // This is a simplified version of the general shouldBeCapturedInTempVariable from
         // nodeFactory with cacheIdentifiers=true, since createCallBinding in this transform
         // always caches identifiers.
@@ -1461,7 +1458,7 @@ impl EsDecoratorTransformer {
     // esdecorator.go:2462
     // Creates a "value", "get", or "set" method for a pseudo-PropertyDescriptor object created for
     // a private element.
-    pub(crate) fn create_descriptor_method(
+    fn create_descriptor_method(
         &self,
         original: P<Node>,
         name: P<Node>, /*PrivateIdentifier*/
@@ -1504,7 +1501,7 @@ impl EsDecoratorTransformer {
 
     // esdecorator.go:2507
     // Creates a pseudo-PropertyDescriptor object used when decorating a private MethodDeclaration.
-    pub(crate) fn create_method_descriptor_object(
+    fn create_method_descriptor_object(
         &self,
         member: P<Node>,
         modifiers: Option<P<ModifierList>>,
@@ -1529,7 +1526,7 @@ impl EsDecoratorTransformer {
 
     // esdecorator.go:2521
     // Creates a pseudo-PropertyDescriptor object used when decorating a private GetAccessor.
-    pub(crate) fn create_get_accessor_descriptor_object(
+    fn create_get_accessor_descriptor_object(
         &self,
         member: P<Node>,
         modifiers: Option<P<ModifierList>>,
@@ -1552,7 +1549,7 @@ impl EsDecoratorTransformer {
 
     // esdecorator.go:2533
     // Creates a pseudo-PropertyDescriptor object used when decorating a private SetAccessor.
-    pub(crate) fn create_set_accessor_descriptor_object(
+    fn create_set_accessor_descriptor_object(
         &self,
         member: P<Node>,
         modifiers: Option<P<ModifierList>>,
@@ -1577,7 +1574,7 @@ impl EsDecoratorTransformer {
     // esdecorator.go:2547
     // Creates a pseudo-PropertyDescriptor object used when decorating a private auto-accessor PropertyDeclaration.
     // The descriptor contains get/set methods that access the generated backing field.
-    pub(crate) fn create_accessor_property_descriptor_object(
+    fn create_accessor_property_descriptor_object(
         &self,
         member: P<Node>,
         _modifiers: Option<P<ModifierList>>,
@@ -1646,7 +1643,7 @@ impl EsDecoratorTransformer {
     // esdecorator.go:2585
     // Creates a MethodDeclaration that forwards its invocation to a PropertyDescriptor object.
     // (Go builds a GetAccessorDeclaration here; kept as is.)
-    pub(crate) fn create_method_descriptor_forwarder(
+    fn create_method_descriptor_forwarder(
         &self,
         modifiers: Option<P<ModifierList>>,
         name: P<Node>,
@@ -1678,7 +1675,7 @@ impl EsDecoratorTransformer {
 
     // esdecorator.go:2604
     // Creates a GetAccessor that forwards its invocation to a PropertyDescriptor object.
-    pub(crate) fn create_get_accessor_descriptor_forwarder(
+    fn create_get_accessor_descriptor_forwarder(
         &self,
         modifiers: Option<P<ModifierList>>,
         name: P<Node>,
@@ -1712,7 +1709,7 @@ impl EsDecoratorTransformer {
 
     // esdecorator.go:2627
     // Creates a SetAccessor that forwards its invocation to a PropertyDescriptor object.
-    pub(crate) fn create_set_accessor_descriptor_forwarder(
+    fn create_set_accessor_descriptor_forwarder(
         &self,
         modifiers: Option<P<ModifierList>>,
         name: P<Node>,
@@ -1855,7 +1852,7 @@ impl EsDecoratorTransformer {
     }
 
     // esdecorator.go:2712
-    pub(crate) fn create_symbol_metadata_reference(&self, class_super: P<Node>) -> P<Node> {
+    fn create_symbol_metadata_reference(&self, class_super: P<Node>) -> P<Node> {
         let f = self.base.factory();
         let symbol_metadata = f.new_property_access_expression(
             f.new_identifier("Symbol"),

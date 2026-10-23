@@ -310,7 +310,7 @@ impl Tracker {
     // trackerimpl.go:308
     // method on the changeTracker because use of converters
     // GetAdjustedRange computes the adjusted range for a node in a source file, accounting for trivia.
-    pub fn get_adjusted_range(
+    pub(crate) fn get_adjusted_range(
         &self,
         source_file: P<SourceFile>,
         start_node: P<Node>,

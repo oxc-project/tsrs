@@ -83,7 +83,7 @@ pub fn equate_string_case_insensitive(a: &str, b: &str) -> bool {
     equal_fold(a, b)
 }
 
-pub fn equate_string_case_sensitive(a: &str, b: &str) -> bool {
+fn equate_string_case_sensitive(a: &str, b: &str) -> bool {
     a == b
 }
 

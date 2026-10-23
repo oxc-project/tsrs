@@ -395,7 +395,7 @@ impl Checker {
 
 impl NodeBuilderImpl {
     // nodebuilderimpl.go:2072
-    pub(crate) fn try_get_this_parameter_declaration(
+    fn try_get_this_parameter_declaration(
         &self,
         c: &mut Checker,
         signature: P<Signature>,
@@ -510,11 +510,7 @@ impl NodeBuilderImpl {
     }
 
     // nodebuilderimpl.go:2150
-    pub(crate) fn is_trivially_serializable_computed_name(
-        &self,
-        c: &mut Checker,
-        e: Option<P<Node>>,
-    ) -> bool {
+    fn is_trivially_serializable_computed_name(&self, c: &mut Checker, e: Option<P<Node>>) -> bool {
         let shape_good = e.is_some()
             && e.unwrap().name().is_some()
             && ast::is_computed_property_name(e.unwrap().name().unwrap())
@@ -536,7 +532,7 @@ impl NodeBuilderImpl {
     }
 
     // nodebuilderimpl.go:2159
-    pub(crate) fn index_info_to_object_computed_names_or_signature_declaration(
+    fn index_info_to_object_computed_names_or_signature_declaration(
         &self,
         c: &mut Checker,
         index_info: P<IndexInfo>,
@@ -888,11 +884,7 @@ impl NodeBuilderImpl {
     }
 
     // nodebuilderimpl.go:2374
-    pub(crate) fn should_use_placeholder_for_property(
-        &self,
-        c: &Checker,
-        property_symbol: P<Symbol>,
-    ) -> bool {
+    fn should_use_placeholder_for_property(&self, c: &Checker, property_symbol: P<Symbol>) -> bool {
         // Reverse mapped type placeholders are for display, not declaration emit.
         if !self.ctx().flags.get().intersects(Flags::AllowAnonymousIdentifier) {
             return false;
@@ -1020,7 +1012,7 @@ pub fn classify_property_name(
 
 impl NodeBuilderImpl {
     // nodebuilderimpl.go:2466
-    pub(crate) fn create_property_name_node_for_identifier_or_literal(
+    fn create_property_name_node_for_identifier_or_literal(
         &self,
         c: &mut Checker,
         name: &str,
@@ -1042,7 +1034,7 @@ impl NodeBuilderImpl {
     }
 
     // nodebuilderimpl.go:2477
-    pub(crate) fn is_string_named(c: &mut Checker, d: P<Node>) -> bool {
+    fn is_string_named(c: &mut Checker, d: P<Node>) -> bool {
         let name = ast::get_name_of_declaration(d);
         let Some(name) = name else {
             return false;
@@ -1059,7 +1051,7 @@ impl NodeBuilderImpl {
     }
 
     // nodebuilderimpl.go:2493
-    pub(crate) fn is_single_quoted_string_named(_c: &mut Checker, d: P<Node>) -> bool {
+    fn is_single_quoted_string_named(_c: &mut Checker, d: P<Node>) -> bool {
         let name = ast::get_name_of_declaration(d);
         name.is_some()
             && ast::is_string_literal(name.unwrap())
@@ -1067,7 +1059,7 @@ impl NodeBuilderImpl {
     }
 
     // nodebuilderimpl.go:2498
-    pub(crate) fn get_property_name_node_for_symbol(
+    fn get_property_name_node_for_symbol(
         &self,
         c: &mut Checker,
         symbol: P<Symbol>,
@@ -1121,7 +1113,7 @@ impl NodeBuilderImpl {
 
     // See getNameForSymbolFromNameType for a stringy equivalent
     // nodebuilderimpl.go:2527
-    pub(crate) fn get_property_name_node_for_symbol_from_name_type(
+    fn get_property_name_node_for_symbol_from_name_type(
         &self,
         c: &mut Checker,
         symbol: P<Symbol>,
@@ -1455,7 +1447,7 @@ impl NodeBuilderImpl {
     // Go takes `resolvedType *StructuredType`, the result of `resolveStructuredTypeMembers(t)`, which is `t` itself;
     // the Rust port passes the type because `objectFlags` lives on the `Type` header.
     // nodebuilderimpl.go:2719
-    pub(crate) fn create_type_nodes_from_resolved_type(
+    fn create_type_nodes_from_resolved_type(
         &self,
         c: &mut Checker,
         resolved_type: P<Type>,
@@ -1568,11 +1560,7 @@ impl NodeBuilderImpl {
     }
 
     // nodebuilderimpl.go:2782
-    pub(crate) fn create_type_node_from_object_type(
-        &self,
-        c: &mut Checker,
-        t: P<Type>,
-    ) -> Option<P<Node>> {
+    fn create_type_node_from_object_type(&self, c: &mut Checker, t: P<Type>) -> Option<P<Node>> {
         if c.is_generic_mapped_type(t)
             || (t.object_flags().intersects(ObjectFlags::Mapped)
                 && t.as_mapped_type().contains_error.get())
@@ -1688,7 +1676,7 @@ pub fn get_type_alias_for_type_literal(c: &mut Checker, t: P<Type>) -> Option<P<
 
 impl NodeBuilderImpl {
     // nodebuilderimpl.go:2852
-    pub(crate) fn should_write_type_of_function_symbol(
+    fn should_write_type_of_function_symbol(
         &self,
         c: &mut Checker,
         symbol: P<Symbol>,
@@ -1753,16 +1741,12 @@ impl NodeBuilderImpl {
     }
 
     // nodebuilderimpl.go:2890
-    pub(crate) fn create_anonymous_type_node(
-        &self,
-        c: &mut Checker,
-        t: P<Type>,
-    ) -> Option<P<Node>> {
+    fn create_anonymous_type_node(&self, c: &mut Checker, t: P<Type>) -> Option<P<Node>> {
         self.create_anonymous_type_node_ex(c, t, false, false)
     }
 
     // nodebuilderimpl.go:2894
-    pub(crate) fn should_emit_type_of_symbol(
+    fn should_emit_type_of_symbol(
         &self,
         c: &mut Checker,
         force_expansion: bool,
@@ -1797,7 +1781,7 @@ impl NodeBuilderImpl {
     }
 
     // nodebuilderimpl.go:2905
-    pub(crate) fn create_anonymous_type_node_ex(
+    fn create_anonymous_type_node_ex(
         &self,
         c: &mut Checker,
         t: P<Type>,
@@ -1918,7 +1902,7 @@ impl NodeBuilderImpl {
     }
 
     // nodebuilderimpl.go:2995
-    pub(crate) fn type_to_type_node_or_circularity_elision(
+    fn type_to_type_node_or_circularity_elision(
         &self,
         c: &mut Checker,
         t: P<Type>,
@@ -1934,7 +1918,7 @@ impl NodeBuilderImpl {
 
     // nodebuilderimpl.go:3005
     #[inline(never)]
-    pub(crate) fn create_cyclic_structure_placeholder(&self, c: &mut Checker) -> P<Node> {
+    fn create_cyclic_structure_placeholder(&self, c: &mut Checker) -> P<Node> {
         if !self.ctx().flags.get().intersects(Flags::AllowAnonymousIdentifier) {
             self.ctx().encountered_error.set(true);
             self.tracker().report_cyclic_structure_error();
@@ -1943,7 +1927,7 @@ impl NodeBuilderImpl {
     }
 
     // nodebuilderimpl.go:3013
-    pub(crate) fn conditional_type_to_type_node(&self, c: &mut Checker, typ: P<Type>) -> P<Node> {
+    fn conditional_type_to_type_node(&self, c: &mut Checker, typ: P<Type>) -> P<Node> {
         if self.check_truncation_length(c) {
             return self.create_elided_information_placeholder(c);
         }
@@ -2033,7 +2017,7 @@ impl NodeBuilderImpl {
 
     // Go takes `*TypeParameter`; the Rust port passes the type because `symbol` lives on the `Type` header.
     // nodebuilderimpl.go:3055
-    pub(crate) fn get_parent_symbol_of_type_parameter(
+    fn get_parent_symbol_of_type_parameter(
         c: &mut Checker,
         type_parameter: P<Type>,
     ) -> Option<P<Symbol>> {
@@ -2050,11 +2034,7 @@ impl NodeBuilderImpl {
     }
 
     // nodebuilderimpl.go:3070
-    pub(crate) fn array_or_tuple_type_to_node(
-        &self,
-        c: &mut Checker,
-        t: P<Type>,
-    ) -> Option<P<Node>> {
+    fn array_or_tuple_type_to_node(&self, c: &mut Checker, t: P<Type>) -> Option<P<Node>> {
         let mut type_arguments: Vec<P<Type>> = c.get_type_arguments(t).to_vec();
         let target = t.target().unwrap();
         if target == c.global_array_type || target == c.global_readonly_array_type {
@@ -2169,11 +2149,7 @@ impl NodeBuilderImpl {
     }
 
     // nodebuilderimpl.go:3159
-    pub(crate) fn type_reference_to_type_node(
-        &self,
-        c: &mut Checker,
-        t: P<Type>,
-    ) -> Option<P<Node>> {
+    fn type_reference_to_type_node(&self, c: &mut Checker, t: P<Type>) -> Option<P<Node>> {
         let type_arguments: Vec<P<Type>> = c.get_type_arguments(t).to_vec();
         let target = t.target().unwrap();
         if self.ctx().flags.get().intersects(Flags::WriteClassExpressionAsTypeLiteral)
@@ -2323,7 +2299,7 @@ impl NodeBuilderImpl {
     }
 
     // nodebuilderimpl.go:3212
-    pub(crate) fn visit_and_transform_type(
+    fn visit_and_transform_type(
         &self,
         c: &mut Checker,
         t: P<Type>,
@@ -3040,7 +3016,7 @@ impl NodeBuilderImpl {
 
 impl TypeAlias {
     // nodebuilderimpl.go:3639
-    pub fn to_type_reference_node(&self, c: &mut Checker, b: P<NodeBuilderImpl>) -> P<Node> {
+    fn to_type_reference_node(&self, c: &mut Checker, b: P<NodeBuilderImpl>) -> P<Node> {
         let type_name = b.symbol_to_entity_name_node(c, self.symbol().unwrap());
         let type_arguments =
             b.map_to_type_nodes(c, self.type_arguments(), false /*isBareList*/);
@@ -3164,7 +3140,7 @@ impl NodeBuilderImpl {
     }
 
     // nodebuilderimpl.go:3716
-    pub(crate) fn should_write_type_parameters_in_qualified_name(
+    fn should_write_type_parameters_in_qualified_name(
         &self,
         _c: &mut Checker,
         chain: &[P<Symbol>],

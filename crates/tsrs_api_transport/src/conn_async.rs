@@ -21,7 +21,7 @@ use crate::timing::{
 };
 
 /// Stack size for request handler threads. The checker recurses deeply; the reservation is virtual.
-pub const DEFAULT_HANDLER_STACK_SIZE: usize = 256 << 20;
+const DEFAULT_HANDLER_STACK_SIZE: usize = 256 << 20;
 
 #[derive(Default)]
 struct Pending {
@@ -270,7 +270,7 @@ impl AsyncConn {
 
     /// Call: unique "api<N>" string IDs; the response channel is registered before the request is
     /// written so a fast response cannot be lost.
-    pub fn call(&self, method: &str, params: Option<&[u8]>) -> Result<Vec<u8>, TransportError> {
+    fn call(&self, method: &str, params: Option<&[u8]>) -> Result<Vec<u8>, TransportError> {
         struct Unregister<'a>(&'a AsyncConn, Id);
         impl Drop for Unregister<'_> {
             fn drop(&mut self) {
@@ -301,7 +301,7 @@ impl AsyncConn {
         }
     }
 
-    pub fn notify(&self, method: &str, params: Option<&[u8]>) -> Result<(), TransportError> {
+    fn notify(&self, method: &str, params: Option<&[u8]>) -> Result<(), TransportError> {
         {
             let pending = lock(&self.pending);
             if pending.terminal.is_some() {

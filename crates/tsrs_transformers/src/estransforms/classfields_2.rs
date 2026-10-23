@@ -18,7 +18,7 @@ impl ClassFieldsTransformer {
         clippy::unnecessary_wraps,
         reason = "Visitor branches share an optional node result so sibling branches can remove a node."
     )]
-    pub(crate) fn visit_class_declaration_in_new_class_lexical_environment(
+    fn visit_class_declaration_in_new_class_lexical_environment(
         &self,
         node: P<Node>,
         facts: classFacts,
@@ -166,7 +166,7 @@ impl ClassFieldsTransformer {
     }
 
     // classfields.go:2007
-    pub(crate) fn visit_class_expression_in_new_class_lexical_environment(
+    fn visit_class_expression_in_new_class_lexical_environment(
         &self,
         node: P<Node>,
         facts: classFacts,
@@ -477,7 +477,7 @@ impl ClassFieldsTransformer {
     }
 
     // classfields.go:2223
-    pub(crate) fn transform_class_members(&self, node: P<Node>) -> (P<NodeList>, Option<P<Node>>) {
+    fn transform_class_members(&self, node: P<Node>) -> (P<NodeList>, Option<P<Node>>) {
         let mut prologue: Option<P<Node>> = None;
         let should_transform_private_static_elements_in_class = self
             .emit_context()
@@ -642,7 +642,7 @@ impl ClassFieldsTransformer {
     }
 
     // classfields.go:2348
-    pub(crate) fn create_brand_check_weak_set_for_private_methods(&self) {
+    fn create_brand_check_weak_set_for_private_methods(&self) {
         let env = self.get_private_identifier_environment();
         let weak_set_name = env.data.weak_set_name.get();
         assert!(
@@ -731,7 +731,7 @@ impl ClassFieldsTransformer {
     }
 
     // classfields.go:2424
-    pub(crate) fn transform_constructor_body_worker(
+    fn transform_constructor_body_worker(
         &self,
         mut statements_out: Vec<P<Node>>,
         statements_in: &'static [P<Node>],
@@ -821,7 +821,7 @@ impl ClassFieldsTransformer {
     }
 
     // classfields.go:2503
-    pub(crate) fn transform_constructor_body(
+    fn transform_constructor_body(
         &self,
         container: P<Node>,
         constructor: Option<P<Node>>,
@@ -1010,7 +1010,7 @@ impl ClassFieldsTransformer {
 
     // classfields.go:2637
     // addPropertyOrClassStaticBlockStatements generates assignment statements for property initializers.
-    pub(crate) fn add_property_or_class_static_block_statements(
+    fn add_property_or_class_static_block_statements(
         &self,
         mut statements: Vec<P<Node>>,
         properties: &[P<Node>],
@@ -1078,7 +1078,7 @@ impl ClassFieldsTransformer {
 
     // classfields.go:2690
     // generateInitializedPropertyExpressionsOrClassStaticBlock generates assignment expressions for property initializers.
-    pub(crate) fn generate_initialized_property_expressions_or_class_static_block(
+    fn generate_initialized_property_expressions_or_class_static_block(
         &self,
         properties_or_class_static_blocks: &[P<Node>],
         receiver: P<Node>,
@@ -1104,11 +1104,7 @@ impl ClassFieldsTransformer {
 
     // classfields.go:2713
     // transformProperty transforms a property initializer into an assignment expression.
-    pub(crate) fn transform_property(
-        &self,
-        property: P<Node>,
-        receiver: P<Node>,
-    ) -> Option<P<Node>> {
+    fn transform_property(&self, property: P<Node>, receiver: P<Node>) -> Option<P<Node>> {
         let saved_current_class_element = self.current_class_element.get();
         let transformed = self.transform_property_worker(property, receiver);
         if let Some(transformed) = transformed
@@ -1135,7 +1131,7 @@ impl ClassFieldsTransformer {
     }
 
     // classfields.go:2729
-    pub(crate) fn transform_property_worker(
+    fn transform_property_worker(
         &self,
         mut property: P<Node>,
         receiver: P<Node>,
@@ -1315,7 +1311,7 @@ impl ClassFieldsTransformer {
 
     // classfields.go:2836
     // addInstanceMethodStatements generates brand-check initializer for private methods.
-    pub(crate) fn add_instance_method_statements(
+    fn add_instance_method_statements(
         &self,
         mut statements: Vec<P<Node>>,
         methods: &[P<Node>],
@@ -1464,7 +1460,7 @@ impl ClassFieldsTransformer {
     }
 
     // classfields.go:2940
-    pub(crate) fn add_private_identifier_property_declaration_to_environment(
+    fn add_private_identifier_property_declaration_to_environment(
         &self,
         node: P<Node>,
         name: P<Node>,
@@ -1523,7 +1519,7 @@ impl ClassFieldsTransformer {
     }
 
     // classfields.go:2981
-    pub(crate) fn add_private_identifier_method_to_environment(
+    fn add_private_identifier_method_to_environment(
         &self,
         name: P<Node>,
         lex: P<ClassLexicalEnvironment>,
@@ -1559,7 +1555,7 @@ impl ClassFieldsTransformer {
     }
 
     // classfields.go:3002
-    pub(crate) fn add_private_identifier_get_accessor_to_environment(
+    fn add_private_identifier_get_accessor_to_environment(
         &self,
         name: P<Node>,
         lex: P<ClassLexicalEnvironment>,
@@ -1609,7 +1605,7 @@ impl ClassFieldsTransformer {
     }
 
     // classfields.go:3029
-    pub(crate) fn add_private_identifier_set_accessor_to_environment(
+    fn add_private_identifier_set_accessor_to_environment(
         &self,
         name: P<Node>,
         lex: P<ClassLexicalEnvironment>,
@@ -1659,7 +1655,7 @@ impl ClassFieldsTransformer {
     }
 
     // classfields.go:3056
-    pub(crate) fn add_private_identifier_auto_accessor_to_environment(
+    fn add_private_identifier_auto_accessor_to_environment(
         &self,
         node: P<Node>,
         name: P<Node>,
@@ -1703,7 +1699,7 @@ impl ClassFieldsTransformer {
     }
 
     // classfields.go:3081
-    pub(crate) fn add_private_identifier_to_environment(&self, node: P<Node>) {
+    fn add_private_identifier_to_environment(&self, node: P<Node>) {
         let lex = self.get_class_lexical_environment();
         let env = self.get_private_identifier_environment();
         let name = node.name().unwrap();
@@ -1741,7 +1737,7 @@ impl ClassFieldsTransformer {
     }
 
     // classfields.go:3102
-    pub(crate) fn set_private_identifier(
+    fn set_private_identifier(
         &self,
         env: P<PrivateEnvironment>,
         name: P<Node>,
@@ -1813,11 +1809,7 @@ impl ClassFieldsTransformer {
     }
 
     // classfields.go:3145
-    pub(crate) fn create_hoisted_variable_for_class_from_node(
-        &self,
-        name: P<Node>,
-        suffix: &str,
-    ) -> P<Node> {
+    fn create_hoisted_variable_for_class_from_node(&self, name: P<Node>, suffix: &str) -> P<Node> {
         let env = self.get_private_identifier_environment();
         let prefix: String;
         if let Some(class_name) = env.data.class_name.get() {
@@ -1843,11 +1835,7 @@ impl ClassFieldsTransformer {
     }
 
     // classfields.go:3166
-    pub(crate) fn create_hoisted_variable_for_private_name(
-        &self,
-        name: P<Node>,
-        suffix: &str,
-    ) -> P<Node> {
+    fn create_hoisted_variable_for_private_name(&self, name: P<Node>, suffix: &str) -> P<Node> {
         // If the name is a generated identifier (e.g., auto-accessor backing field),
         // use node-based name generation so the emitter can resolve the name properly.
         if self.emit_context().has_auto_generate_info(Some(name)) {
@@ -1914,7 +1902,7 @@ impl ClassFieldsTransformer {
     }
 
     // classfields.go:3220
-    pub(crate) fn visit_assignment_element(&self, mut node: P<Node>) -> Option<P<Node>> {
+    fn visit_assignment_element(&self, mut node: P<Node>) -> Option<P<Node>> {
         // 13.15.5.5 RS: IteratorDestructuringAssignmentEvaluation
         //   AssignmentElement : DestructuringAssignmentTarget Initializer?
         //     ...
@@ -1952,7 +1940,7 @@ impl ClassFieldsTransformer {
     }
 
     // classfields.go:3247
-    pub(crate) fn visit_assignment_rest_element(&self, node: P<Node>) -> Option<P<Node>> {
+    fn visit_assignment_rest_element(&self, node: P<Node>) -> Option<P<Node>> {
         let spread = node.as_spread_element();
         if ast::is_left_hand_side_expression(spread.expression) {
             let expr = self.visit_destructuring_assignment_target(spread.expression).unwrap();
@@ -1975,7 +1963,7 @@ impl ClassFieldsTransformer {
     }
 
     // classfields.go:3268
-    pub(crate) fn visit_assignment_property(&self, node: P<Node>) -> Option<P<Node>> {
+    fn visit_assignment_property(&self, node: P<Node>) -> Option<P<Node>> {
         // AssignmentProperty : PropertyName `:` AssignmentElement
         // AssignmentElement : DestructuringAssignmentTarget Initializer?
 
@@ -2011,7 +1999,7 @@ impl ClassFieldsTransformer {
     }
 
     // classfields.go:3294
-    pub(crate) fn visit_shorthand_assignment_property(&self, mut node: P<Node>) -> Option<P<Node>> {
+    fn visit_shorthand_assignment_property(&self, mut node: P<Node>) -> Option<P<Node>> {
         // AssignmentProperty : IdentifierReference Initializer?
 
         // 13.15.5.3 RS: PropertyDestructuringAssignmentEvaluation
@@ -2038,7 +2026,7 @@ impl ClassFieldsTransformer {
     }
 
     // classfields.go:3311
-    pub(crate) fn visit_assignment_rest_property(&self, node: P<Node>) -> Option<P<Node>> {
+    fn visit_assignment_rest_property(&self, node: P<Node>) -> Option<P<Node>> {
         let spread = node.as_spread_assignment();
         if ast::is_left_hand_side_expression(spread.expression) {
             let expr = self.visit_destructuring_assignment_target(spread.expression).unwrap();
@@ -2149,7 +2137,7 @@ pub fn create_private_instance_method_initializer(
 
 impl ClassFieldsTransformer {
     // classfields.go:3391
-    pub(crate) fn is_reserved_private_name(&self, node: P<Node>) -> bool {
+    fn is_reserved_private_name(&self, node: P<Node>) -> bool {
         !(ast::is_private_identifier(node)
             && self.emit_context().has_auto_generate_info(Some(node)))
             && node.text() == "#constructor"
@@ -2164,11 +2152,7 @@ pub fn is_static_property_declaration_or_class_static_block(node: P<Node>) -> bo
 
 impl ClassFieldsTransformer {
     // classfields.go:3400
-    pub(crate) fn get_properties(
-        node: P<Node>,
-        require_initializer: bool,
-        is_static: bool,
-    ) -> Vec<P<Node>> {
+    fn get_properties(node: P<Node>, require_initializer: bool, is_static: bool) -> Vec<P<Node>> {
         let mut result = Vec::new();
         result.extend(node.members().iter().filter_map(|member| {
             if ast::is_property_declaration(*member)

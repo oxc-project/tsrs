@@ -15,8 +15,8 @@ use tsrs_vfs::{Entries, FS, FileInfo, FileMode};
 use super::readablebuildinfo::to_readable_build_info;
 use crate::tsc::{CommandLineTesting, MTimesCache, SyncWriter, System};
 
-pub const FAKE_TS_VERSION: &str = "FakeTSVersion";
-pub const FAKE_TIME_STAMP: &str = "HH:MM:SS AM";
+const FAKE_TS_VERSION: &str = "FakeTSVersion";
+const FAKE_TIME_STAMP: &str = "HH:MM:SS AM";
 
 const LIST_FILE_START: &str = "!!! List files start";
 const LIST_FILE_END: &str = "!!! List files end";
@@ -50,8 +50,8 @@ impl TestClock {
 
 // fs.go testFs
 pub struct TestFs {
-    pub(crate) fs: Arc<IoVFS<MapFS>>,
-    pub(crate) default_libs: Mutex<Option<FxHashSet<String>>>,
+    fs: Arc<IoVFS<MapFS>>,
+    default_libs: Mutex<Option<FxHashSet<String>>>,
     pub(crate) written_files: Mutex<FxHashSet<String>>,
 }
 
@@ -154,17 +154,17 @@ struct Snapshot {
 }
 
 pub struct TestSys {
-    pub(crate) current_write: Mutex<String>,
+    current_write: Mutex<String>,
     program_baselines: Mutex<String>,
     program_include_baselines: Mutex<String>,
     tracer: Mutex<FxHashMap<Path, bool>>, // TracerForBaselining.packageJsonCache
     serialized_diff: Mutex<Option<Snapshot>>,
 
     pub(crate) fs: Arc<TestFs>,
-    pub(crate) default_library_path: String,
+    default_library_path: String,
     pub(crate) cwd: String,
-    pub(crate) env: FxHashMap<String, String>,
-    pub(crate) output_is_tty: bool,
+    env: FxHashMap<String, String>,
+    output_is_tty: bool,
     pub(crate) clock: Arc<TestClock>,
     pub(crate) mock_watch_backend: std::sync::OnceLock<Arc<super::mockwatch::MockWatchBackend>>,
     pub(crate) signature_job: bool,
@@ -471,7 +471,7 @@ fn add_fs_entry_diff(
 }
 
 // fsbaselineutil SanitizeInternalSymbolName: \uFFFD@name@123 -> \uFFFD@name@<symbolId>
-pub fn sanitize_internal_symbol_name(s: &str) -> String {
+fn sanitize_internal_symbol_name(s: &str) -> String {
     if !s.contains("\u{FFFD}@") {
         return s.to_string();
     }

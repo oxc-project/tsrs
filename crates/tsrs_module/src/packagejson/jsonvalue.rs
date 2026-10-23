@@ -63,7 +63,7 @@ impl<T> JSONData<T> {
         self.type_() != JSONValueType::NotPresent
     }
 
-    pub fn is_falsy(&self) -> bool {
+    pub(crate) fn is_falsy(&self) -> bool {
         match self {
             JSONData::NotPresent | JSONData::Null => true,
             JSONData::String(s) => s.is_empty(),
@@ -74,14 +74,14 @@ impl<T> JSONData<T> {
         }
     }
 
-    pub fn as_object(&self) -> &OrderedMap<String, T> {
+    pub(crate) fn as_object(&self) -> &OrderedMap<String, T> {
         match self {
             JSONData::Object(o) => o,
             _ => panic!("expected object, got {}", self.type_()),
         }
     }
 
-    pub fn as_array(&self) -> &[T] {
+    pub(crate) fn as_array(&self) -> &[T] {
         match self {
             JSONData::Array(a) => a,
             _ => panic!("expected array, got {}", self.type_()),
@@ -116,7 +116,7 @@ impl<T> JSONData<T> {
 
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct JSONValue {
-    pub data: JSONData<JSONValue>,
+    pub(crate) data: JSONData<JSONValue>,
 }
 
 impl JSONValue {

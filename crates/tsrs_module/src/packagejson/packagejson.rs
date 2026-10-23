@@ -16,7 +16,7 @@ pub struct Fields {
     pub type_: Expected<String>,
 
     // PathFields
-    pub tsconfig: Expected<String>,
+    pub(crate) tsconfig: Expected<String>,
     pub main: Expected<String>,
     pub types: Expected<String>,
     pub typings: Expected<String>,
@@ -25,10 +25,10 @@ pub struct Fields {
     pub exports: ExportsOrImports,
 
     // DependencyFields
-    pub dependencies: Expected<FxHashMap<String, String>>,
-    pub dev_dependencies: Expected<FxHashMap<String, String>>,
-    pub peer_dependencies: Expected<FxHashMap<String, String>>,
-    pub optional_dependencies: Expected<FxHashMap<String, String>>,
+    pub(crate) dependencies: Expected<FxHashMap<String, String>>,
+    pub(crate) dev_dependencies: Expected<FxHashMap<String, String>>,
+    pub(crate) peer_dependencies: Expected<FxHashMap<String, String>>,
+    pub(crate) optional_dependencies: Expected<FxHashMap<String, String>>,
 
     pub content_mapper: Expected<ContentMapperFields>,
 }

@@ -48,12 +48,12 @@ pub struct UserPreferences {
     pub format_code_settings: FormatCodeSettings,
 
     pub quote_preference: QuotePreference,
-    pub lazy_configured_projects_from_external_project: Tristate, // !!!
+    pub(crate) lazy_configured_projects_from_external_project: Tristate, // !!!
 
     // A positive integer indicating the maximum length of a hover text before it is truncated.
     //
     // Default: `500`
-    pub maximum_hover_length: i32, // !!!
+    pub(crate) maximum_hover_length: i32, // !!!
 
     // ------- Completions -------
 
@@ -62,34 +62,34 @@ pub struct UserPreferences {
     pub include_completions_for_module_exports: Tristate,
     // Enables auto-import-style completions on partially-typed import statements. E.g., allows
     // `import write|` to be completed to `import { writeFile } from "fs"`.
-    pub include_completions_for_import_statements: Tristate,
+    pub(crate) include_completions_for_import_statements: Tristate,
     // Unless this option is `false`,  member completion lists triggered with `.` will include entries
     // on potentially-null and potentially-undefined values, with insertion text to replace
     // preceding `.` tokens with `?.`.
-    pub include_automatic_optional_chain_completions: Tristate,
+    pub(crate) include_automatic_optional_chain_completions: Tristate,
     // If enabled, completions for class members (e.g. methods and properties) will include
     // a whole declaration for the member.
     // E.g., `class A { f| }` could be completed to `class A { foo(): number {} }`, instead of
     // `class A { foo }`.
-    pub include_completions_with_class_member_snippets: Tristate,
+    pub(crate) include_completions_with_class_member_snippets: Tristate,
     // If enabled, object literal methods will have a method declaration completion entry in addition
     // to the regular completion entry containing just the method name.
     // E.g., `const objectLiteral: T = { f| }` could be completed to `const objectLiteral: T = { foo(): void {} }`,
     // in addition to `const objectLiteral: T = { foo }`.
-    pub include_completions_with_object_literal_method_snippets: Tristate,
-    pub jsx_attribute_completion_style: JsxAttributeCompletionStyle,
-    pub enable_auto_closing_tags: Tristate,
-    pub enable_jsdoc_completions: Tristate,
-    pub generate_return_in_doc_template: Tristate,
+    pub(crate) include_completions_with_object_literal_method_snippets: Tristate,
+    pub(crate) jsx_attribute_completion_style: JsxAttributeCompletionStyle,
+    pub(crate) enable_auto_closing_tags: Tristate,
+    pub(crate) enable_jsdoc_completions: Tristate,
+    pub(crate) generate_return_in_doc_template: Tristate,
 
     // ------- AutoImports --------
-    pub import_module_specifier_preference: ImportModuleSpecifierPreference, // !!!
+    pub(crate) import_module_specifier_preference: ImportModuleSpecifierPreference, // !!!
     // Determines whether we import `foo/index.ts` as "foo", "foo/index", or "foo/index.js"
-    pub import_module_specifier_ending: ImportModuleSpecifierEndingPreference, // !!!
-    pub auto_import_specifier_exclude_regexes: Option<Vec<String>>,            // !!!
-    pub auto_import_file_exclude_patterns: Option<Vec<String>>,
-    pub auto_import_entrypoint_directory_search: Tristate,
-    pub prefer_type_only_auto_imports: Tristate,
+    pub(crate) import_module_specifier_ending: ImportModuleSpecifierEndingPreference, // !!!
+    pub(crate) auto_import_specifier_exclude_regexes: Option<Vec<String>>,            // !!!
+    pub(crate) auto_import_file_exclude_patterns: Option<Vec<String>>,
+    pub(crate) auto_import_entrypoint_directory_search: Tristate,
+    pub(crate) prefer_type_only_auto_imports: Tristate,
 
     // ------- OrganizeImports -------
 
@@ -99,33 +99,33 @@ pub struct UserPreferences {
     // Indicates whether imports should be organized in a case-insensitive manner.
     //
     // Default: TSUnknown ("auto" in strada), will perform detection
-    pub organize_imports_ignore_case: Tristate, // !!!
+    pub(crate) organize_imports_ignore_case: Tristate, // !!!
     // Indicates whether imports should be organized via an "ordinal" (binary) comparison using the numeric value of their
     // code points, or via "unicode" natural sorting. This implementation is locale-agnostic and approximates the practical
     // import-sorting behavior rather than the full Unicode Collation Algorithm.
     //
     // Default: Ordinal
-    pub organize_imports_collation: OrganizeImportsCollation, // !!!
+    pub(crate) organize_imports_collation: OrganizeImportsCollation, // !!!
     // Indicates the locale to use for "unicode" collation in legacy clients. This is accepted for compatibility, but
     // currently ignored because organize-import sorting is deterministic and locale-agnostic.
     //
     // This preference is ignored if organizeImportsCollation is not `unicode`.
     //
     // Default: `"en"`
-    pub organize_imports_locale: String, // !!!
+    pub(crate) organize_imports_locale: String, // !!!
     // Indicates whether numeric collation should be used for digit sequences in strings. When `true`, will collate
     // strings such that `a1z < a2z < a100z`. When `false`, will collate strings such that `a1z < a100z < a2z`.
     //
     // This preference is ignored if organizeImportsCollation is not `unicode`.
     //
     // Default: `false`
-    pub organize_imports_numeric_collation: Tristate, // !!!
+    pub(crate) organize_imports_numeric_collation: Tristate, // !!!
     // Indicates whether accents and other diacritic marks are considered unequal for the purpose of sorting.
     //
     // This preference is ignored if organizeImportsCollation is not `unicode`.
     //
     // Default: `true`
-    pub organize_imports_accent_collation: Tristate, // !!!
+    pub(crate) organize_imports_accent_collation: Tristate, // !!!
     // Indicates whether upper case or lower case should sort first.
     //
     // This permission is ignored if:
@@ -134,21 +134,21 @@ pub struct UserPreferences {
     //	- organizeImportsIgnoreCase is `auto` and the auto-detected case sensitivity is case-insensitive.
     //
     // Default: `false`
-    pub organize_imports_case_first: OrganizeImportsCaseFirst, // !!!
+    pub(crate) organize_imports_case_first: OrganizeImportsCaseFirst, // !!!
     // Indicates where named type-only imports should sort. "inline" sorts named imports without regard to if the import is type-only.
     //
     // Default: `auto`, which defaults to `last`
-    pub organize_imports_type_order: OrganizeImportsTypeOrder, // !!!
+    pub(crate) organize_imports_type_order: OrganizeImportsTypeOrder, // !!!
 
     // ------- MoveToFile -------
-    pub allow_text_changes_in_new_files: Tristate, // !!!
+    pub(crate) allow_text_changes_in_new_files: Tristate, // !!!
 
     // ------- Rename -------
     pub use_aliases_for_rename: Tristate,
-    pub allow_rename_of_import_path: Tristate,
+    pub(crate) allow_rename_of_import_path: Tristate,
 
     // ------- CodeFixes/Refactors -------
-    pub provide_refactor_not_applicable_reason: Tristate, // !!!
+    pub(crate) provide_refactor_not_applicable_reason: Tristate, // !!!
 
     // ------- InlayHints -------
     pub inlay_hints: InlayHintsPreferences,
@@ -157,28 +157,28 @@ pub struct UserPreferences {
     pub code_lens: CodeLensUserPreferences,
 
     // ------- Definition -------
-    pub prefer_go_to_source_definition: bool,
+    pub(crate) prefer_go_to_source_definition: bool,
 
     // ------- Symbols -------
-    pub exclude_library_symbols_in_nav_to: Tristate,
+    pub(crate) exclude_library_symbols_in_nav_to: Tristate,
     pub workspace_symbols_scope: WorkspaceSymbolsScope,
 
     // ------- Misc -------
-    pub enable_formatting: Tristate,
+    pub(crate) enable_formatting: Tristate,
     pub enable_validation: Tristate,
-    pub disable_suggestions: Tristate,             // !!!
-    pub disable_line_text_in_references: Tristate, // !!!
-    pub display_parts_for_jsdoc: Tristate,         // !!!
+    pub(crate) disable_suggestions: Tristate, // !!!
+    pub(crate) disable_line_text_in_references: Tristate, // !!!
+    pub(crate) display_parts_for_jsdoc: Tristate, // !!!
     pub report_style_checks_as_warnings: Tristate,
     pub locale: String,
 
     // ------- ATA -------
 
     // DisableAutomaticTypeAcquisition is the deprecated setting from typescript.disableAutomaticTypeAcquisition.
-    pub disable_automatic_type_acquisition: Tristate,
+    pub(crate) disable_automatic_type_acquisition: Tristate,
     // AutomaticTypeAcquisitionEnabled is the unified setting from tsserver.automaticTypeAcquisition.enabled under the js/ts section.
     // When set, it takes precedence over DisableAutomaticTypeAcquisition.
-    pub automatic_type_acquisition_enabled: Tristate,
+    pub(crate) automatic_type_acquisition_enabled: Tristate,
     // TODO: add tsserver.web.typeAcquisition.enabled under the js/ts section for the web variant when web support is implemented.
 
     // ------- Project Configuration -------
@@ -191,12 +191,12 @@ pub struct UserPreferences {
 // Source12's Go parser is generated from the preference schema. This Rust table retains the same raw/config
 // field names and accessors; decoding it matches the generated parser without Go's code generator.
 pub struct FieldTag {
-    pub(crate) name: &'static str,
-    pub(crate) raw: &'static str,
-    pub(crate) config: &'static str,
-    pub(crate) fallback_config: &'static str,
+    name: &'static str,
+    raw: &'static str,
+    config: &'static str,
+    fallback_config: &'static str,
     pub(crate) get: for<'a> fn(&'a UserPreferences) -> FieldRef<'a>,
-    pub(crate) get_mut: for<'a> fn(&'a mut UserPreferences) -> FieldMut<'a>,
+    get_mut: for<'a> fn(&'a mut UserPreferences) -> FieldMut<'a>,
 }
 
 // Field types determine the parsers and serializers for each preference.
@@ -221,7 +221,7 @@ pub enum FieldRef<'a> {
     Slice(&'a Option<Vec<String>>),
 }
 
-pub enum FieldMut<'a> {
+enum FieldMut<'a> {
     Tristate(&'a mut Tristate),
     IndentStyle(&'a mut IndentStyle),
     SemicolonPreference(&'a mut SemicolonPreference),
@@ -257,7 +257,7 @@ macro_rules! field_tag {
     };
 }
 
-pub static USER_PREFERENCES_FIELD_TAGS: &[FieldTag] = &[
+static USER_PREFERENCES_FIELD_TAGS: &[FieldTag] = &[
     // FormatCodeSettings.EditorSettings
     field_tag!(
         Int,
@@ -723,24 +723,24 @@ impl UserPreferences {
 // userpreferences.go:209
 #[derive(Clone, Debug, PartialEq, Eq, Default)]
 pub struct InlayHintsPreferences {
-    pub include_inlay_parameter_name_hints: IncludeInlayParameterNameHints,
-    pub include_inlay_parameter_name_hints_when_argument_matches_name: Tristate,
-    pub include_inlay_function_parameter_type_hints: Tristate,
-    pub include_inlay_variable_type_hints: Tristate,
-    pub include_inlay_variable_type_hints_when_type_matches_name: Tristate,
-    pub include_inlay_property_declaration_type_hints: Tristate,
+    pub(crate) include_inlay_parameter_name_hints: IncludeInlayParameterNameHints,
+    pub(crate) include_inlay_parameter_name_hints_when_argument_matches_name: Tristate,
+    pub(crate) include_inlay_function_parameter_type_hints: Tristate,
+    pub(crate) include_inlay_variable_type_hints: Tristate,
+    pub(crate) include_inlay_variable_type_hints_when_type_matches_name: Tristate,
+    pub(crate) include_inlay_property_declaration_type_hints: Tristate,
     pub include_inlay_function_like_return_type_hints: Tristate,
-    pub include_inlay_enum_member_value_hints: Tristate,
+    pub(crate) include_inlay_enum_member_value_hints: Tristate,
 }
 
 // userpreferences.go:220
 #[derive(Clone, Debug, PartialEq, Eq, Default)]
 pub struct CodeLensUserPreferences {
     pub references_code_lens_enabled: Tristate,
-    pub implementations_code_lens_enabled: Tristate,
-    pub references_code_lens_show_on_all_functions: Tristate,
-    pub implementations_code_lens_show_on_interface_methods: Tristate,
-    pub implementations_code_lens_show_on_all_class_methods: Tristate,
+    pub(crate) implementations_code_lens_enabled: Tristate,
+    pub(crate) references_code_lens_show_on_all_functions: Tristate,
+    pub(crate) implementations_code_lens_show_on_interface_methods: Tristate,
+    pub(crate) implementations_code_lens_show_on_all_class_methods: Tristate,
 }
 
 // --- Enum Types ---
@@ -769,10 +769,10 @@ impl QuotePreference {
 // userpreferences.go:232
 // Go `type WorkspaceSymbolsScope string`; source12's generated parser accepts the two protocol values.
 #[derive(Clone, PartialEq, Eq, Hash, Debug, Default)]
-pub struct WorkspaceSymbolsScope(pub Cow<'static, str>);
+pub struct WorkspaceSymbolsScope(Cow<'static, str>);
 
 impl WorkspaceSymbolsScope {
-    pub const ALL_OPEN_PROJECTS: WorkspaceSymbolsScope =
+    const ALL_OPEN_PROJECTS: WorkspaceSymbolsScope =
         WorkspaceSymbolsScope(Cow::Borrowed("allOpenProjects"));
     pub const CURRENT_PROJECT: WorkspaceSymbolsScope =
         WorkspaceSymbolsScope(Cow::Borrowed("currentProject"));
@@ -864,7 +864,7 @@ pub enum OrganizeImportsTypeOrder {
 
 // userpreferences.go:300
 // typeParsers: one function per entry of Go's map, in Go's order; setFieldFromValue dispatches on the field type.
-pub fn parse_tristate_value(val: &Value) -> Tristate {
+fn parse_tristate_value(val: &Value) -> Tristate {
     if let Value::Bool(b) = val {
         if *b {
             return Tristate::True;
@@ -874,7 +874,7 @@ pub fn parse_tristate_value(val: &Value) -> Tristate {
     Tristate::Unknown
 }
 
-pub fn parse_quote_preference(val: &Value) -> QuotePreference {
+fn parse_quote_preference(val: &Value) -> QuotePreference {
     if let Value::String(s) = val {
         match s.to_lowercase().as_str() {
             "auto" => return QuotePreference::Auto,
@@ -886,7 +886,7 @@ pub fn parse_quote_preference(val: &Value) -> QuotePreference {
     QuotePreference::Unknown
 }
 
-pub fn parse_jsx_attribute_completion_style(val: &Value) -> JsxAttributeCompletionStyle {
+fn parse_jsx_attribute_completion_style(val: &Value) -> JsxAttributeCompletionStyle {
     if let Value::String(s) = val {
         match s.to_lowercase().as_str() {
             "braces" => return JsxAttributeCompletionStyle::Braces,
@@ -897,7 +897,7 @@ pub fn parse_jsx_attribute_completion_style(val: &Value) -> JsxAttributeCompleti
     JsxAttributeCompletionStyle::Auto
 }
 
-pub fn parse_include_inlay_parameter_name_hints(val: &Value) -> IncludeInlayParameterNameHints {
+fn parse_include_inlay_parameter_name_hints(val: &Value) -> IncludeInlayParameterNameHints {
     if let Value::String(s) = val {
         match s.to_lowercase().as_str() {
             "all" => return IncludeInlayParameterNameHints::All,
@@ -908,7 +908,7 @@ pub fn parse_include_inlay_parameter_name_hints(val: &Value) -> IncludeInlayPara
     IncludeInlayParameterNameHints::None
 }
 
-pub fn parse_organize_imports_sort(val: &Value) -> OrganizeImportsSort {
+fn parse_organize_imports_sort(val: &Value) -> OrganizeImportsSort {
     if let Value::String(s) = val {
         match s.to_lowercase().as_str() {
             "ordinal" => return OrganizeImportsSort::Ordinal,
@@ -921,7 +921,7 @@ pub fn parse_organize_imports_sort(val: &Value) -> OrganizeImportsSort {
     OrganizeImportsSort::Auto
 }
 
-pub fn parse_organize_imports_collation(val: &Value) -> OrganizeImportsCollation {
+fn parse_organize_imports_collation(val: &Value) -> OrganizeImportsCollation {
     if let Value::String(s) = val
         && s.to_lowercase() == "unicode"
     {
@@ -930,7 +930,7 @@ pub fn parse_organize_imports_collation(val: &Value) -> OrganizeImportsCollation
     OrganizeImportsCollation::Ordinal
 }
 
-pub fn parse_organize_imports_case_first(val: &Value) -> OrganizeImportsCaseFirst {
+fn parse_organize_imports_case_first(val: &Value) -> OrganizeImportsCaseFirst {
     if let Value::String(s) = val {
         match s.to_lowercase().as_str() {
             "lower" => return OrganizeImportsCaseFirst::Lower,
@@ -941,7 +941,7 @@ pub fn parse_organize_imports_case_first(val: &Value) -> OrganizeImportsCaseFirs
     OrganizeImportsCaseFirst::False
 }
 
-pub fn parse_organize_imports_type_order(val: &Value) -> OrganizeImportsTypeOrder {
+fn parse_organize_imports_type_order(val: &Value) -> OrganizeImportsTypeOrder {
     if let Value::String(s) = val {
         match s.to_lowercase().as_str() {
             "last" => return OrganizeImportsTypeOrder::Last,
@@ -953,7 +953,7 @@ pub fn parse_organize_imports_type_order(val: &Value) -> OrganizeImportsTypeOrde
     OrganizeImportsTypeOrder::Auto
 }
 
-pub fn parse_import_module_specifier_preference(val: &Value) -> ImportModuleSpecifierPreference {
+fn parse_import_module_specifier_preference(val: &Value) -> ImportModuleSpecifierPreference {
     if let Value::String(s) = val {
         match s.to_lowercase().as_str() {
             "project-relative" => return ImportModuleSpecifierPreference::ProjectRelative,
@@ -965,7 +965,7 @@ pub fn parse_import_module_specifier_preference(val: &Value) -> ImportModuleSpec
     ImportModuleSpecifierPreference::Shortest
 }
 
-pub fn parse_import_module_specifier_ending_preference(
+fn parse_import_module_specifier_ending_preference(
     val: &Value,
 ) -> ImportModuleSpecifierEndingPreference {
     if let Value::String(s) = val {
@@ -979,7 +979,7 @@ pub fn parse_import_module_specifier_ending_preference(
     ImportModuleSpecifierEndingPreference::Auto
 }
 
-pub fn parse_workspace_symbols_scope(val: &Value) -> WorkspaceSymbolsScope {
+fn parse_workspace_symbols_scope(val: &Value) -> WorkspaceSymbolsScope {
     if let Value::String(s) = val {
         match s.to_lowercase().as_str() {
             "allopenprojects" => return WorkspaceSymbolsScope::ALL_OPEN_PROJECTS,
@@ -1083,7 +1083,7 @@ pub fn type_serializers(field: &FieldRef<'_>) -> Option<Option<Value>> {
 // userpreferences.go:525
 // configPathParsers provides field-specific config value parsers that override the default
 // type-based parser when the VS Code config value format differs from the Go field type.
-pub fn config_path_parsers(path: &str) -> Option<fn(&Value) -> Tristate> {
+fn config_path_parsers(path: &str) -> Option<fn(&Value) -> Tristate> {
     match path {
         // VS Code sends caseSensitivity as a string ("auto"/"caseSensitive"/"caseInsensitive"),
         // but OrganizeImportsIgnoreCase is a core.Tristate.
@@ -1108,31 +1108,31 @@ pub fn config_path_parsers(path: &str) -> Option<fn(&Value) -> Tristate> {
 }
 
 // userpreferences.go:547
-pub struct FieldInfo {
-    pub(crate) raw_name: &'static str, // raw name for unstable section lookup (e.g., "quotePreference")
-    pub(crate) config_path: &'static str, // dotted path for config (e.g., "preferences.quoteStyle")
-    pub(crate) fallback_config_paths: Vec<ConfigPathInfo>,
-    pub(crate) field: &'static FieldTag, // Go: fieldPath, the index path to the field in the struct
-    pub(crate) raw_invert: bool,         // whether to invert boolean values for raw name
-    pub(crate) config_invert: bool,      // whether to invert boolean values for config path
+struct FieldInfo {
+    raw_name: &'static str, // raw name for unstable section lookup (e.g., "quotePreference")
+    config_path: &'static str, // dotted path for config (e.g., "preferences.quoteStyle")
+    fallback_config_paths: Vec<ConfigPathInfo>,
+    field: &'static FieldTag, // Go: fieldPath, the index path to the field in the struct
+    raw_invert: bool,         // whether to invert boolean values for raw name
+    config_invert: bool,      // whether to invert boolean values for config path
 }
 
 // userpreferences.go:556
 #[derive(Clone, Copy)]
 pub struct ConfigPathInfo {
-    pub(crate) path: &'static str,
-    pub(crate) invert: bool,
+    path: &'static str,
+    invert: bool,
 }
 
 // userpreferences.go:561
-pub fn field_info_cache() -> &'static [FieldInfo] {
+fn field_info_cache() -> &'static [FieldInfo] {
     static CACHE: OnceLock<Vec<FieldInfo>> = OnceLock::new();
     CACHE.get_or_init(|| collect_field_infos(USER_PREFERENCES_FIELD_TAGS))
 }
 
 // userpreferences.go:566
 // unstableNameIndex maps raw names to fieldInfo index for unstable section lookup.
-pub fn unstable_name_index() -> &'static FxHashMap<&'static str, usize> {
+fn unstable_name_index() -> &'static FxHashMap<&'static str, usize> {
     static INDEX: OnceLock<FxHashMap<&'static str, usize>> = OnceLock::new();
     INDEX.get_or_init(|| {
         let infos = field_info_cache();
@@ -1145,7 +1145,7 @@ pub fn unstable_name_index() -> &'static FxHashMap<&'static str, usize> {
 }
 
 // userpreferences.go:577
-pub fn collect_field_infos(fields: &'static [FieldTag]) -> Vec<FieldInfo> {
+fn collect_field_infos(fields: &'static [FieldTag]) -> Vec<FieldInfo> {
     let mut infos = Vec::new();
     for field in fields {
         let raw_tag = field.raw;
@@ -1196,7 +1196,7 @@ pub fn collect_field_infos(fields: &'static [FieldTag]) -> Vec<FieldInfo> {
 }
 
 // userpreferences.go:628
-pub fn parse_config_path_tag(tag: &'static str) -> ConfigPathInfo {
+fn parse_config_path_tag(tag: &'static str) -> ConfigPathInfo {
     let mut parts = tag.split(',');
     let mut info = ConfigPathInfo { path: parts.next().unwrap(), invert: false };
     for part in parts {
@@ -1208,7 +1208,7 @@ pub fn parse_config_path_tag(tag: &'static str) -> ConfigPathInfo {
 }
 
 // userpreferences.go:639
-pub fn get_nested_value<'a>(config: &'a JsonMap, path: &str) -> Option<&'a Value> {
+fn get_nested_value<'a>(config: &'a JsonMap, path: &str) -> Option<&'a Value> {
     let mut parts = path.split('.');
     let mut current = config.get(parts.next().unwrap())?;
     current = parts.try_fold(current, |current, part| {
@@ -1237,11 +1237,7 @@ pub fn set_nested_value(config: &mut JsonMap, path: &str, value: Value) {
 }
 
 // userpreferences.go:669
-pub fn set_raw_fields_from_config(
-    p: &mut UserPreferences,
-    infos: &[FieldInfo],
-    settings: &JsonMap,
-) {
+fn set_raw_fields_from_config(p: &mut UserPreferences, infos: &[FieldInfo], settings: &JsonMap) {
     let index = unstable_name_index();
     for (name, value) in settings {
         if let Some(&idx) = index.get(name) {
@@ -1262,7 +1258,7 @@ pub fn set_raw_fields_from_config(
 
 impl UserPreferences {
     // userpreferences.go:685
-    pub(crate) fn with_config(mut self, config: &JsonMap) -> UserPreferences {
+    fn with_config(mut self, config: &JsonMap) -> UserPreferences {
         let p = &mut self;
         let infos = field_info_cache();
 
@@ -1334,7 +1330,7 @@ impl UserPreferences {
 }
 
 // userpreferences.go:753
-pub fn set_field_from_value(field: FieldMut<'_>, val: &Value) {
+fn set_field_from_value(field: FieldMut<'_>, val: &Value) {
     if matches!(val, Value::Null) {
         return;
     }
@@ -1514,7 +1510,7 @@ impl UserPreferences {
     }
 
     // userpreferences.go:885
-    pub fn parsed_auto_import_file_exclude_patterns(
+    pub(crate) fn parsed_auto_import_file_exclude_patterns(
         &self,
         use_case_sensitive_file_names: bool,
     ) -> Option<vfsmatch::SpecMatcher> {

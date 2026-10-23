@@ -189,7 +189,7 @@ impl Identifier {
 
     /// `text().len()`, without forming the text (a compact identifier keeps its length in the word).
     #[inline]
-    pub fn text_len(&self) -> usize {
+    pub(crate) fn text_len(&self) -> usize {
         let word = self.word.get();
         if Self::mode(word) == MODE_TEXT {
             return self.stored_text().len();
@@ -204,7 +204,7 @@ impl Identifier {
     }
 
     #[inline]
-    pub fn flow_node(&self) -> Option<P<FlowNode>> {
+    pub(crate) fn flow_node(&self) -> Option<P<FlowNode>> {
         let word = self.word.get();
         match Self::mode(word) {
             MODE_SOURCE => None,
@@ -218,7 +218,7 @@ impl Identifier {
         SIDE_FLOW.lock().unwrap().get(&(std::ptr::from_ref::<Identifier>(self) as usize)).copied()
     }
 
-    pub fn set_flow_node(&self, flow: Option<P<FlowNode>>) {
+    pub(crate) fn set_flow_node(&self, flow: Option<P<FlowNode>>) {
         let word = self.word.get();
         let mode = Self::mode(word);
         if mode == MODE_TEXT {
@@ -254,11 +254,11 @@ impl Identifier {
 
     /// Whether the text is derived from the node's range (see `Node::set_loc`).
     #[inline]
-    pub(crate) fn is_source_text(&self) -> bool {
+    fn is_source_text(&self) -> bool {
         Self::mode(self.word.get()) != MODE_TEXT
     }
 
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    pub(crate) fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_identifier(self.text()), node, &f.hooks)
     }
 }

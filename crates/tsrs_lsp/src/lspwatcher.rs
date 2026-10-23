@@ -115,7 +115,7 @@ struct WatchState {
 // lspwatcher.go:91
 // New constructs a Watcher backed by internal/fswatch's platform-default
 // watcher implementation.
-pub fn new(fs: Arc<dyn FS>, on_changes: OnChanges, logger: Arc<dyn Logger>) -> Arc<Watcher> {
+pub(crate) fn new(fs: Arc<dyn FS>, on_changes: OnChanges, logger: Arc<dyn Logger>) -> Arc<Watcher> {
     new_with_fs_watcher(fs, fswatch::default(), on_changes, logger)
 }
 
@@ -123,7 +123,7 @@ pub fn new(fs: Arc<dyn FS>, on_changes: OnChanges, logger: Arc<dyn Logger>) -> A
 // NewWithFSWatcher constructs a Watcher backed by the provided fswatch.Watcher.
 // Use this to select a specific backend (e.g. fswatch.Kqueue()) instead of the
 // platform default.
-pub fn new_with_fs_watcher(
+fn new_with_fs_watcher(
     fs: Arc<dyn FS>,
     watcher: &'static dyn fswatch::Watcher,
     on_changes: OnChanges,
@@ -160,7 +160,7 @@ impl Watcher {
     // failure (e.g. resource exhaustion while watching an existing directory)
     // causes WatchFiles to roll back the whole id and return an error, so the
     // session's pending/retry path re-registers it on the next reevaluation.
-    pub fn watch_files(
+    pub(crate) fn watch_files(
         &self,
         id: &str,
         file_system_watchers: &[lsproto::FileSystemWatcher],
@@ -231,7 +231,7 @@ impl Watcher {
 
     // lspwatcher.go:178
     // UnwatchFiles tears down all subscriptions associated with id.
-    pub fn unwatch_files(&self, id: &str) -> Result<(), String> {
+    pub(crate) fn unwatch_files(&self, id: &str) -> Result<(), String> {
         let mut st = self.mu.lock().unwrap();
         let Some(watches) = st.watches.as_mut().and_then(|w| w.remove(id)) else {
             return Err(format!("lspwatcher: no watcher with id {id:?}"));
@@ -245,7 +245,7 @@ impl Watcher {
 
     // lspwatcher.go:194
     // Close removes every subscription. Safe to call multiple times.
-    pub fn close(&self) {
+    pub(crate) fn close(&self) {
         let mut st = self.mu.lock().unwrap();
         if st.closed {
             return;

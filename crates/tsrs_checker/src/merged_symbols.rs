@@ -31,7 +31,7 @@ impl MergedSymbols {
         clippy::trivially_copy_pass_by_ref,
         reason = "preserves the map's borrowed-key lookup API; inlined at callers"
     )]
-    pub fn get(&self, symbol: &P<Symbol>) -> Option<&P<Symbol>> {
+    pub(crate) fn get(&self, symbol: &P<Symbol>) -> Option<&P<Symbol>> {
         let (word, bit) = Self::filter_position(*symbol);
         if self.filter[word] & bit == 0 {
             return None;
@@ -39,7 +39,7 @@ impl MergedSymbols {
         self.map.get(symbol)
     }
 
-    pub fn insert(&mut self, source: P<Symbol>, target: P<Symbol>) {
+    pub(crate) fn insert(&mut self, source: P<Symbol>, target: P<Symbol>) {
         let (word, bit) = Self::filter_position(source);
         self.filter[word] |= bit;
         self.map.insert(source, target);

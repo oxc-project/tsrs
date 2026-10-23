@@ -59,7 +59,7 @@ impl Checker {
 const MAYBE_STACK_SCAN_MAX: usize = 32;
 
 impl Relater {
-    pub(crate) fn rel(&self) -> P<Relation> {
+    fn rel(&self) -> P<Relation> {
         self.relation.get().unwrap()
     }
 
@@ -84,12 +84,7 @@ impl Relater {
     }
 
     // relater.go:2621
-    pub(crate) fn is_related_to_simple(
-        &self,
-        c: &mut Checker,
-        source: P<Type>,
-        target: P<Type>,
-    ) -> Ternary {
+    fn is_related_to_simple(&self, c: &mut Checker, source: P<Type>, target: P<Type>) -> Ternary {
         self.is_related_to_ex(
             c,
             source,
@@ -121,7 +116,7 @@ impl Relater {
     }
 
     // relater.go:2629
-    pub(crate) fn is_related_to(
+    fn is_related_to(
         &self,
         c: &mut Checker,
         source: P<Type>,
@@ -374,7 +369,7 @@ impl Relater {
     }
 
     // relater.go:2747
-    pub(crate) fn has_excess_properties(
+    fn has_excess_properties(
         &self,
         c: &mut Checker,
         source: P<Type>,
@@ -525,18 +520,14 @@ impl Relater {
 
 impl Checker {
     // relater.go:2829
-    pub(crate) fn get_type_of_property_in_types(
-        &mut self,
-        types: &[P<Type>],
-        name: &str,
-    ) -> P<Type> {
+    fn get_type_of_property_in_types(&mut self, types: &[P<Type>], name: &str) -> P<Type> {
         let mut prop_types: Vec<P<Type>> = Vec::new();
         prop_types.extend(types.iter().map(|&t| self.get_type_of_property_in_type(t, name)));
         self.get_union_type(&prop_types)
     }
 
     // relater.go:2837
-    pub(crate) fn get_type_of_property_in_type(&mut self, t: P<Type>, name: &str) -> P<Type> {
+    fn get_type_of_property_in_type(&mut self, t: P<Type>, name: &str) -> P<Type> {
         let t = self.get_apparent_type(t);
         let prop = if t.flags().intersects(TypeFlags::UnionOrIntersection) {
             self.get_property_of_union_or_intersection_type(t, name, false)
@@ -578,7 +569,7 @@ impl Checker {
     }
 
     // relater.go:2867
-    pub(crate) fn is_type_subset_of_union(&mut self, source: P<Type>, target: P<Type>) -> bool {
+    fn is_type_subset_of_union(&mut self, source: P<Type>, target: P<Type>) -> bool {
         if source.flags().intersects(TypeFlags::Union) {
             let (n, m) = (source.types().len(), target.types().len());
             // A scan touches each target type at most once; the searches cost about log2(m) comparisons per source
@@ -602,7 +593,7 @@ impl Checker {
 
 impl Relater {
     // relater.go:2882
-    pub(crate) fn union_or_intersection_related_to(
+    fn union_or_intersection_related_to(
         &self,
         c: &mut Checker,
         source: P<Type>,
@@ -741,7 +732,7 @@ impl Relater {
     }
 
     // relater.go:2951
-    pub(crate) fn some_type_related_to_type(
+    fn some_type_related_to_type(
         &self,
         c: &mut Checker,
         source: P<Type>,
@@ -775,7 +766,7 @@ impl Relater {
     }
 
     // relater.go:2965
-    pub(crate) fn each_type_related_to_type(
+    fn each_type_related_to_type(
         &self,
         c: &mut Checker,
         source: P<Type>,
@@ -841,7 +832,7 @@ impl Relater {
     }
 
     // relater.go:2997
-    pub(crate) fn get_undefined_stripped_target_if_needed(
+    fn get_undefined_stripped_target_if_needed(
         c: &mut Checker,
         source: P<Type>,
         target: P<Type>,
@@ -865,7 +856,7 @@ impl Relater {
             reason = "without the census the wrapper is a forwarding call; inlined, callers call the body as before (notes/perf-checker-algorithms.md)"
         )
     )]
-    pub(crate) fn type_related_to_some_type(
+    fn type_related_to_some_type(
         &self,
         c: &mut Checker,
         source: P<Type>,
@@ -1145,7 +1136,7 @@ impl Relater {
     }
 
     // relater.go:3063
-    pub(crate) fn type_related_to_each_type(
+    fn type_related_to_each_type(
         &self,
         c: &mut Checker,
         source: P<Type>,
@@ -1178,7 +1169,7 @@ impl Relater {
     }
 
     // relater.go:3076
-    pub(crate) fn each_type_related_to_some_type(
+    fn each_type_related_to_some_type(
         &self,
         c: &mut Checker,
         source: P<Type>,
@@ -1212,7 +1203,7 @@ impl Relater {
     // equal and infinitely expanding. Fourth, if we have reached a depth of 100 nested comparisons, assume we have runaway recursion
     // and issue an error. Otherwise, actually compare the structure of the two types.
     // relater.go:3094
-    pub(crate) fn recursive_type_related_to(
+    fn recursive_type_related_to(
         &self,
         c: &mut Checker,
         source: P<Type>,
@@ -1379,7 +1370,7 @@ impl Relater {
     }
 
     // relater.go:3201
-    pub(crate) fn reset_maybe_stack(
+    fn reset_maybe_stack(
         &self,
         _c: &mut Checker,
         maybe_start: usize,
@@ -1435,7 +1426,7 @@ impl Relater {
     }
 
     // relater.go:3212
-    pub(crate) fn get_error_state(&self, _c: &mut Checker) -> ErrorState {
+    fn get_error_state(&self, _c: &mut Checker) -> ErrorState {
         ErrorState {
             error_chain: self.error_chain.get(),
             related_info: self.related_info.borrow().clone(),
@@ -1443,7 +1434,7 @@ impl Relater {
     }
 
     // relater.go:3219
-    pub(crate) fn restore_error_state(&self, _c: &mut Checker, e: ErrorState) {
+    fn restore_error_state(&self, _c: &mut Checker, e: ErrorState) {
         self.error_chain.set(e.error_chain);
         *self.related_info.borrow_mut() = e.related_info;
     }
@@ -1457,7 +1448,7 @@ impl Relater {
             reason = "without the census the wrapper is a forwarding call; inlined, callers call the body as before (notes/perf-checker-algorithms.md)"
         )
     )]
-    pub(crate) fn structured_type_related_to(
+    fn structured_type_related_to(
         &self,
         c: &mut Checker,
         source: P<Type>,
@@ -1628,7 +1619,7 @@ impl Relater {
     }
 
     // relater.go:3286
-    pub(crate) fn is_source_intersection_needing_extra_check(
+    fn is_source_intersection_needing_extra_check(
         c: &mut Checker,
         source: P<Type>,
         target: P<Type>,
@@ -1712,7 +1703,7 @@ impl Relater {
     }
 
     // relater.go:3293
-    pub(crate) fn structured_type_related_to_worker(
+    fn structured_type_related_to_worker(
         &self,
         c: &mut Checker,
         source: P<Type>,
@@ -2884,7 +2875,7 @@ impl Relater {
     }
 
     // relater.go:3935
-    pub(crate) fn type_arguments_related_to(
+    fn type_arguments_related_to(
         &self,
         c: &mut Checker,
         sources: &[P<Type>],
@@ -3016,7 +3007,7 @@ impl Relater {
     // related to Y, where X' is an instantiation of X in which P is replaced with Q. Notice
     // that S and T are contra-variant whereas X and Y are co-variant.
     // relater.go:4004
-    pub(crate) fn mapped_type_related_to(
+    fn mapped_type_related_to(
         &self,
         c: &mut Checker,
         source: P<Type>,
@@ -3073,7 +3064,7 @@ impl Relater {
     }
 
     // relater.go:4021
-    pub(crate) fn type_related_to_discriminated_type(
+    fn type_related_to_discriminated_type(
         &self,
         c: &mut Checker,
         source: P<Type>,
@@ -3233,7 +3224,7 @@ impl Relater {
     }
 
     // relater.go:4132
-    pub(crate) fn properties_related_to(
+    fn properties_related_to(
         &self,
         c: &mut Checker,
         source: P<Type>,
@@ -3562,7 +3553,7 @@ impl Relater {
     }
 
     // relater.go:4302
-    pub(crate) fn property_related_to(
+    fn property_related_to(
         &self,
         c: &mut Checker,
         source: P<Type>,
@@ -3702,7 +3693,7 @@ impl Relater {
     }
 
     // relater.go:4366
-    pub(crate) fn is_property_symbol_type_related(
+    fn is_property_symbol_type_related(
         &self,
         c: &mut Checker,
         source_prop: P<Symbol>,
@@ -3737,7 +3728,7 @@ impl Relater {
     }
 
     // relater.go:4377
-    pub(crate) fn report_unmatched_property(
+    fn report_unmatched_property(
         &self,
         c: &mut Checker,
         source: P<Type>,
@@ -3809,7 +3800,7 @@ impl Relater {
     }
 
     // relater.go:4411
-    pub(crate) fn try_elaborate_array_like_errors(
+    fn try_elaborate_array_like_errors(
         &self,
         c: &mut Checker,
         source: P<Type>,
@@ -3849,7 +3840,7 @@ impl Relater {
     }
 
     // relater.go:4440
-    pub(crate) fn try_elaborate_errors_for_primitives_and_objects(
+    fn try_elaborate_errors_for_primitives_and_objects(
         &self,
         c: &mut Checker,
         source: P<Type>,
@@ -3867,7 +3858,7 @@ impl Relater {
     }
 
     // relater.go:4449
-    pub(crate) fn properties_identical_to(
+    fn properties_identical_to(
         &self,
         c: &mut Checker,
         source: P<Type>,
@@ -3908,7 +3899,7 @@ impl Relater {
     }
 
     // relater.go:4473
-    pub(crate) fn signatures_related_to(
+    fn signatures_related_to(
         &self,
         c: &mut Checker,
         source: P<Type>,
@@ -4034,7 +4025,7 @@ impl Relater {
     }
 
     // relater.go:4550
-    pub(crate) fn constructor_visibilities_are_compatible(
+    fn constructor_visibilities_are_compatible(
         &self,
         c: &mut Checker,
         source_signature: P<Signature>,
@@ -4078,7 +4069,7 @@ impl Relater {
 
     // See signatureAssignableTo, compareSignaturesIdentical
     // relater.go:4575
-    pub(crate) fn signature_related_to(
+    fn signature_related_to(
         &self,
         c: &mut Checker,
         source: P<Signature>,
@@ -4138,7 +4129,7 @@ impl Relater {
     }
 
     // relater.go:4593
-    pub(crate) fn signatures_identical_to(
+    fn signatures_identical_to(
         &self,
         c: &mut Checker,
         source: P<Type>,
@@ -4169,7 +4160,7 @@ impl Relater {
     }
 
     // relater.go:4610
-    pub(crate) fn index_signatures_related_to(
+    fn index_signatures_related_to(
         &self,
         c: &mut Checker,
         source: P<Type>,
@@ -4223,7 +4214,7 @@ impl Relater {
     }
 
     // relater.go:4635
-    pub(crate) fn type_related_to_index_info(
+    fn type_related_to_index_info(
         &self,
         c: &mut Checker,
         source: P<Type>,
@@ -4301,7 +4292,7 @@ impl Checker {
 
 impl Relater {
     // relater.go:4666
-    pub(crate) fn members_related_to_index_info(
+    fn members_related_to_index_info(
         &self,
         c: &mut Checker,
         source: P<Type>,
@@ -4386,7 +4377,7 @@ impl Relater {
     }
 
     // relater.go:4710
-    pub(crate) fn index_info_related_to(
+    fn index_info_related_to(
         &self,
         c: &mut Checker,
         source_info: P<IndexInfo>,
@@ -4425,7 +4416,7 @@ impl Relater {
     }
 
     // relater.go:4722
-    pub(crate) fn index_signatures_identical_to(
+    fn index_signatures_identical_to(
         &self,
         c: &mut Checker,
         source: P<Type>,
@@ -4459,7 +4450,7 @@ impl Relater {
     }
 
     // relater.go:4737
-    pub(crate) fn report_error_results(
+    fn report_error_results(
         &self,
         c: &mut Checker,
         original_source: P<Type>,
@@ -4565,7 +4556,7 @@ impl Relater {
     }
 
     // relater.go:4783
-    pub(crate) fn report_relation_error(
+    fn report_relation_error(
         &self,
         c: &mut Checker,
         message: Option<&'static Message>,
@@ -4687,12 +4678,7 @@ impl Relater {
     }
 
     // relater.go:4864
-    pub(crate) fn report_error(
-        &self,
-        c: &mut Checker,
-        message: &'static Message,
-        args: &[&dyn Display],
-    ) {
+    fn report_error(&self, c: &mut Checker, message: &'static Message, args: &[&dyn Display]) {
         let mut message = message;
         let mut args = diagnostics::stringify_args(args);
         if std::ptr::eq(message, &raw const diagnostics::TYPES_OF_PROPERTY_0_ARE_INCOMPATIBLE) {
@@ -4786,11 +4772,7 @@ pub fn add_to_dotted_name(head: &str, tail: &str) -> String {
 
 impl Relater {
     // relater.go:4934
-    pub(crate) fn get_chain_message(
-        &self,
-        _c: &mut Checker,
-        index: usize,
-    ) -> Option<&'static Message> {
+    fn get_chain_message(&self, _c: &mut Checker, index: usize) -> Option<&'static Message> {
         let mut index = index;
         let mut e = self.error_chain.get();
         loop {
@@ -4807,7 +4789,7 @@ impl Relater {
     // given arguments (where nil acts as a wildcard).
     // relater.go:4950
     // args: &[&dyn Display] -> &[Option<&str>] (Go passes nil as a wildcard; stored chain args are strings).
-    pub(crate) fn chain_args_match(&self, _c: &mut Checker, args: &[Option<&str>]) -> bool {
+    fn chain_args_match(&self, _c: &mut Checker, args: &[Option<&str>]) -> bool {
         let chain = self.error_chain.get().unwrap();
         if args.iter().enumerate().any(|(i, a)| {
             if let Some(a) = a
@@ -4908,7 +4890,7 @@ impl Checker {
     }
 
     // relater.go:5026
-    pub(crate) fn is_distribution_dependent(&mut self, root: P<ConditionalRoot>) -> bool {
+    fn is_distribution_dependent(&mut self, root: P<ConditionalRoot>) -> bool {
         let check_type = root.check_type.get().unwrap();
         let node = root.node.get().unwrap().as_conditional_type_node();
         root.is_distributive.get()
@@ -4923,7 +4905,7 @@ impl Relater {
         clippy::unused_self,
         reason = "The Go initialization or tracing hook is retained in the same method call sequence."
     )]
-    pub(crate) fn trace_unions_or_intersections_too_large(
+    fn trace_unions_or_intersections_too_large(
         &self,
         _c: &mut Checker,
         _source: P<Type>,

@@ -20,7 +20,7 @@ use crate::namemap::BUILD_NAME_MAP;
 use crate::tsconfigparsing::{COMMAND_LINE_COMPILER_OPTIONS_MAP, CommandLineOptionNameMap};
 use tsrs_ast::new_compiler_diagnostic;
 
-pub fn parse_tristate(value: &CompilerOptionsValue) -> Tristate {
+fn parse_tristate(value: &CompilerOptionsValue) -> Tristate {
     match value {
         CompilerOptionsValue::Null => Tristate::Unknown,
         CompilerOptionsValue::Tristate(v) => *v,
@@ -29,7 +29,7 @@ pub fn parse_tristate(value: &CompilerOptionsValue) -> Tristate {
     }
 }
 
-pub fn parse_string_array(value: &CompilerOptionsValue) -> Option<Vec<String>> {
+fn parse_string_array(value: &CompilerOptionsValue) -> Option<Vec<String>> {
     if let CompilerOptionsValue::Array(arr) = value {
         let mut result = Vec::with_capacity(arr.len());
         result.extend(arr.iter().filter_map(|v| {
@@ -40,7 +40,7 @@ pub fn parse_string_array(value: &CompilerOptionsValue) -> Option<Vec<String>> {
     None
 }
 
-pub fn parse_string_map(
+fn parse_string_map(
     value: &CompilerOptionsValue,
 ) -> Option<OrderedMap<String, Option<Vec<String>>>> {
     if let CompilerOptionsValue::Object(m) = value {
@@ -51,7 +51,7 @@ pub fn parse_string_map(
     None
 }
 
-pub fn parse_string(value: &CompilerOptionsValue) -> String {
+fn parse_string(value: &CompilerOptionsValue) -> String {
     if let CompilerOptionsValue::String(str) = value {
         return str.clone();
     }
@@ -59,7 +59,7 @@ pub fn parse_string(value: &CompilerOptionsValue) -> String {
 }
 
 // parseNumber into a Go `*int` (64-bit) option.
-pub fn parse_number_int(value: &CompilerOptionsValue) -> Option<i64> {
+fn parse_number_int(value: &CompilerOptionsValue) -> Option<i64> {
     match value {
         CompilerOptionsValue::Int(num) => Some(*num),
         CompilerOptionsValue::Float(num) => Some(*num as i64),
@@ -187,7 +187,7 @@ fn parse_string_string_map_strict(
 
 // parseStringArrayStrict returns the string slice and true only if value is an array whose
 // elements are all strings. A missing element or wrong element type yields false.
-pub fn parse_string_array_strict(value: &CompilerOptionsValue) -> Option<Vec<String>> {
+fn parse_string_array_strict(value: &CompilerOptionsValue) -> Option<Vec<String>> {
     let CompilerOptionsValue::Array(arr) = value else {
         return None;
     };
@@ -600,7 +600,7 @@ pub fn parse_type_acquisition(
     Vec::new()
 }
 
-pub fn parse_build_options(
+fn parse_build_options(
     key: &str,
     value: &CompilerOptionsValue,
     all_options: &mut BuildOptions,

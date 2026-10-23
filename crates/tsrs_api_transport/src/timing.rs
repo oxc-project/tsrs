@@ -5,32 +5,32 @@ use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 use serde::Serialize;
 
-pub const METHOD_GET_SERVER_TIMING: &str = "getServerTiming";
-pub const METHOD_RESET_SERVER_TIMING: &str = "resetServerTiming";
+pub(crate) const METHOD_GET_SERVER_TIMING: &str = "getServerTiming";
+pub(crate) const METHOD_RESET_SERVER_TIMING: &str = "resetServerTiming";
 
 const SERVER_RECENT_REQUEST_CAPACITY: usize = 5;
 
 #[derive(Clone, Debug, Serialize, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct ServerRequestTiming {
-    pub method: String,
-    pub processing_time_ms: f64,
-    pub timestamp: i64,
+    method: String,
+    processing_time_ms: f64,
+    timestamp: i64,
 }
 
 #[derive(Clone, Debug, Default, Serialize, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct ServerTimingTotals {
-    pub request_count: u64,
-    pub total_processing_time_ms: f64,
+    request_count: u64,
+    total_processing_time_ms: f64,
 }
 
 #[derive(Clone, Debug, Serialize, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct ServerTimingInfo {
-    pub enabled: bool,
-    pub totals: ServerTimingTotals,
-    pub recent_requests: Vec<ServerRequestTiming>,
+    enabled: bool,
+    totals: ServerTimingTotals,
+    recent_requests: Vec<ServerRequestTiming>,
 }
 
 #[derive(Default)]
@@ -46,7 +46,7 @@ pub struct TimingCollector {
 }
 
 impl TimingCollector {
-    pub fn record(&self, method: &str, d: Duration) {
+    pub(crate) fn record(&self, method: &str, d: Duration) {
         let processing_ms = d.as_nanos() as f64 / 1_000_000.0;
         let timestamp =
             SystemTime::now().duration_since(UNIX_EPOCH).map_or(0, |d| d.as_millis() as i64);
@@ -67,20 +67,20 @@ impl TimingCollector {
         }
     }
 
-    pub fn snapshot(&self) -> ServerTimingInfo {
+    fn snapshot(&self) -> ServerTimingInfo {
         let s = self.state.lock().unwrap_or_else(std::sync::PoisonError::into_inner);
         let n = s.ring.len();
         let recent = (0..n).map(|i| s.ring[(s.head + i) % n].clone()).collect();
         ServerTimingInfo { enabled: true, totals: s.totals.clone(), recent_requests: recent }
     }
 
-    pub fn reset(&self) {
+    pub(crate) fn reset(&self) {
         let mut s = self.state.lock().unwrap_or_else(std::sync::PoisonError::into_inner);
         *s = State::default();
     }
 }
 
-pub fn server_timing_snapshot(c: Option<&TimingCollector>) -> ServerTimingInfo {
+pub(crate) fn server_timing_snapshot(c: Option<&TimingCollector>) -> ServerTimingInfo {
     match c {
         Some(c) => c.snapshot(),
         None => ServerTimingInfo {

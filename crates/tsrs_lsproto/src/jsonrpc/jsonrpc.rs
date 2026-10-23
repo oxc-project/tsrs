@@ -13,7 +13,7 @@ pub struct JSONRPCVersion;
 
 const JSON_RPC_VERSION: &str = "2.0";
 
-pub const ERR_INVALID_JSONRPC_VERSION: &str = "invalid JSON-RPC version";
+const ERR_INVALID_JSONRPC_VERSION: &str = "invalid JSON-RPC version";
 
 impl Json for JSONRPCVersion {
     const GO_TYPE: &'static str = "jsonrpc.JSONRPCVersion";
@@ -115,8 +115,8 @@ impl Json for ID {
 // IntegerOrString is a helper type for creating IDs.
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct IntegerOrString {
-    pub integer: Option<i32>,
-    pub string: Option<String>,
+    integer: Option<i32>,
+    string: Option<String>,
 }
 
 // jsonrpc.go:98
@@ -199,11 +199,11 @@ pub enum MessageKind {
 // Unlike lsproto.Message, this keeps params/result as raw JSON for generic handling.
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct Message {
-    pub id: Option<ID>,
-    pub method: String,
-    pub params: Option<Value>,
-    pub result: Option<Value>,
-    pub error: Option<ResponseError>,
+    id: Option<ID>,
+    method: String,
+    params: Option<Value>,
+    result: Option<Value>,
+    error: Option<ResponseError>,
 }
 
 impl Message {
@@ -281,9 +281,9 @@ impl Json for Message {
 // RequestMessage is a convenience type for creating request/notification messages.
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct RequestMessage {
-    pub id: Option<ID>,
-    pub method: String,
-    pub params: Option<Value>,
+    id: Option<ID>,
+    method: String,
+    params: Option<Value>,
 }
 
 impl Json for RequestMessage {
@@ -322,9 +322,9 @@ impl Json for RequestMessage {
 // ResponseMessage is a convenience type for creating response messages.
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct ResponseMessage {
-    pub id: Option<ID>,
-    pub result: Option<Value>,
-    pub error: Option<ResponseError>,
+    id: Option<ID>,
+    result: Option<Value>,
+    error: Option<ResponseError>,
 }
 
 impl Json for ResponseMessage {

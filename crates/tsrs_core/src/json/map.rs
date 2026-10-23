@@ -144,7 +144,7 @@ impl JsonMap {
     }
 
     /// `insert`, also returning the member's position.
-    pub fn insert_full(&mut self, key: impl Into<Key>, value: Value) -> (usize, Option<Value>) {
+    fn insert_full(&mut self, key: impl Into<Key>, value: Value) -> (usize, Option<Value>) {
         let key = key.into();
         if let Some(i) = self.get_index_of(&key) {
             return (i, Some(std::mem::replace(&mut self.entries[i].1, value)));
@@ -209,7 +209,7 @@ impl JsonMap {
         Some(self.shift_remove_index(i)?.1)
     }
 
-    pub fn shift_remove_index(&mut self, i: usize) -> Option<(String, Value)> {
+    fn shift_remove_index(&mut self, i: usize) -> Option<(String, Value)> {
         if i >= self.entries.len() {
             return None;
         }
@@ -243,7 +243,7 @@ impl JsonMap {
         }
     }
 
-    pub fn entry(&mut self, key: impl Into<Key>) -> Entry<'_> {
+    pub(crate) fn entry(&mut self, key: impl Into<Key>) -> Entry<'_> {
         let key = key.into();
         match self.get_index_of(&key) {
             Some(index) => Entry::Occupied(OccupiedEntry { map: self, index }),
@@ -515,7 +515,7 @@ pub struct OccupiedEntry<'a> {
 }
 
 impl<'a> OccupiedEntry<'a> {
-    pub fn key(&self) -> &str {
+    pub(crate) fn key(&self) -> &str {
         &self.map.entries[self.index].0
     }
 
@@ -559,7 +559,7 @@ impl<'a> VacantEntry<'a> {
         self.key.into_owned()
     }
 
-    pub fn insert(self, value: Value) -> &'a mut Value {
+    pub(crate) fn insert(self, value: Value) -> &'a mut Value {
         let i = self.map.push(self.key, value);
         &mut self.map.entries[i].1
     }

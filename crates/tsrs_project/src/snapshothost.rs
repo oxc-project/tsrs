@@ -277,7 +277,7 @@ impl SnapshotHost {
         clippy::unused_self,
         reason = "SnapshotHost lifecycle callbacks keep their instance receiver alongside the stateful host operations."
     )]
-    pub fn close(&self) {
+    pub(crate) fn close(&self) {
         // (Content mappers are not ported: there is no content mapper host to close.)
     }
 }

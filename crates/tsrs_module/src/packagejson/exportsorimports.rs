@@ -38,7 +38,7 @@ impl ExportsOrImports {
         self.data.as_object()
     }
 
-    pub fn as_array(&self) -> &[ExportsOrImports] {
+    pub(crate) fn as_array(&self) -> &[ExportsOrImports] {
         assert!(self.type_() == JSONValueType::Array, "expected array");
         self.data.as_array()
     }
@@ -51,7 +51,7 @@ impl ExportsOrImports {
         self.object_kind == ObjectKind::Imports
     }
 
-    pub fn is_conditions(&self) -> bool {
+    pub(crate) fn is_conditions(&self) -> bool {
         self.object_kind == ObjectKind::Conditions
     }
 

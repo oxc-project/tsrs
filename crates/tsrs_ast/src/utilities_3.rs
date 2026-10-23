@@ -78,7 +78,7 @@ pub fn is_valid_type_only_alias_use_site(use_site: P<Node>) -> bool {
         || !(is_expression_node(use_site) || is_shorthand_property_name_use_site(use_site))
 }
 
-pub(crate) fn is_identifier_in_non_emitting_heritage_clause(node: P<Node>) -> bool {
+fn is_identifier_in_non_emitting_heritage_clause(node: P<Node>) -> bool {
     if !is_identifier(node) {
         return false;
     }
@@ -91,9 +91,7 @@ pub(crate) fn is_identifier_in_non_emitting_heritage_clause(node: P<Node>) -> bo
             || is_interface_declaration(parent.parent().unwrap()))
 }
 
-pub(crate) fn is_part_of_possibly_valid_type_or_abstract_computed_property_name(
-    mut node: P<Node>,
-) -> bool {
+fn is_part_of_possibly_valid_type_or_abstract_computed_property_name(mut node: P<Node>) -> bool {
     while node_kind_is(node, &[Kind::Identifier, Kind::PropertyAccessExpression]) {
         node = node.parent().unwrap();
     }
@@ -107,7 +105,7 @@ pub(crate) fn is_part_of_possibly_valid_type_or_abstract_computed_property_name(
     node_kind_is(parent.parent().unwrap(), &[Kind::InterfaceDeclaration, Kind::TypeLiteral])
 }
 
-pub(crate) fn is_shorthand_property_name_use_site(use_site: P<Node>) -> bool {
+fn is_shorthand_property_name_use_site(use_site: P<Node>) -> bool {
     is_identifier(use_site)
         && is_shorthand_property_assignment(use_site.parent().unwrap())
         && use_site.parent().unwrap().name() == Some(use_site)
@@ -825,12 +823,12 @@ pub fn is_jsdoc_name_reference_context(node: P<Node>) -> bool {
 }
 
 // GetJSDocRoot returns the containing JSDoc node for a node inside a JSDoc comment.
-pub fn get_jsdoc_root(node: P<Node>) -> Option<P<Node>> {
+fn get_jsdoc_root(node: P<Node>) -> Option<P<Node>> {
     find_ancestor(node.parent(), |n| n.kind() == Kind::JSDoc)
 }
 
 // GetJSDocHost returns the declaration that the JSDoc comment containing the given node is attached to.
-pub fn get_jsdoc_host(node: P<Node>) -> Option<P<Node>> {
+fn get_jsdoc_host(node: P<Node>) -> Option<P<Node>> {
     get_jsdoc_root(node)?.parent()
 }
 
@@ -1303,7 +1301,7 @@ pub(crate) fn literal_is_name(node: P<Node>) -> bool {
         || is_literal_computed_property_declaration_name(node)
 }
 
-pub(crate) fn is_argument_of_element_access_expression(node: impl Into<Option<P<Node>>>) -> bool {
+fn is_argument_of_element_access_expression(node: impl Into<Option<P<Node>>>) -> bool {
     let Some(node) = node.into() else {
         return false;
     };
@@ -1339,7 +1337,7 @@ pub fn get_reparsed_node_for_node(node: impl Into<Option<P<Node>>>) -> Option<P<
     Some(node)
 }
 
-pub(crate) fn find_clone_in_node(mut node: P<Node>, original: P<Node>) -> Option<P<Node>> {
+fn find_clone_in_node(mut node: P<Node>, original: P<Node>) -> Option<P<Node>> {
     loop {
         if node.kind() == original.kind() && node.loc() == original.loc() {
             return Some(node);
@@ -1406,7 +1404,7 @@ pub fn is_named_evaluation_source(node: P<Node>) -> bool {
 // Per the ECMA-262 spec, this only matters for property assignments whose name is
 // the Identifier `__proto__`, or the string literal `"__proto__"`, but not for
 // computed property names.
-pub fn is_proto_setter(node: P<Node>) -> bool {
+fn is_proto_setter(node: P<Node>) -> bool {
     (is_identifier(node) || is_string_literal(node)) && node.text() == "__proto__"
 }
 

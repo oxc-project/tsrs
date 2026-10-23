@@ -27,7 +27,7 @@ pub fn is_single_element_generic_tuple_type(t: P<Type>) -> bool {
 impl Checker {
     // checker.go:23966
     // Public for lint rules (tsgolint's shim exposes Checker_isArrayOrTupleType).
-    pub fn is_array_or_tuple_type(&mut self, t: P<Type>) -> bool {
+    pub(crate) fn is_array_or_tuple_type(&mut self, t: P<Type>) -> bool {
         self.is_array_type(t) || is_tuple_type(t)
     }
 
@@ -46,7 +46,7 @@ impl Checker {
     }
 
     // checker.go:23981
-    pub fn is_array_like_type(&mut self, t: P<Type>) -> bool {
+    pub(crate) fn is_array_like_type(&mut self, t: P<Type>) -> bool {
         // A type is array-like if it is a reference to the global Array or global ReadonlyArray type,
         // or if it is not the undefined or null type and if it is assignable to ReadonlyArray<any>
         self.is_array_type(t)
@@ -277,7 +277,7 @@ pub fn is_local_type_alias(symbol: P<Symbol>) -> bool {
 
 impl Checker {
     // checker.go:24131
-    pub fn get_declared_type_of_symbol(&mut self, symbol: P<Symbol>) -> P<Type> {
+    pub(crate) fn get_declared_type_of_symbol(&mut self, symbol: P<Symbol>) -> P<Type> {
         let mut result = self.try_get_declared_type_of_symbol(symbol);
         if result.is_none() {
             result = Some(self.error_type);
@@ -354,10 +354,7 @@ impl Checker {
     }
 
     // checker.go:24191
-    pub(crate) fn get_type_arguments_for_alias_symbol(
-        &mut self,
-        symbol: Option<P<Symbol>>,
-    ) -> Vec<P<Type>> {
+    fn get_type_arguments_for_alias_symbol(&mut self, symbol: Option<P<Symbol>>) -> Vec<P<Type>> {
         if let Some(symbol) = symbol {
             return self.get_local_type_parameters_of_class_or_interface_or_type_alias(symbol);
         }
@@ -379,7 +376,7 @@ impl Checker {
 
     // Returns the declaration used to obtain a class, interface, or function symbol's outer type parameters.
     // checker.go:24205
-    pub(crate) fn get_class_or_interface_like_declaration(symbol: P<Symbol>) -> Option<P<Node>> {
+    fn get_class_or_interface_like_declaration(symbol: P<Symbol>) -> Option<P<Node>> {
         if symbol.flags().intersects(SymbolFlags::Class | SymbolFlags::Function) {
             return symbol.value_declaration();
         }
@@ -506,7 +503,7 @@ impl Checker {
     // The local type parameters are the combined set of type parameters from all declarations of the class,
     // interface, or type alias.
     // checker.go:24276
-    pub fn get_local_type_parameters_of_class_or_interface_or_type_alias(
+    pub(crate) fn get_local_type_parameters_of_class_or_interface_or_type_alias(
         &mut self,
         symbol: P<Symbol>,
     ) -> Vec<P<Type>> {
@@ -539,7 +536,7 @@ impl Checker {
     // The function allocates a new array if the input type parameter set is undefined, but otherwise it modifies the set
     // in-place and returns the same array.
     // checker.go:24292
-    pub(crate) fn append_type_parameters(
+    fn append_type_parameters(
         &mut self,
         type_parameters: &[P<Type>],
         declarations: &[P<Node>],
@@ -618,7 +615,7 @@ impl Checker {
     }
 
     // checker.go:24345
-    pub(crate) fn get_declared_type_of_enum(&mut self, symbol: P<Symbol>) -> P<Type> {
+    fn get_declared_type_of_enum(&mut self, symbol: P<Symbol>) -> P<Type> {
         let links = self.declared_type_links.get(symbol);
         if links.declared_type.get().is_none() {
             let mut member_type_list: Vec<P<Type>> = Vec::new();
@@ -673,7 +670,7 @@ impl Checker {
     }
 
     // checker.go:24387
-    pub(crate) fn create_computed_enum_type(&mut self, symbol: P<Symbol>) -> P<Type> {
+    fn create_computed_enum_type(&mut self, symbol: P<Symbol>) -> P<Type> {
         let regular_type = self.new_literal_type(TypeFlags::Enum, None, None);
         regular_type.set_symbol(Some(symbol));
         let fresh_type = self.new_literal_type(TypeFlags::Enum, None, Some(regular_type));
@@ -718,7 +715,7 @@ impl Checker {
     }
 
     // checker.go:24428
-    pub(crate) fn compute_enum_member_value(
+    fn compute_enum_member_value(
         &mut self,
         member: P<Node>,
         auto_value: Option<&mut Number>,
@@ -774,10 +771,7 @@ impl Checker {
     }
 
     // checker.go:24465
-    pub(crate) fn compute_constant_enum_member_value(
-        &mut self,
-        member: P<Node>,
-    ) -> evaluator::Result {
+    fn compute_constant_enum_member_value(&mut self, member: P<Node>) -> evaluator::Result {
         let parent = member.parent().unwrap();
         let is_const_enum = ast::is_enum_const(parent);
         let initializer = member.initializer().unwrap();
@@ -930,7 +924,7 @@ impl Checker {
     }
 
     // checker.go:24547
-    pub(crate) fn evaluate_enum_member(
+    fn evaluate_enum_member(
         &mut self,
         expr: P<Node>,
         symbol: P<Symbol>,
@@ -973,7 +967,7 @@ impl Checker {
     }
 
     // checker.go:24564
-    pub(crate) fn get_declared_type_of_alias(&mut self, symbol: P<Symbol>) -> P<Type> {
+    fn get_declared_type_of_alias(&mut self, symbol: P<Symbol>) -> P<Type> {
         let links = self.declared_type_links.get(symbol);
         if links.declared_type.get().is_none() {
             let resolved = self.resolve_alias(symbol);
@@ -1041,12 +1035,12 @@ impl Checker {
     }
 
     // checker.go:24614
-    pub(crate) fn is_variadic_tuple_element(node: P<Node>) -> bool {
+    fn is_variadic_tuple_element(node: P<Node>) -> bool {
         Self::get_tuple_element_flags(node).intersects(ElementFlags::Variadic)
     }
 
     // checker.go:24618
-    pub(crate) fn get_array_or_tuple_target_type(&mut self, node: P<Node>) -> P<Type> {
+    fn get_array_or_tuple_target_type(&mut self, node: P<Node>) -> P<Type> {
         let readonly = Self::is_readonly_type_operator(node.parent().unwrap());
         let element_type = Self::get_array_element_type_node(node);
         if element_type.is_some() {
@@ -1061,7 +1055,7 @@ impl Checker {
     }
 
     // checker.go:24630
-    pub(crate) fn is_readonly_type_operator(node: P<Node>) -> bool {
+    fn is_readonly_type_operator(node: P<Node>) -> bool {
         ast::is_type_operator_node(node)
             && node.as_type_operator_node().operator == Kind::ReadonlyKeyword
     }
@@ -1095,7 +1089,7 @@ impl Checker {
     }
 
     // checker.go:24655
-    pub(crate) fn get_array_element_type_node(node: P<Node>) -> Option<P<Node>> {
+    fn get_array_element_type_node(node: P<Node>) -> Option<P<Node>> {
         match node.kind() {
             Kind::ParenthesizedType => {
                 return Self::get_array_element_type_node(node.type_node().unwrap());
@@ -1548,7 +1542,7 @@ impl Checker {
     // type. Note that recursion is possible only through aliased conditional types, so we only increment the tail
     // recursion counter for those.
     // checker.go:24920
-    pub(crate) fn get_tail_recursion_root(
+    fn get_tail_recursion_root(
         &mut self,
         new_type: P<Type>,
         new_mapper: Option<P<TypeMapper>>,
@@ -1599,7 +1593,7 @@ impl Checker {
     }
 
     // checker.go:24939
-    pub(crate) fn is_simple_tuple_type(node: P<Node>) -> bool {
+    fn is_simple_tuple_type(node: P<Node>) -> bool {
         ast::is_tuple_type_node(node)
             && !node.elements().is_empty()
             && !node.elements().iter().any(|&e| {
@@ -1612,7 +1606,7 @@ impl Checker {
     }
 
     // checker.go:24945
-    pub(crate) fn is_deferred_type(&mut self, t: P<Type>, check_tuples: bool) -> bool {
+    fn is_deferred_type(&mut self, t: P<Type>, check_tuples: bool) -> bool {
         self.is_generic_type(t)
             || check_tuples && is_tuple_type(t) && {
                 let element_types = self.get_element_types(t);
@@ -1658,7 +1652,7 @@ impl Checker {
     }
 
     // checker.go:24981
-    pub(crate) fn get_restrictive_type_parameter(&mut self, t: P<Type>) -> P<Type> {
+    fn get_restrictive_type_parameter(&mut self, t: P<Type>) -> P<Type> {
         if t.as_type_parameter().constraint.get().is_none()
             && Self::get_constraint_declaration(t).is_none()
             || t.as_type_parameter().constraint.get() == Some(self.no_constraint_type)
@@ -1867,7 +1861,7 @@ impl Checker {
     }
 
     // checker.go:25120
-    pub(crate) fn get_identifier_chain(node: P<Node>) -> Vec<P<Node>> {
+    fn get_identifier_chain(node: P<Node>) -> Vec<P<Node>> {
         if ast::is_identifier(node) {
             return vec![node];
         }
@@ -1877,7 +1871,7 @@ impl Checker {
     }
 
     // checker.go:25127
-    pub(crate) fn resolve_import_symbol_type(
+    fn resolve_import_symbol_type(
         &mut self,
         node: P<Node>,
         symbol: P<Symbol>,
@@ -1992,7 +1986,7 @@ impl Checker {
     }
 
     // checker.go:25198
-    pub(crate) fn get_tuple_element_info(node: P<Node>) -> TupleElementInfo {
+    fn get_tuple_element_info(node: P<Node>) -> TupleElementInfo {
         TupleElementInfo {
             flags: Self::get_tuple_element_flags(node),
             labeled_declaration: if ast::is_named_tuple_member(node)
@@ -2061,7 +2055,7 @@ impl Checker {
     // Note that the generic type created by this function has no symbol associated with it. The same
     // is true for each of the synthesized type parameters.
     // checker.go:25245
-    pub(crate) fn create_tuple_target_type(
+    fn create_tuple_target_type(
         &mut self,
         element_infos: &[TupleElementInfo],
         readonly: bool,
@@ -2224,7 +2218,7 @@ impl Checker {
     }
 
     // checker.go:25350
-    pub(crate) fn get_generic_object_flags(&mut self, t: P<Type>) -> ObjectFlags {
+    fn get_generic_object_flags(&mut self, t: P<Type>) -> ObjectFlags {
         let mut combined_flags = ObjectFlags::None;
         if t.flags().intersects(TypeFlags::UnionOrIntersection | TypeFlags::Substitution) {
             if !t.object_flags_lazy().intersects(ObjectFlags::IsGenericTypeComputed) {
@@ -2312,7 +2306,7 @@ impl Checker {
     }
 
     // checker.go:25407
-    pub(crate) fn is_reducible_intersection(&mut self, t: P<Type>) -> bool {
+    fn is_reducible_intersection(&mut self, t: P<Type>) -> bool {
         let d = t.as_intersection_type();
         if d.unique_literal_filled_instantiation().is_none() {
             d.set_unique_literal_filled_instantiation(Some(
@@ -2400,7 +2394,7 @@ impl Checker {
     }
 
     // checker.go:25459
-    pub(crate) fn get_implied_constraint(
+    fn get_implied_constraint(
         &mut self,
         t: P<Type>,
         check_node: P<Node>,
@@ -2429,7 +2423,7 @@ pub fn is_unary_tuple_type_node(node: P<Node>) -> bool {
 impl Checker {
     // checker.go:25473
     #[cfg_attr(feature = "site-counts", track_caller)]
-    pub(crate) fn new_type<T: TypePayload>(
+    fn new_type<T: TypePayload>(
         &mut self,
         flags: TypeFlags,
         object_flags: ObjectFlags,
@@ -2793,7 +2787,7 @@ impl Checker {
     }
 
     // checker.go:25700
-    pub(crate) fn new_conditional_type(
+    fn new_conditional_type(
         &mut self,
         root: P<ConditionalRoot>,
         mapper: Option<P<TypeMapper>>,
@@ -3007,7 +3001,7 @@ pub fn get_boolean_literal_value(t: P<Type>) -> bool {
 
 impl Checker {
     // checker.go:25832
-    pub(crate) fn get_enum_literal_type(
+    fn get_enum_literal_type(
         &mut self,
         value: LiteralValue,
         enum_symbol: P<Symbol>,
@@ -3093,7 +3087,7 @@ impl Checker {
     }
 
     // checker.go:25904
-    pub fn get_base_type_of_literal_type(&mut self, t: P<Type>) -> P<Type> {
+    pub(crate) fn get_base_type_of_literal_type(&mut self, t: P<Type>) -> P<Type> {
         let flags = t.flags();
         if flags.intersects(TypeFlags::EnumLike) {
             return self.get_base_type_of_enum_like_type(t);
@@ -3148,7 +3142,7 @@ impl Checker {
     }
 
     // checker.go:25947
-    pub(crate) fn get_base_type_of_literal_type_union(&mut self, t: P<Type>) -> P<Type> {
+    fn get_base_type_of_literal_type_union(&mut self, t: P<Type>) -> P<Type> {
         let key = CachedTypeKey { kind: CachedTypeKind::LiteralUnionBaseType, type_id: t.id };
         if let Some(&cached) = self.cached_types.get(&key) {
             return cached;
@@ -3159,7 +3153,7 @@ impl Checker {
     }
 
     // checker.go:25957
-    pub fn get_widened_literal_type(&mut self, t: P<Type>) -> P<Type> {
+    pub(crate) fn get_widened_literal_type(&mut self, t: P<Type>) -> P<Type> {
         let flags = t.flags();
         if flags.intersects(TypeFlags::EnumLike) && is_fresh_literal_type(t) {
             return self.get_base_type_of_enum_like_type(t);
@@ -3178,7 +3172,7 @@ impl Checker {
     }
 
     // checker.go:25975
-    pub(crate) fn get_widened_unique_es_symbol_type(&mut self, t: P<Type>) -> P<Type> {
+    fn get_widened_unique_es_symbol_type(&mut self, t: P<Type>) -> P<Type> {
         if t.flags().intersects(TypeFlags::UniqueESSymbol) {
             return self.es_symbol_type;
         } else if t.flags().intersects(TypeFlags::Union) {
@@ -3349,7 +3343,7 @@ impl Checker {
     }
 
     // checker.go:26087
-    pub fn get_union_type(&mut self, types: &[P<Type>]) -> P<Type> {
+    pub(crate) fn get_union_type(&mut self, types: &[P<Type>]) -> P<Type> {
         self.get_union_type_ex(
             types,
             UnionReduction::Literal,
@@ -3366,7 +3360,7 @@ impl Checker {
     // circularly reference themselves and therefore cannot be subtype reduced during their declaration.
     // For example, "type Item = string | (() => Item" is a named type that circularly references itself.
     // checker.go:26098
-    pub fn get_union_type_ex(
+    pub(crate) fn get_union_type_ex(
         &mut self,
         types: &[P<Type>],
         union_reduction: UnionReduction,

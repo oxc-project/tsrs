@@ -16,7 +16,7 @@ use crate::*;
 #[derive(Clone, Copy)]
 pub struct Resolver {
     pub r: P<EmitResolver>,
-    pub slot: P<CheckerSlot>,
+    slot: P<CheckerSlot>,
 }
 
 impl Resolver {
@@ -253,27 +253,30 @@ impl Resolver {
 
     // The rest of Go's `printer.EmitResolver` (used by the script transformers).
 
-    pub fn is_referenced_alias_declaration(self, node: P<Node>) -> bool {
+    pub(crate) fn is_referenced_alias_declaration(self, node: P<Node>) -> bool {
         self.lock(|c| self.r.is_referenced_alias_declaration(c, node))
     }
 
-    pub fn is_value_alias_declaration(self, node: P<Node>) -> bool {
+    pub(crate) fn is_value_alias_declaration(self, node: P<Node>) -> bool {
         self.lock(|c| self.r.is_value_alias_declaration(c, node))
     }
 
-    pub fn is_top_level_value_import_equals_with_entity_name(self, node: P<Node>) -> bool {
+    pub(crate) fn is_top_level_value_import_equals_with_entity_name(self, node: P<Node>) -> bool {
         self.lock(|c| self.r.is_top_level_value_import_equals_with_entity_name(c, node))
     }
 
-    pub fn mark_linked_references_recursively(self, file: P<SourceFile>) {
+    pub(crate) fn mark_linked_references_recursively(self, file: P<SourceFile>) {
         self.lock(|c| self.r.mark_linked_references_recursively(c, Some(file)));
     }
 
-    pub fn get_external_module_file_from_declaration(self, node: P<Node>) -> Option<P<SourceFile>> {
+    pub(crate) fn get_external_module_file_from_declaration(
+        self,
+        node: P<Node>,
+    ) -> Option<P<SourceFile>> {
         self.lock(|c| self.r.get_external_module_file_from_declaration(c, node))
     }
 
-    pub fn get_type_reference_serialization_kind(
+    pub(crate) fn get_type_reference_serialization_kind(
         self,
         name: P<Node>,
         serial_scope: Option<P<Node>>,
@@ -281,25 +284,25 @@ impl Resolver {
         self.lock(|c| self.r.get_type_reference_serialization_kind(c, Some(name), serial_scope))
     }
 
-    pub fn get_constant_value(self, node: P<Node>) -> Option<checker::LiteralValue> {
+    pub(crate) fn get_constant_value(self, node: P<Node>) -> Option<checker::LiteralValue> {
         self.lock(|c| self.r.get_constant_value(c, node))
     }
 
-    pub fn get_jsx_factory_entity(self, location: P<Node>) -> Option<P<Node>> {
+    pub(crate) fn get_jsx_factory_entity(self, location: P<Node>) -> Option<P<Node>> {
         self.lock(|c| self.r.get_jsx_factory_entity(c, location))
     }
 
-    pub fn get_jsx_fragment_factory_entity(self, location: P<Node>) -> Option<P<Node>> {
+    pub(crate) fn get_jsx_fragment_factory_entity(self, location: P<Node>) -> Option<P<Node>> {
         self.lock(|c| self.r.get_jsx_fragment_factory_entity(c, location))
     }
 
-    pub fn set_referenced_import_declaration(self, node: P<Node>, ref_: P<Node>) {
+    pub(crate) fn set_referenced_import_declaration(self, node: P<Node>, ref_: P<Node>) {
         self.lock(|c| self.r.set_referenced_import_declaration(c, node, ref_));
     }
 
     // binder.ReferenceResolver (embedded in Go's EmitResolver).
 
-    pub fn get_referenced_export_container(
+    pub(crate) fn get_referenced_export_container(
         self,
         node: P<Node>,
         prefix_locals: bool,
@@ -307,11 +310,11 @@ impl Resolver {
         self.lock(|c| self.r.get_referenced_export_container(c, node, prefix_locals))
     }
 
-    pub fn get_referenced_import_declaration(self, node: P<Node>) -> Option<P<Node>> {
+    fn get_referenced_import_declaration(self, node: P<Node>) -> Option<P<Node>> {
         self.lock(|c| self.r.get_referenced_import_declaration(c, node))
     }
 
-    pub fn get_referenced_value_declarations(self, node: P<Node>) -> Vec<P<Node>> {
+    fn get_referenced_value_declarations(self, node: P<Node>) -> Vec<P<Node>> {
         self.lock(|c| self.r.get_referenced_value_declarations(c, node))
     }
 
@@ -379,7 +382,7 @@ pub enum ReferenceResolverRef {
 }
 
 impl ReferenceResolverRef {
-    pub fn get_referenced_export_container(
+    pub(crate) fn get_referenced_export_container(
         self,
         node: P<Node>,
         prefix_locals: bool,
@@ -392,21 +395,21 @@ impl ReferenceResolverRef {
         }
     }
 
-    pub fn get_referenced_import_declaration(self, node: P<Node>) -> Option<P<Node>> {
+    pub(crate) fn get_referenced_import_declaration(self, node: P<Node>) -> Option<P<Node>> {
         match self {
             ReferenceResolverRef::Emit(r) => r.get_referenced_import_declaration(node),
             ReferenceResolverRef::Plain(r) => r.get_referenced_import_declaration(&mut (), node),
         }
     }
 
-    pub fn get_referenced_value_declaration(self, node: P<Node>) -> Option<P<Node>> {
+    pub(crate) fn get_referenced_value_declaration(self, node: P<Node>) -> Option<P<Node>> {
         match self {
             ReferenceResolverRef::Emit(r) => r.get_referenced_value_declaration(node),
             ReferenceResolverRef::Plain(r) => r.get_referenced_value_declaration(&mut (), node),
         }
     }
 
-    pub fn get_referenced_value_declarations(self, node: P<Node>) -> Vec<P<Node>> {
+    pub(crate) fn get_referenced_value_declarations(self, node: P<Node>) -> Vec<P<Node>> {
         match self {
             ReferenceResolverRef::Emit(r) => r.get_referenced_value_declarations(node),
             ReferenceResolverRef::Plain(r) => r.get_referenced_value_declarations(&mut (), node),

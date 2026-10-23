@@ -305,7 +305,10 @@ pub fn compiler_options_to_go_json(options: &CompilerOptions) -> Value {
     clippy::option_option,
     reason = "Distinguishes no matching serializer or field from a matching nil value, as in Go."
 )]
-pub fn compiler_option_to_go_json(options: &CompilerOptions, name: &str) -> Option<Option<Value>> {
+pub(crate) fn compiler_option_to_go_json(
+    options: &CompilerOptions,
+    name: &str,
+) -> Option<Option<Value>> {
     let unknown = |json: &str| {
         options
             .api_unknown_enum_values

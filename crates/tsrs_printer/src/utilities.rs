@@ -71,7 +71,7 @@ fn encode_utf16_escape_sequence(b: &mut String, char_code: stringutil::Rune) {
 // Based heavily on the abstract 'Quote'/'QuoteJSONString' operation from ECMA-262 (24.3.2.2),
 // but augmented for a few select characters (e.g. lineSeparator, paragraphSeparator, nextLine)
 // Note that this doesn't actually wrap the input in double quotes.
-pub fn escape_string_worker(
+fn escape_string_worker(
     s: &str,
     quote_char: QuoteChar,
     flags: getLiteralTextFlags,
@@ -213,7 +213,7 @@ pub fn escape_jsx_attribute_string(s: &str, quote_char: QuoteChar) -> String {
     b
 }
 
-pub fn can_use_original_text(node: P<Node>, flags: getLiteralTextFlags) -> bool {
+fn can_use_original_text(node: P<Node>, flags: getLiteralTextFlags) -> bool {
     // A synthetic node has no original text, nor does a node without a parent as we would be unable to find the
     // containing SourceFile. We also cannot use the original text if the literal was unterminated and the caller has
     // requested proper termination of unterminated literals
@@ -388,7 +388,7 @@ pub fn range_end_positions_are_on_same_line(
     positions_are_on_same_line(range1.end(), range2.end(), source_file)
 }
 
-pub fn range_start_is_on_same_line_as_range_end(
+fn range_start_is_on_same_line_as_range_end(
     range1: TextRange,
     range2: TextRange,
     source_file: P<SourceFile>,
@@ -412,7 +412,7 @@ pub fn range_end_is_on_same_line_as_range_start(
     )
 }
 
-pub fn get_start_position_of_range(
+fn get_start_position_of_range(
     r: TextRange,
     source_file: P<SourceFile>,
     include_comments: bool,
@@ -537,7 +537,7 @@ pub fn get_lines_between_position_and_next_non_whitespace_character(
     get_lines_between_positions(source_file, pos.into(), stop_pos.min(next_pos).into())
 }
 
-pub fn get_previous_non_whitespace_position(
+fn get_previous_non_whitespace_position(
     pos: u32,
     stop_pos: u32,
     source_file: P<SourceFile>,
@@ -591,7 +591,7 @@ fn modifier_node_list(modifiers: P<ModifierList>) -> P<NodeList> {
     P::from_static(&modifiers.get().list)
 }
 
-pub fn get_containing_node_array(node: P<Node>) -> Option<P<NodeList>> {
+fn get_containing_node_array(node: P<Node>) -> Option<P<NodeList>> {
     let parent = node.parent()?;
 
     match node.kind() {
@@ -707,7 +707,7 @@ pub fn get_containing_node_array(node: P<Node>) -> Option<P<NodeList>> {
     None
 }
 
-pub fn can_have_decorators(node: P<Node>) -> bool {
+fn can_have_decorators(node: P<Node>) -> bool {
     matches!(
         node.kind(),
         Kind::Parameter
@@ -819,7 +819,7 @@ pub fn is_immediately_invoked_function_expression_or_arrow_function(node: P<Node
     is_function_expression(node) || is_arrow_function(node)
 }
 
-pub fn has_leading_hash(text: &str) -> bool {
+fn has_leading_hash(text: &str) -> bool {
     !text.is_empty() && text.as_bytes()[0] == b'#'
 }
 
@@ -844,7 +844,7 @@ pub fn format_generated_name(private_name: bool, prefix: &str, base: &str, suffi
     name
 }
 
-pub fn is_ascii_word_character(ch: stringutil::Rune) -> bool {
+fn is_ascii_word_character(ch: stringutil::Rune) -> bool {
     stringutil::is_ascii_letter(ch) || stringutil::is_digit(ch) || ch == '_' as stringutil::Rune
 }
 
@@ -1071,12 +1071,12 @@ pub fn calculate_indent(text: &str, pos: u32, end: u32) -> i32 {
 // Character offsets are measured in UTF-16 code units per the source map specification.
 #[derive(Clone, Copy)]
 pub struct LineCharacterCache {
-    pub(crate) line_map: &'static [u32],
-    pub(crate) text: &'static str,
-    pub(crate) cached_line: usize,
-    pub(crate) cached_pos: u32,
-    pub(crate) cached_char: UTF16Offset,
-    pub(crate) has_cached: bool,
+    line_map: &'static [u32],
+    text: &'static str,
+    cached_line: usize,
+    cached_pos: u32,
+    cached_char: UTF16Offset,
+    has_cached: bool,
 }
 
 // utilities.go:903

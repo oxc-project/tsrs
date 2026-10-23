@@ -48,11 +48,11 @@ const MAX_CHUNK: usize = 64 << 20;
 const MAX_CHUNK: usize = 64 << 20;
 
 /// Largest block size kept on a free list; classes are `size / 8`.
-pub const MAX_FREE_SIZE: usize = 512;
+const MAX_FREE_SIZE: usize = 512;
 const CLASSES: usize = MAX_FREE_SIZE / 8 + 1;
 
 /// Fill byte for freed and rewound memory in poison mode (and in debug builds).
-pub const POISON: u8 = 0xA5;
+const POISON: u8 = 0xA5;
 
 pub struct Arena {
     /// Bump finger in the current chunk (allocation moves it down towards `start`; in a region, up towards `end`).
@@ -142,7 +142,7 @@ impl Arena {
     }
 
     #[inline]
-    pub(crate) fn is_region(&self) -> bool {
+    fn is_region(&self) -> bool {
         self.region.is_some()
     }
 
@@ -345,7 +345,7 @@ impl Arena {
     }
 
     /// Total size of the chunks (like bumpalo's `allocated_bytes`).
-    pub(crate) fn capacity(&self) -> usize {
+    fn capacity(&self) -> usize {
         self.capacity.get()
     }
 
@@ -413,7 +413,7 @@ impl Arena {
     /// # Safety
     /// `p` points to a dead block of `class * 8` bytes, 8-aligned.
     #[inline]
-    pub(crate) unsafe fn push_free(&self, class: usize, p: *mut u8) {
+    unsafe fn push_free(&self, class: usize, p: *mut u8) {
         #[cfg(debug_assertions)]
         // SAFETY: `p` is a dead block of `class * 8` bytes (this function's contract); its first word is kept.
         unsafe {
@@ -674,7 +674,7 @@ fn slab_release_ex(slab: *const Slab, retire: bool) {
 static MODE: AtomicU8 = AtomicU8::new(0);
 
 #[inline]
-pub(crate) fn poison_mode() -> bool {
+fn poison_mode() -> bool {
     match MODE.load(Ordering::Relaxed) {
         0 => {
             let on = std::env::var_os("TSRS_ARENA_POISON").is_some_and(|v| v == "1");
@@ -688,7 +688,7 @@ pub(crate) fn poison_mode() -> bool {
 /// The free-list class of a block of `size` bytes and alignment `align` at address `addr`, or 0 when such blocks
 /// are not recycled.
 #[inline]
-pub const fn free_class(size: usize, align: usize) -> usize {
+pub(crate) const fn free_class(size: usize, align: usize) -> usize {
     if size >= 8 && size <= MAX_FREE_SIZE && size.is_multiple_of(8) && align <= 8 {
         size / 8
     } else {

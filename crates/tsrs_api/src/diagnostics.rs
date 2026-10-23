@@ -53,7 +53,7 @@ fn source_lines(file: &SourceFile, first_line: usize, last_line: usize) -> Optio
 }
 
 /// Go `NewDiagnosticResponse`.
-pub fn diagnostic_response(d: &Diagnostic) -> Value {
+pub(crate) fn diagnostic_response(d: &Diagnostic) -> Value {
     let file = d.file();
     let pos = d.pos();
     let end = d.end();
@@ -125,7 +125,7 @@ pub fn diagnostic_responses(diags: &[P<Diagnostic>]) -> Value {
 }
 
 /// Go `DiagnosticResponse.ToDiagnostic` (file-less, positions taken as given).
-pub fn diagnostic_from_response(v: &Value) -> ApiResult<P<Diagnostic>> {
+pub(crate) fn diagnostic_from_response(v: &Value) -> ApiResult<P<Diagnostic>> {
     let p = Params(v);
     p.object()?;
     let num = |key: &str| -> ApiResult<i64> {

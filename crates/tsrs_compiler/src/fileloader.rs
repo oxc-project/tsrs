@@ -52,18 +52,18 @@ pub struct LibFile {
 }
 
 pub struct SourceFileFromReferenceDiagnostic {
-    pub(crate) message: &'static Message,
-    pub(crate) args: Vec<String>,
+    message: &'static Message,
+    args: Vec<String>,
 }
 
 pub struct FileLoader {
     pub(crate) opts: ProgramConfig,
     pub(crate) host: std::sync::Arc<dyn CompilerHost>,
-    pub(crate) resolver: Box<dyn Resolver>,
-    pub(crate) default_library_path: String,
+    resolver: Box<dyn Resolver>,
+    default_library_path: String,
     pub(crate) compare_paths_options: ComparePathsOptions,
     pub(crate) supported_extensions: Vec<Vec<String>>,
-    pub(crate) supported_extensions_with_json_if_resolve_json_module: Vec<Vec<String>>,
+    supported_extensions_with_json_if_resolve_json_module: Vec<Vec<String>>,
     pub(crate) content_mapper_extensions: Vec<String>,
 
     pub(crate) files_parser: FilesParser,
@@ -73,17 +73,17 @@ pub struct FileLoader {
     pub(crate) total_file_count: usize,
     pub(crate) lib_file_count: usize,
 
-    pub(crate) factory: NodeFactory,
+    factory: NodeFactory,
 
     pub(crate) project_references: ProjectReferenceFileMapperBuilder,
 
-    pub(crate) path_for_lib_file_cache: FxHashMap<String, P<LibFile>>,
+    path_for_lib_file_cache: FxHashMap<String, P<LibFile>>,
     pub(crate) path_for_lib_file_resolutions: FxHashMap<Path, LibResolution>,
 
     // contentMapperMu guards the content-mapper bookkeeping below, which is written concurrently as
     // content-mapped files are parsed across worker goroutines.
     pub(crate) content_mapper_mu: Mutex<ContentMapperBookkeeping>,
-    pub(crate) module_resolution_error: Option<String>,
+    module_resolution_error: Option<String>,
 }
 
 // fileloader.go:65-68, the fields `contentMapperMu` guards. Go keys by `*contentmapper.Mapper`; the keys here are the
@@ -544,7 +544,7 @@ impl FileLoader {
         source_file_meta_data(&self.opts, &*self.resolver, &self.project_references, file_name)
     }
 
-    pub(crate) fn parse_options_for_task(&self, t: TaskId) -> SourceFileParseOptions {
+    fn parse_options_for_task(&self, t: TaskId) -> SourceFileParseOptions {
         let task = &self.tasks[t];
         parse_options_for(
             &*self.host,
@@ -563,7 +563,7 @@ impl FileLoader {
         })
     }
 
-    pub(crate) fn source_file_parser(&self) -> SourceFileParser<'_> {
+    fn source_file_parser(&self) -> SourceFileParser<'_> {
         SourceFileParser {
             opts: &self.opts,
             host: &*self.host,
@@ -578,10 +578,10 @@ impl FileLoader {
 // (filesparser.rs `prefetch`), which Go's work group runs concurrently too.
 #[derive(Clone, Copy)]
 pub struct SourceFileParser<'a> {
-    pub(crate) opts: &'a ProgramConfig,
-    pub(crate) host: &'a dyn CompilerHost,
-    pub(crate) content_mapper_extensions: &'a [String],
-    pub(crate) content_mapper_mu: &'a Mutex<ContentMapperBookkeeping>,
+    opts: &'a ProgramConfig,
+    host: &'a dyn CompilerHost,
+    content_mapper_extensions: &'a [String],
+    content_mapper_mu: &'a Mutex<ContentMapperBookkeeping>,
 }
 
 impl SourceFileParser<'_> {
@@ -1128,7 +1128,7 @@ pub struct PrefetchedResolutions {
     pub(crate) reason_path: Option<&'static str>,
     // The file's resolutions keyed by module name and mode, inserted in import order: what the sequential load builds
     // for a file without synthetic imports, so it takes this one instead (the same hashing and insertion sequence).
-    pub(crate) resolutions_in_file: ModeAwareCache<P<ResolvedModule>>,
+    resolutions_in_file: ModeAwareCache<P<ResolvedModule>>,
 }
 
 impl PrefetchedResolutions {
@@ -1139,9 +1139,9 @@ impl PrefetchedResolutions {
 }
 
 pub struct PrefetchedImport {
-    pub(crate) resolution: Result<(P<ResolvedModule>, Vec<DiagAndArgs>), String>,
+    resolution: Result<(P<ResolvedModule>, Vec<DiagAndArgs>), String>,
     // The import's resolution mode.
-    pub(crate) mode: ResolutionMode,
+    mode: ResolutionMode,
     // For a resolved module that `resolved_import_sub_task` adds to the program: the sub task's fields, so the
     // sequential load only appends the task (vscode: 110k import edges; computing this there was most of it).
     pub(crate) prepared: Option<PreparedSubTask>,
@@ -1154,11 +1154,11 @@ pub struct PrefetchedImport {
 pub struct PreparedSubTask {
     pub(crate) normalized_file_path: Arc<str>,
     pub(crate) path: Path,
-    pub(crate) data_id: u32,
-    pub(crate) include_reason: P<FileIncludeReason>,
-    pub(crate) increase_depth: bool,
+    data_id: u32,
+    include_reason: P<FileIncludeReason>,
+    increase_depth: bool,
     pub(crate) elide_on_depth: bool,
-    pub(crate) package_id: tsrs_module::PackageId,
+    package_id: tsrs_module::PackageId,
 }
 
 // The parts of the file loader that the parallel prefetch reads (the loader itself is not Sync).
@@ -1167,13 +1167,13 @@ pub struct PrefetchContext<'a> {
     pub(crate) host: &'a dyn CompilerHost,
     pub(crate) resolver: &'a dyn Resolver,
     pub(crate) project_references: &'a ProjectReferenceFileMapperBuilder,
-    pub(crate) supported_extensions: &'a [Vec<String>],
+    supported_extensions: &'a [Vec<String>],
     pub(crate) supported_extensions_with_json: &'a [Vec<String>],
     pub(crate) content_mapper_extensions: &'a [String],
-    pub(crate) content_mapper_mu: &'a Mutex<ContentMapperBookkeeping>,
+    content_mapper_mu: &'a Mutex<ContentMapperBookkeeping>,
     // The tasks that exist when the round starts (read-only until its sequential load).
     pub(crate) task_data_by_path: &'a FxHashMap<Path, crate::filesparser::DataId>,
-    pub(crate) datas: &'a [crate::filesparser::ParseTaskData],
+    datas: &'a [crate::filesparser::ParseTaskData],
 }
 
 impl FileLoader {
@@ -1805,7 +1805,7 @@ impl FileLoader {
 
     // Appends a sub task the prefetch prepared (`prepare_sub_task`). A path the prefetch did not know may have got a task
     // from an earlier file of the round: share its strings then, as `add_sub_task_normalized` does.
-    pub(crate) fn add_prepared_sub_task(&mut self, t: TaskId, prepared: PreparedSubTask) {
+    fn add_prepared_sub_task(&mut self, t: TaskId, prepared: PreparedSubTask) {
         let mut sub_task = ParseTask::with_path(prepared.normalized_file_path, prepared.path);
         sub_task.data_id = prepared.data_id;
         if sub_task.data_id == crate::filesparser::NO_DATA
@@ -1829,7 +1829,7 @@ impl FileLoader {
     }
 
     // `normalized` is the normalized file name and path of `ref_.file_name` when the caller already has them.
-    pub(crate) fn add_sub_task_normalized(
+    fn add_sub_task_normalized(
         &mut self,
         t: TaskId,
         ref_: &ResolvedRef,

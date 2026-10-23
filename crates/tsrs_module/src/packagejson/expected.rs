@@ -141,7 +141,7 @@ impl ExpectedValue for ContentMapperFields {
 #[derive(Clone, Debug, Default)]
 pub struct Expected<T> {
     actual_json_type: &'static str,
-    pub null: bool,
+    pub(crate) null: bool,
     pub valid: bool,
     pub value: T,
 }
@@ -182,11 +182,11 @@ impl<T: ExpectedValue> Expected<T> {
         self.valid
     }
 
-    pub fn expected_json_type() -> &'static str {
+    fn expected_json_type() -> &'static str {
         T::expected_json_type()
     }
 
-    pub fn actual_json_type(&self) -> &'static str {
+    pub(crate) fn actual_json_type(&self) -> &'static str {
         self.actual_json_type
     }
 }

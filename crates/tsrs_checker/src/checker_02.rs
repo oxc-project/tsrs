@@ -39,7 +39,7 @@ impl Checker {
     }
 
     // checker.go:2196
-    pub fn get_immediate_aliased_symbol(&mut self, symbol: P<Symbol>) -> Option<P<Symbol>> {
+    pub(crate) fn get_immediate_aliased_symbol(&mut self, symbol: P<Symbol>) -> Option<P<Symbol>> {
         assert!(symbol.flags().intersects(SymbolFlags::Alias), "Should only get Alias here.");
         let links = self.alias_symbol_links.get(symbol);
         if links.immediate_target.get().is_none() {
@@ -269,7 +269,7 @@ impl Checker {
     }
 
     // checker.go:2295
-    pub(crate) fn check_source_element_worker(&mut self, node: P<Node>) {
+    fn check_source_element_worker(&mut self, node: P<Node>) {
         for &jsdoc in node.eager_jsdoc(None) {
             self.check_jsdoc_comments(jsdoc);
             if let Some(tags) = jsdoc.as_jsdoc().tags {
@@ -369,7 +369,7 @@ impl Checker {
     }
 
     // checker.go:2433
-    pub(crate) fn check_source_element_unreachable(&mut self, node: P<Node>) -> bool {
+    fn check_source_element_unreachable(&mut self, node: P<Node>) -> bool {
         if !ast::is_potentially_executable_node(node) {
             return false;
         }
@@ -440,7 +440,7 @@ impl Checker {
     }
 
     // checker.go:2494
-    pub(crate) fn is_source_element_unreachable(&mut self, node: P<Node>) -> bool {
+    fn is_source_element_unreachable(&mut self, node: P<Node>) -> bool {
         // Precondition: ast.IsPotentiallyExecutableNode is true
         if node.flags().intersects(NodeFlags::Unreachable) {
             // The binder has determined that this code is unreachable.
@@ -489,7 +489,7 @@ impl Checker {
     }
 
     // checker.go:2533
-    pub(crate) fn check_deferred_nodes(&mut self, context: P<SourceFile>) {
+    fn check_deferred_nodes(&mut self, context: P<SourceFile>) {
         let links = self.source_file_links.get(context);
         // Go's OrderedSet.Values() enumerates items added during iteration.
         let mut i = 0;
@@ -507,7 +507,7 @@ impl Checker {
     }
 
     // checker.go:2544
-    pub(crate) fn check_deferred_node(&mut self, node: P<Node>) {
+    fn check_deferred_node(&mut self, node: P<Node>) {
         let save_current_node = self.current_node;
         self.current_node = Some(node);
         self.instantiation_count = 0;
@@ -552,14 +552,14 @@ impl Checker {
     }
 
     // checker.go:2582
-    pub(crate) fn check_jsdoc_comments(&mut self, node: P<Node>) {
+    fn check_jsdoc_comments(&mut self, node: P<Node>) {
         for &comment in node.comments() {
             self.check_jsdoc_comment(comment);
         }
     }
 
     // checker.go:2588
-    pub(crate) fn check_jsdoc_comment(&mut self, node: P<Node>) {
+    fn check_jsdoc_comment(&mut self, node: P<Node>) {
         // This performs minimal checking of JSDoc nodes to ensure that @link references to entities are recorded
         // for purposes of checking unused identifiers.
         match node.kind() {
@@ -608,13 +608,13 @@ impl Checker {
     }
 
     // checker.go:2622
-    pub(crate) fn check_jsdoc_type(&mut self, node: P<Node>) {
+    fn check_jsdoc_type(&mut self, node: P<Node>) {
         self.check_jsdoc_type_is_in_js_file(node);
         node.for_each_child(&mut |n| self.check_source_element(Some(n)));
     }
 
     // checker.go:2627
-    pub(crate) fn check_jsdoc_type_is_in_js_file(&mut self, node: P<Node>) {
+    fn check_jsdoc_type_is_in_js_file(&mut self, node: P<Node>) {
         if !ast::is_in_js_file(node) {
             if ast::is_jsdoc_non_nullable_type(node) || ast::is_jsdoc_nullable_type(node) {
                 let token = if_else(ast::is_jsdoc_non_nullable_type(node), "!", "?");
@@ -690,7 +690,7 @@ impl Checker {
     }
 
     // checker.go:2670
-    pub(crate) fn check_type_parameter_deferred(&mut self, node: P<Node>) {
+    fn check_type_parameter_deferred(&mut self, node: P<Node>) {
         let parent = node.parent().unwrap();
         if ast::is_interface_declaration(parent)
             || ast::is_class_like(parent)
@@ -743,7 +743,7 @@ impl Checker {
     }
 
     // checker.go:2697
-    pub(crate) fn check_parameter(&mut self, node: P<Node>) {
+    fn check_parameter(&mut self, node: P<Node>) {
         // Grammar checking
         // It is a SyntaxError if the Identifier "eval" or the Identifier "arguments" occurs as the
         // Identifier in a PropertySetParameterList of a PropertyAssignment that is contained in strict code
@@ -831,7 +831,7 @@ impl Checker {
     }
 
     // checker.go:2744
-    pub(crate) fn check_property_declaration(&mut self, node: P<Node>) {
+    fn check_property_declaration(&mut self, node: P<Node>) {
         // Grammar checking
         if !self.check_grammar_modifiers(node) && !self.check_grammar_property(node) {
             self.check_grammar_computed_property_name(node.name().unwrap());
@@ -853,7 +853,7 @@ impl Checker {
     }
 
     // checker.go:2759
-    pub(crate) fn check_property_signature(&mut self, node: P<Node>) {
+    fn check_property_signature(&mut self, node: P<Node>) {
         if ast::is_private_identifier(node.name().unwrap()) {
             self.error(
                 Some(node),
@@ -949,11 +949,7 @@ impl Checker {
     // that in turn supplies a `resolve` function as one of its arguments and results in an
     // object with a callable `then` signature.
     // checker.go:2825
-    pub(crate) fn check_async_function_return_type(
-        &mut self,
-        node: P<Node>,
-        return_type_node: P<Node>,
-    ) {
+    fn check_async_function_return_type(&mut self, node: P<Node>, return_type_node: P<Node>) {
         let return_type = self.get_type_from_type_node(return_type_node);
         if self.is_error_type(return_type) {
             return;
@@ -982,7 +978,7 @@ impl Checker {
     }
 
     // checker.go:2840
-    pub(crate) fn check_method_declaration(&mut self, node: P<Node>) {
+    fn check_method_declaration(&mut self, node: P<Node>) {
         // Grammar checking
         if !self.check_grammar_method(node) {
             self.check_grammar_computed_property_name(node.name().unwrap());
@@ -1026,7 +1022,7 @@ impl Checker {
     }
 
     // checker.go:2861
-    pub(crate) fn check_class_static_block_declaration(&mut self, node: P<Node>) {
+    fn check_class_static_block_declaration(&mut self, node: P<Node>) {
         // Grammar checking
         self.check_grammar_modifiers(node);
         node.for_each_child(&mut |n| self.check_source_element(Some(n)));
@@ -1036,7 +1032,7 @@ impl Checker {
     }
 
     // checker.go:2870
-    pub(crate) fn check_constructor_declaration(&mut self, node: P<Node>) {
+    fn check_constructor_declaration(&mut self, node: P<Node>) {
         // Grammar check on signature of constructor and modifier of the constructor is done in checkSignatureDeclaration function.
         self.check_signature_declaration(node);
         // Grammar check for checking only related to constructorDeclaration
@@ -1119,7 +1115,7 @@ impl Checker {
     }
 
     // checker.go:2935
-    pub(crate) fn find_first_super_call(node: P<Node>) -> Option<P<Node>> {
+    fn find_first_super_call(node: P<Node>) -> Option<P<Node>> {
         fn visit(node: P<Node>, super_call: &mut Option<P<Node>>) -> bool {
             if is_super_call(node) {
                 *super_call = Some(node);
@@ -1168,7 +1164,7 @@ pub fn node_immediately_references_super_or_this(node: P<Node>) -> bool {
 
 impl Checker {
     // checker.go:2976
-    pub(crate) fn check_accessor_declaration(&mut self, node: P<Node>) {
+    fn check_accessor_declaration(&mut self, node: P<Node>) {
         // Grammar checking accessors
         if !self.check_grammar_function_like_declaration(node) && !self.check_grammar_accessor(node)
         {
@@ -1285,7 +1281,7 @@ impl Checker {
     }
 
     // checker.go:3046
-    pub(crate) fn check_type_reference_or_import(&mut self, node: P<Node>) {
+    fn check_type_reference_or_import(&mut self, node: P<Node>) {
         let t = self.get_type_from_type_node(node);
         if !self.is_error_type(t) {
             if !node.type_arguments().is_empty() && !self.defer_type_argument_constraints(node) {
@@ -1411,7 +1407,7 @@ impl Checker {
     }
 
     // checker.go:3103
-    pub(crate) fn check_type_predicate(&mut self, node: P<Node>) {
+    fn check_type_predicate(&mut self, node: P<Node>) {
         // Always check the predicate's type so nested type errors are reported even when the
         // predicate is in an invalid position, keeping diagnostics stable.
         self.check_source_element(node.type_node());
@@ -1481,7 +1477,7 @@ impl Checker {
     }
 
     // checker.go:3147
-    pub(crate) fn get_type_predicate_parent(node: P<Node>) -> Option<P<Node>> {
+    fn get_type_predicate_parent(node: P<Node>) -> Option<P<Node>> {
         let parent = node.parent().unwrap();
         match parent.kind() {
             Kind::ArrowFunction
@@ -1501,7 +1497,7 @@ impl Checker {
     }
 
     // checker.go:3159
-    pub(crate) fn check_if_type_predicate_variable_is_declared_in_binding_pattern(
+    fn check_if_type_predicate_variable_is_declared_in_binding_pattern(
         &mut self,
         pattern: P<Node>,
         predicate_variable_node: P<Node>,
@@ -1537,12 +1533,12 @@ impl Checker {
     }
 
     // checker.go:3178
-    pub(crate) fn check_type_query(&mut self, node: P<Node>) {
+    fn check_type_query(&mut self, node: P<Node>) {
         self.get_type_from_type_query_node(node);
     }
 
     // checker.go:3182
-    pub(crate) fn check_type_literal(&mut self, node: P<Node>) {
+    fn check_type_literal(&mut self, node: P<Node>) {
         self.check_source_elements(node.members());
         let t = self.get_type_from_type_literal_or_function_or_constructor_type_node(node);
         self.check_index_constraints(t, t.symbol().unwrap(), false /*isStaticIndex*/);
@@ -1676,7 +1672,7 @@ impl Checker {
     }
 
     // checker.go:3261
-    pub(crate) fn report_duplicate_member_errors(
+    fn report_duplicate_member_errors(
         &mut self,
         node: P<Node>,
         name: &str,
@@ -1708,12 +1704,12 @@ impl Checker {
     }
 
     // checker.go:3277
-    pub(crate) fn check_array_type(&mut self, node: P<Node>) {
+    fn check_array_type(&mut self, node: P<Node>) {
         self.check_source_element(Some(node.as_array_type_node().element_type));
     }
 
     // checker.go:3281
-    pub(crate) fn check_tuple_type(&mut self, node: P<Node>) {
+    fn check_tuple_type(&mut self, node: P<Node>) {
         let mut seen_optional_element = false;
         let mut seen_rest_element = false;
         let elements = node.elements();
@@ -1770,29 +1766,29 @@ impl Checker {
     }
 
     // checker.go:3318
-    pub(crate) fn check_union_or_intersection_type(&mut self, node: P<Node>) {
+    fn check_union_or_intersection_type(&mut self, node: P<Node>) {
         node.for_each_child(&mut |n| self.check_source_element(Some(n)));
         self.get_type_from_type_node(node);
     }
 
     // checker.go:3323
-    pub(crate) fn check_this_type(&mut self, node: P<Node>) {
+    fn check_this_type(&mut self, node: P<Node>) {
         self.get_type_from_this_type_node(node);
     }
 
     // checker.go:3327
-    pub(crate) fn check_type_operator(&mut self, node: P<Node>) {
+    fn check_type_operator(&mut self, node: P<Node>) {
         self.check_grammar_type_operator_node(node);
         self.check_source_element(node.type_node());
     }
 
     // checker.go:3332
-    pub(crate) fn check_conditional_type(&mut self, node: P<Node>) {
+    fn check_conditional_type(&mut self, node: P<Node>) {
         node.for_each_child(&mut |n| self.check_source_element(Some(n)));
     }
 
     // checker.go:3336
-    pub(crate) fn check_infer_type(&mut self, node: P<Node>) {
+    fn check_infer_type(&mut self, node: P<Node>) {
         if ast::find_ancestor(node, |n| {
             n.parent().is_some_and(|parent| {
                 parent.kind() == Kind::ConditionalType
@@ -1833,7 +1829,7 @@ impl Checker {
     }
 
     // checker.go:3363
-    pub(crate) fn check_template_literal_type(&mut self, node: P<Node>) {
+    fn check_template_literal_type(&mut self, node: P<Node>) {
         for &span in node.as_template_literal_type_node().template_spans.nodes() {
             self.check_source_element(span.type_node());
             let t = self.get_type_from_type_node(span.type_node().unwrap());
@@ -1843,7 +1839,7 @@ impl Checker {
     }
 
     // checker.go:3372
-    pub(crate) fn check_import_type(&mut self, node: P<Node>) {
+    fn check_import_type(&mut self, node: P<Node>) {
         self.check_source_element(Some(node.as_import_type_node().argument));
         if let Some(attributes) = node.as_import_type_node().attributes {
             let import_attributes = attributes;
@@ -1873,7 +1869,7 @@ impl Checker {
     }
 
     // checker.go:3392
-    pub(crate) fn check_named_tuple_member(&mut self, node: P<Node>) {
+    fn check_named_tuple_member(&mut self, node: P<Node>) {
         let tuple_member = node.as_named_tuple_member();
         if tuple_member.dot_dot_dot_token.is_some() && tuple_member.question_token.is_some() {
             self.grammar_error_on_node(
@@ -1901,14 +1897,14 @@ impl Checker {
     }
 
     // checker.go:3407
-    pub(crate) fn check_indexed_access_type(&mut self, node: P<Node>) {
+    fn check_indexed_access_type(&mut self, node: P<Node>) {
         node.for_each_child(&mut |n| self.check_source_element(Some(n)));
         let t = self.get_type_from_indexed_access_type_node(node);
         self.check_indexed_access_index_type(t, node);
     }
 
     // checker.go:3412
-    pub(crate) fn check_mapped_type(&mut self, node: P<Node>) {
+    fn check_mapped_type(&mut self, node: P<Node>) {
         let mapped_type_node = node.as_mapped_type_node();
         self.check_grammar_mapped_type(node);
         self.check_source_element(Some(mapped_type_node.type_parameter));
@@ -1938,14 +1934,14 @@ impl Checker {
     }
 
     // checker.go:3431
-    pub(crate) fn check_function_declaration(&mut self, node: P<Node>) {
+    fn check_function_declaration(&mut self, node: P<Node>) {
         self.check_function_or_method_declaration(node);
         self.check_grammar_for_generator(node);
         self.check_collisions_for_declaration_name(node, node.name());
     }
 
     // checker.go:3437
-    pub(crate) fn check_function_or_method_declaration(&mut self, node: P<Node>) {
+    fn check_function_or_method_declaration(&mut self, node: P<Node>) {
         self.check_decorators(node);
         self.check_signature_declaration(node);
         let function_flags = ast::get_function_flags(Some(node));
@@ -2012,7 +2008,7 @@ impl Checker {
     }
 
     // checker.go:3497
-    pub(crate) fn check_function_or_constructor_symbol_worker(&mut self, symbol: P<Symbol>) {
+    fn check_function_or_constructor_symbol_worker(&mut self, symbol: P<Symbol>) {
         fn get_canonical_overload(
             overloads: &[P<Node>],
             implementation: Option<P<Node>>,
@@ -2377,7 +2373,7 @@ impl Checker {
     }
 
     // checker.go:3729
-    pub fn get_effective_declaration_flags(
+    pub(crate) fn get_effective_declaration_flags(
         &mut self,
         n: P<Node>,
         flags_to_check: ModifierFlags,
@@ -2407,7 +2403,7 @@ impl Checker {
     }
 
     // checker.go:3744
-    pub(crate) fn is_implementation_compatible_with_overload(
+    fn is_implementation_compatible_with_overload(
         &mut self,
         implementation: P<Signature>,
         overload: P<Signature>,
@@ -2511,7 +2507,7 @@ impl Checker {
     }
 
     // checker.go:3808
-    pub(crate) fn is_unwrapped_return_type_undefined_void_or_any(
+    fn is_unwrapped_return_type_undefined_void_or_any(
         &mut self,
         fn_: P<Node>,
         return_type: P<Type>,
@@ -2527,7 +2523,7 @@ impl Checker {
     }
 
     // checker.go:3813
-    pub(crate) fn check_block(&mut self, node: P<Node>) {
+    fn check_block(&mut self, node: P<Node>) {
         // Grammar checking for SyntaxKind.Block
         if node.kind() == Kind::Block {
             self.check_grammar_statement_in_ambient_context(node);
@@ -2545,7 +2541,7 @@ impl Checker {
     }
 
     // checker.go:3830
-    pub(crate) fn check_if_statement(&mut self, node: P<Node>) {
+    fn check_if_statement(&mut self, node: P<Node>) {
         self.check_grammar_statement_in_ambient_context(node);
         let t = self.check_truthiness_expression(node.expression().unwrap(), CheckMode::Normal);
         let data = node.as_if_statement();
@@ -2579,7 +2575,7 @@ impl Checker {
     }
 
     // checker.go:3849
-    pub(crate) fn check_testing_known_truthy_types(
+    fn check_testing_known_truthy_types(
         &mut self,
         cond_expr: P<Node>,
         cond_type: P<Type>,
@@ -2598,7 +2594,7 @@ impl Checker {
     }
 
     // checker.go:3858
-    pub(crate) fn check_testing_known_truthy_type(
+    fn check_testing_known_truthy_type(
         &mut self,
         cond_expr: P<Node>,
         cond_type: P<Type>,
@@ -2692,7 +2688,7 @@ impl Checker {
     }
 
     // checker.go:3918
-    pub(crate) fn is_symbol_used_in_binary_expression_chain(
+    fn is_symbol_used_in_binary_expression_chain(
         &mut self,
         node: P<Node>,
         tested_symbol: P<Symbol>,
@@ -2723,7 +2719,7 @@ impl Checker {
     }
 
     // checker.go:3939
-    pub(crate) fn is_symbol_used_in_condition_body(
+    fn is_symbol_used_in_condition_body(
         &mut self,
         expr: P<Node>,
         body: P<Node>,
@@ -2782,21 +2778,21 @@ impl Checker {
     }
 
     // checker.go:3975
-    pub(crate) fn check_do_statement(&mut self, node: P<Node>) {
+    fn check_do_statement(&mut self, node: P<Node>) {
         self.check_grammar_statement_in_ambient_context(node);
         self.check_source_element(Some(node.statement()));
         self.check_truthiness_expression(node.expression().unwrap(), CheckMode::Normal);
     }
 
     // checker.go:3981
-    pub(crate) fn check_while_statement(&mut self, node: P<Node>) {
+    fn check_while_statement(&mut self, node: P<Node>) {
         self.check_grammar_statement_in_ambient_context(node);
         self.check_truthiness_expression(node.expression().unwrap(), CheckMode::Normal);
         self.check_source_element(Some(node.statement()));
     }
 
     // checker.go:3987
-    pub(crate) fn check_for_statement(&mut self, node: P<Node>) {
+    fn check_for_statement(&mut self, node: P<Node>) {
         if !self.check_grammar_statement_in_ambient_context(node)
             && let Some(init) = node.initializer()
             && init.kind() == Kind::VariableDeclarationList
@@ -2824,7 +2820,7 @@ impl Checker {
     }
 
     // checker.go:4013
-    pub(crate) fn check_for_in_statement(&mut self, node: P<Node>) {
+    fn check_for_in_statement(&mut self, node: P<Node>) {
         let data = node.as_for_in_or_of_statement();
         self.check_grammar_for_in_or_for_of_statement(node);
         let expression_type = self.check_expression(data.expression);
@@ -2888,14 +2884,14 @@ impl Checker {
     }
 
     // checker.go:4055
-    pub(crate) fn get_index_type_or_string(&mut self, t: P<Type>) -> P<Type> {
+    fn get_index_type_or_string(&mut self, t: P<Type>) -> P<Type> {
         let index_type = self.get_index_type(t);
         let index_type = self.get_extract_string_type(index_type);
         if_else(index_type.flags().intersects(TypeFlags::Never), self.string_type, index_type)
     }
 
     // checker.go:4060
-    pub(crate) fn check_for_of_statement(&mut self, node: P<Node>) {
+    fn check_for_of_statement(&mut self, node: P<Node>) {
         let data = node.as_for_in_or_of_statement();
         self.check_grammar_for_in_or_for_of_statement(node);
         let container = get_containing_function_or_class_static_block(node);
@@ -2970,14 +2966,14 @@ impl Checker {
     }
 
     // checker.go:4108
-    pub(crate) fn check_break_or_continue_statement(&mut self, node: P<Node>) {
+    fn check_break_or_continue_statement(&mut self, node: P<Node>) {
         if !self.check_grammar_statement_in_ambient_context(node) {
             self.check_grammar_break_or_continue_statement(node);
         }
     }
 
     // checker.go:4114
-    pub(crate) fn check_return_statement(&mut self, node: P<Node>) {
+    fn check_return_statement(&mut self, node: P<Node>) {
         // Always check the return expression so its identifiers are resolved even when the
         // return statement is misplaced (grammar error), keeping diagnostics stable
         // regardless of traversal order.
@@ -3117,7 +3113,7 @@ impl Checker {
     }
 
     // checker.go:4184
-    pub(crate) fn check_with_statement(&mut self, node: P<Node>) {
+    fn check_with_statement(&mut self, node: P<Node>) {
         if !self.check_grammar_statement_in_ambient_context(node)
             && node.flags().intersects(NodeFlags::AwaitContext)
         {
@@ -3146,7 +3142,7 @@ impl Checker {
     }
 
     // checker.go:4199
-    pub(crate) fn check_switch_statement(&mut self, node: P<Node>) {
+    fn check_switch_statement(&mut self, node: P<Node>) {
         // Grammar checking
         self.check_grammar_statement_in_ambient_context(node);
         let mut first_default_clause: Option<P<Node>> = None;
@@ -3190,7 +3186,7 @@ impl Checker {
     }
 
     // checker.go:4235
-    pub(crate) fn check_labeled_statement(&mut self, node: P<Node>) {
+    fn check_labeled_statement(&mut self, node: P<Node>) {
         let labeled_statement = node.as_labeled_statement();
         let label_node = labeled_statement.label;
         let label_text = label_node.text();
@@ -3225,7 +3221,7 @@ impl Checker {
     }
 
     // checker.go:4253
-    pub(crate) fn check_throw_statement(&mut self, node: P<Node>) {
+    fn check_throw_statement(&mut self, node: P<Node>) {
         let throw_expr = node.expression().unwrap();
         if !self.check_grammar_statement_in_ambient_context(node)
             && ast::is_identifier(throw_expr)
@@ -3243,7 +3239,7 @@ impl Checker {
     }
 
     // checker.go:4263
-    pub(crate) fn check_try_statement(&mut self, node: P<Node>) {
+    fn check_try_statement(&mut self, node: P<Node>) {
         self.check_grammar_statement_in_ambient_context(node);
         let data = node.as_try_statement();
         self.check_block(data.try_block);
@@ -3256,7 +3252,7 @@ impl Checker {
     }
 
     // checker.go:4275
-    pub(crate) fn check_catch_clause(&mut self, node: P<Node>) {
+    fn check_catch_clause(&mut self, node: P<Node>) {
         let declaration = node.as_catch_clause().variable_declaration;
         if let Some(declaration) = declaration {
             self.check_variable_like_declaration(declaration);
@@ -3296,13 +3292,13 @@ impl Checker {
     }
 
     // checker.go:4301
-    pub(crate) fn check_binding_element(&mut self, node: P<Node>) {
+    fn check_binding_element(&mut self, node: P<Node>) {
         self.check_grammar_binding_element(node);
         self.check_variable_like_declaration(node);
     }
 
     // checker.go:4306
-    pub(crate) fn check_class_declaration(&mut self, node: P<Node>) {
+    fn check_class_declaration(&mut self, node: P<Node>) {
         let first_decorator = node.modifier_nodes().iter().copied().find(|&m| ast::is_decorator(m));
         if self.legacy_decorators
             && let Some(first_decorator) = first_decorator

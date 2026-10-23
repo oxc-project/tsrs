@@ -48,7 +48,7 @@ impl BuildInfoRoot {
     }
 
     // buildInfo.go:48
-    pub fn unmarshal_json(data: &Value) -> Result<BuildInfoRoot, String> {
+    fn unmarshal_json(data: &Value) -> Result<BuildInfoRoot, String> {
         if let Some(start_and_end) = as_uint_tuple::<2>(data) {
             return Ok(BuildInfoRoot {
                 start: start_and_end[0],
@@ -68,10 +68,10 @@ impl BuildInfoRoot {
 
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct BuildInfoFileInfoNoSignature {
-    pub version: String,
-    pub no_signature: bool,
-    pub affects_global_scope: bool,
-    pub implied_node_format: ResolutionMode,
+    version: String,
+    no_signature: bool,
+    affects_global_scope: bool,
+    implied_node_format: ResolutionMode,
 }
 
 //	 Signature is
@@ -79,10 +79,10 @@ pub struct BuildInfoFileInfoNoSignature {
 //		 - string actual signature
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct BuildInfoFileInfoWithSignature {
-    pub version: String,
-    pub signature: String,
-    pub affects_global_scope: bool,
-    pub implied_node_format: ResolutionMode,
+    version: String,
+    signature: String,
+    affects_global_scope: bool,
+    implied_node_format: ResolutionMode,
 }
 
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
@@ -188,7 +188,7 @@ impl BuildInfoFileInfo {
     }
 
     // buildInfo.go:162
-    pub fn unmarshal_json(data: &Value) -> Result<BuildInfoFileInfo, String> {
+    fn unmarshal_json(data: &Value) -> Result<BuildInfoFileInfo, String> {
         if let Value::String(v_signature) = data {
             return Ok(BuildInfoFileInfo { signature: v_signature.clone(), ..Default::default() });
         }
@@ -230,12 +230,12 @@ pub struct BuildInfoReferenceMapEntry {
 
 impl BuildInfoReferenceMapEntry {
     // buildInfo.go:186
-    pub fn marshal_json(&self) -> Value {
+    fn marshal_json(&self) -> Value {
         Value::Array(vec![num(self.file_id), num(self.file_id_list_id)])
     }
 
     // buildInfo.go:190
-    pub fn unmarshal_json(data: &Value) -> Result<BuildInfoReferenceMapEntry, String> {
+    fn unmarshal_json(data: &Value) -> Result<BuildInfoReferenceMapEntry, String> {
         let v = as_uint_tuple::<2>(data)
             .ok_or_else(|| format!("invalid BuildInfoReferenceMapEntry: {}", show(data)))?;
         Ok(BuildInfoReferenceMapEntry { file_id: v[0], file_id_list_id: v[1] })
@@ -251,8 +251,8 @@ pub struct BuildInfoDiagnostic {
     pub end: u32,
     pub code: i32,
     pub category: Category,
-    pub source: String,
-    pub message_text: String,
+    pub(crate) source: String,
+    pub(crate) message_text: String,
     pub message_key: String,
     pub message_args: Vec<String>,
     pub message_chain: Vec<BuildInfoDiagnostic>,
@@ -287,7 +287,7 @@ impl Default for BuildInfoDiagnostic {
 }
 
 impl BuildInfoDiagnostic {
-    pub fn marshal_json(&self) -> Value {
+    fn marshal_json(&self) -> Value {
         let mut o = Obj::default();
         o.uint("file", self.file);
         o.bool("noFile", self.no_file);
@@ -332,7 +332,7 @@ impl BuildInfoDiagnostic {
         o.done()
     }
 
-    pub fn unmarshal_json(data: &Value) -> Result<BuildInfoDiagnostic, String> {
+    fn unmarshal_json(data: &Value) -> Result<BuildInfoDiagnostic, String> {
         let o = as_object(data)?;
         Ok(BuildInfoDiagnostic {
             file: get_uint(o, "file")?,
@@ -404,7 +404,7 @@ pub struct BuildInfoDiagnosticsOfFile {
 
 impl BuildInfoDiagnosticsOfFile {
     // buildInfo.go:234
-    pub fn marshal_json(&self) -> Value {
+    fn marshal_json(&self) -> Value {
         // Go marshals a nil []*BuildInfoDiagnostic inside []any as null.
         Value::Array(vec![
             num(self.file_id),
@@ -413,7 +413,7 @@ impl BuildInfoDiagnosticsOfFile {
     }
 
     // buildInfo.go:241
-    pub fn unmarshal_json(data: &Value) -> Result<BuildInfoDiagnosticsOfFile, String> {
+    fn unmarshal_json(data: &Value) -> Result<BuildInfoDiagnosticsOfFile, String> {
         let Value::Array(file_id_and_diagnostics) = data else {
             return Err(format!("invalid BuildInfoDiagnosticsOfFile: {}", show(data)));
         };
@@ -444,7 +444,7 @@ pub struct BuildInfoSemanticDiagnostic {
 
 impl BuildInfoSemanticDiagnostic {
     // buildInfo.go:271
-    pub fn marshal_json(&self) -> Value {
+    fn marshal_json(&self) -> Value {
         if self.file_id != 0 {
             return num(self.file_id);
         }
@@ -455,7 +455,7 @@ impl BuildInfoSemanticDiagnostic {
     }
 
     // buildInfo.go:278
-    pub fn unmarshal_json(data: &Value) -> Result<BuildInfoSemanticDiagnostic, String> {
+    fn unmarshal_json(data: &Value) -> Result<BuildInfoSemanticDiagnostic, String> {
         if let Some(file_id) = as_uint(data) {
             return Ok(BuildInfoSemanticDiagnostic { file_id, diagnostics: None });
         }
@@ -487,7 +487,7 @@ impl BuildInfoFilePendingEmit {
     }
 
     // buildInfo.go:316
-    pub fn unmarshal_json(data: &Value) -> Result<BuildInfoFilePendingEmit, String> {
+    fn unmarshal_json(data: &Value) -> Result<BuildInfoFilePendingEmit, String> {
         if let Some(file_id) = as_uint(data) {
             return Ok(BuildInfoFilePendingEmit { file_id, emit_kind: FileEmitKind::None });
         }
@@ -521,12 +521,12 @@ pub struct BuildInfoEmitSignature {
 
 impl BuildInfoEmitSignature {
     // buildInfo.go:353
-    pub fn no_emit_signature(&self) -> bool {
+    pub(crate) fn no_emit_signature(&self) -> bool {
         self.signature.is_empty() && !self.differs_only_in_dts_map && !self.differs_in_options
     }
 
     // buildInfo.go:357
-    pub fn to_emit_signature(
+    pub(crate) fn to_emit_signature(
         &self,
         path: &Path,
         emit_signatures: &FxHashMap<Path, EmitSignature>,
@@ -560,7 +560,7 @@ impl BuildInfoEmitSignature {
     }
 
     // buildInfo.go:395
-    pub fn unmarshal_json(data: &Value) -> Result<BuildInfoEmitSignature, String> {
+    fn unmarshal_json(data: &Value) -> Result<BuildInfoEmitSignature, String> {
         if let Some(file_id) = as_uint(data) {
             return Ok(BuildInfoEmitSignature { file_id, ..Default::default() });
         }
@@ -620,12 +620,12 @@ pub struct BuildInfoResolvedRoot {
 
 impl BuildInfoResolvedRoot {
     // buildInfo.go:453
-    pub fn marshal_json(&self) -> Value {
+    fn marshal_json(&self) -> Value {
         Value::Array(vec![num(self.resolved), num(self.root)])
     }
 
     // buildInfo.go:457
-    pub fn unmarshal_json(data: &Value) -> Result<BuildInfoResolvedRoot, String> {
+    fn unmarshal_json(data: &Value) -> Result<BuildInfoResolvedRoot, String> {
         let v = as_uint_tuple::<2>(data)
             .ok_or_else(|| format!("invalid BuildInfoResolvedRoot: {}", show(data)))?;
         Ok(BuildInfoResolvedRoot { resolved: v[0], root: v[1] })
@@ -642,7 +642,7 @@ pub struct BuildInfo {
     pub root: Vec<BuildInfoRoot>,
     pub package_jsons: Option<Vec<String>>,
     pub missing_package_jsons: Option<Vec<String>>,
-    pub content_mapper_identities: Option<Vec<String>>,
+    pub(crate) content_mapper_identities: Option<Vec<String>>,
     // Default-history cache proof; Go-compatible history leaves it empty and omits it.
     pub tsrs_canonical_check_signature: String,
 
@@ -719,7 +719,7 @@ impl BuildInfo {
     }
 
     // Go `json.Unmarshal(data, &buildInfo)`.
-    pub fn unmarshal_json(data: &Value) -> Result<BuildInfo, String> {
+    fn unmarshal_json(data: &Value) -> Result<BuildInfo, String> {
         Self::unmarshal_json_with_canonical_diagnostics(data, true)
     }
 
@@ -905,7 +905,7 @@ impl BuildInfo {
     }
 
     // buildInfo.go:527
-    pub fn file_name(&self, file_id: BuildInfoFileId) -> &str {
+    fn file_name(&self, file_id: BuildInfoFileId) -> &str {
         if file_id == 0 || file_id as usize > self.file_names.len() {
             return "";
         }
@@ -913,7 +913,7 @@ impl BuildInfo {
     }
 
     // buildInfo.go:534
-    pub fn file_info(&self, file_id: BuildInfoFileId) -> Option<&BuildInfoFileInfo> {
+    fn file_info(&self, file_id: BuildInfoFileId) -> Option<&BuildInfoFileInfo> {
         if file_id == 0 || file_id as usize > self.file_infos.len() {
             return None;
         }
@@ -1335,7 +1335,7 @@ pub fn category_to_i32(c: Category) -> i32 {
     }
 }
 
-pub fn category_from_i32(c: i32) -> Category {
+fn category_from_i32(c: i32) -> Category {
     match c {
         1 => Category::Error,
         2 => Category::Suggestion,
@@ -1344,7 +1344,7 @@ pub fn category_from_i32(c: i32) -> Category {
     }
 }
 
-pub fn module_kind_from_i32(v: i32) -> ModuleKind {
+fn module_kind_from_i32(v: i32) -> ModuleKind {
     match v {
         1 => ModuleKind::COMMON_JS,
         2 => ModuleKind::AMD,
@@ -1364,7 +1364,7 @@ pub fn module_kind_from_i32(v: i32) -> ModuleKind {
 }
 
 // A JSON value decoded into Go `any` (float64 numbers, []any arrays, map objects).
-pub fn json_to_option_value(v: &Value) -> CompilerOptionsValue {
+fn json_to_option_value(v: &Value) -> CompilerOptionsValue {
     match v {
         Value::Null => CompilerOptionsValue::Null,
         Value::Bool(b) => CompilerOptionsValue::Bool(*b),

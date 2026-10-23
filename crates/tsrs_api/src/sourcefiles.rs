@@ -42,7 +42,7 @@ impl SourceFileState {
 }
 
 /// Go `sourceFileNodeID`.
-pub fn source_file_node_id(file: P<SourceFile>) -> u64 {
+pub(crate) fn source_file_node_id(file: P<SourceFile>) -> u64 {
     tsrs_ast::get_node_id(file.as_node()).0
 }
 
@@ -66,7 +66,7 @@ fn is_valid_create_script_kind(k: ScriptKind) -> bool {
 }
 
 /// Go `newSourceFileDescriptor` as the wire object.
-pub fn source_file_descriptor(file: P<SourceFile>) -> Value {
+pub(crate) fn source_file_descriptor(file: P<SourceFile>) -> Value {
     let o = file.parse_options();
     let key = u32::from(o.external_module_indicator_options.jsx)
         | (u32::from(o.external_module_indicator_options.force) << 1);
@@ -82,7 +82,7 @@ pub fn source_file_descriptor(file: P<SourceFile>) -> Value {
 
 /// `source_file_descriptor(file) == *descriptor` without building the descriptor: the same six members,
 /// with equal values.
-pub fn source_file_descriptor_matches(file: P<SourceFile>, descriptor: &Value) -> bool {
+pub(crate) fn source_file_descriptor_matches(file: P<SourceFile>, descriptor: &Value) -> bool {
     // Six distinct member names, each one of the descriptor's six, are exactly its members.
     let Value::Object(members) = descriptor else { return false };
     if members.len() != 6 {
@@ -158,7 +158,7 @@ fn parse_cache_key(d: &Value) -> Result<tsrs_project::ParseCacheKey, String> {
 
 impl Session {
     /// Go `encoder.GetNodeIndexTable` (cached per live file; see the module comment).
-    pub(crate) fn node_index_table(&self, file: P<SourceFile>) -> Arc<NodeIndexTable> {
+    fn node_index_table(&self, file: P<SourceFile>) -> Arc<NodeIndexTable> {
         let addr = file.as_node().addr();
         if let Some(t) = self.source_files.tables.lock().unwrap().get(&addr) {
             return Arc::clone(t);
@@ -220,10 +220,7 @@ impl Session {
     }
 
     /// Go `encodeSourceFileResponse`.
-    pub(crate) fn encode_source_file_response(
-        &self,
-        file: Option<P<SourceFile>>,
-    ) -> ApiResult<Response> {
+    fn encode_source_file_response(&self, file: Option<P<SourceFile>>) -> ApiResult<Response> {
         match file {
             None if self.binary_responses() => Ok(Response::Binary(Vec::new())),
             None => Ok(Response::null()),

@@ -330,7 +330,7 @@ fn mode_from(v: &Value, what: &str) -> ApiResult<Option<ResolutionMode>> {
 }
 
 /// Go `NewPackageId` (nil when the package has no name).
-pub fn package_id_response(p: &tsrs_module::PackageId) -> Option<Value> {
+pub(crate) fn package_id_response(p: &tsrs_module::PackageId) -> Option<Value> {
     (!p.name.is_empty()).then(|| {
         Obj::new()
             .set("name", s(p.name))
@@ -342,7 +342,7 @@ pub fn package_id_response(p: &tsrs_module::PackageId) -> Option<Value> {
 }
 
 /// Go `newResolvedModuleResponse`.
-pub fn resolved_module_response(r: &ResolvedModule) -> Value {
+pub(crate) fn resolved_module_response(r: &ResolvedModule) -> Value {
     if !r.is_resolved() {
         return Value::Null;
     }

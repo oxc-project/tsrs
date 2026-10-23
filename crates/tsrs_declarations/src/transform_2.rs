@@ -21,11 +21,7 @@ impl DeclarationTransformer {
     }
 
     // transform.go:1358
-    pub(crate) fn transform_common_js_export_worker(
-        &self,
-        input: P<Node>,
-        name: P<Node>,
-    ) -> Option<P<Node>> {
+    fn transform_common_js_export_worker(&self, input: P<Node>, name: P<Node>) -> Option<P<Node>> {
         let f = self.factory();
         let mut name_text = "";
         if ast::is_identifier(name) || ast::is_string_literal(name) {
@@ -295,7 +291,7 @@ impl DeclarationTransformer {
     }
 
     // transform.go:1543
-    pub(crate) fn wrap_in_cjs_export_namespace(&self, content: P<Node>) -> P<Node> {
+    fn wrap_in_cjs_export_namespace(&self, content: P<Node>) -> P<Node> {
         let Some(cjs_export_assignment_name) = self.cjs_export_assignment_name.get() else {
             return content;
         };
@@ -650,7 +646,7 @@ impl DeclarationTransformer {
     }
 
     // transform.go:1798
-    pub(crate) fn transform_type_alias_declaration(&self, input: P<Node>) -> P<Node> {
+    fn transform_type_alias_declaration(&self, input: P<Node>) -> P<Node> {
         self.needs_declare.set(false);
         let mut type_node = self.visit_fn(input.type_node());
         if type_node.is_none() {
@@ -667,7 +663,7 @@ impl DeclarationTransformer {
     }
 
     // transform.go:1809
-    pub(crate) fn transform_interface_declaration(&self, input: P<Node>) -> P<Node> {
+    fn transform_interface_declaration(&self, input: P<Node>) -> P<Node> {
         let decl = input.as_interface_declaration();
         self.factory().update_interface_declaration(
             input,
@@ -680,7 +676,7 @@ impl DeclarationTransformer {
     }
 
     // transform.go:1820
-    pub(crate) fn transform_function_declaration(&self, input: P<Node>) -> P<Node> {
+    fn transform_function_declaration(&self, input: P<Node>) -> P<Node> {
         if self.resolver.is_expando_function_declaration(input) {
             self.resolver
                 .lock(|c| (self.state.report_expando_function_errors.get().unwrap())(c, input));
@@ -701,7 +697,7 @@ impl DeclarationTransformer {
     }
 
     // transform.go:1837
-    pub(crate) fn transform_module_declaration(&self, input: P<Node>) -> P<Node> {
+    fn transform_module_declaration(&self, input: P<Node>) -> P<Node> {
         // !!! TODO: module declarations are now parsed into nested module objects with export modifiers
         // It'd be good to collapse those back in the declaration output, but the AST can't represent the
         // `namespace a.b.c` shape for the printer (without using invalid identifier names).
@@ -814,11 +810,7 @@ impl DeclarationTransformer {
     // buildClassMembers builds the member list for a class-like node (ClassDeclaration or ClassExpression).
     // It handles parameter properties, private identifiers, late-bound index signatures, and visited members.
     // Extra members (e.g., this-property assignments from JS files) can be passed via extraMembers.
-    pub(crate) fn build_class_members(
-        &self,
-        class_node: P<Node>,
-        extra_members: &[P<Node>],
-    ) -> P<NodeList> {
+    fn build_class_members(&self, class_node: P<Node>, extra_members: &[P<Node>]) -> P<NodeList> {
         let f = self.factory();
         let ctor = ast::get_first_constructor_with_body(class_node);
         let mut parameter_properties = Vec::new();
@@ -892,7 +884,7 @@ impl DeclarationTransformer {
     }
 
     // transform.go:1997
-    pub(crate) fn transform_class_declaration(&self, input: P<Node>) -> P<Node> {
+    fn transform_class_declaration(&self, input: P<Node>) -> P<Node> {
         let previous_enclosing_declaration = self.enclosing_declaration.get();
         self.enclosing_declaration.set(Some(input));
 
@@ -1128,7 +1120,7 @@ impl DeclarationTransformer {
     // transform.go:2178
     // collectThisPropertyAssignments finds `this.x = expr` assignments in constructors, methods, and static blocks
     // of JS classes and synthesizes PropertyDeclaration nodes for each unique property name.
-    pub(crate) fn collect_this_property_assignments(&self, class_node: P<Node>) -> Vec<P<Node>> {
+    fn collect_this_property_assignments(&self, class_node: P<Node>) -> Vec<P<Node>> {
         let members = class_node.class_like_data().unwrap().members();
         let mut seen = Set::new();
         // Pre-populate seen with existing direct member nodes to avoid duplicates
@@ -1153,7 +1145,7 @@ impl DeclarationTransformer {
     }
 
     // transform.go:2201
-    pub(crate) fn walk_binding_pattern(&self, pattern: P<Node>, param: P<Node>) -> Vec<P<Node>> {
+    fn walk_binding_pattern(&self, pattern: P<Node>, param: P<Node>) -> Vec<P<Node>> {
         let mut elems = Vec::new();
         elems =
             pattern.as_binding_pattern().elements.nodes().iter().fold(elems, |mut elems, &elem| {
@@ -1178,7 +1170,7 @@ impl DeclarationTransformer {
     }
 
     // transform.go:2222
-    pub(crate) fn transform_variable_statement(&self, input: P<Node>) -> Option<P<Node>> {
+    fn transform_variable_statement(&self, input: P<Node>) -> Option<P<Node>> {
         let f = self.factory();
         let declaration_list = input.as_variable_statement().declaration_list;
         let mut visible = false;
@@ -1248,7 +1240,7 @@ impl DeclarationTransformer {
     }
 
     // transform.go:2277
-    pub(crate) fn transform_enum_declaration(&self, input: P<Node>) -> P<Node> {
+    fn transform_enum_declaration(&self, input: P<Node>) -> P<Node> {
         let f = self.factory();
         let decl = input.as_enum_declaration();
         let modifiers = self.ensure_modifiers(input);

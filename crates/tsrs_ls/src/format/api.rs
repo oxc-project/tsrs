@@ -83,7 +83,7 @@ pub fn get_new_line_or_default_from_context(ctx: &FormatContext) -> String {
 }
 
 // api.go:58
-pub fn format_span(
+fn format_span(
     ctx: &FormatContext,
     span: TextRange,
     file: P<SourceFile>,

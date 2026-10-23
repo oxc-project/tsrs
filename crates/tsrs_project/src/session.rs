@@ -59,7 +59,7 @@ pub enum UpdateReason {
 
 // ErrNoProjectForUnknownScriptKind identifies requests for otherwise unsupported files.
 // (Go `errors.New`; errors wrapping it carry this message as their prefix, see `is_err_no_project_for_unknown_script_kind`.)
-pub const ERR_NO_PROJECT_FOR_UNKNOWN_SCRIPT_KIND: &str = "no project for unknown script kind";
+const ERR_NO_PROJECT_FOR_UNKNOWN_SCRIPT_KIND: &str = "no project for unknown script kind";
 
 // Go `errors.Is(err, ErrNoProjectForUnknownScriptKind)`.
 pub fn is_err_no_project_for_unknown_script_kind(err: &lsproto::Error) -> bool {
@@ -603,7 +603,7 @@ impl Session {
     }
 
     // session.go:507
-    pub fn schedule_diagnostics_refresh(&self) {
+    fn schedule_diagnostics_refresh(&self) {
         self.schedule_diagnostics_refresh_with_delay(self.options.debounce_delay);
     }
 
@@ -675,7 +675,7 @@ impl Session {
     }
 
     // session.go:577
-    pub fn schedule_snapshot_update(&self, reason: UpdateReason) {
+    fn schedule_snapshot_update(&self, reason: UpdateReason) {
         let mut st = self.scheduled_snapshot_update.lock().unwrap();
 
         // Cancel any existing scheduled snapshot update
@@ -1406,7 +1406,7 @@ impl Session {
     }
 
     // session.go:1344
-    pub fn update_snapshot(&self, ctx: &Context, overlays: OverlayMap, change: SnapshotChange) {
+    fn update_snapshot(&self, ctx: &Context, overlays: OverlayMap, change: SnapshotChange) {
         self.update_snapshot_with(ctx, overlays, change, false);
     }
 
@@ -1415,7 +1415,7 @@ impl Session {
     // with an extra reference for the caller. The ref is taken atomically with
     // the snapshot assignment under snapshotMu, so the snapshot is guaranteed
     // to be alive when returned. The caller must call snapshot.Deref() when done.
-    pub(crate) fn update_snapshot_ref(
+    fn update_snapshot_ref(
         &self,
         ctx: &Context,
         overlays: OverlayMap,

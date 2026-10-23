@@ -23,35 +23,35 @@ pub struct WatchFilesCall {
         dead_code,
         reason = "Retained with the Go test helper record; the currently ported tests do not inspect this field."
     )]
-    pub(crate) id: WatcherID,
-    pub(crate) watchers: Vec<lsproto::FileSystemWatcher>,
+    id: WatcherID,
+    watchers: Vec<lsproto::FileSystemWatcher>,
 }
 
 // clientmock_generated.go (call recording only; every call succeeds unless a hook says otherwise)
 #[derive(Default)]
 pub struct ClientMock {
-    pub(crate) watch_files_calls: Mutex<Vec<WatchFilesCall>>,
-    pub(crate) unwatch_files_calls: Mutex<Vec<WatcherID>>,
-    pub(crate) refresh_diagnostics_calls: Mutex<usize>,
+    watch_files_calls: Mutex<Vec<WatchFilesCall>>,
+    unwatch_files_calls: Mutex<Vec<WatcherID>>,
+    refresh_diagnostics_calls: Mutex<usize>,
     pub(crate) refresh_inlay_hints_calls: Mutex<usize>,
     pub(crate) refresh_code_lens_calls: Mutex<usize>,
-    pub(crate) publish_diagnostics_calls: Mutex<Vec<lsproto::PublishDiagnosticsParams>>,
+    publish_diagnostics_calls: Mutex<Vec<lsproto::PublishDiagnosticsParams>>,
     pub(crate) locale: Mutex<String>,
     pub(crate) set_locale_calls: Mutex<Vec<String>>,
     pub(crate) refresh_code_lens_func: Mutex<Option<Box<dyn Fn(&Context) + Send + Sync>>>,
-    pub(crate) watch_files_func:
+    watch_files_func:
         Mutex<Option<Box<dyn Fn(&WatcherID) -> Result<(), lsproto::Error> + Send + Sync>>>,
 }
 
 impl ClientMock {
-    pub(crate) fn watch_files_calls(&self) -> Vec<WatchFilesCall> {
+    fn watch_files_calls(&self) -> Vec<WatchFilesCall> {
         self.watch_files_calls.lock().unwrap().clone()
     }
     #[expect(
         dead_code,
         reason = "Part of the Go project-test helper API; the currently ported cases do not call this accessor."
     )]
-    pub(crate) fn unwatch_files_calls(&self) -> Vec<WatcherID> {
+    fn unwatch_files_calls(&self) -> Vec<WatcherID> {
         self.unwatch_files_calls.lock().unwrap().clone()
     }
     pub(crate) fn refresh_diagnostics_calls(&self) -> usize {
@@ -61,7 +61,7 @@ impl ClientMock {
         dead_code,
         reason = "Part of the Go project-test helper API; the currently ported cases do not call this accessor."
     )]
-    pub(crate) fn publish_diagnostics_calls(&self) -> Vec<lsproto::PublishDiagnosticsParams> {
+    fn publish_diagnostics_calls(&self) -> Vec<lsproto::PublishDiagnosticsParams> {
         self.publish_diagnostics_calls.lock().unwrap().clone()
     }
 }
@@ -199,7 +199,7 @@ impl SessionUtils {
         dead_code,
         reason = "Part of the Go project-test helper API; the currently ported cases do not call this accessor."
     )]
-    pub(crate) fn to_path(&self, file_name: &str) -> Path {
+    fn to_path(&self, file_name: &str) -> Path {
         tspath::to_path(file_name, &self.current_directory, self.fs.use_case_sensitive_file_names())
     }
 
@@ -211,7 +211,7 @@ impl SessionUtils {
         dead_code,
         reason = "Part of the Go project-test helper API; the currently ported cases do not call this accessor."
     )]
-    pub(crate) fn logs(&self) -> String {
+    fn logs(&self) -> String {
         self.logger.string()
     }
 }
@@ -244,7 +244,7 @@ pub fn setup_with_options(
 }
 
 // projecttestutil.go:285
-pub fn get_session_init_options(
+fn get_session_init_options(
     files: &[(&str, &str)],
     options: Option<SessionOptions>,
 ) -> (SessionInit, SessionUtils) {

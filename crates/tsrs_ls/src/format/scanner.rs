@@ -7,8 +7,8 @@ use super::*;
 // scanner.go:12
 #[derive(Clone, Copy, PartialEq, Eq, Debug, Default)]
 pub struct TextRangeWithKind {
-    pub loc: TextRange,
-    pub kind: Kind,
+    pub(crate) loc: TextRange,
+    pub(crate) kind: Kind,
 }
 
 // scanner.go:17

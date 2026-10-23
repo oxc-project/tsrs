@@ -9,7 +9,7 @@ use tsrs_core::collections::SyncMap;
 use crate::{Entries, FS as VFS, FileInfo};
 
 pub struct FS<T: VFS> {
-    pub inner: T,
+    inner: T,
     seen_files: SyncMap<String, ()>,
 }
 

@@ -394,7 +394,7 @@ pub fn normalize_slashes(path: &str) -> String {
 }
 
 /// `normalize_slashes` without a copy when the path has no backslash (every path on POSIX).
-pub fn normalize_slashes_cow(path: &str) -> std::borrow::Cow<'_, str> {
+fn normalize_slashes_cow(path: &str) -> std::borrow::Cow<'_, str> {
     if !path.as_bytes().contains(&b'\\') {
         return std::borrow::Cow::Borrowed(path);
     }
@@ -728,7 +728,7 @@ fn dot_segment_at(p: &[u8], start: usize) -> bool {
 
 /// `normalize_path` borrowing from `path` when it is already normal (no backslash, no `.` or `..` segment, no
 /// repeated separator): a file name from the file system usually is.
-pub fn normalize_path_cow(path: &str) -> std::borrow::Cow<'_, str> {
+fn normalize_path_cow(path: &str) -> std::borrow::Cow<'_, str> {
     if !path.as_bytes().contains(&b'\\')
         && let Some(normalized) = simple_normalize_path(path)
     {
@@ -897,7 +897,7 @@ impl Path {
     }
 }
 
-pub fn remove_trailing_directory_separators(path: &str) -> &str {
+fn remove_trailing_directory_separators(path: &str) -> &str {
     let mut path = path;
     while has_trailing_directory_separator(path) {
         path = remove_trailing_directory_separator(path);
@@ -1205,7 +1205,7 @@ impl ComparePathsOptions {
         stringutil::get_string_comparer(!self.use_case_sensitive_file_names)
     }
 
-    pub(crate) fn get_equality_comparer(&self) -> fn(&str, &str) -> bool {
+    fn get_equality_comparer(&self) -> fn(&str, &str) -> bool {
         stringutil::get_string_equality_comparer(!self.use_case_sensitive_file_names)
     }
 }

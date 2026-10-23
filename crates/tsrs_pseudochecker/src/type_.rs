@@ -293,7 +293,7 @@ pub struct PseudoObjectElement {
     pub name: P<Node>,
     pub optional: bool,
     pub kind: PseudoObjectElementKind,
-    pub data: PseudoObjectElementData,
+    data: PseudoObjectElementData,
 }
 
 pub enum PseudoObjectElementData {
@@ -365,7 +365,7 @@ fn new_pseudo_object_element(
 }
 
 pub struct PseudoObjectMethod {
-    pub signature: P<Node>,
+    signature: P<Node>,
     pub type_parameters: &'static [P<Node>], // TypeParameterDeclaration nodes
     pub parameters: &'static [P<PseudoParameter>],
     pub return_type: P<PseudoType>,
@@ -415,7 +415,7 @@ pub fn new_pseudo_property_assignment(
 }
 
 pub struct PseudoSetAccessor {
-    pub signature: P<Node>,
+    signature: P<Node>,
     pub parameter: P<PseudoParameter>,
 }
 
@@ -434,7 +434,7 @@ pub fn new_pseudo_set_accessor(
 }
 
 pub struct PseudoGetAccessor {
-    pub signature: P<Node>,
+    signature: P<Node>,
     pub type_: P<PseudoType>,
 }
 

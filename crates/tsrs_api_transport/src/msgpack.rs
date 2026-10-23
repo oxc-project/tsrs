@@ -36,14 +36,14 @@ impl MessageType {
     }
 }
 
-pub const MSGPACK_FIXED_ARRAY3: u8 = 0x93;
-pub const MSGPACK_BIN8: u8 = 0xC4;
-pub const MSGPACK_BIN16: u8 = 0xC5;
-pub const MSGPACK_BIN32: u8 = 0xC6;
-pub const MSGPACK_U8: u8 = 0xCC;
+const MSGPACK_FIXED_ARRAY3: u8 = 0x93;
+const MSGPACK_BIN8: u8 = 0xC4;
+const MSGPACK_BIN16: u8 = 0xC5;
+const MSGPACK_BIN32: u8 = 0xC6;
+const MSGPACK_U8: u8 = 0xCC;
 
 /// api.ErrInvalidRequest's text.
-pub const ERR_INVALID_REQUEST: &str = "api: invalid request";
+const ERR_INVALID_REQUEST: &str = "api: invalid request";
 
 /// A decoded tuple.
 #[derive(Clone, Debug, PartialEq, Eq)]

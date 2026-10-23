@@ -1,11 +1,11 @@
 use super::*;
 
 // definitions.go:8 (Go package-level `var`s built with `transformers.Chain`)
-pub fn es_decorator_and_class_fields(opts: &TransformOptions) -> Option<P<Transformer>> {
+fn es_decorator_and_class_fields(opts: &TransformOptions) -> Option<P<Transformer>> {
     chain(&[new_es_decorator_transformer, new_class_fields_transformer])(opts)
 }
 
-pub fn new_esnext_transformer(opts: &TransformOptions) -> Option<P<Transformer>> {
+fn new_esnext_transformer(opts: &TransformOptions) -> Option<P<Transformer>> {
     chain(&[new_using_declaration_transformer, es_decorator_and_class_fields])(opts)
 }
 
@@ -14,11 +14,11 @@ pub fn new_esnext_transformer(opts: &TransformOptions) -> Option<P<Transformer>>
 // 2024: no new downlevel syntax
 // 2023: no new downlevel syntax
 // 2022: class static blocks and class fields are handled by newClassFieldsTransformer
-pub fn new_es2021_transformer(opts: &TransformOptions) -> Option<P<Transformer>> {
+fn new_es2021_transformer(opts: &TransformOptions) -> Option<P<Transformer>> {
     chain(&[new_esnext_transformer, new_logical_assignment_transformer])(opts)
 }
 
-pub fn new_es2020_transformer(opts: &TransformOptions) -> Option<P<Transformer>> {
+fn new_es2020_transformer(opts: &TransformOptions) -> Option<P<Transformer>> {
     chain(&[
         new_es2021_transformer,
         new_nullish_coalescing_transformer,
@@ -26,11 +26,11 @@ pub fn new_es2020_transformer(opts: &TransformOptions) -> Option<P<Transformer>>
     ])(opts)
 }
 
-pub fn new_es2019_transformer(opts: &TransformOptions) -> Option<P<Transformer>> {
+fn new_es2019_transformer(opts: &TransformOptions) -> Option<P<Transformer>> {
     chain(&[new_es2020_transformer, new_optional_catch_transformer])(opts)
 }
 
-pub fn new_es2018_transformer(opts: &TransformOptions) -> Option<P<Transformer>> {
+fn new_es2018_transformer(opts: &TransformOptions) -> Option<P<Transformer>> {
     chain(&[
         new_es2019_transformer,
         new_object_rest_spread_transformer,
@@ -39,11 +39,11 @@ pub fn new_es2018_transformer(opts: &TransformOptions) -> Option<P<Transformer>>
     ])(opts)
 }
 
-pub fn new_es2017_transformer(opts: &TransformOptions) -> Option<P<Transformer>> {
+fn new_es2017_transformer(opts: &TransformOptions) -> Option<P<Transformer>> {
     chain(&[new_es2018_transformer, new_async_transformer])(opts)
 }
 
-pub fn new_es2016_transformer(opts: &TransformOptions) -> Option<P<Transformer>> {
+fn new_es2016_transformer(opts: &TransformOptions) -> Option<P<Transformer>> {
     chain(&[new_es2017_transformer, new_exponentiation_transformer])(opts)
 }
 

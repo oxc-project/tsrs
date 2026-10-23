@@ -98,7 +98,7 @@ impl Drop for ReacquireOnDrop {
 }
 
 #[cfg(test)]
-pub(crate) fn capacity() -> usize {
+fn capacity() -> usize {
     get_slots().capacity
 }
 

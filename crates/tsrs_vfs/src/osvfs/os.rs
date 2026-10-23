@@ -361,7 +361,7 @@ fn abs(path: &str) -> io::Result<String> {
 }
 
 // path.Clean (Unix semantics; on Windows the realpath result is already clean).
-pub fn clean(path: &str) -> String {
+fn clean(path: &str) -> String {
     if cfg!(windows) {
         return path.to_string();
     }

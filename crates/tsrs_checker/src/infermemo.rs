@@ -130,7 +130,7 @@ struct Entry {
 }
 
 pub struct InferMemo {
-    pub(crate) mode: InferMemoMode,
+    mode: InferMemoMode,
     entries: FxHashMap<Box<[u32]>, Entry>,
     /// Targets of walks that took at least `min_steps()` steps: only walks to these are keyed, looked up and measured.
     long_targets: FxHashSet<P<Type>>,

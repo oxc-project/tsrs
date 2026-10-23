@@ -5,10 +5,10 @@ use super::typeserializer::{
     MetadataSerializer, MetadataSerializerContext, new_metadata_serializer,
 };
 
-pub const USE_NEW_TYPE_METADATA_FORMAT: bool = false;
+const USE_NEW_TYPE_METADATA_FORMAT: bool = false;
 
-pub struct MetadataTransformer {
-    pub base: Transformer,
+struct MetadataTransformer {
+    base: Transformer,
     legacy_decorators: bool,
     resolver: Resolver,
 

@@ -270,7 +270,7 @@ impl<T> Default for OwnedSliceCell<T> {
 
 impl<T> OwnedSliceCell<T> {
     #[inline]
-    pub fn new(value: &'static [T]) -> OwnedSliceCell<T> {
+    fn new(value: &'static [T]) -> OwnedSliceCell<T> {
         OwnedSliceCell(crate::ptr::SliceCell::new(value))
     }
 
@@ -291,7 +291,7 @@ pub struct OwnedStrCell(Cell<crate::ptr::PackedStr>);
 
 impl OwnedStrCell {
     #[inline]
-    pub fn new(value: &'static str) -> OwnedStrCell {
+    fn new(value: &'static str) -> OwnedStrCell {
         OwnedStrCell(Cell::new(crate::ptr::PackedStr::new(value)))
     }
 
@@ -436,7 +436,7 @@ impl<T> Default for OwnedPSliceCell<T> {
 
 impl<T> OwnedPSliceCell<T> {
     #[inline]
-    pub fn new(value: &'static [T]) -> OwnedPSliceCell<T> {
+    fn new(value: &'static [T]) -> OwnedPSliceCell<T> {
         #[cfg(not(compressed_ptrs))]
         return OwnedPSliceCell(crate::ptr::SliceCell::new(value));
         #[cfg(compressed_ptrs)]

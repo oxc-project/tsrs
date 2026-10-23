@@ -14,8 +14,8 @@ use crate::*;
 // transform.go:23
 #[derive(Clone, Copy)]
 pub struct ReferencedFilePair {
-    pub file: P<SourceFile>,
-    pub ref_: P<FileReference>,
+    pub(crate) file: P<SourceFile>,
+    pub(crate) ref_: P<FileReference>,
 }
 
 // transform.go:28: Go `OutputPaths` interface (`DeclarationFilePath()`, `JsFilePath()`), implemented only by
@@ -38,99 +38,99 @@ pub trait DeclarationEmitHost: ModuleSpecifierGenerationHost {
 // transform.go:46
 #[derive(Clone, PartialEq, Eq, Hash, Debug)]
 pub struct ThisPropertyAssignmentKey {
-    pub name: String,
-    pub node: Option<P<Node>>,
-    pub is_static: bool,
-    pub is_private: bool,
+    pub(crate) name: String,
+    pub(crate) node: Option<P<Node>>,
+    pub(crate) is_static: bool,
+    pub(crate) is_private: bool,
 }
 
 // transform.go:63
 pub struct DeclarationTransformer {
     pub base: Transformer, // Go embeds transformers.Transformer
-    pub host: &'static dyn DeclarationEmitHost,
-    pub compiler_options: P<CompilerOptions>,
-    pub tracker: P<SymbolTrackerImpl>,
-    pub state: P<SymbolTrackerSharedState>,
-    pub resolver: Resolver,
-    pub declaration_file_path: String,
+    pub(crate) host: &'static dyn DeclarationEmitHost,
+    pub(crate) compiler_options: P<CompilerOptions>,
+    pub(crate) tracker: P<SymbolTrackerImpl>,
+    pub(crate) state: P<SymbolTrackerSharedState>,
+    pub(crate) resolver: Resolver,
+    pub(crate) declaration_file_path: String,
     pub declaration_map_path: String,
 
-    pub needs_declare: Cell<bool>,
-    pub needs_scope_fix_marker: Cell<bool>,
-    pub result_has_scope_marker: Cell<bool>,
-    pub enclosing_declaration: Cell<Option<P<Node>>>,
-    pub result_has_external_module_indicator: Cell<bool>,
-    pub suppress_new_diagnostic_contexts: Cell<bool>,
-    pub witnessed_cjs_exports: RefCell<Set<String>>,
+    pub(crate) needs_declare: Cell<bool>,
+    pub(crate) needs_scope_fix_marker: Cell<bool>,
+    pub(crate) result_has_scope_marker: Cell<bool>,
+    pub(crate) enclosing_declaration: Cell<Option<P<Node>>>,
+    pub(crate) result_has_external_module_indicator: Cell<bool>,
+    pub(crate) suppress_new_diagnostic_contexts: Cell<bool>,
+    pub(crate) witnessed_cjs_exports: RefCell<Set<String>>,
     /// Go `map[ast.NodeId]*ast.Node`: a present key with a nil value (`None`) means "deleted", which differs from a
     /// missing key.
-    pub late_statement_replacement_map: RefCell<FxHashMap<NodeId, Option<P<Node>>>>,
-    pub expando_hosts: RefCell<FxHashMap<NodeId, Option<P<Node>>>>, // store the result of transforming expando hosts so they can be inserted later if the host is actually referenced
-    pub expando_members: RefCell<FxHashMap<NodeId, Vec<P<Node>>>>, // store any found expando _members_ after transforming them so *if* the host is referenced, they can be emitted alongside it
-    pub deferred_expando_assignments: RefCell<FxHashMap<NodeId, Vec<P<Node>>>>, // expando assignments whose host wasn't visible when collected, processed if the host is late-marked visible
-    pub seen_properties: RefCell<Set<ThisPropertyAssignmentKey>>,
-    pub this_property_assignments_collected: RefCell<Vec<P<Node>>>,
-    pub raw_referenced_files: RefCell<Vec<ReferencedFilePair>>,
-    pub raw_type_reference_directives: RefCell<Vec<P<FileReference>>>,
-    pub raw_lib_reference_directives: RefCell<Vec<P<FileReference>>>,
-    pub binding_name_visitor: OnceCell<ast::NodeVisitor>,
-    pub expression_visitor: OnceCell<ast::NodeVisitor>,
-    pub cjs_export_assignment_visitor: OnceCell<ast::NodeVisitor>,
-    pub export_stripping_visitor: OnceCell<ast::NodeVisitor>,
-    pub this_property_visitor: OnceCell<ast::NodeVisitor>,
+    pub(crate) late_statement_replacement_map: RefCell<FxHashMap<NodeId, Option<P<Node>>>>,
+    pub(crate) expando_hosts: RefCell<FxHashMap<NodeId, Option<P<Node>>>>, // store the result of transforming expando hosts so they can be inserted later if the host is actually referenced
+    pub(crate) expando_members: RefCell<FxHashMap<NodeId, Vec<P<Node>>>>, // store any found expando _members_ after transforming them so *if* the host is referenced, they can be emitted alongside it
+    pub(crate) deferred_expando_assignments: RefCell<FxHashMap<NodeId, Vec<P<Node>>>>, // expando assignments whose host wasn't visible when collected, processed if the host is late-marked visible
+    pub(crate) seen_properties: RefCell<Set<ThisPropertyAssignmentKey>>,
+    pub(crate) this_property_assignments_collected: RefCell<Vec<P<Node>>>,
+    pub(crate) raw_referenced_files: RefCell<Vec<ReferencedFilePair>>,
+    pub(crate) raw_type_reference_directives: RefCell<Vec<P<FileReference>>>,
+    pub(crate) raw_lib_reference_directives: RefCell<Vec<P<FileReference>>>,
+    pub(crate) binding_name_visitor: OnceCell<ast::NodeVisitor>,
+    pub(crate) expression_visitor: OnceCell<ast::NodeVisitor>,
+    pub(crate) cjs_export_assignment_visitor: OnceCell<ast::NodeVisitor>,
+    pub(crate) export_stripping_visitor: OnceCell<ast::NodeVisitor>,
+    pub(crate) this_property_visitor: OnceCell<ast::NodeVisitor>,
 
-    pub cjs_export_assignment: Cell<Option<P<Node>>>,
-    pub cjs_export_members: RefCell<Vec<P<Node>>>,
-    pub cjs_export_assignment_name: Cell<Option<P<Node>>>, // tracks the name node used for `export =` in CJS module.exports assignments
-    pub declare_stripping_visitor: OnceCell<ast::NodeVisitor>,
-    pub in_class_expression_declaration: Cell<bool>, // true when serializing members of a class expression kept as a class declaration
+    pub(crate) cjs_export_assignment: Cell<Option<P<Node>>>,
+    pub(crate) cjs_export_members: RefCell<Vec<P<Node>>>,
+    pub(crate) cjs_export_assignment_name: Cell<Option<P<Node>>>, // tracks the name node used for `export =` in CJS module.exports assignments
+    pub(crate) declare_stripping_visitor: OnceCell<ast::NodeVisitor>,
+    pub(crate) in_class_expression_declaration: Cell<bool>, // true when serializing members of a class expression kept as a class declaration
 }
 
 impl DeclarationTransformer {
     // Go's promoted `Transformer` methods and visitor fields. Visitors are handed out as copies (they are stateless).
 
-    pub fn emit_context(&self) -> P<EmitContext> {
+    pub(crate) fn emit_context(&self) -> P<EmitContext> {
         self.base.emit_context()
     }
 
-    pub fn visitor(&self) -> ast::NodeVisitor {
+    pub(crate) fn visitor(&self) -> ast::NodeVisitor {
         self.base.visitor()
     }
 
-    pub fn factory(&self) -> &'static printer::NodeFactory {
+    pub(crate) fn factory(&self) -> &'static printer::NodeFactory {
         self.base.factory()
     }
 
     /// Go `tx.Visitor().Visit(node)`: calls the visit callback directly (no `SyntaxList` lifting); Go's
     /// `visit` returns nil for a nil node.
-    pub fn visit_fn(&self, node: Option<P<Node>>) -> Option<P<Node>> {
+    pub(crate) fn visit_fn(&self, node: Option<P<Node>>) -> Option<P<Node>> {
         let node = node?;
         let mut v = self.visitor();
         let visit = v.visit.clone().unwrap();
         visit(&mut v, node)
     }
 
-    pub fn binding_name_visitor(&self) -> ast::NodeVisitor {
+    pub(crate) fn binding_name_visitor(&self) -> ast::NodeVisitor {
         self.binding_name_visitor.get().unwrap().clone()
     }
 
-    pub fn expression_visitor(&self) -> ast::NodeVisitor {
+    pub(crate) fn expression_visitor(&self) -> ast::NodeVisitor {
         self.expression_visitor.get().unwrap().clone()
     }
 
-    pub fn cjs_export_assignment_visitor(&self) -> ast::NodeVisitor {
+    pub(crate) fn cjs_export_assignment_visitor(&self) -> ast::NodeVisitor {
         self.cjs_export_assignment_visitor.get().unwrap().clone()
     }
 
-    pub fn export_stripping_visitor(&self) -> ast::NodeVisitor {
+    pub(crate) fn export_stripping_visitor(&self) -> ast::NodeVisitor {
         self.export_stripping_visitor.get().unwrap().clone()
     }
 
-    pub fn this_property_visitor(&self) -> ast::NodeVisitor {
+    pub(crate) fn this_property_visitor(&self) -> ast::NodeVisitor {
         self.this_property_visitor.get().unwrap().clone()
     }
 
-    pub fn declare_stripping_visitor(&self) -> ast::NodeVisitor {
+    pub(crate) fn declare_stripping_visitor(&self) -> ast::NodeVisitor {
         self.declare_stripping_visitor.get().unwrap().clone()
     }
 }
@@ -152,17 +152,17 @@ pub const DECLARATION_EMIT_INTERNAL_NODE_BUILDER_FLAGS: nodebuilder::InternalFla
 
 // tracker.go:12
 pub struct SymbolTrackerImpl {
-    pub resolver: Resolver,
-    pub state: P<SymbolTrackerSharedState>,
+    pub(crate) resolver: Resolver,
+    pub(crate) state: P<SymbolTrackerSharedState>,
     pub host: &'static dyn DeclarationEmitHost,
-    pub fallback_stack: RefCell<Vec<Option<P<Node>>>>,
+    pub(crate) fallback_stack: RefCell<Vec<Option<P<Node>>>>,
 
     // For detecting class expression self-references during member serialization.
     // When set, TrackSymbol will record usage without reporting accessibility errors.
-    pub watched_class_symbol: Cell<Option<P<Symbol>>>,
-    pub class_symbol_tracked: Cell<bool>,
+    pub(crate) watched_class_symbol: Cell<Option<P<Symbol>>>,
+    pub(crate) class_symbol_tracked: Cell<bool>,
 
-    pub get_isolated_declaration_error: GetIsolatedDeclarationError,
+    pub(crate) get_isolated_declaration_error: GetIsolatedDeclarationError,
 }
 
 /// Go `func(node *ast.Node) *ast.Diagnostic` built by `createGetIsolatedDeclarationErrors`; it runs inside
@@ -171,18 +171,18 @@ pub type GetIsolatedDeclarationError = Rc<dyn Fn(&mut Checker, P<Node>) -> P<Dia
 
 // tracker.go:229
 pub struct SymbolTrackerSharedState {
-    pub late_marked_statements: RefCell<Vec<P<Node>>>,
-    pub diagnostics: RefCell<Vec<P<Diagnostic>>>,
-    pub get_symbol_accessibility_diagnostic: RefCell<GetSymbolAccessibilityDiagnostic>,
-    pub error_name_node: Cell<Option<P<Node>>>,
-    pub isolated_declarations: bool,
-    pub strip_internal: bool,
-    pub current_source_file: Cell<Option<P<SourceFile>>>,
-    pub resolver: Resolver,
+    pub(crate) late_marked_statements: RefCell<Vec<P<Node>>>,
+    pub(crate) diagnostics: RefCell<Vec<P<Diagnostic>>>,
+    pub(crate) get_symbol_accessibility_diagnostic: RefCell<GetSymbolAccessibilityDiagnostic>,
+    pub(crate) error_name_node: Cell<Option<P<Node>>>,
+    pub(crate) isolated_declarations: bool,
+    pub(crate) strip_internal: bool,
+    pub(crate) current_source_file: Cell<Option<P<SourceFile>>>,
+    pub(crate) resolver: Resolver,
     /// Go `reportExpandoFunctionErrors func(node *ast.Node)`, assigned by `NewDeclarationTransformer`. It calls the
     /// non-locking `GetPropertiesOfContainerFunction`, so it receives the checker (callers outside a node-builder call
     /// pass `resolver.lock(..)`'s).
-    pub report_expando_function_errors: OnceCell<Rc<dyn Fn(&mut Checker, P<Node>)>>,
+    pub(crate) report_expando_function_errors: OnceCell<Rc<dyn Fn(&mut Checker, P<Node>)>>,
 }
 
 // diagnostics.go:10
@@ -191,9 +191,9 @@ pub type GetSymbolAccessibilityDiagnostic =
 
 // diagnostics.go:12
 pub struct SymbolAccessibilityDiagnostic {
-    pub error_node: Option<P<Node>>,
-    pub diagnostic_message: &'static Message,
-    pub type_name: Option<P<Node>>,
+    pub(crate) error_node: Option<P<Node>>,
+    pub(crate) diagnostic_message: &'static Message,
+    pub(crate) type_name: Option<P<Node>>,
 }
 
 // supplementalreferences.go:12
@@ -201,10 +201,10 @@ pub struct SymbolAccessibilityDiagnostic {
 // canonical declaration output to the declaration files emitted for its supplemental files.
 // This ensures that consumers loading the canonical declaration also include the supplemental types.
 pub struct SupplementalReferencesTransformer {
-    pub host: &'static dyn DeclarationEmitHost,
-    pub supplemental_files: &'static [P<SourceFile>],
-    pub declaration_file_path: String,
-    pub force_declaration_paths: bool,
+    pub(crate) host: &'static dyn DeclarationEmitHost,
+    pub(crate) supplemental_files: &'static [P<SourceFile>],
+    pub(crate) declaration_file_path: String,
+    pub(crate) force_declaration_paths: bool,
 }
 
 // Go: `*SymbolTrackerImpl` implements `nodebuilder.SymbolTracker` (checker.SymbolTracker); the methods are in

@@ -27,9 +27,9 @@ pub type GetTextOfNodeFn = Rc<dyn Fn(&mut NameGenerator, P<Node>) -> String>;
 
 #[derive(Default)]
 pub struct NameGenerator {
-    pub context: Option<P<EmitContext>>,
-    pub is_file_level_unique_name_in_current_file: Option<IsFileLevelUniqueNameFn>, // callback for Printer.isFileLevelUniqueNameInCurrentFile
-    pub get_text_of_node: Option<GetTextOfNodeFn>, // callback for Printer.getTextOfNode
+    pub(crate) context: Option<P<EmitContext>>,
+    pub(crate) is_file_level_unique_name_in_current_file: Option<IsFileLevelUniqueNameFn>, // callback for Printer.isFileLevelUniqueNameInCurrentFile
+    pub(crate) get_text_of_node: Option<GetTextOfNodeFn>, // callback for Printer.getTextOfNode
     node_id_to_generated_name: Option<FxHashMap<NodeId, String>>, // Map of generated names for specific nodes
     node_id_to_generated_private_name: Option<FxHashMap<NodeId, String>>, // Map of generated private names for specific nodes
     auto_generated_id_to_generated_name: Option<FxHashMap<AutoGenerateId, String>>, // Map of generated names for temp and loop variables
@@ -48,7 +48,7 @@ pub struct NameGenerationScope {
 }
 
 impl NameGenerator {
-    pub fn push_scope(&mut self, reuse_temp_variable_scope: bool) {
+    pub(crate) fn push_scope(&mut self, reuse_temp_variable_scope: bool) {
         self.private_name_generation_scope = Some(Box::new(NameGenerationScope {
             next: self.private_name_generation_scope.take(),
             ..Default::default()
@@ -61,7 +61,7 @@ impl NameGenerator {
         }
     }
 
-    pub fn pop_scope(&mut self, reuse_temp_variable_scope: bool) {
+    pub(crate) fn pop_scope(&mut self, reuse_temp_variable_scope: bool) {
         if let Some(scope) = self.private_name_generation_scope.take() {
             self.private_name_generation_scope = scope.next;
         }
@@ -137,7 +137,7 @@ impl NameGenerator {
     }
 
     // Generate the text for a generated identifier or private identifier
-    pub fn generate_name(&mut self, name: P<Node>) -> String {
+    pub(crate) fn generate_name(&mut self, name: P<Node>) -> String {
         if let Some(context) = self.context
             && let Some(auto_generate) = context.get_auto_generate_info(Some(name))
         {
@@ -537,7 +537,7 @@ impl NameGenerator {
         }
     }
 
-    pub fn make_file_level_optimistic_unique_name(&mut self, name: &str) -> String {
+    pub(crate) fn make_file_level_optimistic_unique_name(&mut self, name: &str) -> String {
         let check_fn = self.is_file_level_unique_name_in_current_file.clone();
         self.make_unique_name(
             name,

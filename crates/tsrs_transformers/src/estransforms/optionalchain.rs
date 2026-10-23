@@ -1,8 +1,8 @@
 use super::*;
 
 // optionalchain.go:10
-pub struct OptionalChainTransformer {
-    pub base: Transformer,
+struct OptionalChainTransformer {
+    base: Transformer,
 }
 
 impl OptionalChainTransformer {

@@ -11,7 +11,7 @@ pub const CODE_PARSE_ERROR: i32 = -32700;
 pub const CODE_INVALID_REQUEST: i32 = -32600;
 pub const CODE_METHOD_NOT_FOUND: i32 = -32601;
 pub const CODE_INVALID_PARAMS: i32 = -32602;
-pub const CODE_INTERNAL_ERROR: i32 = -32603;
+const CODE_INTERNAL_ERROR: i32 = -32603;
 
 /// jsonrpc.ID: either a string or an int32. Like Go, an empty string is indistinguishable from the
 /// integer form (`ID{str: ""}` marshals as its int field).
@@ -39,7 +39,7 @@ impl Id {
 impl Id {
     /// The `Display` text, borrowed when the id is a non-empty string (the msgpack protocol's ids are method
     /// names, written on every response).
-    pub fn text(&self) -> std::borrow::Cow<'_, str> {
+    pub(crate) fn text(&self) -> std::borrow::Cow<'_, str> {
         match self {
             Id::Str(s) if !s.is_empty() => std::borrow::Cow::Borrowed(s),
             _ => std::borrow::Cow::Owned(self.to_string()),
@@ -100,7 +100,7 @@ impl Message {
         self.id.is_some() && self.method.is_empty()
     }
 
-    pub fn params_bytes(&self) -> &[u8] {
+    pub(crate) fn params_bytes(&self) -> &[u8] {
         self.params.as_deref().unwrap_or(&[])
     }
 }
@@ -137,7 +137,7 @@ impl Response {
 /// data the client sees (msgpack Error payload / JSON-RPC error.message).
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ApiError {
-    pub code: i32,
+    pub(crate) code: i32,
     pub message: String,
 }
 
@@ -211,7 +211,7 @@ impl From<std::io::Error> for TransportError {
 }
 
 /// Default bound for a single incoming frame (Content-Length body or msgpack bin field).
-pub const DEFAULT_MAX_FRAME_BYTES: u64 = 1 << 30;
+pub(crate) const DEFAULT_MAX_FRAME_BYTES: u64 = 1 << 30;
 
 /// Reads exactly `len` bytes without trusting `len` for the up-front allocation: the buffer grows
 /// only as bytes actually arrive, so a hostile length cannot force a huge allocation.

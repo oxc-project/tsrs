@@ -165,7 +165,7 @@ pub fn parse_build_command_line(
     result
 }
 
-pub fn parse_command_line_worker(
+fn parse_command_line_worker(
     parse_command_line_with_diagnostics: &'static ParseCommandLineWorkerDiagnostics,
     command_line: &[String],
     fs: Option<&dyn FS>,
@@ -225,14 +225,14 @@ impl CommandLineParser {
     }
 }
 
-pub fn get_input_option_name(input: &str) -> &str {
+fn get_input_option_name(input: &str) -> &str {
     // removes at most two leading '-' from the input string
     let input = input.strip_prefix('-').unwrap_or(input);
     input.strip_prefix('-').unwrap_or(input)
 }
 
 impl CommandLineParser {
-    pub(crate) fn parse_response_file(&mut self, file_name: &str, fs: Option<&dyn FS>) {
+    fn parse_response_file(&mut self, file_name: &str, fs: Option<&dyn FS>) {
         let file_name = tspath::get_normalized_absolute_path(file_name, &self.current_directory);
         let use_case_sensitive_file_names = match fs {
             Some(fs) => fs.use_case_sensitive_file_names(),
@@ -311,7 +311,7 @@ pub fn try_read_file(
 }
 
 impl CommandLineParser {
-    pub(crate) fn parse_option_value(
+    fn parse_option_value(
         &mut self,
         args: &[String],
         mut i: usize,
@@ -466,7 +466,7 @@ impl CommandLineParser {
         i
     }
 
-    pub(crate) fn parse_list_type_option(
+    fn parse_list_type_option(
         opt: &'static CommandLineOption,
         value: &str,
     ) -> (Vec<CompilerOptionsValue>, Vec<P<Diagnostic>>) {

@@ -259,7 +259,7 @@ fn extension_refs(extensions: &[String]) -> Vec<&str> {
     extensions.iter().map(std::string::String::as_str).collect()
 }
 
-pub fn get_output_js_file_name(
+pub(crate) fn get_output_js_file_name(
     input_file_name: &str,
     options: &CompilerOptions,
     host: &dyn OutputPathsHost,
@@ -321,7 +321,7 @@ pub fn get_output_declaration_file_name_worker(
     )
 }
 
-pub fn get_external_output_file_name(
+pub(crate) fn get_external_output_file_name(
     input_file_name: &str,
     options: &CompilerOptions,
     host: &dyn OutputPathsHost,
@@ -361,7 +361,7 @@ pub fn get_output_extension(file_name: &str, jsx: JsxEmit) -> &'static str {
     }
 }
 
-pub fn get_declaration_emit_output_file_path(
+fn get_declaration_emit_output_file_path(
     file: &str,
     options: &CompilerOptions,
     host: &dyn OutputPathsHost,
@@ -471,7 +471,7 @@ pub fn get_source_file_path_in_new_dir_worker(
     tspath::combine_paths(new_dir_path, &[&source_file_path])
 }
 
-pub(crate) fn get_own_emit_output_file_path(
+fn get_own_emit_output_file_path(
     file_name: &str,
     options: &CompilerOptions,
     host: &dyn OutputPathsHost,
@@ -493,7 +493,7 @@ pub(crate) fn get_own_emit_output_file_path(
     emit_output_file_path_without_extension + extension
 }
 
-pub fn get_source_map_file_path(js_file_path: &str, options: &CompilerOptions) -> String {
+pub(crate) fn get_source_map_file_path(js_file_path: &str, options: &CompilerOptions) -> String {
     if options.source_map.is_true() && !options.inline_source_map.is_true() {
         return format!("{js_file_path}.map");
     }

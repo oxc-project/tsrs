@@ -51,7 +51,7 @@ pub fn command_line(sys: &'static dyn System, command_line_args: Vec<String>) ->
 }
 
 // tsc.go:56 CommandLine(ctx, sys, commandLineArgs, testing)
-pub fn command_line_with_testing(
+pub(crate) fn command_line_with_testing(
     sys: &'static dyn System,
     command_line_args: Vec<String>,
     testing: Option<&'static dyn tsc::CommandLineTesting>,

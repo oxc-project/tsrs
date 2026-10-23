@@ -9,7 +9,7 @@ use crate::commandlineoption::CompilerOptionsValue;
 pub struct ParsedBuildCommandLine {
     pub build_options: BuildOptions,
     pub compiler_options: CompilerOptions,
-    pub projects: Vec<String>,
+    pub(crate) projects: Vec<String>,
     pub errors: Vec<P<Diagnostic>>,
     pub raw: CompilerOptionsValue,
 

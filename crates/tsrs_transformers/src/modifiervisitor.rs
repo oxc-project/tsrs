@@ -3,9 +3,9 @@
 use crate::*;
 
 // modifiervisitor.go:8
-pub struct ModifierVisitor {
-    pub base: Transformer,
-    pub allowed_modifiers: ModifierFlags,
+struct ModifierVisitor {
+    base: Transformer,
+    allowed_modifiers: ModifierFlags,
 }
 
 impl ModifierVisitor {

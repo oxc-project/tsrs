@@ -9,7 +9,7 @@ use crate::session::Session;
 use crate::wire::Params;
 
 /// Go `DefaultMaxResponseBytesPerPage`.
-pub const DEFAULT_MAX_RESPONSE_BYTES_PER_PAGE: usize = 300_000_000;
+const DEFAULT_MAX_RESPONSE_BYTES_PER_PAGE: usize = 300_000_000;
 
 const SOURCE_FILE_RESPONSE_METHODS: &[&str] = &[
     "createSourceFile",

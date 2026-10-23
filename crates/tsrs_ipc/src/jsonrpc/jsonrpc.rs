@@ -19,7 +19,7 @@ const JSONRPC_VERSION: &str = "2.0";
 const MESSAGE_START: &str = "{\"jsonrpc\":\"2.0\"";
 
 // jsonrpc.go:22
-pub const ERR_INVALID_JSONRPC_VERSION: &str = "invalid JSON-RPC version";
+const ERR_INVALID_JSONRPC_VERSION: &str = "invalid JSON-RPC version";
 
 // jsonrpc.go:24
 // JSONRPCVersion.UnmarshalJSON. Go compares the raw member text with `"2.0"`; this compares the decoded string, so
@@ -92,15 +92,15 @@ impl fmt::Display for ID {
 // ResponseError represents a JSON-RPC error response.
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct ResponseError {
-    pub code: i32,
-    pub message: String,
+    pub(crate) code: i32,
+    pub(crate) message: String,
     // Go `Data any`: None is a nil Data (omitted; a JSON null decodes to it).
-    pub data: Option<Value>,
+    pub(crate) data: Option<Value>,
 }
 
 impl ResponseError {
     // jsonrpc.go:104
-    pub fn string(&self) -> String {
+    fn string(&self) -> String {
         if json::marshal(self.data.as_ref().unwrap_or(&Value::Null)).is_err() {
             // Go prints the nil []byte json.Marshal returned with its error.
             return format!("[{}]: {}\n[]", self.code, self.message);
@@ -168,27 +168,27 @@ pub const CODE_INTERNAL_ERROR: i32 = -32603;
 pub struct Message {
     pub id: Option<ID>,
     pub method: String,
-    pub params: Option<Value>,
-    pub result: Option<Value>,
-    pub error: Option<ResponseError>,
+    pub(crate) params: Option<Value>,
+    pub(crate) result: Option<Value>,
+    pub(crate) error: Option<ResponseError>,
 }
 
 impl Message {
     // jsonrpc.go:160
     // IsRequest returns true if this message is a request (has ID and method).
-    pub fn is_request(&self) -> bool {
+    pub(crate) fn is_request(&self) -> bool {
         self.id.is_some() && !self.method.is_empty()
     }
 
     // jsonrpc.go:165
     // IsNotification returns true if this message is a notification (has method but no ID).
-    pub fn is_notification(&self) -> bool {
+    pub(crate) fn is_notification(&self) -> bool {
         self.id.is_none() && !self.method.is_empty()
     }
 
     // jsonrpc.go:170
     // IsResponse returns true if this message is a response (has ID but no method).
-    pub fn is_response(&self) -> bool {
+    pub(crate) fn is_response(&self) -> bool {
         self.id.is_some() && self.method.is_empty()
     }
 
@@ -221,7 +221,7 @@ impl Message {
 
     // Go `json.Unmarshal(data, &m)`. Unknown members are ignored and a JSON null decodes as the zero Message, as
     // json/v2 does.
-    pub fn unmarshal(data: &[u8]) -> Result<Message, Error> {
+    pub(crate) fn unmarshal(data: &[u8]) -> Result<Message, Error> {
         let text = tsrs_core::utf8::basic::from_utf8(data)
             .map_err(|_| Error::new("jsontext: invalid UTF-8 within message"))?;
         let mut m = Message::default();
@@ -258,9 +258,9 @@ impl Message {
 // RequestMessage is a convenience type for creating request/notification messages.
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct RequestMessage {
-    pub id: Option<ID>,
-    pub method: String,
-    pub params: Option<Value>,
+    pub(crate) id: Option<ID>,
+    pub(crate) method: String,
+    pub(crate) params: Option<Value>,
 }
 
 impl RequestMessage {
@@ -274,9 +274,9 @@ impl RequestMessage {
 // ResponseMessage is a convenience type for creating response messages.
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct ResponseMessage {
-    pub id: Option<ID>,
-    pub result: Option<Value>,
-    pub error: Option<ResponseError>,
+    pub(crate) id: Option<ID>,
+    pub(crate) result: Option<Value>,
+    pub(crate) error: Option<ResponseError>,
 }
 
 impl ResponseMessage {

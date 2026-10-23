@@ -184,7 +184,7 @@ impl Checker {
 
     // Returns the synthetic argument list for a decorator invocation.
     // checker.go:30631
-    pub(crate) fn get_effective_decorator_arguments(&mut self, node: P<Node>) -> Vec<P<Node>> {
+    fn get_effective_decorator_arguments(&mut self, node: P<Node>) -> Vec<P<Node>> {
         let expr = node.expression().unwrap();
         let signature = self.get_decorator_call_signature(node);
         if let Some(signature) = signature {
@@ -211,10 +211,7 @@ impl Checker {
     }
 
     // checker.go:30651
-    pub(crate) fn get_legacy_decorator_call_signature(
-        &mut self,
-        decorator: P<Node>,
-    ) -> Option<P<Signature>> {
+    fn get_legacy_decorator_call_signature(&mut self, decorator: P<Node>) -> Option<P<Signature>> {
         let node = decorator.parent().unwrap();
         let links = self.signature_links.get(node);
         let decorator_signature = links.decorator_signature(node);
@@ -326,10 +323,7 @@ impl Checker {
     }
 
     // checker.go:30718
-    pub(crate) fn get_es_decorator_call_signature(
-        &mut self,
-        decorator: P<Node>,
-    ) -> Option<P<Signature>> {
+    fn get_es_decorator_call_signature(&mut self, decorator: P<Node>) -> Option<P<Signature>> {
         // We are considering a future change that would allow the type of a decorator to affect the type of the
         // class and its members, such as a `@Stringify` decorator changing the type of a `number` field to `string`, or
         // a `@Callable` decorator adding a call signature to a `class`. The type arguments for the various context
@@ -536,13 +530,13 @@ impl Checker {
     }
 
     // checker.go:30896
-    pub(crate) fn new_class_decorator_context_type(&mut self, class_type: P<Type>) -> P<Type> {
+    fn new_class_decorator_context_type(&mut self, class_type: P<Type>) -> P<Type> {
         let target = self.get_global_class_decorator_context_type();
         self.try_create_type_reference(target, &[class_type])
     }
 
     // checker.go:30900
-    pub(crate) fn new_class_method_decorator_context_type(
+    fn new_class_method_decorator_context_type(
         &mut self,
         class_type: P<Type>,
         value_type: P<Type>,
@@ -552,7 +546,7 @@ impl Checker {
     }
 
     // checker.go:30904
-    pub(crate) fn new_class_getter_decorator_context_type(
+    fn new_class_getter_decorator_context_type(
         &mut self,
         class_type: P<Type>,
         value_type: P<Type>,
@@ -562,7 +556,7 @@ impl Checker {
     }
 
     // checker.go:30908
-    pub(crate) fn new_class_setter_decorator_context_type(
+    fn new_class_setter_decorator_context_type(
         &mut self,
         class_type: P<Type>,
         value_type: P<Type>,
@@ -572,7 +566,7 @@ impl Checker {
     }
 
     // checker.go:30912
-    pub(crate) fn new_class_accessor_decorator_context_type(
+    fn new_class_accessor_decorator_context_type(
         &mut self,
         this_type: P<Type>,
         value_type: P<Type>,
@@ -582,7 +576,7 @@ impl Checker {
     }
 
     // checker.go:30916
-    pub(crate) fn new_class_field_decorator_context_type(
+    fn new_class_field_decorator_context_type(
         &mut self,
         this_type: P<Type>,
         value_type: P<Type>,
@@ -594,7 +588,7 @@ impl Checker {
     // Gets a type like `{ name: "foo", private: false, static: true }` that is used to provided member-specific
     // details that will be intersected with a decorator context type.
     // checker.go:30922
-    pub(crate) fn get_class_member_decorator_context_override_type(
+    fn get_class_member_decorator_context_override_type(
         &mut self,
         name_type: P<Type>,
         is_private: bool,
@@ -630,7 +624,7 @@ impl Checker {
     }
 
     // checker.go:30941
-    pub(crate) fn new_class_member_decorator_context_type_for_node(
+    fn new_class_member_decorator_context_type_for_node(
         &mut self,
         node: P<Node>,
         this_type: P<Type>,
@@ -663,7 +657,7 @@ impl Checker {
     }
 
     // checker.go:30969
-    pub(crate) fn new_class_accessor_decorator_target_type(
+    fn new_class_accessor_decorator_target_type(
         &mut self,
         this_type: P<Type>,
         value_type: P<Type>,
@@ -673,7 +667,7 @@ impl Checker {
     }
 
     // checker.go:30973
-    pub(crate) fn new_class_accessor_decorator_result_type(
+    fn new_class_accessor_decorator_result_type(
         &mut self,
         this_type: P<Type>,
         value_type: P<Type>,
@@ -683,7 +677,7 @@ impl Checker {
     }
 
     // checker.go:30977
-    pub(crate) fn new_class_field_decorator_initializer_mutator_type(
+    fn new_class_field_decorator_initializer_mutator_type(
         &mut self,
         this_type: P<Type>,
         value_type: P<Type>,
@@ -696,7 +690,7 @@ impl Checker {
     // Creates a call signature for an ES Decorator. This method is used by the semantics of
     // `getESDecoratorCallSignature`, which you should probably be using instead.
     // checker.go:30985
-    pub(crate) fn new_es_decorator_call_signature(
+    fn new_es_decorator_call_signature(
         &mut self,
         target_type: P<Type>,
         context_type: P<Type>,
@@ -716,7 +710,7 @@ impl Checker {
 
     // Creates a synthetic `FunctionType`
     // checker.go:30993
-    pub(crate) fn new_function_type(
+    fn new_function_type(
         &mut self,
         type_parameters: &[P<Type>],
         this_parameter: Option<P<Symbol>>,
@@ -729,12 +723,12 @@ impl Checker {
     }
 
     // checker.go:30998
-    pub(crate) fn new_getter_function_type(&mut self, t: P<Type>) -> P<Type> {
+    fn new_getter_function_type(&mut self, t: P<Type>) -> P<Type> {
         self.new_function_type(&[], None /*thisParameter*/, &[], t)
     }
 
     // checker.go:31002
-    pub(crate) fn new_setter_function_type(&mut self, t: P<Type>) -> P<Type> {
+    fn new_setter_function_type(&mut self, t: P<Type>) -> P<Type> {
         let value_param = self.new_parameter("value", t);
         let void_type = self.void_type;
         self.new_function_type(&[], None /*thisParameter*/, &[value_param], void_type)
@@ -742,7 +736,7 @@ impl Checker {
 
     // Creates a synthetic `Signature` corresponding to a call signature.
     // checker.go:31008
-    pub(crate) fn new_call_signature(
+    fn new_call_signature(
         &mut self,
         type_parameters: &[P<Type>],
         this_parameter: Option<P<Symbol>>,
@@ -764,13 +758,13 @@ impl Checker {
     }
 
     // checker.go:31013
-    pub(crate) fn new_typed_property_descriptor_type(&mut self, property_type: P<Type>) -> P<Type> {
+    fn new_typed_property_descriptor_type(&mut self, property_type: P<Type>) -> P<Type> {
         let global = self.get_global_typed_property_descriptor_type();
         self.create_type_from_generic_global_type(global, &[property_type])
     }
 
     // checker.go:31017
-    pub(crate) fn get_parent_type_of_class_element(&mut self, node: P<Node>) -> P<Type> {
+    fn get_parent_type_of_class_element(&mut self, node: P<Node>) -> P<Type> {
         let class_symbol = self.get_symbol_of_node(node.parent().unwrap()).unwrap();
         if ast::is_static(node) {
             return self.get_type_of_symbol(class_symbol);
@@ -779,7 +773,7 @@ impl Checker {
     }
 
     // checker.go:31025
-    pub(crate) fn get_class_element_property_key_type(&mut self, element: P<Node>) -> P<Type> {
+    fn get_class_element_property_key_type(&mut self, element: P<Node>) -> P<Type> {
         let name = element.name().unwrap();
         match name.kind() {
             Kind::Identifier | Kind::NumericLiteral | Kind::StringLiteral => {
@@ -798,7 +792,7 @@ impl Checker {
     }
 
     // checker.go:31040
-    pub fn get_type_of_property_of_contextual_type(
+    pub(crate) fn get_type_of_property_of_contextual_type(
         &mut self,
         t: P<Type>,
         name: &str,
@@ -988,7 +982,7 @@ impl Checker {
     }
 
     // checker.go:31096
-    pub(crate) fn get_indexed_mapped_type_substituted_type_of_contextual_type(
+    fn get_indexed_mapped_type_substituted_type_of_contextual_type(
         &mut self,
         t: P<Type>,
         name: &str,
@@ -1015,7 +1009,7 @@ impl Checker {
     }
 
     // checker.go:31113
-    pub(crate) fn is_excluded_mapped_property_name(
+    fn is_excluded_mapped_property_name(
         &mut self,
         t: P<Type>,
         property_name_type: P<Type>,
@@ -1045,7 +1039,7 @@ impl Checker {
     }
 
     // checker.go:31127
-    pub(crate) fn get_type_of_concrete_property_of_contextual_type(
+    fn get_type_of_concrete_property_of_contextual_type(
         &mut self,
         t: P<Type>,
         name: &str,
@@ -1060,7 +1054,7 @@ impl Checker {
     }
 
     // checker.go:31135
-    pub(crate) fn get_type_from_index_infos_of_contextual_type(
+    fn get_type_from_index_infos_of_contextual_type(
         &mut self,
         t: P<Type>,
         name: &str,
@@ -1092,7 +1086,7 @@ impl Checker {
     }
 
     // checker.go:31152
-    pub(crate) fn is_circular_mapped_property(&mut self, symbol: P<Symbol>) -> bool {
+    fn is_circular_mapped_property(&mut self, symbol: P<Symbol>) -> bool {
         if symbol.check_flags().intersects(CheckFlags::Mapped) {
             let links = self.value_symbol_links.get(symbol);
             return links.resolved_type.get().is_none()
@@ -1108,7 +1102,7 @@ impl Checker {
 
     // checker.go:31160
     /// tsrs: appends to `types` in place (Go returns the appended slice).
-    pub(crate) fn append_contextual_property_type_constituent(
+    fn append_contextual_property_type_constituent(
         &self,
         types: &mut Vec<P<Type>>,
         t: Option<P<Type>>,
@@ -1125,7 +1119,7 @@ impl Checker {
     // Return the contextual type for a given expression node. During overload resolution, a contextual type may temporarily
     // be "pushed" onto a node using the contextualType property.
     // checker.go:31175
-    pub fn get_apparent_type_of_contextual_type(
+    pub(crate) fn get_apparent_type_of_contextual_type(
         &mut self,
         node: P<Node>,
         context_flags: ContextFlags,
@@ -1210,7 +1204,7 @@ impl ObjectLiteralDiscriminator {
 
 impl Checker {
     // checker.go:31244
-    pub(crate) fn discriminate_contextual_type_by_object_members(
+    fn discriminate_contextual_type_by_object_members(
         &mut self,
         node: P<Node>,
         contextual_type: P<Type>,
@@ -1265,7 +1259,7 @@ impl Checker {
     }
 
     // checker.go:31274
-    pub(crate) fn get_matching_union_constituent_for_object_literal(
+    fn get_matching_union_constituent_for_object_literal(
         &mut self,
         union_type: P<Type>,
         node: P<Node>,
@@ -1387,11 +1381,7 @@ impl Checker {
     // are classified as instantiable (i.e. it doesn't instantiate object types), and (b) it performs
     // no reductions on instantiated union types.
     // checker.go:31344
-    pub(crate) fn instantiate_instantiable_types(
-        &mut self,
-        t: P<Type>,
-        mapper: P<TypeMapper>,
-    ) -> P<Type> {
+    fn instantiate_instantiable_types(&mut self, t: P<Type>, mapper: P<TypeMapper>) -> P<Type> {
         if t.flags().intersects(TypeFlags::Instantiable) {
             return self.instantiate_type(t, Some(mapper));
         }
@@ -1446,7 +1436,7 @@ impl Checker {
     // Returns true if the given expression contains (at any level of nesting) a function or arrow expression
     // that is subject to contextual typing.
     // checker.go:31386
-    pub fn is_context_sensitive(&mut self, node: P<Node>) -> bool {
+    pub(crate) fn is_context_sensitive(&mut self, node: P<Node>) -> bool {
         match node.kind() {
             Kind::FunctionExpression
             | Kind::ArrowFunction
@@ -1519,7 +1509,7 @@ impl Checker {
     }
 
     // checker.go:31424
-    pub(crate) fn has_context_sensitive_return_expression(&mut self, node: P<Node>) -> bool {
+    fn has_context_sensitive_return_expression(&mut self, node: P<Node>) -> bool {
         if node.type_parameter_list().is_some() || node.type_node().is_some() {
             return false;
         }
@@ -1536,7 +1526,7 @@ impl Checker {
     }
 
     // checker.go:31440
-    pub(crate) fn has_context_sensitive_yield_expression(&mut self, node: P<Node>) -> bool {
+    fn has_context_sensitive_yield_expression(&mut self, node: P<Node>) -> bool {
         ast::get_function_flags(Some(node)).intersects(FunctionFlags::Generator)
             && node.body().is_some()
             && for_each_yield_expression(node.body().unwrap(), |n| self.is_context_sensitive(n))
@@ -1572,16 +1562,12 @@ impl Checker {
     }
 
     // checker.go:31467
-    pub fn has_type_facts(&mut self, t: P<Type>, mask: TypeFacts) -> bool {
+    pub(crate) fn has_type_facts(&mut self, t: P<Type>, mask: TypeFacts) -> bool {
         self.get_type_facts(t, mask) != TypeFacts::None
     }
 
     // checker.go:31471
-    pub(crate) fn get_type_facts_worker(
-        &mut self,
-        t: P<Type>,
-        caller_only_needs: TypeFacts,
-    ) -> TypeFacts {
+    fn get_type_facts_worker(&mut self, t: P<Type>, caller_only_needs: TypeFacts) -> TypeFacts {
         let mut t = t;
         if t.flags().intersects(TypeFlags::Intersection | TypeFlags::Instantiable) {
             t = match self.get_base_constraint_of_type(t) {
@@ -1719,7 +1705,7 @@ impl Checker {
     }
 
     // checker.go:31607
-    pub(crate) fn get_intersection_type_facts(
+    fn get_intersection_type_facts(
         &mut self,
         t: P<Type>,
         caller_only_needs: TypeFacts,
@@ -1815,7 +1801,7 @@ impl Checker {
     }
 
     // checker.go:31668
-    pub(crate) fn remove_nullable_by_intersection(
+    fn remove_nullable_by_intersection(
         &mut self,
         t: P<Type>,
         target_facts: TypeFacts,
@@ -1859,7 +1845,7 @@ impl Checker {
     }
 
     // checker.go:31697
-    pub(crate) fn get_global_non_nullable_type_instantiation(&mut self, t: P<Type>) -> P<Type> {
+    fn get_global_non_nullable_type_instantiation(&mut self, t: P<Type>) -> P<Type> {
         let alias = self.get_global_non_nullable_type_alias_or_nil();
         if let Some(alias) = alias {
             return self.get_type_alias_instantiation(alias, &[t], None);
@@ -1912,7 +1898,7 @@ impl Checker {
     //
     // This is used to reflect the runtime behavior of the `await` keyword.
     // checker.go:31742
-    pub fn get_awaited_type(&mut self, t: P<Type>) -> Option<P<Type>> {
+    pub(crate) fn get_awaited_type(&mut self, t: P<Type>) -> Option<P<Type>> {
         self.get_awaited_type_ex(t, None, None, &[])
     }
 
@@ -1939,7 +1925,7 @@ impl Checker {
     }
 
     // checker.go:31759
-    pub(crate) fn get_awaited_type_no_alias_ex(
+    fn get_awaited_type_no_alias_ex(
         &mut self,
         t: P<Type>,
         error_node: Option<P<Node>>,
@@ -2084,7 +2070,7 @@ impl Checker {
     }
 
     // checker.go:31873
-    pub(crate) fn is_awaited_type_instantiation(&mut self, t: P<Type>) -> bool {
+    fn is_awaited_type_instantiation(&mut self, t: P<Type>) -> bool {
         if t.flags().intersects(TypeFlags::Conditional) {
             let awaited_symbol = self.get_global_awaited_symbol_or_nil();
             return awaited_symbol.is_some()
@@ -2096,7 +2082,7 @@ impl Checker {
     }
 
     // checker.go:31881
-    pub(crate) fn is_awaited_type_needed(&mut self, t: P<Type>) -> bool {
+    fn is_awaited_type_needed(&mut self, t: P<Type>) -> bool {
         // If this is already an `Awaited<T>`, we shouldn't wrap it. This helps to avoid `Awaited<Awaited<T>>` in higher-order.
         if is_type_any(Some(t)) || self.is_awaited_type_instantiation(t) {
             return false;
@@ -2117,7 +2103,7 @@ impl Checker {
     }
 
     // checker.go:31899
-    pub(crate) fn create_awaited_type_if_needed(&mut self, t: P<Type>) -> P<Type> {
+    fn create_awaited_type_if_needed(&mut self, t: P<Type>) -> P<Type> {
         // We wrap type `T` in `Awaited<T>` based on the following conditions:
         // - `T` is not already an `Awaited<U>`, and
         // - `T` is generic, and
@@ -2135,7 +2121,7 @@ impl Checker {
     }
 
     // checker.go:31916
-    pub(crate) fn try_create_awaited_type(&mut self, t: P<Type>) -> Option<P<Type>> {
+    fn try_create_awaited_type(&mut self, t: P<Type>) -> Option<P<Type>> {
         // Nothing to do if `Awaited<T>` doesn't exist
         let awaited_symbol = self.get_global_awaited_symbol();
         if let Some(awaited_symbol) = awaited_symbol {
@@ -2159,7 +2145,7 @@ impl Checker {
     }
 
     // checker.go:31938
-    pub(crate) fn is_thenable_type(&mut self, t: P<Type>) -> bool {
+    fn is_thenable_type(&mut self, t: P<Type>) -> bool {
         let constraint = self.get_base_constraint_or_type(t);
         if self.all_types_assignable_to_kind(constraint, TypeFlags::Primitive | TypeFlags::Never) {
             // primitive types cannot be considered "thenable" since they are not objects.
@@ -2179,7 +2165,7 @@ impl Checker {
     }
 
     // checker.go:31951
-    pub(crate) fn get_awaited_type_of_promise_ex(
+    fn get_awaited_type_of_promise_ex(
         &mut self,
         t: P<Type>,
         error_node: Option<P<Node>>,
@@ -2200,7 +2186,7 @@ impl Checker {
     }
 
     // checker.go:31964
-    pub(crate) fn is_some_symbol_assigned_worker(&mut self, node: P<Node>) -> bool {
+    fn is_some_symbol_assigned_worker(&mut self, node: P<Node>) -> bool {
         if node.kind() == Kind::Identifier {
             let symbol = self.get_symbol_of_declaration(node.parent().unwrap()).unwrap();
             return self.is_symbol_assigned(symbol);
@@ -2271,7 +2257,7 @@ impl Checker {
     }
 
     // checker.go:31998
-    pub(crate) fn is_constraint_position(&mut self, t: P<Type>, node: P<Node>) -> bool {
+    fn is_constraint_position(&mut self, t: P<Type>, node: P<Node>) -> bool {
         let parent = node.parent().unwrap();
         // In an element access obj[x], we consider obj to be in a constraint position, except when obj is of
         // a generic type without a nullable constraint and x is a generic type. This is because when both obj
@@ -2303,7 +2289,7 @@ impl Checker {
     /// base constraint. The memo is read, never computed here (computing it resolves type arguments), like the
     /// same test in `checker_07.rs`.
     #[inline]
-    pub(crate) fn some_generic_type_with_union_constraint(&mut self, t: P<Type>) -> bool {
+    fn some_generic_type_with_union_constraint(&mut self, t: P<Type>) -> bool {
         if t.flags().intersects(TypeFlags::Union)
             && t.object_flags_lazy()
                 & (ObjectFlags::CouldContainTypeVariablesComputed
@@ -2323,7 +2309,7 @@ impl Checker {
     }
 
     // checker.go:32008
-    pub(crate) fn is_generic_type_with_union_constraint(&mut self, t: P<Type>) -> bool {
+    fn is_generic_type_with_union_constraint(&mut self, t: P<Type>) -> bool {
         if t.flags().intersects(TypeFlags::Intersection) {
             return t.types().iter().any(|&t| self.is_generic_type_with_union_constraint(t));
         }
@@ -2335,7 +2321,7 @@ impl Checker {
     }
 
     // checker.go:32015
-    pub(crate) fn is_generic_type_without_nullable_constraint(&mut self, t: P<Type>) -> bool {
+    fn is_generic_type_without_nullable_constraint(&mut self, t: P<Type>) -> bool {
         if t.flags().intersects(TypeFlags::Intersection) {
             return t.types().iter().any(|&t| self.is_generic_type_without_nullable_constraint(t));
         }
@@ -2346,7 +2332,7 @@ impl Checker {
     }
 
     // checker.go:32022
-    pub(crate) fn has_contextual_type_with_no_generic_types(
+    fn has_contextual_type_with_no_generic_types(
         &mut self,
         node: P<Node>,
         check_mode: CheckMode,
@@ -2392,7 +2378,7 @@ impl Checker {
     }
 
     // checker.go:32050
-    pub(crate) fn is_generic_type_with_undefined_constraint(&mut self, t: P<Type>) -> bool {
+    fn is_generic_type_with_undefined_constraint(&mut self, t: P<Type>) -> bool {
         if t.flags().intersects(TypeFlags::Instantiable) {
             let constraint = self.get_base_constraint_of_type(t);
             if let Some(constraint) = constraint {
@@ -2684,7 +2670,7 @@ impl Checker {
     }
 
     // checker.go:32257
-    pub fn get_index_signatures_at_location(&mut self, node: P<Node>) -> Vec<P<Node>> {
+    pub(crate) fn get_index_signatures_at_location(&mut self, node: P<Node>) -> Vec<P<Node>> {
         let mut signatures = Vec::new();
         if ast::is_identifier(node)
             && ast::is_property_access_expression(node.parent().unwrap())
@@ -2705,7 +2691,7 @@ impl Checker {
     }
 
     // checker.go:32273
-    pub(crate) fn get_symbol_of_name_or_property_access_expression(
+    fn get_symbol_of_name_or_property_access_expression(
         &mut self,
         name: P<Node>,
     ) -> Option<P<Symbol>> {
@@ -3053,7 +3039,7 @@ impl Checker {
     }
 
     // checker.go:32552
-    pub(crate) fn get_this_type_from_contextual_type(&mut self, t: P<Type>) -> Option<P<Type>> {
+    fn get_this_type_from_contextual_type(&mut self, t: P<Type>) -> Option<P<Type>> {
         self.map_type(t, |c, t| {
             if t.flags().intersects(TypeFlags::Intersection) {
                 if let Some(result) = t.types().iter().find_map(|&t| {
@@ -3074,7 +3060,7 @@ impl Checker {
     }
 
     // checker.go:32568
-    pub(crate) fn get_this_type_argument(&mut self, t: P<Type>) -> Option<P<Type>> {
+    fn get_this_type_argument(&mut self, t: P<Type>) -> Option<P<Type>> {
         if t.object_flags().intersects(ObjectFlags::Reference)
             && t.as_type_reference().target.get() == Some(self.global_this_type)
         {
@@ -3205,7 +3191,7 @@ impl Checker {
     }
 
     // checker.go:32656
-    pub fn get_emit_resolver(&mut self) -> P<EmitResolver> {
+    pub(crate) fn get_emit_resolver(&mut self) -> P<EmitResolver> {
         if self.emit_resolver.is_none() {
             self.emit_resolver = Some(new_emit_resolver(self, tsrs_printer::new_emit_context()));
         }

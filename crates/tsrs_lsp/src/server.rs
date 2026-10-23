@@ -221,7 +221,7 @@ pub struct Server {
 
     stderr: Mutex<Box<dyn Write + Send>>,
 
-    pub(crate) logger: Arc<LoggerImpl>,
+    logger: Arc<LoggerImpl>,
     pub(crate) init_started: AtomicBool,
     client_seq: AtomicU64,
     request_queue: DynamicQueue<Arc<RequestMessage>>,
@@ -413,7 +413,7 @@ impl Server {
     }
 
     // Go `s.clientCapabilities` (zero until initialize).
-    pub(crate) fn client_capabilities(&self) -> &lsproto::ResolvedClientCapabilities {
+    fn client_capabilities(&self) -> &lsproto::ResolvedClientCapabilities {
         match self.client_capabilities.get() {
             Some(capabilities) => capabilities,
             None => &DEFAULT_CLIENT_CAPABILITIES,
@@ -464,7 +464,7 @@ impl Server {
 
     // server.go:263
     // WatchFiles implements project.Client.
-    pub fn watch_files(
+    fn watch_files(
         &self,
         ctx: &Context,
         id: &str,
@@ -502,7 +502,7 @@ impl Server {
 
     // server.go:292
     // UnwatchFiles implements project.Client.
-    pub fn unwatch_files(&self, ctx: &Context, id: &str) -> Result<(), Error> {
+    fn unwatch_files(&self, ctx: &Context, id: &str) -> Result<(), Error> {
         if let Some(builtin_watcher) = self.builtin_watcher.get() {
             if !self.watchers.lock().unwrap().contains(id) {
                 return Err(Error::new(format!("no file watcher exists with ID {id}")));
@@ -620,7 +620,7 @@ impl Server {
     // synchronization and pull diagnostics for the given otherwise unsupported file extensions so the editor forwards their
     // open/change/close notifications to the server and requests diagnostics for them. It is called with the
     // full desired set each time it changes; an empty slice removes any prior registration.
-    pub fn register_content_mapper_extensions(
+    fn register_content_mapper_extensions(
         &self,
         ctx: &Context,
         extensions: &[String],
@@ -1117,7 +1117,7 @@ impl Server {
 
     // server.go:705
     // RefreshDiagnostics implements project.Client.
-    pub fn refresh_diagnostics(&self, ctx: &Context) -> Result<(), Error> {
+    fn refresh_diagnostics(&self, ctx: &Context) -> Result<(), Error> {
         if !self.client_capabilities().workspace.diagnostics.refresh_support {
             return Ok(());
         }
@@ -1141,7 +1141,7 @@ impl Server {
 
     // server.go:725
     // PublishDiagnostics implements project.Client.
-    pub fn publish_diagnostics(
+    fn publish_diagnostics(
         &self,
         _ctx: &Context,
         params: lsproto::PublishDiagnosticsParams,
@@ -1151,7 +1151,7 @@ impl Server {
 
     // server.go:730
     // SendTelemetry implements project.Client.
-    pub fn send_telemetry(
+    fn send_telemetry(
         &self,
         _ctx: &Context,
         telemetry: lsproto::TelemetryEvent,
@@ -1165,13 +1165,13 @@ impl Server {
 
     // server.go:738
     // IsActive implements project.Client.
-    pub fn is_active(&self) -> bool {
+    fn is_active(&self) -> bool {
         let last = self.last_request_time_ms.load(Ordering::SeqCst);
         last == 0 || unix_millis_now().saturating_sub(last) <= 60_000
     }
 
     // server.go:743
-    pub fn refresh_inlay_hints(&self, _ctx: &Context) -> Result<(), Error> {
+    fn refresh_inlay_hints(&self, _ctx: &Context) -> Result<(), Error> {
         if !self.client_capabilities().workspace.inlay_hint.refresh_support {
             return Ok(());
         }
@@ -1186,7 +1186,7 @@ impl Server {
     }
 
     // server.go:754
-    pub fn refresh_code_lens(&self, _ctx: &Context) -> Result<(), Error> {
+    fn refresh_code_lens(&self, _ctx: &Context) -> Result<(), Error> {
         if !self.client_capabilities().workspace.code_lens.refresh_support {
             return Ok(());
         }
@@ -1202,7 +1202,7 @@ impl Server {
 
     // server.go:766
     // ProgressStart implements project.Client.
-    pub fn progress_start(
+    fn progress_start(
         &self,
         message: &'static tsrs_diagnostics::Message,
         args: &[&dyn std::fmt::Display],
@@ -1214,7 +1214,7 @@ impl Server {
 
     // server.go:773
     // ProgressFinish implements project.Client.
-    pub fn progress_finish(
+    fn progress_finish(
         &self,
         message: &'static tsrs_diagnostics::Message,
         args: &[&dyn std::fmt::Display],
@@ -1226,13 +1226,13 @@ impl Server {
 
     // server.go:780
     // GetLocale implements project.Client.
-    pub fn get_locale(&self) -> Locale {
+    fn get_locale(&self) -> Locale {
         self.locale.read().unwrap().clone()
     }
 
     // server.go:787
     // SetLocale implements project.Client.
-    pub fn set_locale(&self, locale_string: &str) {
+    fn set_locale(&self, locale_string: &str) {
         let mut new_locale = self.init_locale.lock().unwrap().clone();
         if locale_string != "auto" {
             let Some(parsed) = locale_parse(locale_string) else {
@@ -1244,7 +1244,7 @@ impl Server {
     }
 
     // server.go:801
-    pub fn request_configuration(&self, ctx: &Context) -> Result<lsutil::UserPreferences, Error> {
+    fn request_configuration(&self, ctx: &Context) -> Result<lsutil::UserPreferences, Error> {
         let caps = lsproto::get_client_capabilities(ctx);
         if !caps.workspace.configuration {
             let opts = self.initialization_options();
@@ -1526,7 +1526,7 @@ impl Server {
     // server.go:1053
     // WARNING: this should only be called in the async portion of a request handler,
     // otherwise a deadlock can occur.
-    pub(crate) fn send_client_request<Req: Json, Resp: Json>(
+    fn send_client_request<Req: Json, Resp: Json>(
         &self,
         ctx: &Context,
         info: lsproto::RequestInfo<Req, Resp>,
@@ -1584,7 +1584,7 @@ impl Server {
     }
 
     // server.go:1096
-    pub(crate) fn send_result(&self, id: Option<&ID>, result: &impl Json) -> Result<(), Error> {
+    fn send_result(&self, id: Option<&ID>, result: &impl Json) -> Result<(), Error> {
         self.send_response(ResponseMessage {
             id: id.cloned(),
             result: Some(result.to_json()),
@@ -1593,7 +1593,7 @@ impl Server {
     }
 
     // server.go:1108
-    pub(crate) fn send_error(&self, id: Option<&ID>, err: Error) -> Result<(), Error> {
+    fn send_error(&self, id: Option<&ID>, err: Error) -> Result<(), Error> {
         // Do not send error response for notifications,
         // except for parse errors which may occur before determining if the message is a request or notification.
         if id.is_none() && !err.is_code(ErrorCode::INVALID_REQUEST) {
@@ -1745,7 +1745,7 @@ impl Server {
 
     // server.go:1477: `defer s.recover(req)` around `f`. A panic in `f` is logged and answered with an internal
     // error; the work then returns nil like Go's function after a recovered panic.
-    pub(crate) fn with_recover(
+    fn with_recover(
         &self,
         req: &RequestMessage,
         f: impl FnOnce() -> Result<(), Error>,

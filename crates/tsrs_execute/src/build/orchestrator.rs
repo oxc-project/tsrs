@@ -163,7 +163,7 @@ impl Orchestrator {
     }
 
     // ScheduleOrder is the order in which builders pick up projects: Order() stably sorted by dependency depth.
-    pub fn schedule_order(&self) -> Vec<String> {
+    fn schedule_order(&self) -> Vec<String> {
         self.schedule_order.lock().unwrap().clone()
     }
 
@@ -299,7 +299,7 @@ impl Orchestrator {
     }
 
     // orchestrator.go:265
-    pub fn generate_graph(&self) {
+    fn generate_graph(&self) {
         self.generate_graph_with(None);
     }
 
@@ -377,7 +377,7 @@ impl Orchestrator {
 
     // tsc -b entrypoint
     // orchestrator.go:295
-    pub fn start(&'static self) -> CommandLineResult {
+    pub(crate) fn start(&'static self) -> CommandLineResult {
         if self.frees_built_programs() {
             // The declaration and JSON files every project shares go to regions of their own (`host::get_source_file`),
             // bound there, so that freeing a project's program does not take their binder data with it.
@@ -1061,7 +1061,7 @@ impl Orchestrator {
     }
 
     // orchestrator.go:816 DoCycle
-    pub fn do_cycle(&'static self) {
+    fn do_cycle(&'static self) {
         let mut state = self.wm.lock();
         let (mut changed_paths, overflow) = self.wm.drain_events();
         // tsrs-only: whatever the cached file system holds predates the events (`get_watch_source_file` reuses a file
@@ -1563,7 +1563,7 @@ impl Orchestrator {
     }
 
     // orchestrator.go:906
-    pub(crate) fn get_writer(&self, task: Option<P<BuildTask>>) -> Writer<'static> {
+    fn get_writer(&self, task: Option<P<BuildTask>>) -> Writer<'static> {
         let sys = self.opts.sys;
         match task {
             None => std::sync::Arc::new(move |t: &str| sys.write(t)),
@@ -1578,7 +1578,7 @@ impl Orchestrator {
     }
 
     // orchestrator.go:913
-    pub(crate) fn create_builder_status_reporter(
+    fn create_builder_status_reporter(
         &self,
         task: Option<P<BuildTask>>,
     ) -> DiagnosticReporter<'static> {
@@ -1591,7 +1591,7 @@ impl Orchestrator {
     }
 
     // orchestrator.go:917
-    pub(crate) fn create_diagnostic_reporter(
+    fn create_diagnostic_reporter(
         &self,
         task: Option<P<BuildTask>>,
     ) -> DiagnosticReporter<'static> {

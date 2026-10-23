@@ -132,12 +132,12 @@ impl PackageJson {
 // is done up front here.
 #[derive(Clone, Debug, Default)]
 pub struct VersionPaths {
-    pub version: String,
+    pub(crate) version: String,
     paths: Option<OrderedMap<String, Vec<String>>>,
 }
 
 impl VersionPaths {
-    pub fn exists(&self) -> bool {
+    pub(crate) fn exists(&self) -> bool {
         !self.version.is_empty() && self.paths.is_some()
     }
 
@@ -252,7 +252,7 @@ impl InfoCache {
     }
 
     #[must_use]
-    pub fn clone_cache(&self) -> InfoCache {
+    pub(crate) fn clone_cache(&self) -> InfoCache {
         let mut clone = new_info_cache(&self.current_directory, self.use_case_sensitive_file_names);
         clone.entries_region = Arc::clone(&self.entries_region);
         self.cache.range(|key, value| {
@@ -262,7 +262,7 @@ impl InfoCache {
         clone
     }
 
-    pub fn get(&self, package_json_path: &str) -> Option<P<InfoCacheEntry>> {
+    pub(crate) fn get(&self, package_json_path: &str) -> Option<P<InfoCacheEntry>> {
         let key = tspath::to_path(
             package_json_path,
             &self.current_directory,
@@ -271,7 +271,7 @@ impl InfoCache {
         self.cache.load(&key)
     }
 
-    pub fn set(&self, package_json_path: &str, info: P<InfoCacheEntry>) -> P<InfoCacheEntry> {
+    fn set(&self, package_json_path: &str, info: P<InfoCacheEntry>) -> P<InfoCacheEntry> {
         let key = tspath::to_path(
             package_json_path,
             &self.current_directory,
@@ -281,7 +281,7 @@ impl InfoCache {
         actual
     }
 
-    pub fn range(&self, f: impl FnMut(&Path, &P<InfoCacheEntry>) -> bool) {
+    pub(crate) fn range(&self, f: impl FnMut(&Path, &P<InfoCacheEntry>) -> bool) {
         self.cache.range(f);
     }
 }

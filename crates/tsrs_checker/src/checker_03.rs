@@ -173,7 +173,7 @@ impl Checker {
     }
 
     // checker.go:4450
-    pub(crate) fn check_class_for_static_property_name_conflicts(&mut self, node: P<Node>) {
+    fn check_class_for_static_property_name_conflicts(&mut self, node: P<Node>) {
         if self.compiler_options.get_use_define_for_class_fields() {
             return;
         }
@@ -201,7 +201,7 @@ impl Checker {
 
     // Check that type parameter lists are identical across multiple declarations
     // checker.go:4473
-    pub(crate) fn check_type_parameter_lists_identical(&mut self, symbol: P<Symbol>) {
+    fn check_type_parameter_lists_identical(&mut self, symbol: P<Symbol>) {
         if symbol.declarations().len() == 1 {
             return;
         }
@@ -232,7 +232,7 @@ impl Checker {
     }
 
     // checker.go:4495
-    pub(crate) fn get_class_or_interface_declarations_of_symbol(symbol: P<Symbol>) -> Vec<P<Node>> {
+    fn get_class_or_interface_declarations_of_symbol(symbol: P<Symbol>) -> Vec<P<Node>> {
         symbol
             .declarations()
             .iter()
@@ -299,7 +299,7 @@ impl Checker {
     }
 
     // checker.go:4538
-    pub(crate) fn check_base_type_accessibility(&mut self, t: P<Type>, node: P<Node>) {
+    fn check_base_type_accessibility(&mut self, t: P<Type>, node: P<Node>) {
         let signatures = self.get_signatures_of_type(t, SignatureKind::Construct);
         let accessibility_error =
             self.get_constructor_accessibility_error(node, signatures, ModifierFlags::Private);
@@ -317,7 +317,7 @@ impl Checker {
     }
 
     // checker.go:4546
-    pub(crate) fn issue_member_specific_error(
+    fn issue_member_specific_error(
         &mut self,
         node: P<Node>,
         type_with_this: P<Type>,
@@ -367,7 +367,7 @@ impl Checker {
     }
 
     // checker.go:4571
-    pub(crate) fn get_type_without_signatures(&mut self, t: P<Type>) -> P<Type> {
+    fn get_type_without_signatures(&mut self, t: P<Type>) -> P<Type> {
         if t.flags().intersects(TypeFlags::Object) {
             let resolved = self.resolve_structured_type_members(t);
             if !resolved.signatures().is_empty() {
@@ -392,11 +392,7 @@ impl Checker {
     }
 
     // checker.go:4588
-    pub(crate) fn check_kinds_of_property_member_overrides(
-        &mut self,
-        t: P<Type>,
-        base_type: P<Type>,
-    ) {
+    fn check_kinds_of_property_member_overrides(&mut self, t: P<Type>, base_type: P<Type>) {
         // TypeScript 1.0 spec (April 2014): 8.2.3
         // A derived class inherits all members from its base class it doesn't override.
         // Inheritance means that a derived class implicitly contains all non - overridden members of the base class.
@@ -625,7 +621,7 @@ impl Checker {
     }
 
     // checker.go:4744
-    pub(crate) fn are_properties_abstract_or_interface(
+    fn are_properties_abstract_or_interface(
         base: P<Symbol>,
         base_declaration_flags: ModifierFlags,
     ) -> bool {
@@ -641,7 +637,7 @@ impl Checker {
     }
 
     // checker.go:4751
-    pub(crate) fn is_property_abstract_or_interface(
+    fn is_property_abstract_or_interface(
         declaration: P<Node>,
         base_declaration_flags: ModifierFlags,
     ) -> bool {
@@ -651,7 +647,7 @@ impl Checker {
     }
 
     // checker.go:4756
-    pub(crate) fn check_members_for_override_modifier(
+    fn check_members_for_override_modifier(
         &mut self,
         node: P<Node>,
         t: P<Type>,
@@ -703,7 +699,7 @@ impl Checker {
     }
 
     // checker.go:4781
-    pub(crate) fn check_member_for_override_modifier(
+    fn check_member_for_override_modifier(
         &mut self,
         node: P<Node>,
         static_type: P<Type>,
@@ -789,7 +785,7 @@ impl Checker {
         clippy::fn_params_excessive_bools,
         reason = "The boolean parameters preserve the upstream Go function signature."
     )]
-    pub(crate) fn check_member_for_override_modifier_worker(
+    fn check_member_for_override_modifier_worker(
         &mut self,
         node: P<Node>,
         static_type: P<Type>,
@@ -891,7 +887,7 @@ impl Checker {
     }
 
     // checker.go:4873
-    pub(crate) fn get_suggested_symbol_for_nonexistent_class_member(
+    fn get_suggested_symbol_for_nonexistent_class_member(
         &mut self,
         name: &str,
         base_type: P<Type>,
@@ -943,7 +939,7 @@ impl Checker {
     }
 
     // checker.go:4904
-    pub(crate) fn check_index_constraint_for_property(
+    fn check_index_constraint_for_property(
         &mut self,
         t: P<Type>,
         prop: P<Symbol>,
@@ -1021,11 +1017,7 @@ impl Checker {
     }
 
     // checker.go:4950
-    pub(crate) fn check_index_constraint_for_index_signature(
-        &mut self,
-        t: P<Type>,
-        check_info: P<IndexInfo>,
-    ) {
+    fn check_index_constraint_for_index_signature(&mut self, t: P<Type>, check_info: P<IndexInfo>) {
         let declaration = check_info.declaration();
         let index_infos = self.get_applicable_index_infos(t, check_info.key_type());
         if index_infos.is_empty() {
@@ -1084,10 +1076,7 @@ impl Checker {
     }
 
     // checker.go:4987
-    pub(crate) fn check_class_or_interface_for_duplicate_index_signatures(
-        &mut self,
-        node: P<Node>,
-    ) {
+    fn check_class_or_interface_for_duplicate_index_signatures(&mut self, node: P<Node>) {
         // Only check the type once
         let symbol = self.get_symbol_of_declaration(node).unwrap();
         let links = self.declared_type_links.get(symbol);
@@ -1139,7 +1128,7 @@ impl Checker {
     }
 
     // checker.go:5024
-    pub(crate) fn check_property_initialization(&mut self, node: P<Node>) {
+    fn check_property_initialization(&mut self, node: P<Node>) {
         if !self.strict_null_checks
             || !self.strict_property_initialization
             || node.flags().intersects(NodeFlags::Ambient)
@@ -1228,7 +1217,7 @@ impl Checker {
     }
 
     // checker.go:5068
-    pub(crate) fn is_property_initialized_in_constructor(
+    fn is_property_initialized_in_constructor(
         &mut self,
         prop_name: P<Node>,
         prop_type: P<Type>,
@@ -1346,7 +1335,7 @@ impl Checker {
     }
 
     // checker.go:5127
-    pub(crate) fn check_inherited_properties_are_identical(
+    fn check_inherited_properties_are_identical(
         &mut self,
         t: P<Type>,
         type_node: Option<P<Node>>,
@@ -1405,11 +1394,7 @@ impl Checker {
     }
 
     // checker.go:5159
-    pub(crate) fn is_property_identical_to(
-        &mut self,
-        source_prop: P<Symbol>,
-        target_prop: P<Symbol>,
-    ) -> bool {
+    fn is_property_identical_to(&mut self, source_prop: P<Symbol>, target_prop: P<Symbol>) -> bool {
         self.compare_properties(
             source_prop,
             target_prop,
@@ -1634,7 +1619,7 @@ impl Checker {
     }
 
     // checker.go:5320
-    pub(crate) fn check_import_attributes_type(&mut self, attributes: P<Node>) {
+    fn check_import_attributes_type(&mut self, attributes: P<Node>) {
         self.check_grammar_import_attributes_type(attributes);
         self.check_source_element(Some(attributes));
         let import_attributes_type = self.get_global_import_attributes_type_checked();
@@ -1651,7 +1636,7 @@ impl Checker {
     }
 
     // checker.go:5330
-    pub(crate) fn get_type_of_module_declaration_import_attributes(
+    fn get_type_of_module_declaration_import_attributes(
         &mut self,
         attributes: Option<P<Node>>,
     ) -> P<Type> {
@@ -1716,7 +1701,7 @@ impl Checker {
     }
 
     // checker.go:5370
-    pub(crate) fn check_module_augmentation_element(&mut self, node: P<Node>) {
+    fn check_module_augmentation_element(&mut self, node: P<Node>) {
         match node.kind() {
             Kind::VariableStatement => {
                 // error each individual name in variable statement instead of marking the entire variable statement
@@ -1914,7 +1899,7 @@ impl Checker {
     }
 
     // checker.go:5505
-    pub(crate) fn check_import_binding(&mut self, node: P<Node>) {
+    fn check_import_binding(&mut self, node: P<Node>) {
         self.check_collisions_for_declaration_name(node, node.name());
         self.check_alias_symbol(node);
         if is_import_specifier(node) {
@@ -1929,11 +1914,7 @@ impl Checker {
     }
 
     // checker.go:5517
-    pub(crate) fn check_module_export_name(
-        &mut self,
-        name: Option<P<Node>>,
-        allow_string_literal: bool,
-    ) {
+    fn check_module_export_name(&mut self, name: Option<P<Node>>, allow_string_literal: bool) {
         let Some(name) = name.filter(|n| n.kind() == Kind::StringLiteral) else {
             return;
         };
@@ -2226,7 +2207,7 @@ impl Checker {
     }
 
     // checker.go:5702
-    pub(crate) fn check_external_module_name_in_global_scope(&mut self, node: P<Node>) {
+    fn check_external_module_name_in_global_scope(&mut self, node: P<Node>) {
         if get_enclosing_container(node).unwrap().kind() != Kind::SourceFile
             || (is_import_declaration_or_js_import_declaration(node)
                 && node.import_clause().is_none())
@@ -2244,7 +2225,7 @@ impl Checker {
     }
 
     // checker.go:5716
-    pub(crate) fn check_export_specifier(&mut self, node: P<Node>) {
+    fn check_export_specifier(&mut self, node: P<Node>) {
         self.check_alias_symbol(node);
         let has_module_specifier =
             node.parent().unwrap().parent().unwrap().module_specifier().is_some();
@@ -2586,7 +2567,7 @@ impl Checker {
     }
 
     // checker.go:5903
-    pub(crate) fn has_exported_members_of_kind(
+    fn has_exported_members_of_kind(
         &mut self,
         module_symbol: P<Symbol>,
         kind: SymbolFlags,
@@ -2601,7 +2582,7 @@ impl Checker {
     }
 
     // checker.go:5912
-    pub(crate) fn has_shadowed_namespace(&mut self, symbol: P<Symbol>) -> bool {
+    fn has_shadowed_namespace(&mut self, symbol: P<Symbol>) -> bool {
         if symbol.flags().intersects(SymbolFlags::NamespaceModule)
             && symbol.flags().intersects(SymbolFlags::Alias)
         {
@@ -2969,7 +2950,7 @@ impl Checker {
     }
 
     // checker.go:6119
-    pub(crate) fn error_next_variable_or_property_declaration_must_have_same_type(
+    fn error_next_variable_or_property_declaration_must_have_same_type(
         &mut self,
         first_declaration: Option<P<Node>>,
         first_type: P<Type>,
@@ -2998,7 +2979,7 @@ impl Checker {
     }
 
     // checker.go:6131
-    pub(crate) fn check_var_declared_names_not_shadowed(&mut self, node: P<Node>) {
+    fn check_var_declared_names_not_shadowed(&mut self, node: P<Node>) {
         // - ScriptBody : StatementList
         // It is a Syntax Error if any element of the LexicallyDeclaredNames of StatementList
         // also occurs in the VarDeclaredNames of StatementList.
@@ -3148,7 +3129,7 @@ impl Checker {
     }
 
     // checker.go:6231
-    pub(crate) fn check_decorator(&mut self, node: P<Node>) {
+    fn check_decorator(&mut self, node: P<Node>) {
         self.check_grammar_decorator(node);
         let signature = self.get_resolved_signature(node, None, CheckMode::Normal);
         self.check_deprecated_signature(signature, node);
@@ -3480,7 +3461,7 @@ impl Checker {
         clippy::only_used_in_recursion,
         reason = "The pinned Go function also carries these parameters through recursion without otherwise reading them."
     )]
-    pub(crate) fn get_iteration_types_of_iterable_worker(
+    fn get_iteration_types_of_iterable_worker(
         &mut self,
         t: P<Type>,
         use_: IterationUse,

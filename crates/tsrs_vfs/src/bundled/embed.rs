@@ -56,7 +56,7 @@ impl<T: FS> WrappedFS<T> {
 ///
 /// tsrs-only: the compiler host parses this text in place instead of reading a heap copy through
 /// `FS::read_file` and leaking it (lib.dom.d.ts alone is 2.3 MB).
-pub fn embedded_file(path: &str) -> Option<&'static str> {
+pub(crate) fn embedded_file(path: &str) -> Option<&'static str> {
     split_path(path).and_then(embedded_contents)
 }
 

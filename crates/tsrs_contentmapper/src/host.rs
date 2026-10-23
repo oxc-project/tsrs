@@ -41,7 +41,7 @@ pub fn new_transform_error(kind: TransformErrorKind, err: Option<Error>) -> Tran
 
 impl TransformError {
     // host.go:36
-    pub fn error(&self) -> String {
+    fn error(&self) -> String {
         match &self.err {
             Some(err) => format!("content mapper transform failed: {err}"),
             // fmt's %v of a nil error.
@@ -50,7 +50,7 @@ impl TransformError {
     }
 
     // host.go:40
-    pub fn unwrap(&self) -> Option<&Error> {
+    fn unwrap(&self) -> Option<&Error> {
         self.err.as_deref()
     }
 }
@@ -80,7 +80,7 @@ pub struct DiagnosticDirectiveError {
 
 impl DiagnosticDirectiveError {
     // host.go:61
-    pub fn error(&self) -> String {
+    fn error(&self) -> String {
         format!("invalid content mapper diagnostic directive {}", self.index)
     }
 }
@@ -94,7 +94,7 @@ pub struct InvalidVirtualExtensionError {
 
 impl InvalidVirtualExtensionError {
     // host.go:70
-    pub fn error(&self) -> String {
+    fn error(&self) -> String {
         format!("invalid virtual extension {}", quote(&self.extension))
     }
 }
@@ -122,7 +122,7 @@ pub struct ProjectError {
 impl ProjectError {
     // host.go:90 (Go's default case, "content mapper returned an invalid project response", is for a kind outside
     // the named constants, which the Rust enum cannot hold.)
-    pub fn error(self) -> String {
+    fn error(self) -> String {
         match self.kind {
             ProjectErrorKind::MalformedResponse => {
                 "content mapper returned a malformed project response"
@@ -183,7 +183,7 @@ pub struct SupplementalFileCollisionError {
 
 impl SupplementalFileCollisionError {
     // host.go:138
-    pub fn error(&self) -> String {
+    fn error(&self) -> String {
         format!("content mapper supplemental output file {} already exists", quote(&self.file_name))
     }
 }
@@ -191,7 +191,7 @@ impl SupplementalFileCollisionError {
 impl InitializeError {
     // host.go:142 (Go's default case, "content mapper initialization failed", is for a kind outside the named
     // constants, which the Rust enum cannot hold.)
-    pub fn error(&self) -> String {
+    fn error(&self) -> String {
         match self.kind {
             InitializeErrorKind::ProcessStart => {
                 format!(
@@ -435,7 +435,7 @@ pub trait Host: Send + Sync {
 }
 
 // contentmapper.go:26 ErrProjectUnavailable: the text of `Error::ProjectUnavailable`.
-pub const ERR_PROJECT_UNAVAILABLE: &str = "content mapper project is unavailable";
+const ERR_PROJECT_UNAVAILABLE: &str = "content mapper project is unavailable";
 
 // The Go `error` values of this package. Go's callers tell them apart with errors.AsType and errors.Is
 // (compiler/fileloader.go:446-520, 592-640), which look through TransformError's Unwrap; the `as_*` methods and
@@ -488,7 +488,7 @@ impl Error {
     }
 
     // Go `errors.Unwrap(err)`: only a TransformError wraps another error.
-    pub fn unwrap(&self) -> Option<&Error> {
+    fn unwrap(&self) -> Option<&Error> {
         match self {
             Error::Transform(err) => err.unwrap(),
             _ => None,
@@ -563,7 +563,7 @@ impl Error {
 
     // Go `errors.Is(err, sentinel)` for the sentinels of package ipc (io.EOF, ipc.ErrConnClosed,
     // context.DeadlineExceeded).
-    pub fn is(&self, tag: ipc::ErrorTag) -> bool {
+    pub(crate) fn is(&self, tag: ipc::ErrorTag) -> bool {
         self.chain().any(|err| matches!(err, Error::Ipc(err) if err.is(tag)))
     }
 }

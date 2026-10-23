@@ -103,7 +103,7 @@ pub fn should_use_uri_style_node_core_modules(file: P<SourceFile>, program: &Pro
 }
 
 // utilities.go:91
-pub fn quote_preference_from_string(str: P<Node>) -> QuotePreference {
+fn quote_preference_from_string(str: P<Node>) -> QuotePreference {
     if str.as_string_literal().token_flags().intersects(TokenFlags::SingleQuote) {
         return QuotePreference::Single;
     }

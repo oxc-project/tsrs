@@ -660,7 +660,7 @@ impl Flattener<'_> {
 
 // BindingOrAssignmentElementAssignsToName checks if any target in a binding/assignment pattern assigns to the given name.
 // destructuring.go:428
-pub fn binding_or_assignment_element_assigns_to_name(element: P<Node>, name: &str) -> bool {
+fn binding_or_assignment_element_assigns_to_name(element: P<Node>, name: &str) -> bool {
     let Some(target) = ast::get_target_of_binding_or_assignment_element(element) else {
         return false;
     };
@@ -680,7 +680,7 @@ fn binding_or_assignment_pattern_assigns_to_name(pattern: P<Node>, name: &str) -
 
 // BindingOrAssignmentElementContainsNonLiteralComputedName checks if any element has a non-literal computed property name.
 // destructuring.go:452
-pub fn binding_or_assignment_element_contains_non_literal_computed_name(element: P<Node>) -> bool {
+fn binding_or_assignment_element_contains_non_literal_computed_name(element: P<Node>) -> bool {
     let property_name = try_get_property_name_of_binding_or_assignment_element(element);
     if let Some(property_name) = property_name
         && ast::is_computed_property_name(property_name)
@@ -706,7 +706,7 @@ fn binding_or_assignment_pattern_contains_non_literal_computed_name(pattern: P<N
 
 // GetInitializerOfBindingOrAssignmentElement returns the initializer/default value of a binding or assignment element.
 // destructuring.go:467
-pub fn get_initializer_of_binding_or_assignment_element(
+fn get_initializer_of_binding_or_assignment_element(
     binding_element: Option<P<Node>>,
 ) -> Option<P<Node>> {
     let binding_element = binding_element?;

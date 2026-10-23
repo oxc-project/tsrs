@@ -241,10 +241,10 @@ pub fn new_watched_files_for_paths(
 
 #[derive(Clone, Debug, Default)]
 pub struct Watchers {
-    pub watcher_id: WatcherID,
-    pub workspace_watchers: Vec<lsproto::FileSystemWatcher>,
-    pub outside_workspace_watchers: Vec<lsproto::FileSystemWatcher>,
-    pub ignored_paths: FxHashSet<String>,
+    pub(crate) watcher_id: WatcherID,
+    pub(crate) workspace_watchers: Vec<lsproto::FileSystemWatcher>,
+    pub(crate) outside_workspace_watchers: Vec<lsproto::FileSystemWatcher>,
+    pub(crate) ignored_paths: FxHashSet<String>,
 }
 
 fn sorted_compact(mut v: Vec<String>) -> Vec<String> {
@@ -255,7 +255,7 @@ fn sorted_compact(mut v: Vec<String>) -> Vec<String> {
 
 impl<T> WatchedFiles<T> {
     // watch.go:218
-    pub fn watchers(&self) -> Watchers {
+    pub(crate) fn watchers(&self) -> Watchers {
         self.compute_watchers_once.call_once(|| {
             let mut st = self.mu.write().unwrap();
             let result = (self.compute_glob_patterns)(&self.input);
@@ -345,7 +345,7 @@ impl<T> WatchedFiles<T> {
     }
 
     // watch.go:281
-    pub fn clone_with(&self, input: T) -> Arc<WatchedFiles<T>> {
+    pub(crate) fn clone_with(&self, input: T) -> Arc<WatchedFiles<T>> {
         let st = self.mu.read().unwrap();
         Arc::new(WatchedFiles {
             name: self.name.clone(),

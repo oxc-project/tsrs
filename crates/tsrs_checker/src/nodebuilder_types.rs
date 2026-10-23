@@ -19,62 +19,62 @@ use crate::*;
 /// resolution formats a type with the same builder, pushing a new context).
 pub struct NodeBuilder {
     /// Go pushes `b.impl.ctx`, which is nil for the outermost call.
-    pub ctx_stack: RefCell<Vec<Option<P<NodeBuilderContext>>>>,
-    pub host: &'static dyn ModuleSpecifierGenerationHost, // Go `Host`
-    pub impl_: P<NodeBuilderImpl>,
-    pub verbosity: Cell<Option<P<VerbosityContext>>>, // nil for non-hover callers
+    pub(crate) ctx_stack: RefCell<Vec<Option<P<NodeBuilderContext>>>>,
+    pub(crate) host: &'static dyn ModuleSpecifierGenerationHost, // Go `Host`
+    pub(crate) impl_: P<NodeBuilderImpl>,
+    pub(crate) verbosity: Cell<Option<P<VerbosityContext>>>, // nil for non-hover callers
 }
 
 // nodebuilderimpl.go
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
 pub struct CompositeSymbolIdentity {
-    pub is_constructor_node: bool,
-    pub symbol_id: SymbolId,
-    pub node_id: NodeId,
+    pub(crate) is_constructor_node: bool,
+    pub(crate) symbol_id: SymbolId,
+    pub(crate) node_id: NodeId,
 }
 
 /// Go `TrackedSymbolArgs` (`*TrackedSymbolArgs`, built once by a composite literal and never compared by identity):
 /// a value here.
 #[derive(Clone, Copy)]
 pub struct TrackedSymbolArgs {
-    pub symbol: P<Symbol>,
-    pub enclosing_declaration: Option<P<Node>>,
-    pub meaning: SymbolFlags,
+    pub(crate) symbol: P<Symbol>,
+    pub(crate) enclosing_declaration: Option<P<Node>>,
+    pub(crate) meaning: SymbolFlags,
 }
 
 /// Go `SerializedTypeEntry`, handled as `P<SerializedTypeEntry>` (built once by a composite literal).
 pub struct SerializedTypeEntry {
-    pub node: Option<P<Node>>, // Go stores the (possibly nil) result of the transform
-    pub truncating: bool,
-    pub added_length: usize,
-    pub tracked_symbols: Vec<TrackedSymbolArgs>,
+    pub(crate) node: Option<P<Node>>, // Go stores the (possibly nil) result of the transform
+    pub(crate) truncating: bool,
+    pub(crate) added_length: usize,
+    pub(crate) tracked_symbols: Vec<TrackedSymbolArgs>,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
 pub struct CompositeTypeCacheIdentity {
-    pub type_id: TypeId,
-    pub flags: Flags,
-    pub internal_flags: InternalFlags,
-    pub infer_type_parameters: CacheHashKey,
+    pub(crate) type_id: TypeId,
+    pub(crate) flags: Flags,
+    pub(crate) internal_flags: InternalFlags,
+    pub(crate) infer_type_parameters: CacheHashKey,
 }
 
 #[derive(Default)]
 pub struct NodeBuilderLinks {
-    pub serialized_types: GoMap<CompositeTypeCacheIdentity, P<SerializedTypeEntry>>, // Collection of types serialized at this location
-    pub fake_scope_for_signature_declaration: Cell<Option<&'static str>>, // If present, this is a fake scope injected into an enclosing declaration chain.
+    pub(crate) serialized_types: GoMap<CompositeTypeCacheIdentity, P<SerializedTypeEntry>>, // Collection of types serialized at this location
+    pub(crate) fake_scope_for_signature_declaration: Cell<Option<&'static str>>, // If present, this is a fake scope injected into an enclosing declaration chain.
 }
 
 /// Go `module.ModeAwareCache[moduleSpecifierResult]` is `map[ModeAwareCacheKey]moduleSpecifierResult`.
 #[derive(Default)]
 pub struct NodeBuilderSymbolLinks {
-    pub specifier_cache: GoMap<ModeAwareCacheKey, ModuleSpecifierResult>,
+    pub(crate) specifier_cache: GoMap<ModeAwareCacheKey, ModuleSpecifierResult>,
 }
 
 #[derive(Clone, Copy, Debug, Default)]
 pub struct ModuleSpecifierResult {
-    pub specifier: &'static str,
-    pub import_attributes_type: Option<P<Type>>,
+    pub(crate) specifier: &'static str,
+    pub(crate) import_attributes_type: Option<P<Type>>,
 }
 
 /// Go `NodeBuilderContext`: the per-call state of a node builder invocation.
@@ -83,45 +83,45 @@ pub struct ModuleSpecifierResult {
 /// `cloneNodeBuilderContext` restore closure hold it); every field Go assigns is a `Cell`/`RefCell`. Build
 /// with `NodeBuilderContext { …, ..NodeBuilderContext::new(host) }`.
 pub struct NodeBuilderContext {
-    pub host: &'static dyn ModuleSpecifierGenerationHost, // Go `Host`
-    pub tracker: Cell<Option<&'static dyn SymbolTracker>>, // never None after NodeBuilder::enter_context
-    pub approximate_length: Cell<usize>,
-    pub max_truncation_length: Cell<usize>,
-    pub encountered_error: Cell<bool>,
-    pub truncating: Cell<bool>,
-    pub reported_diagnostic: Cell<bool>,
-    pub flags: Cell<Flags>,
-    pub internal_flags: Cell<InternalFlags>,
-    pub depth: Cell<usize>,
-    pub max_expansion_depth: Cell<Option<usize>>,
+    pub(crate) host: &'static dyn ModuleSpecifierGenerationHost, // Go `Host`
+    pub(crate) tracker: Cell<Option<&'static dyn SymbolTracker>>, // never None after NodeBuilder::enter_context
+    pub(crate) approximate_length: Cell<usize>,
+    pub(crate) max_truncation_length: Cell<usize>,
+    pub(crate) encountered_error: Cell<bool>,
+    pub(crate) truncating: Cell<bool>,
+    pub(crate) reported_diagnostic: Cell<bool>,
+    pub(crate) flags: Cell<Flags>,
+    pub(crate) internal_flags: Cell<InternalFlags>,
+    pub(crate) depth: Cell<usize>,
+    pub(crate) max_expansion_depth: Cell<Option<usize>>,
     /// `ExpandSymbolForHover` pushes a nil sentinel, hence `Option`.
-    pub type_stack: RefCell<Vec<Option<P<Type>>>>,
-    pub can_increase_expansion_depth: Cell<bool>,
-    pub expansion_truncated: Cell<bool>,
-    pub enclosing_declaration: Cell<Option<P<Node>>>,
-    pub enclosing_file: Cell<Option<P<SourceFile>>>,
+    pub(crate) type_stack: RefCell<Vec<Option<P<Type>>>>,
+    pub(crate) can_increase_expansion_depth: Cell<bool>,
+    pub(crate) expansion_truncated: Cell<bool>,
+    pub(crate) enclosing_declaration: Cell<Option<P<Node>>>,
+    pub(crate) enclosing_file: Cell<Option<P<SourceFile>>>,
     /// Go assigns whole slices (`t.root.inferTypeParameters`) and restores the saved one.
-    pub infer_type_parameters: Cell<&'static [P<Type>]>,
-    pub visited_types: RefCell<Set<TypeId>>,
-    pub symbol_depth: RefCell<FxHashMap<CompositeSymbolIdentity, usize>>,
+    pub(crate) infer_type_parameters: Cell<&'static [P<Type>]>,
+    pub(crate) visited_types: RefCell<Set<TypeId>>,
+    pub(crate) symbol_depth: RefCell<FxHashMap<CompositeSymbolIdentity, usize>>,
     /// Go saves the slice, sets it to nil, and stores/restores it around `visitAndTransformType`.
-    pub tracked_symbols: RefCell<Vec<TrackedSymbolArgs>>,
-    pub mapper: MapperCell,
-    pub reverse_mapped_stack: RefCell<Vec<P<Symbol>>>,
-    pub enclosing_symbol_types: RefCell<FxHashMap<SymbolId, P<Type>>>,
-    pub suppress_report_inference_fallback: Cell<bool>,
-    pub remapped_symbol_references: RefCell<FxHashMap<SymbolId, P<Symbol>>>,
+    pub(crate) tracked_symbols: RefCell<Vec<TrackedSymbolArgs>>,
+    pub(crate) mapper: MapperCell,
+    pub(crate) reverse_mapped_stack: RefCell<Vec<P<Symbol>>>,
+    pub(crate) enclosing_symbol_types: RefCell<FxHashMap<SymbolId, P<Type>>>,
+    pub(crate) suppress_report_inference_fallback: Cell<bool>,
+    pub(crate) remapped_symbol_references: RefCell<FxHashMap<SymbolId, P<Symbol>>>,
 
     // per signature scope state
-    pub type_parameter_names: RefCell<CopyOnWriteMap<TypeId, P<Node>>>, // values are Identifier nodes
-    pub type_parameter_names_by_text: RefCell<CopyOnWriteSet<String>>,
-    pub type_parameter_names_by_text_next_name_count: RefCell<CopyOnWriteMap<String, usize>>,
-    pub type_parameter_symbol_list: RefCell<CopyOnWriteSet<SymbolId>>,
+    pub(crate) type_parameter_names: RefCell<CopyOnWriteMap<TypeId, P<Node>>>, // values are Identifier nodes
+    pub(crate) type_parameter_names_by_text: RefCell<CopyOnWriteSet<String>>,
+    pub(crate) type_parameter_names_by_text_next_name_count: RefCell<CopyOnWriteMap<String, usize>>,
+    pub(crate) type_parameter_symbol_list: RefCell<CopyOnWriteSet<SymbolId>>,
 }
 
 impl NodeBuilderContext {
     /// The Go zero value (with the one field that has no zero value).
-    pub fn new(host: &'static dyn ModuleSpecifierGenerationHost) -> NodeBuilderContext {
+    pub(crate) fn new(host: &'static dyn ModuleSpecifierGenerationHost) -> NodeBuilderContext {
         NodeBuilderContext {
             host,
             tracker: Cell::new(None),
@@ -162,44 +162,44 @@ pub struct NodeBuilderImpl {
     // host members
     /// Go `f = e.Factory.AsNodeFactory()`: a handle to the emit context's factory (same hooks, so created nodes are
     /// marked synthesized). All factory methods take `&self`, so calls nest: `b.f.new_x(b.f.new_y())`.
-    pub f: NodeFactory,
-    pub e: P<EmitContext>,
-    pub pc: P<PseudoChecker>,
+    pub(crate) f: NodeFactory,
+    pub(crate) e: P<EmitContext>,
+    pub(crate) pc: P<PseudoChecker>,
 
     // cache
-    pub links: tsrs_core::LinkStore<Node, NodeBuilderLinks>,
-    pub symbol_links: tsrs_core::LinkStore<Symbol, NodeBuilderSymbolLinks>,
+    pub(crate) links: tsrs_core::LinkStore<Node, NodeBuilderLinks>,
+    pub(crate) symbol_links: tsrs_core::LinkStore<Symbol, NodeBuilderSymbolLinks>,
 
     // state
-    pub ctx: Cell<Option<P<NodeBuilderContext>>>,
+    pub(crate) ctx: Cell<Option<P<NodeBuilderContext>>>,
 
     // reusable visitor
     /// Go's `cloneBindingNameVisitor` (visit callback `b.cloneBindingName`), kept as its callback: a `NodeVisitor`
     /// holds nothing but the callback, the factory and hooks, and a visit re-enters it, so `clone_binding_name` builds
     /// `new_node_visitor(Some(visit.clone()), Some(b.f.clone()), NodeVisitorHooks::default())` per call and runs it
     /// under `b.checker_slot.lend(c, ..)`. Set by `new_node_builder_impl`.
-    pub clone_binding_name_visitor: OnceCell<VisitFn>,
+    pub(crate) clone_binding_name_visitor: OnceCell<VisitFn>,
 
     // symbols for synthesized identifiers, needed for e.g. inlay hints
-    pub id_to_symbol: P<RefCell<FxHashMap<P<Node>, P<Symbol>>>>,
+    pub(crate) id_to_symbol: P<RefCell<FxHashMap<P<Node>, P<Symbol>>>>,
 
     /// Rust only: lends the checker to visitor callbacks (`cloneBindingName`, `getExistingNodeTreeVisitor`), which
     /// Go writes as closures over `b.ch`. See `CheckerSlot`.
-    pub checker_slot: P<CheckerSlot>,
+    pub(crate) checker_slot: P<CheckerSlot>,
     /// Rust only: this builder's own handle, for closures that capture `b` (`b.as_p()`). Set by `new_node_builder_impl`.
-    pub this: OnceCell<P<NodeBuilderImpl>>,
+    pub(crate) this: OnceCell<P<NodeBuilderImpl>>,
 }
 
 impl NodeBuilderImpl {
     /// Go `b.ctx` (always set while a `NodeBuilder` entry point runs).
     #[inline]
-    pub fn ctx(&self) -> P<NodeBuilderContext> {
+    pub(crate) fn ctx(&self) -> P<NodeBuilderContext> {
         self.ctx.get().unwrap()
     }
 
     /// `b` as a copyable handle, for closures (Go captures the `*NodeBuilderImpl`).
     #[inline]
-    pub fn as_p(&self) -> P<NodeBuilderImpl> {
+    pub(crate) fn as_p(&self) -> P<NodeBuilderImpl> {
         *self.this.get().unwrap()
     }
 }
@@ -249,24 +249,24 @@ impl CheckerSlot {
     }
 }
 
-pub const DEFAULT_MAXIMUM_TRUNCATION_LENGTH: usize = 160;
-pub const NO_TRUNCATION_MAXIMUM_TRUNCATION_LENGTH: usize = 1_000_000;
+pub(crate) const DEFAULT_MAXIMUM_TRUNCATION_LENGTH: usize = 160;
+pub(crate) const NO_TRUNCATION_MAXIMUM_TRUNCATION_LENGTH: usize = 1_000_000;
 
 #[derive(Clone, Debug)]
 pub struct SortedSymbolNamePair {
-    pub sym: P<Symbol>,
-    pub name: String,
+    pub(crate) sym: P<Symbol>,
+    pub(crate) name: String,
 }
 
 /// Go `SignatureToSignatureDeclarationOptions`, passed as `Option<P<…>>` (built once by a composite literal).
 #[derive(Default)]
 pub struct SignatureToSignatureDeclarationOptions {
-    pub modifiers: &'static [P<Node>],
-    pub name: Option<P<Node>>, // a PropertyName node
-    pub question_token: Option<P<Node>>,
+    pub(crate) modifiers: &'static [P<Node>],
+    pub(crate) name: Option<P<Node>>, // a PropertyName node
+    pub(crate) question_token: Option<P<Node>>,
 }
 
-pub const MAX_REVERSE_MAPPED_NESTING_INSPECTION_DEPTH: usize = 3;
+pub(crate) const MAX_REVERSE_MAPPED_NESTING_INSPECTION_DEPTH: usize = 3;
 
 #[repr(u32)]
 #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Debug)]
@@ -280,8 +280,8 @@ pub enum PropertyNameNodeKind {
 
 #[derive(Clone, Debug)]
 pub struct LocalsRecord {
-    pub name: String,
-    pub old_symbol: P<Symbol>,
+    pub(crate) name: String,
+    pub(crate) old_symbol: P<Symbol>,
 }
 
 /// `modulespecifiers.CheckerShape` is implemented by `*Checker` in Go (exported `GetSymbolAtLocation` /
@@ -300,22 +300,22 @@ impl modulespecifiers::CheckerShape for Checker {
 /// Go `recoveryBoundary`, handled as `P<recoveryBoundary>` (the wrapping tracker holds it). Fields Go sets at
 /// construction and only reads are plain; the rest are `Cell`/`RefCell`.
 pub struct RecoveryBoundary {
-    pub ctx: P<NodeBuilderContext>,
-    pub had_error: Cell<bool>,
-    pub deferred_reports: RefCell<Vec<Box<dyn FnOnce()>>>,
-    pub old_tracker: Option<&'static dyn SymbolTracker>,
+    pub(crate) ctx: P<NodeBuilderContext>,
+    pub(crate) had_error: Cell<bool>,
+    pub(crate) deferred_reports: RefCell<Vec<Box<dyn FnOnce()>>>,
+    pub(crate) old_tracker: Option<&'static dyn SymbolTracker>,
     /// `finalizeBoundary` moves it back into the context (`take()`).
-    pub old_tracked_symbols: RefCell<Vec<TrackedSymbolArgs>>,
-    pub tracked_symbols: RefCell<Vec<TrackedSymbolArgs>>,
-    pub old_encountered_error: bool,
-    pub old_approximate_length: usize,
+    pub(crate) old_tracked_symbols: RefCell<Vec<TrackedSymbolArgs>>,
+    pub(crate) tracked_symbols: RefCell<Vec<TrackedSymbolArgs>>,
+    pub(crate) old_encountered_error: bool,
+    pub(crate) old_approximate_length: usize,
 }
 
 #[derive(Clone, Copy, Debug, Default)]
 pub struct OriginalRecoveryScopeState {
-    pub tracked_symbols_top: usize,
-    pub unreported_errors_top: usize,
-    pub had_error: bool,
+    pub(crate) tracked_symbols_top: usize,
+    pub(crate) unreported_errors_top: usize,
+    pub(crate) had_error: bool,
 }
 
 /// Go `wrappingTracker`, handled as `P<wrappingTracker>` and used as `&'static dyn SymbolTracker`; the
@@ -324,8 +324,8 @@ pub struct OriginalRecoveryScopeState {
 /// `markError(w.wrapped.ReportX)` passes `Some(Box::new(move || wrapped.report_x()))` with `let wrapped =
 /// self.wrapped;`.
 pub struct WrappingTracker {
-    pub wrapped: &'static dyn SymbolTracker,
-    pub bound: P<RecoveryBoundary>,
+    pub(crate) wrapped: &'static dyn SymbolTracker,
+    pub(crate) bound: P<RecoveryBoundary>,
 }
 
 impl SymbolTracker for WrappingTracker {
@@ -388,27 +388,27 @@ impl SymbolTracker for WrappingTracker {
 // Links for jsx
 #[derive(Default)]
 pub struct JSXLinks {
-    pub import_ref: Cell<Option<P<Node>>>,
+    pub(crate) import_ref: Cell<Option<P<Node>>>,
 }
 
 // Links for declarations
 
 #[derive(Default)]
 pub struct DeclarationLinks {
-    pub is_visible: Cell<Tristate>, // if declaration is depended upon by exported declarations
+    pub(crate) is_visible: Cell<Tristate>, // if declaration is depended upon by exported declarations
 }
 
 #[derive(Default)]
 pub struct DeclarationFileLinks {
-    pub aliases_marked: Cell<bool>, // if file has had alias visibility marked
+    pub(crate) aliases_marked: Cell<bool>, // if file has had alias visibility marked
 }
 
 /// Go `EmitResolverLinks`: visibility and JSX links outlive a single file's emit resolver.
 #[derive(Default)]
 pub struct EmitResolverLinks {
-    pub jsx_links: tsrs_core::LinkStore<Node, JSXLinks>,
-    pub declaration_links: tsrs_core::LinkStore<Node, DeclarationLinks>,
-    pub declaration_file_links: tsrs_core::LinkStore<Node, DeclarationFileLinks>,
+    pub(crate) jsx_links: tsrs_core::LinkStore<Node, JSXLinks>,
+    pub(crate) declaration_links: tsrs_core::LinkStore<Node, DeclarationLinks>,
+    pub(crate) declaration_file_links: tsrs_core::LinkStore<Node, DeclarationFileLinks>,
 }
 
 /// Go `EmitResolver`, handled as `P<EmitResolver>`, a checker holder (`&self, c: &mut Checker`).
@@ -419,8 +419,8 @@ pub struct EmitResolverLinks {
 /// `isValueAliasDeclaration` / `aliasMarkingVisitor` are Go method values of `isValueAliasDeclarationWorker`
 /// / `aliasMarkingVisitorWorker`; Rust calls those methods directly.
 pub struct EmitResolver {
-    pub reference_resolver: std::cell::OnceCell<P<tsrs_binder::ReferenceResolver<Checker>>>,
-    pub emit_context: P<EmitContext>,
-    pub request_node_builder: std::cell::OnceCell<P<NodeBuilder>>,
-    pub links: P<EmitResolverLinks>,
+    pub(crate) reference_resolver: std::cell::OnceCell<P<tsrs_binder::ReferenceResolver<Checker>>>,
+    pub(crate) emit_context: P<EmitContext>,
+    pub(crate) request_node_builder: std::cell::OnceCell<P<NodeBuilder>>,
+    pub(crate) links: P<EmitResolverLinks>,
 }

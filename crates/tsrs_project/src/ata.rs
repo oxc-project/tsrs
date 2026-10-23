@@ -8,14 +8,14 @@ use tsrs_core::{CompilerOptions, P, TypeAcquisition};
 
 #[derive(Clone, Debug, Default)]
 pub struct TypingsInfo {
-    pub type_acquisition: Option<TypeAcquisition>,
-    pub compiler_options: Option<P<CompilerOptions>>,
-    pub unresolved_imports: Option<Arc<Set<String>>>,
+    pub(crate) type_acquisition: Option<TypeAcquisition>,
+    pub(crate) compiler_options: Option<P<CompilerOptions>>,
+    pub(crate) unresolved_imports: Option<Arc<Set<String>>>,
 }
 
 impl TypingsInfo {
     // ata.go:27
-    pub fn equals(&self, other: &TypingsInfo) -> bool {
+    pub(crate) fn equals(&self, other: &TypingsInfo) -> bool {
         TypeAcquisition::equals(self.type_acquisition.as_ref(), other.type_acquisition.as_ref())
             && self.compiler_options.unwrap().get_allow_js()
                 == other.compiler_options.unwrap().get_allow_js()

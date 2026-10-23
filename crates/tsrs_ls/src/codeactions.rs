@@ -16,11 +16,11 @@ use crate::spanmap::Feature;
 // codeactions.go:21
 // CodeFixProvider represents a provider for a specific type of code fix
 pub struct CodeFixProvider {
-    pub error_codes: &'static [i32],
-    pub get_code_actions:
+    pub(crate) error_codes: &'static [i32],
+    pub(crate) get_code_actions:
         fn(ctx: &Context, fix_context: &CodeFixContext) -> Result<Vec<CodeAction>, lsproto::Error>,
     pub fix_ids: &'static [&'static str],
-    pub get_all_code_actions: Option<
+    pub(crate) get_all_code_actions: Option<
         fn(
             ctx: &Context,
             fix_context: &CodeFixContext,
@@ -31,12 +31,12 @@ pub struct CodeFixProvider {
 // codeactions.go:29
 // CodeFixContext contains the context needed to generate code fixes
 pub struct CodeFixContext<'a> {
-    pub source_file: P<SourceFile>,
-    pub span: TextRange,
-    pub error_code: i32,
-    pub program: &'static Program,
-    pub ls: &'a LanguageService,
-    pub diagnostic: Option<&'a lsproto::Diagnostic>,
+    pub(crate) source_file: P<SourceFile>,
+    pub(crate) span: TextRange,
+    pub(crate) error_code: i32,
+    pub(crate) program: &'static Program,
+    pub(crate) ls: &'a LanguageService,
+    pub(crate) diagnostic: Option<&'a lsproto::Diagnostic>,
     pub params: Option<&'a lsproto::CodeActionParams>,
 }
 
@@ -44,9 +44,9 @@ pub struct CodeFixContext<'a> {
 // CodeAction represents a single code action fix
 #[derive(Clone, Debug, Default)]
 pub struct CodeAction {
-    pub description: String,
-    pub changes: Vec<lsproto::TextEdit>,
-    pub fix_id: String,
+    pub(crate) description: String,
+    pub(crate) changes: Vec<lsproto::TextEdit>,
+    pub(crate) fix_id: String,
     pub fix_all_description: String,
 }
 
@@ -54,7 +54,7 @@ impl CodeAction {
     // codeactions.go:49
     // Compare defines a total ordering for CodeAction values, comparing description
     // then text edits lexicographically. Used with slices.BinarySearchFunc.
-    pub fn compare(&self, b: &CodeAction) -> Ordering {
+    fn compare(&self, b: &CodeAction) -> Ordering {
         let c = go_compare(&self.description, &b.description);
         if c != Ordering::Equal {
             return c;
@@ -85,8 +85,8 @@ fn go_compare<T: Ord + ?Sized>(a: &T, b: &T) -> Ordering {
 // CombinedCodeActions represents combined code actions for fix-all scenarios
 #[derive(Clone, Debug, Default)]
 pub struct CombinedCodeActions {
-    pub description: String,
-    pub changes: Vec<lsproto::TextEdit>,
+    pub(crate) description: String,
+    pub(crate) changes: Vec<lsproto::TextEdit>,
 }
 
 // codeactions.go:72

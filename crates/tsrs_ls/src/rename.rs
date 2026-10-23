@@ -148,7 +148,7 @@ impl LanguageService {
         clippy::unnecessary_wraps,
         reason = "Language service operations share the fallible response signature used by LSP and cross-project dispatch."
     )]
-    pub(crate) fn symbol_and_entries_to_rename(
+    fn symbol_and_entries_to_rename(
         &self,
         ctx: &Context,
         params: &lsproto::RenameParams,
@@ -252,7 +252,7 @@ impl LanguageService {
     // getRenameInfoForNode performs detailed validation for a rename operation on a specific node.
     // Go returns `(info, ok)`.
     // rename.go:168
-    pub(crate) fn get_rename_info_for_node(
+    fn get_rename_info_for_node(
         &self,
         ctx: &Context,
         new_name: &str,

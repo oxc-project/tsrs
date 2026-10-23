@@ -13,9 +13,9 @@ use crate::refcountcache::{RefCountCache, RefCountCacheOptions, new_ref_count_ca
 #[derive(Clone, PartialEq, Eq, Hash, Debug, Default)]
 pub struct ParseCacheKey {
     // Go embeds ast.SourceFileParseOptions.
-    pub source_file_parse_options: SourceFileParseOptions,
-    pub script_kind: ScriptKind,
-    pub hash: Hash128,
+    source_file_parse_options: SourceFileParseOptions,
+    script_kind: ScriptKind,
+    hash: Hash128,
 }
 
 // parsecache.go:22
@@ -35,8 +35,8 @@ pub fn new_parse_cache_key(
 // (Content mappers are not ported: the type exists for the cache's signature; no entry is ever created.)
 #[derive(Clone, PartialEq, Eq, Hash, Debug, Default)]
 pub struct ContentMappedParseCacheKey {
-    pub source_file_parse_options: SourceFileParseOptions,
-    pub hash: Hash128,
+    source_file_parse_options: SourceFileParseOptions,
+    hash: Hash128,
 }
 
 // parsecache.go:55

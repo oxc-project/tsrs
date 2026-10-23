@@ -153,12 +153,12 @@ impl FrameTaint {
 }
 
 pub struct FlowMemo {
-    pub mode: FlowMemoMode,
+    pub(crate) mode: FlowMemoMode,
     slots: Vec<Slot>,
     /// Shadow mode: the full reference key of each slot, to prove that no two references share a hashed key.
     shadow_keys: Vec<Option<Box<[u8]>>>,
     /// Shadow mode: where each slot's value came from (reference node, depth), for reports.
-    pub(crate) shadow_origin: Vec<(Option<P<Node>>, u32)>,
+    shadow_origin: Vec<(Option<P<Node>>, u32)>,
     pub(crate) shadow_origin_next: (Option<P<Node>>, u32),
     serial: u32,
     regs: Regs,
@@ -173,7 +173,7 @@ pub struct FlowMemo {
 }
 
 impl FlowMemo {
-    pub fn new() -> FlowMemo {
+    pub(crate) fn new() -> FlowMemo {
         FlowMemo {
             mode: mode_from_env(),
             slots: Vec::new(),

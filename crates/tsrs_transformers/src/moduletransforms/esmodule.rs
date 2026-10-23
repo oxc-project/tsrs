@@ -1,7 +1,7 @@
 use super::*;
 
-pub struct ESModuleTransformer {
-    pub base: Transformer,
+struct ESModuleTransformer {
+    base: Transformer,
     compiler_options: P<CompilerOptions>,
     get_emit_module_format_of_file: Rc<dyn Fn(P<SourceFile>) -> ModuleKind>,
     current_source_file: Cell<Option<P<SourceFile>>>,

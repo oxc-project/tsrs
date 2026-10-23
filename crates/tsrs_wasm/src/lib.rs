@@ -20,11 +20,11 @@ use std::sync::{Arc, Mutex};
 use tsrs_execute::tsc::System;
 
 /// Reply with the diagnostics as a JSON array of `DiagnosticResponse` (UTF-16 positions) instead of printing them.
-pub const REQUEST_JSON_DIAGNOSTICS: u32 = 1;
+const REQUEST_JSON_DIAGNOSTICS: u32 = 1;
 /// The host file system is case-insensitive.
-pub const REQUEST_CASE_INSENSITIVE: u32 = 2;
+const REQUEST_CASE_INSENSITIVE: u32 = 2;
 /// stdout is a terminal (the default for `--pretty`).
-pub const REQUEST_TTY: u32 = 4;
+const REQUEST_TTY: u32 = 4;
 
 struct Request {
     cwd: String,

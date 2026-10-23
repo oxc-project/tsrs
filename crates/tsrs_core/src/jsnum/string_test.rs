@@ -6,8 +6,8 @@ use super::*;
 
 #[derive(Clone, Copy, Debug)]
 pub(super) struct StringTest {
-    pub(super) number: Number,
-    pub(super) str: &'static str,
+    number: Number,
+    str: &'static str,
 }
 
 pub(super) fn st(number: Number, str: &'static str) -> StringTest {

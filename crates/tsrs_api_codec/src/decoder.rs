@@ -103,7 +103,7 @@ pub fn decode_source_file(data: &[u8]) -> Result<DecodedNode, DecodeError> {
 
 /// Go `DecodeNodes` allocating with `factory` in whatever region the caller has entered (the caller owns the
 /// lifetime of the result).
-pub fn decode_nodes_in_current_region(
+fn decode_nodes_in_current_region(
     data: &[u8],
     factory: &NodeFactory,
 ) -> Result<P<Node>, DecodeError> {
@@ -144,7 +144,7 @@ pub fn kind_from_u32(value: u32) -> Option<Kind> {
 
 /// Accepts UTF-8 plus WTF-8 encoded lone surrogates (`ED A0..BF xx`), the only non-UTF-8 byte strings the
 /// encoders produce (Go strings / JS strings with unpaired surrogates).
-pub fn is_wtf8(bytes: &[u8]) -> bool {
+fn is_wtf8(bytes: &[u8]) -> bool {
     let mut rest = bytes;
     loop {
         match tsrs_core::utf8::compat::from_utf8(rest) {
@@ -213,7 +213,7 @@ impl<'a> Decoder<'a> {
         read_le32(self.raw, self.node_off as usize + i * NODE_SIZE + field).unwrap()
     }
 
-    pub(crate) fn read_ext(&self, offset: u32, field: usize) -> Result<u32, DecodeError> {
+    fn read_ext(&self, offset: u32, field: usize) -> Result<u32, DecodeError> {
         let at = self.ext_data as usize + offset as usize + field;
         if at + 4 > self.node_off as usize {
             return Err(DecodeError::InvalidExtendedData(format!(

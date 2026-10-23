@@ -30,7 +30,7 @@ impl ComparisonPath<'_> {
     }
 
     // pathcompare.go:34
-    pub(crate) fn fold(&mut self) -> String {
+    fn fold(&mut self) -> String {
         if !self.ready {
             if let Some(cache) = self.cache
                 && let Some(folded) = cache.lock().unwrap().get(&self.path)
@@ -87,10 +87,7 @@ impl BytePathComparer {
     }
 
     // pathcompare.go:75
-    pub(crate) fn suffix_unicode(
-        root: &ComparisonPath,
-        path: &mut ComparisonPath,
-    ) -> Option<String> {
+    fn suffix_unicode(root: &ComparisonPath, path: &mut ComparisonPath) -> Option<String> {
         if !NATIVE_PATH_FOLDING {
             return path_suffix_fold_unicode(&root.path, &path.path);
         }

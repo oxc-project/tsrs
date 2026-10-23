@@ -144,11 +144,7 @@ impl DeclarationTransformer {
     }
 
     // transform.go:150
-    pub(crate) fn is_internal_declaration(
-        &self,
-        node: Option<P<Node>>,
-        source_file: P<SourceFile>,
-    ) -> bool {
+    fn is_internal_declaration(&self, node: Option<P<Node>>, source_file: P<SourceFile>) -> bool {
         let Some(node) = node else {
             return false;
         };
@@ -217,7 +213,7 @@ impl DeclarationTransformer {
     }
 
     // transform.go:203
-    pub(crate) fn get_leading_comment_ranges_of_node(
+    fn get_leading_comment_ranges_of_node(
         node: P<Node>,
         source_file: P<SourceFile>,
     ) -> Vec<CommentRange> {
@@ -233,7 +229,7 @@ impl DeclarationTransformer {
 }
 
 // transform.go:210
-pub fn has_internal_annotation(comment_range: CommentRange, source_file: P<SourceFile>) -> bool {
+fn has_internal_annotation(comment_range: CommentRange, source_file: P<SourceFile>) -> bool {
     let comment = &source_file.text()[comment_range.pos() as usize..comment_range.end() as usize];
     comment.contains("@internal")
 }
@@ -241,7 +237,7 @@ pub fn has_internal_annotation(comment_range: CommentRange, source_file: P<Sourc
 impl DeclarationTransformer {
     // transform.go:226
     // functions as both `visitDeclarationStatements` and `transformRoot`, utilitzing SyntaxList nodes
-    pub(crate) fn visit(&self, node: P<Node>) -> Option<P<Node>> {
+    fn visit(&self, node: P<Node>) -> Option<P<Node>> {
         match node.kind() {
             Kind::SourceFile => Some(self.visit_source_file(node.as_source_file_p())),
             // statements we keep but do something to
@@ -286,14 +282,14 @@ impl DeclarationTransformer {
 }
 
 // transform.go:276
-pub fn throw_diagnostic(result: &SymbolAccessibilityResult) -> P<SymbolAccessibilityDiagnostic> {
+fn throw_diagnostic(result: &SymbolAccessibilityResult) -> P<SymbolAccessibilityDiagnostic> {
     let _ = result;
     panic!("Diagnostic emitted without context")
 }
 
 impl DeclarationTransformer {
     // transform.go:280
-    pub(crate) fn visit_source_file(&self, node: P<SourceFile>) -> P<Node> {
+    fn visit_source_file(&self, node: P<SourceFile>) -> P<Node> {
         self.cjs_export_assignment_name.set(None);
         if node.is_declaration_file() {
             return node.as_node();
@@ -327,7 +323,7 @@ impl DeclarationTransformer {
     }
 
     // transform.go:310
-    pub(crate) fn collect_file_references(&self, source_file: P<SourceFile>) {
+    fn collect_file_references(&self, source_file: P<SourceFile>) {
         self.raw_referenced_files.borrow_mut().extend(
             source_file
                 .referenced_files()
@@ -344,7 +340,7 @@ impl DeclarationTransformer {
 }
 
 // transform.go:316
-pub fn node_or_syntax_list_children(node: P<Node>) -> Vec<P<Node>> {
+fn node_or_syntax_list_children(node: P<Node>) -> Vec<P<Node>> {
     if ast::is_syntax_list(node) {
         return node.as_syntax_list().children.to_vec();
     }
@@ -352,13 +348,13 @@ pub fn node_or_syntax_list_children(node: P<Node>) -> Vec<P<Node>> {
 }
 
 // transform.go:323
-pub fn flatten_syntax_lists(nodes: &[P<Node>]) -> Vec<P<Node>> {
+fn flatten_syntax_lists(nodes: &[P<Node>]) -> Vec<P<Node>> {
     nodes.iter().flat_map(|n| node_or_syntax_list_children(*n)).collect()
 }
 
 impl DeclarationTransformer {
     // transform.go:327
-    pub(crate) fn append_cjs_exports(&self, combined_statements: P<NodeList>) -> P<NodeList> {
+    fn append_cjs_exports(&self, combined_statements: P<NodeList>) -> P<NodeList> {
         let mut combined_statements = combined_statements;
         let mut result: Vec<P<Node>> = Vec::new();
         if let Some(cjs_export_assignment) = self.cjs_export_assignment.get() {
@@ -374,7 +370,7 @@ impl DeclarationTransformer {
     }
 
     // transform.go:341
-    pub(crate) fn transform_source_file(&self, node: P<SourceFile>) -> P<Node> {
+    fn transform_source_file(&self, node: P<SourceFile>) -> P<Node> {
         self.cjs_export_assignment.set(None);
         self.cjs_export_assignment_name.set(None);
         *self.cjs_export_members.borrow_mut() = Vec::new();
@@ -538,7 +534,7 @@ impl DeclarationTransformer {
     }
 
     // transform.go:464
-    pub(crate) fn get_referenced_files(&self, output_file_path: &str) -> Vec<P<FileReference>> {
+    fn get_referenced_files(&self, output_file_path: &str) -> Vec<P<FileReference>> {
         let mut results: Vec<P<FileReference>> = Vec::new();
         // Handle path rewrites for triple slash ref comments
         let raw_referenced_files = self.raw_referenced_files.borrow().clone();
@@ -593,7 +589,7 @@ impl DeclarationTransformer {
     }
 
     // transform.go:519
-    pub(crate) fn get_lib_references(&self) -> Vec<P<FileReference>> {
+    fn get_lib_references(&self) -> Vec<P<FileReference>> {
         let mut result: Vec<P<FileReference>> = Vec::new();
         // clone retained references
         result.extend(self.raw_lib_reference_directives.borrow().iter().filter_map(|ref_| {
@@ -611,7 +607,7 @@ impl DeclarationTransformer {
     }
 
     // transform.go:535
-    pub(crate) fn get_type_references(&self) -> Vec<P<FileReference>> {
+    fn get_type_references(&self) -> Vec<P<FileReference>> {
         let mut result: Vec<P<FileReference>> = Vec::new();
         // clone retained references
         result.extend(self.raw_type_reference_directives.borrow().iter().filter_map(|ref_| {
@@ -659,7 +655,7 @@ impl DeclarationTransformer {
     }
 
     // transform.go:573
-    pub(crate) fn visit_declaration_subtree(&self, input: P<Node>) -> Option<P<Node>> {
+    fn visit_declaration_subtree(&self, input: P<Node>) -> Option<P<Node>> {
         if self.should_strip_internal(Some(input)) {
             return None;
         }
@@ -807,7 +803,7 @@ impl DeclarationTransformer {
     }
 
     // transform.go:723
-    pub(crate) fn transform_mapped_type_node(&self, input: P<Node>) -> P<Node> {
+    fn transform_mapped_type_node(&self, input: P<Node>) -> P<Node> {
         let mapped = input.as_mapped_type_node();
         // handle missing template type nodes, since the printer does not
         let type_node = match mapped.type_ {
@@ -827,7 +823,7 @@ impl DeclarationTransformer {
     }
 
     // transform.go:742
-    pub(crate) fn transform_heritage_clause(&self, clause: P<Node>) -> Option<P<Node>> {
+    fn transform_heritage_clause(&self, clause: P<Node>) -> Option<P<Node>> {
         let heritage_clause = clause.as_heritage_clause();
         let types = heritage_clause.types();
         let retained_clauses: Vec<P<Node>> = types
@@ -861,7 +857,7 @@ impl DeclarationTransformer {
     }
 
     // transform.go:761
-    pub(crate) fn transform_import_type_node(&self, input: P<Node>) -> P<Node> {
+    fn transform_import_type_node(&self, input: P<Node>) -> P<Node> {
         if !ast::is_literal_import_type_node(input) {
             return input;
         }
@@ -884,7 +880,7 @@ impl DeclarationTransformer {
     }
 
     // transform.go:778
-    pub(crate) fn transform_constructor_type_node(&self, input: P<Node>) -> P<Node> {
+    fn transform_constructor_type_node(&self, input: P<Node>) -> P<Node> {
         self.factory().update_constructor_type_node(
             input,
             self.ensure_modifiers(input),
@@ -895,7 +891,7 @@ impl DeclarationTransformer {
     }
 
     // transform.go:788
-    pub(crate) fn transform_function_type_node(&self, input: P<Node>) -> P<Node> {
+    fn transform_function_type_node(&self, input: P<Node>) -> P<Node> {
         self.factory().update_function_type_node(
             input,
             self.visitor().visit_nodes(input.type_parameter_list()),
@@ -905,7 +901,7 @@ impl DeclarationTransformer {
     }
 
     // transform.go:797
-    pub(crate) fn transform_conditional_type_node(&self, input: P<Node>) -> P<Node> {
+    fn transform_conditional_type_node(&self, input: P<Node>) -> P<Node> {
         let conditional = input.as_conditional_type_node();
         let check_type = self.visit_fn(Some(conditional.check_type));
         let extends_type = self.visit_fn(Some(conditional.extends_type));
@@ -926,7 +922,7 @@ impl DeclarationTransformer {
     }
 
     // transform.go:815
-    pub(crate) fn transform_type_reference(&self, input: P<Node>) -> Option<P<Node>> {
+    fn transform_type_reference(&self, input: P<Node>) -> Option<P<Node>> {
         self.check_entity_name_visibility(
             input.as_type_reference_node().type_name,
             self.enclosing_declaration.get(),
@@ -935,10 +931,7 @@ impl DeclarationTransformer {
     }
 
     // transform.go:820
-    pub(crate) fn transform_expression_with_type_arguments(
-        &self,
-        input: P<Node>,
-    ) -> Option<P<Node>> {
+    fn transform_expression_with_type_arguments(&self, input: P<Node>) -> Option<P<Node>> {
         let expression = input.as_expression_with_type_arguments().expression;
         if ast::is_entity_name(expression) || ast::is_entity_name_expression(expression) {
             self.check_entity_name_visibility(expression, self.enclosing_declaration.get());
@@ -947,7 +940,7 @@ impl DeclarationTransformer {
     }
 
     // transform.go:827
-    pub(crate) fn transform_type_parameter_declaration(&self, input: P<Node>) -> Option<P<Node>> {
+    fn transform_type_parameter_declaration(&self, input: P<Node>) -> Option<P<Node>> {
         let type_parameter = input.as_type_parameter_declaration();
         if is_private_method_type_parameter(self.resolver, input)
             && (type_parameter.default_type.is_some() || type_parameter.constraint.is_some())
@@ -965,7 +958,7 @@ impl DeclarationTransformer {
     }
 
     // transform.go:841
-    pub(crate) fn transform_variable_declaration(&self, input: P<Node>) -> Option<P<Node>> {
+    fn transform_variable_declaration(&self, input: P<Node>) -> Option<P<Node>> {
         if self.state.current_source_file.get().unwrap().common_js_module_indicator().is_some()
             && ast::is_variable_declaration_initialized_to_require(input)
         {
@@ -989,7 +982,7 @@ impl DeclarationTransformer {
 }
 
 // transform.go:859
-pub fn has_any_binding_initializers(binding_pattern: P<Node>) -> bool {
+fn has_any_binding_initializers(binding_pattern: P<Node>) -> bool {
     if binding_pattern.as_binding_pattern().elements.nodes().iter().any(|&elem| {
         if !ast::is_binding_element(elem) {
             return false;
@@ -1014,10 +1007,7 @@ pub fn has_any_binding_initializers(binding_pattern: P<Node>) -> bool {
 
 impl DeclarationTransformer {
     // transform.go:875
-    pub(crate) fn transform_cjs_require_variable_declaration(
-        &self,
-        input: P<Node>,
-    ) -> Option<P<Node>> {
+    fn transform_cjs_require_variable_declaration(&self, input: P<Node>) -> Option<P<Node>> {
         let specifier = self
             .rewrite_module_specifier(input, Some(input.initializer().unwrap().arguments()[0]))
             .unwrap();
@@ -1070,7 +1060,7 @@ impl DeclarationTransformer {
     }
 
     // transform.go:907
-    pub(crate) fn recreate_binding_pattern(&self, input: P<Node>) -> Option<P<Node>> {
+    fn recreate_binding_pattern(&self, input: P<Node>) -> Option<P<Node>> {
         let mut results: Vec<P<Node>> = Vec::new();
         results = input.as_binding_pattern().elements.nodes().iter().fold(
             results,
@@ -1097,7 +1087,7 @@ impl DeclarationTransformer {
     }
 
     // transform.go:929
-    pub(crate) fn recreate_binding_element(&self, e: P<Node>) -> Option<P<Node>> {
+    fn recreate_binding_element(&self, e: P<Node>) -> Option<P<Node>> {
         let name = e.name()?;
         if !get_binding_name_visible(self.resolver, e) {
             return None;
@@ -1114,7 +1104,7 @@ impl DeclarationTransformer {
     }
 
     // transform.go:947
-    pub(crate) fn transform_index_signature_declaration(&self, input: P<Node>) -> P<Node> {
+    fn transform_index_signature_declaration(&self, input: P<Node>) -> P<Node> {
         let t = match self.visit_fn(input.type_node()) {
             Some(t) => t,
             None => self.factory().new_keyword_type_node(Kind::AnyKeyword),
@@ -1128,7 +1118,7 @@ impl DeclarationTransformer {
     }
 
     // transform.go:960
-    pub(crate) fn transform_call_signature_declaration(&self, input: P<Node>) -> P<Node> {
+    fn transform_call_signature_declaration(&self, input: P<Node>) -> P<Node> {
         self.factory().update_call_signature_declaration(
             input,
             self.ensure_type_params(input, input.type_parameter_list()),
@@ -1138,10 +1128,7 @@ impl DeclarationTransformer {
     }
 
     // transform.go:969
-    pub(crate) fn transform_property_signature_declaration(
-        &self,
-        input: P<Node>,
-    ) -> Option<P<Node>> {
+    fn transform_property_signature_declaration(&self, input: P<Node>) -> Option<P<Node>> {
         if ast::is_private_identifier(input.name().unwrap()) {
             return None;
         }
@@ -1158,7 +1145,7 @@ impl DeclarationTransformer {
     }
 
     // transform.go:985
-    pub(crate) fn transform_property_declaration(&self, input: P<Node>) -> Option<P<Node>> {
+    fn transform_property_declaration(&self, input: P<Node>) -> Option<P<Node>> {
         if ast::is_private_identifier(input.name().unwrap()) {
             return None;
         }
@@ -1178,7 +1165,7 @@ impl DeclarationTransformer {
     }
 
     // transform.go:1004
-    pub(crate) fn transform_set_accessor_declaration(&self, input: P<Node>) -> Option<P<Node>> {
+    fn transform_set_accessor_declaration(&self, input: P<Node>) -> Option<P<Node>> {
         if ast::is_private_identifier(input.name().unwrap()) {
             return None;
         }
@@ -1202,7 +1189,7 @@ impl DeclarationTransformer {
     }
 
     // transform.go:1021
-    pub(crate) fn transform_get_accesor_declaration(&self, input: P<Node>) -> Option<P<Node>> {
+    fn transform_get_accesor_declaration(&self, input: P<Node>) -> Option<P<Node>> {
         if ast::is_private_identifier(input.name().unwrap()) {
             return None;
         }
@@ -1225,11 +1212,7 @@ impl DeclarationTransformer {
     }
 
     // transform.go:1037
-    pub(crate) fn update_accessor_param_list(
-        &self,
-        input: P<Node>,
-        is_private: bool,
-    ) -> P<NodeList> {
+    fn update_accessor_param_list(&self, input: P<Node>, is_private: bool) -> P<NodeList> {
         let mut new_params: Vec<P<Node>> = Vec::new();
         if !is_private && let Some(this_param) = ast::get_this_parameter(input) {
             new_params.push(self.ensure_parameter(this_param));
@@ -1267,7 +1250,7 @@ impl DeclarationTransformer {
     }
 
     // transform.go:1074
-    pub(crate) fn transform_constructor_declaration(&self, input: P<Node>) -> P<Node> {
+    fn transform_constructor_declaration(&self, input: P<Node>) -> P<Node> {
         // A constructor declaration may not have a type annotation
         self.factory().update_constructor_declaration(
             input,
@@ -1281,7 +1264,7 @@ impl DeclarationTransformer {
     }
 
     // transform.go:1087
-    pub(crate) fn transform_construct_signature_declaration(&self, input: P<Node>) -> P<Node> {
+    fn transform_construct_signature_declaration(&self, input: P<Node>) -> P<Node> {
         self.factory().update_construct_signature_declaration(
             input,
             self.ensure_type_params(input, input.type_parameter_list()),
@@ -1291,7 +1274,7 @@ impl DeclarationTransformer {
     }
 
     // transform.go:1096
-    pub(crate) fn omit_private_method_type(&self, input: P<Node>) -> Option<P<Node>> {
+    fn omit_private_method_type(&self, input: P<Node>) -> Option<P<Node>> {
         if let Some(symbol) = input.symbol() {
             let first_declaration = symbol.declarations().first().copied();
             if first_declaration.is_some_and(|d| d != input) {
@@ -1320,7 +1303,7 @@ impl DeclarationTransformer {
     }
 
     // transform.go:1122
-    pub(crate) fn transform_method_signature_declaration(&self, input: P<Node>) -> Option<P<Node>> {
+    fn transform_method_signature_declaration(&self, input: P<Node>) -> Option<P<Node>> {
         if self.resolver.get_effective_declaration_flags(
             self.emit_context().parse_node(Some(input)).unwrap(),
             ModifierFlags::Private,
@@ -1343,7 +1326,7 @@ impl DeclarationTransformer {
     }
 
     // transform.go:1140
-    pub(crate) fn transform_method_declaration(&self, input: P<Node>) -> Option<P<Node>> {
+    fn transform_method_declaration(&self, input: P<Node>) -> Option<P<Node>> {
         if self.resolver.get_effective_declaration_flags(
             self.emit_context().parse_node(Some(input)).unwrap(),
             ModifierFlags::Private,
@@ -1369,7 +1352,7 @@ impl DeclarationTransformer {
     }
 
     // transform.go:1161
-    pub(crate) fn visit_declaration_statements(&self, input: P<Node>) -> Option<P<Node>> {
+    fn visit_declaration_statements(&self, input: P<Node>) -> Option<P<Node>> {
         if self.should_strip_internal(Some(input)) {
             return None;
         }
@@ -1448,7 +1431,7 @@ impl DeclarationTransformer {
     }
 
     // transform.go:1212
-    pub(crate) fn get_name_of_exported_assigned_expression(
+    fn get_name_of_exported_assigned_expression(
         &self,
         unwrapped: P<Node>,
         is_export_equals: bool,
@@ -1601,7 +1584,7 @@ impl DeclarationTransformer {
     }
 
     // transform.go:1305
-    pub(crate) fn transform_function_like_to_declaration(
+    fn transform_function_like_to_declaration(
         &self,
         unwrapped: P<Node>,
         func_name: P<Node>,

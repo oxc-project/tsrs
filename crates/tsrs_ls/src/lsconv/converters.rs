@@ -27,8 +27,8 @@ pub struct Converters {
 // converters.go:30
 #[derive(Clone, Debug)]
 pub struct MappedSpan<T> {
-    pub script: T,
-    pub mapped_span: spanmap::MappedSpan,
+    pub(crate) script: T,
+    mapped_span: spanmap::MappedSpan,
 }
 
 impl<T> Deref for MappedSpan<T> {
@@ -42,8 +42,8 @@ impl<T> Deref for MappedSpan<T> {
 // converters.go:35
 #[derive(Clone, Debug)]
 pub struct MappedPosition<T> {
-    pub script: T,
-    pub mapped_position: spanmap::MappedPosition,
+    pub(crate) script: T,
+    mapped_position: spanmap::MappedPosition,
 }
 
 impl<T> Deref for MappedPosition<T> {
@@ -159,7 +159,7 @@ impl Converters {
     // through the file's span map and the fidelity of that mapping is returned. For normal files, the second
     // return value is FidelityExact.
     // converters.go:66
-    pub fn to_lsp_range(
+    pub(crate) fn to_lsp_range(
         &self,
         script: &dyn Script,
         text_range: TextRange,
@@ -179,7 +179,7 @@ impl Converters {
     // feature; the returned range is still the best-effort mapped range. For normal files, it behaves like
     // [Converters.ToLSPRange].
     // converters.go:78
-    pub fn to_lsp_range_for_feature(
+    pub(crate) fn to_lsp_range_for_feature(
         &self,
         script: &dyn Script,
         text_range: TextRange,
@@ -200,7 +200,7 @@ impl Converters {
     // declaration mapping) to an lsproto.Position. Positions in content-mapped files are mapped through
     // the file's span map; positions in normal files return FidelityExact.
     // converters.go:89
-    pub fn to_lsp_position(
+    pub(crate) fn to_lsp_position(
         &self,
         script: &dyn Script,
         position: TextPos,
@@ -214,7 +214,7 @@ impl Converters {
     // returned position is still the best-effort mapped position. For normal files, it behaves like
     // [Converters.ToLSPPosition].
     // converters.go:98
-    pub fn to_lsp_position_for_feature(
+    pub(crate) fn to_lsp_position_for_feature(
         &self,
         script: &dyn Script,
         position: TextPos,
@@ -230,7 +230,7 @@ impl Converters {
     // For normal files, the second return value is FidelityExact. If the file is a supplemental output of a content mapper,
     // the file's original file name is used for the URI (e.g. App.astro.0.ts -> App.astro).
     // converters.go:107
-    pub fn to_lsp_location(
+    pub(crate) fn to_lsp_location(
         &self,
         script: &dyn Script,
         rng: TextRange,
@@ -250,7 +250,7 @@ impl Converters {
     // returned position is still the best-effort mapped position. For normal files, it behaves like
     // [Converters.ToLSPLocation].
     // converters.go:119
-    pub fn to_lsp_location_for_feature(
+    pub(crate) fn to_lsp_location_for_feature(
         &self,
         script: &dyn Script,
         rng: TextRange,
@@ -291,7 +291,7 @@ impl Converters {
         clippy::wrong_self_convention,
         reason = "The method name and mutable receiver match the upstream Go operation."
     )]
-    pub fn from_lsp_range_for_source_file(
+    pub(crate) fn from_lsp_range_for_source_file(
         &self,
         file: P<SourceFile>,
         text_range: lsproto::Range,
@@ -316,7 +316,7 @@ impl Converters {
         clippy::wrong_self_convention,
         reason = "The method name and mutable receiver match the upstream Go operation."
     )]
-    pub fn from_lsp_range_intersecting_for_source_file(
+    pub(crate) fn from_lsp_range_intersecting_for_source_file(
         &self,
         file: P<SourceFile>,
         text_range: lsproto::Range,
@@ -426,7 +426,7 @@ impl Converters {
         clippy::wrong_self_convention,
         reason = "The method name and mutable receiver match the upstream Go operation."
     )]
-    pub fn from_lsp_position_for_source_file(
+    pub(crate) fn from_lsp_position_for_source_file(
         &self,
         file: P<SourceFile>,
         position: lsproto::Position,
@@ -442,7 +442,7 @@ impl Converters {
         clippy::wrong_self_convention,
         reason = "The method name and mutable receiver match the upstream Go operation."
     )]
-    pub fn from_lsp_range_to_original(
+    pub(crate) fn from_lsp_range_to_original(
         &self,
         script: &dyn Script,
         text_range: lsproto::Range,
@@ -746,7 +746,7 @@ impl Converters {
     }
 
     // converters.go:417
-    pub(crate) fn position_to_line_and_character(
+    fn position_to_line_and_character(
         &self,
         script: &dyn Script,
         position: TextPos,

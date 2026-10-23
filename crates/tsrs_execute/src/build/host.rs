@@ -98,7 +98,7 @@ impl HostImpl {
     }
 
     // host.go:118
-    pub(crate) fn load_or_store_m_time(
+    fn load_or_store_m_time(
         &self,
         file: &str,
         old_cache: Option<&MTimeCache>,

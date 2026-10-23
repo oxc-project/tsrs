@@ -6,14 +6,14 @@ mod organizeimports;
 mod symbol_display;
 mod userpreferences;
 mod utilities;
-pub use asi::*;
-pub use children::*;
-pub use completednode::*;
+pub(crate) use asi::*;
+pub(crate) use children::*;
+pub(crate) use completednode::*;
 pub use formatcodeoptions::*;
-pub use organizeimports::*;
+pub(crate) use organizeimports::*;
 pub use symbol_display::*;
 pub use userpreferences::*;
-pub use utilities::*;
+pub(crate) use utilities::*;
 
 #[cfg(test)]
 mod utilities_test;

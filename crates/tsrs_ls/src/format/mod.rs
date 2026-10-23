@@ -9,7 +9,7 @@ mod scanner;
 mod span;
 mod util;
 pub use api::*;
-pub use context::*;
+pub(crate) use context::*;
 pub use indent::*;
 pub(crate) use rule::*;
 pub(crate) use rulecontext::*;

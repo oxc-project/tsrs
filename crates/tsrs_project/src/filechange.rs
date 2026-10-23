@@ -1,7 +1,7 @@
 use tsrs_core::collections::Set;
 use tsrs_lsproto as lsproto;
 
-pub const EXCESSIVE_CHANGE_THRESHOLD: usize = 1000;
+const EXCESSIVE_CHANGE_THRESHOLD: usize = 1000;
 
 pub trait FileChangeExpander {
     fn expand_file_changes(&self, summary: FileChangeSummary) -> FileChangeSummary;
@@ -21,7 +21,7 @@ pub enum FileChangeKind {
 
 impl FileChangeKind {
     // filechange.go:26
-    pub fn is_watch_kind(self) -> bool {
+    pub(crate) fn is_watch_kind(self) -> bool {
         self == FileChangeKind::WatchCreate
             || self == FileChangeKind::WatchChange
             || self == FileChangeKind::WatchDelete
@@ -30,21 +30,21 @@ impl FileChangeKind {
 
 #[derive(Clone, Debug, Default)]
 pub struct FileChange {
-    pub kind: FileChangeKind,
-    pub uri: lsproto::DocumentUri,
-    pub version: i32,                         // Only set for Open/Change
-    pub content: String,                      // Only set for Open
-    pub language_kind: lsproto::LanguageKind, // Only set for Open
-    pub changes: Vec<lsproto::TextDocumentContentChangePartialOrWholeDocument>, // Only set for Change
+    pub(crate) kind: FileChangeKind,
+    pub(crate) uri: lsproto::DocumentUri,
+    pub(crate) version: i32,    // Only set for Open/Change
+    pub(crate) content: String, // Only set for Open
+    pub(crate) language_kind: lsproto::LanguageKind, // Only set for Open
+    pub(crate) changes: Vec<lsproto::TextDocumentContentChangePartialOrWholeDocument>, // Only set for Change
 }
 
 #[derive(Clone, Debug, Default)]
 pub struct FileChangeSummary {
     // Only one file can be opened at a time per request
-    pub opened: lsproto::DocumentUri,
+    pub(crate) opened: lsproto::DocumentUri,
     // Reopened is set if a close and open occurred for the same file in a single batch of changes.
-    pub reopened: lsproto::DocumentUri,
-    pub closed: Set<lsproto::DocumentUri>,
+    pub(crate) reopened: lsproto::DocumentUri,
+    pub(crate) closed: Set<lsproto::DocumentUri>,
     pub changed: Set<lsproto::DocumentUri>,
     // Only set when file watching is enabled
     pub created: Set<lsproto::DocumentUri>,
@@ -61,12 +61,12 @@ pub struct FileChangeSummary {
 impl FileChangeSummary {
     // filechange.go:58 (Go's value receiver copies the struct and clones the sets; Rust `clone` does both)
     #[must_use]
-    pub fn clone_summary(&self) -> FileChangeSummary {
+    pub(crate) fn clone_summary(&self) -> FileChangeSummary {
         self.clone()
     }
 
     // filechange.go:66
-    pub fn is_empty(&self) -> bool {
+    pub(crate) fn is_empty(&self) -> bool {
         !self.invalidate_all
             && self.opened.0.is_empty()
             && self.reopened.0.is_empty()
@@ -77,14 +77,14 @@ impl FileChangeSummary {
     }
 
     // filechange.go:70
-    pub fn has_excessive_watch_events(&self) -> bool {
+    pub(crate) fn has_excessive_watch_events(&self) -> bool {
         self.invalidate_all
             || self.created.len() + self.deleted.len() + self.changed.len()
                 > EXCESSIVE_CHANGE_THRESHOLD
     }
 
     // filechange.go:74
-    pub fn has_excessive_non_create_watch_events(&self) -> bool {
+    pub(crate) fn has_excessive_non_create_watch_events(&self) -> bool {
         self.invalidate_all || self.deleted.len() + self.changed.len() > EXCESSIVE_CHANGE_THRESHOLD
     }
 }

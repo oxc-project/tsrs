@@ -32,7 +32,7 @@ pub(crate) use tsrs_scanner::Scanner;
 // methods, operators and iterators. The checker has enough flags types for that duplication to be
 // measurable, and doesn't use the external-trait derives that need the private type. Use bitflags'
 // custom-type form while keeping the declarations and their symbolic Debug output unchanged.
-pub(crate) struct DirectBitflagsDebug<'a, F>(pub(crate) &'a F);
+pub(crate) struct DirectBitflagsDebug<'a, F>(&'a F);
 
 impl<F: bitflags::Flags> std::fmt::Debug for DirectBitflagsDebug<'_, F>
 where
@@ -179,7 +179,7 @@ pub use tsrs_astnav as astnav;
 
 // Exported Go package-level functions (the baseline writer, the language service and the project system call them).
 pub use checker_09::is_non_deferred_type_reference;
-pub use checker_14::get_mapped_type_modifiers;
+pub(crate) use checker_14::get_mapped_type_modifiers;
 pub use exports::{
     get_declaration_modifier_flags_from_symbol_exported, get_property_name_from_type_exported,
     is_distributed_type_parameter, is_tuple_type_exported, is_tuple_type_target,
@@ -187,7 +187,7 @@ pub use exports::{
 };
 pub use nodebuilder::{new_node_builder, new_node_builder_ex};
 pub use nodebuilderimpl_1::try_get_module_specifier_from_declaration;
-pub use printer::new_symbol_tracker_impl;
+pub(crate) use printer::new_symbol_tracker_impl;
 pub use services::get_resolved_signature_for_signature_help;
 pub use utilities::{
     compare_types, create_mode_mismatch_details, create_module_not_found_chain,

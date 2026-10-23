@@ -19,13 +19,13 @@ pub struct CancellationToken {
 }
 
 impl CancellationToken {
-    pub fn new() -> Self {
+    pub(crate) fn new() -> Self {
         Self::default()
     }
 
     /// context.WithCancel(parent).
     #[must_use]
-    pub fn child(self) -> Self {
+    pub(crate) fn child(self) -> Self {
         CancellationToken { cancelled: Arc::default(), parent: Some(Arc::new(self)) }
     }
 
@@ -50,7 +50,7 @@ pub struct RequestContext {
     /// blocking on it.
     pub depth: u32,
     /// Connection-wide callback state (how many requests are blocked on the client).
-    pub callbacks: std::sync::Arc<crate::reentrancy::CallbackState>,
+    pub(crate) callbacks: std::sync::Arc<crate::reentrancy::CallbackState>,
     /// This request's own re-entrancy state (attributed client calls, what it waits for).
     pub(crate) state: std::sync::Arc<crate::reentrancy::RequestState>,
 }

@@ -3,16 +3,17 @@
 use std::cmp::Ordering;
 
 pub struct Priority {
-    pub value: u32,
+    pub(crate) value: u32,
 }
 
 pub struct EmitHelper {
-    pub name: &'static str, // A unique name for this helper.
-    pub scoped: bool,       // Indicates whether the helper MUST be emitted in the current scope.
-    pub text: &'static str, // ES3-compatible raw script text
-    pub text_callback: Option<fn(make_unique_name: &mut dyn FnMut(&str) -> String) -> String>, // A function yielding an ES3-compatible raw script text.
-    pub priority: Option<&'static Priority>, // Helpers with a higher priority are emitted earlier than other helpers on the node.
-    pub dependencies: &'static [tsrs_core::SP<EmitHelper>], // Emit helpers this helper depends on
+    pub name: &'static str,        // A unique name for this helper.
+    pub scoped: bool, // Indicates whether the helper MUST be emitted in the current scope.
+    pub(crate) text: &'static str, // ES3-compatible raw script text
+    pub(crate) text_callback:
+        Option<fn(make_unique_name: &mut dyn FnMut(&str) -> String) -> String>, // A function yielding an ES3-compatible raw script text.
+    pub(crate) priority: Option<&'static Priority>, // Helpers with a higher priority are emitted earlier than other helpers on the node.
+    pub(crate) dependencies: &'static [tsrs_core::SP<EmitHelper>], // Emit helpers this helper depends on
     pub import_name: &'static str, // The name of the helper to use when importing via `--importHelpers`.
 }
 

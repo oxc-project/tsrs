@@ -44,7 +44,7 @@ mod utilities;
 
 pub use chain::*;
 pub use emithost::*;
-pub use modifiervisitor::*;
+pub(crate) use modifiervisitor::*;
 pub use resolver::*;
 pub use transformer::*;
 pub use utilities::*;

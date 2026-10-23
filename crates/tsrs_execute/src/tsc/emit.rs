@@ -10,26 +10,26 @@ use super::{
 };
 
 pub struct EmitInput<'a> {
-    pub sys: &'a dyn System,
-    pub program: &'static Program,
-    pub config: P<ParsedCommandLine>,
-    pub report_diagnostic: &'a DiagnosticReporter<'a>,
+    pub(crate) sys: &'a dyn System,
+    pub(crate) program: &'static Program,
+    pub(crate) config: P<ParsedCommandLine>,
+    pub(crate) report_diagnostic: &'a DiagnosticReporter<'a>,
     // tsrs-only: what `report_diagnostic` writes for a diagnostic, when it writes it through `write` (see
     // `create_diagnostic_formatter`); the report loop then formats the diagnostics in parallel (`report_diagnostics`).
-    pub format_diagnostic: Option<&'a DiagnosticFormatter<'a>>,
-    pub report_error_summary: &'a DiagnosticsReporter<'a>,
-    pub compile_times: CompileTimes,
+    pub(crate) format_diagnostic: Option<&'a DiagnosticFormatter<'a>>,
+    pub(crate) report_error_summary: &'a DiagnosticsReporter<'a>,
+    pub(crate) compile_times: CompileTimes,
     // Go `EmitInput.ProgramLike` when it is an `*incremental.Program`.
-    pub incremental: Option<P<tsrs_incremental::Program>>,
+    pub(crate) incremental: Option<P<tsrs_incremental::Program>>,
     // Go `EmitInput.Writer` (nil here means `sys.Writer()`), `EmitInput.WriteFile` and `EmitInput.Testing`.
-    pub writer: Option<&'a (dyn Fn(&str) + 'a)>,
-    pub write_file: Option<tsrs_compiler::WriteFile<'a>>,
-    pub testing: Option<&'a dyn super::CommandLineTesting>,
-    pub testing_m_times_cache: Option<super::MTimesCache>,
+    pub(crate) writer: Option<&'a (dyn Fn(&str) + 'a)>,
+    pub(crate) write_file: Option<tsrs_compiler::WriteFile<'a>>,
+    pub(crate) testing: Option<&'a dyn super::CommandLineTesting>,
+    pub(crate) testing_m_times_cache: Option<super::MTimesCache>,
 }
 
 impl EmitInput<'_> {
-    pub fn write(&self, text: &str) {
+    fn write(&self, text: &str) {
         match self.writer {
             Some(w) => w(text),
             None => self.sys.write(text),

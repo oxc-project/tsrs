@@ -6,8 +6,8 @@ fn newline_normalizer_replace(text: &str) -> String {
 }
 
 // taggedtemplate.go:15
-pub struct TaggedTemplateTransformer {
-    pub base: Transformer,
+struct TaggedTemplateTransformer {
+    base: Transformer,
     current_source_file: Cell<Option<P<SourceFile>>>,
 
     tagged_template_string_declarations: RefCell<Vec<P<Node>>>,

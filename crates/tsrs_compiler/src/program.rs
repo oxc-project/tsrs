@@ -48,15 +48,15 @@ pub type CreateCheckerPool = Arc<dyn Fn(&'static Program) -> Box<dyn CheckerPool
 
 // Go `ProgramOptions` (= ProgramConfig + ProgramHosts + ProgramFactories, flattened; tracing is not ported).
 pub struct ProgramOptions {
-    pub config: P<ParsedCommandLine>,
+    pub(crate) config: P<ParsedCommandLine>,
     pub use_source_of_project_reference: bool,
     pub single_threaded: Tristate,
     pub typings_location: String,
-    pub project_name: String,
+    pub(crate) project_name: String,
     // SkipModuleResolution avoids all module and type reference resolution while
     // still collecting import metadata needed for emit.
     pub skip_module_resolution: bool,
-    pub host: Arc<dyn CompilerHost>,
+    pub(crate) host: Arc<dyn CompilerHost>,
     pub create_checker_pool: Option<CreateCheckerPool>,
     pub create_module_resolver: Option<CreateModuleResolver>,
     /// tsrs-only: whether the type-check pass frees the tree of each leaf file once it is checked (fileregions.rs;
@@ -110,7 +110,7 @@ impl ProgramOptions {
     }
 
     // Go `ProgramOptions{ProgramConfig: config, Host: host, CreateCheckerPool: ..., CreateModuleResolver: ...}`.
-    pub fn from_config(
+    fn from_config(
         config: ProgramConfig,
         host: Arc<dyn CompilerHost>,
         create_checker_pool: Option<CreateCheckerPool>,
@@ -151,13 +151,13 @@ impl ProgramOptions {
 
 #[derive(Clone)]
 pub struct ProgramConfig {
-    pub config: P<ParsedCommandLine>,
-    pub use_source_of_project_reference: bool,
-    pub single_threaded: Tristate,
-    pub typings_location: String,
-    pub project_name: String,
-    pub skip_module_resolution: bool,
-    pub regions: Option<std::sync::Arc<crate::programregions::ProgramRegions>>,
+    pub(crate) config: P<ParsedCommandLine>,
+    use_source_of_project_reference: bool,
+    single_threaded: Tristate,
+    typings_location: String,
+    project_name: String,
+    pub(crate) skip_module_resolution: bool,
+    pub(crate) regions: Option<std::sync::Arc<crate::programregions::ProgramRegions>>,
 }
 
 impl ProgramConfig {
@@ -280,7 +280,7 @@ impl Program {
             && self.compiler_checker_pool().is_some()
     }
 
-    pub fn file_exists(&self, path: &str) -> bool {
+    pub(crate) fn file_exists(&self, path: &str) -> bool {
         self.host.fs().file_exists(path)
     }
 
@@ -325,14 +325,14 @@ impl Program {
 
     // GetRedirectTargets returns the list of file paths that redirect to the given path.
     // These are files from the same package (same name@version) installed in different locations.
-    pub fn get_redirect_targets(&self, path: &Path) -> &[String] {
+    pub(crate) fn get_redirect_targets(&self, path: &Path) -> &[String] {
         self.redirect_targets_map.get(path).map_or(&[] as &[String], std::vec::Vec::as_slice)
     }
 
     // gets the original file that was included in program
     // this returns original source file name when including output of project reference
     // otherwise same name
-    pub fn get_source_of_project_reference_if_output_included(
+    pub(crate) fn get_source_of_project_reference_if_output_included(
         &self,
         file_name: &str,
         path: &Path,
@@ -344,7 +344,7 @@ impl Program {
     }
 
     // program.go:209
-    pub fn get_project_reference_from_source(
+    pub(crate) fn get_project_reference_from_source(
         &self,
         path: &Path,
     ) -> Option<P<SourceOutputAndProjectReference>> {
@@ -357,7 +357,7 @@ impl Program {
     }
 
     // program.go:218
-    pub fn get_project_reference_from_output_dts(
+    pub(crate) fn get_project_reference_from_output_dts(
         &self,
         path: &Path,
     ) -> Option<P<SourceOutputAndProjectReference>> {
@@ -373,7 +373,10 @@ impl Program {
     }
 
     // program.go:226
-    pub fn get_redirect_for_resolution(&self, file: P<SourceFile>) -> Option<P<ParsedCommandLine>> {
+    pub(crate) fn get_redirect_for_resolution(
+        &self,
+        file: P<SourceFile>,
+    ) -> Option<P<ParsedCommandLine>> {
         self.project_reference_file_mapper
             .get_redirect_parsed_command_line_for_resolution(file.file_name(), file.path())
     }
@@ -896,7 +899,7 @@ impl Program {
 
     // program.go:458
     // GetCheckerPool returns the checker pool associated with this program.
-    pub fn get_checker_pool(&self) -> &dyn CheckerPool {
+    fn get_checker_pool(&self) -> &dyn CheckerPool {
         match self.checker_pool.get().unwrap() {
             ProgramCheckerPool::Compiler(pool) => pool,
             ProgramCheckerPool::External(pool) => &**pool,
@@ -1065,7 +1068,7 @@ impl Program {
         self.opts.config.content_mapper_extensions()
     }
 
-    pub fn content_mapper_extension_rewrites(&self) -> Vec<tspath::ExtensionRewrite> {
+    pub(crate) fn content_mapper_extension_rewrites(&self) -> Vec<tspath::ExtensionRewrite> {
         self.opts.config.content_mapper_extension_rewrites().to_vec()
     }
 
@@ -1140,7 +1143,7 @@ impl Program {
         self.processing_diagnostics.lock().unwrap()
     }
 
-    pub(crate) fn add_processing_diagnostic(&self, d: ProcessingDiagnostic) {
+    fn add_processing_diagnostic(&self, d: ProcessingDiagnostic) {
         self.processing_diagnostics.lock().unwrap().push(d);
     }
 
@@ -1240,7 +1243,7 @@ impl Program {
         self.get_resolved_module_by_path(file.path(), module_reference, mode)
     }
 
-    pub(crate) fn get_resolved_module_by_path(
+    fn get_resolved_module_by_path(
         &self,
         path: &Path,
         module_reference: &str,
@@ -1266,7 +1269,9 @@ impl Program {
         self.get_resolved_module(file, module_specifier.text(), mode)
     }
 
-    pub fn get_resolved_modules(&self) -> &FxHashMap<Path, ModeAwareCache<P<ResolvedModule>>> {
+    pub(crate) fn get_resolved_modules(
+        &self,
+    ) -> &FxHashMap<Path, ModeAwareCache<P<ResolvedModule>>> {
         &self.resolved_modules
     }
 
@@ -1275,7 +1280,7 @@ impl Program {
     }
 
     // GetPackagesMap returns a lazily-cached map of package names to whether they bundle types.
-    pub fn get_packages_map(&self) -> &FxHashMap<String, bool> {
+    pub(crate) fn get_packages_map(&self) -> &FxHashMap<String, bool> {
         self.packages_map.get_or_init(|| {
             let mut packages_map: FxHashMap<String, bool> = FxHashMap::default();
             #[expect(
@@ -2916,7 +2921,7 @@ impl Program {
         )
     }
 
-    pub fn get_emit_syntax_for_usage_location(
+    pub(crate) fn get_emit_syntax_for_usage_location(
         &self,
         source_file: P<SourceFile>,
         location: P<Node>,
@@ -3080,7 +3085,7 @@ impl Program {
         all_files_belong_to_path
     }
 
-    pub fn to_path(&self, filename: &str) -> Path {
+    fn to_path(&self, filename: &str) -> Path {
         tspath::to_path(
             filename,
             self.get_current_directory(),
@@ -3093,7 +3098,10 @@ impl Program {
         self.get_source_file_by_path(&path)
     }
 
-    pub fn get_source_file_for_resolved_module(&self, file_name: &str) -> Option<P<SourceFile>> {
+    pub(crate) fn get_source_file_for_resolved_module(
+        &self,
+        file_name: &str,
+    ) -> Option<P<SourceFile>> {
         let file = self.get_source_file(file_name);
         if file.is_none() {
             let filename = self.get_parse_file_redirect(file_name);
@@ -3480,7 +3488,7 @@ impl Program {
         })
     }
 
-    pub fn for_each_resolved_module(
+    fn for_each_resolved_module(
         &self,
         callback: &mut dyn FnMut(&ResolvedModule, &str, ResolutionMode, &Path),
         file: Option<P<SourceFile>>,
@@ -3494,7 +3502,7 @@ impl Program {
         );
     }
 
-    pub fn for_each_resolved_type_reference_directive(
+    fn for_each_resolved_type_reference_directive(
         &self,
         callback: &mut dyn FnMut(&ResolvedTypeReferenceDirective, &str, ResolutionMode, &Path),
         file: Option<P<SourceFile>>,

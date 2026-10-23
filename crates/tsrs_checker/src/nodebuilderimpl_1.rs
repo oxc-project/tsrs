@@ -109,7 +109,7 @@ impl NodeBuilderImpl {
     // as its structural form during hover expansion. Filters out lib types.
     // When isAlias is true, checks whether t's alias symbol is from user code (not lib).
     // nodebuilderimpl.go:175
-    pub(crate) fn is_expandable_type(c: &Checker, t: P<Type>, is_alias: bool) -> bool {
+    fn is_expandable_type(c: &Checker, t: P<Type>, is_alias: bool) -> bool {
         if is_alias {
             return !c.is_lib_symbol_for_hover_verbosity(t.alias().symbol());
         }
@@ -141,7 +141,7 @@ impl NodeBuilderImpl {
     // isTypeOnStack reports whether t is already being processed in the current expansion,
     // excluding the last element (which is the type currently being serialized by typeToTypeNode).
     // nodebuilderimpl.go:197
-    pub(crate) fn is_type_on_stack(&self, _c: &mut Checker, t: P<Type>) -> bool {
+    fn is_type_on_stack(&self, _c: &mut Checker, t: P<Type>) -> bool {
         let ctx = self.ctx();
         let type_stack = ctx.type_stack.borrow();
 
@@ -560,7 +560,7 @@ impl NodeBuilderImpl {
     }
 
     // nodebuilderimpl.go:492
-    pub(crate) fn type_node_is_equivalent_to_type(
+    fn type_node_is_equivalent_to_type(
         c: &mut Checker,
         annotated_declaration: Option<P<Node>>,
         t: P<Type>,
@@ -602,7 +602,7 @@ impl NodeBuilderImpl {
     }
 
     // nodebuilderimpl.go:524
-    pub(crate) fn existing_type_node_is_not_reference_or_is_reference_with_compatible_type_argument_count(
+    fn existing_type_node_is_not_reference_or_is_reference_with_compatible_type_argument_count(
         c: &mut Checker,
         existing: P<Node>,
         t: P<Type>,
@@ -756,7 +756,7 @@ impl NodeBuilderImpl {
     }
 
     // nodebuilderimpl.go:614
-    pub(crate) fn create_entity_name_from_symbol_chain(
+    fn create_entity_name_from_symbol_chain(
         &self,
         c: &mut Checker,
         chain: &[P<Symbol>],
@@ -972,7 +972,7 @@ pub fn get_topmost_indexed_access_type(node: P<Node>) -> P<Node> {
 
 impl NodeBuilderImpl {
     // nodebuilderimpl.go:752
-    pub(crate) fn create_access_from_symbol_chain(
+    fn create_access_from_symbol_chain(
         &self,
         c: &mut Checker,
         chain: &[P<Symbol>],
@@ -1148,7 +1148,7 @@ impl NodeBuilderImpl {
     }
 
     // nodebuilderimpl.go:858
-    pub(crate) fn create_expression_from_symbol_chain(
+    fn create_expression_from_symbol_chain(
         &self,
         c: &mut Checker,
         chain: &[P<Symbol>],
@@ -1271,11 +1271,7 @@ pub fn is_default_binding_context(location: P<Node>) -> bool {
 
 impl NodeBuilderImpl {
     // nodebuilderimpl.go:936
-    pub(crate) fn get_name_of_symbol_from_name_type(
-        &self,
-        c: &mut Checker,
-        symbol: P<Symbol>,
-    ) -> String {
+    fn get_name_of_symbol_from_name_type(&self, c: &mut Checker, symbol: P<Symbol>) -> String {
         if c.value_symbol_links.has(symbol) {
             let Some(name_type) = c.value_symbol_links.get(symbol).name_type() else {
                 return String::new();
@@ -1313,11 +1309,7 @@ impl NodeBuilderImpl {
      * It will also use a representation of a number as written instead of a decimal form, e.g. `0o11` instead of `9`.
      */
     // nodebuilderimpl.go:973
-    pub(crate) fn get_name_of_symbol_as_written(
-        &self,
-        c: &mut Checker,
-        symbol: P<Symbol>,
-    ) -> String {
+    fn get_name_of_symbol_as_written(&self, c: &mut Checker, symbol: P<Symbol>) -> String {
         let mut symbol = symbol;
         let result =
             self.ctx().remapped_symbol_references.borrow().get(&get_symbol_id(symbol)).copied();
@@ -1411,7 +1403,7 @@ impl NodeBuilderImpl {
     }
 
     // nodebuilderimpl.go:1036
-    pub(crate) fn lookup_type_parameter_nodes(
+    fn lookup_type_parameter_nodes(
         &self,
         c: &mut Checker,
         chain: &[P<Symbol>],
@@ -1458,7 +1450,7 @@ impl NodeBuilderImpl {
     }
 
     // nodebuilderimpl.go:1066
-    pub(crate) fn lookup_symbol_chain_worker(
+    fn lookup_symbol_chain_worker(
         &self,
         c: &mut Checker,
         symbol: P<Symbol>,
@@ -1491,7 +1483,7 @@ impl NodeBuilderImpl {
 
     /** @param endOfChain Set to false for recursive calls; non-recursive calls should always output something. */
     // nodebuilderimpl.go:1087
-    pub(crate) fn get_symbol_chain(
+    fn get_symbol_chain(
         &self,
         c: &mut Checker,
         symbol: P<Symbol>,
@@ -1610,7 +1602,7 @@ impl NodeBuilderImpl {
     }
 
     // nodebuilderimpl.go:1153
-    pub(crate) fn sort_by_best_name(
+    fn sort_by_best_name(
         c: &mut Checker,
         a: &SortedSymbolNamePair,
         b: &SortedSymbolNamePair,
@@ -1838,7 +1830,7 @@ impl NodeBuilderImpl {
     }
 
     // nodebuilderimpl.go:1340
-    pub(crate) fn module_specifier_result_for_symbol(
+    fn module_specifier_result_for_symbol(
         &self,
         c: &mut Checker,
         result: ModuleSpecifierResult,
@@ -1883,7 +1875,7 @@ impl NodeBuilderImpl {
     }
 
     // nodebuilderimpl.go:1347
-    pub(crate) fn module_specifier_resolves_to_symbol(
+    fn module_specifier_resolves_to_symbol(
         &self,
         c: &mut Checker,
         specifier: &str,
@@ -1914,7 +1906,7 @@ impl NodeBuilderImpl {
     }
 
     // nodebuilderimpl.go:1359
-    pub(crate) fn create_import_attributes_for_module_specifier(
+    fn create_import_attributes_for_module_specifier(
         &self,
         c: &mut Checker,
         result: ModuleSpecifierResult,
@@ -2069,7 +2061,7 @@ impl NodeBuilderImpl {
     }
 
     // nodebuilderimpl.go:1468
-    pub(crate) fn type_parameter_shadows_other_type_parameter_in_scope(
+    fn type_parameter_shadows_other_type_parameter_in_scope(
         &self,
         c: &mut Checker,
         name: &str,
@@ -2166,13 +2158,13 @@ impl NodeBuilderImpl {
     }
 
     // nodebuilderimpl.go:1522
-    pub(crate) fn is_mapped_type_homomorphic(c: &mut Checker, mapped: P<Type>) -> bool {
+    fn is_mapped_type_homomorphic(c: &mut Checker, mapped: P<Type>) -> bool {
         c.get_homomorphic_type_variable(mapped).is_some()
     }
 
     // Go passes the `*MappedType`; Rust passes the type itself (the payload has no back pointer for `mapped.AsType()`).
     // nodebuilderimpl.go:1526
-    pub(crate) fn is_homomorphic_mapped_type_with_non_homomorphic_instantiation(
+    fn is_homomorphic_mapped_type_with_non_homomorphic_instantiation(
         c: &mut Checker,
         mapped: P<Type>,
     ) -> bool {
@@ -2397,7 +2389,7 @@ impl NodeBuilderImpl {
     }
 
     // nodebuilderimpl.go:1669
-    pub(crate) fn type_to_type_node_helper_with_possible_reusable_type_node(
+    fn type_to_type_node_helper_with_possible_reusable_type_node(
         &self,
         c: &mut Checker,
         t: Option<P<Type>>,
@@ -2589,7 +2581,7 @@ impl NodeBuilderImpl {
     }
 
     // nodebuilderimpl.go:1785
-    pub(crate) fn clone_binding_name(&self, c: &mut Checker, node: P<Node>) -> P<Node> {
+    fn clone_binding_name(&self, c: &mut Checker, node: P<Node>) -> P<Node> {
         if is_computed_property_name(node) && c.is_late_bindable_name(node) {
             self.track_computed_name(
                 c,
@@ -2666,7 +2658,7 @@ impl NodeBuilderImpl {
     }
 
     // nodebuilderimpl.go:1837
-    pub(crate) fn type_predicate_to_type_predicate_node_helper(
+    fn type_predicate_to_type_predicate_node_helper(
         &self,
         c: &mut Checker,
         type_predicate: P<TypePredicate>,

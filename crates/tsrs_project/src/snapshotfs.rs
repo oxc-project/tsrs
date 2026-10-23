@@ -34,7 +34,7 @@ pub struct CachedLayeredFileSystem {
 }
 
 // snapshotfs.go:38
-pub fn new_cached_layered_file_system(
+fn new_cached_layered_file_system(
     file_system: Arc<dyn LayeredFileSystem>,
 ) -> Arc<dyn LayeredFileSystem> {
     Arc::new(CachedLayeredFileSystem {
@@ -118,12 +118,12 @@ impl FS for CachedLayeredFileSystem {
 // (Go guards `paths` with a mutex; here it is only mutated through `&mut` inside a dirty-map change.)
 #[derive(Clone, Default)]
 pub struct RealpathAliasSet {
-    pub(crate) paths: Set<Path>,
+    paths: Set<Path>,
 }
 
 impl RealpathAliasSet {
     // snapshotfs.go:76
-    pub(crate) fn add(&mut self, path: Path) {
+    fn add(&mut self, path: Path) {
         self.paths.add(path);
     }
 }
@@ -142,7 +142,7 @@ impl Cloneable for RealpathAliasSet {
 pub type CacheDirectories = SharedMap<Path, CloneableMap<Path, String>>;
 
 pub struct SnapshotFS {
-    pub(crate) to_path: ToPath,
+    to_path: ToPath,
     pub(crate) fs: Arc<dyn LayeredFileSystem>,
     pub(crate) cache_files: SharedMap<Path, CachedFile>,
     pub(crate) cache_directories: CacheDirectories,
@@ -260,7 +260,7 @@ fn merge_cached_directory_entries(
 pub struct SnapshotFSBuilder {
     pub(crate) fs: Arc<dyn LayeredFileSystem>,
     pub(crate) cache_files: dirty::SyncMap<Path, CachedFile>,
-    pub(crate) cache_directories: dirty::Map<Path, CloneableMap<Path, String>>,
+    cache_directories: dirty::Map<Path, CloneableMap<Path, String>>,
     source_backed_replacements: Mutex<Set<Path>>,
     node_modules_realpath_aliases: dirty::SyncMap<Path, RealpathAliasSet>,
     pub(crate) to_path: ToPath,

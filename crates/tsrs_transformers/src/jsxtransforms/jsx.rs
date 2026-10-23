@@ -5,8 +5,8 @@ use tsrs_core::collections::OrderedMap;
 use tsrs_core::stringutil;
 use tsrs_core::{JsxEmit, LanguageVariant};
 
-pub struct JSXTransformer {
-    pub base: Transformer,
+struct JSXTransformer {
+    base: Transformer,
     compiler_options: P<CompilerOptions>,
     emit_resolver: Resolver,
 

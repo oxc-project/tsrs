@@ -16,7 +16,7 @@ use crate::*;
 // emit-only transform helpers of factory.go are in factory_2.rs.
 #[derive(Default, Clone)]
 pub struct NodeFactory {
-    pub node_factory: ast::NodeFactory,
+    node_factory: ast::NodeFactory,
     // Shared with the hooks: `new_emit_context` fills it once the context is allocated (Go builds the context first
     // and then its factory, which a plain field behind `P` cannot express).
     emit_context: Rc<Cell<Option<P<EmitContext>>>>,
@@ -290,7 +290,7 @@ impl NodeFactory {
     }
 
     // factory.go:229
-    pub fn new_strict_equality_expression(&self, left: P<Node>, right: P<Node>) -> P<Node> {
+    pub(crate) fn new_strict_equality_expression(&self, left: P<Node>, right: P<Node>) -> P<Node> {
         self.new_binary_expression(
             None, /*modifiers*/
             left,

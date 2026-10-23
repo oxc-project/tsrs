@@ -295,7 +295,7 @@ impl Overlay {
     }
 
     #[inline]
-    pub fn get_cell<T: Copy>(&self, addr: usize, v: T) -> T {
+    fn get_cell<T: Copy>(&self, addr: usize, v: T) -> T {
         let line = Self::line(addr);
         let has = self.lines.borrow().get(line >> 6).is_some_and(|w| w & (1 << (line & 63)) != 0);
         if !has {
@@ -304,7 +304,7 @@ impl Overlay {
         self.cells.borrow().get(&addr).map_or(v, |&b| decode(b))
     }
 
-    pub fn set_cell<T: Copy>(&self, addr: usize, v: T) {
+    fn set_cell<T: Copy>(&self, addr: usize, v: T) {
         let line = Self::line(addr);
         {
             let mut lines = self.lines.borrow_mut();
@@ -355,7 +355,7 @@ pub fn try_current_overlay() -> Option<&'static Overlay> {
     (!p.is_null()).then(|| unsafe { &*p })
 }
 
-pub fn current_overlay() -> &'static Overlay {
+fn current_overlay() -> &'static Overlay {
     let p = CURRENT.with(Cell::get);
     assert!(
         !p.is_null(),
@@ -404,7 +404,7 @@ impl<T: Copy + std::fmt::Debug> std::fmt::Debug for OvCell<T> {
 
 impl<T: Copy + Default + PartialEq> OvCell<T> {
     #[inline]
-    pub const fn new(v: T) -> Self {
+    const fn new(v: T) -> Self {
         OvCell(Cell::new(v))
     }
 
@@ -494,7 +494,7 @@ pub struct OvThinSliceCell<T: 'static>(OvCell<crate::ThinSlice<T>>);
 
 impl<T> OvThinSliceCell<T> {
     #[inline]
-    pub fn new(s: &'static [T]) -> Self {
+    fn new(s: &'static [T]) -> Self {
         OvThinSliceCell(OvCell::new(crate::ThinSlice::new(s)))
     }
     #[inline]
@@ -518,7 +518,7 @@ pub struct OvOptionThinSliceCell<T: 'static>(OvCell<Option<crate::ThinSlice<T>>>
 
 impl<T> OvOptionThinSliceCell<T> {
     #[inline]
-    pub fn new(s: Option<&'static [T]>) -> Self {
+    fn new(s: Option<&'static [T]>) -> Self {
         OvOptionThinSliceCell(OvCell::new(s.map(crate::ThinSlice::new)))
     }
     #[inline]
@@ -624,7 +624,7 @@ pub fn overlay_set_if_frozen<C, T: Copy>(cell: &C, v: T) -> bool {
 /// `OwnedCell::set` on a frozen cell: kept in the overlay.
 #[cold]
 #[inline(never)]
-pub fn owned_set_if_frozen<C, T: Copy>(cell: &C, v: T) -> bool {
+pub(crate) fn owned_set_if_frozen<C, T: Copy>(cell: &C, v: T) -> bool {
     let addr = std::ptr::from_ref(cell).addr();
     if !is_frozen_addr_slow(addr) {
         return false;

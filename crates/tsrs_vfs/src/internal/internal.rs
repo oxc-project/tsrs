@@ -104,7 +104,7 @@ pub fn split_path(p: &str) -> (String, String) {
 }
 
 impl Common {
-    pub fn root_and_path(&self, path: &str) -> (Option<Box<dyn IoFS>>, String, String) {
+    fn root_and_path(&self, path: &str) -> (Option<Box<dyn IoFS>>, String, String) {
         let (root_name, mut rest) = split_path(path);
         if rest.is_empty() {
             rest = ".".to_string();

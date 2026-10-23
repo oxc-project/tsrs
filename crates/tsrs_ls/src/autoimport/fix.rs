@@ -38,12 +38,12 @@ pub struct NewImportBinding {
 // fix.go:37
 #[derive(Clone, Debug, Default)]
 pub struct Fix {
-    pub auto_import_fix: lsproto::AutoImportFix,
+    pub(crate) auto_import_fix: lsproto::AutoImportFix,
 
-    pub module_specifier_kind: ResultKind,
-    pub is_re_export: bool,
-    pub module_file_name: String,
-    pub type_only_alias_declaration: Option<P<Node>>,
+    pub(crate) module_specifier_kind: ResultKind,
+    pub(crate) is_re_export: bool,
+    pub(crate) module_file_name: String,
+    pub(crate) type_only_alias_declaration: Option<P<Node>>,
 }
 
 impl std::ops::Deref for Fix {
@@ -57,7 +57,7 @@ impl std::ops::Deref for Fix {
 pub struct AddToExistingImportFix {
     pub(crate) import_clause_or_binding_pattern: P<Node>,
     // One of `defaultImport` or `namedImports` will be present
-    pub(crate) default_import: Option<NewImportBinding>,
+    default_import: Option<NewImportBinding>,
     pub(crate) named_import: Option<NewImportBinding>,
 }
 
@@ -74,7 +74,7 @@ impl Fix {
     // Edits produces the text edits and a human-readable description for the fix. The returned bool is false
     // when the fix targets a content-mapped file and any edit could not be placed within a single verbatim
     // span, meaning it cannot be safely applied to the original text and the caller should discard it.
-    pub fn edits(
+    pub(crate) fn edits(
         &self,
         ctx: &Context,
         file: P<SourceFile>,
@@ -864,7 +864,7 @@ fn make_import(
 
 impl View {
     // fix.go:554
-    pub fn get_fixes(
+    pub(crate) fn get_fixes(
         &self,
         export: &Export,
         for_jsx: bool,
@@ -1265,9 +1265,9 @@ fn get_import_kind(
 // fix.go:838
 #[derive(Clone)]
 pub struct ExistingImport {
-    pub(crate) node: P<Node>,
-    pub(crate) module_specifier: String,
-    pub(crate) index: usize,
+    node: P<Node>,
+    module_specifier: String,
+    index: usize,
 }
 
 impl View {
@@ -1471,7 +1471,7 @@ impl View {
     // Sorting with this comparator will place the best fix first.
     // After rank sorting, fixes will be sorted by arbitrary but stable criteria
     // to ensure a deterministic order.
-    pub fn compare_fixes_for_sorting(&self, a: &Fix, b: &Fix) -> Ordering {
+    pub(crate) fn compare_fixes_for_sorting(&self, a: &Fix, b: &Fix) -> Ordering {
         let res = self.compare_fixes_for_ranking(a, b);
         if !res.is_eq() {
             return res;
@@ -1483,7 +1483,7 @@ impl View {
     // CompareFixesForRanking returns `Ordering::Less` if `a` is better than `b`.
     // Sorting with this comparator will place the best fix first.
     // Fixes of equal desirability will be considered equal.
-    pub fn compare_fixes_for_ranking(&self, a: &Fix, b: &Fix) -> Ordering {
+    pub(crate) fn compare_fixes_for_ranking(&self, a: &Fix, b: &Fix) -> Ordering {
         let res = compare_fix_kinds(a.kind, b.kind);
         if !res.is_eq() {
             return res;

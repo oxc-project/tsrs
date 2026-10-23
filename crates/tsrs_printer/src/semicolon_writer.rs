@@ -4,7 +4,7 @@ use tsrs_core::*;
 use crate::EmitTextWriter;
 
 pub struct TrailingSemicolonDeferringWriter {
-    pub(crate) inner: Box<dyn EmitTextWriter>,
+    inner: Box<dyn EmitTextWriter>,
     has_pending_semicolon: bool,
 }
 

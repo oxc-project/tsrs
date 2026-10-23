@@ -3,9 +3,9 @@
 use crate::*;
 
 // chain.go:10
-pub struct ChainedTransformer {
-    pub base: Transformer,
-    pub components: Vec<P<Transformer>>,
+struct ChainedTransformer {
+    base: Transformer,
+    components: Vec<P<Transformer>>,
 }
 
 impl ChainedTransformer {

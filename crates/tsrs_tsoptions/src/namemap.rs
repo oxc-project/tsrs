@@ -31,7 +31,7 @@ pub struct NameMap {
 }
 
 impl NameMap {
-    pub fn get(&self, name: &str) -> Option<&'static CommandLineOption> {
+    pub(crate) fn get(&self, name: &str) -> Option<&'static CommandLineOption> {
         self.options_names.get(&name.to_lowercase()).copied()
     }
 
@@ -41,7 +41,7 @@ impl NameMap {
         self.get(name)
     }
 
-    pub fn get_option_declaration_from_name(
+    pub(crate) fn get_option_declaration_from_name(
         &self,
         option_name: &str,
         allow_short: bool,

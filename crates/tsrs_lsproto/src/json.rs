@@ -23,17 +23,17 @@ pub struct JsonError(Box<SemanticError>);
 // innermost first; `within` appends as the error propagates outwards.
 #[derive(Clone, Debug, PartialEq, Eq, Default)]
 pub struct SemanticError {
-    pub go_type: String,
-    pub json_kind: u8,
-    pub json_value: String,
-    pub pointer: Vec<String>,
-    pub err: String,
+    pub(crate) go_type: String,
+    json_kind: u8,
+    json_value: String,
+    pub(crate) pointer: Vec<String>,
+    err: String,
     // ErrorCodes wrapped (Go `%w`) by the underlying error, outermost first.
-    pub codes: Vec<ErrorCode>,
-    pub plain: bool,
+    pub(crate) codes: Vec<ErrorCode>,
+    plain: bool,
     // The pointer is relative to a value Go decoded with a fresh `json.Unmarshal` (a buffered union arm,
     // a replayed field); json/v2 keeps such a pointer as is instead of prefixing the outer position.
-    pub sealed: bool,
+    pub(crate) sealed: bool,
 }
 
 impl std::ops::Deref for JsonError {
@@ -57,12 +57,12 @@ impl From<SemanticError> for JsonError {
 
 impl JsonError {
     // An error returned by a type's own unmarshal method (Go `UnmarshalJSONFrom`).
-    pub fn method(go_type: &str, err: impl Into<String>) -> JsonError {
+    pub(crate) fn method(go_type: &str, err: impl Into<String>) -> JsonError {
         SemanticError { go_type: go_type.to_string(), err: err.into(), ..Default::default() }.into()
     }
 
     // An error returned by a v1-style `UnmarshalJSON` method; json/v2 reports the JSON kind too.
-    pub fn method_v1(kind: u8, go_type: &str, err: impl Into<String>) -> JsonError {
+    pub(crate) fn method_v1(kind: u8, go_type: &str, err: impl Into<String>) -> JsonError {
         SemanticError {
             go_type: go_type.to_string(),
             json_kind: kind,
@@ -73,13 +73,13 @@ impl JsonError {
     }
 
     // json/v2: a JSON value of the wrong kind for the Go type.
-    pub fn mismatch(v: &Value, go_type: &str) -> JsonError {
+    pub(crate) fn mismatch(v: &Value, go_type: &str) -> JsonError {
         SemanticError { go_type: go_type.to_string(), json_kind: kind(v), ..Default::default() }
             .into()
     }
 
     // json/v2: a JSON number that does not fit the Go number type.
-    pub fn number(n: f64, go_type: &str, err: &str) -> JsonError {
+    fn number(n: f64, go_type: &str, err: &str) -> JsonError {
         SemanticError {
             go_type: go_type.to_string(),
             json_kind: b'0',
@@ -90,12 +90,12 @@ impl JsonError {
         .into()
     }
 
-    pub fn plain(err: impl Into<String>) -> JsonError {
+    pub(crate) fn plain(err: impl Into<String>) -> JsonError {
         SemanticError { err: err.into(), plain: true, ..Default::default() }.into()
     }
 
     #[must_use]
-    pub fn within(mut self, token: &str) -> JsonError {
+    pub(crate) fn within(mut self, token: &str) -> JsonError {
         if !self.plain && !self.sealed {
             self.pointer.push(token.to_string());
         }
@@ -105,7 +105,7 @@ impl JsonError {
     // The error of a fresh `json.Unmarshal` returned from an unmarshal method: json/v2 fills in the
     // current position only if the error has none.
     #[must_use]
-    pub fn seal(mut self) -> JsonError {
+    pub(crate) fn seal(mut self) -> JsonError {
         if !self.pointer.is_empty() {
             self.sealed = true;
         }
@@ -113,7 +113,7 @@ impl JsonError {
     }
 
     #[must_use]
-    pub fn within_index(self, index: usize) -> JsonError {
+    fn within_index(self, index: usize) -> JsonError {
         self.within(&index.to_string())
     }
 
@@ -179,12 +179,12 @@ impl fmt::Display for JsonError {
 
 impl std::error::Error for JsonError {}
 
-pub fn is_null(v: &Value) -> bool {
+pub(crate) fn is_null(v: &Value) -> bool {
     matches!(v, Value::Null)
 }
 
 // jsontext.Kind of a value: 'n', 't', 'f', '"', '0', '{', '['.
-pub fn kind(v: &Value) -> u8 {
+pub(crate) fn kind(v: &Value) -> u8 {
     match v {
         Value::Null => b'n',
         Value::Bool(true) => b't',
@@ -197,7 +197,7 @@ pub fn kind(v: &Value) -> u8 {
 }
 
 // jsontext.Kind.String().
-pub fn kind_string(k: u8) -> &'static str {
+pub(crate) fn kind_string(k: u8) -> &'static str {
     match k {
         b'n' => "null",
         b'f' => "false",
@@ -300,7 +300,7 @@ impl IsZero for String {
 }
 
 // json/v2 string decoding for a Go string kind named `go_type`; null decodes as "".
-pub fn decode_string<'a>(v: &'a Value, go_type: &str) -> Result<&'a str, JsonError> {
+pub(crate) fn decode_string<'a>(v: &'a Value, go_type: &str) -> Result<&'a str, JsonError> {
     match v {
         Value::String(s) => Ok(s),
         Value::Null => Ok(""),
@@ -309,7 +309,7 @@ pub fn decode_string<'a>(v: &'a Value, go_type: &str) -> Result<&'a str, JsonErr
 }
 
 // json/v2 signed integer decoding (`bits` wide) for a Go int kind named `go_type`; null decodes as 0.
-pub fn decode_int(v: &Value, bits: u32, go_type: &str) -> Result<i64, JsonError> {
+pub(crate) fn decode_int(v: &Value, bits: u32, go_type: &str) -> Result<i64, JsonError> {
     match v {
         Value::Number(n) => {
             let n = *n;
@@ -328,7 +328,7 @@ pub fn decode_int(v: &Value, bits: u32, go_type: &str) -> Result<i64, JsonError>
 }
 
 // json/v2 unsigned integer decoding (`bits` wide) for a Go uint kind named `go_type`; null decodes as 0.
-pub fn decode_uint(v: &Value, bits: u32, go_type: &str) -> Result<u64, JsonError> {
+pub(crate) fn decode_uint(v: &Value, bits: u32, go_type: &str) -> Result<u64, JsonError> {
     match v {
         Value::Number(n) => {
             let n = *n;
@@ -585,39 +585,39 @@ impl<K: JsonKey, V: Json> Json for OrderedMap<K, V> {
 }
 
 // Builds a JSON object in Go struct field order.
-pub struct ObjectWriter {
+pub(crate) struct ObjectWriter {
     m: JsonMap,
 }
 
 impl ObjectWriter {
-    pub fn new(capacity: usize) -> ObjectWriter {
+    pub(crate) fn new(capacity: usize) -> ObjectWriter {
         ObjectWriter { m: JsonMap::with_capacity(capacity) }
     }
 
     // A field without omitzero.
-    pub fn field<T: Json>(&mut self, name: &str, v: &T) {
+    pub(crate) fn field<T: Json>(&mut self, name: &str, v: &T) {
         self.m.insert(name.to_string(), v.to_json());
     }
 
     // A pointer/slice/map/interface field with omitzero: omitted when nil.
-    pub fn opt<T: Json>(&mut self, name: &str, v: Option<&T>) {
+    pub(crate) fn opt<T: Json>(&mut self, name: &str, v: Option<&T>) {
         if let Some(v) = v {
             self.m.insert(name.to_string(), v.to_json());
         }
     }
 
     // A value field with omitzero: omitted when it is the zero value.
-    pub fn value<T: Json + IsZero>(&mut self, name: &str, v: &T) {
+    pub(crate) fn value<T: Json + IsZero>(&mut self, name: &str, v: &T) {
         if !v.is_zero() {
             self.m.insert(name.to_string(), v.to_json());
         }
     }
 
-    pub fn raw(&mut self, name: &str, v: Value) {
+    pub(crate) fn raw(&mut self, name: &str, v: Value) {
         self.m.insert(name.to_string(), v);
     }
 
-    pub fn finish(self) -> Value {
+    pub(crate) fn finish(self) -> Value {
         Value::Object(self.m)
     }
 }

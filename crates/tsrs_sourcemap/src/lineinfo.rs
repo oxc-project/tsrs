@@ -16,12 +16,12 @@ pub fn create_ecma_line_info(text: String, line_starts: ECMALineStarts) -> Arc<E
 
 impl ECMALineInfo {
     // lineinfo.go:17
-    pub fn line_count(&self) -> usize {
+    pub(crate) fn line_count(&self) -> usize {
         self.line_starts.len()
     }
 
     // lineinfo.go:21
-    pub fn line_text(&self, line: usize) -> &str {
+    pub(crate) fn line_text(&self, line: usize) -> &str {
         let pos = self.line_starts[line];
         let end = if line + 1 < self.line_starts.len() {
             self.line_starts[line + 1]

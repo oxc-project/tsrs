@@ -18,8 +18,8 @@ struct LexicalArgumentsInfo {
 }
 
 // async.go:25
-pub struct AsyncTransformer {
-    pub base: Transformer,
+struct AsyncTransformer {
+    base: Transformer,
     super_access_state: SuperAccessState,
 
     context_flags: Cell<AsyncContextFlags>,

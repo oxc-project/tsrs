@@ -60,7 +60,7 @@ pub struct Mapper {
 }
 
 // contentmapper.go:58
-pub const SUPPORTED_VIRTUAL_EXTENSIONS: [&str; 9] =
+const SUPPORTED_VIRTUAL_EXTENSIONS: [&str; 9] =
     [".js", ".jsx", ".mjs", ".cjs", ".ts", ".tsx", ".mts", ".cts", ".json"];
 
 // contentmapper.go:62
@@ -110,7 +110,7 @@ impl Mapper {
     }
 
     // contentmapper.go:87
-    pub(crate) fn manifest_identity(&self) -> String {
+    fn manifest_identity(&self) -> String {
         if self.manifest.name.is_empty() {
             return String::new();
         }
@@ -177,7 +177,7 @@ impl Mapper {
     // whole CompilerOptions when a mapper depends on few options (or none).
     // contentmapper.go:119 (Go finds each field by its json tag through reflection, `compilerOptionFields`;
     // `gojson::compiler_option_to_go_json` does that lookup and the marshaling. The values are raw JSON text.)
-    pub fn marshal_declared_options(
+    pub(crate) fn marshal_declared_options(
         &self,
         options: Option<&CompilerOptions>,
     ) -> Result<OrderedMap<String, String>, String> {

@@ -9,12 +9,12 @@ use tsrs_ast::*;
 
 impl NodeBuilder {
     // nodebuilder.go:29
-    pub fn emit_context(&self) -> P<EmitContext> {
+    pub(crate) fn emit_context(&self) -> P<EmitContext> {
         self.impl_.e
     }
 
     // nodebuilder.go:33
-    pub(crate) fn enter_context(
+    fn enter_context(
         &self,
         enclosing_declaration: Option<P<Node>>,
         flags: Flags,
@@ -46,7 +46,7 @@ impl NodeBuilder {
 
     // propagateVerbosityOut copies expansion signals from the context to the VerbosityContext output.
     // nodebuilder.go:62
-    pub(crate) fn propagate_verbosity_out(&self) {
+    fn propagate_verbosity_out(&self) {
         if let Some(verbosity) = self.verbosity.get() {
             // Only set to true, never clear — multiple calls share the same VerbosityContext
             if self.impl_.ctx().can_increase_expansion_depth.get() {
@@ -59,7 +59,7 @@ impl NodeBuilder {
     }
 
     // nodebuilder.go:74
-    pub(crate) fn pop_context(&self) {
+    fn pop_context(&self) {
         let mut ctx_stack = self.ctx_stack.borrow_mut();
         match ctx_stack.pop() {
             None => self.impl_.ctx.set(None),
@@ -68,7 +68,7 @@ impl NodeBuilder {
     }
 
     // nodebuilder.go:84
-    pub(crate) fn exit_context(&self, result: Option<P<Node>>) -> Option<P<Node>> {
+    fn exit_context(&self, result: Option<P<Node>>) -> Option<P<Node>> {
         self.propagate_verbosity_out();
         self.exit_context_check();
         let encountered_error = self.impl_.ctx().encountered_error.get();
@@ -80,7 +80,7 @@ impl NodeBuilder {
     }
 
     // nodebuilder.go:94
-    pub(crate) fn exit_context_slice(&self, result: Vec<P<Node>>) -> Vec<P<Node>> {
+    fn exit_context_slice(&self, result: Vec<P<Node>>) -> Vec<P<Node>> {
         self.propagate_verbosity_out();
         self.exit_context_check();
         let encountered_error = self.impl_.ctx().encountered_error.get();
@@ -92,7 +92,7 @@ impl NodeBuilder {
     }
 
     // nodebuilder.go:104
-    pub(crate) fn exit_context_check(&self) {
+    fn exit_context_check(&self) {
         let ctx = self.impl_.ctx();
         if ctx.truncating.get() && ctx.flags.get().intersects(Flags::NoTruncation) {
             ctx.tracker.get().unwrap().report_truncation_error();
@@ -117,7 +117,7 @@ impl NodeBuilder {
 
     // SerializeReturnTypeForSignature implements NodeBuilderInterface.
     // nodebuilder.go:117
-    pub fn serialize_return_type_for_signature(
+    pub(crate) fn serialize_return_type_for_signature(
         &self,
         c: &mut Checker,
         signature_declaration: P<Node>,
@@ -135,7 +135,7 @@ impl NodeBuilder {
     }
 
     // nodebuilder.go:126
-    pub fn serialize_type_parameters_for_signature(
+    pub(crate) fn serialize_type_parameters_for_signature(
         &self,
         c: &mut Checker,
         signature_declaration: P<Node>,
@@ -159,7 +159,7 @@ impl NodeBuilder {
 
     // SerializeTypeForDeclaration implements NodeBuilderInterface.
     // nodebuilder.go:134
-    pub fn serialize_type_for_declaration(
+    pub(crate) fn serialize_type_for_declaration(
         &self,
         c: &mut Checker,
         declaration: P<Node>,
@@ -177,7 +177,7 @@ impl NodeBuilder {
 
     // SerializeTypeForExpression implements NodeBuilderInterface.
     // nodebuilder.go:140
-    pub fn serialize_type_for_expression(
+    pub(crate) fn serialize_type_for_expression(
         &self,
         c: &mut Checker,
         expr: P<Node>,
@@ -210,7 +210,7 @@ impl NodeBuilder {
 
     // ExpandSymbolForHover produces declaration nodes for a symbol with verbosity level support.
     // nodebuilder.go:152
-    pub fn expand_symbol_for_hover(
+    pub(crate) fn expand_symbol_for_hover(
         &self,
         c: &mut Checker,
         symbol: P<Symbol>,
@@ -326,7 +326,7 @@ pub fn simplify_modifiers(
 impl NodeBuilder {
     // SymbolToEntityName implements NodeBuilderInterface.
     // nodebuilder.go:225
-    pub fn symbol_to_entity_name(
+    pub(crate) fn symbol_to_entity_name(
         &self,
         c: &mut Checker,
         symbol: P<Symbol>,
@@ -343,7 +343,7 @@ impl NodeBuilder {
 
     // SymbolToExpression implements NodeBuilderInterface.
     // nodebuilder.go:231
-    pub fn symbol_to_expression(
+    pub(crate) fn symbol_to_expression(
         &self,
         c: &mut Checker,
         symbol: P<Symbol>,
@@ -360,7 +360,7 @@ impl NodeBuilder {
 
     // SymbolToNode implements NodeBuilderInterface.
     // nodebuilder.go:237
-    pub fn symbol_to_node(
+    pub(crate) fn symbol_to_node(
         &self,
         c: &mut Checker,
         symbol: P<Symbol>,
@@ -395,7 +395,7 @@ impl NodeBuilder {
 
     // SymbolToTypeParameterDeclarations implements NodeBuilderInterface.
     // nodebuilder.go:249
-    pub fn symbol_to_type_parameter_declarations(
+    fn symbol_to_type_parameter_declarations(
         &self,
         c: &mut Checker,
         symbol: P<Symbol>,
@@ -427,7 +427,7 @@ impl NodeBuilder {
 
     // TypePredicateToTypePredicateNode implements NodeBuilderInterface.
     // nodebuilder.go:261
-    pub fn type_predicate_to_type_predicate_node(
+    pub(crate) fn type_predicate_to_type_predicate_node(
         &self,
         c: &mut Checker,
         predicate: P<TypePredicate>,
@@ -458,7 +458,7 @@ impl NodeBuilder {
     }
 
     // nodebuilder.go:272
-    pub fn try_js_type_node_to_type_node(
+    pub(crate) fn try_js_type_node_to_type_node(
         &self,
         c: &mut Checker,
         node: P<Node>,

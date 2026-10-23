@@ -163,8 +163,8 @@ pub struct Watcher {
     program_ready: bool,
 
     // Test-only observability of which build path was taken.
-    pub fast_path_builds: usize,
-    pub full_builds: usize,
+    fast_path_builds: usize,
+    full_builds: usize,
 }
 
 impl tsc::Watcher for Watcher {
@@ -473,7 +473,7 @@ impl Watcher {
     }
 
     /// Go `DoCycle`.
-    pub fn do_cycle(&mut self) {
+    fn do_cycle(&mut self) {
         let wm = Arc::clone(&self.wm);
         let mut state = wm.lock();
 

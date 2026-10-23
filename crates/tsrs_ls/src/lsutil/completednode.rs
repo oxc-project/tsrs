@@ -16,7 +16,7 @@ pub fn position_belongs_to_node(candidate: P<Node>, position: u32, file: P<Sourc
 }
 
 // completednode.go:19
-pub fn is_completed_node(n: Option<P<Node>>, source_file: P<SourceFile>) -> bool {
+fn is_completed_node(n: Option<P<Node>>, source_file: P<SourceFile>) -> bool {
     let Some(n) = n else {
         return false;
     };

@@ -72,7 +72,7 @@ struct TokenAtPositionState {
 }
 
 // tokens.go:38
-pub fn get_token_at_position_worker(
+fn get_token_at_position_worker(
     source_file: P<SourceFile>,
     position: u32,
     allow_position_in_leading_trivia: bool,

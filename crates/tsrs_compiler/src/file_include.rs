@@ -31,7 +31,7 @@ pub struct FileIncludeReason {
     pub(crate) kind: FileIncludeKind,
     pub(crate) index: usize,
     pub(crate) is_default_lib: bool,
-    pub(crate) referenced_file: Option<ReferencedFileData>,
+    referenced_file: Option<ReferencedFileData>,
     pub(crate) automatic_type_directive: Option<P<AutomaticTypeDirectiveFileData>>,
     // Go `tspath.Path`, set only for a supplemental content-mapper output (an arena handle: one per supplemental file).
     pub(crate) canonical_source_file: Option<P<Path>>,
@@ -64,20 +64,20 @@ impl FileIncludeReason {
 pub struct ReferencedFileData {
     // Go `tspath.Path`; shared by every reference from the same file (fileLoader `reason_path`).
     pub(crate) file: &'static str,
-    pub(crate) index: Option<usize>,
-    pub(crate) synthetic: Option<P<Node>>,
+    index: Option<usize>,
+    synthetic: Option<P<Node>>,
 }
 
 pub struct ReferenceFileLocation {
-    pub(crate) file: P<SourceFile>,
-    pub(crate) node: Option<P<Node>>,
+    file: P<SourceFile>,
+    node: Option<P<Node>>,
     pub(crate) ref_: Option<P<FileReference>>,
-    pub(crate) package_id: PackageId,
+    package_id: PackageId,
     pub(crate) is_synthetic: bool,
 }
 
 impl ReferenceFileLocation {
-    pub(crate) fn text(&self) -> String {
+    fn text(&self) -> String {
         if let Some(node) = self.node {
             if ast::node_is_synthesized(node) {
                 format!("\"{}\"", node.text())
@@ -122,11 +122,11 @@ pub struct AutomaticTypeDirectiveFileData {
 }
 
 impl FileIncludeReason {
-    pub(crate) fn as_index(&self) -> usize {
+    fn as_index(&self) -> usize {
         self.index
     }
 
-    pub(crate) fn as_lib_file_index(&self) -> Option<usize> {
+    fn as_lib_file_index(&self) -> Option<usize> {
         if self.is_default_lib { None } else { Some(self.index) }
     }
 
@@ -143,7 +143,7 @@ impl FileIncludeReason {
         self.referenced_file.as_ref().unwrap()
     }
 
-    pub(crate) fn as_automatic_type_directive_file_data(&self) -> &AutomaticTypeDirectiveFileData {
+    fn as_automatic_type_directive_file_data(&self) -> &AutomaticTypeDirectiveFileData {
         self.automatic_type_directive.as_deref().unwrap()
     }
 }

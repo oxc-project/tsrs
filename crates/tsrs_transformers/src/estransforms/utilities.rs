@@ -64,17 +64,17 @@ pub fn create_not_null_condition(
 // utilities.go:55
 #[derive(Default)]
 pub struct SuperAccessState {
-    pub factory: OnceCell<&'static printer::NodeFactory>,
+    factory: OnceCell<&'static printer::NodeFactory>,
 
     // Keeps track of property names accessed on super (`super.x`) within async functions.
-    pub captured_super_properties: RefCell<Option<OrderedSet<String>>>,
+    pub(crate) captured_super_properties: RefCell<Option<OrderedSet<String>>>,
     // Whether the async function contains an element access on super (`super[x]`).
-    pub has_super_element_access: Cell<bool>,
-    pub has_super_property_assignment: Cell<bool>,
+    pub(crate) has_super_element_access: Cell<bool>,
+    pub(crate) has_super_property_assignment: Cell<bool>,
 
-    pub super_binding: Cell<Option<P<Node>>>,
-    pub super_index_binding: Cell<Option<P<Node>>>,
-    pub super_access_visitor: OnceCell<NodeVisitor>,
+    pub(crate) super_binding: Cell<Option<P<Node>>>,
+    pub(crate) super_index_binding: Cell<Option<P<Node>>>,
+    pub(crate) super_access_visitor: OnceCell<NodeVisitor>,
 }
 
 impl SuperAccessState {
@@ -87,7 +87,7 @@ impl SuperAccessState {
     }
 
     // utilities.go:69
-    pub fn init_super_access_visitor(
+    pub(crate) fn init_super_access_visitor(
         &'static self,
         emit_context: P<EmitContext>,
         factory: &'static printer::NodeFactory,
@@ -103,7 +103,7 @@ impl SuperAccessState {
     // accesses with _super/_superIndex references. This is necessary because the async body
     // ends up inside a generator function where `super` is not valid.
     // utilities.go:77
-    pub fn visit_super_access_node(&self, node: P<Node>) -> P<Node> {
+    fn visit_super_access_node(&self, node: P<Node>) -> P<Node> {
         match node.kind() {
             Kind::CallExpression => {
                 if ast::is_super_property(node.expression().unwrap()) {
@@ -149,13 +149,13 @@ impl SuperAccessState {
     }
 
     // utilities.go:111
-    pub fn substitute_super_accesses_in_body(&self, body: P<Node>) -> P<Node> {
+    pub(crate) fn substitute_super_accesses_in_body(&self, body: P<Node>) -> P<Node> {
         self.super_access_visitor().visit_node(Some(body)).unwrap()
     }
 
     // substituteCallExpressionWithSuperAccess handles super.x(args) and super[x](args).
     // utilities.go:116
-    pub fn substitute_call_expression_with_super_access(
+    fn substitute_call_expression_with_super_access(
         &self,
         call: P<Node>,
         visitor: &mut NodeVisitor,
@@ -207,10 +207,7 @@ impl SuperAccessState {
 
     // createSuperElementAccessInAsyncMethod creates _superIndex(x) or _superIndex(x).value.
     // utilities.go:158
-    pub fn create_super_element_access_in_async_method(
-        &self,
-        argument_expression: P<Node>,
-    ) -> P<Node> {
+    fn create_super_element_access_in_async_method(&self, argument_expression: P<Node>) -> P<Node> {
         let f = self.factory();
         let super_index_call = f.new_call_expression(
             self.super_index_binding.get().unwrap(),
@@ -240,7 +237,7 @@ impl SuperAccessState {
     //	    x: { get: () => super.x, set: (v) => super.x = v }, // read-write
     //	});
     // utilities.go:182
-    pub fn create_super_access_variable_statement(&self) -> P<Node> {
+    pub(crate) fn create_super_access_variable_statement(&self) -> P<Node> {
         let f = self.factory();
         let mut accessors: Vec<P<Node>> = Vec::new();
 
@@ -348,7 +345,7 @@ impl SuperAccessState {
     // visitors to ensure super accesses are tracked regardless of whether the node has
     // transform flags.
     // utilities.go:251
-    pub fn track_super_access(&self, node: P<Node>) {
+    pub(crate) fn track_super_access(&self, node: P<Node>) {
         if self.captured_super_properties.borrow().is_none() {
             return;
         }

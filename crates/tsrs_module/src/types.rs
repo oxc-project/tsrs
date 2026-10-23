@@ -83,7 +83,7 @@ impl fmt::Display for PackageId {
 }
 
 impl PackageId {
-    pub fn package_name(&self) -> String {
+    fn package_name(&self) -> String {
         if !self.sub_module_name.is_empty() {
             return format!("{}/{}", self.name, self.sub_module_name);
         }

@@ -311,7 +311,7 @@ pub fn required_child<T>(visited: Option<T>, original: T) -> T {
 }
 
 /// Go `core.SameMap` over a raw node slice: returns `nodes` itself when `f` maps every element to itself.
-pub fn same_map_nodes(
+pub(crate) fn same_map_nodes(
     nodes: &'static [P<Node>],
     mut f: impl FnMut(P<Node>) -> P<Node>,
 ) -> &'static [P<Node>] {

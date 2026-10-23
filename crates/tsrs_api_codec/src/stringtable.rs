@@ -16,7 +16,7 @@ pub struct StringTable<'a> {
 }
 
 impl<'a> StringTable<'a> {
-    pub fn new(file_text: &'a str, string_count: usize) -> StringTable<'a> {
+    pub(crate) fn new(file_text: &'a str, string_count: usize) -> StringTable<'a> {
         StringTable {
             file_text: file_text.as_bytes(),
             other_strings: Vec::new(),
@@ -26,7 +26,7 @@ impl<'a> StringTable<'a> {
 
     /// Go `stringTable.add`. `text` may be WTF-8 (lone surrogates encoded by `encode_js_string_rune`); it is
     /// copied byte for byte.
-    pub fn add(
+    pub(crate) fn add(
         &mut self,
         text: &str,
         kind: Kind,
@@ -74,20 +74,20 @@ impl<'a> StringTable<'a> {
     }
 
     /// Number of uint32 entries in the string offsets section.
-    pub fn offsets_len(&self) -> usize {
+    pub(crate) fn offsets_len(&self) -> usize {
         self.offsets.len()
     }
 
-    pub fn string_length(&self) -> usize {
+    pub(crate) fn string_length(&self) -> usize {
         self.file_text.len() + self.other_strings.len()
     }
 
-    pub fn encoded_length(&self) -> usize {
+    fn encoded_length(&self) -> usize {
         self.offsets.len() * 4 + self.string_length()
     }
 
     /// Appends the string offsets section followed by the string data section.
-    pub fn encode_into(&self, out: &mut Vec<u8>) {
+    pub(crate) fn encode_into(&self, out: &mut Vec<u8>) {
         out.reserve(self.encoded_length());
         out.extend(self.offsets.iter().flat_map(|&o| o.to_le_bytes()));
         out.extend_from_slice(self.file_text);

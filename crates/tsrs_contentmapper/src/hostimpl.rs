@@ -70,9 +70,9 @@ pub fn unmarshal<T: ProtocolJson>(raw: Option<Value>) -> Result<T, String> {
 #[derive(Clone, PartialEq, Eq, Debug, Default)]
 pub struct InitializeParams {
     // Locale is the BCP 47 locale to use for mapper-authored diagnostic messages, when configured.
-    pub locale: String,
+    pub(crate) locale: String,
     // PositionEncodings lists the coordinate spaces the host accepts.
-    pub position_encodings: Vec<PositionEncoding>,
+    pub(crate) position_encodings: Vec<PositionEncoding>,
 }
 
 impl ProtocolJson for InitializeParams {
@@ -335,7 +335,7 @@ pub struct PositionEncoding(pub Cow<'static, str>);
 impl PositionEncoding {
     // hostimpl.go:96
     pub const UTF8: PositionEncoding = PositionEncoding(Cow::Borrowed("utf-8"));
-    pub const UTF16: PositionEncoding = PositionEncoding(Cow::Borrowed("utf-16"));
+    pub(crate) const UTF16: PositionEncoding = PositionEncoding(Cow::Borrowed("utf-16"));
 }
 
 impl fmt::Display for PositionEncoding {

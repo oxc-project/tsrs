@@ -35,7 +35,7 @@ use crate::stringutil::{Rune, decode_rune, push_rune};
 //   - any other character matches itself literally.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct Glob {
-    pub(crate) elems: Vec<Element>, // pattern elements
+    elems: Vec<Element>, // pattern elements
 }
 
 // Parse builds a Glob for the given pattern, returning an error if the pattern
@@ -45,7 +45,7 @@ pub fn parse(pattern: &str) -> Result<Glob, String> {
     Ok(g)
 }
 
-pub fn parse_nested(mut pattern: &str, nested: bool) -> Result<(Glob, &str), String> {
+fn parse_nested(mut pattern: &str, nested: bool) -> Result<(Glob, &str), String> {
     let mut g = Glob::default();
     while !pattern.is_empty() {
         match pattern.as_bytes()[0] {
@@ -130,7 +130,7 @@ pub fn parse_nested(mut pattern: &str, nested: bool) -> Result<(Glob, &str), Str
 }
 
 // helper for decoding a rune in range elements, e.g. [a-z]
-pub fn read_range_rune(input: &str) -> Result<(Rune, usize), String> {
+fn read_range_rune(input: &str) -> Result<(Rune, usize), String> {
     let (r, sz) = decode_rune(input.as_bytes());
     if r == 0xFFFD {
         // See the documentation for DecodeRuneInString.
@@ -143,18 +143,18 @@ pub fn read_range_rune(input: &str) -> Result<(Rune, usize), String> {
     Ok((r, sz))
 }
 
-pub const ERR_BAD_RANGE: &str = "'[' patterns must be of the form [x-y]";
-pub const ERR_INVALID_UTF8: &str = "invalid UTF-8 encoding";
+const ERR_BAD_RANGE: &str = "'[' patterns must be of the form [x-y]";
+const ERR_INVALID_UTF8: &str = "invalid UTF-8 encoding";
 
 impl Glob {
-    pub(crate) fn parse_literal<'a>(&mut self, pattern: &'a str, nested: bool) -> &'a str {
+    fn parse_literal<'a>(&mut self, pattern: &'a str, nested: bool) -> &'a str {
         let special_chars: &[u8] = if nested { b"*?{[/}," } else { b"*?{[/" };
         let end = pattern.bytes().position(|b| special_chars.contains(&b)).unwrap_or(pattern.len());
         self.elems.push(Element::Literal(pattern[..end].to_string()));
         &pattern[end..]
     }
 
-    pub fn string(&self) -> String {
+    fn string(&self) -> String {
         let mut b = String::new();
         b.extend(self.elems.iter().map(Element::string));
         b
@@ -185,7 +185,7 @@ pub enum Element {
 }
 
 impl Element {
-    pub(crate) fn string(&self) -> String {
+    fn string(&self) -> String {
         match self {
             Element::Slash => "/".to_string(),
             Element::Literal(l) => l.clone(),
@@ -222,7 +222,7 @@ impl Glob {
     }
 }
 
-pub fn match_(mut elems: &[&Element], mut input: &[u8]) -> bool {
+fn match_(mut elems: &[&Element], mut input: &[u8]) -> bool {
     while !elems.is_empty() {
         let elem = elems[0];
         elems = &elems[1..];
@@ -339,7 +339,7 @@ pub fn match_(mut elems: &[&Element], mut input: &[u8]) -> bool {
 // split returns the portion before and after the first slash
 // (or sequence of consecutive slashes). If there is no slash
 // it returns (input, nil).
-pub fn split(input: &[u8]) -> (&[u8], &[u8]) {
+fn split(input: &[u8]) -> (&[u8], &[u8]) {
     let Some(i) = memchr::memchr(b'/', input) else {
         return (input, b"");
     };

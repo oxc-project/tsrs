@@ -3,20 +3,20 @@
 pub type Rune = u32;
 
 pub struct Range16 {
-    pub lo: u16,
-    pub hi: u16,
-    pub stride: u16,
+    pub(crate) lo: u16,
+    pub(crate) hi: u16,
+    pub(crate) stride: u16,
 }
 
 pub struct Range32 {
-    pub lo: u32,
-    pub hi: u32,
-    pub stride: u32,
+    pub(crate) lo: u32,
+    pub(crate) hi: u32,
+    pub(crate) stride: u32,
 }
 
 pub struct RangeTable {
-    pub r16: &'static [Range16],
-    pub r32: &'static [Range32],
+    pub(crate) r16: &'static [Range16],
+    pub(crate) r32: &'static [Range32],
     pub latin_offset: usize,
 }
 

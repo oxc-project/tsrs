@@ -23,7 +23,7 @@ bitflags! {
 
 impl GeneratedIdentifierFlags {
     #[must_use]
-    pub fn kind(self) -> GeneratedIdentifierFlags {
+    pub(crate) fn kind(self) -> GeneratedIdentifierFlags {
         self & GeneratedIdentifierFlags::KindMask
     }
 
@@ -39,7 +39,7 @@ impl GeneratedIdentifierFlags {
         self.kind() == GeneratedIdentifierFlags::Unique
     }
 
-    pub fn is_node(self) -> bool {
+    pub(crate) fn is_node(self) -> bool {
         self.kind() == GeneratedIdentifierFlags::Node
     }
 

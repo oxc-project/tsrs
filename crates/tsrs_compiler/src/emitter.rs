@@ -698,7 +698,7 @@ mod emit {
         }
 
         // emitter.go:443
-        pub(crate) fn get_source_mapping_url(
+        fn get_source_mapping_url(
             &self,
             map_options: &CompilerOptions,
             source_map_generator: &mut SourceMapGenerator,
@@ -757,9 +757,9 @@ mod emit {
     // emitter.go:295
     // Go `declarationMapSource`: the original (content-mapped) source a declaration map points at.
     pub struct DeclarationMapSource {
-        pub(crate) file_name: String,
-        pub(crate) text: &'static str,
-        pub(crate) line_map: Vec<u32>,
+        file_name: String,
+        text: &'static str,
+        line_map: Vec<u32>,
     }
 
     // emitter.go:301

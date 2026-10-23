@@ -41,7 +41,7 @@ use crate::watch::WatchedFiles;
 // Shared as `Arc<Snapshot>`; Go's explicit `ref`/`Deref` counts are kept (they release parse cache entries and
 // programs), the `Arc` only keeps the memory alive (docs/LSP.md "Threading model").
 pub struct Snapshot {
-    pub(crate) host: Arc<SnapshotHost>,
+    host: Arc<SnapshotHost>,
     pub(crate) id: u64,
     pub(crate) parent_id: u64,
     ref_count: AtomicU32,
@@ -51,13 +51,13 @@ pub struct Snapshot {
     // Immutable state, cloned between snapshots
     pub(crate) fs: Arc<SnapshotFS>,
     pub project_collection: Arc<ProjectCollection>,
-    pub config_file_registry: Arc<ConfigFileRegistry>,
-    pub auto_imports: Option<Arc<autoimport::Registry>>,
+    pub(crate) config_file_registry: Arc<ConfigFileRegistry>,
+    pub(crate) auto_imports: Option<Arc<autoimport::Registry>>,
     pub(crate) auto_imports_watch: Option<Arc<WatchedFiles<FxHashMap<Path, String>>>>,
-    pub(crate) compiler_options_for_inferred_projects: Option<P<CompilerOptions>>,
-    pub(crate) inferred_project_content_mappers: Vec<Mapper>,
+    compiler_options_for_inferred_projects: Option<P<CompilerOptions>>,
+    inferred_project_content_mappers: Vec<Mapper>,
     pub(crate) inferred_project_content_mapper_extensions: Vec<String>,
-    pub(crate) user_preferences: UserPreferences,
+    user_preferences: UserPreferences,
     // Go: contentMapperWatchStateOnce + contentMapperExtensions + contentMapperWatchedFiles.
     content_mapper_watch_state: OnceLock<(Vec<String>, Arc<Set<Path>>)>,
 
@@ -67,7 +67,7 @@ pub struct Snapshot {
     // supplied by an API update rather than the session host filesystem.
     pub(crate) file_system_override: bool,
 
-    pub(crate) created_programs: Vec<Option<Shared<Project>>>,
+    created_programs: Vec<Option<Shared<Project>>>,
 }
 
 impl Snapshot {
@@ -202,26 +202,26 @@ pub struct APISnapshotRequest {
 #[derive(Clone, Debug, Default)]
 pub struct ProjectTreeRequest {
     // If null, all project trees need to be loaded, otherwise only those that are referenced
-    pub(crate) referenced_projects: Option<Set<Path>>,
+    referenced_projects: Option<Set<Path>>,
 }
 
 impl ProjectTreeRequest {
-    pub fn new(referenced_projects: Option<Set<Path>>) -> ProjectTreeRequest {
+    pub(crate) fn new(referenced_projects: Option<Set<Path>>) -> ProjectTreeRequest {
         ProjectTreeRequest { referenced_projects }
     }
 
     // snapshot.go:362
-    pub fn is_all_projects(&self) -> bool {
+    pub(crate) fn is_all_projects(&self) -> bool {
         self.referenced_projects.is_none()
     }
 
     // snapshot.go:366
-    pub fn is_project_referenced(&self, project_id: &Path) -> bool {
+    pub(crate) fn is_project_referenced(&self, project_id: &Path) -> bool {
         self.referenced_projects.as_ref().is_some_and(|r| r.has(project_id))
     }
 
     // snapshot.go:370
-    pub fn projects(&self) -> Vec<Path> {
+    pub(crate) fn projects(&self) -> Vec<Path> {
         match &self.referenced_projects {
             None => Vec::new(),
             Some(r) => r.keys().iter().cloned().collect(),
@@ -233,21 +233,21 @@ impl ProjectTreeRequest {
 pub struct ResourceRequest {
     // Documents are URIs that were requested by the client.
     // The new snapshot should ensure projects for these URIs have loaded programs.
-    pub documents: Vec<lsproto::DocumentUri>,
+    pub(crate) documents: Vec<lsproto::DocumentUri>,
     // ConfiguredProjectDocuments are URIs for which configured projects should be loaded
     // (if disableSolutionSearching/disableReferencedProjectLoad settings allow),
     // but no inferred project should be created if no configured project is found.
     // This is used by cross-project operations like find-all-references.
-    pub configured_project_documents: Vec<lsproto::DocumentUri>,
+    pub(crate) configured_project_documents: Vec<lsproto::DocumentUri>,
     // Update requested Projects.
     // this is used when we want to get LS and from all the Projects the file can be part of
-    pub projects: Vec<ID>,
+    pub(crate) projects: Vec<ID>,
     // Update and ensure project trees that reference the projects
     // This is used to compute the solution and project tree so that
     // we can find references across all the projects in the solution irrespective of which project is open
-    pub project_tree: Option<ProjectTreeRequest>,
+    pub(crate) project_tree: Option<ProjectTreeRequest>,
     // AutoImports is the document URI for which auto imports should be prepared.
-    pub auto_imports: lsproto::DocumentUri,
+    pub(crate) auto_imports: lsproto::DocumentUri,
 }
 
 #[derive(Default)]
@@ -278,12 +278,12 @@ pub struct SnapshotChange {
 // ATAStateChange represents a change to a project's ATA state.
 pub struct ATAStateChange {
     // TypingsInfo is the new typings info for the project.
-    pub typings_info: Option<Arc<ata::TypingsInfo>>,
+    pub(crate) typings_info: Option<Arc<ata::TypingsInfo>>,
     // TypingsFiles is the new list of typing files for the project.
-    pub typings_files: Vec<String>,
+    pub(crate) typings_files: Vec<String>,
     // TypingsFilesToWatch is the new list of typing files to watch for changes.
-    pub typings_files_to_watch: Vec<String>,
-    pub logs: LogTree,
+    pub(crate) typings_files_to_watch: Vec<String>,
+    pub(crate) logs: LogTree,
 }
 
 // Go's `defer func() { if r := recover(); r != nil { sessionLogger.Log(logger.String()); panic(r) } }()`.
@@ -338,7 +338,7 @@ impl Snapshot {
     }
 
     // snapshot.go:134
-    pub(crate) fn process_file_changes(
+    fn process_file_changes(
         &self,
         fs: &SnapshotFSBuilder,
         mut file_changes: FileChangeSummary,
@@ -462,7 +462,7 @@ impl Snapshot {
     }
 
     // snapshot.go:252
-    pub(crate) fn to_path(&self, file_name: &str) -> Path {
+    fn to_path(&self, file_name: &str) -> Path {
         (self.host.to_path)(file_name)
     }
 
@@ -509,7 +509,7 @@ impl Snapshot {
     }
 
     // snapshot.go:431
-    pub fn clone_snapshot(
+    pub(crate) fn clone_snapshot(
         &self,
         ctx: &Context,
         mut change: SnapshotChange,
@@ -1143,7 +1143,7 @@ impl tsrs_ls::Host for Snapshot {
 }
 
 impl Snapshot {
-    pub fn use_case_sensitive_file_names(&self) -> bool {
+    fn use_case_sensitive_file_names(&self) -> bool {
         tsrs_ls::Host::use_case_sensitive_file_names(self)
     }
 

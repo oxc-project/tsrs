@@ -160,7 +160,7 @@ impl S {
         }
     }
 
-    pub(super) fn sp(&self, extra: &[(&str, Value)]) -> Value {
+    fn sp(&self, extra: &[(&str, Value)]) -> Value {
         let mut o = JsonMap::new();
         o.insert("snapshot".to_string(), Value::Number(self.snapshot));
         o.insert("project".to_string(), Value::String(self.project.clone()));

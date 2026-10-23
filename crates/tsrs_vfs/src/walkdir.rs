@@ -214,7 +214,7 @@ impl DirEntry {
         &self.name
     }
 
-    pub fn is_dir(&self) -> bool {
+    fn is_dir(&self) -> bool {
         self.mode.is_dir()
     }
 

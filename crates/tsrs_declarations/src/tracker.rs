@@ -7,7 +7,7 @@ use crate::*;
 impl SymbolTrackerImpl {
     // tracker.go:27
     // PopErrorFallbackNode implements checker.SymbolTracker.
-    pub fn pop_error_fallback_node(&self) {
+    pub(crate) fn pop_error_fallback_node(&self) {
         let mut fallback_stack = self.fallback_stack.borrow_mut();
         let len = fallback_stack.len();
         fallback_stack.truncate(len - 1);
@@ -15,13 +15,13 @@ impl SymbolTrackerImpl {
 
     // tracker.go:32
     // PushErrorFallbackNode implements checker.SymbolTracker.
-    pub fn push_error_fallback_node(&self, node: Option<P<Node>>) {
+    pub(crate) fn push_error_fallback_node(&self, node: Option<P<Node>>) {
         self.fallback_stack.borrow_mut().push(node);
     }
 
     // tracker.go:37
     // ReportCyclicStructureError implements checker.SymbolTracker.
-    pub fn report_cyclic_structure_error(&self) {
+    pub(crate) fn report_cyclic_structure_error(&self) {
         let location = self.error_location();
         if let Some(location) = location {
             self.state.add_diagnostic(create_diagnostic_for_node(location, &diagnostics::THE_INFERRED_TYPE_OF_0_REFERENCES_A_TYPE_WITH_A_CYCLIC_STRUCTURE_WHICH_CANNOT_BE_TRIVIALLY_SERIALIZED_A_TYPE_ANNOTATION_IS_NECESSARY, &[&self.error_declaration_name_with_fallback()]));
@@ -30,7 +30,7 @@ impl SymbolTrackerImpl {
 
     // tracker.go:45
     // ReportInaccessibleThisError implements checker.SymbolTracker.
-    pub fn report_inaccessible_this_error(&self) {
+    pub(crate) fn report_inaccessible_this_error(&self) {
         let location = self.error_location();
         if let Some(location) = location {
             self.state.add_diagnostic(create_diagnostic_for_node(location, &diagnostics::THE_INFERRED_TYPE_OF_0_REFERENCES_AN_INACCESSIBLE_1_TYPE_A_TYPE_ANNOTATION_IS_NECESSARY, &[&self.error_declaration_name_with_fallback(), &"this"]));
@@ -39,7 +39,7 @@ impl SymbolTrackerImpl {
 
     // tracker.go:53
     // ReportInaccessibleUniqueSymbolError implements checker.SymbolTracker.
-    pub fn report_inaccessible_unique_symbol_error(&self) {
+    pub(crate) fn report_inaccessible_unique_symbol_error(&self) {
         let location = self.error_location();
         if let Some(location) = location {
             self.state.add_diagnostic(create_diagnostic_for_node(location, &diagnostics::THE_INFERRED_TYPE_OF_0_REFERENCES_AN_INACCESSIBLE_1_TYPE_A_TYPE_ANNOTATION_IS_NECESSARY, &[&self.error_declaration_name_with_fallback(), &"unique symbol"]));
@@ -47,7 +47,7 @@ impl SymbolTrackerImpl {
     }
 
     // tracker.go:60
-    pub(crate) fn is_bound_expando(&self, c: &mut Checker, node: P<Node>) -> bool {
+    fn is_bound_expando(&self, c: &mut Checker, node: P<Node>) -> bool {
         if !(ast::is_expando_property_declaration(node)
             && ast::is_property_access_expression(node.as_binary_expression().left))
         {
@@ -66,7 +66,7 @@ impl SymbolTrackerImpl {
     }
 
     // tracker.go:77
-    pub(crate) fn is_child_of_bound_expando(&self, c: &mut Checker, node: P<Node>) -> bool {
+    fn is_child_of_bound_expando(&self, c: &mut Checker, node: P<Node>) -> bool {
         ast::find_ancestor_or_quit(node, |n| {
             if ast::is_source_file(n) || ast::is_block(n) {
                 return FindAncestorResult::Quit;
@@ -78,7 +78,7 @@ impl SymbolTrackerImpl {
 
     // tracker.go:87
     // ReportInferenceFallback implements checker.SymbolTracker.
-    pub fn report_inference_fallback(&self, c: &mut Checker, node: P<Node>) {
+    pub(crate) fn report_inference_fallback(&self, c: &mut Checker, node: P<Node>) {
         if !self.state.isolated_declarations {
             return;
         }
@@ -99,7 +99,11 @@ impl SymbolTrackerImpl {
 
     // tracker.go:103
     // ReportLikelyUnsafeImportRequiredError implements checker.SymbolTracker.
-    pub fn report_likely_unsafe_import_required_error(&self, specifier: &str, symbol_name: &str) {
+    pub(crate) fn report_likely_unsafe_import_required_error(
+        &self,
+        specifier: &str,
+        symbol_name: &str,
+    ) {
         let location = self.error_location();
         if let Some(location) = location {
             if symbol_name.is_empty() {
@@ -112,7 +116,7 @@ impl SymbolTrackerImpl {
 
     // tracker.go:115
     // ReportNonSerializableProperty implements checker.SymbolTracker.
-    pub fn report_non_serializable_property(&self, property_name: &str) {
+    pub(crate) fn report_non_serializable_property(&self, property_name: &str) {
         let location = self.error_location();
         if let Some(location) = location {
             self.state.add_diagnostic(create_diagnostic_for_node(location, &diagnostics::THE_TYPE_OF_THIS_NODE_CANNOT_BE_SERIALIZED_BECAUSE_ITS_PROPERTY_0_CANNOT_BE_SERIALIZED, &[&property_name]));
@@ -121,7 +125,7 @@ impl SymbolTrackerImpl {
 
     // tracker.go:123
     // ReportNonlocalAugmentation implements checker.SymbolTracker.
-    pub fn report_nonlocal_augmentation(
+    pub(crate) fn report_nonlocal_augmentation(
         &self,
         containing_file: P<SourceFile>,
         parent_symbol: P<Symbol>,
@@ -152,7 +156,7 @@ impl SymbolTrackerImpl {
 
     // tracker.go:137
     // ReportPrivateInBaseOfClassExpression implements checker.SymbolTracker.
-    pub fn report_private_in_base_of_class_expression(&self, property_name: &str) {
+    pub(crate) fn report_private_in_base_of_class_expression(&self, property_name: &str) {
         let location = self.error_location();
         if let Some(location) = location {
             let diag = create_diagnostic_for_node(location, &diagnostics::PROPERTY_0_OF_EXPORTED_ANONYMOUS_CLASS_TYPE_MAY_NOT_BE_PRIVATE_OR_PROTECTED, &[&property_name]);
@@ -170,7 +174,7 @@ impl SymbolTrackerImpl {
 
     // tracker.go:150
     // ReportTruncationError implements checker.SymbolTracker.
-    pub fn report_truncation_error(&self) {
+    pub(crate) fn report_truncation_error(&self) {
         let location = self.error_location();
         if let Some(location) = location {
             self.state.add_diagnostic(create_diagnostic_for_node(location, &diagnostics::THE_INFERRED_TYPE_OF_THIS_NODE_EXCEEDS_THE_MAXIMUM_LENGTH_THE_COMPILER_WILL_SERIALIZE_AN_EXPLICIT_TYPE_ANNOTATION_IS_NEEDED, &[]));
@@ -178,7 +182,7 @@ impl SymbolTrackerImpl {
     }
 
     // tracker.go:157
-    pub(crate) fn error_fallback_node(&self) -> Option<P<Node>> {
+    fn error_fallback_node(&self) -> Option<P<Node>> {
         let fallback_stack = self.fallback_stack.borrow();
         if !fallback_stack.is_empty() {
             return fallback_stack[fallback_stack.len() - 1];
@@ -187,7 +191,7 @@ impl SymbolTrackerImpl {
     }
 
     // tracker.go:164
-    pub(crate) fn error_location(&self) -> Option<P<Node>> {
+    fn error_location(&self) -> Option<P<Node>> {
         let mut location = self.state.error_name_node.get();
         if location.is_none() {
             location = self.error_fallback_node();
@@ -196,7 +200,7 @@ impl SymbolTrackerImpl {
     }
 
     // tracker.go:172
-    pub(crate) fn error_declaration_name_with_fallback(&self) -> String {
+    fn error_declaration_name_with_fallback(&self) -> String {
         if self.state.error_name_node.get().is_some() {
             return scanner::declaration_name_to_string(self.state.error_name_node.get());
         }
@@ -220,7 +224,7 @@ impl SymbolTrackerImpl {
 
     // tracker.go:189
     // TrackSymbol implements checker.SymbolTracker.
-    pub fn track_symbol(
+    pub(crate) fn track_symbol(
         &self,
         c: &mut Checker,
         symbol: P<Symbol>,

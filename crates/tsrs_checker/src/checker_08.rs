@@ -38,10 +38,7 @@ impl Checker {
     }
 
     // checker.go:15254
-    pub(crate) fn get_target_of_namespace_export_declaration(
-        &mut self,
-        node: P<Node>,
-    ) -> Option<P<Symbol>> {
+    fn get_target_of_namespace_export_declaration(&mut self, node: P<Node>) -> Option<P<Symbol>> {
         let parent = node.parent().unwrap();
         if ast::can_have_symbol(parent) {
             let resolved = parent
@@ -54,7 +51,7 @@ impl Checker {
     }
 
     // checker.go:15263
-    pub(crate) fn get_target_of_access_expression(&mut self, node: P<Node>) -> Option<P<Symbol>> {
+    fn get_target_of_access_expression(&mut self, node: P<Node>) -> Option<P<Symbol>> {
         let parent = node.parent().unwrap();
         if ast::is_binary_expression(parent) {
             let expr = parent.as_binary_expression();
@@ -161,7 +158,7 @@ impl Checker {
     }
 
     // checker.go:15353
-    pub(crate) fn get_cannot_resolve_module_name_error_for_specific_module(
+    fn get_cannot_resolve_module_name_error_for_specific_module(
         &self,
         module_name: P<Node>,
     ) -> Option<&'static Message> {
@@ -731,7 +728,7 @@ impl Checker {
     // If a resolved symbol from regular module resolution exists and we have an empty import attributes type,
     // we prefer the resolved symbol.
     // checker.go:15696
-    pub(crate) fn try_resolve_pattern_ambient_module(
+    fn try_resolve_pattern_ambient_module(
         &mut self,
         resolved_symbol: Option<P<Symbol>>,
         module_reference: &str,
@@ -818,7 +815,7 @@ pub fn resolution_extension_is_ts_or_json(ext: &str) -> bool {
 
 impl Checker {
     // checker.go:15752
-    pub(crate) fn get_suggested_import_source(
+    fn get_suggested_import_source(
         &self,
         module_reference: &str,
         ts_extension: &str,
@@ -853,7 +850,7 @@ impl Checker {
     }
 
     // checker.go:15775
-    pub(crate) fn get_suggested_import_extension(&self, extensionless_import_path: &str) -> String {
+    fn get_suggested_import_extension(&self, extensionless_import_path: &str) -> String {
         let exists = |c: &Checker, ext: &str| {
             c.program.file_exists(&format!("{extensionless_import_path}{ext}"))
         };
@@ -882,7 +879,7 @@ impl Checker {
     }
 
     // checker.go:15799
-    pub(crate) fn error_on_implicit_any_module(
+    fn error_on_implicit_any_module(
         &mut self,
         is_error: bool,
         error_node: P<Node>,
@@ -918,7 +915,7 @@ impl Checker {
     }
 
     // checker.go:15820
-    pub(crate) fn create_module_not_found_chain(
+    fn create_module_not_found_chain(
         &self,
         resolved_module: P<ResolvedModule>,
         error_node: P<Node>,
@@ -952,7 +949,7 @@ impl Checker {
     }
 
     // checker.go:15838
-    pub(crate) fn create_mode_mismatch_details(
+    fn create_mode_mismatch_details(
         &self,
         source_file: P<SourceFile>,
         error_node: P<Node>,
@@ -1147,7 +1144,7 @@ impl Checker {
     }
 
     // checker.go:15947
-    pub(crate) fn has_signatures(&mut self, t: P<Type>) -> bool {
+    fn has_signatures(&mut self, t: P<Type>) -> bool {
         !self.get_signatures_of_structured_type(t, SignatureKind::Call).is_empty()
             || !self.get_signatures_of_structured_type(t, SignatureKind::Construct).is_empty()
     }
@@ -1289,7 +1286,7 @@ impl Checker {
     }
 
     // checker.go:16030
-    pub(crate) fn create_default_property_wrapper_for_module(
+    fn create_default_property_wrapper_for_module(
         &mut self,
         symbol: P<Symbol>,
         original_symbol: Option<P<Symbol>>,
@@ -1315,7 +1312,7 @@ impl Checker {
     }
 
     // checker.go:16044
-    pub(crate) fn clone_type_as_module_type(
+    fn clone_type_as_module_type(
         &mut self,
         symbol: P<Symbol>,
         module_type: P<Type>,
@@ -1516,7 +1513,7 @@ impl Checker {
     }
 
     // checker.go:16151
-    pub(crate) fn resolve_qualified_name(
+    fn resolve_qualified_name(
         &mut self,
         name: P<Node>,
         left: P<Node>,
@@ -1624,7 +1621,7 @@ impl Checker {
     }
 
     // checker.go:16214
-    pub(crate) fn try_get_qualified_name_as_value(&mut self, node: P<Node>) -> Option<P<Symbol>> {
+    fn try_get_qualified_name_as_value(&mut self, node: P<Node>) -> Option<P<Symbol>> {
         let id = ast::get_first_identifier(node);
         let mut symbol = self.resolve_name(
             Some(id),
@@ -1767,7 +1764,7 @@ impl Checker {
     // @param lateSymbols The late-bound symbols of the parent.
     // @param decl The member to bind.
     // checker.go:16328
-    pub(crate) fn late_bind_member(
+    fn late_bind_member(
         &mut self,
         parent: P<Symbol>,
         early_symbols: Option<P<SymbolTable>>,
@@ -1856,7 +1853,7 @@ impl Checker {
     }
 
     // checker.go:16391
-    pub(crate) fn late_bind_index_signature(
+    fn late_bind_index_signature(
         &mut self,
         parent: P<Symbol>,
         early_symbols: Option<P<SymbolTable>>,
@@ -1905,7 +1902,7 @@ impl Checker {
     // late-bound members that `addDeclarationToSymbol` in binder.ts performs for early-bound
     // members.
     // checker.go:16419
-    pub(crate) fn add_declaration_to_late_bound_symbol(
+    fn add_declaration_to_late_bound_symbol(
         &mut self,
         symbol: P<Symbol>,
         member: P<Node>,
@@ -1978,7 +1975,7 @@ impl Checker {
     }
 
     // checker.go:16471
-    pub(crate) fn get_exports_of_module_worker(
+    fn get_exports_of_module_worker(
         &mut self,
         module_symbol: Option<P<Symbol>>,
     ) -> (P<SymbolTable>, FxHashMap<String, P<Node>>) {
@@ -2126,7 +2123,7 @@ impl Checker {
      * Not passing `lookupTable` and `exportNode` disables this collection, and just extends the tables
      */
     // checker.go:16558
-    pub(crate) fn extend_export_symbols(
+    fn extend_export_symbols(
         &mut self,
         target: &SymbolTable,
         source: Option<&SymbolTable>,
@@ -2226,11 +2223,7 @@ impl Checker {
     }
 
     // checker.go:16616
-    pub(crate) fn resolve_indirection_alias(
-        &mut self,
-        source: P<Symbol>,
-        target: P<Symbol>,
-    ) -> P<Symbol> {
+    fn resolve_indirection_alias(&mut self, source: P<Symbol>, target: P<Symbol>) -> P<Symbol> {
         let resolved = self.resolve_alias(target);
         let result = self.get_merged_symbol(resolved);
         let target_links = self.alias_symbol_links.get(target);
@@ -2369,12 +2362,12 @@ impl Checker {
     }
 
     // checker.go:16720
-    pub fn get_declaration_of_alias_symbol(symbol: P<Symbol>) -> Option<P<Node>> {
+    pub(crate) fn get_declaration_of_alias_symbol(symbol: P<Symbol>) -> Option<P<Node>> {
         symbol.declarations().iter().rev().copied().find(|d| ast::is_alias_symbol_declaration(*d))
     }
 
     // checker.go:16724
-    pub(crate) fn get_type_of_symbol_with_deferred_type(&mut self, symbol: P<Symbol>) -> P<Type> {
+    fn get_type_of_symbol_with_deferred_type(&mut self, symbol: P<Symbol>) -> P<Type> {
         let links = self.value_symbol_links.get(symbol);
         if links.resolved_type.get().is_none() {
             let deferred = self.deferred_symbol_links.get(symbol);
@@ -2389,10 +2382,7 @@ impl Checker {
     }
 
     // checker.go:16737
-    pub(crate) fn get_write_type_of_symbol_with_deferred_type(
-        &mut self,
-        symbol: P<Symbol>,
-    ) -> P<Type> {
+    fn get_write_type_of_symbol_with_deferred_type(&mut self, symbol: P<Symbol>) -> P<Type> {
         let links = self.value_symbol_links.get(symbol);
         if links.write_type().is_none() {
             let deferred = self.deferred_symbol_links.get(symbol);
@@ -2552,7 +2542,7 @@ impl Checker {
     }
 
     // checker.go:16847
-    pub fn get_non_missing_type_of_symbol(&mut self, symbol: P<Symbol>) -> P<Type> {
+    pub(crate) fn get_non_missing_type_of_symbol(&mut self, symbol: P<Symbol>) -> P<Type> {
         let t = self.get_type_of_symbol(symbol);
         self.remove_missing_type(t, symbol.flags().intersects(SymbolFlags::Optional))
     }
@@ -2579,7 +2569,7 @@ impl Checker {
 
     // checker.go:16851
     #[inline(never)]
-    pub(crate) fn get_type_of_instantiated_symbol(&mut self, symbol: P<Symbol>) -> P<Type> {
+    fn get_type_of_instantiated_symbol(&mut self, symbol: P<Symbol>) -> P<Type> {
         let links = self.value_symbol_links.get(symbol);
         if links.resolved_type.get().is_none() {
             #[cfg(feature = "site-counts")]
@@ -2594,7 +2584,7 @@ impl Checker {
     }
 
     // checker.go:16859
-    pub(crate) fn get_write_type_of_instantiated_symbol(&mut self, symbol: P<Symbol>) -> P<Type> {
+    fn get_write_type_of_instantiated_symbol(&mut self, symbol: P<Symbol>) -> P<Type> {
         let links = self.value_symbol_links.get(symbol);
         if links.write_type().is_none() {
             let target_type = self.get_write_type_of_symbol(links.target().unwrap()).unwrap();
@@ -2606,10 +2596,7 @@ impl Checker {
 
     // checker.go:16867
     #[inline(never)]
-    pub(crate) fn get_type_of_variable_or_parameter_or_property(
-        &mut self,
-        symbol: P<Symbol>,
-    ) -> P<Type> {
+    fn get_type_of_variable_or_parameter_or_property(&mut self, symbol: P<Symbol>) -> P<Type> {
         let links = self.value_symbol_links.get(symbol);
         if links.resolved_type.get().is_none() {
             let t = self.get_type_of_variable_or_parameter_or_property_worker(symbol);
@@ -2629,10 +2616,7 @@ impl Checker {
     }
 
     // checker.go:16887
-    pub(crate) fn is_parameter_of_context_sensitive_signature(
-        &mut self,
-        symbol: P<Symbol>,
-    ) -> bool {
+    fn is_parameter_of_context_sensitive_signature(&mut self, symbol: P<Symbol>) -> bool {
         let Some(mut decl) = symbol.value_declaration() else {
             return false;
         };
@@ -2647,7 +2631,7 @@ impl Checker {
     }
 
     // checker.go:16901
-    pub(crate) fn get_type_of_variable_or_parameter_or_property_worker(
+    fn get_type_of_variable_or_parameter_or_property_worker(
         &mut self,
         symbol: P<Symbol>,
     ) -> P<Type> {
@@ -3011,7 +2995,7 @@ impl Checker {
     }
 
     // checker.go:17146
-    pub(crate) fn pad_object_literal_type(&mut self, t: P<Type>, pattern: P<Node>) -> P<Type> {
+    fn pad_object_literal_type(&mut self, t: P<Type>, pattern: P<Node>) -> P<Type> {
         let mut missing_elements: Vec<P<Node>> = Vec::new();
         missing_elements.extend(pattern.elements().iter().filter_map(|&e| {
             if has_dot_dot_dot_token(e) {
@@ -3050,7 +3034,7 @@ impl Checker {
     }
 
     // checker.go:17174
-    pub(crate) fn get_property_name_from_binding_element(&mut self, e: P<Node>) -> String {
+    fn get_property_name_from_binding_element(&mut self, e: P<Node>) -> String {
         let expr_type =
             self.get_literal_type_from_property_name(e.property_name_or_name().unwrap());
         if is_type_usable_as_property_name(expr_type) {
@@ -3060,7 +3044,7 @@ impl Checker {
     }
 
     // checker.go:17182
-    pub(crate) fn pad_tuple_type(&mut self, t: P<Type>, pattern: P<Node>) -> P<Type> {
+    fn pad_tuple_type(&mut self, t: P<Type>, pattern: P<Node>) -> P<Type> {
         let pattern_elements = pattern.elements();
         if t.target_tuple_type().combined_flags.get().intersects(ElementFlags::Variable)
             || Self::get_type_reference_arity(t) >= pattern_elements.len()
@@ -3136,7 +3120,7 @@ impl Checker {
     }
 
     // checker.go:17228
-    pub(crate) fn get_type_of_func_class_enum_module(&mut self, symbol: P<Symbol>) -> P<Type> {
+    fn get_type_of_func_class_enum_module(&mut self, symbol: P<Symbol>) -> P<Type> {
         let links = self.value_symbol_links.get(symbol);
         if links.resolved_type.get().is_none() {
             let t = self.get_type_of_func_class_enum_module_worker(symbol);
@@ -3146,10 +3130,7 @@ impl Checker {
     }
 
     // checker.go:17236
-    pub(crate) fn get_type_of_func_class_enum_module_worker(
-        &mut self,
-        symbol: P<Symbol>,
-    ) -> P<Type> {
+    fn get_type_of_func_class_enum_module_worker(&mut self, symbol: P<Symbol>) -> P<Type> {
         if symbol.flags().intersects(SymbolFlags::Module)
             && is_shorthand_ambient_module_symbol(symbol)
         {
@@ -3204,7 +3185,7 @@ impl Checker {
      * * an object type with at least one construct signature.
      */
     // checker.go:17281
-    pub fn get_base_constructor_type_of_class(&mut self, t: P<Type>) -> P<Type> {
+    pub(crate) fn get_base_constructor_type_of_class(&mut self, t: P<Type>) -> P<Type> {
         let data = t.as_interface_type();
         if let Some(resolved) = data.resolved_base_constructor_type.get() {
             return resolved;
@@ -3344,7 +3325,10 @@ impl Checker {
     }
 
     // checker.go:17383
-    pub fn get_constraint_of_type_parameter(&mut self, type_parameter: P<Type>) -> Option<P<Type>> {
+    pub(crate) fn get_constraint_of_type_parameter(
+        &mut self,
+        type_parameter: P<Type>,
+    ) -> Option<P<Type>> {
         if self.has_non_circular_base_constraint(type_parameter) {
             return self.get_constraint_from_type_parameter(type_parameter);
         }

@@ -350,7 +350,7 @@ impl Checker {
     }
 
     // printer.go:233
-    pub(crate) fn type_predicate_to_string_ex(
+    fn type_predicate_to_string_ex(
         &mut self,
         type_predicate: P<TypePredicate>,
         enclosing_declaration: Option<P<Node>>,
@@ -581,7 +581,7 @@ impl Checker {
 
 impl Checker {
     // symbolaccessibility.go:11
-    pub fn is_type_symbol_accessible(
+    pub(crate) fn is_type_symbol_accessible(
         &mut self,
         type_symbol: P<Symbol>,
         enclosing_declaration: Option<P<Node>>,
@@ -597,7 +597,7 @@ impl Checker {
     }
 
     // symbolaccessibility.go:16
-    pub fn is_value_symbol_accessible(
+    pub(crate) fn is_value_symbol_accessible(
         &mut self,
         symbol: Option<P<Symbol>>,
         enclosing_declaration: Option<P<Node>>,
@@ -613,7 +613,7 @@ impl Checker {
     }
 
     // symbolaccessibility.go:21
-    pub fn is_symbol_accessible_by_flags(
+    pub(crate) fn is_symbol_accessible_by_flags(
         &mut self,
         symbol: P<Symbol>,
         enclosing_declaration: Option<P<Node>>,
@@ -630,7 +630,7 @@ impl Checker {
     }
 
     // symbolaccessibility.go:26
-    pub fn is_any_symbol_accessible(
+    fn is_any_symbol_accessible(
         &mut self,
         symbols: &[P<Symbol>],
         enclosing_declaration: Option<P<Node>>,
@@ -770,7 +770,7 @@ pub fn get_qualified_left_meaning(right_meaning: SymbolFlags) -> SymbolFlags {
 
 impl Checker {
     // symbolaccessibility.go:117
-    pub(crate) fn get_with_alternative_containers(
+    fn get_with_alternative_containers(
         &mut self,
         container: P<Symbol>,
         symbol: P<Symbol>,
@@ -846,7 +846,7 @@ impl Checker {
     }
 
     // symbolaccessibility.go:168
-    pub(crate) fn get_alternative_containing_modules(
+    fn get_alternative_containing_modules(
         &mut self,
         symbol: P<Symbol>,
         enclosing_declaration: Option<P<Node>>,
@@ -918,7 +918,7 @@ impl Checker {
     }
 
     // symbolaccessibility.go:226
-    pub(crate) fn get_variable_declaration_of_object_literal(
+    fn get_variable_declaration_of_object_literal(
         &mut self,
         symbol: P<Symbol>,
         meaning: SymbolFlags,
@@ -958,10 +958,7 @@ pub fn has_external_module_symbol(declaration: P<Node>) -> bool {
 
 impl Checker {
     // symbolaccessibility.go:253
-    pub(crate) fn get_external_module_container(
-        &mut self,
-        declaration: P<Node>,
-    ) -> Option<P<Symbol>> {
+    fn get_external_module_container(&mut self, declaration: P<Node>) -> Option<P<Symbol>> {
         let node = ast::find_ancestor(Some(declaration), has_external_module_symbol)?;
         self.get_symbol_of_declaration(node)
     }
@@ -1321,7 +1318,7 @@ impl Checker {
     }
 
     // symbolaccessibility.go:373
-    pub fn get_accessible_symbol_chain(
+    pub(crate) fn get_accessible_symbol_chain(
         &mut self,
         symbol: P<Symbol>,
         enclosing_declaration: Option<P<Node>>,
@@ -1418,7 +1415,7 @@ pub fn symbol_table_id_from_globals() -> SymbolTableID {
 
 impl Checker {
     // symbolaccessibility.go:441
-    pub(crate) fn get_accessible_symbol_chain_ex(
+    fn get_accessible_symbol_chain_ex(
         &mut self,
         ctx: &AccessibleSymbolChainContext,
     ) -> Vec<P<Symbol>> {
@@ -1480,7 +1477,7 @@ impl Checker {
      * @param {ignoreQualification} boolean Set when a symbol is being looked for through the exports of another symbol (meaning we have a route to qualify it already)
      */
     // symbolaccessibility.go:481
-    pub(crate) fn get_accessible_symbol_chain_from_symbol_table(
+    fn get_accessible_symbol_chain_from_symbol_table(
         &mut self,
         ctx: &AccessibleSymbolChainContext,
         t: Option<P<SymbolTable>>,
@@ -1510,7 +1507,7 @@ impl Checker {
     // Members tables are skipped entirely since someSymbolTableInScope filters them
     // to SymbolFlagsType & ^SymbolFlagsAssignment, which never includes aliases.
     // symbolaccessibility.go:505
-    pub(crate) fn get_symbol_table_aliases(
+    fn get_symbol_table_aliases(
         &mut self,
         symbols: Option<P<SymbolTable>>,
         table_id: SymbolTableID,
@@ -1543,7 +1540,7 @@ impl Checker {
     }
 
     // symbolaccessibility.go:535
-    pub(crate) fn try_symbol_table(
+    fn try_symbol_table(
         &mut self,
         ctx: &AccessibleSymbolChainContext,
         symbols: Option<P<SymbolTable>>,
@@ -1661,7 +1658,7 @@ pub fn is_namespace_reexport_declaration(node: P<Node>) -> bool {
 
 impl Checker {
     // symbolaccessibility.go:620
-    pub(crate) fn get_candidate_list_for_symbol(
+    fn get_candidate_list_for_symbol(
         &mut self,
         ctx: &AccessibleSymbolChainContext,
         symbol_from_symbol_table: P<Symbol>,
@@ -1706,7 +1703,7 @@ impl Checker {
     }
 
     // symbolaccessibility.go:647
-    pub(crate) fn is_accessible(
+    fn is_accessible(
         &mut self,
         ctx: &AccessibleSymbolChainContext,
         symbol_from_symbol_table: P<Symbol>,
@@ -1761,7 +1758,7 @@ impl Checker {
     }
 
     // symbolaccessibility.go:677
-    pub(crate) fn can_qualify_symbol(
+    fn can_qualify_symbol(
         &mut self,
         ctx: &AccessibleSymbolChainContext,
         symbol_from_symbol_table: P<Symbol>,
@@ -1851,7 +1848,7 @@ pub fn is_property_or_method_declaration_symbol(symbol: P<Symbol>) -> bool {
 
 impl Checker {
     // symbolaccessibility.go:746
-    pub(crate) fn some_symbol_table_in_scope(
+    fn some_symbol_table_in_scope(
         &mut self,
         enclosing_declaration: Option<P<Node>>,
         mut callback: impl FnMut(
@@ -1974,10 +1971,7 @@ impl Checker {
     // bindAnonymousDeclaration and aren't stored in any container's locals, so this
     // synthesized table lets someSymbolTableInScope expose them during accessibility checks.
     // symbolaccessibility.go:810
-    pub(crate) fn get_class_expression_name_table(
-        &mut self,
-        location: P<Node>,
-    ) -> Option<P<SymbolTable>> {
+    fn get_class_expression_name_table(&mut self, location: P<Node>) -> Option<P<SymbolTable>> {
         let node_id = ast::get_node_id(location);
         if let Some(&table) = self.class_expression_name_tables.get(&node_id) {
             return Some(table);
@@ -2002,7 +1996,7 @@ impl Checker {
      * @param shouldComputeAliasToMakeVisible a boolean value to indicate whether to return aliases to be mark visible in case the symbol is accessible
      */
     // symbolaccessibility.go:839
-    pub fn is_symbol_accessible(
+    pub(crate) fn is_symbol_accessible(
         &mut self,
         symbol: Option<P<Symbol>>,
         enclosing_declaration: Option<P<Node>>,
@@ -2019,7 +2013,7 @@ impl Checker {
     }
 
     // symbolaccessibility.go:843
-    pub(crate) fn is_symbol_accessible_worker(
+    fn is_symbol_accessible_worker(
         &mut self,
         symbol: Option<P<Symbol>>,
         enclosing_declaration: Option<P<Node>>,
@@ -2112,7 +2106,7 @@ pub fn new_symbol_tracker_impl(
 
 impl SymbolTrackerImpl {
     // symboltracker.go:28
-    pub fn track_symbol(
+    pub(crate) fn track_symbol(
         &self,
         c: &mut Checker,
         symbol: P<Symbol>,
@@ -2140,7 +2134,7 @@ impl SymbolTrackerImpl {
     }
 
     // symboltracker.go:42
-    pub fn report_inaccessible_this_error(&self) {
+    pub(crate) fn report_inaccessible_this_error(&self) {
         self.on_diagnostic_reported();
         let Some(inner) = self.inner else {
             return;
@@ -2149,7 +2143,7 @@ impl SymbolTrackerImpl {
     }
 
     // symboltracker.go:50
-    pub fn report_private_in_base_of_class_expression(&self, property_name: &str) {
+    pub(crate) fn report_private_in_base_of_class_expression(&self, property_name: &str) {
         self.on_diagnostic_reported();
         let Some(inner) = self.inner else {
             return;
@@ -2158,7 +2152,7 @@ impl SymbolTrackerImpl {
     }
 
     // symboltracker.go:58
-    pub fn report_inaccessible_unique_symbol_error(&self) {
+    pub(crate) fn report_inaccessible_unique_symbol_error(&self) {
         self.on_diagnostic_reported();
         let Some(inner) = self.inner else {
             return;
@@ -2167,7 +2161,7 @@ impl SymbolTrackerImpl {
     }
 
     // symboltracker.go:66
-    pub fn report_cyclic_structure_error(&self) {
+    pub(crate) fn report_cyclic_structure_error(&self) {
         self.on_diagnostic_reported();
         let Some(inner) = self.inner else {
             return;
@@ -2176,7 +2170,11 @@ impl SymbolTrackerImpl {
     }
 
     // symboltracker.go:74
-    pub fn report_likely_unsafe_import_required_error(&self, specifier: &str, symbol_name: &str) {
+    pub(crate) fn report_likely_unsafe_import_required_error(
+        &self,
+        specifier: &str,
+        symbol_name: &str,
+    ) {
         self.on_diagnostic_reported();
         let Some(inner) = self.inner else {
             return;
@@ -2185,7 +2183,7 @@ impl SymbolTrackerImpl {
     }
 
     // symboltracker.go:82
-    pub fn report_truncation_error(&self) {
+    pub(crate) fn report_truncation_error(&self) {
         self.on_diagnostic_reported();
         let Some(inner) = self.inner else {
             return;
@@ -2194,7 +2192,7 @@ impl SymbolTrackerImpl {
     }
 
     // symboltracker.go:90
-    pub fn report_nonlocal_augmentation(
+    pub(crate) fn report_nonlocal_augmentation(
         &self,
         containing_file: P<SourceFile>,
         parent_symbol: P<Symbol>,
@@ -2208,7 +2206,7 @@ impl SymbolTrackerImpl {
     }
 
     // symboltracker.go:98
-    pub fn report_non_serializable_property(&self, property_name: &str) {
+    pub(crate) fn report_non_serializable_property(&self, property_name: &str) {
         self.on_diagnostic_reported();
         let Some(inner) = self.inner else {
             return;
@@ -2217,12 +2215,12 @@ impl SymbolTrackerImpl {
     }
 
     // symboltracker.go:106
-    pub(crate) fn on_diagnostic_reported(&self) {
+    fn on_diagnostic_reported(&self) {
         self.context.reported_diagnostic.set(true);
     }
 
     // symboltracker.go:110
-    pub fn report_inference_fallback(&self, c: &mut Checker, node: P<Node>) {
+    pub(crate) fn report_inference_fallback(&self, c: &mut Checker, node: P<Node>) {
         let Some(inner) = self.inner else {
             return;
         };
@@ -2230,7 +2228,7 @@ impl SymbolTrackerImpl {
     }
 
     // symboltracker.go:117
-    pub fn push_error_fallback_node(&self, node: Option<P<Node>>) {
+    pub(crate) fn push_error_fallback_node(&self, node: Option<P<Node>>) {
         let Some(inner) = self.inner else {
             return;
         };
@@ -2238,7 +2236,7 @@ impl SymbolTrackerImpl {
     }
 
     // symboltracker.go:124
-    pub fn pop_error_fallback_node(&self) {
+    pub(crate) fn pop_error_fallback_node(&self) {
         let Some(inner) = self.inner else {
             return;
         };

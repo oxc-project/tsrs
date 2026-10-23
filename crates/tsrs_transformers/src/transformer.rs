@@ -9,8 +9,8 @@ use crate::*;
 /// out a copy (Go shares one `*NodeVisitor`, which is re-entrant).
 #[derive(Default)]
 pub struct Transformer {
-    pub emit_context: OnceCell<P<EmitContext>>,
-    pub visitor: OnceCell<ast::NodeVisitor>,
+    emit_context: OnceCell<P<EmitContext>>,
+    visitor: OnceCell<ast::NodeVisitor>,
 }
 
 impl Transformer {

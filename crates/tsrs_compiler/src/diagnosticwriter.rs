@@ -23,7 +23,7 @@ pub enum FileLike {
 }
 
 impl FileLike {
-    pub fn file_name(&self) -> &str {
+    fn file_name(&self) -> &str {
         match self {
             FileLike::SourceFile(file) => file.get().file_name(),
             FileLike::Renamed { file_name, .. } => file_name,
@@ -59,7 +59,7 @@ impl SourceFileLike for FileLike {
 }
 
 // diagnosticwriter.go:58 (ASTDiagnostic).File
-pub fn diagnostic_file(d: P<Diagnostic>) -> Option<FileLike> {
+fn diagnostic_file(d: P<Diagnostic>) -> Option<FileLike> {
     d.loc()?;
     let file = d.file()?;
     let mut file_name = file.get().file_name();
@@ -79,7 +79,7 @@ pub fn diagnostic_file(d: P<Diagnostic>) -> Option<FileLike> {
 }
 
 // diagnosticwriter.go:83
-pub fn diagnostic_pos(d: P<Diagnostic>) -> u32 {
+fn diagnostic_pos(d: P<Diagnostic>) -> u32 {
     resolve(d).loc.pos().expect_source("rendered diagnostics have source positions")
 }
 
@@ -89,7 +89,7 @@ pub fn diagnostic_end(d: P<Diagnostic>) -> u32 {
 }
 
 // diagnosticwriter.go:85
-pub fn diagnostic_len(d: P<Diagnostic>) -> u32 {
+fn diagnostic_len(d: P<Diagnostic>) -> u32 {
     resolve(d).loc.len().expect("rendered diagnostics have source positions")
 }
 
@@ -140,7 +140,7 @@ fn new_original_text_file(file: P<SourceFile>, file_name: &'static str) -> Origi
 }
 
 // diagnosticwriter.go:144 (ASTDiagnostic).MessageChain
-pub fn diagnostic_message_chain(d: P<Diagnostic>) -> Vec<P<Diagnostic>> {
+fn diagnostic_message_chain(d: P<Diagnostic>) -> Vec<P<Diagnostic>> {
     let chain = d.message_chain();
     let mut result = Vec::with_capacity(chain.len() + 1);
     result.extend_from_slice(chain);
@@ -432,7 +432,7 @@ fn get_category_format(category: Category) -> &'static str {
     }
 }
 
-pub type FormattedWriter = dyn Fn(&mut dyn Write, &str, &str);
+type FormattedWriter = dyn Fn(&mut dyn Write, &str, &str);
 
 fn write_with_style_and_reset(output: &mut dyn Write, text: &str, format_style: &str) {
     w!(output, "{}", format_style);
@@ -440,7 +440,7 @@ fn write_with_style_and_reset(output: &mut dyn Write, text: &str, format_style: 
     w!(output, "{}", RESET_ESCAPE_SEQUENCE);
 }
 
-pub fn write_location(
+fn write_location(
     output: &mut dyn Write,
     file: &FileLike,
     pos: u32,

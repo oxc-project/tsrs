@@ -131,14 +131,14 @@ enum RareTypeMapper {
 }
 
 pub struct DeferredTypeMapper {
-    pub sources: &'static [P<Type>],
-    pub targets: Vec<Box<dyn Fn(&mut Checker) -> P<Type>>>,
+    sources: &'static [P<Type>],
+    targets: Vec<Box<dyn Fn(&mut Checker) -> P<Type>>>,
 }
 
 impl TypeMapperData {
     /// The sources and targets of an array mapper (Go `ArrayMapper`).
     #[inline]
-    pub fn array_sources_targets(&self) -> Option<(&'static [P<Type>], &'static [P<Type>])> {
+    pub(crate) fn array_sources_targets(&self) -> Option<(&'static [P<Type>], &'static [P<Type>])> {
         match *self {
             TypeMapperData::Array { sources, targets } => Some((sources, targets)),
             _ => None,
@@ -240,7 +240,7 @@ impl TypeMapper {
 
     /// The mapper's kind and payload.
     #[inline]
-    pub fn data(&self) -> TypeMapperData {
+    pub(crate) fn data(&self) -> TypeMapperData {
         let second = self.second.get();
         // SAFETY: the words were encoded for this tag by the constructors below.
         unsafe {
@@ -283,7 +283,7 @@ impl TypeMapper {
 
 impl TypeMapper {
     #[inline]
-    pub fn escaped(&self) -> bool {
+    pub(crate) fn escaped(&self) -> bool {
         self.second.get() & ESCAPED != 0
     }
 
@@ -292,7 +292,7 @@ impl TypeMapper {
         self.second.set(self.second.get() | ESCAPED);
     }
 
-    pub fn map(&self, c: &mut Checker, t: P<Type>) -> P<Type> {
+    pub(crate) fn map(&self, c: &mut Checker, t: P<Type>) -> P<Type> {
         match self.data() {
             TypeMapperData::Simple { source, target } => {
                 if t == source {
@@ -361,7 +361,7 @@ impl TypeMapper {
         }
     }
 
-    pub fn kind(&self) -> TypeMapperKind {
+    pub(crate) fn kind(&self) -> TypeMapperKind {
         match self.data() {
             TypeMapperData::Simple { .. } => TypeMapperKind::Simple,
             TypeMapperData::Array { .. } => TypeMapperKind::Array,
@@ -370,7 +370,7 @@ impl TypeMapper {
         }
     }
 
-    pub fn maps_this_only(&self) -> bool {
+    pub(crate) fn maps_this_only(&self) -> bool {
         match self.data() {
             TypeMapperData::Simple { source, .. } => is_this_type_parameter(source),
             TypeMapperData::Array { sources, .. }
@@ -462,18 +462,18 @@ pub struct MapperCell(Cell<Option<P<TypeMapper>>>);
 
 impl MapperCell {
     #[inline]
-    pub fn new(m: Option<P<TypeMapper>>) -> MapperCell {
+    pub(crate) fn new(m: Option<P<TypeMapper>>) -> MapperCell {
         if let Some(m) = m {
             escape_mapper(m);
         }
         MapperCell(Cell::new(m))
     }
     #[inline]
-    pub fn get(&self) -> Option<P<TypeMapper>> {
+    pub(crate) fn get(&self) -> Option<P<TypeMapper>> {
         self.0.get()
     }
     #[inline]
-    pub fn set(&self, m: Option<P<TypeMapper>>) {
+    pub(crate) fn set(&self, m: Option<P<TypeMapper>>) {
         if let Some(m) = m {
             escape_mapper(m);
         }
@@ -602,7 +602,7 @@ pub(crate) fn new_simple_type_mapper(source: P<Type>, target: P<Type>) -> P<Type
 }
 
 #[cfg_attr(feature = "site-counts", track_caller)]
-pub(crate) fn new_array_type_mapper(
+fn new_array_type_mapper(
     sources: &'static [P<Type>],
     targets: &'static [P<Type>],
 ) -> P<TypeMapper> {
@@ -656,7 +656,7 @@ pub(crate) fn new_merged_type_mapper(m1: P<TypeMapper>, m2: P<TypeMapper>) -> P<
 }
 
 #[cfg_attr(feature = "site-counts", track_caller)]
-pub(crate) fn new_composite_type_mapper(m1: P<TypeMapper>, m2: P<TypeMapper>) -> P<TypeMapper> {
+fn new_composite_type_mapper(m1: P<TypeMapper>, m2: P<TypeMapper>) -> P<TypeMapper> {
     crate::sitecount::hit("mapper", "composite");
     P::new_recycled(TypeMapper {
         first: tagged(m1, TAG_COMPOSITE),

@@ -1,7 +1,7 @@
 use super::*;
 
-pub struct TypeEraserTransformer {
-    pub base: Transformer,
+struct TypeEraserTransformer {
+    base: Transformer,
     compiler_options: P<CompilerOptions>,
     parent_node: Cell<Option<P<Node>>>,
     current_node: Cell<Option<P<Node>>>,

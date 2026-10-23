@@ -84,10 +84,10 @@ static LEAF_NODES: AtomicUsize = AtomicUsize::new(0);
 pub struct LeafSettings {
     pub mode: LeafMode,
     /// `stats_report` reports.
-    pub stats: bool,
+    pub(crate) stats: bool,
     /// Every TypeScript root file gets a region, not only the predicted ones (`PREDICTED_LEAF_PATTERNS`): for
     /// measurement; it frees the leaves the prediction misses, but moves every tree out of the thread arenas.
-    pub every_file: bool,
+    pub(crate) every_file: bool,
 }
 
 /// The most checkers for which leaf freeing is on by default (`leaf_settings_from_env`). Measured with one binary,

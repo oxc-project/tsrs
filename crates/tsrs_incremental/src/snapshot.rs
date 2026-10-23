@@ -237,7 +237,7 @@ fn key_of(key: &str) -> Key {
 
 impl BuildInfoDiagnosticWithFileName {
     // snapshot.go:150
-    pub(crate) fn to_diagnostic(
+    fn to_diagnostic(
         &self,
         p: &'static CompilerProgram,
         file: Option<P<SourceFile>>,
@@ -284,7 +284,7 @@ impl BuildInfoDiagnosticWithFileName {
     }
 
     // snapshot.go:203
-    pub(crate) fn to_diagnostic_without_repopulate(
+    fn to_diagnostic_without_repopulate(
         &self,
         p: &'static CompilerProgram,
         file: Option<P<SourceFile>>,

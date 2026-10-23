@@ -25,7 +25,7 @@ fn nullable_diagnostics(diags: &[P<Diagnostic>]) -> Value {
 }
 
 /// Go `resolveOptionalSourceFile` for a present identifier.
-pub(crate) fn resolve_source_file(
+pub fn resolve_source_file(
     program: &Program,
     file: &DocumentIdentifier,
 ) -> ApiResult<P<SourceFile>> {
@@ -35,7 +35,7 @@ pub(crate) fn resolve_source_file(
 }
 
 #[derive(Clone, Copy)]
-pub(crate) enum DiagnosticKind {
+pub enum DiagnosticKind {
     Syntactic,
     Bind,
     Semantic,

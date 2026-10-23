@@ -163,13 +163,13 @@ impl crate::dirty::Cloneable for CachedFile {
 
 pub struct Overlay {
     pub(crate) base: FileBase,
-    pub(crate) version: i32,
-    pub(crate) kind: ScriptKind,
-    pub(crate) matches_disk_text: bool,
+    version: i32,
+    kind: ScriptKind,
+    matches_disk_text: bool,
 }
 
 // overlayfs.go:130
-pub fn new_overlay(file_name: String, content: String, version: i32, kind: ScriptKind) -> Overlay {
+fn new_overlay(file_name: String, content: String, version: i32, kind: ScriptKind) -> Overlay {
     let hash = hash_string_128(&content);
     Overlay {
         base: FileBase::new(file_name, content, hash),
@@ -181,12 +181,12 @@ pub fn new_overlay(file_name: String, content: String, version: i32, kind: Scrip
 
 impl Overlay {
     // overlayfs.go:144
-    pub fn text(&self) -> &str {
+    fn text(&self) -> &str {
         &self.base.content
     }
 
     // overlayfs.go:148
-    pub fn original_file_name(&self) -> &str {
+    fn original_file_name(&self) -> &str {
         self.base.file_name()
     }
 
@@ -198,18 +198,18 @@ impl Overlay {
         clippy::unused_self,
         reason = "Span mapping is an optional property of the overlay instance, matching the host interface."
     )]
-    pub fn span_map(&self) -> Option<&SpanMap> {
+    fn span_map(&self) -> Option<&SpanMap> {
         None
     }
 
     // overlayfs.go:155
-    pub fn original_text(&self) -> &str {
+    fn original_text(&self) -> &str {
         &self.base.content
     }
 
     // overlayfs.go:163
     // !!! optimization: incorporate mtime
-    pub(crate) fn compute_matches_disk_text(&self, fs: &dyn FS) -> (bool, bool) {
+    fn compute_matches_disk_text(&self, fs: &dyn FS) -> (bool, bool) {
         if tspath::is_dynamic_file_name(&self.base.file_name) {
             return (false, false);
         }
@@ -312,7 +312,7 @@ pub enum FsRef {
 }
 
 impl FsRef {
-    pub fn fs(&self) -> &dyn FS {
+    fn fs(&self) -> &dyn FS {
         match self {
             FsRef::Host(fs) => &**fs,
             FsRef::Layered(fs) => &**fs,

@@ -6,7 +6,7 @@ use super::view::View;
 
 impl View {
     // specifiers.go:9
-    pub fn get_module_specifier(
+    pub(crate) fn get_module_specifier(
         &self,
         export: &Export,
         user_preferences: &modulespecifiers::UserPreferences,

@@ -89,7 +89,7 @@ fn cut_prefix<'a>(s: &'a str, prefix: &str) -> (&'a str, bool) {
     }
 }
 
-pub fn is_str_white_space(r: char) -> bool {
+fn is_str_white_space(r: char) -> bool {
     // This is different than stringutil.IsWhiteSpaceLike.
 
     // https://tc39.es/ecma262/2024/multipage/ecmascript-language-lexical-grammar.html#prod-LineTerminator
@@ -111,7 +111,7 @@ pub fn is_str_white_space(r: char) -> bool {
     )
 }
 
-pub fn try_parse_int(s: &str) -> Option<Number> {
+fn try_parse_int(s: &str) -> Option<Number> {
     let mut s = s;
     let mut i: i64 = 0;
     let mut err = false;
@@ -176,7 +176,7 @@ fn parse_int(s: &str, base: u32) -> (i64, bool) {
     }
 }
 
-pub fn trim_leading_zeros(s: &str) -> &str {
+fn trim_leading_zeros(s: &str) -> &str {
     let mut s = s;
     if s.starts_with('0') {
         s = s.trim_start_matches('0');
@@ -187,23 +187,23 @@ pub fn trim_leading_zeros(s: &str) -> &str {
     s
 }
 
-pub fn is_all_digits(s: &str) -> bool {
+fn is_all_digits(s: &str) -> bool {
     s.bytes().all(|b| b.is_ascii_digit())
 }
 
-pub fn is_all_binary_digits(s: &str) -> bool {
+fn is_all_binary_digits(s: &str) -> bool {
     s.bytes().all(|b| matches!(b, b'0' | b'1'))
 }
 
-pub fn is_all_octal_digits(s: &str) -> bool {
+fn is_all_octal_digits(s: &str) -> bool {
     s.bytes().all(|b| matches!(b, b'0'..=b'7'))
 }
 
-pub fn is_all_hex_digits(s: &str) -> bool {
+fn is_all_hex_digits(s: &str) -> bool {
     s.bytes().all(|b| b.is_ascii_hexdigit())
 }
 
-pub fn is_number_byte(b: u8) -> bool {
+fn is_number_byte(b: u8) -> bool {
     if b.is_ascii_digit() {
         return true;
     }

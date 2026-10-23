@@ -32,7 +32,7 @@ fn retry_timeout_scale(attempt: usize) -> u32 {
 }
 
 pub struct TestT {
-    pub(crate) attempt: usize,
+    attempt: usize,
     cleanups: Vec<Box<dyn FnOnce()>>,
 }
 
@@ -43,7 +43,7 @@ impl TestT {
         TestT { attempt, cleanups: Vec::new() }
     }
 
-    pub(crate) fn cleanup(&mut self, f: impl FnOnce() + 'static) {
+    fn cleanup(&mut self, f: impl FnOnce() + 'static) {
         self.cleanups.push(Box::new(f));
     }
 
@@ -70,7 +70,7 @@ impl Drop for TestT {
 }
 
 // testutil_test.go:166
-pub fn run_with_retry(name: &str, body: &dyn Fn(&mut TestT) -> TestResult) {
+fn run_with_retry(name: &str, body: &dyn Fn(&mut TestT) -> TestResult) {
     let mut last = String::new();
     for attempt in 1..=RETRY_ATTEMPTS {
         let mut t = TestT::new(attempt);
@@ -101,12 +101,12 @@ pub fn run_for_each_watcher(
     });
 }
 
-pub fn is_slow(w: &dyn Watcher) -> bool {
+fn is_slow(w: &dyn Watcher) -> bool {
     std::ptr::addr_eq(w, fsevents()) || std::ptr::addr_eq(w, kqueue())
 }
 
 // watcher_test.go:50
-pub fn watcher_event_timeout(t: &TestT, w: &dyn Watcher) -> Duration {
+fn watcher_event_timeout(t: &TestT, w: &dyn Watcher) -> Duration {
     let base = if is_slow(w) { Duration::from_secs(2) } else { Duration::from_secs(1) };
     base * retry_timeout_scale(t.attempt)
 }
@@ -192,14 +192,14 @@ pub fn subscribe_for_opts(
 
 pub struct RecordingWatcher {
     deadline: Duration,
-    pub(crate) mu: Mutex<RecordingState>,
+    mu: Mutex<RecordingState>,
     cond: Condvar,
 }
 
 #[derive(Default)]
 pub struct RecordingState {
-    pub(crate) buf: Vec<Event>,
-    pub(crate) errs: Vec<Error>,
+    buf: Vec<Event>,
+    errs: Vec<Error>,
 }
 
 // watcher_test.go:229
@@ -299,7 +299,7 @@ impl RecordingWatcher {
 // ----- assertion helpers -------------------------------------------------
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Debug)]
-pub struct WantEvent(pub(crate) i32, pub(crate) String);
+pub struct WantEvent(i32, String);
 
 pub fn want(kind: EventKind, path: &str) -> WantEvent {
     WantEvent(kind.0, path.to_string())
@@ -364,7 +364,7 @@ pub fn assert_no_events_for_path(got: &[Event], path: &str, msg: &str) -> TestRe
 }
 
 // watcher_test.go:513
-pub fn assert_event_set(got: &[Event], mut want: Vec<WantEvent>) -> TestResult {
+fn assert_event_set(got: &[Event], mut want: Vec<WantEvent>) -> TestResult {
     let mut got_w = to_want_events(&filter_to_wanted_paths(got, &want));
     got_w.sort();
     want.sort();
@@ -389,7 +389,7 @@ fn filter_to_wanted_paths(got: &[Event], want: &[WantEvent]) -> Vec<Event> {
 }
 
 // watcher_test.go:569
-pub fn contains_event(got: &[Event], typ: EventKind, path: &str) -> bool {
+fn contains_event(got: &[Event], typ: EventKind, path: &str) -> bool {
     got.iter().any(|e| e.kind == typ && e.path == path)
 }
 

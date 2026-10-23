@@ -45,7 +45,7 @@ impl LanguageService {
     // It is an implementation detail of sourceFileRangeToLSPLocation; LS features should not call it directly,
     // because it does not preserve a content-mapper projection or apply span-map feature filtering.
     // source_map.go:38
-    pub(crate) fn get_mapped_location(
+    fn get_mapped_location(
         &self,
         file_name: &str,
         file_range: TextRange,
@@ -144,7 +144,7 @@ impl LanguageService {
     }
 
     // source_map.go:106
-    pub(crate) fn try_get_source_position_worker(
+    fn try_get_source_position_worker(
         &self,
         file_name: &str,
         position: TextPos,
@@ -181,7 +181,7 @@ impl LanguageService {
     }
 
     // source_map.go:137
-    pub(crate) fn try_get_generated_position_worker(
+    fn try_get_generated_position_worker(
         &self,
         file_name: &str,
         position: TextPos,

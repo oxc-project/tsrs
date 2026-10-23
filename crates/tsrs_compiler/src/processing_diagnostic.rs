@@ -20,9 +20,9 @@ pub enum ProcessingDiagnosticKind {
 
 #[derive(Clone)]
 pub struct ProcessingDiagnostic {
-    pub(crate) kind: ProcessingDiagnosticKind,
-    pub(crate) reason: Option<P<FileIncludeReason>>,
-    pub(crate) explanation: Option<IncludeExplainingDiagnostic>,
+    kind: ProcessingDiagnosticKind,
+    reason: Option<P<FileIncludeReason>>,
+    explanation: Option<IncludeExplainingDiagnostic>,
 }
 
 impl ProcessingDiagnostic {

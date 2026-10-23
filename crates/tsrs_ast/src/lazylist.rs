@@ -35,9 +35,9 @@ use crate::nodeflags::NodeFlags;
 
 pub const PENDING: u8 = 0;
 pub const DEFERRED: u8 = 1;
-pub const UNBOUND: u8 = 2;
-pub const FORCING: u8 = 3;
-pub const DONE: u8 = 4;
+const UNBOUND: u8 = 2;
+const FORCING: u8 = 3;
+const DONE: u8 = 4;
 /// `FORCING`, with at least one reader committed to waiting on the record's stripe.
 const FORCING_WITH_WAITERS: u8 = 5;
 
@@ -212,7 +212,7 @@ impl LazyNodeList {
     /// binder read the list then).
     #[cold]
     #[inline(never)]
-    pub fn force_nodes(&self) -> &'static [P<Node>] {
+    pub(crate) fn force_nodes(&self) -> &'static [P<Node>] {
         loop {
             // Acquire: pairs with the Release store of `DONE`, which publishes `nodes` and what the binder wrote.
             match self.state.load(Ordering::Acquire) {

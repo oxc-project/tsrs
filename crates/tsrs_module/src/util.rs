@@ -10,7 +10,7 @@ use tsrs_diagnostics::Message;
 use crate::resolver::move_to_next_directory_separator_if_available;
 use crate::types::ResolvedModule;
 
-pub static TYPE_SCRIPT_VERSION: LazyLock<semver::Version> =
+static TYPE_SCRIPT_VERSION: LazyLock<semver::Version> =
     LazyLock::new(|| semver::must_parse(tsrs_core::version()));
 
 pub const INFERRED_TYPES_CONTAINING_FILE: &str = "__inferred type names__.ts";

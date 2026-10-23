@@ -12,7 +12,7 @@ use rustc_hash::{FxHashMap, FxHashSet};
 use crate::packedmap::{PackedKey, PackedMap};
 
 pub struct Based<M: 'static, K: 'static = ()> {
-    pub own: M,
+    pub(crate) own: M,
     base: Option<&'static M>,
     /// Keys removed from the fork that the base may hold (only maps with `remove`).
     removed: FxHashSet<K>,
@@ -26,7 +26,7 @@ impl<M: Default, K> Default for Based<M, K> {
 
 impl<M: Default, K> Based<M, K> {
     /// An empty map that reads through to `base`'s (a frozen seed's) own map.
-    pub fn over(base: &'static Based<M, K>) -> Self {
+    pub(crate) fn over(base: &'static Based<M, K>) -> Self {
         Based { own: M::default(), base: Some(&base.own), removed: FxHashSet::default() }
     }
 
@@ -38,7 +38,7 @@ impl<M: Default, K> Based<M, K> {
 
 impl<K: PackedKey, V: Copy> Based<PackedMap<K, V>> {
     #[inline]
-    pub fn get(&self, key: &K) -> Option<V> {
+    pub(crate) fn get(&self, key: &K) -> Option<V> {
         match self.own.get(key) {
             Some(v) => Some(v),
             None => self.base.filter(|_| tsrs_core::sharedgraph::COMPILED_IN)?.get(key),
@@ -46,7 +46,7 @@ impl<K: PackedKey, V: Copy> Based<PackedMap<K, V>> {
     }
 
     #[inline]
-    pub fn insert(&mut self, key: K, value: V) -> Option<V> {
+    pub(crate) fn insert(&mut self, key: K, value: V) -> Option<V> {
         self.own.insert(key, value)
     }
 
@@ -62,7 +62,7 @@ impl<K: PackedKey, V: Copy> Based<PackedMap<K, V>> {
 )]
 impl<K: Hash + Eq + Clone, V> Based<FxHashMap<K, V>, K> {
     #[inline]
-    pub fn get(&self, key: &K) -> Option<&V> {
+    pub(crate) fn get(&self, key: &K) -> Option<&V> {
         match self.own.get(key) {
             Some(v) => Some(v),
             None => self.base_get(key),
@@ -71,7 +71,7 @@ impl<K: Hash + Eq + Clone, V> Based<FxHashMap<K, V>, K> {
 
     /// The base's entry for `key`, unless the fork removed it.
     #[inline]
-    pub fn base_get(&self, key: &K) -> Option<&'static V> {
+    pub(crate) fn base_get(&self, key: &K) -> Option<&'static V> {
         let b = self.base.filter(|_| tsrs_core::sharedgraph::COMPILED_IN)?;
         if !self.removed.is_empty() && self.removed.contains(key) {
             return None;
@@ -80,19 +80,19 @@ impl<K: Hash + Eq + Clone, V> Based<FxHashMap<K, V>, K> {
     }
 
     #[inline]
-    pub fn contains_key(&self, key: &K) -> bool {
+    pub(crate) fn contains_key(&self, key: &K) -> bool {
         self.get(key).is_some()
     }
 
     #[inline]
-    pub fn insert(&mut self, key: K, value: V) -> Option<V> {
+    pub(crate) fn insert(&mut self, key: K, value: V) -> Option<V> {
         if !self.removed.is_empty() {
             self.removed.remove(&key);
         }
         self.own.insert(key, value)
     }
 
-    pub fn remove(&mut self, key: &K) -> Option<V> {
+    pub(crate) fn remove(&mut self, key: &K) -> Option<V> {
         if self
             .base
             .filter(|_| tsrs_core::sharedgraph::COMPILED_IN)

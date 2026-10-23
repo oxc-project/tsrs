@@ -57,14 +57,14 @@ pub struct TaskResult {
     pub(crate) builder: Arc<Mutex<String>>,
     pub(crate) report_status: Option<DiagnosticReporter<'static>>,
     pub(crate) diagnostic_reporter: Option<DiagnosticReporter<'static>>,
-    pub(crate) exit_status: ExitStatus,
-    pub(crate) statistics: Option<Statistics>,
+    exit_status: ExitStatus,
+    statistics: Option<Statistics>,
     pub(crate) program: Option<P<tsrs_incremental::Program>>,
     // tsrs-only: what the program's file loader allocated, freed with the program
     // (`Orchestrator::frees_built_programs`).
     pub(crate) program_regions: Option<Arc<tsrs_compiler::ProgramRegions>>,
-    pub(crate) build_kind: BuildKind,
-    pub(crate) files_to_delete: Vec<String>,
+    build_kind: BuildKind,
+    files_to_delete: Vec<String>,
 }
 
 impl TaskResult {
@@ -121,7 +121,7 @@ pub struct BuildTask {
     pub(crate) resolved: Mutex<Option<P<ParsedCommandLine>>>,
     pub(crate) up_stream: Mutex<Vec<UpstreamTask>>,
     pub(crate) down_stream: Mutex<Vec<P<BuildTask>>>, // Only set and used in watch mode
-    pub(crate) status: Mutex<Option<UpToDateStatus>>,
+    status: Mutex<Option<UpToDateStatus>>,
     pub(crate) done: CloseSignal,
 
     // task reporting

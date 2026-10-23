@@ -1640,7 +1640,7 @@ pub struct SnippetPrinter {
 
 impl SnippetPrinter {
     // completions.go:6802
-    pub(crate) fn print_unescaped_node(&mut self, node: P<Node>) -> String {
+    fn print_unescaped_node(&mut self, node: P<Node>) -> String {
         self.writer.escapes.clear();
         self.writer.clear();
         self.printer.write(
@@ -1653,7 +1653,7 @@ impl SnippetPrinter {
     }
 
     // completions.go:6809
-    pub(crate) fn print_and_format_node(
+    fn print_and_format_node(
         &mut self,
         ctx: &Context,
         node: P<Node>,

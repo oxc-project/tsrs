@@ -1,7 +1,7 @@
 use super::*;
 
-pub struct ImportElisionTransformer {
-    pub base: Transformer,
+struct ImportElisionTransformer {
+    base: Transformer,
     compiler_options: P<CompilerOptions>,
     current_source_file: Cell<Option<P<SourceFile>>>,
     emit_resolver: Option<Resolver>,

@@ -43,10 +43,8 @@ tools/lint/source.mjs                              # unsafe Send/Sync inventory,
 tools/gen-check.sh                                # generated code matches its generator (change the generator, then --write)
 ```
 
-Use the `dev` profile (release optimization, no LTO, incremental) while editing and testing: a checker edit rebuilds
-`tsrs` and `tsrs-test` in about 5 s instead of about 3 minutes with `--release`, and the conformance suite gives the
-same results in the same time (notes/dev-loop-build.md). Build `--release` for performance measurements: its fat LTO
-and single codegen unit are what ships.
+Use the `dev` profile while editing and testing. It uses Cargo's default development settings with debug information
+disabled. Build `--release` for performance measurements: its fat LTO and single codegen unit are what ships.
 
 The language-server test server and WebAssembly module have separate builds:
 
@@ -126,8 +124,9 @@ Capture its combined stdout and stderr, replacing the case's absolute directory 
 - Changes target `main`. CI (`.github/workflows/ci.yml`, on GitHub Actions) runs on pushes
   to `main`, on pull requests (drafts too), on merge groups and by manual dispatch, and must pass. Fork pull requests
   follow the repository's approval setting, run with read-only tokens and never get repository secrets.
-- CI has five independent Linux jobs with separate
-  Rust caches: `lint` runs Clippy and source checks; `test` runs Rust checks and all workspace tests, compiler conformance in
+- CI builds the CLI and conformance runner once in `build-correctness`; conformance, regressions and determinism
+  use those same binaries. The Linux checks have separate Rust caches: `lint` runs Clippy and source checks;
+  `test` runs Rust checks and all workspace tests, compiler conformance in
   both checker modes, and regressions; `determinism` compares checker output across four pinned projects and regression
   cases and rejects current-compiler crashes, including identical crashes across all schedules. When the TypeScript
   source pin matches, it also compares ordered diagnostics and exit status with the base compiler wherever that base

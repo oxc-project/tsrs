@@ -19,9 +19,8 @@ monorepo used for end-to-end checks, outside this repository.
   or another agent's worktree). `ts-ref` inside it may be a symlink to a shared reference checkout; verify it
   against the worktree's own `Cargo.toml` pin.
 - Build with your own target dir: `CARGO_TARGET_DIR=$PWD/target cargo build --profile dev -p tsrs_testrunner -p tsrs_cli`
-  (`dev`: release optimization without LTO, incremental; a checker edit rebuilds in about 5 s, and the suite runs as
-  fast as on a `--release` build, notes/dev-loop-build.md. A debug build is much slower to run. Build `--release`
-  only to measure performance.)
+  (`dev`: Cargo's default development settings with debug information disabled. Build `--release` only to measure
+  performance.)
 
 ## Landing changes (trunk-based, through GitHub)
 

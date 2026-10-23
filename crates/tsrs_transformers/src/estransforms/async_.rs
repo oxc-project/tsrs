@@ -90,7 +90,7 @@ impl AsyncTransformer {
         self.factory().new_unique_name_ex(
             text,
             printer::AutoGenerateOptions {
-                flags: GeneratedIdentifierFlags::OPTIMISTIC | GeneratedIdentifierFlags::FILE_LEVEL,
+                flags: GeneratedIdentifierFlags::Optimistic | GeneratedIdentifierFlags::FileLevel,
                 ..Default::default()
             },
         )
@@ -200,7 +200,7 @@ impl AsyncTransformer {
     // async.go:126
     fn visit(&self, node: P<Node>) -> Option<P<Node>> {
         // Go: `defer tx.setContextFlag(asyncContextHasLexicalThis, true)`
-        if self.emit_context().emit_flags(node).intersects(EmitFlags::NO_LEXICAL_THIS)
+        if self.emit_context().emit_flags(node).intersects(EmitFlags::NoLexicalThis)
             && self.in_has_lexical_this_context()
         {
             self.set_context_flag(ASYNC_CONTEXT_HAS_LEXICAL_THIS, false);
@@ -215,7 +215,7 @@ impl AsyncTransformer {
     fn visit_worker(&self, node: P<Node>) -> Option<P<Node>> {
         if !node
             .subtree_facts()
-            .intersects(SubtreeFacts::CONTAINS_ANY_AWAIT | SubtreeFacts::CONTAINS_AWAIT)
+            .intersects(SubtreeFacts::ContainsAnyAwait | SubtreeFacts::ContainsAwait)
         {
             return self.fallback_visitor(node);
         }
@@ -482,7 +482,7 @@ impl AsyncTransformer {
 
         let parameters;
         let body;
-        if function_flags.intersects(FunctionFlags::ASYNC) {
+        if function_flags.intersects(FunctionFlags::Async) {
             parameters = Some(self.transform_async_function_parameter_list(node));
             body = self.transform_async_function_body(node, parameters.unwrap());
         } else {
@@ -576,7 +576,7 @@ impl AsyncTransformer {
 
         let parameters;
         let body;
-        if function_flags.intersects(FunctionFlags::ASYNC) {
+        if function_flags.intersects(FunctionFlags::Async) {
             parameters = Some(self.transform_async_function_parameter_list(node));
             body = Some(self.transform_async_function_body(node, parameters.unwrap()));
         } else {
@@ -618,7 +618,7 @@ impl AsyncTransformer {
 
         let parameters;
         let body;
-        if function_flags.intersects(FunctionFlags::ASYNC) {
+        if function_flags.intersects(FunctionFlags::Async) {
             parameters = Some(self.transform_async_function_parameter_list(node));
             body = Some(self.transform_async_function_body(node, parameters.unwrap()));
         } else {
@@ -654,7 +654,7 @@ impl AsyncTransformer {
         // behavior for baseline compatibility. In Strada, checker-based `isArgumentsLocalBinding`
         // returns false for `arguments` in static blocks (since the binding doesn't exist due to
         // the error), so the async transform leaves them untouched.
-        if self.emit_context().emit_flags(node).intersects(EmitFlags::NO_LEXICAL_ARGUMENTS) {
+        if self.emit_context().emit_flags(node).intersects(EmitFlags::NoLexicalArguments) {
             let saved_lexical_arguments =
                 self.lexical_arguments.replace(LexicalArgumentsInfo::default());
             // Go: `defer func() { tx.lexicalArguments = savedLexicalArguments }()`
@@ -675,7 +675,7 @@ impl AsyncTransformer {
 
         let parameters;
         let body;
-        if function_flags.intersects(FunctionFlags::ASYNC) {
+        if function_flags.intersects(FunctionFlags::Async) {
             parameters = Some(self.transform_async_function_parameter_list(node));
             body = Some(self.transform_async_function_body(node, parameters.unwrap()));
         } else {
@@ -719,7 +719,7 @@ impl AsyncTransformer {
             return false;
         };
         ast::is_variable_declaration_list(node)
-            && !node.flags().intersects(NodeFlags::BLOCK_SCOPED)
+            && !node.flags().intersects(NodeFlags::BlockScoped)
             && node
                 .as_variable_declaration_list()
                 .declarations
@@ -849,7 +849,7 @@ impl AsyncTransformer {
         let captured_size = s.captured_super_properties.borrow().as_ref().unwrap().len();
         let emit_super_helpers = (captured_size > 0 || s.has_super_element_access.get())
             && !ast::get_function_flags(Some(self.get_original_if_function_like(node)))
-                .contains(FunctionFlags::ASYNC_GENERATOR);
+                .contains(FunctionFlags::AsyncGenerator);
 
         if emit_super_helpers && captured_size > 0 {
             self.emit_context()
@@ -903,10 +903,10 @@ impl AsyncTransformer {
             Some(f.new_identifier("arguments")),
         );
         let decl_list =
-            f.new_variable_declaration_list(f.new_node_list(vec![variable]), NodeFlags::NONE);
+            f.new_variable_declaration_list(f.new_node_list(vec![variable]), NodeFlags::None);
         let statement = f.new_variable_statement(None, decl_list);
         self.emit_context()
-            .add_emit_flags(statement, EmitFlags::START_ON_NEW_LINE | EmitFlags::CUSTOM_PROLOGUE);
+            .add_emit_flags(statement, EmitFlags::StartOnNewLine | EmitFlags::CustomPrologue);
         statement
     }
 
@@ -933,7 +933,7 @@ impl AsyncTransformer {
                         f.new_unique_name_ex(
                             "args",
                             printer::AutoGenerateOptions {
-                                flags: GeneratedIdentifierFlags::RESERVED_IN_NESTED_SCOPES,
+                                flags: GeneratedIdentifierFlags::ReservedInNestedScopes,
                                 ..Default::default()
                             },
                         ),
@@ -953,7 +953,7 @@ impl AsyncTransformer {
                 f.new_generated_name_for_node_ex(
                     param.name(),
                     printer::AutoGenerateOptions {
-                        flags: GeneratedIdentifierFlags::RESERVED_IN_NESTED_SCOPES,
+                        flags: GeneratedIdentifierFlags::ReservedInNestedScopes,
                         ..Default::default()
                     },
                 ),

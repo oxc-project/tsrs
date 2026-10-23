@@ -322,17 +322,17 @@ impl Checker {
                 &[],
             );
         }
-        let mut block_scope_kind = NodeFlags::NONE;
+        let mut block_scope_kind = NodeFlags::None;
         if is_variable_statement(node) {
             block_scope_kind =
-                node.as_variable_statement().declaration_list.flags() & NodeFlags::BLOCK_SCOPED;
+                node.as_variable_statement().declaration_list.flags() & NodeFlags::BlockScoped;
         }
         let mut last_static: Option<P<Node>> = None;
         let mut last_declare: Option<P<Node>> = None;
         let mut last_async: Option<P<Node>> = None;
         let mut last_override: Option<P<Node>> = None;
         let mut first_decorator: Option<P<Node>> = None;
-        let mut flags = ModifierFlags::NONE;
+        let mut flags = ModifierFlags::None;
         let mut saw_export_before_decorators = false;
         // We parse decorators and modifiers in four contiguous chunks:
         // [...leadingDecorators, ...leadingModifiers, ...trailingDecorators, ...trailingModifiers]. It is an error to
@@ -372,7 +372,7 @@ impl Checker {
                 }
 
                 // if we've seen any modifiers aside from `export`, `default`, or another decorator, then this is an invalid position
-                if flags.intersects(!(ModifierFlags::EXPORT_DEFAULT | ModifierFlags::DECORATOR)) {
+                if flags.intersects(!(ModifierFlags::ExportDefault | ModifierFlags::Decorator)) {
                     return self.grammar_error_on_node(
                         modifier,
                         &diagnostics::DECORATORS_ARE_NOT_VALID_HERE,
@@ -381,7 +381,7 @@ impl Checker {
                 }
 
                 // if we've already seen leading decorators and leading modifiers, then trailing decorators are an invalid position
-                if has_leading_decorators && flags.intersects(ModifierFlags::MODIFIER) {
+                if has_leading_decorators && flags.intersects(ModifierFlags::Modifier) {
                     assert!(first_decorator.is_some(), "Expected firstDecorator to be set");
                     let source_file = ast::get_source_file_of_node(modifier).unwrap();
                     if !Self::has_parse_diagnostics(source_file) {
@@ -396,12 +396,12 @@ impl Checker {
                     return false;
                 }
 
-                flags |= ModifierFlags::DECORATOR;
+                flags |= ModifierFlags::Decorator;
 
                 // if we have not yet seen a modifier, then these are leading decorators
-                if !flags.intersects(ModifierFlags::MODIFIER) {
+                if !flags.intersects(ModifierFlags::Modifier) {
                     has_leading_decorators = true;
-                } else if flags.intersects(ModifierFlags::EXPORT) {
+                } else if flags.intersects(ModifierFlags::Export) {
                     saw_export_before_decorators = true;
                 }
 
@@ -409,7 +409,7 @@ impl Checker {
                     first_decorator = Some(modifier);
                 }
             } else {
-                let modifier_not_reparsed = !modifier.flags().intersects(NodeFlags::REPARSED);
+                let modifier_not_reparsed = !modifier.flags().intersects(NodeFlags::Reparsed);
                 if modifier.kind() != Kind::ReadonlyKeyword {
                     if node.kind() == Kind::PropertySignature
                         || node.kind() == Kind::MethodSignature
@@ -468,79 +468,79 @@ impl Checker {
                     }
                     Kind::OverrideKeyword => {
                         // If node.kind === SyntaxKind.Parameter, checkParameter reports an error if it's not a parameter property.
-                        if flags.intersects(ModifierFlags::OVERRIDE) {
+                        if flags.intersects(ModifierFlags::Override) {
                             return self.grammar_error_on_node(
                                 modifier,
                                 &diagnostics::X_0_MODIFIER_ALREADY_SEEN,
                                 &[&"override"],
                             );
-                        } else if flags.intersects(ModifierFlags::AMBIENT) {
+                        } else if flags.intersects(ModifierFlags::Ambient) {
                             return self.grammar_error_on_node(
                                 modifier,
                                 &diagnostics::X_0_MODIFIER_CANNOT_BE_USED_WITH_1_MODIFIER,
                                 &[&"override", &"declare"],
                             );
-                        } else if flags.intersects(ModifierFlags::READONLY) && modifier_not_reparsed
+                        } else if flags.intersects(ModifierFlags::Readonly) && modifier_not_reparsed
                         {
                             return self.grammar_error_on_node(
                                 modifier,
                                 &diagnostics::X_0_MODIFIER_MUST_PRECEDE_1_MODIFIER,
                                 &[&"override", &"readonly"],
                             );
-                        } else if flags.intersects(ModifierFlags::ACCESSOR) && modifier_not_reparsed
+                        } else if flags.intersects(ModifierFlags::Accessor) && modifier_not_reparsed
                         {
                             return self.grammar_error_on_node(
                                 modifier,
                                 &diagnostics::X_0_MODIFIER_MUST_PRECEDE_1_MODIFIER,
                                 &[&"override", &"accessor"],
                             );
-                        } else if flags.intersects(ModifierFlags::ASYNC) && modifier_not_reparsed {
+                        } else if flags.intersects(ModifierFlags::Async) && modifier_not_reparsed {
                             return self.grammar_error_on_node(
                                 modifier,
                                 &diagnostics::X_0_MODIFIER_MUST_PRECEDE_1_MODIFIER,
                                 &[&"override", &"async"],
                             );
                         }
-                        flags |= ModifierFlags::OVERRIDE;
+                        flags |= ModifierFlags::Override;
                         last_override = Some(modifier);
                     }
                     Kind::PublicKeyword | Kind::ProtectedKeyword | Kind::PrivateKeyword => {
                         let text = visibility_to_string(ast::modifier_to_flag(modifier.kind()));
 
-                        if flags.intersects(ModifierFlags::ACCESSIBILITY_MODIFIER) {
+                        if flags.intersects(ModifierFlags::AccessibilityModifier) {
                             return self.grammar_error_on_node(
                                 modifier,
                                 &diagnostics::ACCESSIBILITY_MODIFIER_ALREADY_SEEN,
                                 &[],
                             );
-                        } else if flags.intersects(ModifierFlags::OVERRIDE) && modifier_not_reparsed
+                        } else if flags.intersects(ModifierFlags::Override) && modifier_not_reparsed
                         {
                             return self.grammar_error_on_node(
                                 modifier,
                                 &diagnostics::X_0_MODIFIER_MUST_PRECEDE_1_MODIFIER,
                                 &[&text, &"override"],
                             );
-                        } else if flags.intersects(ModifierFlags::STATIC) && modifier_not_reparsed {
+                        } else if flags.intersects(ModifierFlags::Static) && modifier_not_reparsed {
                             return self.grammar_error_on_node(
                                 modifier,
                                 &diagnostics::X_0_MODIFIER_MUST_PRECEDE_1_MODIFIER,
                                 &[&text, &"static"],
                             );
-                        } else if flags.intersects(ModifierFlags::ACCESSOR) && modifier_not_reparsed
+                        } else if flags.intersects(ModifierFlags::Accessor) && modifier_not_reparsed
                         {
                             return self.grammar_error_on_node(
                                 modifier,
                                 &diagnostics::X_0_MODIFIER_MUST_PRECEDE_1_MODIFIER,
                                 &[&text, &"accessor"],
                             );
-                        } else if flags.intersects(ModifierFlags::READONLY) && modifier_not_reparsed
+                        } else if flags.intersects(ModifierFlags::Readonly) && modifier_not_reparsed
                         {
                             return self.grammar_error_on_node(
                                 modifier,
                                 &diagnostics::X_0_MODIFIER_MUST_PRECEDE_1_MODIFIER,
                                 &[&text, &"readonly"],
                             );
-                        } else if flags.intersects(ModifierFlags::ASYNC) && modifier_not_reparsed {
+                        } else if flags.intersects(ModifierFlags::Async) && modifier_not_reparsed {
                             return self.grammar_error_on_node(
                                 modifier,
                                 &diagnostics::X_0_MODIFIER_MUST_PRECEDE_1_MODIFIER,
@@ -550,7 +550,7 @@ impl Checker {
                             || parent.kind() == Kind::SourceFile
                         {
                             return self.grammar_error_on_node(modifier, &diagnostics::X_0_MODIFIER_CANNOT_APPEAR_ON_A_MODULE_OR_NAMESPACE_ELEMENT, &[&text]);
-                        } else if flags.intersects(ModifierFlags::ABSTRACT) {
+                        } else if flags.intersects(ModifierFlags::Abstract) {
                             if modifier.kind() == Kind::PrivateKeyword {
                                 return self.grammar_error_on_node(
                                     modifier,
@@ -570,26 +570,26 @@ impl Checker {
                         flags |= ast::modifier_to_flag(modifier.kind());
                     }
                     Kind::StaticKeyword => {
-                        if flags.intersects(ModifierFlags::STATIC) {
+                        if flags.intersects(ModifierFlags::Static) {
                             return self.grammar_error_on_node(
                                 modifier,
                                 &diagnostics::X_0_MODIFIER_ALREADY_SEEN,
                                 &[&"static"],
                             );
-                        } else if flags.intersects(ModifierFlags::READONLY) && modifier_not_reparsed
+                        } else if flags.intersects(ModifierFlags::Readonly) && modifier_not_reparsed
                         {
                             return self.grammar_error_on_node(
                                 modifier,
                                 &diagnostics::X_0_MODIFIER_MUST_PRECEDE_1_MODIFIER,
                                 &[&"static", &"readonly"],
                             );
-                        } else if flags.intersects(ModifierFlags::ASYNC) && modifier_not_reparsed {
+                        } else if flags.intersects(ModifierFlags::Async) && modifier_not_reparsed {
                             return self.grammar_error_on_node(
                                 modifier,
                                 &diagnostics::X_0_MODIFIER_MUST_PRECEDE_1_MODIFIER,
                                 &[&"static", &"async"],
                             );
-                        } else if flags.intersects(ModifierFlags::ACCESSOR) && modifier_not_reparsed
+                        } else if flags.intersects(ModifierFlags::Accessor) && modifier_not_reparsed
                         {
                             return self.grammar_error_on_node(
                                 modifier,
@@ -606,13 +606,13 @@ impl Checker {
                                 &diagnostics::X_0_MODIFIER_CANNOT_APPEAR_ON_A_PARAMETER,
                                 &[&"static"],
                             );
-                        } else if flags.intersects(ModifierFlags::ABSTRACT) {
+                        } else if flags.intersects(ModifierFlags::Abstract) {
                             return self.grammar_error_on_node(
                                 modifier,
                                 &diagnostics::X_0_MODIFIER_CANNOT_BE_USED_WITH_1_MODIFIER,
                                 &[&"static", &"abstract"],
                             );
-                        } else if flags.intersects(ModifierFlags::OVERRIDE) && modifier_not_reparsed
+                        } else if flags.intersects(ModifierFlags::Override) && modifier_not_reparsed
                         {
                             return self.grammar_error_on_node(
                                 modifier,
@@ -620,23 +620,23 @@ impl Checker {
                                 &[&"static", &"override"],
                             );
                         }
-                        flags |= ModifierFlags::STATIC;
+                        flags |= ModifierFlags::Static;
                         last_static = Some(modifier);
                     }
                     Kind::AccessorKeyword => {
-                        if flags.intersects(ModifierFlags::ACCESSOR) {
+                        if flags.intersects(ModifierFlags::Accessor) {
                             return self.grammar_error_on_node(
                                 modifier,
                                 &diagnostics::X_0_MODIFIER_ALREADY_SEEN,
                                 &[&"accessor"],
                             );
-                        } else if flags.intersects(ModifierFlags::READONLY) {
+                        } else if flags.intersects(ModifierFlags::Readonly) {
                             return self.grammar_error_on_node(
                                 modifier,
                                 &diagnostics::X_0_MODIFIER_CANNOT_BE_USED_WITH_1_MODIFIER,
                                 &[&"accessor", &"readonly"],
                             );
-                        } else if flags.intersects(ModifierFlags::AMBIENT) {
+                        } else if flags.intersects(ModifierFlags::Ambient) {
                             return self.grammar_error_on_node(
                                 modifier,
                                 &diagnostics::X_0_MODIFIER_CANNOT_BE_USED_WITH_1_MODIFIER,
@@ -646,10 +646,10 @@ impl Checker {
                             return self.grammar_error_on_node(modifier, &diagnostics::X_ACCESSOR_MODIFIER_CAN_ONLY_APPEAR_ON_A_PROPERTY_DECLARATION, &[]);
                         }
 
-                        flags |= ModifierFlags::ACCESSOR;
+                        flags |= ModifierFlags::Accessor;
                     }
                     Kind::ReadonlyKeyword => {
-                        if flags.intersects(ModifierFlags::READONLY) {
+                        if flags.intersects(ModifierFlags::Readonly) {
                             return self.grammar_error_on_node(
                                 modifier,
                                 &diagnostics::X_0_MODIFIER_ALREADY_SEEN,
@@ -662,18 +662,18 @@ impl Checker {
                         {
                             // If node.kind === SyntaxKind.Parameter, checkParameter reports an error if it's not a parameter property.
                             return self.grammar_error_on_node(modifier, &diagnostics::X_READONLY_MODIFIER_CAN_ONLY_APPEAR_ON_A_PROPERTY_DECLARATION_OR_INDEX_SIGNATURE, &[]);
-                        } else if flags.intersects(ModifierFlags::ACCESSOR) {
+                        } else if flags.intersects(ModifierFlags::Accessor) {
                             return self.grammar_error_on_node(
                                 modifier,
                                 &diagnostics::X_0_MODIFIER_CANNOT_BE_USED_WITH_1_MODIFIER,
                                 &[&"readonly", &"accessor"],
                             );
                         }
-                        flags |= ModifierFlags::READONLY;
+                        flags |= ModifierFlags::Readonly;
                     }
                     Kind::ExportKeyword => {
                         if self.compiler_options.verbatim_module_syntax == Tristate::True
-                            && !node.flags().intersects(NodeFlags::AMBIENT)
+                            && !node.flags().intersects(NodeFlags::Ambient)
                             && node.kind() != Kind::TypeAliasDeclaration
                             && node.kind() != Kind::InterfaceDeclaration
                             && node.kind() != Kind::ModuleDeclaration
@@ -684,27 +684,27 @@ impl Checker {
                         {
                             return self.grammar_error_on_node(modifier, &diagnostics::A_TOP_LEVEL_EXPORT_MODIFIER_CANNOT_BE_USED_ON_VALUE_DECLARATIONS_IN_A_COMMON_JS_MODULE_WHEN_VERBATIM_MODULE_SYNTAX_IS_ENABLED, &[]);
                         }
-                        if flags.intersects(ModifierFlags::EXPORT) {
+                        if flags.intersects(ModifierFlags::Export) {
                             return self.grammar_error_on_node(
                                 modifier,
                                 &diagnostics::X_0_MODIFIER_ALREADY_SEEN,
                                 &[&"export"],
                             );
-                        } else if flags.intersects(ModifierFlags::AMBIENT) && modifier_not_reparsed
+                        } else if flags.intersects(ModifierFlags::Ambient) && modifier_not_reparsed
                         {
                             return self.grammar_error_on_node(
                                 modifier,
                                 &diagnostics::X_0_MODIFIER_MUST_PRECEDE_1_MODIFIER,
                                 &[&"export", &"declare"],
                             );
-                        } else if flags.intersects(ModifierFlags::ABSTRACT) && modifier_not_reparsed
+                        } else if flags.intersects(ModifierFlags::Abstract) && modifier_not_reparsed
                         {
                             return self.grammar_error_on_node(
                                 modifier,
                                 &diagnostics::X_0_MODIFIER_MUST_PRECEDE_1_MODIFIER,
                                 &[&"export", &"abstract"],
                             );
-                        } else if flags.intersects(ModifierFlags::ASYNC) && modifier_not_reparsed {
+                        } else if flags.intersects(ModifierFlags::Async) && modifier_not_reparsed {
                             return self.grammar_error_on_node(
                                 modifier,
                                 &diagnostics::X_0_MODIFIER_MUST_PRECEDE_1_MODIFIER,
@@ -719,16 +719,16 @@ impl Checker {
                                 &diagnostics::X_0_MODIFIER_CANNOT_APPEAR_ON_A_PARAMETER,
                                 &[&"export"],
                             );
-                        } else if block_scope_kind == NodeFlags::USING {
+                        } else if block_scope_kind == NodeFlags::Using {
                             return self.grammar_error_on_node(
                                 modifier,
                                 &diagnostics::X_0_MODIFIER_CANNOT_APPEAR_ON_A_USING_DECLARATION,
                                 &[&"export"],
                             );
-                        } else if block_scope_kind == NodeFlags::AWAIT_USING {
+                        } else if block_scope_kind == NodeFlags::AwaitUsing {
                             return self.grammar_error_on_node(modifier, &diagnostics::X_0_MODIFIER_CANNOT_APPEAR_ON_AN_AWAIT_USING_DECLARATION, &[&"export"]);
                         }
-                        flags |= ModifierFlags::EXPORT;
+                        flags |= ModifierFlags::Export;
                     }
                     Kind::DefaultKeyword => {
                         let container = if parent.kind() == Kind::SourceFile {
@@ -740,15 +740,15 @@ impl Checker {
                             && !ast::is_ambient_module(container)
                         {
                             return self.grammar_error_on_node(modifier, &diagnostics::A_DEFAULT_EXPORT_CAN_ONLY_BE_USED_IN_AN_ECMA_SCRIPT_STYLE_MODULE, &[]);
-                        } else if block_scope_kind == NodeFlags::USING {
+                        } else if block_scope_kind == NodeFlags::Using {
                             return self.grammar_error_on_node(
                                 modifier,
                                 &diagnostics::X_0_MODIFIER_CANNOT_APPEAR_ON_A_USING_DECLARATION,
                                 &[&"default"],
                             );
-                        } else if block_scope_kind == NodeFlags::AWAIT_USING {
+                        } else if block_scope_kind == NodeFlags::AwaitUsing {
                             return self.grammar_error_on_node(modifier, &diagnostics::X_0_MODIFIER_CANNOT_APPEAR_ON_AN_AWAIT_USING_DECLARATION, &[&"default"]);
-                        } else if !flags.intersects(ModifierFlags::EXPORT) && modifier_not_reparsed
+                        } else if !flags.intersects(ModifierFlags::Export) && modifier_not_reparsed
                         {
                             return self.grammar_error_on_node(
                                 modifier,
@@ -763,22 +763,22 @@ impl Checker {
                             );
                         }
 
-                        flags |= ModifierFlags::DEFAULT;
+                        flags |= ModifierFlags::Default;
                     }
                     Kind::DeclareKeyword => {
-                        if flags.intersects(ModifierFlags::AMBIENT) {
+                        if flags.intersects(ModifierFlags::Ambient) {
                             return self.grammar_error_on_node(
                                 modifier,
                                 &diagnostics::X_0_MODIFIER_ALREADY_SEEN,
                                 &[&"declare"],
                             );
-                        } else if flags.intersects(ModifierFlags::ASYNC) {
+                        } else if flags.intersects(ModifierFlags::Async) {
                             return self.grammar_error_on_node(
                                 modifier,
                                 &diagnostics::X_0_MODIFIER_CANNOT_BE_USED_IN_AN_AMBIENT_CONTEXT,
                                 &[&"async"],
                             );
-                        } else if flags.intersects(ModifierFlags::OVERRIDE) {
+                        } else if flags.intersects(ModifierFlags::Override) {
                             return self.grammar_error_on_node(
                                 modifier,
                                 &diagnostics::X_0_MODIFIER_CANNOT_BE_USED_IN_AN_AMBIENT_CONTEXT,
@@ -792,15 +792,15 @@ impl Checker {
                                 &diagnostics::X_0_MODIFIER_CANNOT_APPEAR_ON_A_PARAMETER,
                                 &[&"declare"],
                             );
-                        } else if block_scope_kind == NodeFlags::USING {
+                        } else if block_scope_kind == NodeFlags::Using {
                             return self.grammar_error_on_node(
                                 modifier,
                                 &diagnostics::X_0_MODIFIER_CANNOT_APPEAR_ON_A_USING_DECLARATION,
                                 &[&"declare"],
                             );
-                        } else if block_scope_kind == NodeFlags::AWAIT_USING {
+                        } else if block_scope_kind == NodeFlags::AwaitUsing {
                             return self.grammar_error_on_node(modifier, &diagnostics::X_0_MODIFIER_CANNOT_APPEAR_ON_AN_AWAIT_USING_DECLARATION, &[&"declare"]);
-                        } else if parent.flags().intersects(NodeFlags::AMBIENT)
+                        } else if parent.flags().intersects(NodeFlags::Ambient)
                             && parent.kind() == Kind::ModuleBlock
                         {
                             return self.grammar_error_on_node(modifier, &diagnostics::A_DECLARE_MODIFIER_CANNOT_BE_USED_IN_AN_ALREADY_AMBIENT_CONTEXT, &[]);
@@ -810,18 +810,18 @@ impl Checker {
                                 &diagnostics::X_0_MODIFIER_CANNOT_BE_USED_WITH_A_PRIVATE_IDENTIFIER,
                                 &[&"declare"],
                             );
-                        } else if flags.intersects(ModifierFlags::ACCESSOR) {
+                        } else if flags.intersects(ModifierFlags::Accessor) {
                             return self.grammar_error_on_node(
                                 modifier,
                                 &diagnostics::X_0_MODIFIER_CANNOT_BE_USED_WITH_1_MODIFIER,
                                 &[&"declare", &"accessor"],
                             );
                         }
-                        flags |= ModifierFlags::AMBIENT;
+                        flags |= ModifierFlags::Ambient;
                         last_declare = Some(modifier);
                     }
                     Kind::AbstractKeyword => {
-                        if flags.intersects(ModifierFlags::ABSTRACT) {
+                        if flags.intersects(ModifierFlags::Abstract) {
                             return self.grammar_error_on_node(
                                 modifier,
                                 &diagnostics::X_0_MODIFIER_ALREADY_SEEN,
@@ -839,7 +839,7 @@ impl Checker {
                                 return self.grammar_error_on_node(modifier, &diagnostics::X_ABSTRACT_MODIFIER_CAN_ONLY_APPEAR_ON_A_CLASS_METHOD_OR_PROPERTY_DECLARATION, &[]);
                             }
                             if !(parent.kind() == Kind::ClassDeclaration
-                                && ast::has_syntactic_modifier(parent, ModifierFlags::ABSTRACT))
+                                && ast::has_syntactic_modifier(parent, ModifierFlags::Abstract))
                             {
                                 let message = if node.kind() == Kind::PropertyDeclaration {
                                     &diagnostics::ABSTRACT_PROPERTIES_CAN_ONLY_APPEAR_WITHIN_AN_ABSTRACT_CLASS
@@ -848,21 +848,21 @@ impl Checker {
                                 };
                                 return self.grammar_error_on_node(modifier, message, &[]);
                             }
-                            if flags.intersects(ModifierFlags::STATIC) {
+                            if flags.intersects(ModifierFlags::Static) {
                                 return self.grammar_error_on_node(
                                     modifier,
                                     &diagnostics::X_0_MODIFIER_CANNOT_BE_USED_WITH_1_MODIFIER,
                                     &[&"static", &"abstract"],
                                 );
                             }
-                            if flags.intersects(ModifierFlags::PRIVATE) {
+                            if flags.intersects(ModifierFlags::Private) {
                                 return self.grammar_error_on_node(
                                     modifier,
                                     &diagnostics::X_0_MODIFIER_CANNOT_BE_USED_WITH_1_MODIFIER,
                                     &[&"private", &"abstract"],
                                 );
                             }
-                            if flags.intersects(ModifierFlags::ASYNC) {
+                            if flags.intersects(ModifierFlags::Async) {
                                 if let Some(last_async) = last_async {
                                     return self.grammar_error_on_node(
                                         last_async,
@@ -871,14 +871,14 @@ impl Checker {
                                     );
                                 }
                             }
-                            if flags.intersects(ModifierFlags::OVERRIDE) && modifier_not_reparsed {
+                            if flags.intersects(ModifierFlags::Override) && modifier_not_reparsed {
                                 return self.grammar_error_on_node(
                                     modifier,
                                     &diagnostics::X_0_MODIFIER_MUST_PRECEDE_1_MODIFIER,
                                     &[&"abstract", &"override"],
                                 );
                             }
-                            if flags.intersects(ModifierFlags::ACCESSOR) && modifier_not_reparsed {
+                            if flags.intersects(ModifierFlags::Accessor) && modifier_not_reparsed {
                                 return self.grammar_error_on_node(
                                     modifier,
                                     &diagnostics::X_0_MODIFIER_MUST_PRECEDE_1_MODIFIER,
@@ -892,17 +892,17 @@ impl Checker {
                             }
                         }
 
-                        flags |= ModifierFlags::ABSTRACT;
+                        flags |= ModifierFlags::Abstract;
                     }
                     Kind::AsyncKeyword => {
-                        if flags.intersects(ModifierFlags::ASYNC) {
+                        if flags.intersects(ModifierFlags::Async) {
                             return self.grammar_error_on_node(
                                 modifier,
                                 &diagnostics::X_0_MODIFIER_ALREADY_SEEN,
                                 &[&"async"],
                             );
-                        } else if flags.intersects(ModifierFlags::AMBIENT)
-                            || parent.flags().intersects(NodeFlags::AMBIENT)
+                        } else if flags.intersects(ModifierFlags::Ambient)
+                            || parent.flags().intersects(NodeFlags::Ambient)
                         {
                             return self.grammar_error_on_node(
                                 modifier,
@@ -916,21 +916,21 @@ impl Checker {
                                 &[&"async"],
                             );
                         }
-                        if flags.intersects(ModifierFlags::ABSTRACT) {
+                        if flags.intersects(ModifierFlags::Abstract) {
                             return self.grammar_error_on_node(
                                 modifier,
                                 &diagnostics::X_0_MODIFIER_CANNOT_BE_USED_WITH_1_MODIFIER,
                                 &[&"async", &"abstract"],
                             );
                         }
-                        flags |= ModifierFlags::ASYNC;
+                        flags |= ModifierFlags::Async;
                         last_async = Some(modifier);
                     }
                     Kind::InKeyword | Kind::OutKeyword => {
                         let in_out_flag = if modifier.kind() == Kind::InKeyword {
-                            ModifierFlags::IN
+                            ModifierFlags::In
                         } else {
-                            ModifierFlags::OUT
+                            ModifierFlags::Out
                         };
                         let in_out_text =
                             if modifier.kind() == Kind::InKeyword { "in" } else { "out" };
@@ -951,8 +951,8 @@ impl Checker {
                                 &[&in_out_text],
                             );
                         }
-                        if in_out_flag.intersects(ModifierFlags::IN)
-                            && flags.intersects(ModifierFlags::OUT)
+                        if in_out_flag.intersects(ModifierFlags::In)
+                            && flags.intersects(ModifierFlags::Out)
                         {
                             return self.grammar_error_on_node(
                                 modifier,
@@ -968,21 +968,21 @@ impl Checker {
         }
 
         if node.kind() == Kind::Constructor {
-            if flags.intersects(ModifierFlags::STATIC) {
+            if flags.intersects(ModifierFlags::Static) {
                 return self.grammar_error_on_node(
                     last_static.unwrap(),
                     &diagnostics::X_0_MODIFIER_CANNOT_APPEAR_ON_A_CONSTRUCTOR_DECLARATION,
                     &[&"static"],
                 );
             }
-            if flags.intersects(ModifierFlags::OVERRIDE) {
+            if flags.intersects(ModifierFlags::Override) {
                 return self.grammar_error_on_node(
                     last_override.unwrap(),
                     &diagnostics::X_0_MODIFIER_CANNOT_APPEAR_ON_A_CONSTRUCTOR_DECLARATION,
                     &[&"override"],
                 );
             }
-            if flags.intersects(ModifierFlags::ASYNC) {
+            if flags.intersects(ModifierFlags::Async) {
                 return self.grammar_error_on_node(
                     last_async.unwrap(),
                     &diagnostics::X_0_MODIFIER_CANNOT_APPEAR_ON_A_CONSTRUCTOR_DECLARATION,
@@ -993,7 +993,7 @@ impl Checker {
         } else if (node.kind() == Kind::ImportDeclaration
             || node.kind() == Kind::JSImportDeclaration
             || node.kind() == Kind::ImportEqualsDeclaration)
-            && flags.intersects(ModifierFlags::AMBIENT)
+            && flags.intersects(ModifierFlags::Ambient)
         {
             return self.grammar_error_on_node(
                 last_declare.unwrap(),
@@ -1001,7 +1001,7 @@ impl Checker {
                 &[&"declare"],
             );
         } else if node.kind() == Kind::Parameter
-            && flags.intersects(ModifierFlags::PARAMETER_PROPERTY_MODIFIER)
+            && flags.intersects(ModifierFlags::ParameterPropertyModifier)
             && node.name().is_some_and(ast::is_binding_pattern)
         {
             return self.grammar_error_on_node(
@@ -1010,7 +1010,7 @@ impl Checker {
                 &[],
             );
         } else if node.kind() == Kind::Parameter
-            && flags.intersects(ModifierFlags::PARAMETER_PROPERTY_MODIFIER)
+            && flags.intersects(ModifierFlags::ParameterPropertyModifier)
             && node.as_parameter_declaration().dot_dot_dot_token().is_some()
         {
             return self.grammar_error_on_node(
@@ -1019,7 +1019,7 @@ impl Checker {
                 &[],
             );
         }
-        if flags.intersects(ModifierFlags::ASYNC) {
+        if flags.intersects(ModifierFlags::Async) {
             return self.check_grammar_async_modifier(node, last_async);
         }
         false
@@ -1098,7 +1098,7 @@ impl Checker {
                             .as_variable_statement()
                             .declaration_list
                             .flags()
-                            .intersects(NodeFlags::USING)
+                            .intersects(NodeFlags::Using)
                         {
                             return Self::find_first_modifier_except(node, Kind::AwaitKeyword);
                         }
@@ -1223,7 +1223,7 @@ impl Checker {
                         &[],
                     );
                 }
-                if !parameter_node.flags().intersects(NodeFlags::AMBIENT) {
+                if !parameter_node.flags().intersects(NodeFlags::Ambient) {
                     self.check_grammar_for_disallowed_trailing_comma(Some(parameters), &diagnostics::A_REST_PARAMETER_OR_BINDING_PATTERN_MAY_NOT_HAVE_A_TRAILING_COMMA);
                 }
 
@@ -1247,7 +1247,7 @@ impl Checker {
                 // A reparsed '?' token indicates a bracketed name in @param tag
                 if parameter
                     .question_token()
-                    .is_some_and(|q| !q.flags().intersects(NodeFlags::REPARSED))
+                    .is_some_and(|q| !q.flags().intersects(NodeFlags::Reparsed))
                     && parameter.initializer().is_some()
                 {
                     return self.grammar_error_on_node(
@@ -1460,9 +1460,8 @@ impl Checker {
             );
         };
         let t = self.get_type_from_type_node(type_node);
-        if some_type(self, t, |_, t| {
-            t.flags().intersects(TypeFlags::STRING_OR_NUMBER_LITERAL_OR_UNIQUE)
-        }) || self.is_generic_type(t)
+        if some_type(self, t, |_, t| t.flags().intersects(TypeFlags::StringOrNumberLiteralOrUnique))
+            || self.is_generic_type(t)
         {
             return self.grammar_error_on_node(parameter.name, &diagnostics::AN_INDEX_SIGNATURE_PARAMETER_TYPE_CANNOT_BE_A_LITERAL_TYPE_OR_GENERIC_TYPE_CONSIDER_USING_A_MAPPED_OBJECT_TYPE_INSTEAD, &[]);
         }
@@ -1531,7 +1530,7 @@ impl Checker {
     pub(crate) fn check_grammar_tagged_template_chain(&mut self, node: P<Node>) -> bool {
         let tagged_template = node.as_tagged_template_expression();
         if tagged_template.question_dot_token.is_some()
-            || node.flags().intersects(NodeFlags::OPTIONAL_CHAIN)
+            || node.flags().intersects(NodeFlags::OptionalChain)
         {
             return self.grammar_error_on_node(
                 tagged_template.template,
@@ -1714,7 +1713,7 @@ impl Checker {
                     "Unexpected node kind {:?}",
                     node.kind()
                 );
-                if node.flags().intersects(NodeFlags::AMBIENT) {
+                if node.flags().intersects(NodeFlags::Ambient) {
                     return self.grammar_error_on_node(
                         asterisk_token,
                         &diagnostics::GENERATORS_ARE_NOT_ALLOWED_IN_AN_AMBIENT_CONTEXT,
@@ -1897,11 +1896,11 @@ impl Checker {
                         );
                     }
 
-                    DeclarationMeaning::PROPERTY_ASSIGNMENT
+                    DeclarationMeaning::PropertyAssignment
                 }
-                Kind::MethodDeclaration => DeclarationMeaning::METHOD,
-                Kind::GetAccessor => DeclarationMeaning::GET_ACCESSOR,
-                Kind::SetAccessor => DeclarationMeaning::SET_ACCESSOR,
+                Kind::MethodDeclaration => DeclarationMeaning::Method,
+                Kind::GetAccessor => DeclarationMeaning::GetAccessor,
+                Kind::SetAccessor => DeclarationMeaning::SetAccessor,
                 _ => panic!("Unexpected node kind {:?}", prop.kind()),
             };
 
@@ -1916,22 +1915,22 @@ impl Checker {
                 let existing_kind = *entry;
                 if existing_kind.is_empty() {
                     *entry = current_kind;
-                } else if current_kind.intersects(DeclarationMeaning::METHOD)
-                    && existing_kind.intersects(DeclarationMeaning::METHOD)
+                } else if current_kind.intersects(DeclarationMeaning::Method)
+                    && existing_kind.intersects(DeclarationMeaning::Method)
                 {
                     self.grammar_error_on_node(
                         name,
                         &diagnostics::DUPLICATE_IDENTIFIER_0,
                         &[&scanner::get_text_of_node(name)],
                     );
-                } else if current_kind.intersects(DeclarationMeaning::PROPERTY_ASSIGNMENT)
-                    && existing_kind.intersects(DeclarationMeaning::PROPERTY_ASSIGNMENT)
+                } else if current_kind.intersects(DeclarationMeaning::PropertyAssignment)
+                    && existing_kind.intersects(DeclarationMeaning::PropertyAssignment)
                 {
                     self.grammar_error_on_node(name, &diagnostics::AN_OBJECT_LITERAL_CANNOT_HAVE_MULTIPLE_PROPERTIES_WITH_THE_SAME_NAME, &[&scanner::get_text_of_node(name)]);
-                } else if current_kind.intersects(DeclarationMeaning::GET_OR_SET_ACCESSOR)
-                    && existing_kind.intersects(DeclarationMeaning::GET_OR_SET_ACCESSOR)
+                } else if current_kind.intersects(DeclarationMeaning::GetOrSetAccessor)
+                    && existing_kind.intersects(DeclarationMeaning::GetOrSetAccessor)
                 {
-                    if existing_kind != DeclarationMeaning::GET_OR_SET_ACCESSOR
+                    if existing_kind != DeclarationMeaning::GetOrSetAccessor
                         && current_kind != existing_kind
                     {
                         *entry = current_kind | existing_kind;
@@ -2025,7 +2024,7 @@ impl Checker {
 
         if for_in_or_of_statement.kind() == Kind::ForOfStatement {
             if let Some(await_modifier) = stmt.await_modifier {
-                if !for_in_or_of_statement.flags().intersects(NodeFlags::AWAIT_CONTEXT) {
+                if !for_in_or_of_statement.flags().intersects(NodeFlags::AwaitContext) {
                     let source_file = ast::get_source_file_of_node(as_node).unwrap();
                     if ast::is_in_top_level_context(as_node) {
                         if !Self::has_parse_diagnostics(source_file) {
@@ -2075,7 +2074,7 @@ impl Checker {
                                 if containing_func.kind() != Kind::Constructor {
                                     assert!(
                                         !ast::get_function_flags(Some(containing_func))
-                                            .intersects(FunctionFlags::ASYNC),
+                                            .intersects(FunctionFlags::Async),
                                         "Enclosing function should never be an async function."
                                     );
                                     let related_info = create_diagnostic_for_node(
@@ -2095,7 +2094,7 @@ impl Checker {
         }
 
         if is_for_of_statement(as_node)
-            && !for_in_or_of_statement.flags().intersects(NodeFlags::AWAIT_CONTEXT)
+            && !for_in_or_of_statement.flags().intersects(NodeFlags::AwaitContext)
             && is_identifier(stmt.initializer)
             && stmt.initializer.text() == "async"
         {
@@ -2173,11 +2172,11 @@ impl Checker {
     pub(crate) fn check_grammar_accessor(&mut self, accessor: P<Node>) -> bool {
         let body = accessor.body();
         let parent_kind = accessor.parent().unwrap().kind();
-        if !accessor.flags().intersects(NodeFlags::AMBIENT)
+        if !accessor.flags().intersects(NodeFlags::Ambient)
             && parent_kind != Kind::TypeLiteral
             && parent_kind != Kind::InterfaceDeclaration
         {
-            if body.is_none() && !ast::has_syntactic_modifier(accessor, ModifierFlags::ABSTRACT) {
+            if body.is_none() && !ast::has_syntactic_modifier(accessor, ModifierFlags::Abstract) {
                 return self.grammar_error_at_pos(
                     accessor,
                     accessor
@@ -2192,7 +2191,7 @@ impl Checker {
             }
         }
         if let Some(body) = body {
-            if ast::has_syntactic_modifier(accessor, ModifierFlags::ABSTRACT) {
+            if ast::has_syntactic_modifier(accessor, ModifierFlags::Abstract) {
                 return self.grammar_error_on_node(
                     accessor,
                     &diagnostics::AN_ABSTRACT_ACCESSOR_CANNOT_HAVE_AN_IMPLEMENTATION,
@@ -2305,7 +2304,7 @@ impl Checker {
                     if !crate::is_variable_declaration_in_variable_statement(parent) {
                         return self.grammar_error_on_node(node, &diagnostics::X_UNIQUE_SYMBOL_TYPES_ARE_ONLY_ALLOWED_ON_VARIABLES_IN_A_VARIABLE_STATEMENT, &[]);
                     }
-                    if !parent.parent().unwrap().flags().intersects(NodeFlags::CONST) {
+                    if !parent.parent().unwrap().flags().intersects(NodeFlags::Const) {
                         return self.grammar_error_on_node(parent.as_variable_declaration().name, &diagnostics::A_VARIABLE_WHOSE_TYPE_IS_A_UNIQUE_SYMBOL_TYPE_MUST_BE_CONST, &[]);
                     }
                 }
@@ -2315,7 +2314,7 @@ impl Checker {
                     }
                 }
                 Kind::PropertySignature => {
-                    if !ast::has_syntactic_modifier(parent, ModifierFlags::READONLY) {
+                    if !ast::has_syntactic_modifier(parent, ModifierFlags::Readonly) {
                         return self.grammar_error_on_node(parent.as_property_signature_declaration().name(), &diagnostics::A_PROPERTY_OF_AN_INTERFACE_OR_TYPE_LITERAL_WHOSE_TYPE_IS_A_UNIQUE_SYMBOL_TYPE_MUST_BE_READONLY, &[]);
                     }
                 }
@@ -2423,7 +2422,7 @@ impl Checker {
             // However, property declarations disallow computed names in general,
             // and accessors are not allowed in ambient contexts in general,
             // so this error only really matters for methods.
-            if node.flags().intersects(NodeFlags::AMBIENT) {
+            if node.flags().intersects(NodeFlags::Ambient) {
                 return self.check_grammar_for_invalid_dynamic_name(node.name().unwrap(), &diagnostics::A_COMPUTED_PROPERTY_NAME_IN_AN_AMBIENT_CONTEXT_MUST_REFER_TO_AN_EXPRESSION_WHOSE_TYPE_IS_A_LITERAL_TYPE_OR_A_UNIQUE_SYMBOL_TYPE);
             } else if node.kind() == Kind::MethodDeclaration && node.body().is_none() {
                 return self.check_grammar_for_invalid_dynamic_name(node.name().unwrap(), &diagnostics::A_COMPUTED_PROPERTY_NAME_IN_A_METHOD_OVERLOAD_MUST_REFER_TO_AN_EXPRESSION_WHOSE_TYPE_IS_A_LITERAL_TYPE_OR_A_UNIQUE_SYMBOL_TYPE);
@@ -2558,15 +2557,15 @@ impl Checker {
     pub(crate) fn check_grammar_variable_declaration(&mut self, node: P<Node>) -> bool {
         let decl = node.as_variable_declaration();
         let node_flags = self.get_combined_node_flags_cached(node);
-        let block_scope_kind = node_flags & NodeFlags::BLOCK_SCOPED;
+        let block_scope_kind = node_flags & NodeFlags::BlockScoped;
         if ast::is_binding_pattern(decl.name) {
-            if block_scope_kind == NodeFlags::AWAIT_USING {
+            if block_scope_kind == NodeFlags::AwaitUsing {
                 return self.grammar_error_on_node(
                     node,
                     &diagnostics::X_0_DECLARATIONS_MAY_NOT_HAVE_BINDING_PATTERNS,
                     &[&"await using"],
                 );
-            } else if block_scope_kind == NodeFlags::USING {
+            } else if block_scope_kind == NodeFlags::Using {
                 return self.grammar_error_on_node(
                     node,
                     &diagnostics::X_0_DECLARATIONS_MAY_NOT_HAVE_BINDING_PATTERNS,
@@ -2579,7 +2578,7 @@ impl Checker {
         let grandparent = parent.parent().unwrap();
         if grandparent.kind() != Kind::ForInStatement && grandparent.kind() != Kind::ForOfStatement
         {
-            if node_flags.intersects(NodeFlags::AMBIENT) {
+            if node_flags.intersects(NodeFlags::Ambient) {
                 self.check_ambient_initializer(node);
             } else if decl.initializer().is_none() {
                 if ast::is_binding_pattern(decl.name) && !ast::is_binding_pattern(parent) {
@@ -2589,19 +2588,19 @@ impl Checker {
                         &[],
                     );
                 }
-                if block_scope_kind == NodeFlags::AWAIT_USING {
+                if block_scope_kind == NodeFlags::AwaitUsing {
                     return self.grammar_error_on_node(
                         node,
                         &diagnostics::X_0_DECLARATIONS_MUST_BE_INITIALIZED,
                         &[&"await using"],
                     );
-                } else if block_scope_kind == NodeFlags::USING {
+                } else if block_scope_kind == NodeFlags::Using {
                     return self.grammar_error_on_node(
                         node,
                         &diagnostics::X_0_DECLARATIONS_MUST_BE_INITIALIZED,
                         &[&"using"],
                     );
-                } else if block_scope_kind == NodeFlags::CONST {
+                } else if block_scope_kind == NodeFlags::Const {
                     return self.grammar_error_on_node(
                         node,
                         &diagnostics::X_0_DECLARATIONS_MUST_BE_INITIALIZED,
@@ -2615,7 +2614,7 @@ impl Checker {
             if grandparent.kind() != Kind::VariableStatement
                 || decl.type_().is_none()
                 || decl.initializer().is_some()
-                || node_flags.intersects(NodeFlags::AMBIENT)
+                || node_flags.intersects(NodeFlags::Ambient)
             {
                 let message = if decl.initializer().is_some() {
                     &diagnostics::DECLARATIONS_WITH_INITIALIZERS_CANNOT_ALSO_HAVE_DEFINITE_ASSIGNMENT_ASSERTIONS
@@ -2630,8 +2629,8 @@ impl Checker {
 
         if self.emit_module_format_of_file(ast::get_source_file_of_node(node).unwrap())
             < ModuleKind::SYSTEM
-            && !grandparent.flags().intersects(NodeFlags::AMBIENT)
-            && ast::has_syntactic_modifier(grandparent, ModifierFlags::EXPORT)
+            && !grandparent.flags().intersects(NodeFlags::Ambient)
+            && ast::has_syntactic_modifier(grandparent, ModifierFlags::Export)
         {
             self.check_grammar_for_es_module_marker_in_binding_name(decl.name);
         }
@@ -2714,13 +2713,13 @@ impl Checker {
             );
         }
 
-        let block_scope_flags = declaration_list.flags() & NodeFlags::BLOCK_SCOPED;
-        if block_scope_flags == NodeFlags::USING || block_scope_flags == NodeFlags::AWAIT_USING {
+        let block_scope_flags = declaration_list.flags() & NodeFlags::BlockScoped;
+        if block_scope_flags == NodeFlags::Using || block_scope_flags == NodeFlags::AwaitUsing {
             let parent = declaration_list.parent().unwrap();
             if is_for_in_statement(parent) {
                 return self.grammar_error_on_node(
                     declaration_list,
-                    if block_scope_flags == NodeFlags::USING {
+                    if block_scope_flags == NodeFlags::Using {
                         &diagnostics::THE_LEFT_HAND_SIDE_OF_A_FOR_IN_STATEMENT_CANNOT_BE_A_USING_DECLARATION
                     } else {
                         &diagnostics::THE_LEFT_HAND_SIDE_OF_A_FOR_IN_STATEMENT_CANNOT_BE_AN_AWAIT_USING_DECLARATION
@@ -2728,10 +2727,10 @@ impl Checker {
                     &[],
                 );
             }
-            if declaration_list.flags().intersects(NodeFlags::AMBIENT) {
+            if declaration_list.flags().intersects(NodeFlags::Ambient) {
                 return self.grammar_error_on_node(
                     declaration_list,
-                    if block_scope_flags == NodeFlags::USING {
+                    if block_scope_flags == NodeFlags::Using {
                         &diagnostics::X_USING_DECLARATIONS_ARE_NOT_ALLOWED_IN_AMBIENT_CONTEXTS
                     } else {
                         &diagnostics::X_AWAIT_USING_DECLARATIONS_ARE_NOT_ALLOWED_IN_AMBIENT_CONTEXTS
@@ -2745,7 +2744,7 @@ impl Checker {
             {
                 return self.grammar_error_on_node(
                     declaration_list,
-                    if block_scope_flags == NodeFlags::USING {
+                    if block_scope_flags == NodeFlags::Using {
                         &diagnostics::X_USING_DECLARATIONS_ARE_NOT_ALLOWED_IN_CASE_OR_DEFAULT_CLAUSES_UNLESS_CONTAINED_WITHIN_A_BLOCK
                     } else {
                         &diagnostics::X_AWAIT_USING_DECLARATIONS_ARE_NOT_ALLOWED_IN_CASE_OR_DEFAULT_CLAUSES_UNLESS_CONTAINED_WITHIN_A_BLOCK
@@ -2755,7 +2754,7 @@ impl Checker {
             }
         }
 
-        if block_scope_flags == NodeFlags::AWAIT_USING {
+        if block_scope_flags == NodeFlags::AwaitUsing {
             return self.check_grammar_await_or_await_using(declaration_list);
         }
 
@@ -2776,7 +2775,7 @@ impl Checker {
             };
             self.error(Some(node), message, &[]);
             has_error = true;
-        } else if !node.flags().intersects(NodeFlags::AWAIT_CONTEXT) {
+        } else if !node.flags().intersects(NodeFlags::AwaitContext) {
             if ast::is_in_top_level_context(node) {
                 let source_file = ast::get_source_file_of_node(node).unwrap();
                 if !Self::has_parse_diagnostics(source_file) {
@@ -2898,7 +2897,7 @@ impl Checker {
     // grammarchecks.go:1759
     pub(crate) fn check_grammar_yield_expression(&mut self, node: P<Node>) -> bool {
         let mut has_error = false;
-        if !node.flags().intersects(NodeFlags::YIELD_CONTEXT) {
+        if !node.flags().intersects(NodeFlags::YieldContext) {
             self.grammar_error_on_first_token(
                 node,
                 &diagnostics::A_YIELD_EXPRESSION_IS_ONLY_ALLOWED_IN_A_GENERATOR_BODY,
@@ -2925,15 +2924,15 @@ impl Checker {
         if !Self::container_allows_block_scoped_variable(node.parent().unwrap()) {
             let block_scope_kind = self
                 .get_combined_node_flags_cached(node.as_variable_statement().declaration_list)
-                & NodeFlags::BLOCK_SCOPED;
+                & NodeFlags::BlockScoped;
             if !block_scope_kind.is_empty() {
-                let keyword = if block_scope_kind == NodeFlags::LET {
+                let keyword = if block_scope_kind == NodeFlags::Let {
                     "let"
-                } else if block_scope_kind == NodeFlags::CONST {
+                } else if block_scope_kind == NodeFlags::Const {
                     "const"
-                } else if block_scope_kind == NodeFlags::USING {
+                } else if block_scope_kind == NodeFlags::Using {
                     "using"
-                } else if block_scope_kind == NodeFlags::AWAIT_USING {
+                } else if block_scope_kind == NodeFlags::AwaitUsing {
                     "await using"
                 } else {
                     panic!("Unknown BlockScope flag")
@@ -3130,7 +3129,7 @@ impl Checker {
             }
         }
 
-        if node.flags().intersects(NodeFlags::AMBIENT) {
+        if node.flags().intersects(NodeFlags::Ambient) {
             self.check_ambient_initializer(node);
         }
 
@@ -3144,7 +3143,7 @@ impl Checker {
                     } else if prop_decl.type_().is_none() {
                         return self.grammar_error_on_node(postfix_token, &diagnostics::DECLARATIONS_WITH_DEFINITE_ASSIGNMENT_ASSERTIONS_MUST_ALSO_HAVE_TYPE_ANNOTATIONS, &[]);
                     } else if !ast::is_class_like(parent)
-                        || node.flags().intersects(NodeFlags::AMBIENT)
+                        || node.flags().intersects(NodeFlags::Ambient)
                         || ast::is_static(node)
                         || ast::has_abstract_modifier(node)
                     {
@@ -3233,7 +3232,7 @@ impl Checker {
     // grammarchecks.go:1978
     pub(crate) fn is_initializer_simple_literal_enum_reference(&mut self, expr: P<Node>) -> bool {
         if is_property_access_expression(expr) {
-            return self.check_expression_cached(expr).flags().intersects(TypeFlags::ENUM_LIKE);
+            return self.check_expression_cached(expr).flags().intersects(TypeFlags::EnumLike);
         }
 
         if is_element_access_expression(expr) {
@@ -3242,7 +3241,7 @@ impl Checker {
             return is_initializer_string_or_number_literal_expression(
                 element_access.argument_expression,
             ) && ast::is_entity_name_expression(element_access.expression)
-                && self.check_expression_cached(expr).flags().intersects(TypeFlags::ENUM_LIKE);
+                && self.check_expression_cached(expr).flags().intersects(TypeFlags::EnumLike);
         }
 
         false
@@ -3275,7 +3274,7 @@ impl Checker {
             || node.kind() == Kind::NamespaceExportDeclaration
             || ast::has_syntactic_modifier(
                 node,
-                ModifierFlags::AMBIENT | ModifierFlags::EXPORT | ModifierFlags::DEFAULT,
+                ModifierFlags::Ambient | ModifierFlags::Export | ModifierFlags::Default,
             )
         {
             return false;
@@ -3302,13 +3301,13 @@ impl Checker {
 
     // grammarchecks.go:2025
     pub(crate) fn check_grammar_source_file(&mut self, node: P<SourceFile>) -> bool {
-        node.as_node().flags().intersects(NodeFlags::AMBIENT)
+        node.as_node().flags().intersects(NodeFlags::Ambient)
             && self.check_grammar_top_level_elements_for_required_declare_modifier(node)
     }
 
     // grammarchecks.go:2029
     pub(crate) fn check_grammar_statement_in_ambient_context(&mut self, node: P<Node>) -> bool {
-        if node.flags().intersects(NodeFlags::AMBIENT) {
+        if node.flags().intersects(NodeFlags::Ambient) {
             // Find containing block which is either Block, ModuleBlock, SourceFile
             let links = self.node_links.get(node);
             let parent = node.parent().unwrap();
@@ -3366,7 +3365,7 @@ impl Checker {
             .literal_like_node_base
             .token_flags
             .get()
-            .intersects(TokenFlags::SCIENTIFIC);
+            .intersects(TokenFlags::Scientific);
 
         // Scientific notation (e.g. 2e54 and 1e00000000010) can't be converted to bigint
         // Fractional numbers (e.g. 9000000000000000.001) are inherently imprecise anyway
@@ -3394,7 +3393,7 @@ impl Checker {
             || is_prefix_unary_expression(parent) && is_literal_type_node(parent.parent().unwrap());
         if !literal_type {
             // Don't error on BigInt literals in ambient contexts
-            if !node.flags().intersects(NodeFlags::AMBIENT)
+            if !node.flags().intersects(NodeFlags::Ambient)
                 && self.language_version < ScriptTarget::ES2020
             {
                 if self.grammar_error_on_node(node, &diagnostics::BIG_INT_LITERALS_ARE_NOT_AVAILABLE_WHEN_TARGETING_LOWER_THAN_ES2020, &[]) {
@@ -3410,7 +3409,7 @@ impl Checker {
         let import_clause = node.as_import_clause();
         match import_clause.phase_modifier.get() {
             Kind::TypeKeyword => {
-                if !node.flags().intersects(NodeFlags::JSDOC)
+                if !node.flags().intersects(NodeFlags::JSDoc)
                     && import_clause.name.is_some()
                     && import_clause.named_bindings.is_some()
                 {

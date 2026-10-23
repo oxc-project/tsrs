@@ -137,18 +137,18 @@ impl DeclarationTransformer {
 
 // transform.go:215
 pub const DECLARATION_EMIT_NODE_BUILDER_FLAGS: nodebuilder::Flags =
-    nodebuilder::Flags::MULTILINE_OBJECT_LITERALS
-        .union(nodebuilder::Flags::WRITE_CLASS_EXPRESSION_AS_TYPE_LITERAL)
-        .union(nodebuilder::Flags::USE_TYPE_OF_FUNCTION)
-        .union(nodebuilder::Flags::USE_STRUCTURAL_FALLBACK)
-        .union(nodebuilder::Flags::ALLOW_EMPTY_TUPLE)
-        .union(nodebuilder::Flags::GENERATE_NAMES_FOR_SHADOWED_TYPE_PARAMS)
-        .union(nodebuilder::Flags::NO_TRUNCATION);
+    nodebuilder::Flags::MultilineObjectLiterals
+        .union(nodebuilder::Flags::WriteClassExpressionAsTypeLiteral)
+        .union(nodebuilder::Flags::UseTypeOfFunction)
+        .union(nodebuilder::Flags::UseStructuralFallback)
+        .union(nodebuilder::Flags::AllowEmptyTuple)
+        .union(nodebuilder::Flags::GenerateNamesForShadowedTypeParams)
+        .union(nodebuilder::Flags::NoTruncation);
 
 // transform.go:223
 pub const DECLARATION_EMIT_INTERNAL_NODE_BUILDER_FLAGS: nodebuilder::InternalFlags =
-    nodebuilder::InternalFlags::ALLOW_UNRESOLVED_NAMES
-        .union(nodebuilder::InternalFlags::REWRITE_MODULE_SPECIFIERS);
+    nodebuilder::InternalFlags::AllowUnresolvedNames
+        .union(nodebuilder::InternalFlags::RewriteModuleSpecifiers);
 
 // tracker.go:12
 pub struct SymbolTrackerImpl {

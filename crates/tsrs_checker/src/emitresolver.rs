@@ -80,7 +80,7 @@ impl EmitResolver {
         let Some(symbol) = c.get_symbol_of_declaration(node) else {
             return false;
         };
-        symbol.check_flags().intersects(CheckFlags::LATE)
+        symbol.check_flags().intersects(CheckFlags::Late)
     }
 
     // emitresolver.go:89
@@ -170,7 +170,7 @@ impl EmitResolver {
                 }
                 let parent = ast::get_declaration_container(node).unwrap();
                 // If the node is not exported or it is not ambient module element (except import declaration)
-                if !(c.get_combined_modifier_flags_cached(node).intersects(ModifierFlags::EXPORT) || node.kind() != Kind::ImportEqualsDeclaration && parent.kind() != Kind::SourceFile && parent.flags().intersects(NodeFlags::AMBIENT))
+                if !(c.get_combined_modifier_flags_cached(node).intersects(ModifierFlags::Export) || node.kind() != Kind::ImportEqualsDeclaration && parent.kind() != Kind::SourceFile && parent.flags().intersects(NodeFlags::Ambient))
                 {
                     return ast::is_global_source_file(parent);
                 }
@@ -184,7 +184,7 @@ impl EmitResolver {
             | Kind::SetAccessor
             | Kind::MethodDeclaration
             | Kind::MethodSignature => {
-                if c.get_effective_declaration_flags(node, ModifierFlags::PRIVATE | ModifierFlags::PROTECTED) != ModifierFlags::NONE {
+                if c.get_effective_declaration_flags(node, ModifierFlags::Private | ModifierFlags::Protected) != ModifierFlags::None {
                     // Private/protected properties/methods are not visible
                     return false;
                 }
@@ -307,10 +307,10 @@ impl EmitResolver {
             export_symbol = c.resolve_name(
                 Some(node),
                 node.text(),
-                SymbolFlags::VALUE
-                    | SymbolFlags::TYPE
-                    | SymbolFlags::NAMESPACE
-                    | SymbolFlags::ALIAS,
+                SymbolFlags::Value
+                    | SymbolFlags::Type
+                    | SymbolFlags::Namespace
+                    | SymbolFlags::Alias,
                 None,  /*nameNotFoundMessage*/
                 false, /*isUse*/
                 false,
@@ -318,10 +318,10 @@ impl EmitResolver {
         } else if node.parent().unwrap().kind() == Kind::ExportSpecifier {
             export_symbol = c.get_target_of_export_specifier(
                 node.parent().unwrap(),
-                SymbolFlags::VALUE
-                    | SymbolFlags::TYPE
-                    | SymbolFlags::NAMESPACE
-                    | SymbolFlags::ALIAS,
+                SymbolFlags::Value
+                    | SymbolFlags::Type
+                    | SymbolFlags::Namespace
+                    | SymbolFlags::Alias,
                 false,
             );
         }
@@ -344,10 +344,10 @@ impl EmitResolver {
                     let import_symbol = c.resolve_name(
                         Some(declaration),
                         first_identifier.text(),
-                        SymbolFlags::VALUE
-                            | SymbolFlags::TYPE
-                            | SymbolFlags::NAMESPACE
-                            | SymbolFlags::ALIAS,
+                        SymbolFlags::Value
+                            | SymbolFlags::Type
+                            | SymbolFlags::Namespace
+                            | SymbolFlags::Alias,
                         None,  /*nameNotFoundMessage*/
                         false, /*isUse*/
                         false,
@@ -373,7 +373,7 @@ pub(crate) fn get_meaning_of_entity_name_reference(entity_name: P<Node>) -> Symb
         || parent.kind() == Kind::BinaryExpression
     {
         // Typeof value
-        return SymbolFlags::VALUE | SymbolFlags::EXPORT_VALUE;
+        return SymbolFlags::Value | SymbolFlags::ExportValue;
     }
     if entity_name.kind() == Kind::QualifiedName
         || entity_name.kind() == Kind::PropertyAccessExpression
@@ -386,10 +386,10 @@ pub(crate) fn get_meaning_of_entity_name_reference(entity_name: P<Node>) -> Symb
     {
         // Left identifier from type reference or TypeAlias
         // Entity name of the import declaration
-        return SymbolFlags::NAMESPACE;
+        return SymbolFlags::Namespace;
     }
     // Type Reference or TypeAlias entity = Identifier
-    SymbolFlags::TYPE
+    SymbolFlags::Type
 }
 
 impl EmitResolver {
@@ -432,8 +432,8 @@ impl EmitResolver {
         );
 
         if let Some(symbol) = symbol {
-            if symbol.flags().intersects(SymbolFlags::TYPE_PARAMETER)
-                && meaning.intersects(SymbolFlags::TYPE)
+            if symbol.flags().intersects(SymbolFlags::TypeParameter)
+                && meaning.intersects(SymbolFlags::Type)
             {
                 return SymbolAccessibilityResult {
                     accessibility: SymbolAccessibility::Accessible,
@@ -530,7 +530,7 @@ impl EmitResolver {
                     // because these kind of aliases can be used to name types in declaration file
                     let any_import_syntax = get_any_import_syntax(declaration);
                     if let Some(any_import_syntax) = any_import_syntax {
-                        if !ast::has_syntactic_modifier(any_import_syntax, ModifierFlags::EXPORT) && // import clause without export
+                        if !ast::has_syntactic_modifier(any_import_syntax, ModifierFlags::Export) && // import clause without export
                             self.is_declaration_visible(c, any_import_syntax.parent())
                         {
                             add_visible_alias(declaration, any_import_syntax);
@@ -540,7 +540,7 @@ impl EmitResolver {
                     if ast::is_variable_declaration(declaration) {
                         let variable_statement = declaration.parent().unwrap().parent().unwrap();
                         if ast::is_variable_statement(variable_statement)
-                            && !ast::has_syntactic_modifier(variable_statement, ModifierFlags::EXPORT) // unexported variable statement
+                            && !ast::has_syntactic_modifier(variable_statement, ModifierFlags::Export) // unexported variable statement
                             && self.is_declaration_visible(c, variable_statement.parent())
                         {
                             add_visible_alias(declaration, variable_statement);
@@ -548,14 +548,14 @@ impl EmitResolver {
                         }
                     }
                     if ast::is_late_visibility_painted_statement(declaration) // unexported top-level statement
-                        && !ast::has_syntactic_modifier(declaration, ModifierFlags::EXPORT)
+                        && !ast::has_syntactic_modifier(declaration, ModifierFlags::Export)
                         && self.is_declaration_visible(c, declaration.parent())
                     {
                         add_visible_alias(declaration, declaration);
                         continue;
                     }
                     if ast::is_binding_element(declaration) {
-                        if symbol.flags().intersects(SymbolFlags::ALIAS)
+                        if symbol.flags().intersects(SymbolFlags::Alias)
                             && ast::is_in_js_file(declaration)
                         {
                             // exported import-like top-level JS require statement
@@ -567,7 +567,7 @@ impl EmitResolver {
                                         if ast::is_variable_statement(p4)
                                             && !ast::has_syntactic_modifier(
                                                 p4,
-                                                ModifierFlags::EXPORT,
+                                                ModifierFlags::Export,
                                             )
                                         {
                                             // check if the thing containing the variable statement is visible (ie, the file)
@@ -581,7 +581,7 @@ impl EmitResolver {
                                 }
                             }
                         }
-                        if symbol.flags().intersects(SymbolFlags::BLOCK_SCOPED_VARIABLE) {
+                        if symbol.flags().intersects(SymbolFlags::BlockScopedVariable) {
                             let root_declaration =
                                 ast::walk_up_binding_elements_and_patterns(declaration);
                             if ast::is_parameter_declaration(root_declaration) {
@@ -594,7 +594,7 @@ impl EmitResolver {
                             }
                             if ast::has_syntactic_modifier(
                                 variable_statement,
-                                ModifierFlags::EXPORT,
+                                ModifierFlags::Export,
                             ) {
                                 continue; // no alias to add, already exported
                             }
@@ -660,7 +660,7 @@ impl EmitResolver {
                 }
                 let declaration = signature.declaration();
                 if declaration != Some(node)
-                    && !declaration.unwrap().flags().intersects(NodeFlags::JSDOC)
+                    && !declaration.unwrap().flags().intersects(NodeFlags::JSDoc)
                 {
                     return true;
                 }
@@ -730,7 +730,7 @@ impl EmitResolver {
             return Some(resolved)
                 == c.get_global_symbol(
                     "Symbol",
-                    SymbolFlags::VALUE | SymbolFlags::EXPORT_VALUE,
+                    SymbolFlags::Value | SymbolFlags::ExportValue,
                     None, /*diagnostic*/
                 );
         }
@@ -794,8 +794,8 @@ impl EmitResolver {
                 };
                 let t = c.get_type_of_symbol(symbol);
                 let _ = c.mapped_symbol_links.has(symbol);
-                symbol.flags().intersects(SymbolFlags::PROPERTY)
-                    && symbol.flags().intersects(SymbolFlags::OPTIONAL)
+                symbol.flags().intersects(SymbolFlags::Property)
+                    && symbol.flags().intersects(SymbolFlags::Optional)
                     && is_optional_declaration(declaration)
                     && c.reverse_mapped_symbol_links.has(symbol)
                     && c.reverse_mapped_symbol_links.get(symbol).mapped_type.get().is_some()
@@ -849,7 +849,7 @@ impl EmitResolver {
         c.strict_null_checks
             && self.is_optional_parameter(c, parameter)
             && ( /*isJSDocParameterTag(parameter) ||*/parameter.initializer().is_none()) // !!! TODO: JSDoc support
-            && ast::has_syntactic_modifier(parameter, ModifierFlags::PARAMETER_PROPERTY_MODIFIER)
+            && ast::has_syntactic_modifier(parameter, ModifierFlags::ParameterPropertyModifier)
     }
 
     // emitresolver.go:629
@@ -864,7 +864,7 @@ impl EmitResolver {
             // !!! TODO: JSDoc Support
             return false;
         }
-        if ast::has_syntactic_modifier(parameter, ModifierFlags::PARAMETER_PROPERTY_MODIFIER) {
+        if ast::has_syntactic_modifier(parameter, ModifierFlags::ParameterPropertyModifier) {
             return enclosing_declaration.is_some()
                 && ast::is_function_like_declaration(enclosing_declaration);
         }
@@ -962,7 +962,7 @@ impl EmitResolver {
 
 // emitresolver.go:693
 pub(crate) fn is_const_enum_or_const_enum_only_module(s: P<Symbol>) -> bool {
-    is_const_enum_symbol(s) || s.flags().intersects(SymbolFlags::CONST_ENUM_ONLY_MODULE)
+    is_const_enum_symbol(s) || s.flags().intersects(SymbolFlags::ConstEnumOnlyModule)
 }
 
 impl EmitResolver {
@@ -984,8 +984,8 @@ impl EmitResolver {
                 }
                 let target = alias_links.alias_target.get();
                 if let Some(target) = target {
-                    if node.modifier_flags().intersects(ModifierFlags::EXPORT)
-                        && c.get_symbol_flags(target).intersects(SymbolFlags::VALUE)
+                    if node.modifier_flags().intersects(ModifierFlags::Export)
+                        && c.get_symbol_flags(target).intersects(SymbolFlags::Value)
                         && (c.compiler_options.should_preserve_const_enums()
                             || !is_const_enum_or_const_enum_only_module(target))
                     {
@@ -1095,7 +1095,7 @@ impl EmitResolver {
         // const enums and modules that contain only const enums are not considered values from the emit perspective
         // unless 'preserveConstEnums' option is set to true
         c.get_symbol_flags_ex(symbol, exclude_type_only_values, true /*excludeLocalMeanings*/)
-            .intersects(SymbolFlags::VALUE)
+            .intersects(SymbolFlags::Value)
             && (c.compiler_options.should_preserve_const_enums()
                 || !is_const_enum_or_const_enum_only_module(target.unwrap()))
     }
@@ -1147,7 +1147,7 @@ impl EmitResolver {
 
 // The `visit` closure of MarkLinkedReferencesRecursively (emitresolver.go:816).
 fn mark_linked_references_recursively_visit(c: &mut Checker, n: P<Node>) -> bool {
-    if ast::is_import_equals_declaration(n) && !n.modifier_flags().intersects(ModifierFlags::EXPORT)
+    if ast::is_import_equals_declaration(n) && !n.modifier_flags().intersects(ModifierFlags::Export)
     {
         return false; // These are deferred and marked in a chain when referenced
     }
@@ -1244,8 +1244,8 @@ impl EmitResolver {
         }
 
         let symbol = c.get_referenced_value_or_alias_symbol(node);
-        if ast::is_non_local_alias(symbol, SymbolFlags::VALUE)
-            && c.get_type_only_alias_declaration_ex(symbol.unwrap(), SymbolFlags::VALUE).is_none()
+        if ast::is_non_local_alias(symbol, SymbolFlags::Value)
+            && c.get_type_only_alias_declaration_ex(symbol.unwrap(), SymbolFlags::Value).is_none()
         {
             return checker::Checker::get_declaration_of_alias_symbol(symbol.unwrap());
         }
@@ -1302,7 +1302,7 @@ impl EmitResolver {
         let symbol = c.resolve_name(
             location,
             name,
-            SymbolFlags::VALUE | SymbolFlags::TYPE | SymbolFlags::NAMESPACE,
+            SymbolFlags::Value | SymbolFlags::Type | SymbolFlags::Namespace,
             None,  /*nameNotFoundMessage*/
             false, /*isUse*/
             false, /*excludeGlobals*/
@@ -1419,7 +1419,7 @@ impl EmitResolver {
             declaration,
             symbol,
             enclosing_declaration,
-            flags | Flags::MULTILINE_OBJECT_LITERALS,
+            flags | Flags::MultilineObjectLiterals,
             internal_flags,
             Some(tracker),
         )
@@ -1441,15 +1441,15 @@ impl EmitResolver {
 
         let f = &emit_context.factory;
         let mut enum_result: Option<P<Node>> = None;
-        if t.flags().intersects(TypeFlags::ENUM_LIKE) {
+        if t.flags().intersects(TypeFlags::EnumLike) {
             let request_node_builder = self.node_builder(c);
             enum_result = request_node_builder.symbol_to_expression(
                 c,
                 t.symbol().unwrap(),
-                SymbolFlags::VALUE,
+                SymbolFlags::Value,
                 Some(node),
-                Flags::NONE,
-                InternalFlags::NONE,
+                Flags::None,
+                InternalFlags::None,
                 Some(tracker),
             );
             // What about regularTrueType/regularFalseType - since those aren't fresh, we never make initializers from them
@@ -1462,12 +1462,12 @@ impl EmitResolver {
         if enum_result.is_some() {
             return enum_result;
         }
-        if !t.flags().intersects(TypeFlags::LITERAL) {
+        if !t.flags().intersects(TypeFlags::Literal) {
             return None; // non-literal type
         }
         match t.as_literal_type().value.get() {
             Some(LiteralValue::String(value)) => {
-                Some(f.new_string_literal(value, TokenFlags::NONE))
+                Some(f.new_string_literal(value, TokenFlags::None))
             }
             Some(LiteralValue::Number(value)) => {
                 if value.is_inf() {
@@ -1486,14 +1486,14 @@ impl EmitResolver {
                     // negative
                     return Some(f.new_prefix_unary_expression(
                         Kind::MinusToken,
-                        f.new_numeric_literal(f.alloc_text(&value.string()[1..]), TokenFlags::NONE),
+                        f.new_numeric_literal(f.alloc_text(&value.string()[1..]), TokenFlags::None),
                     ));
                 }
-                Some(f.new_numeric_literal(f.alloc_text(&value.string()), TokenFlags::NONE))
+                Some(f.new_numeric_literal(f.alloc_text(&value.string()), TokenFlags::None))
             }
             Some(LiteralValue::BigInt(value)) => Some(f.new_big_int_literal(
                 f.alloc_text(&(pseudo_big_int_to_string(value) + "n")),
-                TokenFlags::NONE,
+                TokenFlags::None,
             )),
             Some(LiteralValue::Boolean(value)) => {
                 let kind = if value { Kind::TrueKeyword } else { Kind::FalseKeyword };
@@ -1523,7 +1523,7 @@ impl EmitResolver {
             c,
             expression,
             enclosing_declaration,
-            flags | Flags::MULTILINE_OBJECT_LITERALS,
+            flags | Flags::MultilineObjectLiterals,
             internal_flags,
             Some(tracker),
         )
@@ -1602,7 +1602,7 @@ impl EmitResolver {
                             let name = c.resolve_name(
                                 Some(first_identifier),
                                 first_identifier.text(),
-                                SymbolFlags::VALUE | SymbolFlags::EXPORT_VALUE,
+                                SymbolFlags::Value | SymbolFlags::ExportValue,
                                 None,  /*nameNotFoundMessage*/
                                 true,  /*isUse*/
                                 false, /*excludeGlobals*/
@@ -1612,7 +1612,7 @@ impl EmitResolver {
                                     c,
                                     name,
                                     enclosing_declaration,
-                                    SymbolFlags::VALUE,
+                                    SymbolFlags::Value,
                                 );
                             }
 
@@ -1724,7 +1724,7 @@ impl EmitResolver {
         if ast::is_qualified_name(type_name) {
             let root_value_symbol = c.resolve_entity_name(
                 ast::get_first_identifier(type_name),
-                SymbolFlags::VALUE,
+                SymbolFlags::Value,
                 true,
                 true,
                 location,
@@ -1740,31 +1740,31 @@ impl EmitResolver {
             }
         }
         let value_symbol =
-            c.resolve_entity_name(type_name, SymbolFlags::VALUE, true, true, location);
+            c.resolve_entity_name(type_name, SymbolFlags::Value, true, true, location);
         let mut resolved_value_symbol = value_symbol;
         if let Some(value_symbol) = value_symbol {
-            if value_symbol.flags().intersects(SymbolFlags::ALIAS) {
+            if value_symbol.flags().intersects(SymbolFlags::Alias) {
                 resolved_value_symbol = Some(c.resolve_alias(value_symbol));
             }
         }
 
         is_type_only = is_type_only
             || value_symbol.is_some_and(|s| {
-                c.get_type_only_alias_declaration_ex(s, SymbolFlags::VALUE).is_some()
+                c.get_type_only_alias_declaration_ex(s, SymbolFlags::Value).is_some()
             });
 
         // Resolve the symbol as a type so that we can provide a more useful hint for the type serializer.
-        let type_symbol = c.resolve_entity_name(type_name, SymbolFlags::TYPE, true, true, location);
+        let type_symbol = c.resolve_entity_name(type_name, SymbolFlags::Type, true, true, location);
         let mut resolved_type_symbol = type_symbol;
         if let Some(type_symbol) = type_symbol {
-            if type_symbol.flags().intersects(SymbolFlags::ALIAS) {
+            if type_symbol.flags().intersects(SymbolFlags::Alias) {
                 resolved_type_symbol = Some(c.resolve_alias(type_symbol));
             }
         }
         // In case the value symbol can't be resolved (e.g. because of missing declarations), use type symbol for reachability check.
         is_type_only = is_type_only
             || type_symbol.is_some_and(|s| {
-                c.get_type_only_alias_declaration_ex(s, SymbolFlags::TYPE).is_some()
+                c.get_type_only_alias_declaration_ex(s, SymbolFlags::Type).is_some()
             });
 
         if let Some(resolved_value_symbol) = resolved_value_symbol {
@@ -1802,24 +1802,24 @@ impl EmitResolver {
             return TypeReferenceSerializationKind::Unknown;
         }
 
-        if type_.flags().intersects(TypeFlags::ANY_OR_UNKNOWN) {
+        if type_.flags().intersects(TypeFlags::AnyOrUnknown) {
             TypeReferenceSerializationKind::ObjectType
         } else if c.is_type_assignable_to_kind(
             type_,
-            TypeFlags::VOID | TypeFlags::NULLABLE | TypeFlags::NEVER,
+            TypeFlags::Void | TypeFlags::Nullable | TypeFlags::Never,
         ) {
             TypeReferenceSerializationKind::VoidNullableOrNeverType
-        } else if c.is_type_assignable_to_kind(type_, TypeFlags::BOOLEAN_LIKE) {
+        } else if c.is_type_assignable_to_kind(type_, TypeFlags::BooleanLike) {
             TypeReferenceSerializationKind::BooleanType
-        } else if c.is_type_assignable_to_kind(type_, TypeFlags::NUMBER_LIKE) {
+        } else if c.is_type_assignable_to_kind(type_, TypeFlags::NumberLike) {
             TypeReferenceSerializationKind::NumberLikeType
-        } else if c.is_type_assignable_to_kind(type_, TypeFlags::BIG_INT_LIKE) {
+        } else if c.is_type_assignable_to_kind(type_, TypeFlags::BigIntLike) {
             TypeReferenceSerializationKind::BigIntLikeType
-        } else if c.is_type_assignable_to_kind(type_, TypeFlags::STRING_LIKE) {
+        } else if c.is_type_assignable_to_kind(type_, TypeFlags::StringLike) {
             TypeReferenceSerializationKind::StringLikeType
         } else if crate::is_tuple_type(type_) {
             TypeReferenceSerializationKind::ArrayLikeType
-        } else if c.is_type_assignable_to_kind(type_, TypeFlags::ES_SYMBOL_LIKE) {
+        } else if c.is_type_assignable_to_kind(type_, TypeFlags::ESSymbolLike) {
             TypeReferenceSerializationKind::ESSymbolType
         } else if c.is_function_type(type_) {
             TypeReferenceSerializationKind::TypeWithCallSignature
@@ -1915,13 +1915,13 @@ impl EmitResolver {
             };
             if base_prop
                 .flags()
-                .intersects(SymbolFlags::ACCESSOR | SymbolFlags::METHOD | SymbolFlags::FUNCTION)
+                .intersects(SymbolFlags::Accessor | SymbolFlags::Method | SymbolFlags::Function)
             {
                 return true;
             }
             if c.is_readonly_symbol(base_prop) == c.is_readonly_symbol(s)
-                && (s.flags() & SymbolFlags::OPTIONAL)
-                    == (base_prop.flags() & SymbolFlags::OPTIONAL)
+                && (s.flags() & SymbolFlags::Optional)
+                    == (base_prop.flags() & SymbolFlags::Optional)
                 && {
                     let ts = c.get_type_of_symbol(s);
                     let tb = c.get_type_of_symbol(base_prop);

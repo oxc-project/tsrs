@@ -377,7 +377,7 @@ impl SymbolExtractor<'_> {
         exports.push(Arc::new(export));
 
         if let Some(target) = target {
-            if syntax == ExportSyntax::Equals && target.flags().intersects(SymbolFlags::NAMESPACE) {
+            if syntax == ExportSyntax::Equals && target.flags().intersects(SymbolFlags::Namespace) {
                 if let Some(target_exports) = target.exports() {
                     exports.reserve(target_exports.len());
                     exports.extend(target_exports.entries().into_iter().filter_map(
@@ -482,13 +482,13 @@ impl SymbolExtractor<'_> {
         }
 
         let mut target_symbol: Option<P<Symbol>> = None;
-        if symbol.flags().intersects(SymbolFlags::ALIAS) {
+        if symbol.flags().intersects(SymbolFlags::Alias) {
             target_symbol = self.try_resolve_symbol(symbol, syntax, checker_lease);
             if let Some(ts) = target_symbol {
                 let mut decl: Option<P<Node>> = None;
                 if !ts.declarations().is_empty() {
                     decl = Some(ts.declarations()[0]);
-                } else if ts.check_flags().intersects(CheckFlags::MAPPED) {
+                } else if ts.check_flags().intersects(CheckFlags::Mapped) {
                     if let Some(mapped_decl) =
                         self.get_checker(checker_lease).get_mapped_type_symbol_of_property(ts)
                     {
@@ -593,7 +593,7 @@ impl SymbolExtractor<'_> {
         syntax: ExportSyntax,
         checker_lease: &mut CheckerLease,
     ) -> Option<P<Symbol>> {
-        if !ast::is_non_local_alias(symbol, SymbolFlags::NONE) {
+        if !ast::is_non_local_alias(symbol, SymbolFlags::None) {
             return Some(symbol);
         }
 
@@ -642,13 +642,13 @@ impl SymbolExtractor<'_> {
                 &mut (),
                 Some(loc),
                 name,
-                SymbolFlags::ALL,
+                SymbolFlags::All,
                 None,
                 false,
                 false,
             );
             if let Some(local) = local {
-                if !ast::is_non_local_alias(local, SymbolFlags::NONE) {
+                if !ast::is_non_local_alias(local, SymbolFlags::None) {
                     return Some(local);
                 }
             }
@@ -665,7 +665,7 @@ impl SymbolExtractor<'_> {
 
 // extract.go:410
 fn should_ignore_symbol(symbol: P<Symbol>) -> bool {
-    if symbol.flags().intersects(SymbolFlags::PROTOTYPE) {
+    if symbol.flags().intersects(SymbolFlags::Prototype) {
         return true;
     }
     false
@@ -694,7 +694,7 @@ fn get_syntax(symbol: P<Symbol>) -> ExportSyntax {
                 _ => {}
             },
             _ => {
-                if ast::get_combined_modifier_flags(decl).intersects(ModifierFlags::DEFAULT) {
+                if ast::get_combined_modifier_flags(decl).intersects(ModifierFlags::Default) {
                     return Some(ExportSyntax::DefaultModifier);
                 }
                 return Some(ExportSyntax::Modifier);

@@ -128,7 +128,7 @@ pub(crate) fn get_default_like_export_name_from_declaration(symbol: P<Symbol>) -
         // "export default" in this case. See `ExportAssignment`for more details.
         if ast::is_export_assignment(d) {
             let inner_expression =
-                ast::skip_outer_expressions(d.expression().unwrap(), ast::OEK::ALL);
+                ast::skip_outer_expressions(d.expression().unwrap(), ast::OEK::All);
             if ast::is_identifier(inner_expression) {
                 return Some(inner_expression.text().to_string());
             }
@@ -136,7 +136,7 @@ pub(crate) fn get_default_like_export_name_from_declaration(symbol: P<Symbol>) -
         }
         // "export { ~ as default }"
         if ast::is_export_specifier(d)
-            && d.symbol().unwrap().flags() == SymbolFlags::ALIAS
+            && d.symbol().unwrap().flags() == SymbolFlags::Alias
             && d.property_name().is_some()
         {
             if d.property_name().unwrap().kind() == Kind::Identifier {

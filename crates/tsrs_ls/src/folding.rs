@@ -117,7 +117,7 @@ impl LanguageService {
                 let positions = self.converters.from_lsp_position_for_source_file(
                     source_file,
                     lsproto::Position { line: r.end_line, character: end_character },
-                    Feature::FOLDING_RANGES,
+                    Feature::FoldingRanges,
                 );
                 let position =
                     positions.iter().find(|p| p.script == source_file && !p.fidelity.is_none());
@@ -288,7 +288,7 @@ fn visit_node(
     l: &LanguageService,
 ) -> Vec<lsproto::FoldingRange> {
     let mut depth_remaining = depth_remaining;
-    if n.flags().intersects(NodeFlags::REPARSED) || depth_remaining == 0 || ctx.err().is_some() {
+    if n.flags().intersects(NodeFlags::Reparsed) || depth_remaining == 0 || ctx.err().is_some() {
         return Vec::new();
     }
     let mut folding_range = Vec::with_capacity(40);
@@ -618,7 +618,7 @@ fn get_outlining_span_for_node(
             // Block was a standalone block.  In this case we want to only collapse
             // the span of the block, independent of any parent span.
             let (text_range, fidelity) =
-                l.create_lsp_range_from_node_for_feature(n, source_file, Feature::FOLDING_RANGES);
+                l.create_lsp_range_from_node_for_feature(n, source_file, Feature::FoldingRanges);
             if fidelity.is_none() {
                 return None;
             }
@@ -1022,7 +1022,7 @@ impl LanguageService {
         self.converters.to_lsp_range_for_feature(
             &source_file,
             TextRange::new(start, end),
-            Feature::FOLDING_RANGES,
+            Feature::FoldingRanges,
         )
     }
 }

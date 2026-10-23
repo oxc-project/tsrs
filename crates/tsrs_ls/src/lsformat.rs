@@ -93,7 +93,7 @@ impl LanguageService {
             };
             candidates.extend(span_map.segments().into_iter().filter_map(|segment| {
                 if segment.kind != spanmap::Kind::VERBATIM
-                    || !segment.features.intersects(Feature::FORMATTING)
+                    || !segment.features.intersects(Feature::Formatting)
                 {
                     return None;
                 }
@@ -155,7 +155,7 @@ impl LanguageService {
                     let (lsp_range, fidelity) = self.converters.to_lsp_range_for_feature(
                         &candidate.projection,
                         TextRange::new(change.pos(), change.end()),
-                        Feature::FORMATTING,
+                        Feature::Formatting,
                     );
                     if !fidelity.is_exact() {
                         return None;
@@ -248,7 +248,7 @@ impl LanguageService {
                 self.get_formatting_edits_for_mapped_range(ctx, file, &format_opts, original);
             return Ok(lsproto::TextEditsOrNull { text_edits: Some(edits) });
         }
-        let ranges = self.converters.from_lsp_range_for_source_file(file, r, Feature::FORMATTING);
+        let ranges = self.converters.from_lsp_range_for_source_file(file, r, Feature::Formatting);
         if ranges.len() != 1 || !ranges[0].fidelity.is_exact() {
             return Ok(lsproto::TextEditsOrNull::default());
         }
@@ -279,7 +279,7 @@ impl LanguageService {
         let (_, file) = self.get_program_and_file(document_uri);
         let format_opts = lsutil::from_ls_format_options(&self.format_options(), options);
         let positions =
-            self.converters.from_lsp_position_for_source_file(file, position, Feature::FORMATTING);
+            self.converters.from_lsp_position_for_source_file(file, position, Feature::Formatting);
         if positions.len() != 1 || !positions[0].fidelity.is_exact() {
             return Ok(lsproto::TextEditsOrNull::default());
         }

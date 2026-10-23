@@ -17,7 +17,7 @@ use crate::change;
 use crate::codeactions::{
     CodeAction, CodeFixContext, CodeFixProvider, CombinedCodeActions, is_fixable_diagnostic,
 };
-use crate::codeactions_missingmemberfixer::{PreserveOptionalFlags, new_missing_member_fixer};
+use crate::codeactions_missingmemberfixer::{new_missing_member_fixer, preserveOptionalFlags};
 use crate::diagnostics::get_all_diagnostics;
 
 // codeactions_fixclassincorrectlyimplementsinterface.go:19
@@ -243,7 +243,7 @@ fn add_changes(
                 class_declaration,
                 fix_context.source_file,
                 None, /*body*/
-                PreserveOptionalFlags::ALL,
+                preserveOptionalFlags::All,
                 false, /*abstract*/
             )
         };
@@ -334,7 +334,7 @@ fn get_missing_members(
                     return None;
                 };
                 let flags = checker::get_declaration_modifier_flags_from_symbol_exported(symbol);
-                if !flags.intersects(ModifierFlags::PRIVATE) {
+                if !flags.intersects(ModifierFlags::Private) {
                     entry.insert(symbol);
                     Some(symbol)
                 } else {
@@ -361,7 +361,7 @@ fn get_inherited_members(
     inherited_members.extend(type_checker.get_properties_of_type(base_type).iter().filter_map(
         |&symbol| {
             let flags = checker::get_declaration_modifier_flags_from_symbol_exported(symbol);
-            if !flags.intersects(ModifierFlags::PRIVATE) {
+            if !flags.intersects(ModifierFlags::Private) {
                 Some((symbol.name(), symbol))
             } else {
                 None

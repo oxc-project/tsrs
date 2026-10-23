@@ -327,7 +327,7 @@ impl EsDecoratorTransformer {
         let ec = self.base.emit_context();
         ec.add_emit_helper(visited, &ec.read_emit_helpers());
         if self.should_transform_private_static_elements_in_file.get() {
-            ec.add_emit_flags(visited, EmitFlags::TRANSFORM_PRIVATE_STATIC_ELEMENTS);
+            ec.add_emit_flags(visited, EmitFlags::TransformPrivateStaticElements);
             self.should_transform_private_static_elements_in_file.set(false);
         }
         visited
@@ -335,7 +335,7 @@ impl EsDecoratorTransformer {
 
     // esdecorator.go:283
     pub(crate) fn outer_this_visit(&self, n: P<Node>) -> Option<P<Node>> {
-        if !n.subtree_facts().intersects(SubtreeFacts::CONTAINS_LEXICAL_THIS)
+        if !n.subtree_facts().intersects(SubtreeFacts::ContainsLexicalThis)
             && n.kind() != Kind::ThisKeyword
         {
             return Some(n);
@@ -345,7 +345,7 @@ impl EsDecoratorTransformer {
                 self.outer_this.set(Some(self.base.factory().new_unique_name_ex(
                     "_outerThis",
                     printer::AutoGenerateOptions {
-                        flags: printer::GeneratedIdentifierFlags::OPTIMISTIC,
+                        flags: printer::GeneratedIdentifierFlags::Optimistic,
                         ..Default::default()
                     },
                 )));
@@ -357,12 +357,12 @@ impl EsDecoratorTransformer {
 
     // esdecorator.go:298
     fn should_visit_node(&self, node: P<Node>) -> bool {
-        node.subtree_facts().intersects(SubtreeFacts::CONTAINS_DECORATORS)
+        node.subtree_facts().intersects(SubtreeFacts::ContainsDecorators)
             || (self.class_this.get().is_some()
-                && node.subtree_facts().intersects(SubtreeFacts::CONTAINS_LEXICAL_THIS))
+                && node.subtree_facts().intersects(SubtreeFacts::ContainsLexicalThis))
             || (self.class_this.get().is_some()
                 && self.class_super.get().is_some()
-                && node.subtree_facts().intersects(SubtreeFacts::CONTAINS_LEXICAL_SUPER))
+                && node.subtree_facts().intersects(SubtreeFacts::ContainsLexicalSuper))
     }
 }
 
@@ -534,8 +534,8 @@ impl EsDecoratorTransformer {
         self.base.factory().new_unique_name_ex(
             &format!("{}_{}", get_helper_variable_name(self.base.emit_context(), node), suffix),
             printer::AutoGenerateOptions {
-                flags: printer::GeneratedIdentifierFlags::OPTIMISTIC
-                    | printer::GeneratedIdentifierFlags::RESERVED_IN_NESTED_SCOPES,
+                flags: printer::GeneratedIdentifierFlags::Optimistic
+                    | printer::GeneratedIdentifierFlags::ReservedInNestedScopes,
                 ..Default::default()
             },
         )
@@ -548,7 +548,7 @@ impl EsDecoratorTransformer {
             None,
             f.new_variable_declaration_list(
                 f.new_node_list(vec![f.new_variable_declaration(name, None, None, initializer)]),
-                NodeFlags::LET,
+                NodeFlags::Let,
             ),
         )
     }
@@ -560,8 +560,8 @@ impl EsDecoratorTransformer {
         let f = self.base.factory();
         let ec = self.base.emit_context();
         let file_level = printer::AutoGenerateOptions {
-            flags: printer::GeneratedIdentifierFlags::OPTIMISTIC
-                | printer::GeneratedIdentifierFlags::FILE_LEVEL,
+            flags: printer::GeneratedIdentifierFlags::Optimistic
+                | printer::GeneratedIdentifierFlags::FileLevel,
             ..Default::default()
         };
         let ci = P::new(ClassInfo {
@@ -598,11 +598,11 @@ impl EsDecoratorTransformer {
             });
             // We do not mark _classThis as FileLevel if it may be reused by class private fields, which requires the
             // ability access the captured `_classThis` of outer scopes.
-            let mut flags = printer::GeneratedIdentifierFlags::OPTIMISTIC
-                | printer::GeneratedIdentifierFlags::FILE_LEVEL;
+            let mut flags = printer::GeneratedIdentifierFlags::Optimistic
+                | printer::GeneratedIdentifierFlags::FileLevel;
             if needs_unique_class_this {
-                flags = printer::GeneratedIdentifierFlags::OPTIMISTIC
-                    | printer::GeneratedIdentifierFlags::RESERVED_IN_NESTED_SCOPES;
+                flags = printer::GeneratedIdentifierFlags::Optimistic
+                    | printer::GeneratedIdentifierFlags::ReservedInNestedScopes;
             }
             ci.class_this.set(Some(f.new_unique_name_ex(
                 "_classThis",
@@ -665,7 +665,7 @@ impl EsDecoratorTransformer {
                 } else {
                     ci.has_non_ambient_instance_fields.set(
                         ci.has_non_ambient_instance_fields.get()
-                            || !ast::has_syntactic_modifier(member, ModifierFlags::AMBIENT),
+                            || !ast::has_syntactic_modifier(member, ModifierFlags::Ambient),
                     );
                 }
             }
@@ -698,8 +698,8 @@ impl EsDecoratorTransformer {
         let f = self.base.factory();
         let ec = self.base.emit_context();
         let file_level = printer::AutoGenerateOptions {
-            flags: printer::GeneratedIdentifierFlags::OPTIMISTIC
-                | printer::GeneratedIdentifierFlags::FILE_LEVEL,
+            flags: printer::GeneratedIdentifierFlags::Optimistic
+                | printer::GeneratedIdentifierFlags::FileLevel,
             ..Default::default()
         };
 
@@ -714,7 +714,7 @@ impl EsDecoratorTransformer {
             node = inject_class_named_evaluation_helper_block_if_missing(
                 ec,
                 node,
-                f.new_string_literal("", TokenFlags::NONE),
+                f.new_string_literal("", TokenFlags::None),
                 None,
             );
         }
@@ -790,14 +790,14 @@ impl EsDecoratorTransformer {
             // Ensure we do not give the class or function an assigned name due to the variable by prefixing it
             // with `0, `.
             let unwrapped =
-                ast::skip_outer_expressions(extends_expression, OuterExpressionKinds::ALL);
+                ast::skip_outer_expressions(extends_expression, OuterExpressionKinds::All);
             let mut safe_extends_expression = extends_expression;
             if (ast::is_class_expression(unwrapped) && unwrapped.name().is_none())
                 || (ast::is_function_expression(unwrapped) && unwrapped.name().is_none())
                 || ast::is_arrow_function(unwrapped)
             {
                 safe_extends_expression = f.new_comma_expression(
-                    f.new_numeric_literal("0", TokenFlags::NONE),
+                    f.new_numeric_literal("0", TokenFlags::None),
                     extends_expression,
                 );
             }
@@ -863,7 +863,7 @@ impl EsDecoratorTransformer {
             leading_block_statements.extend(pending.into_iter().map(|expr| {
                 let mut expr = expr;
                 // If a pending expression contains lexical `this`, capture it
-                if expr.subtree_facts().intersects(SubtreeFacts::CONTAINS_LEXICAL_THIS) {
+                if expr.subtree_facts().intersects(SubtreeFacts::ContainsLexicalThis) {
                     expr = self
                         .outer_this_visitor
                         .get()
@@ -892,7 +892,7 @@ impl EsDecoratorTransformer {
                 let is_derived_class = extends_element.is_some_and(|e| {
                     ast::skip_outer_expressions(
                         e.as_expression_with_type_arguments().expression,
-                        OuterExpressionKinds::ALL,
+                        OuterExpressionKinds::All,
                     )
                     .kind()
                         != Kind::NullKeyword
@@ -905,7 +905,7 @@ impl EsDecoratorTransformer {
                         None,
                         None,
                         f.new_node_list(vec![spread_arguments]),
-                        NodeFlags::NONE,
+                        NodeFlags::None,
                     );
                     constructor_statements.push(f.new_expression_statement(super_call));
                 }
@@ -994,7 +994,7 @@ impl EsDecoratorTransformer {
                 renamed_class_this,
                 None,
                 f.new_identifier("name"),
-                NodeFlags::NONE,
+                NodeFlags::None,
             );
 
             let context_obj = f.new_es_decorate_class_context_object(
@@ -1020,7 +1020,7 @@ impl EsDecoratorTransformer {
                 class_descriptor_name,
                 None,
                 f.new_identifier("value"),
-                NodeFlags::NONE,
+                NodeFlags::None,
             );
             let class_this_assignment =
                 f.new_assignment_expression(class_this, class_descriptor_value_ref);
@@ -1088,7 +1088,7 @@ impl EsDecoratorTransformer {
                 // We use EFTransformPrivateStaticElements as a marker on a class static block
                 // to inform the classFields transform that it shouldn't rename `this` to `_classThis` in the
                 // transformed class static block.
-                ec.set_emit_flags(block, EmitFlags::TRANSFORM_PRIVATE_STATIC_ELEMENTS);
+                ec.set_emit_flags(block, EmitFlags::TransformPrivateStaticElements);
             }
         }
 
@@ -1158,7 +1158,7 @@ impl EsDecoratorTransformer {
                 f.new_variable_declaration(class_reference, None, None, Some(class_expression));
             let class_reference_var_decl_list = f.new_variable_declaration_list(
                 f.new_node_list(vec![class_reference_declaration]),
-                NodeFlags::NONE,
+                NodeFlags::None,
             );
             let return_expr = match ci.class_this.get() {
                 Some(class_this) => f.new_assignment_expression(class_reference, class_this),
@@ -1177,13 +1177,13 @@ impl EsDecoratorTransformer {
         }
 
         if should_transform_private_static_elements_in_class {
-            ec.add_emit_flags(class_expression, EmitFlags::TRANSFORM_PRIVATE_STATIC_ELEMENTS);
+            ec.add_emit_flags(class_expression, EmitFlags::TransformPrivateStaticElements);
             for member in class_expression.members() {
                 if (ast::is_private_identifier_class_element_declaration(*member)
                     || ast::is_auto_accessor_property_declaration(*member))
                     && ast::has_static_modifier(*member)
                 {
-                    ec.add_emit_flags(*member, EmitFlags::TRANSFORM_PRIVATE_STATIC_ELEMENTS);
+                    ec.add_emit_flags(*member, EmitFlags::TransformPrivateStaticElements);
                 }
             }
         }
@@ -1257,11 +1257,11 @@ impl EsDecoratorTransformer {
             }
             let class_name = match original_class.name() {
                 Some(name) => f.new_string_literal_from_node(name),
-                None => f.new_string_literal("default", TokenFlags::NONE),
+                None => f.new_string_literal("default", TokenFlags::None),
             };
 
-            let is_export = ast::has_syntactic_modifier(node, ModifierFlags::EXPORT);
-            let is_default = ast::has_syntactic_modifier(node, ModifierFlags::DEFAULT);
+            let is_export = ast::has_syntactic_modifier(node, ModifierFlags::Export);
+            let is_default = ast::has_syntactic_modifier(node, ModifierFlags::Default);
 
             let mut class_node = node;
             if node.name().is_none() {
@@ -1285,7 +1285,7 @@ impl EsDecoratorTransformer {
                     ec.set_original(var_decl, class_node);
                     let var_decls = f.new_variable_declaration_list(
                         f.new_node_list(vec![var_decl]),
-                        NodeFlags::LET,
+                        NodeFlags::Let,
                     );
                     let var_statement = f.new_variable_statement(None, var_decls);
                     statements.push(var_statement);
@@ -1332,7 +1332,7 @@ impl EsDecoratorTransformer {
                 let var_decl = f.new_variable_declaration(decl_name, None, None, Some(iife));
                 ec.set_original(var_decl, class_node);
                 let var_decls = f
-                    .new_variable_declaration_list(f.new_node_list(vec![var_decl]), NodeFlags::LET);
+                    .new_variable_declaration_list(f.new_node_list(vec![var_decl]), NodeFlags::Let);
                 let var_statement = f.new_variable_statement(modifiers, var_decls);
                 ec.set_original(var_statement, class_node);
                 ec.assign_comment_range(var_statement, class_node);

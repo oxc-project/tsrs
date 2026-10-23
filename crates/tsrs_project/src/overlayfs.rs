@@ -591,7 +591,7 @@ fn overlay_directory_info(name: &str) -> FileInfo {
     FileInfo {
         name: name.to_string(),
         size: 0,
-        mode: FileMode::DIR | FileMode::from_bits_retain(0o555),
+        mode: FileMode::Dir | FileMode::from_bits_retain(0o555),
         mod_time: None,
     }
 }
@@ -806,7 +806,7 @@ impl OverlayFS {
                             let ranges = converters.from_lsp_range(
                                 &*current,
                                 partial_change.range,
-                                spanmap::Feature::ALL,
+                                spanmap::Feature::All,
                             );
                             assert!(
                                 ranges.len() == 1,

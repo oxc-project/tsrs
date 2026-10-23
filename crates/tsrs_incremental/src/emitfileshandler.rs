@@ -46,12 +46,12 @@ impl<'a> EmitFilesHandler<'a> {
         emit_kind: FileEmitKind,
         options: &EmitOptions,
     ) -> FileEmitKind {
-        let mut pending_kind = get_pending_emit_kind(emit_kind, FileEmitKind::NONE);
+        let mut pending_kind = get_pending_emit_kind(emit_kind, FileEmitKind::None);
         if options.emit_only == EmitOnly::EmitOnlyDts {
-            pending_kind &= FileEmitKind::ALL_DTS;
+            pending_kind &= FileEmitKind::AllDts;
         }
         if self.is_for_dts_errors {
-            pending_kind &= FileEmitKind::DTS_ERRORS;
+            pending_kind &= FileEmitKind::DtsErrors;
         }
         pending_kind
     }
@@ -184,10 +184,10 @@ impl<'a> EmitFilesHandler<'a> {
             if !pending_kind.is_empty() {
                 // Determine if we can do partial emit
                 let mut emit_only = EmitOnly::EmitAll;
-                if pending_kind.intersects(FileEmitKind::ALL_JS) {
+                if pending_kind.intersects(FileEmitKind::AllJs) {
                     emit_only = EmitOnly::EmitOnlyJs;
                 }
-                if pending_kind.intersects(FileEmitKind::ALL_DTS) {
+                if pending_kind.intersects(FileEmitKind::AllDts) {
                     if emit_only == EmitOnly::EmitOnlyJs {
                         emit_only = EmitOnly::EmitAll;
                     } else {

@@ -56,9 +56,9 @@ enum JsdocState {
 bitflags! {
     #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Default)]
     pub(crate) struct PropertyLikeParse: u32 {
-        const PROPERTY = 1 << 0;
-        const PARAMETER = 1 << 1;
-        const CALLBACK_PARAMETER = 1 << 2;
+        const Property = 1 << 0;
+        const Parameter = 1 << 1;
+        const CallbackParameter = 1 << 2;
     }
 }
 
@@ -69,7 +69,7 @@ impl Parser {
         node: P<Node>,
         info: JsdocScannerInfo,
     ) -> &'static [P<Node>] {
-        if !info.intersects(JsdocScannerInfo::HAS_JSDOC) {
+        if !info.intersects(JsdocScannerInfo::HasJSDoc) {
             return &[];
         }
         self.with_jsdoc_worker(node, info)
@@ -81,11 +81,11 @@ impl Parser {
         // @deprecated is detected via cheap text scan to set PossiblyContainsDeprecatedTag;
         // callers must confirm via JSDoc lookup.
         if !self.is_java_script() {
-            node.set_flags(node.flags() | NodeFlags::HAS_JSDOC);
-            if info.intersects(JsdocScannerInfo::HAS_DEPRECATED) {
-                node.set_flags(node.flags() | NodeFlags::POSSIBLY_CONTAINS_DEPRECATED_TAG);
+            node.set_flags(node.flags() | NodeFlags::HasJSDoc);
+            if info.intersects(JsdocScannerInfo::HasDeprecated) {
+                node.set_flags(node.flags() | NodeFlags::PossiblyContainsDeprecatedTag);
             }
-            if !info.intersects(JsdocScannerInfo::HAS_SEE_OR_LINK) {
+            if !info.intersects(JsdocScannerInfo::HasSeeOrLink) {
                 return &[];
             }
             // Fall through to eager parse for @see/@link
@@ -108,12 +108,12 @@ impl Parser {
             jsdoc
         });
         if !jsdoc.is_empty() {
-            if !node.flags().intersects(NodeFlags::HAS_JSDOC) {
-                node.set_flags(node.flags() | NodeFlags::HAS_JSDOC);
+            if !node.flags().intersects(NodeFlags::HasJSDoc) {
+                node.set_flags(node.flags() | NodeFlags::HasJSDoc);
             }
             if self.has_deprecated_tag {
                 self.has_deprecated_tag = false;
-                node.set_flags(node.flags() | NodeFlags::POSSIBLY_CONTAINS_DEPRECATED_TAG);
+                node.set_flags(node.flags() | NodeFlags::PossiblyContainsDeprecatedTag);
             }
             let jsdoc = alloc_vec(jsdoc);
             if self.is_java_script() {
@@ -133,7 +133,7 @@ impl Parser {
             self.parse_expected(Kind::OpenBraceToken)
         };
         let save_context_flags = self.context_flags;
-        self.set_context_flags(NodeFlags::JSDOC, true);
+        self.set_context_flags(NodeFlags::JSDoc, true);
         let t = self.parse_jsdoc_type();
         self.context_flags = save_context_flags;
         if has_brace {
@@ -188,13 +188,13 @@ impl Parser {
         self.scanner.set_text(self.source_text);
         // +3 for leading `/**`
         self.scanner.reset_pos(start + 3);
-        self.set_context_flags(NodeFlags::JSDOC, true);
+        self.set_context_flags(NodeFlags::JSDoc, true);
         self.parsing_contexts |= 1 << ParsingContext::JSDocComment as u32;
 
         let comment = self.parse_jsdoc_comment_worker(start, end, full_start, initial_indent);
         // move jsdoc diagnostics to jsdocDiagnostics -- for JS files only
         let moved = self.diagnostics.split_off(save_diagnostics_length);
-        if self.context_flags.intersects(NodeFlags::JAVA_SCRIPT_FILE) && !moved.is_empty() {
+        if self.context_flags.intersects(NodeFlags::JavaScriptFile) && !moved.is_empty() {
             tsrs_core::arena_pin();
             self.jsdoc_diagnostics.extend(moved);
         }
@@ -546,7 +546,7 @@ impl Parser {
             "arg" | "argument" | "param" => self.parse_parameter_or_property_tag(
                 start,
                 tag_name,
-                PropertyLikeParse::PARAMETER,
+                PropertyLikeParse::Parameter,
                 margin,
             ),
             "return" | "returns" => {
@@ -866,7 +866,7 @@ impl Parser {
         }
         // a markdown-quoted name: `arg` is not legal jsdoc, but occurs in the wild
         let is_backquoted = self.parse_optional_jsdoc(Kind::BacktickToken);
-        let name = self.parse_jsdoc_entity_name(if target == PropertyLikeParse::PARAMETER {
+        let name = self.parse_jsdoc_entity_name(if target == PropertyLikeParse::Parameter {
             None
         } else {
             Some(&diagnostics::IDENTIFIER_EXPECTED)
@@ -914,7 +914,7 @@ impl Parser {
             type_expression = nested_type_literal;
             is_name_first = true;
         }
-        let kind = if target == PropertyLikeParse::PROPERTY {
+        let kind = if target == PropertyLikeParse::Property {
             Kind::JSDocPropertyTag
         } else {
             Kind::JSDocParameterTag
@@ -1165,7 +1165,7 @@ impl Parser {
         while self.parse_optional(Kind::DotToken) {
             let name = self.parse_jsdoc_identifier_name(Some(&diagnostics::IDENTIFIER_EXPECTED));
             let access =
-                self.factory.new_property_access_expression(node, None, name, NodeFlags::NONE);
+                self.factory.new_property_access_expression(node, None, name, NodeFlags::None);
             node = self.finish_node(access, pos);
         }
         node
@@ -1217,13 +1217,13 @@ impl Parser {
             );
             if nested {
                 jsdoc_namespace_node
-                    .set_flags(jsdoc_namespace_node.flags() | NodeFlags::NESTED_NAMESPACE);
+                    .set_flags(jsdoc_namespace_node.flags() | NodeFlags::NestedNamespace);
             }
             return Some(self.finish_node(jsdoc_namespace_node, start));
         }
         if nested {
             type_name_or_namespace_name.set_flags(
-                type_name_or_namespace_name.flags() | NodeFlags::IDENTIFIER_IS_IN_JSDOC_NAMESPACE,
+                type_name_or_namespace_name.flags() | NodeFlags::IdentifierIsInJSDocNamespace,
             );
         }
         Some(type_name_or_namespace_name)
@@ -1356,7 +1356,7 @@ impl Parser {
         loop {
             let state = self.mark();
             let child = self.parse_child_parameter_or_property_tag(
-                PropertyLikeParse::CALLBACK_PARAMETER,
+                PropertyLikeParse::CallbackParameter,
                 indent,
                 None,
             );
@@ -1449,7 +1449,7 @@ impl Parser {
     }
 
     pub(crate) fn parse_child_property_tag(&mut self, indent: u32) -> Option<P<Node>> {
-        self.parse_child_parameter_or_property_tag(PropertyLikeParse::PROPERTY, indent, None)
+        self.parse_child_parameter_or_property_tag(PropertyLikeParse::Property, indent, None)
     }
 
     pub(crate) fn parse_child_parameter_or_property_tag(
@@ -1516,15 +1516,15 @@ impl Parser {
         let mut t = PropertyLikeParse::empty();
         match tag_name.text() {
             "type" => {
-                if target == PropertyLikeParse::PROPERTY {
+                if target == PropertyLikeParse::Property {
                     return Some(self.parse_type_tag(&[], start, tag_name, None, ""));
                 }
             }
             "prop" | "property" => {
-                t = PropertyLikeParse::PROPERTY;
+                t = PropertyLikeParse::Property;
             }
             "arg" | "argument" | "param" => {
-                t = PropertyLikeParse::PARAMETER | PropertyLikeParse::CALLBACK_PARAMETER;
+                t = PropertyLikeParse::Parameter | PropertyLikeParse::CallbackParameter;
             }
             "template" => {
                 return Some(self.parse_template_tag(start, tag_name, indent, &indent_text));
@@ -1556,7 +1556,7 @@ impl Parser {
             self.skip_whitespace();
             self.parse_expected(Kind::EqualsToken);
             let save_context_flags = self.context_flags;
-            self.set_context_flags(NodeFlags::JSDOC, true);
+            self.set_context_flags(NodeFlags::JSDoc, true);
             default_type = Some(self.parse_jsdoc_type());
             self.context_flags = save_context_flags;
             self.parse_expected(Kind::CloseBracketToken);

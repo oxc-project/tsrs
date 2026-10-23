@@ -20,7 +20,7 @@ impl LogicalAssignmentTransformer {
 
     // logicalassignment.go:12
     fn visit(&self, node: P<Node>) -> Option<P<Node>> {
-        if !node.subtree_facts().intersects(SubtreeFacts::CONTAINS_LOGICAL_ASSIGNMENTS) {
+        if !node.subtree_facts().intersects(SubtreeFacts::ContainsLogicalAssignments) {
             return Some(node);
         }
         match node.kind() {
@@ -61,13 +61,13 @@ impl LogicalAssignmentTransformer {
                     property_access_target,
                     None,
                     left.name().unwrap(),
-                    NodeFlags::NONE,
+                    NodeFlags::None,
                 );
                 left = f.new_property_access_expression(
                     property_access_target_assignment,
                     None,
                     left.name().unwrap(),
-                    NodeFlags::NONE,
+                    NodeFlags::None,
                 );
             } else {
                 let element_access_argument_simple_copiable = is_simple_copiable_expression(
@@ -89,13 +89,13 @@ impl LogicalAssignmentTransformer {
                     property_access_target,
                     None,
                     element_access_argument,
-                    NodeFlags::NONE,
+                    NodeFlags::None,
                 );
                 left = f.new_element_access_expression(
                     property_access_target_assignment,
                     None,
                     argument_expr,
-                    NodeFlags::NONE,
+                    NodeFlags::None,
                 );
             }
         }

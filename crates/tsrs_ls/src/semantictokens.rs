@@ -174,7 +174,7 @@ impl LanguageService {
         let mapped_ranges = self.converters.from_lsp_range_intersecting_for_source_file(
             file,
             rng,
-            Feature::SEMANTIC_TOKENS,
+            Feature::SemanticTokens,
         );
         let mut tokens: Vec<SemanticToken> = Vec::with_capacity(mapped_ranges.len());
         let mut seen: FxHashSet<SemanticToken> = FxHashSet::default();
@@ -265,7 +265,7 @@ fn semantic_token_lsp_range(
             start,
             token.node.end().expect_source("semantic-token nodes have source positions"),
         ),
-        Feature::SEMANTIC_TOKENS,
+        Feature::SemanticTokens,
     )
 }
 
@@ -347,7 +347,7 @@ impl SemanticTokensVisitor<'_> {
             return false;
         }
 
-        if node.flags().intersects(NodeFlags::REPARSED) {
+        if node.flags().intersects(NodeFlags::Reparsed) {
             return false;
         }
         let node_end = node.end().expect_source("semantic-token nodes have source positions");
@@ -384,7 +384,7 @@ impl SemanticTokensVisitor<'_> {
             return;
         };
         // Resolve aliases
-        if symbol.flags().intersects(SymbolFlags::ALIAS) {
+        if symbol.flags().intersects(SymbolFlags::Alias) {
             symbol = c.get_aliased_symbol(symbol);
         }
 
@@ -417,17 +417,17 @@ impl SemanticTokensVisitor<'_> {
             let modifiers = ast::get_combined_modifier_flags(decl);
             let node_flags = ast::get_combined_node_flags(decl);
 
-            if modifiers.intersects(ModifierFlags::STATIC) {
+            if modifiers.intersects(ModifierFlags::Static) {
                 token_modifier |= TOKEN_MODIFIER_STATIC;
             }
-            if modifiers.intersects(ModifierFlags::ASYNC) {
+            if modifiers.intersects(ModifierFlags::Async) {
                 token_modifier |= TOKEN_MODIFIER_ASYNC;
             }
             if token_type != TOKEN_TYPE_CLASS
                 && token_type != TOKEN_TYPE_INTERFACE
-                && (modifiers.intersects(ModifierFlags::READONLY)
-                    || node_flags.intersects(NodeFlags::CONST)
-                    || symbol.flags().intersects(SymbolFlags::ENUM_MEMBER))
+                && (modifiers.intersects(ModifierFlags::Readonly)
+                    || node_flags.intersects(NodeFlags::Const)
+                    || symbol.flags().intersects(SymbolFlags::EnumMember))
             {
                 token_modifier |= TOKEN_MODIFIER_READONLY;
             }
@@ -459,19 +459,19 @@ impl SemanticTokensVisitor<'_> {
 // semantictokens.go:342
 fn classify_symbol(symbol: P<Symbol>, meaning: SemanticMeaning) -> Option<TokenType> {
     let flags = symbol.flags();
-    if flags.intersects(SymbolFlags::CLASS) {
+    if flags.intersects(SymbolFlags::Class) {
         return Some(TOKEN_TYPE_CLASS);
     }
-    if flags.intersects(SymbolFlags::ENUM) {
+    if flags.intersects(SymbolFlags::Enum) {
         return Some(TOKEN_TYPE_ENUM);
     }
-    if flags.intersects(SymbolFlags::TYPE_ALIAS) {
+    if flags.intersects(SymbolFlags::TypeAlias) {
         return Some(TOKEN_TYPE_TYPE);
     }
-    if flags.intersects(SymbolFlags::INTERFACE) && meaning.intersects(SemanticMeaning::TYPE) {
+    if flags.intersects(SymbolFlags::Interface) && meaning.intersects(SemanticMeaning::Type) {
         return Some(TOKEN_TYPE_INTERFACE);
     }
-    if flags.intersects(SymbolFlags::TYPE_PARAMETER) {
+    if flags.intersects(SymbolFlags::TypeParameter) {
         return Some(TOKEN_TYPE_TYPE_PARAMETER);
     }
 
@@ -524,7 +524,7 @@ fn reclassify_by_type(c: &mut Checker, node: P<Node>, tt: TokenType) -> TokenTyp
             if condition(c, typ) {
                 return true;
             }
-            if typ.flags().intersects(TypeFlags::UNION)
+            if typ.flags().intersects(TypeFlags::Union)
                 && typ.as_union_type().types().iter().any(|&t| condition(c, t))
             {
                 return true;

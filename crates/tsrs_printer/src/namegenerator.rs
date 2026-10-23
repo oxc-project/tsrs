@@ -9,10 +9,11 @@ use crate::*;
 bitflags::bitflags! {
     // Flags enum to track count of temp variables and a few dedicated names
     #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Debug, Default)]
-    pub(crate) struct TempFlags: u32 {
-        const AUTO = 0x0000_0000; // No preferred name
-        const COUNT_MASK = 0x0FFF_FFFF; // Temp variable counter
-        const _I = 0x1000_0000; // Use/preference flag for '_i'
+    #[expect(non_camel_case_types, reason = "Keep the upstream bitflags type name.")]
+    pub(crate) struct tempFlags: u32 {
+        const Auto = 0x0000_0000; // No preferred name
+        const CountMask = 0x0FFF_FFFF; // Temp variable counter
+        const _i = 0x1000_0000; // Use/preference flag for '_i'
     }
 }
 
@@ -40,8 +41,8 @@ pub struct NameGenerator {
 #[derive(Default)]
 pub(crate) struct NameGenerationScope {
     next: Option<Box<NameGenerationScope>>, // The next nameGenerationScope in the stack
-    temp_flags: TempFlags,                  // TempFlags for the current name generation scope.
-    formatted_name_temp_flags: Option<FxHashMap<String, TempFlags>>, // TempFlags for the current name generation scope.
+    temp_flags: tempFlags,                  // TempFlags for the current name generation scope.
+    formatted_name_temp_flags: Option<FxHashMap<String, tempFlags>>, // TempFlags for the current name generation scope.
     reserved_names: FxHashSet<String>, // Names reserved in nested name generation scopes.
                                        // generatedNames         collections.Set[string] // NOTE: generated names should be scoped after Strada port is complete.
 }
@@ -79,15 +80,15 @@ impl NameGenerator {
         }
     }
 
-    fn get_temp_flags(&mut self, private_name: bool) -> TempFlags {
+    fn get_temp_flags(&mut self, private_name: bool) -> tempFlags {
         let scope = self.get_scope(private_name);
         if let Some(scope) = scope {
             return scope.temp_flags;
         }
-        TempFlags::AUTO
+        tempFlags::Auto
     }
 
-    fn set_temp_flags(&mut self, private_name: bool, flags: TempFlags) {
+    fn set_temp_flags(&mut self, private_name: bool, flags: tempFlags) {
         let scope = self.get_scope(private_name);
         scope.get_or_insert_with(Default::default).temp_flags = flags;
     }
@@ -97,7 +98,7 @@ impl NameGenerator {
         &mut self,
         private_name: bool,
         formatted_name_key: &str,
-    ) -> TempFlags {
+    ) -> tempFlags {
         let scope = self.get_scope(private_name);
         if let Some(scope) = scope {
             if let Some(flags) =
@@ -106,7 +107,7 @@ impl NameGenerator {
                 return *flags;
             }
         }
-        TempFlags::AUTO
+        tempFlags::Auto
     }
 
     // Sets the TempFlags to use in the current nameGenerationScope for the given key
@@ -114,7 +115,7 @@ impl NameGenerator {
         &mut self,
         private_name: bool,
         formatted_name_key: &str,
-        flags: TempFlags,
+        flags: tempFlags,
     ) {
         let scope = self.get_scope(private_name).get_or_insert_with(Default::default);
         scope
@@ -275,14 +276,14 @@ impl NameGenerator {
                 self.generate_name_for_method_or_accessor(node, private_name, prefix, suffix)
             }
             Kind::ComputedPropertyName => self.make_temp_variable_name(
-                TempFlags::AUTO,
+                tempFlags::Auto,
                 true, /*reservedInNestedScopes*/
                 private_name,
                 prefix,
                 suffix,
             ),
             _ => self.make_temp_variable_name(
-                TempFlags::AUTO,
+                tempFlags::Auto,
                 false, /*reservedInNestedScopes*/
                 private_name,
                 prefix,
@@ -365,13 +366,13 @@ impl NameGenerator {
             return self.generate_name_for_node_cached(
                 node.name().unwrap(),
                 private_name,
-                GeneratedIdentifierFlags::NONE,
+                GeneratedIdentifierFlags::None,
                 prefix,
                 suffix,
             );
         }
         self.make_temp_variable_name(
-            TempFlags::AUTO,
+            tempFlags::Auto,
             false, /*reservedInNestedScopes*/
             private_name,
             prefix,
@@ -383,26 +384,26 @@ impl NameGenerator {
         if let Some(context) = self.context {
             if let Some(auto_generate) = context.get_auto_generate_info(Some(name)) {
                 match auto_generate.flags.kind() {
-                    GeneratedIdentifierFlags::AUTO => {
+                    GeneratedIdentifierFlags::Auto => {
                         return self.make_temp_variable_name(
-                            TempFlags::AUTO,
+                            tempFlags::Auto,
                             auto_generate.flags.is_reserved_in_nested_scopes(),
                             is_private_identifier(name),
                             auto_generate.prefix,
                             auto_generate.suffix,
                         );
                     }
-                    GeneratedIdentifierFlags::LOOP => {
+                    GeneratedIdentifierFlags::Loop => {
                         assert!(is_identifier(name));
                         return self.make_temp_variable_name(
-                            TempFlags::_I,
+                            tempFlags::_i,
                             auto_generate.flags.is_reserved_in_nested_scopes(),
                             false, /*privateName*/
                             auto_generate.prefix,
                             auto_generate.suffix,
                         );
                     }
-                    GeneratedIdentifierFlags::UNIQUE => {
+                    GeneratedIdentifierFlags::Unique => {
                         let check_fn = if auto_generate.flags.is_file_level() {
                             self.is_file_level_unique_name_in_current_file.clone()
                         } else {
@@ -430,7 +431,7 @@ impl NameGenerator {
     // Note that names generated by makeTempVariableName and makeUniqueName will never conflict.
     fn make_temp_variable_name(
         &mut self,
-        flags: TempFlags,
+        flags: tempFlags,
         reserved_in_nested_scopes: bool,
         private_name: bool,
         prefix: &str,
@@ -470,8 +471,8 @@ impl NameGenerator {
         }
 
         loop {
-            let count = (temp_flags & TempFlags::COUNT_MASK).bits();
-            temp_flags = TempFlags::from_bits_retain(temp_flags.bits() + 1);
+            let count = (temp_flags & tempFlags::CountMask).bits();
+            temp_flags = tempFlags::from_bits_retain(temp_flags.bits() + 1);
             // Skip over 'i' and 'n'
             if count != 8 && count != 13 {
                 let name = if count < 26 {
@@ -613,7 +614,7 @@ fn is_unique_local_name(name: &str, container: P<Node>) -> bool {
                 if local
                     .flags
                     .get()
-                    .intersects(SymbolFlags::VALUE | SymbolFlags::EXPORT_VALUE | SymbolFlags::ALIAS)
+                    .intersects(SymbolFlags::Value | SymbolFlags::ExportValue | SymbolFlags::Alias)
                 {
                     return false;
                 }

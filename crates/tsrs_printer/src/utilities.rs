@@ -7,13 +7,14 @@ use crate::*;
 
 bitflags::bitflags! {
     #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Debug, Default)]
-    pub(crate) struct GetLiteralTextFlags: u32 {
-        const NONE = 0;
-        const NEVER_ASCII_ESCAPE = 1 << 0;
-        const JSX_ATTRIBUTE_ESCAPE = 1 << 1;
-        const TERMINATE_UNTERMINATED_LITERALS = 1 << 2;
-        const ALLOW_NUMERIC_SEPARATOR = 1 << 3;
-        const INTERNAL_SYMBOL_NAME = 1 << 4; // Port-only: see `EmitFlags::InternalSymbolName`.
+    #[expect(non_camel_case_types, reason = "Keep the upstream bitflags type name.")]
+    pub(crate) struct getLiteralTextFlags: u32 {
+        const None = 0;
+        const NeverAsciiEscape = 1 << 0;
+        const JsxAttributeEscape = 1 << 1;
+        const TerminateUnterminatedLiterals = 1 << 2;
+        const AllowNumericSeparator = 1 << 3;
+        const InternalSymbolName = 1 << 4; // Port-only: see `EmitFlags::InternalSymbolName`.
     }
 }
 
@@ -73,7 +74,7 @@ fn encode_utf16_escape_sequence(b: &mut String, char_code: stringutil::Rune) {
 pub(crate) fn escape_string_worker(
     s: &str,
     quote_char: QuoteChar,
-    flags: GetLiteralTextFlags,
+    flags: getLiteralTextFlags,
     b: &mut String,
 ) {
     let bytes = s.as_bytes();
@@ -81,7 +82,7 @@ pub(crate) fn escape_string_worker(
     let mut i = 0;
     while i < bytes.len() {
         let (mut ch, mut size) = if i == 0
-            && flags.intersects(GetLiteralTextFlags::INTERNAL_SYMBOL_NAME)
+            && flags.intersects(getLiteralTextFlags::InternalSymbolName)
             && bytes[0] == INTERNAL_SYMBOL_NAME_PREFIX_BYTE
         {
             // An internal symbol name the node builder put into a string literal (`(typeof E)["�missing"]`):
@@ -109,7 +110,7 @@ pub(crate) fn escape_string_worker(
         // `escapedCharsMap` and/or `jsxEscapedCharsMap` must be updated. Note that this *does not* include the 'delete'
         // character. There is no reason for this other than that JSON.stringify does not handle it either.
         if ch == '\\' as stringutil::Rune {
-            if !flags.intersects(GetLiteralTextFlags::JSX_ATTRIBUTE_ESCAPE) {
+            if !flags.intersects(getLiteralTextFlags::JsxAttributeEscape) {
                 escape = true;
             }
         } else if ch == '$' as stringutil::Rune {
@@ -129,7 +130,7 @@ pub(crate) fn escape_string_worker(
                 escape = true;
             }
         } else if ch <= 0x1f
-            || !flags.intersects(GetLiteralTextFlags::NEVER_ASCII_ESCAPE) && ch > 0x7f
+            || !flags.intersects(getLiteralTextFlags::NeverAsciiEscape) && ch > 0x7f
         {
             escape = true;
         }
@@ -140,7 +141,7 @@ pub(crate) fn escape_string_worker(
                 b.push_str(&s[pos..i]);
             }
 
-            if flags.intersects(GetLiteralTextFlags::JSX_ATTRIBUTE_ESCAPE) {
+            if flags.intersects(getLiteralTextFlags::JsxAttributeEscape) {
                 if ch == 0 {
                     b.push_str("&#0;");
                 } else if let Some(m) = jsx_escaped_chars_map(ch) {
@@ -191,13 +192,13 @@ pub(crate) fn escape_string_worker(
 
 pub fn escape_string(s: &str, quote_char: QuoteChar) -> String {
     let mut b = String::with_capacity(s.len() + 2);
-    escape_string_worker(s, quote_char, GetLiteralTextFlags::NEVER_ASCII_ESCAPE, &mut b);
+    escape_string_worker(s, quote_char, getLiteralTextFlags::NeverAsciiEscape, &mut b);
     b
 }
 
 pub(crate) fn escape_non_ascii_string(s: &str, quote_char: QuoteChar) -> String {
     let mut b = String::with_capacity(s.len() + 2);
-    escape_string_worker(s, quote_char, GetLiteralTextFlags::NONE, &mut b);
+    escape_string_worker(s, quote_char, getLiteralTextFlags::None, &mut b);
     b
 }
 
@@ -206,19 +207,19 @@ pub(crate) fn escape_jsx_attribute_string(s: &str, quote_char: QuoteChar) -> Str
     escape_string_worker(
         s,
         quote_char,
-        GetLiteralTextFlags::JSX_ATTRIBUTE_ESCAPE | GetLiteralTextFlags::NEVER_ASCII_ESCAPE,
+        getLiteralTextFlags::JsxAttributeEscape | getLiteralTextFlags::NeverAsciiEscape,
         &mut b,
     );
     b
 }
 
-pub(crate) fn can_use_original_text(node: P<Node>, flags: GetLiteralTextFlags) -> bool {
+pub(crate) fn can_use_original_text(node: P<Node>, flags: getLiteralTextFlags) -> bool {
     // A synthetic node has no original text, nor does a node without a parent as we would be unable to find the
     // containing SourceFile. We also cannot use the original text if the literal was unterminated and the caller has
     // requested proper termination of unterminated literals
     if node_is_synthesized(node)
         || node.parent().is_none()
-        || flags.intersects(GetLiteralTextFlags::TERMINATE_UNTERMINATED_LITERALS)
+        || flags.intersects(getLiteralTextFlags::TerminateUnterminatedLiterals)
             && is_unterminated_literal(node)
     {
         return false;
@@ -227,13 +228,13 @@ pub(crate) fn can_use_original_text(node: P<Node>, flags: GetLiteralTextFlags) -
     if node.kind() == Kind::NumericLiteral {
         let token_flags = node.as_numeric_literal().token_flags();
         // For a numeric literal, we cannot use the original text if the original text was an invalid literal
-        if token_flags.intersects(TokenFlags::IS_INVALID) {
+        if token_flags.intersects(TokenFlags::IsInvalid) {
             return false;
         }
         // We also cannot use the original text if the literal contains numeric separators, but numeric separators
         // are not permitted
-        if token_flags.intersects(TokenFlags::CONTAINS_SEPARATOR) {
-            return flags.intersects(GetLiteralTextFlags::ALLOW_NUMERIC_SEPARATOR);
+        if token_flags.intersects(TokenFlags::ContainsSeparator) {
+            return flags.intersects(getLiteralTextFlags::AllowNumericSeparator);
         }
     }
 
@@ -247,7 +248,7 @@ pub(crate) fn can_use_original_text(node: P<Node>, flags: GetLiteralTextFlags) -
 pub(crate) fn get_literal_text(
     node: P<Node>,
     source_file: Option<P<SourceFile>>,
-    flags: GetLiteralTextFlags,
+    flags: getLiteralTextFlags,
 ) -> String {
     // If we don't need to downlevel and we can reach the original source text using
     // the node's parent reference, then simply get the text as it was originally written.
@@ -266,7 +267,7 @@ pub(crate) fn get_literal_text(
     match node.kind() {
         Kind::StringLiteral => {
             let quote_char =
-                if node.as_string_literal().token_flags().intersects(TokenFlags::SINGLE_QUOTE) {
+                if node.as_string_literal().token_flags().intersects(TokenFlags::SingleQuote) {
                     QuoteChar::SingleQuote
                 } else {
                     QuoteChar::DoubleQuote
@@ -342,7 +343,7 @@ pub(crate) fn get_literal_text(
         Kind::NumericLiteral | Kind::BigIntLiteral => node.text().to_string(),
 
         Kind::RegularExpressionLiteral => {
-            if flags.intersects(GetLiteralTextFlags::TERMINATE_UNTERMINATED_LITERALS)
+            if flags.intersects(getLiteralTextFlags::TerminateUnterminatedLiterals)
                 && is_unterminated_literal(node)
             {
                 let text = node.text();

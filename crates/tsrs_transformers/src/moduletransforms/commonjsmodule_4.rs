@@ -241,14 +241,14 @@ impl CommonJSModuleTransformer {
                 // since the Go port doesn't have an onSubstituteNode mechanism to rewrite identifiers.
                 let export_name = name.clone_node(f);
                 emit_context
-                    .add_emit_flags(export_name, EmitFlags::NO_COMMENTS | EmitFlags::NO_SOURCE_MAP);
+                    .add_emit_flags(export_name, EmitFlags::NoComments | EmitFlags::NoSourceMap);
                 let property_access = f.new_property_access_expression(
                     f.new_identifier("exports"),
                     None, /*questionDotToken*/
                     export_name,
-                    NodeFlags::NONE,
+                    NodeFlags::None,
                 );
-                emit_context.add_emit_flags(property_access, EmitFlags::NO_COMMENTS);
+                emit_context.add_emit_flags(property_access, EmitFlags::NoComments);
                 expression = f.new_assignment_expression(property_access, value);
                 emit_context.assign_comment_and_source_map_ranges(expression, name);
             } else {
@@ -272,14 +272,14 @@ impl CommonJSModuleTransformer {
         if self.is_direct_export(name) {
             let export_name = name.clone_node(f);
             emit_context
-                .add_emit_flags(export_name, EmitFlags::NO_COMMENTS | EmitFlags::NO_SOURCE_MAP);
+                .add_emit_flags(export_name, EmitFlags::NoComments | EmitFlags::NoSourceMap);
             let property_access = f.new_property_access_expression(
                 f.new_identifier("exports"),
                 None, /*questionDotToken*/
                 export_name,
-                NodeFlags::NONE,
+                NodeFlags::None,
             );
-            emit_context.add_emit_flags(property_access, EmitFlags::NO_COMMENTS);
+            emit_context.add_emit_flags(property_access, EmitFlags::NoComments);
             let result = f.new_assignment_expression(property_access, value);
             emit_context.assign_comment_and_source_map_ranges(result, name);
             return result;
@@ -426,7 +426,7 @@ impl CommonJSModuleTransformer {
                 let value = f.new_unique_name_ex(
                     "value",
                     AutoGenerateOptions {
-                        flags: GeneratedIdentifierFlags::OPTIMISTIC,
+                        flags: GeneratedIdentifierFlags::Optimistic,
                         ..Default::default()
                     },
                 );
@@ -469,7 +469,7 @@ impl CommonJSModuleTransformer {
                     expression,
                     None, /*questionDotToken*/
                     f.new_identifier("value"),
-                    NodeFlags::NONE,
+                    NodeFlags::None,
                 );
             }
             return expression;
@@ -681,7 +681,7 @@ impl CommonJSModuleTransformer {
                 node.flags(),
             );
             if !ast::is_identifier(expression) && !is_helper_name(self.emit_context(), callee) {
-                self.emit_context().add_emit_flags(updated, EmitFlags::INDIRECT_CALL);
+                self.emit_context().add_emit_flags(updated, EmitFlags::IndirectCall);
             }
             return updated;
         }
@@ -762,10 +762,10 @@ impl CommonJSModuleTransformer {
         let mut promise_resolve_arguments: Vec<P<Node>> = Vec::new();
         if need_sync_eval {
             promise_resolve_arguments = vec![f.new_template_expression(
-                f.new_template_head("", "", TokenFlags::NONE),
+                f.new_template_head("", "", TokenFlags::None),
                 f.new_node_list(vec![f.new_template_span(
                     arg.unwrap(),
-                    f.new_template_tail("", "", TokenFlags::NONE),
+                    f.new_template_tail("", "", TokenFlags::None),
                 )]),
             )];
         }
@@ -774,12 +774,12 @@ impl CommonJSModuleTransformer {
                 f.new_identifier("Promise"),
                 None, /*questionDotToken*/
                 f.new_identifier("resolve"),
-                NodeFlags::NONE,
+                NodeFlags::None,
             ),
             None, /*questionDotToken*/
             None, /*typeArguments*/
             f.new_node_list(promise_resolve_arguments),
-            NodeFlags::NONE,
+            NodeFlags::None,
         );
 
         let mut require_arguments: Vec<P<Node>> = Vec::new();
@@ -794,7 +794,7 @@ impl CommonJSModuleTransformer {
             None, /*questionDotToken*/
             None, /*typeArguments*/
             f.new_node_list(require_arguments),
-            NodeFlags::NONE,
+            NodeFlags::None,
         ));
 
         let mut parameters: Vec<P<Node>> = Vec::new();
@@ -824,12 +824,12 @@ impl CommonJSModuleTransformer {
                 promise_resolve_call,
                 None, /*questionDotToken*/
                 f.new_identifier("then"),
-                NodeFlags::NONE,
+                NodeFlags::None,
             ),
             None, /*questionDotToken*/
             None, /*typeArguments*/
             f.new_node_list(vec![function]),
-            NodeFlags::NONE,
+            NodeFlags::None,
         )
     }
 
@@ -907,7 +907,7 @@ impl CommonJSModuleTransformer {
                 node.flags(),
             );
             if !ast::is_identifier(expression) && !is_helper_name(self.emit_context(), n.tag) {
-                self.emit_context().add_emit_flags(updated, EmitFlags::INDIRECT_CALL);
+                self.emit_context().add_emit_flags(updated, EmitFlags::IndirectCall);
             }
             return updated;
         }
@@ -981,7 +981,7 @@ impl CommonJSModuleTransformer {
                     f.new_identifier("exports"),
                     None, /*questionDotToken*/
                     node.clone_node(f),
-                    NodeFlags::NONE,
+                    NodeFlags::None,
                 );
                 emit_context.assign_comment_and_source_map_ranges(reference, node);
                 reference.set_loc(node.loc());
@@ -995,7 +995,7 @@ impl CommonJSModuleTransformer {
                         f.new_generated_name_for_node(import_declaration.parent().unwrap()),
                         None, /*questionDotToken*/
                         f.new_identifier("default"),
-                        NodeFlags::NONE,
+                        NodeFlags::None,
                     );
                     emit_context.assign_comment_and_source_map_ranges(reference, node);
                     reference.set_loc(node.loc());
@@ -1010,19 +1010,19 @@ impl CommonJSModuleTransformer {
                             target,
                             None, /*questionDotToken*/
                             f.new_string_literal_from_node(name),
-                            NodeFlags::NONE,
+                            NodeFlags::None,
                         )
                     } else {
                         let reference_name = name.clone_node(f);
                         emit_context.add_emit_flags(
                             reference_name,
-                            EmitFlags::NO_SOURCE_MAP | EmitFlags::NO_COMMENTS,
+                            EmitFlags::NoSourceMap | EmitFlags::NoComments,
                         );
                         f.new_property_access_expression(
                             target,
                             None, /*questionDotToken*/
                             reference_name,
-                            NodeFlags::NONE,
+                            NodeFlags::None,
                         )
                     };
                     emit_context.assign_comment_and_source_map_ranges(reference, node);

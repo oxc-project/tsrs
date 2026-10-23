@@ -179,12 +179,12 @@ impl<K: Eq + Hash + Clone + 'static, V: Clone + 'static> GoMap<K, V> {
 bitflags! {
     #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Debug, Default)]
     pub struct ParseFlags: u32 {
-        const NONE = 0;
-        const YIELD = 1 << 0;
-        const AWAIT = 1 << 1;
-        const TYPE = 1 << 2;
-        const IGNORE_MISSING_OPEN_BRACE = 1 << 4;
-        const JSDOC = 1 << 5;
+        const None = 0;
+        const Yield = 1 << 0;
+        const Await = 1 << 1;
+        const Type = 1 << 2;
+        const IgnoreMissingOpenBrace = 1 << 4;
+        const JSDoc = 1 << 5;
     }
 }
 
@@ -216,100 +216,100 @@ pub enum MemberOverrideStatus {
 bitflags! {
     #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Debug, Default)]
     pub struct ContextFlags: u32 {
-        const NONE = 0;
-        const SIGNATURE = 1 << 0; // Obtaining contextual signature
-        const NO_CONSTRAINTS = 1 << 1; // Don't obtain type variable constraints
-        const IGNORE_NODE_INFERENCES = 1 << 2; // Ignore inference to current node and parent nodes out to the containing call for, for example, completions
-        const SKIP_BINDING_PATTERNS = 1 << 3; // Ignore contextual types applied by binding patterns
+        const None = 0;
+        const Signature = 1 << 0; // Obtaining contextual signature
+        const NoConstraints = 1 << 1; // Don't obtain type variable constraints
+        const IgnoreNodeInferences = 1 << 2; // Ignore inference to current node and parent nodes out to the containing call for, for example, completions
+        const SkipBindingPatterns = 1 << 3; // Ignore contextual types applied by binding patterns
     }
 }
 
 bitflags! {
     #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Debug, Default)]
     pub struct TypeFormatFlags: u32 {
-        const NONE = 0;
-        const NO_TRUNCATION = 1 << 0;
-        const WRITE_ARRAY_AS_GENERIC_TYPE = 1 << 1;
-        const GENERATE_NAMES_FOR_SHADOWED_TYPE_PARAMS = 1 << 2;
-        const USE_STRUCTURAL_FALLBACK = 1 << 3;
-        const WRITE_TYPE_ARGUMENTS_OF_SIGNATURE = 1 << 5;
-        const USE_FULLY_QUALIFIED_TYPE = 1 << 6;
-        const SUPPRESS_ANY_RETURN_TYPE = 1 << 8;
-        const MULTILINE_OBJECT_LITERALS = 1 << 10;
-        const WRITE_CLASS_EXPRESSION_AS_TYPE_LITERAL = 1 << 11;
-        const USE_TYPE_OF_FUNCTION = 1 << 12;
-        const OMIT_PARAMETER_MODIFIERS = 1 << 13;
-        const USE_ALIAS_DEFINED_OUTSIDE_CURRENT_SCOPE = 1 << 14;
-        const USE_SINGLE_QUOTES_FOR_STRING_LITERAL_TYPE = 1 << 28;
-        const NO_TYPE_REDUCTION = 1 << 29;
-        const USE_INSTANTIATION_EXPRESSIONS = 1 << 30;
-        const OMIT_THIS_PARAMETER = 1 << 25;
-        const WRITE_CALL_STYLE_SIGNATURE = 1 << 27;
-        const ALLOW_UNIQUE_ES_SYMBOL_TYPE = 1 << 20;
-        const ADD_UNDEFINED = 1 << 17;
-        const WRITE_ARROW_STYLE_SIGNATURE = 1 << 18;
-        const IN_ARRAY_TYPE = 1 << 19;
-        const IN_ELEMENT_TYPE = 1 << 21;
-        const IN_FIRST_TYPE_ARGUMENT = 1 << 22;
-        const IN_TYPE_ALIAS = 1 << 23;
+        const None = 0;
+        const NoTruncation = 1 << 0;
+        const WriteArrayAsGenericType = 1 << 1;
+        const GenerateNamesForShadowedTypeParams = 1 << 2;
+        const UseStructuralFallback = 1 << 3;
+        const WriteTypeArgumentsOfSignature = 1 << 5;
+        const UseFullyQualifiedType = 1 << 6;
+        const SuppressAnyReturnType = 1 << 8;
+        const MultilineObjectLiterals = 1 << 10;
+        const WriteClassExpressionAsTypeLiteral = 1 << 11;
+        const UseTypeOfFunction = 1 << 12;
+        const OmitParameterModifiers = 1 << 13;
+        const UseAliasDefinedOutsideCurrentScope = 1 << 14;
+        const UseSingleQuotesForStringLiteralType = 1 << 28;
+        const NoTypeReduction = 1 << 29;
+        const UseInstantiationExpressions = 1 << 30;
+        const OmitThisParameter = 1 << 25;
+        const WriteCallStyleSignature = 1 << 27;
+        const AllowUniqueESSymbolType = 1 << 20;
+        const AddUndefined = 1 << 17;
+        const WriteArrowStyleSignature = 1 << 18;
+        const InArrayType = 1 << 19;
+        const InElementType = 1 << 21;
+        const InFirstTypeArgument = 1 << 22;
+        const InTypeAlias = 1 << 23;
 
-        const NODE_BUILDER_FLAGS_MASK = Self::NO_TRUNCATION.bits() | Self::WRITE_ARRAY_AS_GENERIC_TYPE.bits() | Self::GENERATE_NAMES_FOR_SHADOWED_TYPE_PARAMS.bits() | Self::USE_STRUCTURAL_FALLBACK.bits() | Self::WRITE_TYPE_ARGUMENTS_OF_SIGNATURE.bits() |
-            Self::USE_FULLY_QUALIFIED_TYPE.bits() | Self::SUPPRESS_ANY_RETURN_TYPE.bits() | Self::MULTILINE_OBJECT_LITERALS.bits() | Self::WRITE_CLASS_EXPRESSION_AS_TYPE_LITERAL.bits() |
-            Self::USE_TYPE_OF_FUNCTION.bits() | Self::OMIT_PARAMETER_MODIFIERS.bits() | Self::USE_ALIAS_DEFINED_OUTSIDE_CURRENT_SCOPE.bits() | Self::ALLOW_UNIQUE_ES_SYMBOL_TYPE.bits() | Self::IN_TYPE_ALIAS.bits() |
-            Self::USE_INSTANTIATION_EXPRESSIONS.bits() | Self::USE_SINGLE_QUOTES_FOR_STRING_LITERAL_TYPE.bits() | Self::NO_TYPE_REDUCTION.bits() | Self::OMIT_THIS_PARAMETER.bits();
+        const NodeBuilderFlagsMask = Self::NoTruncation.bits() | Self::WriteArrayAsGenericType.bits() | Self::GenerateNamesForShadowedTypeParams.bits() | Self::UseStructuralFallback.bits() | Self::WriteTypeArgumentsOfSignature.bits() |
+            Self::UseFullyQualifiedType.bits() | Self::SuppressAnyReturnType.bits() | Self::MultilineObjectLiterals.bits() | Self::WriteClassExpressionAsTypeLiteral.bits() |
+            Self::UseTypeOfFunction.bits() | Self::OmitParameterModifiers.bits() | Self::UseAliasDefinedOutsideCurrentScope.bits() | Self::AllowUniqueESSymbolType.bits() | Self::InTypeAlias.bits() |
+            Self::UseInstantiationExpressions.bits() | Self::UseSingleQuotesForStringLiteralType.bits() | Self::NoTypeReduction.bits() | Self::OmitThisParameter.bits();
     }
 }
 
 bitflags! {
     #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Debug, Default)]
     pub struct SymbolFormatFlags: u32 {
-        const NONE = 0;
-        const WRITE_TYPE_PARAMETERS_OR_ARGUMENTS = 1 << 0;
-        const USE_ONLY_EXTERNAL_ALIASING = 1 << 1;
-        const ALLOW_ANY_NODE_KIND = 1 << 2;
-        const USE_ALIAS_DEFINED_OUTSIDE_CURRENT_SCOPE = 1 << 3;
-        const WRITE_COMPUTED_PROPS = 1 << 4;
-        const DO_NOT_INCLUDE_SYMBOL_CHAIN = 1 << 5;
+        const None = 0;
+        const WriteTypeParametersOrArguments = 1 << 0;
+        const UseOnlyExternalAliasing = 1 << 1;
+        const AllowAnyNodeKind = 1 << 2;
+        const UseAliasDefinedOutsideCurrentScope = 1 << 3;
+        const WriteComputedProps = 1 << 4;
+        const DoNotIncludeSymbolChain = 1 << 5;
     }
 }
 
 bitflags! {
     #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Debug, Default)]
     pub struct ExternalEmitHelpers: u32 {
-        const NONE = 0;
-        const REST = 1 << 0; // __rest (used by ESNext object rest transformation)
-        const DECORATE = 1 << 1; // __decorate (used by TypeScript decorators transformation)
-        const METADATA = 1 << 2; // __metadata (used by TypeScript decorators transformation)
-        const PARAM = 1 << 3; // __param (used by TypeScript decorators transformation)
-        const AWAITER = 1 << 4; // __awaiter (used by ES2017 async functions transformation)
-        const AWAIT = 1 << 5; // __await (used by ES2017 async generator transformation)
-        const ASYNC_GENERATOR = 1 << 6; // __asyncGenerator (used by ES2017 async generator transformation)
-        const ASYNC_DELEGATOR = 1 << 7; // __asyncDelegator (used by ES2017 async generator yield* transformation)
-        const ASYNC_VALUES = 1 << 8; // __asyncValues (used by ES2017 for..await..of transformation)
-        const EXPORT_STAR = 1 << 9; // __exportStar (used by CommonJS/AMD/UMD module transformation)
-        const IMPORT_STAR = 1 << 10; // __importStar (used by CommonJS/AMD/UMD module transformation)
-        const IMPORT_DEFAULT = 1 << 11; // __importDefault (used by CommonJS/AMD/UMD module transformation)
-        const MAKE_TEMPLATE_OBJECT = 1 << 12; // __makeTemplateObject (used for constructing template string array objects)
-        const CLASS_PRIVATE_FIELD_GET = 1 << 13; // __classPrivateFieldGet (used by the class private field transformation)
-        const CLASS_PRIVATE_FIELD_SET = 1 << 14; // __classPrivateFieldSet (used by the class private field transformation)
-        const CLASS_PRIVATE_FIELD_IN = 1 << 15; // __classPrivateFieldIn (used by the class private field transformation)
-        const SET_FUNCTION_NAME = 1 << 16; // __setFunctionName (used by class fields and ECMAScript decorators)
-        const PROP_KEY = 1 << 17; // __propKey (used by class fields and ECMAScript decorators)
-        const ADD_DISPOSABLE_RESOURCE_AND_DISPOSE_RESOURCES = 1 << 18; // __addDisposableResource and __disposeResources (used by ESNext transformations)
-        const REWRITE_RELATIVE_IMPORT_EXTENSION = 1 << 19; // __rewriteRelativeImportExtension (used by --rewriteRelativeImportExtensions)
-        const ES_DECORATE_AND_RUN_INITIALIZERS = Self::DECORATE.bits(); // __esDecorate and __runInitializers (used by ECMAScript decorators transformation)
+        const None = 0;
+        const Rest = 1 << 0; // __rest (used by ESNext object rest transformation)
+        const Decorate = 1 << 1; // __decorate (used by TypeScript decorators transformation)
+        const Metadata = 1 << 2; // __metadata (used by TypeScript decorators transformation)
+        const Param = 1 << 3; // __param (used by TypeScript decorators transformation)
+        const Awaiter = 1 << 4; // __awaiter (used by ES2017 async functions transformation)
+        const Await = 1 << 5; // __await (used by ES2017 async generator transformation)
+        const AsyncGenerator = 1 << 6; // __asyncGenerator (used by ES2017 async generator transformation)
+        const AsyncDelegator = 1 << 7; // __asyncDelegator (used by ES2017 async generator yield* transformation)
+        const AsyncValues = 1 << 8; // __asyncValues (used by ES2017 for..await..of transformation)
+        const ExportStar = 1 << 9; // __exportStar (used by CommonJS/AMD/UMD module transformation)
+        const ImportStar = 1 << 10; // __importStar (used by CommonJS/AMD/UMD module transformation)
+        const ImportDefault = 1 << 11; // __importDefault (used by CommonJS/AMD/UMD module transformation)
+        const MakeTemplateObject = 1 << 12; // __makeTemplateObject (used for constructing template string array objects)
+        const ClassPrivateFieldGet = 1 << 13; // __classPrivateFieldGet (used by the class private field transformation)
+        const ClassPrivateFieldSet = 1 << 14; // __classPrivateFieldSet (used by the class private field transformation)
+        const ClassPrivateFieldIn = 1 << 15; // __classPrivateFieldIn (used by the class private field transformation)
+        const SetFunctionName = 1 << 16; // __setFunctionName (used by class fields and ECMAScript decorators)
+        const PropKey = 1 << 17; // __propKey (used by class fields and ECMAScript decorators)
+        const AddDisposableResourceAndDisposeResources = 1 << 18; // __addDisposableResource and __disposeResources (used by ESNext transformations)
+        const RewriteRelativeImportExtension = 1 << 19; // __rewriteRelativeImportExtension (used by --rewriteRelativeImportExtensions)
+        const ESDecorateAndRunInitializers = Self::Decorate.bits(); // __esDecorate and __runInitializers (used by ECMAScript decorators transformation)
 
-        const FIRST_EMIT_HELPER = Self::REST.bits();
-        const LAST_EMIT_HELPER = Self::REWRITE_RELATIVE_IMPORT_EXTENSION.bits();
+        const FirstEmitHelper = Self::Rest.bits();
+        const LastEmitHelper = Self::RewriteRelativeImportExtension.bits();
 
         // Helpers included by ES2017 for..await..of
-        const FOR_AWAIT_OF_INCLUDES = Self::ASYNC_VALUES.bits();
+        const ForAwaitOfIncludes = Self::AsyncValues.bits();
 
         // Helpers included by ES2017 async generators
-        const ASYNC_GENERATOR_INCLUDES = Self::AWAIT.bits() | Self::ASYNC_GENERATOR.bits();
+        const AsyncGeneratorIncludes = Self::Await.bits() | Self::AsyncGenerator.bits();
 
         // Helpers included by yield* in ES2017 async generators
-        const ASYNC_DELEGATOR_INCLUDES = Self::AWAIT.bits() | Self::ASYNC_DELEGATOR.bits() | Self::ASYNC_VALUES.bits();
+        const AsyncDelegatorIncludes = Self::Await.bits() | Self::AsyncDelegator.bits() | Self::AsyncValues.bits();
     }
 }
 
@@ -692,15 +692,15 @@ pub struct VarianceLinks {
 bitflags! {
     #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Debug, Default)]
     pub struct VarianceFlags: u32 {
-        const INVARIANT = 0; // Neither covariant nor contravariant
-        const COVARIANT = 1 << 0; // Covariant
-        const CONTRAVARIANT = 1 << 1; // Contravariant
-        const BIVARIANT = Self::COVARIANT.bits() | Self::CONTRAVARIANT.bits(); // Both covariant and contravariant
-        const INDEPENDENT = 1 << 2; // Unwitnessed type parameter
-        const VARIANCE_MASK = Self::INVARIANT.bits() | Self::COVARIANT.bits() | Self::CONTRAVARIANT.bits() | Self::INDEPENDENT.bits(); // Mask containing all measured variances without the unmeasurable flag
-        const UNMEASURABLE = 1 << 3; // Variance result is unusable - relationship relies on structural comparisons which are not reflected in generic relationships
-        const UNRELIABLE = 1 << 4; // Variance result is unreliable - checking may produce false negatives, but not false positives
-        const ALLOWS_STRUCTURAL_FALLBACK = Self::UNMEASURABLE.bits() | Self::UNRELIABLE.bits();
+        const Invariant = 0; // Neither covariant nor contravariant
+        const Covariant = 1 << 0; // Covariant
+        const Contravariant = 1 << 1; // Contravariant
+        const Bivariant = Self::Covariant.bits() | Self::Contravariant.bits(); // Both covariant and contravariant
+        const Independent = 1 << 2; // Unwitnessed type parameter
+        const VarianceMask = Self::Invariant.bits() | Self::Covariant.bits() | Self::Contravariant.bits() | Self::Independent.bits(); // Mask containing all measured variances without the unmeasurable flag
+        const Unmeasurable = 1 << 3; // Variance result is unusable - relationship relies on structural comparisons which are not reflected in generic relationships
+        const Unreliable = 1 << 4; // Variance result is unreliable - checking may produce false negatives, but not false positives
+        const AllowsStructuralFallback = Self::Unmeasurable.bits() | Self::Unreliable.bits();
     }
 }
 
@@ -735,33 +735,33 @@ pub struct ContainingSymbolLinks {
 bitflags! {
     #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Debug, Default)]
     pub struct AccessFlags: u32 {
-        const NONE = 0;
-        const INCLUDE_UNDEFINED = 1 << 0;
-        const NO_INDEX_SIGNATURES = 1 << 1;
-        const WRITING = 1 << 2;
-        const CACHE_SYMBOL = 1 << 3;
-        const ALLOW_MISSING = 1 << 4;
-        const EXPRESSION_POSITION = 1 << 5;
-        const REPORT_DEPRECATED = 1 << 6;
-        const SUPPRESS_NO_IMPLICIT_ANY_ERROR = 1 << 7;
-        const CONTEXTUAL = 1 << 8;
-        const PERSISTENT = Self::INCLUDE_UNDEFINED.bits();
+        const None = 0;
+        const IncludeUndefined = 1 << 0;
+        const NoIndexSignatures = 1 << 1;
+        const Writing = 1 << 2;
+        const CacheSymbol = 1 << 3;
+        const AllowMissing = 1 << 4;
+        const ExpressionPosition = 1 << 5;
+        const ReportDeprecated = 1 << 6;
+        const SuppressNoImplicitAnyError = 1 << 7;
+        const Contextual = 1 << 8;
+        const Persistent = Self::IncludeUndefined.bits();
     }
 }
 
 bitflags! {
     #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Debug, Default)]
     pub struct NodeCheckFlags: u32 {
-        const NONE = 0;
-        const TYPE_CHECKED = 1 << 0; // Node has been type checked
-        const CONTEXT_CHECKED = 1 << 6; // Contextual types have been assigned
-        const ENUM_VALUES_COMPUTED = 1 << 10; // Values for enum members have been computed, and any errors have been reported for them.
-        const ASSIGNMENTS_MARKED = 1 << 17; // Parameter assignments have been marked
-        const CONTAINS_CLASS_WITH_PRIVATE_IDENTIFIERS = 1 << 20; // Marked on all block-scoped containers containing a class with private identifiers.
-        const CONTAINS_SUPER_PROPERTY_IN_STATIC_INITIALIZER = 1 << 21; // Marked on all block-scoped containers containing a static initializer with 'super.x' or 'super[x]'.
-        const IN_CHECK_IDENTIFIER = 1 << 22;
-        const INITIALIZER_IS_UNDEFINED = 1 << 24;
-        const INITIALIZER_IS_UNDEFINED_COMPUTED = 1 << 25;
+        const None = 0;
+        const TypeChecked = 1 << 0; // Node has been type checked
+        const ContextChecked = 1 << 6; // Contextual types have been assigned
+        const EnumValuesComputed = 1 << 10; // Values for enum members have been computed, and any errors have been reported for them.
+        const AssignmentsMarked = 1 << 17; // Parameter assignments have been marked
+        const ContainsClassWithPrivateIdentifiers = 1 << 20; // Marked on all block-scoped containers containing a class with private identifiers.
+        const ContainsSuperPropertyInStaticInitializer = 1 << 21; // Marked on all block-scoped containers containing a static initializer with 'super.x' or 'super[x]'.
+        const InCheckIdentifier = 1 << 22;
+        const InitializerIsUndefined = 1 << 24;
+        const InitializerIsUndefinedComputed = 1 << 25;
     }
 }
 
@@ -877,117 +877,117 @@ const _: () = assert!(std::mem::size_of::<SignatureLinks>() == 12);
 bitflags! {
     #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Debug, Default)]
     pub struct TypeFlags: u32 {
-        const NONE = 0;
-        const ANY = 1 << 0;
-        const UNKNOWN = 1 << 1;
-        const UNDEFINED = 1 << 2;
-        const NULL = 1 << 3;
-        const VOID = 1 << 4;
-        const STRING = 1 << 5;
-        const NUMBER = 1 << 6;
-        const BIG_INT = 1 << 7;
-        const BOOLEAN = 1 << 8;
-        const ES_SYMBOL = 1 << 9; // Type of symbol primitive introduced in ES6
-        const STRING_LITERAL = 1 << 10;
-        const NUMBER_LITERAL = 1 << 11;
-        const BIG_INT_LITERAL = 1 << 12;
-        const BOOLEAN_LITERAL = 1 << 13;
-        const UNIQUE_ES_SYMBOL = 1 << 14; // unique symbol
-        const ENUM_LITERAL = 1 << 15; // Always combined with StringLiteral, NumberLiteral, or Union
-        const ENUM = 1 << 16; // Numeric computed enum member value (must be right after EnumLiteral, see getSortOrderFlags)
-        const NON_PRIMITIVE = 1 << 17; // intrinsic object type
-        const NEVER = 1 << 18; // Never type
-        const TYPE_PARAMETER = 1 << 19; // Type parameter
-        const OBJECT = 1 << 20; // Object type
-        const INDEX = 1 << 21; // keyof T
-        const TEMPLATE_LITERAL = 1 << 22; // Template literal type
-        const STRING_MAPPING = 1 << 23; // Uppercase/Lowercase type
-        const SUBSTITUTION = 1 << 24; // Type parameter substitution
-        const INDEXED_ACCESS = 1 << 25; // T[K]
-        const CONDITIONAL = 1 << 26; // T extends U ? X : Y
-        const UNION = 1 << 27; // Union (T | U)
-        const INTERSECTION = 1 << 28; // Intersection (T & U)
-        const RESERVED1 = 1 << 29; // Used by union/intersection type construction
-        const RESERVED2 = 1 << 30; // Used by union/intersection type construction
-        const RESERVED3 = 1 << 31;
+        const None = 0;
+        const Any = 1 << 0;
+        const Unknown = 1 << 1;
+        const Undefined = 1 << 2;
+        const Null = 1 << 3;
+        const Void = 1 << 4;
+        const String = 1 << 5;
+        const Number = 1 << 6;
+        const BigInt = 1 << 7;
+        const Boolean = 1 << 8;
+        const ESSymbol = 1 << 9; // Type of symbol primitive introduced in ES6
+        const StringLiteral = 1 << 10;
+        const NumberLiteral = 1 << 11;
+        const BigIntLiteral = 1 << 12;
+        const BooleanLiteral = 1 << 13;
+        const UniqueESSymbol = 1 << 14; // unique symbol
+        const EnumLiteral = 1 << 15; // Always combined with StringLiteral, NumberLiteral, or Union
+        const Enum = 1 << 16; // Numeric computed enum member value (must be right after EnumLiteral, see getSortOrderFlags)
+        const NonPrimitive = 1 << 17; // intrinsic object type
+        const Never = 1 << 18; // Never type
+        const TypeParameter = 1 << 19; // Type parameter
+        const Object = 1 << 20; // Object type
+        const Index = 1 << 21; // keyof T
+        const TemplateLiteral = 1 << 22; // Template literal type
+        const StringMapping = 1 << 23; // Uppercase/Lowercase type
+        const Substitution = 1 << 24; // Type parameter substitution
+        const IndexedAccess = 1 << 25; // T[K]
+        const Conditional = 1 << 26; // T extends U ? X : Y
+        const Union = 1 << 27; // Union (T | U)
+        const Intersection = 1 << 28; // Intersection (T & U)
+        const Reserved1 = 1 << 29; // Used by union/intersection type construction
+        const Reserved2 = 1 << 30; // Used by union/intersection type construction
+        const Reserved3 = 1 << 31;
 
-        const ANY_OR_UNKNOWN = Self::ANY.bits() | Self::UNKNOWN.bits();
-        const NULLABLE = Self::UNDEFINED.bits() | Self::NULL.bits();
-        const LITERAL = Self::STRING_LITERAL.bits() | Self::NUMBER_LITERAL.bits() | Self::BIG_INT_LITERAL.bits() | Self::BOOLEAN_LITERAL.bits();
-        const UNIT = Self::ENUM.bits() | Self::LITERAL.bits() | Self::UNIQUE_ES_SYMBOL.bits() | Self::NULLABLE.bits();
-        const FRESHABLE = Self::ENUM.bits() | Self::LITERAL.bits();
-        const STRING_OR_NUMBER_LITERAL = Self::STRING_LITERAL.bits() | Self::NUMBER_LITERAL.bits();
-        const STRING_OR_NUMBER_LITERAL_OR_UNIQUE = Self::STRING_LITERAL.bits() | Self::NUMBER_LITERAL.bits() | Self::UNIQUE_ES_SYMBOL.bits();
-        const DEFINITELY_FALSY = Self::STRING_LITERAL.bits() | Self::NUMBER_LITERAL.bits() | Self::BIG_INT_LITERAL.bits() | Self::BOOLEAN_LITERAL.bits() | Self::VOID.bits() | Self::UNDEFINED.bits() | Self::NULL.bits();
-        const POSSIBLY_FALSY = Self::DEFINITELY_FALSY.bits() | Self::STRING.bits() | Self::NUMBER.bits() | Self::BIG_INT.bits() | Self::BOOLEAN.bits();
-        const INTRINSIC = Self::ANY.bits() | Self::UNKNOWN.bits() | Self::STRING.bits() | Self::NUMBER.bits() | Self::BIG_INT.bits() | Self::ES_SYMBOL.bits() | Self::VOID.bits() | Self::UNDEFINED.bits() | Self::NULL.bits() | Self::NEVER.bits() | Self::NON_PRIMITIVE.bits();
-        const STRING_LIKE = Self::STRING.bits() | Self::STRING_LITERAL.bits() | Self::TEMPLATE_LITERAL.bits() | Self::STRING_MAPPING.bits();
-        const NUMBER_LIKE = Self::NUMBER.bits() | Self::NUMBER_LITERAL.bits() | Self::ENUM.bits();
-        const BIG_INT_LIKE = Self::BIG_INT.bits() | Self::BIG_INT_LITERAL.bits();
-        const BOOLEAN_LIKE = Self::BOOLEAN.bits() | Self::BOOLEAN_LITERAL.bits();
-        const ENUM_LIKE = Self::ENUM.bits() | Self::ENUM_LITERAL.bits();
-        const ES_SYMBOL_LIKE = Self::ES_SYMBOL.bits() | Self::UNIQUE_ES_SYMBOL.bits();
-        const VOID_LIKE = Self::VOID.bits() | Self::UNDEFINED.bits();
-        const PRIMITIVE = Self::STRING_LIKE.bits() | Self::NUMBER_LIKE.bits() | Self::BIG_INT_LIKE.bits() | Self::BOOLEAN_LIKE.bits() | Self::ENUM_LIKE.bits() | Self::ES_SYMBOL_LIKE.bits() | Self::VOID_LIKE.bits() | Self::NULL.bits();
-        const DEFINITELY_NON_NULLABLE = Self::STRING_LIKE.bits() | Self::NUMBER_LIKE.bits() | Self::BIG_INT_LIKE.bits() | Self::BOOLEAN_LIKE.bits() | Self::ENUM_LIKE.bits() | Self::ES_SYMBOL_LIKE.bits() | Self::OBJECT.bits() | Self::NON_PRIMITIVE.bits();
-        const DISJOINT_DOMAINS = Self::NON_PRIMITIVE.bits() | Self::STRING_LIKE.bits() | Self::NUMBER_LIKE.bits() | Self::BIG_INT_LIKE.bits() | Self::BOOLEAN_LIKE.bits() | Self::ES_SYMBOL_LIKE.bits() | Self::VOID_LIKE.bits() | Self::NULL.bits();
-        const UNION_OR_INTERSECTION = Self::UNION.bits() | Self::INTERSECTION.bits();
-        const STRUCTURED_TYPE = Self::OBJECT.bits() | Self::UNION.bits() | Self::INTERSECTION.bits();
-        const TYPE_VARIABLE = Self::TYPE_PARAMETER.bits() | Self::INDEXED_ACCESS.bits();
-        const INSTANTIABLE_NON_PRIMITIVE = Self::TYPE_VARIABLE.bits() | Self::CONDITIONAL.bits() | Self::SUBSTITUTION.bits();
-        const INSTANTIABLE_PRIMITIVE = Self::INDEX.bits() | Self::TEMPLATE_LITERAL.bits() | Self::STRING_MAPPING.bits();
-        const INSTANTIABLE = Self::INSTANTIABLE_NON_PRIMITIVE.bits() | Self::INSTANTIABLE_PRIMITIVE.bits();
-        const STRUCTURED_OR_INSTANTIABLE = Self::STRUCTURED_TYPE.bits() | Self::INSTANTIABLE.bits();
-        const OBJECT_FLAGS_TYPE = Self::ANY.bits() | Self::NULLABLE.bits() | Self::NEVER.bits() | Self::OBJECT.bits() | Self::UNION.bits() | Self::INTERSECTION.bits();
-        const SIMPLIFIABLE = Self::INDEXED_ACCESS.bits() | Self::CONDITIONAL.bits() | Self::INDEX.bits();
-        const SINGLETON = Self::ANY.bits() | Self::UNKNOWN.bits() | Self::STRING.bits() | Self::NUMBER.bits() | Self::BOOLEAN.bits() | Self::BIG_INT.bits() | Self::ES_SYMBOL.bits() | Self::VOID.bits() | Self::UNDEFINED.bits() | Self::NULL.bits() | Self::NEVER.bits() | Self::NON_PRIMITIVE.bits();
+        const AnyOrUnknown = Self::Any.bits() | Self::Unknown.bits();
+        const Nullable = Self::Undefined.bits() | Self::Null.bits();
+        const Literal = Self::StringLiteral.bits() | Self::NumberLiteral.bits() | Self::BigIntLiteral.bits() | Self::BooleanLiteral.bits();
+        const Unit = Self::Enum.bits() | Self::Literal.bits() | Self::UniqueESSymbol.bits() | Self::Nullable.bits();
+        const Freshable = Self::Enum.bits() | Self::Literal.bits();
+        const StringOrNumberLiteral = Self::StringLiteral.bits() | Self::NumberLiteral.bits();
+        const StringOrNumberLiteralOrUnique = Self::StringLiteral.bits() | Self::NumberLiteral.bits() | Self::UniqueESSymbol.bits();
+        const DefinitelyFalsy = Self::StringLiteral.bits() | Self::NumberLiteral.bits() | Self::BigIntLiteral.bits() | Self::BooleanLiteral.bits() | Self::Void.bits() | Self::Undefined.bits() | Self::Null.bits();
+        const PossiblyFalsy = Self::DefinitelyFalsy.bits() | Self::String.bits() | Self::Number.bits() | Self::BigInt.bits() | Self::Boolean.bits();
+        const Intrinsic = Self::Any.bits() | Self::Unknown.bits() | Self::String.bits() | Self::Number.bits() | Self::BigInt.bits() | Self::ESSymbol.bits() | Self::Void.bits() | Self::Undefined.bits() | Self::Null.bits() | Self::Never.bits() | Self::NonPrimitive.bits();
+        const StringLike = Self::String.bits() | Self::StringLiteral.bits() | Self::TemplateLiteral.bits() | Self::StringMapping.bits();
+        const NumberLike = Self::Number.bits() | Self::NumberLiteral.bits() | Self::Enum.bits();
+        const BigIntLike = Self::BigInt.bits() | Self::BigIntLiteral.bits();
+        const BooleanLike = Self::Boolean.bits() | Self::BooleanLiteral.bits();
+        const EnumLike = Self::Enum.bits() | Self::EnumLiteral.bits();
+        const ESSymbolLike = Self::ESSymbol.bits() | Self::UniqueESSymbol.bits();
+        const VoidLike = Self::Void.bits() | Self::Undefined.bits();
+        const Primitive = Self::StringLike.bits() | Self::NumberLike.bits() | Self::BigIntLike.bits() | Self::BooleanLike.bits() | Self::EnumLike.bits() | Self::ESSymbolLike.bits() | Self::VoidLike.bits() | Self::Null.bits();
+        const DefinitelyNonNullable = Self::StringLike.bits() | Self::NumberLike.bits() | Self::BigIntLike.bits() | Self::BooleanLike.bits() | Self::EnumLike.bits() | Self::ESSymbolLike.bits() | Self::Object.bits() | Self::NonPrimitive.bits();
+        const DisjointDomains = Self::NonPrimitive.bits() | Self::StringLike.bits() | Self::NumberLike.bits() | Self::BigIntLike.bits() | Self::BooleanLike.bits() | Self::ESSymbolLike.bits() | Self::VoidLike.bits() | Self::Null.bits();
+        const UnionOrIntersection = Self::Union.bits() | Self::Intersection.bits();
+        const StructuredType = Self::Object.bits() | Self::Union.bits() | Self::Intersection.bits();
+        const TypeVariable = Self::TypeParameter.bits() | Self::IndexedAccess.bits();
+        const InstantiableNonPrimitive = Self::TypeVariable.bits() | Self::Conditional.bits() | Self::Substitution.bits();
+        const InstantiablePrimitive = Self::Index.bits() | Self::TemplateLiteral.bits() | Self::StringMapping.bits();
+        const Instantiable = Self::InstantiableNonPrimitive.bits() | Self::InstantiablePrimitive.bits();
+        const StructuredOrInstantiable = Self::StructuredType.bits() | Self::Instantiable.bits();
+        const ObjectFlagsType = Self::Any.bits() | Self::Nullable.bits() | Self::Never.bits() | Self::Object.bits() | Self::Union.bits() | Self::Intersection.bits();
+        const Simplifiable = Self::IndexedAccess.bits() | Self::Conditional.bits() | Self::Index.bits();
+        const Singleton = Self::Any.bits() | Self::Unknown.bits() | Self::String.bits() | Self::Number.bits() | Self::Boolean.bits() | Self::BigInt.bits() | Self::ESSymbol.bits() | Self::Void.bits() | Self::Undefined.bits() | Self::Null.bits() | Self::Never.bits() | Self::NonPrimitive.bits();
         // 'TypeFlagsNarrowable' types are types where narrowing actually narrows.
         // This *should* be every type other than null, undefined, void, and never
-        const NARROWABLE = Self::ANY.bits() | Self::UNKNOWN.bits() | Self::STRUCTURED_OR_INSTANTIABLE.bits() | Self::STRING_LIKE.bits() | Self::NUMBER_LIKE.bits() | Self::BIG_INT_LIKE.bits() | Self::BOOLEAN_LIKE.bits() | Self::ES_SYMBOL.bits() | Self::UNIQUE_ES_SYMBOL.bits() | Self::NON_PRIMITIVE.bits();
+        const Narrowable = Self::Any.bits() | Self::Unknown.bits() | Self::StructuredOrInstantiable.bits() | Self::StringLike.bits() | Self::NumberLike.bits() | Self::BigIntLike.bits() | Self::BooleanLike.bits() | Self::ESSymbol.bits() | Self::UniqueESSymbol.bits() | Self::NonPrimitive.bits();
         // The following flags are aggregated during union and intersection type construction
-        const INCLUDES_MASK = Self::ANY.bits() | Self::UNKNOWN.bits() | Self::PRIMITIVE.bits() | Self::NEVER.bits() | Self::OBJECT.bits() | Self::UNION.bits() | Self::INTERSECTION.bits() | Self::NON_PRIMITIVE.bits() | Self::TEMPLATE_LITERAL.bits() | Self::STRING_MAPPING.bits();
+        const IncludesMask = Self::Any.bits() | Self::Unknown.bits() | Self::Primitive.bits() | Self::Never.bits() | Self::Object.bits() | Self::Union.bits() | Self::Intersection.bits() | Self::NonPrimitive.bits() | Self::TemplateLiteral.bits() | Self::StringMapping.bits();
         // The following flags are used for different purposes during union and intersection type construction
-        const INCLUDES_MISSING_TYPE = Self::TYPE_PARAMETER.bits();
-        const INCLUDES_NON_WIDENING_TYPE = Self::INDEX.bits();
-        const INCLUDES_WILDCARD = Self::INDEXED_ACCESS.bits();
-        const INCLUDES_EMPTY_OBJECT = Self::CONDITIONAL.bits();
-        const INCLUDES_INSTANTIABLE = Self::SUBSTITUTION.bits();
-        const INCLUDES_CONSTRAINED_TYPE_VARIABLE = Self::RESERVED1.bits();
-        const INCLUDES_ERROR = Self::RESERVED2.bits();
-        const NOT_PRIMITIVE_UNION = Self::ANY.bits() | Self::UNKNOWN.bits() | Self::VOID.bits() | Self::NEVER.bits() | Self::OBJECT.bits() | Self::INTERSECTION.bits() | Self::INCLUDES_INSTANTIABLE.bits();
+        const IncludesMissingType = Self::TypeParameter.bits();
+        const IncludesNonWideningType = Self::Index.bits();
+        const IncludesWildcard = Self::IndexedAccess.bits();
+        const IncludesEmptyObject = Self::Conditional.bits();
+        const IncludesInstantiable = Self::Substitution.bits();
+        const IncludesConstrainedTypeVariable = Self::Reserved1.bits();
+        const IncludesError = Self::Reserved2.bits();
+        const NotPrimitiveUnion = Self::Any.bits() | Self::Unknown.bits() | Self::Void.bits() | Self::Never.bits() | Self::Object.bits() | Self::Intersection.bits() | Self::IncludesInstantiable.bits();
     }
 }
 
 static TYPE_FLAG_NAMES: [(TypeFlags, &str); 29] = [
-    (TypeFlags::ANY, "Any"),
-    (TypeFlags::UNKNOWN, "Unknown"),
-    (TypeFlags::UNDEFINED, "Undefined"),
-    (TypeFlags::NULL, "Null"),
-    (TypeFlags::VOID, "Void"),
-    (TypeFlags::STRING, "String"),
-    (TypeFlags::NUMBER, "Number"),
-    (TypeFlags::BIG_INT, "BigInt"),
-    (TypeFlags::BOOLEAN, "Boolean"),
-    (TypeFlags::ES_SYMBOL, "ESSymbol"),
-    (TypeFlags::STRING_LITERAL, "StringLiteral"),
-    (TypeFlags::NUMBER_LITERAL, "NumberLiteral"),
-    (TypeFlags::BIG_INT_LITERAL, "BigIntLiteral"),
-    (TypeFlags::BOOLEAN_LITERAL, "BooleanLiteral"),
-    (TypeFlags::UNIQUE_ES_SYMBOL, "UniqueESSymbol"),
-    (TypeFlags::ENUM_LITERAL, "EnumLiteral"),
-    (TypeFlags::ENUM, "Enum"),
-    (TypeFlags::NON_PRIMITIVE, "NonPrimitive"),
-    (TypeFlags::NEVER, "Never"),
-    (TypeFlags::TYPE_PARAMETER, "TypeParameter"),
-    (TypeFlags::OBJECT, "Object"),
-    (TypeFlags::INDEX, "Index"),
-    (TypeFlags::TEMPLATE_LITERAL, "TemplateLiteral"),
-    (TypeFlags::STRING_MAPPING, "StringMapping"),
-    (TypeFlags::SUBSTITUTION, "Substitution"),
-    (TypeFlags::INDEXED_ACCESS, "IndexedAccess"),
-    (TypeFlags::CONDITIONAL, "Conditional"),
-    (TypeFlags::UNION, "Union"),
-    (TypeFlags::INTERSECTION, "Intersection"),
+    (TypeFlags::Any, "Any"),
+    (TypeFlags::Unknown, "Unknown"),
+    (TypeFlags::Undefined, "Undefined"),
+    (TypeFlags::Null, "Null"),
+    (TypeFlags::Void, "Void"),
+    (TypeFlags::String, "String"),
+    (TypeFlags::Number, "Number"),
+    (TypeFlags::BigInt, "BigInt"),
+    (TypeFlags::Boolean, "Boolean"),
+    (TypeFlags::ESSymbol, "ESSymbol"),
+    (TypeFlags::StringLiteral, "StringLiteral"),
+    (TypeFlags::NumberLiteral, "NumberLiteral"),
+    (TypeFlags::BigIntLiteral, "BigIntLiteral"),
+    (TypeFlags::BooleanLiteral, "BooleanLiteral"),
+    (TypeFlags::UniqueESSymbol, "UniqueESSymbol"),
+    (TypeFlags::EnumLiteral, "EnumLiteral"),
+    (TypeFlags::Enum, "Enum"),
+    (TypeFlags::NonPrimitive, "NonPrimitive"),
+    (TypeFlags::Never, "Never"),
+    (TypeFlags::TypeParameter, "TypeParameter"),
+    (TypeFlags::Object, "Object"),
+    (TypeFlags::Index, "Index"),
+    (TypeFlags::TemplateLiteral, "TemplateLiteral"),
+    (TypeFlags::StringMapping, "StringMapping"),
+    (TypeFlags::Substitution, "Substitution"),
+    (TypeFlags::IndexedAccess, "IndexedAccess"),
+    (TypeFlags::Conditional, "Conditional"),
+    (TypeFlags::Union, "Union"),
+    (TypeFlags::Intersection, "Intersection"),
 ];
 
 /// `FormatTypeFlags` returns the individual flag names as a slice of strings.
@@ -1016,23 +1016,23 @@ impl fmt::Display for TypeFlags {
 /// Go `VarianceFlags.String()`.
 impl fmt::Display for VarianceFlags {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let variance = *self & VarianceFlags::VARIANCE_MASK;
-        let mut result = String::from(if variance == VarianceFlags::INVARIANT {
+        let variance = *self & VarianceFlags::VarianceMask;
+        let mut result = String::from(if variance == VarianceFlags::Invariant {
             "in out"
-        } else if variance == VarianceFlags::BIVARIANT {
+        } else if variance == VarianceFlags::Bivariant {
             "[bivariant]"
-        } else if variance == VarianceFlags::CONTRAVARIANT {
+        } else if variance == VarianceFlags::Contravariant {
             "in"
-        } else if variance == VarianceFlags::COVARIANT {
+        } else if variance == VarianceFlags::Covariant {
             "out"
-        } else if variance == VarianceFlags::INDEPENDENT {
+        } else if variance == VarianceFlags::Independent {
             "[independent]"
         } else {
             ""
         });
-        if self.intersects(VarianceFlags::UNMEASURABLE) {
+        if self.intersects(VarianceFlags::Unmeasurable) {
             result.push_str(" (unmeasurable)");
-        } else if self.intersects(VarianceFlags::UNRELIABLE) {
+        } else if self.intersects(VarianceFlags::Unreliable) {
             result.push_str(" (unreliable)");
         }
         f.write_str(&result)
@@ -1045,68 +1045,68 @@ impl fmt::Display for VarianceFlags {
 bitflags! {
     #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Debug, Default)]
     pub struct ObjectFlags: u32 {
-        const NONE = 0;
-        const CLASS = 1 << 0; // Class
-        const INTERFACE = 1 << 1; // Interface
-        const REFERENCE = 1 << 2; // Generic type reference
-        const TUPLE = 1 << 3; // Synthesized generic tuple type
-        const ANONYMOUS = 1 << 4; // Anonymous
-        const MAPPED = 1 << 5; // Mapped
-        const INSTANTIATED = 1 << 6; // Instantiated anonymous or mapped type
-        const OBJECT_LITERAL = 1 << 7; // Originates in an object literal
-        const EVOLVING_ARRAY = 1 << 8; // Evolving array type
-        const OBJECT_LITERAL_PATTERN_WITH_COMPUTED_PROPERTIES = 1 << 9; // Object literal pattern with computed properties
-        const REVERSE_MAPPED = 1 << 10; // Object contains a property from a reverse-mapped type
-        const JSX_ATTRIBUTES = 1 << 11; // Jsx attributes type
-        const JS_LITERAL = 1 << 12; // Object type declared in JS - disables errors on read/write of nonexisting members
-        const FRESH_LITERAL = 1 << 13; // Fresh object literal
-        const ARRAY_LITERAL = 1 << 14; // Originates in an array literal
-        const PRIMITIVE_UNION = 1 << 15; // Union of only primitive types
-        const CONTAINS_WIDENING_TYPE = 1 << 16; // Type is or contains undefined or null widening type
-        const CONTAINS_OBJECT_OR_ARRAY_LITERAL = 1 << 17; // Type is or contains object literal type
-        const NON_INFERRABLE_TYPE = 1 << 18; // Type is or contains anyFunctionType or silentNeverType
-        const COULD_CONTAIN_TYPE_VARIABLES_COMPUTED = 1 << 19; // CouldContainTypeVariables flag has been computed
-        const COULD_CONTAIN_TYPE_VARIABLES = 1 << 20; // Type could contain a type variable
-        const MEMBERS_RESOLVED = 1 << 21; // Members have been resolved
+        const None = 0;
+        const Class = 1 << 0; // Class
+        const Interface = 1 << 1; // Interface
+        const Reference = 1 << 2; // Generic type reference
+        const Tuple = 1 << 3; // Synthesized generic tuple type
+        const Anonymous = 1 << 4; // Anonymous
+        const Mapped = 1 << 5; // Mapped
+        const Instantiated = 1 << 6; // Instantiated anonymous or mapped type
+        const ObjectLiteral = 1 << 7; // Originates in an object literal
+        const EvolvingArray = 1 << 8; // Evolving array type
+        const ObjectLiteralPatternWithComputedProperties = 1 << 9; // Object literal pattern with computed properties
+        const ReverseMapped = 1 << 10; // Object contains a property from a reverse-mapped type
+        const JsxAttributes = 1 << 11; // Jsx attributes type
+        const JSLiteral = 1 << 12; // Object type declared in JS - disables errors on read/write of nonexisting members
+        const FreshLiteral = 1 << 13; // Fresh object literal
+        const ArrayLiteral = 1 << 14; // Originates in an array literal
+        const PrimitiveUnion = 1 << 15; // Union of only primitive types
+        const ContainsWideningType = 1 << 16; // Type is or contains undefined or null widening type
+        const ContainsObjectOrArrayLiteral = 1 << 17; // Type is or contains object literal type
+        const NonInferrableType = 1 << 18; // Type is or contains anyFunctionType or silentNeverType
+        const CouldContainTypeVariablesComputed = 1 << 19; // CouldContainTypeVariables flag has been computed
+        const CouldContainTypeVariables = 1 << 20; // Type could contain a type variable
+        const MembersResolved = 1 << 21; // Members have been resolved
 
-        const CLASS_OR_INTERFACE = Self::CLASS.bits() | Self::INTERFACE.bits();
-        const REQUIRES_WIDENING = Self::CONTAINS_WIDENING_TYPE.bits() | Self::CONTAINS_OBJECT_OR_ARRAY_LITERAL.bits();
-        const PROPAGATING_FLAGS = Self::CONTAINS_WIDENING_TYPE.bits() | Self::CONTAINS_OBJECT_OR_ARRAY_LITERAL.bits() | Self::NON_INFERRABLE_TYPE.bits();
-        const INSTANTIATED_MAPPED = Self::MAPPED.bits() | Self::INSTANTIATED.bits();
+        const ClassOrInterface = Self::Class.bits() | Self::Interface.bits();
+        const RequiresWidening = Self::ContainsWideningType.bits() | Self::ContainsObjectOrArrayLiteral.bits();
+        const PropagatingFlags = Self::ContainsWideningType.bits() | Self::ContainsObjectOrArrayLiteral.bits() | Self::NonInferrableType.bits();
+        const InstantiatedMapped = Self::Mapped.bits() | Self::Instantiated.bits();
         // Object flags that uniquely identify the kind of ObjectType
-        const OBJECT_TYPE_KIND_MASK = Self::CLASS_OR_INTERFACE.bits() | Self::REFERENCE.bits() | Self::TUPLE.bits() | Self::ANONYMOUS.bits() | Self::MAPPED.bits() | Self::REVERSE_MAPPED.bits() | Self::EVOLVING_ARRAY.bits() | Self::INSTANTIATION_EXPRESSION_TYPE.bits() | Self::SINGLE_SIGNATURE_TYPE.bits();
+        const ObjectTypeKindMask = Self::ClassOrInterface.bits() | Self::Reference.bits() | Self::Tuple.bits() | Self::Anonymous.bits() | Self::Mapped.bits() | Self::ReverseMapped.bits() | Self::EvolvingArray.bits() | Self::InstantiationExpressionType.bits() | Self::SingleSignatureType.bits();
         // Flags that require TypeFlags.Object
-        const CONTAINS_SPREAD = 1 << 22; // Object literal contains spread operation
-        const OBJECT_REST_TYPE = 1 << 23; // Originates in object rest declaration
-        const INSTANTIATION_EXPRESSION_TYPE = 1 << 24; // Originates in instantiation expression
-        const SINGLE_SIGNATURE_TYPE = 1 << 25; // A single signature type extracted from a potentially broader type
-        const IS_CLASS_INSTANCE_CLONE = 1 << 26; // Type is a clone of a class instance type
+        const ContainsSpread = 1 << 22; // Object literal contains spread operation
+        const ObjectRestType = 1 << 23; // Originates in object rest declaration
+        const InstantiationExpressionType = 1 << 24; // Originates in instantiation expression
+        const SingleSignatureType = 1 << 25; // A single signature type extracted from a potentially broader type
+        const IsClassInstanceClone = 1 << 26; // Type is a clone of a class instance type
         // Flags that require TypeFlags.Object and ObjectFlags.Reference
-        const IDENTICAL_BASE_TYPE_CALCULATED = 1 << 27; // has had `getSingleBaseForNonAugmentingSubtype` invoked on it already
-        const IDENTICAL_BASE_TYPE_EXISTS = 1 << 28; // has a defined cachedEquivalentBaseType member
-        const FROM_TYPE_NODE = 1 << 29; // Originates in resolution of AST type node
+        const IdenticalBaseTypeCalculated = 1 << 27; // has had `getSingleBaseForNonAugmentingSubtype` invoked on it already
+        const IdenticalBaseTypeExists = 1 << 28; // has a defined cachedEquivalentBaseType member
+        const FromTypeNode = 1 << 29; // Originates in resolution of AST type node
         // Flags that require TypeFlags.UnionOrIntersection or TypeFlags.Substitution
-        const IS_GENERIC_TYPE_COMPUTED = 1 << 22; // IsGenericObjectType flag has been computed
-        const IS_GENERIC_OBJECT_TYPE = 1 << 23; // Union or intersection contains generic object type
-        const IS_GENERIC_INDEX_TYPE = 1 << 24; // Union or intersection contains generic index type
-        const IS_GENERIC_TYPE = Self::IS_GENERIC_OBJECT_TYPE.bits() | Self::IS_GENERIC_INDEX_TYPE.bits();
+        const IsGenericTypeComputed = 1 << 22; // IsGenericObjectType flag has been computed
+        const IsGenericObjectType = 1 << 23; // Union or intersection contains generic object type
+        const IsGenericIndexType = 1 << 24; // Union or intersection contains generic index type
+        const IsGenericType = Self::IsGenericObjectType.bits() | Self::IsGenericIndexType.bits();
         // Flags that require TypeFlags.Union
-        const CONTAINS_INTERSECTIONS = 1 << 25; // Union contains intersections
-        const IS_UNKNOWN_LIKE_UNION_COMPUTED = 1 << 26; // IsUnknownLikeUnion flag has been computed
-        const IS_UNKNOWN_LIKE_UNION = 1 << 27; // Union of null, undefined, and empty object type
-        const IS_UNIFORM_ENUM_COMPUTED = 1 << 28; // IsUniformEnum flag has been computed
-        const IS_UNIFORM_ENUM = 1 << 29; // Union contains uniform literal types
+        const ContainsIntersections = 1 << 25; // Union contains intersections
+        const IsUnknownLikeUnionComputed = 1 << 26; // IsUnknownLikeUnion flag has been computed
+        const IsUnknownLikeUnion = 1 << 27; // Union of null, undefined, and empty object type
+        const IsUniformEnumComputed = 1 << 28; // IsUniformEnum flag has been computed
+        const IsUniformEnum = 1 << 29; // Union contains uniform literal types
         // Flags that require TypeFlags.Intersection
-        const IS_NEVER_INTERSECTION_COMPUTED = 1 << 25; // IsNeverLike flag has been computed
-        const IS_NEVER_INTERSECTION = 1 << 26; // Intersection reduces to never
-        const IS_CONSTRAINED_TYPE_VARIABLE = 1 << 27; // T & C, where T's constraint and C are primitives, object, or {}
+        const IsNeverIntersectionComputed = 1 << 25; // IsNeverLike flag has been computed
+        const IsNeverIntersection = 1 << 26; // Intersection reduces to never
+        const IsConstrainedTypeVariable = 1 << 27; // T & C, where T's constraint and C are primitives, object, or {}
         // tsrs-only, intersections: shouldNormalizeIntersection memoized (its answer depends only on the constituents).
-        const SHOULD_NORMALIZE_COMPUTED = 1 << 30;
-        const SHOULD_NORMALIZE = 1 << 31;
+        const ShouldNormalizeComputed = 1 << 30;
+        const ShouldNormalize = 1 << 31;
         // tsrs-only, object types: isWeakType memoized; cleared with MembersResolved (`WeakTypeMemo`).
-        const IS_WEAK_TYPE_COMPUTED = 1 << 30;
-        const IS_WEAK_TYPE = 1 << 31;
-        const WEAK_TYPE_MEMO = Self::IS_WEAK_TYPE_COMPUTED.bits() | Self::IS_WEAK_TYPE.bits(); // also the intersection memo bits: new_type drops them
+        const IsWeakTypeComputed = 1 << 30;
+        const IsWeakType = 1 << 31;
+        const WeakTypeMemo = Self::IsWeakTypeComputed.bits() | Self::IsWeakType.bits(); // also the intersection memo bits: new_type drops them
     }
 }
 
@@ -1692,16 +1692,16 @@ impl Type {
     #[inline]
     pub fn target(&self) -> Option<P<Type>> {
         let flags = self.flags.get();
-        if flags.intersects(TypeFlags::OBJECT) {
+        if flags.intersects(TypeFlags::Object) {
             return self.as_object_type().target.get();
         }
-        if flags.intersects(TypeFlags::TYPE_PARAMETER) {
+        if flags.intersects(TypeFlags::TypeParameter) {
             return self.as_type_parameter().target.get();
         }
-        if flags.intersects(TypeFlags::INDEX) {
+        if flags.intersects(TypeFlags::Index) {
             return self.as_index_type().target.get();
         }
-        if flags.intersects(TypeFlags::STRING_MAPPING) {
+        if flags.intersects(TypeFlags::StringMapping) {
             return self.as_string_mapping_type().target.get();
         }
         panic!("Unhandled case in Type.Target")
@@ -1716,13 +1716,13 @@ impl Type {
     #[inline]
     pub fn mapper(&self) -> Option<P<TypeMapper>> {
         let flags = self.flags.get();
-        if flags.intersects(TypeFlags::OBJECT) {
+        if flags.intersects(TypeFlags::Object) {
             return self.as_object_type().mapper.get();
         }
-        if flags.intersects(TypeFlags::TYPE_PARAMETER) {
+        if flags.intersects(TypeFlags::TypeParameter) {
             return self.as_type_parameter().mapper.get();
         }
-        if flags.intersects(TypeFlags::CONDITIONAL) {
+        if flags.intersects(TypeFlags::Conditional) {
             return self.as_conditional_type().mapper.get();
         }
         panic!("Unhandled case in Type.Mapper")
@@ -1731,10 +1731,10 @@ impl Type {
     #[inline]
     pub fn types(&self) -> &'static [P<Type>] {
         let flags = self.flags.get();
-        if flags.intersects(TypeFlags::UNION_OR_INTERSECTION) {
+        if flags.intersects(TypeFlags::UnionOrIntersection) {
             return self.as_union_or_intersection_type().types.get();
         }
-        if flags.intersects(TypeFlags::TEMPLATE_LITERAL) {
+        if flags.intersects(TypeFlags::TemplateLiteral) {
             return self.as_template_literal_type().types.get();
         }
         panic!("Unhandled case in Type.Types")
@@ -1787,73 +1787,73 @@ impl Type {
 
     #[inline]
     pub fn is_union(&self) -> bool {
-        self.flags.get().intersects(TypeFlags::UNION)
+        self.flags.get().intersects(TypeFlags::Union)
     }
 
     #[inline]
     pub fn is_string(&self) -> bool {
-        self.flags.get().intersects(TypeFlags::STRING)
+        self.flags.get().intersects(TypeFlags::String)
     }
 
     #[inline]
     pub fn is_intersection(&self) -> bool {
-        self.flags.get().intersects(TypeFlags::INTERSECTION)
+        self.flags.get().intersects(TypeFlags::Intersection)
     }
 
     #[inline]
     pub fn is_string_literal(&self) -> bool {
-        self.flags.get().intersects(TypeFlags::STRING_LITERAL)
+        self.flags.get().intersects(TypeFlags::StringLiteral)
     }
 
     #[inline]
     pub fn is_number_literal(&self) -> bool {
-        self.flags.get().intersects(TypeFlags::NUMBER_LITERAL)
+        self.flags.get().intersects(TypeFlags::NumberLiteral)
     }
 
     #[inline]
     pub fn is_big_int_literal(&self) -> bool {
-        self.flags.get().intersects(TypeFlags::BIG_INT_LITERAL)
+        self.flags.get().intersects(TypeFlags::BigIntLiteral)
     }
 
     #[inline]
     pub fn is_enum_literal(&self) -> bool {
-        self.flags.get().intersects(TypeFlags::ENUM_LITERAL)
+        self.flags.get().intersects(TypeFlags::EnumLiteral)
     }
 
     #[inline]
     pub fn is_boolean_like(&self) -> bool {
-        self.flags.get().intersects(TypeFlags::BOOLEAN_LIKE)
+        self.flags.get().intersects(TypeFlags::BooleanLike)
     }
 
     #[inline]
     pub fn is_string_like(&self) -> bool {
-        self.flags.get().intersects(TypeFlags::STRING_LIKE)
+        self.flags.get().intersects(TypeFlags::StringLike)
     }
 
     #[inline]
     pub fn is_class(&self) -> bool {
-        self.object_flags.get().intersects(ObjectFlags::CLASS)
+        self.object_flags.get().intersects(ObjectFlags::Class)
     }
 
     #[inline]
     pub fn is_type_parameter(&self) -> bool {
-        self.flags.get().intersects(TypeFlags::TYPE_PARAMETER)
+        self.flags.get().intersects(TypeFlags::TypeParameter)
     }
 
     #[inline]
     pub fn is_index(&self) -> bool {
-        self.flags.get().intersects(TypeFlags::INDEX)
+        self.flags.get().intersects(TypeFlags::Index)
     }
 
     /// Go `t.IsTupleType()` (= `isTupleType(t)`).
     #[inline]
     pub fn is_tuple_type(&self) -> bool {
-        self.object_flags.get().intersects(ObjectFlags::REFERENCE)
+        self.object_flags.get().intersects(ObjectFlags::Reference)
             && self
                 .as_type_reference()
                 .target
                 .get()
-                .is_some_and(|t| t.object_flags.get().intersects(ObjectFlags::TUPLE))
+                .is_some_and(|t| t.object_flags.get().intersects(ObjectFlags::Tuple))
     }
 }
 
@@ -1885,19 +1885,19 @@ impl Iterator for DistributedIter {
 impl TypeExt for P<Type> {
     #[inline]
     fn distributed_iter(self) -> DistributedIter {
-        if self.flags.get().intersects(TypeFlags::UNION) {
+        if self.flags.get().intersects(TypeFlags::Union) {
             return DistributedIter { one: None, many: self.as_union_type().types.get().iter() };
         }
-        let one = (!self.flags.get().intersects(TypeFlags::NEVER)).then_some(self);
+        let one = (!self.flags.get().intersects(TypeFlags::Never)).then_some(self);
         DistributedIter { one, many: [].iter() }
     }
 
     #[inline]
     fn distributed(self) -> Vec<P<Type>> {
-        if self.flags.get().intersects(TypeFlags::UNION) {
+        if self.flags.get().intersects(TypeFlags::Union) {
             return self.as_union_type().types.get().to_vec();
         }
-        if self.flags.get().intersects(TypeFlags::NEVER) {
+        if self.flags.get().intersects(TypeFlags::Never) {
             return Vec::new();
         }
         vec![self]
@@ -2453,15 +2453,15 @@ impl InterfaceType {
 bitflags! {
     #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Debug, Default)]
     pub struct ElementFlags: u32 {
-        const NONE = 0;
-        const REQUIRED = 1 << 0; // T
-        const OPTIONAL = 1 << 1; // T?
-        const REST = 1 << 2; // ...T[]
-        const VARIADIC = 1 << 3; // ...T
-        const FIXED = Self::REQUIRED.bits() | Self::OPTIONAL.bits();
-        const VARIABLE = Self::REST.bits() | Self::VARIADIC.bits();
-        const NON_REQUIRED = Self::OPTIONAL.bits() | Self::REST.bits() | Self::VARIADIC.bits();
-        const NON_REST = Self::REQUIRED.bits() | Self::OPTIONAL.bits() | Self::VARIADIC.bits();
+        const None = 0;
+        const Required = 1 << 0; // T
+        const Optional = 1 << 1; // T?
+        const Rest = 1 << 2; // ...T[]
+        const Variadic = 1 << 3; // ...T
+        const Fixed = Self::Required.bits() | Self::Optional.bits();
+        const Variable = Self::Rest.bits() | Self::Variadic.bits();
+        const NonRequired = Self::Optional.bits() | Self::Rest.bits() | Self::Variadic.bits();
+        const NonRest = Self::Required.bits() | Self::Optional.bits() | Self::Variadic.bits();
     }
 }
 
@@ -2887,10 +2887,10 @@ impl TypeParameter {
 bitflags! {
     #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Debug, Default)]
     pub struct IndexFlags: u32 {
-        const NONE = 0;
-        const STRINGS_ONLY = 1 << 0;
-        const NO_INDEX_SIGNATURES = 1 << 1;
-        const NO_REDUCIBLE_CHECK = 1 << 2;
+        const None = 0;
+        const StringsOnly = 1 << 0;
+        const NoIndexSignatures = 1 << 1;
+        const NoReducibleCheck = 1 << 2;
     }
 }
 
@@ -3029,23 +3029,23 @@ impl ConditionalType {
 bitflags! {
     #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Debug, Default)]
     pub struct SignatureFlags: u32 {
-        const NONE = 0;
+        const None = 0;
         // Propagating flags
-        const HAS_REST_PARAMETER = 1 << 0; // Indicates last parameter is rest parameter
-        const HAS_LITERAL_TYPES = 1 << 1; // Indicates signature is specialized
-        const CONSTRUCT = 1 << 2; // Indicates signature is a construct signature
-        const ABSTRACT = 1 << 3; // Indicates signature comes from an abstract class, abstract construct signature, or abstract constructor type
+        const HasRestParameter = 1 << 0; // Indicates last parameter is rest parameter
+        const HasLiteralTypes = 1 << 1; // Indicates signature is specialized
+        const Construct = 1 << 2; // Indicates signature is a construct signature
+        const Abstract = 1 << 3; // Indicates signature comes from an abstract class, abstract construct signature, or abstract constructor type
         // Non-propagating flags
-        const IS_INNER_CALL_CHAIN = 1 << 4; // Indicates signature comes from a CallChain nested in an outer OptionalChain
-        const IS_OUTER_CALL_CHAIN = 1 << 5; // Indicates signature comes from a CallChain that is the outermost chain of an optional expression
-        const IS_UNTYPED_SIGNATURE_IN_JS_FILE = 1 << 6; // Indicates signature is from a js file and has no types
-        const IS_NON_INFERRABLE = 1 << 7; // Indicates signature comes from a non-inferrable type
-        const IS_SIGNATURE_CANDIDATE_FOR_OVERLOAD_FAILURE = 1 << 8;
+        const IsInnerCallChain = 1 << 4; // Indicates signature comes from a CallChain nested in an outer OptionalChain
+        const IsOuterCallChain = 1 << 5; // Indicates signature comes from a CallChain that is the outermost chain of an optional expression
+        const IsUntypedSignatureInJSFile = 1 << 6; // Indicates signature is from a js file and has no types
+        const IsNonInferrable = 1 << 7; // Indicates signature comes from a non-inferrable type
+        const IsSignatureCandidateForOverloadFailure = 1 << 8;
         // We do not propagate `IsInnerCallChain` or `IsOuterCallChain` to instantiated signatures, as that would result in us
         // attempting to add `| undefined` on each recursive call to `getReturnTypeOfSignature` when
         // instantiating the return type.
-        const PROPAGATING_FLAGS = Self::HAS_REST_PARAMETER.bits() | Self::HAS_LITERAL_TYPES.bits() | Self::CONSTRUCT.bits() | Self::ABSTRACT.bits() | Self::IS_UNTYPED_SIGNATURE_IN_JS_FILE.bits() | Self::IS_SIGNATURE_CANDIDATE_FOR_OVERLOAD_FAILURE.bits();
-        const CALL_CHAIN_FLAGS = Self::IS_INNER_CALL_CHAIN.bits() | Self::IS_OUTER_CALL_CHAIN.bits();
+        const PropagatingFlags = Self::HasRestParameter.bits() | Self::HasLiteralTypes.bits() | Self::Construct.bits() | Self::Abstract.bits() | Self::IsUntypedSignatureInJSFile.bits() | Self::IsSignatureCandidateForOverloadFailure.bits();
+        const CallChainFlags = Self::IsInnerCallChain.bits() | Self::IsOuterCallChain.bits();
     }
 }
 
@@ -3235,7 +3235,7 @@ impl Signature {
     }
     #[inline]
     pub fn has_rest_parameter(&self) -> bool {
-        self.flags.get().intersects(SignatureFlags::HAS_REST_PARAMETER)
+        self.flags.get().intersects(SignatureFlags::HasRestParameter)
     }
     #[inline]
     pub fn min_argument_count(&self) -> usize {
@@ -3428,9 +3428,9 @@ mod tests {
     #[test]
     fn compact_type_node_links_keep_nil_distinct_from_empty() {
         let t1 =
-            Type::alloc(TypeFlags::ANY, ObjectFlags::NONE, TypeId(1), IntrinsicType::default());
+            Type::alloc(TypeFlags::Any, ObjectFlags::None, TypeId(1), IntrinsicType::default());
         let t2 =
-            Type::alloc(TypeFlags::ANY, ObjectFlags::NONE, TypeId(2), IntrinsicType::default());
+            Type::alloc(TypeFlags::Any, ObjectFlags::None, TypeId(2), IntrinsicType::default());
         let links = TypeNodeLinks::default();
         links.resolved_type.set(Some(t1));
         assert!(links.outer_type_parameters().is_none());
@@ -3458,13 +3458,13 @@ mod tests {
     #[test]
     fn compact_signature_extra_keeps_optional_state_independent() {
         let t1 =
-            Type::alloc(TypeFlags::ANY, ObjectFlags::NONE, TypeId(1), IntrinsicType::default());
+            Type::alloc(TypeFlags::Any, ObjectFlags::None, TypeId(1), IntrinsicType::default());
         let t2 =
-            Type::alloc(TypeFlags::ANY, ObjectFlags::NONE, TypeId(2), IntrinsicType::default());
+            Type::alloc(TypeFlags::Any, ObjectFlags::None, TypeId(2), IntrinsicType::default());
         let no_predicate = P::new(TypePredicate::default());
         let predicate = P::new(TypePredicate::default());
         let sig = P::new(Signature::default());
-        sig.flags.set(SignatureFlags::HAS_REST_PARAMETER);
+        sig.flags.set(SignatureFlags::HasRestParameter);
         sig.resolved_return_type.set(Some(t1));
         assert!(sig.rare.tail().is_none());
         assert!(sig.type_parameters_option().is_none());
@@ -3477,7 +3477,7 @@ mod tests {
         sig.set_resolved_type_predicate(Some(no_predicate), no_predicate);
         assert!(sig.rare.tail().is_none());
         assert_eq!(sig.resolved_type_predicate(no_predicate), Some(no_predicate));
-        assert_eq!(sig.flags(), SignatureFlags::HAS_REST_PARAMETER);
+        assert_eq!(sig.flags(), SignatureFlags::HasRestParameter);
         sig.set_resolved_type_predicate(None, no_predicate);
 
         sig.set_type_parameters(Some(&[]));
@@ -3487,7 +3487,7 @@ mod tests {
         sig.set_type_parameters(Some(list));
         assert_eq!(sig.rare.tail(), Some(tail));
         assert_eq!(sig.type_parameters().as_ptr(), list.as_ptr());
-        let this_parameter = Symbol::new(SymbolFlags::NONE, "");
+        let this_parameter = Symbol::new(SymbolFlags::None, "");
         let composite = P::new(CompositeSignature::default());
         sig.set_this_parameter(Some(this_parameter));
         sig.set_composite(Some(composite));
@@ -3523,7 +3523,7 @@ mod tests {
         assert_eq!(sig.rare.tail(), Some(tail));
         assert!(sig.type_parameters_option().is_none());
         assert_eq!(sig.resolved_return_type.get(), Some(t1));
-        assert_eq!(sig.flags(), SignatureFlags::HAS_REST_PARAMETER);
+        assert_eq!(sig.flags(), SignatureFlags::HasRestParameter);
     }
 
     #[test]
@@ -3532,8 +3532,8 @@ mod tests {
         macro_rules! type_case {
             ($payload:ty, $cast:ident, $bases:expr) => {{
                 let t = Type::alloc(
-                    TypeFlags::ANY,
-                    ObjectFlags::NONE,
+                    TypeFlags::Any,
+                    ObjectFlags::None,
                     TypeId(next_id),
                     <$payload>::default(),
                 );
@@ -3544,7 +3544,7 @@ mod tests {
                 assert_eq!(payload, expected);
                 assert_eq!(t.data_tag(), <$payload as TypePayload>::TAG);
                 // The kind must not be inferred from mutable semantic flags.
-                t.flags.set(TypeFlags::NEVER);
+                t.flags.set(TypeFlags::Never);
                 assert_eq!(std::ptr::from_ref(t.$cast()).addr(), payload);
                 (t, $bases)
             }};
@@ -3638,8 +3638,8 @@ mod tests {
         let first_payload = std::ptr::from_ref(first.as_intrinsic_type());
         for _ in 0..1024 {
             let _ = Type::alloc(
-                TypeFlags::ANY,
-                ObjectFlags::NONE,
+                TypeFlags::Any,
+                ObjectFlags::None,
                 TypeId(next_id),
                 IntrinsicType::default(),
             );
@@ -3652,10 +3652,10 @@ mod tests {
     #[test]
     fn value_symbol_links_synthetic_mode_keeps_every_field() {
         let t1 =
-            Type::alloc(TypeFlags::ANY, ObjectFlags::NONE, TypeId(1), IntrinsicType::default());
+            Type::alloc(TypeFlags::Any, ObjectFlags::None, TypeId(1), IntrinsicType::default());
         let t2 =
-            Type::alloc(TypeFlags::ANY, ObjectFlags::NONE, TypeId(2), IntrinsicType::default());
-        let s = Symbol::new(SymbolFlags::PROPERTY, "p");
+            Type::alloc(TypeFlags::Any, ObjectFlags::None, TypeId(2), IntrinsicType::default());
+        let s = Symbol::new(SymbolFlags::Property, "p");
         let m = new_simple_type_mapper(t1, t2);
         let fields = |l: &ValueSymbolLinks| {
             (l.target(), l.mapper(), l.containing_type(), l.name_type(), l.write_type())

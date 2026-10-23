@@ -398,7 +398,7 @@ impl Checker {
 
     // exports.go:271
     pub fn get_resolved_signature_exported(&mut self, node: P<Node>) -> P<Signature> {
-        self.get_resolved_signature(node, None, CheckMode::NORMAL)
+        self.get_resolved_signature(node, None, CheckMode::Normal)
     }
 
     // exports.go:276
@@ -630,5 +630,5 @@ impl Checker {
 
 // exports.go:410
 pub fn is_distributed_type_parameter(t: P<Type>) -> bool {
-    t.flags().intersects(TypeFlags::TYPE_PARAMETER) && t.as_type_parameter().is_distributed.get()
+    t.flags().intersects(TypeFlags::TypeParameter) && t.as_type_parameter().is_distributed.get()
 }

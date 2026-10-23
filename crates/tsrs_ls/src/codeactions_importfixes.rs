@@ -319,7 +319,7 @@ fn get_umd_symbol(token: P<Node>, ch: &mut Checker) -> Option<P<Symbol>> {
         let parent_symbol = ch.resolve_name_exported(
             &jsx_namespace,
             location,
-            SymbolFlags::VALUE,
+            SymbolFlags::Value,
             false, /* excludeGlobals */
         );
         if is_umd_export_symbol(parent_symbol) {
@@ -413,7 +413,7 @@ fn get_type_only_promotion_fix(
     let symbol = ch.resolve_name_exported(
         symbol_name,
         symbol_token,
-        SymbolFlags::VALUE,
+        SymbolFlags::Value,
         true, /* excludeGlobals */
     )?;
 
@@ -458,7 +458,7 @@ fn get_symbol_names_to_import(
                 let comp_symbol = ch.resolve_name_exported(
                     symbol_token.text(),
                     symbol_token,
-                    SymbolFlags::VALUE,
+                    SymbolFlags::Value,
                     false, /* excludeGlobals */
                 );
                 match comp_symbol {
@@ -480,7 +480,7 @@ fn get_symbol_names_to_import(
             if let Some(ns_symbol) = ch.resolve_name_exported(
                 &jsx_namespace,
                 symbol_token,
-                SymbolFlags::VALUE,
+                SymbolFlags::Value,
                 true, /* excludeGlobals */
             ) {
                 ns_is_type_only = ch.get_type_only_alias_declaration(ns_symbol).is_some();
@@ -493,7 +493,7 @@ fn get_symbol_names_to_import(
     if let Some(sym) = ch.resolve_name_exported(
         symbol_token.text(),
         symbol_token,
-        SymbolFlags::VALUE,
+        SymbolFlags::Value,
         true, /* excludeGlobals */
     ) {
         token_is_type_only = ch.get_type_only_alias_declaration(sym).is_some();
@@ -509,7 +509,7 @@ fn needs_jsx_namespace_fix(jsx_namespace: &str, symbol_token: P<Node>, ch: &mut 
     let Some(namespace_symbol) = ch.resolve_name_exported(
         jsx_namespace,
         symbol_token,
-        SymbolFlags::VALUE,
+        SymbolFlags::Value,
         true, /* excludeGlobals */
     ) else {
         return true;
@@ -519,7 +519,7 @@ fn needs_jsx_namespace_fix(jsx_namespace: &str, symbol_token: P<Node>, ch: &mut 
         .iter()
         .any(|&d| ast::is_type_only_import_or_export_declaration(d))
     {
-        return !namespace_symbol.flags().intersects(SymbolFlags::VALUE);
+        return !namespace_symbol.flags().intersects(SymbolFlags::Value);
     }
     false
 }

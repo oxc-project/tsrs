@@ -68,7 +68,7 @@ fn dir_info(name: &str) -> FileInfo {
     FileInfo {
         name: tspath::get_base_file_name(name),
         size: 0,
-        mode: FileMode::DIR | FileMode::from_bits_retain(0o555),
+        mode: FileMode::Dir | FileMode::from_bits_retain(0o555),
         mod_time: None,
     }
 }

@@ -20,10 +20,11 @@ use crate::lsutil::{self, QuotePreference, UserPreferences};
 bitflags::bitflags! {
     // codeactions_missingmemberfixer.go:18
     #[derive(Clone, Copy, PartialEq, Eq, Debug)]
-    pub(crate) struct PreserveOptionalFlags: u32 {
-        const METHOD = 1 << 0;
-        const PROPERTY = 1 << 1;
-        const ALL = Self::METHOD.bits() | Self::PROPERTY.bits();
+    #[expect(non_camel_case_types, reason = "Keep the upstream bitflags type name.")]
+    pub(crate) struct preserveOptionalFlags: u32 {
+        const Method = 1 << 0;
+        const Property = 1 << 1;
+        const All = Self::Method.bits() | Self::Property.bits();
     }
 }
 
@@ -76,16 +77,16 @@ impl<'a> MissingMemberFixer<'a> {
         enclosing_declaration: P<Node>,
         source_file: P<SourceFile>,
         body: Option<P<Node>>,
-        preserve_optional: PreserveOptionalFlags,
+        preserve_optional: preserveOptionalFlags,
         abstract_: bool,
     ) -> Vec<P<Node>> {
         let declarations = symbol.declarations();
         let declaration = declarations.first().copied();
 
         let quote_preference = lsutil::get_quote_preference(source_file, &self.preferences);
-        let ambient = enclosing_declaration.flags().intersects(NodeFlags::AMBIENT);
+        let ambient = enclosing_declaration.flags().intersects(NodeFlags::Ambient);
         let signature_only = ambient || abstract_;
-        let optional = symbol.flags().intersects(SymbolFlags::OPTIONAL);
+        let optional = symbol.flags().intersects(SymbolFlags::Optional);
         let mut kind = Kind::PropertySignature;
         if let Some(declaration) = declaration {
             kind = declaration.kind();
@@ -94,9 +95,9 @@ impl<'a> MissingMemberFixer<'a> {
             create_declaration_name(self.factory(), self.type_checker, Some(symbol), declaration);
         let modifiers = self.create_modifiers(symbol, declaration);
 
-        let mut flags = Flags::NO_TRUNCATION;
+        let mut flags = Flags::NoTruncation;
         if quote_preference == QuotePreference::Single {
-            flags |= Flags::USE_SINGLE_QUOTES_FOR_STRING_LITERAL_TYPE;
+            flags |= Flags::UseSingleQuotesForStringLiteralType;
         }
 
         let type_of_symbol = self
@@ -117,7 +118,7 @@ impl<'a> MissingMemberFixer<'a> {
                     id_to_symbol,
                 );
                 let mut question_token: Option<P<Node>> = None;
-                if optional && preserve_optional.intersects(PreserveOptionalFlags::PROPERTY) {
+                if optional && preserve_optional.intersects(preserveOptionalFlags::Property) {
                     question_token = Some(self.factory().new_token(Kind::QuestionToken));
                 }
                 nodes.push(self.factory().new_property_declaration(
@@ -214,7 +215,7 @@ impl<'a> MissingMemberFixer<'a> {
             Kind::MethodSignature | Kind::MethodDeclaration => {
                 let signatures = self.get_call_signatures(t);
                 let preserve_optional =
-                    optional && preserve_optional.intersects(PreserveOptionalFlags::METHOD);
+                    optional && preserve_optional.intersects(preserveOptionalFlags::Method);
                 if signatures.is_empty() {
                     return Vec::new();
                 }
@@ -239,7 +240,7 @@ impl<'a> MissingMemberFixer<'a> {
 
                 nodes.extend(signatures.iter().filter_map(|&signature| {
                     if let Some(signature_declaration) = signature.declaration() {
-                        if signature_declaration.flags().intersects(NodeFlags::AMBIENT) {
+                        if signature_declaration.flags().intersects(NodeFlags::Ambient) {
                             return None;
                         }
                     }
@@ -328,7 +329,7 @@ impl<'a> MissingMemberFixer<'a> {
             t,
             Some(enclosing_declaration),
             flags,
-            InternalFlags::NONE,
+            InternalFlags::None,
             None, /*tracker*/
         );
         self.import_type_node(type_node, id_to_symbol)
@@ -340,23 +341,23 @@ impl<'a> MissingMemberFixer<'a> {
         symbol: P<Symbol>,
         declaration: Option<P<Node>>,
     ) -> Option<P<ast::ModifierList>> {
-        let mut modifier_flags = ModifierFlags::NONE;
+        let mut modifier_flags = ModifierFlags::None;
         if let Some(declaration) = declaration {
             let effective = checker::get_declaration_modifier_flags_from_symbol_exported(symbol);
-            modifier_flags = effective & ModifierFlags::STATIC;
-            if effective.intersects(ModifierFlags::PUBLIC) {
-                modifier_flags |= ModifierFlags::PUBLIC;
-            } else if effective.intersects(ModifierFlags::PROTECTED) {
-                modifier_flags |= ModifierFlags::PROTECTED;
+            modifier_flags = effective & ModifierFlags::Static;
+            if effective.intersects(ModifierFlags::Public) {
+                modifier_flags |= ModifierFlags::Public;
+            } else if effective.intersects(ModifierFlags::Protected) {
+                modifier_flags |= ModifierFlags::Protected;
             }
             if ast::is_auto_accessor_property_declaration(declaration) {
-                modifier_flags |= ModifierFlags::ACCESSOR;
+                modifier_flags |= ModifierFlags::Accessor;
             }
         }
         if self.should_add_override_keyword(declaration) {
-            modifier_flags |= ModifierFlags::OVERRIDE;
+            modifier_flags |= ModifierFlags::Override;
         }
-        if modifier_flags == ModifierFlags::NONE {
+        if modifier_flags == ModifierFlags::None {
             return None;
         }
         let factory = self.factory();
@@ -388,10 +389,9 @@ impl<'a> MissingMemberFixer<'a> {
         optional: bool,
     ) -> Option<P<Node>> {
         let quote_preference = lsutil::get_quote_preference(source_file, &self.preferences);
-        let mut flags =
-            Flags::NO_TRUNCATION | Flags::SUPPRESS_ANY_RETURN_TYPE | Flags::ALLOW_EMPTY_TUPLE;
+        let mut flags = Flags::NoTruncation | Flags::SuppressAnyReturnType | Flags::AllowEmptyTuple;
         if quote_preference == QuotePreference::Single {
-            flags |= Flags::USE_SINGLE_QUOTES_FOR_STRING_LITERAL_TYPE;
+            flags |= Flags::UseSingleQuotesForStringLiteralType;
         }
 
         let (node_builder, id_to_symbol) = self.create_node_builder();
@@ -401,7 +401,7 @@ impl<'a> MissingMemberFixer<'a> {
             kind,
             Some(enclosing_declaration),
             flags,
-            InternalFlags::ALLOW_UNRESOLVED_NAMES,
+            InternalFlags::AllowUnresolvedNames,
             None, /*tracker*/
         )?;
 
@@ -680,8 +680,8 @@ impl<'a> MissingMemberFixer<'a> {
             self.type_checker,
             union_type,
             Some(enclosing_declaration),
-            Flags::NO_TRUNCATION,
-            InternalFlags::ALLOW_UNRESOLVED_NAMES,
+            Flags::NoTruncation,
+            InternalFlags::AllowUnresolvedNames,
             None, /*typeArguments*/
         );
         self.import_type_node(type_node, id_to_symbol)
@@ -753,8 +753,8 @@ impl<'a> MissingMemberFixer<'a> {
             self.type_checker,
             index_info,
             Some(class_declaration),
-            Flags::NONE,
-            InternalFlags::NONE,
+            Flags::None,
+            InternalFlags::None,
             None,
         )
     }
@@ -778,9 +778,9 @@ impl<'a> MissingMemberFixer<'a> {
 
     // codeactions_missingmemberfixer.go:434
     fn create_stubbed_method_body(&self, quote_preference: QuotePreference) -> P<Node> {
-        let mut token_flags = TokenFlags::NONE;
+        let mut token_flags = TokenFlags::None;
         if quote_preference == QuotePreference::Single {
-            token_flags = TokenFlags::SINGLE_QUOTE;
+            token_flags = TokenFlags::SingleQuote;
         }
 
         let factory = self.factory();
@@ -857,7 +857,7 @@ pub(crate) fn create_declaration_name(
     declaration: Option<P<Node>>,
 ) -> Option<P<Node>> {
     if let Some(symbol) = symbol {
-        if symbol.check_flags().intersects(CheckFlags::MAPPED) {
+        if symbol.check_flags().intersects(CheckFlags::Mapped) {
             let name_type = type_checker.get_name_type_of_symbol(symbol);
             if let Some(name_type) = name_type {
                 if checker::is_type_usable_as_property_name_exported(name_type) {
@@ -886,9 +886,9 @@ pub(crate) fn create_property_name(
     quote_preference: QuotePreference,
 ) -> P<Node> {
     if ast::is_identifier(node) && node.text() == "constructor" {
-        let mut token_flags = TokenFlags::NONE;
+        let mut token_flags = TokenFlags::None;
         if quote_preference == QuotePreference::Single {
-            token_flags = TokenFlags::SINGLE_QUOTE;
+            token_flags = TokenFlags::SingleQuote;
         }
         return factory
             .new_computed_property_name(factory.new_string_literal(node.text(), token_flags));

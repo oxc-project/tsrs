@@ -85,11 +85,11 @@ pub(crate) fn get_operator(expression: P<Node>) -> Kind {
 // Gets the precedence of an expression
 pub fn get_expression_precedence(expression: P<Node>) -> OperatorPrecedence {
     let operator = get_operator(expression);
-    let mut flags = OperatorPrecedenceFlags::NONE;
+    let mut flags = OperatorPrecedenceFlags::None;
     if expression.kind() == Kind::NewExpression && expression.argument_list().is_none() {
-        flags = OperatorPrecedenceFlags::NEW_WITHOUT_ARGUMENTS;
+        flags = OperatorPrecedenceFlags::NewWithoutArguments;
     } else if is_optional_chain(expression) {
-        flags = OperatorPrecedenceFlags::OPTIONAL_CHAIN;
+        flags = OperatorPrecedenceFlags::OptionalChain;
     }
     get_operator_precedence(expression.kind(), operator, flags)
 }
@@ -97,9 +97,9 @@ pub fn get_expression_precedence(expression: P<Node>) -> OperatorPrecedence {
 bitflags! {
     #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Default)]
     pub struct OperatorPrecedenceFlags: u32 {
-        const NONE = 0;
-        const NEW_WITHOUT_ARGUMENTS = 1 << 0;
-        const OPTIONAL_CHAIN = 1 << 1;
+        const None = 0;
+        const NewWithoutArguments = 1 << 0;
+        const OptionalChain = 1 << 1;
     }
 }
 
@@ -146,20 +146,20 @@ pub fn get_operator_precedence(
         Kind::PostfixUnaryExpression => OperatorPrecedence::Update,
         // !!! By necessity, this differs from the old compiler to better align with ParenthesizerRules. consider backporting
         Kind::PropertyAccessExpression | Kind::ElementAccessExpression => {
-            if flags.intersects(OperatorPrecedenceFlags::OPTIONAL_CHAIN) {
+            if flags.intersects(OperatorPrecedenceFlags::OptionalChain) {
                 return OperatorPrecedence::OptionalChain;
             }
             OperatorPrecedence::Member
         }
         Kind::CallExpression => {
-            if flags.intersects(OperatorPrecedenceFlags::OPTIONAL_CHAIN) {
+            if flags.intersects(OperatorPrecedenceFlags::OptionalChain) {
                 return OperatorPrecedence::OptionalChain;
             }
             OperatorPrecedence::Member
         }
         // !!! By necessity, this differs from the old compiler to better align with ParenthesizerRules. consider backporting
         Kind::NewExpression => {
-            if flags.intersects(OperatorPrecedenceFlags::NEW_WITHOUT_ARGUMENTS) {
+            if flags.intersects(OperatorPrecedenceFlags::NewWithoutArguments) {
                 return OperatorPrecedence::LeftHandSide;
             }
             OperatorPrecedence::Member

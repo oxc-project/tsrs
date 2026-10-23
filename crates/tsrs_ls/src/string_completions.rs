@@ -193,7 +193,7 @@ impl LanguageService {
                         "", /*filterText*/
                         SORT_TEXT_LOCATION_PRIORITY,
                         ScriptElementKind::String,
-                        ScriptElementKindModifier::NONE,
+                        ScriptElementKindModifier::None,
                         self.get_replacement_range_for_context_token(
                             file,
                             Some(context_token),
@@ -329,7 +329,7 @@ impl LanguageService {
                     });
                 }
                 return Some(StringLiteralCompletions {
-                    from_types: from_contextual_type(ContextFlags::NONE, node, type_checker),
+                    from_types: from_contextual_type(ContextFlags::None, node, type_checker),
                     ..Default::default()
                 });
             }
@@ -375,11 +375,11 @@ impl LanguageService {
                 if ast::find_ancestor(parent.parent(), ast::is_call_like_expression).is_some() {
                     let mut uniques: FxHashSet<String> = FxHashSet::default();
                     let contextual =
-                        type_checker.get_contextual_type_exported(node, ContextFlags::NONE);
+                        type_checker.get_contextual_type_exported(node, ContextFlags::None);
                     let mut string_literal_types =
                         get_string_literal_types(contextual, Some(&mut uniques), type_checker);
                     let contextual_ignoring = type_checker
-                        .get_contextual_type_exported(node, ContextFlags::IGNORE_NODE_INFERENCES);
+                        .get_contextual_type_exported(node, ContextFlags::IgnoreNodeInferences);
                     string_literal_types.extend(get_string_literal_types(
                         contextual_ignoring,
                         Some(&mut uniques),
@@ -388,7 +388,7 @@ impl LanguageService {
                     return to_string_literal_completions_from_types(string_literal_types);
                 }
                 Some(StringLiteralCompletions {
-                    from_types: from_contextual_type(ContextFlags::NONE, node, type_checker),
+                    from_types: from_contextual_type(ContextFlags::None, node, type_checker),
                     ..Default::default()
                 })
             }
@@ -436,7 +436,7 @@ impl LanguageService {
                     parent.parent().unwrap().as_case_block().clauses.nodes(),
                 );
                 let contextual_types =
-                    from_contextual_type(ContextFlags::IGNORE_NODE_INFERENCES, node, type_checker)?;
+                    from_contextual_type(ContextFlags::IgnoreNodeInferences, node, type_checker)?;
                 let literals: Vec<P<Type>> = contextual_types
                     .types
                     .into_iter()
@@ -514,13 +514,13 @@ impl LanguageService {
                     });
                 }
                 Some(StringLiteralCompletions {
-                    from_types: from_contextual_type(ContextFlags::NONE, node, type_checker),
+                    from_types: from_contextual_type(ContextFlags::None, node, type_checker),
                     ..Default::default()
                 })
             }
             _ => {
                 let result =
-                    from_contextual_type(ContextFlags::IGNORE_NODE_INFERENCES, node, type_checker);
+                    from_contextual_type(ContextFlags::IgnoreNodeInferences, node, type_checker);
                 if result.is_some() {
                     return Some(StringLiteralCompletions {
                         from_types: result,
@@ -528,7 +528,7 @@ impl LanguageService {
                     });
                 }
                 Some(StringLiteralCompletions {
-                    from_types: from_contextual_type(ContextFlags::NONE, node, type_checker),
+                    from_types: from_contextual_type(ContextFlags::None, node, type_checker),
                     ..Default::default()
                 })
             }
@@ -669,11 +669,11 @@ fn string_literal_completions_for_object_literal(
     object_literal_expression: P<Node>,
 ) -> Option<CompletionsFromProperties> {
     let contextual_type =
-        type_checker.get_contextual_type_exported(object_literal_expression, ContextFlags::NONE)?;
+        type_checker.get_contextual_type_exported(object_literal_expression, ContextFlags::None)?;
 
     let completions_type = type_checker.get_contextual_type_exported(
         object_literal_expression,
-        ContextFlags::IGNORE_NODE_INFERENCES,
+        ContextFlags::IgnoreNodeInferences,
     );
     let symbols = get_properties_for_object_expression(
         contextual_type,
@@ -2396,22 +2396,22 @@ fn is_require_call_argument(node: P<Node>) -> bool {
 // string_completions.go:1971
 fn kind_modifiers_from_extension(extension: &str) -> ScriptElementKindModifier {
     match extension {
-        tspath::EXTENSION_DTS => ScriptElementKindModifier::DTS,
-        tspath::EXTENSION_JS => ScriptElementKindModifier::JS,
-        tspath::EXTENSION_JSON => ScriptElementKindModifier::JSON,
-        tspath::EXTENSION_JSX => ScriptElementKindModifier::JSX,
-        tspath::EXTENSION_TS => ScriptElementKindModifier::TS,
-        tspath::EXTENSION_TSX => ScriptElementKindModifier::TSX,
-        tspath::EXTENSION_DMTS => ScriptElementKindModifier::DMTS,
-        tspath::EXTENSION_MJS => ScriptElementKindModifier::MJS,
-        tspath::EXTENSION_MTS => ScriptElementKindModifier::MTS,
-        tspath::EXTENSION_DCTS => ScriptElementKindModifier::DCTS,
-        tspath::EXTENSION_CJS => ScriptElementKindModifier::CJS,
-        tspath::EXTENSION_CTS => ScriptElementKindModifier::CTS,
+        tspath::EXTENSION_DTS => ScriptElementKindModifier::Dts,
+        tspath::EXTENSION_JS => ScriptElementKindModifier::Js,
+        tspath::EXTENSION_JSON => ScriptElementKindModifier::Json,
+        tspath::EXTENSION_JSX => ScriptElementKindModifier::Jsx,
+        tspath::EXTENSION_TS => ScriptElementKindModifier::Ts,
+        tspath::EXTENSION_TSX => ScriptElementKindModifier::Tsx,
+        tspath::EXTENSION_DMTS => ScriptElementKindModifier::Dmts,
+        tspath::EXTENSION_MJS => ScriptElementKindModifier::Mjs,
+        tspath::EXTENSION_MTS => ScriptElementKindModifier::Mts,
+        tspath::EXTENSION_DCTS => ScriptElementKindModifier::Dcts,
+        tspath::EXTENSION_CJS => ScriptElementKindModifier::Cjs,
+        tspath::EXTENSION_CTS => ScriptElementKindModifier::Cts,
         tspath::EXTENSION_TS_BUILD_INFO => {
             panic!("Extension {} is unsupported.", tspath::EXTENSION_TS_BUILD_INFO)
         }
-        _ => ScriptElementKindModifier::NONE,
+        _ => ScriptElementKindModifier::None,
     }
 }
 

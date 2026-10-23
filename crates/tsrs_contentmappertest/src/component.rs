@@ -71,7 +71,7 @@ impl ComponentWriter {
             original_start: original_start as u32,
             original_end: original_end as u32,
             kind,
-            features: Feature::ALL,
+            features: Feature::All,
         });
     }
 
@@ -145,7 +145,7 @@ fn transform_component(content: &str) -> Result<(String, Value), ipc::Error> {
         w.write_mapped(&content[name_start..name_end], name_start, name_end, Kind::ATOM);
         w.write_synthesized(" {}\n");
     }
-    w.write_anchored("export default {};\n", 0, Feature::DEFINITION | Feature::REFERENCES);
+    w.write_anchored("export default {};\n", 0, Feature::Definition | Feature::References);
 
     let mappings = marshal_span_map(&w.segments)?;
     Ok((w.virtual_, mappings))

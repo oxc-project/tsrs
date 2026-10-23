@@ -20,7 +20,7 @@ impl ExponentiationTransformer {
 
     // exponentiation.go:12
     fn visit(&self, node: P<Node>) -> Option<P<Node>> {
-        if !node.subtree_facts().intersects(SubtreeFacts::CONTAINS_EXPONENTIATION_OPERATOR) {
+        if !node.subtree_facts().intersects(SubtreeFacts::ContainsExponentiationOperator) {
             return Some(node);
         }
         match node.kind() {
@@ -64,13 +64,13 @@ impl ExponentiationTransformer {
             );
             access_expr.set_loc(left.as_element_access_expression().argument_expression.loc());
 
-            target = f.new_element_access_expression(obj_expr, None, access_expr, NodeFlags::NONE);
+            target = f.new_element_access_expression(obj_expr, None, access_expr, NodeFlags::None);
 
             value = f.new_element_access_expression(
                 expression_temp,
                 None,
                 argument_expression_temp,
-                NodeFlags::NONE,
+                NodeFlags::None,
             );
             value.set_loc(left.loc());
         } else if ast::is_property_access_expression(left) {
@@ -84,7 +84,7 @@ impl ExponentiationTransformer {
                 assignment,
                 None,
                 left.name().unwrap(),
-                NodeFlags::NONE,
+                NodeFlags::None,
             );
             target.set_loc(left.loc());
 
@@ -92,7 +92,7 @@ impl ExponentiationTransformer {
                 expression_temp,
                 None,
                 left.name().unwrap(),
-                NodeFlags::NONE,
+                NodeFlags::None,
             );
             value.set_loc(left.loc());
         } else {

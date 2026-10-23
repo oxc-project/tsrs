@@ -112,23 +112,23 @@ bitflags! {
     // FileMode mirrors Go's io/fs.FileMode bit layout.
     #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Default)]
     pub struct FileMode: u32 {
-        const NONE = 0;
-        const DIR = 1 << 31;
-        const APPEND = 1 << 30;
-        const EXCLUSIVE = 1 << 29;
-        const TEMPORARY = 1 << 28;
-        const SYMLINK = 1 << 27;
-        const DEVICE = 1 << 26;
-        const NAMED_PIPE = 1 << 25;
-        const SOCKET = 1 << 24;
-        const SETUID = 1 << 23;
-        const SETGID = 1 << 22;
-        const CHAR_DEVICE = 1 << 21;
-        const STICKY = 1 << 20;
-        const IRREGULAR = 1 << 19;
+        const None = 0;
+        const Dir = 1 << 31;
+        const Append = 1 << 30;
+        const Exclusive = 1 << 29;
+        const Temporary = 1 << 28;
+        const Symlink = 1 << 27;
+        const Device = 1 << 26;
+        const NamedPipe = 1 << 25;
+        const Socket = 1 << 24;
+        const Setuid = 1 << 23;
+        const Setgid = 1 << 22;
+        const CharDevice = 1 << 21;
+        const Sticky = 1 << 20;
+        const Irregular = 1 << 19;
 
-        const TYPE = Self::DIR.bits() | Self::SYMLINK.bits() | Self::NAMED_PIPE.bits() | Self::SOCKET.bits() | Self::DEVICE.bits() | Self::CHAR_DEVICE.bits() | Self::IRREGULAR.bits();
-        const PERM = 0o777;
+        const Type = Self::Dir.bits() | Self::Symlink.bits() | Self::NamedPipe.bits() | Self::Socket.bits() | Self::Device.bits() | Self::CharDevice.bits() | Self::Irregular.bits();
+        const Perm = 0o777;
 
         const _ = !0;
     }
@@ -136,21 +136,21 @@ bitflags! {
 
 impl FileMode {
     pub fn is_dir(self) -> bool {
-        self.intersects(FileMode::DIR)
+        self.intersects(FileMode::Dir)
     }
 
     pub fn is_regular(self) -> bool {
-        !self.intersects(FileMode::TYPE)
+        !self.intersects(FileMode::Type)
     }
 
     #[must_use]
     pub fn perm(self) -> FileMode {
-        self & FileMode::PERM
+        self & FileMode::Perm
     }
 
     #[must_use]
     pub fn type_(self) -> FileMode {
-        self & FileMode::TYPE
+        self & FileMode::Type
     }
 }
 

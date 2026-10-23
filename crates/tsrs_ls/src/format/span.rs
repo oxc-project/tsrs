@@ -18,7 +18,7 @@ pub(crate) fn find_enclosing_node(r: TextRange, source_file: P<SourceFile>) -> P
     fn find(n: P<Node>, r: TextRange, source_file: P<SourceFile>) -> P<Node> {
         let mut candidate: Option<P<Node>> = None;
         n.for_each_child(&mut |c| {
-            if c.flags().intersects(NodeFlags::REPARSED) {
+            if c.flags().intersects(NodeFlags::Reparsed) {
                 return false;
             }
             if r.contained_by(with_token_start(c, source_file)) {
@@ -486,7 +486,7 @@ impl FormatSpanWorker {
     ) -> Option<i32> {
         assert!(!ast::node_is_synthesized(child));
 
-        if ast::node_is_missing(child) || child.flags().intersects(NodeFlags::REPARSED) {
+        if ast::node_is_missing(child) || child.flags().intersects(NodeFlags::Reparsed) {
             return inherited_indentation;
         }
         let child_start_pos = scanner::get_token_pos_of_node(child, self.source_file, false);
@@ -501,7 +501,7 @@ impl FormatSpanWorker {
             );
         }
 
-        let is_error_member_list_element = child.flags().intersects(NodeFlags::THIS_NODE_HAS_ERROR)
+        let is_error_member_list_element = child.flags().intersects(NodeFlags::ThisNodeHasError)
             && is_member_list_element(parent, child);
         // if child is a list item - try to get its indentation, only if parent is within the original range.
         let mut child_indentation_amount = None;
@@ -657,7 +657,7 @@ impl FormatSpanWorker {
         if !self.original_range.overlaps(nodes.loc.get()) {
             if nodes.end() < self.original_range.pos()
                 && (nodes.nodes().is_empty()
-                    || !nodes.nodes()[0].flags().intersects(NodeFlags::REPARSED))
+                    || !nodes.nodes()[0].flags().intersects(NodeFlags::Reparsed))
             {
                 self.fs().skip_to_end_of(nodes.loc.get());
             }

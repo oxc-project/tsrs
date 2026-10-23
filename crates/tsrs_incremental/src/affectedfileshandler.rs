@@ -403,7 +403,7 @@ impl AffectedFilesHandler<'_> {
         if let Some(symbol) = affected_file.symbol() {
             if let Some(exports) = symbol.exports() {
                 for (_, exported) in exports.entries() {
-                    if exported.flags().intersects(SymbolFlags::CONST_ENUM) {
+                    if exported.flags().intersects(SymbolFlags::ConstEnum) {
                         invalidate_js_files = true;
                         break;
                     }
@@ -419,7 +419,7 @@ impl AffectedFilesHandler<'_> {
                     if aliased == exported {
                         continue;
                     }
-                    if aliased.flags().intersects(SymbolFlags::CONST_ENUM)
+                    if aliased.flags().intersects(SymbolFlags::ConstEnum)
                         && aliased
                             .declarations()
                             .iter()
@@ -565,9 +565,9 @@ impl AffectedFilesHandler<'_> {
                 dts_may_change,
                 path.clone(),
                 if options.declaration_map.is_true() {
-                    FileEmitKind::ALL_DTS
+                    FileEmitKind::AllDts
                 } else {
-                    FileEmitKind::DTS
+                    FileEmitKind::Dts
                 },
             );
         }

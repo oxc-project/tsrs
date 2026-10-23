@@ -71,7 +71,7 @@ fn test_jsdoc_augments_heritage() {
             assert_eq!(type_arguments.nodes().len(), 1, "{name}");
             let argument = type_arguments.nodes()[0];
             assert_eq!(argument.kind(), Kind::StringKeyword, "{name}");
-            assert!(argument.flags().contains(NodeFlags::REPARSED), "{name}");
+            assert!(argument.flags().contains(NodeFlags::Reparsed), "{name}");
             assert_eq!(argument.parent(), Some(base_type), "{name}");
             assert_eq!(tsrs_scanner::get_text_of_node(argument), "string", "{name}");
             assert_eq!(
@@ -146,9 +146,9 @@ fn test_parse_dynamic_source_phase_import() {
     assert!(tsrs_ast::is_import_call(call));
     assert!(tsrs_ast::is_source_phase_import_call(call));
     assert!(tsrs_ast::is_source_phase_import(call));
-    assert!(call.subtree_facts().contains(SubtreeFacts::CONTAINS_DYNAMIC_IMPORT));
-    assert!(file.as_node().flags().contains(NodeFlags::POSSIBLY_CONTAINS_DYNAMIC_IMPORT));
-    assert!(!file.as_node().flags().contains(NodeFlags::POSSIBLY_CONTAINS_IMPORT_META));
+    assert!(call.subtree_facts().contains(SubtreeFacts::ContainsDynamicImport));
+    assert!(file.as_node().flags().contains(NodeFlags::PossiblyContainsDynamicImport));
+    assert!(!file.as_node().flags().contains(NodeFlags::PossiblyContainsImportMeta));
     assert!(file.external_module_indicator.get().is_none());
 }
 
@@ -159,7 +159,7 @@ fn test_parse_escaped_dynamic_import_phase() {
         assert_eq!(file.diagnostics().len(), 1, "{source}");
         let call = file.statements().nodes()[0].as_expression_statement().expression();
         assert!(tsrs_ast::is_import_call(call), "{source}");
-        assert!(file.as_node().flags().contains(NodeFlags::POSSIBLY_CONTAINS_DYNAMIC_IMPORT));
-        assert!(!file.as_node().flags().contains(NodeFlags::POSSIBLY_CONTAINS_IMPORT_META));
+        assert!(file.as_node().flags().contains(NodeFlags::PossiblyContainsDynamicImport));
+        assert!(!file.as_node().flags().contains(NodeFlags::PossiblyContainsImportMeta));
     }
 }

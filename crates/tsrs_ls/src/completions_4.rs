@@ -268,9 +268,9 @@ impl LanguageService {
             );
             if display_name == item_data.name
                 && (item_data.source == COMPLETION_SOURCE_CLASS_MEMBER_SNIPPET
-                    && symbol.flags().intersects(SymbolFlags::CLASS_MEMBER)
+                    && symbol.flags().intersects(SymbolFlags::ClassMember)
                     || item_data.source == COMPLETION_SOURCE_OBJECT_LITERAL_METHOD_SNIPPET
-                        && symbol.flags().intersects(SymbolFlags::PROPERTY | SymbolFlags::METHOD)
+                        && symbol.flags().intersects(SymbolFlags::Property | SymbolFlags::Method)
                     || get_source_from_origin(origin) == item_data.source
                     || item_data.source == COMPLETION_SOURCE_OBJECT_LITERAL_MEMBER_WITH_COMMA)
             {
@@ -1016,13 +1016,13 @@ fn get_jsdoc_param_annotation(
             if let Some(initializer) = initializer {
                 let inferred_type =
                     type_checker.get_type_at_location(initializer.parent().unwrap());
-                if !inferred_type.flags().intersects(TypeFlags::ANY | TypeFlags::VOID) {
+                if !inferred_type.flags().intersects(TypeFlags::Any | TypeFlags::Void) {
                     let file = ast::get_source_file_of_node(initializer).unwrap();
                     let quote_preference = lsutil::get_quote_preference(file, preferences);
                     let builder_flags = if quote_preference == QuotePreference::Single {
-                        Flags::USE_SINGLE_QUOTES_FOR_STRING_LITERAL_TYPE
+                        Flags::UseSingleQuotesForStringLiteralType
                     } else {
-                        Flags::NONE
+                        Flags::None
                     };
                     let type_node = type_checker.type_to_type_node(
                         inferred_type,
@@ -1046,7 +1046,7 @@ fn get_jsdoc_param_annotation(
                             printer::PrintHandlers::default(),
                             Some(emit_context),
                         );
-                        emit_context.set_emit_flags(type_node, EmitFlags::SINGLE_LINE);
+                        emit_context.set_emit_flags(type_node, EmitFlags::SingleLine);
                         t = p.emit(type_node, Some(file));
                     }
                 }
@@ -1397,13 +1397,13 @@ impl LanguageService {
                                         Kind::MinusToken,
                                         factory.new_big_int_literal(
                                             tsrs_core::alloc_str(&(v.string() + "n")),
-                                            TokenFlags::NONE,
+                                            TokenFlags::None,
                                         ),
                                     )
                                 } else {
                                     factory.new_big_int_literal(
                                         tsrs_core::alloc_str(&(v.string() + "n")),
-                                        TokenFlags::NONE,
+                                        TokenFlags::None,
                                     )
                                 };
                                 elements.push(big_int);
@@ -1414,13 +1414,13 @@ impl LanguageService {
                                         Kind::MinusToken,
                                         factory.new_numeric_literal(
                                             tsrs_core::alloc_str(&v.abs().string()),
-                                            TokenFlags::NONE,
+                                            TokenFlags::None,
                                         ),
                                     )
                                 } else {
                                     factory.new_numeric_literal(
                                         tsrs_core::alloc_str(&v.string()),
-                                        TokenFlags::NONE,
+                                        TokenFlags::None,
                                     )
                                 };
                                 elements.push(number);
@@ -1429,9 +1429,9 @@ impl LanguageService {
                                 let literal = factory.new_string_literal(
                                     v,
                                     if quote_preference == QuotePreference::Single {
-                                        TokenFlags::SINGLE_QUOTE
+                                        TokenFlags::SingleQuote
                                     } else {
-                                        TokenFlags::NONE
+                                        TokenFlags::None
                                     },
                                 );
                                 elements.push(literal);
@@ -1546,7 +1546,7 @@ fn type_node_to_expression(
                     object_expression,
                     None, /*questionDotToken*/
                     index_expression,
-                    NodeFlags::NONE,
+                    NodeFlags::None,
                 ));
             }
             None
@@ -1558,9 +1558,9 @@ fn type_node_to_expression(
                     let expr = factory.new_string_literal(
                         literal.text(),
                         if quote_preference == QuotePreference::Single {
-                            TokenFlags::SINGLE_QUOTE
+                            TokenFlags::SingleQuote
                         } else {
-                            TokenFlags::NONE
+                            TokenFlags::None
                         },
                     );
                     Some(expr)
@@ -1625,7 +1625,7 @@ fn entity_name_to_expression(
         ),
         None, /*questionDotToken*/
         entity_name.as_qualified_name().right,
-        NodeFlags::NONE,
+        NodeFlags::None,
     )
 }
 

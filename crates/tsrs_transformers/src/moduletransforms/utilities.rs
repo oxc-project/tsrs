@@ -95,7 +95,7 @@ pub(crate) fn get_external_module_name_literal(
             }
             if name.is_none() {
                 // !!! propagate token flags (will produce new diffs)
-                name = Some(factory.new_string_literal(module_name.text(), TokenFlags::NONE));
+                name = Some(factory.new_string_literal(module_name.text(), TokenFlags::None));
             }
             return name;
         }

@@ -60,7 +60,9 @@ contributing `impl` blocks to the same type.
 - Types and traits use UpperCamelCase, including unexported Go types (`configFileEntry` -> `ConfigFileEntry`).
   Preserve upstream acronym spellings (`ID`, `APIState`, `JSX`). When capitalization would collide with an existing
   type or trait, give the implementation a distinct name (`logger` -> `LoggerImpl`).
-- Constants, statics and associated constants use SCREAMING_SNAKE_CASE, including diagnostic message statics.
+  Bitflags types keep their upstream names.
+- Constants, statics and associated constants use SCREAMING_SNAKE_CASE, including diagnostic message statics,
+  except for bitflags constants, which keep their upstream names.
   Generators convert Rust identifiers separately from upstream names, message keys and protocol strings.
 - Struct fields: snake_case of the Go field name.
 - Go getter `Foo()` over private field `foo` -> Rust method `foo()`. Setter `SetFoo` -> `set_foo`.
@@ -186,8 +188,8 @@ callback, even when the closure does not need it.
 ### Flags and enums
 
 - Go bit-flag types (`type TypeFlags uint32` + `iota` constants) -> `bitflags!` structs with the
-  **Go constant name minus the type prefix, in SCREAMING_SNAKE_CASE**: `TypeFlagsObject` -> `TypeFlags::OBJECT`,
-  `ast.NodeFlagsAwaitContext` -> `NodeFlags::AWAIT_CONTEXT`, `TypeFlagsNone` -> `TypeFlags::NONE` (= empty).
+  **Go constant name minus the type prefix, in CamelCase**: `TypeFlagsObject` -> `TypeFlags::Object`,
+  `ast.NodeFlagsAwaitContext` -> `NodeFlags::AwaitContext`, `TypeFlagsNone` -> `TypeFlags::None` (= empty).
   - `x&F != 0` -> `x.intersects(F)`; `x&F == 0` -> `!x.intersects(F)`; `x&F == F` -> `x.contains(F)`
   - `x | y`, `x & y`, `x &^ y` -> `x | y`, `x & y`, `x & !y`; `x |= y` -> `x |= y` (through `Cell`: `c.set(c.get() | y)`)
 - Go enumerations (`type Kind int16` + `iota`) -> `#[repr(…)] enum` with `#[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Debug)]`,

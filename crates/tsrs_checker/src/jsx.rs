@@ -32,7 +32,7 @@ impl Checker {
         } else {
             self.check_expression(jsx_element.closing_element.tag_name());
         }
-        self.check_jsx_children(node, CheckMode::NORMAL);
+        self.check_jsx_children(node, CheckMode::Normal);
     }
 
     // jsx.go:89
@@ -88,7 +88,7 @@ impl Checker {
             };
             self.error(Some(node), message, &[]);
         }
-        self.check_jsx_children(node, CheckMode::NORMAL);
+        self.check_jsx_children(node, CheckMode::Normal);
         let t = self.get_jsx_element_type_at(node);
         if self.is_error_type(t) { self.any_type } else { t }
     }
@@ -107,7 +107,7 @@ impl Checker {
         }
         self.check_jsx_preconditions(node);
         self.mark_jsx_alias_referenced(node);
-        let sig = self.get_resolved_signature(node, None, CheckMode::NORMAL);
+        let sig = self.get_resolved_signature(node, None, CheckMode::Normal);
         self.check_deprecated_signature(sig, node);
         if is_node_opening_like_element {
             let element_type_constraint = self.get_jsx_element_type_type_at(node);
@@ -297,11 +297,10 @@ impl Checker {
         node: P<Node>,
         context_flags: ContextFlags,
     ) -> Option<P<Type>> {
-        if ast::is_jsx_opening_element(node)
-            && context_flags != ContextFlags::IGNORE_NODE_INFERENCES
+        if ast::is_jsx_opening_element(node) && context_flags != ContextFlags::IgnoreNodeInferences
         {
             if let Some(index) = self
-                .find_contextual_node(node.parent().unwrap(), context_flags == ContextFlags::NONE)
+                .find_contextual_node(node.parent().unwrap(), context_flags == ContextFlags::None)
             {
                 // Contextually applied type is moved from attributes up to the outer jsx attributes so when walking up from the children they get hit
                 // _However_ to hit them from the _attributes_ we must look for them here; otherwise we'll used the declared type
@@ -396,7 +395,7 @@ impl Checker {
         let mut discriminant_members: Vec<P<Symbol>> = Vec::new();
         discriminant_members.extend(
             self.get_properties_of_type(contextual_type).iter().copied().filter(|&s| 'keep: {
-                if !s.flags().intersects(SymbolFlags::OPTIONAL) || node.symbol().is_none() {
+                if !s.flags().intersects(SymbolFlags::Optional) || node.symbol().is_none() {
                     break 'keep false;
                 }
                 let element = node.parent().unwrap().parent().unwrap();
@@ -439,7 +438,7 @@ impl Checker {
                 && !is_hyphenated_jsx_name(prop.name().unwrap().text())
             {
                 let name_type = self.get_string_literal_type(prop.name().unwrap().text());
-                if !name_type.flags().intersects(TypeFlags::NEVER) {
+                if !name_type.flags().intersects(TypeFlags::Never) {
                     reported_error = self.elaborate_element(
                         source,
                         target,
@@ -516,7 +515,7 @@ impl Checker {
             if more_than_one_real_children {
                 if array_like_target_parts != self.never_type {
                     let child_types =
-                        self.check_jsx_children(containing_element, CheckMode::NORMAL);
+                        self.check_jsx_children(containing_element, CheckMode::Normal);
                     let real_source = self.create_tuple_type(&child_types);
                     let children = Self::generate_jsx_children(
                         containing_element,
@@ -687,7 +686,7 @@ impl Checker {
         let mut iteration_type: Option<P<Type>> = None;
         if non_tuple_or_array_like_target_parts != self.never_type {
             iteration_type = self.get_iteration_type_of_iterable(
-                IterationUse::FOR_OF,
+                IterationUse::ForOf,
                 IterationTypeKind::Yield,
                 non_tuple_or_array_like_target_parts,
                 None, /*errorNode*/
@@ -708,7 +707,7 @@ impl Checker {
                 );
             }
             if let Some(target_indexed_prop_type) = target_indexed_prop_type {
-                if !target_indexed_prop_type.flags().intersects(TypeFlags::INDEXED_ACCESS) {
+                if !target_indexed_prop_type.flags().intersects(TypeFlags::IndexedAccess) {
                     if let Some(iteration_type) = iteration_type {
                         target_prop_type =
                             Some(self.get_union_type(&[iteration_type, target_indexed_prop_type]));
@@ -723,7 +722,7 @@ impl Checker {
             let source_prop_type = self.get_indexed_access_type_or_undefined(
                 source,
                 name_type,
-                AccessFlags::NONE,
+                AccessFlags::None,
                 None,
                 AliasArg::None,
             );
@@ -782,13 +781,13 @@ impl Checker {
                                 .get_property_of_type(tuple_or_array_like_target_parts, &prop_name)
                                 .unwrap_or(self.unknown_symbol)
                                 .flags()
-                                .intersects(SymbolFlags::OPTIONAL);
+                                .intersects(SymbolFlags::Optional);
                         let source_is_optional = prop_name != INTERNAL_SYMBOL_NAME_MISSING
                             && self
                                 .get_property_of_type(source, &prop_name)
                                 .unwrap_or(self.unknown_symbol)
                                 .flags()
-                                .intersects(SymbolFlags::OPTIONAL);
+                                .intersects(SymbolFlags::Optional);
                         target_prop_type =
                             self.remove_missing_type(target_prop_type, target_is_optional);
                         source_prop_type = self.remove_missing_type(
@@ -843,7 +842,7 @@ impl Checker {
         if jsx_specific.is_some() {
             return jsx_specific;
         }
-        self.get_spelling_suggestion_for_name(name, properties, SymbolFlags::VALUE)
+        self.get_spelling_suggestion_for_name(name, properties, SymbolFlags::Value)
     }
 
     // jsx.go:500
@@ -866,9 +865,9 @@ impl Checker {
         if jsx_factory_symbol.is_none() {
             let should_module_ref_err = self.compiler_options.jsx != JsxEmit::PRESERVE
                 && self.compiler_options.jsx != JsxEmit::REACT_NATIVE;
-            let mut flags = SymbolFlags::VALUE;
+            let mut flags = SymbolFlags::Value;
             if !should_module_ref_err {
-                flags &= !SymbolFlags::ENUM;
+                flags &= !SymbolFlags::Enum;
             }
             jsx_factory_symbol = self.resolve_name(
                 Some(node),
@@ -889,16 +888,13 @@ impl Checker {
             return t;
         }
         let mut resolved_alias = jsx_factory_symbol;
-        if jsx_factory_symbol.flags().intersects(SymbolFlags::ALIAS) {
+        if jsx_factory_symbol.flags().intersects(SymbolFlags::Alias) {
             resolved_alias = self.resolve_alias(jsx_factory_symbol);
         }
 
         let react_exports = self.get_exports_of_symbol(resolved_alias);
-        let type_symbol = self.get_symbol(
-            react_exports,
-            REACT_NAMES.fragment,
-            SymbolFlags::BLOCK_SCOPED_VARIABLE,
-        );
+        let type_symbol =
+            self.get_symbol(react_exports, REACT_NAMES.fragment, SymbolFlags::BlockScopedVariable);
         if let Some(type_symbol) = type_symbol {
             let t = self.get_type_of_symbol(type_symbol);
             links.jsx_fragment_type.set(Some(t));
@@ -929,7 +925,7 @@ impl Checker {
                     attributes,
                     contextual_type,
                     None, /*inferenceContext*/
-                    CheckMode::NORMAL,
+                    CheckMode::Normal,
                 );
                 self.check_type_assignable_to_and_optionally_elaborate(
                     attributes_type,
@@ -1005,7 +1001,7 @@ impl Checker {
             &signatures,
             candidates_out_array,
             check_mode,
-            SignatureFlags::NONE,
+            SignatureFlags::None,
             None,
         )
     }
@@ -1029,7 +1025,7 @@ impl Checker {
         // can be specified by users through attributes property.
         let param_type = self.get_effective_first_argument_for_jsx_signature(signature, node);
         let attributes_type = if ast::is_jsx_opening_fragment(node) {
-            self.create_jsx_attributes_type_from_attributes_property(node, CheckMode::NORMAL)
+            self.create_jsx_attributes_type_from_attributes_property(node, CheckMode::Normal)
         } else {
             self.check_expression_with_contextual_type(
                 node.attributes().unwrap(),
@@ -1038,7 +1034,7 @@ impl Checker {
                 check_mode,
             )
         };
-        let check_attributes_type = if check_mode.intersects(CheckMode::SKIP_CONTEXT_SENSITIVE) {
+        let check_attributes_type = if check_mode.intersects(CheckMode::SkipContextSensitive) {
             self.get_regular_type_of_object_literal(attributes_type)
         } else {
             attributes_type
@@ -1097,21 +1093,21 @@ impl Checker {
         let mut has_spread_any_type = false;
         let mut type_to_intersect: Option<P<Type>> = None;
         let mut explicitly_specify_children_attribute = false;
-        let mut object_flags = ObjectFlags::JSX_ATTRIBUTES;
+        let mut object_flags = ObjectFlags::JsxAttributes;
         fn create_jsx_attributes_type(
             c: &mut Checker,
             object_flags: &mut ObjectFlags,
             attributes_symbol: Option<P<Symbol>>,
             attributes_table: P<SymbolTable>,
         ) -> P<Type> {
-            *object_flags |= ObjectFlags::FRESH_LITERAL;
+            *object_flags |= ObjectFlags::FreshLiteral;
             let result =
                 c.new_anonymous_type(attributes_symbol, Some(attributes_table), &[], &[], &[]);
             result.object_flags.set(
                 result.object_flags.get_lazy()
                     | *object_flags
-                    | ObjectFlags::OBJECT_LITERAL
-                    | ObjectFlags::CONTAINS_OBJECT_OR_ARRAY_LITERAL,
+                    | ObjectFlags::ObjectLiteral
+                    | ObjectFlags::ContainsObjectOrArrayLiteral,
             );
             result
         }
@@ -1122,7 +1118,7 @@ impl Checker {
             let attributes = opening_like_element.attributes().unwrap();
             attributes_symbol = attributes.symbol();
             attribute_parent = attributes;
-            let contextual_type = self.get_contextual_type(attributes, ContextFlags::NONE);
+            let contextual_type = self.get_contextual_type(attributes, ContextFlags::None);
             // Create anonymous type from given attributes symbol table.
             // @param symbol a symbol of JsxAttributes containing attributes corresponding to attributesTable
             // @param attributesTable a symbol table of attributes property
@@ -1131,9 +1127,9 @@ impl Checker {
                 if ast::is_jsx_attribute(attribute_decl) {
                     let member = member.unwrap();
                     let expr_type = self.check_jsx_attribute(attribute_decl, check_mode);
-                    object_flags |= expr_type.object_flags() & ObjectFlags::PROPAGATING_FLAGS;
+                    object_flags |= expr_type.object_flags() & ObjectFlags::PropagatingFlags;
                     let attribute_symbol =
-                        self.new_symbol(SymbolFlags::PROPERTY | member.flags(), member.name());
+                        self.new_symbol(SymbolFlags::Property | member.flags(), member.name());
                     attribute_symbol.set_declarations_static(member.declarations());
                     attribute_symbol.set_parent(member.parent());
                     if member.value_declaration().is_some() {
@@ -1150,8 +1146,8 @@ impl Checker {
                         explicitly_specify_children_attribute = true;
                     }
                     if contextual_type.is_some()
-                        && check_mode.intersects(CheckMode::INFERENTIAL)
-                        && !check_mode.intersects(CheckMode::SKIP_CONTEXT_SENSITIVE)
+                        && check_mode.intersects(CheckMode::Inferential)
+                        && !check_mode.intersects(CheckMode::SkipContextSensitive)
                         && self.is_context_sensitive(attribute_decl)
                     {
                         let inference_context = self.get_inference_context(attributes);
@@ -1187,7 +1183,7 @@ impl Checker {
                     }
                     let checked = self.check_expression_ex(
                         attribute_decl.expression().unwrap(),
-                        check_mode & CheckMode::INFERENTIAL,
+                        check_mode & CheckMode::Inferential,
                     );
                     let expr_type = self.get_reduced_type(checked);
                     if is_type_any(Some(expr_type)) {
@@ -1276,7 +1272,7 @@ impl Checker {
                 if ast::is_jsx_opening_element(opening_like_element) {
                     if let Some(contextual_type) = self.get_apparent_type_of_contextual_type(
                         opening_like_element.attributes().unwrap(),
-                        ContextFlags::NONE,
+                        ContextFlags::None,
                     ) {
                         children_contextual_type = self.get_type_of_property_of_contextual_type(
                             contextual_type,
@@ -1286,7 +1282,7 @@ impl Checker {
                 }
                 // If there are children in the body of JSX element, create dummy attribute "children" with the union of children types so that it will pass the attribute checking process
                 let children_prop_symbol =
-                    self.new_symbol(SymbolFlags::PROPERTY, alloc_str(&jsx_children_property_name));
+                    self.new_symbol(SymbolFlags::Property, alloc_str(&jsx_children_property_name));
                 let links = self.value_symbol_links.get(children_prop_symbol);
                 if child_types.len() == 1 {
                     links.resolved_type.set(Some(child_types[0]));
@@ -1322,7 +1318,7 @@ impl Checker {
                 let children_type =
                     self.new_anonymous_type(attributes_symbol, Some(child_prop_map), &[], &[], &[]);
                 let propagating_flags =
-                    checker::Checker::get_propagating_flags_of_types(&child_types, TypeFlags::NONE);
+                    checker::Checker::get_propagating_flags_of_types(&child_types, TypeFlags::None);
                 spread = self.get_spread_type(
                     spread,
                     children_type,
@@ -1395,10 +1391,10 @@ impl Checker {
         element_type: P<Type>,
         caller: P<Node>,
     ) -> Vec<P<Signature>> {
-        if element_type.flags().intersects(TypeFlags::STRING) {
+        if element_type.flags().intersects(TypeFlags::String) {
             return vec![self.any_signature];
         }
-        if element_type.flags().intersects(TypeFlags::STRING_LITERAL) {
+        if element_type.flags().intersects(TypeFlags::StringLiteral) {
             let intrinsic_type =
                 self.get_intrinsic_attributes_type_from_string_literal_type(element_type, caller);
             let Some(intrinsic_type) = intrinsic_type else {
@@ -1423,7 +1419,7 @@ impl Checker {
             signatures =
                 self.get_signatures_of_type(apparent_elem_type, SignatureKind::Call).to_vec();
         }
-        if signatures.is_empty() && apparent_elem_type.flags().intersects(TypeFlags::UNION) {
+        if signatures.is_empty() && apparent_elem_type.flags().intersects(TypeFlags::Union) {
             // If each member has some combination of new/call signatures; make a union signature list for those
             let signature_lists: Vec<Vec<P<Signature>>> = apparent_elem_type
                 .types()
@@ -1618,7 +1614,7 @@ impl Checker {
     ) -> Option<P<Type>> {
         let declared_managed_type = self.get_declared_type_of_symbol(managed_sym);
         // fetches interface type, or initializes symbol links type parameters
-        if managed_sym.flags().intersects(SymbolFlags::TYPE_ALIAS) {
+        if managed_sym.flags().intersects(SymbolFlags::TypeAlias) {
             let params = self.type_alias_links.get(managed_sym).type_parameters.get();
             if params.len() >= type_arguments.len() {
                 let args = self.fill_missing_type_arguments(
@@ -1633,7 +1629,7 @@ impl Checker {
                 return Some(self.get_type_alias_instantiation(managed_sym, &args, None));
             }
         }
-        if declared_managed_type.object_flags().intersects(ObjectFlags::CLASS_OR_INTERFACE)
+        if declared_managed_type.object_flags().intersects(ObjectFlags::ClassOrInterface)
             && declared_managed_type.as_interface_type().type_parameters().len()
                 >= type_arguments.len()
         {
@@ -1657,7 +1653,7 @@ impl Checker {
             return self.get_symbol(
                 jsx_namespace.exports(),
                 JSX_NAMES.library_managed_attributes,
-                SymbolFlags::TYPE,
+                SymbolFlags::Type,
             );
         }
         None
@@ -1673,7 +1669,7 @@ impl Checker {
             return self.get_symbol(
                 jsx_namespace.exports(),
                 JSX_NAMES.element_type,
-                SymbolFlags::TYPE,
+                SymbolFlags::Type,
             );
         }
         None
@@ -1734,7 +1730,7 @@ impl Checker {
             let jsx_element_attrib_prop_interface_sym = self.get_symbol(
                 jsx_namespace.exports(),
                 name_of_attrib_prop_container,
-                SymbolFlags::TYPE,
+                SymbolFlags::Type,
             );
             if let Some(jsx_element_attrib_prop_interface_sym) =
                 jsx_element_attrib_prop_interface_sym
@@ -1782,7 +1778,7 @@ impl Checker {
             return self.get_or_create_type_from_signature(fake_signature);
         }
         let tag_type = self.check_expression_cached(context.tag_name());
-        if tag_type.flags().intersects(TypeFlags::STRING_LITERAL) {
+        if tag_type.flags().intersects(TypeFlags::StringLiteral) {
             let result =
                 self.get_intrinsic_attributes_type_from_string_literal_type(tag_type, context);
             let Some(result) = result else {
@@ -1850,17 +1846,17 @@ impl Checker {
         if let Some(namespace) = self.get_jsx_namespace_at(Some(node)) {
             let exports = self.get_exports_of_symbol(namespace);
             if let Some(type_symbol) =
-                self.get_symbol(exports, JSX_NAMES.element, SymbolFlags::TYPE)
+                self.get_symbol(exports, JSX_NAMES.element, SymbolFlags::Type)
             {
                 element_type = self.get_declared_type_of_symbol(type_symbol);
             }
         }
         // returnNode := typeSymbol && c.nodeBuilder.symbolToEntityName(typeSymbol, ast.SymbolFlagsType, node)
         // declaration := factory.createFunctionTypeNode(nil, []ParameterDeclaration{factory.createParameterDeclaration(nil, nil /*dotDotDotToken*/, "props", nil /*questionToken*/, c.nodeBuilder.typeToTypeNode(result, node))}, ifElse(returnNode != nil, factory.createTypeReferenceNode(returnNode, nil /*typeArguments*/), factory.createKeywordTypeNode(ast.KindAnyKeyword)))
-        let parameter_symbol = self.new_symbol(SymbolFlags::FUNCTION_SCOPED_VARIABLE, "props");
+        let parameter_symbol = self.new_symbol(SymbolFlags::FunctionScopedVariable, "props");
         self.value_symbol_links.get(parameter_symbol).resolved_type.set(Some(result));
         self.new_signature(
-            SignatureFlags::NONE,
+            SignatureFlags::None,
             None,
             &[],
             None,
@@ -1885,12 +1881,12 @@ impl Checker {
             return links.resolved_jsx_element_attributes_type.get();
         }
         let symbol = self.get_intrinsic_tag_symbol(node);
-        if links.jsx_flags.get().intersects(JsxFlags::INTRINSIC_NAMED_ELEMENT) {
+        if links.jsx_flags.get().intersects(JsxFlags::IntrinsicNamedElement) {
             let t = self.get_type_of_symbol(symbol.unwrap());
             links.resolved_jsx_element_attributes_type.set(Some(t));
             return links.resolved_jsx_element_attributes_type.get();
         }
-        if links.jsx_flags.get().intersects(JsxFlags::INTRINSIC_INDEXED_ELEMENT) {
+        if links.jsx_flags.get().intersects(JsxFlags::IntrinsicIndexedElement) {
             let intrinsic_elements_type = self.get_jsx_type(JSX_NAMES.intrinsic_elements, node);
             let index_info = self.get_applicable_index_info_for_name(
                 intrinsic_elements_type,
@@ -1929,7 +1925,7 @@ impl Checker {
                 let jsx_links = self.jsx_element_links.get(node);
                 jsx_links
                     .jsx_flags
-                    .set(jsx_links.jsx_flags.get() | JsxFlags::INTRINSIC_NAMED_ELEMENT);
+                    .set(jsx_links.jsx_flags.get() | JsxFlags::IntrinsicNamedElement);
                 links.resolved_symbol.set(intrinsic_prop);
                 return links.resolved_symbol.get();
             }
@@ -1941,7 +1937,7 @@ impl Checker {
                 let jsx_links = self.jsx_element_links.get(node);
                 jsx_links
                     .jsx_flags
-                    .set(jsx_links.jsx_flags.get() | JsxFlags::INTRINSIC_INDEXED_ELEMENT);
+                    .set(jsx_links.jsx_flags.get() | JsxFlags::IntrinsicIndexedElement);
                 links.resolved_symbol.set(index_symbol);
                 return links.resolved_symbol.get();
             }
@@ -1952,7 +1948,7 @@ impl Checker {
                 let jsx_links = self.jsx_element_links.get(node);
                 jsx_links
                     .jsx_flags
-                    .set(jsx_links.jsx_flags.get() | JsxFlags::INTRINSIC_INDEXED_ELEMENT);
+                    .set(jsx_links.jsx_flags.get() | JsxFlags::IntrinsicIndexedElement);
                 links.resolved_symbol.set(intrinsic_elements_type.symbol());
                 return links.resolved_symbol.get();
             }
@@ -2019,7 +2015,7 @@ impl Checker {
     pub(crate) fn get_jsx_type(&mut self, name: &str, location: P<Node>) -> P<Type> {
         if let Some(namespace) = self.get_jsx_namespace_at(Some(location)) {
             if let Some(exports) = self.get_exports_of_symbol(namespace) {
-                if let Some(type_symbol) = self.get_symbol(Some(exports), name, SymbolFlags::TYPE) {
+                if let Some(type_symbol) = self.get_symbol(Some(exports), name, SymbolFlags::Type) {
                     return self.get_declared_type_of_symbol(type_symbol);
                 }
             }
@@ -2049,7 +2045,7 @@ impl Checker {
                 resolved_namespace = self.resolve_name(
                     location,
                     &namespace_name,
-                    SymbolFlags::NAMESPACE,
+                    SymbolFlags::Namespace,
                     None,  /*nameNotFoundMessage*/
                     false, /*isUse*/
                     false, /*excludeGlobals*/
@@ -2059,7 +2055,7 @@ impl Checker {
                 let resolved = self.resolve_symbol(resolved_namespace);
                 let exports = self.get_exports_of_symbol(resolved);
                 let candidate = self
-                    .get_symbol(exports, JSX_NAMES.jsx, SymbolFlags::NAMESPACE)
+                    .get_symbol(exports, JSX_NAMES.jsx, SymbolFlags::Namespace)
                     .map(|s| self.resolve_symbol(s));
                 if let Some(candidate) = candidate {
                     if candidate != self.unknown_symbol {
@@ -2076,7 +2072,7 @@ impl Checker {
         }
         // JSX global fallback
         let s = self
-            .get_global_symbol(JSX_NAMES.jsx, SymbolFlags::NAMESPACE, None /*diagnostic*/)
+            .get_global_symbol(JSX_NAMES.jsx, SymbolFlags::Namespace, None /*diagnostic*/)
             .map(|s| self.resolve_symbol(s));
         if s == Some(self.unknown_symbol) {
             return None;
@@ -2331,7 +2327,7 @@ fn check_tag_name_does_not_expect_too_many_arguments(
     };
     let factory_symbol = c.resolve_entity_name(
         factory,
-        SymbolFlags::VALUE,
+        SymbolFlags::Value,
         true,  /*ignoreErrors*/
         false, /*dontResolveAlias*/
         Some(node),

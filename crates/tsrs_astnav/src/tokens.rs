@@ -128,7 +128,7 @@ pub(crate) fn get_token_at_position_worker(
             if node.kind() != Kind::EndOfFile
                 && node_end == position
                 && include_preceding_token_at_end_position.is_some()
-                && !node.flags().intersects(NodeFlags::REPARSED)
+                && !node.flags().intersects(NodeFlags::Reparsed)
             {
                 if let Some(prev_subtree) = st.prev_subtree.get() {
                     if get_included_preceding_token(prev_subtree).is_some() {
@@ -167,7 +167,7 @@ pub(crate) fn get_token_at_position_worker(
             // We can't abort visiting children, so once a match is found, we set `next`
             // and do nothing on subsequent visits.
             let node = node?;
-            if node.flags().intersects(NodeFlags::REPARSED) {
+            if node.flags().intersects(NodeFlags::Reparsed) {
                 return None;
             }
             if st.node_after_left.get().is_none() {
@@ -207,7 +207,7 @@ pub(crate) fn get_token_at_position_worker(
             }
             if st.node_after_left.get().is_none() {
                 if let Some(node) = list.nodes().iter().find_map(|&node| {
-                    if !node.flags().intersects(NodeFlags::REPARSED) { Some(node) } else { None }
+                    if !node.flags().intersects(NodeFlags::Reparsed) { Some(node) } else { None }
                 }) {
                     st.node_after_left.set(Some(node));
                 }
@@ -218,7 +218,7 @@ pub(crate) fn get_token_at_position_worker(
                     st.left.set(list_end);
                     st.node_after_left.set(None);
                     for &v in list.nodes().iter().rev() {
-                        if !v.flags().intersects(NodeFlags::REPARSED) {
+                        if !v.flags().intersects(NodeFlags::Reparsed) {
                             st.prev_subtree.set(Some(v));
                             break;
                         }
@@ -231,7 +231,7 @@ pub(crate) fn get_token_at_position_worker(
                     let all_nodes: &'static [P<Node>] = list.nodes();
                     let (mut index, mut match_) =
                         binary_search_unique_func(all_nodes, |middle, node| {
-                            if node.flags().intersects(NodeFlags::REPARSED) {
+                            if node.flags().intersects(NodeFlags::Reparsed) {
                                 return Ordering::Equal;
                             }
                             let cmp = test_node(*node);
@@ -241,7 +241,7 @@ pub(crate) fn get_token_at_position_worker(
                                 );
                                 st.node_after_left.set(None);
                                 for &n in &all_nodes[middle + 1..] {
-                                    if !n.flags().intersects(NodeFlags::REPARSED) {
+                                    if !n.flags().intersects(NodeFlags::Reparsed) {
                                         st.node_after_left.set(Some(n));
                                         break;
                                     }
@@ -250,9 +250,9 @@ pub(crate) fn get_token_at_position_worker(
                             cmp
                         });
                     let mut nodes: Vec<P<Node>> = all_nodes.to_vec();
-                    if match_ && nodes[index].flags().intersects(NodeFlags::REPARSED) {
+                    if match_ && nodes[index].flags().intersects(NodeFlags::Reparsed) {
                         // filter and search again
-                        nodes.retain(|node| !node.flags().intersects(NodeFlags::REPARSED));
+                        nodes.retain(|node| !node.flags().intersects(NodeFlags::Reparsed));
                         let nodes_ref = &nodes;
                         (index, match_) = binary_search_unique_func(nodes_ref, |middle, node| {
                             let cmp = test_node(*node);
@@ -490,7 +490,7 @@ pub fn find_preceding_token_ex(
                 let Some(nd) = node else {
                     return node;
                 };
-                if nd.flags().intersects(NodeFlags::REPARSED) {
+                if nd.flags().intersects(NodeFlags::Reparsed) {
                     return node;
                 }
                 if found_child.get().is_some() {
@@ -520,7 +520,7 @@ pub fn find_preceding_token_ex(
                         let nodes = list.nodes();
                         let (index, match_) = binary_search_unique_func(nodes, |middle, _| {
                             // synthetic jsdoc nodes should have jsdocNode.End() <= n.Pos()
-                            if nodes[middle].flags().intersects(NodeFlags::REPARSED) {
+                            if nodes[middle].flags().intersects(NodeFlags::Reparsed) {
                                 return Ordering::Less;
                             }
                             if position
@@ -549,7 +549,7 @@ pub fn find_preceding_token_ex(
                         if let Some(&node) = preceding
                             .iter()
                             .rev()
-                            .find(|node| !node.flags().intersects(NodeFlags::REPARSED))
+                            .find(|node| !node.flags().intersects(NodeFlags::Reparsed))
                         {
                             prev_child.set(Some(node));
                         }
@@ -678,7 +678,7 @@ fn find_rightmost_valid_token(
         exclude_jsdoc: bool,
     ) -> bool {
         // Node is synthetic or out of the desired range: don't visit it.
-        !(node.flags().intersects(NodeFlags::REPARSED)
+        !(node.flags().intersects(NodeFlags::Reparsed)
             || node.end().expect_source("parsed nodes have source positions") > end_pos
             || get_start_of_node(node, source_file, !exclude_jsdoc /*includeJSDoc*/) >= position)
     }
@@ -707,7 +707,7 @@ fn find_rightmost_valid_token(
                 let Some(nd) = node else {
                     return node;
                 };
-                if nd.flags().intersects(NodeFlags::REPARSED) {
+                if nd.flags().intersects(NodeFlags::Reparsed) {
                     return node;
                 }
                 has_children.set(true);
@@ -890,7 +890,7 @@ pub fn find_next_token(
             let found_node = Rc::clone(&found_node);
             Rc::new(move |node: Option<P<Node>>, _: &mut NodeVisitor| {
                 if let Some(nd) = node {
-                    if !nd.flags().intersects(NodeFlags::REPARSED)
+                    if !nd.flags().intersects(NodeFlags::Reparsed)
                         && nd.pos().expect_source("parsed nodes have source positions")
                             <= previous_end
                         && nd.end().expect_source("parsed nodes have source positions")
@@ -909,7 +909,7 @@ pub fn find_next_token(
                     if !list.nodes().is_empty() && found_node.get().is_none() {
                         let nodes = list.nodes();
                         let (index, match_) = binary_search_unique_func(nodes, |_, node| {
-                            if node.flags().intersects(NodeFlags::REPARSED) {
+                            if node.flags().intersects(NodeFlags::Reparsed) {
                                 return Ordering::Less;
                             }
                             if node.pos().expect_source("parsed nodes have source positions")
@@ -1045,7 +1045,7 @@ pub fn find_child_of_kind(
 
     let mut found_child: Option<P<Node>> = None;
     let mut visit_node = |node: P<Node>| -> bool {
-        if node.flags().intersects(NodeFlags::REPARSED) {
+        if node.flags().intersects(NodeFlags::Reparsed) {
             return false;
         }
         // Look for child in preceding tokens.

@@ -156,7 +156,7 @@ fn test_process_spawner_runs_header_mapper() {
             original_start: 0,
             original_end: content_len,
             kind: Kind::VERBATIM,
-            features: Feature::ALL,
+            features: Feature::All,
         }]
     );
     assert_eq!(result.diagnostics, [] as [tsrs_core::P<tsrs_ast::Diagnostic>; 0]);

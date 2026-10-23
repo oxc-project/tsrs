@@ -136,13 +136,13 @@ impl NodeBuilderImpl {
                     // getContextualType returns post-inference results at node-printing time which may not have existed
                     // during initial checking (e.g. when the contextual type depends on inference), causing incorrect
                     // literal type preservation.
-                    let contextual_type = c.get_contextual_type(d.node, ContextFlags::NONE);
+                    let contextual_type = c.get_contextual_type(d.node, ContextFlags::None);
                     let t = Self::pseudo_type_to_type(c, Some(d.const_type));
                     if let Some(t) = t {
                         let instantiated = c.instantiate_contextual_type(
                             contextual_type,
                             d.node,
-                            ContextFlags::NONE,
+                            ContextFlags::None,
                         );
                         if c.is_literal_of_contextual_type(t, instantiated) {
                             is_in_const_context = true;
@@ -256,14 +256,14 @@ impl NodeBuilderImpl {
                 // pseudo-tuples are implicitly `readonly` since they originate from `as const` contexts
                 // but strada *sometimes* fails to add the `readonly` modifier to the generated node.
                 let result = self.f.new_tuple_type_node(self.f.new_node_list(res));
-                self.e.add_emit_flags(result, EmitFlags::SINGLE_LINE);
+                self.e.add_emit_flags(result, EmitFlags::SingleLine);
                 Some(self.f.new_type_operator_node(Kind::ReadonlyKeyword, result))
             }
             PseudoTypeKind::ObjectLiteral => {
                 let elements = t.as_pseudo_type_object_literal().elements;
                 if elements.is_empty() {
                     let result = self.f.new_type_literal_node(self.f.new_node_list(Vec::new()));
-                    self.e.add_emit_flags(result, EmitFlags::SINGLE_LINE);
+                    self.e.add_emit_flags(result, EmitFlags::SingleLine);
                     return Some(result);
                 }
                 // NOTE: using the checker's `isConstContext` instead of the pseudochecker's `isInConstContext`
@@ -280,7 +280,7 @@ impl NodeBuilderImpl {
                 // corresponding flag to mirror createTypeNodeFromObjectType. This ensures
                 // inaccessible `this` references inside the members are reported (TS2527).
                 let mut restore_object_literal_flags = self.save_restore_flags(c);
-                self.ctx().flags.set(self.ctx().flags.get() | Flags::IN_OBJECT_TYPE_LITERAL);
+                self.ctx().flags.set(self.ctx().flags.get() | Flags::InObjectTypeLiteral);
 
                 for &e in elements {
                     let mut modifiers: Option<P<ModifierList>> = None;
@@ -392,8 +392,8 @@ impl NodeBuilderImpl {
                 }
                 restore_object_literal_flags(c);
                 let result = self.f.new_type_literal_node(self.f.new_node_list(new_elements));
-                if !self.ctx().flags.get().intersects(Flags::MULTILINE_OBJECT_LITERALS) {
-                    self.e.add_emit_flags(result, EmitFlags::SINGLE_LINE);
+                if !self.ctx().flags.get().intersects(Flags::MultilineObjectLiterals) {
+                    self.e.add_emit_flags(result, EmitFlags::SingleLine);
                 }
                 Some(result)
             }
@@ -480,7 +480,7 @@ impl NodeBuilderImpl {
         let mut undefined_stripped = type_;
         if is_optional_annotated {
             undefined_stripped =
-                Some(c.get_type_with_facts(type_.unwrap(), TypeFacts::NE_UNDEFINED));
+                Some(c.get_type_with_facts(type_.unwrap(), TypeFacts::NEUndefined));
         }
         if let (Some(type_from_pseudo), Some(ty)) = (type_from_pseudo, type_) {
             let undefined_stripped = undefined_stripped.unwrap();
@@ -488,8 +488,8 @@ impl NodeBuilderImpl {
                 if undefined_stripped == type_from_pseudo {
                     return true;
                 }
-                if type_from_pseudo.flags().intersects(TypeFlags::UNION)
-                    && undefined_stripped.flags().intersects(TypeFlags::UNION)
+                if type_from_pseudo.flags().intersects(TypeFlags::Union)
+                    && undefined_stripped.flags().intersects(TypeFlags::Union)
                 {
                     // does union comparison in general, since the unions may not be `==` identical due to aliasing and the like
                     if c.compare_types_identical(type_from_pseudo, undefined_stripped)
@@ -505,8 +505,8 @@ impl NodeBuilderImpl {
             {
                 return true;
             }
-            if type_from_pseudo.flags().intersects(TypeFlags::UNION)
-                && ty.flags().intersects(TypeFlags::UNION)
+            if type_from_pseudo.flags().intersects(TypeFlags::Union)
+                && ty.flags().intersects(TypeFlags::Union)
             {
                 // handles union comparison in general, since unions may not be `==` identical due to aliasing
                 if c.compare_types_identical(type_from_pseudo, ty) == Ternary::TRUE {
@@ -589,7 +589,7 @@ impl NodeBuilderImpl {
                         }
                     }
                     let target_prop = target_prop.unwrap();
-                    let target_is_optional = target_prop.flags().intersects(SymbolFlags::OPTIONAL);
+                    let target_is_optional = target_prop.flags().intersects(SymbolFlags::Optional);
                     if e.optional != target_is_optional {
                         if report_errors {
                             self.ctx()
@@ -742,7 +742,7 @@ impl NodeBuilderImpl {
                 let tuple_target = undefined_stripped.target_tuple_type();
                 // Pseudo-tuples come from `as const` array literals, so they only ever have required elements.
                 // If the target tuple has optional, rest, or variadic elements, the structures can't match.
-                if tuple_target.combined_flags.get().intersects(ElementFlags::NON_REQUIRED) {
+                if tuple_target.combined_flags.get().intersects(ElementFlags::NonRequired) {
                     return false;
                 }
                 let element_types = c.get_type_arguments(undefined_stripped);

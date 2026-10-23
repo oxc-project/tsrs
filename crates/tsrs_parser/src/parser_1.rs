@@ -95,9 +95,9 @@ pub struct JSDocInfo {
 bitflags! {
     #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Default)]
     pub(crate) struct JsdocScannerInfo: u8 {
-        const HAS_JSDOC = 1 << 0;
-        const HAS_DEPRECATED = 1 << 1;
-        const HAS_SEE_OR_LINK = 1 << 2;
+        const HasJSDoc = 1 << 0;
+        const HasDeprecated = 1 << 1;
+        const HasSeeOrLink = 1 << 2;
     }
 }
 
@@ -163,8 +163,8 @@ pub(crate) fn new_parser() -> Parser {
         js_diagnostics: Vec::new(),
         jsdoc_diagnostics: Vec::new(),
         token: Kind::Unknown,
-        source_flags: NodeFlags::NONE,
-        context_flags: NodeFlags::NONE,
+        source_flags: NodeFlags::None,
+        context_flags: NodeFlags::None,
         parsing_contexts: 0,
         statement_has_await_identifier: false,
         has_deprecated_tag: false,
@@ -445,7 +445,7 @@ impl Parser {
 
 pub(crate) fn is_double_quoted_string(node: P<Node>) -> bool {
     ast::is_string_literal(node)
-        && !node.as_string_literal().token_flags().intersects(TokenFlags::SINGLE_QUOTE)
+        && !node.as_string_literal().token_flags().intersects(TokenFlags::SingleQuote)
 }
 
 impl Parser {
@@ -522,9 +522,9 @@ impl Parser {
         self.script_kind = script_kind;
         self.language_variant = get_language_variant(self.script_kind);
         self.context_flags = match self.script_kind {
-            ScriptKind::JS | ScriptKind::JSX => NodeFlags::JAVA_SCRIPT_FILE,
-            ScriptKind::JSON => NodeFlags::JAVA_SCRIPT_FILE | NodeFlags::JSON_FILE,
-            _ => NodeFlags::NONE,
+            ScriptKind::JS | ScriptKind::JSX => NodeFlags::JavaScriptFile,
+            ScriptKind::JSON => NodeFlags::JavaScriptFile | NodeFlags::JsonFile,
+            _ => NodeFlags::None,
         };
         self.scanner.set_text(self.source_text);
         self.scanner.set_on_error(true);
@@ -716,12 +716,12 @@ impl Parser {
         if !self.scanner.has_preceding_jsdoc_comment() {
             return JsdocScannerInfo::empty();
         }
-        let mut info = JsdocScannerInfo::HAS_JSDOC;
+        let mut info = JsdocScannerInfo::HasJSDoc;
         if self.scanner.has_preceding_jsdoc_with_deprecated_tag() {
-            info |= JsdocScannerInfo::HAS_DEPRECATED;
+            info |= JsdocScannerInfo::HasDeprecated;
         }
         if self.scanner.has_preceding_jsdoc_with_see_or_link() {
-            info |= JsdocScannerInfo::HAS_SEE_OR_LINK;
+            info |= JsdocScannerInfo::HasSeeOrLink;
         }
         info
     }
@@ -729,7 +729,7 @@ impl Parser {
     pub(crate) fn parse_source_file_worker(&mut self) -> P<SourceFile> {
         let is_declaration_file = tspath::is_declaration_file_name(&self.opts.file_name);
         if is_declaration_file {
-            self.context_flags |= NodeFlags::AMBIENT;
+            self.context_flags |= NodeFlags::Ambient;
             // Relaxed: set once by the CLI before any program is created.
             self.lazy_dts = LAZY_DTS.load(std::sync::atomic::Ordering::Relaxed);
         }
@@ -818,7 +818,7 @@ impl Parser {
         // statement's index for possibleAwaitSpans.
         let i = i + self.reparse_list.len();
         if self.statement_has_await_identifier
-            && !statement.flags().intersects(NodeFlags::AWAIT_CONTEXT)
+            && !statement.flags().intersects(NodeFlags::AwaitContext)
         {
             if self.possible_await_spans.is_empty()
                 || self.possible_await_spans[self.possible_await_spans.len() - 1] != i
@@ -876,7 +876,7 @@ impl Parser {
 
             let mut state = self.mark();
             // reparse all statements between start and pos. We skip existing diagnostics for the same range and allow the parser to generate new ones.
-            self.context_flags |= NodeFlags::AWAIT_CONTEXT;
+            self.context_flags |= NodeFlags::AwaitContext;
             self.scanner.reset_pos(
                 next_statement.pos().expect_source("parsed nodes have source positions"),
             );
@@ -1009,7 +1009,7 @@ impl Parser {
         kind: ParsingContext,
         parse_element: fn(&mut Parser) -> P<Node>,
     ) -> P<NodeList> {
-        if self.lazy_dts && !self.context_flags.intersects(NodeFlags::JSDOC) {
+        if self.lazy_dts && !self.context_flags.intersects(NodeFlags::JSDoc) {
             return self.parse_member_list_lazily(kind, parse_element);
         }
         self.parse_list(kind, parse_element)
@@ -1818,10 +1818,10 @@ impl Parser {
             // 	return node
             // }
             for m in modifiers.unwrap().nodes() {
-                m.set_flags(m.flags() | NodeFlags::AMBIENT);
+                m.set_flags(m.flags() | NodeFlags::Ambient);
             }
             let save_context_flags = self.context_flags;
-            self.set_context_flags(NodeFlags::AMBIENT, true);
+            self.set_context_flags(NodeFlags::Ambient, true);
             let result = self.parse_declaration_worker(pos, jsdoc, modifiers);
             self.context_flags = save_context_flags;
             result
@@ -2042,7 +2042,7 @@ impl Parser {
             {
                 initializer = Some(self.parse_variable_declaration_list(true /*inForStatementInitializer*/));
             } else {
-                initializer = Some(self.do_in_context(NodeFlags::DISALLOW_IN_CONTEXT, true, Parser::parse_expression));
+                initializer = Some(self.do_in_context(NodeFlags::DisallowInContext, true, Parser::parse_expression));
             }
         }
 
@@ -2050,7 +2050,7 @@ impl Parser {
             || await_token.is_none() && self.parse_optional(Kind::OfKeyword)
         {
             let expression = self.do_in_context(
-                NodeFlags::DISALLOW_IN_CONTEXT,
+                NodeFlags::DisallowInContext,
                 false,
                 Parser::parse_assignment_expression_or_higher,
             );
@@ -2154,7 +2154,7 @@ impl Parser {
             open_paren_position,
         );
         let statement =
-            self.do_in_context(NodeFlags::IN_WITH_STATEMENT, true, Parser::parse_statement);
+            self.do_in_context(NodeFlags::InWithStatement, true, Parser::parse_statement);
         let result = self.factory.new_with_statement(expression, statement);
         let result = self.finish_node(result, pos);
         self.with_jsdoc(result, jsdoc);
@@ -2326,7 +2326,7 @@ impl Parser {
         let result = self.factory.new_expression_statement(expression);
         let result = self.finish_node(result, pos);
         if has_paren {
-            jsdoc.remove(JsdocScannerInfo::HAS_JSDOC);
+            jsdoc.remove(JsdocScannerInfo::HasJSDoc);
         }
         self.with_jsdoc(result, jsdoc);
         result
@@ -2353,15 +2353,15 @@ impl Parser {
         in_for_statement_initializer: bool,
     ) -> P<Node> {
         let pos = self.node_pos();
-        let mut flags = NodeFlags::NONE;
+        let mut flags = NodeFlags::None;
         match self.token {
-            Kind::VarKeyword => flags = NodeFlags::NONE,
-            Kind::LetKeyword => flags = NodeFlags::LET,
-            Kind::ConstKeyword => flags = NodeFlags::CONST,
-            Kind::UsingKeyword => flags = NodeFlags::USING,
+            Kind::VarKeyword => flags = NodeFlags::None,
+            Kind::LetKeyword => flags = NodeFlags::Let,
+            Kind::ConstKeyword => flags = NodeFlags::Const,
+            Kind::UsingKeyword => flags = NodeFlags::Using,
             Kind::AwaitKeyword => {
                 if self.is_await_using_declaration() {
-                    flags = NodeFlags::AWAIT_USING;
+                    flags = NodeFlags::AwaitUsing;
                     self.next_token();
                 }
             }
@@ -2384,7 +2384,7 @@ impl Parser {
             declarations = self.create_missing_list();
         } else {
             let save_context_flags = self.context_flags;
-            self.set_context_flags(NodeFlags::DISALLOW_IN_CONTEXT, in_for_statement_initializer);
+            self.set_context_flags(NodeFlags::DisallowInContext, in_for_statement_initializer);
             let parse_element: fn(&mut Parser) -> P<Node> = if in_for_statement_initializer {
                 Parser::parse_variable_declaration
             } else {
@@ -2464,7 +2464,7 @@ impl Parser {
         let pos = self.node_pos();
         self.parse_expected(Kind::OpenBracketToken);
         let save_context_flags = self.context_flags;
-        self.set_context_flags(NodeFlags::DISALLOW_IN_CONTEXT, false);
+        self.set_context_flags(NodeFlags::DisallowInContext, false);
         let elements = self
             .parse_delimited_list(
                 ParsingContext::ArrayBindingElements,
@@ -2501,7 +2501,7 @@ impl Parser {
         let pos = self.node_pos();
         self.parse_expected(Kind::OpenBraceToken);
         let save_context_flags = self.context_flags;
-        self.set_context_flags(NodeFlags::DISALLOW_IN_CONTEXT, false);
+        self.set_context_flags(NodeFlags::DisallowInContext, false);
         let elements = self
             .parse_delimited_list(
                 ParsingContext::ObjectBindingElements,
@@ -2558,26 +2558,26 @@ impl Parser {
         // We don't parse the name here in await context, instead we will report a grammar error in the checker.
         let mut name = None;
         if modifiers
-            .is_none_or(|modifiers| !modifiers.modifier_flags.intersects(ModifierFlags::DEFAULT))
+            .is_none_or(|modifiers| !modifiers.modifier_flags.intersects(ModifierFlags::Default))
             || self.is_binding_identifier()
         {
             name = Some(self.parse_binding_identifier());
         }
         let signature_flags =
-            (if asterisk_token.is_some() { ParseFlags::YIELD } else { ParseFlags::NONE })
+            (if asterisk_token.is_some() { ParseFlags::Yield } else { ParseFlags::None })
                 | (if modifiers.is_some_and(|modifiers| {
-                    modifiers.modifier_flags.intersects(ModifierFlags::ASYNC)
+                    modifiers.modifier_flags.intersects(ModifierFlags::Async)
                 }) {
-                    ParseFlags::AWAIT
+                    ParseFlags::Await
                 } else {
-                    ParseFlags::NONE
+                    ParseFlags::None
                 });
         let type_parameters = self.parse_type_parameters();
         let save_context_flags = self.context_flags;
         if modifiers
-            .is_some_and(|modifiers| modifiers.modifier_flags.intersects(ModifierFlags::EXPORT))
+            .is_some_and(|modifiers| modifiers.modifier_flags.intersects(ModifierFlags::Export))
         {
-            self.set_context_flags(NodeFlags::AWAIT_CONTEXT, true);
+            self.set_context_flags(NodeFlags::AwaitContext, true);
         }
         let parameters = self.parse_parameters(signature_flags);
         let return_type = self.parse_return_type(Kind::ColonToken, false /*isType*/);
@@ -2641,7 +2641,7 @@ impl Parser {
                 == 0
             && modifiers.unwrap().nodes().iter().any(|m| is_export_modifier(*m))
         {
-            self.set_context_flags(NodeFlags::AWAIT_CONTEXT, true /*value*/);
+            self.set_context_flags(NodeFlags::AwaitContext, true /*value*/);
         }
         let heritage_clauses = self.parse_heritage_clauses(false /*isInterface*/);
         let members: P<NodeList>;
@@ -2656,7 +2656,7 @@ impl Parser {
         }
         self.context_flags = save_context_flags;
         if modifiers.is_some_and(|modifiers| {
-            ast::modifiers_to_flags(modifiers.nodes()).intersects(ModifierFlags::AMBIENT)
+            ast::modifiers_to_flags(modifiers.nodes()).intersects(ModifierFlags::Ambient)
         }) {
             self.statement_has_await_identifier = save_has_await_identifier;
         }
@@ -2680,7 +2680,7 @@ impl Parser {
         Self::set_lazy_owner(members, result);
         self.finish_node(result, pos);
         self.with_jsdoc(result, jsdoc);
-        if result.flags().intersects(NodeFlags::JAVA_SCRIPT_FILE) {
+        if result.flags().intersects(NodeFlags::JavaScriptFile) {
             self.check_js_syntax(result);
             if let Some(heritage_clauses) = heritage_clauses {
                 for clause in heritage_clauses.nodes() {
@@ -2843,7 +2843,7 @@ impl Parser {
                 jsdoc,
                 modifiers,
                 Kind::GetAccessor,
-                ParseFlags::NONE,
+                ParseFlags::None,
             );
         }
         if self.parse_contextual_modifier(Kind::SetKeyword) {
@@ -2852,7 +2852,7 @@ impl Parser {
                 jsdoc,
                 modifiers,
                 Kind::SetAccessor,
-                ParseFlags::NONE,
+                ParseFlags::None,
             );
         }
         if self.token == Kind::ConstructorKeyword || self.token == Kind::StringLiteral {
@@ -2879,10 +2879,10 @@ impl Parser {
                 .is_some_and(|modifiers| modifiers.nodes().iter().any(|m| is_declare_modifier(*m)));
             if is_ambient {
                 for m in modifiers.unwrap().nodes() {
-                    m.set_flags(m.flags() | NodeFlags::AMBIENT);
+                    m.set_flags(m.flags() | NodeFlags::Ambient);
                 }
                 let save_context_flags = self.context_flags;
-                self.set_context_flags(NodeFlags::AMBIENT, true);
+                self.set_context_flags(NodeFlags::Ambient, true);
                 let result = self.parse_property_or_method_declaration(pos, jsdoc, modifiers);
                 self.context_flags = save_context_flags;
                 return result;
@@ -2918,8 +2918,8 @@ impl Parser {
 
     pub(crate) fn parse_class_static_block_body(&mut self) -> P<Node> {
         let save_context_flags = self.context_flags;
-        self.set_context_flags(NodeFlags::YIELD_CONTEXT, false);
-        self.set_context_flags(NodeFlags::AWAIT_CONTEXT, true);
+        self.set_context_flags(NodeFlags::YieldContext, false);
+        self.set_context_flags(NodeFlags::AwaitContext, true);
         let body = self
             .parse_block(false /*ignoreMissingOpenBrace*/, None /*diagnosticMessage*/);
         self.context_flags = save_context_flags;
@@ -2940,10 +2940,10 @@ impl Parser {
         {
             self.next_token();
             let type_parameters = self.parse_type_parameters();
-            let parameters = self.parse_parameters(ParseFlags::NONE);
+            let parameters = self.parse_parameters(ParseFlags::None);
             let return_type = self.parse_return_type(Kind::ColonToken, false /*isType*/);
             let body = self.parse_function_block_or_semicolon(
-                ParseFlags::NONE,
+                ParseFlags::None,
                 Some(&diagnostics::X_OR_EXPECTED),
             );
             let result = self.factory.new_constructor_declaration(
@@ -3006,11 +3006,11 @@ impl Parser {
         diagnostic_message: Option<&'static Message>,
     ) -> P<Node> {
         let signature_flags =
-            (if asterisk_token.is_some() { ParseFlags::YIELD } else { ParseFlags::NONE })
+            (if asterisk_token.is_some() { ParseFlags::Yield } else { ParseFlags::None })
                 | (if modifier_list_has_async(modifiers) {
-                    ParseFlags::AWAIT
+                    ParseFlags::Await
                 } else {
-                    ParseFlags::NONE
+                    ParseFlags::None
                 });
         let type_parameters = self.parse_type_parameters();
         let parameters = self.parse_parameters(signature_flags);
@@ -3053,7 +3053,7 @@ impl Parser {
         }
         let type_node = self.parse_type_annotation();
         let initializer = self.do_in_context(
-            NodeFlags::YIELD_CONTEXT | NodeFlags::AWAIT_CONTEXT | NodeFlags::DISALLOW_IN_CONTEXT,
+            NodeFlags::YieldContext | NodeFlags::AwaitContext | NodeFlags::DisallowInContext,
             false,
             Parser::parse_initializer,
         );
@@ -3318,7 +3318,7 @@ impl Parser {
         let jsdoc = self.jsdoc_scanner_info();
         let name = self.parse_property_name();
         let initializer =
-            self.do_in_context(NodeFlags::DISALLOW_IN_CONTEXT, false, Parser::parse_initializer);
+            self.do_in_context(NodeFlags::DisallowInContext, false, Parser::parse_initializer);
         let result = self.factory.new_enum_member(name, initializer);
         let result = self.finish_node(result, pos);
         self.with_jsdoc(result, jsdoc);
@@ -3337,7 +3337,7 @@ impl Parser {
         let members: P<NodeList>;
         if self.parse_expected(Kind::OpenBraceToken) {
             let save_context_flags = self.context_flags;
-            self.set_context_flags(NodeFlags::YIELD_CONTEXT | NodeFlags::AWAIT_CONTEXT, false);
+            self.set_context_flags(NodeFlags::YieldContext | NodeFlags::AwaitContext, false);
             members = self
                 .parse_delimited_list(ParsingContext::EnumMembers, Parser::parse_enum_member)
                 .unwrap();
@@ -3441,7 +3441,7 @@ impl Parser {
             let implicit_export = self.factory.new_modifier(Kind::ExportKeyword);
             let node_pos = self.node_pos();
             implicit_export.set_loc(new_text_range(node_pos, node_pos));
-            implicit_export.set_flags(NodeFlags::REPARSED);
+            implicit_export.set_flags(NodeFlags::Reparsed);
             let implicit_modifiers =
                 self.new_modifier_list(implicit_export.loc(), &[implicit_export]);
             let node_pos = self.node_pos();
@@ -3797,7 +3797,7 @@ fn lazy_list_blocked(nodes: &[P<Node>]) -> bool {
                 !matches!(u.operator, Kind::MinusToken | Kind::PlusToken)
                     || !matches!(u.operand.kind(), Kind::NumericLiteral | Kind::BigIntLiteral)
             }
-            Kind::PropertyAccessExpression => n.flags().intersects(NodeFlags::OPTIONAL_CHAIN),
+            Kind::PropertyAccessExpression => n.flags().intersects(NodeFlags::OptionalChain),
             Kind::PropertyDeclaration
             | Kind::PropertySignature
             | Kind::Parameter

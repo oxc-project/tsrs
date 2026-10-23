@@ -321,14 +321,14 @@ function defaultValue(ty: string): string {
     if (ty === "bool") return "false";
     if (ty === "&'static str") return '""';
     if (ty.startsWith("&'static [")) return "&[]";
-    if (ty === "TokenFlags" || ty === "NodeFlags" || ty === "ModifierFlags") return `${ty}::NONE`;
+    if (ty === "TokenFlags" || ty === "NodeFlags" || ty === "ModifierFlags") return `${ty}::None`;
     throw new Error(`no default for ${ty}`);
 }
 
 function flagConst(mask: string): string {
     const m = /^(TokenFlags|NodeFlags|ModifierFlags)(\w+)$/.exec(mask);
     if (!m) throw new Error(`bad mask ${mask}`);
-    return `${m[1]}::${screamingSnakeCase(m[2])}`;
+    return `${m[1]}::${m[2]}`;
 }
 
 function isStringType(ty: string) {

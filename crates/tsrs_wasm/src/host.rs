@@ -231,9 +231,9 @@ impl IoFS for HostRoot {
         let text = tsrs_core::utf8::from_utf8_lossy(&out);
         let mut fields = text.split(' ');
         let mode = match fields.next() {
-            Some("d") => FileMode::DIR | FileMode::from_bits_retain(0o755),
+            Some("d") => FileMode::Dir | FileMode::from_bits_retain(0o755),
             Some("f") => FileMode::from_bits_retain(0o644),
-            _ => FileMode::IRREGULAR,
+            _ => FileMode::Irregular,
         };
         let size = fields.next().and_then(|s| s.parse::<i64>().ok()).unwrap_or(0);
         let mtime = fields.next().and_then(|s| s.parse::<u64>().ok()).unwrap_or(0);
@@ -254,10 +254,10 @@ impl IoFS for HostRoot {
             .map(|e| IoDirEntry {
                 name: tsrs_core::utf8::from_utf8_lossy(&e[1..]).into_owned(),
                 type_: match e[0] {
-                    b'd' => FileMode::DIR,
-                    b'f' => FileMode::NONE,
-                    b'l' => FileMode::SYMLINK,
-                    _ => FileMode::IRREGULAR,
+                    b'd' => FileMode::Dir,
+                    b'f' => FileMode::None,
+                    b'l' => FileMode::Symlink,
+                    _ => FileMode::Irregular,
                 },
             })
             .collect();

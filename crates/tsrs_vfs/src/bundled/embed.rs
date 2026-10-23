@@ -105,7 +105,7 @@ impl<T: FS> FS for WrappedFS<T> {
                 return Some(FileInfo {
                     name: rest.to_string(),
                     size: 0,
-                    mode: FileMode::DIR,
+                    mode: FileMode::Dir,
                     mod_time: None,
                 });
             }
@@ -114,7 +114,7 @@ impl<T: FS> FS for WrappedFS<T> {
                 return Some(FileInfo {
                     name: lib_name.to_string(),
                     size: lib.len() as i64,
-                    mode: FileMode::NONE,
+                    mode: FileMode::None,
                     mod_time: None,
                 });
             }

@@ -20,13 +20,13 @@ impl OptionalChainTransformer {
 
     // optionalchain.go:14
     fn visit(&self, node: P<Node>) -> Option<P<Node>> {
-        if !node.subtree_facts().intersects(SubtreeFacts::CONTAINS_OPTIONAL_CHAINING) {
+        if !node.subtree_facts().intersects(SubtreeFacts::ContainsOptionalChaining) {
             return Some(node);
         }
         match node.kind() {
             Kind::CallExpression => Some(self.visit_call_expression(node, false)),
             Kind::PropertyAccessExpression | Kind::ElementAccessExpression => {
-                if node.flags().intersects(NodeFlags::OPTIONAL_CHAIN) {
+                if node.flags().intersects(NodeFlags::OptionalChain) {
                     return Some(self.visit_optional_expression(node, false, false));
                 }
                 self.visitor().visit_each_child(Some(node))
@@ -38,14 +38,14 @@ impl OptionalChainTransformer {
 
     // optionalchain.go:34
     fn visit_call_expression(&self, node: P<Node>, capture_this_arg: bool) -> P<Node> {
-        if node.flags().intersects(NodeFlags::OPTIONAL_CHAIN) {
+        if node.flags().intersects(NodeFlags::OptionalChain) {
             // If `node` is an optional chain, then it is the outermost chain of an optional expression.
             return self.visit_optional_expression(node, capture_this_arg, false);
         }
         let c = node.as_call_expression();
         if ast::is_parenthesized_expression(c.expression) {
             let unwrapped = ast::skip_parentheses(c.expression);
-            if unwrapped.flags().intersects(NodeFlags::OPTIONAL_CHAIN) {
+            if unwrapped.flags().intersects(NodeFlags::OptionalChain) {
                 // capture thisArg for calls of parenthesized optional chains like `(foo?.bar)()`
                 let expression = self.visit_parenthesized_expression(c.expression, true, false);
                 let args = self.visitor().visit_nodes(Some(c.arguments)).unwrap();
@@ -106,7 +106,7 @@ impl OptionalChainTransformer {
         capture_this_arg: bool,
         is_delete: bool,
     ) -> P<Node> {
-        if node.flags().intersects(NodeFlags::OPTIONAL_CHAIN) {
+        if node.flags().intersects(NodeFlags::OptionalChain) {
             // If `node` is an optional chain, then it is the outermost chain of an optional expression.
             return self.visit_optional_expression(node, capture_this_arg, is_delete);
         }
@@ -158,7 +158,7 @@ impl OptionalChainTransformer {
     // optionalchain.go:105
     fn visit_delete_expression(&self, node: P<Node>) -> Option<P<Node>> {
         let unwrapped = ast::skip_parentheses(node.expression().unwrap());
-        if unwrapped.flags().intersects(NodeFlags::OPTIONAL_CHAIN) {
+        if unwrapped.flags().intersects(NodeFlags::OptionalChain) {
             return Some(self.visit_non_optional_expression(
                 node.expression().unwrap(),
                 false,
@@ -196,7 +196,7 @@ struct FlattenResult {
 
 // optionalchain.go:131
 fn is_non_null_chain(node: P<Node>) -> bool {
-    ast::is_non_null_expression(node) && node.flags().intersects(NodeFlags::OPTIONAL_CHAIN)
+    ast::is_non_null_expression(node) && node.flags().intersects(NodeFlags::OptionalChain)
 }
 
 // optionalchain.go:135
@@ -213,7 +213,7 @@ fn flatten_chain(mut chain: P<Node>) -> FlattenResult {
 
 // optionalchain.go:146
 fn is_call_chain(node: P<Node>) -> bool {
-    ast::is_call_expression(node) && node.flags().intersects(NodeFlags::OPTIONAL_CHAIN)
+    ast::is_call_expression(node) && node.flags().intersects(NodeFlags::OptionalChain)
 }
 
 impl OptionalChainTransformer {
@@ -242,7 +242,7 @@ impl OptionalChainTransformer {
         let mut left_expression = f.restore_outer_expressions(
             Some(expression),
             captured_left,
-            OuterExpressionKinds::PARTIALLY_EMITTED_EXPRESSIONS,
+            OuterExpressionKinds::PartiallyEmittedExpressions,
         );
         if !is_simple_copiable_expression(captured_left) {
             captured_left = f.new_temp_variable();
@@ -274,14 +274,14 @@ impl OptionalChainTransformer {
                                     segment.as_element_access_expression().argument_expression,
                                 ))
                                 .unwrap(),
-                            NodeFlags::NONE,
+                            NodeFlags::None,
                         );
                     } else {
                         right_expression = f.new_property_access_expression(
                             right_expression,
                             None,
                             self.visitor().visit_node(segment.name()).unwrap(),
-                            NodeFlags::NONE,
+                            NodeFlags::None,
                         );
                     }
                 }
@@ -290,7 +290,7 @@ impl OptionalChainTransformer {
                         let mut lta = left_this_arg.unwrap();
                         if !self.emit_context().has_auto_generate_info(Some(lta)) {
                             lta = lta.clone_node(f);
-                            self.emit_context().add_emit_flags(lta, EmitFlags::NO_COMMENTS);
+                            self.emit_context().add_emit_flags(lta, EmitFlags::NoComments);
                             left_this_arg = Some(lta);
                         }
                         let mut call_this_arg = lta;
@@ -308,7 +308,7 @@ impl OptionalChainTransformer {
                             None,
                             None,
                             self.visitor().visit_nodes(segment.argument_list()).unwrap(),
-                            NodeFlags::NONE,
+                            NodeFlags::None,
                         );
                     }
                 }

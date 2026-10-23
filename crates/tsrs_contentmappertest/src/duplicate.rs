@@ -51,8 +51,8 @@ impl ipc::Handler for DuplicateHandler {
                     let first = "// ".len();
                     let second = first + length + "\nconst ".len();
                     let mappings = marshal_span_map(&[
-                        segment(first, Feature::HOVER),
-                        segment(second, Feature::HOVER),
+                        segment(first, Feature::Hover),
+                        segment(second, Feature::Hover),
                     ])?;
                     return Ok(result(virtual_, mappings));
                 }
@@ -63,8 +63,8 @@ impl ipc::Handler for DuplicateHandler {
                     let first = index(&virtual_, content);
                     let second = last_index(&virtual_, content);
                     let mappings = marshal_span_map(&[
-                        segment(first, Feature::HOVER),
-                        segment(second, Feature::HOVER),
+                        segment(first, Feature::Hover),
+                        segment(second, Feature::Hover),
                     ])?;
                     return Ok(result(virtual_, mappings));
                 }
@@ -75,8 +75,8 @@ impl ipc::Handler for DuplicateHandler {
                     let first = "// ".len();
                     let second = last_index(&virtual_, content);
                     let mappings = marshal_span_map(&[
-                        segment(first, Feature::SIGNATURE_HELP),
-                        segment(second, Feature::SIGNATURE_HELP),
+                        segment(first, Feature::SignatureHelp),
+                        segment(second, Feature::SignatureHelp),
                     ])?;
                     return Ok(result(virtual_, mappings));
                 }
@@ -90,9 +90,9 @@ impl ipc::Handler for DuplicateHandler {
                     let third =
                         index(&virtual_[(second + length) as usize..], content) + second + length;
                     let mappings = marshal_span_map(&[
-                        segment(first, Feature::RENAME),
-                        segment(second, Feature::RENAME),
-                        segment(third, Feature::RENAME),
+                        segment(first, Feature::Rename),
+                        segment(second, Feature::Rename),
+                        segment(third, Feature::Rename),
                     ])?;
                     return Ok(result(virtual_, mappings));
                 }
@@ -101,12 +101,12 @@ impl ipc::Handler for DuplicateHandler {
                 let second = first + length + " = 1;\n".len();
                 let disabled = p.file_name.contains("disabled");
                 let mut semantic_features =
-                    Feature::HOVER | Feature::DEFINITION | Feature::REFERENCES | Feature::RENAME;
+                    Feature::Hover | Feature::Definition | Feature::References | Feature::Rename;
                 let mut navigation_features =
-                    Feature::DEFINITION | Feature::REFERENCES | Feature::RENAME;
+                    Feature::Definition | Feature::References | Feature::Rename;
                 if disabled {
-                    semantic_features = Feature::NONE;
-                    navigation_features = Feature::NONE;
+                    semantic_features = Feature::None;
+                    navigation_features = Feature::None;
                 }
                 let mappings = marshal_span_map(&[
                     segment(first, semantic_features),

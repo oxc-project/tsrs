@@ -30,13 +30,12 @@ use crate::utilities::{
 };
 
 // hover.go:22
-const SYMBOL_FORMAT_FLAGS: SymbolFormatFlags =
-    SymbolFormatFlags::WRITE_TYPE_PARAMETERS_OR_ARGUMENTS
-        .union(SymbolFormatFlags::USE_ONLY_EXTERNAL_ALIASING)
-        .union(SymbolFormatFlags::ALLOW_ANY_NODE_KIND)
-        .union(SymbolFormatFlags::USE_ALIAS_DEFINED_OUTSIDE_CURRENT_SCOPE);
-const TYPE_FORMAT_FLAGS: TypeFormatFlags = TypeFormatFlags::USE_ALIAS_DEFINED_OUTSIDE_CURRENT_SCOPE
-    .union(TypeFormatFlags::USE_INSTANTIATION_EXPRESSIONS);
+const SYMBOL_FORMAT_FLAGS: SymbolFormatFlags = SymbolFormatFlags::WriteTypeParametersOrArguments
+    .union(SymbolFormatFlags::UseOnlyExternalAliasing)
+    .union(SymbolFormatFlags::AllowAnyNodeKind)
+    .union(SymbolFormatFlags::UseAliasDefinedOutsideCurrentScope);
+const TYPE_FORMAT_FLAGS: TypeFormatFlags = TypeFormatFlags::UseAliasDefinedOutsideCurrentScope
+    .union(TypeFormatFlags::UseInstantiationExpressions);
 
 fn new_verbosity_context(level: usize, max_truncation_length: usize) -> P<VerbosityContext> {
     P::new(VerbosityContext {
@@ -69,7 +68,7 @@ impl LanguageService {
         let positions = self.converters.from_lsp_position_for_source_file(
             file,
             params.position,
-            Feature::HOVER,
+            Feature::Hover,
         );
         let mut hovers: Vec<lsproto::Hover> = Vec::new();
         for projection in positions {
@@ -116,7 +115,7 @@ impl LanguageService {
             let range_file = ast::get_source_file_of_node(range_node).unwrap();
             let text_range = get_range_of_node(range_node, Some(range_file), None /*endNode*/);
             let (hover_range, hover_fidelity) =
-                self.converters.to_lsp_range_for_feature(&range_file, text_range, Feature::HOVER);
+                self.converters.to_lsp_range_for_feature(&range_file, text_range, Feature::Hover);
 
             let content = if content_format == lsproto::MarkupKind::MARKDOWN {
                 format_quick_info(&quick_info) + &documentation
@@ -148,13 +147,13 @@ impl LanguageService {
             // with no symbol icon and no syntax coloring, unlike the legacy TSServer-backed hover path.
             if vs_capability && !quick_info_runs.is_empty() {
                 let mut kind = ScriptElementKind::Keyword;
-                let mut modifiers = ScriptElementKindModifier::NONE;
+                let mut modifiers = ScriptElementKindModifier::None;
                 if let Some(symbol) = symbol {
                     // Resolve aliases to their target before computing the icon kind, so e.g. `import { x }`
                     // shows the icon for whatever `x` actually is (const, function, ...) rather than a
                     // generic alias icon. GetSymbolModifiers already accounts for the alias target itself.
                     let mut icon_symbol = symbol;
-                    if symbol.flags().intersects(SymbolFlags::ALIAS) {
+                    if symbol.flags().intersects(SymbolFlags::Alias) {
                         let resolved = c.get_aliased_symbol(symbol);
                         if resolved != symbol {
                             icon_symbol = resolved;
@@ -265,7 +264,7 @@ impl LanguageService {
         }
         let quick_info_runs = info.display_parts.get_runs().to_vec();
 
-        let mapper = self.documentation_location_mapper(Feature::HOVER);
+        let mapper = self.documentation_location_mapper(Feature::Hover);
         let documentation = get_documentation_for_symbol(
             &mapper,
             c,
@@ -286,7 +285,7 @@ impl LanguageService {
         // comment-only, plain-text documentation for the VS path instead of reusing `documentation`.
         let mut vs_documentation = String::new();
         if vs_capability {
-            let mapper = self.documentation_location_mapper(Feature::HOVER);
+            let mapper = self.documentation_location_mapper(Feature::Hover);
             vs_documentation = get_documentation_for_symbol(
                 &mapper,
                 c,
@@ -416,7 +415,7 @@ fn documentation_from_alias(
     let Some(symbol) = symbol else {
         return String::new();
     };
-    if !symbol.flags().intersects(SymbolFlags::ALIAS) {
+    if !symbol.flags().intersects(SymbolFlags::Alias) {
         return String::new();
     }
 
@@ -516,7 +515,7 @@ pub(crate) fn get_documentation_from_declaration(
     let is_markdown = content_format == lsproto::MarkupKind::MARKDOWN;
     let mut b = String::new();
     if let Some(jsdoc) = get_jsdoc_or_tag(c, Some(declaration), &mut FxHashSet::default()) {
-        if declaration.flags().intersects(NodeFlags::REPARSED) || !contains_typedef_tag(jsdoc) {
+        if declaration.flags().intersects(NodeFlags::Reparsed) || !contains_typedef_tag(jsdoc) {
             write_comments(get_mapped_location, &mut b, c, jsdoc.comments(), is_markdown);
             if jsdoc.kind() == Kind::JSDoc && !comment_only {
                 if let Some(tags) = jsdoc.as_jsdoc().tags {
@@ -659,7 +658,7 @@ fn should_get_type(node: P<Node>) -> bool {
             // If we're in a JSDoc node with no associated symbol, no binding has taken place for the node and
             // we can't answer questions about types of declaration nodes (such as property declarations).
             let is_unbound_jsdoc_declaration =
-                node.flags().intersects(NodeFlags::JSDOC) && ast::is_declaration_name(node);
+                node.flags().intersects(NodeFlags::JSDoc) && ast::is_declaration_name(node);
             !is_unbound_jsdoc_declaration
                 && !ast::is_label_name(node)
                 && !ast::is_tag_name(node)
@@ -680,9 +679,9 @@ pub(crate) struct SymbolDisplayInfo {
 
 // nodeBuilderFlags for classified output (same as signatureHelpNodeBuilderFlags)
 // hover.go:440
-const CLASSIFIED_NODE_BUILDER_FLAGS: Flags = Flags::IGNORE_ERRORS
-    .union(Flags::USE_ALIAS_DEFINED_OUTSIDE_CURRENT_SCOPE)
-    .union(Flags::WRITE_TYPE_PARAMETERS_IN_QUALIFIED_NAME);
+const CLASSIFIED_NODE_BUILDER_FLAGS: Flags = Flags::IgnoreErrors
+    .union(Flags::UseAliasDefinedOutsideCurrentScope)
+    .union(Flags::WriteTypeParametersInQualifiedName);
 
 // The closures of getQuickInfoAndDeclarationAtLocation (hover.go:426) share this state; each closure is a method that
 // receives the checker first (PORTING.md callback rule).
@@ -702,7 +701,7 @@ struct QuickInfoWriter {
 }
 
 fn node_builder_flags(flags: TypeFormatFlags) -> Flags {
-    Flags::from_bits_retain((flags & TypeFormatFlags::NODE_BUILDER_FLAGS_MASK).bits())
+    Flags::from_bits_retain((flags & TypeFormatFlags::NodeBuilderFlagsMask).bits())
         | CLASSIFIED_NODE_BUILDER_FLAGS
 }
 
@@ -726,7 +725,7 @@ impl QuickInfoWriter {
         enclosing: Option<P<Node>>,
         mut flags: TypeFormatFlags,
     ) {
-        flags |= TypeFormatFlags::MULTILINE_OBJECT_LITERALS;
+        flags |= TypeFormatFlags::MultilineObjectLiterals;
         if !self.vs_capability {
             let s = c.type_to_string_ex(t, enclosing, flags, Some(self.vc));
             self.dpw.write(&s);
@@ -738,7 +737,7 @@ impl QuickInfoWriter {
         let nb = checker::new_node_builder_ex(c, emit_context, Some(id_to_symbol));
         let combined_flags = node_builder_flags(flags);
         let Some(type_node) =
-            nb.type_to_type_node(c, t, enclosing, combined_flags, InternalFlags::NONE, None)
+            nb.type_to_type_node(c, t, enclosing, combined_flags, InternalFlags::None, None)
         else {
             let s = c.type_to_string_ex(t, enclosing, flags, Some(self.vc));
             self.dpw.write(&s);
@@ -764,15 +763,15 @@ impl QuickInfoWriter {
         enclosing: Option<P<Node>>,
         mut flags: TypeFormatFlags,
     ) {
-        flags |= TypeFormatFlags::MULTILINE_OBJECT_LITERALS;
+        flags |= TypeFormatFlags::MultilineObjectLiterals;
         if !self.vs_capability {
             let s = c.signature_to_string_ex(sig, enclosing, flags, Some(self.vc));
             self.dpw.write(&s);
             return;
         }
-        let is_constructor = sig.flags().intersects(SignatureFlags::CONSTRUCT)
-            && !flags.intersects(TypeFormatFlags::WRITE_CALL_STYLE_SIGNATURE);
-        let sig_output = if flags.intersects(TypeFormatFlags::WRITE_ARROW_STYLE_SIGNATURE) {
+        let is_constructor = sig.flags().intersects(SignatureFlags::Construct)
+            && !flags.intersects(TypeFormatFlags::WriteCallStyleSignature);
+        let sig_output = if flags.intersects(TypeFormatFlags::WriteArrowStyleSignature) {
             if is_constructor { Kind::ConstructorType } else { Kind::FunctionType }
         } else if is_constructor {
             Kind::ConstructSignature
@@ -790,7 +789,7 @@ impl QuickInfoWriter {
             sig_output,
             enclosing,
             combined_flags,
-            InternalFlags::NONE,
+            InternalFlags::None,
             None,
         ) else {
             let s = c.signature_to_string_ex(sig, enclosing, flags, Some(self.vc));
@@ -839,7 +838,7 @@ impl QuickInfoWriter {
         };
         let attributes = declaration.as_module_declaration().attributes.unwrap();
         let emit_context = self.emit_context();
-        emit_context.set_emit_flags(attributes, printer::EmitFlags::SINGLE_LINE);
+        emit_context.set_emit_flags(attributes, printer::EmitFlags::SingleLine);
         let mut p = printer::new_printer(
             printer::PrinterOptions { new_line: NewLineKind::LF, ..Default::default() },
             printer::PrintHandlers::default(),
@@ -896,10 +895,10 @@ impl QuickInfoWriter {
                 c,
                 symbol,
                 self.container,
-                SymbolFlags::NONE,
+                SymbolFlags::None,
                 SYMBOL_FORMAT_FLAGS,
             );
-            if symbol.flags().intersects(SymbolFlags::OPTIONAL) {
+            if symbol.flags().intersects(SymbolFlags::Optional) {
                 self.dpw.write_punctuation("?");
             }
             self.write_signature_classified(
@@ -907,8 +906,8 @@ impl QuickInfoWriter {
                 sig,
                 self.container,
                 TYPE_FORMAT_FLAGS
-                    | TypeFormatFlags::WRITE_CALL_STYLE_SIGNATURE
-                    | TypeFormatFlags::WRITE_TYPE_ARGUMENTS_OF_SIGNATURE,
+                    | TypeFormatFlags::WriteCallStyleSignature
+                    | TypeFormatFlags::WriteTypeArgumentsOfSignature,
             );
         }
     }
@@ -925,7 +924,7 @@ impl QuickInfoWriter {
                     c,
                     tp.symbol().unwrap(),
                     None,
-                    SymbolFlags::NONE,
+                    SymbolFlags::None,
                     SYMBOL_FORMAT_FLAGS,
                 );
                 if let Some(cons) = c.get_constraint_of_type_parameter_exported(tp) {
@@ -949,11 +948,11 @@ impl QuickInfoWriter {
         // the node builder's probeTypeExpandability detects expandable type components.
         if !symbol
             .flags()
-            .intersects(SymbolFlags::CLASS | SymbolFlags::INTERFACE | SymbolFlags::NAMESPACE)
+            .intersects(SymbolFlags::Class | SymbolFlags::Interface | SymbolFlags::Namespace)
         {
             return false;
         }
-        let t = if symbol.flags().intersects(SymbolFlags::CLASS | SymbolFlags::INTERFACE) {
+        let t = if symbol.flags().intersects(SymbolFlags::Class | SymbolFlags::Interface) {
             Some(c.get_declared_type_of_symbol_exported(symbol))
         } else {
             c.get_type_of_symbol_at_location(symbol, Some(self.node))
@@ -1003,7 +1002,7 @@ impl QuickInfoWriter {
         let node = self.node;
         let container = self.container;
         // Recursively write all meanings of alias
-        if symbol.flags().intersects(SymbolFlags::ALIAS) && self.visited_aliases.insert(symbol) {
+        if symbol.flags().intersects(SymbolFlags::Alias) && self.visited_aliases.insert(symbol) {
             let aliased_symbol = c.get_aliased_symbol(symbol);
             if aliased_symbol != c.get_unknown_symbol() {
                 self.alias_level += 1;
@@ -1011,45 +1010,45 @@ impl QuickInfoWriter {
                 self.alias_level -= 1;
             }
         }
-        let mut flags = if self.meaning == SemanticMeaning::VALUE {
-            symbol.flags() & (SymbolFlags::VALUE | SymbolFlags::SIGNATURE)
-        } else if self.meaning == SemanticMeaning::TYPE {
-            symbol.flags() & SymbolFlags::TYPE
-        } else if self.meaning == SemanticMeaning::NAMESPACE {
-            symbol.flags() & SymbolFlags::NAMESPACE
+        let mut flags = if self.meaning == SemanticMeaning::Value {
+            symbol.flags() & (SymbolFlags::Value | SymbolFlags::Signature)
+        } else if self.meaning == SemanticMeaning::Type {
+            symbol.flags() & SymbolFlags::Type
+        } else if self.meaning == SemanticMeaning::Namespace {
+            symbol.flags() & SymbolFlags::Namespace
         } else {
             symbol.flags()
-                & (SymbolFlags::VALUE
-                    | SymbolFlags::SIGNATURE
-                    | SymbolFlags::TYPE
-                    | SymbolFlags::NAMESPACE)
+                & (SymbolFlags::Value
+                    | SymbolFlags::Signature
+                    | SymbolFlags::Type
+                    | SymbolFlags::Namespace)
         };
         if flags.is_empty() {
             if self.alias_level != 0 || !self.dpw.as_str().is_empty() {
                 return;
             }
             flags = symbol.flags()
-                & (SymbolFlags::VALUE
-                    | SymbolFlags::SIGNATURE
-                    | SymbolFlags::TYPE
-                    | SymbolFlags::NAMESPACE);
+                & (SymbolFlags::Value
+                    | SymbolFlags::Signature
+                    | SymbolFlags::Type
+                    | SymbolFlags::Namespace);
             if flags.is_empty() {
                 return;
             }
         }
-        if flags.intersects(SymbolFlags::PROPERTY)
+        if flags.intersects(SymbolFlags::Property)
             && symbol.value_declaration().is_some_and(ast::is_method_declaration)
         {
-            flags = SymbolFlags::METHOD;
+            flags = SymbolFlags::Method;
         }
-        if flags.intersects(SymbolFlags::VARIABLE | SymbolFlags::PROPERTY | SymbolFlags::ACCESSOR) {
+        if flags.intersects(SymbolFlags::Variable | SymbolFlags::Property | SymbolFlags::Accessor) {
             self.write_new_line();
-            if !symbol.check_flags().intersects(CheckFlags::INDEX_SYMBOL) {
-                if flags.intersects(SymbolFlags::PROPERTY) {
+            if !symbol.check_flags().intersects(CheckFlags::IndexSymbol) {
+                if flags.intersects(SymbolFlags::Property) {
                     self.dpw.write_punctuation("(");
                     self.dpw.write("property");
                     self.dpw.write_punctuation(") ");
-                } else if flags.intersects(SymbolFlags::ACCESSOR) {
+                } else if flags.intersects(SymbolFlags::Accessor) {
                     self.dpw.write_punctuation("(");
                     self.dpw.write("accessor");
                     self.dpw.write_punctuation(") ");
@@ -1073,7 +1072,7 @@ impl QuickInfoWriter {
                     }
                 }
                 if symbol.name() == ast::INTERNAL_SYMBOL_NAME_EXPORT_EQUALS
-                    && symbol.parent().is_some_and(|p| p.flags().intersects(SymbolFlags::MODULE))
+                    && symbol.parent().is_some_and(|p| p.flags().intersects(SymbolFlags::Module))
                 {
                     self.dpw.write("exports");
                 } else {
@@ -1081,21 +1080,21 @@ impl QuickInfoWriter {
                         c,
                         symbol,
                         container,
-                        SymbolFlags::NONE,
+                        SymbolFlags::None,
                         SYMBOL_FORMAT_FLAGS,
                     );
                 }
-                if symbol.flags().intersects(SymbolFlags::OPTIONAL) {
+                if symbol.flags().intersects(SymbolFlags::Optional) {
                     self.dpw.write_punctuation("?");
                 }
                 self.dpw.write_punctuation(": ");
             }
             if let Some(call_node) = get_call_or_new_expression(node) {
                 let mut flags = TYPE_FORMAT_FLAGS
-                    | TypeFormatFlags::WRITE_TYPE_ARGUMENTS_OF_SIGNATURE
-                    | TypeFormatFlags::WRITE_ARROW_STYLE_SIGNATURE;
+                    | TypeFormatFlags::WriteTypeArgumentsOfSignature
+                    | TypeFormatFlags::WriteArrowStyleSignature;
                 if ast::is_call_expression(call_node) {
-                    flags |= TypeFormatFlags::WRITE_CALL_STYLE_SIGNATURE;
+                    flags |= TypeFormatFlags::WriteCallStyleSignature;
                 }
                 let sig = c.get_resolved_signature_exported(call_node);
                 self.write_signature_classified(c, sig, container, flags);
@@ -1104,7 +1103,7 @@ impl QuickInfoWriter {
                 // If the type is a constrained type parameter, support expansion:
                 // Level 0: show just "T", signal canIncreaseVerbosity
                 // Level 1+: show "T extends Constraint" with the constraint expanded at level-1
-                if t.symbol().is_some_and(|s| s.flags().intersects(SymbolFlags::TYPE_PARAMETER))
+                if t.symbol().is_some_and(|s| s.flags().intersects(SymbolFlags::TypeParameter))
                     && c.get_constraint_of_type_parameter_exported(t).is_some()
                 {
                     if self.vc.level.get() > 0 {
@@ -1131,22 +1130,22 @@ impl QuickInfoWriter {
                 symbol.value_declaration().or_else(|| symbol.declarations().first().copied()),
             );
         }
-        if flags.intersects(SymbolFlags::ENUM_MEMBER) {
+        if flags.intersects(SymbolFlags::EnumMember) {
             self.write_new_line();
             self.dpw.write_punctuation("(");
             self.dpw.write("enum member");
             self.dpw.write_punctuation(") ");
             let t = c.get_type_of_symbol_exported(symbol);
             self.write_type_classified(c, t, container, TYPE_FORMAT_FLAGS);
-            if t.flags().intersects(TypeFlags::LITERAL) {
+            if t.flags().intersects(TypeFlags::Literal) {
                 self.dpw.write_operator(" = ");
                 self.dpw
                     .write_literal(&checker::value_to_string(t.as_literal_type().value().unwrap()));
             }
             self.set_declaration(symbol.value_declaration());
         }
-        if flags.intersects(SymbolFlags::FUNCTION | SymbolFlags::METHOD) {
-            let is_method = flags.intersects(SymbolFlags::METHOD);
+        if flags.intersects(SymbolFlags::Function | SymbolFlags::Method) {
+            let is_method = flags.intersects(SymbolFlags::Method);
             let prefix = if is_method { "method" } else { "function " };
             let node_parent = node.parent();
             if ast::is_identifier(node)
@@ -1164,7 +1163,7 @@ impl QuickInfoWriter {
                 let signatures = get_signatures_at_location(c, symbol, SignatureKind::Call, node);
                 if signatures.len() == 1 {
                     if let Some(d) = signatures[0].declaration() {
-                        if !d.flags().intersects(NodeFlags::JSDOC) {
+                        if !d.flags().intersects(NodeFlags::JSDoc) {
                             self.set_declaration(Some(d));
                         }
                     }
@@ -1173,7 +1172,7 @@ impl QuickInfoWriter {
             }
             self.set_declaration(symbol.value_declaration());
         }
-        if flags.intersects(SymbolFlags::CLASS | SymbolFlags::INTERFACE) {
+        if flags.intersects(SymbolFlags::Class | SymbolFlags::Interface) {
             let node_parent = node.parent();
             if node.kind() == Kind::ThisKeyword || ast::is_this_in_type_query(node) {
                 self.write_new_line();
@@ -1189,7 +1188,7 @@ impl QuickInfoWriter {
                 self.write_signatures(c, &signatures, "constructor ", false, symbol);
             } else {
                 let mut signatures: Vec<P<Signature>> = Vec::new();
-                if flags.intersects(SymbolFlags::CLASS)
+                if flags.intersects(SymbolFlags::Class)
                     && get_call_or_new_expression(node).is_some()
                 {
                     signatures =
@@ -1197,14 +1196,14 @@ impl QuickInfoWriter {
                 }
                 if signatures.len() == 1 {
                     if let Some(d) = signatures[0].declaration() {
-                        if !d.flags().intersects(NodeFlags::JSDOC) {
+                        if !d.flags().intersects(NodeFlags::JSDoc) {
                             self.set_declaration(Some(d));
                         }
                     }
                     self.write_signatures(c, &signatures, "constructor ", false, symbol);
                 } else {
                     self.write_new_line();
-                    if flags.intersects(SymbolFlags::CLASS) {
+                    if flags.intersects(SymbolFlags::Class) {
                         let class_expression =
                             ast::get_declaration_of_kind(symbol, Kind::ClassExpression);
                         if class_expression.is_some() {
@@ -1226,7 +1225,7 @@ impl QuickInfoWriter {
                                 c,
                                 symbol,
                                 container,
-                                SymbolFlags::NONE,
+                                SymbolFlags::None,
                                 SYMBOL_FORMAT_FLAGS,
                             );
                             let params = c
@@ -1241,7 +1240,7 @@ impl QuickInfoWriter {
                             c,
                             symbol,
                             container,
-                            SymbolFlags::NONE,
+                            SymbolFlags::None,
                             SYMBOL_FORMAT_FLAGS,
                         );
                         let params = c
@@ -1252,7 +1251,7 @@ impl QuickInfoWriter {
                     }
                 }
             }
-            if flags.intersects(SymbolFlags::CLASS) {
+            if flags.intersects(SymbolFlags::Class) {
                 self.set_declaration(symbol.value_declaration());
             } else {
                 self.set_declaration(
@@ -1264,7 +1263,7 @@ impl QuickInfoWriter {
                 );
             }
         }
-        if flags.intersects(SymbolFlags::ENUM) {
+        if flags.intersects(SymbolFlags::Enum) {
             self.write_new_line();
             if !self.try_expand_symbol(c, symbol, flags) {
                 if symbol
@@ -1279,7 +1278,7 @@ impl QuickInfoWriter {
                     c,
                     symbol,
                     container,
-                    SymbolFlags::NONE,
+                    SymbolFlags::None,
                     SYMBOL_FORMAT_FLAGS,
                 );
             }
@@ -1287,7 +1286,7 @@ impl QuickInfoWriter {
                 symbol.declarations().iter().copied().find(|&d| ast::is_enum_declaration(d)),
             );
         }
-        if flags.intersects(SymbolFlags::MODULE) {
+        if flags.intersects(SymbolFlags::Module) {
             self.write_new_line();
             if !self.try_expand_symbol(c, symbol, flags) {
                 let is_module = symbol
@@ -1298,7 +1297,7 @@ impl QuickInfoWriter {
                     c,
                     symbol,
                     container,
-                    SymbolFlags::NONE,
+                    SymbolFlags::None,
                     SYMBOL_FORMAT_FLAGS,
                 );
                 self.write_module_import_attributes(symbol);
@@ -1307,7 +1306,7 @@ impl QuickInfoWriter {
                 symbol.declarations().iter().copied().find(|&d| ast::is_module_declaration(d)),
             );
         }
-        if flags.intersects(SymbolFlags::TYPE_PARAMETER) {
+        if flags.intersects(SymbolFlags::TypeParameter) {
             self.write_new_line();
             self.dpw.write_punctuation("(");
             self.dpw.write("type parameter");
@@ -1325,7 +1324,7 @@ impl QuickInfoWriter {
                 c,
                 symbol,
                 container,
-                SymbolFlags::NONE,
+                SymbolFlags::None,
                 SYMBOL_FORMAT_FLAGS,
             );
             if let Some(cons) = c.get_constraint_of_type_parameter_exported(tp) {
@@ -1340,7 +1339,7 @@ impl QuickInfoWriter {
                     c,
                     symbol_parent,
                     container,
-                    SymbolFlags::NONE,
+                    SymbolFlags::None,
                     SYMBOL_FORMAT_FLAGS,
                 );
                 let parent_type = c.get_declared_type_of_symbol_exported(symbol_parent);
@@ -1363,7 +1362,7 @@ impl QuickInfoWriter {
                                 c,
                                 declaration.symbol().unwrap(),
                                 container,
-                                SymbolFlags::NONE,
+                                SymbolFlags::None,
                                 SYMBOL_FORMAT_FLAGS,
                             );
                         }
@@ -1372,7 +1371,7 @@ impl QuickInfoWriter {
                             c,
                             sig,
                             container,
-                            TYPE_FORMAT_FLAGS | TypeFormatFlags::WRITE_TYPE_ARGUMENTS_OF_SIGNATURE,
+                            TYPE_FORMAT_FLAGS | TypeFormatFlags::WriteTypeArgumentsOfSignature,
                         );
                     } else if ast::is_type_alias_declaration(declaration) {
                         self.dpw.write_keyword(" in ");
@@ -1381,7 +1380,7 @@ impl QuickInfoWriter {
                             c,
                             declaration.symbol().unwrap(),
                             container,
-                            SymbolFlags::NONE,
+                            SymbolFlags::None,
                             SYMBOL_FORMAT_FLAGS,
                         );
                         if let Some(decl_symbol) = declaration.symbol() {
@@ -1399,14 +1398,14 @@ impl QuickInfoWriter {
                     .find(|&d| ast::is_type_parameter_declaration(d)),
             );
         }
-        if flags.intersects(SymbolFlags::TYPE_ALIAS) {
+        if flags.intersects(SymbolFlags::TypeAlias) {
             self.write_new_line();
             self.dpw.write_keyword("type ");
             self.write_symbol_classified(
                 c,
                 symbol,
                 container,
-                SymbolFlags::NONE,
+                SymbolFlags::None,
                 SYMBOL_FORMAT_FLAGS,
             );
             let ta_params = c.get_type_alias_type_parameters(symbol);
@@ -1422,7 +1421,7 @@ impl QuickInfoWriter {
                 c,
                 type_alias_type,
                 container,
-                TYPE_FORMAT_FLAGS | TypeFormatFlags::IN_TYPE_ALIAS,
+                TYPE_FORMAT_FLAGS | TypeFormatFlags::InTypeAlias,
             );
             self.set_declaration(
                 symbol
@@ -1432,7 +1431,7 @@ impl QuickInfoWriter {
                     .find(|&d| ast::is_type_or_js_type_alias_declaration(d)),
             );
         }
-        if flags.intersects(SymbolFlags::SIGNATURE) {
+        if flags.intersects(SymbolFlags::Signature) {
             self.write_new_line();
             let t = c.get_type_of_symbol_exported(symbol);
             self.write_type_classified(c, t, container, TYPE_FORMAT_FLAGS);
@@ -1529,7 +1528,7 @@ fn get_node_for_quick_info(node: P<Node>) -> P<Node> {
 fn get_symbol_at_location_for_quick_info(c: &mut Checker, node: P<Node>) -> Option<P<Symbol>> {
     if let Some(object_element) = get_containing_object_literal_element(node) {
         if let Some(contextual_type) =
-            c.get_contextual_type_exported(object_element.parent().unwrap(), ContextFlags::NONE)
+            c.get_contextual_type_exported(object_element.parent().unwrap(), ContextFlags::None)
         {
             let properties = c.get_property_symbols_from_contextual_type(
                 object_element,

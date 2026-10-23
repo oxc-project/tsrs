@@ -155,7 +155,7 @@ impl LanguageService {
                     for mapped in self.converters.from_lsp_range_for_source_file(
                         file,
                         diag.range,
-                        Feature::CODE_ACTIONS,
+                        Feature::CodeActions,
                     ) {
                         let fix_context = CodeFixContext {
                             source_file: mapped.script,

@@ -225,7 +225,7 @@ pub(crate) fn get_literal_text_of_node_worker(
     s: &PrinterTextState,
     node: P<Node>,
     source_file: Option<P<SourceFile>>,
-    flags: GetLiteralTextFlags,
+    flags: getLiteralTextFlags,
 ) -> String {
     let mut flags = flags;
     if is_string_literal(node) {
@@ -246,13 +246,13 @@ pub(crate) fn get_literal_text_of_node_worker(
                 }
             };
 
-            if flags.intersects(GetLiteralTextFlags::JSX_ATTRIBUTE_ESCAPE) {
+            if flags.intersects(getLiteralTextFlags::JsxAttributeEscape) {
                 return format!(
                     "\"{}\"",
                     escape_jsx_attribute_string(&text, QuoteChar::DoubleQuote)
                 );
-            } else if flags.intersects(GetLiteralTextFlags::NEVER_ASCII_ESCAPE)
-                || s.emit_context.emit_flags(node).intersects(EmitFlags::NO_ASCII_ESCAPING)
+            } else if flags.intersects(getLiteralTextFlags::NeverAsciiEscape)
+                || s.emit_context.emit_flags(node).intersects(EmitFlags::NoAsciiEscaping)
             {
                 return format!("\"{}\"", escape_string(&text, QuoteChar::DoubleQuote));
             }
@@ -260,14 +260,14 @@ pub(crate) fn get_literal_text_of_node_worker(
         }
     }
     // !!! Printer option to control whether to terminate unterminated literals
-    if s.emit_context.emit_flags(node).intersects(EmitFlags::NO_ASCII_ESCAPING) {
-        flags |= GetLiteralTextFlags::NEVER_ASCII_ESCAPE;
+    if s.emit_context.emit_flags(node).intersects(EmitFlags::NoAsciiEscaping) {
+        flags |= getLiteralTextFlags::NeverAsciiEscape;
     }
-    if s.emit_context.emit_flags(node).intersects(EmitFlags::INTERNAL_SYMBOL_NAME) {
-        flags |= GetLiteralTextFlags::INTERNAL_SYMBOL_NAME;
+    if s.emit_context.emit_flags(node).intersects(EmitFlags::InternalSymbolName) {
+        flags |= getLiteralTextFlags::InternalSymbolName;
     }
     if s.target.get() >= ScriptTarget::ES2021 {
-        flags |= GetLiteralTextFlags::ALLOW_NUMERIC_SEPARATOR;
+        flags |= getLiteralTextFlags::AllowNumericSeparator;
     }
     get_literal_text(node, coalesce(source_file, s.current_source_file.get()), flags)
 }
@@ -319,7 +319,7 @@ pub(crate) fn get_text_of_node_worker(
                 s,
                 node,
                 None, /*sourceFile*/
-                GetLiteralTextFlags::NONE,
+                getLiteralTextFlags::None,
             );
         }
         _ => panic!("unexpected node: {:?}", node.kind()),
@@ -362,7 +362,7 @@ impl Printer {
         &mut self,
         node: P<Node>,
         source_file: Option<P<SourceFile>>,
-        flags: GetLiteralTextFlags,
+        flags: getLiteralTextFlags,
     ) -> String {
         get_literal_text_of_node_worker(
             &mut self.name_generator,
@@ -546,7 +546,7 @@ impl Printer {
     ) -> bool {
         if self.options.preserve_source_newlines {
             let leading_newlines =
-                self.get_leading_line_terminator_count(Some(parent), Some(node), ListFormat::NONE);
+                self.get_leading_line_terminator_count(Some(parent), Some(node), ListFormat::None);
             if leading_newlines > 0 {
                 self.write_lines_and_indent(
                     leading_newlines,
@@ -563,7 +563,7 @@ impl Printer {
             let trailing_newlines = self.get_closing_line_terminator_count(
                 Some(parent),
                 Some(node),
-                ListFormat::NONE,
+                ListFormat::None,
                 TextRange::synthetic(),
             );
             if trailing_newlines > 0 {
@@ -587,7 +587,7 @@ impl Printer {
         let node2 = skip_synthesized_parentheses(node2);
 
         // Always use a newline for synthesized code if the synthesizer desires it.
-        if self.should_emit_on_new_line(node2, ListFormat::NONE) {
+        if self.should_emit_on_new_line(node2, ListFormat::None) {
             return 1;
         }
 
@@ -653,8 +653,8 @@ impl Printer {
         first_child: Option<P<Node>>,
         format: ListFormat,
     ) -> usize {
-        if format.intersects(ListFormat::PRESERVE_LINES) || self.options.preserve_source_newlines {
-            if format.intersects(ListFormat::PREFER_NEW_LINE) {
+        if format.intersects(ListFormat::PreserveLines) || self.options.preserve_source_newlines {
+            if format.intersects(ListFormat::PreferNewLine) {
                 return 1;
             }
 
@@ -720,7 +720,7 @@ impl Printer {
                 return 1;
             }
         }
-        usize::from(format.intersects(ListFormat::MULTI_LINE))
+        usize::from(format.intersects(ListFormat::MultiLine))
     }
 
     pub(crate) fn get_separating_line_terminator_count(
@@ -729,7 +729,7 @@ impl Printer {
         next_node: Option<P<Node>>,
         format: ListFormat,
     ) -> usize {
-        if format.intersects(ListFormat::PRESERVE_LINES) || self.options.preserve_source_newlines {
+        if format.intersects(ListFormat::PreserveLines) || self.options.preserve_source_newlines {
             let (Some(previous_node), Some(next_node)) = (previous_node, next_node) else {
                 return 0;
             };
@@ -772,16 +772,16 @@ impl Printer {
                 }
                 // If the two nodes are not comparable, add a line terminator based on the format that can indicate
                 // whether new lines are preferred or not.
-                return usize::from(format.intersects(ListFormat::PREFER_NEW_LINE));
+                return usize::from(format.intersects(ListFormat::PreferNewLine));
             } else if self.should_emit_on_new_line(previous_node, format)
                 || self.should_emit_on_new_line(next_node, format)
             {
                 return 1;
             }
-        } else if self.should_emit_on_new_line(next_node.unwrap(), ListFormat::NONE) {
+        } else if self.should_emit_on_new_line(next_node.unwrap(), ListFormat::None) {
             return 1;
         }
-        usize::from(format.intersects(ListFormat::MULTI_LINE))
+        usize::from(format.intersects(ListFormat::MultiLine))
     }
 
     pub(crate) fn get_closing_line_terminator_count(
@@ -791,8 +791,8 @@ impl Printer {
         format: ListFormat,
         children_text_range: TextRange,
     ) -> usize {
-        if format.intersects(ListFormat::PRESERVE_LINES) || self.options.preserve_source_newlines {
-            if format.intersects(ListFormat::PREFER_NEW_LINE) {
+        if format.intersects(ListFormat::PreserveLines) || self.options.preserve_source_newlines {
+            if format.intersects(ListFormat::PreferNewLine) {
                 return 1;
             }
             let Some(last_child) = last_child else {
@@ -834,8 +834,8 @@ impl Printer {
                 return 1;
             }
         }
-        if format.intersects(ListFormat::MULTI_LINE)
-            && !format.intersects(ListFormat::NO_TRAILING_NEW_LINE)
+        if format.intersects(ListFormat::MultiLine)
+            && !format.intersects(ListFormat::NoTrailingNewLine)
         {
             return 1;
         }
@@ -982,19 +982,19 @@ impl Printer {
     }
 
     pub(crate) fn should_emit_indented(&self, node: P<Node>) -> bool {
-        self.emit_context.emit_flags(node).intersects(EmitFlags::INDENTED)
+        self.emit_context.emit_flags(node).intersects(EmitFlags::Indented)
     }
 
     pub(crate) fn should_elide_indentation(&self, node: P<Node>) -> bool {
-        self.emit_context.emit_flags(node).intersects(EmitFlags::NO_INDENTATION)
+        self.emit_context.emit_flags(node).intersects(EmitFlags::NoIndentation)
     }
 
     pub(crate) fn should_emit_on_single_line(&self, node: P<Node>) -> bool {
-        self.emit_context.emit_flags(node).intersects(EmitFlags::SINGLE_LINE)
+        self.emit_context.emit_flags(node).intersects(EmitFlags::SingleLine)
     }
 
     pub(crate) fn should_emit_on_multiple_lines(&self, node: P<Node>) -> bool {
-        self.emit_context.emit_flags(node).intersects(EmitFlags::MULTI_LINE)
+        self.emit_context.emit_flags(node).intersects(EmitFlags::MultiLine)
     }
 
     pub(crate) fn should_emit_block_function_body_on_single_line(&self, body: P<Node>) -> bool {
@@ -1025,12 +1025,12 @@ impl Printer {
         if self.get_leading_line_terminator_count(
             Some(body),
             block.statements.nodes().first().copied(),
-            ListFormat::PRESERVE_LINES,
+            ListFormat::PreserveLines,
         ) > 0
             || self.get_closing_line_terminator_count(
                 Some(body),
                 block.statements.nodes().last().copied(),
-                ListFormat::PRESERVE_LINES,
+                ListFormat::PreserveLines,
                 block.statements.loc(),
             ) > 0
         {
@@ -1042,7 +1042,7 @@ impl Printer {
             if self.get_separating_line_terminator_count(
                 previous_statement,
                 Some(*statement),
-                ListFormat::PRESERVE_LINES,
+                ListFormat::PreserveLines,
             ) > 0
             {
                 return false;
@@ -1055,10 +1055,10 @@ impl Printer {
     }
 
     pub(crate) fn should_emit_on_new_line(&self, node: P<Node>, format: ListFormat) -> bool {
-        if self.emit_context.emit_flags(node).intersects(EmitFlags::START_ON_NEW_LINE) {
+        if self.emit_context.emit_flags(node).intersects(EmitFlags::StartOnNewLine) {
             return true;
         }
-        format.intersects(ListFormat::PREFER_NEW_LINE)
+        format.intersects(ListFormat::PreferNewLine)
     }
 
     pub(crate) fn should_emit_source_maps(&self, node: P<Node>) -> bool {
@@ -1073,24 +1073,24 @@ impl Printer {
         token: Kind,
         _pos: TextPos,
         context_node: P<Node>,
-        flags: TokenEmitFlags,
+        flags: tokenEmitFlags,
     ) -> bool {
         // We don't emit source positions for most tokens as it tends to be quite noisy, however
         // we need to emit source positions for open and close braces so that tools like istanbul
         // can map branches for code coverage. However, we still omit brace source positions when
         // the output is a declaration file.
-        !flags.intersects(TokenEmitFlags::NO_SOURCE_MAPS)
+        !flags.intersects(tokenEmitFlags::NoSourceMaps)
             && self.should_emit_source_maps(context_node)
             && !self.options.omit_brace_source_map_positions
             && (token == Kind::OpenBraceToken || token == Kind::CloseBraceToken)
     }
 
     pub(crate) fn should_emit_leading_comments(&self, node: P<Node>) -> bool {
-        !self.emit_context.emit_flags(node).intersects(EmitFlags::NO_LEADING_COMMENTS)
+        !self.emit_context.emit_flags(node).intersects(EmitFlags::NoLeadingComments)
     }
 
     pub(crate) fn should_emit_trailing_comments(&self, node: P<Node>) -> bool {
-        !self.emit_context.emit_flags(node).intersects(EmitFlags::NO_TRAILING_COMMENTS)
+        !self.emit_context.emit_flags(node).intersects(EmitFlags::NoTrailingComments)
     }
 
     pub(crate) fn should_emit_detached_comments(node: P<Node>) -> bool {
@@ -1126,7 +1126,7 @@ impl Printer {
     }
 
     pub(crate) fn should_emit_indirect_call(&self, node: P<Node>) -> bool {
-        self.emit_context.emit_flags(node).intersects(EmitFlags::INDIRECT_CALL)
+        self.emit_context.emit_flags(node).intersects(EmitFlags::IndirectCall)
     }
 
     pub(crate) fn should_allow_trailing_comma(
@@ -1196,7 +1196,7 @@ impl Printer {
         write_kind: WriteKind,
         context_node: P<Node>,
     ) -> TextPos {
-        self.emit_token_ex(token, pos, write_kind, context_node, TokenEmitFlags::NONE)
+        self.emit_token_ex(token, pos, write_kind, context_node, tokenEmitFlags::None)
     }
 
     pub(crate) fn emit_token_ex(
@@ -1205,7 +1205,7 @@ impl Printer {
         pos: TextPos,
         write_kind: WriteKind,
         context_node: P<Node>,
-        flags: TokenEmitFlags,
+        flags: tokenEmitFlags,
     ) -> TextPos {
         let (state, pos) = self.enter_token(token, pos, context_node, flags);
         let pos = self.write_token_text(token, write_kind, pos);
@@ -1214,10 +1214,10 @@ impl Printer {
     }
 
     pub(crate) fn emit_keyword_node(&mut self, node: Option<P<Node>>) {
-        self.emit_keyword_node_ex(node, TokenEmitFlags::NONE);
+        self.emit_keyword_node_ex(node, tokenEmitFlags::None);
     }
 
-    pub(crate) fn emit_keyword_node_ex(&mut self, node: Option<P<Node>>, flags: TokenEmitFlags) {
+    pub(crate) fn emit_keyword_node_ex(&mut self, node: Option<P<Node>>, flags: tokenEmitFlags) {
         let Some(node) = node else {
             return;
         };
@@ -1228,13 +1228,13 @@ impl Printer {
     }
 
     pub(crate) fn emit_punctuation_node(&mut self, node: Option<P<Node>>) {
-        self.emit_punctuation_node_ex(node, TokenEmitFlags::NONE);
+        self.emit_punctuation_node_ex(node, tokenEmitFlags::None);
     }
 
     pub(crate) fn emit_punctuation_node_ex(
         &mut self,
         node: Option<P<Node>>,
-        flags: TokenEmitFlags,
+        flags: tokenEmitFlags,
     ) {
         let Some(node) = node else {
             return;
@@ -1246,10 +1246,10 @@ impl Printer {
     }
 
     pub(crate) fn emit_token_node(&mut self, node: Option<P<Node>>) {
-        self.emit_token_node_ex(node, TokenEmitFlags::NONE);
+        self.emit_token_node_ex(node, tokenEmitFlags::None);
     }
 
-    pub(crate) fn emit_token_node_ex(&mut self, node: Option<P<Node>>, flags: TokenEmitFlags) {
+    pub(crate) fn emit_token_node_ex(&mut self, node: Option<P<Node>>, flags: tokenEmitFlags) {
         let Some(n) = node else {
             return;
         };
@@ -1279,14 +1279,14 @@ impl Printer {
     //	SyntaxKindTemplateHead
     //	SyntaxKindTemplateMiddle
     //	SyntaxKindTemplateTail
-    pub(crate) fn emit_literal(&mut self, node: P<Node>, flags: GetLiteralTextFlags) {
+    pub(crate) fn emit_literal(&mut self, node: P<Node>, flags: getLiteralTextFlags) {
         let mut flags = flags;
         // Add NeverAsciiEscape flag if the printer option is set
         if self.options.never_ascii_escape {
-            flags |= GetLiteralTextFlags::NEVER_ASCII_ESCAPE;
+            flags |= getLiteralTextFlags::NeverAsciiEscape;
         }
         if self.options.terminate_unterminated_literals {
-            flags |= GetLiteralTextFlags::TERMINATE_UNTERMINATED_LITERALS;
+            flags |= getLiteralTextFlags::TerminateUnterminatedLiterals;
         }
 
         let text = self.get_literal_text_of_node(node, None /*sourceFile*/, flags);
@@ -1310,31 +1310,31 @@ impl Printer {
 
     pub(crate) fn emit_numeric_literal(&mut self, node: P<Node>) {
         let state = self.enter_node(node);
-        self.emit_literal(node, GetLiteralTextFlags::NONE);
+        self.emit_literal(node, getLiteralTextFlags::None);
         self.exit_node(node, state);
     }
 
     pub(crate) fn emit_big_int_literal(&mut self, node: P<Node>) {
         let state = self.enter_node(node);
-        self.emit_literal(node, GetLiteralTextFlags::NONE); // TODO: Preserve numeric literal separators after Strada migration
+        self.emit_literal(node, getLiteralTextFlags::None); // TODO: Preserve numeric literal separators after Strada migration
         self.exit_node(node, state);
     }
 
     pub(crate) fn emit_string_literal(&mut self, node: P<Node>) {
         let state = self.enter_node(node);
-        self.emit_literal(node, GetLiteralTextFlags::NONE);
+        self.emit_literal(node, getLiteralTextFlags::None);
         self.exit_node(node, state);
     }
 
     pub(crate) fn emit_no_substitution_template_literal(&mut self, node: P<Node>) {
         let state = self.enter_node(node);
-        self.emit_literal(node, GetLiteralTextFlags::NONE);
+        self.emit_literal(node, getLiteralTextFlags::None);
         self.exit_node(node, state);
     }
 
     pub(crate) fn emit_regular_expression_literal(&mut self, node: P<Node>) {
         let state = self.enter_node(node);
-        self.emit_literal(node, GetLiteralTextFlags::NONE);
+        self.emit_literal(node, getLiteralTextFlags::None);
         self.exit_node(node, state);
     }
 }
@@ -1346,19 +1346,19 @@ impl Printer {
 impl Printer {
     pub(crate) fn emit_template_head(&mut self, node: P<Node>) {
         let state = self.enter_node(node);
-        self.emit_literal(node, GetLiteralTextFlags::NONE);
+        self.emit_literal(node, getLiteralTextFlags::None);
         self.exit_node(node, state);
     }
 
     pub(crate) fn emit_template_middle(&mut self, node: P<Node>) {
         let state = self.enter_node(node);
-        self.emit_literal(node, GetLiteralTextFlags::NONE);
+        self.emit_literal(node, getLiteralTextFlags::None);
         self.exit_node(node, state);
     }
 
     pub(crate) fn emit_template_tail(&mut self, node: P<Node>) {
         let state = self.enter_node(node);
-        self.emit_literal(node, GetLiteralTextFlags::NONE);
+        self.emit_literal(node, getLiteralTextFlags::None);
         self.exit_node(node, state);
     }
 
@@ -1434,8 +1434,8 @@ impl Printer {
                 let helper_name = self.emit_context.factory.new_unique_name_ex(
                     name,
                     AutoGenerateOptions {
-                        flags: GeneratedIdentifierFlags::FILE_LEVEL
-                            | GeneratedIdentifierFlags::OPTIMISTIC,
+                        flags: GeneratedIdentifierFlags::FileLevel
+                            | GeneratedIdentifierFlags::Optimistic,
                         ..Default::default()
                     },
                 );
@@ -1450,7 +1450,7 @@ impl Printer {
     pub(crate) fn emit_identifier_reference(&mut self, node: P<Node>) {
         let mut node = node;
         if (self.external_helpers_module_name.is_some() || self.unique_helper_names.is_some())
-            && self.emit_context.emit_flags(node).intersects(EmitFlags::HELPER_NAME)
+            && self.emit_context.emit_flags(node).intersects(EmitFlags::HelperName)
         {
             if let Some(external_helpers_module_name) = self.external_helpers_module_name {
                 // Substitute `__helper` with `tslib_1.__helper`
@@ -1462,7 +1462,7 @@ impl Printer {
                         module_name,
                         None, /*questionDotToken*/
                         name,
-                        NodeFlags::NONE,
+                        NodeFlags::None,
                     )
                 };
                 self.emit_context.assign_comment_and_source_map_ranges(helper, node);
@@ -1485,7 +1485,7 @@ impl Printer {
     pub(crate) fn emit_binding_identifier(&mut self, node: P<Node>) {
         let mut node = node;
         if self.unique_helper_names.is_some()
-            && self.emit_context.emit_flags(node).intersects(EmitFlags::HELPER_NAME)
+            && self.emit_context.emit_flags(node).intersects(EmitFlags::HelperName)
         {
             // Substitute `__helper` with `__helper_1` if there is a conflict in an ES module.
             let helper_name = self.get_unique_helper_name(node.as_identifier().text());
@@ -1670,7 +1670,7 @@ impl Printer {
                 |p, n| p.emit_keyword_node(Some(n)),
                 parent_node,
                 Some(modifier_list),
-                ListFormat::MODIFIERS,
+                ListFormat::Modifiers,
             );
         } else if modifier_nodes.iter().all(|n| is_decorator(*n)) {
             if !allow_decorators {
@@ -1682,7 +1682,7 @@ impl Printer {
                 Printer::emit_modifier_like,
                 parent_node,
                 Some(modifier_list),
-                ListFormat::DECORATORS,
+                ListFormat::Decorators,
             );
         } else {
             if let Some(on_before_emit_node_list) =
@@ -1728,9 +1728,9 @@ impl Printer {
                         Some(parent_node),
                         &modifier_nodes[start..pos],
                         if last_mode == Mode::ModeModifiers {
-                            ListFormat::MODIFIERS
+                            ListFormat::Modifiers
                         } else {
-                            ListFormat::DECORATORS
+                            ListFormat::Decorators
                         },
                         false, /*hasTrailingComma*/
                         text_range,
@@ -1843,13 +1843,13 @@ impl Printer {
             Printer::emit_type_parameter_declaration_node,
             parent_node,
             nodes,
-            ListFormat::TYPE_PARAMETERS
+            ListFormat::TypeParameters
                 | if is_arrow_function(parent_node)
                 /*p.shouldAllowTrailingComma(parentNode, nodes)*/
                 {
-                    ListFormat::ALLOW_TRAILING_COMMA
+                    ListFormat::AllowTrailingComma
                 } else {
-                    ListFormat::NONE
+                    ListFormat::None
                 },
         ); // TODO: preserve trailing comma after Strada migration
     }
@@ -1886,7 +1886,7 @@ impl Printer {
         parameters: Option<P<NodeList>>,
     ) {
         self.generate_all_names(parameters);
-        self.emit_list(Printer::emit_parameter_declaration_node, parent_node, parameters, ListFormat::PARAMETERS /*|core.IfElse(p.shouldAllowTrailingComma(parentNode, parameters), LFAllowTrailingComma, LFNone)*/); // TODO: preserve trailing comma after Strada migration
+        self.emit_list(Printer::emit_parameter_declaration_node, parent_node, parameters, ListFormat::Parameters /*|core.IfElse(p.shouldAllowTrailingComma(parentNode, parameters), LFAllowTrailingComma, LFNone)*/); // TODO: preserve trailing comma after Strada migration
     }
 }
 
@@ -1925,7 +1925,7 @@ impl Printer {
                 Printer::emit_parameter_declaration_node,
                 parent_node,
                 parameters,
-                ListFormat::SINGLE_ARROW_PARAMETER,
+                ListFormat::SingleArrowParameter,
             );
         } else {
             self.emit_parameters(parent_node, parameters);
@@ -1942,7 +1942,7 @@ impl Printer {
             Printer::emit_parameter_declaration_node,
             parent_node,
             parameters,
-            ListFormat::INDEX_SIGNATURE_PARAMETERS,
+            ListFormat::IndexSignatureParameters,
         );
     }
 
@@ -1961,7 +1961,7 @@ impl Printer {
     }
 
     pub(crate) fn emit_function_body(&mut self, body: P<Node>) {
-        self.emit_context.add_emit_flags(body, EmitFlags::NO_SOURCE_MAP);
+        self.emit_context.add_emit_flags(body, EmitFlags::NoSourceMap);
 
         // Use only notification hooks for the body block, not the full comment pipeline.
         // Without this, trailing comments from the original method declaration
@@ -1995,7 +1995,7 @@ impl Printer {
                 Printer::emit_statement,
                 Some(body),
                 Some(statements),
-                ListFormat::SINGLE_LINE_FUNCTION_BODY_STATEMENTS,
+                ListFormat::SingleLineFunctionBodyStatements,
                 statement_offset,
                 None,
             );
@@ -2005,7 +2005,7 @@ impl Printer {
                 Printer::emit_statement,
                 Some(body),
                 Some(statements),
-                ListFormat::MULTI_LINE_FUNCTION_BODY_STATEMENTS,
+                ListFormat::MultiLineFunctionBodyStatements,
                 statement_offset,
                 None,
             );
@@ -2021,7 +2021,7 @@ impl Printer {
             statements.end(),
             WriteKind::Punctuation,
             body,
-            TokenEmitFlags::NO_COMMENTS,
+            tokenEmitFlags::NoComments,
         );
 
         if let Some(on_after_emit_node) = &mut self.print_handlers.on_after_emit_node {
@@ -2278,7 +2278,7 @@ impl Printer {
         if nodes.is_none() {
             return;
         }
-        self.emit_list(Printer::emit_type_parameter_declaration_node, parent_node, nodes, ListFormat::TYPE_ARGUMENTS /*|core.IfElse(p.shouldAllowTrailingComma(parentNode, nodes), LFAllowTrailingComma, LFNone)*/); // TODO: preserve trailing comma after Strada migration
+        self.emit_list(Printer::emit_type_parameter_declaration_node, parent_node, nodes, ListFormat::TypeArguments /*|core.IfElse(p.shouldAllowTrailingComma(parentNode, nodes), LFAllowTrailingComma, LFNone)*/); // TODO: preserve trailing comma after Strada migration
     }
 
     pub(crate) fn emit_type_reference(&mut self, node: P<Node>) {
@@ -2368,15 +2368,15 @@ impl Printer {
         self.generate_all_member_names(Some(members));
         self.write_punctuation("{");
         let flags = if self.should_emit_on_single_line(node) {
-            ListFormat::SINGLE_LINE_TYPE_LITERAL_MEMBERS
+            ListFormat::SingleLineTypeLiteralMembers
         } else {
-            ListFormat::MULTI_LINE_TYPE_LITERAL_MEMBERS
+            ListFormat::MultiLineTypeLiteralMembers
         };
         self.emit_list(
             Printer::emit_type_element,
             node,
             Some(members),
-            flags | ListFormat::NO_SPACE_IF_EMPTY,
+            flags | ListFormat::NoSpaceIfEmpty,
         );
         self.write_punctuation("}");
         self.pop_name_generation_scope(Some(node));
@@ -2415,15 +2415,15 @@ impl Printer {
         let elements = node.as_tuple_type_node().elements();
         self.emit_token(Kind::OpenBracketToken, node.pos(), WriteKind::Punctuation, node);
         let flags = if self.should_emit_on_single_line(node) {
-            ListFormat::SINGLE_LINE_TUPLE_TYPE_ELEMENTS
+            ListFormat::SingleLineTupleTypeElements
         } else {
-            ListFormat::MULTI_LINE_TUPLE_TYPE_ELEMENTS
+            ListFormat::MultiLineTupleTypeElements
         };
         self.emit_list(
             Printer::emit_tuple_element_type,
             node,
             Some(elements),
-            flags | ListFormat::NO_SPACE_IF_EMPTY,
+            flags | ListFormat::NoSpaceIfEmpty,
         );
         self.emit_token(Kind::CloseBracketToken, elements.end(), WriteKind::Punctuation, node);
         self.exit_node(node, state);
@@ -2471,7 +2471,7 @@ impl Printer {
             Printer::emit_union_type_constituent,
             node,
             Some(node.as_union_type_node().types()),
-            ListFormat::UNION_TYPE_CONSTITUENTS,
+            ListFormat::UnionTypeConstituents,
         );
         self.exit_node(node, state);
     }
@@ -2482,7 +2482,7 @@ impl Printer {
 
     pub(crate) fn emit_intersection_type(&mut self, node: P<Node>) {
         let state = self.enter_node(node);
-        self.emit_list(Printer::emit_intersection_type_constituent, node, Some(node.as_intersection_type_node().types()), ListFormat::INTERSECTION_TYPE_CONSTITUENTS /*, parenthesizer.parenthesizeConstituentTypeOfIntersectionType*/); // !!!
+        self.emit_list(Printer::emit_intersection_type_constituent, node, Some(node.as_intersection_type_node().types()), ListFormat::IntersectionTypeConstituents /*, parenthesizer.parenthesizeConstituentTypeOfIntersectionType*/); // !!!
         self.exit_node(node, state);
     }
 
@@ -2627,7 +2627,7 @@ impl Printer {
                     Printer::emit_type_element,
                     node,
                     Some(members),
-                    ListFormat::PRESERVE_LINES,
+                    ListFormat::PreserveLines,
                 );
             }
         }
@@ -2667,7 +2667,7 @@ impl Printer {
             Printer::emit_template_type_span_node,
             node,
             Some(n.template_spans()),
-            ListFormat::TEMPLATE_EXPRESSION_SPANS,
+            ListFormat::TemplateExpressionSpans,
         );
         self.exit_node(node, state);
     }
@@ -2684,7 +2684,7 @@ impl Printer {
             Printer::emit_import_attribute_node,
             node,
             Some(n.attributes()),
-            ListFormat::IMPORT_ATTRIBUTES,
+            ListFormat::ImportAttributes,
         );
         self.write_space();
         self.write_punctuation("}");
@@ -2833,7 +2833,7 @@ impl Printer {
             Printer::emit_binding_element_node,
             node,
             Some(node.as_binding_pattern().elements()),
-            ListFormat::OBJECT_BINDING_PATTERN_ELEMENTS,
+            ListFormat::ObjectBindingPatternElements,
         );
         self.write_punctuation("}");
         self.exit_node(node, state);
@@ -2846,7 +2846,7 @@ impl Printer {
             Printer::emit_binding_element_node,
             node,
             Some(node.as_binding_pattern().elements()),
-            ListFormat::ARRAY_BINDING_PATTERN_ELEMENTS,
+            ListFormat::ArrayBindingPatternElements,
         );
         self.write_punctuation("]");
         self.exit_node(node, state);

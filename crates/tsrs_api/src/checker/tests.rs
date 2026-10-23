@@ -752,7 +752,7 @@ fn scope_names_exports_intrinsics_and_well_known() {
         "resolveName",
         &h.sp(&format!(
             r#""name":"Animal","file":"{MAIN_FILE}","position":{pos},"meaning":{}"#,
-            tsrs_ast::SymbolFlags::VALUE.bits()
+            tsrs_ast::SymbolFlags::Value.bits()
         )),
     );
     assert_eq!(str_of(field(&animal, "name")), "Animal");
@@ -760,13 +760,13 @@ fn scope_names_exports_intrinsics_and_well_known() {
         "resolveName",
         &h.sp(&format!(
             r#""name":"nope","file":"{MAIN_FILE}","position":{pos},"meaning":{}"#,
-            tsrs_ast::SymbolFlags::VALUE.bits()
+            tsrs_ast::SymbolFlags::Value.bits()
         )),
     );
     assert_eq!(none, Value::Null);
     let global = h.ok(
         "resolveName",
-        &h.sp(&format!(r#""name":"Array","meaning":{}"#, tsrs_ast::SymbolFlags::TYPE.bits())),
+        &h.sp(&format!(r#""name":"Array","meaning":{}"#, tsrs_ast::SymbolFlags::Type.bits())),
     );
     assert_eq!(str_of(field(&global, "name")), "Array");
     assert_eq!(
@@ -778,7 +778,7 @@ fn scope_names_exports_intrinsics_and_well_known() {
         "getSymbolsInScope",
         &h.sp(&format!(
             r#""file":"{MAIN_FILE}","position":{pos},"meaning":{}"#,
-            tsrs_ast::SymbolFlags::VALUE.bits()
+            tsrs_ast::SymbolFlags::Value.bits()
         )),
     );
     let scope_names = names(&in_scope);
@@ -861,7 +861,7 @@ fn handle_validation_stale_cross_project_and_release() {
     // Snapshot symbol reference that names a different snapshot.
     let global = h.ok(
         "resolveName",
-        &h.sp(&format!(r#""name":"Array","meaning":{}"#, tsrs_ast::SymbolFlags::TYPE.bits())),
+        &h.sp(&format!(r#""name":"Array","meaning":{}"#, tsrs_ast::SymbolFlags::Type.bits())),
     );
     let mut forged = TestHost::symbol_ref(&global);
     forged = forged.replace(
@@ -1077,7 +1077,7 @@ fn locations_batches_and_symbol_relations() {
         &h.sp(&format!(
             r#""file":"{MAIN_FILE}","position":{},"meaning":{}"#,
             utf16_pos(MAIN, "box.value"),
-            tsrs_ast::SymbolFlags::VALUE.bits()
+            tsrs_ast::SymbolFlags::Value.bits()
         )),
     );
     let local_box = arr(&scope).iter().find(|s| str_of(field(s, "name")) == "box").unwrap().clone();
@@ -1090,12 +1090,12 @@ fn locations_batches_and_symbol_relations() {
         &h.sp(&format!(r#""symbol":{}"#, TestHost::symbol_ref(&local_box))),
     );
     // Pinned Go: the local symbol (ExportValue, file-owned) maps to the exported variable `box` (flags 2).
-    assert_eq!(num(&local_box, "flags"), tsrs_ast::SymbolFlags::EXPORT_VALUE.bits() as u64);
+    assert_eq!(num(&local_box, "flags"), tsrs_ast::SymbolFlags::ExportValue.bits() as u64);
     for exported in [&es, &es2] {
         assert_eq!(str_of(field(exported, "name")), "box");
         assert_eq!(
             num(exported, "flags"),
-            tsrs_ast::SymbolFlags::BLOCK_SCOPED_VARIABLE.bits() as u64
+            tsrs_ast::SymbolFlags::BlockScopedVariable.bits() as u64
         );
     }
     // Shorthand, export specifier, references, narrowed type at location.
@@ -1192,7 +1192,7 @@ fn type_structure_accessors() {
     // Substitution type: `T` in the true branch of `T extends string ? Box<T> : never`.
     let t_ref = h.ancestor_handle_at("T> : never", 1);
     let sub = h.ok("getTypeFromTypeNode", &h.sp(&format!(r#""location":"{t_ref}""#)));
-    assert_ne!(num(&sub, "flags") as u32 & tsrs_checker::TypeFlags::SUBSTITUTION.bits(), 0);
+    assert_ne!(num(&sub, "flags") as u32 & tsrs_checker::TypeFlags::Substitution.bits(), 0);
     assert_eq!(num(&sub, "baseType"), num(&h.tid("getBaseTypeOfType", "objectId", &sub), "id"));
     assert_eq!(h.type_string(&h.tid("getBaseTypeOfType", "objectId", &sub)), "T");
     assert_eq!(h.type_string(&h.tid("getConstraintOfType", "objectId", &sub)), "string");
@@ -1298,7 +1298,7 @@ fn checker_operations_on_types_and_signatures() {
         &h.sp(&format!(
             r#""type":{},"flags":{}"#,
             num(&u, "id"),
-            tsrs_checker::TypeFormatFlags::IN_TYPE_ALIAS.bits()
+            tsrs_checker::TypeFormatFlags::InTypeAlias.bits()
         )),
     );
     assert_eq!(str_of(&no_trunc), "string | number");
@@ -1409,7 +1409,7 @@ fn core_session_hook_maps_errors_and_encodings() {
 #[test]
 fn pinned_go_differential() {
     const MEMBERS_RESOLVED: u64 = 1 << 21;
-    assert_eq!(MEMBERS_RESOLVED as u32, tsrs_checker::ObjectFlags::MEMBERS_RESOLVED.bits());
+    assert_eq!(MEMBERS_RESOLVED as u32, tsrs_checker::ObjectFlags::MembersResolved.bits());
     let lines = probe_lines();
     if let Ok(out) = std::env::var("TSRS_CHECKER_PROBE_OUT") {
         std::fs::write(out, lines.join("\n") + "\n").unwrap();
@@ -1520,8 +1520,8 @@ fn probe_lines() -> Vec<String> {
     emit(
         "flags",
         obj(vec![
-            ("Value", Value::Number(tsrs_ast::SymbolFlags::VALUE.bits() as f64)),
-            ("Type", Value::Number(tsrs_ast::SymbolFlags::TYPE.bits() as f64)),
+            ("Value", Value::Number(tsrs_ast::SymbolFlags::Value.bits() as f64)),
+            ("Type", Value::Number(tsrs_ast::SymbolFlags::Type.bits() as f64)),
         ]),
     );
     for n in include_str!("testdata/go_probe/needles.txt").lines().filter(|l| !l.is_empty()) {
@@ -1616,7 +1616,7 @@ fn probe_lines() -> Vec<String> {
         &h.sp(&format!(
             r#""file":"/p/main.ts","position":{},"meaning":{}"#,
             utf16_pos(MAIN, "box.value"),
-            tsrs_ast::SymbolFlags::VALUE.bits()
+            tsrs_ast::SymbolFlags::Value.bits()
         )),
     );
     for sym in arr(&scope) {
@@ -1642,8 +1642,8 @@ fn probe_lines() -> Vec<String> {
             );
         }
     }
-    let value = tsrs_ast::SymbolFlags::VALUE.bits();
-    let ty = tsrs_ast::SymbolFlags::TYPE.bits();
+    let value = tsrs_ast::SymbolFlags::Value.bits();
+    let ty = tsrs_ast::SymbolFlags::Type.bits();
     for (name, meaning) in [("Array", ty), ("box", value), ("Promise", value), ("Animal", value)] {
         for (label, extra) in [
             ("noloc", String::new()),
@@ -1845,8 +1845,8 @@ fn object_flags_leave_out_tsrs_memo_bits() {
     assert_eq!(assignable, Value::Bool(false));
     let after = num(&h.type_at(MAIN_FILE, MAIN, "opts:"), "objectFlags");
     assert_eq!(
-        after & !(u64::from(tsrs_checker::ObjectFlags::MEMBERS_RESOLVED.bits())),
-        before & !(u64::from(tsrs_checker::ObjectFlags::MEMBERS_RESOLVED.bits()))
+        after & !(u64::from(tsrs_checker::ObjectFlags::MembersResolved.bits())),
+        before & !(u64::from(tsrs_checker::ObjectFlags::MembersResolved.bits()))
     );
     assert_eq!(after >> 30, 0, "objectFlags {after:#x} has bits Go does not define");
 }

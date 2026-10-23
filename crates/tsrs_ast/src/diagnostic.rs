@@ -868,7 +868,7 @@ mod tests {
             original_start: 5,
             original_end: 6,
             kind: tsrs_spanmap::Kind::ALIAS,
-            features: tsrs_spanmap::Feature::ALL,
+            features: tsrs_spanmap::Feature::All,
         }]);
         file.set_content_mapper_info(crate::ContentMapperSourceFileInfo {
             content_mapper: "mapper@1.0.0",

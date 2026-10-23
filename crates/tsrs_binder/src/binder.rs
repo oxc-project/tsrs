@@ -16,27 +16,27 @@ bitflags! {
     pub struct ContainerFlags: u32 {
         // The current node is not a container, and no container manipulation should happen before
         // recursing into it.
-        const NONE = 0;
+        const None = 0;
         // The current node is a container.  It should be set as the current container (and block-
         // container) before recursing into it.  The current node does not have locals.  Examples:
         //
         //      Classes, ObjectLiterals, TypeLiterals, Interfaces...
-        const IS_CONTAINER = 1 << 0;
+        const IsContainer = 1 << 0;
         // The current node is a block-scoped-container.  It should be set as the current block-
         // container before recursing into it.  Examples:
         //
         //      Blocks (when not parented by functions), Catch clauses, For/For-in/For-of statements...
-        const IS_BLOCK_SCOPED_CONTAINER = 1 << 1;
+        const IsBlockScopedContainer = 1 << 1;
         // The current node is the container of a control flow path. The current control flow should
         // be saved and restored, and a new control flow initialized within the container.
-        const IS_CONTROL_FLOW_CONTAINER = 1 << 2;
-        const IS_FUNCTION_LIKE = 1 << 3;
-        const IS_FUNCTION_EXPRESSION = 1 << 4;
-        const HAS_LOCALS = 1 << 5;
-        const IS_INTERFACE = 1 << 6;
-        const IS_OBJECT_LITERAL_OR_CLASS_EXPRESSION_METHOD_OR_ACCESSOR = 1 << 7;
-        const IS_THIS_CONTAINER = 1 << 8;
-        const PROPAGATES_THIS_KEYWORD = 1 << 9;
+        const IsControlFlowContainer = 1 << 2;
+        const IsFunctionLike = 1 << 3;
+        const IsFunctionExpression = 1 << 4;
+        const HasLocals = 1 << 5;
+        const IsInterface = 1 << 6;
+        const IsObjectLiteralOrClassExpressionMethodOrAccessor = 1 << 7;
+        const IsThisContainer = 1 << 8;
+        const PropagatesThisKeyword = 1 << 9;
     }
 }
 
@@ -148,7 +148,7 @@ impl Binder {
 
     fn new(file: P<SourceFile>) -> Binder {
         let unreachable_flow =
-            new_flow_node_value(FlowFlags::UNREACHABLE, None, None, file.text_index.get());
+            new_flow_node_value(FlowFlags::Unreachable, None, None, file.text_index.get());
         Binder::new_with(file, unreachable_flow, file.bind_diagnostics().to_vec())
     }
 
@@ -173,7 +173,7 @@ impl Binder {
             current_exception_target: None,
             pre_switch_case_flow: None,
             active_label_list: Vec::new(),
-            emit_flags: NodeFlags::NONE,
+            emit_flags: NodeFlags::None,
             seen_this_keyword: false,
             has_explicit_return: false,
             has_flow_effects: false,
@@ -237,7 +237,7 @@ impl Binder {
         is_computed_name: bool,
     ) -> P<Symbol> {
         assert!(is_computed_name || !ast::has_dynamic_name(node));
-        let is_default_export = ast::has_syntactic_modifier(node, ModifierFlags::DEFAULT)
+        let is_default_export = ast::has_syntactic_modifier(node, ModifierFlags::Default)
             || ast::is_export_specifier(node)
                 && ast::module_export_name_is_default(node.name().unwrap());
         // The exported symbol for an export default function/class node is always named "default"
@@ -250,7 +250,7 @@ impl Binder {
         };
         let mut symbol: P<Symbol>;
         if name == ast::INTERNAL_SYMBOL_NAME_MISSING {
-            symbol = self.new_symbol(SymbolFlags::NONE, ast::INTERNAL_SYMBOL_NAME_MISSING);
+            symbol = self.new_symbol(SymbolFlags::None, ast::INTERNAL_SYMBOL_NAME_MISSING);
         } else {
             // Check and see if the symbol table already has a symbol with this name.  If not,
             // create a new symbol with this name and add it to the table.  Note that we don't
@@ -277,29 +277,29 @@ impl Binder {
             // just add this node into the declarations list of the symbol.
             match (*symbol_table).get(name) {
                 None => {
-                    symbol = self.new_symbol(SymbolFlags::NONE, name);
+                    symbol = self.new_symbol(SymbolFlags::None, name);
                     symbol_table.set(name, symbol);
                     if is_replaceable_by_method {
-                        symbol.flags.set(symbol.flags.get() | SymbolFlags::REPLACEABLE_BY_METHOD);
+                        symbol.flags.set(symbol.flags.get() | SymbolFlags::ReplaceableByMethod);
                     }
                 }
                 Some(existing) => {
                     symbol = existing;
                     if is_replaceable_by_method
-                        && !symbol.flags.get().intersects(SymbolFlags::REPLACEABLE_BY_METHOD)
+                        && !symbol.flags.get().intersects(SymbolFlags::ReplaceableByMethod)
                     {
                         // A symbol already exists, so don't add this as a declaration.
                         return symbol;
                     } else if symbol.flags.get().intersects(excludes) {
-                        if symbol.flags.get().intersects(SymbolFlags::REPLACEABLE_BY_METHOD) {
+                        if symbol.flags.get().intersects(SymbolFlags::ReplaceableByMethod) {
                             // Javascript constructor-declared symbols can be discarded in favor of
                             // prototype symbols like methods.
-                            symbol = self.new_symbol(SymbolFlags::NONE, name);
+                            symbol = self.new_symbol(SymbolFlags::None, name);
                             symbol_table.set(name, symbol);
-                        } else if !(includes.intersects(SymbolFlags::VARIABLE)
-                            && symbol.flags.get().intersects(SymbolFlags::ASSIGNMENT)
-                            || includes.intersects(SymbolFlags::ASSIGNMENT)
-                                && symbol.flags.get().intersects(SymbolFlags::VARIABLE))
+                        } else if !(includes.intersects(SymbolFlags::Variable)
+                            && symbol.flags.get().intersects(SymbolFlags::Assignment)
+                            || includes.intersects(SymbolFlags::Assignment)
+                                && symbol.flags.get().intersects(SymbolFlags::Variable))
                         {
                             // Assignment declarations are allowed to merge with variables, no matter what other flags they have.
                             // Report errors every position with duplicate declaration
@@ -339,14 +339,14 @@ impl Binder {
         is_default_export: bool,
     ) -> P<Symbol> {
         let mut message: &'static Message =
-            if symbol.flags.get().intersects(SymbolFlags::BLOCK_SCOPED_VARIABLE) {
+            if symbol.flags.get().intersects(SymbolFlags::BlockScopedVariable) {
                 &diagnostics::CANNOT_REDECLARE_BLOCK_SCOPED_VARIABLE_0
             } else {
                 &diagnostics::DUPLICATE_IDENTIFIER_0
             };
         let mut message_needs_name = true;
-        if symbol.flags.get().intersects(SymbolFlags::ENUM)
-            || includes.intersects(SymbolFlags::ENUM)
+        if symbol.flags.get().intersects(SymbolFlags::Enum)
+            || includes.intersects(SymbolFlags::Enum)
         {
             message = &diagnostics::ENUM_DECLARATIONS_CAN_ONLY_MERGE_WITH_NAMESPACE_OR_OTHER_ENUM_DECLARATIONS;
             message_needs_name = false;
@@ -385,11 +385,11 @@ impl Binder {
         };
         if ast::is_type_alias_declaration(node)
             && ast::node_is_missing(node.type_node())
-            && ast::has_syntactic_modifier(node, ModifierFlags::EXPORT)
+            && ast::has_syntactic_modifier(node, ModifierFlags::Export)
             && symbol
                 .flags
                 .get()
-                .intersects(SymbolFlags::ALIAS | SymbolFlags::TYPE | SymbolFlags::NAMESPACE)
+                .intersects(SymbolFlags::Alias | SymbolFlags::Type | SymbolFlags::Namespace)
         {
             // export type T; - may have meant export type { T }?
             let suggestion = format!("export type {{ {} }}", node.name().unwrap().text());
@@ -434,12 +434,12 @@ impl Binder {
         // the symbol as a full accessor such that all subsequent declarations are considered conflicting. This
         // for example ensures that a get accessor followed by a non-accessor followed by a set accessor with the
         // same name are all marked as duplicates.
-        if symbol.flags.get().intersects(SymbolFlags::ACCESSOR)
-            && (symbol.flags.get() & SymbolFlags::ACCESSOR) != (includes & SymbolFlags::ACCESSOR)
+        if symbol.flags.get().intersects(SymbolFlags::Accessor)
+            && (symbol.flags.get() & SymbolFlags::Accessor) != (includes & SymbolFlags::Accessor)
         {
-            symbol.flags.set(symbol.flags.get() | SymbolFlags::ACCESSOR);
+            symbol.flags.set(symbol.flags.get() | SymbolFlags::Accessor);
         }
-        self.new_symbol(SymbolFlags::NONE, name)
+        self.new_symbol(SymbolFlags::None, name)
     }
 
     // Should not be called on a declaration with a computed property name,
@@ -553,9 +553,9 @@ impl Binder {
     ) -> P<Symbol> {
         let container = self.container();
         let has_export_modifier = ast::get_combined_modifier_flags(node)
-            .intersects(ModifierFlags::EXPORT)
+            .intersects(ModifierFlags::Export)
             || ast::is_implicitly_exported_jsdoc_declaration(node);
-        if symbol_flags.intersects(SymbolFlags::ALIAS) {
+        if symbol_flags.intersects(SymbolFlags::Alias) {
             if node.kind() == Kind::ExportSpecifier
                 || (node.kind() == Kind::ImportEqualsDeclaration && has_export_modifier)
             {
@@ -591,10 +591,10 @@ impl Binder {
         //       and this case is specially handled. Module augmentations should only be merged with original module definition
         //       and should never be merged directly with other augmentation, and the latter case would be possible if automatic merge is allowed.
         if !ast::is_ambient_module(node)
-            && (has_export_modifier || container.flags().intersects(NodeFlags::EXPORT_CONTEXT))
+            && (has_export_modifier || container.flags().intersects(NodeFlags::ExportContext))
         {
             if !ast::is_locals_container(container)
-                || (ast::has_syntactic_modifier(node, ModifierFlags::DEFAULT)
+                || (ast::has_syntactic_modifier(node, ModifierFlags::Default)
                     && Self::get_declaration_name(node) == ast::INTERNAL_SYMBOL_NAME_MISSING)
             {
                 return self.declare_symbol(
@@ -606,10 +606,10 @@ impl Binder {
                 );
                 // No local symbol for an unnamed default!
             }
-            let export_kind = if symbol_flags.intersects(SymbolFlags::VALUE) {
-                SymbolFlags::EXPORT_VALUE
+            let export_kind = if symbol_flags.intersects(SymbolFlags::Value) {
+                SymbolFlags::ExportValue
             } else {
-                SymbolFlags::NONE
+                SymbolFlags::None
             };
             let local = self.declare_symbol(
                 ast::get_locals(container),
@@ -756,11 +756,11 @@ impl Binder {
     }
 
     pub(crate) fn create_loop_label(&self) -> P<FlowNode> {
-        self.new_flow_node(FlowFlags::LOOP_LABEL)
+        self.new_flow_node(FlowFlags::LoopLabel)
     }
 
     pub(crate) fn create_branch_label(&self) -> P<FlowNode> {
-        self.new_flow_node(FlowFlags::BRANCH_LABEL)
+        self.new_flow_node(FlowFlags::BranchLabel)
     }
 
     pub(crate) fn create_reduce_label(
@@ -770,7 +770,7 @@ impl Binder {
         antecedent: P<FlowNode>,
     ) -> P<FlowNode> {
         self.new_flow_node_ex(
-            FlowFlags::REDUCE_LABEL,
+            FlowFlags::ReduceLabel,
             Some(ast::new_flow_reduce_label_data(target, antecedents)),
             Some(antecedent),
         )
@@ -782,18 +782,18 @@ impl Binder {
         antecedent: P<FlowNode>,
         expression: Option<P<Node>>,
     ) -> P<FlowNode> {
-        if antecedent.flags.get().intersects(FlowFlags::UNREACHABLE) {
+        if antecedent.flags.get().intersects(FlowFlags::Unreachable) {
             return antecedent;
         }
         let Some(expression) = expression else {
-            if flags.intersects(FlowFlags::TRUE_CONDITION) {
+            if flags.intersects(FlowFlags::TrueCondition) {
                 return antecedent;
             }
             return self.unreachable_flow;
         };
-        if (expression.kind() == Kind::TrueKeyword && flags.intersects(FlowFlags::FALSE_CONDITION)
+        if (expression.kind() == Kind::TrueKeyword && flags.intersects(FlowFlags::FalseCondition)
             || expression.kind() == Kind::FalseKeyword
-                && flags.intersects(FlowFlags::TRUE_CONDITION))
+                && flags.intersects(FlowFlags::TrueCondition))
             && !ast::is_expression_of_optional_chain_root(expression)
             && !ast::is_nullish_coalesce(expression.parent().unwrap())
         {
@@ -830,7 +830,7 @@ impl Binder {
     ) -> P<FlowNode> {
         set_flow_node_referenced(antecedent);
         self.new_flow_node_ex(
-            FlowFlags::SWITCH_CLAUSE,
+            FlowFlags::SwitchClause,
             Some(ast::new_flow_switch_clause_data(switch_statement, clause_start, clause_end)),
             Some(antecedent),
         )
@@ -843,7 +843,7 @@ impl Binder {
     ) -> P<FlowNode> {
         set_flow_node_referenced(antecedent);
         self.has_flow_effects = true;
-        self.new_flow_node_ex(FlowFlags::CALL, Some(node), Some(antecedent))
+        self.new_flow_node_ex(FlowFlags::Call, Some(node), Some(antecedent))
     }
 
     pub(crate) fn new_flow_list(head: P<FlowNode>, tail: Option<P<FlowList>>) -> P<FlowList> {
@@ -864,16 +864,16 @@ impl Binder {
 
 pub(crate) fn set_flow_node_referenced(flow: P<FlowNode>) {
     // On first reference we set the Referenced flag, thereafter we set the Shared flag
-    if !flow.flags.get().intersects(FlowFlags::REFERENCED) {
-        flow.flags.set(flow.flags.get() | FlowFlags::REFERENCED);
+    if !flow.flags.get().intersects(FlowFlags::Referenced) {
+        flow.flags.set(flow.flags.get() | FlowFlags::Referenced);
     } else {
-        flow.flags.set(flow.flags.get() | FlowFlags::SHARED);
+        flow.flags.set(flow.flags.get() | FlowFlags::Shared);
     }
 }
 
 impl Binder {
     pub(crate) fn add_antecedent(label: Option<P<FlowNode>>, antecedent: P<FlowNode>) {
-        if antecedent.flags.get().intersects(FlowFlags::UNREACHABLE) {
+        if antecedent.flags.get().intersects(FlowFlags::Unreachable) {
             return;
         }
         let label = label.unwrap();
@@ -922,9 +922,9 @@ impl Binder {
         reason = "Recycling frees binder-owned flow nodes and requires exclusive access to the binder."
     )]
     pub(crate) fn recycle_flow_label(&mut self, label: P<FlowNode>) {
-        debug_assert!(label.flags.get().intersects(FlowFlags::BRANCH_LABEL));
+        debug_assert!(label.flags.get().intersects(FlowFlags::BranchLabel));
         let held = |t: Option<P<FlowNode>>| t == Some(label);
-        if label.flags.get().intersects(FlowFlags::REFERENCED)
+        if label.flags.get().intersects(FlowFlags::Referenced)
             || label == self.unreachable_flow
             || held(self.current_flow)
             || held(self.current_break_target)
@@ -1039,61 +1039,61 @@ impl Binder {
             Kind::PropertyAssignment | Kind::ShorthandPropertyAssignment => {
                 self.bind_property_or_method_or_accessor(
                     node,
-                    SymbolFlags::PROPERTY,
-                    SymbolFlags::PROPERTY_EXCLUDES,
+                    SymbolFlags::Property,
+                    SymbolFlags::PropertyExcludes,
                 );
             }
             Kind::EnumMember => self.bind_property_or_method_or_accessor(
                 node,
-                SymbolFlags::ENUM_MEMBER,
-                SymbolFlags::ENUM_MEMBER_EXCLUDES,
+                SymbolFlags::EnumMember,
+                SymbolFlags::EnumMemberExcludes,
             ),
             Kind::CallSignature | Kind::ConstructSignature | Kind::IndexSignature => {
                 self.declare_symbol_and_add_to_symbol_table(
                     node,
-                    SymbolFlags::SIGNATURE,
-                    SymbolFlags::NONE,
+                    SymbolFlags::Signature,
+                    SymbolFlags::None,
                 );
             }
             Kind::MethodDeclaration | Kind::MethodSignature => self
                 .bind_property_or_method_or_accessor(
                     node,
-                    SymbolFlags::METHOD | get_optional_symbol_flag_for_node(node),
+                    SymbolFlags::Method | get_optional_symbol_flag_for_node(node),
                     if ast::is_object_literal_method(node) {
-                        SymbolFlags::VALUE
+                        SymbolFlags::Value
                     } else {
-                        SymbolFlags::METHOD_EXCLUDES
+                        SymbolFlags::MethodExcludes
                     },
                 ),
             Kind::FunctionDeclaration => self.bind_function_declaration(node),
             Kind::Constructor => {
                 self.declare_symbol_and_add_to_symbol_table(
                     node,
-                    SymbolFlags::CONSTRUCTOR,
-                    SymbolFlags::NONE,
+                    SymbolFlags::Constructor,
+                    SymbolFlags::None,
                 );
             }
             Kind::GetAccessor => self.bind_property_or_method_or_accessor(
                 node,
-                SymbolFlags::GET_ACCESSOR,
-                SymbolFlags::GET_ACCESSOR_EXCLUDES,
+                SymbolFlags::GetAccessor,
+                SymbolFlags::GetAccessorExcludes,
             ),
             Kind::SetAccessor => self.bind_property_or_method_or_accessor(
                 node,
-                SymbolFlags::SET_ACCESSOR,
-                SymbolFlags::SET_ACCESSOR_EXCLUDES,
+                SymbolFlags::SetAccessor,
+                SymbolFlags::SetAccessorExcludes,
             ),
             Kind::FunctionType | Kind::ConstructorType => {
                 self.bind_function_or_constructor_type(node);
             }
             Kind::TypeLiteral | Kind::MappedType => self.bind_anonymous_declaration(
                 node,
-                SymbolFlags::TYPE_LITERAL,
+                SymbolFlags::TypeLiteral,
                 ast::INTERNAL_SYMBOL_NAME_TYPE,
             ),
             Kind::ObjectLiteralExpression => self.bind_anonymous_declaration(
                 node,
-                SymbolFlags::OBJECT_LITERAL,
+                SymbolFlags::ObjectLiteral,
                 ast::INTERNAL_SYMBOL_NAME_OBJECT,
             ),
             Kind::FunctionExpression | Kind::ArrowFunction => self.bind_function_expression(node),
@@ -1102,8 +1102,8 @@ impl Binder {
             }
             Kind::InterfaceDeclaration => self.bind_block_scoped_declaration(
                 node,
-                SymbolFlags::INTERFACE,
-                SymbolFlags::INTERFACE_EXCLUDES,
+                SymbolFlags::Interface,
+                SymbolFlags::InterfaceExcludes,
             ),
             Kind::CallExpression => {
                 match ast::get_assignment_declaration_kind(node) {
@@ -1121,16 +1121,16 @@ impl Binder {
             }
             Kind::TypeAliasDeclaration => self.bind_block_scoped_declaration(
                 node,
-                SymbolFlags::TYPE_ALIAS,
-                SymbolFlags::TYPE_ALIAS_EXCLUDES,
+                SymbolFlags::TypeAlias,
+                SymbolFlags::TypeAliasExcludes,
             ),
             Kind::JSTypeAliasDeclaration => {
                 // Top-level JSTypeAliasDeclaration nodes are processed in bindContainer
                 if !ast::is_source_file(self.block_scope_container.unwrap()) {
                     self.bind_block_scoped_declaration(
                         node,
-                        SymbolFlags::TYPE_ALIAS,
-                        SymbolFlags::TYPE_ALIAS_EXCLUDES,
+                        SymbolFlags::TypeAlias,
+                        SymbolFlags::TypeAliasExcludes,
                     );
                 }
             }
@@ -1142,8 +1142,8 @@ impl Binder {
             | Kind::ExportSpecifier => {
                 self.declare_symbol_and_add_to_symbol_table(
                     node,
-                    SymbolFlags::ALIAS,
-                    SymbolFlags::ALIAS_EXCLUDES,
+                    SymbolFlags::Alias,
+                    SymbolFlags::AliasExcludes,
                 );
             }
             Kind::NamespaceExportDeclaration => self.bind_namespace_export_declaration(node),
@@ -1153,11 +1153,7 @@ impl Binder {
             Kind::SourceFile => self.bind_source_file_if_external_module(),
             Kind::JsxAttributes => self.bind_jsx_attributes(node),
             Kind::JsxAttribute => {
-                self.bind_jsx_attribute(
-                    node,
-                    SymbolFlags::PROPERTY,
-                    SymbolFlags::PROPERTY_EXCLUDES,
-                );
+                self.bind_jsx_attribute(node, SymbolFlags::Property, SymbolFlags::PropertyExcludes);
             }
             _ => {}
         }
@@ -1167,12 +1163,12 @@ impl Binder {
         // a local should go into for example. Since terminal nodes are known not to have
         // children, as an optimization we don't process those.
         let mut this_node_or_any_subnodes_has_error =
-            node.flags().intersects(NodeFlags::THIS_NODE_HAS_ERROR);
+            node.flags().intersects(NodeFlags::ThisNodeHasError);
         if node.kind() > Kind::LAST_TOKEN {
             let save_seen_parse_error = self.seen_parse_error;
             self.seen_parse_error = false;
             let container_flags = get_container_flags(node);
-            if container_flags == ContainerFlags::NONE {
+            if container_flags == ContainerFlags::None {
                 self.bind_children(node);
             } else {
                 self.bind_container(node, container_flags);
@@ -1183,7 +1179,7 @@ impl Binder {
             self.seen_parse_error = save_seen_parse_error;
         }
         if this_node_or_any_subnodes_has_error {
-            node.set_flags(node.flags() | NodeFlags::THIS_NODE_OR_ANY_SUB_NODES_HAS_ERROR);
+            node.set_flags(node.flags() | NodeFlags::ThisNodeOrAnySubNodesHasError);
             self.seen_parse_error = true;
         }
         false
@@ -1191,11 +1187,11 @@ impl Binder {
 
     pub(crate) fn bind_property_worker(&mut self, node: P<Node>) {
         let is_auto_accessor = ast::is_auto_accessor_property_declaration(node);
-        let includes = if is_auto_accessor { SymbolFlags::ACCESSOR } else { SymbolFlags::PROPERTY };
+        let includes = if is_auto_accessor { SymbolFlags::Accessor } else { SymbolFlags::Property };
         let excludes = if is_auto_accessor {
-            SymbolFlags::ACCESSOR_EXCLUDES
+            SymbolFlags::AccessorExcludes
         } else {
-            SymbolFlags::PROPERTY_EXCLUDES
+            SymbolFlags::PropertyExcludes
         };
         self.bind_property_or_method_or_accessor(
             node,
@@ -1217,8 +1213,8 @@ impl Binder {
                 ast::get_exports(original_symbol.unwrap()),
                 original_symbol,
                 file_node,
-                SymbolFlags::PROPERTY,
-                SymbolFlags::ALL,
+                SymbolFlags::Property,
+                SymbolFlags::All,
             );
             file_node.declaration_data().unwrap().symbol.set(original_symbol);
         }
@@ -1227,13 +1223,13 @@ impl Binder {
     pub(crate) fn bind_source_file_as_external_module(&mut self) {
         let name =
             alloc_str(&format!("\"{}\"", tspath::remove_file_extension(self.file.file_name())));
-        self.bind_anonymous_declaration(self.file.as_node(), SymbolFlags::VALUE_MODULE, name);
+        self.bind_anonymous_declaration(self.file.as_node(), SymbolFlags::ValueModule, name);
     }
 
     pub(crate) fn bind_module_declaration(&mut self, node: P<Node>) {
         Self::set_export_context_flag(node);
         if ast::is_ambient_module(node) {
-            if ast::has_syntactic_modifier(node, ModifierFlags::EXPORT) {
+            if ast::has_syntactic_modifier(node, ModifierFlags::Export) {
                 self.error_on_first_token(
                     node,
                     &diagnostics::X_EXPORT_MODIFIER_CANNOT_BE_APPLIED_TO_AMBIENT_MODULES_AND_MODULE_AUGMENTATIONS_SINCE_THEY_ARE_ALWAYS_VISIBLE,
@@ -1246,8 +1242,8 @@ impl Binder {
                 let name = node.name().unwrap();
                 let symbol = self.declare_symbol_and_add_to_symbol_table(
                     node,
-                    SymbolFlags::VALUE_MODULE,
-                    SymbolFlags::VALUE_MODULE_EXCLUDES,
+                    SymbolFlags::ValueModule,
+                    SymbolFlags::ValueModuleExcludes,
                 );
 
                 if ast::is_string_literal(name) {
@@ -1282,15 +1278,15 @@ impl Binder {
             if state != ast::ModuleInstanceState::NonInstantiated {
                 let symbol = node.symbol().unwrap();
                 // if module was already merged with some function, class or non-const enum, treat it as non-const-enum-only
-                let const_enum_only_module = !symbol.flags.get().intersects(SymbolFlags::FUNCTION | SymbolFlags::CLASS | SymbolFlags::REGULAR_ENUM)
+                let const_enum_only_module = !symbol.flags.get().intersects(SymbolFlags::Function | SymbolFlags::Class | SymbolFlags::RegularEnum)
                     // Current must be `const enum` only
                     && state == ast::ModuleInstanceState::ConstEnumOnly
                     // Can't have been set to 'false' in a previous merged symbol. ('undefined' OK)
                     && !self.not_const_enum_only_modules.contains(&symbol);
                 if const_enum_only_module {
-                    symbol.flags.set(symbol.flags.get() | SymbolFlags::CONST_ENUM_ONLY_MODULE);
+                    symbol.flags.set(symbol.flags.get() | SymbolFlags::ConstEnumOnlyModule);
                 } else {
-                    symbol.flags.set(symbol.flags.get() & !SymbolFlags::CONST_ENUM_ONLY_MODULE);
+                    symbol.flags.set(symbol.flags.get() & !SymbolFlags::ConstEnumOnlyModule);
                     self.not_const_enum_only_modules.insert(symbol);
                 }
             }
@@ -1302,11 +1298,11 @@ impl Binder {
         let instantiated = state != ast::ModuleInstanceState::NonInstantiated;
         self.declare_symbol_and_add_to_symbol_table(
             node,
-            if instantiated { SymbolFlags::VALUE_MODULE } else { SymbolFlags::NAMESPACE_MODULE },
+            if instantiated { SymbolFlags::ValueModule } else { SymbolFlags::NamespaceModule },
             if instantiated {
-                SymbolFlags::VALUE_MODULE_EXCLUDES
+                SymbolFlags::ValueModuleExcludes
             } else {
-                SymbolFlags::NAMESPACE_MODULE_EXCLUDES
+                SymbolFlags::NamespaceModuleExcludes
             },
         );
         state
@@ -1341,8 +1337,8 @@ impl Binder {
                 table,
                 self.file.as_node().symbol(),
                 node,
-                SymbolFlags::ALIAS,
-                SymbolFlags::ALIAS_EXCLUDES,
+                SymbolFlags::Alias,
+                SymbolFlags::AliasExcludes,
             );
         }
     }
@@ -1351,8 +1347,8 @@ impl Binder {
         if node.name().is_some() {
             self.declare_symbol_and_add_to_symbol_table(
                 node,
-                SymbolFlags::ALIAS,
-                SymbolFlags::ALIAS_EXCLUDES,
+                SymbolFlags::Alias,
+                SymbolFlags::AliasExcludes,
             );
         }
     }
@@ -1364,7 +1360,7 @@ impl Binder {
             None => {
                 // Export * in some sort of block construct
                 let name = Self::get_declaration_name(node);
-                self.bind_anonymous_declaration(node, SymbolFlags::EXPORT_STAR, name);
+                self.bind_anonymous_declaration(node, SymbolFlags::ExportStar, name);
             }
             Some(container_symbol) => {
                 if let Some(export_clause) = decl.export_clause() {
@@ -1373,8 +1369,8 @@ impl Binder {
                             ast::get_exports(container_symbol),
                             Some(container_symbol),
                             export_clause,
-                            SymbolFlags::ALIAS,
-                            SymbolFlags::ALIAS_EXCLUDES,
+                            SymbolFlags::Alias,
+                            SymbolFlags::AliasExcludes,
                         );
                     }
                 } else {
@@ -1383,8 +1379,8 @@ impl Binder {
                         ast::get_exports(container_symbol),
                         Some(container_symbol),
                         node,
-                        SymbolFlags::EXPORT_STAR,
-                        SymbolFlags::NONE,
+                        SymbolFlags::ExportStar,
+                        SymbolFlags::None,
                     );
                 }
             }
@@ -1396,21 +1392,21 @@ impl Binder {
         if container.symbol().is_none() && ast::is_export_assignment(node) {
             // Incorrect export assignment in some sort of block construct
             let name = Self::get_declaration_name(node);
-            self.bind_anonymous_declaration(node, SymbolFlags::VALUE, name);
+            self.bind_anonymous_declaration(node, SymbolFlags::Value, name);
         } else {
             // If there is an `export default x;` alias declaration, can't `export default` anything else.
             // (In contrast, you can still have `export default function f() {}` and `export default interface I {}`.)
             let flags = if ast::expression_is_alias(node.expression().unwrap()) {
-                SymbolFlags::ALIAS
+                SymbolFlags::Alias
             } else {
-                SymbolFlags::PROPERTY
+                SymbolFlags::Property
             };
             let symbol = self.declare_symbol(
                 ast::get_exports(container.symbol().unwrap()),
                 container.symbol(),
                 node,
                 flags,
-                SymbolFlags::ALL,
+                SymbolFlags::All,
             );
             if node.as_export_assignment().is_export_equals() {
                 // Ensure export assignments have a ValueDeclaration set.
@@ -1422,7 +1418,7 @@ impl Binder {
     pub(crate) fn bind_jsx_attributes(&mut self, node: P<Node>) {
         self.bind_anonymous_declaration(
             node,
-            SymbolFlags::OBJECT_LITERAL,
+            SymbolFlags::ObjectLiteral,
             ast::INTERNAL_SYMBOL_NAME_JSX_ATTRIBUTES,
         );
     }
@@ -1439,10 +1435,10 @@ impl Binder {
     pub(crate) fn set_export_context_flag(node: P<Node>) {
         // A declaration source file or ambient module declaration that contains no export declarations (but possibly regular
         // declarations with export modifiers) is an export context in which declarations are implicitly exported.
-        if node.flags().intersects(NodeFlags::AMBIENT) && !Self::has_export_declarations(node) {
-            node.set_flags(node.flags() | NodeFlags::EXPORT_CONTEXT);
+        if node.flags().intersects(NodeFlags::Ambient) && !Self::has_export_declarations(node) {
+            node.set_flags(node.flags() | NodeFlags::ExportContext);
         } else {
-            node.set_flags(node.flags() & !NodeFlags::EXPORT_CONTEXT);
+            node.set_flags(node.flags() & !NodeFlags::ExportContext);
         }
     }
 
@@ -1466,10 +1462,10 @@ impl Binder {
 
     pub(crate) fn bind_function_expression(&mut self, node: P<Node>) {
         if !self.file.is_declaration_file()
-            && !node.flags().intersects(NodeFlags::AMBIENT)
+            && !node.flags().intersects(NodeFlags::Ambient)
             && ast::is_async_function(node)
         {
-            self.emit_flags |= NodeFlags::HAS_ASYNC_FUNCTIONS;
+            self.emit_flags |= NodeFlags::HasAsyncFunctions;
         }
         set_flow_node(node, self.current_flow);
         let mut binding_name = ast::INTERNAL_SYMBOL_NAME_FUNCTION;
@@ -1479,7 +1475,7 @@ impl Binder {
                 binding_name = name.text();
             }
         }
-        self.bind_anonymous_declaration(node, SymbolFlags::FUNCTION, binding_name);
+        self.bind_anonymous_declaration(node, SymbolFlags::Function, binding_name);
     }
 
     pub(crate) fn bind_call_expression(&mut self, node: P<Node>) {
@@ -1513,8 +1509,8 @@ impl Binder {
             Kind::ClassDeclaration => {
                 self.bind_block_scoped_declaration(
                     node,
-                    SymbolFlags::CLASS,
-                    SymbolFlags::CLASS_EXCLUDES,
+                    SymbolFlags::Class,
+                    SymbolFlags::ClassExcludes,
                 );
             }
             Kind::ClassExpression => {
@@ -1522,7 +1518,7 @@ impl Binder {
                     Some(name) => name.text(),
                     None => ast::INTERNAL_SYMBOL_NAME_CLASS,
                 };
-                self.bind_anonymous_declaration(node, SymbolFlags::CLASS, name_text);
+                self.bind_anonymous_declaration(node, SymbolFlags::Class, name_text);
             }
             _ => {}
         }
@@ -1537,7 +1533,7 @@ impl Binder {
         // module might have an exported variable called 'prototype'.  We can't allow that as
         // that would clash with the built-in 'prototype' for the class.
         let prototype_symbol =
-            self.new_symbol(SymbolFlags::PROPERTY | SymbolFlags::PROTOTYPE, "prototype");
+            self.new_symbol(SymbolFlags::Property | SymbolFlags::Prototype, "prototype");
         let symbol_export = (*ast::get_exports(symbol)).get(prototype_symbol.name());
         if let Some(symbol_export) = symbol_export {
             let first_declaration = symbol_export.declarations()[0];
@@ -1558,10 +1554,10 @@ impl Binder {
         symbol_excludes: SymbolFlags,
     ) {
         if !self.file.is_declaration_file()
-            && !node.flags().intersects(NodeFlags::AMBIENT)
+            && !node.flags().intersects(NodeFlags::Ambient)
             && ast::is_async_function(node)
         {
-            self.emit_flags |= NodeFlags::HAS_ASYNC_FUNCTIONS;
+            self.emit_flags |= NodeFlags::HasAsyncFunctions;
         }
         if self.current_flow.is_some()
             && ast::is_object_literal_or_class_expression_method_or_accessor(node)
@@ -1583,11 +1579,11 @@ impl Binder {
         // symbol as its sole member. To the rest of the system, this symbol will be indistinguishable
         // from an actual type literal symbol you would have gotten had you used the long form.
         let name = Self::get_declaration_name(node);
-        let symbol = self.new_symbol(SymbolFlags::SIGNATURE, name);
-        self.add_declaration_to_symbol(symbol, node, SymbolFlags::SIGNATURE);
+        let symbol = self.new_symbol(SymbolFlags::Signature, name);
+        self.add_declaration_to_symbol(symbol, node, SymbolFlags::Signature);
         let type_literal_symbol =
-            self.new_symbol(SymbolFlags::TYPE_LITERAL, ast::INTERNAL_SYMBOL_NAME_TYPE);
-        self.add_declaration_to_symbol(type_literal_symbol, node, SymbolFlags::TYPE_LITERAL);
+            self.new_symbol(SymbolFlags::TypeLiteral, ast::INTERNAL_SYMBOL_NAME_TYPE);
+        self.add_declaration_to_symbol(type_literal_symbol, node, SymbolFlags::TypeLiteral);
         let members = SymbolTable::new();
         members.set(symbol.name(), symbol);
         type_literal_symbol.set_members(Some(members));
@@ -1605,7 +1601,7 @@ impl Binder {
             s
         } else {
             let s = self
-                .new_symbol(SymbolFlags::NONE, ast::INTERNAL_SYMBOL_NAME_ASSIGNMENT_DECLARATION);
+                .new_symbol(SymbolFlags::None, ast::INTERNAL_SYMBOL_NAME_ASSIGNMENT_DECLARATION);
             exports.set(ast::INTERNAL_SYMBOL_NAME_ASSIGNMENT_DECLARATION, s);
             s
         };
@@ -1616,16 +1612,16 @@ impl Binder {
         if self.set_common_js_module_indicator(node) {
             let container = self.file.as_node();
             let flags = if ast::expression_is_alias(node.as_binary_expression().right()) {
-                SymbolFlags::ALIAS
+                SymbolFlags::Alias
             } else {
-                SymbolFlags::PROPERTY
+                SymbolFlags::Property
             };
             let symbol = self.declare_symbol(
                 ast::get_exports(container.symbol().unwrap()),
                 container.symbol(),
                 node,
                 flags,
-                SymbolFlags::NONE,
+                SymbolFlags::None,
             );
             set_value_declaration(symbol, node);
         }
@@ -1660,12 +1656,12 @@ impl Binder {
         {
             for symbol in module_exports.values() {
                 if symbol.name() != ast::INTERNAL_SYMBOL_NAME_EXPORT_EQUALS
-                    && symbol.flags.get().intersects(SymbolFlags::TYPE | SymbolFlags::NAMESPACE)
+                    && symbol.flags.get().intersects(SymbolFlags::Type | SymbolFlags::Namespace)
                 {
                     ast::get_exports(export_equals).set(symbol.name(), symbol);
                     export_equals
                         .flags
-                        .set(export_equals.flags.get() | SymbolFlags::NAMESPACE_MODULE);
+                        .set(export_equals.flags.get() | SymbolFlags::NamespaceModule);
                 }
             }
         }
@@ -1681,7 +1677,7 @@ impl Binder {
             if ast::has_dynamic_name(node) {
                 self.bind_anonymous_declaration(
                     node,
-                    SymbolFlags::PROPERTY | SymbolFlags::ASSIGNMENT,
+                    SymbolFlags::Property | SymbolFlags::Assignment,
                     ast::INTERNAL_SYMBOL_NAME_COMPUTED,
                 );
                 self.add_late_bound_assignment_declaration_to_symbol(node, symbol);
@@ -1690,14 +1686,14 @@ impl Binder {
                 let exports = ast::get_exports(symbol);
                 let existing = (*exports).get(Self::get_declaration_name(node));
                 if existing.is_none()
-                    || existing.unwrap().flags.get().intersects(SymbolFlags::ASSIGNMENT)
+                    || existing.unwrap().flags.get().intersects(SymbolFlags::Assignment)
                 {
                     self.declare_symbol(
                         exports,
                         Some(symbol),
                         node,
-                        SymbolFlags::PROPERTY | SymbolFlags::ASSIGNMENT,
-                        SymbolFlags::PROPERTY_EXCLUDES,
+                        SymbolFlags::Property | SymbolFlags::Assignment,
+                        SymbolFlags::PropertyExcludes,
                     );
                 }
             }
@@ -1720,16 +1716,16 @@ impl Binder {
             let flags = if ast::is_binary_expression(node)
                 && ast::expression_is_alias(node.as_binary_expression().right())
             {
-                SymbolFlags::ALIAS
+                SymbolFlags::Alias
             } else {
-                SymbolFlags::FUNCTION_SCOPED_VARIABLE
+                SymbolFlags::FunctionScopedVariable
             };
             self.declare_symbol(
                 ast::get_exports(container.symbol().unwrap()),
                 container.symbol(),
                 node,
                 flags,
-                SymbolFlags::FUNCTION_SCOPED_VARIABLE_EXCLUDES,
+                SymbolFlags::FunctionScopedVariableExcludes,
             );
         }
     }
@@ -1747,7 +1743,7 @@ pub(crate) fn get_initializer_symbol(symbol: Option<P<Symbol>>) -> Option<P<Symb
     {
         return Some(symbol);
     } else if ast::is_variable_declaration(declaration)
-        && (declaration.parent().unwrap().flags().intersects(NodeFlags::CONST)
+        && (declaration.parent().unwrap().flags().intersects(NodeFlags::Const)
             || ast::is_in_js_file(Some(declaration)))
     {
         let initializer = declaration.initializer();
@@ -1782,8 +1778,8 @@ impl Binder {
                     symbol_table,
                     class_symbol,
                     node,
-                    SymbolFlags::PROPERTY,
-                    SymbolFlags::NONE,
+                    SymbolFlags::Property,
+                    SymbolFlags::None,
                     true, /*isReplaceableByMethod*/
                     true, /*isComputedName*/
                 );
@@ -1793,8 +1789,8 @@ impl Binder {
                     symbol_table,
                     class_symbol,
                     node,
-                    SymbolFlags::PROPERTY | SymbolFlags::ASSIGNMENT,
-                    SymbolFlags::NONE,
+                    SymbolFlags::Property | SymbolFlags::Assignment,
+                    SymbolFlags::None,
                     true,  /*isReplaceableByMethod*/
                     false, /*isComputedName*/
                 );
@@ -1846,14 +1842,14 @@ impl Binder {
         if ast::is_enum_const(node) {
             self.bind_block_scoped_declaration(
                 node,
-                SymbolFlags::CONST_ENUM,
-                SymbolFlags::CONST_ENUM_EXCLUDES,
+                SymbolFlags::ConstEnum,
+                SymbolFlags::ConstEnumExcludes,
             );
         } else {
             self.bind_block_scoped_declaration(
                 node,
-                SymbolFlags::REGULAR_ENUM,
-                SymbolFlags::REGULAR_ENUM_EXCLUDES,
+                SymbolFlags::RegularEnum,
+                SymbolFlags::RegularEnumExcludes,
             );
         }
     }
@@ -1865,14 +1861,14 @@ impl Binder {
                 if ast::is_variable_declaration_initialized_to_require(node) {
                     self.declare_symbol_and_add_to_symbol_table(
                         node,
-                        SymbolFlags::ALIAS,
-                        SymbolFlags::ALIAS_EXCLUDES,
+                        SymbolFlags::Alias,
+                        SymbolFlags::AliasExcludes,
                     );
                 } else if ast::is_block_or_catch_scoped(node) {
                     self.bind_block_scoped_declaration(
                         node,
-                        SymbolFlags::BLOCK_SCOPED_VARIABLE,
-                        SymbolFlags::BLOCK_SCOPED_VARIABLE_EXCLUDES,
+                        SymbolFlags::BlockScopedVariable,
+                        SymbolFlags::BlockScopedVariableExcludes,
                     );
                 } else if ast::is_part_of_parameter_declaration(node) {
                     // It is safe to walk up parent chain to find whether the node is a destructuring parameter declaration
@@ -1886,14 +1882,14 @@ impl Binder {
                     //                             // which correctly set excluded symbols
                     self.declare_symbol_and_add_to_symbol_table(
                         node,
-                        SymbolFlags::FUNCTION_SCOPED_VARIABLE,
-                        SymbolFlags::PARAMETER_EXCLUDES,
+                        SymbolFlags::FunctionScopedVariable,
+                        SymbolFlags::ParameterExcludes,
                     );
                 } else {
                     self.declare_symbol_and_add_to_symbol_table(
                         node,
-                        SymbolFlags::FUNCTION_SCOPED_VARIABLE,
-                        SymbolFlags::FUNCTION_SCOPED_VARIABLE_EXCLUDES,
+                        SymbolFlags::FunctionScopedVariable,
+                        SymbolFlags::FunctionScopedVariableExcludes,
                     );
                 }
             }
@@ -1902,7 +1898,7 @@ impl Binder {
 
     pub(crate) fn bind_parameter(&mut self, node: P<Node>) {
         let decl = node.as_parameter_declaration();
-        if !node.flags().intersects(NodeFlags::AMBIENT) {
+        if !node.flags().intersects(NodeFlags::Ambient) {
             // It is a SyntaxError if the identifier eval or arguments appears within a FormalParameterList of a
             // strict mode FunctionLikeDeclaration or FunctionExpression(13.1)
             self.check_strict_mode_eval_or_arguments(node, node.name());
@@ -1917,48 +1913,48 @@ impl Binder {
                 .expect("parameter belongs to its parent");
             self.bind_anonymous_declaration(
                 node,
-                SymbolFlags::FUNCTION_SCOPED_VARIABLE,
+                SymbolFlags::FunctionScopedVariable,
                 alloc_str(&format!("__{index}")),
             );
         } else {
             self.declare_symbol_and_add_to_symbol_table(
                 node,
-                SymbolFlags::FUNCTION_SCOPED_VARIABLE,
-                SymbolFlags::PARAMETER_EXCLUDES,
+                SymbolFlags::FunctionScopedVariable,
+                SymbolFlags::ParameterExcludes,
             );
         }
         // If this is a property-parameter, then also declare the property symbol into the
         // containing class.
         if ast::is_parameter_property_declaration(node, node.parent().unwrap()) {
             let class_declaration = node.parent().unwrap().parent().unwrap();
-            let flags = SymbolFlags::PROPERTY
+            let flags = SymbolFlags::Property
                 | if decl.question_token().is_some() {
-                    SymbolFlags::OPTIONAL
+                    SymbolFlags::Optional
                 } else {
-                    SymbolFlags::NONE
+                    SymbolFlags::None
                 };
             self.declare_symbol(
                 ast::get_members(class_declaration.symbol().unwrap()),
                 class_declaration.symbol(),
                 node,
                 flags,
-                SymbolFlags::PROPERTY_EXCLUDES,
+                SymbolFlags::PropertyExcludes,
             );
         }
     }
 
     pub(crate) fn bind_function_declaration(&mut self, node: P<Node>) {
         if !self.file.is_declaration_file()
-            && !node.flags().intersects(NodeFlags::AMBIENT)
+            && !node.flags().intersects(NodeFlags::Ambient)
             && ast::is_async_function(node)
         {
-            self.emit_flags |= NodeFlags::HAS_ASYNC_FUNCTIONS;
+            self.emit_flags |= NodeFlags::HasAsyncFunctions;
         }
         self.check_strict_mode_function_name(node);
         self.bind_block_scoped_declaration(
             node,
-            SymbolFlags::FUNCTION,
-            SymbolFlags::FUNCTION_EXCLUDES,
+            SymbolFlags::Function,
+            SymbolFlags::FunctionExcludes,
         );
     }
 
@@ -1983,7 +1979,7 @@ impl Binder {
         name: &'static str,
     ) {
         let symbol = self.new_symbol(symbol_flags, name);
-        if symbol_flags.intersects(SymbolFlags::ENUM_MEMBER | SymbolFlags::CLASS_MEMBER) {
+        if symbol_flags.intersects(SymbolFlags::EnumMember | SymbolFlags::ClassMember) {
             symbol.set_parent(self.container().symbol());
         }
         self.add_declaration_to_symbol(symbol, node, symbol_flags);
@@ -2027,18 +2023,18 @@ impl Binder {
                     ast::get_locals(container),
                     None, /*parent*/
                     node,
-                    SymbolFlags::TYPE_PARAMETER,
-                    SymbolFlags::TYPE_PARAMETER_EXCLUDES,
+                    SymbolFlags::TypeParameter,
+                    SymbolFlags::TypeParameterExcludes,
                 );
             } else {
                 let name = Self::get_declaration_name(node);
-                self.bind_anonymous_declaration(node, SymbolFlags::TYPE_PARAMETER, name);
+                self.bind_anonymous_declaration(node, SymbolFlags::TypeParameter, name);
             }
         } else {
             self.declare_symbol_and_add_to_symbol_table(
                 node,
-                SymbolFlags::TYPE_PARAMETER,
-                SymbolFlags::TYPE_PARAMETER_EXCLUDES,
+                SymbolFlags::TypeParameter,
+                SymbolFlags::TypeParameterExcludes,
             );
         }
     }
@@ -2090,8 +2086,8 @@ impl Binder {
     pub(crate) fn check_contextual_identifier(&mut self, node: P<Node>) {
         // Report error only if there are no parse errors in file
         if self.file.diagnostics().is_empty()
-            && !node.flags().intersects(NodeFlags::AMBIENT)
-            && !node.flags().intersects(NodeFlags::JSDOC)
+            && !node.flags().intersects(NodeFlags::Ambient)
+            && !node.flags().intersects(NodeFlags::JSDoc)
             && !ast::is_identifier_name(node)
         {
             // strict mode identifiers
@@ -2118,7 +2114,7 @@ impl Binder {
                     &diagnostics::IDENTIFIER_EXPECTED_0_IS_A_RESERVED_WORD_AT_THE_TOP_LEVEL_OF_A_MODULE,
                     &[&scanner::declaration_name_to_string(Some(node))],
                 );
-            } else if node.flags().intersects(NodeFlags::AWAIT_CONTEXT) {
+            } else if node.flags().intersects(NodeFlags::AwaitContext) {
                 self.error_on_node(
                     node,
                     &diagnostics::IDENTIFIER_EXPECTED_0_IS_A_RESERVED_WORD_THAT_CANNOT_BE_USED_HERE,
@@ -2126,7 +2122,7 @@ impl Binder {
                 );
             }
         } else if original_keyword_kind == Kind::YieldKeyword
-            && node.flags().intersects(NodeFlags::YIELD_CONTEXT)
+            && node.flags().intersects(NodeFlags::YieldContext)
         {
             self.error_on_node(
                 node,
@@ -2196,7 +2192,7 @@ pub fn find_use_strict_prologue(
 
 impl Binder {
     pub(crate) fn check_strict_mode_function_name(&mut self, node: P<Node>) {
-        if !node.flags().intersects(NodeFlags::AMBIENT) {
+        if !node.flags().intersects(NodeFlags::Ambient) {
             // It is a SyntaxError if the identifier eval or arguments appears within a FormalParameterList of a strict mode FunctionDeclaration or FunctionExpression (13.1))
             self.check_strict_mode_eval_or_arguments(node, node.name());
         }
@@ -2340,22 +2336,22 @@ impl Binder {
         // reusing a node from a previous compilation, that node may have had 'locals' created
         // for it.  We must clear this so we don't accidentally move any stale data forward from
         // a previous compilation.
-        if container_flags.intersects(ContainerFlags::IS_CONTAINER) {
+        if container_flags.intersects(ContainerFlags::IsContainer) {
             self.container = Some(node);
             self.block_scope_container = Some(node);
-            if container_flags.intersects(ContainerFlags::HAS_LOCALS) {
+            if container_flags.intersects(ContainerFlags::HasLocals) {
                 // localsContainer := node
                 // localsContainer.LocalsContainerData().locals = make(SymbolTable)
                 self.add_to_container_chain(node);
             }
-        } else if container_flags.intersects(ContainerFlags::IS_BLOCK_SCOPED_CONTAINER) {
+        } else if container_flags.intersects(ContainerFlags::IsBlockScopedContainer) {
             self.block_scope_container = Some(node);
             self.add_to_container_chain(node);
         }
-        if container_flags.intersects(ContainerFlags::IS_THIS_CONTAINER) {
+        if container_flags.intersects(ContainerFlags::IsThisContainer) {
             self.this_container = Some(node);
         }
-        if container_flags.intersects(ContainerFlags::IS_CONTROL_FLOW_CONTAINER) {
+        if container_flags.intersects(ContainerFlags::IsControlFlowContainer) {
             let save_current_flow = self.current_flow;
             let save_break_target = self.current_break_target;
             let save_continue_target = self.current_continue_target;
@@ -2365,19 +2361,19 @@ impl Binder {
             let save_has_explicit_return = self.has_explicit_return;
             let save_seen_this_keyword = self.seen_this_keyword;
             let is_immediately_invoked = (container_flags
-                .intersects(ContainerFlags::IS_FUNCTION_EXPRESSION)
-                && !ast::has_syntactic_modifier(node, ModifierFlags::ASYNC)
+                .intersects(ContainerFlags::IsFunctionExpression)
+                && !ast::has_syntactic_modifier(node, ModifierFlags::Async)
                 && !is_generator_function_expression(node)
                 && ast::get_immediately_invoked_function_expression(node).is_some())
                 || node.kind() == Kind::ClassStaticBlockDeclaration;
             // A non-async, non-generator IIFE is considered part of the containing control flow. Return statements behave
             // similarly to break statements that exit to a label just past the statement body.
             if !is_immediately_invoked {
-                let flow_start = self.new_flow_node(FlowFlags::START);
+                let flow_start = self.new_flow_node(FlowFlags::Start);
                 self.current_flow = Some(flow_start);
                 if container_flags.intersects(
-                    ContainerFlags::IS_FUNCTION_EXPRESSION
-                        | ContainerFlags::IS_OBJECT_LITERAL_OR_CLASS_EXPRESSION_METHOD_OR_ACCESSOR,
+                    ContainerFlags::IsFunctionExpression
+                        | ContainerFlags::IsObjectLiteralOrClassExpressionMethodOrAccessor,
                 ) {
                     flow_start.node.set(Some(node));
                 }
@@ -2385,7 +2381,7 @@ impl Binder {
             // We create a return control flow graph for IIFEs and constructors. For constructors
             // we use the return control flow graph in strict property initialization checks.
             if is_immediately_invoked || node.kind() == Kind::Constructor {
-                self.current_return_target = Some(self.new_flow_node(FlowFlags::BRANCH_LABEL));
+                self.current_return_target = Some(self.new_flow_node(FlowFlags::BranchLabel));
             } else {
                 self.current_return_target = None;
             }
@@ -2397,23 +2393,23 @@ impl Binder {
             self.bind_children(node);
             // Reset flags (for incremental scenarios)
             node.set_flags(
-                node.flags() & !(NodeFlags::REACHABILITY_AND_EMIT_FLAGS | NodeFlags::CONTAINS_THIS),
+                node.flags() & !(NodeFlags::ReachabilityAndEmitFlags | NodeFlags::ContainsThis),
             );
-            if !self.current_flow().flags.get().intersects(FlowFlags::UNREACHABLE)
-                && container_flags.intersects(ContainerFlags::IS_FUNCTION_LIKE)
+            if !self.current_flow().flags.get().intersects(FlowFlags::Unreachable)
+                && container_flags.intersects(ContainerFlags::IsFunctionLike)
             {
                 if let Some(body_data) = node.body_data() {
                     if ast::node_is_present(body_data.body) {
-                        node.set_flags(node.flags() | NodeFlags::HAS_IMPLICIT_RETURN);
+                        node.set_flags(node.flags() | NodeFlags::HasImplicitReturn);
                         if self.has_explicit_return {
-                            node.set_flags(node.flags() | NodeFlags::HAS_EXPLICIT_RETURN);
+                            node.set_flags(node.flags() | NodeFlags::HasExplicitReturn);
                         }
                         body_data.end_flow_node.set(self.current_flow);
                     }
                 }
             }
             if self.seen_this_keyword {
-                node.set_flags(node.flags() | NodeFlags::CONTAINS_THIS);
+                node.set_flags(node.flags() | NodeFlags::ContainsThis);
             }
             if node.kind() == Kind::SourceFile {
                 node.set_flags(node.flags() | self.emit_flags);
@@ -2436,20 +2432,20 @@ impl Binder {
             self.current_exception_target = save_exception_target;
             self.active_label_list = save_active_label_list;
             self.has_explicit_return = save_has_explicit_return;
-            if container_flags.intersects(ContainerFlags::PROPAGATES_THIS_KEYWORD) {
+            if container_flags.intersects(ContainerFlags::PropagatesThisKeyword) {
                 self.seen_this_keyword = save_seen_this_keyword || self.seen_this_keyword;
             } else {
                 self.seen_this_keyword = save_seen_this_keyword;
             }
-        } else if container_flags.intersects(ContainerFlags::IS_INTERFACE) {
+        } else if container_flags.intersects(ContainerFlags::IsInterface) {
             let save_seen_this_keyword = self.seen_this_keyword;
             self.seen_this_keyword = false;
             self.bind_children(node);
             // ContainsThis cannot overlap with HasExtendedUnicodeEscape on Identifier
             if self.seen_this_keyword {
-                node.set_flags(node.flags() | NodeFlags::CONTAINS_THIS);
+                node.set_flags(node.flags() | NodeFlags::ContainsThis);
             } else {
-                node.set_flags(node.flags() & !NodeFlags::CONTAINS_THIS);
+                node.set_flags(node.flags() & !NodeFlags::ContainsThis);
             }
             self.seen_this_keyword = save_seen_this_keyword;
         } else {
@@ -2462,8 +2458,8 @@ impl Binder {
                 if ast::is_js_type_alias_declaration(statement) {
                     self.bind_block_scoped_declaration(
                         statement,
-                        SymbolFlags::TYPE_ALIAS,
-                        SymbolFlags::TYPE_ALIAS_EXCLUDES,
+                        SymbolFlags::TypeAlias,
+                        SymbolFlags::TypeAliasExcludes,
                     );
                 }
             }
@@ -2486,15 +2482,13 @@ impl Binder {
     pub(crate) fn declare_common_js_variable(&mut self, name: &'static str) {
         let locals = ast::get_locals(self.file.as_node());
         if (*locals).get(name).is_none() {
-            let symbol = self.new_symbol(
-                SymbolFlags::FUNCTION_SCOPED_VARIABLE | SymbolFlags::MODULE_EXPORTS,
-                name,
-            );
+            let symbol = self
+                .new_symbol(SymbolFlags::FunctionScopedVariable | SymbolFlags::ModuleExports, name);
             symbol.set_declarations(&[self.file.as_node()]);
             symbol.set_value_declaration(Some(self.file.as_node()));
             if name == "module" {
                 let exports_property =
-                    self.new_symbol(SymbolFlags::MODULE_EXPORTS | SymbolFlags::PROPERTY, "exports");
+                    self.new_symbol(SymbolFlags::ModuleExports | SymbolFlags::Property, "exports");
                 exports_property.set_declarations_static(symbol.declarations());
                 exports_property.set_value_declaration(symbol.value_declaration());
                 exports_property.set_parent(Some(symbol));
@@ -2517,7 +2511,7 @@ impl Binder {
                 node.set_flow_node(None);
             }
             if ast::is_potentially_executable_node(node) {
-                node.set_flags(node.flags() | NodeFlags::UNREACHABLE);
+                node.set_flags(node.flags() | NodeFlags::Unreachable);
             }
             self.bind_each_child(node);
             self.bind_lazy_member_list(node);
@@ -2823,10 +2817,10 @@ impl Binder {
         };
         if node.is_none() || !is_logical_like {
             let true_condition =
-                self.create_flow_condition(FlowFlags::TRUE_CONDITION, self.current_flow(), node);
+                self.create_flow_condition(FlowFlags::TrueCondition, self.current_flow(), node);
             Self::add_antecedent(true_target, true_condition);
             let false_condition =
-                self.create_flow_condition(FlowFlags::FALSE_CONDITION, self.current_flow(), node);
+                self.create_flow_condition(FlowFlags::FalseCondition, self.current_flow(), node);
             Self::add_antecedent(false_target, false_condition);
         }
     }
@@ -2882,7 +2876,7 @@ impl Binder {
             _ => {
                 if is_narrowable_reference(node) {
                     self.current_flow = Some(self.create_flow_mutation(
-                        FlowFlags::ASSIGNMENT,
+                        FlowFlags::Assignment,
                         self.current_flow(),
                         node,
                     ));
@@ -3143,7 +3137,7 @@ impl Binder {
             finally_label.set_antecedents(combined);
             self.current_flow = Some(finally_label);
             self.bind(stmt.finally_block());
-            if self.current_flow().flags.get().intersects(FlowFlags::UNREACHABLE) {
+            if self.current_flow().flags.get().intersects(FlowFlags::Unreachable) {
                 // If the end of the finally block is unreachable, the end of the entire try statement is unreachable.
                 self.current_flow = Some(self.unreachable_flow);
             } else {
@@ -3247,7 +3241,7 @@ impl Binder {
             let clause = clauses[i];
             self.bind(clause);
             fallthrough_flow = self.current_flow();
-            if !self.current_flow().flags.get().intersects(FlowFlags::UNREACHABLE)
+            if !self.current_flow().flags.get().intersects(FlowFlags::Unreachable)
                 && i != clauses.len() - 1
             {
                 clause.as_case_or_default_clause().set_fallthrough_flow_node(self.current_flow);
@@ -3297,7 +3291,7 @@ impl Binder {
         self.bind(stmt.statement());
         if !self.active_label_list.last().unwrap().referenced {
             // Mark the label as unused; the checker will decide whether to report it
-            stmt.label().set_flags(stmt.label().flags() | NodeFlags::UNREACHABLE);
+            stmt.label().set_flags(stmt.label().flags() | NodeFlags::Unreachable);
         }
         self.active_label_list.pop();
         Self::add_antecedent(Some(post_statement_label), self.current_flow());
@@ -3395,7 +3389,7 @@ impl Binder {
                     let element_access = expr.left().as_element_access_expression();
                     if is_narrowable_operand(element_access.expression()) {
                         self.current_flow = Some(self.create_flow_mutation(
-                            FlowFlags::ARRAY_MUTATION,
+                            FlowFlags::ArrayMutation,
                             self.current_flow(),
                             node,
                         ));
@@ -3431,13 +3425,13 @@ impl Binder {
             );
             self.bind_assignment_target_flow(expr.left());
             let true_condition = self.create_flow_condition(
-                FlowFlags::TRUE_CONDITION,
+                FlowFlags::TrueCondition,
                 self.current_flow(),
                 Some(node),
             );
             Self::add_antecedent(true_target, true_condition);
             let false_condition = self.create_flow_condition(
-                FlowFlags::FALSE_CONDITION,
+                FlowFlags::FalseCondition,
                 self.current_flow(),
                 Some(node),
             );
@@ -3501,7 +3495,7 @@ impl Binder {
             }
         } else {
             self.current_flow =
-                Some(self.create_flow_mutation(FlowFlags::ASSIGNMENT, self.current_flow(), node));
+                Some(self.create_flow_mutation(FlowFlags::Assignment, self.current_flow(), node));
         }
     }
 
@@ -3572,13 +3566,13 @@ impl Binder {
         );
         if ast::is_outermost_optional_chain(node) {
             let true_condition = self.create_flow_condition(
-                FlowFlags::TRUE_CONDITION,
+                FlowFlags::TrueCondition,
                 self.current_flow(),
                 Some(node),
             );
             Self::add_antecedent(true_target, true_condition);
             let false_condition = self.create_flow_condition(
-                FlowFlags::FALSE_CONDITION,
+                FlowFlags::FalseCondition,
                 self.current_flow(),
                 Some(node),
             );
@@ -3595,13 +3589,13 @@ impl Binder {
         self.do_with_conditional_branches(Binder::bind, Some(node), true_target, false_target);
         if !ast::is_optional_chain(node) || ast::is_outermost_optional_chain(node) {
             let true_condition = self.create_flow_condition(
-                FlowFlags::TRUE_CONDITION,
+                FlowFlags::TrueCondition,
                 self.current_flow(),
                 Some(node),
             );
             Self::add_antecedent(true_target, true_condition);
             let false_condition = self.create_flow_condition(
-                FlowFlags::FALSE_CONDITION,
+                FlowFlags::FalseCondition,
                 self.current_flow(),
                 Some(node),
             );
@@ -3657,7 +3651,7 @@ impl Binder {
                 && ast::is_push_or_unshift_identifier(access_name)
             {
                 self.current_flow = Some(self.create_flow_mutation(
-                    FlowFlags::ARRAY_MUTATION,
+                    FlowFlags::ArrayMutation,
                     self.current_flow(),
                     node,
                 ));
@@ -3777,16 +3771,16 @@ impl Binder {
             symbol.append_declarations(&[node]);
         }
         // On merge of const enum module with class or function, reset const enum only flag (namespaces will already recalculate)
-        if symbol.flags.get().intersects(SymbolFlags::CONST_ENUM_ONLY_MODULE)
+        if symbol.flags.get().intersects(SymbolFlags::ConstEnumOnlyModule)
             && symbol
                 .flags
                 .get()
-                .intersects(SymbolFlags::FUNCTION | SymbolFlags::CLASS | SymbolFlags::REGULAR_ENUM)
+                .intersects(SymbolFlags::Function | SymbolFlags::Class | SymbolFlags::RegularEnum)
         {
-            symbol.flags.set(symbol.flags.get() & !SymbolFlags::CONST_ENUM_ONLY_MODULE);
+            symbol.flags.set(symbol.flags.get() & !SymbolFlags::ConstEnumOnlyModule);
             self.not_const_enum_only_modules.insert(symbol);
         }
-        if symbol_flags.intersects(SymbolFlags::VALUE) {
+        if symbol_flags.intersects(SymbolFlags::Value) {
             set_value_declaration(symbol, node);
         }
     }
@@ -3821,27 +3815,27 @@ pub fn get_container_flags(node: P<Node>) -> ContainerFlags {
         | Kind::EnumDeclaration
         | Kind::ObjectLiteralExpression
         | Kind::TypeLiteral
-        | Kind::JsxAttributes => ContainerFlags::IS_CONTAINER,
-        Kind::InterfaceDeclaration => ContainerFlags::IS_CONTAINER | ContainerFlags::IS_INTERFACE,
+        | Kind::JsxAttributes => ContainerFlags::IsContainer,
+        Kind::InterfaceDeclaration => ContainerFlags::IsContainer | ContainerFlags::IsInterface,
         Kind::ModuleDeclaration
         | Kind::TypeAliasDeclaration
         | Kind::JSTypeAliasDeclaration
         | Kind::MappedType
-        | Kind::IndexSignature => ContainerFlags::IS_CONTAINER | ContainerFlags::HAS_LOCALS,
+        | Kind::IndexSignature => ContainerFlags::IsContainer | ContainerFlags::HasLocals,
         Kind::SourceFile => {
-            ContainerFlags::IS_CONTAINER
-                | ContainerFlags::IS_CONTROL_FLOW_CONTAINER
-                | ContainerFlags::HAS_LOCALS
+            ContainerFlags::IsContainer
+                | ContainerFlags::IsControlFlowContainer
+                | ContainerFlags::HasLocals
         }
         Kind::GetAccessor | Kind::SetAccessor | Kind::MethodDeclaration
             if ast::is_object_literal_or_class_expression_method_or_accessor(node) =>
         {
-            ContainerFlags::IS_CONTAINER
-                | ContainerFlags::IS_CONTROL_FLOW_CONTAINER
-                | ContainerFlags::HAS_LOCALS
-                | ContainerFlags::IS_FUNCTION_LIKE
-                | ContainerFlags::IS_OBJECT_LITERAL_OR_CLASS_EXPRESSION_METHOD_OR_ACCESSOR
-                | ContainerFlags::IS_THIS_CONTAINER
+            ContainerFlags::IsContainer
+                | ContainerFlags::IsControlFlowContainer
+                | ContainerFlags::HasLocals
+                | ContainerFlags::IsFunctionLike
+                | ContainerFlags::IsObjectLiteralOrClassExpressionMethodOrAccessor
+                | ContainerFlags::IsThisContainer
         }
         Kind::GetAccessor
         | Kind::SetAccessor
@@ -3849,62 +3843,62 @@ pub fn get_container_flags(node: P<Node>) -> ContainerFlags {
         | Kind::Constructor
         | Kind::FunctionDeclaration
         | Kind::ClassStaticBlockDeclaration => {
-            ContainerFlags::IS_CONTAINER
-                | ContainerFlags::IS_CONTROL_FLOW_CONTAINER
-                | ContainerFlags::HAS_LOCALS
-                | ContainerFlags::IS_FUNCTION_LIKE
-                | ContainerFlags::IS_THIS_CONTAINER
+            ContainerFlags::IsContainer
+                | ContainerFlags::IsControlFlowContainer
+                | ContainerFlags::HasLocals
+                | ContainerFlags::IsFunctionLike
+                | ContainerFlags::IsThisContainer
         }
         Kind::MethodSignature
         | Kind::CallSignature
         | Kind::FunctionType
         | Kind::ConstructSignature
         | Kind::ConstructorType => {
-            ContainerFlags::IS_CONTAINER
-                | ContainerFlags::IS_CONTROL_FLOW_CONTAINER
-                | ContainerFlags::HAS_LOCALS
-                | ContainerFlags::IS_FUNCTION_LIKE
-                | ContainerFlags::PROPAGATES_THIS_KEYWORD
+            ContainerFlags::IsContainer
+                | ContainerFlags::IsControlFlowContainer
+                | ContainerFlags::HasLocals
+                | ContainerFlags::IsFunctionLike
+                | ContainerFlags::PropagatesThisKeyword
         }
         Kind::FunctionExpression => {
-            ContainerFlags::IS_CONTAINER
-                | ContainerFlags::IS_CONTROL_FLOW_CONTAINER
-                | ContainerFlags::HAS_LOCALS
-                | ContainerFlags::IS_FUNCTION_LIKE
-                | ContainerFlags::IS_FUNCTION_EXPRESSION
-                | ContainerFlags::IS_THIS_CONTAINER
+            ContainerFlags::IsContainer
+                | ContainerFlags::IsControlFlowContainer
+                | ContainerFlags::HasLocals
+                | ContainerFlags::IsFunctionLike
+                | ContainerFlags::IsFunctionExpression
+                | ContainerFlags::IsThisContainer
         }
         Kind::ArrowFunction => {
-            ContainerFlags::IS_CONTAINER
-                | ContainerFlags::IS_CONTROL_FLOW_CONTAINER
-                | ContainerFlags::HAS_LOCALS
-                | ContainerFlags::IS_FUNCTION_LIKE
-                | ContainerFlags::IS_FUNCTION_EXPRESSION
-                | ContainerFlags::PROPAGATES_THIS_KEYWORD
+            ContainerFlags::IsContainer
+                | ContainerFlags::IsControlFlowContainer
+                | ContainerFlags::HasLocals
+                | ContainerFlags::IsFunctionLike
+                | ContainerFlags::IsFunctionExpression
+                | ContainerFlags::PropagatesThisKeyword
         }
-        Kind::ModuleBlock => ContainerFlags::IS_CONTROL_FLOW_CONTAINER,
+        Kind::ModuleBlock => ContainerFlags::IsControlFlowContainer,
         Kind::PropertyDeclaration => {
             if node.initializer().is_some() {
-                ContainerFlags::IS_CONTROL_FLOW_CONTAINER | ContainerFlags::IS_THIS_CONTAINER
+                ContainerFlags::IsControlFlowContainer | ContainerFlags::IsThisContainer
             } else {
-                ContainerFlags::NONE
+                ContainerFlags::None
             }
         }
         Kind::CatchClause
         | Kind::ForStatement
         | Kind::ForInStatement
         | Kind::ForOfStatement
-        | Kind::CaseBlock => ContainerFlags::IS_BLOCK_SCOPED_CONTAINER | ContainerFlags::HAS_LOCALS,
+        | Kind::CaseBlock => ContainerFlags::IsBlockScopedContainer | ContainerFlags::HasLocals,
         Kind::Block => {
             let parent = node.parent().unwrap();
             if ast::is_function_like(Some(parent)) || ast::is_class_static_block_declaration(parent)
             {
-                ContainerFlags::NONE
+                ContainerFlags::None
             } else {
-                ContainerFlags::IS_BLOCK_SCOPED_CONTAINER | ContainerFlags::HAS_LOCALS
+                ContainerFlags::IsBlockScopedContainer | ContainerFlags::HasLocals
             }
         }
-        _ => ContainerFlags::NONE,
+        _ => ContainerFlags::None,
     }
 }
 
@@ -3931,7 +3925,7 @@ pub(crate) fn contains_narrowable_reference(expr: P<Node>) -> bool {
     if is_narrowable_reference(expr) {
         return true;
     }
-    if expr.flags().intersects(NodeFlags::OPTIONAL_CHAIN) {
+    if expr.flags().intersects(NodeFlags::OptionalChain) {
         match expr.kind() {
             Kind::PropertyAccessExpression
             | Kind::ElementAccessExpression
@@ -4078,8 +4072,8 @@ impl Binder {
 
 pub(crate) fn get_optional_symbol_flag_for_node(node: P<Node>) -> SymbolFlags {
     match node.postfix_token() {
-        Some(postfix_token) if postfix_token.kind() == Kind::QuestionToken => SymbolFlags::OPTIONAL,
-        _ => SymbolFlags::NONE,
+        Some(postfix_token) if postfix_token.kind() == Kind::QuestionToken => SymbolFlags::Optional,
+        _ => SymbolFlags::None,
     }
 }
 

@@ -9,65 +9,65 @@ use crate::*;
 bitflags! {
     #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Debug, Default)]
     pub struct SignatureCheckMode: u32 {
-        const NONE = 0;
-        const BIVARIANT_CALLBACK = 1 << 0;
-        const STRICT_CALLBACK = 1 << 1;
-        const IGNORE_RETURN_TYPES = 1 << 2;
-        const STRICT_ARITY = 1 << 3;
-        const STRICT_TOP_SIGNATURE = 1 << 4;
-        const CALLBACK = Self::BIVARIANT_CALLBACK.bits() | Self::STRICT_CALLBACK.bits();
+        const None = 0;
+        const BivariantCallback = 1 << 0;
+        const StrictCallback = 1 << 1;
+        const IgnoreReturnTypes = 1 << 2;
+        const StrictArity = 1 << 3;
+        const StrictTopSignature = 1 << 4;
+        const Callback = Self::BivariantCallback.bits() | Self::StrictCallback.bits();
     }
 }
 
 bitflags! {
     #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Debug, Default)]
     pub struct MinArgumentCountFlags: u32 {
-        const NONE = 0;
-        const STRONG_ARITY_FOR_UNTYPED_JS = 1 << 0;
-        const VOID_IS_NON_OPTIONAL = 1 << 1;
+        const None = 0;
+        const StrongArityForUntypedJS = 1 << 0;
+        const VoidIsNonOptional = 1 << 1;
     }
 }
 
 bitflags! {
     #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Debug, Default)]
     pub struct IntersectionState: u32 {
-        const NONE = 0;
-        const SOURCE = 1 << 0; // Source type is a constituent of an outer intersection
-        const TARGET = 1 << 1; // Target type is a constituent of an outer intersection
+        const None = 0;
+        const Source = 1 << 0; // Source type is a constituent of an outer intersection
+        const Target = 1 << 1; // Target type is a constituent of an outer intersection
     }
 }
 
 bitflags! {
     #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Debug, Default)]
     pub struct RecursionFlags: u32 {
-        const NONE = 0;
-        const SOURCE = 1 << 0;
-        const TARGET = 1 << 1;
-        const BOTH = Self::SOURCE.bits() | Self::TARGET.bits();
+        const None = 0;
+        const Source = 1 << 0;
+        const Target = 1 << 1;
+        const Both = Self::Source.bits() | Self::Target.bits();
     }
 }
 
 bitflags! {
     #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Debug, Default)]
     pub struct ExpandingFlags: u8 {
-        const NONE = 0;
-        const SOURCE = 1 << 0;
-        const TARGET = 1 << 1;
-        const BOTH = Self::SOURCE.bits() | Self::TARGET.bits();
+        const None = 0;
+        const Source = 1 << 0;
+        const Target = 1 << 1;
+        const Both = Self::Source.bits() | Self::Target.bits();
     }
 }
 
 bitflags! {
     #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Debug, Default)]
     pub struct RelationComparisonResult: u32 {
-        const NONE = 0;
-        const SUCCEEDED = 1 << 0;
-        const FAILED = 1 << 1;
-        const REPORTS_UNMEASURABLE = 1 << 3;
-        const REPORTS_UNRELIABLE = 1 << 4;
-        const COMPLEXITY_OVERFLOW = 1 << 5;
-        const REPORTS_MASK = Self::REPORTS_UNMEASURABLE.bits() | Self::REPORTS_UNRELIABLE.bits();
-        const OVERFLOW = Self::COMPLEXITY_OVERFLOW.bits();
+        const None = 0;
+        const Succeeded = 1 << 0;
+        const Failed = 1 << 1;
+        const ReportsUnmeasurable = 1 << 3;
+        const ReportsUnreliable = 1 << 4;
+        const ComplexityOverflow = 1 << 5;
+        const ReportsMask = Self::ReportsUnmeasurable.bits() | Self::ReportsUnreliable.bits();
+        const Overflow = Self::ComplexityOverflow.bits();
     }
 }
 

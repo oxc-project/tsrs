@@ -122,7 +122,7 @@ impl PseudoChecker {
             if let Some(init) = init {
                 if !is_contextually_typed(node) {
                     // explicit fail on readonly template literals to allow for literal freshness in the future
-                    if has_modifier(node, ModifierFlags::READONLY) && is_template_expression(init) {
+                    if has_modifier(node, ModifierFlags::Readonly) && is_template_expression(init) {
                         return new_pseudo_type_no_result(node);
                     }
                     let expr = self.type_from_expression(init);
@@ -296,7 +296,7 @@ impl PseudoChecker {
         if let Some(f) = fn_ {
             if !node_is_missing(f.body()) {
                 let flags = get_function_flags(Some(f));
-                if flags.intersects(FunctionFlags::ASYNC_GENERATOR) {
+                if flags.intersects(FunctionFlags::AsyncGenerator) {
                     return Some(new_pseudo_type_inferred(f, true));
                 }
 
@@ -566,14 +566,14 @@ impl PseudoChecker {
         }
         let mut error_nodes: Vec<P<Node>> = Vec::new();
         error_nodes.extend(properties.iter().filter_map(|&e| {
-            if e.flags().intersects(NodeFlags::THIS_NODE_HAS_ERROR) {
+            if e.flags().intersects(NodeFlags::ThisNodeHasError) {
                 return Some(e);
             }
             if e.kind() == Kind::ShorthandPropertyAssignment || e.kind() == Kind::SpreadAssignment {
                 return Some(e);
             }
             let name = e.name().unwrap();
-            if name.flags().intersects(NodeFlags::THIS_NODE_HAS_ERROR) {
+            if name.flags().intersects(NodeFlags::ThisNodeHasError) {
                 return Some(name);
             }
             if name.kind() == Kind::PrivateIdentifier {

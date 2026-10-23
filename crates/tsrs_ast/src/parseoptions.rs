@@ -105,7 +105,7 @@ fn is_file_probably_external_module(source_file: &SourceFile) -> Option<P<Node>>
 }
 
 fn is_an_external_module_indicator_node(node: P<Node>) -> bool {
-    has_syntactic_modifier(node, ModifierFlags::EXPORT)
+    has_syntactic_modifier(node, ModifierFlags::Export)
         || is_import_equals_declaration(node)
             && is_external_module_reference(node.as_import_equals_declaration().module_reference)
         || is_import_declaration(node)
@@ -114,7 +114,7 @@ fn is_an_external_module_indicator_node(node: P<Node>) -> bool {
 }
 
 fn get_import_meta_if_necessary(source_file: &SourceFile) -> Option<P<Node>> {
-    if source_file.as_node().flags.get().intersects(NodeFlags::POSSIBLY_CONTAINS_IMPORT_META) {
+    if source_file.as_node().flags.get().intersects(NodeFlags::PossiblyContainsImportMeta) {
         return find_child_node(source_file.as_node(), is_import_meta);
     }
     None
@@ -145,7 +145,7 @@ fn walk_tree_for_jsx_tags(node: P<Node>) -> Option<P<Node>> {
         if found.is_some() {
             return true;
         }
-        if !node.subtree_facts().intersects(SubtreeFacts::CONTAINS_JSX) {
+        if !node.subtree_facts().intersects(SubtreeFacts::ContainsJsx) {
             return false;
         }
         if is_jsx_opening_like_element(node) || is_jsx_fragment(node) {

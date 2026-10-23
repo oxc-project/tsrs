@@ -116,7 +116,7 @@ impl LanguageService {
         let positions = self.converters.from_lsp_position_for_source_file(
             source_file,
             position,
-            Feature::RENAME,
+            Feature::Rename,
         );
         if let Some(result) = positions.into_iter().find_map(|mapped| {
             if !mapped.fidelity.is_exact() {
@@ -357,7 +357,7 @@ impl LanguageService {
         // Cannot rename `default` as in `import { default as foo } from "./someModule"`
         if ast::is_identifier(node)
             && node.text() == "default"
-            && symbol.parent().is_some_and(|parent| parent.flags().intersects(SymbolFlags::MODULE))
+            && symbol.parent().is_some_and(|parent| parent.flags().intersects(SymbolFlags::Module))
         {
             return Some(&diagnostics::YOU_CANNOT_RENAME_THIS_ELEMENT);
         }
@@ -390,7 +390,7 @@ fn would_rename_in_other_node_modules(
 ) -> Option<&'static Message> {
     let mut sym = symbol;
     if !preferences.use_aliases_for_rename.is_true_or_unknown()
-        && sym.flags().intersects(SymbolFlags::ALIAS)
+        && sym.flags().intersects(SymbolFlags::Alias)
     {
         let import_specifier =
             sym.declarations().iter().copied().find(|&d| ast::is_import_specifier(d));

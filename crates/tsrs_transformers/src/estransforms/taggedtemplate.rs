@@ -47,7 +47,7 @@ impl TaggedTemplateTransformer {
 
     // taggedtemplate.go:27
     fn visit(&self, node: P<Node>) -> Option<P<Node>> {
-        if !node.subtree_facts().intersects(SubtreeFacts::CONTAINS_INVALID_TEMPLATE_ESCAPE) {
+        if !node.subtree_facts().intersects(SubtreeFacts::ContainsInvalidTemplateEscape) {
             return Some(node);
         }
         match node.kind() {
@@ -70,7 +70,7 @@ impl TaggedTemplateTransformer {
             let mut statements: Vec<P<Node>> = visited_source_file.statements.nodes().to_vec();
             statements.push(f.new_variable_statement(
                 None, /*modifiers*/
-                f.new_variable_declaration_list(f.new_node_list(declarations), NodeFlags::NONE),
+                f.new_variable_declaration_list(f.new_node_list(declarations), NodeFlags::None),
             ));
             let stmt_list = f.new_node_list(statements);
             stmt_list.loc.set(node.statements.loc.get());
@@ -156,7 +156,7 @@ impl TaggedTemplateTransformer {
             None, /*questionDotToken*/
             None, /*typeArguments*/
             f.new_node_list(template_arguments.into_iter().flatten().collect()),
-            NodeFlags::NONE,
+            NodeFlags::None,
         );
         call.set_loc(node.loc());
         call
@@ -168,10 +168,10 @@ fn create_template_cooked(
     f: &printer::NodeFactory,
     template: &TemplateLiteralLikeNodeBase,
 ) -> P<Node> {
-    if template.template_flags.intersects(TokenFlags::IS_INVALID) {
+    if template.template_flags.intersects(TokenFlags::IsInvalid) {
         return f.new_void_zero_expression();
     }
-    f.new_string_literal(template.literal_like_node_base.text(), TokenFlags::NONE)
+    f.new_string_literal(template.literal_like_node_base.text(), TokenFlags::None)
 }
 
 // taggedtemplate.go:135
@@ -201,7 +201,7 @@ fn get_raw_literal(f: &printer::NodeFactory, node: P<Node>) -> P<Node> {
     // <CR><LF> and <CR> LineTerminatorSequences are normalized to <LF> for both TV and TRV.
     let text = newline_normalizer_replace(&text);
 
-    let result = f.new_string_literal(alloc_str(&text), TokenFlags::NONE);
+    let result = f.new_string_literal(alloc_str(&text), TokenFlags::None);
     result.set_loc(node.loc());
     result
 }
@@ -213,7 +213,7 @@ fn has_invalid_escape(template: P<Node>) -> bool {
             .template_literal_like_data()
             .unwrap()
             .template_flags
-            .intersects(TokenFlags::CONTAINS_INVALID_ESCAPE);
+            .intersects(TokenFlags::ContainsInvalidEscape);
     }
     let te = template.as_template_expression();
     if te
@@ -221,7 +221,7 @@ fn has_invalid_escape(template: P<Node>) -> bool {
         .template_literal_like_data()
         .unwrap()
         .template_flags
-        .intersects(TokenFlags::CONTAINS_INVALID_ESCAPE)
+        .intersects(TokenFlags::ContainsInvalidEscape)
     {
         return true;
     }
@@ -231,6 +231,6 @@ fn has_invalid_escape(template: P<Node>) -> bool {
             .template_literal_like_data()
             .unwrap()
             .template_flags
-            .intersects(TokenFlags::CONTAINS_INVALID_ESCAPE)
+            .intersects(TokenFlags::ContainsInvalidEscape)
     })
 }

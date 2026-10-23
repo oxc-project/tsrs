@@ -370,27 +370,27 @@ pub(crate) fn type_identity(t: P<Type>) -> (Option<P<Symbol>>, u8) {
     }
     use crate::types::TypeFlags;
     let f = t.flags();
-    let k = if f.intersects(TypeFlags::OBJECT) {
+    let k = if f.intersects(TypeFlags::Object) {
         0
-    } else if f.intersects(TypeFlags::UNION) {
+    } else if f.intersects(TypeFlags::Union) {
         1
-    } else if f.intersects(TypeFlags::INTERSECTION) {
+    } else if f.intersects(TypeFlags::Intersection) {
         2
-    } else if f.intersects(TypeFlags::LITERAL) {
+    } else if f.intersects(TypeFlags::Literal) {
         3
-    } else if f.intersects(TypeFlags::TYPE_PARAMETER) {
+    } else if f.intersects(TypeFlags::TypeParameter) {
         4
-    } else if f.intersects(TypeFlags::INDEXED_ACCESS) {
+    } else if f.intersects(TypeFlags::IndexedAccess) {
         5
-    } else if f.intersects(TypeFlags::CONDITIONAL) {
+    } else if f.intersects(TypeFlags::Conditional) {
         6
-    } else if f.intersects(TypeFlags::SUBSTITUTION) {
+    } else if f.intersects(TypeFlags::Substitution) {
         7
-    } else if f.intersects(TypeFlags::INDEX) {
+    } else if f.intersects(TypeFlags::Index) {
         8
-    } else if f.intersects(TypeFlags::TEMPLATE_LITERAL) {
+    } else if f.intersects(TypeFlags::TemplateLiteral) {
         9
-    } else if f.intersects(TypeFlags::PRIMITIVE) {
+    } else if f.intersects(TypeFlags::Primitive) {
         10
     } else {
         11

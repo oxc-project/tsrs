@@ -74,7 +74,7 @@ impl LanguageService {
         let positions = self.converters.from_lsp_position_for_source_file(
             source_file,
             document_position,
-            Feature::DOCUMENT_HIGHLIGHTS,
+            Feature::DocumentHighlights,
         );
         let mut results: Vec<lsproto::MultiDocumentHighlightsOrNull> =
             Vec::with_capacity(positions.len());
@@ -125,7 +125,7 @@ impl LanguageService {
                     let (lsp_range, fidelity) = self.create_lsp_range_from_node_for_feature(
                         opening_element,
                         source_file,
-                        Feature::DOCUMENT_HIGHLIGHTS,
+                        Feature::DocumentHighlights,
                     );
                     if !fidelity.is_none() {
                         highlights.push(lsproto::DocumentHighlight {
@@ -138,7 +138,7 @@ impl LanguageService {
                     let (lsp_range, fidelity) = self.create_lsp_range_from_node_for_feature(
                         closing_element,
                         source_file,
-                        Feature::DOCUMENT_HIGHLIGHTS,
+                        Feature::DocumentHighlights,
                     );
                     if !fidelity.is_none() {
                         highlights.push(lsproto::DocumentHighlight {
@@ -278,7 +278,7 @@ impl LanguageService {
 
         let mut kind = lsproto::DocumentHighlightKind::READ;
         let Some(lsp_range) =
-            self.get_range_of_entry_for_feature(entry, Feature::DOCUMENT_HIGHLIGHTS)
+            self.get_range_of_entry_for_feature(entry, Feature::DocumentHighlights)
         else {
             return (file_name, None);
         };
@@ -437,7 +437,7 @@ impl LanguageService {
             let (lsp_range, fidelity) = self.create_lsp_range_from_node_for_feature(
                 node,
                 source_file,
-                Feature::DOCUMENT_HIGHLIGHTS,
+                Feature::DocumentHighlights,
             );
             if !fidelity.is_none() {
                 Some(lsproto::DocumentHighlight { range: lsp_range, kind: Some(kind) })
@@ -536,7 +536,7 @@ impl LanguageService {
             let (lsp_range, fidelity) = self.create_lsp_range_from_node_for_feature(
                 keywords[i],
                 source_file,
-                Feature::DOCUMENT_HIGHLIGHTS,
+                Feature::DocumentHighlights,
             );
             if !fidelity.is_none() {
                 highlights.push(lsproto::DocumentHighlight { range: lsp_range, kind: Some(kind) });
@@ -1030,7 +1030,7 @@ fn get_nodes_to_search_for_modifier(
         | Kind::CaseClause
         | Kind::DefaultClause => {
             // Container is either a class declaration or the declaration is a classDeclaration
-            if modifier_flag.intersects(ModifierFlags::ABSTRACT)
+            if modifier_flag.intersects(ModifierFlags::Abstract)
                 && ast::is_class_declaration(declaration)
             {
                 result.extend_from_slice(declaration.members());
@@ -1058,7 +1058,7 @@ fn get_nodes_to_search_for_modifier(
             // If we're an accessibility modifier, we're in an instance member and should search
             // the constructor's parameter list for instance members as well.
             if modifier_flag
-                .intersects(ModifierFlags::ACCESSIBILITY_MODIFIER | ModifierFlags::READONLY)
+                .intersects(ModifierFlags::AccessibilityModifier | ModifierFlags::Readonly)
             {
                 let mut constructor: Option<P<Node>> = None;
 
@@ -1070,7 +1070,7 @@ fn get_nodes_to_search_for_modifier(
                 if let Some(constructor) = constructor {
                     result.extend_from_slice(constructor.parameters());
                 }
-            } else if modifier_flag.intersects(ModifierFlags::ABSTRACT) {
+            } else if modifier_flag.intersects(ModifierFlags::Abstract) {
                 result.push(container);
             }
             result

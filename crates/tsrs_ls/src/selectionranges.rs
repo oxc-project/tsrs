@@ -70,7 +70,7 @@ impl LanguageService {
             let positions = self.converters.from_lsp_position_for_source_file(
                 source_file,
                 position,
-                Feature::SELECTION_RANGES,
+                Feature::SelectionRanges,
             );
             if positions.len() != 1 || !positions[0].fidelity.is_single_segment() {
                 return std::ops::ControlFlow::Break(Ok(lsproto::SelectionRangesOrNull::default()));
@@ -266,7 +266,7 @@ impl SmartSelection<'_> {
         let (lsp_range, fidelity) = self.l.converters.to_lsp_range_for_feature(
             &self.source_file,
             TextRange::new(start, end),
-            Feature::SELECTION_RANGES,
+            Feature::SelectionRanges,
         );
         if fidelity.is_none() {
             return;

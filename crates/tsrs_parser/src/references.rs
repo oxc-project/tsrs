@@ -20,7 +20,7 @@ pub(crate) fn collect_external_module_references(file: P<SourceFile>) {
         collect_module_references(file, &mut refs, node, false /*inAmbientModule*/);
     }
 
-    if file.as_node().flags().intersects(NodeFlags::POSSIBLY_CONTAINS_DYNAMIC_IMPORT)
+    if file.as_node().flags().intersects(NodeFlags::PossiblyContainsDynamicImport)
         || ast::is_in_js_file(Some(file.as_node()))
     {
         ast::for_each_dynamic_import_or_require_call(
@@ -78,7 +78,7 @@ fn collect_module_references(
     if ast::is_module_declaration(node)
         && ast::is_ambient_module(node)
         && (in_ambient_module
-            || ast::has_syntactic_modifier(node, ModifierFlags::AMBIENT)
+            || ast::has_syntactic_modifier(node, ModifierFlags::Ambient)
             || file.is_declaration_file())
     {
         let name_text = node.as_module_declaration().name().text();

@@ -69,7 +69,7 @@ pub fn newforawait_transformer(opt: &TransformOptions) -> Option<P<Transformer>>
         base: Transformer::default(),
         super_access_state: SuperAccessState::default(),
         compiler_options: opt.compiler_options,
-        enclosing_function_flags: Cell::new(FunctionFlags::NORMAL),
+        enclosing_function_flags: Cell::new(FunctionFlags::Normal),
         for_await_hierarchy_facts: Cell::new(FOR_AWAIT_HIERARCHY_FACTS_NONE),
         exported_variable_statement: Cell::new(false),
         fallback_node_visitor: OnceCell::new(),
@@ -114,7 +114,7 @@ impl ForawaitTransformer {
 
     fn is_async_generator(&self) -> bool {
         let flags = self.enclosing_function_flags.get();
-        flags.intersects(FunctionFlags::ASYNC) && flags.intersects(FunctionFlags::GENERATOR)
+        flags.intersects(FunctionFlags::Async) && flags.intersects(FunctionFlags::Generator)
     }
 
     // forawait.go:73
@@ -207,7 +207,7 @@ impl ForawaitTransformer {
 
     // forawait.go:126
     fn visit(&self, node: P<Node>) -> Option<P<Node>> {
-        if !node.subtree_facts().intersects(SubtreeFacts::CONTAINS_FOR_AWAIT_OR_ASYNC_GENERATOR) {
+        if !node.subtree_facts().intersects(SubtreeFacts::ContainsForAwaitOrAsyncGenerator) {
             return self.fallback_visitor(node);
         }
         self.sas().track_super_access(node);
@@ -363,7 +363,7 @@ impl ForawaitTransformer {
 
     // forawait.go:298
     fn visit_labeled_statement(&self, node: P<Node>) -> P<Node> {
-        if self.enclosing_function_flags.get().intersects(FunctionFlags::ASYNC) {
+        if self.enclosing_function_flags.get().intersects(FunctionFlags::Async) {
             let statement = unwrap_innermost_statement_of_label(node);
             if statement.kind() == Kind::ForOfStatement
                 && statement.as_for_in_or_of_statement().await_modifier.is_some()
@@ -460,7 +460,7 @@ impl ForawaitTransformer {
 
     // forawait.go:381
     fn create_downlevel_await(&self, expression: P<Node>) -> P<Node> {
-        if self.enclosing_function_flags.get().intersects(FunctionFlags::GENERATOR) {
+        if self.enclosing_function_flags.get().intersects(FunctionFlags::Generator) {
             return self.factory().new_yield_expression(
                 None, /*asteriskToken*/
                 Some(self.factory().new_await_helper(expression)),
@@ -506,24 +506,24 @@ impl ForawaitTransformer {
                 iterator,
                 None,
                 f.new_identifier("next"),
-                NodeFlags::NONE,
+                NodeFlags::None,
             ),
             None,
             None,
             f.new_node_list(vec![]),
-            NodeFlags::NONE,
+            NodeFlags::None,
         );
         let get_done = f.new_property_access_expression(
             result,
             None,
             f.new_identifier("done"),
-            NodeFlags::NONE,
+            NodeFlags::None,
         );
         let get_value = f.new_property_access_expression(
             result,
             None,
             f.new_identifier("value"),
-            NodeFlags::NONE,
+            NodeFlags::None,
         );
         let call_return = f.new_function_call_call(return_method, Some(iterator), &[]);
 
@@ -555,7 +555,7 @@ impl ForawaitTransformer {
                 iterator_decl,
                 f.new_variable_declaration(result, None, None, None),
             ]),
-            NodeFlags::NONE,
+            NodeFlags::None,
         );
         var_decl_list.set_loc(n.expression.loc());
 
@@ -577,7 +577,7 @@ impl ForawaitTransformer {
             self.convert_for_of_statement_head(node, get_value, non_user_code),
         );
         for_statement.set_loc(node.loc());
-        ec.add_emit_flags(for_statement, EmitFlags::NO_TOKEN_TRAILING_SOURCE_MAPS);
+        ec.add_emit_flags(for_statement, EmitFlags::NoTokenTrailingSourceMaps);
         ec.set_original(for_statement, node);
 
         // Build the try/catch/finally
@@ -605,7 +605,7 @@ impl ForawaitTransformer {
             ))]),
             false,
         );
-        ec.add_emit_flags(catch_body, EmitFlags::SINGLE_LINE);
+        ec.add_emit_flags(catch_body, EmitFlags::SingleLine);
         let catch_clause = f.new_catch_clause(
             Some(f.new_variable_declaration(catch_variable, None, None, None)),
             catch_body,
@@ -630,7 +630,7 @@ impl ForawaitTransformer {
                     iterator,
                     None,
                     f.new_identifier("return"),
-                    NodeFlags::NONE,
+                    NodeFlags::None,
                 ),
             ),
         );
@@ -639,7 +639,7 @@ impl ForawaitTransformer {
             f.new_expression_statement(self.create_downlevel_await(call_return)),
             None,
         );
-        ec.add_emit_flags(inner_if_statement, EmitFlags::SINGLE_LINE);
+        ec.add_emit_flags(inner_if_statement, EmitFlags::SingleLine);
 
         let inner_try_block = f.new_block(f.new_node_list(vec![inner_if_statement]), false);
 
@@ -650,13 +650,13 @@ impl ForawaitTransformer {
                 error_record,
                 None,
                 f.new_identifier("error"),
-                NodeFlags::NONE,
+                NodeFlags::None,
             )),
             None,
         );
-        ec.add_emit_flags(inner_finally_if, EmitFlags::SINGLE_LINE);
+        ec.add_emit_flags(inner_finally_if, EmitFlags::SingleLine);
         let inner_finally_block = f.new_block(f.new_node_list(vec![inner_finally_if]), false);
-        ec.add_emit_flags(inner_finally_block, EmitFlags::SINGLE_LINE);
+        ec.add_emit_flags(inner_finally_block, EmitFlags::SingleLine);
 
         let inner_try_statement =
             f.new_try_statement(inner_try_block, None, Some(inner_finally_block));
@@ -751,20 +751,20 @@ impl ForawaitTransformer {
             self.enclosing_function_flags.replace(ast::get_function_flags(Some(node)));
         let flags = self.enclosing_function_flags.get();
 
-        let modifiers = if flags.intersects(FunctionFlags::GENERATOR) {
+        let modifiers = if flags.intersects(FunctionFlags::Generator) {
             self.visit_modifiers_no_async(node.modifiers())
         } else {
             node.modifiers()
         };
 
-        let asterisk_token = if flags.intersects(FunctionFlags::ASYNC) {
+        let asterisk_token = if flags.intersects(FunctionFlags::Async) {
             None
         } else {
             node.as_method_declaration().asterisk_token()
         };
 
-        let (parameters, body) = if flags.intersects(FunctionFlags::ASYNC)
-            && flags.intersects(FunctionFlags::GENERATOR)
+        let (parameters, body) = if flags.intersects(FunctionFlags::Async)
+            && flags.intersects(FunctionFlags::Generator)
         {
             (
                 Some(self.transform_async_generator_function_parameter_list(node)),
@@ -804,20 +804,20 @@ impl ForawaitTransformer {
             self.enclosing_function_flags.replace(ast::get_function_flags(Some(node)));
         let flags = self.enclosing_function_flags.get();
 
-        let modifiers = if flags.intersects(FunctionFlags::GENERATOR) {
+        let modifiers = if flags.intersects(FunctionFlags::Generator) {
             self.visit_modifiers_no_async(node.modifiers())
         } else {
             node.modifiers()
         };
 
-        let asterisk_token = if flags.intersects(FunctionFlags::ASYNC) {
+        let asterisk_token = if flags.intersects(FunctionFlags::Async) {
             None
         } else {
             node.as_function_declaration().asterisk_token()
         };
 
-        let (parameters, body) = if flags.intersects(FunctionFlags::ASYNC)
-            && flags.intersects(FunctionFlags::GENERATOR)
+        let (parameters, body) = if flags.intersects(FunctionFlags::Async)
+            && flags.intersects(FunctionFlags::Generator)
         {
             (
                 Some(self.transform_async_generator_function_parameter_list(node)),
@@ -880,20 +880,20 @@ impl ForawaitTransformer {
             self.enclosing_function_flags.replace(ast::get_function_flags(Some(node)));
         let flags = self.enclosing_function_flags.get();
 
-        let modifiers = if flags.intersects(FunctionFlags::GENERATOR) {
+        let modifiers = if flags.intersects(FunctionFlags::Generator) {
             self.visit_modifiers_no_async(node.modifiers())
         } else {
             node.modifiers()
         };
 
-        let asterisk_token = if flags.intersects(FunctionFlags::ASYNC) {
+        let asterisk_token = if flags.intersects(FunctionFlags::Async) {
             None
         } else {
             node.as_function_expression().asterisk_token()
         };
 
-        let (parameters, body) = if flags.intersects(FunctionFlags::ASYNC)
-            && flags.intersects(FunctionFlags::GENERATOR)
+        let (parameters, body) = if flags.intersects(FunctionFlags::Async)
+            && flags.intersects(FunctionFlags::Generator)
         {
             (
                 Some(self.transform_async_generator_function_parameter_list(node)),
@@ -943,7 +943,7 @@ impl ForawaitTransformer {
                 f.new_generated_name_for_node_ex(
                     param.name(),
                     printer::AutoGenerateOptions {
-                        flags: GeneratedIdentifierFlags::RESERVED_IN_NESTED_SCOPES,
+                        flags: GeneratedIdentifierFlags::ReservedInNestedScopes,
                         ..Default::default()
                     },
                 ),
@@ -969,7 +969,7 @@ impl ForawaitTransformer {
         }
 
         let auto_generate_options = printer::AutoGenerateOptions {
-            flags: GeneratedIdentifierFlags::OPTIMISTIC | GeneratedIdentifierFlags::FILE_LEVEL,
+            flags: GeneratedIdentifierFlags::Optimistic | GeneratedIdentifierFlags::FileLevel,
             ..Default::default()
         };
         let saved_captured_super_properties =

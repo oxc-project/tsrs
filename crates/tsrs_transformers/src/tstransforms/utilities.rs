@@ -11,7 +11,7 @@ pub(crate) enum ConstantValue<'a> {
 pub(crate) fn constant_expression(value: ConstantValue, factory: &printer::NodeFactory) -> P<Node> {
     match value {
         ConstantValue::String(value) => {
-            factory.new_string_literal(alloc_str(value), TokenFlags::NONE)
+            factory.new_string_literal(alloc_str(value), TokenFlags::None)
         }
         ConstantValue::Number(value) => {
             if value.is_inf() {
@@ -32,7 +32,7 @@ pub(crate) fn constant_expression(value: ConstantValue, factory: &printer::NodeF
                     constant_expression(ConstantValue::Number(-value), factory),
                 );
             }
-            factory.new_numeric_literal(alloc_str(&value.string()), TokenFlags::NONE)
+            factory.new_numeric_literal(alloc_str(&value.string()), TokenFlags::None)
         }
     }
 }

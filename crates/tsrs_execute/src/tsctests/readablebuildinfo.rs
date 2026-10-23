@@ -118,26 +118,26 @@ pub(crate) fn to_readable_file_emit_kind(file_emit_kind: FileEmitKind) -> String
         builder.push_str(flags);
     };
     if !file_emit_kind.is_empty() {
-        if file_emit_kind.intersects(FileEmitKind::JS) {
+        if file_emit_kind.intersects(FileEmitKind::Js) {
             add_flags("Js");
         }
-        if file_emit_kind.intersects(FileEmitKind::JS_MAP) {
+        if file_emit_kind.intersects(FileEmitKind::JsMap) {
             add_flags("JsMap");
         }
-        if file_emit_kind.intersects(FileEmitKind::JS_INLINE_MAP) {
+        if file_emit_kind.intersects(FileEmitKind::JsInlineMap) {
             add_flags("JsInlineMap");
         }
-        if file_emit_kind.contains(FileEmitKind::DTS) {
+        if file_emit_kind.contains(FileEmitKind::Dts) {
             add_flags("Dts");
         } else {
-            if file_emit_kind.intersects(FileEmitKind::DTS_EMIT) {
+            if file_emit_kind.intersects(FileEmitKind::DtsEmit) {
                 add_flags("DtsEmit");
             }
-            if file_emit_kind.intersects(FileEmitKind::DTS_ERRORS) {
+            if file_emit_kind.intersects(FileEmitKind::DtsErrors) {
                 add_flags("DtsErrors");
             }
         }
-        if file_emit_kind.intersects(FileEmitKind::DTS_MAP) {
+        if file_emit_kind.intersects(FileEmitKind::DtsMap) {
             add_flags("DtsMap");
         }
     }

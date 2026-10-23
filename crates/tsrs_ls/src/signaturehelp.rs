@@ -70,7 +70,7 @@ impl LanguageService {
         let positions = self.converters.from_lsp_position_for_source_file(
             source_file,
             position,
-            Feature::SIGNATURE_HELP,
+            Feature::SignatureHelp,
         );
         if let Some(result) = positions.into_iter().find_map(|projection| {
             if !projection.fidelity.is_single_segment() {
@@ -467,8 +467,8 @@ impl LanguageService {
                     call_target_display_parts.push_str(&c.symbol_to_string_ex_exported(
                         call_target_symbol,
                         Some(source_file.as_node()),
-                        SymbolFlags::NONE,
-                        SymbolFormatFlags::USE_ALIAS_DEFINED_OUTSIDE_CURRENT_SCOPE,
+                        SymbolFlags::None,
+                        SymbolFormatFlags::UseAliasDefinedOutsideCurrentScope,
                     ));
                 } else {
                     call_target_display_parts
@@ -668,7 +668,7 @@ impl LanguageService {
         // Generate documentation from the signature's declaration
         let mut documentation: Option<String> = None;
         if let Some(declaration) = candidate.declaration() {
-            let mapper = self.documentation_location_mapper(Feature::SIGNATURE_HELP);
+            let mapper = self.documentation_location_mapper(Feature::SignatureHelp);
             let doc = get_documentation_from_declaration(
                 &mapper,
                 c,
@@ -816,7 +816,7 @@ impl LanguageService {
                         param,
                         Some(enclosing_declaration),
                         SIGNATURE_HELP_NODE_BUILDER_FLAGS,
-                        InternalFlags::NONE,
+                        InternalFlags::None,
                         None,
                     )
                     .unwrap();
@@ -911,7 +911,7 @@ impl LanguageService {
             !parameter_list.is_empty()
                 && parameter_list[parameter_list.len() - 1]
                     .check_flags()
-                    .intersects(CheckFlags::REST_PARAMETER)
+                    .intersects(CheckFlags::RestParameter)
         };
 
         let mut result: Vec<SignatureHelpItemInfo> = Vec::with_capacity(lists.len());
@@ -928,7 +928,7 @@ impl LanguageService {
                         param,
                         Some(enclosing_declaratipn),
                         SIGNATURE_HELP_NODE_BUILDER_FLAGS,
-                        InternalFlags::NONE,
+                        InternalFlags::None,
                         None,
                     )
                     .unwrap();
@@ -964,9 +964,9 @@ impl LanguageService {
 }
 
 // signaturehelp.go:666
-const SIGNATURE_HELP_NODE_BUILDER_FLAGS: Flags = Flags::OMIT_PARAMETER_MODIFIERS
-    .union(Flags::IGNORE_ERRORS)
-    .union(Flags::USE_ALIAS_DEFINED_OUTSIDE_CURRENT_SCOPE);
+const SIGNATURE_HELP_NODE_BUILDER_FLAGS: Flags = Flags::OmitParameterModifiers
+    .union(Flags::IgnoreErrors)
+    .union(Flags::UseAliasDefinedOutsideCurrentScope);
 
 impl LanguageService {
     // createSignatureHelpParameterFromLabel creates a signatureHelpParameter from a pre-computed label string.
@@ -978,10 +978,10 @@ impl LanguageService {
         c: &mut Checker,
         doc_format: lsproto::MarkupKind,
     ) -> SignatureHelpParameter {
-        let is_rest = parameter.check_flags().intersects(CheckFlags::REST_PARAMETER);
+        let is_rest = parameter.check_flags().intersects(CheckFlags::RestParameter);
         let mut documentation: Option<lsproto::StringOrMarkupContent> = None;
         if let Some(value_declaration) = parameter.value_declaration() {
-            let mapper = self.documentation_location_mapper(Feature::SIGNATURE_HELP);
+            let mapper = self.documentation_location_mapper(Feature::SignatureHelp);
             let doc = get_documentation_from_declaration(
                 &mapper,
                 c,
@@ -1026,7 +1026,7 @@ fn create_signature_help_parameter_for_type_parameter(
             t,
             Some(enclosing_declaration),
             SIGNATURE_HELP_NODE_BUILDER_FLAGS,
-            InternalFlags::NONE,
+            InternalFlags::None,
             None,
         )
         .unwrap();
@@ -1517,7 +1517,7 @@ fn get_spread_element_count(node: P<Node>, c: &mut Checker) -> usize {
         }
 
         let first_optional_index =
-            element_flags.iter().position(|f| !f.intersects(ElementFlags::REQUIRED));
+            element_flags.iter().position(|f| !f.intersects(ElementFlags::Required));
         let Some(first_optional_index) = first_optional_index else {
             return fixed_length;
         };
@@ -1800,10 +1800,10 @@ fn get_contextual_signature_location_info(
             let contextual_type = if ast::is_method_declaration(parent) {
                 c.get_contextual_type_for_object_literal_element_exported(
                     parent,
-                    ContextFlags::NONE,
+                    ContextFlags::None,
                 )
             } else {
-                c.get_contextual_type_exported(parent, ContextFlags::NONE)
+                c.get_contextual_type_exported(parent, ContextFlags::None)
             };
             if let Some(contextual_type) = contextual_type {
                 return Some(ContextualSignatureLocationInfo {
@@ -1818,7 +1818,7 @@ fn get_contextual_signature_location_info(
         Kind::BinaryExpression => {
             let highest_binary = get_highest_binary(parent);
             let contextual_type =
-                c.get_contextual_type_exported(highest_binary, ContextFlags::NONE);
+                c.get_contextual_type_exported(highest_binary, ContextFlags::None);
             if node.kind() != Kind::OpenParenToken {
                 let argument_index = count_binary_expression_parameters(parent) - 1;
                 let argument_count = count_binary_expression_parameters(highest_binary);

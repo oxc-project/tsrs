@@ -52,19 +52,19 @@ pub trait ResolvedProjectReference: Send + Sync {
 bitflags! {
     #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Default)]
     pub struct NodeResolutionFeatures: u32 {
-        const IMPORTS = 1 << 0;
-        const SELF_NAME = 1 << 1;
-        const EXPORTS = 1 << 2;
-        const EXPORTS_PATTERN_TRAILERS = 1 << 3;
+        const Imports = 1 << 0;
+        const SelfName = 1 << 1;
+        const Exports = 1 << 2;
+        const ExportsPatternTrailers = 1 << 3;
         // allowing `#/` root imports in package.json imports field
         // not supported until mass adoption - https://github.com/nodejs/node/pull/60864
-        const IMPORTS_PATTERN_ROOT = 1 << 4;
+        const ImportsPatternRoot = 1 << 4;
 
-        const NONE = 0;
-        const ALL = Self::IMPORTS.bits() | Self::SELF_NAME.bits() | Self::EXPORTS.bits() | Self::EXPORTS_PATTERN_TRAILERS.bits() | Self::IMPORTS_PATTERN_ROOT.bits();
-        const NODE16_DEFAULT = Self::IMPORTS.bits() | Self::SELF_NAME.bits() | Self::EXPORTS.bits() | Self::EXPORTS_PATTERN_TRAILERS.bits();
-        const NODE_NEXT_DEFAULT = Self::ALL.bits();
-        const BUNDLER_DEFAULT = Self::IMPORTS.bits() | Self::SELF_NAME.bits() | Self::EXPORTS.bits() | Self::EXPORTS_PATTERN_TRAILERS.bits() | Self::IMPORTS_PATTERN_ROOT.bits();
+        const None = 0;
+        const All = Self::Imports.bits() | Self::SelfName.bits() | Self::Exports.bits() | Self::ExportsPatternTrailers.bits() | Self::ImportsPatternRoot.bits();
+        const Node16Default = Self::Imports.bits() | Self::SelfName.bits() | Self::Exports.bits() | Self::ExportsPatternTrailers.bits();
+        const NodeNextDefault = Self::All.bits();
+        const BundlerDefault = Self::Imports.bits() | Self::SelfName.bits() | Self::Exports.bits() | Self::ExportsPatternTrailers.bits() | Self::ImportsPatternRoot.bits();
     }
 }
 
@@ -130,28 +130,28 @@ impl ResolvedTypeReferenceDirective {
 bitflags! {
     #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Default)]
     pub(crate) struct Extensions: u32 {
-        const TYPE_SCRIPT = 1 << 0;
-        const JAVA_SCRIPT = 1 << 1;
-        const DECLARATION = 1 << 2;
-        const JSON = 1 << 3;
+        const TypeScript = 1 << 0;
+        const JavaScript = 1 << 1;
+        const Declaration = 1 << 2;
+        const Json = 1 << 3;
 
-        const IMPLEMENTATION_FILES = Self::TYPE_SCRIPT.bits() | Self::JAVA_SCRIPT.bits();
+        const ImplementationFiles = Self::TypeScript.bits() | Self::JavaScript.bits();
     }
 }
 
 impl fmt::Display for Extensions {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut result: Vec<&str> = Vec::with_capacity(self.bits().count_ones() as usize);
-        if self.intersects(Extensions::TYPE_SCRIPT) {
+        if self.intersects(Extensions::TypeScript) {
             result.push("TypeScript");
         }
-        if self.intersects(Extensions::JAVA_SCRIPT) {
+        if self.intersects(Extensions::JavaScript) {
             result.push("JavaScript");
         }
-        if self.intersects(Extensions::DECLARATION) {
+        if self.intersects(Extensions::Declaration) {
             result.push("Declaration");
         }
-        if self.intersects(Extensions::JSON) {
+        if self.intersects(Extensions::Json) {
             result.push("JSON");
         }
         f.write_str(&result.join(", "))
@@ -161,16 +161,16 @@ impl fmt::Display for Extensions {
 impl Extensions {
     pub(crate) fn array(self) -> Vec<&'static str> {
         let mut result = Vec::new();
-        if self.intersects(Extensions::TYPE_SCRIPT) {
+        if self.intersects(Extensions::TypeScript) {
             result.extend_from_slice(tspath::SUPPORTED_TS_IMPLEMENTATION_EXTENSIONS);
         }
-        if self.intersects(Extensions::JAVA_SCRIPT) {
+        if self.intersects(Extensions::JavaScript) {
             result.extend_from_slice(tspath::SUPPORTED_JS_EXTENSIONS_FLAT);
         }
-        if self.intersects(Extensions::DECLARATION) {
+        if self.intersects(Extensions::Declaration) {
             result.extend_from_slice(tspath::SUPPORTED_DECLARATION_EXTENSIONS);
         }
-        if self.intersects(Extensions::JSON) {
+        if self.intersects(Extensions::Json) {
             result.push(tspath::EXTENSION_JSON);
         }
         result

@@ -54,7 +54,7 @@ impl UsingDeclarationTransformer {
 
     // using.go:34
     fn visit(&self, node: P<Node>) -> P<Node> {
-        if !node.subtree_facts().intersects(SubtreeFacts::CONTAINS_USING) {
+        if !node.subtree_facts().intersects(SubtreeFacts::ContainsUsing) {
             return node;
         }
 
@@ -151,7 +151,7 @@ impl UsingDeclarationTransformer {
             if !export_vars.is_empty() {
                 top_level_statements.push(f.new_variable_statement(
                     Some(f.new_modifier_list(vec![f.new_modifier(Kind::ExportKeyword)])),
-                    f.new_variable_declaration_list(f.new_node_list(export_vars), NodeFlags::LET),
+                    f.new_variable_declaration_list(f.new_node_list(export_vars), NodeFlags::Let),
                 ));
             }
             top_level_statements.extend(self.create_downlevel_using_statements(
@@ -292,7 +292,7 @@ impl UsingDeclarationTransformer {
             );
             let using_var_list = f.new_variable_declaration_list(
                 f.new_node_list(vec![using_var]),
-                if is_await_using { NodeFlags::AWAIT_USING } else { NodeFlags::USING },
+                if is_await_using { NodeFlags::AwaitUsing } else { NodeFlags::Using },
             );
             let using_var_statement =
                 f.new_variable_statement(None /*modifiers*/, using_var_list);
@@ -319,7 +319,7 @@ impl UsingDeclarationTransformer {
                             None, /*type*/
                             None,
                         )]),
-                        NodeFlags::CONST,
+                        NodeFlags::Const,
                     ),
                     n.expression,
                     statement,
@@ -422,7 +422,7 @@ impl UsingDeclarationTransformer {
                 if !declarations.is_empty() {
                     let var_list = f.new_variable_declaration_list(
                         f.new_node_list(declarations),
-                        NodeFlags::CONST,
+                        NodeFlags::Const,
                     );
                     emit_context.set_original(var_list, declaration_list);
                     var_list.set_loc(declaration_list.loc());
@@ -492,9 +492,9 @@ impl UsingDeclarationTransformer {
         let default_export_binding = f.new_unique_name_ex(
             "_default",
             AutoGenerateOptions {
-                flags: GeneratedIdentifierFlags::RESERVED_IN_NESTED_SCOPES
-                    | GeneratedIdentifierFlags::FILE_LEVEL
-                    | GeneratedIdentifierFlags::OPTIMISTIC,
+                flags: GeneratedIdentifierFlags::ReservedInNestedScopes
+                    | GeneratedIdentifierFlags::FileLevel
+                    | GeneratedIdentifierFlags::Optimistic,
                 ..Default::default()
             },
         );
@@ -509,7 +509,7 @@ impl UsingDeclarationTransformer {
         // give a class or function expression an assigned name, if needed.
         let mut expression = node.expression().unwrap();
         let mut inner_expression =
-            ast::skip_outer_expressions(expression, OuterExpressionKinds::ALL);
+            ast::skip_outer_expressions(expression, OuterExpressionKinds::All);
         if is_named_evaluation(emit_context, inner_expression) {
             inner_expression = transform_named_evaluation(
                 emit_context,
@@ -520,7 +520,7 @@ impl UsingDeclarationTransformer {
             expression = f.restore_outer_expressions(
                 Some(expression),
                 inner_expression,
-                OuterExpressionKinds::ALL,
+                OuterExpressionKinds::All,
             );
         }
 
@@ -557,9 +557,9 @@ impl UsingDeclarationTransformer {
         let export_equals_binding = f.new_unique_name_ex(
             "_default",
             AutoGenerateOptions {
-                flags: GeneratedIdentifierFlags::RESERVED_IN_NESTED_SCOPES
-                    | GeneratedIdentifierFlags::FILE_LEVEL
-                    | GeneratedIdentifierFlags::OPTIMISTIC,
+                flags: GeneratedIdentifierFlags::ReservedInNestedScopes
+                    | GeneratedIdentifierFlags::FileLevel
+                    | GeneratedIdentifierFlags::Optimistic,
                 ..Default::default()
             },
         );
@@ -582,8 +582,8 @@ impl UsingDeclarationTransformer {
 
         let f = self.factory();
         let emit_context = self.emit_context();
-        let is_exported = ast::has_syntactic_modifier(node, ModifierFlags::EXPORT);
-        let is_default = ast::has_syntactic_modifier(node, ModifierFlags::DEFAULT);
+        let is_exported = ast::has_syntactic_modifier(node, ModifierFlags::Export);
+        let is_default = ast::has_syntactic_modifier(node, ModifierFlags::Default);
 
         // When hoisting a class declaration at the top level of a file containing a top-level `using` statement, we
         // must first convert it to a class expression so that we can hoist the binding outside of the `try`.
@@ -638,9 +638,9 @@ impl UsingDeclarationTransformer {
             let default_export_binding = f.new_unique_name_ex(
                 "_default",
                 AutoGenerateOptions {
-                    flags: GeneratedIdentifierFlags::RESERVED_IN_NESTED_SCOPES
-                        | GeneratedIdentifierFlags::FILE_LEVEL
-                        | GeneratedIdentifierFlags::OPTIMISTIC,
+                    flags: GeneratedIdentifierFlags::ReservedInNestedScopes
+                        | GeneratedIdentifierFlags::FileLevel
+                        | GeneratedIdentifierFlags::Optimistic,
                     ..Default::default()
                 },
             );
@@ -672,7 +672,7 @@ impl UsingDeclarationTransformer {
         let f = self.factory();
         let emit_context = self.emit_context();
         let mut expressions: Vec<P<Node>> = Vec::new();
-        let is_exported = ast::has_syntactic_modifier(node, ModifierFlags::EXPORT);
+        let is_exported = ast::has_syntactic_modifier(node, ModifierFlags::Export);
         expressions.extend(
             node.as_variable_statement()
                 .declaration_list
@@ -712,7 +712,7 @@ impl UsingDeclarationTransformer {
             let target = name.clone_node(f);
             emit_context.set_emit_flags(
                 target,
-                emit_context.emit_flags(target) & !(EmitFlags::LOCAL_NAME | EmitFlags::EXPORT_NAME),
+                emit_context.emit_flags(target) & !(EmitFlags::LocalName | EmitFlags::ExportName),
             );
             target
         } else {
@@ -856,7 +856,7 @@ impl UsingDeclarationTransformer {
             Some(env_object),
         );
         let env_var_list =
-            f.new_variable_declaration_list(f.new_node_list(vec![env_var]), NodeFlags::CONST);
+            f.new_variable_declaration_list(f.new_node_list(vec![env_var]), NodeFlags::Const);
         let env_var_statement = f.new_variable_statement(None /*modifiers*/, env_var_list);
         statements.push(env_var_statement);
 
@@ -907,7 +907,7 @@ impl UsingDeclarationTransformer {
                             env_binding,
                             None,
                             f.new_identifier("error"),
-                            NodeFlags::NONE,
+                            NodeFlags::None,
                         ),
                         body_catch_binding,
                     )),
@@ -916,7 +916,7 @@ impl UsingDeclarationTransformer {
                             env_binding,
                             None,
                             f.new_identifier("hasError"),
-                            NodeFlags::NONE,
+                            NodeFlags::None,
                         ),
                         f.new_true_expression(),
                     )),
@@ -938,7 +938,7 @@ impl UsingDeclarationTransformer {
                                 None, /*type*/
                                 Some(f.new_dispose_resources_helper(env_binding)),
                             )]),
-                            NodeFlags::CONST,
+                            NodeFlags::Const,
                         ),
                     ),
                     f.new_if_statement(
@@ -972,10 +972,10 @@ fn is_using_variable_declaration_list(node: P<Node>) -> bool {
 
 // using.go:765
 fn get_using_kind_of_variable_declaration_list(node: P<Node>) -> UsingKind {
-    let flags = node.flags() & NodeFlags::BLOCK_SCOPED;
-    if flags == NodeFlags::AWAIT_USING {
+    let flags = node.flags() & NodeFlags::BlockScoped;
+    if flags == NodeFlags::AwaitUsing {
         UsingKind::Async
-    } else if flags == NodeFlags::USING {
+    } else if flags == NodeFlags::Using {
         UsingKind::Sync
     } else {
         UsingKind::None

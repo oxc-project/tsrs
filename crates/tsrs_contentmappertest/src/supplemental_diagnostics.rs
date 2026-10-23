@@ -29,7 +29,7 @@ impl ipc::Handler for SupplementalDiagnosticsHandler {
                     virtual_end: (PREFIX.len() + p.content.len()) as u32,
                     original_end: p.content.len() as u32,
                     kind: Kind::VERBATIM,
-                    features: Feature::ALL,
+                    features: Feature::All,
                     ..Default::default()
                 }])?;
                 Ok(TransformResult {

@@ -11,17 +11,17 @@ pub fn is_generated_identifier(emit_context: P<EmitContext>, name: P<Node>) -> b
 
 // utilities.go:16
 pub fn is_helper_name(emit_context: P<EmitContext>, name: P<Node>) -> bool {
-    emit_context.emit_flags(name).intersects(EmitFlags::HELPER_NAME)
+    emit_context.emit_flags(name).intersects(EmitFlags::HelperName)
 }
 
 // utilities.go:20
 pub fn is_local_name(emit_context: P<EmitContext>, name: P<Node>) -> bool {
-    emit_context.emit_flags(name).intersects(EmitFlags::LOCAL_NAME)
+    emit_context.emit_flags(name).intersects(EmitFlags::LocalName)
 }
 
 // utilities.go:24
 pub fn is_export_name(emit_context: P<EmitContext>, name: P<Node>) -> bool {
-    emit_context.emit_flags(name).intersects(EmitFlags::EXPORT_NAME)
+    emit_context.emit_flags(name).intersects(EmitFlags::ExportName)
 }
 
 // utilities.go:28

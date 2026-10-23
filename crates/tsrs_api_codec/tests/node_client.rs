@@ -61,7 +61,7 @@ fn expected_lines(node: P<Node>, depth: usize, out: &mut Vec<String>) {
 /// A synthesized tree like the checker's `typeToTypeNode` output (no positions, factory-made, WTF-8 text).
 fn synthesized(f: &NodeFactory) -> P<Node> {
     let lone = alloc_str(&format!("a{}b", encode_js_string_rune(0xD800)));
-    let str_lit = f.new_literal_type_node(f.new_string_literal(lone, TokenFlags::NONE));
+    let str_lit = f.new_literal_type_node(f.new_string_literal(lone, TokenFlags::None));
     let reference = f.new_type_reference_node(
         f.new_identifier("Map"),
         Some(f.new_node_list(vec![f.new_keyword_type_node(Kind::StringKeyword), str_lit])),
@@ -82,7 +82,7 @@ fn synthesized(f: &NodeFactory) -> P<Node> {
             f.new_array_type_node(f.new_keyword_type_node(Kind::BooleanKeyword)),
         )),
     );
-    let num = f.new_literal_type_node(f.new_numeric_literal("42", TokenFlags::NONE));
+    let num = f.new_literal_type_node(f.new_numeric_literal("42", TokenFlags::None));
     f.new_union_type_node(f.new_node_list(vec![reference, fn_type, num]))
 }
 

@@ -263,7 +263,7 @@ impl LanguageService {
         let (lsp_range, fidelity) = self.converters.to_lsp_range_for_feature(
             &file,
             TextRange::new(pos, node.end().expect_source("parsed nodes have source positions")),
-            Feature::CODE_LENS,
+            Feature::CodeLens,
         );
         if fidelity.is_none() {
             return None;
@@ -307,11 +307,11 @@ fn is_valid_implementations_code_lens_node(
             if user_prefs.implementations_code_lens_show_on_all_class_methods.is_true()
                 && node.parent().unwrap().kind() == Kind::ClassDeclaration
             {
-                return !ast::has_modifier(node, ModifierFlags::PRIVATE)
+                return !ast::has_modifier(node, ModifierFlags::Private)
                     && node.name().unwrap().kind() != Kind::PrivateIdentifier;
             }
             // fallthrough
-            ast::has_modifier(node, ModifierFlags::ABSTRACT)
+            ast::has_modifier(node, ModifierFlags::Abstract)
         }
 
         // Always show on abstract classes/properties/methods
@@ -319,7 +319,7 @@ fn is_valid_implementations_code_lens_node(
         | Kind::Constructor
         | Kind::GetAccessor
         | Kind::SetAccessor
-        | Kind::PropertyDeclaration => ast::has_modifier(node, ModifierFlags::ABSTRACT),
+        | Kind::PropertyDeclaration => ast::has_modifier(node, ModifierFlags::Abstract),
 
         _ => false,
     }
@@ -335,7 +335,7 @@ fn is_valid_reference_lens_node(node: P<Node>, user_prefs: &CodeLensUserPreferen
                 return true;
             }
             // fallthrough
-            ast::get_combined_modifier_flags(node).intersects(ModifierFlags::EXPORT)
+            ast::get_combined_modifier_flags(node).intersects(ModifierFlags::Export)
         }
 
         Kind::ClassDeclaration

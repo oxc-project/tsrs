@@ -183,7 +183,7 @@ impl ESModuleTransformer {
                     None, /*type*/
                     Some(self.create_require_call(node)),
                 )]),
-                NodeFlags::CONST,
+                NodeFlags::Const,
             ),
         );
         self.emit_context().set_original(var_statement, node);
@@ -201,7 +201,7 @@ impl ESModuleTransformer {
         statements: &mut Vec<P<Node>>,
         node: P<Node>,
     ) {
-        if ast::has_syntactic_modifier(node, ModifierFlags::EXPORT) {
+        if ast::has_syntactic_modifier(node, ModifierFlags::Export) {
             let f = self.factory();
             statements.push(f.new_export_declaration(
                 None,  /*modifiers*/
@@ -233,7 +233,7 @@ impl ESModuleTransformer {
                 f.new_identifier("module"),
                 None, /*questionDotToken*/
                 f.new_identifier("exports"),
-                NodeFlags::NONE,
+                NodeFlags::None,
             ),
             self.visitor().visit_node(Some(n.expression())).unwrap(),
         ));
@@ -407,7 +407,7 @@ impl ESModuleTransformer {
                 None, /*questionDotToken*/
                 None, /*typeArguments*/
                 f.new_node_list(args),
-                NodeFlags::NONE,
+                NodeFlags::None,
             );
         }
 
@@ -415,8 +415,8 @@ impl ESModuleTransformer {
             let create_require_name = f.new_unique_name_ex(
                 "_createRequire",
                 AutoGenerateOptions {
-                    flags: GeneratedIdentifierFlags::OPTIMISTIC
-                        | GeneratedIdentifierFlags::FILE_LEVEL,
+                    flags: GeneratedIdentifierFlags::Optimistic
+                        | GeneratedIdentifierFlags::FileLevel,
                     ..Default::default()
                 },
             );
@@ -431,16 +431,16 @@ impl ESModuleTransformer {
                         create_require_name,
                     )]))),
                 )),
-                f.new_string_literal("module", TokenFlags::NONE),
+                f.new_string_literal("module", TokenFlags::None),
                 None, /*attributes*/
             );
-            emit_context.add_emit_flags(import_statement, EmitFlags::CUSTOM_PROLOGUE);
+            emit_context.add_emit_flags(import_statement, EmitFlags::CustomPrologue);
 
             let require_helper_name = f.new_unique_name_ex(
                 "__require",
                 AutoGenerateOptions {
-                    flags: GeneratedIdentifierFlags::OPTIMISTIC
-                        | GeneratedIdentifierFlags::FILE_LEVEL,
+                    flags: GeneratedIdentifierFlags::Optimistic
+                        | GeneratedIdentifierFlags::FileLevel,
                     ..Default::default()
                 },
             );
@@ -459,15 +459,15 @@ impl ESModuleTransformer {
                                 f.new_meta_property(Kind::ImportKeyword, f.new_identifier("meta")),
                                 None, /*questionDotToken*/
                                 f.new_identifier("url"),
-                                NodeFlags::NONE,
+                                NodeFlags::None,
                             )]),
-                            NodeFlags::NONE,
+                            NodeFlags::None,
                         )),
                     )]),
-                    NodeFlags::CONST,
+                    NodeFlags::Const,
                 ),
             );
-            emit_context.add_emit_flags(require_statement, EmitFlags::CUSTOM_PROLOGUE);
+            emit_context.add_emit_flags(require_statement, EmitFlags::CustomPrologue);
             *self.import_require_statements.borrow_mut() = Some(ImportRequireStatements {
                 statements: vec![import_statement, require_statement],
                 require_helper_name,
@@ -481,7 +481,7 @@ impl ESModuleTransformer {
             None, /*questionDotToken*/
             None, /*typeArguments*/
             f.new_node_list(args),
-            NodeFlags::NONE,
+            NodeFlags::None,
         )
     }
 }

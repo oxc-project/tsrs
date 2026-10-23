@@ -9,10 +9,10 @@ use crate::*;
 bitflags! {
     #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Debug, Default)]
     pub struct JsxFlags: u32 {
-        const NONE = 0;
-        const INTRINSIC_NAMED_ELEMENT = 1 << 0; // An element from a named property of the JSX.IntrinsicElements interface
-        const INTRINSIC_INDEXED_ELEMENT = 1 << 1; // An element inferred from the string index signature of the JSX.IntrinsicElements interface
-        const INTRINSIC_ELEMENT = Self::INTRINSIC_NAMED_ELEMENT.bits() | Self::INTRINSIC_INDEXED_ELEMENT.bits();
+        const None = 0;
+        const IntrinsicNamedElement = 1 << 0; // An element from a named property of the JSX.IntrinsicElements interface
+        const IntrinsicIndexedElement = 1 << 1; // An element inferred from the string index signature of the JSX.IntrinsicElements interface
+        const IntrinsicElement = Self::IntrinsicNamedElement.bits() | Self::IntrinsicIndexedElement.bits();
     }
 }
 

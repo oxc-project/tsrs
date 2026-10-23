@@ -473,7 +473,7 @@ pub fn type_to_auto_importable_type_node(
     context_node: P<Node>, // !!! flags
 ) -> Option<P<Node>> {
     let id_to_symbol: IdToSymbol = P::new(RefCell::new(FxHashMap::default()));
-    let type_node = c.type_to_type_node(t, Some(context_node), Flags::NONE, Some(id_to_symbol))?;
+    let type_node = c.type_to_type_node(t, Some(context_node), Flags::None, Some(id_to_symbol))?;
     Some(type_node_to_auto_importable_type_node(type_node, import_adder, id_to_symbol))
 }
 

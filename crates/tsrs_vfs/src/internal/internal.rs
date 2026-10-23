@@ -165,7 +165,7 @@ impl Common {
                 continue;
             }
 
-            if entry_type.intersects(FileMode::SYMLINK) {
+            if entry_type.intersects(FileMode::Symlink) {
                 // Easy case; UNIX-like system will clearly mark symlinks.
                 if let Some(stat) = self.stat(&format!("{}/{}", path, entry.name)) {
                     add_to_result(&mut result, &mut symlinks, &entry.name, stat.mode, true);
@@ -173,7 +173,7 @@ impl Common {
                 continue;
             }
 
-            if entry_type.intersects(FileMode::IRREGULAR) {
+            if entry_type.intersects(FileMode::Irregular) {
                 if let Some(is_reparse_point) = self.is_reparse_point {
                     // Could be a Windows junction or other reparse point.
                     // Check using the OS-specific helper.

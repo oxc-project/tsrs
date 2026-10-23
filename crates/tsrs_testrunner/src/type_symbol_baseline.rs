@@ -246,9 +246,9 @@ impl TypeWriterWalker {
             // Exception for `T` in `type T = something` because that may evaluate to some interesting type.
             if ast::is_part_of_type_node(node)
                 || (node.kind() == Kind::AsExpression || node.kind() == Kind::SatisfiesExpression)
-                    && node.type_node().unwrap().flags().intersects(NodeFlags::REPARSED)
+                    && node.type_node().unwrap().flags().intersects(NodeFlags::Reparsed)
                 || ast::is_identifier(node)
-                    && !ast::get_meaning_from_declaration(parent).intersects(SemanticMeaning::VALUE)
+                    && !ast::get_meaning_from_declaration(parent).intersects(SemanticMeaning::Value)
                     && !(ast::is_type_or_js_type_alias_declaration(parent)
                         && Some(node) == parent.name())
             {
@@ -285,17 +285,17 @@ impl TypeWriterWalker {
                 let ctx = self.emit_context;
                 ctx.reset();
                 let builder = checker::new_node_builder(c, ctx);
-                let type_format_flags = TypeFormatFlags::NO_TRUNCATION
-                    | TypeFormatFlags::ALLOW_UNIQUE_ES_SYMBOL_TYPE
-                    | TypeFormatFlags::GENERATE_NAMES_FOR_SHADOWED_TYPE_PARAMS;
+                let type_format_flags = TypeFormatFlags::NoTruncation
+                    | TypeFormatFlags::AllowUniqueESSymbolType
+                    | TypeFormatFlags::GenerateNamesForShadowedTypeParams;
                 let mut type_node = builder.type_to_type_node(
                     c,
                     t,
                     Some(parent),
                     Flags::from_bits_retain(
-                        (type_format_flags & TypeFormatFlags::NODE_BUILDER_FLAGS_MASK).bits(),
-                    ) | Flags::IGNORE_ERRORS,
-                    InternalFlags::ALLOW_UNRESOLVED_NAMES,
+                        (type_format_flags & TypeFormatFlags::NodeBuilderFlagsMask).bits(),
+                    ) | Flags::IgnoreErrors,
+                    InternalFlags::AllowUnresolvedNames,
                     None,
                 );
                 if ast::is_identifier(node)
@@ -310,11 +310,11 @@ impl TypeWriterWalker {
                         t,
                         Some(parent),
                         Flags::from_bits_retain(
-                            ((type_format_flags | TypeFormatFlags::IN_TYPE_ALIAS)
-                                & TypeFormatFlags::NODE_BUILDER_FLAGS_MASK)
+                            ((type_format_flags | TypeFormatFlags::InTypeAlias)
+                                & TypeFormatFlags::NodeBuilderFlagsMask)
                                 .bits(),
-                        ) | Flags::IGNORE_ERRORS,
-                        InternalFlags::ALLOW_UNRESOLVED_NAMES,
+                        ) | Flags::IgnoreErrors,
+                        InternalFlags::AllowUnresolvedNames,
                         None,
                     );
                 }
@@ -346,8 +346,8 @@ impl TypeWriterWalker {
             &c.symbol_to_string_ex_exported(
                 symbol,
                 Some(parent),
-                SymbolFlags::NONE,
-                SymbolFormatFlags::ALLOW_ANY_NODE_KIND,
+                SymbolFlags::None,
+                SymbolFormatFlags::AllowAnyNodeKind,
             ),
         ));
         let declarations = symbol.declarations();
@@ -391,7 +391,7 @@ fn for_each_ast_node(node: P<Node>) -> Vec<P<Node>> {
     let mut res_children: Vec<P<Node>> = Vec::new();
 
     while let Some(elem) = work.pop() {
-        let reparsed = elem.flags().intersects(NodeFlags::REPARSED);
+        let reparsed = elem.flags().intersects(NodeFlags::Reparsed);
         let parent_kind = elem.parent().map(|p| p.kind());
         let parent_is_as_or_satisfies =
             matches!(parent_kind, Some(Kind::SatisfiesExpression | Kind::AsExpression));

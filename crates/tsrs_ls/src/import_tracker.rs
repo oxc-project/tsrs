@@ -278,7 +278,7 @@ impl ImportersForExport<'_> {
         else {
             return;
         };
-        assert!(module_symbol.flags().intersects(SymbolFlags::MODULE));
+        assert!(module_symbol.flags().intersects(SymbolFlags::Module));
         for direct_import in self.get_direct_imports(module_symbol) {
             if !ast::is_import_type_node(direct_import) {
                 self.add_indirect_user(
@@ -296,7 +296,7 @@ impl ImportersForExport<'_> {
             if stop_at_ambient_module && is_ambient_module_declaration(n) {
                 break;
             }
-            if ast::has_syntactic_modifier(n, ModifierFlags::EXPORT) {
+            if ast::has_syntactic_modifier(n, ModifierFlags::Export) {
                 return true;
             }
             node = n.parent();
@@ -367,7 +367,7 @@ impl ImportersForExport<'_> {
                         checker,
                         direct,
                         direct.name().unwrap(),
-                        ast::has_syntactic_modifier(direct, ModifierFlags::EXPORT),
+                        ast::has_syntactic_modifier(direct, ModifierFlags::Export),
                         false, /*alreadyAddedDirect*/
                     );
                 }
@@ -714,7 +714,7 @@ pub(crate) fn get_import_or_export_symbol(
 
         // Not meant for use with export specifiers or export assignment.
         let get_export_kind_for_declaration = |node: P<Node>| -> ExportKind {
-            if ast::has_syntactic_modifier(node, ModifierFlags::DEFAULT) {
+            if ast::has_syntactic_modifier(node, ModifierFlags::Default) {
                 return ExportKind::Default;
             }
             ExportKind::Named
@@ -758,7 +758,7 @@ pub(crate) fn get_import_or_export_symbol(
         }
         let export_node = get_export_node(parent, node);
         if let Some(export_node) = export_node.filter(|&export_node| {
-            ast::has_syntactic_modifier(export_node, ModifierFlags::EXPORT)
+            ast::has_syntactic_modifier(export_node, ModifierFlags::Export)
                 || ast::is_implicitly_exported_jsdoc_declaration(export_node)
         }) {
             if ast::is_import_equals_declaration(export_node)
@@ -803,7 +803,7 @@ pub(crate) fn get_import_or_export_symbol(
         }
         // JS destructuring from `require(...)` is import-like for references, but the binding element
         // itself is still a local variable symbol rather than an alias.
-        let imported_symbol = if symbol.flags().intersects(SymbolFlags::ALIAS) {
+        let imported_symbol = if symbol.flags().intersects(SymbolFlags::Alias) {
             checker.get_immediate_aliased_symbol_exported(symbol)
         } else {
             get_property_symbol_of_object_binding_pattern_without_property_name(symbol, checker)
@@ -954,7 +954,7 @@ pub(crate) fn get_export_equals_local_symbol(
     imported_symbol: P<Symbol>,
     checker: &mut Checker,
 ) -> Option<P<Symbol>> {
-    if imported_symbol.flags().intersects(SymbolFlags::ALIAS) {
+    if imported_symbol.flags().intersects(SymbolFlags::Alias) {
         return checker.get_immediate_aliased_symbol_exported(imported_symbol);
     }
     let decl = imported_symbol.value_declaration();

@@ -58,39 +58,39 @@ pub fn compute_hash(text: &str, hash_with_text: bool) -> String {
 bitflags::bitflags! {
     #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
     pub struct FileEmitKind: u32 {
-        const NONE        = 0;
-        const JS          = 1 << 0; // emit js file
-        const JS_MAP       = 1 << 1; // emit js.map file
-        const JS_INLINE_MAP = 1 << 2; // emit inline source map in js file
-        const DTS_ERRORS   = 1 << 3; // emit dts errors
-        const DTS_EMIT     = 1 << 4; // emit d.ts file
-        const DTS_MAP      = 1 << 5; // emit d.ts.map file
+        const None        = 0;
+        const Js          = 1 << 0; // emit js file
+        const JsMap       = 1 << 1; // emit js.map file
+        const JsInlineMap = 1 << 2; // emit inline source map in js file
+        const DtsErrors   = 1 << 3; // emit dts errors
+        const DtsEmit     = 1 << 4; // emit d.ts file
+        const DtsMap      = 1 << 5; // emit d.ts.map file
 
-        const DTS        = Self::DTS_ERRORS.bits() | Self::DTS_EMIT.bits();
-        const ALL_JS      = Self::JS.bits() | Self::JS_MAP.bits() | Self::JS_INLINE_MAP.bits();
-        const ALL_DTS_EMIT = Self::DTS_EMIT.bits() | Self::DTS_MAP.bits();
-        const ALL_DTS     = Self::DTS.bits() | Self::DTS_MAP.bits();
-        const ALL        = Self::ALL_JS.bits() | Self::ALL_DTS.bits();
+        const Dts        = Self::DtsErrors.bits() | Self::DtsEmit.bits();
+        const AllJs      = Self::Js.bits() | Self::JsMap.bits() | Self::JsInlineMap.bits();
+        const AllDtsEmit = Self::DtsEmit.bits() | Self::DtsMap.bits();
+        const AllDts     = Self::Dts.bits() | Self::DtsMap.bits();
+        const All        = Self::AllJs.bits() | Self::AllDts.bits();
     }
 }
 
 // snapshot.go:62
 pub fn get_file_emit_kind(options: &CompilerOptions) -> FileEmitKind {
-    let mut result = FileEmitKind::JS;
+    let mut result = FileEmitKind::Js;
     if options.source_map.is_true() {
-        result |= FileEmitKind::JS_MAP;
+        result |= FileEmitKind::JsMap;
     }
     if options.inline_source_map.is_true() {
-        result |= FileEmitKind::JS_INLINE_MAP;
+        result |= FileEmitKind::JsInlineMap;
     }
     if options.get_emit_declarations() {
-        result |= FileEmitKind::DTS;
+        result |= FileEmitKind::Dts;
     }
     if options.declaration_map.is_true() {
-        result |= FileEmitKind::DTS_MAP;
+        result |= FileEmitKind::DtsMap;
     }
     if options.emit_declaration_only.is_true() {
-        result &= FileEmitKind::ALL_DTS;
+        result &= FileEmitKind::AllDts;
     }
     result
 }
@@ -111,24 +111,24 @@ pub(crate) fn get_pending_emit_kind(
     old_emit_kind: FileEmitKind,
 ) -> FileEmitKind {
     if old_emit_kind == emit_kind {
-        return FileEmitKind::NONE;
+        return FileEmitKind::None;
     }
     if old_emit_kind.is_empty() || emit_kind.is_empty() {
         return emit_kind;
     }
     let diff = old_emit_kind ^ emit_kind;
-    let mut result = FileEmitKind::NONE;
+    let mut result = FileEmitKind::None;
     // If there is diff in Js emit, pending emit is js emit flags
-    if diff.intersects(FileEmitKind::ALL_JS) {
-        result |= emit_kind & FileEmitKind::ALL_JS;
+    if diff.intersects(FileEmitKind::AllJs) {
+        result |= emit_kind & FileEmitKind::AllJs;
     }
     // If dts errors pending, add dts errors flag
-    if diff.intersects(FileEmitKind::DTS_ERRORS) {
-        result |= emit_kind & FileEmitKind::ALL_DTS;
+    if diff.intersects(FileEmitKind::DtsErrors) {
+        result |= emit_kind & FileEmitKind::AllDts;
     }
     // If there is diff in Dts emit, pending emit is dts emit flags
-    if diff.intersects(FileEmitKind::ALL_DTS_EMIT) {
-        result |= emit_kind & FileEmitKind::ALL_DTS_EMIT;
+    if diff.intersects(FileEmitKind::AllDtsEmit) {
+        result |= emit_kind & FileEmitKind::AllDtsEmit;
     }
     result
 }
@@ -493,7 +493,7 @@ impl Snapshot {
     ) {
         let existing_kind = self.affected_files_pending_emit.load(file_path).unwrap_or_default();
         self.affected_files_pending_emit.store(file_path.clone(), existing_kind | emit_kind);
-        if emit_kind.intersects(FileEmitKind::DTS_ERRORS) {
+        if emit_kind.intersects(FileEmitKind::DtsErrors) {
             self.emit_diagnostics_per_file.delete(file_path);
         }
         self.build_info_emit_pending.set(true);

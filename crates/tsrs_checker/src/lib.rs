@@ -51,12 +51,14 @@ macro_rules! direct_bitflags {
     (
         $(#[doc = $doc:literal])*
         #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Debug, Default)]
+        $(#[expect($($expect:tt)*)])*
         $vis:vis struct $flags:ident: $bits:ty {
             $($body:tt)*
         }
     ) => {
         $(#[doc = $doc])*
         #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Default)]
+        $(#[expect($($expect)*)])*
         #[repr(transparent)]
         $vis struct $flags($bits);
 

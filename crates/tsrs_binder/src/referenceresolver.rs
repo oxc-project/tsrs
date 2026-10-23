@@ -130,7 +130,7 @@ impl<H: 'static> ReferenceResolver<H> {
                 h,
                 location,
                 reference.text(),
-                SymbolFlags::EXPORT_VALUE | SymbolFlags::VALUE | SymbolFlags::ALIAS,
+                SymbolFlags::ExportValue | SymbolFlags::Value | SymbolFlags::Alias,
                 None,  /*nameNotFoundMessage*/
                 false, /*isUse*/
                 false, /*excludeGlobals*/
@@ -143,7 +143,7 @@ impl<H: 'static> ReferenceResolver<H> {
             h,
             location,
             reference.text(),
-            SymbolFlags::EXPORT_VALUE | SymbolFlags::VALUE | SymbolFlags::ALIAS,
+            SymbolFlags::ExportValue | SymbolFlags::Value | SymbolFlags::Alias,
             None,  /*nameNotFoundMessage*/
             false, /*isUse*/
             false, /*excludeGlobals*/
@@ -153,7 +153,7 @@ impl<H: 'static> ReferenceResolver<H> {
     fn is_type_only_alias_declaration(&self, h: &mut H, symbol: Option<P<Symbol>>) -> bool {
         if let Some(symbol) = symbol {
             if let Some(hook) = self.hooks.get_type_only_alias_declaration {
-                return hook(h, symbol, SymbolFlags::VALUE).is_some();
+                return hook(h, symbol, SymbolFlags::Value).is_some();
             }
 
             let mut node = Self::get_declaration_of_alias_symbol(symbol);
@@ -194,7 +194,7 @@ impl<H: 'static> ReferenceResolver<H> {
             if let Some(hook) = self.hooks.get_export_symbol_of_value_symbol_if_exported {
                 return hook(h, symbol);
             }
-            if symbol.flags().intersects(SymbolFlags::EXPORT_VALUE) {
+            if symbol.flags().intersects(SymbolFlags::ExportValue) {
                 if let Some(export_symbol) = symbol.export_symbol() {
                     symbol = export_symbol;
                 }
@@ -221,14 +221,14 @@ impl<H: 'static> ReferenceResolver<H> {
         if let Some(mut symbol) =
             self.get_referenced_value_symbol(h, node, start_in_declaration_container)
         {
-            if symbol.flags().intersects(SymbolFlags::EXPORT_VALUE) {
+            if symbol.flags().intersects(SymbolFlags::ExportValue) {
                 // If we reference an exported entity within the same module declaration, then whether
                 // we prefix depends on the kind of entity. SymbolFlags.ExportHasLocal encompasses all the
                 // kinds that we do NOT prefix.
                 let export_symbol = self.get_merged_symbol(h, symbol.export_symbol()).unwrap();
                 if !prefix_locals
-                    && export_symbol.flags().intersects(SymbolFlags::EXPORT_HAS_LOCAL)
-                    && !export_symbol.flags().intersects(SymbolFlags::VARIABLE)
+                    && export_symbol.flags().intersects(SymbolFlags::ExportHasLocal)
+                    && !export_symbol.flags().intersects(SymbolFlags::Variable)
                 {
                     return None;
                 }
@@ -236,7 +236,7 @@ impl<H: 'static> ReferenceResolver<H> {
             }
             let parent_symbol = self.get_parent_of_symbol(h, Some(symbol));
             if let Some(parent_symbol) = parent_symbol {
-                if parent_symbol.flags().intersects(SymbolFlags::VALUE_MODULE) {
+                if parent_symbol.flags().intersects(SymbolFlags::ValueModule) {
                     if let Some(value_declaration) = parent_symbol.value_declaration() {
                         if value_declaration.kind() == Kind::SourceFile {
                             let symbol_file = value_declaration; // .AsSourceFile()
@@ -274,7 +274,7 @@ impl<H: 'static> ReferenceResolver<H> {
         {
             // We should only get the declaration of an alias if there isn't a local value
             // declaration for the symbol
-            if ast::is_non_local_alias(Some(symbol), SymbolFlags::VALUE /*excludes*/)
+            if ast::is_non_local_alias(Some(symbol), SymbolFlags::Value /*excludes*/)
                 && !self.is_type_only_alias_declaration(h, Some(symbol))
             {
                 return Self::get_declaration_of_alias_symbol(symbol);

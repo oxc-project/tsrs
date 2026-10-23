@@ -35,7 +35,7 @@ impl LanguageService {
     ) -> Result<lsproto::DefinitionResponse, lsproto::Error> {
         let (program, file) = self.get_program_and_file(document_uri);
         let positions =
-            self.converters.from_lsp_position_for_source_file(file, position, Feature::DEFINITION);
+            self.converters.from_lsp_position_for_source_file(file, position, Feature::Definition);
         let mut results: Vec<lsproto::DefinitionResponse> = Vec::with_capacity(positions.len());
         for mapped in positions {
             if mapped.fidelity.is_single_segment() {
@@ -93,7 +93,7 @@ impl LanguageService {
                     client_supports_link,
                     &declarations,
                     None, /*reference*/
-                    Feature::DEFINITION,
+                    Feature::Definition,
                 ));
             }
             return Ok(lsproto::LocationOrLocationsOrDefinitionLinksOrNull::default());
@@ -129,7 +129,7 @@ impl LanguageService {
                         client_supports_link,
                         &get_source_definition_entry_declarations(source_file),
                         None,
-                        Feature::DEFINITION,
+                        Feature::Definition,
                     ));
                 }
             }
@@ -168,7 +168,7 @@ impl LanguageService {
                     client_supports_link,
                     &unique_declaration_nodes(&module_results),
                     None,
-                    Feature::DEFINITION,
+                    Feature::Definition,
                 ));
             }
         }
@@ -203,7 +203,7 @@ impl LanguageService {
                         client_supports_link,
                         &get_source_definition_entry_declarations(source_file),
                         None,
-                        Feature::DEFINITION,
+                        Feature::Definition,
                     ));
                 }
             }
@@ -220,7 +220,7 @@ impl LanguageService {
             client_supports_link,
             &declarations,
             None, /*reference*/
-            Feature::DEFINITION,
+            Feature::Definition,
         ))
     }
 }
@@ -805,8 +805,8 @@ fn get_candidate_source_declaration_names(
             names.push("default".to_string());
         }
         if (ast::is_function_declaration(declaration) || ast::is_class_declaration(declaration))
-            && declaration.modifier_flags() & ModifierFlags::EXPORT_DEFAULT
-                == ModifierFlags::EXPORT_DEFAULT
+            && declaration.modifier_flags() & ModifierFlags::ExportDefault
+                == ModifierFlags::ExportDefault
         {
             names.push("default".to_string());
         }
@@ -877,8 +877,7 @@ fn find_declaration_nodes_by_name(source_file: P<SourceFile>, names: &[String]) 
         }
         if want_default
             && (ast::is_function_declaration(node) || ast::is_class_declaration(node))
-            && node.modifier_flags() & ModifierFlags::EXPORT_DEFAULT
-                == ModifierFlags::EXPORT_DEFAULT
+            && node.modifier_flags() & ModifierFlags::ExportDefault == ModifierFlags::ExportDefault
         {
             matched = true;
         }

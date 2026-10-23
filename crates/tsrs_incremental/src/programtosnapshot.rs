@@ -519,7 +519,7 @@ impl ToProgramSnapshot {
                     &old_program.snapshot.options(),
                 )
             };
-            if pending_emit_kind != FileEmitKind::NONE {
+            if pending_emit_kind != FileEmitKind::None {
                 // Add all files to affectedFilesPendingEmit since emit changed
                 for &file in self.program.get_source_files() {
                     // Add to affectedFilesPending emit only if not changed since any changed file will do full emit

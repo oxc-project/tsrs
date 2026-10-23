@@ -329,7 +329,7 @@ fn test_converters_against_js_reference() {
                 "{name}: PositionToLineAndCharacter({byte_pos}) mismatch in {text:?}"
             );
 
-            let positions = conv.from_lsp_position(script.clone(), expected_lc, Feature::ALL);
+            let positions = conv.from_lsp_position(script.clone(), expected_lc, Feature::All);
             assert_eq!(positions.len(), 1);
             assert_eq!(
                 positions[0].position, byte_pos,

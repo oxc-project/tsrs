@@ -390,7 +390,7 @@ impl SymbolReferenceLinkStore {
             hashbrown::hash_table::Entry::Occupied(slot) => slot.into_mut(),
             hashbrown::hash_table::Entry::Vacant(slot) => {
                 crate::sitecount::hit("links", "SymbolReferenceLinks");
-                slot.insert(ReferenceKindsSlot { key, kinds: SymbolFlags::NONE }).into_mut()
+                slot.insert(ReferenceKindsSlot { key, kinds: SymbolFlags::None }).into_mut()
             }
         };
         slot.kinds |= meaning;
@@ -401,7 +401,7 @@ impl SymbolReferenceLinkStore {
     #[inline]
     pub fn reference_kinds(&self, symbol: P<Symbol>) -> SymbolFlags {
         let key = symbol.key();
-        self.slots.find(Self::hash(key), |s| s.key == key).map_or(SymbolFlags::NONE, |s| s.kinds)
+        self.slots.find(Self::hash(key), |s| s.key == key).map_or(SymbolFlags::None, |s| s.kinds)
     }
 }
 
@@ -1092,8 +1092,8 @@ mod tests {
                 (&mut second_types, &mut second_signatures, i + 2),
             ] {
                 let t = Type::alloc(
-                    TypeFlags::ANY,
-                    ObjectFlags::NONE,
+                    TypeFlags::Any,
+                    ObjectFlags::None,
                     TypeId(id as u32),
                     IntrinsicType::default(),
                 );
@@ -1147,14 +1147,14 @@ mod tests {
             Some(MAX_PAGE_LINK_COUNT - 1)
         );
         assert_eq!(dense_link_key(ast::BLOCK_ID_OFFSET + MAX_PAGE_LINK_COUNT), None);
-        let ordinary = Symbol::new(SymbolFlags::NONE, "");
+        let ordinary = Symbol::new(SymbolFlags::None, "");
         let ordinary_id = ast::get_symbol_id(ordinary).0;
         assert!(ordinary_id < ast::BLOCK_ID_OFFSET);
 
         let mut store: SymbolArenaLinkStore<Cell<u32>> = SymbolArenaLinkStore::default();
         store.get(ordinary).set(7);
         let symbols: Vec<_> =
-            std::iter::repeat_with(|| Symbol::new(SymbolFlags::NONE, "")).take(600).collect();
+            std::iter::repeat_with(|| Symbol::new(SymbolFlags::None, "")).take(600).collect();
         for (index, &symbol) in symbols.iter().enumerate() {
             assert!(store.try_get_if_id_assigned(symbol).is_none());
             let link = store.get(symbol);
@@ -1323,19 +1323,19 @@ mod tests {
     #[test]
     fn reference_kinds_accumulate_in_their_slots() {
         let symbols: Vec<P<Symbol>> =
-            std::iter::repeat_with(|| Symbol::new(SymbolFlags::NONE, "")).take(20000).collect();
+            std::iter::repeat_with(|| Symbol::new(SymbolFlags::None, "")).take(20000).collect();
         let mut store = SymbolReferenceLinkStore::default();
         for (i, &symbol) in symbols.iter().enumerate().filter(|(i, _)| i % 3 != 0) {
-            store.add_reference_kinds(symbol, SymbolFlags::VALUE);
+            store.add_reference_kinds(symbol, SymbolFlags::Value);
             if i % 2 == 0 {
-                store.add_reference_kinds(symbol, SymbolFlags::TYPE);
+                store.add_reference_kinds(symbol, SymbolFlags::Type);
             }
         }
         for (i, &symbol) in symbols.iter().enumerate() {
             let expected = match (i % 3 != 0, i % 2 == 0) {
-                (false, _) => SymbolFlags::NONE,
-                (true, false) => SymbolFlags::VALUE,
-                (true, true) => SymbolFlags::VALUE | SymbolFlags::TYPE,
+                (false, _) => SymbolFlags::None,
+                (true, false) => SymbolFlags::Value,
+                (true, true) => SymbolFlags::Value | SymbolFlags::Type,
             };
             assert_eq!(store.reference_kinds(symbol), expected, "symbol {i}");
         }

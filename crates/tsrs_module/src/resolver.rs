@@ -206,7 +206,7 @@ fn new_resolution_state<'r>(
         resolver,
         tracer: trace_builder,
         is_config_lookup: false,
-        features: NodeResolutionFeatures::NONE,
+        features: NodeResolutionFeatures::None,
         esm_mode: false,
         conditions: None,
         extensions: Extensions::empty(),
@@ -217,26 +217,26 @@ fn new_resolution_state<'r>(
     };
 
     if is_type_reference_directive {
-        state.extensions = Extensions::DECLARATION;
+        state.extensions = Extensions::Declaration;
     } else if compiler_options.no_dts_resolution == Tristate::True {
-        state.extensions = Extensions::IMPLEMENTATION_FILES;
+        state.extensions = Extensions::ImplementationFiles;
     } else {
         state.extensions =
-            Extensions::TYPE_SCRIPT | Extensions::JAVA_SCRIPT | Extensions::DECLARATION;
+            Extensions::TypeScript | Extensions::JavaScript | Extensions::Declaration;
     }
 
     if !is_type_reference_directive && compiler_options.get_resolve_json_module() {
-        state.extensions |= Extensions::JSON;
+        state.extensions |= Extensions::Json;
     }
 
     match compiler_options.get_module_resolution_kind() {
         ModuleResolutionKind::NODE16 => {
-            state.features = NodeResolutionFeatures::NODE16_DEFAULT;
+            state.features = NodeResolutionFeatures::Node16Default;
             state.esm_mode = resolution_mode == ModuleKind::ES_NEXT;
             state.conditions = Some(resolver.conditions(compiler_options, resolution_mode));
         }
         ModuleResolutionKind::NODE_NEXT => {
-            state.features = NodeResolutionFeatures::NODE_NEXT_DEFAULT;
+            state.features = NodeResolutionFeatures::NodeNextDefault;
             state.esm_mode = resolution_mode == ModuleKind::ES_NEXT;
             state.conditions = Some(resolver.conditions(compiler_options, resolution_mode));
         }
@@ -648,7 +648,7 @@ impl DefaultResolver<'_> {
             self.typings_location
         );
         let global_resolved = state.load_module_from_immediate_node_modules_directory(
-            Extensions::DECLARATION,
+            Extensions::Declaration,
             &self.typings_location,
             false,
         );
@@ -677,7 +677,7 @@ impl DefaultResolver<'_> {
             None,
         );
         state.is_config_lookup = true;
-        state.extensions = Extensions::JSON;
+        state.extensions = Extensions::Json;
         state.resolve_node_like()
     }
 }
@@ -771,7 +771,7 @@ impl<'r> ResolutionState<'r> {
             name: String::new(),
             containing_directory: String::new(),
             is_config_lookup: false,
-            features: NodeResolutionFeatures::NONE,
+            features: NodeResolutionFeatures::None,
             esm_mode: false,
             conditions: None,
             extensions: Extensions::empty(),
@@ -818,7 +818,7 @@ impl<'r> ResolutionState<'r> {
                 if from_config {
                     // Custom typeRoots resolve as file or directory just like we do modules
                     let mut resolved_from_file =
-                        self.load_module_from_file(Extensions::DECLARATION, &candidate);
+                        self.load_module_from_file(Extensions::Declaration, &candidate);
                     if let Some(resolved) = resolved_from_file.as_mut() {
                         let package_directory = node_module_package_root_for_file(&resolved.path);
                         if !package_directory.is_empty() {
@@ -832,7 +832,7 @@ impl<'r> ResolutionState<'r> {
                     }
                 }
                 let resolved_from_directory = self.load_node_module_from_directory(
-                    Extensions::DECLARATION,
+                    Extensions::Declaration,
                     &candidate,
                     true, /*considerPackageJson*/
                 );
@@ -865,7 +865,7 @@ impl<'r> ResolutionState<'r> {
                 let candidate =
                     normalize_path_for_cjs_resolution(&self.containing_directory, &self.name);
                 resolved = self.node_load_module_by_relative_name(
-                    Extensions::DECLARATION,
+                    Extensions::Declaration,
                     &candidate,
                     true, /*considerPackageJson*/
                 );
@@ -913,7 +913,7 @@ impl<'r> ResolutionState<'r> {
                 continue;
             }
             let mut resolved_from_file =
-                self.load_module_from_file(Extensions::DECLARATION, &candidate);
+                self.load_module_from_file(Extensions::Declaration, &candidate);
             if let Some(resolved) = resolved_from_file.as_mut() {
                 let package_directory = node_module_package_root_for_file(&resolved.path);
                 if !package_directory.is_empty() {
@@ -923,7 +923,7 @@ impl<'r> ResolutionState<'r> {
                 return resolved_from_file;
             }
             let resolved = self.load_node_module_from_directory(
-                Extensions::DECLARATION,
+                Extensions::Declaration,
                 &candidate,
                 true, /*considerPackageJson*/
             );
@@ -973,20 +973,20 @@ impl<'r> ResolutionState<'r> {
         let mut result = self.resolve_node_like_worker();
         if self.resolved_package_directory
             && !self.is_config_lookup
-            && self.features.intersects(NodeResolutionFeatures::EXPORTS)
-            && self.extensions.intersects(Extensions::TYPE_SCRIPT | Extensions::DECLARATION)
+            && self.features.intersects(NodeResolutionFeatures::Exports)
+            && self.extensions.intersects(Extensions::TypeScript | Extensions::Declaration)
             && !tspath::is_external_module_name_relative(&self.name)
             && result.is_resolved()
             && result.is_external_library_import
-            && !extension_is_ok(Extensions::TYPE_SCRIPT | Extensions::DECLARATION, result.extension)
+            && !extension_is_ok(Extensions::TypeScript | Extensions::Declaration, result.extension)
             && self.conditions.as_deref().unwrap_or(&[]).iter().any(|c| c == "import")
         {
             trace!(
                 self.tracer,
                 diagnostics::RESOLUTION_OF_NON_RELATIVE_NAME_FAILED_TRYING_WITH_MODERN_NODE_RESOLUTION_FEATURES_DISABLED_TO_SEE_IF_NPM_LIBRARY_NEEDS_CONFIGURATION_UPDATE
             );
-            self.features &= !NodeResolutionFeatures::EXPORTS;
-            self.extensions &= Extensions::TYPE_SCRIPT | Extensions::DECLARATION;
+            self.features &= !NodeResolutionFeatures::Exports;
+            self.extensions &= Extensions::TypeScript | Extensions::Declaration;
             let diagnostics_count = self.diagnostics.len();
             let diagnostic_result = self.resolve_node_like_worker();
             if diagnostic_result.is_resolved() && diagnostic_result.is_external_library_import {
@@ -1004,7 +1004,7 @@ impl<'r> ResolutionState<'r> {
         }
 
         if !tspath::is_external_module_name_relative(&self.name) {
-            if self.features.intersects(NodeResolutionFeatures::IMPORTS)
+            if self.features.intersects(NodeResolutionFeatures::Imports)
                 && self.name.starts_with('#')
             {
                 let resolved = self.load_module_from_imports();
@@ -1012,7 +1012,7 @@ impl<'r> ResolutionState<'r> {
                     return self.create_resolved_module_handling_symlink(resolved);
                 }
             }
-            if self.features.intersects(NodeResolutionFeatures::SELF_NAME) {
+            if self.features.intersects(NodeResolutionFeatures::SelfName) {
                 let resolved = self.load_module_from_self_name_reference();
                 if !resolved.should_continue_searching() {
                     return self.create_resolved_module_handling_symlink(resolved);
@@ -1033,7 +1033,7 @@ impl<'r> ResolutionState<'r> {
             if !resolved.should_continue_searching() {
                 return self.create_resolved_module_handling_symlink(resolved);
             }
-            if self.extensions.intersects(Extensions::DECLARATION) {
+            if self.extensions.intersects(Extensions::Declaration) {
                 let resolved = self.resolve_from_type_root();
                 if !resolved.should_continue_searching() {
                     return self.create_resolved_module_handling_symlink(resolved);
@@ -1097,9 +1097,9 @@ impl<'r> ResolutionState<'r> {
             return self.load_module_from_exports(scope, self.extensions, &subpath);
         }
         let priority_extensions =
-            self.extensions & (Extensions::TYPE_SCRIPT | Extensions::DECLARATION);
+            self.extensions & (Extensions::TypeScript | Extensions::Declaration);
         let secondary_extensions =
-            self.extensions & !(Extensions::TYPE_SCRIPT | Extensions::DECLARATION);
+            self.extensions & !(Extensions::TypeScript | Extensions::Declaration);
         let resolved = self.load_module_from_exports(scope, priority_extensions, &subpath);
         if !resolved.should_continue_searching() {
             return resolved;
@@ -1110,7 +1110,7 @@ impl<'r> ResolutionState<'r> {
     fn load_module_from_imports(&mut self) -> Option<Resolved> {
         if self.name == "#"
             || (self.name.starts_with("#/")
-                && !self.features.intersects(NodeResolutionFeatures::IMPORTS_PATTERN_ROOT))
+                && !self.features.intersects(NodeResolutionFeatures::ImportsPatternRoot))
         {
             trace!(
                 self.tracer,
@@ -1258,7 +1258,7 @@ impl<'r> ResolutionState<'r> {
         expanding_keys.sort_by(|a, b| compare_pattern_keys(a, b));
 
         if let Some(result) = expanding_keys.into_iter().find_map(|potential_target| {
-            if self.features.intersects(NodeResolutionFeatures::EXPORTS_PATTERN_TRAILERS)
+            if self.features.intersects(NodeResolutionFeatures::ExportsPatternTrailers)
                 && matches_pattern_with_trailer(potential_target, module_name)
             {
                 let target = &lookup_table[potential_target];
@@ -1688,9 +1688,9 @@ impl<'r> ResolutionState<'r> {
         //   2. For each ancestor node_modules directory, try to find:
         //      i.  JS files in the implementation package
         let priority_extensions =
-            self.extensions & (Extensions::TYPE_SCRIPT | Extensions::DECLARATION);
+            self.extensions & (Extensions::TypeScript | Extensions::Declaration);
         let secondary_extensions =
-            self.extensions & !(Extensions::TYPE_SCRIPT | Extensions::DECLARATION);
+            self.extensions & !(Extensions::TypeScript | Extensions::Declaration);
         // (1)
         if !priority_extensions.is_empty() {
             trace!(self.tracer, diagnostics::SEARCHING_ALL_ANCESTOR_NODE_MODULES_DIRECTORIES_FOR_PREFERRED_EXTENSIONS_COLON_0, priority_extensions);
@@ -1763,7 +1763,7 @@ impl<'r> ResolutionState<'r> {
             }
         }
 
-        if extensions.intersects(Extensions::DECLARATION) {
+        if extensions.intersects(Extensions::Declaration) {
             let node_modules_at_types = tspath::combine_paths(&node_modules_folder, &["@types"]);
             if !self.fs().directory_exists(&node_modules_at_types) {
                 trace!(
@@ -1776,7 +1776,7 @@ impl<'r> ResolutionState<'r> {
             let name = self.name.clone();
             let mangled = self.mangle_scoped_package_name(&name);
             return self.load_module_from_specific_node_modules_directory(
-                Extensions::DECLARATION,
+                Extensions::Declaration,
                 &mangled,
                 &node_modules_at_types,
             );
@@ -1827,7 +1827,7 @@ impl<'r> ResolutionState<'r> {
         let mut package_info = self.get_package_json_info(&candidate_directory);
         // But only if we're not respecting export maps (if we are, we might redirect around this location)
         if !rest.is_empty() && package_info.exists() {
-            if self.features.intersects(NodeResolutionFeatures::EXPORTS) {
+            if self.features.intersects(NodeResolutionFeatures::Exports) {
                 root_package_info = self.get_package_json_info(&package_directory);
             }
             if !root_package_info.exists()
@@ -1904,7 +1904,7 @@ impl<'r> ResolutionState<'r> {
         }
         if let Some(info) = package_info {
             self.resolved_package_directory = true;
-            if self.features.intersects(NodeResolutionFeatures::EXPORTS)
+            if self.features.intersects(NodeResolutionFeatures::Exports)
                 && info.exists()
                 && !info.contents.unwrap().exports.is_falsy()
             {
@@ -2387,7 +2387,7 @@ impl<'r> ResolutionState<'r> {
 
         match original_extension {
             tspath::EXTENSION_MJS | tspath::EXTENSION_MTS | tspath::EXTENSION_DMTS => {
-                if extensions.intersects(Extensions::TYPE_SCRIPT) {
+                if extensions.intersects(Extensions::TypeScript) {
                     let resolved = self.try_extension(
                         tspath::EXTENSION_MTS,
                         extensionless,
@@ -2398,7 +2398,7 @@ impl<'r> ResolutionState<'r> {
                         return resolved;
                     }
                 }
-                if extensions.intersects(Extensions::DECLARATION) {
+                if extensions.intersects(Extensions::Declaration) {
                     let resolved = self.try_extension(
                         tspath::EXTENSION_DMTS,
                         extensionless,
@@ -2409,7 +2409,7 @@ impl<'r> ResolutionState<'r> {
                         return resolved;
                     }
                 }
-                if extensions.intersects(Extensions::JAVA_SCRIPT) {
+                if extensions.intersects(Extensions::JavaScript) {
                     let resolved = self.try_extension(tspath::EXTENSION_MJS, extensionless, false);
                     if !resolved.should_continue_searching() {
                         return resolved;
@@ -2418,7 +2418,7 @@ impl<'r> ResolutionState<'r> {
                 continue_searching()
             }
             tspath::EXTENSION_CJS | tspath::EXTENSION_CTS | tspath::EXTENSION_DCTS => {
-                if extensions.intersects(Extensions::TYPE_SCRIPT) {
+                if extensions.intersects(Extensions::TypeScript) {
                     let resolved = self.try_extension(
                         tspath::EXTENSION_CTS,
                         extensionless,
@@ -2429,7 +2429,7 @@ impl<'r> ResolutionState<'r> {
                         return resolved;
                     }
                 }
-                if extensions.intersects(Extensions::DECLARATION) {
+                if extensions.intersects(Extensions::Declaration) {
                     let resolved = self.try_extension(
                         tspath::EXTENSION_DCTS,
                         extensionless,
@@ -2440,7 +2440,7 @@ impl<'r> ResolutionState<'r> {
                         return resolved;
                     }
                 }
-                if extensions.intersects(Extensions::JAVA_SCRIPT) {
+                if extensions.intersects(Extensions::JavaScript) {
                     let resolved = self.try_extension(tspath::EXTENSION_CJS, extensionless, false);
                     if !resolved.should_continue_searching() {
                         return resolved;
@@ -2449,13 +2449,13 @@ impl<'r> ResolutionState<'r> {
                 continue_searching()
             }
             tspath::EXTENSION_JSON => {
-                if extensions.intersects(Extensions::DECLARATION) {
+                if extensions.intersects(Extensions::Declaration) {
                     let resolved = self.try_extension(".d.json.ts", extensionless, false);
                     if !resolved.should_continue_searching() {
                         return resolved;
                     }
                 }
-                if extensions.intersects(Extensions::JSON) {
+                if extensions.intersects(Extensions::Json) {
                     let resolved = self.try_extension(tspath::EXTENSION_JSON, extensionless, false);
                     if !resolved.should_continue_searching() {
                         return resolved;
@@ -2467,7 +2467,7 @@ impl<'r> ResolutionState<'r> {
                 // basically idendical to the ts/js case below, but prefers matching tsx and jsx files exactly before falling back to the ts or js file path
                 // (historically, we disallow having both a a.ts and a.tsx file in the same compilation, since their outputs clash)
                 // TODO: We should probably error if `"./a.tsx"` resolved to `"./a.ts"`, right?
-                if extensions.intersects(Extensions::TYPE_SCRIPT) {
+                if extensions.intersects(Extensions::TypeScript) {
                     let resolved = self.try_extension(
                         tspath::EXTENSION_TSX,
                         extensionless,
@@ -2485,7 +2485,7 @@ impl<'r> ResolutionState<'r> {
                         return resolved;
                     }
                 }
-                if extensions.intersects(Extensions::DECLARATION) {
+                if extensions.intersects(Extensions::Declaration) {
                     let resolved = self.try_extension(
                         tspath::EXTENSION_DTS,
                         extensionless,
@@ -2495,7 +2495,7 @@ impl<'r> ResolutionState<'r> {
                         return resolved;
                     }
                 }
-                if extensions.intersects(Extensions::JAVA_SCRIPT) {
+                if extensions.intersects(Extensions::JavaScript) {
                     let resolved = self.try_extension(tspath::EXTENSION_JSX, extensionless, false);
                     if !resolved.should_continue_searching() {
                         return resolved;
@@ -2508,7 +2508,7 @@ impl<'r> ResolutionState<'r> {
                 continue_searching()
             }
             tspath::EXTENSION_TS | tspath::EXTENSION_DTS | tspath::EXTENSION_JS | "" => {
-                if extensions.intersects(Extensions::TYPE_SCRIPT) {
+                if extensions.intersects(Extensions::TypeScript) {
                     let resolved = self.try_extension(
                         tspath::EXTENSION_TS,
                         extensionless,
@@ -2528,7 +2528,7 @@ impl<'r> ResolutionState<'r> {
                         return resolved;
                     }
                 }
-                if extensions.intersects(Extensions::DECLARATION) {
+                if extensions.intersects(Extensions::Declaration) {
                     let resolved = self.try_extension(
                         tspath::EXTENSION_DTS,
                         extensionless,
@@ -2539,7 +2539,7 @@ impl<'r> ResolutionState<'r> {
                         return resolved;
                     }
                 }
-                if extensions.intersects(Extensions::JAVA_SCRIPT) {
+                if extensions.intersects(Extensions::JavaScript) {
                     let resolved = self.try_extension(tspath::EXTENSION_JS, extensionless, false);
                     if !resolved.should_continue_searching() {
                         return resolved;
@@ -2566,7 +2566,7 @@ impl<'r> ResolutionState<'r> {
                         return resolved;
                     }
                 }
-                if extensions.intersects(Extensions::DECLARATION)
+                if extensions.intersects(Extensions::Declaration)
                     && !tspath::is_declaration_file_name(&format!(
                         "{extensionless}{original_extension}"
                     ))
@@ -2706,8 +2706,8 @@ impl<'r> ResolutionState<'r> {
             // Even if `extensions == extensionsDeclaration`, we can still look up a .ts file as a result of package.json "types"
             // !!! should we not set this before the filename lookup above?
             let mut expanded_extensions = extensions;
-            if extensions == Extensions::DECLARATION {
-                expanded_extensions = Extensions::TYPE_SCRIPT | Extensions::DECLARATION;
+            if extensions == Extensions::Declaration {
+                expanded_extensions = Extensions::TypeScript | Extensions::Declaration;
             }
 
             // Disable `esmMode` for the resolution of the package path for CJS-mode packages (so the `main` field can omit extensions)
@@ -2815,9 +2815,9 @@ impl<'r> ResolutionState<'r> {
         candidate: &str,
         package_json_value: &str,
     ) -> Option<Resolved> {
-        if extensions.intersects(Extensions::TYPE_SCRIPT)
+        if extensions.intersects(Extensions::TypeScript)
             && tspath::has_implementation_ts_file_extension(candidate)
-            || extensions.intersects(Extensions::DECLARATION)
+            || extensions.intersects(Extensions::Declaration)
                 && tspath::is_declaration_file_name(candidate)
         {
             if let Some(path) = self.try_file(candidate) {
@@ -2841,7 +2841,7 @@ impl<'r> ResolutionState<'r> {
         }
 
         if self.is_config_lookup
-            && extensions.intersects(Extensions::JSON)
+            && extensions.intersects(Extensions::Json)
             && tspath::file_extension_is(candidate, tspath::EXTENSION_JSON)
         {
             if let Some(path) = self.try_file(candidate) {
@@ -2874,7 +2874,7 @@ impl<'r> ResolutionState<'r> {
                 package_info.package_directory,
             );
         }
-        if extensions.intersects(Extensions::DECLARATION) {
+        if extensions.intersects(Extensions::Declaration) {
             if let Some(package_file) = self.get_package_json_path_field(
                 "typings",
                 &contents.typings,
@@ -2890,7 +2890,7 @@ impl<'r> ResolutionState<'r> {
                 return Some(package_file);
             }
         }
-        if extensions.intersects(Extensions::IMPLEMENTATION_FILES | Extensions::DECLARATION) {
+        if extensions.intersects(Extensions::ImplementationFiles | Extensions::Declaration) {
             return self.get_package_json_path_field(
                 "main",
                 &contents.main,
@@ -3132,23 +3132,23 @@ pub fn get_conditions(options: &CompilerOptions, resolution_mode: ResolutionMode
 }
 
 fn get_node_resolution_features(options: &CompilerOptions) -> NodeResolutionFeatures {
-    let mut features = NodeResolutionFeatures::NONE;
+    let mut features = NodeResolutionFeatures::None;
 
     match options.get_module_resolution_kind() {
-        ModuleResolutionKind::NODE16 => features = NodeResolutionFeatures::NODE16_DEFAULT,
-        ModuleResolutionKind::NODE_NEXT => features = NodeResolutionFeatures::NODE_NEXT_DEFAULT,
-        ModuleResolutionKind::BUNDLER => features = NodeResolutionFeatures::BUNDLER_DEFAULT,
+        ModuleResolutionKind::NODE16 => features = NodeResolutionFeatures::Node16Default,
+        ModuleResolutionKind::NODE_NEXT => features = NodeResolutionFeatures::NodeNextDefault,
+        ModuleResolutionKind::BUNDLER => features = NodeResolutionFeatures::BundlerDefault,
         _ => {}
     }
     if options.resolve_package_json_exports == Tristate::True {
-        features |= NodeResolutionFeatures::EXPORTS;
+        features |= NodeResolutionFeatures::Exports;
     } else if options.resolve_package_json_exports == Tristate::False {
-        features &= !NodeResolutionFeatures::EXPORTS;
+        features &= !NodeResolutionFeatures::Exports;
     }
     if options.resolve_package_json_imports == Tristate::True {
-        features |= NodeResolutionFeatures::IMPORTS;
+        features |= NodeResolutionFeatures::Imports;
     } else if options.resolve_package_json_imports == Tristate::False {
-        features &= !NodeResolutionFeatures::IMPORTS;
+        features &= !NodeResolutionFeatures::Imports;
     }
     features
 }
@@ -3312,21 +3312,21 @@ fn matches_pattern_with_trailer(target: &str, name: &str) -> bool {
 
 /** True if `extension` is one of the supported `extensions`. */
 fn extension_is_ok(extensions: Extensions, extension: &str) -> bool {
-    (extensions.intersects(Extensions::JAVA_SCRIPT)
+    (extensions.intersects(Extensions::JavaScript)
         && (extension == tspath::EXTENSION_JS
             || extension == tspath::EXTENSION_JSX
             || extension == tspath::EXTENSION_MJS
             || extension == tspath::EXTENSION_CJS))
-        || (extensions.intersects(Extensions::TYPE_SCRIPT)
+        || (extensions.intersects(Extensions::TypeScript)
             && (extension == tspath::EXTENSION_TS
                 || extension == tspath::EXTENSION_TSX
                 || extension == tspath::EXTENSION_MTS
                 || extension == tspath::EXTENSION_CTS))
-        || (extensions.intersects(Extensions::DECLARATION)
+        || (extensions.intersects(Extensions::Declaration)
             && (extension == tspath::EXTENSION_DTS
                 || extension == tspath::EXTENSION_DMTS
                 || extension == tspath::EXTENSION_DCTS))
-        || (extensions.intersects(Extensions::JSON) && extension == tspath::EXTENSION_JSON)
+        || (extensions.intersects(Extensions::Json) && extension == tspath::EXTENSION_JSON)
 }
 
 pub fn resolve_config(
@@ -3485,8 +3485,8 @@ impl DefaultResolver<'_> {
         package_name: &str,
         enable_directory_search: bool,
     ) -> Option<Vec<ResolvedEntrypoint>> {
-        let extensions = Extensions::TYPE_SCRIPT | Extensions::DECLARATION;
-        let features = NodeResolutionFeatures::ALL;
+        let extensions = Extensions::TypeScript | Extensions::Declaration;
+        let features = NodeResolutionFeatures::All;
         let mut state = ResolutionState::bare(self, self.compiler_options);
         state.extensions = extensions;
         state.features = features;

@@ -477,10 +477,10 @@ pub struct BuildInfoFilePendingEmit {
 impl BuildInfoFilePendingEmit {
     // buildInfo.go:304
     pub fn marshal_json(&self) -> Value {
-        if self.emit_kind == FileEmitKind::NONE {
+        if self.emit_kind == FileEmitKind::None {
             return num(self.file_id);
         }
-        if self.emit_kind == FileEmitKind::DTS {
+        if self.emit_kind == FileEmitKind::Dts {
             return Value::Array(vec![num(self.file_id)]);
         }
         Value::Array(vec![num(self.file_id), num(self.emit_kind.bits())])
@@ -489,14 +489,14 @@ impl BuildInfoFilePendingEmit {
     // buildInfo.go:316
     pub fn unmarshal_json(data: &Value) -> Result<BuildInfoFilePendingEmit, String> {
         if let Some(file_id) = as_uint(data) {
-            return Ok(BuildInfoFilePendingEmit { file_id, emit_kind: FileEmitKind::NONE });
+            return Ok(BuildInfoFilePendingEmit { file_id, emit_kind: FileEmitKind::None });
         }
         let int_tuple = as_uint_list(data)
             .filter(|t| !t.is_empty())
             .ok_or_else(|| format!("invalid BuildInfoFilePendingEmit: {}", show(data)))?;
         match int_tuple.len() {
             1 => {
-                Ok(BuildInfoFilePendingEmit { file_id: int_tuple[0], emit_kind: FileEmitKind::DTS })
+                Ok(BuildInfoFilePendingEmit { file_id: int_tuple[0], emit_kind: FileEmitKind::Dts })
             }
             2 => Ok(BuildInfoFilePendingEmit {
                 file_id: int_tuple[0],
@@ -957,9 +957,9 @@ impl BuildInfo {
                 &self.get_compiler_options(build_info_directory),
             );
             if resolved_options.no_emit.is_true() {
-                pending_emit &= FileEmitKind::DTS_ERRORS;
+                pending_emit &= FileEmitKind::DtsErrors;
             }
-            return pending_emit != FileEmitKind::NONE;
+            return pending_emit != FileEmitKind::None;
         }
         false
     }
@@ -1462,7 +1462,7 @@ mod tests {
             change_file_set: vec![2, 3],
             affected_files_pending_emit: vec![BuildInfoFilePendingEmit {
                 file_id: 2,
-                emit_kind: FileEmitKind::JS,
+                emit_kind: FileEmitKind::Js,
             }],
             latest_changed_dts_file: "../out/a.d.ts".into(),
             emit_signatures: vec![BuildInfoEmitSignature {

@@ -92,7 +92,7 @@ pub(crate) fn get_non_module_symbol_of_merged_module_symbol(
     symbol: P<Symbol>,
 ) -> Option<P<Symbol>> {
     if symbol.declarations().is_empty()
-        || !symbol.flags().intersects(SymbolFlags::MODULE | SymbolFlags::TRANSIENT)
+        || !symbol.flags().intersects(SymbolFlags::Module | SymbolFlags::Transient)
     {
         return None;
     }
@@ -553,12 +553,12 @@ pub(crate) fn is_static_symbol(symbol: P<Symbol>) -> bool {
         return false;
     };
     let modifier_flags = value_declaration.modifier_flags();
-    modifier_flags.intersects(ModifierFlags::STATIC)
+    modifier_flags.intersects(ModifierFlags::Static)
 }
 
 // utilities.go:393
 pub(crate) fn is_implementation(node: P<Node>) -> bool {
-    if node.flags().intersects(NodeFlags::AMBIENT) {
+    if node.flags().intersects(NodeFlags::Ambient) {
         return !(node.kind() == Kind::InterfaceDeclaration
             || node.kind() == Kind::TypeAliasDeclaration);
     }
@@ -799,7 +799,7 @@ pub(crate) fn get_adjusted_location(
         if parent.kind() == Kind::ExportAssignment {
             return ast::skip_outer_expressions(
                 parent.expression().unwrap(),
-                ast::OuterExpressionKinds::ALL,
+                ast::OuterExpressionKinds::All,
             );
         }
     }
@@ -919,7 +919,7 @@ pub(crate) fn get_adjusted_location(
             || node.kind() == Kind::DeleteKeyword && parent.kind() == Kind::DeleteExpression
         {
             if let Some(expr) = parent.expression() {
-                return ast::skip_outer_expressions(expr, ast::OuterExpressionKinds::ALL);
+                return ast::skip_outer_expressions(expr, ast::OuterExpressionKinds::All);
             }
         }
 
@@ -931,7 +931,7 @@ pub(crate) fn get_adjusted_location(
         {
             return ast::skip_outer_expressions(
                 parent.as_binary_expression().right(),
-                ast::OuterExpressionKinds::ALL,
+                ast::OuterExpressionKinds::All,
             );
         }
 
@@ -951,7 +951,7 @@ pub(crate) fn get_adjusted_location(
         {
             return ast::skip_outer_expressions(
                 parent.expression().unwrap(),
-                ast::OuterExpressionKinds::ALL,
+                ast::OuterExpressionKinds::All,
             );
         }
     }
@@ -1081,7 +1081,7 @@ pub(crate) fn get_meaning_from_location(node: P<Node>) -> SemanticMeaning {
     );
     let parent = node.parent();
     if ast::is_source_file(node) {
-        return SemanticMeaning::VALUE;
+        return SemanticMeaning::Value;
     }
     let parent = parent.unwrap();
     if ast::node_kind_is(
@@ -1095,7 +1095,7 @@ pub(crate) fn get_meaning_from_location(node: P<Node>) -> SemanticMeaning {
         ],
     ) || parent.kind() == Kind::ImportEqualsDeclaration && Some(node) == parent.name()
     {
-        return SemanticMeaning::ALL;
+        return SemanticMeaning::All;
     }
     if is_in_right_side_of_internal_import_equals_declaration(node) {
         //     import a = |b|; // Namespace
@@ -1114,31 +1114,31 @@ pub(crate) fn get_meaning_from_location(node: P<Node>) -> SemanticMeaning {
         }
         if let Some(name) = name {
             if name.parent().unwrap().kind() == Kind::ImportEqualsDeclaration {
-                return SemanticMeaning::ALL;
+                return SemanticMeaning::All;
             }
         }
-        return SemanticMeaning::NAMESPACE;
+        return SemanticMeaning::Namespace;
     }
     if ast::is_declaration_name(node) {
         return get_meaning_from_declaration(parent);
     }
     if ast::is_entity_name(node) && ast::is_jsdoc_name_reference_context(node) {
-        return SemanticMeaning::ALL;
+        return SemanticMeaning::All;
     }
     if is_type_reference(node) {
-        return SemanticMeaning::TYPE;
+        return SemanticMeaning::Type;
     }
     if is_namespace_reference(node) {
-        return SemanticMeaning::NAMESPACE;
+        return SemanticMeaning::Namespace;
     }
     if ast::is_type_parameter_declaration(parent) {
-        return SemanticMeaning::TYPE;
+        return SemanticMeaning::Type;
     }
     if ast::is_literal_type_node(parent) {
         // This might be T["name"], which is actually referencing a property and not a type. So allow both meanings.
-        return SemanticMeaning::TYPE | SemanticMeaning::VALUE;
+        return SemanticMeaning::Type | SemanticMeaning::Value;
     }
-    SemanticMeaning::VALUE
+    SemanticMeaning::Value
 }
 
 // utilities.go:846
@@ -1160,23 +1160,23 @@ pub(crate) fn get_meaning_from_declaration(node: P<Node>) -> SemanticMeaning {
         | Kind::FunctionExpression
         | Kind::ArrowFunction
         | Kind::CatchClause
-        | Kind::JsxAttribute => SemanticMeaning::VALUE,
+        | Kind::JsxAttribute => SemanticMeaning::Value,
 
         Kind::TypeParameter
         | Kind::InterfaceDeclaration
         | Kind::TypeAliasDeclaration
         | Kind::JSTypeAliasDeclaration
-        | Kind::TypeLiteral => SemanticMeaning::TYPE,
+        | Kind::TypeLiteral => SemanticMeaning::Type,
 
-        Kind::EnumMember | Kind::ClassDeclaration => SemanticMeaning::VALUE | SemanticMeaning::TYPE,
+        Kind::EnumMember | Kind::ClassDeclaration => SemanticMeaning::Value | SemanticMeaning::Type,
 
         Kind::ModuleDeclaration => {
             if (ast::is_ambient_module(node))
                 || (ast::get_module_instance_state(node) == ast::ModuleInstanceState::Instantiated)
             {
-                SemanticMeaning::NAMESPACE | SemanticMeaning::VALUE
+                SemanticMeaning::Namespace | SemanticMeaning::Value
             } else {
-                SemanticMeaning::NAMESPACE
+                SemanticMeaning::Namespace
             }
         }
 
@@ -1187,12 +1187,12 @@ pub(crate) fn get_meaning_from_declaration(node: P<Node>) -> SemanticMeaning {
         | Kind::ImportDeclaration
         | Kind::JSImportDeclaration
         | Kind::ExportAssignment
-        | Kind::ExportDeclaration => SemanticMeaning::ALL,
+        | Kind::ExportDeclaration => SemanticMeaning::All,
 
         // An external module can be a Value
-        Kind::SourceFile => SemanticMeaning::NAMESPACE | SemanticMeaning::VALUE,
+        Kind::SourceFile => SemanticMeaning::Namespace | SemanticMeaning::Value,
 
-        _ => SemanticMeaning::ALL,
+        _ => SemanticMeaning::All,
     }
 }
 
@@ -1267,7 +1267,7 @@ pub(crate) fn get_parent_symbols_of_property_access(
     }
     let lhs_type = ch.get_type_at_location(location.parent().unwrap().expression().unwrap());
     let possible_symbols: Vec<P<Type>> =
-        if lhs_type.flags().intersects(TypeFlags::UNION_OR_INTERSECTION) {
+        if lhs_type.flags().intersects(TypeFlags::UnionOrIntersection) {
             lhs_type.types().to_vec()
         } else if lhs_type.symbol() != symbol.parent() {
             vec![lhs_type]
@@ -1277,7 +1277,7 @@ pub(crate) fn get_parent_symbols_of_property_access(
     possible_symbols
         .into_iter()
         .filter_map(|t| match t.symbol() {
-            Some(s) if s.flags().intersects(SymbolFlags::CLASS | SymbolFlags::INTERFACE) => Some(s),
+            Some(s) if s.flags().intersects(SymbolFlags::Class | SymbolFlags::Interface) => Some(s),
             _ => None,
         })
         .collect()
@@ -1307,7 +1307,7 @@ pub(crate) fn get_property_symbols_from_base_types(
         //      interface C extends C {
         //          /*findRef*/propName: string;
         //      }
-        if !symbol.flags().intersects(SymbolFlags::CLASS | SymbolFlags::INTERFACE)
+        if !symbol.flags().intersects(SymbolFlags::Class | SymbolFlags::Interface)
             || !seen.insert(symbol)
         {
             return None;
@@ -1921,13 +1921,13 @@ pub(crate) fn get_contextual_type_from_parent_or_ancestor_type_node(
     node: P<Node>,
     type_checker: &mut Checker,
 ) -> Option<P<Type>> {
-    if node.flags().intersects(NodeFlags::JSDOC)
-        && !node.flags().intersects(NodeFlags::JAVA_SCRIPT_FILE)
+    if node.flags().intersects(NodeFlags::JSDoc)
+        && !node.flags().intersects(NodeFlags::JavaScriptFile)
     {
         return None;
     }
 
-    let contextual_type = get_contextual_type_from_parent(node, type_checker, ContextFlags::NONE);
+    let contextual_type = get_contextual_type_from_parent(node, type_checker, ContextFlags::None);
     if contextual_type.is_some() {
         return contextual_type;
     }

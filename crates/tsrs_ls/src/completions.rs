@@ -73,7 +73,7 @@ impl LanguageService {
         let positions = self.converters.from_lsp_position_for_source_file(
             file,
             lsp_position,
-            Feature::COMPLETION,
+            Feature::Completion,
         );
         if positions.is_empty() || !positions[0].fidelity.is_exact() {
             // In a content-mapped file the cursor is outside a verbatim span, so any completion committed here
@@ -435,15 +435,16 @@ pub fn sort_below(original: &str) -> SortText {
 bitflags::bitflags! {
     // completions.go:295
     #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Default)]
-    pub(crate) struct SymbolOriginInfoKind: u32 {
-        const THIS_TYPE = 1 << 0;
-        const SYMBOL_MEMBER = 1 << 1;
-        const PROMISE = 1 << 2;
-        const NULLABLE = 1 << 3;
-        const TYPE_ONLY_ALIAS = 1 << 4;
-        const OBJECT_LITERAL_METHOD = 1 << 5;
-        const IGNORE = 1 << 6;
-        const COMPUTED_PROPERTY_NAME = 1 << 7;
+    #[expect(non_camel_case_types, reason = "Keep the upstream bitflags type name.")]
+    pub(crate) struct symbolOriginInfoKind: u32 {
+        const ThisType = 1 << 0;
+        const SymbolMember = 1 << 1;
+        const Promise = 1 << 2;
+        const Nullable = 1 << 3;
+        const TypeOnlyAlias = 1 << 4;
+        const ObjectLiteralMethod = 1 << 5;
+        const Ignore = 1 << 6;
+        const ComputedPropertyName = 1 << 7;
     }
 }
 
@@ -461,12 +462,12 @@ pub(crate) enum SymbolOriginData {
 // completions.go:308 (Go's isDefaultExport, isFromPackageJson and fileName fields are never set or read)
 #[derive(Clone, Default)]
 pub(crate) struct SymbolOriginInfo {
-    pub(crate) kind: SymbolOriginInfoKind,
+    pub(crate) kind: symbolOriginInfoKind,
     pub(crate) data: SymbolOriginData,
 }
 
 impl SymbolOriginInfo {
-    pub(crate) fn with_kind(kind: SymbolOriginInfoKind) -> SymbolOriginInfo {
+    pub(crate) fn with_kind(kind: symbolOriginInfoKind) -> SymbolOriginInfo {
         SymbolOriginInfo { kind, ..Default::default() }
     }
 
@@ -1286,14 +1287,14 @@ impl GetCompletionDataState {
             self.symbol_to_origin_info_map.insert(
                 self.symbols.len() - 1,
                 SymbolOriginInfo::with_kind(get_nullable_symbol_origin_info_kind(
-                    SymbolOriginInfoKind::PROMISE,
+                    symbolOriginInfoKind::Promise,
                     insert_question_dot,
                 )),
             );
         } else if insert_question_dot {
             self.symbol_to_origin_info_map.insert(
                 self.symbols.len() - 1,
-                SymbolOriginInfo::with_kind(SymbolOriginInfoKind::NULLABLE),
+                SymbolOriginInfo::with_kind(symbolOriginInfoKind::Nullable),
             );
         }
     }
@@ -1360,7 +1361,7 @@ impl GetCompletionDataState {
                     self.symbol_to_origin_info_map.insert(
                         self.symbols.len() - 1,
                         SymbolOriginInfo::with_kind(get_nullable_symbol_origin_info_kind(
-                            SymbolOriginInfoKind::SYMBOL_MEMBER,
+                            symbolOriginInfoKind::SymbolMember,
                             insert_question_dot,
                         )),
                     );
@@ -1482,7 +1483,7 @@ impl GetCompletionDataState {
             let symbol = type_checker.get_symbol_at_location_exported(node);
             if let Some(symbol) = symbol {
                 let symbol = checker::skip_alias(symbol, type_checker);
-                if symbol.flags().intersects(SymbolFlags::MODULE | SymbolFlags::ENUM) {
+                if symbol.flags().intersects(SymbolFlags::Module | SymbolFlags::Enum) {
                     let value_access_node =
                         if is_import_type { node } else { node.parent().unwrap() };
                     // Extract module or enum members
@@ -1490,7 +1491,7 @@ impl GetCompletionDataState {
                     for exported_symbol in exported_symbols {
                         let is_valid_access = if is_namespace_name {
                             // At `namespace N.M/**/`, if this is the only declaration of `M`, don't include `M` as a completion.
-                            exported_symbol.flags().intersects(SymbolFlags::NAMESPACE)
+                            exported_symbol.flags().intersects(SymbolFlags::Namespace)
                                 && !exported_symbol
                                     .declarations()
                                     .iter()
@@ -1553,7 +1554,7 @@ impl GetCompletionDataState {
                         self.add_type_properties(
                             type_checker,
                             t,
-                            node.flags().intersects(NodeFlags::AWAIT_CONTEXT),
+                            node.flags().intersects(NodeFlags::AwaitContext),
                             insert_question_dot,
                         );
                     }
@@ -1592,7 +1593,7 @@ impl GetCompletionDataState {
                 self.add_type_properties(
                     type_checker,
                     t,
-                    node.flags().intersects(NodeFlags::AWAIT_CONTEXT),
+                    node.flags().intersects(NodeFlags::AwaitContext),
                     insert_question_dot,
                 );
             } else {
@@ -1692,14 +1693,14 @@ impl GetCompletionDataState {
 
             // Check completions for Object property value shorthand
             let Some(instantiated_type) = instantiated_type else {
-                if object_like_container.flags().intersects(NodeFlags::IN_WITH_STATEMENT) {
+                if object_like_container.flags().intersects(NodeFlags::InWithStatement) {
                     return Ok(GlobalsSearch::Fail);
                 }
                 return Ok(GlobalsSearch::Continue);
             };
             let completions_type = type_checker.get_contextual_type_exported(
                 object_like_container,
-                ContextFlags::IGNORE_NODE_INFERENCES,
+                ContextFlags::IgnoreNodeInferences,
             );
             let t = completions_type.unwrap_or(instantiated_type);
             let string_index_type = type_checker.get_string_index_type(t);
@@ -1747,7 +1748,7 @@ impl GetCompletionDataState {
                 let root_parent = root_declaration.parent().unwrap();
                 if ast::is_expression(root_parent) {
                     can_get_type = type_checker
-                        .get_contextual_type_exported(root_parent, ContextFlags::NONE)
+                        .get_contextual_type_exported(root_parent, ContextFlags::None)
                         .is_some();
                 } else if root_parent.kind() == Kind::MethodDeclaration
                     || root_parent.kind() == Kind::SetAccessor
@@ -1756,7 +1757,7 @@ impl GetCompletionDataState {
                         && type_checker
                             .get_contextual_type_exported(
                                 root_parent.parent().unwrap(),
-                                ContextFlags::NONE,
+                                ContextFlags::None,
                             )
                             .is_some();
                 }
@@ -1802,7 +1803,7 @@ impl GetCompletionDataState {
                         SORT_TEXT_MEMBER_DECLARED_BY_SPREAD_ASSIGNMENT.to_string(),
                     );
                 }
-                if member.flags().intersects(SymbolFlags::OPTIONAL) {
+                if member.flags().intersects(SymbolFlags::Optional) {
                     self.symbol_to_sort_text_map
                         .entry(symbol_id)
                         .or_insert_with(|| SORT_TEXT_OPTIONAL_MEMBER.to_string());
@@ -2199,7 +2200,7 @@ impl GetCompletionDataState {
         } else {
             context_token.parent().unwrap()
         };
-        let mut class_element_modifier_flags = ModifierFlags::NONE;
+        let mut class_element_modifier_flags = ModifierFlags::None;
         if ast::is_class_element(class_element) {
             class_element_modifier_flags = class_element.modifier_flags();
         }
@@ -2208,21 +2209,21 @@ impl GetCompletionDataState {
             && !is_currently_editing_node(context_token, file, position)
         {
             match context_token.text() {
-                "private" => class_element_modifier_flags |= ModifierFlags::PRIVATE,
-                "static" => class_element_modifier_flags |= ModifierFlags::STATIC,
-                "override" => class_element_modifier_flags |= ModifierFlags::OVERRIDE,
+                "private" => class_element_modifier_flags |= ModifierFlags::Private,
+                "static" => class_element_modifier_flags |= ModifierFlags::Static,
+                "override" => class_element_modifier_flags |= ModifierFlags::Override,
                 _ => {}
             }
         }
         if ast::is_class_static_block_declaration(class_element) {
-            class_element_modifier_flags |= ModifierFlags::STATIC;
+            class_element_modifier_flags |= ModifierFlags::Static;
         }
 
         // No member list for private methods
-        if !class_element_modifier_flags.intersects(ModifierFlags::PRIVATE) {
+        if !class_element_modifier_flags.intersects(ModifierFlags::Private) {
             // List of property symbols of base type that are not private and already implemented
             let base_type_nodes: Vec<P<Node>> = if ast::is_class_like(decl)
-                && class_element_modifier_flags.intersects(ModifierFlags::OVERRIDE)
+                && class_element_modifier_flags.intersects(ModifierFlags::Override)
             {
                 ast::get_class_extends_heritage_element(decl).into_iter().collect()
             } else {
@@ -2234,7 +2235,7 @@ impl GetCompletionDataState {
                     .into_iter()
                     .filter_map(|base_type_node| {
                         let t = type_checker.get_type_at_location(base_type_node);
-                        if class_element_modifier_flags.intersects(ModifierFlags::STATIC) {
+                        if class_element_modifier_flags.intersects(ModifierFlags::Static) {
                             if let Some(t_symbol) = t.symbol() {
                                 let type_of_symbol = type_checker
                                     .get_type_of_symbol_at_location(t_symbol, Some(decl))
@@ -2271,7 +2272,7 @@ impl GetCompletionDataState {
                         && ast::is_computed_property_name(declaration.name().unwrap())
                     {
                         let origin = SymbolOriginInfo {
-                            kind: SymbolOriginInfoKind::COMPUTED_PROPERTY_NAME,
+                            kind: symbolOriginInfoKind::ComputedPropertyName,
                             data: SymbolOriginData::ComputedPropertyName(
                                 SymbolOriginInfoComputedPropertyName {
                                     symbol_name: type_checker.symbol_to_string_exported(symbol),
@@ -2303,12 +2304,12 @@ impl GetCompletionDataState {
         // Cursor is inside a JSX self-closing element or opening element.
         let attributes = jsx_container.attributes().unwrap();
         let Some(attrs_type) =
-            type_checker.get_contextual_type_exported(attributes, ContextFlags::NONE)
+            type_checker.get_contextual_type_exported(attributes, ContextFlags::None)
         else {
             return Ok(GlobalsSearch::Continue);
         };
         let completions_type = type_checker
-            .get_contextual_type_exported(attributes, ContextFlags::IGNORE_NODE_INFERENCES);
+            .get_contextual_type_exported(attributes, ContextFlags::IgnoreNodeInferences);
         let properties = get_properties_for_object_expression(
             attrs_type,
             completions_type,
@@ -2331,7 +2332,7 @@ impl GetCompletionDataState {
                 self.symbol_to_sort_text_map
                     .insert(symbol_id, SORT_TEXT_MEMBER_DECLARED_BY_SPREAD_ASSIGNMENT.to_string());
             }
-            if symbol.flags().intersects(SymbolFlags::OPTIONAL) {
+            if symbol.flags().intersects(SymbolFlags::Optional) {
                 self.symbol_to_sort_text_map
                     .entry(symbol_id)
                     .or_insert_with(|| SORT_TEXT_OPTIONAL_MEMBER.to_string());
@@ -2407,10 +2408,10 @@ impl GetCompletionDataState {
             get_scope_node(context_token, adjusted_position, file).unwrap_or(file.as_node());
 
         let symbol_meanings =
-            (if self.is_type_only_location { SymbolFlags::NONE } else { SymbolFlags::VALUE })
-                | SymbolFlags::TYPE
-                | SymbolFlags::NAMESPACE
-                | SymbolFlags::ALIAS;
+            (if self.is_type_only_location { SymbolFlags::None } else { SymbolFlags::Value })
+                | SymbolFlags::Type
+                | SymbolFlags::Namespace
+                | SymbolFlags::Alias;
         let type_only_alias_needs_promotion = previous_token.is_some()
             && !ast::is_valid_type_only_alias_use_site(previous_token.unwrap());
 
@@ -2429,7 +2430,7 @@ impl GetCompletionDataState {
                 self.symbol_to_sort_text_map
                     .insert(symbol_id, SORT_TEXT_GLOBALS_OR_KEYWORDS.to_string());
             }
-            if type_only_alias_needs_promotion && !symbol.flags().intersects(SymbolFlags::VALUE) {
+            if type_only_alias_needs_promotion && !symbol.flags().intersects(SymbolFlags::Value) {
                 let type_only_alias_declaration = symbol
                     .declarations()
                     .iter()
@@ -2437,7 +2438,7 @@ impl GetCompletionDataState {
                     .find(|&d| ast::is_type_only_import_declaration(d));
                 if let Some(type_only_alias_declaration) = type_only_alias_declaration {
                     let origin = SymbolOriginInfo {
-                        kind: SymbolOriginInfoKind::TYPE_ONLY_ALIAS,
+                        kind: symbolOriginInfoKind::TypeOnlyAlias,
                         data: SymbolOriginData::TypeOnlyAlias(SymbolOriginInfoTypeOnlyAlias {
                             declaration: type_only_alias_declaration,
                         }),
@@ -2465,7 +2466,7 @@ impl GetCompletionDataState {
                         self.symbols.push(symbol);
                         self.symbol_to_origin_info_map.insert(
                             self.symbols.len() - 1,
-                            SymbolOriginInfo::with_kind(SymbolOriginInfoKind::THIS_TYPE),
+                            SymbolOriginInfo::with_kind(symbolOriginInfoKind::ThisType),
                         );
                         self.symbol_to_sort_text_map
                             .insert(symbol_id, SORT_TEXT_SUGGESTED_CLASS_MEMBERS.to_string());

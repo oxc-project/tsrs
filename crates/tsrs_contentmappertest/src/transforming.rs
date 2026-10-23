@@ -181,7 +181,7 @@ impl VirtualWriter {
             original_start: from as u32,
             original_end: to as u32,
             kind: Kind::VERBATIM,
-            features: Feature::ALL,
+            features: Feature::All,
         });
     }
 
@@ -195,7 +195,7 @@ impl VirtualWriter {
             original_start: from as u32,
             original_end: to as u32,
             kind: Kind::ATOM,
-            features: Feature::ALL,
+            features: Feature::All,
         });
     }
 }
@@ -293,7 +293,7 @@ fn diagnostic_directives(content: &str, mappings: &SpanMap) -> Option<Diagnostic
             };
             let virtual_spans = mappings.original_to_virtual_spans(
                 TextRange::new(affected_start as u32, (affected_start + affected_length) as u32),
-                Feature::ALL,
+                Feature::All,
             );
             if virtual_spans.len() == 1 {
                 let mut directive = MappedDiagnosticDirective {

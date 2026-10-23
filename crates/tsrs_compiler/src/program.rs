@@ -3669,7 +3669,7 @@ fn get_additional_js_syntactic_diagnostics(
     // Parameter decorators are only valid with experimentalDecorators. Without it,
     // the checker would report this, but the checker doesn't run on unchecked JS files.
     fn walk(node: P<Node>, file: P<SourceFile>, diags: &mut Vec<P<Diagnostic>>) -> bool {
-        if !node.subtree_facts().intersects(ast::SubtreeFacts::CONTAINS_DECORATORS) {
+        if !node.subtree_facts().intersects(ast::SubtreeFacts::ContainsDecorators) {
             return false;
         }
         if node.kind() == Kind::Parameter && ast::has_decorators(node) {

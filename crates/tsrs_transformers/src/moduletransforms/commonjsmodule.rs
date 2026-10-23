@@ -188,9 +188,9 @@ impl CommonJSModuleTransformer {
     ) -> Option<P<Node>> {
         // This visitor does not need to descend into the tree if there are no dynamic imports or identifiers in the subtree
         if !ast::is_source_file(node)
-            && !node.subtree_facts().intersects(
-                SubtreeFacts::CONTAINS_DYNAMIC_IMPORT | SubtreeFacts::CONTAINS_IDENTIFIER,
-            )
+            && !node
+                .subtree_facts()
+                .intersects(SubtreeFacts::ContainsDynamicImport | SubtreeFacts::ContainsIdentifier)
         {
             return Some(node);
         }
@@ -278,7 +278,7 @@ impl CommonJSModuleTransformer {
     fn visit_source_file(&self, node: P<SourceFile>) -> P<Node> {
         if node.is_declaration_file.get()
             || !(ast::is_effective_external_module(node, &self.compiler_options)
-                || node.as_node().subtree_facts().intersects(SubtreeFacts::CONTAINS_DYNAMIC_IMPORT))
+                || node.as_node().subtree_facts().intersects(SubtreeFacts::ContainsDynamicImport))
         {
             return node.as_node();
         }
@@ -326,13 +326,13 @@ impl CommonJSModuleTransformer {
                 f.new_identifier("Object"),
                 None, /*questionDotToken*/
                 f.new_identifier("defineProperty"),
-                NodeFlags::NONE,
+                NodeFlags::None,
             ),
             None, /*questionDotToken*/
             None, /*typeArguments*/
             f.new_node_list(vec![
                 f.new_identifier("exports"),
-                f.new_string_literal("__esModule", TokenFlags::NONE),
+                f.new_string_literal("__esModule", TokenFlags::None),
                 f.new_object_literal_expression(
                     f.new_node_list(vec![f.new_property_assignment(
                         None, /*modifiers*/
@@ -344,9 +344,9 @@ impl CommonJSModuleTransformer {
                     false, /*multiLine*/
                 ),
             ]),
-            NodeFlags::NONE,
+            NodeFlags::None,
         ));
-        self.emit_context().set_emit_flags(statement, EmitFlags::CUSTOM_PROLOGUE);
+        self.emit_context().set_emit_flags(statement, EmitFlags::CustomPrologue);
         statement
     }
 
@@ -383,25 +383,23 @@ impl CommonJSModuleTransformer {
                             f.new_identifier("exports"),
                             None, /*questionDotToken*/
                             f.new_string_literal_from_node(next_id),
-                            NodeFlags::NONE,
+                            NodeFlags::None,
                         )
                     } else {
                         let name = next_id.clone_node(f);
-                        emit_context.set_emit_flags(
-                            name,
-                            EmitFlags::NO_SOURCE_MAP | EmitFlags::NO_COMMENTS,
-                        );
+                        emit_context
+                            .set_emit_flags(name, EmitFlags::NoSourceMap | EmitFlags::NoComments);
                         f.new_property_access_expression(
                             f.new_identifier("exports"),
                             None, /*questionDotToken*/
                             name,
-                            NodeFlags::NONE,
+                            NodeFlags::None,
                         )
                     };
                     right = f.new_assignment_expression(left, right);
                 }
                 let statement = f.new_expression_statement(right);
-                emit_context.add_emit_flags(statement, EmitFlags::CUSTOM_PROLOGUE);
+                emit_context.add_emit_flags(statement, EmitFlags::CustomPrologue);
                 statement
             }));
         }
@@ -416,7 +414,7 @@ impl CommonJSModuleTransformer {
             self.append_exports_of_class_or_function_declaration(&mut statements, func);
         }
         for &s in &statements[exported_functions_start..] {
-            emit_context.add_emit_flags(s, EmitFlags::CUSTOM_PROLOGUE);
+            emit_context.add_emit_flags(s, EmitFlags::CustomPrologue);
         }
 
         // visit the remaining statements in the source file
@@ -479,13 +477,13 @@ impl CommonJSModuleTransformer {
                         f.new_identifier("module"),
                         None, /*questionDotToken*/
                         f.new_identifier("exports"),
-                        NodeFlags::NONE,
+                        NodeFlags::None,
                     ),
                     expression_result,
                 ));
 
                 self.emit_context().assign_comment_and_source_map_ranges(statement, export_equals);
-                self.emit_context().add_emit_flags(statement, EmitFlags::NO_COMMENTS);
+                self.emit_context().add_emit_flags(statement, EmitFlags::NoComments);
                 statements.push(statement);
             }
         }
@@ -630,8 +628,8 @@ impl CommonJSModuleTransformer {
 
         let f = self.factory();
         let mut seen: Set<&'static str> = Set::default();
-        if ast::has_syntactic_modifier(decl, ModifierFlags::EXPORT) {
-            let export_name = if ast::has_syntactic_modifier(decl, ModifierFlags::DEFAULT) {
+        if ast::has_syntactic_modifier(decl, ModifierFlags::Export) {
+            let export_name = if ast::has_syntactic_modifier(decl, ModifierFlags::Default) {
                 f.new_identifier("default")
             } else {
                 f.get_declaration_name(decl)

@@ -269,15 +269,15 @@ impl Flattener<'_> {
         if ast::is_computed_property_name(property_name) {
             let visited = self.visit_node(property_name.expression()).unwrap();
             let argument_expression = self.ensure_identifier(visited, false, property_name.loc());
-            f.new_element_access_expression(value, None, argument_expression, NodeFlags::NONE)
+            f.new_element_access_expression(value, None, argument_expression, NodeFlags::None)
         } else if ast::is_string_or_numeric_literal_like(property_name)
             || ast::is_big_int_literal(property_name)
         {
             let argument_expression = property_name.clone_node(f);
-            f.new_element_access_expression(value, None, argument_expression, NodeFlags::NONE)
+            f.new_element_access_expression(value, None, argument_expression, NodeFlags::None)
         } else {
             let name = f.new_identifier(property_name.text());
-            f.new_property_access_expression(value, None, name, NodeFlags::NONE)
+            f.new_property_access_expression(value, None, name, NodeFlags::None)
         }
     }
 
@@ -498,15 +498,15 @@ impl Flattener<'_> {
                     try_get_property_name_of_binding_or_assignment_element(element).unwrap();
                 if self.level >= FlattenLevel::ObjectRest
                     && !element.subtree_facts().intersects(
-                        SubtreeFacts::CONTAINS_REST_OR_SPREAD
-                            | SubtreeFacts::CONTAINS_OBJECT_REST_OR_SPREAD,
+                        SubtreeFacts::ContainsRestOrSpread
+                            | SubtreeFacts::ContainsObjectRestOrSpread,
                     )
                     && !ast::get_target_of_binding_or_assignment_element(element)
                         .unwrap()
                         .subtree_facts()
                         .intersects(
-                            SubtreeFacts::CONTAINS_REST_OR_SPREAD
-                                | SubtreeFacts::CONTAINS_OBJECT_REST_OR_SPREAD,
+                            SubtreeFacts::ContainsRestOrSpread
+                                | SubtreeFacts::ContainsObjectRestOrSpread,
                         )
                     && !ast::is_computed_property_name(property_name)
                 {
@@ -598,7 +598,7 @@ impl Flattener<'_> {
         let mut rest_containing_elements: Vec<RestIdElemPair> = Vec::new();
         for (i, &element) in elements.iter().enumerate() {
             if self.level >= FlattenLevel::ObjectRest {
-                if element.subtree_facts().intersects(SubtreeFacts::CONTAINS_OBJECT_REST_OR_SPREAD)
+                if element.subtree_facts().intersects(SubtreeFacts::ContainsObjectRestOrSpread)
                     || self.has_transformed_prior_element
                         && !is_simple_binding_or_assignment_element(element)
                 {
@@ -619,8 +619,8 @@ impl Flattener<'_> {
                     let rhs_value = f.new_element_access_expression(
                         value,
                         None,
-                        f.new_numeric_literal(alloc_str(&i.to_string()), TokenFlags::NONE),
-                        NodeFlags::NONE,
+                        f.new_numeric_literal(alloc_str(&i.to_string()), TokenFlags::None),
+                        NodeFlags::None,
                     );
                     self.flatten_binding_or_assignment_element(
                         element,

@@ -27,7 +27,7 @@ impl LanguageService {
         let positions = self.converters.from_lsp_position_for_source_file(
             source_file,
             params.position,
-            Feature::LINKED_EDITING,
+            Feature::LinkedEditing,
         );
         if positions.len() != 1 || !positions[0].fidelity.is_exact() {
             return Ok(lsproto::LinkedEditingRangeResponse::default());
@@ -44,10 +44,8 @@ impl LanguageService {
             let fragment = token.parent().unwrap().parent().unwrap().as_jsx_fragment();
             let open_fragment = fragment.opening_fragment;
             let close_fragment = fragment.closing_fragment;
-            if open_fragment.flags().intersects(NodeFlags::THIS_NODE_OR_ANY_SUB_NODES_HAS_ERROR)
-                || close_fragment
-                    .flags()
-                    .intersects(NodeFlags::THIS_NODE_OR_ANY_SUB_NODES_HAS_ERROR)
+            if open_fragment.flags().intersects(NodeFlags::ThisNodeOrAnySubNodesHasError)
+                || close_fragment.flags().intersects(NodeFlags::ThisNodeOrAnySubNodesHasError)
             {
                 return Ok(lsproto::LinkedEditingRangeResponse::default());
             }
@@ -65,12 +63,12 @@ impl LanguageService {
             let (open_line_char, open_fidelity) = self.converters.to_lsp_position_for_feature(
                 &source_file,
                 open_pos.into(),
-                Feature::LINKED_EDITING,
+                Feature::LinkedEditing,
             );
             let (close_line_char, close_fidelity) = self.converters.to_lsp_position_for_feature(
                 &source_file,
                 close_pos.into(),
-                Feature::LINKED_EDITING,
+                Feature::LinkedEditing,
             );
             if !open_fidelity.is_exact() || !close_fidelity.is_exact() {
                 return Ok(lsproto::LinkedEditingRangeResponse::default());
@@ -139,12 +137,12 @@ impl LanguageService {
             let (open_range, open_fidelity) = self.converters.to_lsp_range_for_feature(
                 &source_file,
                 TextRange::new(open_tag_name_start, open_tag_name_end),
-                Feature::LINKED_EDITING,
+                Feature::LinkedEditing,
             );
             let (close_range, close_fidelity) = self.converters.to_lsp_range_for_feature(
                 &source_file,
                 TextRange::new(close_tag_name_start, close_tag_name_end),
-                Feature::LINKED_EDITING,
+                Feature::LinkedEditing,
             );
             if !open_fidelity.is_exact() || !close_fidelity.is_exact() {
                 return Ok(lsproto::LinkedEditingRangeResponse::default());

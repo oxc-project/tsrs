@@ -527,7 +527,7 @@ pub fn is_signed_numeric_literal(node: P<Node>) -> bool {
 
 // Determines if a node is part of an OptionalChain
 pub fn is_optional_chain(node: P<Node>) -> bool {
-    if node.flags().intersects(NodeFlags::OPTIONAL_CHAIN) {
+    if node.flags().intersects(NodeFlags::OptionalChain) {
         return matches!(
             node.kind(),
             Kind::PropertyAccessExpression
@@ -811,7 +811,7 @@ pub fn is_auto_accessor_property_declaration(node: P<Node>) -> bool {
 
 pub fn is_parameter_property_declaration(node: P<Node>, parent: P<Node>) -> bool {
     is_parameter_declaration(node)
-        && has_syntactic_modifier(node, ModifierFlags::PARAMETER_PROPERTY_MODIFIER)
+        && has_syntactic_modifier(node, ModifierFlags::ParameterPropertyModifier)
         && parent.kind() == Kind::Constructor
 }
 
@@ -933,7 +933,7 @@ pub fn is_function_block(node: impl Into<Option<P<Node>>>) -> bool {
 }
 
 pub fn is_block_or_catch_scoped(declaration: P<Node>) -> bool {
-    get_combined_node_flags(declaration).intersects(NodeFlags::BLOCK_SCOPED)
+    get_combined_node_flags(declaration).intersects(NodeFlags::BlockScoped)
         || is_catch_clause_variable_declaration_or_binding_element(declaration)
 }
 
@@ -983,7 +983,7 @@ pub fn is_jsdoc_type_assertion(node: impl Into<Option<P<Node>>>) -> bool {
     }
     let expr = node.expression().unwrap();
     is_as_expression(expr)
-        && expr.type_node().is_some_and(|t| t.flags().intersects(NodeFlags::REPARSED))
+        && expr.type_node().is_some_and(|t| t.flags().intersects(NodeFlags::Reparsed))
 }
 
 pub fn is_prologue_directive(node: P<Node>) -> bool {
@@ -994,19 +994,19 @@ pub fn is_prologue_directive(node: P<Node>) -> bool {
 bitflags::bitflags! {
     #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Debug, Default)]
     pub struct OuterExpressionKinds: u16 {
-        const PARENTHESES = 1 << 0;
-        const TYPE_ASSERTIONS = 1 << 1;
-        const NON_NULL_ASSERTIONS = 1 << 2;
-        const PARTIALLY_EMITTED_EXPRESSIONS = 1 << 3;
-        const EXPRESSIONS_WITH_TYPE_ARGUMENTS = 1 << 4;
-        const SATISFIES = 1 << 5;
-        const EXCLUDE_JSDOC_TYPE_ASSERTION = 1 << 6;
-        const ASSIGNMENTS = 1 << 7;
-        const COMMA = 1 << 8;
-        const ASSERTIONS = Self::TYPE_ASSERTIONS.bits() | Self::NON_NULL_ASSERTIONS.bits() | Self::SATISFIES.bits();
-        const ALL = Self::PARENTHESES.bits() | Self::ASSERTIONS.bits() | Self::PARTIALLY_EMITTED_EXPRESSIONS.bits() | Self::EXPRESSIONS_WITH_TYPE_ARGUMENTS.bits();
-        const ALL_EXCEPT_ASSERTIONS_OR_EXPRESSIONS_WITH_TYPE_ARGUMENTS = Self::ALL.bits() & !Self::ASSERTIONS.bits() & !Self::EXPRESSIONS_WITH_TYPE_ARGUMENTS.bits();
-        const EXPRESSION_TYPE_PASSTHROUGH = Self::PARENTHESES.bits() | Self::ASSIGNMENTS.bits() | Self::COMMA.bits();
+        const Parentheses = 1 << 0;
+        const TypeAssertions = 1 << 1;
+        const NonNullAssertions = 1 << 2;
+        const PartiallyEmittedExpressions = 1 << 3;
+        const ExpressionsWithTypeArguments = 1 << 4;
+        const Satisfies = 1 << 5;
+        const ExcludeJSDocTypeAssertion = 1 << 6;
+        const Assignments = 1 << 7;
+        const Comma = 1 << 8;
+        const Assertions = Self::TypeAssertions.bits() | Self::NonNullAssertions.bits() | Self::Satisfies.bits();
+        const All = Self::Parentheses.bits() | Self::Assertions.bits() | Self::PartiallyEmittedExpressions.bits() | Self::ExpressionsWithTypeArguments.bits();
+        const AllExceptAssertionsOrExpressionsWithTypeArguments = Self::All.bits() & !Self::Assertions.bits() & !Self::ExpressionsWithTypeArguments.bits();
+        const ExpressionTypePassthrough = Self::Parentheses.bits() | Self::Assignments.bits() | Self::Comma.bits();
     }
 }
 
@@ -1021,22 +1021,20 @@ pub type OEK = OuterExpressionKinds;
 pub fn is_outer_expression(node: P<Node>, kinds: OuterExpressionKinds) -> bool {
     match node.kind() {
         Kind::ParenthesizedExpression => {
-            kinds.intersects(OEK::PARENTHESES)
-                && !(kinds.intersects(OEK::EXCLUDE_JSDOC_TYPE_ASSERTION)
+            kinds.intersects(OEK::Parentheses)
+                && !(kinds.intersects(OEK::ExcludeJSDocTypeAssertion)
                     && is_jsdoc_type_assertion(node))
         }
-        Kind::TypeAssertionExpression | Kind::AsExpression => {
-            kinds.intersects(OEK::TYPE_ASSERTIONS)
-        }
+        Kind::TypeAssertionExpression | Kind::AsExpression => kinds.intersects(OEK::TypeAssertions),
         Kind::SatisfiesExpression => {
-            kinds.intersects(OEK::EXPRESSIONS_WITH_TYPE_ARGUMENTS | OEK::SATISFIES)
+            kinds.intersects(OEK::ExpressionsWithTypeArguments | OEK::Satisfies)
         }
-        Kind::ExpressionWithTypeArguments => kinds.intersects(OEK::EXPRESSIONS_WITH_TYPE_ARGUMENTS),
-        Kind::NonNullExpression => kinds.intersects(OEK::NON_NULL_ASSERTIONS),
-        Kind::PartiallyEmittedExpression => kinds.intersects(OEK::PARTIALLY_EMITTED_EXPRESSIONS),
+        Kind::ExpressionWithTypeArguments => kinds.intersects(OEK::ExpressionsWithTypeArguments),
+        Kind::NonNullExpression => kinds.intersects(OEK::NonNullAssertions),
+        Kind::PartiallyEmittedExpression => kinds.intersects(OEK::PartiallyEmittedExpressions),
         Kind::BinaryExpression => match node.as_binary_expression().operator_token.kind() {
-            Kind::EqualsToken => kinds.intersects(OEK::ASSIGNMENTS),
-            Kind::CommaToken => kinds.intersects(OEK::COMMA),
+            Kind::EqualsToken => kinds.intersects(OEK::Assignments),
+            Kind::CommaToken => kinds.intersects(OEK::Comma),
             _ => false,
         },
         _ => false,
@@ -1057,7 +1055,7 @@ pub fn skip_outer_expressions(mut node: P<Node>, kinds: OuterExpressionKinds) ->
 
 // Skips past the parentheses of an expression
 pub fn skip_parentheses(node: P<Node>) -> P<Node> {
-    skip_outer_expressions(node, OEK::PARENTHESES)
+    skip_outer_expressions(node, OEK::Parentheses)
 }
 
 pub fn skip_type_parentheses(mut node: P<Node>) -> P<Node> {
@@ -1068,7 +1066,7 @@ pub fn skip_type_parentheses(mut node: P<Node>) -> P<Node> {
 }
 
 pub fn skip_partially_emitted_expressions(node: P<Node>) -> P<Node> {
-    skip_outer_expressions(node, OEK::PARTIALLY_EMITTED_EXPRESSIONS)
+    skip_outer_expressions(node, OEK::PartiallyEmittedExpressions)
 }
 
 // Walks up the parents of a parenthesized expression to find the containing node
@@ -1219,28 +1217,28 @@ pub fn is_node_descendant_of(
 
 pub fn modifier_to_flag(token: Kind) -> ModifierFlags {
     match token {
-        Kind::StaticKeyword => ModifierFlags::STATIC,
-        Kind::PublicKeyword => ModifierFlags::PUBLIC,
-        Kind::ProtectedKeyword => ModifierFlags::PROTECTED,
-        Kind::PrivateKeyword => ModifierFlags::PRIVATE,
-        Kind::AbstractKeyword => ModifierFlags::ABSTRACT,
-        Kind::AccessorKeyword => ModifierFlags::ACCESSOR,
-        Kind::ExportKeyword => ModifierFlags::EXPORT,
-        Kind::DeclareKeyword => ModifierFlags::AMBIENT,
-        Kind::ConstKeyword => ModifierFlags::CONST,
-        Kind::DefaultKeyword => ModifierFlags::DEFAULT,
-        Kind::AsyncKeyword => ModifierFlags::ASYNC,
-        Kind::ReadonlyKeyword => ModifierFlags::READONLY,
-        Kind::OverrideKeyword => ModifierFlags::OVERRIDE,
-        Kind::InKeyword => ModifierFlags::IN,
-        Kind::OutKeyword => ModifierFlags::OUT,
-        Kind::Decorator => ModifierFlags::DECORATOR,
-        _ => ModifierFlags::NONE,
+        Kind::StaticKeyword => ModifierFlags::Static,
+        Kind::PublicKeyword => ModifierFlags::Public,
+        Kind::ProtectedKeyword => ModifierFlags::Protected,
+        Kind::PrivateKeyword => ModifierFlags::Private,
+        Kind::AbstractKeyword => ModifierFlags::Abstract,
+        Kind::AccessorKeyword => ModifierFlags::Accessor,
+        Kind::ExportKeyword => ModifierFlags::Export,
+        Kind::DeclareKeyword => ModifierFlags::Ambient,
+        Kind::ConstKeyword => ModifierFlags::Const,
+        Kind::DefaultKeyword => ModifierFlags::Default,
+        Kind::AsyncKeyword => ModifierFlags::Async,
+        Kind::ReadonlyKeyword => ModifierFlags::Readonly,
+        Kind::OverrideKeyword => ModifierFlags::Override,
+        Kind::InKeyword => ModifierFlags::In,
+        Kind::OutKeyword => ModifierFlags::Out,
+        Kind::Decorator => ModifierFlags::Decorator,
+        _ => ModifierFlags::None,
     }
 }
 
 pub fn modifiers_to_flags(modifiers: &[P<Node>]) -> ModifierFlags {
-    let mut flags = ModifierFlags::NONE;
+    let mut flags = ModifierFlags::None;
     flags = modifiers.iter().fold(flags, |mut flags, modifier| {
         flags |= modifier_to_flag(modifier.kind());
 
@@ -1254,11 +1252,11 @@ pub fn has_syntactic_modifier(node: P<Node>, flags: ModifierFlags) -> bool {
 }
 
 pub fn has_accessor_modifier(node: P<Node>) -> bool {
-    has_syntactic_modifier(node, ModifierFlags::ACCESSOR)
+    has_syntactic_modifier(node, ModifierFlags::Accessor)
 }
 
 pub fn has_static_modifier(node: P<Node>) -> bool {
-    has_syntactic_modifier(node, ModifierFlags::STATIC)
+    has_syntactic_modifier(node, ModifierFlags::Static)
 }
 
 pub fn is_static(node: P<Node>) -> bool {
@@ -1520,14 +1518,14 @@ pub fn is_deprecated_declaration_with_cached_flags(
     declaration: P<Node>,
     combined_flags: NodeFlags,
 ) -> bool {
-    if !combined_flags.intersects(NodeFlags::POSSIBLY_CONTAINS_DEPRECATED_TAG) {
+    if !combined_flags.intersects(NodeFlags::PossiblyContainsDeprecatedTag) {
         return false;
     }
     // Walk up to find the node that directly has the flag, since JSDoc is
     // attached to that node (e.g. VariableStatement, not VariableDeclaration).
     let mut n = Some(declaration);
     while let Some(node) = n {
-        if node.flags().intersects(NodeFlags::POSSIBLY_CONTAINS_DEPRECATED_TAG) {
+        if node.flags().intersects(NodeFlags::PossiblyContainsDeprecatedTag) {
             return get_jsdoc_deprecated_tag(node).is_some();
         }
         n = node.parent();
@@ -1536,27 +1534,27 @@ pub fn is_deprecated_declaration_with_cached_flags(
 }
 
 pub fn is_var_await_using(node: P<Node>) -> bool {
-    get_combined_node_flags(node) & NodeFlags::BLOCK_SCOPED == NodeFlags::AWAIT_USING
+    get_combined_node_flags(node) & NodeFlags::BlockScoped == NodeFlags::AwaitUsing
 }
 
 // Gets whether a bound `VariableDeclaration` or `VariableDeclarationList` is part of a `using` declaration.
 pub fn is_var_using(node: P<Node>) -> bool {
-    get_combined_node_flags(node) & NodeFlags::BLOCK_SCOPED == NodeFlags::USING
+    get_combined_node_flags(node) & NodeFlags::BlockScoped == NodeFlags::Using
 }
 
 // Gets whether a bound `VariableDeclaration` or `VariableDeclarationList` is part of a `const` declaration.
 pub fn is_var_const(node: P<Node>) -> bool {
-    get_combined_node_flags(node) & NodeFlags::BLOCK_SCOPED == NodeFlags::CONST
+    get_combined_node_flags(node) & NodeFlags::BlockScoped == NodeFlags::Const
 }
 
 // Gets whether a bound `VariableDeclaration` or `VariableDeclarationList` is part of a `const`, `using` or `await using` declaration.
 pub fn is_var_const_like(node: P<Node>) -> bool {
-    let flags = get_combined_node_flags(node) & NodeFlags::BLOCK_SCOPED;
-    flags == NodeFlags::CONST || flags == NodeFlags::USING || flags == NodeFlags::AWAIT_USING
+    let flags = get_combined_node_flags(node) & NodeFlags::BlockScoped;
+    flags == NodeFlags::Const || flags == NodeFlags::Using || flags == NodeFlags::AwaitUsing
 }
 
 pub fn is_var_let(node: P<Node>) -> bool {
-    get_combined_node_flags(node) & NodeFlags::BLOCK_SCOPED == NodeFlags::LET
+    get_combined_node_flags(node) & NodeFlags::BlockScoped == NodeFlags::Let
 }
 
 pub fn is_import_meta(node: P<Node>) -> bool {
@@ -1582,7 +1580,7 @@ pub fn is_source_file_js(file: P<SourceFile>) -> bool {
 
 pub fn is_in_js_file(node: impl Into<Option<P<Node>>>) -> bool {
     match node.into() {
-        Some(node) => node.flags().intersects(NodeFlags::JAVA_SCRIPT_FILE),
+        Some(node) => node.flags().intersects(NodeFlags::JavaScriptFile),
         None => false,
     }
 }
@@ -1867,8 +1865,8 @@ mod id_generator_tests {
         assert_eq!(node_generator.get_node_id(other_node), ordinary_node_id);
         assert_eq!(get_assigned_node_id(node), Some(block_node_id));
 
-        let symbol = Symbol::new(SymbolFlags::NONE, "");
-        let other_symbol = Symbol::new(SymbolFlags::NONE, "");
+        let symbol = Symbol::new(SymbolFlags::None, "");
+        let other_symbol = Symbol::new(SymbolFlags::None, "");
         let symbol_generator = SymbolIdGenerator::default();
         let block_symbol_id = symbol_generator.get_symbol_id(symbol);
         let ordinary_symbol_id = get_symbol_id(other_symbol);

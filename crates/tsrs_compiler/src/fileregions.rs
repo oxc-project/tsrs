@@ -645,7 +645,7 @@ fn adds_nothing(program: &Program, file: P<SourceFile>) -> bool {
     exports.entries().iter().all(|&(name, s)| {
         name != ast::INTERNAL_SYMBOL_NAME_EXPORT_EQUALS
             && name != ast::INTERNAL_SYMBOL_NAME_EXPORT_STAR
-            && !s.flags().intersects(SymbolFlags::ALIAS | SymbolFlags::EXPORT_STAR)
+            && !s.flags().intersects(SymbolFlags::Alias | SymbolFlags::ExportStar)
     })
 }
 

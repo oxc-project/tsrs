@@ -56,8 +56,8 @@ pub(crate) fn get_vs_hover_image_id(
     kind: ScriptElementKind,
     modifiers: ScriptElementKindModifier,
 ) -> lsproto::VSImageId {
-    let is_private = modifiers.intersects(ScriptElementKindModifier::PRIVATE);
-    let is_protected = modifiers.intersects(ScriptElementKindModifier::PROTECTED);
+    let is_private = modifiers.intersects(ScriptElementKindModifier::Private);
+    let is_protected = modifiers.intersects(ScriptElementKindModifier::Protected);
 
     // No internal/exported arm: the *Internal VS icons carry a chevron overlay that conveys
     // C# assembly-scoped visibility, a concept that doesn't apply to TypeScript.

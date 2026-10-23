@@ -14,17 +14,17 @@ use tsrs_core::PSliceCell;
 bitflags! {
     #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Debug, Default)]
     pub struct CheckMode: u32 {
-        const NORMAL = 0; // Normal type checking
-        const CONTEXTUAL = 1 << 0; // Explicitly assigned contextual type, therefore not cacheable
-        const INFERENTIAL = 1 << 1; // Inferential typing
-        const SKIP_CONTEXT_SENSITIVE = 1 << 2; // Skip context sensitive function expressions
-        const SKIP_GENERIC_FUNCTIONS = 1 << 3; // Skip single signature generic functions
-        const IS_FOR_SIGNATURE_HELP = 1 << 4; // Call resolution for purposes of signature help
-        const REST_BINDING_ELEMENT = 1 << 5; // Checking a type that is going to be used to determine the type of a rest binding element
+        const Normal = 0; // Normal type checking
+        const Contextual = 1 << 0; // Explicitly assigned contextual type, therefore not cacheable
+        const Inferential = 1 << 1; // Inferential typing
+        const SkipContextSensitive = 1 << 2; // Skip context sensitive function expressions
+        const SkipGenericFunctions = 1 << 3; // Skip single signature generic functions
+        const IsForSignatureHelp = 1 << 4; // Call resolution for purposes of signature help
+        const RestBindingElement = 1 << 5; // Checking a type that is going to be used to determine the type of a rest binding element
         //   e.g. in `const { a, ...rest } = foo`, when checking the type of `foo` to determine the type of `rest`,
         //   we need to preserve generic types instead of substituting them for constraints
-        const TYPE_ONLY = 1 << 6; // Called from getTypeOfExpression, diagnostics may be omitted
-        const FORCE_TUPLE = 1 << 7;
+        const TypeOnly = 1 << 6; // Called from getTypeOfExpression, diagnostics may be omitted
+        const ForceTuple = 1 << 7;
     }
 }
 
@@ -298,11 +298,11 @@ pub struct FlowLoopInfo {
 bitflags! {
     #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Debug, Default)]
     pub struct InferenceFlags: u32 {
-        const NONE = 0; // No special inference behaviors
-        const NO_DEFAULT = 1 << 0; // Infer silentNeverType for no inferences (otherwise anyType or unknownType)
-        const ANY_DEFAULT = 1 << 1; // Infer anyType (in JS files) for no inferences (otherwise unknownType)
-        const SKIPPED_GENERIC_FUNCTION = 1 << 2; // A generic function was skipped during inference
-        const NO_CONSTRAINT_CHECKS = 1 << 3;
+        const None = 0; // No special inference behaviors
+        const NoDefault = 1 << 0; // Infer silentNeverType for no inferences (otherwise anyType or unknownType)
+        const AnyDefault = 1 << 1; // Infer anyType (in JS files) for no inferences (otherwise unknownType)
+        const SkippedGenericFunction = 1 << 2; // A generic function was skipped during inference
+        const NoConstraintChecks = 1 << 3;
     }
 }
 
@@ -803,23 +803,23 @@ pub struct IntraExpressionInferenceSite {
 bitflags! {
     #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Debug, Default)]
     pub struct DeclarationMeaning: u32 {
-        const GET_ACCESSOR = 1 << 0;
-        const SET_ACCESSOR = 1 << 1;
-        const PROPERTY_ASSIGNMENT = 1 << 2;
-        const METHOD = 1 << 3;
-        const PRIVATE_STATIC = 1 << 4;
-        const GET_OR_SET_ACCESSOR = Self::GET_ACCESSOR.bits() | Self::SET_ACCESSOR.bits();
-        const PROPERTY_ASSIGNMENT_OR_METHOD = Self::PROPERTY_ASSIGNMENT.bits() | Self::METHOD.bits();
+        const GetAccessor = 1 << 0;
+        const SetAccessor = 1 << 1;
+        const PropertyAssignment = 1 << 2;
+        const Method = 1 << 3;
+        const PrivateStatic = 1 << 4;
+        const GetOrSetAccessor = Self::GetAccessor.bits() | Self::SetAccessor.bits();
+        const PropertyAssignmentOrMethod = Self::PropertyAssignment.bits() | Self::Method.bits();
     }
 }
 
 bitflags! {
     #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Debug, Default)]
     pub struct DeclarationSpaces: u32 {
-        const NONE = 0;
-        const EXPORT_VALUE = 1 << 0;
-        const EXPORT_TYPE = 1 << 1;
-        const EXPORT_NAMESPACE = 1 << 2;
+        const None = 0;
+        const ExportValue = 1 << 0;
+        const ExportType = 1 << 1;
+        const ExportNamespace = 1 << 2;
     }
 }
 
@@ -851,10 +851,10 @@ pub static INTRINSIC_TYPE_KINDS: LazyLock<FxHashMap<&'static str, IntrinsicTypeK
 bitflags! {
     #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Debug, Default)]
     pub struct MappedTypeModifiers: u32 {
-        const INCLUDE_READONLY = 1 << 0;
-        const EXCLUDE_READONLY = 1 << 1;
-        const INCLUDE_OPTIONAL = 1 << 2;
-        const EXCLUDE_OPTIONAL = 1 << 3;
+        const IncludeReadonly = 1 << 0;
+        const ExcludeReadonly = 1 << 1;
+        const IncludeOptional = 1 << 2;
+        const ExcludeOptional = 1 << 3;
     }
 }
 
@@ -884,111 +884,111 @@ pub enum ReferenceHint {
 bitflags! {
     #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Debug, Default)]
     pub struct TypeFacts: u32 {
-        const NONE = 0;
-        const TYPEOF_EQ_STRING = 1 << 0;
-        const TYPEOF_EQ_NUMBER = 1 << 1;
-        const TYPEOF_EQ_BIG_INT = 1 << 2;
-        const TYPEOF_EQ_BOOLEAN = 1 << 3;
-        const TYPEOF_EQ_SYMBOL = 1 << 4;
-        const TYPEOF_EQ_OBJECT = 1 << 5;
-        const TYPEOF_EQ_FUNCTION = 1 << 6;
-        const TYPEOF_EQ_HOST_OBJECT = 1 << 7;
-        const TYPEOF_NE_STRING = 1 << 8;
-        const TYPEOF_NE_NUMBER = 1 << 9;
-        const TYPEOF_NE_BIG_INT = 1 << 10;
-        const TYPEOF_NE_BOOLEAN = 1 << 11;
-        const TYPEOF_NE_SYMBOL = 1 << 12;
-        const TYPEOF_NE_OBJECT = 1 << 13;
-        const TYPEOF_NE_FUNCTION = 1 << 14;
-        const TYPEOF_NE_HOST_OBJECT = 1 << 15;
-        const EQ_UNDEFINED = 1 << 16;
-        const EQ_NULL = 1 << 17;
-        const EQ_UNDEFINED_OR_NULL = 1 << 18;
-        const NE_UNDEFINED = 1 << 19;
-        const NE_NULL = 1 << 20;
-        const NE_UNDEFINED_OR_NULL = 1 << 21;
-        const TRUTHY = 1 << 22;
-        const FALSY = 1 << 23;
-        const IS_UNDEFINED = 1 << 24;
-        const IS_NULL = 1 << 25;
-        const IS_UNDEFINED_OR_NULL = Self::IS_UNDEFINED.bits() | Self::IS_NULL.bits();
-        const ALL = (1 << 27) - 1;
+        const None = 0;
+        const TypeofEQString = 1 << 0;
+        const TypeofEQNumber = 1 << 1;
+        const TypeofEQBigInt = 1 << 2;
+        const TypeofEQBoolean = 1 << 3;
+        const TypeofEQSymbol = 1 << 4;
+        const TypeofEQObject = 1 << 5;
+        const TypeofEQFunction = 1 << 6;
+        const TypeofEQHostObject = 1 << 7;
+        const TypeofNEString = 1 << 8;
+        const TypeofNENumber = 1 << 9;
+        const TypeofNEBigInt = 1 << 10;
+        const TypeofNEBoolean = 1 << 11;
+        const TypeofNESymbol = 1 << 12;
+        const TypeofNEObject = 1 << 13;
+        const TypeofNEFunction = 1 << 14;
+        const TypeofNEHostObject = 1 << 15;
+        const EQUndefined = 1 << 16;
+        const EQNull = 1 << 17;
+        const EQUndefinedOrNull = 1 << 18;
+        const NEUndefined = 1 << 19;
+        const NENull = 1 << 20;
+        const NEUndefinedOrNull = 1 << 21;
+        const Truthy = 1 << 22;
+        const Falsy = 1 << 23;
+        const IsUndefined = 1 << 24;
+        const IsNull = 1 << 25;
+        const IsUndefinedOrNull = Self::IsUndefined.bits() | Self::IsNull.bits();
+        const All = (1 << 27) - 1;
         // The following members encode facts about particular kinds of types for use in the getTypeFacts function.
         // The presence of a particular fact means that the given test is true for some (and possibly all) values
         // of that kind of type.
-        const BASE_STRING_STRICT_FACTS = Self::TYPEOF_EQ_STRING.bits() | Self::TYPEOF_NE_NUMBER.bits() | Self::TYPEOF_NE_BIG_INT.bits() | Self::TYPEOF_NE_BOOLEAN.bits() | Self::TYPEOF_NE_SYMBOL.bits() | Self::TYPEOF_NE_OBJECT.bits() | Self::TYPEOF_NE_FUNCTION.bits() | Self::TYPEOF_NE_HOST_OBJECT.bits() | Self::NE_UNDEFINED.bits() | Self::NE_NULL.bits() | Self::NE_UNDEFINED_OR_NULL.bits();
-        const BASE_STRING_FACTS = Self::BASE_STRING_STRICT_FACTS.bits() | Self::EQ_UNDEFINED.bits() | Self::EQ_NULL.bits() | Self::EQ_UNDEFINED_OR_NULL.bits() | Self::FALSY.bits();
-        const STRING_STRICT_FACTS = Self::BASE_STRING_STRICT_FACTS.bits() | Self::TRUTHY.bits() | Self::FALSY.bits();
-        const STRING_FACTS = Self::BASE_STRING_FACTS.bits() | Self::TRUTHY.bits();
-        const EMPTY_STRING_STRICT_FACTS = Self::BASE_STRING_STRICT_FACTS.bits() | Self::FALSY.bits();
-        const EMPTY_STRING_FACTS = Self::BASE_STRING_FACTS.bits();
-        const NON_EMPTY_STRING_STRICT_FACTS = Self::BASE_STRING_STRICT_FACTS.bits() | Self::TRUTHY.bits();
-        const NON_EMPTY_STRING_FACTS = Self::BASE_STRING_FACTS.bits() | Self::TRUTHY.bits();
-        const BASE_NUMBER_STRICT_FACTS = Self::TYPEOF_EQ_NUMBER.bits() | Self::TYPEOF_NE_STRING.bits() | Self::TYPEOF_NE_BIG_INT.bits() | Self::TYPEOF_NE_BOOLEAN.bits() | Self::TYPEOF_NE_SYMBOL.bits() | Self::TYPEOF_NE_OBJECT.bits() | Self::TYPEOF_NE_FUNCTION.bits() | Self::TYPEOF_NE_HOST_OBJECT.bits() | Self::NE_UNDEFINED.bits() | Self::NE_NULL.bits() | Self::NE_UNDEFINED_OR_NULL.bits();
-        const BASE_NUMBER_FACTS = Self::BASE_NUMBER_STRICT_FACTS.bits() | Self::EQ_UNDEFINED.bits() | Self::EQ_NULL.bits() | Self::EQ_UNDEFINED_OR_NULL.bits() | Self::FALSY.bits();
-        const NUMBER_STRICT_FACTS = Self::BASE_NUMBER_STRICT_FACTS.bits() | Self::TRUTHY.bits() | Self::FALSY.bits();
-        const NUMBER_FACTS = Self::BASE_NUMBER_FACTS.bits() | Self::TRUTHY.bits();
-        const ZERO_NUMBER_STRICT_FACTS = Self::BASE_NUMBER_STRICT_FACTS.bits() | Self::FALSY.bits();
-        const ZERO_NUMBER_FACTS = Self::BASE_NUMBER_FACTS.bits();
-        const NON_ZERO_NUMBER_STRICT_FACTS = Self::BASE_NUMBER_STRICT_FACTS.bits() | Self::TRUTHY.bits();
-        const NON_ZERO_NUMBER_FACTS = Self::BASE_NUMBER_FACTS.bits() | Self::TRUTHY.bits();
-        const BASE_BIG_INT_STRICT_FACTS = Self::TYPEOF_EQ_BIG_INT.bits() | Self::TYPEOF_NE_STRING.bits() | Self::TYPEOF_NE_NUMBER.bits() | Self::TYPEOF_NE_BOOLEAN.bits() | Self::TYPEOF_NE_SYMBOL.bits() | Self::TYPEOF_NE_OBJECT.bits() | Self::TYPEOF_NE_FUNCTION.bits() | Self::TYPEOF_NE_HOST_OBJECT.bits() | Self::NE_UNDEFINED.bits() | Self::NE_NULL.bits() | Self::NE_UNDEFINED_OR_NULL.bits();
-        const BASE_BIG_INT_FACTS = Self::BASE_BIG_INT_STRICT_FACTS.bits() | Self::EQ_UNDEFINED.bits() | Self::EQ_NULL.bits() | Self::EQ_UNDEFINED_OR_NULL.bits() | Self::FALSY.bits();
-        const BIG_INT_STRICT_FACTS = Self::BASE_BIG_INT_STRICT_FACTS.bits() | Self::TRUTHY.bits() | Self::FALSY.bits();
-        const BIG_INT_FACTS = Self::BASE_BIG_INT_FACTS.bits() | Self::TRUTHY.bits();
-        const ZERO_BIG_INT_STRICT_FACTS = Self::BASE_BIG_INT_STRICT_FACTS.bits() | Self::FALSY.bits();
-        const ZERO_BIG_INT_FACTS = Self::BASE_BIG_INT_FACTS.bits();
-        const NON_ZERO_BIG_INT_STRICT_FACTS = Self::BASE_BIG_INT_STRICT_FACTS.bits() | Self::TRUTHY.bits();
-        const NON_ZERO_BIG_INT_FACTS = Self::BASE_BIG_INT_FACTS.bits() | Self::TRUTHY.bits();
-        const BASE_BOOLEAN_STRICT_FACTS = Self::TYPEOF_EQ_BOOLEAN.bits() | Self::TYPEOF_NE_STRING.bits() | Self::TYPEOF_NE_NUMBER.bits() | Self::TYPEOF_NE_BIG_INT.bits() | Self::TYPEOF_NE_SYMBOL.bits() | Self::TYPEOF_NE_OBJECT.bits() | Self::TYPEOF_NE_FUNCTION.bits() | Self::TYPEOF_NE_HOST_OBJECT.bits() | Self::NE_UNDEFINED.bits() | Self::NE_NULL.bits() | Self::NE_UNDEFINED_OR_NULL.bits();
-        const BASE_BOOLEAN_FACTS = Self::BASE_BOOLEAN_STRICT_FACTS.bits() | Self::EQ_UNDEFINED.bits() | Self::EQ_NULL.bits() | Self::EQ_UNDEFINED_OR_NULL.bits() | Self::FALSY.bits();
-        const BOOLEAN_STRICT_FACTS = Self::BASE_BOOLEAN_STRICT_FACTS.bits() | Self::TRUTHY.bits() | Self::FALSY.bits();
-        const BOOLEAN_FACTS = Self::BASE_BOOLEAN_FACTS.bits() | Self::TRUTHY.bits();
-        const FALSE_STRICT_FACTS = Self::BASE_BOOLEAN_STRICT_FACTS.bits() | Self::FALSY.bits();
-        const FALSE_FACTS = Self::BASE_BOOLEAN_FACTS.bits();
-        const TRUE_STRICT_FACTS = Self::BASE_BOOLEAN_STRICT_FACTS.bits() | Self::TRUTHY.bits();
-        const TRUE_FACTS = Self::BASE_BOOLEAN_FACTS.bits() | Self::TRUTHY.bits();
-        const SYMBOL_STRICT_FACTS = Self::TYPEOF_EQ_SYMBOL.bits() | Self::TYPEOF_NE_STRING.bits() | Self::TYPEOF_NE_NUMBER.bits() | Self::TYPEOF_NE_BIG_INT.bits() | Self::TYPEOF_NE_BOOLEAN.bits() | Self::TYPEOF_NE_OBJECT.bits() | Self::TYPEOF_NE_FUNCTION.bits() | Self::TYPEOF_NE_HOST_OBJECT.bits() | Self::NE_UNDEFINED.bits() | Self::NE_NULL.bits() | Self::NE_UNDEFINED_OR_NULL.bits() | Self::TRUTHY.bits();
-        const SYMBOL_FACTS = Self::SYMBOL_STRICT_FACTS.bits() | Self::EQ_UNDEFINED.bits() | Self::EQ_NULL.bits() | Self::EQ_UNDEFINED_OR_NULL.bits() | Self::FALSY.bits();
-        const OBJECT_STRICT_FACTS = Self::TYPEOF_EQ_OBJECT.bits() | Self::TYPEOF_EQ_HOST_OBJECT.bits() | Self::TYPEOF_NE_STRING.bits() | Self::TYPEOF_NE_NUMBER.bits() | Self::TYPEOF_NE_BIG_INT.bits() | Self::TYPEOF_NE_BOOLEAN.bits() | Self::TYPEOF_NE_SYMBOL.bits() | Self::TYPEOF_NE_FUNCTION.bits() | Self::NE_UNDEFINED.bits() | Self::NE_NULL.bits() | Self::NE_UNDEFINED_OR_NULL.bits() | Self::TRUTHY.bits();
-        const OBJECT_FACTS = Self::OBJECT_STRICT_FACTS.bits() | Self::EQ_UNDEFINED.bits() | Self::EQ_NULL.bits() | Self::EQ_UNDEFINED_OR_NULL.bits() | Self::FALSY.bits();
-        const FUNCTION_STRICT_FACTS = Self::TYPEOF_EQ_FUNCTION.bits() | Self::TYPEOF_EQ_HOST_OBJECT.bits() | Self::TYPEOF_NE_STRING.bits() | Self::TYPEOF_NE_NUMBER.bits() | Self::TYPEOF_NE_BIG_INT.bits() | Self::TYPEOF_NE_BOOLEAN.bits() | Self::TYPEOF_NE_SYMBOL.bits() | Self::TYPEOF_NE_OBJECT.bits() | Self::NE_UNDEFINED.bits() | Self::NE_NULL.bits() | Self::NE_UNDEFINED_OR_NULL.bits() | Self::TRUTHY.bits();
-        const FUNCTION_FACTS = Self::FUNCTION_STRICT_FACTS.bits() | Self::EQ_UNDEFINED.bits() | Self::EQ_NULL.bits() | Self::EQ_UNDEFINED_OR_NULL.bits() | Self::FALSY.bits();
-        const VOID_FACTS = Self::TYPEOF_NE_STRING.bits() | Self::TYPEOF_NE_NUMBER.bits() | Self::TYPEOF_NE_BIG_INT.bits() | Self::TYPEOF_NE_BOOLEAN.bits() | Self::TYPEOF_NE_SYMBOL.bits() | Self::TYPEOF_NE_OBJECT.bits() | Self::TYPEOF_NE_FUNCTION.bits() | Self::TYPEOF_NE_HOST_OBJECT.bits() | Self::EQ_UNDEFINED.bits() | Self::EQ_UNDEFINED_OR_NULL.bits() | Self::NE_NULL.bits() | Self::FALSY.bits();
-        const UNDEFINED_FACTS = Self::TYPEOF_NE_STRING.bits() | Self::TYPEOF_NE_NUMBER.bits() | Self::TYPEOF_NE_BIG_INT.bits() | Self::TYPEOF_NE_BOOLEAN.bits() | Self::TYPEOF_NE_SYMBOL.bits() | Self::TYPEOF_NE_OBJECT.bits() | Self::TYPEOF_NE_FUNCTION.bits() | Self::TYPEOF_NE_HOST_OBJECT.bits() | Self::EQ_UNDEFINED.bits() | Self::EQ_UNDEFINED_OR_NULL.bits() | Self::NE_NULL.bits() | Self::FALSY.bits() | Self::IS_UNDEFINED.bits();
-        const NULL_FACTS = Self::TYPEOF_EQ_OBJECT.bits() | Self::TYPEOF_NE_STRING.bits() | Self::TYPEOF_NE_NUMBER.bits() | Self::TYPEOF_NE_BIG_INT.bits() | Self::TYPEOF_NE_BOOLEAN.bits() | Self::TYPEOF_NE_SYMBOL.bits() | Self::TYPEOF_NE_FUNCTION.bits() | Self::TYPEOF_NE_HOST_OBJECT.bits() | Self::EQ_NULL.bits() | Self::EQ_UNDEFINED_OR_NULL.bits() | Self::NE_UNDEFINED.bits() | Self::FALSY.bits() | Self::IS_NULL.bits();
-        const EMPTY_OBJECT_STRICT_FACTS = Self::ALL.bits() & !(Self::EQ_UNDEFINED.bits() | Self::EQ_NULL.bits() | Self::EQ_UNDEFINED_OR_NULL.bits() | Self::IS_UNDEFINED_OR_NULL.bits());
-        const EMPTY_OBJECT_FACTS = Self::ALL.bits() & !Self::IS_UNDEFINED_OR_NULL.bits();
-        const UNKNOWN_FACTS = Self::ALL.bits() & !Self::IS_UNDEFINED_OR_NULL.bits();
-        const ALL_TYPEOF_NE = Self::TYPEOF_NE_STRING.bits() | Self::TYPEOF_NE_NUMBER.bits() | Self::TYPEOF_NE_BIG_INT.bits() | Self::TYPEOF_NE_BOOLEAN.bits() | Self::TYPEOF_NE_SYMBOL.bits() | Self::TYPEOF_NE_OBJECT.bits() | Self::TYPEOF_NE_FUNCTION.bits() | Self::NE_UNDEFINED.bits();
+        const BaseStringStrictFacts = Self::TypeofEQString.bits() | Self::TypeofNENumber.bits() | Self::TypeofNEBigInt.bits() | Self::TypeofNEBoolean.bits() | Self::TypeofNESymbol.bits() | Self::TypeofNEObject.bits() | Self::TypeofNEFunction.bits() | Self::TypeofNEHostObject.bits() | Self::NEUndefined.bits() | Self::NENull.bits() | Self::NEUndefinedOrNull.bits();
+        const BaseStringFacts = Self::BaseStringStrictFacts.bits() | Self::EQUndefined.bits() | Self::EQNull.bits() | Self::EQUndefinedOrNull.bits() | Self::Falsy.bits();
+        const StringStrictFacts = Self::BaseStringStrictFacts.bits() | Self::Truthy.bits() | Self::Falsy.bits();
+        const StringFacts = Self::BaseStringFacts.bits() | Self::Truthy.bits();
+        const EmptyStringStrictFacts = Self::BaseStringStrictFacts.bits() | Self::Falsy.bits();
+        const EmptyStringFacts = Self::BaseStringFacts.bits();
+        const NonEmptyStringStrictFacts = Self::BaseStringStrictFacts.bits() | Self::Truthy.bits();
+        const NonEmptyStringFacts = Self::BaseStringFacts.bits() | Self::Truthy.bits();
+        const BaseNumberStrictFacts = Self::TypeofEQNumber.bits() | Self::TypeofNEString.bits() | Self::TypeofNEBigInt.bits() | Self::TypeofNEBoolean.bits() | Self::TypeofNESymbol.bits() | Self::TypeofNEObject.bits() | Self::TypeofNEFunction.bits() | Self::TypeofNEHostObject.bits() | Self::NEUndefined.bits() | Self::NENull.bits() | Self::NEUndefinedOrNull.bits();
+        const BaseNumberFacts = Self::BaseNumberStrictFacts.bits() | Self::EQUndefined.bits() | Self::EQNull.bits() | Self::EQUndefinedOrNull.bits() | Self::Falsy.bits();
+        const NumberStrictFacts = Self::BaseNumberStrictFacts.bits() | Self::Truthy.bits() | Self::Falsy.bits();
+        const NumberFacts = Self::BaseNumberFacts.bits() | Self::Truthy.bits();
+        const ZeroNumberStrictFacts = Self::BaseNumberStrictFacts.bits() | Self::Falsy.bits();
+        const ZeroNumberFacts = Self::BaseNumberFacts.bits();
+        const NonZeroNumberStrictFacts = Self::BaseNumberStrictFacts.bits() | Self::Truthy.bits();
+        const NonZeroNumberFacts = Self::BaseNumberFacts.bits() | Self::Truthy.bits();
+        const BaseBigIntStrictFacts = Self::TypeofEQBigInt.bits() | Self::TypeofNEString.bits() | Self::TypeofNENumber.bits() | Self::TypeofNEBoolean.bits() | Self::TypeofNESymbol.bits() | Self::TypeofNEObject.bits() | Self::TypeofNEFunction.bits() | Self::TypeofNEHostObject.bits() | Self::NEUndefined.bits() | Self::NENull.bits() | Self::NEUndefinedOrNull.bits();
+        const BaseBigIntFacts = Self::BaseBigIntStrictFacts.bits() | Self::EQUndefined.bits() | Self::EQNull.bits() | Self::EQUndefinedOrNull.bits() | Self::Falsy.bits();
+        const BigIntStrictFacts = Self::BaseBigIntStrictFacts.bits() | Self::Truthy.bits() | Self::Falsy.bits();
+        const BigIntFacts = Self::BaseBigIntFacts.bits() | Self::Truthy.bits();
+        const ZeroBigIntStrictFacts = Self::BaseBigIntStrictFacts.bits() | Self::Falsy.bits();
+        const ZeroBigIntFacts = Self::BaseBigIntFacts.bits();
+        const NonZeroBigIntStrictFacts = Self::BaseBigIntStrictFacts.bits() | Self::Truthy.bits();
+        const NonZeroBigIntFacts = Self::BaseBigIntFacts.bits() | Self::Truthy.bits();
+        const BaseBooleanStrictFacts = Self::TypeofEQBoolean.bits() | Self::TypeofNEString.bits() | Self::TypeofNENumber.bits() | Self::TypeofNEBigInt.bits() | Self::TypeofNESymbol.bits() | Self::TypeofNEObject.bits() | Self::TypeofNEFunction.bits() | Self::TypeofNEHostObject.bits() | Self::NEUndefined.bits() | Self::NENull.bits() | Self::NEUndefinedOrNull.bits();
+        const BaseBooleanFacts = Self::BaseBooleanStrictFacts.bits() | Self::EQUndefined.bits() | Self::EQNull.bits() | Self::EQUndefinedOrNull.bits() | Self::Falsy.bits();
+        const BooleanStrictFacts = Self::BaseBooleanStrictFacts.bits() | Self::Truthy.bits() | Self::Falsy.bits();
+        const BooleanFacts = Self::BaseBooleanFacts.bits() | Self::Truthy.bits();
+        const FalseStrictFacts = Self::BaseBooleanStrictFacts.bits() | Self::Falsy.bits();
+        const FalseFacts = Self::BaseBooleanFacts.bits();
+        const TrueStrictFacts = Self::BaseBooleanStrictFacts.bits() | Self::Truthy.bits();
+        const TrueFacts = Self::BaseBooleanFacts.bits() | Self::Truthy.bits();
+        const SymbolStrictFacts = Self::TypeofEQSymbol.bits() | Self::TypeofNEString.bits() | Self::TypeofNENumber.bits() | Self::TypeofNEBigInt.bits() | Self::TypeofNEBoolean.bits() | Self::TypeofNEObject.bits() | Self::TypeofNEFunction.bits() | Self::TypeofNEHostObject.bits() | Self::NEUndefined.bits() | Self::NENull.bits() | Self::NEUndefinedOrNull.bits() | Self::Truthy.bits();
+        const SymbolFacts = Self::SymbolStrictFacts.bits() | Self::EQUndefined.bits() | Self::EQNull.bits() | Self::EQUndefinedOrNull.bits() | Self::Falsy.bits();
+        const ObjectStrictFacts = Self::TypeofEQObject.bits() | Self::TypeofEQHostObject.bits() | Self::TypeofNEString.bits() | Self::TypeofNENumber.bits() | Self::TypeofNEBigInt.bits() | Self::TypeofNEBoolean.bits() | Self::TypeofNESymbol.bits() | Self::TypeofNEFunction.bits() | Self::NEUndefined.bits() | Self::NENull.bits() | Self::NEUndefinedOrNull.bits() | Self::Truthy.bits();
+        const ObjectFacts = Self::ObjectStrictFacts.bits() | Self::EQUndefined.bits() | Self::EQNull.bits() | Self::EQUndefinedOrNull.bits() | Self::Falsy.bits();
+        const FunctionStrictFacts = Self::TypeofEQFunction.bits() | Self::TypeofEQHostObject.bits() | Self::TypeofNEString.bits() | Self::TypeofNENumber.bits() | Self::TypeofNEBigInt.bits() | Self::TypeofNEBoolean.bits() | Self::TypeofNESymbol.bits() | Self::TypeofNEObject.bits() | Self::NEUndefined.bits() | Self::NENull.bits() | Self::NEUndefinedOrNull.bits() | Self::Truthy.bits();
+        const FunctionFacts = Self::FunctionStrictFacts.bits() | Self::EQUndefined.bits() | Self::EQNull.bits() | Self::EQUndefinedOrNull.bits() | Self::Falsy.bits();
+        const VoidFacts = Self::TypeofNEString.bits() | Self::TypeofNENumber.bits() | Self::TypeofNEBigInt.bits() | Self::TypeofNEBoolean.bits() | Self::TypeofNESymbol.bits() | Self::TypeofNEObject.bits() | Self::TypeofNEFunction.bits() | Self::TypeofNEHostObject.bits() | Self::EQUndefined.bits() | Self::EQUndefinedOrNull.bits() | Self::NENull.bits() | Self::Falsy.bits();
+        const UndefinedFacts = Self::TypeofNEString.bits() | Self::TypeofNENumber.bits() | Self::TypeofNEBigInt.bits() | Self::TypeofNEBoolean.bits() | Self::TypeofNESymbol.bits() | Self::TypeofNEObject.bits() | Self::TypeofNEFunction.bits() | Self::TypeofNEHostObject.bits() | Self::EQUndefined.bits() | Self::EQUndefinedOrNull.bits() | Self::NENull.bits() | Self::Falsy.bits() | Self::IsUndefined.bits();
+        const NullFacts = Self::TypeofEQObject.bits() | Self::TypeofNEString.bits() | Self::TypeofNENumber.bits() | Self::TypeofNEBigInt.bits() | Self::TypeofNEBoolean.bits() | Self::TypeofNESymbol.bits() | Self::TypeofNEFunction.bits() | Self::TypeofNEHostObject.bits() | Self::EQNull.bits() | Self::EQUndefinedOrNull.bits() | Self::NEUndefined.bits() | Self::Falsy.bits() | Self::IsNull.bits();
+        const EmptyObjectStrictFacts = Self::All.bits() & !(Self::EQUndefined.bits() | Self::EQNull.bits() | Self::EQUndefinedOrNull.bits() | Self::IsUndefinedOrNull.bits());
+        const EmptyObjectFacts = Self::All.bits() & !Self::IsUndefinedOrNull.bits();
+        const UnknownFacts = Self::All.bits() & !Self::IsUndefinedOrNull.bits();
+        const AllTypeofNE = Self::TypeofNEString.bits() | Self::TypeofNENumber.bits() | Self::TypeofNEBigInt.bits() | Self::TypeofNEBoolean.bits() | Self::TypeofNESymbol.bits() | Self::TypeofNEObject.bits() | Self::TypeofNEFunction.bits() | Self::NEUndefined.bits();
         // Masks
-        const OR_FACTS_MASK = Self::TYPEOF_EQ_FUNCTION.bits() | Self::TYPEOF_NE_OBJECT.bits();
-        const AND_FACTS_MASK = Self::ALL.bits() & !Self::OR_FACTS_MASK.bits();
+        const OrFactsMask = Self::TypeofEQFunction.bits() | Self::TypeofNEObject.bits();
+        const AndFactsMask = Self::All.bits() & !Self::OrFactsMask.bits();
     }
 }
 
 bitflags! {
     #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Debug, Default)]
     pub struct IterationUse: u32 {
-        const ALLOWS_SYNC_ITERABLES_FLAG = 1 << 0;
-        const ALLOWS_ASYNC_ITERABLES_FLAG = 1 << 1;
-        const ALLOWS_STRING_INPUT_FLAG = 1 << 2;
-        const FOR_OF_FLAG = 1 << 3;
-        const YIELD_STAR_FLAG = 1 << 4;
-        const SPREAD_FLAG = 1 << 5;
-        const DESTRUCTURING_FLAG = 1 << 6;
-        const POSSIBLY_OUT_OF_BOUNDS = 1 << 7;
+        const AllowsSyncIterablesFlag = 1 << 0;
+        const AllowsAsyncIterablesFlag = 1 << 1;
+        const AllowsStringInputFlag = 1 << 2;
+        const ForOfFlag = 1 << 3;
+        const YieldStarFlag = 1 << 4;
+        const SpreadFlag = 1 << 5;
+        const DestructuringFlag = 1 << 6;
+        const PossiblyOutOfBounds = 1 << 7;
         // Spread, Destructuring, Array element assignment
-        const ELEMENT = Self::ALLOWS_SYNC_ITERABLES_FLAG.bits();
-        const SPREAD = Self::ALLOWS_SYNC_ITERABLES_FLAG.bits() | Self::SPREAD_FLAG.bits();
-        const DESTRUCTURING = Self::ALLOWS_SYNC_ITERABLES_FLAG.bits() | Self::DESTRUCTURING_FLAG.bits();
-        const FOR_OF = Self::ALLOWS_SYNC_ITERABLES_FLAG.bits() | Self::ALLOWS_STRING_INPUT_FLAG.bits() | Self::FOR_OF_FLAG.bits();
-        const FOR_AWAIT_OF = Self::ALLOWS_SYNC_ITERABLES_FLAG.bits() | Self::ALLOWS_ASYNC_ITERABLES_FLAG.bits() | Self::ALLOWS_STRING_INPUT_FLAG.bits() | Self::FOR_OF_FLAG.bits();
-        const YIELD_STAR = Self::ALLOWS_SYNC_ITERABLES_FLAG.bits() | Self::YIELD_STAR_FLAG.bits();
-        const ASYNC_YIELD_STAR = Self::ALLOWS_SYNC_ITERABLES_FLAG.bits() | Self::ALLOWS_ASYNC_ITERABLES_FLAG.bits() | Self::YIELD_STAR_FLAG.bits();
-        const GENERATOR_RETURN_TYPE = Self::ALLOWS_SYNC_ITERABLES_FLAG.bits();
-        const ASYNC_GENERATOR_RETURN_TYPE = Self::ALLOWS_ASYNC_ITERABLES_FLAG.bits();
-        const CACHE_FLAGS = Self::ALLOWS_SYNC_ITERABLES_FLAG.bits() | Self::ALLOWS_ASYNC_ITERABLES_FLAG.bits() | Self::FOR_OF_FLAG.bits();
+        const Element = Self::AllowsSyncIterablesFlag.bits();
+        const Spread = Self::AllowsSyncIterablesFlag.bits() | Self::SpreadFlag.bits();
+        const Destructuring = Self::AllowsSyncIterablesFlag.bits() | Self::DestructuringFlag.bits();
+        const ForOf = Self::AllowsSyncIterablesFlag.bits() | Self::AllowsStringInputFlag.bits() | Self::ForOfFlag.bits();
+        const ForAwaitOf = Self::AllowsSyncIterablesFlag.bits() | Self::AllowsAsyncIterablesFlag.bits() | Self::AllowsStringInputFlag.bits() | Self::ForOfFlag.bits();
+        const YieldStar = Self::AllowsSyncIterablesFlag.bits() | Self::YieldStarFlag.bits();
+        const AsyncYieldStar = Self::AllowsSyncIterablesFlag.bits() | Self::AllowsAsyncIterablesFlag.bits() | Self::YieldStarFlag.bits();
+        const GeneratorReturnType = Self::AllowsSyncIterablesFlag.bits();
+        const AsyncGeneratorReturnType = Self::AllowsAsyncIterablesFlag.bits();
+        const CacheFlags = Self::AllowsSyncIterablesFlag.bits() | Self::AllowsAsyncIterablesFlag.bits() | Self::ForOfFlag.bits();
     }
 }
 
@@ -1654,8 +1654,8 @@ pub fn new_checker(program: &'static dyn Program) -> Box<Checker> {
     // Placeholders for pointer fields Go leaves nil until they are assigned below.
     let compiler_options = program.options();
     let dummy_type =
-        Type::alloc(TypeFlags::NONE, ObjectFlags::NONE, TypeId(0), IntrinsicType::default());
-    let dummy_symbol = Symbol::new(SymbolFlags::NONE, "");
+        Type::alloc(TypeFlags::None, ObjectFlags::None, TypeId(0), IntrinsicType::default());
+    let dummy_symbol = Symbol::new(SymbolFlags::None, "");
     let dummy_mapper = new_simple_type_mapper(dummy_type, dummy_type);
     let dummy_signature = P::new(Signature::default());
     let dummy_index_info = P::new(IndexInfo::default());
@@ -1726,7 +1726,7 @@ pub fn new_checker(program: &'static dyn Program) -> Box<Checker> {
             .verbatim_module_syntax
             .is_false_or_unknown(),
         was_canceled: false,
-        array_variances: alloc_slice(&[VarianceFlags::COVARIANT]),
+        array_variances: alloc_slice(&[VarianceFlags::Covariant]),
         globals: SymbolTable::with_capacity(count_global_symbols(files)),
         string_literal_types: StringLiteralTypes::default(),
         number_literal_types: FxHashMap::default(),
@@ -1875,7 +1875,7 @@ pub fn new_checker(program: &'static dyn Program) -> Box<Checker> {
         numeric_string_type: dummy_type,
         unique_literal_type: dummy_type,
         unique_literal_mapper: dummy_mapper,
-        reliability_flags: RelationComparisonResult::NONE,
+        reliability_flags: RelationComparisonResult::None,
         report_unreliable_mapper: dummy_mapper,
         report_unmeasurable_mapper: dummy_mapper,
         restrictive_mapper: dummy_mapper,
@@ -1937,9 +1937,9 @@ pub fn new_checker(program: &'static dyn Program) -> Box<Checker> {
         call_resolution_stack: Vec::new(),
         apparent_argument_count: None,
         last_get_combined_node_flags_node: None,
-        last_get_combined_node_flags_result: NodeFlags::NONE,
+        last_get_combined_node_flags_result: NodeFlags::None,
         last_get_combined_modifier_flags_node: None,
-        last_get_combined_modifier_flags_result: ModifierFlags::NONE,
+        last_get_combined_modifier_flags_result: ModifierFlags::None,
         freeinference_state: None,
         free_flow_state: None,
         flow_loop_cache: FxHashMap::default(),
@@ -1960,7 +1960,7 @@ pub fn new_checker(program: &'static dyn Program) -> Box<Checker> {
         awaited_type_stack: Vec::new(),
         reverse_mapped_source_stack: Vec::new(),
         reverse_mapped_target_stack: Vec::new(),
-        reverse_expanding_flags: ExpandingFlags::NONE,
+        reverse_expanding_flags: ExpandingFlags::None,
         free_relater: None,
         subtype_relation: P::new(Relation::default()),
         strict_subtype_relation: P::new(Relation::default()),
@@ -2053,63 +2053,63 @@ pub fn new_checker(program: &'static dyn Program) -> Box<Checker> {
         seed_mode: false,
         is_fork: false,
     });
-    c.undefined_symbol = c.new_symbol(SymbolFlags::PROPERTY, "undefined");
-    c.arguments_symbol = c.new_symbol(SymbolFlags::PROPERTY, "arguments");
-    c.require_symbol = c.new_symbol(SymbolFlags::PROPERTY, "require");
-    c.unknown_symbol = c.new_symbol(SymbolFlags::PROPERTY, "unknown");
-    c.global_this_symbol = c.new_symbol_ex(SymbolFlags::MODULE, "globalThis", CheckFlags::READONLY);
+    c.undefined_symbol = c.new_symbol(SymbolFlags::Property, "undefined");
+    c.arguments_symbol = c.new_symbol(SymbolFlags::Property, "arguments");
+    c.require_symbol = c.new_symbol(SymbolFlags::Property, "require");
+    c.unknown_symbol = c.new_symbol(SymbolFlags::Property, "unknown");
+    c.global_this_symbol = c.new_symbol_ex(SymbolFlags::Module, "globalThis", CheckFlags::Readonly);
     c.global_this_symbol.set_exports(Some(c.globals));
     c.globals.set(c.global_this_symbol.name(), c.global_this_symbol);
     c.name_resolver = c.create_name_resolver();
     c.name_resolver_for_suggestion = c.create_name_resolver_for_suggestion();
-    c.any_type = c.new_intrinsic_type(TypeFlags::ANY, "any");
-    c.auto_type = c.new_intrinsic_type_ex(TypeFlags::ANY, "any", ObjectFlags::NON_INFERRABLE_TYPE);
-    c.wildcard_type = c.new_intrinsic_type(TypeFlags::ANY, "any");
-    c.blocked_string_type = c.new_intrinsic_type(TypeFlags::ANY, "any");
-    c.error_type = c.new_intrinsic_type(TypeFlags::ANY, "error");
-    c.unresolved_type = c.new_intrinsic_type(TypeFlags::ANY, "unresolved");
+    c.any_type = c.new_intrinsic_type(TypeFlags::Any, "any");
+    c.auto_type = c.new_intrinsic_type_ex(TypeFlags::Any, "any", ObjectFlags::NonInferrableType);
+    c.wildcard_type = c.new_intrinsic_type(TypeFlags::Any, "any");
+    c.blocked_string_type = c.new_intrinsic_type(TypeFlags::Any, "any");
+    c.error_type = c.new_intrinsic_type(TypeFlags::Any, "error");
+    c.unresolved_type = c.new_intrinsic_type(TypeFlags::Any, "unresolved");
     c.non_inferrable_any_type =
-        c.new_intrinsic_type_ex(TypeFlags::ANY, "any", ObjectFlags::CONTAINS_WIDENING_TYPE);
-    c.intrinsic_marker_type = c.new_intrinsic_type(TypeFlags::ANY, "intrinsic");
-    c.unknown_type = c.new_intrinsic_type(TypeFlags::UNKNOWN, "unknown");
-    c.undefined_type = c.new_intrinsic_type(TypeFlags::UNDEFINED, "undefined");
+        c.new_intrinsic_type_ex(TypeFlags::Any, "any", ObjectFlags::ContainsWideningType);
+    c.intrinsic_marker_type = c.new_intrinsic_type(TypeFlags::Any, "intrinsic");
+    c.unknown_type = c.new_intrinsic_type(TypeFlags::Unknown, "unknown");
+    c.undefined_type = c.new_intrinsic_type(TypeFlags::Undefined, "undefined");
     c.undefined_widening_type = c.create_widening_type(c.undefined_type);
-    c.missing_type = c.new_intrinsic_type(TypeFlags::UNDEFINED, "undefined");
+    c.missing_type = c.new_intrinsic_type(TypeFlags::Undefined, "undefined");
     c.undefined_or_missing_type =
         if c.exact_optional_property_types { c.missing_type } else { c.undefined_type };
-    c.optional_type = c.new_intrinsic_type(TypeFlags::UNDEFINED, "undefined");
-    c.null_type = c.new_intrinsic_type(TypeFlags::NULL, "null");
+    c.optional_type = c.new_intrinsic_type(TypeFlags::Undefined, "undefined");
+    c.null_type = c.new_intrinsic_type(TypeFlags::Null, "null");
     c.null_widening_type = c.create_widening_type(c.null_type);
-    c.string_type = c.new_intrinsic_type(TypeFlags::STRING, "string");
-    c.number_type = c.new_intrinsic_type(TypeFlags::NUMBER, "number");
-    c.bigint_type = c.new_intrinsic_type(TypeFlags::BIG_INT, "bigint");
+    c.string_type = c.new_intrinsic_type(TypeFlags::String, "string");
+    c.number_type = c.new_intrinsic_type(TypeFlags::Number, "number");
+    c.bigint_type = c.new_intrinsic_type(TypeFlags::BigInt, "bigint");
     c.regular_false_type =
-        c.new_literal_type(TypeFlags::BOOLEAN_LITERAL, Some(LiteralValue::Boolean(false)), None);
+        c.new_literal_type(TypeFlags::BooleanLiteral, Some(LiteralValue::Boolean(false)), None);
     c.false_type = c.new_literal_type(
-        TypeFlags::BOOLEAN_LITERAL,
+        TypeFlags::BooleanLiteral,
         Some(LiteralValue::Boolean(false)),
         Some(c.regular_false_type),
     );
     c.regular_false_type.as_literal_type().fresh_type.set(Some(c.false_type));
     c.false_type.as_literal_type().fresh_type.set(Some(c.false_type));
     c.regular_true_type =
-        c.new_literal_type(TypeFlags::BOOLEAN_LITERAL, Some(LiteralValue::Boolean(true)), None);
+        c.new_literal_type(TypeFlags::BooleanLiteral, Some(LiteralValue::Boolean(true)), None);
     c.true_type = c.new_literal_type(
-        TypeFlags::BOOLEAN_LITERAL,
+        TypeFlags::BooleanLiteral,
         Some(LiteralValue::Boolean(true)),
         Some(c.regular_true_type),
     );
     c.regular_true_type.as_literal_type().fresh_type.set(Some(c.true_type));
     c.true_type.as_literal_type().fresh_type.set(Some(c.true_type));
     c.boolean_type = c.get_union_type(&[c.regular_false_type, c.regular_true_type]);
-    c.es_symbol_type = c.new_intrinsic_type(TypeFlags::ES_SYMBOL, "symbol");
-    c.void_type = c.new_intrinsic_type(TypeFlags::VOID, "void");
-    c.never_type = c.new_intrinsic_type(TypeFlags::NEVER, "never");
+    c.es_symbol_type = c.new_intrinsic_type(TypeFlags::ESSymbol, "symbol");
+    c.void_type = c.new_intrinsic_type(TypeFlags::Void, "void");
+    c.never_type = c.new_intrinsic_type(TypeFlags::Never, "never");
     c.silent_never_type =
-        c.new_intrinsic_type_ex(TypeFlags::NEVER, "never", ObjectFlags::NON_INFERRABLE_TYPE);
-    c.implicit_never_type = c.new_intrinsic_type(TypeFlags::NEVER, "never");
-    c.unreachable_never_type = c.new_intrinsic_type(TypeFlags::NEVER, "never");
-    c.non_primitive_type = c.new_intrinsic_type(TypeFlags::NON_PRIMITIVE, "object");
+        c.new_intrinsic_type_ex(TypeFlags::Never, "never", ObjectFlags::NonInferrableType);
+    c.implicit_never_type = c.new_intrinsic_type(TypeFlags::Never, "never");
+    c.unreachable_never_type = c.new_intrinsic_type(TypeFlags::Never, "never");
+    c.non_primitive_type = c.new_intrinsic_type(TypeFlags::NonPrimitive, "object");
     c.string_or_number_type = c.get_union_type(&[c.string_type, c.number_type]);
     c.string_number_symbol_type =
         c.get_union_type(&[c.string_type, c.number_type, c.es_symbol_type]);
@@ -2123,7 +2123,7 @@ pub fn new_checker(program: &'static dyn Program) -> Box<Checker> {
         c.null_type,
         c.undefined_type,
     ]);
-    c.unique_literal_type = c.new_intrinsic_type(TypeFlags::NEVER, "never"); // Special `never` flagged by union reduction to behave as a literal
+    c.unique_literal_type = c.new_intrinsic_type(TypeFlags::Never, "never"); // Special `never` flagged by union reduction to behave as a literal
     c.unique_literal_mapper =
         new_function_type_mapper(Checker::get_unique_literal_type_for_type_parameter);
     c.report_unreliable_mapper = new_function_type_mapper(Checker::report_unreliable_worker);
@@ -2134,7 +2134,7 @@ pub fn new_checker(program: &'static dyn Program) -> Box<Checker> {
     c.empty_jsx_object_type = c.new_anonymous_type(None /*symbol*/, None, &[], &[], &[]);
     c.empty_fresh_jsx_object_type = c.new_anonymous_type(None /*symbol*/, None, &[], &[], &[]);
     let type_literal_symbol =
-        c.new_symbol(SymbolFlags::TYPE_LITERAL, ast::INTERNAL_SYMBOL_NAME_TYPE);
+        c.new_symbol(SymbolFlags::TypeLiteral, ast::INTERNAL_SYMBOL_NAME_TYPE);
     c.empty_type_literal_type =
         c.new_anonymous_type(Some(type_literal_symbol), None, &[], &[], &[]);
     c.unknown_empty_object_type = c.new_anonymous_type(None /*symbol*/, None, &[], &[], &[]);
@@ -2144,7 +2144,7 @@ pub fn new_checker(program: &'static dyn Program) -> Box<Checker> {
     c.any_function_type = c.new_anonymous_type(None /*symbol*/, None, &[], &[], &[]);
     c.any_function_type
         .object_flags
-        .set(c.any_function_type.object_flags.get_lazy() | ObjectFlags::NON_INFERRABLE_TYPE);
+        .set(c.any_function_type.object_flags.get_lazy() | ObjectFlags::NonInferrableType);
     c.no_constraint_type = c.new_anonymous_type(None /*symbol*/, None, &[], &[], &[]);
     c.circular_constraint_type = c.new_anonymous_type(None /*symbol*/, None, &[], &[], &[]);
     c.resolving_default_type = c.new_anonymous_type(None /*symbol*/, None, &[], &[], &[]);
@@ -2165,13 +2165,13 @@ pub fn new_checker(program: &'static dyn Program) -> Box<Checker> {
         t: Cell::new(Some(c.any_type)),
     });
     c.any_signature =
-        c.new_signature(SignatureFlags::NONE, None, &[], None, &[], Some(c.any_type), None, 0);
+        c.new_signature(SignatureFlags::None, None, &[], None, &[], Some(c.any_type), None, 0);
     c.unknown_signature =
-        c.new_signature(SignatureFlags::NONE, None, &[], None, &[], Some(c.error_type), None, 0);
+        c.new_signature(SignatureFlags::None, None, &[], None, &[], Some(c.error_type), None, 0);
     c.resolving_signature =
-        c.new_signature(SignatureFlags::NONE, None, &[], None, &[], Some(c.any_type), None, 0);
+        c.new_signature(SignatureFlags::None, None, &[], None, &[], Some(c.any_type), None, 0);
     c.silent_never_signature = c.new_signature(
-        SignatureFlags::NONE,
+        SignatureFlags::None,
         None,
         &[],
         None,
@@ -2485,9 +2485,9 @@ impl Checker {
             call_resolution_stack: Vec::new(),
             apparent_argument_count: base.apparent_argument_count,
             last_get_combined_node_flags_node: None,
-            last_get_combined_node_flags_result: NodeFlags::NONE,
+            last_get_combined_node_flags_result: NodeFlags::None,
             last_get_combined_modifier_flags_node: None,
-            last_get_combined_modifier_flags_result: ModifierFlags::NONE,
+            last_get_combined_modifier_flags_result: ModifierFlags::None,
             freeinference_state: None,
             free_flow_state: None,
             flow_loop_cache: FxHashMap::default(),
@@ -2700,31 +2700,31 @@ impl Checker {
         evaluator::evaluate(
             self,
             |c, expr, location| c.evaluate_entity(expr, Some(location)),
-            ast::OuterExpressionKinds::PARENTHESES,
+            ast::OuterExpressionKinds::Parentheses,
             expr,
             location,
         )
     }
 
     pub(crate) fn is_primitive_or_object_or_empty_type(&mut self, t: P<Type>) -> bool {
-        t.flags().intersects(TypeFlags::PRIMITIVE | TypeFlags::NON_PRIMITIVE)
+        t.flags().intersects(TypeFlags::Primitive | TypeFlags::NonPrimitive)
             || self.is_empty_anonymous_object_type(t)
     }
 
     pub(crate) fn contains_missing_type(&self, t: P<Type>) -> bool {
         t == self.missing_type
-            || t.flags().intersects(TypeFlags::UNION) && t.types()[0] == self.missing_type
+            || t.flags().intersects(TypeFlags::Union) && t.types()[0] == self.missing_type
     }
 
     /// The worker's two cached answers inline (most calls); the worker repeats them.
     #[inline]
     pub(crate) fn could_contain_type_variables(&mut self, t: P<Type>) -> bool {
-        if !t.flags().intersects(TypeFlags::STRUCTURED_OR_INSTANTIABLE) {
+        if !t.flags().intersects(TypeFlags::StructuredOrInstantiable) {
             return false;
         }
         let object_flags = t.object_flags_lazy();
-        if object_flags.intersects(ObjectFlags::COULD_CONTAIN_TYPE_VARIABLES_COMPUTED) {
-            return object_flags.intersects(ObjectFlags::COULD_CONTAIN_TYPE_VARIABLES);
+        if object_flags.intersects(ObjectFlags::CouldContainTypeVariablesComputed) {
+            return object_flags.intersects(ObjectFlags::CouldContainTypeVariables);
         }
         self.could_contain_type_variables_worker(t)
     }
@@ -2888,7 +2888,7 @@ impl Checker {
         }
         let s = self.get_global_symbol(
             "NaN",
-            SymbolFlags::VALUE,
+            SymbolFlags::Value,
             if false { Some(&diagnostics::CANNOT_FIND_GLOBAL_VALUE_0) } else { None },
         );
         self.get_global_nan_symbol_or_nil_cache = Some(s);
@@ -2924,7 +2924,7 @@ impl Checker {
         }
         let s = self.get_global_symbol(
             "Symbol",
-            SymbolFlags::VALUE,
+            SymbolFlags::Value,
             if false { Some(&diagnostics::CANNOT_FIND_GLOBAL_VALUE_0) } else { None },
         );
         self.get_global_es_symbol_constructor_symbol_or_nil_cache = Some(s);
@@ -2939,7 +2939,7 @@ impl Checker {
         }
         let s = self.get_global_symbol(
             "SymbolConstructor",
-            SymbolFlags::TYPE,
+            SymbolFlags::Type,
             if false { Some(&diagnostics::CANNOT_FIND_GLOBAL_TYPE_0) } else { None },
         );
         self.get_global_es_symbol_constructor_type_symbol_or_nil_cache = Some(s);
@@ -3015,7 +3015,7 @@ impl Checker {
         }
         let s = self.get_global_symbol(
             "Promise",
-            SymbolFlags::VALUE,
+            SymbolFlags::Value,
             if true { Some(&diagnostics::CANNOT_FIND_GLOBAL_VALUE_0) } else { None },
         );
         self.get_global_promise_constructor_symbol_cache = Some(s);
@@ -3028,7 +3028,7 @@ impl Checker {
         }
         let s = self.get_global_symbol(
             "Promise",
-            SymbolFlags::VALUE,
+            SymbolFlags::Value,
             if false { Some(&diagnostics::CANNOT_FIND_GLOBAL_VALUE_0) } else { None },
         );
         self.get_global_promise_constructor_symbol_or_nil_cache = Some(s);
@@ -3354,7 +3354,7 @@ pub fn primitive_type_alias_suggestions() -> &'static [(&'static str, P<Symbol>)
             ])
             .into_iter()
             .map(|(primitive, builtin)| {
-                let sym = Symbol::new(SymbolFlags::TYPE_ALIAS | SymbolFlags::TRANSIENT, primitive);
+                let sym = Symbol::new(SymbolFlags::TypeAlias | SymbolFlags::Transient, primitive);
                 (builtin, sym)
             }),
         );
@@ -3401,10 +3401,10 @@ pub struct CallState {
 bitflags! {
     #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Debug, Default)]
     pub struct PredicateSemantics: u32 {
-        const NONE = 0;
-        const ALWAYS = 1 << 0;
-        const NEVER = 1 << 1;
-        const SOMETIMES = Self::ALWAYS.bits() | Self::NEVER.bits();
+        const None = 0;
+        const Always = 1 << 0;
+        const Never = 1 << 1;
+        const Sometimes = Self::Always.bits() | Self::Never.bits();
     }
 }
 
@@ -3486,9 +3486,9 @@ pub enum UnionReduction {
 bitflags! {
     #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Debug, Default)]
     pub struct IntersectionFlags: u32 {
-        const NONE = 0;
-        const NO_SUPERTYPE_REDUCTION = 1 << 0;
-        const NO_CONSTRAINT_REDUCTION = 1 << 1;
+        const None = 0;
+        const NoSupertypeReduction = 1 << 0;
+        const NoConstraintReduction = 1 << 1;
     }
 }
 

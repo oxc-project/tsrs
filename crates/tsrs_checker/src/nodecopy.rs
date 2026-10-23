@@ -48,7 +48,7 @@ impl NodeBuilderImpl {
         let renamed = match kind {
             PropertyNameNodeKind::Identifier => self.new_identifier(c, &text, None),
             PropertyNameNodeKind::StringLiteral => {
-                self.f.new_string_literal(self.f.alloc_text(&text), TokenFlags::NONE)
+                self.f.new_string_literal(self.f.alloc_text(&text), TokenFlags::None)
             }
             PropertyNameNodeKind::NumericLiteral => return Some(res),
         };
@@ -335,9 +335,9 @@ impl NodeBuilderImpl {
             let original_name = name;
             let node_symbol = Self::try_get_resolved_symbol_from_type_node(c, parent);
             let meaning = if parent.as_import_type_node().is_type_of {
-                SymbolFlags::VALUE
+                SymbolFlags::Value
             } else {
-                SymbolFlags::TYPE
+                SymbolFlags::Type
             };
             let mut parent_symbol: Option<P<Symbol>> = None;
             if let Some(node_symbol) = node_symbol {
@@ -397,7 +397,7 @@ impl NodeBuilderImpl {
             }
             new_name = rewritten;
         }
-        let res = self.f.new_string_literal(self.f.alloc_text(&new_name), TokenFlags::NONE);
+        let res = self.f.new_string_literal(self.f.alloc_text(&new_name), TokenFlags::None);
         self.e.set_original(res, lit);
         res
     }
@@ -563,7 +563,7 @@ impl ExistingNodeTree {
             let mut name: Option<P<Node>> = None;
             if let Some(sym) = sym {
                 let type_ = c.get_declared_type_of_symbol(sym);
-                if sym.flags().intersects(SymbolFlags::TYPE_PARAMETER) {
+                if sym.flags().intersects(SymbolFlags::TypeParameter) {
                     name = Some(b.type_parameter_to_name(c, type_));
                 }
             }
@@ -572,7 +572,7 @@ impl ExistingNodeTree {
                 None => b.new_identifier(c, node.text(), sym),
             };
             let name = self.set_text_range(c, name, node);
-            b.e.add_emit_flags(name, EmitFlags::NO_ASCII_ESCAPING);
+            b.e.add_emit_flags(name, EmitFlags::NoAsciiEscaping);
             return name;
         }
         let visited = b.checker_slot.lend(c, || node.visit_each_child(vis));
@@ -631,7 +631,7 @@ impl ExistingNodeTree {
         }
         sym = c.resolve_entity_name(leftmost, meaning, true, true, None);
         if b.ctx().enclosing_declaration.get().is_some()
-            && !sym.is_some_and(|s| s.flags().intersects(SymbolFlags::TYPE_PARAMETER))
+            && !sym.is_some_and(|s| s.flags().intersects(SymbolFlags::TypeParameter))
         {
             sym = c.get_export_symbol_of_value_symbol_if_exported(sym);
             // Some declarations may be transplanted to a new location.
@@ -677,7 +677,7 @@ impl ExistingNodeTree {
 
         if let Some(sym) = sym {
             // If a parameter is resolvable in the current context it is also visible, so no need to go to symbol accesibility
-            if sym.flags().intersects(SymbolFlags::FUNCTION_SCOPED_VARIABLE) {
+            if sym.flags().intersects(SymbolFlags::FunctionScopedVariable) {
                 if let Some(value_declaration) = sym.value_declaration() {
                     if ast::is_part_of_parameter_declaration(value_declaration)
                         || ast::is_jsdoc_parameter_tag(value_declaration)
@@ -690,7 +690,7 @@ impl ExistingNodeTree {
                     }
                 }
             }
-            if !sym.flags().intersects(SymbolFlags::TYPE_PARAMETER) /* Type parameters are visible in the current context if they are are resolvable */
+            if !sym.flags().intersects(SymbolFlags::TypeParameter) /* Type parameters are visible in the current context if they are are resolvable */
                 && !ast::is_declaration_name(node)
                 && c.is_symbol_accessible(Some(sym), enclosing_declaration, meaning, false).accessibility != SymbolAccessibility::Accessible
             {
@@ -774,7 +774,7 @@ impl ExistingNodeTree {
         }
         let s =
             nodebuilder_types::NodeBuilderImpl::try_get_resolved_symbol_from_type_node(c, node)?; // ???
-        if s.flags().intersects(SymbolFlags::TYPE_PARAMETER) {
+        if s.flags().intersects(SymbolFlags::TypeParameter) {
             let declared_type = c.get_declared_type_of_symbol(s);
             if let Some(mapper) = b.ctx().mapper.get() {
                 if c.get_mapped_type(declared_type, mapper) != declared_type {
@@ -1049,13 +1049,12 @@ impl ExistingNodeTree {
                     return self.visit_each_child(c, v, node);
                 }
                 // !!! TODO: this condition matches strada, but it just seems wrong? Or at the very least extraordinarily approximate, and doesn't flag a builder error...
-                let should_remove_declaration = !(b
-                    .ctx()
-                    .internal_flags
-                    .get()
-                    .intersects(InternalFlags::ALLOW_UNRESOLVED_NAMES)
-                    && ast::is_entity_name_expression(name.as_computed_property_name().expression)
-                    && c.check_computed_property_name(name).flags().intersects(TypeFlags::ANY));
+                let should_remove_declaration =
+                    !(b.ctx().internal_flags.get().intersects(InternalFlags::AllowUnresolvedNames)
+                        && ast::is_entity_name_expression(
+                            name.as_computed_property_name().expression,
+                        )
+                        && c.check_computed_property_name(name).flags().intersects(TypeFlags::Any));
                 if should_remove_declaration {
                     return None;
                 }
@@ -1236,7 +1235,7 @@ impl ExistingNodeTree {
 
         // style applications
         if ast::is_tuple_type_node(node)
-            || (!b.ctx().flags.get().intersects(Flags::MULTILINE_OBJECT_LITERALS)
+            || (!b.ctx().flags.get().intersects(Flags::MultilineObjectLiterals)
                 && ast::is_type_literal_node(node))
             || ast::is_mapped_type_node(node)
         {
@@ -1246,7 +1245,7 @@ impl ExistingNodeTree {
                 res = res.clone_node(factory);
                 res = self.set_text_range(c, res, node);
             }
-            b.e.add_emit_flags(res, EmitFlags::SINGLE_LINE);
+            b.e.add_emit_flags(res, EmitFlags::SingleLine);
             return Some(res);
         }
 
@@ -1256,14 +1255,14 @@ impl ExistingNodeTree {
             // for synthesized string literal types in the node builder (checker.ts:6853).
             let cl = node.clone_node(&b.f);
             if ast::is_string_literal(node)
-                && b.ctx().flags.get().intersects(Flags::USE_SINGLE_QUOTES_FOR_STRING_LITERAL_TYPE)
-                && !node.as_string_literal().token_flags().intersects(TokenFlags::SINGLE_QUOTE)
+                && b.ctx().flags.get().intersects(Flags::UseSingleQuotesForStringLiteralType)
+                && !node.as_string_literal().token_flags().intersects(TokenFlags::SingleQuote)
             {
                 // set single quote on string literals
                 let token_flags = &cl.as_string_literal().literal_like_node_base.token_flags;
-                token_flags.set(token_flags.get() ^ TokenFlags::SINGLE_QUOTE);
+                token_flags.set(token_flags.get() ^ TokenFlags::SingleQuote);
             }
-            b.e.add_emit_flags(cl, EmitFlags::NO_ASCII_ESCAPING);
+            b.e.add_emit_flags(cl, EmitFlags::NoAsciiEscaping);
             return Some(cl);
         }
 

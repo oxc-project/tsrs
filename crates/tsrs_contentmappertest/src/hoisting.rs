@@ -77,7 +77,7 @@ fn transform_hoisting(content: &str) -> Result<(String, Value), ipc::Error> {
             original_start: original_start as u32,
             original_end: original_end as u32,
             kind: Kind::VERBATIM,
-            features: Feature::ALL,
+            features: Feature::All,
         });
     };
 

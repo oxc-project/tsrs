@@ -211,7 +211,7 @@ fn test_content_mapper_directives_preserve_incremental_globals() {
                         original_end: len,
                         virtual_end: len,
                         kind: Kind::VERBATIM,
-                        features: Feature::ALL,
+                        features: Feature::All,
                         ..Default::default()
                     }])),
                     diagnostic_directives: vec![MappedDiagnosticDirective {

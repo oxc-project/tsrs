@@ -31,7 +31,7 @@ impl LanguageService {
         let positions = self.converters.from_lsp_position_for_source_file(
             source_file,
             params.vs_position,
-            Feature::AUTO_INSERT,
+            Feature::AutoInsert,
         );
         if positions.len() != 1 || !positions[0].fidelity.is_exact() {
             return Ok(lsproto::VSOnAutoInsertResponse::default());
@@ -118,7 +118,7 @@ fn is_unclosed_tag(node: P<Node>) -> bool {
 // autoinsert.go:93
 fn is_unclosed_fragment(node: P<Node>) -> bool {
     let closing_fragment = node.as_jsx_fragment().closing_fragment;
-    if closing_fragment.flags().intersects(NodeFlags::THIS_NODE_HAS_ERROR) {
+    if closing_fragment.flags().intersects(NodeFlags::ThisNodeHasError) {
         return true;
     }
 

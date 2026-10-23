@@ -1729,7 +1729,7 @@ impl FileLoader {
 
     fn create_synthetic_import(&self, text: &str, file: P<SourceFile>) -> P<Node> {
         let external_helpers_module_reference =
-            self.factory.new_string_literal(tsrs_core::alloc_str(text), TokenFlags::NONE);
+            self.factory.new_string_literal(tsrs_core::alloc_str(text), TokenFlags::None);
         let import_decl = self.factory.new_import_declaration(
             None,
             None,
@@ -1919,7 +1919,7 @@ pub(crate) fn resolved_import_sub_task(
         && import_index.is_none_or(|import_index| {
             import_index < imports.len()
                 && (ast::is_in_js_file(imports[import_index])
-                    || !imports[import_index].flags().intersects(NodeFlags::JSDOC))
+                    || !imports[import_index].flags().intersects(NodeFlags::JSDoc))
         });
     (should_add_file, is_js_file_from_node_modules)
 }

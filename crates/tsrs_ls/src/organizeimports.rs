@@ -286,7 +286,7 @@ fn organize_imports_worker(
         );
     } else {
         for &imp in &new_import_decls {
-            change_tracker.emit_context.set_emit_flags(imp, EmitFlags::NO_LEADING_COMMENTS);
+            change_tracker.emit_context.set_emit_flags(imp, EmitFlags::NoLeadingComments);
         }
 
         let options = NodeOptions {
@@ -339,7 +339,7 @@ fn remove_unused_imports(
 ) -> Vec<P<Node>> {
     let compiler_options = program.options();
     let jsx_elements_present =
-        source_file.as_node().subtree_facts().intersects(ast::SubtreeFacts::CONTAINS_JSX);
+        source_file.as_node().subtree_facts().intersects(ast::SubtreeFacts::ContainsJsx);
     let jsx_mode_needs_explicit_import =
         compiler_options.jsx == JsxEmit::REACT || compiler_options.jsx == JsxEmit::REACT_NATIVE;
 
@@ -404,7 +404,7 @@ fn remove_unused_imports(
                                 source_file,
                             )
                         {
-                            change_tracker.emit_context.set_emit_flags(nb2, EmitFlags::MULTI_LINE);
+                            change_tracker.emit_context.set_emit_flags(nb2, EmitFlags::MultiLine);
                         }
                     }
                 }
@@ -802,7 +802,7 @@ fn coalesce_imports_worker(
                 {
                     change_tracker
                         .emit_context
-                        .set_emit_flags(new_named_imports, EmitFlags::MULTI_LINE);
+                        .set_emit_flags(new_named_imports, EmitFlags::MultiLine);
                 }
             }
 
@@ -1071,7 +1071,7 @@ fn organize_exports_worker(
             );
         } else {
             for &exp in &new_export_decls {
-                change_tracker.emit_context.add_emit_flags(exp, EmitFlags::NO_LEADING_COMMENTS);
+                change_tracker.emit_context.add_emit_flags(exp, EmitFlags::NoLeadingComments);
             }
 
             let options = NodeOptions {
@@ -1188,7 +1188,7 @@ fn coalesce_exports_worker(
                         {
                             change_tracker
                                 .emit_context
-                                .set_emit_flags(updated, EmitFlags::MULTI_LINE);
+                                .set_emit_flags(updated, EmitFlags::MultiLine);
                         }
                     }
                 } else {

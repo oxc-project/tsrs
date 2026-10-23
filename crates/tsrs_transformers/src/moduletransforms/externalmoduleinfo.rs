@@ -129,7 +129,7 @@ impl ExternalModuleInfoCollector {
 
                 Kind::VariableStatement => {
                     let n = node.as_variable_statement();
-                    if ast::has_syntactic_modifier(node, ModifierFlags::EXPORT) {
+                    if ast::has_syntactic_modifier(node, ModifierFlags::Export) {
                         for &decl in
                             n.declaration_list.as_variable_declaration_list().declarations.nodes()
                         {
@@ -139,19 +139,19 @@ impl ExternalModuleInfoCollector {
                 }
 
                 Kind::FunctionDeclaration => {
-                    if ast::has_syntactic_modifier(node, ModifierFlags::EXPORT) {
+                    if ast::has_syntactic_modifier(node, ModifierFlags::Export) {
                         self.add_exported_function_declaration(
                             node,
                             None, /*name*/
-                            ast::has_syntactic_modifier(node, ModifierFlags::DEFAULT),
+                            ast::has_syntactic_modifier(node, ModifierFlags::Default),
                         );
                     }
                 }
 
                 Kind::ClassDeclaration
-                    if ast::has_syntactic_modifier(node, ModifierFlags::EXPORT) =>
+                    if ast::has_syntactic_modifier(node, ModifierFlags::Export) =>
                 {
-                    if ast::has_syntactic_modifier(node, ModifierFlags::DEFAULT) {
+                    if ast::has_syntactic_modifier(node, ModifierFlags::Default) {
                         // export default class { }
                         if !self.has_export_default {
                             let name = node.name().unwrap_or_else(|| {
@@ -334,13 +334,11 @@ pub(crate) fn create_external_helpers_import_declaration_if_needed(
                     false, /*isTypeOnly*/
                     external_helpers_module_name,
                     f.new_external_module_reference(
-                        f.new_string_literal(EXTERNAL_HELPERS_MODULE_NAME_TEXT, TokenFlags::NONE),
+                        f.new_string_literal(EXTERNAL_HELPERS_MODULE_NAME_TEXT, TokenFlags::None),
                     ),
                 );
-                emit_context.add_emit_flags(
-                    external_helpers_import_declaration,
-                    EmitFlags::CUSTOM_PROLOGUE,
-                );
+                emit_context
+                    .add_emit_flags(external_helpers_import_declaration, EmitFlags::CustomPrologue);
                 return Some(external_helpers_import_declaration);
             }
         } else {
@@ -383,7 +381,7 @@ pub(crate) fn create_external_helpers_import_declaration_if_needed(
                     .collect();
                 let named_bindings = f.new_named_imports(f.new_node_list(import_specifiers));
                 let parse_node = emit_context.most_original(Some(source_file.as_node())).unwrap();
-                emit_context.add_emit_flags(parse_node, EmitFlags::EXTERNAL_HELPERS);
+                emit_context.add_emit_flags(parse_node, EmitFlags::ExternalHelpers);
 
                 let external_helpers_import_declaration = f.new_import_declaration(
                     None, /*modifiers*/
@@ -392,14 +390,12 @@ pub(crate) fn create_external_helpers_import_declaration_if_needed(
                         None,          /*name*/
                         Some(named_bindings),
                     )),
-                    f.new_string_literal(EXTERNAL_HELPERS_MODULE_NAME_TEXT, TokenFlags::NONE),
+                    f.new_string_literal(EXTERNAL_HELPERS_MODULE_NAME_TEXT, TokenFlags::None),
                     None, /*attributes*/
                 );
 
-                emit_context.add_emit_flags(
-                    external_helpers_import_declaration,
-                    EmitFlags::CUSTOM_PROLOGUE,
-                );
+                emit_context
+                    .add_emit_flags(external_helpers_import_declaration, EmitFlags::CustomPrologue);
                 return Some(external_helpers_import_declaration);
             }
         }

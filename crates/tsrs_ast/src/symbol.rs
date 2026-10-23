@@ -114,7 +114,7 @@ impl Symbol {
             source
         };
         let s = P::new(Symbol {
-            flags: OwnedCell::new(source.flags() | SymbolFlags::TRANSIENT),
+            flags: OwnedCell::new(source.flags() | SymbolFlags::Transient),
             check_flags_and_kind: OwnedCell::new(SHARED_DATA),
             id: AtomicU32::new(0),
             parent_or_tables: OwnedCell::new(data.key()),
@@ -347,7 +347,7 @@ impl Symbol {
     }
 
     pub fn is_external_module(&self) -> bool {
-        self.flags.get().intersects(SymbolFlags::MODULE)
+        self.flags.get().intersects(SymbolFlags::Module)
             && is_ambient_module_symbol_name(self.name())
     }
 
@@ -356,7 +356,7 @@ impl Symbol {
             return false;
         };
         let modifier_flags = value_declaration.modifier_flags();
-        modifier_flags.intersects(ModifierFlags::STATIC)
+        modifier_flags.intersects(ModifierFlags::Static)
     }
 
     // See comment on `declareModuleMember` in `binder.go`.
@@ -373,23 +373,23 @@ impl Symbol {
 // Ownership recovery walks only the first declaration's AST parents.
 pub fn get_source_file_of_symbol(symbol: P<Symbol>) -> Option<P<SourceFile>> {
     let mut symbol = symbol;
-    if symbol.flags.get().intersects(SymbolFlags::TRANSIENT) {
+    if symbol.flags.get().intersects(SymbolFlags::Transient) {
         return None;
     }
     if symbol.declarations().is_empty() {
         // A class's implicit prototype has no declaration of its own.
         assert!(
-            symbol.flags.get().intersects(SymbolFlags::PROTOTYPE),
+            symbol.flags.get().intersects(SymbolFlags::Prototype),
             "File-bound symbol has no declarations"
         );
         let parent = symbol.parent();
         assert!(
-            parent.is_some_and(|p| p.flags.get().intersects(SymbolFlags::CLASS)),
+            parent.is_some_and(|p| p.flags.get().intersects(SymbolFlags::Class)),
             "Prototype has no declaring class"
         );
         symbol = parent.unwrap();
         assert!(
-            !symbol.flags.get().intersects(SymbolFlags::TRANSIENT),
+            !symbol.flags.get().intersects(SymbolFlags::Transient),
             "Prototype parent is not file-bound"
         );
         assert!(!symbol.declarations().is_empty(), "Prototype parent has no declarations");
@@ -1237,9 +1237,9 @@ mod tests {
 
     #[test]
     fn optional_symbol_tables_allocate_only_for_values() {
-        let source = Symbol::new(SymbolFlags::CLASS, "source");
+        let source = Symbol::new(SymbolFlags::Class, "source");
         let alias = Symbol::new_shared_data(source);
-        let parent = Symbol::new(SymbolFlags::MODULE, "parent");
+        let parent = Symbol::new(SymbolFlags::Module, "parent");
         source.set_parent(Some(parent));
 
         alias.set_members(None);
@@ -1257,7 +1257,7 @@ mod tests {
         assert_eq!(source.parent(), Some(parent));
 
         let exports = SymbolTable::new();
-        let export_symbol = Symbol::new(SymbolFlags::ALIAS, "export");
+        let export_symbol = Symbol::new(SymbolFlags::Alias, "export");
         source.set_exports(Some(exports));
         alias.set_export_symbol(Some(export_symbol));
         assert_eq!(source.tables(), Some(tail));
@@ -1278,9 +1278,9 @@ mod tests {
         let factory = NodeFactory::default();
         let first = factory.new_identifier("first");
         let second = factory.new_identifier("second");
-        let source = Symbol::new(SymbolFlags::PROPERTY, "original");
-        let parent = Symbol::new(SymbolFlags::CLASS, "parent");
-        let export = Symbol::new(SymbolFlags::ALIAS, "export");
+        let source = Symbol::new(SymbolFlags::Property, "original");
+        let parent = Symbol::new(SymbolFlags::Class, "parent");
+        let export = Symbol::new(SymbolFlags::Alias, "export");
         source.set_declarations(&[first]);
         source.set_value_declaration(Some(first));
         source.set_parent(Some(parent));
@@ -1294,8 +1294,8 @@ mod tests {
         assert_ne!(instance, nested);
         assert_ne!(get_symbol_id(source), get_symbol_id(instance));
         assert_ne!(get_symbol_id(instance), get_symbol_id(nested));
-        assert_eq!(instance.flags(), SymbolFlags::PROPERTY | SymbolFlags::TRANSIENT);
-        assert_eq!(instance.check_flags(), CheckFlags::NONE);
+        assert_eq!(instance.flags(), SymbolFlags::Property | SymbolFlags::Transient);
+        assert_eq!(instance.check_flags(), CheckFlags::None);
         assert_eq!(instance.name(), "original");
         assert_eq!(instance.declarations(), &[first]);
         assert_eq!(instance.value_declaration(), Some(first));
@@ -1326,21 +1326,21 @@ mod tests {
         assert_eq!(source.parent(), None);
         assert_eq!(instance.export_symbol(), None);
 
-        source.set_flags(SymbolFlags::CLASS);
-        source.set_check_flags(CheckFlags::READONLY);
-        instance.set_check_flags(CheckFlags::NONE);
+        source.set_flags(SymbolFlags::Class);
+        source.set_check_flags(CheckFlags::Readonly);
+        instance.set_check_flags(CheckFlags::None);
         assert_eq!(instance.name(), "renamed");
         assert_eq!(instance.declarations(), &[second]);
-        instance.set_check_flags(CheckFlags::INSTANTIATED | CheckFlags::LATE);
-        assert_eq!(source.flags(), SymbolFlags::CLASS);
-        assert_eq!(instance.flags(), SymbolFlags::PROPERTY | SymbolFlags::TRANSIENT);
-        assert_eq!(source.check_flags(), CheckFlags::READONLY);
-        assert_eq!(instance.check_flags(), CheckFlags::INSTANTIATED | CheckFlags::LATE);
+        instance.set_check_flags(CheckFlags::Instantiated | CheckFlags::Late);
+        assert_eq!(source.flags(), SymbolFlags::Class);
+        assert_eq!(instance.flags(), SymbolFlags::Property | SymbolFlags::Transient);
+        assert_eq!(source.check_flags(), CheckFlags::Readonly);
+        assert_eq!(instance.check_flags(), CheckFlags::Instantiated | CheckFlags::Late);
 
         // Neither kind of semantic flags determines the allocation layout.
-        instance.set_flags(SymbolFlags::NONE);
+        instance.set_flags(SymbolFlags::None);
         nested.set_check_flags(CheckFlags::all());
-        nested.set_check_flags(CheckFlags::NONE);
+        nested.set_check_flags(CheckFlags::None);
         source.set_check_flags(CheckFlags::all());
         assert_eq!(nested.check_flags().bits(), 0);
         assert_eq!(source.check_flags(), CheckFlags::all());
@@ -1354,16 +1354,16 @@ mod tests {
     #[test]
     fn symbol_check_flags_reject_layout_bit_without_changing_data() {
         for symbol in [
-            Symbol::new(SymbolFlags::NONE, ""),
-            Symbol::new_shared_data(Symbol::new(SymbolFlags::PROPERTY, "source")),
+            Symbol::new(SymbolFlags::None, ""),
+            Symbol::new_shared_data(Symbol::new(SymbolFlags::Property, "source")),
         ] {
-            symbol.set_check_flags(CheckFlags::READONLY);
+            symbol.set_check_flags(CheckFlags::Readonly);
             let name = symbol.name();
             let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
                 symbol.set_check_flags(CheckFlags::from_bits_retain(SHARED_DATA));
             }));
             assert!(result.is_err());
-            assert_eq!(symbol.check_flags(), CheckFlags::READONLY);
+            assert_eq!(symbol.check_flags(), CheckFlags::Readonly);
             assert_eq!(symbol.name(), name);
         }
     }
@@ -1373,7 +1373,7 @@ mod tests {
         let factory = NodeFactory::default();
         let first = factory.new_identifier("first");
         let second = factory.new_identifier("second");
-        let source = Symbol::new(SymbolFlags::PROPERTY, "long");
+        let source = Symbol::new(SymbolFlags::Property, "long");
         let declarations = tsrs_core::alloc_vec(vec![first; 65536]);
         source.set_declarations_static(declarations);
         source.set_value_declaration(Some(first));
@@ -1403,9 +1403,9 @@ mod tests {
                 Box::leak(format!("member{i}{}", "x".repeat(i % 23)).into_boxed_str());
             names.push(name);
             let table = if i < 10 { &small } else { &large };
-            table.set(name, Symbol::new(SymbolFlags::PROPERTY, name));
+            table.set(name, Symbol::new(SymbolFlags::Property, name));
         }
-        small.set("odd", Symbol::new(SymbolFlags::PROPERTY, "other"));
+        small.set("odd", Symbol::new(SymbolFlags::Property, "other"));
         names.push("odd");
         let mut filter = NameFilter::default();
         filter.add_keys(&small);
@@ -1429,7 +1429,7 @@ mod tests {
                 (0..600).map(|i| &*Box::leak(format!("k{i}").into_boxed_str())).collect();
             let mut expected: Vec<(&'static str, P<Symbol>)> = Vec::new();
             for (i, &name) in names.iter().enumerate() {
-                let symbol = Symbol::new(SymbolFlags::PROPERTY, if i == 7 { "odd" } else { name });
+                let symbol = Symbol::new(SymbolFlags::Property, if i == 7 { "odd" } else { name });
                 table.set(name, symbol);
                 expected.push((name, symbol));
                 if i % 97 == 50 {
@@ -1438,7 +1438,7 @@ mod tests {
                     assert!(table.lookup(gone).is_none(), "{gone}");
                 }
                 if i % 89 == 3 {
-                    let replaced = Symbol::new(SymbolFlags::PROPERTY, expected[i / 2].0);
+                    let replaced = Symbol::new(SymbolFlags::Property, expected[i / 2].0);
                     table.set(expected[i / 2].0, replaced);
                     expected[i / 2].1 = replaced;
                 }

@@ -168,7 +168,7 @@ impl NodeBuilderImpl {
                 });
             }
 
-            if self.ctx().flags.get().intersects(Flags::GENERATE_NAMES_FOR_SHADOWED_TYPE_PARAMS)
+            if self.ctx().flags.get().intersects(Flags::GenerateNamesForShadowedTypeParams)
                 && !type_parameters.is_empty()
             {
                 cleanup_type_params = push_fake_scope(self, c, "typeParams", &mut |b, c, add| {

@@ -736,7 +736,7 @@ fn normalize_type(input: &str) -> String {
                 let literal = node.as_literal_type_node().literal();
                 transform_factory.new_literal_type_node(
                     transform_factory
-                        .new_string_literal(literal.as_string_literal().text(), TokenFlags::NONE),
+                        .new_string_literal(literal.as_string_literal().text(), TokenFlags::None),
                 )
             }
             Kind::UnionType => {

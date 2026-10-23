@@ -94,7 +94,7 @@ impl NodeBuilder {
     // nodebuilder.go:104
     pub(crate) fn exit_context_check(&self) {
         let ctx = self.impl_.ctx();
-        if ctx.truncating.get() && ctx.flags.get().intersects(Flags::NO_TRUNCATION) {
+        if ctx.truncating.get() && ctx.flags.get().intersects(Flags::NoTruncation) {
             ctx.tracker.get().unwrap().report_truncation_error();
         }
     }
@@ -218,10 +218,10 @@ impl NodeBuilder {
     ) -> Vec<P<Node>> {
         self.enter_context(
             None,
-            Flags::IGNORE_ERRORS
-                | Flags::MULTILINE_OBJECT_LITERALS
-                | Flags::USE_ALIAS_DEFINED_OUTSIDE_CURRENT_SCOPE,
-            InternalFlags::NONE,
+            Flags::IgnoreErrors
+                | Flags::MultilineObjectLiterals
+                | Flags::UseAliasDefinedOutsideCurrentScope,
+            InternalFlags::None,
             None,
         );
 
@@ -252,7 +252,7 @@ impl NodeBuilder {
                 Some(simplify_modifiers(f, node, ast::is_enum_declaration, symbol))
             }
             Kind::InterfaceDeclaration => {
-                if meaning.intersects(SymbolFlags::INTERFACE) {
+                if meaning.intersects(SymbolFlags::Interface) {
                     Some(simplify_modifiers(f, node, ast::is_interface_declaration, symbol))
                 } else {
                     None
@@ -280,7 +280,7 @@ pub(crate) fn simplify_class_declaration(
     let original_class_decl =
         if !class_declarations.is_empty() { class_declarations[0] } else { class_decl };
     let modifiers =
-        original_class_decl.modifier_flags() & !(ModifierFlags::EXPORT | ModifierFlags::AMBIENT);
+        original_class_decl.modifier_flags() & !(ModifierFlags::Export | ModifierFlags::Ambient);
     let is_anonymous = ast::is_class_expression(original_class_decl);
     if is_anonymous {
         let cd = class_decl.as_class_declaration();
@@ -313,7 +313,7 @@ pub(crate) fn simplify_modifiers(
         symbol.declarations().iter().copied().filter(|&d| is_decl_kind(d)).collect();
     let decl_with_modifiers = if !decls.is_empty() { decls[0] } else { new_decl };
     let modifiers =
-        decl_with_modifiers.modifier_flags() & !(ModifierFlags::EXPORT | ModifierFlags::AMBIENT);
+        decl_with_modifiers.modifier_flags() & !(ModifierFlags::Export | ModifierFlags::Ambient);
     replace_modifiers(
         f,
         new_decl,

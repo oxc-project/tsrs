@@ -132,7 +132,7 @@ pub fn new_node_factory_ex(hooks: NodeFactoryHooks, scratch: bool) -> NodeFactor
 fn node_header(kind: Kind, data_tag: NodeDataTag) -> Node {
     Node {
         header: OwnedCell::new(NodeHeaderWord::new(kind, data_tag)),
-        flags: OwnedCell::new(NodeFlags::NONE),
+        flags: OwnedCell::new(NodeFlags::None),
         id: AtomicU32::new(0),
         loc: OwnedCell::new(undefined_text_range()),
     }
@@ -1079,7 +1079,7 @@ impl Node {
     pub fn modifier_flags(&self) -> ModifierFlags {
         match self.modifiers() {
             Some(modifiers) => modifiers.modifier_flags,
-            None => ModifierFlags::NONE,
+            None => ModifierFlags::None,
         }
     }
 
@@ -1519,7 +1519,7 @@ impl Node {
 
     // if you provide nil for file, this code will walk to the root of the tree to find the file
     pub fn jsdoc(&self, file: Option<&'static SourceFile>) -> &'static [P<Node>] {
-        if !self.flags.get().intersects(NodeFlags::HAS_JSDOC) {
+        if !self.flags.get().intersects(NodeFlags::HasJSDoc) {
             return &[];
         }
         let file = match file {
@@ -1538,7 +1538,7 @@ impl Node {
     // EagerJSDoc returns JSDoc nodes that have already been parsed and cached,
     // without triggering lazy JSDoc parsing.
     pub fn eager_jsdoc(&self, file: Option<&'static SourceFile>) -> &'static [P<Node>] {
-        if !self.flags.get().intersects(NodeFlags::HAS_JSDOC) {
+        if !self.flags.get().intersects(NodeFlags::HasJSDoc) {
             return &[];
         }
         let file = match file {
@@ -1634,7 +1634,7 @@ fn declaration_is_write_access(decl: Option<P<Node>>) -> bool {
         return false;
     };
     // Consider anything in an ambient declaration to be a write access since it may be coming from JS.
-    if decl.flags.get().intersects(NodeFlags::AMBIENT) {
+    if decl.flags.get().intersects(NodeFlags::Ambient) {
         return true;
     }
 
@@ -2682,7 +2682,7 @@ impl SourceFile {
             }
             Entry::Vacant(entry) => {
                 assert!(
-                    !parent.flags().intersects(NodeFlags::REPARSED),
+                    !parent.flags().intersects(NodeFlags::Reparsed),
                     "Cannot create token from reparsed node of kind {:?}",
                     parent.kind()
                 );
@@ -2776,7 +2776,7 @@ impl SourceFile {
                 Kind::Parameter | Kind::VariableDeclaration | Kind::BindingElement => {
                     // Only consider parameter properties
                     if node.kind() == Kind::Parameter
-                        && !has_syntactic_modifier(node, ModifierFlags::PARAMETER_PROPERTY_MODIFIER)
+                        && !has_syntactic_modifier(node, ModifierFlags::ParameterPropertyModifier)
                     {
                         return false;
                     }
@@ -3111,7 +3111,7 @@ mod tests {
 
         let type_keyword = f.new_token(Kind::NumberKeyword);
         assert!(matches!(type_keyword.data(), NodeData::KeywordTypeNode));
-        assert!(type_keyword.subtree_facts().contains(SubtreeFacts::CONTAINS_TYPE_SCRIPT));
+        assert!(type_keyword.subtree_facts().contains(SubtreeFacts::ContainsTypeScript));
 
         assert!(matches!(f.new_token(Kind::PlusToken).data(), NodeData::Token));
         assert_eq!(f.text_count(), 0);
@@ -3262,12 +3262,12 @@ mod tests {
         let m = f.new_modifier(Kind::ExportKeyword);
         decl.set_modifiers(None);
         let stmt_list = f.new_node_list(vec![decl]);
-        let list = f.new_variable_declaration_list(stmt_list, NodeFlags::CONST);
-        assert!(list.flags().contains(NodeFlags::CONST));
+        let list = f.new_variable_declaration_list(stmt_list, NodeFlags::Const);
+        assert!(list.flags().contains(NodeFlags::Const));
         let mods = f.new_modifier_list(vec![m]);
         let var_stmt = f.new_variable_statement(None, list);
         var_stmt.set_modifiers(Some(mods));
-        assert_eq!(var_stmt.modifier_flags(), ModifierFlags::EXPORT);
+        assert_eq!(var_stmt.modifier_flags(), ModifierFlags::Export);
         assert_eq!(children(var_stmt), vec![m, list]);
     }
 
@@ -3312,8 +3312,8 @@ mod tests {
     #[test]
     fn symbol_table_order_and_snapshot() {
         let table = SymbolTable::new();
-        let s1 = Symbol::new(SymbolFlags::VARIABLE, "b");
-        let s2 = Symbol::new(SymbolFlags::FUNCTION, "a");
+        let s1 = Symbol::new(SymbolFlags::Variable, "b");
+        let s2 = Symbol::new(SymbolFlags::Function, "a");
         table.set("b", s1);
         table.set("a", s2);
         assert_eq!(table.keys(), vec!["b", "a"]);
@@ -3337,7 +3337,7 @@ mod tests {
         let names: Vec<&'static str> =
             (0..20).map(|i| &*Box::leak(format!("n{i}").into_boxed_str())).collect();
         let syms: Vec<P<Symbol>> =
-            names.iter().map(|n| Symbol::new(SymbolFlags::PROPERTY, n)).collect();
+            names.iter().map(|n| Symbol::new(SymbolFlags::Property, n)).collect();
         let table = SymbolTable::with_capacity(2);
         for (n, s) in names.iter().zip(&syms) {
             table.set(n, *s);
@@ -3384,7 +3384,7 @@ mod tests {
         let names: Vec<&'static str> =
             (0..40).map(|i| long(char::from(b'a' + (i % 26) as u8), 63 + i / 26)).collect();
         let syms: Vec<P<Symbol>> =
-            names.iter().map(|n| Symbol::new(SymbolFlags::PROPERTY, n)).collect();
+            names.iter().map(|n| Symbol::new(SymbolFlags::Property, n)).collect();
         for count in [5, 40] {
             let table = SymbolTable::new();
             for i in 0..count {
@@ -3407,11 +3407,11 @@ mod tests {
         assert_eq!(Kind::from_i16(Kind::Identifier as i16), Kind::Identifier);
         assert!(is_keyword_kind(Kind::ClassKeyword));
         assert!(is_assignment_operator(Kind::PlusEqualsToken));
-        assert_eq!(NodeFlags::BLOCK_SCOPED, NodeFlags::LET | NodeFlags::CONST | NodeFlags::USING);
-        assert!(SymbolFlags::VALUE.contains(SymbolFlags::FUNCTION));
+        assert_eq!(NodeFlags::BlockScoped, NodeFlags::Let | NodeFlags::Const | NodeFlags::Using);
+        assert!(SymbolFlags::Value.contains(SymbolFlags::Function));
         assert!(
-            !SymbolFlags::FUNCTION_SCOPED_VARIABLE_EXCLUDES
-                .intersects(SymbolFlags::FUNCTION_SCOPED_VARIABLE)
+            !SymbolFlags::FunctionScopedVariableExcludes
+                .intersects(SymbolFlags::FunctionScopedVariable)
         );
         assert_eq!(std::mem::size_of::<Node>(), 24);
     }

@@ -5,80 +5,80 @@ use bitflags::bitflags;
 bitflags! {
     #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Debug, Default)]
     pub struct SymbolFlags: u32 {
-        const NONE = 0;
-        const FUNCTION_SCOPED_VARIABLE = 1 << 0; // Variable (var) or parameter
-        const BLOCK_SCOPED_VARIABLE = 1 << 1; // A block-scoped variable (let or const)
-        const PROPERTY = 1 << 2; // Property or enum member
-        const ENUM_MEMBER = 1 << 3; // Enum member
-        const FUNCTION = 1 << 4; // Function
-        const CLASS = 1 << 5; // Class
-        const INTERFACE = 1 << 6; // Interface
-        const CONST_ENUM = 1 << 7; // Const enum
-        const REGULAR_ENUM = 1 << 8; // Enum
-        const VALUE_MODULE = 1 << 9; // Instantiated module
-        const NAMESPACE_MODULE = 1 << 10; // Uninstantiated module
-        const TYPE_LITERAL = 1 << 11; // Type Literal or mapped type
-        const OBJECT_LITERAL = 1 << 12; // Object Literal
-        const METHOD = 1 << 13; // Method
-        const CONSTRUCTOR = 1 << 14; // Constructor
-        const GET_ACCESSOR = 1 << 15; // Get accessor
-        const SET_ACCESSOR = 1 << 16; // Set accessor
-        const SIGNATURE = 1 << 17; // Call, construct, or index signature
-        const TYPE_PARAMETER = 1 << 18; // Type parameter
-        const TYPE_ALIAS = 1 << 19; // Type alias
-        const EXPORT_VALUE = 1 << 20; // Exported value marker (see comment in declareModuleMember in binder)
-        const ALIAS = 1 << 21; // An alias for another symbol (see comment in isAliasSymbolDeclaration in checker)
-        const PROTOTYPE = 1 << 22; // Prototype property (no source representation)
-        const EXPORT_STAR = 1 << 23; // Export * declaration
-        const OPTIONAL = 1 << 24; // Optional property
-        const TRANSIENT = 1 << 25; // Transient symbol (created during type check)
-        const ASSIGNMENT = 1 << 26; // Assignment to property on function acting as declaration (eg `func.prop = 1`)
-        const MODULE_EXPORTS = 1 << 27; // Symbol for CommonJS `module` of `module.exports`
-        const CONST_ENUM_ONLY_MODULE = 1 << 28; // Module contains only const enums or other modules with only const enums
-        const REPLACEABLE_BY_METHOD = 1 << 29;
-        const GLOBAL_LOOKUP = 1 << 30; // Flag to signal this is a global lookup
-        const ALL = (1 << 30) - 1; // All flags except SymbolFlagsGlobalLookup
+        const None = 0;
+        const FunctionScopedVariable = 1 << 0; // Variable (var) or parameter
+        const BlockScopedVariable = 1 << 1; // A block-scoped variable (let or const)
+        const Property = 1 << 2; // Property or enum member
+        const EnumMember = 1 << 3; // Enum member
+        const Function = 1 << 4; // Function
+        const Class = 1 << 5; // Class
+        const Interface = 1 << 6; // Interface
+        const ConstEnum = 1 << 7; // Const enum
+        const RegularEnum = 1 << 8; // Enum
+        const ValueModule = 1 << 9; // Instantiated module
+        const NamespaceModule = 1 << 10; // Uninstantiated module
+        const TypeLiteral = 1 << 11; // Type Literal or mapped type
+        const ObjectLiteral = 1 << 12; // Object Literal
+        const Method = 1 << 13; // Method
+        const Constructor = 1 << 14; // Constructor
+        const GetAccessor = 1 << 15; // Get accessor
+        const SetAccessor = 1 << 16; // Set accessor
+        const Signature = 1 << 17; // Call, construct, or index signature
+        const TypeParameter = 1 << 18; // Type parameter
+        const TypeAlias = 1 << 19; // Type alias
+        const ExportValue = 1 << 20; // Exported value marker (see comment in declareModuleMember in binder)
+        const Alias = 1 << 21; // An alias for another symbol (see comment in isAliasSymbolDeclaration in checker)
+        const Prototype = 1 << 22; // Prototype property (no source representation)
+        const ExportStar = 1 << 23; // Export * declaration
+        const Optional = 1 << 24; // Optional property
+        const Transient = 1 << 25; // Transient symbol (created during type check)
+        const Assignment = 1 << 26; // Assignment to property on function acting as declaration (eg `func.prop = 1`)
+        const ModuleExports = 1 << 27; // Symbol for CommonJS `module` of `module.exports`
+        const ConstEnumOnlyModule = 1 << 28; // Module contains only const enums or other modules with only const enums
+        const ReplaceableByMethod = 1 << 29;
+        const GlobalLookup = 1 << 30; // Flag to signal this is a global lookup
+        const All = (1 << 30) - 1; // All flags except SymbolFlagsGlobalLookup
 
-        const ENUM = Self::REGULAR_ENUM.bits() | Self::CONST_ENUM.bits();
-        const VARIABLE = Self::FUNCTION_SCOPED_VARIABLE.bits() | Self::BLOCK_SCOPED_VARIABLE.bits();
-        const VALUE = Self::VARIABLE.bits() | Self::PROPERTY.bits() | Self::ENUM_MEMBER.bits() | Self::OBJECT_LITERAL.bits() | Self::FUNCTION.bits() | Self::CLASS.bits() | Self::ENUM.bits() | Self::VALUE_MODULE.bits() | Self::METHOD.bits() | Self::GET_ACCESSOR.bits() | Self::SET_ACCESSOR.bits();
-        const TYPE = Self::CLASS.bits() | Self::INTERFACE.bits() | Self::ENUM.bits() | Self::ENUM_MEMBER.bits() | Self::TYPE_LITERAL.bits() | Self::TYPE_PARAMETER.bits() | Self::TYPE_ALIAS.bits();
-        const NAMESPACE = Self::VALUE_MODULE.bits() | Self::NAMESPACE_MODULE.bits() | Self::ENUM.bits();
-        const MODULE = Self::VALUE_MODULE.bits() | Self::NAMESPACE_MODULE.bits();
-        const ACCESSOR = Self::GET_ACCESSOR.bits() | Self::SET_ACCESSOR.bits();
+        const Enum = Self::RegularEnum.bits() | Self::ConstEnum.bits();
+        const Variable = Self::FunctionScopedVariable.bits() | Self::BlockScopedVariable.bits();
+        const Value = Self::Variable.bits() | Self::Property.bits() | Self::EnumMember.bits() | Self::ObjectLiteral.bits() | Self::Function.bits() | Self::Class.bits() | Self::Enum.bits() | Self::ValueModule.bits() | Self::Method.bits() | Self::GetAccessor.bits() | Self::SetAccessor.bits();
+        const Type = Self::Class.bits() | Self::Interface.bits() | Self::Enum.bits() | Self::EnumMember.bits() | Self::TypeLiteral.bits() | Self::TypeParameter.bits() | Self::TypeAlias.bits();
+        const Namespace = Self::ValueModule.bits() | Self::NamespaceModule.bits() | Self::Enum.bits();
+        const Module = Self::ValueModule.bits() | Self::NamespaceModule.bits();
+        const Accessor = Self::GetAccessor.bits() | Self::SetAccessor.bits();
 
         // Variables can be redeclared, but can not redeclare a block-scoped declaration with the
         // same name, or any other value that is not a variable, e.g. ValueModule or Class
-        const FUNCTION_SCOPED_VARIABLE_EXCLUDES = Self::VALUE.bits() & !Self::FUNCTION_SCOPED_VARIABLE.bits();
+        const FunctionScopedVariableExcludes = Self::Value.bits() & !Self::FunctionScopedVariable.bits();
 
         // Block-scoped declarations are not allowed to be re-declared
         // they can not merge with anything in the value space
-        const BLOCK_SCOPED_VARIABLE_EXCLUDES = Self::VALUE.bits();
+        const BlockScopedVariableExcludes = Self::Value.bits();
 
-        const PARAMETER_EXCLUDES = Self::VALUE.bits();
-        const PROPERTY_EXCLUDES = Self::VALUE.bits() & !(Self::PROPERTY.bits() | Self::ACCESSOR.bits());
-        const ENUM_MEMBER_EXCLUDES = Self::VALUE.bits() | Self::TYPE.bits();
-        const FUNCTION_EXCLUDES = Self::VALUE.bits() & !(Self::FUNCTION.bits() | Self::VALUE_MODULE.bits() | Self::CLASS.bits());
-        const CLASS_EXCLUDES = (Self::VALUE.bits() | Self::TYPE.bits()) & !(Self::VALUE_MODULE.bits() | Self::INTERFACE.bits() | Self::FUNCTION.bits()); // class-interface mergability done in checker.ts
-        const INTERFACE_EXCLUDES = Self::TYPE.bits() & !(Self::INTERFACE.bits() | Self::CLASS.bits());
-        const REGULAR_ENUM_EXCLUDES = (Self::VALUE.bits() | Self::TYPE.bits()) & !(Self::REGULAR_ENUM.bits() | Self::VALUE_MODULE.bits()); // regular enums merge only with regular enums and modules
-        const CONST_ENUM_EXCLUDES = (Self::VALUE.bits() | Self::TYPE.bits()) & !Self::CONST_ENUM.bits(); // const enums merge only with const enums
-        const VALUE_MODULE_EXCLUDES = Self::VALUE.bits() & !(Self::FUNCTION.bits() | Self::CLASS.bits() | Self::REGULAR_ENUM.bits() | Self::VALUE_MODULE.bits());
-        const NAMESPACE_MODULE_EXCLUDES = Self::NONE.bits();
-        const METHOD_EXCLUDES = Self::VALUE.bits() & !Self::METHOD.bits();
-        const GET_ACCESSOR_EXCLUDES = Self::VALUE.bits() & !(Self::SET_ACCESSOR.bits() | Self::PROPERTY.bits());
-        const SET_ACCESSOR_EXCLUDES = Self::VALUE.bits() & !(Self::GET_ACCESSOR.bits() | Self::PROPERTY.bits());
-        const ACCESSOR_EXCLUDES = Self::VALUE.bits() & !Self::PROPERTY.bits();
-        const TYPE_PARAMETER_EXCLUDES = Self::TYPE.bits() & !Self::TYPE_PARAMETER.bits();
-        const TYPE_ALIAS_EXCLUDES = Self::TYPE.bits();
-        const ALIAS_EXCLUDES = Self::ALIAS.bits();
-        const MODULE_MEMBER = Self::VARIABLE.bits() | Self::FUNCTION.bits() | Self::CLASS.bits() | Self::INTERFACE.bits() | Self::ENUM.bits() | Self::MODULE.bits() | Self::TYPE_ALIAS.bits() | Self::ALIAS.bits();
-        const EXPORT_HAS_LOCAL = Self::FUNCTION.bits() | Self::CLASS.bits() | Self::ENUM.bits() | Self::VALUE_MODULE.bits();
-        const BLOCK_SCOPED = Self::BLOCK_SCOPED_VARIABLE.bits() | Self::CLASS.bits() | Self::ENUM.bits();
-        const PROPERTY_OR_ACCESSOR = Self::PROPERTY.bits() | Self::ACCESSOR.bits();
-        const CLASS_MEMBER = Self::METHOD.bits() | Self::ACCESSOR.bits() | Self::PROPERTY.bits();
-        const EXPORT_SUPPORTS_DEFAULT_MODIFIER = Self::CLASS.bits() | Self::FUNCTION.bits() | Self::INTERFACE.bits();
-        const EXPORT_DOES_NOT_SUPPORT_DEFAULT_MODIFIER = !Self::EXPORT_SUPPORTS_DEFAULT_MODIFIER.bits();
-        const LATE_BINDING_CONTAINER = Self::CLASS.bits() | Self::INTERFACE.bits() | Self::TYPE_LITERAL.bits() | Self::OBJECT_LITERAL.bits() | Self::FUNCTION.bits();
+        const ParameterExcludes = Self::Value.bits();
+        const PropertyExcludes = Self::Value.bits() & !(Self::Property.bits() | Self::Accessor.bits());
+        const EnumMemberExcludes = Self::Value.bits() | Self::Type.bits();
+        const FunctionExcludes = Self::Value.bits() & !(Self::Function.bits() | Self::ValueModule.bits() | Self::Class.bits());
+        const ClassExcludes = (Self::Value.bits() | Self::Type.bits()) & !(Self::ValueModule.bits() | Self::Interface.bits() | Self::Function.bits()); // class-interface mergability done in checker.ts
+        const InterfaceExcludes = Self::Type.bits() & !(Self::Interface.bits() | Self::Class.bits());
+        const RegularEnumExcludes = (Self::Value.bits() | Self::Type.bits()) & !(Self::RegularEnum.bits() | Self::ValueModule.bits()); // regular enums merge only with regular enums and modules
+        const ConstEnumExcludes = (Self::Value.bits() | Self::Type.bits()) & !Self::ConstEnum.bits(); // const enums merge only with const enums
+        const ValueModuleExcludes = Self::Value.bits() & !(Self::Function.bits() | Self::Class.bits() | Self::RegularEnum.bits() | Self::ValueModule.bits());
+        const NamespaceModuleExcludes = Self::None.bits();
+        const MethodExcludes = Self::Value.bits() & !Self::Method.bits();
+        const GetAccessorExcludes = Self::Value.bits() & !(Self::SetAccessor.bits() | Self::Property.bits());
+        const SetAccessorExcludes = Self::Value.bits() & !(Self::GetAccessor.bits() | Self::Property.bits());
+        const AccessorExcludes = Self::Value.bits() & !Self::Property.bits();
+        const TypeParameterExcludes = Self::Type.bits() & !Self::TypeParameter.bits();
+        const TypeAliasExcludes = Self::Type.bits();
+        const AliasExcludes = Self::Alias.bits();
+        const ModuleMember = Self::Variable.bits() | Self::Function.bits() | Self::Class.bits() | Self::Interface.bits() | Self::Enum.bits() | Self::Module.bits() | Self::TypeAlias.bits() | Self::Alias.bits();
+        const ExportHasLocal = Self::Function.bits() | Self::Class.bits() | Self::Enum.bits() | Self::ValueModule.bits();
+        const BlockScoped = Self::BlockScopedVariable.bits() | Self::Class.bits() | Self::Enum.bits();
+        const PropertyOrAccessor = Self::Property.bits() | Self::Accessor.bits();
+        const ClassMember = Self::Method.bits() | Self::Accessor.bits() | Self::Property.bits();
+        const ExportSupportsDefaultModifier = Self::Class.bits() | Self::Function.bits() | Self::Interface.bits();
+        const ExportDoesNotSupportDefaultModifier = !Self::ExportSupportsDefaultModifier.bits();
+        const LateBindingContainer = Self::Class.bits() | Self::Interface.bits() | Self::TypeLiteral.bits() | Self::ObjectLiteral.bits() | Self::Function.bits();
     }
 }

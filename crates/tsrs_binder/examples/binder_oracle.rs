@@ -15,13 +15,13 @@ use tsrs_core::P;
 use tsrs_core::tspath::Path;
 
 fn binder_node_flags() -> NodeFlags {
-    NodeFlags::EXPORT_CONTEXT
-        | NodeFlags::CONTAINS_THIS
-        | NodeFlags::HAS_IMPLICIT_RETURN
-        | NodeFlags::HAS_EXPLICIT_RETURN
-        | NodeFlags::THIS_NODE_OR_ANY_SUB_NODES_HAS_ERROR
-        | NodeFlags::HAS_ASYNC_FUNCTIONS
-        | NodeFlags::UNREACHABLE
+    NodeFlags::ExportContext
+        | NodeFlags::ContainsThis
+        | NodeFlags::HasImplicitReturn
+        | NodeFlags::HasExplicitReturn
+        | NodeFlags::ThisNodeOrAnySubNodesHasError
+        | NodeFlags::HasAsyncFunctions
+        | NodeFlags::Unreachable
 }
 
 fn printed_name(s: &str) -> String {
@@ -165,7 +165,7 @@ impl Dumper {
 
     fn flow_node(&mut self, id: usize, f: P<FlowNode>) {
         let _ = write!(self.sb, "F #{} {:x} ", id, f.flags.get().bits());
-        if f.flags.get().intersects(FlowFlags::SWITCH_CLAUSE) {
+        if f.flags.get().intersects(FlowFlags::SwitchClause) {
             let data = f.node.get().unwrap().as_flow_switch_clause_data();
             let _ = write!(
                 self.sb,
@@ -174,7 +174,7 @@ impl Dumper {
                 data.clause_start,
                 data.clause_end
             );
-        } else if f.flags.get().intersects(FlowFlags::REDUCE_LABEL) {
+        } else if f.flags.get().intersects(FlowFlags::ReduceLabel) {
             let data = f.node.get().unwrap().as_flow_reduce_label_data();
             let target = self.flow_ref(Some(data.target));
             let list = self.flow_list(data.antecedents);

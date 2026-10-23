@@ -20,7 +20,7 @@ impl NullishCoalescingTransformer {
 
     // nullishcoalescing.go:12
     fn visit(&self, node: P<Node>) -> Option<P<Node>> {
-        if !node.subtree_facts().intersects(SubtreeFacts::CONTAINS_NULLISH_COALESCING) {
+        if !node.subtree_facts().intersects(SubtreeFacts::ContainsNullishCoalescing) {
             return Some(node);
         }
         match node.kind() {

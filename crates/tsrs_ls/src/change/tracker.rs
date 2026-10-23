@@ -215,7 +215,7 @@ impl Tracker {
         let spans = self.converters.from_lsp_range_for_source_file(
             source_file,
             lsproto_range,
-            Feature::ALL,
+            Feature::All,
         );
         if let Some(result) = spans.iter().find_map(|span| {
             if span.fidelity.is_exact() && span.script == source_file {

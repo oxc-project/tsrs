@@ -241,7 +241,7 @@ impl EsDecoratorTransformer {
         {
             // Don't emit leading comments on the name for methods and properties without modifiers, otherwise we
             // will end up printing duplicate comments.
-            ec.set_emit_flags(result.name.unwrap(), EmitFlags::NO_LEADING_COMMENTS);
+            ec.set_emit_flags(result.name.unwrap(), EmitFlags::NoLeadingComments);
         }
 
         result
@@ -483,7 +483,7 @@ impl EsDecoratorTransformer {
         // TODO(rbuckton): We support decorating `declare x` fields with legacyDecorators, but we currently don't
         //                 support them with esDecorators. We need to consider whether we will support them in the
         //                 future, and how. For now, these should be elided by the `ts` transform.
-        assert!(!ast::has_syntactic_modifier(node, ModifierFlags::AMBIENT), "Not yet implemented.");
+        assert!(!ast::has_syntactic_modifier(node, ModifierFlags::Ambient), "Not yet implemented.");
 
         let create_descriptor: Option<CreateDescriptorFunc> = if ast::has_accessor_modifier(node) {
             Some(EsDecoratorTransformer::create_accessor_property_descriptor_object)
@@ -604,7 +604,7 @@ impl EsDecoratorTransformer {
                 initializer,
             );
             ec.set_original(backing_field, node);
-            ec.set_emit_flags(backing_field, EmitFlags::NO_COMMENTS);
+            ec.set_emit_flags(backing_field, EmitFlags::NoComments);
             ec.set_source_map_range(backing_field, source_map_range);
             ec.set_source_map_range(
                 backing_field.name().unwrap(),
@@ -626,7 +626,7 @@ impl EsDecoratorTransformer {
                 descriptor_name,
             );
             ec.set_original(setter, node);
-            ec.set_emit_flags(setter, EmitFlags::NO_COMMENTS);
+            ec.set_emit_flags(setter, EmitFlags::NoComments);
             ec.set_source_map_range(setter, source_map_range);
 
             return single_or_many(Some(vec![backing_field, getter, setter]), f);
@@ -761,7 +761,7 @@ impl EsDecoratorTransformer {
             let new_loc = move_range_past_modifiers(param_node);
             updated.set_loc(new_loc);
             ec.set_source_map_range(updated, new_loc);
-            ec.set_emit_flags(updated.name().unwrap(), EmitFlags::NO_TRAILING_SOURCE_MAP);
+            ec.set_emit_flags(updated.name().unwrap(), EmitFlags::NoTrailingSourceMap);
         }
         updated
     }
@@ -802,7 +802,7 @@ pub(crate) fn can_ignore_empty_string_literal_in_assigned_name(node: Option<P<No
     let Some(node) = node else {
         return false;
     };
-    let inner_expression = ast::skip_outer_expressions(node, OuterExpressionKinds::ALL);
+    let inner_expression = ast::skip_outer_expressions(node, OuterExpressionKinds::All);
     ast::is_class_expression(inner_expression)
         && inner_expression.name().is_none()
         && !ast::class_or_constructor_parameter_is_decorated(false, inner_expression)
@@ -1374,17 +1374,17 @@ impl EsDecoratorTransformer {
         let f = self.base.factory();
         let expression =
             self.base.visitor().visit_node(Some(decorator.as_decorator().expression)).unwrap();
-        self.base.emit_context().set_emit_flags(expression, EmitFlags::NO_COMMENTS);
+        self.base.emit_context().set_emit_flags(expression, EmitFlags::NoComments);
 
         // preserve the 'this' binding for an access expression
-        let inner_expression = ast::skip_outer_expressions(expression, OuterExpressionKinds::ALL);
+        let inner_expression = ast::skip_outer_expressions(expression, OuterExpressionKinds::All);
         if ast::is_access_expression(inner_expression) {
             let (target, this_arg) = self.create_call_binding(expression);
             let bind_call = f.new_function_bind_call(target, this_arg, &[]);
             return f.restore_outer_expressions(
                 Some(expression),
                 bind_call,
-                OuterExpressionKinds::ALL,
+                OuterExpressionKinds::All,
             );
         }
         expression
@@ -1394,14 +1394,14 @@ impl EsDecoratorTransformer {
     pub(crate) fn create_call_binding(&self, expression: P<Node>) -> (P<Node>, P<Node>) {
         let f = self.base.factory();
         let ec = self.base.emit_context();
-        let callee = ast::skip_outer_expressions(expression, OuterExpressionKinds::ALL);
+        let callee = ast::skip_outer_expressions(expression, OuterExpressionKinds::All);
         if ast::is_super_property(callee) {
             return (callee, f.new_this_expression());
         }
         if callee.kind() == Kind::SuperKeyword {
             return (callee, f.new_this_expression());
         }
-        if ec.emit_flags(callee).intersects(EmitFlags::HELPER_NAME) {
+        if ec.emit_flags(callee).intersects(EmitFlags::HelperName) {
             return (callee, f.new_void_zero_expression());
         }
         if ast::is_property_access_expression(callee) {
@@ -1412,7 +1412,7 @@ impl EsDecoratorTransformer {
                 let assign = f.new_assignment_expression(this_arg, pa.expression);
                 assign.set_loc(pa.expression.loc());
                 let target =
-                    f.new_property_access_expression(assign, None, pa.name, NodeFlags::NONE);
+                    f.new_property_access_expression(assign, None, pa.name, NodeFlags::None);
                 target.set_loc(callee.loc());
                 return (target, this_arg);
             }
@@ -1429,7 +1429,7 @@ impl EsDecoratorTransformer {
                     assign,
                     None,
                     ea.argument_expression,
-                    NodeFlags::NONE,
+                    NodeFlags::None,
                 );
                 target.set_loc(callee.loc());
                 return (target, this_arg);
@@ -1488,7 +1488,7 @@ impl EsDecoratorTransformer {
         );
         ec.set_original(func_expr, original);
         ec.set_source_map_range(func_expr, move_range_past_decorators(original));
-        ec.set_emit_flags(func_expr, EmitFlags::NO_COMMENTS);
+        ec.set_emit_flags(func_expr, EmitFlags::NoComments);
 
         let prefix = if kind == "get" || kind == "set" { kind } else { "" };
         let function_name = f.new_string_literal_from_node(name);
@@ -1498,7 +1498,7 @@ impl EsDecoratorTransformer {
             f.new_property_assignment(None, f.new_identifier(kind), None, None, named_function);
         ec.set_original(method, original);
         ec.set_source_map_range(method, move_range_past_decorators(original));
-        ec.set_emit_flags(method, EmitFlags::NO_COMMENTS);
+        ec.set_emit_flags(method, EmitFlags::NoComments);
         method
     }
 
@@ -1605,7 +1605,7 @@ impl EsDecoratorTransformer {
                         f.new_this_expression(),
                         None,
                         backing_field_name,
-                        NodeFlags::NONE,
+                        NodeFlags::None,
                     ),
                 ))]),
                 false,
@@ -1631,7 +1631,7 @@ impl EsDecoratorTransformer {
                         f.new_this_expression(),
                         None,
                         backing_field_name,
-                        NodeFlags::NONE,
+                        NodeFlags::None,
                     ),
                     f.new_identifier("value"),
                 ))]),
@@ -1668,7 +1668,7 @@ impl EsDecoratorTransformer {
                         descriptor_name,
                         None,
                         f.new_identifier("value"),
-                        NodeFlags::NONE,
+                        NodeFlags::None,
                     ),
                 ))]),
                 false,
@@ -1700,7 +1700,7 @@ impl EsDecoratorTransformer {
                         descriptor_name,
                         None,
                         f.new_identifier("get"),
-                        NodeFlags::NONE,
+                        NodeFlags::None,
                     ),
                     Some(f.new_this_expression()),
                     &[],
@@ -1741,7 +1741,7 @@ impl EsDecoratorTransformer {
                         descriptor_name,
                         None,
                         f.new_identifier("set"),
-                        NodeFlags::NONE,
+                        NodeFlags::None,
                     ),
                     Some(f.new_this_expression()),
                     &[f.new_identifier("value")],
@@ -1765,12 +1765,12 @@ impl EsDecoratorTransformer {
                 f.new_identifier("Object"),
                 None,
                 f.new_identifier("create"),
-                NodeFlags::NONE,
+                NodeFlags::None,
             ),
             None,
             None,
             f.new_node_list(vec![super_metadata]),
-            NodeFlags::NONE,
+            NodeFlags::None,
         );
 
         let symbol_check = f.new_logical_and_expression(
@@ -1779,7 +1779,7 @@ impl EsDecoratorTransformer {
                 f.new_identifier("Symbol"),
                 None,
                 f.new_identifier("metadata"),
-                NodeFlags::NONE,
+                NodeFlags::None,
             ),
         );
 
@@ -1793,7 +1793,7 @@ impl EsDecoratorTransformer {
 
         let var_decl = f.new_variable_declaration(name, None, None, Some(conditional));
         let var_decl_list =
-            f.new_variable_declaration_list(f.new_node_list(vec![var_decl]), NodeFlags::CONST);
+            f.new_variable_declaration_list(f.new_node_list(vec![var_decl]), NodeFlags::Const);
         f.new_variable_statement(None, var_decl_list)
     }
 
@@ -1806,7 +1806,7 @@ impl EsDecoratorTransformer {
             f.new_identifier("Symbol"),
             None,
             f.new_identifier("metadata"),
-            NodeFlags::NONE,
+            NodeFlags::None,
         );
 
         let descriptor_props = vec![
@@ -1840,17 +1840,17 @@ impl EsDecoratorTransformer {
                 f.new_identifier("Object"),
                 None,
                 f.new_identifier("defineProperty"),
-                NodeFlags::NONE,
+                NodeFlags::None,
             ),
             None,
             None,
             f.new_node_list(vec![target, symbol_metadata, descriptor]),
-            NodeFlags::NONE,
+            NodeFlags::None,
         );
 
         let if_statement =
             f.new_if_statement(value, f.new_expression_statement(define_property), None);
-        self.base.emit_context().set_emit_flags(if_statement, EmitFlags::SINGLE_LINE);
+        self.base.emit_context().set_emit_flags(if_statement, EmitFlags::SingleLine);
         if_statement
     }
 
@@ -1861,10 +1861,10 @@ impl EsDecoratorTransformer {
             f.new_identifier("Symbol"),
             None,
             f.new_identifier("metadata"),
-            NodeFlags::NONE,
+            NodeFlags::None,
         );
         let element_access =
-            f.new_element_access_expression(class_super, None, symbol_metadata, NodeFlags::NONE);
+            f.new_element_access_expression(class_super, None, symbol_metadata, NodeFlags::None);
         f.new_binary_expression(
             None,
             element_access,

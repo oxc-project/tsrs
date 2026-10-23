@@ -185,7 +185,7 @@ pub(crate) fn try_get_module_name_from_ambient_module(
         let Some(mut export_symbol) = export_symbol else {
             continue;
         };
-        if export_symbol.flags().intersects(SymbolFlags::ALIAS) {
+        if export_symbol.flags().intersects(SymbolFlags::Alias) {
             export_symbol = checker.get_aliased_symbol(export_symbol);
         }
         // TODO: Possible strada bug - isn't this insufficient in the presence of merge symbols?

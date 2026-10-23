@@ -253,7 +253,7 @@ impl LanguageService {
                                             new_path,
                                             use_case_sensitive_file_names,
                                         )),
-                                        TokenFlags::NONE,
+                                        TokenFlags::None,
                                     );
                                     change_tracker.insert_node_after(
                                         config_file,

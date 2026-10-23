@@ -4,7 +4,7 @@ use crate::*;
 
 fn optimistic() -> printer::AutoGenerateOptions {
     printer::AutoGenerateOptions {
-        flags: printer::GeneratedIdentifierFlags::OPTIMISTIC,
+        flags: printer::GeneratedIdentifierFlags::Optimistic,
         ..Default::default()
     }
 }
@@ -217,7 +217,7 @@ impl DeclarationTransformer {
                     Some(mod_list),
                     f.new_variable_declaration_list(
                         f.new_node_list(vec![var_decl]),
-                        NodeFlags::CONST,
+                        NodeFlags::Const,
                     ),
                 );
 
@@ -247,7 +247,7 @@ impl DeclarationTransformer {
                     Some(mod_list),
                     f.new_variable_declaration_list(
                         f.new_node_list(vec![var_decl]),
-                        NodeFlags::NONE,
+                        NodeFlags::None,
                     ),
                 ));
             }
@@ -274,7 +274,7 @@ impl DeclarationTransformer {
         };
         let statement = f.new_variable_statement(
             Some(mod_list),
-            f.new_variable_declaration_list(f.new_node_list(vec![var_decl]), NodeFlags::CONST),
+            f.new_variable_declaration_list(f.new_node_list(vec![var_decl]), NodeFlags::Const),
         );
 
         let assignment = f.new_export_declaration(
@@ -419,7 +419,7 @@ impl DeclarationTransformer {
 
     // transform.go:1621
     pub(crate) fn preserve_partial_js_doc(&self, updated: P<Node>, original: P<Node>) {
-        if !original.flags().intersects(NodeFlags::REPARSED) {
+        if !original.flags().intersects(NodeFlags::Reparsed) {
             return;
         }
         let Some(&jsdoc) = original
@@ -443,7 +443,7 @@ impl DeclarationTransformer {
 
     // transform.go:1637
     pub(crate) fn remove_all_comments(&self, node: P<Node>) {
-        self.emit_context().add_emit_flags(node, printer::EmitFlags::NO_COMMENTS);
+        self.emit_context().add_emit_flags(node, printer::EmitFlags::NoComments);
         // !!! TODO: Also remove synthetic trailing/leading comments added by transforms
         // emitNode.leadingComments = undefined;
         // emitNode.trailingComments = undefined;
@@ -454,8 +454,8 @@ impl DeclarationTransformer {
         if !ignore_private
             && self.resolver.get_effective_declaration_flags(
                 self.emit_context().parse_node(Some(node)).unwrap(),
-                ModifierFlags::PRIVATE,
-            ) != ModifierFlags::NONE
+                ModifierFlags::Private,
+            ) != ModifierFlags::None
         {
             // Private nodes emit no types (except private parameter properties, whose parameter types are actually visible)
             return None;
@@ -483,7 +483,7 @@ impl DeclarationTransformer {
                 // In strada we always built js declarations symbolically, so all js type nodes went through this postprocessing
                 let mut js_flags = DECLARATION_EMIT_NODE_BUILDER_FLAGS;
                 if self.in_class_expression_declaration.get() {
-                    js_flags &= !nodebuilder::Flags::WRITE_CLASS_EXPRESSION_AS_TYPE_LITERAL;
+                    js_flags &= !nodebuilder::Flags::WriteClassExpressionAsTypeLiteral;
                 }
                 let res = self.resolver.try_js_type_node_to_type_node(
                     node.type_node().unwrap(),
@@ -514,7 +514,7 @@ impl DeclarationTransformer {
 
         let mut flags = DECLARATION_EMIT_NODE_BUILDER_FLAGS;
         if self.in_class_expression_declaration.get() {
-            flags &= !nodebuilder::Flags::WRITE_CLASS_EXPRESSION_AS_TYPE_LITERAL;
+            flags &= !nodebuilder::Flags::WriteClassExpressionAsTypeLiteral;
         }
         let type_node = if ast::has_inferred_type(node) {
             self.resolver.create_type_of_declaration(
@@ -726,7 +726,7 @@ impl DeclarationTransformer {
             let statements = self.visitor().visit_nodes(inner.statement_list()).unwrap();
             let mut late_statements =
                 self.transform_and_replace_late_painted_statements(statements);
-            if input.flags().intersects(NodeFlags::AMBIENT) {
+            if input.flags().intersects(NodeFlags::Ambient) {
                 self.needs_scope_fix_marker.set(false); // If it was `declare`'d everything is implicitly exported already, ignore late printed "privates"
             }
             // With the final list of statements, there are 3 possibilities:
@@ -785,8 +785,8 @@ impl DeclarationTransformer {
         let parse_node = self.emit_context().parse_node(Some(statement));
         if ast::is_import_equals_declaration(statement)
             || parse_node.is_some_and(|parse_node| {
-                self.resolver.get_effective_declaration_flags(parse_node, ModifierFlags::DEFAULT)
-                    != ModifierFlags::NONE
+                self.resolver.get_effective_declaration_flags(parse_node, ModifierFlags::Default)
+                    != ModifierFlags::None
             })
             || !ast::can_have_modifiers(statement)
         {
@@ -796,10 +796,10 @@ impl DeclarationTransformer {
         }
 
         let old_flags = ast::get_combined_modifier_flags(statement);
-        if !old_flags.intersects(ModifierFlags::EXPORT) {
+        if !old_flags.intersects(ModifierFlags::Export) {
             return statement;
         }
-        let new_flags = old_flags & (ModifierFlags::ALL ^ ModifierFlags::EXPORT);
+        let new_flags = old_flags & (ModifierFlags::All ^ ModifierFlags::Export);
         let modifiers = ast::create_modifiers_from_modifier_flags(new_flags, |k| {
             self.factory().new_modifier(k)
         });
@@ -825,7 +825,7 @@ impl DeclarationTransformer {
         if let Some(ctor) = ctor {
             let old_diag = self.state.get_symbol_accessibility_diagnostic.borrow().clone();
             for &param in ctor.parameters() {
-                if !ast::has_syntactic_modifier(param, ModifierFlags::PARAMETER_PROPERTY_MODIFIER)
+                if !ast::has_syntactic_modifier(param, ModifierFlags::ParameterPropertyModifier)
                     || self.should_strip_internal(Some(param))
                 {
                     continue;
@@ -964,7 +964,7 @@ impl DeclarationTransformer {
                         mods,
                         f.new_variable_declaration_list(
                             f.new_node_list(vec![var_decl]),
-                            NodeFlags::CONST,
+                            NodeFlags::Const,
                         ),
                     );
                     let heritage_clause = extends_clause.parent().unwrap();
@@ -1063,9 +1063,9 @@ impl DeclarationTransformer {
 
                 let mut modifier_flags = self.ensure_modifier_flags(node);
                 if is_static {
-                    modifier_flags |= ModifierFlags::STATIC;
+                    modifier_flags |= ModifierFlags::Static;
                 }
-                let mods = if modifier_flags != ModifierFlags::NONE {
+                let mods = if modifier_flags != ModifierFlags::None {
                     Some(f.new_modifier_list(ast::create_modifiers_from_modifier_flags(
                         modifier_flags,
                         |kind| f.new_modifier(kind),
@@ -1227,7 +1227,7 @@ impl DeclarationTransformer {
 
         let decl_list;
         if ast::is_var_using(declaration_list) || ast::is_var_await_using(declaration_list) {
-            decl_list = f.new_variable_declaration_list(node_list, NodeFlags::CONST);
+            decl_list = f.new_variable_declaration_list(node_list, NodeFlags::Const);
             self.emit_context().set_original(decl_list, declaration_list);
             self.emit_context().set_comment_range(decl_list, declaration_list.loc());
             decl_list.set_loc(declaration_list.loc());
@@ -1282,16 +1282,16 @@ impl DeclarationTransformer {
                     } else if value.is_nan() {
                         Some(f.new_identifier("NaN"))
                     } else if value.0 >= 0.0 {
-                        Some(f.new_numeric_literal(alloc_str(&value.string()), TokenFlags::NONE))
+                        Some(f.new_numeric_literal(alloc_str(&value.string()), TokenFlags::None))
                     } else {
                         Some(f.new_prefix_unary_expression(
                             Kind::MinusToken,
-                            f.new_numeric_literal(alloc_str(&(-value).string()), TokenFlags::NONE),
+                            f.new_numeric_literal(alloc_str(&(-value).string()), TokenFlags::None),
                         ))
                     }
                 }
                 Some(checker::LiteralValue::String(value)) => {
-                    Some(f.new_string_literal(value, TokenFlags::NONE))
+                    Some(f.new_string_literal(value, TokenFlags::None))
                 }
                 // nil
                 _ => None,

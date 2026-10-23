@@ -95,18 +95,14 @@ fn print_synthesized(mode: &str, file: P<SourceFile>) -> String {
         let mut w: Box<dyn EmitTextWriter> = match mode {
             "synth" => new_text_writer("\n", 0),
             "synthflags" => {
-                set_flags_recursive(
-                    ec,
-                    clone,
-                    EmitFlags::SINGLE_LINE | EmitFlags::NO_ASCII_ESCAPING,
-                );
+                set_flags_recursive(ec, clone, EmitFlags::SingleLine | EmitFlags::NoAsciiEscaping);
                 get_single_line_string_writer().0
             }
             "synthmulti" => {
                 set_flags_recursive(
                     ec,
                     clone,
-                    EmitFlags::MULTI_LINE | EmitFlags::START_ON_NEW_LINE | EmitFlags::INDENTED,
+                    EmitFlags::MultiLine | EmitFlags::StartOnNewLine | EmitFlags::Indented,
                 );
                 new_text_writer("\n", 0)
             }

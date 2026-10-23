@@ -21,31 +21,31 @@ use crate::unicodeproperties::{
 bitflags::bitflags! {
     #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Default)]
     pub(crate) struct RegularExpressionFlags: u32 {
-        const NONE = 0;
-        const HAS_INDICES = 1 << 0; // d
-        const GLOBAL = 1 << 1; // g
-        const IGNORE_CASE = 1 << 2; // i
-        const MULTILINE = 1 << 3; // m
-        const DOT_ALL = 1 << 4; // s
-        const UNICODE = 1 << 5; // u
-        const UNICODE_SETS = 1 << 6; // v
-        const STICKY = 1 << 7; // y
-        const ANY_UNICODE_MODE = Self::UNICODE.bits() | Self::UNICODE_SETS.bits();
-        const MODIFIERS = Self::IGNORE_CASE.bits() | Self::MULTILINE.bits() | Self::DOT_ALL.bits();
+        const None = 0;
+        const HasIndices = 1 << 0; // d
+        const Global = 1 << 1; // g
+        const IgnoreCase = 1 << 2; // i
+        const Multiline = 1 << 3; // m
+        const DotAll = 1 << 4; // s
+        const Unicode = 1 << 5; // u
+        const UnicodeSets = 1 << 6; // v
+        const Sticky = 1 << 7; // y
+        const AnyUnicodeMode = Self::Unicode.bits() | Self::UnicodeSets.bits();
+        const Modifiers = Self::IgnoreCase.bits() | Self::Multiline.bits() | Self::DotAll.bits();
     }
 }
 
 /// Go `charCodeToRegExpFlag[ch]` ("comma ok").
 pub(crate) fn char_code_to_reg_exp_flag(ch: Rune) -> Option<RegularExpressionFlags> {
     Some(match ch {
-        0x64 => RegularExpressionFlags::HAS_INDICES,
-        0x67 => RegularExpressionFlags::GLOBAL,
-        0x69 => RegularExpressionFlags::IGNORE_CASE,
-        0x6D => RegularExpressionFlags::MULTILINE,
-        0x73 => RegularExpressionFlags::DOT_ALL,
-        0x75 => RegularExpressionFlags::UNICODE,
-        0x76 => RegularExpressionFlags::UNICODE_SETS,
-        0x79 => RegularExpressionFlags::STICKY,
+        0x64 => RegularExpressionFlags::HasIndices,
+        0x67 => RegularExpressionFlags::Global,
+        0x69 => RegularExpressionFlags::IgnoreCase,
+        0x6D => RegularExpressionFlags::Multiline,
+        0x73 => RegularExpressionFlags::DotAll,
+        0x75 => RegularExpressionFlags::Unicode,
+        0x76 => RegularExpressionFlags::UnicodeSets,
+        0x79 => RegularExpressionFlags::Sticky,
         _ => return None,
     })
 }
@@ -53,11 +53,11 @@ pub(crate) fn char_code_to_reg_exp_flag(ch: Rune) -> Option<RegularExpressionFla
 fn reg_exp_flag_to_first_available_language_version(
     flag: RegularExpressionFlags,
 ) -> Option<ScriptTarget> {
-    if flag == RegularExpressionFlags::HAS_INDICES {
+    if flag == RegularExpressionFlags::HasIndices {
         Some(ScriptTarget::ES2022)
-    } else if flag == RegularExpressionFlags::DOT_ALL {
+    } else if flag == RegularExpressionFlags::DotAll {
         Some(ScriptTarget::ES2018)
-    } else if flag == RegularExpressionFlags::UNICODE_SETS {
+    } else if flag == RegularExpressionFlags::UnicodeSets {
         Some(ScriptTarget::ES2024)
     } else {
         None
@@ -352,7 +352,7 @@ impl RegExpParser {
                             }
                             _ => {
                                 let flags_start = self.pos();
-                                let set_flags = self.scan_pattern_modifiers(RegularExpressionFlags::NONE);
+                                let set_flags = self.scan_pattern_modifiers(RegularExpressionFlags::None);
                                 if self.char() == Some(b'-') {
                                     self.inc_pos(1);
                                     self.scan_pattern_modifiers(set_flags);
@@ -509,7 +509,7 @@ impl RegExpParser {
                         &[],
                     );
                 }
-                Some(flag) if !flag.intersects(RegularExpressionFlags::MODIFIERS) => {
+                Some(flag) if !flag.intersects(RegularExpressionFlags::Modifiers) => {
                     self.error(&diagnostics::THIS_REGULAR_EXPRESSION_FLAG_CANNOT_BE_TOGGLED_WITHIN_A_SUBPATTERN, self.pos(), size, &[]);
                 }
                 Some(flag) => {
@@ -622,15 +622,15 @@ impl RegExpParser {
             }
             _ => {
                 self.dec_pos(1); // back up to include the backslash for scanEscapeSequence
-                let mut flags = EscapeSequenceScanningFlags::REGULAR_EXPRESSION;
+                let mut flags = EscapeSequenceScanningFlags::RegularExpression;
                 if self.annex_b {
-                    flags |= EscapeSequenceScanningFlags::ANNEX_B;
+                    flags |= EscapeSequenceScanningFlags::AnnexB;
                 }
                 if self.any_unicode_mode {
-                    flags |= EscapeSequenceScanningFlags::ANY_UNICODE_MODE;
+                    flags |= EscapeSequenceScanningFlags::AnyUnicodeMode;
                 }
                 if atom_escape {
-                    flags |= EscapeSequenceScanningFlags::ATOM_ESCAPE;
+                    flags |= EscapeSequenceScanningFlags::AtomEscape;
                 }
                 self.scanner.scan_escape_sequence(flags)
             }

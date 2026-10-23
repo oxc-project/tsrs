@@ -149,7 +149,7 @@ impl Export {
 
     // export.go:92
     pub fn is_unresolved_alias(&self) -> bool {
-        self.flags == SymbolFlags::ALIAS
+        self.flags == SymbolFlags::Alias
     }
 }
 

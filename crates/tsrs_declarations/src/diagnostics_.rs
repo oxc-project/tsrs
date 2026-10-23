@@ -190,7 +190,7 @@ pub(crate) fn create_get_symbol_accessibility_diagnostic_for_node(
         wrap_fallback_error_diagnostic_selector(node, get_return_type_visibility_diagnostic_message)
     } else if ast::is_parameter_declaration(node) {
         if ast::is_parameter_property_declaration(node, node.parent().unwrap())
-            && ast::has_syntactic_modifier(node.parent().unwrap(), ModifierFlags::PRIVATE)
+            && ast::has_syntactic_modifier(node.parent().unwrap(), ModifierFlags::Private)
         {
             return wrap_simple_diagnostic_selector(
                 node,
@@ -300,7 +300,7 @@ pub(crate) fn get_variable_declaration_type_visibility_diagnostic_message(
         || node.kind() == Kind::BinaryExpression
         || node.kind() == Kind::PropertySignature
         || (node.kind() == Kind::Parameter
-            && ast::has_syntactic_modifier(node.parent().unwrap(), ModifierFlags::PRIVATE))
+            && ast::has_syntactic_modifier(node.parent().unwrap(), ModifierFlags::Private))
     {
         // TODO(jfreeman): Deal with computed properties in error reporting.
         if ast::is_static(node) {

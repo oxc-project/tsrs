@@ -577,7 +577,7 @@ impl Checker {
             },
             Kind::ThisKeyword => sink.put(b"T"),
             Kind::PropertyAccessExpression => {
-                if node.flags().intersects(NodeFlags::OPTIONAL_CHAIN)
+                if node.flags().intersects(NodeFlags::OptionalChain)
                     || !self.write_flow_memo_reference(sink, node.expression().unwrap())
                 {
                     return false;

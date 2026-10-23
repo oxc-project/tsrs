@@ -10927,7 +10927,7 @@ impl NodeFactory {
                 NumericLiteral {
                     literal_like_node_base: LiteralLikeNodeBase {
                         text: PackedStr::new(""),
-                        token_flags: OwnedCell::new(TokenFlags::NONE),
+                        token_flags: OwnedCell::new(TokenFlags::None),
                     },
                 },
             ),
@@ -10936,7 +10936,7 @@ impl NodeFactory {
                 BigIntLiteral {
                     literal_like_node_base: LiteralLikeNodeBase {
                         text: PackedStr::new(""),
-                        token_flags: OwnedCell::new(TokenFlags::NONE),
+                        token_flags: OwnedCell::new(TokenFlags::None),
                     },
                 },
             ),
@@ -10945,7 +10945,7 @@ impl NodeFactory {
                 StringLiteral {
                     literal_like_node_base: LiteralLikeNodeBase {
                         text: PackedStr::new(""),
-                        token_flags: OwnedCell::new(TokenFlags::NONE),
+                        token_flags: OwnedCell::new(TokenFlags::None),
                     },
                 },
             ),
@@ -10954,7 +10954,7 @@ impl NodeFactory {
                 JsxText {
                     literal_like_node_base: LiteralLikeNodeBase {
                         text: PackedStr::new(""),
-                        token_flags: OwnedCell::new(TokenFlags::NONE),
+                        token_flags: OwnedCell::new(TokenFlags::None),
                     },
                     contains_only_trivia_white_spaces: false,
                 },
@@ -10964,7 +10964,7 @@ impl NodeFactory {
                 RegularExpressionLiteral {
                     literal_like_node_base: LiteralLikeNodeBase {
                         text: PackedStr::new(""),
-                        token_flags: OwnedCell::new(TokenFlags::NONE),
+                        token_flags: OwnedCell::new(TokenFlags::None),
                     },
                 },
             ),
@@ -10974,10 +10974,10 @@ impl NodeFactory {
                     template_literal_like_node_base: TemplateLiteralLikeNodeBase {
                         literal_like_node_base: LiteralLikeNodeBase {
                             text: PackedStr::new(""),
-                            token_flags: OwnedCell::new(TokenFlags::NONE),
+                            token_flags: OwnedCell::new(TokenFlags::None),
                         },
                         raw_text: "",
-                        template_flags: TokenFlags::NONE,
+                        template_flags: TokenFlags::None,
                     },
                     declaration_base: DeclarationBase { symbol: OwnedCell::new(None) },
                 },
@@ -10988,10 +10988,10 @@ impl NodeFactory {
                     template_literal_like_node_base: TemplateLiteralLikeNodeBase {
                         literal_like_node_base: LiteralLikeNodeBase {
                             text: PackedStr::new(""),
-                            token_flags: OwnedCell::new(TokenFlags::NONE),
+                            token_flags: OwnedCell::new(TokenFlags::None),
                         },
                         raw_text: "",
-                        template_flags: TokenFlags::NONE,
+                        template_flags: TokenFlags::None,
                     },
                 },
             ),
@@ -11001,10 +11001,10 @@ impl NodeFactory {
                     template_literal_like_node_base: TemplateLiteralLikeNodeBase {
                         literal_like_node_base: LiteralLikeNodeBase {
                             text: PackedStr::new(""),
-                            token_flags: OwnedCell::new(TokenFlags::NONE),
+                            token_flags: OwnedCell::new(TokenFlags::None),
                         },
                         raw_text: "",
-                        template_flags: TokenFlags::NONE,
+                        template_flags: TokenFlags::None,
                     },
                 },
             ),
@@ -11014,10 +11014,10 @@ impl NodeFactory {
                     template_literal_like_node_base: TemplateLiteralLikeNodeBase {
                         literal_like_node_base: LiteralLikeNodeBase {
                             text: PackedStr::new(""),
-                            token_flags: OwnedCell::new(TokenFlags::NONE),
+                            token_flags: OwnedCell::new(TokenFlags::None),
                         },
                         raw_text: "",
-                        template_flags: TokenFlags::NONE,
+                        template_flags: TokenFlags::None,
                     },
                 },
             ),
@@ -13345,7 +13345,7 @@ impl NodeFactory {
             StringLiteral {
                 literal_like_node_base: LiteralLikeNodeBase {
                     text: PackedStr::new(text),
-                    token_flags: OwnedCell::new(token_flags & TokenFlags::STRING_LITERAL_FLAGS),
+                    token_flags: OwnedCell::new(token_flags & TokenFlags::StringLiteralFlags),
                 },
             },
         )
@@ -13358,7 +13358,7 @@ impl NodeFactory {
             NumericLiteral {
                 literal_like_node_base: LiteralLikeNodeBase {
                     text: PackedStr::new(text),
-                    token_flags: OwnedCell::new(token_flags & TokenFlags::NUMERIC_LITERAL_FLAGS),
+                    token_flags: OwnedCell::new(token_flags & TokenFlags::NumericLiteralFlags),
                 },
             },
         )
@@ -13371,7 +13371,7 @@ impl NodeFactory {
             BigIntLiteral {
                 literal_like_node_base: LiteralLikeNodeBase {
                     text: PackedStr::new(text),
-                    token_flags: OwnedCell::new(token_flags & TokenFlags::NUMERIC_LITERAL_FLAGS),
+                    token_flags: OwnedCell::new(token_flags & TokenFlags::NumericLiteralFlags),
                 },
             },
         )
@@ -13389,7 +13389,7 @@ impl NodeFactory {
                 literal_like_node_base: LiteralLikeNodeBase {
                     text: PackedStr::new(text),
                     token_flags: OwnedCell::new(
-                        token_flags & TokenFlags::REGULAR_EXPRESSION_LITERAL_FLAGS,
+                        token_flags & TokenFlags::RegularExpressionLiteralFlags,
                     ),
                 },
             },
@@ -13408,10 +13408,10 @@ impl NodeFactory {
                 template_literal_like_node_base: TemplateLiteralLikeNodeBase {
                     literal_like_node_base: LiteralLikeNodeBase {
                         text: PackedStr::new(text),
-                        token_flags: OwnedCell::new(TokenFlags::NONE),
+                        token_flags: OwnedCell::new(TokenFlags::None),
                     },
                     raw_text: "",
-                    template_flags: template_flags & TokenFlags::TEMPLATE_LITERAL_LIKE_FLAGS,
+                    template_flags: template_flags & TokenFlags::TemplateLiteralLikeFlags,
                 },
                 declaration_base: DeclarationBase { symbol: OwnedCell::new(None) },
             },
@@ -13791,7 +13791,7 @@ impl NodeFactory {
                 },
             )
         };
-        node.flags.set(node.flags.get() | (flags & NodeFlags::OPTIONAL_CHAIN));
+        node.flags.set(node.flags.get() | (flags & NodeFlags::OptionalChain));
         node
     }
 
@@ -13845,7 +13845,7 @@ impl NodeFactory {
                 },
             )
         };
-        node.flags.set(node.flags.get() | (flags & NodeFlags::OPTIONAL_CHAIN));
+        node.flags.set(node.flags.get() | (flags & NodeFlags::OptionalChain));
         node
     }
 
@@ -13905,7 +13905,7 @@ impl NodeFactory {
                 },
             )
         };
-        node.flags.set(node.flags.get() | (flags & NodeFlags::OPTIONAL_CHAIN));
+        node.flags.set(node.flags.get() | (flags & NodeFlags::OptionalChain));
         node
     }
 
@@ -14004,7 +14004,7 @@ impl NodeFactory {
 
     pub fn new_non_null_expression(&self, expression: P<Node>, flags: NodeFlags) -> P<Node> {
         let node = self.new_node(Kind::NonNullExpression, NonNullExpression { expression });
-        node.flags.set(node.flags.get() | (flags & NodeFlags::OPTIONAL_CHAIN));
+        node.flags.set(node.flags.get() | (flags & NodeFlags::OptionalChain));
         node
     }
 
@@ -14083,7 +14083,7 @@ impl NodeFactory {
             Kind::TaggedTemplateExpression,
             TaggedTemplateExpression { tag, question_dot_token, type_arguments, template },
         );
-        node.flags.set(node.flags.get() | (flags & NodeFlags::OPTIONAL_CHAIN));
+        node.flags.set(node.flags.get() | (flags & NodeFlags::OptionalChain));
         node
     }
 
@@ -15019,10 +15019,10 @@ impl NodeFactory {
                 template_literal_like_node_base: TemplateLiteralLikeNodeBase {
                     literal_like_node_base: LiteralLikeNodeBase {
                         text: PackedStr::new(text),
-                        token_flags: OwnedCell::new(TokenFlags::NONE),
+                        token_flags: OwnedCell::new(TokenFlags::None),
                     },
                     raw_text,
-                    template_flags: template_flags & TokenFlags::TEMPLATE_LITERAL_LIKE_FLAGS,
+                    template_flags: template_flags & TokenFlags::TemplateLiteralLikeFlags,
                 },
             },
         )
@@ -15041,10 +15041,10 @@ impl NodeFactory {
                 template_literal_like_node_base: TemplateLiteralLikeNodeBase {
                     literal_like_node_base: LiteralLikeNodeBase {
                         text: PackedStr::new(text),
-                        token_flags: OwnedCell::new(TokenFlags::NONE),
+                        token_flags: OwnedCell::new(TokenFlags::None),
                     },
                     raw_text,
-                    template_flags: template_flags & TokenFlags::TEMPLATE_LITERAL_LIKE_FLAGS,
+                    template_flags: template_flags & TokenFlags::TemplateLiteralLikeFlags,
                 },
             },
         )
@@ -15063,10 +15063,10 @@ impl NodeFactory {
                 template_literal_like_node_base: TemplateLiteralLikeNodeBase {
                     literal_like_node_base: LiteralLikeNodeBase {
                         text: PackedStr::new(text),
-                        token_flags: OwnedCell::new(TokenFlags::NONE),
+                        token_flags: OwnedCell::new(TokenFlags::None),
                     },
                     raw_text,
-                    template_flags: template_flags & TokenFlags::TEMPLATE_LITERAL_LIKE_FLAGS,
+                    template_flags: template_flags & TokenFlags::TemplateLiteralLikeFlags,
                 },
             },
         )
@@ -15438,7 +15438,7 @@ impl NodeFactory {
             JsxText {
                 literal_like_node_base: LiteralLikeNodeBase {
                     text: PackedStr::new(text),
-                    token_flags: OwnedCell::new(TokenFlags::NONE),
+                    token_flags: OwnedCell::new(TokenFlags::None),
                 },
                 contains_only_trivia_white_spaces,
             },

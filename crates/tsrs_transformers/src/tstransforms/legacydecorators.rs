@@ -49,7 +49,7 @@ impl LegacyDecoratorsTransformer {
     // legacydecorators.go:30
     fn visit(&self, node: P<Node>) -> Option<P<Node>> {
         // we have to visit all identifiers in classes, just in case they require substitution
-        if !node.subtree_facts().intersects(SubtreeFacts::CONTAINS_DECORATORS)
+        if !node.subtree_facts().intersects(SubtreeFacts::ContainsDecorators)
             && self.enclosing_classes.borrow().is_empty()
         {
             return Some(node);
@@ -175,7 +175,7 @@ impl LegacyDecoratorsTransformer {
             updated.set_loc(new_loc);
             self.emit_context().set_source_map_range(updated, new_loc);
             self.emit_context()
-                .set_emit_flags(updated.name().unwrap(), EmitFlags::NO_TRAILING_SOURCE_MAP);
+                .set_emit_flags(updated.name().unwrap(), EmitFlags::NoTrailingSourceMap);
         }
         updated
     }
@@ -206,10 +206,10 @@ impl LegacyDecoratorsTransformer {
 
     // legacydecorators.go:167
     fn visit_property_declaration(&self, node: P<Node>) -> Option<P<Node>> {
-        if node.flags().intersects(NodeFlags::AMBIENT) {
+        if node.flags().intersects(NodeFlags::Ambient) {
             return None;
         }
-        if ast::has_syntactic_modifier(node, ModifierFlags::AMBIENT | ModifierFlags::ABSTRACT) {
+        if ast::has_syntactic_modifier(node, ModifierFlags::Ambient | ModifierFlags::Abstract) {
             return None;
         }
 
@@ -471,8 +471,8 @@ impl LegacyDecoratorsTransformer {
 
         let f = self.factory();
         let c = node.as_class_declaration();
-        let is_export = ast::has_syntactic_modifier(node, ModifierFlags::EXPORT);
-        let is_default = ast::has_syntactic_modifier(node, ModifierFlags::DEFAULT);
+        let is_export = ast::has_syntactic_modifier(node, ModifierFlags::Export);
+        let is_default = ast::has_syntactic_modifier(node, ModifierFlags::Default);
         let mut modifiers: Option<P<ModifierList>> = None;
         if let Some(node_modifiers) = node.modifiers() {
             if !node_modifiers.nodes().is_empty() {
@@ -571,7 +571,7 @@ impl LegacyDecoratorsTransformer {
         self.emit_context().set_original(var_decl, node);
 
         let var_decl_list =
-            f.new_variable_declaration_list(f.new_node_list(vec![var_decl]), NodeFlags::LET);
+            f.new_variable_declaration_list(f.new_node_list(vec![var_decl]), NodeFlags::Let);
         let var_statement = f.new_variable_statement(None, var_decl_list);
         self.emit_context().set_original(var_statement, node);
         var_statement.set_loc(location);
@@ -713,7 +713,7 @@ impl LegacyDecoratorsTransformer {
             assignment_target = f.new_assignment_expression(class_alias, decorate);
         }
         let expression = f.new_assignment_expression(local_name, assignment_target);
-        self.emit_context().set_emit_flags(expression, EmitFlags::NO_COMMENTS);
+        self.emit_context().set_emit_flags(expression, EmitFlags::NoComments);
         self.emit_context().set_source_map_range(expression, move_range_past_modifiers(node));
         Some(expression)
     }
@@ -734,7 +734,7 @@ fn is_not_export_or_default_or_decorator(node: P<Node>) -> bool {
 
 // legacydecorators.go:622
 fn decorator_contains_private_identifier_in_expression(decorator: P<Node>) -> bool {
-    decorator.subtree_facts().intersects(SubtreeFacts::CONTAINS_PRIVATE_IDENTIFIER_IN_EXPRESSION)
+    decorator.subtree_facts().intersects(SubtreeFacts::ContainsPrivateIdentifierInExpression)
 }
 
 // legacydecorators.go:626
@@ -1094,7 +1094,7 @@ impl LegacyDecoratorsTransformer {
         let prefix = self.get_class_member_prefix(node, member);
         let member_name = self.get_expression_for_property_name(
             member,
-            !member.flags().intersects(NodeFlags::AMBIENT),
+            !member.flags().intersects(NodeFlags::Ambient),
         );
         let descriptor =
             if ast::is_property_declaration(member) && !ast::has_accessor_modifier(member) {
@@ -1114,7 +1114,7 @@ impl LegacyDecoratorsTransformer {
             Some(descriptor),
         );
 
-        self.emit_context().set_emit_flags(helper, EmitFlags::NO_COMMENTS);
+        self.emit_context().set_emit_flags(helper, EmitFlags::NoComments);
         self.emit_context().set_source_map_range(helper, move_range_past_modifiers(member));
         Some(helper)
     }
@@ -1164,7 +1164,7 @@ impl LegacyDecoratorsTransformer {
                         i,
                         decorator.expression().unwrap().loc(),
                     );
-                    self.emit_context().set_emit_flags(helper, EmitFlags::NO_COMMENTS);
+                    self.emit_context().set_emit_flags(helper, EmitFlags::NoComments);
                     helper
                 }));
             }
@@ -1202,7 +1202,7 @@ impl LegacyDecoratorsTransformer {
             f.get_declaration_name(node),
             None,
             f.new_identifier("prototype"),
-            NodeFlags::NONE,
+            NodeFlags::None,
         )
     }
 
@@ -1224,7 +1224,7 @@ impl LegacyDecoratorsTransformer {
             }
             name.as_computed_property_name().expression
         } else if ast::is_identifier(name) {
-            f.new_string_literal(name.text(), TokenFlags::NONE)
+            f.new_string_literal(name.text(), TokenFlags::None)
         } else {
             f.deep_clone_node(Some(name)).unwrap()
         }

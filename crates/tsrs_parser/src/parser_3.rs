@@ -358,7 +358,7 @@ impl Parser {
         let jsdoc = self.jsdoc_scanner_info();
         let modifiers = self.parse_modifiers_for_arrow_function();
         let is_async = modifier_list_has_async(modifiers);
-        let signature_flags = if is_async { ParseFlags::AWAIT } else { ParseFlags::NONE };
+        let signature_flags = if is_async { ParseFlags::Await } else { ParseFlags::None };
         // Arrow functions are never generators.
         //
         // If we're speculatively parsing a signature for a parenthesized arrow function, then
@@ -489,7 +489,7 @@ impl Parser {
     ) -> P<Node> {
         if self.token == Kind::OpenBraceToken {
             return self.parse_function_block(
-                if is_async { ParseFlags::AWAIT } else { ParseFlags::NONE },
+                if is_async { ParseFlags::Await } else { ParseFlags::None },
                 None, /*diagnosticMessage*/
             );
         }
@@ -514,14 +514,14 @@ impl Parser {
             //
             // Note: even when 'IgnoreMissingOpenBrace' is passed, parseBody will still error.
             return self.parse_function_block(
-                ParseFlags::IGNORE_MISSING_OPEN_BRACE
-                    | if is_async { ParseFlags::AWAIT } else { ParseFlags::NONE },
+                ParseFlags::IgnoreMissingOpenBrace
+                    | if is_async { ParseFlags::Await } else { ParseFlags::None },
                 None, /*diagnosticMessage*/
             );
         }
         let save_context_flags = self.context_flags;
-        self.set_context_flags(NodeFlags::AWAIT_CONTEXT, is_async);
-        self.set_context_flags(NodeFlags::YIELD_CONTEXT, false);
+        self.set_context_flags(NodeFlags::AwaitContext, is_async);
+        self.set_context_flags(NodeFlags::YieldContext, false);
         let node =
             self.parse_assignment_expression_or_higher_worker(allow_return_type_in_arrow_function);
         self.context_flags = save_context_flags;
@@ -655,7 +655,7 @@ impl Parser {
         // Note: we explicitly 'allowIn' in the whenTrue part of the condition expression, and
         // we do not that for the 'whenFalse' part.
         let save_context_flags = self.context_flags;
-        self.set_context_flags(NodeFlags::DISALLOW_IN_CONTEXT, false);
+        self.set_context_flags(NodeFlags::DisallowInContext, false);
         let true_expression = self.parse_assignment_expression_or_higher_worker(
             false, /*allowReturnTypeInArrowFunction*/
         );
@@ -1262,7 +1262,7 @@ impl Parser {
         }
         let tag_name = self.parse_jsx_element_name();
         let mut type_arguments: Option<P<NodeList>> = None;
-        if !self.context_flags.intersects(NodeFlags::JAVA_SCRIPT_FILE) {
+        if !self.context_flags.intersects(NodeFlags::JavaScriptFile) {
             type_arguments = self.parse_type_arguments();
         }
         let attributes = self.parse_jsx_attributes();
@@ -1309,7 +1309,7 @@ impl Parser {
                 expression,
                 None,
                 name,
-                NodeFlags::NONE,
+                NodeFlags::None,
             );
             expression = self.finish_node(node, pos);
         }
@@ -1565,7 +1565,7 @@ impl Parser {
             //      var foo3 = require("subfolder
             //      import * as foo1 from "module-from-node
             // We want this import to be a statement rather than import call expression
-            self.source_flags |= NodeFlags::POSSIBLY_CONTAINS_DYNAMIC_IMPORT;
+            self.source_flags |= NodeFlags::PossiblyContainsDynamicImport;
             expression = self.parse_keyword_expression();
         } else if self.look_ahead(Parser::next_token_is_dot) {
             // This is an 'import.*' metaproperty (i.e. 'import.meta')
@@ -1576,10 +1576,10 @@ impl Parser {
             expression = self.finish_node(node, pos);
             if ast::is_import_phase_meta_property(expression) {
                 if self.token == Kind::OpenParenToken || self.token == Kind::LessThanToken {
-                    self.source_flags |= NodeFlags::POSSIBLY_CONTAINS_DYNAMIC_IMPORT;
+                    self.source_flags |= NodeFlags::PossiblyContainsDynamicImport;
                 }
             } else {
-                self.source_flags |= NodeFlags::POSSIBLY_CONTAINS_IMPORT_META;
+                self.source_flags |= NodeFlags::PossiblyContainsImportMeta;
             }
         } else {
             expression = self.parse_member_expression_or_higher();
@@ -1646,7 +1646,7 @@ impl Parser {
             expression,
             None, /*questionDotToken*/
             name,
-            NodeFlags::NONE,
+            NodeFlags::None,
         );
         self.finish_node(node, pos)
     }
@@ -1661,7 +1661,7 @@ impl Parser {
         // Check the cheap preconditions before saving the parser state: unless the current token is `<`
         // (or `<<`, which reScanLessThanToken would split), there is nothing to speculatively parse and
         // the mark/rewind would be a no-op.
-        if self.context_flags.intersects(NodeFlags::JAVA_SCRIPT_FILE)
+        if self.context_flags.intersects(NodeFlags::JavaScriptFile)
             || (self.token != Kind::LessThanToken && self.token != Kind::LessThanLessThanToken)
         {
             return None;
@@ -1859,7 +1859,7 @@ impl Parser {
             if question_dot_token.is_none() {
                 if self.token == Kind::ExclamationToken && !self.has_preceding_line_break() {
                     self.next_token();
-                    let node = self.factory.new_non_null_expression(expression, NodeFlags::NONE);
+                    let node = self.factory.new_non_null_expression(expression, NodeFlags::None);
                     let node = self.finish_node(node, pos);
                     expression = self.check_js_syntax(node);
                     continue;
@@ -1908,7 +1908,7 @@ impl Parser {
             expression,
             question_dot_token,
             name,
-            if is_optional_chain { NodeFlags::OPTIONAL_CHAIN } else { NodeFlags::NONE },
+            if is_optional_chain { NodeFlags::OptionalChain } else { NodeFlags::None },
         );
         if is_optional_chain && ast::is_private_identifier(name) {
             let loc = self.skip_range_trivia(name.loc());
@@ -1935,7 +1935,7 @@ impl Parser {
 
     #[inline]
     pub(crate) fn try_reparse_optional_chain(node: P<Node>) -> bool {
-        if node.flags().intersects(NodeFlags::OPTIONAL_CHAIN) {
+        if node.flags().intersects(NodeFlags::OptionalChain) {
             return true;
         }
         // check for an optional chain in a non-null expression
@@ -1947,15 +1947,15 @@ impl Parser {
         {
             let mut expr = node.expression().unwrap();
             while ast::is_non_null_expression(expr)
-                && !expr.flags().intersects(NodeFlags::OPTIONAL_CHAIN)
+                && !expr.flags().intersects(NodeFlags::OptionalChain)
             {
                 expr = expr.expression().unwrap();
             }
-            if expr.flags().intersects(NodeFlags::OPTIONAL_CHAIN) {
+            if expr.flags().intersects(NodeFlags::OptionalChain) {
                 // this is part of an optional chain. Walk down from `node` to `expression` and set the flag.
                 let mut node = node;
                 while ast::is_non_null_expression(node) {
-                    node.set_flags(node.flags() | NodeFlags::OPTIONAL_CHAIN);
+                    node.set_flags(node.flags() | NodeFlags::OptionalChain);
                     node = node.expression().unwrap();
                 }
                 return true;
@@ -1989,7 +1989,7 @@ impl Parser {
             expression,
             question_dot_token,
             argument_expression,
-            if is_optional_chain { NodeFlags::OPTIONAL_CHAIN } else { NodeFlags::NONE },
+            if is_optional_chain { NodeFlags::OptionalChain } else { NodeFlags::None },
         );
         self.finish_node(node, pos)
     }
@@ -2039,7 +2039,7 @@ impl Parser {
                     question_dot_token,
                     type_arguments,
                     argument_list,
-                    if is_optional_chain { NodeFlags::OPTIONAL_CHAIN } else { NodeFlags::NONE },
+                    if is_optional_chain { NodeFlags::OptionalChain } else { NodeFlags::None },
                 );
                 let node = self.finish_node(node, pos);
                 expression = self.check_js_syntax(node);
@@ -2058,7 +2058,7 @@ impl Parser {
                     expression,
                     question_dot_token,
                     name,
-                    NodeFlags::OPTIONAL_CHAIN,
+                    NodeFlags::OptionalChain,
                 );
                 expression = self.finish_node(node, pos);
             }
@@ -2081,7 +2081,7 @@ impl Parser {
 
     pub(crate) fn parse_argument_expression(&mut self) -> P<Node> {
         self.do_in_context(
-            NodeFlags::DISALLOW_IN_CONTEXT | NodeFlags::DECORATOR_CONTEXT,
+            NodeFlags::DisallowInContext | NodeFlags::DecoratorContext,
             false,
             Parser::parse_argument_or_array_literal_element,
         )
@@ -2122,13 +2122,13 @@ impl Parser {
             self.parse_template_expression(true /*isTaggedTemplate*/)
         };
         let is_optional_chain =
-            question_dot_token.is_some() || tag.flags().intersects(NodeFlags::OPTIONAL_CHAIN);
+            question_dot_token.is_some() || tag.flags().intersects(NodeFlags::OptionalChain);
         let node = self.factory.new_tagged_template_expression(
             tag,
             question_dot_token,
             type_arguments,
             template,
-            if is_optional_chain { NodeFlags::OPTIONAL_CHAIN } else { NodeFlags::NONE },
+            if is_optional_chain { NodeFlags::OptionalChain } else { NodeFlags::None },
         );
         let node = self.finish_node(node, pos);
         self.check_js_syntax(node)
@@ -2183,7 +2183,7 @@ impl Parser {
             | Kind::BigIntLiteral
             | Kind::StringLiteral => {
                 if token == Kind::NoSubstitutionTemplateLiteral
-                    && self.scanner.token_flags().intersects(TokenFlags::IS_INVALID)
+                    && self.scanner.token_flags().intersects(TokenFlags::IsInvalid)
                 {
                     self.re_scan_template_token(false /*isTaggedTemplate*/);
                 }
@@ -2300,7 +2300,7 @@ impl Parser {
                 jsdoc,
                 modifiers,
                 Kind::GetAccessor,
-                ParseFlags::NONE,
+                ParseFlags::None,
             );
         }
         if self.parse_contextual_modifier(Kind::SetKeyword) {
@@ -2309,7 +2309,7 @@ impl Parser {
                 jsdoc,
                 modifiers,
                 Kind::SetAccessor,
-                ParseFlags::NONE,
+                ParseFlags::None,
             );
         }
         let asterisk_token = self.parse_optional_token(Kind::AsteriskToken);
@@ -2348,7 +2348,7 @@ impl Parser {
             let mut initializer: Option<P<Node>> = None;
             if equals_token.is_some() {
                 initializer = Some(self.do_in_context(
-                    NodeFlags::DISALLOW_IN_CONTEXT,
+                    NodeFlags::DisallowInContext,
                     false,
                     Parser::parse_assignment_expression_or_higher,
                 ));
@@ -2364,7 +2364,7 @@ impl Parser {
         } else {
             self.parse_expected(Kind::ColonToken);
             let initializer = self.do_in_context(
-                NodeFlags::DISALLOW_IN_CONTEXT,
+                NodeFlags::DisallowInContext,
                 false,
                 Parser::parse_assignment_expression_or_higher,
             );
@@ -2388,7 +2388,7 @@ impl Parser {
         // FunctionExpression:
         //      function BindingIdentifier[opt](FormalParameters){ FunctionBody }
         let save_contex_flags = self.context_flags;
-        self.set_context_flags(NodeFlags::DECORATOR_CONTEXT, false);
+        self.set_context_flags(NodeFlags::DecoratorContext, false);
         let pos = self.node_pos();
         let jsdoc = self.jsdoc_scanner_info();
         let modifiers = self.parse_modifiers();
@@ -2396,23 +2396,23 @@ impl Parser {
         let asterisk_token = self.parse_optional_token(Kind::AsteriskToken);
         let is_generator = asterisk_token.is_some();
         let is_async = modifier_list_has_async(modifiers);
-        let signature_flags = (if is_generator { ParseFlags::YIELD } else { ParseFlags::NONE })
-            | (if is_async { ParseFlags::AWAIT } else { ParseFlags::NONE });
+        let signature_flags = (if is_generator { ParseFlags::Yield } else { ParseFlags::None })
+            | (if is_async { ParseFlags::Await } else { ParseFlags::None });
         let name = if is_generator && is_async {
             self.do_in_context(
-                NodeFlags::YIELD_CONTEXT | NodeFlags::AWAIT_CONTEXT,
+                NodeFlags::YieldContext | NodeFlags::AwaitContext,
                 true,
                 Parser::parse_optional_binding_identifier,
             )
         } else if is_generator {
             self.do_in_context(
-                NodeFlags::YIELD_CONTEXT,
+                NodeFlags::YieldContext,
                 true,
                 Parser::parse_optional_binding_identifier,
             )
         } else if is_async {
             self.do_in_context(
-                NodeFlags::AWAIT_CONTEXT,
+                NodeFlags::AwaitContext,
                 true,
                 Parser::parse_optional_binding_identifier,
             )
@@ -2718,7 +2718,7 @@ impl Parser {
         node.set_loc(TextRange::new(pos, end));
         node.set_flags(node.flags() | self.context_flags);
         if self.has_parse_error {
-            node.set_flags(node.flags() | NodeFlags::THIS_NODE_HAS_ERROR);
+            node.set_flags(node.flags() | NodeFlags::ThisNodeHasError);
             self.has_parse_error = false;
         }
         self.override_parent_in_immediate_children(node);
@@ -3351,23 +3351,23 @@ impl Parser {
     }
 
     pub(crate) fn in_yield_context(&self) -> bool {
-        self.context_flags.intersects(NodeFlags::YIELD_CONTEXT)
+        self.context_flags.intersects(NodeFlags::YieldContext)
     }
 
     pub(crate) fn in_disallow_in_context(&self) -> bool {
-        self.context_flags.intersects(NodeFlags::DISALLOW_IN_CONTEXT)
+        self.context_flags.intersects(NodeFlags::DisallowInContext)
     }
 
     pub(crate) fn in_disallow_conditional_types_context(&self) -> bool {
-        self.context_flags.intersects(NodeFlags::DISALLOW_CONDITIONAL_TYPES_CONTEXT)
+        self.context_flags.intersects(NodeFlags::DisallowConditionalTypesContext)
     }
 
     pub(crate) fn in_decorator_context(&self) -> bool {
-        self.context_flags.intersects(NodeFlags::DECORATOR_CONTEXT)
+        self.context_flags.intersects(NodeFlags::DecoratorContext)
     }
 
     pub(crate) fn in_await_context(&self) -> bool {
-        self.context_flags.intersects(NodeFlags::AWAIT_CONTEXT)
+        self.context_flags.intersects(NodeFlags::AwaitContext)
     }
 
     pub(crate) fn skip_range_trivia(&self, text_range: TextRange) -> TextRange {
@@ -3584,8 +3584,8 @@ impl Parser {
 
     #[inline]
     pub(crate) fn check_js_syntax(&mut self, node: P<Node>) -> P<Node> {
-        if !node.flags().intersects(NodeFlags::JAVA_SCRIPT_FILE)
-            || node.flags().intersects(NodeFlags::JSDOC | NodeFlags::REPARSED)
+        if !node.flags().intersects(NodeFlags::JavaScriptFile)
+            || node.flags().intersects(NodeFlags::JSDoc | NodeFlags::Reparsed)
         {
             return node;
         }
@@ -3611,7 +3611,7 @@ impl Parser {
                     Kind::Parameter | Kind::PropertyDeclaration | Kind::MethodDeclaration
                 ) {
                     if let Some(token) = node.question_token() {
-                        if !token.flags().intersects(NodeFlags::REPARSED)
+                        if !token.flags().intersects(NodeFlags::Reparsed)
                             && ast::is_question_token(token)
                         {
                             self.js_error_at_range(
@@ -3630,7 +3630,7 @@ impl Parser {
                         &[],
                     );
                 } else if let Some(t) =
-                    node.type_node().filter(|t| !t.flags().intersects(NodeFlags::REPARSED))
+                    node.type_node().filter(|t| !t.flags().intersects(NodeFlags::Reparsed))
                 {
                     self.js_error_at_range(
                         t.loc(),
@@ -3765,17 +3765,17 @@ impl Parser {
             | Kind::PropertyDeclaration => {
                 if !matches!(node.kind(), Kind::VariableStatement | Kind::PropertyDeclaration) {
                     if let Some(list) = node.type_parameter_list() {
-                        if list.nodes().iter().any(|n| !n.flags().intersects(NodeFlags::REPARSED)) {
+                        if list.nodes().iter().any(|n| !n.flags().intersects(NodeFlags::Reparsed)) {
                             self.js_error_at_range(list.loc.get(), &diagnostics::TYPE_PARAMETER_DECLARATIONS_CAN_ONLY_BE_USED_IN_TYPE_SCRIPT_FILES, &[]);
                         }
                     }
                     // fallthrough
                 }
                 for &modifier in node.modifier_nodes() {
-                    if !modifier.flags().intersects(NodeFlags::REPARSED)
+                    if !modifier.flags().intersects(NodeFlags::Reparsed)
                         && modifier.kind() != Kind::Decorator
                         && !ast::modifier_to_flag(modifier.kind())
-                            .intersects(ModifierFlags::JAVA_SCRIPT)
+                            .intersects(ModifierFlags::JavaScript)
                     {
                         let text = scanner::token_to_string(modifier.kind());
                         self.js_error_at_range(
@@ -3802,7 +3802,7 @@ impl Parser {
             | Kind::JsxOpeningElement
             | Kind::TaggedTemplateExpression => {
                 if let Some(list) = node.type_argument_list() {
-                    if list.nodes().iter().any(|n| !n.flags().intersects(NodeFlags::REPARSED)) {
+                    if list.nodes().iter().any(|n| !n.flags().intersects(NodeFlags::Reparsed)) {
                         self.js_error_at_range(
                             list.loc.get(),
                             &diagnostics::TYPE_ARGUMENTS_CAN_ONLY_BE_USED_IN_TYPE_SCRIPT_FILES,

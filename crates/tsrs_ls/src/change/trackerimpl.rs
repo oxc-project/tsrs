@@ -98,7 +98,7 @@ impl Tracker {
 
         let start = self.to_lsp_edit_range(source_file, change.text_range).start;
         let positions =
-            self.converters.from_lsp_position_for_source_file(source_file, start, Feature::ALL);
+            self.converters.from_lsp_position_for_source_file(source_file, start, Feature::All);
         let mut result = String::new();
         let mut found = false;
         // The original range may have multiple verbatim copies; it is safe to lose their identity only when

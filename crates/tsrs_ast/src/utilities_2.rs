@@ -414,7 +414,7 @@ pub fn get_immediately_invoked_function_expression(func: P<Node>) -> Option<P<No
 }
 
 pub fn is_enum_const(node: P<Node>) -> bool {
-    get_combined_modifier_flags(node).intersects(ModifierFlags::CONST)
+    get_combined_modifier_flags(node).intersects(ModifierFlags::Const)
 }
 
 pub fn expression_is_alias(node: P<Node>) -> bool {
@@ -446,7 +446,7 @@ pub fn is_json_source_file(file: P<SourceFile>) -> bool {
 }
 
 pub fn is_in_json_file(node: P<Node>) -> bool {
-    node.flags().intersects(NodeFlags::JSON_FILE)
+    node.flags().intersects(NodeFlags::JsonFile)
 }
 
 pub fn get_external_module_name(node: P<Node>) -> Option<P<Node>> {
@@ -901,18 +901,18 @@ pub fn is_block_scope(node: P<Node>, parent_node: Option<P<Node>>) -> bool {
 bitflags::bitflags! {
     #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Default)]
     pub struct SemanticMeaning: u32 {
-        const NONE = 0;
-        const VALUE = 1 << 0;
-        const TYPE = 1 << 1;
-        const NAMESPACE = 1 << 2;
-        const ALL = Self::VALUE.bits() | Self::TYPE.bits() | Self::NAMESPACE.bits();
+        const None = 0;
+        const Value = 1 << 0;
+        const Type = 1 << 1;
+        const Namespace = 1 << 2;
+        const All = Self::Value.bits() | Self::Type.bits() | Self::Namespace.bits();
     }
 }
 
 // utilities.go:2250
 pub fn get_meaning_from_declaration(node: P<Node>) -> SemanticMeaning {
     match node.kind() {
-        Kind::VariableDeclaration => SemanticMeaning::VALUE,
+        Kind::VariableDeclaration => SemanticMeaning::Value,
         Kind::Parameter
         | Kind::BindingElement
         | Kind::PropertyDeclaration
@@ -928,20 +928,20 @@ pub fn get_meaning_from_declaration(node: P<Node>) -> SemanticMeaning {
         | Kind::FunctionExpression
         | Kind::ArrowFunction
         | Kind::CatchClause
-        | Kind::JsxAttribute => SemanticMeaning::VALUE,
+        | Kind::JsxAttribute => SemanticMeaning::Value,
         Kind::TypeParameter
         | Kind::InterfaceDeclaration
         | Kind::TypeAliasDeclaration
         | Kind::JSTypeAliasDeclaration
-        | Kind::TypeLiteral => SemanticMeaning::TYPE,
-        Kind::EnumMember | Kind::ClassDeclaration => SemanticMeaning::VALUE | SemanticMeaning::TYPE,
+        | Kind::TypeLiteral => SemanticMeaning::Type,
+        Kind::EnumMember | Kind::ClassDeclaration => SemanticMeaning::Value | SemanticMeaning::Type,
         Kind::ModuleDeclaration => {
             if (is_ambient_module(node))
                 || (get_module_instance_state(node) == ModuleInstanceState::Instantiated)
             {
-                SemanticMeaning::NAMESPACE | SemanticMeaning::VALUE
+                SemanticMeaning::Namespace | SemanticMeaning::Value
             } else {
-                SemanticMeaning::NAMESPACE
+                SemanticMeaning::Namespace
             }
         }
         Kind::EnumDeclaration
@@ -951,10 +951,10 @@ pub fn get_meaning_from_declaration(node: P<Node>) -> SemanticMeaning {
         | Kind::ImportDeclaration
         | Kind::JSImportDeclaration
         | Kind::ExportAssignment
-        | Kind::ExportDeclaration => SemanticMeaning::ALL,
+        | Kind::ExportDeclaration => SemanticMeaning::All,
         // An external module can be a Value
-        Kind::SourceFile => SemanticMeaning::NAMESPACE | SemanticMeaning::VALUE,
-        _ => SemanticMeaning::ALL,
+        Kind::SourceFile => SemanticMeaning::Namespace | SemanticMeaning::Value,
+        _ => SemanticMeaning::All,
     }
 }
 
@@ -1084,7 +1084,7 @@ pub(crate) fn get_module_instance_state_worker(
             }
         }
         Kind::ImportDeclaration | Kind::JSImportDeclaration | Kind::ImportEqualsDeclaration => {
-            if !has_syntactic_modifier(node, ModifierFlags::EXPORT) {
+            if !has_syntactic_modifier(node, ModifierFlags::Export) {
                 return ModuleInstanceState::NonInstantiated;
             }
         }
@@ -1388,8 +1388,8 @@ pub fn is_non_local_alias(symbol: impl Into<Option<P<Symbol>>>, excludes: Symbol
         return false;
     };
     let flags = symbol.flags.get();
-    flags & (SymbolFlags::ALIAS | excludes) == SymbolFlags::ALIAS
-        || flags.intersects(SymbolFlags::ALIAS) && flags.intersects(SymbolFlags::ASSIGNMENT)
+    flags & (SymbolFlags::Alias | excludes) == SymbolFlags::Alias
+        || flags.intersects(SymbolFlags::Alias) && flags.intersects(SymbolFlags::Assignment)
 }
 
 // An alias symbol is created by one of the following declarations:
@@ -1431,7 +1431,7 @@ pub fn is_alias_symbol_declaration(node: P<Node>) -> bool {
 }
 
 pub fn is_parse_tree_node(node: P<Node>) -> bool {
-    !node.flags.get().intersects(NodeFlags::SYNTHESIZED)
+    !node.flags.get().intersects(NodeFlags::Synthesized)
 }
 
 // Returns a token if position is in [start-of-leading-trivia, end), includes JSDoc only if requested
@@ -1653,7 +1653,7 @@ pub(crate) fn is_variable_declaration_initialized_with_require_helper(
         initializer = get_leftmost_access_expression(initializer);
     }
 
-    !node.parent().unwrap().parent().unwrap().modifier_flags().intersects(ModifierFlags::EXPORT)
+    !node.parent().unwrap().parent().unwrap().modifier_flags().intersects(ModifierFlags::Export)
         && node.type_node().is_none()
         && is_require_call(initializer, true /*requireStringLiteralLikeArgument*/)
 }

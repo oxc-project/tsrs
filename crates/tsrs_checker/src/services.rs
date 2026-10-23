@@ -19,7 +19,7 @@ impl Checker {
         location: P<Node>,
         meaning: SymbolFlags,
     ) -> Vec<P<Symbol>> {
-        if location.flags().intersects(NodeFlags::IN_WITH_STATEMENT) {
+        if location.flags().intersects(NodeFlags::InWithStatement) {
             // We cannot answer semantic questions within a with block, do not proceed any further
             return Vec::new();
         }
@@ -95,13 +95,13 @@ impl Checker {
                         let exports = self.get_symbol_of_declaration(loc).unwrap().exports();
                         copy_locally_visible_export_symbols(
                             exports,
-                            meaning & SymbolFlags::MODULE_MEMBER,
+                            meaning & SymbolFlags::ModuleMember,
                         );
                     }
                 }
                 Kind::EnumDeclaration => {
                     let exports = self.get_symbol_of_declaration(loc).unwrap().exports();
-                    copy_symbols(exports, meaning & SymbolFlags::ENUM_MEMBER);
+                    copy_symbols(exports, meaning & SymbolFlags::EnumMember);
                 }
                 Kind::ClassExpression | Kind::ClassDeclaration | Kind::InterfaceDeclaration => {
                     if loc.kind() == Kind::ClassExpression {
@@ -120,7 +120,7 @@ impl Checker {
                     if !is_static_symbol {
                         let symbol = self.get_symbol_of_declaration(loc).unwrap();
                         let members = self.get_members_of_symbol(symbol);
-                        copy_symbols(members, meaning & SymbolFlags::TYPE);
+                        copy_symbols(members, meaning & SymbolFlags::Type);
                     }
                 }
                 Kind::FunctionExpression => {
@@ -177,7 +177,7 @@ impl Checker {
 
         // forEachPropertyOfType
         let reduced_type = self.get_reduced_apparent_type(type_of_symbol);
-        if !reduced_type.flags().intersects(TypeFlags::STRUCTURED_TYPE) {
+        if !reduced_type.flags().intersects(TypeFlags::StructuredType) {
             return;
         }
         let members = self.resolve_structured_type_members(reduced_type).members();
@@ -287,7 +287,7 @@ impl Checker {
     // services.go:210
     pub fn get_all_possible_properties_of_types(&mut self, types: &[P<Type>]) -> Vec<P<Symbol>> {
         let union_type = self.get_union_type(types);
-        if !union_type.flags().intersects(TypeFlags::UNION) {
+        if !union_type.flags().intersects(TypeFlags::Union) {
             return self.get_augmented_properties_of_type(union_type);
         }
 
@@ -424,8 +424,8 @@ impl Checker {
         &self,
         resolved_external_module_type: P<Type>,
     ) -> bool {
-        !resolved_external_module_type.flags().intersects(TypeFlags::PRIMITIVE)
-            || resolved_external_module_type.object_flags().intersects(ObjectFlags::CLASS)
+        !resolved_external_module_type.flags().intersects(TypeFlags::Primitive)
+            || resolved_external_module_type.object_flags().intersects(ObjectFlags::Class)
             // `isArrayOrTupleLikeType` is too expensive to use in this auto-imports hot path.
             || self.is_array_type(resolved_external_module_type)
             || is_tuple_type(resolved_external_module_type)
@@ -437,7 +437,7 @@ impl Checker {
         node: P<Node>,
         context_flags: ContextFlags,
     ) -> Option<P<Type>> {
-        if context_flags.intersects(ContextFlags::IGNORE_NODE_INFERENCES) {
+        if context_flags.intersects(ContextFlags::IgnoreNodeInferences) {
             return self.run_with_inference_blocked_from_source_node(node, |c| {
                 c.get_contextual_type(node, context_flags)
             });
@@ -479,7 +479,7 @@ pub fn get_resolved_signature_for_signature_help(
     c: &mut Checker,
 ) -> (Option<P<Signature>>, Vec<P<Signature>>) {
     c.run_without_resolved_signature_caching(node, |c| {
-        c.get_resolved_signature_worker(node, CheckMode::IS_FOR_SIGNATURE_HELP, argument_count)
+        c.get_resolved_signature_worker(node, CheckMode::IsForSignatureHelp, argument_count)
     })
 }
 
@@ -525,7 +525,7 @@ impl Checker {
 
     // services.go:396
     pub fn skip_alias(&mut self, symbol: P<Symbol>) -> P<Symbol> {
-        if symbol.flags().intersects(SymbolFlags::ALIAS) {
+        if symbol.flags().intersects(SymbolFlags::Alias) {
             return self.get_aliased_symbol(symbol);
         }
         symbol
@@ -552,7 +552,7 @@ impl Checker {
 
     // services.go:422
     pub(crate) fn get_immediate_root_symbols(&mut self, symbol: P<Symbol>) -> Vec<P<Symbol>> {
-        if symbol.check_flags().intersects(CheckFlags::SYNTHETIC) {
+        if symbol.check_flags().intersects(CheckFlags::Synthetic) {
             let types =
                 self.value_symbol_links.get(symbol).containing_type().unwrap().types().to_vec();
             let mut result = Vec::new();
@@ -561,7 +561,7 @@ impl Checker {
             );
             return result;
         }
-        if symbol.flags().intersects(SymbolFlags::TRANSIENT) {
+        if symbol.flags().intersects(SymbolFlags::Transient) {
             if self.spread_links.has(symbol) {
                 let left_spread = self.spread_links.get(symbol).left_spread.get();
                 let right_spread = self.spread_links.get(symbol).right_spread.get();
@@ -628,10 +628,10 @@ impl Checker {
                 }
                 self.resolve_entity_name(
                     name,
-                    SymbolFlags::VALUE
-                        | SymbolFlags::TYPE
-                        | SymbolFlags::NAMESPACE
-                        | SymbolFlags::ALIAS,
+                    SymbolFlags::Value
+                        | SymbolFlags::Type
+                        | SymbolFlags::Namespace
+                        | SymbolFlags::Alias,
                     true, /*ignoreErrors*/
                     false,
                     None,
@@ -640,10 +640,10 @@ impl Checker {
             Kind::Identifier => {
                 self.resolve_entity_name(
                     node,
-                    SymbolFlags::VALUE
-                        | SymbolFlags::TYPE
-                        | SymbolFlags::NAMESPACE
-                        | SymbolFlags::ALIAS,
+                    SymbolFlags::Value
+                        | SymbolFlags::Type
+                        | SymbolFlags::Namespace
+                        | SymbolFlags::Alias,
                     true, /*ignoreErrors*/
                     false,
                     None,
@@ -664,7 +664,7 @@ impl Checker {
             if location.kind() == Kind::ShorthandPropertyAssignment {
                 return self.resolve_entity_name(
                     location.name().unwrap(),
-                    SymbolFlags::VALUE | SymbolFlags::ALIAS,
+                    SymbolFlags::Value | SymbolFlags::Alias,
                     true, /*ignoreErrors*/
                     false,
                     None,
@@ -690,9 +690,9 @@ impl Checker {
         let class_declaration = parameter.parent().unwrap().parent().unwrap();
 
         let parameter_symbol =
-            self.get_symbol(constructor_declaration.locals(), parameter_name, SymbolFlags::VALUE);
+            self.get_symbol(constructor_declaration.locals(), parameter_name, SymbolFlags::Value);
         let members = self.get_members_of_symbol(class_declaration.symbol().unwrap());
-        let property_symbol = self.get_symbol(members, parameter_name, SymbolFlags::VALUE);
+        let property_symbol = self.get_symbol(members, parameter_name, SymbolFlags::Value);
 
         if let (Some(parameter_symbol), Some(property_symbol)) = (parameter_symbol, property_symbol)
         {
@@ -1068,10 +1068,10 @@ impl Checker {
 
                 // An instantiation expression instantiates both call and construct signatures, so
                 // if both exist type arguments must be assignable to both constraints.
-                if construct_constraint.flags().intersects(TypeFlags::NEVER) {
+                if construct_constraint.flags().intersects(TypeFlags::Never) {
                     return Some(call_constraint);
                 }
-                if call_constraint.flags().intersects(TypeFlags::NEVER) {
+                if call_constraint.flags().intersects(TypeFlags::Never) {
                     return Some(construct_constraint);
                 }
                 return Some(self.get_intersection_type(&[call_constraint, construct_constraint]));
@@ -1181,7 +1181,7 @@ impl Checker {
         &mut self,
         attribute: P<Node>,
     ) -> Option<P<Type>> {
-        self.get_contextual_type_for_jsx_attribute(attribute, ContextFlags::NONE)
+        self.get_contextual_type_for_jsx_attribute(attribute, ContextFlags::None)
     }
 
     // services.go:870
@@ -1197,14 +1197,14 @@ impl Checker {
         if symbol.is_none() && ast::is_entity_name_expression(node) {
             symbol = self.resolve_entity_name(
                 node,
-                SymbolFlags::VALUE,
+                SymbolFlags::Value,
                 true,  /*ignoreErrors*/
                 false, /*dontResolveAlias*/
                 None,  /*location*/
             );
         }
         if let Some(symbol) = symbol {
-            if symbol.flags().intersects(SymbolFlags::ENUM_MEMBER) {
+            if symbol.flags().intersects(SymbolFlags::EnumMember) {
                 // inline property\index accesses only for const enums
                 let member = symbol.value_declaration().unwrap();
                 if ast::is_enum_const(member.parent().unwrap()) {
@@ -1250,7 +1250,7 @@ impl Checker {
         let mut candidates =
             self.run_with_inference_blocked_from_source_node(editing_argument, |c| {
                 let (_, blocked_inference_candidates) =
-                    c.get_resolved_signature_worker(call, CheckMode::NORMAL, 0);
+                    c.get_resolved_signature_worker(call, CheckMode::Normal, 0);
                 blocked_inference_candidates
             });
         let candidates_set: FxHashSet<P<Signature>> = candidates.iter().copied().collect();
@@ -1258,7 +1258,7 @@ impl Checker {
         // next, get candidates where the source node is considered for inference.
         let other_candidates = self.run_without_resolved_signature_caching(editing_argument, |c| {
             let (_, inference_candidates) =
-                c.get_resolved_signature_worker(call, CheckMode::NORMAL, 0);
+                c.get_resolved_signature_worker(call, CheckMode::Normal, 0);
             inference_candidates
         });
 
@@ -1354,10 +1354,10 @@ pub(crate) fn is_known_generic_type_name(name: &str) -> bool {
 impl Checker {
     // services.go:1009
     pub fn get_first_type_argument_from_known_type(&mut self, t: P<Type>) -> Option<P<Type>> {
-        if t.object_flags().intersects(ObjectFlags::REFERENCE) {
+        if t.object_flags().intersects(ObjectFlags::Reference) {
             if let Some(t_symbol) = t.symbol() {
                 if is_known_generic_type_name(t_symbol.name()) {
-                    let symbol = self.get_global_symbol(t_symbol.name(), SymbolFlags::TYPE, None);
+                    let symbol = self.get_global_symbol(t_symbol.name(), SymbolFlags::Type, None);
                     if symbol.is_some() && symbol == t.target().unwrap().symbol() {
                         return self.get_type_arguments(t).first().copied();
                     }
@@ -1367,7 +1367,7 @@ impl Checker {
         if let Some(alias) = t.alias() {
             let alias_symbol = alias.symbol().unwrap();
             if is_known_generic_type_name(alias_symbol.name()) {
-                let symbol = self.get_global_symbol(alias_symbol.name(), SymbolFlags::TYPE, None);
+                let symbol = self.get_global_symbol(alias_symbol.name(), SymbolFlags::Type, None);
                 if symbol == Some(alias_symbol) {
                     return alias.type_arguments().first().copied();
                 }
@@ -1388,7 +1388,7 @@ impl Checker {
         if name.is_empty() {
             return Vec::new();
         }
-        if !contextual_type.flags().intersects(TypeFlags::UNION) {
+        if !contextual_type.flags().intersects(TypeFlags::Union) {
             if let Some(symbol) = self.get_property_of_type(contextual_type, &name) {
                 return vec![symbol];
             }
@@ -1468,7 +1468,7 @@ impl Checker {
             return Some(self.check_destructuring_assignment(
                 expr,
                 iterated_type,
-                CheckMode::NORMAL,
+                CheckMode::Normal,
                 false,
             ));
         }
@@ -1480,7 +1480,7 @@ impl Checker {
             return Some(self.check_destructuring_assignment(
                 expr,
                 iterated_type,
-                CheckMode::NORMAL,
+                CheckMode::Normal,
                 false,
             ));
         }
@@ -1505,7 +1505,7 @@ impl Checker {
         let type_of_array_literal =
             self.get_type_of_assignment_pattern(node).unwrap_or(self.error_type);
         let element_type = self.check_iterated_type_or_element_type(
-            IterationUse::DESTRUCTURING,
+            IterationUse::Destructuring,
             type_of_array_literal,
             self.undefined_type,
             Some(parent),
@@ -1516,7 +1516,7 @@ impl Checker {
             type_of_array_literal,
             element_index,
             element_type,
-            CheckMode::NORMAL,
+            CheckMode::Normal,
         )
     }
 
@@ -1551,7 +1551,7 @@ impl Checker {
     // IsLibTypeForHoverVerbosity returns true if a type is declared in a lib file.
     // Don't expand types like Array or Promise, instead treating them as opaque.
     pub fn is_lib_type_for_hover_verbosity(&self, t: P<Type>) -> bool {
-        let symbol = if t.object_flags().intersects(ObjectFlags::REFERENCE) {
+        let symbol = if t.object_flags().intersects(ObjectFlags::Reference) {
             t.target().unwrap().symbol()
         } else {
             t.symbol()

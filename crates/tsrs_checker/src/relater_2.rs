@@ -46,7 +46,7 @@ impl Checker {
         r.maybe_count.set(0);
         r.source_depth.set(0);
         r.target_depth.set(0);
-        r.expanding_flags.set(ExpandingFlags::NONE);
+        r.expanding_flags.set(ExpandingFlags::None);
         r.overflow.set(false);
         r.relation_count.set(0);
         r.next.set(self.free_relater);
@@ -94,10 +94,10 @@ impl Relater {
             c,
             source,
             target,
-            RecursionFlags::BOTH,
+            RecursionFlags::Both,
             false, /*reportErrors*/
             None,  /*headMessage*/
-            IntersectionState::NONE,
+            IntersectionState::None,
         )
     }
 
@@ -113,10 +113,10 @@ impl Relater {
             c,
             source,
             target,
-            RecursionFlags::BOTH,
+            RecursionFlags::Both,
             report_errors,
             None,
-            IntersectionState::NONE,
+            IntersectionState::None,
         )
     }
 
@@ -136,7 +136,7 @@ impl Relater {
             recursion_flags,
             report_errors,
             None,
-            IntersectionState::NONE,
+            IntersectionState::None,
         )
     }
 
@@ -156,11 +156,11 @@ impl Relater {
         }
         // Before normalization: if `source` is type an object type, and `target` is primitive,
         // skip all the checks we don't need and just return `isSimpleTypeRelatedTo` result
-        if original_source.flags().intersects(TypeFlags::OBJECT)
-            && original_target.flags().intersects(TypeFlags::PRIMITIVE)
+        if original_source.flags().intersects(TypeFlags::Object)
+            && original_target.flags().intersects(TypeFlags::Primitive)
         {
             if self.rel() == c.comparable_relation
-                && !original_target.flags().intersects(TypeFlags::NEVER)
+                && !original_target.flags().intersects(TypeFlags::Never)
                 && c.is_simple_type_related_to(original_target, original_source, self.rel(), None)
                 || self.is_simple_type_related_to_reporting(
                     c,
@@ -196,7 +196,7 @@ impl Relater {
             if source.flags() != target.flags() {
                 return Ternary::FALSE;
             }
-            if source.flags().intersects(TypeFlags::SINGLETON) {
+            if source.flags().intersects(TypeFlags::Singleton) {
                 return Ternary::TRUE;
             }
             self.trace_unions_or_intersections_too_large(c, source, target);
@@ -205,7 +205,7 @@ impl Relater {
                 source,
                 target,
                 false, /*reportErrors*/
-                IntersectionState::NONE,
+                IntersectionState::None,
                 recursion_flags,
             );
         }
@@ -214,28 +214,28 @@ impl Relater {
         // as we break down the _target_ union first, _then_ get the source constraint - so for every
         // member of the target, we attempt to find a match in the source. This avoids that in cases where
         // the target is exactly the constraint.
-        if source.flags().intersects(TypeFlags::TYPE_PARAMETER)
+        if source.flags().intersects(TypeFlags::TypeParameter)
             && c.get_constraint_of_type(source) == Some(target)
         {
             return Ternary::TRUE;
         }
         // See if we're relating a definitely non-nullable type to a union that includes null and/or undefined
         // plus a single non-nullable type. If so, remove null and/or undefined from the target type.
-        if source.flags().intersects(TypeFlags::DEFINITELY_NON_NULLABLE)
-            && target.flags().intersects(TypeFlags::UNION)
+        if source.flags().intersects(TypeFlags::DefinitelyNonNullable)
+            && target.flags().intersects(TypeFlags::Union)
         {
             let types = target.types();
             let mut candidate: Option<P<Type>> = None;
-            if types.len() == 2 && types[0].flags().intersects(TypeFlags::NULLABLE) {
+            if types.len() == 2 && types[0].flags().intersects(TypeFlags::Nullable) {
                 candidate = Some(types[1]);
             } else if types.len() == 3
-                && types[0].flags().intersects(TypeFlags::NULLABLE)
-                && types[1].flags().intersects(TypeFlags::NULLABLE)
+                && types[0].flags().intersects(TypeFlags::Nullable)
+                && types[1].flags().intersects(TypeFlags::Nullable)
             {
                 candidate = Some(types[2]);
             }
             if let Some(candidate) = candidate {
-                if !candidate.flags().intersects(TypeFlags::NULLABLE) {
+                if !candidate.flags().intersects(TypeFlags::Nullable) {
                     target = c.get_normalized_type(candidate, true /*writing*/);
                     if source == target {
                         return Ternary::TRUE;
@@ -244,19 +244,19 @@ impl Relater {
             }
         }
         if self.rel() == c.comparable_relation
-            && !target.flags().intersects(TypeFlags::NEVER)
+            && !target.flags().intersects(TypeFlags::Never)
             && c.is_simple_type_related_to(target, source, self.rel(), None)
             || self.is_simple_type_related_to_reporting(c, source, target, report_errors)
         {
             return Ternary::TRUE;
         }
-        if source.flags().intersects(TypeFlags::STRUCTURED_OR_INSTANTIABLE)
-            || target.flags().intersects(TypeFlags::STRUCTURED_OR_INSTANTIABLE)
+        if source.flags().intersects(TypeFlags::StructuredOrInstantiable)
+            || target.flags().intersects(TypeFlags::StructuredOrInstantiable)
         {
             let is_performing_excess_property_checks = !intersection_state
-                .intersects(IntersectionState::TARGET)
+                .intersects(IntersectionState::Target)
                 && is_object_literal_type(source)
-                && source.object_flags().intersects(ObjectFlags::FRESH_LITERAL);
+                && source.object_flags().intersects(ObjectFlags::FreshLiteral);
             if is_performing_excess_property_checks {
                 if self.has_excess_properties(c, source, target, report_errors) {
                     if report_errors {
@@ -276,17 +276,17 @@ impl Relater {
             }
             let is_performing_common_property_checks = (self.rel() != c.comparable_relation
                 || is_unit_type(source))
-                && !intersection_state.intersects(IntersectionState::TARGET)
+                && !intersection_state.intersects(IntersectionState::Target)
                 && source
                     .flags()
-                    .intersects(TypeFlags::PRIMITIVE | TypeFlags::OBJECT | TypeFlags::INTERSECTION)
+                    .intersects(TypeFlags::Primitive | TypeFlags::Object | TypeFlags::Intersection)
                 && source != c.global_object_type
-                && target.flags().intersects(TypeFlags::OBJECT | TypeFlags::INTERSECTION)
+                && target.flags().intersects(TypeFlags::Object | TypeFlags::Intersection)
                 && c.is_weak_type(target)
                 && (!c.get_properties_of_type(source).is_empty()
                     || c.type_has_call_or_construct_signatures(source));
             let is_comparing_jsx_attributes =
-                source.object_flags().intersects(ObjectFlags::JSX_ATTRIBUTES);
+                source.object_flags().intersects(ObjectFlags::JsxAttributes);
             if is_performing_common_property_checks
                 && !c.has_common_properties(source, target, is_comparing_jsx_attributes)
             {
@@ -311,7 +311,7 @@ impl Relater {
                             c,
                             return_type,
                             target,
-                            RecursionFlags::SOURCE,
+                            RecursionFlags::Source,
                             false, /*reportErrors*/
                         ) != Ternary::FALSE
                     } || !constructs.is_empty() && {
@@ -320,7 +320,7 @@ impl Relater {
                             c,
                             return_type,
                             target,
-                            RecursionFlags::SOURCE,
+                            RecursionFlags::Source,
                             false, /*reportErrors*/
                         ) != Ternary::FALSE
                     } {
@@ -336,12 +336,12 @@ impl Relater {
                 return Ternary::FALSE;
             }
             self.trace_unions_or_intersections_too_large(c, source, target);
-            let skip_caching = source.flags().intersects(TypeFlags::UNION)
+            let skip_caching = source.flags().intersects(TypeFlags::Union)
                 && source.types().len() < 4
-                && !target.flags().intersects(TypeFlags::UNION)
-                || target.flags().intersects(TypeFlags::UNION)
+                && !target.flags().intersects(TypeFlags::Union)
+                || target.flags().intersects(TypeFlags::Union)
                     && target.types().len() < 4
-                    && !source.flags().intersects(TypeFlags::STRUCTURED_OR_INSTANTIABLE);
+                    && !source.flags().intersects(TypeFlags::StructuredOrInstantiable);
             let result = if skip_caching {
                 self.union_or_intersection_related_to(
                     c,
@@ -386,13 +386,13 @@ impl Relater {
         report_errors: bool,
     ) -> bool {
         if !is_excess_property_check_target(target)
-            || !c.no_implicit_any && target.object_flags().intersects(ObjectFlags::JS_LITERAL)
+            || !c.no_implicit_any && target.object_flags().intersects(ObjectFlags::JSLiteral)
         {
             // Disable excess property checks on JS literals to simulate having an implicit "index signature" - but only outside of noImplicitAny
             return false;
         }
         let is_comparing_jsx_attributes =
-            source.object_flags().intersects(ObjectFlags::JSX_ATTRIBUTES);
+            source.object_flags().intersects(ObjectFlags::JsxAttributes);
         if (self.rel() == c.assignable_relation || self.rel() == c.comparable_relation)
             && (c.is_type_subset_of(c.global_object_type, target)
                 || (!is_comparing_jsx_attributes && c.is_empty_object_type(target)))
@@ -402,7 +402,7 @@ impl Relater {
         let mut reduced_target = target;
         // Go nil is the empty Vec (Distributed() only returns nil for never, never an empty slice otherwise)
         let mut check_types: Vec<P<Type>> = Vec::new();
-        if target.flags().intersects(TypeFlags::UNION) {
+        if target.flags().intersects(TypeFlags::Union) {
             reduced_target = match c.find_matching_discriminant_type(source, target, |c, s, t| {
                 self.is_related_to_simple(c, s, t)
             }) {
@@ -509,7 +509,7 @@ impl Relater {
                         c,
                         prop_type,
                         target_prop_type,
-                        RecursionFlags::BOTH,
+                        RecursionFlags::Both,
                         report_errors,
                     ) == Ternary::FALSE
                 } {
@@ -544,7 +544,7 @@ impl Checker {
     // relater.go:2837
     pub(crate) fn get_type_of_property_in_type(&mut self, t: P<Type>, name: &str) -> P<Type> {
         let t = self.get_apparent_type(t);
-        let prop = if t.flags().intersects(TypeFlags::UNION_OR_INTERSECTION) {
+        let prop = if t.flags().intersects(TypeFlags::UnionOrIntersection) {
             self.get_property_of_union_or_intersection_type(t, name, false)
         } else {
             self.get_property_of_object_type(t, name)
@@ -573,7 +573,7 @@ pub(crate) fn should_check_as_excess_property(
 
 // relater.go:2859
 pub(crate) fn is_ignored_jsx_property(source: P<Type>, source_prop: P<Symbol>) -> bool {
-    source.object_flags().intersects(ObjectFlags::JSX_ATTRIBUTES)
+    source.object_flags().intersects(ObjectFlags::JsxAttributes)
         && is_hyphenated_jsx_name(source_prop.name())
 }
 
@@ -581,14 +581,14 @@ impl Checker {
     // relater.go:2863
     pub(crate) fn is_type_subset_of(&mut self, source: P<Type>, target: P<Type>) -> bool {
         source == target
-            || source.flags().intersects(TypeFlags::NEVER)
-            || target.flags().intersects(TypeFlags::UNION)
+            || source.flags().intersects(TypeFlags::Never)
+            || target.flags().intersects(TypeFlags::Union)
                 && self.is_type_subset_of_union(source, target)
     }
 
     // relater.go:2867
     pub(crate) fn is_type_subset_of_union(&mut self, source: P<Type>, target: P<Type>) -> bool {
-        if source.flags().intersects(TypeFlags::UNION) {
+        if source.flags().intersects(TypeFlags::Union) {
             let (n, m) = (source.types().len(), target.types().len());
             // A scan touches each target type at most once; the searches cost about log2(m) comparisons per source
             // type, each far more than an identity test.
@@ -600,7 +600,7 @@ impl Checker {
             }
             return true;
         }
-        if source.flags().intersects(TypeFlags::ENUM_LIKE)
+        if source.flags().intersects(TypeFlags::EnumLike)
             && self.get_base_type_of_enum_like_type(source) == target
         {
             return true;
@@ -622,15 +622,15 @@ impl Relater {
         // Note that these checks are specifically ordered to produce correct results. In particular,
         // we need to deconstruct unions before intersections (because unions are always at the top),
         // and we need to handle "each" relations before "some" relations for the same kind of type.
-        if source.flags().intersects(TypeFlags::UNION) {
-            if target.flags().intersects(TypeFlags::UNION) {
+        if source.flags().intersects(TypeFlags::Union) {
+            if target.flags().intersects(TypeFlags::Union) {
                 // Intersections of union types are normalized into unions of intersection types, and such normalized
                 // unions can get very large and expensive to relate. The following fast path checks if the source union
                 // originated in an intersection. If so, and if that intersection contains the target type, then we know
                 // the result to be true (for any two types A and B, A & B is related to both A and B).
                 let source_origin = source.as_union_type().origin();
                 if let Some(source_origin) = source_origin {
-                    if source_origin.flags().intersects(TypeFlags::INTERSECTION)
+                    if source_origin.flags().intersects(TypeFlags::Intersection)
                         && target.alias().is_some()
                         && source_origin.types().contains(&target)
                     {
@@ -641,7 +641,7 @@ impl Relater {
                 // much shorter than the normalized result, so we scan it in the following fast path.
                 let target_origin = target.as_union_type().origin();
                 if let Some(target_origin) = target_origin {
-                    if target_origin.flags().intersects(TypeFlags::UNION)
+                    if target_origin.flags().intersects(TypeFlags::Union)
                         && source.alias().is_some()
                         && target_origin.types().contains(&source)
                     {
@@ -654,7 +654,7 @@ impl Relater {
                     c,
                     source,
                     target,
-                    report_errors && !source.flags().intersects(TypeFlags::PRIMITIVE),
+                    report_errors && !source.flags().intersects(TypeFlags::Primitive),
                     intersection_state,
                 );
             }
@@ -662,29 +662,29 @@ impl Relater {
                 c,
                 source,
                 target,
-                report_errors && !source.flags().intersects(TypeFlags::PRIMITIVE),
+                report_errors && !source.flags().intersects(TypeFlags::Primitive),
                 intersection_state,
             );
         }
-        if target.flags().intersects(TypeFlags::UNION) {
+        if target.flags().intersects(TypeFlags::Union) {
             let regular_source = c.get_regular_type_of_object_literal(source);
             return self.type_related_to_some_type(
                 c,
                 regular_source,
                 target,
                 report_errors
-                    && !source.flags().intersects(TypeFlags::PRIMITIVE)
-                    && !target.flags().intersects(TypeFlags::PRIMITIVE),
+                    && !source.flags().intersects(TypeFlags::Primitive)
+                    && !target.flags().intersects(TypeFlags::Primitive),
                 intersection_state,
             );
         }
-        if target.flags().intersects(TypeFlags::INTERSECTION) {
+        if target.flags().intersects(TypeFlags::Intersection) {
             return self.type_related_to_each_type(
                 c,
                 source,
                 target,
                 report_errors,
-                IntersectionState::TARGET,
+                IntersectionState::Target,
             );
         }
         // Source is an intersection. For the comparable relation, if the target is a primitive type we hoist the
@@ -693,12 +693,12 @@ impl Relater {
         // parameter 'T extends 1 | 2', the intersection 'T & 1' should be reduced to '1' such that it doesn't
         // appear to be comparable to '2'.
         let mut source = source;
-        if self.rel() == c.comparable_relation && target.flags().intersects(TypeFlags::PRIMITIVE) {
+        if self.rel() == c.comparable_relation && target.flags().intersects(TypeFlags::Primitive) {
             let source_types = source.types();
             let mut changed = false;
             let mut constraints: Vec<P<Type>> = Vec::with_capacity(source_types.len());
             constraints.extend(source_types.iter().map(|&t| {
-                let mapped = if t.flags().intersects(TypeFlags::INSTANTIABLE) {
+                let mapped = if t.flags().intersects(TypeFlags::Instantiable) {
                     let constraint = c.get_base_constraint_of_type(t);
                     match constraint {
                         Some(constraint) => constraint,
@@ -714,15 +714,15 @@ impl Relater {
             }));
             if changed {
                 source = c.get_intersection_type(&constraints);
-                if source.flags().intersects(TypeFlags::NEVER) {
+                if source.flags().intersects(TypeFlags::Never) {
                     return Ternary::FALSE;
                 }
-                if !source.flags().intersects(TypeFlags::INTERSECTION) {
+                if !source.flags().intersects(TypeFlags::Intersection) {
                     let result = self.is_related_to(
                         c,
                         source,
                         target,
-                        RecursionFlags::SOURCE,
+                        RecursionFlags::Source,
                         false, /*reportErrors*/
                     );
                     if result != Ternary::FALSE {
@@ -732,7 +732,7 @@ impl Relater {
                         c,
                         target,
                         source,
-                        RecursionFlags::SOURCE,
+                        RecursionFlags::Source,
                         false, /*reportErrors*/
                     );
                 }
@@ -747,7 +747,7 @@ impl Relater {
             source,
             target,
             false, /*reportErrors*/
-            IntersectionState::SOURCE,
+            IntersectionState::Source,
         )
     }
 
@@ -761,7 +761,7 @@ impl Relater {
         intersection_state: IntersectionState,
     ) -> Ternary {
         let source_types = source.types();
-        if source.flags().intersects(TypeFlags::UNION) && contains_type(c, source_types, target) {
+        if source.flags().intersects(TypeFlags::Union) && contains_type(c, source_types, target) {
             return Ternary::TRUE;
         }
         if let Some(result) = source_types.iter().enumerate().find_map(|(i, &t)| {
@@ -769,7 +769,7 @@ impl Relater {
                 c,
                 t,
                 target,
-                RecursionFlags::SOURCE,
+                RecursionFlags::Source,
                 report_errors && i == source_types.len() - 1,
                 None, /*headMessage*/
                 intersection_state,
@@ -800,13 +800,13 @@ impl Relater {
         // since `undefined` is frequently added by optionality and would otherwise spoil a potentially useful correspondence
         let stripped_target = Self::get_undefined_stripped_target_if_needed(c, source, target);
         let mut stripped_types: &[P<Type>] = &[];
-        if stripped_target.flags().intersects(TypeFlags::UNION) {
+        if stripped_target.flags().intersects(TypeFlags::Union) {
             stripped_types = stripped_target.types();
         }
         result = match source_types.iter().enumerate().try_fold(
             result,
             |mut result, (i, &source_type)| {
-                if stripped_target.flags().intersects(TypeFlags::UNION)
+                if stripped_target.flags().intersects(TypeFlags::Union)
                     && source_types.len() >= stripped_types.len()
                     && source_types.len().is_multiple_of(stripped_types.len())
                 {
@@ -819,7 +819,7 @@ impl Relater {
                         c,
                         source_type,
                         stripped_types[i % stripped_types.len()],
-                        RecursionFlags::BOTH,
+                        RecursionFlags::Both,
                         false, /*reportErrors*/
                         None,  /*headMessage*/
                         intersection_state,
@@ -833,7 +833,7 @@ impl Relater {
                     c,
                     source_type,
                     target,
-                    RecursionFlags::SOURCE,
+                    RecursionFlags::Source,
                     report_errors,
                     None, /*headMessage*/
                     intersection_state,
@@ -857,12 +857,12 @@ impl Relater {
         source: P<Type>,
         target: P<Type>,
     ) -> P<Type> {
-        if source.flags().intersects(TypeFlags::UNION)
-            && target.flags().intersects(TypeFlags::UNION)
-            && !source.types()[0].flags().intersects(TypeFlags::UNDEFINED)
-            && target.types()[0].flags().intersects(TypeFlags::UNDEFINED)
+        if source.flags().intersects(TypeFlags::Union)
+            && target.flags().intersects(TypeFlags::Union)
+            && !source.types()[0].flags().intersects(TypeFlags::Undefined)
+            && target.types()[0].flags().intersects(TypeFlags::Undefined)
         {
-            return c.extract_types_of_kind(target, !TypeFlags::UNDEFINED);
+            return c.extract_types_of_kind(target, !TypeFlags::Undefined);
         }
         target
     }
@@ -912,21 +912,21 @@ impl Relater {
         let (sym, label) = crate::workcensus::type_identity(target);
         let n = target.types().len();
         let source_kind = if is_object_literal_type(source)
-            && source.object_flags().intersects(ObjectFlags::FRESH_LITERAL)
+            && source.object_flags().intersects(ObjectFlags::FreshLiteral)
         {
             0
         } else if is_object_literal_type(source) {
             1
-        } else if source.flags().intersects(TypeFlags::OBJECT) {
+        } else if source.flags().intersects(TypeFlags::Object) {
             2
-        } else if source.flags().intersects(TypeFlags::INTERSECTION) {
+        } else if source.flags().intersects(TypeFlags::Intersection) {
             3
-        } else if source.flags().intersects(TypeFlags::PRIMITIVE) {
+        } else if source.flags().intersects(TypeFlags::Primitive) {
             4
         } else {
             5
         };
-        let key_state = if !target.flags().intersects(TypeFlags::UNION)
+        let key_state = if !target.flags().intersects(TypeFlags::Union)
             || target.as_union_type().key_property_name().is_empty()
         {
             0
@@ -989,21 +989,19 @@ impl Relater {
         outcome: &mut (u8, u8, u32),
     ) -> Ternary {
         let target_types = target.types();
-        if target.flags().intersects(TypeFlags::UNION) {
+        if target.flags().intersects(TypeFlags::Union) {
             if contains_type(c, target_types, source) {
                 outcome.0 = 0;
                 return Ternary::TRUE;
             }
             if self.rel() != c.comparable_relation
-                && target.object_flags().intersects(ObjectFlags::PRIMITIVE_UNION)
-                && !source.flags().intersects(TypeFlags::ENUM_LITERAL)
+                && target.object_flags().intersects(ObjectFlags::PrimitiveUnion)
+                && !source.flags().intersects(TypeFlags::EnumLiteral)
                 && (source.flags().intersects(
-                    TypeFlags::STRING_LITERAL
-                        | TypeFlags::BOOLEAN_LITERAL
-                        | TypeFlags::BIG_INT_LITERAL,
+                    TypeFlags::StringLiteral | TypeFlags::BooleanLiteral | TypeFlags::BigIntLiteral,
                 ) || (self.rel() == c.subtype_relation
                     || self.rel() == c.strict_subtype_relation)
-                    && source.flags().intersects(TypeFlags::NUMBER_LITERAL))
+                    && source.flags().intersects(TypeFlags::NumberLiteral))
             {
                 // When relating a literal type to a union of primitive types, we know the relation is false unless
                 // the union contains the base primitive type or the literal type in one of its fresh/regular forms.
@@ -1018,11 +1016,11 @@ impl Relater {
                     source.as_literal_type().regular_type.get()
                 };
                 let mut primitive: Option<P<Type>> = None;
-                if source.flags().intersects(TypeFlags::STRING_LITERAL) {
+                if source.flags().intersects(TypeFlags::StringLiteral) {
                     primitive = Some(c.string_type);
-                } else if source.flags().intersects(TypeFlags::NUMBER_LITERAL) {
+                } else if source.flags().intersects(TypeFlags::NumberLiteral) {
                     primitive = Some(c.number_type);
-                } else if source.flags().intersects(TypeFlags::BIG_INT_LITERAL) {
+                } else if source.flags().intersects(TypeFlags::BigIntLiteral) {
                     primitive = Some(c.bigint_type);
                 }
                 outcome.0 = 1;
@@ -1041,7 +1039,7 @@ impl Relater {
                     c,
                     source,
                     match_,
-                    RecursionFlags::TARGET,
+                    RecursionFlags::Target,
                     false, /*reportErrors*/
                     None,  /*headMessage*/
                     intersection_state,
@@ -1063,7 +1061,7 @@ impl Relater {
                 let (id, _) = get_relation_key(c, source, t, intersection_state, false, false);
                 (
                     c.census.as_ref().unwrap().now_ns(),
-                    self.rel().lookup(id) != RelationComparisonResult::NONE,
+                    self.rel().lookup(id) != RelationComparisonResult::None,
                 )
             } else {
                 (0, false)
@@ -1072,7 +1070,7 @@ impl Relater {
                 c,
                 source,
                 t,
-                RecursionFlags::TARGET,
+                RecursionFlags::Target,
                 false, /*reportErrors*/
                 None,  /*headMessage*/
                 intersection_state,
@@ -1086,7 +1084,7 @@ impl Relater {
                     // Would an index on one of the source's unit-typed properties have excluded every constituent tried
                     // before this one? (census only; the lookups below may resolve members early)
                     let mut indexable = false;
-                    if source.flags().intersects(TypeFlags::OBJECT | TypeFlags::INTERSECTION) {
+                    if source.flags().intersects(TypeFlags::Object | TypeFlags::Intersection) {
                         let props = c.get_properties_of_type(source);
                         for &p in props {
                             let pt = c.get_type_of_symbol(p);
@@ -1097,7 +1095,7 @@ impl Relater {
                             for &tj in &target_types[..i] {
                                 let excluded = tj
                                     .flags()
-                                    .intersects(TypeFlags::OBJECT | TypeFlags::INTERSECTION)
+                                    .intersects(TypeFlags::Object | TypeFlags::Intersection)
                                     && c.get_property_of_type(tj, p.name()).is_some_and(|q| {
                                         let qt = c.get_type_of_symbol(q);
                                         is_unit_type(qt) && !c.is_type_assignable_to(pt, qt)
@@ -1147,7 +1145,7 @@ impl Relater {
                     c,
                     source,
                     best_matching_type,
-                    RecursionFlags::TARGET,
+                    RecursionFlags::Target,
                     true, /*reportErrors*/
                     None, /*headMessage*/
                     intersection_state,
@@ -1173,7 +1171,7 @@ impl Relater {
                 c,
                 source,
                 target_type,
-                RecursionFlags::TARGET,
+                RecursionFlags::Target,
                 report_errors,
                 None, /*headMessage*/
                 intersection_state,
@@ -1205,7 +1203,7 @@ impl Relater {
                 source_type,
                 target,
                 false, /*reportErrors*/
-                IntersectionState::NONE,
+                IntersectionState::None,
             );
             if related == Ternary::FALSE {
                 return Err(Ternary::FALSE);
@@ -1251,12 +1249,12 @@ impl Relater {
         let entry = self.rel().lookup(id);
         crate::sitecount::hit(
             "relation cache (recursiveTypeRelatedTo)",
-            if entry != RelationComparisonResult::NONE { "hit" } else { "miss" },
+            if entry != RelationComparisonResult::None { "hit" } else { "miss" },
         );
         if c.census_on() {
             let k = crate::workcensus::rel_kind(c, self.rel()) as usize;
             let census = c.census.as_mut().unwrap();
-            if entry != RelationComparisonResult::NONE {
+            if entry != RelationComparisonResult::None {
                 census.rel_cache[k][0] += 1;
             } else if self.maybe_stack_has(&id) {
                 census.rel_cache[k][2] += 1;
@@ -1264,18 +1262,18 @@ impl Relater {
                 census.rel_cache[k][1] += 1;
             }
         }
-        if entry != RelationComparisonResult::NONE {
+        if entry != RelationComparisonResult::None {
             if report_errors
-                && entry.intersects(RelationComparisonResult::FAILED)
-                && !entry.intersects(RelationComparisonResult::OVERFLOW)
+                && entry.intersects(RelationComparisonResult::Failed)
+                && !entry.intersects(RelationComparisonResult::Overflow)
             {
                 // We are elaborating errors and the cached result is a failure not due to a comparison overflow,
                 // so we will do the comparison again to generate an error message.
             } else {
                 c.reliability_flags |= entry
-                    & (RelationComparisonResult::REPORTS_UNMEASURABLE
-                        | RelationComparisonResult::REPORTS_UNRELIABLE);
-                if report_errors && entry.intersects(RelationComparisonResult::OVERFLOW) {
+                    & (RelationComparisonResult::ReportsUnmeasurable
+                        | RelationComparisonResult::ReportsUnreliable);
+                if report_errors && entry.intersects(RelationComparisonResult::Overflow) {
                     let source_string = c.type_to_string_exported(source);
                     let target_string = c.type_to_string_exported(target);
                     self.report_error(
@@ -1284,7 +1282,7 @@ impl Relater {
                         &[&source_string, &target_string],
                     );
                 }
-                if entry.intersects(RelationComparisonResult::SUCCEEDED) {
+                if entry.intersects(RelationComparisonResult::Succeeded) {
                     return Ternary::TRUE;
                 }
                 return Ternary::FALSE;
@@ -1328,37 +1326,37 @@ impl Relater {
         let maybe_start = self.maybe_keys.borrow().len();
         self.maybe_stack_push(id);
         let save_expanding_flags = self.expanding_flags.get();
-        if recursion_flags.intersects(RecursionFlags::SOURCE) {
+        if recursion_flags.intersects(RecursionFlags::Source) {
             self.source_stack.borrow_mut().push(RelaterStackEntry::new(source));
             // isDeeplyNestedType never reaches this relater, so the stack borrow is not held across a re-entry.
-            if !self.expanding_flags.get().intersects(ExpandingFlags::SOURCE)
+            if !self.expanding_flags.get().intersects(ExpandingFlags::Source)
                 && c.is_deeply_nested_on_stack(source, &self.source_stack.borrow(), 3)
             {
-                self.expanding_flags.set(self.expanding_flags.get() | ExpandingFlags::SOURCE);
+                self.expanding_flags.set(self.expanding_flags.get() | ExpandingFlags::Source);
             }
         }
-        if recursion_flags.intersects(RecursionFlags::TARGET) {
+        if recursion_flags.intersects(RecursionFlags::Target) {
             self.target_stack.borrow_mut().push(RelaterStackEntry::new(target));
-            if !self.expanding_flags.get().intersects(ExpandingFlags::TARGET)
+            if !self.expanding_flags.get().intersects(ExpandingFlags::Target)
                 && c.is_deeply_nested_on_stack(target, &self.target_stack.borrow(), 3)
             {
-                self.expanding_flags.set(self.expanding_flags.get() | ExpandingFlags::TARGET);
+                self.expanding_flags.set(self.expanding_flags.get() | ExpandingFlags::Target);
             }
         }
         let save_reliability_flags = c.reliability_flags;
-        c.reliability_flags = RelationComparisonResult::NONE;
+        c.reliability_flags = RelationComparisonResult::None;
         let too_complex_before = c.too_complex_reports;
-        let result = if self.expanding_flags.get() == ExpandingFlags::BOTH {
+        let result = if self.expanding_flags.get() == ExpandingFlags::Both {
             Ternary::MAYBE
         } else {
             self.structured_type_related_to(c, source, target, report_errors, intersection_state)
         };
         let propagating_variance_flags = c.reliability_flags;
         c.reliability_flags |= save_reliability_flags;
-        if recursion_flags.intersects(RecursionFlags::SOURCE) {
+        if recursion_flags.intersects(RecursionFlags::Source) {
             self.source_stack.borrow_mut().pop();
         }
-        if recursion_flags.intersects(RecursionFlags::TARGET) {
+        if recursion_flags.intersects(RecursionFlags::Target) {
             self.target_stack.borrow_mut().pop();
         }
         self.expanding_flags.set(save_expanding_flags);
@@ -1387,7 +1385,7 @@ impl Relater {
                 Relation::set(
                     &self.rel(),
                     id,
-                    RelationComparisonResult::FAILED | propagating_variance_flags,
+                    RelationComparisonResult::Failed | propagating_variance_flags,
                 );
                 self.relation_count.set(self.relation_count.get() - 1);
             }
@@ -1411,7 +1409,7 @@ impl Relater {
                 Relation::set(
                     &self.rel(),
                     key,
-                    RelationComparisonResult::SUCCEEDED | propagating_variance_flags,
+                    RelationComparisonResult::Succeeded | propagating_variance_flags,
                 );
                 self.relation_count.set(self.relation_count.get() - 1);
             }
@@ -1550,11 +1548,11 @@ impl Relater {
             // the type param can be compared with itself in the target (with the influence of its constraint to match other parts)
             // For example, if `T extends 1 | 2` and `U extends 2 | 3` and we compare `T & U` to `T & U & (1 | 2 | 3)`
             if result == Ternary::FALSE
-                && (source.flags().intersects(TypeFlags::INTERSECTION)
-                    || source.flags().intersects(TypeFlags::TYPE_PARAMETER)
-                        && target.flags().intersects(TypeFlags::UNION))
+                && (source.flags().intersects(TypeFlags::Intersection)
+                    || source.flags().intersects(TypeFlags::TypeParameter)
+                        && target.flags().intersects(TypeFlags::Union))
             {
-                let source_types: &[P<Type>] = if source.flags().intersects(TypeFlags::INTERSECTION)
+                let source_types: &[P<Type>] = if source.flags().intersects(TypeFlags::Intersection)
                 {
                     source.types()
                 } else {
@@ -1562,7 +1560,7 @@ impl Relater {
                 };
                 let constraint = c.get_effective_constraint_of_intersection(
                     source_types,
-                    target.flags().intersects(TypeFlags::UNION),
+                    target.flags().intersects(TypeFlags::Union),
                 );
                 if let Some(constraint) = constraint {
                     if every_type(c, constraint, |_, t| t != source) {
@@ -1571,7 +1569,7 @@ impl Relater {
                             c,
                             constraint,
                             target,
-                            RecursionFlags::SOURCE,
+                            RecursionFlags::Source,
                             false, /*reportErrors*/
                             None,  /*headMessage*/
                             intersection_state,
@@ -1589,10 +1587,10 @@ impl Relater {
             //   let weak: { a?: { x?: number } } & { c?: string } = wrong;  // Nested weak object type
             //
             if result != Ternary::FALSE
-                && !intersection_state.intersects(IntersectionState::TARGET)
-                && target.flags().intersects(TypeFlags::INTERSECTION)
+                && !intersection_state.intersects(IntersectionState::Target)
+                && target.flags().intersects(TypeFlags::Intersection)
                 && !c.is_generic_object_type(target)
-                && source.flags().intersects(TypeFlags::OBJECT | TypeFlags::INTERSECTION)
+                && source.flags().intersects(TypeFlags::Object | TypeFlags::Intersection)
             {
                 result &= self.properties_related_to(
                     c,
@@ -1601,11 +1599,11 @@ impl Relater {
                     report_errors,
                     &NO_EXCLUDED_PROPERTIES,
                     false, /*optionalsOnly*/
-                    IntersectionState::NONE,
+                    IntersectionState::None,
                 );
                 if result != Ternary::FALSE
                     && is_object_literal_type(source)
-                    && source.object_flags().intersects(ObjectFlags::FRESH_LITERAL)
+                    && source.object_flags().intersects(ObjectFlags::FreshLiteral)
                 {
                     result &= self.index_signatures_related_to(
                         c,
@@ -1613,7 +1611,7 @@ impl Relater {
                         target,
                         false, /*sourceIsPrimitive*/
                         report_errors,
-                        IntersectionState::NONE,
+                        IntersectionState::None,
                     );
                 }
             // When the source is an intersection we need an extra check of any optional properties in the target to
@@ -1651,10 +1649,10 @@ impl Relater {
         source: P<Type>,
         target: P<Type>,
     ) -> bool {
-        source.flags().intersects(TypeFlags::INTERSECTION)
-            && c.get_apparent_type(source).flags().intersects(TypeFlags::STRUCTURED_TYPE)
+        source.flags().intersects(TypeFlags::Intersection)
+            && c.get_apparent_type(source).flags().intersects(TypeFlags::StructuredType)
             && !source.types().iter().any(|&t| {
-                t == target || t.object_flags().intersects(ObjectFlags::NON_INFERRABLE_TYPE)
+                t == target || t.object_flags().intersects(ObjectFlags::NonInferrableType)
             })
     }
 
@@ -1684,7 +1682,7 @@ impl Relater {
         if *result != Ternary::FALSE {
             return (*result, true);
         }
-        if variances.iter().any(|v| v.intersects(VarianceFlags::ALLOWS_STRUCTURAL_FALLBACK)) {
+        if variances.iter().any(|v| v.intersects(VarianceFlags::AllowsStructuralFallback)) {
             // If some type parameter was `Unmeasurable` or `Unreliable`, and we couldn't pass by assuming it was identical, then we
             // have to allow a structural fallback check
             // We elide the variance-based error elaborations, since those might not be too helpful, since we'll potentially
@@ -1716,7 +1714,7 @@ impl Relater {
                 && !(report_errors
                     && variances
                         .iter()
-                        .any(|&v| (v & VarianceFlags::VARIANCE_MASK) == VarianceFlags::INVARIANT))
+                        .any(|&v| (v & VarianceFlags::VarianceMask) == VarianceFlags::Invariant))
             {
                 return (Ternary::FALSE, true);
             }
@@ -1745,26 +1743,26 @@ impl Relater {
         let save_error_state = self.get_error_state(c);
         if self.rel() == c.identity_relation {
             // We've already checked that source.flags and target.flags are identical
-            if source.flags().intersects(TypeFlags::UNION_OR_INTERSECTION) {
+            if source.flags().intersects(TypeFlags::UnionOrIntersection) {
                 let mut result = self.each_type_related_to_some_type(c, source, target);
                 if result != Ternary::FALSE {
                     result &= self.each_type_related_to_some_type(c, target, source);
                 }
                 return result;
-            } else if source.flags().intersects(TypeFlags::INDEX) {
+            } else if source.flags().intersects(TypeFlags::Index) {
                 return self.is_related_to(
                     c,
                     source.target().unwrap(),
                     target.target().unwrap(),
-                    RecursionFlags::BOTH,
+                    RecursionFlags::Both,
                     false, /*reportErrors*/
                 );
-            } else if source.flags().intersects(TypeFlags::INDEXED_ACCESS) {
+            } else if source.flags().intersects(TypeFlags::IndexedAccess) {
                 result = self.is_related_to(
                     c,
                     source.as_indexed_access_type().object_type.get().unwrap(),
                     target.as_indexed_access_type().object_type.get().unwrap(),
-                    RecursionFlags::BOTH,
+                    RecursionFlags::Both,
                     false, /*reportErrors*/
                 );
                 if result != Ternary::FALSE {
@@ -1772,14 +1770,14 @@ impl Relater {
                         c,
                         source.as_indexed_access_type().index_type.get().unwrap(),
                         target.as_indexed_access_type().index_type.get().unwrap(),
-                        RecursionFlags::BOTH,
+                        RecursionFlags::Both,
                         false, /*reportErrors*/
                     );
                     if result != Ternary::FALSE {
                         return result;
                     }
                 }
-            } else if source.flags().intersects(TypeFlags::CONDITIONAL) {
+            } else if source.flags().intersects(TypeFlags::Conditional) {
                 let source_conditional = source.as_conditional_type();
                 let target_conditional = target.as_conditional_type();
                 if source_conditional.root.get().unwrap().is_distributive.get()
@@ -1789,7 +1787,7 @@ impl Relater {
                         c,
                         source_conditional.check_type.get().unwrap(),
                         target_conditional.check_type.get().unwrap(),
-                        RecursionFlags::BOTH,
+                        RecursionFlags::Both,
                         false, /*reportErrors*/
                     );
                     if result != Ternary::FALSE {
@@ -1797,7 +1795,7 @@ impl Relater {
                             c,
                             source_conditional.extends_type.get().unwrap(),
                             target_conditional.extends_type.get().unwrap(),
-                            RecursionFlags::BOTH,
+                            RecursionFlags::Both,
                             false, /*reportErrors*/
                         );
                         if result != Ternary::FALSE {
@@ -1807,7 +1805,7 @@ impl Relater {
                                 c,
                                 source_true,
                                 target_true,
-                                RecursionFlags::BOTH,
+                                RecursionFlags::Both,
                                 false, /*reportErrors*/
                             );
                             if result != Ternary::FALSE {
@@ -1817,7 +1815,7 @@ impl Relater {
                                     c,
                                     source_false,
                                     target_false,
-                                    RecursionFlags::BOTH,
+                                    RecursionFlags::Both,
                                     false, /*reportErrors*/
                                 );
                                 if result != Ternary::FALSE {
@@ -1827,12 +1825,12 @@ impl Relater {
                         }
                     }
                 }
-            } else if source.flags().intersects(TypeFlags::SUBSTITUTION) {
+            } else if source.flags().intersects(TypeFlags::Substitution) {
                 result = self.is_related_to(
                     c,
                     source.as_substitution_type().base_type.get().unwrap(),
                     target.as_substitution_type().base_type.get().unwrap(),
-                    RecursionFlags::BOTH,
+                    RecursionFlags::Both,
                     false, /*reportErrors*/
                 );
                 if result != Ternary::FALSE {
@@ -1840,14 +1838,14 @@ impl Relater {
                         c,
                         source.as_substitution_type().constraint.get().unwrap(),
                         target.as_substitution_type().constraint.get().unwrap(),
-                        RecursionFlags::BOTH,
+                        RecursionFlags::Both,
                         false, /*reportErrors*/
                     );
                     if result != Ternary::FALSE {
                         return result;
                     }
                 }
-            } else if source.flags().intersects(TypeFlags::TEMPLATE_LITERAL) {
+            } else if source.flags().intersects(TypeFlags::TemplateLiteral) {
                 if source.as_template_literal_type().texts()
                     == target.as_template_literal_type().texts()
                 {
@@ -1861,7 +1859,7 @@ impl Relater {
                             c,
                             source_type,
                             target_type,
-                            RecursionFlags::BOTH,
+                            RecursionFlags::Both,
                             false, /*reportErrors*/
                         );
                         if result == Ternary::FALSE {
@@ -1870,22 +1868,22 @@ impl Relater {
                     }
                     return result;
                 }
-            } else if source.flags().intersects(TypeFlags::STRING_MAPPING) {
+            } else if source.flags().intersects(TypeFlags::StringMapping) {
                 if source.symbol() == target.symbol() {
                     return self.is_related_to(
                         c,
                         source.as_string_mapping_type().target.get().unwrap(),
                         target.as_string_mapping_type().target.get().unwrap(),
-                        RecursionFlags::BOTH,
+                        RecursionFlags::Both,
                         false, /*reportErrors*/
                     );
                 }
             }
-            if !source.flags().intersects(TypeFlags::OBJECT) {
+            if !source.flags().intersects(TypeFlags::Object) {
                 return Ternary::FALSE;
             }
-        } else if source.flags().intersects(TypeFlags::UNION_OR_INTERSECTION)
-            || target.flags().intersects(TypeFlags::UNION_OR_INTERSECTION)
+        } else if source.flags().intersects(TypeFlags::UnionOrIntersection)
+            || target.flags().intersects(TypeFlags::UnionOrIntersection)
         {
             result = self.union_or_intersection_related_to(
                 c,
@@ -1903,13 +1901,13 @@ impl Relater {
             // Source is an intersection, target is an object (e.g. { a } & { b } <=> { a, b }).
             // Source is an intersection, target is a union (e.g. { a } & { b: boolean } <=> { a, b: true } | { a, b: false }).
             // Source is an intersection, target instantiable (e.g. string & { tag } <=> T["a"] constrained to string & { tag }).
-            if !(source.flags().intersects(TypeFlags::INSTANTIABLE)
-                || source.flags().intersects(TypeFlags::OBJECT)
-                    && target.flags().intersects(TypeFlags::UNION)
-                || source.flags().intersects(TypeFlags::INTERSECTION)
+            if !(source.flags().intersects(TypeFlags::Instantiable)
+                || source.flags().intersects(TypeFlags::Object)
+                    && target.flags().intersects(TypeFlags::Union)
+                || source.flags().intersects(TypeFlags::Intersection)
                     && target
                         .flags()
-                        .intersects(TypeFlags::OBJECT | TypeFlags::UNION | TypeFlags::INSTANTIABLE))
+                        .intersects(TypeFlags::Object | TypeFlags::Union | TypeFlags::Instantiable))
             {
                 return Ternary::FALSE;
             }
@@ -1917,7 +1915,7 @@ impl Relater {
         // We limit alias variance probing to only object and conditional types since their alias behavior
         // is more predictable than other, interned types, which may or may not have an alias depending on
         // the order in which things were checked.
-        if source.flags().intersects(TypeFlags::OBJECT | TypeFlags::CONDITIONAL)
+        if source.flags().intersects(TypeFlags::Object | TypeFlags::Conditional)
             && source.alias().is_some()
             && !source.alias().unwrap().type_arguments().is_empty()
             && target.alias().is_some()
@@ -1970,7 +1968,7 @@ impl Relater {
                 c,
                 element,
                 target,
-                RecursionFlags::SOURCE,
+                RecursionFlags::Source,
                 false, /*reportErrors*/
             );
             if result != Ternary::FALSE {
@@ -1988,16 +1986,16 @@ impl Relater {
                 c,
                 source,
                 element,
-                RecursionFlags::TARGET,
+                RecursionFlags::Target,
                 false, /*reportErrors*/
             );
             if result != Ternary::FALSE {
                 return result;
             }
         }
-        if target.flags().intersects(TypeFlags::TYPE_PARAMETER) {
+        if target.flags().intersects(TypeFlags::TypeParameter) {
             // A source type { [P in Q]: X } is related to a target type T if keyof T is related to Q and X is related to T[Q].
-            if source.object_flags().intersects(ObjectFlags::MAPPED)
+            if source.object_flags().intersects(ObjectFlags::Mapped)
                 && source
                     .as_mapped_type()
                     .declaration
@@ -2009,12 +2007,12 @@ impl Relater {
                 && {
                     let index_type = c.get_index_type(target);
                     let constraint_type = c.get_constraint_type_from_mapped_type(source);
-                    self.is_related_to(c, index_type, constraint_type, RecursionFlags::BOTH, false)
+                    self.is_related_to(c, index_type, constraint_type, RecursionFlags::Both, false)
                         != Ternary::FALSE
                 }
             {
                 if !get_mapped_type_modifiers(source)
-                    .intersects(MappedTypeModifiers::INCLUDE_OPTIONAL)
+                    .intersects(MappedTypeModifiers::IncludeOptional)
                 {
                     let template_type = c.get_template_type_from_mapped_type(source);
                     let type_parameter = c.get_type_parameter_from_mapped_type(source);
@@ -2023,7 +2021,7 @@ impl Relater {
                         c,
                         template_type,
                         indexed_access_type,
-                        RecursionFlags::BOTH,
+                        RecursionFlags::Both,
                         report_errors,
                     );
                     if result != Ternary::FALSE {
@@ -2032,34 +2030,34 @@ impl Relater {
                 }
             }
             if self.rel() == c.comparable_relation
-                && source.flags().intersects(TypeFlags::TYPE_PARAMETER)
+                && source.flags().intersects(TypeFlags::TypeParameter)
             {
                 // This is a carve-out in comparability to essentially forbid comparing a type parameter with another type parameter
                 // unless one extends the other. (Remember: comparability is mostly bidirectional!)
                 if let Some(constraint) = c.get_constraint_of_type_parameter(source) {
                     if some_type(c, constraint, |_, t| {
-                        t.flags().intersects(TypeFlags::TYPE_PARAMETER)
+                        t.flags().intersects(TypeFlags::TypeParameter)
                     }) {
                         return self.is_related_to(
                             c,
                             constraint,
                             target,
-                            RecursionFlags::SOURCE,
+                            RecursionFlags::Source,
                             false, /*reportErrors*/
                         );
                     }
                 }
                 return Ternary::FALSE;
             }
-        } else if target.flags().intersects(TypeFlags::INDEXED_ACCESS) {
-            if source.flags().intersects(TypeFlags::INDEXED_ACCESS) {
+        } else if target.flags().intersects(TypeFlags::IndexedAccess) {
+            if source.flags().intersects(TypeFlags::IndexedAccess) {
                 // Relate components directly before falling back to constraint relationships
                 // A type S[K] is related to a type T[J] if S is related to T and K is related to J.
                 result = self.is_related_to(
                     c,
                     source.as_indexed_access_type().object_type.get().unwrap(),
                     target.as_indexed_access_type().object_type.get().unwrap(),
-                    RecursionFlags::BOTH,
+                    RecursionFlags::Both,
                     report_errors,
                 );
                 if result != Ternary::FALSE {
@@ -2067,7 +2065,7 @@ impl Relater {
                         c,
                         source.as_indexed_access_type().index_type.get().unwrap(),
                         target.as_indexed_access_type().index_type.get().unwrap(),
-                        RecursionFlags::BOTH,
+                        RecursionFlags::Both,
                         report_errors,
                     );
                 }
@@ -2088,11 +2086,11 @@ impl Relater {
                 if !c.is_generic_object_type(base_object_type)
                     && !c.is_generic_index_type(base_index_type)
                 {
-                    let access_flags = AccessFlags::WRITING
+                    let access_flags = AccessFlags::Writing
                         | if base_object_type != object_type {
-                            AccessFlags::NO_INDEX_SIGNATURES
+                            AccessFlags::NoIndexSignatures
                         } else {
-                            AccessFlags::NONE
+                            AccessFlags::None
                         };
                     let constraint = c.get_indexed_access_type_or_undefined(
                         base_object_type,
@@ -2110,7 +2108,7 @@ impl Relater {
                             c,
                             source,
                             constraint,
-                            RecursionFlags::TARGET,
+                            RecursionFlags::Target,
                             report_errors,
                             None, /*headMessage*/
                             intersection_state,
@@ -2135,15 +2133,15 @@ impl Relater {
             if report_errors {
                 original_error_chain = None;
             }
-        } else if target.flags().intersects(TypeFlags::INDEX) {
+        } else if target.flags().intersects(TypeFlags::Index) {
             let target_type = target.as_index_type().target.get().unwrap();
             // A keyof S is related to a keyof T if T is related to S.
-            if source.flags().intersects(TypeFlags::INDEX) {
+            if source.flags().intersects(TypeFlags::Index) {
                 result = self.is_related_to(
                     c,
                     target_type,
                     source.as_index_type().target.get().unwrap(),
-                    RecursionFlags::BOTH,
+                    RecursionFlags::Both,
                     false, /*reportErrors*/
                 );
                 if result != Ternary::FALSE {
@@ -2158,7 +2156,7 @@ impl Relater {
                     c,
                     source,
                     known_keys,
-                    RecursionFlags::TARGET,
+                    RecursionFlags::Target,
                     report_errors,
                 );
                 if result != Ternary::FALSE {
@@ -2175,13 +2173,13 @@ impl Relater {
                     // related to other types.
                     let index_type = c.get_index_type_ex(
                         constraint,
-                        target.as_index_type().index_flags.get() | IndexFlags::NO_REDUCIBLE_CHECK,
+                        target.as_index_type().index_flags.get() | IndexFlags::NoReducibleCheck,
                     );
                     if self.is_related_to(
                         c,
                         source,
                         index_type,
-                        RecursionFlags::TARGET,
+                        RecursionFlags::Target,
                         report_errors,
                     ) == Ternary::TRUE
                     {
@@ -2213,7 +2211,7 @@ impl Relater {
                         c,
                         source,
                         target_keys,
-                        RecursionFlags::TARGET,
+                        RecursionFlags::Target,
                         report_errors,
                     ) == Ternary::TRUE
                     {
@@ -2221,7 +2219,7 @@ impl Relater {
                     }
                 }
             }
-        } else if target.flags().intersects(TypeFlags::CONDITIONAL) {
+        } else if target.flags().intersects(TypeFlags::Conditional) {
             // If we reach 10 levels of nesting for the same conditional type, assume it is an infinitely expanding recursive
             // conditional type and bail out with a Ternary.Maybe result.
             if c.is_deeply_nested_on_stack(target, &self.target_stack.borrow(), 10) {
@@ -2235,7 +2233,7 @@ impl Relater {
             // conditional type (as happens when computing variance).
             if root.infer_type_parameters.get().is_empty()
                 && !c.is_distribution_dependent(root)
-                && !(source.flags().intersects(TypeFlags::CONDITIONAL)
+                && !(source.flags().intersects(TypeFlags::Conditional)
                     && source.as_conditional_type().root.get() == Some(root))
             {
                 // Check if the conditional is always true or always false but still deferred for distribution purposes.
@@ -2265,7 +2263,7 @@ impl Relater {
                         c,
                         source,
                         true_type,
-                        RecursionFlags::TARGET,
+                        RecursionFlags::Target,
                         false, /*reportErrors*/
                         None,  /*headMessage*/
                         intersection_state,
@@ -2280,7 +2278,7 @@ impl Relater {
                             c,
                             source,
                             false_type,
-                            RecursionFlags::TARGET,
+                            RecursionFlags::Target,
                             false, /*reportErrors*/
                             None,  /*headMessage*/
                             intersection_state,
@@ -2291,8 +2289,8 @@ impl Relater {
                     }
                 }
             }
-        } else if target.flags().intersects(TypeFlags::TEMPLATE_LITERAL) {
-            if source.flags().intersects(TypeFlags::TEMPLATE_LITERAL) {
+        } else if target.flags().intersects(TypeFlags::TemplateLiteral) {
+            if source.flags().intersects(TypeFlags::TemplateLiteral) {
                 if self.rel() == c.comparable_relation {
                     if checker::Checker::template_literal_types_definitely_unrelated(
                         source.as_template_literal_type(),
@@ -2314,8 +2312,8 @@ impl Relater {
             ) {
                 return Ternary::TRUE;
             }
-        } else if target.flags().intersects(TypeFlags::STRING_MAPPING) {
-            if !source.flags().intersects(TypeFlags::STRING_MAPPING) {
+        } else if target.flags().intersects(TypeFlags::StringMapping) {
+            if !source.flags().intersects(TypeFlags::StringMapping) {
                 if c.is_member_of_string_mapping(source, target) {
                     return Ternary::TRUE;
                 }
@@ -2332,11 +2330,11 @@ impl Relater {
                 .is_some();
             let template_type = c.get_template_type_from_mapped_type(target);
             let modifiers = get_mapped_type_modifiers(target);
-            if !modifiers.intersects(MappedTypeModifiers::EXCLUDE_OPTIONAL) {
+            if !modifiers.intersects(MappedTypeModifiers::ExcludeOptional) {
                 // If the mapped type has shape `{ [P in Q]: T[P] }`,
                 // source `S` is related to target if `T` = `S`, i.e. `S` is related to `{ [P in Q]: S[P] }`.
                 if !keys_remapped
-                    && template_type.flags().intersects(TypeFlags::INDEXED_ACCESS)
+                    && template_type.flags().intersects(TypeFlags::IndexedAccess)
                     && template_type.as_indexed_access_type().object_type.get() == Some(source)
                     && template_type.as_indexed_access_type().index_type.get()
                         == Some(c.get_type_parameter_from_mapped_type(target))
@@ -2352,9 +2350,9 @@ impl Relater {
                         c.get_constraint_type_from_mapped_type(target)
                     };
                     // Type of the keys of source type `S`, i.e. `keyof S`.
-                    let source_keys = c.get_index_type_ex(source, IndexFlags::NO_INDEX_SIGNATURES);
+                    let source_keys = c.get_index_type_ex(source, IndexFlags::NoIndexSignatures);
                     let include_optional =
-                        modifiers.intersects(MappedTypeModifiers::INCLUDE_OPTIONAL);
+                        modifiers.intersects(MappedTypeModifiers::IncludeOptional);
                     let mut filtered_by_applicability: Option<P<Type>> = None;
                     if include_optional {
                         filtered_by_applicability =
@@ -2365,13 +2363,13 @@ impl Relater {
                     // A source type `S` is related to a target type `{ [P in Q]?: T }` if some constituent `Q'` of `Q` is related to `keyof S` and `S[Q']` is related to `T`.
                     // A source type `S` is related to a target type `{ [P in Q as R]?: T }` if some constituent `R'` of `R` is related to `keyof S` and `S[R']` is related to `T`.
                     if include_optional
-                        && !filtered_by_applicability.unwrap().flags().intersects(TypeFlags::NEVER)
+                        && !filtered_by_applicability.unwrap().flags().intersects(TypeFlags::Never)
                         || !include_optional
                             && self.is_related_to(
                                 c,
                                 target_keys,
                                 source_keys,
-                                RecursionFlags::BOTH,
+                                RecursionFlags::Both,
                                 false,
                             ) != Ternary::FALSE
                     {
@@ -2380,9 +2378,9 @@ impl Relater {
                         // Fastpath: When the template type has the form `Obj[P]` where `P` is the mapped type parameter, directly compare source `S` with `Obj`
                         // to avoid creating the (potentially very large) number of new intermediate types made by manufacturing `S[P]`.
                         let non_null_component =
-                            c.extract_types_of_kind(template_type, !TypeFlags::NULLABLE);
+                            c.extract_types_of_kind(template_type, !TypeFlags::Nullable);
                         if !keys_remapped
-                            && non_null_component.flags().intersects(TypeFlags::INDEXED_ACCESS)
+                            && non_null_component.flags().intersects(TypeFlags::IndexedAccess)
                             && non_null_component.as_indexed_access_type().index_type.get()
                                 == Some(type_parameter)
                         {
@@ -2394,7 +2392,7 @@ impl Relater {
                                     .object_type
                                     .get()
                                     .unwrap(),
-                                RecursionFlags::TARGET,
+                                RecursionFlags::Target,
                                 report_errors,
                             );
                             if result != Ternary::FALSE {
@@ -2427,7 +2425,7 @@ impl Relater {
                                 c,
                                 indexed_access_type,
                                 template_type,
-                                RecursionFlags::BOTH,
+                                RecursionFlags::Both,
                                 report_errors,
                             );
                             if result != Ternary::FALSE {
@@ -2440,10 +2438,10 @@ impl Relater {
                 }
             }
         }
-        if source.flags().intersects(TypeFlags::TYPE_VARIABLE) {
+        if source.flags().intersects(TypeFlags::TypeVariable) {
             // IndexedAccess comparisons are handled above in the `target.flags&TypeFlagsIndexedAccess` branch
-            if !source.flags().intersects(TypeFlags::INDEXED_ACCESS)
-                || !target.flags().intersects(TypeFlags::INDEXED_ACCESS)
+            if !source.flags().intersects(TypeFlags::IndexedAccess)
+                || !target.flags().intersects(TypeFlags::IndexedAccess)
             {
                 let constraint = match c.get_constraint_of_type(source) {
                     Some(constraint) => constraint,
@@ -2454,7 +2452,7 @@ impl Relater {
                     c,
                     constraint,
                     target,
-                    RecursionFlags::SOURCE,
+                    RecursionFlags::Source,
                     false, /*reportErrors*/
                     None,  /*headMessage*/
                     intersection_state,
@@ -2471,10 +2469,10 @@ impl Relater {
                     c,
                     constraint_with_this,
                     target,
-                    RecursionFlags::SOURCE,
+                    RecursionFlags::Source,
                     report_errors
                         && constraint != c.unknown_type
-                        && !(target.flags() & source.flags()).intersects(TypeFlags::TYPE_PARAMETER),
+                        && !(target.flags() & source.flags()).intersects(TypeFlags::TypeParameter),
                     None, /*headMessage*/
                     intersection_state,
                 );
@@ -2496,7 +2494,7 @@ impl Relater {
                             c,
                             indexed_access,
                             target,
-                            RecursionFlags::SOURCE,
+                            RecursionFlags::Source,
                             report_errors,
                         );
                         if result != Ternary::FALSE {
@@ -2505,18 +2503,18 @@ impl Relater {
                     }
                 }
             }
-        } else if source.flags().intersects(TypeFlags::INDEX) {
+        } else if source.flags().intersects(TypeFlags::Index) {
             let source_index_target = source.as_index_type().target.get().unwrap();
             let is_deferred_mapped_index =
                 c.should_defer_index_type(
                     source_index_target,
                     source.as_index_type().index_flags.get(),
-                ) && source_index_target.object_flags().intersects(ObjectFlags::MAPPED);
+                ) && source_index_target.object_flags().intersects(ObjectFlags::Mapped);
             result = self.is_related_to(
                 c,
                 c.string_number_symbol_type,
                 target,
-                RecursionFlags::SOURCE,
+                RecursionFlags::Source,
                 report_errors && !is_deferred_mapped_index,
             );
             if result != Ternary::FALSE {
@@ -2544,20 +2542,20 @@ impl Relater {
                     c,
                     source_mapped_keys,
                     target,
-                    RecursionFlags::SOURCE,
+                    RecursionFlags::Source,
                     report_errors,
                 );
                 if result != Ternary::FALSE {
                     return result;
                 }
             }
-        } else if source.flags().intersects(TypeFlags::CONDITIONAL) {
+        } else if source.flags().intersects(TypeFlags::Conditional) {
             // If we reach 10 levels of nesting for the same conditional type, assume it is an infinitely expanding recursive
             // conditional type and bail out with a Ternary.Maybe result.
             if c.is_deeply_nested_on_stack(source, &self.source_stack.borrow(), 10) {
                 return Ternary::MAYBE;
             }
-            if target.flags().intersects(TypeFlags::CONDITIONAL) {
+            if target.flags().intersects(TypeFlags::Conditional) {
                 // Two conditional types 'T1 extends U1 ? X1 : Y1' and 'T2 extends U2 ? X2 : Y2' are related if
                 // one of T1 and T2 is related to the other, U1 and U2 are identical types, X1 is related to X2,
                 // and Y1 is related to Y2.
@@ -2573,7 +2571,7 @@ impl Relater {
                     let ctx = checker::Checker::new_inference_context(
                         source_params,
                         None, /*signature*/
-                        InferenceFlags::NONE,
+                        InferenceFlags::None,
                         Some(r.worker_comparer()),
                     );
                     c.infer_types(
@@ -2593,14 +2591,14 @@ impl Relater {
                     c,
                     source_conditional.check_type.get().unwrap(),
                     target_conditional.check_type.get().unwrap(),
-                    RecursionFlags::BOTH,
+                    RecursionFlags::Both,
                     false,
                 ) != Ternary::FALSE
                     || self.is_related_to(
                         c,
                         target_conditional.check_type.get().unwrap(),
                         source_conditional.check_type.get().unwrap(),
-                        RecursionFlags::BOTH,
+                        RecursionFlags::Both,
                         false,
                     ) != Ternary::FALSE)
                 {
@@ -2611,7 +2609,7 @@ impl Relater {
                         c,
                         source_true,
                         target_true,
-                        RecursionFlags::BOTH,
+                        RecursionFlags::Both,
                         report_errors,
                     );
                     if result != Ternary::FALSE {
@@ -2621,7 +2619,7 @@ impl Relater {
                             c,
                             source_false,
                             target_false,
-                            RecursionFlags::BOTH,
+                            RecursionFlags::Both,
                             report_errors,
                         );
                     }
@@ -2637,7 +2635,7 @@ impl Relater {
                 c,
                 default_constraint,
                 target,
-                RecursionFlags::SOURCE,
+                RecursionFlags::Source,
                 report_errors,
             );
             if result != Ternary::FALSE {
@@ -2645,7 +2643,7 @@ impl Relater {
             }
             // conditionals aren't related to one another via distributive constraint as it is much too inaccurate and allows way
             // more assignments than are desirable (since it maps the source check type to its constraint, it loses information).
-            if !target.flags().intersects(TypeFlags::CONDITIONAL)
+            if !target.flags().intersects(TypeFlags::Conditional)
                 && c.has_non_circular_base_constraint(source)
             {
                 let distributive_constraint =
@@ -2656,7 +2654,7 @@ impl Relater {
                         c,
                         distributive_constraint,
                         target,
-                        RecursionFlags::SOURCE,
+                        RecursionFlags::Source,
                         report_errors,
                     );
                     if result != Ternary::FALSE {
@@ -2664,10 +2662,10 @@ impl Relater {
                     }
                 }
             }
-        } else if source.flags().intersects(TypeFlags::TEMPLATE_LITERAL)
-            && !target.flags().intersects(TypeFlags::OBJECT)
+        } else if source.flags().intersects(TypeFlags::TemplateLiteral)
+            && !target.flags().intersects(TypeFlags::Object)
         {
-            if !target.flags().intersects(TypeFlags::TEMPLATE_LITERAL) {
+            if !target.flags().intersects(TypeFlags::TemplateLiteral) {
                 let constraint = c.get_base_constraint_of_type(source);
                 if let Some(constraint) = constraint {
                     if constraint != source {
@@ -2675,7 +2673,7 @@ impl Relater {
                             c,
                             constraint,
                             target,
-                            RecursionFlags::SOURCE,
+                            RecursionFlags::Source,
                             report_errors,
                         );
                         if result != Ternary::FALSE {
@@ -2684,8 +2682,8 @@ impl Relater {
                     }
                 }
             }
-        } else if source.flags().intersects(TypeFlags::STRING_MAPPING) {
-            if target.flags().intersects(TypeFlags::STRING_MAPPING) {
+        } else if source.flags().intersects(TypeFlags::StringMapping) {
+            if target.flags().intersects(TypeFlags::StringMapping) {
                 if source.symbol() != target.symbol() {
                     return Ternary::FALSE;
                 }
@@ -2693,7 +2691,7 @@ impl Relater {
                     c,
                     source.as_string_mapping_type().target.get().unwrap(),
                     target.as_string_mapping_type().target.get().unwrap(),
-                    RecursionFlags::BOTH,
+                    RecursionFlags::Both,
                     report_errors,
                 );
                 if result != Ternary::FALSE {
@@ -2706,7 +2704,7 @@ impl Relater {
                         c,
                         constraint,
                         target,
-                        RecursionFlags::SOURCE,
+                        RecursionFlags::Source,
                         report_errors,
                     );
                     if result != Ternary::FALSE {
@@ -2732,14 +2730,14 @@ impl Relater {
                 }
                 return Ternary::FALSE;
             }
-            let source_is_primitive = source.flags().intersects(TypeFlags::PRIMITIVE);
+            let source_is_primitive = source.flags().intersects(TypeFlags::Primitive);
             if self.rel() != c.identity_relation {
                 source = c.get_apparent_type(source);
             } else if c.is_generic_mapped_type(source) {
                 return Ternary::FALSE;
             }
-            if source.object_flags().intersects(ObjectFlags::REFERENCE)
-                && target.object_flags().intersects(ObjectFlags::REFERENCE)
+            if source.object_flags().intersects(ObjectFlags::Reference)
+                && target.object_flags().intersects(ObjectFlags::Reference)
                 && source.target() == target.target()
                 && !is_tuple_type(source)
                 && !c.is_marker_type(source)
@@ -2791,7 +2789,7 @@ impl Relater {
                         c,
                         source_index_type,
                         target_index_type,
-                        RecursionFlags::BOTH,
+                        RecursionFlags::Both,
                         report_errors,
                     );
                 }
@@ -2808,13 +2806,13 @@ impl Relater {
                         c,
                         constraint,
                         target,
-                        RecursionFlags::SOURCE,
+                        RecursionFlags::Source,
                         report_errors,
                     );
                 }
             } else if (self.rel() == c.subtype_relation || self.rel() == c.strict_subtype_relation)
                 && c.is_empty_object_type(target)
-                && target.object_flags().intersects(ObjectFlags::FRESH_LITERAL)
+                && target.object_flags().intersects(ObjectFlags::FreshLiteral)
                 && !c.is_empty_object_type(source)
             {
                 return Ternary::FALSE;
@@ -2824,8 +2822,8 @@ impl Relater {
             // In a check of the form X = A & B, we will have previously checked if A relates to X or B relates
             // to X. Failing both of those we want to check if the aggregation of A and B's members structurally
             // relates to X. Thus, we include intersection types on the source side here.
-            if source.flags().intersects(TypeFlags::OBJECT | TypeFlags::INTERSECTION)
-                && target.flags().intersects(TypeFlags::OBJECT)
+            if source.flags().intersects(TypeFlags::Object | TypeFlags::Intersection)
+                && target.flags().intersects(TypeFlags::Object)
             {
                 // Report structural errors only if we haven't reported any errors yet
                 let report_structural_errors = report_errors
@@ -2886,14 +2884,14 @@ impl Relater {
             // there exists a constituent of T for every combination of the discriminants of S
             // with respect to T. We do not report errors here, as we will use the existing
             // error result from checking each constituent of the union.
-            if source.flags().intersects(TypeFlags::OBJECT | TypeFlags::INTERSECTION)
-                && target.flags().intersects(TypeFlags::UNION)
+            if source.flags().intersects(TypeFlags::Object | TypeFlags::Intersection)
+                && target.flags().intersects(TypeFlags::Union)
             {
                 let object_only_target = c.extract_types_of_kind(
                     target,
-                    TypeFlags::OBJECT | TypeFlags::INTERSECTION | TypeFlags::SUBSTITUTION,
+                    TypeFlags::Object | TypeFlags::Intersection | TypeFlags::Substitution,
                 );
-                if object_only_target.flags().intersects(TypeFlags::UNION) {
+                if object_only_target.flags().intersects(TypeFlags::Union) {
                     let result =
                         self.type_related_to_discriminated_type(c, source, object_only_target);
                     if result != Ternary::FALSE {
@@ -2924,17 +2922,17 @@ impl Relater {
             // When variance information isn't available we default to covariance. This happens
             // in the process of computing variance information for recursive types and when
             // comparing 'this' type arguments.
-            let mut variance_flags = VarianceFlags::COVARIANT;
+            let mut variance_flags = VarianceFlags::Covariant;
             if i < variances.len() {
                 variance_flags = variances[i];
             }
-            let variance = variance_flags & VarianceFlags::VARIANCE_MASK;
+            let variance = variance_flags & VarianceFlags::VarianceMask;
             // We ignore arguments for independent type parameters (because they're never witnessed).
-            if variance != VarianceFlags::INDEPENDENT {
+            if variance != VarianceFlags::Independent {
                 let s = sources[i];
                 let t = targets[i];
                 let mut related;
-                if variance_flags.intersects(VarianceFlags::UNMEASURABLE) {
+                if variance_flags.intersects(VarianceFlags::Unmeasurable) {
                     // Even an `Unmeasurable` variance works out without a structural check if the source and target are _identical_.
                     // We can't simply assume invariance, because `Unmeasurable` marks nonlinear relations, for example, a relation tainted by
                     // the `-?` modifier in a mapped type (where, no matter how the inputs are related, the outputs still might not be)
@@ -2943,7 +2941,7 @@ impl Relater {
                             c,
                             s,
                             t,
-                            RecursionFlags::BOTH,
+                            RecursionFlags::Both,
                             false, /*reportErrors*/
                         );
                     } else {
@@ -2952,31 +2950,31 @@ impl Relater {
                 } else {
                     // Propagate unreliable variance flag in variance computations
                     if !c.variance_stack.is_empty()
-                        && variance_flags.intersects(VarianceFlags::UNRELIABLE)
+                        && variance_flags.intersects(VarianceFlags::Unreliable)
                     {
                         c.instantiate_type(s, Some(c.report_unreliable_mapper));
                     }
-                    if variance == VarianceFlags::COVARIANT {
+                    if variance == VarianceFlags::Covariant {
                         related = self.is_related_to_ex(
                             c,
                             s,
                             t,
-                            RecursionFlags::BOTH,
+                            RecursionFlags::Both,
                             report_errors,
                             None, /*headMessage*/
                             intersection_state,
                         );
-                    } else if variance == VarianceFlags::CONTRAVARIANT {
+                    } else if variance == VarianceFlags::Contravariant {
                         related = self.is_related_to_ex(
                             c,
                             t,
                             s,
-                            RecursionFlags::BOTH,
+                            RecursionFlags::Both,
                             report_errors,
                             None, /*headMessage*/
                             intersection_state,
                         );
-                    } else if variance == VarianceFlags::BIVARIANT {
+                    } else if variance == VarianceFlags::Bivariant {
                         // In the bivariant case we first compare contravariantly without reporting
                         // errors. Then, if that doesn't succeed, we compare covariantly with error
                         // reporting. Thus, error elaboration will be based on the covariant check,
@@ -2985,7 +2983,7 @@ impl Relater {
                             c,
                             t,
                             s,
-                            RecursionFlags::BOTH,
+                            RecursionFlags::Both,
                             false, /*reportErrors*/
                         );
                         if related == Ternary::FALSE {
@@ -2993,7 +2991,7 @@ impl Relater {
                                 c,
                                 s,
                                 t,
-                                RecursionFlags::BOTH,
+                                RecursionFlags::Both,
                                 report_errors,
                                 None, /*headMessage*/
                                 intersection_state,
@@ -3007,7 +3005,7 @@ impl Relater {
                             c,
                             s,
                             t,
-                            RecursionFlags::BOTH,
+                            RecursionFlags::Both,
                             report_errors,
                             None, /*headMessage*/
                             intersection_state,
@@ -3017,7 +3015,7 @@ impl Relater {
                                 c,
                                 t,
                                 s,
-                                RecursionFlags::BOTH,
+                                RecursionFlags::Both,
                                 report_errors,
                                 None, /*headMessage*/
                                 intersection_state,
@@ -3065,7 +3063,7 @@ impl Relater {
                 c,
                 target_constraint,
                 source_constraint,
-                RecursionFlags::BOTH,
+                RecursionFlags::Both,
                 report_errors,
             );
             if result != Ternary::FALSE {
@@ -3085,7 +3083,7 @@ impl Relater {
                             c,
                             source_template,
                             target_template,
-                            RecursionFlags::BOTH,
+                            RecursionFlags::Both,
                             report_errors,
                         );
                 }
@@ -3178,7 +3176,7 @@ impl Relater {
                         target_property,
                         |_, _| combination_type,
                         false, /*reportErrors*/
-                        IntersectionState::NONE,
+                        IntersectionState::None,
                         skip_optional, /*skipOptional*/
                     );
                     // If the target property could not be found, or if the properties were not related,
@@ -3207,7 +3205,7 @@ impl Relater {
                 false, /*reportErrors*/
                 &excluded_properties,
                 false, /*optionalsOnly*/
-                IntersectionState::NONE,
+                IntersectionState::None,
             );
             if result != Ternary::FALSE {
                 result &= self.signatures_related_to(
@@ -3216,7 +3214,7 @@ impl Relater {
                     t,
                     SignatureKind::Call,
                     false, /*reportErrors*/
-                    IntersectionState::NONE,
+                    IntersectionState::None,
                 );
                 if result != Ternary::FALSE {
                     result &= self.signatures_related_to(
@@ -3225,7 +3223,7 @@ impl Relater {
                         t,
                         SignatureKind::Construct,
                         false, /*reportErrors*/
-                        IntersectionState::NONE,
+                        IntersectionState::None,
                     );
                     if result != Ternary::FALSE && !(is_tuple_type(source) && is_tuple_type(t)) {
                         // Comparing numeric index types when both `source` and `type` are tuples is unnecessary as the
@@ -3238,7 +3236,7 @@ impl Relater {
                             t,
                             false, /*sourceIsPrimitive*/
                             false, /*reportErrors*/
-                            IntersectionState::NONE,
+                            IntersectionState::None,
                         );
                     }
                 }
@@ -3280,17 +3278,17 @@ impl Relater {
                 let source_arity = checker::Checker::get_type_reference_arity(source);
                 let target_arity = checker::Checker::get_type_reference_arity(target);
                 let source_rest = if is_tuple_type(source) {
-                    source.target_tuple_type().combined_flags.get().intersects(ElementFlags::REST)
+                    source.target_tuple_type().combined_flags.get().intersects(ElementFlags::Rest)
                 } else {
                     true
                 };
                 let target_has_rest_element =
-                    target.target_tuple_type().combined_flags.get().intersects(ElementFlags::REST);
+                    target.target_tuple_type().combined_flags.get().intersects(ElementFlags::Rest);
                 let target_has_variable_element = target
                     .target_tuple_type()
                     .combined_flags
                     .get()
-                    .intersects(ElementFlags::VARIABLE);
+                    .intersects(ElementFlags::Variable);
                 let source_min_length = if is_tuple_type(source) {
                     source.target_tuple_type().min_length.get()
                 } else {
@@ -3334,9 +3332,9 @@ impl Relater {
                 let source_type_arguments = c.get_type_arguments(source);
                 let target_type_arguments = c.get_type_arguments(target);
                 let target_start_count =
-                    get_start_element_count(target.target_tuple_type(), ElementFlags::NON_REST);
+                    get_start_element_count(target.target_tuple_type(), ElementFlags::NonRest);
                 let target_end_count =
-                    get_end_element_count(target.target_tuple_type(), ElementFlags::NON_REST);
+                    get_end_element_count(target.target_tuple_type(), ElementFlags::NonRest);
                 let mut can_exclude_discriminants = !excluded_properties.is_empty();
                 for (source_position, &source_type_argument) in
                     source_type_arguments.iter().enumerate().take(source_arity)
@@ -3344,7 +3342,7 @@ impl Relater {
                     let source_flags = if is_tuple_type(source) {
                         source.target_tuple_type().element_infos.get()[source_position].flags
                     } else {
-                        ElementFlags::REST
+                        ElementFlags::Rest
                     };
                     let source_position_from_end = source_arity - 1 - source_position;
 
@@ -3363,24 +3361,24 @@ impl Relater {
                     };
                     let target_flags =
                         target.target_tuple_type().element_infos.get()[target_position].flags;
-                    if target_flags.intersects(ElementFlags::VARIADIC)
-                        && !source_flags.intersects(ElementFlags::VARIADIC)
+                    if target_flags.intersects(ElementFlags::Variadic)
+                        && !source_flags.intersects(ElementFlags::Variadic)
                     {
                         if report_errors {
                             self.report_error(c, &diagnostics::SOURCE_PROVIDES_NO_MATCH_FOR_VARIADIC_ELEMENT_AT_POSITION_0_IN_TARGET, &[&target_position]);
                         }
                         return Ternary::FALSE;
                     }
-                    if source_flags.intersects(ElementFlags::VARIADIC)
-                        && !target_flags.intersects(ElementFlags::VARIABLE)
+                    if source_flags.intersects(ElementFlags::Variadic)
+                        && !target_flags.intersects(ElementFlags::Variable)
                     {
                         if report_errors {
                             self.report_error(c, &diagnostics::VARIADIC_ELEMENT_AT_POSITION_0_IN_SOURCE_DOES_NOT_MATCH_ELEMENT_AT_POSITION_1_IN_TARGET, &[&source_position, &target_position]);
                         }
                         return Ternary::FALSE;
                     }
-                    if target_flags.intersects(ElementFlags::REQUIRED)
-                        && !source_flags.intersects(ElementFlags::REQUIRED)
+                    if target_flags.intersects(ElementFlags::Required)
+                        && !source_flags.intersects(ElementFlags::Required)
                     {
                         if report_errors {
                             self.report_error(c, &diagnostics::SOURCE_PROVIDES_NO_MATCH_FOR_REQUIRED_ELEMENT_AT_POSITION_0_IN_TARGET, &[&target_position]);
@@ -3389,8 +3387,8 @@ impl Relater {
                     }
                     // We can only exclude discriminant properties if we have not yet encountered a variable-length element.
                     if can_exclude_discriminants {
-                        if source_flags.intersects(ElementFlags::VARIABLE)
-                            || target_flags.intersects(ElementFlags::VARIABLE)
+                        if source_flags.intersects(ElementFlags::Variable)
+                            || target_flags.intersects(ElementFlags::Variable)
                         {
                             can_exclude_discriminants = false;
                         }
@@ -3402,24 +3400,24 @@ impl Relater {
                     }
                     let source_type = c.remove_missing_type(
                         source_type_argument,
-                        (source_flags & target_flags).intersects(ElementFlags::OPTIONAL),
+                        (source_flags & target_flags).intersects(ElementFlags::Optional),
                     );
                     let target_type = target_type_arguments[target_position];
-                    let target_check_type = if source_flags.intersects(ElementFlags::VARIADIC)
-                        && target_flags.intersects(ElementFlags::REST)
+                    let target_check_type = if source_flags.intersects(ElementFlags::Variadic)
+                        && target_flags.intersects(ElementFlags::Rest)
                     {
                         c.create_array_type(target_type)
                     } else {
                         c.remove_missing_type(
                             target_type,
-                            target_flags.intersects(ElementFlags::OPTIONAL),
+                            target_flags.intersects(ElementFlags::Optional),
                         )
                     };
                     let related = self.is_related_to_ex(
                         c,
                         source_type,
                         target_check_type,
-                        RecursionFlags::BOTH,
+                        RecursionFlags::Both,
                         report_errors,
                         None, /*headMessage*/
                         intersection_state,
@@ -3442,7 +3440,7 @@ impl Relater {
                 }
                 return result;
             }
-            if target.target_tuple_type().combined_flags.get().intersects(ElementFlags::VARIABLE) {
+            if target.target_tuple_type().combined_flags.get().intersects(ElementFlags::Variable) {
                 return Ternary::FALSE;
             }
         }
@@ -3547,9 +3545,9 @@ impl Relater {
             exclude_properties(properties, excluded_properties).iter().copied().enumerate()
         {
             let name = target_prop.name();
-            if !target_prop.flags().intersects(SymbolFlags::PROTOTYPE)
+            if !target_prop.flags().intersects(SymbolFlags::Prototype)
                 && (!numeric_names_only || is_numeric_literal_name(name) || name == "length")
-                && (!optionals_only || target_prop.flags().intersects(SymbolFlags::OPTIONAL))
+                && (!optionals_only || target_prop.flags().intersects(SymbolFlags::Optional))
             {
                 let source_prop = match found.get(i) {
                     Some(&Some(source_prop)) => source_prop,
@@ -3599,13 +3597,13 @@ impl Relater {
         // tsrs: only the Private and Protected bits are tested below.
         let source_prop_flags = get_declaration_non_public_flags_from_symbol(source_prop);
         let target_prop_flags = get_declaration_non_public_flags_from_symbol(target_prop);
-        if source_prop_flags.intersects(ModifierFlags::PRIVATE)
-            || target_prop_flags.intersects(ModifierFlags::PRIVATE)
+        if source_prop_flags.intersects(ModifierFlags::Private)
+            || target_prop_flags.intersects(ModifierFlags::Private)
         {
             if source_prop.value_declaration() != target_prop.value_declaration() {
                 if report_errors {
-                    if source_prop_flags.intersects(ModifierFlags::PRIVATE)
-                        && target_prop_flags.intersects(ModifierFlags::PRIVATE)
+                    if source_prop_flags.intersects(ModifierFlags::Private)
+                        && target_prop_flags.intersects(ModifierFlags::Private)
                     {
                         let target_prop_string = c.symbol_to_string(target_prop);
                         self.report_error(
@@ -3616,14 +3614,14 @@ impl Relater {
                     } else {
                         let target_prop_string = c.symbol_to_string(target_prop);
                         let first = c.type_to_string_exported(
-                            if source_prop_flags.intersects(ModifierFlags::PRIVATE) {
+                            if source_prop_flags.intersects(ModifierFlags::Private) {
                                 source
                             } else {
                                 target
                             },
                         );
                         let second = c.type_to_string_exported(
-                            if source_prop_flags.intersects(ModifierFlags::PRIVATE) {
+                            if source_prop_flags.intersects(ModifierFlags::Private) {
                                 target
                             } else {
                                 source
@@ -3638,7 +3636,7 @@ impl Relater {
                 }
                 return Ternary::FALSE;
             }
-        } else if target_prop_flags.intersects(ModifierFlags::PROTECTED) {
+        } else if target_prop_flags.intersects(ModifierFlags::Protected) {
             if !c.is_valid_override_of(source_prop, target_prop) {
                 if report_errors {
                     let source_type = c.get_declaring_class(source_prop).unwrap_or(source);
@@ -3650,7 +3648,7 @@ impl Relater {
                 }
                 return Ternary::FALSE;
             }
-        } else if source_prop_flags.intersects(ModifierFlags::PROTECTED) {
+        } else if source_prop_flags.intersects(ModifierFlags::Protected) {
             if report_errors {
                 let target_prop_string = c.symbol_to_string(target_prop);
                 let source_string = c.type_to_string_exported(source);
@@ -3697,9 +3695,9 @@ impl Relater {
         }
         // When checking for comparability, be more lenient with optional properties.
         if !skip_optional
-            && source_prop.flags().intersects(SymbolFlags::OPTIONAL)
-            && target_prop.flags().intersects(SymbolFlags::CLASS_MEMBER)
-            && !target_prop.flags().intersects(SymbolFlags::OPTIONAL)
+            && source_prop.flags().intersects(SymbolFlags::Optional)
+            && target_prop.flags().intersects(SymbolFlags::ClassMember)
+            && !target_prop.flags().intersects(SymbolFlags::Optional)
         {
             // TypeScript 1.0 spec (April 2014): 3.8.3
             // S is a subtype of a type T, and T is a supertype of S if ...
@@ -3734,15 +3732,15 @@ impl Relater {
         intersection_state: IntersectionState,
     ) -> Ternary {
         let target_is_optional =
-            c.strict_null_checks && target_prop.check_flags().intersects(CheckFlags::PARTIAL);
+            c.strict_null_checks && target_prop.check_flags().intersects(CheckFlags::Partial);
         let non_missing_target = c.get_non_missing_type_of_symbol(target_prop);
         let effective_target =
             c.add_optionality_ex(non_missing_target, false /*isProperty*/, target_is_optional);
         // source could resolve to `any` and that's not related to `unknown` target under strict subtype relation
         if effective_target.flags().intersects(if self.rel() == c.strict_subtype_relation {
-            TypeFlags::ANY
+            TypeFlags::Any
         } else {
-            TypeFlags::ANY_OR_UNKNOWN
+            TypeFlags::AnyOrUnknown
         }) {
             return Ternary::TRUE;
         }
@@ -3751,7 +3749,7 @@ impl Relater {
             c,
             effective_source,
             effective_target,
-            RecursionFlags::BOTH,
+            RecursionFlags::Both,
             report_errors,
             None, /*headMessage*/
             intersection_state,
@@ -3770,7 +3768,7 @@ impl Relater {
         // give specific error in case where private names have the same description
         if let Some(value_declaration) = unmatched_property.value_declaration() {
             if value_declaration.name().is_some_and(ast::is_private_identifier)
-                && source.symbol().is_some_and(|s| s.flags().intersects(SymbolFlags::CLASS))
+                && source.symbol().is_some_and(|s| s.flags().intersects(SymbolFlags::Class))
             {
                 let private_identifier_description = value_declaration.name().unwrap().text();
                 let symbol_table_key = tsrs_binder::get_symbol_name_for_private_identifier(
@@ -3899,8 +3897,8 @@ impl Relater {
         target: P<Type>,
         excluded_properties: &Set<String>,
     ) -> Ternary {
-        if !source.flags().intersects(TypeFlags::OBJECT)
-            || !target.flags().intersects(TypeFlags::OBJECT)
+        if !source.flags().intersects(TypeFlags::Object)
+            || !target.flags().intersects(TypeFlags::Object)
         {
             return Ternary::FALSE;
         }
@@ -3959,9 +3957,9 @@ impl Relater {
             && !target_signatures.is_empty()
         {
             let source_is_abstract =
-                source_signatures[0].flags.get().intersects(SignatureFlags::ABSTRACT);
+                source_signatures[0].flags.get().intersects(SignatureFlags::Abstract);
             let target_is_abstract =
-                target_signatures[0].flags.get().intersects(SignatureFlags::ABSTRACT);
+                target_signatures[0].flags.get().intersects(SignatureFlags::Abstract);
             if source_is_abstract && !target_is_abstract {
                 // An abstract constructor type is not assignable to a non-abstract constructor type
                 // as it would otherwise be possible to new an abstract class. Note that the assignability
@@ -3982,11 +3980,11 @@ impl Relater {
             }
         }
         let mut result = Ternary::TRUE;
-        if source.object_flags().intersects(ObjectFlags::INSTANTIATED)
-            && target.object_flags().intersects(ObjectFlags::INSTANTIATED)
+        if source.object_flags().intersects(ObjectFlags::Instantiated)
+            && target.object_flags().intersects(ObjectFlags::Instantiated)
             && source.symbol() == target.symbol()
-            || source.object_flags().intersects(ObjectFlags::REFERENCE)
-                && target.object_flags().intersects(ObjectFlags::REFERENCE)
+            || source.object_flags().intersects(ObjectFlags::Reference)
+                && target.object_flags().intersects(ObjectFlags::Reference)
                 && source.target() == target.target()
         {
             // We have instantiations of the same anonymous type (which typically will be the type of a
@@ -4072,21 +4070,21 @@ impl Relater {
             return true;
         };
         let source_accessibility =
-            source_declaration.modifier_flags() & ModifierFlags::NON_PUBLIC_ACCESSIBILITY_MODIFIER;
+            source_declaration.modifier_flags() & ModifierFlags::NonPublicAccessibilityModifier;
         let target_accessibility =
-            target_declaration.modifier_flags() & ModifierFlags::NON_PUBLIC_ACCESSIBILITY_MODIFIER;
+            target_declaration.modifier_flags() & ModifierFlags::NonPublicAccessibilityModifier;
         // A public, protected and private signature is assignable to a private signature.
-        if target_accessibility == ModifierFlags::PRIVATE {
+        if target_accessibility == ModifierFlags::Private {
             return true;
         }
         // A public and protected signature is assignable to a protected signature.
-        if target_accessibility == ModifierFlags::PROTECTED
-            && source_accessibility != ModifierFlags::PRIVATE
+        if target_accessibility == ModifierFlags::Protected
+            && source_accessibility != ModifierFlags::Private
         {
             return true;
         }
         // Only a public signature is assignable to public signature.
-        if target_accessibility != ModifierFlags::PROTECTED && source_accessibility.is_empty() {
+        if target_accessibility != ModifierFlags::Protected && source_accessibility.is_empty() {
             return true;
         }
         if report_errors {
@@ -4112,12 +4110,11 @@ impl Relater {
         report_errors: bool,
         intersection_state: IntersectionState,
     ) -> Ternary {
-        let mut check_mode = SignatureCheckMode::NONE;
+        let mut check_mode = SignatureCheckMode::None;
         if self.rel() == c.subtype_relation {
-            check_mode = SignatureCheckMode::STRICT_TOP_SIGNATURE;
+            check_mode = SignatureCheckMode::StrictTopSignature;
         } else if self.rel() == c.strict_subtype_relation {
-            check_mode =
-                SignatureCheckMode::STRICT_TOP_SIGNATURE | SignatureCheckMode::STRICT_ARITY;
+            check_mode = SignatureCheckMode::StrictTopSignature | SignatureCheckMode::StrictArity;
         }
         let mut source = source;
         let mut target = target;
@@ -4140,7 +4137,7 @@ impl Relater {
                     c,
                     source,
                     target,
-                    RecursionFlags::BOTH,
+                    RecursionFlags::Both,
                     report_errors,
                     None, /*headMessage*/
                     intersection_state,
@@ -4215,7 +4212,7 @@ impl Relater {
             let related = if self.rel() != c.strict_subtype_relation
                 && !source_is_primitive
                 && target_has_string_index
-                && target_info.value_type().flags().intersects(TypeFlags::ANY)
+                && target_info.value_type().flags().intersects(TypeFlags::Any)
             {
                 Ternary::TRUE
             } else if c.is_generic_mapped_type(source) && target_has_string_index {
@@ -4224,7 +4221,7 @@ impl Relater {
                     c,
                     template_type,
                     target_info.value_type(),
-                    RecursionFlags::BOTH,
+                    RecursionFlags::Both,
                     report_errors,
                 )
             } else {
@@ -4270,9 +4267,9 @@ impl Relater {
         // Intersection constituents are never considered to have an inferred index signature. Also, in the strict subtype relation,
         // only fresh object literals are considered to have inferred index signatures. This ensures { [x: string]: xxx } <: {} but
         // not vice-versa. Without this rule, those types would be mutual strict subtypes.
-        if !intersection_state.intersects(IntersectionState::SOURCE)
+        if !intersection_state.intersects(IntersectionState::Source)
             && (self.rel() != c.strict_subtype_relation
-                || source.object_flags().intersects(ObjectFlags::FRESH_LITERAL))
+                || source.object_flags().intersects(ObjectFlags::FreshLiteral))
             && c.is_object_type_with_inferable_index(source)
         {
             return self.members_related_to_index_info(
@@ -4303,7 +4300,7 @@ impl Checker {
     //   - a reverse mapped type with a source for which one of the above is true.
     // relater.go:4656
     pub(crate) fn is_object_type_with_inferable_index(&mut self, t: P<Type>) -> bool {
-        if t.flags().intersects(TypeFlags::INTERSECTION) {
+        if t.flags().intersects(TypeFlags::Intersection) {
             if t.types().iter().any(|&t| !self.is_object_type_with_inferable_index(t)) {
                 return false;
             }
@@ -4311,14 +4308,14 @@ impl Checker {
         }
         t.symbol().is_some_and(|s| {
             s.flags().intersects(
-                SymbolFlags::OBJECT_LITERAL
-                    | SymbolFlags::TYPE_LITERAL
-                    | SymbolFlags::ENUM
-                    | SymbolFlags::VALUE_MODULE,
-            ) && !s.flags().intersects(SymbolFlags::CLASS)
+                SymbolFlags::ObjectLiteral
+                    | SymbolFlags::TypeLiteral
+                    | SymbolFlags::Enum
+                    | SymbolFlags::ValueModule,
+            ) && !s.flags().intersects(SymbolFlags::Class)
         }) && !self.type_has_call_or_construct_signatures(t)
-            || t.object_flags().intersects(ObjectFlags::JS_LITERAL | ObjectFlags::OBJECT_REST_TYPE)
-            || t.object_flags().intersects(ObjectFlags::REVERSE_MAPPED)
+            || t.object_flags().intersects(ObjectFlags::JSLiteral | ObjectFlags::ObjectRestType)
+            || t.object_flags().intersects(ObjectFlags::ReverseMapped)
                 && self.is_object_type_with_inferable_index(
                     t.as_reverse_mapped_type().source.get().unwrap(),
                 )
@@ -4337,7 +4334,7 @@ impl Relater {
     ) -> Ternary {
         let mut result = Ternary::TRUE;
         let key_type = target_info.key_type();
-        let props = if source.flags().intersects(TypeFlags::INTERSECTION) {
+        let props = if source.flags().intersects(TypeFlags::Intersection) {
             c.get_properties_of_union_or_intersection_type(source)
         } else {
             c.get_properties_of_object_type(source)
@@ -4349,25 +4346,25 @@ impl Relater {
             }
             let literal_type = c.get_literal_type_from_property(
                 prop,
-                TypeFlags::STRING_OR_NUMBER_LITERAL_OR_UNIQUE,
+                TypeFlags::StringOrNumberLiteralOrUnique,
                 false,
             );
             if c.is_applicable_index_type(literal_type, key_type) {
                 let prop_type = c.get_non_missing_type_of_symbol(prop);
                 let t = if c.exact_optional_property_types
-                    || prop_type.flags().intersects(TypeFlags::UNDEFINED)
+                    || prop_type.flags().intersects(TypeFlags::Undefined)
                     || key_type == c.number_type
-                    || !prop.flags().intersects(SymbolFlags::OPTIONAL)
+                    || !prop.flags().intersects(SymbolFlags::Optional)
                 {
                     prop_type
                 } else {
-                    c.get_type_with_facts(prop_type, TypeFacts::NE_UNDEFINED)
+                    c.get_type_with_facts(prop_type, TypeFacts::NEUndefined)
                 };
                 let related = self.is_related_to_ex(
                     c,
                     t,
                     target_info.value_type(),
-                    RecursionFlags::BOTH,
+                    RecursionFlags::Both,
                     report_errors,
                     None, /*headMessage*/
                     intersection_state,
@@ -4424,7 +4421,7 @@ impl Relater {
             c,
             source_info.value_type(),
             target_info.value_type(),
-            RecursionFlags::BOTH,
+            RecursionFlags::Both,
             report_errors,
             None, /*headMessage*/
             intersection_state,
@@ -4469,7 +4466,7 @@ impl Relater {
                     c,
                     source_info.unwrap().value_type(),
                     target_info.value_type(),
-                    RecursionFlags::BOTH,
+                    RecursionFlags::Both,
                     false,
                 ) != Ternary::FALSE
                 && source_info.unwrap().is_readonly() == target_info.is_readonly())
@@ -4506,22 +4503,22 @@ impl Relater {
         if original_target.alias().is_some() || target_has_base {
             target = original_target;
         }
-        if source.flags().intersects(TypeFlags::OBJECT)
-            && target.flags().intersects(TypeFlags::OBJECT)
+        if source.flags().intersects(TypeFlags::Object)
+            && target.flags().intersects(TypeFlags::Object)
         {
             self.try_elaborate_array_like_errors(c, source, target, true /*reportErrors*/);
         }
-        if source.flags().intersects(TypeFlags::OBJECT)
-            && target.flags().intersects(TypeFlags::PRIMITIVE)
+        if source.flags().intersects(TypeFlags::Object)
+            && target.flags().intersects(TypeFlags::Primitive)
         {
             self.try_elaborate_errors_for_primitives_and_objects(c, source, target);
         } else if source.symbol().is_some()
-            && source.flags().intersects(TypeFlags::OBJECT)
+            && source.flags().intersects(TypeFlags::Object)
             && c.global_object_type == source
         {
             self.report_error(c, &diagnostics::THE_OBJECT_TYPE_IS_ASSIGNABLE_TO_VERY_FEW_OTHER_TYPES_DID_YOU_MEAN_TO_USE_THE_ANY_TYPE_INSTEAD, &[]);
-        } else if source.object_flags().intersects(ObjectFlags::JSX_ATTRIBUTES)
-            && target.flags().intersects(TypeFlags::INTERSECTION)
+        } else if source.object_flags().intersects(ObjectFlags::JsxAttributes)
+            && target.flags().intersects(TypeFlags::Intersection)
         {
             let target_types = target.types();
             let intrinsic_attributes =
@@ -4535,8 +4532,8 @@ impl Relater {
             {
                 return;
             }
-        } else if original_target.flags().intersects(TypeFlags::INTERSECTION)
-            && original_target.object_flags_lazy().intersects(ObjectFlags::IS_NEVER_INTERSECTION)
+        } else if original_target.flags().intersects(TypeFlags::Intersection)
+            && original_target.object_flags_lazy().intersects(ObjectFlags::IsNeverIntersection)
         {
             let mut message = &diagnostics::THE_INTERSECTION_0_WAS_REDUCED_TO_NEVER_BECAUSE_PROPERTY_1_HAS_CONFLICTING_TYPES_IN_SOME_CONSTITUENTS;
             let mut prop: Option<P<Symbol>> = None;
@@ -4561,7 +4558,7 @@ impl Relater {
                 let target_string = c.type_to_string_ex(
                     original_target,
                     None, /*enclosingDeclaration*/
-                    TypeFormatFlags::NO_TYPE_REDUCTION,
+                    TypeFormatFlags::NoTypeReduction,
                     None,
                 );
                 let prop_string = c.symbol_to_string(prop);
@@ -4569,7 +4566,7 @@ impl Relater {
             }
         }
         self.report_relation_error(c, head_message, source, target);
-        if source.flags().intersects(TypeFlags::TYPE_PARAMETER)
+        if source.flags().intersects(TypeFlags::TypeParameter)
             && source.symbol().is_some_and(|s| !s.declarations().is_empty())
             && c.get_constraint_of_type(source).is_none()
         {
@@ -4603,7 +4600,7 @@ impl Relater {
         let mut generalized_source_type = source_type.clone();
         // Don't generalize on 'never' - we really want the original type
         // to be displayed for use-cases like 'assertNever'.
-        if !target.flags().intersects(TypeFlags::NEVER)
+        if !target.flags().intersects(TypeFlags::Never)
             && is_literal_type(source)
             && !c.type_could_have_top_level_singleton_types(target)
         {
@@ -4611,14 +4608,14 @@ impl Relater {
             generalized_source_type = c.get_type_name_for_error_display(generalized_source);
         }
         // If `target` is of indexed access type (and `source` it is not), we use the object type of `target` for better error reporting
-        let target_flags = if target.flags().intersects(TypeFlags::INDEXED_ACCESS)
-            && !source.flags().intersects(TypeFlags::INDEXED_ACCESS)
+        let target_flags = if target.flags().intersects(TypeFlags::IndexedAccess)
+            && !source.flags().intersects(TypeFlags::IndexedAccess)
         {
             target.as_indexed_access_type().object_type.get().unwrap().flags()
         } else {
             target.flags()
         };
-        if target_flags.intersects(TypeFlags::TYPE_PARAMETER)
+        if target_flags.intersects(TypeFlags::TypeParameter)
             && target != c.marker_super_type_for_check
             && target != c.marker_sub_type_for_check
         {
@@ -4656,8 +4653,8 @@ impl Relater {
                 {
                     &diagnostics::TYPE_0_IS_NOT_ASSIGNABLE_TO_TYPE_1_WITH_EXACT_OPTIONAL_PROPERTY_TYPES_COLON_TRUE_CONSIDER_ADDING_UNDEFINED_TO_THE_TYPES_OF_THE_TARGET_S_PROPERTIES
                 } else {
-                    if source.flags().intersects(TypeFlags::STRING_LITERAL)
-                        && target.flags().intersects(TypeFlags::UNION)
+                    if source.flags().intersects(TypeFlags::StringLiteral)
+                        && target.flags().intersects(TypeFlags::Union)
                     {
                         let suggested_type = c
                             .get_suggested_type_for_nonexistent_string_literal_type(source, target);
@@ -4895,35 +4892,35 @@ impl Checker {
     // inheritance hierarchy.
     // relater.go:4995
     pub(crate) fn is_type_derived_from(&mut self, source: P<Type>, target: P<Type>) -> bool {
-        if source.flags().intersects(TypeFlags::UNION) {
+        if source.flags().intersects(TypeFlags::Union) {
             !(source
                 .as_union_type()
                 .types
                 .get()
                 .iter()
                 .any(|&t| !self.is_type_derived_from(t, target)))
-        } else if target.flags().intersects(TypeFlags::UNION) {
+        } else if target.flags().intersects(TypeFlags::Union) {
             target.as_union_type().types.get().iter().any(|&t| self.is_type_derived_from(source, t))
-        } else if source.flags().intersects(TypeFlags::INTERSECTION) {
+        } else if source.flags().intersects(TypeFlags::Intersection) {
             source
                 .as_intersection_type()
                 .types
                 .get()
                 .iter()
                 .any(|&t| self.is_type_derived_from(t, target))
-        } else if source.flags().intersects(TypeFlags::INSTANTIABLE_NON_PRIMITIVE) {
+        } else if source.flags().intersects(TypeFlags::InstantiableNonPrimitive) {
             let constraint = match self.get_base_constraint_of_type(source) {
                 Some(constraint) => constraint,
                 None => self.unknown_type,
             };
             self.is_type_derived_from(constraint, target)
         } else if self.is_empty_anonymous_object_type(target) {
-            source.flags().intersects(TypeFlags::OBJECT | TypeFlags::NON_PRIMITIVE)
+            source.flags().intersects(TypeFlags::Object | TypeFlags::NonPrimitive)
         } else if target == self.global_object_type {
-            source.flags().intersects(TypeFlags::OBJECT | TypeFlags::NON_PRIMITIVE)
+            source.flags().intersects(TypeFlags::Object | TypeFlags::NonPrimitive)
                 && !self.is_empty_anonymous_object_type(source)
         } else if target == self.global_function_type {
-            source.flags().intersects(TypeFlags::OBJECT) && self.is_function_object_type(source)
+            source.flags().intersects(TypeFlags::Object) && self.is_function_object_type(source)
         } else {
             let target_type = Self::get_target_type(target).unwrap();
             self.has_base_type(source, Some(target_type))

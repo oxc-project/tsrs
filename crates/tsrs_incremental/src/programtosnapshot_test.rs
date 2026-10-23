@@ -327,7 +327,7 @@ fn mixed_deletions_visit_a_global_file_after_a_non_global_file() {
         info.affects_global_scope = index == 1;
         old.snapshot.file_infos.store(path.clone(), info);
         old.snapshot.changed_files_set.add(path.clone());
-        old.snapshot.affected_files_pending_emit.store(path.clone(), FileEmitKind::JS);
+        old.snapshot.affected_files_pending_emit.store(path.clone(), FileEmitKind::Js);
     }
     old.snapshot.build_info_emit_pending.set(false);
 
@@ -353,7 +353,7 @@ fn deleted_pending_paths_without_file_info_are_not_reused() {
     let missing = Path::from("/src/missing.ts");
     assert!(old.snapshot.file_infos.load(&missing).is_none());
     old.snapshot.changed_files_set.add(missing.clone());
-    old.snapshot.affected_files_pending_emit.store(missing.clone(), FileEmitKind::JS);
+    old.snapshot.affected_files_pending_emit.store(missing.clone(), FileEmitKind::Js);
     old.snapshot.build_info_emit_pending.set(false);
 
     let current = incremental(compiler_program(&FILES), Some(old));

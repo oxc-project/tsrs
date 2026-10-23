@@ -11,8 +11,9 @@ argument passing, hash iteration order, threading, and `unsafe`. They draw on Bu
 and ty, Biome, Turborepo, and swc. Where a rule copies one of them, it says which.
 
 Rust naming lints are denied: types and traits use UpperCamelCase, functions and fields use snake_case, and constants
-and statics use SCREAMING_SNAKE_CASE. Upstream acronym spellings remain (`ID`, `APIState`, `JSX`), with local reasoned
-Clippy expectations where needed. Serialized names, diagnostics and native ABI symbols keep their upstream spelling.
+and statics use SCREAMING_SNAKE_CASE. Bitflags types and constants keep their upstream names. Upstream acronym spellings
+remain (`ID`, `APIState`, `JSX`), with local reasoned Clippy expectations where needed. Serialized names, diagnostics
+and native ABI symbols keep their upstream spelling.
 
 ## Clippy
 
@@ -63,12 +64,9 @@ An upgrade is a pull request of its own:
 
 ## Source checks
 
-`tools/lint/source.mjs` (CI: the `lint` job; after Bun's `test/internal/source-lints/`) checks five things
+`tools/lint/source.mjs` (CI: the `lint` job; after Bun's `test/internal/source-lints/`) checks four things
 clippy cannot express:
 
-- **Flag constant names.** Constants declared inside `bitflags!` and `direct_bitflags!` use SCREAMING_SNAKE_CASE.
-  The macros suppress Rust's constant-naming lint, so the source check covers their declarations directly, including
-  generated code, tests and examples across workspace crates and tasks.
 - **`unsafe impl Send` / `Sync`.** `tools/lint/send_sync.tsv` lists all of them (31 on 2026-10-10). Adding or removing
   one fails until `tools/lint/source.mjs --update` records it, so every new cross-thread escape is a reviewed line in a
   diff. `P<T>` is `Send + Sync` by decree (PORTING.md, "Threading"), so the compiler does not police these. After Bun's
@@ -91,7 +89,7 @@ clippy cannot express:
   disappears fails until `--update` records it; a new row starts with the verdict `unknown` and the check names it
   until someone classifies it. The classification and its findings are in `notes/unsafe-audit.md` (issue #646).
 
-The safety checks cover `crates/*/src` and `tasks/*/src`, excluding test files and generated files.
+Source checks cover `crates/*/src` and `tasks/*/src`. Test files and generated files are not scanned.
 
 ## What the lints check
 

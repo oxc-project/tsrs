@@ -88,13 +88,13 @@ fn can_have_type_annotation_kind(kind: Kind) -> bool {
 // codeactions_fixmissingtypeannotation.go:72
 // declarationEmitNodeBuilderFlags are the node builder flags used for declaration emit.
 fn declaration_emit_node_builder_flags() -> Flags {
-    Flags::MULTILINE_OBJECT_LITERALS
-        | Flags::WRITE_CLASS_EXPRESSION_AS_TYPE_LITERAL
-        | Flags::USE_TYPE_OF_FUNCTION
-        | Flags::USE_STRUCTURAL_FALLBACK
-        | Flags::ALLOW_EMPTY_TUPLE
-        | Flags::GENERATE_NAMES_FOR_SHADOWED_TYPE_PARAMS
-        | Flags::NO_TRUNCATION
+    Flags::MultilineObjectLiterals
+        | Flags::WriteClassExpressionAsTypeLiteral
+        | Flags::UseTypeOfFunction
+        | Flags::UseStructuralFallback
+        | Flags::AllowEmptyTuple
+        | Flags::GenerateNamesForShadowedTypeParams
+        | Flags::NoTruncation
 }
 
 // codeactions_fixmissingtypeannotation.go:81
@@ -343,7 +343,7 @@ impl IsolatedDeclarationsFixer<'_> {
             let export_token = factory.new_token(Kind::ExportKeyword);
             let var_decl_list = factory.new_variable_declaration_list(
                 factory.new_node_list(vec![var_decl]),
-                NodeFlags::NONE,
+                NodeFlags::None,
             );
             let var_stmt = factory.new_variable_statement(
                 Some(factory.new_modifier_list(vec![export_token])),
@@ -357,7 +357,7 @@ impl IsolatedDeclarationsFixer<'_> {
         }
 
         let mut modifiers: Vec<P<Node>> = Vec::new();
-        if ast::has_syntactic_modifier(expando_func, ModifierFlags::EXPORT) {
+        if ast::has_syntactic_modifier(expando_func, ModifierFlags::Export) {
             modifiers.push(factory.new_token(Kind::ExportKeyword));
         }
         modifiers.push(factory.new_token(Kind::DeclareKeyword));
@@ -371,7 +371,7 @@ impl IsolatedDeclarationsFixer<'_> {
         );
         // Set the flags for namespace
         namespace
-            .set_flags(NodeFlags::AMBIENT | NodeFlags::EXPORT_CONTEXT | NodeFlags::CONTEXT_FLAGS);
+            .set_flags(NodeFlags::Ambient | NodeFlags::ExportContext | NodeFlags::ContextFlags);
 
         self.change_tracker.insert_node_after(self.source_file, expando_func, namespace);
         diagnostics::ANNOTATE_TYPES_OF_PROPERTIES_EXPANDO_FUNCTION_IN_A_NAMESPACE.localize(&[])
@@ -430,7 +430,7 @@ impl IsolatedDeclarationsFixer<'_> {
         let variable_declaration = ast::find_ancestor_kind(target_node, Kind::VariableDeclaration);
         let variable_type = variable_declaration.map(|d| self.checker.get_type_at_location(d));
         // Can't use typeof on unique symbols
-        if variable_type.is_some_and(|t| t.flags().intersects(TypeFlags::UNIQUE_ES_SYMBOL)) {
+        if variable_type.is_some_and(|t| t.flags().intersects(TypeFlags::UniqueESSymbol)) {
             return String::new();
         }
 
@@ -523,7 +523,7 @@ impl IsolatedDeclarationsFixer<'_> {
             let temp_name = self.change_tracker.emit_context.factory.new_unique_name_ex(
                 &get_identifier_name_for_node(target_node),
                 AutoGenerateOptions {
-                    flags: GeneratedIdentifierFlags::OPTIMISTIC,
+                    flags: GeneratedIdentifierFlags::Optimistic,
                     ..Default::default()
                 },
             );
@@ -558,7 +558,7 @@ impl IsolatedDeclarationsFixer<'_> {
                 factory.new_variable_declaration(temp_name, None, None, Some(cloned_init));
             let var_decl_list = factory.new_variable_declaration_list(
                 factory.new_node_list(vec![var_decl]),
-                NodeFlags::CONST,
+                NodeFlags::Const,
             );
             let var_stmt = factory.new_variable_statement(None, var_decl_list);
 
@@ -655,7 +655,7 @@ impl IsolatedDeclarationsFixer<'_> {
             Some(cloned_expression),
         );
         let var_decl_list = factory
-            .new_variable_declaration_list(factory.new_node_list(vec![var_decl]), NodeFlags::CONST);
+            .new_variable_declaration_list(factory.new_node_list(vec![var_decl]), NodeFlags::Const);
         let var_stmt = factory.new_variable_statement(None, var_decl_list);
 
         let new_export = factory.update_export_assignment(
@@ -717,7 +717,7 @@ impl IsolatedDeclarationsFixer<'_> {
         let base_class_name = self.change_tracker.emit_context.factory.new_unique_name_ex(
             &base_name,
             AutoGenerateOptions {
-                flags: GeneratedIdentifierFlags::OPTIMISTIC,
+                flags: GeneratedIdentifierFlags::Optimistic,
                 ..Default::default()
             },
         );
@@ -731,7 +731,7 @@ impl IsolatedDeclarationsFixer<'_> {
             Some(cloned_expression),
         );
         let var_decl_list = factory
-            .new_variable_declaration_list(factory.new_node_list(vec![var_decl]), NodeFlags::CONST);
+            .new_variable_declaration_list(factory.new_node_list(vec![var_decl]), NodeFlags::Const);
         let var_stmt = factory.new_variable_statement(None, var_decl_list);
 
         self.change_tracker.insert_node_before(
@@ -772,7 +772,7 @@ impl IsolatedDeclarationsFixer<'_> {
             let temp_name = self.change_tracker.emit_context.factory.new_unique_name_ex(
                 "dest",
                 AutoGenerateOptions {
-                    flags: GeneratedIdentifierFlags::OPTIMISTIC,
+                    flags: GeneratedIdentifierFlags::Optimistic,
                     ..Default::default()
                 },
             );
@@ -781,7 +781,7 @@ impl IsolatedDeclarationsFixer<'_> {
                 factory.new_variable_declaration(temp_name, None, None, Some(cloned_initializer));
             let var_decl_list = factory.new_variable_declaration_list(
                 factory.new_node_list(vec![var_decl]),
-                NodeFlags::CONST,
+                NodeFlags::Const,
             );
             let var_stmt = factory.new_variable_statement(None, var_decl_list);
             new_nodes.push(var_stmt);
@@ -876,7 +876,7 @@ impl IsolatedDeclarationsFixer<'_> {
                     );
                     let comp_var_decl_list = factory.new_variable_declaration_list(
                         factory.new_node_list(vec![comp_var_decl]),
-                        NodeFlags::CONST,
+                        NodeFlags::Const,
                     );
                     let comp_var_stmt = factory.new_variable_statement(None, comp_var_decl_list);
                     new_nodes.push(comp_var_stmt);
@@ -884,7 +884,7 @@ impl IsolatedDeclarationsFixer<'_> {
                         base_expr,
                         None,
                         identifier_for_computed_property,
-                        NodeFlags::NONE,
+                        NodeFlags::None,
                     );
                 } else if let Some(property_name) = be.property_name() {
                     // Use property name text (handles identifiers, string literals, numeric literals)
@@ -893,14 +893,14 @@ impl IsolatedDeclarationsFixer<'_> {
                         base_expr,
                         None,
                         factory.new_identifier(prop_text),
-                        NodeFlags::NONE,
+                        NodeFlags::None,
                     );
                 } else if ast::is_identifier(name) {
                     access_expr = factory.new_property_access_expression(
                         base_expr,
                         None,
                         factory.new_identifier(name.text()),
-                        NodeFlags::NONE,
+                        NodeFlags::None,
                     );
                 } else {
                     continue;
@@ -934,8 +934,8 @@ impl IsolatedDeclarationsFixer<'_> {
                 let access_expr = factory.new_element_access_expression(
                     base_expr,
                     None,
-                    factory.new_numeric_literal(alloc_str(&i.to_string()), TokenFlags::NONE),
-                    NodeFlags::NONE,
+                    factory.new_numeric_literal(alloc_str(&i.to_string()), TokenFlags::None),
+                    NodeFlags::None,
                 );
 
                 if ast::is_binding_pattern(name) {
@@ -981,7 +981,7 @@ impl IsolatedDeclarationsFixer<'_> {
             let temp_name = self.change_tracker.emit_context.factory.new_unique_name_ex(
                 &temp_base_name,
                 AutoGenerateOptions {
-                    flags: GeneratedIdentifierFlags::OPTIMISTIC,
+                    flags: GeneratedIdentifierFlags::Optimistic,
                     ..Default::default()
                 },
             );
@@ -989,7 +989,7 @@ impl IsolatedDeclarationsFixer<'_> {
                 factory.new_variable_declaration(temp_name, None, None, Some(variable_initializer));
             let temp_var_decl_list = factory.new_variable_declaration_list(
                 factory.new_node_list(vec![temp_var_decl]),
-                NodeFlags::CONST,
+                NodeFlags::Const,
             );
             let temp_var_stmt = factory.new_variable_statement(None, temp_var_decl_list);
             new_nodes.push(temp_var_stmt);
@@ -1017,14 +1017,14 @@ impl IsolatedDeclarationsFixer<'_> {
             Some(variable_initializer),
         );
         let var_decl_list = factory
-            .new_variable_declaration_list(factory.new_node_list(vec![var_decl]), NodeFlags::CONST);
+            .new_variable_declaration_list(factory.new_node_list(vec![var_decl]), NodeFlags::Const);
         let var_stmt = factory.new_variable_statement(export_modifier, var_decl_list);
         new_nodes.push(var_stmt);
     }
 
     // codeactions_fixmissingtypeannotation.go:851
     fn get_export_modifier(&self, enclosing_var_stmt: P<Node>) -> Option<P<ModifierList>> {
-        if ast::has_syntactic_modifier(enclosing_var_stmt, ModifierFlags::EXPORT) {
+        if ast::has_syntactic_modifier(enclosing_var_stmt, ModifierFlags::Export) {
             let export_token = self.change_tracker.node_factory.new_token(Kind::ExportKeyword);
             return Some(self.change_tracker.node_factory.new_modifier_list(vec![export_token]));
         }
@@ -1049,8 +1049,8 @@ impl IsolatedDeclarationsFixer<'_> {
                 let enclosing_decl = ast::find_ancestor(node, ast::is_declaration)
                     .unwrap_or(self.source_file.as_node());
                 let mut flags = declaration_emit_node_builder_flags();
-                if predicate_type.flags().intersects(TypeFlags::UNIQUE_ES_SYMBOL) {
-                    flags |= Flags::ALLOW_UNIQUE_ES_SYMBOL_TYPE;
+                if predicate_type.flags().intersects(TypeFlags::UniqueESSymbol) {
+                    flags |= Flags::AllowUniqueESSymbolType;
                 }
                 return self.checker.type_predicate_to_type_predicate_node(
                     type_predicate,
@@ -1100,13 +1100,13 @@ impl IsolatedDeclarationsFixer<'_> {
             || (ast::is_property_declaration(node)
                 && ast::has_syntactic_modifier(
                     node,
-                    ModifierFlags::STATIC | ModifierFlags::READONLY,
+                    ModifierFlags::Static | ModifierFlags::Readonly,
                 )))
-            && t.flags().intersects(TypeFlags::UNIQUE_ES_SYMBOL)
+            && t.flags().intersects(TypeFlags::UniqueESSymbol)
         {
-            return Flags::ALLOW_UNIQUE_ES_SYMBOL_TYPE;
+            return Flags::AllowUniqueESSymbolType;
         }
-        Flags::NONE
+        Flags::None
     }
 
     // codeactions_fixmissingtypeannotation.go:932
@@ -1265,7 +1265,7 @@ impl IsolatedDeclarationsFixer<'_> {
         let temp_name = self.change_tracker.emit_context.factory.new_unique_name_ex(
             &format!("{}_Part{}", name, new_spreads.len() + 1),
             AutoGenerateOptions {
-                flags: GeneratedIdentifierFlags::OPTIMISTIC,
+                flags: GeneratedIdentifierFlags::Optimistic,
                 ..Default::default()
             },
         );
@@ -1279,7 +1279,7 @@ impl IsolatedDeclarationsFixer<'_> {
 
         let var_decl = factory.new_variable_declaration(temp_name, None, None, Some(initializer));
         let var_decl_list = factory
-            .new_variable_declaration_list(factory.new_node_list(vec![var_decl]), NodeFlags::CONST);
+            .new_variable_declaration_list(factory.new_node_list(vec![var_decl]), NodeFlags::Const);
         let var_stmt = factory.new_variable_statement(None, var_decl_list);
 
         if let Some(statement) = statement {
@@ -1398,11 +1398,11 @@ impl IsolatedDeclarationsFixer<'_> {
             t,
             Some(enclosing_decl),
             flags,
-            InternalFlags::WRITE_COMPUTED_PROPS,
+            InternalFlags::WriteComputedProps,
             Some(id_to_symbol),
         )?;
         if ast::is_type_reference_node(type_node)
-            && t.object_flags().intersects(ObjectFlags::REFERENCE)
+            && t.object_flags().intersects(ObjectFlags::Reference)
         {
             let type_args = self.checker.get_type_arguments_exported(t);
             let node_type_args = type_node.type_arguments();
@@ -1699,7 +1699,7 @@ fn type_to_string_for_diag(
     ct: &change::Tracker,
 ) -> String {
     let saved_flags = ct.emit_context.emit_flags(type_node);
-    ct.emit_context.set_emit_flags(type_node, saved_flags | EmitFlags::SINGLE_LINE);
+    ct.emit_context.set_emit_flags(type_node, saved_flags | EmitFlags::SingleLine);
     let mut p = printer::new_printer(
         printer::PrinterOptions { new_line: NewLineKind::LF, ..Default::default() },
         printer::PrintHandlers::default(),

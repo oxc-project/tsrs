@@ -1240,7 +1240,7 @@ fn did_change_watched_files_pnpm_install_links_local_package() {
     // Simulate pnpm install: create a symlink from beta's node_modules/@repo/alpha to packages/alpha.
     utils
         .map_fs()
-        .mkdir_all("home/projects/pnpm/packages/beta/node_modules/@repo", tsrs_vfs::FileMode::PERM)
+        .mkdir_all("home/projects/pnpm/packages/beta/node_modules/@repo", tsrs_vfs::FileMode::Perm)
         .unwrap();
     utils.map_fs().add_symlink(
         "home/projects/pnpm/packages/beta/node_modules/@repo/alpha",
@@ -1483,7 +1483,7 @@ fn did_change_watched_files_skips_irrelevant_extensions() {
     // Scenario D: directory creation (no extension)
     utils
         .map_fs()
-        .mkdir_all("home/projects/TS/p1/node_modules/@types", tsrs_vfs::FileMode::PERM)
+        .mkdir_all("home/projects/TS/p1/node_modules/@types", tsrs_vfs::FileMode::Perm)
         .unwrap();
     send(&[(lsproto::FileChangeType::CREATED, "file:///home/projects/TS/p1/node_modules/@types")]);
     assert!(refreshes() > baseline_refresh_count, "directory change should trigger refresh");

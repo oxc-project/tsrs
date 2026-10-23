@@ -16,7 +16,7 @@ impl OptionalCatchTransformer {
 
     // optionalcatch.go:12
     fn visit(&self, node: P<Node>) -> Option<P<Node>> {
-        if !node.subtree_facts().intersects(SubtreeFacts::CONTAINS_MISSING_CATCH_CLAUSE_VARIABLE) {
+        if !node.subtree_facts().intersects(SubtreeFacts::ContainsMissingCatchClauseVariable) {
             return Some(node);
         }
         match node.kind() {

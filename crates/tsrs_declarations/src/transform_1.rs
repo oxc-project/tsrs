@@ -775,7 +775,7 @@ impl DeclarationTransformer {
                 if let Some(result) = result {
                     if transformers::is_original_node_single_line(self.emit_context(), Some(input))
                     {
-                        self.emit_context().add_emit_flags(result, printer::EmitFlags::SINGLE_LINE);
+                        self.emit_context().add_emit_flags(result, printer::EmitFlags::SingleLine);
                     }
                 }
                 result
@@ -1203,8 +1203,8 @@ impl DeclarationTransformer {
                 input,
                 self.resolver.get_effective_declaration_flags(
                     self.emit_context().parse_node(Some(input)).unwrap(),
-                    ModifierFlags::PRIVATE,
-                ) != ModifierFlags::NONE,
+                    ModifierFlags::Private,
+                ) != ModifierFlags::None,
             )),
             None,
             None,
@@ -1226,8 +1226,8 @@ impl DeclarationTransformer {
                 input,
                 self.resolver.get_effective_declaration_flags(
                     self.emit_context().parse_node(Some(input)).unwrap(),
-                    ModifierFlags::PRIVATE,
-                ) != ModifierFlags::NONE,
+                    ModifierFlags::Private,
+                ) != ModifierFlags::None,
             )),
             self.ensure_type(input, false),
             None,
@@ -1336,8 +1336,8 @@ impl DeclarationTransformer {
     pub(crate) fn transform_method_signature_declaration(&self, input: P<Node>) -> Option<P<Node>> {
         if self.resolver.get_effective_declaration_flags(
             self.emit_context().parse_node(Some(input)).unwrap(),
-            ModifierFlags::PRIVATE,
-        ) != ModifierFlags::NONE
+            ModifierFlags::Private,
+        ) != ModifierFlags::None
         {
             self.omit_private_method_type(input)
         } else if ast::is_private_identifier(input.name().unwrap()) {
@@ -1359,8 +1359,8 @@ impl DeclarationTransformer {
     pub(crate) fn transform_method_declaration(&self, input: P<Node>) -> Option<P<Node>> {
         if self.resolver.get_effective_declaration_flags(
             self.emit_context().parse_node(Some(input)).unwrap(),
-            ModifierFlags::PRIVATE,
-        ) != ModifierFlags::NONE
+            ModifierFlags::Private,
+        ) != ModifierFlags::None
         {
             self.omit_private_method_type(input)
         } else if ast::is_private_identifier(input.name().unwrap()) {
@@ -1448,7 +1448,7 @@ impl DeclarationTransformer {
                 name_node = Some(self.factory().new_unique_name_ex(
                     name_text,
                     printer::AutoGenerateOptions {
-                        flags: printer::GeneratedIdentifierFlags::OPTIMISTIC,
+                        flags: printer::GeneratedIdentifierFlags::Optimistic,
                         ..Default::default()
                     },
                 ));
@@ -1477,7 +1477,7 @@ impl DeclarationTransformer {
                     self.factory().new_unique_name_ex(
                         "_exports",
                         printer::AutoGenerateOptions {
-                            flags: printer::GeneratedIdentifierFlags::OPTIMISTIC,
+                            flags: printer::GeneratedIdentifierFlags::Optimistic,
                             ..Default::default()
                         },
                     )
@@ -1485,7 +1485,7 @@ impl DeclarationTransformer {
                     self.factory().new_unique_name_ex(
                         "_default",
                         printer::AutoGenerateOptions {
-                            flags: printer::GeneratedIdentifierFlags::OPTIMISTIC,
+                            flags: printer::GeneratedIdentifierFlags::Optimistic,
                             ..Default::default()
                         },
                     )
@@ -1533,7 +1533,7 @@ impl DeclarationTransformer {
         // Check if the expression is a class expression - emit as a class declaration + export assignment
         let unwrapped = ast::skip_outer_expressions(
             expression,
-            OuterExpressionKinds::EXPRESSION_TYPE_PASSTHROUGH,
+            OuterExpressionKinds::ExpressionTypePassthrough,
         );
         let new_id = self.get_name_of_exported_assigned_expression(unwrapped, is_export_equals);
         if ast::is_class_expression(unwrapped) {
@@ -1602,7 +1602,7 @@ impl DeclarationTransformer {
             Some(mod_list),
             self.factory().new_variable_declaration_list(
                 self.factory().new_node_list(vec![var_decl]),
-                NodeFlags::CONST,
+                NodeFlags::Const,
             ),
         );
         let export_assignment =
@@ -1648,7 +1648,7 @@ impl DeclarationTransformer {
                         self.visitor().visit_node(sig),
                         None,
                     )]),
-                    NodeFlags::CONST,
+                    NodeFlags::Const,
                 ),
             )
         }

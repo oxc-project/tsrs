@@ -235,7 +235,7 @@ impl CallbackFs {
             return Some(FileInfo {
                 name,
                 size: 0,
-                mode: FileMode::DIR | FileMode::from_bits_retain(0o555),
+                mode: FileMode::Dir | FileMode::from_bits_retain(0o555),
                 mod_time: None,
             });
         }
@@ -453,23 +453,23 @@ fn base_file_name(path: &str) -> String {
 pub fn node_file_mode_to_go_file_mode(mode: u32) -> FileMode {
     let mut result = FileMode::from_bits_retain(mode & 0o777);
     if mode & 0o4000 != 0 {
-        result |= FileMode::SETUID;
+        result |= FileMode::Setuid;
     }
     if mode & 0o2000 != 0 {
-        result |= FileMode::SETGID;
+        result |= FileMode::Setgid;
     }
     if mode & 0o1000 != 0 {
-        result |= FileMode::STICKY;
+        result |= FileMode::Sticky;
     }
     match mode & 0o170_000 {
-        0o010_000 => result |= FileMode::NAMED_PIPE,
-        0o020_000 => result |= FileMode::DEVICE | FileMode::CHAR_DEVICE,
-        0o040_000 => result |= FileMode::DIR,
-        0o060_000 => result |= FileMode::DEVICE,
+        0o010_000 => result |= FileMode::NamedPipe,
+        0o020_000 => result |= FileMode::Device | FileMode::CharDevice,
+        0o040_000 => result |= FileMode::Dir,
+        0o060_000 => result |= FileMode::Device,
         0o100_000 => {}
-        0o120_000 => result |= FileMode::SYMLINK,
-        0o140_000 => result |= FileMode::SOCKET,
-        _ => result |= FileMode::IRREGULAR,
+        0o120_000 => result |= FileMode::Symlink,
+        0o140_000 => result |= FileMode::Socket,
+        _ => result |= FileMode::Irregular,
     }
     result
 }

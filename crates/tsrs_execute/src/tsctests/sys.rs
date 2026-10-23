@@ -276,7 +276,7 @@ impl TestSys {
         };
         let mut changes = Vec::new();
         for (path, file) in self.map_fs().entries() {
-            if file.mode.intersects(FileMode::SYMLINK) || !file.mode.is_regular() {
+            if file.mode.intersects(FileMode::Symlink) || !file.mode.is_regular() {
                 continue;
             }
             match old_snap.snap.get(&path) {
@@ -310,7 +310,7 @@ impl TestSys {
         let mut serialized = self.serialized_diff.lock().unwrap();
         let current_libs = self.fs.default_libs.lock().unwrap().clone();
         for (path, file) in self.map_fs().entries() {
-            if file.mode.intersects(FileMode::SYMLINK) {
+            if file.mode.intersects(FileMode::Symlink) {
                 let target = self
                     .map_fs()
                     .get_target_of_symlink(&path)

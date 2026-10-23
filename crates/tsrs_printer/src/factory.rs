@@ -95,7 +95,7 @@ impl NodeFactory {
         let name = self.new_identifier(alloc_str(&text));
         let auto_generate = AutoGenerateInfo {
             id,
-            flags: kind | (options.flags & !GeneratedIdentifierFlags::KIND_MASK),
+            flags: kind | (options.flags & !GeneratedIdentifierFlags::KindMask),
             prefix: options.prefix,
             suffix: options.suffix,
             node,
@@ -116,7 +116,7 @@ impl NodeFactory {
     // it yourself.
     pub fn new_temp_variable_ex(&self, options: AutoGenerateOptions) -> P<Node> {
         self.new_generated_identifier(
-            GeneratedIdentifierFlags::AUTO,
+            GeneratedIdentifierFlags::Auto,
             "",
             None, /*node*/
             options,
@@ -131,7 +131,7 @@ impl NodeFactory {
     // Allocates a new loop variable name.
     pub fn new_loop_variable_ex(&self, options: AutoGenerateOptions) -> P<Node> {
         self.new_generated_identifier(
-            GeneratedIdentifierFlags::LOOP,
+            GeneratedIdentifierFlags::Loop,
             "",
             None, /*node*/
             options,
@@ -146,7 +146,7 @@ impl NodeFactory {
     // Allocates a new unique name based on the provided text.
     pub fn new_unique_name_ex(&self, text: &str, options: AutoGenerateOptions) -> P<Node> {
         self.new_generated_identifier(
-            GeneratedIdentifierFlags::UNIQUE,
+            GeneratedIdentifierFlags::Unique,
             text,
             None, /*node*/
             options,
@@ -166,10 +166,10 @@ impl NodeFactory {
     ) -> P<Node> {
         let mut options = options;
         if !options.prefix.is_empty() || !options.suffix.is_empty() {
-            options.flags |= GeneratedIdentifierFlags::OPTIMISTIC;
+            options.flags |= GeneratedIdentifierFlags::Optimistic;
         }
 
-        self.new_generated_identifier(GeneratedIdentifierFlags::NODE, "", Some(node), options)
+        self.new_generated_identifier(GeneratedIdentifierFlags::Node, "", Some(node), options)
     }
 
     fn new_generated_private_identifier(
@@ -204,7 +204,7 @@ impl NodeFactory {
         let name = self.new_private_identifier(alloc_str(&text));
         let auto_generate = AutoGenerateInfo {
             id,
-            flags: kind | (options.flags & !GeneratedIdentifierFlags::KIND_MASK),
+            flags: kind | (options.flags & !GeneratedIdentifierFlags::KindMask),
             prefix: options.prefix,
             suffix: options.suffix,
             node,
@@ -221,7 +221,7 @@ impl NodeFactory {
     // Allocates a new unique private name based on the provided text.
     pub fn new_unique_private_name_ex(&self, text: &str, options: AutoGenerateOptions) -> P<Node> {
         self.new_generated_private_identifier(
-            GeneratedIdentifierFlags::UNIQUE,
+            GeneratedIdentifierFlags::Unique,
             text,
             None, /*node*/
             options,
@@ -241,11 +241,11 @@ impl NodeFactory {
     ) -> P<Node> {
         let mut options = options;
         if !options.prefix.is_empty() || !options.suffix.is_empty() {
-            options.flags |= GeneratedIdentifierFlags::OPTIMISTIC;
+            options.flags |= GeneratedIdentifierFlags::Optimistic;
         }
 
         self.new_generated_private_identifier(
-            GeneratedIdentifierFlags::NODE,
+            GeneratedIdentifierFlags::Node,
             "",
             Some(node),
             options,
@@ -269,7 +269,7 @@ impl NodeFactory {
             | Kind::RegularExpressionLiteral => text_source_node.text(),
             _ => "",
         };
-        let node = self.new_string_literal(text, TokenFlags::NONE);
+        let node = self.new_string_literal(text, TokenFlags::None);
         self.emit_context().set_text_source(node, text_source_node);
         node
     }
@@ -306,7 +306,7 @@ impl NodeFactory {
 
     // factory.go:241
     pub fn new_void_zero_expression(&self) -> P<Node> {
-        self.new_void_expression(self.new_numeric_literal("0", TokenFlags::NONE))
+        self.new_void_expression(self.new_numeric_literal("0", TokenFlags::None))
     }
 
     // factory.go:345
@@ -321,7 +321,7 @@ impl NodeFactory {
         } else {
             self.new_strict_equality_expression(
                 self.new_type_of_expression(value),
-                self.new_string_literal(alloc_str(tag), TokenFlags::NONE),
+                self.new_string_literal(alloc_str(tag), TokenFlags::None),
             )
         }
     }

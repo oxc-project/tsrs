@@ -597,7 +597,7 @@ impl ToBuildInfo<'_> {
             self.build_info.affected_files_pending_emit.push(BuildInfoFilePendingEmit {
                 file_id,
                 emit_kind: if pending_emit == full_emit_kind {
-                    crate::snapshot::FileEmitKind::NONE
+                    crate::snapshot::FileEmitKind::None
                 } else {
                     pending_emit
                 },

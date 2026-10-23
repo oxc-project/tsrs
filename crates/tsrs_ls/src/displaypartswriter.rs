@@ -224,34 +224,33 @@ fn classification_for_symbol(symbol: Option<P<Symbol>>) -> lsproto::Classificati
         return lsproto::ClassificationTypeName::TEXT;
     };
     let flags = symbol.flags();
-    if flags.intersects(SymbolFlags::VARIABLE) {
+    if flags.intersects(SymbolFlags::Variable) {
         if is_first_declaration_of_symbol_parameter(symbol) {
             return lsproto::ClassificationTypeName::PARAMETER_NAME;
         }
         lsproto::ClassificationTypeName::LOCAL_NAME
-    } else if (flags.intersects(SymbolFlags::PROPERTY))
-        || (flags.intersects(SymbolFlags::GET_ACCESSOR))
-        || (flags.intersects(SymbolFlags::SET_ACCESSOR))
+    } else if (flags.intersects(SymbolFlags::Property))
+        || (flags.intersects(SymbolFlags::GetAccessor))
+        || (flags.intersects(SymbolFlags::SetAccessor))
     {
         lsproto::ClassificationTypeName::PROPERTY_NAME
-    } else if flags.intersects(SymbolFlags::ENUM_MEMBER) {
+    } else if flags.intersects(SymbolFlags::EnumMember) {
         lsproto::ClassificationTypeName::FIELD_NAME
-    } else if flags.intersects(SymbolFlags::FUNCTION) {
+    } else if flags.intersects(SymbolFlags::Function) {
         lsproto::ClassificationTypeName::METHOD_NAME
-    } else if flags.intersects(SymbolFlags::CLASS) {
+    } else if flags.intersects(SymbolFlags::Class) {
         lsproto::ClassificationTypeName::CLASS_NAME
-    } else if flags.intersects(SymbolFlags::INTERFACE) {
+    } else if flags.intersects(SymbolFlags::Interface) {
         lsproto::ClassificationTypeName::INTERFACE_NAME
-    } else if flags.intersects(SymbolFlags::ENUM) {
+    } else if flags.intersects(SymbolFlags::Enum) {
         lsproto::ClassificationTypeName::ENUM_NAME
-    } else if flags.intersects(SymbolFlags::MODULE) {
+    } else if flags.intersects(SymbolFlags::Module) {
         lsproto::ClassificationTypeName::MODULE_NAME
-    } else if flags.intersects(SymbolFlags::METHOD) {
+    } else if flags.intersects(SymbolFlags::Method) {
         lsproto::ClassificationTypeName::METHOD_NAME
-    } else if flags.intersects(SymbolFlags::TYPE_PARAMETER) {
+    } else if flags.intersects(SymbolFlags::TypeParameter) {
         lsproto::ClassificationTypeName::TYPE_PARAMETER_NAME
-    } else if (flags.intersects(SymbolFlags::TYPE_ALIAS)) || (flags.intersects(SymbolFlags::ALIAS))
-    {
+    } else if (flags.intersects(SymbolFlags::TypeAlias)) || (flags.intersects(SymbolFlags::Alias)) {
         lsproto::ClassificationTypeName::IDENTIFIER
     } else {
         lsproto::ClassificationTypeName::TEXT

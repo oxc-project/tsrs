@@ -30,7 +30,7 @@ impl Checker {
         self.check_object_type_for_duplicate_declarations(node, true /*checkPrivateNames*/);
 
         // Only check for reserved static identifiers on non-ambient context.
-        let node_in_ambient_context = node.flags().intersects(NodeFlags::AMBIENT);
+        let node_in_ambient_context = node.flags().intersects(NodeFlags::Ambient);
         if !node_in_ambient_context {
             self.check_class_for_static_property_name_conflicts(node);
         }
@@ -78,7 +78,7 @@ impl Checker {
                     let t = self.get_type_without_signatures(static_base_type);
                     self.check_type_assignable_to(static_type, t, Some(node.name().unwrap_or(node)), Some(&diagnostics::CLASS_STATIC_SIDE_0_INCORRECTLY_EXTENDS_BASE_CLASS_STATIC_SIDE_1));
                 }
-                if base_constructor_type.flags().intersects(TypeFlags::TYPE_VARIABLE) {
+                if base_constructor_type.flags().intersects(TypeFlags::TypeVariable) {
                     if !self.is_mixin_constructor_type(static_type) {
                         self.error(Some(node.name().unwrap_or(node)), &diagnostics::A_MIXIN_CLASS_MUST_HAVE_A_CONSTRUCTOR_WITH_A_SINGLE_REST_PARAMETER_OF_TYPE_ANY, &[]);
                     } else {
@@ -88,8 +88,8 @@ impl Checker {
                         );
                         if construct_signatures
                             .iter()
-                            .any(|signature| signature.flags().intersects(SignatureFlags::ABSTRACT))
-                            && !has_syntactic_modifier(node, ModifierFlags::ABSTRACT)
+                            .any(|signature| signature.flags().intersects(SignatureFlags::Abstract))
+                            && !has_syntactic_modifier(node, ModifierFlags::Abstract)
                         {
                             self.error(Some(node.name().unwrap_or(node)), &diagnostics::A_MIXIN_CLASS_THAT_EXTENDS_FROM_A_TYPE_VARIABLE_CONTAINING_AN_ABSTRACT_CONSTRUCT_SIGNATURE_MUST_ALSO_BE_DECLARED_ABSTRACT, &[]);
                         }
@@ -97,8 +97,8 @@ impl Checker {
                 }
                 if !(static_base_type
                     .symbol()
-                    .is_some_and(|s| s.flags().intersects(SymbolFlags::CLASS)))
-                    && !base_constructor_type.flags().intersects(TypeFlags::TYPE_VARIABLE)
+                    .is_some_and(|s| s.flags().intersects(SymbolFlags::Class)))
+                    && !base_constructor_type.flags().intersects(TypeFlags::TypeVariable)
                 {
                     // When the static base type is a "class-like" constructor function (but not actually a class), we verify
                     // that all instantiated base constructor signatures return the same type.
@@ -142,7 +142,7 @@ impl Checker {
                 if self.is_valid_base_type(t) {
                     let generic_diag = if t
                         .symbol()
-                        .is_some_and(|s| s.flags().intersects(SymbolFlags::CLASS))
+                        .is_some_and(|s| s.flags().intersects(SymbolFlags::Class))
                     {
                         &diagnostics::CLASS_0_INCORRECTLY_IMPLEMENTS_CLASS_1_DID_YOU_MEAN_TO_EXTEND_1_AND_INHERIT_ITS_MEMBERS_AS_A_SUBCLASS
                     } else {
@@ -304,7 +304,7 @@ impl Checker {
     pub(crate) fn check_base_type_accessibility(&mut self, t: P<Type>, node: P<Node>) {
         let signatures = self.get_signatures_of_type(t, SignatureKind::Construct);
         let accessibility_error =
-            self.get_constructor_accessibility_error(node, signatures, ModifierFlags::PRIVATE);
+            self.get_constructor_accessibility_error(node, signatures, ModifierFlags::Private);
         if let Some(accessibility_error) = accessibility_error {
             let name = self.get_fully_qualified_name(
                 accessibility_error.declaring_class.symbol().unwrap(),
@@ -370,18 +370,18 @@ impl Checker {
 
     // checker.go:4571
     pub(crate) fn get_type_without_signatures(&mut self, t: P<Type>) -> P<Type> {
-        if t.flags().intersects(TypeFlags::OBJECT) {
+        if t.flags().intersects(TypeFlags::Object) {
             let resolved = self.resolve_structured_type_members(t);
             if !resolved.signatures().is_empty() {
-                let result = self.new_object_type(ObjectFlags::ANONYMOUS, t.symbol());
+                let result = self.new_object_type(ObjectFlags::Anonymous, t.symbol());
                 result
                     .object_flags
-                    .set(result.object_flags.get_lazy() | ObjectFlags::MEMBERS_RESOLVED);
+                    .set(result.object_flags.get_lazy() | ObjectFlags::MembersResolved);
                 result.as_object_type().set_members(resolved.members());
                 result.as_object_type().set_properties(resolved.properties());
                 return result;
             }
-        } else if t.flags().intersects(TypeFlags::INTERSECTION) {
+        } else if t.flags().intersects(TypeFlags::Intersection) {
             let types: Vec<P<Type>> = t
                 .as_intersection_type()
                 .types()
@@ -427,7 +427,7 @@ impl Checker {
             self.get_properties_of_type(base_type).iter().copied()
         {
             let base = self.get_target_symbol(base_property).unwrap();
-            if base.flags().intersects(SymbolFlags::PROTOTYPE) {
+            if base.flags().intersects(SymbolFlags::Prototype) {
                 continue;
             }
             let Some(base_symbol) = self.get_property_of_object_type(t, base.name()) else {
@@ -440,7 +440,7 @@ impl Checker {
             // type declaration, derived and base resolve to the same symbol even in the case of generic classes.
             if derived == base {
                 // derived class inherits base without override/redeclaration.
-                if base_declaration_flags.intersects(ModifierFlags::ABSTRACT) {
+                if base_declaration_flags.intersects(ModifierFlags::Abstract) {
                     // It is an error to inherit an abstract member without implementing it or being declared abstract.
                     // If there is no declaration for the derived class (as in the case of class expressions),
                     // then the class cannot be declared abstract.
@@ -449,7 +449,7 @@ impl Checker {
                     if derived_class_decl.is_none()
                         || !has_syntactic_modifier(
                             derived_class_decl.unwrap(),
-                            ModifierFlags::ABSTRACT,
+                            ModifierFlags::Abstract,
                         )
                     {
                         // Searches other base types for a declaration that would satisfy the inherited abstract member.
@@ -486,20 +486,20 @@ impl Checker {
             } else {
                 // derived overrides base.
                 let derived_declaration_flags = get_declaration_modifier_flags_from_symbol(derived);
-                if base_declaration_flags.intersects(ModifierFlags::PRIVATE)
-                    || derived_declaration_flags.intersects(ModifierFlags::PRIVATE)
+                if base_declaration_flags.intersects(ModifierFlags::Private)
+                    || derived_declaration_flags.intersects(ModifierFlags::Private)
                 {
                     // either base or derived property is private - not override, skip it
                     continue;
                 }
 
-                let base_property_flags = base.flags() & SymbolFlags::PROPERTY_OR_ACCESSOR;
-                let derived_property_flags = derived.flags() & SymbolFlags::PROPERTY_OR_ACCESSOR;
+                let base_property_flags = base.flags() & SymbolFlags::PropertyOrAccessor;
+                let derived_property_flags = derived.flags() & SymbolFlags::PropertyOrAccessor;
                 let error_message: &'static Message = if !base_property_flags.is_empty()
                     && !derived_property_flags.is_empty()
                 {
                     // property/accessor is overridden with property/accessor
-                    if base.check_flags().intersects(CheckFlags::MAPPED)
+                    if base.check_flags().intersects(CheckFlags::Mapped)
                         || derived.value_declaration().is_some_and(is_binary_expression)
                         || Self::are_properties_abstract_or_interface(base, base_declaration_flags)
                     {
@@ -508,10 +508,10 @@ impl Checker {
                         // same when the derived property is from an assignment
                         continue;
                     }
-                    let overridden_instance_property = base_property_flags != SymbolFlags::PROPERTY
-                        && derived_property_flags == SymbolFlags::PROPERTY;
-                    let overridden_instance_accessor = base_property_flags == SymbolFlags::PROPERTY
-                        && derived_property_flags != SymbolFlags::PROPERTY;
+                    let overridden_instance_property = base_property_flags != SymbolFlags::Property
+                        && derived_property_flags == SymbolFlags::Property;
+                    let overridden_instance_accessor = base_property_flags == SymbolFlags::Property
+                        && derived_property_flags != SymbolFlags::Property;
                     if overridden_instance_property || overridden_instance_accessor {
                         let error_message = if overridden_instance_property {
                             &diagnostics::X_0_IS_DEFINED_AS_AN_ACCESSOR_IN_CLASS_1_BUT_IS_OVERRIDDEN_HERE_IN_2_AS_AN_INSTANCE_PROPERTY
@@ -534,13 +534,13 @@ impl Checker {
                             .copied()
                             .find(|&d| is_property_declaration(d) && d.initializer().is_none());
                         if let Some(uninitialized) = uninitialized {
-                            if !derived.flags().intersects(SymbolFlags::TRANSIENT)
-                                && !base_declaration_flags.intersects(ModifierFlags::ABSTRACT)
-                                && !derived_declaration_flags.intersects(ModifierFlags::ABSTRACT)
+                            if !derived.flags().intersects(SymbolFlags::Transient)
+                                && !base_declaration_flags.intersects(ModifierFlags::Abstract)
+                                && !derived_declaration_flags.intersects(ModifierFlags::Abstract)
                                 && !derived
                                     .declarations()
                                     .iter()
-                                    .any(|d| d.flags().intersects(NodeFlags::AMBIENT))
+                                    .any(|d| d.flags().intersects(NodeFlags::Ambient))
                             {
                                 let constructor = find_constructor_declaration(
                                     get_class_like_declaration_of_symbol(t.symbol().unwrap())
@@ -574,13 +574,13 @@ impl Checker {
                     continue;
                 } else if is_prototype_property(base) {
                     if is_prototype_property(derived)
-                        || derived.flags().intersects(SymbolFlags::PROPERTY)
+                        || derived.flags().intersects(SymbolFlags::Property)
                     {
                         // method is overridden with method or property -- correct case
                         continue;
                     }
                     &diagnostics::CLASS_0_DEFINES_INSTANCE_MEMBER_FUNCTION_1_BUT_EXTENDED_CLASS_2_DEFINES_IT_AS_INSTANCE_MEMBER_ACCESSOR
-                } else if base.flags().intersects(SymbolFlags::ACCESSOR) {
+                } else if base.flags().intersects(SymbolFlags::Accessor) {
                     &diagnostics::CLASS_0_DEFINES_INSTANCE_MEMBER_ACCESSOR_1_BUT_EXTENDED_CLASS_2_DEFINES_IT_AS_INSTANCE_MEMBER_FUNCTION
                 } else {
                     &diagnostics::CLASS_0_DEFINES_INSTANCE_MEMBER_PROPERTY_1_BUT_EXTENDED_CLASS_2_DEFINES_IT_AS_INSTANCE_MEMBER_FUNCTION
@@ -635,7 +635,7 @@ impl Checker {
         base_declaration_flags: ModifierFlags,
     ) -> bool {
         let declarations = base.declarations();
-        if base.check_flags().intersects(CheckFlags::SYNTHETIC) {
+        if base.check_flags().intersects(CheckFlags::Synthetic) {
             return declarations
                 .iter()
                 .any(|&d| Self::is_property_abstract_or_interface(d, base_declaration_flags));
@@ -651,7 +651,7 @@ impl Checker {
         base_declaration_flags: ModifierFlags,
     ) -> bool {
         is_interface_declaration(declaration.parent().unwrap())
-            || base_declaration_flags.intersects(ModifierFlags::ABSTRACT)
+            || base_declaration_flags.intersects(ModifierFlags::Abstract)
                 && (!is_property_declaration(declaration) || declaration.initializer().is_none())
     }
 
@@ -780,7 +780,7 @@ impl Checker {
             base_with_this,
             t,
             type_with_this,
-            has_syntactic_modifier(member, ModifierFlags::OVERRIDE),
+            has_syntactic_modifier(member, ModifierFlags::Override),
             has_abstract_modifier(member),
             ast::is_static(member),
             false, /*memberIsParameterProperty*/
@@ -854,7 +854,7 @@ impl Checker {
             if let (Some(_), Some(base_prop)) = (prop, base_prop) {
                 if !base_prop.declarations().is_empty()
                     && self.compiler_options.no_implicit_override.is_true()
-                    && !node.flags().intersects(NodeFlags::AMBIENT)
+                    && !node.flags().intersects(NodeFlags::Ambient)
                 {
                     let base_has_abstract =
                         base_prop.declarations().iter().any(|&d| has_abstract_modifier(d));
@@ -906,7 +906,7 @@ impl Checker {
         base_type: P<Type>,
     ) -> Option<P<Symbol>> {
         let properties = self.get_properties_of_type(base_type);
-        self.get_spelling_suggestion_for_name(name, properties, SymbolFlags::CLASS_MEMBER)
+        self.get_spelling_suggestion_for_name(name, properties, SymbolFlags::ClassMember)
     }
 
     // checker.go:4877
@@ -921,10 +921,10 @@ impl Checker {
             return;
         }
         for prop in self.get_properties_of_object_type(t).iter().copied() {
-            if !(is_static_index && prop.flags().intersects(SymbolFlags::PROTOTYPE)) {
+            if !(is_static_index && prop.flags().intersects(SymbolFlags::Prototype)) {
                 let prop_name_type = self.get_literal_type_from_property(
                     prop,
-                    TypeFlags::STRING_OR_NUMBER_LITERAL_OR_UNIQUE,
+                    TypeFlags::StringOrNumberLiteralOrUnique,
                     true, /*includeNonPublic*/
                 );
                 let prop_type = self.get_non_missing_type_of_symbol(prop);
@@ -969,7 +969,7 @@ impl Checker {
             return;
         }
         let mut interface_declaration: Option<P<Node>> = None;
-        if t.object_flags().intersects(ObjectFlags::INTERFACE) {
+        if t.object_flags().intersects(ObjectFlags::Interface) {
             interface_declaration =
                 get_declaration_of_kind(t.symbol().unwrap(), Kind::InterfaceDeclaration);
         }
@@ -1043,7 +1043,7 @@ impl Checker {
             return;
         }
         let mut interface_declaration: Option<P<Node>> = None;
-        if t.object_flags().intersects(ObjectFlags::INTERFACE) {
+        if t.object_flags().intersects(ObjectFlags::Interface) {
             interface_declaration =
                 get_declaration_of_kind(t.symbol().unwrap(), Kind::InterfaceDeclaration);
         }
@@ -1153,13 +1153,13 @@ impl Checker {
     pub(crate) fn check_property_initialization(&mut self, node: P<Node>) {
         if !self.strict_null_checks
             || !self.strict_property_initialization
-            || node.flags().intersects(NodeFlags::AMBIENT)
+            || node.flags().intersects(NodeFlags::Ambient)
         {
             return;
         }
         let constructor = find_constructor_declaration(node);
         for &member in node.members() {
-            if member.modifier_flags().intersects(ModifierFlags::AMBIENT) {
+            if member.modifier_flags().intersects(ModifierFlags::Ambient) {
                 continue;
             }
             if !ast::is_static(member) && Self::is_property_without_initializer(member) {
@@ -1170,7 +1170,7 @@ impl Checker {
                 {
                     let member_symbol = self.get_symbol_of_declaration(member).unwrap();
                     let t = self.get_type_of_symbol(member_symbol);
-                    if !(t.flags().intersects(TypeFlags::ANY_OR_UNKNOWN)
+                    if !(t.flags().intersects(TypeFlags::AnyOrUnknown)
                         || Self::contains_undefined_type(t))
                     {
                         if constructor.is_none()
@@ -1213,7 +1213,7 @@ impl Checker {
                     this_keyword,
                     None,
                     prop_name,
-                    NodeFlags::NONE,
+                    NodeFlags::None,
                 );
                 reference.expression().unwrap().set_parent(Some(reference));
                 reference.set_parent(Some(static_block));
@@ -1253,7 +1253,7 @@ impl Checker {
                 this_keyword,
                 None,
                 prop_name.expression().unwrap(),
-                NodeFlags::NONE,
+                NodeFlags::None,
             )
         } else {
             let this_keyword = self.factory.new_keyword_expression(Kind::ThisKeyword);
@@ -1261,7 +1261,7 @@ impl Checker {
                 this_keyword,
                 None,
                 prop_name,
-                NodeFlags::NONE,
+                NodeFlags::None,
             )
         };
         reference.expression().unwrap().set_parent(Some(reference));
@@ -1437,7 +1437,7 @@ impl Checker {
         self.check_exports_on_merged_declarations(node);
         self.check_source_elements(node.members());
 
-        if self.should_check_erasable_syntax(node) && !node.flags().intersects(NodeFlags::AMBIENT) {
+        if self.should_check_erasable_syntax(node) && !node.flags().intersects(NodeFlags::Ambient) {
             self.error(
                 Some(node),
                 &diagnostics::THIS_SYNTAX_IS_NOT_ALLOWED_WHEN_ERASABLE_SYNTAX_ONLY_IS_ENABLED,
@@ -1520,7 +1520,7 @@ impl Checker {
             }
         }
         let is_global_augmentation = is_global_scope_augmentation(node);
-        let in_ambient_context = node.flags().intersects(NodeFlags::AMBIENT);
+        let in_ambient_context = node.flags().intersects(NodeFlags::Ambient);
         if is_global_augmentation && !in_ambient_context {
             self.error(node.name(), &diagnostics::AUGMENTATIONS_FOR_THE_GLOBAL_SCOPE_SHOULD_HAVE_DECLARE_MODIFIER_UNLESS_THEY_APPEAR_IN_ALREADY_AMBIENT_CONTEXT, &[]);
         }
@@ -1556,7 +1556,7 @@ impl Checker {
         self.check_exports_on_merged_declarations(node);
         let symbol = self.get_symbol_of_declaration(node).unwrap();
         // The following checks only apply on a non-ambient instantiated module declaration.
-        if symbol.flags().intersects(SymbolFlags::VALUE_MODULE)
+        if symbol.flags().intersects(SymbolFlags::ValueModule)
             && !in_ambient_context
             && is_instantiated_module(node, self.compiler_options.should_preserve_const_enums())
         {
@@ -1591,7 +1591,7 @@ impl Checker {
             }
             if self.compiler_options.verbatim_module_syntax.is_true()
                 && is_source_file(node.parent().unwrap())
-                && node.modifier_flags().intersects(ModifierFlags::EXPORT)
+                && node.modifier_flags().intersects(ModifierFlags::Export)
                 && self.emit_module_format_of_file(node.parent().unwrap().as_source_file_p())
                     == ModuleKind::COMMON_JS
             {
@@ -1619,7 +1619,7 @@ impl Checker {
                         .get_symbol_of_declaration(node)
                         .unwrap()
                         .flags()
-                        .intersects(SymbolFlags::TRANSIENT);
+                        .intersects(SymbolFlags::Transient);
                 if check_body {
                     if let Some(body) = node.body() {
                         for &statement in body.statements() {
@@ -1708,7 +1708,7 @@ pub(crate) fn get_first_non_ambient_class_or_function_declaration(
     if let Some(result) = symbol.declarations().iter().find_map(|&declaration| {
         if (is_class_declaration(declaration)
             || is_function_declaration(declaration) && node_is_present(declaration.body()))
-            && !declaration.flags().intersects(NodeFlags::AMBIENT)
+            && !declaration.flags().intersects(NodeFlags::Ambient)
         {
             Some(Some(declaration))
         } else {
@@ -1812,10 +1812,7 @@ impl Checker {
                         {
                             // import * as ns from "foo";
                             needs_import_star = true;
-                            self.check_external_emit_helpers(
-                                node,
-                                ExternalEmitHelpers::IMPORT_STAR,
-                            );
+                            self.check_external_emit_helpers(node, ExternalEmitHelpers::ImportStar);
                         }
                     } else {
                         let import_attributes_type =
@@ -1839,7 +1836,7 @@ impl Checker {
                         == ModuleKind::COMMON_JS
                 {
                     // import d from "foo";
-                    self.check_external_emit_helpers(node, ExternalEmitHelpers::IMPORT_DEFAULT);
+                    self.check_external_emit_helpers(node, ExternalEmitHelpers::ImportDefault);
                 }
 
                 if !import_clause.is_type_only()
@@ -1942,7 +1939,7 @@ impl Checker {
                 && self.emit_module_format_of_file(get_source_file_of_node(node).unwrap())
                     == ModuleKind::COMMON_JS
             {
-                self.check_external_emit_helpers(node, ExternalEmitHelpers::IMPORT_DEFAULT);
+                self.check_external_emit_helpers(node, ExternalEmitHelpers::ImportDefault);
             }
         }
     }
@@ -1987,7 +1984,7 @@ impl Checker {
         let import_attributes_type = self.get_global_import_attributes_type_checked();
         if import_attributes_type != self.empty_object_type {
             let source = self.get_type_from_import_attributes(Some(node)).unwrap();
-            let target = self.get_nullable_type(import_attributes_type, TypeFlags::UNDEFINED);
+            let target = self.get_nullable_type(import_attributes_type, TypeFlags::Undefined);
             self.check_type_assignable_to(source, target, Some(node), None);
         }
         let is_type_only = is_exclusively_type_only_import_or_export(declaration)
@@ -2037,12 +2034,12 @@ impl Checker {
     pub(crate) fn check_import_attributes_expression(&mut self, node: P<Node>) -> P<Type> {
         let links = self.type_node_links.get(node);
         if links.resolved_type.get().is_none() {
-            let symbol = self
-                .new_symbol(SymbolFlags::OBJECT_LITERAL, INTERNAL_SYMBOL_NAME_IMPORT_ATTRIBUTES);
+            let symbol =
+                self.new_symbol(SymbolFlags::ObjectLiteral, INTERNAL_SYMBOL_NAME_IMPORT_ATTRIBUTES);
             let members = SymbolTable::new();
             for &attribute in node.as_import_attributes().attributes.nodes() {
                 let member =
-                    self.new_symbol(SymbolFlags::PROPERTY, attribute.name().unwrap().text());
+                    self.new_symbol(SymbolFlags::Property, attribute.name().unwrap().text());
                 let value_type =
                     self.check_expression_cached(attribute.as_import_attribute().value);
                 let resolved_type = self.get_regular_type_of_literal_type(value_type);
@@ -2052,8 +2049,8 @@ impl Checker {
             let t = self.new_anonymous_type(Some(symbol), Some(members), &[], &[], &[]);
             t.object_flags.set(
                 t.object_flags.get_lazy()
-                    | ObjectFlags::OBJECT_LITERAL
-                    | ObjectFlags::NON_INFERRABLE_TYPE,
+                    | ObjectFlags::ObjectLiteral
+                    | ObjectFlags::NonInferrableType,
             );
             links.resolved_type.set(Some(t));
         }
@@ -2093,7 +2090,7 @@ impl Checker {
             return; // If we hit an import declaration in an illegal context, just bail out to avoid cascading errors.
         }
         self.check_grammar_modifiers(node);
-        if self.should_check_erasable_syntax(node) && !node.flags().intersects(NodeFlags::AMBIENT) {
+        if self.should_check_erasable_syntax(node) && !node.flags().intersects(NodeFlags::Ambient) {
             self.error(
                 Some(node),
                 &diagnostics::THIS_SYNTAX_IS_NOT_ALLOWED_WHEN_ERASABLE_SYNTAX_ONLY_IS_ENABLED,
@@ -2111,25 +2108,25 @@ impl Checker {
                 let target = self.resolve_alias(node_symbol);
                 if target != self.unknown_symbol {
                     let target_flags = self.get_symbol_flags(target);
-                    if target_flags.intersects(SymbolFlags::VALUE) {
+                    if target_flags.intersects(SymbolFlags::Value) {
                         // Target is a value symbol, check that it is not hidden by a local declaration with the same name
                         let module_name = get_first_identifier(module_reference);
                         if !self
                             .resolve_entity_name(
                                 module_name,
-                                SymbolFlags::VALUE | SymbolFlags::NAMESPACE,
+                                SymbolFlags::Value | SymbolFlags::Namespace,
                                 false,
                                 false,
                                 None,
                             )
                             .unwrap()
                             .flags()
-                            .intersects(SymbolFlags::NAMESPACE)
+                            .intersects(SymbolFlags::Namespace)
                         {
                             self.error(Some(module_name), &diagnostics::MODULE_0_IS_HIDDEN_BY_A_LOCAL_DECLARATION_WITH_THE_SAME_NAME, &[&tsrs_scanner::declaration_name_to_string(Some(module_name))]);
                         }
                     }
-                    if target_flags.intersects(SymbolFlags::TYPE) {
+                    if target_flags.intersects(SymbolFlags::Type) {
                         self.check_type_name_is_reserved(
                             node.name().unwrap(),
                             &diagnostics::IMPORT_NAME_CANNOT_BE_0,
@@ -2146,7 +2143,7 @@ impl Checker {
             } else if ModuleKind::ES2015 <= self.module_kind
                 && self.module_kind <= ModuleKind::ES_NEXT
                 && !node.is_type_only()
-                && !node.flags().intersects(NodeFlags::AMBIENT)
+                && !node.flags().intersects(NodeFlags::Ambient)
             {
                 // Import equals declaration cannot be emitted as ESM
                 self.grammar_error_on_node(node, &diagnostics::IMPORT_ASSIGNMENT_CANNOT_BE_USED_WHEN_TARGETING_ECMA_SCRIPT_MODULES_CONSIDER_USING_IMPORT_ASTERISK_AS_NS_FROM_MOD_IMPORT_A_FROM_MOD_IMPORT_D_FROM_MOD_OR_ANOTHER_MODULE_FORMAT_INSTEAD, &[]);
@@ -2191,7 +2188,7 @@ impl Checker {
                 let in_ambient_namespace_declaration = !in_ambient_external_module
                     && is_module_block(parent)
                     && export_decl.module_specifier.is_none()
-                    && node.flags().intersects(NodeFlags::AMBIENT);
+                    && node.flags().intersects(NodeFlags::Ambient);
                 if !is_source_file(parent)
                     && !in_ambient_external_module
                     && !in_ambient_namespace_declaration
@@ -2234,10 +2231,10 @@ impl Checker {
                 {
                     if node.as_export_declaration().export_clause.is_some() {
                         // export * as ns from "foo";
-                        self.check_external_emit_helpers(node, ExternalEmitHelpers::IMPORT_STAR);
+                        self.check_external_emit_helpers(node, ExternalEmitHelpers::ImportStar);
                     } else {
                         // export * from "foo"
-                        self.check_external_emit_helpers(node, ExternalEmitHelpers::EXPORT_STAR);
+                        self.check_external_emit_helpers(node, ExternalEmitHelpers::ExportStar);
                     }
                 }
             }
@@ -2280,10 +2277,10 @@ impl Checker {
             let symbol = self.resolve_name(
                 Some(exported_name),
                 exported_name.text(),
-                SymbolFlags::VALUE
-                    | SymbolFlags::TYPE
-                    | SymbolFlags::NAMESPACE
-                    | SymbolFlags::ALIAS,
+                SymbolFlags::Value
+                    | SymbolFlags::Type
+                    | SymbolFlags::Namespace
+                    | SymbolFlags::Alias,
                 None, /*nameNotFoundMessage*/
                 true, /*isUse*/
                 false,
@@ -2308,7 +2305,7 @@ impl Checker {
             == ModuleKind::COMMON_JS
             && module_export_name_is_default(node.property_name_or_name().unwrap())
         {
-            self.check_external_emit_helpers(node, ExternalEmitHelpers::IMPORT_DEFAULT);
+            self.check_external_emit_helpers(node, ExternalEmitHelpers::ImportDefault);
         }
     }
 }
@@ -2340,7 +2337,7 @@ impl Checker {
         }
         if self.should_check_erasable_syntax(node)
             && node.as_export_assignment().is_export_equals
-            && !node.flags().intersects(NodeFlags::AMBIENT)
+            && !node.flags().intersects(NodeFlags::Ambient)
         {
             self.error(
                 Some(node),
@@ -2376,7 +2373,7 @@ impl Checker {
             );
         }
         let is_illegal_export_default_in_cjs = !is_export_equals
-            && !node.flags().intersects(NodeFlags::AMBIENT)
+            && !node.flags().intersects(NodeFlags::Ambient)
             && self.compiler_options.verbatim_module_syntax.is_true()
             && self.emit_module_format_of_file(get_source_file_of_node(node).unwrap())
                 == ModuleKind::COMMON_JS;
@@ -2384,7 +2381,7 @@ impl Checker {
             let id = node.expression().unwrap();
             let resolved = self.resolve_entity_name(
                 id,
-                SymbolFlags::ALL,
+                SymbolFlags::All,
                 true, /*ignoreErrors*/
                 true, /*dontResolveAlias*/
                 Some(node),
@@ -2393,12 +2390,12 @@ impl Checker {
             if let Some(sym) = sym {
                 self.mark_linked_references(node, ReferenceHint::ExportAssignment, None, None);
                 let type_only_declaration =
-                    self.get_type_only_alias_declaration_ex(sym, SymbolFlags::VALUE);
+                    self.get_type_only_alias_declaration_ex(sym, SymbolFlags::Value);
                 // If not a value, we're interpreting the identifier as a type export, along the lines of (`export { Id as default }`)
-                if self.get_symbol_flags(sym).intersects(SymbolFlags::VALUE) {
+                if self.get_symbol_flags(sym).intersects(SymbolFlags::Value) {
                     // However if it is a value, we need to check it's being used correctly
                     if !is_illegal_export_default_in_cjs
-                        && !node.flags().intersects(NodeFlags::AMBIENT)
+                        && !node.flags().intersects(NodeFlags::Ambient)
                         && self.compiler_options.verbatim_module_syntax.is_true()
                         && type_only_declaration.is_some()
                     {
@@ -2410,7 +2407,7 @@ impl Checker {
                         self.error(Some(id), message, &[&id.text()]);
                     }
                 } else if !is_illegal_export_default_in_cjs
-                    && !node.flags().intersects(NodeFlags::AMBIENT)
+                    && !node.flags().intersects(NodeFlags::Ambient)
                     && self.compiler_options.verbatim_module_syntax.is_true()
                 {
                     let message = if is_export_equals {
@@ -2421,17 +2418,17 @@ impl Checker {
                     self.error(Some(id), message, &[&id.text()]);
                 }
                 if !is_illegal_export_default_in_cjs
-                    && !node.flags().intersects(NodeFlags::AMBIENT)
+                    && !node.flags().intersects(NodeFlags::Ambient)
                     && self.compiler_options.get_isolated_modules()
-                    && !sym.flags().intersects(SymbolFlags::VALUE)
+                    && !sym.flags().intersects(SymbolFlags::Value)
                 {
                     let non_local_meanings = self.get_symbol_flags_ex(
                         sym, false, /*excludeTypeOnlyMeanings*/
                         true,  /*excludeLocalMeanings*/
                     );
-                    if sym.flags().intersects(SymbolFlags::ALIAS)
-                        && non_local_meanings.intersects(SymbolFlags::TYPE)
-                        && !non_local_meanings.intersects(SymbolFlags::VALUE)
+                    if sym.flags().intersects(SymbolFlags::Alias)
+                        && non_local_meanings.intersects(SymbolFlags::Type)
+                        && !non_local_meanings.intersects(SymbolFlags::Value)
                         && (type_only_declaration.is_none()
                             || get_source_file_of_node(type_only_declaration)
                                 != get_source_file_of_node(node))
@@ -2489,7 +2486,7 @@ impl Checker {
                 None,
             );
         }
-        if node.flags().intersects(NodeFlags::AMBIENT)
+        if node.flags().intersects(NodeFlags::Ambient)
             && !is_entity_name_expression(node.expression().unwrap())
         {
             self.grammar_error_on_node(node.expression().unwrap(), &diagnostics::THE_EXPRESSION_OF_AN_EXPORT_ASSIGNMENT_MUST_BE_AN_IDENTIFIER_OR_QUALIFIED_NAME_IN_AN_AMBIENT_CONTEXT, &[]);
@@ -2498,12 +2495,12 @@ impl Checker {
             // Forbid export= in esm implementation files, and esm mode declaration files
             if self.module_kind >= ModuleKind::ES2015
                 && self.module_kind != ModuleKind::PRESERVE
-                && ((node.flags().intersects(NodeFlags::AMBIENT)
+                && ((node.flags().intersects(NodeFlags::Ambient)
                     && self
                         .program
                         .get_implied_node_format_for_emit(get_source_file_of_node(node).unwrap())
                         == ModuleKind::ES_NEXT)
-                    || (!node.flags().intersects(NodeFlags::AMBIENT)
+                    || (!node.flags().intersects(NodeFlags::Ambient)
                         && self.program.get_implied_node_format_for_emit(
                             get_source_file_of_node(node).unwrap(),
                         ) != ModuleKind::COMMON_JS))
@@ -2511,7 +2508,7 @@ impl Checker {
                 // export assignment is not supported in es6 modules
                 self.grammar_error_on_node(node, &diagnostics::EXPORT_ASSIGNMENT_CANNOT_BE_USED_WHEN_TARGETING_ECMA_SCRIPT_MODULES_CONSIDER_USING_EXPORT_DEFAULT_OR_ANOTHER_MODULE_FORMAT_INSTEAD, &[]);
             } else if self.module_kind == ModuleKind::SYSTEM
-                && !node.flags().intersects(NodeFlags::AMBIENT)
+                && !node.flags().intersects(NodeFlags::Ambient)
             {
                 // system modules does not support export assignment
                 self.grammar_error_on_node(
@@ -2549,7 +2546,7 @@ impl Checker {
             // An export assignment is in error if (a) the module exports value members or (b) if the module exports type or
             // namespace members and the exported entity also exports type or namespace members.
             if let Some(export_equals_symbol) = export_equals_symbol {
-                if self.has_exported_members_of_kind(module_symbol, SymbolFlags::VALUE)
+                if self.has_exported_members_of_kind(module_symbol, SymbolFlags::Value)
                     || self.has_shadowed_namespace(export_equals_symbol)
                 {
                     let declaration = Self::get_declaration_of_alias_symbol(export_equals_symbol)
@@ -2569,7 +2566,7 @@ impl Checker {
                 }
                 // ECMA262: 15.2.1.1 It is a Syntax Error if the ExportedNames of ModuleItemList contains any duplicate entries.
                 // (TS Exceptions: namespaces, function overloads, enums, and interfaces)
-                if symbol.flags().intersects(SymbolFlags::NAMESPACE | SymbolFlags::ENUM) {
+                if symbol.flags().intersects(SymbolFlags::Namespace | SymbolFlags::Enum) {
                     continue;
                 }
                 let declarations = symbol.declarations();
@@ -2579,7 +2576,7 @@ impl Checker {
                         is_not_overload(d) && !is_accessor(d) && !is_interface_declaration(d)
                     })
                     .count();
-                if symbol.flags().intersects(SymbolFlags::TYPE_ALIAS)
+                if symbol.flags().intersects(SymbolFlags::TypeAlias)
                     && exported_declarations_count <= 2
                 {
                     // it is legal to merge type alias with other values
@@ -2623,14 +2620,14 @@ impl Checker {
 
     // checker.go:5912
     pub(crate) fn has_shadowed_namespace(&mut self, symbol: P<Symbol>) -> bool {
-        if symbol.flags().intersects(SymbolFlags::NAMESPACE_MODULE)
-            && symbol.flags().intersects(SymbolFlags::ALIAS)
+        if symbol.flags().intersects(SymbolFlags::NamespaceModule)
+            && symbol.flags().intersects(SymbolFlags::Alias)
         {
             let target = self.resolve_alias(symbol);
-            if target.flags().intersects(SymbolFlags::NAMESPACE)
+            if target.flags().intersects(SymbolFlags::Namespace)
                 && self.has_exported_members_of_kind(
                     target,
-                    SymbolFlags::TYPE | SymbolFlags::NAMESPACE,
+                    SymbolFlags::Type | SymbolFlags::Namespace,
                 )
             {
                 return true;
@@ -2665,13 +2662,13 @@ impl Checker {
 
     // checker.go:5938
     pub(crate) fn check_variable_declaration_list(&mut self, node: P<Node>) {
-        let block_scope_kind = get_combined_node_flags(node) & NodeFlags::BLOCK_SCOPED;
-        if (block_scope_kind == NodeFlags::USING || block_scope_kind == NodeFlags::AWAIT_USING)
+        let block_scope_kind = get_combined_node_flags(node) & NodeFlags::BlockScoped;
+        if (block_scope_kind == NodeFlags::Using || block_scope_kind == NodeFlags::AwaitUsing)
             && self.language_version < LANGUAGE_FEATURE_MINIMUM_TARGET.using_and_await_using
         {
             self.check_external_emit_helpers(
                 node,
-                ExternalEmitHelpers::ADD_DISPOSABLE_RESOURCE_AND_DISPOSE_RESOURCES,
+                ExternalEmitHelpers::AddDisposableResourceAndDisposeResources,
             );
         }
         self.check_source_elements(node.as_variable_declaration_list().declarations.nodes());
@@ -2732,7 +2729,7 @@ impl Checker {
                 && has_dot_dot_dot_token(node)
                 && self.language_version < LANGUAGE_FEATURE_MINIMUM_TARGET.object_spread_rest
             {
-                self.check_external_emit_helpers(node, ExternalEmitHelpers::REST);
+                self.check_external_emit_helpers(node, ExternalEmitHelpers::Rest);
             }
             // check computed properties inside property names of binding elements
             if let Some(prop_name) = prop_name.filter(|&p| is_computed_property_name(p)) {
@@ -2741,9 +2738,9 @@ impl Checker {
             // check private/protected variable access
             let parent = node.parent().unwrap().parent().unwrap();
             let parent_check_mode = if has_dot_dot_dot_token(node) {
-                CheckMode::REST_BINDING_ELEMENT
+                CheckMode::RestBindingElement
             } else {
-                CheckMode::NORMAL
+                CheckMode::Normal
             };
             let parent_type = self.get_type_for_binding_element_parent(parent, parent_check_mode);
             let prop_name_name = node.property_name_or_name().unwrap();
@@ -2819,7 +2816,7 @@ impl Checker {
                     if is_array_binding_pattern(name) {
                         let undefined_type = self.undefined_type;
                         self.check_iterated_type_or_element_type(
-                            IterationUse::DESTRUCTURING,
+                            IterationUse::Destructuring,
                             widened_type,
                             undefined_type,
                             Some(node),
@@ -2833,7 +2830,7 @@ impl Checker {
         }
         // For a commonjs `const x = require`, validate the alias and exit
         let symbol = self.get_symbol_of_declaration(node).unwrap();
-        if symbol.flags().intersects(SymbolFlags::ALIAS)
+        if symbol.flags().intersects(SymbolFlags::Alias)
             && is_variable_declaration_initialized_to_require(node)
         {
             self.check_alias_symbol(node);
@@ -2864,8 +2861,8 @@ impl Checker {
                     None,
                 );
                 let block_scope_kind =
-                    self.get_combined_node_flags_cached(node) & NodeFlags::BLOCK_SCOPED;
-                if block_scope_kind == NodeFlags::AWAIT_USING {
+                    self.get_combined_node_flags_cached(node) & NodeFlags::BlockScoped;
+                if block_scope_kind == NodeFlags::AwaitUsing {
                     let global_async_disposable_type = self.get_global_async_disposable_type();
                     let global_disposable_type = self.get_global_disposable_type();
                     if global_async_disposable_type != self.empty_object_type
@@ -2885,7 +2882,7 @@ impl Checker {
                         );
                         self.check_type_assignable_to(widened, optional_disposable_type, Some(initializer), Some(&diagnostics::THE_INITIALIZER_OF_AN_AWAIT_USING_DECLARATION_MUST_BE_EITHER_AN_OBJECT_WITH_A_SYMBOL_ASYNC_DISPOSE_OR_SYMBOL_DISPOSE_METHOD_OR_BE_NULL_OR_UNDEFINED));
                     }
-                } else if block_scope_kind == NodeFlags::USING {
+                } else if block_scope_kind == NodeFlags::Using {
                     let global_disposable_type = self.get_global_disposable_type();
                     if global_disposable_type != self.empty_object_type {
                         let types = [global_disposable_type, self.null_type, self.undefined_type];
@@ -2949,7 +2946,7 @@ impl Checker {
             if !self.is_error_type(t)
                 && !self.is_error_type(declaration_type)
                 && !self.is_type_identical_to(t, declaration_type)
-                && !symbol.flags().intersects(SymbolFlags::ASSIGNMENT)
+                && !symbol.flags().intersects(SymbolFlags::Assignment)
             {
                 self.error_next_variable_or_property_declaration_must_have_same_type(
                     symbol.value_declaration(),
@@ -3046,7 +3043,7 @@ impl Checker {
         //      }
 
         // skip block-scoped variables and parameters
-        if self.get_combined_node_flags_cached(node).intersects(NodeFlags::BLOCK_SCOPED)
+        if self.get_combined_node_flags_cached(node).intersects(NodeFlags::BlockScoped)
             || is_part_of_parameter_declaration(node)
         {
             return;
@@ -3055,25 +3052,23 @@ impl Checker {
         // so we'll always treat binding elements as initialized
         let symbol = self.get_symbol_of_declaration(node).unwrap();
         let name = node.name().unwrap();
-        if symbol.flags().intersects(SymbolFlags::FUNCTION_SCOPED_VARIABLE) {
+        if symbol.flags().intersects(SymbolFlags::FunctionScopedVariable) {
             assert!(is_identifier(name), "Identifier expected");
             let local_declaration_symbol = self.resolve_name(
                 Some(node),
                 name.text(),
-                SymbolFlags::VARIABLE,
+                SymbolFlags::Variable,
                 None,  /*nameNotFoundMessage*/
                 false, /*isUse*/
                 false,
             );
             if let Some(local_declaration_symbol) = local_declaration_symbol {
                 if local_declaration_symbol != symbol
-                    && local_declaration_symbol
-                        .flags()
-                        .intersects(SymbolFlags::BLOCK_SCOPED_VARIABLE)
+                    && local_declaration_symbol.flags().intersects(SymbolFlags::BlockScopedVariable)
                 {
                     if self
                         .get_declaration_node_flags_from_symbol(local_declaration_symbol)
-                        .intersects(NodeFlags::BLOCK_SCOPED)
+                        .intersects(NodeFlags::BlockScoped)
                     {
                         let var_decl_list = find_ancestor_kind(
                             local_declaration_symbol.value_declaration(),
@@ -3128,16 +3123,16 @@ impl Checker {
             return;
         };
         if self.legacy_decorators {
-            self.check_external_emit_helpers(first_decorator, ExternalEmitHelpers::DECORATE);
+            self.check_external_emit_helpers(first_decorator, ExternalEmitHelpers::Decorate);
             if is_parameter_declaration(node) {
-                self.check_external_emit_helpers(first_decorator, ExternalEmitHelpers::PARAM);
+                self.check_external_emit_helpers(first_decorator, ExternalEmitHelpers::Param);
             }
         } else if self.language_version
             < LANGUAGE_FEATURE_MINIMUM_TARGET.class_and_class_element_decorators
         {
             self.check_external_emit_helpers(
                 first_decorator,
-                ExternalEmitHelpers::ES_DECORATE_AND_RUN_INITIALIZERS,
+                ExternalEmitHelpers::ESDecorateAndRunInitializers,
             );
             if is_class_declaration(node) {
                 if node.name().is_none()
@@ -3145,7 +3140,7 @@ impl Checker {
                 {
                     self.check_external_emit_helpers(
                         first_decorator,
-                        ExternalEmitHelpers::SET_FUNCTION_NAME,
+                        ExternalEmitHelpers::SetFunctionName,
                     );
                 }
             } else if !is_class_expression(node) {
@@ -3157,14 +3152,11 @@ impl Checker {
                 {
                     self.check_external_emit_helpers(
                         first_decorator,
-                        ExternalEmitHelpers::SET_FUNCTION_NAME,
+                        ExternalEmitHelpers::SetFunctionName,
                     );
                 }
                 if is_computed_property_name(name) {
-                    self.check_external_emit_helpers(
-                        first_decorator,
-                        ExternalEmitHelpers::PROP_KEY,
-                    );
+                    self.check_external_emit_helpers(first_decorator, ExternalEmitHelpers::PropKey);
                 }
             }
         }
@@ -3179,10 +3171,10 @@ impl Checker {
     // checker.go:6231
     pub(crate) fn check_decorator(&mut self, node: P<Node>) {
         self.check_grammar_decorator(node);
-        let signature = self.get_resolved_signature(node, None, CheckMode::NORMAL);
+        let signature = self.get_resolved_signature(node, None, CheckMode::Normal);
         self.check_deprecated_signature(signature, node);
         let return_type = self.get_return_type_of_signature(signature);
-        if return_type.flags().intersects(TypeFlags::ANY) {
+        if return_type.flags().intersects(TypeFlags::Any) {
             return;
         }
         // if we fail to get a signature and return type here, we will have already reported a grammar error in `checkDecorators`.
@@ -3244,7 +3236,7 @@ impl Checker {
         error_node: Option<P<Node>>,
         check_assignability: bool,
     ) -> Option<P<Type>> {
-        let allow_async_iterables = use_.intersects(IterationUse::ALLOWS_ASYNC_ITERABLES_FLAG);
+        let allow_async_iterables = use_.intersects(IterationUse::AllowsAsyncIterablesFlag);
         if input_type == self.never_type {
             if let Some(error_node) = error_node {
                 self.report_type_not_iterable_error(error_node, input_type, allow_async_iterables);
@@ -3254,7 +3246,7 @@ impl Checker {
         let iterable_exists = self.get_global_iterable_type() != self.empty_generic_type;
         let possible_out_of_bounds = self.compiler_options.no_unchecked_indexed_access
             == Tristate::True
-            && use_.intersects(IterationUse::POSSIBLY_OUT_OF_BOUNDS);
+            && use_.intersects(IterationUse::PossiblyOutOfBounds);
         if iterable_exists || allow_async_iterables {
             let iteration_types = self.get_iteration_types_of_iterable(
                 input_type,
@@ -3264,13 +3256,13 @@ impl Checker {
             if check_assignability {
                 if let Some(next_type) = iteration_types.next_type {
                     let mut diagnostic: Option<&'static Message> = None;
-                    if use_.intersects(IterationUse::FOR_OF_FLAG) {
+                    if use_.intersects(IterationUse::ForOfFlag) {
                         diagnostic = Some(&diagnostics::CANNOT_ITERATE_VALUE_BECAUSE_THE_NEXT_METHOD_OF_ITS_ITERATOR_EXPECTS_TYPE_1_BUT_FOR_OF_WILL_ALWAYS_SEND_0);
-                    } else if use_.intersects(IterationUse::SPREAD_FLAG) {
+                    } else if use_.intersects(IterationUse::SpreadFlag) {
                         diagnostic = Some(&diagnostics::CANNOT_ITERATE_VALUE_BECAUSE_THE_NEXT_METHOD_OF_ITS_ITERATOR_EXPECTS_TYPE_1_BUT_ARRAY_SPREAD_WILL_ALWAYS_SEND_0);
-                    } else if use_.intersects(IterationUse::DESTRUCTURING_FLAG) {
+                    } else if use_.intersects(IterationUse::DestructuringFlag) {
                         diagnostic = Some(&diagnostics::CANNOT_ITERATE_VALUE_BECAUSE_THE_NEXT_METHOD_OF_ITS_ITERATOR_EXPECTS_TYPE_1_BUT_ARRAY_DESTRUCTURING_WILL_ALWAYS_SEND_0);
-                    } else if use_.intersects(IterationUse::YIELD_STAR_FLAG) {
+                    } else if use_.intersects(IterationUse::YieldStarFlag) {
                         diagnostic = Some(&diagnostics::CANNOT_DELEGATE_ITERATION_TO_VALUE_BECAUSE_THE_NEXT_METHOD_OF_ITS_ITERATOR_EXPECTS_TYPE_1_BUT_THE_CONTAINING_GENERATOR_WILL_ALWAYS_SEND_0);
                     }
                     if diagnostic.is_some() {
@@ -3291,15 +3283,15 @@ impl Checker {
         // If strings are permitted, remove any string-like constituents from the array type.
         // This allows us to find other non-string element types from an array unioned with
         // a string.
-        if use_.intersects(IterationUse::ALLOWS_STRING_INPUT_FLAG) {
-            if array_type.flags().intersects(TypeFlags::UNION) {
+        if use_.intersects(IterationUse::AllowsStringInputFlag) {
+            if array_type.flags().intersects(TypeFlags::Union) {
                 // After we remove all types that are StringLike, we will know if there was a string constituent
                 // based on whether the result of filter is a new array.
                 let array_types = input_type.types();
                 let filtered_types: Vec<P<Type>> = array_types
                     .iter()
                     .copied()
-                    .filter(|t| !t.flags().intersects(TypeFlags::STRING_LIKE))
+                    .filter(|t| !t.flags().intersects(TypeFlags::StringLike))
                     .collect();
                 if filtered_types.len() != array_types.len() {
                     array_type = self.get_union_type_ex(
@@ -3309,14 +3301,14 @@ impl Checker {
                         None,
                     );
                 }
-            } else if array_type.flags().intersects(TypeFlags::STRING_LIKE) {
+            } else if array_type.flags().intersects(TypeFlags::StringLike) {
                 array_type = self.never_type;
             }
             has_string_constituent = array_type != input_type;
             if has_string_constituent {
                 // Now that we've removed all the StringLike types, if no constituents remain, then the entire
                 // arrayOrStringType was a string.
-                if array_type.flags().intersects(TypeFlags::NEVER) {
+                if array_type.flags().intersects(TypeFlags::Never) {
                     if possible_out_of_bounds {
                         let string_type = self.string_type;
                         return Some(self.include_undefined_in_index_signature(string_type));
@@ -3332,8 +3324,8 @@ impl Checker {
                 // want to say that number is not an array type. But if the input was just
                 // number and string input is allowed, we want to say that number is not an
                 // array type or a string type.
-                let allows_strings = use_.intersects(IterationUse::ALLOWS_STRING_INPUT_FLAG)
-                    && !has_string_constituent;
+                let allows_strings =
+                    use_.intersects(IterationUse::AllowsStringInputFlag) && !has_string_constituent;
                 let (default_diagnostic, maybe_missing_await) =
                     self.get_iteration_diagnostic_details(use_, input_type, allows_strings);
                 let maybe_missing_await =
@@ -3359,7 +3351,7 @@ impl Checker {
         let array_element_type = self.get_index_type_of_type(array_type, number_type);
         if let Some(array_element_type) = array_element_type.filter(|_| has_string_constituent) {
             // This is just an optimization for the case where arrayOrStringType is string | string[]
-            if array_element_type.flags().intersects(TypeFlags::STRING_LIKE)
+            if array_element_type.flags().intersects(TypeFlags::StringLike)
                 && self.compiler_options.no_unchecked_indexed_access != Tristate::True
             {
                 return Some(self.string_type);
@@ -3381,7 +3373,7 @@ impl Checker {
                 None,
             ));
         }
-        if use_.intersects(IterationUse::POSSIBLY_OUT_OF_BOUNDS) {
+        if use_.intersects(IterationUse::PossiblyOutOfBounds) {
             return array_element_type.map(|t| self.include_undefined_in_index_signature(t));
         }
         array_element_type
@@ -3419,9 +3411,9 @@ impl Checker {
             };
         }
         let use_ = if is_async_generator {
-            IterationUse::ASYNC_GENERATOR_RETURN_TYPE
+            IterationUse::AsyncGeneratorReturnType
         } else {
-            IterationUse::GENERATOR_RETURN_TYPE
+            IterationUse::GeneratorReturnType
         };
         let resolver = if is_async_generator {
             self.async_iteration_types_resolver
@@ -3488,7 +3480,7 @@ impl Checker {
                 next_type: Some(self.any_type),
             };
         }
-        let key = IterationTypesKey { type_id: t.id, use_: use_ & IterationUse::CACHE_FLAGS };
+        let key = IterationTypesKey { type_id: t.id, use_: use_ & IterationUse::CacheFlags };
         // If we are reporting errors and encounter a cached `noIterationTypes`, we should ignore the cached value and continue as if nothing was cached.
         // In addition, we should not cache any new results for this call.
         let mut no_cache = false;
@@ -3517,7 +3509,7 @@ impl Checker {
         error_node: Option<P<Node>>,
         no_cache: bool,
     ) -> IterationTypes {
-        if t.flags().intersects(TypeFlags::UNION) {
+        if t.flags().intersects(TypeFlags::Union) {
             let mut all_iteration_types: Vec<IterationTypes> = Vec::with_capacity(t.types().len());
             all_iteration_types = match t.types().iter().try_fold(
                 all_iteration_types,
@@ -3534,7 +3526,7 @@ impl Checker {
                                 c.report_type_not_iterable_error(
                                     error_node,
                                     t,
-                                    use_.intersects(IterationUse::ALLOWS_ASYNC_ITERABLES_FLAG),
+                                    use_.intersects(IterationUse::AllowsAsyncIterablesFlag),
                                 );
                             });
                         }
@@ -3551,11 +3543,11 @@ impl Checker {
             return self.combine_iteration_types(&all_iteration_types);
         }
         let mut diags: Vec<P<Diagnostic>> = Vec::new();
-        if use_.intersects(IterationUse::ALLOWS_ASYNC_ITERABLES_FLAG) {
+        if use_.intersects(IterationUse::AllowsAsyncIterablesFlag) {
             let resolver = self.async_iteration_types_resolver;
             let iteration_types = self.get_iteration_types_of_iterable_fast(t, resolver);
             if iteration_types.has_types() {
-                if use_.intersects(IterationUse::FOR_OF_FLAG) {
+                if use_.intersects(IterationUse::ForOfFlag) {
                     return self.get_async_from_sync_iteration_types(iteration_types, error_node);
                 }
                 return iteration_types;
@@ -3571,11 +3563,11 @@ impl Checker {
                 return iteration_types;
             }
         }
-        if use_.intersects(IterationUse::ALLOWS_SYNC_ITERABLES_FLAG) {
+        if use_.intersects(IterationUse::AllowsSyncIterablesFlag) {
             let resolver = self.sync_iteration_types_resolver;
             let iteration_types = self.get_iteration_types_of_iterable_fast(t, resolver);
             if iteration_types.has_types() {
-                if use_.intersects(IterationUse::ALLOWS_ASYNC_ITERABLES_FLAG) {
+                if use_.intersects(IterationUse::AllowsAsyncIterablesFlag) {
                     return self.get_async_from_sync_iteration_types(iteration_types, error_node);
                 }
                 return iteration_types;
@@ -3588,7 +3580,7 @@ impl Checker {
                         self.add_diagnostic(d);
                     }
                 }
-                if use_.intersects(IterationUse::ALLOWS_ASYNC_ITERABLES_FLAG) {
+                if use_.intersects(IterationUse::AllowsAsyncIterablesFlag) {
                     return self.get_async_from_sync_iteration_types(iteration_types, error_node);
                 }
                 return iteration_types;
@@ -3601,7 +3593,7 @@ impl Checker {
                 let diagnostic = c.report_type_not_iterable_error(
                     error_node,
                     t,
-                    use_.intersects(IterationUse::ALLOWS_ASYNC_ITERABLES_FLAG),
+                    use_.intersects(IterationUse::AllowsAsyncIterablesFlag),
                 );
                 for &d in &diags {
                     diagnostic.add_related_info(d);

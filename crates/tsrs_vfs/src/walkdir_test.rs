@@ -100,9 +100,9 @@ fn test_walk_dir() {
         let entry = entry.unwrap();
         paths.push(path.to_string());
         modes.push(entry.type_());
-        if entry.type_().intersects(FileMode::SYMLINK) {
+        if entry.type_().intersects(FileMode::Symlink) {
             let info = entry.info(&file_system).unwrap();
-            assert_eq!(info.mode(), FileMode::SYMLINK);
+            assert_eq!(info.mode(), FileMode::Symlink);
             assert!(!info.is_dir());
         }
         Ok(())
@@ -111,7 +111,7 @@ fn test_walk_dir() {
     assert_eq!(paths, vec!["/root", "/root/a.ts", "/root/dir", "/root/dir/b.ts", "/root/link"]);
     assert_eq!(
         modes,
-        vec![FileMode::DIR, FileMode::NONE, FileMode::DIR, FileMode::NONE, FileMode::SYMLINK]
+        vec![FileMode::Dir, FileMode::None, FileMode::Dir, FileMode::None, FileMode::Symlink]
     );
 }
 
@@ -137,7 +137,7 @@ fn test_walk_dir_does_not_follow_root_symlink() {
     let err = walk_dir(&file_system, "/root/link", &mut |path, entry, err| {
         assert!(err.is_none());
         paths.push(path.to_string());
-        assert_eq!(entry.unwrap().type_(), FileMode::SYMLINK);
+        assert_eq!(entry.unwrap().type_(), FileMode::Symlink);
         Ok(())
     });
     assert_eq!(err, Ok(()));
@@ -169,7 +169,7 @@ fn test_walk_dir_reports_root_file_symlink() {
         let entry = entry.unwrap();
         assert_eq!(path, "/root/link.ts");
         assert_eq!(entry.name(), "link.ts");
-        assert_eq!(entry.type_(), FileMode::SYMLINK);
+        assert_eq!(entry.type_(), FileMode::Symlink);
         Ok(())
     });
     assert_eq!(err, Ok(()));

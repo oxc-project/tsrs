@@ -36,7 +36,7 @@ impl ipc::Handler for LispHandler {
                         original_start,
                         original_end,
                         kind,
-                        features: Feature::ALL,
+                        features: Feature::All,
                     };
                 let mappings = marshal_span_map(&[
                     segment(0, 3, 1, 2, Kind::ALIAS),

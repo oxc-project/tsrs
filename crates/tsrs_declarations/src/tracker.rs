@@ -227,7 +227,7 @@ impl SymbolTrackerImpl {
         enclosing_declaration: Option<P<Node>>,
         meaning: SymbolFlags,
     ) -> bool {
-        if symbol.flags().intersects(SymbolFlags::TYPE_PARAMETER) {
+        if symbol.flags().intersects(SymbolFlags::TypeParameter) {
             return false;
         }
         // When watching for a class expression symbol, record its usage without

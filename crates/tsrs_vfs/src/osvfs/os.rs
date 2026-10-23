@@ -525,31 +525,31 @@ fn io_error(e: io::Error) -> FsError {
 )]
 fn file_type_mode(ft: fs::FileType) -> FileMode {
     if ft.is_dir() {
-        return FileMode::DIR;
+        return FileMode::Dir;
     }
     if ft.is_symlink() {
-        return FileMode::SYMLINK;
+        return FileMode::Symlink;
     }
     if ft.is_file() {
-        return FileMode::NONE;
+        return FileMode::None;
     }
     #[cfg(unix)]
     {
         use std::os::unix::fs::FileTypeExt;
         if ft.is_fifo() {
-            return FileMode::NAMED_PIPE;
+            return FileMode::NamedPipe;
         }
         if ft.is_socket() {
-            return FileMode::SOCKET;
+            return FileMode::Socket;
         }
         if ft.is_char_device() {
-            return FileMode::DEVICE | FileMode::CHAR_DEVICE;
+            return FileMode::Device | FileMode::CharDevice;
         }
         if ft.is_block_device() {
-            return FileMode::DEVICE;
+            return FileMode::Device;
         }
     }
-    FileMode::IRREGULAR
+    FileMode::Irregular
 }
 
 fn metadata_mode(md: &fs::Metadata) -> FileMode {
@@ -636,7 +636,7 @@ fn metadata_file_type(path: &str) -> Result<FileMode, FsError> {
     match rustix::fs::statx(CWD, path, AtFlags::empty(), StatxFlags::TYPE) {
         Ok(statx) => {
             let file_type = FileType::from_raw_mode(statx.stx_mode.into());
-            Ok(if file_type.is_dir() { FileMode::DIR } else { FileMode::NONE })
+            Ok(if file_type.is_dir() { FileMode::Dir } else { FileMode::None })
         }
         Err(rustix::io::Errno::NOSYS) => {
             fs::metadata(path).map(|md| file_type_mode(md.file_type())).map_err(io_error)

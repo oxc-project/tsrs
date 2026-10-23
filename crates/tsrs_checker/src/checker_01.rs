@@ -155,7 +155,7 @@ impl Checker {
     // checker.go:1146
     pub(crate) fn report_unreliable_worker(&mut self, t: P<Type>) -> P<Type> {
         if t == self.marker_super_type || t == self.marker_sub_type || t == self.marker_other_type {
-            self.reliability_flags |= RelationComparisonResult::REPORTS_UNRELIABLE;
+            self.reliability_flags |= RelationComparisonResult::ReportsUnreliable;
         }
         t
     }
@@ -163,7 +163,7 @@ impl Checker {
     // checker.go:1153
     pub(crate) fn report_unmeasurable_worker(&mut self, t: P<Type>) -> P<Type> {
         if t == self.marker_super_type || t == self.marker_sub_type || t == self.marker_other_type {
-            self.reliability_flags |= RelationComparisonResult::REPORTS_UNMEASURABLE;
+            self.reliability_flags |= RelationComparisonResult::ReportsUnmeasurable;
         }
         t
     }
@@ -181,7 +181,7 @@ impl Checker {
     ) -> Option<P<Symbol>> {
         let symbol = self.get_global_symbol(
             name,
-            SymbolFlags::TYPE_ALIAS,
+            SymbolFlags::TypeAlias,
             if report_errors { Some(&diagnostics::CANNOT_FIND_GLOBAL_TYPE_0) } else { None },
         )?;
         // Resolve the declared type of the symbol. This resolves type parameters for the type alias so that we can check arity.
@@ -207,7 +207,7 @@ impl Checker {
     // checker.go:1212
     pub fn get_type_alias_type_parameters(&mut self, symbol: P<Symbol>) -> Vec<P<Type>> {
         assert!(
-            symbol.flags().intersects(SymbolFlags::TYPE_ALIAS),
+            symbol.flags().intersects(SymbolFlags::TypeAlias),
             "Attempted to fetch type alias parameters for non-type-alias symbol"
         );
         self.get_declared_type_of_symbol(symbol);
@@ -223,11 +223,11 @@ impl Checker {
     ) -> P<Type> {
         let symbol = self.get_global_symbol(
             name,
-            SymbolFlags::TYPE,
+            SymbolFlags::Type,
             if report_errors { Some(&diagnostics::CANNOT_FIND_GLOBAL_TYPE_0) } else { None },
         );
         if let Some(symbol) = symbol {
-            if symbol.flags().intersects(SymbolFlags::CLASS | SymbolFlags::INTERFACE) {
+            if symbol.flags().intersects(SymbolFlags::Class | SymbolFlags::Interface) {
                 let t = self.get_declared_type_of_symbol(symbol);
                 if t.as_interface_type().type_parameters().len() == arity {
                     return t;
@@ -345,7 +345,7 @@ impl Checker {
                     for symbol in locals.values() {
                         // We defer merging of global ambient module declarations since they may require other global symbols
                         // and types to be resolved. See https://github.com/microsoft/TypeScript/tsc/issues/2953.
-                        if symbol.flags().intersects(SymbolFlags::MODULE)
+                        if symbol.flags().intersects(SymbolFlags::Module)
                             && ast::is_ambient_module_symbol_name(symbol.name())
                         {
                             ambient_module_symbols.push(symbol);
@@ -398,7 +398,7 @@ impl Checker {
         let links = self.value_symbol_links.get(self.global_this_symbol);
         links
             .resolved_type
-            .set(Some(self.new_object_type(ObjectFlags::ANONYMOUS, Some(self.global_this_symbol))));
+            .set(Some(self.new_object_type(ObjectFlags::Anonymous, Some(self.global_this_symbol))));
         // Initialize special types
         self.global_array_type =
             self.get_global_type("Array", 1 /*arity*/, true /*reportErrors*/);
@@ -534,7 +534,7 @@ impl Checker {
                 .parent()
                 .unwrap()
                 .flags()
-                .intersects(NodeFlags::AMBIENT)
+                .intersects(NodeFlags::Ambient)
             {
                 module_not_found_error = Some(
                     &diagnostics::INVALID_MODULE_NAME_IN_AUGMENTATION_MODULE_0_CANNOT_BE_FOUND,
@@ -554,7 +554,7 @@ impl Checker {
             // obtain item referenced by 'export='
             let main_module =
                 self.resolve_external_module_symbol(main_module, false /*dontResolveAlias*/);
-            if main_module.flags().intersects(SymbolFlags::NAMESPACE) {
+            if main_module.flags().intersects(SymbolFlags::Namespace) {
                 // If we're merging an augmentation to a pattern ambient module, we want to
                 // perform the merge unidirectionally from the augmentation ('a.foo') to
                 // the pattern ('*.foo'), so that 'getMergedSymbol()' on a.foo gives you
@@ -898,7 +898,7 @@ impl Checker {
                     Some(suggestion),
                     false, /*excludeClasses*/
                 );
-                let message = if meaning == SymbolFlags::NAMESPACE {
+                let message = if meaning == SymbolFlags::Namespace {
                     &diagnostics::CANNOT_FIND_NAMESPACE_0_DID_YOU_MEAN_1
                 } else if is_unchecked_js {
                     &diagnostics::COULD_NOT_FIND_NAME_0_DID_YOU_MEAN_1
@@ -932,12 +932,12 @@ impl Checker {
         name: &str,
         meaning: SymbolFlags,
     ) -> bool {
-        if meaning == SymbolFlags::NAMESPACE {
+        if meaning == SymbolFlags::Namespace {
             let symbol = self
                 .resolve_name(
                     Some(error_location),
                     name,
-                    SymbolFlags::TYPE & !SymbolFlags::NAMESPACE,
+                    SymbolFlags::Type & !SymbolFlags::Namespace,
                     None,  /*nameNotFoundMessage*/
                     false, /*isUse*/
                     false, /*excludeGlobals*/
@@ -1006,12 +1006,12 @@ impl Checker {
         name: &str,
         meaning: SymbolFlags,
     ) -> bool {
-        if meaning.intersects(SymbolFlags::VALUE & !SymbolFlags::TYPE) {
+        if meaning.intersects(SymbolFlags::Value & !SymbolFlags::Type) {
             let symbol = self
                 .resolve_name(
                     Some(error_location),
                     name,
-                    SymbolFlags::NAMESPACE_MODULE,
+                    SymbolFlags::NamespaceModule,
                     None,  /*nameNotFoundMessage*/
                     false, /*isUse*/
                     false, /*excludeGlobals*/
@@ -1029,12 +1029,12 @@ impl Checker {
                 }
                 return true;
             }
-        } else if meaning.intersects(SymbolFlags::TYPE & !SymbolFlags::VALUE) {
+        } else if meaning.intersects(SymbolFlags::Type & !SymbolFlags::Value) {
             let symbol = self
                 .resolve_name(
                     Some(error_location),
                     name,
-                    SymbolFlags::MODULE,
+                    SymbolFlags::Module,
                     None,  /*nameNotFoundMessage*/
                     false, /*isUse*/
                     false, /*excludeGlobals*/
@@ -1059,7 +1059,7 @@ impl Checker {
         name: &str,
         meaning: SymbolFlags,
     ) -> bool {
-        if meaning.intersects(SymbolFlags::VALUE) {
+        if meaning.intersects(SymbolFlags::Value) {
             if is_primitive_type_name(name) {
                 let grandparent = error_location.parent().unwrap().parent();
                 if let Some(grandparent) =
@@ -1105,7 +1105,7 @@ impl Checker {
                 .resolve_name(
                     Some(error_location),
                     name,
-                    SymbolFlags::TYPE & !SymbolFlags::VALUE,
+                    SymbolFlags::Type & !SymbolFlags::Value,
                     None,  /*nameNotFoundMessage*/
                     false, /*isUse*/
                     false, /*excludeGlobals*/
@@ -1113,7 +1113,7 @@ impl Checker {
                 .map(|s| self.resolve_symbol(s));
             if let Some(symbol) = symbol {
                 let all_flags = self.get_symbol_flags(symbol);
-                if !all_flags.intersects(SymbolFlags::VALUE) {
+                if !all_flags.intersects(SymbolFlags::Value) {
                     // `export = SomeType` may legitimately reference a type-only name; checkExportAssignment
                     // decides whether that is an error, so don't report "used as a value" here.
                     if is_export_assignment_expression_name(Some(error_location)) {
@@ -1161,10 +1161,10 @@ impl Checker {
         }
         if ast::is_type_literal_node(node) && node.members().len() == 1 {
             let t = self.get_declared_type_of_symbol(symbol);
-            return t.flags().intersects(TypeFlags::UNION)
+            return t.flags().intersects(TypeFlags::Union)
                 && self.all_types_assignable_to_kind_ex(
                     t,
-                    TypeFlags::STRING_OR_NUMBER_LITERAL,
+                    TypeFlags::StringOrNumberLiteral,
                     true, /*strict*/
                 );
         }
@@ -1178,19 +1178,19 @@ impl Checker {
         name: &str,
         meaning: SymbolFlags,
     ) -> bool {
-        if meaning.intersects(SymbolFlags::TYPE & !SymbolFlags::NAMESPACE) {
+        if meaning.intersects(SymbolFlags::Type & !SymbolFlags::Namespace) {
             let symbol = self
                 .resolve_name(
                     Some(error_location),
                     name,
-                    !SymbolFlags::TYPE & SymbolFlags::VALUE,
+                    !SymbolFlags::Type & SymbolFlags::Value,
                     None,  /*nameNotFoundMessage*/
                     false, /*isUse*/
                     false, /*excludeGlobals*/
                 )
                 .map(|s| self.resolve_symbol(s));
             if let Some(symbol) = symbol {
-                if !symbol.flags().intersects(SymbolFlags::NAMESPACE) {
+                if !symbol.flags().intersects(SymbolFlags::Namespace) {
                     self.error(Some(error_location), &diagnostics::X_0_REFERS_TO_A_VALUE_BUT_IS_BEING_USED_AS_A_TYPE_HERE_DID_YOU_MEAN_TYPEOF_0, &[&name]);
                     return true;
                 }
@@ -1254,7 +1254,7 @@ impl Checker {
             return symbol;
         }
         let mut extras: Vec<P<Symbol>> = Vec::new();
-        if meaning.intersects(SymbolFlags::GLOBAL_LOOKUP) {
+        if meaning.intersects(SymbolFlags::GlobalLookup) {
             extras = get_primitive_type_alias_suggestions(symbols);
         }
         let mut candidates = symbols.map_or_else(Vec::new, |symbols| symbols.values());
@@ -1296,7 +1296,7 @@ impl Checker {
             if candidate.flags().intersects(meaning) {
                 return candidate_name;
             }
-            if candidate.flags().intersects(SymbolFlags::ALIAS) {
+            if candidate.flags().intersects(SymbolFlags::Alias) {
                 let alias = c.borrow_mut().try_resolve_alias(candidate);
                 if alias.is_some_and(|alias| alias.flags().intersects(meaning)) {
                     return candidate_name;
@@ -1339,14 +1339,14 @@ impl Checker {
         // try to resolve name in /*1*/ which is used in variable position,
         // we want to check for block-scoped
         if let Some(error_location) = error_location {
-            if meaning.intersects(SymbolFlags::BLOCK_SCOPED_VARIABLE)
-                || meaning.intersects(SymbolFlags::CLASS | SymbolFlags::ENUM)
-                    && meaning & SymbolFlags::VALUE == SymbolFlags::VALUE
+            if meaning.intersects(SymbolFlags::BlockScopedVariable)
+                || meaning.intersects(SymbolFlags::Class | SymbolFlags::Enum)
+                    && meaning & SymbolFlags::Value == SymbolFlags::Value
             {
                 let export_or_local_symbol =
                     self.get_export_symbol_of_value_symbol_if_exported(Some(result)).unwrap();
                 if export_or_local_symbol.flags().intersects(
-                    SymbolFlags::BLOCK_SCOPED_VARIABLE | SymbolFlags::CLASS | SymbolFlags::ENUM,
+                    SymbolFlags::BlockScopedVariable | SymbolFlags::Class | SymbolFlags::Enum,
                 ) {
                     self.check_resolved_block_scoped_variable(
                         export_or_local_symbol,
@@ -1357,8 +1357,8 @@ impl Checker {
         }
         // If we're in an external module, we can't reference value symbols created from UMD export declarations
         if is_in_external_module
-            && (meaning & SymbolFlags::VALUE) == SymbolFlags::VALUE
-            && !error_location.unwrap().flags().intersects(NodeFlags::JSDOC)
+            && (meaning & SymbolFlags::Value) == SymbolFlags::Value
+            && !error_location.unwrap().flags().intersects(NodeFlags::JSDoc)
         {
             let merged = self.get_merged_symbol(result);
             let declarations = merged.declarations();
@@ -1379,7 +1379,7 @@ impl Checker {
         // If we're in a parameter initializer or binding name, we can't reference the values of the parameter whose initializer we're within or parameters to the right
         if let Some(associated) = associated_declaration_for_containing_initializer_or_binding_name
         {
-            if !within_deferred_context && (meaning & SymbolFlags::VALUE) == SymbolFlags::VALUE {
+            if !within_deferred_context && (meaning & SymbolFlags::Value) == SymbolFlags::Value {
                 let late_bound = self.get_late_bound_symbol(result);
                 let candidate = self.get_merged_symbol(late_bound);
                 let root = ast::get_root_declaration(associated);
@@ -1409,13 +1409,13 @@ impl Checker {
             }
         }
         if let Some(loc) = error_location {
-            if meaning.intersects(SymbolFlags::VALUE)
-                && result.flags().intersects(SymbolFlags::ALIAS)
-                && !result.flags().intersects(SymbolFlags::VALUE)
+            if meaning.intersects(SymbolFlags::Value)
+                && result.flags().intersects(SymbolFlags::Alias)
+                && !result.flags().intersects(SymbolFlags::Value)
                 && !ast::is_valid_type_only_alias_use_site(loc)
             {
                 let type_only_declaration =
-                    self.get_type_only_alias_declaration_ex(result, SymbolFlags::VALUE);
+                    self.get_type_only_alias_declaration_ex(result, SymbolFlags::Value);
                 if let Some(type_only_declaration) = type_only_declaration {
                     let message = if ast::node_kind_is(
                         type_only_declaration,
@@ -1438,7 +1438,7 @@ impl Checker {
         // here because 'verbatimModuleSyntax' will already have an error for importing a type without 'import type'.
         if self.compiler_options.isolated_modules == Tristate::True
             && is_in_external_module
-            && (meaning & SymbolFlags::VALUE) == SymbolFlags::VALUE
+            && (meaning & SymbolFlags::Value) == SymbolFlags::Value
         {
             let globals = self.globals;
             let is_global = self.get_symbol(Some(globals), name, meaning) == Some(result);
@@ -1446,7 +1446,7 @@ impl Checker {
             let last_location = last_location.unwrap();
             if is_global && ast::is_source_file(last_location) {
                 non_value_symbol =
-                    self.get_symbol(last_location.locals(), name, !SymbolFlags::VALUE);
+                    self.get_symbol(last_location.locals(), name, !SymbolFlags::Value);
             }
             if let Some(non_value_symbol) = non_value_symbol {
                 let import_decl = non_value_symbol.declarations().iter().copied().find(|d| {
@@ -1480,13 +1480,13 @@ impl Checker {
         error_location: P<Node>,
     ) {
         assert!(
-            result.flags().intersects(SymbolFlags::BLOCK_SCOPED_VARIABLE)
-                || result.flags().intersects(SymbolFlags::CLASS)
-                || result.flags().intersects(SymbolFlags::ENUM)
+            result.flags().intersects(SymbolFlags::BlockScopedVariable)
+                || result.flags().intersects(SymbolFlags::Class)
+                || result.flags().intersects(SymbolFlags::Enum)
         );
         if result.flags().intersects(
-            SymbolFlags::FUNCTION | SymbolFlags::FUNCTION_SCOPED_VARIABLE | SymbolFlags::ASSIGNMENT,
-        ) && result.flags().intersects(SymbolFlags::CLASS)
+            SymbolFlags::Function | SymbolFlags::FunctionScopedVariable | SymbolFlags::Assignment,
+        ) && result.flags().intersects(SymbolFlags::Class)
         {
             // constructor functions aren't block scoped
             return;
@@ -1500,32 +1500,32 @@ impl Checker {
         let Some(declaration) = declaration else {
             panic!("checkResolvedBlockScopedVariable could not find block-scoped declaration");
         };
-        if !declaration.flags().intersects(NodeFlags::AMBIENT)
+        if !declaration.flags().intersects(NodeFlags::Ambient)
             && !self.is_block_scoped_name_declared_before_use(declaration, error_location)
         {
             let mut diagnostic: Option<P<Diagnostic>> = None;
             let declaration_name =
                 tsrs_scanner::declaration_name_to_string(ast::get_name_of_declaration(declaration));
-            if result.flags().intersects(SymbolFlags::BLOCK_SCOPED_VARIABLE) {
+            if result.flags().intersects(SymbolFlags::BlockScopedVariable) {
                 diagnostic = Some(self.error(
                     Some(error_location),
                     &diagnostics::BLOCK_SCOPED_VARIABLE_0_USED_BEFORE_ITS_DECLARATION,
                     &[&declaration_name],
                 ));
-            } else if result.flags().intersects(SymbolFlags::CLASS) {
+            } else if result.flags().intersects(SymbolFlags::Class) {
                 diagnostic = Some(self.error(
                     Some(error_location),
                     &diagnostics::CLASS_0_USED_BEFORE_ITS_DECLARATION,
                     &[&declaration_name],
                 ));
-            } else if result.flags().intersects(SymbolFlags::REGULAR_ENUM) {
+            } else if result.flags().intersects(SymbolFlags::RegularEnum) {
                 diagnostic = Some(self.error(
                     Some(error_location),
                     &diagnostics::ENUM_0_USED_BEFORE_ITS_DECLARATION,
                     &[&declaration_name],
                 ));
             } else {
-                assert!(result.flags().intersects(SymbolFlags::CONST_ENUM));
+                assert!(result.flags().intersects(SymbolFlags::ConstEnum));
                 if self.compiler_options.get_isolated_modules() {
                     diagnostic = Some(self.error(
                         Some(error_location),
@@ -1558,7 +1558,7 @@ impl Checker {
             return true;
         }
         // deferred usage in a type context is always OK regardless of the usage position:
-        if usage.flags().intersects(NodeFlags::JSDOC)
+        if usage.flags().intersects(NodeFlags::JSDoc)
             || is_in_type_query(usage)
             || Self::is_in_ambient_or_type_node(usage)
         {
@@ -1870,7 +1870,7 @@ pub(crate) fn is_same_scope_descendent_of(
             || ast::is_function_like(cur)
                 && (ast::get_immediately_invoked_function_expression(cur).is_none()
                     || ast::get_function_flags(Some(cur))
-                        .intersects(ast::FunctionFlags::ASYNC_GENERATOR))
+                        .intersects(ast::FunctionFlags::AsyncGenerator))
         {
             return false;
         }

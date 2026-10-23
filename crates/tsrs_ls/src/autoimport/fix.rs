@@ -585,9 +585,9 @@ pub(crate) fn get_new_imports(
     preferences: &UserPreferences,
 ) -> Vec<P<Node>> {
     let token_flags = if quote_preference == QuotePreference::Single {
-        TokenFlags::SINGLE_QUOTE
+        TokenFlags::SingleQuote
     } else {
-        TokenFlags::NONE
+        TokenFlags::None
     };
     let module_specifier_string_literal =
         ct.node_factory.new_string_literal(alloc_str(module_specifier), token_flags);
@@ -681,9 +681,9 @@ pub(crate) fn get_new_requires(
     let quoted_module_specifier = f.new_string_literal(
         alloc_str(module_specifier),
         if quote_preference == QuotePreference::Single {
-            TokenFlags::SINGLE_QUOTE
+            TokenFlags::SingleQuote
         } else {
-            TokenFlags::NONE
+            TokenFlags::None
         },
     );
     let mut statements: Vec<P<Node>> = Vec::new();
@@ -756,10 +756,10 @@ fn create_const_equals_require_declaration(
                     None, /*questionDotToken*/
                     None, /*typeArguments*/
                     f.new_node_list(vec![quoted_module_specifier]),
-                    NodeFlags::NONE,
+                    NodeFlags::None,
                 )),
             )]),
-            NodeFlags::CONST,
+            NodeFlags::Const,
         ),
     )
 }
@@ -896,7 +896,7 @@ impl View {
         // Check if we need a JSDoc import type fix (for JS files with type-only imports)
         let is_js = tspath::has_js_file_extension(self.importing_file.file_name());
         let imported_symbol_has_value_meaning =
-            export.flags.intersects(ast::SymbolFlags::VALUE) || export.is_unresolved_alias();
+            export.flags.intersects(ast::SymbolFlags::Value) || export.is_unresolved_alias();
         if !imported_symbol_has_value_meaning && is_js && usage_position.is_some() {
             // For pure types in JS files, use JSDoc import type syntax
             return vec![Arc::new(Fix {
@@ -967,8 +967,8 @@ fn get_add_as_type_only(
         return lsproto::AddAsTypeOnly::NOT_ALLOWED;
     }
     if compiler_options.verbatim_module_syntax.is_true()
-        && (export.is_type_only || !export.flags.intersects(ast::SymbolFlags::VALUE))
-        || export.is_type_only && export.flags.intersects(ast::SymbolFlags::VALUE)
+        && (export.is_type_only || !export.flags.intersects(ast::SymbolFlags::Value))
+        || export.is_type_only && export.flags.intersects(ast::SymbolFlags::Value)
     {
         // A type-only import is required for this symbol if under verbatimModuleSyntax and it's purely a type
         return lsproto::AddAsTypeOnly::REQUIRED;
@@ -1069,7 +1069,7 @@ impl View {
 
         // Can't use an es6 import for a type in JS.
         if ast::is_source_file_js(self.importing_file)
-            && !export.flags.intersects(ast::SymbolFlags::VALUE)
+            && !export.flags.intersects(ast::SymbolFlags::Value)
             && !matching_declarations.iter().all(|i| ast::is_jsdoc_import_tag(i.node))
         {
             return None;
@@ -1386,7 +1386,7 @@ fn detect_syntax_indicators(file: P<SourceFile>, options: &CompilerOptions) -> (
     // Fall back to scanning Imports() for actual import/export declarations
     // (not require() calls or dynamic imports).
     if let Some(result) = file.imports().iter().find_map(|&imp| {
-        if imp.flags().intersects(NodeFlags::SYNTHESIZED) {
+        if imp.flags().intersects(NodeFlags::Synthesized) {
             return None;
         }
         let parent = imp.parent()?;

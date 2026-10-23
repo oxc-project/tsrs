@@ -145,7 +145,7 @@ struct DocumentSymbolsVisitor<'a> {
 
 impl DocumentSymbolsVisitor<'_> {
     fn add_symbol_for_node(&mut self, node: P<Node>, name: Option<P<Node>>, children: Vec<DocSym>) {
-        if !node.flags().intersects(NodeFlags::REPARSED) {
+        if !node.flags().intersects(NodeFlags::Reparsed) {
             if let Some(symbol) = self.ls.new_document_symbol(node, name, children) {
                 self.symbols.push(symbol);
             }
@@ -197,7 +197,7 @@ impl DocumentSymbolsVisitor<'_> {
         if self.ctx.err().is_some() {
             return true;
         }
-        if !node.flags().intersects(NodeFlags::REPARSED) {
+        if !node.flags().intersects(NodeFlags::Reparsed) {
             let jsdocs = node.jsdoc(Some(self.file.get()));
             for &jsdoc in jsdocs {
                 if let Some(tag_list) = jsdoc.as_jsdoc().tags {
@@ -493,7 +493,7 @@ impl LanguageService {
         let (selection_range, selection_fidelity) = self.converters.to_lsp_range_for_feature(
             &file,
             TextRange::new(name_start_pos, name_end_pos),
-            Feature::DOCUMENT_SYMBOLS,
+            Feature::DocumentSymbols,
         );
         if !selection_fidelity.is_single_segment() {
             return None;
@@ -504,7 +504,7 @@ impl LanguageService {
                 node_start_pos,
                 node.end().expect_source("document-symbol nodes have source positions"),
             ),
-            Feature::DOCUMENT_SYMBOLS,
+            Feature::DocumentSymbols,
         );
         if range_fidelity.is_none() {
             symbol_range = selection_range;
@@ -667,7 +667,7 @@ fn get_unnamed_node_label(node: P<Node>) -> String {
     }
     match node.kind() {
         Kind::FunctionDeclaration | Kind::FunctionExpression | Kind::ArrowFunction => {
-            if node.modifier_flags().intersects(ModifierFlags::DEFAULT) {
+            if node.modifier_flags().intersects(ModifierFlags::Default) {
                 return "default".to_string();
             }
             let parent = node.parent().unwrap();
@@ -685,7 +685,7 @@ fn get_unnamed_node_label(node: P<Node>) -> String {
             "<function>".to_string()
         }
         Kind::ClassDeclaration | Kind::ClassExpression => {
-            if node.modifier_flags().intersects(ModifierFlags::DEFAULT) {
+            if node.modifier_flags().intersects(ModifierFlags::Default) {
                 return "default".to_string();
             }
             "<class>".to_string()
@@ -843,7 +843,7 @@ pub fn provide_workspace_symbols(
         let (location, fidelity) = converters.to_lsp_location_for_feature(
             &source_file,
             name_range,
-            Feature::DOCUMENT_SYMBOLS,
+            Feature::DocumentSymbols,
         );
         if !fidelity.is_single_segment() {
             // The name has no counterpart in the original text, so there is nothing to navigate to.
@@ -976,7 +976,7 @@ pub(crate) fn get_symbol_kind_from_node(node: P<Node>) -> lsproto::SymbolKind {
         Kind::TypeParameter => return lsproto::SymbolKind::TYPE_PARAMETER,
         Kind::EnumMember => return lsproto::SymbolKind::ENUM_MEMBER,
         Kind::Parameter => {
-            if ast::has_syntactic_modifier(node, ModifierFlags::PARAMETER_PROPERTY_MODIFIER) {
+            if ast::has_syntactic_modifier(node, ModifierFlags::ParameterPropertyModifier) {
                 return lsproto::SymbolKind::PROPERTY;
             }
             return lsproto::SymbolKind::VARIABLE;

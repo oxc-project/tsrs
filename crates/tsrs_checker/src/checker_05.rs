@@ -55,14 +55,14 @@ impl Checker {
             let accessibility_error = self.get_constructor_accessibility_error(
                 node,
                 construct_signatures,
-                ModifierFlags::NON_PUBLIC_ACCESSIBILITY_MODIFIER,
+                ModifierFlags::NonPublicAccessibilityModifier,
             );
             if let Some(accessibility_error) = accessibility_error {
-                if accessibility_error.kind.intersects(ModifierFlags::PRIVATE) {
+                if accessibility_error.kind.intersects(ModifierFlags::Private) {
                     let s = self.type_to_string_exported(accessibility_error.declaring_class);
                     self.error(Some(node), &diagnostics::CONSTRUCTOR_OF_CLASS_0_IS_PRIVATE_AND_ONLY_ACCESSIBLE_WITHIN_THE_CLASS_DECLARATION, &[&s]);
                 }
-                if accessibility_error.kind.intersects(ModifierFlags::PROTECTED) {
+                if accessibility_error.kind.intersects(ModifierFlags::Protected) {
                     let s = self.type_to_string_exported(accessibility_error.declaring_class);
                     self.error(Some(node), &diagnostics::CONSTRUCTOR_OF_CLASS_0_IS_PROTECTED_AND_ONLY_ACCESSIBLE_WITHIN_THE_CLASS_DECLARATION, &[&s]);
                 }
@@ -73,7 +73,7 @@ impl Checker {
             // In the case of a merged class-module or class-interface declaration,
             // only the class declaration node will have the Abstract flag set.
             if some_signature(construct_signatures, |sig| {
-                sig.flags().intersects(SignatureFlags::ABSTRACT)
+                sig.flags().intersects(SignatureFlags::Abstract)
             }) {
                 self.error(
                     Some(node),
@@ -85,7 +85,7 @@ impl Checker {
             if let Some(symbol) = expression_type.symbol() {
                 let value_decl = get_class_like_declaration_of_symbol(symbol);
                 if let Some(value_decl) = value_decl {
-                    if has_modifier(value_decl, ModifierFlags::ABSTRACT) {
+                    if has_modifier(value_decl, ModifierFlags::Abstract) {
                         self.error(
                             Some(node),
                             &diagnostics::CANNOT_CREATE_AN_INSTANCE_OF_AN_ABSTRACT_CLASS,
@@ -100,7 +100,7 @@ impl Checker {
                 construct_signatures,
                 candidates_out_array,
                 check_mode,
-                SignatureFlags::NONE,
+                SignatureFlags::None,
                 None,
             );
         }
@@ -115,7 +115,7 @@ impl Checker {
                 call_signatures,
                 candidates_out_array,
                 check_mode,
-                SignatureFlags::NONE,
+                SignatureFlags::None,
                 None,
             );
             if !self.no_implicit_any {
@@ -163,7 +163,7 @@ impl Checker {
             if !self.is_node_within_class(node, declaring_class_declaration.unwrap()) {
                 let containing_class = get_containing_class(node);
                 if let Some(containing_class) = containing_class {
-                    if modifiers.intersects(ModifierFlags::PROTECTED) {
+                    if modifiers.intersects(ModifierFlags::Protected) {
                         let containing_type = self.get_type_of_node(containing_class);
                         if self.type_has_protected_accessible_base(parent_symbol, containing_type) {
                             return None;
@@ -196,7 +196,7 @@ impl Checker {
             return false;
         }
         let first_base = base_types[0];
-        if first_base.flags().intersects(TypeFlags::INTERSECTION) {
+        if first_base.flags().intersects(TypeFlags::Intersection) {
             let types = first_base.as_intersection_type().types.get();
             let (mixin_flags, _) = self.find_mixins(types);
             if first_base.types().iter().enumerate().any(|(i, &intersection_member)| {
@@ -204,7 +204,7 @@ impl Checker {
                 if !mixin_flags[i] {
                     if intersection_member
                         .object_flags()
-                        .intersects(ObjectFlags::CLASS | ObjectFlags::INTERFACE)
+                        .intersects(ObjectFlags::Class | ObjectFlags::Interface)
                     {
                         if intersection_member.symbol() == Some(target) {
                             return true;
@@ -283,7 +283,7 @@ impl Checker {
             call_signatures,
             candidates_out_array,
             check_mode,
-            SignatureFlags::NONE,
+            SignatureFlags::None,
             None,
         )
     }
@@ -340,7 +340,7 @@ impl Checker {
             call_signatures,
             candidates_out_array,
             check_mode,
-            SignatureFlags::NONE,
+            SignatureFlags::None,
             Some(head_message),
         )
     }
@@ -416,7 +416,7 @@ impl Checker {
                         call_signatures,
                         candidates_out_array,
                         check_mode,
-                        SignatureFlags::NONE,
+                        SignatureFlags::None,
                         None,
                     );
                 }
@@ -555,9 +555,9 @@ impl Checker {
             }
         }
         if some_context_sensitive {
-            s.arg_check_mode = CheckMode::SKIP_CONTEXT_SENSITIVE;
+            s.arg_check_mode = CheckMode::SkipContextSensitive;
         } else {
-            s.arg_check_mode = CheckMode::NORMAL;
+            s.arg_check_mode = CheckMode::Normal;
         }
         // The following variables are captured and modified by calls to chooseOverload.
         // If overload resolution or type argument inference fails, we want to report the
@@ -582,7 +582,7 @@ impl Checker {
         //
         // If we are in signature help, a trailing comma indicates that we intend to provide another argument,
         // so we will only accept overloads with arity at least 1 higher than the current number of provided arguments.
-        s.signature_help_trailing_comma = check_mode.intersects(CheckMode::IS_FOR_SIGNATURE_HELP)
+        s.signature_help_trailing_comma = check_mode.intersects(CheckMode::IsForSignatureHelp)
             && is_call_expression(node)
             && node.argument_list().unwrap().has_trailing_comma();
         // Section 4.12.1:
@@ -708,7 +708,7 @@ impl Checker {
 
 // checker.go:9195
 pub(crate) fn signature_has_literal_types(s: P<Signature>) -> bool {
-    s.flags().intersects(SignatureFlags::HAS_LITERAL_TYPES)
+    s.flags().intersects(SignatureFlags::HasLiteralTypes)
 }
 
 impl Checker {
@@ -718,12 +718,12 @@ impl Checker {
         signature: P<Signature>,
         call_chain_flags: SignatureFlags,
     ) -> P<Signature> {
-        if signature.flags() & SignatureFlags::CALL_CHAIN_FLAGS == call_chain_flags {
+        if signature.flags() & SignatureFlags::CallChainFlags == call_chain_flags {
             return signature;
         }
         let key = CachedSignatureKey {
             sig: signature,
-            key: if call_chain_flags == SignatureFlags::IS_INNER_CALL_CHAIN {
+            key: if call_chain_flags == SignatureFlags::IsInnerCallChain {
                 SIGNATURE_KEY_INNER
             } else {
                 SIGNATURE_KEY_OUTER
@@ -761,7 +761,7 @@ impl Checker {
                 &args,
                 candidate,
                 relation,
-                CheckMode::NORMAL,
+                CheckMode::Normal,
                 false, /*reportErrors*/
                 None,  /*diagnosticOutput*/
             ) {
@@ -831,13 +831,13 @@ impl Checker {
                     // When we are recursively resolving a call with a single candidate, we skip constraints checks during
                     // type inference to avoid circularity errors. For example, see #64192.
                     let inference_flags = (if s.recursive_resolution && s.candidates.len() == 1 {
-                        InferenceFlags::NO_CONSTRAINT_CHECKS
+                        InferenceFlags::NoConstraintChecks
                     } else {
-                        InferenceFlags::NONE
+                        InferenceFlags::None
                     }) | (if is_in_js_file(node) {
-                        InferenceFlags::ANY_DEFAULT
+                        InferenceFlags::AnyDefault
                     } else {
-                        InferenceFlags::NONE
+                        InferenceFlags::None
                     });
                     let ctx = Self::new_inference_context(
                         candidate.type_parameters(),
@@ -850,11 +850,11 @@ impl Checker {
                         node,
                         candidate,
                         args,
-                        s.arg_check_mode | CheckMode::SKIP_GENERIC_FUNCTIONS,
+                        s.arg_check_mode | CheckMode::SkipGenericFunctions,
                         ctx,
                     );
-                    if ctx.flags.get().intersects(InferenceFlags::SKIPPED_GENERIC_FUNCTION) {
-                        s.arg_check_mode |= CheckMode::SKIP_GENERIC_FUNCTIONS;
+                    if ctx.flags.get().intersects(InferenceFlags::SkippedGenericFunction) {
+                        s.arg_check_mode |= CheckMode::SkipGenericFunctions;
                     }
                 }
                 let inferred_type_parameters: &[P<Type>] = match *inference_context {
@@ -900,7 +900,7 @@ impl Checker {
                 // If one or more context sensitive arguments were excluded, we start including
                 // them now (and keeping do so for any subsequent candidates) and perform a second
                 // round of type inference and applicability checking for this particular candidate.
-                s.arg_check_mode = CheckMode::NORMAL;
+                s.arg_check_mode = CheckMode::Normal;
                 if let Some(ctx) = *inference_context {
                     let type_argument_types =
                         self.infer_type_arguments(node, candidate, args, s.arg_check_mode, ctx);
@@ -1023,7 +1023,7 @@ impl Checker {
         }
         if (arg_count..effective_minimum_arguments).any(|i| {
             let t = self.get_type_at_position(signature, i);
-            self.filter_type(t, |_, t| accepts_void(t)).flags().intersects(TypeFlags::NEVER)
+            self.filter_type(t, |_, t| accepts_void(t)).flags().intersects(TypeFlags::Never)
         }) {
             return false;
         }
@@ -1033,7 +1033,7 @@ impl Checker {
 
 // checker.go:9371
 pub(crate) fn accepts_void(t: P<Type>) -> bool {
-    t.flags().intersects(TypeFlags::VOID)
+    t.flags().intersects(TypeFlags::Void)
 }
 
 impl Checker {
@@ -1232,7 +1232,7 @@ impl Checker {
                 // If one or more arguments are still excluded (as indicated by CheckMode.SkipContextSensitive),
                 // we obtain the regular type of any object literal arguments because we may not have inferred complete
                 // parameter types yet and therefore excess property checks may yield false positives (see #17041).
-                let check_arg_type = if check_mode.intersects(CheckMode::SKIP_CONTEXT_SENSITIVE) {
+                let check_arg_type = if check_mode.intersects(CheckMode::SkipContextSensitive) {
                     self.get_regular_type_of_object_literal(arg_type)
                 } else {
                     arg_type
@@ -1359,7 +1359,7 @@ impl Checker {
             expression = node.expression();
         }
         if let Some(expression) = expression {
-            let callee = skip_outer_expressions(expression, OuterExpressionKinds::ALL);
+            let callee = skip_outer_expressions(expression, OuterExpressionKinds::All);
             if is_access_expression(callee) {
                 return callee.expression();
             }
@@ -1385,11 +1385,11 @@ impl Checker {
     // checker.go:9573
     pub(crate) fn get_effective_check_node(argument: P<Node>) -> P<Node> {
         let flags = if is_in_js_file(argument) {
-            OuterExpressionKinds::PARENTHESES
-                | OuterExpressionKinds::SATISFIES
-                | OuterExpressionKinds::EXCLUDE_JSDOC_TYPE_ASSERTION
+            OuterExpressionKinds::Parentheses
+                | OuterExpressionKinds::Satisfies
+                | OuterExpressionKinds::ExcludeJSDocTypeAssertion
         } else {
-            OuterExpressionKinds::PARENTHESES | OuterExpressionKinds::SATISFIES
+            OuterExpressionKinds::Parentheses | OuterExpressionKinds::Satisfies
         };
         skip_outer_expressions(argument, flags)
     }
@@ -1472,9 +1472,9 @@ impl Checker {
             let contextual_type = self.get_contextual_type(
                 node,
                 if skip_binding_patterns {
-                    ContextFlags::SKIP_BINDING_PATTERNS
+                    ContextFlags::SkipBindingPatterns
                 } else {
-                    ContextFlags::NONE
+                    ContextFlags::None
                 },
             );
             if let Some(contextual_type) = contextual_type {
@@ -1485,7 +1485,7 @@ impl Checker {
                 if self.could_contain_type_variables(inference_target_type) {
                     let outer_context = self.get_inference_context(node);
                     let is_from_binding_pattern = !skip_binding_patterns
-                        && self.get_contextual_type(node, ContextFlags::SKIP_BINDING_PATTERNS)
+                        && self.get_contextual_type(node, ContextFlags::SkipBindingPatterns)
                             != Some(contextual_type);
                     // A return type inference from a binding pattern can be used in instantiating the contextual
                     // type of an argument later in inference, but cannot stand on its own as the final return type.
@@ -1501,10 +1501,8 @@ impl Checker {
                         // We clone the inference context to avoid disturbing a resolution in progress for an
                         // outer call expression. Effectively we just want a snapshot of whatever has been
                         // inferred for any outer call expression so far.
-                        let cloned = Self::clone_inference_context(
-                            outer_context,
-                            InferenceFlags::NO_DEFAULT,
-                        );
+                        let cloned =
+                            Self::clone_inference_context(outer_context, InferenceFlags::NoDefault);
                         let outer_mapper = Self::get_mapper_from_context(cloned);
                         let instantiated_type =
                             self.instantiate_type(contextual_type, outer_mapper);
@@ -1593,7 +1591,7 @@ impl Checker {
             arg_count = (self.get_parameter_count(signature) - 1).min(arg_count);
         }
         if let Some(rest_type) = rest_type {
-            if rest_type.flags().intersects(TypeFlags::TYPE_PARAMETER) {
+            if rest_type.flags().intersects(TypeFlags::TypeParameter) {
                 let info = context
                     .inferences
                     .get()
@@ -1793,14 +1791,14 @@ impl Checker {
         let inference_context = Self::new_inference_context(
             type_parameters,
             Some(candidate),
-            if is_in_js_file(node) { InferenceFlags::ANY_DEFAULT } else { InferenceFlags::NONE },
+            if is_in_js_file(node) { InferenceFlags::AnyDefault } else { InferenceFlags::None },
             None,
         );
         let type_argument_types = self.infer_type_arguments(
             node,
             candidate,
             args,
-            check_mode | CheckMode::SKIP_CONTEXT_SENSITIVE | CheckMode::SKIP_GENERIC_FUNCTIONS,
+            check_mode | CheckMode::SkipContextSensitive | CheckMode::SkipGenericFunctions,
             inference_context,
         );
         self.create_signature_instantiation(candidate, &type_argument_types)
@@ -1853,7 +1851,7 @@ impl Checker {
                 None
             })
             .collect();
-        let mut flags = SignatureFlags::IS_SIGNATURE_CANDIDATE_FOR_OVERLOAD_FAILURE;
+        let mut flags = SignatureFlags::IsSignatureCandidateForOverloadFailure;
         if !rest_parameter_symbols.is_empty() {
             let mut rest_types = Vec::new();
             rest_types
@@ -1863,10 +1861,10 @@ impl Checker {
             let t = self.create_array_type(union);
             parameters
                 .push(self.create_combined_symbol_for_overload_failure(&rest_parameter_symbols, t));
-            flags |= SignatureFlags::HAS_REST_PARAMETER;
+            flags |= SignatureFlags::HasRestParameter;
         }
         if candidates.iter().any(|&s| signature_has_literal_types(s)) {
-            flags |= SignatureFlags::HAS_LITERAL_TYPES;
+            flags |= SignatureFlags::HasLiteralTypes;
         }
         let mut return_types = Vec::with_capacity(candidates.len());
         return_types.extend(candidates.iter().map(|&s| self.get_return_type_of_signature(s)));
@@ -1947,7 +1945,7 @@ impl Checker {
                 &args,
                 last,
                 assignable_relation,
-                CheckMode::NORMAL,
+                CheckMode::Normal,
                 true, /*reportErrors*/
                 Some(&mut diags),
             );
@@ -2221,7 +2219,7 @@ impl Checker {
         let symbol = self.resolve_name(
             Some(expression),
             expression.text(),
-            SymbolFlags::VALUE,
+            SymbolFlags::Value,
             None,  /*nameNotFoundMessage*/
             false, /*isUse*/
             false,
@@ -2342,8 +2340,8 @@ impl Checker {
         node: P<Node>,
         facts: TypeFacts,
     ) {
-        let message: &'static Message = if facts.intersects(TypeFacts::IS_UNDEFINED) {
-            if facts.intersects(TypeFacts::IS_NULL) {
+        let message: &'static Message = if facts.intersects(TypeFacts::IsUndefined) {
+            if facts.intersects(TypeFacts::IsNull) {
                 &diagnostics::CANNOT_INVOKE_AN_OBJECT_WHICH_IS_POSSIBLY_NULL_OR_UNDEFINED
             } else {
                 &diagnostics::CANNOT_INVOKE_AN_OBJECT_WHICH_IS_POSSIBLY_UNDEFINED
@@ -2403,11 +2401,11 @@ impl Checker {
         // We exclude union types because we may have a union of function types that happen to have no common signatures.
         is_type_any(Some(func_type))
             || is_type_any(Some(apparent_func_type))
-                && func_type.flags().intersects(TypeFlags::TYPE_PARAMETER)
+                && func_type.flags().intersects(TypeFlags::TypeParameter)
             || num_call_signatures == 0
                 && num_construct_signatures == 0
-                && !apparent_func_type.flags().intersects(TypeFlags::UNION)
-                && !self.get_reduced_type(apparent_func_type).flags().intersects(TypeFlags::NEVER)
+                && !apparent_func_type.flags().intersects(TypeFlags::Union)
+                && !self.get_reduced_type(apparent_func_type).flags().intersects(TypeFlags::Never)
                 && {
                     let global_function_type = self.global_function_type;
                     self.is_type_assignable_to(func_type, global_function_type)
@@ -2434,7 +2432,7 @@ impl Checker {
         {
             target = error_target.name().unwrap();
         }
-        if apparent_type.flags().intersects(TypeFlags::UNION) {
+        if apparent_type.flags().intersects(TypeFlags::Union) {
             let types = apparent_type.types();
             let mut has_signatures = false;
             for &constituent in types {
@@ -2523,7 +2521,7 @@ impl Checker {
         if is_call_expression(error_target_parent) && error_target_parent.arguments().is_empty() {
             let resolved_symbol = self.get_resolved_symbol_or_nil(error_target);
             if let Some(resolved_symbol) = resolved_symbol {
-                if resolved_symbol.flags().intersects(SymbolFlags::GET_ACCESSOR) {
+                if resolved_symbol.flags().intersects(SymbolFlags::GetAccessor) {
                     head_message = &diagnostics::THIS_EXPRESSION_IS_NOT_CALLABLE_BECAUSE_IT_IS_A_GET_ACCESSOR_DID_YOU_MEAN_TO_USE_IT_WITHOUT;
                 }
             }
@@ -2595,11 +2593,11 @@ impl Checker {
 
     // checker.go:10217
     pub(crate) fn skipped_generic_function(&self, node: P<Node>, check_mode: CheckMode) {
-        if check_mode.intersects(CheckMode::INFERENTIAL) {
+        if check_mode.intersects(CheckMode::Inferential) {
             // We have skipped a generic function during inferential typing. Obtain the inference context and
             // indicate this has occurred such that we know a second pass of inference is be needed.
             let context = self.get_inference_context(node).unwrap();
-            context.flags.set(context.flags.get() | InferenceFlags::SKIPPED_GENERIC_FUNCTION);
+            context.flags.set(context.flags.get() | InferenceFlags::SkippedGenericFunction);
         }
     }
 
@@ -2608,7 +2606,7 @@ impl Checker {
         if !self.check_grammar_tagged_template_chain(node) {
             self.check_grammar_type_arguments(node, node.type_argument_list());
         }
-        let signature = self.get_resolved_signature(node, None, CheckMode::NORMAL);
+        let signature = self.get_resolved_signature(node, None, CheckMode::Normal);
         self.check_deprecated_signature(signature, node);
         self.get_return_type_of_signature(signature)
     }
@@ -2701,13 +2699,13 @@ impl Checker {
         };
 
         if let Some(location) = location {
-            self.check_external_emit_helpers(location, ExternalEmitHelpers::SET_FUNCTION_NAME);
+            self.check_external_emit_helpers(location, ExternalEmitHelpers::SetFunctionName);
             if (is_property_assignment(parent)
                 || is_property_declaration(parent)
                 || is_binding_element(parent))
                 && is_computed_property_name(parent.name().unwrap())
             {
-                self.check_external_emit_helpers(location, ExternalEmitHelpers::PROP_KEY);
+                self.check_external_emit_helpers(location, ExternalEmitHelpers::PropKey);
             }
         }
     }
@@ -2732,8 +2730,7 @@ impl Checker {
         if is_function_expression(node) {
             self.check_collisions_for_declaration_name(node, node.name());
         }
-        if check_mode.intersects(CheckMode::SKIP_CONTEXT_SENSITIVE)
-            && self.is_context_sensitive(node)
+        if check_mode.intersects(CheckMode::SkipContextSensitive) && self.is_context_sensitive(node)
         {
             // Skip parameters, return signature with return type that retains noncontextual parts so inferences can still be drawn in an early stage
             if node.type_node().is_none() && !has_context_sensitive_parameters(node) {
@@ -2748,7 +2745,7 @@ impl Checker {
                         }
                         let return_type = self.get_return_type_from_body(node, check_mode);
                         let return_only_signature = self.new_signature(
-                            SignatureFlags::IS_NON_INFERRABLE,
+                            SignatureFlags::IsNonInferrable,
                             None,
                             &[],  /*typeParameters*/
                             None, /*thisParameter*/
@@ -2766,7 +2763,7 @@ impl Checker {
                         );
                         return_only_type.object_flags.set(
                             return_only_type.object_flags.get_lazy()
-                                | ObjectFlags::NON_INFERRABLE_TYPE,
+                                | ObjectFlags::NonInferrableType,
                         );
                         self.context_free_types.insert(node, return_only_type);
                         return return_only_type;
@@ -2799,13 +2796,13 @@ impl Checker {
     ) {
         let links = self.node_links.get(node);
         // Check if function expression is contextually typed and assign parameter types if so.
-        if !links.flags.get().intersects(NodeCheckFlags::CONTEXT_CHECKED) {
+        if !links.flags.get().intersects(NodeCheckFlags::ContextChecked) {
             let contextual_signature = self.get_contextual_signature(node);
             // If a type check is started at a function expression that is an argument of a function call, obtaining the
             // contextual type may recursively get back to here during overload resolution of the call. If so, we will have
             // already assigned contextual types.
-            if !links.flags.get().intersects(NodeCheckFlags::CONTEXT_CHECKED) {
-                links.flags.set(links.flags.get() | NodeCheckFlags::CONTEXT_CHECKED);
+            if !links.flags.get().intersects(NodeCheckFlags::ContextChecked) {
+                links.flags.set(links.flags.get() | NodeCheckFlags::ContextChecked);
                 let symbol = self.get_symbol_of_declaration(node).unwrap();
                 let symbol_type = self.get_type_of_symbol(symbol);
                 let signature =
@@ -2817,7 +2814,7 @@ impl Checker {
                     if let Some(contextual_signature) = contextual_signature {
                         let inference_context = self.get_inference_context(node);
                         let mut instantiated_contextual_signature: Option<P<Signature>> = None;
-                        if check_mode.intersects(CheckMode::INFERENTIAL) {
+                        if check_mode.intersects(CheckMode::Inferential) {
                             self.infer_from_annotated_parameters_and_return(
                                 signature,
                                 contextual_signature,
@@ -2825,7 +2822,7 @@ impl Checker {
                             );
                             let rest_type = self.get_effective_rest_type(contextual_signature);
                             if let Some(rest_type) = rest_type {
-                                if rest_type.flags().intersects(TypeFlags::TYPE_PARAMETER) {
+                                if rest_type.flags().intersects(TypeFlags::TypeParameter) {
                                     let non_fixing_mapper =
                                         inference_context.unwrap().non_fixing_mapper();
                                     instantiated_contextual_signature =
@@ -2858,7 +2855,7 @@ impl Checker {
                         && cs.parameters().len() > node.parameters().len()
                 }) {
                     let inference_context = self.get_inference_context(node);
-                    if check_mode.intersects(CheckMode::INFERENTIAL) {
+                    if check_mode.intersects(CheckMode::Inferential) {
                         self.infer_from_annotated_parameters_and_return(
                             signature,
                             contextual_signature,
@@ -2874,7 +2871,7 @@ impl Checker {
                     // otherwise anyFunctionType could leak as part of the computed (and cached) return type.
                     let return_type = self.get_return_type_from_body(
                         node,
-                        check_mode & !CheckMode::SKIP_CONTEXT_SENSITIVE,
+                        check_mode & !CheckMode::SkipContextSensitive,
                     );
                     if signature.resolved_return_type.get().is_none() {
                         signature.resolved_return_type.set(Some(return_type));
@@ -2981,8 +2978,8 @@ impl Checker {
     // union type of return types from these signatures
     // checker.go:10461
     pub(crate) fn get_contextual_signature(&mut self, node: P<Node>) -> Option<P<Signature>> {
-        let t = self.get_apparent_type_of_contextual_type(node, ContextFlags::SIGNATURE)?;
-        if !t.flags().intersects(TypeFlags::UNION) {
+        let t = self.get_apparent_type_of_contextual_type(node, ContextFlags::Signature)?;
+        if !t.flags().intersects(TypeFlags::Union) {
             return self.get_contextual_call_signature(t, node);
         }
         let mut signature_list: Vec<P<Signature>> = Vec::new();
@@ -3145,7 +3142,7 @@ impl Checker {
                     if declaration.initializer().is_some() {
                         let mut initializer_type = self.check_declaration_initializer(
                             declaration,
-                            CheckMode::NORMAL,
+                            CheckMode::Normal,
                             None,
                         );
                         if !self.is_type_assignable_to(initializer_type, tt) {
@@ -3168,7 +3165,7 @@ impl Checker {
             let value_declaration = parameter.value_declaration();
             if value_declaration.is_some_and(|vd| vd.type_node().is_none())
                 || value_declaration.is_none()
-                    && parameter.check_flags().intersects(CheckFlags::DEFERRED_TYPE)
+                    && parameter.check_flags().intersects(CheckFlags::DeferredType)
             {
                 let contextual_parameter_type =
                     self.get_rest_type_at_position(context, length, false);
@@ -3264,7 +3261,7 @@ impl Checker {
         self.record_potential_collision_with_reflect_in_generated_code(node, Some(name));
         if is_class_like(node) {
             self.check_type_name_is_reserved(name, &diagnostics::CLASS_NAME_CANNOT_BE_0);
-            if !node.flags().intersects(NodeFlags::AMBIENT) {
+            if !node.flags().intersects(NodeFlags::Ambient) {
                 self.check_class_name_collision_with_object(name);
             }
         } else if is_enum_declaration(node) {
@@ -3361,7 +3358,7 @@ impl Checker {
             }
             _ => {}
         }
-        if node.flags().intersects(NodeFlags::AMBIENT) {
+        if node.flags().intersects(NodeFlags::Ambient) {
             // ambient context - no codegen impact
             return false;
         }
@@ -3394,7 +3391,7 @@ impl Checker {
                 while let Some(scope) = lexical_scope {
                     let links = self.node_links.get(scope);
                     links.flags.set(
-                        links.flags.get() | NodeCheckFlags::CONTAINS_CLASS_WITH_PRIVATE_IDENTIFIERS,
+                        links.flags.get() | NodeCheckFlags::ContainsClassWithPrivateIdentifiers,
                     );
                     lexical_scope = get_enclosing_block_scope_container(scope);
                 }
@@ -3426,7 +3423,7 @@ impl Checker {
             .get(enclosing_block_scope)
             .flags
             .get()
-            .intersects(NodeCheckFlags::CONTAINS_CLASS_WITH_PRIVATE_IDENTIFIERS)
+            .intersects(NodeCheckFlags::ContainsClassWithPrivateIdentifiers)
         {
             let name = node.name();
             if let Some(name) = name {
@@ -3461,7 +3458,7 @@ impl Checker {
         let parent = get_declaration_container(node).unwrap();
         if is_source_file(parent)
             && is_external_or_common_js_module(parent.as_source_file_p())
-            && parent.flags().intersects(NodeFlags::HAS_ASYNC_FUNCTIONS)
+            && parent.flags().intersects(NodeFlags::HasAsyncFunctions)
         {
             // If the declaration happens to be in external module, report error that Promise is a reserved identifier.
             let s = tsrs_scanner::declaration_name_to_string(Some(name_node));
@@ -3495,7 +3492,7 @@ impl Checker {
                     .get(member)
                     .flags
                     .get()
-                    .intersects(NodeCheckFlags::CONTAINS_SUPER_PROPERTY_IN_STATIC_INITIALIZER)
+                    .intersects(NodeCheckFlags::ContainsSuperPropertyInStaticInitializer)
             }) {
                 has_collision = true;
             }
@@ -3506,7 +3503,7 @@ impl Checker {
                 .get(node)
                 .flags
                 .get()
-                .intersects(NodeCheckFlags::CONTAINS_SUPER_PROPERTY_IN_STATIC_INITIALIZER)
+                .intersects(NodeCheckFlags::ContainsSuperPropertyInStaticInitializer)
             {
                 has_collision = true;
             }
@@ -3518,7 +3515,7 @@ impl Checker {
                     .get(container)
                     .flags
                     .get()
-                    .intersects(NodeCheckFlags::CONTAINS_SUPER_PROPERTY_IN_STATIC_INITIALIZER)
+                    .intersects(NodeCheckFlags::ContainsSuperPropertyInStaticInitializer)
                 {
                     has_collision = true;
                 }
@@ -3554,7 +3551,7 @@ impl Checker {
 
     // checker.go:10819
     pub(crate) fn check_non_null_assertion(&mut self, node: P<Node>) -> P<Type> {
-        if node.flags().intersects(NodeFlags::OPTIONAL_CHAIN) {
+        if node.flags().intersects(NodeFlags::OptionalChain) {
             // checkNonNullChain checks the same operand expression (node.Expression()),
             // so the child is still visited on this branch.
             return self.check_non_null_chain(node);

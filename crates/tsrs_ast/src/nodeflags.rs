@@ -5,26 +5,26 @@ use bitflags::bitflags;
 bitflags! {
     #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Debug, Default)]
     pub struct NodeFlags: u32 {
-        const NONE = 0;
-        const LET = 1 << 0; // Variable declaration
-        const CONST = 1 << 1; // Variable declaration
-        const USING = 1 << 2; // Variable declaration
-        const REPARSED = 1 << 3; // Node was synthesized during parsing
-        const SYNTHESIZED = 1 << 4; // Node was synthesized during transformation
-        const OPTIONAL_CHAIN = 1 << 5; // Chained MemberExpression rooted to a pseudo-OptionalExpression
-        const EXPORT_CONTEXT = 1 << 6; // Export context (initialized by binding)
-        const CONTAINS_THIS = 1 << 7; // Interface contains references to "this"
-        const HAS_IMPLICIT_RETURN = 1 << 8; // If function implicitly returns on one of codepaths (initialized by binding)
-        const HAS_EXPLICIT_RETURN = 1 << 9; // If function has explicit reachable return on one of codepaths (initialized by binding)
-        const DISALLOW_IN_CONTEXT = 1 << 10; // If node was parsed in a context where 'in-expressions' are not allowed
-        const YIELD_CONTEXT = 1 << 11; // If node was parsed in the 'yield' context created when parsing a generator
-        const DECORATOR_CONTEXT = 1 << 12; // If node was parsed as part of a decorator
-        const AWAIT_CONTEXT = 1 << 13; // If node was parsed in the 'await' context created when parsing an async function
-        const DISALLOW_CONDITIONAL_TYPES_CONTEXT = 1 << 14; // If node was parsed in a context where conditional types are not allowed
-        const THIS_NODE_HAS_ERROR = 1 << 15; // If the parser encountered an error when parsing the code that created this node
-        const JAVA_SCRIPT_FILE = 1 << 16; // If node was parsed in a JavaScript
-        const THIS_NODE_OR_ANY_SUB_NODES_HAS_ERROR = 1 << 17; // If this node or any of its children had an error
-        const HAS_ASYNC_FUNCTIONS = 1 << 18; // If the file has async functions (initialized by binding)
+        const None = 0;
+        const Let = 1 << 0; // Variable declaration
+        const Const = 1 << 1; // Variable declaration
+        const Using = 1 << 2; // Variable declaration
+        const Reparsed = 1 << 3; // Node was synthesized during parsing
+        const Synthesized = 1 << 4; // Node was synthesized during transformation
+        const OptionalChain = 1 << 5; // Chained MemberExpression rooted to a pseudo-OptionalExpression
+        const ExportContext = 1 << 6; // Export context (initialized by binding)
+        const ContainsThis = 1 << 7; // Interface contains references to "this"
+        const HasImplicitReturn = 1 << 8; // If function implicitly returns on one of codepaths (initialized by binding)
+        const HasExplicitReturn = 1 << 9; // If function has explicit reachable return on one of codepaths (initialized by binding)
+        const DisallowInContext = 1 << 10; // If node was parsed in a context where 'in-expressions' are not allowed
+        const YieldContext = 1 << 11; // If node was parsed in the 'yield' context created when parsing a generator
+        const DecoratorContext = 1 << 12; // If node was parsed as part of a decorator
+        const AwaitContext = 1 << 13; // If node was parsed in the 'await' context created when parsing an async function
+        const DisallowConditionalTypesContext = 1 << 14; // If node was parsed in a context where conditional types are not allowed
+        const ThisNodeHasError = 1 << 15; // If the parser encountered an error when parsing the code that created this node
+        const JavaScriptFile = 1 << 16; // If node was parsed in a JavaScript
+        const ThisNodeOrAnySubNodesHasError = 1 << 17; // If this node or any of its children had an error
+        const HasAsyncFunctions = 1 << 18; // If the file has async functions (initialized by binding)
         // NodeFlagsHasAggregatedChildData is deprecated. Use `subtreeFacts` instead.
 
         // These flags will be set when the parser encounters a dynamic import expression or 'import.meta' to avoid
@@ -36,41 +36,41 @@ bitflags! {
         // removal, it is likely that users will add the import anyway.
         // The advantage of this approach is its simplicity. For the case of batch compilation,
         // we guarantee that users won't have to pay the price of walking the tree if a dynamic import isn't used.
-        const POSSIBLY_CONTAINS_DYNAMIC_IMPORT = 1 << 19;
-        const POSSIBLY_CONTAINS_IMPORT_META = 1 << 20;
+        const PossiblyContainsDynamicImport = 1 << 19;
+        const PossiblyContainsImportMeta = 1 << 20;
 
-        const HAS_JSDOC = 1 << 21; // If node has preceding JSDoc comment(s)
-        const JSDOC = 1 << 22; // If node was parsed inside jsdoc
-        const AMBIENT = 1 << 23; // If node was inside an ambient context -- a declaration file, or inside something with the `declare` modifier.
-        const IN_WITH_STATEMENT = 1 << 24; // If any ancestor of node was the `statement` of a WithStatement (not the `expression`)
-        const JSON_FILE = 1 << 25; // If node was parsed in a Json
-        const POSSIBLY_CONTAINS_DEPRECATED_TAG = 1 << 26; // Set during parse if comment text contains '@deprecated'; must confirm via JSDoc lookup
-        const UNREACHABLE = 1 << 27; // If node is unreachable according to the binder
-        const REPARSER_TRANSFORMED_LITERAL = 1 << 28; // If node was transformed during parsing, making its' naive text source not match the AST
+        const HasJSDoc = 1 << 21; // If node has preceding JSDoc comment(s)
+        const JSDoc = 1 << 22; // If node was parsed inside jsdoc
+        const Ambient = 1 << 23; // If node was inside an ambient context -- a declaration file, or inside something with the `declare` modifier.
+        const InWithStatement = 1 << 24; // If any ancestor of node was the `statement` of a WithStatement (not the `expression`)
+        const JsonFile = 1 << 25; // If node was parsed in a Json
+        const PossiblyContainsDeprecatedTag = 1 << 26; // Set during parse if comment text contains '@deprecated'; must confirm via JSDoc lookup
+        const Unreachable = 1 << 27; // If node is unreachable according to the binder
+        const ReparserTransformedLiteral = 1 << 28; // If node was transformed during parsing, making its' naive text source not match the AST
 
-        const BLOCK_SCOPED = Self::LET.bits() | Self::CONST.bits() | Self::USING.bits();
-        const CONSTANT = Self::CONST.bits() | Self::USING.bits();
-        const AWAIT_USING = Self::CONST.bits() | Self::USING.bits(); // Variable declaration (NOTE: on a single node these flags would otherwise be mutually exclusive)
+        const BlockScoped = Self::Let.bits() | Self::Const.bits() | Self::Using.bits();
+        const Constant = Self::Const.bits() | Self::Using.bits();
+        const AwaitUsing = Self::Const.bits() | Self::Using.bits(); // Variable declaration (NOTE: on a single node these flags would otherwise be mutually exclusive)
 
-        const REACHABILITY_CHECK_FLAGS = Self::HAS_IMPLICIT_RETURN.bits() | Self::HAS_EXPLICIT_RETURN.bits();
-        const REACHABILITY_AND_EMIT_FLAGS = Self::REACHABILITY_CHECK_FLAGS.bits() | Self::HAS_ASYNC_FUNCTIONS.bits();
+        const ReachabilityCheckFlags = Self::HasImplicitReturn.bits() | Self::HasExplicitReturn.bits();
+        const ReachabilityAndEmitFlags = Self::ReachabilityCheckFlags.bits() | Self::HasAsyncFunctions.bits();
 
         // Parsing context flags
-        const CONTEXT_FLAGS = Self::DISALLOW_IN_CONTEXT.bits() | Self::DISALLOW_CONDITIONAL_TYPES_CONTEXT.bits() | Self::YIELD_CONTEXT.bits() | Self::DECORATOR_CONTEXT.bits() | Self::AWAIT_CONTEXT.bits() | Self::JAVA_SCRIPT_FILE.bits() | Self::IN_WITH_STATEMENT.bits() | Self::AMBIENT.bits();
+        const ContextFlags = Self::DisallowInContext.bits() | Self::DisallowConditionalTypesContext.bits() | Self::YieldContext.bits() | Self::DecoratorContext.bits() | Self::AwaitContext.bits() | Self::JavaScriptFile.bits() | Self::InWithStatement.bits() | Self::Ambient.bits();
 
         // Exclude these flags when parsing a Type
-        const TYPE_EXCLUDES_FLAGS = Self::YIELD_CONTEXT.bits() | Self::AWAIT_CONTEXT.bits();
+        const TypeExcludesFlags = Self::YieldContext.bits() | Self::AwaitContext.bits();
 
         // Represents all flags that are potentially set once and
         // never cleared on SourceFiles which get re-used in between incremental parses.
         // See the comment above on `PossiblyContainsDynamicImport` and `PossiblyContainsImportMeta`.
-        const PERMANENTLY_SET_INCREMENTAL_FLAGS = Self::POSSIBLY_CONTAINS_DYNAMIC_IMPORT.bits() | Self::POSSIBLY_CONTAINS_IMPORT_META.bits();
+        const PermanentlySetIncrementalFlags = Self::PossiblyContainsDynamicImport.bits() | Self::PossiblyContainsImportMeta.bits();
 
         // The following flags repurpose other NodeFlags as different meanings for Identifier nodes
-        const IDENTIFIER_HAS_EXTENDED_UNICODE_ESCAPE = Self::CONTAINS_THIS.bits(); // Indicates whether the identifier contains an extended unicode escape sequence
-        const IDENTIFIER_IS_IN_JSDOC_NAMESPACE = Self::HAS_ASYNC_FUNCTIONS.bits(); // Indicates the identifier is the innermost name of a JSDoc namespace declaration
+        const IdentifierHasExtendedUnicodeEscape = Self::ContainsThis.bits(); // Indicates whether the identifier contains an extended unicode escape sequence
+        const IdentifierIsInJSDocNamespace = Self::HasAsyncFunctions.bits(); // Indicates the identifier is the innermost name of a JSDoc namespace declaration
 
         // The following flag repurposes other NodeFlags for ModuleDeclaration nodes
-        const NESTED_NAMESPACE = Self::OPTIONAL_CHAIN.bits(); // If ModuleDeclaration is a nested namespace (e.g. inner part of A.B.C)
+        const NestedNamespace = Self::OptionalChain.bits(); // If ModuleDeclaration is a nested namespace (e.g. inner part of A.B.C)
     }
 }

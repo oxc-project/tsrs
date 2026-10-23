@@ -34,7 +34,7 @@ pub(crate) fn identity_mapped_output(content: &str) -> Result<MappedOutput, ipc:
         virtual_end: content.len() as u32,
         original_end: content.len() as u32,
         kind: Kind::VERBATIM,
-        features: Feature::ALL,
+        features: Feature::All,
         ..Default::default()
     }])?;
     Ok(MappedOutput {

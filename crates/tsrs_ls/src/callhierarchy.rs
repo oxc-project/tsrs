@@ -83,7 +83,7 @@ fn is_assigned_expression(node: Option<P<Node>>) -> bool {
         return false;
     }
 
-    ast::get_combined_node_flags(parent).intersects(NodeFlags::CONST)
+    ast::get_combined_node_flags(parent).intersects(NodeFlags::Const)
         || ast::is_property_declaration(parent)
 }
 
@@ -598,7 +598,7 @@ pub(crate) fn resolve_call_hierarchy_declaration(
         if !following_symbol {
             let symbol = c.get_symbol_at_location_exported(location);
             if let Some(mut symbol) = symbol {
-                if symbol.flags().intersects(SymbolFlags::ALIAS) {
+                if symbol.flags().intersects(SymbolFlags::Alias) {
                     symbol = c.get_aliased_symbol(symbol);
                 }
                 if let Some(value_declaration) = symbol.value_declaration() {
@@ -638,12 +638,12 @@ impl LanguageService {
                 full_start,
                 node.end().expect_source("call-hierarchy declarations have source positions"),
             ),
-            Feature::CALL_HIERARCHY,
+            Feature::CallHierarchy,
         );
         let (selection_span, selection_fidelity) = self.converters.to_lsp_range_for_feature(
             &source_file,
             TextRange::new(name_pos, name_end),
-            Feature::CALL_HIERARCHY,
+            Feature::CallHierarchy,
         );
         if !selection_fidelity.is_single_segment() {
             return None;
@@ -733,7 +733,7 @@ impl LanguageService {
             let (lsp_range, fidelity) = self.converters.to_lsp_range_for_feature(
                 &source_file,
                 entry.text_range,
-                Feature::CALL_HIERARCHY,
+                Feature::CallHierarchy,
             );
             if !fidelity.is_none() { Some(lsp_range) } else { None }
         }));
@@ -821,7 +821,7 @@ impl LanguageService {
         let (_, fidelity) = self.converters.to_lsp_position_for_feature(
             &location_file,
             location_start.into(),
-            Feature::CALL_HIERARCHY,
+            Feature::CallHierarchy,
         );
         if fidelity.is_none() {
             return Ok(lsproto::CallHierarchyIncomingCallsOrNull::default());
@@ -975,7 +975,7 @@ impl CallSiteCollector {
         };
 
         // do not descend into ambient nodes.
-        if node.flags().intersects(NodeFlags::AMBIENT) {
+        if node.flags().intersects(NodeFlags::Ambient) {
             return;
         }
 
@@ -1089,7 +1089,7 @@ fn collect_call_sites(program: &'static Program, c: &mut Checker, node: P<Node>)
         Kind::ModuleDeclaration => {
             let body = node.body();
             if let Some(body) = body.filter(|&body| {
-                !ast::has_syntactic_modifier(node, ModifierFlags::AMBIENT)
+                !ast::has_syntactic_modifier(node, ModifierFlags::Ambient)
                     && ast::is_module_block(body)
             }) {
                 for &stmt in body.statements() {
@@ -1173,7 +1173,7 @@ impl LanguageService {
             let (lsp_range, fidelity) = self.converters.to_lsp_range_for_feature(
                 &source_file,
                 entry.text_range,
-                Feature::CALL_HIERARCHY,
+                Feature::CallHierarchy,
             );
             if !fidelity.is_none() { Some(lsp_range) } else { None }
         }));
@@ -1196,7 +1196,7 @@ impl LanguageService {
         program: &'static Program,
         declaration: P<Node>,
     ) -> Vec<lsproto::CallHierarchyOutgoingCall> {
-        if declaration.flags().intersects(NodeFlags::AMBIENT)
+        if declaration.flags().intersects(NodeFlags::Ambient)
             || ast::is_method_signature_declaration(declaration)
         {
             return Vec::new();
@@ -1372,7 +1372,7 @@ impl LanguageService {
         let positions = self.converters.from_lsp_position_for_source_file(
             file,
             position,
-            Feature::CALL_HIERARCHY,
+            Feature::CallHierarchy,
         );
         let mut declarations: Vec<P<Node>> = Vec::new();
         let mut seen: FxHashSet<P<Node>> = FxHashSet::default();

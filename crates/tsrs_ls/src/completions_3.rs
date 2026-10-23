@@ -30,16 +30,16 @@ pub(crate) fn get_contextual_type(
 ) -> Option<P<Type>> {
     let parent = previous_token.parent().unwrap();
     match previous_token.kind() {
-        Kind::Identifier => return crate::utilities::get_contextual_type_from_parent(previous_token, type_checker, ContextFlags::NONE),
+        Kind::Identifier => return crate::utilities::get_contextual_type_from_parent(previous_token, type_checker, ContextFlags::None),
         Kind::EqualsToken => {
             return match parent.kind() {
-                Kind::VariableDeclaration => type_checker.get_contextual_type_exported(parent.initializer().unwrap(), ContextFlags::NONE),
+                Kind::VariableDeclaration => type_checker.get_contextual_type_exported(parent.initializer().unwrap(), ContextFlags::None),
                 Kind::BinaryExpression => Some(type_checker.get_type_at_location(parent.as_binary_expression().left)),
                 Kind::JsxAttribute => type_checker.get_contextual_type_for_jsx_attribute_exported(parent),
                 _ => None,
             };
         }
-        Kind::NewKeyword => return type_checker.get_contextual_type_exported(parent, ContextFlags::NONE),
+        Kind::NewKeyword => return type_checker.get_contextual_type_exported(parent, ContextFlags::None),
         Kind::CaseKeyword => {
             let case_clause = if ast::is_case_clause(parent) { Some(parent) } else { None };
             if let Some(case_clause) = case_clause {
@@ -57,7 +57,7 @@ pub(crate) fn get_contextual_type(
             // When completing after `[` in an array literal (e.g., `[/*here*/]`),
             // we should provide contextual type for the first element
             if ast::is_array_literal_expression(parent) {
-                let contextual_array_type = type_checker.get_contextual_type_exported(parent, ContextFlags::NONE);
+                let contextual_array_type = type_checker.get_contextual_type_exported(parent, ContextFlags::None);
                 if contextual_array_type.is_some() {
                     // Get the type for the first element (index 0)
                     return type_checker.get_contextual_type_for_array_literal_at_position(contextual_array_type, parent, position);
@@ -94,7 +94,7 @@ pub(crate) fn get_contextual_type(
             // When completing after `,` in an array literal (e.g., `[x, /*here*/]`),
             // we should provide contextual type for the element after the comma.
             if ast::is_array_literal_expression(parent) => {
-                let contextual_array_type = type_checker.get_contextual_type_exported(parent, ContextFlags::NONE);
+                let contextual_array_type = type_checker.get_contextual_type_exported(parent, ContextFlags::None);
                 if contextual_array_type.is_some() {
                     return type_checker.get_contextual_type_for_array_literal_at_position(contextual_array_type, parent, position);
                 }
@@ -117,11 +117,11 @@ pub(crate) fn get_contextual_type(
         Some(type_checker.get_type_at_location(parent.as_binary_expression().left))
     } else {
         let contextual_type = type_checker
-            .get_contextual_type_exported(previous_token, ContextFlags::IGNORE_NODE_INFERENCES);
+            .get_contextual_type_exported(previous_token, ContextFlags::IgnoreNodeInferences);
         if contextual_type.is_some() {
             return contextual_type;
         }
-        type_checker.get_contextual_type_exported(previous_token, ContextFlags::NONE)
+        type_checker.get_contextual_type_exported(previous_token, ContextFlags::None)
     }
 }
 
@@ -166,7 +166,7 @@ pub(crate) fn get_recommended_completion(
         if let Some(symbol) = symbol {
             if symbol
                 .flags()
-                .intersects(SymbolFlags::ENUM_MEMBER | SymbolFlags::ENUM | SymbolFlags::CLASS)
+                .intersects(SymbolFlags::EnumMember | SymbolFlags::Enum | SymbolFlags::Class)
                 && !is_abstract_constructor_symbol(symbol)
             {
                 let result = get_first_symbol_in_chain(symbol, Some(previous_token), type_checker);
@@ -185,10 +185,10 @@ pub(crate) fn get_recommended_completion(
 
 // completions.go:3599
 fn is_abstract_constructor_symbol(symbol: P<Symbol>) -> bool {
-    if symbol.flags().intersects(SymbolFlags::CLASS) {
+    if symbol.flags().intersects(SymbolFlags::Class) {
         let declaration = ast::get_class_like_declaration_of_symbol(symbol);
         return declaration
-            .is_some_and(|d| ast::has_syntactic_modifier(d, ModifierFlags::ABSTRACT));
+            .is_some_and(|d| ast::has_syntactic_modifier(d, ModifierFlags::Abstract));
     }
     false
 }
@@ -991,7 +991,7 @@ pub(crate) fn is_probably_global_type(
     // lib.webworker.d.ts, so checking against `self` is also a check against `window` when it exists.
     let self_symbol = type_checker.get_global_symbol_exported(
         "self",
-        SymbolFlags::VALUE,
+        SymbolFlags::Value,
         None, /*diagnostic*/
     );
     if let Some(self_symbol) = self_symbol {
@@ -1002,7 +1002,7 @@ pub(crate) fn is_probably_global_type(
     }
     let global_symbol = type_checker.get_global_symbol_exported(
         "global",
-        SymbolFlags::VALUE,
+        SymbolFlags::Value,
         None, /*diagnostic*/
     );
     if let Some(global_symbol) = global_symbol {
@@ -1014,7 +1014,7 @@ pub(crate) fn is_probably_global_type(
     }
     let global_this_symbol = type_checker.get_global_symbol_exported(
         "globalThis",
-        SymbolFlags::VALUE,
+        SymbolFlags::Value,
         None, /*diagnostic*/
     );
     if let Some(global_this_symbol) = global_this_symbol {
@@ -1187,7 +1187,7 @@ pub(crate) fn try_get_object_literal_contextual_type(
     node: P<Node>,
     type_checker: &mut Checker,
 ) -> Option<P<Type>> {
-    let t = type_checker.get_contextual_type_exported(node, ContextFlags::NONE);
+    let t = type_checker.get_contextual_type_exported(node, ContextFlags::None);
     if t.is_some() {
         return t;
     }
@@ -1202,7 +1202,7 @@ pub(crate) fn try_get_object_literal_contextual_type(
     }
     if ast::is_expression(parent) {
         // f(() => (({ | })));
-        return type_checker.get_contextual_type_exported(parent, ContextFlags::NONE);
+        return type_checker.get_contextual_type_exported(parent, ContextFlags::None);
     }
 
     None
@@ -1229,7 +1229,7 @@ pub(crate) fn get_properties_for_object_expression(
     let promise_filtered_contextual_type = type_checker.get_union_type_exported(&filtered);
 
     let t = if has_completions_type
-        && !completions_type.unwrap().flags().intersects(TypeFlags::ANY_OR_UNKNOWN)
+        && !completions_type.unwrap().flags().intersects(TypeFlags::AnyOrUnknown)
     {
         type_checker
             .get_union_type_exported(&[promise_filtered_contextual_type, completions_type.unwrap()])
@@ -1270,7 +1270,7 @@ fn get_apparent_properties(
     }
     let mut filtered: Vec<P<Type>> = Vec::new();
     filtered.extend(t.types().iter().filter_map(|&member_type| {
-        let excluded = member_type.flags().intersects(TypeFlags::PRIMITIVE)
+        let excluded = member_type.flags().intersects(TypeFlags::Primitive)
             || type_checker.is_array_like_type_exported(member_type)
             || type_checker.is_type_invalid_due_to_union_discriminant(member_type, node)
             || type_checker.type_has_call_or_construct_signatures_exported(member_type)
@@ -1287,7 +1287,7 @@ fn get_apparent_properties(
 fn contains_non_public_properties(props: &[P<Symbol>]) -> bool {
     props.iter().any(|&p| {
         checker::get_declaration_modifier_flags_from_symbol_exported(p)
-            .intersects(ModifierFlags::NON_PUBLIC_ACCESSIBILITY_MODIFIER)
+            .intersects(ModifierFlags::NonPublicAccessibilityModifier)
     })
 }
 
@@ -1384,7 +1384,7 @@ fn set_member_declared_by_spread_assignment(
     }
     let mut properties: &[P<Symbol>] = &[];
     if let Some(t) = t {
-        if t.flags().intersects(TypeFlags::STRUCTURED_TYPE) {
+        if t.flags().intersects(TypeFlags::StructuredType) {
             properties = t.as_structured_type().properties();
         }
     }
@@ -1582,12 +1582,12 @@ pub(crate) fn filter_class_members_list(
         }
 
         // Don't filter member even if the name matches if it is declared private in the list.
-        if member.modifier_flags().intersects(ModifierFlags::PRIVATE) {
+        if member.modifier_flags().intersects(ModifierFlags::Private) {
             return None;
         }
 
         // Do not filter it out if the static presence doesn't match.
-        if ast::is_static(member) != class_element_modifier_flags.intersects(ModifierFlags::STATIC)
+        if ast::is_static(member) != class_element_modifier_flags.intersects(ModifierFlags::Static)
         {
             return None;
         }
@@ -1603,7 +1603,7 @@ pub(crate) fn filter_class_members_list(
             !existing_member_names.contains(ast::symbol_name(property_symbol))
                 && !property_symbol.declarations().is_empty()
                 && !checker::get_declaration_modifier_flags_from_symbol_exported(property_symbol)
-                    .intersects(ModifierFlags::PRIVATE)
+                    .intersects(ModifierFlags::Private)
                 && property_symbol.value_declaration().is_none_or(|declaration| {
                     !ast::is_private_identifier_class_element_declaration(declaration)
                 })
@@ -1902,7 +1902,7 @@ impl LanguageService {
             "",                /*filterText*/
             SORT_TEXT_LOCATION_PRIORITY,
             ScriptElementKind::ClassElement,
-            ScriptElementKindModifier::NONE, /*kindModifiers*/
+            ScriptElementKindModifier::None, /*kindModifiers*/
             None,                            /*replacementSpan*/
             None,                            /*commitCharacters*/
             None,                            /*labelDetails*/
@@ -2007,7 +2007,7 @@ impl LanguageService {
         // Adjustements based on kind modifiers.
         let mut tags: Option<Vec<lsproto::CompletionItemTag>> = None;
         // Copied from vscode ts extension: `MyCompletionItem.constructor`.
-        if is_member_completion && kind_modifiers.intersects(ScriptElementKindModifier::OPTIONAL) {
+        if is_member_completion && kind_modifiers.intersects(ScriptElementKindModifier::Optional) {
             if insert_text.is_empty() {
                 insert_text.clone_from(&name);
             }
@@ -2016,7 +2016,7 @@ impl LanguageService {
             }
             name += "?";
         }
-        if kind_modifiers.intersects(ScriptElementKindModifier::DEPRECATED) {
+        if kind_modifiers.intersects(ScriptElementKindModifier::Deprecated) {
             tags = Some(vec![lsproto::CompletionItemTag::DEPRECATED]);
         }
 
@@ -2099,7 +2099,7 @@ impl LanguageService {
                         "", /*filterText*/
                         SORT_TEXT_LOCATION_PRIORITY,
                         ScriptElementKind::Label,
-                        ScriptElementKindModifier::NONE, /*kindModifiers*/
+                        ScriptElementKindModifier::None, /*kindModifiers*/
                         None,                            /*replacementSpan*/
                         None,                            /*commitCharacters*/
                         None,                            /*labelDetails*/

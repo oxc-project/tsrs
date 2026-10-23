@@ -29,7 +29,7 @@ fn verbatim_segment(
         original_start: original_start as u32,
         original_end: original_end as u32,
         kind: Kind::VERBATIM,
-        features: Feature::ALL,
+        features: Feature::All,
     }
 }
 
@@ -42,12 +42,12 @@ impl ipc::Handler for PrefixedSupplementalHandler {
                 let p: TransformParams = unmarshal_params(params)?;
                 let content = p.content.as_str();
                 const PREFIX: &str = "/* generated */\n";
-                let mut features = Feature::ALL;
+                let mut features = Feature::All;
                 if p.file_name.contains("folding-disabled")
                     || p.file_name.contains("codelens-disabled")
                     || p.file_name.contains("formatting-disabled")
                 {
-                    features = Feature::NONE;
+                    features = Feature::None;
                 }
                 let mut supplemental_text = format!("{PREFIX}{content}");
                 let mut segments = vec![Segment {

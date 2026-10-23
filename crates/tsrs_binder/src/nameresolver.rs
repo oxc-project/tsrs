@@ -141,34 +141,34 @@ impl<H: 'static> NameResolver<H> {
                         // - parameters are only in the scope of function body
                         // This restriction does not apply to JSDoc comment types because they are parented
                         // at a higher level than type parameters would normally be
-                        if (meaning & res.flags.get()).intersects(SymbolFlags::TYPE)
+                        if (meaning & res.flags.get()).intersects(SymbolFlags::Type)
                             && last.kind() != Kind::JSDoc
                         {
                             // type parameters are visible in parameter list, return type and type parameter list.
                             // Synthetic fake scopes are added for signatures so type parameters are accessible from them.
-                            use_result = res.flags.get().intersects(SymbolFlags::TYPE_PARAMETER)
-                                && (last.flags().intersects(NodeFlags::SYNTHESIZED)
+                            use_result = res.flags.get().intersects(SymbolFlags::TypeParameter)
+                                && (last.flags().intersects(NodeFlags::Synthesized)
                                     || last_location == loc.type_node()
                                     || last.kind() == Kind::Parameter
                                     || last.kind() == Kind::JSDocParameterTag
                                     || last.kind() == Kind::JSDocReturnTag
                                     || last.kind() == Kind::TypeParameter);
                         }
-                        if (meaning & res.flags.get()).intersects(SymbolFlags::VARIABLE) {
+                        if (meaning & res.flags.get()).intersects(SymbolFlags::Variable) {
                             // expression inside parameter will lookup as normal variable scope when targeting es2015+
                             if self.use_outer_variable_scope_in_parameter(host, res, loc, last) {
                                 use_result = false;
                             } else if res
                                 .flags
                                 .get()
-                                .intersects(SymbolFlags::FUNCTION_SCOPED_VARIABLE)
+                                .intersects(SymbolFlags::FunctionScopedVariable)
                             {
                                 // parameters are visible only inside function body, parameter list and return type
                                 // technically for parameter list case here we might mix parameters and variables declared in function,
                                 // however it is detected separately when checking initializers of parameters
                                 // to make sure that they reference no variables declared after them.
                                 use_result = last.kind() == Kind::Parameter
-                                    || last.flags().intersects(NodeFlags::SYNTHESIZED)
+                                    || last.flags().intersects(NodeFlags::Synthesized)
                                     || last_location == loc.type_node()
                                         && ast::find_ancestor(
                                             res.value_declaration(),
@@ -208,7 +208,7 @@ impl<H: 'static> NameResolver<H> {
                         let module_exports = module_symbol.exports();
                         if ast::is_source_file(loc)
                             || (ast::is_module_declaration(loc)
-                                && loc.flags().intersects(NodeFlags::AMBIENT)
+                                && loc.flags().intersects(NodeFlags::Ambient)
                                 && !ast::is_global_scope_augmentation(loc))
                         {
                             // It's an external module. First see if the module has an export default and if the local
@@ -239,7 +239,7 @@ impl<H: 'static> NameResolver<H> {
                             //        which is not the desired behavior.
                             let module_export = module_exports.and_then(|e| (*e).get(name));
                             if let Some(module_export) = module_export {
-                                if module_export.flags.get() == SymbolFlags::ALIAS
+                                if module_export.flags.get() == SymbolFlags::Alias
                                     && (ast::get_declaration_of_kind(
                                         module_export,
                                         Kind::ExportSpecifier,
@@ -260,7 +260,7 @@ impl<H: 'static> NameResolver<H> {
                                 host,
                                 module_exports,
                                 name,
-                                meaning & SymbolFlags::MODULE_MEMBER,
+                                meaning & SymbolFlags::ModuleMember,
                             );
                             if let Some(res) = result {
                                 if ast::is_source_file(loc)
@@ -269,7 +269,7 @@ impl<H: 'static> NameResolver<H> {
                                         .common_js_module_indicator
                                         .get()
                                         .is_some()
-                                    && !res.flags.get().intersects(SymbolFlags::TYPE)
+                                    && !res.flags.get().intersects(SymbolFlags::Type)
                                 {
                                     result = None;
                                 } else {
@@ -286,12 +286,12 @@ impl<H: 'static> NameResolver<H> {
                             host,
                             enum_symbol.exports(),
                             name,
-                            meaning & SymbolFlags::ENUM_MEMBER,
+                            meaning & SymbolFlags::EnumMember,
                         );
                         if let Some(res) = result {
                             if name_not_found_message.is_some()
                                 && self.compiler_options.get_isolated_modules()
-                                && !loc.flags().intersects(NodeFlags::AMBIENT)
+                                && !loc.flags().intersects(NodeFlags::Ambient)
                                 && ast::get_source_file_of_node(Some(loc))
                                     != ast::get_source_file_of_node(res.value_declaration())
                             {
@@ -324,7 +324,7 @@ impl<H: 'static> NameResolver<H> {
                                             host,
                                             ctor.locals(),
                                             name,
-                                            meaning & SymbolFlags::VALUE,
+                                            meaning & SymbolFlags::Value,
                                         )
                                         .is_some()
                                     {
@@ -337,7 +337,7 @@ impl<H: 'static> NameResolver<H> {
                     }
                     Kind::ClassDeclaration | Kind::ClassExpression | Kind::InterfaceDeclaration => {
                         let members = self.get_symbol_of_declaration(host, loc).unwrap().members();
-                        result = self.lookup(host, members, name, meaning & SymbolFlags::TYPE);
+                        result = self.lookup(host, members, name, meaning & SymbolFlags::Type);
                         if let Some(res) = result {
                             if !is_type_parameter_symbol_declared_in_container(res, loc) {
                                 // ignore type parameters not declared in this container
@@ -357,7 +357,7 @@ impl<H: 'static> NameResolver<H> {
                             }
                             break 'loop_;
                         }
-                        if ast::is_class_expression(loc) && meaning.intersects(SymbolFlags::CLASS) {
+                        if ast::is_class_expression(loc) && meaning.intersects(SymbolFlags::Class) {
                             if let Some(class_name) = loc.name() {
                                 if name == class_name.text() {
                                     result = loc.symbol();
@@ -379,7 +379,7 @@ impl<H: 'static> NameResolver<H> {
                                     .unwrap()
                                     .members();
                                 result =
-                                    self.lookup(host, members, name, meaning & SymbolFlags::TYPE);
+                                    self.lookup(host, members, name, meaning & SymbolFlags::Type);
                                 if result.is_some() {
                                     if name_not_found_message.is_some() {
                                         self.error(host, original_location, &diagnostics::BASE_CLASS_EXPRESSIONS_CANNOT_REFERENCE_CLASS_TYPE_PARAMETERS, &[]);
@@ -403,7 +403,7 @@ impl<H: 'static> NameResolver<H> {
                             // A reference to this grandparent's type parameters would be an error
                             let members =
                                 self.get_symbol_of_declaration(host, gp).unwrap().members();
-                            result = self.lookup(host, members, name, meaning & SymbolFlags::TYPE);
+                            result = self.lookup(host, members, name, meaning & SymbolFlags::Type);
                             if result.is_some() {
                                 if name_not_found_message.is_some() {
                                     self.error(
@@ -422,17 +422,17 @@ impl<H: 'static> NameResolver<H> {
                     | Kind::GetAccessor
                     | Kind::SetAccessor
                     | Kind::FunctionDeclaration => {
-                        if meaning.intersects(SymbolFlags::VARIABLE) && name == "arguments" {
+                        if meaning.intersects(SymbolFlags::Variable) && name == "arguments" {
                             result = Some(self.arguments_symbol());
                             break 'loop_;
                         }
                     }
                     Kind::FunctionExpression => {
-                        if meaning.intersects(SymbolFlags::VARIABLE) && name == "arguments" {
+                        if meaning.intersects(SymbolFlags::Variable) && name == "arguments" {
                             result = Some(self.arguments_symbol());
                             break 'loop_;
                         }
-                        if meaning.intersects(SymbolFlags::FUNCTION) {
+                        if meaning.intersects(SymbolFlags::Function) {
                             if let Some(function_name) = loc.name() {
                                 if name == function_name.text() {
                                     result = loc.symbol();
@@ -503,7 +503,7 @@ impl<H: 'static> NameResolver<H> {
                         }
                     }
                     Kind::InferType => {
-                        if meaning.intersects(SymbolFlags::TYPE_PARAMETER) {
+                        if meaning.intersects(SymbolFlags::TypeParameter) {
                             let type_parameter = loc.as_infer_type_node().type_parameter();
                             if let Some(parameter_name) = type_parameter.name() {
                                 if name == parameter_name.text() {
@@ -550,7 +550,7 @@ impl<H: 'static> NameResolver<H> {
             }
         }
         if result.is_none() && !exclude_globals {
-            result = self.lookup(host, self.globals, name, meaning | SymbolFlags::GLOBAL_LOOKUP);
+            result = self.lookup(host, self.globals, name, meaning | SymbolFlags::GlobalLookup);
         }
         if result.is_none() {
             if let Some(original) = original_location {
@@ -759,7 +759,7 @@ impl<H: 'static> NameResolver<H> {
         }
         // Default implementation synthesizes a transient symbol for `arguments`
         let arguments_symbol =
-            Symbol::new(SymbolFlags::PROPERTY | SymbolFlags::TRANSIENT, "arguments");
+            Symbol::new(SymbolFlags::Property | SymbolFlags::Transient, "arguments");
         self.arguments_symbol.set(Some(arguments_symbol));
         arguments_symbol
     }
@@ -787,7 +787,7 @@ pub(crate) fn is_export_default_symbol(symbol: Option<P<Symbol>>) -> bool {
         return false;
     };
     let declarations = symbol.declarations();
-    !declarations.is_empty() && ast::has_syntactic_modifier(declarations[0], ModifierFlags::DEFAULT)
+    !declarations.is_empty() && ast::has_syntactic_modifier(declarations[0], ModifierFlags::Default)
 }
 
 /// tsrs-only: kinds of the ancestors a name is most often resolved through, for which `resolve` does nothing but
@@ -896,7 +896,7 @@ fn get_is_deferred_context_worker(location: P<Node>, last_location: Option<P<Nod
     }
     // generator functions and async functions are not inlined in control flow when immediately invoked
     if location.body_data().unwrap().asterisk_token.is_some()
-        || ast::has_syntactic_modifier(location, ModifierFlags::ASYNC)
+        || ast::has_syntactic_modifier(location, ModifierFlags::Async)
     {
         return true;
     }

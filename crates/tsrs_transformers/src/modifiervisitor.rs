@@ -12,7 +12,7 @@ impl ModifierVisitor {
     // modifiervisitor.go:13
     fn visit(&self, node: P<Node>) -> Option<P<Node>> {
         let flags = ast::modifier_to_flag(node.kind());
-        if flags != ModifierFlags::NONE && !flags.intersects(self.allowed_modifiers) {
+        if flags != ModifierFlags::None && !flags.intersects(self.allowed_modifiers) {
             return None;
         }
         Some(node)

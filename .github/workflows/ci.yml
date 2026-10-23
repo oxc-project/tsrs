@@ -111,12 +111,6 @@ jobs:
           ref: ${{ steps.ts.outputs.commit }}
           path: ts-ref
           fetch-depth: 1
-          sparse-checkout: |
-            tsc/testdata
-            packages/typescript/src
-            packages/typescript/lib
-            packages/typescript/vendor
-            tools/scripts/tsc
           persist-credentials: false
 
       - name: cargo check

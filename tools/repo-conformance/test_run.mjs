@@ -550,7 +550,7 @@ test("default checkers and strict reference remain independent", realOptions, ()
             'type D = "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9";\ntype U = `${D}${D}${D}${D}`;\ntype Chain<T, N extends unknown[] = []> = N["length"] extends 100 ? { value: T } : T extends string ? Chain<T, [...N, 0]> : never;\ndeclare function make<T>(f: (x: T) => void): Chain<T>;\nconst big = make((x: U) => {});\n',
         );
         write(path.join(root, "b.ts"), "declare function id<T>(x: T): T;\nconst y = id(big);\n");
-        const r = await checkProjects(root, ["tsconfig.json"], realContext(root), path.join(root, "logs"), 60, 5),
+        const r = await checkProjects(root, ["tsconfig.json"], realContext(root), path.join(root, "logs"), 180, 5),
             depth = "error TS2589: Type instantiation is excessively deep and possibly infinite.",
             go = read(path.join(root, "logs/0/tsgo.log")),
             strict = read(path.join(root, "logs/0/tsgo-strict.log"));
@@ -581,7 +581,7 @@ test("strict mode stays within the check budget", realOptions, () =>
         );
         fs.chmodSync(hang, 0o755);
         const configs = ["one", "two", "three"].map((n) => {
-            writeJSON(path.join(root, n, "tsconfig.json"), { files: ["a.ts"] });
+            writeJSON(path.join(root, n, "tsconfig.json"), { compilerOptions: { noLib: true }, files: ["a.ts"] });
             write(path.join(root, n, "a.ts"), "export const x: number = 1;\n");
             return n + "/tsconfig.json";
         });

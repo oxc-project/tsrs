@@ -44,7 +44,8 @@ tools/gen-check.sh                                # generated code matches its g
 ```
 
 Use the `dev` profile while editing and testing. It uses Cargo's default development settings with debug information
-disabled. Build `--release` for performance measurements: its fat LTO and single codegen unit are what ships.
+disabled. CI uses the optimized `ci` profile without LTO for workspace tests, compiler conformance and determinism.
+Build `--release` for performance measurements: its fat LTO and single codegen unit are what ships.
 
 The language-server test server and WebAssembly module have separate builds:
 
@@ -124,8 +125,8 @@ Capture its combined stdout and stderr, replacing the case's absolute directory 
 - Changes target `main`. CI (`.github/workflows/ci.yml`, on GitHub Actions) runs on pushes
   to `main`, on pull requests (drafts too), on merge groups and by manual dispatch, and must pass. Fork pull requests
   follow the repository's approval setting, run with read-only tokens and never get repository secrets.
-- CI builds the CLI and conformance runner once in `build-correctness`; conformance, regressions and determinism
-  use those same binaries. The Linux checks have separate Rust caches: `lint` runs Clippy and source checks;
+- CI builds the CLI and conformance runner once with `--profile ci` in `build-correctness`; conformance, regressions
+  and determinism use those same binaries. The Linux checks have separate Rust caches: `lint` runs Clippy and source checks;
   `test` runs Rust checks and all workspace tests, compiler conformance in
   both checker modes, and regressions; `determinism` compares checker output across four pinned projects and regression
   cases and rejects current-compiler crashes, including identical crashes across all schedules. When the TypeScript

@@ -404,7 +404,7 @@ jobs:
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           MERGE_SHA: ${{ github.sha }}
           DECISION: ${{ needs.decide.outputs.run }}
-          IDENTICAL: ${{ needs.build.outputs.identical }}
+          IDENTICAL: ${{ needs.build.outputs.identical || 'false' }}
           REASON: ${{ needs.decide.outputs.reason }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |

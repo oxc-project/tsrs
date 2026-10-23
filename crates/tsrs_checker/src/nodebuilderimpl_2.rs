@@ -66,8 +66,7 @@ impl NodeBuilderImpl {
         // If the expanded parameter list had a variadic in a non-trailing position, don't expand it
         let last_expanded_param = expanded_params.last().copied();
         let has_non_trailing_rest = expanded_params.iter().any(|&p| {
-            Some(p) != last_expanded_param
-                && p.check_flags.get().intersects(CheckFlags::RestParameter)
+            Some(p) != last_expanded_param && p.check_flags().intersects(CheckFlags::RestParameter)
         });
         let parameter_symbols: Vec<P<Symbol>> =
             if has_non_trailing_rest { signature.parameters().to_vec() } else { expanded_params };
@@ -908,7 +907,7 @@ impl NodeBuilderImpl {
         // for deep mappings which likely come from expressions, while truncating those parts which
         // come from mappings over library functions.
         // Condition (3) limits printing of possibly infinitely deep reverse mapped types.
-        if !property_symbol.check_flags.get().intersects(CheckFlags::ReverseMapped) {
+        if !property_symbol.check_flags().intersects(CheckFlags::ReverseMapped) {
             return false;
         }
         let reverse_mapped_stack = self.ctx().reverse_mapped_stack.borrow().clone();
@@ -1217,7 +1216,7 @@ impl NodeBuilderImpl {
     ) -> Vec<P<Node>> {
         let mut type_elements: Vec<P<Node>> = type_elements.to_vec();
         let property_is_reverse_mapped =
-            property_symbol.check_flags.get().intersects(CheckFlags::ReverseMapped);
+            property_symbol.check_flags().intersects(CheckFlags::ReverseMapped);
         let property_type = if self.should_use_placeholder_for_property(c, property_symbol) {
             c.any_type
         } else {
@@ -3110,7 +3109,7 @@ impl NodeBuilderImpl {
         if self.should_write_type_parameters_in_qualified_name(c, chain, index) {
             let symbol = chain[index];
             let next_symbol = chain[index + 1];
-            if !next_symbol.check_flags.get().intersects(CheckFlags::Instantiated) {
+            if !next_symbol.check_flags().intersects(CheckFlags::Instantiated) {
                 return None;
             }
 

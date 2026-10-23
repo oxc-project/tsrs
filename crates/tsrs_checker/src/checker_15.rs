@@ -1091,7 +1091,7 @@ impl Checker {
 
     // checker.go:31152
     pub(crate) fn is_circular_mapped_property(&mut self, symbol: P<Symbol>) -> bool {
-        if symbol.check_flags.get().intersects(CheckFlags::Mapped) {
+        if symbol.check_flags().intersects(CheckFlags::Mapped) {
             let links = self.value_symbol_links.get(symbol);
             return links.resolved_type.get().is_none()
                 && self
@@ -3101,7 +3101,7 @@ impl Checker {
                     if !declarations.is_empty() {
                         let symbol =
                             self.new_symbol(SymbolFlags::Property, InternalSymbolNameIndex);
-                        symbol.check_flags.set(symbol.check_flags.get() | CheckFlags::IndexSymbol);
+                        symbol.set_check_flags(symbol.check_flags() | CheckFlags::IndexSymbol);
                         symbol.set_value_declaration(Some(declarations[0]));
                         symbol.set_declarations(&declarations);
                         symbol.set_parent(t.symbol());

@@ -1172,7 +1172,7 @@ pub fn get_declaration_modifier_flags_from_symbol(s: P<Symbol>) -> ModifierFlags
 /// is not a class has neither (its accessibility modifiers are dropped below), so its declaration is not read.
 #[inline]
 pub(crate) fn get_declaration_non_public_flags_from_symbol(s: P<Symbol>) -> ModifierFlags {
-    if !s.check_flags.get().intersects(CheckFlags::Synthetic)
+    if !s.check_flags().intersects(CheckFlags::Synthetic)
         && !s.parent().is_some_and(|p| p.flags().intersects(SymbolFlags::Class))
     {
         return ModifierFlags::None;
@@ -1185,7 +1185,7 @@ pub(crate) fn get_declaration_modifier_flags_from_symbol_ex(
     s: P<Symbol>,
     is_write: bool,
 ) -> ModifierFlags {
-    let check_flags = s.check_flags.get();
+    let check_flags = s.check_flags();
     if check_flags.intersects(CheckFlags::Synthetic) {
         let mut access_modifier = ModifierFlags::None;
         if !is_write && check_flags.intersects(CheckFlags::ContainsPublic)

@@ -3487,7 +3487,7 @@ mod tests {
         sig.set_type_parameters(Some(list));
         assert_eq!(sig.rare.tail(), Some(tail));
         assert_eq!(sig.type_parameters().as_ptr(), list.as_ptr());
-        let this_parameter = P::new(Symbol::default());
+        let this_parameter = Symbol::new(SymbolFlags::None, "");
         let composite = P::new(CompositeSignature::default());
         sig.set_this_parameter(Some(this_parameter));
         sig.set_composite(Some(composite));

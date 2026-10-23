@@ -1865,8 +1865,8 @@ mod id_generator_tests {
         assert_eq!(node_generator.get_node_id(other_node), ordinary_node_id);
         assert_eq!(get_assigned_node_id(node), Some(block_node_id));
 
-        let symbol = P::new(Symbol::default());
-        let other_symbol = P::new(Symbol::default());
+        let symbol = Symbol::new(SymbolFlags::None, "");
+        let other_symbol = Symbol::new(SymbolFlags::None, "");
         let symbol_generator = SymbolIdGenerator::default();
         let block_symbol_id = symbol_generator.get_symbol_id(symbol);
         let ordinary_symbol_id = get_symbol_id(other_symbol);

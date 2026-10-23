@@ -3165,7 +3165,7 @@ impl Checker {
             let value_declaration = parameter.value_declaration();
             if value_declaration.is_some_and(|vd| vd.type_node().is_none())
                 || value_declaration.is_none()
-                    && parameter.check_flags.get().intersects(CheckFlags::DeferredType)
+                    && parameter.check_flags().intersects(CheckFlags::DeferredType)
             {
                 let contextual_parameter_type =
                     self.get_rest_type_at_position(context, length, false);

@@ -137,7 +137,7 @@ impl Checker {
         symbol: P<Symbol>,
     ) -> P<Type> {
         let type_arguments = node.type_arguments();
-        if symbol.check_flags.get().intersects(CheckFlags::Unresolved) {
+        if symbol.check_flags().intersects(CheckFlags::Unresolved) {
             let alias_type_arguments: Vec<P<Type>> =
                 type_arguments.iter().map(|&n| self.get_type_from_type_node(n)).collect();
             let alias = P::new(TypeAlias {

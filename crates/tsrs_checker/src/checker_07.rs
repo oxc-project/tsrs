@@ -2190,7 +2190,7 @@ impl Checker {
         check_flags: CheckFlags,
     ) -> P<Symbol> {
         let result = self.new_symbol(flags, name);
-        result.check_flags.set(check_flags);
+        result.set_check_flags(check_flags);
         result
     }
 

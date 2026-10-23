@@ -3,7 +3,7 @@ use std::sync::atomic::AtomicU32;
 
 use hashbrown::HashTable;
 use rustc_hash::FxBuildHasher;
-use tsrs_core::{FrozenCell, OwnedCell, OwnedPSliceCell, OwnedTaggedStrCell, P, PKey};
+use tsrs_core::{FrozenCell, OwnedCell, OwnedTaggedStrCell, P, PKey, ThinSlice};
 
 use crate::ast::{Node, SourceFile};
 use crate::checkflags::CheckFlags;
@@ -22,20 +22,32 @@ use crate::*;
 // 10.88M / 2.31M of 13.2M; another node in 23K), so a bit says "the first declaration" and only another node is
 // kept in the tail (`value_declaration()` / `set_value_declaration()`; a declarations write that replaces the
 // first declaration moves it to the tail first). Both bits (`TAG_TABLES`, `TAG_VALUE_FIRST`) are the tag bits of
-// the name word (`OwnedTaggedStrCell`: pointer, length and tags in one word). `declarations` is an
-// `OwnedPSliceCell`: 40 bytes, 32 with compressed pointers (handle-sized parent, 8-byte declarations).
-// An instantiated symbol stores its source in `parent_or_tables` and a reserved zero name word
-// selects that representation; all data access goes through the source, while flags, check flags,
-// and id remain specific to the instance. This keeps the common symbol at its measured size.
+// the name word (`OwnedTaggedStrCell`: pointer, length and tags in one word).
+// Ordinary symbols allocate a header and an inline SymbolData payload. Instantiated symbols allocate
+// only the header and store their ordinary data owner's key in parent_or_tables. The private high bit
+// of check_flags_and_kind selects that layout independently of the semantic flags and symbol id.
 
-#[derive(Default)]
+#[repr(C, align(8))]
 pub struct Symbol {
     pub flags: OwnedCell<SymbolFlags>,
-    pub check_flags: OwnedCell<CheckFlags>, // Non-zero only in transient symbols created by Checker
-    name: OwnedTaggedStrCell,
-    declarations: OwnedPSliceCell<P<Node>>, // Go slice: shared by copies, replaced (not mutated) on append
+    check_flags_and_kind: OwnedCell<u32>,
     pub(crate) id: AtomicU32, // Low 31 bits for ordinary ids; high bit tags Go's reserved block range.
-    parent_or_tables: OwnedCell<PKey>, // parent, table tail, or instantiated symbol's source; 0 = none
+    parent_or_tables: OwnedCell<PKey>, // parent, table tail, or shared data owner; 0 = none
+}
+
+#[repr(C)]
+#[derive(Default)]
+struct SymbolData {
+    name: OwnedTaggedStrCell,
+    // Go slice: shared by copies, replaced (not mutated) on append. ThinSlice keeps this 8 bytes
+    // with compressed and plain pointers, with a long form for unusually large declaration lists.
+    declarations: OwnedCell<ThinSlice<P<Node>>>,
+}
+
+#[repr(C)]
+struct SymbolWithData {
+    symbol: Symbol,
+    data: SymbolData,
 }
 
 #[derive(Default)]
@@ -50,11 +62,22 @@ struct SymbolTables {
     lazy: OwnedCell<Option<P<crate::lazylist::LazyNodeList>>>,
 }
 
+const SHARED_DATA: u32 = 1 << 31;
+const _: () = assert!(CheckFlags::all().bits() & SHARED_DATA == 0);
+const _: () = assert!(std::mem::offset_of!(SymbolWithData, symbol) == 0);
+const _: () = assert!(std::mem::offset_of!(SymbolWithData, data) == std::mem::size_of::<Symbol>());
 #[cfg(target_pointer_width = "64")]
-const _: () =
-    assert!(std::mem::size_of::<Symbol>() == if tsrs_core::COMPRESSED_PTRS { 32 } else { 40 });
+const _: () = {
+    assert!(std::mem::size_of::<Symbol>() == if tsrs_core::COMPRESSED_PTRS { 16 } else { 24 });
+    assert!(
+        std::mem::size_of::<SymbolWithData>() == if tsrs_core::COMPRESSED_PTRS { 32 } else { 40 }
+    );
+};
 #[cfg(target_pointer_width = "32")]
-const _: () = assert!(std::mem::size_of::<Symbol>() == 32);
+const _: () = {
+    assert!(std::mem::size_of::<Symbol>() == 16);
+    assert!(std::mem::size_of::<SymbolWithData>() == 32);
+};
 
 /// `parent_or_tables` holds the `SymbolTables` tail.
 const TAG_TABLES: u8 = 1;
@@ -64,11 +87,17 @@ const TAG_VALUE_FIRST: u8 = 2;
 impl Symbol {
     /// Allocates a fresh symbol (Go `&ast.Symbol{Flags: flags, Name: name}`).
     pub fn new(flags: SymbolFlags, name: &'static str) -> P<Symbol> {
-        let s = P::new(Symbol {
-            flags: OwnedCell::new(flags),
-            name: OwnedTaggedStrCell::new(name),
-            ..Default::default()
+        let allocation = P::new(SymbolWithData {
+            symbol: Symbol {
+                flags: OwnedCell::new(flags),
+                check_flags_and_kind: OwnedCell::new(0),
+                id: AtomicU32::new(0),
+                parent_or_tables: OwnedCell::new(0),
+            },
+            data: SymbolData { name: OwnedTaggedStrCell::new(name), ..Default::default() },
         });
+        // SAFETY: SymbolWithData is repr(C) with the 8-aligned Symbol header first.
+        let s = unsafe { allocation.cast::<Symbol>() };
         if tsrs_core::sharedgraph::on_seed_thread() {
             crate::get_symbol_id(s);
         }
@@ -78,7 +107,7 @@ impl Symbol {
     /// A transient symbol with its own flags, check flags and id, sharing the source's data.
     /// Go `newSharedDataSymbol` stores the same `symbolData` pointer on both symbols.
     pub fn new_shared_data(source: P<Symbol>) -> P<Symbol> {
-        let data = if source.name.is_shared_marker() {
+        let data = if source.shares_data() {
             // SAFETY: a shared symbol stores its live data owner's key here.
             unsafe { P::from_key(source.parent_or_tables.get()) }
         } else {
@@ -86,11 +115,9 @@ impl Symbol {
         };
         let s = P::new(Symbol {
             flags: OwnedCell::new(source.flags() | SymbolFlags::Transient),
-            check_flags: OwnedCell::new(CheckFlags::None),
-            // SAFETY: `name` is private and every Symbol data accessor resolves this marker.
-            name: unsafe { OwnedTaggedStrCell::shared_marker() },
+            check_flags_and_kind: OwnedCell::new(SHARED_DATA),
+            id: AtomicU32::new(0),
             parent_or_tables: OwnedCell::new(data.key()),
-            ..Default::default()
         });
         if tsrs_core::sharedgraph::on_seed_thread() {
             crate::get_symbol_id(s);
@@ -99,8 +126,27 @@ impl Symbol {
     }
 
     #[inline]
+    fn shares_data(&self) -> bool {
+        self.check_flags_and_kind.get() & SHARED_DATA != 0
+    }
+
+    /// Inline payload of an ordinary data owner; shared instances never call this on themselves.
+    #[inline]
+    fn own_data(&self) -> &SymbolData {
+        debug_assert!(!self.shares_data());
+        // SAFETY: only new and new_shared_data construct Symbol. An ordinary header is the first
+        // field of SymbolWithData, whose live payload is at this offset in the same arena allocation.
+        unsafe {
+            tsrs_core::ptr::arena_neighbor(
+                self,
+                std::mem::offset_of!(SymbolWithData, data) as isize,
+            )
+        }
+    }
+
+    #[inline]
     fn data_owner(&self) -> &Symbol {
-        if self.name.is_shared_marker() {
+        if self.shares_data() {
             let key = self.parent_or_tables.get();
             assert_ne!(key, 0, "instantiated symbol has no shared data");
             // SAFETY: `new_shared_data` stores the key of the live data owner, flattening
@@ -121,19 +167,26 @@ impl Symbol {
     }
     #[inline]
     pub fn check_flags(&self) -> CheckFlags {
-        self.check_flags.get()
+        CheckFlags::from_bits_retain(self.check_flags_and_kind.get() & !SHARED_DATA)
+    }
+    /// Updates semantic check flags without changing the immutable allocation layout.
+    #[inline]
+    pub fn set_check_flags(&self, flags: CheckFlags) {
+        assert_eq!(flags.bits() & SHARED_DATA, 0, "check flags overlap the symbol layout tag");
+        let kind = self.check_flags_and_kind.get() & SHARED_DATA;
+        self.check_flags_and_kind.set(flags.bits() | kind);
     }
     #[inline]
     pub fn name(&self) -> &'static str {
-        self.data_owner().name.get()
+        self.data_owner().own_data().name.get()
     }
     #[inline]
     pub fn set_name(&self, name: &'static str) {
-        self.data_owner().name.set(name);
+        self.data_owner().own_data().name.set(name);
     }
     #[inline]
     pub fn declarations(&self) -> &'static [P<Node>] {
-        self.data_owner().declarations.get()
+        self.data_owner().own_data().declarations.get().get()
     }
     /// Go `symbol.Declarations = slices.Clone(declarations)`-like: stores a copy.
     #[inline]
@@ -143,15 +196,15 @@ impl Symbol {
     /// Go `symbol.Declarations = declarations` (shares the slice).
     pub fn set_declarations_static(&self, declarations: &'static [P<Node>]) {
         let data = self.data_owner();
-        let tags = data.name.tags();
+        let tags = data.own_data().name.tags();
         if tags & TAG_VALUE_FIRST != 0 {
-            let value_declaration = data.declarations.get()[0];
+            let value_declaration = data.own_data().declarations.get().get()[0];
             if declarations.first() != Some(&value_declaration) {
-                data.name.set_tags(tags & !TAG_VALUE_FIRST);
+                data.own_data().name.set_tags(tags & !TAG_VALUE_FIRST);
                 data.tables_for_write().value_declaration.set(Some(value_declaration));
             }
         }
-        data.declarations.set(declarations);
+        data.own_data().declarations.set(ThinSlice::new(declarations));
     }
     /// Go `append(symbol.Declarations, declarations...)`.
     pub fn append_declarations(&self, declarations: &[P<Node>]) {
@@ -174,8 +227,8 @@ impl Symbol {
     )]
     pub fn value_declaration(&self) -> Option<P<Node>> {
         let data = self.data_owner();
-        if data.name.tags() & TAG_VALUE_FIRST != 0 {
-            let declarations = data.declarations.get();
+        if data.own_data().name.tags() & TAG_VALUE_FIRST != 0 {
+            let declarations = data.own_data().declarations.get().get();
             debug_assert_ne!(declarations, []);
             // SAFETY: the bit is set only while the declarations are non-empty (`set_value_declaration`,
             // `set_declarations_static`).
@@ -185,17 +238,17 @@ impl Symbol {
     }
     pub fn set_value_declaration(&self, value_declaration: Option<P<Node>>) {
         let data = self.data_owner();
-        let tags = data.name.tags();
+        let tags = data.own_data().name.tags();
         if value_declaration.is_some()
-            && data.declarations.get().first().copied() == value_declaration
+            && data.own_data().declarations.get().get().first().copied() == value_declaration
         {
-            data.name.set_tags(tags | TAG_VALUE_FIRST);
+            data.own_data().name.set_tags(tags | TAG_VALUE_FIRST);
             if let Some(tables) = data.tables() {
                 tables.value_declaration.set(None);
             }
             return;
         }
-        data.name.set_tags(tags & !TAG_VALUE_FIRST);
+        data.own_data().name.set_tags(tags & !TAG_VALUE_FIRST);
         if value_declaration.is_some() || data.tables().is_some() {
             data.tables_for_write().value_declaration.set(value_declaration);
         }
@@ -204,7 +257,7 @@ impl Symbol {
     fn tables(&self) -> Option<P<SymbolTables>> {
         let data = self.data_owner();
         // SAFETY: with the tag, the field holds the key of the tail made by `tables_for_write` (never freed).
-        (data.name.tags() & TAG_TABLES != 0)
+        (data.own_data().name.tags() & TAG_TABLES != 0)
             .then(|| unsafe { P::from_key(data.parent_or_tables.get()) })
     }
     #[inline]
@@ -218,7 +271,7 @@ impl Symbol {
                 ..Default::default()
             });
             data.parent_or_tables.set(tables.key());
-            data.name.set_tags(data.name.tags() | TAG_TABLES);
+            data.own_data().name.set_tags(data.own_data().name.tags() | TAG_TABLES);
             tables
         }
     }
@@ -1235,6 +1288,8 @@ mod tests {
 
         let instance = Symbol::new_shared_data(source);
         let nested = Symbol::new_shared_data(instance);
+        assert_eq!(instance.parent_or_tables.get(), source.key());
+        assert_eq!(nested.parent_or_tables.get(), source.key());
         assert_ne!(source, instance);
         assert_ne!(instance, nested);
         assert_ne!(get_symbol_id(source), get_symbol_id(instance));
@@ -1272,15 +1327,69 @@ mod tests {
         assert_eq!(instance.export_symbol(), None);
 
         source.set_flags(SymbolFlags::Class);
-        source.check_flags.set(CheckFlags::Readonly);
-        instance.check_flags.set(CheckFlags::None);
+        source.set_check_flags(CheckFlags::Readonly);
+        instance.set_check_flags(CheckFlags::None);
         assert_eq!(instance.name(), "renamed");
         assert_eq!(instance.declarations(), &[second]);
-        instance.check_flags.set(CheckFlags::Instantiated | CheckFlags::Late);
+        instance.set_check_flags(CheckFlags::Instantiated | CheckFlags::Late);
         assert_eq!(source.flags(), SymbolFlags::Class);
         assert_eq!(instance.flags(), SymbolFlags::Property | SymbolFlags::Transient);
         assert_eq!(source.check_flags(), CheckFlags::Readonly);
         assert_eq!(instance.check_flags(), CheckFlags::Instantiated | CheckFlags::Late);
+
+        // Neither kind of semantic flags determines the allocation layout.
+        instance.set_flags(SymbolFlags::None);
+        nested.set_check_flags(CheckFlags::all());
+        nested.set_check_flags(CheckFlags::None);
+        source.set_check_flags(CheckFlags::all());
+        assert_eq!(nested.check_flags().bits(), 0);
+        assert_eq!(source.check_flags(), CheckFlags::all());
+        assert_eq!(nested.name(), "renamed");
+        assert_eq!(instance.declarations(), &[second]);
+        assert!(source.tables().is_some());
+        assert!(!source.shares_data());
+        assert!(instance.shares_data());
+    }
+
+    #[test]
+    fn symbol_check_flags_reject_layout_bit_without_changing_data() {
+        for symbol in [
+            Symbol::new(SymbolFlags::None, ""),
+            Symbol::new_shared_data(Symbol::new(SymbolFlags::Property, "source")),
+        ] {
+            symbol.set_check_flags(CheckFlags::Readonly);
+            let name = symbol.name();
+            let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                symbol.set_check_flags(CheckFlags::from_bits_retain(SHARED_DATA));
+            }));
+            assert!(result.is_err());
+            assert_eq!(symbol.check_flags(), CheckFlags::Readonly);
+            assert_eq!(symbol.name(), name);
+        }
+    }
+
+    #[test]
+    fn shared_symbol_keeps_long_declarations_and_value_declaration() {
+        let factory = NodeFactory::default();
+        let first = factory.new_identifier("first");
+        let second = factory.new_identifier("second");
+        let source = Symbol::new(SymbolFlags::Property, "long");
+        let declarations = tsrs_core::alloc_vec(vec![first; 65536]);
+        source.set_declarations_static(declarations);
+        source.set_value_declaration(Some(first));
+        let instance = Symbol::new_shared_data(source);
+        assert_eq!(instance.declarations().as_ptr(), declarations.as_ptr());
+        assert_eq!(instance.declarations().len(), declarations.len());
+        #[cfg(target_pointer_width = "64")]
+        assert!(source.own_data().declarations.get().is_long());
+        instance.append_declarations(&[second]);
+        assert_eq!(source.declarations().len(), 65537);
+        assert_eq!(source.declarations()[65536], second);
+        instance.set_declarations_static(&[]);
+        assert_eq!(source.declarations(), &[]);
+        assert_eq!(instance.value_declaration(), Some(first));
+        instance.set_value_declaration(None);
+        assert_eq!(source.value_declaration(), None);
     }
 
     #[test]

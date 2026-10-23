@@ -1147,14 +1147,14 @@ mod tests {
             Some(MAX_PAGE_LINK_COUNT - 1)
         );
         assert_eq!(dense_link_key(ast::BLOCK_ID_OFFSET + MAX_PAGE_LINK_COUNT), None);
-        let ordinary = P::new(Symbol::default());
+        let ordinary = Symbol::new(SymbolFlags::None, "");
         let ordinary_id = ast::get_symbol_id(ordinary).0;
         assert!(ordinary_id < ast::BLOCK_ID_OFFSET);
 
         let mut store: SymbolArenaLinkStore<Cell<u32>> = SymbolArenaLinkStore::default();
         store.get(ordinary).set(7);
         let symbols: Vec<_> =
-            std::iter::repeat_with(|| P::new(Symbol::default())).take(600).collect();
+            std::iter::repeat_with(|| Symbol::new(SymbolFlags::None, "")).take(600).collect();
         for (index, &symbol) in symbols.iter().enumerate() {
             assert!(store.try_get_if_id_assigned(symbol).is_none());
             let link = store.get(symbol);
@@ -1323,7 +1323,7 @@ mod tests {
     #[test]
     fn reference_kinds_accumulate_in_their_slots() {
         let symbols: Vec<P<Symbol>> =
-            std::iter::repeat_with(|| P::new(Symbol::default())).take(20000).collect();
+            std::iter::repeat_with(|| Symbol::new(SymbolFlags::None, "")).take(20000).collect();
         let mut store = SymbolReferenceLinkStore::default();
         for (i, &symbol) in symbols.iter().enumerate().filter(|(i, _)| i % 3 != 0) {
             store.add_reference_kinds(symbol, SymbolFlags::Value);

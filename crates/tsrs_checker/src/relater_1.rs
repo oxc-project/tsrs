@@ -2167,7 +2167,7 @@ impl Checker {
             // TODO: remove this when we support static private identifier fields and find other solutions to get privateNamesAndStaticFields test to pass
             if (require_optional_properties
                 || !target_prop.flags().intersects(SymbolFlags::Optional)
-                    && !target_prop.check_flags.get().intersects(CheckFlags::Partial))
+                    && !target_prop.check_flags().intersects(CheckFlags::Partial))
                 && !is_static_private_identifier_property(target_prop)
             {
                 let source_prop = if (lazy || self.lazy_has_prop) && !match_discriminant_properties
@@ -2406,28 +2406,27 @@ impl Checker {
                 t, name, false, /*skipObjectFunctionPropertyAugment*/
             );
             if let Some(prop) =
-                prop.filter(|p| p.check_flags.get().intersects(CheckFlags::SyntheticProperty))
+                prop.filter(|p| p.check_flags().intersects(CheckFlags::SyntheticProperty))
             {
                 if tsrs_core::sharedgraph::frozen(prop.get())
-                    && !prop.check_flags.get().intersects(CheckFlags::IsDiscriminantComputed)
+                    && !prop.check_flags().intersects(CheckFlags::IsDiscriminantComputed)
                 {
                     // Shared graph: a frozen symbol's flags cannot be cached into; compute, don't cache.
-                    return prop.check_flags.get().contains(CheckFlags::NonUniformAndLiteral) && {
+                    return prop.check_flags().contains(CheckFlags::NonUniformAndLiteral) && {
                         let prop_type = self.get_type_of_symbol(prop);
                         !self.is_generic_type(prop_type)
                     };
                 }
-                if !prop.check_flags.get().intersects(CheckFlags::IsDiscriminantComputed) {
-                    prop.check_flags
-                        .set(prop.check_flags.get() | CheckFlags::IsDiscriminantComputed);
-                    if prop.check_flags.get().contains(CheckFlags::NonUniformAndLiteral) && {
+                if !prop.check_flags().intersects(CheckFlags::IsDiscriminantComputed) {
+                    prop.set_check_flags(prop.check_flags() | CheckFlags::IsDiscriminantComputed);
+                    if prop.check_flags().contains(CheckFlags::NonUniformAndLiteral) && {
                         let prop_type = self.get_type_of_symbol(prop);
                         !self.is_generic_type(prop_type)
                     } {
-                        prop.check_flags.set(prop.check_flags.get() | CheckFlags::IsDiscriminant);
+                        prop.set_check_flags(prop.check_flags() | CheckFlags::IsDiscriminant);
                     }
                 }
-                return prop.check_flags.get().intersects(CheckFlags::IsDiscriminant);
+                return prop.check_flags().intersects(CheckFlags::IsDiscriminant);
             }
         }
         false

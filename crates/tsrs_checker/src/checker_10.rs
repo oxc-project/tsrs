@@ -2347,7 +2347,7 @@ impl Checker {
         }
         // Create a transient symbol with its own flags and links, sharing the source's data.
         let result = self.new_shared_data_symbol(symbol);
-        result.check_flags.set(
+        result.set_check_flags(
             CheckFlags::Instantiated
                 | symbol.check_flags()
                     & (CheckFlags::Readonly
@@ -2684,7 +2684,7 @@ impl Checker {
                 | if is_optional { SymbolFlags::Optional } else { SymbolFlags::None },
             alloc_str(prop_name),
         );
-        prop.check_flags.set(
+        prop.set_check_flags(
             late_flag
                 | CheckFlags::Mapped
                 | if is_readonly { CheckFlags::Readonly } else { CheckFlags::None }

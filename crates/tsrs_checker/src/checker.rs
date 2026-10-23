@@ -1656,7 +1656,7 @@ pub fn new_checker(program: &'static dyn Program) -> Box<Checker> {
     let compiler_options = program.options();
     let dummy_type =
         Type::alloc(TypeFlags::None, ObjectFlags::None, TypeId(0), IntrinsicType::default());
-    let dummy_symbol = P::new(Symbol::default());
+    let dummy_symbol = Symbol::new(SymbolFlags::None, "");
     let dummy_mapper = new_simple_type_mapper(dummy_type, dummy_type);
     let dummy_signature = P::new(Signature::default());
     let dummy_index_info = P::new(IndexInfo::default());

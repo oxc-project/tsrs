@@ -170,9 +170,9 @@ mode (`TSRS_LAZY_MEMBERS=0`; ~30 min and ~122 GB peak for `types`). That mode's 
 `dist/tsconfig.tsbuildinfo` and later runs skip checking). If either changes, the cache is stale.
 
 - Quick tier (minutes): `tsrs-test types-dump -p tsconfig.json --out <dir> --mode types --text none --sample
-  <repo>/target/project-types-sample.txt` (run from `$PRIVATE_PROJECT`), then `tools/project-types-compare.py
+  <repo>/target/project-types-sample.txt` (run from `$PRIVATE_PROJECT`), then `tools/project-types-compare.mjs
   $TSRS_WORK/project-ref-dump/types <dir> --subset`. The sample is ~2,000 files
-  weighted toward zod schemas, ORM entities, workflows and router endpoints (`tools/project-types-sample.py`
+  weighted toward zod schemas, ORM entities, workflows and router endpoints (`tools/project-types-sample.mjs`
   writes it; the list names private files, so it is not committed). The checker has fully checked the program before the walk either way, but the walk itself can
   create types and assign symbol ids, so a file that differs only in a sample run should be confirmed with a full run.
 - Full tier (pre-landing for checker changes that can affect printing; ~40 min, up to ~125 GB peak, one at a time):
@@ -432,7 +432,7 @@ tools/ci/tsan.sh target/tsan/<host triple>/release/tsrs
 `plain-ptrs` because ThreadSanitizer's shadow memory takes the compressed handles' address range; `system-alloc`
 because it cannot see mimalloc reuse memory across threads (with mimalloc it reports about 120 races that are not).
 On Linux, ThreadSanitizer needs `sudo sysctl vm.mmap_rnd_bits=28` on kernels that randomize 32 bits. A failing run
-prints each race once with one full report (`tools/ci/tsan_summary.py`) and keeps the logs. `tools/ci/tsan.supp` lists
+prints each race once with one full report (`tools/ci/tsan_summary.mjs`) and keeps the logs. `tools/ci/tsan.supp` lists
 reports that are not tsrs races, each with its reason; anything else is a race to fix.
 
 ## Profiling
@@ -474,7 +474,7 @@ overlay JSON that maps *both* the symlinked and the real path of the file to the
 - Never special-case a test, never paper over a symptom, never "improve" on Go. If Go has a quirk, port the quirk.
 - Fix root causes in shared helpers rather than at one call site; then look for the same slip elsewhere
   (grep for the pattern) — sibling bugs are common because the same agent ported neighboring functions.
-- When a signature changes, run `python3 tools/sigs-from-rust.py` to refresh `docs/sigs/checker.txt`.
+- When a signature changes, run `node tools/sigs-from-rust.mjs` to refresh `docs/sigs/checker.txt`.
 - Keep a short log in `notes/fix-<agent-name>.md` (root causes found, patterns worth grepping for, things you could not
   resolve). It is committed with your work and read by the other agents.
 - Do not stop at the first fix. Work through your cluster until it is done or what remains is blocked on something

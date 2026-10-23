@@ -255,7 +255,7 @@ parse worker holds ~11 MiB of it at the peak; the 64 creation threads hold littl
   losing a slot; scrambled ids over 300 groups map to their own slots), `cargo test --release -p tsrs_cli` targets
   `default_emit`, `derived_variance`, `flow_memo` (the `memory_tests` in api.rs do not link on macOS, glibc
   `malloc_trim`, as on main).
-- `tools/lint/ratchet.py`: ok, none new; `tools/lint/source.py --update` (two Relaxed atomics of the sparse-page
+- `tools/lint/ratchet.py`: ok, none new; `tools/lint/source.mjs --update` (two Relaxed atomics of the sparse-page
   switches removed from `atomics.tsv`).
 - `tools/perf/probe.sh` supplied variant builds, `/proc` sampling and perf counters. The per-arena allocation
   table used for this investigation came from the profiler that has since been removed.

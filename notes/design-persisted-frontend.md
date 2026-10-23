@@ -177,7 +177,7 @@ The heap-owned parts not counted above are small: symbol-table entry buffers ~31
 ## 4. Language server cold start
 
 `tools/pfe-probe/lsp_first.py` (probe branch) runs `initialize`, `didOpen` of a 302-line service file of the private
-monorepo, then `textDocument/diagnostic`, and times each step. `tools/lsp-mem/lsp_mem.py --edits 0` reports the same
+monorepo, then `textDocument/diagnostic`, and times each step. `tools/lsp-mem/lsp_mem.mjs --edits 0` reports the same
 "opened" time. Release build, three interleaved runs each:
 
 | server | time to first diagnostics (s) | RSS at that point |

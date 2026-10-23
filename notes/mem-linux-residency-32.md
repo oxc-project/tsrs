@@ -33,7 +33,7 @@ checkers' heaps) moved the peak by 0-1%. Stacks are too small to matter.
   other anonymous memory, and file-backed pages.
 
 `check end` is taken behind a barrier in the type-check pass: every checker has finished its files and no thread has
-exited yet. `tools/perf/slackprobe.py` (via `slackprobe.sh` on `.depot/workflows/perf-probe.yml`) runs one split run
+exited yet. `tools/perf/slackprobe.mjs` (via `slackprobe.sh` on `.depot/workflows/perf-probe.yml`) runs one split run
 per cell with a sampler reading `/proc/<pid>/status` and `smaps_rollup` every 10 ms, then interleaved timed reps
 (wall from `wait4`, peak RSS, phases). The sampled RSS peak and the `check end` RSS agree within 0-3 MiB on every
 project (t3code-server: peak sampled at 1.48 s of a 1.49 s run; formbricks-web 0.64 of 0.67 s; vscode 0.59 of 0.61 s),

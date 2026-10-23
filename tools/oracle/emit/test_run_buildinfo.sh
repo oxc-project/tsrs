@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Regression test for run.py --buildinfo with the real compilers on a throwaway public fixture:
+# Regression test for run.mjs --buildinfo with the real compilers on a throwaway public fixture:
 #   1. default output dirs (<W>/ref/out, <W>/rs/out) -> identical tsbuildinfo, exit 0 (JS + .d.ts, and decl-only)
 #   2. tsrs whose tsbuildinfo is altered (one hash changed) -> exit 1, reported as a different file
 #   3. tsrs whose tsbuildinfo is deleted -> exit 1 (missing); tsrs whose .js output is altered -> exit 1
@@ -10,7 +10,9 @@
 set -uo pipefail
 here="$(cd "$(dirname "$0")" && pwd)"
 : "${TSGO:?set TSGO}" "${TSRS:?set TSRS}"
-work="$(mktemp -d /tmp/emit-buildinfo-test.XXXXXX)"
+# Keep paths lowercase: the reference canonicalizes build-info paths on macOS.
+work="/tmp/emit-buildinfo-test.$(node -p 'crypto.randomUUID()')"
+mkdir "$work"
 trap 'rm -rf "$work"' EXIT
 mkdir -p "$work/p/src"
 echo '{ "compilerOptions": { "target": "esnext", "module": "nodenext", "declaration": true, "incremental": true, "strict": true, "rootDir": "src" }, "include": ["src"] }' > "$work/p/tsconfig.json"
@@ -21,7 +23,7 @@ check() { # name expected actual
 }
 run() { # tsrs-binary args...
   local bin="$1"; shift
-  TSRS="$bin" python3 "$here/run.py" "$work/p" --name "buildinfo-test-$$" "$@" > "$work/out.txt" 2>&1
+  TSRS="$bin" node "$here/run.mjs" "$work/p" --name "buildinfo-test-$$" "$@" > "$work/out.txt" 2>&1
 }
 wrapper() { # name, shell snippet run after tsrs with $out set to its --outDir
   cat > "$work/$1" <<EOF
@@ -38,7 +40,7 @@ run "$TSRS" --buildinfo; check "default dirs, JS + .d.ts" 0 $?
 grep -q "0 different, 0 missing, 0 extra" "$work/out.txt" || { echo "FAIL: unexpected report"; cat "$work/out.txt"; fails=$((fails + 1)); }
 run "$TSRS" --buildinfo -- --emitDeclarationOnly; check "default dirs, declarations only" 0 $?
 
-wrapper alter 'sed -i "s/\"version\":\"[0-9a-f]\{4\}/\"version\":\"0000/" "$out.tsbuildinfo"'
+wrapper alter 'node -e '\''const fs=require("node:fs"),p=process.argv[1];fs.writeFileSync(p,fs.readFileSync(p,"utf8").replace(/"version":"[0-9a-f]{4}/,"\"version\":\"0000"))'\'' "$out.tsbuildinfo"'
 run "$work/alter" --buildinfo; check "altered tsbuildinfo" 1 $?
 grep -q "different" "$work/out.txt" && grep -q "out.tsbuildinfo" "$work/out.txt" || { echo "FAIL: altered buildinfo not reported"; fails=$((fails + 1)); }
 

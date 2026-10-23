@@ -32,7 +32,7 @@ compiler. Run the affected crate's checks/tests and `tools/regressions.sh`.
 Rebuild with `cargo build --profile dev --locked -p tsrs_cli -p tsrs_testrunner`
 after edits and use `target/debug/` binaries consistently. Reuse the pinned Go
 binary and commands recorded during reproduction; do not rebuild the reference.
-Run `tools/lint/ratchet.py` when it exists, then `tools/lint/source.py`; on a
+Run `tools/lint/ratchet.py` when it exists, then `tools/lint/source.mjs`; on a
 revision before the ratchet script exists, run the full Clippy command in
 `docs/RUST.md` instead. Run any generated-code freshness check relevant to the
 edited files.

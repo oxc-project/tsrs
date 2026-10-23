@@ -23,7 +23,7 @@ JavaScript, 149 JavaScript-map and 156 sourcemap-text cases. Canonical/default h
 object-literal normalization baseline difference. Fourslash remains 4,066 passed, 63 existing failures, 417
 skipped. All 36 regression projects pass.
 
-`cargo check --workspace --locked`, the required workspace Clippy command and `tools/lint/source.py` are
+`cargo check --workspace --locked`, the required workspace Clippy command and `tools/lint/source.mjs` are
 clean. `cargo check --locked -p tsrs_wasm --target wasm32-wasip1` passes. No public API, capability status or
 conformance count changed.
 
@@ -49,7 +49,7 @@ RAYON_NUM_THREADS=1 /usr/bin/time -l <binary> -p <suite>/cases/solutions/Compile
 # Repeat for Compiler-Unions and interleave baseline/candidate binaries.
 ```
 
-These are macOS screening measurements, not deterministic Linux `bench/count.py` counts. They do not establish
+These are macOS screening measurements, not deterministic Linux `bench/count.mjs` counts. They do not establish
 a qualifying speedup or memory reduction; the motivation is reducing handwritten library code. The full
 benchmark suite and native Linux execution were not measured locally.
 

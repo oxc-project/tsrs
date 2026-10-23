@@ -106,8 +106,8 @@ next publish on.
 - `cargo test -p tsrs_compiler default_`: the count rule's table (1-128 cores).
 - `tools/ci/determinism.sh` default set (xstate-main, webpack, nuxt, drizzle-orm, testdata/regressions): 576 runs
   identical to the single-threaded output.
-- `tools/regressions.sh`: 29 of 29. `tools/lint/ratchet.py` and `tools/lint/source.py` pass.
-- bench/run.py `tsrs_default_checkers` mirrors the new rule for the table titles; bench/compare.py, bench/README.md,
+- `tools/regressions.sh`: 29 of 29. `tools/lint/ratchet.py` and `tools/lint/source.mjs` pass.
+- bench/run.mjs `tsrs_default_checkers` mirrors the new rule for the table titles; bench/compare.py, bench/README.md,
   README.md, npm/README.md, npm/tsrs/README.md and docs/PORTING.md state it.
 
 ## 5. What remains

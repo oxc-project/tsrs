@@ -151,7 +151,7 @@ that created the union; it was shadow-checked on webpack only, and was clean.
 - **fourslash:** 4,066 pass, 63 fail, 417 skip, with identical lists.
 - **`tools/regressions.sh`:** all 8 cases pass.
 - **Lints:** `RUSTFLAGS="-D warnings" cargo check --workspace --locked`, `tools/lint/ratchet.py` (no new findings) and
-  `tools/lint/source.py` all pass.
+  `tools/lint/source.mjs` all pass.
 - **Diagnostics:** byte-identical to base on all four corpora, with default checkers, with `--checkers 1` and with
   `--checkerAssignment go`. The same exit codes.
 - **The checkout:** the 38k-file codebase's checkout is untouched (`git status` empty before and after).

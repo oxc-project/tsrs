@@ -31,7 +31,7 @@ largest supported offset, mixed synthetic ranges and the two rejected inputs.
 ## Measurement
 
 All comparisons use `.depot/workflows/pr-verify.yml`: release builds with fat LTO and one codegen unit, on the same
-Linux x86-64 Depot 32-vCPU runner per comparison. Instructions come from `bench/count.py`, user space only, with
+Linux x86-64 Depot 32-vCPU runner per comparison. Instructions come from `bench/count.mjs`, user space only, with
 `--singleThreaded` and `RAYON_NUM_THREADS=1`. Peak RSS is recorded with the same run. Timed comparisons use three
 interleaved repetitions at 1, 4, 16 and 32 checkers, plus the poisoned-arena diagnostic check.
 
@@ -179,7 +179,7 @@ comparison. The baseline's low mode was 87,422,909,472 instructions (one sample)
 88,363,987,372 to 88,376,261,308 (five); the new binary's low mode ranged from 87,415,582,512 to 87,468,533,701
 (four) and its high mode from 88,349,344,491 to 88,398,502,270 (two). The high-mode means differ by +0.0034%, which
 is measurement-neutral. Peak RSS has the same 1,677,115,392 to 1,677,148,160-byte range before and after. This does
-not establish a speedup or a regression; a Linux `bench/count.py` run is still the deterministic acceptance measure.
+not establish a speedup or a regression; a Linux `bench/count.mjs` run is still the deterministic acceptance measure.
 
 Local validation: workspace and WebAssembly checks pass; 297 affected-crate tests pass (one ignored negative Miri
 control); all 29 regression fixtures pass; conformance retains 13,458 diagnostic, 12,779 types and 12,779 symbols

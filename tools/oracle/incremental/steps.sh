@@ -27,12 +27,11 @@ while IFS= read -r step; do
   for b in $(cd "$W/go" && find . -name '*.tsbuildinfo'); do
     if ! sed -e 's/"version":"[^"]*"/"version":"V"/' -e "s#$W/go#<W>#g" "$W/go/$b" | cmp -s - <(sed -e 's/"version":"[^"]*"/"version":"V"/' -e "s#$W/rs#<W>#g" "$W/rs/$b"); then
       echo "step $n ($step): $b differs"; fail=1
-      python3 - "$W/go/$b" "$W/rs/$b" <<'PY'
-import json,sys
-a=json.load(open(sys.argv[1])); b=json.load(open(sys.argv[2]))
-for k in sorted(set(a)|set(b)):
-    if k!='version' and a.get(k)!=b.get(k): print("  ",k,"go:",json.dumps(a.get(k))[:400],"\n   rs:",json.dumps(b.get(k))[:400])
-PY
+      node --input-type=module - "$W/go/$b" "$W/rs/$b" <<'JS'
+import fs from 'node:fs'; import { isDeepStrictEqual } from 'node:util';
+const [a,b]=process.argv.slice(2).map(f=>JSON.parse(fs.readFileSync(f,'utf8')));
+for(const k of [...new Set([...Object.keys(a),...Object.keys(b)])].sort()) if(k!=='version'&&!isDeepStrictEqual(a[k],b[k])) console.log('  ',k,'go:',JSON.stringify(a[k]??null).slice(0,400),'\n   rs:',JSON.stringify(b[k]??null).slice(0,400));
+JS
     fi
   done
 done < "$steps"

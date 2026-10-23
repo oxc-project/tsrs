@@ -3,7 +3,7 @@
 The inventory the soundness tracker (issue #646) asks for: each `unsafe` block, `unsafe fn`, `unsafe impl`,
 `unsafe extern`, `Box::leak`, `Box::from_raw`, `mem::forget`, `transmute` and `assume_static` in
 `{crates,tasks}/*/src` (test files excluded; inline `#[cfg(test)]` modules kept and classed `test`), with a class,
-a verdict and a note. The table is `tools/lint/unsafe_sites.tsv`; `tools/lint/source.py` keeps it in sync (check 4
+a verdict and a note. The table is `tools/lint/unsafe_sites.tsv`; `tools/lint/source.mjs` keeps it in sync (check 4
 in its docstring; docs/RUST.md "Source checks"). Taken at commit 357d1d3 on 2026-10-21, before #638 and #645 land
 (#645 adds a `reason` to every `Box::leak`, which becomes those rows' safety text; one `--update` after it merges).
 
@@ -83,7 +83,7 @@ are where a lifetime fix starts. Each is one safe API, not many unsafe blocks.
 
 ## How the ratchet works
 
-`tools/lint/source.py` lists the sites keyed by file, enclosing item, kind and the first line of the site's `SAFETY`
+`tools/lint/source.mjs` lists the sites keyed by file, enclosing item, kind and the first line of the site's `SAFETY`
 comment (or `# Safety` doc section, or `#[expect(..., reason = "...")]`), never by line number, so moving code does
 not churn the table. A site that appears or disappears fails the `lint` job until `--update` records it; a new row is
 written with a class derived from its crate and the verdict `unknown`, and the check names it until someone sets a

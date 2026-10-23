@@ -58,9 +58,10 @@ never asked for. The Linux peaks are the README table's (2026-10-07); the bytes 
 
 ## 2. Design
 
-Scope: the CLI's batch compile (`perform_compilation`, not `--incremental`, `--build` or watch) when no declaration
-file is type-checked (`skipLibCheck` or `noCheck`); interface, class and type literal member lists of declaration
-files. Off in the language server, the API and the test harnesses; `TSRS_LAZY_DTS=0` turns it off,
+Scope: the CLI's batch and incremental compilation when no declaration file is type-checked (`skipLibCheck` or
+`noCheck`), and non-watch CLI `--build` when every built project skips declaration checking
+([extension and measurements](mem-lazy-dts-build.md)); interface, class and type literal member lists of declaration
+files. Off in watch, the language server, the API and the test harnesses; `TSRS_LAZY_DTS=0` turns it off,
 `TSRS_LAZY_DTS=stats` prints counts, and `TSRS_LAZY_DTS=force` in `tsrs-test` makes every declaration file lazy (also
 checked ones) to test forcing.
 
@@ -224,7 +225,7 @@ parsed again, 422 of them while their file was bound (merges and unusual states)
   single-threaded and with `--checkerAssignment locality` (14 cells); `TSRS_ARENA_POISON=1` single-threaded and at
   32 checkers on the five app projects, identical. A declaration-emit project gave identical `.d.ts` files.
 - `RUSTFLAGS="-D warnings" cargo check --workspace --locked` (including the historical instrumentation build), `tools/lint/ratchet.py`
-  (no new findings), `tools/lint/source.py` (no new `unsafe impl`; every atomic ordering commented).
+  (no new findings), `tools/lint/source.mjs` (no new `unsafe impl`; every atomic ordering commented).
 
 ## 6. Left and rejected
 
@@ -245,8 +246,10 @@ parsed again, 422 of them while their file was bound (merges and unusual states)
 - Forcing re-parses: a list that is needed is parsed twice (once to establish it is error-free and plain). A skipping
   scanner (brace matching) would be cheaper but cannot know whether the list has syntax errors, which the CLI reports
   for every file before checking; caching that would need a persisted front end (rejected, #36).
-- `--incremental`, `--build`, watch, the language server and the API keep eager lists: nothing measured there, and the
-  builder, the project system and the API read trees in ways not audited here.
+- Originally `--incremental`, `--build`, watch, the language server and the API kept eager lists: nothing measured
+  there, and their tree readers were not audited here. The CLI's incremental and non-watch build restriction is
+  lifted by [#722's reader audit and measurements](mem-lazy-dts-build.md); watch, the language server and the API
+  still keep eager lists.
 
 ## Reproduce
 
@@ -257,7 +260,7 @@ Use the retained measurement tool with separately prepared baseline and candidat
 TSRS_LAZY_DTS=stats tsrs -p <tsconfig> --noEmit ...      # lists made lazy / deferred / parsed again
 TSRS_LAZY_DTS=force tsrs-test run --suite all --baselines types,symbols   # every declaration file lazy; trees must equal main's
 # from the repository root:
-python3 tools/perf/leafprobe.py --tsrs /absolute/path/to/new/tsrs --work bench/.work --out probe-out \
+node tools/perf/leafprobe.mjs --tsrs /absolute/path/to/new/tsrs --work bench/.work --out probe-out \
   --projects drizzle-orm,formbricks-web,cal-diy --variant main:BIN=/absolute/path/to/base/tsrs \
   --variant on:TSRS_LAZY_DTS=1 --reps 10 --checkers 32 --no-strace
 ```

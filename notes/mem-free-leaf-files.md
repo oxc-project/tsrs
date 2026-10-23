@@ -215,7 +215,7 @@ macOS, M5 Max (18 cores, shared: load average 23-49, so times are not comparable
 | cal-diy | 4 | 1,202 MB | 1,220 MB | +1.5% (ranges overlap) |
 | cal-diy | 16 | 1,974 MB | 1,955 MB | -1.0% |
 
-Single-threaded instructions (Linux, bench/count.py, two runs each): vscode 113.949 G -> 114.189 G (+0.21%);
+Single-threaded instructions (Linux, bench/count.mjs, two runs each): vscode 113.949 G -> 114.189 G (+0.21%);
 t3code-server 57.767 G -> 57.865 G (+0.17%). Peak RSS single-threaded: vscode 2,036 -> 1,720 MB, t3code-server 891 ->
 827 MB.
 
@@ -235,7 +235,7 @@ Former profiling build, vscode, 4 checkers: arena requested 1,581.0 -> 1,580.6 M
   nothing reads after the pass, canonical history), with every-file placement (2,339 leaves freed) and with the
   prediction, 13,458 pass at one and four checkers, poisoned and not; `comm -23` of the pass lists empty in every case.
   `.github/scripts/conformance-gate.sh` in both CI modes: errors 13,458, `.types` / `.symbols` 12,779 and 12,778.
-- `cargo check --workspace` (no warnings), `tools/lint/ratchet.py`, `tools/lint/source.py`, `cargo test -p tsrs_core`
+- `cargo check --workspace` (no warnings), `tools/lint/ratchet.py`, `tools/lint/source.mjs`, `cargo test -p tsrs_core`
   (new: retired ranges are never reused; neighbouring retired chunks give back their shared page),
   `cargo test -p tsrs_compiler` (new: one file's diagnostics after its free panic), `cargo test -p tsrs_cli --test
   free_leaf_files --test derived_variance --test default_emit --test flow_memo`, tools/regressions.sh (21 cases). The
@@ -263,7 +263,7 @@ on the 8-vCPU runner, kernel time unchanged. The pair below compared a slower ru
 slower on the same cells) and PGO builds without their training profiles (#153: the CLI's `_exit` skipped writing
 them, which is the +1.8-3.5% instructions on every project, file regions or not). The default is 16 checkers again.
 
-The README bench (`bench/run.py`, `depot-ubuntu-24.04-8`, PGO `dist` build) measured main 8b3e4f4 (this change, on by
+The README bench (`bench/run.mjs`, `depot-ubuntu-24.04-8`, PGO `dist` build) measured main 8b3e4f4 (this change, on by
 default up to 16 checkers) against 7262f61 (`bench/results/2026-10-07-*.json`). Wall time and peak RSS of tsrs,
 old -> new:
 
@@ -276,7 +276,7 @@ old -> new:
 | xstate-main | 0.62 -> 0.72 s (+16.7%), -3.2% | 0.20 -> 0.21 s (+8.1%) | 0.13 -> 0.14 s (+6.0%) |
 | webpack, mui-docs, Compiler, cal-diy | within -4..+3% | within -6..+2% | within -3..+2% |
 
-User-space instructions (single-threaded, `bench/count.py`) rose 1.8-3.5% on every project, while pr-verify on the
+User-space instructions (single-threaded, `bench/count.mjs`) rose 1.8-3.5% on every project, while pr-verify on the
 64-vCPU runner had measured +0.0-0.3% for the same source change (release build): the rest of the wall cost is kernel
 work (page faults for the regions' 4 KiB pages, giving pages back) that is far more expensive on the smaller VM, and
 the user-space difference is probably the PGO profile shifting (the training runs with 4 checkers now exercised the

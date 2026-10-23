@@ -50,4 +50,4 @@ Diagnostics (exit code and output bytes) identical in every run.
 | Compiler | 1.7162 G | 1.6902 G | **-1.51%** | 57.0 -> 57.1 MiB |
 | mui-docs | 38.10 G | 37.80 G | -0.80% (inside this project's run-to-run band of about 1 G) | 747 -> 747 MiB |
 
-The Linux `bench/count.py` gate on the pull request is the landing number; these are the screening numbers.
+The Linux `bench/count.mjs` gate on the pull request is the landing number; these are the screening numbers.

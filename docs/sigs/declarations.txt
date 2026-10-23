@@ -1,4 +1,4 @@
-# rust_name | signature | origin | receiver  (generated from the Rust sources by tools/sigs-from-rust.py)
+# rust_name | signature | origin | receiver  (generated from the Rust sources by tools/sigs-from-rust.mjs)
 add_diagnostic | pub(crate) fn add_diagnostic(&self, diag: P<Diagnostic>) | tracker.go:251 | SymbolTrackerSharedState
 add_parent_declaration_related_info | pub(crate) fn add_parent_declaration_related_info(node: P<Node>, diag: P<Diagnostic>) | diagnostics.go:574 | -
 append_cjs_exports | pub(crate) fn append_cjs_exports(&self, combined_statements: P<NodeList>) -> P<NodeList> | transform.go:327 | DeclarationTransformer

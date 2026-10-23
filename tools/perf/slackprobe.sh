@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Probe for the residency slack of a many-checker run (notes/mem-linux-residency-32.md), for
-# .github/workflows/perf-probe.yml with `-f script=tools/perf/slackprobe.sh`: tools/perf/slackprobe.py on the
+# .github/workflows/perf-probe.yml with `-f script=tools/perf/slackprobe.sh`: tools/perf/slackprobe.mjs on the
 # projects the workflow set up, with PROBE_ARGS appended. `--base-ref <ref>` (first in PROBE_ARGS) also builds that
 # ref into target-base/ and exposes it as $BASE_BIN, for variants such as `main:BIN=$BASE_BIN`.
 set -euo pipefail
@@ -20,5 +20,5 @@ if [[ "$args" == --base-ref* ]]; then
 fi
 args=${args//\$BASE_BIN/${BASE_BIN:-}}
 # shellcheck disable=SC2086 # args is a list of arguments
-eval python3 tools/perf/slackprobe.py --tsrs "$TSRS_BIN" --work "$BENCH_WORK" --out "$PROBE_OUT" \
+eval node tools/perf/slackprobe.mjs --tsrs "$TSRS_BIN" --work "$BENCH_WORK" --out "$PROBE_OUT" \
   --projects "${PROBE_PROJECTS:-vscode}" $args 2>&1 | tee "$PROBE_OUT/log.txt"

@@ -43,7 +43,7 @@ Base and new built in the same directory with `--profile dist`, 11 interleaved r
 | peak RSS | 2808 MiB | 2812 MiB |
 
 Samples in the walk (three profiled runs): 527 before, 369 after. Single-threaded user instructions
-(`bench/count.py`): 102.5588 G -> 102.5604 G (+0.002%, the list of keys built after the walk). `perf stat` at 32
+(`bench/count.mjs`): 102.5588 G -> 102.5604 G (+0.002%, the list of keys built after the walk). `perf stat` at 32
 checkers: 131.2 G vs 131.0 G user instructions, page faults 34.3k vs 34.0k. Output of `--pretty false`, `--listFiles`
 and `--explainFiles` identical on vscode on the runner and on the ten older bench projects locally.
 

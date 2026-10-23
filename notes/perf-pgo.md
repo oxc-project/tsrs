@@ -125,7 +125,7 @@ laid out as cold code. `pgo-train.sh` now also runs the fourslash suite with an 
 release and bench workflows build that binary in the instrumented step.
 
 Same source and instrumented build, final binaries differing only in the profile, 200-edit editor session on
-xstate-main (`tools/lsp-mem/lsp_mem.py --completion`: diagnostics, hover and completion after every edit), server
+xstate-main (`tools/lsp-mem/lsp_mem.mjs --completion`: diagnostics, hover and completion after every edit), server
 process: 94.4 G -> 85.0 G instructions (-10%), ~34.9 G -> ~31.5 G cycles (2 rounds each, machine under load). The
 checker is unaffected on the private monorepo: 269.2 G vs 268.9 G instructions with one checker, 365.9 G vs
 363.7 G with four; identical output. A `workflow_dispatch` dry run of the release produced a fourslash profile on
@@ -157,7 +157,7 @@ Reproduced on macOS arm64 with the workflows' commands (instrumented build, pgo-
 final build with `-Cllvm-args=-pgo-warn-missing-function`), on main at cab0f26e unless noted. "Same metadata": of
 the 56 crates both builds compile, those whose `-C metadata` is the same in both. Instructions: `/usr/bin/time -l`
 with `--singleThreaded` and `RAYON_NUM_THREADS=1`, minimum [median] of 5 interleaved runs; macOS counts include
-kernel work, so they spread by up to a few percent where bench/count.py's Linux counts repeat to 0.001%.
+kernel work, so they spread by up to a few percent where bench/count.mjs's Linux counts repeat to 0.001%.
 
 | build | same metadata | functions without profile data | vscode G | drizzle-orm G |
 | --- | ---: | ---: | ---: | ---: |

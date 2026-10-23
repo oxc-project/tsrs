@@ -10,7 +10,7 @@
 # profile counts apply to the checker code in tsrs), the Go fourslash suite (Rust language-server workers,
 # for the language-service and project-system code behind `tsrs --lsp`), plus
 # the tsrs binary itself on two open-source projects from bench/projects.json (xstate-main, webpack; default mode,
-# tsrs's default checker count for the runner). Needs Go, Python 3.12+, the pinned ts-ref/tsc source checkout,
+# tsrs's default checker count for the runner). Needs Go, Node.js 24+, the pinned ts-ref/tsc source checkout,
 # and network for the bench projects' clone + install
 # (bench/bench.mjs prepare). Never train on private code.
 set -euo pipefail

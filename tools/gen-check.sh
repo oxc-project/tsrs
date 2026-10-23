@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Re-runs the code generators and fails if any checked-in output differs: a hand edit to a generated file would be
 # lost at the next regeneration. Needs node >= 22.18 or 23.6 (runs the .ts generators directly, with type stripping
-# on by default; CI uses 24), python3, cargo, rustfmt, and ts-ref at the commit in Cargo.toml
+# on by default; CI uses 24), cargo, rustfmt, and ts-ref at the commit in Cargo.toml
 # ([workspace.metadata.typescript]). CI runs it as the `generated-code` job.
 #
 #   tools/gen-check.sh           regenerate, then fail on a diff
@@ -18,8 +18,8 @@ generators=(
   "node tools/gen-ast/gen-flags.ts"
   "node crates/tsrs_api_codec/gen/gen-codec.ts"
   "cargo run --quiet --locked -p tsrs_generate_stringutil -- --write"
-  "python3 tools/gen-diagnostics/gen.py"
-  "python3 tools/gen-libs/gen.py"
+  "node tools/gen-diagnostics/gen.mjs"
+  "node tools/gen-libs/gen.mjs"
   "node tools/gen-lsproto/generate.mts"
 )
 
@@ -28,10 +28,10 @@ for g in "${generators[@]}"; do
   # shellcheck disable=SC2086 # each entry is a command line
   $g > /dev/null
 done
-echo "+ python3 tools/gen-diagnostics/check_localizations.py"
-python3 tools/gen-diagnostics/check_localizations.py
-echo "+ python3 -m unittest discover -s tools/gen-diagnostics -p test_*.py"
-python3 -m unittest discover -s tools/gen-diagnostics -p 'test_*.py'
+echo "+ node tools/gen-diagnostics/check_localizations.mjs"
+node tools/gen-diagnostics/check_localizations.mjs
+echo "+ node --test tools/gen-diagnostics/test_*.mjs"
+node --test tools/gen-diagnostics/test_*.mjs
 echo "+ cargo fmt --all"
 cargo fmt --all
 

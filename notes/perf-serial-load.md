@@ -43,6 +43,6 @@ Either half alone moved the row by under its 1 ms resolution; together they move
 of the new task (`new_task`), the stores into fresh task memory that the refcount updates had been waiting for.
 
 Other rows of the combined run: collect files 10 -> 10 ms, parallel parse + resolve 67 -> 67 ms, Parse time
-105 -> 103 ms. Single-threaded user instructions (`bench/count.py`): 102.5577 G -> 102.5567 G. `perf stat` at 32
+105 -> 103 ms. Single-threaded user instructions (`bench/count.mjs`): 102.5577 G -> 102.5567 G. `perf stat` at 32
 checkers: page faults 34.1k both. Output of `--pretty false`, `--listFiles` and `--explainFiles` identical on vscode on
 the runner and on the ten older bench projects locally.

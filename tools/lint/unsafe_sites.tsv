@@ -1,4 +1,4 @@
-# Every unsafe site and lifetime escape (tools/lint/source.py --update; notes/unsafe-audit.md).
+# Every unsafe site and lifetime escape (tools/lint/source.mjs --update; notes/unsafe-audit.md).
 # file	item	kind	class	safety	verdict	note. --update keeps class, verdict and note of a row whose key
 # (file, item, kind, safety) still exists; a new site gets a class from its crate and verdict `unknown`.
 crates/tsrs_api/src/module_resolution.rs	Session::handle_resolve_module_name	block	ownership	`host` stays alive until reclaimed below, after the resolver is dropped.	keep	leak / from_raw pair within one request; #656 routes the rest through a scratch region

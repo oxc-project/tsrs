@@ -87,7 +87,7 @@ saved nothing: the 99,829-step walk does find `K`.
 ## Results
 
 Instructions: 64-vCPU Linux runner (`depot ci run --workflow .depot/workflows/perf-probe.yml` with an A/B
-`tools/perf/probe.sh` that builds origin/main in the same job and runs both binaries), `bench/count.py`, one checker
+`tools/perf/probe.sh` that builds origin/main in the same job and runs both binaries), `bench/count.mjs`, one checker
 (`--singleThreaded`, `RAYON_NUM_THREADS=1`), user-space instructions, deterministic. Base 249561e (main moved on to
 7262f61 with front-end changes only before this was opened).
 
@@ -151,4 +151,4 @@ steps; t3code-server 12,778 hits skipping 3.0M steps (63,834 at 16 checkers).
 - `testdata/regressions/infer-memo-repeated-walks`: the vscode shape at 24 members with 8 errors, tsgo-ref's output;
   identical with the memo off, on and in shadow mode (125 hits at the defaults).
 - `cargo check --workspace`, `tools/lint/ratchet.py` (one `#[expect(clippy::set_contains_or_insert)]`, the target is
-  marked after the walk), `tools/lint/source.py`, `cargo test -p tsrs_checker`, `tools/regressions.sh`.
+  marked after the walk), `tools/lint/source.mjs`, `cargo test -p tsrs_checker`, `tools/regressions.sh`.

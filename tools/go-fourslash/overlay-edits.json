@@ -1,0 +1,57 @@
+[
+  [
+    "client",
+    "\"io\"",
+    "\"io\"\n\"os\""
+  ],
+  [
+    "client",
+    "type LSPClient struct {",
+    "type LSPClient struct {\nsubprocess *subprocessClient"
+  ],
+  [
+    "client",
+    "\ttransport := newClientTransport()",
+    "\tif os.Getenv(\"TSRS_FOURSLASH_SERVER\") != \"\" {\n        return newSubprocessClient(t, serverOpts, onServerRequest)\n    }\n    transport := newClientTransport()"
+  ],
+  [
+    "client",
+    "\tctx := t.Context()",
+    "\tctx := c.ctx"
+  ],
+  [
+    "client",
+    "\tc.Server.SetCompilerOptionsForInferredProjects(c.ctx, options)",
+    "\tif c.subprocess != nil {\n        c.subprocess.options <- options\n        return\n    }\n    c.Server.SetCompilerOptionsForInferredProjects(c.ctx, options)"
+  ],
+  [
+    "main",
+    "\"testing\"",
+    "\"testing\"\n\"github.com/microsoft/TypeScript/tsc/internal/testutil/lsptestutil\""
+  ],
+  [
+    "main",
+    "\tm.Run()",
+    "\tdefer lsptestutil.CloseSubprocessWorkers()\n\tm.Run()"
+  ],
+  [
+    "harness",
+    "\ttestData := ParseTestData(t, content, fileName)",
+    "\ttestData := ParseTestData(t, content, fileName)\n    if options.ContentMapperSpawner != nil {\n        t.Skip(\"subprocess prototype: Go content-mapper callbacks cannot cross the process boundary\")\n    }"
+  ],
+  [
+    "harness",
+    "\t<-f.client.Server.InitComplete()",
+    "\tif f.client.Server != nil {\n        <-f.client.Server.InitComplete()\n    } else {\n        f.client.WaitForSubprocessInit(t)\n    }"
+  ],
+  [
+    "state",
+    "\t\"github.com/microsoft/TypeScript/tsc/internal/compiler\"\n",
+    ""
+  ],
+  [
+    "state",
+    "\tsession := f.client.Server.Session()\n\tsnapshot := session.Snapshot()",
+    "\tsnapshot := f.remoteSnapshot(t)"
+  ]
+]

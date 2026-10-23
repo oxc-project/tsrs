@@ -194,7 +194,7 @@ Base is 494b560 (binaries copied before any change); head is the branch.
     differs, and it is in fail.txt on both sides (run-order symbol ids).
 - **`RUSTFLAGS="-D warnings" cargo +1.99.0 check --workspace --locked`:** clean, in both the compressed and the
   `tsrs_core/plain-ptrs` mode.
-- **Emit oracle over conformance cases, tsgo vs tsrs** (`tools/oracle/emit/cases.py`):
+- **Emit oracle over conformance cases, tsgo vs tsrs** (`tools/oracle/emit/cases.mjs`):
   - compiler: 6,537 pass, 1 fail. `regexInvalidUtf8WithUnicodeFlag` fails on base too.
   - conformance: 6,449 pass, 0 fail.
 - **Monorepo emit oracle** (`monorepo.sh` without the git guard, run under the no-write sandbox): 101/101 packages,

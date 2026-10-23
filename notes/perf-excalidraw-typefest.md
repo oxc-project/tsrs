@@ -198,7 +198,7 @@ peak memory from 3,187 to 627 MiB (-80%), instructions from 74.5 to 26.7 G, and 
 - **Other checks**:
   - `cargo test -p tsrs_cli` is green, with `api::memory_tests` cfg'd out locally because it does not link on macOS.
   - `RUSTFLAGS="-D warnings" cargo check --workspace --locked` is clean.
-  - `tools/lint/ratchet.py` is ok (11 findings, none new). `tools/lint/source.py` is ok.
+  - `tools/lint/ratchet.py` is ok (11 findings, none new). `tools/lint/source.mjs` is ok.
   - `tools/regressions.sh` passes every case.
 - **Diagnostics are byte-identical to base at 1, 4, 16 and 32 checkers** on excalidraw, type-fest, nest (262 errors),
   zod (31), rxjs (6,158), t3code-server, formbricks-web, cal-diy (136), supabase-studio, vscode (371), webpack (840),
@@ -355,8 +355,8 @@ Not causes:
 
 ```sh
 # projects: from #206's branch, in a worktree (do not commit the overlays)
-git checkout origin/bench/bun-pr-projects -- bench/projects.json bench/run.py bench/overlays/excalidraw bench/overlays/type-fest
-python3 bench/run.py --setup-only --projects excalidraw,type-fest
+git checkout origin/bench/bun-pr-projects -- bench/projects.json bench/run.mjs bench/overlays/excalidraw bench/overlays/type-fest
+node bench/run.mjs --setup-only --projects excalidraw,type-fest
 cd bench/.work/solutions/excalidraw
 F="--noEmit --incremental false --pretty false --extendedDiagnostics"
 /usr/bin/time -l tsrs -p . $F --checkers 9                                 # peak, instructions

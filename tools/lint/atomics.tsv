@@ -1,4 +1,4 @@
-# Weakened atomic orderings without a comment, per file (tools/lint/source.py). Counts only go down.
+# Weakened atomic orderings without a comment, per file (tools/lint/source.mjs). Counts only go down.
 1	crates/tsrs_checker/src/checker.rs
 1	crates/tsrs_compiler/src/program_emit.rs
 1	crates/tsrs_execute/src/tsctests/mod.rs

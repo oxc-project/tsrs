@@ -9,7 +9,7 @@ what did not land.
 
 - A/B probes as in notes/perf-front-end-fixed-costs.md: base and new built in the same directory with `--profile
   dist` (base = the change reversed with `git apply -R`), 11-15 interleaved runs, every `--extendedDiagnostics` row,
-  wall from `wait4`, `perf stat` and a single-threaded `bench/count.py` run per binary, and a byte comparison of
+  wall from `wait4`, `perf stat` and a single-threaded `bench/count.mjs` run per binary, and a byte comparison of
   `--pretty false`, `--listFiles` and `--explainFiles` output. The phase rows print whole milliseconds, so a change
   under 1 ms does not show in them.
 - Program-thread profiles: a release build with `-C force-frame-pointers=yes`, `perf record -F 20000 -g --call-graph

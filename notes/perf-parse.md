@@ -2,7 +2,7 @@
 
 Goal: make parsing cheaper without changing the AST. Gates for every change: AST oracle hashes identical to the
 base on the 17,319 split corpus units, the 113 bundled libs and the private monorepo's 38,789 files (and equal to
-Go's: `tools/oracle/ast/run.py` reports the same 1 non-UTF-8 difference before and after); the suite's
+Go's: `tools/oracle/ast/run.mjs` reports the same 1 non-UTF-8 difference before and after); the suite's
 `target/test-results` trees identical (timings in `summary.json` aside) with `--baselines types,symbols` in the
 default and the `TSRS_LAZY_MEMBERS=0` mode; the private monorepo's single-threaded output (its 9 current errors)
 and counters identical.

@@ -44,7 +44,7 @@ study's 12-15 MB estimate. The 16-byte header saving was mostly spent on the 8-b
 filters.
 
 pr-verify (Linux 64 vCPU, base d94c544, new e6e8ee8): diagnostics identical in 60 of 60 cells and in the poisoned-arena
-runs. Single-threaded instructions (`bench/count.py`): vscode +0.65%, xstate-main +1.04%, webpack +0.67%, mui-docs
+runs. Single-threaded instructions (`bench/count.mjs`): vscode +0.65%, xstate-main +1.04%, webpack +0.67%, mui-docs
 +1.92%, Compiler +0.42%, Compiler-Unions +0.41%, cal-diy +1.27%, formbricks-web +1.29%, supabase-studio +2.52%,
 t3code-server +0.49%; single-threaded peak RSS vscode 1.86 -> 1.85 GiB (-0.6%), formbricks-web -0.4%, the
 others 0-5 MiB lower. Peak RSS at 4 to 32 checkers moved by -0.7% to +3.4%,

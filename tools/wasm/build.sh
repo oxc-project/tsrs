@@ -92,13 +92,11 @@ size() {
 echo "opt-level $OPT"
 size "$WORK/tsrs.raw.wasm" "before wasm-opt"
 size "$MOD" "after wasm-opt"
-libs=$(python3 -c '
-import re,sys,os
-src=open("crates/tsrs_vfs/src/bundled/embed_generated.rs").read()
-total=0
-for m in re.finditer(r"include_str!\(\"([^\"]+)\"\)", src):
-    total+=os.path.getsize(os.path.join("crates/tsrs_vfs/src/bundled", m.group(1)))
-print(total)')
+libs=$(node --input-type=module -e '
+import fs from "node:fs"; import path from "node:path";
+const root = "crates/tsrs_vfs/src/bundled";
+const source = fs.readFileSync(path.join(root, "embed_generated.rs"), "utf8");
+console.log([...source.matchAll(/include_str!\("([^\"]+)"\)/g)].reduce((total, m) => total + fs.statSync(path.join(root, m[1])).size, 0));')
 echo "embedded libs: $libs bytes raw"
 cp "$MOD" npm/tsrs-wasm/tsrs.wasm
 if [ -n "${OUT:-}" ]; then cp "$MOD" "$OUT"; fi

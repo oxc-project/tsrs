@@ -28,7 +28,7 @@ project; peak RSS -2.9% to +3.5% (the largest increase Compiler at 16 checkers, 
 
 ## How it was measured
 
-There is no `perf_event_open` in the sandbox this ran in, so `bench/count.py` cannot open a counter. Counts come from a
+There is no `perf_event_open` in the sandbox this ran in, so `bench/count.mjs` cannot open a counter. Counts come from a
 small DynamoRIO client that counts executed basic-block instructions per thread (user space only; run with
 `-no_enable_reset`, or DynamoRIO's cache resets add noise). The default mode varies by about 0.3% run to run (stealing
 changes which checker does what); `--checkerAssignment locality` is deterministic to about 0.02%, so every A/B used it,

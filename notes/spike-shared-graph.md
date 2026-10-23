@@ -310,7 +310,7 @@ Other switches: `TSRS_SHARED_GRAPH=emulate` (M1's prefix emulation, any build); 
 `TSRS_SHARED_GRAPH_OVERLAP=<k>`; `TSRS_SHARED_GRAPH_LOG_OWNED=1` (stacks of fork writes to frozen `OwnedCell`s and
 object flags).
 
-The Mac scripts (sgrun.py: one run with a timeout and a load wait; measure.py: interleaved matrix; analyze.py:
+The Mac scripts (sgrun.mjs: one run with a timeout and a load wait; measure.mjs: interleaved matrix; analyze.py:
 tables) were in the session's scratch directory. The commands, interleaved, used `/usr/bin/time -l`.
 
 **Linux probe, not run (the owner decides on the Depot spend).** The branch was rebased onto main 6df09dbe on
@@ -329,7 +329,7 @@ supabase-studio (0.88x), cal-diy (0.91x), formbricks-web (0.96x) and vscode (0.9
 (bench/results/2026-10-08-4a3c1877fa21.md).
 
 `tools/perf/sharedprobe.sh` keeps a copy of the workflow's default build (the prototype compiled out) and builds
-the prototype in the same target directory. It then runs `tools/perf/leafprobe.py` with off and on interleaved, at
+the prototype in the same target directory. It then runs `tools/perf/leafprobe.mjs` with off and on interleaved, at
 8 checkers (the default on 16 cores) and 16. One dispatch covers the six projects:
 
 ```sh

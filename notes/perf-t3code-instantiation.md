@@ -54,7 +54,7 @@ Nothing created or cached changes; the same instantiations run in the same order
 
 ## Result
 
-`bench/count.py`, user-space instructions, single-threaded, 64-vCPU runner, base 6baca34, `--release`, base and
+`bench/count.mjs`, user-space instructions, single-threaded, 64-vCPU runner, base 6baca34, `--release`, base and
 change built in the same job (runs n6crh8t9w0 and 42kqs90c3k, both counts identical across the two runs):
 
 | project | base | 1 alone | 1 + 2 (kept) |
@@ -70,7 +70,7 @@ min-max), run 42kqs90c3k:
 
 | | t3code-server base | new | vscode base | new |
 | --- | ---: | ---: | ---: | ---: |
-| single-threaded instructions (count.py) | 49.492 G | 48.916 G (-1.16%) | 100.646 G | 100.410 G (-0.23%) |
+| single-threaded instructions (count.mjs) | 49.492 G | 48.916 G (-1.16%) | 100.646 G | 100.410 G (-0.23%) |
 | 32 checkers, instructions:u (perf stat, one run) | 191.52 G | 186.44 G (-2.65%) | 124.12 G | 123.57 G (-0.44%) |
 | 32 checkers, Check time | 1362 ms (1328-1419) | 1349 ms (1302-1394) | 429 ms (414-441) | 432 ms (412-451) |
 | 32 checkers, summed user CPU | 18.95 s | 18.58 s (-2.0%) | 15.10 s | 14.98 s |
@@ -79,11 +79,11 @@ min-max), run 42kqs90c3k:
 At 32 checkers t3code-server's instructions fall more than single-threaded (-2.65% against -1.16%): every checker
 re-instantiates the shared Effect service graph (notes/perf-memory-traffic-32.md), so the per-instantiation saving is
 paid 32 times. The check-time medians move by -1.0% (t3code-server) and +0.7% (vscode), both inside the run-to-run
-spread. Peak RSS (count.py) within 2 MiB.
+spread. Peak RSS (count.mjs) within 2 MiB.
 
 ## Dropped
 
-| candidate | exact | result (count.py, single-threaded, t3code-server unless stated) | why dropped |
+| candidate | exact | result (count.mjs, single-threaded, t3code-server unless stated) | why dropped |
 | --- | --- | --- | --- |
 | B: template-literal inference tests the length and the first (last) byte before `starts_with` (`ends_with`) | yes | -0.019% (cal-diy -0.090%, others -0.01%) | the mismatching prefix and suffix tests are not where those instructions go; which comparison on the matching path the libc routine runs was not resolved (frame-pointer chains skip a leaf's direct caller), and at 32 checkers its cost is cold data more than instructions |
 | key builder without zeroing its 192-byte buffer | yes (needs `MaybeUninit` and `unsafe`) | not built: 5.06 M key builders per check (site count), ~15 instructions of stores each, at most 0.15% | below the bar for new `unsafe` |
@@ -103,7 +103,7 @@ single-threaded and at 4 and 32 checkers and under `--checkerAssignment go` (32 
 counters identical single-threaded (timing rows excluded). Conformance (`.github/scripts/conformance-gate.sh`,
 reference checkout at b85298b6a): 13,458 error baselines, 12,779 `.types`, 12,779 `.symbols`, no crash or timeout.
 A `dev` build (debug assertions on) checks t3code-server with output identical to the base. `cargo check
---workspace` without warnings, `tools/lint/ratchet.py`, `tools/lint/source.py`, `cargo test -p tsrs_checker -p
+--workspace` without warnings, `tools/lint/ratchet.py`, `tools/lint/source.mjs`, `cargo test -p tsrs_checker -p
 tsrs_compiler`. On the runner: diagnostics, `--listFiles` and `--explainFiles` identical (abprobe, t3code-server and
 vscode). `pr-verify` on https://github.com/oxc-project/tsrs/pull/186 (17 projects x 1/4/16/32
 checkers against main 7d7e54a): 102 of 102 cells identical; single-threaded instructions fall on all 17 projects

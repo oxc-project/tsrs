@@ -901,7 +901,7 @@ the exact 91-name generated Go variation inventory, rather than deriving 72 name
 
 The public npm package contains upstream's byte-identical generated `CompilerOptions` and `proto` files, the
 changed enum source files, and both byte-identical JSON schemas. It exports both schemas; its SDK sync inventory
-will hash them when the final TypeScript pin advances. The local `gen_decls.py` now accepts the combined
+will hash them when the final TypeScript pin advances. The local `gen_decls.mjs` now accepts the combined
 `declarations_generated.go` source and preserves Rust metadata fields that upstream moved out of declarations.
 Dry-run regeneration keeps the same order for all 126 compiler and seven build declarations, with compiler
 field values unchanged. Go's generated option parsing, build-info, transpile, and declaration metadata keep
@@ -1526,7 +1526,7 @@ OneLoc handbacks and deterministic runtime archives for 13 locales. The 26
 JSON and gzip files in `crates/tsrs_diagnostics/loc/` match that commit byte
 for byte; every handback has 2,220 sorted diagnostic keys, and every gzip
 payload has the matching key/value map. The new
-`tools/gen-diagnostics/import_localization.py` ports the upstream handback
+`tools/gen-diagnostics/import_localization.mjs` ports the upstream handback
 rules to this repository's Python tooling: only completed `Loc` targets
 replace existing translations, pending `Update` and unstated targets keep
 their previous text, obsolete and English-equivalent entries are removed,
@@ -1911,7 +1911,7 @@ and 109,936,640 versus 109,740,032 bytes (-0.18% RSS); Compiler-Unions emit
 seconds and 111,230,976 versus 111,345,664 bytes (+0.10% RSS). All ordered
 diagnostics and emitted bytes matched between revisions. The largest wall
 difference was +0.63% on the short Compiler run, below the project's 2%
-wall-time regression threshold and within timing noise. `bench/count.py`
+wall-time regression threshold and within timing noise. `bench/count.mjs`
 reported retired instructions unavailable on macOS/arm64 (`no
 perf_event_open`), so there is no instruction-count comparison. Evidence is under
 `target/port-623/0041-253bcd8623/`.
@@ -2647,7 +2647,7 @@ one-hop data-owner lookup avoids repeated traversal of nested instances, but
 the ordinary-symbol marker check still adds work: the measured wall-time
 increase is disclosed under the user's nonblocking migration policy. Peak
 memory is effectively unchanged because Rust already used a packed symbol.
-`bench/count.py` cannot collect retired instructions on this macOS/arm64
+`bench/count.mjs` cannot collect retired instructions on this macOS/arm64
 host (`no perf_event_open on darwin/arm64`); the single-threaded peak-RSS
 runs and diagnostic comparisons still pass. The paired logs and JSON are
 under `target/port-623/0059-6ad8c56f9b/verify-optimized/` and
@@ -2855,7 +2855,7 @@ project and mode measured these median wall time / peak RSS results:
 
 The changes are within run-to-run noise. Deterministic retired-instruction
 counts are unavailable on this macOS host, so no instruction comparison is
-claimed. The release commands used `bench/measure.py` with `-p <project>
+claimed. The release commands used `bench/measure.mjs` with `-p <project>
 --noEmit --incremental false --pretty false`, plus `--singleThreaded` for
 single-threaded rows. Evidence is under `target/port-623/0063-aa8149273b/`.
 
@@ -3605,7 +3605,7 @@ Paired local macOS release measurements used five alternating source-78/source-7
 pairs per cell, the same public inputs and output hashes, and the immediate
 source-78 binary built from `b7dc9667d8`. macOS `time -l` counts instructions
 including kernel work, so these are a regression screen rather than the
-repository's Linux `bench/count.py` instruction gate or two-publish wall-time
+repository's Linux `bench/count.mjs` instruction gate or two-publish wall-time
 gate. The largest no-emit increase was +0.307% instructions and +0.518% peak
 RSS on VS Code's default mode; wall time there was -0.23%. The forced
 five-project build/emit workload was -0.110% instructions and -0.427% RSS.
@@ -4442,7 +4442,7 @@ MiB (−0.63%), and retired instructions 15.20156 → 15.25062 billion
 (+0.323%). Individual instruction pair changes ranged from −2.05% to +4.12%,
 so the kernel-inclusive count is noisy; the positive default-mode median is
 disclosed, without claiming exact equality or a confirmed material
-regression. The deterministic Linux `bench/count.py` gate was unavailable on
+regression. The deterministic Linux `bench/count.mjs` gate was unavailable on
 this macOS host. Raw pair measurements, outputs, release binaries, test logs,
 and the JavaScript collector are under `target/port-623/0094-158a0805fe/`.
 
@@ -4558,7 +4558,7 @@ the paired process duration:
 *The VS Code/one instruction increase did not repeat in an independent
 reversed ten-pair run: instructions −0.183%, RSS −1.052%, wall −1.46%.
 Another reversed ten-pair VS Code/default run measured instructions −0.242%,
-RSS +0.064%, wall −1.95%. The Linux deterministic `bench/count.py` counter
+RSS +0.064%, wall −1.95%. The Linux deterministic `bench/count.mjs` counter
 was unavailable on this macOS host; kernel-inclusive instruction and wall
 readings can vary across runs. The final layout has no confirmed material
 performance regression. Both candidate and final release binaries, raw
@@ -4669,7 +4669,7 @@ paired process duration:
 
 The largest instruction increase is 0.060%, and the largest peak-RSS
 increase is 0.486%; no material performance regression was detected. The
-Linux deterministic `bench/count.py` counter was unavailable on this macOS
+Linux deterministic `bench/count.mjs` counter was unavailable on this macOS
 host. Frozen release binaries, every paired sample and output hash, exact
 Go and Rust results, and the JavaScript measurement collector are under
 `target/port-623/0098-f5cdce998e/`.
@@ -4824,7 +4824,7 @@ wall-time increases: single-threaded is 0.895 → 0.889 seconds (−0.725%),
 and default is 0.162 → 0.161 seconds (−0.648%). Their instruction changes
 are +0.0006% and −0.305%, and their peak-RSS changes are −0.076% and
 −0.208%. No material source-101 performance regression is detected on this
-public cohort. The Linux deterministic `bench/count.py` instruction counter
+public cohort. The Linux deterministic `bench/count.mjs` instruction counter
 was unavailable on this macOS host.
 
 ## 102. `655f0268af` — Avoid WeakSet for executed SDK generators
@@ -4876,7 +4876,7 @@ Direct-mode retired instructions rise by 0.63%, below the 1% threshold,
 while its elapsed time and memory improve; deferred mode improves all three
 measures. The raw pairs and JavaScript collectors are under
 `target/port-623/0102-655f0268af/perf/`. The local JS workload is not a
-Linux `bench/count.py` compiler-project measurement, and no two-publish
+Linux `bench/count.mjs` compiler-project measurement, and no two-publish
 wall-time claim follows from it. No material performance regression was
 detected in this SDK cohort, and the Rust compiler runtime is unchanged.
 
@@ -4980,7 +4980,7 @@ The largest instruction increase is +0.060% and the largest peak-RSS
 increase is +0.270%; no material regression is detected in this cohort.
 The Compiler-Unions instruction decreases are measured binary effects, not
 evidence that network-path checks cause a speedup. The deterministic Linux
-`bench/count.py` counter was unavailable on this macOS host. Raw runs,
+`bench/count.mjs` counter was unavailable on this macOS host. Raw runs,
 matching output hashes, and the JavaScript collector are retained under
 `target/port-623/0104-ce30dd50a5/perf/`.
 
@@ -5047,7 +5047,7 @@ measured +0.698%, +2.879%, and +0.906%; a second ten-pair confirmation
 measured +0.070%, −0.864%, and +0.236%. The signal did not hold across
 confirmations, and no material regression was confirmed. Source 105 changes
 only LSP startup behavior plus the Windows-only test, not compiler work.
-The Linux deterministic `bench/count.py` counter was unavailable on this
+The Linux deterministic `bench/count.mjs` counter was unavailable on this
 macOS host. All raw paired measurements and output hashes are retained in
 `perf/`, `perf-confirmation/`, and `perf-confirmation-2/`.
 
@@ -5105,7 +5105,7 @@ measured +0.345% on confirmation. No material regression persisted across
 the confirmations. The largest initial peak-RSS increase was 0.800%; both
 webpack/default confirmations remained below 1% or improved. The changed
 code executes only for language-server import actions, not compiler checks.
-The deterministic Linux `bench/count.py` counter was unavailable on this
+The deterministic Linux `bench/count.mjs` counter was unavailable on this
 macOS host. Frozen binaries, raw runs, output hashes, and confirmation
 samples are retained under `perf/` and `perf-confirmation*/`.
 
@@ -5211,7 +5211,7 @@ largest initial instruction increase was 0.168% in the tiny deletion case,
 and the largest peak-RSS increase was 0.107% in webpack/default. The retained
 no-deletion guard keeps ordinary warm incremental checks clear of the
 diagnostic-cache refresh previously rejected in `notes/perf-round2-followups.md`.
-The deterministic Linux `bench/count.py` counter was unavailable on this
+The deterministic Linux `bench/count.mjs` counter was unavailable on this
 macOS host; the macOS instruction count includes kernel work. Frozen binary
 hashes, raw runs, output hashes, and confirmations are under
 `target/port-623/0108-0a27badde0/perf/`.
@@ -5299,7 +5299,7 @@ Its public instructions-retired, wall-time, and peak-RSS behavior is therefore
 unchanged for identical inputs. Source 109's VS Code cold single-thread
 reference was 81.26878 billion instructions and 1586.67 MiB peak RSS; default
 was 93.69340 billion instructions and 2081.72 MiB. The deterministic Linux
-`bench/count.py` counter was unavailable on this macOS host. The exact-source
+`bench/count.mjs` counter was unavailable on this macOS host. The exact-source
 Go/Rust logs, 72 named-list comparison, Fourslash result, and release hash are
 under `target/port-623/0110-9de8b7a3b8/`.
 
@@ -5342,7 +5342,7 @@ so its public instructions-retired, wall-time and peak-RSS behavior on
 identical inputs is unchanged. The previous VS Code cold single-thread
 reference was 81.26878 billion instructions and 1586.67 MiB peak RSS;
 default was 93.69340 billion instructions and 2081.72 MiB. The deterministic
-Linux `bench/count.py` counter was unavailable on this macOS host. Exact
+Linux `bench/count.mjs` counter was unavailable on this macOS host. Exact
 scenario, compiler, Fourslash, and repository-check evidence is under
 `target/port-623/0111-2e9fb00f5f/`.
 
@@ -5433,6 +5433,6 @@ reversed ten-pair check measured +3.130%, but a longer 30-pair check measured
 −0.993% wall, −0.161% instructions and +0.006% peak RSS. The subsecond wall
 samples vary more than their instruction counts; there is no persistent
 performance regression at the repository's threshold. The deterministic
-Linux `bench/count.py` counter was unavailable on this macOS host, and macOS
+Linux `bench/count.mjs` counter was unavailable on this macOS host, and macOS
 instruction counts include kernel work. Raw runs, output hashes, and both
 confirmations are under `target/port-623/0112-5237fd4689/perf/`.

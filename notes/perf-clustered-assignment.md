@@ -1,7 +1,7 @@
 # perf-clustered-assignment: placing files on checkers by the modules they share
 
 The experiment's `tools/perf/clusterprobe.sh` build wrapper has been removed (last version: `b620e8e5`).
-`tools/perf/clusterprobe.py` still measures supplied binaries; the reproduction commands below use it directly.
+`tools/perf/clusterprobe.mjs` still measures supplied binaries; the reproduction commands below use it directly.
 
 Question (2026-10-07): each checker builds its own types for the declarations its files use, so at 16-32 checkers the
 app projects repeat most of their checker work (notes/mem-per-checker-duplication.md: 63-78% of checker instructions at
@@ -331,7 +331,7 @@ the assignment runs while the checkers are created; 48 intervals give about two 
 and 32 checkers, and with `TSRS_STEAL_STICKY=0` at 16: byte-identical, same exit codes, in all 40 cells (vscode 448
 lines, webpack 1,027, cal-diy 164, Compiler 53, Compiler-Unions 54, t3code 11, supabase 9; xstate-main, mui-docs and
 formbricks-web clean). On the runner every timed and stats run of every probe cell had the same diagnostics hash and
-exit code as main. pr-verify (`tools/perf/verify.py`, release builds of main and the branch, 3 runs per cell at 1, 4, 16
+exit code as main. pr-verify (`tools/perf/verify.mjs`, release builds of main and the branch, 3 runs per cell at 1, 4, 16
 and 32 checkers on all 17 bench projects, plus a poisoned-arena run at 16) on the final commit, run `jvg6pq5w88`:
 identical in 101 of 102 cells, wall lower by median on 14 of 17 projects (at most +0.6% on the others), single-threaded
 instructions within 0.001%; the one difference is drizzle-orm at 32 checkers, below. It also shows drizzle-orm at 16
@@ -382,7 +382,7 @@ TSRS_ASSIGNMENT_DUMP=/tmp/<project> tsrs -p <tsconfig> --noEmit --incremental fa
 /usr/bin/time -l tsrs -p <tsconfig> ... --checkers 16 --checkerAssignment locality
 TSRS_MODULE_AFFINITY=off /usr/bin/time -l tsrs -p <tsconfig> ... --checkers 16 --checkerAssignment locality
 # from the repository root, compare separately prepared baseline and candidate binaries on Linux:
-python3 tools/perf/clusterprobe.py --work bench/.work --out probe-out \
+node tools/perf/clusterprobe.mjs --work bench/.work --out probe-out \
   --projects vscode,next-packages-next,mui-docs,formbricks-web,cal-diy,supabase-studio,t3code-server \
   --bin base=/absolute/path/to/base/tsrs --bin new=/absolute/path/to/new/tsrs \
   --variant main:base --variant branch:new --reps 12 --stats-reps 1 --checkers 16,32

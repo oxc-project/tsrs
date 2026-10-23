@@ -9,7 +9,7 @@
 // Usage (from the repository root, offline):
 //   node tools/gen-lsproto/generate.mts     regenerates crates/tsrs_lsproto/src/lsp_generated.rs
 //   node tools/gen-lsproto/fetchModel.mts   refreshes metaModel.json / metaModelSchema.mts (network)
-//   python3 tools/gen-lsproto/check.py      checks every Go lsp_generated.go name has a Rust counterpart
+//   node tools/gen-lsproto/check.mjs      checks every Go lsp_generated.go name has a Rust counterpart
 
 import fs from "node:fs";
 import path from "node:path";

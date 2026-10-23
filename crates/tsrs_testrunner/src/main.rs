@@ -53,7 +53,7 @@ const USAGE: &str = "usage:
                                       the .types/.symbols walk over every non-node_modules, non-lib file of a project
                                       (single-threaded, like tools/oracle/project-types): <out>/manifest.<kind>
                                       (hash, lines, path per file) and <out>/<kind>/<path>.<kind>; --sample walks only
-                                      the listed files (e.g. from tools/project-types-sample.py), in program order";
+                                      the listed files (e.g. from tools/project-types-sample.mjs), in program order";
 
 // Which extra baselines to generate and compare besides `.errors.txt` (bit set of EXTRA_TYPES / EXTRA_SYMBOLS).
 // Asking for either runs both walks (Go runs the type walk before the symbol walk in the same program).

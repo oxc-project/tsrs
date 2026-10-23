@@ -14,7 +14,7 @@ the private monorepo project, not only its diagnostics and counters.
 - Output: `<out>/manifest.<kind>` (`fnv1a64 \t lines \t relpath` per file, then `#counts types symbols
   instantiations` after the walk) and, per `--text`, `<out>/<kind>/<relpath>.<kind>`. With a list and one mode, the
   walk stops after the last listed file (earlier files still run, so checker state is the same).
-- `tools/project-types-compare.py <go-out> <rs-out> [--list diff.txt] [--show N]`: matching files, counters,
+- `tools/project-types-compare.mjs <go-out> <rs-out> [--list diff.txt] [--show N]`: matching files, counters,
   differing lines.
 - Cost on the private monorepo (28,213 walked files, 16.5M baseline lines): ~42 min (tsrs) / ~71 min (Go) when run together;
   peak footprint ~125 GB (tsrs) / ~132 GB (Go): the walk prints >1 MB types (NoTruncation) and neither side frees

@@ -1,5 +1,5 @@
 // Differential test against the Go resolver (tools/oracle/module). Generate the inputs with
-//   python3 tools/oracle/module/gen.py > target/scratch/module/scenarios.jsonl
+//   node tools/oracle/module/gen.mjs > target/scratch/module/scenarios.jsonl
 //   bin/tsrs-oracle-module < target/scratch/module/scenarios.jsonl > target/scratch/module/expected.jsonl
 // and run `cargo test -p tsrs_module oracle -- --ignored`. `testdata/oracle` holds the handcrafted subset
 // (`grep handcrafted`) of both files.
@@ -276,7 +276,7 @@ fn run(scenario: &Json) -> Vec<(String, String, String)> {
     mismatches
 }
 
-// The hand-written scenarios from gen.py, with the Go results checked in.
+// The hand-written scenarios from gen.mjs, with the Go results checked in.
 #[test]
 fn oracle_handcrafted() {
     run_oracle_dir(concat!(env!("CARGO_MANIFEST_DIR"), "/testdata/oracle"));

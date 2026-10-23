@@ -59,11 +59,11 @@ An upgrade is a pull request of its own:
 
 ## Source checks
 
-`tools/lint/source.py` (CI: the `lint` job; after Bun's `test/internal/source-lints/`) checks four things
+`tools/lint/source.mjs` (CI: the `lint` job; after Bun's `test/internal/source-lints/`) checks four things
 clippy cannot express:
 
 - **`unsafe impl Send` / `Sync`.** `tools/lint/send_sync.tsv` lists all of them (31 on 2026-10-10). Adding or removing
-  one fails until `tools/lint/source.py --update` records it, so every new cross-thread escape is a reviewed line in a
+  one fails until `tools/lint/source.mjs --update` records it, so every new cross-thread escape is a reviewed line in a
   diff. `P<T>` is `Send + Sync` by decree (PORTING.md, "Threading"), so the compiler does not police these. After Bun's
   `vm-thread-door` inventory.
 - **Weakened atomic orderings.** A `Relaxed`, `Acquire`, `Release` or `AcqRel` needs a `//` comment on its line or in
@@ -162,7 +162,7 @@ In place:
 | Instruction counts and peak memory, with advisory CodSpeed reports | `bench/README.md` "Regression flag": single-threaded tsrs repeats to about 0.001% (instructions) and under 0.4% (peak RSS); local tools remain available, while `.github/workflows/codspeed.yml` profiles CPU simulation and default-checker peak memory on commits and PRs. Its Graviton walltime jobs are disabled by default after exhausting the included monthly Macro Runner minutes; set the repository variable `CODSPEED_WALLTIME_ENABLED=true` to re-enable them. The saved `.yml.bak` regression workflows remain disabled | CodSpeed in oxc, Rolldown, Ruff, Biome, swc (simulated counts); Ruff's PR memory report |
 | Generated-code freshness check | `tools/gen-check.sh` (run locally) re-runs the eight generators and fails on a diff; it found two hand edits the generators no longer reproduced | oxc, Ruff, rust-analyzer |
 | Unused-dependency checks in CI | `.github/workflows/autofix.yml` runs cargo-shear, updates the lock file after fixes, and rejects pending fixes in merge groups | oxc, Rolldown, Ruff, rust-analyzer |
-| Differential parser fuzzing | `tools/fuzz/parser.py` mutates conformance files and compares the AST hashes of the Go and Rust oracles (`tools/oracle/ast`); the nightly 200,000-mutant workflow is disabled as [fuzz.yml.bak](../.github/workflows/fuzz.yml.bak), while the local tool remains available. First 320,000 mutants: no divergence, no crash (inputs kept valid UTF-8; invalid UTF-8 is read lossily on purpose) | Ruff (`cargo fuzz` on its parser) |
+| Differential parser fuzzing | `tools/fuzz/parser.mjs` mutates conformance files and compares the AST hashes of the Go and Rust oracles (`tools/oracle/ast`); the nightly 200,000-mutant workflow is disabled as [fuzz.yml.bak](../.github/workflows/fuzz.yml.bak), while the local tool remains available. First 320,000 mutants: no divergence, no crash (inputs kept valid UTF-8; invalid UTF-8 is read lossily on purpose) | Ruff (`cargo fuzz` on its parser) |
 | Frame pointers for profiling | `docs/DEBUGGING.md` "Profiling": a `dist` build with `-C force-frame-pointers=yes` for samply / `perf` on Linux (Apple arm64 always keeps them) | Bun |
 | Transparent huge pages for the arena on Linux: large thread-arena chunks 2 MiB-aligned and advised with `MADV_HUGEPAGE`. The mimalloc heap is not advised (mimalloc binaries share `no_thp` and `tsrs_core::allocator::init_mimalloc`): with the advice every partly filled thread-local mimalloc page was resident as a whole 2 MiB page | `notes/linux-x86-round.md`: 2-6% less wall time, 21-48x fewer page faults; `notes/linux-perf.md`: THP off costs 11-12%; `notes/mem-no-thp.md`: no advice on the heap, -25 to -33% peak RSS at 4-64 checkers on 64 vCPUs for +4-9% wall time against `bun check` on the same runner (parse +30%, check +1-5%) | mimalloc (advises its own OS memory unless built with `no_thp`) |
 | Checking a heavy declaration file in statement ranges on several checkers (`crates/tsrs_compiler/src/splitcheck.rs`): stealing moves whole files, so a file costing more than a checker's share is the pass's tail; the type-check pass splits a checked declaration file of at least 40% of a share whose top-level statements are all declarations, and the owner merges the ranges' diagnostics | `notes/perf-next-heavy-files.md`: next-packages-next check phase 0.40 -> 0.12 s at 32 checkers, 0.40 -> 0.17 s at 16, 0.40 -> 0.29 s at 8 on 64 vCPUs, output byte-identical; +1.4-4.5% instructions on otherwise idle checkers, none single-threaded | |

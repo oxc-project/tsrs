@@ -56,7 +56,7 @@ The tables report median instructions in billions from single-threaded runs and 
 default-mode runs. Percentage columns are the **median of the paired percentage changes**, not the ratio of the
 two independent medians; these can differ, especially with noisy samples.
 
-These are macOS resource-counter screening measurements, not the deterministic Linux `bench/count.py` gate.
+These are macOS resource-counter screening measurements, not the deterministic Linux `bench/count.mjs` gate.
 Instruction counts fluctuated on this host. Other local work and candidate builds overlapped parts of the first
 screening, so its wall times do not support a performance claim. No two-publish headline comparison was made.
 

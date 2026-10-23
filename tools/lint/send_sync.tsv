@@ -1,4 +1,4 @@
-# Every unsafe impl Send / Sync (tools/lint/source.py --update). Review each change.
+# Every unsafe impl Send / Sync (tools/lint/source.mjs --update). Review each change.
 crates/tsrs_ast/src/symbol.rs	Send	EntryVec
 crates/tsrs_ast/src/symbol.rs	Send	ExtraSlot
 crates/tsrs_ast/src/symbol.rs	Sync	EntryVec

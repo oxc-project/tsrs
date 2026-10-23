@@ -4,7 +4,7 @@ Goal: show that `tsrs` reports the same diagnostics as `tsgo-ref` on *wrong* cod
 
 ## Harness (`tools/mutate/`)
 
-- `mutate.py batch --seed N --count 280 [--heavy F] [--weights m=w,...]` picks N-seeded random program files (default
+- `mutate.mjs batch --seed N --count 280 [--heavy F] [--weights m=w,...]` picks N-seeded random program files (default
   45% "generics-heavy": zod schemas, ORM entities/repositories, workflows/activities, router/endpoint definitions;
   15% tests; rest random), applies one seeded mutation per file (one contiguous edit, checked against the pristine text
   and re-parsed so every file stays syntactically valid; logged in `mutations.json` with file/line/col/orig/repl),

@@ -12,11 +12,11 @@ for the current capability summary.
 | 1 | transport, protocol types, session skeleton, document sync, project discovery, program update, push + pull diagnostics, hover, definition; LSP oracle | done (2026-10-02, below) |
 | 2 | fourslash harness + generated tests | done: all 4,546 Go tests generated and run on the in-process server (below) |
 | 3 | references, rename, completions, signature help, symbols, semantic tokens, folding, selection ranges, inlay hints, code actions, formatting | done: fourslash 4,066 / 4,546 pass; the 63 failures are 55 content-mapper tests (out of scope) and 8 `@tsc` tests (harness helper not ported yet), see Known gaps |
-| 4 | watchers, multi-project, program reuse, cancellation, memory regions, editor setup | cancellation, builtin watcher, watched-file invalidation and state baselines done (robust wave, notes/lsp-robust.md); memory regions done (mem + memfix waves: RSS flat under edits, census 0 violations); watched-file / multi-project oracle sessions identical; exit behavior identical (`exit_check.py`); editor setup documented, Neovim verified headless |
+| 4 | watchers, multi-project, program reuse, cancellation, memory regions, editor setup | cancellation, builtin watcher, watched-file invalidation and state baselines done (robust wave, notes/lsp-robust.md); memory regions done (mem + memfix waves: RSS flat under edits, census 0 violations); watched-file / multi-project oracle sessions identical; exit behavior identical (`exit_check.mjs`); editor setup documented, Neovim verified headless |
 
 ### Phase 1 gates (2026-10-02, `lsp` 3c95d59+)
 
-`tools/oracle/lsp/lsp_oracle.py`, `tsgo-ref --lsp -stdio` vs `tsrs --lsp -stdio`, sequential sessions with an edit round
+`tools/oracle/lsp/lsp_oracle.mjs`, `tsgo-ref --lsp -stdio` vs `tsrs --lsp -stdio`, sequential sessions with an edit round
 (insert a character in an identifier, re-request, revert, re-request):
 
 | session | files | diagnostic | hover | definition | typeDefinition | publishDiagnostics | initialize |
@@ -30,7 +30,7 @@ identical). Unit tests: `tsrs_lsproto` 33 (+ 6,869-case Go codec oracle), `tsrs_
 
 ### Watched files (phase 4, robust wave)
 
-`lsp_oracle.py --closed GLOB --disk-edits N [--disk-edit-at REGEX] [--watch-client]`: after the request rounds, a
+`lsp_oracle.mjs --closed GLOB --disk-edits N [--disk-edit-at REGEX] [--watch-client]`: after the request rounds, a
 closed file is edited on disk, the client sends `workspace/didChangeWatchedFiles` (`--watch-client`, dynamic
 registration) or the servers' builtin watchers (FSEvents) pick the change up, every open file is re-requested, the
 edit is reverted and everything requested again. Fixtures in `tools/oracle/lsp/fixtures`:

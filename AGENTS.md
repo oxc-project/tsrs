@@ -14,7 +14,7 @@ Use `--release` only for performance numbers.
 ## Lint
 
 Run `cargo clippy --all-targets --config 'build.warnings="deny"'` and
-`tools/lint/source.py` before a change lands (`docs/RUST.md`).
+`tools/lint/source.mjs` before a change lands (`docs/RUST.md`).
 
 - Fix what they report in the code you wrote.
 - If the flagged code is intended, use `#[expect(clippy::<lint>, reason = "...")]` on the smallest item. Never a bare

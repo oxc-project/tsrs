@@ -1,4 +1,4 @@
-# rust_name | signature | origin | receiver  (generated from the Rust sources by tools/sigs-from-rust.py)
+# rust_name | signature | origin | receiver  (generated from the Rust sources by tools/sigs-from-rust.mjs)
 as_str | pub fn as_str(self) -> &'static str | rust:types.rs:136 | ImportModuleSpecifierEndingPreference
 as_str | pub fn as_str(self) -> &'static str | rust:types.rs:113 | ImportModuleSpecifierPreference
 compare_paths_by_redirect | pub(crate) fn compare_paths_by_redirect(a: &ModulePath, b: &ModulePath, use_case_sensitive_file_names: bool) -> std::cmp::Ordering | util.go:29 | -

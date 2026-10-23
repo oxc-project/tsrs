@@ -1,4 +1,4 @@
-# rust_name | signature | origin | receiver  (generated from the Rust sources by tools/sigs-from-rust.py)
+# rust_name | signature | origin | receiver  (generated from the Rust sources by tools/sigs-from-rust.mjs)
 add_undefined_if_definitely_required | pub(crate) fn add_undefined_if_definitely_required(expr: P<PseudoType>) -> P<PseudoType> | lookup.go:619 | -
 as_pseudo_get_accessor | pub fn as_pseudo_get_accessor(&self) -> &PseudoGetAccessor | rust:type_.rs:279 | PseudoObjectElement
 as_pseudo_object_element | pub fn as_pseudo_object_element(&self) -> &PseudoObjectElement | rust:type_.rs:245 | PseudoObjectElement

@@ -15,5 +15,5 @@ Arena requests stayed at 875.2 MB, arena chunk capacity stayed at 576.0 MB, and 
 noise-sized difference).
 
 Sorted AST-oracle hashes match the base for all 14,013 files. Scanner tests, workspace compilation,
-`tools/lint/ratchet.py`, `tools/lint/source.py`, and `git diff --check` pass. The allocation reduction is retained
+`tools/lint/ratchet.py`, `tools/lint/source.mjs`, and `git diff --check` pass. The allocation reduction is retained
 in this independent worktree; it is not combined with the arena-builder experiment.

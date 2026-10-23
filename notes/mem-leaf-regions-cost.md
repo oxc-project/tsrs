@@ -27,7 +27,7 @@ without cloning anything:
       --input runner=depot-ubuntu-24.04-8 --input projects=vscode,formbricks-web \
       --input script=tools/perf/leafprobe.sh --input probe_args='--reps 20 --checkers 1,4,8'
 
-`tools/perf/leafprobe.py` runs one `cargo build --release` binary under several environments (variants) in
+`tools/perf/leafprobe.mjs` runs one `cargo build --release` binary under several environments (variants) in
 interleaved order: `-p <project> --noEmit --incremental false --pretty false --extendedDiagnostics`, wall from
 `os.wait4`, user and system CPU, peak RSS and minor faults from its rusage, the deltas of /proc/vmstat (huge-page
 faults, compaction stalls, TLB flushes), the phase times; then per variant `perf stat` (page faults, dTLB load
@@ -78,7 +78,7 @@ The README bench pair, tsrs against tsgo 7.0.2 in the same runs:
 | supabase-studio | single-threaded | +7.3% | +11.8% | -4.0% |
 | xstate-main | single-threaded | +16.7% | +14.5% | +2.0% |
 
-and single-threaded user-space instructions (bench/count.py) rose on every project: vscode +3.5%, webpack +2.8%,
+and single-threaded user-space instructions (bench/count.mjs) rose on every project: vscode +3.5%, webpack +2.8%,
 Compiler +3.2%, mui-docs +1.9%, cal-diy +1.8%; webpack, mui-docs and Compiler have no file regions. That is a
 different PGO build, not freeing (macOS, one binary: 109.4-110.5 G instructions in off, keep and on alike). Only
 vscode single-threaded is out of line against tsgo, and the same-binary probes put it at 0-1.5%.
@@ -230,7 +230,7 @@ The other twelve projects' median wall change over the checker counts is -1.4% t
   after merging it. pr-verify above: 102 of 102 cells.
 - `tools/regressions.sh` (22 cases) with `TSRS_FREE_LEAVES=1`, plain and poisoned: all pass, including
   `leaf-alternative-containers` and `leaf-structural-instantiation`.
-- `cargo check --workspace` (no warnings), `tools/lint/ratchet.py`, `tools/lint/source.py`, `cargo test -p tsrs_core
+- `cargo check --workspace` (no warnings), `tools/lint/ratchet.py`, `tools/lint/source.mjs`, `cargo test -p tsrs_core
   -p tsrs_compiler` (new: `a_batch_gives_back_whole_spans`), `cargo test -p tsrs_cli --test free_leaf_files`.
 - The historical census ran with file regions disabled. Nothing here reuses a freed range; retired ranges are
   never handed out again. The current ownership checks use poison runs.

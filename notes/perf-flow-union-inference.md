@@ -97,7 +97,7 @@ These results are for the post-merge build (main e2916f3) against the same commi
 - **Lint and tests.**
   - `cargo test -p tsrs_cli --test '*'` passes, including `flow_memo`. The bin target does not link on macOS, because
     `api::memory_tests` needs `malloc_trim`.
-  - `RUSTFLAGS="-D warnings" cargo check --workspace --locked`, `tools/lint/ratchet.py` and `tools/lint/source.py`
+  - `RUSTFLAGS="-D warnings" cargo check --workspace --locked`, `tools/lint/ratchet.py` and `tools/lint/source.mjs`
     pass.
 - **Diagnostics on all five corpora** are byte-identical with default checkers, `--checkers 4` and `--singleThreaded`.
   vscode has 371 errors and webpack 840.

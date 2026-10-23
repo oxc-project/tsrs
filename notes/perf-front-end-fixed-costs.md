@@ -11,7 +11,7 @@ steps of program construction, statistics, process startup and exit) on the 64-v
 - A/B probes (`.depot/workflows/perf-probe.yml` with a probe script in the working copy; the scripts are not
   committed): base and new built in **the same source directory** with `--profile dist` (fat LTO, one codegen unit;
   base = the diff's `crates/` stashed), 7 interleaved runs per cell, wall timed with `wait4` to the millisecond,
-  `perf stat` for instructions and page faults, `bench/count.py` (user-space instructions, deterministic) for one
+  `perf stat` for instructions and page faults, `bench/count.mjs` (user-space instructions, deterministic) for one
   single-threaded run. Why dist: with `cargo build --release` (16 codegen units) the same diff moved Check time by
   +15 to +60 ms with fewer instructions and less CPU (a base built in another directory gets other crate metadata
   hashes, and any tsrs_core change repartitions codegen units); the dist A/B of the same diff showed Check within

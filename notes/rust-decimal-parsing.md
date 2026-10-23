@@ -25,7 +25,7 @@ passes: 13,462 diagnostic, 12,779 type, 12,779 symbol, 13,392 JavaScript, 149 Ja
 sourcemap-text cases. Canonical history retains its existing object-literal normalization difference.
 Fourslash remains 4,066 passed, 63 failed and 417 skipped. All 36 regression projects pass.
 
-Workspace check, required workspace Clippy, tools/lint/source.py and the wasm32-wasip1 check pass.
+Workspace check, required workspace Clippy, tools/lint/source.mjs and the wasm32-wasip1 check pass.
 Capability status and counts are unchanged.
 
 ## Measurements
@@ -50,7 +50,7 @@ RAYON_NUM_THREADS=1 /usr/bin/time -l <binary> -p <suite>/cases/solutions/Compile
 ~~~
 
 These screening measurements establish no qualifying performance gain. They are not deterministic Linux
-bench/count.py counts; the full project set and native Linux execution were not measured locally.
+bench/count.mjs counts; the full project set and native Linux execution were not measured locally.
 The outcome is the requested reduction of maintained support code, without a performance claim.
 Local audit scripts/checks/differential logs: /private/tmp/tsrs-code-reduction. Frozen binaries,
 baseline comparisons and raw resource counters: /private/tmp/tsrs-rust-stdlib.

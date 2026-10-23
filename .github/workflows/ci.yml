@@ -59,9 +59,14 @@ jobs:
     steps:
       - uses: taiki-e/checkout-action@7d1e50e93dc4fb3bba58f85018fadf77898aee8b # v1.4.2
 
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .node-version
+          package-manager-cache: false
+
       - name: Source checks
         id: source-checks
-        run: python3 tools/lint/source.py --self-test && python3 tools/lint/source.py
+        run: node tools/lint/source.mjs --self-test && node tools/lint/source.mjs && node tools/check-scripts.mjs
         background: true
 
       - uses: oxc-project/setup-rust@3d6fb132fbe7cdcb66bf8ec193911c2945369d12 # v1.0.17
@@ -268,14 +273,12 @@ jobs:
           save-cache: ${{ github.ref_name == 'main' }}
           cache-key: warm-fourslash
 
-      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
-        with:
-          python-version: '3.15'
+      - uses: oxc-project/setup-node@f46a72f95efdc55273fcd042d61c84e723b2892c # v1.4.1
 
       - name: Read TypeScript reference commit
         id: ts
         run: |
-          python3 -c 'import tomllib; print("commit=" + tomllib.load(open("Cargo.toml", "rb"))["workspace"]["metadata"]["typescript"]["commit"])' >> "$GITHUB_OUTPUT"
+          echo "commit=$(node npm/build.mjs --print-typescript-commit)" >> "$GITHUB_OUTPUT"
 
       - name: Check out TypeScript source and testdata
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -299,7 +302,7 @@ jobs:
           cache-dependency-path: ts-ref/tsc/go.sum
 
       - name: Go Fourslash gate checks
-        run: python3 -m unittest discover -s tools/go-fourslash -p 'test_*.py'
+        run: node --test tools/go-fourslash/test_*.mjs
 
       - name: Go Fourslash suite
         run: .github/scripts/go-fourslash-gate.sh
@@ -400,7 +403,7 @@ jobs:
       # new conformance baselines.
       - name: Determinism and ordered diagnostics
         run: |
-          python3 tools/ci/compare_diagnostics.py --self-test
+          node tools/ci/compare_diagnostics.mjs --self-test
           tools/ci/determinism.sh --self-test
           if [[ "$GITHUB_EVENT_NAME" = pull_request || "$GITHUB_EVENT_NAME" = merge_group ]]; then
             current_source_pin="$(grep -E '^commit = "[0-9a-f]{40}"$' Cargo.toml)"

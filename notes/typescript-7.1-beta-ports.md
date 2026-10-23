@@ -65,7 +65,7 @@ showed +5.388% wall time in the first short run, with 4/5 positive pairs
 measured 0.184 → 0.177 s (−3.990%), 15.190 → 15.232 billion instructions
 (+0.280%), and 495.47 → 498.34 MiB peak RSS (+0.579%). The wall increase
 did not reproduce, and no new performance regression was detected. The
-deterministic Linux `bench/count.py` counter is unavailable on this macOS
+deterministic Linux `bench/count.mjs` counter is unavailable on this macOS
 host; macOS instruction counts include kernel work. Raw samples and matching
 output hashes are under `target/port-623/beta-942a59d308/perf/`.
 

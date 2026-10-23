@@ -108,7 +108,7 @@ diagnostic. A pr-verify run on the bench projects (none configures a mapper) is 
   in a plain file importing it are reported at original positions; `mapper-diagnostic` checks a mapper-authored
   diagnostic. A changed `expected.txt` fails it, and so does a missing `node`.
 - The usual gates: `cargo check --workspace --locked` (CI uses `-D warnings`), `tools/lint/ratchet.py`,
-  `tools/lint/source.py`, `tools/gen-check.sh`, the conformance and fourslash suites unchanged, `pr-verify`.
+  `tools/lint/source.mjs`, `tools/gen-check.sh`, the conformance and fourslash suites unchanged, `pr-verify`.
 
 ## Status
 

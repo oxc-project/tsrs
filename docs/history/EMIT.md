@@ -271,7 +271,7 @@ Port Go's flow exactly (testrunner/compiler_runner.go, testutil/harnessutil, tes
 - New kinds in `--baselines`: `js` (`.js`), `jsmap` (`.js.map`), `sourcemap` (`.sourcemap.txt`), next to
   `types,symbols`. They use more bits in `EXTRA_BASELINES` and are passed to workers like the existing ones. Results
   go to `js-<class>.txt` etc., artifacts to `<suite>/<name>.js.{actual,diff}`, add `tsrs-test show <name> --js`, and
-  `tools/cluster-diffs.py --baseline js`.
+  `tools/cluster-diffs.mjs --baseline js`.
 - Compilation when any emit baseline is requested: Go's `compileFilesWithHost`. A pre-emit program
   (`TraceResolution` off) collects config/program/syntactic/semantic/global(/suggestion)/declaration diagnostics. A
   post-emit program runs `Emit` first, writing into the harness file system's output recorder (recorderfs.go),
@@ -310,7 +310,7 @@ transformer structs to arena pointers and recording the host and resolver interf
 The port is complete, and the bootstrap generator and its advisory signature files have since been removed.
 The original configurations and instructions remain in Git history.
 
-Current signature indexes are generated from the Rust sources by `python3 tools/sigs-from-rust.py`.
+Current signature indexes are generated from the Rust sources by `node tools/sigs-from-rust.mjs`.
 See [the porting guide](../PORTING.md) for type mappings and [the current emit guide](../EMIT.md) for implementation.
 
 ## 11. Coordination with the LSP port

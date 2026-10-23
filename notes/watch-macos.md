@@ -22,10 +22,10 @@ write whatever the latency or flags (0, 1 ms, 10 ms, 50 ms; with and without NoD
 FSEventStreamFlushSync does not get it sooner (the delay is before the event reaches the stream). The pipeline after
 it (debounce, cycle start, status line) adds under 1 ms.
 
-- `watchcheck.py`: ALL SAME, one cycle each, in `--watch`, `-b --watch`, and `--watch` on the kqueue fallback.
-- `editduringjob.py`: ALL SAME; comment edits 37-65 ms, declaration changes 1.7 s. The signature job takes 546 ms
+- `watchcheck.mjs`: ALL SAME, one cycle each, in `--watch`, `-b --watch`, and `--watch` on the kqueue fallback.
+- `editduringjob.mjs`: ALL SAME; comment edits 37-65 ms, declaration changes 1.7 s. The signature job takes 546 ms
   after the initial build (1.15 s on Linux).
-- `savepatterns.py` (both modes, vscode and a 300-file project): one cycle and the fresh build's diagnostics for an
+- `savepatterns.mjs` (both modes, vscode and a 300-file project): one cycle and the fresh build's diagnostics for an
   in-place write, truncate / 200 ms / write, atomic rename, rename away + write + delete backup, a 200-file formatter
   rewrite and its restore, a git checkout of 200 files and back, and a case-only rename and back. A writer that
   writes four chunks 100 ms apart starts 2 cycles; the second has the right result (see "Not fixed").
@@ -41,7 +41,7 @@ it (debounce, cycle start, status line) adds under 1 ms.
 | 2-3 cycles per save on vscode | FSEvents queue had no QoS; with the cores busy (the cycle's checkers, or Spotlight on the efficiency cores) fseventsd dropped events for the client (UserDropped + MustScanSubDirs), which the watch turns into a full rebuild | `QOS_CLASS_USER_INITIATED` queue | `fsevents_load.rs` (10k writes, all cores busy; 3/3 fail without) |
 | Truncate-then-write save: 2 cycles, the first on an empty file | no close event on FSEvents/kqueue | an empty file holds the callbacks like an unclosed one on inotify | `write_settling_fsevents.rs`, `kqueue_macos.rs` |
 | Formatter / codegen burst: 2 cycles | leading edge fired on the first ~12 ms of the burst | a batch that changed two existing files waits for 50 ms of quiet | `write_settling_fsevents.rs` ([2, 18] -> [20]) |
-| Case-only rename: stale program, missing TS1149 | the path is case-folded, so the one-file fast path reused the old spelling | an event spelled unlike the program's file rebuilds; `-b`: the file names reload | `watch_macos.rs`, `savepatterns.py` |
+| Case-only rename: stale program, missing TS1149 | the path is case-folded, so the one-file fast path reused the old spelling | an event spelled unlike the program's file rebuilds; `-b`: the file names reload | `watch_macos.rs`, `savepatterns.mjs` |
 | Edits through a symlinked directory never seen (tsgo too) | a recursive watch does not follow a symlink below its root | such directories get their own watch | `watch_macos.rs` (both modes) |
 | Edit during the first build missed (tsgo too) | watches start after the build | files changed since they were read are queued | `watch_macos.rs` (both modes) |
 | Own outputs started a second full rebuild per save (tsgo too) | outDir inside `include: ["**/*"]` | events for the config's outputs are dropped | `watch_macos.rs` |
@@ -50,7 +50,7 @@ it (debounce, cycle start, status line) adds under 1 ms.
 | A new directory beside the project ran a cycle | any directory under any watch counted | only wildcard matches, lookup paths and node_modules count | `watch_macos.rs` (both modes) |
 | kqueue: past 256 files, edits silently missed | Rust keeps the shell's 256-descriptor soft limit (Go raises it) | raise it like Go; child descriptor exhaustion is an error naming `ulimit -n`; opening the watch root already reports its path and OS error | `kqueue_macos.rs` accepts either root or child exhaustion wording, since map order decides which fails first |
 | A watch error printed nothing at all | the output is buffered and only the status line flushed it | the report goes out after the error | `watch_macos.rs` |
-| `-b --watch` repeat edit 578 ms, detected 121 ms | wildcard reload every cycle, 10k realpaths per cycle, every file reread | skip the reload for edits, cache realpaths, reuse files by mtime | `watchcheck.py`, `savepatterns.py`, tsctests |
+| `-b --watch` repeat edit 578 ms, detected 121 ms | wildcard reload every cycle, 10k realpaths per cycle, every file reread | skip the reload for edits, cache realpaths, reuse files by mtime | `watchcheck.mjs`, `savepatterns.mjs`, tsctests |
 | A batch to 284 callbacks took 133-301 ms under the locks (stalled new watches 49 ms) | per-callback snapshot and case-folded rebase of every event | index by parent directory, outside the locks | `watcher_test.rs` (differential) |
 
 ## Evaluated and rejected (do not redo)

@@ -166,7 +166,7 @@ checkers, 1/8 0.086 s, 1/16 0.088 s; at 32 checkers 0.085 s for all three. 1/16 
 
 ## 6. Gates
 
-`cargo check --workspace` clean, `tools/lint/ratchet.py` ok (none new), `tools/lint/source.py` ok,
+`cargo check --workspace` clean, `tools/lint/ratchet.py` ok (none new), `tools/lint/source.mjs` ok,
 `cargo test -p tsrs_checker -p tsrs_compiler` ok, `cargo test -p tsrs_cli --test split_check` ok.
 
 pr-verify (`depot ci run --workflow .depot/workflows/pr-verify.yml`, run n1187b8sgs, main 0257e3e against this branch,
@@ -195,7 +195,7 @@ threshold above.
 ## Reproduce
 
 ```sh
-python3 bench/run.py --setup-only --projects next-packages-next
+node bench/run.mjs --setup-only --projects next-packages-next
 cd bench/.work/solutions/next-packages-next
 TSRS_FILE_TIMES=ft.tsv TSRS_ASSIGNMENT_STATS=times tsrs -p packages/next --noEmit --incremental false --checkers 32
 TSRS_SPLIT_FILES=0 tsrs -p packages/next --noEmit --incremental false --extendedDiagnostics --checkers 32   # before

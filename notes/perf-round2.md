@@ -38,7 +38,7 @@ peaks and instructions do not.
 
 Warm runs: a fresh seed per round (a cold `--incremental` run), then the warm run (which rewrites the tsbuildinfo),
 then a leaf edit that nothing imports. Counters (Types, Symbols, Instantiations) and diagnostics (0 errors) are
-identical between the binaries in every run that saw the same files. Language server: `tools/lsp-mem/lsp_mem.py
+identical between the binaries in every run that saw the same files. Language server: `tools/lsp-mem/lsp_mem.mjs
 --edits 40 --every 10`, 5 interleaved rounds, medians.
 
 What each piece contributed (each PR's own notes, against ff92b7f, which is 12a8acd's code):

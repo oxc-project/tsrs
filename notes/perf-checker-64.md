@@ -9,7 +9,7 @@ Machine: Depot `depot-ubuntu-24.04-64` (64 vCPU AMD EPYC 9R45, one thread per co
 252 GB), `cargo build --release` (not the PGO dist build), vscode `src` (10,427 files, 9,399 type checked, 371
 errors), `--noEmit --incremental false --extendedDiagnostics --pretty false`. Every measured run has
 `TSRS_ASSIGNMENT_STATS=times` (per-checker wall, thread CPU and stolen files; the `stolen files` line is new) and
-runs under `bench/count.py` (user-space instructions, peak RSS). Medians of 3 unless stated. The three probe runs were
+runs under `bench/count.mjs` (user-space instructions, peak RSS). Medians of 3 unless stated. The three probe runs were
 `depot ci run --workflow .depot/workflows/perf-probe.yml` with three versions of tools/perf/probe.sh (the committed
 one is the default curve); their artifacts are not committed.
 
@@ -132,7 +132,7 @@ memory is a few GiB; past 32 the check phase does not move and the memory keeps 
 the files floor gives xstate (248 checked files) 7 checkers and a 5-file program 4.
 
 bench/compare.py and bench/README.md still describe the default as "half the cores between 4 and 8" (not in this
-change's write set; status 2026-10-10: both now describe the current rule); bench/run.py's mode title now derives the count from the machine.
+change's write set; status 2026-10-10: both now describe the current rule); bench/run.mjs's mode title now derives the count from the machine.
 
 ## 4. Result: the branch head on the 64-vCPU machine
 
@@ -156,7 +156,7 @@ vscode without flags: 1.73 s -> 0.82 s on this machine, at the same output, for 
   checkers (`--pretty false`, full output), and vscode at 64 and at the new default (9 on the Mac).
 - `cargo test --release -p tsrs_compiler` green, including a new test that `heavy_files_first` moves only the heavy
   files and keeps the others' order.
-- `tools/lint/ratchet.py` ok (11 findings, none new); `tools/lint/source.py` ok.
+- `tools/lint/ratchet.py` ok (11 findings, none new); `tools/lint/source.mjs` ok.
 - `--checkerAssignment go` and `locality` do not reorder (the reorder runs only when stealing does); the incremental
   pass, declaration diagnostics and emit never steal, so they are unchanged.
 

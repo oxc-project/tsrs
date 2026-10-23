@@ -15,5 +15,5 @@ capacity stayed at 576.0 MB and profiler peak heap stayed at 239.8 MB. Maximum r
 against 1,220,427,776 bytes for the base (-0.10%, a noise-sized difference).
 
 Sorted AST-oracle hashes match the base for all 14,013 files. The 108 core tests and six scanner tests pass, as do
-workspace compilation, `tools/lint/ratchet.py`, `tools/lint/source.py`, and `git diff --check`. The implementation
+workspace compilation, `tools/lint/ratchet.py`, `tools/lint/source.mjs`, and `git diff --check`. The implementation
 is retained in this independent worktree; it is not combined with the numeric-cache experiment.

@@ -82,7 +82,7 @@ the source, nodes with an id or nonzero flags, and distinct identifier texts per
 and the list fields of each data struct (read from `generated.rs`).
 
 Runs: Mac (18 cores), one process at a time, `tsrs -p <project> --noEmit --incremental false --extendedDiagnostics
---pretty false --checkers 8` on the `bench/run.py` checkouts, single run each, plus one `TSRS_MEM_SPLIT=1` run for
+--pretty false --checkers 8` on the `bench/run.mjs` checkouts, single run each, plus one `TSRS_MEM_SPLIT=1` run for
 the arena and heap at parse end. Checks: error counts equal the README's on all eight (6, 9, 43,651, 136, 0, 371, 840,
 10,846); the layouts rebuilt by the tool reproduce the walked node bytes exactly on all eight; the walked tree of the
 non-leaf files at `pre` is 70-89% of the thread arenas' used bytes at parse end (the rest is binder output).
@@ -348,7 +348,7 @@ node itself (A) saves nothing since identifiers are 32 B.
 ```sh
 # build the opt-in tool (default builds do not contain it)
 cargo build --release -p tsrs_cli --features tsrs_ast/ast-sizing
-python3 bench/run.py --setup-only            # checkouts in bench/.work/solutions/<name> (bench/projects.json)
+node bench/run.mjs --setup-only            # checkouts in bench/.work/solutions/<name> (bench/projects.json)
 # per project, from its checkout root; -p: t3code-server apps/server, supabase-studio apps/studio, cal-diy apps/web,
 # formbricks-web apps/web/tsconfig.typecheck.json, vscode src, mikro-orm / webpack / drizzle-orm .
 TSRS_AST_SIZING=/tmp/sizing/<name>.tsv target/release/tsrs -p <project> --noEmit --incremental false \

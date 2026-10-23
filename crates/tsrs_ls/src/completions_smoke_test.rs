@@ -1,7 +1,7 @@
 // Not a Go test: an end-to-end smoke test of completions (textDocument/completion, completionItem/resolve,
 // linked editing, auto-insert) over an in-memory program with the bundled libs. The expected responses in
 // testdata/completions_smoke/*.out were recorded from `tsgo-ref --lsp -stdio` with the same project, client
-// capabilities and user preferences (tools/oracle/completions/record.py); project paths are rewritten to `/`.
+// capabilities and user preferences (tools/oracle/completions/record.mjs); project paths are rewritten to `/`.
 //
 // Go returns some completion lists in map order (globals, path completions), and clients sort them by sort text
 // and label (fourslash does the same with ls.CompareCompletionEntries), so both lists are stably sorted that way

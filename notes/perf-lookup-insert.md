@@ -91,7 +91,7 @@ mode; 12,779 type and symbol passes in Go/eager mode and 12,778 in canonical mod
 difference. There are no crashes or timeouts. All 29 regression cases and both content-mapper cases pass.
 
 Local checking passes `cargo check --workspace --locked`, the `wasm32-wasip1` check, `tools/lint/ratchet.py`
-(three baseline findings, none new), and `tools/lint/source.py`. The selected unit suites pass 515 cases with two
+(three baseline findings, none new), and `tools/lint/source.mjs`. The selected unit suites pass 515 cases with two
 ignored; the two real FSEvents checks and one subprocess check require running outside the sandbox. The subprocess
 failure was reproduced on main before the unrestricted rerun passed. Fourslash meets its existing gate: 4,066
 passes, 63 expected unsupported cases, and 417 skips.
@@ -102,7 +102,7 @@ Build main `d8b0959e`, the rebased original, and the cleanup in the same source 
 pinned Rust 1.99.0 toolchain and `cargo build --release --locked -p tsrs_cli`. Apply each candidate independently
 to main. Use all 17 pinned `bench/projects.json` projects.
 
-Measure two interleaved runs per binary with `bench/count.py`, `--singleThreaded --noEmit --incremental false
+Measure two interleaved runs per binary with `bench/count.mjs`, `--singleThreaded --noEmit --incremental false
 --pretty false`, and `RAYON_NUM_THREADS=1`. Measure default peak RSS separately through a fresh GNU `time` process
 (`%M`, KiB), without a checker override: one warmup and three retained interleaved runs. This avoids inheriting a
 large Python driver's resident-memory floor in `wait4` results. Compare ordered diagnostics and exit codes within

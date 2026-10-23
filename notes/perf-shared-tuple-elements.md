@@ -108,13 +108,13 @@ them is exact.
   - `tools/regressions.sh` passes 26 of 26.
   - `cargo test -p tsrs_cli` passes, with `api::memory_tests` cfg'd out locally.
   - `RUSTFLAGS="-D warnings" cargo check --workspace --locked` is clean.
-  - The lint ratchet and `tools/lint/source.py` are ok.
+  - The lint ratchet and `tools/lint/source.mjs` are ok.
 
 ## Reproduce
 
 ```sh
-git checkout origin/bench/bun-pr-projects -- bench/projects.json bench/run.py bench/overlays/type-fest  # not committed
-python3 bench/run.py --setup-only --projects type-fest
+git checkout origin/bench/bun-pr-projects -- bench/projects.json bench/run.mjs bench/overlays/type-fest  # not committed
+node bench/run.mjs --setup-only --projects type-fest
 cd bench/.work/solutions/type-fest
 /usr/bin/time -l tsrs -p . --noEmit --incremental false --pretty false --extendedDiagnostics --checkers 8
 ```

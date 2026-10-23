@@ -37,7 +37,7 @@ Where they come from (vscode): a type's own members in `get_property_of_type` (`
 `get_symbol` 17%, the binder's `declare_symbol` 5%, `get_export_of_module` 3%, the rest spread over ~190 sites. On
 supabase-studio the fallback is 41% of all lookups (33M): most property lookups there miss the type's own members.
 
-What a lookup costs, measured on the 64-vCPU Linux runner with `bench/count.py` (user-space instructions, exact,
+What a lookup costs, measured on the 64-vCPU Linux runner with `bench/count.mjs` (user-space instructions, exact,
 `--release`) on a build that repeats part of every lookup, picked by an environment variable (local patch, not
 committed; the percentages are against the same build repeating nothing):
 
@@ -89,7 +89,7 @@ checks, and up to two hashes: about 190 instructions on supabase-studio.
 
 ## Result
 
-`bench/count.py` on the 64-vCPU Linux runner, `--profile dist` (fat LTO), single-threaded (`--singleThreaded`,
+`bench/count.mjs` on the 64-vCPU Linux runner, `--profile dist` (fat LTO), single-threaded (`--singleThreaded`,
 `RAYON_NUM_THREADS=1`), base 6baca34 and the change built in the same job (`tools/perf/abprobe.sh`, not committed);
 outputs byte-identical in every cell:
 
@@ -117,7 +117,7 @@ No change at 32 checkers on vscode, the project that gains least: 1.0 G instruct
 
 ## Tried and dropped
 
-All on the Linux runner, `bench/count.py` single-threaded, against the same base built in the same job.
+All on the Linux runner, `bench/count.mjs` single-threaded, against the same base built in the same job.
 
 | candidate | vscode | t3code-server | formbricks-web | supabase-studio | cal-diy |
 | --- | ---: | ---: | ---: | ---: | ---: |
@@ -140,5 +140,5 @@ Local (Mac), the change's `--release` binary against a base build of 6baca34: `-
 on vscode, t3code-server, formbricks-web, supabase-studio, cal-diy, mui-docs, webpack and xstate-main single-threaded
 and at 4 and 32 checkers, and at 4 and 32 checkers with `--checkerAssignment go`; `--extendedDiagnostics` counters
 identical single-threaded (timing and memory rows excluded): 48 of 48 cells. `cargo check --workspace` without
-warnings, `tools/lint/ratchet.py`, `tools/lint/source.py`, `cargo test -p tsrs_core -p tsrs_ast -p tsrs_checker -p
+warnings, `tools/lint/ratchet.py`, `tools/lint/source.mjs`, `cargo test -p tsrs_core -p tsrs_ast -p tsrs_checker -p
 tsrs_compiler` (new: `name_filter_keeps_every_key`).

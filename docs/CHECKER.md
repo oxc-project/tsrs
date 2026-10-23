@@ -357,7 +357,7 @@ it is wrong for the Go semantics, and update its callers in the same change.
 ## Signature indexes
 
 The Rust sources are the reference. `docs/sigs/checker.txt` (and the other `docs/sigs/*.txt`) is an index with one
-line per function, generated from the Rust sources by `python3 tools/sigs-from-rust.py`. CI does not run it, so run
+line per function, generated from the Rust sources by `node tools/sigs-from-rust.mjs`. CI does not run it, so run
 it after changing signatures (or grep the sources). The bootstrap stub generator and its advisory signature files
 have been removed.
 

@@ -60,7 +60,7 @@ final code. The final documentation update does not change that code.
 
 Release builds with the pinned Rust toolchain and unchanged optimization settings. Public Compiler and
 Compiler-Unions inputs come from `bench/projects.json` (typescript-benchmarking at `41f652ab2df5`). On Linux,
-`bench/count.py` measures `--noEmit --incremental false --pretty false --singleThreaded` with
+`bench/count.mjs` measures `--noEmit --incremental false --pretty false --singleThreaded` with
 `RAYON_NUM_THREADS=1`, so parsing and checking both use one thread. Compare ordered diagnostics and exit codes too.
 
 The local macOS counters varied too much to resolve all changes this small; use Linux counts to select the fix.

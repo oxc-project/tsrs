@@ -1,4 +1,4 @@
-# rust_name | signature | origin | receiver  (generated from the Rust sources by tools/sigs-from-rust.py)
+# rust_name | signature | origin | receiver  (generated from the Rust sources by tools/sigs-from-rust.mjs)
 accepts_void | pub(crate) fn accepts_void(t: P<Type>) -> bool | checker.go:9371 | -
 active_mapper_cache_key | fn active_mapper_cache_key(t: P<Type>, alias: Option<P<TypeAlias>>) -> CacheHashKey | rust:checker_11.rs:1116 | -
 add | pub fn add(&self, reference: P<Type>) | rust:types.rs:2286 | ReferenceInstantiations

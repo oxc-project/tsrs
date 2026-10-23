@@ -15,7 +15,7 @@ agents built independently. 19 code commits.
 
 Clean `--release` builds, 98d8d60e against this branch, `-p <tsconfig> --noEmit --incremental false --pretty false`.
 "VM" is the exact user-space count (a DynamoRIO client that adds each block's length to a per-thread counter,
-Linux AArch64 in an OrbStack VM, `-no_enable_reset`; `bench/count.py` cannot open a counter there); "Mac" is
+Linux AArch64 in an OrbStack VM, `-no_enable_reset`; `bench/count.mjs` cannot open a counter there); "Mac" is
 `/usr/bin/time -l` instructions retired on an 18-core Apple Silicon machine (kernel included).
 
 | | base | branch | change |

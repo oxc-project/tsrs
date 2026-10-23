@@ -322,7 +322,7 @@ Go mode is not touched. This is 2-3 days of work (estimate), most of it ported f
 --input projects=t3code-server,formbricks-web,cal-diy,supabase-studio,mikro-orm,vscode,xstate-main --input
 checkers=1,8 --input reps=10 --input poison=false`. This gives:
 
-- single-threaded instructions through `bench/count.py`, which repeat to about 0.001% on the bench machine
+- single-threaded instructions through `bench/count.mjs`, which repeat to about 0.001% on the bench machine
   (bench/README.md "Regression flag");
 - ten interleaved runs per binary at 8 checkers on the scoreboard's machine type;
 - a check that the diagnostics are identical.
@@ -374,7 +374,7 @@ which includes kernel work. Minimum of 5 interleaved runs, which repeats within 
 | R1 with every window test compiled to `false` | +0.35%, +0.39% | +0.38%, +0.42% |
 
 Linux, R1 without item 2 (branch `spike/r1-read-path-no2`; Depot run mbjr92dqzf, pr-verify on
-`depot-ubuntu-24.04-16` against main 4e5c85ae): user-space instructions from `bench/count.py`, and the 8-checker wall
+`depot-ubuntu-24.04-16` against main 4e5c85ae): user-space instructions from `bench/count.mjs`, and the 8-checker wall
 paired over 10 interleaved runs (median, interquartile range). Diagnostics identical in every cell.
 
 | project | instructions | 8-checker wall |
@@ -596,7 +596,7 @@ The spike plan called this design B: "the only design that can hang".
 
 The fidelity gates are: conformance in the default mode, with `TSRS_LAZY_MEMBERS=0`, and canonical with 4 checkers per
 test; fourslash; `tools/regressions.sh`; `tools/ci/determinism.sh` with the layer on; arena poison; `mprotect` as a
-CI mode; the bench projects at 1, 8 and 16 checkers through verify.py; and the 38k-file codebase, which the owner
+CI mode; the bench projects at 1, 8 and 16 checkers through verify.mjs; and the 38k-file codebase, which the owner
 runs. **Total: 6-8 weeks to a landable pull request**, if stage 1's kill criterion does not fire.
 
 **Risks:**

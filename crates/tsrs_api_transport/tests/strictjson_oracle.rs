@@ -1,5 +1,5 @@
 // Decoder strictness against a Go binary built at the pinned commit (tests/fixtures/go_json_oracle_main.go.txt,
-// inputs from go_json_oracle_cases.py): duplicate member names, unpaired surrogate escapes and invalid
+// inputs from go_json_oracle_cases.mjs): duplicate member names, unpaired surrogate escapes and invalid
 // UTF-8 are rejected with jsontext's error text; valid input (including escaped astral pairs) decodes.
 
 use std::panic::{AssertUnwindSafe, catch_unwind};

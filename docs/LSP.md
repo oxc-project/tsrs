@@ -227,7 +227,7 @@ has also been run on a large private monorepo.
 - Go Fourslash drives the production server implementation in separate Rust processes; its results and skips are below.
 
 The [initial port log](history/LSP.md) includes the oracle results for diagnostics, navigation and watched-file
-invalidation. `lsp_oracle.py --closed GLOB --disk-edits N [--disk-edit-at REGEX] [--watch-client]` tests a closed
+invalidation. `lsp_oracle.mjs --closed GLOB --disk-edits N [--disk-edit-at REGEX] [--watch-client]` tests a closed
 file changing on disk through client notifications or the builtin watcher; fixtures are in
 `tools/oracle/lsp/fixtures`.
 
@@ -251,9 +251,9 @@ eight groups unsupported by the former translated harness; their LSP requests ru
 [runner guide](../tools/go-fourslash/README.md)
 for commands and comparison results.
 
-Run the suite with `PYTHON=python3.12 .github/scripts/go-fourslash-gate.sh` after building
+Run the suite with `.github/scripts/go-fourslash-gate.sh` after building
 `cargo build --profile dev -p tsrs_fourslash_server`. To select cases, use
-`python3.12 tools/go-fourslash/run.py -- -run '^TestQuickInfoAlias$' -v`.
+`node tools/go-fourslash/run.mjs -- -run '^TestQuickInfoAlias$' -v`.
 
 The generated Rust suite and its translator have been removed. CI, PGO training, and BOLT release gates use
 the Go harness against the appropriate Rust task binary. The [port log](history/LSP.md#fourslash)

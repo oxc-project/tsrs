@@ -1,7 +1,7 @@
 // Not a Go test: an end-to-end smoke test of references, rename, prepareRename, document highlights,
 // implementations and call hierarchy over an in-memory program with the bundled libs. The requests
 // (testdata/refs_smoke/reqs.json) and the expected responses (expected.txt) were recorded from
-// `tsgo-ref --lsp -stdio` with testdata/refs_smoke/drive.py (`python3 drive.py <dir with a.ts b.ts tsconfig.json>
+// `tsgo-ref --lsp -stdio` with testdata/refs_smoke/drive.mjs (`node drive.mjs <dir with a.ts b.ts tsconfig.json>
 // reqs.json`), with the project directory replaced by `/`.
 
 use std::ptr::NonNull;

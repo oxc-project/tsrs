@@ -1,6 +1,6 @@
 # GitHub Actions workflow: before/after check of a branch on a GitHub-hosted Linux x64 runner (bench/README.md "Verifying a branch").
 # Builds the branch's tsrs and the tsrs of its merge base with `base` (`cargo build --release` of each: relative
-# comparisons only, as in perf-probe.yml), then runs tools/perf/verify.py on the bench projects: identical
+# comparisons only, as in perf-probe.yml), then runs tools/perf/verify.mjs on the bench projects: identical
 # diagnostics and exit codes at each checker count, wall time, peak RSS and check time before/after, instructions of
 # one single-threaded run, and one run with poisoned arenas. The run fails when any diagnostic differs, so its status
 # answers "is this branch exact". The table is the `pr-verify` artifact (verify-out/) and the job summary.
@@ -119,7 +119,7 @@ jobs:
           if [ "$(uname -m)" != x86_64 ]; then
             echo "::error::expected x86_64, got $(uname -m)"; exit 1
           fi
-          python3 -c 'import os; assert all(int(n) > 0 for n in os.environ["CHECKERS"].split(",")), "checker counts must be positive"'
+          node -e 'if (!process.env.CHECKERS.split(",").every(n => /^[1-9]\d*$/.test(n))) throw new Error("checker counts must be positive")'
 
       - uses: oxc-project/setup-node@f46a72f95efdc55273fcd042d61c84e723b2892c # v1.4.1
         with:
@@ -309,7 +309,7 @@ jobs:
           new_label="${LABEL:-HEAD}@${NEW_SHA::12}"
           if [ "$DIRTY" = true ]; then extra+=(--new-dirty); new_label+=" + local changes"; fi
           set +e
-          python3 tools/perf/verify.py --base /tmp/verify/base/tsrs --new /tmp/verify/new/tsrs \
+          node tools/perf/verify.mjs --base /tmp/verify/base/tsrs --new /tmp/verify/new/tsrs \
             --base-commit "$BASE_SHA" --new-commit "$NEW_SHA" --base-label "$BASE@${BASE_SHA::12}" --new-label "$new_label" \
             --projects "${{ steps.projects.outputs.list }}" --checkers "$CHECKERS" --reps "$REPS" "${extra[@]}" --out verify-out
           rc=$?

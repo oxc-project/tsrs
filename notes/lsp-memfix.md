@@ -56,7 +56,7 @@ Layouts from `-Zprint-type-sizes` (nightly, release).
 The "module-resolver package.json block" doubt of notes/lsp-mem.md is the cache bug above (real, fixed), as far as
 can be told: no such hit remains.
 
-## RSS (release, `tools/lsp-mem/lsp_mem.py`, 200 edits, MiB at edit 0 / 20 / ... / 200)
+## RSS (release, `tools/lsp-mem/lsp_mem.mjs`, 200 edits, MiB at edit 0 / 20 / ... / 200)
 
 | session | build | 0 | 20 | 40 | 60 | 80 | 100 | 120 | 140 | 160 | 180 | 200 | MiB/edit, edits 100-200 |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |

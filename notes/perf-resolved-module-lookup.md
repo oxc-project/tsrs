@@ -61,4 +61,4 @@ MUI Docs extended-diagnostic semantic counters are identical, including 2,455,36
 - All 36 regression projects pass.
 - `cargo test -p tsrs_module -p tsrs_checker -p tsrs_compiler -p tsrs_ls`: 134 passed, 1 ignored.
 - `cargo clippy --all-targets --config 'build.warnings="deny"'` passes.
-- `tools/lint/source.py` passes.
+- `tools/lint/source.mjs` passes.

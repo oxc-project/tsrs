@@ -89,7 +89,7 @@ Profile after (`--noCheck`): arena 1,593 -> 1,536 MB requested (node payloads 75
 
 ## Gates
 
-- AST oracle (`tools/oracle/ast/run.py`, Rust vs Go): 113/113 libs, 17,318/17,319 split test units (the known non-UTF-8
+- AST oracle (`tools/oracle/ast/run.mjs`, Rust vs Go): 113/113 libs, 17,318/17,319 split test units (the known non-UTF-8
   file), 38,958/38,958 private-monorepo files identical.
 - Binder oracle (`tools/oracle/binder`): private monorepo 38,958/38,958 identical to Go; test corpus 12,750/12,758 with
   the same 8 differences as the base binary (hashes of all 12,758 files identical base vs final).

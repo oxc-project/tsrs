@@ -41,7 +41,7 @@ Whole-project `dist` builds use the pinned xstate and VS Code revisions and inst
 | vscode | 98.143507 → 98.107235 | -0.04% | 1942.70 → 1943.78 |
 
 macOS instruction counts include kernel work and noise. These results are below the usual landing
-thresholds; deterministic Linux `bench/count.py` verification remains outstanding. Retained in the
+thresholds; deterministic Linux `bench/count.mjs` verification remains outstanding. Retained in the
 draft PR at the owner's request. Saved binaries and logs: `/private/tmp/tsrs-resolver-results/{base,scratch-base,scratch}`.
 
 The probe and its allocator have been removed. The counts above belong to the revisions recorded here;

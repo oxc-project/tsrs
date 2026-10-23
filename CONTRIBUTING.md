@@ -24,8 +24,11 @@ The Go implementation at the commit in `Cargo.toml` (`[workspace.metadata.typesc
 ## Build
 
 Requirements: rustup (it installs the Rust version `rust-toolchain.toml` pins), Node.js 24 (`.node-version`), pnpm 12.15.0 (for `npm/build.mjs` and the JS tooling) and git.
-The Fourslash suite also needs Python 3.12+ and Go with `GOTOOLCHAIN=auto` to select the pinned reference's version.
+The Fourslash suite also needs Node.js 24+ and Go with `GOTOOLCHAIN=auto` to select the pinned reference's version.
 Run `pnpm install --frozen-lockfile` from the repository root to install the npm workspace tooling.
+
+Use `pnpm run` at the repository root to list tooling commands. The [script catalog](tools/SCRIPTS.md) covers generators,
+oracles, benchmarks, watch checks and maintenance tools. Scripts use Node.js 24 or newer; Python is not required.
 
 ```sh
 cargo build --profile dev -p tsrs_cli -p tsrs_testrunner
@@ -33,7 +36,7 @@ cargo build --profile dev -p tsrs_cli -p tsrs_testrunner
 cargo check                                      # must be 0 errors, 0 warnings (CI sets build.warnings=deny)
 cargo check -p tsrs_wasm --target wasm32-wasip1   # the WebAssembly build still compiles (notes/wasm-build.md)
 cargo clippy --all-targets --config 'build.warnings="deny"'
-tools/lint/source.py                              # unsafe Send/Sync inventory, comments on weakened atomic orderings
+tools/lint/source.mjs                              # unsafe Send/Sync inventory, comments on weakened atomic orderings
 tools/gen-check.sh                                # generated code matches its generator (change the generator, then --write)
 ```
 
@@ -65,7 +68,7 @@ git -C ts-ref checkout "$commit"
 ./target/debug/tsrs-test run --filter <substring>                 # one test or a cluster
 ./target/debug/tsrs-test show <suite/name>                        # expected vs actual
 ./target/debug/tsrs-test run --suite all --baselines types,symbols # type and symbol baselines
-PYTHON=python3.12 .github/scripts/go-fourslash-gate.sh             # language-server suite (Go assertions, Rust LSP)
+.github/scripts/go-fourslash-gate.sh             # language-server suite (Go assertions, Rust LSP)
 TSRS_TEST=target/debug/tsrs-test .github/scripts/conformance-gate.sh # errors, types, symbols, emit and source maps
 tools/regressions.sh target/debug/tsrs                            # testdata/regressions (CI runs it too)
 tools/ci/determinism.sh --self-test && tools/ci/determinism.sh target/debug/tsrs # checker assignment gate

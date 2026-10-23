@@ -126,7 +126,7 @@ pub fn default_invocation(name: &str) -> (&'static BenchmarkSystem, Vec<String>)
     let fs = Arc::new(bundled::wrap_fs(osvfs::fs()));
     assert!(
         fs.file_exists(&config),
-        "missing benchmark config {config:?}; run bench/run.py --setup-only first"
+        "missing benchmark config {config:?}; run pnpm bench prepare first"
     );
     let args = [
         "-p",

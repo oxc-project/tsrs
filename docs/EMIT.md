@@ -233,12 +233,12 @@ Build tsgo from the TypeScript commit pinned in `Cargo.toml`, then set `TSGO` to
 binary under comparison; it defaults to `target/release/tsrs`.
 
 ```sh
-TSGO=/path/to/tsgo-ref tools/oracle/emit/run.py /path/to/tsconfig.json -- --noEmit false
-TSGO=/path/to/tsgo-ref tools/oracle/emit/run.py /path/to/project -- --noEmit false --declaration --sourceMap --declarationMap
-TSGO=/path/to/tsgo-ref tools/oracle/emit/run.py /path/to/project --buildinfo -- --noEmit false
+TSGO=/path/to/tsgo-ref tools/oracle/emit/run.mjs /path/to/tsconfig.json -- --noEmit false
+TSGO=/path/to/tsgo-ref tools/oracle/emit/run.mjs /path/to/project -- --noEmit false --declaration --sourceMap --declarationMap
+TSGO=/path/to/tsgo-ref tools/oracle/emit/run.mjs /path/to/project --buildinfo -- --noEmit false
 ```
 
-`run.py` redirects `outDir`, `declarationDir` and `tsBuildInfoFile` to separate reference and Rust trees under
+`run.mjs` redirects `outDir`, `declarationDir` and `tsBuildInfoFile` to separate reference and Rust trees under
 `target/scratch/emit-oracle/<name>`. It compares diagnostics, exit codes and emitted files byte for byte;
 `--buildinfo` includes the build-info files. It preserves the project's incremental setting and has no `-b`
 mode. Extra compiler flags follow `--`; `--name`, `--go-out`, `--rs-out` and `--json` configure the oracle.

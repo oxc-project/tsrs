@@ -17,7 +17,7 @@ while read -r p; do
   "$ORACLE" --mode both --text none --out "$o/go" tsconfig.json > "$o.go.log" 2>&1 || echo "$n oracle failed ($?)"
   for k in types symbols; do
     [ -f "$o/go/manifest.$k" ] && [ -f "$o/rs/manifest.$k" ] || continue
-    r=$(python3 "$TOOLS/project-types-compare.py" "$o/go" "$o/rs" --kind $k --list "$o/diff.$k" | head -1)
+    r=$(node "$TOOLS/project-types-compare.mjs" "$o/go" "$o/rs" --kind $k --list "$o/diff.$k" | head -1)
     c=$(cmp -s <(tail -1 "$o/go/manifest.$k") <(tail -1 "$o/rs/manifest.$k") && echo counts-eq || echo COUNTS-DIFF)
     echo "$n $k $r $c $(grep -h diagnostics "$o.go.log" | head -1)"
   done

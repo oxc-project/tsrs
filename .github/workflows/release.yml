@@ -149,24 +149,6 @@ jobs:
           go-version-file: ts-ref/tsc/go.mod
           cache: false
 
-      - name: Read macOS image revision
-        if: runner.os == 'macOS'
-        id: python-image
-        run: echo "version=${ImageVersion:?}" >> "$GITHUB_OUTPUT"
-
-      # Include the completion marker beside the architecture directory so setup-python recognizes the install.
-      # The image revision refreshes the 3.15 patch selection; the workflow hash covers the setup action and version.
-      - name: Cache macOS Python
-        if: runner.os == 'macOS'
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: ${{ runner.tool_cache }}/Python/3.15.*
-          key: release-python-v1-${{ matrix.os }}-${{ runner.arch }}-${{ steps.python-image.outputs.version }}-${{ hashFiles('.github/workflows/release.yml') }}
-
-      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
-        with:
-          python-version: '3.15'
-
       # The bench projects of the training workload install with their pinned package managers via pnpm (bench/bench.mjs prepare).
       # No .npmrc: the default registry-url writes one with `_authToken=${NODE_AUTH_TOKEN}`, and yarn 1 (webpack's
       # install in the PGO training run) refuses to run while that variable is unset. Only `publish` needs the registry.

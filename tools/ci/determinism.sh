@@ -8,7 +8,7 @@
 # an earlier tsrs binary, unless that base fails abnormally and the current compiler fixes it. Both history-dependent
 # diagnostics of notes/fix-history-dependent-diagnostics.md (nuxt's TS2320, drizzle-orm's TS2769) appeared under such
 # assignments at 2-4 checkers, so those two projects are in the default set with the two cheapest bench projects. The broader
-# base-build performance comparison remains available locally through tools/perf/verify.py; pr-verify.yml.bak is disabled.
+# base-build performance comparison remains available locally through tools/perf/verify.mjs; pr-verify.yml.bak is disabled.
 #
 #   tools/ci/determinism.sh <tsrs binary> [--base <base binary>]
 #                           [--projects xstate-main,webpack,nuxt,drizzle-orm] [--seeds 6]
@@ -81,7 +81,7 @@ sweep() {
   else
     set --
   fi
-  if ! python3 "$repo/tools/ci/compare_diagnostics.py" --label "$name" "$@" \
+  if ! node "$repo/tools/ci/compare_diagnostics.mjs" --label "$name" "$@" \
     --new "$out/$name-single.txt" --new-exit "$ref_status"; then
     fail=1
   fi
@@ -93,12 +93,7 @@ sweep() {
 
 IFS=',' read -r -a names <<< "$projects"
 for name in "${names[@]}"; do
-  if ! { read -r sub; read -r proj; } < <(python3 -c '
-import json, sys
-projects = json.load(open(sys.argv[1]))["projects"]
-p = next((p for p in projects if p["name"] == sys.argv[2]), None) or sys.exit(f"unknown project {sys.argv[2]!r}")
-print("suite/" + p["suite_dir"] if "suite_dir" in p else "solutions/" + p["name"])
-print(p["project"])' "$repo/bench/projects.json" "$name"); then
+  if ! { read -r sub; read -r proj; } < <(node "$repo/tools/ci/workloads.mjs" project "$repo/bench/projects.json" "$name"); then
     echo "FAIL $name: not in bench/projects.json"; fail=1; continue
   fi
   dir="$work/$sub"

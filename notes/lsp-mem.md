@@ -9,7 +9,7 @@ hits were fixed afterwards (notes/lsp-memfix.md). This note keeps the measuremen
 
 ## Driver
 
-Driver: `tools/lsp-mem/lsp_mem.py` (opens one file, waits for its diagnostics, then N incremental edits inside a
+Driver: `tools/lsp-mem/lsp_mem.mjs` (opens one file, waits for its diagnostics, then N incremental edits inside a
 function body: typing `let zz = 1; ` before a `return` character by character and deleting it again; each edit is
 followed by `textDocument/diagnostic` and a hover, `--completion` adds a completion request at the edit point; RSS
 of the server process sampled with `ps -o rss`; the server is ended by closing its input, `--exit-timeout` waits for
@@ -83,7 +83,7 @@ definition / typeDefinition / references / completion / documentSymbol / signatu
   guard and the fourslash/oracle runs are the evidence there.
 - `exit` alone does not end `tsrs --lsp` when the client does not answer the server's `client/registerCapability`
   request sent while handling `initialized`. Not a divergence: Go blocks its dispatch loop on it the same way. With a
-  client that answers, both exit with status 1 and "context canceled" (`tools/oracle/lsp/exit_check.py` compares the
+  client that answers, both exit with status 1 and "context canceled" (`tools/oracle/lsp/exit_check.mjs` compares the
   four combinations).
 
 ## Disposed checkers (later fix)

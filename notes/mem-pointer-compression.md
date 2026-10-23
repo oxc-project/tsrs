@@ -359,5 +359,5 @@ them.
 cargo build --release -p tsrs_cli                                    # compressed (default)
 cargo build --release -p tsrs_cli --features tsrs_core/plain-ptrs    # references, as before
 cd <38k-file codebase> && /usr/bin/time -l <tsrs> -p . --noEmit --extendedDiagnostics --pretty false --incremental false --checkers 1
-python3 tools/lsp-mem/lsp_mem.py --cmd "<tsrs> --lsp -stdio" --project <dir> --file <file> --edits 200 --every 20
+node tools/lsp-mem/lsp_mem.mjs --cmd "<tsrs> --lsp -stdio" --project <dir> --file <file> --edits 200 --every 20
 ```

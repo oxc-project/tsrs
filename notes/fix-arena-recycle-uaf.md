@@ -76,7 +76,7 @@ non-`Cell` bytes. Left as is: `plain-ptrs` is a comparison build.
 
 | guard | catches | cost |
 | --- | --- | --- |
-| `tools/lint/source.py` check 3 (`lint-ratchet` job): an arena free (`free!`, `free_slice!`, `free_raw`, `free_slice_ptr`) of the enclosing function's reference parameter (or `self` of a `&self` method) fails | the direct pattern; found both calls in the old `recycle_mapper_with_targets` | < 1 s |
+| `tools/lint/source.mjs` check 3 (`lint-ratchet` job): an arena free (`free!`, `free_slice!`, `free_raw`, `free_slice_ptr`) of the enclosing function's reference parameter (or `self` of a `&self` method) fails | the direct pattern; found both calls in the old `recycle_mapper_with_targets` | < 1 s |
 | Miri on `tsrs_core`'s arena tests (`cargo +nightly miri test -p tsrs_core --features plain-ptrs --lib arena::tests`), with a new test that frees a slice in a callee through `free_slice_ptr`, and an ignored negative control that frees a reference parameter, which the CI job requires Miri to reject | the free-list code itself, and that Miri still sees the class | 6 s with the Miri sysroot cached; about a minute for the nightly and its sysroot in CI |
 | The conformance gate on a `panic = "abort"` release build of tsrs-test (new `arena-safety` job in `.depot/workflows/ci.yml`) | the indirect forms the lint cannot see (a caller's protected parameter freed by a callee): 44 tests crashed before the fix | one more release build (66 s here, cold, 18 cores; a few minutes on a depot 8-core runner) and 15 s of suite |
 

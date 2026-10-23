@@ -1,6 +1,6 @@
 // Differential test of tsrs_modulespecifiers + `Program`'s ModuleSpecifierGenerationHost (incl. GetSymlinkCache)
 // against the Go implementation (tools/oracle/modulespecifiers). Regenerate the data with
-//   python3 tools/oracle/modulespecifiers/gen.py > crates/tsrs_compiler/testdata/modulespecifiers_oracle/scenarios.jsonl
+//   node tools/oracle/modulespecifiers/gen.mjs > crates/tsrs_compiler/testdata/modulespecifiers_oracle/scenarios.jsonl
 //   bin/tsrs-oracle-modulespecifiers < .../scenarios.jsonl > .../expected.jsonl
 
 use std::sync::Arc;

@@ -80,7 +80,7 @@ space left) leaves the job queued for a running worker, as the fixed pool did.
   unserializable response fails only its request (Go test `TestWriteLoopRecoversFromUnserializableResponse`).
 
 Shutdown/exit: like tsgo-ref, `exit` ends the process with status 1 and "context canceled" on stderr (Go's `Run`
-returns the canceled group error); `tools/oracle/lsp/exit_check.py` compares the combinations.
+returns the canceled group error); `tools/oracle/lsp/exit_check.mjs` compares the combinations.
 
 Status (2026-10-10): the builtin watcher and all phase-3 handlers this note once listed as "not yet ported" are
 ported (notes/lsp-robust.md; docs/LSP.md, Progress).

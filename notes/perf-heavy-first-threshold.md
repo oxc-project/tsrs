@@ -119,7 +119,7 @@ unchanged, 371 errors in every run.
 - Diagnostics: full `--pretty false` output identical between the main binary and this one at 200 on vscode (4, 13, 17
   checkers), webpack (4, 16) and xstate-main (4, 16); Linux runs report 371 errors in every cell.
 - `cargo check --workspace` clean; `cargo test --release -p tsrs_compiler checkerpool` (3 tests, including the
-  `heavy_files_first` ordering test); `tools/lint/ratchet.py` ok, none new; `tools/lint/source.py` ok (the override is
+  `heavy_files_first` ordering test); `tools/lint/ratchet.py` ok, none new; `tools/lint/source.mjs` ok (the override is
   a `OnceLock`, no atomics).
 - The 8-vCPU README bench runs 4 checkers, where the heavy set grows from 6 to 28 files: check 2.64-2.67 s either way
   on the 64-vCPU runner, instructions identical. Single-threaded runs (the regression counter) have no pass order.

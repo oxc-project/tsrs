@@ -1657,7 +1657,7 @@ mod tests {
     fn miri_rejects_freeing_a_reference_parameter() {
         fn recycle_list(s: &'static [u64]) {
             // SAFETY: deliberately wrong: `s` is a protected borrow of the block for this whole call.
-            unsafe { free_slice!(s) }; // source.py: deliberate
+            unsafe { free_slice!(s) }; // source.mjs: deliberate
         }
         recycle_list(alloc_slice_recycled(&[1u64, 2, 3]));
     }

@@ -275,7 +275,7 @@ segment).
 
 1. **AST oracle.** Add a `--via-cache` mode to the Rust `ast_oracle` example: parse → write the segment → map it in a
    *fresh process* → dump hash. It must hash identical to a fresh parse on the 113 lib files, the split test units and
-   all 38,958 files of the private monorepo (`tools/oracle/ast/run.py`). The same for the binder oracle
+   all 38,958 files of the private monorepo (`tools/oracle/ast/run.mjs`). The same for the binder oracle
    (`tools/oracle/binder`).
 2. **Suite** (`tsrs-test run --suite all --baselines types,symbols`).
    - Runs: cache off, then cache on cold (populating), then cache on warm (all hits). The whole

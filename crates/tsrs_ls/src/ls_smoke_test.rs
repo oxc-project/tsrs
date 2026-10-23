@@ -180,7 +180,7 @@ fn json<T: lsproto::Json>(v: &T) -> String {
 }
 
 // Expected responses recorded from `tsgo-ref --lsp -stdio` with the same file and client capabilities
-// (target/scratch/lscore/drive.py), with the project directory replaced by `/`.
+// (target/scratch/lscore/drive.mjs), with the project directory replaced by `/`.
 #[test]
 fn hover_definition_diagnostics() {
     let files = [
@@ -252,7 +252,7 @@ import G = NS.inner;
 for (let i = 0; i < 1; i++) { this; }
 "#;
 
-// Expected responses recorded from `tsgo-ref --lsp -stdio` (target/scratch/lscore/drive.py, proj2).
+// Expected responses recorded from `tsgo-ref --lsp -stdio` (target/scratch/lscore/drive.mjs, proj2).
 #[test]
 fn hover_jsdoc_aliases_overloads() {
     let files = [

@@ -55,5 +55,5 @@ the 8-vCPU runner; it stays as the row that pins the count.
 - `cargo test -p tsrs_compiler default_checker_tests`: the rule's table (1-128 cores).
 - The rule is read once per program; diagnostics do not depend on the checker count (notes/perf-order-independence.md,
   pr-verify's 1/4/16/32-checker cells).
-- bench/run.py `tsrs_default_checkers` mirrors the rule for the results tables; bench/compare.py and bench/README.md
+- bench/run.mjs `tsrs_default_checkers` mirrors the rule for the results tables; bench/compare.py and bench/README.md
   describe it.

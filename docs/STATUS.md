@@ -669,7 +669,7 @@ lost). 60 of the 62 fails are declaration-emit diagnostics (TS4xxx/TS9xxx/TS7056
 other 2 fails (`mutuallyRecursiveInference`, `recursiveMappedTypes`) and both codes tests are harness artifacts: the Go
 harness runs JS emit, whose const-enum inliner type-checks every property access, before collecting diagnostics, so
 errors are first reported from a different current node; the `tsgo` CLI reports what we report. Details and the
-clustering tool (`tools/cluster-diffs.py`).
+clustering tool (`tools/cluster-diffs.mjs`).
 
 The private monorepo (release, 0 errors): counters now equal the reference exactly; peak memory unchanged versus main (19.5 vs
 19.4 GB single-threaded, measured back to back).
@@ -687,7 +687,7 @@ The harness now also generates and compares the reference `.types` (printed type
 and `.symbols` (resolved symbol + declaration locations of every identifier) baselines, ported from Go's
 `type_symbol_baseline.go`: `tsrs-test run --baselines types,symbols` (lists `types-<class>.txt` /
 `symbols-<class>.txt`, artifacts `<name>.{types,symbols}.{actual,diff}`), `tsrs-test show <name> --types`,
-`tools/cluster-diffs.py --baseline types`. The default run (errors only) is unchanged.
+`tools/cluster-diffs.mjs --baseline types`. The default run (errors only) is unchanged.
 
 Of the 12,779 variants that produce these baselines (the rest are harness-skipped or `@noTypesAndSymbols`):
 **types 12,778 / symbols 12,779 byte-identical** (first run: 12,776 / 12,779; the fix was the printer's escaping of
@@ -722,7 +722,7 @@ single-threaded: 58.9/56.3 s main vs 43.9/46.7 s).
 
 `tsrs-test types-dump` and the Go oracle `tools/oracle/project-types` run the conformance `.types`/`.symbols` walk
 (printed type / resolved symbol of every expression and declaration) over every non-`node_modules` file of a tsconfig
-project, single-threaded, after `tsc`-style checking; `tools/project-types-compare.py` compares them. The private monorepo: 28,213
+project, single-threaded, after `tsc`-style checking; `tools/project-types-compare.mjs` compares them. The private monorepo: 28,213
 files, 16.5M baseline lines; first run **28,207 / 28,213 files identical** (18 lines in 6 files differ), symbol and
 type counters equal. The 6 files print >1 MB `vi.mocked(..., { partial: true, deep: true })` types whose truncation
 point depended on **symbol ids**: Go assigns ids on every `valueSymbolLinks` / `symbolNodeLinks` access (those stores

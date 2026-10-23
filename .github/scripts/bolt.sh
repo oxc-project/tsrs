@@ -10,7 +10,7 @@
 # gates, and the BOLT-optimized tsrs must print byte-identical output to the input tsrs on both bench projects
 # (one and four checkers). Only then is <dist dir>/tsrs replaced; the input is kept as tsrs.prebolt.
 #
-# Needs llvm-bolt and merge-fdata (LLVM release matching rustc's LLVM) on PATH, Go, Python 3.12+, ts-ref/tsc, and the bench
+# Needs llvm-bolt and merge-fdata (LLVM release matching rustc's LLVM) on PATH, Go, Node.js 24+, ts-ref/tsc, and the bench
 # projects pgo-train.sh set up in <bench work dir>.
 #
 # BOLT_TSRS_ONLY=1 (update-benchmarks.yml): only tsrs, whose BOLT training and byte comparison are the same as

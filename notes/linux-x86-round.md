@@ -160,7 +160,7 @@ Against 8cba935 built in a second worktree. macOS (code path unchanged): conform
 374 / 32 / 1 with identical lists; the 38k-file codebase: diagnostics and checker counters identical. Linux sandbox:
 conformance `--baselines types,symbols` with release builds of main and the change, trees identical; `tsrs_core`
 tests pass (including the aligned-take test); `RUSTFLAGS="-D warnings" cargo check --workspace --locked`,
-`tools/lint/ratchet.py` and `tools/lint/source.py` clean on both systems.
+`tools/lint/ratchet.py` and `tools/lint/source.mjs` clean on both systems.
 
 ## What pointer compression costs on x86-64, both sides with huge pages
 

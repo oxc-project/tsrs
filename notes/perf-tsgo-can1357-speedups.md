@@ -54,7 +54,7 @@ prefaulting, and the zero-page faults his GC commit describes).
 The tsgo builds are plain `GOTOOLCHAIN=auto go build -o <bin> ./cmd/tsc` from `tsc/` (the build info of `tsgo-ref`
 shows the same flags); there is no `cmd/tsgo`.
 
-Runs use `bench/run.py`'s invocation and parsing (`-p <project> --noEmit --incremental false --extendedDiagnostics
+Runs use `bench/run.mjs`'s invocation and parsing (`-p <project> --noEmit --incremental false --extendedDiagnostics
 --pretty false`; `--singleThreaded` in the single mode, plus `RAYON_NUM_THREADS=1` for tsrs). Each project gets one
 untimed warm-up per tool, then 5 reps (3 for his projects) in which every tool runs every mode and the tool order
 rotates. Wall is the process wall clock, peak is `ru_maxrss`, instructions and CPU come from `proc_pid_rusage` on the
@@ -363,6 +363,6 @@ resets and the apparent-type fast paths (Go allocation and write-barrier costs).
 
 ## Files
 
-Scratch tables and logs (not committed): the interim log, the harness (`h2h.py`, `run.py`'s invocation plus
+Scratch tables and logs (not committed): the interim log, the harness (`h2h.py`, `run.mjs`'s invocation plus
 `proc_pid_rusage`), raw JSONL for the 450-run bench, the 360-run comparison on his projects, the per-commit runs and
 the A/B runs.

@@ -16,7 +16,7 @@ constructing `FileInfo`.
 - `cargo test -p tsrs_vfs`: 88 passed.
 - `cargo check --workspace`, `cargo check -p tsrs_wasm --target wasm32-wasip1`, the Linux cross-target
   `cargo check -p tsrs_vfs --target x86_64-unknown-linux-gnu`, `tools/lint/ratchet.py`, and
-  `tools/lint/source.py` pass.
+  `tools/lint/source.mjs` pass.
 - The candidate and base produce byte-identical diagnostics and the same exit status on the public
   `sentry-javascript` checkout used below.
 
@@ -41,5 +41,5 @@ directory reads. The syscall count should not change; the experiment reduces wor
 
 The macOS result is directional but below every landing bar. It also does not exercise Linux's `statx(TYPE)` path,
 and macOS `/usr/bin/time` is not the repository's deterministic Linux instruction gate. Keep this as an experimental
-branch; before landing, run `bench/count.py` and peak-RSS measurements on the pinned benchmark projects. Do not claim
+branch; before landing, run `bench/count.mjs` and peak-RSS measurements on the pinned benchmark projects. Do not claim
 a qualifying improvement from this screening result.

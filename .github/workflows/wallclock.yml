@@ -34,10 +34,15 @@ jobs:
       # this workflow's helper script before it has landed on main.
       - uses: taiki-e/checkout-action@7d1e50e93dc4fb3bba58f85018fadf77898aee8b # v1.4.2
 
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .node-version
+          package-manager-cache: false
+
       - name: List benchmark projects
         id: projects
         run: |
-          projects=$(python3 -c 'import json; from pathlib import Path; print(json.dumps([p["name"] for p in json.loads(Path("bench/projects.json").read_text())["projects"]]))')
+          projects=$(node --input-type=module -e 'import fs from "node:fs"; console.log(JSON.stringify(JSON.parse(fs.readFileSync("bench/projects.json", "utf8")).projects.map(p => p.name)))')
           echo "projects=$projects" >> "$GITHUB_OUTPUT"
 
       - name: Ask Clef whether performance measurement is needed
@@ -46,7 +51,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CLOUDFLARE_API_KEY: ${{ secrets.CLOUDFLARE_API_KEY }}
-        run: python3 bench/wallclock.py decide
+        run: node bench/wallclock.mjs decide
 
   build-main:
     needs: decide
@@ -214,7 +219,7 @@ jobs:
 
       - name: Compare main and PR with Hyperfine
         run: |
-          python3 bench/wallclock.py measure --project "$PROJECT" \
+          node bench/wallclock.mjs measure --project "$PROJECT" \
             --base "$RUNNER_TEMP/wallclock-binaries/main/tsrs" \
             --head "$RUNNER_TEMP/wallclock-binaries/pr/tsrs" \
             --out "$RUNNER_TEMP/wallclock-results/$PROJECT.json" --runs 10
@@ -246,9 +251,14 @@ jobs:
           path: ${{ runner.temp }}/wallclock-results
           merge-multiple: true
 
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .node-version
+          package-manager-cache: false
+
       - name: Join project measurements
         if: needs.check-binaries.outputs.identical == 'false'
-        run: python3 bench/wallclock.py join --results "$RUNNER_TEMP/wallclock-results" --out "$RUNNER_TEMP/wallclock-joined.json"
+        run: node bench/wallclock.mjs join --results "$RUNNER_TEMP/wallclock-results" --out "$RUNNER_TEMP/wallclock-joined.json"
 
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: needs.check-binaries.outputs.identical == 'false'
@@ -270,7 +280,7 @@ jobs:
           REASON: ${{ needs.decide.outputs.reason }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
-          python3 bench/wallclock.py comment --pr-number "$PR_NUMBER" \
+          node bench/wallclock.mjs comment --pr-number "$PR_NUMBER" \
             --base-sha "$BASE_SHA" --head-sha "$HEAD_SHA" --merge-sha "$MERGE_SHA" --run-url "$RUN_URL" \
             --decision "$DECISION" --identical "$IDENTICAL" --reason "$REASON" \
             --results "$RUNNER_TEMP/wallclock-joined.json"

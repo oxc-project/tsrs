@@ -96,7 +96,7 @@ rules are shared, so other watcher differences can also affect the language serv
 | Async request threads | A goroutine per request, scheduled by `GOMAXPROCS` | Starts workers as needed and retains up to `max(4, available parallelism)` idle workers. New work is limited by available parallelism; returning from a blocking wait can temporarily exceed it |
 | Background queue | Unbounded goroutines | 6 workers |
 | After the idle cache clean | `runtime.GC()` | No additional collection step |
-| Profiling commands, `runGC`, `custom/initializeAPISession`, `setContentMapperContributions` | Supported | `MethodNotFound` |
+| Profiling commands, `runGC` | Supported | `MethodNotFound` |
 | Content mappers | Supported | Not ported; `runExternalCode` does nothing |
 | Parent process watchdog on Windows | Supported | Not ported |
 

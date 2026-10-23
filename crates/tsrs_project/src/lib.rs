@@ -55,3 +55,5 @@ mod projectcollectionbuilder_test;
 mod projecttestutil;
 #[cfg(test)]
 mod session_test;
+#[cfg(test)]
+mod snapshot_test;

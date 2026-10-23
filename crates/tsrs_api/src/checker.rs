@@ -179,6 +179,13 @@ impl CheckerHost for SessionHost<'_> {
             None,
         ))
     }
+
+    fn try_adopt_snapshot_in_background(&self, base: &Arc<Snapshot>, prepared: &Arc<Snapshot>) {
+        if let Some(project_session) = &self.session.project_session {
+            project_session
+                .try_adopt_snapshot_in_background(Arc::clone(base), Arc::clone(prepared));
+        }
+    }
 }
 
 /// Standard base64 with padding (Go `base64.StdEncoding`).

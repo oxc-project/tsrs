@@ -42,7 +42,7 @@ pub const METHODS: [MethodInfo; 177] = [
     MethodInfo {
         name: "getCurrentLanguageServerSnapshot",
         owner: Owner::Core,
-        status: Status::Partial,
+        status: Status::Supported,
     },
     MethodInfo { name: "createBuildOrchestrator", owner: Owner::Core, status: Status::Supported },
     MethodInfo { name: "disposeBuildOrchestrator", owner: Owner::Core, status: Status::Supported },

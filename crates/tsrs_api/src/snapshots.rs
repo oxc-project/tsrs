@@ -1,6 +1,6 @@
 // session.go handleCreateSnapshot / handleUpdateSnapshot / toAPISnapshotRequest / reconcileSnapshotOpens /
-// createSnapshotResponse / computeSnapshotChanges / handleRelease / handleGetDefaultProjectForFile, and
-// proto.go NewProjectResponse.
+// toLanguageServerSnapshotUpdate / handleGetCurrentLanguageServerSnapshot / createSnapshotResponse /
+// computeSnapshotChanges / handleRelease / handleGetDefaultProjectForFile, and proto.go NewProjectResponse.
 
 use std::collections::hash_map::Entry;
 use std::sync::Arc;
@@ -24,7 +24,7 @@ use crate::config::config_file_response;
 use crate::diagnostics::diagnostic_from_response;
 use crate::handler::{ApiError, ApiResult};
 use crate::requestfs::{self, RequestFileSystem, RequestParams};
-use crate::session::{OpenState, Session};
+use crate::session::{LanguageServerState, OpenState, Session};
 use crate::wire::{DocumentIdentifier, Obj, Params, b, s, strings};
 
 fn file_uri(file_name: &str) -> tsrs_lsproto::DocumentUri {
@@ -135,6 +135,36 @@ fn compute_snapshot_changes(prev: &Snapshot, next: &Snapshot) -> Value {
 struct RequestEcho {
     has_create_programs: bool,
     open_files: Option<Vec<DocumentIdentifier>>,
+}
+
+/// Go `languageServerSnapshotUpdate`.
+struct LanguageServerSnapshotUpdate {
+    request: Arc<APISnapshotRequest>,
+    open_state: OpenState,
+}
+
+impl LanguageServerSnapshotUpdate {
+    /// Go `languageServerSnapshotUpdate.commit`.
+    fn commit(&self, state: &mut LanguageServerState, snapshot: &Snapshot) {
+        state.open_state = self.open_state.clone();
+        if let Some(remove_programs) = &self.request.remove_programs {
+            #[expect(
+                clippy::iter_over_hash_type,
+                reason = "removals of distinct keys commute; Go ranges the set too"
+            )]
+            for program_id in remove_programs.keys() {
+                state.created_programs.delete(program_id);
+            }
+        }
+        for program in snapshot.created_programs() {
+            let program = program.as_ref().expect("created program result missing");
+            let id = program.id();
+            let Some(program_id) = id.synthetic() else {
+                panic!("created program has non-synthetic project ID: {}", id.0);
+            };
+            state.created_programs.add(program_id);
+        }
+    }
 }
 
 impl Session {
@@ -361,6 +391,34 @@ impl Session {
         state
     }
 
+    /// Go `toLanguageServerSnapshotUpdate`.
+    fn to_language_server_snapshot_update(
+        &self,
+        changes: Params,
+        state: &LanguageServerState,
+    ) -> ApiResult<(LanguageServerSnapshotUpdate, RequestEcho)> {
+        let (mut request, echo) = self.to_api_snapshot_request(changes)?;
+        let open_state = self.reconcile_snapshot_opens(&mut request, &state.open_state);
+
+        if let Some(remove_programs) = &mut request.remove_programs {
+            let keys: Vec<SyntheticProjectID> = remove_programs.keys().iter().cloned().collect();
+            for program_id in keys {
+                if !state.created_programs.has(&program_id) {
+                    remove_programs.delete(&program_id);
+                }
+            }
+        }
+        for reconfigure in &request.reconfigure_programs {
+            if !state.created_programs.has(&reconfigure.program_id) {
+                return Err(ApiError::client(format!(
+                    "synthetic program is not owned by this API session: {}",
+                    reconfigure.program_id.0
+                )));
+            }
+        }
+        Ok((LanguageServerSnapshotUpdate { request: Arc::new(request), open_state }, echo))
+    }
+
     /// Go `toFileChangeSummary`.
     fn to_file_change_summary(&self, v: &Value) -> ApiResult<FileChangeSummary> {
         let mut summary = FileChangeSummary::default();
@@ -550,7 +608,7 @@ impl Session {
         let params = RequestParams::parse(p.get("fileSystem")).map_err(ApiError::client)?;
         let fs = requestfs::new_for_update(
             &params,
-            ScopedFs::wrap(self.snapshot_host_fs()),
+            ScopedFs::wrap(self.fs()),
             base,
             self.current_directory(),
             file_changes,
@@ -677,6 +735,51 @@ impl Session {
             }
         };
         self.register_snapshot(snapshot, open_state, snapshot_fs);
+        Ok(response)
+    }
+
+    /// Go `handleGetCurrentLanguageServerSnapshot`.
+    pub(crate) fn handle_get_current_language_server_snapshot(
+        &self,
+        p: Params,
+    ) -> ApiResult<Value> {
+        let Some(project_session) = &self.project_session else {
+            return Err(ApiError::client(
+                "getCurrentLanguageServerSnapshot requires an LSP-connected API session",
+            ));
+        };
+        let base_handle = p.u64("baseSnapshot")?;
+        // retainSnapshotData: the Arc pins the base for the duration of the update.
+        let base = if base_handle != 0 { Some(self.snapshot_data(base_handle)?) } else { None };
+
+        let mut state = self.language_server.lock().unwrap();
+
+        let changes = Params(p.get("changes"));
+        if !matches!(changes.0, Value::Null) {
+            changes.object()?;
+        }
+        let (update, echo) = self.to_language_server_snapshot_update(changes, &state)?;
+
+        let ctx = project_session.with_current_locale(&tsrs_core::context::Context::background());
+        let snapshot = project_session
+            .api_update(&ctx, &FileChangeSummary::default(), Some(Arc::clone(&update.request)))
+            .map_err(|err| {
+                ApiError::client(format!(
+                    "failed to update language server snapshot: {}",
+                    err.message
+                ))
+            })?;
+
+        update.commit(&mut state, &snapshot);
+        let response =
+            match self.snapshot_response(&snapshot, base.as_ref().map(|b| &*b.snapshot), &echo) {
+                Ok(r) => r,
+                Err(e) => {
+                    snapshot.deref();
+                    return Err(e);
+                }
+            };
+        self.register_snapshot(snapshot, state.open_state.clone(), None);
         Ok(response)
     }
 

@@ -62,6 +62,11 @@ What to expect: diagnostics are pull-based (`textDocument/diagnostic`; both clie
 are pushed; see [known gaps](#known-gaps) for unsupported features and
 [memory management](#memory-management) for program, checker and file-version lifetimes.
 
+Editor integrations can obtain a TypeScript 7 Node API session through the language server:
+`custom/initializeAPISession` returns a pipe (a private Unix socket or Windows named pipe), and `API.fromLSPConnection({ pipe })` from the package's
+`unstable/async` client connects to an API session over the server's projects, open files included
+([NODE_API.md](NODE_API.md)).
+
 ## Implementation
 
 Port of Go's language server: `tsgo --lsp -stdio` (`cmd/tsc/lsp.go` -> `internal/lsp` -> `internal/project` ->
@@ -261,12 +266,11 @@ retains the translated runner's historical results and verify-family breakdown.
 
 ## Known gaps
 
-- Content mappers are not loaded by the language server; 57 fourslash groups are explicitly skipped after source 79 adds two output-extension project-reference groups. The protocol accepts `outputExtensions` in mapper contributions, but the contribution handler is not ported.
+- Content mappers are not loaded by the language server; 57 fourslash groups are explicitly skipped after source 79 adds two output-extension project-reference groups. `custom/setContentMapperContributions` validates contributions, including `outputExtensions`, and forwards them to the project session; the empty startup handshake succeeds.
   CLI checks and builds support them ([content-mapper note](../notes/contentmappers.md)). The language service's
   span-map branches are retained but receive no content-mapped scripts.
-- LSP-attached API sessions, automatic type acquisition, performance/project telemetry, profiling requests and
-  localized messages are not ported. Request-failure telemetry, including flaky diagnostics, is sent when enabled.
-  The standalone API server is available; see [NODE_API.md](NODE_API.md).
+- Automatic type acquisition, performance/project telemetry, profiling requests and localized messages are not
+  ported. Request-failure telemetry, including flaky diagnostics, is sent when enabled.
 - Eight `@tsc` fixture groups use Go's `tsctests.GetFileMapWithBuild` before the Rust LSP session starts;
   this verifies Rust LSP behavior with the resulting files, not Rust emit or build.
 - Builtin watcher backends for Windows and Linux fanotify are not ported. Linux uses inotify, Go's fallback;

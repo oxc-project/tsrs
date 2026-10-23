@@ -300,6 +300,13 @@ impl CheckerHost for TestHost {
         Ok(s)
     }
 
+    fn try_adopt_snapshot_in_background(
+        &self,
+        _base: &std::sync::Arc<Snapshot>,
+        _prepared: &std::sync::Arc<Snapshot>,
+    ) {
+    }
+
     fn encode_node(&self, node: P<Node>) -> CheckerResult<Vec<u8>> {
         // Test stand-in for the codec: the node kind is enough to check the handler built a node.
         Ok(format!("{:?}", node.kind()).into_bytes())

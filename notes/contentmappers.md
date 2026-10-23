@@ -61,8 +61,9 @@ the other parser-set fields); span maps are arena objects (`P<SpanMap>`), origin
 
 - The language server and the API project system (phase 2): `project/`, `lsp/server.go`, the `ls` span-map features.
   The project system's compiler host has no mapper host, so a file with a mapper's extension takes Go's
-  `ErrProjectUnavailable` path (`tsrs_project/src/compilerhost.rs`); `custom/setContentMapperContributions` answers
-  "not yet ported"; the 57 content-mapper fourslash groups (including two from source 79) stay skipped by the Go
+  `ErrProjectUnavailable` path (`tsrs_project/src/compilerhost.rs`); `custom/setContentMapperContributions` validates
+  the contributions and hands them to the session, which keeps them only with `runExternalCode`; the 57
+  content-mapper fourslash groups (including two from source 79) stay skipped by the Go
   subprocess runner. `tsrs --api
   --runExternalCode` accepts the flag and nothing more.
 - This note's original phase-1 scope excluded `--watch`; tsrs later gained watch mode and content-mapper file

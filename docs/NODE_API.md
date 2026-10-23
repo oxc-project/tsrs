@@ -161,8 +161,13 @@ The transport does not depend on `tsrs_api`. It defines its own handler/conn tra
 Source 101 makes `--api --pipe <path>` create a new private directory on Unix, with a socket at
 `<path>/socket` (`0700` directory, `0600` socket); an existing path is an error. On Windows,
 `<path>` is a named pipe restricted to the current user. The spawned sync client gives its
-Windows pipe a random 128-bit suffix. LSP `custom/initializeAPISession` is still unported, so
-the LSP-provided API-pipe lifecycle is unavailable.
+Windows pipe a random 128-bit suffix. LSP `custom/initializeAPISession` returns the same private pipe transport for an API session over the language
+server's project session; disconnect releases its resources, and LSP shutdown stops pending and connected sessions.
+`getCurrentLanguageServerSnapshot` flushes pending editor changes and applies the API client's opens, closes and
+program changes. Each client owns its open references and synthetic programs; closing it releases those resources.
+Standalone API sessions reject this method with Go's client error.
+Build orchestration is also available through this connection. As in Go, builds use the session host's filesystem
+and current directory, reading saved files rather than editor overlays.
 
 ### Codec (`tsrs_api_codec`)
 
@@ -224,8 +229,8 @@ existing core `getSymbolOfDeclaration` instead retrieves a binder symbol from a 
 | 7 | `initialize` | core | supported | config_test |
 | 8 | `createSnapshot` | core | supported | program_test, module_resolution_test, requestfs_test (full/layer request filesystems, removedPaths) |
 | 9 | `updateSnapshot` | core | supported | program_test, requestfs_test (layers compacted over full, retained base, release of base, fileNotifications expanded to request-symlink aliases) |
-| 10 | `getCurrentLanguageServerSnapshot` | core | partial | returns Go's standalone-session client error; LSP-attached sessions not ported |
-| 11 | `createBuildOrchestrator` | core | supported | tsrs_cli api::tests (in-process CLI build backend; fresh orchestrator per call instead of Go's recheckAllProjects reuse) |
+| 10 | `getCurrentLanguageServerSnapshot` | core | supported | session_apistate_test (port of Go's session_apistate_test.go: pending LSP changes, per-session open/close ownership, created programs released on close, standalone sessions rejected); tsrs_lsp server_apisession_test (`custom/initializeAPISession`, open-file overlays over the socket, shutdown) |
+| 11 | `createBuildOrchestrator` | core | supported | tsrs_cli api::tests and tsrs_lsp server_apisession_test (shared in-process build backend; fresh orchestrator per call instead of Go's recheckAllProjects reuse) |
 | 12 | `disposeBuildOrchestrator` | core | supported | tsrs_cli api::tests |
 | 13 | `build` | core | supported | tsrs_cli api::tests (references, up-to-date rebuild) |
 | 14 | `buildReferences` | core | supported | tsrs_cli api::tests |
@@ -417,12 +422,11 @@ real files and symlinks. No Cargo feature is needed. Fixtures and their generato
   included, and the exit status are byte-identical to `tsrs -b` on the same graph
   (`api_build_outputs_match_cli_build`), and up-to-date rebuilds build nothing (`api::tests`). This is what
   makes per-build memory freeable; it trades build throughput for bounded memory.
-- Build orchestration runs the CLI's `tsc -b` orchestrator in-process through `tsrs_api::build::BuildBackend`
-  (installed by `tsrs --api`; library sessions without a backend report the methods as unsupported). Clean uses
-  the last build's graph like Go; clean existence checks use the uncached filesystem.
+- Build orchestration runs the `tsc -b` orchestrator in-process through `tsrs_api::build::BuildBackend`.
+  Every API session installs this backend by default, including library and LSP-attached sessions; embedding hosts
+  can replace it. Clean uses the last build's graph like Go; clean existence checks use the uncached filesystem.
 - Profiling (`startCPUProfile`, `stopCPUProfile`, `saveHeapProfile`) is not implemented (no pprof
-  equivalent). `getCurrentLanguageServerSnapshot` returns Go's standalone-session client error; LSP-attached
-  API sessions are not ported.
+  equivalent).
 - Node index tables are cached per live source file keyed by the file's address (lookups never assign the
   file's lazy node id) and evicted when the file's region is freed; Go stores them on the file itself.
 - Re-entrancy attribution: snapshot builds read files through a `ScopedFs` that enters the creating

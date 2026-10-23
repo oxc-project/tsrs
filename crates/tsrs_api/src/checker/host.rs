@@ -150,4 +150,8 @@ pub trait CheckerHost {
         base: &Snapshot,
         file_name: &str,
     ) -> CheckerResult<Arc<Snapshot>>;
+
+    /// Go `if s.projectSession != nil { s.projectSession.TryAdoptSnapshotInBackground(base, prepared) }`: an
+    /// LSP-attached session offers the snapshot it prepared for auto-imports to the language server.
+    fn try_adopt_snapshot_in_background(&self, base: &Arc<Snapshot>, prepared: &Arc<Snapshot>);
 }

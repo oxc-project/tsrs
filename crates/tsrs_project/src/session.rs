@@ -22,13 +22,14 @@ use crate::checkerpool::CheckerPoolOptions;
 use crate::client::Client;
 use crate::configfileregistry::configFileEntry;
 use crate::dirty::Shared;
-use crate::filechange::{FileChange, FileChangeKind, FileChangeSummary};
+use crate::filechange::{FileChange, FileChangeKind, FileChangeSummary, merge_file_change_summary};
 use crate::logging::{Logger, new_nop_logger};
 use crate::overlayfs::{FsRef, OverlayMap, ToPath, new_overlay_fs, overlayFS};
 use crate::parsecache::{ContentMappedParseCache, ParseCache};
 use crate::project::{ID, Kind, ProgramUpdateKind, Project, hr};
 use crate::snapshot::{
-    ATAStateChange, ProjectTreeRequest, ResourceRequest, Snapshot, SnapshotChange,
+    APISnapshotRequest, ATAStateChange, ProjectTreeRequest, ResourceRequest, Snapshot,
+    SnapshotChange,
 };
 use crate::snapshotfs::{is_node_modules_path, is_relevant_extension};
 use crate::snapshothost::{SnapshotHost, new_snapshot_host};
@@ -191,7 +192,7 @@ pub struct Session {
     // pendingFileChanges are accumulated from textDocument/* events delivered
     // by the LSP server through DidOpenFile(), DidChangeFile(), etc. They are
     // applied to the next snapshot update.
-    pending_file_changes: Mutex<Vec<FileChange>>,
+    pub(crate) pending_file_changes: Mutex<Vec<FileChange>>,
 
     // pendingATAChanges are produced by Automatic Type Acquisition (ATA)
     // installations and applied to the next snapshot update.
@@ -302,6 +303,11 @@ impl Session {
     // FS implements module.ResolutionHost
     pub fn fs(&self) -> &dyn FS {
         &*self.fs
+    }
+
+    /// `fs` as a shared handle (a Go `vfs.FS` is a reference), for an LSP-attached API session.
+    pub fn shared_fs(&self) -> Arc<dyn FS> {
+        Arc::clone(&self.fs) as Arc<dyn FS>
     }
 
     // session.go:256
@@ -1268,6 +1274,74 @@ impl Session {
         });
     }
 
+    // api.go:18
+    // APIUpdate creates a new snapshot incorporating the given file changes and the
+    // supplied API open/close request. The apiRequest may open or close projects and
+    // files; opens are tracked in the snapshot (ref-counted) so they persist across
+    // future updates, and closes release a previously taken ref. Programs are updated
+    // only when explicitly requested by an open or ensure operation.
+    // On success, returns a ref'd snapshot which the caller must Deref when done.
+    // On failure, releases the rejected snapshot and returns nil and the error.
+    // A snapshot with an API error is never adopted as canonical session state;
+    // host changes flushed alongside it are adopted separately.
+    pub fn api_update(
+        &self,
+        ctx: &Context,
+        api_file_changes: &FileChangeSummary,
+        api_request: Option<Arc<APISnapshotRequest>>,
+    ) -> Result<Arc<Snapshot>, lsproto::Error> {
+        let _update = self.snapshot_update_mu.lock().unwrap();
+        self.cancel_scheduled_snapshot_update();
+
+        let (host_file_changes, overlays, ata_changes, _) = self.flush_changes(ctx);
+        let mut file_changes = host_file_changes.clone_summary();
+        merge_file_change_summary(&mut file_changes, api_file_changes);
+        let mut fs = None;
+        let mut replace_file_system = false;
+        if let Some(api_request) = &api_request {
+            // Go passes the request file system as a `vfs.FS`; a layered one takes precedence, as in
+            // `SnapshotHost::clone_snapshot`.
+            fs = match &api_request.layered_file_system {
+                Some(layered) => Some(FsRef::Layered(Arc::clone(layered))),
+                None => api_request.file_system.clone().map(FsRef::Host),
+            };
+            replace_file_system = api_request.replace_file_system;
+        }
+
+        let file_system_override = fs.is_some();
+        let new_snapshot = self.update_snapshot_ref(
+            ctx,
+            Arc::clone(&overlays),
+            SnapshotChange {
+                api_request,
+                fs,
+                file_system_override,
+                replace_file_system,
+                file_changes,
+                ata_changes: ata_changes.clone(),
+                ..Default::default()
+            },
+        );
+        if let Some(api_error) = new_snapshot.api_error.clone() {
+            new_snapshot.deref();
+            if !host_file_changes.is_empty() || !ata_changes.is_empty() {
+                // The API request is rejected as a unit, but host changes were already
+                // flushed and must still advance the canonical session snapshot.
+                self.update_snapshot(
+                    ctx,
+                    overlays,
+                    SnapshotChange {
+                        file_changes: host_file_changes,
+                        ata_changes,
+                        ..Default::default()
+                    },
+                );
+            }
+            return Err(api_error);
+        }
+        Ok(new_snapshot)
+    }
+
     // api.go:59
     // TryAdoptSnapshotInBackground retains a derived snapshot and attempts to adopt it
     // as the session's current snapshot without blocking the caller.
@@ -1342,10 +1416,6 @@ impl Session {
     // with an extra reference for the caller. The ref is taken atomically with
     // the snapshot assignment under snapshotMu, so the snapshot is guaranteed
     // to be alive when returned. The caller must call snapshot.Deref() when done.
-    #[expect(
-        dead_code,
-        reason = "Go's caller Session.APIUpdate (project/api.go) is not ported yet"
-    )]
     pub(crate) fn update_snapshot_ref(
         &self,
         ctx: &Context,

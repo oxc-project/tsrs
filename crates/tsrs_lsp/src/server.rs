@@ -9,6 +9,8 @@ use std::thread::JoinHandle;
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 use rustc_hash::{FxHashMap, FxHashSet};
+use tsrs_api::adapter::{ClientConnAdapter, SessionHandler};
+use tsrs_api_transport as api_transport;
 use tsrs_core::CompilerOptions;
 use tsrs_core::P;
 use tsrs_core::collections::Set;
@@ -93,6 +95,7 @@ pub fn new_server(opts: ServerOptions) -> Arc<Server> {
         project_progress: OnceLock::new(),
         start_watchdog: opts.set_parent_process_id,
         flake_logging: OnceLock::new(),
+        api_sessions: Mutex::new(FxHashMap::default()),
     })
 }
 
@@ -279,6 +282,68 @@ pub struct Server {
     start_watchdog: Option<Box<dyn Fn(i32) + Send + Sync>>,
 
     flake_logging: OnceLock<lsproto::DiagnosticFlakeLogLevel>,
+
+    // apiSessions holds active API sessions keyed by their ID
+    pub(crate) api_sessions: Mutex<FxHashMap<String, Arc<apiSessionState>>>,
+}
+
+// server.go:256
+pub(crate) struct apiSessionState {
+    session: Arc<tsrs_api::Session>,
+    // Go keeps the transport; a thread blocked in accept is woken through its path (`wake_api_transport`).
+    transport_path: std::path::PathBuf,
+    cancel: CancelFunc,
+    done: Context,
+
+    mu: Mutex<apiSessionConnection>,
+}
+
+#[derive(Default)]
+struct apiSessionConnection {
+    // Closes the accepted connection (Go `connection.Close()`).
+    connection: Option<Arc<dyn Fn() + Send + Sync>>,
+    stopped: bool,
+}
+
+impl apiSessionState {
+    // server.go:267
+    fn attach_connection(&self, connection: Arc<dyn Fn() + Send + Sync>) -> bool {
+        let mut inner = self.mu.lock().unwrap();
+        if inner.stopped {
+            connection();
+            return false;
+        }
+        inner.connection = Some(connection);
+        true
+    }
+
+    // server.go:278
+    fn stop(&self) {
+        {
+            let mut inner = self.mu.lock().unwrap();
+            if !inner.stopped {
+                inner.stopped = true;
+                self.cancel.call();
+                wake_api_transport(&self.transport_path);
+                if let Some(connection) = &inner.connection {
+                    connection();
+                }
+            }
+        }
+        self.done.wait();
+    }
+}
+
+// Go's stop closes the transport, which fails a pending Accept. Closing a listener does not wake a thread
+// blocked in accept, so connect to it instead; `attach_connection` then rejects that connection. After the
+// accept the listener is gone and the connection attempt fails, which is fine.
+fn wake_api_transport(path: &std::path::Path) {
+    #[cfg(unix)]
+    let _ = std::os::unix::net::UnixStream::connect(path);
+    #[cfg(windows)]
+    let _ = std::fs::OpenOptions::new().read(true).write(true).open(path);
+    #[cfg(not(any(unix, windows)))]
+    let _ = path;
 }
 
 // Go's `chan *lsproto.ResponseMessage` with buffer 1 in pendingServerRequests.
@@ -2079,6 +2144,7 @@ impl Server {
         if let Some(builtin_watcher) = self.builtin_watcher.get() {
             builtin_watcher.close();
         }
+        self.close_api_sessions();
         self.session().close();
         Ok(lsproto::Null)
     }
@@ -3021,18 +3087,148 @@ impl Server {
         ls.provide_semantic_tokens_range(ctx, &params.text_document.uri, params.range)
     }
 
-    // server.go:2280 (the `api` package is out of scope)
-    #[expect(
-        clippy::unused_self,
-        reason = "Registered LSP handlers share a Server receiver so the dispatcher can call them uniformly."
-    )]
+    // server.go:2334
     fn handle_initialize_api_session(
         self: &Arc<Self>,
         _ctx: &Context,
-        _params: &lsproto::InitializeAPISessionParams,
+        params: &lsproto::InitializeAPISessionParams,
         _req: &RequestMessage,
     ) -> Result<lsproto::CustomInitializeAPISessionResponse, Error> {
-        Err(not_yet_ported(Method::CustomInitializeAPISession))
+        let mut api_sessions = self.api_sessions.lock().unwrap();
+
+        let api_session = tsrs_api::Session::new_lsp(Arc::clone(self.session()), false);
+
+        let transport = match &params.pipe {
+            Some(pipe) if !pipe.is_empty() => {
+                api_transport::PipeListener::bind(std::path::Path::new(pipe))
+            }
+            _ => api_transport::PipeListener::bind_private(&Self::generate_api_pipe_name()),
+        }
+        .map_err(|err| Error::new(format!("failed to create API transport: {err}")))?;
+
+        let (api_ctx, api_cancel) = self.background_ctx().with_cancel();
+        let (done, close_done) = Context::background().with_cancel();
+        let state = Arc::new(apiSessionState {
+            session: Arc::clone(&api_session),
+            transport_path: transport.path().to_path_buf(),
+            cancel: api_cancel,
+            done,
+            mu: Mutex::new(apiSessionConnection::default()),
+        });
+        let pipe = transport.path().to_string_lossy().into_owned();
+
+        // Start accepting connections in the background. (A goroutine cannot fail to start; a thread can, and the
+        // request then fails before the session is registered.)
+        let s = Arc::clone(self);
+        let thread_state = Arc::clone(&state);
+        std::thread::Builder::new()
+            .name(format!("{} connection", api_session.id()))
+            .spawn(move || s.run_api_session(&thread_state, transport, &api_ctx, &close_done))
+            .map_err(|err| Error::new(format!("failed to start API session: {err}")))?;
+
+        api_sessions.insert(api_session.id().to_string(), state);
+
+        Ok(lsproto::InitializeAPISessionResult { session_id: api_session.id().to_string(), pipe })
+    }
+
+    // server.go:2365 (the goroutine started by handleInitializeAPISession)
+    fn run_api_session(
+        &self,
+        state: &apiSessionState,
+        transport: api_transport::PipeListener,
+        api_ctx: &Context,
+        close_done: &CancelFunc,
+    ) {
+        let api_session = &state.session;
+        let _done = deferCall(Some(|| close_done.call()));
+        let _api_cancel = deferCall(Some(|| state.cancel.call()));
+        let _close = deferCall(Some(|| {
+            api_session.close();
+            self.remove_api_session(api_session.id());
+        }));
+
+        let accepted = transport.accept();
+        drop(transport);
+        let mut rwc = match accepted {
+            Ok(rwc) => rwc,
+            Err(accept_err) => {
+                self.logger.errorf(format_args!(
+                    "API session {}: failed to accept connection: {accept_err}",
+                    api_session.id()
+                ));
+                return;
+            }
+        };
+        let connection: Arc<dyn Fn() + Send + Sync> = match rwc.closer.take() {
+            Some(closer) => Arc::from(closer),
+            None => Arc::new(|| {}),
+        };
+        if !state.attach_connection(Arc::clone(&connection)) {
+            return;
+        }
+        rwc.closer = Some(Box::new({
+            let connection = Arc::clone(&connection);
+            move || connection()
+        }));
+        let _close_rwc = deferCall(Some(|| connection()));
+
+        // The connection runs until apiCtx is canceled: by stop, or when the server's background context is.
+        let options = api_transport::ServeOptions::new(true /*async*/);
+        let shutdown = options.shutdown.clone();
+        let stop_shutdown = api_ctx.after_func(move || shutdown.cancel());
+        let _stop_shutdown = deferCall(Some(|| {
+            stop_shutdown.stop();
+        }));
+
+        // Run the connection with panic recovery. On a panic the connection, and with it the socket, is dropped
+        // during the unwind (Go cancels the context and closes rwc).
+        let result = recover_scope(|| {
+            let conn = api_transport::Connection::new(
+                rwc,
+                Arc::new(SessionHandler(Arc::clone(api_session))),
+                options,
+                None,
+            );
+            api_session.set_connection(Arc::new(ClientConnAdapter(conn.caller())));
+            conn.run()
+        });
+        match result {
+            Ok(Ok(())) => {}
+            Ok(Err(api_err)) => {
+                self.logger.errorf(format_args!("API session {}: {api_err}", api_session.id()));
+            }
+            Err((r, stack)) => {
+                self.logger.errorf(format_args!(
+                    "API session {}: panic: {}\n{}",
+                    api_session.id(),
+                    panic_value_string(&r),
+                    stack
+                ));
+            }
+        }
+    }
+
+    // server.go:2409
+    fn generate_api_pipe_name() -> String {
+        let now = SystemTime::now().duration_since(UNIX_EPOCH).unwrap_or_default().as_nanos();
+        // A fresh `RandomState` is randomly seeded: its empty hash stands in for Go's `rand.Uint64()`.
+        let rnd =
+            std::hash::BuildHasher::hash_one(&std::collections::hash_map::RandomState::new(), ());
+        format!("tsgo-api-{now:x}-{rnd:x}")
+    }
+
+    // server.go:2415
+    fn remove_api_session(&self, id: &str) {
+        self.api_sessions.lock().unwrap().remove(id);
+    }
+
+    // server.go:2421
+    pub(crate) fn close_api_sessions(&self) {
+        let api_sessions: Vec<Arc<apiSessionState>> =
+            self.api_sessions.lock().unwrap().drain().map(|(_, state)| state).collect();
+        for state in api_sessions {
+            state.stop();
+        }
     }
 
     // server.go:2363
@@ -3136,19 +3332,170 @@ impl Server {
         Ok(lsproto::ProjectInfoResult { config_file_path })
     }
 
-    // server.go:2451 (content mappers are out of scope)
-    #[expect(
-        clippy::unused_self,
-        reason = "Registered LSP handlers share a Server receiver so the dispatcher can call them uniformly."
-    )]
+    // server.go:2524
     fn handle_set_content_mapper_contributions(
         self: &Arc<Self>,
-        _ctx: &Context,
-        _params: &lsproto::SetContentMapperContributionsParams,
+        ctx: &Context,
+        params: &lsproto::SetContentMapperContributionsParams,
         _req: &RequestMessage,
     ) -> Result<lsproto::CustomSetContentMapperContributionsResponse, Error> {
-        Err(not_yet_ported(Method::CustomSetContentMapperContributions))
+        let contributions = parse_content_mapper_contributions(&params.contributions)?;
+        let documents = params.open_documents.iter().map(|document| document.uri.clone()).collect();
+        self.session().set_content_mapper_contributions(ctx, contributions, documents);
+        Ok(lsproto::Null)
     }
+}
+
+// server.go:2534
+pub(crate) fn parse_content_mapper_contributions(
+    values: &[lsproto::ContentMapperContribution],
+) -> Result<project::ContentMapperContributions, Error> {
+    // Go formats these with %q, which the content mapper host models as the Header style.
+    let quote =
+        |s: &str| tsrs_core::gocompat::quote(s.as_bytes(), tsrs_core::gocompat::QuoteStyle::Header);
+    let mut result = project::ContentMapperContributions::default();
+    let mut claimed_extensions: Set<String> = Set::new();
+    for (index, value) in values.iter().enumerate() {
+        if value.contributor_id.is_empty() {
+            return Err(Error::new(
+                "content mapper contribution requires a contributorId".to_string(),
+            ));
+        }
+        let identity = format!("{}[{index}]", value.contributor_id);
+        let mut valid_extensions = Vec::with_capacity(value.extensions.len());
+        for extension in &value.extensions {
+            if !is_valid_contributed_content_mapper_extension(extension) {
+                return Err(Error::new(format!(
+                    "content mapper contribution {} has invalid extension {}",
+                    quote(&identity),
+                    quote(extension)
+                )));
+            }
+            valid_extensions.push(extension.clone());
+        }
+        let Some(inferred_project) = &value.inferred_project_contribution else {
+            continue;
+        };
+        let manifest = &inferred_project.manifest;
+        if manifest.name.is_empty() || manifest.exec.is_empty() {
+            return Err(Error::new(format!(
+                "content mapper contribution {} requires a manifest name and exec",
+                quote(&identity)
+            )));
+        }
+        for option in manifest.compiler_options.iter().flatten() {
+            if tsrs_tsoptions::COMMAND_LINE_COMPILER_OPTIONS_MAP.get(option).is_none() {
+                return Err(Error::new(format!(
+                    "content mapper contribution {} requests unknown compiler option {}",
+                    quote(&identity),
+                    quote(option)
+                )));
+            }
+        }
+        for (source, output) in manifest.output_extensions.iter().flatten() {
+            if !tsrs_tsoptions::is_valid_extension(source)
+                || !tsrs_tsoptions::is_valid_extension(output)
+            {
+                return Err(Error::new(format!(
+                    "content mapper contribution {} has invalid output extension mapping from {} to {}",
+                    quote(&identity),
+                    quote(source),
+                    quote(output)
+                )));
+            }
+        }
+        for extension in &valid_extensions {
+            if !claimed_extensions.add_if_absent(extension.to_lowercase()) {
+                return Err(Error::new(format!(
+                    "content mapper contributions both claim extension {}",
+                    quote(extension)
+                )));
+            }
+            result.extensions.push(extension.clone());
+        }
+        let options = match &inferred_project.options {
+            Some(options) => {
+                let mut members: tsrs_core::json::JsonMap = options
+                    .iter()
+                    .map(|(name, value)| (name.clone(), go_map_json_value(value)))
+                    .collect();
+                members.sort_keys();
+                tsrs_core::json::marshal(&lsproto::Value::Object(members)).map_err(|_| {
+                    Error::new(format!(
+                        "content mapper contribution {} has invalid options",
+                        quote(&identity)
+                    ))
+                })?
+            }
+            None => "{}".to_string(),
+        };
+        // Go clones the manifest's map, so an absent `outputExtensions` stays nil in both places.
+        let output_extensions: FxHashMap<String, String> = manifest
+            .output_extensions
+            .iter()
+            .flatten()
+            .map(|(source, output)| (source.clone(), output.clone()))
+            .collect();
+        let output_extensions_present = manifest.output_extensions.is_some();
+        let mut mapper = tsrs_tsoptions::Mapper {
+            definition: tsrs_tsoptions::Definition {
+                package: identity.clone(),
+                extensions: valid_extensions,
+                output_extensions: output_extensions.clone(),
+                output_extensions_present,
+                options,
+            },
+            manifest: tsrs_tsoptions::Manifest {
+                name: manifest.name.clone(),
+                version: manifest.version.clone().unwrap_or_default(),
+                exec: manifest.exec.clone(),
+                compiler_options: manifest.compiler_options.clone().unwrap_or_default(),
+                dynamic_config: manifest.dynamic_config.unwrap_or_default(),
+                default_output_extensions: output_extensions,
+                default_output_extensions_present: output_extensions_present,
+            },
+            package_directory: String::new(),
+            contribution_id: identity.clone(),
+        };
+        if let Some(cwd) = &manifest.cwd {
+            if !tspath::path_is_absolute(cwd) {
+                return Err(Error::new(format!(
+                    "content mapper contribution {} has non-absolute cwd",
+                    quote(&identity)
+                )));
+            }
+            mapper.package_directory.clone_from(cwd);
+        }
+        result.mappers.push(mapper);
+    }
+    result.extensions.sort();
+    Ok(result)
+}
+
+// Go decodes the options as `map[string]any` and json.Marshal writes every map's keys sorted.
+fn go_map_json_value(value: &lsproto::Value) -> lsproto::Value {
+    match value {
+        lsproto::Value::Object(members) => {
+            let mut members: tsrs_core::json::JsonMap = members
+                .iter()
+                .map(|(name, value)| (name.to_string(), go_map_json_value(value)))
+                .collect();
+            members.sort_keys();
+            lsproto::Value::Object(members)
+        }
+        lsproto::Value::Array(items) => {
+            lsproto::Value::Array(items.iter().map(go_map_json_value).collect())
+        }
+        value => value.clone(),
+    }
+}
+
+// server.go:2604
+fn is_valid_contributed_content_mapper_extension(extension: &str) -> bool {
+    if !tsrs_tsoptions::is_valid_extension(extension) {
+        return false;
+    }
+    !tsrs_tsoptions::has_reserved_source_extension(extension)
 }
 
 // server.go:323

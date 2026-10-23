@@ -1,10 +1,14 @@
 # Every unsafe site and lifetime escape (tools/lint/source.mjs --update; notes/unsafe-audit.md).
 # file	item	kind	class	safety	verdict	note. --update keeps class, verdict and note of a row whose key
 # (file, item, kind, safety) still exists; a new site gets a class from its crate and verdict `unknown`.
+crates/tsrs_api/src/build.rs	ExecuteBuildBackend::create	leak	ownership		keep	process-lifetime build system; one allocation per API orchestrator
+crates/tsrs_api/src/build.rs	ExecuteOrchestrator::build	block	ownership	the build ran inline on this thread and has unwound (its scoped workers were joined), so	safe-api-possible	a program owner type with Drop (#646 milestone 1) replaces this manual free
+crates/tsrs_api/src/build.rs	ExecuteOrchestrator::drop	block	ownership	as in `replace`; the handle is being disposed.	safe-api-possible	a program owner type with Drop (#646 milestone 1) replaces this manual free
+crates/tsrs_api/src/build.rs	ExecuteOrchestrator::replace	block	ownership	no build is running on `old` (builds are serialized per handle) and its results were	safe-api-possible	a program owner type with Drop (#646 milestone 1) replaces this manual free
 crates/tsrs_api/src/module_resolution.rs	Session::handle_resolve_module_name	block	ownership	`host` stays alive until reclaimed below, after the resolver is dropped.	keep	leak / from_raw pair within one request; #656 routes the rest through a scratch region
 crates/tsrs_api/src/module_resolution.rs	Session::handle_resolve_module_name	block	ownership	allocated above; the only resolver referencing it was dropped.	keep	leak / from_raw pair within one request; #656 routes the rest through a scratch region
 crates/tsrs_api/src/module_resolution.rs	Session::handle_resolve_module_name	from_raw	ownership	allocated above; the only resolver referencing it was dropped.	keep	leak / from_raw pair within one request; #656 routes the rest through a scratch region
-crates/tsrs_api/src/session.rs	Session::new	leak	ownership		safe-api-possible	API session host; #645 says API build systems are reclaimed on disposal
+crates/tsrs_api/src/session.rs	Session::new_session	leak	ownership		safe-api-possible	API session host; #645 says API build systems are reclaimed on disposal
 crates/tsrs_api/src/sourcefiles.rs	Session::encode_source_file	block	logic	as in `node_index_table`: the file outlives the request, and the cached table is evicted when its arena	safe-api-possible	lifetime is a pool lease / held checker, enforced at run time, not by the type
 crates/tsrs_api/src/sourcefiles.rs	Session::node_index_table	block	logic	`file` is reachable from a live snapshot or lease for the whole request, and the cached table built	safe-api-possible	lifetime is a pool lease / held checker, enforced at run time, not by the type
 crates/tsrs_api/src/transpile.rs	transpile_in_current_region	block	ownership	nothing derived from the program (diagnostics are serialized above) is used after this.	safe-api-possible	a program owner type with Drop (#646 milestone 1) replaces this manual free
@@ -161,10 +165,6 @@ crates/tsrs_checker/src/types.rs	restore	fn	logic		keep	tagged word decode; the 
 crates/tsrs_checker/src/types.rs	restore_bits	block	logic	this function's contract: `bits` is 0 or the bits of a `P<T>`.	keep	tagged word decode; the tag is written only by this type's constructors
 crates/tsrs_checker/src/types.rs	restore_bits	fn	logic		keep	tagged word decode; the tag is written only by this type's constructors
 crates/tsrs_cli/src/api.rs	(file)	extern	test		keep	test-only leak or syscall
-crates/tsrs_cli/src/api.rs	CliBuildBackend::create	leak	ownership		keep	process-lifetime by design; one allocation, no growth (CLI host)
-crates/tsrs_cli/src/api.rs	CliOrchestrator::build	block	ownership	the build ran inline on this thread and has unwound (its scoped workers were joined), so	safe-api-possible	a program owner type with Drop (#646 milestone 1) replaces this manual free
-crates/tsrs_cli/src/api.rs	CliOrchestrator::drop	block	ownership	as in `replace`; the handle is being disposed.	safe-api-possible	a program owner type with Drop (#646 milestone 1) replaces this manual free
-crates/tsrs_cli/src/api.rs	CliOrchestrator::replace	block	ownership	no build is running on `old` (builds are serialized per handle) and its results were	safe-api-possible	a program owner type with Drop (#646 milestone 1) replaces this manual free
 crates/tsrs_cli/src/api.rs	rss_kib	block	test	glibc `malloc_trim` has no preconditions.	keep	test-only leak or syscall
 crates/tsrs_cli/src/lsp.rs	(file)	extern	boundary		keep	OS, FFI or allocator call
 crates/tsrs_cli/src/lsp.rs	is_process_alive	block	boundary	kill(2) with signal 0 only checks for the existence of the process and sends nothing.	keep	OS, FFI or allocator call

@@ -17,6 +17,7 @@ tsrs_vfs.workspace = true
 tsrs_module.workspace = true
 tsrs_tsoptions.workspace = true
 tsrs_compiler.workspace = true
+tsrs_execute = { path = "../tsrs_execute" }
 tsrs_checker.workspace = true
 # checker lane: GetTouchingPropertyName, JSDoc tags / documentation comments
 tsrs_astnav.workspace = true
@@ -27,7 +28,7 @@ rustc-hash.workspace = true
 tsrs_scanner.workspace = true
 tsrs_printer.workspace = true
 tsrs_api_codec.workspace = true
-# Re-entrancy helpers only (thread-local request context set by the connection); no protocol code.
+# Session/transport adapters and re-entrancy context shared by the CLI and LSP server.
 tsrs_api_transport.workspace = true
 
 [dev-dependencies]

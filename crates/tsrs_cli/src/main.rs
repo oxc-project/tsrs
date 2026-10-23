@@ -8,7 +8,7 @@ mod api;
 mod lsp;
 mod signals;
 
-use tsrs_execute::{build, execute, sys, tsc};
+use tsrs_execute::{execute, sys, tsc};
 
 // TSRS_MEM_SPLIT (tsrs_core::memsplit): mimalloc's view of its heap, every page of every thread.
 #[cfg(not(feature = "system-alloc"))]

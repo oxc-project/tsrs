@@ -103,9 +103,20 @@ pub struct CheckerSetup {
     pub checker: CheckerHandle,
 }
 
+/// Go `Session.openProjects` / `openFiles` / `createdPrograms`, guarded by `languageServerUpdateMu`: the canonical
+/// LSP-state resources owned by this API client.
+#[derive(Default)]
+pub(crate) struct LanguageServerState {
+    pub open_state: OpenState,
+    pub created_programs: tsrs_core::collections::Set<tsrs_project::SyntheticProjectID>,
+}
+
 pub struct Session {
     id: String,
     pub(crate) snapshot_host: Arc<SnapshotHost>,
+    /// Go `projectSession`: the language server's project session, for sessions created by `new_lsp`.
+    pub(crate) project_session: Option<Arc<tsrs_project::Session>>,
+    pub(crate) language_server: Mutex<LanguageServerState>,
     /// Leaked once per session: tsoptions requires a `&'static dyn ParseConfigHost`.
     pub(crate) parse_config_host: &'static crate::config::ApiParseConfigHost,
     binary_responses: bool,
@@ -152,18 +163,49 @@ impl Session {
             // transform content-mapped files yet (phase 2, notes/contentmappers.md): `--runExternalCode` is accepted
             // and recorded in the session options, and its projects get no content mapper project.
         };
+        let base_fs = Arc::clone(&init.fs);
+        Self::new_session(
+            tsrs_project::new_snapshot_host(&init),
+            None,
+            base_fs,
+            options.binary_responses,
+        )
+    }
+
+    /// Go `NewLSPSession`: an API session over the language server's project session. Its snapshots are the
+    /// language server's (`getCurrentLanguageServerSnapshot`), and the projects, files and programs it opens
+    /// there are released when it closes.
+    pub fn new_lsp(
+        project_session: Arc<tsrs_project::Session>,
+        binary_responses: bool,
+    ) -> Arc<Session> {
+        let snapshot_host = Arc::clone(project_session.snapshot_host());
+        // Go `Session.FS()` is the project session's (overlay) file system.
+        let base_fs = project_session.shared_fs();
+        Self::new_session(snapshot_host, Some(project_session), base_fs, binary_responses)
+    }
+
+    /// Go `newSession`.
+    fn new_session(
+        snapshot_host: Arc<SnapshotHost>,
+        project_session: Option<Arc<tsrs_project::Session>>,
+        base_fs: Arc<dyn FS>,
+        binary_responses: bool,
+    ) -> Arc<Session> {
+        // Go parses configs with the snapshot host as the `ParseConfigHost`.
         let parse_config_host: &'static crate::config::ApiParseConfigHost =
             Box::leak(Box::new(crate::config::ApiParseConfigHost {
-                fs: Arc::clone(&init.fs),
-                cwd: init.options.current_directory.clone(),
+                fs: snapshot_host.shared_fs(),
+                cwd: snapshot_host.get_current_directory().to_string(),
             }));
         let id = SESSION_ID_COUNTER.fetch_add(1, Ordering::SeqCst) + 1;
-        let base_fs = Arc::clone(&init.fs);
         Arc::new_cyclic(|weak_self| Session {
             id: format!("api-session-{id}"),
-            snapshot_host: tsrs_project::new_snapshot_host(&init),
+            snapshot_host,
+            project_session,
+            language_server: Mutex::new(LanguageServerState::default()),
             parse_config_host,
-            binary_responses: options.binary_responses,
+            binary_responses,
             snapshots: RwLock::new(FxHashMap::default()),
             conn: Mutex::new(None),
             closed: Mutex::new(false),
@@ -174,7 +216,7 @@ impl Session {
             weak_self: Weak::clone(weak_self),
             build_state: crate::build::BuildState::default(),
             source_files: crate::sourcefiles::SourceFileState::default(),
-            build_backend: Mutex::new(None),
+            build_backend: Mutex::new(Some(Arc::new(crate::build::ExecuteBuildBackend))),
         })
     }
 
@@ -182,7 +224,7 @@ impl Session {
         &self.id
     }
 
-    /// Installs the in-process build orchestrator implementation (the CLI's `tsc -b`).
+    /// Replaces the default in-process build orchestrator implementation.
     pub fn set_build_backend(&self, backend: Arc<dyn crate::build::BuildBackend>) {
         *self.build_backend.lock().unwrap() = Some(backend);
     }
@@ -192,6 +234,9 @@ impl Session {
     }
 
     pub fn default_library_path(&self) -> &str {
+        if let Some(project_session) = &self.project_session {
+            return project_session.default_library_path();
+        }
         self.snapshot_host.default_library_path()
     }
 
@@ -199,8 +244,15 @@ impl Session {
         Weak::clone(&self.weak_self)
     }
 
-    pub(crate) fn snapshot_host_fs(&self) -> Arc<dyn FS> {
+    /// Go `Session.FS()`: the language server's (overlay) filesystem for an LSP-attached session, otherwise the
+    /// snapshot host's.
+    pub(crate) fn fs(&self) -> Arc<dyn FS> {
         Arc::clone(&self.base_fs)
+    }
+
+    /// Go `snapshotHost.FS()`: the host filesystem, without the language server's overlays.
+    pub(crate) fn snapshot_host_fs(&self) -> Arc<dyn FS> {
+        self.snapshot_host.shared_fs()
     }
 
     pub(crate) fn next_batch_page_id(&self) -> u64 {
@@ -247,10 +299,50 @@ impl Session {
             return;
         }
         *closed = true;
+        self.release_language_server_refs();
         let all: Vec<_> = self.snapshots.write().unwrap().drain().collect();
         drop(all);
         self.batch_pages.lock().unwrap().clear();
         self.source_files.release_all_leases();
+    }
+
+    /// Go `releaseLanguageServerRefs`: closes the projects and files this client opened in the language server
+    /// and removes the programs it created there.
+    fn release_language_server_refs(&self) {
+        let Some(project_session) = &self.project_session else {
+            return;
+        };
+
+        let mut state = self.language_server.lock().unwrap();
+        if state.open_state.open_projects.is_empty()
+            && state.open_state.open_files.is_empty()
+            && state.created_programs.is_empty()
+        {
+            return;
+        }
+
+        let mut api_request = tsrs_project::APISnapshotRequest::default();
+        if !state.open_state.open_projects.is_empty() {
+            api_request.close_projects = Some(state.open_state.open_projects.clone());
+        }
+        if !state.open_state.open_files.is_empty() {
+            api_request.close_files = Some(state.open_state.open_files.clone());
+        }
+        if !state.created_programs.is_empty() {
+            api_request.remove_programs = Some(state.created_programs.clone());
+        }
+        let ctx = project_session.with_current_locale(&Context::background());
+        let Ok(snapshot) = project_session.api_update(
+            &ctx,
+            &tsrs_project::FileChangeSummary::default(),
+            Some(Arc::new(api_request)),
+        ) else {
+            return;
+        };
+        snapshot.deref();
+        state.open_state.open_projects.clear();
+        state.open_state.open_files.clear();
+        state.created_programs.clear();
     }
 
     /// Go `getSnapshotData`: resolves a client snapshot handle, pinning it for the caller.
@@ -498,11 +590,8 @@ impl Session {
             "buildReferences" => self.handle_build(p, true, false)?,
             "cleanBuild" => self.handle_build(p, false, true)?,
             "cleanReferences" => self.handle_build(p, true, true)?,
-            // Go: standalone (non-LSP) sessions reject it the same way.
             "getCurrentLanguageServerSnapshot" => {
-                return Err(ApiError::client(
-                    "getCurrentLanguageServerSnapshot requires an LSP-connected API session",
-                ));
+                self.handle_get_current_language_server_snapshot(p)?
             }
             "printNode" => self.handle_print_node(p)?,
             "transpileModule" => self.handle_transpile(p, false)?,

@@ -601,7 +601,7 @@ impl Session {
                 _sd_pin = sd;
                 fs
             } else {
-                self.snapshot_host_fs()
+                self.fs()
             };
             let host = Box::into_raw(Box::new(FsHost { fs, cwd: cwd.clone() }));
             owned_host = Some(host);

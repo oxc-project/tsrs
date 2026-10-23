@@ -2,7 +2,7 @@
 
 use super::async_::{assignment_target_contains_super_property, is_update_expression};
 use crate::*;
-use tsrs_core::collections::{OrderedSet, OrderedSetExt};
+use tsrs_core::collections::OrderedSet;
 
 // utilities.go:10
 pub fn convert_class_declaration_to_class_expression(
@@ -359,7 +359,7 @@ impl SuperAccessState {
                         .borrow_mut()
                         .as_mut()
                         .unwrap()
-                        .add(node.name().unwrap().text().to_string());
+                        .insert(node.name().unwrap().text().to_string());
                 }
             }
             Kind::ElementAccessExpression => {

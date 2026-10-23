@@ -7,7 +7,7 @@ use tsrs_ast::{
     Diagnostic, Kind, Node, NodeFactory, SourceFile, SourceFileParseOptions,
     new_compiler_diagnostic, new_diagnostic,
 };
-use tsrs_core::collections::{OrderedMap, OrderedMapExt};
+use tsrs_core::collections::OrderedMap;
 use tsrs_core::tspath::{self, ComparePathsOptions, Path};
 use tsrs_core::{
     CompilerOptions, P, ProjectReference, ScriptKind, TextRange, Tristate, TypeAcquisition, jsnum,
@@ -370,7 +370,7 @@ fn parse_own_config_of_json_source_file(
     errors.extend(err);
     if let CompilerOptionsValue::Object(json_object) = &json
         && !root_compiler_options.is_empty()
-        && !json_object.has(&"compilerOptions".to_string())
+        && !json_object.contains_key(&"compilerOptions".to_string())
     {
         errors.push(create_diagnostic_for_node_in_source_file(
                 source_file,
@@ -1167,7 +1167,7 @@ fn convert_object_literal_expression_to_json(
             let notified_value =
                 if json_conversion_notifier.is_some() { Some(value.clone()) } else { None };
             if let Some(result) = &mut result {
-                result.set(key_text.clone(), value);
+                result.insert(key_text.clone(), value);
             }
             // Notify key value set, if user asked for it
             if let Some(notifier) = json_conversion_notifier.as_deref_mut() {
@@ -1437,7 +1437,7 @@ fn parse_own_config_of_json(
     config_file_name: &str,
 ) -> (ParsedTsconfig, Vec<P<Diagnostic>>) {
     let mut errors: Vec<P<Diagnostic>> = Vec::new();
-    if json.has(&"excludes".to_string()) {
+    if json.contains_key(&"excludes".to_string()) {
         errors.push(new_compiler_diagnostic(
             &diagnostics::UNKNOWN_OPTION_EXCLUDES_DID_YOU_MEAN_EXCLUDE,
             &[],
@@ -1466,7 +1466,7 @@ fn parse_own_config_of_json(
             None,
         );
         errors.extend(compile_on_save_errors);
-        json.set("compileOnSave".to_string(), converted);
+        json.insert("compileOnSave".to_string(), converted);
     }
     // Go stores a (possibly nil) []string in an `any` field, which is never a nil interface.
     let mut extended_config_path: Vec<String> = Vec::new();
@@ -1648,7 +1648,7 @@ fn parse_config(
             &diagnostics::CIRCULARITY_DETECTED_WHILE_RESOLVING_CONFIGURATION_COLON_0,
             &[],
         ));
-        let result = if json.as_ref().map_or(0, tsrs_core::collections::OrderedMapExt::size) == 0 {
+        let result = if json.as_ref().map_or(0, OrderedMap::len) == 0 {
             ParsedTsconfig {
                 raw: match json {
                     Some(json) => CompilerOptionsValue::Object(json),
@@ -1719,21 +1719,21 @@ fn parse_config(
         }
         let raw = own_config.raw.as_object_mut().unwrap();
         if let Some(include) = result.include {
-            raw.set("include".to_string(), CompilerOptionsValue::Array(include));
+            raw.insert("include".to_string(), CompilerOptionsValue::Array(include));
         }
         if let Some(exclude) = result.exclude {
-            raw.set("exclude".to_string(), CompilerOptionsValue::Array(exclude));
+            raw.insert("exclude".to_string(), CompilerOptionsValue::Array(exclude));
         }
         if let Some(files) = result.files {
-            raw.set("files".to_string(), CompilerOptionsValue::Array(files));
+            raw.insert("files".to_string(), CompilerOptionsValue::Array(files));
         }
         if let Some(content_mappers) = result.content_mappers
-            && !raw.has(&"contentMappers".to_string())
+            && !raw.contains_key(&"contentMappers".to_string())
         {
-            raw.set("contentMappers".to_string(), CompilerOptionsValue::Array(content_mappers));
+            raw.insert("contentMappers".to_string(), CompilerOptionsValue::Array(content_mappers));
         }
-        if result.compile_on_save && !raw.has(&"compileOnSave".to_string()) {
-            raw.set(
+        if result.compile_on_save && !raw.contains_key(&"compileOnSave".to_string()) {
+            raw.insert(
                 "compileOnSave".to_string(),
                 CompilerOptionsValue::Bool(result.compile_on_save),
             );
@@ -3019,7 +3019,7 @@ fn remove_wildcard_files_with_lower_priority_extension(
             return;
         }
         let lower_priority_path = key_mapper(&tspath::change_extension(file, ext));
-        wildcard_files.delete(&lower_priority_path);
+        wildcard_files.shift_remove(&lower_priority_path);
     }
 }
 
@@ -3120,7 +3120,7 @@ pub fn get_file_names_from_config_specs(
                     if !literal_file_map.contains_key(&key)
                         && !wild_card_json_file_map.contains_key(&key)
                     {
-                        wild_card_json_file_map.set(key, file.clone());
+                        wild_card_json_file_map.insert(key, file.clone());
                     }
                 }
                 continue;
@@ -3159,11 +3159,11 @@ pub fn get_file_names_from_config_specs(
                 key_mappper,
             );
             if let Some(output) = declaration_output_of_mapped_file(&file, &mapped_extensions) {
-                wildcard_file_map.delete(&key_mappper(&output));
+                wildcard_file_map.shift_remove(&key_mappper(&output));
             }
             let key = key_mappper(&file);
             if !literal_file_map.contains_key(&key) && !wildcard_file_map.contains_key(&key) {
-                wildcard_file_map.set(key, file.clone());
+                wildcard_file_map.insert(key, file.clone());
             }
         }
     }

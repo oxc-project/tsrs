@@ -1,7 +1,7 @@
 use std::sync::{Arc, OnceLock};
 
 use rustc_hash::FxHashMap;
-use tsrs_core::collections::{OrderedMap, OrderedMapExt, Set, SyncSet, new_set_with_size_hint};
+use tsrs_core::collections::{OrderedMap, Set, SyncSet, new_set_with_size_hint};
 use tsrs_core::tspath::Path;
 use tsrs_core::{BreadthFirstSearchOptions, breadth_first_search_parallel_ex};
 use tsrs_ls as ls;
@@ -145,7 +145,7 @@ impl ProjectCollection {
         projects
             .extend(self.synthetic_projects().into_iter().map(|project| (project.id(), project)));
         if let Some(inferred_project) = &self.inferred_project {
-            projects.set(inferred_project.id(), inferred_project.clone());
+            projects.insert(inferred_project.id(), inferred_project.clone());
         }
         projects
     }

@@ -252,7 +252,7 @@ impl ExternalModuleInfoCollector {
         name: Option<P<Node>>,
         is_default: bool,
     ) {
-        self.output.exported_functions.add(self.emit_context.most_original(Some(node)).unwrap());
+        self.output.exported_functions.insert(self.emit_context.most_original(Some(node)).unwrap());
         if is_default {
             // export default function() { }
             // function x() { } + export { x as default };

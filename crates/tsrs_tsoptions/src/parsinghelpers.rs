@@ -1,6 +1,6 @@
 use rustc_hash::FxHashSet;
 use tsrs_ast::Diagnostic;
-use tsrs_core::collections::{OrderedMap, OrderedMapExt};
+use tsrs_core::collections::OrderedMap;
 use tsrs_core::tspath;
 use tsrs_core::{
     BuildOptions, CompilerOptions, JsxEmit, ModuleDetectionKind, ModuleKind, ModuleResolutionKind,
@@ -209,37 +209,37 @@ pub fn parse_json_to_string_key(
     let mut result = OrderedMap::with_capacity_and_hasher(6, rustc_hash::FxBuildHasher);
     if let CompilerOptionsValue::Object(m) = json {
         if let Some(v) = m.get("include") {
-            result.set("include".to_string(), v.clone());
+            result.insert("include".to_string(), v.clone());
         }
         if let Some(v) = m.get("exclude") {
-            result.set("exclude".to_string(), v.clone());
+            result.insert("exclude".to_string(), v.clone());
         }
         if let Some(v) = m.get("files") {
-            result.set("files".to_string(), v.clone());
+            result.insert("files".to_string(), v.clone());
         }
         if let Some(v) = m.get("references") {
-            result.set("references".to_string(), v.clone());
+            result.insert("references".to_string(), v.clone());
         }
         if let Some(v) = m.get("contentMappers") {
-            result.set("contentMappers".to_string(), v.clone());
+            result.insert("contentMappers".to_string(), v.clone());
         }
         if let Some(v) = m.get("extends") {
             if let CompilerOptionsValue::String(str) = v {
-                result.set(
+                result.insert(
                     "extends".to_string(),
                     CompilerOptionsValue::Array(vec![CompilerOptionsValue::String(str.clone())]),
                 );
             }
-            result.set("extends".to_string(), v.clone());
+            result.insert("extends".to_string(), v.clone());
         }
         if let Some(v) = m.get("compilerOptions") {
-            result.set("compilerOptions".to_string(), v.clone());
+            result.insert("compilerOptions".to_string(), v.clone());
         }
         if let Some(v) = m.get("excludes") {
-            result.set("excludes".to_string(), v.clone());
+            result.insert("excludes".to_string(), v.clone());
         }
         if let Some(v) = m.get("typeAcquisition") {
-            result.set("typeAcquisition".to_string(), v.clone());
+            result.insert("typeAcquisition".to_string(), v.clone());
         }
     }
     result
@@ -1008,7 +1008,7 @@ pub fn convert_to_options_with_absolute_paths(
     for o in keys {
         let v = options_base.get(&o).unwrap();
         if let Some(result) = convert_option_to_absolute_path(&o, v, option_map, cwd) {
-            options_base.set(o, result);
+            options_base.insert(o, result);
         }
     }
     options_base

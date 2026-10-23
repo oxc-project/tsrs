@@ -4,7 +4,7 @@ use std::time::{Duration, Instant};
 
 use rustc_hash::FxHashMap;
 use tsrs_ast::Diagnostic;
-use tsrs_core::collections::{OrderedMap, OrderedMapExt, Set, SyncSet, diff_ordered_maps};
+use tsrs_core::collections::{OrderedMap, Set, SyncSet, diff_ordered_maps};
 use tsrs_core::context::{CancelFunc, Context, has_locale, with_locale};
 use tsrs_core::tspath::{self, Path};
 use tsrs_core::{CompilerOptions, P, ScriptKind, diff_maps_func};
@@ -2175,7 +2175,7 @@ impl Session {
             if new_project.kind != Kind::Configured {
                 continue;
             }
-            if !old_projects.has(project_id) {
+            if !old_projects.contains_key(project_id) {
                 continue; // Handled by added project case above
             }
             let configured_id = new_project.id().configured().unwrap();

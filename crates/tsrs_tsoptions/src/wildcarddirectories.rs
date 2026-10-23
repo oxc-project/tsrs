@@ -1,5 +1,5 @@
 use rustc_hash::FxHashMap;
-use tsrs_core::collections::{OrderedMap, OrderedMapExt};
+use tsrs_core::collections::OrderedMap;
 use tsrs_core::tspath::{self, ComparePathsOptions};
 use tsrs_vfs::vfsmatch;
 
@@ -71,7 +71,7 @@ pub fn get_wildcard_directories(
                     Some(existing_path) => existing_path.clone(),
                     None => path.clone(),
                 };
-                wildcard_directories.set(path_to_use, recursive);
+                wildcard_directories.insert(path_to_use, recursive);
 
                 if existing_path.is_none() {
                     wild_card_key_to_path.insert(key.clone(), path);
@@ -92,7 +92,7 @@ pub fn get_wildcard_directories(
                 if key != *recursive_key
                     && tspath::contains_path(recursive_key, &key, compare_paths_options)
                 {
-                    wildcard_directories.delete(&path);
+                    wildcard_directories.shift_remove(&path);
                 }
             }
         }

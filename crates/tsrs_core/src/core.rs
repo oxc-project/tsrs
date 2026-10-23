@@ -9,8 +9,6 @@ use std::hash::Hash;
 // Go helpers that return their input slice unchanged when nothing changes return `Cow::Borrowed`
 // so callers can preserve slice identity (see `same`).
 
-pub fn apply_debug_stack_limit() {}
-
 pub fn filter<T: Clone>(slice: &[T], mut f: impl FnMut(&T) -> bool) -> Cow<'_, [T]> {
     for (i, value) in slice.iter().enumerate() {
         if !f(value) {
@@ -26,45 +24,12 @@ pub fn filter<T: Clone>(slice: &[T], mut f: impl FnMut(&T) -> bool) -> Cow<'_, [
     Cow::Borrowed(slice)
 }
 
-pub fn filter_index<T: Clone>(
-    slice: &[T],
-    mut f: impl FnMut(&T, usize, &[T]) -> bool,
-) -> Cow<'_, [T]> {
-    for (i, value) in slice.iter().enumerate() {
-        if !f(value, i, slice) {
-            let mut result = slice[..i].to_vec();
-            result.extend((i + 1..slice.len()).filter_map(|j| {
-                if f(&slice[j], j, slice) { Some(slice[j].clone()) } else { None }
-            }));
-            return Cow::Owned(result);
-        }
-    }
-    Cow::Borrowed(slice)
-}
-
 pub fn map<T, U>(slice: &[T], f: impl FnMut(&T) -> U) -> Vec<U> {
     slice.iter().map(f).collect()
 }
 
-pub fn try_map<T, U, E>(slice: &[T], mut f: impl FnMut(&T) -> Result<U, E>) -> Result<Vec<U>, E> {
-    let mut result = Vec::with_capacity(slice.len());
-    result = slice.iter().try_fold(result, |mut result, value| {
-        result.push(f(value)?);
-        Ok::<_, E>(result)
-    })?;
-    Ok(result)
-}
-
-pub fn map_index<T, U>(slice: &[T], mut f: impl FnMut(&T, usize) -> U) -> Vec<U> {
-    slice.iter().enumerate().map(|(i, v)| f(v, i)).collect()
-}
-
 /// Go `MapNonNil`: the callback returns `None` where Go returns the zero value.
 pub fn map_non_nil<T, U>(slice: &[T], f: impl FnMut(&T) -> Option<U>) -> Vec<U> {
-    slice.iter().filter_map(f).collect()
-}
-
-pub fn map_filtered<T, U>(slice: &[T], f: impl FnMut(&T) -> Option<U>) -> Vec<U> {
     slice.iter().filter_map(f).collect()
 }
 
@@ -82,23 +47,6 @@ pub fn same_map<T: Clone + PartialEq>(slice: &[T], mut f: impl FnMut(&T) -> T) -
             result.extend_from_slice(&slice[..i]);
             result.push(mapped);
             result.extend(slice[i + 1..].iter().map(&mut f));
-            return Cow::Owned(result);
-        }
-    }
-    Cow::Borrowed(slice)
-}
-
-pub fn same_map_index<T: Clone + PartialEq>(
-    slice: &[T],
-    mut f: impl FnMut(&T, usize) -> T,
-) -> Cow<'_, [T]> {
-    for (i, value) in slice.iter().enumerate() {
-        let mapped = f(value, i);
-        if mapped != *value {
-            let mut result = Vec::with_capacity(slice.len());
-            result.extend_from_slice(&slice[..i]);
-            result.push(mapped);
-            result.extend((i + 1..slice.len()).map(|j| f(&slice[j], j)));
             return Cow::Owned(result);
         }
     }
@@ -153,22 +101,8 @@ pub fn element_or_nil<T: Clone>(slice: &[T], index: usize) -> Option<T> {
     slice.get(index).cloned()
 }
 
-pub fn first_or_nil_seq<T>(seq: impl IntoIterator<Item = T>) -> Option<T> {
-    seq.into_iter().next()
-}
-
 pub fn first_non_nil<T, U>(slice: &[T], f: impl FnMut(&T) -> Option<U>) -> Option<U> {
     slice.iter().find_map(f)
-}
-
-pub fn first_non_zero<T: Clone + Default + PartialEq>(values: &[T]) -> T {
-    let zero = T::default();
-    if let Some(result) =
-        values.iter().find_map(|value| if *value == zero { None } else { Some(value.clone()) })
-    {
-        return result;
-    }
-    zero
 }
 
 pub fn concatenate<'a, T: Clone>(s1: &'a [T], s2: &'a [T]) -> Cow<'a, [T]> {
@@ -424,16 +358,6 @@ pub fn get_script_kind_from_file_name(file_name: &str) -> ScriptKind {
     ScriptKind::Unknown
 }
 
-pub fn get_default_extension_for_script_kind(script_kind: ScriptKind) -> &'static str {
-    match script_kind {
-        ScriptKind::JS => tspath::EXTENSION_JS,
-        ScriptKind::JSX => tspath::EXTENSION_JSX,
-        ScriptKind::TSX => tspath::EXTENSION_TSX,
-        ScriptKind::JSON => tspath::EXTENSION_JSON,
-        _ => tspath::EXTENSION_TS,
-    }
-}
-
 // EnsureScriptKindFromFileName is like GetScriptKindFromFileName, but defaults to
 // ScriptKindTS when the file name has no recognized extension (e.g. files included
 // with allowNonTsExtensions), so the result is always safe to hand to the parser.
@@ -680,31 +604,6 @@ pub fn index_bytes(haystack: &[u8], needle: &[u8]) -> Option<usize> {
     None
 }
 
-pub fn single_element_slice<T>(element: Option<T>) -> Vec<T> {
-    match element {
-        None => Vec::new(),
-        Some(e) => vec![e],
-    }
-}
-
-// DiffMaps compares two maps m1 and m2 and calls the provided callbacks for added, removed, and changed entries.
-// onAdded is called for each key-value pair that is in m2 but not in m1.
-// onRemoved is called for each key-value pair that is in m1 but not in m2.
-// onChanged is called for each key where the value in m1 differs from the value in m2.
-#[expect(
-    clippy::implicit_hasher,
-    reason = "The API deliberately accepts only FxHashMap, as required by the workspace hashing policy."
-)]
-pub fn diff_maps<K: Hash + Eq, V: PartialEq>(
-    m1: &FxHashMap<K, V>,
-    m2: &FxHashMap<K, V>,
-    on_added: impl FnMut(&K, &V),
-    on_removed: impl FnMut(&K, &V),
-    on_changed: impl FnMut(&K, &V, &V),
-) {
-    diff_maps_func(m1, m2, |a, b| a == b, Some(on_added), Some(on_removed), Some(on_changed));
-}
-
 #[expect(
     clippy::iter_over_hash_type,
     reason = "Go's DiffMapsFunc ranges over the maps too; the one caller (tsrs_project update_watches) collects watch changes, whose order is not output"
@@ -742,25 +641,6 @@ pub fn diff_maps_func<K: Hash + Eq, V1, V2>(
             }
         } else if let Some(on_removed) = on_removed.as_mut() {
             on_removed(k, v1);
-        }
-    }
-}
-
-// CopyMapInto is maps.Copy, unless dst is nil, in which case it clones and returns src.
-#[expect(
-    clippy::implicit_hasher,
-    reason = "The API deliberately accepts only FxHashMap, as required by the workspace hashing policy."
-)]
-pub fn copy_map_into<K: Hash + Eq + Clone, V: Clone>(
-    dst: Option<FxHashMap<K, V>>,
-    src: &FxHashMap<K, V>,
-) -> FxHashMap<K, V> {
-    match dst {
-        None => src.clone(),
-        Some(mut dst) => {
-            // inserts distinct keys into a map
-            dst.extend(src.iter().map(|(k, v)| (k.clone(), v.clone())));
-            dst
         }
     }
 }

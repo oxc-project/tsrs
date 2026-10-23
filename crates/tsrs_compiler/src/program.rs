@@ -20,7 +20,7 @@ use tsrs_module::{
     self as module, ModeAwareCache, ResolvedModule, ResolvedTypeReferenceDirective, Resolver,
     ResolverOptions,
 };
-use tsrs_tsoptions::{self as tsoptions, ParsedCommandLine};
+use tsrs_tsoptions::{self as tsoptions, ParsedCommandLine, outputpaths};
 
 use crate::checkerpool::CheckerPoolImpl;
 use crate::emitter::source_file_may_be_emitted;
@@ -33,7 +33,6 @@ use crate::fileloader::{
 };
 use crate::host::CompilerHost;
 use crate::includeprocessor::IncludeProcessor;
-use crate::outputpaths;
 use crate::processing_diagnostic::{IncludeExplainingDiagnostic, ProcessingDiagnostic};
 use crate::projectreferencefilemapper::ProjectReferenceFileMapper;
 use tsrs_core::collections::Set;
@@ -3031,7 +3030,7 @@ impl Program {
                 },
                 self.get_current_directory(),
                 self.use_case_sensitive_file_names(),
-                Some(&|source_files: &[String], root_directory: &str| {
+                Some(&mut |source_files: &[String], root_directory: &str| {
                     self.check_source_files_belong_to_path(source_files, root_directory)
                 }),
             )

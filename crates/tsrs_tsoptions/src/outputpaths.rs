@@ -77,7 +77,7 @@ pub fn get_computed_common_source_directory(
 
 pub fn get_common_source_directory(
     options: &CompilerOptions,
-    files: impl Fn() -> Vec<String>,
+    files: impl FnOnce() -> Vec<String>,
     current_directory: &str,
     use_case_sensitive_file_names: bool,
     check_source_files_belong_to_path: Option<&mut dyn FnMut(&[String], &str) -> bool>,

@@ -4,8 +4,8 @@
 use tsrs_ast::{self as ast, SourceFile};
 use tsrs_core::P;
 use tsrs_core::tspath::{self, ComparePathsOptions};
+use tsrs_tsoptions::outputpaths;
 
-use crate::outputpaths;
 use crate::program::Program;
 
 pub fn source_file_may_be_emitted(

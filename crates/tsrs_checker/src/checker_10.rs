@@ -2656,14 +2656,14 @@ impl Checker {
         &mut self,
         t: P<Type>,
         modifiers_type: P<Type>,
+        mut modifiers_prop: Option<P<Symbol>>,
         template_modifiers: MappedTypeModifiers,
         should_link_prop_declarations: bool,
         key_type: P<Type>,
         prop_name_type: P<Type>,
         prop_name: &str,
     ) -> P<Symbol> {
-        let mut modifiers_prop = None;
-        if is_type_usable_as_property_name(key_type) {
+        if modifiers_prop.is_none() && is_type_usable_as_property_name(key_type) {
             modifiers_prop =
                 self.get_property_of_type(modifiers_type, &get_property_name_from_type(key_type));
         }
@@ -2832,6 +2832,19 @@ impl Checker {
         let mut member = None;
         if let Some(modifiers_prop) = modifiers_prop {
             if self.is_named_member(modifiers_prop, name) {
+                // The plain-object guards from resolved_property_source, plus a value member.
+                let can_reuse_modifiers = lazy.modifiers_type.flags() == TypeFlags::Object
+                    && !lazy.modifiers_type.object_flags().intersects(ObjectFlags::Mapped)
+                    && lazy
+                        .modifiers_type
+                        .object_flags_lazy()
+                        .intersects(ObjectFlags::MembersResolved)
+                    && lazy
+                        .modifiers_type
+                        .symbol()
+                        .is_none_or(|s| !s.flags().intersects(SymbolFlags::ValueModule))
+                    && modifiers_prop.flags().intersects(SymbolFlags::Value);
+                let modifiers_epoch = self.members_reset_epoch;
                 let key_type = self.get_literal_type_from_property(
                     modifiers_prop,
                     TypeFlags::StringOrNumberLiteralOrUnique,
@@ -2844,15 +2857,19 @@ impl Checker {
                     return None;
                 }
                 self.lazy_member_stats.mapped_members_created += 1;
-                member = Some(self.new_mapped_type_member(
-                    t,
-                    lazy.modifiers_type,
-                    lazy.template_modifiers,
-                    lazy.should_link_prop_declarations,
-                    key_type,
-                    key_type,
-                    name,
-                ));
+                member = Some(
+                    self.new_mapped_type_member(
+                        t,
+                        lazy.modifiers_type,
+                        (can_reuse_modifiers && modifiers_epoch == self.members_reset_epoch)
+                            .then_some(modifiers_prop),
+                        lazy.template_modifiers,
+                        lazy.should_link_prop_declarations,
+                        key_type,
+                        key_type,
+                        name,
+                    ),
+                );
             }
         }
         lazy.members.borrow_mut().insert(name.to_string(), member);
@@ -2952,6 +2969,7 @@ fn mapped_type_add_member_for_key_type_worker(
             let prop = c.new_mapped_type_member(
                 t,
                 st.modifiers_type,
+                None,
                 st.template_modifiers,
                 st.should_link_prop_declarations,
                 key_type,

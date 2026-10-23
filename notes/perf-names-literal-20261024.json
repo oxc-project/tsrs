@@ -1,5 +1,5 @@
 {
-  "date": "2026-10-23T20:34:10.898Z",
+  "date": "2026-10-23T21:03:55.302Z",
   "baseCommit": "00a4a894301a912420b2865a93981110524dac42",
   "variant": "names-literal",
   "method": {
@@ -103,133 +103,133 @@
       "revision": "9cf0128b9822dcd8a533f08ef7312956a4390301",
       "configHash": "6c35a05a6798601b37cd28c535f4e7258ffdf34e271fbf6a4411d328f1db2332",
       "catalogConfigHash": "6c35a05a6798601b37cd28c535f4e7258ffdf34e271fbf6a4411d328f1db2332",
-      "measuredConfig": "<work>/solutions/vscode/src/tsconfig.json"
+      "measuredConfig": "/Users/boshen/github/tsrs/bench/.work/solutions/vscode/src/tsconfig.json"
     },
     {
       "project": "xstate-main",
       "revision": "fbee62e7c1586315ed478c2fedf530d7e0ff5a3e",
       "configHash": "9498113ee94612816408a30058bd8efa0137eeda96c9a48f76ec1da873e0ab58",
       "catalogConfigHash": "9498113ee94612816408a30058bd8efa0137eeda96c9a48f76ec1da873e0ab58",
-      "measuredConfig": "<work>/solutions/xstate-main/tsconfig.json"
+      "measuredConfig": "/Users/boshen/github/tsrs/bench/.work/solutions/xstate-main/tsconfig.json"
     },
     {
       "project": "webpack",
       "revision": "b54c5e2aa26dd0267bc904d45402f811f100186c",
       "configHash": "fc31c766e3d1bff531740b3152a693319d2e57bbafa6b5e90ad0d0cfc3350f90",
       "catalogConfigHash": "fc31c766e3d1bff531740b3152a693319d2e57bbafa6b5e90ad0d0cfc3350f90",
-      "measuredConfig": "<work>/solutions/webpack/tsconfig.json"
+      "measuredConfig": "/Users/boshen/github/tsrs/bench/.work/solutions/webpack/tsconfig.json"
     },
     {
       "project": "mui-docs",
       "revision": "6780195595c12252a130aa5ae5c5bd461229c6b7",
       "configHash": "fa71ea23f602161fc25afb5cc072689ecf97802151390680efd233fcf36f84d8",
       "catalogConfigHash": "fa71ea23f602161fc25afb5cc072689ecf97802151390680efd233fcf36f84d8",
-      "measuredConfig": "<work>/solutions/mui-docs/docs/tsconfig.json"
+      "measuredConfig": "/Users/boshen/github/tsrs/bench/.work/solutions/mui-docs/docs/tsconfig.json"
     },
     {
       "project": "Compiler",
       "revision": "41f652ab2df5077b1115f73eaeefc2fe9f674132",
       "configHash": "94885c2566449b93c3232260b6826dc81ffa988009ca34239d69a9883bee182e",
       "catalogConfigHash": "94885c2566449b93c3232260b6826dc81ffa988009ca34239d69a9883bee182e",
-      "measuredConfig": "<work>/suite/cases/solutions/Compiler/tsconfig.json"
+      "measuredConfig": "/Users/boshen/github/tsrs/bench/.work/suite/cases/solutions/Compiler/tsconfig.json"
     },
     {
       "project": "Compiler-Unions",
       "revision": "41f652ab2df5077b1115f73eaeefc2fe9f674132",
       "configHash": "f76e5a5bbc75b200527d720d6e6864d2d56c1740e9a0df18cc3bb570455612eb",
       "catalogConfigHash": "f76e5a5bbc75b200527d720d6e6864d2d56c1740e9a0df18cc3bb570455612eb",
-      "measuredConfig": "<work>/suite/cases/solutions/Compiler-Unions/tsconfig.json"
+      "measuredConfig": "/Users/boshen/github/tsrs/bench/.work/suite/cases/solutions/Compiler-Unions/tsconfig.json"
     },
     {
       "project": "cal-diy",
       "revision": "54343aa685ae8f33159d2f485ec4a57bad5c574a",
       "configHash": "c95706c895e701f7ac85ba6590d5bbc531d8573174e404e143ef9b89ca13b0e6",
       "catalogConfigHash": "c95706c895e701f7ac85ba6590d5bbc531d8573174e404e143ef9b89ca13b0e6",
-      "measuredConfig": "<work>/solutions/cal-diy/apps/web/tsconfig.json"
+      "measuredConfig": "/Users/boshen/github/tsrs/bench/.work/solutions/cal-diy/apps/web/tsconfig.json"
     },
     {
       "project": "formbricks-web",
       "revision": "ec45c28e4d20bd9daf3191c991b67981aabf5db8",
       "configHash": "80dc66227217b38ce099494aaaca0416b11a6c85925acf21e855b7c4ed8bf1e2",
       "catalogConfigHash": "80dc66227217b38ce099494aaaca0416b11a6c85925acf21e855b7c4ed8bf1e2",
-      "measuredConfig": "<work>/solutions/formbricks-web/apps/web/tsconfig.typecheck.json"
+      "measuredConfig": "/Users/boshen/github/tsrs/bench/.work/solutions/formbricks-web/apps/web/tsconfig.typecheck.json"
     },
     {
       "project": "supabase-studio",
       "revision": "12afe399995143a2cc699eabbbd29596f4e64945",
       "configHash": "3925ef557c0ef9c4febc2bcbbfa66fe82856f6534916aa48a9ad16147fecb860",
       "catalogConfigHash": "3925ef557c0ef9c4febc2bcbbfa66fe82856f6534916aa48a9ad16147fecb860",
-      "measuredConfig": "<work>/solutions/supabase-studio/apps/studio/tsconfig.json"
+      "measuredConfig": "/Users/boshen/github/tsrs/bench/.work/solutions/supabase-studio/apps/studio/tsconfig.json"
     },
     {
       "project": "t3code-server",
       "revision": "9bd1d8009a6b7c50f9dd9458e2bf27d481ff3b43",
       "configHash": "56138da5a3d70f586c87726a1d5410a371b259ef663019faa44ace50ef70ea2d",
       "catalogConfigHash": "56138da5a3d70f586c87726a1d5410a371b259ef663019faa44ace50ef70ea2d",
-      "measuredConfig": "<work>/solutions/t3code-server/apps/server/tsconfig.json"
+      "measuredConfig": "/Users/boshen/github/tsrs/bench/.work/solutions/t3code-server/apps/server/tsconfig.json"
     },
     {
       "project": "mikro-orm",
       "revision": "97fb2318067eae37ef52da57e2975eb7539ed729",
       "configHash": "a6fc0b2606ebb01b6dab96836c62a768c52a99edbd255d031bb8fe43c8787d88",
       "catalogConfigHash": "a6fc0b2606ebb01b6dab96836c62a768c52a99edbd255d031bb8fe43c8787d88",
-      "measuredConfig": "<work>/solutions/mikro-orm/tests/tsconfig.json"
+      "measuredConfig": "/Users/boshen/github/tsrs/bench/.work/solutions/mikro-orm/tests/tsconfig.json"
     },
     {
       "project": "next-packages-next",
       "revision": "fa8dcf34f1629dacc62f1952ee8a66a2439781a5",
       "configHash": "dc1d09761de641abdacad1c525a2f9451f22a17325f1cb4fd94052162e2bcc48",
       "catalogConfigHash": "dc1d09761de641abdacad1c525a2f9451f22a17325f1cb4fd94052162e2bcc48",
-      "measuredConfig": "<work>/solutions/next-packages-next/packages/next/tsconfig.json"
+      "measuredConfig": "/Users/boshen/github/tsrs/bench/.work/solutions/next-packages-next/packages/next/tsconfig.json"
     },
     {
       "project": "next-root",
       "revision": "fa8dcf34f1629dacc62f1952ee8a66a2439781a5",
       "configHash": "c1a2474e1eeba361aaa3c90039279e32ef138ecc7425101e98eb02152cf59dee",
       "catalogConfigHash": "c1a2474e1eeba361aaa3c90039279e32ef138ecc7425101e98eb02152cf59dee",
-      "measuredConfig": "<work>/solutions/next-root/tsconfig.json"
+      "measuredConfig": "/Users/boshen/github/tsrs/bench/.work/solutions/next-root/tsconfig.json"
     },
     {
       "project": "storybook",
       "revision": "48dfcc6becd3ab813b9d1de7966ef7fd9c8c9bc0",
       "configHash": "db7287b3be7ed61f16542536c4b66063e57d154dd596b4e7ab2a4bcf2dda9af1",
       "catalogConfigHash": "db7287b3be7ed61f16542536c4b66063e57d154dd596b4e7ab2a4bcf2dda9af1",
-      "measuredConfig": "<work>/solutions/storybook/scripts/tsconfig.json"
+      "measuredConfig": "/Users/boshen/github/tsrs/bench/.work/solutions/storybook/scripts/tsconfig.json"
     },
     {
       "project": "nuxt",
       "revision": "85b8d54f6ce49f4d0f199e90513b1e5d5fa22196",
       "configHash": "c0d9466217c73c763baa580910598922d7571ed4bc0dfa9ffc62352d7fc4f75f",
       "catalogConfigHash": "c0d9466217c73c763baa580910598922d7571ed4bc0dfa9ffc62352d7fc4f75f",
-      "measuredConfig": "<work>/solutions/nuxt/tsconfig.json"
+      "measuredConfig": "/Users/boshen/github/tsrs/bench/.work/solutions/nuxt/tsconfig.json"
     },
     {
       "project": "playwright",
       "revision": "d469960fdfc461e2d5795a3fa48a58a52a91ecaf",
       "configHash": "a7f96e890610681237289de72716e723f2791848ea6b04086e837e8f870c74d6",
       "catalogConfigHash": "a7f96e890610681237289de72716e723f2791848ea6b04086e837e8f870c74d6",
-      "measuredConfig": "<work>/solutions/playwright/tsconfig.json"
+      "measuredConfig": "/Users/boshen/github/tsrs/bench/.work/solutions/playwright/tsconfig.json"
     },
     {
       "project": "drizzle-orm",
       "revision": "15454dbe49d827c6081f3d0231e2e7985e517295",
       "configHash": "ba09dd7d14e56f05cb0b36646c0c2d1ef6e4b7c637e7ec167700bd1c3afea681",
       "catalogConfigHash": "52161a11feb0435ce1792e7175e83d8400b3be7b7cd07d4939c6d8865707498d",
-      "measuredConfig": "<work>/solutions/drizzle-orm/drizzle-orm/.tsrs-utilization-compat.json"
+      "measuredConfig": "/Users/boshen/github/tsrs/bench/.work/solutions/drizzle-orm/drizzle-orm/.tsrs-utilization-compat.json"
     },
     {
       "project": "typeorm",
       "revision": "fe92394287516feeada6e9c308ebe22deca2458e",
       "configHash": "828afaad0c4e01fc0b17a09102c550c45bdb28685eaeeb64aa134b304b3aa769",
       "catalogConfigHash": "828afaad0c4e01fc0b17a09102c550c45bdb28685eaeeb64aa134b304b3aa769",
-      "measuredConfig": "<work>/solutions/typeorm/packages/typeorm/tsconfig.json"
+      "measuredConfig": "/Users/boshen/github/tsrs/bench/.work/solutions/typeorm/packages/typeorm/tsconfig.json"
     },
     {
       "project": "date-fns",
       "revision": "717ce0a807ea4c6b540d015b5c408723175b2838",
       "configHash": "bd365bc229e7266defe3713604eff85dc2af9e0fd77d8e0eb86a77d62f742290",
       "catalogConfigHash": "bd365bc229e7266defe3713604eff85dc2af9e0fd77d8e0eb86a77d62f742290",
-      "measuredConfig": "<work>/solutions/date-fns/pkgs/core/tsconfig.json"
+      "measuredConfig": "/Users/boshen/github/tsrs/bench/.work/solutions/date-fns/pkgs/core/tsconfig.json"
     }
   ],
   "sourceCommit": "6ac3bf1b9bd433ec76df51ec29f656bbc2d75805",
@@ -239,6 +239,142 @@
     "method": "A separate copy, xcrun strip -S -x followed by ad-hoc codesign; not a separate Cargo release rebuild.",
     "baselineBytes": 21353872,
     "candidateBytes": 21353872
+  },
+  "defaultFollowUp": {
+    "reason": "Check the initial wall-time regressions and repeat the MUI memory result without selecting or dropping individual accepted pairs.",
+    "method": {
+      "pairs": 8,
+      "order": "Alternating AB/BA pairs per project and mode, with each completed pair checkpointed.",
+      "warmups": "Two correctness preflights per binary and mode, reused across pairs; one immediate exact-command warmup before every measurement.",
+      "settings": "Single: --singleThreaded and RAYON_NUM_THREADS=1. Default: no checker override. Normal defaults; cost cache disabled.",
+      "hostGuard": "At least 10 seconds of observed quiet before a pair, carried across continuously monitored adjacent pairs. Active compiler jobs (running/uninterruptible or at least 1% CPU) and other processes above three cores checked every 2 seconds. Idle compiler parents are recorded but do not block. Desktop bursts above one core are recorded but retained. A competing workload terminates only the owned measurement process group and invalidates the current pair. Previously completed pairs remain. Conditions are checked again after each pair.",
+      "cpu": "Apple M3 Max",
+      "cores": 14,
+      "started": "2026-10-23T20:57:07.374Z"
+    },
+    "results": [
+      {
+        "project": "vscode",
+        "instructions": [
+          93012387362.5,
+          92943810311.5,
+          -0.051675,
+          6,
+          8,
+          -0.206202,
+          0.223089
+        ],
+        "rss": [
+          2164695040,
+          2161377280,
+          -0.102225,
+          4,
+          8,
+          -0.726868,
+          0.896356
+        ],
+        "wall": [
+          1.103682,
+          1.113215,
+          -0.815658,
+          5,
+          8,
+          -1.994565,
+          2.018898
+        ]
+      },
+      {
+        "project": "mui-docs",
+        "instructions": [
+          93765499290,
+          92595192428,
+          -1.248121,
+          8,
+          8,
+          -2.00535,
+          -0.509422
+        ],
+        "rss": [
+          1607770112,
+          1583316992,
+          -1.683565,
+          8,
+          8,
+          -2.765184,
+          -0.232055
+        ],
+        "wall": [
+          1.163691,
+          1.142199,
+          -1.733024,
+          6,
+          8,
+          -5.160193,
+          1.255193
+        ]
+      },
+      {
+        "project": "cal-diy",
+        "instructions": [
+          73968900996,
+          73035161549.5,
+          -1.0984,
+          6,
+          8,
+          -2.503708,
+          0.404756
+        ],
+        "rss": [
+          1873281024,
+          1842110464,
+          -1.522987,
+          8,
+          8,
+          -2.877194,
+          -0.566995
+        ],
+        "wall": [
+          0.811847,
+          0.807291,
+          0.137096,
+          3,
+          8,
+          -3.8114,
+          1.956809
+        ]
+      },
+      {
+        "project": "t3code-server",
+        "instructions": [
+          126025144709,
+          125987888097,
+          -0.097118,
+          4,
+          8,
+          -2.569626,
+          1.058381
+        ],
+        "rss": [
+          2105614336,
+          2093932544,
+          -0.672288,
+          7,
+          8,
+          -3.390782,
+          0.251036
+        ],
+        "wall": [
+          1.466681,
+          1.461073,
+          0.034327,
+          4,
+          8,
+          -6.02451,
+          9.006989
+        ]
+      }
+    ],
+    "interpretation": "The initial VSCode, Cal and T3 wall-time regressions did not recur in the eight-pair follow-up. MUI default instructions and RSS decreased in all eight pairs; wall time decreased in six. No catalog-wide wall-time speedup is claimed."
   },
   "results": [
     {"project":"vscode","instructions":[81280997249,80784883399.5,-0.606135,2,4,-1.314397,1.304078],"rss":[2155036672,2135883776,-0.570403,4,4,-1.255855,-0.330636],"wall":[1.04752,1.141244,6.144576,0,4,0.798152,12.785379],"configurationNote":null},

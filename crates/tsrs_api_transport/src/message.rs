@@ -221,10 +221,11 @@ pub(crate) fn read_exact_bounded<R: std::io::Read>(
     limit: u64,
     what: &'static str,
 ) -> Result<Vec<u8>, TransportError> {
+    const INITIAL: u64 = 64 * 1024;
+
     if len > limit {
         return Err(TransportError::FrameTooLarge { declared: len, limit });
     }
-    const INITIAL: u64 = 64 * 1024;
     let mut out = Vec::with_capacity(len.min(INITIAL) as usize);
     let n = (&mut *r).take(len).read_to_end(&mut out)?;
     if (n as u64) < len {

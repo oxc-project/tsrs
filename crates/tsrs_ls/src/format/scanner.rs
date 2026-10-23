@@ -18,14 +18,14 @@ pub fn new_text_range_with_kind(pos: u32, end: u32, kind: Kind) -> TextRangeWith
 
 // scanner.go:24
 #[derive(Clone, Default)]
-pub(crate) struct TokenInfo {
+pub struct TokenInfo {
     pub(crate) leading_trivia: Vec<TextRangeWithKind>,
     pub(crate) token: TextRangeWithKind,
     pub(crate) trailing_trivia: Vec<TextRangeWithKind>,
 }
 
 // scanner.go:30
-pub(crate) struct FormattingScanner {
+pub struct FormattingScanner {
     s: Scanner,
     start_pos: u32,
     end_pos: u32,
@@ -39,7 +39,7 @@ pub(crate) struct FormattingScanner {
 }
 
 // scanner.go:43
-pub(crate) fn new_formatting_scanner(
+pub fn new_formatting_scanner(
     text: &'static str,
     language_variant: LanguageVariant,
     start_pos: u32,

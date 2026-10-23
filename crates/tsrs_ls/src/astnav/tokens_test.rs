@@ -7,7 +7,7 @@ use tsrs_core::{P, ScriptKind, TextRange, position_to_line_and_byte_offset};
 
 use super::*;
 
-pub(crate) fn repo_root() -> PathBuf {
+pub fn repo_root() -> PathBuf {
     let mut dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     while !dir.join("ts-ref").exists() {
         dir = dir.parent().expect("repository root with ts-ref").to_path_buf();
@@ -19,11 +19,7 @@ fn test_files() -> Vec<PathBuf> {
     vec![repo_root().join("ts-ref/tsc/testdata/fixtures/services/mapCode.ts")]
 }
 
-pub(crate) fn parse_for_test(
-    file_name: &str,
-    text: &str,
-    script_kind: ScriptKind,
-) -> P<SourceFile> {
+pub fn parse_for_test(file_name: &str, text: &str, script_kind: ScriptKind) -> P<SourceFile> {
     tsrs_parser::parse_source_file(
         SourceFileParseOptions {
             file_name: file_name.to_string(),

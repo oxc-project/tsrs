@@ -52,10 +52,12 @@ fn new_vs_image_id(id: i32) -> lsproto::VSImageId {
 // legacy (TSServer-backed) hover path uses; Corsa has no TSServer to source that mapping from, so
 // the LSP hover response must carry the equivalent icon directly.
 // hovericon.go:56
-pub(crate) fn get_vs_hover_image_id(
+pub fn get_vs_hover_image_id(
     kind: ScriptElementKind,
     modifiers: ScriptElementKindModifier,
 ) -> lsproto::VSImageId {
+    use ScriptElementKind as K;
+
     let is_private = modifiers.intersects(ScriptElementKindModifier::Private);
     let is_protected = modifiers.intersects(ScriptElementKindModifier::Protected);
 
@@ -71,7 +73,6 @@ pub(crate) fn get_vs_hover_image_id(
         }
     };
 
-    use ScriptElementKind as K;
     match kind {
         K::Warning => new_vs_image_id(IMAGE_ID_WARNING),
         K::Keyword => new_vs_image_id(IMAGE_ID_KEYWORD),
@@ -130,7 +131,7 @@ pub(crate) fn get_vs_hover_image_id(
 // TypeScript-VS's legacy HoverService.cs builds from TSServer's quickinfo-full response
 // (ImageElement + ClassifiedTextElement wrapped in a ContainerElement).
 // hovericon.go:133
-pub(crate) fn build_vs_hover_raw_content(
+pub fn build_vs_hover_raw_content(
     image_id: lsproto::VSImageId,
     quick_info_runs: Vec<lsproto::VSClassifiedTextRun>,
     documentation_runs: Vec<lsproto::VSClassifiedTextRun>,

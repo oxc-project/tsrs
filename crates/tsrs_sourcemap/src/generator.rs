@@ -600,7 +600,7 @@ fn base64_std_encode(out: &mut String, data: &[u8]) {
 }
 
 // generator.go:372
-pub(crate) fn base64_format_encode(value: u8) -> char {
+pub fn base64_format_encode(value: u8) -> char {
     match value {
         0..=25 => (b'A' + value) as char,
         26..=51 => (b'a' + value - 26) as char,

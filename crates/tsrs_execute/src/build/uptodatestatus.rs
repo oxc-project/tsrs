@@ -3,7 +3,7 @@
 use std::time::SystemTime;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
-pub(crate) enum UpToDateStatusType {
+pub enum UpToDateStatusType {
     // Errors:
 
     // config file was not found
@@ -51,33 +51,33 @@ pub(crate) enum UpToDateStatusType {
 }
 
 #[derive(Clone, Debug)]
-pub(crate) struct InputOutputName {
+pub struct InputOutputName {
     pub(crate) input: String,
     pub(crate) output: String,
 }
 
 // Go's zero time.Time is None.
 #[derive(Clone, Debug, Default)]
-pub(crate) struct FileAndTime {
+pub struct FileAndTime {
     pub(crate) file: String,
     pub(crate) time: Option<SystemTime>,
 }
 
 #[derive(Clone, Debug)]
-pub(crate) struct InputOutputFileAndTime {
+pub struct InputOutputFileAndTime {
     pub(crate) input: FileAndTime,
     pub(crate) output: FileAndTime,
 }
 
 #[derive(Clone, Debug)]
-pub(crate) struct UpstreamErrors {
+pub struct UpstreamErrors {
     pub(crate) ref_: String,
     pub(crate) ref_has_upstream_errors: bool,
 }
 
 // Go `data any`.
 #[derive(Clone, Debug)]
-pub(crate) enum StatusData {
+pub enum StatusData {
     None,
     String(String),
     InputOutputName(InputOutputName),
@@ -86,7 +86,7 @@ pub(crate) enum StatusData {
 }
 
 #[derive(Clone, Debug)]
-pub(crate) struct UpToDateStatus {
+pub struct UpToDateStatus {
     pub(crate) kind: UpToDateStatusType,
     pub(crate) data: StatusData,
 }
@@ -171,7 +171,7 @@ impl UpToDateStatus {
 }
 
 // Go time.Time.After / Before with the zero time as the earliest instant.
-pub(crate) fn after(a: Option<SystemTime>, b: Option<SystemTime>) -> bool {
+pub fn after(a: Option<SystemTime>, b: Option<SystemTime>) -> bool {
     match (a, b) {
         (Some(a), Some(b)) => a > b,
         (Some(_), None) => true,
@@ -179,6 +179,6 @@ pub(crate) fn after(a: Option<SystemTime>, b: Option<SystemTime>) -> bool {
     }
 }
 
-pub(crate) fn before(a: Option<SystemTime>, b: Option<SystemTime>) -> bool {
+pub fn before(a: Option<SystemTime>, b: Option<SystemTime>) -> bool {
     after(b, a)
 }

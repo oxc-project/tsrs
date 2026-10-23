@@ -295,14 +295,14 @@ impl ParsedCommandLine {
             let js_file_name = outputpaths::get_output_js_file_name(file_name, &options, self);
             let is_json = tspath::file_extension_is(file_name, tspath::EXTENSION_JSON);
             if !js_file_name.is_empty() {
-                if !is_json {
+                if is_json {
+                    result.push(js_file_name);
+                } else {
                     let source_map = outputpaths::get_source_map_file_path(&js_file_name, &options);
                     result.push(js_file_name);
                     if !source_map.is_empty() {
                         result.push(source_map);
                     }
-                } else {
-                    result.push(js_file_name);
                 }
             }
             if is_json {
@@ -567,10 +567,10 @@ impl ParsedCommandLine {
             }
         }
         let wildcard_directory_globs = self.wildcard_directory_globs();
-        if !wildcard_directory_globs.is_empty() {
-            if wildcard_directory_globs.iter().any(|glob| glob.match_(file_name)) {
-                return true;
-            }
+        if !wildcard_directory_globs.is_empty()
+            && wildcard_directory_globs.iter().any(|glob| glob.match_(file_name))
+        {
+            return true;
         }
         false
     }
@@ -651,7 +651,11 @@ impl ParsedCommandLine {
     }
 }
 
-pub(crate) fn get_content_mapper_output_extension<'a>(
+#[expect(
+    clippy::implicit_hasher,
+    reason = "The compiler's output extension maps always use FxHashMap."
+)]
+pub fn get_content_mapper_output_extension<'a>(
     output_extensions: &'a FxHashMap<String, String>,
     source_extension: &str,
     ignore_case: bool,
@@ -673,7 +677,7 @@ pub struct SourceOutputAndProjectReference {
     pub resolved: P<ParsedCommandLine>,
 }
 
-pub(crate) struct SourceAndOutputMaps {
+pub struct SourceAndOutputMaps {
     source_to_project_reference: FxHashMap<Path, P<SourceOutputAndProjectReference>>,
     output_dts_to_project_reference: FxHashMap<Path, P<SourceOutputAndProjectReference>>,
 }

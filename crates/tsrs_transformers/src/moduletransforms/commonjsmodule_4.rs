@@ -644,13 +644,12 @@ impl CommonJSModuleTransformer {
     // commonjsmodule.go:1826
     pub(crate) fn visit_call_expression(&self, node: P<Node>) -> P<Node> {
         let mut needs_rewrite = false;
-        if self.compiler_options.rewrite_relative_import_extensions.is_true() {
-            if ast::is_import_call(node) && !node.arguments().is_empty()
+        if self.compiler_options.rewrite_relative_import_extensions.is_true()
+            && (ast::is_import_call(node) && !node.arguments().is_empty()
                 || ast::is_in_js_file(node)
-                    && ast::is_require_call(node, false /*requireStringLiteralLikeArgument*/)
-            {
-                needs_rewrite = true;
-            }
+                    && ast::is_require_call(node, false /*requireStringLiteralLikeArgument*/))
+        {
+            needs_rewrite = true;
         }
         if node.expression().unwrap().kind() == Kind::ImportKeyword
             && self.should_transform_import_call()

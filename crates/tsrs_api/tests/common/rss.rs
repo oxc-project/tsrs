@@ -4,7 +4,7 @@ unsafe extern "C" {
 
 /// Resident memory after returning free heap pages to the OS (test binaries use the system allocator, whose
 /// free lists would otherwise look like growth).
-pub(super) fn rss_kib() -> u64 {
+pub fn rss_kib() -> u64 {
     // SAFETY: glibc `malloc_trim` has no preconditions.
     unsafe { malloc_trim(0) };
     std::fs::read_to_string("/proc/self/status")

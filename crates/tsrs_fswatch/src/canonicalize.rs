@@ -5,7 +5,7 @@ use crate::pathkey::PathComparer;
 use crate::watcher::{Error, PlatformWatcher};
 
 #[cfg(target_os = "macos")]
-pub(crate) use crate::fsevents_darwin_ffi::{NATIVE_PATH_FOLDING, fold_native_path};
+pub use crate::fsevents_darwin_ffi::{NATIVE_PATH_FOLDING, fold_native_path};
 
 #[cfg(target_os = "macos")]
 // canonicalize_darwin.go:15
@@ -13,7 +13,7 @@ pub(crate) use crate::fsevents_darwin_ffi::{NATIVE_PATH_FOLDING, fold_native_pat
 // FSEvents paths to NFC. kqueue retains on-disk child spellings for its fd
 // bookkeeping and directory events; on case-insensitive volumes, the native
 // path comparer handles normalization differences when filtering WatchFile.
-pub(crate) fn canonicalize_path(p: &str) -> String {
+pub fn canonicalize_path(p: &str) -> String {
     crate::fsevents_darwin_ffi::normalize_nfc(p)
 }
 
@@ -48,11 +48,11 @@ pub fn path_comparer_for_path(path: &str) -> Result<PathComparer, Error> {
 }
 
 #[cfg(not(target_os = "macos"))]
-pub(crate) const NATIVE_PATH_FOLDING: bool = false;
+pub const NATIVE_PATH_FOLDING: bool = false;
 
 #[cfg(not(target_os = "macos"))]
 // canonicalize_other.go:7
-pub(crate) fn fold_native_path(_: &str) -> String {
+pub fn fold_native_path(_: &str) -> String {
     panic!("fswatch: native path folding is only available on Darwin");
 }
 
@@ -61,7 +61,7 @@ pub(crate) fn fold_native_path(_: &str) -> String {
 // canonicalizePath is a no-op on platforms whose watchers report paths
 // using the same bytes the caller provided. See canonicalize_darwin.go
 // for the rationale on macOS.
-pub(crate) fn canonicalize_path(p: &str) -> String {
+pub fn canonicalize_path(p: &str) -> String {
     p.to_string()
 }
 

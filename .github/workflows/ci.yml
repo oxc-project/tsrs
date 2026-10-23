@@ -67,7 +67,7 @@ jobs:
           cache-key: warm-correctness-ci
 
       - name: Build correctness binaries
-        run: cargo build --profile ci --locked -p tsrs_cli -p tsrs_testrunner
+        run: cargo build --profile ci --locked -p tsrs_cli -p tsrs_testrunner -p tsrs_determinism
 
       - name: Upload correctness binaries
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -76,6 +76,7 @@ jobs:
           path: |
             target/ci/tsrs
             target/ci/tsrs-test
+            target/ci/tsrs_determinism
           if-no-files-found: error
           retention-days: 1
 
@@ -316,8 +317,8 @@ jobs:
   determinism:
     name: Determinism
     needs: build-correctness
-    runs-on: ubuntu-latest
-    timeout-minutes: 120
+    runs-on: nscloud-ubuntu-24.04-amd64-8x16
+    timeout-minutes: 300
     permissions:
       contents: read
     steps:
@@ -325,10 +326,8 @@ jobs:
 
       - uses: ./.github/actions/setup-node-tools
 
-      - uses: oxc-project/setup-rust@3d6fb132fbe7cdcb66bf8ec193911c2945369d12 # v1.0.17
-        with:
-          save-cache: ${{ github.ref_name == 'main' }}
-          cache-key: warm-determinism
+      - name: Install root tooling and pinned TypeScript
+        run: pnpm --filter tsrs-tooling install --frozen-lockfile
 
       - name: Download correctness binaries
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
@@ -336,123 +335,44 @@ jobs:
           name: correctness-binaries
           path: target/ci
 
-      - name: Make correctness binaries executable
-        run: chmod +x target/ci/tsrs target/ci/tsrs-test
+      - name: Make task and compiler executable
+        run: chmod +x target/ci/tsrs target/ci/tsrs_determinism
 
-      - name: Check out the PR or merge queue base
-        if: github.event_name == 'pull_request' || github.event_name == 'merge_group'
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          ref: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha }}
-          path: base-src
-          persist-credentials: false
+      - name: Benchmark cache key
+        id: keys
+        run: echo "work=$(node bench/bench.mjs plan --format keys --projects all | sha256sum | cut -c1-16)" >> "$GITHUB_OUTPUT"
 
-      - name: Build base checker for ordered diagnostics
-        if: github.event_name == 'pull_request' || github.event_name == 'merge_group'
-        working-directory: base-src
-        env:
-          CARGO_TARGET_DIR: ${{ runner.temp }}/tsrs-base-target
-        run: cargo build --profile ci --locked -p tsrs_cli
-
-      - name: Determinism cache keys
-        id: determinism-keys
-        run: node bench/bench.mjs plan --format keys --projects xstate-main,webpack,nuxt,drizzle-orm | tee -a "$GITHUB_OUTPUT"
-
-      - name: Restore benchmark compilers
-        id: shared-cache
+      - name: Restore benchmark projects
+        id: projects-cache
         uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: |
             bench/.work/suite
-            bench/.work/tsgo
-          key: bench-shared-${{ runner.os }}-${{ steps.determinism-keys.outputs.shared }}
+            bench/.work/solutions
+          key: determinism-work-${{ runner.os }}-${{ runner.arch }}-all-${{ steps.keys.outputs.work }}
 
-      - name: Restore xstate-main
-        id: xstate-main-cache
-        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      - name: Check committed tsgo snapshots
+        id: snapshots
+        run: target/ci/tsrs_determinism check --projects all --tsrs target/ci/tsrs
+
+      - name: Check regression scheduling
+        if: success() || steps.snapshots.outcome == 'failure'
+        run: target/ci/tsrs_determinism regressions --tsrs target/ci/tsrs
+
+      - name: Upload determinism results
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          path: bench/.work/solutions/xstate-main
-          key: bench-xstate-main-${{ runner.os }}-${{ steps.determinism-keys.outputs['xstate-main'] }}
+          name: determinism
+          path: target/determinism/
+          if-no-files-found: warn
+          retention-days: 14
 
-      - name: Restore webpack
-        id: webpack-cache
-        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: bench/.work/solutions/webpack
-          key: bench-webpack-${{ runner.os }}-${{ steps.determinism-keys.outputs['webpack'] }}
-
-      - name: Restore nuxt
-        id: nuxt-cache
-        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: bench/.work/solutions/nuxt
-          key: bench-nuxt-${{ runner.os }}-${{ steps.determinism-keys.outputs.nuxt }}
-
-      - name: Restore drizzle-orm
-        id: drizzle-orm-cache
-        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: bench/.work/solutions/drizzle-orm
-          key: bench-drizzle-orm-${{ runner.os }}-${{ steps.determinism-keys.outputs['drizzle-orm'] }}
-
-      - name: Set up determinism projects
-        run: node bench/bench.mjs prepare --projects xstate-main,webpack,nuxt,drizzle-orm
-
-      # The current compiler must finish normally on all four pinned projects and every regression case,
-      # with identical output across checker schedules. A base crash may be fixed by the current compiler.
-      # On PRs and merge groups with the same TypeScript source pin, ordered diagnostics and exit codes
-      # must also match the base binary when it finishes normally. A source-pin upgrade is checked against its
-      # new conformance baselines.
-      - name: Determinism and ordered diagnostics
-        run: |
-          node tools/ci/compare_diagnostics.mjs --self-test
-          tools/ci/determinism.sh --self-test
-          if [[ "$GITHUB_EVENT_NAME" = pull_request || "$GITHUB_EVENT_NAME" = merge_group ]]; then
-            current_source_pin="$(grep -E '^commit = "[0-9a-f]{40}"$' Cargo.toml)"
-            base_source_pin="$(grep -E '^commit = "[0-9a-f]{40}"$' base-src/Cargo.toml)"
-            if [[ "$current_source_pin" = "$base_source_pin" ]]; then
-              tools/ci/determinism.sh target/ci/tsrs --base "$RUNNER_TEMP/tsrs-base-target/ci/tsrs"
-            else
-              echo "TypeScript source pin changed; checking schedule determinism without base diagnostics"
-              tools/ci/determinism.sh target/ci/tsrs
-            fi
-          else
-            tools/ci/determinism.sh target/ci/tsrs
-          fi
-
-      - name: Save benchmark compilers on main
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.shared-cache.outputs.cache-hit != 'true'
+      - name: Save benchmark projects on main
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.projects-cache.outputs.cache-hit != 'true'
         uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: |
             bench/.work/suite
-            bench/.work/tsgo
-          key: ${{ steps.shared-cache.outputs.cache-primary-key }}
-
-      - name: Save xstate-main on main
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.xstate-main-cache.outputs.cache-hit != 'true'
-        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: bench/.work/solutions/xstate-main
-          key: ${{ steps.xstate-main-cache.outputs.cache-primary-key }}
-
-      - name: Save webpack on main
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.webpack-cache.outputs.cache-hit != 'true'
-        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: bench/.work/solutions/webpack
-          key: ${{ steps.webpack-cache.outputs.cache-primary-key }}
-
-      - name: Save nuxt on main
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.nuxt-cache.outputs.cache-hit != 'true'
-        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: bench/.work/solutions/nuxt
-          key: ${{ steps.nuxt-cache.outputs.cache-primary-key }}
-
-      - name: Save drizzle-orm on main
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.drizzle-orm-cache.outputs.cache-hit != 'true'
-        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: bench/.work/solutions/drizzle-orm
-          key: ${{ steps.drizzle-orm-cache.outputs.cache-primary-key }}
+            bench/.work/solutions
+          key: ${{ steps.projects-cache.outputs.cache-primary-key }}

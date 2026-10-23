@@ -151,7 +151,7 @@ pub struct Parser {
     pub(crate) node_stack: Vec<P<Node>>,
 }
 
-pub(crate) fn new_parser() -> Parser {
+pub fn new_parser() -> Parser {
     Parser {
         scanner: Scanner::new(),
         factory: NodeFactory::default(),
@@ -187,7 +187,7 @@ pub(crate) fn new_parser() -> Parser {
     }
 }
 
-pub(crate) static VIABLE_KEYWORD_SUGGESTIONS: LazyLock<Vec<&'static str>> =
+pub static VIABLE_KEYWORD_SUGGESTIONS: LazyLock<Vec<&'static str>> =
     LazyLock::new(scanner::get_viable_keyword_suggestions);
 
 // MISSING_LIST_NODES is a sentinel backing array used to distinguish "missing" node lists
@@ -195,7 +195,7 @@ pub(crate) static VIABLE_KEYWORD_SUGGESTIONS: LazyLock<Vec<&'static str>> =
 // A `usize` static gives a unique address, aligned for `P<Node>`, for a zero-length slice.
 static MISSING_LIST_NODES_BACKING: usize = 0;
 
-pub(crate) fn missing_list_nodes() -> &'static [P<Node>] {
+pub fn missing_list_nodes() -> &'static [P<Node>] {
     // SAFETY: a zero-length slice needs only a non-null pointer aligned for `P<Node>`; a `usize`
     // static is at least as aligned as `P<Node>` (a reference, or a 4-byte handle with compressed
     // pointers), and nothing is ever read through this slice.
@@ -207,7 +207,7 @@ pub(crate) fn missing_list_nodes() -> &'static [P<Node>] {
     }
 }
 
-pub(crate) fn is_missing_node_list(list: Option<P<NodeList>>) -> bool {
+pub fn is_missing_node_list(list: Option<P<NodeList>>) -> bool {
     match list {
         Some(list) => std::ptr::eq(list.nodes().as_ptr(), missing_list_nodes().as_ptr()),
         None => false,
@@ -343,13 +343,13 @@ impl Parser {
                 };
 
                 // Error recovery: collect multiple top-level expressions
-                if !expressions.is_empty() {
-                    expressions.push(expression);
-                } else {
+                if expressions.is_empty() {
                     expressions.push(expression);
                     if self.token != Kind::EndOfFile {
                         self.parse_error_at_current_token(&diagnostics::UNEXPECTED_TOKEN, &[]);
                     }
+                } else {
+                    expressions.push(expression);
                 }
             }
 
@@ -381,7 +381,7 @@ impl Parser {
     }
 }
 
-pub(crate) fn get_error_span_for_node(source_text: &str, node: P<Node>) -> TextRange {
+pub fn get_error_span_for_node(source_text: &str, node: P<Node>) -> TextRange {
     let mut pos = node.pos().expect_source("parsed nodes have source positions");
     if !ast::node_is_missing(Some(node)) {
         pos = scanner::skip_trivia(source_text, pos);
@@ -443,7 +443,7 @@ impl Parser {
     }
 }
 
-pub(crate) fn is_double_quoted_string(node: P<Node>) -> bool {
+pub fn is_double_quoted_string(node: P<Node>) -> bool {
     ast::is_string_literal(node)
         && !node.as_string_literal().token_flags().intersects(TokenFlags::SingleQuote)
 }
@@ -466,15 +466,15 @@ impl Parser {
                 ));
                 continue;
             }
-            if let Some(name) = element.name() {
-                if !is_double_quoted_string(name) {
-                    self.diagnostics.push(ast::new_diagnostic(
-                        Some(source_file),
-                        get_error_span_for_node(self.source_text, name),
-                        &diagnostics::STRING_LITERAL_WITH_DOUBLE_QUOTES_EXPECTED,
-                        &[],
-                    ));
-                }
+            if let Some(name) = element.name()
+                && !is_double_quoted_string(name)
+            {
+                self.diagnostics.push(ast::new_diagnostic(
+                    Some(source_file),
+                    get_error_span_for_node(self.source_text, name),
+                    &diagnostics::STRING_LITERAL_WITH_DOUBLE_QUOTES_EXPECTED,
+                    &[],
+                ));
             }
             self.validate_json_value(
                 source_file,
@@ -1217,12 +1217,11 @@ impl Parser {
         // a SourceFile, or JSDocComment when lazily parsing JSDoc.
         assert!(self.parsing_contexts != 0, "Missing parsing context");
         if ParsingContext::ALL.into_iter().any(|kind| {
-            if self.parsing_contexts & (1 << kind as u32) != 0 {
-                if self.is_list_element(kind, true /*inErrorRecovery*/)
-                    || self.is_list_terminator(kind)
-                {
-                    return true;
-                }
+            if self.parsing_contexts & (1 << kind as u32) != 0
+                && (self.is_list_element(kind, true /*inErrorRecovery*/)
+                    || self.is_list_terminator(kind))
+            {
+                return true;
             }
 
             false
@@ -1884,7 +1883,7 @@ impl Parser {
     }
 }
 
-pub(crate) fn is_declare_modifier(modifier: P<Node>) -> bool {
+pub fn is_declare_modifier(modifier: P<Node>) -> bool {
     modifier.kind() == Kind::DeclareKeyword
 }
 
@@ -2237,10 +2236,10 @@ impl Parser {
         // directly as that might consume an expression on the following line.
         // Instead, we create a "missing" identifier, but don't report an error. The actual error
         // will be reported in the grammar walker.
-        let expression = if !self.has_preceding_line_break() {
-            self.parse_expression_allow_in()
-        } else {
+        let expression = if self.has_preceding_line_break() {
             self.create_missing_identifier()
+        } else {
+            self.parse_expression_allow_in()
         };
         if !self.try_parse_semicolon() {
             self.parse_error_for_missing_semicolon_after(expression);
@@ -2717,11 +2716,11 @@ impl Parser {
     }
 }
 
-pub(crate) fn is_export_modifier(modifier: P<Node>) -> bool {
+pub fn is_export_modifier(modifier: P<Node>) -> bool {
     modifier.kind() == Kind::ExportKeyword
 }
 
-pub(crate) fn is_async_modifier(modifier: P<Node>) -> bool {
+pub fn is_async_modifier(modifier: P<Node>) -> bool {
     modifier.kind() == Kind::AsyncKeyword
 }
 
@@ -2755,7 +2754,7 @@ impl Parser {
     }
 }
 
-pub(crate) fn is_type_heritage_clause(is_interface: bool, token: Kind) -> bool {
+pub fn is_type_heritage_clause(is_interface: bool, token: Kind) -> bool {
     is_interface && token == Kind::ExtendsKeyword
         || !is_interface && token == Kind::ImplementsKeyword
 }
@@ -2779,7 +2778,7 @@ impl Parser {
     }
 }
 
-pub(crate) fn is_valid_heritage_type_reference_expression(node: P<Node>) -> bool {
+pub fn is_valid_heritage_type_reference_expression(node: P<Node>) -> bool {
     if ast::is_identifier(node) {
         return ast::node_is_present(Some(node));
     }
@@ -2854,12 +2853,11 @@ impl Parser {
                 ParseFlags::None,
             );
         }
-        if self.token == Kind::ConstructorKeyword || self.token == Kind::StringLiteral {
-            if let Some(constructor_declaration) =
+        if (self.token == Kind::ConstructorKeyword || self.token == Kind::StringLiteral)
+            && let Some(constructor_declaration) =
                 self.try_parse_constructor_declaration(pos, jsdoc, modifiers)
-            {
-                return constructor_declaration;
-            }
+        {
+            return constructor_declaration;
         }
         if self.is_index_signature() {
             let result = self.parse_index_signature_declaration(pos, jsdoc, modifiers);
@@ -3033,7 +3031,7 @@ impl Parser {
     }
 }
 
-pub(crate) fn modifier_list_has_async(modifiers: Option<P<ModifierList>>) -> bool {
+pub fn modifier_list_has_async(modifiers: Option<P<ModifierList>>) -> bool {
     modifiers.is_some_and(|modifiers| modifiers.nodes().iter().any(|m| is_async_modifier(*m)))
 }
 
@@ -3219,7 +3217,7 @@ impl Parser {
     }
 }
 
-pub(crate) fn get_space_suggestion(expression_text: &str) -> String {
+pub fn get_space_suggestion(expression_text: &str) -> String {
     if let Some(result) = VIABLE_KEYWORD_SUGGESTIONS.iter().find_map(|keyword| {
         if expression_text.len() > keyword.len() + 2 && expression_text.starts_with(keyword) {
             Some(format!("{} {}", keyword, &expression_text[keyword.len()..]))
@@ -3501,22 +3499,21 @@ impl Parser {
                 identifier = Some(self.parse_identifier());
             }
         }
-        if let Some(identifier) = identifier {
-            if self.token_after_imported_identifier_allows_import_equals_declaration()
-                && phase_modifier != Kind::DeferKeyword
-                && phase_modifier != Kind::SourceKeyword
-            {
-                let import_equals = self.parse_import_equals_declaration(
-                    pos,
-                    jsdoc,
-                    modifiers,
-                    identifier,
-                    phase_modifier == Kind::TypeKeyword,
-                );
-                let import_equals = self.check_js_syntax(import_equals);
-                self.statement_has_await_identifier = save_has_await_identifier; // Import= declaration is always parsed in an Await context, no need to reparse
-                return import_equals;
-            }
+        if let Some(identifier) = identifier
+            && self.token_after_imported_identifier_allows_import_equals_declaration()
+            && phase_modifier != Kind::DeferKeyword
+            && phase_modifier != Kind::SourceKeyword
+        {
+            let import_equals = self.parse_import_equals_declaration(
+                pos,
+                jsdoc,
+                modifiers,
+                identifier,
+                phase_modifier == Kind::TypeKeyword,
+            );
+            let import_equals = self.check_js_syntax(import_equals);
+            self.statement_has_await_identifier = save_has_await_identifier; // Import= declaration is always parsed in an Await context, no need to reparse
+            return import_equals;
         }
         let import_clause = self.try_parse_import_clause(
             identifier,

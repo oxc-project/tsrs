@@ -95,17 +95,6 @@ fn json_reply_matches_the_api_encoder() {
 // with native tsrs over the OS file system.
 #[test]
 fn emit_through_the_host_matches_native() {
-    let dir = std::env::temp_dir().join(format!("tsrs-wasm-emit-{}", std::process::id()));
-    let _ = std::fs::remove_dir_all(&dir);
-    std::fs::create_dir_all(dir.join("src")).unwrap();
-    let root = tsrs_core::tspath::normalize_path(&dir.canonicalize().unwrap().to_string_lossy());
-    let config = r#"{ "compilerOptions": { "rootDir": "src", "outDir": "out", "declaration": true, "sourceMap": true, "declarationMap": true, "emitBOM": true }, "include": ["src"] }"#;
-    let a = "export const a: number = 1;\nexport function f(x: string) { return x.length; }\n";
-    let b = "import { f } from './a';\nexport default f('é');\n";
-    std::fs::write(dir.join("tsconfig.json"), config).unwrap();
-    std::fs::write(dir.join("src/a.ts"), a).unwrap();
-    std::fs::write(dir.join("src/b.ts"), b).unwrap();
-
     struct OsSys {
         fs: Arc<dyn tsrs_vfs::FS>,
         cwd: String,
@@ -144,6 +133,18 @@ fn emit_through_the_host_matches_native() {
             tsrs_contentmapper::spawn_process(command, dir, stderr)
         }
     }
+
+    let dir = std::env::temp_dir().join(format!("tsrs-wasm-emit-{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&dir);
+    std::fs::create_dir_all(dir.join("src")).unwrap();
+    let root = tsrs_core::tspath::normalize_path(&dir.canonicalize().unwrap().to_string_lossy());
+    let config = r#"{ "compilerOptions": { "rootDir": "src", "outDir": "out", "declaration": true, "sourceMap": true, "declarationMap": true, "emitBOM": true }, "include": ["src"] }"#;
+    let a = "export const a: number = 1;\nexport function f(x: string) { return x.length; }\n";
+    let b = "import { f } from './a';\nexport default f('é');\n";
+    std::fs::write(dir.join("tsconfig.json"), config).unwrap();
+    std::fs::write(dir.join("src/a.ts"), a).unwrap();
+    std::fs::write(dir.join("src/b.ts"), b).unwrap();
+
     let _guard = setup(&[
         (&format!("{root}/tsconfig.json"), config),
         (&format!("{root}/src/a.ts"), a),

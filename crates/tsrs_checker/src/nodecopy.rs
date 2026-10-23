@@ -239,7 +239,7 @@ impl WrappingTracker {
 }
 
 // nodecopy.go:188
-pub(crate) fn new_wrapping_tracker(
+pub fn new_wrapping_tracker(
     inner: &'static dyn SymbolTracker,
     bound: P<RecoveryBoundary>,
 ) -> P<WrappingTracker> {
@@ -340,8 +340,8 @@ impl NodeBuilderImpl {
                 SymbolFlags::Type
             };
             let mut parent_symbol: Option<P<Symbol>> = None;
-            if let Some(node_symbol) = node_symbol {
-                if c.is_symbol_accessible(
+            if let Some(node_symbol) = node_symbol
+                && c.is_symbol_accessible(
                     Some(node_symbol),
                     ctx.enclosing_declaration.get(),
                     meaning,
@@ -349,10 +349,8 @@ impl NodeBuilderImpl {
                 )
                 .accessibility
                     == SymbolAccessibility::Accessible
-                {
-                    parent_symbol =
-                        Some(self.lookup_symbol_chain(c, node_symbol, meaning, true)[0]);
-                }
+            {
+                parent_symbol = Some(self.lookup_symbol_chain(c, node_symbol, meaning, true)[0]);
             }
             if let Some(parent_symbol) = parent_symbol.filter(|s| is_external_module_symbol(*s)) {
                 name = self.get_specifier_for_module_symbol(c, parent_symbol, mode).specifier;
@@ -420,7 +418,7 @@ impl NodeBuilderImpl {
 }
 
 // nodecopy.go:288
-pub(crate) fn get_existing_node_tree_visitor(
+pub fn get_existing_node_tree_visitor(
     c: &Checker,
     b: P<NodeBuilderImpl>,
     bound: P<RecoveryBoundary>,
@@ -441,13 +439,13 @@ pub(crate) fn get_existing_node_tree_visitor(
         let non_local_node = Rc::clone(&non_local_node);
         Rc::new(move |nodes: Option<P<NodeList>>, v: &mut NodeVisitor| {
             let mut res = v.visit_nodes(nodes);
-            if non_local_node.get() {
-                if let Some(r) = res {
-                    // Remove position data from node lists originating in other files
-                    let r = if Some(r) == nodes { nodes.unwrap().clone_list(&b.f) } else { r };
-                    r.loc.set(TextRange::synthetic());
-                    res = Some(r);
-                }
+            if non_local_node.get()
+                && let Some(r) = res
+            {
+                // Remove position data from node lists originating in other files
+                let r = if Some(r) == nodes { nodes.unwrap().clone_list(&b.f) } else { r };
+                r.loc.set(TextRange::synthetic());
+                res = Some(r);
             }
             res
         })
@@ -677,18 +675,16 @@ impl ExistingNodeTree {
 
         if let Some(sym) = sym {
             // If a parameter is resolvable in the current context it is also visible, so no need to go to symbol accesibility
-            if sym.flags().intersects(SymbolFlags::FunctionScopedVariable) {
-                if let Some(value_declaration) = sym.value_declaration() {
-                    if ast::is_part_of_parameter_declaration(value_declaration)
-                        || ast::is_jsdoc_parameter_tag(value_declaration)
-                    {
-                        return (
-                            introduces_error,
-                            self.attach_symbol_to_leftmost_identifier(c, leftmost, node, Some(sym)),
-                            None,
-                        );
-                    }
-                }
+            if sym.flags().intersects(SymbolFlags::FunctionScopedVariable)
+                && let Some(value_declaration) = sym.value_declaration()
+                && (ast::is_part_of_parameter_declaration(value_declaration)
+                    || ast::is_jsdoc_parameter_tag(value_declaration))
+            {
+                return (
+                    introduces_error,
+                    self.attach_symbol_to_leftmost_identifier(c, leftmost, node, Some(sym)),
+                    None,
+                );
             }
             if !sym.flags().intersects(SymbolFlags::TypeParameter) /* Type parameters are visible in the current context if they are are resolvable */
                 && !ast::is_declaration_name(node)
@@ -776,10 +772,10 @@ impl ExistingNodeTree {
             nodebuilder_types::NodeBuilderImpl::try_get_resolved_symbol_from_type_node(c, node)?; // ???
         if s.flags().intersects(SymbolFlags::TypeParameter) {
             let declared_type = c.get_declared_type_of_symbol(s);
-            if let Some(mapper) = b.ctx().mapper.get() {
-                if c.get_mapped_type(declared_type, mapper) != declared_type {
-                    return None; // refers to type parameter remapped by context (TODO improvement: just return the remapped param name?)
-                }
+            if let Some(mapper) = b.ctx().mapper.get()
+                && c.get_mapped_type(declared_type, mapper) != declared_type
+            {
+                return None; // refers to type parameter remapped by context (TODO improvement: just return the remapped param name?)
             }
         }
         let t = b.get_type_from_type_node(c, node, false).unwrap();
@@ -791,17 +787,17 @@ impl ExistingNodeTree {
         }
         let type_name = node.as_type_reference_node().type_name;
         let (introduces_error, new_name, _) = self.track_existing_entity_name(c, type_name, None);
-        if !introduces_error {
-            let type_arguments = self.visit_nodes(c, v, node.type_argument_list());
-            let updated = b.f.update_type_reference_node(node, new_name, type_arguments);
-            Some(self.set_text_range(c, updated, node))
-        } else {
+        if introduces_error {
             let type_arguments = self.visit_nodes(c, v, node.type_argument_list());
             let serialized_name = b.serialize_type_name(c, type_name, false, type_arguments);
             if let Some(serialized_name) = serialized_name {
                 return Some(self.set_text_range(c, serialized_name, type_name));
             }
             None
+        } else {
+            let type_arguments = self.visit_nodes(c, v, node.type_argument_list());
+            let updated = b.f.update_type_reference_node(node, new_name, type_arguments);
+            Some(self.set_text_range(c, updated, node))
         }
     }
 
@@ -1041,23 +1037,22 @@ impl ExistingNodeTree {
                 type_arguments,
             ));
         }
-        if let Some(name) = node.name() {
-            if name.kind() == Kind::ComputedPropertyName && !c.has_late_bindable_name(node) {
-                if !ast::has_dynamic_name(node) {
-                    // !!! TODO: This matches strada, but rather than recursing, this should probably fall down to later cases.
-                    // Take a `["field"]` property declaration - it still needs a `: any` appended to it
-                    return self.visit_each_child(c, v, node);
-                }
-                // !!! TODO: this condition matches strada, but it just seems wrong? Or at the very least extraordinarily approximate, and doesn't flag a builder error...
-                let should_remove_declaration =
-                    !(b.ctx().internal_flags.get().intersects(InternalFlags::AllowUnresolvedNames)
-                        && ast::is_entity_name_expression(
-                            name.as_computed_property_name().expression,
-                        )
-                        && c.check_computed_property_name(name).flags().intersects(TypeFlags::Any));
-                if should_remove_declaration {
-                    return None;
-                }
+        if let Some(name) = node.name()
+            && name.kind() == Kind::ComputedPropertyName
+            && !c.has_late_bindable_name(node)
+        {
+            if !ast::has_dynamic_name(node) {
+                // !!! TODO: This matches strada, but rather than recursing, this should probably fall down to later cases.
+                // Take a `["field"]` property declaration - it still needs a `: any` appended to it
+                return self.visit_each_child(c, v, node);
+            }
+            // !!! TODO: this condition matches strada, but it just seems wrong? Or at the very least extraordinarily approximate, and doesn't flag a builder error...
+            let should_remove_declaration =
+                !(b.ctx().internal_flags.get().intersects(InternalFlags::AllowUnresolvedNames)
+                    && ast::is_entity_name_expression(name.as_computed_property_name().expression)
+                    && c.check_computed_property_name(name).flags().intersects(TypeFlags::Any));
+            if should_remove_declaration {
+                return None;
             }
         }
         if (ast::is_function_like(node) && node.type_node().is_none())

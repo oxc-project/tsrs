@@ -25,15 +25,15 @@ static DIAGNOSTICS_LOCATION_PREFIX: LazyLock<Regex> =
 static DIAGNOSTICS_LOCATION_PATTERN: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r"(?i)(lib.*\.d\.ts):[0-9]+:[0-9]+").unwrap());
 static LINE_DELIMITER: LazyLock<Regex> = LazyLock::new(|| Regex::new("\r?\n").unwrap());
-pub(crate) static TS_EXTENSION: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"\.tsx?$").unwrap());
+pub static TS_EXTENSION: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"\.tsx?$").unwrap());
 
 // Returns the error baseline text for the given diagnostics (`baseline.NoContent` when there are none), as
 // `DoErrorBaseline` passes it to `baseline.Run`.
 pub fn do_error_baseline(input_files: &[TestFile], errors: &[Diag], pretty: bool) -> String {
-    if !errors.is_empty() {
-        get_error_baseline(input_files, errors, pretty)
-    } else {
+    if errors.is_empty() {
         NO_CONTENT.to_string()
+    } else {
+        get_error_baseline(input_files, errors, pretty)
     }
 }
 
@@ -316,7 +316,7 @@ pub fn remove_test_path_prefixes(text: &str, retain_trailing_directory_separator
     replace_all(text, TEST_PATH_PREFIXES)
 }
 
-pub(crate) fn is_default_library_file(file_path: &str) -> bool {
+pub fn is_default_library_file(file_path: &str) -> bool {
     let file_name = tspath::get_base_file_name(file_path);
     file_name.starts_with("lib.") && file_name.ends_with(tspath::EXTENSION_DTS)
 }

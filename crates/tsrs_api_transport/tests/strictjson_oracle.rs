@@ -111,10 +111,10 @@ fn syntax_errors_match_pinned_go_text() {
         let input = hex(case["input"].as_str().unwrap());
         let go = case["error"].as_str().unwrap();
         let ours = tsrs_api_transport::strictjson::validate(&input).err().unwrap_or_default();
-        if ours != go {
-            Some(format!("{:?}\n   go: {go}\n  ours: {ours}", String::from_utf8_lossy(&input)))
-        } else {
+        if ours == go {
             None
+        } else {
+            Some(format!("{:?}\n   go: {go}\n  ours: {ours}", String::from_utf8_lossy(&input)))
         }
     }));
     assert!(cases.len() >= 100, "{}", cases.len());

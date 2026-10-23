@@ -240,13 +240,12 @@ impl EsDecoratorTransformer {
         );
         let top = self.new_entry(LexicalEntryKind::ClassElement, None, None);
         self.top.set(Some(top));
-        if ast::is_class_static_block_declaration(node)
-            || ast::is_property_declaration(node) && ast::has_static_modifier(node)
+        if (ast::is_class_static_block_declaration(node)
+            || ast::is_property_declaration(node) && ast::has_static_modifier(node))
+            && let Some(ci) = top.next.unwrap().class_info_data
         {
-            if let Some(ci) = top.next.unwrap().class_info_data {
-                top.class_this_data.set(ci.class_this.get());
-                top.class_super_data.set(ci.class_super.get());
-            }
+            top.class_this_data.set(ci.class_this.get());
+            top.class_super_data.set(ci.class_super.get());
         }
         self.update_state();
     }
@@ -491,7 +490,7 @@ impl EsDecoratorTransformer {
 }
 
 // esdecorator.go:431
-pub(crate) fn get_helper_variable_name(ec: P<EmitContext>, node: P<Node>) -> String {
+pub fn get_helper_variable_name(ec: P<EmitContext>, node: P<Node>) -> String {
     let name = node.name();
     let mut declaration_name: String = if let Some(name) =
         name.filter(|n| ast::is_identifier(*n) && !is_generated_identifier(ec, *n))
@@ -1083,13 +1082,13 @@ impl EsDecoratorTransformer {
             ));
         }
 
-        if let Some(block) = leading_static_block {
-            if should_transform_private_static_elements_in_class {
-                // We use EFTransformPrivateStaticElements as a marker on a class static block
-                // to inform the classFields transform that it shouldn't rename `this` to `_classThis` in the
-                // transformed class static block.
-                ec.set_emit_flags(block, EmitFlags::TransformPrivateStaticElements);
-            }
+        if let Some(block) = leading_static_block
+            && should_transform_private_static_elements_in_class
+        {
+            // We use EFTransformPrivateStaticElements as a marker on a class static block
+            // to inform the classFields transform that it shouldn't rename `this` to `_classThis` in the
+            // transformed class static block.
+            ec.set_emit_flags(block, EmitFlags::TransformPrivateStaticElements);
         }
 
         // prepare a trailing `static {}` block, if necessary
@@ -1144,7 +1143,14 @@ impl EsDecoratorTransformer {
         let lexical_environment = ec.end_variable_environment();
 
         let mut class_expression: P<Node>;
-        if !class_decorators.is_empty() {
+        if class_decorators.is_empty() {
+            // produces:
+            //   return <classExpression>;
+            class_expression =
+                f.new_class_expression(None, node.name(), None, heritage_clauses, members);
+            ec.set_original(class_expression, node);
+            class_definition_statements.push(f.new_return_statement(Some(class_expression)));
+        } else {
             class_expression = f.new_class_expression(None, None, None, heritage_clauses, members);
             ec.set_original(class_expression, node);
             if let Some(class_this) = ci.class_this.get() {
@@ -1167,13 +1173,6 @@ impl EsDecoratorTransformer {
             class_definition_statements
                 .push(f.new_variable_statement(None, class_reference_var_decl_list));
             class_definition_statements.push(f.new_return_statement(Some(return_expr)));
-        } else {
-            // produces:
-            //   return <classExpression>;
-            class_expression =
-                f.new_class_expression(None, node.name(), None, heritage_clauses, members);
-            ec.set_original(class_expression, node);
-            class_definition_statements.push(f.new_return_statement(Some(class_expression)));
         }
 
         if should_transform_private_static_elements_in_class {
@@ -1238,7 +1237,7 @@ impl EsDecoratorTransformer {
 }
 
 // esdecorator.go:1014
-pub(crate) fn is_decorated_class_like(node: P<Node>) -> bool {
+pub fn is_decorated_class_like(node: P<Node>) -> bool {
     ast::class_or_constructor_parameter_is_decorated(false, node)
         || ast::child_is_decorated(false, node, None)
 }
@@ -1499,7 +1498,11 @@ impl EsDecoratorTransformer {
                 stmts.extend_from_slice(prologue);
 
                 let super_statement_indices = find_super_statement_index_path(rest, 0);
-                if !super_statement_indices.is_empty() {
+                if super_statement_indices.is_empty() {
+                    stmts.extend(initializer_statements);
+                    let (visited, _) = self.base.visitor().visit_slice(alloc_slice(rest));
+                    stmts.extend_from_slice(visited);
+                } else {
                     stmts = self.transform_constructor_body_worker(
                         stmts,
                         rest,
@@ -1508,10 +1511,6 @@ impl EsDecoratorTransformer {
                         0,
                         &initializer_statements,
                     );
-                } else {
-                    stmts.extend(initializer_statements);
-                    let (visited, _) = self.base.visitor().visit_slice(alloc_slice(rest));
-                    stmts.extend_from_slice(visited);
                 }
 
                 let b = f.new_block(f.new_node_list(stmts), true);

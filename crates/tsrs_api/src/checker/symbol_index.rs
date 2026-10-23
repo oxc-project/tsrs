@@ -54,7 +54,7 @@ impl Index {
 }
 
 /// The file-owned symbol with `id` in `file`, if any.
-pub(crate) fn source_file_symbol(file: P<SourceFile>, id: u64) -> Option<P<Symbol>> {
+pub fn source_file_symbol(file: P<SourceFile>, id: u64) -> Option<P<Symbol>> {
     file.get_or_compute_api_symbol_index(|| compute_index(file)).get(&id).copied()
 }
 

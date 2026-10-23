@@ -36,7 +36,7 @@ bitflags::bitflags! {
 }
 
 /// Go `charCodeToRegExpFlag[ch]` ("comma ok").
-pub(crate) fn char_code_to_reg_exp_flag(ch: Rune) -> Option<RegularExpressionFlags> {
+pub fn char_code_to_reg_exp_flag(ch: Rune) -> Option<RegularExpressionFlags> {
     Some(match ch {
         0x64 => RegularExpressionFlags::HasIndices,
         0x67 => RegularExpressionFlags::Global,
@@ -71,11 +71,11 @@ impl Scanner {
         pos: u32,
         size: u32,
     ) {
-        if let Some(available_from) = reg_exp_flag_to_first_available_language_version(flag) {
-            if self.language_version() < available_from {
-                let name = available_from.string().to_lowercase();
-                self.error_at(&diagnostics::THIS_REGULAR_EXPRESSION_FLAG_IS_ONLY_AVAILABLE_WHEN_TARGETING_0_OR_LATER, pos, size, &[&name]);
-            }
+        if let Some(available_from) = reg_exp_flag_to_first_available_language_version(flag)
+            && self.language_version() < available_from
+        {
+            let name = available_from.string().to_lowercase();
+            self.error_at(&diagnostics::THIS_REGULAR_EXPRESSION_FLAG_IS_ONLY_AVAILABLE_WHEN_TARGETING_0_OR_LATER, pos, size, &[&name]);
         }
     }
 }
@@ -100,7 +100,7 @@ struct DecimalEscapeValue {
 
 /// Go `regExpParser`. Go holds a `*Scanner`; to avoid a borrowing struct this one owns the
 /// scanner for the duration of the parse (see `Scanner::re_scan_slash_token`).
-pub(crate) struct RegExpParser {
+pub struct RegExpParser {
     scanner: Scanner,
     end: u32,
     any_unicode_mode: bool,
@@ -409,13 +409,12 @@ impl RegExpParser {
                                     is_previous_term_quantifiable = true;
                                     continue;
                                 }
-                            } else if !max_str.is_empty() {
-                                if compare_decimal_strings(min_str, max_str).is_gt()
+                            } else if !max_str.is_empty()
+                                && compare_decimal_strings(min_str, max_str).is_gt()
                                     && (self.any_unicode_mode_or_non_annex_b || self.char() == Some(b'}'))
                                 {
                                     self.error(&diagnostics::NUMBERS_OUT_OF_ORDER_IN_QUANTIFIER, digits_start, self.pos() - digits_start, &[]);
                                 }
-                            }
                         } else if min_str.is_empty() {
                             if self.any_unicode_mode_or_non_annex_b {
                                 let s = rune_string(u32::from(ch));
@@ -902,29 +901,30 @@ impl RegExpParser {
                         );
                     }
                 }
-            } else if ch == Some(b'&') {
-                if self.pos() + 1 < self.end && self.char_at(self.pos() + 1) == Some(b'&') {
-                    start = self.pos();
-                    self.inc_pos(2);
-                    self.error(
+            } else if ch == Some(b'&')
+                && self.pos() + 1 < self.end
+                && self.char_at(self.pos() + 1) == Some(b'&')
+            {
+                start = self.pos();
+                self.inc_pos(2);
+                self.error(
                         &diagnostics::OPERATORS_MUST_NOT_BE_MIXED_WITHIN_A_CHARACTER_CLASS_WRAP_IT_IN_A_NESTED_CLASS_INSTEAD,
                         self.pos() - 2,
                         2,
                         &[],
                     );
-                    if self.char() == Some(b'&') {
-                        let s = rune_string(u32::from(ch.expect("class content is not at end")));
-                        self.error(
-                            &diagnostics::UNEXPECTED_0_DID_YOU_MEAN_TO_ESCAPE_IT_WITH_BACKSLASH,
-                            self.pos(),
-                            1,
-                            &[&s],
-                        );
-                        self.inc_pos(1);
-                    }
-                    operand = Cow::Borrowed(&self.text()[start as usize..self.pos() as usize]);
-                    continue;
+                if self.char() == Some(b'&') {
+                    let s = rune_string(u32::from(ch.expect("class content is not at end")));
+                    self.error(
+                        &diagnostics::UNEXPECTED_0_DID_YOU_MEAN_TO_ESCAPE_IT_WITH_BACKSLASH,
+                        self.pos(),
+                        1,
+                        &[&s],
+                    );
+                    self.inc_pos(1);
                 }
+                operand = Cow::Borrowed(&self.text()[start as usize..self.pos() as usize]);
+                continue;
             }
             if self.is_class_content_exit(self.char()) {
                 break;
@@ -1122,21 +1122,21 @@ impl RegExpParser {
                 }
                 _ => return self.scan_character_escape(false /*atomEscape*/),
             }
-        } else if self.pos() + 1 < self.end && ch == self.char_at(self.pos() + 1) {
-            if let Some(
+        } else if self.pos() + 1 < self.end
+            && ch == self.char_at(self.pos() + 1)
+            && let Some(
                 0x26 | 0x21 | 0x23 | 0x25 | 0x2A | 0x2B | 0x2C | 0x2E | 0x3A | 0x3B | 0x3C | 0x3D
                 | 0x3E | 0x3F | 0x40 | 0x60 | 0x7E,
             ) = ch
-            {
-                self.error(
+        {
+            self.error(
                     &diagnostics::A_CHARACTER_CLASS_MUST_NOT_CONTAIN_A_RESERVED_DOUBLE_PUNCTUATOR_DID_YOU_MEAN_TO_ESCAPE_IT_WITH_BACKSLASH,
                     self.pos(),
                     2,
                     &[],
                 );
-                self.inc_pos(2);
-                return Cow::Borrowed(&self.text()[(self.pos() - 2) as usize..self.pos() as usize]);
-            }
+            self.inc_pos(2);
+            return Cow::Borrowed(&self.text()[(self.pos() - 2) as usize..self.pos() as usize]);
         }
         if let Some(ch @ (0x2F | 0x28 | 0x29 | 0x5B | 0x5D | 0x7B | 0x7D | 0x2D | 0x7C)) = ch {
             let s = rune_string(u32::from(ch));
@@ -1237,9 +1237,9 @@ impl RegExpParser {
                         let property_value = self.scan_word_characters();
                         if self.pos() == property_value_start {
                             self.error(&diagnostics::EXPECTED_A_UNICODE_PROPERTY_VALUE, self.pos(), 0, &[]);
-                        } else if !property_name.is_empty() {
-                            if let Some(values) = values_of_non_binary_unicode_properties(property_name) {
-                                if !values.contains(property_value) {
+                        } else if !property_name.is_empty()
+                            && let Some(values) = values_of_non_binary_unicode_properties(property_name)
+                                && !values.contains(property_value) {
                                     self.error(
                                         &diagnostics::UNKNOWN_UNICODE_PROPERTY_VALUE,
                                         property_value_start,
@@ -1256,8 +1256,6 @@ impl RegExpParser {
                                         );
                                     }
                                 }
-                            }
-                        }
                     } else if self.pos() == property_name_or_value_start {
                         self.error(&diagnostics::EXPECTED_A_UNICODE_PROPERTY_NAME_OR_VALUE, self.pos(), 0, &[]);
                     } else if binary_unicode_properties_of_strings().contains(property_name_or_value) {

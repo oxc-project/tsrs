@@ -10,7 +10,7 @@ use crate::protocol::{
 };
 
 // supplemental_module.go:11
-pub(crate) struct SupplementalModuleHandler;
+pub struct SupplementalModuleHandler;
 
 impl TestHandler for SupplementalModuleHandler {}
 

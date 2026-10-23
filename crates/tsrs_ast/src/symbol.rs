@@ -292,10 +292,10 @@ impl Symbol {
     #[inline]
     pub fn exports(&self) -> Option<P<SymbolTable>> {
         let t = self.tables()?;
-        if let Some(lazy) = t.lazy.get() {
-            if lazy.fills_exports() {
-                lazy.ensure();
-            }
+        if let Some(lazy) = t.lazy.get()
+            && lazy.fills_exports()
+        {
+            lazy.ensure();
         }
         t.exports.get()
     }
@@ -1077,6 +1077,12 @@ impl SymbolTable {
         P::new(SymbolTable(FrozenCell::new(self.0.borrow().clone())))
     }
 
+    /// Empties the table and frees its heap buffers (an arena table no one reads again: arena objects are never
+    /// dropped, so its entry buffer and index would otherwise stay allocated).
+    pub fn clear_and_free(&self) {
+        drop(self.0.replace(SymbolMap::default()));
+    }
+
     /// Go `table[name]`. On a `P<SymbolTable>` receiver `table.get(name)` resolves to `P::get`, so use
     /// `table.lookup(name)` (same thing) there.
     #[inline]
@@ -1196,10 +1202,10 @@ pub const INTERNAL_SYMBOL_NAME_THIS: &str = "this";
 pub const INTERNAL_SYMBOL_NAME_MODULE_EXPORTS: &str = "module.exports";
 
 pub fn symbol_name(symbol: P<Symbol>) -> &'static str {
-    if let Some(value_declaration) = symbol.value_declaration() {
-        if is_private_identifier_class_element_declaration(value_declaration) {
-            return value_declaration.name().unwrap().text();
-        }
+    if let Some(value_declaration) = symbol.value_declaration()
+        && is_private_identifier_class_element_declaration(value_declaration)
+    {
+        return value_declaration.name().unwrap().text();
     }
     symbol.name()
 }

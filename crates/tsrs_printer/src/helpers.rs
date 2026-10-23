@@ -16,7 +16,7 @@ pub struct EmitHelper {
     pub import_name: &'static str, // The name of the helper to use when importing via `--importHelpers`.
 }
 
-pub(crate) fn compare_emit_helpers(
+pub fn compare_emit_helpers(
     x: tsrs_core::SP<EmitHelper>,
     y: tsrs_core::SP<EmitHelper>,
 ) -> Ordering {

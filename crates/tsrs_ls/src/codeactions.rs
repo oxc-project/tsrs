@@ -239,24 +239,24 @@ impl LanguageService {
                 params: None,
             };
             let combined = get_all_code_actions(ctx, &fix_context)?;
-            if let Some(combined) = combined {
-                if !combined.changes.is_empty() {
-                    let kind = lsproto::CodeActionKind::QUICK_FIX;
-                    let mut changes = OrderedMap::default();
-                    changes.insert(uri.clone(), combined.changes);
-                    actions.push(lsproto::CommandOrCodeAction {
-                        code_action: Some(lsproto::CodeAction {
-                            title: combined.description,
-                            kind: Some(kind),
-                            edit: Some(lsproto::WorkspaceEdit {
-                                changes: Some(changes),
-                                ..Default::default()
-                            }),
+            if let Some(combined) = combined
+                && !combined.changes.is_empty()
+            {
+                let kind = lsproto::CodeActionKind::QUICK_FIX;
+                let mut changes = OrderedMap::default();
+                changes.insert(uri.clone(), combined.changes);
+                actions.push(lsproto::CommandOrCodeAction {
+                    code_action: Some(lsproto::CodeAction {
+                        title: combined.description,
+                        kind: Some(kind),
+                        edit: Some(lsproto::WorkspaceEdit {
+                            changes: Some(changes),
                             ..Default::default()
                         }),
                         ..Default::default()
-                    });
-                }
+                    }),
+                    ..Default::default()
+                });
             }
         }
 
@@ -293,10 +293,10 @@ impl LanguageService {
             };
 
             let combined = get_all_code_actions(ctx, &fix_context)?;
-            if let Some(combined) = combined {
-                if !combined.changes.is_empty() {
-                    lsp_changes.entry(uri.clone()).or_default().extend(combined.changes);
-                }
+            if let Some(combined) = combined
+                && !combined.changes.is_empty()
+            {
+                lsp_changes.entry(uri.clone()).or_default().extend(combined.changes);
             }
         }
 
@@ -385,10 +385,10 @@ fn code_fix_provider_matches_lsp_diagnostic(
     provider: &CodeFixProvider,
     diagnostic: &lsproto::Diagnostic,
 ) -> bool {
-    if let Some(source) = &diagnostic.source {
-        if source != "ts" {
-            return false;
-        }
+    if let Some(source) = &diagnostic.source
+        && source != "ts"
+    {
+        return false;
     }
     diagnostic
         .code
@@ -398,7 +398,7 @@ fn code_fix_provider_matches_lsp_diagnostic(
 }
 
 // codeactions.go:220
-pub(crate) fn is_fixable_diagnostic(diagnostic: P<Diagnostic>, error_codes: &[i32]) -> bool {
+pub fn is_fixable_diagnostic(diagnostic: P<Diagnostic>, error_codes: &[i32]) -> bool {
     diagnostic.source().is_empty() && contains_error_code(error_codes, diagnostic.code())
 }
 
@@ -461,7 +461,7 @@ fn get_organize_imports_actions_for_kind(
 
 // codeactions.go:378
 // containsErrorCode checks if the error code is in the list
-pub(crate) fn contains_error_code(codes: &[i32], code: i32) -> bool {
+pub fn contains_error_code(codes: &[i32], code: i32) -> bool {
     codes.contains(&code)
 }
 

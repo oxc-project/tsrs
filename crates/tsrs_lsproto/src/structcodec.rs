@@ -180,17 +180,17 @@ pub fn unmarshal_discriminated_arm<T: Json>(
     if err.go_type == T::GO_TYPE {
         err.go_type = union_go_type.to_string();
     }
-    if !err.sealed {
-        if let Some(field) = err.pointer.last() {
-            let replayed = match (members.get_index_of(field.as_str()), discriminator_index) {
-                (Some(f), Some(d)) => f <= d,
-                (Some(_), None) => true,
-                _ => false,
-            };
-            if replayed {
-                err.pointer.pop();
-                err = err.seal();
-            }
+    if !err.sealed
+        && let Some(field) = err.pointer.last()
+    {
+        let replayed = match (members.get_index_of(field.as_str()), discriminator_index) {
+            (Some(f), Some(d)) => f <= d,
+            (Some(_), None) => true,
+            _ => false,
+        };
+        if replayed {
+            err.pointer.pop();
+            err = err.seal();
         }
     }
     Err(err)

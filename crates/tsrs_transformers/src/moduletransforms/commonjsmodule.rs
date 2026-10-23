@@ -677,24 +677,25 @@ impl CommonJSModuleTransformer {
             None => &mut own_seen,
         };
 
-        if let Some(name) = decl.name() {
-            if !info.export_specifiers.m.is_empty() && ast::is_identifier(name) {
-                let name = self.factory().get_declaration_name(decl);
-                let export_specifiers = info.export_specifiers.get(&name.text());
-                if !export_specifiers.is_empty() {
-                    let export_value = self.visit_expression_identifier(name);
-                    for &export_specifier in export_specifiers {
-                        let export_name = export_specifier.name().unwrap();
-                        self.append_export_statement(
-                            statements,
-                            seen,
-                            export_name,
-                            export_value,
-                            Some(export_name.loc()), /*location*/
-                            false,                   /*allowComments*/
-                            live_binding,
-                        );
-                    }
+        if let Some(name) = decl.name()
+            && !info.export_specifiers.m.is_empty()
+            && ast::is_identifier(name)
+        {
+            let name = self.factory().get_declaration_name(decl);
+            let export_specifiers = info.export_specifiers.get(&name.text());
+            if !export_specifiers.is_empty() {
+                let export_value = self.visit_expression_identifier(name);
+                for &export_specifier in export_specifiers {
+                    let export_name = export_specifier.name().unwrap();
+                    self.append_export_statement(
+                        statements,
+                        seen,
+                        export_name,
+                        export_value,
+                        Some(export_name.loc()), /*location*/
+                        false,                   /*allowComments*/
+                        live_binding,
+                    );
                 }
             }
         }

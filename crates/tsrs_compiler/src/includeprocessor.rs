@@ -14,13 +14,13 @@ use crate::processing_diagnostic::{IncludeExplainingDiagnostic, ProcessingDiagno
 use crate::program::Program;
 
 #[derive(Default)]
-pub(crate) struct FileIncludeData {
+pub struct FileIncludeData {
     pub(crate) file_include_reasons: FxHashMap<Path, Vec<P<FileIncludeReason>>>,
     pub(crate) processing_diagnostics: Vec<ProcessingDiagnostic>,
 }
 
 #[derive(Default)]
-pub(crate) struct IncludeProcessor {
+pub struct IncludeProcessor {
     pub(crate) reason_diagnostics: Mutex<FxHashMap<(P<FileIncludeReason>, bool), P<Diagnostic>>>,
     reason_to_reference_location:
         Mutex<FxHashMap<P<FileIncludeReason>, &'static ReferenceFileLocation>>,
@@ -146,39 +146,39 @@ impl IncludeProcessor {
             ));
         }
 
-        if let Some(source_file) = source_file {
-            if ast::is_external_or_common_js_module(source_file) {
-                let meta_data = program.get_source_file_meta_data(&path);
-                let package_json = format!("{}/package.json", meta_data.package_json_directory);
-                match program.get_implied_node_format_for_emit(source_file) {
-                    ModuleKind::ES_NEXT => {
-                        if meta_data.package_json_type == "module" {
-                            result.get_or_insert_with(Vec::new).push(new_compiler_diagnostic(
+        if let Some(source_file) = source_file
+            && ast::is_external_or_common_js_module(source_file)
+        {
+            let meta_data = program.get_source_file_meta_data(&path);
+            let package_json = format!("{}/package.json", meta_data.package_json_directory);
+            match program.get_implied_node_format_for_emit(source_file) {
+                ModuleKind::ES_NEXT => {
+                    if meta_data.package_json_type == "module" {
+                        result.get_or_insert_with(Vec::new).push(new_compiler_diagnostic(
                                 &diagnostics::FILE_IS_ECMA_SCRIPT_MODULE_BECAUSE_0_HAS_FIELD_TYPE_WITH_VALUE_MODULE,
                                 &[&to_file_name(&package_json)],
                             ));
-                        }
                     }
-                    ModuleKind::COMMON_JS => {
-                        if !meta_data.package_json_type.is_empty() {
-                            result.get_or_insert_with(Vec::new).push(new_compiler_diagnostic(
+                }
+                ModuleKind::COMMON_JS => {
+                    if !meta_data.package_json_type.is_empty() {
+                        result.get_or_insert_with(Vec::new).push(new_compiler_diagnostic(
                                 &diagnostics::FILE_IS_COMMON_JS_MODULE_BECAUSE_0_HAS_FIELD_TYPE_WHOSE_VALUE_IS_NOT_MODULE,
                                 &[&to_file_name(&package_json)],
                             ));
-                        } else if !meta_data.package_json_directory.is_empty() {
-                            result.get_or_insert_with(Vec::new).push(new_compiler_diagnostic(
+                    } else if !meta_data.package_json_directory.is_empty() {
+                        result.get_or_insert_with(Vec::new).push(new_compiler_diagnostic(
                                 &diagnostics::FILE_IS_COMMON_JS_MODULE_BECAUSE_0_DOES_NOT_HAVE_FIELD_TYPE,
                                 &[&to_file_name(&package_json)],
                             ));
-                        } else {
-                            result.get_or_insert_with(Vec::new).push(new_compiler_diagnostic(
+                    } else {
+                        result.get_or_insert_with(Vec::new).push(new_compiler_diagnostic(
                                 &diagnostics::FILE_IS_COMMON_JS_MODULE_BECAUSE_PACKAGE_JSON_WAS_NOT_FOUND,
                                 &[],
                             ));
-                        }
                     }
-                    _ => {}
                 }
+                _ => {}
             }
         }
 

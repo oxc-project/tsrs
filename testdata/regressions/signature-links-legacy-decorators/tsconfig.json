@@ -1,0 +1,10 @@
+{
+    "compilerOptions": {
+        "strict": true,
+        "target": "es2022",
+        "experimentalDecorators": true,
+        "noEmit": true,
+        "skipLibCheck": true
+    },
+    "files": ["a.ts"]
+}

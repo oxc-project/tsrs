@@ -49,53 +49,53 @@ impl View {
         }
 
         let registry = self.registry();
-        if !export.package_name.is_empty() {
-            if let Some(entrypoints) = registry.entrypoints.get(&export.path) {
-                if let Some(result) = entrypoints.iter().find_map(|entrypoint| {
-                    let include_is_subset = entrypoint
-                        .include_conditions
-                        .as_ref()
-                        .is_none_or(|i| i.is_subset_of(&self.conditions));
-                    let excluded = entrypoint
-                        .exclude_conditions
-                        .as_ref()
-                        .is_some_and(|e| self.conditions.intersects(e));
-                    if include_is_subset && !excluded {
-                        let specifier = modulespecifiers::process_entrypoint_ending(
-                            entrypoint,
-                            user_preferences,
-                            self.program,
-                            &self.program.options(),
-                            self.importing_file,
-                            self.get_allowed_endings(),
-                        );
+        if !export.package_name.is_empty()
+            && let Some(entrypoints) = registry.entrypoints.get(&export.path)
+        {
+            if let Some(result) = entrypoints.iter().find_map(|entrypoint| {
+                let include_is_subset = entrypoint
+                    .include_conditions
+                    .as_ref()
+                    .is_none_or(|i| i.is_subset_of(&self.conditions));
+                let excluded = entrypoint
+                    .exclude_conditions
+                    .as_ref()
+                    .is_some_and(|e| self.conditions.intersects(e));
+                if include_is_subset && !excluded {
+                    let specifier = modulespecifiers::process_entrypoint_ending(
+                        entrypoint,
+                        user_preferences,
+                        self.program,
+                        &self.program.options(),
+                        self.importing_file,
+                        self.get_allowed_endings(),
+                    );
 
-                        if !modulespecifiers::is_excluded_by_regex(
-                            &specifier,
-                            &user_preferences.auto_import_specifier_exclude_regexes,
-                        ) {
-                            return Some((specifier, ResultKind::NodeModules));
-                        }
+                    if !modulespecifiers::is_excluded_by_regex(
+                        &specifier,
+                        &user_preferences.auto_import_specifier_exclude_regexes,
+                    ) {
+                        return Some((specifier, ResultKind::NodeModules));
                     }
-
-                    None
-                }) {
-                    return result;
                 }
-                return (String::new(), ResultKind::None);
+
+                None
+            }) {
+                return result;
             }
+            return (String::new(), ResultKind::None);
         }
 
         // Go indexes the map; a missing cache is a nil *SyncMap whose Load and Store dereference nil.
         let cache =
             registry.specifier_cache.get(&self.importing_file_path).expect("nil specifier cache");
-        if export.package_name.is_empty() {
-            if let Some(specifier) = cache.load(&export.path) {
-                if specifier.is_empty() {
-                    return (String::new(), ResultKind::None);
-                }
-                return (specifier, ResultKind::Relative);
+        if export.package_name.is_empty()
+            && let Some(specifier) = cache.load(&export.path)
+        {
+            if specifier.is_empty() {
+                return (String::new(), ResultKind::None);
             }
+            return (specifier, ResultKind::Relative);
         }
 
         let (specifiers, kind) = modulespecifiers::get_module_specifiers_for_file_with_info(

@@ -306,10 +306,8 @@ impl<'a> Decoder<'a> {
             if kind == SYNTAX_KIND_NODE_LIST {
                 let nodes: Vec<P<Node>> =
                     child_indices.iter().filter_map(|&ci| self.nodes[ci]).collect();
-                if trailing_comma {
-                    if let Some(last) = nodes.last() {
-                        last.mark_trailing_comma();
-                    }
+                if trailing_comma && let Some(last) = nodes.last() {
+                    last.mark_trailing_comma();
                 }
                 let list = self.factory.new_node_list(nodes);
                 list.loc.set(loc);

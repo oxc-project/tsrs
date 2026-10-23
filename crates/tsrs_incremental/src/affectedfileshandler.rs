@@ -400,34 +400,33 @@ impl AffectedFilesHandler<'_> {
         let mut invalidate_js_files = false;
         let mut type_checker = None;
         // If exported const enum, we need to ensure that js files are emitted as well since the const enum value changed
-        if let Some(symbol) = affected_file.symbol() {
-            if let Some(exports) = symbol.exports() {
-                for (_, exported) in exports.entries() {
-                    if exported.flags().intersects(SymbolFlags::ConstEnum) {
-                        invalidate_js_files = true;
-                        break;
-                    }
-                    if type_checker.is_none() {
-                        type_checker = Some(
-                            self.program
-                                .p()
-                                .get_type_checker_for_file_exclusive(self.ctx, affected_file),
-                        );
-                    }
-                    let aliased =
-                        tsrs_checker::skip_alias(exported, type_checker.as_mut().unwrap());
-                    if aliased == exported {
-                        continue;
-                    }
-                    if aliased.flags().intersects(SymbolFlags::ConstEnum)
-                        && aliased
-                            .declarations()
-                            .iter()
-                            .any(|&d| ast::get_source_file_of_node(d) == Some(affected_file))
-                    {
-                        invalidate_js_files = true;
-                        break;
-                    }
+        if let Some(symbol) = affected_file.symbol()
+            && let Some(exports) = symbol.exports()
+        {
+            for (_, exported) in exports.entries() {
+                if exported.flags().intersects(SymbolFlags::ConstEnum) {
+                    invalidate_js_files = true;
+                    break;
+                }
+                if type_checker.is_none() {
+                    type_checker = Some(
+                        self.program
+                            .p()
+                            .get_type_checker_for_file_exclusive(self.ctx, affected_file),
+                    );
+                }
+                let aliased = tsrs_checker::skip_alias(exported, type_checker.as_mut().unwrap());
+                if aliased == exported {
+                    continue;
+                }
+                if aliased.flags().intersects(SymbolFlags::ConstEnum)
+                    && aliased
+                        .declarations()
+                        .iter()
+                        .any(|&d| ast::get_source_file_of_node(d) == Some(affected_file))
+                {
+                    invalidate_js_files = true;
+                    break;
                 }
             }
         }
@@ -617,7 +616,7 @@ fn sorted(mut paths: Vec<Path>) -> Vec<Path> {
 }
 
 // affectedfileshandler.go:366
-pub(crate) fn collect_all_affected_files(ctx: &Context, program: &Program) {
+pub fn collect_all_affected_files(ctx: &Context, program: &Program) {
     if program.snapshot.changed_files_set.size() == 0 {
         return;
     }

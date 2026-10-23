@@ -289,20 +289,20 @@ pub fn format_diagnostic_with_color_and_context(
     );
     write_flattened_diagnostic_message(output, diagnostic, format_opts.new_line);
 
-    if let Some(file) = &diagnostic.file {
-        if diagnostic.code != file_appears_to_be_binary_code() {
-            output.push_str(format_opts.new_line);
-            write_code_snippet(
-                output,
-                file,
-                diagnostic.pos.unwrap_or(0),
-                diagnostic.len().unwrap_or(0),
-                get_category_format(diagnostic.category),
-                "",
-                format_opts,
-            );
-            output.push_str(format_opts.new_line);
-        }
+    if let Some(file) = &diagnostic.file
+        && diagnostic.code != file_appears_to_be_binary_code()
+    {
+        output.push_str(format_opts.new_line);
+        write_code_snippet(
+            output,
+            file,
+            diagnostic.pos.unwrap_or(0),
+            diagnostic.len().unwrap_or(0),
+            get_category_format(diagnostic.category),
+            "",
+            format_opts,
+        );
+        output.push_str(format_opts.new_line);
     }
 
     for related_information in &diagnostic.related {

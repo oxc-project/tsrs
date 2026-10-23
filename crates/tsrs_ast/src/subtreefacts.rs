@@ -179,9 +179,6 @@ thread_local! {
 
 /// Runs `f` with `Node::subtree_facts` cached on this thread (nested calls share the outer cache).
 pub fn with_subtree_facts_cache<T>(f: impl FnOnce() -> T) -> T {
-    if SUBTREE_FACTS_CACHE.with(|c| c.enabled.replace(true)) {
-        return f();
-    }
     struct Reset;
     impl Drop for Reset {
         fn drop(&mut self) {
@@ -190,6 +187,10 @@ pub fn with_subtree_facts_cache<T>(f: impl FnOnce() -> T) -> T {
                 c.facts.borrow_mut().clear();
             });
         }
+    }
+
+    if SUBTREE_FACTS_CACHE.with(|c| c.enabled.replace(true)) {
+        return f();
     }
     let _reset = Reset;
     f()
@@ -900,16 +901,16 @@ pub fn contains_object_rest_or_spread(node: P<Node>) -> bool {
         // will not be correctly interpreted by the rest/spread transformer
         if get_elements_of_binding_or_assignment_pattern(node).iter().any(|&element| {
             let target = get_target_of_binding_or_assignment_element(element);
-            if let Some(target) = target {
-                if is_assignment_pattern(target) {
-                    if target.subtree_facts().intersects(SubtreeFacts::ContainsObjectRestOrSpread) {
-                        return true;
-                    }
-                    if target.subtree_facts().intersects(SubtreeFacts::ContainsESObjectRestOrSpread)
-                        && contains_object_rest_or_spread(target)
-                    {
-                        return true;
-                    }
+            if let Some(target) = target
+                && is_assignment_pattern(target)
+            {
+                if target.subtree_facts().intersects(SubtreeFacts::ContainsObjectRestOrSpread) {
+                    return true;
+                }
+                if target.subtree_facts().intersects(SubtreeFacts::ContainsESObjectRestOrSpread)
+                    && contains_object_rest_or_spread(target)
+                {
+                    return true;
                 }
             }
 

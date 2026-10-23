@@ -9,7 +9,7 @@ use tsrs_core::*;
 // Program errors validate that `noEmit` or `emitDeclarationOnly` is also set,
 // so this function doesn't check them to avoid propagating errors.
 // preferences.go:14
-pub(crate) fn should_allow_importing_ts_extension(
+pub fn should_allow_importing_ts_extension(
     compiler_options: &CompilerOptions,
     from_file_name: &str,
 ) -> bool {
@@ -18,7 +18,7 @@ pub(crate) fn should_allow_importing_ts_extension(
 }
 
 // preferences.go:18
-pub(crate) fn uses_extensions_on_imports(file: P<SourceFile>) -> bool {
+pub fn uses_extensions_on_imports(file: P<SourceFile>) -> bool {
     if let Some(result) = file.imports().iter().find_map(|ref_| {
         let text = ref_.text();
         if tspath::path_is_relative(text)
@@ -40,7 +40,7 @@ pub(crate) fn uses_extensions_on_imports(file: P<SourceFile>) -> bool {
 }
 
 // preferences.go:28
-pub(crate) fn infer_preference(
+pub fn infer_preference(
     resolution_mode: ModuleKind,
     source_file: Option<P<SourceFile>>,
     module_resolution_is_node_next: bool,
@@ -93,7 +93,7 @@ fn module_resolution_is_node_next(compiler_options: &CompilerOptions) -> bool {
 }
 
 // preferences.go:69
-pub(crate) fn get_module_specifier_ending_preference(
+pub fn get_module_specifier_ending_preference(
     pref: ImportModuleSpecifierEndingPreference,
     resolution_mode: ModuleKind,
     compiler_options: &CompilerOptions,
@@ -142,7 +142,7 @@ pub(crate) fn get_module_specifier_ending_preference(
 }
 
 // preferences.go:114
-pub(crate) fn get_preferred_ending(
+pub fn get_preferred_ending(
     prefs: &UserPreferences,
     host: &dyn ModuleSpecifierGenerationHost,
     compiler_options: &CompilerOptions,
@@ -269,7 +269,7 @@ pub fn get_allowed_endings_in_preferred_order(
 }
 
 // preferences.go:213
-pub(crate) fn get_module_specifier_preferences(
+pub fn get_module_specifier_preferences(
     prefs: &UserPreferences,
     _host: &dyn ModuleSpecifierGenerationHost,
     _compiler_options: &CompilerOptions,
@@ -278,13 +278,7 @@ pub(crate) fn get_module_specifier_preferences(
 ) -> ModuleSpecifierPreferences {
     let excludes = prefs.auto_import_specifier_exclude_regexes.clone();
     let mut relative_preference = RelativePreferenceKind::Shortest;
-    if !old_import_specifier.is_empty() {
-        if tspath::is_external_module_name_relative(old_import_specifier) {
-            relative_preference = RelativePreferenceKind::Relative;
-        } else {
-            relative_preference = RelativePreferenceKind::NonRelative;
-        }
-    } else {
+    if old_import_specifier.is_empty() {
         match prefs.import_module_specifier_preference {
             ImportModuleSpecifierPreference::Relative => {
                 relative_preference = RelativePreferenceKind::Relative;
@@ -298,6 +292,10 @@ pub(crate) fn get_module_specifier_preferences(
             // all others are shortest
             _ => {}
         }
+    } else if tspath::is_external_module_name_relative(old_import_specifier) {
+        relative_preference = RelativePreferenceKind::Relative;
+    } else {
+        relative_preference = RelativePreferenceKind::NonRelative;
     }
 
     // Go's `getAllowedEndingsInPreferredOrder` closure: see `ModuleSpecifierPreferences` (types.rs).

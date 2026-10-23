@@ -447,60 +447,53 @@ impl ObjectRestSpreadTransformer {
     fn visit_catch_clause(&self, node: P<Node>) -> P<Node> {
         let f = self.factory();
         let c = node.as_catch_clause();
-        if let Some(variable_declaration) = c.variable_declaration {
-            if ast::is_binding_pattern(variable_declaration.name().unwrap())
-                && variable_declaration
-                    .name()
-                    .unwrap()
-                    .subtree_facts()
-                    .intersects(SubtreeFacts::ContainsObjectRestOrSpread)
-            {
-                let name = f.new_generated_name_for_node(variable_declaration.name().unwrap());
-                let updated_decl = f.update_variable_declaration(
-                    variable_declaration,
-                    variable_declaration.name().unwrap(),
+        if let Some(variable_declaration) = c.variable_declaration
+            && ast::is_binding_pattern(variable_declaration.name().unwrap())
+            && variable_declaration
+                .name()
+                .unwrap()
+                .subtree_facts()
+                .intersects(SubtreeFacts::ContainsObjectRestOrSpread)
+        {
+            let name = f.new_generated_name_for_node(variable_declaration.name().unwrap());
+            let updated_decl = f.update_variable_declaration(
+                variable_declaration,
+                variable_declaration.name().unwrap(),
+                None,
+                None,
+                Some(name),
+            );
+            let visited_bindings = flatten_destructuring_binding(
+                &self.base,
+                updated_decl,
+                None,
+                FlattenLevel::ObjectRest,
+                false,
+                false,
+            );
+            let mut block = self.visitor().visit_node(Some(c.block)).unwrap();
+            if let Some(visited_bindings) = visited_bindings {
+                let decls: Vec<P<Node>> = if visited_bindings.kind() == Kind::SyntaxList {
+                    visited_bindings.as_syntax_list().children.to_vec()
+                } else {
+                    vec![visited_bindings]
+                };
+                let new_statement = f.new_variable_statement(
                     None,
-                    None,
-                    Some(name),
+                    f.new_variable_declaration_list(f.new_node_list(decls), NodeFlags::None),
                 );
-                let visited_bindings = flatten_destructuring_binding(
-                    &self.base,
-                    updated_decl,
-                    None,
-                    FlattenLevel::ObjectRest,
-                    false,
-                    false,
-                );
-                let mut block = self.visitor().visit_node(Some(c.block)).unwrap();
-                if let Some(visited_bindings) = visited_bindings {
-                    let decls: Vec<P<Node>> = if visited_bindings.kind() == Kind::SyntaxList {
-                        visited_bindings.as_syntax_list().children.to_vec()
-                    } else {
-                        vec![visited_bindings]
-                    };
-                    let new_statement = f.new_variable_statement(
-                        None,
-                        f.new_variable_declaration_list(f.new_node_list(decls), NodeFlags::None),
-                    );
-                    let mut statements = vec![new_statement];
-                    statements.extend_from_slice(block.statements());
-                    let statement_list = f.new_node_list(statements);
-                    statement_list.loc.set(block.statement_list().unwrap().loc.get());
+                let mut statements = vec![new_statement];
+                statements.extend_from_slice(block.statements());
+                let statement_list = f.new_node_list(statements);
+                statement_list.loc.set(block.statement_list().unwrap().loc.get());
 
-                    block = f.update_block(block, statement_list, block.as_block().multi_line);
-                }
-                return f.update_catch_clause(
-                    node,
-                    Some(f.update_variable_declaration(
-                        variable_declaration,
-                        name,
-                        None,
-                        None,
-                        None,
-                    )),
-                    block,
-                );
+                block = f.update_block(block, statement_list, block.as_block().multi_line);
             }
+            return f.update_catch_clause(
+                node,
+                Some(f.update_variable_declaration(variable_declaration, name, None, None, None)),
+                block,
+            );
         }
         self.visitor().visit_each_child(Some(node)).unwrap()
     }

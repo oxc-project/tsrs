@@ -38,25 +38,25 @@ impl Fields {
     // under any of the dependency fields (dependencies, devDependencies, peerDependencies,
     // optionalDependencies).
     pub fn has_dependency(&self, name: &str) -> bool {
-        if let Some(deps) = self.dependencies.get_value() {
-            if deps.contains_key(name) {
-                return true;
-            }
+        if let Some(deps) = self.dependencies.get_value()
+            && deps.contains_key(name)
+        {
+            return true;
         }
-        if let Some(dev_deps) = self.dev_dependencies.get_value() {
-            if dev_deps.contains_key(name) {
-                return true;
-            }
+        if let Some(dev_deps) = self.dev_dependencies.get_value()
+            && dev_deps.contains_key(name)
+        {
+            return true;
         }
-        if let Some(peer_deps) = self.peer_dependencies.get_value() {
-            if peer_deps.contains_key(name) {
-                return true;
-            }
+        if let Some(peer_deps) = self.peer_dependencies.get_value()
+            && peer_deps.contains_key(name)
+        {
+            return true;
         }
-        if let Some(opt_deps) = self.optional_dependencies.get_value() {
-            if opt_deps.contains_key(name) {
-                return true;
-            }
+        if let Some(opt_deps) = self.optional_dependencies.get_value()
+            && opt_deps.contains_key(name)
+        {
+            return true;
         }
         false
     }

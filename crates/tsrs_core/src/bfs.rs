@@ -1,5 +1,5 @@
 use crate::P;
-use crate::collections::{OrderedMap, OrderedMapExt, SyncSet, new_ordered_map_with_size_hint};
+use crate::collections::{OrderedMap, SyncSet, new_ordered_map_with_size_hint};
 use std::hash::Hash;
 
 // The Go implementation visits each level in parallel but always picks the lowest-index result,
@@ -22,11 +22,11 @@ pub struct BreadthFirstSearchLevel<'a, K, N: 'static> {
 
 impl<K: Hash + Eq, N> BreadthFirstSearchLevel<'_, K, N> {
     pub fn has(&self, key: &K) -> bool {
-        self.jobs.has(key)
+        self.jobs.contains_key(key)
     }
 
     pub fn delete(&mut self, key: &K) {
-        self.jobs.delete(key);
+        self.jobs.shift_remove(key);
     }
 
     pub fn range(&self, mut f: impl FnMut(&N) -> bool) {
@@ -89,15 +89,15 @@ pub fn breadth_first_search_parallel_ex<K: Hash + Eq + Clone, N: Clone + 'static
     };
 
     let mut level: OrderedMap<K, P<BreadthFirstSearchJob<N>>> = new_ordered_map_with_size_hint(1);
-    level.set(get_key(&start), P::new(BreadthFirstSearchJob { node: start, parent: None }));
-    while level.size() > 0 {
+    level.insert(get_key(&start), P::new(BreadthFirstSearchJob { node: start, parent: None }));
+    while !level.is_empty() {
         // processLevel
         if let Some(pre) = preprocess_level.as_mut() {
             pre(&mut BreadthFirstSearchLevel { jobs: &mut level });
         }
         let mut lowest_goal: Option<usize> = None;
         let mut lowest_fallback: Option<usize> = None;
-        let mut next: Vec<Vec<P<BreadthFirstSearchJob<N>>>> = Vec::with_capacity(level.size());
+        let mut next: Vec<Vec<P<BreadthFirstSearchJob<N>>>> = Vec::with_capacity(level.len());
         for (i, &j) in level.values().enumerate() {
             next.push(Vec::new());
             if lowest_goal.is_some() {
@@ -131,13 +131,13 @@ pub fn breadth_first_search_parallel_ex<K: Hash + Eq + Clone, N: Clone + 'static
 
         if let Some(index) = lowest_goal {
             // If we found a result, return it immediately.
-            let (_, &job) = level.entry_at(index).unwrap();
+            let (_, &job) = level.get_index(index).unwrap();
             return BreadthFirstSearchResult { stopped: true, path: create_path(Some(job)) };
         }
-        if fallback.is_none() {
-            if let Some(index) = lowest_fallback {
-                fallback = Some(*level.entry_at(index).unwrap().1);
-            }
+        if fallback.is_none()
+            && let Some(index) = lowest_fallback
+        {
+            fallback = Some(*level.get_index(index).unwrap().1);
         }
 
         let count = next.iter().map(std::vec::Vec::len).sum();

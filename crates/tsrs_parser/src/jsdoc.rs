@@ -13,7 +13,7 @@ static INIT: std::sync::Once = std::sync::Once::new();
 
 // Go registers this from the parser package's init(); Rust has no package initializers, so parser
 // entry points call this (idempotent) before any lazy JSDoc access can happen.
-pub(crate) fn init() {
+pub fn init() {
     INIT.call_once(|| ast::set_parse_jsdoc_for_node(parse_jsdoc_for_node));
 }
 
@@ -432,11 +432,11 @@ impl Parser {
     }
 
     pub(crate) fn skip_whitespace(&mut self) {
-        if self.token == Kind::WhitespaceTrivia || self.token == Kind::NewLineTrivia {
-            if self.look_ahead(Parser::is_next_nonwhitespace_token_end_of_file) {
-                return;
-                // Don't skip whitespace prior to EoF (or end of comment) - that shouldn't be included in any node's range
-            }
+        if (self.token == Kind::WhitespaceTrivia || self.token == Kind::NewLineTrivia)
+            && self.look_ahead(Parser::is_next_nonwhitespace_token_end_of_file)
+        {
+            return;
+            // Don't skip whitespace prior to EoF (or end of comment) - that shouldn't be included in any node's range
         }
         while self.token == Kind::WhitespaceTrivia || self.token == Kind::NewLineTrivia {
             self.next_token_jsdoc();
@@ -444,11 +444,11 @@ impl Parser {
     }
 
     pub(crate) fn skip_whitespace_or_asterisk(&mut self) -> String {
-        if self.token == Kind::WhitespaceTrivia || self.token == Kind::NewLineTrivia {
-            if self.look_ahead(Parser::is_next_nonwhitespace_token_end_of_file) {
-                return String::new();
-                // Don't skip whitespace prior to EoF (or end of comment) - that shouldn't be included in any node's range
-            }
+        if (self.token == Kind::WhitespaceTrivia || self.token == Kind::NewLineTrivia)
+            && self.look_ahead(Parser::is_next_nonwhitespace_token_end_of_file)
+        {
+            return String::new();
+            // Don't skip whitespace prior to EoF (or end of comment) - that shouldn't be included in any node's range
         }
 
         let mut preceding_line_break = self.scanner.has_preceding_line_break();
@@ -754,11 +754,11 @@ impl Parser {
         comments.clear();
         self.jsdoc_tag_comments_space = comments;
 
-        let result = if !parts.is_empty() {
+        let result = if parts.is_empty() {
+            None
+        } else {
             let end = self.scanner.token_end();
             Some(self.new_node_list(TextRange::new(comments_pos, end), &parts))
-        } else {
-            None
         };
         parts.clear();
         self.jsdoc_tag_comments_parts_space = parts;
@@ -938,41 +938,39 @@ impl Parser {
         target: PropertyLikeParse,
         indent: u32,
     ) -> Option<P<Node>> {
-        if let Some(type_expression) = type_expression {
-            if is_object_or_object_array_type_reference(type_expression.type_node().unwrap()) {
-                let pos = self.node_pos();
-                let mut children: Option<Vec<P<Node>>> = None;
-                loop {
-                    let state = self.mark();
-                    let child =
-                        self.parse_child_parameter_or_property_tag(target, indent, Some(name));
-                    let Some(child) = child else {
-                        self.rewind(state);
-                        break;
-                    };
-                    match child.kind() {
-                        Kind::JSDocParameterTag | Kind::JSDocPropertyTag => {
-                            children.get_or_insert_with(Vec::new).push(child);
-                        }
-                        Kind::JSDocTemplateTag => {
-                            self.parse_error_at_range(
+        if let Some(type_expression) = type_expression
+            && is_object_or_object_array_type_reference(type_expression.type_node().unwrap())
+        {
+            let pos = self.node_pos();
+            let mut children: Option<Vec<P<Node>>> = None;
+            loop {
+                let state = self.mark();
+                let child = self.parse_child_parameter_or_property_tag(target, indent, Some(name));
+                let Some(child) = child else {
+                    self.rewind(state);
+                    break;
+                };
+                match child.kind() {
+                    Kind::JSDocParameterTag | Kind::JSDocPropertyTag => {
+                        children.get_or_insert_with(Vec::new).push(child);
+                    }
+                    Kind::JSDocTemplateTag => {
+                        self.parse_error_at_range(
                                 child.tag_name().loc(),
                                 &diagnostics::A_JSDOC_TEMPLATE_TAG_MAY_NOT_FOLLOW_A_TYPEDEF_CALLBACK_OR_OVERLOAD_TAG,
                                 &[],
                             );
-                        }
-                        _ => {}
                     }
+                    _ => {}
                 }
-                if let Some(children) = children {
-                    let is_array_type =
-                        type_expression.type_node().unwrap().kind() == Kind::ArrayType;
-                    let literal =
-                        self.factory.new_jsdoc_type_literal(alloc_vec(children), is_array_type);
-                    let literal = self.finish_node(literal, pos);
-                    let node = self.factory.new_jsdoc_type_expression(literal);
-                    return Some(self.finish_node(node, pos));
-                }
+            }
+            if let Some(children) = children {
+                let is_array_type = type_expression.type_node().unwrap().kind() == Kind::ArrayType;
+                let literal =
+                    self.factory.new_jsdoc_type_literal(alloc_vec(children), is_array_type);
+                let literal = self.finish_node(literal, pos);
+                let node = self.factory.new_jsdoc_type_expression(literal);
+                return Some(self.finish_node(node, pos));
             }
         }
         None
@@ -1465,17 +1463,16 @@ impl Parser {
                 Kind::AtToken => {
                     if can_parse_tag && self.scanner.can_follow_jsdoc_at() {
                         let child = self.try_parse_child_tag(target, indent);
-                        if let (Some(child), Some(name)) = (child, name) {
-                            if (child.kind() == Kind::JSDocParameterTag
+                        if let (Some(child), Some(name)) = (child, name)
+                            && (child.kind() == Kind::JSDocParameterTag
                                 || child.kind() == Kind::JSDocPropertyTag)
-                                && (ast::is_identifier(child.name().unwrap())
-                                    || !texts_equal(
-                                        name,
-                                        child.name().unwrap().as_qualified_name().left,
-                                    ))
-                            {
-                                return None;
-                            }
+                            && (ast::is_identifier(child.name().unwrap())
+                                || !texts_equal(
+                                    name,
+                                    child.name().unwrap().as_qualified_name().left,
+                                ))
+                        {
+                            return None;
                         }
                         return child;
                     }

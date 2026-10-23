@@ -436,18 +436,18 @@ impl SemanticTokensVisitor<'_> {
             {
                 token_modifier |= TOKEN_MODIFIER_LOCAL;
             }
-            if let Some(decl_source_file) = ast::get_source_file_of_node(decl) {
-                if self.program.is_source_file_default_library(decl_source_file.path()) {
-                    token_modifier |= TOKEN_MODIFIER_DEFAULT_LIBRARY;
-                }
+            if let Some(decl_source_file) = ast::get_source_file_of_node(decl)
+                && self.program.is_source_file_default_library(decl_source_file.path())
+            {
+                token_modifier |= TOKEN_MODIFIER_DEFAULT_LIBRARY;
             }
         } else if !symbol.declarations().is_empty() {
             for &decl in symbol.declarations() {
-                if let Some(decl_source_file) = ast::get_source_file_of_node(decl) {
-                    if self.program.is_source_file_default_library(decl_source_file.path()) {
-                        token_modifier |= TOKEN_MODIFIER_DEFAULT_LIBRARY;
-                        break;
-                    }
+                if let Some(decl_source_file) = ast::get_source_file_of_node(decl)
+                    && self.program.is_source_file_default_library(decl_source_file.path())
+                {
+                    token_modifier |= TOKEN_MODIFIER_DEFAULT_LIBRARY;
+                    break;
                 }
             }
         }
@@ -575,13 +575,13 @@ fn is_local_declaration(decl: P<Node>, source_file: P<SourceFile>) -> bool {
             if ast::is_catch_clause(parent) {
                 return ast::get_source_file_of_node(decl) == Some(source_file);
             }
-            if ast::is_variable_declaration_list(parent) {
-                if let Some(grandparent) = parent.parent() {
-                    let great_grandparent = grandparent.parent();
-                    return (!great_grandparent.is_some_and(ast::is_source_file)
-                        || ast::is_catch_clause(grandparent))
-                        && ast::get_source_file_of_node(decl) == Some(source_file);
-                }
+            if ast::is_variable_declaration_list(parent)
+                && let Some(grandparent) = parent.parent()
+            {
+                let great_grandparent = grandparent.parent();
+                return (!great_grandparent.is_some_and(ast::is_source_file)
+                    || ast::is_catch_clause(grandparent))
+                    && ast::get_source_file_of_node(decl) == Some(source_file);
             }
         }
     } else if ast::is_function_declaration(decl) {
@@ -686,10 +686,10 @@ fn encode_semantic_tokens(
         client_modifier_mask = TOKEN_MODIFIERS.iter().enumerate().fold(
             client_modifier_mask,
             |mut client_modifier_mask, (i, server_modifier)| {
-                if token.token_modifier & (1 << i) != 0 {
-                    if let Some(&client_bit) = modifier_mapping.get(server_modifier) {
-                        client_modifier_mask |= 1 << client_bit;
-                    }
+                if token.token_modifier & (1 << i) != 0
+                    && let Some(&client_bit) = modifier_mapping.get(server_modifier)
+                {
+                    client_modifier_mask |= 1 << client_bit;
                 }
 
                 client_modifier_mask

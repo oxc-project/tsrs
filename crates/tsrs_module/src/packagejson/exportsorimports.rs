@@ -7,7 +7,7 @@ use super::jsonvalue::{JSONData, JSONValueType};
 
 #[repr(i8)]
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Default)]
-pub(crate) enum ObjectKind {
+pub enum ObjectKind {
     #[default]
     Unknown,
     Subpaths,

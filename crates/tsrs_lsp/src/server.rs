@@ -288,7 +288,7 @@ pub struct Server {
 }
 
 // server.go:256
-pub(crate) struct ApiSessionState {
+pub struct ApiSessionState {
     session: Arc<tsrs_api::Session>,
     // Go keeps the transport; a thread blocked in accept is woken through its path (`wake_api_transport`).
     transport_path: std::path::PathBuf,
@@ -398,7 +398,7 @@ impl ResponseChan {
 static DEFAULT_CLIENT_CAPABILITIES: LazyLock<Arc<lsproto::ResolvedClientCapabilities>> =
     LazyLock::new(|| Arc::new(lsproto::ResolvedClientCapabilities::default()));
 
-pub(crate) type AsyncWorkImpl = Box<dyn FnOnce() -> Result<(), Error> + Send>;
+pub type AsyncWorkImpl = Box<dyn FnOnce() -> Result<(), Error> + Send>;
 
 impl Server {
     // The server's lifecycle context (Go `s.backgroundCtx`, set by Run).
@@ -1337,10 +1337,11 @@ impl Server {
             });
         }
 
-        if let Some(err) = g.wait() {
-            if !err.is_eof() && ctx.err().is_some() {
-                return Err(err);
-            }
+        if let Some(err) = g.wait()
+            && !err.is_eof()
+            && ctx.err().is_some()
+        {
+            return Err(err);
         }
         Ok(())
     }
@@ -1359,12 +1360,11 @@ impl Server {
                 if err.is_code(ErrorCode::INVALID_REQUEST) || err.is_code(ErrorCode::INVALID_PARAMS)
                 {
                     let mut id = None;
-                    if err.is_code(ErrorCode::INVALID_PARAMS) {
-                        if let Some(msg) = &msg {
-                            if msg.kind == MessageKind::Request {
-                                id.clone_from(&msg.as_request().id);
-                            }
-                        }
+                    if err.is_code(ErrorCode::INVALID_PARAMS)
+                        && let Some(msg) = &msg
+                        && msg.kind == MessageKind::Request
+                    {
+                        id.clone_from(&msg.as_request().id);
                     }
                     self.send_error(id.as_ref(), err)?;
                     continue;
@@ -1819,10 +1819,10 @@ impl Server {
         };
         let _ = self.initialization_options.set(initialization_options);
         let initialization_options = self.initialization_options();
-        if let Some(v) = initialization_options.log_verbosity {
-            if is_valid_log_verbosity(v) {
-                self.logger.set_verbosity(v);
-            }
+        if let Some(v) = initialization_options.log_verbosity
+            && is_valid_log_verbosity(v)
+        {
+            self.logger.set_verbosity(v);
         }
         if let Some(level) = initialization_options.track_flaky_diagnostics {
             let _ = self.flake_logging.set(level);
@@ -1855,10 +1855,10 @@ impl Server {
         }
         *self.init_locale.lock().unwrap() = self.get_locale();
 
-        if let Some(start_watchdog) = &self.start_watchdog {
-            if let Some(process_id) = params.process_id.integer {
-                start_watchdog(process_id);
-            }
+        if let Some(start_watchdog) = &self.start_watchdog
+            && let Some(process_id) = params.process_id.integer
+        {
+            start_watchdog(process_id);
         }
 
         let response = lsproto::InitializeResult {
@@ -2011,10 +2011,10 @@ impl Server {
             let background_ctx = self.background_ctx();
             let on_changes: lspwatcher::OnChanges =
                 Arc::new(move |changes: Vec<lsproto::FileEvent>| {
-                    if let Some(s) = s.upgrade() {
-                        if let Some(session) = s.session.get() {
-                            session.did_change_watched_files(&background_ctx, &changes);
-                        }
+                    if let Some(s) = s.upgrade()
+                        && let Some(session) = s.session.get()
+                    {
+                        session.did_change_watched_files(&background_ctx, &changes);
                     }
                 });
             let logger: Arc<dyn logging::Logger> = self.logger_arc();
@@ -3348,7 +3348,7 @@ impl Server {
 }
 
 // server.go:2534
-pub(crate) fn parse_content_mapper_contributions(
+pub fn parse_content_mapper_contributions(
     values: &[Option<lsproto::ContentMapperContribution>],
 ) -> Result<project::ContentMapperContributions, Error> {
     let quote =
@@ -3540,10 +3540,10 @@ fn supported_code_action_kinds() -> Vec<lsproto::CodeActionKind> {
 }
 
 // server.go:1103: `userFacingRequestFailedError` (a string error type that unwraps to ErrorCodeRequestFailed).
-pub(crate) const USER_FACING_REQUEST_FAILED_ERROR: ErrorTag =
+pub const USER_FACING_REQUEST_FAILED_ERROR: ErrorTag =
     ErrorTag::Sentinel("userFacingRequestFailedError");
 
-pub(crate) fn user_facing_request_failed_error(message: impl Into<String>) -> Error {
+pub fn user_facing_request_failed_error(message: impl Into<String>) -> Error {
     Error {
         message: message.into(),
         tags: vec![USER_FACING_REQUEST_FAILED_ERROR, ErrorTag::Code(ErrorCode::REQUEST_FAILED)],
@@ -3589,13 +3589,13 @@ fn content_mapper_fallback_response(method: Method, err: &Error) -> Option<lspro
 // handlerMap maps LSP method to a handler function. The handler function executes any work that must be done synchronously
 // before other requests/notifications can be processed, and returns any additional work as a function to be executed
 // asynchronously after the synchronous work is complete.
-pub(crate) type HandlerFunc = Box<
+pub type HandlerFunc = Box<
     dyn Fn(&Arc<Server>, &Context, &Arc<RequestMessage>) -> Result<Option<AsyncWorkImpl>, Error>
         + Send
         + Sync,
 >;
 
-pub(crate) struct HandlerMap(FxHashMap<Method, HandlerFunc>);
+pub struct HandlerMap(FxHashMap<Method, HandlerFunc>);
 
 // server.go:1229
 fn handlers() -> &'static HandlerMap {
@@ -4014,7 +4014,7 @@ fn file_name_or_empty(uri: &lsproto::DocumentUri) -> String {
     if uri.check().is_ok() { uri.file_name() } else { String::new() }
 }
 
-pub(crate) fn completion_item_file_name_to_document_uri(
+pub fn completion_item_file_name_to_document_uri(
     file_name: &str,
 ) -> Result<lsproto::DocumentUri, Error> {
     if !tspath::path_is_absolute(file_name) {
@@ -4101,7 +4101,7 @@ impl tsrs_ls::CrossProjectOrchestrator for CrossProjectOrchestratorImpl {
 
 // The handlers of out-of-scope features (content mappers, API sessions attached to the server, runGC and the profiling
 // commands) answer with this error.
-pub(crate) fn not_yet_ported(method: Method) -> Error {
+pub fn not_yet_ported(method: Method) -> Error {
     Error::wrap_code(ErrorCode::METHOD_NOT_FOUND, Error::new(format!("{method} is not ported yet")))
 }
 
@@ -4402,11 +4402,7 @@ fn go_type_name(v: &lsproto::Value) -> &'static str {
 }
 
 // Go `time.Duration.String()`.
-pub(crate) fn go_duration_string(d: Duration) -> String {
-    let nanos = d.as_nanos() as u64;
-    if nanos == 0 {
-        return "0s".to_string();
-    }
+pub fn go_duration_string(d: Duration) -> String {
     fn frac(v: u64, prec: u32) -> String {
         let pow = 10u64.pow(prec);
         let int = v / pow;
@@ -4420,6 +4416,11 @@ pub(crate) fn go_duration_string(d: Duration) -> String {
             digits -= 1;
         }
         format!("{}.{:0width$}", int, f, width = digits as usize)
+    }
+
+    let nanos = d.as_nanos() as u64;
+    if nanos == 0 {
+        return "0s".to_string();
     }
     if nanos < 1_000 {
         return format!("{nanos}ns");

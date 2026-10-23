@@ -57,6 +57,7 @@ pub mod spanmap;
 mod string_completions;
 mod symbols;
 mod utilities;
+mod visitedchildren;
 
 pub use api::{ERR_NO_SOURCE_FILE, ERR_NO_TOKEN_AT_POSITION};
 pub use codeactions::{CodeAction, CodeFixContext, CodeFixProvider, CombinedCodeActions};

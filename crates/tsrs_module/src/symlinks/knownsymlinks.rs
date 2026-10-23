@@ -74,13 +74,13 @@ impl KnownSymlinks {
             link.symlink = tspath::ensure_trailing_directory_separator(symlink);
             P::new(link)
         });
-        if let Some(real_directory) = real_directory {
-            if self.directories.load(&symlink_path).is_none() {
-                let (set, _) = self
-                    .directories_by_realpath
-                    .load_or_store(real_directory.real_path.clone(), P::new(SyncSet::default()));
-                set.add(symlink.to_string());
-            }
+        if let Some(real_directory) = real_directory
+            && self.directories.load(&symlink_path).is_none()
+        {
+            let (set, _) = self
+                .directories_by_realpath
+                .load_or_store(real_directory.real_path.clone(), P::new(SyncSet::default()));
+            set.add(symlink.to_string());
         }
         self.directories.store(symlink_path, real_directory);
     }

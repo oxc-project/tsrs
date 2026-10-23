@@ -1,0 +1,34 @@
+{
+  "format_version": 1,
+  "typescript_commit": "3e9236361fa97a9e6c685f4833ac457ae2d8c50a",
+  "reference": {
+    "package": "typescript",
+    "version": "7.1.0-beta",
+    "native_package": "@typescript/typescript-darwin-arm64",
+    "native_version": "7.1.0-beta",
+    "binary_sha256": "29f5eb8daa5c8cf6ef1c0cb79fbcf47c0cfdf26edabdf148bb779d0b2d56cebc"
+  },
+  "input": {
+    "overlay": null,
+    "project": {
+      "commit": "12afe399995143a2cc699eabbbd29596f4e64945",
+      "install": "pnpm --pm-on-fail=ignore dlx pnpm@11.13.1 install --frozen-lockfile --ignore-scripts --filter studio... && cd apps/studio && NEXT_TELEMETRY_DISABLED=1 node node_modules/next/dist/bin/next typegen",
+      "name": "supabase-studio",
+      "project": "apps/studio",
+      "repo": "https://github.com/supabase/supabase.git"
+    },
+    "suite": null
+  },
+  "exit_code": 2,
+  "diagnostics": [
+    "apps/studio/components/interfaces/Integrations/Landing/Integrations.constants.tsx(140,14): error TS7031: Binding element 'className' implicitly has an 'any' type.",
+    "apps/studio/components/interfaces/Integrations/Landing/Integrations.constants.tsx(202,14): error TS7031: Binding element 'className' implicitly has an 'any' type.",
+    "apps/studio/components/interfaces/Integrations/Landing/Integrations.constants.tsx(258,14): error TS7031: Binding element 'className' implicitly has an 'any' type.",
+    "apps/studio/components/interfaces/Integrations/Landing/Integrations.constants.tsx(302,14): error TS7031: Binding element 'className' implicitly has an 'any' type.",
+    "apps/studio/components/interfaces/Integrations/Landing/Integrations.constants.tsx(359,14): error TS7031: Binding element 'className' implicitly has an 'any' type.",
+    "apps/studio/components/interfaces/Integrations/Landing/Integrations.constants.tsx(423,14): error TS7031: Binding element 'className' implicitly has an 'any' type.",
+    "apps/studio/components/interfaces/Integrations/Landing/Integrations.constants.tsx(457,14): error TS7031: Binding element 'className' implicitly has an 'any' type.",
+    "apps/studio/components/interfaces/Integrations/Landing/Integrations.constants.tsx(513,14): error TS7031: Binding element 'className' implicitly has an 'any' type.",
+    "apps/studio/components/interfaces/Integrations/Landing/Integrations.constants.tsx(569,14): error TS7031: Binding element 'className' implicitly has an 'any' type."
+  ]
+}

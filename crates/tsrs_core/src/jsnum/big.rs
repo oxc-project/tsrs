@@ -5,7 +5,7 @@ use num_bigint::{BigInt, Sign};
 use num_traits::{Pow, ToPrimitive};
 
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
-pub(crate) struct Int(BigInt);
+pub struct Int(BigInt);
 
 impl Int {
     pub(crate) fn new(x: i64) -> Int {

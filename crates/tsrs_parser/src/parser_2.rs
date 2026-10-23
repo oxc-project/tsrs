@@ -913,18 +913,17 @@ impl Parser {
             self.parse_expected(Kind::ColonToken);
             attributes = Some(self.parse_import_attributes(current_token, true /*skipKeyword*/));
             self.parse_optional(Kind::CommaToken);
-            if !self.parse_expected(Kind::CloseBraceToken) {
-                if let Some(&last_diagnostic) = self.diagnostics.last() {
-                    if last_diagnostic.code() == diagnostics::X_0_EXPECTED.code() {
-                        let related = ast::new_diagnostic(
-                            None,
-                            TextRange::new(open_brace_position, open_brace_position),
-                            &diagnostics::THE_PARSER_EXPECTED_TO_FIND_A_1_TO_MATCH_THE_0_TOKEN_HERE,
-                            &[&"{", &"}"],
-                        );
-                        last_diagnostic.add_related_info(related);
-                    }
-                }
+            if !self.parse_expected(Kind::CloseBraceToken)
+                && let Some(&last_diagnostic) = self.diagnostics.last()
+                && last_diagnostic.code() == diagnostics::X_0_EXPECTED.code()
+            {
+                let related = ast::new_diagnostic(
+                    None,
+                    TextRange::new(open_brace_position, open_brace_position),
+                    &diagnostics::THE_PARSER_EXPECTED_TO_FIND_A_1_TO_MATCH_THE_0_TOKEN_HERE,
+                    &[&"{", &"}"],
+                );
+                last_diagnostic.add_related_info(related);
             }
         }
         self.parse_expected(Kind::CloseParenToken);
@@ -978,18 +977,17 @@ impl Parser {
                 ParsingContext::ImportAttributes,
                 Parser::parse_import_attribute,
             );
-            if !self.parse_expected(Kind::CloseBraceToken) {
-                if let Some(&last_diagnostic) = self.diagnostics.last() {
-                    if last_diagnostic.code() == diagnostics::X_0_EXPECTED.code() {
-                        let related = ast::new_diagnostic(
-                            None,
-                            TextRange::new(open_brace_position, open_brace_position),
-                            &diagnostics::THE_PARSER_EXPECTED_TO_FIND_A_1_TO_MATCH_THE_0_TOKEN_HERE,
-                            &[&"{", &"}"],
-                        );
-                        last_diagnostic.add_related_info(related);
-                    }
-                }
+            if !self.parse_expected(Kind::CloseBraceToken)
+                && let Some(&last_diagnostic) = self.diagnostics.last()
+                && last_diagnostic.code() == diagnostics::X_0_EXPECTED.code()
+            {
+                let related = ast::new_diagnostic(
+                    None,
+                    TextRange::new(open_brace_position, open_brace_position),
+                    &diagnostics::THE_PARSER_EXPECTED_TO_FIND_A_1_TO_MATCH_THE_0_TOKEN_HERE,
+                    &[&"{", &"}"],
+                );
+                last_diagnostic.add_related_info(related);
             }
         } else {
             elements = Some(self.parse_empty_node_list());
@@ -1263,10 +1261,10 @@ impl Parser {
         let parameters =
             self.parse_delimited_list(ParsingContext::Parameters, move |p: &mut Parser| {
                 let parameter = p.parse_parameter_ex(in_await_context, allow_ambiguity);
-                if let Some(parameter) = parameter {
-                    if !flags.intersects(ParseFlags::Type) {
-                        p.check_js_syntax(parameter);
-                    }
+                if let Some(parameter) = parameter
+                    && !flags.intersects(ParseFlags::Type)
+                {
+                    p.check_js_syntax(parameter);
                 }
                 parameter
             });

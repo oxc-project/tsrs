@@ -15,10 +15,10 @@ use crate::logging::{LogCollector, Logger, new_test_logger};
 use crate::session::{Session, SessionInit, SessionOptions, new_session};
 use crate::watch::WatcherID;
 
-pub(crate) const TEST_TYPINGS_LOCATION: &str = "/home/src/Library/Caches/typescript";
+pub const TEST_TYPINGS_LOCATION: &str = "/home/src/Library/Caches/typescript";
 
 #[derive(Clone)]
-pub(crate) struct WatchFilesCall {
+pub struct WatchFilesCall {
     #[expect(
         dead_code,
         reason = "Retained with the Go test helper record; the currently ported tests do not inspect this field."
@@ -29,7 +29,7 @@ pub(crate) struct WatchFilesCall {
 
 // clientmock_generated.go (call recording only; every call succeeds unless a hook says otherwise)
 #[derive(Default)]
-pub(crate) struct ClientMock {
+pub struct ClientMock {
     pub(crate) watch_files_calls: Mutex<Vec<WatchFilesCall>>,
     pub(crate) unwatch_files_calls: Mutex<Vec<WatcherID>>,
     pub(crate) refresh_diagnostics_calls: Mutex<usize>,
@@ -133,7 +133,7 @@ impl Client for ClientMock {
     }
 }
 
-pub(crate) struct SessionUtils {
+pub struct SessionUtils {
     #[expect(
         dead_code,
         reason = "Retained with the Go test helper record; the currently ported tests do not inspect this field."
@@ -163,10 +163,10 @@ impl SessionUtils {
         for call in self.client.watch_files_calls() {
             if call.watchers.iter().any(|watcher| {
                 if let Some(pattern) = &watcher.glob_pattern.pattern {
-                    if let Ok(g) = tsrs_core::glob::parse(pattern) {
-                        if g.match_(file_path) {
-                            return true;
-                        }
+                    if let Ok(g) = tsrs_core::glob::parse(pattern)
+                        && g.match_(file_path)
+                    {
+                        return true;
                     }
                 } else if let Some(rp) = &watcher.glob_pattern.relative_pattern {
                     let base_uri = rp.base_uri.uri.as_ref().unwrap().0.clone();
@@ -175,12 +175,11 @@ impl SessionUtils {
                     let base_dir = tspath::ensure_trailing_directory_separator(
                         &lsproto::DocumentUri(base_uri).file_name(),
                     );
-                    if let Some(relative_path) = file_path.strip_prefix(base_dir.as_str()) {
-                        if let Ok(g) = tsrs_core::glob::parse(&rp.pattern) {
-                            if g.match_(relative_path) {
-                                return true;
-                            }
-                        }
+                    if let Some(relative_path) = file_path.strip_prefix(base_dir.as_str())
+                        && let Ok(g) = tsrs_core::glob::parse(&rp.pattern)
+                        && g.match_(relative_path)
+                    {
+                        return true;
                     }
                 }
 
@@ -217,7 +216,7 @@ impl SessionUtils {
     }
 }
 
-pub(crate) fn default_session_options() -> SessionOptions {
+pub fn default_session_options() -> SessionOptions {
     SessionOptions {
         current_directory: "/".to_string(),
         default_library_path: bundled::lib_path(),
@@ -231,12 +230,12 @@ pub(crate) fn default_session_options() -> SessionOptions {
 }
 
 // projecttestutil.go:225
-pub(crate) fn setup(files: &[(&str, &str)]) -> (Arc<Session>, SessionUtils) {
+pub fn setup(files: &[(&str, &str)]) -> (Arc<Session>, SessionUtils) {
     setup_with_options(files, None)
 }
 
 // projecttestutil.go:265
-pub(crate) fn setup_with_options(
+pub fn setup_with_options(
     files: &[(&str, &str)],
     options: Option<SessionOptions>,
 ) -> (Arc<Session>, SessionUtils) {
@@ -245,7 +244,7 @@ pub(crate) fn setup_with_options(
 }
 
 // projecttestutil.go:285
-pub(crate) fn get_session_init_options(
+pub fn get_session_init_options(
     files: &[(&str, &str)],
     options: Option<SessionOptions>,
 ) -> (SessionInit, SessionUtils) {

@@ -108,51 +108,46 @@ impl LanguageService {
         let node = astnav::get_touching_property_name(source_file, position);
 
         // Cheap JSX check before resolving files to search.
-        if let Some(parent) = node.parent() {
-            if parent.kind() == Kind::JsxClosingElement
-                || (parent.kind() == Kind::JsxOpeningElement && parent.tag_name() == node)
-            {
-                let mut opening_element: Option<P<Node>> = None;
-                let mut closing_element: Option<P<Node>> = None;
-                let grandparent = parent.parent().unwrap();
-                if ast::is_jsx_element(grandparent) {
-                    opening_element = Some(grandparent.as_jsx_element().opening_element);
-                    closing_element = Some(grandparent.as_jsx_element().closing_element);
-                }
-                let mut highlights: Vec<lsproto::DocumentHighlight> = Vec::new();
-                let kind = lsproto::DocumentHighlightKind::READ;
-                if let Some(opening_element) = opening_element {
-                    let (lsp_range, fidelity) = self.create_lsp_range_from_node_for_feature(
-                        opening_element,
-                        source_file,
-                        Feature::DocumentHighlights,
-                    );
-                    if !fidelity.is_none() {
-                        highlights.push(lsproto::DocumentHighlight {
-                            range: lsp_range,
-                            kind: Some(kind),
-                        });
-                    }
-                }
-                if let Some(closing_element) = closing_element {
-                    let (lsp_range, fidelity) = self.create_lsp_range_from_node_for_feature(
-                        closing_element,
-                        source_file,
-                        Feature::DocumentHighlights,
-                    );
-                    if !fidelity.is_none() {
-                        highlights.push(lsproto::DocumentHighlight {
-                            range: lsp_range,
-                            kind: Some(kind),
-                        });
-                    }
-                }
-                let multi_highlights =
-                    vec![lsproto::MultiDocumentHighlight { uri: document_uri.clone(), highlights }];
-                return lsproto::MultiDocumentHighlightsOrNull {
-                    multi_document_highlights: Some(multi_highlights),
-                };
+        if let Some(parent) = node.parent()
+            && (parent.kind() == Kind::JsxClosingElement
+                || (parent.kind() == Kind::JsxOpeningElement && parent.tag_name() == node))
+        {
+            let mut opening_element: Option<P<Node>> = None;
+            let mut closing_element: Option<P<Node>> = None;
+            let grandparent = parent.parent().unwrap();
+            if ast::is_jsx_element(grandparent) {
+                opening_element = Some(grandparent.as_jsx_element().opening_element);
+                closing_element = Some(grandparent.as_jsx_element().closing_element);
             }
+            let mut highlights: Vec<lsproto::DocumentHighlight> = Vec::new();
+            let kind = lsproto::DocumentHighlightKind::READ;
+            if let Some(opening_element) = opening_element {
+                let (lsp_range, fidelity) = self.create_lsp_range_from_node_for_feature(
+                    opening_element,
+                    source_file,
+                    Feature::DocumentHighlights,
+                );
+                if !fidelity.is_none() {
+                    highlights
+                        .push(lsproto::DocumentHighlight { range: lsp_range, kind: Some(kind) });
+                }
+            }
+            if let Some(closing_element) = closing_element {
+                let (lsp_range, fidelity) = self.create_lsp_range_from_node_for_feature(
+                    closing_element,
+                    source_file,
+                    Feature::DocumentHighlights,
+                );
+                if !fidelity.is_none() {
+                    highlights
+                        .push(lsproto::DocumentHighlight { range: lsp_range, kind: Some(kind) });
+                }
+            }
+            let multi_highlights =
+                vec![lsproto::MultiDocumentHighlight { uri: document_uri.clone(), highlights }];
+            return lsproto::MultiDocumentHighlightsOrNull {
+                multi_document_highlights: Some(multi_highlights),
+            };
         }
 
         // Resolve the source files to search, deduplicating by file name.
@@ -439,10 +434,10 @@ impl LanguageService {
                 source_file,
                 Feature::DocumentHighlights,
             );
-            if !fidelity.is_none() {
-                Some(lsproto::DocumentHighlight { range: lsp_range, kind: Some(kind) })
-            } else {
+            if fidelity.is_none() {
                 None
+            } else {
+                Some(lsproto::DocumentHighlight { range: lsp_range, kind: Some(kind) })
             }
         }));
         highlights
@@ -461,17 +456,17 @@ impl LanguageService {
             node_test,
             &mut |decl, _sf| {
                 let mut symbol_decls: Vec<P<Node>> = Vec::new();
-                if ast::can_have_symbol(decl) {
-                    if let Some(symbol) = decl.symbol() {
-                        symbol_decls.extend(symbol.declarations().iter().filter_map(|&d| {
-                            if !node_test(d) {
-                                return None;
-                            }
-                            get_children_from_non_jsdoc_node(d, source_file)
-                                .into_iter()
-                                .find(|c| keywords.contains(&c.kind()))
-                        }));
-                    }
+                if ast::can_have_symbol(decl)
+                    && let Some(symbol) = decl.symbol()
+                {
+                    symbol_decls.extend(symbol.declarations().iter().filter_map(|&d| {
+                        if !node_test(d) {
+                            return None;
+                        }
+                        get_children_from_non_jsdoc_node(d, source_file)
+                            .into_iter()
+                            .find(|c| keywords.contains(&c.kind()))
+                    }));
                 }
                 symbol_decls
             },
@@ -734,25 +729,23 @@ fn get_try_catch_finally_occurrences(node: P<Node>, source_file: P<SourceFile>) 
 
     let mut keywords: Vec<P<Node>> = Vec::new();
     let token = lsutil::get_first_token(node, source_file);
-    if let Some(token) = token {
-        if token.kind() == Kind::TryKeyword {
-            keywords.push(token);
-        }
+    if let Some(token) = token
+        && token.kind() == Kind::TryKeyword
+    {
+        keywords.push(token);
     }
 
-    if try_statement.catch_clause.is_some() {
-        if let Some(catch_token) = astnav::find_child_of_kind(node, Kind::CatchKeyword, source_file)
-        {
-            keywords.push(catch_token);
-        }
+    if try_statement.catch_clause.is_some()
+        && let Some(catch_token) = astnav::find_child_of_kind(node, Kind::CatchKeyword, source_file)
+    {
+        keywords.push(catch_token);
     }
 
-    if try_statement.finally_block.is_some() {
-        if let Some(finally_keyword) =
+    if try_statement.finally_block.is_some()
+        && let Some(finally_keyword) =
             astnav::find_child_of_kind(node, Kind::FinallyKeyword, source_file)
-        {
-            keywords.push(finally_keyword);
-        }
+    {
+        keywords.push(finally_keyword);
     }
 
     keywords

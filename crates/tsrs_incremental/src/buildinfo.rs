@@ -926,16 +926,16 @@ impl BuildInfo {
         if let Some(entries) = &self.options {
             for (option, value) in entries {
                 let value = json_to_option_value(value);
-                if !build_info_directory.is_empty() {
-                    if let Some(result) = tsoptions::convert_option_to_absolute_path(
+                if !build_info_directory.is_empty()
+                    && let Some(result) = tsoptions::convert_option_to_absolute_path(
                         option,
                         &value,
                         &tsoptions::COMMAND_LINE_COMPILER_OPTIONS_MAP,
                         build_info_directory,
-                    ) {
-                        tsoptions::parse_compiler_options(option, &result, &mut options);
-                        continue;
-                    }
+                    )
+                {
+                    tsoptions::parse_compiler_options(option, &result, &mut options);
+                    continue;
                 }
                 tsoptions::parse_compiler_options(option, &value, &mut options);
             }
@@ -1153,10 +1153,10 @@ impl ObjWriter<'_> {
     }
     fn opt_strings(&mut self, key: &str, v: Option<&[String]>) {
         // omitzero on a slice omits nil and empty slices.
-        if let Some(v) = v {
-            if !v.is_empty() {
-                self.strings(key, v);
-            }
+        if let Some(v) = v
+            && !v.is_empty()
+        {
+            self.strings(key, v);
         }
     }
 }
@@ -1195,10 +1195,10 @@ impl Obj {
     }
     fn opt_strings(&mut self, key: &str, v: Option<&[String]>) {
         // omitzero on a slice omits nil and empty slices.
-        if let Some(v) = v {
-            if !v.is_empty() {
-                self.set(key, strings(v));
-            }
+        if let Some(v) = v
+            && !v.is_empty()
+        {
+            self.set(key, strings(v));
         }
     }
     fn done(self) -> Value {
@@ -1335,7 +1335,7 @@ pub fn category_to_i32(c: Category) -> i32 {
     }
 }
 
-pub(crate) fn category_from_i32(c: i32) -> Category {
+pub fn category_from_i32(c: i32) -> Category {
     match c {
         1 => Category::Error,
         2 => Category::Suggestion,
@@ -1344,7 +1344,7 @@ pub(crate) fn category_from_i32(c: i32) -> Category {
     }
 }
 
-pub(crate) fn module_kind_from_i32(v: i32) -> ModuleKind {
+pub fn module_kind_from_i32(v: i32) -> ModuleKind {
     match v {
         1 => ModuleKind::COMMON_JS,
         2 => ModuleKind::AMD,
@@ -1364,7 +1364,7 @@ pub(crate) fn module_kind_from_i32(v: i32) -> ModuleKind {
 }
 
 // A JSON value decoded into Go `any` (float64 numbers, []any arrays, map objects).
-pub(crate) fn json_to_option_value(v: &Value) -> CompilerOptionsValue {
+pub fn json_to_option_value(v: &Value) -> CompilerOptionsValue {
     match v {
         Value::Null => CompilerOptionsValue::Null,
         Value::Bool(b) => CompilerOptionsValue::Bool(*b),

@@ -6,7 +6,7 @@ use tsrs_compiler::Program;
 
 // Programs are keyed by address.
 #[derive(Default)]
-pub(crate) struct ProgramCounter {
+pub struct ProgramCounter {
     mu: Mutex<FxHashMap<usize, usize>>,
 }
 

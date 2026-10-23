@@ -36,7 +36,7 @@ fn fix_class_incorrectly_implements_interface_error_codes() -> &'static [i32] {
 }
 
 // codeactions_fixclassincorrectlyimplementsinterface.go:26
-pub(crate) static FIX_CLASS_INCORRECTLY_IMPLEMENTS_INTERFACE_PROVIDER: std::sync::LazyLock<
+pub static FIX_CLASS_INCORRECTLY_IMPLEMENTS_INTERFACE_PROVIDER: std::sync::LazyLock<
     CodeFixProvider,
 > = std::sync::LazyLock::new(|| CodeFixProvider {
     error_codes: fix_class_incorrectly_implements_interface_error_codes(),
@@ -272,10 +272,10 @@ fn get_changes(
     let mut file_changes = changes
         .shift_remove(crate::lsconv::Script::original_file_name(&source_file))
         .unwrap_or_default();
-    if let Some(import_adder) = import_adder {
-        if import_adder.has_fixes() {
-            file_changes.extend(import_adder.edits());
-        }
+    if let Some(import_adder) = import_adder
+        && import_adder.has_fixes()
+    {
+        file_changes.extend(import_adder.edits());
     }
     file_changes
 }
@@ -334,11 +334,11 @@ fn get_missing_members(
                     return None;
                 };
                 let flags = checker::get_declaration_modifier_flags_from_symbol_exported(symbol);
-                if !flags.intersects(ModifierFlags::Private) {
+                if flags.intersects(ModifierFlags::Private) {
+                    None
+                } else {
                     entry.insert(symbol);
                     Some(symbol)
-                } else {
-                    None
                 }
             }),
         );
@@ -361,10 +361,10 @@ fn get_inherited_members(
     inherited_members.extend(type_checker.get_properties_of_type(base_type).iter().filter_map(
         |&symbol| {
             let flags = checker::get_declaration_modifier_flags_from_symbol_exported(symbol);
-            if !flags.intersects(ModifierFlags::Private) {
-                Some((symbol.name(), symbol))
-            } else {
+            if flags.intersects(ModifierFlags::Private) {
                 None
+            } else {
+                Some((symbol.name(), symbol))
             }
         },
     ));

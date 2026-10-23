@@ -85,12 +85,11 @@ pub fn json_to_options_value(v: &Value) -> CompilerOptionsValue {
 /// Go `NewConfigFileResponse`.
 pub fn config_file_response(parsed: &ParsedCommandLine) -> Value {
     let mut compile_on_save = parsed.compile_on_save;
-    if compile_on_save.is_none() {
-        if let CompilerOptionsValue::Object(raw) = &parsed.raw {
-            if let Some(CompilerOptionsValue::Bool(b)) = raw.get("compileOnSave") {
-                compile_on_save = Some(*b);
-            }
-        }
+    if compile_on_save.is_none()
+        && let CompilerOptionsValue::Object(raw) = &parsed.raw
+        && let Some(CompilerOptionsValue::Bool(b)) = raw.get("compileOnSave")
+    {
+        compile_on_save = Some(*b);
     }
     let options = match parsed.compiler_options() {
         Some(o) => gojson::compiler_options_to_go_json(&o),

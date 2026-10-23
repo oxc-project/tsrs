@@ -102,10 +102,10 @@ impl SymbolTrackerImpl {
     pub fn report_likely_unsafe_import_required_error(&self, specifier: &str, symbol_name: &str) {
         let location = self.error_location();
         if let Some(location) = location {
-            if !symbol_name.is_empty() {
-                self.state.add_diagnostic(create_diagnostic_for_node(location, &diagnostics::THE_INFERRED_TYPE_OF_0_CANNOT_BE_NAMED_WITHOUT_A_REFERENCE_TO_2_FROM_1_THIS_IS_LIKELY_NOT_PORTABLE_A_TYPE_ANNOTATION_IS_NECESSARY, &[&self.error_declaration_name_with_fallback(), &specifier, &symbol_name]));
-            } else {
+            if symbol_name.is_empty() {
                 self.state.add_diagnostic(create_diagnostic_for_node(location, &diagnostics::THE_INFERRED_TYPE_OF_0_CANNOT_BE_NAMED_WITHOUT_A_REFERENCE_TO_1_THIS_IS_LIKELY_NOT_PORTABLE_A_TYPE_ANNOTATION_IS_NECESSARY, &[&self.error_declaration_name_with_fallback(), &specifier]));
+            } else {
+                self.state.add_diagnostic(create_diagnostic_for_node(location, &diagnostics::THE_INFERRED_TYPE_OF_0_CANNOT_BE_NAMED_WITHOUT_A_REFERENCE_TO_2_FROM_1_THIS_IS_LIKELY_NOT_PORTABLE_A_TYPE_ANNOTATION_IS_NECESSARY, &[&self.error_declaration_name_with_fallback(), &specifier, &symbol_name]));
             }
         }
     }
@@ -306,7 +306,7 @@ impl SymbolTrackerImpl {
 // tracker.go:235
 // SIG: node is `impl Into<Option<P<Node>>>` (was `P<Node>`): Go passes a possibly-nil node (handleSymbolAccessibilityError's
 // diagNode) and NewDiagnosticForNode accepts nil; existing `P<Node>` callers compile unchanged.
-pub(crate) fn create_diagnostic_for_node(
+pub fn create_diagnostic_for_node(
     node: impl Into<Option<P<Node>>>,
     message: &'static Message,
     args: &[&dyn Display],

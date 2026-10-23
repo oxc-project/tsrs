@@ -2675,9 +2675,10 @@ function generateCode() {
         writeLine(`    }`);
         writeLine("");
         writeLine(`    fn from_json(v: &Value) -> Result<Self, JsonError> {`);
-        writeLine(`        let mut s = Registration::default();`);
         writeLine(`        const MISSING_ID: u32 = 1 << 0;`);
         writeLine(`        const MISSING_METHOD: u32 = 1 << 1;`);
+        writeLine("");
+        writeLine(`        let mut s = Registration::default();`);
         writeLine(`        let mut missing = MISSING_ID | MISSING_METHOD;`);
         writeLine("");
         writeLine(`        let Some(members) = struct_members(v, Self::GO_TYPE, true)? else {`);

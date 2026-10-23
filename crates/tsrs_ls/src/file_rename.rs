@@ -190,10 +190,9 @@ impl LanguageService {
             path,
             trimmed_old_path,
             self.use_case_sensitive_file_names(),
-        ) {
-            if suffix.starts_with('/') || suffix.starts_with('\\') {
-                return Some(format!("{new_path}{suffix}"));
-            }
+        ) && (suffix.starts_with('/') || suffix.starts_with('\\'))
+        {
+            return Some(format!("{new_path}{suffix}"));
         }
         None
     }
@@ -567,14 +566,13 @@ fn get_source_file_to_import(
 ) -> Option<ToImport> {
     if let Some(resolved) =
         program.get_resolved_module_from_module_specifier(source_file, import_literal)
+        && !resolved.resolved_file_name.is_empty()
     {
-        if !resolved.resolved_file_name.is_empty() {
-            let old_file_name = resolved.resolved_file_name.to_string();
-            if let Some(new_file_name) = old_to_new(&old_file_name) {
-                return Some(ToImport { new_file_name, updated: true });
-            }
-            return Some(ToImport { new_file_name: old_file_name, updated: false });
+        let old_file_name = resolved.resolved_file_name.to_string();
+        if let Some(new_file_name) = old_to_new(&old_file_name) {
+            return Some(ToImport { new_file_name, updated: true });
         }
+        return Some(ToImport { new_file_name: old_file_name, updated: false });
     }
 
     None

@@ -215,50 +215,46 @@ impl CommonJSModuleTransformer {
         let f = self.factory();
         let emit_context = self.emit_context();
         let n = node.as_for_statement();
-        if let Some(initializer) = n.initializer {
-            if ast::is_variable_declaration_list(initializer)
-                && !initializer.flags().intersects(NodeFlags::BlockScoped)
-            {
-                let mut export_statements: Vec<P<Node>> = Vec::new();
-                self.append_exports_of_variable_declaration_list(
-                    &mut export_statements,
-                    initializer,
-                    false, /*isForInOrOfInitializer*/
-                );
-                if !export_statements.is_empty() {
-                    // given:
-                    //   export { x }
-                    //   for (var x = 0; ;) { }
-                    // emits:
-                    //   var x = 0;
-                    //   exports.x = x;
-                    //   for (; ;) { }
+        if let Some(initializer) = n.initializer
+            && ast::is_variable_declaration_list(initializer)
+            && !initializer.flags().intersects(NodeFlags::BlockScoped)
+        {
+            let mut export_statements: Vec<P<Node>> = Vec::new();
+            self.append_exports_of_variable_declaration_list(
+                &mut export_statements,
+                initializer,
+                false, /*isForInOrOfInitializer*/
+            );
+            if !export_statements.is_empty() {
+                // given:
+                //   export { x }
+                //   for (var x = 0; ;) { }
+                // emits:
+                //   var x = 0;
+                //   exports.x = x;
+                //   for (; ;) { }
 
-                    let mut statements: Vec<P<Node>> = Vec::new();
-                    let var_decl_list =
-                        self.discarded_value_visitor().visit_node(Some(initializer)).unwrap();
-                    let var_statement =
-                        f.new_variable_statement(None /*modifiers*/, var_decl_list);
-                    statements.push(var_statement);
-                    statements.extend(export_statements);
+                let mut statements: Vec<P<Node>> = Vec::new();
+                let var_decl_list =
+                    self.discarded_value_visitor().visit_node(Some(initializer)).unwrap();
+                let var_statement =
+                    f.new_variable_statement(None /*modifiers*/, var_decl_list);
+                statements.push(var_statement);
+                statements.extend(export_statements);
 
-                    let condition = self.visitor().visit_node(n.condition);
-                    let incrementor = self.discarded_value_visitor().visit_node(n.incrementor);
-                    let body = emit_context
-                        .visit_iteration_body(
-                            Some(n.statement()),
-                            &mut self.top_level_nested_visitor(),
-                        )
-                        .unwrap();
-                    statements.push(f.update_for_statement(
-                        node,
-                        None, /*initializer*/
-                        condition,
-                        incrementor,
-                        body,
-                    ));
-                    return single_or_many(Some(statements), f);
-                }
+                let condition = self.visitor().visit_node(n.condition);
+                let incrementor = self.discarded_value_visitor().visit_node(n.incrementor);
+                let body = emit_context
+                    .visit_iteration_body(Some(n.statement()), &mut self.top_level_nested_visitor())
+                    .unwrap();
+                statements.push(f.update_for_statement(
+                    node,
+                    None, /*initializer*/
+                    condition,
+                    incrementor,
+                    body,
+                ));
+                return single_or_many(Some(statements), f);
             }
         }
         Some(

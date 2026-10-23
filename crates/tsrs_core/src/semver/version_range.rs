@@ -18,12 +18,12 @@ fn is_range_operand_char(c: char) -> bool {
 // range        ::= hyphen | simple ( ' ' simple ) * | ”
 // logical-or   ::= ( ' ' ) * '||' ( ' ' ) *
 // \|\|
-pub(crate) fn logical_or_reg_exp_split(text: &str) -> Vec<&str> {
+pub fn logical_or_reg_exp_split(text: &str) -> Vec<&str> {
     text.split("||").collect()
 }
 
 // \s+
-pub(crate) fn whitespace_reg_exp_split(text: &str) -> Vec<&str> {
+pub fn whitespace_reg_exp_split(text: &str) -> Vec<&str> {
     let mut result = Vec::new();
     let mut beg = 0;
     let mut i = 0;
@@ -52,7 +52,7 @@ pub(crate) fn whitespace_reg_exp_split(text: &str) -> Vec<&str> {
 // parts        ::= part ( '.' part ) *
 // part         ::= nr | [-0-9A-Za-z]+
 // (?i)^([x*0]|[1-9]\d*)(?:\.([x*0]|[1-9]\d*)(?:\.([x*0]|[1-9]\d*)(?:-([a-z0-9-.]+))?(?:\+([a-z0-9-.]+))?)?)?$
-pub(crate) fn partial_reg_exp_find_string_submatch(text: &str) -> Option<[&str; 6]> {
+pub fn partial_reg_exp_find_string_submatch(text: &str) -> Option<[&str; 6]> {
     // [x*0]|[1-9]\d*
     fn component(text: &str) -> Option<usize> {
         match text.as_bytes().first() {
@@ -67,7 +67,7 @@ pub(crate) fn partial_reg_exp_find_string_submatch(text: &str) -> Option<[&str; 
 //
 // hyphen       ::= partial ' - ' partial
 // (?i)^\s*([a-z0-9-+.*]+)\s+-\s+([a-z0-9-+.*]+)\s*$
-pub(crate) fn hyphen_reg_exp_find_string_submatch(text: &str) -> Option<[&str; 3]> {
+pub fn hyphen_reg_exp_find_string_submatch(text: &str) -> Option<[&str; 3]> {
     let mut pos = span(text, is_go_space);
     let left_len = span(&text[pos..], is_range_operand_char);
     if left_len == 0 {
@@ -110,7 +110,7 @@ pub(crate) fn hyphen_reg_exp_find_string_submatch(text: &str) -> Option<[&str; 3
 // caret        ::= '^' partial
 // (?i)^([~^<>=]|<=|>=)?\s*([a-z0-9-+.*]+)$
 // The alternatives of the optional first group are tried in leftmost-first order.
-pub(crate) fn range_reg_exp_find_string_submatch(text: &str) -> Option<[&str; 3]> {
+pub fn range_reg_exp_find_string_submatch(text: &str) -> Option<[&str; 3]> {
     fn rest(text: &str) -> Option<&str> {
         let operand = &text[span(text, is_go_space)..];
         if !operand.is_empty() && span(operand, is_range_operand_char) == operand.len() {
@@ -119,16 +119,16 @@ pub(crate) fn range_reg_exp_find_string_submatch(text: &str) -> Option<[&str; 3]
             None
         }
     }
-    if matches!(text.as_bytes().first(), Some(b'~' | b'^' | b'<' | b'>' | b'=')) {
-        if let Some(operand) = rest(&text[1..]) {
-            return Some([text, &text[..1], operand]);
-        }
+    if matches!(text.as_bytes().first(), Some(b'~' | b'^' | b'<' | b'>' | b'='))
+        && let Some(operand) = rest(&text[1..])
+    {
+        return Some([text, &text[..1], operand]);
     }
     if let Some(result) = (["<=", ">="]).into_iter().find_map(|op| {
-        if let Some(after) = text.strip_prefix(op) {
-            if let Some(operand) = rest(after) {
-                return Some(Some([text, &text[..2], operand]));
-            }
+        if let Some(after) = text.strip_prefix(op)
+            && let Some(operand) = rest(after)
+        {
+            return Some(Some([text, &text[..2], operand]));
         }
 
         None
@@ -144,7 +144,7 @@ pub struct VersionRange {
 }
 
 #[derive(Clone, Debug)]
-pub(crate) struct VersionComparator {
+pub struct VersionComparator {
     pub(crate) operator: ComparatorOperator,
     pub(crate) operand: Version,
 }
@@ -154,7 +154,7 @@ pub(crate) struct VersionComparator {
     clippy::enum_variant_names,
     reason = "The variant names preserve the upstream Go enum names."
 )]
-pub(crate) enum ComparatorOperator {
+pub enum ComparatorOperator {
     RangeLessThan,
     RangeLessThanEqual,
     RangeEqual,
@@ -188,7 +188,7 @@ impl fmt::Display for VersionRange {
     }
 }
 
-pub(crate) fn format_disjunction(sb: &mut String, alternatives: &[Vec<VersionComparator>]) {
+pub fn format_disjunction(sb: &mut String, alternatives: &[Vec<VersionComparator>]) {
     let orig_len = sb.len();
 
     for (i, alternative) in alternatives.iter().enumerate() {
@@ -203,7 +203,7 @@ pub(crate) fn format_disjunction(sb: &mut String, alternatives: &[Vec<VersionCom
     }
 }
 
-pub(crate) fn format_alternative(sb: &mut String, comparators: &[VersionComparator]) {
+pub fn format_alternative(sb: &mut String, comparators: &[VersionComparator]) {
     for (i, comparator) in comparators.iter().enumerate() {
         if i > 0 {
             sb.push(' ');
@@ -212,7 +212,7 @@ pub(crate) fn format_alternative(sb: &mut String, comparators: &[VersionComparat
     }
 }
 
-pub(crate) fn format_comparator(sb: &mut String, comparator: &VersionComparator) {
+pub fn format_comparator(sb: &mut String, comparator: &VersionComparator) {
     sb.push_str(comparator.operator.as_str());
     sb.push_str(&comparator.operand.string());
 }
@@ -223,7 +223,7 @@ impl VersionRange {
     }
 }
 
-pub(crate) fn test_disjunction(alternatives: &[Vec<VersionComparator>], version: &Version) -> bool {
+pub fn test_disjunction(alternatives: &[Vec<VersionComparator>], version: &Version) -> bool {
     // an empty disjunction is treated as "*" (all versions)
     if alternatives.is_empty() {
         return true;
@@ -232,11 +232,11 @@ pub(crate) fn test_disjunction(alternatives: &[Vec<VersionComparator>], version:
     alternatives.iter().any(|alternative| test_alternative(alternative, version))
 }
 
-pub(crate) fn test_alternative(alternative: &[VersionComparator], version: &Version) -> bool {
+pub fn test_alternative(alternative: &[VersionComparator], version: &Version) -> bool {
     !(alternative.iter().any(|comparator| !test_comparator(comparator, version)))
 }
 
-pub(crate) fn test_comparator(comparator: &VersionComparator, version: &Version) -> bool {
+pub fn test_comparator(comparator: &VersionComparator, version: &Version) -> bool {
     let cmp = version.compare(&comparator.operand);
     match comparator.operator {
         ComparatorOperator::RangeLessThan => cmp == std::cmp::Ordering::Less,
@@ -252,7 +252,7 @@ pub fn try_parse_version_range(text: &str) -> Option<VersionRange> {
     Some(VersionRange { alternatives })
 }
 
-pub(crate) fn parse_alternatives(text: &str) -> Option<Vec<Vec<VersionComparator>>> {
+pub fn parse_alternatives(text: &str) -> Option<Vec<Vec<VersionComparator>>> {
     let mut alternatives = Vec::new();
 
     let text = text.trim();
@@ -292,7 +292,7 @@ pub(crate) fn parse_alternatives(text: &str) -> Option<Vec<Vec<VersionComparator
     Some(alternatives)
 }
 
-pub(crate) fn parse_hyphen(left: &str, right: &str) -> Option<Vec<VersionComparator>> {
+pub fn parse_hyphen(left: &str, right: &str) -> Option<Vec<VersionComparator>> {
     let left_result = parse_partial(left)?;
 
     let right_result = parse_partial(right)?;
@@ -329,7 +329,7 @@ pub(crate) fn parse_hyphen(left: &str, right: &str) -> Option<Vec<VersionCompara
     Some(comparators)
 }
 
-pub(crate) struct PartialVersion {
+pub struct PartialVersion {
     pub(crate) version: Version,
     pub(crate) major_str: String,
     pub(crate) minor_str: String,
@@ -337,7 +337,7 @@ pub(crate) struct PartialVersion {
 }
 
 // Produces a "partial" version
-pub(crate) fn parse_partial(text: &str) -> Option<PartialVersion> {
+pub fn parse_partial(text: &str) -> Option<PartialVersion> {
     let m = partial_reg_exp_find_string_submatch(text)?;
 
     let major_str = m[1];
@@ -404,7 +404,7 @@ pub(crate) fn parse_partial(text: &str) -> Option<PartialVersion> {
     Some(result)
 }
 
-pub(crate) fn parse_comparator(op: &str, text: &str) -> Option<Vec<VersionComparator>> {
+pub fn parse_comparator(op: &str, text: &str) -> Option<Vec<VersionComparator>> {
     let result = parse_partial(text)?;
 
     let mut comparators_result = Vec::new();
@@ -536,7 +536,7 @@ pub(crate) fn parse_comparator(op: &str, text: &str) -> Option<Vec<VersionCompar
     Some(comparators_result)
 }
 
-pub(crate) fn is_wildcard(text: &str) -> bool {
+pub fn is_wildcard(text: &str) -> bool {
     text == "*" || text == "x" || text == "X"
 }
 

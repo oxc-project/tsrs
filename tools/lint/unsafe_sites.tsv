@@ -1,10 +1,8 @@
 # Every unsafe site and lifetime escape (tools/lint/source.mjs --update; notes/unsafe-audit.md).
 # file	item	kind	class	safety	verdict	note. --update keeps class, verdict and note of a row whose key
 # (file, item, kind, safety) still exists; a new site gets a class from its crate and verdict `unknown`.
+crates/tsrs_api/src/build.rs	ApiOrchestratorOwner::drop	block	ownership	`fresh` creates and enables this orchestrator exclusively for one serialized API handle.	keep	private RAII owner reclaims its API-mode orchestrator once, after its last serialized operation or unwind
 crates/tsrs_api/src/build.rs	ExecuteBuildBackend::create	leak	ownership		keep	process-lifetime build system; one allocation per API orchestrator
-crates/tsrs_api/src/build.rs	ExecuteOrchestrator::build	block	ownership	the build ran inline on this thread and has unwound (its scoped workers were joined), so	safe-api-possible	a program owner type with Drop (#646 milestone 1) replaces this manual free
-crates/tsrs_api/src/build.rs	ExecuteOrchestrator::drop	block	ownership	as in `replace`; the handle is being disposed.	safe-api-possible	a program owner type with Drop (#646 milestone 1) replaces this manual free
-crates/tsrs_api/src/build.rs	ExecuteOrchestrator::replace	block	ownership	no build is running on `old` (builds are serialized per handle) and its results were	safe-api-possible	a program owner type with Drop (#646 milestone 1) replaces this manual free
 crates/tsrs_api/src/sourcefiles.rs	Session::encode_source_file	block	logic	as in `node_index_table`: the file outlives the request, and the cached table is evicted when its arena	safe-api-possible	lifetime is a pool lease / held checker, enforced at run time, not by the type
 crates/tsrs_api/src/sourcefiles.rs	Session::node_index_table	block	logic	`file` is reachable from a live snapshot or lease for the whole request, and the cached table built	safe-api-possible	lifetime is a pool lease / held checker, enforced at run time, not by the type
 crates/tsrs_api/src/transpile.rs	transpile_in_current_region	block	ownership	nothing derived from the program (diagnostics are serialized above) is used after this.	safe-api-possible	a program owner type with Drop (#646 milestone 1) replaces this manual free

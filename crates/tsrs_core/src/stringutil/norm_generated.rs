@@ -328,7 +328,7 @@ static UNICODE_MN_R32: &[Range32] = &[
     Range32 { lo: 0x1e944, hi: 0x1e94a, stride: 1 },
     Range32 { lo: 0xe0100, hi: 0xe01ef, stride: 1 },
 ];
-pub(crate) static UNICODE_MN: RangeTable =
+pub static UNICODE_MN: RangeTable =
     RangeTable { r16: UNICODE_MN_R16, r32: UNICODE_MN_R32, latin_offset: 0 };
 
 static UNICODE_UPPER_R16: &[Range16] = &[
@@ -487,5 +487,5 @@ static UNICODE_UPPER_R32: &[Range32] = &[
     Range32 { lo: 0x1d7ca, hi: 0x1e900, stride: 4406 },
     Range32 { lo: 0x1e901, hi: 0x1e921, stride: 1 },
 ];
-pub(crate) static UNICODE_UPPER: RangeTable =
+pub static UNICODE_UPPER: RangeTable =
     RangeTable { r16: UNICODE_UPPER_R16, r32: UNICODE_UPPER_R32, latin_offset: 3 };

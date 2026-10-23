@@ -118,13 +118,13 @@ impl OptionalChainTransformer {
 
         let mut this_arg: Option<P<Node>> = None;
         if capture_this_arg {
-            if !is_simple_copiable_expression(expression.unwrap()) {
+            if is_simple_copiable_expression(expression.unwrap()) {
+                this_arg = expression;
+            } else {
                 let t = f.new_temp_variable();
                 this_arg = Some(t);
                 self.emit_context().add_variable_declaration(t);
                 expression = Some(f.new_assignment_expression(t, expression.unwrap()));
-            } else {
-                this_arg = expression;
             }
         }
 
@@ -256,13 +256,13 @@ impl OptionalChainTransformer {
             match segment.kind() {
                 Kind::ElementAccessExpression | Kind::PropertyAccessExpression => {
                     if i == chain.len() - 1 && capture_this_arg {
-                        if !is_simple_copiable_expression(right_expression) {
+                        if is_simple_copiable_expression(right_expression) {
+                            this_arg = Some(right_expression);
+                        } else {
                             let t = f.new_temp_variable();
                             this_arg = Some(t);
                             self.emit_context().add_variable_declaration(t);
                             right_expression = f.new_assignment_expression(t, right_expression);
-                        } else {
-                            this_arg = Some(right_expression);
                         }
                     }
                     if segment.kind() == Kind::ElementAccessExpression {

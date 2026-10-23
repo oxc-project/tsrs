@@ -20,13 +20,13 @@ use crate::program::Program;
 // Every method that reaches the program escapes a scratch region (one file's emit, notes/mem-emit-regions.md): the
 // program's lazily filled caches (package.json entries, symlinks, module-name memos) outlive the file.
 
-pub(crate) struct EmitHost {
+pub struct EmitHost {
     program: &'static Program,
     emit_resolver: Resolver,
 }
 
 // emitHost.go:38 (the checker acquisition is the caller's; see above)
-pub(crate) fn new_emit_host(
+pub fn new_emit_host(
     program: &'static Program,
     emit_resolver: P<tsrs_checker::EmitResolver>,
     checker_slot: P<CheckerSlot>,

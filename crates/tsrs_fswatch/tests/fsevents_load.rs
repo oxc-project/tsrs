@@ -11,6 +11,8 @@ use tsrs_fswatch::{ERR_OVERFLOW, fsevents};
 
 #[test]
 fn a_burst_under_load_drops_no_events() {
+    const FILES: usize = 10_000;
+
     let dir = std::env::temp_dir().join(format!("tsrs-fswatch-load-{}", std::process::id()));
     let _ = std::fs::remove_dir_all(&dir);
     std::fs::create_dir_all(&dir).unwrap();
@@ -46,7 +48,6 @@ fn a_burst_under_load_drops_no_events() {
     .take(2 * std::thread::available_parallelism().map_or(8, std::num::NonZero::get))
     .collect();
 
-    const FILES: usize = 10_000;
     for i in 0..FILES {
         std::fs::write(dir.join(format!("f{i}.ts")), "export {};\n").unwrap();
     }

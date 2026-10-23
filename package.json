@@ -4,7 +4,7 @@
     "private": true,
     "packageManager": "pnpm@12.15.0",
     "scripts": {
-        "build:dev": "cargo build --profile dev -p tsrs_cli -p tsrs_testrunner",
+        "build:dev": "cargo build --profile dev -p tsrs_cli -p tsrs_testrunner -p tsrs_determinism",
         "lint": "pnpm lint:source && pnpm lint:rust && pnpm check:scripts",
         "lint:source": "node tools/lint/source.mjs",
         "lint:rust": "cargo clippy --all-targets --config 'build.warnings=\"deny\"'",
@@ -40,7 +40,7 @@
         "ci:conformance": "bash .github/scripts/conformance-gate.sh",
         "ci:diagnostics": "node tools/ci/compare_diagnostics.mjs",
         "ci:skip-marker": "node tools/ci/skip_marker.mjs",
-        "ci:determinism": "bash tools/ci/determinism.sh",
+        "ci:determinism": "cargo run --profile dev -p tsrs_determinism -- check && cargo run --profile dev -p tsrs_determinism -- regressions",
         "ci:tsan": "bash tools/ci/tsan.sh",
         "ci:tsan-summary": "node tools/ci/tsan_summary.mjs",
         "ci:workloads": "node tools/ci/workloads.mjs",
@@ -122,6 +122,7 @@
         "wasm:serve-example": "node npm/tsrs-wasm/examples/browser/serve.mjs"
     },
     "devDependencies": {
+        "typescript": "7.1.0-beta",
         "void": "1.2.1"
     },
     "engines": {

@@ -67,7 +67,7 @@ pub struct SourceMapEmitResult {
 // The print row includes building the source-map mappings (the printer feeds the generator as it prints); the source
 // map row is serializing the map and computing its URL.
 #[derive(Clone, Copy)]
-pub(crate) enum EmitPhase {
+pub enum EmitPhase {
     ScriptTransform,
     DeclarationTransform,
     Print,
@@ -121,14 +121,14 @@ impl PendingPrints {
 }
 
 #[derive(Default)]
-pub(crate) struct EmitTimes {
+pub struct EmitTimes {
     enabled: bool,
     times: [AtomicU64; 5],
     writers: Mutex<usize>,
     writer_done: Condvar,
 }
 
-pub(crate) struct WritePermit<'a>(&'a EmitTimes);
+pub struct WritePermit<'a>(&'a EmitTimes);
 
 impl Drop for WritePermit<'_> {
     fn drop(&mut self) {

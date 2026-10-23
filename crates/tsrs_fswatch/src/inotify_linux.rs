@@ -35,7 +35,7 @@ struct InotifySubscription {
     dir_watch: Arc<DirWatch>,
 }
 
-pub(crate) struct InotifyBackend {
+pub struct InotifyBackend {
     base: WatcherBase,
 
     pipe_read_fd: AtomicI32,
@@ -47,7 +47,7 @@ pub(crate) struct InotifyBackend {
 }
 
 // inotify_linux.go:66 (init)
-pub(crate) fn init(mut w: PlatformWatcher) -> PlatformWatcher {
+pub fn init(mut w: PlatformWatcher) -> PlatformWatcher {
     w.factory = Some(|| Arc::new(new_inotify_backend()) as Arc<dyn WatcherImpl>);
     w
 }

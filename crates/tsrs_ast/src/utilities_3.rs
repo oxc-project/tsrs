@@ -839,12 +839,11 @@ pub fn get_jsdoc_host(node: P<Node>) -> Option<P<Node>> {
 pub fn get_host_signature_from_jsdoc(node: P<Node>) -> Option<P<Node>> {
     let host = get_jsdoc_host(node)?;
     // !!! Strada's getEffectiveJSDocHost applies JS assignment pattern transforms (getSourceOfAssignment, getSourceOfDefaultedAssignment, etc.) not yet ported
-    if is_property_signature_declaration(host) {
-        if let Some(t) = host.type_node() {
-            if is_function_like(t) {
-                return Some(t);
-            }
-        }
+    if is_property_signature_declaration(host)
+        && let Some(t) = host.type_node()
+        && is_function_like(t)
+    {
+        return Some(t);
     }
     if is_function_like(host) {
         return Some(host);
@@ -1124,15 +1123,15 @@ pub fn class_element_or_class_element_parameter_is_decorated(
     if node_is_decorated(use_legacy_decorators, node, Some(parent), None) {
         return true;
     }
-    if let Some(parameters) = parameters {
-        if parameters.nodes().iter().any(|&parameter| {
+    if let Some(parameters) = parameters
+        && parameters.nodes().iter().any(|&parameter| {
             if is_this_parameter(parameter) {
                 return false;
             }
             node_is_decorated(use_legacy_decorators, parameter, Some(node), Some(parent))
-        }) {
-            return true;
-        }
+        })
+    {
+        return true;
     }
     false
 }
@@ -1261,10 +1260,10 @@ pub fn get_rest_parameter_element_type(node: impl Into<Option<P<Node>>>) -> Opti
     if node.kind() == Kind::ArrayType {
         return Some(node.as_array_type_node().element_type);
     }
-    if node.kind() == Kind::TypeReference {
-        if let Some(type_arguments) = node.as_type_reference_node().type_arguments() {
-            return type_arguments.nodes().first().copied();
-        }
+    if node.kind() == Kind::TypeReference
+        && let Some(type_arguments) = node.as_type_reference_node().type_arguments()
+    {
+        return type_arguments.nodes().first().copied();
     }
     None
 }
@@ -1318,21 +1317,22 @@ pub(crate) fn is_argument_of_element_access_expression(node: impl Into<Option<P<
 // return the corresponding reparsed clone in the subtree. Otherwise, just return the node.
 pub fn get_reparsed_node_for_node(node: impl Into<Option<P<Node>>>) -> Option<P<Node>> {
     let node = node.into()?;
-    if node.flags().intersects(NodeFlags::JSDoc) && !node.flags().intersects(NodeFlags::Reparsed) {
-        if let Some(file) = get_source_file_of_node(node) {
-            let reparsed_clones = file.reparsed_clones();
-            if !reparsed_clones.is_empty() {
-                let (mut pos, found) =
-                    binary_search_func(reparsed_clones, node, compare_node_positions);
-                if !found && pos > 0 {
-                    pos -= 1;
-                }
-                let candidate = reparsed_clones[pos];
-                if node.loc().contained_by(candidate.loc()) {
-                    if let Some(reparsed) = find_clone_in_node(candidate, node) {
-                        return Some(reparsed);
-                    }
-                }
+    if node.flags().intersects(NodeFlags::JSDoc)
+        && !node.flags().intersects(NodeFlags::Reparsed)
+        && let Some(file) = get_source_file_of_node(node)
+    {
+        let reparsed_clones = file.reparsed_clones();
+        if !reparsed_clones.is_empty() {
+            let (mut pos, found) =
+                binary_search_func(reparsed_clones, node, compare_node_positions);
+            if !found && pos > 0 {
+                pos -= 1;
+            }
+            let candidate = reparsed_clones[pos];
+            if node.loc().contained_by(candidate.loc())
+                && let Some(reparsed) = find_clone_in_node(candidate, node)
+            {
+                return Some(reparsed);
             }
         }
     }
@@ -1993,10 +1993,10 @@ pub fn try_get_property_name_of_binding_or_assignment_element(
     }
 
     let target = get_target_of_binding_or_assignment_element(binding_element);
-    if let Some(target) = target {
-        if is_property_name(target) {
-            return Some(target);
-        }
+    if let Some(target) = target
+        && is_property_name(target)
+    {
+        return Some(target);
     }
     None
 }

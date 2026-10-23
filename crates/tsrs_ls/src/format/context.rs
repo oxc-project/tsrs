@@ -166,7 +166,7 @@ impl FormattingContext {
 }
 
 // context.go:73
-pub(crate) fn with_token_start(loc: P<Node>, file: P<SourceFile>) -> TextRange {
+pub fn with_token_start(loc: P<Node>, file: P<SourceFile>) -> TextRange {
     let start_pos = scanner::get_token_pos_of_node(loc, file, false);
     TextRange::new(start_pos, loc.end().expect_source("parsed nodes have source positions"))
 }

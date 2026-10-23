@@ -11459,9 +11459,10 @@ impl Json for Registration {
     }
 
     fn from_json(v: &Value) -> Result<Self, JsonError> {
-        let mut s = Registration::default();
         const MISSING_ID: u32 = 1 << 0;
         const MISSING_METHOD: u32 = 1 << 1;
+
+        let mut s = Registration::default();
         let mut missing = MISSING_ID | MISSING_METHOD;
 
         let Some(members) = struct_members(v, Self::GO_TYPE, true)? else { unreachable!() };

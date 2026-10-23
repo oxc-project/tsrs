@@ -50,14 +50,14 @@ fn lock_gates() -> std::sync::MutexGuard<'static, Option<FxHashMap<usize, Arc<Ga
 }
 
 /// Exclusive right to acquire the program's API checker; released on drop.
-pub(crate) struct ApiCheckerLease {
+pub struct ApiCheckerLease {
     key: usize,
     gate: Arc<Gate>,
 }
 
 const RESOURCE: &str = "the program's API checker";
 
-pub(crate) fn acquire(program: &'static Program) -> CheckerResult<ApiCheckerLease> {
+pub fn acquire(program: &'static Program) -> CheckerResult<ApiCheckerLease> {
     let key = std::ptr::from_ref::<Program>(program) as usize;
     let gate =
         Arc::clone(lock_gates().get_or_insert_with(FxHashMap::default).entry(key).or_default());
@@ -117,10 +117,9 @@ fn forget_if_unused(key: usize, gate: &Arc<Gate>) {
     // One reference in the map plus the caller's: nobody else holds or waits on this gate.
     if Arc::strong_count(gate) == 2
         && !gate.state.lock().unwrap_or_else(std::sync::PoisonError::into_inner).held
+        && let Some(map) = gates.as_mut()
     {
-        if let Some(map) = gates.as_mut() {
-            map.remove(&key);
-        }
+        map.remove(&key);
     }
 }
 
@@ -141,7 +140,7 @@ impl Drop for ApiCheckerLease {
 }
 
 #[cfg(test)]
-pub(crate) fn is_tracked(program: &'static Program) -> bool {
+pub fn is_tracked(program: &'static Program) -> bool {
     lock_gates()
         .as_ref()
         .is_some_and(|m| m.contains_key(&(std::ptr::from_ref::<Program>(program) as usize)))

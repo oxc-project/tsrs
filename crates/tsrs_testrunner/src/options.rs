@@ -42,8 +42,9 @@ static HARNESS_COMPILER_OPTIONS: LazyLock<Vec<&'static CommandLineOption>> = Laz
 
 static HARNESS_COMMAND_LINE_OPTIONS: LazyLock<Vec<&'static CommandLineOption>> =
     LazyLock::new(|| {
-        let opt = new_option;
         use CommandLineOptionKind::{Boolean, List, String};
+
+        let opt = new_option;
         vec![
             opt("useCaseSensitiveFileNames", Boolean),
             opt("baselineFile", String),
@@ -573,11 +574,11 @@ mod tests {
                             .chain(&split.other_files)
                             .map(|f| f.unit_name.clone())
                             .collect();
-                        if let Some(go) = go_files.get(&item.id()) {
-                            if !go.is_empty() && *go != mine {
-                                problems
-                                    .push(format!("{}: files {mine:?} vs go {go:?}", item.id()));
-                            }
+                        if let Some(go) = go_files.get(&item.id())
+                            && !go.is_empty()
+                            && *go != mine
+                        {
+                            problems.push(format!("{}: files {mine:?} vs go {go:?}", item.id()));
                         }
                     }
                 }

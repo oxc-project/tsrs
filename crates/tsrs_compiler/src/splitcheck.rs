@@ -59,10 +59,10 @@ const MIN_SHARE_PERCENT: u64 = 40;
 /// The share a default library file must weigh to be split (`plan_splits`): its weight is a fair estimate of its cost,
 /// so splitting pays only when it would be most of a checker's work (webpack and next-packages-next at 32 checkers),
 /// not at half a share (webpack at 16: +3-4% wall when it was split).
-pub(crate) const LIB_MIN_SHARE_PERCENT: u64 = 80;
+pub const LIB_MIN_SHARE_PERCENT: u64 = 80;
 const PIECE_DIVISOR: u64 = 8;
 
-pub(crate) struct SplitConfig {
+pub struct SplitConfig {
     pub(crate) enabled: bool,
     pub(crate) shadow: bool,
     pub(crate) force: Option<usize>,
@@ -76,7 +76,7 @@ pub(crate) struct SplitConfig {
     pub(crate) stats: Option<Option<String>>,
 }
 
-pub(crate) fn split_config() -> &'static SplitConfig {
+pub fn split_config() -> &'static SplitConfig {
     static CONFIG: OnceLock<SplitConfig> = OnceLock::new();
     CONFIG.get_or_init(|| {
         let mut config = SplitConfig { enabled: true, shadow: false, force: None, divisor: PIECE_DIVISOR, min_share_percent: MIN_SHARE_PERCENT, stats: None };
@@ -137,7 +137,7 @@ fn all_declarations(file: P<SourceFile>) -> bool {
 
 // Contiguous statement ranges of about equal text length, at most `count` of them; none (no split) when there would be
 // fewer than two or a top-level statement is not a declaration (`all_declarations`).
-pub(crate) fn statement_pieces(file: P<SourceFile>, count: usize) -> Vec<Range<usize>> {
+pub fn statement_pieces(file: P<SourceFile>, count: usize) -> Vec<Range<usize>> {
     let statements = file.statements.nodes();
     let count = count.min(statements.len());
     if count < 2 || !all_declarations(file) {
@@ -172,7 +172,7 @@ const RUNNING: u8 = 1;
 const DONE: u8 = 2;
 
 // One file checked in pieces during one pass.
-pub(crate) struct SplitFile {
+pub struct SplitFile {
     pub(crate) file: P<SourceFile>,
     pub(crate) pieces: Vec<Range<usize>>,
     // Per piece: NOT_STARTED, RUNNING, DONE. Piece 0 is the owner's and never queued.

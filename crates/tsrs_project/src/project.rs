@@ -33,9 +33,9 @@ use crate::watch::{
 };
 use tsrs_core::arena::Region;
 
-pub(crate) const INFERRED_PROJECT_NAME: &str = "/dev/null/inferred"; // lowercase so toPath is a no-op regardless of settings
+pub const INFERRED_PROJECT_NAME: &str = "/dev/null/inferred"; // lowercase so toPath is a no-op regardless of settings
 const SYNTHETIC_PROJECT_PREFIX: &str = "/dev/null/synthetic/";
-pub(crate) const HR: &str = "-----------------------------------------------";
+pub const HR: &str = "-----------------------------------------------";
 
 #[derive(Clone, PartialEq, Eq, Hash, PartialOrd, Ord, Debug, Default)]
 pub struct ID(pub String);
@@ -60,7 +60,7 @@ pub struct InferredProjectID(pub String);
 
 pub type ModuleResolverFactoryRef = Option<Arc<dyn ModuleResolverFactory>>;
 
-pub(crate) fn inferred_project_id() -> InferredProjectID {
+pub fn inferred_project_id() -> InferredProjectID {
     InferredProjectID(INFERRED_PROJECT_NAME.to_string())
 }
 
@@ -293,7 +293,7 @@ pub fn new_inferred_project(
 }
 
 // project.go:234
-pub(crate) fn new_synthetic_project(
+pub fn new_synthetic_project(
     id: &SyntheticProjectID,
     current_directory: &str,
     compiler_options: P<CompilerOptions>,
@@ -322,7 +322,7 @@ pub(crate) fn new_synthetic_project(
 // project.go:258
 // `errors` is the `Errors` slice Go assigns on the returned command line right after creating it (Rust's
 // command line is immutable once allocated).
-pub(crate) fn new_inferred_project_command_line(
+pub fn new_inferred_project_command_line(
     compiler_options: P<CompilerOptions>,
     root_file_names: Vec<String>,
     project_references: Vec<ProjectReference>,
@@ -373,15 +373,15 @@ pub fn new_project(
             use_case_sensitive_file_names,
         ),
     );
-    let typings_watch = if !builder.session_options.typings_location.is_empty() {
+    let typings_watch = if builder.session_options.typings_location.is_empty() {
+        None
+    } else {
         Some(new_watched_files(
             "typings installer files".to_string(),
             ALL_WATCH_KINDS,
             relative_pattern_support,
             Arc::new(|input: &PatternsAndIgnored| input.clone()),
         ))
-    } else {
-        None
     };
     let content_mapper_watch = new_watched_files_for_paths(
         format!("content mapper configuration files for {}", id.0),

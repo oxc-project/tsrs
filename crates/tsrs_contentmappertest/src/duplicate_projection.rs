@@ -14,7 +14,7 @@ use crate::protocol::{
 // one, so a single original span has an identical counterpart in two distinct virtual source files that
 // share an OriginalFileName. An edit to that span is therefore recorded once per projection.
 // duplicate_projection.go:14
-pub(crate) struct DuplicateProjectionHandler;
+pub struct DuplicateProjectionHandler;
 
 impl TestHandler for DuplicateProjectionHandler {}
 

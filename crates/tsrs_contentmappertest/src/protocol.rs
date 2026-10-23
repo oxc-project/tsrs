@@ -16,12 +16,12 @@ use tsrs_spanmap::{Feature, Kind, Segment};
     clippy::unnecessary_wraps,
     reason = "This no-op implementation supplies the Result-returning Handler::handle_notification contract."
 )]
-pub(crate) fn no_notifications() -> Result<(), ipc::Error> {
+pub fn no_notifications() -> Result<(), ipc::Error> {
     Ok(())
 }
 
 // protocol.go:20
-pub(crate) fn initialize_result(source: &str) -> InitializeResult {
+pub fn initialize_result(source: &str) -> InitializeResult {
     InitializeResult {
         position_encoding: PositionEncoding::UTF8,
         diagnostic_source: source.to_string(),
@@ -29,7 +29,7 @@ pub(crate) fn initialize_result(source: &str) -> InitializeResult {
 }
 
 // protocol.go:27
-pub(crate) fn identity_mapped_output(content: &str) -> Result<MappedOutput, ipc::Error> {
+pub fn identity_mapped_output(content: &str) -> Result<MappedOutput, ipc::Error> {
     let mappings = marshal_span_map(&[Segment {
         virtual_end: content.len() as u32,
         original_end: content.len() as u32,
@@ -46,12 +46,12 @@ pub(crate) fn identity_mapped_output(content: &str) -> Result<MappedOutput, ipc:
 }
 
 // protocol.go:40 (Go embeds the ipc.Handler it wraps.)
-pub(crate) struct StaticProjectHandler {
+pub struct StaticProjectHandler {
     pub(crate) handler: Arc<dyn TestHandler>,
 }
 
 // protocol.go:42
-pub(crate) trait ProjectLifecycleHandler {
+pub trait ProjectLifecycleHandler {
     fn open_project(&self, params: OpenProjectParams) -> Result<(), ipc::Error>;
     fn close_project(&self, params: CloseProjectParams);
 }
@@ -59,7 +59,7 @@ pub(crate) trait ProjectLifecycleHandler {
 // An ipc.Handler of this package. staticProjectHandler asks the handler it wraps whether it is also a
 // projectLifecycleHandler with a type assertion (`h.Handler.(projectLifecycleHandler)`); `project_lifecycle` is that
 // assertion.
-pub(crate) trait TestHandler: Handler {
+pub trait TestHandler: Handler {
     fn project_lifecycle(&self) -> Option<&dyn ProjectLifecycleHandler> {
         None
     }
@@ -107,12 +107,12 @@ impl Handler for StaticProjectHandler {
 }
 
 // Go's `json.Unmarshal(params, &p)` in a handler: the error becomes the handler's error response.
-pub(crate) fn unmarshal_params<T: ProtocolJson>(params: Option<&Value>) -> Result<T, ipc::Error> {
+pub fn unmarshal_params<T: ProtocolJson>(params: Option<&Value>) -> Result<T, ipc::Error> {
     unmarshal(params.cloned()).map_err(ipc::Error::new)
 }
 
 // Go's `json.Value(spanmap.New(segments).Marshal())`: the span map's tuple-array JSON, as the value it is sent as.
-pub(crate) fn marshal_span_map(segments: &[Segment]) -> Result<Value, ipc::Error> {
+pub fn marshal_span_map(segments: &[Segment]) -> Result<Value, ipc::Error> {
     let data = tsrs_spanmap::new(segments).marshal().map_err(ipc::Error::new)?;
     let text =
         tsrs_core::utf8::into_string(data).map_err(|err| ipc::Error::new(err.to_string()))?;
@@ -120,16 +120,16 @@ pub(crate) fn marshal_span_map(segments: &[Segment]) -> Result<Value, ipc::Error
 }
 
 // Go's `string(raw)` of a json.Value: "" when it is empty (absent), else its compact JSON text.
-pub(crate) fn raw_text(raw: Option<&Value>) -> String {
+pub fn raw_text(raw: Option<&Value>) -> String {
     raw.map(|value| json::marshal(value).unwrap_or_default()).unwrap_or_default()
 }
 
 // The handlers' error for a method they do not implement: Go's `fmt.Errorf("contentmappertest: unexpected method %q", method)`.
-pub(crate) fn unexpected_method(method: &str) -> ipc::Error {
+pub fn unexpected_method(method: &str) -> ipc::Error {
     ipc::Error::new(format!("contentmappertest: unexpected method {}", quote(method)))
 }
 
 // Go `strconv.Quote`, which fmt's %q verb uses for a string.
-pub(crate) fn quote(s: &str) -> String {
+pub fn quote(s: &str) -> String {
     tsrs_core::gocompat::quote(s.as_bytes(), tsrs_core::gocompat::QuoteStyle::MapperTest)
 }

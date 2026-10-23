@@ -125,14 +125,15 @@ fn test_resolve_organize_imports_sort() {
 // utilities_test.go:145
 #[test]
 fn test_compare_organize_imports_natural_strings() {
-    let comparer =
-        get_organize_imports_preset_string_comparer(OrganizeImportsSort::NaturalIgnoreCase);
     struct Test {
         name: &'static str,
         a: &'static str,
         b: &'static str,
         want: Ordering,
     }
+
+    let comparer =
+        get_organize_imports_preset_string_comparer(OrganizeImportsSort::NaturalIgnoreCase);
     let tests = [
         Test {
             name: "numeric runs sort by numeric value",

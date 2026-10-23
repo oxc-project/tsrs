@@ -65,10 +65,10 @@ pub fn get_last_visited_child(node: P<Node>, source_file: P<SourceFile>) -> Opti
     let visit_node: VisitNodeFn = {
         let last_child = Rc::clone(&last_child);
         Rc::new(move |n: Option<P<Node>>, _: &mut NodeVisitor| {
-            if let Some(nd) = n {
-                if !nd.flags().intersects(NodeFlags::Reparsed) {
-                    last_child.set(Some(nd));
-                }
+            if let Some(nd) = n
+                && !nd.flags().intersects(NodeFlags::Reparsed)
+            {
+                last_child.set(Some(nd));
             }
             n
         })
@@ -76,12 +76,12 @@ pub fn get_last_visited_child(node: P<Node>, source_file: P<SourceFile>) -> Opti
     let visit_node_list: VisitNodesFn = {
         let last_child = Rc::clone(&last_child);
         Rc::new(move |node_list: Option<P<NodeList>>, _: &mut NodeVisitor| {
-            if let Some(list) = node_list {
-                if let Some(v) = list.nodes().iter().rev().into_iter().find_map(|&v| {
-                    if !v.flags().intersects(NodeFlags::Reparsed) { Some(v) } else { None }
-                }) {
-                    last_child.set(Some(v));
-                }
+            if let Some(list) = node_list
+                && let Some(v) = list.nodes().iter().rev().into_iter().find_map(|&v| {
+                    if v.flags().intersects(NodeFlags::Reparsed) { None } else { Some(v) }
+                })
+            {
+                last_child.set(Some(v));
             }
             node_list
         })

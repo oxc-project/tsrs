@@ -12,7 +12,7 @@ use crate::protocol::{
 };
 
 // editing.go:15
-pub(crate) struct PrefixedSupplementalHandler;
+pub struct PrefixedSupplementalHandler;
 
 impl TestHandler for PrefixedSupplementalHandler {}
 
@@ -39,9 +39,10 @@ impl ipc::Handler for PrefixedSupplementalHandler {
         match method {
             METHOD_INITIALIZE => Ok(initialize_result("mapper").marshal_json()),
             METHOD_TRANSFORM => {
+                const PREFIX: &str = "/* generated */\n";
+
                 let p: TransformParams = unmarshal_params(params)?;
                 let content = p.content.as_str();
-                const PREFIX: &str = "/* generated */\n";
                 let mut features = Feature::All;
                 if p.file_name.contains("folding-disabled")
                     || p.file_name.contains("codelens-disabled")
@@ -55,12 +56,13 @@ impl ipc::Handler for PrefixedSupplementalHandler {
                     ..verbatim_segment(PREFIX.len(), PREFIX.len() + content.len(), 0, content.len())
                 }];
                 if p.file_name.contains("formatting-split") {
+                    const GENERATED: &str = "const generated={x:1};\n";
+
                     let Some(second_start) = content.find("function second") else {
                         return Err(ipc::Error::new(
                             "contentmappertest: formatting-split input is missing function second",
                         ));
                     };
-                    const GENERATED: &str = "const generated={x:1};\n";
                     supplemental_text = format!(
                         "{PREFIX}{}{GENERATED}{}",
                         &content[..second_start],
@@ -82,6 +84,9 @@ impl ipc::Handler for PrefixedSupplementalHandler {
                     ];
                 }
                 if p.file_name.contains("formatting-overlap") {
+                    const WRAPPER_START: &str = "if (true) {\n";
+                    const WRAPPER_END: &str = "}\n";
+
                     let (Some(second_start), Some(third_start)) =
                         (content.find("function second"), content.find("function third"))
                     else {
@@ -89,8 +94,6 @@ impl ipc::Handler for PrefixedSupplementalHandler {
                             "contentmappertest: formatting-overlap input is missing function second or third",
                         ));
                     };
-                    const WRAPPER_START: &str = "if (true) {\n";
-                    const WRAPPER_END: &str = "}\n";
                     supplemental_text =
                         format!("{WRAPPER_START}{}{WRAPPER_END}", &content[second_start..]);
                     segments = vec![verbatim_segment(
@@ -168,7 +171,7 @@ impl ipc::Handler for PrefixedSupplementalHandler {
 }
 
 // editing.go:139
-pub(crate) struct UnmappedFoldingHandler;
+pub struct UnmappedFoldingHandler;
 
 impl TestHandler for UnmappedFoldingHandler {}
 

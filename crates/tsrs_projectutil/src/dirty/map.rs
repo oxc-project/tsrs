@@ -79,12 +79,12 @@ impl<K: Hash + Eq + Clone, T: Cloneable + Clone> MapEntry<K, T> {
         apply: impl FnOnce(&mut T),
     ) -> bool {
         let value = self.st.lock().unwrap().value();
-        if let Some(value) = value {
-            if cond(&value) {
-                drop(value);
-                self.change(apply);
-                return true;
-            }
+        if let Some(value) = value
+            && cond(&value)
+        {
+            drop(value);
+            self.change(apply);
+            return true;
         }
         false
     }

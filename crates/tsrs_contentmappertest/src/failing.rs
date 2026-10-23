@@ -5,7 +5,7 @@ use tsrs_ipc as ipc;
 use crate::protocol::{TestHandler, initialize_result, no_notifications, unexpected_method};
 
 // failing.go:12
-pub(crate) struct FailingHandler;
+pub struct FailingHandler;
 
 impl TestHandler for FailingHandler {}
 

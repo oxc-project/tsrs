@@ -106,10 +106,10 @@ impl ipc::Handler for Handler {
 // transforming.go:83
 fn mapped_extension(content: &str) -> String {
     const PREFIX: &str = "// @box-extension:";
-    if let Some((first_line, _)) = content.split_once('\n') {
-        if let Some(extension) = first_line.strip_prefix(PREFIX) {
-            return extension.trim().to_string();
-        }
+    if let Some((first_line, _)) = content.split_once('\n')
+        && let Some(extension) = first_line.strip_prefix(PREFIX)
+    {
+        return extension.trim().to_string();
     }
     ".ts".to_string()
 }
@@ -202,11 +202,15 @@ impl VirtualWriter {
 
 // transforming.go:169
 fn diagnostic_directives(content: &str, mappings: &SpanMap) -> Option<DiagnosticDirectives> {
+    const INVALID_PREFIX: &str = "// @box-invalid-directive:";
+
+    const IGNORE_PREFIX: &str = "// @box-ignore";
+    const EXPECT_PREFIX: &str = "// @box-expect-error:";
+
     let wrap = |directives: Vec<MappedDiagnosticDirective>,
                 unused: Vec<UnusedExpectDirectiveDiagnostic>| {
         Some(DiagnosticDirectives { unused_expect_directive_diagnostics: unused, directives })
     };
-    const INVALID_PREFIX: &str = "// @box-invalid-directive:";
     if let Some(rest) = content.strip_prefix(INVALID_PREFIX) {
         let directive = |virtual_start: i64,
                          virtual_end: i64,
@@ -258,8 +262,6 @@ fn diagnostic_directives(content: &str, mappings: &SpanMap) -> Option<Diagnostic
             _ => {}
         }
     }
-    const IGNORE_PREFIX: &str = "// @box-ignore";
-    const EXPECT_PREFIX: &str = "// @box-expect-error:";
     let mut result: Vec<MappedDiagnosticDirective> = Vec::new();
     let mut unused_diagnostics: Vec<UnusedExpectDirectiveDiagnostic> = Vec::new();
     let mut line_start = 0;

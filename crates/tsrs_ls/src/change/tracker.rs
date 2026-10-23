@@ -62,7 +62,7 @@ pub enum TrailingTriviaOption {
 
 // tracker.go:58
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub(crate) enum TrackerEditKind {
+pub enum TrackerEditKind {
     Text = 1,
     ReplaceWithSingleNode = 3,
     ReplaceWithMultipleNodes = 4,
@@ -70,7 +70,7 @@ pub(crate) enum TrackerEditKind {
 
 // tracker.go:67
 #[derive(Clone, Debug)]
-pub(crate) struct TrackerEdit {
+pub struct TrackerEdit {
     pub(crate) kind: TrackerEditKind,
     pub(crate) text_range: TextRange,
 
@@ -82,7 +82,7 @@ pub(crate) struct TrackerEdit {
 }
 
 // tracker.go:78
-pub(crate) struct NodesInsertedAtStartState {
+pub struct NodesInsertedAtStartState {
     pub(crate) node: P<Node>,
     pub(crate) source_file: P<SourceFile>,
 }
@@ -118,7 +118,7 @@ impl std::ops::Deref for Tracker {
 
 // tracker.go:107
 #[derive(Clone, Copy)]
-pub(crate) struct DeletedNode {
+pub struct DeletedNode {
     pub(crate) source_file: P<SourceFile>,
     pub(crate) node: P<Node>,
 }
@@ -158,7 +158,7 @@ fn with_format_code_settings(
     ctx.with_value(format::with_format_code_settings(&base, options, new_line))
 }
 
-pub(crate) fn format_context(ctx: &Context) -> format::FormatContext {
+pub fn format_context(ctx: &Context) -> format::FormatContext {
     ctx.value::<format::FormatContext>().cloned().unwrap_or_default()
 }
 
@@ -1229,7 +1229,7 @@ fn range_contains_range_exclusive(outer: P<Node>, inner: P<Node>) -> bool {
 }
 
 // tracker.go:799
-pub(crate) fn is_separator(node: P<Node>, candidate: Option<P<Node>>) -> bool {
+pub fn is_separator(node: P<Node>, candidate: Option<P<Node>>) -> bool {
     let Some(candidate) = candidate else {
         return false;
     };

@@ -178,12 +178,12 @@ fn get_jsdoc_tag_text(tag: P<Node>) -> String {
 }
 
 // jsdoc.go:162
-pub(crate) fn get_jsdoc(node: P<Node>) -> Option<P<Node>> {
+pub fn get_jsdoc(node: P<Node>) -> Option<P<Node>> {
     node.jsdoc(None).last().copied()
 }
 
 // jsdoc.go:166
-pub(crate) fn get_jsdoc_or_tag(
+pub fn get_jsdoc_or_tag(
     c: &mut Checker,
     node: Option<P<Node>>,
     seen_symbols: &mut FxHashSet<P<Symbol>>,
@@ -233,83 +233,69 @@ pub(crate) fn get_jsdoc_or_tag(
         let name = node.property_name_or_name().unwrap();
         if ast::is_identifier(name) {
             let object_type = c.get_type_at_location(node.parent().unwrap());
-            if let Some(prop) = c.get_property_of_type_exported(object_type, name.text()) {
-                if let Some(result) = prop.declarations().iter().find_map(|&d| {
+            if let Some(prop) = c.get_property_of_type_exported(object_type, name.text())
+                && let Some(result) = prop.declarations().iter().find_map(|&d| {
                     if let Some(jsdoc) = get_jsdoc(d) {
                         return Some(Some(jsdoc));
                     }
 
                     None
-                }) {
-                    return result;
-                }
+                })
+            {
+                return result;
             }
         }
     }
-    if let Some(symbol) = node.symbol() {
-        if let Some(parent) = node.parent() {
-            if ast::is_function_declaration(node)
-                || ast::is_method_declaration(node)
-                || ast::is_method_signature_declaration(node)
-                || ast::is_constructor_declaration(node)
-                || ast::is_construct_signature_declaration(node)
+    if let Some(symbol) = node.symbol()
+        && let Some(parent) = node.parent()
+    {
+        if ast::is_function_declaration(node)
+            || ast::is_method_declaration(node)
+            || ast::is_method_signature_declaration(node)
+            || ast::is_constructor_declaration(node)
+            || ast::is_construct_signature_declaration(node)
+        {
+            let first_signature =
+                symbol.declarations().iter().copied().find(|&d| ast::is_function_like(Some(d)));
+            if let Some(first_signature) = first_signature
+                && node != first_signature
+                && let Some(js_doc) = get_jsdoc_or_tag(c, Some(first_signature), seen_symbols)
             {
-                let first_signature =
-                    symbol.declarations().iter().copied().find(|&d| ast::is_function_like(Some(d)));
-                if let Some(first_signature) = first_signature {
-                    if node != first_signature {
-                        if let Some(js_doc) =
-                            get_jsdoc_or_tag(c, Some(first_signature), seen_symbols)
-                        {
-                            return Some(js_doc);
-                        }
-                    }
-                }
+                return Some(js_doc);
             }
-            if ast::is_class_or_interface_like(parent) {
-                let is_static = ast::has_static_modifier(node);
-                let class_type = c.get_declared_type_of_symbol_exported(parent.symbol().unwrap());
-                if is_static {
-                    // For static members, use the checker's base constructor type resolution.
-                    // This correctly handles intersection constructor types from mixins
-                    // (e.g., typeof MixinClass & T) by preserving the full intersection.
-                    let base_constructor_type =
-                        c.get_base_constructor_type_of_class_exported(class_type);
-                    let static_base_type = c.get_apparent_type_exported(base_constructor_type);
-                    if let Some(prop) =
-                        c.get_property_of_type_exported(static_base_type, symbol.name())
-                    {
-                        if let Some(value_declaration) = prop.value_declaration() {
-                            if seen_symbols.insert(prop) {
-                                if let Some(js_doc) =
-                                    get_jsdoc_or_tag(c, Some(value_declaration), seen_symbols)
-                                {
-                                    return Some(js_doc);
-                                }
-                            }
-                        }
-                    }
-                } else if let Some(result) =
-                    c.get_base_types_exported(class_type).iter().find_map(|&base_type| {
-                        if let Some(prop) =
-                            c.get_property_of_type_exported(base_type, symbol.name())
-                        {
-                            if let Some(value_declaration) = prop.value_declaration() {
-                                if seen_symbols.insert(prop) {
-                                    if let Some(js_doc) =
-                                        get_jsdoc_or_tag(c, Some(value_declaration), seen_symbols)
-                                    {
-                                        return Some(Some(js_doc));
-                                    }
-                                }
-                            }
-                        }
-
-                        None
-                    })
+        }
+        if ast::is_class_or_interface_like(parent) {
+            let is_static = ast::has_static_modifier(node);
+            let class_type = c.get_declared_type_of_symbol_exported(parent.symbol().unwrap());
+            if is_static {
+                // For static members, use the checker's base constructor type resolution.
+                // This correctly handles intersection constructor types from mixins
+                // (e.g., typeof MixinClass & T) by preserving the full intersection.
+                let base_constructor_type =
+                    c.get_base_constructor_type_of_class_exported(class_type);
+                let static_base_type = c.get_apparent_type_exported(base_constructor_type);
+                if let Some(prop) = c.get_property_of_type_exported(static_base_type, symbol.name())
+                    && let Some(value_declaration) = prop.value_declaration()
+                    && seen_symbols.insert(prop)
+                    && let Some(js_doc) = get_jsdoc_or_tag(c, Some(value_declaration), seen_symbols)
                 {
-                    return result;
+                    return Some(js_doc);
                 }
+            } else if let Some(result) =
+                c.get_base_types_exported(class_type).iter().find_map(|&base_type| {
+                    if let Some(prop) = c.get_property_of_type_exported(base_type, symbol.name())
+                        && let Some(value_declaration) = prop.value_declaration()
+                        && seen_symbols.insert(prop)
+                        && let Some(js_doc) =
+                            get_jsdoc_or_tag(c, Some(value_declaration), seen_symbols)
+                    {
+                        return Some(Some(js_doc));
+                    }
+
+                    None
+                })
+            {
+                return result;
             }
         }
     }
@@ -324,18 +310,15 @@ fn get_matching_jsdoc_tag(
     match_: fn(P<Node>, &str) -> bool,
     seen_symbols: &mut FxHashSet<P<Symbol>>,
 ) -> Option<P<Node>> {
-    if let Some(jsdoc) = get_jsdoc_or_tag(c, Some(node), seen_symbols) {
-        if jsdoc.kind() == Kind::JSDoc {
-            if let Some(tags) = jsdoc.as_jsdoc().tags {
-                if let Some(result) = tags
-                    .nodes()
-                    .iter()
-                    .find_map(|&tag| if match_(tag, name) { Some(Some(tag)) } else { None })
-                {
-                    return result;
-                }
-            }
-        }
+    if let Some(jsdoc) = get_jsdoc_or_tag(c, Some(node), seen_symbols)
+        && jsdoc.kind() == Kind::JSDoc
+        && let Some(tags) = jsdoc.as_jsdoc().tags
+        && let Some(result) = tags
+            .nodes()
+            .iter()
+            .find_map(|&tag| if match_(tag, name) { Some(Some(tag)) } else { None })
+    {
+        return result;
     }
     None
 }
@@ -387,7 +370,7 @@ fn is_node_with_name(node: P<Node>, name: &str) -> bool {
 }
 
 // jsdoc.go:304
-pub(crate) fn no_mapped_location(
+pub fn no_mapped_location(
     _file: P<SourceFile>,
     _range: TextRange,
 ) -> (lsproto::Location, Fidelity) {

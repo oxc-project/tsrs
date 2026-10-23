@@ -170,16 +170,16 @@ fn convert_map_fs(input: Vec<(String, MapFile)>, use_case_sensitive_file_names: 
     let mut input_map: FxHashMap<String, MapFile> = FxHashMap::default();
     for (path, file) in input {
         let canonical = m.get_canonical_path(&path);
-        if let Some(other) = canonical_paths.get(&canonical) {
-            if *other != path {
-                // Ensure consistent panic messages
-                let (path, other) = if path.as_str() < other.as_str() {
-                    (path.as_str(), other.as_str())
-                } else {
-                    (other.as_str(), path.as_str())
-                };
-                panic!("duplicate path: {path:?} and {other:?} have the same canonical path");
-            }
+        if let Some(other) = canonical_paths.get(&canonical)
+            && *other != path
+        {
+            // Ensure consistent panic messages
+            let (path, other) = if path.as_str() < other.as_str() {
+                (path.as_str(), other.as_str())
+            } else {
+                (other.as_str(), path.as_str())
+            };
+            panic!("duplicate path: {path:?} and {other:?} have the same canonical path");
         }
         canonical_paths.insert(canonical, path.clone());
         input_map.insert(path, file);
@@ -199,12 +199,11 @@ fn convert_map_fs(input: Vec<(String, MapFile)>, use_case_sensitive_file_names: 
             // fstest.MapFS doesn't require this as it synthesizes directories on the fly, but it's a lot
             // harder to reapply a realpath onto those when we're deep in some FileInfo method.
             let dir = dir_name(&p);
-            if !dir.is_empty() {
-                if let Err(err) =
+            if !dir.is_empty()
+                && let Err(err) =
                     m.mkdir_all_locked(&mut inner, dir, FileMode::from_bits_retain(0o777))
-                {
-                    panic!("failed to create intermediate directories for {p:?}: {err}");
-                }
+            {
+                panic!("failed to create intermediate directories for {p:?}: {err}");
             }
             let canonical = m.get_canonical_path(&p);
             m.set_entry(&mut inner, &p, &canonical, file);
@@ -316,10 +315,10 @@ impl MapFS {
         symlink_from: String,
         symlink_to: String,
     ) -> (String, Result<(), FsError>) {
-        if let Some(file) = inner.m.get(&p) {
-            if !file.file.mode.intersects(FileMode::Symlink) {
-                return (p, Ok(()));
-            }
+        if let Some(file) = inner.m.get(&p)
+            && !file.file.mode.intersects(FileMode::Symlink)
+        {
+            return (p, Ok(()));
         }
 
         if let Some(target) = inner.symlinks.get(&p) {
@@ -348,10 +347,10 @@ impl MapFS {
             );
         }
 
-        let err = if !symlink_from.is_empty() {
-            FsError::BrokenSymlink { from: symlink_from, to: symlink_to }
-        } else {
+        let err = if symlink_from.is_empty() {
             FsError::NotExist
+        } else {
+            FsError::BrokenSymlink { from: symlink_from, to: symlink_to }
         };
         (p, Err(err))
     }
@@ -463,14 +462,14 @@ impl MapFS {
         }
 
         let file = inner.m.get(&cp);
-        if let Some(file) = file {
-            if !file.file.mode.is_dir() {
-                // Ordinary file
-                return Ok(Opened::File {
-                    info: Self::convert_info(file),
-                    data: file.file.data.clone(),
-                });
-            }
+        if let Some(file) = file
+            && !file.file.mode.is_dir()
+        {
+            // Ordinary file
+            return Ok(Opened::File {
+                info: Self::convert_info(file),
+                data: file.file.data.clone(),
+            });
         }
 
         // Directory, possibly synthesized.
@@ -490,13 +489,13 @@ impl MapFS {
             if cp == "." && fname == "." {
                 continue;
             }
-            if !felem.contains('/') {
+            if felem.contains('/') {
+                has_synthesized_child = true;
+            } else {
                 entries.push(IoDirEntry {
                     name: base_name(&f.realpath).to_string(),
                     type_: f.file.mode.type_(),
                 });
-            } else {
-                has_synthesized_child = true;
             }
         }
         // If the directory name is not in the map,
@@ -678,13 +677,10 @@ impl MapFS {
         let path = path.strip_prefix('/').unwrap_or(path);
         let inner = self.inner.read().unwrap();
         let canonical = self.get_canonical_path(path);
-        if let Some(file_info) = inner.m.get(&canonical) {
-            if file_info.file.mode.intersects(FileMode::Symlink) {
-                return Some(format!(
-                    "/{}",
-                    tsrs_core::utf8::from_utf8_lossy(&file_info.file.data)
-                ));
-            }
+        if let Some(file_info) = inner.m.get(&canonical)
+            && file_info.file.mode.intersects(FileMode::Symlink)
+        {
+            return Some(format!("/{}", tsrs_core::utf8::from_utf8_lossy(&file_info.file.data)));
         }
         None
     }

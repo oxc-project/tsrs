@@ -11,7 +11,7 @@ use crate::dynamic_queue::wait_until;
 use crate::server::Server;
 
 // progress.go:13. Go's `args []any` are stringified when the event is created (they cross threads).
-pub(crate) struct ProgressEvent {
+pub struct ProgressEvent {
     pub(crate) message: &'static Message,
     pub(crate) args: Vec<String>,
     pub(crate) finish: bool,
@@ -21,7 +21,7 @@ pub(crate) struct ProgressEvent {
 // progressReporter abstracts the LSP transport operations needed by
 // projectLoadingProgress so the progress logic can be tested without a
 // full Server instance.
-pub(crate) trait ProgressReporter: Send + Sync {
+pub trait ProgressReporter: Send + Sync {
     // done returns a context that is canceled when the server is shutting down (Go: a channel that is closed).
     fn done(&self) -> Context;
     // localize converts a diagnostic message to a display string.
@@ -91,7 +91,7 @@ impl ProgressReporter for ServerProgressReporter {
 const PROGRESS_CHANNEL_CAPACITY: usize = 64;
 
 // Go's `ch chan progressEvent` (buffered, 64): a bounded queue; senders block while it is full.
-pub(crate) struct ProgressChannel {
+pub struct ProgressChannel {
     state: Mutex<ProgressChannelState>,
     // Signaled when an event is queued or the reporter is done (the run thread waits on it).
     not_empty: Condvar,
@@ -99,7 +99,7 @@ pub(crate) struct ProgressChannel {
     not_full: Condvar,
 }
 
-pub(crate) struct ProgressChannelState {
+pub struct ProgressChannelState {
     pub(crate) events: VecDeque<ProgressEvent>,
     // Test support (Go's synctest.Wait): the run thread is blocked waiting for an event, the timer or done.
     idle: bool,
@@ -118,14 +118,14 @@ pub(crate) struct ProgressChannelState {
 //
 // start/finish may block if the internal buffer (64 events) is full,
 // but will bail out if the server's background context is cancelled.
-pub(crate) struct ProjectLoadingProgress {
+pub struct ProjectLoadingProgress {
     reporter: Arc<dyn ProgressReporter>,
     pub(crate) ch: Arc<ProgressChannel>,
     delay: Duration, // time to wait before showing progress UI
 }
 
 // progress.go:76
-pub(crate) fn new_project_loading_progress(
+pub fn new_project_loading_progress(
     server: Weak<Server>,
     delay: Duration,
 ) -> Arc<ProjectLoadingProgress> {
@@ -133,7 +133,7 @@ pub(crate) fn new_project_loading_progress(
 }
 
 // progress.go:80
-pub(crate) fn new_project_loading_progress_from_reporter(
+pub fn new_project_loading_progress_from_reporter(
     reporter: Arc<dyn ProgressReporter>,
     delay: Duration,
 ) -> Arc<ProjectLoadingProgress> {
@@ -197,6 +197,12 @@ impl ProjectLoadingProgress {
     // run is the persistent goroutine that processes all progress events.
     // It owns all mutable state: no external synchronization needed.
     fn run(&self) {
+        enum Selected {
+            Event(ProgressEvent),
+            Delay,
+            Done,
+        }
+
         let mut loading: OrderedMap<String, usize> = OrderedMap::default();
         let mut token = String::new(); // current token; empty if no progress active
         let mut token_id: usize = 0;
@@ -213,12 +219,6 @@ impl ProjectLoadingProgress {
             drop(ch.state.lock().unwrap());
             ch.not_empty.notify_all();
         });
-
-        enum Selected {
-            Event(ProgressEvent),
-            Delay,
-            Done,
-        }
 
         loop {
             let sel = {
@@ -250,24 +250,7 @@ impl ProjectLoadingProgress {
             match sel {
                 Selected::Event(ev) => {
                     let text = self.reporter.localize(ev.message, &ev.args);
-                    if !ev.finish {
-                        *loading.entry(text.clone()).or_default() += 1;
-                        if token.is_empty() {
-                            token_id += 1;
-                            token = format!("tsgo-loading-{token_id}");
-                            begun = false;
-                            if self.delay.is_zero() {
-                                delay_fired = true;
-                                self.reporter.create_work_done_progress(&token);
-                            } else {
-                                delay_fired = false;
-                                delay = Some(Instant::now() + self.delay);
-                            }
-                        }
-                        if delay_fired {
-                            begun = self.begin_or_report(&token, &text, begun);
-                        }
-                    } else {
+                    if ev.finish {
                         if let Some(count) = loading.get_mut(&text) {
                             if *count <= 1 {
                                 loading.shift_remove(&text);
@@ -303,6 +286,23 @@ impl ProjectLoadingProgress {
                                 },
                             );
                         }
+                    } else {
+                        *loading.entry(text.clone()).or_default() += 1;
+                        if token.is_empty() {
+                            token_id += 1;
+                            token = format!("tsgo-loading-{token_id}");
+                            begun = false;
+                            if self.delay.is_zero() {
+                                delay_fired = true;
+                                self.reporter.create_work_done_progress(&token);
+                            } else {
+                                delay_fired = false;
+                                delay = Some(Instant::now() + self.delay);
+                            }
+                        }
+                        if delay_fired {
+                            begun = self.begin_or_report(&token, &text, begun);
+                        }
                     }
                 }
 
@@ -329,13 +329,11 @@ impl ProjectLoadingProgress {
     // beginOrReport sends WorkDoneProgressBegin if not yet begun, otherwise
     // sends WorkDoneProgressReport. Returns true to indicate begun state.
     fn begin_or_report(&self, token: &str, text: &str, begun: bool) -> bool {
-        if !begun {
-            let title = self.reporter.localize(&tsrs_diagnostics::LOADING, &[]);
+        if begun {
             self.reporter.send_progress(
                 token,
                 lsproto::WorkDoneProgressBeginOrReportOrEnd {
-                    begin: Some(lsproto::WorkDoneProgressBegin {
-                        title,
+                    report: Some(lsproto::WorkDoneProgressReport {
                         message: Some(text.to_string()),
                         ..Default::default()
                     }),
@@ -343,10 +341,12 @@ impl ProjectLoadingProgress {
                 },
             );
         } else {
+            let title = self.reporter.localize(&tsrs_diagnostics::LOADING, &[]);
             self.reporter.send_progress(
                 token,
                 lsproto::WorkDoneProgressBeginOrReportOrEnd {
-                    report: Some(lsproto::WorkDoneProgressReport {
+                    begin: Some(lsproto::WorkDoneProgressBegin {
+                        title,
                         message: Some(text.to_string()),
                         ..Default::default()
                     }),

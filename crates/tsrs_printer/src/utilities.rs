@@ -8,7 +8,7 @@ use crate::*;
 bitflags::bitflags! {
     #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Debug, Default)]
     #[expect(non_camel_case_types, reason = "Keep the upstream bitflags type name.")]
-    pub(crate) struct getLiteralTextFlags: u32 {
+    pub struct getLiteralTextFlags: u32 {
         const None = 0;
         const NeverAsciiEscape = 1 << 0;
         const JsxAttributeEscape = 1 << 1;
@@ -71,7 +71,7 @@ fn encode_utf16_escape_sequence(b: &mut String, char_code: stringutil::Rune) {
 // Based heavily on the abstract 'Quote'/'QuoteJSONString' operation from ECMA-262 (24.3.2.2),
 // but augmented for a few select characters (e.g. lineSeparator, paragraphSeparator, nextLine)
 // Note that this doesn't actually wrap the input in double quotes.
-pub(crate) fn escape_string_worker(
+pub fn escape_string_worker(
     s: &str,
     quote_char: QuoteChar,
     flags: getLiteralTextFlags,
@@ -196,13 +196,13 @@ pub fn escape_string(s: &str, quote_char: QuoteChar) -> String {
     b
 }
 
-pub(crate) fn escape_non_ascii_string(s: &str, quote_char: QuoteChar) -> String {
+pub fn escape_non_ascii_string(s: &str, quote_char: QuoteChar) -> String {
     let mut b = String::with_capacity(s.len() + 2);
     escape_string_worker(s, quote_char, getLiteralTextFlags::None, &mut b);
     b
 }
 
-pub(crate) fn escape_jsx_attribute_string(s: &str, quote_char: QuoteChar) -> String {
+pub fn escape_jsx_attribute_string(s: &str, quote_char: QuoteChar) -> String {
     let mut b = String::with_capacity(s.len() + 2);
     escape_string_worker(
         s,
@@ -213,7 +213,7 @@ pub(crate) fn escape_jsx_attribute_string(s: &str, quote_char: QuoteChar) -> Str
     b
 }
 
-pub(crate) fn can_use_original_text(node: P<Node>, flags: getLiteralTextFlags) -> bool {
+pub fn can_use_original_text(node: P<Node>, flags: getLiteralTextFlags) -> bool {
     // A synthetic node has no original text, nor does a node without a parent as we would be unable to find the
     // containing SourceFile. We also cannot use the original text if the literal was unterminated and the caller has
     // requested proper termination of unterminated literals
@@ -245,21 +245,21 @@ pub(crate) fn can_use_original_text(node: P<Node>, flags: getLiteralTextFlags) -
     node.kind() != Kind::BigIntLiteral
 }
 
-pub(crate) fn get_literal_text(
+pub fn get_literal_text(
     node: P<Node>,
     source_file: Option<P<SourceFile>>,
     flags: getLiteralTextFlags,
 ) -> String {
     // If we don't need to downlevel and we can reach the original source text using
     // the node's parent reference, then simply get the text as it was originally written.
-    if let Some(source_file) = source_file {
-        if can_use_original_text(node, flags) {
-            return scanner::get_source_text_of_node_from_source_file(
-                source_file,
-                node,
-                false, /*includeTrivia*/
-            );
-        }
+    if let Some(source_file) = source_file
+        && can_use_original_text(node, flags)
+    {
+        return scanner::get_source_text_of_node_from_source_file(
+            source_file,
+            node,
+            false, /*includeTrivia*/
+        );
     }
 
     // If we can't reach the original source text, use the canonical form if it's a number,
@@ -380,7 +380,7 @@ pub fn range_start_positions_are_on_same_line(
     )
 }
 
-pub(crate) fn range_end_positions_are_on_same_line(
+pub fn range_end_positions_are_on_same_line(
     range1: TextRange,
     range2: TextRange,
     source_file: P<SourceFile>,
@@ -388,7 +388,7 @@ pub(crate) fn range_end_positions_are_on_same_line(
     positions_are_on_same_line(range1.end(), range2.end(), source_file)
 }
 
-pub(crate) fn range_start_is_on_same_line_as_range_end(
+pub fn range_start_is_on_same_line_as_range_end(
     range1: TextRange,
     range2: TextRange,
     source_file: P<SourceFile>,
@@ -400,7 +400,7 @@ pub(crate) fn range_start_is_on_same_line_as_range_end(
     )
 }
 
-pub(crate) fn range_end_is_on_same_line_as_range_start(
+pub fn range_end_is_on_same_line_as_range_start(
     range1: TextRange,
     range2: TextRange,
     source_file: P<SourceFile>,
@@ -412,7 +412,7 @@ pub(crate) fn range_end_is_on_same_line_as_range_start(
     )
 }
 
-pub(crate) fn get_start_position_of_range(
+pub fn get_start_position_of_range(
     r: TextRange,
     source_file: P<SourceFile>,
     include_comments: bool,
@@ -487,7 +487,7 @@ pub fn get_lines_between_positions(
     }
 }
 
-pub(crate) fn get_lines_between_range_end_and_range_start(
+pub fn get_lines_between_range_end_and_range_start(
     range1: TextRange,
     range2: TextRange,
     source_file: P<SourceFile>,
@@ -498,7 +498,7 @@ pub(crate) fn get_lines_between_range_end_and_range_start(
     get_lines_between_positions(source_file, range1.end(), range2_start)
 }
 
-pub(crate) fn get_lines_between_position_and_preceding_non_whitespace_character(
+pub fn get_lines_between_position_and_preceding_non_whitespace_character(
     pos: TextPos,
     stop_pos: TextPos,
     source_file: P<SourceFile>,
@@ -518,7 +518,7 @@ pub(crate) fn get_lines_between_position_and_preceding_non_whitespace_character(
     get_lines_between_positions(source_file, prev_pos.unwrap_or(stop_pos).into(), start_pos.into())
 }
 
-pub(crate) fn get_lines_between_position_and_next_non_whitespace_character(
+pub fn get_lines_between_position_and_next_non_whitespace_character(
     pos: TextPos,
     stop_pos: TextPos,
     source_file: P<SourceFile>,
@@ -537,7 +537,7 @@ pub(crate) fn get_lines_between_position_and_next_non_whitespace_character(
     get_lines_between_positions(source_file, pos.into(), stop_pos.min(next_pos).into())
 }
 
-pub(crate) fn get_previous_non_whitespace_position(
+pub fn get_previous_non_whitespace_position(
     pos: u32,
     stop_pos: u32,
     source_file: P<SourceFile>,
@@ -556,7 +556,7 @@ pub(crate) fn get_previous_non_whitespace_position(
     None
 }
 
-pub(crate) fn sibling_node_positions_are_comparable(
+pub fn sibling_node_positions_are_comparable(
     emit_context: P<EmitContext>,
     previous_node: P<Node>,
     next_node: P<Node>,
@@ -591,7 +591,7 @@ fn modifier_node_list(modifiers: P<ModifierList>) -> P<NodeList> {
     P::from_static(&modifiers.get().list)
 }
 
-pub(crate) fn get_containing_node_array(node: P<Node>) -> Option<P<NodeList>> {
+pub fn get_containing_node_array(node: P<Node>) -> Option<P<NodeList>> {
     let parent = node.parent()?;
 
     match node.kind() {
@@ -615,10 +615,10 @@ pub(crate) fn get_containing_node_array(node: P<Node>) -> Option<P<NodeList>> {
         }
         Kind::TemplateSpan => return Some(parent.as_template_expression().template_spans),
         Kind::Decorator => {
-            if can_have_decorators(parent) {
-                if let Some(modifiers) = parent.modifiers() {
-                    return Some(modifier_node_list(modifiers));
-                }
+            if can_have_decorators(parent)
+                && let Some(modifiers) = parent.modifiers()
+            {
+                return Some(modifier_node_list(modifiers));
             }
             return None;
         }
@@ -698,16 +698,16 @@ pub(crate) fn get_containing_node_array(node: P<Node>) -> Option<P<NodeList>> {
         _ => {}
     }
 
-    if is_modifier(node) {
-        if let Some(modifiers) = parent.modifiers() {
-            return Some(modifier_node_list(modifiers));
-        }
+    if is_modifier(node)
+        && let Some(modifiers) = parent.modifiers()
+    {
+        return Some(modifier_node_list(modifiers));
     }
 
     None
 }
 
-pub(crate) fn can_have_decorators(node: P<Node>) -> bool {
+pub fn can_have_decorators(node: P<Node>) -> bool {
     matches!(
         node.kind(),
         Kind::Parameter
@@ -720,7 +720,7 @@ pub(crate) fn can_have_decorators(node: P<Node>) -> bool {
     )
 }
 
-pub(crate) fn original_nodes_have_same_parent(
+pub fn original_nodes_have_same_parent(
     emit_context: P<EmitContext>,
     node_a: P<Node>,
     node_b: P<Node>,
@@ -736,7 +736,7 @@ pub(crate) fn original_nodes_have_same_parent(
 }
 
 /// Go `tryGetEnd`: the values `greatestEnd` accepts (nil-able nodes, node lists, modifier lists, text ranges).
-pub(crate) trait TryGetEnd {
+pub trait TryGetEnd {
     fn try_get_end(&self) -> Option<TextPos>;
 }
 
@@ -770,19 +770,19 @@ impl TryGetEnd for TextRange {
     }
 }
 
-pub(crate) fn greatest_end(end: TextPos, nodes: &[&dyn TryGetEnd]) -> TextPos {
+pub fn greatest_end(end: TextPos, nodes: &[&dyn TryGetEnd]) -> TextPos {
     let mut end = end;
     for node in nodes.iter().rev() {
-        if let Some(node_end) = node.try_get_end() {
-            if end < node_end {
-                end = node_end;
-            }
+        if let Some(node_end) = node.try_get_end()
+            && end < node_end
+        {
+            end = node_end;
         }
     }
     end
 }
 
-pub(crate) fn skip_synthesized_parentheses(node: P<Node>) -> P<Node> {
+pub fn skip_synthesized_parentheses(node: P<Node>) -> P<Node> {
     let mut node = node;
     while node.kind() == Kind::ParenthesizedExpression && node_is_synthesized(node) {
         node = node.expression().unwrap();
@@ -790,17 +790,17 @@ pub(crate) fn skip_synthesized_parentheses(node: P<Node>) -> P<Node> {
     node
 }
 
-pub(crate) fn is_new_expression_without_arguments(node: P<Node>) -> bool {
+pub fn is_new_expression_without_arguments(node: P<Node>) -> bool {
     node.kind() == Kind::NewExpression && node.argument_list().is_none()
 }
 
-pub(crate) fn is_binary_operation(node: P<Node>, token: Kind) -> bool {
+pub fn is_binary_operation(node: P<Node>, token: Kind) -> bool {
     let node = skip_partially_emitted_expressions(node);
     node.kind() == Kind::BinaryExpression
         && node.as_binary_expression().operator_token.kind() == token
 }
 
-pub(crate) fn mixing_binary_operators_requires_parentheses(a: Kind, b: Kind) -> bool {
+pub fn mixing_binary_operators_requires_parentheses(a: Kind, b: Kind) -> bool {
     if a == Kind::QuestionQuestionToken {
         return b == Kind::AmpersandAmpersandToken || b == Kind::BarBarToken;
     }
@@ -810,7 +810,7 @@ pub(crate) fn mixing_binary_operators_requires_parentheses(a: Kind, b: Kind) -> 
     false
 }
 
-pub(crate) fn is_immediately_invoked_function_expression_or_arrow_function(node: P<Node>) -> bool {
+pub fn is_immediately_invoked_function_expression_or_arrow_function(node: P<Node>) -> bool {
     let node = skip_partially_emitted_expressions(node);
     if !is_call_expression(node) {
         return false;
@@ -819,15 +819,15 @@ pub(crate) fn is_immediately_invoked_function_expression_or_arrow_function(node:
     is_function_expression(node) || is_arrow_function(node)
 }
 
-pub(crate) fn has_leading_hash(text: &str) -> bool {
+pub fn has_leading_hash(text: &str) -> bool {
     !text.is_empty() && text.as_bytes()[0] == b'#'
 }
 
-pub(crate) fn remove_leading_hash(text: &str) -> &str {
+pub fn remove_leading_hash(text: &str) -> &str {
     if has_leading_hash(text) { &text[1..] } else { text }
 }
 
-pub(crate) fn ensure_leading_hash(text: &str) -> String {
+pub fn ensure_leading_hash(text: &str) -> String {
     if has_leading_hash(text) { text.to_string() } else { format!("#{text}") }
 }
 
@@ -844,11 +844,11 @@ pub fn format_generated_name(private_name: bool, prefix: &str, base: &str, suffi
     name
 }
 
-pub(crate) fn is_ascii_word_character(ch: stringutil::Rune) -> bool {
+pub fn is_ascii_word_character(ch: stringutil::Rune) -> bool {
     stringutil::is_ascii_letter(ch) || stringutil::is_digit(ch) || ch == '_' as stringutil::Rune
 }
 
-pub(crate) fn make_identifier_from_module_name(module_name: &str) -> String {
+pub fn make_identifier_from_module_name(module_name: &str) -> String {
     let module_name = tspath::get_base_file_name(module_name);
     let bytes = module_name.as_bytes();
     let mut builder = String::new();
@@ -874,7 +874,7 @@ pub(crate) fn make_identifier_from_module_name(module_name: &str) -> String {
 }
 
 // utilities.go:706
-pub(crate) fn find_span_end_with_emit_context<T: Copy>(
+pub fn find_span_end_with_emit_context<T: Copy>(
     c: &EmitContext,
     array: &[T],
     test: impl Fn(&EmitContext, T) -> bool,
@@ -886,7 +886,7 @@ pub(crate) fn find_span_end_with_emit_context<T: Copy>(
 }
 
 // utilities.go:714
-pub(crate) fn find_span_end<T: Copy>(array: &[T], test: impl Fn(T) -> bool, start: usize) -> usize {
+pub fn find_span_end<T: Copy>(array: &[T], test: impl Fn(T) -> bool, start: usize) -> usize {
     let mut i = start;
     i += (i..array.len()).take_while(|&index| test(array[index])).count();
     i
@@ -1023,7 +1023,7 @@ pub fn is_recognized_triple_slash_comment(text: &str, comment_range: CommentRang
     false
 }
 
-pub(crate) fn is_jsdoc_like_text(text: &str, comment: CommentRange) -> bool {
+pub fn is_jsdoc_like_text(text: &str, comment: CommentRange) -> bool {
     let bytes = text.as_bytes();
     comment.kind == Kind::MultiLineCommentTrivia
         && comment.text_range.len().is_some_and(|len| len >= 5)
@@ -1037,7 +1037,7 @@ pub fn is_pinned_comment(text: &str, comment: CommentRange) -> bool {
         && text.as_bytes()[comment.pos() as usize + 2] == b'!'
 }
 
-pub(crate) fn calculate_indent(text: &str, pos: u32, end: u32) -> i32 {
+pub fn calculate_indent(text: &str, pos: u32, end: u32) -> i32 {
     let mut pos = pos as usize;
     let end = end as usize;
     let mut current_line_indent = 0;
@@ -1070,7 +1070,7 @@ pub(crate) fn calculate_indent(text: &str, pos: u32, end: u32) -> i32 {
 //
 // Character offsets are measured in UTF-16 code units per the source map specification.
 #[derive(Clone, Copy)]
-pub(crate) struct LineCharacterCache {
+pub struct LineCharacterCache {
     pub(crate) line_map: &'static [u32],
     pub(crate) text: &'static str,
     pub(crate) cached_line: usize,
@@ -1080,9 +1080,7 @@ pub(crate) struct LineCharacterCache {
 }
 
 // utilities.go:903
-pub(crate) fn new_line_character_cache(
-    source: &'static dyn tsrs_sourcemap::Source,
-) -> LineCharacterCache {
+pub fn new_line_character_cache(source: &'static dyn tsrs_sourcemap::Source) -> LineCharacterCache {
     LineCharacterCache {
         line_map: source.ecma_line_map(),
         text: source.text(),

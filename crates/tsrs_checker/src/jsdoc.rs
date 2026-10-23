@@ -94,7 +94,7 @@ impl Checker {
 }
 
 // jsdoc.go:86
-pub(crate) fn get_all_jsdoc_tags(node: P<Node>) -> Vec<P<Node>> {
+pub fn get_all_jsdoc_tags(node: P<Node>) -> Vec<P<Node>> {
     if !node.flags().intersects(NodeFlags::JSDoc) {
         let mut current = Some(node);
         while let Some(cur) = current {

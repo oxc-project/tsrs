@@ -228,7 +228,7 @@ fn accumulate_global_diagnostics(all: &[P<Diagnostic>]) -> Vec<P<Diagnostic>> {
 }
 
 // checkerpool.go:84
-pub(crate) fn new_checker_pool(
+pub fn new_checker_pool(
     mut opts: CheckerPoolOptions,
     program: &'static Program,
     log: Option<Box<dyn Fn(&str) + Send + Sync>>,
@@ -281,7 +281,7 @@ fn hold_tag(request_id: &str) -> String {
 }
 
 // The `CheckerPool` the program calls (Go: `*checkerPool` itself).
-pub(crate) struct CheckerPoolHandle(pub(crate) Arc<CheckerPoolImpl>);
+pub struct CheckerPoolHandle(pub(crate) Arc<CheckerPoolImpl>);
 
 impl CheckerPool for CheckerPoolHandle {
     fn get_checker(&self, ctx: &Context, file: Option<P<SourceFile>>) -> CheckerHandle {
@@ -534,17 +534,18 @@ impl CheckerPoolImpl {
         let mut st = self.mu.lock().unwrap();
 
         // Try file affinity.
-        if let Some(file) = file {
-            if let Some(&index) = st.file_associations.get(&file) {
-                if index > 0 && st.checkers[index].is_some() && st.held_by[index].is_empty() {
-                    st.held_by[index] = hold_tag(request_id);
-                    if !request_id.is_empty() && !st.request_associations.contains_key(request_id) {
-                        st.request_associations.insert(request_id.to_string(), index);
-                        self.register_request_cleanup(ctx, request_id);
-                    }
-                    return self.create_release(ctx, &mut st, request_id, index);
-                }
+        if let Some(file) = file
+            && let Some(&index) = st.file_associations.get(&file)
+            && index > 0
+            && st.checkers[index].is_some()
+            && st.held_by[index].is_empty()
+        {
+            st.held_by[index] = hold_tag(request_id);
+            if !request_id.is_empty() && !st.request_associations.contains_key(request_id) {
+                st.request_associations.insert(request_id.to_string(), index);
+                self.register_request_cleanup(ctx, request_id);
             }
+            return self.create_release(ctx, &mut st, request_id, index);
         }
 
         // Find any available query checker or create one.
@@ -914,7 +915,7 @@ impl CheckerPoolImpl {
 }
 
 #[cfg(test)]
-pub(crate) struct CheckerPoolTestView {
+pub struct CheckerPoolTestView {
     pub(crate) checkers: Vec<bool>,
     #[expect(
         dead_code,

@@ -91,18 +91,18 @@ impl ConstEnumInliningTransformer {
 
                 if self.compiler_options.remove_comments.is_false_or_unknown() {
                     let original = emit_context.most_original(Some(node));
-                    if let Some(original) = original {
-                        if !ast::node_is_synthesized(original) {
-                            let original_text = scanner::get_text_of_node(original);
-                            let escaped_text = safe_multi_line_comment(&original_text);
-                            // Go dereferences a nil replacement here (a boolean constant value cannot occur).
-                            emit_context.add_synthetic_trailing_comment(
-                                replacement.unwrap(),
-                                Kind::MultiLineCommentTrivia,
-                                &escaped_text,
-                                false,
-                            );
-                        }
+                    if let Some(original) = original
+                        && !ast::node_is_synthesized(original)
+                    {
+                        let original_text = scanner::get_text_of_node(original);
+                        let escaped_text = safe_multi_line_comment(&original_text);
+                        // Go dereferences a nil replacement here (a boolean constant value cannot occur).
+                        emit_context.add_synthetic_trailing_comment(
+                            replacement.unwrap(),
+                            Kind::MultiLineCommentTrivia,
+                            &escaped_text,
+                            false,
+                        );
                     }
                 }
                 return replacement;

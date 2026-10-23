@@ -63,10 +63,10 @@ pub fn new_reference_resolver<H: 'static>(
 
 impl<H: 'static> ReferenceResolver<H> {
     fn get_resolved_symbol(&self, h: &mut H, node: Option<P<Node>>) -> Option<P<Symbol>> {
-        if let Some(node) = node {
-            if let Some(hook) = self.hooks.get_resolved_symbol {
-                return hook(h, node);
-            }
+        if let Some(node) = node
+            && let Some(hook) = self.hooks.get_resolved_symbol
+        {
+            return hook(h, node);
         }
         None
     }
@@ -117,12 +117,12 @@ impl<H: 'static> ReferenceResolver<H> {
         }
 
         let mut location = Some(reference);
-        if start_in_declaration_container {
-            if let Some(parent) = reference.parent() {
-                if ast::is_declaration(parent) && parent.name() == Some(reference) {
-                    location = ast::get_declaration_container(parent);
-                }
-            }
+        if start_in_declaration_container
+            && let Some(parent) = reference.parent()
+            && ast::is_declaration(parent)
+            && parent.name() == Some(reference)
+        {
+            location = ast::get_declaration_container(parent);
         }
 
         if let Some(resolve_name) = self.hooks.resolve_name {
@@ -194,10 +194,10 @@ impl<H: 'static> ReferenceResolver<H> {
             if let Some(hook) = self.hooks.get_export_symbol_of_value_symbol_if_exported {
                 return hook(h, symbol);
             }
-            if symbol.flags().intersects(SymbolFlags::ExportValue) {
-                if let Some(export_symbol) = symbol.export_symbol() {
-                    symbol = export_symbol;
-                }
+            if symbol.flags().intersects(SymbolFlags::ExportValue)
+                && let Some(export_symbol) = symbol.export_symbol()
+            {
+                symbol = export_symbol;
             }
             return self.get_merged_symbol(h, Some(symbol));
         }
@@ -236,20 +236,19 @@ impl<H: 'static> ReferenceResolver<H> {
             }
             let parent_symbol = self.get_parent_of_symbol(h, Some(symbol));
             if let Some(parent_symbol) = parent_symbol {
-                if parent_symbol.flags().intersects(SymbolFlags::ValueModule) {
-                    if let Some(value_declaration) = parent_symbol.value_declaration() {
-                        if value_declaration.kind() == Kind::SourceFile {
-                            let symbol_file = value_declaration; // .AsSourceFile()
-                            let reference_file = ast::get_source_file_of_node(Some(node));
-                            // If `node` accesses an export and that export isn't in the same file, then symbol is a namespace export, so return nil.
-                            let symbol_is_umd_export =
-                                Some(symbol_file) != reference_file.map(|f| f.as_node());
-                            if symbol_is_umd_export {
-                                return None;
-                            }
-                            return Some(symbol_file);
-                        }
+                if parent_symbol.flags().intersects(SymbolFlags::ValueModule)
+                    && let Some(value_declaration) = parent_symbol.value_declaration()
+                    && value_declaration.kind() == Kind::SourceFile
+                {
+                    let symbol_file = value_declaration; // .AsSourceFile()
+                    let reference_file = ast::get_source_file_of_node(Some(node));
+                    // If `node` accesses an export and that export isn't in the same file, then symbol is a namespace export, so return nil.
+                    let symbol_is_umd_export =
+                        Some(symbol_file) != reference_file.map(|f| f.as_node());
+                    if symbol_is_umd_export {
+                        return None;
                     }
+                    return Some(symbol_file);
                 }
                 let mut n = node.parent();
                 while let Some(cur) = n {
@@ -335,12 +334,12 @@ impl<H: 'static> ReferenceResolver<H> {
         h: &mut H,
         expression: Option<P<Node>>,
     ) -> String {
-        if let Some(expression) = expression {
-            if let Some(hook) = self.hooks.get_element_access_expression_name {
-                let (name, ok) = hook(h, expression);
-                if ok {
-                    return name;
-                }
+        if let Some(expression) = expression
+            && let Some(hook) = self.hooks.get_element_access_expression_name
+        {
+            let (name, ok) = hook(h, expression);
+            if ok {
+                return name;
             }
         }
         String::new()

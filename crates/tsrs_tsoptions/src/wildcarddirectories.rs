@@ -1,10 +1,10 @@
 use rustc_hash::FxHashMap;
-use tsrs_core::collections::{OrderedMap, OrderedMapExt};
+use tsrs_core::collections::OrderedMap;
 use tsrs_core::tspath::{self, ComparePathsOptions};
 use tsrs_vfs::vfsmatch;
 
 // Go returns a map with random iteration order; an insertion-ordered map keeps the Rust port deterministic.
-pub(crate) fn get_wildcard_directories(
+pub fn get_wildcard_directories(
     include: &[String],
     exclude: &[String],
     compare_paths_options: &ComparePathsOptions,
@@ -43,10 +43,10 @@ pub(crate) fn get_wildcard_directories(
             &compare_paths_options.current_directory,
             &[file],
         ));
-        if let Some(exclude_matcher) = &exclude_matcher {
-            if exclude_matcher.match_string(&spec) {
-                continue;
-            }
+        if let Some(exclude_matcher) = &exclude_matcher
+            && exclude_matcher.match_string(&spec)
+        {
+            continue;
         }
 
         let match_ = get_wildcard_directory_from_spec(
@@ -71,7 +71,7 @@ pub(crate) fn get_wildcard_directories(
                     Some(existing_path) => existing_path.clone(),
                     None => path.clone(),
                 };
-                wildcard_directories.set(path_to_use, recursive);
+                wildcard_directories.insert(path_to_use, recursive);
 
                 if existing_path.is_none() {
                     wild_card_key_to_path.insert(key.clone(), path);
@@ -92,7 +92,7 @@ pub(crate) fn get_wildcard_directories(
                 if key != *recursive_key
                     && tspath::contains_path(recursive_key, &key, compare_paths_options)
                 {
-                    wildcard_directories.delete(&path);
+                    wildcard_directories.shift_remove(&path);
                 }
             }
         }
@@ -140,15 +140,15 @@ fn get_wildcard_directory_from_spec(
         }
     }
 
-    if let Some((_, last_segment)) = spec.rsplit_once(tspath::DIRECTORY_SEPARATOR as char) {
-        if vfsmatch::is_implicit_glob(last_segment) {
-            let path = tspath::remove_trailing_directory_separator(spec);
-            return Some(WildcardDirectoryMatch {
-                key: to_canonical_key(path, use_case_sensitive_file_names),
-                path: path.to_string(),
-                recursive: true,
-            });
-        }
+    if let Some((_, last_segment)) = spec.rsplit_once(tspath::DIRECTORY_SEPARATOR as char)
+        && vfsmatch::is_implicit_glob(last_segment)
+    {
+        let path = tspath::remove_trailing_directory_separator(spec);
+        return Some(WildcardDirectoryMatch {
+            key: to_canonical_key(path, use_case_sensitive_file_names),
+            path: path.to_string(),
+            recursive: true,
+        });
     }
 
     None

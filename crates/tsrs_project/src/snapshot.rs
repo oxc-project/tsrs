@@ -294,12 +294,11 @@ struct LogOnPanic<'a> {
 
 impl Drop for LogOnPanic<'_> {
     fn drop(&mut self) {
-        if std::thread::panicking() {
-            if let Some(session_logger) = self.session_logger {
-                if !self.logger.is_nil() {
-                    session_logger.log(&self.logger.string());
-                }
-            }
+        if std::thread::panicking()
+            && let Some(session_logger) = self.session_logger
+            && !self.logger.is_nil()
+        {
+            session_logger.log(&self.logger.string());
         }
     }
 }
@@ -726,18 +725,18 @@ impl Snapshot {
 
             project_collection_builder
                 .did_change_custom_config_file_name(&logger.fork("DidChangeCustomConfigFileName"));
-            if let Some(options) = change.compiler_options_for_inferred_projects {
-                if let Some(inferred) = project_collection_builder.inferred_project_value() {
-                    let command_line = inferred.command_line.unwrap();
-                    project_collection_builder.update_inferred_project(
-                        command_line.file_names().to_vec(),
-                        Some(options),
-                        command_line.project_references().to_vec(),
-                        command_line.errors.clone(),
-                        command_line.content_mappers().to_vec(),
-                        &logger.fork("DidChangeCompilerOptionsForInferredProjects"),
-                    );
-                }
+            if let Some(options) = change.compiler_options_for_inferred_projects
+                && let Some(inferred) = project_collection_builder.inferred_project_value()
+            {
+                let command_line = inferred.command_line.unwrap();
+                project_collection_builder.update_inferred_project(
+                    command_line.file_names().to_vec(),
+                    Some(options),
+                    command_line.project_references().to_vec(),
+                    command_line.errors.clone(),
+                    command_line.content_mappers().to_vec(),
+                    &logger.fork("DidChangeCompilerOptionsForInferredProjects"),
+                );
             }
             if change.content_mapper_contributions.is_some() {
                 project_collection_builder.did_change_content_mapper_contributions(
@@ -956,13 +955,11 @@ impl Snapshot {
             reason = "only adds this snapshot as an owner (a set insert); Go ranges the map too"
         )]
         for config in new_snapshot.config_file_registry.configs.values() {
-            if let Some(command_line) = config.command_line {
-                if let Some(config_file) = command_line.config_file {
-                    for file in config_file.extended_source_files.borrow().iter() {
-                        store
-                            .extended_config_cache
-                            .add_owner(&(store.to_path)(file), new_snapshot.id);
-                    }
+            if let Some(command_line) = config.command_line
+                && let Some(config_file) = command_line.config_file
+            {
+                for file in config_file.extended_source_files.borrow().iter() {
+                    store.extended_config_cache.add_owner(&(store.to_path)(file), new_snapshot.id);
                 }
             }
         }

@@ -25,7 +25,7 @@ pub fn default_lib_path() -> String {
     default_lib_path_from(std::env::var("TSRS_LIB_PATH").ok())
 }
 
-pub(crate) fn default_lib_path_from(override_dir: Option<String>) -> String {
+pub fn default_lib_path_from(override_dir: Option<String>) -> String {
     match override_dir.filter(|dir| !dir.is_empty()) {
         Some(dir) => tspath::normalize_path(&dir),
         None => lib_path(),

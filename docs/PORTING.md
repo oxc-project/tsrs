@@ -277,8 +277,8 @@ unreachable part.
 - `for_each_ancestor_directory` callback returns `Option<T>` (`Some` stops). Go zero-value-or-found helpers return `Option<T>`.
 - Identity-preserving helpers (`filter`, `same_map`, `concatenate`, `deduplicate`) return `Cow` (borrowed when unchanged).
 - stringutil: predicates take `impl AsRune`; `Rune = i32`; Go stdlib equivalents `equal_fold`, `decode_rune`, `push_rune`, …
-- `collections::{OrderedMap, OrderedSet}` = IndexMap/IndexSet (Fx) with Go-named methods via `OrderedMapExt`/`OrderedSetExt`
-  (`set`, `has`, `delete`, `size`, `entry_at`).
+- `collections::{OrderedMap, OrderedSet}` = IndexMap/IndexSet (Fx), using their native methods. Use `shift_remove`
+  for deletion to preserve insertion order like Go.
 - `LinkStore<K, V>` keyed by `P<K>`; `get`/`try_get`/`has` take `&self`, return `P<V>`.
 - Go `String()` methods are `string()` + `Display`. `get_spelling_suggestion_for_strings` is at the crate root.
 - json: `tsrs_core::json::Value` with `marshal*`/`unmarshal` (key order preserved).

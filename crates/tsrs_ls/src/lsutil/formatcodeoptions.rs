@@ -13,7 +13,7 @@ impl IndentStyle {
 }
 
 // formatcodeoptions.go:19
-pub(crate) fn parse_indent_style(v: &Value) -> IndentStyle {
+pub fn parse_indent_style(v: &Value) -> IndentStyle {
     match v {
         Value::String(s) => match s.to_lowercase().as_str() {
             "none" => return IndentStyle::NONE,
@@ -49,7 +49,7 @@ impl SemicolonPreference {
 }
 
 // formatcodeoptions.go:46
-pub(crate) fn parse_semicolon_preference(v: &Value) -> SemicolonPreference {
+pub fn parse_semicolon_preference(v: &Value) -> SemicolonPreference {
     if let Value::String(s) = v {
         match s.to_lowercase().as_str() {
             "ignore" => return SemicolonPreference::Ignore,

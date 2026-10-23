@@ -11,7 +11,7 @@ use crate::format::*;
 use crate::stringtable::StringTable;
 
 /// Go `getNodeDataType`.
-pub(crate) fn node_data_type(node: P<Node>) -> u32 {
+pub fn node_data_type(node: P<Node>) -> u32 {
     match node.kind() {
         Kind::Identifier
         | Kind::PrivateIdentifier
@@ -34,7 +34,7 @@ pub(crate) fn node_data_type(node: P<Node>) -> u32 {
 }
 
 /// Go `getChildrenPropertyMask`: one bit per encoded child property, in visitor order.
-pub(crate) fn children_property_mask(node: P<Node>) -> u8 {
+pub fn children_property_mask(node: P<Node>) -> u8 {
     match node.kind() {
         Kind::QualifiedName => {
             let n = node.as_qualified_name();
@@ -911,7 +911,7 @@ pub(crate) fn children_property_mask(node: P<Node>) -> u8 {
 }
 
 /// Go `getNodeCommonData`: the 6 bits at 24..30 of the node data word.
-pub(crate) fn node_common_data(node: P<Node>) -> Result<u32, EncodeError> {
+pub fn node_common_data(node: P<Node>) -> Result<u32, EncodeError> {
     Ok(match node.kind() {
         Kind::Block => {
             let n = node.as_block();
@@ -1038,7 +1038,7 @@ pub(crate) fn node_common_data(node: P<Node>) -> Result<u32, EncodeError> {
 }
 
 /// Go `recordNodeStrings`.
-pub(crate) fn record_node_strings(node: P<Node>, strs: &mut StringTable) -> u32 {
+pub fn record_node_strings(node: P<Node>, strs: &mut StringTable) -> u32 {
     match node.kind() {
         Kind::Identifier => {
             strs.add(node.as_identifier().text(), node.kind(), node.pos(), node.end())
@@ -1055,10 +1055,7 @@ pub(crate) fn record_node_strings(node: P<Node>, strs: &mut StringTable) -> u32 
 }
 
 /// Go `recordExtendedData`: dispatches to the hand-written `record_extended_data_*` functions.
-pub(crate) fn record_extended_data(
-    node: P<Node>,
-    cx: &mut EncodeContext,
-) -> Result<u32, EncodeError> {
+pub fn record_extended_data(node: P<Node>, cx: &mut EncodeContext) -> Result<u32, EncodeError> {
     let offset = cx.extended_data.len() as u32;
     match node.kind() {
         Kind::StringLiteral => {

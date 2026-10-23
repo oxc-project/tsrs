@@ -38,12 +38,12 @@ impl ImportElisionTransformer {
 
     // importelision.go:27
     fn visit(&self, node: P<Node>) -> Option<P<Node>> {
-        if ast::is_source_file(node) {
-            if let Some(emit_resolver) = self.emit_resolver {
-                emit_resolver.mark_linked_references_recursively(
-                    self.emit_context().most_original(Some(node)).unwrap().as_source_file_p(),
-                );
-            }
+        if ast::is_source_file(node)
+            && let Some(emit_resolver) = self.emit_resolver
+        {
+            emit_resolver.mark_linked_references_recursively(
+                self.emit_context().most_original(Some(node)).unwrap().as_source_file_p(),
+            );
         }
 
         let f = self.base.factory();

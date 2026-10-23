@@ -41,7 +41,7 @@ bitflags::bitflags! {
 }
 
 #[derive(Default)]
-pub(crate) struct VarScope {
+pub struct VarScope {
     variables: Vec<P<Node>>,
     functions: Vec<P<Node>>,
     flags: environmentFlags,
@@ -582,13 +582,11 @@ impl EmitContext {
 
     // Walks the associated AutoGenerateInfo entries of a name to find the root Nopde from which the name should be generated.
     pub fn get_node_for_generated_name(&self, name: P<Node>) -> P<Node> {
-        if let Some(auto_generate) = self.get_auto_generate_info(Some(name)) {
-            if auto_generate.flags.is_node() {
-                return self.get_node_for_generated_name_worker(
-                    auto_generate.node.unwrap(),
-                    auto_generate.id,
-                );
-            }
+        if let Some(auto_generate) = self.get_auto_generate_info(Some(name))
+            && auto_generate.flags.is_node()
+        {
+            return self
+                .get_node_for_generated_name_worker(auto_generate.node.unwrap(), auto_generate.id);
         }
         name
     }
@@ -698,10 +696,10 @@ impl EmitContext {
         name: &str,
         has_global_name: Option<&dyn Fn(&str) -> bool>,
     ) -> bool {
-        if let Some(has_global_name) = has_global_name {
-            if has_global_name(name) {
-                return false;
-            }
+        if let Some(has_global_name) = has_global_name
+            && has_global_name(name)
+        {
+            return false;
         }
         let source_file = self.most_original(Some(source_file.as_node())).unwrap().as_source_file();
         !source_file.has_identifier(name)
@@ -740,10 +738,10 @@ impl EmitContext {
 
     // Gets the range to use for a node when emitting comments.
     pub fn comment_range(&self, node: P<Node>) -> TextRange {
-        if let Some(emit_node) = self.emit_nodes.borrow().get(&node) {
-            if emit_node.flags.intersects(emitNodeFlags::hasCommentRange) {
-                return emit_node.comment_range;
-            }
+        if let Some(emit_node) = self.emit_nodes.borrow().get(&node)
+            && emit_node.flags.intersects(emitNodeFlags::hasCommentRange)
+        {
+            return emit_node.comment_range;
         }
         node.loc()
     }
@@ -763,10 +761,10 @@ impl EmitContext {
 
     // Gets the range to use for a node when emitting source maps.
     pub fn source_map_range(&self, node: P<Node>) -> TextRange {
-        if let Some(emit_node) = self.emit_nodes.borrow().get(&node) {
-            if emit_node.flags.intersects(emitNodeFlags::hasSourceMapRange) {
-                return emit_node.source_map_range;
-            }
+        if let Some(emit_node) = self.emit_nodes.borrow().get(&node)
+            && emit_node.flags.intersects(emitNodeFlags::hasSourceMapRange)
+        {
+            return emit_node.source_map_range;
         }
         node.loc()
     }
@@ -797,13 +795,11 @@ impl EmitContext {
 
     // Gets the range for a token of a node when emitting source maps.
     pub fn token_source_map_range(&self, node: P<Node>, kind: Kind) -> Option<TextRange> {
-        if let Some(emit_node) = self.emit_nodes.borrow().get(&node) {
-            if let Some(ranges) = emit_node.rare().and_then(|r| r.token_source_map_ranges.as_ref())
-            {
-                if let Some(loc) = ranges.get(&kind) {
-                    return Some(*loc);
-                }
-            }
+        if let Some(emit_node) = self.emit_nodes.borrow().get(&node)
+            && let Some(ranges) = emit_node.rare().and_then(|r| r.token_source_map_ranges.as_ref())
+            && let Some(loc) = ranges.get(&kind)
+        {
+            return Some(*loc);
         }
         None
     }
@@ -875,10 +871,10 @@ impl EmitContext {
     }
 
     pub fn get_external_helpers_module_name(&self, node: P<SourceFile>) -> Option<P<Node>> {
-        if let Some(parse_node) = self.parse_node(Some(node.as_node())) {
-            if let Some(emit_node) = self.emit_nodes.borrow().get(&parse_node) {
-                return emit_node.rare()?.external_helpers_module_name;
-            }
+        if let Some(parse_node) = self.parse_node(Some(node.as_node()))
+            && let Some(emit_node) = self.emit_nodes.borrow().get(&parse_node)
+        {
+            return emit_node.rare()?.external_helpers_module_name;
         }
         None
     }
@@ -1291,7 +1287,7 @@ impl EmitContext {
 }
 
 // emitcontext.go:362 (package-level; used by `EmitContext::is_hoisted_variable_statement`)
-pub(crate) fn is_hoisted_variable(node: P<Node>) -> bool {
+pub fn is_hoisted_variable(node: P<Node>) -> bool {
     is_identifier(node.name().unwrap()) && node.initializer().is_none()
 }
 
@@ -1304,7 +1300,7 @@ pub struct AutoGenerateOptions {
 
 static NEXT_AUTO_GENERATE_ID: AtomicU32 = AtomicU32::new(0);
 
-pub(crate) fn next_auto_generate_id() -> AutoGenerateId {
+pub fn next_auto_generate_id() -> AutoGenerateId {
     AutoGenerateId(NEXT_AUTO_GENERATE_ID.fetch_add(1, Ordering::SeqCst) + 1)
 }
 
@@ -1355,7 +1351,7 @@ pub struct SynthesizedComment {
 // other fields (emit helpers, synthesized comments, token ranges, ...) live in a tail allocated on the first write
 // (`rare_mut`); reads of an absent tail see Go's zero values. 32 bytes per map entry instead of 160.
 #[derive(Clone, Default)]
-pub(crate) struct EmitNode {
+pub struct EmitNode {
     flags: emitNodeFlags,
     emit_flags: EmitFlags,
     comment_range: TextRange,

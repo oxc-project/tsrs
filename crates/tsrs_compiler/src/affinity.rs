@@ -42,16 +42,16 @@ use tsrs_core::P;
 const MU: f64 = 1.0;
 const GAMMA: f64 = 0.5;
 const MAX_PASSES: usize = 3;
-pub(crate) const MIN_CHECKERS: usize = 16;
+pub const MIN_CHECKERS: usize = 16;
 /// From `LARGE_MIN_CHECKERS` checkers on when at least `LARGE_PROGRAM_FILES` files are checked. On the
 /// 38k-file codebase at 8 checkers each checker holds a smaller share of the modules than on the ~10k-file
 /// projects the 8-checker regressions above were measured on: there the term lowers user-space instructions
 /// by 3.3%, CPU time by 4%, wall time by 4% and peak RSS by 3.6%.
-pub(crate) const LARGE_MIN_CHECKERS: usize = 8;
-pub(crate) const LARGE_PROGRAM_FILES: usize = 24_000;
+pub const LARGE_MIN_CHECKERS: usize = 8;
+pub const LARGE_PROGRAM_FILES: usize = 24_000;
 
 /// Whether the module affinity and the sticky thieves apply to `checker_count` checkers checking `files` files.
-pub(crate) fn applies(checker_count: usize, files: usize) -> bool {
+pub fn applies(checker_count: usize, files: usize) -> bool {
     checker_count >= MIN_CHECKERS
         || checker_count >= LARGE_MIN_CHECKERS && files >= LARGE_PROGRAM_FILES
 }
@@ -87,7 +87,7 @@ fn config() -> &'static Config {
     })
 }
 
-pub(crate) struct ModuleAffinity {
+pub struct ModuleAffinity {
     // Per program file: its worth (node count^GAMMA).
     worth: Vec<f64>,
     // The modules of group g are `modules[starts[g]..starts[g + 1]]` (program file indices, no duplicates).
@@ -150,11 +150,11 @@ impl ModuleAffinity {
                     std::iter::once(i as usize)
                         .chain(targets[i as usize].iter().copied())
                         .filter_map(|m| {
-                            if stamp[m] != g {
+                            if stamp[m] == g {
+                                None
+                            } else {
                                 stamp[m] = g;
                                 Some(m as u32)
-                            } else {
-                                None
                             }
                         }),
                 );

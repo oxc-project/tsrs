@@ -74,7 +74,7 @@ impl Feature {
 }
 
 // spanmap.go:68
-pub(crate) const FEATURE_MASK: Feature = Feature::All;
+pub const FEATURE_MASK: Feature = Feature::All;
 
 // Fidelity describes how faithfully a mapped span reflects the original.
 // spanmap.go:71
@@ -581,12 +581,11 @@ impl SpanMap {
             return (Some(idx), true);
         }
         let prev = idx.checked_sub(1);
-        if let Some(prev) = prev {
-            if pos < self.segments[prev].virtual_end
-                || prev + 1 == self.segments.len() && pos == self.segments[prev].virtual_end
-            {
-                return (Some(prev), true);
-            }
+        if let Some(prev) = prev
+            && (pos < self.segments[prev].virtual_end
+                || prev + 1 == self.segments.len() && pos == self.segments[prev].virtual_end)
+        {
+            return (Some(prev), true);
         }
         (prev, false)
     }
@@ -847,11 +846,7 @@ pub fn original_to_virtual_intersecting_spans(
 //                 ^             ^
 //               result        result
 // spanmap.go:585
-pub(crate) fn original_start_projections(
-    segments: &[Segment],
-    start: u32,
-    feature: Feature,
-) -> Vec<u32> {
+pub fn original_start_projections(segments: &[Segment], start: u32, feature: Feature) -> Vec<u32> {
     let mut results = Vec::with_capacity(segments.len());
     results.extend(segments.iter().filter_map(|&segment| {
         if !supports_feature(segment, feature) {
@@ -884,11 +879,7 @@ pub(crate) fn original_start_projections(
 //                        ^             ^
 //                      result        result
 // spanmap.go:613
-pub(crate) fn original_end_projections(
-    segments: &[Segment],
-    end: u32,
-    feature: Feature,
-) -> Vec<u32> {
+pub fn original_end_projections(segments: &[Segment], end: u32, feature: Feature) -> Vec<u32> {
     let mut results = Vec::with_capacity(segments.len());
     results.extend(segments.iter().filter_map(|&segment| {
         if !supports_feature(segment, feature) {
@@ -909,7 +900,7 @@ pub(crate) fn original_end_projections(
 
 // originalToVirtualSpansInSegments maps a range fully contained by each segment.
 // spanmap.go:629
-pub(crate) fn original_to_virtual_spans_in_segments(
+pub fn original_to_virtual_spans_in_segments(
     segments: &[Segment],
     start: u32,
     end: u32,
@@ -947,7 +938,7 @@ pub(crate) fn original_to_virtual_spans_in_segments(
 
 // sameOriginalRange reports whether two segments belong to the same duplicate group.
 // spanmap.go:647
-pub(crate) fn same_original_range(left: Segment, right: Segment) -> bool {
+pub fn same_original_range(left: Segment, right: Segment) -> bool {
     left.original_start == right.original_start && left.original_end == right.original_end
 }
 
@@ -956,7 +947,7 @@ pub(crate) fn same_original_range(left: Segment, right: Segment) -> bool {
 // discard a whole subtree when none of its segments can reach the queried position.
 // spanmap.go:654
 #[derive(Debug)]
-pub(crate) struct OriginalIndex {
+pub struct OriginalIndex {
     segments: Vec<Segment>,
     leaf_count: usize,
     max_ends: Vec<u32>,
@@ -1067,7 +1058,7 @@ impl OriginalIndex {
 }
 
 // spanmap.go:725 (Go keeps a subslice of the collected segments; this owns a copy.)
-pub(crate) struct SegmentGroupAtOriginalPosition {
+pub struct SegmentGroupAtOriginalPosition {
     segments: Vec<Segment>,
     at_end: bool,
 }
@@ -1114,13 +1105,13 @@ impl OriginalIndex {
 
 // supportsFeature reports whether segment participates in feature.
 // spanmap.go:764
-pub(crate) fn supports_feature(segment: Segment, feature: Feature) -> bool {
+pub fn supports_feature(segment: Segment, feature: Feature) -> bool {
     segment.features.intersects(feature)
 }
 
 // clamp confines v to the inclusive interval [lo, hi].
 // spanmap.go:769 (not `Ord::clamp`, which panics when lo > hi.)
-pub(crate) fn clamp(v: u32, lo: u32, hi: u32) -> u32 {
+pub fn clamp(v: u32, lo: u32, hi: u32) -> u32 {
     lo.max(v.min(hi))
 }
 

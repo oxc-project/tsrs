@@ -45,7 +45,7 @@ pub fn parse(pattern: &str) -> Result<Glob, String> {
     Ok(g)
 }
 
-pub(crate) fn parse_nested(mut pattern: &str, nested: bool) -> Result<(Glob, &str), String> {
+pub fn parse_nested(mut pattern: &str, nested: bool) -> Result<(Glob, &str), String> {
     let mut g = Glob::default();
     while !pattern.is_empty() {
         match pattern.as_bytes()[0] {
@@ -130,7 +130,7 @@ pub(crate) fn parse_nested(mut pattern: &str, nested: bool) -> Result<(Glob, &st
 }
 
 // helper for decoding a rune in range elements, e.g. [a-z]
-pub(crate) fn read_range_rune(input: &str) -> Result<(Rune, usize), String> {
+pub fn read_range_rune(input: &str) -> Result<(Rune, usize), String> {
     let (r, sz) = decode_rune(input.as_bytes());
     if r == 0xFFFD {
         // See the documentation for DecodeRuneInString.
@@ -143,8 +143,8 @@ pub(crate) fn read_range_rune(input: &str) -> Result<(Rune, usize), String> {
     Ok((r, sz))
 }
 
-pub(crate) const ERR_BAD_RANGE: &str = "'[' patterns must be of the form [x-y]";
-pub(crate) const ERR_INVALID_UTF8: &str = "invalid UTF-8 encoding";
+pub const ERR_BAD_RANGE: &str = "'[' patterns must be of the form [x-y]";
+pub const ERR_INVALID_UTF8: &str = "invalid UTF-8 encoding";
 
 impl Glob {
     pub(crate) fn parse_literal<'a>(&mut self, pattern: &'a str, nested: bool) -> &'a str {
@@ -169,7 +169,7 @@ impl fmt::Display for Glob {
 
 // element holds a glob pattern element, as defined below.
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub(crate) enum Element {
+pub enum Element {
     Slash,            // One or more '/' separators
     Literal(String),  // string literal, not containing /, *, ?, {}, or []
     Star,             // *
@@ -222,7 +222,7 @@ impl Glob {
     }
 }
 
-pub(crate) fn match_(mut elems: &[&Element], mut input: &[u8]) -> bool {
+pub fn match_(mut elems: &[&Element], mut input: &[u8]) -> bool {
     while !elems.is_empty() {
         let elem = elems[0];
         elems = &elems[1..];
@@ -339,7 +339,7 @@ pub(crate) fn match_(mut elems: &[&Element], mut input: &[u8]) -> bool {
 // split returns the portion before and after the first slash
 // (or sequence of consecutive slashes). If there is no slash
 // it returns (input, nil).
-pub(crate) fn split(input: &[u8]) -> (&[u8], &[u8]) {
+pub fn split(input: &[u8]) -> (&[u8], &[u8]) {
     let Some(i) = memchr::memchr(b'/', input) else {
         return (input, b"");
     };

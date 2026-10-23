@@ -176,12 +176,11 @@ impl View {
             },
         );
         // If we found at least one package.json, also include packages directly imported by the project
-        if let Some(allowed) = &mut allowed_packages {
-            if let Some(bucket) = registry.projects.get(&self.project_id) {
-                if let Some(resolved) = &bucket.resolved_package_names {
-                    allowed.union(resolved);
-                }
-            }
+        if let Some(allowed) = &mut allowed_packages
+            && let Some(bucket) = registry.projects.get(&self.project_id)
+            && let Some(resolved) = &bucket.resolved_package_names
+        {
+            allowed.union(resolved);
         }
 
         let mut exclude_packages: Set<String> = Set::new();
@@ -197,10 +196,10 @@ impl View {
                         }
                         // If allowedPackages is nil, no package.json was found, so include all packages.
                         // Otherwise, only include packages that are dependencies or directly imported.
-                        if let Some(allowed) = &allowed_packages {
-                            if !allowed.has(&e.package_name) {
-                                return None;
-                            }
+                        if let Some(allowed) = &allowed_packages
+                            && !allowed.has(&e.package_name)
+                        {
+                            return None;
                         }
                         Some(e)
                     }));
@@ -227,14 +226,15 @@ impl View {
         for_jsx: bool,
         is_type_only_location: bool,
     ) -> Vec<FixAndExport> {
-        let results = self.search(prefix, QueryKind::WordPrefix);
-
         #[derive(Clone, PartialEq, Eq, Hash)]
         struct ExportGroupKey {
             target: ExportID,
             name: String,
             ambient_module_or_package_name: String,
         }
+
+        let results = self.search(prefix, QueryKind::WordPrefix);
+
         // Go map (random iteration order); groups are kept in first-seen order.
         let mut grouped: indexmap::IndexMap<
             ExportGroupKey,
@@ -260,19 +260,19 @@ impl View {
             let mut key = ExportGroupKey {
                 target,
                 name,
-                ambient_module_or_package_name: if !ambient.is_empty() {
-                    ambient.to_string()
-                } else {
+                ambient_module_or_package_name: if ambient.is_empty() {
                     e.package_name.clone()
+                } else {
+                    ambient.to_string()
                 },
             };
-            if e.package_name == "@types/node" || e.path.contains("/node_modules/@types/node/") {
-                if tsrs_core::is_unprefixed_node_core_module(&key.ambient_module_or_package_name) {
-                    // Group URI-style and non-URI style node core modules together so the ranking logic
-                    // is allowed to drop one if an explicit preference is detected.
-                    key.ambient_module_or_package_name =
-                        format!("node:{}", key.ambient_module_or_package_name);
-                }
+            if (e.package_name == "@types/node" || e.path.contains("/node_modules/@types/node/"))
+                && tsrs_core::is_unprefixed_node_core_module(&key.ambient_module_or_package_name)
+            {
+                // Group URI-style and non-URI style node core modules together so the ranking logic
+                // is allowed to drop one if an explicit preference is detected.
+                key.ambient_module_or_package_name =
+                    format!("node:{}", key.ambient_module_or_package_name);
             }
             if let Some(existing) = grouped.get_mut(&key) {
                 for element in existing.iter_mut() {

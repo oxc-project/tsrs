@@ -40,7 +40,7 @@ impl Event {
 
 // eventEntry tracks coalescing state during a debounce batch.
 #[derive(Clone, Copy, Default)]
-pub(crate) struct EventEntry {
+pub struct EventEntry {
     created_seq: u64,
     updated_seq: u64,
     deleted_seq: u64,
@@ -51,7 +51,7 @@ pub(crate) struct EventEntry {
 //   - create after delete → update (rapid delete+recreate)
 //   - getEvents skips entries that were both created and deleted
 #[derive(Default)]
-pub(crate) struct EventList {
+pub struct EventList {
     mu: Mutex<EventListState>,
 }
 

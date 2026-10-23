@@ -86,6 +86,24 @@ impl LanguageService {
         options: SymbolEntryTransformOptions,
         default_project_data: Option<&SymbolAndEntriesData>,
     ) -> Result<Resp, lsproto::Error> {
+        fn can_search_project<Resp>(
+            results: &OrderedMap<String, Response<Resp>>,
+            project: &Arc<dyn Project>,
+        ) -> bool {
+            !results.contains_key(&project.id())
+        }
+        fn enqueue_item<'a, Resp: Default>(
+            results: &mut OrderedMap<String, Response<Resp>>,
+            queue: &mut Vec<ProjectAndTextDocumentPosition<'a>>,
+            item: ProjectAndTextDocumentPosition<'a>,
+        ) {
+            let id = item.project.id();
+            if let Entry::Vacant(entry) = results.entry(id) {
+                entry.insert(Response::default());
+                queue.push(item);
+            }
+        }
+
         let default_ls = self;
 
         // Single project
@@ -115,24 +133,6 @@ impl LanguageService {
         let mut queue: Vec<ProjectAndTextDocumentPosition> = Vec::new();
         let mut err: Option<lsproto::Error> = None;
         let mut panics_occurred: Vec<String> = Vec::new();
-
-        fn can_search_project<Resp>(
-            results: &OrderedMap<String, Response<Resp>>,
-            project: &Arc<dyn Project>,
-        ) -> bool {
-            !results.contains_key(&project.id())
-        }
-        fn enqueue_item<'a, Resp: Default>(
-            results: &mut OrderedMap<String, Response<Resp>>,
-            queue: &mut Vec<ProjectAndTextDocumentPosition<'a>>,
-            item: ProjectAndTextDocumentPosition<'a>,
-        ) {
-            let id = item.project.id();
-            if let Entry::Vacant(entry) = results.entry(id) {
-                entry.insert(Response::default());
-                queue.push(item);
-            }
-        }
 
         // Initial set of projects and locations in the queue, starting with default project
         let initial_item = ProjectAndTextDocumentPosition {
@@ -401,7 +401,7 @@ impl LanguageService {
 }
 
 // crossproject.go:298
-pub(crate) fn combine_location_array<T: HasLocation + Clone>(
+pub fn combine_location_array<T: HasLocation + Clone>(
     mut combined: Vec<T>,
     locations: &[T],
     seen: &mut Set<lsproto::Location>,
@@ -413,7 +413,7 @@ pub(crate) fn combine_location_array<T: HasLocation + Clone>(
 }
 
 // crossproject.go:311
-pub(crate) fn combine_response_locations<T: HasLocations>(results: &[T]) -> Vec<lsproto::Location> {
+pub fn combine_response_locations<T: HasLocations>(results: &[T]) -> Vec<lsproto::Location> {
     let mut combined: Vec<lsproto::Location> = Vec::new();
     let mut seen_locations: Set<lsproto::Location> = Set::new();
     combined = results.iter().fold(combined, |mut combined, resp| {
@@ -427,14 +427,12 @@ pub(crate) fn combine_response_locations<T: HasLocations>(results: &[T]) -> Vec<
 }
 
 // crossproject.go:322
-pub(crate) fn combine_references(
-    results: &[lsproto::ReferencesResponse],
-) -> lsproto::ReferencesResponse {
+pub fn combine_references(results: &[lsproto::ReferencesResponse]) -> lsproto::ReferencesResponse {
     lsproto::LocationsOrNull { locations: Some(combine_response_locations(results)) }
 }
 
 // crossproject.go:326
-pub(crate) fn combine_vs_references(
+pub fn combine_vs_references(
     results: Vec<lsproto::VSReferencesResponse>,
 ) -> lsproto::VSReferencesResponse {
     let mut combined: Vec<lsproto::VSReferenceItem> = Vec::new();
@@ -467,7 +465,7 @@ pub(crate) fn combine_vs_references(
 
 // Go's `return ...combineResponseLocations(results)` restarts the iteration over all results; so does the port.
 // crossproject.go:354
-pub(crate) fn combine_implementations(
+pub fn combine_implementations(
     results: &[lsproto::ImplementationResponse],
 ) -> lsproto::ImplementationResponse {
     let mut combined: Vec<lsproto::LocationLink> = Vec::new();
@@ -490,9 +488,7 @@ pub(crate) fn combine_implementations(
 
 // Go builds `map`s (random iteration order) keyed by document URI; the port keeps first-seen order.
 // crossproject.go:367
-pub(crate) fn combine_rename_response(
-    results: Vec<lsproto::RenameResponse>,
-) -> lsproto::RenameResponse {
+pub fn combine_rename_response(results: Vec<lsproto::RenameResponse>) -> lsproto::RenameResponse {
     let mut combined: OrderedMap<lsproto::DocumentUri, Vec<lsproto::TextEdit>> =
         OrderedMap::default();
     let mut seen_changes: FxHashMap<lsproto::DocumentUri, Set<lsproto::Range>> =
@@ -521,11 +517,11 @@ pub(crate) fn combine_rename_response(
                 let seen_set = seen_changes.entry(doc.clone()).or_default();
                 let changes_for_doc = combined.entry(doc).or_default();
                 changes_for_doc.extend(changes.into_iter().filter_map(|change| {
-                    if !seen_set.has(&change.range) {
+                    if seen_set.has(&change.range) {
+                        None
+                    } else {
                         seen_set.add(change.range);
                         Some(change)
-                    } else {
-                        None
                     }
                 }));
             }
@@ -545,7 +541,7 @@ pub(crate) fn combine_rename_response(
 }
 
 // crossproject.go:423
-pub(crate) fn combine_incoming_calls(
+pub fn combine_incoming_calls(
     results: Vec<lsproto::CallHierarchyIncomingCallsResponse>,
 ) -> lsproto::CallHierarchyIncomingCallsResponse {
     let mut combined: Vec<lsproto::CallHierarchyIncomingCall> = Vec::new();

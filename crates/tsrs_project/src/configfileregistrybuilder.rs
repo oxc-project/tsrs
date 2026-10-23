@@ -30,7 +30,7 @@ use crate::watch::{
 // configFileRegistryBuilder tracks changes made on top of a previous
 // configFileRegistry, producing a new clone with `finalize()` after
 // all changes have been made.
-pub(crate) struct ConfigFileRegistryBuilder {
+pub struct ConfigFileRegistryBuilder {
     has_relative_pattern_capability: bool,
     fs: Arc<SourceFS>,
     is_open_file: Box<dyn Fn(&Path) -> bool + Send + Sync>,
@@ -48,7 +48,7 @@ pub(crate) struct ConfigFileRegistryBuilder {
 }
 
 // configfileregistrybuilder.go:44
-pub(crate) fn new_config_file_registry_builder(
+pub fn new_config_file_registry_builder(
     has_relative_pattern_capability: bool,
     fs: Arc<SnapshotFSBuilder>,
     is_open_file: Box<dyn Fn(&Path) -> bool + Send + Sync>,
@@ -82,7 +82,7 @@ pub(crate) fn new_config_file_registry_builder(
 
 // Go `changeFileResult`.
 #[derive(Clone, Debug, Default)]
-pub(crate) struct ChangeFileResult {
+pub struct ChangeFileResult {
     pub(crate) affected_projects: Option<FxHashSet<ID>>,
     pub(crate) affected_files: Option<FxHashSet<Path>>,
 }
@@ -241,23 +241,21 @@ impl ConfigFileRegistryBuilder {
                         extending_config_path.clone(),
                     )),
                 );
-                if loaded {
-                    if let Some(entry) = entry {
-                        entry.change_if(
-                            |config| {
-                                !config
-                                    .retaining_configs
-                                    .as_ref()
-                                    .is_some_and(|r| r.contains(extending_config_path))
-                            },
-                            |config| {
-                                config
-                                    .retaining_configs
-                                    .get_or_insert_with(FxHashSet::default)
-                                    .insert(extending_config_path.clone());
-                            },
-                        );
-                    }
+                if loaded && let Some(entry) = entry {
+                    entry.change_if(
+                        |config| {
+                            !config
+                                .retaining_configs
+                                .as_ref()
+                                .is_some_and(|r| r.contains(extending_config_path))
+                        },
+                        |config| {
+                            config
+                                .retaining_configs
+                                .get_or_insert_with(FxHashSet::default)
+                                .insert(extending_config_path.clone());
+                        },
+                    );
                 }
             }
         }

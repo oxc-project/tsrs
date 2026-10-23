@@ -3,61 +3,8 @@ use std::hash::Hash;
 
 pub type OrderedMap<K, V> = indexmap::IndexMap<K, V, FxBuildHasher>;
 
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub struct MapEntry<K, V> {
-    pub key: K,
-    pub value: V,
-}
-
 pub fn new_ordered_map_with_size_hint<K, V>(hint: usize) -> OrderedMap<K, V> {
     OrderedMap::with_capacity_and_hasher(hint, FxBuildHasher)
-}
-
-pub fn new_ordered_map_from_list<K: Hash + Eq, V>(items: Vec<MapEntry<K, V>>) -> OrderedMap<K, V> {
-    let mut m = new_ordered_map_with_size_hint(items.len());
-    m.extend(items.into_iter().map(|entry| (entry.key, entry.value)));
-    m
-}
-
-/// Go-named methods for `OrderedMap`. `delete` preserves insertion order like the Go implementation.
-pub trait OrderedMapExt<K, V> {
-    fn set(&mut self, key: K, value: V);
-    fn get_or_zero(&self, key: &K) -> V
-    where
-        V: Default + Clone;
-    fn entry_at(&self, index: usize) -> Option<(&K, &V)>;
-    fn has(&self, key: &K) -> bool;
-    fn delete(&mut self, key: &K) -> Option<V>;
-    fn size(&self) -> usize;
-}
-
-impl<K: Hash + Eq, V> OrderedMapExt<K, V> for OrderedMap<K, V> {
-    fn set(&mut self, key: K, value: V) {
-        self.insert(key, value);
-    }
-
-    fn get_or_zero(&self, key: &K) -> V
-    where
-        V: Default + Clone,
-    {
-        self.get(key).cloned().unwrap_or_default()
-    }
-
-    fn entry_at(&self, index: usize) -> Option<(&K, &V)> {
-        self.get_index(index)
-    }
-
-    fn has(&self, key: &K) -> bool {
-        self.contains_key(key)
-    }
-
-    fn delete(&mut self, key: &K) -> Option<V> {
-        self.shift_remove(key)
-    }
-
-    fn size(&self) -> usize {
-        self.len()
-    }
 }
 
 pub fn diff_ordered_maps<K: Hash + Eq, V: PartialEq>(
@@ -104,17 +51,18 @@ mod tests {
 
     #[test]
     fn test_ordered_map() {
-        let mut m: OrderedMap<i32, String> = OrderedMap::default();
-        assert!(!m.has(&1));
         const N: i32 = 1000;
         const START: i32 = 1;
         const END: i32 = START + N;
+
+        let mut m: OrderedMap<i32, String> = OrderedMap::default();
+        assert!(!m.contains_key(&1));
         // Seed the map with ascending keys and values for easier testing.
         m.extend((START..END).map(|i| (i, pad_int(i))));
-        assert_eq!(m.size(), N as usize);
+        assert_eq!(m.len(), N as usize);
         // Attempt to overwrite existing keys in reverse order.
         m.extend((START..END).rev().map(|i| (i, pad_int(i))));
-        assert_eq!(m.size(), N as usize);
+        assert_eq!(m.len(), N as usize);
         for i in START..END {
             assert_eq!(m.get(&i), Some(&pad_int(i)));
         }
@@ -129,42 +77,36 @@ mod tests {
         assert_eq!(m.keys().next(), Some(&START));
         assert_eq!(m.values().next(), Some(&pad_int(START)));
         for i in START + 1..END {
-            assert_eq!(m.delete(&i), Some(pad_int(i)));
-            assert!(!m.has(&i));
-            assert_eq!(m.get_or_zero(&i), "");
-            assert_eq!(m.delete(&i), None);
+            assert_eq!(m.shift_remove(&i), Some(pad_int(i)));
+            assert!(!m.contains_key(&i));
+            assert_eq!(m.get(&i), None);
+            assert_eq!(m.shift_remove(&i), None);
         }
-        assert_eq!(m.size(), 1);
-        assert!(m.has(&START));
-        assert_eq!(m.delete(&START), Some(pad_int(START)));
-        assert_eq!(m.size(), 0);
+        assert_eq!(m.len(), 1);
+        assert!(m.contains_key(&START));
+        assert_eq!(m.shift_remove(&START), Some(pad_int(START)));
+        assert_eq!(m.len(), 0);
     }
 
     #[test]
     fn test_ordered_map_clone() {
         let mut m: OrderedMap<i32, &str> = OrderedMap::default();
-        m.set(1, "one");
-        m.set(2, "two");
+        m.insert(1, "one");
+        m.insert(2, "two");
         let clone = m.clone();
-        assert_eq!(clone.size(), 2);
-        m.delete(&1);
-        assert_eq!(m.size(), 1);
+        assert_eq!(clone.len(), 2);
+        m.shift_remove(&1);
+        assert_eq!(m.len(), 1);
         assert_eq!(clone.keys().copied().collect::<Vec<_>>(), vec![1, 2]);
         assert_eq!(clone.values().copied().collect::<Vec<_>>(), vec!["one", "two"]);
         m.clear();
-        assert_eq!(m.size(), 0);
+        assert_eq!(m.len(), 0);
     }
 
     #[test]
     fn test_diff() {
-        let m1 = new_ordered_map_from_list(vec![
-            MapEntry { key: "a", value: 1 },
-            MapEntry { key: "b", value: 2 },
-        ]);
-        let m2 = new_ordered_map_from_list(vec![
-            MapEntry { key: "b", value: 3 },
-            MapEntry { key: "c", value: 4 },
-        ]);
+        let m1 = OrderedMap::from_iter([("a", 1), ("b", 2)]);
+        let m2 = OrderedMap::from_iter([("b", 3), ("c", 4)]);
         let mut log = Vec::new();
         let log_cell = std::cell::RefCell::new(&mut log);
         diff_ordered_maps(

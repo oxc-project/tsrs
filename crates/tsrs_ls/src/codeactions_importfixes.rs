@@ -49,7 +49,7 @@ const IMPORT_FIX_ID: &str = "fixMissingImport";
 
 // codeactions_importfixes.go:48
 // ImportFixProvider is the CodeFixProvider for import-related fixes
-pub(crate) static IMPORT_FIX_PROVIDER: std::sync::LazyLock<CodeFixProvider> =
+pub static IMPORT_FIX_PROVIDER: std::sync::LazyLock<CodeFixProvider> =
     std::sync::LazyLock::new(|| CodeFixProvider {
         error_codes: import_fix_error_codes(),
         get_code_actions: get_import_code_actions,

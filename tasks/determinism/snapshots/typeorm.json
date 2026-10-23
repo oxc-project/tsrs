@@ -1,0 +1,57 @@
+{
+  "format_version": 1,
+  "typescript_commit": "3e9236361fa97a9e6c685f4833ac457ae2d8c50a",
+  "reference": {
+    "package": "typescript",
+    "version": "7.1.0-beta",
+    "native_package": "@typescript/typescript-darwin-arm64",
+    "native_version": "7.1.0-beta",
+    "binary_sha256": "29f5eb8daa5c8cf6ef1c0cb79fbcf47c0cfdf26edabdf148bb779d0b2d56cebc"
+  },
+  "input": {
+    "overlay": "db6224934f2a60f5",
+    "project": {
+      "commit": "fe92394287516feeada6e9c308ebe22deca2458e",
+      "install": "pnpm --pm-on-fail=ignore dlx pnpm@10.34.5 install --frozen-lockfile --ignore-scripts --filter typeorm...",
+      "name": "typeorm",
+      "overlay": "bench/overlays/typeorm",
+      "project": "packages/typeorm",
+      "repo": "https://github.com/typeorm/typeorm.git"
+    },
+    "suite": null
+  },
+  "exit_code": 2,
+  "diagnostics": [
+    "packages/typeorm/src/commands/CacheClearCommand.ts(12,43): error TS2503: Cannot find namespace 'yargs'.",
+    "packages/typeorm/src/commands/CacheClearCommand.ts(16,19): error TS2503: Cannot find namespace 'yargs'.",
+    "packages/typeorm/src/commands/CacheClearCommand.ts(25,25): error TS2503: Cannot find namespace 'yargs'.",
+    "packages/typeorm/src/commands/EntityCreateCommand.ts(10,45): error TS2503: Cannot find namespace 'yargs'.",
+    "packages/typeorm/src/commands/EntityCreateCommand.ts(14,19): error TS2503: Cannot find namespace 'yargs'.",
+    "packages/typeorm/src/commands/EntityCreateCommand.ts(22,25): error TS2503: Cannot find namespace 'yargs'.",
+    "packages/typeorm/src/commands/InitCommand.ts(11,37): error TS2503: Cannot find namespace 'yargs'.",
+    "packages/typeorm/src/commands/InitCommand.ts(18,19): error TS2503: Cannot find namespace 'yargs'.",
+    "packages/typeorm/src/commands/InitCommand.ts(56,25): error TS2503: Cannot find namespace 'yargs'.",
+    "packages/typeorm/src/commands/MigrationCreateCommand.ts(11,48): error TS2503: Cannot find namespace 'yargs'.",
+    "packages/typeorm/src/commands/MigrationCreateCommand.ts(15,19): error TS2503: Cannot find namespace 'yargs'.",
+    "packages/typeorm/src/commands/MigrationCreateCommand.ts(43,25): error TS2503: Cannot find namespace 'yargs'.",
+    "packages/typeorm/src/commands/MigrationGenerateCommand.ts(14,50): error TS2503: Cannot find namespace 'yargs'.",
+    "packages/typeorm/src/commands/MigrationGenerateCommand.ts(19,19): error TS2503: Cannot find namespace 'yargs'.",
+    "packages/typeorm/src/commands/MigrationGenerateCommand.ts(74,25): error TS2503: Cannot find namespace 'yargs'.",
+    "packages/typeorm/src/commands/QueryCommand.ts(13,38): error TS2503: Cannot find namespace 'yargs'.",
+    "packages/typeorm/src/commands/QueryCommand.ts(18,19): error TS2503: Cannot find namespace 'yargs'.",
+    "packages/typeorm/src/commands/QueryCommand.ts(32,25): error TS2503: Cannot find namespace 'yargs'.",
+    "packages/typeorm/src/commands/SchemaDropCommand.ts(12,43): error TS2503: Cannot find namespace 'yargs'.",
+    "packages/typeorm/src/commands/SchemaDropCommand.ts(18,19): error TS2503: Cannot find namespace 'yargs'.",
+    "packages/typeorm/src/commands/SchemaDropCommand.ts(27,25): error TS2503: Cannot find namespace 'yargs'.",
+    "packages/typeorm/src/commands/SchemaLogCommand.ts(12,42): error TS2503: Cannot find namespace 'yargs'.",
+    "packages/typeorm/src/commands/SchemaLogCommand.ts(18,19): error TS2503: Cannot find namespace 'yargs'.",
+    "packages/typeorm/src/commands/SchemaLogCommand.ts(27,25): error TS2503: Cannot find namespace 'yargs'.",
+    "packages/typeorm/src/commands/SchemaSyncCommand.ts(12,43): error TS2503: Cannot find namespace 'yargs'.",
+    "packages/typeorm/src/commands/SchemaSyncCommand.ts(18,19): error TS2503: Cannot find namespace 'yargs'.",
+    "packages/typeorm/src/commands/SchemaSyncCommand.ts(27,25): error TS2503: Cannot find namespace 'yargs'.",
+    "packages/typeorm/src/commands/SubscriberCreateCommand.ts(10,49): error TS2503: Cannot find namespace 'yargs'.",
+    "packages/typeorm/src/commands/SubscriberCreateCommand.ts(14,19): error TS2503: Cannot find namespace 'yargs'.",
+    "packages/typeorm/src/commands/SubscriberCreateCommand.ts(22,25): error TS2503: Cannot find namespace 'yargs'.",
+    "packages/typeorm/test/utils/test-setup.ts(5,8): error TS1192: Module '\"<work>/solutions/typeorm/node_modules/.pnpm/@types+chai@5.2.3/node_modules/@types/chai/index\"' has no default export."
+  ]
+}

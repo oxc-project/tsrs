@@ -19,7 +19,7 @@ struct ProjectReferenceParseTask {
 }
 
 // projectreferenceparser.go:13
-pub(crate) struct ProjectReferenceParser<'a> {
+pub struct ProjectReferenceParser<'a> {
     host: &'a dyn CompilerHost,
     tasks: Vec<ProjectReferenceParseTask>,
     tasks_by_file_name: FxHashMap<Path, TaskId>,
@@ -134,30 +134,30 @@ impl<'a> ProjectReferenceParser<'a> {
                 continue;
             }
             mapper.config_to_project_reference.insert(path.clone(), t.resolved);
-            if let Some(resolved) = t.resolved {
-                if mapper.config.config_file != resolved.config_file {
-                    // Map current task's files first, before recursing into subtasks.
-                    // This matches TypeScript's behavior where child project references
-                    // overwrite parent entries when a file belongs to multiple projects.
-                    if let Some(m) = resolved.source_to_project_reference() {
-                        mapper
-                            .source_to_project_reference
-                            .extend(m.iter().map(|(k, v)| (k.clone(), *v)));
+            if let Some(resolved) = t.resolved
+                && mapper.config.config_file != resolved.config_file
+            {
+                // Map current task's files first, before recursing into subtasks.
+                // This matches TypeScript's behavior where child project references
+                // overwrite parent entries when a file belongs to multiple projects.
+                if let Some(m) = resolved.source_to_project_reference() {
+                    mapper
+                        .source_to_project_reference
+                        .extend(m.iter().map(|(k, v)| (k.clone(), *v)));
+                }
+                if let Some(m) = resolved.output_dts_to_project_reference() {
+                    mapper
+                        .output_dts_to_project_reference
+                        .extend(m.iter().map(|(k, v)| (k.clone(), *v)));
+                }
+                if mapper.use_source_of_project_reference {
+                    let options = resolved.compiler_options().unwrap();
+                    let mut decl_dir = options.declaration_dir.clone();
+                    if decl_dir.is_empty() {
+                        decl_dir.clone_from(&options.out_dir);
                     }
-                    if let Some(m) = resolved.output_dts_to_project_reference() {
-                        mapper
-                            .output_dts_to_project_reference
-                            .extend(m.iter().map(|(k, v)| (k.clone(), *v)));
-                    }
-                    if mapper.use_source_of_project_reference {
-                        let options = resolved.compiler_options().unwrap();
-                        let mut decl_dir = options.declaration_dir.clone();
-                        if decl_dir.is_empty() {
-                            decl_dir.clone_from(&options.out_dir);
-                        }
-                        if !decl_dir.is_empty() {
-                            mapper.dts_directories.insert(self.to_path(&decl_dir));
-                        }
+                    if !decl_dir.is_empty() {
+                        mapper.dts_directories.insert(self.to_path(&decl_dir));
                     }
                 }
             }

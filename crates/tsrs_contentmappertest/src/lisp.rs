@@ -12,7 +12,7 @@ use crate::protocol::{
 };
 
 // lisp.go:13
-pub(crate) struct LispHandler;
+pub struct LispHandler;
 
 impl TestHandler for LispHandler {}
 

@@ -374,7 +374,7 @@ pub fn get_path_from_path_components<S: AsRef<str>>(path_components: &[S]) -> St
 
     let root = path_components[0].as_ref();
     let mut result =
-        if !root.is_empty() { ensure_trailing_directory_separator(root) } else { String::new() };
+        if root.is_empty() { String::new() } else { ensure_trailing_directory_separator(root) };
     result = path_components[1..].iter().enumerate().fold(result, |mut result, (i, c)| {
         if i > 0 {
             result.push('/');
@@ -463,7 +463,7 @@ fn reduce_path_components(components: &[String]) -> Vec<String> {
 // resolvePath("/path", "dir", "..", "to", "file.ext") == "path/to/file.ext"
 pub fn resolve_path(path: &str, paths: &[&str]) -> String {
     let combined_path =
-        if !paths.is_empty() { combine_paths(path, paths) } else { normalize_slashes(path) };
+        if paths.is_empty() { normalize_slashes(path) } else { combine_paths(path, paths) };
     normalize_path(&combined_path)
 }
 
@@ -729,10 +729,10 @@ fn dot_segment_at(p: &[u8], start: usize) -> bool {
 /// `normalize_path` borrowing from `path` when it is already normal (no backslash, no `.` or `..` segment, no
 /// repeated separator): a file name from the file system usually is.
 pub fn normalize_path_cow(path: &str) -> std::borrow::Cow<'_, str> {
-    if !path.as_bytes().contains(&b'\\') {
-        if let Some(normalized) = simple_normalize_path(path) {
-            return normalized;
-        }
+    if !path.as_bytes().contains(&b'\\')
+        && let Some(normalized) = simple_normalize_path(path)
+    {
+        return normalized;
     }
     std::borrow::Cow::Owned(normalize_path(path))
 }

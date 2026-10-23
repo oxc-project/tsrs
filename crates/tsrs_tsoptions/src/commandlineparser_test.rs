@@ -23,7 +23,7 @@ use crate::testutil::{build_options_to_json, compiler_options_to_json, write_for
 use crate::tsconfigparsing::stringify_json;
 use crate::tsoptionstest::new_vfs_parse_config_host;
 
-pub(crate) fn repo_root() -> PathBuf {
+pub fn repo_root() -> PathBuf {
     let mut dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     while !dir.join("ts-ref").exists() {
         dir = dir.parent().expect("repository root with ts-ref").to_path_buf();
@@ -31,19 +31,14 @@ pub(crate) fn repo_root() -> PathBuf {
     dir
 }
 
-pub(crate) fn reference_baseline(subfolder: &str, name: &str) -> String {
+pub fn reference_baseline(subfolder: &str, name: &str) -> String {
     let path =
         repo_root().join("ts-ref/tsc/testdata/baselines/reference").join(subfolder).join(name);
     std::fs::read_to_string(&path).unwrap_or_else(|_| "<no content>".to_string())
 }
 
 // baseline.Run: compares against the reference baseline, collecting mismatches instead of failing fast.
-pub(crate) fn check_baseline(
-    failures: &mut Vec<String>,
-    subfolder: &str,
-    name: &str,
-    actual: &str,
-) {
+pub fn check_baseline(failures: &mut Vec<String>, subfolder: &str, name: &str, actual: &str) {
     let expected = reference_baseline(subfolder, name);
     if expected != actual {
         let local =
@@ -54,7 +49,7 @@ pub(crate) fn check_baseline(
     }
 }
 
-pub(crate) struct TestCommandLineParser {
+pub struct TestCommandLineParser {
     pub(crate) file_names: Vec<String>,
     pub(crate) options: OrderedMap<String, CompilerOptionsValue>,
     pub(crate) errors: Vec<P<Diagnostic>>,
@@ -69,7 +64,7 @@ fn get_test_parse_command_line_worker_diagnostics(
     P::new(get_parse_command_line_worker_diagnostics(decls)).get()
 }
 
-pub(crate) fn parse_command_line_test_worker(
+pub fn parse_command_line_test_worker(
     decls: &[&'static CommandLineOption],
     command_line: &[String],
     fs: Option<&dyn FS>,

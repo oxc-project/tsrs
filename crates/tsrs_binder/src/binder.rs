@@ -460,15 +460,15 @@ impl Binder {
                     return ast::INTERNAL_SYMBOL_NAME_GLOBAL;
                 }
                 let pattern = tsrs_core::try_parse_pattern(module_name);
-                if matches!(pattern.kind, PatternKind::Wildcard(_)) {
-                    if let Some(attributes) = node.as_module_declaration().attributes() {
-                        return alloc_str(&format!(
-                            "{}\"{}\"pattern@{}",
-                            ast::INTERNAL_SYMBOL_NAME_PREFIX,
-                            module_name,
-                            ast::get_node_id(attributes).0
-                        ));
-                    }
+                if matches!(pattern.kind, PatternKind::Wildcard(_))
+                    && let Some(attributes) = node.as_module_declaration().attributes()
+                {
+                    return alloc_str(&format!(
+                        "{}\"{}\"pattern@{}",
+                        ast::INTERNAL_SYMBOL_NAME_PREFIX,
+                        module_name,
+                        ast::get_node_id(attributes).0
+                    ));
                 }
                 return alloc_str(&format!("\"{module_name}\""));
             }
@@ -862,12 +862,12 @@ impl Binder {
     }
 }
 
-pub(crate) fn set_flow_node_referenced(flow: P<FlowNode>) {
+pub fn set_flow_node_referenced(flow: P<FlowNode>) {
     // On first reference we set the Referenced flag, thereafter we set the Shared flag
-    if !flow.flags.get().intersects(FlowFlags::Referenced) {
-        flow.flags.set(flow.flags.get() | FlowFlags::Referenced);
-    } else {
+    if flow.flags.get().intersects(FlowFlags::Referenced) {
         flow.flags.set(flow.flags.get() | FlowFlags::Shared);
+    } else {
+        flow.flags.set(flow.flags.get() | FlowFlags::Referenced);
     }
 }
 
@@ -1449,10 +1449,10 @@ impl Binder {
                 statements = node.statements();
             }
             Kind::ModuleDeclaration => {
-                if let Some(body) = node.body() {
-                    if ast::is_module_block(body) {
-                        statements = body.statements();
-                    }
+                if let Some(body) = node.body()
+                    && ast::is_module_block(body)
+                {
+                    statements = body.statements();
                 }
             }
             _ => {}
@@ -1469,11 +1469,11 @@ impl Binder {
         }
         set_flow_node(node, self.current_flow);
         let mut binding_name = ast::INTERNAL_SYMBOL_NAME_FUNCTION;
-        if ast::is_function_expression(node) {
-            if let Some(name) = node.name() {
-                self.check_strict_mode_function_name(node);
-                binding_name = name.text();
-            }
+        if ast::is_function_expression(node)
+            && let Some(name) = node.name()
+        {
+            self.check_strict_mode_function_name(node);
+            binding_name = name.text();
         }
         self.bind_anonymous_declaration(node, SymbolFlags::Function, binding_name);
     }
@@ -1489,10 +1489,10 @@ impl Binder {
     }
 
     pub(crate) fn set_common_js_module_indicator(&mut self, node: P<Node>) -> bool {
-        if let Some(external_module_indicator) = self.file.external_module_indicator.get() {
-            if external_module_indicator != self.file.as_node() {
-                return false;
-            }
+        if let Some(external_module_indicator) = self.file.external_module_indicator.get()
+            && external_module_indicator != self.file.as_node()
+        {
+            return false;
         }
         if self.file.common_js_module_indicator.get().is_none() {
             self.file.common_js_module_indicator.set(Some(node));
@@ -1701,7 +1701,7 @@ impl Binder {
     }
 }
 
-pub(crate) fn get_parent_of_property_assignment(node: P<Node>) -> P<Node> {
+pub fn get_parent_of_property_assignment(node: P<Node>) -> P<Node> {
     match node.kind() {
         Kind::BinaryExpression => node.as_binary_expression().left().expression().unwrap(),
         Kind::CallExpression => node.arguments()[0],
@@ -1731,7 +1731,7 @@ impl Binder {
     }
 }
 
-pub(crate) fn get_initializer_symbol(symbol: Option<P<Symbol>>) -> Option<P<Symbol>> {
+pub fn get_initializer_symbol(symbol: Option<P<Symbol>>) -> Option<P<Symbol>> {
     let symbol = symbol?;
     let declaration = symbol.value_declaration()?;
     // For an assignment 'fn.xxx = ...', where 'fn' is a previously declared function or a previously
@@ -1854,42 +1854,42 @@ impl Binder {
 
     pub(crate) fn bind_variable_declaration_or_binding_element(&mut self, node: P<Node>) {
         self.check_strict_mode_eval_or_arguments(node, node.name());
-        if let Some(name) = node.name() {
-            if !ast::is_binding_pattern(name) {
-                if ast::is_variable_declaration_initialized_to_require(node) {
-                    self.declare_symbol_and_add_to_symbol_table(
-                        node,
-                        SymbolFlags::Alias,
-                        SymbolFlags::AliasExcludes,
-                    );
-                } else if ast::is_block_or_catch_scoped(node) {
-                    self.bind_block_scoped_declaration(
-                        node,
-                        SymbolFlags::BlockScopedVariable,
-                        SymbolFlags::BlockScopedVariableExcludes,
-                    );
-                } else if ast::is_part_of_parameter_declaration(node) {
-                    // It is safe to walk up parent chain to find whether the node is a destructuring parameter declaration
-                    // because its parent chain has already been set up, since parents are set before descending into children.
-                    //
-                    // If node is a binding element in parameter declaration, we need to use ParameterExcludes.
-                    // Using ParameterExcludes flag allows the compiler to report an error on duplicate identifiers in Parameter Declaration
-                    // For example:
-                    //      function foo([a,a]) {} // Duplicate Identifier error
-                    //      function bar(a,a) {}   // Duplicate Identifier error, parameter declaration in this case is handled in bindParameter
-                    //                             // which correctly set excluded symbols
-                    self.declare_symbol_and_add_to_symbol_table(
-                        node,
-                        SymbolFlags::FunctionScopedVariable,
-                        SymbolFlags::ParameterExcludes,
-                    );
-                } else {
-                    self.declare_symbol_and_add_to_symbol_table(
-                        node,
-                        SymbolFlags::FunctionScopedVariable,
-                        SymbolFlags::FunctionScopedVariableExcludes,
-                    );
-                }
+        if let Some(name) = node.name()
+            && !ast::is_binding_pattern(name)
+        {
+            if ast::is_variable_declaration_initialized_to_require(node) {
+                self.declare_symbol_and_add_to_symbol_table(
+                    node,
+                    SymbolFlags::Alias,
+                    SymbolFlags::AliasExcludes,
+                );
+            } else if ast::is_block_or_catch_scoped(node) {
+                self.bind_block_scoped_declaration(
+                    node,
+                    SymbolFlags::BlockScopedVariable,
+                    SymbolFlags::BlockScopedVariableExcludes,
+                );
+            } else if ast::is_part_of_parameter_declaration(node) {
+                // It is safe to walk up parent chain to find whether the node is a destructuring parameter declaration
+                // because its parent chain has already been set up, since parents are set before descending into children.
+                //
+                // If node is a binding element in parameter declaration, we need to use ParameterExcludes.
+                // Using ParameterExcludes flag allows the compiler to report an error on duplicate identifiers in Parameter Declaration
+                // For example:
+                //      function foo([a,a]) {} // Duplicate Identifier error
+                //      function bar(a,a) {}   // Duplicate Identifier error, parameter declaration in this case is handled in bindParameter
+                //                             // which correctly set excluded symbols
+                self.declare_symbol_and_add_to_symbol_table(
+                    node,
+                    SymbolFlags::FunctionScopedVariable,
+                    SymbolFlags::ParameterExcludes,
+                );
+            } else {
+                self.declare_symbol_and_add_to_symbol_table(
+                    node,
+                    SymbolFlags::FunctionScopedVariable,
+                    SymbolFlags::FunctionScopedVariableExcludes,
+                );
             }
         }
     }
@@ -2043,37 +2043,34 @@ impl Binder {
         }
         if node.expression().unwrap().kind() == Kind::ThisKeyword {
             let (_, symbol_table) = self.get_this_class_and_symbol_table();
-            if let Some(symbol_table) = symbol_table {
-                if let Some(name) = ast::get_element_or_property_access_name(node) {
-                    return (*symbol_table).get(name.text());
-                }
+            if let Some(symbol_table) = symbol_table
+                && let Some(name) = ast::get_element_or_property_access_name(node)
+            {
+                return (*symbol_table).get(name.text());
             }
             return None;
         }
         if let Some(symbol) =
             get_initializer_symbol(self.lookup_entity(node.expression().unwrap(), container))
+            && let Some(exports) = symbol.exports()
+            && let Some(name) = ast::get_element_or_property_access_name(node)
         {
-            if let Some(exports) = symbol.exports() {
-                if let Some(name) = ast::get_element_or_property_access_name(node) {
-                    return (*exports).get(name.text());
-                }
-            }
+            return (*exports).get(name.text());
         }
         None
     }
 
     pub(crate) fn lookup_name(name: &str, container: P<Node>) -> Option<P<Symbol>> {
-        if let Some(locals_container) = container.locals_container_data() {
-            if let Some(locals) = locals_container.locals.get() {
-                if let Some(local) = (*locals).get(name) {
-                    return Some(local.export_symbol().unwrap_or(local));
-                }
-            }
+        if let Some(locals_container) = container.locals_container_data()
+            && let Some(locals) = locals_container.locals.get()
+            && let Some(local) = (*locals).get(name)
+        {
+            return Some(local.export_symbol().unwrap_or(local));
         }
-        if let Some(declaration) = container.declaration_data() {
-            if let Some(symbol) = declaration.symbol.get() {
-                return (*symbol.exports()?).get(name);
-            }
+        if let Some(declaration) = container.declaration_data()
+            && let Some(symbol) = declaration.symbol.get()
+        {
+            return (*symbol.exports()?).get(name);
         }
         None
     }
@@ -2157,7 +2154,7 @@ impl Binder {
 }
 
 // Should be called only on prologue directives (ast.IsPrologueDirective(node) should be true)
-pub(crate) fn is_use_strict_prologue_directive(source_file: P<SourceFile>, node: P<Node>) -> bool {
+pub fn is_use_strict_prologue_directive(source_file: P<SourceFile>, node: P<Node>) -> bool {
     let node_text = scanner::get_source_text_of_node_from_source_file(
         source_file,
         node.expression().unwrap(),
@@ -2269,7 +2266,7 @@ impl Binder {
     }
 }
 
-pub(crate) fn is_eval_or_arguments_identifier(node: P<Node>) -> bool {
+pub fn is_eval_or_arguments_identifier(node: P<Node>) -> bool {
     if ast::is_identifier(node) {
         let text = node.text();
         return text == "eval" || text == "arguments";
@@ -2283,13 +2280,13 @@ impl Binder {
         context_node: P<Node>,
         name: Option<P<Node>>,
     ) {
-        if let Some(name) = name {
-            if is_eval_or_arguments_identifier(name) {
-                // We check first if the name is inside class declaration or class expression; if so give explicit message
-                // otherwise report generic error message.
-                let message = self.get_strict_mode_eval_or_arguments_message(context_node);
-                self.error_on_node(name, message, &[&name.text()]);
-            }
+        if let Some(name) = name
+            && is_eval_or_arguments_identifier(name)
+        {
+            // We check first if the name is inside class declaration or class expression; if so give explicit message
+            // otherwise report generic error message.
+            let message = self.get_strict_mode_eval_or_arguments_message(context_node);
+            self.error_on_node(name, message, &[&name.text()]);
         }
     }
 
@@ -2395,16 +2392,14 @@ impl Binder {
             );
             if !self.current_flow().flags.get().intersects(FlowFlags::Unreachable)
                 && container_flags.intersects(ContainerFlags::IsFunctionLike)
+                && let Some(body_data) = node.body_data()
+                && ast::node_is_present(body_data.body)
             {
-                if let Some(body_data) = node.body_data() {
-                    if ast::node_is_present(body_data.body) {
-                        node.set_flags(node.flags() | NodeFlags::HasImplicitReturn);
-                        if self.has_explicit_return {
-                            node.set_flags(node.flags() | NodeFlags::HasExplicitReturn);
-                        }
-                        body_data.end_flow_node.set(self.current_flow);
-                    }
+                node.set_flags(node.flags() | NodeFlags::HasImplicitReturn);
+                if self.has_explicit_return {
+                    node.set_flags(node.flags() | NodeFlags::HasExplicitReturn);
                 }
+                body_data.end_flow_node.set(self.current_flow);
             }
             if self.seen_this_keyword {
                 node.set_flags(node.flags() | NodeFlags::ContainsThis);
@@ -2517,10 +2512,11 @@ impl Binder {
             return;
         }
 
-        if Kind::FIRST_STATEMENT <= node.kind() && node.kind() <= Kind::LAST_STATEMENT {
-            if node.has_flow_node_data() {
-                node.set_flow_node(self.current_flow);
-            }
+        if Kind::FIRST_STATEMENT <= node.kind()
+            && node.kind() <= Kind::LAST_STATEMENT
+            && node.has_flow_node_data()
+        {
+            node.set_flow_node(self.current_flow);
         }
 
         match node.kind() {
@@ -2704,10 +2700,11 @@ impl Binder {
         };
         self.bind_each(nodes);
         let last = self.last_container;
-        if splice && last != ctx.last_container {
-            if let Some(last) = last {
-                last.locals_container_data().unwrap().next_container.set(next);
-            }
+        if splice
+            && last != ctx.last_container
+            && let Some(last) = last
+        {
+            last.locals_container_data().unwrap().next_container.set(next);
         }
         (
             self.container,
@@ -2839,7 +2836,7 @@ impl Binder {
     }
 }
 
-pub(crate) fn is_logical_assignment_expression(node: P<Node>) -> bool {
+pub fn is_logical_assignment_expression(node: P<Node>) -> bool {
     ast::is_logical_or_coalescing_assignment_expression(ast::skip_parentheses(node))
 }
 
@@ -3705,13 +3702,13 @@ impl Binder {
     }
 }
 
-pub(crate) fn set_flow_node(node: P<Node>, flow_node: Option<P<FlowNode>>) {
+pub fn set_flow_node(node: P<Node>, flow_node: Option<P<FlowNode>>) {
     if node.has_flow_node_data() {
         node.set_flow_node(flow_node);
     }
 }
 
-pub(crate) fn set_return_flow_node(node: P<Node>, return_flow_node: Option<P<FlowNode>>) {
+pub fn set_return_flow_node(node: P<Node>, return_flow_node: Option<P<FlowNode>>) {
     match node.kind() {
         Kind::Constructor => {
             node.as_constructor_declaration().set_return_flow_node(return_flow_node);
@@ -3729,7 +3726,7 @@ pub(crate) fn set_return_flow_node(node: P<Node>, return_flow_node: Option<P<Flo
     }
 }
 
-pub(crate) fn is_generator_function_expression(node: P<Node>) -> bool {
+pub fn is_generator_function_expression(node: P<Node>) -> bool {
     ast::is_function_expression(node) && node.body_data().unwrap().asterisk_token.is_some()
 }
 
@@ -3750,18 +3747,15 @@ impl Binder {
         // tsrs-only (`bind_lazy_member_list`): a declaration that fills a table the deferred list fills merges into the
         // symbol: an interface or class fills `members` (type parameters, members), a namespace or enum fills
         // `exports`, which only a class's list fills too (static members). Value and function merges fill neither.
-        if let Some(lazy) = symbol.lazy_list() {
-            if lazy.state() == lazylist::DEFERRED
-                && match node.kind() {
-                    Kind::InterfaceDeclaration | Kind::ClassDeclaration | Kind::ClassExpression => {
-                        true
-                    }
-                    Kind::ModuleDeclaration | Kind::EnumDeclaration => lazy.fills_exports(),
-                    _ => false,
-                }
-            {
-                self.force_pending_lazy_list(lazy.get());
+        if let Some(lazy) = symbol.lazy_list()
+            && lazy.state() == lazylist::DEFERRED
+            && match node.kind() {
+                Kind::InterfaceDeclaration | Kind::ClassDeclaration | Kind::ClassExpression => true,
+                Kind::ModuleDeclaration | Kind::EnumDeclaration => lazy.fills_exports(),
+                _ => false,
             }
+        {
+            self.force_pending_lazy_list(lazy.get());
         }
         symbol.flags.set(symbol.flags.get() | symbol_flags);
         node.declaration_data().unwrap().symbol.set(Some(symbol));
@@ -3900,7 +3894,7 @@ pub fn get_container_flags(node: P<Node>) -> ContainerFlags {
     }
 }
 
-pub(crate) fn is_narrowing_expression(expr: P<Node>) -> bool {
+pub fn is_narrowing_expression(expr: P<Node>) -> bool {
     match expr.kind() {
         Kind::Identifier | Kind::ThisKeyword => true,
         Kind::PropertyAccessExpression | Kind::ElementAccessExpression => {
@@ -3919,7 +3913,7 @@ pub(crate) fn is_narrowing_expression(expr: P<Node>) -> bool {
     }
 }
 
-pub(crate) fn contains_narrowable_reference(expr: P<Node>) -> bool {
+pub fn contains_narrowable_reference(expr: P<Node>) -> bool {
     if is_narrowable_reference(expr) {
         return true;
     }
@@ -3937,7 +3931,7 @@ pub(crate) fn contains_narrowable_reference(expr: P<Node>) -> bool {
     false
 }
 
-pub(crate) fn is_narrowable_reference(node: P<Node>) -> bool {
+pub fn is_narrowable_reference(node: P<Node>) -> bool {
     match node.kind() {
         Kind::Identifier | Kind::ThisKeyword | Kind::SuperKeyword | Kind::MetaProperty => true,
         Kind::PropertyAccessExpression
@@ -3960,20 +3954,20 @@ pub(crate) fn is_narrowable_reference(node: P<Node>) -> bool {
     }
 }
 
-pub(crate) fn has_narrowable_argument(expr: P<Node>) -> bool {
+pub fn has_narrowable_argument(expr: P<Node>) -> bool {
     let call = expr.as_call_expression();
     if call.arguments().nodes().iter().any(|&argument| contains_narrowable_reference(argument)) {
         return true;
     }
-    if ast::is_property_access_expression(call.expression()) {
-        if contains_narrowable_reference(call.expression().expression().unwrap()) {
-            return true;
-        }
+    if ast::is_property_access_expression(call.expression())
+        && contains_narrowable_reference(call.expression().expression().unwrap())
+    {
+        return true;
     }
     false
 }
 
-pub(crate) fn is_narrowing_binary_expression(node: P<Node>) -> bool {
+pub fn is_narrowing_binary_expression(node: P<Node>) -> bool {
     let expr = node.as_binary_expression();
     match expr.operator_token().kind() {
         Kind::EqualsToken
@@ -3999,7 +3993,7 @@ pub(crate) fn is_narrowing_binary_expression(node: P<Node>) -> bool {
     }
 }
 
-pub(crate) fn is_narrowable_operand(expr: P<Node>) -> bool {
+pub fn is_narrowable_operand(expr: P<Node>) -> bool {
     match expr.kind() {
         Kind::ParenthesizedExpression => return is_narrowable_operand(expr.expression().unwrap()),
         Kind::BinaryExpression => {
@@ -4015,7 +4009,7 @@ pub(crate) fn is_narrowable_operand(expr: P<Node>) -> bool {
     contains_narrowable_reference(expr)
 }
 
-pub(crate) fn is_narrowing_type_of_operands(expr1: P<Node>, expr2: P<Node>) -> bool {
+pub fn is_narrowing_type_of_operands(expr1: P<Node>, expr2: P<Node>) -> bool {
     ast::is_type_of_expression(expr1)
         && is_narrowable_operand(expr1.expression().unwrap())
         && ast::is_string_literal_like(expr2)
@@ -4067,14 +4061,14 @@ impl Binder {
     }
 }
 
-pub(crate) fn get_optional_symbol_flag_for_node(node: P<Node>) -> SymbolFlags {
+pub fn get_optional_symbol_flag_for_node(node: P<Node>) -> SymbolFlags {
     match node.postfix_token() {
         Some(postfix_token) if postfix_token.kind() == Kind::QuestionToken => SymbolFlags::Optional,
         _ => SymbolFlags::None,
     }
 }
 
-pub(crate) fn is_statement_condition(node: P<Node>) -> bool {
+pub fn is_statement_condition(node: P<Node>) -> bool {
     let parent = node.parent().unwrap();
     match parent.kind() {
         Kind::IfStatement | Kind::WhileStatement | Kind::DoStatement => {
@@ -4086,7 +4080,7 @@ pub(crate) fn is_statement_condition(node: P<Node>) -> bool {
     }
 }
 
-pub(crate) fn is_top_level_logical_expression(node: P<Node>) -> bool {
+pub fn is_top_level_logical_expression(node: P<Node>) -> bool {
     let mut node = node;
     loop {
         let parent = node.parent().unwrap();
@@ -4105,13 +4099,13 @@ pub(crate) fn is_top_level_logical_expression(node: P<Node>) -> bool {
         || (ast::is_optional_chain(parent) && parent.expression() == Some(node)))
 }
 
-pub(crate) fn is_assignment_declaration(decl: P<Node>) -> bool {
+pub fn is_assignment_declaration(decl: P<Node>) -> bool {
     ast::is_binary_expression(decl)
         || ast::is_access_expression(decl)
         || ast::is_identifier(decl)
         || ast::is_call_expression(decl)
 }
 
-pub(crate) fn is_effective_module_declaration(node: P<Node>) -> bool {
+pub fn is_effective_module_declaration(node: P<Node>) -> bool {
     ast::is_module_declaration(node) || ast::is_identifier(node)
 }

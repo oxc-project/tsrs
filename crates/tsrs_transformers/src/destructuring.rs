@@ -325,13 +325,13 @@ impl Flattener<'_> {
             ast::is_destructuring_assignment(node),
         );
 
-        if let Some(value) = value {
-            if needs_value {
-                if self.expressions.is_empty() {
-                    return value;
-                }
-                self.expressions.push(value);
+        if let Some(value) = value
+            && needs_value
+        {
+            if self.expressions.is_empty() {
+                return value;
             }
+            self.expressions.push(value);
         }
 
         let res = self.factory().inline_expressions(&self.expressions);
@@ -351,21 +351,20 @@ impl Flattener<'_> {
         let mut node = node;
         if ast::is_variable_declaration(node) {
             let initializer = get_initializer_of_binding_or_assignment_element(Some(node));
-            if let Some(initializer) = initializer {
-                if ast::is_identifier(initializer)
+            if let Some(initializer) = initializer
+                && (ast::is_identifier(initializer)
                     && binding_or_assignment_element_assigns_to_name(node, initializer.text())
-                    || binding_or_assignment_element_contains_non_literal_computed_name(node)
-                {
-                    let visited = self.visit_node(Some(initializer)).unwrap();
-                    let initializer = self.ensure_identifier(visited, false, initializer.loc());
-                    node = self.factory().update_variable_declaration(
-                        node,
-                        node.name().unwrap(),
-                        None,
-                        None,
-                        Some(initializer),
-                    );
-                }
+                    || binding_or_assignment_element_contains_non_literal_computed_name(node))
+            {
+                let visited = self.visit_node(Some(initializer)).unwrap();
+                let initializer = self.ensure_identifier(visited, false, initializer.loc());
+                node = self.factory().update_variable_declaration(
+                    node,
+                    node.name().unwrap(),
+                    None,
+                    None,
+                    Some(initializer),
+                );
             }
         }
 
@@ -683,12 +682,11 @@ fn binding_or_assignment_pattern_assigns_to_name(pattern: P<Node>, name: &str) -
 // destructuring.go:452
 pub fn binding_or_assignment_element_contains_non_literal_computed_name(element: P<Node>) -> bool {
     let property_name = try_get_property_name_of_binding_or_assignment_element(element);
-    if let Some(property_name) = property_name {
-        if ast::is_computed_property_name(property_name)
-            && !ast::is_literal_expression(property_name.expression().unwrap())
-        {
-            return true;
-        }
+    if let Some(property_name) = property_name
+        && ast::is_computed_property_name(property_name)
+        && !ast::is_literal_expression(property_name.expression().unwrap())
+    {
+        return true;
     }
     let target = ast::get_target_of_binding_or_assignment_element(element);
     match target {
@@ -754,16 +752,16 @@ fn is_simple_binding_or_assignment_element(element: P<Node>) -> bool {
         return true;
     }
     let property_name = try_get_property_name_of_binding_or_assignment_element(element);
-    if let Some(property_name) = property_name {
-        if !ast::is_property_name_literal(property_name) {
-            return false;
-        }
+    if let Some(property_name) = property_name
+        && !ast::is_property_name_literal(property_name)
+    {
+        return false;
     }
     let initializer = get_initializer_of_binding_or_assignment_element(Some(element));
-    if let Some(initializer) = initializer {
-        if !is_simple_inlineable_expression(initializer) {
-            return false;
-        }
+    if let Some(initializer) = initializer
+        && !is_simple_inlineable_expression(initializer)
+    {
+        return false;
     }
     if ast::is_binding_pattern(target) || ast::is_assignment_pattern(target) {
         return ast::get_elements_of_binding_or_assignment_pattern(target)

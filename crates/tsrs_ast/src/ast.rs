@@ -359,10 +359,10 @@ pub(crate) fn update_node(
 
 pub(crate) fn clone_node(updated: P<Node>, original: P<Node>, hooks: &NodeFactoryHooks) -> P<Node> {
     update_node(updated, original, hooks);
-    if updated != original {
-        if let Some(on_clone) = &hooks.on_clone {
-            on_clone(updated, original);
-        }
+    if updated != original
+        && let Some(on_clone) = &hooks.on_clone
+    {
+        on_clone(updated, original);
     }
     updated
 }
@@ -1451,10 +1451,10 @@ impl Node {
             _ => {}
         }
         let postfix = self.postfix_token();
-        if let Some(postfix) = postfix {
-            if postfix.kind() == Kind::QuestionToken {
-                return Some(postfix);
-            }
+        if let Some(postfix) = postfix
+            && postfix.kind() == Kind::QuestionToken
+        {
+            return Some(postfix);
         }
         None
     }
@@ -1604,25 +1604,25 @@ pub fn get_declaration_from_name(name: Option<P<Node>>) -> Option<P<Node>> {
         }
         if is_qualified_name(parent) {
             let tag = parent.parent();
-            if let Some(tag) = tag {
-                if is_jsdoc_parameter_tag(tag) && tag.name() == Some(parent) {
-                    return Some(tag);
-                }
+            if let Some(tag) = tag
+                && is_jsdoc_parameter_tag(tag)
+                && tag.name() == Some(parent)
+            {
+                return Some(tag);
             }
             return None;
         }
         let bin_exp = parent.parent();
-        if let Some(bin_exp) = bin_exp {
-            if is_binary_expression(bin_exp)
-                && get_assignment_declaration_kind(bin_exp) != JSDeclarationKind::None
+        if let Some(bin_exp) = bin_exp
+            && is_binary_expression(bin_exp)
+            && get_assignment_declaration_kind(bin_exp) != JSDeclarationKind::None
+        {
+            // (binExp.left as BindableStaticNameExpression).symbol || binExp.symbol
+            let left_has_symbol = bin_exp.as_binary_expression().left.symbol().is_some();
+            if (left_has_symbol || bin_exp.symbol().is_some())
+                && get_name_of_declaration(Some(bin_exp)) == Some(name)
             {
-                // (binExp.left as BindableStaticNameExpression).symbol || binExp.symbol
-                let left_has_symbol = bin_exp.as_binary_expression().left.symbol().is_some();
-                if left_has_symbol || bin_exp.symbol().is_some() {
-                    if get_name_of_declaration(Some(bin_exp)) == Some(name) {
-                        return Some(bin_exp);
-                    }
-                }
+                return Some(bin_exp);
             }
         }
     }
@@ -2269,9 +2269,6 @@ impl SourceFile {
         }
         let _region = self.owner_region();
         self.name_table.get_or_init(|| {
-            let mut name_table: tsrs_core::collections::OrderedMap<&'static str, NameTableEntry> =
-                tsrs_core::collections::OrderedMap::default();
-            let file: &'static SourceFile = self.as_node().as_source_file();
             fn walk(
                 node: P<Node>,
                 file: &'static SourceFile,
@@ -2300,6 +2297,10 @@ impl SourceFile {
                 }
                 false
             }
+
+            let mut name_table: tsrs_core::collections::OrderedMap<&'static str, NameTableEntry> =
+                tsrs_core::collections::OrderedMap::default();
+            let file: &'static SourceFile = self.as_node().as_source_file();
             self.as_node().for_each_child(&mut |c| walk(c, file, &mut name_table));
             name_table
         })
@@ -2605,7 +2606,6 @@ impl Node {
 }
 
 fn collect_identifiers_for_source_file(source_file: &SourceFile) -> Set<&'static str> {
-    let mut identifiers: Set<&'static str> = Set::default();
     fn collect(node: P<Node>, identifiers: &mut Set<&'static str>) -> bool {
         match node.kind() {
             Kind::Identifier
@@ -2621,6 +2621,8 @@ fn collect_identifiers_for_source_file(source_file: &SourceFile) -> Set<&'static
         node.for_each_child(&mut |child| collect(child, identifiers));
         false
     }
+
+    let mut identifiers: Set<&'static str> = Set::default();
     collect(source_file.as_node(), &mut identifiers);
     identifiers
 }
@@ -2719,8 +2721,6 @@ impl SourceFile {
 
     // ast.go:2982
     fn compute_declaration_map(&self) -> FxHashMap<String, Vec<P<Node>>> {
-        let mut result: FxHashMap<String, Vec<P<Node>>> = FxHashMap::default();
-
         fn add_declaration(result: &mut FxHashMap<String, Vec<P<Node>>>, declaration: P<Node>) {
             let name = get_declaration_name(declaration);
             if !name.is_empty() {
@@ -2846,6 +2846,8 @@ impl SourceFile {
             }
             false
         }
+
+        let mut result: FxHashMap<String, Vec<P<Node>>> = FxHashMap::default();
 
         self.as_node().for_each_child(&mut |c| visit(&mut result, c));
         result

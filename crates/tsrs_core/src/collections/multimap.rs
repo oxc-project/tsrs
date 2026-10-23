@@ -44,13 +44,13 @@ impl<K: Hash + Eq, V> MultiMap<K, V> {
     where
         V: PartialEq,
     {
-        if let Some(values) = self.m.get_mut(key) {
-            if let Some(i) = values.iter().position(|v| v == value) {
-                if values.len() == 1 {
-                    self.m.remove(key);
-                } else {
-                    values.remove(i);
-                }
+        if let Some(values) = self.m.get_mut(key)
+            && let Some(i) = values.iter().position(|v| v == value)
+        {
+            if values.len() == 1 {
+                self.m.remove(key);
+            } else {
+                values.remove(i);
             }
         }
     }

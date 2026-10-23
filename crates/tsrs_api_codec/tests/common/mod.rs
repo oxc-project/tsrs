@@ -132,9 +132,7 @@ pub fn first_difference(expected: &[u8], actual: &[u8]) -> Option<String> {
             return Some(msg);
         }
     }
-    if de.len() != da.len() {
-        writeln!(msg, "node count: expected {} actual {}", de.len(), da.len()).unwrap();
-    } else {
+    if de.len() == da.len() {
         let pos = expected
             .iter()
             .zip(actual)
@@ -142,6 +140,8 @@ pub fn first_difference(expected: &[u8], actual: &[u8]) -> Option<String> {
             .unwrap_or(expected.len().min(actual.len()));
         writeln!(msg, "first differing byte at {pos} (sections: strOff {} strData {} ext {} struct {} nodes {})",
             rd(expected, 24), rd(expected, 28), rd(expected, 32), rd(expected, 36), rd(expected, 40)).unwrap();
+    } else {
+        writeln!(msg, "node count: expected {} actual {}", de.len(), da.len()).unwrap();
     }
     Some(msg)
 }
@@ -226,7 +226,7 @@ pub fn structural(b: &[u8], keep_jsdoc: bool) -> Vec<String> {
 
 pub fn diff_lines(expected: &[String], actual: &[String]) -> Option<String> {
     if let Some(result) = expected.iter().zip(actual).enumerate().find_map(|(k, (e, a))| {
-        if e != a { Some(Some(format!("line {k}:\n  expected {e}\n  actual   {a}"))) } else { None }
+        if e == a { None } else { Some(Some(format!("line {k}:\n  expected {e}\n  actual   {a}"))) }
     }) {
         return result;
     }

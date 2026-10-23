@@ -269,7 +269,7 @@ impl NodeBuilder {
 }
 
 // nodebuilder.go:188
-pub(crate) fn simplify_class_declaration(
+pub fn simplify_class_declaration(
     f: &NodeFactory,
     class_decl: P<Node>,
     symbol: P<Symbol>,
@@ -278,7 +278,7 @@ pub(crate) fn simplify_class_declaration(
     let class_declarations: Vec<P<Node>> =
         symbol.declarations().iter().copied().filter(|&d| ast::is_class_like(d)).collect();
     let original_class_decl =
-        if !class_declarations.is_empty() { class_declarations[0] } else { class_decl };
+        if class_declarations.is_empty() { class_decl } else { class_declarations[0] };
     let modifiers =
         original_class_decl.modifier_flags() & !(ModifierFlags::Export | ModifierFlags::Ambient);
     let is_anonymous = ast::is_class_expression(original_class_decl);
@@ -303,7 +303,7 @@ pub(crate) fn simplify_class_declaration(
 }
 
 // nodebuilder.go:212
-pub(crate) fn simplify_modifiers(
+pub fn simplify_modifiers(
     f: &NodeFactory,
     new_decl: P<Node>,
     mut is_decl_kind: impl FnMut(P<Node>) -> bool,
@@ -311,7 +311,7 @@ pub(crate) fn simplify_modifiers(
 ) -> P<Node> {
     let decls: Vec<P<Node>> =
         symbol.declarations().iter().copied().filter(|&d| is_decl_kind(d)).collect();
-    let decl_with_modifiers = if !decls.is_empty() { decls[0] } else { new_decl };
+    let decl_with_modifiers = if decls.is_empty() { new_decl } else { decls[0] };
     let modifiers =
         decl_with_modifiers.modifier_flags() & !(ModifierFlags::Export | ModifierFlags::Ambient);
     replace_modifiers(

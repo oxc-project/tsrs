@@ -25,7 +25,7 @@ func writeTable(w *strings.Builder, name string, t *unicode.RangeTable) {
 		fmt.Fprintf(w, "    Range32 { lo: 0x%x, hi: 0x%x, stride: %d },\n", r.Lo, r.Hi, r.Stride)
 	}
 	fmt.Fprintf(w, "];\n")
-	fmt.Fprintf(w, "pub(crate) static %s: RangeTable = RangeTable { r16: %s_R16, r32: %s_R32, latin_offset: %d };\n\n", name, name, name, t.LatinOffset)
+	fmt.Fprintf(w, "pub static %s: RangeTable = RangeTable { r16: %s_R16, r32: %s_R32, latin_offset: %d };\n\n", name, name, name, t.LatinOffset)
 }
 
 func main() {

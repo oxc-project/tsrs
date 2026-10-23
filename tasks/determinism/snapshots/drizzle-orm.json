@@ -1,0 +1,28 @@
+{
+  "format_version": 1,
+  "typescript_commit": "3e9236361fa97a9e6c685f4833ac457ae2d8c50a",
+  "reference": {
+    "package": "typescript",
+    "version": "7.1.0-beta",
+    "native_package": "@typescript/typescript-darwin-arm64",
+    "native_version": "7.1.0-beta",
+    "binary_sha256": "29f5eb8daa5c8cf6ef1c0cb79fbcf47c0cfdf26edabdf148bb779d0b2d56cebc"
+  },
+  "input": {
+    "overlay": null,
+    "project": {
+      "commit": "15454dbe49d827c6081f3d0231e2e7985e517295",
+      "install": "pnpm --pm-on-fail=ignore dlx pnpm@10.6.3 install --frozen-lockfile --ignore-scripts",
+      "name": "drizzle-orm",
+      "project": "drizzle-orm/tsconfig.build.json",
+      "repo": "https://github.com/drizzle-team/drizzle-orm.git"
+    },
+    "suite": null
+  },
+  "exit_code": 2,
+  "diagnostics": [
+    "error TS5090: Non-relative paths are not allowed. Did you forget a leading './'?",
+    "error TS5102: Option 'baseUrl' has been removed. Please remove it from your configuration.",
+    "  Use '\"paths\": {\"*\": [\"./*\"]}' instead."
+  ]
+}

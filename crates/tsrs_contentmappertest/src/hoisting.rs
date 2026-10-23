@@ -12,7 +12,7 @@ use crate::protocol::{
 };
 
 // hoisting.go:15
-pub(crate) struct HoistingHandler;
+pub struct HoistingHandler;
 
 impl TestHandler for HoistingHandler {}
 

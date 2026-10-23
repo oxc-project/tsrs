@@ -42,28 +42,27 @@ impl Checker {
         };
 
         let copy_symbols = |source: Option<P<SymbolTable>>, meaning: SymbolFlags| {
-            if !meaning.is_empty() {
-                if let Some(source) = source {
-                    for (_, symbol) in source.entries() {
-                        copy_symbol(symbol, meaning);
-                    }
+            if !meaning.is_empty()
+                && let Some(source) = source
+            {
+                for (_, symbol) in source.entries() {
+                    copy_symbol(symbol, meaning);
                 }
             }
         };
 
         let copy_locally_visible_export_symbols =
             |source: Option<P<SymbolTable>>, meaning: SymbolFlags| {
-                if !meaning.is_empty() {
-                    if let Some(source) = source {
-                        for (_, symbol) in source.entries() {
-                            // Similar condition as in `resolveNameHelper`
-                            if ast::get_declaration_of_kind(symbol, Kind::ExportSpecifier).is_none()
-                                && ast::get_declaration_of_kind(symbol, Kind::NamespaceExport)
-                                    .is_none()
-                                && symbol.name() != INTERNAL_SYMBOL_NAME_DEFAULT
-                            {
-                                copy_symbol(symbol, meaning);
-                            }
+                if !meaning.is_empty()
+                    && let Some(source) = source
+                {
+                    for (_, symbol) in source.entries() {
+                        // Similar condition as in `resolveNameHelper`
+                        if ast::get_declaration_of_kind(symbol, Kind::ExportSpecifier).is_none()
+                            && ast::get_declaration_of_kind(symbol, Kind::NamespaceExport).is_none()
+                            && symbol.name() != INTERNAL_SYMBOL_NAME_DEFAULT
+                        {
+                            copy_symbol(symbol, meaning);
                         }
                     }
                 }
@@ -660,16 +659,16 @@ impl Checker {
         &mut self,
         location: Option<P<Node>>,
     ) -> Option<P<Symbol>> {
-        if let Some(location) = location {
-            if location.kind() == Kind::ShorthandPropertyAssignment {
-                return self.resolve_entity_name(
-                    location.name().unwrap(),
-                    SymbolFlags::Value | SymbolFlags::Alias,
-                    true, /*ignoreErrors*/
-                    false,
-                    None,
-                );
-            }
+        if let Some(location) = location
+            && location.kind() == Kind::ShorthandPropertyAssignment
+        {
+            return self.resolve_entity_name(
+                location.name().unwrap(),
+                SymbolFlags::Value | SymbolFlags::Alias,
+                true, /*ignoreErrors*/
+                false,
+                None,
+            );
         }
         None
     }
@@ -761,21 +760,21 @@ impl Checker {
             if ref_symbol == Some(symbol) {
                 return true;
             }
-            if let Some(parent) = token.parent() {
-                if parent.kind() == Kind::ShorthandPropertyAssignment {
-                    let shorthand_symbol = self.get_shorthand_assignment_value_symbol(Some(parent));
-                    if shorthand_symbol == Some(symbol) {
-                        return true;
-                    }
+            if let Some(parent) = token.parent()
+                && parent.kind() == Kind::ShorthandPropertyAssignment
+            {
+                let shorthand_symbol = self.get_shorthand_assignment_value_symbol(Some(parent));
+                if shorthand_symbol == Some(symbol) {
+                    return true;
                 }
             }
-            if let Some(parent) = token.parent() {
-                if ast::is_export_specifier(parent) {
-                    let local_symbol =
-                        self.get_local_symbol_for_export_specifier(token, ref_symbol, parent);
-                    if local_symbol == Some(symbol) {
-                        return true;
-                    }
+            if let Some(parent) = token.parent()
+                && ast::is_export_specifier(parent)
+            {
+                let local_symbol =
+                    self.get_local_symbol_for_export_specifier(token, ref_symbol, parent);
+                if local_symbol == Some(symbol) {
+                    return true;
                 }
             }
 
@@ -813,13 +812,12 @@ impl Checker {
                 if ref_symbol == Some(symbol) {
                     return true;
                 }
-                if let Some(parent) = token.parent() {
-                    if parent.kind() == Kind::ShorthandPropertyAssignment {
-                        let shorthand_symbol =
-                            self.get_shorthand_assignment_value_symbol(Some(parent));
-                        if shorthand_symbol == Some(symbol) {
-                            return true;
-                        }
+                if let Some(parent) = token.parent()
+                    && parent.kind() == Kind::ShorthandPropertyAssignment
+                {
+                    let shorthand_symbol = self.get_shorthand_assignment_value_symbol(Some(parent));
+                    if shorthand_symbol == Some(symbol) {
+                        return true;
                     }
                 }
                 if let Some(parent) = token.parent() {
@@ -845,20 +843,17 @@ impl Checker {
         reference_symbol: Option<P<Symbol>>,
         export_specifier: P<Node>,
     ) -> Option<P<Symbol>> {
-        if is_export_specifier_alias(reference_location, export_specifier) {
-            if let Some(symbol) = self.get_export_specifier_local_target_symbol(export_specifier) {
-                return Some(symbol);
-            }
+        if is_export_specifier_alias(reference_location, export_specifier)
+            && let Some(symbol) = self.get_export_specifier_local_target_symbol(export_specifier)
+        {
+            return Some(symbol);
         }
         reference_symbol
     }
 }
 
 // services.go:633
-pub(crate) fn is_export_specifier_alias(
-    reference_location: P<Node>,
-    export_specifier: P<Node>,
-) -> bool {
+pub fn is_export_specifier_alias(reference_location: P<Node>, export_specifier: P<Node>) -> bool {
     assert!(
         export_specifier.property_name() == Some(reference_location)
             || export_specifier.name() == Some(reference_location),
@@ -876,7 +871,7 @@ pub(crate) fn is_export_specifier_alias(
 }
 
 // services.go:646
-pub(crate) fn get_possible_symbol_reference_nodes(
+pub fn get_possible_symbol_reference_nodes(
     source_file: P<SourceFile>,
     symbol_name: &str,
     container: Option<P<Node>>,
@@ -894,7 +889,7 @@ pub(crate) fn get_possible_symbol_reference_nodes(
 }
 
 // services.go:655
-pub(crate) fn get_possible_symbol_reference_positions(
+pub fn get_possible_symbol_reference_positions(
     source_file: P<SourceFile>,
     symbol_name: &str,
     container: Option<P<Node>>,
@@ -1120,10 +1115,10 @@ impl Checker {
                 }
             }
             let mut name = std::borrow::Cow::Borrowed("");
-            if let Some(name_type) = name_type {
-                if is_type_usable_as_property_name(name_type) {
-                    name = get_property_name_from_type(name_type);
-                }
+            if let Some(name_type) = name_type
+                && is_type_usable_as_property_name(name_type)
+            {
+                name = get_property_name_from_type(name_type);
             }
             let mut expected = None;
             if !name.is_empty() {
@@ -1202,13 +1197,13 @@ impl Checker {
                 None,  /*location*/
             );
         }
-        if let Some(symbol) = symbol {
-            if symbol.flags().intersects(SymbolFlags::EnumMember) {
-                // inline property\index accesses only for const enums
-                let member = symbol.value_declaration().unwrap();
-                if ast::is_enum_const(member.parent().unwrap()) {
-                    return self.get_enum_member_value(member).value;
-                }
+        if let Some(symbol) = symbol
+            && symbol.flags().intersects(SymbolFlags::EnumMember)
+        {
+            // inline property\index accesses only for const enums
+            let member = symbol.value_declaration().unwrap();
+            if ast::is_enum_const(member.parent().unwrap()) {
+                return self.get_enum_member_value(member).value;
             }
         }
 
@@ -1322,7 +1317,7 @@ impl Checker {
 }
 
 // services.go:981
-pub(crate) static KNOWN_GENERIC_TYPE_NAMES: [&str; 20] = [
+pub static KNOWN_GENERIC_TYPE_NAMES: [&str; 20] = [
     "Array",
     "ArrayLike",
     "ReadonlyArray",
@@ -1346,21 +1341,20 @@ pub(crate) static KNOWN_GENERIC_TYPE_NAMES: [&str; 20] = [
 ];
 
 // services.go:1004
-pub(crate) fn is_known_generic_type_name(name: &str) -> bool {
+pub fn is_known_generic_type_name(name: &str) -> bool {
     KNOWN_GENERIC_TYPE_NAMES.contains(&name)
 }
 
 impl Checker {
     // services.go:1009
     pub fn get_first_type_argument_from_known_type(&mut self, t: P<Type>) -> Option<P<Type>> {
-        if t.object_flags().intersects(ObjectFlags::Reference) {
-            if let Some(t_symbol) = t.symbol() {
-                if is_known_generic_type_name(t_symbol.name()) {
-                    let symbol = self.get_global_symbol(t_symbol.name(), SymbolFlags::Type, None);
-                    if symbol.is_some() && symbol == t.target().unwrap().symbol() {
-                        return self.get_type_arguments(t).first().copied();
-                    }
-                }
+        if t.object_flags().intersects(ObjectFlags::Reference)
+            && let Some(t_symbol) = t.symbol()
+            && is_known_generic_type_name(t_symbol.name())
+        {
+            let symbol = self.get_global_symbol(t_symbol.name(), SymbolFlags::Type, None);
+            if symbol.is_some() && symbol == t.target().unwrap().symbol() {
+                return self.get_type_arguments(t).first().copied();
             }
         }
         if let Some(alias) = t.alias() {
@@ -1403,10 +1397,9 @@ impl Checker {
         if union_symbol_ok
             && (discriminated_property_symbols.is_empty()
                 || discriminated_property_symbols.len() == contextual_type.types().len())
+            && let Some(symbol) = self.get_property_of_type(contextual_type, &name)
         {
-            if let Some(symbol) = self.get_property_of_type(contextual_type, &name) {
-                return vec![symbol];
-            }
+            return vec![symbol];
         }
         if filtered_types.is_empty() && discriminated_property_symbols.is_empty() {
             // Bad discriminant -- do again without discriminating
@@ -1533,10 +1526,10 @@ impl Checker {
         let declarations = symbol.declarations().to_vec();
         if declarations.into_iter().any(|decl| {
             let sf = ast::get_source_file_of_node(decl);
-            if let Some(sf) = sf {
-                if self.program.is_source_file_default_library(sf.path()) {
-                    return true;
-                }
+            if let Some(sf) = sf
+                && self.program.is_source_file_default_library(sf.path())
+            {
+                return true;
             }
 
             false

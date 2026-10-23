@@ -41,25 +41,28 @@ pub struct ContentMappedParseCacheKey {
 
 // parsecache.go:55
 // parseCacheKeyForFile reconstructs the ordinary parse-cache key for a source file held by a program.
-pub(crate) fn parse_cache_key_for_file(file: P<SourceFile>) -> ParseCacheKey {
+pub fn parse_cache_key_for_file(file: P<SourceFile>) -> ParseCacheKey {
     new_parse_cache_key(file.parse_options().clone(), file.hash.get(), file.script_kind())
 }
 
 // parsecache.go:64
 // parseCacheKeyForDuplicate reconstructs an ordinary parse-cache key for a deduplicated source file.
-pub(crate) fn parse_cache_key_for_duplicate(file: &DuplicateSourceFile) -> ParseCacheKey {
+pub fn parse_cache_key_for_duplicate(file: &DuplicateSourceFile) -> ParseCacheKey {
     new_parse_cache_key(file.parse_options.clone(), file.hash, file.script_kind)
 }
 
 pub type ParseCache = RefCountCache<ParseCacheKey, P<SourceFile>, Arc<dyn FileHandle>>;
 
-/// The parse-cache references one snapshot clone takes for the programs it builds (`compilerHost::get_source_file`
-/// acquires, the program-update refs and derefs in `Project::create_program`). They are handed to the new snapshot,
-/// which releases them in `Snapshot::dispose`. If the clone unwinds before a snapshot exists (a panic while building
+/// Tracks the parse-cache references acquired by one snapshot clone.
+///
+/// `compilerHost::get_source_file` acquires them for the programs it builds, with program-update refs and derefs
+/// in `Project::create_program`. They are handed to the new snapshot, which releases them in `Snapshot::dispose`.
+///
+/// If the clone unwinds before a snapshot exists (a panic while building
 /// a program, e.g. the module resolver's `Unexpected moduleResolution`), nothing else would release them: the
 /// clone rolls them back with this record so the files' regions are freed.
 #[derive(Default)]
-pub(crate) struct ParseCacheJournal(Mutex<FxHashMap<ParseCacheKey, i64>>);
+pub struct ParseCacheJournal(Mutex<FxHashMap<ParseCacheKey, i64>>);
 
 impl ParseCacheJournal {
     pub(crate) fn acquire(

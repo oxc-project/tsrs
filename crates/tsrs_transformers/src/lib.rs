@@ -18,7 +18,7 @@ pub(crate) use tsrs_ast::{self as ast, *};
 pub(crate) use tsrs_checker::{
     self as checker, Checker, CheckerSlot, EmitResolver, SymbolAccessibilityResult, SymbolTracker,
 };
-pub(crate) use tsrs_core::collections::{MultiMap, OrderedSet, OrderedSetExt, Set};
+pub(crate) use tsrs_core::collections::{MultiMap, OrderedSet, Set};
 pub(crate) use tsrs_core::jsnum::{self, Number};
 pub(crate) use tsrs_core::{
     CompilerOptions, ModuleKind, P, SP, ScriptTarget, alloc_slice, alloc_str, alloc_vec,

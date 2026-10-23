@@ -271,6 +271,13 @@ impl AsyncConn {
     /// Call: unique "api<N>" string IDs; the response channel is registered before the request is
     /// written so a fast response cannot be lost.
     pub fn call(&self, method: &str, params: Option<&[u8]>) -> Result<Vec<u8>, TransportError> {
+        struct Unregister<'a>(&'a AsyncConn, Id);
+        impl Drop for Unregister<'_> {
+            fn drop(&mut self) {
+                lock(&self.0.pending).calls.remove(&self.1);
+            }
+        }
+
         let id = Id::string(format!("api{}", self.seq.fetch_add(1, Ordering::SeqCst) + 1));
         let (tx, rx) = mpsc::sync_channel::<Message>(1);
         {
@@ -279,12 +286,6 @@ impl AsyncConn {
                 return Err(pending.terminal_error());
             }
             pending.calls.insert(id.clone(), tx);
-        }
-        struct Unregister<'a>(&'a AsyncConn, Id);
-        impl Drop for Unregister<'_> {
-            fn drop(&mut self) {
-                lock(&self.0.pending).calls.remove(&self.1);
-            }
         }
         let _guard = Unregister(self, id.clone());
         let _waiting = self.callbacks.enter();

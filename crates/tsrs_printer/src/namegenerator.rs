@@ -39,7 +39,7 @@ pub struct NameGenerator {
 }
 
 #[derive(Default)]
-pub(crate) struct NameGenerationScope {
+pub struct NameGenerationScope {
     next: Option<Box<NameGenerationScope>>, // The next nameGenerationScope in the stack
     temp_flags: tempFlags,                  // TempFlags for the current name generation scope.
     formatted_name_temp_flags: Option<FxHashMap<String, tempFlags>>, // TempFlags for the current name generation scope.
@@ -65,10 +65,8 @@ impl NameGenerator {
         if let Some(scope) = self.private_name_generation_scope.take() {
             self.private_name_generation_scope = scope.next;
         }
-        if !reuse_temp_variable_scope {
-            if let Some(scope) = self.name_generation_scope.take() {
-                self.name_generation_scope = scope.next;
-            }
+        if !reuse_temp_variable_scope && let Some(scope) = self.name_generation_scope.take() {
+            self.name_generation_scope = scope.next;
         }
     }
 
@@ -100,12 +98,11 @@ impl NameGenerator {
         formatted_name_key: &str,
     ) -> tempFlags {
         let scope = self.get_scope(private_name);
-        if let Some(scope) = scope {
-            if let Some(flags) =
+        if let Some(scope) = scope
+            && let Some(flags) =
                 scope.formatted_name_temp_flags.as_ref().and_then(|m| m.get(formatted_name_key))
-            {
-                return *flags;
-            }
+        {
+            return *flags;
         }
         tempFlags::Auto
     }
@@ -141,33 +138,33 @@ impl NameGenerator {
 
     // Generate the text for a generated identifier or private identifier
     pub fn generate_name(&mut self, name: P<Node>) -> String {
-        if let Some(context) = self.context {
-            if let Some(auto_generate) = context.get_auto_generate_info(Some(name)) {
-                if auto_generate.flags.is_node() {
-                    // Node names generate unique names based on their original node
-                    // and are cached based on that node's id.
-                    return self.generate_name_for_node_cached(
-                        context.get_node_for_generated_name(name),
-                        is_private_identifier(name),
-                        auto_generate.flags,
-                        auto_generate.prefix,
-                        auto_generate.suffix,
-                    );
-                }
-                // Auto, Loop, and Unique names are cached based on their unique autoGenerateId.
-                if let Some(auto_generated_name) = self
-                    .auto_generated_id_to_generated_name
-                    .as_ref()
-                    .and_then(|m| m.get(&auto_generate.id))
-                {
-                    return auto_generated_name.clone();
-                }
-                let auto_generated_name = self.make_name(name);
-                self.auto_generated_id_to_generated_name
-                    .get_or_insert_with(FxHashMap::default)
-                    .insert(auto_generate.id, auto_generated_name.clone());
-                return auto_generated_name;
+        if let Some(context) = self.context
+            && let Some(auto_generate) = context.get_auto_generate_info(Some(name))
+        {
+            if auto_generate.flags.is_node() {
+                // Node names generate unique names based on their original node
+                // and are cached based on that node's id.
+                return self.generate_name_for_node_cached(
+                    context.get_node_for_generated_name(name),
+                    is_private_identifier(name),
+                    auto_generate.flags,
+                    auto_generate.prefix,
+                    auto_generate.suffix,
+                );
             }
+            // Auto, Loop, and Unique names are cached based on their unique autoGenerateId.
+            if let Some(auto_generated_name) = self
+                .auto_generated_id_to_generated_name
+                .as_ref()
+                .and_then(|m| m.get(&auto_generate.id))
+            {
+                return auto_generated_name.clone();
+            }
+            let auto_generated_name = self.make_name(name);
+            self.auto_generated_id_to_generated_name
+                .get_or_insert_with(FxHashMap::default)
+                .insert(auto_generate.id, auto_generated_name.clone());
+            return auto_generated_name;
         }
         self.call_get_text_of_node(name)
     }
@@ -318,10 +315,10 @@ impl NameGenerator {
     ) -> String {
         let expr = get_external_module_name(node);
         let mut base_name = "module".to_string();
-        if let Some(expr) = expr {
-            if is_string_literal(expr) {
-                base_name = make_identifier_from_module_name(expr.text());
-            }
+        if let Some(expr) = expr
+            && is_string_literal(expr)
+        {
+            base_name = make_identifier_from_module_name(expr.text());
         }
         self.make_unique_name(
             &base_name, None,  /*checkFn*/
@@ -381,46 +378,46 @@ impl NameGenerator {
     }
 
     fn make_name(&mut self, name: P<Node>) -> String {
-        if let Some(context) = self.context {
-            if let Some(auto_generate) = context.get_auto_generate_info(Some(name)) {
-                match auto_generate.flags.kind() {
-                    GeneratedIdentifierFlags::Auto => {
-                        return self.make_temp_variable_name(
-                            tempFlags::Auto,
-                            auto_generate.flags.is_reserved_in_nested_scopes(),
-                            is_private_identifier(name),
-                            auto_generate.prefix,
-                            auto_generate.suffix,
-                        );
-                    }
-                    GeneratedIdentifierFlags::Loop => {
-                        assert!(is_identifier(name));
-                        return self.make_temp_variable_name(
-                            tempFlags::_i,
-                            auto_generate.flags.is_reserved_in_nested_scopes(),
-                            false, /*privateName*/
-                            auto_generate.prefix,
-                            auto_generate.suffix,
-                        );
-                    }
-                    GeneratedIdentifierFlags::Unique => {
-                        let check_fn = if auto_generate.flags.is_file_level() {
-                            self.is_file_level_unique_name_in_current_file.clone()
-                        } else {
-                            None
-                        };
-                        return self.make_unique_name(
-                            name.text(),
-                            check_fn.as_ref(),
-                            auto_generate.flags.is_optimistic(),
-                            auto_generate.flags.is_reserved_in_nested_scopes(),
-                            is_private_identifier(name),
-                            auto_generate.prefix,
-                            auto_generate.suffix,
-                        );
-                    }
-                    _ => {}
+        if let Some(context) = self.context
+            && let Some(auto_generate) = context.get_auto_generate_info(Some(name))
+        {
+            match auto_generate.flags.kind() {
+                GeneratedIdentifierFlags::Auto => {
+                    return self.make_temp_variable_name(
+                        tempFlags::Auto,
+                        auto_generate.flags.is_reserved_in_nested_scopes(),
+                        is_private_identifier(name),
+                        auto_generate.prefix,
+                        auto_generate.suffix,
+                    );
                 }
+                GeneratedIdentifierFlags::Loop => {
+                    assert!(is_identifier(name));
+                    return self.make_temp_variable_name(
+                        tempFlags::_i,
+                        auto_generate.flags.is_reserved_in_nested_scopes(),
+                        false, /*privateName*/
+                        auto_generate.prefix,
+                        auto_generate.suffix,
+                    );
+                }
+                GeneratedIdentifierFlags::Unique => {
+                    let check_fn = if auto_generate.flags.is_file_level() {
+                        self.is_file_level_unique_name_in_current_file.clone()
+                    } else {
+                        None
+                    };
+                    return self.make_unique_name(
+                        name.text(),
+                        check_fn.as_ref(),
+                        auto_generate.flags.is_optimistic(),
+                        auto_generate.flags.is_reserved_in_nested_scopes(),
+                        is_private_identifier(name),
+                        auto_generate.prefix,
+                        auto_generate.suffix,
+                    );
+                }
+                _ => {}
             }
         }
         self.call_get_text_of_node(name)
@@ -610,14 +607,13 @@ fn is_unique_local_name(name: &str, container: P<Node>) -> bool {
         let locals = n.locals();
         if let Some(locals) = locals {
             // We conservatively include alias symbols to cover cases where they're emitted as locals
-            if let Some(local) = locals.lookup(name) {
-                if local
+            if let Some(local) = locals.lookup(name)
+                && local
                     .flags
                     .get()
                     .intersects(SymbolFlags::Value | SymbolFlags::ExportValue | SymbolFlags::Alias)
-                {
-                    return false;
-                }
+            {
+                return false;
             }
         }
         node = next_container(n);

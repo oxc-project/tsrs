@@ -1,7 +1,7 @@
 use tsrs_core::collections::Set;
 use tsrs_lsproto as lsproto;
 
-pub(crate) const EXCESSIVE_CHANGE_THRESHOLD: usize = 1000;
+pub const EXCESSIVE_CHANGE_THRESHOLD: usize = 1000;
 
 pub trait FileChangeExpander {
     fn expand_file_changes(&self, summary: FileChangeSummary) -> FileChangeSummary;
@@ -91,7 +91,7 @@ impl FileChangeSummary {
 
 // filechange.go:79
 // mergeFileChangeSummary merges src into dst, combining their change sets.
-pub(crate) fn merge_file_change_summary(dst: &mut FileChangeSummary, src: &FileChangeSummary) {
+pub fn merge_file_change_summary(dst: &mut FileChangeSummary, src: &FileChangeSummary) {
     if src.is_empty() {
         return;
     }

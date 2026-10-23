@@ -312,13 +312,12 @@ impl ESModuleTransformer {
 
     // esmodule.go:253
     fn visit_call_expression(&self, node: P<Node>) -> P<Node> {
-        if self.compiler_options.rewrite_relative_import_extensions.is_true() {
-            if ast::is_import_call(node) && !node.arguments().is_empty()
+        if self.compiler_options.rewrite_relative_import_extensions.is_true()
+            && (ast::is_import_call(node) && !node.arguments().is_empty()
                 || ast::is_in_js_file(node)
-                    && ast::is_require_call(node, false /*requireStringLiteralLikeArgument*/)
-            {
-                return self.visit_import_or_require_call(node);
-            }
+                    && ast::is_require_call(node, false /*requireStringLiteralLikeArgument*/))
+        {
+            return self.visit_import_or_require_call(node);
         }
         self.visitor().visit_each_child(Some(node)).unwrap()
     }

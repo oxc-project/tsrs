@@ -190,7 +190,7 @@ pub struct UserPreferences {
 // userpreferences.go:47 (the struct tags of UserPreferences and the structs it embeds, flattened in declaration order)
 // Source12's Go parser is generated from the preference schema. This Rust table retains the same raw/config
 // field names and accessors; decoding it matches the generated parser without Go's code generator.
-pub(crate) struct FieldTag {
+pub struct FieldTag {
     pub(crate) name: &'static str,
     pub(crate) raw: &'static str,
     pub(crate) config: &'static str,
@@ -201,7 +201,7 @@ pub(crate) struct FieldTag {
 
 // Field types determine the parsers and serializers for each preference.
 #[derive(Clone, Copy)]
-pub(crate) enum FieldRef<'a> {
+pub enum FieldRef<'a> {
     Tristate(&'a Tristate),
     IndentStyle(&'a IndentStyle),
     SemicolonPreference(&'a SemicolonPreference),
@@ -221,7 +221,7 @@ pub(crate) enum FieldRef<'a> {
     Slice(&'a Option<Vec<String>>),
 }
 
-pub(crate) enum FieldMut<'a> {
+pub enum FieldMut<'a> {
     Tristate(&'a mut Tristate),
     IndentStyle(&'a mut IndentStyle),
     SemicolonPreference(&'a mut SemicolonPreference),
@@ -257,7 +257,7 @@ macro_rules! field_tag {
     };
 }
 
-pub(crate) static USER_PREFERENCES_FIELD_TAGS: &[FieldTag] = &[
+pub static USER_PREFERENCES_FIELD_TAGS: &[FieldTag] = &[
     // FormatCodeSettings.EditorSettings
     field_tag!(
         Int,
@@ -864,7 +864,7 @@ pub enum OrganizeImportsTypeOrder {
 
 // userpreferences.go:300
 // typeParsers: one function per entry of Go's map, in Go's order; setFieldFromValue dispatches on the field type.
-pub(crate) fn parse_tristate_value(val: &Value) -> Tristate {
+pub fn parse_tristate_value(val: &Value) -> Tristate {
     if let Value::Bool(b) = val {
         if *b {
             return Tristate::True;
@@ -874,7 +874,7 @@ pub(crate) fn parse_tristate_value(val: &Value) -> Tristate {
     Tristate::Unknown
 }
 
-pub(crate) fn parse_quote_preference(val: &Value) -> QuotePreference {
+pub fn parse_quote_preference(val: &Value) -> QuotePreference {
     if let Value::String(s) = val {
         match s.to_lowercase().as_str() {
             "auto" => return QuotePreference::Auto,
@@ -886,7 +886,7 @@ pub(crate) fn parse_quote_preference(val: &Value) -> QuotePreference {
     QuotePreference::Unknown
 }
 
-pub(crate) fn parse_jsx_attribute_completion_style(val: &Value) -> JsxAttributeCompletionStyle {
+pub fn parse_jsx_attribute_completion_style(val: &Value) -> JsxAttributeCompletionStyle {
     if let Value::String(s) = val {
         match s.to_lowercase().as_str() {
             "braces" => return JsxAttributeCompletionStyle::Braces,
@@ -897,9 +897,7 @@ pub(crate) fn parse_jsx_attribute_completion_style(val: &Value) -> JsxAttributeC
     JsxAttributeCompletionStyle::Auto
 }
 
-pub(crate) fn parse_include_inlay_parameter_name_hints(
-    val: &Value,
-) -> IncludeInlayParameterNameHints {
+pub fn parse_include_inlay_parameter_name_hints(val: &Value) -> IncludeInlayParameterNameHints {
     if let Value::String(s) = val {
         match s.to_lowercase().as_str() {
             "all" => return IncludeInlayParameterNameHints::All,
@@ -910,7 +908,7 @@ pub(crate) fn parse_include_inlay_parameter_name_hints(
     IncludeInlayParameterNameHints::None
 }
 
-pub(crate) fn parse_organize_imports_sort(val: &Value) -> OrganizeImportsSort {
+pub fn parse_organize_imports_sort(val: &Value) -> OrganizeImportsSort {
     if let Value::String(s) = val {
         match s.to_lowercase().as_str() {
             "ordinal" => return OrganizeImportsSort::Ordinal,
@@ -923,16 +921,16 @@ pub(crate) fn parse_organize_imports_sort(val: &Value) -> OrganizeImportsSort {
     OrganizeImportsSort::Auto
 }
 
-pub(crate) fn parse_organize_imports_collation(val: &Value) -> OrganizeImportsCollation {
-    if let Value::String(s) = val {
-        if s.to_lowercase() == "unicode" {
-            return OrganizeImportsCollation::Unicode;
-        }
+pub fn parse_organize_imports_collation(val: &Value) -> OrganizeImportsCollation {
+    if let Value::String(s) = val
+        && s.to_lowercase() == "unicode"
+    {
+        return OrganizeImportsCollation::Unicode;
     }
     OrganizeImportsCollation::Ordinal
 }
 
-pub(crate) fn parse_organize_imports_case_first(val: &Value) -> OrganizeImportsCaseFirst {
+pub fn parse_organize_imports_case_first(val: &Value) -> OrganizeImportsCaseFirst {
     if let Value::String(s) = val {
         match s.to_lowercase().as_str() {
             "lower" => return OrganizeImportsCaseFirst::Lower,
@@ -943,7 +941,7 @@ pub(crate) fn parse_organize_imports_case_first(val: &Value) -> OrganizeImportsC
     OrganizeImportsCaseFirst::False
 }
 
-pub(crate) fn parse_organize_imports_type_order(val: &Value) -> OrganizeImportsTypeOrder {
+pub fn parse_organize_imports_type_order(val: &Value) -> OrganizeImportsTypeOrder {
     if let Value::String(s) = val {
         match s.to_lowercase().as_str() {
             "last" => return OrganizeImportsTypeOrder::Last,
@@ -955,9 +953,7 @@ pub(crate) fn parse_organize_imports_type_order(val: &Value) -> OrganizeImportsT
     OrganizeImportsTypeOrder::Auto
 }
 
-pub(crate) fn parse_import_module_specifier_preference(
-    val: &Value,
-) -> ImportModuleSpecifierPreference {
+pub fn parse_import_module_specifier_preference(val: &Value) -> ImportModuleSpecifierPreference {
     if let Value::String(s) = val {
         match s.to_lowercase().as_str() {
             "project-relative" => return ImportModuleSpecifierPreference::ProjectRelative,
@@ -969,7 +965,7 @@ pub(crate) fn parse_import_module_specifier_preference(
     ImportModuleSpecifierPreference::Shortest
 }
 
-pub(crate) fn parse_import_module_specifier_ending_preference(
+pub fn parse_import_module_specifier_ending_preference(
     val: &Value,
 ) -> ImportModuleSpecifierEndingPreference {
     if let Value::String(s) = val {
@@ -983,7 +979,7 @@ pub(crate) fn parse_import_module_specifier_ending_preference(
     ImportModuleSpecifierEndingPreference::Auto
 }
 
-pub(crate) fn parse_workspace_symbols_scope(val: &Value) -> WorkspaceSymbolsScope {
+pub fn parse_workspace_symbols_scope(val: &Value) -> WorkspaceSymbolsScope {
     if let Value::String(s) = val {
         match s.to_lowercase().as_str() {
             "allopenprojects" => return WorkspaceSymbolsScope::ALL_OPEN_PROJECTS,
@@ -1002,7 +998,7 @@ pub(crate) fn parse_workspace_symbols_scope(val: &Value) -> WorkspaceSymbolsScop
     clippy::option_option,
     reason = "Distinguishes no matching serializer or field from a matching nil value, as in Go."
 )]
-pub(crate) fn type_serializers(field: &FieldRef<'_>) -> Option<Option<Value>> {
+pub fn type_serializers(field: &FieldRef<'_>) -> Option<Option<Value>> {
     Some(match field {
         FieldRef::Tristate(v) => match **v {
             Tristate::True => Some(Value::Bool(true)),
@@ -1064,21 +1060,21 @@ pub(crate) fn type_serializers(field: &FieldRef<'_>) -> Option<Option<Value>> {
             // module-specifier enums, the consumer in completions.go distinguishes
             // JsxAttributeCompletionStyleUnknown from ...Auto, so converting this one
             // requires updating that consumer to treat the zero value as "auto".
-            if **v != JsxAttributeCompletionStyle::Unknown {
-                Some(Value::String(v.as_str().to_string()))
-            } else {
+            if **v == JsxAttributeCompletionStyle::Unknown {
                 None
+            } else {
+                Some(Value::String(v.as_str().to_string()))
             }
         }
         FieldRef::ImportModuleSpecifierPreference(v) => {
             // TODO: make consistent with other enums (see note above): have the parser
             // return the zero value (None) as its fallback and drop this serializer.
-            if !v.as_str().is_empty() { Some(Value::String(v.as_str().to_string())) } else { None }
+            if v.as_str().is_empty() { None } else { Some(Value::String(v.as_str().to_string())) }
         }
         FieldRef::ImportModuleSpecifierEndingPreference(v) => {
             // TODO: make consistent with other enums (see note above): have the parser
             // return the zero value (None) as its fallback and drop this serializer.
-            if !v.as_str().is_empty() { Some(Value::String(v.as_str().to_string())) } else { None }
+            if v.as_str().is_empty() { None } else { Some(Value::String(v.as_str().to_string())) }
         }
         _ => return None,
     })
@@ -1087,7 +1083,7 @@ pub(crate) fn type_serializers(field: &FieldRef<'_>) -> Option<Option<Value>> {
 // userpreferences.go:525
 // configPathParsers provides field-specific config value parsers that override the default
 // type-based parser when the VS Code config value format differs from the Go field type.
-pub(crate) fn config_path_parsers(path: &str) -> Option<fn(&Value) -> Tristate> {
+pub fn config_path_parsers(path: &str) -> Option<fn(&Value) -> Tristate> {
     match path {
         // VS Code sends caseSensitivity as a string ("auto"/"caseSensitive"/"caseInsensitive"),
         // but OrganizeImportsIgnoreCase is a core.Tristate.
@@ -1112,7 +1108,7 @@ pub(crate) fn config_path_parsers(path: &str) -> Option<fn(&Value) -> Tristate> 
 }
 
 // userpreferences.go:547
-pub(crate) struct FieldInfo {
+pub struct FieldInfo {
     pub(crate) raw_name: &'static str, // raw name for unstable section lookup (e.g., "quotePreference")
     pub(crate) config_path: &'static str, // dotted path for config (e.g., "preferences.quoteStyle")
     pub(crate) fallback_config_paths: Vec<ConfigPathInfo>,
@@ -1123,33 +1119,33 @@ pub(crate) struct FieldInfo {
 
 // userpreferences.go:556
 #[derive(Clone, Copy)]
-pub(crate) struct ConfigPathInfo {
+pub struct ConfigPathInfo {
     pub(crate) path: &'static str,
     pub(crate) invert: bool,
 }
 
 // userpreferences.go:561
-pub(crate) fn field_info_cache() -> &'static [FieldInfo] {
+pub fn field_info_cache() -> &'static [FieldInfo] {
     static CACHE: OnceLock<Vec<FieldInfo>> = OnceLock::new();
     CACHE.get_or_init(|| collect_field_infos(USER_PREFERENCES_FIELD_TAGS))
 }
 
 // userpreferences.go:566
 // unstableNameIndex maps raw names to fieldInfo index for unstable section lookup.
-pub(crate) fn unstable_name_index() -> &'static FxHashMap<&'static str, usize> {
+pub fn unstable_name_index() -> &'static FxHashMap<&'static str, usize> {
     static INDEX: OnceLock<FxHashMap<&'static str, usize>> = OnceLock::new();
     INDEX.get_or_init(|| {
         let infos = field_info_cache();
         let mut index = FxHashMap::with_capacity_and_hasher(infos.len(), rustc_hash::FxBuildHasher);
         index.extend(infos.iter().enumerate().filter_map(|(i, info)| {
-            if !info.raw_name.is_empty() { Some((info.raw_name, i)) } else { None }
+            if info.raw_name.is_empty() { None } else { Some((info.raw_name, i)) }
         }));
         index
     })
 }
 
 // userpreferences.go:577
-pub(crate) fn collect_field_infos(fields: &'static [FieldTag]) -> Vec<FieldInfo> {
+pub fn collect_field_infos(fields: &'static [FieldTag]) -> Vec<FieldInfo> {
     let mut infos = Vec::new();
     for field in fields {
         let raw_tag = field.raw;
@@ -1200,7 +1196,7 @@ pub(crate) fn collect_field_infos(fields: &'static [FieldTag]) -> Vec<FieldInfo>
 }
 
 // userpreferences.go:628
-pub(crate) fn parse_config_path_tag(tag: &'static str) -> ConfigPathInfo {
+pub fn parse_config_path_tag(tag: &'static str) -> ConfigPathInfo {
     let mut parts = tag.split(',');
     let mut info = ConfigPathInfo { path: parts.next().unwrap(), invert: false };
     for part in parts {
@@ -1212,7 +1208,7 @@ pub(crate) fn parse_config_path_tag(tag: &'static str) -> ConfigPathInfo {
 }
 
 // userpreferences.go:639
-pub(crate) fn get_nested_value<'a>(config: &'a JsonMap, path: &str) -> Option<&'a Value> {
+pub fn get_nested_value<'a>(config: &'a JsonMap, path: &str) -> Option<&'a Value> {
     let mut parts = path.split('.');
     let mut current = config.get(parts.next().unwrap())?;
     current = parts.try_fold(current, |current, part| {
@@ -1225,7 +1221,7 @@ pub(crate) fn get_nested_value<'a>(config: &'a JsonMap, path: &str) -> Option<&'
 }
 
 // userpreferences.go:655
-pub(crate) fn set_nested_value(config: &mut JsonMap, path: &str, value: Value) {
+pub fn set_nested_value(config: &mut JsonMap, path: &str, value: Value) {
     let parts: Vec<&str> = path.split('.').collect();
     let mut current = config;
     current = parts[..parts.len() - 1].iter().fold(current, |mut current, part| {
@@ -1241,7 +1237,7 @@ pub(crate) fn set_nested_value(config: &mut JsonMap, path: &str, value: Value) {
 }
 
 // userpreferences.go:669
-pub(crate) fn set_raw_fields_from_config(
+pub fn set_raw_fields_from_config(
     p: &mut UserPreferences,
     infos: &[FieldInfo],
     settings: &JsonMap,
@@ -1253,11 +1249,11 @@ pub(crate) fn set_raw_fields_from_config(
             let field = (info.field.get_mut)(p);
             let inverted;
             let mut value = value;
-            if info.raw_invert {
-                if let Value::Bool(b) = value {
-                    inverted = Value::Bool(!*b);
-                    value = &inverted;
-                }
+            if info.raw_invert
+                && let Value::Bool(b) = value
+            {
+                inverted = Value::Bool(!*b);
+                value = &inverted;
             }
             set_field_from_value(field, value);
         }
@@ -1304,11 +1300,11 @@ impl UserPreferences {
 
             let field = (info.field.get_mut)(p);
             let inverted;
-            if config_path.invert {
-                if let Value::Bool(b) = val {
-                    inverted = Value::Bool(!*b);
-                    val = &inverted;
-                }
+            if config_path.invert
+                && let Value::Bool(b) = val
+            {
+                inverted = Value::Bool(!*b);
+                val = &inverted;
             }
             if let Some(parser) = config_path_parsers(config_path.path) {
                 match field {
@@ -1338,7 +1334,7 @@ impl UserPreferences {
 }
 
 // userpreferences.go:753
-pub(crate) fn set_field_from_value(field: FieldMut<'_>, val: &Value) {
+pub fn set_field_from_value(field: FieldMut<'_>, val: &Value) {
     if matches!(val, Value::Null) {
         return;
     }
@@ -1410,17 +1406,17 @@ impl UserPreferences {
 
             // Prefer config path if available, otherwise use unstable section
             if !info.config_path.is_empty() {
-                if info.config_invert {
-                    if let Value::Bool(b) = val {
-                        val = Value::Bool(!b);
-                    }
+                if info.config_invert
+                    && let Value::Bool(b) = val
+                {
+                    val = Value::Bool(!b);
                 }
                 set_nested_value(&mut config, info.config_path, val);
             } else if !info.raw_name.is_empty() {
-                if info.raw_invert {
-                    if let Value::Bool(b) = val {
-                        val = Value::Bool(!b);
-                    }
+                if info.raw_invert
+                    && let Value::Bool(b) = val
+                {
+                    val = Value::Bool(!b);
                 }
                 set_nested_value(&mut config, &format!("unstable.{}", info.raw_name), val);
             }
@@ -1442,7 +1438,7 @@ fn sort_object_keys(v: &mut Value) {
 }
 
 // userpreferences.go:826
-pub(crate) fn serialize_field(field: FieldRef<'_>) -> Option<Value> {
+pub fn serialize_field(field: FieldRef<'_>) -> Option<Value> {
     // Check custom serializers first (for types like Tristate, enums, etc.)
     if let Some(serialized) = type_serializers(&field) {
         return serialized;
@@ -1547,15 +1543,15 @@ pub fn parse_user_preferences(items: &JsonMap) -> UserPreferences {
     // editor < javascript < typescript < js/ts
     if let Some(Value::Object(editor_settings)) = items.get("editor") {
         let mut normalized_settings = editor_settings.clone();
-        if let Some(tab_size) = normalized_settings.get("tabSize").cloned() {
-            if !normalized_settings.contains_key("indentSize") {
-                normalized_settings.insert("indentSize".to_string(), tab_size);
-            }
+        if let Some(tab_size) = normalized_settings.get("tabSize").cloned()
+            && !normalized_settings.contains_key("indentSize")
+        {
+            normalized_settings.insert("indentSize".to_string(), tab_size);
         }
-        if let Some(insert_spaces) = normalized_settings.get("insertSpaces").cloned() {
-            if !normalized_settings.contains_key("convertTabsToSpaces") {
-                normalized_settings.insert("convertTabsToSpaces".to_string(), insert_spaces);
-            }
+        if let Some(insert_spaces) = normalized_settings.get("insertSpaces").cloned()
+            && !normalized_settings.contains_key("convertTabsToSpaces")
+        {
+            normalized_settings.insert("convertTabsToSpaces".to_string(), insert_spaces);
         }
         let mut unstable = JsonMap::new();
         unstable.insert("unstable".to_string(), Value::Object(normalized_settings));

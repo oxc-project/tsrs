@@ -1,9 +1,6 @@
 // Port of ls/selectionranges.go.
 
-use std::cell::RefCell;
-use std::rc::Rc;
-
-use tsrs_ast::{self as ast, Kind, Node, NodeFactory, NodeList, NodeVisitorHooks, SourceFile};
+use tsrs_ast::{self as ast, Kind, Node, NodeFactory, SourceFile};
 use tsrs_core::context::Context;
 use tsrs_core::{P, TextRange, alloc_slice};
 use tsrs_lsproto as lsproto;
@@ -13,6 +10,7 @@ use crate::astnav;
 use crate::languageservice::LanguageService;
 use crate::spanmap::Feature;
 use crate::utilities::get_children_from_non_jsdoc_node;
+use crate::visitedchildren::{VisitedChild, collect_visited_children};
 
 // selectionranges.go:14
 const MAX_SELECTION_RANGE_DEPTH: usize = 1000;
@@ -58,6 +56,10 @@ impl SelectionRangeBuilder {
 
 impl LanguageService {
     // selectionranges.go:48
+    #[expect(
+        clippy::unnecessary_wraps,
+        reason = "Language-service handlers retain the fallible interface used by LSP and API dispatch."
+    )]
     pub fn provide_selection_ranges(
         &self,
         _ctx: &Context,
@@ -66,26 +68,21 @@ impl LanguageService {
         let (_, source_file) = self.get_program_and_file(&params.text_document.uri);
 
         let mut results = Vec::with_capacity(params.positions.len());
-        results = match params.positions.iter().try_fold(results, |mut results, &position| {
+        for &position in &params.positions {
             let positions = self.converters.from_lsp_position_for_source_file(
                 source_file,
                 position,
                 Feature::SelectionRanges,
             );
             if positions.len() != 1 || !positions[0].fidelity.is_single_segment() {
-                return std::ops::ControlFlow::Break(Ok(lsproto::SelectionRangesOrNull::default()));
+                return Ok(lsproto::SelectionRangesOrNull::default());
             }
             if let Some(selection_range) =
                 get_smart_selection_range(self, positions[0].script, positions[0].position)
             {
                 results.push(selection_range);
             }
-
-            std::ops::ControlFlow::Continue(results)
-        }) {
-            std::ops::ControlFlow::Continue(value) => value,
-            std::ops::ControlFlow::Break(value) => return value,
-        };
+        }
 
         Ok(lsproto::SelectionRangesOrNull { selection_ranges: Some(results) })
     }
@@ -338,41 +335,6 @@ fn should_skip_node(node: P<Node>, parent: Option<P<Node>>) -> bool {
     false
 }
 
-// Go walks `current.VisitEachChild(tempVisitor)` with callbacks that close over the state above. The Rust visitor's
-// callbacks are `'static`, so the children are first collected in VisitEachChild order (single nodes through
-// `Visit`, node lists through the `VisitNodes` hook, which then visits each element) and then processed in that
-// order; processing never changes the tree.
-enum VisitedChild {
-    Node(P<Node>),
-    Nodes(P<NodeList>),
-}
-
-fn collect_visited_children(node: P<Node>) -> Vec<VisitedChild> {
-    let items: Rc<RefCell<Vec<VisitedChild>>> = Rc::new(RefCell::new(Vec::new()));
-    let visit_items = Rc::clone(&items);
-    let nodes_items = Rc::clone(&items);
-    let mut visitor = ast::new_node_visitor(
-        Some(Rc::new(move |_: &mut ast::NodeVisitor, child: P<Node>| {
-            visit_items.borrow_mut().push(VisitedChild::Node(child));
-            Some(child)
-        })),
-        None,
-        NodeVisitorHooks {
-            visit_nodes: Some(Rc::new(
-                move |nodes: Option<P<NodeList>>, _: &mut ast::NodeVisitor| {
-                    if let Some(list) = nodes {
-                        nodes_items.borrow_mut().push(VisitedChild::Nodes(list));
-                    }
-                    nodes
-                },
-            )),
-            ..Default::default()
-        },
-    );
-    node.visit_each_child(&mut visitor);
-    items.take()
-}
-
 // selectionranges.go:186
 fn get_smart_selection_range(
     l: &LanguageService,
@@ -412,19 +374,19 @@ fn get_smart_selection_range(
                 node.end().expect_source("parsed nodes have source positions"),
             )
             .next();
-            if let Some(found_comment) = found_comment {
-                if found_comment.kind == Kind::SingleLineCommentTrivia {
-                    s.push_selection_comment_range(
-                        found_comment
-                            .text_range
-                            .pos()
-                            .expect_source("comment ranges have source positions"),
-                        found_comment
-                            .text_range
-                            .end()
-                            .expect_source("comment ranges have source positions"),
-                    );
-                }
+            if let Some(found_comment) = found_comment
+                && found_comment.kind == Kind::SingleLineCommentTrivia
+            {
+                s.push_selection_comment_range(
+                    found_comment
+                        .text_range
+                        .pos()
+                        .expect_source("comment ranges have source positions"),
+                    found_comment
+                        .text_range
+                        .end()
+                        .expect_source("comment ranges have source positions"),
+                );
             }
 
             if s.node_contains_position(Some(node)) {

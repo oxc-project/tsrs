@@ -122,7 +122,7 @@ pub fn get_module_specifiers_for_file_with_info(
 }
 
 // specifiers.go:112
-pub(crate) fn try_get_module_name_from_ambient_module(
+pub fn try_get_module_name_from_ambient_module(
     module_symbol: P<Symbol>,
     checker: &mut dyn CheckerShape,
 ) -> AmbientModuleInfo {
@@ -200,7 +200,7 @@ pub(crate) fn try_get_module_name_from_ambient_module(
 }
 
 // specifiers.go:168
-pub(crate) fn get_info(
+pub fn get_info(
     importing_source_file_name: &str,
     host: &dyn ModuleSpecifierGenerationHost,
 ) -> Info {
@@ -213,7 +213,7 @@ pub(crate) fn get_info(
 }
 
 // specifiers.go:180
-pub(crate) fn get_all_module_paths(
+pub fn get_all_module_paths(
     info: &Info,
     imported_file_name: &str,
     host: &dyn ModuleSpecifierGenerationHost,
@@ -236,7 +236,7 @@ pub(crate) fn get_all_module_paths(
 }
 
 // specifiers.go:203
-pub(crate) fn get_all_module_paths_worker(
+pub fn get_all_module_paths_worker(
     info: &Info,
     imported_file_name: &str,
     host: &dyn ModuleSpecifierGenerationHost,
@@ -292,7 +292,7 @@ pub(crate) fn get_all_module_paths_worker(
 // containsIgnoredPath checks if a path contains patterns that should be ignored.
 // This is a local helper that duplicates tspath.ContainsIgnoredPath for performance.
 // specifiers.go:252
-pub(crate) fn contains_ignored_path(s: &str) -> bool {
+pub fn contains_ignored_path(s: &str) -> bool {
     s.contains("/node_modules/.") || s.contains("/.git") || s.contains(".#")
 }
 
@@ -316,10 +316,10 @@ pub fn get_each_file_name_of_module(
         tspath::to_path(imported_file_name, &cwd, host.use_case_sensitive_file_names());
     let mut reference_redirect = String::new();
     let output_and_reference = host.get_project_reference_from_source(&imported_path);
-    if let Some(output_and_reference) = output_and_reference {
-        if !output_and_reference.output_dts.is_empty() {
-            reference_redirect.clone_from(&output_and_reference.output_dts);
-        }
+    if let Some(output_and_reference) = output_and_reference
+        && !output_and_reference.output_dts.is_empty()
+    {
+        reference_redirect.clone_from(&output_and_reference.output_dts);
     }
 
     let redirects = host.get_redirect_targets(&imported_path);
@@ -336,14 +336,14 @@ pub fn get_each_file_name_of_module(
     let mut results: Vec<ModulePath> = Vec::with_capacity(2);
     if !prefer_symlinks {
         results.extend(targets.iter().filter_map(|p| {
-            if !(should_filter_ignored_paths && contains_ignored_path(p)) {
+            if should_filter_ignored_paths && contains_ignored_path(p) {
+                None
+            } else {
                 Some(ModulePath {
                     file_name: p.clone(),
                     is_in_node_modules: contains_node_modules(p),
                     is_redirect: reference_redirect == *p,
                 })
-            } else {
-                None
             }
         }));
     }
@@ -403,14 +403,14 @@ pub fn get_each_file_name_of_module(
 
     if prefer_symlinks {
         results.extend(targets.iter().filter_map(|p| {
-            if !(should_filter_ignored_paths && contains_ignored_path(p)) {
+            if should_filter_ignored_paths && contains_ignored_path(p) {
+                None
+            } else {
                 Some(ModulePath {
                     file_name: p.clone(),
                     is_in_node_modules: contains_node_modules(p),
                     is_redirect: reference_redirect == *p,
                 })
-            } else {
-                None
             }
         }));
     }
@@ -419,7 +419,7 @@ pub fn get_each_file_name_of_module(
 }
 
 // specifiers.go:364
-pub(crate) fn compute_module_specifiers(
+pub fn compute_module_specifiers(
     module_paths: &[ModulePath],
     compiler_options: &CompilerOptions,
     importing_source_file: P<SourceFile>,
@@ -448,16 +448,15 @@ pub(crate) fn compute_module_specifiers(
         for &import_specifier in importing_source_file.imports() {
             let resolved_module = host
                 .get_resolved_module_from_module_specifier(importing_source_file, import_specifier);
-            if let Some(resolved_module) = resolved_module.filter(|r| r.is_resolved()) {
-                if tspath::to_path(
+            if let Some(resolved_module) = resolved_module.filter(|r| r.is_resolved())
+                && tspath::to_path(
                     resolved_module.resolved_file_name,
                     host.get_current_directory(),
                     info.use_case_sensitive_file_names,
                 ) == target_path
-                {
-                    existing_import = Some(import_specifier);
-                    break;
-                }
+            {
+                existing_import = Some(import_specifier);
+                break;
             }
         }
         if let Some(existing_import) = existing_import {
@@ -586,7 +585,7 @@ pub(crate) fn compute_module_specifiers(
 }
 
 // specifiers.go:490
-pub(crate) fn get_local_module_specifier(
+pub fn get_local_module_specifier(
     module_file_name: &str,
     info: &Info,
     compiler_options: &CompilerOptions,
@@ -685,7 +684,7 @@ pub(crate) fn get_local_module_specifier(
     }
 
     let maybe_non_relative =
-        if !from_package_json_imports.is_empty() { from_package_json_imports } else { from_paths };
+        if from_package_json_imports.is_empty() { from_paths } else { from_package_json_imports };
     if maybe_non_relative.is_empty() {
         return relative_path;
     }
@@ -709,15 +708,15 @@ pub(crate) fn get_local_module_specifier(
     if preferences.relative_preference == RelativePreferenceKind::ExternalNonRelative
         && !tspath::path_is_relative(&maybe_non_relative)
     {
-        let project_directory = if !compiler_options.config_file_path.is_empty() {
+        let project_directory = if compiler_options.config_file_path.is_empty() {
             tspath::to_path(
-                &tspath::get_directory_path(&compiler_options.config_file_path),
+                host.get_current_directory(),
                 host.get_current_directory(),
                 host.use_case_sensitive_file_names(),
             )
         } else {
             tspath::to_path(
-                host.get_current_directory(),
+                &tspath::get_directory_path(&compiler_options.config_file_path),
                 host.get_current_directory(),
                 host.use_case_sensitive_file_names(),
             )
@@ -786,7 +785,7 @@ pub(crate) fn get_local_module_specifier(
 }
 
 // specifiers.go:641
-pub(crate) fn process_ending(
+pub fn process_ending(
     file_name: &str,
     allowed_endings: &[ModuleSpecifierEnding],
     options: &CompilerOptions,
@@ -837,13 +836,13 @@ pub(crate) fn process_ending(
     match allowed_endings[0] {
         ModuleSpecifierEnding::Minimal => {
             let without_index = no_extension.strip_suffix("/index").unwrap_or(no_extension);
-            if let Some(host) = host {
-                if without_index != no_extension && try_get_any_file_from_path(host, without_index)
-                {
-                    // Can't remove index if there's a file by the same name as the directory.
-                    // Probably more callers should pass `host` so we can determine this?
-                    return no_extension.to_string();
-                }
+            if let Some(host) = host
+                && without_index != no_extension
+                && try_get_any_file_from_path(host, without_index)
+            {
+                // Can't remove index if there's a file by the same name as the directory.
+                // Probably more callers should pass `host` so we can determine this?
+                return no_extension.to_string();
             }
             without_index.to_string()
         }
@@ -874,7 +873,7 @@ pub(crate) fn process_ending(
 }
 
 // specifiers.go:712
-pub(crate) fn try_get_module_name_from_root_dirs(
+pub fn try_get_module_name_from_root_dirs(
     root_dirs: &[String],
     module_file_name: &str,
     source_directory: &str,
@@ -924,7 +923,7 @@ pub(crate) fn try_get_module_name_from_root_dirs(
 }
 
 // specifiers.go:748
-pub(crate) fn try_get_module_name_as_node_module(
+pub fn try_get_module_name_as_node_module(
     path_obj: &ModulePath,
     info: &Info,
     importing_source_file: P<SourceFile>,
@@ -1027,7 +1026,7 @@ pub(crate) fn try_get_module_name_as_node_module(
 }
 
 // specifiers.go:837
-pub(crate) fn try_directory_with_package_json(
+pub fn try_directory_with_package_json(
     parts: NodeModulePathParts,
     package_base_root_index: Option<usize>,
     path_obj: &ModulePath,
@@ -1242,7 +1241,7 @@ pub(crate) fn try_directory_with_package_json(
 }
 
 // specifiers.go:981
-pub(crate) fn try_get_module_name_from_exports(
+pub fn try_get_module_name_from_exports(
     options: &CompilerOptions,
     host: &dyn ModuleSpecifierGenerationHost,
     target_file_path: &str,
@@ -1300,7 +1299,7 @@ pub(crate) fn try_get_module_name_from_exports(
 }
 
 // specifiers.go:1024
-pub(crate) fn try_get_module_name_from_package_json_imports(
+pub fn try_get_module_name_from_package_json_imports(
     module_file_name: &str,
     source_directory: &str,
     options: &CompilerOptions,
@@ -1381,7 +1380,7 @@ fn cut<'a>(s: &'a str, sep: &str) -> (&'a str, &'a str, bool) {
 }
 
 // specifiers.go:1094
-pub(crate) fn try_get_module_name_from_paths(
+pub fn try_get_module_name_from_paths(
     relative_to_base_url: &str,
     paths: &OrderedMap<String, impl PathSubstitutions>,
     allowed_endings: &[ModuleSpecifierEnding],
@@ -1485,7 +1484,7 @@ pub(crate) fn try_get_module_name_from_paths(
 }
 
 // specifiers.go:1193
-pub(crate) fn validate_ending(
+pub fn validate_ending(
     c: &SpecPair,
     relative_to_base_url: &str,
     compiler_options: &CompilerOptions,
@@ -1504,7 +1503,7 @@ pub(crate) fn validate_ending(
 }
 
 // specifiers.go:1204
-pub(crate) fn try_get_module_name_from_exports_or_imports(
+pub fn try_get_module_name_from_exports_or_imports(
     options: &CompilerOptions,
     host: &dyn ModuleSpecifierGenerationHost,
     target_file_path: &str,
@@ -1840,7 +1839,7 @@ pub fn update_module_specifier(
 
 // `importing_source_file`: !!! | FutureSourceFile. `old_import_specifier`: used only in updatingModuleSpecifier.
 // specifiers.go:1376
-pub(crate) fn get_module_specifier_with_preferences(
+pub fn get_module_specifier_with_preferences(
     compiler_options: &CompilerOptions,
     host: &dyn ModuleSpecifierGenerationHost,
     importing_source_file: P<SourceFile>,

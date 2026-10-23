@@ -3,7 +3,7 @@ use tsrs_ast::Kind;
 use super::*;
 
 // rule.go:5
-pub(crate) struct RuleImpl {
+pub struct RuleImpl {
     pub(crate) debug_name: &'static str,
     pub(crate) context: Vec<ContextPredicate>,
     pub(crate) action: RuleAction,
@@ -38,20 +38,20 @@ impl RuleImpl {
 
 // rule.go:28
 #[derive(Clone)]
-pub(crate) struct TokenRange {
+pub struct TokenRange {
     pub(crate) tokens: Vec<Kind>,
     pub(crate) is_specific: bool,
 }
 
 // rule.go:33
-pub(crate) struct RuleSpec {
+pub struct RuleSpec {
     pub(crate) left_token_range: TokenRange,
     pub(crate) right_token_range: TokenRange,
     pub(crate) rule: &'static RuleImpl,
 }
 
 // Go's `rule` takes `left`/`right` as `any` (ast.Kind, []ast.Kind or tokenRange); toTokenRange dispatches on the type.
-pub(crate) trait ToTokenRange {
+pub trait ToTokenRange {
     fn to_token_range(self) -> TokenRange;
 }
 
@@ -98,7 +98,7 @@ impl ToTokenRange for &TokenRange {
  * @param action a declaration of the expected whitespace
  * @param flags whether the rule deletes a line or not, defaults to no-op
  */
-pub(crate) fn rule(
+pub fn rule(
     debug_name: &'static str,
     left: impl ToTokenRange,
     right: impl ToTokenRange,
@@ -123,16 +123,16 @@ fn to_token_range(e: impl ToTokenRange) -> TokenRange {
 }
 
 // rule.go:83
-pub(crate) type ContextPredicate = &'static (dyn Fn(&FormattingContext) -> bool + Send + Sync);
+pub type ContextPredicate = &'static (dyn Fn(&FormattingContext) -> bool + Send + Sync);
 
 // rule.go:85
-pub(crate) fn any_context() -> Vec<ContextPredicate> {
+pub fn any_context() -> Vec<ContextPredicate> {
     Vec::new()
 }
 
 // rule.go:87
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
-pub(crate) struct RuleAction(pub(crate) u32);
+pub struct RuleAction(pub(crate) u32);
 
 impl RuleAction {
     pub(crate) const NONE: RuleAction = RuleAction(0);
@@ -181,7 +181,7 @@ impl std::ops::Not for RuleAction {
 
 // rule.go:104
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
-pub(crate) enum RuleFlags {
+pub enum RuleFlags {
     None,
     CanDeleteNewLines,
 }

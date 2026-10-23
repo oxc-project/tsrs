@@ -90,13 +90,13 @@ fn pass(sb: &mut String, text: &'static str, variant: LanguageVariant, mode: i32
                 Kind::TemplateHead => stack.push(true),
                 Kind::OpenBraceToken => stack.push(false),
                 Kind::CloseBraceToken => {
-                    if let Some(top) = stack.pop() {
-                        if top {
-                            flush_errors(sb, &mut s);
-                            tok = s.re_scan_template_token(false);
-                            if tok == Kind::TemplateMiddle {
-                                stack.push(true);
-                            }
+                    if let Some(top) = stack.pop()
+                        && top
+                    {
+                        flush_errors(sb, &mut s);
+                        tok = s.re_scan_template_token(false);
+                        if tok == Kind::TemplateMiddle {
+                            stack.push(true);
                         }
                     }
                 }

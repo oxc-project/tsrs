@@ -32,10 +32,10 @@ fn metadata_value(text: &str, key: &str) -> String {
         if !in_table {
             continue;
         }
-        if let Some((k, v)) = line.split_once('=') {
-            if k.trim() == key {
-                return v.trim().trim_matches('"').to_string();
-            }
+        if let Some((k, v)) = line.split_once('=')
+            && k.trim() == key
+        {
+            return v.trim().trim_matches('"').to_string();
         }
     }
     panic!("missing `{key}` in [workspace.metadata.typescript] of the workspace Cargo.toml");

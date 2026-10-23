@@ -7,7 +7,7 @@ use tsrs_printer::EmitTextWriter;
 // for VS colorized labels, while also building a plain string.
 // When vsCapability is false, only the plain string is built; runs are skipped.
 // displaypartswriter.go:19
-pub(crate) struct DisplayPartsWriter {
+pub struct DisplayPartsWriter {
     builder: String,
     runs: Vec<lsproto::VSClassifiedTextRun>,
     vs_capability: bool,
@@ -15,7 +15,7 @@ pub(crate) struct DisplayPartsWriter {
 }
 
 // displaypartswriter.go:26
-pub(crate) fn new_display_parts_writer(vs_capability: bool) -> DisplayPartsWriter {
+pub fn new_display_parts_writer(vs_capability: bool) -> DisplayPartsWriter {
     DisplayPartsWriter {
         builder: String::new(),
         runs: Vec::new(),

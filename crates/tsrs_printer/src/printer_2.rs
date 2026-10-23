@@ -784,10 +784,10 @@ impl Printer {
         }
         if has_leading_comment_ranges {
             let parse_node = self.emit_context.parse_node(Some(node));
-            if let Some(parse_node) = parse_node {
-                if parse_node.parent().is_some_and(is_parenthesized_expression) {
-                    return true;
-                }
+            if let Some(parse_node) = parse_node
+                && parse_node.parent().is_some_and(is_parenthesized_expression)
+            {
+                return true;
             }
         }
         if has_new_line_comment {
@@ -803,17 +803,16 @@ impl Printer {
         }
         if is_partially_emitted_expression(node) {
             let pee = node.as_partially_emitted_expression();
-            if node.pos() != pee.expression().pos() {
-                if pee
+            if node.pos() != pee.expression().pos()
+                && pee
                     .expression()
                     .pos()
                     .source_offset()
                     .into_iter()
                     .flat_map(|pos| scanner::get_trailing_comment_ranges(text, pos))
                     .any(Self::comment_will_emit_new_line)
-                {
-                    return true;
-                }
+            {
+                return true;
             }
             return self.will_emit_leading_new_line(pee.expression());
         }
@@ -829,17 +828,17 @@ impl Printer {
                     if self.will_emit_leading_new_line(node) {
                         let pee = node.as_partially_emitted_expression();
                         let parse_node = self.emit_context.parse_node(Some(node));
-                        if let Some(parse_node) = parse_node {
-                            if is_parenthesized_expression(parse_node) {
-                                // If the original node was a parenthesized expression, restore it to preserve comment and source map emit
-                                let parens = self
-                                    .emit_context
-                                    .factory
-                                    .new_parenthesized_expression(pee.expression());
-                                self.emit_context.set_original(parens, node);
-                                parens.set_loc(parse_node.loc());
-                                return parens;
-                            }
+                        if let Some(parse_node) = parse_node
+                            && is_parenthesized_expression(parse_node)
+                        {
+                            // If the original node was a parenthesized expression, restore it to preserve comment and source map emit
+                            let parens = self
+                                .emit_context
+                                .factory
+                                .new_parenthesized_expression(pee.expression());
+                            self.emit_context.set_original(parens, node);
+                            parens.set_loc(parse_node.loc());
+                            return parens;
                         }
                         return self.emit_context.factory.new_parenthesized_expression(node);
                     }
@@ -2585,7 +2584,9 @@ impl Printer {
 
         let mut index = 0;
         let state;
-        if file.script_kind() != ScriptKind::JSON {
+        if file.script_kind() == ScriptKind::JSON {
+            state = self.emit_detached_comments_before_statement_list(node, file.statements.loc());
+        } else {
             self.emit_shebang_if_needed(file);
             index = self.emit_prologue_directives(file.statements);
             if !self.writer().is_at_start_of_line() {
@@ -2596,8 +2597,6 @@ impl Printer {
             if file.is_declaration_file() {
                 self.emit_triple_slash_directives(file);
             }
-        } else {
-            state = self.emit_detached_comments_before_statement_list(node, file.statements.loc());
         }
 
         // !!! Emit triple-slash directives

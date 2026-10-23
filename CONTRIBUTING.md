@@ -97,7 +97,7 @@ With the [reference checkout](#reference-compiler) ready:
 .github/scripts/go-fourslash-gate.sh             # language-server suite (Go assertions, Rust LSP)
 TSRS_TEST=target/debug/tsrs-test .github/scripts/conformance-gate.sh # errors, types, symbols, emit and source maps
 tools/regressions.sh target/debug/tsrs                            # testdata/regressions (CI runs it too)
-tools/ci/determinism.sh --self-test && tools/ci/determinism.sh target/debug/tsrs # checker assignment gate
+cargo run --profile dev -p tsrs_determinism -- check --tsrs target/debug/tsrs # committed tsgo snapshots
 cargo test --locked                                             # all workspace unit and integration tests (CI)
 ```
 
@@ -128,11 +128,13 @@ Capture its combined stdout and stderr, replacing the case's absolute directory 
 - CI builds the CLI and conformance runner once with `--profile ci` in `build-correctness`; conformance, regressions
   and determinism use those same binaries. The Linux checks have separate Rust caches: `lint` runs Clippy and source checks;
   `test` runs Rust checks and all workspace tests, compiler conformance in
-  both checker modes, and regressions; `determinism` compares checker output across four pinned projects and regression
-  cases and rejects current-compiler crashes, including identical crashes across all schedules. When the TypeScript
-  source pin matches, it also compares ordered diagnostics and exit status with the base compiler wherever that base
-  finishes normally; a PR may fix a base crash. Regression output must still match the checked-in reference output;
-  `fourslash` runs the server framing checks, gate checks, and
+  both checker modes, and regressions; `determinism` compares every benchmark project against committed snapshots
+  from the root pnpm TypeScript release matching Cargo metadata, using Go, locality and default scheduling at four and
+  all available CPU checkers, three runs each, plus three fixed random assignments per count. It also sweeps every
+  regression fixture under default and seeded random scheduling at two and four checkers. Diagnostic order and exit
+  status must match; crashes and incomplete runs fail.
+  See [the determinism task](tasks/determinism/README.md) for snapshot updates. Regression output must still match
+  the checked-in reference output; `fourslash` runs the server framing checks, gate checks, and
   [Go fourslash subprocess gate](tools/go-fourslash/README.md#ci-gate); `node-api-clients` runs the pinned upstream
   sync and async client suites against both compilers.
   Source checks overlap Rust setup and Clippy in `lint`. Setup and checkout actions in `test` and `fourslash`

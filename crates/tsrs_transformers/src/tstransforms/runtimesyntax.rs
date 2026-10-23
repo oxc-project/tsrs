@@ -229,14 +229,14 @@ impl RuntimeSyntaxTransformer {
     // Determines whether a declaration is the first declaration with the same name emitted in the current scope.
     // runtimesyntax.go:174
     fn is_first_declaration_in_scope(&self, node: P<Node>) -> bool {
-        if let Some(name) = node.name() {
-            if ast::is_identifier(name) {
-                let text = name.text();
-                if let Some(map) = self.current_scope_first_declarations_of_name.borrow().as_ref() {
-                    if let Some(&first_declaration) = map.borrow().get(text) {
-                        return first_declaration == node;
-                    }
-                }
+        if let Some(name) = node.name()
+            && ast::is_identifier(name)
+        {
+            let text = name.text();
+            if let Some(map) = self.current_scope_first_declarations_of_name.borrow().as_ref()
+                && let Some(&first_declaration) = map.borrow().get(text)
+            {
+                return first_declaration == node;
             }
         }
         false
@@ -735,7 +735,18 @@ impl RuntimeSyntaxTransformer {
         let module_reference = f.create_expression_from_entity_name(n.module_reference);
         emit_context
             .set_emit_flags(module_reference, EmitFlags::NoComments | EmitFlags::NoNestedComments);
-        if !self.is_export_of_namespace(node) {
+        if self.is_export_of_namespace(node) {
+            // exports.${name} = ${moduleReference};
+            let statement = self.create_export_statement(
+                node.name().unwrap(),
+                module_reference,
+                node.loc(),
+                node.loc(),
+                node,
+            );
+            statement.set_loc(node.loc());
+            statement
+        } else {
             //  export var ${name} = ${moduleReference};
             //  var ${name} = ${moduleReference};
             let var_decl = f.new_variable_declaration(
@@ -753,17 +764,6 @@ impl RuntimeSyntaxTransformer {
             emit_context.set_original(var_statement, node);
             emit_context.assign_comment_and_source_map_ranges(var_statement, node);
             var_statement
-        } else {
-            // exports.${name} = ${moduleReference};
-            let statement = self.create_export_statement(
-                node.name().unwrap(),
-                module_reference,
-                node.loc(),
-                node.loc(),
-                node,
-            );
-            statement.set_loc(node.loc());
-            statement
         }
     }
 
@@ -1103,15 +1103,15 @@ impl RuntimeSyntaxTransformer {
 
         let super_path = find_super_statement_index_path(rest, 0);
 
-        if !super_path.is_empty() {
+        if super_path.is_empty() {
+            statements.extend(parameter_property_assignments);
+            statements.extend_from_slice(self.visitor().visit_slice(rest).0);
+        } else {
             statements.extend(self.transform_constructor_body_worker(
                 rest,
                 &super_path,
                 &parameter_property_assignments,
             ));
-        } else {
-            statements.extend(parameter_property_assignments);
-            statements.extend_from_slice(self.visitor().visit_slice(rest).0);
         }
 
         let statements = emit_context.end_and_merge_variable_environment(&statements);
@@ -1258,25 +1258,23 @@ impl RuntimeSyntaxTransformer {
             let container = self
                 .resolver
                 .get_referenced_export_container(location, false /*prefixLocals*/);
-            if let Some(container) = container {
-                if ast::is_enum_declaration(container) || ast::is_module_declaration(container) {
-                    let f = self.factory();
-                    let container_name = self.get_namespace_container_name(container);
+            if let Some(container) = container
+                && (ast::is_enum_declaration(container) || ast::is_module_declaration(container))
+            {
+                let f = self.factory();
+                let container_name = self.get_namespace_container_name(container);
 
-                    let member_name = node.clone_node(f);
-                    emit_context.set_emit_flags(
-                        member_name,
-                        EmitFlags::NoComments | EmitFlags::NoSourceMap,
-                    );
+                let member_name = node.clone_node(f);
+                emit_context
+                    .set_emit_flags(member_name, EmitFlags::NoComments | EmitFlags::NoSourceMap);
 
-                    let expression = f.get_namespace_member_name(
-                        container_name,
-                        member_name,
-                        NameOptions { allow_source_maps: true, ..Default::default() },
-                    );
-                    emit_context.assign_comment_and_source_map_ranges(expression, node);
-                    return expression;
-                }
+                let expression = f.get_namespace_member_name(
+                    container_name,
+                    member_name,
+                    NameOptions { allow_source_maps: true, ..Default::default() },
+                );
+                emit_context.assign_comment_and_source_map_ranges(expression, node);
+                return expression;
             }
         }
         node
@@ -1364,9 +1362,7 @@ impl RuntimeSyntaxTransformer {
 }
 
 // runtimesyntax.go:1030
-pub(crate) fn get_innermost_module_declaration_from_dotted_module(
-    module_declaration: P<Node>,
-) -> P<Node> {
+pub fn get_innermost_module_declaration_from_dotted_module(module_declaration: P<Node>) -> P<Node> {
     let mut module_declaration = module_declaration;
     while let Some(body) = module_declaration.body() {
         if body.kind() != Kind::ModuleDeclaration {

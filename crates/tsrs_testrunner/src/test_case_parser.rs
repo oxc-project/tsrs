@@ -13,7 +13,7 @@ use crate::harnessutil;
 static LINE_DELIMITER: LazyLock<Regex> = LazyLock::new(|| Regex::new("\r?\n").unwrap());
 
 // Regex for parsing options in the format "@Alpha: Value of any sort"
-pub(crate) static OPTION_REGEX: LazyLock<Regex> = LazyLock::new(|| {
+pub static OPTION_REGEX: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(r"(?m)^/{2}[\t\n\x0C\r ]*@([0-9A-Za-z_]+)[\t\n\x0C\r ]*:[\t\n\x0C\r ]*([^\r\n]*)")
         .unwrap()
 });
@@ -146,10 +146,10 @@ pub fn parse_test_files_and_symlinks_with_options<T>(
                 if meta_data_name == "symlink" && !current_file_name.is_empty() {
                     symlinks.extend(meta_data_value.split(',').filter_map(|link| {
                         let link = link.trim();
-                        if !link.is_empty() {
-                            Some((link.to_string(), current_file_name.clone()))
-                        } else {
+                        if link.is_empty() {
                             None
+                        } else {
+                            Some((link.to_string(), current_file_name.clone()))
                         }
                     }));
                 } else if FOURSLASH_DIRECTIVES.contains(&meta_data_name.as_str()) {
@@ -163,26 +163,7 @@ pub fn parse_test_files_and_symlinks_with_options<T>(
             }
 
             // New metadata statement after having collected some code to go with the previous metadata
-            if !current_file_name.is_empty() {
-                // Store result file - always save for regular tests, but skip empty implicit first file for fourslash
-                let should_save_file = !options.allow_implicit_first_file
-                    || !current_file_content.is_empty()
-                    || has_seen_file;
-                if should_save_file {
-                    has_seen_file = true;
-                    test_units.push(parse_file(
-                        &current_file_name,
-                        &current_file_content,
-                        &current_file_options,
-                    ));
-                }
-
-                // Reset local data
-                current_file_content.clear();
-                seen_content_line = false;
-                current_file_name = meta_data_value;
-                current_file_options = FxHashMap::default();
-            } else {
+            if current_file_name.is_empty() {
                 // First metadata marker in the file
                 let has_content_before_first_filename = !current_file_content.is_empty()
                     && skip_trivia(&current_file_content, 0) != current_file_content.len();
@@ -209,6 +190,25 @@ pub fn parse_test_files_and_symlinks_with_options<T>(
                 current_file_content.clear();
                 seen_content_line = false;
                 current_file_name = test_meta_data[2].trim().to_string();
+                current_file_options = FxHashMap::default();
+            } else {
+                // Store result file - always save for regular tests, but skip empty implicit first file for fourslash
+                let should_save_file = !options.allow_implicit_first_file
+                    || !current_file_content.is_empty()
+                    || has_seen_file;
+                if should_save_file {
+                    has_seen_file = true;
+                    test_units.push(parse_file(
+                        &current_file_name,
+                        &current_file_content,
+                        &current_file_options,
+                    ));
+                }
+
+                // Reset local data
+                current_file_content.clear();
+                seen_content_line = false;
+                current_file_name = meta_data_value;
                 current_file_options = FxHashMap::default();
             }
         } else {

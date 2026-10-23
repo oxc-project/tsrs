@@ -15,14 +15,14 @@ use crate::utilities::{
 
 // importTracker.go:15
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
-pub(crate) enum ImpExpKind {
+pub enum ImpExpKind {
     Unknown,
     Import,
     Export,
 }
 
 // importTracker.go:23
-pub(crate) struct ImportExportSymbol {
+pub struct ImportExportSymbol {
     pub(crate) kind: ImpExpKind,
     pub(crate) symbol: Option<P<Symbol>>,
     pub(crate) export_info: Option<ExportInfo>,
@@ -30,7 +30,7 @@ pub(crate) struct ImportExportSymbol {
 
 // importTracker.go:29 (Go never uses ExportKindUMD and ExportKindModule)
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
-pub(crate) enum ExportKind {
+pub enum ExportKind {
     Named = 0,
     Default = 1,
     ExportEquals = 2,
@@ -38,20 +38,20 @@ pub(crate) enum ExportKind {
 
 // importTracker.go:39
 #[derive(Clone, Copy)]
-pub(crate) struct ExportInfo {
+pub struct ExportInfo {
     pub(crate) exporting_module_symbol: P<Symbol>,
     pub(crate) export_kind: ExportKind,
 }
 
 // importTracker.go:44
 #[derive(Clone, Copy)]
-pub(crate) struct LocationAndSymbol {
+pub struct LocationAndSymbol {
     pub(crate) import_location: P<Node>,
     pub(crate) import_symbol: Option<P<Symbol>>,
 }
 
 // importTracker.go:49
-pub(crate) struct ImportsResult {
+pub struct ImportsResult {
     pub(crate) import_searches: Vec<LocationAndSymbol>,
     pub(crate) single_references: Vec<P<Node>>,
     pub(crate) indirect_users: Vec<P<SourceFile>>,
@@ -60,7 +60,7 @@ pub(crate) struct ImportsResult {
 // Go `type ImportTracker func(exportSymbol, exportInfo, isForRename) *ImportsResult` (a closure over the direct
 // imports map); the port keeps the captured values and calls it with the checker (PORTING.md callback rule).
 // importTracker.go:55
-pub(crate) struct ImportTracker<'a> {
+pub struct ImportTracker<'a> {
     source_files: &'a [P<SourceFile>],
     source_files_set: &'a Set<String>,
     all_direct_imports: FxHashMap<P<Symbol>, Vec<P<Node>>>,
@@ -68,7 +68,7 @@ pub(crate) struct ImportTracker<'a> {
 
 // importTracker.go:57
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
-pub(crate) enum ModuleReferenceKind {
+pub enum ModuleReferenceKind {
     Import,
     Reference,
     Implicit,
@@ -76,7 +76,7 @@ pub(crate) enum ModuleReferenceKind {
 
 // ModuleReference represents a reference to a module, either via import, <reference>, or implicit reference
 // importTracker.go:66
-pub(crate) struct ModuleReference {
+pub struct ModuleReference {
     pub(crate) kind: ModuleReferenceKind,
     pub(crate) literal: Option<P<Node>>, // for import and implicit kinds (StringLiteralLike)
     pub(crate) referencing_file: Option<P<SourceFile>>,
@@ -85,7 +85,7 @@ pub(crate) struct ModuleReference {
 
 // Creates the imports map and returns an ImportTracker that uses it. Call this lazily to avoid calling `getDirectImportsMap` unnecessarily.
 // importTracker.go:74
-pub(crate) fn create_import_tracker<'a>(
+pub fn create_import_tracker<'a>(
     ctx: &Context,
     program: &'static Program,
     source_files: &'a [P<SourceFile>],
@@ -125,7 +125,7 @@ impl ImportTracker<'_> {
 
 // Returns a map from a module symbol to all import statements that directly reference the module
 // importTracker.go:84
-pub(crate) fn get_direct_imports_map(
+pub fn get_direct_imports_map(
     ctx: &Context,
     program: &'static Program,
     source_files: &[P<SourceFile>],
@@ -147,7 +147,7 @@ pub(crate) fn get_direct_imports_map(
 
 // Calls `action` for each import, re-export, or require() in a file
 // importTracker.go:100
-pub(crate) fn for_each_import(
+pub fn for_each_import(
     program: &'static Program,
     source_file: P<SourceFile>,
     action: &mut dyn FnMut(P<Node> /*importStatement*/, P<Node> /*imported*/),
@@ -174,10 +174,10 @@ pub(crate) fn for_each_import(
         for_each_possible_import_or_export_statement(source_file.as_node(), &mut |node| {
             match node.kind() {
                 Kind::ExportDeclaration | Kind::ImportDeclaration | Kind::JSImportDeclaration => {
-                    if let Some(specifier) = node.module_specifier() {
-                        if ast::is_string_literal(specifier) {
-                            action(node, specifier);
-                        }
+                    if let Some(specifier) = node.module_specifier()
+                        && ast::is_string_literal(specifier)
+                    {
+                        action(node, specifier);
                     }
                 }
                 Kind::ImportEqualsDeclaration if is_external_module_import_equals(node) => {
@@ -194,7 +194,7 @@ pub(crate) fn for_each_import(
 }
 
 // importTracker.go:134
-pub(crate) fn for_each_possible_import_or_export_statement(
+pub fn for_each_possible_import_or_export_statement(
     source_file_like: P<Node>,
     action: &mut dyn FnMut(P<Node>) -> bool,
 ) -> bool {
@@ -206,7 +206,7 @@ pub(crate) fn for_each_possible_import_or_export_statement(
 }
 
 // importTracker.go:143
-pub(crate) fn get_source_file_like_for_import_declaration(node: P<Node>) -> P<Node> {
+pub fn get_source_file_like_for_import_declaration(node: P<Node>) -> P<Node> {
     if ast::is_call_expression(node) || ast::is_jsdoc_import_tag(node) {
         return ast::get_source_file_of_node(node).unwrap().as_node();
     }
@@ -221,12 +221,12 @@ pub(crate) fn get_source_file_like_for_import_declaration(node: P<Node>) -> P<No
 }
 
 // importTracker.go:155
-pub(crate) fn is_ambient_module_declaration(node: P<Node>) -> bool {
+pub fn is_ambient_module_declaration(node: P<Node>) -> bool {
     ast::is_module_declaration(node) && ast::is_string_literal(node.name().unwrap())
 }
 
 // importTracker.go:159
-pub(crate) fn get_statements_of_source_file_like(node: P<Node>) -> &'static [P<Node>] {
+pub fn get_statements_of_source_file_like(node: P<Node>) -> &'static [P<Node>] {
     if ast::is_source_file(node) {
         return node.statements();
     }
@@ -373,21 +373,19 @@ impl ImportersForExport<'_> {
                 }
                 Kind::ImportDeclaration | Kind::JSImportDeclaration | Kind::JSDocImportTag => {
                     self.direct_imports.push(direct);
-                    if let Some(import_clause) = direct.import_clause() {
-                        if let Some(named_bindings) =
+                    if let Some(import_clause) = direct.import_clause()
+                        && let Some(named_bindings) =
                             import_clause.as_import_clause().named_bindings
-                        {
-                            if ast::is_namespace_import(named_bindings) {
-                                self.handle_namespace_import(
-                                    checker,
-                                    direct,
-                                    named_bindings.name().unwrap(),
-                                    false, /*isReExport*/
-                                    true,  /*alreadyAddedDirect*/
-                                );
-                                continue;
-                            }
-                        }
+                        && ast::is_namespace_import(named_bindings)
+                    {
+                        self.handle_namespace_import(
+                            checker,
+                            direct,
+                            named_bindings.name().unwrap(),
+                            false, /*isReExport*/
+                            true,  /*alreadyAddedDirect*/
+                        );
+                        continue;
                     }
                     if !self.is_available_through_global && ast::is_default_import(direct) {
                         self.add_indirect_user(
@@ -465,7 +463,7 @@ impl ImportersForExport<'_> {
 }
 
 // importTracker.go:169
-pub(crate) fn get_importers_for_export(
+pub fn get_importers_for_export(
     source_files: &[P<SourceFile>],
     source_files_set: &Set<String>,
     all_direct_imports: &FxHashMap<P<Symbol>, Vec<P<Node>>>,
@@ -492,7 +490,7 @@ pub(crate) fn get_importers_for_export(
 }
 
 // importTracker.go:324
-pub(crate) fn get_containing_module_symbol(importer: P<Node>, checker: &mut Checker) -> P<Symbol> {
+pub fn get_containing_module_symbol(importer: P<Node>, checker: &mut Checker) -> P<Symbol> {
     checker.get_merged_symbol_exported(
         get_source_file_like_for_import_declaration(importer).symbol().unwrap(),
     )
@@ -500,7 +498,7 @@ pub(crate) fn get_containing_module_symbol(importer: P<Node>, checker: &mut Chec
 
 // Returns 'true' is the namespace 'name' is re-exported from this module, and 'false' if it is only used locally
 // importTracker.go:329
-pub(crate) fn find_namespace_re_exports(
+pub fn find_namespace_re_exports(
     source_file_like: P<Node>,
     name: P<Node>,
     checker: &mut Checker,
@@ -617,10 +615,10 @@ impl SearchesFromDirectImports {
             return;
         }
         if ast::is_export_declaration(decl) {
-            if let Some(export_clause) = decl.as_export_declaration().export_clause {
-                if ast::is_named_exports(export_clause) {
-                    self.search_for_named_import(checker, Some(export_clause));
-                }
+            if let Some(export_clause) = decl.as_export_declaration().export_clause
+                && ast::is_named_exports(export_clause)
+            {
+                self.search_for_named_import(checker, Some(export_clause));
             }
             return;
         }
@@ -639,22 +637,21 @@ impl SearchesFromDirectImports {
             // `export =` might be imported by a default import if `--allowSyntheticDefaultImports` is on, so this handles both ExportKind.Default and ExportKind.ExportEquals.
             // If a default import has the same name as the default export, allow to rename it.
             // Given `import f` and `export default function f`, we will rename both, but for `import g` we will rename just that.
-            if let Some(name) = import_clause.name() {
-                if (self.export_kind == ExportKind::Default
+            if let Some(name) = import_clause.name()
+                && (self.export_kind == ExportKind::Default
                     || self.export_kind == ExportKind::ExportEquals)
-                    && (!self.is_for_rename
-                        || name.text() == symbol_name_no_default(self.export_symbol))
-                {
-                    let default_import_alias = checker.get_symbol_at_location_exported(name);
-                    self.add_search(name, default_import_alias);
-                }
+                && (!self.is_for_rename
+                    || name.text() == symbol_name_no_default(self.export_symbol))
+            {
+                let default_import_alias = checker.get_symbol_at_location_exported(name);
+                self.add_search(name, default_import_alias);
             }
         }
     }
 }
 
 // importTracker.go:343
-pub(crate) fn get_searches_from_direct_imports(
+pub fn get_searches_from_direct_imports(
     direct_imports: &[P<Node>],
     export_symbol: P<Symbol>,
     export_kind: ExportKind,
@@ -675,7 +672,7 @@ pub(crate) fn get_searches_from_direct_imports(
 }
 
 // importTracker.go:462
-pub(crate) fn get_import_or_export_symbol(
+pub fn get_import_or_export_symbol(
     node: P<Node>,
     symbol: P<Symbol>,
     checker: &mut Checker,
@@ -840,7 +837,7 @@ pub(crate) fn get_import_or_export_symbol(
 }
 
 // importTracker.go:611
-pub(crate) fn get_export_info(
+pub fn get_export_info(
     export_symbol: P<Symbol>,
     export_kind: ExportKind,
     c: &mut Checker,
@@ -859,7 +856,7 @@ pub(crate) fn get_export_info(
 // If a reference is a class expression, the exported node would be its parent.
 // If a reference is a variable declaration, the exported node would be the variable statement.
 // importTracker.go:628
-pub(crate) fn get_export_node(parent: P<Node>, node: P<Node>) -> Option<P<Node>> {
+pub fn get_export_node(parent: P<Node>, node: P<Node>) -> Option<P<Node>> {
     let mut declaration: Option<P<Node>> = None;
     if ast::is_variable_declaration(parent) {
         declaration = Some(parent);
@@ -880,7 +877,7 @@ pub(crate) fn get_export_node(parent: P<Node>, node: P<Node>) -> Option<P<Node>>
 }
 
 // importTracker.go:645
-pub(crate) fn is_node_import(node: P<Node>) -> bool {
+pub fn is_node_import(node: P<Node>) -> bool {
     let parent = node.parent().unwrap();
     match parent.kind() {
         Kind::ImportEqualsDeclaration => {
@@ -905,7 +902,7 @@ pub(crate) fn is_node_import(node: P<Node>) -> bool {
 }
 
 // importTracker.go:662
-pub(crate) fn is_external_module_import_equals(node: P<Node>) -> bool {
+pub fn is_external_module_import_equals(node: P<Node>) -> bool {
     let module_reference = node.as_import_equals_declaration().module_reference;
     ast::is_external_module_reference(module_reference)
         && module_reference.expression().unwrap().kind() == Kind::StringLiteral
@@ -913,10 +910,7 @@ pub(crate) fn is_external_module_import_equals(node: P<Node>) -> bool {
 
 // If at an export specifier, go to the symbol it refers to. */
 // importTracker.go:668
-pub(crate) fn skip_export_specifier_symbol(
-    symbol: P<Symbol>,
-    checker: &mut Checker,
-) -> Option<P<Symbol>> {
+pub fn skip_export_specifier_symbol(symbol: P<Symbol>, checker: &mut Checker) -> Option<P<Symbol>> {
     // For `export { foo } from './bar", there's nothing to skip, because it does not create a new alias. But `export { foo } does.
     if let Some(result) = symbol.declarations().iter().find_map(|&declaration| {
         if ast::is_export_specifier(declaration)
@@ -950,7 +944,7 @@ pub(crate) fn skip_export_specifier_symbol(
 }
 
 // importTracker.go:684
-pub(crate) fn get_export_equals_local_symbol(
+pub fn get_export_equals_local_symbol(
     imported_symbol: P<Symbol>,
     checker: &mut Checker,
 ) -> Option<P<Symbol>> {
@@ -972,16 +966,16 @@ pub(crate) fn get_export_equals_local_symbol(
 }
 
 // importTracker.go:701
-pub(crate) fn symbol_name_no_default(symbol: P<Symbol>) -> &'static str {
+pub fn symbol_name_no_default(symbol: P<Symbol>) -> &'static str {
     if symbol.name() != ast::INTERNAL_SYMBOL_NAME_DEFAULT {
         return symbol.name();
     }
     if let Some(result) = symbol.declarations().iter().find_map(|&decl| {
         let name = ast::get_name_of_declaration(Some(decl));
-        if let Some(name) = name {
-            if ast::is_identifier(name) {
-                return Some(name.text());
-            }
+        if let Some(name) = name
+            && ast::is_identifier(name)
+        {
+            return Some(name.text());
         }
 
         None
@@ -994,7 +988,7 @@ pub(crate) fn symbol_name_no_default(symbol: P<Symbol>) -> &'static str {
 // findModuleReferences finds all references to a module symbol across the given source files.
 // This includes import statements, <reference> directives, and implicit references (e.g., JSX runtime imports).
 // importTracker.go:716
-pub(crate) fn find_module_references(
+pub fn find_module_references(
     program: &'static Program,
     source_files: &[P<SourceFile>],
     search_module_symbol: P<Symbol>,

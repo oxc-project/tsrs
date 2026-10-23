@@ -108,10 +108,10 @@ fn sym_merge_cmp_func<E>(
         let (mut i, mut j) = (a, m);
         while i < j {
             let h = usize::midpoint(i, j);
-            if cmp(&data[m], &data[h]) != Ordering::Less {
-                i = h + 1;
-            } else {
+            if cmp(&data[m], &data[h]) == Ordering::Less {
                 j = h;
+            } else {
+                i = h + 1;
             }
         }
         let mut k = m;
@@ -127,10 +127,10 @@ fn sym_merge_cmp_func<E>(
     let p = n - 1;
     while start < r {
         let c = usize::midpoint(start, r);
-        if cmp(&data[p - c], &data[c]) != Ordering::Less {
-            start = c + 1;
-        } else {
+        if cmp(&data[p - c], &data[c]) == Ordering::Less {
             r = c;
+        } else {
+            start = c + 1;
         }
     }
     let end = n - start;
@@ -273,10 +273,12 @@ fn pdqsort_cmp_func<E>(
             hint = SortedHint::Increasing;
         }
 
-        if was_balanced && was_partitioned && hint == SortedHint::Increasing {
-            if partial_insertion_sort_cmp_func(data, a, b, cmp) {
-                return;
-            }
+        if was_balanced
+            && was_partitioned
+            && hint == SortedHint::Increasing
+            && partial_insertion_sort_cmp_func(data, a, b, cmp)
+        {
+            return;
         }
 
         if a > 0 && (cmp(&data[a - 1], &data[pivot]) != Ordering::Less) {

@@ -31,6 +31,6 @@ impl ProgramRegions {
 }
 
 /// `ProgramRegions::enter` if the program has regions.
-pub(crate) fn enter(regions: Option<&ProgramRegions>) -> Option<RegionScope> {
+pub fn enter(regions: Option<&ProgramRegions>) -> Option<RegionScope> {
     regions.map(ProgramRegions::enter)
 }

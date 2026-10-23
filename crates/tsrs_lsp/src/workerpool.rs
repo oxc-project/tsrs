@@ -10,7 +10,7 @@
 use std::collections::VecDeque;
 use std::sync::{Condvar, Mutex, OnceLock};
 
-pub(crate) const WORKER_STACK_SIZE: usize = 512 << 20;
+pub const WORKER_STACK_SIZE: usize = 512 << 20;
 
 type Job = Box<dyn FnOnce() + Send>;
 
@@ -40,7 +40,7 @@ fn get_pool() -> &'static WorkerPool {
 }
 
 // Go `go f()` for request work.
-pub(crate) fn go(f: impl FnOnce() + Send + 'static) {
+pub fn go(f: impl FnOnce() + Send + 'static) {
     let pool = get_pool();
     let mut state = pool.state.lock().unwrap();
     state.jobs.push_back(Box::new(f));
@@ -86,18 +86,18 @@ fn worker_loop(pool: &'static WorkerPool) {
 }
 
 #[cfg(test)]
-pub(crate) fn max_idle_threads() -> usize {
+pub fn max_idle_threads() -> usize {
     get_pool().max_idle_threads
 }
 
 #[cfg(test)]
-pub(crate) fn threads() -> usize {
+pub fn threads() -> usize {
     get_pool().state.lock().unwrap().threads
 }
 
 // An unrecovered panic in a goroutine ends a Go program (exit status 2, after the runtime prints the panic); the
 // panic hook has already printed the message and location.
-pub(crate) fn run_or_exit(f: impl FnOnce()) {
+pub fn run_or_exit(f: impl FnOnce()) {
     if std::panic::catch_unwind(std::panic::AssertUnwindSafe(f)).is_err() {
         std::process::exit(2);
     }

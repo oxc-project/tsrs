@@ -27,7 +27,7 @@ fn rooted_option(path: &str, cwd: &str) -> String {
 /// Go `RawCompilerOptions.Finalize`, for the path-valued fields accepted by
 /// the API. This runs only on API input; parsed tsconfig options already have
 /// their own base directory and must not be resolved against the server cwd.
-pub(crate) fn compiler_options_from_raw(value: &Value, cwd: &str) -> ApiResult<CompilerOptions> {
+pub fn compiler_options_from_raw(value: &Value, cwd: &str) -> ApiResult<CompilerOptions> {
     let mut options =
         gojson::compiler_options_from_go_json(value).map_err(ApiError::invalid_request)?;
     crate::predecode::exact_compiler_options_ints(value, &mut options);

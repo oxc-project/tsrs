@@ -1492,13 +1492,13 @@ mod retired {
         for (start, end) in std::mem::take(&mut s.pending) {
             let (mut lo, mut hi) = (start, end);
             let mut absorbed: Vec<(usize, usize)> = Vec::new();
-            if let Some((&ps, &pe)) = s.spans.range(..=start).next_back() {
-                if pe >= start {
-                    absorbed.push((ps, pe));
-                    lo = ps;
-                    hi = hi.max(pe);
-                    s.spans.remove(&ps);
-                }
+            if let Some((&ps, &pe)) = s.spans.range(..=start).next_back()
+                && pe >= start
+            {
+                absorbed.push((ps, pe));
+                lo = ps;
+                hi = hi.max(pe);
+                s.spans.remove(&ps);
             }
             while let Some((&ns, &ne)) = s.spans.range(lo..).next() {
                 if ns > hi {

@@ -17,7 +17,7 @@ use crate::snapshotfs::FileHandleSource;
 pub type Hash128 = u128;
 
 // Go `xxh3.HashString128`.
-pub(crate) fn hash_string_128(s: &str) -> Hash128 {
+pub fn hash_string_128(s: &str) -> Hash128 {
     xxhash_rust::xxh3::xxh3_128(s.as_bytes())
 }
 
@@ -43,7 +43,7 @@ pub trait FileHandle: FileContent + Send + Sync {
 }
 
 #[derive(Clone, Default)]
-pub(crate) struct FileBase {
+pub struct FileBase {
     pub(crate) file_name: String,
     pub(crate) content: String,
     pub(crate) hash: Hash128,
@@ -79,14 +79,14 @@ impl FileBase {
 // A field-by-field copy (used when a shared value must be copied before mutation); Go's `Clone` is
 // `Cloneable::clone_value`.
 #[derive(Clone, Default)]
-pub(crate) struct CachedFile {
+pub struct CachedFile {
     pub(crate) base: FileBase,
     pub(crate) needs_reload: bool,
     pub(crate) realpath_path: Path,
 }
 
 // overlayfs.go:82
-pub(crate) fn new_cached_file(file_name: String, content: String) -> CachedFile {
+pub fn new_cached_file(file_name: String, content: String) -> CachedFile {
     let hash = hash_string_128(&content);
     CachedFile {
         base: FileBase::new(file_name, content, hash),
@@ -169,12 +169,7 @@ pub struct Overlay {
 }
 
 // overlayfs.go:130
-pub(crate) fn new_overlay(
-    file_name: String,
-    content: String,
-    version: i32,
-    kind: ScriptKind,
-) -> Overlay {
+pub fn new_overlay(file_name: String, content: String, version: i32, kind: ScriptKind) -> Overlay {
     let hash = hash_string_128(&content);
     Overlay {
         base: FileBase::new(file_name, content, hash),
@@ -372,7 +367,7 @@ pub trait RebasableFileSystem {
 }
 
 // overlayfs.go:204
-pub(crate) fn new_overlay_fs(
+pub fn new_overlay_fs(
     fs: FsRef,
     overlays: OverlayMap,
     position_encoding: lsproto::PositionEncodingKind,
@@ -399,7 +394,7 @@ impl LayeredFileSystem for OverlayFS {
 }
 
 // overlayfs.go:226
-pub(crate) fn layer_overlay_file_system(
+pub fn layer_overlay_file_system(
     file_system: &FsRef,
     overlays: OverlayMap,
     position_encoding: lsproto::PositionEncodingKind,
@@ -407,17 +402,17 @@ pub(crate) fn layer_overlay_file_system(
 ) -> Arc<dyn LayeredFileSystem> {
     let mut base = file_system.clone();
     let mut layer: Option<&dyn RebasableFileSystem> = None;
-    if let FsRef::Layered(layered) = &file_system {
-        if let Some(rebasable) = layered.as_rebasable() {
-            layer = Some(rebasable);
-            base = rebasable.base_file_system();
-        }
+    if let FsRef::Layered(layered) = &file_system
+        && let Some(rebasable) = layered.as_rebasable()
+    {
+        layer = Some(rebasable);
+        base = rebasable.base_file_system();
     }
-    if let FsRef::Layered(layered) = &base {
-        if let Some(previous) = layered.as_overlay_fs() {
-            let host = previous.host.clone();
-            base = host;
-        }
+    if let FsRef::Layered(layered) = &base
+        && let Some(previous) = layered.as_overlay_fs()
+    {
+        let host = previous.host.clone();
+        base = host;
     }
     let overlay: Arc<dyn LayeredFileSystem> =
         Arc::new(new_overlay_fs(base, overlays, position_encoding, to_path));

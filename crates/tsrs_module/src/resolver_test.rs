@@ -2,7 +2,7 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::{Condvar, Mutex, mpsc};
 use std::time::{Duration, SystemTime};
 
-use tsrs_core::collections::{OrderedMapExt, new_ordered_map_with_size_hint};
+use tsrs_core::collections::new_ordered_map_with_size_hint;
 use tsrs_core::{CompilerOptions, ModuleKind, ModuleResolutionKind, P, ScriptTarget};
 use tsrs_vfs::{Entries, FS, FileInfo, vfstest};
 
@@ -321,7 +321,7 @@ fn test_resolution_data_caches() {
         None,
     );
     let mut paths = new_ordered_map_with_size_hint(1);
-    paths.set("alias/*".to_string(), Some(vec!["./*".to_string()]));
+    paths.insert("alias/*".to_string(), Some(vec!["./*".to_string()]));
     resolver.get_parsed_patterns_for_paths(&CompilerOptions {
         paths: Some(paths),
         ..Default::default()

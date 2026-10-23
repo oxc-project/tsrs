@@ -878,10 +878,10 @@ fn session_responses_match_go_with_source31_document_identifiers() {
         // Go's json/v2 decoder picks "cannot unmarshal" or "unable to unmarshal" per process (observed
         // both on regeneration); the rest of the text is compared exactly.
         for v in [&mut go_n, &mut rs_n] {
-            if let Value::Object(o) = v {
-                if let Some(Value::String(e)) = o.get_mut("error") {
-                    *e = e.replace("json: unable to unmarshal", "json: cannot unmarshal");
-                }
+            if let Value::Object(o) = v
+                && let Some(Value::String(e)) = o.get_mut("error")
+            {
+                *e = e.replace("json: unable to unmarshal", "json: cannot unmarshal");
             }
         }
         if go_n != rs_n {

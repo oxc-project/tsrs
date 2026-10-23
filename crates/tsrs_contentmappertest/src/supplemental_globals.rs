@@ -10,7 +10,7 @@ use crate::protocol::{
 };
 
 // supplemental_globals.go:12
-pub(crate) struct SupplementalGlobalsHandler;
+pub struct SupplementalGlobalsHandler;
 
 impl TestHandler for SupplementalGlobalsHandler {}
 

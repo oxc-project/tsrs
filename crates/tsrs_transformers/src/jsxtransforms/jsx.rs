@@ -115,10 +115,10 @@ impl JSXTransformer {
         }
         {
             let imports = self.utilized_implicit_runtime_imports.borrow();
-            if let Some(existing) = imports.get(&import_source) {
-                if let Some(elem) = existing.get(name) {
-                    return elem.as_import_specifier().name();
-                }
+            if let Some(existing) = imports.get(&import_source)
+                && let Some(elem) = existing.get(name)
+            {
+                return elem.as_import_specifier().name();
             }
         }
         if !self.utilized_implicit_runtime_imports.borrow().contains_key(&import_source) {
@@ -571,11 +571,10 @@ impl JSXTransformer {
         let f = self.factory();
         let tag_name = self.get_tag_name(element);
         let mut children_prop: Option<P<Node>> = None;
-        if let Some(children) = children {
-            if !children.nodes().is_empty() {
-                children_prop =
-                    self.convert_jsx_children_to_children_prop_assignment(children.nodes());
-            }
+        if let Some(children) = children
+            && !children.nodes().is_empty()
+        {
+            children_prop = self.convert_jsx_children_to_children_prop_assignment(children.nodes());
         }
         let mut key_attr: Option<P<Node>> = None;
         let mut attrs: Vec<P<Node>> = element.attributes().unwrap().properties().to_vec();
@@ -590,14 +589,14 @@ impl JSXTransformer {
                 break;
             }
         }
-        let object = if !attrs.is_empty() {
-            self.transform_jsx_attributes_to_object_props(&attrs, children_prop)
-        } else {
+        let object = if attrs.is_empty() {
             let mut object_children: Vec<P<Node>> = Vec::new();
             if let Some(children_prop) = children_prop {
                 object_children.push(children_prop);
             }
             f.new_object_literal_expression(f.new_node_list(object_children), false) // When there are no attributes, React wants {}
+        } else {
+            self.transform_jsx_attributes_to_object_props(&attrs, children_prop)
         };
         self.visit_jsx_opening_like_element_or_fragment_jsx(
             tag_name, object, key_attr, children, location,
@@ -915,14 +914,12 @@ impl JSXTransformer {
         location: TextRange,
     ) -> P<Node> {
         let mut children_props: Option<P<Node>> = None;
-        if let Some(children) = children {
-            if !children.nodes().is_empty() {
-                if let Some(result) =
-                    self.convert_jsx_children_to_children_prop_object(children.nodes())
-                {
-                    children_props = Some(result);
-                }
-            }
+        if let Some(children) = children
+            && !children.nodes().is_empty()
+            && let Some(result) =
+                self.convert_jsx_children_to_children_prop_object(children.nodes())
+        {
+            children_props = Some(result);
         }
         let children_props = match children_props {
             Some(c) => c,
@@ -959,16 +956,10 @@ impl JSXTransformer {
         // See also: RuntimeSyntaxTransformer.visitExpressionIdentifier in runtimesyntax.go
         if let Some(container) =
             self.emit_resolver.get_referenced_export_container(react, false /*prefixLocals*/)
+            && ast::is_module_declaration(container)
         {
-            if ast::is_module_declaration(container) {
-                let container_name = f.new_generated_name_for_node(container);
-                return f.new_property_access_expression(
-                    container_name,
-                    None,
-                    react,
-                    NodeFlags::None,
-                );
-            }
+            let container_name = f.new_generated_name_for_node(container);
+            return f.new_property_access_expression(container_name, None, react, NodeFlags::None);
         }
 
         react
@@ -1036,10 +1027,10 @@ impl JSXTransformer {
         let f = self.factory();
         let tag_name = self.get_tag_name(element);
         let attrs = element.attributes().unwrap().properties();
-        let object_properties = if !attrs.is_empty() {
-            self.transform_jsx_attributes_to_object_props(attrs, None)
-        } else {
+        let object_properties = if attrs.is_empty() {
             f.new_keyword_expression(Kind::NullKeyword) // When there are no attributes, React wants "null"
+        } else {
+            self.transform_jsx_attributes_to_object_props(attrs, None)
         };
 
         let callee = if self.import_specifier.borrow().is_empty() {

@@ -11,7 +11,7 @@ use crate::protocol::{
 };
 
 // supplemental.go:11
-pub(crate) struct SupplementalHandler;
+pub struct SupplementalHandler;
 
 impl TestHandler for SupplementalHandler {}
 

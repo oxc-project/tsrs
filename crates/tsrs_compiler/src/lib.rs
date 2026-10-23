@@ -14,7 +14,6 @@ mod host;
 mod includeprocessor;
 #[cfg(test)]
 mod modulespecifiers_oracle_test;
-mod outputpaths;
 mod processing_diagnostic;
 mod program;
 mod program_emit;

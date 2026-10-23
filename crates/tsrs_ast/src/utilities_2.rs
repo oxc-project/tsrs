@@ -285,12 +285,12 @@ pub fn is_name_of_heritage_clause_type_reference(mut node: P<Node>) -> bool {
 }
 
 pub fn get_heritage_clause(node: P<Node>, kind: Kind) -> Option<P<Node>> {
-    if let Some(clauses) = get_heritage_clauses(node) {
-        if let Some(result) = clauses.nodes().iter().find_map(|&clause| {
+    if let Some(clauses) = get_heritage_clauses(node)
+        && let Some(result) = clauses.nodes().iter().find_map(|&clause| {
             if clause.as_heritage_clause().token == kind { Some(Some(clause)) } else { None }
-        }) {
-            return result;
-        }
+        })
+    {
+        return result;
     }
     None
 }
@@ -1082,30 +1082,31 @@ pub(crate) fn get_module_instance_state_worker(
         }
         Kind::ExportDeclaration => {
             let decl = node.as_export_declaration();
-            if let Some(export_clause) = decl.export_clause {
-                if decl.module_specifier.is_none() && export_clause.kind() == Kind::NamedExports {
-                    let mut state = ModuleInstanceState::NonInstantiated;
-                    let ancestors = push_ancestor(&push_ancestor(ancestors, node), export_clause);
-                    state = match export_clause.elements().iter().try_fold(
-                        state,
-                        |mut state, &specifier| {
-                            let specifier_state = get_module_instance_state_for_alias_target(
-                                specifier, &ancestors, visited,
-                            );
-                            if specifier_state > state {
-                                state = specifier_state;
-                            }
-                            if state == ModuleInstanceState::Instantiated {
-                                return Err(state);
-                            }
-                            Ok(state)
-                        },
-                    ) {
-                        Ok(value) => value,
-                        Err(value) => return value,
-                    };
-                    return state;
-                }
+            if let Some(export_clause) = decl.export_clause
+                && decl.module_specifier.is_none()
+                && export_clause.kind() == Kind::NamedExports
+            {
+                let mut state = ModuleInstanceState::NonInstantiated;
+                let ancestors = push_ancestor(&push_ancestor(ancestors, node), export_clause);
+                state = match export_clause.elements().iter().try_fold(
+                    state,
+                    |mut state, &specifier| {
+                        let specifier_state = get_module_instance_state_for_alias_target(
+                            specifier, &ancestors, visited,
+                        );
+                        if specifier_state > state {
+                            state = specifier_state;
+                        }
+                        if state == ModuleInstanceState::Instantiated {
+                            return Err(state);
+                        }
+                        Ok(state)
+                    },
+                ) {
+                    Ok(value) => value,
+                    Err(value) => return value,
+                };
+                return state;
             }
         }
         Kind::ModuleBlock => {
@@ -1255,20 +1256,19 @@ pub fn get_first_identifier(node: P<Node>) -> P<Node> {
 pub fn get_namespace_declaration_node(node: P<Node>) -> Option<P<Node>> {
     match node.kind() {
         Kind::ImportDeclaration | Kind::JSImportDeclaration => {
-            if let Some(import_clause) = node.import_clause() {
-                if let Some(named_bindings) = import_clause.as_import_clause().named_bindings {
-                    if is_namespace_import(named_bindings) {
-                        return Some(named_bindings);
-                    }
-                }
+            if let Some(import_clause) = node.import_clause()
+                && let Some(named_bindings) = import_clause.as_import_clause().named_bindings
+                && is_namespace_import(named_bindings)
+            {
+                return Some(named_bindings);
             }
         }
         Kind::ImportEqualsDeclaration => return Some(node),
         Kind::ExportDeclaration => {
-            if let Some(export_clause) = node.as_export_declaration().export_clause {
-                if is_namespace_export(export_clause) {
-                    return Some(export_clause);
-                }
+            if let Some(export_clause) = node.as_export_declaration().export_clause
+                && is_namespace_export(export_clause)
+            {
+                return Some(export_clause);
             }
         }
         _ => panic!("Unhandled case in getNamespaceDeclarationNode"),
@@ -1431,12 +1431,12 @@ pub fn get_node_at_position(file: P<SourceFile>, position: u32, include_jsdoc: b
     let mut current = file.as_node();
     loop {
         let mut child: Option<P<Node>> = None;
-        if include_jsdoc {
-            if let Some(jsdoc) = current.jsdoc(Some(file.get())).iter().find_map(|&jsdoc| {
+        if include_jsdoc
+            && let Some(jsdoc) = current.jsdoc(Some(file.get())).iter().find_map(|&jsdoc| {
                 if node_contains_position(jsdoc, position) { Some(jsdoc) } else { None }
-            }) {
-                child = Some(jsdoc);
-            }
+            })
+        {
+            child = Some(jsdoc);
         }
         if child.is_none() {
             current.for_each_child(&mut |node| {
@@ -1506,10 +1506,11 @@ pub fn for_each_dynamic_import_or_require_call(
             if cb(node, node.arguments()[0]) {
                 return true;
             }
-        } else if include_type_space_imports && is_literal_import_type_node(node) {
-            if cb(node, node.as_import_type_node().argument.as_literal_type_node().literal) {
-                return true;
-            }
+        } else if include_type_space_imports
+            && is_literal_import_type_node(node)
+            && cb(node, node.as_import_type_node().argument.as_literal_type_node().literal)
+        {
+            return true;
         }
         // skip past import/require
         next = find_import_or_require(file.text(), last_index + size);
@@ -1577,19 +1578,19 @@ pub fn get_pragma_from_source_file(
     name: &str,
 ) -> Option<&'static Pragma> {
     let mut result = None;
-    if let Some(file) = file {
-        if let Some(pragma) = file.pragmas().iter().rev().find(|pragma| pragma.name == name) {
-            result = Some(pragma); // Last one wins
-        }
+    if let Some(file) = file
+        && let Some(pragma) = file.pragmas().iter().rev().find(|pragma| pragma.name == name)
+    {
+        result = Some(pragma); // Last one wins
     }
     result
 }
 
 pub fn get_pragma_argument(pragma: Option<&'static Pragma>, name: &str) -> &'static str {
-    if let Some(pragma) = pragma {
-        if let Some(arg) = pragma.args.get(name) {
-            return arg.value.as_str();
-        }
+    if let Some(pragma) = pragma
+        && let Some(arg) = pragma.args.get(name)
+    {
+        return arg.value.as_str();
     }
     ""
 }
@@ -1668,10 +1669,11 @@ pub fn get_module_specifier_of_bare_or_accessed_require(node: P<Node>) -> Option
 }
 
 pub fn is_module_exports_access_expression(node: P<Node>) -> bool {
-    if is_access_expression(node) && is_module_identifier(node.expression().unwrap()) {
-        if let Some(name) = get_element_or_property_access_name(node) {
-            return name.text() == "exports";
-        }
+    if is_access_expression(node)
+        && is_module_identifier(node.expression().unwrap())
+        && let Some(name) = get_element_or_property_access_name(node)
+    {
+        return name.text() == "exports";
     }
     false
 }

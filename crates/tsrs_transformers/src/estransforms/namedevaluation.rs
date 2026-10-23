@@ -8,10 +8,7 @@ use super::*;
  * call's second argument is the value stored in the `assignedName` property of the block's `EmitNode`.
  * @internal
  */
-pub(crate) fn is_class_named_evaluation_helper_block(
-    emit_context: P<EmitContext>,
-    node: P<Node>,
-) -> bool {
+pub fn is_class_named_evaluation_helper_block(emit_context: P<EmitContext>, node: P<Node>) -> bool {
     if !ast::is_class_static_block_declaration(node)
         || node.as_class_static_block_declaration().body.statements().len() != 1
     {
@@ -36,18 +33,14 @@ pub(crate) fn is_class_named_evaluation_helper_block(
  * `__setFunctionName` helper.
  * @internal
  */
-pub(crate) fn class_has_explicitly_assigned_name(
-    emit_context: P<EmitContext>,
-    node: P<Node>,
-) -> bool {
-    if emit_context.assigned_name(node).is_some() {
-        if node
+pub fn class_has_explicitly_assigned_name(emit_context: P<EmitContext>, node: P<Node>) -> bool {
+    if emit_context.assigned_name(node).is_some()
+        && node
             .members()
             .iter()
             .any(|&member| is_class_named_evaluation_helper_block(emit_context, member))
-        {
-            return true;
-        }
+    {
+        return true;
     }
     false
 }
@@ -58,7 +51,7 @@ pub(crate) fn class_has_explicitly_assigned_name(
  * call to the `__setFunctionName` helper.
  * @internal
  */
-pub(crate) fn class_has_declared_or_explicitly_assigned_name(
+pub fn class_has_declared_or_explicitly_assigned_name(
     emit_context: P<EmitContext>,
     node: P<Node>,
 ) -> bool {
@@ -69,7 +62,7 @@ pub(crate) fn class_has_declared_or_explicitly_assigned_name(
 // Indicates whether an expression is an anonymous function definition.
 //
 // See https://tc39.es/ecma262/#sec-isanonymousfunctiondefinition
-pub(crate) fn is_anonymous_function_definition(
+pub fn is_anonymous_function_definition(
     emit_context: P<EmitContext>,
     node: P<Node>,
     cb: Option<&dyn Fn(P<Node>) -> bool>,
@@ -98,12 +91,12 @@ pub(crate) fn is_anonymous_function_definition(
 }
 
 // namedevaluation.go:85
-pub(crate) fn is_named_evaluation(emit_context: P<EmitContext>, node: P<Node>) -> bool {
+pub fn is_named_evaluation(emit_context: P<EmitContext>, node: P<Node>) -> bool {
     is_named_evaluation_and(emit_context, node, None)
 }
 
 // namedevaluation.go:89
-pub(crate) fn is_named_evaluation_and(
+pub fn is_named_evaluation_and(
     emit_context: P<EmitContext>,
     node: P<Node>,
     cb: Option<&dyn Fn(P<Node>) -> bool>,
@@ -136,7 +129,7 @@ pub(crate) fn is_named_evaluation_and(
 
 // namedevaluation.go:109
 // Gets a string literal to use as the assigned name of an anonymous class or function declaration.
-pub(crate) fn get_assigned_name_of_identifier(
+pub fn get_assigned_name_of_identifier(
     emit_context: P<EmitContext>,
     name: P<Node>,
     expression: P<Node>, /*WrappedExpression<AnonymousFunctionDefinition>*/
@@ -154,7 +147,7 @@ pub(crate) fn get_assigned_name_of_identifier(
 }
 
 // namedevaluation.go:118
-pub(crate) fn get_assigned_name_of_property_name(
+pub fn get_assigned_name_of_property_name(
     emit_context: P<EmitContext>,
     name: P<Node>,
     assigned_name_text: &str,
@@ -195,7 +188,7 @@ pub(crate) fn get_assigned_name_of_property_name(
 // side effects.
 // The thisExpression parameter overrides the expression to use for the actual `this` reference. This can be used to provide an
 // expression that has already had its `EmitFlags` set or may have been tracked to prevent substitution.
-pub(crate) fn create_class_named_evaluation_helper_block(
+pub fn create_class_named_evaluation_helper_block(
     emit_context: P<EmitContext>,
     assigned_name: P<Node>,
     this_expression: Option<P<Node>>,
@@ -223,7 +216,7 @@ pub(crate) fn create_class_named_evaluation_helper_block(
 
 // namedevaluation.go:176
 // Injects a class `static {}` block used to dynamically set the name of a class, if one does not already exist.
-pub(crate) fn inject_class_named_evaluation_helper_block_if_missing(
+pub fn inject_class_named_evaluation_helper_block_if_missing(
     emit_context: P<EmitContext>,
     node: P<Node>,
     assigned_name: P<Node>,
@@ -304,7 +297,7 @@ pub(crate) fn inject_class_named_evaluation_helper_block_if_missing(
 }
 
 // namedevaluation.go:250
-pub(crate) fn finish_transform_named_evaluation(
+pub fn finish_transform_named_evaluation(
     emit_context: P<EmitContext>,
     expression: P<Node>, // WrappedExpression<AnonymousFunctionDefinition>,
     assigned_name: P<Node>,
@@ -335,7 +328,7 @@ pub(crate) fn finish_transform_named_evaluation(
 }
 
 // namedevaluation.go:273
-pub(crate) fn transform_named_evaluation_of_property_assignment(
+pub fn transform_named_evaluation_of_property_assignment(
     context: P<EmitContext>,
     node: P<Node>, /*NamedEvaluation & PropertyAssignment*/
     ignore_empty_string_literal: bool,
@@ -368,7 +361,7 @@ pub(crate) fn transform_named_evaluation_of_property_assignment(
 }
 
 // namedevaluation.go:287
-pub(crate) fn transform_named_evaluation_of_shorthand_assignment_property(
+pub fn transform_named_evaluation_of_shorthand_assignment_property(
     emit_context: P<EmitContext>,
     node: P<Node>, /*NamedEvaluation & ShorthandPropertyAssignment*/
     ignore_empty_string_literal: bool,
@@ -385,14 +378,14 @@ pub(crate) fn transform_named_evaluation_of_shorthand_assignment_property(
     let factory = &emit_context.factory;
     let s = node.as_shorthand_property_assignment();
     let object_assignment_initializer_in = s.object_assignment_initializer().unwrap();
-    let assigned_name = if !assigned_name_text.is_empty() {
-        factory.new_string_literal(alloc_str(assigned_name_text), TokenFlags::None)
-    } else {
+    let assigned_name = if assigned_name_text.is_empty() {
         get_assigned_name_of_identifier(
             emit_context,
             node.name().unwrap(),
             object_assignment_initializer_in,
         )
+    } else {
+        factory.new_string_literal(alloc_str(assigned_name_text), TokenFlags::None)
     };
     let object_assignment_initializer = finish_transform_named_evaluation(
         emit_context,
@@ -412,7 +405,7 @@ pub(crate) fn transform_named_evaluation_of_shorthand_assignment_property(
 }
 
 // namedevaluation.go:315
-pub(crate) fn transform_named_evaluation_of_variable_declaration(
+pub fn transform_named_evaluation_of_variable_declaration(
     emit_context: P<EmitContext>,
     node: P<Node>, /*NamedEvaluation & VariableDeclaration*/
     ignore_empty_string_literal: bool,
@@ -433,14 +426,14 @@ pub(crate) fn transform_named_evaluation_of_variable_declaration(
     //     ...
 
     let factory = &emit_context.factory;
-    let assigned_name = if !assigned_name_text.is_empty() {
-        factory.new_string_literal(alloc_str(assigned_name_text), TokenFlags::None)
-    } else {
+    let assigned_name = if assigned_name_text.is_empty() {
         get_assigned_name_of_identifier(
             emit_context,
             node.name().unwrap(),
             node.initializer().unwrap(),
         )
+    } else {
+        factory.new_string_literal(alloc_str(assigned_name_text), TokenFlags::None)
     };
     let initializer = finish_transform_named_evaluation(
         emit_context,
@@ -458,7 +451,7 @@ pub(crate) fn transform_named_evaluation_of_variable_declaration(
 }
 
 // namedevaluation.go:347
-pub(crate) fn transform_named_evaluation_of_parameter_declaration(
+pub fn transform_named_evaluation_of_parameter_declaration(
     emit_context: P<EmitContext>,
     node: P<Node>, /*NamedEvaluation & ParameterDeclaration*/
     ignore_empty_string_literal: bool,
@@ -481,14 +474,14 @@ pub(crate) fn transform_named_evaluation_of_parameter_declaration(
     //     ...
 
     let factory = &emit_context.factory;
-    let assigned_name = if !assigned_name_text.is_empty() {
-        factory.new_string_literal(alloc_str(assigned_name_text), TokenFlags::None)
-    } else {
+    let assigned_name = if assigned_name_text.is_empty() {
         get_assigned_name_of_identifier(
             emit_context,
             node.name().unwrap(),
             node.initializer().unwrap(),
         )
+    } else {
+        factory.new_string_literal(alloc_str(assigned_name_text), TokenFlags::None)
     };
     let initializer = finish_transform_named_evaluation(
         emit_context,
@@ -508,7 +501,7 @@ pub(crate) fn transform_named_evaluation_of_parameter_declaration(
 }
 
 // namedevaluation.go:383
-pub(crate) fn transform_named_evaluation_of_binding_element(
+pub fn transform_named_evaluation_of_binding_element(
     emit_context: P<EmitContext>,
     node: P<Node>, /*NamedEvaluation & BindingElement*/
     ignore_empty_string_literal: bool,
@@ -531,14 +524,14 @@ pub(crate) fn transform_named_evaluation_of_binding_element(
     //     ...
 
     let factory = &emit_context.factory;
-    let assigned_name = if !assigned_name_text.is_empty() {
-        factory.new_string_literal(alloc_str(assigned_name_text), TokenFlags::None)
-    } else {
+    let assigned_name = if assigned_name_text.is_empty() {
         get_assigned_name_of_identifier(
             emit_context,
             node.name().unwrap(),
             node.initializer().unwrap(),
         )
+    } else {
+        factory.new_string_literal(alloc_str(assigned_name_text), TokenFlags::None)
     };
     let initializer = finish_transform_named_evaluation(
         emit_context,
@@ -557,7 +550,7 @@ pub(crate) fn transform_named_evaluation_of_binding_element(
 }
 
 // namedevaluation.go:417
-pub(crate) fn transform_named_evaluation_of_property_declaration(
+pub fn transform_named_evaluation_of_property_declaration(
     emit_context: P<EmitContext>,
     node: P<Node>, /*NamedEvaluation & PropertyDeclaration*/
     ignore_empty_string_literal: bool,
@@ -590,7 +583,7 @@ pub(crate) fn transform_named_evaluation_of_property_declaration(
 }
 
 // namedevaluation.go:438
-pub(crate) fn transform_named_evaluation_of_assignment_expression(
+pub fn transform_named_evaluation_of_assignment_expression(
     emit_context: P<EmitContext>,
     node: P<Node>, /*NamedEvaluation & BinaryExpression*/
     ignore_empty_string_literal: bool,
@@ -624,10 +617,10 @@ pub(crate) fn transform_named_evaluation_of_assignment_expression(
 
     let factory = &emit_context.factory;
     let b = node.as_binary_expression();
-    let assigned_name = if !assigned_name_text.is_empty() {
-        factory.new_string_literal(alloc_str(assigned_name_text), TokenFlags::None)
-    } else {
+    let assigned_name = if assigned_name_text.is_empty() {
         get_assigned_name_of_identifier(emit_context, b.left, b.right())
+    } else {
+        factory.new_string_literal(alloc_str(assigned_name_text), TokenFlags::None)
     };
     let right = finish_transform_named_evaluation(
         emit_context,
@@ -646,7 +639,7 @@ pub(crate) fn transform_named_evaluation_of_assignment_expression(
 }
 
 // namedevaluation.go:483
-pub(crate) fn transform_named_evaluation_of_export_assignment(
+pub fn transform_named_evaluation_of_export_assignment(
     emit_context: P<EmitContext>,
     node: P<Node>, /*NamedEvaluation & ExportAssignment*/
     ignore_empty_string_literal: bool,
@@ -687,7 +680,7 @@ pub(crate) fn transform_named_evaluation_of_export_assignment(
 
 // namedevaluation.go:513
 // Performs a shallow transformation of a `NamedEvaluation` node, such that a valid name will be assigned.
-pub(crate) fn transform_named_evaluation(
+pub fn transform_named_evaluation(
     context: P<EmitContext>,
     node: P<Node>, /*NamedEvaluation*/
     ignore_empty_string_literal: bool,

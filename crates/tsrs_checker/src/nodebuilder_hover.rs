@@ -6,7 +6,7 @@ use tsrs_core::*;
 
 // nodebuilder_hover.go:16
 // isExpanding returns whether the node builder context is operating in hover-expansion mode.
-pub(crate) fn is_expanding(ctx: P<NodeBuilderContext>) -> bool {
+pub fn is_expanding(ctx: P<NodeBuilderContext>) -> bool {
     ctx.max_expansion_depth.get().is_some()
 }
 
@@ -235,10 +235,10 @@ impl NodeBuilderImpl {
             // Find the symbol for this member by matching the property name
             let mut member_symbol: Option<P<Symbol>> = None;
             let member_name = m.name();
-            if let Some(member_name) = member_name {
-                if let Some(sym) = self.id_to_symbol.borrow().get(&member_name).copied() {
-                    member_symbol = Some(sym);
-                }
+            if let Some(member_name) = member_name
+                && let Some(sym) = self.id_to_symbol.borrow().get(&member_name).copied()
+            {
+                member_symbol = Some(sym);
             }
             let Some(member_symbol) = member_symbol else {
                 continue;
@@ -270,10 +270,7 @@ impl NodeBuilderImpl {
 // typeElementsToClassElements converts TypeElement nodes (PropertySignature, MethodSignature)
 // to their ClassElement equivalents (PropertyDeclaration, MethodDeclaration) so they can be
 // used as members of a ClassDeclaration. Nodes that are already ClassElements pass through unchanged.
-pub(crate) fn type_elements_to_class_elements(
-    f: &NodeFactory,
-    members: &mut [P<Node>],
-) -> Vec<P<Node>> {
+pub fn type_elements_to_class_elements(f: &NodeFactory, members: &mut [P<Node>]) -> Vec<P<Node>> {
     for element in members.iter_mut() {
         let m = *element;
         match m.kind() {
@@ -547,13 +544,13 @@ impl NodeBuilderImpl {
         result.extend(c.get_index_infos_of_type(input).iter().copied().filter_map(|info| {
             if let Some(base_type) = base_type {
                 let base_info = c.get_index_info_of_type(base_type, info.key_type.get().unwrap());
-                if let Some(base_info) = base_info {
-                    if c.is_type_identical_to(
+                if let Some(base_info) = base_info
+                    && c.is_type_identical_to(
                         info.value_type.get().unwrap(),
                         base_info.value_type.get().unwrap(),
-                    ) {
-                        return None;
-                    }
+                    )
+                {
+                    return None;
                 }
             }
             Some(self.index_info_to_index_signature_declaration_helper(c, info, None))
@@ -607,6 +604,11 @@ impl NodeBuilderImpl {
     // nodebuilder_hover.go:413
     // expandModuleDecl produces a ModuleDeclaration with exported members.
     pub(crate) fn expand_module_decl(&self, c: &mut Checker, symbol: P<Symbol>) -> P<Node> {
+        struct HoverStatement {
+            node: P<Node>,
+            is_local: bool, // local declarations (e.g. alias targets) should not get export modifier
+        }
+
         let exports = c.get_exports_of_symbol(symbol);
         let mut members: Vec<P<Symbol>> = Vec::new();
         if let Some(exports) = exports {
@@ -635,10 +637,6 @@ impl NodeBuilderImpl {
         let local_name = self.symbol_to_node(c, symbol, SymbolFlags::All);
         self.ctx().flags.set(old_flags);
 
-        struct HoverStatement {
-            node: P<Node>,
-            is_local: bool, // local declarations (e.g. alias targets) should not get export modifier
-        }
         let mut body_stmts: Vec<HoverStatement> = Vec::new();
         let mut emitted_locals: Set<P<Symbol>> = Set::new();
         let mut next = 0usize;
@@ -906,6 +904,6 @@ impl NodeBuilderImpl {
 }
 
 // nodebuilder_hover.go:603
-pub(crate) fn is_hash_private(s: P<Symbol>) -> bool {
+pub fn is_hash_private(s: P<Symbol>) -> bool {
     s.value_declaration().is_some_and(|d| d.name().is_some_and(is_private_identifier))
 }

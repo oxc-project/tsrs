@@ -20,9 +20,9 @@ use crate::utilities::{
     is_in_comment, is_in_right_side_of_internal_import_equals_declaration, is_in_string,
 };
 
-pub(crate) use crate::completions_2::*;
-pub(crate) use crate::completions_3::*;
-pub(crate) use crate::completions_4::*;
+pub use crate::completions_2::*;
+pub use crate::completions_3::*;
+pub use crate::completions_4::*;
 
 // completions.go:35 (Go compares with `errors.Is`; `is_err_needs_auto_imports` compares the message)
 pub const ERR_NEEDS_AUTO_IMPORTS: &str = "completion list needs auto imports";
@@ -38,7 +38,7 @@ pub fn is_err_needs_auto_imports(err: &lsproto::Error) -> bool {
 // Go keeps the formatter settings as values of the request `context.Context` (`format.WithFormatCodeSettings`).
 // The format package takes a `format::FormatContext` (format/api.rs); it travels as a value of the request
 // context so that every Go `ctx` keeps carrying it.
-pub(crate) fn with_format_code_settings(
+pub fn with_format_code_settings(
     ctx: &Context,
     options: FormatCodeSettings,
     new_line: &str,
@@ -47,7 +47,7 @@ pub(crate) fn with_format_code_settings(
     ctx.with_value(format::with_format_code_settings(&base, options, new_line))
 }
 
-pub(crate) fn format_context(ctx: &Context) -> FormatContext {
+pub fn format_context(ctx: &Context) -> FormatContext {
     ctx.value::<FormatContext>().cloned().unwrap_or_default()
 }
 
@@ -217,7 +217,7 @@ fn ensure_item_data(
 }
 
 // completions.go:139
-pub(crate) fn supplemental_file_index(file: P<SourceFile>) -> Option<usize> {
+pub fn supplemental_file_index(file: P<SourceFile>) -> Option<usize> {
     let canonical = file.canonical_source_file()?;
     if let Some(i) =
         canonical.supplemental_source_files().iter().position(|&supplemental| supplemental == file)
@@ -228,7 +228,7 @@ pub(crate) fn supplemental_file_index(file: P<SourceFile>) -> Option<usize> {
 }
 
 // completions.go:152
-pub(crate) fn source_file_for_supplemental_file_index(
+pub fn source_file_for_supplemental_file_index(
     file: P<SourceFile>,
     index: Option<i32>,
 ) -> Option<P<SourceFile>> {
@@ -242,7 +242,7 @@ pub(crate) fn source_file_for_supplemental_file_index(
 
 // *completionDataData | *completionDataKeyword | *completionDataJSDocTagName | *completionDataJSDocTag | *completionDataJSDocParameterName
 // completions.go:164
-pub(crate) enum CompletionData {
+pub enum CompletionData {
     Data(Box<CompletionDataData>),
     Keyword(CompletionDataKeyword),
     JSDocTagName,
@@ -251,7 +251,7 @@ pub(crate) enum CompletionData {
 }
 
 // completions.go:166 (Go's isInSnippetScope field is never read)
-pub(crate) struct CompletionDataData {
+pub struct CompletionDataData {
     pub(crate) symbols: Vec<P<Symbol>>,
     pub(crate) auto_imports: Vec<autoimport::FixAndExport>,
     pub(crate) completion_kind: CompletionKind,
@@ -310,19 +310,19 @@ impl CompletionDataData {
 }
 
 // completions.go:195
-pub(crate) struct CompletionDataKeyword {
+pub struct CompletionDataKeyword {
     pub(crate) keyword_completions: Vec<CompletionItem>,
     pub(crate) is_new_identifier_location: bool,
 }
 
 // completions.go:204
-pub(crate) struct CompletionDataJSDocParameterName {
+pub struct CompletionDataJSDocParameterName {
     pub(crate) tag: P<Node>,
 }
 
 // completions.go:208
 #[derive(Clone, Default)]
-pub(crate) struct ImportStatementCompletionInfo {
+pub struct ImportStatementCompletionInfo {
     pub(crate) is_keyword_only_completion: bool,
     pub(crate) keyword_completion: Kind, // TokenKind
     pub(crate) is_new_identifier_location: bool,
@@ -335,7 +335,7 @@ pub(crate) struct ImportStatementCompletionInfo {
 // value will be `true` but initializer will be `nil`.
 // completions.go:219
 #[derive(Clone, Copy, Default)]
-pub(crate) struct JsxInitializer {
+pub struct JsxInitializer {
     pub(crate) is_initializer: bool,
     pub(crate) initializer: Option<P<Node>>,
 }
@@ -387,16 +387,16 @@ pub const COMPLETION_TRIGGER_CHARACTERS: [&str; 10] =
 
 // All commit characters, valid when `isNewIdentifierLocation` is false.
 // completions.go:262
-pub(crate) const ALL_COMMIT_CHARACTERS: [&str; 3] = [".", ",", ";"];
+pub const ALL_COMMIT_CHARACTERS: [&str; 3] = [".", ",", ";"];
 
 // Commit characters valid at expression positions where we could be inside a parameter list.
 // completions.go:265
-pub(crate) const NO_COMMA_COMMIT_CHARACTERS: [&str; 2] = [".", ";"];
+pub const NO_COMMA_COMMIT_CHARACTERS: [&str; 2] = [".", ";"];
 
 // completions.go:267
-pub(crate) const EMPTY_COMMIT_CHARACTERS: [&str; 0] = [];
+pub const EMPTY_COMMIT_CHARACTERS: [&str; 0] = [];
 
-pub(crate) fn strings(values: &[&str]) -> Vec<String> {
+pub fn strings(values: &[&str]) -> Vec<String> {
     values.iter().map(std::string::ToString::to_string).collect()
 }
 
@@ -450,7 +450,7 @@ bitflags::bitflags! {
 
 // Go `data any` of symbolOriginInfo.
 #[derive(Clone, Default)]
-pub(crate) enum SymbolOriginData {
+pub enum SymbolOriginData {
     #[default]
     None,
     ObjectLiteralMethod(SymbolOriginInfoObjectLiteralMethod),
@@ -461,7 +461,7 @@ pub(crate) enum SymbolOriginData {
 
 // completions.go:308 (Go's isDefaultExport, isFromPackageJson and fileName fields are never set or read)
 #[derive(Clone, Default)]
-pub(crate) struct SymbolOriginInfo {
+pub struct SymbolOriginInfo {
     pub(crate) kind: symbolOriginInfoKind,
     pub(crate) data: SymbolOriginData,
 }
@@ -507,7 +507,7 @@ impl SymbolOriginData {
 
 // completions.go:325
 #[derive(Clone, Default)]
-pub(crate) struct SymbolOriginInfoObjectLiteralMethod {
+pub struct SymbolOriginInfoObjectLiteralMethod {
     pub(crate) insert_text: String,
     pub(crate) label_details: Option<lsproto::CompletionItemLabelDetails>,
     pub(crate) is_snippet: bool,
@@ -515,7 +515,7 @@ pub(crate) struct SymbolOriginInfoObjectLiteralMethod {
 
 // completions.go:335
 #[derive(Clone)]
-pub(crate) struct SymbolOriginInfoTypeOnlyAlias {
+pub struct SymbolOriginInfoTypeOnlyAlias {
     #[expect(
         dead_code,
         reason = "Go has no reader yet either: `!!! fill in additionalTextEdits from code actions` (completions.go:5712)"
@@ -525,7 +525,7 @@ pub(crate) struct SymbolOriginInfoTypeOnlyAlias {
 
 // completions.go:339
 #[derive(Clone)]
-pub(crate) struct SymbolOriginInfoComputedPropertyName {
+pub struct SymbolOriginInfoComputedPropertyName {
     pub(crate) symbol_name: String,
 }
 
@@ -540,24 +540,23 @@ pub(crate) struct SymbolOriginInfoComputedPropertyName {
 // generate for an auto-import.
 // completions.go:352
 // Completions that require `this.` insertion text.
-pub(crate) const COMPLETION_SOURCE_THIS_PROPERTY: &str = "ThisProperty/";
+pub const COMPLETION_SOURCE_THIS_PROPERTY: &str = "ThisProperty/";
 // Auto-import that comes attached to a class member snippet.
-pub(crate) const COMPLETION_SOURCE_CLASS_MEMBER_SNIPPET: &str = "ClassMemberSnippet/";
+pub const COMPLETION_SOURCE_CLASS_MEMBER_SNIPPET: &str = "ClassMemberSnippet/";
 // A type-only import that needs to be promoted in order to be used at the completion location.
-pub(crate) const COMPLETION_SOURCE_TYPE_ONLY_ALIAS: &str = "TypeOnlyAlias/";
+pub const COMPLETION_SOURCE_TYPE_ONLY_ALIAS: &str = "TypeOnlyAlias/";
 // Auto-import that comes attached to an object literal method snippet.
-pub(crate) const COMPLETION_SOURCE_OBJECT_LITERAL_METHOD_SNIPPET: &str =
-    "ObjectLiteralMethodSnippet/";
+pub const COMPLETION_SOURCE_OBJECT_LITERAL_METHOD_SNIPPET: &str = "ObjectLiteralMethodSnippet/";
 // Case completions for switch statements.
-pub(crate) const COMPLETION_SOURCE_SWITCH_CASES: &str = "SwitchCases/";
+pub const COMPLETION_SOURCE_SWITCH_CASES: &str = "SwitchCases/";
 // Completions for an object literal expression.
-pub(crate) const COMPLETION_SOURCE_OBJECT_LITERAL_MEMBER_WITH_COMMA: &str =
+pub const COMPLETION_SOURCE_OBJECT_LITERAL_MEMBER_WITH_COMMA: &str =
     "ObjectLiteralMemberWithComma/";
 
 // Value is set to false for global variables or completions from external module exports,
 // true otherwise.
 // completions.go:371 (Go map; insertion order here)
-pub(crate) type UniqueNamesMap = tsrs_core::collections::OrderedMap<String, bool>;
+pub type UniqueNamesMap = tsrs_core::collections::OrderedMap<String, bool>;
 
 // completions.go:376
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -596,12 +595,11 @@ impl LanguageService {
         include_symbols: bool,
     ) -> Result<Option<CompletionList>, lsproto::Error> {
         let (_, previous_token) = get_relevant_tokens(position, file);
-        if let Some(trigger_character) = trigger_character {
-            if !is_in_string(file, position, previous_token)
-                && !is_valid_trigger(file, trigger_character, previous_token, position)
-            {
-                return Ok(None);
-            }
+        if let Some(trigger_character) = trigger_character
+            && !is_in_string(file, position, previous_token)
+            && !is_valid_trigger(file, trigger_character, previous_token, position)
+        {
+            return Ok(None);
         }
 
         if trigger_character == Some(" ") {
@@ -638,20 +636,19 @@ impl LanguageService {
             return Ok(string_completions);
         }
 
-        if let Some(previous_token) = previous_token {
-            if (previous_token.kind() == Kind::BreakKeyword
+        if let Some(previous_token) = previous_token
+            && (previous_token.kind() == Kind::BreakKeyword
                 || previous_token.kind() == Kind::ContinueKeyword
                 || previous_token.kind() == Kind::Identifier)
-                && ast::is_break_or_continue_statement(previous_token.parent().unwrap())
-            {
-                return Ok(self.get_label_completions_at_position(
-                    ctx,
-                    previous_token.parent().unwrap(),
-                    file,
-                    position,
-                    self.get_optional_replacement_span(Some(previous_token), file),
-                ));
-            }
+            && ast::is_break_or_continue_statement(previous_token.parent().unwrap())
+        {
+            return Ok(self.get_label_completions_at_position(
+                ctx,
+                previous_token.parent().unwrap(),
+                file,
+                position,
+                self.get_optional_replacement_span(Some(previous_token), file),
+            ));
         }
 
         let preferences = self.user_preferences().clone();
@@ -982,11 +979,11 @@ impl LanguageService {
                 // <UI.Test /* completion position */ />
                 // If the tagname is a property access expression, we will then walk up to the top most of property access expression.
                 // Then, try to get a JSX container and its associated attributes type.
-                if let Some(p) = parent {
-                    if p.kind() == Kind::PropertyAccessExpression {
-                        context_token = Some(p);
-                        parent = p.parent();
-                    }
+                if let Some(p) = parent
+                    && p.kind() == Kind::PropertyAccessExpression
+                {
+                    context_token = Some(p);
+                    parent = p.parent();
                 }
                 let ct = context_token.unwrap();
                 let parent = parent.unwrap();
@@ -1573,7 +1570,15 @@ impl GetCompletionDataState {
             let type_at_location = type_checker.get_type_at_location(node);
             let mut t = type_checker.get_non_optional_type(type_at_location);
 
-            if !is_type_location {
+            if is_type_location {
+                let non_nullable = type_checker.get_non_nullable_type(t);
+                self.add_type_properties(
+                    type_checker,
+                    non_nullable,
+                    false, /*insertAwait*/
+                    false, /*insertQuestionDot*/
+                );
+            } else {
                 let mut insert_question_dot = false;
                 if type_checker.is_nullable_type(t) {
                     let can_correct_to_question_dot = self.is_right_of_dot
@@ -1595,14 +1600,6 @@ impl GetCompletionDataState {
                     t,
                     node.flags().intersects(NodeFlags::AwaitContext),
                     insert_question_dot,
-                );
-            } else {
-                let non_nullable = type_checker.get_non_nullable_type(t);
-                self.add_type_properties(
-                    type_checker,
-                    non_nullable,
-                    false, /*insertAwait*/
-                    false, /*insertQuestionDot*/
                 );
             }
         }
@@ -1668,10 +1665,10 @@ impl GetCompletionDataState {
         ctx: &Context,
         type_checker: &mut Checker,
     ) -> Result<GlobalsSearch, lsproto::Error> {
-        if let Some(context_token) = self.context_token {
-            if context_token.kind() == Kind::DotDotDotToken {
-                return Ok(GlobalsSearch::Continue);
-            }
+        if let Some(context_token) = self.context_token
+            && context_token.kind() == Kind::DotDotDotToken
+        {
+            return Ok(GlobalsSearch::Continue);
         }
         let file = self.file;
         let position = self.position;
@@ -1896,24 +1893,24 @@ impl GetCompletionDataState {
         if !fidelity.is_exact() {
             return Ok(());
         }
-        if let Some(previous_token) = self.previous_token {
-            if ast::is_identifier(previous_token) {
-                (usage_position, fidelity) = l.create_lsp_position(
-                    scanner::get_token_pos_of_node(
-                        previous_token,
-                        self.file,
-                        false, /*includeJSDoc*/
-                    ),
+        if let Some(previous_token) = self.previous_token
+            && ast::is_identifier(previous_token)
+        {
+            (usage_position, fidelity) = l.create_lsp_position(
+                scanner::get_token_pos_of_node(
+                    previous_token,
                     self.file,
-                );
-                if !fidelity.is_exact() {
-                    return Ok(());
-                }
-                if !(Some(previous_token) == self.context_token
-                    && self.import_statement_completion.is_some())
-                {
-                    lower_case_token_text = previous_token.text().to_lowercase();
-                }
+                    false, /*includeJSDoc*/
+                ),
+                self.file,
+            );
+            if !fidelity.is_exact() {
+                return Ok(());
+            }
+            if !(Some(previous_token) == self.context_token
+                && self.import_statement_completion.is_some())
+            {
+                lower_case_token_text = previous_token.text().to_lowercase();
             }
         }
 
@@ -2266,21 +2263,20 @@ impl GetCompletionDataState {
             for (index, element) in self.symbols.iter().enumerate() {
                 let symbol = *element;
                 let declaration = symbol.value_declaration();
-                if let Some(declaration) = declaration {
-                    if ast::is_class_element(declaration)
-                        && declaration.name().is_some()
-                        && ast::is_computed_property_name(declaration.name().unwrap())
-                    {
-                        let origin = SymbolOriginInfo {
-                            kind: symbolOriginInfoKind::ComputedPropertyName,
-                            data: SymbolOriginData::ComputedPropertyName(
-                                SymbolOriginInfoComputedPropertyName {
-                                    symbol_name: type_checker.symbol_to_string_exported(symbol),
-                                },
-                            ),
-                        };
-                        self.symbol_to_origin_info_map.insert(index, origin);
-                    }
+                if let Some(declaration) = declaration
+                    && ast::is_class_element(declaration)
+                    && declaration.name().is_some()
+                    && ast::is_computed_property_name(declaration.name().unwrap())
+                {
+                    let origin = SymbolOriginInfo {
+                        kind: symbolOriginInfoKind::ComputedPropertyName,
+                        data: SymbolOriginData::ComputedPropertyName(
+                            SymbolOriginInfoComputedPropertyName {
+                                symbol_name: type_checker.symbol_to_string_exported(symbol),
+                            },
+                        ),
+                    };
+                    self.symbol_to_origin_info_map.insert(index, origin);
                 }
             }
         }
@@ -2398,10 +2394,10 @@ impl GetCompletionDataState {
         //   - 'contextToken' was adjusted to the token prior to 'previousToken'
         //      because we were at the end of an identifier.
         //   - 'previousToken' is defined.
-        let adjusted_position = if previous_token != context_token {
-            astnav::get_start_of_node(previous_token.unwrap(), file, false /*includeJSDoc*/)
-        } else {
+        let adjusted_position = if previous_token == context_token {
             position
+        } else {
+            astnav::get_start_of_node(previous_token.unwrap(), file, false /*includeJSDoc*/)
         };
 
         let scope_node =
@@ -2459,18 +2455,18 @@ impl GetCompletionDataState {
                     None
                 },
             );
-            if let Some(this_type) = this_type {
-                if !is_probably_global_type(this_type, file, type_checker) {
-                    for symbol in get_properties_for_completion(this_type, type_checker) {
-                        let symbol_id = ast::get_symbol_id(symbol);
-                        self.symbols.push(symbol);
-                        self.symbol_to_origin_info_map.insert(
-                            self.symbols.len() - 1,
-                            SymbolOriginInfo::with_kind(symbolOriginInfoKind::ThisType),
-                        );
-                        self.symbol_to_sort_text_map
-                            .insert(symbol_id, SORT_TEXT_SUGGESTED_CLASS_MEMBERS.to_string());
-                    }
+            if let Some(this_type) = this_type
+                && !is_probably_global_type(this_type, file, type_checker)
+            {
+                for symbol in get_properties_for_completion(this_type, type_checker) {
+                    let symbol_id = ast::get_symbol_id(symbol);
+                    self.symbols.push(symbol);
+                    self.symbol_to_origin_info_map.insert(
+                        self.symbols.len() - 1,
+                        SymbolOriginInfo::with_kind(symbolOriginInfoKind::ThisType),
+                    );
+                    self.symbol_to_sort_text_map
+                        .insert(symbol_id, SORT_TEXT_SUGGESTED_CLASS_MEMBERS.to_string());
                 }
             }
         }
@@ -2521,12 +2517,12 @@ impl GetCompletionDataState {
 }
 
 // Go `core.CheckEachDefined`: the slices hold non-nil pointers by construction, so there is nothing to check.
-pub(crate) fn check_each_defined<'a, T>(s: &'a [T], _msg: &str) -> &'a [T] {
+pub fn check_each_defined<'a, T>(s: &'a [T], _msg: &str) -> &'a [T] {
     s
 }
 
 // completions.go:1802
-pub(crate) fn keyword_completion_data(
+pub fn keyword_completion_data(
     keyword_filters: KeywordCompletionFilters,
     filter_out_ts_only_keywords: bool,
     is_new_identifier_location: bool,
@@ -2538,7 +2534,7 @@ pub(crate) fn keyword_completion_data(
 }
 
 // completions.go:1813
-pub(crate) fn get_default_commit_characters(is_new_identifier_location: bool) -> Vec<String> {
+pub fn get_default_commit_characters(is_new_identifier_location: bool) -> Vec<String> {
     if is_new_identifier_location {
         return Vec::new();
     }

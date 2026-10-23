@@ -73,28 +73,26 @@ fn interface_of(t: P<Type>) -> CheckerResult<&'static tsrs_checker::InterfaceTyp
 
 // --- Location / position types ---
 
-pub(crate) fn get_type_at_location(host: &dyn CheckerHost, p: &Params) -> CheckerResult<Value> {
+pub fn get_type_at_location(host: &dyn CheckerHost, p: &Params) -> CheckerResult<Value> {
     let mut s = setup(host, p)?;
     let node = s.resolve_node(p.string("location")?)?;
     let t = s.c().get_type_at_location(node);
     s.type_response(t)
 }
 
-pub(crate) fn get_type_at_locations(host: &dyn CheckerHost, p: &Params) -> CheckerResult<Value> {
+pub fn get_type_at_locations(host: &dyn CheckerHost, p: &Params) -> CheckerResult<Value> {
     let mut s = setup(host, p)?;
     let locations = p.string_array("locations")?;
     let mut out = Vec::with_capacity(locations.len());
-    out = locations.into_iter().try_fold(out, |mut out, loc| {
+    for loc in locations {
         let node = s.resolve_node(loc)?;
         let t = s.c().get_type_at_location(node);
         out.push(s.type_response(t)?);
-
-        Ok::<_, CheckerError>(out)
-    })?;
+    }
     Ok(Value::Array(out))
 }
 
-pub(crate) fn get_type_at_position(host: &dyn CheckerHost, p: &Params) -> CheckerResult<Value> {
+pub fn get_type_at_position(host: &dyn CheckerHost, p: &Params) -> CheckerResult<Value> {
     let mut s = setup(host, p)?;
     let file = s.source_file(&p.document("file")?)?;
     let node = touching_property_name_at_utf16(file, p.u32("position")?);
@@ -102,25 +100,23 @@ pub(crate) fn get_type_at_position(host: &dyn CheckerHost, p: &Params) -> Checke
     s.type_response(t)
 }
 
-pub(crate) fn get_types_at_positions(host: &dyn CheckerHost, p: &Params) -> CheckerResult<Value> {
+pub fn get_types_at_positions(host: &dyn CheckerHost, p: &Params) -> CheckerResult<Value> {
     let mut s = setup(host, p)?;
     let file = s.source_file(&p.document("file")?)?;
     let positions = p.u32_array("positions")?;
     let mut out = Vec::with_capacity(positions.len());
-    out = positions.into_iter().try_fold(out, |mut out, pos| {
+    for pos in positions {
         let node = touching_property_name_at_utf16(file, pos);
         let t = s.c().get_type_at_location(node);
         out.push(s.type_response(t)?);
-
-        Ok::<_, CheckerError>(out)
-    })?;
+    }
     Ok(Value::Array(out))
 }
 
 // --- Type sub-properties (Go GetTypePropertyParams, field "objectId") ---
 
 #[derive(Clone, Copy)]
-pub(crate) enum TypeProperty {
+pub enum TypeProperty {
     Target,
     FreshType,
     RegularType,
@@ -189,7 +185,7 @@ fn type_property(t: P<Type>, property: TypeProperty) -> CheckerResult<Option<P<T
 }
 
 /// Go `resolveTypePropertyOfType`.
-pub(crate) fn resolve_type_property(
+pub fn resolve_type_property(
     host: &dyn CheckerHost,
     p: &Params,
     property: TypeProperty,
@@ -201,7 +197,7 @@ pub(crate) fn resolve_type_property(
 }
 
 #[derive(Clone, Copy)]
-pub(crate) enum TypeArrayProperty {
+pub enum TypeArrayProperty {
     Types,
     TypeParameters,
     OuterTypeParameters,
@@ -210,7 +206,7 @@ pub(crate) enum TypeArrayProperty {
 }
 
 /// Go `resolveTypeArrayPropertyOfType` (nil/empty → `[]`, json/v2's encoding of a nil slice).
-pub(crate) fn resolve_type_array_property(
+pub fn resolve_type_array_property(
     host: &dyn CheckerHost,
     p: &Params,
     property: TypeArrayProperty,
@@ -236,13 +232,13 @@ pub(crate) fn resolve_type_array_property(
 }
 
 #[derive(Clone, Copy)]
-pub(crate) enum TypeSymbolProperty {
+pub enum TypeSymbolProperty {
     Symbol,
     AliasSymbol,
 }
 
 /// Go `resolveSymbolPropertyOfType` (no checker).
-pub(crate) fn resolve_type_symbol_property(
+pub fn resolve_type_symbol_property(
     host: &dyn CheckerHost,
     p: &Params,
     property: TypeSymbolProperty,
@@ -262,7 +258,7 @@ pub(crate) fn resolve_type_symbol_property(
 // --- Checker operations on a type (Go CheckerTypeParams / GetTypePropertyParams etc.) ---
 
 #[derive(Clone, Copy)]
-pub(crate) enum TypeOp {
+pub enum TypeOp {
     Awaited,
     BaseTypeOfLiteral,
     NonNullable,
@@ -277,7 +273,7 @@ pub(crate) enum TypeOp {
 }
 
 /// `field` is the param name holding the type id ("type" or "objectId", per the pinned params struct).
-pub(crate) fn type_op(
+pub fn type_op(
     host: &dyn CheckerHost,
     p: &Params,
     field: &str,
@@ -308,16 +304,12 @@ pub(crate) fn type_op(
 }
 
 #[derive(Clone, Copy)]
-pub(crate) enum TypeListOp {
+pub enum TypeListOp {
     BaseTypes,
     TypeArguments,
 }
 
-pub(crate) fn type_list_op(
-    host: &dyn CheckerHost,
-    p: &Params,
-    op: TypeListOp,
-) -> CheckerResult<Value> {
+pub fn type_list_op(host: &dyn CheckerHost, p: &Params, op: TypeListOp) -> CheckerResult<Value> {
     let mut s = setup(host, p)?;
     let t = s.resolve_type(p.u32("type")?)?;
     let types = match op {
@@ -338,12 +330,12 @@ pub(crate) fn type_list_op(
 }
 
 #[derive(Clone, Copy)]
-pub(crate) enum TypePredicateOp {
+pub enum TypePredicateOp {
     IsArray,
     IsArrayLike,
 }
 
-pub(crate) fn type_predicate_op(
+pub fn type_predicate_op(
     host: &dyn CheckerHost,
     p: &Params,
     op: TypePredicateOp,
@@ -356,14 +348,14 @@ pub(crate) fn type_predicate_op(
     }))
 }
 
-pub(crate) fn is_type_assignable_to(host: &dyn CheckerHost, p: &Params) -> CheckerResult<Value> {
+pub fn is_type_assignable_to(host: &dyn CheckerHost, p: &Params) -> CheckerResult<Value> {
     let mut s = setup(host, p)?;
     let source = s.resolve_type(p.u32("source")?)?;
     let target = s.resolve_type(p.u32("target")?)?;
     Ok(Value::Bool(s.c().is_type_assignable_to_exported(source, target)))
 }
 
-pub(crate) fn get_properties_of_type(host: &dyn CheckerHost, p: &Params) -> CheckerResult<Value> {
+pub fn get_properties_of_type(host: &dyn CheckerHost, p: &Params) -> CheckerResult<Value> {
     let mut s = setup(host, p)?;
     let t = s.resolve_type(p.u32("type")?)?;
     let props = s.c().get_properties_of_type_exported(t);
@@ -373,34 +365,28 @@ pub(crate) fn get_properties_of_type(host: &dyn CheckerHost, p: &Params) -> Chec
     s.symbols_response(props)
 }
 
-pub(crate) fn get_apparent_properties_of_type(
-    host: &dyn CheckerHost,
-    p: &Params,
-) -> CheckerResult<Value> {
+pub fn get_apparent_properties_of_type(host: &dyn CheckerHost, p: &Params) -> CheckerResult<Value> {
     let mut s = setup(host, p)?;
     let t = s.resolve_type(p.u32("objectId")?)?;
     let props = s.c().get_apparent_properties(t);
     s.symbols_response(&props)
 }
 
-pub(crate) fn get_property_of_type(host: &dyn CheckerHost, p: &Params) -> CheckerResult<Value> {
+pub fn get_property_of_type(host: &dyn CheckerHost, p: &Params) -> CheckerResult<Value> {
     let mut s = setup(host, p)?;
     let t = s.resolve_type(p.u32("type")?)?;
     let prop = s.c().get_property_of_type_exported(t, p.string("name")?);
     s.opt_symbol_response(prop)
 }
 
-pub(crate) fn get_type_of_property_of_type(
-    host: &dyn CheckerHost,
-    p: &Params,
-) -> CheckerResult<Value> {
+pub fn get_type_of_property_of_type(host: &dyn CheckerHost, p: &Params) -> CheckerResult<Value> {
     let mut s = setup(host, p)?;
     let t = s.resolve_type(p.u32("type")?)?;
     let prop_type = s.c().get_type_of_property_of_type_exported(t, p.string("name")?);
     s.opt_type_response(prop_type)
 }
 
-pub(crate) fn get_index_infos_of_type(host: &dyn CheckerHost, p: &Params) -> CheckerResult<Value> {
+pub fn get_index_infos_of_type(host: &dyn CheckerHost, p: &Params) -> CheckerResult<Value> {
     let mut s = setup(host, p)?;
     let t = s.resolve_type(p.u32("type")?)?;
     let infos = s.c().get_index_infos_of_type_exported(t);
@@ -408,15 +394,13 @@ pub(crate) fn get_index_infos_of_type(host: &dyn CheckerHost, p: &Params) -> Che
         return Ok(Value::Array(Vec::new())); // Go nil slice: json/v2 encodes []
     }
     let mut out = Vec::with_capacity(infos.len());
-    out = infos.iter().try_fold(out, |mut out, info| {
+    for info in infos {
         out.push(s.index_info_response(*info)?);
-
-        Ok::<_, CheckerError>(out)
-    })?;
+    }
     Ok(Value::Array(out))
 }
 
-pub(crate) fn get_index_info_of_type(host: &dyn CheckerHost, p: &Params) -> CheckerResult<Value> {
+pub fn get_index_info_of_type(host: &dyn CheckerHost, p: &Params) -> CheckerResult<Value> {
     let mut s = setup(host, p)?;
     let t = s.resolve_type(p.u32("type")?)?;
     let kind = p.i32("kind")?;
@@ -433,7 +417,7 @@ pub(crate) fn get_index_info_of_type(host: &dyn CheckerHost, p: &Params) -> Chec
     }
 }
 
-pub(crate) fn get_signatures_of_type(host: &dyn CheckerHost, p: &Params) -> CheckerResult<Value> {
+pub fn get_signatures_of_type(host: &dyn CheckerHost, p: &Params) -> CheckerResult<Value> {
     let mut s = setup(host, p)?;
     let t = s.resolve_type(p.u32("type")?)?;
     let kind = match p.i32("kind")? {
@@ -451,16 +435,12 @@ pub(crate) fn get_signatures_of_type(host: &dyn CheckerHost, p: &Params) -> Chec
 // --- Node-based checker queries ---
 
 #[derive(Clone, Copy)]
-pub(crate) enum NodeTypeOp {
+pub enum NodeTypeOp {
     Contextual,
     FromTypeNode,
 }
 
-pub(crate) fn node_type_op(
-    host: &dyn CheckerHost,
-    p: &Params,
-    op: NodeTypeOp,
-) -> CheckerResult<Value> {
+pub fn node_type_op(host: &dyn CheckerHost, p: &Params, op: NodeTypeOp) -> CheckerResult<Value> {
     let mut s = setup(host, p)?;
     let node = s.resolve_node(p.string("location")?)?;
     let t = match op {
@@ -470,7 +450,7 @@ pub(crate) fn node_type_op(
     s.opt_type_response(t)
 }
 
-pub(crate) fn get_contextual_type_for_argument(
+pub fn get_contextual_type_for_argument(
     host: &dyn CheckerHost,
     p: &Params,
 ) -> CheckerResult<Value> {
@@ -482,16 +462,13 @@ pub(crate) fn get_contextual_type_for_argument(
     s.opt_type_response(Some(t))
 }
 
-pub(crate) fn is_context_sensitive(host: &dyn CheckerHost, p: &Params) -> CheckerResult<Value> {
+pub fn is_context_sensitive(host: &dyn CheckerHost, p: &Params) -> CheckerResult<Value> {
     let mut s = setup(host, p)?;
     let node = s.resolve_node(p.string("location")?)?;
     Ok(Value::Bool(s.c().is_context_sensitive_exported(node)))
 }
 
-pub(crate) fn get_type_of_symbol_at_location(
-    host: &dyn CheckerHost,
-    p: &Params,
-) -> CheckerResult<Value> {
+pub fn get_type_of_symbol_at_location(host: &dyn CheckerHost, p: &Params) -> CheckerResult<Value> {
     let mut s = setup(host, p)?;
     let symbol = s.resolve_symbol(&p.symbol_ref("symbol")?)?;
     let node = s.resolve_node(p.string("location")?)?;
@@ -500,7 +477,7 @@ pub(crate) fn get_type_of_symbol_at_location(
 }
 
 /// Go `handleGetConstantValue` → `ConstantValueResponse { isNumber, value }`.
-pub(crate) fn get_constant_value(host: &dyn CheckerHost, p: &Params) -> CheckerResult<Value> {
+pub fn get_constant_value(host: &dyn CheckerHost, p: &Params) -> CheckerResult<Value> {
     let mut s = setup(host, p)?;
     let node = s.resolve_node(p.string("location")?)?;
     let value = s.c().get_constant_value(node);
@@ -510,17 +487,14 @@ pub(crate) fn get_constant_value(host: &dyn CheckerHost, p: &Params) -> CheckerR
     Ok(o.build())
 }
 
-pub(crate) fn get_resolved_signature(host: &dyn CheckerHost, p: &Params) -> CheckerResult<Value> {
+pub fn get_resolved_signature(host: &dyn CheckerHost, p: &Params) -> CheckerResult<Value> {
     let mut s = setup(host, p)?;
     let node = s.resolve_node(p.string("location")?)?;
     let sig = s.c().get_resolved_signature_exported(node);
     s.signature_response(sig)
 }
 
-pub(crate) fn get_signature_from_declaration(
-    host: &dyn CheckerHost,
-    p: &Params,
-) -> CheckerResult<Value> {
+pub fn get_signature_from_declaration(host: &dyn CheckerHost, p: &Params) -> CheckerResult<Value> {
     let mut s = setup(host, p)?;
     let node = s.resolve_node(p.string("location")?)?;
     let sig = s.c().get_signature_from_declaration_exported(node);
@@ -530,7 +504,7 @@ pub(crate) fn get_signature_from_declaration(
 // --- Signatures ---
 
 /// Go `resolveTypeArrayPropertyOfSignature` (typeParameters; nil/empty → `[]`).
-pub(crate) fn get_type_parameters_of_signature(
+pub fn get_type_parameters_of_signature(
     host: &dyn CheckerHost,
     p: &Params,
 ) -> CheckerResult<Value> {
@@ -546,13 +520,13 @@ pub(crate) fn get_type_parameters_of_signature(
 /// Go `resolveSymbolArrayPropertyOfSignature` / `resolveSymbolPropertyOfSignature` /
 /// `resolveSignaturePropertyOfSignature` (no checker).
 #[derive(Clone, Copy)]
-pub(crate) enum SignatureProperty {
+pub enum SignatureProperty {
     Parameters,
     ThisParameter,
     Target,
 }
 
-pub(crate) fn signature_property(
+pub fn signature_property(
     host: &dyn CheckerHost,
     p: &Params,
     property: SignatureProperty,
@@ -584,14 +558,14 @@ pub(crate) fn signature_property(
 }
 
 #[derive(Clone, Copy)]
-pub(crate) enum SignatureTypeOp {
+pub enum SignatureTypeOp {
     ReturnType,
     RestType,
 }
 
 /// `field`: "objectId" for getReturnTypeOfSignature (`GetSignaturePropertyParams`), "signature" for
 /// getRestTypeOfSignature (`CheckerSignatureParams`).
-pub(crate) fn signature_type_op(
+pub fn signature_type_op(
     host: &dyn CheckerHost,
     p: &Params,
     field: &str,
@@ -607,12 +581,12 @@ pub(crate) fn signature_type_op(
 }
 
 #[derive(Clone, Copy)]
-pub(crate) enum ParameterAt {
+pub enum ParameterAt {
     ParameterType,
     TypeParameter,
 }
 
-pub(crate) fn signature_parameter_at(
+pub fn signature_parameter_at(
     host: &dyn CheckerHost,
     p: &Params,
     op: ParameterAt,
@@ -628,10 +602,7 @@ pub(crate) fn signature_parameter_at(
     s.type_response(t)
 }
 
-pub(crate) fn get_type_predicate_of_signature(
-    host: &dyn CheckerHost,
-    p: &Params,
-) -> CheckerResult<Value> {
+pub fn get_type_predicate_of_signature(host: &dyn CheckerHost, p: &Params) -> CheckerResult<Value> {
     let mut s = setup(host, p)?;
     let sig = s.resolve_signature(p.u64("signature")?)?;
     let Some(pred) = s.c().get_type_predicate_of_signature_exported(sig) else {
@@ -650,7 +621,7 @@ pub(crate) fn get_type_predicate_of_signature(
 // --- Intrinsics and well-known singletons ---
 
 #[derive(Clone, Copy)]
-pub(crate) enum Intrinsic {
+pub enum Intrinsic {
     Any,
     String,
     Number,
@@ -665,7 +636,7 @@ pub(crate) enum Intrinsic {
     NonPrimitive,
 }
 
-pub(crate) fn get_intrinsic_type(
+pub fn get_intrinsic_type(
     host: &dyn CheckerHost,
     p: &Params,
     which: Intrinsic,
@@ -689,7 +660,7 @@ pub(crate) fn get_intrinsic_type(
     s.type_response(t)
 }
 
-pub(crate) fn get_well_known_symbols(host: &dyn CheckerHost, p: &Params) -> CheckerResult<Value> {
+pub fn get_well_known_symbols(host: &dyn CheckerHost, p: &Params) -> CheckerResult<Value> {
     let mut s = setup(host, p)?;
     let unknown = s.c().get_unknown_symbol();
     let undefined = s.c().get_undefined_symbol();
@@ -704,10 +675,7 @@ pub(crate) fn get_well_known_symbols(host: &dyn CheckerHost, p: &Params) -> Chec
     Ok(o.build())
 }
 
-pub(crate) fn get_well_known_signatures(
-    host: &dyn CheckerHost,
-    p: &Params,
-) -> CheckerResult<Value> {
+pub fn get_well_known_signatures(host: &dyn CheckerHost, p: &Params) -> CheckerResult<Value> {
     let mut s = setup(host, p)?;
     let unknown = s.c().get_unknown_signature();
     let id = s.sd.scope.registry.register_signature(&s.sd.project, s.checker_id, unknown)?;
@@ -726,7 +694,7 @@ fn enclosing(s: &Setup, p: &Params) -> CheckerResult<Option<P<tsrs_ast::Node>>> 
     s.resolve_node(location).map(Some)
 }
 
-pub(crate) fn type_to_string(host: &dyn CheckerHost, p: &Params) -> CheckerResult<Value> {
+pub fn type_to_string(host: &dyn CheckerHost, p: &Params) -> CheckerResult<Value> {
     let mut s = setup(host, p)?;
     let t = s.resolve_type(p.u32("type")?)?;
     let enclosing = enclosing(&s, p)?;
@@ -740,10 +708,7 @@ pub(crate) fn type_to_string(host: &dyn CheckerHost, p: &Params) -> CheckerResul
     Ok(Value::String(s.c().type_to_string_ex_exported(t, enclosing, flags, None)))
 }
 
-pub(crate) fn type_to_type_node(
-    host: &dyn CheckerHost,
-    p: &Params,
-) -> CheckerResult<CheckerResponse> {
+pub fn type_to_type_node(host: &dyn CheckerHost, p: &Params) -> CheckerResult<CheckerResponse> {
     let mut s = setup(host, p)?;
     let t = s.resolve_type(p.u32("type")?)?;
     let enclosing = enclosing(&s, p)?;
@@ -754,7 +719,7 @@ pub(crate) fn type_to_type_node(
     }
 }
 
-pub(crate) fn signature_to_signature_declaration(
+pub fn signature_to_signature_declaration(
     host: &dyn CheckerHost,
     p: &Params,
 ) -> CheckerResult<CheckerResponse> {

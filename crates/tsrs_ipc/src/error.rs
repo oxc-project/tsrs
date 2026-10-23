@@ -74,6 +74,6 @@ impl fmt::Display for Error {
 impl std::error::Error for Error {}
 
 // io.EOF.
-pub(crate) fn eof() -> Error {
+pub fn eof() -> Error {
     Error::tagged(ErrorTag::EOF, "EOF")
 }

@@ -64,7 +64,7 @@ impl FileSource for AutoImportBuilderFS {
     }
 }
 
-pub(crate) struct AutoImportRegistryCloneHost {
+pub struct AutoImportRegistryCloneHost {
     project_collection: Arc<ProjectCollection>,
     parse_cache: Arc<ParseCache>,
     fs: SourceFS,
@@ -75,7 +75,7 @@ pub(crate) struct AutoImportRegistryCloneHost {
 }
 
 // autoimport.go:73
-pub(crate) fn new_auto_import_registry_clone_host(
+pub fn new_auto_import_registry_clone_host(
     project_collection: Arc<ProjectCollection>,
     parse_cache: Arc<ParseCache>,
     snapshot_fs_builder: Arc<SnapshotFSBuilder>,

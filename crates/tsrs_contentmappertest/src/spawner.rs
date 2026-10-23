@@ -49,10 +49,10 @@ impl Spawner for SpawnerImpl {
         _stderr: Option<Box<dyn Write + Send>>,
     ) -> Result<ReadWriteCloser, String> {
         let handler = handler_for_mapper(command, self.lifecycle.clone())?;
-        let handler: Arc<dyn Handler> = if command[0] != DYNAMIC_VERBATIM_MAPPER {
-            Arc::new(StaticProjectHandler { handler })
-        } else {
+        let handler: Arc<dyn Handler> = if command[0] == DYNAMIC_VERBATIM_MAPPER {
             handler
+        } else {
+            Arc::new(StaticProjectHandler { handler })
         };
         let (client, server) = ipc::pipe().map_err(|err| err.to_string())?;
         thread::Builder::new()

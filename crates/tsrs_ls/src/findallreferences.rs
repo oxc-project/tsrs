@@ -51,7 +51,7 @@ use crate::utilities::{
 // === types for settings ===
 // findallreferences.go:29 (Go never uses referenceUseOther)
 #[derive(Clone, Copy, PartialEq, Eq, Debug, Default)]
-pub(crate) enum ReferenceUse {
+pub enum ReferenceUse {
     #[default]
     None = 0,
     References = 2,
@@ -60,7 +60,7 @@ pub(crate) enum ReferenceUse {
 
 // findallreferences.go:38 (Go's findInStrings and findInComments fields are never read)
 #[derive(Clone, Copy, Default)]
-pub(crate) struct RefOptions {
+pub struct RefOptions {
     pub(crate) use_: ReferenceUse, // other, references, rename
     pub(crate) implementations: bool,
     pub(crate) use_aliases_for_rename: bool, // renamed from providePrefixAndSuffixTextForRename. default: true
@@ -69,7 +69,7 @@ pub(crate) struct RefOptions {
 // === types for results ===
 
 // findallreferences.go:48 (Go's unverified field is never read)
-pub(crate) struct RefInfo {
+pub struct RefInfo {
     pub(crate) file: Option<P<SourceFile>>,
     pub(crate) file_name: String,
     pub(crate) reference: Option<P<FileReference>>,
@@ -83,7 +83,7 @@ pub struct SymbolAndEntries {
 }
 
 // findallreferences.go:60
-pub(crate) fn new_symbol_and_entries(
+pub fn new_symbol_and_entries(
     kind: DefinitionKind,
     node: Option<P<Node>>,
     symbol: Option<P<Symbol>>,
@@ -117,14 +117,14 @@ pub struct Definition {
 
 // findallreferences.go:88
 #[derive(Clone, Copy)]
-pub(crate) struct TripleSlashDefinition {
+pub struct TripleSlashDefinition {
     pub(crate) reference: Option<P<FileReference>>,
     pub(crate) file: Option<P<SourceFile>>,
 }
 
 // findallreferences.go:93
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
-pub(crate) enum EntryKind {
+pub enum EntryKind {
     None = 0,
     Range = 1,
     Node = 2,
@@ -194,10 +194,10 @@ impl SymbolAndEntries {
         if definition.node.is_some() {
             return definition.node;
         }
-        if let Some(symbol) = definition.symbol {
-            if let Some(&first) = symbol.declarations().first() {
-                return Some(first);
-            }
+        if let Some(symbol) = definition.symbol
+            && let Some(&first) = symbol.declarations().first()
+        {
+            return Some(first);
         }
         None
     }
@@ -291,13 +291,13 @@ impl LanguageService {
 }
 
 // findallreferences.go:208
-pub(crate) fn new_node_entry_with_kind(node: P<Node>, kind: EntryKind) -> Rc<ReferenceEntry> {
+pub fn new_node_entry_with_kind(node: P<Node>, kind: EntryKind) -> Rc<ReferenceEntry> {
     let e = new_node_entry_value(node);
     Rc::new(ReferenceEntry { kind, ..e })
 }
 
 // findallreferences.go:214
-pub(crate) fn new_node_entry(node: P<Node>) -> Rc<ReferenceEntry> {
+pub fn new_node_entry(node: P<Node>) -> Rc<ReferenceEntry> {
     Rc::new(new_node_entry_value(node))
 }
 
@@ -311,7 +311,7 @@ fn new_node_entry_value(node: P<Node>) -> ReferenceEntry {
 }
 
 // findallreferences.go:223
-pub(crate) fn get_context_node_for_node_entry(node: P<Node>) -> Option<P<Node>> {
+pub fn get_context_node_for_node_entry(node: P<Node>) -> Option<P<Node>> {
     if ast::is_declaration(node) {
         return get_context_node(Some(node));
     }
@@ -331,12 +331,11 @@ pub(crate) fn get_context_node_for_node_entry(node: P<Node>) -> Option<P<Node>> 
             {
                 binary_expression = parent.parent();
             }
-            if let Some(binary_expression) = binary_expression {
-                if ast::get_assignment_declaration_kind(binary_expression)
+            if let Some(binary_expression) = binary_expression
+                && ast::get_assignment_declaration_kind(binary_expression)
                     != ast::JSDeclarationKind::None
-                {
-                    return get_context_node(Some(binary_expression));
-                }
+            {
+                return get_context_node(Some(binary_expression));
             }
         }
 
@@ -387,7 +386,7 @@ pub(crate) fn get_context_node_for_node_entry(node: P<Node>) -> Option<P<Node>> 
 }
 
 // findallreferences.go:286
-pub(crate) fn get_context_node(node: Option<P<Node>>) -> Option<P<Node>> {
+pub fn get_context_node(node: Option<P<Node>>) -> Option<P<Node>> {
     let node = node?;
     match node.kind() {
         Kind::VariableDeclaration => {
@@ -439,7 +438,7 @@ pub(crate) fn get_context_node(node: Option<P<Node>>) -> Option<P<Node>> {
 }
 
 // findallreferences.go:335
-pub(crate) fn get_range_of_node(
+pub fn get_range_of_node(
     node: P<Node>,
     source_file: Option<P<SourceFile>>,
     end_node: Option<P<Node>>,
@@ -456,16 +455,16 @@ pub(crate) fn get_range_of_node(
         start += 1;
         end -= 1;
     }
-    if let Some(end_node) = end_node {
-        if end_node.kind() == Kind::CaseBlock {
-            end = end_node.pos().expect_source("reference nodes have source positions");
-        }
+    if let Some(end_node) = end_node
+        && end_node.kind() == Kind::CaseBlock
+    {
+        end = end_node.pos().expect_source("reference nodes have source positions");
     }
     TextRange::new(start, end)
 }
 
 // findallreferences.go:354
-pub(crate) fn is_valid_reference_position(node: P<Node>, search_symbol_name: &str) -> bool {
+pub fn is_valid_reference_position(node: P<Node>, search_symbol_name: &str) -> bool {
     match node.kind() {
         Kind::PrivateIdentifier => {
             // !!!
@@ -496,12 +495,12 @@ pub(crate) fn is_valid_reference_position(node: P<Node>, search_symbol_name: &st
 }
 
 // findallreferences.go:378
-pub(crate) fn is_for_rename_with_prefix_and_suffix_text(options: RefOptions) -> bool {
+pub fn is_for_rename_with_prefix_and_suffix_text(options: RefOptions) -> bool {
     options.use_ == ReferenceUse::Rename && options.use_aliases_for_rename
 }
 
 // findallreferences.go:382
-pub(crate) fn skip_past_export_or_import_specifier_or_union(
+pub fn skip_past_export_or_import_specifier_or_union(
     symbol: P<Symbol>,
     node: Option<P<Node>>,
     checker: &mut Checker,
@@ -533,16 +532,15 @@ pub(crate) fn skip_past_export_or_import_specifier_or_union(
 }
 
 // findallreferences.go:407
-pub(crate) fn get_symbol_scope(symbol: P<Symbol>) -> Option<P<Node>> {
+pub fn get_symbol_scope(symbol: P<Symbol>) -> Option<P<Node>> {
     // If this is the symbol of a named function expression or named class expression,
     // then named references are limited to its own scope.
     let value_declaration = symbol.value_declaration();
-    if let Some(value_declaration) = value_declaration {
-        if value_declaration.kind() == Kind::FunctionExpression
-            || value_declaration.kind() == Kind::ClassExpression
-        {
-            return Some(value_declaration);
-        }
+    if let Some(value_declaration) = value_declaration
+        && (value_declaration.kind() == Kind::FunctionExpression
+            || value_declaration.kind() == Kind::ClassExpression)
+    {
+        return Some(value_declaration);
     }
 
     if symbol.declarations().is_empty() {
@@ -627,8 +625,8 @@ pub(crate) fn get_symbol_scope(symbol: P<Symbol>) -> Option<P<Node>> {
 // === functions on (*ls) ===
 
 // findallreferences.go:480
-#[derive(Clone, Debug, PartialEq)]
-pub(crate) struct Position {
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct Position {
     pub(crate) uri: lsproto::DocumentUri,
     pub(crate) pos: lsproto::Position,
 }
@@ -650,7 +648,7 @@ impl lsproto::HasTextDocumentPosition for Position {
 // Go's GetSourcePosition / GetGeneratedPosition are `sync.OnceValue` closures over the language service that
 // created the definition; the port keeps their inputs and cached results and takes that service as an argument.
 // findallreferences.go:490
-pub(crate) struct NonLocalDefinition {
+pub struct NonLocalDefinition {
     pub(crate) position: Position,
     file_name: String,
     start_pos: TextPos,
@@ -705,9 +703,7 @@ impl NonLocalDefinition {
 }
 
 // findallreferences.go:496
-pub(crate) fn get_file_and_start_pos_from_declaration(
-    declaration: P<Node>,
-) -> (P<SourceFile>, TextPos) {
+pub fn get_file_and_start_pos_from_declaration(declaration: P<Node>) -> (P<SourceFile>, TextPos) {
     let file = ast::get_source_file_of_node(declaration).unwrap();
     // A name without a position (the `this` parameter of a JSDoc `@this` tag) starts at -1 in Go; use the
     // declaration's position instead (definition.rs create_definition_locations).
@@ -771,7 +767,7 @@ impl LanguageService {
 // By default arrows (and such other ast kinds) are not visible as declaration emitter doesnt need them
 // But we want to handle them specially so that they are visible if their parent is visible
 // findallreferences.go:561
-pub(crate) fn is_definition_visible(
+pub fn is_definition_visible(
     emit_resolver: P<EmitResolver>,
     c: &mut Checker,
     declaration: P<Node>,
@@ -854,7 +850,7 @@ impl LanguageService {
 
 // findallreferences.go:631
 #[derive(Clone, Copy, Default)]
-pub(crate) struct SymbolEntryTransformOptions {
+pub struct SymbolEntryTransformOptions {
     // Force the result to be Location objects.
     pub(crate) require_locations_result: bool,
     // Omit node(s) containing the original position.
@@ -1016,15 +1012,15 @@ impl LanguageService {
         implementations: bool,
     ) -> Vec<SymbolAndEntries> {
         let mut options = RefOptions::default();
-        if !is_rename {
+        if is_rename {
+            options.use_ = ReferenceUse::Rename;
+            options.use_aliases_for_rename =
+                self.user_preferences().use_aliases_for_rename.is_true_or_unknown();
+        } else {
             options.use_ = ReferenceUse::References;
             if implementations {
                 options.implementations = true;
             }
-        } else {
-            options.use_ = ReferenceUse::Rename;
-            options.use_aliases_for_rename =
-                self.user_preferences().use_aliases_for_rename.is_true_or_unknown();
         }
         self.get_referenced_symbols_for_node(
             ctx,
@@ -1215,7 +1211,7 @@ impl LanguageService {
 
 // referencedSymbolDefinitionInfo holds the computed info for a definition
 // findallreferences.go:866 (Go's node field is never read)
-pub(crate) struct ReferencedSymbolDefinitionInfo {
+pub struct ReferencedSymbolDefinitionInfo {
     pub(crate) location: lsproto::Location,
     pub(crate) display_text: Option<lsproto::VSClassifiedTextElement>,
 }
@@ -1493,16 +1489,14 @@ impl LanguageService {
         let mut references: &[Rc<ReferenceEntry>] = &s.references;
 
         // !!! includeDeclarations
-        if !include_declarations {
-            if let Some(definition) = &s.definition {
-                filtered = s
-                    .references
-                    .iter()
-                    .filter(|entry| !is_declaration_of_symbol(entry.node, definition.symbol))
-                    .cloned()
-                    .collect();
-                references = &filtered;
-            }
+        if !include_declarations && let Some(definition) = &s.definition {
+            filtered = s
+                .references
+                .iter()
+                .filter(|entry| !is_declaration_of_symbol(entry.node, definition.symbol))
+                .cloned()
+                .collect();
+            references = &filtered;
         }
 
         self.convert_entries_to_locations(references, feature)
@@ -1510,7 +1504,7 @@ impl LanguageService {
 }
 
 // findallreferences.go:1081
-pub(crate) fn is_declaration_of_symbol(node: Option<P<Node>>, target: Option<P<Symbol>>) -> bool {
+pub fn is_declaration_of_symbol(node: Option<P<Node>>, target: Option<P<Symbol>>) -> bool {
     let (Some(node), Some(target)) = (node, target) else {
         return false;
     };
@@ -1736,12 +1730,11 @@ impl LanguageService {
                 let called = ast::climb_past_property_access(node);
 
                 let mut call_expr: Option<P<Node>> = None;
-                if let Some(called_parent) = called.parent() {
-                    if ast::is_call_expression(called_parent)
-                        && called_parent.expression() == Some(called)
-                    {
-                        call_expr = Some(called_parent);
-                    }
+                if let Some(called_parent) = called.parent()
+                    && ast::is_call_expression(called_parent)
+                    && called_parent.expression() == Some(called)
+                {
+                    call_expr = Some(called_parent);
                 }
 
                 Some(SignatureUsage { name: node, call: call_expr })
@@ -1883,10 +1876,10 @@ impl LanguageService {
             options,
             &source_files_set,
         );
-        if let Some(module_references) = &module_references {
-            if !symbol.flags().intersects(SymbolFlags::Transient) {
-                return module_references.clone();
-            }
+        if let Some(module_references) = &module_references
+            && !symbol.flags().intersects(SymbolFlags::Transient)
+        {
+            return module_references.clone();
         }
 
         let aliased_symbol =
@@ -1980,7 +1973,7 @@ impl LanguageService {
 }
 
 // findallreferences.go:1394
-pub(crate) fn is_string_literal_property_reference(
+pub fn is_string_literal_property_reference(
     node: P<Node>, /*StringLiteralLike*/
     checker: &mut Checker,
 ) -> bool {
@@ -2057,7 +2050,7 @@ impl LanguageService {
 
 // Go returns nil for "not special"; `None` is Go's nil.
 // findallreferences.go:1421
-pub(crate) fn get_referenced_symbols_special(
+pub fn get_referenced_symbols_special(
     node: P<Node>,
     source_files: &[P<SourceFile>],
 ) -> Option<Vec<SymbolAndEntries>> {
@@ -2130,7 +2123,7 @@ pub(crate) fn get_referenced_symbols_special(
 }
 
 // findallreferences.go:1477
-pub(crate) fn get_label_references_in_node(
+pub fn get_label_references_in_node(
     container: P<Node>,
     target_label: P<Node>,
 ) -> Vec<SymbolAndEntries> {
@@ -2154,7 +2147,7 @@ pub(crate) fn get_label_references_in_node(
 }
 
 // findallreferences.go:1490
-pub(crate) fn get_references_for_this_keyword(
+pub fn get_references_for_this_keyword(
     this_or_super_keyword: P<Node>,
     source_files: &[P<SourceFile>],
 ) -> Option<Vec<SymbolAndEntries>> {
@@ -2205,10 +2198,10 @@ pub(crate) fn get_references_for_this_keyword(
         _ => return None,
     }
 
-    let files_to_search: Vec<P<SourceFile>> = if search_space_node.kind() != Kind::SourceFile {
-        vec![ast::get_source_file_of_node(search_space_node).unwrap()]
-    } else {
+    let files_to_search: Vec<P<SourceFile>> = if search_space_node.kind() == Kind::SourceFile {
         source_files.to_vec()
+    } else {
+        vec![ast::get_source_file_of_node(search_space_node).unwrap()]
     };
     let mut references: Vec<Rc<ReferenceEntry>> = Vec::new();
     for source_file in files_to_search {
@@ -2284,9 +2277,7 @@ pub(crate) fn get_references_for_this_keyword(
 }
 
 // findallreferences.go:1568
-pub(crate) fn get_references_for_super_keyword(
-    super_keyword: P<Node>,
-) -> Option<Vec<SymbolAndEntries>> {
+pub fn get_references_for_super_keyword(super_keyword: P<Node>) -> Option<Vec<SymbolAndEntries>> {
     let mut search_space_node =
         ast::get_super_container(super_keyword, false /*stopOnFunctions*/)?;
     // Whether 'super' occurs in a static context within a class.
@@ -2320,12 +2311,11 @@ pub(crate) fn get_references_for_super_keyword(
                 // If we have a 'super' container, we must have an enclosing class.
                 // Now make sure the owning class is the same as the search-space
                 // and has the same static qualifier as the original 'super's owner.
-                if let Some(container) = container {
-                    if ast::is_static(container) == (static_flag != ModifierFlags::None)
-                        && container.parent().unwrap().symbol() == search_space_node.symbol()
-                    {
-                        return Some(new_node_entry(node));
-                    }
+                if let Some(container) = container
+                    && ast::is_static(container) == (static_flag != ModifierFlags::None)
+                    && container.parent().unwrap().symbol() == search_space_node.symbol()
+                {
+                    return Some(new_node_entry(node));
                 }
                 None
             })
@@ -2340,7 +2330,7 @@ pub(crate) fn get_references_for_super_keyword(
 }
 
 // findallreferences.go:1604
-pub(crate) fn get_all_references_for_import_meta(
+pub fn get_all_references_for_import_meta(
     source_files: &[P<SourceFile>],
 ) -> Option<Vec<SymbolAndEntries>> {
     let mut references: Vec<Rc<ReferenceEntry>> = Vec::new();
@@ -2375,7 +2365,7 @@ pub(crate) fn get_all_references_for_import_meta(
 }
 
 // findallreferences.go:1620
-pub(crate) fn get_all_references_for_keyword(
+pub fn get_all_references_for_keyword(
     source_files: &[P<SourceFile>],
     keyword_kind: Kind,
     filter_read_only_type_operator: bool,
@@ -2408,7 +2398,7 @@ pub(crate) fn get_all_references_for_keyword(
 }
 
 // findallreferences.go:1637
-pub(crate) fn get_possible_symbol_reference_nodes(
+pub fn get_possible_symbol_reference_nodes(
     source_file: P<SourceFile>,
     symbol_name: &str,
     container: Option<P<Node>>,
@@ -2431,7 +2421,7 @@ fn index_from(text: &str, start: usize, needle: &str) -> Option<usize> {
 }
 
 // findallreferences.go:1646
-pub(crate) fn get_possible_symbol_reference_positions(
+pub fn get_possible_symbol_reference_positions(
     source_file: P<SourceFile>,
     symbol_name: &str,
     container: Option<P<Node>>,
@@ -2494,7 +2484,7 @@ pub(crate) fn get_possible_symbol_reference_positions(
 
 // findFirstJsxNode recursively searches for the first JSX element, self-closing element, or fragment
 // findallreferences.go:1692
-pub(crate) fn find_first_jsx_node(root: P<Node>) -> Option<P<Node>> {
+pub fn find_first_jsx_node(root: P<Node>) -> Option<P<Node>> {
     fn visit(node: P<Node>) -> Option<P<Node>> {
         // Check if this is a JSX node we're looking for
         match node.kind() {
@@ -2522,7 +2512,7 @@ pub(crate) fn find_first_jsx_node(root: P<Node>) -> Option<P<Node>> {
 }
 
 // findallreferences.go:1718
-pub(crate) fn get_references_for_non_module(
+pub fn get_references_for_non_module(
     _referenced_file: P<SourceFile>,
     _program: &'static Program,
 ) -> Vec<Rc<ReferenceEntry>> {
@@ -2531,17 +2521,17 @@ pub(crate) fn get_references_for_non_module(
 }
 
 // findallreferences.go:1723
-pub(crate) fn get_merged_aliased_symbol_of_namespace_export_declaration(
+pub fn get_merged_aliased_symbol_of_namespace_export_declaration(
     node: P<Node>,
     symbol: P<Symbol>,
     checker: &mut Checker,
 ) -> Option<P<Symbol>> {
-    if node.parent().is_some_and(|parent| parent.kind() == Kind::NamespaceExportDeclaration) {
-        if let (Some(aliased_symbol), true) = checker.resolve_alias_exported(Some(symbol)) {
-            let target_symbol = checker.get_merged_symbol_exported(aliased_symbol);
-            if aliased_symbol != target_symbol {
-                return Some(target_symbol);
-            }
+    if node.parent().is_some_and(|parent| parent.kind() == Kind::NamespaceExportDeclaration)
+        && let (Some(aliased_symbol), true) = checker.resolve_alias_exported(Some(symbol))
+    {
+        let target_symbol = checker.get_merged_symbol_exported(aliased_symbol);
+        if aliased_symbol != target_symbol {
+            return Some(target_symbol);
         }
     }
     None
@@ -2684,7 +2674,7 @@ impl LanguageService {
 
 // -- Core algorithm for find all references --
 // findallreferences.go:1835
-pub(crate) fn get_special_search_kind(node: Option<P<Node>>) -> &'static str {
+pub fn get_special_search_kind(node: Option<P<Node>>) -> &'static str {
     let Some(node) = node else {
         return "none";
     };
@@ -2702,7 +2692,7 @@ pub(crate) fn get_special_search_kind(node: Option<P<Node>>) -> &'static str {
 }
 
 // findallreferences.go:1853
-pub(crate) fn get_referenced_symbols_for_symbol(
+pub fn get_referenced_symbols_for_symbol(
     ctx: &Context,
     program: &'static Program,
     original_symbol: P<Symbol>,
@@ -2798,7 +2788,7 @@ pub(crate) fn get_referenced_symbols_for_symbol(
 // Symbol that is currently being searched for.
 // This will be replaced if we find an alias for the symbol.
 // findallreferences.go:1885
-pub(crate) struct RefSearch {
+pub struct RefSearch {
     // If coming from an export, we will not recursively search for the imported symbol (since that's where we came from).
     pub(crate) coming_from: ImpExpKind, // import, export
 
@@ -2823,13 +2813,13 @@ impl RefSearch {
 
 // findallreferences.go:1903
 #[derive(Clone, Copy, PartialEq, Eq, Hash)]
-pub(crate) struct InheritKey {
+pub struct InheritKey {
     symbol: P<Symbol>,
     parent: P<Symbol>,
 }
 
 // findallreferences.go:1908
-pub(crate) struct RefState<'a> {
+pub struct RefState<'a> {
     pub(crate) source_files: &'a [P<SourceFile>],
     pub(crate) source_files_set: &'a Set<String>,
     pub(crate) special_search_kind: &'static str, // "none", "constructor", or "class"
@@ -2849,7 +2839,7 @@ pub(crate) struct RefState<'a> {
 }
 
 // findallreferences.go:1926
-pub(crate) fn new_state<'a>(
+pub fn new_state<'a>(
     ctx: &'a Context,
     program: &'static Program,
     source_files: &'a [P<SourceFile>],
@@ -2948,11 +2938,10 @@ impl RefState<'_> {
             all_search_symbols,
             parents: Vec::new(),
         };
-        if self.options.implementations {
-            if let Some(location) = location {
-                search.parents =
-                    get_parent_symbols_of_property_access(location, symbol, self.checker);
-            }
+        if self.options.implementations
+            && let Some(location) = location
+        {
+            search.parents = get_parent_symbols_of_property_access(location, symbol, self.checker);
         }
         search
     }
@@ -3005,7 +2994,7 @@ impl RefState<'_> {
 }
 
 // findallreferences.go:2017
-pub(crate) fn get_reference_entries_for_shorthand_property_assignment(
+pub fn get_reference_entries_for_shorthand_property_assignment(
     node: P<Node>,
     checker: &mut Checker,
     add_reference: &mut dyn FnMut(P<Node>),
@@ -3027,14 +3016,14 @@ pub(crate) fn get_reference_entries_for_shorthand_property_assignment(
 }
 
 // findallreferences.go:2032
-pub(crate) fn is_method_or_accessor(node: P<Node>) -> bool {
+pub fn is_method_or_accessor(node: P<Node>) -> bool {
     node.kind() == Kind::MethodDeclaration
         || node.kind() == Kind::GetAccessor
         || node.kind() == Kind::SetAccessor
 }
 
 // findallreferences.go:2036
-pub(crate) fn try_get_class_by_extending_identifier(
+pub fn try_get_class_by_extending_identifier(
     node: P<Node>,
 ) -> Option<P<Node> /*ClassLikeDeclaration*/> {
     ast::try_get_class_extending_expression_with_type_arguments(
@@ -3043,18 +3032,18 @@ pub(crate) fn try_get_class_by_extending_identifier(
 }
 
 // findallreferences.go:2040
-pub(crate) fn get_class_constructor_symbol(class_symbol: P<Symbol>) -> Option<P<Symbol>> {
+pub fn get_class_constructor_symbol(class_symbol: P<Symbol>) -> Option<P<Symbol>> {
     let members = class_symbol.members()?;
     members.lookup(ast::INTERNAL_SYMBOL_NAME_CONSTRUCTOR)
 }
 
 // findallreferences.go:2047
-pub(crate) fn has_own_constructor(class_declaration: P<Node>, /*ClassLikeDeclaration*/) -> bool {
+pub fn has_own_constructor(class_declaration: P<Node> /*ClassLikeDeclaration*/) -> bool {
     get_class_constructor_symbol(class_declaration.symbol().unwrap()).is_some()
 }
 
 // findallreferences.go:2051
-pub(crate) fn find_own_constructor_references(
+pub fn find_own_constructor_references(
     class_symbol: P<Symbol>,
     source_file: P<SourceFile>,
     add_node: &mut dyn FnMut(P<Node>),
@@ -3062,12 +3051,11 @@ pub(crate) fn find_own_constructor_references(
     let constructor_symbol = get_class_constructor_symbol(class_symbol);
     if let Some(constructor_symbol) = constructor_symbol {
         for &decl in constructor_symbol.declarations() {
-            if decl.kind() == Kind::Constructor {
-                if let Some(ctr_keyword) =
+            if decl.kind() == Kind::Constructor
+                && let Some(ctr_keyword) =
                     astnav::find_child_of_kind(decl, Kind::ConstructorKeyword, source_file)
-                {
-                    add_node(ctr_keyword);
-                }
+            {
+                add_node(ctr_keyword);
             }
         }
     }
@@ -3075,16 +3063,16 @@ pub(crate) fn find_own_constructor_references(
     if let Some(exports) = class_symbol.exports() {
         for member in exports.values() {
             let decl = member.value_declaration();
-            if let Some(decl) = decl {
-                if decl.kind() == Kind::MethodDeclaration {
-                    let body = decl.body();
-                    if let Some(body) = body {
-                        for_each_descendant_of_kind(body, Kind::ThisKeyword, &mut |this_keyword| {
-                            if ast::is_new_expression_target(this_keyword, false, false) {
-                                add_node(this_keyword);
-                            }
-                        });
-                    }
+            if let Some(decl) = decl
+                && decl.kind() == Kind::MethodDeclaration
+            {
+                let body = decl.body();
+                if let Some(body) = body {
+                    for_each_descendant_of_kind(body, Kind::ThisKeyword, &mut |this_keyword| {
+                        if ast::is_new_expression_target(this_keyword, false, false) {
+                            add_node(this_keyword);
+                        }
+                    });
                 }
             }
         }
@@ -3092,7 +3080,7 @@ pub(crate) fn find_own_constructor_references(
 }
 
 // findallreferences.go:2080
-pub(crate) fn find_super_constructor_accesses(
+pub fn find_super_constructor_accesses(
     class_declaration: P<Node>, /*ClassLikeDeclaration*/
     add_node: &mut dyn FnMut(P<Node>),
 ) {
@@ -3120,11 +3108,7 @@ pub(crate) fn find_super_constructor_accesses(
 }
 
 // findallreferences.go:2100
-pub(crate) fn for_each_descendant_of_kind(
-    node: P<Node>,
-    kind: Kind,
-    action: &mut dyn FnMut(P<Node>),
-) {
+pub fn for_each_descendant_of_kind(node: P<Node>, kind: Kind, action: &mut dyn FnMut(P<Node>)) {
     node.for_each_child(&mut |child| {
         if child.kind() == kind {
             action(child);
@@ -3755,10 +3739,10 @@ impl RefState<'_> {
         // an identifier is declared, the language service should return the position of the variable declaration as well as
         // the position in short-hand property assignment excluding property accessing. However, if we do findAllReference at the
         // position of property accessing, the referenceEntry of such position will be handled in the first case.
-        if let Some(name) = name {
-            if search.includes(shorthand_value_symbol) {
-                self.add_reference(name, shorthand_value_symbol.unwrap(), EntryKind::Node);
-            }
+        if let Some(name) = name
+            && search.includes(shorthand_value_symbol)
+        {
+            self.add_reference(name, shorthand_value_symbol.unwrap(), EntryKind::Node);
         }
     }
 
@@ -3784,10 +3768,10 @@ impl RefState<'_> {
             &mut |sym, root, base| {
                 let mut base = base;
                 // static method/property and instance method/property might have the same name. Only include static or only include instance.
-                if let Some(b) = base {
-                    if is_static_symbol(symbol) != is_static_symbol(b) {
-                        base = None;
-                    }
+                if let Some(b) = base
+                    && is_static_symbol(symbol) != is_static_symbol(b)
+                {
+                    base = None;
                 }
                 result.push(base.or(root).unwrap_or(sym));
                 None
@@ -3868,19 +3852,18 @@ impl RefState<'_> {
                     return Some(Some(result));
                 }
                 // Add symbol of properties/methods of the same name in base classes and implemented interfaces definitions
-                if let Some(root_parent) = root_symbol.parent() {
-                    if root_parent.flags().intersects(SymbolFlags::Class | SymbolFlags::Interface)
-                        && allow_base_types(self, root_symbol)
-                    {
-                        let result = get_property_symbols_from_base_types(
-                            root_parent,
-                            root_symbol.name(),
-                            self.checker,
-                            &mut |_c, base| cb_symbol(sym, Some(root_symbol), Some(base)),
-                        );
-                        if result.is_some() {
-                            return Some(result);
-                        }
+                if let Some(root_parent) = root_symbol.parent()
+                    && root_parent.flags().intersects(SymbolFlags::Class | SymbolFlags::Interface)
+                    && allow_base_types(self, root_symbol)
+                {
+                    let result = get_property_symbols_from_base_types(
+                        root_parent,
+                        root_symbol.name(),
+                        self.checker,
+                        &mut |_c, base| cb_symbol(sym, Some(root_symbol), Some(base)),
+                    );
+                    if result.is_some() {
+                        return Some(result);
                     }
                 }
 
@@ -3923,18 +3906,18 @@ impl RefState<'_> {
             let shorthand_value_symbol =
                 self.checker.get_shorthand_assignment_value_symbol(location.parent());
             // gets the local symbol
-            if let Some(shorthand_value_symbol) = shorthand_value_symbol {
-                if is_for_rename_populate_search_symbol_set {
-                    // When renaming 'x' in `const o = { x }`, just rename the local variable, not the property.
-                    return (
-                        cb_symbol(
-                            shorthand_value_symbol,
-                            None, /*rootSymbol*/
-                            None, /*baseSymbol*/
-                        ),
-                        EntryKind::SearchedLocalFoundProperty,
-                    );
-                }
+            if let Some(shorthand_value_symbol) = shorthand_value_symbol
+                && is_for_rename_populate_search_symbol_set
+            {
+                // When renaming 'x' in `const o = { x }`, just rename the local variable, not the property.
+                return (
+                    cb_symbol(
+                        shorthand_value_symbol,
+                        None, /*rootSymbol*/
+                        None, /*baseSymbol*/
+                    ),
+                    EntryKind::SearchedLocalFoundProperty,
+                );
             }
             // If the location is in a context sensitive location (i.e. in an object literal) try
             // to get a contextual type for it, and add the property symbol from the contextual
@@ -3963,21 +3946,19 @@ impl RefState<'_> {
             //      for ( { property: p2 } of elems) { }
             if let Some(property_symbol) =
                 self.checker.get_property_symbol_of_destructuring_assignment(location)
-            {
-                if let Some(res) =
+                && let Some(res) =
                     cb_symbol(property_symbol, None /*rootSymbol*/, None /*baseSymbol*/)
-                {
-                    return (Some(res), EntryKind::SearchedPropertyFoundLocal);
-                }
+            {
+                return (Some(res), EntryKind::SearchedPropertyFoundLocal);
             }
-            if let Some(shorthand_value_symbol) = shorthand_value_symbol {
-                if let Some(res) = cb_symbol(
+            if let Some(shorthand_value_symbol) = shorthand_value_symbol
+                && let Some(res) = cb_symbol(
                     shorthand_value_symbol,
                     None, /*rootSymbol*/
                     None, /*baseSymbol*/
-                ) {
-                    return (Some(res), EntryKind::SearchedLocalFoundProperty);
-                }
+                )
+            {
+                return (Some(res), EntryKind::SearchedLocalFoundProperty);
             }
         }
 
@@ -4023,20 +4004,14 @@ impl RefState<'_> {
         }
 
         if let Some(export_specifier) = ast::get_declaration_of_kind(symbol, Kind::ExportSpecifier)
+            && (!is_for_rename_populate_search_symbol_set
+                || export_specifier.property_name().is_none())
+            && let Some(local_symbol) =
+                self.checker.get_export_specifier_local_target_symbol(export_specifier)
+            && let Some(res) =
+                cb_symbol(local_symbol, None /*rootSymbol*/, None /*baseSymbol*/)
         {
-            if !is_for_rename_populate_search_symbol_set
-                || export_specifier.property_name().is_none()
-            {
-                if let Some(local_symbol) =
-                    self.checker.get_export_specifier_local_target_symbol(export_specifier)
-                {
-                    if let Some(res) =
-                        cb_symbol(local_symbol, None /*rootSymbol*/, None /*baseSymbol*/)
-                    {
-                        return (Some(res), EntryKind::Node);
-                    }
-                }
-            }
+            return (Some(res), EntryKind::Node);
         }
 
         // symbolAtLocation for a binding element is the local symbol. See if the search symbol is the property.
@@ -4074,18 +4049,17 @@ impl RefState<'_> {
         let include_original_symbol_of_binding_element =
             only_include_binding_element_at_reference_location;
 
-        if include_original_symbol_of_binding_element {
-            if let Some(binding_element_property_symbol) =
+        if include_original_symbol_of_binding_element
+            && let Some(binding_element_property_symbol) =
                 get_property_symbol_of_object_binding_pattern_without_property_name(
                     symbol,
                     self.checker,
                 )
-            {
-                return (
-                    self.from_root(cb_symbol, allow_base_types, binding_element_property_symbol),
-                    EntryKind::SearchedPropertyFoundLocal,
-                );
-            }
+        {
+            return (
+                self.from_root(cb_symbol, allow_base_types, binding_element_property_symbol),
+                EntryKind::SearchedPropertyFoundLocal,
+            );
         }
         (None, EntryKind::None)
     }

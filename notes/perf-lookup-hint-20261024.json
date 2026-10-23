@@ -255,6 +255,12 @@
     "baselineBytes": 21353872,
     "candidateBytes": 21353872
   },
+  "integration": {
+    "base": "204777b3839ec38f55ee1f6491a505cf63d317a4",
+    "sourceSha256": "3d29701b881209a1bd554857bed0bd81569eb935e64bb44b0dfaf28fb45130e7",
+    "description": "Keep main's equivalent let-chain syntax when applying the measured lookup-reuse change.",
+    "validation": "Post-integration CI pending; the validation below belongs to the measured source commit."
+  },
   "results": [
     {"project":"vscode","instructions":[80769703640,80758891275,-0.002748,3,4,-0.0266,0.004181],"rss":[2167169024,2161844224,-0.364359,2,4,-1.698872,0.496831],"wall":[0.955975,0.955151,-0.215641,3,4,-1.479168,7.774323],"configurationNote":null},
     {"project":"xstate-main","instructions":[5907122608,5907380128,0.005184,1,4,-0.008895,0.006489],"rss":[263192576,263741440,0.130578,2,4,-0.536093,0.630974],"wall":[0.12275,0.123272,0.644735,1,4,-1.180253,2.588536],"configurationNote":null},

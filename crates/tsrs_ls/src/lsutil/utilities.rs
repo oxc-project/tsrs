@@ -9,10 +9,6 @@ use crate::astnav;
 
 // utilities.go:15
 pub fn probably_uses_semicolons(file: P<SourceFile>) -> bool {
-    let mut with_semicolon = 0;
-    let mut without_semicolon = 0;
-    let n_statements_to_observe = 5;
-
     fn visit(
         node: P<Node>,
         file: P<SourceFile>,
@@ -62,6 +58,10 @@ pub fn probably_uses_semicolons(file: P<SourceFile>) -> bool {
             visit(n, file, with_semicolon, without_semicolon, n_statements_to_observe)
         })
     }
+
+    let mut with_semicolon = 0;
+    let mut without_semicolon = 0;
+    let n_statements_to_observe = 5;
 
     file.as_node().for_each_child(&mut |n| {
         visit(n, file, &mut with_semicolon, &mut without_semicolon, n_statements_to_observe)
@@ -173,10 +173,10 @@ pub fn module_specifier_to_valid_identifier(
     for &r in base_name_runes.iter().skip(1) {
         let is_valid = scanner::is_identifier_part(r);
         if is_valid {
-            if !last_char_was_valid {
-                push_rune(&mut res, unicode_to_upper(r));
-            } else {
+            if last_char_was_valid {
                 push_rune(&mut res, r);
+            } else {
+                push_rune(&mut res, unicode_to_upper(r));
             }
         }
         last_char_was_valid = is_valid;

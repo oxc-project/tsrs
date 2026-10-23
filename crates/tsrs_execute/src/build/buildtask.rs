@@ -30,19 +30,19 @@ use crate::tsc::{
 const MAX_ONE_FILE_CHANGES: usize = 256;
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug, Default)]
-pub(crate) enum BuildKind {
+pub enum BuildKind {
     #[default]
     None,
     Pseudo,
     Program,
 }
 
-pub(crate) struct UpstreamTask {
+pub struct UpstreamTask {
     pub(crate) task: P<BuildTask>,
     pub(crate) ref_index: usize,
 }
 
-pub(crate) struct BuildInfoEntry {
+pub struct BuildInfoEntry {
     build_info: Option<Arc<BuildInfo>>,
     path: Path,
     m_time: Option<SystemTime>,
@@ -53,7 +53,7 @@ pub(crate) struct BuildInfoEntry {
     dts_time: Option<Option<SystemTime>>,
 }
 
-pub(crate) struct TaskResult {
+pub struct TaskResult {
     pub(crate) builder: Arc<Mutex<String>>,
     pub(crate) report_status: Option<DiagnosticReporter<'static>>,
     pub(crate) diagnostic_reporter: Option<DiagnosticReporter<'static>>,
@@ -86,7 +86,7 @@ impl TaskResult {
 // A Go `chan struct{}` that is only ever closed (orchestrator.go `task.done`, `task.built`): `wait` blocks until
 // `close`. `abort` also releases waiters (a builder panicked; Go would take the process down instead of hanging).
 #[derive(Default)]
-pub(crate) struct CloseSignal {
+pub struct CloseSignal {
     closed: Mutex<bool>,
     cond: std::sync::Condvar,
 }
@@ -386,10 +386,7 @@ impl BuildTask {
         if self.pending.load(Ordering::SeqCst) {
             self.set_status(self.get_up_to_date_status(orchestrator, path));
             self.report_up_to_date_status(orchestrator);
-            if !self.handle_status_that_doesnt_require_build(orchestrator) {
-                self.compile_and_emit(orchestrator, path);
-                self.update_downstream(orchestrator, path);
-            } else {
+            if self.handle_status_that_doesnt_require_build(orchestrator) {
                 if let Some(resolved) = self.resolved_opt() {
                     for diagnostic in resolved.get_config_file_parsing_diagnostics() {
                         self.report_diagnostic(diagnostic);
@@ -398,6 +395,9 @@ impl BuildTask {
                 if !self.errors.lock().unwrap().is_empty() {
                     self.set_exit_status(ExitStatus::DiagnosticsPresentOutputsSkipped);
                 }
+            } else {
+                self.compile_and_emit(orchestrator, path);
+                self.update_downstream(orchestrator, path);
             }
         } else if !self.errors.lock().unwrap().is_empty() {
             self.report_up_to_date_status(orchestrator);
@@ -895,10 +895,10 @@ impl BuildTask {
         {
             self.set_status(UpToDateStatus::new(UpToDateStatusType::BuildErrors));
         } else {
-            let oldest_output_file_name = if !emitted_files.is_empty() {
-                emitted_files[0].clone()
-            } else {
+            let oldest_output_file_name = if emitted_files.is_empty() {
                 self.resolved().get_output_file_names().into_iter().next().unwrap_or_default()
+            } else {
+                emitted_files[0].clone()
             };
             self.set_status(UpToDateStatus::with(
                 UpToDateStatusType::UpToDate,
@@ -1155,16 +1155,15 @@ impl BuildTask {
                         get_build_info_root_info_reader().get_build_info_file_info(&input_path);
                     if let Some(file_info) =
                         build_info_file_info.map(tsrs_incremental::BuildInfoFileInfo::get_file_info)
+                        && !file_info.version().is_empty()
                     {
-                        if !file_info.version().is_empty() {
-                            version = file_info.version().to_string();
-                            if let Some(text) = tsrs_compiler::CompilerHost::fs(host)
-                                .read_file(&resolved_input_path)
-                            {
-                                current_version = tsrs_incremental::compute_hash(&text, testing);
-                                if version == current_version {
-                                    input_text_unchanged = true;
-                                }
+                        version = file_info.version().to_string();
+                        if let Some(text) =
+                            tsrs_compiler::CompilerHost::fs(host).read_file(&resolved_input_path)
+                        {
+                            current_version = tsrs_incremental::compute_hash(&text, testing);
+                            if version == current_version {
+                                input_text_unchanged = true;
                             }
                         }
                     }
@@ -1205,7 +1204,7 @@ impl BuildTask {
             resolved_roots.m.extend(get_build_info_root_info_reader().roots().filter_map(|root| {
                 let (_, resolved) =
                     get_build_info_root_info_reader().get_build_info_file_info(root);
-                if !resolved.is_empty() { Some(resolved) } else { None }
+                if resolved.is_empty() { None } else { Some(resolved) }
             }));
             for (index, build_info_file_info) in build_info.file_infos.iter().enumerate() {
                 let build_info_file_name = &build_info.file_names[index];
@@ -1242,12 +1241,11 @@ impl BuildTask {
                 if after(input_time, oldest_output_file_and_time.time) {
                     let mut current_version = String::new();
                     let version = build_info_file_info.get_file_info().version().to_string();
-                    if !version.is_empty() {
-                        if let Some(text) =
+                    if !version.is_empty()
+                        && let Some(text) =
                             tsrs_compiler::CompilerHost::fs(host).read_file(&input_file)
-                        {
-                            current_version = tsrs_incremental::compute_hash(&text, testing);
-                        }
+                    {
+                        current_version = tsrs_incremental::compute_hash(&text, testing);
                     }
                     if version.is_empty() || version != current_version {
                         return UpToDateStatus::with(
@@ -1308,15 +1306,13 @@ impl BuildTask {
             // - in that case we do want to either build or update timestamps
             if let Some(ref_input_output_file_and_time) =
                 upstream_status.input_output_file_and_time()
+                && ref_input_output_file_and_time.input.time.is_some()
+                && before(
+                    ref_input_output_file_and_time.input.time,
+                    oldest_output_file_and_time.time,
+                )
             {
-                if ref_input_output_file_and_time.input.time.is_some()
-                    && before(
-                        ref_input_output_file_and_time.input.time,
-                        oldest_output_file_and_time.time,
-                    )
-                {
-                    continue;
-                }
+                continue;
             }
 
             // Check if tsbuildinfo path is shared, then we need to rebuild
@@ -1609,14 +1605,7 @@ impl BuildTask {
         }
         let fs = tsrs_compiler::CompilerHost::fs(orchestrator.host());
         if fs.file_exists(output_file) {
-            if !orchestrator.opts.command.build_options.dry.is_true() {
-                if fs.remove(output_file).is_err() {
-                    self.report_diagnostic(diag(
-                        &diagnostics::FAILED_TO_DELETE_FILE_0,
-                        &[&output_file],
-                    ));
-                }
-            } else {
+            if orchestrator.opts.command.build_options.dry.is_true() {
                 self.result
                     .lock()
                     .unwrap()
@@ -1624,6 +1613,11 @@ impl BuildTask {
                     .unwrap()
                     .files_to_delete
                     .push(output_file.to_string());
+            } else if fs.remove(output_file).is_err() {
+                self.report_diagnostic(diag(
+                    &diagnostics::FAILED_TO_DELETE_FILE_0,
+                    &[&output_file],
+                ));
             }
         }
     }
@@ -1637,10 +1631,10 @@ impl BuildTask {
     ) -> (Option<Arc<BuildInfo>>, Option<SystemTime>) {
         let path = orchestrator.to_path(build_info_file_name);
         let mut entry = self.build_info_entry.lock().unwrap();
-        if let Some(entry) = entry.as_ref() {
-            if entry.path == path {
-                return (entry.build_info.clone(), entry.m_time);
-            }
+        if let Some(entry) = entry.as_ref()
+            && entry.path == path
+        {
+            return (entry.build_info.clone(), entry.m_time);
         }
         let build_info = tsrs_incremental::new_build_info_reader_with_canonical_diagnostics(
             Arc::clone(&orchestrator.host().host),
@@ -1755,7 +1749,7 @@ impl BuildTask {
 }
 
 // buildtask.go:621
-pub(crate) fn is_content_mapper_supplemental_build_info_path<'a>(
+pub fn is_content_mapper_supplemental_build_info_path<'a>(
     input_path: &Path,
     roots: impl IntoIterator<Item = &'a Path>,
 ) -> bool {

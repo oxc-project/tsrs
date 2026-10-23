@@ -1207,6 +1207,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "tsrs_determinism"
+version = "0.19.0"
+dependencies = [
+ "serde",
+ "serde_json",
+ "similar",
+]
+
+[[package]]
 name = "tsrs_diagnostics"
 version = "0.19.0"
 dependencies = [

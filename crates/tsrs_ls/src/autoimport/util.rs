@@ -17,7 +17,7 @@ use super::export::ModuleID;
 use super::registry::RegistryCloneHost;
 
 // util.go:23
-pub(crate) fn try_get_module_id_and_file_name_of_module_symbol(
+pub fn try_get_module_id_and_file_name_of_module_symbol(
     symbol: P<Symbol>,
 ) -> Option<(ModuleID, String)> {
     if !symbol.is_external_module() {
@@ -36,7 +36,7 @@ pub(crate) fn try_get_module_id_and_file_name_of_module_symbol(
 
 // Go `unicode.IsLower`. Go's table is the Ll category; Rust's `char::is_lowercase` is the Lowercase property
 // (Ll plus Other_Lowercase), which differs only for a few modifier letters and symbols.
-pub(crate) fn go_unicode_is_lower(r: Rune) -> bool {
+pub fn go_unicode_is_lower(r: Rune) -> bool {
     if (0..0x80).contains(&r) {
         return (b'a' as Rune..=b'z' as Rune).contains(&r);
     }
@@ -54,7 +54,7 @@ pub(crate) fn go_unicode_is_lower(r: Rune) -> bool {
 //     ^    ^
 //   - __proto__
 //     ^
-pub(crate) fn word_indices(s: &str) -> Vec<usize> {
+pub fn word_indices(s: &str) -> Vec<usize> {
     let mut indices = Vec::new();
     let bytes = s.as_bytes();
     indices.extend(s.char_indices().filter_map(|(byte_index, rune_value)| {
@@ -82,10 +82,7 @@ pub(crate) fn word_indices(s: &str) -> Vec<usize> {
 }
 
 // util.go:87
-pub(crate) fn get_package_names_in_node_modules(
-    node_modules_dir: &str,
-    fs: &dyn FS,
-) -> Set<String> {
+pub fn get_package_names_in_node_modules(node_modules_dir: &str, fs: &dyn FS) -> Set<String> {
     let mut package_names = Set::new();
     assert!(
         tspath::get_base_file_name(node_modules_dir) == "node_modules",
@@ -123,7 +120,7 @@ pub(crate) fn get_package_names_in_node_modules(
 }
 
 // util.go:118
-pub(crate) fn get_default_like_export_name_from_declaration(symbol: P<Symbol>) -> String {
+pub fn get_default_like_export_name_from_declaration(symbol: P<Symbol>) -> String {
     if let Some(result) = symbol.declarations().iter().find_map(|&d| {
         // "export default" in this case. See `ExportAssignment`for more details.
         if ast::is_export_assignment(d) {
@@ -145,15 +142,15 @@ pub(crate) fn get_default_like_export_name_from_declaration(symbol: P<Symbol>) -
             return None;
         }
         // GH#52694
-        if let Some(name) = ast::get_name_of_declaration(Some(d)) {
-            if name.kind() == Kind::Identifier {
-                return Some(name.text().to_string());
-            }
+        if let Some(name) = ast::get_name_of_declaration(Some(d))
+            && name.kind() == Kind::Identifier
+        {
+            return Some(name.text().to_string());
         }
-        if let Some(parent) = symbol.parent() {
-            if !checker::is_external_module_symbol(parent) {
-                return Some(parent.name().to_string());
-            }
+        if let Some(parent) = symbol.parent()
+            && !checker::is_external_module_symbol(parent)
+        {
+            return Some(parent.name().to_string());
         }
 
         None
@@ -164,7 +161,7 @@ pub(crate) fn get_default_like_export_name_from_declaration(symbol: P<Symbol>) -
 }
 
 // util.go:146
-pub(crate) fn get_resolved_package_names(ctx: &Context, program: &'static Program) -> Set<String> {
+pub fn get_resolved_package_names(ctx: &Context, program: &'static Program) -> Set<String> {
     let raw_names = program.resolved_package_names();
     let unresolved_package_names = program.unresolved_package_names();
 
@@ -180,10 +177,10 @@ pub(crate) fn get_resolved_package_names(ctx: &Context, program: &'static Progra
 
     if let Some(types) = &program.options().types {
         resolved_package_names.m.extend(types.iter().filter_map(|name| {
-            if name != "*" {
-                Some(module::get_package_name_from_types_package_name(name))
-            } else {
+            if name == "*" {
                 None
+            } else {
+                Some(module::get_package_name_from_types_package_name(name))
             }
         }));
     }
@@ -198,10 +195,10 @@ pub(crate) fn get_resolved_package_names(ctx: &Context, program: &'static Progra
                     let package_name = tsrs_modulespecifiers::get_package_name_from_directory(
                         declaring_file.file_name(),
                     );
-                    if !package_name.is_empty() {
-                        Some(module::get_package_name_from_types_package_name(&package_name))
-                    } else {
+                    if package_name.is_empty() {
                         None
+                    } else {
+                        Some(module::get_package_name_from_types_package_name(&package_name))
                     }
                 } else {
                     None
@@ -217,7 +214,7 @@ pub(crate) fn get_resolved_package_names(ctx: &Context, program: &'static Progra
 // from a program's project references to the provided map.
 // This is used during node_modules bucket building to redirect extraction
 // from output files to source files when the output is from a project reference.
-pub(crate) fn add_project_reference_output_mappings(
+pub fn add_project_reference_output_mappings(
     program: &'static Program,
     result: &mut FxHashMap<Path, String>,
 ) {
@@ -243,13 +240,13 @@ pub(crate) fn add_project_reference_output_mappings(
 // util.go:203
 // Go's pool hands out up to GOMAXPROCS checkers to the extraction goroutines; extraction runs sequentially here,
 // so the pool holds the one checker the first request creates.
-pub(crate) struct CheckerPoolImpl {
+pub struct CheckerPoolImpl {
     program: &'static dyn checker::Program,
     checker: Option<Box<Checker>>,
     created: usize,
 }
 
-pub(crate) fn create_checker_pool(program: &'static dyn checker::Program) -> CheckerPoolImpl {
+pub fn create_checker_pool(program: &'static dyn checker::Program) -> CheckerPoolImpl {
     CheckerPoolImpl { program, checker: None, created: 0 }
 }
 
@@ -270,7 +267,7 @@ impl CheckerPoolImpl {
 // util.go:240
 // addPackageJsonDependencies adds all dependencies and peerDependencies from a package.json
 // to the given set, canonicalizing @types package names to their base names.
-pub(crate) fn add_package_json_dependencies(contents: &PackageJson, deps: &mut Set<String>) {
+pub fn add_package_json_dependencies(contents: &PackageJson, deps: &mut Set<String>) {
     contents.range_dependencies(|name, _, field| {
         if name.is_empty() || name == "@types/" || name.as_bytes()[0] == b'.' {
             // Edge cases that could make us blow up probably
@@ -283,7 +280,7 @@ pub(crate) fn add_package_json_dependencies(contents: &PackageJson, deps: &mut S
     });
 }
 
-pub(crate) type PathFunc = Arc<dyn Fn(&str) -> String + Send + Sync>;
+pub type PathFunc = Arc<dyn Fn(&str) -> String + Send + Sync>;
 
 // util.go:261
 // getPackageRealpathFuncs returns functions to transform between symlink and realpath for files within a package.
@@ -292,16 +289,14 @@ pub(crate) type PathFunc = Arc<dyn Fn(&str) -> String + Send + Sync>;
 // dependencies reached through node_modules symlinks), it resolves the file's directory realpath once,
 // finds the symlink boundary (the package root where the symlink lives), and caches that prefix mapping.
 // All subsequent files under the same symlinked package directory use prefix substitution with no syscalls.
-pub(crate) fn get_package_realpath_funcs(
-    fs: &'static dyn FS,
-    package_dir: &str,
-) -> (PathFunc, PathFunc) {
-    let real_package_dir = fs.realpath(package_dir);
-    let is_symlinked = real_package_dir != package_dir;
+pub fn get_package_realpath_funcs(fs: &'static dyn FS, package_dir: &str) -> (PathFunc, PathFunc) {
     fn replace_prefix(file_name: &str, prefix: &str, replacement: &str) -> String {
         let relative = file_name.strip_prefix(prefix).unwrap_or(file_name);
         tspath::combine_paths(replacement, &[relative.trim_start_matches(['/', '\\'])])
     }
+
+    let real_package_dir = fs.realpath(package_dir);
+    let is_symlinked = real_package_dir != package_dir;
     // Cache of package-directory-level symlink→realpath prefix mappings for
     // external packages encountered via re-exports. Keyed by the node_modules
     // package directory (e.g. "/app/node_modules/dep"), so all files under
@@ -311,12 +306,11 @@ pub(crate) fn get_package_realpath_funcs(
     let real_package_dir_owned = real_package_dir.clone();
     let to_realpath: PathFunc = Arc::new(move |file_name: &str| -> String {
         // Fast path: files within the package use prefix substitution.
-        if is_symlinked {
-            if let Some(relative) = file_name.strip_prefix(package_dir_owned.as_str()) {
-                if relative.is_empty() || relative.starts_with(['/', '\\']) {
-                    return replace_prefix(file_name, &package_dir_owned, &real_package_dir_owned);
-                }
-            }
+        if is_symlinked
+            && let Some(relative) = file_name.strip_prefix(package_dir_owned.as_str())
+            && (relative.is_empty() || relative.starts_with(['/', '\\']))
+        {
+            return replace_prefix(file_name, &package_dir_owned, &real_package_dir_owned);
         }
         // Files outside the package (e.g. re-exports into symlinked deps):
         // find the node_modules package directory, resolve it once, and cache.
@@ -379,7 +373,7 @@ impl ResolutionHost for ResolutionHostImpl {
 // util.go:333
 // The resolver borrows its host for its whole life; the host lives in the
 // current arena, which is the registry update's scratch region (registry.go `Clone`), like the resolver.
-pub(crate) fn get_module_resolver(
+pub fn get_module_resolver(
     host: &'static dyn RegistryCloneHost,
     realpath: PathFunc,
 ) -> DefaultResolver<'static> {

@@ -2,13 +2,13 @@ use super::*;
 
 /// Go `constantExpression(value any, ...)`: `value` is a string or a `jsnum.Number`; anything else yields nil.
 #[derive(Clone, Copy)]
-pub(crate) enum ConstantValue<'a> {
+pub enum ConstantValue<'a> {
     String(&'a str),
     Number(Number),
 }
 
 // utilities.go:9
-pub(crate) fn constant_expression(value: ConstantValue, factory: &printer::NodeFactory) -> P<Node> {
+pub fn constant_expression(value: ConstantValue, factory: &printer::NodeFactory) -> P<Node> {
     match value {
         ConstantValue::String(value) => {
             factory.new_string_literal(alloc_str(value), TokenFlags::None)

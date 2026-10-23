@@ -248,10 +248,10 @@ fn walk_children<W: Walker + 'static>(
         visit_modifiers: Some({
             let visit_list = Rc::clone(&visit_list);
             Rc::new(move |mods: Option<P<ModifierList>>, v: &mut NodeVisitor| {
-                if let Some(m) = mods {
-                    if !m.list.nodes().is_empty() {
-                        visit_list(&m.list, v);
-                    }
+                if let Some(m) = mods
+                    && !m.list.nodes().is_empty()
+                {
+                    visit_list(&m.list, v);
                 }
                 mods
             })
@@ -341,10 +341,10 @@ impl Walker for EncodeState {
             node.flags().bits(),
         ];
         append_u32s(&mut self.nodes, &values);
-        if let Some(map) = &mut self.node_index_map {
-            if let Some(slot) = map.get_mut(&node) {
-                *slot = self.node_count;
-            }
+        if let Some(map) = &mut self.node_index_map
+            && let Some(slot) = map.get_mut(&node)
+        {
+            *slot = self.node_count;
         }
         self.descend()
     }

@@ -226,7 +226,7 @@ fn base_type(go_type: &str) -> &str {
 
 /// `name` as one of the field names of the params structs and the api-package structs nested in them, for
 /// the request decoder to borrow.
-pub(crate) fn known_member_name(name: &str) -> Option<&'static str> {
+pub fn known_member_name(name: &str) -> Option<&'static str> {
     static NAMES: LazyLock<FxHashSet<&'static str>> = LazyLock::new(|| {
         let mut names = FxHashSet::default();
         let mut seen_types = FxHashSet::default();
@@ -302,7 +302,7 @@ fn check_external_integers(
 
 /// Replaces the `*int` options decoded from `value` (a core.CompilerOptions object of the current request) with
 /// their exact literals (f64 cannot hold every Go int).
-pub(crate) fn exact_compiler_options_ints(value: &Value, options: &mut tsrs_core::CompilerOptions) {
+pub fn exact_compiler_options_ints(value: &Value, options: &mut tsrs_core::CompilerOptions) {
     if let Some(n) = exact_i64(value, "maxNodeModuleJsDepth") {
         options.max_node_module_js_depth = Some(n);
     }
@@ -312,7 +312,7 @@ pub(crate) fn exact_compiler_options_ints(value: &Value, options: &mut tsrs_core
 }
 
 /// As `exact_compiler_options_ints`, for core.BuildOptions.
-pub(crate) fn exact_build_options_ints(value: &Value, options: &mut tsrs_core::BuildOptions) {
+pub fn exact_build_options_ints(value: &Value, options: &mut tsrs_core::BuildOptions) {
     if let Some(n) = exact_i64(value, "builders") {
         options.builders = Some(n);
     }
@@ -580,7 +580,7 @@ impl Scanner<'_> {
 }
 
 /// The raw bytes of the value at JSON pointer `pointer` in `raw` (strict JSON), if present.
-pub(crate) fn raw_value_at<'a>(raw: &'a [u8], pointer: &str) -> Option<&'a [u8]> {
+pub fn raw_value_at<'a>(raw: &'a [u8], pointer: &str) -> Option<&'a [u8]> {
     let mut s = Scanner { b: raw, i: 0 };
     let mut tokens = pointer.split('/').skip(1);
     loop {
@@ -641,7 +641,7 @@ pub(crate) fn raw_value_at<'a>(raw: &'a [u8], pointer: &str) -> Option<&'a [u8]>
 /// Checks `params` (an object, or `{}` for `null`) against the method's pinned params struct, nested api structs
 /// included. `raw` is the request payload the value was parsed from. Returns the number literals by pointer.
 /// `lexemes` are the request's inexact number literals (`strictjson::Decoded::lexemes`); it returns them.
-pub(crate) fn predecode(
+pub fn predecode(
     method: &str,
     go_type: &str,
     params: &Value,
@@ -717,11 +717,7 @@ fn index_objects(v: &Value, pointer: &mut String, out: &mut FxHashMap<usize, Str
 
 /// Makes `root` (the parsed params, alive and unmodified until the guard drops), its raw payload and number
 /// literals the current request.
-pub(crate) fn enter_request(
-    raw: &[u8],
-    lexemes: FxHashMap<String, String>,
-    root: &Value,
-) -> RequestGuard {
+pub fn enter_request(raw: &[u8], lexemes: FxHashMap<String, String>, root: &Value) -> RequestGuard {
     let mut objects = FxHashMap::default();
     if !lexemes.is_empty() {
         index_objects(root, &mut String::new(), &mut objects);
@@ -732,7 +728,7 @@ pub(crate) fn enter_request(
     RequestGuard(())
 }
 
-pub(crate) struct RequestGuard(());
+pub struct RequestGuard(());
 
 impl Drop for RequestGuard {
     fn drop(&mut self) {
@@ -744,7 +740,7 @@ impl Drop for RequestGuard {
 
 /// The exact unsigned integer literal of member `key` of `object`, when `object` is part of the current request's
 /// params tree (by address) and the member is a number literal.
-pub(crate) fn exact_u64(object: &Value, key: &str) -> Option<u64> {
+pub fn exact_u64(object: &Value, key: &str) -> Option<u64> {
     FRAMES.with(|f| {
         let f = f.borrow();
         let frame = f.last()?;
@@ -754,7 +750,7 @@ pub(crate) fn exact_u64(object: &Value, key: &str) -> Option<u64> {
 }
 
 /// The exact signed integer literal of member `key` of `object` (see `exact_u64`).
-pub(crate) fn exact_i64(object: &Value, key: &str) -> Option<i64> {
+pub fn exact_i64(object: &Value, key: &str) -> Option<i64> {
     FRAMES.with(|f| {
         let f = f.borrow();
         let frame = f.last()?;
@@ -765,7 +761,7 @@ pub(crate) fn exact_i64(object: &Value, key: &str) -> Option<i64> {
 
 /// The raw `params` bytes of each element of the top-level `requests` array of the current request
 /// (batchRequests), indexed in one pass over the payload; `None` where an element has no `params`.
-pub(crate) fn current_batch_params() -> Vec<Option<Vec<u8>>> {
+pub fn current_batch_params() -> Vec<Option<Vec<u8>>> {
     FRAMES.with(|f| f.borrow().last().map(|frame| batch_params(&frame.raw)).unwrap_or_default())
 }
 

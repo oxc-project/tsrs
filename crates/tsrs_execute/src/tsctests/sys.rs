@@ -15,8 +15,8 @@ use tsrs_vfs::{Entries, FS, FileInfo, FileMode};
 use super::readablebuildinfo::to_readable_build_info;
 use crate::tsc::{CommandLineTesting, MTimesCache, SyncWriter, System};
 
-pub(crate) const FAKE_TS_VERSION: &str = "FakeTSVersion";
-pub(crate) const FAKE_TIME_STAMP: &str = "HH:MM:SS AM";
+pub const FAKE_TS_VERSION: &str = "FakeTSVersion";
+pub const FAKE_TIME_STAMP: &str = "HH:MM:SS AM";
 
 const LIST_FILE_START: &str = "!!! List files start";
 const LIST_FILE_END: &str = "!!! List files end";
@@ -30,7 +30,7 @@ const TRACE_START: &str = "!!! Trace start";
 const TRACE_END: &str = "!!! Trace end";
 
 // sys.go TestClock
-pub(crate) struct TestClock {
+pub struct TestClock {
     start: SystemTime,
     now: Mutex<Option<SystemTime>>,
 }
@@ -49,7 +49,7 @@ impl TestClock {
 }
 
 // fs.go testFs
-pub(crate) struct TestFs {
+pub struct TestFs {
     pub(crate) fs: Arc<IoVFS<MapFS>>,
     pub(crate) default_libs: Mutex<Option<FxHashSet<String>>>,
     pub(crate) written_files: Mutex<FxHashSet<String>>,
@@ -66,11 +66,11 @@ impl TestFs {
         let mut contents = self.fs.read_file(path)?;
         if tspath::file_extension_is(path, tspath::EXTENSION_TS_BUILD_INFO) {
             // read buildinfo and modify version
-            if let Ok(mut build_info) = tsrs_incremental::BuildInfo::unmarshal(&contents) {
-                if build_info.version == FAKE_TS_VERSION {
-                    build_info.version = tsrs_core::version().to_string();
-                    contents = build_info.marshal();
-                }
+            if let Ok(mut build_info) = tsrs_incremental::BuildInfo::unmarshal(&contents)
+                && build_info.version == FAKE_TS_VERSION
+            {
+                build_info.version = tsrs_core::version().to_string();
+                contents = build_info.marshal();
             }
         }
         Some(contents)
@@ -153,7 +153,7 @@ struct Snapshot {
     default_libs: FxHashSet<String>,
 }
 
-pub(crate) struct TestSys {
+pub struct TestSys {
     pub(crate) current_write: Mutex<String>,
     program_baselines: Mutex<String>,
     program_include_baselines: Mutex<String>,
@@ -442,10 +442,10 @@ fn add_fs_entry_diff(
     match (old, new) {
         (None, Some(new)) => {
             if !current_libs.is_some_and(|l| l.contains(path)) {
-                if !new.symlink_target.is_empty() {
-                    diffs.insert(path.to_string(), format!("-> {} *new*", new.symlink_target));
-                } else {
+                if new.symlink_target.is_empty() {
                     diffs.insert(path.to_string(), format!("*new* \n{}", new.content));
+                } else {
+                    diffs.insert(path.to_string(), format!("-> {} *new*", new.symlink_target));
                 }
             }
         }
@@ -471,7 +471,7 @@ fn add_fs_entry_diff(
 }
 
 // fsbaselineutil SanitizeInternalSymbolName: \uFFFD@name@123 -> \uFFFD@name@<symbolId>
-pub(crate) fn sanitize_internal_symbol_name(s: &str) -> String {
+pub fn sanitize_internal_symbol_name(s: &str) -> String {
     if !s.contains("\u{FFFD}@") {
         return s.to_string();
     }
@@ -728,13 +728,12 @@ impl CommandLineTesting for TestSys {
         let Some(result) = result else { return };
         for file in &result.emitted_files {
             let mod_time = self.map_fs().get_mod_time(file);
-            if let Some(serialized) = self.serialized_diff.lock().unwrap().as_ref() {
-                if let Some(diff) = serialized.snap.get(file) {
-                    if diff.m_time == mod_time {
-                        // Even though written, timestamp was reverted
-                        continue;
-                    }
-                }
+            if let Some(serialized) = self.serialized_diff.lock().unwrap().as_ref()
+                && let Some(diff) = serialized.snap.get(file)
+                && diff.m_time == mod_time
+            {
+                // Even though written, timestamp was reverted
+                continue;
             }
 
             // Ensure that the timestamp for emitted files is in the order

@@ -11,7 +11,7 @@ use super::host::{CheckerError, CheckerResult};
 
 static EMPTY_OBJECT: std::sync::LazyLock<JsonMap> = std::sync::LazyLock::new(Default::default);
 
-pub(crate) fn object<'a>(params: &'a Value, method: &str) -> CheckerResult<&'a JsonMap> {
+pub fn object<'a>(params: &'a Value, method: &str) -> CheckerResult<&'a JsonMap> {
     match params {
         Value::Object(map) => Ok(map),
         // encoding/json v2 decodes `null` into a struct as its zero value.
@@ -90,7 +90,7 @@ fn signed32(v: &Value, name: &str) -> CheckerResult<i32> {
 }
 
 /// A typed view over one request's params object.
-pub(crate) struct Params<'a> {
+pub struct Params<'a> {
     obj: &'a JsonMap,
     /// JSON pointer of this object within the request params ("" at the top level).
     pointer: String,
@@ -231,7 +231,7 @@ impl<'a> Params<'a> {
 
 /// Go `DocumentIdentifier`: `string | { uri: string }`.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
-pub(crate) struct DocumentIdentifier {
+pub struct DocumentIdentifier {
     pub(crate) file_name: String,
     pub(crate) uri: String,
 }
@@ -283,17 +283,17 @@ impl DocumentIdentifier {
 
     /// Go `DocumentIdentifier.String` (used in error messages).
     pub(crate) fn display(&self) -> &str {
-        if !self.uri.is_empty() { &self.uri } else { &self.file_name }
+        if self.uri.is_empty() { &self.file_name } else { &self.uri }
     }
 }
 
 /// Go `SymbolOwnerKind`.
-pub(crate) const SYMBOL_OWNER_KIND_FILE: u32 = 0;
-pub(crate) const SYMBOL_OWNER_KIND_SNAPSHOT: u32 = 1;
+pub const SYMBOL_OWNER_KIND_FILE: u32 = 0;
+pub const SYMBOL_OWNER_KIND_SNAPSHOT: u32 = 1;
 
 /// Go `SymbolReference` (`SymbolOwner` embedded + `id`).
 #[derive(Clone, Debug, Default, PartialEq)]
-pub(crate) struct SymbolReference<'a> {
+pub struct SymbolReference<'a> {
     pub(crate) kind: u32,
     pub(crate) file: Option<&'a Value>,
     pub(crate) snapshot: u64,

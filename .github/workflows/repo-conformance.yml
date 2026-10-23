@@ -52,10 +52,7 @@ jobs:
     steps:
       - uses: taiki-e/checkout-action@7d1e50e93dc4fb3bba58f85018fadf77898aee8b # v1.4.2
 
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
-        with:
-          node-version-file: .node-version
-          package-manager-cache: false
+      - uses: ./.github/actions/setup-node-tools
 
       - name: Check the rerun inputs
         env:
@@ -69,8 +66,6 @@ jobs:
         run: |
           docker build --tag tsrs-repo-conformance tools/repo-conformance
           node --test tools/repo-conformance/test_sandbox.mjs
-
-      - uses: oxc-project/setup-node@f46a72f95efdc55273fcd042d61c84e723b2892c # v1.4.1
 
       - name: Read the earlier run
         if: inputs.rerun_run_id
@@ -174,10 +169,7 @@ jobs:
           name: repo-conformance-inputs
           path: repo-conformance
 
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
-        with:
-          node-version-file: .node-version
-          package-manager-cache: false
+      - uses: ./.github/actions/setup-node-tools
 
       - name: Compare projects
         env:
@@ -230,10 +222,7 @@ jobs:
           run-id: ${{ inputs.rerun_run_id }}
           github-token: ${{ github.token }}
 
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
-        with:
-          node-version-file: .node-version
-          package-manager-cache: false
+      - uses: ./.github/actions/setup-node-tools
 
       - name: Report compatibility and coverage
         env:

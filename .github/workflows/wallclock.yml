@@ -34,10 +34,7 @@ jobs:
       # this workflow's helper script before it has landed on main.
       - uses: taiki-e/checkout-action@7d1e50e93dc4fb3bba58f85018fadf77898aee8b # v1.4.2
 
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
-        with:
-          node-version-file: .node-version
-          package-manager-cache: false
+      - uses: ./.github/actions/setup-node-tools
 
       - name: List benchmark projects
         id: projects
@@ -251,10 +248,7 @@ jobs:
           path: ${{ runner.temp }}/wallclock-results
           merge-multiple: true
 
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
-        with:
-          node-version-file: .node-version
-          package-manager-cache: false
+      - uses: ./.github/actions/setup-node-tools
 
       - name: Join project measurements
         if: needs.check-binaries.outputs.identical == 'false'

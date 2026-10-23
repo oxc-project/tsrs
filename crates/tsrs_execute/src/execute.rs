@@ -436,9 +436,7 @@ fn perform_compilation(
     }
     // tsrs-only (notes/mem-lazy-dts-members.md): when no declaration file is type-checked, the member lists of
     // interfaces, classes and type literals in declaration files are parsed and bound on first use.
-    if testing.is_none()
-        && (options.skip_lib_check.is_true() || options.no_check.is_true())
-        && tsrs_compiler::lazy_dts_allowed()
+    if testing.is_none() && declaration_files_unchecked(config) && tsrs_compiler::lazy_dts_allowed()
     {
         tsrs_compiler::enable_lazy_dts();
     }
@@ -499,6 +497,12 @@ fn perform_incremental_compilation(
         Some(get_trace_from_sys(sys, testing)),
         content_mapper_project,
     );
+    // tsrs-only (notes/mem-lazy-dts-members.md): as in `perform_compilation`. The builder uses declaration files'
+    // versions as their signatures; its tree readers force any member lists they visit through the usual accessors.
+    if testing.is_none() && declaration_files_unchecked(config) && tsrs_compiler::lazy_dts_allowed()
+    {
+        tsrs_compiler::enable_lazy_dts();
+    }
     // Go reads the old program and then builds the new one. The two are independent (the read only uses the
     // config and the host's file system, both thread-safe), so the read runs on its own thread while the program
     // is built; "BuildInfo read time" is the read's own duration. `--singleThreaded` keeps Go's order.
@@ -572,6 +576,12 @@ fn perform_incremental_compilation(
         testing.on_program(incremental_program);
     }
     CommandLineResult { watcher: None, status: result.status }
+}
+
+// tsrs-only (notes/mem-lazy-dts-members.md): no declaration file of this program is type-checked.
+pub(crate) fn declaration_files_unchecked(config: P<ParsedCommandLine>) -> bool {
+    let options = config.compiler_options().unwrap();
+    options.skip_lib_check.is_true() || options.no_check.is_true()
 }
 
 // tsc.go:394

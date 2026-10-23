@@ -589,6 +589,20 @@ impl Orchestrator {
             }
             order.pop();
         }
+        // tsrs-only (notes/mem-lazy-dts-members.md): cached declaration files are shared by all projects, so keep
+        // their lists eager if any project checks them. Solution configs build no program. Forced members go to
+        // the forcing thread's arena (`LazyNodeList::force`), which outlives the freed program regions.
+        if self.frees_built_programs()
+            && tsrs_compiler::lazy_dts_allowed()
+            && order.iter().all(|config| {
+                self.get_task(&self.to_path(config)).resolved_opt().is_some_and(|resolved| {
+                    (resolved.file_names().is_empty() && !resolved.project_references_is_nil())
+                        || crate::execute::declaration_files_unchecked(resolved)
+                })
+            })
+        {
+            tsrs_compiler::enable_lazy_dts();
+        }
         // tsrs-only (`queue_files_changed_since`): when the first build started.
         let build_started = std::time::SystemTime::now();
         let result = self.build_or_clean_order(&order);

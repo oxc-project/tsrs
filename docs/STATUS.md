@@ -34,8 +34,8 @@ after publication. 0.18.0 remains the published release until this candidate shi
 
 The candidate adds a project-local VS Code SDK launcher on macOS and Linux, prebuilt Intel macOS and Windows x64
 packages, and the compiler/build fixes described in the [release notes](releases/0.19.0.md). The CLI returns its
-exit status through the C runtime so Windows PGO training can write profiles. Failed Fourslash groups now print
-their diagnostics, and release jobs retain gate logs as failure artifacts.
+exit status through the C runtime so Windows PGO training can write profiles. Failed Fourslash groups print
+their diagnostics in the job logs.
 
 The refreshed candidate also includes LSP API sessions over projects and unsaved editor files, mapper-contribution
 validation, the Cloudflare Workers WASM host fix, lazy declaration parsing for eligible incremental/project builds,
@@ -49,8 +49,7 @@ The dev build and smoke checks pass. Using main's optimized `ci` correctness pro
 4,092 Go Fourslash groups with 470 skipped and no failures. All 48 regression projects, Clippy, source/script checks,
 workflow validation and SDK freshness pass. The packed macOS arm64 consumer passes all 25 CLI/Node API steps with
 disk libraries; a client imported from `tsrs/async` also attaches through the installed SDK's LSP API pipe, reads
-unsaved editor text, and closes with the existing LSP exit status. Release artifacts retain failure lists for both
-Go and canonical BOLT checker histories.
+unsaved editor text, and closes with the existing LSP exit status.
 
 Native Windows PGO training and Linux PGO/BOLT gates still require a successful release-workflow run; local
 validation does not establish those platform-specific results.

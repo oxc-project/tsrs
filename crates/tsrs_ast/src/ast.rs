@@ -1728,7 +1728,6 @@ fn access_kind(node: P<Node>) -> AccessKind {
         return AccessKind::Read;
     };
     match parent.kind() {
-        Kind::ParenthesizedExpression => access_kind(parent),
         Kind::PrefixUnaryExpression => {
             let operator = parent.as_prefix_unary_expression().operator;
             if operator == Kind::PlusPlusToken || operator == Kind::MinusMinusToken {
@@ -1778,7 +1777,7 @@ fn access_kind(node: P<Node>) -> AccessKind {
             }
             access_kind(parent.parent().unwrap())
         }
-        Kind::ArrayLiteralExpression => access_kind(parent),
+        Kind::ParenthesizedExpression | Kind::ArrayLiteralExpression => access_kind(parent),
         Kind::ForInStatement | Kind::ForOfStatement => {
             if node == parent.as_for_in_or_of_statement().initializer {
                 return AccessKind::Write;

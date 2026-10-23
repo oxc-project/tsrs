@@ -209,18 +209,8 @@ impl EmitResolver {
             | Kind::ParenthesizedType
             | Kind::NamedTupleMember => self.is_declaration_visible(c, node.parent()),
 
-            // Default binding, import specifier and namespace import is visible
-            // only on demand so by default it is not visible
-            Kind::ImportClause | Kind::NamespaceImport | Kind::ImportSpecifier => false,
-
-            // Type parameters are always visible
-            Kind::TypeParameter => true,
-            // Source file and namespace export are always visible
-            Kind::SourceFile | Kind::NamespaceExportDeclaration => true,
-
-            // Export assignments do not create name bindings outside the module
-            Kind::ExportAssignment => false,
-
+            // Type parameters, source files and namespace exports are always visible
+            Kind::TypeParameter | Kind::SourceFile | Kind::NamespaceExportDeclaration => true,
             // An `export {X}` (without a module specifier) is itself a visible re-export of
             // the named binding; it contributes to the symbol's external visibility.
             Kind::ExportSpecifier => {
@@ -231,6 +221,9 @@ impl EmitResolver {
                 false
             }
 
+            // Default bindings, import specifiers and namespace imports are visible
+            // only on demand, so by default they are not visible.
+            // Export assignments do not create name bindings outside the module.
             _ => false,
         }
     }

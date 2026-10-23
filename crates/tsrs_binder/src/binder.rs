@@ -1816,9 +1816,6 @@ impl Binder {
         let mut class_symbol = None;
         let mut symbol_table = None;
         match this_container.kind() {
-            Kind::FunctionDeclaration | Kind::FunctionExpression => {
-                // !!! constructor functions
-            }
             Kind::Constructor
             | Kind::PropertyDeclaration
             | Kind::MethodDeclaration
@@ -1833,6 +1830,7 @@ impl Binder {
                     symbol_table = Some(ast::get_members(class_symbol.unwrap()));
                 }
             }
+            // !!! constructor functions (FunctionDeclaration and FunctionExpression)
             _ => {}
         }
         (class_symbol, symbol_table)
@@ -3996,8 +3994,7 @@ pub(crate) fn is_narrowing_binary_expression(node: P<Node>) -> bool {
                     || ast::is_boolean_literal(left) && is_narrowing_expression(right))
         }
         Kind::InstanceOfKeyword => is_narrowable_operand(expr.left()),
-        Kind::InKeyword => is_narrowing_expression(expr.right()),
-        Kind::CommaToken => is_narrowing_expression(expr.right()),
+        Kind::InKeyword | Kind::CommaToken => is_narrowing_expression(expr.right()),
         _ => false,
     }
 }

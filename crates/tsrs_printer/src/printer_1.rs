@@ -1142,8 +1142,11 @@ impl Printer {
         }
 
         match node.kind() {
-            Kind::ObjectLiteralExpression => true,
-            Kind::ArrayLiteralExpression
+            Kind::ClassExpression | Kind::ClassDeclaration | Kind::InterfaceDeclaration => {
+                list == node.type_parameter_list()
+            }
+            Kind::ObjectLiteralExpression
+            | Kind::ArrayLiteralExpression
             | Kind::ArrowFunction
             | Kind::Constructor
             | Kind::GetAccessor
@@ -1159,13 +1162,12 @@ impl Printer {
             | Kind::ArrayBindingPattern
             | Kind::NamedImports
             | Kind::NamedExports
-            | Kind::ImportAttributes => true,
-            Kind::ClassExpression | Kind::ClassDeclaration | Kind::InterfaceDeclaration => {
-                list == node.type_parameter_list()
-            }
-            Kind::FunctionDeclaration | Kind::FunctionExpression | Kind::MethodDeclaration => true,
-            Kind::CallExpression => true,
-            Kind::NewExpression => true,
+            | Kind::ImportAttributes
+            | Kind::FunctionDeclaration
+            | Kind::FunctionExpression
+            | Kind::MethodDeclaration
+            | Kind::CallExpression
+            | Kind::NewExpression => true,
             _ => false,
         }
     }

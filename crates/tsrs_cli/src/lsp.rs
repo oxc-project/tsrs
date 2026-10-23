@@ -292,8 +292,7 @@ impl FlagSet {
 
             if let FlagValue::Bool(_) = self.flags[index].value {
                 let b = match value.as_deref() {
-                    None => true,
-                    Some("1" | "t" | "T" | "TRUE" | "true" | "True") => true,
+                    None | Some("1" | "t" | "T" | "TRUE" | "true" | "True") => true,
                     Some("0" | "f" | "F" | "FALSE" | "false" | "False") => false,
                     Some(v) => {
                         return self.fail(&format!(

@@ -1180,15 +1180,6 @@ pub(crate) fn get_meaning_from_declaration(node: P<Node>) -> SemanticMeaning {
             }
         }
 
-        Kind::EnumDeclaration
-        | Kind::NamedImports
-        | Kind::ImportSpecifier
-        | Kind::ImportEqualsDeclaration
-        | Kind::ImportDeclaration
-        | Kind::JSImportDeclaration
-        | Kind::ExportAssignment
-        | Kind::ExportDeclaration => SemanticMeaning::All,
-
         // An external module can be a Value
         Kind::SourceFile => SemanticMeaning::Namespace | SemanticMeaning::Value,
 

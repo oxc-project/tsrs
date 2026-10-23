@@ -1075,10 +1075,7 @@ fn get_function_like_host(host: P<Node>) -> Option<P<Node>> {
 fn get_class_like_data(parent: P<Node>) -> Option<&'static ClassLikeBase> {
     let mut class = None;
     match parent.kind() {
-        Kind::ClassDeclaration => {
-            class = parent.class_like_data();
-        }
-        Kind::ClassExpression => {
+        Kind::ClassDeclaration | Kind::ClassExpression => {
             class = parent.class_like_data();
         }
         _ => {}

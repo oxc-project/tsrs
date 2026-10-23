@@ -432,11 +432,6 @@ impl Printer {
         let mut left_prec = precedence;
         let mut right_prec = precedence;
         match precedence {
-            OperatorPrecedence::Comma => {
-                // No need to parenthesize the right operand when the binary operator and
-                // operand are both ,:
-                //  x,(a,b)     => x,a,b
-            }
             OperatorPrecedence::Assignment => {
                 // assignment is right-associative
                 left_prec = OperatorPrecedence::Conditional;
@@ -448,19 +443,15 @@ impl Printer {
             OperatorPrecedence::LogicalAND => {
                 right_prec = OperatorPrecedence::BitwiseOR;
             }
-            OperatorPrecedence::BitwiseOR => {
+            OperatorPrecedence::Comma
+            | OperatorPrecedence::BitwiseOR
+            | OperatorPrecedence::BitwiseXOR
+            | OperatorPrecedence::BitwiseAND => {
                 // No need to parenthesize the right operand when the binary operator and
-                // operand are both | due to the associative property of mathematics:
+                // operand are both comma, |, ^, or & due to associativity:
+                //  x,(a,b)     => x,a,b
                 //  x|(a|b)     => x|a|b
-            }
-            OperatorPrecedence::BitwiseXOR => {
-                // No need to parenthesize the right operand when the binary operator and
-                // operand are both ^ due to the associative property of mathematics:
                 //  x^(a^b)     => x^a^b
-            }
-            OperatorPrecedence::BitwiseAND => {
-                // No need to parenthesize the right operand when the binary operator and
-                // operand are both & due to the associative property of mathematics:
                 //  x&(a&b)     => x&a&b
             }
             OperatorPrecedence::Equality => {

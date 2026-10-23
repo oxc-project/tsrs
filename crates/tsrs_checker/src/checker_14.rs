@@ -2331,8 +2331,9 @@ impl Checker {
             Kind::TemplateSpan => {
                 self.get_contextual_type_for_substitution_expression(parent.parent().unwrap(), node)
             }
-            Kind::ParenthesizedExpression => self.get_contextual_type(parent, context_flags),
-            Kind::NonNullExpression => self.get_contextual_type(parent, context_flags),
+            Kind::ParenthesizedExpression | Kind::NonNullExpression => {
+                self.get_contextual_type(parent, context_flags)
+            }
             Kind::SatisfiesExpression => {
                 Some(self.get_type_from_type_node(parent.type_node().unwrap()))
             }

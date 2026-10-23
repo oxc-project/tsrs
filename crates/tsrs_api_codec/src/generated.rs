@@ -1047,10 +1047,9 @@ pub(crate) fn record_node_strings(node: P<Node>, strs: &mut StringTable) -> u32 
             strs.add(node.as_private_identifier().text(), node.kind(), node.pos(), node.end())
         }
         Kind::JsxText => strs.add(node.as_jsx_text().text(), node.kind(), node.pos(), node.end()),
-        Kind::JSDocText => strs.add(node.text(), node.kind(), node.pos(), node.end()),
-        Kind::JSDocLink => strs.add(node.text(), node.kind(), node.pos(), node.end()),
-        Kind::JSDocLinkPlain => strs.add(node.text(), node.kind(), node.pos(), node.end()),
-        Kind::JSDocLinkCode => strs.add(node.text(), node.kind(), node.pos(), node.end()),
+        Kind::JSDocText | Kind::JSDocLink | Kind::JSDocLinkPlain | Kind::JSDocLinkCode => {
+            strs.add(node.text(), node.kind(), node.pos(), node.end())
+        }
         k => unreachable!("record_node_strings: {k:?} is not a string node"),
     }
 }

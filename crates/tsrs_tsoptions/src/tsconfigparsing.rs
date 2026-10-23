@@ -599,7 +599,6 @@ fn convert_json_option_of_list_type(
             }
             (CompilerOptionsValue::Array(filtered_values), errors)
         }
-        CompilerOptionsValue::NilArray => (CompilerOptionsValue::NilArray, errors),
         _ => (CompilerOptionsValue::NilArray, errors),
     }
 }
@@ -1859,7 +1858,6 @@ fn apply_extended_config(
         if extended_raw_map.contains_key("contentMappers") {
             result.content_mappers = match extended_raw_map.get("contentMappers") {
                 Some(CompilerOptionsValue::Array(a)) => Some(a.clone()),
-                Some(CompilerOptionsValue::NilArray) => None,
                 _ => None,
             };
         }

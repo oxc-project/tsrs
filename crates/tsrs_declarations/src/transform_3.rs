@@ -167,7 +167,6 @@ impl DeclarationTransformer {
     // transform.go:2447
     pub(crate) fn visit_binding_name(&self, node: P<Node>) -> P<Node> {
         match node.kind() {
-            Kind::Identifier | Kind::OmittedExpression => node,
             Kind::ArrayBindingPattern | Kind::ObjectBindingPattern => {
                 self.binding_name_visitor().visit_each_child(Some(node)).unwrap()
             }

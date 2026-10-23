@@ -624,10 +624,8 @@ fn get_outlining_span_for_node(
             }
             Some(create_folding_range(ctx, text_range, lsproto::FoldingRangeKind(""), ""))
         }
-        Kind::ModuleBlock => {
-            span_for_node(ctx, n, Kind::OpenBraceToken, true /*useFullStart*/, source_file, l)
-        }
-        Kind::ClassDeclaration
+        Kind::ModuleBlock
+        | Kind::ClassDeclaration
         | Kind::ClassExpression
         | Kind::InterfaceDeclaration
         | Kind::EnumDeclaration

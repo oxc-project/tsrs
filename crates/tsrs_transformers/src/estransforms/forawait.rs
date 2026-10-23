@@ -217,20 +217,16 @@ impl ForawaitTransformer {
             Kind::YieldExpression => Some(self.visit_yield_expression(node)),
             Kind::ReturnStatement => Some(self.visit_return_statement(node)),
             Kind::LabeledStatement => Some(self.visit_labeled_statement(node)),
-            Kind::DoStatement | Kind::WhileStatement | Kind::ForInStatement => self
-                .do_with_hierarchy_facts(
-                    ForawaitTransformer::visit_default,
-                    node,
-                    FOR_AWAIT_HIERARCHY_FACTS_ITERATION_STATEMENT_EXCLUDES,
-                    FOR_AWAIT_HIERARCHY_FACTS_ITERATION_STATEMENT_INCLUDES,
-                ),
-            Kind::ForOfStatement => Some(self.visit_for_of_statement(node, None)),
-            Kind::ForStatement => self.do_with_hierarchy_facts(
+            Kind::DoStatement
+            | Kind::WhileStatement
+            | Kind::ForInStatement
+            | Kind::ForStatement => self.do_with_hierarchy_facts(
                 ForawaitTransformer::visit_default,
                 node,
                 FOR_AWAIT_HIERARCHY_FACTS_ITERATION_STATEMENT_EXCLUDES,
                 FOR_AWAIT_HIERARCHY_FACTS_ITERATION_STATEMENT_INCLUDES,
             ),
+            Kind::ForOfStatement => Some(self.visit_for_of_statement(node, None)),
             Kind::Constructor => self.do_with_hierarchy_facts(
                 ForawaitTransformer::visit_constructor_declaration,
                 node,

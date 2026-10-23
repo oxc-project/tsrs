@@ -2714,7 +2714,9 @@ impl Checker {
     pub(crate) fn get_type_from_type_node_worker(&mut self, node: P<Node>) -> P<Type> {
         match node.kind() {
             Kind::AnyKeyword | Kind::JSDocAllType => self.any_type,
-            Kind::JSDocNonNullableType => self.get_type_from_type_node(node.type_node().unwrap()),
+            Kind::JSDocNonNullableType | Kind::ParenthesizedType => {
+                self.get_type_from_type_node(node.type_node().unwrap())
+            }
             Kind::JSDocNullableType => {
                 let t = self.get_type_from_type_node(node.type_node().unwrap());
                 if self.strict_null_checks { self.get_nullable_type(t, TypeFlags::Null) } else { t }
@@ -2756,7 +2758,6 @@ impl Checker {
             Kind::UnionType => self.get_type_from_union_type_node(node),
             Kind::IntersectionType => self.get_type_from_intersection_type_node(node),
             Kind::NamedTupleMember => self.get_type_from_named_tuple_type_node(node),
-            Kind::ParenthesizedType => self.get_type_from_type_node(node.type_node().unwrap()),
             Kind::RestType => self.get_type_from_rest_type_node(node),
             Kind::FunctionType | Kind::ConstructorType | Kind::TypeLiteral => {
                 self.get_type_from_type_literal_or_function_or_constructor_type_node(node)

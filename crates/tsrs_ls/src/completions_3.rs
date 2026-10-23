@@ -2187,9 +2187,9 @@ fn is_solely_identifier_definition_location(
                 // var C = class D<T, |
                 || (ast::is_class_like(parent) && parent.type_parameter_list().is_some() && parent.type_parameter_list().unwrap().end() >= context_token.pos());
         }
-        Kind::DotToken => return containing_node_kind == Kind::ArrayBindingPattern, // var [.|
+        Kind::DotToken // var [.|
+        | Kind::OpenBracketToken => return containing_node_kind == Kind::ArrayBindingPattern, // var [x|
         Kind::ColonToken => return containing_node_kind == Kind::BindingElement,    // var {x :html|
-        Kind::OpenBracketToken => return containing_node_kind == Kind::ArrayBindingPattern, // var [x|
         Kind::OpenParenToken => {
             return containing_node_kind == Kind::CatchClause
                 || is_function_like_but_not_constructor(containing_node_kind);

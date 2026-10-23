@@ -1696,10 +1696,10 @@ pub(crate) fn try_get_module_specifier_from_declaration_worker(node: P<Node>) ->
             }
             ref_.expression()
         }
-        Kind::ImportClause => node.parent().unwrap().module_specifier(),
-        Kind::NamespaceExport => node.parent().unwrap().module_specifier(),
-        Kind::NamespaceImport => node.parent().unwrap().parent().unwrap().module_specifier(),
-        Kind::ExportSpecifier => node.parent().unwrap().parent().unwrap().module_specifier(),
+        Kind::ImportClause | Kind::NamespaceExport => node.parent().unwrap().module_specifier(),
+        Kind::NamespaceImport | Kind::ExportSpecifier => {
+            node.parent().unwrap().parent().unwrap().module_specifier()
+        }
         Kind::ImportSpecifier => {
             node.parent().unwrap().parent().unwrap().parent().unwrap().module_specifier()
         }

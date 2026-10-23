@@ -191,14 +191,13 @@ impl fmt::Display for TransportError {
             TransportError::Eof => f.write_str("EOF"),
             TransportError::UnexpectedEof(what) => write!(f, "{what}: unexpected EOF"),
             TransportError::Io(e) => write!(f, "{e}"),
-            TransportError::Protocol(msg) => f.write_str(msg),
+            TransportError::Protocol(msg) | TransportError::Unexpected(msg) => f.write_str(msg),
             TransportError::FrameTooLarge { declared, limit } => {
                 write!(f, "ipc: frame of {declared} bytes exceeds the {limit} byte limit")
             }
             TransportError::Closed(None) => f.write_str("ipc: connection closed"),
             TransportError::Closed(Some(cause)) => write!(f, "ipc: connection closed\n{cause}"),
             TransportError::Remote(e) => write!(f, "ipc: remote error [{}]: {}", e.code, e.message),
-            TransportError::Unexpected(msg) => f.write_str(msg),
         }
     }
 }

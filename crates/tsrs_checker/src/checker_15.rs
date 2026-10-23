@@ -2555,7 +2555,7 @@ impl Checker {
                 // fallthrough (case ast.KindThisType)
                 self.get_type_from_this_type_node(node).symbol()
             }
-            Kind::SuperKeyword => self.check_expression(node).symbol(),
+            Kind::SuperKeyword | Kind::MetaProperty => self.check_expression(node).symbol(),
             Kind::ConstructorKeyword => {
                 // constructor keyword for an overload, should take us to the definition if it exist
                 let constructor_declaration = parent;
@@ -2667,7 +2667,6 @@ impl Checker {
                 }
                 None
             }
-            Kind::MetaProperty => self.check_expression(node).symbol(),
             Kind::JsxNamespacedName => {
                 if ast::is_jsx_tag_name(node) && is_jsx_intrinsic_tag_name(node) {
                     let symbol = self.get_intrinsic_tag_symbol(parent);

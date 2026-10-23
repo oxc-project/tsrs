@@ -294,12 +294,18 @@ function genRecordNodeStrings() {
     w("/// Go `recordNodeStrings`.");
     w("pub(crate) fn record_node_strings(node: P<Node>, strs: &mut StringTable) -> u32 {");
     w("    match node.kind() {");
+    const patternsByAccess = new Map<string, string[]>();
     for (const node of api.nodes()) {
         const info = analyzeNode(node);
         if (info.dataType !== "string" || !info.textMember) continue;
         // Go reads a private text member through the promoted `Node.Text()` (which joins JSDoc text segments).
         const access = info.textMember.private ? `node.text()` : `node.${cast(node)}.${ident(info.textMember.name)}()`;
-        w(`        ${kindPat(node)} => strs.add(${access}, node.kind(), node.pos(), node.end()),`);
+        const patterns = patternsByAccess.get(access) ?? [];
+        patterns.push(kindPat(node));
+        patternsByAccess.set(access, patterns);
+    }
+    for (const [access, patterns] of patternsByAccess) {
+        w(`        ${patterns.join(" | ")} => strs.add(${access}, node.kind(), node.pos(), node.end()),`);
     }
     w(`        k => unreachable!("record_node_strings: {k:?} is not a string node"),`);
     w("    }");

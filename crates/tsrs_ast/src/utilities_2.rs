@@ -912,8 +912,8 @@ bitflags::bitflags! {
 // utilities.go:2250
 pub fn get_meaning_from_declaration(node: P<Node>) -> SemanticMeaning {
     match node.kind() {
-        Kind::VariableDeclaration => SemanticMeaning::Value,
-        Kind::Parameter
+        Kind::VariableDeclaration
+        | Kind::Parameter
         | Kind::BindingElement
         | Kind::PropertyDeclaration
         | Kind::PropertySignature
@@ -944,14 +944,6 @@ pub fn get_meaning_from_declaration(node: P<Node>) -> SemanticMeaning {
                 SemanticMeaning::Namespace
             }
         }
-        Kind::EnumDeclaration
-        | Kind::NamedImports
-        | Kind::ImportSpecifier
-        | Kind::ImportEqualsDeclaration
-        | Kind::ImportDeclaration
-        | Kind::JSImportDeclaration
-        | Kind::ExportAssignment
-        | Kind::ExportDeclaration => SemanticMeaning::All,
         // An external module can be a Value
         Kind::SourceFile => SemanticMeaning::Namespace | SemanticMeaning::Value,
         _ => SemanticMeaning::All,

@@ -78,7 +78,7 @@ pub(crate) fn get_vs_hover_image_id(
         K::ScriptElement => {
             pick(IMAGE_ID_MODULE_PRIVATE, IMAGE_ID_MODULE_PROTECTED, IMAGE_ID_MODULE_PUBLIC)
         }
-        K::PrimitiveType => new_vs_image_id(IMAGE_ID_TYPE),
+        K::PrimitiveType | K::TypeParameterElement => new_vs_image_id(IMAGE_ID_TYPE),
         K::ModuleElement => new_vs_image_id(IMAGE_ID_NAMESPACE),
         K::ConstructorImplementationElement
         | K::ClassElement
@@ -119,7 +119,6 @@ pub(crate) fn get_vs_hover_image_id(
         | K::ConstructSignatureElement => {
             pick(IMAGE_ID_METHOD_PRIVATE, IMAGE_ID_METHOD_PROTECTED, IMAGE_ID_METHOD_PUBLIC)
         }
-        K::TypeParameterElement => new_vs_image_id(IMAGE_ID_TYPE),
         K::Label => new_vs_image_id(IMAGE_ID_LABEL),
         K::Alias => new_vs_image_id(IMAGE_ID_MODULE_PUBLIC),
         _ => new_vs_image_id(IMAGE_ID_ASSEMBLY),

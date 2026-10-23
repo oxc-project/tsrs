@@ -960,15 +960,17 @@ pub(crate) fn get_symbol_kind_from_node(node: P<Node>) -> lsproto::SymbolKind {
         Kind::ArrowFunction | Kind::FunctionDeclaration | Kind::FunctionExpression => {
             return lsproto::SymbolKind::FUNCTION;
         }
-        Kind::GetAccessor | Kind::SetAccessor => return lsproto::SymbolKind::PROPERTY,
-        Kind::MethodDeclaration | Kind::MethodSignature => return lsproto::SymbolKind::METHOD,
-        Kind::PropertyDeclaration
+        Kind::GetAccessor
+        | Kind::SetAccessor
+        | Kind::PropertyDeclaration
         | Kind::PropertySignature
         | Kind::PropertyAssignment
         | Kind::ShorthandPropertyAssignment
         | Kind::SpreadAssignment
         | Kind::IndexSignature => return lsproto::SymbolKind::PROPERTY,
-        Kind::CallSignature => return lsproto::SymbolKind::METHOD,
+        Kind::MethodDeclaration | Kind::MethodSignature | Kind::CallSignature => {
+            return lsproto::SymbolKind::METHOD;
+        }
         Kind::ConstructSignature => return lsproto::SymbolKind::CONSTRUCTOR,
         Kind::Constructor | Kind::ClassStaticBlockDeclaration => {
             return lsproto::SymbolKind::CONSTRUCTOR;

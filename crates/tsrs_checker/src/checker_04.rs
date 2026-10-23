@@ -1079,11 +1079,6 @@ impl Checker {
             result
         }
         match node.kind() {
-            Kind::InterfaceDeclaration
-            | Kind::TypeAliasDeclaration
-            | Kind::JSTypeAliasDeclaration
-            | Kind::JSDocTypedefTag
-            | Kind::JSDocCallbackTag => DeclarationSpaces::ExportType,
             Kind::ModuleDeclaration => {
                 if is_ambient_module(node)
                     || get_module_instance_state(node) != ModuleInstanceState::NonInstantiated
@@ -1126,7 +1121,13 @@ impl Checker {
             | Kind::BindingElement
             | Kind::FunctionDeclaration
             | Kind::ImportSpecifier => DeclarationSpaces::ExportValue,
-            Kind::MethodSignature | Kind::PropertySignature => DeclarationSpaces::ExportType,
+            Kind::InterfaceDeclaration
+            | Kind::TypeAliasDeclaration
+            | Kind::JSTypeAliasDeclaration
+            | Kind::JSDocTypedefTag
+            | Kind::JSDocCallbackTag
+            | Kind::MethodSignature
+            | Kind::PropertySignature => DeclarationSpaces::ExportType,
             _ => panic!("Unhandled case in getDeclarationSpaces: {}", node.kind_string()),
         }
     }

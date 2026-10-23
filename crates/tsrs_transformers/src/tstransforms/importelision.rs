@@ -85,9 +85,9 @@ impl ImportElisionTransformer {
                 }
                 Some(f.update_import_clause(node, n.phase_modifier(), name, named_bindings))
             }
-            Kind::NamespaceImport => {
+            Kind::NamespaceImport | Kind::ImportSpecifier => {
                 if !self.should_emit_alias_declaration(node) {
-                    // elide unused imports
+                    // elide type-only or unused imports
                     return None;
                 }
                 Some(node)
@@ -100,13 +100,6 @@ impl ImportElisionTransformer {
                     return None;
                 }
                 Some(f.update_named_imports(node, elements))
-            }
-            Kind::ImportSpecifier => {
-                if !self.should_emit_alias_declaration(node) {
-                    // elide type-only or unused imports
-                    return None;
-                }
-                Some(node)
             }
             Kind::ExportAssignment => {
                 if !self.compiler_options.verbatim_module_syntax.is_true()

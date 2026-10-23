@@ -310,14 +310,13 @@ impl MetadataSerializer {
             | Kind::AnyKeyword
             | Kind::UnknownKeyword
             | Kind::ThisType
-            | Kind::ImportType => {
+            | Kind::ImportType
+            // no meaningful serialization for these invalid-parse JSDoc types
+            | Kind::JSDocAllType | Kind::JSDocVariadicType => {
                 // These types fall back to Object.
             }
 
             // handle JSDoc types from an invalid parse
-            Kind::JSDocAllType | Kind::JSDocVariadicType => {
-                // no meaningful serialization for these invalid-parse JSDoc types
-            }
             Kind::JSDocNullableType | Kind::JSDocNonNullableType | Kind::JSDocOptionalType => {
                 return self.serialize_type_node(node.type_node());
             }

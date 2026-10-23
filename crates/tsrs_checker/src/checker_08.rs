@@ -68,7 +68,6 @@ impl Checker {
     // checker.go:15273
     pub(crate) fn get_module_specifier_for_import_or_export(node: P<Node>) -> Option<P<Node>> {
         match node.kind() {
-            Kind::ImportClause => get_module_specifier_from_node(node.parent().unwrap()),
             Kind::ImportEqualsDeclaration => {
                 let module_reference = node.as_import_equals_declaration().module_reference();
                 if ast::is_external_module_reference(module_reference) {
@@ -77,15 +76,14 @@ impl Checker {
                     None
                 }
             }
-            Kind::NamespaceImport => {
+            Kind::NamespaceImport | Kind::ExportSpecifier => {
                 get_module_specifier_from_node(node.parent().unwrap().parent().unwrap())
             }
             Kind::ImportSpecifier => get_module_specifier_from_node(
                 node.parent().unwrap().parent().unwrap().parent().unwrap(),
             ),
-            Kind::NamespaceExport => get_module_specifier_from_node(node.parent().unwrap()),
-            Kind::ExportSpecifier => {
-                get_module_specifier_from_node(node.parent().unwrap().parent().unwrap())
+            Kind::ImportClause | Kind::NamespaceExport => {
+                get_module_specifier_from_node(node.parent().unwrap())
             }
             _ => panic!("Unhandled case in getModuleSpecifierForImportOrExport"),
         }
@@ -95,8 +93,9 @@ impl Checker {
 // checker.go:15295
 pub(crate) fn get_module_specifier_from_node(node: P<Node>) -> Option<P<Node>> {
     match node.kind() {
-        Kind::ImportDeclaration | Kind::JSImportDeclaration => node.module_specifier(),
-        Kind::ExportDeclaration => node.module_specifier(),
+        Kind::ImportDeclaration | Kind::JSImportDeclaration | Kind::ExportDeclaration => {
+            node.module_specifier()
+        }
         _ => panic!("Unhandled case in getModuleSpecifierFromNode: {}", node.kind_string()),
     }
 }

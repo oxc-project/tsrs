@@ -1446,12 +1446,11 @@ impl EsDecoratorTransformer {
         // always caches identifiers.
         let target = ast::skip_parentheses(node);
         match target.kind() {
-            // cacheIdentifiers is always true for this transform's createCallBinding
-            Kind::Identifier => true,
             Kind::ThisKeyword
             | Kind::NumericLiteral
             | Kind::BigIntLiteral
             | Kind::StringLiteral => false,
+            // cacheIdentifiers is always true for this transform's createCallBinding
             _ => true,
         }
     }

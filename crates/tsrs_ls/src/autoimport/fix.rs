@@ -1391,11 +1391,11 @@ fn detect_syntax_indicators(file: P<SourceFile>, options: &CompilerOptions) -> (
         }
         let parent = imp.parent()?;
         match parent.kind() {
-            Kind::ImportDeclaration | Kind::JSImportDeclaration | Kind::ExportDeclaration => {
-                return Some((true, has_cjs));
-            }
-            Kind::ExternalModuleReference => {
-                // import x = require("...") — this is ESM-ish syntax
+            Kind::ImportDeclaration
+            | Kind::JSImportDeclaration
+            | Kind::ExportDeclaration
+            | Kind::ExternalModuleReference => {
+                // import x = require("...") is also ESM-ish syntax
                 return Some((true, has_cjs));
             }
             _ => {}

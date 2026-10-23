@@ -549,11 +549,10 @@ impl Watcher {
                         self.watch_set_dirty = true;
                         self.force_full_rebuild = true;
                     }
-                    Some(_) => {}
                     // A non-source build dependency changed (a package.json or a previously-missing module path):
                     // module resolution may now differ, so the single-file fast path is unsafe.
                     None if self.seen_files.contains(&p) => self.force_full_rebuild = true,
-                    None => {}
+                    Some(_) | None => {}
                 }
             }
             if content_mapper_config_changed

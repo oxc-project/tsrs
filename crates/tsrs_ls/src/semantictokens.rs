@@ -497,20 +497,21 @@ fn token_from_declaration_mapping(kind: Kind) -> Option<TokenType> {
     Some(match kind {
         Kind::VariableDeclaration => TOKEN_TYPE_VARIABLE,
         Kind::Parameter => TOKEN_TYPE_PARAMETER,
-        Kind::PropertyDeclaration => TOKEN_TYPE_PROPERTY,
+        Kind::PropertyDeclaration
+        | Kind::GetAccessor
+        | Kind::SetAccessor
+        | Kind::PropertySignature
+        | Kind::PropertyAssignment
+        | Kind::ShorthandPropertyAssignment => TOKEN_TYPE_PROPERTY,
         Kind::ModuleDeclaration => TOKEN_TYPE_NAMESPACE,
         Kind::EnumDeclaration => TOKEN_TYPE_ENUM,
         Kind::EnumMember => TOKEN_TYPE_ENUM_MEMBER,
         Kind::ClassDeclaration | Kind::ClassExpression => TOKEN_TYPE_CLASS,
-        Kind::MethodDeclaration => TOKEN_TYPE_METHOD,
+        Kind::MethodDeclaration | Kind::MethodSignature => TOKEN_TYPE_METHOD,
         Kind::FunctionDeclaration | Kind::FunctionExpression => TOKEN_TYPE_FUNCTION,
-        Kind::MethodSignature => TOKEN_TYPE_METHOD,
-        Kind::GetAccessor | Kind::SetAccessor => TOKEN_TYPE_PROPERTY,
-        Kind::PropertySignature => TOKEN_TYPE_PROPERTY,
         Kind::InterfaceDeclaration => TOKEN_TYPE_INTERFACE,
         Kind::TypeAliasDeclaration => TOKEN_TYPE_TYPE,
         Kind::TypeParameter => TOKEN_TYPE_TYPE_PARAMETER,
-        Kind::PropertyAssignment | Kind::ShorthandPropertyAssignment => TOKEN_TYPE_PROPERTY,
         _ => return None,
     })
 }

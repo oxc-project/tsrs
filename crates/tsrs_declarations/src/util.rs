@@ -71,11 +71,6 @@ pub(crate) fn is_declaration_and_not_visible(
         | Kind::EnumDeclaration => !resolver.is_declaration_visible(node),
         // The following should be doing their own visibility checks based on filtering their members
         Kind::VariableDeclaration => !get_binding_name_visible(resolver, node),
-        Kind::ImportEqualsDeclaration
-        | Kind::ImportDeclaration
-        | Kind::JSImportDeclaration
-        | Kind::ExportDeclaration
-        | Kind::ExportAssignment => false,
         Kind::ClassStaticBlockDeclaration => true,
         _ => false,
     }

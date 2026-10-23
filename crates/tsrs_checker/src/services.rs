@@ -988,7 +988,6 @@ impl Checker {
                 let t = self.get_type_of_expression(node.as_tagged_template_expression().tag);
                 self.get_signatures_of_type(t, SignatureKind::Call)
             }
-            Kind::BinaryExpression | Kind::JsxOpeningFragment => &[],
             _ => &[],
         }
     }

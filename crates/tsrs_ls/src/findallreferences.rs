@@ -215,12 +215,9 @@ impl SymbolAndEntries {
 
         match definition.kind {
             DefinitionKind::Symbol | DefinitionKind::This => definition.symbol.is_some(),
-            DefinitionKind::TripleSlashReference => {
-                // !!! TODO : need to find file reference instead?
-                // May need to return true to indicate this to be file search instead and might need to do for import stuff as well
-                // For now
-                false
-            }
+            // !!! TODO: TripleSlashReference may need a file reference instead.
+            // May need to return true to indicate this to be file search instead and might need to do for import stuff as well
+            // For now
             _ => false,
         }
     }
@@ -424,7 +421,7 @@ pub(crate) fn get_context_node(node: Option<P<Node>>) -> Option<P<Node>> {
             }
         }
 
-        Kind::ForOfStatement | Kind::ForInStatement => {
+        Kind::ForOfStatement | Kind::ForInStatement | Kind::SwitchStatement => {
             // !!! not implemented
             None
         }
@@ -436,10 +433,6 @@ pub(crate) fn get_context_node(node: Option<P<Node>>) -> Option<P<Node>> {
                 }));
             }
             Some(node)
-        }
-        Kind::SwitchStatement => {
-            // !!! not implemented
-            None
         }
         _ => Some(node),
     }

@@ -57,16 +57,9 @@ impl PseudoChecker {
                 Some(self.type_from_property_assignment(node))
             }
             Kind::CallExpression => {
-                match ast::get_assignment_declaration_kind(node) {
-                    // TODO: How much of the checker's getTypeFromPropertyDescriptor is worth trying to emulate over ASTs?
-                    JSDeclarationKind::ObjectDefinePropertyValue => {
-                        // !!!
-                    }
-                    JSDeclarationKind::ObjectDefinePropertyExports => {
-                        // !!!
-                    }
-                    _ => {}
-                }
+                // TODO: How much of the checker's getTypeFromPropertyDescriptor is worth trying to emulate over ASTs
+                // for ObjectDefinePropertyValue and ObjectDefinePropertyExports?
+                ast::get_assignment_declaration_kind(node);
                 Some(new_pseudo_type_no_result(node))
             }
             _ => debug::fail_bad_syntax_kind(
@@ -401,14 +394,7 @@ impl PseudoChecker {
                     *PSEUDO_TYPE_NUMBER,
                 ));
             }
-            Kind::NoSubstitutionTemplateLiteral => {
-                return Some(new_pseudo_type_maybe_const_location(
-                    node,
-                    new_pseudo_type_string_literal(node),
-                    *PSEUDO_TYPE_STRING,
-                ));
-            }
-            Kind::StringLiteral => {
+            Kind::NoSubstitutionTemplateLiteral | Kind::StringLiteral => {
                 return Some(new_pseudo_type_maybe_const_location(
                     node,
                     new_pseudo_type_string_literal(node),
@@ -734,13 +720,6 @@ pub(crate) fn type_node_could_refer_to_undefined(node: P<Node>) -> bool {
         node = node.as_parenthesized_type_node().type_;
     }
     match node.kind() {
-        // these types require symbolic/type resolution to know if they definitely do or do not refer to `undefined`, so might (or definitely do)
-        Kind::TypeReference
-        | Kind::IndexedAccessType
-        | Kind::TypeQuery
-        | Kind::OptionalType
-        | Kind::RestType
-        | Kind::ImportType => true,
         Kind::IntersectionType => {
             // TODO: why is this not `core.Every`? strada treated unions and intersections the same, but logically every intersection member needs to contain a possible `undefined`
             // for the result type to contain `undefined`. Likely a bug persisting from strada.
@@ -756,10 +735,20 @@ pub(crate) fn type_node_could_refer_to_undefined(node: P<Node>) -> bool {
             .nodes()
             .iter()
             .any(|n| type_node_could_refer_to_undefined(*n)),
-        Kind::ConditionalType => true, // suspect - should be treated as a union of both branches instead, likely a bug persisted from strada
-        Kind::TypeOperator => true, // suspect - always refers to a subset of `string | number | symbol` for `keyof` or `symbol` for `unique`
-        Kind::TypePredicate => true, // suspect - always refers to `never` or `boolean`, depending on kind - considered possibly-`undefined` referencing for strada compat
-        Kind::UndefinedKeyword => true,
+        // these types require symbolic/type resolution to know if they definitely do or do not refer to `undefined`, so might (or definitely do)
+        Kind::TypeReference
+        | Kind::IndexedAccessType
+        | Kind::TypeQuery
+        | Kind::OptionalType
+        | Kind::RestType
+        | Kind::ImportType
+        // suspect - should be treated as a union of both branches instead, likely a bug persisted from strada
+        | Kind::ConditionalType
+        // suspect - always refers to a subset of `string | number | symbol` for `keyof` or `symbol` for `unique`
+        | Kind::TypeOperator
+        // suspect - always refers to `never` or `boolean`, depending on kind - considered possibly-`undefined` referencing for strada compat
+        | Kind::TypePredicate
+        | Kind::UndefinedKeyword => true,
         _ => false, // all other keywords, literal types, function-y types, array/tuple types, type literals, template types, this types
     }
 }

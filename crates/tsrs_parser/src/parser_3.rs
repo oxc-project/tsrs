@@ -2874,8 +2874,11 @@ impl Parser {
 
     pub(crate) fn is_start_of_statement(&mut self) -> bool {
         match self.token {
-            // 'catch' and 'finally' do not actually indicate that the code is part of a statement,
-            // however, we say they are here so that we may gracefully parse them and error later.
+            Kind::ImportKeyword => {
+                self.is_start_of_declaration()
+                    || self.is_next_token_open_paren_or_less_than_or_dot()
+            }
+            Kind::ConstKeyword | Kind::ExportKeyword => self.is_start_of_declaration(),
             Kind::AtToken
             | Kind::SemicolonToken
             | Kind::OpenBraceToken
@@ -2897,14 +2900,12 @@ impl Parser {
             | Kind::ThrowKeyword
             | Kind::TryKeyword
             | Kind::DebuggerKeyword
+            // 'catch' and 'finally' do not actually indicate that the code is part of a statement,
+            // however, we say they are here so that we may gracefully parse them and error later.
             | Kind::CatchKeyword
-            | Kind::FinallyKeyword => true,
-            Kind::ImportKeyword => {
-                self.is_start_of_declaration()
-                    || self.is_next_token_open_paren_or_less_than_or_dot()
-            }
-            Kind::ConstKeyword | Kind::ExportKeyword => self.is_start_of_declaration(),
-            Kind::AsyncKeyword
+            | Kind::FinallyKeyword
+            // When these don't start a declaration, they're an identifier in an expression statement
+            | Kind::AsyncKeyword
             | Kind::DeclareKeyword
             | Kind::InterfaceKeyword
             | Kind::ModuleKeyword
@@ -2912,10 +2913,7 @@ impl Parser {
             | Kind::TypeKeyword
             | Kind::GlobalKeyword
             | Kind::DeferKeyword
-            | Kind::SourceKeyword => {
-                // When these don't start a declaration, they're an identifier in an expression statement
-                true
-            }
+            | Kind::SourceKeyword => true,
             Kind::AccessorKeyword
             | Kind::PublicKeyword
             | Kind::PrivateKeyword

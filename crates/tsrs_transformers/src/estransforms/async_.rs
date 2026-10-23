@@ -172,9 +172,6 @@ impl AsyncTransformer {
             | Kind::Constructor => {
                 return Some(node);
             }
-            Kind::Parameter | Kind::BindingElement | Kind::VariableDeclaration => {
-                // fall through to visitEachChild
-            }
             Kind::Identifier => {
                 let la = self.lexical_arguments.get();
                 if la.binding.is_some()
@@ -189,6 +186,7 @@ impl AsyncTransformer {
             }
             _ => {}
         }
+        // Parameter, BindingElement and VariableDeclaration fall through to visitEachChild.
         self.fallback_node_visitor().visit_each_child(Some(node))
     }
 

@@ -331,10 +331,8 @@ pub(crate) fn get_literal_text(
 
             // Write trailing quote character
             match node.kind() {
-                Kind::NoSubstitutionTemplateLiteral => b.push('`'),
-                Kind::TemplateHead => b.push_str("${"),
-                Kind::TemplateMiddle => b.push_str("${"),
-                Kind::TemplateTail => b.push('`'),
+                Kind::TemplateHead | Kind::TemplateMiddle => b.push_str("${"),
+                Kind::NoSubstitutionTemplateLiteral | Kind::TemplateTail => b.push('`'),
                 _ => {}
             }
             b

@@ -137,9 +137,9 @@ impl LanguageService {
 
         if let Some(request) = symbol_completion.request {
             match request {
-                CompletionData::JSDocTagName => create_simple_details(item, &data.name, doc_format),
-                CompletionData::JSDocTag => create_simple_details(item, &data.name, doc_format),
-                CompletionData::JSDocParameterName(_) => {
+                CompletionData::JSDocTagName
+                | CompletionData::JSDocTag
+                | CompletionData::JSDocParameterName(_) => {
                     create_simple_details(item, &data.name, doc_format)
                 }
                 CompletionData::Keyword(request) => {

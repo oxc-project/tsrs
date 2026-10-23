@@ -357,10 +357,7 @@ impl Checker {
             Kind::ImportEqualsDeclaration => self.check_import_equals_declaration(node),
             Kind::ExportDeclaration => self.check_export_declaration(node),
             Kind::ExportAssignment => self.check_export_assignment(node),
-            Kind::EmptyStatement => {
-                self.check_grammar_statement_in_ambient_context(node);
-            }
-            Kind::DebuggerStatement => {
+            Kind::EmptyStatement | Kind::DebuggerStatement => {
                 self.check_grammar_statement_in_ambient_context(node);
             }
             Kind::MissingDeclaration => self.check_missing_declaration(node),

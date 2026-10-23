@@ -600,8 +600,7 @@ pub fn is_right_side_of_qualified_name_or_property_access(node: P<Node>) -> bool
     let parent = node.parent().unwrap();
     match parent.kind() {
         Kind::QualifiedName => parent.as_qualified_name().right == node,
-        Kind::PropertyAccessExpression => parent.name() == Some(node),
-        Kind::MetaProperty => parent.name() == Some(node),
+        Kind::PropertyAccessExpression | Kind::MetaProperty => parent.name() == Some(node),
         _ => false,
     }
 }

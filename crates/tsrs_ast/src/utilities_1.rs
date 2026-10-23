@@ -484,8 +484,7 @@ pub fn is_identifier_name(node: P<Node>) -> bool {
         | Kind::PropertyAssignment
         | Kind::PropertyAccessExpression => parent.name() == Some(node),
         Kind::QualifiedName => parent.as_qualified_name().right == node,
-        Kind::BindingElement => parent.property_name() == Some(node),
-        Kind::ImportSpecifier => parent.property_name() == Some(node),
+        Kind::BindingElement | Kind::ImportSpecifier => parent.property_name() == Some(node),
         Kind::ExportSpecifier
         | Kind::JsxAttribute
         | Kind::JsxSelfClosingElement
@@ -1810,8 +1809,7 @@ pub fn get_non_assigned_name_of_declaration(declaration: P<Node>) -> Option<P<No
 pub fn get_assigned_name(node: P<Node>) -> Option<P<Node>> {
     if let Some(parent) = node.parent() {
         match parent.kind() {
-            Kind::PropertyAssignment => return parent.name(),
-            Kind::BindingElement => return parent.name(),
+            Kind::PropertyAssignment | Kind::BindingElement => return parent.name(),
             Kind::BinaryExpression => {
                 if node == parent.as_binary_expression().right() {
                     let left = parent.as_binary_expression().left;

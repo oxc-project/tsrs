@@ -1477,8 +1477,7 @@ impl Parser {
             ParsingContext::JsxAttributes => {
                 token_is_identifier_or_keyword(self.token) || self.token == Kind::OpenBraceToken
             }
-            ParsingContext::JsxChildren => true,
-            ParsingContext::JSDocComment => true,
+            ParsingContext::JsxChildren | ParsingContext::JSDocComment => true,
             ParsingContext::Count => panic!("Unhandled case in isListElement"),
         }
     }

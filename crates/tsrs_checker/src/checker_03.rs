@@ -3185,16 +3185,17 @@ impl Checker {
             return;
         };
         let head_message: &'static Message = match node.parent().unwrap().kind() {
-            Kind::ClassDeclaration | Kind::ClassExpression => {
-                &diagnostics::DECORATOR_FUNCTION_RETURN_TYPE_0_IS_NOT_ASSIGNABLE_TO_TYPE_1
-            }
             Kind::PropertyDeclaration if !self.legacy_decorators => {
                 &diagnostics::DECORATOR_FUNCTION_RETURN_TYPE_0_IS_NOT_ASSIGNABLE_TO_TYPE_1
             }
             Kind::PropertyDeclaration | Kind::Parameter => {
                 &diagnostics::DECORATOR_FUNCTION_RETURN_TYPE_IS_0_BUT_IS_EXPECTED_TO_BE_VOID_OR_ANY
             }
-            Kind::MethodDeclaration | Kind::GetAccessor | Kind::SetAccessor => {
+            Kind::ClassDeclaration
+            | Kind::ClassExpression
+            | Kind::MethodDeclaration
+            | Kind::GetAccessor
+            | Kind::SetAccessor => {
                 &diagnostics::DECORATOR_FUNCTION_RETURN_TYPE_0_IS_NOT_ASSIGNABLE_TO_TYPE_1
             }
             _ => panic!("Unhandled case in checkDecorator"),

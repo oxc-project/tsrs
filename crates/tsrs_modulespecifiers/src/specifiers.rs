@@ -1517,7 +1517,6 @@ pub(crate) fn try_get_module_name_from_exports_or_imports(
     prefer_ts_extension: bool,
 ) -> String {
     match &exports.data {
-        JSONData::NotPresent => return String::new(),
         JSONData::String(str_value) => {
             // possible strada bug? Always uses compilerOptions of the host project, not those applicable to the targeted package.json!
             let mut output_file = String::new();
@@ -1781,7 +1780,7 @@ pub(crate) fn try_get_module_name_from_exports_or_imports(
                 return result;
             }
         }
-        JSONData::Null => return String::new(),
+        JSONData::NotPresent | JSONData::Null => return String::new(),
         _ => {}
     }
     String::new()

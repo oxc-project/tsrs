@@ -410,16 +410,13 @@ pub(crate) fn parse_compiler_options_worker(
         "locale" => all_options.locale = parse_string(value),
         "mapRoot" => all_options.map_root = parse_string(value),
         "module" => all_options.module = float_or_int32_to_module_kind(value),
-        "moduleDetectionKind" => {
+        "moduleDetectionKind" | "moduleDetection" => {
             all_options.module_detection = float_or_int32_to_module_detection_kind(value);
         }
         "moduleResolution" => {
             all_options.module_resolution = float_or_int32_to_module_resolution_kind(value);
         }
         "moduleSuffixes" => all_options.module_suffixes = parse_string_array(value),
-        "moduleDetection" => {
-            all_options.module_detection = float_or_int32_to_module_detection_kind(value);
-        }
         "noCheck" => all_options.no_check = parse_tristate(value),
         "noFallthroughCasesInSwitch" => {
             all_options.no_fallthrough_cases_in_switch = parse_tristate(value);

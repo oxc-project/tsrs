@@ -683,7 +683,7 @@ impl LabelPartsBuilder<'_, '_> {
                 self.visit_for_display_parts(Some(node.as_array_type_node().element_type));
                 self.parts.push(part("[]"));
             }
-            Kind::TupleType => {
+            Kind::TupleType | Kind::ArrayBindingPattern => {
                 self.parts.push(part("["));
                 self.visit_display_part_list(node.elements(), ", ");
                 self.parts.push(part("]"));
@@ -857,11 +857,6 @@ impl LabelPartsBuilder<'_, '_> {
                     self.visit_for_display_parts(node.type_node());
                 }
             }
-            Kind::ArrayBindingPattern => {
-                self.parts.push(part("["));
-                self.visit_display_part_list(node.elements(), ", ");
-                self.parts.push(part("]"));
-            }
             Kind::ObjectBindingPattern => {
                 self.parts.push(part("{"));
                 if !node.elements().is_empty() {
@@ -887,15 +882,12 @@ impl LabelPartsBuilder<'_, '_> {
                     self.visit_for_display_parts(Some(span));
                 }
             }
-            Kind::TemplateHead => {
+            Kind::TemplateHead | Kind::TemplateMiddle | Kind::TemplateTail => {
                 self.parts.push(part(self.state.get_literal_text(node)));
             }
             Kind::TemplateLiteralTypeSpan => {
                 self.visit_for_display_parts(node.type_node());
                 self.visit_for_display_parts(Some(node.as_template_literal_type_span().literal));
-            }
-            Kind::TemplateMiddle | Kind::TemplateTail => {
-                self.parts.push(part(self.state.get_literal_text(node)));
             }
             Kind::ThisType => {
                 self.parts.push(part("this"));

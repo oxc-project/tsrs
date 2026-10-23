@@ -574,12 +574,11 @@ pub(crate) fn values_of_non_binary_unicode_properties(
 ) -> Option<&'static FxHashSet<&'static str>> {
     match property_name {
         "General_Category" => Some(general_category_values()),
-        "Script" => Some(script_values()),
         // The Script_Extensions property of a character contains one or more Script values.
         // See https://www.unicode.org/reports/tr24/#Script_Extensions
         // Here, since each Unicode property value expression only allows a single value,
         // its values can be considered the same as those of the Script property.
-        "Script_Extensions" => Some(script_values()),
+        "Script" | "Script_Extensions" => Some(script_values()),
         _ => None,
     }
 }

@@ -1016,7 +1016,12 @@ impl NodeBuilderImpl {
                 let ty = c.get_widened_type(regular);
                 Some(ty)
             }
-            PseudoTypeKind::NoResult => None, // TODO: extract type selection logic from `serializeTypeForDeclaration`, not needed for current usecases but needed if completeness becomes required
+            // TODO: extract type selection logic from `serializeTypeForDeclaration`, not needed for current usecases but needed if completeness becomes required
+            PseudoTypeKind::NoResult
+            // no simple mapping to a type, since these are structural types
+            | PseudoTypeKind::ObjectLiteral
+            | PseudoTypeKind::SingleCallSignature
+            | PseudoTypeKind::Tuple => None,
             PseudoTypeKind::MaybeConstLocation => {
                 let d = t.as_pseudo_type_maybe_const_location();
                 if c.is_const_context(d.node) {
@@ -1069,9 +1074,6 @@ impl NodeBuilderImpl {
                 let source = t.as_pseudo_type_literal().node;
                 Some(c.get_regular_type_of_expression(source)) // big shortcut, uses cached expression types where possible
             }
-            PseudoTypeKind::ObjectLiteral
-            | PseudoTypeKind::SingleCallSignature
-            | PseudoTypeKind::Tuple => None, // no simple mapping to a type, since these are structural types
         }
     }
 }

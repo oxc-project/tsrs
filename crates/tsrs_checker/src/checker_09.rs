@@ -2938,9 +2938,8 @@ impl Checker {
                 Some(symbol) if symbol.flags().intersects(SymbolFlags::Value) => {
                     return Some(symbol);
                 }
-                Some(_) => {}
                 None if !self.may_be_augment_member(key) => return None,
-                None => {}
+                Some(_) | None => {}
             }
         }
         self.get_property_of_type(source.t, name)
@@ -2969,11 +2968,10 @@ impl Checker {
         }
         match t.as_structured_type().members().and_then(|m| m.lookup_hashed(key)) {
             Some(symbol) if symbol.flags().intersects(SymbolFlags::Value) => Some(Some(symbol)),
-            Some(_) => None,
             None if skip_object_function_property_augment || !self.may_be_augment_member(key) => {
                 Some(None)
             }
-            None => None,
+            Some(_) | None => None,
         }
     }
 

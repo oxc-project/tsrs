@@ -724,8 +724,7 @@ impl MapFS {
 impl IoFS for MapFS {
     fn stat(&self, name: &str) -> Result<FileInfo, FsError> {
         match self.open(name)? {
-            Opened::File { info, .. } => Ok(info),
-            Opened::Dir { info, .. } => Ok(info),
+            Opened::File { info, .. } | Opened::Dir { info, .. } => Ok(info),
         }
     }
 

@@ -551,17 +551,14 @@ pub(crate) fn get_type_parameter_constraint_visibility_diagnostic_message(
 // diagnostics.go:471
 pub(crate) fn get_related_suggestion_by_declaration_kind(kind: Kind) -> Option<&'static Message> {
     match kind {
-        Kind::ArrowFunction => Some(&diagnostics::ADD_A_RETURN_TYPE_TO_THE_FUNCTION_EXPRESSION),
-        Kind::FunctionExpression => Some(&diagnostics::ADD_A_RETURN_TYPE_TO_THE_FUNCTION_EXPRESSION),
+        Kind::ArrowFunction | Kind::FunctionExpression => Some(&diagnostics::ADD_A_RETURN_TYPE_TO_THE_FUNCTION_EXPRESSION),
         Kind::MethodDeclaration => Some(&diagnostics::ADD_A_RETURN_TYPE_TO_THE_METHOD),
         Kind::GetAccessor => Some(&diagnostics::ADD_A_RETURN_TYPE_TO_THE_GET_ACCESSOR_DECLARATION),
         Kind::SetAccessor => Some(&diagnostics::ADD_A_TYPE_TO_PARAMETER_OF_THE_SET_ACCESSOR_DECLARATION),
-        Kind::FunctionDeclaration => Some(&diagnostics::ADD_A_RETURN_TYPE_TO_THE_FUNCTION_DECLARATION),
-        Kind::ConstructSignature => Some(&diagnostics::ADD_A_RETURN_TYPE_TO_THE_FUNCTION_DECLARATION),
+        Kind::FunctionDeclaration | Kind::ConstructSignature => Some(&diagnostics::ADD_A_RETURN_TYPE_TO_THE_FUNCTION_DECLARATION),
         Kind::Parameter => Some(&diagnostics::ADD_A_TYPE_ANNOTATION_TO_THE_PARAMETER_0),
         Kind::VariableDeclaration => Some(&diagnostics::ADD_A_TYPE_ANNOTATION_TO_THE_VARIABLE_0),
-        Kind::PropertyDeclaration => Some(&diagnostics::ADD_A_TYPE_ANNOTATION_TO_THE_PROPERTY_0),
-        Kind::PropertySignature => Some(&diagnostics::ADD_A_TYPE_ANNOTATION_TO_THE_PROPERTY_0),
+        Kind::PropertyDeclaration | Kind::PropertySignature => Some(&diagnostics::ADD_A_TYPE_ANNOTATION_TO_THE_PROPERTY_0),
         Kind::ExportAssignment => Some(&diagnostics::MOVE_THE_EXPRESSION_IN_DEFAULT_EXPORT_TO_A_VARIABLE_AND_ADD_A_TYPE_ANNOTATION_TO_IT),
         _ => None,
     }
@@ -570,17 +567,12 @@ pub(crate) fn get_related_suggestion_by_declaration_kind(kind: Kind) -> Option<&
 // diagnostics.go:502
 pub(crate) fn get_error_by_declaration_kind(kind: Kind) -> Option<&'static Message> {
     match kind {
-        Kind::FunctionExpression => Some(&diagnostics::FUNCTION_MUST_HAVE_AN_EXPLICIT_RETURN_TYPE_ANNOTATION_WITH_ISOLATED_DECLARATIONS),
-        Kind::FunctionDeclaration => Some(&diagnostics::FUNCTION_MUST_HAVE_AN_EXPLICIT_RETURN_TYPE_ANNOTATION_WITH_ISOLATED_DECLARATIONS),
-        Kind::ArrowFunction => Some(&diagnostics::FUNCTION_MUST_HAVE_AN_EXPLICIT_RETURN_TYPE_ANNOTATION_WITH_ISOLATED_DECLARATIONS),
-        Kind::MethodDeclaration => Some(&diagnostics::METHOD_MUST_HAVE_AN_EXPLICIT_RETURN_TYPE_ANNOTATION_WITH_ISOLATED_DECLARATIONS),
-        Kind::ConstructSignature => Some(&diagnostics::METHOD_MUST_HAVE_AN_EXPLICIT_RETURN_TYPE_ANNOTATION_WITH_ISOLATED_DECLARATIONS),
-        Kind::GetAccessor => Some(&diagnostics::AT_LEAST_ONE_ACCESSOR_MUST_HAVE_AN_EXPLICIT_TYPE_ANNOTATION_WITH_ISOLATED_DECLARATIONS),
-        Kind::SetAccessor => Some(&diagnostics::AT_LEAST_ONE_ACCESSOR_MUST_HAVE_AN_EXPLICIT_TYPE_ANNOTATION_WITH_ISOLATED_DECLARATIONS),
+        Kind::FunctionExpression | Kind::FunctionDeclaration | Kind::ArrowFunction => Some(&diagnostics::FUNCTION_MUST_HAVE_AN_EXPLICIT_RETURN_TYPE_ANNOTATION_WITH_ISOLATED_DECLARATIONS),
+        Kind::MethodDeclaration | Kind::ConstructSignature => Some(&diagnostics::METHOD_MUST_HAVE_AN_EXPLICIT_RETURN_TYPE_ANNOTATION_WITH_ISOLATED_DECLARATIONS),
+        Kind::GetAccessor | Kind::SetAccessor => Some(&diagnostics::AT_LEAST_ONE_ACCESSOR_MUST_HAVE_AN_EXPLICIT_TYPE_ANNOTATION_WITH_ISOLATED_DECLARATIONS),
         Kind::Parameter => Some(&diagnostics::PARAMETER_MUST_HAVE_AN_EXPLICIT_TYPE_ANNOTATION_WITH_ISOLATED_DECLARATIONS),
         Kind::VariableDeclaration => Some(&diagnostics::VARIABLE_MUST_HAVE_AN_EXPLICIT_TYPE_ANNOTATION_WITH_ISOLATED_DECLARATIONS),
-        Kind::PropertyDeclaration => Some(&diagnostics::PROPERTY_MUST_HAVE_AN_EXPLICIT_TYPE_ANNOTATION_WITH_ISOLATED_DECLARATIONS),
-        Kind::PropertySignature => Some(&diagnostics::PROPERTY_MUST_HAVE_AN_EXPLICIT_TYPE_ANNOTATION_WITH_ISOLATED_DECLARATIONS),
+        Kind::PropertyDeclaration | Kind::PropertySignature => Some(&diagnostics::PROPERTY_MUST_HAVE_AN_EXPLICIT_TYPE_ANNOTATION_WITH_ISOLATED_DECLARATIONS),
         Kind::ComputedPropertyName => Some(&diagnostics::COMPUTED_PROPERTY_NAMES_ON_CLASS_OR_OBJECT_LITERALS_CANNOT_BE_INFERRED_WITH_ISOLATED_DECLARATIONS),
         Kind::SpreadAssignment => Some(&diagnostics::OBJECTS_THAT_CONTAIN_SPREAD_ASSIGNMENTS_CAN_T_BE_INFERRED_WITH_ISOLATED_DECLARATIONS),
         Kind::ShorthandPropertyAssignment => Some(&diagnostics::OBJECTS_THAT_CONTAIN_SHORTHAND_PROPERTIES_CAN_T_BE_INFERRED_WITH_ISOLATED_DECLARATIONS),

@@ -1007,7 +1007,7 @@ impl CallSiteCollector {
                 self.record_call_site(node);
                 return;
             }
-            Kind::TypeAssertionExpression | Kind::AsExpression => {
+            Kind::TypeAssertionExpression | Kind::AsExpression | Kind::SatisfiesExpression => {
                 // do not descend into the type side of an assertion
                 self.collect(node.expression());
                 return;
@@ -1053,11 +1053,6 @@ impl CallSiteCollector {
                     self.collect(Some(child));
                     false
                 });
-                return;
-            }
-            Kind::SatisfiesExpression => {
-                // do not descend into the type side of an assertion
-                self.collect(node.expression());
                 return;
             }
             _ => {}

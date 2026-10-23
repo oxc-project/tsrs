@@ -97,9 +97,9 @@ pub(crate) fn is_str_white_space(r: char) -> bool {
 
     match r {
         // LineTerminator
-        '\n' | '\r' | '\u{2028}' | '\u{2029}' => return true,
+        '\n' | '\r' | '\u{2028}' | '\u{2029}'
         // WhiteSpace
-        '\t' | '\u{000B}' | '\u{000C}' | '\u{FEFF}' => return true,
+        | '\t' | '\u{000B}' | '\u{000C}' | '\u{FEFF}' => return true,
         _ => {}
     }
 

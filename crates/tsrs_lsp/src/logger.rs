@@ -24,7 +24,6 @@ fn max_verbosity_for_message_type(msg_type: MessageType) -> LogVerbosity {
     match msg_type {
         MessageType::ERROR => LogVerbosity::ERROR,
         MessageType::WARNING => LogVerbosity::WARNING,
-        MessageType::INFO => LogVerbosity::INFO,
         MessageType::DEBUG => LogVerbosity::DEBUG,
         _ => LogVerbosity::INFO,
     }

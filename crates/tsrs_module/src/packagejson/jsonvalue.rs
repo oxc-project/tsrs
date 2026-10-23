@@ -67,10 +67,9 @@ impl<T> JSONData<T> {
         match self {
             JSONData::NotPresent | JSONData::Null => true,
             JSONData::String(s) => s.is_empty(),
+            JSONData::Boolean(b) => !*b,
             // Go compares the decoded `float64` against the untyped constant `0` boxed as an `int`
             // (`v.Value == 0`), which is never equal, so numbers are never falsy.
-            JSONData::Number(_) => false,
-            JSONData::Boolean(b) => !*b,
             _ => false,
         }
     }

@@ -803,7 +803,11 @@ fn get_list_by_range(
     match node.kind() {
         Kind::TypeReference => get_list(node.type_argument_list(), r, node, source_file),
         Kind::ObjectLiteralExpression => get_list(Some(node.property_list()), r, node, source_file),
-        Kind::ArrayLiteralExpression => get_list(Some(node.element_list()), r, node, source_file),
+        Kind::ArrayLiteralExpression
+        | Kind::ObjectBindingPattern
+        | Kind::ArrayBindingPattern
+        | Kind::NamedImports
+        | Kind::NamedExports => get_list(Some(node.element_list()), r, node, source_file),
         Kind::TypeLiteral => get_list(node.member_list(), r, node, source_file),
         Kind::FunctionDeclaration
         | Kind::FunctionExpression
@@ -836,10 +840,6 @@ fn get_list_by_range(
         Kind::VariableDeclarationList => {
             get_list(Some(node.as_variable_declaration_list().declarations), r, node, source_file)
         }
-        Kind::ObjectBindingPattern
-        | Kind::ArrayBindingPattern
-        | Kind::NamedImports
-        | Kind::NamedExports => get_list(Some(node.element_list()), r, node, source_file),
         _ => None, // TODO: should this be a panic? It isn't in strada.
     }
 }

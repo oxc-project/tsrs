@@ -76,14 +76,7 @@ pub fn params_fields(method: &str) -> &'static [FieldSpec] {
             nullable: false,
             elem: None,
         }],
-        "retainSourceFile" => &[FieldSpec {
-            name: "file",
-            go_type: "SourceFileDescriptor",
-            kind: FieldKind::Object,
-            nullable: false,
-            elem: None,
-        }],
-        "getCachedSourceFile" => &[FieldSpec {
+        "retainSourceFile" | "getCachedSourceFile" => &[FieldSpec {
             name: "file",
             go_type: "SourceFileDescriptor",
             kind: FieldKind::Object,
@@ -247,55 +240,7 @@ pub fn params_fields(method: &str) -> &'static [FieldSpec] {
             nullable: false,
             elem: None,
         }],
-        "build" => &[
-            FieldSpec {
-                name: "buildOrchestratorID",
-                go_type: "BuildOrchestratorID",
-                kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "project",
-                go_type: "string",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-        ],
-        "buildReferences" => &[
-            FieldSpec {
-                name: "buildOrchestratorID",
-                go_type: "BuildOrchestratorID",
-                kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "project",
-                go_type: "string",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-        ],
-        "cleanBuild" => &[
-            FieldSpec {
-                name: "buildOrchestratorID",
-                go_type: "BuildOrchestratorID",
-                kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "project",
-                go_type: "string",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-        ],
-        "cleanReferences" => &[
+        "build" | "buildReferences" | "cleanBuild" | "cleanReferences" => &[
             FieldSpec {
                 name: "buildOrchestratorID",
                 go_type: "BuildOrchestratorID",
@@ -392,7 +337,7 @@ pub fn params_fields(method: &str) -> &'static [FieldSpec] {
             nullable: false,
             elem: Some(Elem::Str),
         }],
-        "readConfigFile" => &[FieldSpec {
+        "readConfigFile" | "parseConfigFile" => &[FieldSpec {
             name: "file",
             go_type: "DocumentIdentifier",
             kind: FieldKind::Doc,
@@ -422,13 +367,6 @@ pub fn params_fields(method: &str) -> &'static [FieldSpec] {
                 elem: None,
             },
         ],
-        "parseConfigFile" => &[FieldSpec {
-            name: "file",
-            go_type: "DocumentIdentifier",
-            kind: FieldKind::Doc,
-            nullable: false,
-            elem: None,
-        }],
         "createSourceFile" => &[
             FieldSpec {
                 name: "fileName",
@@ -468,7 +406,7 @@ pub fn params_fields(method: &str) -> &'static [FieldSpec] {
                 elem: None,
             },
         ],
-        "transpileModule" => &[
+        "transpileModule" | "transpileDeclaration" => &[
             FieldSpec {
                 name: "input",
                 go_type: "string",
@@ -484,39 +422,7 @@ pub fn params_fields(method: &str) -> &'static [FieldSpec] {
                 elem: None,
             },
         ],
-        "transpileModuleFromFile" => &[
-            FieldSpec {
-                name: "fileName",
-                go_type: "string",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "options",
-                go_type: "TranspileOptions",
-                kind: FieldKind::Object,
-                nullable: false,
-                elem: None,
-            },
-        ],
-        "transpileDeclaration" => &[
-            FieldSpec {
-                name: "input",
-                go_type: "string",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "options",
-                go_type: "TranspileOptions",
-                kind: FieldKind::Object,
-                nullable: false,
-                elem: None,
-            },
-        ],
-        "transpileDeclarationFromFile" => &[
+        "transpileModuleFromFile" | "transpileDeclarationFromFile" => &[
             FieldSpec {
                 name: "fileName",
                 go_type: "string",
@@ -548,7 +454,10 @@ pub fn params_fields(method: &str) -> &'static [FieldSpec] {
                 elem: None,
             },
         ],
-        "getSourceFile" => &[
+        "getSourceFile"
+        | "getSourceFileMetadata"
+        | "getConfigSourceFile"
+        | "getSymbolOfSourceFile" => &[
             FieldSpec {
                 name: "snapshot",
                 go_type: "SnapshotID",
@@ -571,7 +480,25 @@ pub fn params_fields(method: &str) -> &'static [FieldSpec] {
                 elem: None,
             },
         ],
-        "getSourceFileNames" => &[
+        "getSourceFileNames"
+        | "getConfigFileNames"
+        | "getAnyType"
+        | "getStringType"
+        | "getNumberType"
+        | "getBooleanType"
+        | "getVoidType"
+        | "getUndefinedType"
+        | "getNullType"
+        | "getNeverType"
+        | "getUnknownType"
+        | "getBigIntType"
+        | "getESSymbolType"
+        | "getNonPrimitiveType"
+        | "getWellKnownSymbols"
+        | "getWellKnownSignatures"
+        | "getProgramDiagnostics"
+        | "getGlobalDiagnostics"
+        | "getConfigFileParsingDiagnostics" => &[
             FieldSpec {
                 name: "snapshot",
                 go_type: "SnapshotID",
@@ -583,29 +510,6 @@ pub fn params_fields(method: &str) -> &'static [FieldSpec] {
                 name: "project",
                 go_type: "project.ID",
                 kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-        ],
-        "getSourceFileMetadata" => &[
-            FieldSpec {
-                name: "snapshot",
-                go_type: "SnapshotID",
-                kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "project",
-                go_type: "project.ID",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "file",
-                go_type: "DocumentIdentifier",
-                kind: FieldKind::Doc,
                 nullable: false,
                 elem: None,
             },
@@ -811,46 +715,7 @@ pub fn params_fields(method: &str) -> &'static [FieldSpec] {
                 elem: None,
             },
         ],
-        "getConfigFileNames" => &[
-            FieldSpec {
-                name: "snapshot",
-                go_type: "SnapshotID",
-                kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "project",
-                go_type: "project.ID",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-        ],
-        "getConfigSourceFile" => &[
-            FieldSpec {
-                name: "snapshot",
-                go_type: "SnapshotID",
-                kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "project",
-                go_type: "project.ID",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "file",
-                go_type: "DocumentIdentifier",
-                kind: FieldKind::Doc,
-                nullable: false,
-                elem: None,
-            },
-        ],
-        "getSymbolAtPosition" => &[
+        "getSymbolAtPosition" | "getTypeAtPosition" => &[
             FieldSpec {
                 name: "snapshot",
                 go_type: "SnapshotID",
@@ -880,7 +745,7 @@ pub fn params_fields(method: &str) -> &'static [FieldSpec] {
                 elem: None,
             },
         ],
-        "getSymbolsAtPositions" => &[
+        "getSymbolsAtPositions" | "getTypesAtPositions" => &[
             FieldSpec {
                 name: "snapshot",
                 go_type: "SnapshotID",
@@ -910,7 +775,16 @@ pub fn params_fields(method: &str) -> &'static [FieldSpec] {
                 elem: Some(Elem::U32),
             },
         ],
-        "getSymbolAtLocation" => &[
+        "getSymbolAtLocation"
+        | "getResolvedSignature"
+        | "getTypeAtLocation"
+        | "getContextualType"
+        | "getTypeFromTypeNode"
+        | "getShorthandAssignmentValueSymbol"
+        | "isContextSensitive"
+        | "getConstantValue"
+        | "getSignatureFromDeclaration"
+        | "getExportSpecifierLocalTargetSymbol" => &[
             FieldSpec {
                 name: "snapshot",
                 go_type: "SnapshotID",
@@ -933,7 +807,7 @@ pub fn params_fields(method: &str) -> &'static [FieldSpec] {
                 elem: None,
             },
         ],
-        "getSymbolsAtLocations" => &[
+        "getSymbolsAtLocations" | "getTypeAtLocations" => &[
             FieldSpec {
                 name: "snapshot",
                 go_type: "SnapshotID",
@@ -956,30 +830,14 @@ pub fn params_fields(method: &str) -> &'static [FieldSpec] {
                 elem: Some(Elem::Str),
             },
         ],
-        "getSymbolOfSourceFile" => &[
-            FieldSpec {
-                name: "snapshot",
-                go_type: "SnapshotID",
-                kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "project",
-                go_type: "project.ID",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "file",
-                go_type: "DocumentIdentifier",
-                kind: FieldKind::Doc,
-                nullable: false,
-                elem: None,
-            },
-        ],
-        "getSymbolsOfSourceFiles" => &[
+        "getSymbolsOfSourceFiles"
+        | "getJavaScriptEmit"
+        | "getDeclarationEmit"
+        | "getSyntacticDiagnostics"
+        | "getBindDiagnostics"
+        | "getSemanticDiagnostics"
+        | "getSuggestionDiagnostics"
+        | "getDeclarationDiagnostics" => &[
             FieldSpec {
                 name: "snapshot",
                 go_type: "SnapshotID",
@@ -1002,7 +860,18 @@ pub fn params_fields(method: &str) -> &'static [FieldSpec] {
                 elem: None,
             },
         ],
-        "getTypeOfSymbol" => &[
+        "getTypeOfSymbol"
+        | "getDeclaredTypeOfSymbol"
+        | "getNonMissingTypeOfSymbol"
+        | "getAliasedSymbol"
+        | "getImmediateAliasedSymbol"
+        | "getTargetSymbol"
+        | "getExportSymbolOfSymbolForChecker"
+        | "getFullyQualifiedName"
+        | "getExportsOfModule"
+        | "getJsDocTags"
+        | "getDocumentationComment"
+        | "isReadonlySymbol" => &[
             FieldSpec {
                 name: "snapshot",
                 go_type: "SnapshotID",
@@ -1046,52 +915,6 @@ pub fn params_fields(method: &str) -> &'static [FieldSpec] {
                 kind: FieldKind::Array,
                 nullable: false,
                 elem: Some(Elem::Object),
-            },
-        ],
-        "getDeclaredTypeOfSymbol" => &[
-            FieldSpec {
-                name: "snapshot",
-                go_type: "SnapshotID",
-                kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "project",
-                go_type: "project.ID",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "symbol",
-                go_type: "SymbolReference",
-                kind: FieldKind::Object,
-                nullable: false,
-                elem: None,
-            },
-        ],
-        "getNonMissingTypeOfSymbol" => &[
-            FieldSpec {
-                name: "snapshot",
-                go_type: "SnapshotID",
-                kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "project",
-                go_type: "project.ID",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "symbol",
-                go_type: "SymbolReference",
-                kind: FieldKind::Object,
-                nullable: false,
-                elem: None,
             },
         ],
         "resolveName" => &[
@@ -1196,7 +1019,7 @@ pub fn params_fields(method: &str) -> &'static [FieldSpec] {
                 elem: None,
             },
         ],
-        "getSignaturesOfType" => &[
+        "getSignaturesOfType" | "getIndexInfoOfType" => &[
             FieldSpec {
                 name: "snapshot",
                 go_type: "SnapshotID",
@@ -1226,164 +1049,45 @@ pub fn params_fields(method: &str) -> &'static [FieldSpec] {
                 elem: None,
             },
         ],
-        "getResolvedSignature" => &[
-            FieldSpec {
-                name: "snapshot",
-                go_type: "SnapshotID",
-                kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "project",
-                go_type: "project.ID",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "location",
-                go_type: "NodeHandle",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-        ],
-        "getTypeAtLocation" => &[
-            FieldSpec {
-                name: "snapshot",
-                go_type: "SnapshotID",
-                kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "project",
-                go_type: "project.ID",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "location",
-                go_type: "NodeHandle",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-        ],
-        "getTypeAtLocations" => &[
-            FieldSpec {
-                name: "snapshot",
-                go_type: "SnapshotID",
-                kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "project",
-                go_type: "project.ID",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "locations",
-                go_type: "[]NodeHandle",
-                kind: FieldKind::Array,
-                nullable: false,
-                elem: Some(Elem::Str),
-            },
-        ],
-        "getTypeAtPosition" => &[
-            FieldSpec {
-                name: "snapshot",
-                go_type: "SnapshotID",
-                kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "project",
-                go_type: "project.ID",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "file",
-                go_type: "DocumentIdentifier",
-                kind: FieldKind::Doc,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "position",
-                go_type: "uint32",
-                kind: FieldKind::U32,
-                nullable: false,
-                elem: None,
-            },
-        ],
-        "getTypesAtPositions" => &[
-            FieldSpec {
-                name: "snapshot",
-                go_type: "SnapshotID",
-                kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "project",
-                go_type: "project.ID",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "file",
-                go_type: "DocumentIdentifier",
-                kind: FieldKind::Doc,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "positions",
-                go_type: "[]uint32",
-                kind: FieldKind::Array,
-                nullable: false,
-                elem: Some(Elem::U32),
-            },
-        ],
-        "getParentOfSymbol" => &[FieldSpec {
+        "getParentOfSymbol"
+        | "getMembersOfSymbol"
+        | "getExportsOfSymbol"
+        | "getExportSymbolOfSymbol" => &[FieldSpec {
             name: "symbol",
             go_type: "SymbolReference",
             kind: FieldKind::Object,
             nullable: false,
             elem: None,
         }],
-        "getMembersOfSymbol" => &[FieldSpec {
-            name: "symbol",
-            go_type: "SymbolReference",
-            kind: FieldKind::Object,
-            nullable: false,
-            elem: None,
-        }],
-        "getExportsOfSymbol" => &[FieldSpec {
-            name: "symbol",
-            go_type: "SymbolReference",
-            kind: FieldKind::Object,
-            nullable: false,
-            elem: None,
-        }],
-        "getExportSymbolOfSymbol" => &[FieldSpec {
-            name: "symbol",
-            go_type: "SymbolReference",
-            kind: FieldKind::Object,
-            nullable: false,
-            elem: None,
-        }],
-        "getSymbolOfType" => &[
+        "getSymbolOfType"
+        | "getTargetOfType"
+        | "getFreshTypeOfType"
+        | "getRegularTypeOfType"
+        | "getTypesOfType"
+        | "getTypeParametersOfType"
+        | "getOuterTypeParametersOfType"
+        | "getLocalTypeParametersOfType"
+        | "getThisTypeOfType"
+        | "getAliasTypeArgumentsOfType"
+        | "getAliasSymbolOfType"
+        | "getObjectTypeOfType"
+        | "getIndexTypeOfType"
+        | "getCheckTypeOfType"
+        | "getExtendsTypeOfType"
+        | "getBaseTypeOfType"
+        | "getConstraintOfType"
+        | "getTypeParameterOfMappedType"
+        | "getConstraintTypeOfMappedType"
+        | "getNameTypeOfMappedType"
+        | "getTemplateTypeOfMappedType"
+        | "getTrueTypeOfConditionalType"
+        | "getFalseTypeOfConditionalType"
+        | "getNonNullableType"
+        | "getApparentPropertiesOfType"
+        | "getApparentType"
+        | "getReducedType"
+        | "getConstraintOfTypeParameter"
+        | "getDefaultFromTypeParameter" => &[
             FieldSpec {
                 name: "snapshot",
                 go_type: "SnapshotID",
@@ -1406,513 +1110,11 @@ pub fn params_fields(method: &str) -> &'static [FieldSpec] {
                 elem: None,
             },
         ],
-        "getTargetOfType" => &[
-            FieldSpec {
-                name: "snapshot",
-                go_type: "SnapshotID",
-                kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "project",
-                go_type: "project.ID",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "objectId",
-                go_type: "TypeID",
-                kind: FieldKind::U32,
-                nullable: false,
-                elem: None,
-            },
-        ],
-        "getFreshTypeOfType" => &[
-            FieldSpec {
-                name: "snapshot",
-                go_type: "SnapshotID",
-                kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "project",
-                go_type: "project.ID",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "objectId",
-                go_type: "TypeID",
-                kind: FieldKind::U32,
-                nullable: false,
-                elem: None,
-            },
-        ],
-        "getRegularTypeOfType" => &[
-            FieldSpec {
-                name: "snapshot",
-                go_type: "SnapshotID",
-                kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "project",
-                go_type: "project.ID",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "objectId",
-                go_type: "TypeID",
-                kind: FieldKind::U32,
-                nullable: false,
-                elem: None,
-            },
-        ],
-        "getTypesOfType" => &[
-            FieldSpec {
-                name: "snapshot",
-                go_type: "SnapshotID",
-                kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "project",
-                go_type: "project.ID",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "objectId",
-                go_type: "TypeID",
-                kind: FieldKind::U32,
-                nullable: false,
-                elem: None,
-            },
-        ],
-        "getTypeParametersOfType" => &[
-            FieldSpec {
-                name: "snapshot",
-                go_type: "SnapshotID",
-                kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "project",
-                go_type: "project.ID",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "objectId",
-                go_type: "TypeID",
-                kind: FieldKind::U32,
-                nullable: false,
-                elem: None,
-            },
-        ],
-        "getOuterTypeParametersOfType" => &[
-            FieldSpec {
-                name: "snapshot",
-                go_type: "SnapshotID",
-                kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "project",
-                go_type: "project.ID",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "objectId",
-                go_type: "TypeID",
-                kind: FieldKind::U32,
-                nullable: false,
-                elem: None,
-            },
-        ],
-        "getLocalTypeParametersOfType" => &[
-            FieldSpec {
-                name: "snapshot",
-                go_type: "SnapshotID",
-                kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "project",
-                go_type: "project.ID",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "objectId",
-                go_type: "TypeID",
-                kind: FieldKind::U32,
-                nullable: false,
-                elem: None,
-            },
-        ],
-        "getThisTypeOfType" => &[
-            FieldSpec {
-                name: "snapshot",
-                go_type: "SnapshotID",
-                kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "project",
-                go_type: "project.ID",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "objectId",
-                go_type: "TypeID",
-                kind: FieldKind::U32,
-                nullable: false,
-                elem: None,
-            },
-        ],
-        "getAliasTypeArgumentsOfType" => &[
-            FieldSpec {
-                name: "snapshot",
-                go_type: "SnapshotID",
-                kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "project",
-                go_type: "project.ID",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "objectId",
-                go_type: "TypeID",
-                kind: FieldKind::U32,
-                nullable: false,
-                elem: None,
-            },
-        ],
-        "getAliasSymbolOfType" => &[
-            FieldSpec {
-                name: "snapshot",
-                go_type: "SnapshotID",
-                kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "project",
-                go_type: "project.ID",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "objectId",
-                go_type: "TypeID",
-                kind: FieldKind::U32,
-                nullable: false,
-                elem: None,
-            },
-        ],
-        "getObjectTypeOfType" => &[
-            FieldSpec {
-                name: "snapshot",
-                go_type: "SnapshotID",
-                kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "project",
-                go_type: "project.ID",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "objectId",
-                go_type: "TypeID",
-                kind: FieldKind::U32,
-                nullable: false,
-                elem: None,
-            },
-        ],
-        "getIndexTypeOfType" => &[
-            FieldSpec {
-                name: "snapshot",
-                go_type: "SnapshotID",
-                kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "project",
-                go_type: "project.ID",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "objectId",
-                go_type: "TypeID",
-                kind: FieldKind::U32,
-                nullable: false,
-                elem: None,
-            },
-        ],
-        "getCheckTypeOfType" => &[
-            FieldSpec {
-                name: "snapshot",
-                go_type: "SnapshotID",
-                kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "project",
-                go_type: "project.ID",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "objectId",
-                go_type: "TypeID",
-                kind: FieldKind::U32,
-                nullable: false,
-                elem: None,
-            },
-        ],
-        "getExtendsTypeOfType" => &[
-            FieldSpec {
-                name: "snapshot",
-                go_type: "SnapshotID",
-                kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "project",
-                go_type: "project.ID",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "objectId",
-                go_type: "TypeID",
-                kind: FieldKind::U32,
-                nullable: false,
-                elem: None,
-            },
-        ],
-        "getBaseTypeOfType" => &[
-            FieldSpec {
-                name: "snapshot",
-                go_type: "SnapshotID",
-                kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "project",
-                go_type: "project.ID",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "objectId",
-                go_type: "TypeID",
-                kind: FieldKind::U32,
-                nullable: false,
-                elem: None,
-            },
-        ],
-        "getConstraintOfType" => &[
-            FieldSpec {
-                name: "snapshot",
-                go_type: "SnapshotID",
-                kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "project",
-                go_type: "project.ID",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "objectId",
-                go_type: "TypeID",
-                kind: FieldKind::U32,
-                nullable: false,
-                elem: None,
-            },
-        ],
-        "getTypeParameterOfMappedType" => &[
-            FieldSpec {
-                name: "snapshot",
-                go_type: "SnapshotID",
-                kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "project",
-                go_type: "project.ID",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "objectId",
-                go_type: "TypeID",
-                kind: FieldKind::U32,
-                nullable: false,
-                elem: None,
-            },
-        ],
-        "getConstraintTypeOfMappedType" => &[
-            FieldSpec {
-                name: "snapshot",
-                go_type: "SnapshotID",
-                kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "project",
-                go_type: "project.ID",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "objectId",
-                go_type: "TypeID",
-                kind: FieldKind::U32,
-                nullable: false,
-                elem: None,
-            },
-        ],
-        "getNameTypeOfMappedType" => &[
-            FieldSpec {
-                name: "snapshot",
-                go_type: "SnapshotID",
-                kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "project",
-                go_type: "project.ID",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "objectId",
-                go_type: "TypeID",
-                kind: FieldKind::U32,
-                nullable: false,
-                elem: None,
-            },
-        ],
-        "getTemplateTypeOfMappedType" => &[
-            FieldSpec {
-                name: "snapshot",
-                go_type: "SnapshotID",
-                kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "project",
-                go_type: "project.ID",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "objectId",
-                go_type: "TypeID",
-                kind: FieldKind::U32,
-                nullable: false,
-                elem: None,
-            },
-        ],
-        "getTrueTypeOfConditionalType" => &[
-            FieldSpec {
-                name: "snapshot",
-                go_type: "SnapshotID",
-                kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "project",
-                go_type: "project.ID",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "objectId",
-                go_type: "TypeID",
-                kind: FieldKind::U32,
-                nullable: false,
-                elem: None,
-            },
-        ],
-        "getFalseTypeOfConditionalType" => &[
-            FieldSpec {
-                name: "snapshot",
-                go_type: "SnapshotID",
-                kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "project",
-                go_type: "project.ID",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "objectId",
-                go_type: "TypeID",
-                kind: FieldKind::U32,
-                nullable: false,
-                elem: None,
-            },
-        ],
-        "getTypeParametersOfSignature" => &[
+        "getTypeParametersOfSignature"
+        | "getParametersOfSignature"
+        | "getThisParameterOfSignature"
+        | "getTargetOfSignature"
+        | "getReturnTypeOfSignature" => &[
             FieldSpec {
                 name: "snapshot",
                 go_type: "SnapshotID",
@@ -1931,98 +1133,6 @@ pub fn params_fields(method: &str) -> &'static [FieldSpec] {
                 name: "objectId",
                 go_type: "SignatureID",
                 kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-        ],
-        "getParametersOfSignature" => &[
-            FieldSpec {
-                name: "snapshot",
-                go_type: "SnapshotID",
-                kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "project",
-                go_type: "project.ID",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "objectId",
-                go_type: "SignatureID",
-                kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-        ],
-        "getThisParameterOfSignature" => &[
-            FieldSpec {
-                name: "snapshot",
-                go_type: "SnapshotID",
-                kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "project",
-                go_type: "project.ID",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "objectId",
-                go_type: "SignatureID",
-                kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-        ],
-        "getTargetOfSignature" => &[
-            FieldSpec {
-                name: "snapshot",
-                go_type: "SnapshotID",
-                kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "project",
-                go_type: "project.ID",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "objectId",
-                go_type: "SignatureID",
-                kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-        ],
-        "getContextualType" => &[
-            FieldSpec {
-                name: "snapshot",
-                go_type: "SnapshotID",
-                kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "project",
-                go_type: "project.ID",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "location",
-                go_type: "NodeHandle",
-                kind: FieldKind::Str,
                 nullable: false,
                 elem: None,
             },
@@ -2057,7 +1167,16 @@ pub fn params_fields(method: &str) -> &'static [FieldSpec] {
                 elem: None,
             },
         ],
-        "getAwaitedType" => &[
+        "getAwaitedType"
+        | "getBaseTypeOfLiteralType"
+        | "getWidenedType"
+        | "isArrayLikeType"
+        | "getBaseTypes"
+        | "getPropertiesOfType"
+        | "getIndexInfosOfType"
+        | "getBaseConstraintOfType"
+        | "getTypeArguments"
+        | "isArrayType" => &[
             FieldSpec {
                 name: "snapshot",
                 go_type: "SnapshotID",
@@ -2080,99 +1199,7 @@ pub fn params_fields(method: &str) -> &'static [FieldSpec] {
                 elem: None,
             },
         ],
-        "getBaseTypeOfLiteralType" => &[
-            FieldSpec {
-                name: "snapshot",
-                go_type: "SnapshotID",
-                kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "project",
-                go_type: "project.ID",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "type",
-                go_type: "TypeID",
-                kind: FieldKind::U32,
-                nullable: false,
-                elem: None,
-            },
-        ],
-        "getNonNullableType" => &[
-            FieldSpec {
-                name: "snapshot",
-                go_type: "SnapshotID",
-                kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "project",
-                go_type: "project.ID",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "objectId",
-                go_type: "TypeID",
-                kind: FieldKind::U32,
-                nullable: false,
-                elem: None,
-            },
-        ],
-        "getTypeFromTypeNode" => &[
-            FieldSpec {
-                name: "snapshot",
-                go_type: "SnapshotID",
-                kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "project",
-                go_type: "project.ID",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "location",
-                go_type: "NodeHandle",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-        ],
-        "getWidenedType" => &[
-            FieldSpec {
-                name: "snapshot",
-                go_type: "SnapshotID",
-                kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "project",
-                go_type: "project.ID",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "type",
-                go_type: "TypeID",
-                kind: FieldKind::U32,
-                nullable: false,
-                elem: None,
-            },
-        ],
-        "getParameterType" => &[
+        "getParameterType" | "getTypeParameterAtPosition" => &[
             FieldSpec {
                 name: "snapshot",
                 go_type: "SnapshotID",
@@ -2198,59 +1225,6 @@ pub fn params_fields(method: &str) -> &'static [FieldSpec] {
                 name: "index",
                 go_type: "int32",
                 kind: FieldKind::I32,
-                nullable: false,
-                elem: None,
-            },
-        ],
-        "getTypeParameterAtPosition" => &[
-            FieldSpec {
-                name: "snapshot",
-                go_type: "SnapshotID",
-                kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "project",
-                go_type: "project.ID",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "signature",
-                go_type: "SignatureID",
-                kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "index",
-                go_type: "int32",
-                kind: FieldKind::I32,
-                nullable: false,
-                elem: None,
-            },
-        ],
-        "isArrayLikeType" => &[
-            FieldSpec {
-                name: "snapshot",
-                go_type: "SnapshotID",
-                kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "project",
-                go_type: "project.ID",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "type",
-                go_type: "TypeID",
-                kind: FieldKind::U32,
                 nullable: false,
                 elem: None,
             },
@@ -2285,29 +1259,6 @@ pub fn params_fields(method: &str) -> &'static [FieldSpec] {
                 elem: None,
             },
         ],
-        "getShorthandAssignmentValueSymbol" => &[
-            FieldSpec {
-                name: "snapshot",
-                go_type: "SnapshotID",
-                kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "project",
-                go_type: "project.ID",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "location",
-                go_type: "NodeHandle",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-        ],
         "getTypeOfSymbolAtLocation" => &[
             FieldSpec {
                 name: "snapshot",
@@ -2338,7 +1289,7 @@ pub fn params_fields(method: &str) -> &'static [FieldSpec] {
                 elem: None,
             },
         ],
-        "typeToTypeNode" => &[
+        "typeToTypeNode" | "typeToString" => &[
             FieldSpec {
                 name: "snapshot",
                 go_type: "SnapshotID",
@@ -2419,90 +1370,7 @@ pub fn params_fields(method: &str) -> &'static [FieldSpec] {
                 elem: None,
             },
         ],
-        "typeToString" => &[
-            FieldSpec {
-                name: "snapshot",
-                go_type: "SnapshotID",
-                kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "project",
-                go_type: "project.ID",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "type",
-                go_type: "TypeID",
-                kind: FieldKind::U32,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "location",
-                go_type: "NodeHandle",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "flags",
-                go_type: "int32",
-                kind: FieldKind::I32,
-                nullable: false,
-                elem: None,
-            },
-        ],
-        "isContextSensitive" => &[
-            FieldSpec {
-                name: "snapshot",
-                go_type: "SnapshotID",
-                kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "project",
-                go_type: "project.ID",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "location",
-                go_type: "NodeHandle",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-        ],
-        "getReturnTypeOfSignature" => &[
-            FieldSpec {
-                name: "snapshot",
-                go_type: "SnapshotID",
-                kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "project",
-                go_type: "project.ID",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "objectId",
-                go_type: "SignatureID",
-                kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-        ],
-        "getRestTypeOfSignature" => &[
+        "getRestTypeOfSignature" | "getTypePredicateOfSignature" => &[
             FieldSpec {
                 name: "snapshot",
                 go_type: "SnapshotID",
@@ -2525,145 +1393,7 @@ pub fn params_fields(method: &str) -> &'static [FieldSpec] {
                 elem: None,
             },
         ],
-        "getTypePredicateOfSignature" => &[
-            FieldSpec {
-                name: "snapshot",
-                go_type: "SnapshotID",
-                kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "project",
-                go_type: "project.ID",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "signature",
-                go_type: "SignatureID",
-                kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-        ],
-        "getBaseTypes" => &[
-            FieldSpec {
-                name: "snapshot",
-                go_type: "SnapshotID",
-                kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "project",
-                go_type: "project.ID",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "type",
-                go_type: "TypeID",
-                kind: FieldKind::U32,
-                nullable: false,
-                elem: None,
-            },
-        ],
-        "getPropertiesOfType" => &[
-            FieldSpec {
-                name: "snapshot",
-                go_type: "SnapshotID",
-                kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "project",
-                go_type: "project.ID",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "type",
-                go_type: "TypeID",
-                kind: FieldKind::U32,
-                nullable: false,
-                elem: None,
-            },
-        ],
-        "getApparentPropertiesOfType" => &[
-            FieldSpec {
-                name: "snapshot",
-                go_type: "SnapshotID",
-                kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "project",
-                go_type: "project.ID",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "objectId",
-                go_type: "TypeID",
-                kind: FieldKind::U32,
-                nullable: false,
-                elem: None,
-            },
-        ],
-        "getApparentType" => &[
-            FieldSpec {
-                name: "snapshot",
-                go_type: "SnapshotID",
-                kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "project",
-                go_type: "project.ID",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "objectId",
-                go_type: "TypeID",
-                kind: FieldKind::U32,
-                nullable: false,
-                elem: None,
-            },
-        ],
-        "getReducedType" => &[
-            FieldSpec {
-                name: "snapshot",
-                go_type: "SnapshotID",
-                kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "project",
-                go_type: "project.ID",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "objectId",
-                go_type: "TypeID",
-                kind: FieldKind::U32,
-                nullable: false,
-                elem: None,
-            },
-        ],
-        "getPropertyOfType" => &[
+        "getPropertyOfType" | "getTypeOfPropertyOfType" => &[
             FieldSpec {
                 name: "snapshot",
                 go_type: "SnapshotID",
@@ -2689,181 +1419,6 @@ pub fn params_fields(method: &str) -> &'static [FieldSpec] {
                 name: "name",
                 go_type: "string",
                 kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-        ],
-        "getTypeOfPropertyOfType" => &[
-            FieldSpec {
-                name: "snapshot",
-                go_type: "SnapshotID",
-                kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "project",
-                go_type: "project.ID",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "type",
-                go_type: "TypeID",
-                kind: FieldKind::U32,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "name",
-                go_type: "string",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-        ],
-        "getIndexInfoOfType" => &[
-            FieldSpec {
-                name: "snapshot",
-                go_type: "SnapshotID",
-                kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "project",
-                go_type: "project.ID",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "type",
-                go_type: "TypeID",
-                kind: FieldKind::U32,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "kind",
-                go_type: "int32",
-                kind: FieldKind::I32,
-                nullable: false,
-                elem: None,
-            },
-        ],
-        "getIndexInfosOfType" => &[
-            FieldSpec {
-                name: "snapshot",
-                go_type: "SnapshotID",
-                kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "project",
-                go_type: "project.ID",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "type",
-                go_type: "TypeID",
-                kind: FieldKind::U32,
-                nullable: false,
-                elem: None,
-            },
-        ],
-        "getConstraintOfTypeParameter" => &[
-            FieldSpec {
-                name: "snapshot",
-                go_type: "SnapshotID",
-                kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "project",
-                go_type: "project.ID",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "objectId",
-                go_type: "TypeID",
-                kind: FieldKind::U32,
-                nullable: false,
-                elem: None,
-            },
-        ],
-        "getBaseConstraintOfType" => &[
-            FieldSpec {
-                name: "snapshot",
-                go_type: "SnapshotID",
-                kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "project",
-                go_type: "project.ID",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "type",
-                go_type: "TypeID",
-                kind: FieldKind::U32,
-                nullable: false,
-                elem: None,
-            },
-        ],
-        "getDefaultFromTypeParameter" => &[
-            FieldSpec {
-                name: "snapshot",
-                go_type: "SnapshotID",
-                kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "project",
-                go_type: "project.ID",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "objectId",
-                go_type: "TypeID",
-                kind: FieldKind::U32,
-                nullable: false,
-                elem: None,
-            },
-        ],
-        "getTypeArguments" => &[
-            FieldSpec {
-                name: "snapshot",
-                go_type: "SnapshotID",
-                kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "project",
-                go_type: "project.ID",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "type",
-                go_type: "TypeID",
-                kind: FieldKind::U32,
                 nullable: false,
                 elem: None,
             },
@@ -2898,213 +1453,6 @@ pub fn params_fields(method: &str) -> &'static [FieldSpec] {
                 elem: Some(Elem::Object),
             },
         ],
-        "getConstantValue" => &[
-            FieldSpec {
-                name: "snapshot",
-                go_type: "SnapshotID",
-                kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "project",
-                go_type: "project.ID",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "location",
-                go_type: "NodeHandle",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-        ],
-        "getSignatureFromDeclaration" => &[
-            FieldSpec {
-                name: "snapshot",
-                go_type: "SnapshotID",
-                kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "project",
-                go_type: "project.ID",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "location",
-                go_type: "NodeHandle",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-        ],
-        "getExportSpecifierLocalTargetSymbol" => &[
-            FieldSpec {
-                name: "snapshot",
-                go_type: "SnapshotID",
-                kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "project",
-                go_type: "project.ID",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "location",
-                go_type: "NodeHandle",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-        ],
-        "getAliasedSymbol" => &[
-            FieldSpec {
-                name: "snapshot",
-                go_type: "SnapshotID",
-                kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "project",
-                go_type: "project.ID",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "symbol",
-                go_type: "SymbolReference",
-                kind: FieldKind::Object,
-                nullable: false,
-                elem: None,
-            },
-        ],
-        "getImmediateAliasedSymbol" => &[
-            FieldSpec {
-                name: "snapshot",
-                go_type: "SnapshotID",
-                kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "project",
-                go_type: "project.ID",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "symbol",
-                go_type: "SymbolReference",
-                kind: FieldKind::Object,
-                nullable: false,
-                elem: None,
-            },
-        ],
-        "getTargetSymbol" => &[
-            FieldSpec {
-                name: "snapshot",
-                go_type: "SnapshotID",
-                kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "project",
-                go_type: "project.ID",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "symbol",
-                go_type: "SymbolReference",
-                kind: FieldKind::Object,
-                nullable: false,
-                elem: None,
-            },
-        ],
-        "getExportSymbolOfSymbolForChecker" => &[
-            FieldSpec {
-                name: "snapshot",
-                go_type: "SnapshotID",
-                kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "project",
-                go_type: "project.ID",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "symbol",
-                go_type: "SymbolReference",
-                kind: FieldKind::Object,
-                nullable: false,
-                elem: None,
-            },
-        ],
-        "getFullyQualifiedName" => &[
-            FieldSpec {
-                name: "snapshot",
-                go_type: "SnapshotID",
-                kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "project",
-                go_type: "project.ID",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "symbol",
-                go_type: "SymbolReference",
-                kind: FieldKind::Object,
-                nullable: false,
-                elem: None,
-            },
-        ],
-        "getExportsOfModule" => &[
-            FieldSpec {
-                name: "snapshot",
-                go_type: "SnapshotID",
-                kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "project",
-                go_type: "project.ID",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "symbol",
-                go_type: "SymbolReference",
-                kind: FieldKind::Object,
-                nullable: false,
-                elem: None,
-            },
-        ],
         "getMemberInModuleExports" => &[
             FieldSpec {
                 name: "snapshot",
@@ -3131,98 +1479,6 @@ pub fn params_fields(method: &str) -> &'static [FieldSpec] {
                 name: "name",
                 go_type: "string",
                 kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-        ],
-        "getJsDocTags" => &[
-            FieldSpec {
-                name: "snapshot",
-                go_type: "SnapshotID",
-                kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "project",
-                go_type: "project.ID",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "symbol",
-                go_type: "SymbolReference",
-                kind: FieldKind::Object,
-                nullable: false,
-                elem: None,
-            },
-        ],
-        "getDocumentationComment" => &[
-            FieldSpec {
-                name: "snapshot",
-                go_type: "SnapshotID",
-                kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "project",
-                go_type: "project.ID",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "symbol",
-                go_type: "SymbolReference",
-                kind: FieldKind::Object,
-                nullable: false,
-                elem: None,
-            },
-        ],
-        "isArrayType" => &[
-            FieldSpec {
-                name: "snapshot",
-                go_type: "SnapshotID",
-                kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "project",
-                go_type: "project.ID",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "type",
-                go_type: "TypeID",
-                kind: FieldKind::U32,
-                nullable: false,
-                elem: None,
-            },
-        ],
-        "isReadonlySymbol" => &[
-            FieldSpec {
-                name: "snapshot",
-                go_type: "SnapshotID",
-                kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "project",
-                go_type: "project.ID",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "symbol",
-                go_type: "SymbolReference",
-                kind: FieldKind::Object,
                 nullable: false,
                 elem: None,
             },
@@ -3421,7 +1677,7 @@ pub fn params_fields(method: &str) -> &'static [FieldSpec] {
                 elem: None,
             },
         ],
-        "emit" => &[
+        "emit" | "emitToString" => &[
             FieldSpec {
                 name: "snapshot",
                 go_type: "SnapshotID",
@@ -3444,470 +1700,7 @@ pub fn params_fields(method: &str) -> &'static [FieldSpec] {
                 elem: None,
             },
         ],
-        "emitToString" => &[
-            FieldSpec {
-                name: "snapshot",
-                go_type: "SnapshotID",
-                kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "project",
-                go_type: "project.ID",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "emitOnly",
-                go_type: "uint32",
-                kind: FieldKind::U32,
-                nullable: true,
-                elem: None,
-            },
-        ],
-        "getJavaScriptEmit" => &[
-            FieldSpec {
-                name: "snapshot",
-                go_type: "SnapshotID",
-                kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "project",
-                go_type: "project.ID",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "files",
-                go_type: "[]DocumentIdentifier",
-                kind: FieldKind::DocList,
-                nullable: false,
-                elem: None,
-            },
-        ],
-        "getDeclarationEmit" => &[
-            FieldSpec {
-                name: "snapshot",
-                go_type: "SnapshotID",
-                kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "project",
-                go_type: "project.ID",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "files",
-                go_type: "[]DocumentIdentifier",
-                kind: FieldKind::DocList,
-                nullable: false,
-                elem: None,
-            },
-        ],
-        "getAnyType" => &[
-            FieldSpec {
-                name: "snapshot",
-                go_type: "SnapshotID",
-                kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "project",
-                go_type: "project.ID",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-        ],
-        "getStringType" => &[
-            FieldSpec {
-                name: "snapshot",
-                go_type: "SnapshotID",
-                kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "project",
-                go_type: "project.ID",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-        ],
-        "getNumberType" => &[
-            FieldSpec {
-                name: "snapshot",
-                go_type: "SnapshotID",
-                kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "project",
-                go_type: "project.ID",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-        ],
-        "getBooleanType" => &[
-            FieldSpec {
-                name: "snapshot",
-                go_type: "SnapshotID",
-                kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "project",
-                go_type: "project.ID",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-        ],
-        "getVoidType" => &[
-            FieldSpec {
-                name: "snapshot",
-                go_type: "SnapshotID",
-                kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "project",
-                go_type: "project.ID",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-        ],
-        "getUndefinedType" => &[
-            FieldSpec {
-                name: "snapshot",
-                go_type: "SnapshotID",
-                kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "project",
-                go_type: "project.ID",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-        ],
-        "getNullType" => &[
-            FieldSpec {
-                name: "snapshot",
-                go_type: "SnapshotID",
-                kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "project",
-                go_type: "project.ID",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-        ],
-        "getNeverType" => &[
-            FieldSpec {
-                name: "snapshot",
-                go_type: "SnapshotID",
-                kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "project",
-                go_type: "project.ID",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-        ],
-        "getUnknownType" => &[
-            FieldSpec {
-                name: "snapshot",
-                go_type: "SnapshotID",
-                kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "project",
-                go_type: "project.ID",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-        ],
-        "getBigIntType" => &[
-            FieldSpec {
-                name: "snapshot",
-                go_type: "SnapshotID",
-                kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "project",
-                go_type: "project.ID",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-        ],
-        "getESSymbolType" => &[
-            FieldSpec {
-                name: "snapshot",
-                go_type: "SnapshotID",
-                kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "project",
-                go_type: "project.ID",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-        ],
-        "getNonPrimitiveType" => &[
-            FieldSpec {
-                name: "snapshot",
-                go_type: "SnapshotID",
-                kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "project",
-                go_type: "project.ID",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-        ],
-        "getWellKnownSymbols" => &[
-            FieldSpec {
-                name: "snapshot",
-                go_type: "SnapshotID",
-                kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "project",
-                go_type: "project.ID",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-        ],
-        "getWellKnownSignatures" => &[
-            FieldSpec {
-                name: "snapshot",
-                go_type: "SnapshotID",
-                kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "project",
-                go_type: "project.ID",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-        ],
-        "getSyntacticDiagnostics" => &[
-            FieldSpec {
-                name: "snapshot",
-                go_type: "SnapshotID",
-                kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "project",
-                go_type: "project.ID",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "files",
-                go_type: "[]DocumentIdentifier",
-                kind: FieldKind::DocList,
-                nullable: false,
-                elem: None,
-            },
-        ],
-        "getBindDiagnostics" => &[
-            FieldSpec {
-                name: "snapshot",
-                go_type: "SnapshotID",
-                kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "project",
-                go_type: "project.ID",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "files",
-                go_type: "[]DocumentIdentifier",
-                kind: FieldKind::DocList,
-                nullable: false,
-                elem: None,
-            },
-        ],
-        "getSemanticDiagnostics" => &[
-            FieldSpec {
-                name: "snapshot",
-                go_type: "SnapshotID",
-                kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "project",
-                go_type: "project.ID",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "files",
-                go_type: "[]DocumentIdentifier",
-                kind: FieldKind::DocList,
-                nullable: false,
-                elem: None,
-            },
-        ],
-        "getSuggestionDiagnostics" => &[
-            FieldSpec {
-                name: "snapshot",
-                go_type: "SnapshotID",
-                kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "project",
-                go_type: "project.ID",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "files",
-                go_type: "[]DocumentIdentifier",
-                kind: FieldKind::DocList,
-                nullable: false,
-                elem: None,
-            },
-        ],
-        "getDeclarationDiagnostics" => &[
-            FieldSpec {
-                name: "snapshot",
-                go_type: "SnapshotID",
-                kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "project",
-                go_type: "project.ID",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "files",
-                go_type: "[]DocumentIdentifier",
-                kind: FieldKind::DocList,
-                nullable: false,
-                elem: None,
-            },
-        ],
-        "getProgramDiagnostics" => &[
-            FieldSpec {
-                name: "snapshot",
-                go_type: "SnapshotID",
-                kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "project",
-                go_type: "project.ID",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-        ],
-        "getGlobalDiagnostics" => &[
-            FieldSpec {
-                name: "snapshot",
-                go_type: "SnapshotID",
-                kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "project",
-                go_type: "project.ID",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-        ],
-        "getConfigFileParsingDiagnostics" => &[
-            FieldSpec {
-                name: "snapshot",
-                go_type: "SnapshotID",
-                kind: FieldKind::U64,
-                nullable: false,
-                elem: None,
-            },
-            FieldSpec {
-                name: "project",
-                go_type: "project.ID",
-                kind: FieldKind::Str,
-                nullable: false,
-                elem: None,
-            },
-        ],
-        "startCPUProfile" => &[FieldSpec {
-            name: "dir",
-            go_type: "string",
-            kind: FieldKind::Str,
-            nullable: false,
-            elem: None,
-        }],
-        "saveHeapProfile" => &[FieldSpec {
+        "startCPUProfile" | "saveHeapProfile" => &[FieldSpec {
             name: "dir",
             go_type: "string",
             kind: FieldKind::Str,
@@ -4208,7 +2001,6 @@ pub fn struct_fields(name: &str) -> &'static [FieldSpec] {
                 elem: None,
             },
         ],
-        "EnsurePrograms" => &[],
         "FileNotifications" => &[
             FieldSpec {
                 name: "invalidateAll",

@@ -1148,9 +1148,9 @@ pub(crate) struct prefetchedImport {
 }
 
 // A sub task of an import, as `add_sub_task_normalized` would build it, computed on the worker pool from what the task
-// map held when the round's prefetch started. Everything depends only on the file, its metadata, the resolution and
-// the tasks that exist before the round; `data_id` is `NO_DATA` for a path first seen in this round, and the
-// sequential load then looks it up again (an earlier file of the round may have added it).
+// map held when the prefetch batch started. Everything depends only on the file, its metadata, the resolution and
+// the tasks that exist before the batch; `data_id` is `NO_DATA` for a path without a task then, and the sequential
+// load then looks it up again (a file loaded since may have added it).
 pub(crate) struct preparedSubTask {
     pub(crate) normalized_file_path: Arc<str>,
     pub(crate) path: Path,
@@ -1171,7 +1171,7 @@ pub(crate) struct prefetchContext<'a> {
     pub(crate) supported_extensions_with_json: &'a [Vec<String>],
     pub(crate) content_mapper_extensions: &'a [String],
     pub(crate) content_mapper_mu: &'a Mutex<contentMapperBookkeeping>,
-    // The tasks that exist when the round starts (read-only until its sequential load).
+    // The tasks that exist when the prefetch batch starts (read-only until the load resumes).
     pub(crate) task_data_by_path: &'a FxHashMap<Path, crate::filesparser::DataId>,
     pub(crate) datas: &'a [crate::filesparser::parseTaskData],
 }
@@ -1358,7 +1358,7 @@ pub(crate) fn prefetch_resolutions(
     }
 }
 
-// The sub task for a resolved import (what `add_sub_task_normalized` builds), from the tasks known before the round.
+// The sub task for a resolved import (what `add_sub_task_normalized` builds), from the tasks known before the prefetch batch.
 fn prepare_sub_task(
     ctx: &prefetchContext,
     resolved: &ResolvedModule,
@@ -1806,7 +1806,7 @@ impl fileLoader {
     }
 
     // Appends a sub task the prefetch prepared (`prepare_sub_task`). A path the prefetch did not know may have got a task
-    // from an earlier file of the round: share its strings then, as `add_sub_task_normalized` does.
+    // from a file loaded since the prefetch batch: share its strings then, as `add_sub_task_normalized` does.
     pub(crate) fn add_prepared_sub_task(&mut self, t: TaskId, prepared: preparedSubTask) {
         let mut sub_task = parseTask::with_path(prepared.normalized_file_path, prepared.path);
         sub_task.data_id = prepared.data_id;

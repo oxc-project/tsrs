@@ -428,9 +428,6 @@ impl TasksByCasing {
         debug_assert!(!self.contains_key(&casing));
         self.0.push((casing, task));
     }
-    fn values(&self) -> impl Iterator<Item = &TaskId> {
-        self.0.iter().map(|(_, task)| task)
-    }
 }
 
 #[derive(Clone, Copy)]
@@ -461,25 +458,26 @@ impl NodeModulesDepthLimit {
     }
 }
 
-// Go queues one closure per task on a work group and runs them concurrently. Here the queue is
-// drained in rounds: every file that a round will load is first parsed in parallel, then the
-// round's closures run sequentially. The resulting task graph (and therefore the file order
-// computed by getProcessedFiles) is the same fixed point Go reaches.
+// Go queues one closure per task on a work group and runs them concurrently. Here the closures run sequentially, in
+// the order of Go's single-threaded work group (`parse`), and the files they load are parsed ahead in parallel
+// batches (`prefetch`).
 pub(crate) struct filesParser {
     pub(crate) task_data_by_path: FxHashMap<Path, DataId>,
     pub(crate) datas: Vec<parseTaskData>,
     queue: Vec<queuedTask>,
     max_depth: NodeModulesDepthLimit,
     single_threaded: bool,
-    // Files parsed ahead of the round that loads them, by path (see `prefetch`).
+    // Files parsed ahead of the load, by path (see `prefetch`, `adopt`).
     speculative: FxHashMap<Path, speculativeParse>,
     speculated: bool,
 }
 
-// A file parsed, and its references resolved, before a task for it exists: what `prefetch` would compute for the
-// task once a later round queues it.
+// A file parsed, and its references resolved, before the load reaches it: by the speculative walk, before a task for
+// it exists, or for a queued task. `adopt` hands it to the first task that loads the file under this name.
 struct speculativeParse {
     file_name: String,
+    // Parsed as a lib file: lib metadata, which `load_metadata` still counts (`adopt`).
+    is_lib: bool,
     metadata: SourceFileMetaData,
     file: Option<P<SourceFile>>,
     resolutions: Option<Box<prefetchedResolutions>>,
@@ -572,7 +570,7 @@ impl speculation<'_> {
             return false;
         }
         // A content-mapped file is transformed by an external mapper, and a failed transform counts towards the
-        // mapper's failure budget: it is parsed only by the round that loads it, never ahead of it.
+        // mapper's failure budget: it is parsed only once a queued task names it, never by the walk.
         if tspath::file_extension_is_one_of(
             file_name,
             &crate::fileloader::str_slice(ctx.content_mapper_extensions),
@@ -631,10 +629,10 @@ impl speculation<'_> {
         if let (Some(file), Some(resolutions)) = (file, &resolutions) {
             self.spawn_sub_tasks(scope, file, resolutions);
         }
-        self.results
-            .lock()
-            .unwrap()
-            .push((path, speculativeParse { file_name, metadata, file, resolutions }));
+        self.results.lock().unwrap().push((
+            path,
+            speculativeParse { file_name, is_lib: false, metadata, file, resolutions },
+        ));
         if let Some(start) = job_start {
             let wall = start.elapsed().as_nanos() as u64;
             festats::add(Cat::JobWall, wall);
@@ -662,46 +660,53 @@ impl filesParser {
         loader.files_parser.task_data_by_path.reserve(tasks.len());
         loader.files_parser.datas.reserve(tasks.len());
         Self::start(loader, tasks, 0);
-        // Go's single-threaded work group runs the queued closures last-queued first (core/workgroup.go), a depth-first
-        // order that the rounds below do not keep. The program's files do not depend on it, but two outputs do, and
-        // for them the load runs Go's order:
-        // - which files a failing content mapper reports before the failure budget disables it (fileloader.go:681,
-        //   the tsc contentMapperFailures scenarios), single-threaded;
-        // - `--traceResolution`, at any checker count: a lookup traces as served "according to earlier cached
-        //   lookups" when an earlier resolution made it. Go's parallel order is a race; its single-threaded order is
-        //   the one deterministic reference. Traced resolutions run sequentially anyway (`prefetch`).
+        // The load runs the queued tasks in the order of Go's single-threaded work group: last queued first
+        // (core/workgroup.go), a depth-first order. The program depends on it: a file reached first through
+        // node_modules starts its sub tasks at depth 1, and a later visit at depth 0 lowers only the file's own depth
+        // (`run_queued`), so whether the files it imports are external libraries (and whether JS files beyond
+        // maxNodeModuleJsDepth are loaded) depends on which visit comes first. Go's parallel order is a race; its
+        // single-threaded order is the one deterministic reference, as it is for `--traceResolution` (a lookup traces
+        // as served "according to earlier cached lookups" when an earlier resolution made it).
+        //
+        // The parsing stays parallel: before the load reaches a task whose file is not parsed yet, `prefetch` parses
+        // (and resolves) every queued task that was not offered to it before, and the first parallel batch walks
+        // ahead through the files those certainly load. Not with --singleThreaded or --traceResolution (traced
+        // resolutions run sequentially, in this order). Which files a failing content mapper reports before the
+        // failure budget disables it follows the load order too (fileloader.go:681, the tsc contentMapperFailures
+        // scenarios), single-threaded.
         let trace_resolution =
             loader.opts.config.compiler_options().unwrap().trace_resolution.is_true();
-        if trace_resolution
-            || (loader.files_parser.single_threaded && !loader.content_mapper_extensions.is_empty())
-        {
-            while let Some(item) = loader.files_parser.queue.pop() {
-                Self::run_queued(loader, item);
+        let prefetch = !trace_resolution && !loader.files_parser.single_threaded;
+        let diagnostics = loader.opts.config.compiler_options().unwrap().diagnostics_enabled();
+        let start = diagnostics.then(std::time::Instant::now);
+        let mut prefetching = std::time::Duration::ZERO;
+        // The queue below this index was offered to `prefetch`.
+        let mut offered = 0;
+        while let Some(&item) = loader.files_parser.queue.last() {
+            let queue_len = loader.files_parser.queue.len();
+            if prefetch && offered < queue_len && Self::needs_parse(loader, &item) {
+                tsrs_core::phases::count(diagnostics, "Program:   prefetch batches", 1);
+                let prefetch_start = diagnostics.then(std::time::Instant::now);
+                let batch = loader.files_parser.queue[offered..].to_vec();
+                Self::prefetch(loader, &batch);
+                offered = queue_len;
+                if let Some(prefetch_start) = prefetch_start {
+                    prefetching += prefetch_start.elapsed();
+                }
             }
-            return;
+            loader.files_parser.queue.pop();
+            offered = offered.min(queue_len - 1);
+            Self::run_queued(loader, item);
         }
-        loop {
-            let round = std::mem::take(&mut loader.files_parser.queue);
-            if round.is_empty() {
-                break;
-            }
-            tsrs_core::phases::count(
-                loader.opts.config.compiler_options().unwrap().diagnostics_enabled(),
-                "Program:   loader rounds",
-                1,
+        if let Some(start) = start {
+            tsrs_core::phases::record(
+                "Program:   sequential load",
+                start.elapsed().saturating_sub(prefetching),
             );
-            Self::prefetch(loader, &round);
-            let start = tsrs_core::phases::Timer::new(
-                loader.opts.config.compiler_options().unwrap().diagnostics_enabled(),
-            );
-            for item in round {
-                Self::run_queued(loader, item);
-            }
-            start.record("Program:   sequential load");
         }
         if loader.files_parser.speculated && !loader.files_parser.speculative.is_empty() {
             tsrs_core::phases::count(
-                loader.opts.config.compiler_options().unwrap().diagnostics_enabled(),
+                diagnostics,
                 "Program:   parsed ahead, unused",
                 loader.files_parser.speculative.len() as u64,
             );
@@ -787,6 +792,7 @@ impl filesParser {
             let task_by_file_name = loader.files_parser.datas[data].tasks.0[index].1;
             let mut load_sub_tasks = start_subtasks;
             if !loader.tasks[task_by_file_name].loaded {
+                Self::adopt(loader, task_by_file_name);
                 load(task_by_file_name, loader);
                 if loader.tasks[task_by_file_name].redirected_parse_task.is_some() {
                     // Always load redirected task
@@ -807,66 +813,83 @@ impl filesParser {
         }
     }
 
-    // Before a round's sequential load: adopts what an earlier round's speculative walk parsed, then, when at least
-    // two files remain and not --singleThreaded, in parallel computes the metadata of every remaining file (lib files
-    // get the default), parses and binds it and (unless --traceResolution) resolves its references, type reference
-    // directives and imports. The first parallel round also walks ahead, parsing, binding and resolving the files those
+    // The tasks whose file loading an item would parse (`run_queued` loads every casing of the item's data): none when
+    // the item is elided by depth.
+    fn parse_candidates(loader: &fileLoader, item: &queuedTask) -> impl Iterator<Item = TaskId> {
+        let task = &loader.tasks[item.task];
+        let current_depth = if task.increase_depth { item.depth + 1 } else { item.depth };
+        let elided = task.elide_on_depth && !loader.files_parser.max_depth.includes(current_depth);
+        let data = &loader.files_parser.datas[item.data];
+        let unlisted =
+            (!elided && !data.tasks.contains_key(&task.normalized_file_path)).then_some(item.task);
+        let listed = if elided { &[][..] } else { &data.tasks.0[..] };
+        listed
+            .iter()
+            .map(|(_, task)| *task)
+            .chain(unlisted)
+            .filter(|&candidate| task_needs_parse(loader, candidate))
+    }
+
+    // Whether running the item would parse a file that `prefetch` has not parsed.
+    fn needs_parse(loader: &fileLoader, item: &queuedTask) -> bool {
+        Self::parse_candidates(loader, item).any(|t| !Self::parsed_ahead(loader, t))
+    }
+
+    // Whether `adopt` has a parse for the task.
+    fn parsed_ahead(loader: &fileLoader, t: TaskId) -> bool {
+        let task = &loader.tasks[t];
+        loader.files_parser.speculative.get(&task.path).is_some_and(|parsed| {
+            *parsed.file_name == *task.normalized_file_path
+                && parsed.is_lib == task.lib_file.is_some()
+        })
+    }
+
+    // Before `load`: hands the task what `prefetch` parsed for its file under its name. A parse is kept by path, not on
+    // the task that was queued when it ran: in the depth-first load, another task for the same file name can pop first.
+    fn adopt(loader: &mut fileLoader, t: TaskId) {
+        if loader.files_parser.speculative.is_empty()
+            || loader.tasks[t].file.is_some()
+            || loader.tasks[t].metadata_loaded
+            || !Self::parsed_ahead(loader, t)
+            || !task_needs_parse(loader, t)
+        {
+            return;
+        }
+        let parsed = loader.files_parser.speculative.remove(&loader.tasks[t].path).unwrap();
+        let task = &mut loader.tasks[t];
+        task.data().metadata = parsed.metadata;
+        // Lib files keep metadata_loaded unset so that load_metadata still counts them.
+        task.metadata_loaded = !parsed.is_lib;
+        // A missing file stays None; load() asks the host again and records it as missing.
+        task.file = parsed.file;
+        if let Some(resolutions) = parsed.resolutions {
+            task.data().prefetched_resolutions = Some(resolutions);
+        }
+    }
+
+    // Before the load reaches a file it has not parsed: when at least two of the batch's files are not parsed yet and
+    // not --singleThreaded, in parallel computes the metadata of each (lib files get the default), parses and binds
+    // it and (unless --traceResolution) resolves its references, type reference directives and imports, keeping the
+    // results for `adopt`. The first parallel batch also walks ahead, parsing, binding and resolving the files those
     // certainly load (not with --traceResolution, project references or libReplacement). `load` falls back to doing
     // the work on the spot for anything not prefetched.
-    fn prefetch(loader: &mut fileLoader, round: &[queuedTask]) {
+    fn prefetch(loader: &mut fileLoader, batch: &[queuedTask]) {
         let mut planned: FxHashSet<(DataId, std::sync::Arc<str>)> = FxHashSet::default();
         let mut to_parse: Vec<TaskId> = Vec::new();
-        for item in round {
-            let task = &loader.tasks[item.task];
-            let current_depth = if task.increase_depth { item.depth + 1 } else { item.depth };
-            if task.elide_on_depth && !loader.files_parser.max_depth.includes(current_depth) {
-                continue;
-            }
-            let data = &loader.files_parser.datas[item.data];
-            let unlisted =
-                (!data.tasks.contains_key(&task.normalized_file_path)).then_some(item.task);
-            // `task_needs_parse` before the key: it is false for a loaded task, and most of a later round's queued
-            // sub tasks name files that an earlier round loaded (vscode's round 2: ~110k of them for 16 files).
-            to_parse.extend(data.tasks.values().copied().chain(unlisted).filter(|&candidate| {
-                task_needs_parse(loader, candidate)
+        for item in batch {
+            // `task_needs_parse` before the key: it is false for a loaded task, and most queued sub tasks name files
+            // that are loaded already (vscode: ~110k of them for 10k files).
+            to_parse.extend(Self::parse_candidates(loader, item).filter(|&candidate| {
+                !Self::parsed_ahead(loader, candidate)
                     && planned.insert((
                         item.data,
                         Arc::clone(&loader.tasks[candidate].normalized_file_path),
                     ))
             }));
         }
-        // The sub tasks the round's loads will append to `loader.tasks` (at most), reserved at once: on vscode the first
+        // The sub tasks the loads will append to `loader.tasks` (at most), reserved at once: on vscode the first
         // sequential load appends ~110k tasks, and growing the vector by doubling copied and faulted it repeatedly.
         let mut sub_tasks = 0;
-        // Files that an earlier round's speculative walk parsed. The walk only takes files that are certainly loaded
-        // as non-lib tasks under this name, so its metadata, file and resolutions are what this round would compute.
-        if !loader.files_parser.speculative.is_empty() {
-            let mut rest = Vec::with_capacity(to_parse.len());
-            for t in to_parse {
-                let task = &loader.tasks[t];
-                let hit = task.lib_file.is_none()
-                    && loader
-                        .files_parser
-                        .speculative
-                        .get(&task.path)
-                        .is_some_and(|s| *s.file_name == *task.normalized_file_path);
-                if !hit {
-                    rest.push(t);
-                    continue;
-                }
-                let speculative =
-                    loader.files_parser.speculative.remove(&task.path.clone()).unwrap();
-                let task = &mut loader.tasks[t];
-                task.data().metadata = speculative.metadata;
-                task.metadata_loaded = true;
-                task.file = speculative.file;
-                if let Some(resolutions) = speculative.resolutions {
-                    sub_tasks += resolutions.sub_task_bound();
-                    task.data().prefetched_resolutions = Some(resolutions);
-                }
-            }
-            to_parse = rest;
-        }
         if to_parse.len() < 2 || loader.files_parser.single_threaded {
             loader.tasks.reserve(sub_tasks);
             return;
@@ -876,9 +899,9 @@ impl filesParser {
         // sequential: they say whether a lookup was served from a cache, which depends on the resolution order.
         let resolve_ahead =
             !loader.opts.config.compiler_options().unwrap().trace_resolution.is_true();
-        // The first parallel round also walks ahead: each parsed file's sub tasks that will certainly be loaded are
-        // parsed and resolved on the spot, recursively, instead of one dependency level per round (Go has no
-        // rounds; it queues each sub task as soon as it is found). Only files the program loads are touched, so the
+        // The first parallel batch also walks ahead: each parsed file's sub tasks that will certainly be loaded are
+        // parsed and resolved on the spot, recursively, instead of in a later batch once the load queues them (Go
+        // parses each sub task as soon as it is queued). Only files the program loads are touched, so the
         // resolver and package.json caches end up with the same entries. Not with project references (their
         // redirect lookups record symlink state) or lib replacement (a lib file can live in node_modules).
         let speculate = resolve_ahead
@@ -950,7 +973,7 @@ impl filesParser {
                                 &metadata,
                             ))
                         });
-                        // Bind here too: the round is bound by file system calls, and the checkers would bind every
+                        // Bind here too: the batch is bound by file system calls, and the checkers would bind every
                         // file on the same pool later (binding depends only on the file).
                         festats::timed(Cat::Bind, || file.map(crate::fileregions::bind));
                         if let Some(file) = file {
@@ -1035,17 +1058,35 @@ impl filesParser {
                 speculative.len() as u64,
             );
         }
+        sub_tasks += speculative
+            .iter()
+            .filter_map(|(_, parsed)| parsed.resolutions.as_ref())
+            .map(|resolutions| resolutions.sub_task_bound())
+            .sum::<usize>();
         loader.files_parser.speculative.extend(speculative);
         for (t, metadata, file, resolutions) in prefetched {
-            let task = &mut loader.tasks[t];
-            task.data().metadata = metadata;
-            // Lib files keep metadata_loaded unset so that load_metadata still counts them.
-            task.metadata_loaded = task.lib_file.is_none();
-            // A missing file stays None; load() asks the host again and records it as missing.
-            task.file = file;
-            if let Some(resolutions) = resolutions {
+            if let Some(resolutions) = &resolutions {
                 sub_tasks += resolutions.sub_task_bound();
-                task.data().prefetched_resolutions = Some(resolutions);
+            }
+            let task = &mut loader.tasks[t];
+            let parsed = speculativeParse {
+                file_name: task.normalized_file_path.to_string(),
+                is_lib: task.lib_file.is_some(),
+                metadata,
+                file,
+                resolutions,
+            };
+            match loader.files_parser.speculative.entry(task.path.clone()) {
+                std::collections::hash_map::Entry::Vacant(entry) => {
+                    entry.insert(parsed);
+                }
+                // Another casing of the file, parsed in the same batch: it stays on its task.
+                std::collections::hash_map::Entry::Occupied(_) => {
+                    task.data().metadata = parsed.metadata;
+                    task.metadata_loaded = !parsed.is_lib;
+                    task.file = parsed.file;
+                    task.data().prefetched_resolutions = parsed.resolutions;
+                }
             }
         }
         loader.tasks.reserve(sub_tasks);

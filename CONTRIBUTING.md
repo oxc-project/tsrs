@@ -133,7 +133,7 @@ Capture its combined stdout and stderr, replacing the case's absolute directory 
   all available CPU checkers, three runs each, plus three fixed random assignments per count. It also sweeps every
   regression fixture under default and seeded random scheduling at two and four checkers. Diagnostic order and exit
   status must match; crashes and incomplete runs fail.
-  See [the determinism task](tasks/determinism/DETERMINISM.md) for snapshot updates. Regression output must still match
+  See [the determinism task](tasks/determinism/README.md) for snapshot updates. Regression output must still match
   the checked-in reference output; `fourslash` runs the server framing checks, gate checks, and
   [Go fourslash subprocess gate](tools/go-fourslash/README.md#ci-gate); `node-api-clients` runs the pinned upstream
   sync and async client suites against both compilers.

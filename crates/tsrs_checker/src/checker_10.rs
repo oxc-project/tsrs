@@ -2855,7 +2855,8 @@ impl Checker {
                 ));
             }
         }
-        lazy.members.borrow_mut().insert(name.to_string(), member);
+        // Recursive requests see the pending entry and return before they can remove it.
+        *lazy.members.borrow_mut().get_mut(name).expect("pending mapped member") = member;
         self.lazy_member_stats.mapped_member_lookups += 1;
         Some(member)
     }

@@ -3625,7 +3625,8 @@ impl Checker {
     // flow.go:2047
     pub(crate) fn get_effects_signature(&mut self, node: P<Node>) -> Option<P<Signature>> {
         let links = self.signature_links.get(node);
-        let mut signature = links.effects_signature.get();
+        let effects_signature = links.effects_signature(node);
+        let mut signature = effects_signature.get();
         if signature.is_none() {
             // A call expression parented by an expression statement is a potential assertion. Other call
             // expressions are potential type predicate function calls. In order to avoid triggering
@@ -3668,7 +3669,7 @@ impl Checker {
             {
                 signature = Some(self.unknown_signature);
             }
-            links.effects_signature.set(signature);
+            effects_signature.set(signature);
         }
         if signature == Some(self.unknown_signature) {
             return None;

@@ -217,8 +217,9 @@ impl Checker {
     ) -> Option<P<Signature>> {
         let node = decorator.parent().unwrap();
         let links = self.signature_links.get(node);
-        if links.decorator_signature.get().is_none() {
-            links.decorator_signature.set(Some(self.any_signature));
+        let decorator_signature = links.decorator_signature(node);
+        if decorator_signature.get().is_none() {
+            decorator_signature.set(Some(self.any_signature));
             match node.kind() {
                 Kind::ClassDeclaration | Kind::ClassExpression => {
                     // For a class decorator, the `target` is the type of the class (e.g. the
@@ -229,7 +230,7 @@ impl Checker {
                     let void_type = self.void_type;
                     let return_type = self.get_union_type(&[target_type, void_type]);
                     let sig = self.new_call_signature(&[], None, &[target_param], return_type);
-                    links.decorator_signature.set(Some(sig));
+                    decorator_signature.set(Some(sig));
                 }
                 Kind::Parameter => 'case: {
                     let parent = node.parent().unwrap();
@@ -272,7 +273,7 @@ impl Checker {
                         &[target_param, key_param, index_param],
                         void_type,
                     );
-                    links.decorator_signature.set(Some(sig));
+                    decorator_signature.set(Some(sig));
                 }
                 Kind::MethodDeclaration
                 | Kind::GetAccessor
@@ -306,22 +307,22 @@ impl Checker {
                             &[target_param, key_param, descriptor_param],
                             union,
                         );
-                        links.decorator_signature.set(Some(sig));
+                        decorator_signature.set(Some(sig));
                     } else {
                         let void_type = self.void_type;
                         let union = self.get_union_type(&[return_type, void_type]);
                         let sig =
                             self.new_call_signature(&[], None, &[target_param, key_param], union);
-                        links.decorator_signature.set(Some(sig));
+                        decorator_signature.set(Some(sig));
                     }
                 }
                 _ => {}
             }
         }
-        if links.decorator_signature.get() == Some(self.any_signature) {
+        if decorator_signature.get() == Some(self.any_signature) {
             return None;
         }
-        links.decorator_signature.get()
+        decorator_signature.get()
     }
 
     // checker.go:30718
@@ -411,8 +412,9 @@ impl Checker {
         // `undefined` then the "output type" is the "input type").
         let node = decorator.parent().unwrap();
         let links = self.signature_links.get(node);
-        if links.decorator_signature.get().is_none() {
-            links.decorator_signature.set(Some(self.any_signature));
+        let decorator_signature = links.decorator_signature(node);
+        if decorator_signature.get().is_none() {
+            decorator_signature.set(Some(self.any_signature));
             match node.kind() {
                 Kind::ClassDeclaration | Kind::ClassExpression => {
                     // Class decorators have a `context` of `ClassDecoratorContext<Class>`, where the `Class` type
@@ -425,7 +427,7 @@ impl Checker {
                         context_type,
                         target_type,
                     );
-                    links.decorator_signature.set(Some(sig));
+                    decorator_signature.set(Some(sig));
                 }
                 Kind::MethodDeclaration | Kind::GetAccessor | Kind::SetAccessor => 'case: {
                     if !ast::is_class_like(node.parent().unwrap()) {
@@ -475,7 +477,7 @@ impl Checker {
                         context_type,
                         target_type,
                     );
-                    links.decorator_signature.set(Some(sig));
+                    decorator_signature.set(Some(sig));
                 }
                 Kind::PropertyDeclaration => 'case: {
                     if !ast::is_class_like(node.parent().unwrap()) {
@@ -522,15 +524,15 @@ impl Checker {
                         context_type,
                         return_type,
                     );
-                    links.decorator_signature.set(Some(sig));
+                    decorator_signature.set(Some(sig));
                 }
                 _ => {}
             }
         }
-        if links.decorator_signature.get() == Some(self.any_signature) {
+        if decorator_signature.get() == Some(self.any_signature) {
             return None;
         }
-        links.decorator_signature.get()
+        decorator_signature.get()
     }
 
     // checker.go:30896

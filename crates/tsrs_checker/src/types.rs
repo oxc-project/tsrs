@@ -856,17 +856,33 @@ pub struct SourceFileLinks {
 #[derive(Default)]
 pub struct SignatureLinks {
     pub resolved_signature: Cell<Option<P<Signature>>>, // Cached signature of signature node or call expression
-    pub effects_signature: Cell<Option<P<Signature>>>, // Signature with possible control flow effects
-    pub decorator_signature: Cell<Option<P<Signature>>>, // Signature for decorator as if invoked by the runtime
+    // Go keeps these in separate fields: effects belong to call/binary expressions, while decorator signatures
+    // belong to the decorated declarations. Their node kinds never overlap, so they can share one handle.
+    effects_or_decorator_signature: Cell<Option<P<Signature>>>,
 }
 
-// Three optional signature handles; the `P` arena rounds compressed 12-byte values to 16-byte slots.
+impl SignatureLinks {
+    #[inline]
+    pub(crate) fn effects_signature(&self, node: P<Node>) -> &Cell<Option<P<Signature>>> {
+        debug_assert!(ast::is_call_expression(node) || ast::is_binary_expression(node));
+        &self.effects_or_decorator_signature
+    }
+
+    #[inline]
+    pub(crate) fn decorator_signature(&self, node: P<Node>) -> &Cell<Option<P<Signature>>> {
+        // Invalid decorator parents still cache the `any_signature` sentinel before returning no signature.
+        debug_assert!(!ast::is_call_expression(node) && !ast::is_binary_expression(node));
+        &self.effects_or_decorator_signature
+    }
+}
+
+// Two optional handles fit in one compressed arena slot, rather than rounding three handles up to 16 bytes.
 #[cfg(target_pointer_width = "64")]
 const _: () = assert!(
-    std::mem::size_of::<SignatureLinks>() == if tsrs_core::COMPRESSED_PTRS { 12 } else { 24 }
+    std::mem::size_of::<SignatureLinks>() == if tsrs_core::COMPRESSED_PTRS { 8 } else { 16 }
 );
 #[cfg(target_pointer_width = "32")]
-const _: () = assert!(std::mem::size_of::<SignatureLinks>() == 12);
+const _: () = assert!(std::mem::size_of::<SignatureLinks>() == 8);
 
 // Note that for types of different kinds, the numeric values of TypeFlags determine the order
 // computed by the CompareTypes function and therefore the order of constituent types in union types.

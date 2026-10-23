@@ -50,7 +50,7 @@ function prepare(module, request, host, io) {
     let instance;
     let memory;
     const view = () => new DataView(memory.buffer);
-    const bytes = () => new Uint8Array(memory.buffer);
+    const bytes = (ptr = 0, len) => new Uint8Array(memory.buffer, ptr, len);
     const env = Object.entries(io.env ?? {}).map(([k, v]) => encoder.encode(`${k}=${v}\0`));
     const stdout = io.stdout ?? (() => {});
     const stderr = io.stderr ?? (() => {});
@@ -141,11 +141,12 @@ function prepare(module, request, host, io) {
         },
     };
 
-    const text = (ptr, len) => decoder.decode(bytes().subarray(ptr, ptr + len));
+    // Workers can reject subarray's species construction above 128 MiB; direct views work at those offsets.
+    const text = (ptr, len) => decoder.decode(bytes(ptr, len));
     const splitNul = (ptr, len) => {
-        const b = bytes().subarray(ptr, ptr + len);
+        const b = bytes(ptr, len);
         const i = b.indexOf(0);
-        return [decoder.decode(b.subarray(0, i < 0 ? len : i)), b.slice(i < 0 ? len : i + 1)];
+        return [decoder.decode(bytes(ptr, i < 0 ? len : i)), b.slice(i < 0 ? len : i + 1)];
     };
     const stage = (data) => {
         staged = typeof data === "string" ? encoder.encode(data) : data;

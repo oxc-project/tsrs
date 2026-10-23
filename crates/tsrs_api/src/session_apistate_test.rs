@@ -1,5 +1,5 @@
 // Port of tsc/internal/api/session_apistate_test.go: API sessions attached to a language server's project
-// session (`Session::new_lsp`, `getCurrentLanguageServerSnapshot`). Requests go through `handle_request`, so
+// session (`Session::new_lsp_session`, `getCurrentLanguageServerSnapshot`). Requests go through `handle_request`, so
 // the params are decoded as on the wire.
 
 use std::sync::Arc;
@@ -132,7 +132,7 @@ fn get_current_language_server_snapshot_adopts_changes() {
         (FILE_NAME, "export const x = 1;"),
     ]);
 
-    let session = Session::new_lsp(Arc::clone(&project_session), false);
+    let session = Session::new_lsp_session(Arc::clone(&project_session), false);
     let response = get_current(
         &session,
         &format!(r#"{{"changes":{{"openProjects":["{CONFIG_FILE_NAME}"]}}}}"#),
@@ -214,7 +214,7 @@ fn get_current_language_server_snapshot_close_and_reopen_project() {
     const CONFIG_FILE_NAME: &str = "/home/projects/p/tsconfig.json";
     let (project_session, _) = setup(&[(CONFIG_FILE_NAME, "{}")]);
 
-    let session = Session::new_lsp(Arc::clone(&project_session), false);
+    let session = Session::new_lsp_session(Arc::clone(&project_session), false);
     get_current(&session, &format!(r#"{{"changes":{{"openProjects":["{CONFIG_FILE_NAME}"]}}}}"#))
         .unwrap();
 
@@ -241,7 +241,7 @@ fn get_current_language_server_snapshot_close_and_reopen_file() {
     const FILE_NAME: &str = "/home/projects/p/index.ts";
     let (project_session, _) =
         setup(&[("/home/projects/p/tsconfig.json", "{}"), (FILE_NAME, "export const value = 1;")]);
-    let session = Session::new_lsp(Arc::clone(&project_session), false);
+    let session = Session::new_lsp_session(Arc::clone(&project_session), false);
     get_current(&session, &format!(r#"{{"changes":{{"openFiles":["{FILE_NAME}"]}}}}"#)).unwrap();
 
     get_current(
@@ -272,7 +272,7 @@ fn get_current_language_server_snapshot_flushes_pending_lsp_changes() {
         lsproto::LanguageKind::TypeScript,
     );
 
-    let session = Session::new_lsp(Arc::clone(&project_session), false);
+    let session = Session::new_lsp_session(Arc::clone(&project_session), false);
     let response = get_current(&session, "{}").unwrap();
     assert_eq!(handle(&response), project_session.snapshot().id());
 
@@ -296,7 +296,7 @@ fn get_current_language_server_snapshot_reports_opened_files_in_request_order() 
         (CONFIGURED_FILE, "export const configured = 1;"),
         (INFERRED_FILE, "export const inferred = 1;"),
     ]);
-    let session = Session::new_lsp(Arc::clone(&project_session), false);
+    let session = Session::new_lsp_session(Arc::clone(&project_session), false);
 
     let changes = format!(r#"{{"openFiles":["{INFERRED_FILE}","{CONFIGURED_FILE}"]}}"#);
     let first = get_current(&session, &format!(r#"{{"changes":{changes}}}"#)).unwrap();
@@ -332,7 +332,7 @@ fn get_current_language_server_snapshot_creates_and_removes_programs() {
     const FILE_NAME: &str = "/home/projects/p/index.ts";
     let (project_session, _) = setup(&[(FILE_NAME, "export const value = 1;")]);
 
-    let session = Session::new_lsp(Arc::clone(&project_session), false);
+    let session = Session::new_lsp_session(Arc::clone(&project_session), false);
     let created = get_current(&session, &create_program(FILE_NAME)).unwrap();
     assert_eq!(len(get(&created, "projects")), 1);
     assert_eq!(synthetic_projects(&project_session), 1);
@@ -357,7 +357,7 @@ fn open_file_preserves_windows_drive_letter_case() {
         "D:/repo",
     );
 
-    let session = Session::new_lsp(Arc::clone(&project_session), false);
+    let session = Session::new_lsp_session(Arc::clone(&project_session), false);
     let response =
         get_current(&session, &format!(r#"{{"changes":{{"openFiles":["{FILE_NAME}"]}}}}"#))
             .unwrap();
@@ -377,7 +377,7 @@ fn closing_api_session_removes_created_language_server_programs() {
     const FILE_NAME: &str = "/home/projects/p/index.ts";
     let (project_session, _) = setup(&[(FILE_NAME, "export const value = 1;")]);
 
-    let session = Session::new_lsp(Arc::clone(&project_session), false);
+    let session = Session::new_lsp_session(Arc::clone(&project_session), false);
     get_current(&session, &create_program(FILE_NAME)).unwrap();
     assert_eq!(synthetic_projects(&project_session), 1);
 
@@ -392,10 +392,10 @@ fn language_server_program_ownership_is_isolated_by_api_session() {
     const FILE_NAME: &str = "/home/projects/p/index.ts";
     let (project_session, _) = setup(&[(FILE_NAME, "export const value = 1;")]);
 
-    let owner = Session::new_lsp(Arc::clone(&project_session), false);
+    let owner = Session::new_lsp_session(Arc::clone(&project_session), false);
     get_current(&owner, &create_program(FILE_NAME)).unwrap();
 
-    let other = Session::new_lsp(Arc::clone(&project_session), false);
+    let other = Session::new_lsp_session(Arc::clone(&project_session), false);
     get_current(&other, r#"{"changes":{"removePrograms":["/dev/null/synthetic/1"]}}"#).unwrap();
     assert_eq!(synthetic_projects(&project_session), 1);
 
@@ -412,11 +412,11 @@ fn language_server_program_reconfiguration_is_isolated_by_api_session() {
     const FILE_NAME: &str = "/home/projects/p/index.ts";
     let (project_session, _) = setup(&[(FILE_NAME, "export const value = 1;")]);
 
-    let owner = Session::new_lsp(Arc::clone(&project_session), false);
+    let owner = Session::new_lsp_session(Arc::clone(&project_session), false);
     let created = get_current(&owner, &create_program(FILE_NAME)).unwrap();
     let program_id = str_of(get(&created, "projects.0.id")).to_string();
 
-    let other = Session::new_lsp(Arc::clone(&project_session), false);
+    let other = Session::new_lsp_session(Arc::clone(&project_session), false);
     let err = get_current(
         &other,
         &format!(
@@ -439,14 +439,14 @@ fn opening_project_owned_by_another_api_session_ensures_program() {
         setup(&[(CONFIG_FILE_NAME, "{}"), (FILE_NAME, "export const value = 1;")]);
     let open_project = format!(r#"{{"changes":{{"openProjects":["{CONFIG_FILE_NAME}"]}}}}"#);
 
-    let owner = Session::new_lsp(Arc::clone(&project_session), false);
+    let owner = Session::new_lsp_session(Arc::clone(&project_session), false);
     get_current(&owner, &open_project).unwrap();
     fs.write_file(FILE_NAME, "export const value = 2;").unwrap();
     did_change_watched_file(&project_session, FILE_NAME);
     get_current(&owner, "{}").unwrap();
     assert!(configured_project(&project_session, CONFIG_FILE_NAME).unwrap().is_dirty());
 
-    let other = Session::new_lsp(Arc::clone(&project_session), false);
+    let other = Session::new_lsp_session(Arc::clone(&project_session), false);
     let opened = get_current(&other, &open_project).unwrap();
     assert_eq!(get(&opened, "projects.0.dirty"), &Value::Bool(false));
     assert_eq!(open_projects(&other), 1);
@@ -462,7 +462,7 @@ fn opening_project_owned_by_another_api_session_ensures_program() {
 #[test]
 fn failed_language_server_snapshot_open_is_not_adopted() {
     let (project_session, _) = setup(&[("/notes.txt", "text")]);
-    let session = Session::new_lsp(Arc::clone(&project_session), false);
+    let session = Session::new_lsp_session(Arc::clone(&project_session), false);
 
     let base_snapshot = project_session.snapshot();
     let err = get_current(&session, r#"{"changes":{"openFiles":["/notes.txt"]}}"#).unwrap_err();
@@ -490,7 +490,7 @@ fn get_current_language_server_snapshot_opening_lsp_file_ensures_configured_prog
         lsproto::LanguageKind::TypeScript,
     );
 
-    let session = Session::new_lsp(Arc::clone(&project_session), false);
+    let session = Session::new_lsp_session(Arc::clone(&project_session), false);
     let initial = get_current(&session, "{}").unwrap();
     assert_eq!(get(&initial, "projects.0.dirty"), &Value::Bool(false));
     let project_id = str_of(get(&initial, "projects.0.id")).to_string();
@@ -538,7 +538,7 @@ fn created_snapshot_reads_the_host_file_system() {
         "export const value = 2;".to_string(),
         lsproto::LanguageKind::TypeScript,
     );
-    let session = Session::new_lsp(Arc::clone(&project_session), false);
+    let session = Session::new_lsp_session(Arc::clone(&project_session), false);
 
     let created = session
         .handle_request("createSnapshot", format!(r#"{{"openFiles":["{FILE_NAME}"]}}"#).as_bytes())
@@ -568,7 +568,7 @@ fn open_projects_with_circular_extends_report_circularity() {
         ("/home/projects/p1/a.ts", "export const a = 1;"),
         ("/home/projects/p2/b.ts", "export const b = 1;"),
     ]);
-    let session = Session::new_lsp(Arc::clone(&project_session), false);
+    let session = Session::new_lsp_session(Arc::clone(&project_session), false);
     let create = |config_file_name: &str| -> Value {
         let response = session
             .handle_request(

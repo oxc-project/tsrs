@@ -3096,7 +3096,7 @@ impl Server {
     ) -> Result<lsproto::CustomInitializeAPISessionResponse, Error> {
         let mut api_sessions = self.api_sessions.lock().unwrap();
 
-        let api_session = tsrs_api::Session::new_lsp(Arc::clone(self.session()), false);
+        let api_session = tsrs_api::Session::new_lsp_session(Arc::clone(self.session()), false);
 
         let transport = match &params.pipe {
             Some(pipe) if !pipe.is_empty() => {
@@ -3348,19 +3348,18 @@ impl Server {
 
 // server.go:2534
 pub(crate) fn parse_content_mapper_contributions(
-    values: &[lsproto::ContentMapperContribution],
+    values: &[Option<lsproto::ContentMapperContribution>],
 ) -> Result<project::ContentMapperContributions, Error> {
-    // Go formats these with %q, which the content mapper host models as the Header style.
     let quote =
-        |s: &str| tsrs_core::gocompat::quote(s.as_bytes(), tsrs_core::gocompat::QuoteStyle::Header);
+        |s: &str| tsrs_core::gocompat::quote(s.as_bytes(), tsrs_core::gocompat::QuoteStyle::Go);
     let mut result = project::ContentMapperContributions::default();
     let mut claimed_extensions: Set<String> = Set::new();
     for (index, value) in values.iter().enumerate() {
-        if value.contributor_id.is_empty() {
+        let Some(value) = value.as_ref().filter(|value| !value.contributor_id.is_empty()) else {
             return Err(Error::new(
                 "content mapper contribution requires a contributorId".to_string(),
             ));
-        }
+        };
         let identity = format!("{}[{index}]", value.contributor_id);
         let mut valid_extensions = Vec::with_capacity(value.extensions.len());
         for extension in &value.extensions {
@@ -3405,7 +3404,9 @@ pub(crate) fn parse_content_mapper_contributions(
             }
         }
         for extension in &valid_extensions {
-            if !claimed_extensions.add_if_absent(extension.to_lowercase()) {
+            if !claimed_extensions
+                .add_if_absent(tsrs_core::stringutil::go_strings_to_lower(extension))
+            {
                 return Err(Error::new(format!(
                     "content mapper contributions both claim extension {}",
                     quote(extension)
@@ -3464,7 +3465,7 @@ pub(crate) fn parse_content_mapper_contributions(
                     quote(&identity)
                 )));
             }
-            mapper.package_directory.clone_from(cwd);
+            mapper.package_directory = tspath::rooted_directory_path_from_absolute(cwd);
         }
         result.mappers.push(mapper);
     }

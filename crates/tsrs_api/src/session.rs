@@ -114,7 +114,7 @@ pub(crate) struct LanguageServerState {
 pub struct Session {
     id: String,
     pub(crate) snapshot_host: Arc<SnapshotHost>,
-    /// Go `projectSession`: the language server's project session, for sessions created by `new_lsp`.
+    /// Go `projectSession`: the language server's project session, for sessions created by `new_lsp_session`.
     pub(crate) project_session: Option<Arc<tsrs_project::Session>>,
     pub(crate) language_server: Mutex<LanguageServerState>,
     /// Leaked once per session: tsoptions requires a `&'static dyn ParseConfigHost`.
@@ -175,7 +175,7 @@ impl Session {
     /// Go `NewLSPSession`: an API session over the language server's project session. Its snapshots are the
     /// language server's (`getCurrentLanguageServerSnapshot`), and the projects, files and programs it opens
     /// there are released when it closes.
-    pub fn new_lsp(
+    pub fn new_lsp_session(
         project_session: Arc<tsrs_project::Session>,
         binary_responses: bool,
     ) -> Arc<Session> {
@@ -300,10 +300,10 @@ impl Session {
         }
         *closed = true;
         self.release_language_server_refs();
+        self.source_files.release_all_leases();
         let all: Vec<_> = self.snapshots.write().unwrap().drain().collect();
         drop(all);
         self.batch_pages.lock().unwrap().clear();
-        self.source_files.release_all_leases();
     }
 
     /// Go `releaseLanguageServerRefs`: closes the projects and files this client opened in the language server

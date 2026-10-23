@@ -38,16 +38,20 @@ fn inferred_project_contribution(name: &str) -> lsproto::InferredProjectContentM
     }
 }
 
+#[expect(
+    clippy::unnecessary_wraps,
+    reason = "The contribution pointer-slice element is nullable; this helper constructs non-nil test cases."
+)]
 fn contribution(
     contributor_id: &str,
     extension: &str,
     inferred_project_contribution: Option<lsproto::InferredProjectContentMapperContribution>,
-) -> lsproto::ContentMapperContribution {
-    lsproto::ContentMapperContribution {
+) -> Option<lsproto::ContentMapperContribution> {
+    Some(lsproto::ContentMapperContribution {
         contributor_id: contributor_id.to_string(),
         extensions: vec![extension.to_string()],
         inferred_project_contribution,
-    }
+    })
 }
 
 // server_contentmapper_internal_test.go:26
@@ -158,7 +162,7 @@ fn output_extensions_contribution(
     extension: &str,
     output_extensions: &[(&str, &str)],
     compiler_options: Option<Vec<String>>,
-) -> lsproto::ContentMapperContribution {
+) -> Option<lsproto::ContentMapperContribution> {
     let mut inferred_project = inferred_project_contribution("mapper");
     inferred_project.manifest.compiler_options = compiler_options;
     inferred_project.manifest.output_extensions = Some(
@@ -221,4 +225,76 @@ fn contributed_options_are_marshaled_with_sorted_keys() {
         contributions.mappers[0].definition.options,
         r#"{"a":{"b":3,"y":[{"c":2,"d":1}]},"z":1}"#
     );
+}
+
+#[test]
+fn null_contribution_reaches_contributor_validation() {
+    let params = lsproto::unmarshal::<lsproto::SetContentMapperContributionsParams>(
+        br#"{"contributions":[null],"openDocuments":[]}"#,
+    )
+    .unwrap();
+    let err = parse_content_mapper_contributions(&params.contributions).unwrap_err();
+    assert_eq!(err.to_string(), "content mapper contribution requires a contributorId");
+}
+
+#[test]
+fn contributed_extensions_use_go_simple_lowercase() {
+    let err = parse_content_mapper_contributions(&[
+        contribution("first", ".İ", Some(inferred_project_contribution("first"))),
+        contribution("second", ".i", Some(inferred_project_contribution("second"))),
+    ])
+    .unwrap_err();
+    assert_eq!(err.to_string(), r#"content mapper contributions both claim extension ".i""#);
+
+    let result = parse_content_mapper_contributions(&[
+        contribution("first", ".İ", Some(inferred_project_contribution("first"))),
+        contribution("second", ".i\u{0307}", Some(inferred_project_contribution("second"))),
+    ])
+    .unwrap();
+    assert_eq!(result.extensions, [".i\u{0307}", ".İ"]);
+}
+
+#[test]
+fn contributed_mapper_errors_use_go_quoting() {
+    for (character, quoted) in [
+        ('\u{2066}', r"\u2066"),
+        ('\u{2069}', r"\u2069"),
+        ('\u{0378}', r"\u0378"),
+        ('\u{e000}', r"\ue000"),
+        ('\u{100000}', r"\U00100000"),
+    ] {
+        let err = parse_content_mapper_contributions(&[contribution(
+            &format!("mapper{character}"),
+            ".ts",
+            None,
+        )])
+        .unwrap_err();
+        assert_eq!(
+            err.to_string(),
+            format!(
+                r#"content mapper contribution "mapper{quoted}[0]" has invalid extension ".ts""#
+            )
+        );
+    }
+}
+
+#[test]
+fn contributed_mapper_directory_is_normalized() {
+    for (cwd, expected) in [
+        ("/project/src/../lib/", "/project/lib"),
+        (r"c:\project\src\..\lib\", "c:/project/lib"),
+        ("file:///project/src/../lib/", "file:///project/lib"),
+        ("c:/project/..", "c:/"),
+        ("//server", "//server/"),
+    ] {
+        let mut inferred_project = inferred_project_contribution("mapper");
+        inferred_project.manifest.cwd = Some(cwd.to_string());
+        let contributions = parse_content_mapper_contributions(&[contribution(
+            "mapper",
+            ".vue",
+            Some(inferred_project),
+        )])
+        .unwrap();
+        assert_eq!(contributions.mappers[0].package_directory, expected, "{cwd}");
+    }
 }

@@ -21033,7 +21033,7 @@ impl Json for ContentMapperContribution {
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct SetContentMapperContributionsParams {
     // Complete replacement set of active extension contributions.
-    pub contributions: Vec<ContentMapperContribution>,
+    pub contributions: Vec<Option<ContentMapperContribution>>,
 
     // Currently open documents matching contributed extensions.
     pub open_documents: Vec<TextDocumentIdentifier>,

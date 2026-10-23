@@ -2242,6 +2242,10 @@ function rustOfGo(g: string): RType {
     }
     if (g.startsWith("[]")) {
         let el = g.slice(2);
+        // The contribution parser explicitly validates nil entries in this pointer slice.
+        if (el === "*ContentMapperContribution") {
+            return { k: "vec", el: { k: "opt", el: rustOfGo(el.slice(1)) } };
+        }
         if (el.startsWith("*")) el = el.slice(1);
         return { k: "vec", el: rustOfGo(el) };
     }

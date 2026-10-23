@@ -1,9 +1,15 @@
-// Compatibility for Go-style strings used in errors and baselines. The profiles retain the
-// existing callers' escaping differences; they do not change those approximations to strconv.Quote.
+// Compatibility for Go-style strings used in errors and baselines. The legacy profiles retain
+// existing callers' escaping differences; Go uses strconv.Quote's printable tables.
 
 use std::fmt::Write;
+
+mod isprint_generated;
+use isprint_generated::{IS_NOT_PRINT16, IS_NOT_PRINT32, IS_PRINT16, IS_PRINT32};
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum QuoteStyle {
+    /// Go `strconv.Quote`, using its pinned Unicode printable tables.
+    Go,
     /// IPC headers and content-mapper errors: escape Unicode whitespace and selected format characters.
     Header,
     /// API transport errors: hex escapes for ASCII controls other than tab and line endings.
@@ -17,6 +23,7 @@ pub enum QuoteStyle {
 }
 fn escaped(c: char, style: QuoteStyle) -> bool {
     match style {
+        QuoteStyle::Go => !is_print(c as u32),
         QuoteStyle::Header => {
             c != ' '
                 && (c.is_control()
@@ -27,6 +34,35 @@ fn escaped(c: char, style: QuoteStyle) -> bool {
         QuoteStyle::Fourslash => c.is_control(),
         _ => false,
     }
+}
+
+// Go strconv/quote.go:518.
+fn is_print(r: u32) -> bool {
+    if r <= 0xff {
+        if (0x20..=0x7e).contains(&r) {
+            return true;
+        }
+        if (0xa1..=0xff).contains(&r) {
+            return r != 0xad;
+        }
+        return false;
+    }
+    if r < 1 << 16 {
+        let rr = r as u16;
+        let i = IS_PRINT16.partition_point(|&value| value < rr);
+        if i >= IS_PRINT16.len() || rr < IS_PRINT16[i & !1] || IS_PRINT16[i | 1] < rr {
+            return false;
+        }
+        return IS_NOT_PRINT16.binary_search(&rr).is_err();
+    }
+    let i = IS_PRINT32.partition_point(|&value| value < r);
+    if i >= IS_PRINT32.len() || r < IS_PRINT32[i & !1] || IS_PRINT32[i | 1] < r {
+        return false;
+    }
+    if r >= 0x20000 {
+        return true;
+    }
+    IS_NOT_PRINT32.binary_search(&((r - 0x10000) as u16)).is_err()
 }
 fn push_char(out: &mut String, c: char, style: QuoteStyle) {
     match c {
@@ -95,6 +131,7 @@ mod tests {
     fn quote_styles_preserve_control_and_unicode_escapes() {
         let input = "\x07\x08\x0c\x0b\n\r\t\"\u{7f}\u{85}\u{a0}\u{200b}\u{feff}\\";
         for (style, expected) in [
+            (QuoteStyle::Go, "\"\\a\\b\\f\\v\\n\\r\\t\\\"\\x7f\\u0085\\u00a0\\u200b\\ufeff\\\\\""),
             (
                 QuoteStyle::Header,
                 "\"\\a\\b\\f\\v\\n\\r\\t\\\"\\x7f\\u0085\\u00a0\\u200b\\ufeff\\\\\"",
@@ -126,11 +163,27 @@ mod tests {
             (b"a\xf0\x9f".as_slice(), "\"a\\xf0\\x9f\"", "\"a�\""),
         ] {
             assert_eq!(quote(input, QuoteStyle::Lsp), replaced);
-            for style in
-                [QuoteStyle::Header, QuoteStyle::Api, QuoteStyle::MapperTest, QuoteStyle::Fourslash]
-            {
+            for style in [
+                QuoteStyle::Go,
+                QuoteStyle::Header,
+                QuoteStyle::Api,
+                QuoteStyle::MapperTest,
+                QuoteStyle::Fourslash,
+            ] {
                 assert_eq!(quote(input, style), escaped, "{style:?}");
             }
+        }
+    }
+
+    #[test]
+    fn go_quote_uses_printable_unicode_categories() {
+        for (input, expected) in [
+            ("\u{2066}\u{2069}\u{0378}", r#""\u2066\u2069\u0378""#),
+            ("\u{e000}\u{100000}", r#""\ue000\U00100000""#),
+            ("\u{2028}\u{2029}\u{3000}", r#""\u2028\u2029\u3000""#),
+            ("\u{0301}é😀\u{fffd}", "\"\u{0301}é😀\u{fffd}\""),
+        ] {
+            assert_eq!(quote(input.as_bytes(), QuoteStyle::Go), expected);
         }
     }
 

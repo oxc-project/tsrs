@@ -253,31 +253,26 @@ pub(crate) struct ExecuteBuildBackend;
 struct ExecuteOrchestrator {
     sys: &'static ApiBuildSystem,
     command: P<tsrs_tsoptions::ParsedBuildCommandLine>,
-    orchestrator: Option<&'static tsrs_execute::build::Orchestrator>,
+    orchestrator: Option<ApiOrchestratorOwner>,
+}
+
+// Owns one API-mode orchestrator and its regions. A successful build keeps this owner until the next successful
+// build or disposal, so its diagnostics remain alive while the API serializes the response and cleans use its graph.
+struct ApiOrchestratorOwner(&'static tsrs_execute::build::Orchestrator);
+
+impl Drop for ApiOrchestratorOwner {
+    fn drop(&mut self) {
+        // SAFETY: `fresh` creates and enables this orchestrator exclusively for one serialized API handle.
+        // Its build/clean call has returned or unwound (joining scoped workers), and no result outlives the owner.
+        unsafe { tsrs_execute::build::free_api_orchestrator(self.0) };
+    }
 }
 
 impl ExecuteOrchestrator {
-    fn fresh(&self) -> &'static tsrs_execute::build::Orchestrator {
+    fn fresh(&self) -> ApiOrchestratorOwner {
         let o = new_orchestrator(Options { sys: self.sys, command: self.command, testing: None });
         o.enable_api_mode();
-        o
-    }
-
-    fn replace(&mut self, o: &'static tsrs_execute::build::Orchestrator) {
-        if let Some(old) = self.orchestrator.replace(o) {
-            // SAFETY: no build is running on `old` (builds are serialized per handle) and its results were
-            // converted to owned `BuildOutcome`s.
-            unsafe { tsrs_execute::build::free_api_orchestrator(old) };
-        }
-    }
-}
-
-impl Drop for ExecuteOrchestrator {
-    fn drop(&mut self) {
-        if let Some(o) = self.orchestrator.take() {
-            // SAFETY: as in `replace`; the handle is being disposed.
-            unsafe { tsrs_execute::build::free_api_orchestrator(o) };
-        }
+        ApiOrchestratorOwner(o)
     }
 }
 
@@ -318,31 +313,15 @@ fn outcome(result: tsrs_execute::build::OrchestratorResult) -> BuildOutcome {
 impl BuildOrchestrator for ExecuteOrchestrator {
     fn build(&mut self, project: &str, only_references: bool) -> BuildOutcome {
         let o = self.fresh();
-        // A build can unwind (a panic while building a program, e.g. the module resolver's `Unexpected
-        // moduleResolution`, which the API turns into an error). The fresh orchestrator is then freed here instead
-        // of being leaked; the retained one (for later cleans) is untouched.
-        let result = match std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            o.build_for_api(project, only_references)
-        })) {
-            Ok(result) => outcome(result),
-            Err(panic) => {
-                // SAFETY: the build ran inline on this thread and has unwound (its scoped workers were joined), so
-                // nothing uses `o`; it was never stored, and nothing returned from it outlives this call.
-                unsafe { tsrs_execute::build::free_api_orchestrator(o) };
-                std::panic::resume_unwind(panic);
-            }
-        };
-        self.replace(o);
+        let result = outcome(o.0.build_for_api(project, only_references));
+        self.orchestrator = Some(o);
         result
     }
     fn clean(&mut self, project: &str, only_references: bool) -> BuildOutcome {
-        let o = if let Some(o) = self.orchestrator {
-            o
-        } else {
-            let o = self.fresh();
-            self.replace(o);
-            o
-        };
-        outcome(o.clean_for_api(project, only_references))
+        if self.orchestrator.is_none() {
+            self.orchestrator = Some(self.fresh());
+        }
+        let o = self.orchestrator.as_ref().unwrap();
+        outcome(o.0.clean_for_api(project, only_references))
     }
 }

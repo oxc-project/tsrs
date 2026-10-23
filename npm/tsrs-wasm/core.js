@@ -50,7 +50,7 @@ function prepare(module, request, host, io) {
     let instance;
     let memory;
     const view = () => new DataView(memory.buffer);
-    const bytes = (ptr = 0, len) => new Uint8Array(memory.buffer, ptr, len);
+    const bytes = (ptr = 0, len) => new Uint8Array(memory.buffer, ptr >>> 0, len);
     const env = Object.entries(io.env ?? {}).map(([k, v]) => encoder.encode(`${k}=${v}\0`));
     const stdout = io.stdout ?? (() => {});
     const stderr = io.stderr ?? (() => {});

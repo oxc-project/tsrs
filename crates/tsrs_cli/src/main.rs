@@ -75,7 +75,7 @@ fn mimalloc_collect(force: bool) {
     let _ = force;
 }
 
-fn main() {
+fn main() -> std::process::ExitCode {
     #[cfg(all(target_os = "linux", not(any(feature = "system-alloc", miri))))]
     tsrs_core::allocator::init_mimalloc();
     let args: Vec<String> = std::env::args().skip(1).collect();
@@ -85,7 +85,7 @@ fn main() {
     // native API server (docs/NODE_API.md).
     if args.first().map(String::as_str) == Some("--lsp") {
         signals::notify_interrupts();
-        std::process::exit(lsp::run_lsp(&args[1..]));
+        return std::process::ExitCode::from(lsp::run_lsp(&args[1..]) as u8);
     }
     if args.first().map(String::as_str) == Some("--api") {
         // Checking recurses deeply; serve requests on a large stack like the command line below.
@@ -97,7 +97,7 @@ fn main() {
             .unwrap()
             .join()
             .unwrap_or(1);
-        std::process::exit(status);
+        return std::process::ExitCode::from(status as u8);
     }
     // Type checking recurses deeply; run on a thread with a large stack
     // (Go's goroutine stacks grow on demand).
@@ -121,5 +121,6 @@ fn main() {
     tsrs_core::memsplit::report("exit");
     let _ = std::io::Write::flush(&mut std::io::stdout());
     let _ = std::io::Write::flush(&mut std::io::stderr());
-    std::process::exit(status as i32)
+    // Return through the C runtime so LLVM's atexit handler writes PGO profiles on Windows too.
+    std::process::ExitCode::from(status as u8)
 }

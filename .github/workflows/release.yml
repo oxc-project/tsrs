@@ -1,5 +1,5 @@
 # Builds the tsrs binaries and the WebAssembly module, publishes the npm packages, then creates the GitHub release,
-# using docs/releases/<workspace version>.md for its notes. Bump the root package.json version on main to release;
+# using docs/releases/<workspace version>.md for its notes. Update root package.json on main to release an unpublished version;
 # it must match the npm version npm/build.mjs derives from Cargo.toml. The conformance and fourslash gates run here on the BOLT-optimized
 # GNU binaries (.github/scripts/bolt.sh). The macOS and Windows binaries get the smoke tests below; Windows also
 # trains on the conformance suite. The broader WebAssembly differential gate
@@ -281,6 +281,23 @@ jobs:
           node npm/build.mjs --artifacts out --pack
           node npm/sdk/smoke-consumer.mjs --noembed
 
+      - name: Upload failed release gates
+        if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: release-gates-${{ matrix.target }}
+          path: |
+            ${{ runner.temp }}/pgo/bench/go-fourslash/results.jsonl
+            ${{ runner.temp }}/pgo/bench/go-fourslash/runner.log
+            ${{ runner.temp }}/pgo/bench/test-results/*.txt
+            ${{ runner.temp }}/bolt/go-fourslash/results.jsonl
+            ${{ runner.temp }}/bolt/go-fourslash/runner.log
+            ${{ runner.temp }}/bolt/train-test-results/*.txt
+            ${{ runner.temp }}/bolt/test-results/*.txt
+            ${{ runner.temp }}/bolt/test-results-default/*.txt
+            ${{ runner.temp }}/bolt/*.log
+          if-no-files-found: ignore
+
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: bin-${{ matrix.target }}
@@ -392,6 +409,16 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           node npm/sdk/smoke-consumer.mjs --noembed --cli-only
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Upload failed Windows training
+        if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: release-gates-x86_64-pc-windows-msvc
+          path: |
+            ${{ runner.temp }}/pgo/test-results/*.txt
+            ${{ runner.temp }}/pgo/test-results/summary.json
+          if-no-files-found: ignore
 
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
@@ -633,7 +660,7 @@ jobs:
           VERSION: ${{ needs.version.outputs.crate_version }}
         run: >-
           gh release create "v$VERSION" --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA"
-          --title "$VERSION" --notes-file "docs/releases/$VERSION.md" --prerelease=false --latest
+          --title "$VERSION" --notes-file "docs/releases/$VERSION.md" --prerelease --latest=false
 
   playground:
     needs: github-release

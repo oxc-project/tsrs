@@ -64,7 +64,7 @@ are pushed; see [known gaps](#known-gaps) for unsupported features and
 
 Editor integrations can obtain a TypeScript 7 Node API session through the language server:
 `custom/initializeAPISession` returns a pipe (a private Unix socket or Windows named pipe), and `API.fromLSPConnection({ pipe })` from the package's
-`unstable/async` client connects to an API session over the server's projects, open files included
+`tsrs/async` client connects to an API session over the server's projects, open files included
 ([NODE_API.md](NODE_API.md)).
 
 ## Implementation

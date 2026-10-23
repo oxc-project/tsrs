@@ -1,9 +1,7 @@
-use std::cell::{Cell, RefCell};
+use std::cell::Cell;
 use std::rc::Rc;
 
-use tsrs_ast::{
-    self as ast, Diagnostic, Kind, Node, NodeFlags, NodeList, NodeVisitorHooks, SourceFile,
-};
+use tsrs_ast::{self as ast, Diagnostic, Kind, Node, NodeFlags, NodeList, SourceFile};
 use tsrs_core::stringutil::{decode_rune, is_white_space_single_line};
 use tsrs_core::{P, TextChange, TextRange};
 use tsrs_scanner as scanner;
@@ -11,6 +9,7 @@ use tsrs_scanner as scanner;
 use super::*;
 use crate::astnav;
 use crate::lsutil::FormatCodeSettings;
+use crate::visitedchildren::{VisitedChild, collect_visited_children};
 
 // span.go:20
 /* find node that fully contains given text range */
@@ -265,41 +264,6 @@ fn get_non_decorator_token_pos_of_node(node: P<Node>, file: Option<P<SourceFile>
         file.text(),
         last_decorator.end().expect_source("parsed nodes have source positions"),
     )
-}
-
-// Go walks a node's children with `node.VisitEachChild(w.visitor)`, whose callbacks re-enter the worker. The Rust
-// visitor's callbacks cannot borrow the worker, so the children are first collected in VisitEachChild order (single
-// nodes through `visit`, node lists through the `VisitNodes` hook, exactly as Go's visitor dispatches them) and then
-// processed in that order. Processing never changes the node's children, so the order and the set are the same.
-enum VisitedChild {
-    Node(P<Node>),
-    Nodes(P<NodeList>),
-}
-
-fn collect_visited_children(node: P<Node>) -> Vec<VisitedChild> {
-    let items: Rc<RefCell<Vec<VisitedChild>>> = Rc::new(RefCell::new(Vec::new()));
-    let visit_items = Rc::clone(&items);
-    let nodes_items = Rc::clone(&items);
-    let mut visitor = ast::new_node_visitor(
-        Some(Rc::new(move |_: &mut ast::NodeVisitor, child: P<Node>| {
-            visit_items.borrow_mut().push(VisitedChild::Node(child));
-            Some(child)
-        })),
-        None,
-        NodeVisitorHooks {
-            visit_nodes: Some(Rc::new(
-                move |nodes: Option<P<NodeList>>, _: &mut ast::NodeVisitor| {
-                    if let Some(list) = nodes {
-                        nodes_items.borrow_mut().push(VisitedChild::Nodes(list));
-                    }
-                    nodes
-                },
-            )),
-            ..Default::default()
-        },
-    );
-    node.visit_each_child(&mut visitor);
-    items.take()
 }
 
 impl FormatSpanWorker {

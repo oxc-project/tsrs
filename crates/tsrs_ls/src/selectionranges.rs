@@ -1,9 +1,6 @@
 // Port of ls/selectionranges.go.
 
-use std::cell::RefCell;
-use std::rc::Rc;
-
-use tsrs_ast::{self as ast, Kind, Node, NodeFactory, NodeList, NodeVisitorHooks, SourceFile};
+use tsrs_ast::{self as ast, Kind, Node, NodeFactory, SourceFile};
 use tsrs_core::context::Context;
 use tsrs_core::{P, TextRange, alloc_slice};
 use tsrs_lsproto as lsproto;
@@ -13,6 +10,7 @@ use crate::astnav;
 use crate::languageservice::LanguageService;
 use crate::spanmap::Feature;
 use crate::utilities::get_children_from_non_jsdoc_node;
+use crate::visitedchildren::{VisitedChild, collect_visited_children};
 
 // selectionranges.go:14
 const MAX_SELECTION_RANGE_DEPTH: usize = 1000;
@@ -336,41 +334,6 @@ fn should_skip_node(node: P<Node>, parent: Option<P<Node>>) -> bool {
     }
 
     false
-}
-
-// Go walks `current.VisitEachChild(tempVisitor)` with callbacks that close over the state above. The Rust visitor's
-// callbacks are `'static`, so the children are first collected in VisitEachChild order (single nodes through
-// `Visit`, node lists through the `VisitNodes` hook, which then visits each element) and then processed in that
-// order; processing never changes the tree.
-enum VisitedChild {
-    Node(P<Node>),
-    Nodes(P<NodeList>),
-}
-
-fn collect_visited_children(node: P<Node>) -> Vec<VisitedChild> {
-    let items: Rc<RefCell<Vec<VisitedChild>>> = Rc::new(RefCell::new(Vec::new()));
-    let visit_items = Rc::clone(&items);
-    let nodes_items = Rc::clone(&items);
-    let mut visitor = ast::new_node_visitor(
-        Some(Rc::new(move |_: &mut ast::NodeVisitor, child: P<Node>| {
-            visit_items.borrow_mut().push(VisitedChild::Node(child));
-            Some(child)
-        })),
-        None,
-        NodeVisitorHooks {
-            visit_nodes: Some(Rc::new(
-                move |nodes: Option<P<NodeList>>, _: &mut ast::NodeVisitor| {
-                    if let Some(list) = nodes {
-                        nodes_items.borrow_mut().push(VisitedChild::Nodes(list));
-                    }
-                    nodes
-                },
-            )),
-            ..Default::default()
-        },
-    );
-    node.visit_each_child(&mut visitor);
-    items.take()
 }
 
 // selectionranges.go:186

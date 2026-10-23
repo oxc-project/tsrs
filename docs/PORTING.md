@@ -242,13 +242,17 @@ unreachable part.
 
 ## Reference tooling
 
+- Every reproduction and fix uses the exact `[workspace.metadata.typescript]` commit in `Cargo.toml`.
+  Follow [reference compiler setup and verification](../CONTRIBUTING.md#reference-compiler) before using the sources,
+  binary, fixtures or baselines. Rebuild reference binaries whenever the pin changes.
 - Go source of truth: `ts-ref/tsc/internal/` (read-only, except oracle tools below).
-- Reference compiler binary (same commit): `$TSRS_WORK/bin/tsgo-ref` (use like `tsc`).
-- Go toolchain: run Go with `GOTOOLCHAIN=auto` from `ts-ref/tsc` (module needs Go 1.27; it auto-downloads).
+- Reference compiler binary: `target/reference/tsgo` (use like `tsc`). A shared `$TSRS_WORK/bin/tsgo-ref` must be built
+  from the same verified checkout.
+- Go toolchain: run Go with `GOTOOLCHAIN=auto GOWORK=off` from `ts-ref/tsc` to select the module's pinned Go version.
   To compare against the Go implementation you may write small oracle programs. Go `internal` packages can only be
   imported from inside that module, so put them in `ts-ref/tsc/cmd/tsrs-oracle-<name>/main.go` and keep a copy of the
   source in this repo under `tools/oracle/<name>/main.go`. Build outputs go to `$TSRS_WORK/bin/`.
-- Test corpus: `ts-ref/tsc/testdata/tests/cases/{compiler,conformance}` (12.7k cases) with reference baselines in
+- Test corpus: `ts-ref/tsc/testdata/tests/cases/{compiler,conformance}` with reference baselines in
   `ts-ref/tsc/testdata/baselines/reference/` (`*.errors.txt`, `*.types`, `*.symbols`). Lib files:
   `ts-ref/tsc/internal/bundled/libs/*.d.ts`.
 - Scratch files go in `target/scratch/<agent-name>/` (git-ignored), never in the source tree.

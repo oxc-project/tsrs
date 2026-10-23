@@ -13,7 +13,12 @@ pnpm watch:check /path/to/tsrs /path/to/project
 pnpm test:tooling
 ```
 
-Compiler/oracle generators require the pinned TypeScript checkout at `ts-ref` (see [CONTRIBUTING.md](../CONTRIBUTING.md)). Compiler probes also need the indicated compiler binaries and prepared benchmark projects (`pnpm bench prepare --projects <names>`). Go, Cargo, Docker, perf, and other platform tools are needed only by the commands that use them. The performance measurements use the system `time` utility on macOS and Linux; instruction counters and `/proc` residency sampling require Linux.
+Compiler/oracle generators require `ts-ref` at the exact TypeScript commit in `Cargo.toml`.
+[Verify the checkout and build the reference compiler](../CONTRIBUTING.md#reference-compiler) before reproductions,
+fixes or probes, and rebuild reference binaries when the pin changes. Compiler probes also need the indicated
+compiler binaries and prepared benchmark projects (`pnpm bench prepare --projects <names>`). Go, Cargo, Docker,
+perf, and other platform tools are needed only by the commands that use them. The performance measurements use
+the system `time` utility on macOS and Linux; instruction counters and `/proc` residency sampling require Linux.
 
 Watch tools preserve and restore touched files, including on interruption. Run them on a disposable project checkout. They retain `BUILD`, `LOG`, `REPEAT`, `ONLY` and `EMITCHECK` environment options where applicable. The mutation harness uses disjoint `MUT_CLONE` and `MUT_PRISTINE` directories and restores its edits. Repository conformance runs repository code in disposable Docker containers as a non-root host user; it does not need Python in the container.
 

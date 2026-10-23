@@ -51,12 +51,13 @@ The launcher installs the appropriate optional `@tsrs/<os>-<arch>[-<libc>]` depe
 See the [compatibility table](COMPATIBILITY.md#what-it-does-and-doesnt-do) for released platform support.
 Set `TSRS_BINARY=/path/to/tsrs` to run a locally built binary through the same launcher.
 
-The package version names the TypeScript commit it ports: `0.10.0-ts7.1.0-dev.20260929` means tsrs 0.10.0 following
-TypeScript `7.1.0-dev.20260929`.
+The package version includes the TypeScript version it ports: `0.19.0-ts7.1.0-beta` means tsrs 0.19.0 following
+TypeScript `7.1.0-beta`. For a source checkout, `Cargo.toml` records the exact TypeScript commit. Follow
+[the reference compiler workflow](../CONTRIBUTING.md#reference-compiler) when reproducing bugs or checking fixes.
 
 ## Other ways to use tsrs
 
 - [Editor setup](LSP.md#editor-setup): run the language server with `tsrs --lsp -stdio`.
-- [JavaScript API](NODE_API.md#javascript-api-unstable): TypeScript 7's synchronous and asynchronous APIs.
+- [JavaScript API](NODE_API.md#javascript-api): TypeScript 7's synchronous and asynchronous APIs.
 - [WebAssembly](../npm/tsrs-wasm/README.md): single-threaded compilation in Node and browsers.
 - [Build from source](../CONTRIBUTING.md#build): native and WebAssembly builds and the development workflow.

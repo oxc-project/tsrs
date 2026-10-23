@@ -3,16 +3,21 @@
 All function bodies are ported; from here the conformance suite and the Go reference drive the work.
 Several agents fix different failure clusters at the same time. This is how they avoid stepping on each other.
 
+Every reproduction and fix follows the [fidelity rule](../CONTRIBUTING.md#the-fidelity-rule-go-is-the-spec).
+[Verify the reference checkout and build the Go compiler](../CONTRIBUTING.md#reference-compiler) before comparing
+outputs. Any shared `$TSRS_WORK/bin/tsgo-ref` used below must come from that verified checkout and be rebuilt when
+the TypeScript source pin changes.
+
 ## Your worktree
 
 `$TSRS_WORK` below is the directory that holds the main checkout (`$TSRS_WORK/tsrs`), the agent worktrees
-(`$TSRS_WORK/wt/`) and the reference binaries (`$TSRS_WORK/bin/`). `$PRIVATE_PROJECT` is the tsconfig directory of
-the large project used for the end-to-end checks: a 38k-file private TypeScript monorepo (5.9M lines), not part of
-this repository.
+(`$TSRS_WORK/wt/`) and the reference binaries (`$TSRS_WORK/bin/`). `$PRIVATE_PROJECT` refers to a large private
+monorepo used for end-to-end checks, outside this repository.
 
 - You get a private git worktree `$TSRS_WORK/wt/<agent-name>` on branch `fix/<agent-name>`,
   created from `origin/main`. Work only there (never in the main checkout `$TSRS_WORK/tsrs`
-  or another agent's worktree). `ts-ref` inside it is a symlink to the Go reference checkout.
+  or another agent's worktree). `ts-ref` inside it may be a symlink to a shared reference checkout; verify it
+  against the worktree's own `Cargo.toml` pin.
 - Build with your own target dir: `CARGO_TARGET_DIR=$PWD/target cargo build --profile dev -p tsrs_testrunner -p tsrs_cli`
   (`dev`: release optimization without LTO, incremental; a checker edit rebuilds in about 5 s, and the suite runs as
   fast as on a `--release` build, notes/dev-loop-build.md. A debug build is much slower to run. Build `--release`
@@ -45,9 +50,9 @@ understand, read both versions and the Go source; do not blindly take one side.
 - **No regressions**: before each push, compare `pass.txt` against the list from before your change
   (`comm -23 <(sort before/pass.txt) <(sort target/test-results/pass.txt)` must be empty, or every lost test must be
   explained by an upstream change you just rebased onto). Record the new totals in your commit message.
-- Reference behavior for anything outside the suite: `$TSRS_WORK/bin/tsgo-ref` (same commit
-  as the port). Oracle tools for scanner/parser/binder/module resolution/printer live in `tools/oracle/` with binaries in
-  `$TSRS_WORK/bin/`.
+- Reference behavior for anything outside the suite: `target/reference/tsgo`, or a shared `tsgo-ref` built from the
+  same verified pin. Oracle tools for scanner/parser/binder/module resolution/printer live in `tools/oracle/` with
+  binaries in `$TSRS_WORK/bin/`.
 
 ## Lazy member resolution (default on) and the opt-out mode
 
@@ -155,27 +160,25 @@ the types already hold and resolves nothing. When two runs disagree on a TS2590:
   `execution.ts(89,23)` and no error, while under `--checkerAssignment go` the two files were on different checkers
   and `execution.ts`'s checker built the cross products itself and reported the TS2590, as tsgo does.
 
-## `.types` / `.symbols` equivalence on the private monorepo against the cached reference
+## `.types` / `.symbols` comparisons against a cached reference
 
-Running the Go oracle (`tools/oracle/project-types`) takes hours per side. Cache its equivalent instead (not
-populated yet; the first full opt-out run creates it):
-`$TSRS_WORK/project-ref-dump/<types|symbols>/manifest.<kind>` (hash, line count, path
-per file, plus the `#counts` line), produced by `tsrs-test types-dump -p tsconfig.json --out
-$TSRS_WORK/project-ref-dump/<kind> --mode <kind> --text none` (run from `$PRIVATE_PROJECT`) in the opt-out
-mode (`TSRS_LAZY_MEMBERS=0`; ~30 min and ~122 GB peak for `types`). That mode's `.types` walk was verified identical to the Go oracle on all 28,213 files
-(notes/fix-project-types.md); `.symbols` only on the first 5,558 files (the Go run was stopped). Reference commit b85298b6 (nightly
-7.1.0-dev.20260929); project: the pristine private-monorepo checkout
-`$PRIVATE_PROJECT`
-(read-only; never write there — run `tsgo-ref` on it only with `--incremental false`, or it rewrites
-`dist/tsconfig.tsbuildinfo` and later runs skip checking). If either changes, the cache is stale.
+Generate reference dumps with the Go oracle (`tools/oracle/project-types`) built from the verified source pin.
+Keep cached manifests at `$TSRS_WORK/project-ref-dump/<types|symbols>/manifest.<kind>` outside tracked files.
+Record the reference commit, project revision and compiler flags with each cache; regenerate it when any changes.
+The measurements in [the earlier project-types note](../notes/fix-project-types.md) used an older TypeScript pin
+and do not establish equivalence at the current pin.
 
-- Quick tier (minutes): `tsrs-test types-dump -p tsconfig.json --out <dir> --mode types --text none --sample
+A `TSRS_LAZY_MEMBERS=0 tsrs-test types-dump` may substitute for a Go dump only after its output has been verified
+against the pinned Go oracle for the same inputs and baseline kind. Keep `$PRIVATE_PROJECT` read-only as described
+below, and keep private paths and cache contents out of tracked files.
+
+- Quick tier: `tsrs-test types-dump -p tsconfig.json --out <dir> --mode types --text none --sample
   <repo>/target/project-types-sample.txt` (run from `$PRIVATE_PROJECT`), then `tools/project-types-compare.mjs
-  $TSRS_WORK/project-ref-dump/types <dir> --subset`. The sample is ~2,000 files
-  weighted toward zod schemas, ORM entities, workflows and router endpoints (`tools/project-types-sample.mjs`
-  writes it; the list names private files, so it is not committed). The checker has fully checked the program before the walk either way, but the walk itself can
-  create types and assign symbol ids, so a file that differs only in a sample run should be confirmed with a full run.
-- Full tier (pre-landing for checker changes that can affect printing; ~40 min, up to ~125 GB peak, one at a time):
+  $TSRS_WORK/project-ref-dump/types <dir> --subset`. `tools/project-types-sample.mjs` writes the sample list;
+  keep it outside tracked files. The checker has fully checked the program before the walk either way, but the walk
+  itself can create types and assign symbol ids, so a file that differs only in a sample run should be confirmed with
+  a full run.
+- Full tier (pre-landing for checker changes that can affect printing, one at a time):
   the same without `--sample` and without `--subset`.
 
 ## The pristine private-monorepo checkout is read-only
@@ -461,7 +464,7 @@ and reporting are disabled in the saved `.yml.bak` workflows.
 Build the Go reference with a patched copy of one Go file, without editing `ts-ref`: copy the file (e.g.
 `internal/checker/checker.go`) to scratch and patch it (e.g. print `runtime/debug.Stack()` at the error site). Write an
 overlay JSON that maps *both* the symlinked and the real path of the file to the copy. Then, in `ts-ref/tsc`, run
-`GOTOOLCHAIN=auto go build -overlay <overlay.json> -o <bin> ./cmd/tsrs-oracle-testrunner` (the copy of
+`GOTOOLCHAIN=auto GOWORK=off go build -overlay <overlay.json> -o <bin> ./cmd/tsrs-oracle-testrunner` (the copy of
 `tools/oracle/testrunner/main.go`, placed as docs/PORTING.md "Reference tooling" describes) and `<bin> diags <regexp>`
 (one JSON line per variant of each test whose file name matches).
 

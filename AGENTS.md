@@ -5,6 +5,14 @@ practices. This file adds the rules below.
 
 Do not update `README.md` files unless the user explicitly asks.
 
+## Reproductions and fixes
+
+Every bug reproduction and fix must conform to the microsoft/TypeScript reference checkout in `ts-ref/`, at the
+exact commit pinned in `Cargo.toml` under `[workspace.metadata.typescript]`. Verify that `ts-ref`'s HEAD matches
+that pin before using it. Use its Go compiler as the source of truth for expected behavior, diagnostics and
+baselines, and follow this repository's porting and test workflow.
+See [reference compiler setup and verification](CONTRIBUTING.md#reference-compiler).
+
 ## Build and test
 
 Build with `cargo build --profile dev -p tsrs_cli -p tsrs_testrunner` and run `target/debug/tsrs-test`, not

@@ -14,6 +14,9 @@ the [conformance results](docs/COMPATIBILITY.md#conformance) rather than on revi
 ## The fidelity rule: Go is the spec
 
 The Go implementation at the commit in `Cargo.toml` (`[workspace.metadata.typescript]`) is the specification.
+Every reproduction and fix must use that exact reference. [Prepare and verify the reference compiler](#reference-compiler)
+before comparing behavior or generating expected output. Use the same input files, configuration, working directory
+and compiler flags on both sides.
 
 - A difference from `tsgo` at that commit (diagnostics, their order, message text, exit code) is a tsrs bug, even
   when the tsrs output looks more reasonable. A fix makes tsrs do what the Go code does, not what seems right.
@@ -52,18 +55,42 @@ cargo build --profile dev -p tsrs_fourslash_server
 tools/wasm/build.sh  # requires the wasm32-wasip1 target and wasm-opt
 ```
 
-## Run the tests
+## Reference compiler
 
-The conformance suite and workspace tests use fixtures, API clients and the AST schema from a checkout of
-microsoft/TypeScript at the pinned commit in `ts-ref/` (git-ignored):
+Reproductions, fixes, tests and generators use a checkout of microsoft/TypeScript at the pinned commit in
+`ts-ref/` (git-ignored). Create it once:
 
 ```sh
 commit=$(node npm/build.mjs --print-typescript-commit)
 git clone --filter=blob:none --sparse https://github.com/microsoft/TypeScript ts-ref
 git -C ts-ref sparse-checkout set tsc packages/typescript/src \
   packages/typescript/lib packages/typescript/vendor tools/scripts/tsc
-git -C ts-ref checkout "$commit"
+git -C ts-ref checkout --detach "$commit"
+```
 
+For a new or existing checkout, verify the source pin and build the Go reference from it:
+
+```sh
+commit=$(node npm/build.mjs --print-typescript-commit)
+test "$(git -C ts-ref rev-parse HEAD)" = "$commit"
+git -C ts-ref diff --exit-code HEAD -- tsc
+mkdir -p target/reference
+reference_bin="$PWD/target/reference/tsgo"
+(cd ts-ref/tsc && GOTOOLCHAIN=auto GOWORK=off go build -o "$reference_bin" ./cmd/tsc)
+"$reference_bin" --version
+```
+
+Both source checks must pass before building or reproducing a bug. Keep tracked reference sources unchanged;
+[Go overlays](docs/DEBUGGING.md#where-go-reports-an-error-an-instrumented-reference-with-go-build--overlay) support
+instrumentation. Rebuild the reference after the pin changes; its version string alone does not identify the commit.
+The checkout stays at the pinned revision until explicitly updated. `Cargo.toml` records the matching TypeScript
+package version; [the compatibility guide](docs/COMPATIBILITY.md) distinguishes the source pin from published releases.
+
+## Run the tests
+
+With the [reference checkout](#reference-compiler) ready:
+
+```sh
 ./target/debug/tsrs-test run --suite all --baselines all          # every supported baseline; lists in target/test-results/
 ./target/debug/tsrs-test run --filter <substring>                 # one test or a cluster
 ./target/debug/tsrs-test show <suite/name>                        # expected vs actual
@@ -90,7 +117,9 @@ describes the full workflow, the opt-out mode (`TSRS_LAZY_MEMBERS=0`) that must 
 Go oracle programs in `tools/oracle/`.
 
 For a bug outside the suite, add a reproduction under `testdata/regressions/<name>/` (`a.ts`, `tsconfig.json`, and
-`expected.txt` with `tsc --pretty false` output from the reference compiler).
+`expected.txt`). Run the pinned reference binary from the case directory with `-p . --pretty false --singleThreaded`.
+Capture its combined stdout and stderr, replacing the case's absolute directory path with `<dir>` to match
+`tools/regressions.sh`.
 
 ## Landing changes
 

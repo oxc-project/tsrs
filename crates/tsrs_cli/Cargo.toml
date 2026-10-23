@@ -12,7 +12,6 @@ workspace = true
 [dependencies]
 tsrs_core.workspace = true
 tsrs_vfs.workspace = true
-tsrs_tsoptions.workspace = true
 tsrs_compiler.workspace = true
 tsrs_lsp.workspace = true
 tsrs_api.workspace = true

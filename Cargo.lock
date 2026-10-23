@@ -1101,7 +1101,6 @@ dependencies = [
  "tsrs_core",
  "tsrs_execute",
  "tsrs_lsp",
- "tsrs_tsoptions",
  "tsrs_vfs",
 ]
 

@@ -31,13 +31,11 @@ pub fn get_symbols_at_positions(host: &dyn CheckerHost, p: &Params) -> CheckerRe
     let file = s.source_file(&p.document("file")?)?;
     let positions = p.u32_array("positions")?;
     let mut out = Vec::with_capacity(positions.len());
-    out = positions.into_iter().try_fold(out, |mut out, pos| {
+    for pos in positions {
         let node = touching_property_name_at_utf16(file, pos);
         let symbol = s.c().get_symbol_at_location_exported(node);
         out.push(s.opt_symbol_response(symbol)?);
-
-        Ok::<_, CheckerError>(out)
-    })?;
+    }
     Ok(Value::Array(out))
 }
 
@@ -52,13 +50,11 @@ pub fn get_symbols_at_locations(host: &dyn CheckerHost, p: &Params) -> CheckerRe
     let mut s = setup(host, p)?;
     let locations = p.string_array("locations")?;
     let mut out = Vec::with_capacity(locations.len());
-    out = locations.into_iter().try_fold(out, |mut out, loc| {
+    for loc in locations {
         let node = s.resolve_node(loc)?;
         let symbol = s.c().get_symbol_at_location_exported(node);
         out.push(s.opt_symbol_response(symbol)?);
-
-        Ok::<_, CheckerError>(out)
-    })?;
+    }
     Ok(Value::Array(out))
 }
 
@@ -73,13 +69,11 @@ pub fn get_symbols_of_source_files(host: &dyn CheckerHost, p: &Params) -> Checke
     let mut s = setup(host, p)?;
     let files = p.documents("files")?;
     let mut out = Vec::with_capacity(files.len());
-    out = files.iter().try_fold(out, |mut out, f| {
+    for f in &files {
         let file = s.source_file(f)?;
         let symbol = s.c().get_symbol_at_location_exported(file.as_node());
         out.push(s.opt_symbol_response(symbol)?);
-
-        Ok::<_, CheckerError>(out)
-    })?;
+    }
     Ok(Value::Array(out))
 }
 
@@ -109,13 +103,11 @@ pub fn get_types_of_symbols(host: &dyn CheckerHost, p: &Params) -> CheckerResult
     let mut s = setup(host, p)?;
     let refs = p.symbol_refs("symbols")?;
     let mut out = Vec::with_capacity(refs.len());
-    out = refs.iter().try_fold(out, |mut out, r| {
+    for r in &refs {
         let symbol = s.resolve_symbol(r)?;
         let t = s.c().get_type_of_symbol_exported(symbol);
         out.push(s.type_response(t)?);
-
-        Ok::<_, CheckerError>(out)
-    })?;
+    }
     Ok(Value::Array(out))
 }
 

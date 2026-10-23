@@ -84,13 +84,11 @@ pub fn get_type_at_locations(host: &dyn CheckerHost, p: &Params) -> CheckerResul
     let mut s = setup(host, p)?;
     let locations = p.string_array("locations")?;
     let mut out = Vec::with_capacity(locations.len());
-    out = locations.into_iter().try_fold(out, |mut out, loc| {
+    for loc in locations {
         let node = s.resolve_node(loc)?;
         let t = s.c().get_type_at_location(node);
         out.push(s.type_response(t)?);
-
-        Ok::<_, CheckerError>(out)
-    })?;
+    }
     Ok(Value::Array(out))
 }
 
@@ -107,13 +105,11 @@ pub fn get_types_at_positions(host: &dyn CheckerHost, p: &Params) -> CheckerResu
     let file = s.source_file(&p.document("file")?)?;
     let positions = p.u32_array("positions")?;
     let mut out = Vec::with_capacity(positions.len());
-    out = positions.into_iter().try_fold(out, |mut out, pos| {
+    for pos in positions {
         let node = touching_property_name_at_utf16(file, pos);
         let t = s.c().get_type_at_location(node);
         out.push(s.type_response(t)?);
-
-        Ok::<_, CheckerError>(out)
-    })?;
+    }
     Ok(Value::Array(out))
 }
 
@@ -398,11 +394,9 @@ pub fn get_index_infos_of_type(host: &dyn CheckerHost, p: &Params) -> CheckerRes
         return Ok(Value::Array(Vec::new())); // Go nil slice: json/v2 encodes []
     }
     let mut out = Vec::with_capacity(infos.len());
-    out = infos.iter().try_fold(out, |mut out, info| {
+    for info in infos {
         out.push(s.index_info_response(*info)?);
-
-        Ok::<_, CheckerError>(out)
-    })?;
+    }
     Ok(Value::Array(out))
 }
 

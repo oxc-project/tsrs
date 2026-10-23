@@ -58,6 +58,10 @@ impl SelectionRangeBuilder {
 
 impl LanguageService {
     // selectionranges.go:48
+    #[expect(
+        clippy::unnecessary_wraps,
+        reason = "Language-service handlers retain the fallible interface used by LSP and API dispatch."
+    )]
     pub fn provide_selection_ranges(
         &self,
         _ctx: &Context,
@@ -66,26 +70,21 @@ impl LanguageService {
         let (_, source_file) = self.get_program_and_file(&params.text_document.uri);
 
         let mut results = Vec::with_capacity(params.positions.len());
-        results = match params.positions.iter().try_fold(results, |mut results, &position| {
+        for &position in &params.positions {
             let positions = self.converters.from_lsp_position_for_source_file(
                 source_file,
                 position,
                 Feature::SelectionRanges,
             );
             if positions.len() != 1 || !positions[0].fidelity.is_single_segment() {
-                return std::ops::ControlFlow::Break(Ok(lsproto::SelectionRangesOrNull::default()));
+                return Ok(lsproto::SelectionRangesOrNull::default());
             }
             if let Some(selection_range) =
                 get_smart_selection_range(self, positions[0].script, positions[0].position)
             {
                 results.push(selection_range);
             }
-
-            std::ops::ControlFlow::Continue(results)
-        }) {
-            std::ops::ControlFlow::Continue(value) => value,
-            std::ops::ControlFlow::Break(value) => return value,
-        };
+        }
 
         Ok(lsproto::SelectionRangesOrNull { selection_ranges: Some(results) })
     }

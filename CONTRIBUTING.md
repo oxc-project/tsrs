@@ -139,9 +139,9 @@ Capture its combined stdout and stderr, replacing the case's absolute directory 
   run sequentially: the runner rewrites the shared GitHub event file when starting steps, so parallel actions
   can read an incomplete payload.
   `benchmark.yml` asks Clef whether a push or PR needs measurement, then builds all release benchmark artifacts in one
-  job before sharding CodSpeed and PR comparisons. Cross-compiler reports and their draft update PRs run only by manual
-  dispatch. Manual dispatch forces measurement; unavailable Clef decisions run benchmarks. PR comparisons and
-  cross-compiler reports share the plain release CLI. Measured main
+  job before sharding CodSpeed and PR comparisons. Cross-compiler reports run only by manual dispatch and remain in
+  workflow artifacts without opening update PRs. Manual dispatch forces measurement; unavailable Clef decisions run
+  benchmarks. PR comparisons and cross-compiler reports share the plain release CLI. Measured main
   pushes cache it for the exact commit and build configuration; misses build the base in the same job. Benchmark project
   and Node API harness caches are saved on main pushes and restored by PRs.
   Autofix removes unused Cargo dependencies and updates the lock file on pull requests; merge groups reject pending fixes.

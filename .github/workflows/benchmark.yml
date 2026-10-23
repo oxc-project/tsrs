@@ -522,9 +522,6 @@ jobs:
         with:
           registry-url: ""
 
-      - name: Fetch benchmark history
-        run: git fetch --unshallow origin main
-
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           pattern: bench-partial-*
@@ -547,66 +544,3 @@ jobs:
             ${{ runner.temp }}/bench-publication
           if-no-files-found: error
           retention-days: 14
-
-      - name: Create GitHub App token
-        if: github.ref == 'refs/heads/main'
-        id: app-token
-        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
-        with:
-          client-id: ${{ secrets.APP_ID }}
-          private-key: ${{ secrets.APP_PRIVATE_KEY }}
-          permission-contents: write
-          permission-pull-requests: write
-
-      - name: Open or update benchmark PR
-        if: github.ref == 'refs/heads/main'
-        env:
-          GH_TOKEN: ${{ steps.app-token.outputs.token }}
-          GH_REPO: ${{ github.repository }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          measured="$GITHUB_SHA"
-          git fetch -q origin main
-          if ! git merge-base --is-ancestor "$measured" origin/main; then
-            echo "Keeping results as artifacts: the measured commit is no longer on main."
-            exit 0
-          fi
-          git checkout -q -f -B main origin/main
-          displayed=$(sed -n 's/.*tsrs commit: `\([0-9a-f]\{7,40\}\)`.*/\1/p' bench/RESULTS.md | tail -1)
-          if [ -n "$displayed" ] && displayed=$(git rev-parse --verify "$displayed^{commit}") && \
-             [ "$displayed" != "$measured" ] && git merge-base --is-ancestor "$measured" "$displayed"; then
-            echo "Keeping the newer published report and images."
-            exit 0
-          fi
-
-          # Only the public report and images enter git; samples and logs stay in artifacts.
-          cp "$RUNNER_TEMP/bench-publication/RESULTS.md" bench/RESULTS.md
-          cp "$RUNNER_TEMP"/bench-publication/*.svg bench/
-          cp "$RUNNER_TEMP/bench-publication/publication.json" bench/publication.json
-          git add bench/RESULTS.md bench/publication.json bench/benchmark.svg 'bench/large-projects*.svg' 'bench/per-project-*.svg'
-          git diff --cached --quiet && exit 0
-
-          gh auth setup-git
-          branch="bench/results-$measured"
-          title="chore(bench): update results for ${measured:0:12}"
-          previous=$(git ls-remote --heads origin "refs/heads/$branch" | cut -f1)
-          # Create the commit through GitHub so the app token supplies its attribution.
-          while IFS= read -r -d '' path; do
-            git show ":$path" | jq -Rs --arg path "$path" '{path: $path, mode: "100644", type: "blob", content: .}'
-          done < <(git diff --cached --name-only -z) |
-            jq -s --arg base_tree "$(git rev-parse 'HEAD^{tree}')" '{base_tree: $base_tree, tree: .}' > "$RUNNER_TEMP/bench-tree.json"
-          tree=$(gh api --method POST "repos/$GH_REPO/git/trees" --input "$RUNNER_TEMP/bench-tree.json" --jq .sha)
-          commit=$(gh api "repos/$GH_REPO/git/commits" -f message="$title" -f tree="$tree" \
-            -f "parents[]=$(git rev-parse HEAD)" --jq .sha)
-          git fetch -q origin "$commit"
-          git push "--force-with-lease=refs/heads/$branch:$previous" origin "$commit:refs/heads/$branch"
-
-          printf 'Update the benchmark report and chart images for `%s`. Raw samples remain in [workflow artifacts](%s).\n' \
-            "${measured:0:12}" "$RUN_URL" > "$RUNNER_TEMP/bench-pr.md"
-          pr=$(gh pr list --base main --head "$branch" --state open --json number --jq '.[0].number // empty')
-          if [ -n "$pr" ]; then
-            gh pr edit "$pr" --title "$title" --body-file "$RUNNER_TEMP/bench-pr.md"
-          else
-            gh pr create --draft --base main --head "$branch" --title "$title" --body-file "$RUNNER_TEMP/bench-pr.md"
-          fi

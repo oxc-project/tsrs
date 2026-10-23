@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# PGO training workload for release builds and the README benchmark (.github/workflows/release.yml,
-# .github/workflows/update-benchmarks.yml; notes/perf-pgo.md): runs PGO-instrumented binaries and leaves their
-# raw profiles (*.profraw) in <raw-dir>. Compiler workload exit codes are ignored (the suite has known failures
+# PGO training workload for release builds (.github/workflows/release.yml; notes/perf-pgo.md):
+# runs PGO-instrumented binaries and leaves their raw profiles (*.profraw) in <raw-dir>.
+# Compiler workload exit codes are ignored (the suite has known failures
 # and the bench projects have type errors); crashes and missing profiles fail. Go Fourslash must pass its gate.
 #
 #   pgo-train.sh <dir with instrumented tsrs + tsrs-test + fourslash_server> <raw-dir> <bench work dir>

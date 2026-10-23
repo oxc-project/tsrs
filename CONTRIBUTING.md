@@ -138,9 +138,11 @@ Capture its combined stdout and stderr, replacing the case's absolute directory 
   Source checks overlap Rust setup and Clippy in `lint`. Setup and checkout actions in `test` and `fourslash`
   run sequentially: the runner rewrites the shared GitHub event file when starting steps, so parallel actions
   can read an incomplete payload.
-  On main pushes, `benchmark-cli` warms the plain release CLI and dependency caches for PR benchmarks. Base binaries
-  are restored only for the exact commit and build configuration; misses build normally. Benchmark project and Node API
-  harness caches are saved on main pushes and restored by PRs.
+  `benchmark.yml` asks Clef whether a push or PR needs measurement, then builds all release benchmark artifacts in one
+  job before sharding CodSpeed, PR comparisons and cross-compiler reports. Manual dispatch forces measurement; unavailable
+  Clef decisions run benchmarks. PR comparisons and cross-compiler reports share the plain release CLI. Measured main
+  pushes cache it for the exact commit and build configuration; misses build the base in the same job. Benchmark project
+  and Node API harness caches are saved on main pushes and restored by PRs.
   Autofix removes unused Cargo dependencies and updates the lock file on pull requests; merge groups reject pending fixes.
   Auxiliary workflow definitions preserved as `.github/workflows/*.yml.bak` do not run
   automatically or by manual dispatch. Restore the original `.yml` filename to re-enable one.

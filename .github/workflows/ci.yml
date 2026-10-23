@@ -16,42 +16,6 @@ concurrency:
   cancel-in-progress: ${{ github.ref_name != 'main' }}
 
 jobs:
-  benchmark-cli:
-    name: Warm PR benchmark CLI
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && github.repository == 'oxc-project/tsrs'
-    runs-on: ubuntu-24.04
-    timeout-minutes: 30
-    steps:
-      - uses: taiki-e/checkout-action@7d1e50e93dc4fb3bba58f85018fadf77898aee8b # v1.4.2
-
-      # Keep the platform, profile, key and build command aligned with wallclock.yml.
-      - name: Restore benchmark CLI
-        id: cli
-        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: target/release/tsrs
-          key: wallclock-cli-v1-ubuntu-24.04-${{ runner.arch }}-${{ hashFiles('rust-toolchain.toml') }}-${{ github.sha }}
-
-      - uses: oxc-project/setup-rust@3d6fb132fbe7cdcb66bf8ec193911c2945369d12 # v1.0.17
-        if: steps.cli.outputs.cache-hit != 'true'
-        with:
-          save-cache: true
-          cache-key: wallclock-release
-
-      - name: Build benchmark CLI
-        if: steps.cli.outputs.cache-hit != 'true'
-        run: cargo build --release --locked -p tsrs_cli
-
-      - name: Verify benchmark CLI
-        run: target/release/tsrs --version
-
-      - name: Save benchmark CLI
-        if: steps.cli.outputs.cache-hit != 'true'
-        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: target/release/tsrs
-          key: ${{ steps.cli.outputs.cache-primary-key }}
-
   lint:
     name: Lint
     runs-on: ubuntu-latest

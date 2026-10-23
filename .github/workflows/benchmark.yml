@@ -1,0 +1,610 @@
+name: Benchmark
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review]
+  # Manual dispatch also lets CodSpeed backfill main.
+  workflow_dispatch:
+
+concurrency:
+  group: benchmark-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || github.sha }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions: {}
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: "0"
+
+jobs:
+  decide:
+    if: github.repository == 'oxc-project/tsrs'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      run: ${{ steps.clef.outputs.run }}
+      reason: ${{ steps.clef.outputs.reason }}
+      projects: ${{ steps.plan.outputs.projects }}
+      codspeed-modes: ${{ steps.plan.outputs.codspeed-modes }}
+    steps:
+      - uses: taiki-e/checkout-action@7d1e50e93dc4fb3bba58f85018fadf77898aee8b # v1.4.2
+
+      - uses: ./.github/actions/setup-node-tools
+
+      - name: Ask Clef whether benchmarks are needed
+        id: clef
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_KEY: ${{ secrets.CLOUDFLARE_API_KEY }}
+        run: node bench/wallclock.mjs decide
+
+      - name: Plan benchmark shards
+        if: steps.clef.outputs.run == 'true'
+        id: plan
+        env:
+          WALLTIME_ENABLED: ${{ vars.CODSPEED_WALLTIME_ENABLED }}
+        run: |
+          echo "projects=$(node bench/bench.mjs plan --projects all | jq -c .projects)" >> "$GITHUB_OUTPUT"
+          if [ "$WALLTIME_ENABLED" = true ]; then
+            echo 'codspeed-modes=["simulation","memory","walltime"]' >> "$GITHUB_OUTPUT"
+          else
+            echo 'codspeed-modes=["simulation","memory"]' >> "$GITHUB_OUTPUT"
+          fi
+
+  build:
+    name: Build release benchmarks
+    needs: decide
+    if: needs.decide.outputs.run == 'true'
+    # Ubuntu 22.04 keeps optional arm64 artifacts compatible with the Graviton runner's glibc.
+    runs-on: ubuntu-22.04
+    timeout-minutes: 240
+    permissions:
+      contents: read
+    outputs:
+      identical: ${{ steps.binaries.outputs.identical }}
+      typescript: ${{ steps.versions.outputs.typescript }}
+    steps:
+      - uses: taiki-e/checkout-action@7d1e50e93dc4fb3bba58f85018fadf77898aee8b # v1.4.2
+
+      - name: Free disk space
+        run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /usr/local/share/boost
+
+      - uses: ./.github/actions/setup-node-tools
+
+      - uses: oxc-project/setup-rust@3d6fb132fbe7cdcb66bf8ec193911c2945369d12 # v1.0.17
+        with:
+          save-cache: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+          cache-key: benchmark-release
+          tools: cargo-codspeed@6.0.0
+
+      - name: Check out PR base
+        if: github.event_name == 'pull_request'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          path: benchmark-base
+          persist-credentials: false
+
+      # Main publishes this exact source/configuration. A cache miss builds the base in this job.
+      - name: Restore base CLI
+        if: github.event_name == 'pull_request'
+        id: base-cli
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: bench/.work/cli/tsrs
+          key: benchmark-cli-v1-ubuntu-22.04-${{ runner.arch }}-${{ hashFiles('benchmark-base/rust-toolchain.toml') }}-${{ github.event.pull_request.base.sha }}
+
+      - name: Build base CLI
+        if: github.event_name == 'pull_request' && steps.base-cli.outputs.cache-hit != 'true'
+        working-directory: benchmark-base
+        env:
+          CARGO_TARGET_DIR: ${{ github.workspace }}/target
+        run: |
+          cargo build --release --locked -p tsrs_cli
+          mkdir -p "$GITHUB_WORKSPACE/bench/.work/cli"
+          cp "$CARGO_TARGET_DIR/release/tsrs" "$GITHUB_WORKSPACE/bench/.work/cli/tsrs"
+
+      - name: Stage base CLI
+        if: github.event_name == 'pull_request'
+        run: |
+          mkdir -p "$RUNNER_TEMP/benchmark-binaries/base"
+          cp bench/.work/cli/tsrs "$RUNNER_TEMP/benchmark-binaries/base/tsrs"
+
+      - name: Build release CLI
+        run: |
+          cargo build --release --locked -p tsrs_cli
+          target/release/tsrs --version
+          mkdir -p "$RUNNER_TEMP/benchmark-binaries/head" bench/.work/cli
+          cp target/release/tsrs "$RUNNER_TEMP/benchmark-binaries/head/tsrs"
+          cp target/release/tsrs bench/.work/cli/tsrs
+
+      - name: Save main CLI for PR comparisons
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: bench/.work/cli/tsrs
+          key: benchmark-cli-v1-ubuntu-22.04-${{ runner.arch }}-${{ hashFiles('rust-toolchain.toml') }}-${{ github.sha }}
+
+      - name: Compare release binaries
+        if: github.event_name == 'pull_request'
+        id: binaries
+        run: |
+          base="$RUNNER_TEMP/benchmark-binaries/base/tsrs"
+          head="$RUNNER_TEMP/benchmark-binaries/head/tsrs"
+          "$base" --version
+          sha256sum "$base" "$head"
+          if cmp -s "$base" "$head"; then
+            echo "identical=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "identical=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      # Tar preserves executable permissions for every measurement shard.
+      - name: Package release CLI
+        run: tar -czf benchmark-cli.tar.gz -C "$RUNNER_TEMP/benchmark-binaries" .
+
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: benchmark-cli
+          path: benchmark-cli.tar.gz
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 14
+
+      # Simulation and memory both use CodSpeed's analysis build. Build both harnesses together.
+      - name: Build CodSpeed simulation and memory benchmarks
+        run: cargo codspeed build -p tsrs_bench --bench compiler --bench compiler_default --features codspeed --profile release --locked -m simulation,memory
+
+      - name: Install optional arm64 cross compiler
+        if: vars.CODSPEED_WALLTIME_ENABLED == 'true'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-aarch64-linux-gnu
+          rustup target add aarch64-unknown-linux-gnu
+
+      - name: Build optional CodSpeed walltime benchmarks
+        if: vars.CODSPEED_WALLTIME_ENABLED == 'true'
+        env:
+          CARGO_BUILD_TARGET: aarch64-unknown-linux-gnu
+          CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: aarch64-linux-gnu-gcc
+          CC_aarch64_unknown_linux_gnu: aarch64-linux-gnu-gcc
+        # Graviton cannot execute mimalloc's default ARMv8.1 LSE atomics; retain portable allocator code.
+        run: cargo codspeed build -p tsrs_bench --bench compiler_default --features codspeed,mimalloc-safe/no_opt_arch --profile release --locked -m walltime
+
+      - name: Package CodSpeed benchmarks
+        run: tar -czf codspeed-benchmarks.tar.gz -C target codspeed
+
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: codspeed-benchmarks
+          path: codspeed-benchmarks.tar.gz
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 7
+
+      - name: Pin comparison compiler versions
+        id: versions
+        run: |
+          nightly=$(npm view typescript@next version)
+          echo "typescript=$nightly 7.0.2" >> "$GITHUB_OUTPUT"
+
+  codspeed:
+    name: CodSpeed (${{ matrix.mode }}, ${{ matrix.project }})
+    needs: [decide, build]
+    if: needs.decide.outputs.run == 'true'
+    runs-on: ${{ matrix.mode == 'walltime' && 'codspeed-macro-arm64-graviton-ubuntu-22-04' || 'ubuntu-latest' }}
+    timeout-minutes: 90
+    permissions:
+      contents: read
+      id-token: write
+    strategy:
+      fail-fast: false
+      matrix:
+        mode: ${{ fromJSON(needs.decide.outputs.codspeed-modes || '[]') }}
+        project: [Compiler-Unions, xstate-main, webpack, drizzle-orm]
+    env:
+      TSRS_BENCH_PROJECT: ${{ matrix.project }}
+    steps:
+      - uses: taiki-e/checkout-action@7d1e50e93dc4fb3bba58f85018fadf77898aee8b # v1.4.2
+
+      - uses: ./.github/actions/setup-node-tools
+
+      - name: Cache key for the bench project
+        id: keys
+        run: echo "work=$(node bench/bench.mjs plan --format keys --projects "$TSRS_BENCH_PROJECT" | sha256sum | cut -c1-16)" >> "$GITHUB_OUTPUT"
+
+      - name: Restore benchmark project
+        id: project-cache
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            bench/.work/suite
+            bench/.work/tsgo
+            bench/.work/solutions/${{ matrix.project }}
+          key: codspeed-work-${{ runner.os }}-${{ runner.arch }}-${{ matrix.project }}-${{ steps.keys.outputs.work }}
+
+      - name: Set up the bench project
+        run: node bench/bench.mjs prepare --projects "$TSRS_BENCH_PROJECT"
+
+      - name: Set up Rust
+        uses: oxc-project/setup-rust@3d6fb132fbe7cdcb66bf8ec193911c2945369d12 # v1.0.17
+        with:
+          restore-cache: false
+          tools: cargo-codspeed@6.0.0
+
+      - name: Download benchmarks
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: codspeed-benchmarks
+
+      - name: Unpack benchmarks
+        run: |
+          mkdir -p target
+          tar -xzf codspeed-benchmarks.tar.gz -C target
+
+      - name: Run simulation
+        if: matrix.mode == 'simulation'
+        uses: CodSpeedHQ/action@821a40cd6c80e3cfe387caf55668287addd808da # v5.5.0
+        env:
+          MIMALLOC_ARENA_PURGE_MULT: "-1"
+          RAYON_NUM_THREADS: "1"
+        with:
+          mode: simulation
+          run: cargo codspeed run -p tsrs_bench --bench compiler -m simulation
+
+      - name: Run memory
+        if: matrix.mode == 'memory'
+        uses: CodSpeedHQ/action@821a40cd6c80e3cfe387caf55668287addd808da # v5.5.0
+        with:
+          mode: memory
+          run: cargo codspeed run -p tsrs_bench --bench compiler_default -m memory
+
+      - name: Run walltime
+        if: matrix.mode == 'walltime'
+        uses: CodSpeedHQ/action@821a40cd6c80e3cfe387caf55668287addd808da # v5.5.0
+        with:
+          mode: walltime
+          run: cargo codspeed run -p tsrs_bench --bench compiler_default -m walltime
+
+      - name: Save benchmark project on main
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.project-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            bench/.work/suite
+            bench/.work/tsgo
+            bench/.work/solutions/${{ matrix.project }}
+          key: ${{ steps.project-cache.outputs.cache-primary-key }}
+
+  compare:
+    name: Compare PR (${{ matrix.project }}, ${{ matrix.mode }})
+    needs: [decide, build]
+    if: github.event_name == 'pull_request' && needs.build.outputs.identical == 'false'
+    # Each project/mode pair has a dedicated runner.
+    runs-on: nscloud-ubuntu-24.04-amd64-8x16
+    timeout-minutes: 180
+    strategy:
+      fail-fast: false
+      matrix:
+        project: ${{ fromJSON(needs.decide.outputs.projects || '[]') }}
+        mode: [check, incremental]
+    permissions:
+      contents: read
+    env:
+      PROJECT: ${{ matrix.project }}
+      MODE: ${{ matrix.mode }}
+    steps:
+      - uses: taiki-e/checkout-action@7d1e50e93dc4fb3bba58f85018fadf77898aee8b # v1.4.2
+
+      - name: Download release CLI
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: benchmark-cli
+
+      - name: Unpack release CLI
+        run: |
+          mkdir -p "$RUNNER_TEMP/benchmark-binaries"
+          tar -xzf benchmark-cli.tar.gz -C "$RUNNER_TEMP/benchmark-binaries"
+
+      - uses: taiki-e/install-action@a4d3f3f761dcd95cce1b72cb61cb6d1963438177 # v2.87.30
+        with:
+          tool: hyperfine@2.0.0
+          fallback: none
+
+      - name: Enable hardware counters
+        run: sudo sysctl -w kernel.perf_event_paranoid=1
+
+      - name: Runner information
+        run: |
+          nproc
+          free -h
+          hyperfine --version
+
+      - uses: ./.github/actions/setup-node-tools
+
+      - name: Cache keys
+        id: keys
+        run: node bench/bench.mjs plan --format keys --projects "$PROJECT" | sed "s/^$PROJECT=/project=/" >> "$GITHUB_OUTPUT"
+
+      - name: Restore shared benchmark checkout
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            bench/.work/suite
+            bench/.work/tsgo
+          key: bench-shared-${{ runner.os }}-${{ steps.keys.outputs.shared }}
+
+      - name: Restore benchmark project
+        if: steps.keys.outputs.project != ''
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: bench/.work/solutions/${{ matrix.project }}
+          key: bench-${{ matrix.project }}-${{ runner.os }}-${{ steps.keys.outputs.project }}
+
+      - name: Compare main and PR with Hyperfine
+        run: |
+          node bench/wallclock.mjs measure --project "$PROJECT" --mode "$MODE" \
+            --base "$RUNNER_TEMP/benchmark-binaries/base/tsrs" \
+            --head "$RUNNER_TEMP/benchmark-binaries/head/tsrs" \
+            --out "$RUNNER_TEMP/wallclock-results/$PROJECT.$MODE.json" --runs 10
+
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: wallclock-results-${{ matrix.project }}-${{ matrix.mode }}
+          path: ${{ runner.temp }}/wallclock-results
+          if-no-files-found: ignore
+          retention-days: 7
+
+  report:
+    needs: [decide, build, compare]
+    if: always() && github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && needs.decide.result == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: taiki-e/checkout-action@7d1e50e93dc4fb3bba58f85018fadf77898aee8b # v1.4.2
+
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        if: needs.build.outputs.identical == 'false'
+        continue-on-error: true
+        with:
+          pattern: wallclock-results-*
+          path: ${{ runner.temp }}/wallclock-results
+          merge-multiple: true
+
+      - uses: ./.github/actions/setup-node-tools
+
+      - name: Join project measurements
+        if: needs.build.outputs.identical == 'false'
+        run: node bench/wallclock.mjs join --results "$RUNNER_TEMP/wallclock-results" --out "$RUNNER_TEMP/wallclock-joined.json"
+
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: needs.build.outputs.identical == 'false'
+        with:
+          name: wallclock-joined
+          path: ${{ runner.temp }}/wallclock-joined.json
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Update PR benchmark comment
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          MERGE_SHA: ${{ github.sha }}
+          DECISION: ${{ needs.decide.outputs.run }}
+          IDENTICAL: ${{ needs.build.outputs.identical }}
+          REASON: ${{ needs.decide.outputs.reason }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          node bench/wallclock.mjs comment --pr-number "$PR_NUMBER" \
+            --base-sha "$BASE_SHA" --head-sha "$HEAD_SHA" --merge-sha "$MERGE_SHA" --run-url "$RUN_URL" \
+            --decision "$DECISION" --identical "$IDENTICAL" --reason "$REASON" \
+            --results "$RUNNER_TEMP/wallclock-joined.json"
+
+  publish-measure:
+    name: Measure compilers (${{ matrix.project }})
+    needs: [decide, build]
+    if: needs.decide.outputs.run == 'true'
+    # Each project uses the same single configuration: 4 checkers and 8 worker CPUs.
+    runs-on: nscloud-ubuntu-24.04-amd64-8x16
+    timeout-minutes: 180
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        project: ${{ fromJSON(needs.decide.outputs.projects || '[]') }}
+    env:
+      PROJECT: ${{ matrix.project }}
+      TYPESCRIPT_VERSIONS: ${{ needs.build.outputs.typescript }}
+      BENCH_RUNNER: Namespace `nscloud-ubuntu-24.04-amd64-8x16`
+    steps:
+      - uses: taiki-e/checkout-action@7d1e50e93dc4fb3bba58f85018fadf77898aee8b # v1.4.2
+
+      - name: Prepare benchmark runner
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /usr/local/share/boost
+          mem_gb=$(awk '/MemTotal/ {printf "%d", $2 / 1048576}' /proc/meminfo)
+          if [ "$(nproc)" != 8 ] || [ "$mem_gb" -lt 14 ] || [ "$(uname -m)" != x86_64 ]; then
+            echo "::error::expected 8 vCPU / 16 GB / x86_64"; exit 1
+          fi
+
+      - uses: ./.github/actions/setup-node-tools
+
+      - name: Cache keys
+        id: keys
+        run: node bench/bench.mjs plan --format keys --projects "$PROJECT" | sed "s/^$PROJECT=/project=/" >> "$GITHUB_OUTPUT"
+
+      - name: Restore suite
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            bench/.work/suite
+          key: bench-shared-${{ runner.os }}-${{ steps.keys.outputs.shared }}
+
+      - name: Restore project
+        if: steps.keys.outputs.project != ''
+        id: project-cache
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: bench/.work/solutions/${{ matrix.project }}
+          key: bench-${{ matrix.project }}-${{ runner.os }}-${{ steps.keys.outputs.project }}
+
+      - name: Set up project
+        run: node bench/bench.mjs prepare --projects "$PROJECT"
+
+      - name: Download release CLI
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: benchmark-cli
+
+      - name: Unpack release CLI
+        run: |
+          mkdir -p "$RUNNER_TEMP/benchmark-binaries"
+          tar -xzf benchmark-cli.tar.gz -C "$RUNNER_TEMP/benchmark-binaries"
+
+      - uses: taiki-e/install-action@a4d3f3f761dcd95cce1b72cb61cb6d1963438177 # v2.87.30
+        with:
+          tool: hyperfine@2.0.0
+          fallback: none
+
+      - name: Enable hardware counters
+        run: sudo sysctl -w kernel.perf_event_paranoid=1
+
+      - name: Measure compilers
+        run: |
+          bin="$RUNNER_TEMP/benchmark-binaries/head"
+          read -ra versions <<< "$TYPESCRIPT_VERSIONS"
+          node bench/bench.mjs run --projects "$PROJECT" --typescript-versions "${versions[@]}" \
+            --tsrs "$bin/tsrs" --hyperfine "$(command -v hyperfine)" --checkers 4 --workers 8 \
+            --out-dir "$RUNNER_TEMP/bench-partial/$PROJECT" --runs 10 --warmup 3
+
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: bench-partial-${{ matrix.project }}
+          path: ${{ runner.temp }}/bench-partial/${{ matrix.project }}
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Save benchmark project on main
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.project-cache.outputs.cache-hit != 'true' && (steps.keys.outputs.project != '')
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: bench/.work/solutions/${{ matrix.project }}
+          key: ${{ steps.project-cache.outputs.cache-primary-key }}
+
+  publish:
+    needs: publish-measure
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    env:
+      RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+    steps:
+      - uses: taiki-e/checkout-action@7d1e50e93dc4fb3bba58f85018fadf77898aee8b # v1.4.2
+
+      - uses: oxc-project/setup-node@f46a72f95efdc55273fcd042d61c84e723b2892c # v1.4.1
+        with:
+          registry-url: ""
+
+      - name: Fetch benchmark history
+        run: git fetch --unshallow origin main
+
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          pattern: bench-partial-*
+          path: ${{ runner.temp }}/bench-partials
+
+      - name: Combine project data and update report SVGs
+        run: |
+          pnpm install --frozen-lockfile --ignore-scripts
+          node bench/bench.mjs merge "$RUNNER_TEMP"/bench-partials/*/* --output-dir "$RUNNER_TEMP/bench-result"
+          node bench/bench.mjs render "$RUNNER_TEMP/bench-result" \
+            --output-dir "$RUNNER_TEMP/bench-publication" --commit "$GITHUB_SHA" --run-url "$RUN_URL"
+          node bench/bench.mjs verify-images "$RUNNER_TEMP/bench-publication/publication.json" \
+            --against "$RUNNER_TEMP/bench-publication"
+
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: bench-result
+          path: |
+            ${{ runner.temp }}/bench-result
+            ${{ runner.temp }}/bench-publication
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Create GitHub App token
+        if: github.ref == 'refs/heads/main'
+        id: app-token
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          client-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+          permission-contents: write
+          permission-pull-requests: write
+
+      - name: Open or update benchmark PR
+        if: github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          GH_REPO: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          measured="$GITHUB_SHA"
+          git fetch -q origin main
+          if ! git merge-base --is-ancestor "$measured" origin/main; then
+            echo "Keeping results as artifacts: the measured commit is no longer on main."
+            exit 0
+          fi
+          git checkout -q -f -B main origin/main
+          displayed=$(sed -n 's/.*tsrs commit: `\([0-9a-f]\{7,40\}\)`.*/\1/p' bench/RESULTS.md | tail -1)
+          if [ -n "$displayed" ] && displayed=$(git rev-parse --verify "$displayed^{commit}") && \
+             [ "$displayed" != "$measured" ] && git merge-base --is-ancestor "$measured" "$displayed"; then
+            echo "Keeping the newer published report and images."
+            exit 0
+          fi
+
+          # Only the public report and images enter git; samples and logs stay in artifacts.
+          cp "$RUNNER_TEMP/bench-publication/RESULTS.md" bench/RESULTS.md
+          cp "$RUNNER_TEMP"/bench-publication/*.svg bench/
+          cp "$RUNNER_TEMP/bench-publication/publication.json" bench/publication.json
+          git add bench/RESULTS.md bench/publication.json bench/benchmark.svg 'bench/large-projects*.svg' 'bench/per-project-*.svg'
+          git diff --cached --quiet && exit 0
+
+          gh auth setup-git
+          branch="bench/results-$measured"
+          title="chore(bench): update results for ${measured:0:12}"
+          previous=$(git ls-remote --heads origin "refs/heads/$branch" | cut -f1)
+          # Create the commit through GitHub so the app token supplies its attribution.
+          while IFS= read -r -d '' path; do
+            git show ":$path" | jq -Rs --arg path "$path" '{path: $path, mode: "100644", type: "blob", content: .}'
+          done < <(git diff --cached --name-only -z) |
+            jq -s --arg base_tree "$(git rev-parse 'HEAD^{tree}')" '{base_tree: $base_tree, tree: .}' > "$RUNNER_TEMP/bench-tree.json"
+          tree=$(gh api --method POST "repos/$GH_REPO/git/trees" --input "$RUNNER_TEMP/bench-tree.json" --jq .sha)
+          commit=$(gh api "repos/$GH_REPO/git/commits" -f message="$title" -f tree="$tree" \
+            -f "parents[]=$(git rev-parse HEAD)" --jq .sha)
+          git fetch -q origin "$commit"
+          git push "--force-with-lease=refs/heads/$branch:$previous" origin "$commit:refs/heads/$branch"
+
+          printf 'Update the benchmark report and chart images for `%s`. Raw samples remain in [workflow artifacts](%s).\n' \
+            "${measured:0:12}" "$RUN_URL" > "$RUNNER_TEMP/bench-pr.md"
+          pr=$(gh pr list --base main --head "$branch" --state open --json number --jq '.[0].number // empty')
+          if [ -n "$pr" ]; then
+            gh pr edit "$pr" --title "$title" --body-file "$RUNNER_TEMP/bench-pr.md"
+          else
+            gh pr create --draft --base main --head "$branch" --title "$title" --body-file "$RUNNER_TEMP/bench-pr.md"
+          fi

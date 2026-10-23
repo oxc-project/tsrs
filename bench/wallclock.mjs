@@ -308,7 +308,11 @@ export function renderReport(a) {
     }
     const missing = [],
         mismatched = [],
-        pct = (n) => `${n >= 0 ? "+" : ""}${n.toFixed(1)}%`;
+        measured = [],
+        pct = (n, digits = 1) => {
+            const value = Number(n.toFixed(digits));
+            return `${value > 0 ? "+" : ""}${value.toFixed(digits)}%`;
+        };
     lines.push(
         "Release builds with Hyperfine 2 hardware counters. After warming each binary, ten alternating main/PR pairs measure wall time and peak RSS at the default checker count; three separate pairs measure single-threaded instructions.",
         "Incremental runs start with fresh build info before every invocation; check runs disable incremental compilation.",
@@ -343,7 +347,10 @@ export function renderReport(a) {
                 requireValue(typeof d[k] === "boolean", "invalid diagnostic comparison");
             requireValue(Number.isInteger(d.main_exit) && Number.isInteger(d.pr_exit), "invalid exits");
             lines.push(
-                `| ${name} | ${mode} | ${pct((median(d.pair_ratios) - 1) * 100)} | ${pct((d.pr.peak_rss_bytes / d.main.peak_rss_bytes - 1) * 100)} | ${pct((median(d.instruction_ratios) - 1) * 100)} |`,
+                `| ${name} | ${mode} | ${pct((median(d.pair_ratios) - 1) * 100)} | ${pct((d.pr.peak_rss_bytes / d.main.peak_rss_bytes - 1) * 100)} | ${pct((median(d.instruction_ratios) - 1) * 100, 3)} |`,
+            );
+            measured.push(
+                `| ${name} | ${mode} | ${d.main.median_s.toFixed(3)} → ${d.pr.median_s.toFixed(3)} | ${(d.main.peak_rss_bytes / 2 ** 20).toFixed(1)} → ${(d.pr.peak_rss_bytes / 2 ** 20).toFixed(1)} | ${d.main.instructions.toLocaleString("en-US")} → ${d.pr.instructions.toLocaleString("en-US")} |`,
             );
             if (!d.diagnostics_match || d.main_exit !== d.pr_exit || !d.count_exit_match || !d.count_diagnostics_match)
                 mismatched.push(`${name} (${mode})`);
@@ -359,6 +366,18 @@ export function renderReport(a) {
     if (mismatched.length) lines.push(`Diagnostics or exit status differed on: ${mismatched.join(", ")}.`);
     if (missing.length)
         lines.push(`Measurements missing or invalid on: ${missing.join(", ")}. See the workflow run for errors.`);
+    if (measured.length)
+        lines.push(
+            "",
+            "<details>",
+            "<summary>Measured medians (main → PR)</summary>",
+            "",
+            "| Project | Mode | Wall time (s) | Peak RSS (MiB) | Instructions |",
+            "| --- | --- | ---: | ---: | ---: |",
+            ...measured,
+            "",
+            "</details>",
+        );
     return lines.join("\n") + "\n";
 }
 async function comment(a) {

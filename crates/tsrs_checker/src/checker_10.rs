@@ -2684,7 +2684,14 @@ impl Checker {
         let prop = self.new_symbol(
             SymbolFlags::Property
                 | if is_optional { SymbolFlags::Optional } else { SymbolFlags::None },
-            alloc_str(prop_name),
+            if prop_name_type.flags().intersects(TypeFlags::StringLiteral)
+                && let Some(LiteralValue::String(name)) =
+                    prop_name_type.as_literal_type().value.get()
+            {
+                name
+            } else {
+                alloc_str(prop_name)
+            },
         );
         prop.set_check_flags(
             late_flag

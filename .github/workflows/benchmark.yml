@@ -190,6 +190,7 @@ jobs:
           retention-days: 7
 
       - name: Pin comparison compiler versions
+        if: github.event_name == 'workflow_dispatch'
         id: versions
         run: |
           nightly=$(npm view typescript@next version)
@@ -416,7 +417,7 @@ jobs:
   publish-measure:
     name: Measure compilers (${{ matrix.project }})
     needs: [decide, build]
-    if: needs.decide.outputs.run == 'true'
+    if: github.event_name == 'workflow_dispatch' && needs.decide.outputs.run == 'true'
     # Each project uses the same single configuration: 4 checkers and 8 worker CPUs.
     runs-on: nscloud-ubuntu-24.04-amd64-8x16
     timeout-minutes: 180
@@ -507,6 +508,7 @@ jobs:
 
   publish:
     needs: publish-measure
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:

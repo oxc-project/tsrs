@@ -1,27 +1,4 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["github>Boshen/renovate"],
-  "customManagers": [
-    {
-      "customType": "regex",
-      "managerFilePatterns": ["/^bench/projects\\.json$/"],
-      "matchStrings": [
-        "\"tsgo\"\\s*:\\s*\\{\\s*\"package\"\\s*:\\s*\"(?<depName>typescript)\"\\s*,\\s*\"version\"\\s*:\\s*\"(?<currentValue>[^\"]+)\""
-      ],
-      "datasourceTemplate": "npm",
-      "versioningTemplate": "npm"
-    }
-  ],
-  "packageRules": [
-    {
-      "description": "Keep the benchmark competitor on TypeScript nightly; the parity reference stays pinned.",
-      "matchManagers": ["custom.regex"],
-      "matchFileNames": ["bench/projects.json"],
-      "matchPackageNames": ["typescript"],
-      "followTag": "next",
-      "groupName": "TypeScript nightly benchmark",
-      "schedule": ["at any time"],
-      "minimumReleaseAge": "0 days"
-    }
-  ]
+  "extends": ["github>Boshen/renovate"]
 }

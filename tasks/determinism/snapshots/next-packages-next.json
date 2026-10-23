@@ -1,0 +1,28 @@
+{
+  "format_version": 1,
+  "typescript_commit": "3e9236361fa97a9e6c685f4833ac457ae2d8c50a",
+  "reference": {
+    "package": "typescript",
+    "version": "7.1.0-beta",
+    "native_package": "@typescript/typescript-darwin-arm64",
+    "native_version": "7.1.0-beta",
+    "binary_sha256": "29f5eb8daa5c8cf6ef1c0cb79fbcf47c0cfdf26edabdf148bb779d0b2d56cebc"
+  },
+  "input": {
+    "overlay": null,
+    "project": {
+      "commit": "fa8dcf34f1629dacc62f1952ee8a66a2439781a5",
+      "install": "pnpm --pm-on-fail=ignore dlx pnpm@10.33.0 install --frozen-lockfile --ignore-scripts && pnpm --pm-on-fail=ignore dlx pnpm@10.33.0 build",
+      "name": "next-packages-next",
+      "project": "packages/next",
+      "repo": "https://github.com/vercel/next.js.git"
+    },
+    "suite": null
+  },
+  "exit_code": 2,
+  "diagnostics": [
+    "packages/next/src/server/web/sandbox/context.ts(108,9): error TS2578: Unused '@ts-expect-error' directive.",
+    "packages/next/src/shared/lib/router/adapters.tsx(26,18): error TS7031: Binding element 'scroll' implicitly has an 'any' type.",
+    "packages/next/src/shared/lib/router/adapters.tsx(29,21): error TS7031: Binding element 'scroll' implicitly has an 'any' type."
+  ]
+}

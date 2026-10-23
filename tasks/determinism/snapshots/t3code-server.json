@@ -1,0 +1,36 @@
+{
+  "format_version": 1,
+  "typescript_commit": "3e9236361fa97a9e6c685f4833ac457ae2d8c50a",
+  "reference": {
+    "package": "typescript",
+    "version": "7.1.0-beta",
+    "native_package": "@typescript/typescript-darwin-arm64",
+    "native_version": "7.1.0-beta",
+    "binary_sha256": "29f5eb8daa5c8cf6ef1c0cb79fbcf47c0cfdf26edabdf148bb779d0b2d56cebc"
+  },
+  "input": {
+    "overlay": null,
+    "project": {
+      "commit": "9bd1d8009a6b7c50f9dd9458e2bf27d481ff3b43",
+      "install": "pnpm --pm-on-fail=ignore dlx pnpm@11.10.0 install --frozen-lockfile --ignore-scripts --filter t3... --filter @t3tools/scripts...",
+      "name": "t3code-server",
+      "project": "apps/server",
+      "repo": "https://github.com/pingdotgg/t3code.git"
+    },
+    "suite": null
+  },
+  "exit_code": 2,
+  "diagnostics": [
+    "apps/server/scripts/record-pi-rpc-replay-fixture.ts(284,9): error TS2322: Type '<A>(value: A) => Effect<A, never, never>' is not assignable to type '(transcript: { readonly provider: string; readonly protocol: string; readonly version: string; readonly scenario: string; readonly metadata?: { readonly [x: string]: unknown; } | undefined; readonly entries: readonly (... | ... | ...)[]; }) => Effect<...>'.",
+    "  Type 'Effect<{ readonly provider: string; readonly protocol: string; readonly version: string; readonly scenario: string; readonly metadata?: { readonly [x: string]: unknown; } | undefined; readonly entries: readonly ({ readonly type: \"expect_outbound\"; readonly label?: string | undefined; readonly frame: unknown; } | ......' is not assignable to type 'Effect<{ provider: string & Brand<\"ProviderDriverKind\">; protocol: string; version: string; scenario: string; entries: never[]; }, ProviderAdapterDriverCreateError, never>' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.",
+    "    Type '{ readonly provider: string; readonly protocol: string; readonly version: string; readonly scenario: string; readonly metadata?: { readonly [x: string]: unknown; } | undefined; readonly entries: readonly ({ readonly type: \"expect_outbound\"; readonly label?: string | undefined; readonly frame: unknown; } | ... | ...)...' is not assignable to type '{ provider: string & Brand<\"ProviderDriverKind\">; protocol: string; version: string; scenario: string; entries: never[]; }'.",
+    "      Types of property 'provider' are incompatible.",
+    "        Type 'string' is not assignable to type 'string & Brand<\"ProviderDriverKind\">'.",
+    "          Type 'string' is not assignable to type 'Brand<\"ProviderDriverKind\">'.",
+    "apps/server/src/process/externalLauncher.test.ts(1071,11): error TS2304: Cannot find name 'testLayer'.",
+    "apps/server/src/process/externalLauncher.test.ts(1074,23): error TS7006: Parameter 'command' implicitly has an 'any' type.",
+    "apps/server/src/process/externalLauncher.test.ts(1114,11): error TS2304: Cannot find name 'testLayer'.",
+    "apps/server/src/process/externalLauncher.test.ts(1158,9): error TS2304: Cannot find name 'testLayer'.",
+    "apps/server/src/process/externalLauncher.test.ts(1161,21): error TS7006: Parameter 'command' implicitly has an 'any' type."
+  ]
+}

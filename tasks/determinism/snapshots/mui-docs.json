@@ -1,0 +1,25 @@
+{
+  "format_version": 1,
+  "typescript_commit": "3e9236361fa97a9e6c685f4833ac457ae2d8c50a",
+  "reference": {
+    "package": "typescript",
+    "version": "7.1.0-beta",
+    "native_package": "@typescript/typescript-darwin-arm64",
+    "native_version": "7.1.0-beta",
+    "binary_sha256": "29f5eb8daa5c8cf6ef1c0cb79fbcf47c0cfdf26edabdf148bb779d0b2d56cebc"
+  },
+  "input": {
+    "overlay": null,
+    "project": {
+      "case": "cases/scenarios/mui-docs",
+      "commit": "6780195595c12252a130aa5ae5c5bd461229c6b7",
+      "install": "pnpm --pm-on-fail=ignore dlx $(node -p 'require(\"./package.json\").packageManager') install --ignore-scripts",
+      "name": "mui-docs",
+      "project": "docs",
+      "repo": "https://github.com/mui/material-ui.git"
+    },
+    "suite": null
+  },
+  "exit_code": 0,
+  "diagnostics": []
+}

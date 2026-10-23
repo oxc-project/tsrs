@@ -1,0 +1,29 @@
+{
+  "format_version": 1,
+  "typescript_commit": "3e9236361fa97a9e6c685f4833ac457ae2d8c50a",
+  "reference": {
+    "package": "typescript",
+    "version": "7.1.0-beta",
+    "native_package": "@typescript/typescript-darwin-arm64",
+    "native_version": "7.1.0-beta",
+    "binary_sha256": "29f5eb8daa5c8cf6ef1c0cb79fbcf47c0cfdf26edabdf148bb779d0b2d56cebc"
+  },
+  "input": {
+    "overlay": null,
+    "project": {
+      "commit": "fa8dcf34f1629dacc62f1952ee8a66a2439781a5",
+      "install": "pnpm --pm-on-fail=ignore dlx pnpm@10.33.0 install --frozen-lockfile --ignore-scripts && pnpm --pm-on-fail=ignore dlx pnpm@10.33.0 build",
+      "name": "next-root",
+      "project": ".",
+      "repo": "https://github.com/vercel/next.js.git"
+    },
+    "suite": null
+  },
+  "exit_code": 2,
+  "diagnostics": [
+    "scripts/release-github-api.js(94,51): error TS2694: Namespace '\"<work>/solutions/next-root/scripts/github-utils/signed-commit\".export=' has no exported member 'githubRequest'.",
+    "scripts/release-github-api.js(248,51): error TS2694: Namespace '\"<work>/solutions/next-root/scripts/github-utils/signed-commit\".export=' has no exported member 'githubRequest'.",
+    "scripts/run-for-change.mjs(189,9): error TS2810: Expected 1 argument, but got 0. 'new Promise()' needs a JSDoc hint to produce a 'resolve' that can be called without arguments.",
+    "test/lib/next-modes/base.ts(413,15): error TS2322: Type 'unknown' is not assignable to type 'object'."
+  ]
+}

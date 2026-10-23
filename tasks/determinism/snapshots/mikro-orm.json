@@ -1,0 +1,36 @@
+{
+  "format_version": 1,
+  "typescript_commit": "3e9236361fa97a9e6c685f4833ac457ae2d8c50a",
+  "reference": {
+    "package": "typescript",
+    "version": "7.1.0-beta",
+    "native_package": "@typescript/typescript-darwin-arm64",
+    "native_version": "7.1.0-beta",
+    "binary_sha256": "29f5eb8daa5c8cf6ef1c0cb79fbcf47c0cfdf26edabdf148bb779d0b2d56cebc"
+  },
+  "input": {
+    "overlay": null,
+    "project": {
+      "commit": "97fb2318067eae37ef52da57e2975eb7539ed729",
+      "install": "pnpm --pm-on-fail=ignore dlx --package=@yarnpkg/cli-dist@4.18.1 yarn install --mode=skip-build",
+      "name": "mikro-orm",
+      "project": "tests",
+      "repo": "https://github.com/mikro-orm/mikro-orm.git"
+    },
+    "suite": null
+  },
+  "exit_code": 2,
+  "diagnostics": [
+    "tests/entities-schema/Author4.ts(101,14): error TS5088: The inferred type of 'Author4Schema' references a type with a cyclic structure which cannot be trivially serialized. A type annotation is necessary.",
+    "tests/entities-schema/Book4.ts(15,14): error TS5088: The inferred type of 'Book4' references a type with a cyclic structure which cannot be trivially serialized. A type annotation is necessary.",
+    "tests/entities-schema/BookTag4.ts(5,14): error TS5088: The inferred type of 'BookTag4' references a type with a cyclic structure which cannot be trivially serialized. A type annotation is necessary.",
+    "tests/entities-schema/FooBar4.ts(4,14): error TS5088: The inferred type of 'FooBar4' references a type with a cyclic structure which cannot be trivially serialized. A type annotation is necessary.",
+    "tests/entities-schema/FooBaz4.ts(4,14): error TS5088: The inferred type of 'FooBaz4' references a type with a cyclic structure which cannot be trivially serialized. A type annotation is necessary.",
+    "tests/entities-schema/Publisher4.ts(11,14): error TS5088: The inferred type of 'Publisher4' references a type with a cyclic structure which cannot be trivially serialized. A type annotation is necessary.",
+    "tests/features/seeder/factory.test.ts(40,3): error TS5088: The inferred type of 'definition' references a type with a cyclic structure which cannot be trivially serialized. A type annotation is necessary.",
+    "tests/helpers.ts(6,17): error TS2883: The inferred type of 'mockLogger' cannot be named without a reference to 'Procedure' from '../node_modules/vitest/dist/chunks/config.d.BxjInJat'. This is likely not portable. A type annotation is necessary.",
+    "tests/helpers.ts(6,97): error TS2883: The inferred type of 'mock' cannot be named without a reference to 'Procedure' from '../node_modules/vitest/dist/chunks/config.d.BxjInJat'. This is likely not portable. A type annotation is necessary.",
+    "tests/issues/GH6865.test.ts(3,14): error TS5088: The inferred type of 'User' references a type with a cyclic structure which cannot be trivially serialized. A type annotation is necessary.",
+    "tests/issues/GH6865.test.ts(18,14): error TS5088: The inferred type of 'AllowedToken' references a type with a cyclic structure which cannot be trivially serialized. A type annotation is necessary."
+  ]
+}

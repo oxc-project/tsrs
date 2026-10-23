@@ -730,7 +730,7 @@ impl RequestMessage {
         if T::IS_NO_PARAMS {
             if let Some(raw) = raw {
                 return Err(Error::wrap_code(
-                    ErrorCode::InvalidParams,
+                    ErrorCode::INVALID_PARAMS,
                     Error::new(format!(
                         "expected no params, got {}",
                         tsrs_core::json::marshal(raw).unwrap_or_default()
@@ -744,11 +744,11 @@ impl RequestMessage {
         // (absent, null, or a scalar).
         let Some(raw @ (Value::Object(_) | Value::Array(_))) = raw else {
             return Err(Error::wrap_code(
-                ErrorCode::InvalidParams,
+                ErrorCode::INVALID_PARAMS,
                 Error::new("params must be an object or array"),
             ));
         };
-        T::from_json(raw).map_err(|err| Error::wrap_code(ErrorCode::InvalidParams, err))
+        T::from_json(raw).map_err(|err| Error::wrap_code(ErrorCode::INVALID_PARAMS, err))
     }
 }
 
@@ -794,21 +794,21 @@ impl Json for NoParams {
     }
 }
 
-struct clientCapabilitiesKey(std::sync::Arc<crate::ResolvedClientCapabilities>);
+struct ClientCapabilitiesKey(std::sync::Arc<crate::ResolvedClientCapabilities>);
 
 // lsp.go:289
 pub fn with_client_capabilities(
     ctx: &tsrs_core::context::Context,
     caps: std::sync::Arc<crate::ResolvedClientCapabilities>,
 ) -> tsrs_core::context::Context {
-    ctx.with_value(clientCapabilitiesKey(caps))
+    ctx.with_value(ClientCapabilitiesKey(caps))
 }
 
 // lsp.go:293
 pub fn get_client_capabilities(
     ctx: &tsrs_core::context::Context,
 ) -> std::sync::Arc<crate::ResolvedClientCapabilities> {
-    if let Some(caps) = ctx.value::<clientCapabilitiesKey>() {
+    if let Some(caps) = ctx.value::<ClientCapabilitiesKey>() {
         return std::sync::Arc::clone(&caps.0);
     }
     std::sync::Arc::new(crate::ResolvedClientCapabilities::default())
@@ -845,7 +845,7 @@ pub fn preferred_markup_kind(formats: &[MarkupKind]) -> MarkupKind {
     if !formats.is_empty() {
         return formats[0];
     }
-    MarkupKind::PlainText
+    MarkupKind::PLAIN_TEXT
 }
 
 impl CodeActionKind {
@@ -853,14 +853,15 @@ impl CodeActionKind {
     // Contains reports whether other is this code action kind or one of its children.
     pub fn contains(self, other: CodeActionKind) -> bool {
         self == other
-            || self == CodeActionKind::Empty
+            || self == CodeActionKind::EMPTY
             || other.0.strip_prefix(self.0).is_some_and(|rest| rest.starts_with('.'))
     }
 
     // lsp.go:316
-    pub const SourceFixAllTs: CodeActionKind = CodeActionKind("source.fixAll.ts");
-    pub const SourceOrganizeImportsTs: CodeActionKind = CodeActionKind("source.organizeImports.ts");
-    pub const SourceRemoveUnusedImportsTs: CodeActionKind =
+    pub const SOURCE_FIX_ALL_TS: CodeActionKind = CodeActionKind("source.fixAll.ts");
+    pub const SOURCE_ORGANIZE_IMPORTS_TS: CodeActionKind =
+        CodeActionKind("source.organizeImports.ts");
+    pub const SOURCE_REMOVE_UNUSED_IMPORTS_TS: CodeActionKind =
         CodeActionKind("source.removeUnusedImports.ts");
-    pub const SourceSortImportsTs: CodeActionKind = CodeActionKind("source.sortImports.ts");
+    pub const SOURCE_SORT_IMPORTS_TS: CodeActionKind = CodeActionKind("source.sortImports.ts");
 }

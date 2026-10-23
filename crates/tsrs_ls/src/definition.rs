@@ -47,7 +47,7 @@ impl LanguageService {
 
         let (program, file) = self.get_program_and_file(document_uri);
         let positions =
-            self.converters.from_lsp_position_for_source_file(file, position, Feature::Definition);
+            self.converters.from_lsp_position_for_source_file(file, position, Feature::DEFINITION);
         let mut results: Vec<lsproto::DefinitionResponse> = Vec::with_capacity(positions.len());
         results.extend(positions.into_iter().filter_map(|mapped| {
             if mapped.fidelity.is_single_segment() {
@@ -90,7 +90,7 @@ impl LanguageService {
                     client_supports_link,
                     &[],
                     Some(reference),
-                    Feature::Definition,
+                    Feature::DEFINITION,
                 );
             }
         }
@@ -105,7 +105,7 @@ impl LanguageService {
                     client_supports_link,
                     sym.declarations(),
                     None, /*reference*/
-                    Feature::Definition,
+                    Feature::DEFINITION,
                 );
             }
         }
@@ -117,7 +117,7 @@ impl LanguageService {
                     client_supports_link,
                     &[label],
                     None, /*reference*/
-                    Feature::Definition,
+                    Feature::DEFINITION,
                 );
             }
         }
@@ -133,7 +133,7 @@ impl LanguageService {
                         file,
                         stmt.pos().expect_source("parsed switch statements have source positions"),
                     ),
-                    Feature::Definition,
+                    Feature::DEFINITION,
                 );
             }
         }
@@ -148,7 +148,7 @@ impl LanguageService {
                     client_supports_link,
                     &[f],
                     None, /*reference*/
-                    Feature::Definition,
+                    Feature::DEFINITION,
                 );
             }
         }
@@ -188,7 +188,7 @@ impl LanguageService {
             client_supports_link,
             &declarations,
             reference.as_ref(),
-            Feature::Definition,
+            Feature::DEFINITION,
         )
     }
 
@@ -210,7 +210,7 @@ impl LanguageService {
         let positions = self.converters.from_lsp_position_for_source_file(
             file,
             position,
-            Feature::TypeDefinition,
+            Feature::TYPE_DEFINITION,
         );
         let mut results: Vec<lsproto::TypeDefinitionResponse> = Vec::with_capacity(positions.len());
         results.extend(positions.into_iter().filter_map(|mapped| {
@@ -264,18 +264,18 @@ impl LanguageService {
                     client_supports_link,
                     &declarations,
                     None, /*reference*/
-                    Feature::TypeDefinition,
+                    Feature::TYPE_DEFINITION,
                 );
             }
-            if !symbol.flags().intersects(SymbolFlags::Value)
-                && symbol.flags().intersects(SymbolFlags::Type)
+            if !symbol.flags().intersects(SymbolFlags::VALUE)
+                && symbol.flags().intersects(SymbolFlags::TYPE)
             {
                 return self.create_definition_locations(
                     origin_selection_range,
                     client_supports_link,
                     symbol.declarations(),
                     None, /*reference*/
-                    Feature::TypeDefinition,
+                    Feature::TYPE_DEFINITION,
                 );
             }
         }
@@ -354,7 +354,7 @@ pub(crate) fn combine_definition_responses(
 
 // definition.go:195
 pub(crate) fn get_declaration_name_for_keyword(node: P<Node>) -> P<Node> {
-    if node.kind() >= Kind::FirstKeyword && node.kind() <= Kind::LastKeyword {
+    if node.kind() >= Kind::FIRST_KEYWORD && node.kind() <= Kind::LAST_KEYWORD {
         let parent = node.parent().unwrap();
         if ast::is_variable_declaration_list(parent) {
             if let Some(&decl) = parent.as_variable_declaration_list().declarations.nodes().first()
@@ -557,17 +557,17 @@ pub(crate) fn get_declarations_from_location(c: &mut Checker, node: P<Node>) -> 
 
     let node = get_declaration_name_for_keyword(node);
     if let Some(mut symbol) = c.get_symbol_at_location_exported(node) {
-        if symbol.flags().intersects(SymbolFlags::Class)
-            && !symbol.flags().intersects(SymbolFlags::Function | SymbolFlags::Variable)
+        if symbol.flags().intersects(SymbolFlags::CLASS)
+            && !symbol.flags().intersects(SymbolFlags::FUNCTION | SymbolFlags::VARIABLE)
             && node.kind() == Kind::ConstructorKeyword
         {
             if let Some(constructor) =
-                symbol.members().and_then(|m| m.lookup(ast::InternalSymbolNameConstructor))
+                symbol.members().and_then(|m| m.lookup(ast::INTERNAL_SYMBOL_NAME_CONSTRUCTOR))
             {
                 symbol = constructor;
             }
         }
-        if symbol.flags().intersects(SymbolFlags::Alias) {
+        if symbol.flags().intersects(SymbolFlags::ALIAS) {
             if let (Some(resolved), true) = c.resolve_alias_exported(Some(symbol)) {
                 symbol = resolved;
             }
@@ -597,7 +597,7 @@ fn get_declarations_from_object_literal_element(c: &mut Checker, node: P<Node>) 
     };
 
     let Some(contextual_type) =
-        c.get_contextual_type_exported(element.parent().unwrap(), ContextFlags::None)
+        c.get_contextual_type_exported(element.parent().unwrap(), ContextFlags::NONE)
     else {
         return Vec::new();
     };
@@ -616,7 +616,7 @@ fn get_declarations_from_object_literal_element(c: &mut Checker, node: P<Node>) 
     }) {
         if let Some(without_node_inferences_type) = c.get_contextual_type_exported(
             element.parent().unwrap(),
-            ContextFlags::IgnoreNodeInferences,
+            ContextFlags::IGNORE_NODE_INFERENCES,
         ) {
             let without_node_inferences_properties = c.get_property_symbols_from_contextual_type(
                 element,

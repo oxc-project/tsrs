@@ -11,8 +11,8 @@ use tsrs_tsoptions::ParsedCommandLine;
 use crate::buildinfo::*;
 use crate::referencemap::RefSet;
 use crate::snapshot::{
-    DiagnosticsOrBuildInfoDiagnosticsWithFileName, EmitSignature, Snapshot,
-    buildInfoDiagnosticWithFileName, get_file_emit_kind,
+    BuildInfoDiagnosticWithFileName, DiagnosticsOrBuildInfoDiagnosticsWithFileName, EmitSignature,
+    Snapshot, get_file_emit_kind,
 };
 
 // buildinfotosnapshot.go:12
@@ -21,7 +21,7 @@ pub(crate) fn build_info_to_snapshot(
     config: &ParsedCommandLine,
     host: &dyn CompilerHost,
 ) -> P<Snapshot> {
-    let mut to = toSnapshot {
+    let mut to = ToSnapshot {
         build_info,
         build_info_directory: tspath::get_directory_path(&tspath::get_normalized_absolute_path(
             &config.get_build_info_file_name(),
@@ -87,7 +87,7 @@ pub(crate) fn build_info_to_snapshot(
     P::new(to.snapshot)
 }
 
-struct toSnapshot<'a> {
+struct ToSnapshot<'a> {
     build_info: &'a BuildInfo,
     build_info_directory: String,
     snapshot: Snapshot,
@@ -96,7 +96,7 @@ struct toSnapshot<'a> {
     file_path_set: Vec<std::sync::Arc<RefSet>>,
 }
 
-impl toSnapshot<'_> {
+impl ToSnapshot<'_> {
     // buildinfotosnapshot.go:62
     fn to_absolute_path(&self, path: &str) -> String {
         tspath::get_normalized_absolute_path(path, &self.build_info_directory)
@@ -116,12 +116,12 @@ impl toSnapshot<'_> {
     fn to_build_info_diagnostics_with_file_name(
         &self,
         diagnostics: &[BuildInfoDiagnostic],
-    ) -> Vec<buildInfoDiagnosticWithFileName> {
+    ) -> Vec<BuildInfoDiagnosticWithFileName> {
         diagnostics
             .iter()
             .map(|d| {
                 let file = if d.file != 0 { self.to_file_path(d.file) } else { Path::default() };
-                buildInfoDiagnosticWithFileName {
+                BuildInfoDiagnosticWithFileName {
                     file,
                     no_file: d.no_file,
                     pos: d.pos,

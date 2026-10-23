@@ -13,7 +13,7 @@ use tsrs_tsoptions as tsoptions;
 use crate::program::Program;
 
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Debug)]
-pub enum fileIncludeKind {
+pub enum FileIncludeKind {
     // References from file
     Import,
     ReferenceFile,
@@ -28,17 +28,17 @@ pub enum fileIncludeKind {
 
 // fileInclude.go:29
 pub struct FileIncludeReason {
-    pub(crate) kind: fileIncludeKind,
+    pub(crate) kind: FileIncludeKind,
     pub(crate) index: usize,
     pub(crate) is_default_lib: bool,
-    pub(crate) referenced_file: Option<referencedFileData>,
-    pub(crate) automatic_type_directive: Option<P<automaticTypeDirectiveFileData>>,
+    pub(crate) referenced_file: Option<ReferencedFileData>,
+    pub(crate) automatic_type_directive: Option<P<AutomaticTypeDirectiveFileData>>,
     // Go `tspath.Path`, set only for a supplemental content-mapper output (an arena handle: one per supplemental file).
     pub(crate) canonical_source_file: Option<P<Path>>,
 }
 
 impl FileIncludeReason {
-    pub(crate) fn new(kind: fileIncludeKind) -> FileIncludeReason {
+    pub(crate) fn new(kind: FileIncludeKind) -> FileIncludeReason {
         FileIncludeReason {
             kind,
             index: 0,
@@ -50,25 +50,25 @@ impl FileIncludeReason {
     }
 
     pub(crate) fn new_referenced(
-        kind: fileIncludeKind,
+        kind: FileIncludeKind,
         file: &'static str,
         index: Option<usize>,
         synthetic: Option<P<Node>>,
     ) -> P<FileIncludeReason> {
         let mut r = FileIncludeReason::new(kind);
-        r.referenced_file = Some(referencedFileData { file, index, synthetic });
+        r.referenced_file = Some(ReferencedFileData { file, index, synthetic });
         P::new(r)
     }
 }
 
-pub(crate) struct referencedFileData {
+pub(crate) struct ReferencedFileData {
     // Go `tspath.Path`; shared by every reference from the same file (fileLoader `reason_path`).
     pub(crate) file: &'static str,
     pub(crate) index: Option<usize>,
     pub(crate) synthetic: Option<P<Node>>,
 }
 
-pub(crate) struct referenceFileLocation {
+pub(crate) struct ReferenceFileLocation {
     pub(crate) file: P<SourceFile>,
     pub(crate) node: Option<P<Node>>,
     pub(crate) ref_: Option<P<FileReference>>,
@@ -76,7 +76,7 @@ pub(crate) struct referenceFileLocation {
     pub(crate) is_synthetic: bool,
 }
 
-impl referenceFileLocation {
+impl ReferenceFileLocation {
     pub(crate) fn text(&self) -> String {
         if let Some(node) = self.node {
             if !ast::node_is_synthesized(node) {
@@ -116,7 +116,7 @@ impl referenceFileLocation {
     }
 }
 
-pub(crate) struct automaticTypeDirectiveFileData {
+pub(crate) struct AutomaticTypeDirectiveFileData {
     pub(crate) type_reference: String,
     pub(crate) package_id: PackageId,
 }
@@ -131,19 +131,19 @@ impl FileIncludeReason {
     }
 
     pub(crate) fn is_referenced_file(&self) -> bool {
-        self.kind <= fileIncludeKind::LibReferenceDirective
+        self.kind <= FileIncludeKind::LibReferenceDirective
     }
 
     /// tsrs-only: a root file of the program (fileregions.rs: a file with only such reasons is referred to by none).
     pub(crate) fn is_root_file(&self) -> bool {
-        self.kind == fileIncludeKind::RootFile
+        self.kind == FileIncludeKind::RootFile
     }
 
-    pub(crate) fn as_referenced_file_data(&self) -> &referencedFileData {
+    pub(crate) fn as_referenced_file_data(&self) -> &ReferencedFileData {
         self.referenced_file.as_ref().unwrap()
     }
 
-    pub(crate) fn as_automatic_type_directive_file_data(&self) -> &automaticTypeDirectiveFileData {
+    pub(crate) fn as_automatic_type_directive_file_data(&self) -> &AutomaticTypeDirectiveFileData {
         self.automatic_type_directive.as_deref().unwrap()
     }
 }
@@ -155,11 +155,11 @@ pub(crate) fn is_referenced_file(r: Option<P<FileIncludeReason>>) -> bool {
 pub(crate) fn get_referenced_location(
     r: P<FileIncludeReason>,
     program: &Program,
-) -> referenceFileLocation {
+) -> ReferenceFileLocation {
     let ref_ = r.as_referenced_file_data();
     let file = program.get_source_file_by_path_str(ref_.file).unwrap();
     match r.kind {
-        fileIncludeKind::Import => {
+        FileIncludeKind::Import => {
             let mut specifier: Option<P<Node>> = None;
             let mut is_synthetic = false;
             let imports = file.imports();
@@ -185,7 +185,7 @@ pub(crate) fn get_referenced_location(
                 .get_resolved_module_from_module_specifier(file, specifier)
                 .map(|r| r.package_id)
                 .unwrap_or_default();
-            referenceFileLocation {
+            ReferenceFileLocation {
                 file,
                 node: Some(specifier),
                 ref_: None,
@@ -193,7 +193,7 @@ pub(crate) fn get_referenced_location(
                 is_synthetic,
             }
         }
-        fileIncludeKind::ReferenceFile => referenceFileLocation {
+        FileIncludeKind::ReferenceFile => ReferenceFileLocation {
             file,
             node: None,
             ref_: Some(
@@ -203,7 +203,7 @@ pub(crate) fn get_referenced_location(
             package_id: PackageId::default(),
             is_synthetic: false,
         },
-        fileIncludeKind::TypeReferenceDirective => referenceFileLocation {
+        FileIncludeKind::TypeReferenceDirective => ReferenceFileLocation {
             file,
             node: None,
             ref_: Some(
@@ -213,7 +213,7 @@ pub(crate) fn get_referenced_location(
             package_id: PackageId::default(),
             is_synthetic: false,
         },
-        fileIncludeKind::LibReferenceDirective => referenceFileLocation {
+        FileIncludeKind::LibReferenceDirective => ReferenceFileLocation {
             file,
             node: None,
             ref_: Some(
@@ -260,7 +260,7 @@ fn compute_diagnostic(
         return compute_reference_file_diagnostic(r, program, to_file_name);
     }
     match r.kind {
-        fileIncludeKind::RootFile => {
+        FileIncludeKind::RootFile => {
             if program.opts.config.config_file.is_some() {
                 let config = program.opts.config;
                 let file_name = tspath::get_normalized_absolute_path(
@@ -270,7 +270,7 @@ fn compute_diagnostic(
                 let matched_file_spec = config.get_matched_file_spec(&file_name);
                 if !matched_file_spec.is_empty() {
                     return new_compiler_diagnostic(
-                        &diagnostics::Part_of_files_list_in_tsconfig_json,
+                        &diagnostics::PART_OF_FILES_LIST_IN_TSCONFIG_JSON,
                         &[&matched_file_spec, &to_file_name(&file_name)],
                     );
                 }
@@ -278,67 +278,67 @@ fn compute_diagnostic(
                     config.get_matched_include_spec(&file_name);
                 if !matched_include_spec.is_empty() {
                     if is_default_include_spec {
-                        new_compiler_diagnostic(&diagnostics::Matched_by_default_include_pattern_Asterisk_Asterisk_Slash_Asterisk, &[])
+                        new_compiler_diagnostic(&diagnostics::MATCHED_BY_DEFAULT_INCLUDE_PATTERN_ASTERISK_ASTERISK_SLASH_ASTERISK, &[])
                     } else {
                         new_compiler_diagnostic(
-                            &diagnostics::Matched_by_include_pattern_0_in_1,
+                            &diagnostics::MATCHED_BY_INCLUDE_PATTERN_0_IN_1,
                             &[&matched_include_spec, &to_file_name(config.config_name())],
                         )
                     }
                 } else {
-                    new_compiler_diagnostic(&diagnostics::Root_file_specified_for_compilation, &[])
+                    new_compiler_diagnostic(&diagnostics::ROOT_FILE_SPECIFIED_FOR_COMPILATION, &[])
                 }
             } else {
-                new_compiler_diagnostic(&diagnostics::Root_file_specified_for_compilation, &[])
+                new_compiler_diagnostic(&diagnostics::ROOT_FILE_SPECIFIED_FOR_COMPILATION, &[])
             }
         }
-        fileIncludeKind::AutomaticTypeDirectiveFile => {
+        FileIncludeKind::AutomaticTypeDirectiveFile => {
             let data = r.as_automatic_type_directive_file_data();
             if !program.options().uses_wildcard_types() {
                 if !data.package_id.name.is_empty() {
                     new_compiler_diagnostic(
-                        &diagnostics::Entry_point_of_type_library_0_specified_in_compilerOptions_with_packageId_1,
+                        &diagnostics::ENTRY_POINT_OF_TYPE_LIBRARY_0_SPECIFIED_IN_COMPILER_OPTIONS_WITH_PACKAGE_ID_1,
                         &[&data.type_reference, &data.package_id.to_string()],
                     )
                 } else {
                     new_compiler_diagnostic(
-                        &diagnostics::Entry_point_of_type_library_0_specified_in_compilerOptions,
+                        &diagnostics::ENTRY_POINT_OF_TYPE_LIBRARY_0_SPECIFIED_IN_COMPILER_OPTIONS,
                         &[&data.type_reference],
                     )
                 }
             } else if !data.package_id.name.is_empty() {
                 new_compiler_diagnostic(
-                    &diagnostics::Entry_point_for_implicit_type_library_0_with_packageId_1,
+                    &diagnostics::ENTRY_POINT_FOR_IMPLICIT_TYPE_LIBRARY_0_WITH_PACKAGE_ID_1,
                     &[&data.type_reference, &data.package_id.to_string()],
                 )
             } else {
                 new_compiler_diagnostic(
-                    &diagnostics::Entry_point_for_implicit_type_library_0,
+                    &diagnostics::ENTRY_POINT_FOR_IMPLICIT_TYPE_LIBRARY_0,
                     &[&data.type_reference],
                 )
             }
         }
-        fileIncludeKind::LibFile => {
+        FileIncludeKind::LibFile => {
             if let Some(index) = r.as_lib_file_index() {
                 return new_compiler_diagnostic(
-                    &diagnostics::Library_0_specified_in_compilerOptions,
+                    &diagnostics::LIBRARY_0_SPECIFIED_IN_COMPILER_OPTIONS,
                     &[&program.options().lib.as_ref().unwrap()[index]],
                 );
             }
             let target = program.options().get_emit_script_target().string();
             if !target.is_empty() {
-                new_compiler_diagnostic(&diagnostics::Default_library_for_target_0, &[&target])
+                new_compiler_diagnostic(&diagnostics::DEFAULT_LIBRARY_FOR_TARGET_0, &[&target])
             } else {
-                new_compiler_diagnostic(&diagnostics::Default_library, &[])
+                new_compiler_diagnostic(&diagnostics::DEFAULT_LIBRARY, &[])
             }
         }
         // fileInclude.go:209
-        fileIncludeKind::ContentMapperSupplemental => {
+        FileIncludeKind::ContentMapperSupplemental => {
             let canonical = program
                 .get_source_file_by_path(r.canonical_source_file.as_deref().unwrap())
                 .unwrap();
             new_compiler_diagnostic(
-                &diagnostics::Supplemental_virtual_file_produced_by_the_content_mapper_for_file_0,
+                &diagnostics::SUPPLEMENTAL_VIRTUAL_FILE_PRODUCED_BY_THE_CONTENT_MAPPER_FOR_FILE_0,
                 &[&to_file_name(canonical.file_name())],
             )
         }
@@ -356,16 +356,16 @@ fn compute_reference_file_diagnostic(
     let file_name = to_file_name(reference_location.file.file_name());
     let package_id = &reference_location.package_id;
     match r.kind {
-        fileIncludeKind::Import => {
+        FileIncludeKind::Import => {
             if !reference_location.is_synthetic {
                 if !package_id.name.is_empty() {
                     new_compiler_diagnostic(
-                        &diagnostics::Imported_via_0_from_file_1_with_packageId_2,
+                        &diagnostics::IMPORTED_VIA_0_FROM_FILE_1_WITH_PACKAGE_ID_2,
                         &[&reference_text, &file_name, &package_id.to_string()],
                     )
                 } else {
                     new_compiler_diagnostic(
-                        &diagnostics::Imported_via_0_from_file_1,
+                        &diagnostics::IMPORTED_VIA_0_FROM_FILE_1,
                         &[&reference_text, &file_name],
                     )
                 }
@@ -376,46 +376,46 @@ fn compute_reference_file_diagnostic(
             {
                 if !package_id.name.is_empty() {
                     new_compiler_diagnostic(
-                        &diagnostics::Imported_via_0_from_file_1_with_packageId_2_to_import_importHelpers_as_specified_in_compilerOptions,
+                        &diagnostics::IMPORTED_VIA_0_FROM_FILE_1_WITH_PACKAGE_ID_2_TO_IMPORT_IMPORT_HELPERS_AS_SPECIFIED_IN_COMPILER_OPTIONS,
                         &[&reference_text, &file_name, &package_id.to_string()],
                     )
                 } else {
                     new_compiler_diagnostic(
-                        &diagnostics::Imported_via_0_from_file_1_to_import_importHelpers_as_specified_in_compilerOptions,
+                        &diagnostics::IMPORTED_VIA_0_FROM_FILE_1_TO_IMPORT_IMPORT_HELPERS_AS_SPECIFIED_IN_COMPILER_OPTIONS,
                         &[&reference_text, &file_name],
                     )
                 }
             } else if !package_id.name.is_empty() {
                 new_compiler_diagnostic(
-                    &diagnostics::Imported_via_0_from_file_1_with_packageId_2_to_import_jsx_and_jsxs_factory_functions,
+                    &diagnostics::IMPORTED_VIA_0_FROM_FILE_1_WITH_PACKAGE_ID_2_TO_IMPORT_JSX_AND_JSXS_FACTORY_FUNCTIONS,
                     &[&reference_text, &file_name, &package_id.to_string()],
                 )
             } else {
                 new_compiler_diagnostic(
-                    &diagnostics::Imported_via_0_from_file_1_to_import_jsx_and_jsxs_factory_functions,
+                    &diagnostics::IMPORTED_VIA_0_FROM_FILE_1_TO_IMPORT_JSX_AND_JSXS_FACTORY_FUNCTIONS,
                     &[&reference_text, &file_name],
                 )
             }
         }
-        fileIncludeKind::ReferenceFile => new_compiler_diagnostic(
-            &diagnostics::Referenced_via_0_from_file_1,
+        FileIncludeKind::ReferenceFile => new_compiler_diagnostic(
+            &diagnostics::REFERENCED_VIA_0_FROM_FILE_1,
             &[&reference_text, &file_name],
         ),
-        fileIncludeKind::TypeReferenceDirective => {
+        FileIncludeKind::TypeReferenceDirective => {
             if !package_id.name.is_empty() {
                 new_compiler_diagnostic(
-                    &diagnostics::Type_library_referenced_via_0_from_file_1_with_packageId_2,
+                    &diagnostics::TYPE_LIBRARY_REFERENCED_VIA_0_FROM_FILE_1_WITH_PACKAGE_ID_2,
                     &[&reference_text, &file_name, &package_id.to_string()],
                 )
             } else {
                 new_compiler_diagnostic(
-                    &diagnostics::Type_library_referenced_via_0_from_file_1,
+                    &diagnostics::TYPE_LIBRARY_REFERENCED_VIA_0_FROM_FILE_1,
                     &[&reference_text, &file_name],
                 )
             }
         }
-        fileIncludeKind::LibReferenceDirective => new_compiler_diagnostic(
-            &diagnostics::Library_referenced_via_0_from_file_1,
+        FileIncludeKind::LibReferenceDirective => new_compiler_diagnostic(
+            &diagnostics::LIBRARY_REFERENCED_VIA_0_FROM_FILE_1,
             &[&reference_text, &file_name],
         ),
         _ => panic!("unknown reason: {:?}", r.kind),
@@ -430,7 +430,7 @@ pub(crate) fn to_related_info(r: P<FileIncludeReason>, program: &Program) -> Opt
     let config = program.opts.config;
     let config_source_file = config_file.source_file;
     match r.kind {
-        fileIncludeKind::RootFile => {
+        FileIncludeKind::RootFile => {
             let file_name = tspath::get_normalized_absolute_path(
                 &config.file_names()[r.as_index()],
                 program.get_current_directory(),
@@ -445,7 +445,7 @@ pub(crate) fn to_related_info(r: P<FileIncludeReason>, program: &Program) -> Opt
                     return Some(tsoptions::create_diagnostic_for_node_in_source_file(
                         config_source_file,
                         files_node,
-                        &diagnostics::File_is_matched_by_files_list_specified_here,
+                        &diagnostics::FILE_IS_MATCHED_BY_FILES_LIST_SPECIFIED_HERE,
                         &[],
                     ));
                 }
@@ -461,14 +461,14 @@ pub(crate) fn to_related_info(r: P<FileIncludeReason>, program: &Program) -> Opt
                         return Some(tsoptions::create_diagnostic_for_node_in_source_file(
                             config_source_file,
                             include_node,
-                            &diagnostics::File_is_matched_by_include_pattern_specified_here,
+                            &diagnostics::FILE_IS_MATCHED_BY_INCLUDE_PATTERN_SPECIFIED_HERE,
                             &[],
                         ));
                     }
                 }
             }
         }
-        fileIncludeKind::AutomaticTypeDirectiveFile => {
+        FileIncludeKind::AutomaticTypeDirectiveFile => {
             if !program.options().uses_wildcard_types() {
                 let data = r.as_automatic_type_directive_file_data();
                 if let Some(types_syntax) = tsoptions::get_options_syntax_by_array_element_value(
@@ -479,13 +479,13 @@ pub(crate) fn to_related_info(r: P<FileIncludeReason>, program: &Program) -> Opt
                     return Some(tsoptions::create_diagnostic_for_node_in_source_file(
                         config_source_file,
                         types_syntax,
-                        &diagnostics::File_is_entry_point_of_type_library_specified_here,
+                        &diagnostics::FILE_IS_ENTRY_POINT_OF_TYPE_LIBRARY_SPECIFIED_HERE,
                         &[],
                     ));
                 }
             }
         }
-        fileIncludeKind::LibFile => {
+        FileIncludeKind::LibFile => {
             if let Some(index) = r.as_lib_file_index() {
                 if let Some(lib_syntax) = tsoptions::get_options_syntax_by_array_element_value(
                     program.include_processor.get_compiler_options_object_literal_syntax(program),
@@ -495,7 +495,7 @@ pub(crate) fn to_related_info(r: P<FileIncludeReason>, program: &Program) -> Opt
                     return Some(tsoptions::create_diagnostic_for_node_in_source_file(
                         config_source_file,
                         lib_syntax,
-                        &diagnostics::File_is_library_specified_here,
+                        &diagnostics::FILE_IS_LIBRARY_SPECIFIED_HERE,
                         &[],
                     ));
                 }
@@ -513,7 +513,7 @@ pub(crate) fn to_related_info(r: P<FileIncludeReason>, program: &Program) -> Opt
                         return Some(tsoptions::create_diagnostic_for_node_in_source_file(
                             config_source_file,
                             target_value_syntax,
-                            &diagnostics::File_is_default_library_for_target_specified_here,
+                            &diagnostics::FILE_IS_DEFAULT_LIBRARY_FOR_TARGET_SPECIFIED_HERE,
                             &[],
                         ));
                     }
@@ -521,7 +521,7 @@ pub(crate) fn to_related_info(r: P<FileIncludeReason>, program: &Program) -> Opt
             }
         }
         // fileInclude.go:293
-        fileIncludeKind::ContentMapperSupplemental => return None,
+        FileIncludeKind::ContentMapperSupplemental => return None,
         _ => panic!("unknown reason: {:?}", r.kind),
     }
     None
@@ -536,16 +536,16 @@ fn compute_reference_file_related_info(
         return None;
     }
     Some(match r.kind {
-        fileIncludeKind::Import => {
-            reference_location.diagnostic_at(&diagnostics::File_is_included_via_import_here, &[])
+        FileIncludeKind::Import => {
+            reference_location.diagnostic_at(&diagnostics::FILE_IS_INCLUDED_VIA_IMPORT_HERE, &[])
         }
-        fileIncludeKind::ReferenceFile => {
-            reference_location.diagnostic_at(&diagnostics::File_is_included_via_reference_here, &[])
+        FileIncludeKind::ReferenceFile => {
+            reference_location.diagnostic_at(&diagnostics::FILE_IS_INCLUDED_VIA_REFERENCE_HERE, &[])
         }
-        fileIncludeKind::TypeReferenceDirective => reference_location
-            .diagnostic_at(&diagnostics::File_is_included_via_type_library_reference_here, &[]),
-        fileIncludeKind::LibReferenceDirective => reference_location
-            .diagnostic_at(&diagnostics::File_is_included_via_library_reference_here, &[]),
+        FileIncludeKind::TypeReferenceDirective => reference_location
+            .diagnostic_at(&diagnostics::FILE_IS_INCLUDED_VIA_TYPE_LIBRARY_REFERENCE_HERE, &[]),
+        FileIncludeKind::LibReferenceDirective => reference_location
+            .diagnostic_at(&diagnostics::FILE_IS_INCLUDED_VIA_LIBRARY_REFERENCE_HERE, &[]),
         _ => panic!("unknown reason: {:?}", r.kind),
     })
 }

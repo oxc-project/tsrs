@@ -146,10 +146,10 @@ pub fn get_resolution_diagnostic(
     file: P<SourceFile>,
 ) -> Option<&'static Message> {
     let need_jsx = || -> Option<&'static Message> {
-        if options.jsx != JsxEmit::None {
+        if options.jsx != JsxEmit::NONE {
             return None;
         }
-        Some(&diagnostics::Module_0_was_resolved_to_1_but_jsx_is_not_set)
+        Some(&diagnostics::MODULE_0_WAS_RESOLVED_TO_1_BUT_JSX_IS_NOT_SET)
     };
 
     let need_allow_js = || -> Option<&'static Message> {
@@ -158,21 +158,21 @@ pub fn get_resolution_diagnostic(
         {
             return None;
         }
-        Some(&diagnostics::Could_not_find_a_declaration_file_for_module_0_1_implicitly_has_an_any_type)
+        Some(&diagnostics::COULD_NOT_FIND_A_DECLARATION_FILE_FOR_MODULE_0_1_IMPLICITLY_HAS_AN_ANY_TYPE)
     };
 
     let need_resolve_json_module = || -> Option<&'static Message> {
         if options.get_resolve_json_module() {
             return None;
         }
-        Some(&diagnostics::Module_0_was_resolved_to_1_but_resolveJsonModule_is_not_used)
+        Some(&diagnostics::MODULE_0_WAS_RESOLVED_TO_1_BUT_RESOLVE_JSON_MODULE_IS_NOT_USED)
     };
 
     let need_allow_arbitrary_extensions = || -> Option<&'static Message> {
         if file.is_declaration_file.get() || options.allow_arbitrary_extensions.is_true() {
             return None;
         }
-        Some(&diagnostics::Module_0_was_resolved_to_1_but_allowArbitraryExtensions_is_not_set)
+        Some(&diagnostics::MODULE_0_WAS_RESOLVED_TO_1_BUT_ALLOW_ARBITRARY_EXTENSIONS_IS_NOT_SET)
     };
 
     if resolved_module.resolved_using_extra_extensions {
@@ -209,7 +209,7 @@ pub fn try_get_js_extension_for_file(file_name: &str, options: &CompilerOptions)
     match ext {
         tspath::EXTENSION_TS | tspath::EXTENSION_DTS => tspath::EXTENSION_JS,
         tspath::EXTENSION_TSX => {
-            if options.jsx == JsxEmit::Preserve {
+            if options.jsx == JsxEmit::PRESERVE {
                 return tspath::EXTENSION_JSX;
             }
             tspath::EXTENSION_JS

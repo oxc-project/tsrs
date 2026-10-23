@@ -3,7 +3,7 @@
 use std::time::SystemTime;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
-pub(crate) enum upToDateStatusType {
+pub(crate) enum UpToDateStatusType {
     // Errors:
 
     // config file was not found
@@ -51,62 +51,62 @@ pub(crate) enum upToDateStatusType {
 }
 
 #[derive(Clone, Debug)]
-pub(crate) struct inputOutputName {
+pub(crate) struct InputOutputName {
     pub(crate) input: String,
     pub(crate) output: String,
 }
 
 // Go's zero time.Time is None.
 #[derive(Clone, Debug, Default)]
-pub(crate) struct fileAndTime {
+pub(crate) struct FileAndTime {
     pub(crate) file: String,
     pub(crate) time: Option<SystemTime>,
 }
 
 #[derive(Clone, Debug)]
-pub(crate) struct inputOutputFileAndTime {
-    pub(crate) input: fileAndTime,
-    pub(crate) output: fileAndTime,
+pub(crate) struct InputOutputFileAndTime {
+    pub(crate) input: FileAndTime,
+    pub(crate) output: FileAndTime,
 }
 
 #[derive(Clone, Debug)]
-pub(crate) struct upstreamErrors {
+pub(crate) struct UpstreamErrors {
     pub(crate) ref_: String,
     pub(crate) ref_has_upstream_errors: bool,
 }
 
 // Go `data any`.
 #[derive(Clone, Debug)]
-pub(crate) enum statusData {
+pub(crate) enum StatusData {
     None,
     String(String),
-    InputOutputName(inputOutputName),
-    InputOutputFileAndTime(inputOutputFileAndTime),
-    UpstreamErrors(upstreamErrors),
+    InputOutputName(InputOutputName),
+    InputOutputFileAndTime(InputOutputFileAndTime),
+    UpstreamErrors(UpstreamErrors),
 }
 
 #[derive(Clone, Debug)]
-pub(crate) struct upToDateStatus {
-    pub(crate) kind: upToDateStatusType,
-    pub(crate) data: statusData,
+pub(crate) struct UpToDateStatus {
+    pub(crate) kind: UpToDateStatusType,
+    pub(crate) data: StatusData,
 }
 
-impl upToDateStatus {
-    pub(crate) fn new(kind: upToDateStatusType) -> upToDateStatus {
-        upToDateStatus { kind, data: statusData::None }
+impl UpToDateStatus {
+    pub(crate) fn new(kind: UpToDateStatusType) -> UpToDateStatus {
+        UpToDateStatus { kind, data: StatusData::None }
     }
 
-    pub(crate) fn with(kind: upToDateStatusType, data: statusData) -> upToDateStatus {
-        upToDateStatus { kind, data }
+    pub(crate) fn with(kind: UpToDateStatusType, data: StatusData) -> UpToDateStatus {
+        UpToDateStatus { kind, data }
     }
 
     // uptodatestatus.go:83
     pub(crate) fn is_error(&self) -> bool {
         matches!(
             self.kind,
-            upToDateStatusType::ConfigFileNotFound
-                | upToDateStatusType::BuildErrors
-                | upToDateStatusType::UpstreamErrors
+            UpToDateStatusType::ConfigFileNotFound
+                | UpToDateStatusType::BuildErrors
+                | UpToDateStatusType::UpstreamErrors
         )
     }
 
@@ -114,23 +114,23 @@ impl upToDateStatus {
     pub(crate) fn is_pseudo_build(&self) -> bool {
         matches!(
             self.kind,
-            upToDateStatusType::UpToDateWithUpstreamTypes
-                | upToDateStatusType::UpToDateWithInputFileText
+            UpToDateStatusType::UpToDateWithUpstreamTypes
+                | UpToDateStatusType::UpToDateWithInputFileText
         )
     }
 
     // uptodatestatus.go:104
-    pub(crate) fn input_output_file_and_time(&self) -> Option<&inputOutputFileAndTime> {
+    pub(crate) fn input_output_file_and_time(&self) -> Option<&InputOutputFileAndTime> {
         match &self.data {
-            statusData::InputOutputFileAndTime(d) => Some(d),
+            StatusData::InputOutputFileAndTime(d) => Some(d),
             _ => None,
         }
     }
 
     // uptodatestatus.go:112
-    pub(crate) fn input_output_name(&self) -> Option<&inputOutputName> {
+    pub(crate) fn input_output_name(&self) -> Option<&InputOutputName> {
         match &self.data {
-            statusData::InputOutputName(d) => Some(d),
+            StatusData::InputOutputName(d) => Some(d),
             _ => None,
         }
     }
@@ -138,7 +138,7 @@ impl upToDateStatus {
     // uptodatestatus.go:120
     pub(crate) fn oldest_output_file_name(&self) -> String {
         assert!(
-            self.is_pseudo_build() || self.kind == upToDateStatusType::UpToDate,
+            self.is_pseudo_build() || self.kind == UpToDateStatusType::UpToDate,
             "only valid for up to date status of pseudo-build or up to date"
         );
 
@@ -149,22 +149,22 @@ impl upToDateStatus {
             return input_output_name.output.clone();
         }
         match &self.data {
-            statusData::String(s) => s.clone(),
+            StatusData::String(s) => s.clone(),
             _ => panic!("interface conversion: interface {{}} is nil, not string"),
         }
     }
 
     // uptodatestatus.go:134
-    pub(crate) fn upstream_errors(&self) -> &upstreamErrors {
+    pub(crate) fn upstream_errors(&self) -> &UpstreamErrors {
         match &self.data {
-            statusData::UpstreamErrors(d) => d,
+            StatusData::UpstreamErrors(d) => d,
             _ => panic!("interface conversion: not *upstreamErrors"),
         }
     }
 
     pub(crate) fn data_string(&self) -> &str {
         match &self.data {
-            statusData::String(s) => s,
+            StatusData::String(s) => s,
             _ => panic!("interface conversion: not string"),
         }
     }

@@ -17,9 +17,9 @@ use tsrs_vfs::{FS, walk_dir};
 
 // throttleWindow mirrors VS Code's parcel watcher integration: give the
 // first batch a short grace window so adjacent filesystem bursts coalesce.
-const throttleWindow: Duration = Duration::from_millis(75);
+const THROTTLE_WINDOW: Duration = Duration::from_millis(75);
 
-pub(crate) trait watcherBackend: Send + Sync {
+pub(crate) trait WatcherBackend: Send + Sync {
     fn watch_directory(
         &self,
         dir: &str,
@@ -28,11 +28,11 @@ pub(crate) trait watcherBackend: Send + Sync {
     ) -> Result<Box<dyn fswatch::Watch>, fswatch::Error>;
 }
 
-struct defaultWatcherBackend {
+struct DefaultWatcherBackend {
     watcher: &'static dyn fswatch::Watcher,
 }
 
-impl watcherBackend for defaultWatcherBackend {
+impl WatcherBackend for DefaultWatcherBackend {
     // lspwatcher.go:34
     fn watch_directory(
         &self,
@@ -52,21 +52,21 @@ pub type OnChanges = Arc<dyn Fn(Vec<lsproto::FileEvent>) + Send + Sync>;
 // shaped exactly like a `workspace/didChangeWatchedFiles` notification.
 pub struct Watcher {
     fs: Arc<dyn FS>,
-    backend: Box<dyn watcherBackend>,
+    backend: Box<dyn WatcherBackend>,
     on_changes: OnChanges,
     logger: Arc<dyn Logger>,
 
-    mu: Mutex<watcherState>,
+    mu: Mutex<WatcherState>,
     this: Weak<Watcher>,
 }
 
 #[derive(Default)]
-struct watcherState {
+struct WatcherState {
     // watches holds the watches associated with each LSP WatcherID. A single id
     // may map to more than one watch because each FileSystemWatcher in the
     // registration becomes its own watch (different roots and kinds).
     // (Go sets the map to nil on Close.)
-    watches: Option<FxHashMap<String, Vec<Arc<watch>>>>,
+    watches: Option<FxHashMap<String, Vec<Arc<WatchHandle>>>>,
     closed: bool,
 
     // Pending batch state, protected by mu.
@@ -94,18 +94,18 @@ struct watcherState {
 // before the real subscription was installed.
 //
 // All path fields are tspath-style (forward-slash) absolute paths.
-struct watch {
+struct WatchHandle {
     watcher: Weak<Watcher>,
     requested_directory: String, // directory requested by the LSP layer (possibly a symlink)
     kind: lsproto::WatchKind,
     recursive: bool, // whether the target subscription should be recursive
 
-    mu: Mutex<watchState>,
-    this: Weak<watch>,
+    mu: Mutex<WatchState>,
+    this: Weak<WatchHandle>,
 }
 
 #[derive(Default)]
-struct watchState {
+struct WatchState {
     subscription: Option<Box<dyn fswatch::Watch>>, // current subscription (target or ancestor); nil if none
     watched_directory: String, // canonicalized directory 'subscription' is rooted at
     watching_target: bool,     // whether 'subscription' is rooted at the target directory
@@ -129,13 +129,13 @@ pub fn new_with_fs_watcher(
     on_changes: OnChanges,
     logger: Arc<dyn Logger>,
 ) -> Arc<Watcher> {
-    new_with_backend(fs, Box::new(defaultWatcherBackend { watcher }), on_changes, logger)
+    new_with_backend(fs, Box::new(DefaultWatcherBackend { watcher }), on_changes, logger)
 }
 
 // lspwatcher.go:102
 pub(crate) fn new_with_backend(
     fs: Arc<dyn FS>,
-    backend: Box<dyn watcherBackend>,
+    backend: Box<dyn WatcherBackend>,
     on_changes: OnChanges,
     logger: Arc<dyn Logger>,
 ) -> Arc<Watcher> {
@@ -144,7 +144,7 @@ pub(crate) fn new_with_backend(
         backend,
         on_changes,
         logger,
-        mu: Mutex::new(watcherState { watches: Some(FxHashMap::default()), ..Default::default() }),
+        mu: Mutex::new(WatcherState { watches: Some(FxHashMap::default()), ..Default::default() }),
         this: Weak::clone(this),
     })
 }
@@ -191,12 +191,12 @@ impl Watcher {
                     continue;
                 }
             };
-            let new_watch = Arc::new_cyclic(|this| watch {
+            let new_watch = Arc::new_cyclic(|this| WatchHandle {
                 watcher: Weak::clone(&self.this),
                 requested_directory: directory.clone(),
                 kind: effective_kind(file_system_watcher),
                 recursive: is_recursive_glob(file_system_watcher),
-                mu: Mutex::new(watchState::default()),
+                mu: Mutex::new(WatchState::default()),
                 this: Weak::clone(this),
             });
             if let Err(err) = new_watch.reconcile(false /*emitSynthetic*/) {
@@ -277,20 +277,20 @@ impl Watcher {
         let pending = st.pending.get_or_insert_with(|| IndexMap::with_capacity(events.len()));
         pending.extend(events.iter().filter_map(|event| {
             let change_type = match event.kind {
-                fswatch::EventKind::Update => {
+                fswatch::EventKind::UPDATE => {
                     // fswatch intentionally doesn't distinguish create vs update.
                     // For LSP consumers this is fine: callers infer create/update
                     // from their own cache and both should invalidate stale state.
-                    if kind.0 & (lsproto::WatchKind::Create.0 | lsproto::WatchKind::Change.0) == 0 {
+                    if kind.0 & (lsproto::WatchKind::CREATE.0 | lsproto::WatchKind::CHANGE.0) == 0 {
                         return None;
                     }
-                    lsproto::FileChangeType::Changed
+                    lsproto::FileChangeType::CHANGED
                 }
-                fswatch::EventKind::Delete => {
-                    if kind.0 & lsproto::WatchKind::Delete.0 == 0 {
+                fswatch::EventKind::DELETE => {
+                    if kind.0 & lsproto::WatchKind::DELETE.0 == 0 {
                         return None;
                     }
-                    lsproto::FileChangeType::Deleted
+                    lsproto::FileChangeType::DELETED
                 }
                 _ => return None,
             };
@@ -310,7 +310,7 @@ impl Watcher {
     // children are added, and for a recursive watch its whole subtree is walked.
     // Nothing is emitted if the watch doesn't request create notifications.
     fn emit_synthetic_creates(&self, directory: &str, kind: lsproto::WatchKind, recursive: bool) {
-        if kind.0 & lsproto::WatchKind::Create.0 == 0 {
+        if kind.0 & lsproto::WatchKind::CREATE.0 == 0 {
             return;
         }
         let mut paths = vec![directory.to_string()];
@@ -349,7 +349,7 @@ impl Watcher {
             }
             pending.insert(
                 uri.0.clone(),
-                lsproto::FileEvent { uri, type_: lsproto::FileChangeType::Created },
+                lsproto::FileEvent { uri, type_: lsproto::FileChangeType::CREATED },
             );
         }
         self.schedule_flush_locked(&mut st);
@@ -358,10 +358,10 @@ impl Watcher {
     // lspwatcher.go:490
     // scheduleFlushLocked arms the debounce flush timer if it isn't already armed.
     // Callers must hold w.mu.
-    fn schedule_flush_locked(&self, st: &mut watcherState) {
+    fn schedule_flush_locked(&self, st: &mut WatcherState) {
         if st.flush_timer.is_none() {
             let this = Weak::clone(&self.this);
-            st.flush_timer = Some(after_func(throttleWindow, move || {
+            st.flush_timer = Some(after_func(THROTTLE_WINDOW, move || {
                 if let Some(w) = this.upgrade() {
                     w.flush();
                 }
@@ -387,7 +387,7 @@ impl Watcher {
     }
 }
 
-impl watch {
+impl WatchHandle {
     fn watcher(&self) -> Option<Arc<Watcher>> {
         self.watcher.upgrade()
     }
@@ -509,9 +509,9 @@ impl watch {
             };
             let mut terminated = false;
             if let Some(err) = err {
-                if err.is(fswatch::ErrOverflow) {
+                if err.is(fswatch::ERR_OVERFLOW) {
                     watcher.logger.logf(format_args!("lspwatcher: watch overflow in {watched_directory:?} (some events may have been dropped): {err}"));
-                } else if err.is(fswatch::ErrWatchTerminated) {
+                } else if err.is(fswatch::ERR_WATCH_TERMINATED) {
                     terminated = true;
                     watcher.logger.logf(format_args!("lspwatcher: watch terminated in {watched_directory:?} (directory removed): {err}"));
                 } else {
@@ -653,7 +653,7 @@ fn effective_kind(file_system_watcher: &lsproto::FileSystemWatcher) -> lsproto::
         return kind;
     }
     lsproto::WatchKind(
-        lsproto::WatchKind::Create.0 | lsproto::WatchKind::Change.0 | lsproto::WatchKind::Delete.0,
+        lsproto::WatchKind::CREATE.0 | lsproto::WatchKind::CHANGE.0 | lsproto::WatchKind::DELETE.0,
     )
 }
 

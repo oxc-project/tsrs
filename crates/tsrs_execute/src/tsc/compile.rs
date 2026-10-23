@@ -106,12 +106,12 @@ pub fn new_content_mapper_host(
 // Go's `defer contentMapperProject.Close()` (tsc.go:300, 358) and the close of the host, which Go leaves to the
 // command's context (it is cancelled when the process ends): the project is closed first, then the host, on every
 // way out of the compilation. A host that is still open keeps its mapper processes running.
-pub(crate) struct contentMapperCloser {
+pub(crate) struct ContentMapperCloser {
     pub(crate) host: Option<Arc<dyn contentmapper::Host>>,
     pub(crate) project: Option<Arc<dyn contentmapper::Project>>,
 }
 
-impl Drop for contentMapperCloser {
+impl Drop for ContentMapperCloser {
     fn drop(&mut self) {
         if let Some(project) = &self.project {
             let _ = project.close();
@@ -158,10 +158,10 @@ pub fn format_local_time_03_04_05_pm(t: std::time::SystemTime) -> String {
 #[repr(i32)]
 pub enum ExitStatus {
     Success = 0,
-    DiagnosticsPresent_OutputsSkipped = 1,
-    DiagnosticsPresent_OutputsGenerated = 2,
-    InvalidProject_OutputsSkipped = 3,
-    ProjectReferenceCycle_OutputsSkipped = 4,
+    DiagnosticsPresentOutputsSkipped = 1,
+    DiagnosticsPresentOutputsGenerated = 2,
+    InvalidProjectOutputsSkipped = 3,
+    ProjectReferenceCycleOutputsSkipped = 4,
     NotImplemented = 5,
 }
 

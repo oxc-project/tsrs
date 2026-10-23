@@ -54,43 +54,43 @@ bitflags! {
     /// Go `nodebuilder.Flags`. NOTE: If modifying this enum, must modify `TypeFormatFlags` too!
     #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Debug, Default)]
     pub struct Flags: u32 {
-        const None = 0;
+        const NONE = 0;
         // Options
-        const NoTruncation = 1 << 0;
-        const WriteArrayAsGenericType = 1 << 1;
-        const GenerateNamesForShadowedTypeParams = 1 << 2;
-        const UseStructuralFallback = 1 << 3;
-        const ForbidIndexedAccessSymbolReferences = 1 << 4;
-        const WriteTypeArgumentsOfSignature = 1 << 5;
-        const UseFullyQualifiedType = 1 << 6;
-        const UseOnlyExternalAliasing = 1 << 7;
-        const SuppressAnyReturnType = 1 << 8;
-        const WriteTypeParametersInQualifiedName = 1 << 9;
-        const MultilineObjectLiterals = 1 << 10;
-        const WriteClassExpressionAsTypeLiteral = 1 << 11;
-        const UseTypeOfFunction = 1 << 12;
-        const OmitParameterModifiers = 1 << 13;
-        const UseAliasDefinedOutsideCurrentScope = 1 << 14;
-        const UseSingleQuotesForStringLiteralType = 1 << 28;
-        const NoTypeReduction = 1 << 29;
-        const UseInstantiationExpressions = 1 << 30;
-        const OmitThisParameter = 1 << 25;
-        const WriteCallStyleSignature = 1 << 27;
+        const NO_TRUNCATION = 1 << 0;
+        const WRITE_ARRAY_AS_GENERIC_TYPE = 1 << 1;
+        const GENERATE_NAMES_FOR_SHADOWED_TYPE_PARAMS = 1 << 2;
+        const USE_STRUCTURAL_FALLBACK = 1 << 3;
+        const FORBID_INDEXED_ACCESS_SYMBOL_REFERENCES = 1 << 4;
+        const WRITE_TYPE_ARGUMENTS_OF_SIGNATURE = 1 << 5;
+        const USE_FULLY_QUALIFIED_TYPE = 1 << 6;
+        const USE_ONLY_EXTERNAL_ALIASING = 1 << 7;
+        const SUPPRESS_ANY_RETURN_TYPE = 1 << 8;
+        const WRITE_TYPE_PARAMETERS_IN_QUALIFIED_NAME = 1 << 9;
+        const MULTILINE_OBJECT_LITERALS = 1 << 10;
+        const WRITE_CLASS_EXPRESSION_AS_TYPE_LITERAL = 1 << 11;
+        const USE_TYPE_OF_FUNCTION = 1 << 12;
+        const OMIT_PARAMETER_MODIFIERS = 1 << 13;
+        const USE_ALIAS_DEFINED_OUTSIDE_CURRENT_SCOPE = 1 << 14;
+        const USE_SINGLE_QUOTES_FOR_STRING_LITERAL_TYPE = 1 << 28;
+        const NO_TYPE_REDUCTION = 1 << 29;
+        const USE_INSTANTIATION_EXPRESSIONS = 1 << 30;
+        const OMIT_THIS_PARAMETER = 1 << 25;
+        const WRITE_CALL_STYLE_SIGNATURE = 1 << 27;
         // Error handling
-        const AllowThisInObjectLiteral = 1 << 15;
-        const AllowQualifiedNameInPlaceOfIdentifier = 1 << 16;
-        const AllowAnonymousIdentifier = 1 << 17;
-        const AllowEmptyUnionOrIntersection = 1 << 18;
-        const AllowEmptyTuple = 1 << 19;
-        const AllowUniqueESSymbolType = 1 << 20;
-        const AllowEmptyIndexInfoType = 1 << 21;
+        const ALLOW_THIS_IN_OBJECT_LITERAL = 1 << 15;
+        const ALLOW_QUALIFIED_NAME_IN_PLACE_OF_IDENTIFIER = 1 << 16;
+        const ALLOW_ANONYMOUS_IDENTIFIER = 1 << 17;
+        const ALLOW_EMPTY_UNION_OR_INTERSECTION = 1 << 18;
+        const ALLOW_EMPTY_TUPLE = 1 << 19;
+        const ALLOW_UNIQUE_ES_SYMBOL_TYPE = 1 << 20;
+        const ALLOW_EMPTY_INDEX_INFO_TYPE = 1 << 21;
         // Errors (cont.)
-        const AllowNodeModulesRelativePaths = 1 << 26;
-        const IgnoreErrors = Self::AllowThisInObjectLiteral.bits() | Self::AllowQualifiedNameInPlaceOfIdentifier.bits() | Self::AllowAnonymousIdentifier.bits() | Self::AllowEmptyUnionOrIntersection.bits() | Self::AllowEmptyTuple.bits() | Self::AllowEmptyIndexInfoType.bits() | Self::AllowNodeModulesRelativePaths.bits();
+        const ALLOW_NODE_MODULES_RELATIVE_PATHS = 1 << 26;
+        const IGNORE_ERRORS = Self::ALLOW_THIS_IN_OBJECT_LITERAL.bits() | Self::ALLOW_QUALIFIED_NAME_IN_PLACE_OF_IDENTIFIER.bits() | Self::ALLOW_ANONYMOUS_IDENTIFIER.bits() | Self::ALLOW_EMPTY_UNION_OR_INTERSECTION.bits() | Self::ALLOW_EMPTY_TUPLE.bits() | Self::ALLOW_EMPTY_INDEX_INFO_TYPE.bits() | Self::ALLOW_NODE_MODULES_RELATIVE_PATHS.bits();
         // State
-        const InObjectTypeLiteral = 1 << 22;
-        const InTypeAlias = 1 << 23;
-        const InInitialEntityName = 1 << 24;
+        const IN_OBJECT_TYPE_LITERAL = 1 << 22;
+        const IN_TYPE_ALIAS = 1 << 23;
+        const IN_INITIAL_ENTITY_NAME = 1 << 24;
     }
 }
 
@@ -98,12 +98,12 @@ bitflags! {
     /// Go `nodebuilder.InternalFlags`.
     #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Debug, Default)]
     pub struct InternalFlags: u32 {
-        const None = 0;
-        const WriteComputedProps = 1 << 0;
-        const NoSyntacticPrinter = 1 << 1;
-        const DoNotIncludeSymbolChain = 1 << 2;
-        const AllowUnresolvedNames = 1 << 3;
-        const RewriteModuleSpecifiers = 1 << 4;
+        const NONE = 0;
+        const WRITE_COMPUTED_PROPS = 1 << 0;
+        const NO_SYNTACTIC_PRINTER = 1 << 1;
+        const DO_NOT_INCLUDE_SYMBOL_CHAIN = 1 << 2;
+        const ALLOW_UNRESOLVED_NAMES = 1 << 3;
+        const REWRITE_MODULE_SPECIFIERS = 1 << 4;
     }
 }
 
@@ -178,13 +178,13 @@ pub struct VerbosityContext {
 /// Passed as `&accessibleSymbolChainContext`. Go copies the struct but shares the map (a reference type), and
 /// `canQualifySymbol` builds a new context around the same map, hence the `Rc<RefCell<…>>`.
 #[derive(Clone)]
-pub struct accessibleSymbolChainContext {
+pub struct AccessibleSymbolChainContext {
     pub symbol: Option<P<Symbol>>, // nil when canQualifySymbol recurses on a symbol without a parent
     pub enclosing_declaration: Option<P<Node>>,
     pub meaning: SymbolFlags,
     pub use_only_external_aliasing: bool,
     pub visited_symbol_tables_map:
-        std::rc::Rc<RefCell<FxHashMap<SymbolId, FxHashSet<symbolTableID>>>>,
+        std::rc::Rc<RefCell<FxHashMap<SymbolId, FxHashSet<SymbolTableID>>>>,
 }
 
 // checker/symboltracker.go

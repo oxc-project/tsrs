@@ -69,8 +69,8 @@ impl JSXTransformer {
             f.new_unique_name_ex(
                 "_jsxFileName",
                 printer::AutoGenerateOptions {
-                    flags: printer::GeneratedIdentifierFlags::Optimistic
-                        | printer::GeneratedIdentifierFlags::FileLevel,
+                    flags: printer::GeneratedIdentifierFlags::OPTIMISTIC
+                        | printer::GeneratedIdentifierFlags::FILE_LEVEL,
                     ..Default::default()
                 },
             ),
@@ -78,7 +78,7 @@ impl JSXTransformer {
             None,
             Some(f.new_string_literal(
                 alloc_str(self.current_source_file().file_name()),
-                TokenFlags::None,
+                TokenFlags::NONE,
             )),
         );
         self.filename_declaration.set(Some(d));
@@ -87,7 +87,7 @@ impl JSXTransformer {
 
     // jsx.go:58
     fn get_jsx_factory_callee_primitive(&self, is_static_children: bool) -> &'static str {
-        if self.compiler_options.jsx == JsxEmit::ReactJSXDev {
+        if self.compiler_options.jsx == JsxEmit::REACT_JSX_DEV {
             return "jsxDEV";
         }
         if is_static_children {
@@ -131,9 +131,9 @@ impl JSXTransformer {
         let generated_name = f.new_unique_name_ex(
             &format!("_{name}"),
             printer::AutoGenerateOptions {
-                flags: printer::GeneratedIdentifierFlags::Optimistic
-                    | printer::GeneratedIdentifierFlags::FileLevel
-                    | printer::GeneratedIdentifierFlags::AllowNameSubstitution,
+                flags: printer::GeneratedIdentifierFlags::OPTIMISTIC
+                    | printer::GeneratedIdentifierFlags::FILE_LEVEL
+                    | printer::GeneratedIdentifierFlags::ALLOW_NAME_SUBSTITUTION,
                 ..Default::default()
             },
         );
@@ -155,7 +155,7 @@ impl JSXTransformer {
     // jsx.go:106
     fn visit(&self, node: Option<P<Node>>) -> Option<P<Node>> {
         let node = node?;
-        if !node.subtree_facts().intersects(SubtreeFacts::ContainsJsx) {
+        if !node.subtree_facts().intersects(SubtreeFacts::CONTAINS_JSX) {
             return Some(node);
         }
         match node.kind() {
@@ -252,7 +252,7 @@ impl JSXTransformer {
     // jsx.go:175
     fn is_any_prologue_directive(&self, node: P<Node>) -> bool {
         ast::is_prologue_directive(node)
-            || self.emit_context().emit_flags(node).intersects(EmitFlags::CustomPrologue)
+            || self.emit_context().emit_flags(node).intersects(EmitFlags::CUSTOM_PROLOGUE)
     }
 
     // jsx.go:179
@@ -315,7 +315,7 @@ impl JSXTransformer {
                 None,
                 f.new_variable_declaration_list(
                     f.new_node_list(vec![filename_declaration]),
-                    NodeFlags::Const,
+                    NodeFlags::CONST,
                 ),
             );
             self.insert_statement_after_custom_prologue(&mut statements, Some(s));
@@ -343,7 +343,7 @@ impl JSXTransformer {
                                     f.new_node_list(get_sorted_specifiers(import_specifiers_map)),
                                 )),
                             )),
-                            f.new_string_literal(alloc_str(import_source), TokenFlags::None),
+                            f.new_string_literal(alloc_str(import_source), TokenFlags::NONE),
                             None,
                         );
                         ast::set_parent_in_children(s);
@@ -383,12 +383,12 @@ impl JSXTransformer {
                                     None,
                                     f.new_node_list(vec![f.new_string_literal(
                                         alloc_str(import_source),
-                                        TokenFlags::None,
+                                        TokenFlags::NONE,
                                     )]),
-                                    NodeFlags::None,
+                                    NodeFlags::NONE,
                                 )),
                             )]),
-                            NodeFlags::Const,
+                            NodeFlags::CONST,
                         ),
                     );
                     ast::set_parent_in_children(s);
@@ -522,7 +522,7 @@ impl JSXTransformer {
             let res = self.transform_jsx_child_to_expression(child)?;
             self.emit_context().set_emit_flags(
                 res,
-                self.emit_context().emit_flags(res) & !EmitFlags::StartOnNewLine,
+                self.emit_context().emit_flags(res) & !EmitFlags::START_ON_NEW_LINE,
             );
             Some(res)
         }));
@@ -546,12 +546,12 @@ impl JSXTransformer {
         } else if ast::is_jsx_opening_like_element(node) {
             let tag_name = node.tag_name();
             if ast::is_identifier(tag_name) && scanner::is_intrinsic_jsx_name(tag_name.text()) {
-                f.new_string_literal(tag_name.text(), TokenFlags::None)
+                f.new_string_literal(tag_name.text(), TokenFlags::NONE)
             } else if ast::is_jsx_namespaced_name(tag_name) {
                 let nn = tag_name.as_jsx_namespaced_name();
                 f.new_string_literal(
                     alloc_str(&format!("{}:{}", nn.namespace.text(), nn.name.text())),
-                    TokenFlags::None,
+                    TokenFlags::NONE,
                 )
             } else {
                 f.create_expression_from_entity_name(tag_name)
@@ -766,13 +766,13 @@ impl JSXTransformer {
             if scanner::is_identifier_text(text, LanguageVariant::Standard) {
                 return name;
             }
-            return self.factory().new_string_literal(text, TokenFlags::None);
+            return self.factory().new_string_literal(text, TokenFlags::NONE);
         }
         // must be jsx namespace
         let nn = name.as_jsx_namespaced_name();
         self.factory().new_string_literal(
             alloc_str(&format!("{}:{}", nn.namespace.text(), nn.name.text())),
-            TokenFlags::None,
+            TokenFlags::NONE,
         )
     }
 
@@ -835,7 +835,7 @@ impl JSXTransformer {
             args.push(self.transform_jsx_attribute_initializer(key_attr.initializer()));
         }
 
-        if self.compiler_options.jsx == JsxEmit::ReactJSXDev {
+        if self.compiler_options.jsx == JsxEmit::REACT_JSX_DEV {
             let original_file =
                 self.emit_context().most_original(Some(self.current_source_file().as_node()));
             if let Some(original_file) = original_file.filter(|n| ast::is_source_file(*n)) {
@@ -870,7 +870,7 @@ impl JSXTransformer {
                             None,
                             f.new_numeric_literal(
                                 alloc_str(&(line as i64 + 1).to_string()),
-                                TokenFlags::None,
+                                TokenFlags::NONE,
                             ),
                         ),
                         f.new_property_assignment(
@@ -880,7 +880,7 @@ impl JSXTransformer {
                             None,
                             f.new_numeric_literal(
                                 alloc_str(&(col as i64 + 1).to_string()),
-                                TokenFlags::None,
+                                TokenFlags::NONE,
                             ),
                         ),
                     ]),
@@ -896,12 +896,12 @@ impl JSXTransformer {
             None,
             None,
             f.new_node_list(args),
-            NodeFlags::None,
+            NodeFlags::NONE,
         );
         element.set_loc(location);
 
         if self.in_jsx_child.get() {
-            self.emit_context().add_emit_flags(element, EmitFlags::StartOnNewLine);
+            self.emit_context().add_emit_flags(element, EmitFlags::START_ON_NEW_LINE);
         }
 
         element
@@ -948,7 +948,7 @@ impl JSXTransformer {
         let f = self.factory();
         let react_namespace = if react_namespace.is_empty() { "React" } else { react_namespace };
         let react = f.new_identifier(alloc_str(react_namespace));
-        react.set_flags(react.flags() & !NodeFlags::Synthesized);
+        react.set_flags(react.flags() & !NodeFlags::SYNTHESIZED);
 
         // Set the parent that is in parse tree
         // this makes sure that parent chain is intact for checker to traverse complete scope tree
@@ -966,7 +966,7 @@ impl JSXTransformer {
                     container_name,
                     None,
                     react,
-                    NodeFlags::None,
+                    NodeFlags::NONE,
                 );
             }
         }
@@ -988,7 +988,7 @@ impl JSXTransformer {
                 left,
                 None,
                 right,
-                NodeFlags::None,
+                NodeFlags::NONE,
             );
         }
         self.create_react_namespace(e.text(), parent)
@@ -1008,7 +1008,7 @@ impl JSXTransformer {
             self.create_react_namespace(&self.compiler_options.react_namespace, parent),
             None,
             self.factory().new_identifier(target),
-            NodeFlags::None,
+            NodeFlags::NONE,
         )
     }
 
@@ -1058,7 +1058,7 @@ impl JSXTransformer {
         // Add StartOnNewLine flag only if there are multiple actual children (after filtering)
         if new_children.len() > 1 {
             for child in &new_children {
-                self.emit_context().add_emit_flags(*child, EmitFlags::StartOnNewLine);
+                self.emit_context().add_emit_flags(*child, EmitFlags::START_ON_NEW_LINE);
             }
         }
 
@@ -1068,11 +1068,11 @@ impl JSXTransformer {
         args.extend(new_children);
 
         let result =
-            f.new_call_expression(callee, None, None, f.new_node_list(args), NodeFlags::None);
+            f.new_call_expression(callee, None, None, f.new_node_list(args), NodeFlags::NONE);
         result.set_loc(location);
 
         if self.in_jsx_child.get() {
-            self.emit_context().add_emit_flags(result, EmitFlags::StartOnNewLine);
+            self.emit_context().add_emit_flags(result, EmitFlags::START_ON_NEW_LINE);
         }
         result
     }
@@ -1098,7 +1098,7 @@ impl JSXTransformer {
         // Add StartOnNewLine flag only if there are multiple actual children (after filtering)
         if new_children.len() > 1 {
             for child in &new_children {
-                self.emit_context().add_emit_flags(*child, EmitFlags::StartOnNewLine);
+                self.emit_context().add_emit_flags(*child, EmitFlags::START_ON_NEW_LINE);
             }
         }
 
@@ -1108,11 +1108,11 @@ impl JSXTransformer {
         args.extend(new_children);
 
         let result =
-            f.new_call_expression(callee, None, None, f.new_node_list(args), NodeFlags::None);
+            f.new_call_expression(callee, None, None, f.new_node_list(args), NodeFlags::NONE);
         result.set_loc(location);
 
         if self.in_jsx_child.get() {
-            self.emit_context().add_emit_flags(result, EmitFlags::StartOnNewLine);
+            self.emit_context().add_emit_flags(result, EmitFlags::START_ON_NEW_LINE);
         }
         result
     }
@@ -1123,7 +1123,7 @@ impl JSXTransformer {
         if fixed.is_empty() {
             return None;
         }
-        Some(self.factory().new_string_literal(alloc_str(&fixed), TokenFlags::None))
+        Some(self.factory().new_string_literal(alloc_str(&fixed), TokenFlags::NONE))
     }
 }
 

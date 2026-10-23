@@ -57,7 +57,11 @@ contributing `impl` blocks to the same type.
 - Go package-level functions -> free functions in the corresponding module.
 - If snake_casing produces a Rust keyword, append `_`: `type_`, `in_`, `as_`, `ref_`, `mod_`, `match_`, `loop_`.
   (`Type()` accessors on nodes are named `type_node()`.)
-- Go types keep their names (`TypeFlags`, `NodeLinks`, `InferenceContext`).
+- Types and traits use UpperCamelCase, including unexported Go types (`configFileEntry` -> `ConfigFileEntry`).
+  Preserve upstream acronym spellings (`ID`, `APIState`, `JSX`). When capitalization would collide with an existing
+  type or trait, give the implementation a distinct name (`logger` -> `LoggerImpl`).
+- Constants, statics and associated constants use SCREAMING_SNAKE_CASE, including diagnostic message statics.
+  Generators convert Rust identifiers separately from upstream names, message keys and protocol strings.
 - Struct fields: snake_case of the Go field name.
 - Go getter `Foo()` over private field `foo` -> Rust method `foo()`. Setter `SetFoo` -> `set_foo`.
 
@@ -182,13 +186,13 @@ callback, even when the closure does not need it.
 ### Flags and enums
 
 - Go bit-flag types (`type TypeFlags uint32` + `iota` constants) -> `bitflags!` structs with the
-  **Go constant name minus the type prefix, in CamelCase**: `TypeFlagsObject` -> `TypeFlags::Object`,
-  `ast.NodeFlagsAwaitContext` -> `NodeFlags::AwaitContext`, `TypeFlagsNone` -> `TypeFlags::None` (= empty).
+  **Go constant name minus the type prefix, in SCREAMING_SNAKE_CASE**: `TypeFlagsObject` -> `TypeFlags::OBJECT`,
+  `ast.NodeFlagsAwaitContext` -> `NodeFlags::AWAIT_CONTEXT`, `TypeFlagsNone` -> `TypeFlags::NONE` (= empty).
   - `x&F != 0` -> `x.intersects(F)`; `x&F == 0` -> `!x.intersects(F)`; `x&F == F` -> `x.contains(F)`
   - `x | y`, `x & y`, `x &^ y` -> `x | y`, `x & y`, `x & !y`; `x |= y` -> `x |= y` (through `Cell`: `c.set(c.get() | y)`)
 - Go enumerations (`type Kind int16` + `iota`) -> `#[repr(…)] enum` with `#[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Debug)]`,
-  variants named like flags: `ast.KindBinaryExpression` -> `Kind::BinaryExpression`. Range markers
-  (`KindFirstKeyword`) are associated consts.
+  variants in UpperCamelCase: `ast.KindBinaryExpression` -> `Kind::BinaryExpression`. Range markers
+  (`KindFirstKeyword` -> `Kind::FIRST_KEYWORD`) are associated constants.
 - Go `Tristate` -> `tsrs_core::Tristate` enum (`Unknown`, `False`, `True`).
 
 ### Collections and strings
@@ -261,8 +265,9 @@ unreachable part.
 
 ## `tsrs_core` as landed (read before guessing names)
 
-- Constants/statics are SCREAMING_CASE: `tspath::EXTENSION_TS`, `SUPPORTED_TS_EXTENSIONS_FLAT`, `RESOLUTION_MODE_ESM`, `EMPTY_COMPILER_OPTIONS`.
-- Enum variants keep Go casing: `ScriptKind::JS`, `ModuleKind::CommonJS`, `ModuleKind::ESM`, `JsxEmit::ReactJSX`, `ScriptTarget::Latest`.
+- Constants/statics are SCREAMING_SNAKE_CASE: `tspath::EXTENSION_TS`, `SUPPORTED_TS_EXTENSIONS_FLAT`, `RESOLUTION_MODE_ESM`, `EMPTY_COMPILER_OPTIONS`.
+- Enum variants keep Go casing (`ScriptKind::JS`). Newtype enum constants use SCREAMING_SNAKE_CASE:
+  `ModuleKind::COMMON_JS`, `ModuleKind::ESM`, `JsxEmit::REACT_JSX`, `ScriptTarget::LATEST`.
   `ResolutionMode` is an alias of `ModuleKind`.
 - `CompilerOptions`: every Go field, snake_case. `[]string` -> `Option<Vec<String>>`, `*int` -> `Option<i32>`,
   `paths` -> `Option<OrderedMap<String, Vec<String>>>`.

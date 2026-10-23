@@ -458,13 +458,13 @@ pub fn unsupported_reason(options: &CompilerOptions) -> Option<String> {
     }
     // SkipUnsupportedCompilerOptions
     match options.module {
-        ModuleKind::UMD | ModuleKind::System => {
+        ModuleKind::UMD | ModuleKind::SYSTEM => {
             return Some(format!("unsupported module kind {:?}", options.module));
         }
         _ => {}
     }
     match options.module_resolution {
-        ModuleResolutionKind::Node10 | ModuleResolutionKind::Classic => {
+        ModuleResolutionKind::NODE10 | ModuleResolutionKind::CLASSIC => {
             return Some(format!(
                 "unsupported module resolution kind {:?}",
                 options.module_resolution

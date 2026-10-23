@@ -11,28 +11,28 @@ use tsrs_tsoptions::{
 use tsrs_vfs::FS;
 
 use crate::configfileregistry::{
-    ConfigFileRegistry, collect_configured_content_mappers, configFileEntry, configFileNames,
-    configuredContentMappers, new_config_file_entry, new_extended_config_file_entry,
+    ConfigFileEntry, ConfigFileNames, ConfigFileRegistry, ConfiguredContentMappers,
+    collect_configured_content_mappers, new_config_file_entry, new_extended_config_file_entry,
 };
 use crate::dirty::{self, Shared, SyncMapEntry};
 use crate::extendedconfigcache::{ExtendedConfigCache, ExtendedConfigParseArgs};
 use crate::filechange::FileChangeSummary;
 use crate::logging::LogTree;
 use crate::project::{ID, PendingReload};
-use crate::projectcollectionbuilder::projectLoadKind;
+use crate::projectcollectionbuilder::ProjectLoadKind;
 use crate::session::SessionOptions;
-use crate::snapshotfs::{FileHandleSource, new_source_fs, snapshotFSBuilder, sourceFS};
+use crate::snapshotfs::{FileHandleSource, SnapshotFSBuilder, SourceFS, new_source_fs};
 use crate::watch::{
-    PatternsAndIgnored, get_path_components_for_watching, get_recursive_glob_pattern,
-    minWatchLocationDepth,
+    MIN_WATCH_LOCATION_DEPTH, PatternsAndIgnored, get_path_components_for_watching,
+    get_recursive_glob_pattern,
 };
 
 // configFileRegistryBuilder tracks changes made on top of a previous
 // configFileRegistry, producing a new clone with `finalize()` after
 // all changes have been made.
-pub(crate) struct configFileRegistryBuilder {
+pub(crate) struct ConfigFileRegistryBuilder {
     has_relative_pattern_capability: bool,
-    fs: Arc<sourceFS>,
+    fs: Arc<SourceFS>,
     is_open_file: Box<dyn Fn(&Path) -> bool + Send + Sync>,
     extended_config_cache: Arc<ExtendedConfigCache>,
     snapshot_id: u64,
@@ -40,17 +40,17 @@ pub(crate) struct configFileRegistryBuilder {
     custom_config_file_name: String,
 
     base: Arc<ConfigFileRegistry>,
-    configs: dirty::SyncMap<Path, configFileEntry>,
-    config_file_names: dirty::Map<Path, configFileNames>,
+    configs: dirty::SyncMap<Path, ConfigFileEntry>,
+    config_file_names: dirty::Map<Path, ConfigFileNames>,
     custom_config_file_name_changed: bool,
     // Go: contentMappersMu + allConfiguredContentMappers.
-    all_configured_content_mappers: Mutex<Option<Arc<configuredContentMappers>>>,
+    all_configured_content_mappers: Mutex<Option<Arc<ConfiguredContentMappers>>>,
 }
 
 // configfileregistrybuilder.go:44
 pub(crate) fn new_config_file_registry_builder(
     has_relative_pattern_capability: bool,
-    fs: Arc<snapshotFSBuilder>,
+    fs: Arc<SnapshotFSBuilder>,
     is_open_file: Box<dyn Fn(&Path) -> bool + Send + Sync>,
     old_config_file_registry: Arc<ConfigFileRegistry>,
     extended_config_cache: Arc<ExtendedConfigCache>,
@@ -58,9 +58,9 @@ pub(crate) fn new_config_file_registry_builder(
     session_options: Arc<SessionOptions>,
     custom_config_file_name: &str,
     _logger: &LogTree,
-) -> configFileRegistryBuilder {
+) -> ConfigFileRegistryBuilder {
     let to_path = Arc::clone(&fs.to_path);
-    configFileRegistryBuilder {
+    ConfigFileRegistryBuilder {
         has_relative_pattern_capability,
         fs: Arc::new(new_source_fs(false, fs, to_path)),
         is_open_file,
@@ -82,7 +82,7 @@ pub(crate) fn new_config_file_registry_builder(
 
 // Go `changeFileResult`.
 #[derive(Clone, Debug, Default)]
-pub(crate) struct changeFileResult {
+pub(crate) struct ChangeFileResult {
     pub(crate) affected_projects: Option<FxHashSet<ID>>,
     pub(crate) affected_files: Option<FxHashSet<Path>>,
 }
@@ -99,7 +99,7 @@ fn copy_set_into<T: std::hash::Hash + Eq + Clone>(
     dst
 }
 
-impl configFileRegistryBuilder {
+impl ConfigFileRegistryBuilder {
     fn to_path(&self, file_name: &str) -> Path {
         self.fs.to_path(file_name)
     }
@@ -135,7 +135,7 @@ impl configFileRegistryBuilder {
     }
 
     // configfileregistrybuilder.go:103
-    fn content_mappers(&self) -> Arc<configuredContentMappers> {
+    fn content_mappers(&self) -> Arc<ConfiguredContentMappers> {
         let mut mappers = self.all_configured_content_mappers.lock().unwrap();
         if mappers.is_none() {
             let mut command_lines: Vec<P<ParsedCommandLine>> = Vec::new();
@@ -161,12 +161,12 @@ impl configFileRegistryBuilder {
         config_file_name: &str,
         config_file_path: &Path,
         file_path: &Path,
-        load_kind: projectLoadKind,
+        load_kind: ProjectLoadKind,
         logger: &LogTree,
     ) -> Option<P<ParsedCommandLine>> {
         match load_kind {
-            projectLoadKind::Find => self.configs.load(config_file_path)?.value()?.command_line,
-            projectLoadKind::Create => {
+            ProjectLoadKind::Find => self.configs.load(config_file_path)?.value()?.command_line,
+            ProjectLoadKind::Create => {
                 self.acquire_config_for_file(config_file_name, config_file_path, file_path, logger)
             }
         }
@@ -178,7 +178,7 @@ impl configFileRegistryBuilder {
     // Change() method of a dirty map entry.
     fn reload_if_needed(
         &self,
-        entry: &mut configFileEntry,
+        entry: &mut ConfigFileEntry,
         file_name: &str,
         path: &Path,
         logger: &LogTree,
@@ -287,7 +287,7 @@ impl configFileRegistryBuilder {
     }
 
     // configfileregistrybuilder.go:217
-    fn update_root_files_watch(&self, file_name: &str, entry: &mut configFileEntry) {
+    fn update_root_files_watch(&self, file_name: &str, entry: &mut ConfigFileEntry) {
         let Some(root_files_watch) = &entry.root_files_watch else {
             return;
         };
@@ -363,7 +363,7 @@ impl configFileRegistryBuilder {
         if !external_directories.is_empty() {
             let (common_parents, ignored_external_dirs) = tspath::get_common_parents(
                 &external_directories,
-                minWatchLocationDepth,
+                MIN_WATCH_LOCATION_DEPTH,
                 get_path_components_for_watching,
                 &compare_paths_options,
             );
@@ -517,7 +517,7 @@ impl configFileRegistryBuilder {
     }
 
     // configfileregistrybuilder.go:413
-    fn invalidate_cache(&self, logger: &LogTree) -> changeFileResult {
+    fn invalidate_cache(&self, logger: &LogTree) -> ChangeFileResult {
         let mut affected_projects: Option<FxHashSet<ID>> = None;
         let mut affected_files: Option<FxHashSet<Path>> = None;
 
@@ -550,7 +550,7 @@ impl configFileRegistryBuilder {
             true
         });
 
-        changeFileResult { affected_projects, affected_files }
+        ChangeFileResult { affected_projects, affected_files }
     }
 
     // configfileregistrybuilder.go:448
@@ -566,7 +566,7 @@ impl configFileRegistryBuilder {
         &self,
         summary: &FileChangeSummary,
         logger: &LogTree,
-    ) -> changeFileResult {
+    ) -> ChangeFileResult {
         if summary.invalidate_all {
             return self.invalidate_cache(logger);
         }
@@ -830,12 +830,12 @@ impl configFileRegistryBuilder {
             }
         }
 
-        changeFileResult { affected_projects, affected_files }
+        ChangeFileResult { affected_projects, affected_files }
     }
 
     // configfileregistrybuilder.go:642
     fn handle_config_change(
-        entry: &Arc<SyncMapEntry<Path, configFileEntry>>,
+        entry: &Arc<SyncMapEntry<Path, ConfigFileEntry>>,
         logger: &LogTree,
     ) -> Option<FxHashSet<ID>> {
         let mut affected_projects = None;
@@ -936,7 +936,7 @@ impl configFileRegistryBuilder {
         if (self.is_open_file)(path) {
             self.config_file_names.add(
                 path.clone(),
-                Shared::new(configFileNames {
+                Shared::new(ConfigFileNames {
                     nearest_config_file_name: config_name.clone(),
                     ancestors: None,
                 }),
@@ -1049,7 +1049,7 @@ fn content_mapper_manifest_path(
     })
 }
 
-impl ParseConfigHost for configFileRegistryBuilder {
+impl ParseConfigHost for ConfigFileRegistryBuilder {
     // configfileregistrybuilder.go:787
     fn fs(&self) -> &dyn FS {
         &*self.fs
@@ -1061,7 +1061,7 @@ impl ParseConfigHost for configFileRegistryBuilder {
     }
 }
 
-impl ExtendedConfigCacheTrait for configFileRegistryBuilder {
+impl ExtendedConfigCacheTrait for ConfigFileRegistryBuilder {
     // configfileregistrybuilder.go:797
     fn get_extended_config(
         &self,

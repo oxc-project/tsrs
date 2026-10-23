@@ -23,7 +23,7 @@ impl Tracker {
         // so duplicate edits are emitted once and conflicting edits are rejected regardless of map iteration
         // order.
         let mut projections: OrderedMap<String, usize> = OrderedMap::default();
-        let all: Vec<(P<SourceFile>, Vec<trackerEdit>)> =
+        let all: Vec<(P<SourceFile>, Vec<TrackerEdit>)> =
             self.changes.iter().map(|(k, v)| (*k, v.clone())).collect();
         for (source_file, changes_in_file) in all {
             let file_name = source_file.original_file_name().to_string();
@@ -88,17 +88,17 @@ impl Tracker {
     // trackerimpl.go:136
     fn compute_new_text(
         &mut self,
-        change: &trackerEdit,
+        change: &TrackerEdit,
         target_source_file: P<SourceFile>,
         source_file: P<SourceFile>,
     ) -> String {
-        if change.kind == trackerEditKind::Text {
+        if change.kind == TrackerEditKind::Text {
             return change.new_text.clone();
         }
 
         let start = self.to_lsp_edit_range(source_file, change.text_range).start;
         let positions =
-            self.converters.from_lsp_position_for_source_file(source_file, start, Feature::All);
+            self.converters.from_lsp_position_for_source_file(source_file, start, Feature::ALL);
         let mut result = String::new();
         let mut found = false;
         // The original range may have multiple verbatim copies; it is safe to lose their identity only when
@@ -111,7 +111,7 @@ impl Tracker {
             let pos = mapped.position;
 
             let text = match change.kind {
-                trackerEditKind::ReplaceWithMultipleNodes => {
+                TrackerEditKind::ReplaceWithMultipleNodes => {
                     let mut joiner = change.options.joiner.clone();
                     if joiner.is_empty() {
                         joiner.clone_from(&self.new_line);
@@ -132,14 +132,14 @@ impl Tracker {
                         .collect();
                     parts.join(&joiner)
                 }
-                trackerEditKind::ReplaceWithSingleNode => self.get_formatted_text_of_node(
+                TrackerEditKind::ReplaceWithSingleNode => self.get_formatted_text_of_node(
                     change.node.unwrap(),
                     target_source_file,
                     projection,
                     pos,
                     &change.options,
                 ),
-                trackerEditKind::Text => {
+                TrackerEditKind::Text => {
                     panic!("change kind {} should have been handled earlier", change.kind as i32)
                 }
             };
@@ -190,7 +190,7 @@ impl Tracker {
     fn reindent_inserted_lines(
         &self,
         source_file: P<SourceFile>,
-        change: &trackerEdit,
+        change: &TrackerEdit,
         text: String,
     ) -> String {
         if text.is_empty()

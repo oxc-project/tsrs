@@ -22,28 +22,28 @@ pub struct EmitContext {
     auto_generate: RefCell<FxHashMap<P<Node>, AutoGenerateInfo>>,
     text_source: RefCell<FxHashMap<P<Node>, P<Node>>>,
     original: RefCell<FxHashMap<P<Node>, P<Node>>>,
-    emit_nodes: RefCell<FxHashMap<P<Node>, emitNode>>,
+    emit_nodes: RefCell<FxHashMap<P<Node>, EmitNode>>,
     assigned_name: RefCell<FxHashMap<P<Node>, P<Node>>>,
     class_this: RefCell<FxHashMap<P<Node>, P<Node>>>,
-    var_scope_stack: RefCell<Stack<Rc<RefCell<varScope>>>>,
-    let_scope_stack: RefCell<Stack<Rc<RefCell<varScope>>>>,
+    var_scope_stack: RefCell<Stack<Rc<RefCell<VarScope>>>>,
+    let_scope_stack: RefCell<Stack<Rc<RefCell<VarScope>>>>,
     emit_helpers: RefCell<OrderedSet<SP<EmitHelper>>>,
 }
 
 bitflags::bitflags! {
     #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Default)]
-    pub(crate) struct environmentFlags: u32 {
-        const None = 0;
-        const InParameters = 1 << 0; // currently visiting a parameter list
-        const VariablesHoistedInParameters = 1 << 1; // a temp variable was hoisted while visiting a parameter list
+    pub(crate) struct EnvironmentFlags: u32 {
+        const NONE = 0;
+        const IN_PARAMETERS = 1 << 0; // currently visiting a parameter list
+        const VARIABLES_HOISTED_IN_PARAMETERS = 1 << 1; // a temp variable was hoisted while visiting a parameter list
     }
 }
 
 #[derive(Default)]
-pub(crate) struct varScope {
+pub(crate) struct VarScope {
     variables: Vec<P<Node>>,
     functions: Vec<P<Node>>,
-    flags: environmentFlags,
+    flags: EnvironmentFlags,
     initialization_statements: Vec<P<Node>>,
 }
 
@@ -181,11 +181,11 @@ impl EmitContext {
         if !variables.is_empty() {
             let var_decl_list = self.factory.new_variable_declaration_list(
                 self.factory.new_node_list(variables),
-                NodeFlags::None,
+                NodeFlags::NONE,
             );
             let var_statement =
                 self.factory.new_variable_statement(None /*modifiers*/, var_decl_list);
-            self.set_emit_flags(var_statement, EmitFlags::CustomPrologue);
+            self.set_emit_flags(var_statement, EmitFlags::CUSTOM_PROLOGUE);
             statements.push(var_statement);
         }
         if !initialization_statements.is_empty() {
@@ -240,12 +240,12 @@ impl EmitContext {
             None, /*typeNode*/
             None, /*initializer*/
         );
-        self.set_emit_flags(var_decl, EmitFlags::NoNestedSourceMaps);
+        self.set_emit_flags(var_decl, EmitFlags::NO_NESTED_SOURCE_MAPS);
         let scope = Rc::clone(self.var_scope_stack.borrow().peek());
         let mut scope = scope.borrow_mut();
         scope.variables.push(var_decl);
-        if scope.flags.intersects(environmentFlags::InParameters) {
-            scope.flags |= environmentFlags::VariablesHoistedInParameters;
+        if scope.flags.intersects(EnvironmentFlags::IN_PARAMETERS) {
+            scope.flags |= EnvironmentFlags::VARIABLES_HOISTED_IN_PARAMETERS;
         }
     }
 
@@ -253,7 +253,7 @@ impl EmitContext {
     //
     // NOTE: This is the equivalent of `transformContext.hoistFunctionDeclaration` in Strada.
     pub fn add_hoisted_function_declaration(&self, node: P<Node>) {
-        self.set_emit_flags(node, EmitFlags::CustomPrologue);
+        self.set_emit_flags(node, EmitFlags::CUSTOM_PROLOGUE);
         let scope = Rc::clone(self.var_scope_stack.borrow().peek());
         scope.borrow_mut().functions.push(node);
     }
@@ -279,11 +279,11 @@ impl EmitContext {
         if !variables.is_empty() {
             let var_decl_list = self.factory.new_variable_declaration_list(
                 self.factory.new_node_list(variables),
-                NodeFlags::Let,
+                NodeFlags::LET,
             );
             let var_statement =
                 self.factory.new_variable_statement(None /*modifiers*/, var_decl_list);
-            self.set_emit_flags(var_statement, EmitFlags::CustomPrologue);
+            self.set_emit_flags(var_statement, EmitFlags::CUSTOM_PROLOGUE);
             statements.push(var_statement);
         }
         statements
@@ -334,7 +334,7 @@ impl EmitContext {
             None, /*typeNode*/
             None, /*initializer*/
         );
-        self.set_emit_flags(var_decl, EmitFlags::NoNestedSourceMaps);
+        self.set_emit_flags(var_decl, EmitFlags::NO_NESTED_SOURCE_MAPS);
         let scope = Rc::clone(self.let_scope_stack.borrow().peek());
         scope.borrow_mut().variables.push(var_decl);
     }
@@ -514,7 +514,7 @@ impl EmitContext {
     }
 
     pub(crate) fn is_custom_prologue(&self, node: P<Node>) -> bool {
-        self.emit_flags(node).intersects(EmitFlags::CustomPrologue)
+        self.emit_flags(node).intersects(EmitFlags::CUSTOM_PROLOGUE)
     }
 
     pub(crate) fn is_hoisted_function(&self, node: P<Node>) -> bool {
@@ -539,7 +539,7 @@ impl EmitContext {
         reason = "This method implements the NodeFactory creation hook, whose callback receives the emit context."
     )]
     pub(crate) fn on_create(&self, node: P<Node>) {
-        node.flags.set(node.flags.get() | NodeFlags::Synthesized);
+        node.flags.set(node.flags.get() | NodeFlags::SYNTHESIZED);
     }
 
     pub(crate) fn on_update(&self, updated: P<Node>, original: P<Node>) {
@@ -714,7 +714,7 @@ impl EmitContext {
         if let Some(emit_node) = self.emit_nodes.borrow().get(&node) {
             return emit_node.emit_flags;
         }
-        EmitFlags::None
+        EmitFlags::NONE
     }
 
     pub fn set_emit_flags(&self, node: P<Node>, flags: EmitFlags) {
@@ -740,7 +740,7 @@ impl EmitContext {
     // Gets the range to use for a node when emitting comments.
     pub fn comment_range(&self, node: P<Node>) -> TextRange {
         if let Some(emit_node) = self.emit_nodes.borrow().get(&node) {
-            if emit_node.flags.intersects(emitNodeFlags::hasCommentRange) {
+            if emit_node.flags.intersects(EmitNodeFlags::HAS_COMMENT_RANGE) {
                 return emit_node.comment_range;
             }
         }
@@ -752,7 +752,7 @@ impl EmitContext {
         let mut emit_nodes = self.emit_nodes.borrow_mut();
         let emit_node = emit_nodes.entry(node).or_default();
         emit_node.comment_range = loc;
-        emit_node.flags |= emitNodeFlags::hasCommentRange;
+        emit_node.flags |= EmitNodeFlags::HAS_COMMENT_RANGE;
     }
 
     // Sets the range to use for a node when emitting comments.
@@ -763,7 +763,7 @@ impl EmitContext {
     // Gets the range to use for a node when emitting source maps.
     pub fn source_map_range(&self, node: P<Node>) -> TextRange {
         if let Some(emit_node) = self.emit_nodes.borrow().get(&node) {
-            if emit_node.flags.intersects(emitNodeFlags::hasSourceMapRange) {
+            if emit_node.flags.intersects(EmitNodeFlags::HAS_SOURCE_MAP_RANGE) {
                 return emit_node.source_map_range;
             }
         }
@@ -775,7 +775,7 @@ impl EmitContext {
         let mut emit_nodes = self.emit_nodes.borrow_mut();
         let emit_node = emit_nodes.entry(node).or_default();
         emit_node.source_map_range = loc;
-        emit_node.flags |= emitNodeFlags::hasSourceMapRange;
+        emit_node.flags |= EmitNodeFlags::HAS_SOURCE_MAP_RANGE;
     }
 
     // Sets the range to use for a node when emitting source maps.
@@ -791,7 +791,7 @@ impl EmitContext {
         let emit_node = emit_nodes.entry(to).or_default();
         emit_node.comment_range = comment_range;
         emit_node.source_map_range = source_map_range;
-        emit_node.flags |= emitNodeFlags::hasCommentRange | emitNodeFlags::hasSourceMapRange;
+        emit_node.flags |= EmitNodeFlags::HAS_COMMENT_RANGE | EmitNodeFlags::HAS_SOURCE_MAP_RANGE;
     }
 
     // Gets the range for a token of a node when emitting source maps.
@@ -904,7 +904,7 @@ impl EmitContext {
             let emit_node = emit_nodes.get(&parse_node);
             return emit_node.is_some_and(|emit_node| {
                 emit_node.rare().is_some_and(|r| r.external_helpers_module_name.is_some())
-                    || emit_node.emit_flags.intersects(EmitFlags::ExternalHelpers)
+                    || emit_node.emit_flags.intersects(EmitFlags::EXTERNAL_HELPERS)
             });
         }
         false
@@ -915,7 +915,7 @@ impl EmitContext {
             && is_identifier(first_segment.expression().unwrap())
             && self
                 .emit_flags(first_segment.expression().unwrap())
-                .intersects(EmitFlags::HelperName)
+                .intersects(EmitFlags::HELPER_NAME)
             && first_segment.expression().unwrap().text() == helper_name
     }
 
@@ -941,7 +941,7 @@ impl EmitContext {
         self.start_variable_environment();
         let scope = Rc::clone(self.var_scope_stack.borrow().peek());
         let old_flags = scope.borrow().flags;
-        scope.borrow_mut().flags |= environmentFlags::InParameters;
+        scope.borrow_mut().flags |= EnvironmentFlags::IN_PARAMETERS;
         let mut nodes = visitor.visit_nodes(nodes);
 
         // As of ES2015, any runtime execution of that occurs in for a parameter (such as evaluating an
@@ -951,7 +951,7 @@ impl EmitContext {
         // in a parameter list to the body if we detect a variable being hoisted while visiting a parameter list
         // when the emit target is greater than ES2015. (Which is now all targets.)
         let flags = scope.borrow().flags;
-        if flags.intersects(environmentFlags::VariablesHoistedInParameters) {
+        if flags.intersects(EnvironmentFlags::VARIABLES_HOISTED_IN_PARAMETERS) {
             nodes = self.add_default_value_assignments_if_needed(nodes);
         }
         scope.borrow_mut().flags = old_flags;
@@ -1025,7 +1025,7 @@ impl EmitContext {
                     p.type_(),
                     Some(init_node),
                 )]),
-                NodeFlags::None,
+                NodeFlags::NONE,
             ),
         ));
         self.factory.update_parameter_declaration(
@@ -1046,12 +1046,12 @@ impl EmitContext {
         initializer: P<Node>,
     ) -> P<Node> {
         let p = parameter.as_parameter_declaration();
-        self.add_emit_flags(initializer, EmitFlags::NoSourceMap | EmitFlags::NoComments);
+        self.add_emit_flags(initializer, EmitFlags::NO_SOURCE_MAP | EmitFlags::NO_COMMENTS);
         let name_clone = name.clone_node(&self.factory);
-        self.add_emit_flags(name_clone, EmitFlags::NoSourceMap);
+        self.add_emit_flags(name_clone, EmitFlags::NO_SOURCE_MAP);
         let init_assignment = self.factory.new_assignment_expression(name_clone, initializer);
         init_assignment.set_loc(parameter.loc());
-        self.add_emit_flags(init_assignment, EmitFlags::NoComments);
+        self.add_emit_flags(init_assignment, EmitFlags::NO_COMMENTS);
         let init_block = self.factory.new_block(
             self.factory
                 .new_node_list(vec![self.factory.new_expression_statement(init_assignment)]),
@@ -1060,10 +1060,10 @@ impl EmitContext {
         init_block.set_loc(parameter.loc());
         self.add_emit_flags(
             init_block,
-            EmitFlags::SingleLine
-                | EmitFlags::NoTrailingSourceMap
-                | EmitFlags::NoTokenSourceMaps
-                | EmitFlags::NoComments,
+            EmitFlags::SINGLE_LINE
+                | EmitFlags::NO_TRAILING_SOURCE_MAP
+                | EmitFlags::NO_TOKEN_SOURCE_MAPS
+                | EmitFlags::NO_COMMENTS,
         );
         self.add_initialization_statement(self.factory.new_if_statement(
             self.factory.new_type_check(name.clone_node(&self.factory), "undefined"),
@@ -1084,7 +1084,7 @@ impl EmitContext {
     pub fn add_initialization_statement(&self, node: P<Node>) {
         // Go's `Peek()` panics on an empty stack before the nil check below can fire.
         let scope = Rc::clone(self.var_scope_stack.borrow().peek());
-        self.add_emit_flags(node, EmitFlags::CustomPrologue);
+        self.add_emit_flags(node, EmitFlags::CUSTOM_PROLOGUE);
         scope.borrow_mut().initialization_statements.push(node);
     }
 
@@ -1121,7 +1121,7 @@ impl EmitContext {
         };
 
         if !is_block(updated) {
-            self.add_emit_flags(updated, EmitFlags::NoComments);
+            self.add_emit_flags(updated, EmitFlags::NO_COMMENTS);
             let block = self.convert_to_function_block(updated, false /*multiLine*/);
             return Some(self.factory.update_block(
                 block,
@@ -1301,10 +1301,10 @@ pub struct AutoGenerateOptions {
     pub suffix: &'static str,
 }
 
-static nextAutoGenerateId: AtomicU32 = AtomicU32::new(0);
+static NEXT_AUTO_GENERATE_ID: AtomicU32 = AtomicU32::new(0);
 
 pub(crate) fn next_auto_generate_id() -> AutoGenerateId {
-    AutoGenerateId(nextAutoGenerateId.fetch_add(1, Ordering::SeqCst) + 1)
+    AutoGenerateId(NEXT_AUTO_GENERATE_ID.fetch_add(1, Ordering::SeqCst) + 1)
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Debug, Default)]
@@ -1321,9 +1321,9 @@ pub struct AutoGenerateInfo {
 
 bitflags::bitflags! {
     #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Default)]
-    pub(crate) struct emitNodeFlags: u32 {
-        const hasCommentRange = 1 << 0;
-        const hasSourceMapRange = 1 << 1;
+    pub(crate) struct EmitNodeFlags: u32 {
+        const HAS_COMMENT_RANGE = 1 << 0;
+        const HAS_SOURCE_MAP_RANGE = 1 << 1;
     }
 }
 
@@ -1353,21 +1353,21 @@ pub struct SynthesizedComment {
 // other fields (emit helpers, synthesized comments, token ranges, ...) live in a tail allocated on the first write
 // (`rare_mut`); reads of an absent tail see Go's zero values. 32 bytes per map entry instead of 160.
 #[derive(Clone, Default)]
-pub(crate) struct emitNode {
-    flags: emitNodeFlags,
+pub(crate) struct EmitNode {
+    flags: EmitNodeFlags,
     emit_flags: EmitFlags,
     comment_range: TextRange,
     source_map_range: TextRange,
-    rare: Option<Box<emitNodeRare>>,
+    rare: Option<Box<EmitNodeRare>>,
 }
 
 #[cfg(target_pointer_width = "64")]
-const _: () = assert!(std::mem::size_of::<emitNode>() == 32);
+const _: () = assert!(std::mem::size_of::<EmitNode>() == 32);
 #[cfg(target_pointer_width = "32")]
-const _: () = assert!(std::mem::size_of::<emitNode>() == 28);
+const _: () = assert!(std::mem::size_of::<EmitNode>() == 28);
 
 #[derive(Clone, Default)]
-struct emitNodeRare {
+struct EmitNodeRare {
     token_source_map_ranges: Option<FxHashMap<Kind, TextRange>>,
     helpers: Vec<SP<EmitHelper>>,
     external_helpers_module_name: Option<P<Node>>,
@@ -1377,17 +1377,17 @@ struct emitNodeRare {
     snippet_element: Option<SnippetElement>,
 }
 
-impl emitNode {
-    fn rare(&self) -> Option<&emitNodeRare> {
+impl EmitNode {
+    fn rare(&self) -> Option<&EmitNodeRare> {
         self.rare.as_deref()
     }
 
-    fn rare_mut(&mut self) -> &mut emitNodeRare {
+    fn rare_mut(&mut self) -> &mut EmitNodeRare {
         self.rare.get_or_insert_with(Default::default)
     }
 
     // NOTE: This method is not guaranteed to be thread-safe
-    fn copy_from(&mut self, source: &emitNode) {
+    fn copy_from(&mut self, source: &EmitNode) {
         self.flags = source.flags;
         self.emit_flags = source.emit_flags;
         self.comment_range = source.comment_range;

@@ -870,14 +870,14 @@ pub fn diagnostic_to_lsp_push(
 // converters.go:482
 static STYLE_CHECK_DIAGNOSTICS: LazyLock<FxHashSet<i32>> = LazyLock::new(|| {
     [
-        diagnostics::X_0_is_declared_but_never_used.code(),
-        diagnostics::X_0_is_declared_but_its_value_is_never_read.code(),
-        diagnostics::Property_0_is_declared_but_its_value_is_never_read.code(),
-        diagnostics::All_imports_in_import_declaration_are_unused.code(),
-        diagnostics::Unreachable_code_detected.code(),
-        diagnostics::Unused_label.code(),
-        diagnostics::Fallthrough_case_in_switch.code(),
-        diagnostics::Not_all_code_paths_return_a_value.code(),
+        diagnostics::X_0_IS_DECLARED_BUT_NEVER_USED.code(),
+        diagnostics::X_0_IS_DECLARED_BUT_ITS_VALUE_IS_NEVER_READ.code(),
+        diagnostics::PROPERTY_0_IS_DECLARED_BUT_ITS_VALUE_IS_NEVER_READ.code(),
+        diagnostics::ALL_IMPORTS_IN_IMPORT_DECLARATION_ARE_UNUSED.code(),
+        diagnostics::UNREACHABLE_CODE_DETECTED.code(),
+        diagnostics::UNUSED_LABEL.code(),
+        diagnostics::FALLTHROUGH_CASE_IN_SWITCH.code(),
+        diagnostics::NOT_ALL_CODE_PATHS_RETURN_A_VALUE.code(),
     ]
     .into_iter()
     .collect()
@@ -894,10 +894,10 @@ fn diagnostic_to_lsp(
     let mut severity = diagnostic_severity(diagnostic.category());
 
     if opts.report_style_checks_as_warnings
-        && severity == lsproto::DiagnosticSeverity::Error
+        && severity == lsproto::DiagnosticSeverity::ERROR
         && STYLE_CHECK_DIAGNOSTICS.contains(&diagnostic.code())
     {
-        severity = lsproto::DiagnosticSeverity::Warning;
+        severity = lsproto::DiagnosticSeverity::WARNING;
     }
 
     let mut related_information: Vec<lsproto::DiagnosticRelatedInformation> = Vec::new();
@@ -932,14 +932,14 @@ fn diagnostic_to_lsp(
     {
         tags.reserve(2);
         if diagnostic.reports_unnecessary()
-            && opts.tag_value_set.contains(&lsproto::DiagnosticTag::Unnecessary)
+            && opts.tag_value_set.contains(&lsproto::DiagnosticTag::UNNECESSARY)
         {
-            tags.push(lsproto::DiagnosticTag::Unnecessary);
+            tags.push(lsproto::DiagnosticTag::UNNECESSARY);
         }
         if diagnostic.reports_deprecated()
-            && opts.tag_value_set.contains(&lsproto::DiagnosticTag::Deprecated)
+            && opts.tag_value_set.contains(&lsproto::DiagnosticTag::DEPRECATED)
         {
-            tags.push(lsproto::DiagnosticTag::Deprecated);
+            tags.push(lsproto::DiagnosticTag::DEPRECATED);
         }
     }
 
@@ -1053,10 +1053,10 @@ impl Script for OriginalTextScript<'_> {
 // converters.go:608
 fn diagnostic_severity(category: Category) -> lsproto::DiagnosticSeverity {
     match category {
-        Category::Suggestion => lsproto::DiagnosticSeverity::Hint,
-        Category::Message => lsproto::DiagnosticSeverity::Information,
-        Category::Warning => lsproto::DiagnosticSeverity::Warning,
-        Category::Error => lsproto::DiagnosticSeverity::Error,
+        Category::Suggestion => lsproto::DiagnosticSeverity::HINT,
+        Category::Message => lsproto::DiagnosticSeverity::INFORMATION,
+        Category::Warning => lsproto::DiagnosticSeverity::WARNING,
+        Category::Error => lsproto::DiagnosticSeverity::ERROR,
     }
 }
 

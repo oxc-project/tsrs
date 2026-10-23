@@ -44,15 +44,15 @@ fn socket_read_write_closer(
     Ok(ReadWriteCloser {
         reader: Box::new(stream.try_clone()?),
         writer: Box::new(stream.try_clone()?),
-        closer: Arc::new(socketCloser(stream)),
+        closer: Arc::new(SocketCloser(stream)),
     })
 }
 
 #[cfg(unix)]
-struct socketCloser(std::os::unix::net::UnixStream);
+struct SocketCloser(std::os::unix::net::UnixStream);
 
 #[cfg(unix)]
-impl Closer for socketCloser {
+impl Closer for SocketCloser {
     fn close(&self) -> std::io::Result<()> {
         match self.0.shutdown(std::net::Shutdown::Both) {
             // macOS reports a second shutdown, or one after the peer's, as ENOTCONN; Go's Close is idempotent.

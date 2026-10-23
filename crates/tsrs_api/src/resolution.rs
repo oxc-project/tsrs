@@ -14,11 +14,11 @@ use crate::wire::{Obj, Params, b, s};
 
 fn mode_param(p: Params, key: &str) -> ApiResult<ResolutionMode> {
     Ok(match p.get(key) {
-        Value::Null => ModuleKind::None,
+        Value::Null => ModuleKind::NONE,
         Value::Number(n) => match *n as i64 {
-            0 => ModuleKind::None,
-            1 => ModuleKind::CommonJS,
-            99 => ModuleKind::ESNext,
+            0 => ModuleKind::NONE,
+            1 => ModuleKind::COMMON_JS,
+            99 => ModuleKind::ES_NEXT,
             // Go accepts any core.ModuleKind value here; other kinds simply find no resolution.
             x => tsrs_tsoptions::gojson::GoJson::from_go_json(&Value::Number(x as f64), key)
                 .map_err(ApiError::invalid_request)?,
@@ -139,7 +139,7 @@ impl Session {
         let (_sd, program) = self.program_for(p)?;
         let file = resolve_source_file(program, &p.document("sourceFile")?)?;
         let mut mode = mode_param(p, "resolutionMode")?;
-        if mode == ModuleKind::None {
+        if mode == ModuleKind::NONE {
             mode = program.get_default_resolution_mode_for_file(file);
         }
         Ok(type_ref_response(program.get_resolved_type_reference_directive(

@@ -2,7 +2,7 @@ use crate::*;
 use tsrs_core::TextRange;
 
 // objectrestspread.go:10
-pub struct objectRestSpreadTransformer {
+pub struct ObjectRestSpreadTransformer {
     pub base: Transformer,
     pub compiler_options: P<CompilerOptions>,
 
@@ -12,7 +12,7 @@ pub struct objectRestSpreadTransformer {
     pub parameters_with_preceding_object_rest_or_spread: RefCell<Option<FxHashSet<P<Node>>>>,
 }
 
-impl objectRestSpreadTransformer {
+impl ObjectRestSpreadTransformer {
     fn emit_context(&self) -> P<EmitContext> {
         self.base.emit_context()
     }
@@ -27,7 +27,7 @@ impl objectRestSpreadTransformer {
 
     // objectrestspread.go:20
     fn visit(&self, node: P<Node>) -> Option<P<Node>> {
-        if !node.subtree_facts().intersects(SubtreeFacts::ContainsESObjectRestOrSpread)
+        if !node.subtree_facts().intersects(SubtreeFacts::CONTAINS_ES_OBJECT_REST_OR_SPREAD)
             && self.parameters_with_preceding_object_rest_or_spread.borrow().is_none()
         {
             return Some(node);
@@ -100,7 +100,7 @@ impl objectRestSpreadTransformer {
                 None,
             );
         }
-        if node.subtree_facts().intersects(SubtreeFacts::ContainsObjectRestOrSpread) {
+        if node.subtree_facts().intersects(SubtreeFacts::CONTAINS_OBJECT_REST_OR_SPREAD) {
             // Binding patterns are converted into a generated name and are
             // evaluated inside the function body.
             return f.update_parameter_declaration(
@@ -124,7 +124,9 @@ impl objectRestSpreadTransformer {
         for &parameter in node.parameters() {
             if let Some(result) = result.as_mut() {
                 result.insert(parameter);
-            } else if parameter.subtree_facts().intersects(SubtreeFacts::ContainsObjectRestOrSpread)
+            } else if parameter
+                .subtree_facts()
+                .intersects(SubtreeFacts::CONTAINS_OBJECT_REST_OR_SPREAD)
             {
                 result = Some(FxHashSet::default());
             }
@@ -295,7 +297,7 @@ impl objectRestSpreadTransformer {
                 } else if self
                     .emit_context()
                     .emit_flags(statement)
-                    .intersects(EmitFlags::CustomPrologue)
+                    .intersects(EmitFlags::CUSTOM_PROLOGUE)
                 {
                     custom = true;
                     prefix.push(statement);
@@ -349,11 +351,11 @@ impl objectRestSpreadTransformer {
                             }
                             let declaration_list = f.new_variable_declaration_list(
                                 f.new_node_list(decls),
-                                NodeFlags::None,
+                                NodeFlags::NONE,
                             );
                             let statement = f.new_variable_statement(None, declaration_list);
                             self.emit_context()
-                                .add_emit_flags(statement, EmitFlags::CustomPrologue);
+                                .add_emit_flags(statement, EmitFlags::CUSTOM_PROLOGUE);
                             results.push(statement);
                         }
                     } else if parameter.initializer().is_some() {
@@ -362,7 +364,7 @@ impl objectRestSpreadTransformer {
                             self.visitor().visit_node(parameter.initializer()).unwrap();
                         let assignment = f.new_assignment_expression(name, initializer);
                         let statement = f.new_expression_statement(assignment);
-                        self.emit_context().add_emit_flags(statement, EmitFlags::CustomPrologue);
+                        self.emit_context().add_emit_flags(statement, EmitFlags::CUSTOM_PROLOGUE);
                         results.push(statement);
                     }
                 } else if parameter.initializer().is_some() {
@@ -377,17 +379,17 @@ impl objectRestSpreadTransformer {
                     //  }
                     let name = parameter.name().unwrap().clone_node(f);
                     name.set_loc(parameter.name().unwrap().loc());
-                    self.emit_context().add_emit_flags(name, EmitFlags::NoSourceMap);
+                    self.emit_context().add_emit_flags(name, EmitFlags::NO_SOURCE_MAP);
 
                     let initializer = self.visitor().visit_node(parameter.initializer()).unwrap();
                     self.emit_context().add_emit_flags(
                         initializer,
-                        EmitFlags::NoSourceMap | EmitFlags::NoComments,
+                        EmitFlags::NO_SOURCE_MAP | EmitFlags::NO_COMMENTS,
                     );
 
                     let assignment = f.new_assignment_expression(name, initializer);
                     assignment.set_loc(parameter.loc());
-                    self.emit_context().add_emit_flags(assignment, EmitFlags::NoComments);
+                    self.emit_context().add_emit_flags(assignment, EmitFlags::NO_COMMENTS);
 
                     let block = f.new_block(
                         f.new_node_list(vec![f.new_expression_statement(assignment)]),
@@ -396,10 +398,10 @@ impl objectRestSpreadTransformer {
                     block.set_loc(parameter.loc());
                     self.emit_context().add_emit_flags(
                         block,
-                        EmitFlags::SingleLine
-                            | EmitFlags::NoTrailingSourceMap
-                            | EmitFlags::NoTokenSourceMaps
-                            | EmitFlags::NoComments,
+                        EmitFlags::SINGLE_LINE
+                            | EmitFlags::NO_TRAILING_SOURCE_MAP
+                            | EmitFlags::NO_TOKEN_SOURCE_MAPS
+                            | EmitFlags::NO_COMMENTS,
                     );
 
                     let type_check = f.new_type_check(name.clone_node(f), "undefined");
@@ -407,15 +409,17 @@ impl objectRestSpreadTransformer {
                     statement.set_loc(parameter.loc());
                     self.emit_context().add_emit_flags(
                         statement,
-                        EmitFlags::NoTokenSourceMaps
-                            | EmitFlags::NoTrailingSourceMap
-                            | EmitFlags::CustomPrologue
-                            | EmitFlags::NoComments
-                            | EmitFlags::StartOnNewLine,
+                        EmitFlags::NO_TOKEN_SOURCE_MAPS
+                            | EmitFlags::NO_TRAILING_SOURCE_MAP
+                            | EmitFlags::CUSTOM_PROLOGUE
+                            | EmitFlags::NO_COMMENTS
+                            | EmitFlags::START_ON_NEW_LINE,
                     );
                     results.push(statement);
                 }
-            } else if parameter.subtree_facts().intersects(SubtreeFacts::ContainsObjectRestOrSpread)
+            } else if parameter
+                .subtree_facts()
+                .intersects(SubtreeFacts::CONTAINS_OBJECT_REST_OR_SPREAD)
             {
                 contains_preceding_object_rest_or_spread = true;
                 let declarations = flatten_destructuring_binding(
@@ -432,9 +436,9 @@ impl objectRestSpreadTransformer {
                         decls = declarations.as_syntax_list().children.to_vec();
                     }
                     let declaration_list =
-                        f.new_variable_declaration_list(f.new_node_list(decls), NodeFlags::None);
+                        f.new_variable_declaration_list(f.new_node_list(decls), NodeFlags::NONE);
                     let statement = f.new_variable_statement(None, declaration_list);
-                    self.emit_context().add_emit_flags(statement, EmitFlags::CustomPrologue);
+                    self.emit_context().add_emit_flags(statement, EmitFlags::CUSTOM_PROLOGUE);
                     results.push(statement);
                 }
             }
@@ -453,7 +457,7 @@ impl objectRestSpreadTransformer {
                     .name()
                     .unwrap()
                     .subtree_facts()
-                    .intersects(SubtreeFacts::ContainsObjectRestOrSpread)
+                    .intersects(SubtreeFacts::CONTAINS_OBJECT_REST_OR_SPREAD)
             {
                 let name = f.new_generated_name_for_node(variable_declaration.name().unwrap());
                 let updated_decl = f.update_variable_declaration(
@@ -480,7 +484,7 @@ impl objectRestSpreadTransformer {
                     };
                     let new_statement = f.new_variable_statement(
                         None,
-                        f.new_variable_declaration_list(f.new_node_list(decls), NodeFlags::None),
+                        f.new_variable_declaration_list(f.new_node_list(decls), NodeFlags::NONE),
                     );
                     let mut statements = vec![new_statement];
                     statements.extend_from_slice(block.statements());
@@ -507,7 +511,7 @@ impl objectRestSpreadTransformer {
 
     // objectrestspread.go:412
     fn visit_variable_statement(&self, node: P<Node>) -> P<Node> {
-        if ast::has_syntactic_modifier(node, ModifierFlags::Export) {
+        if ast::has_syntactic_modifier(node, ModifierFlags::EXPORT) {
             let old_in_exported_variable_statement = self.in_exported_variable_statement.get();
             self.in_exported_variable_statement.set(true);
             let result = self.visitor().visit_each_child(Some(node)).unwrap();
@@ -532,7 +536,7 @@ impl objectRestSpreadTransformer {
     fn visit_variable_declaration_worker(&self, node: P<Node>, exported: bool) -> Option<P<Node>> {
         // If we are here it is because the name contains a binding pattern with a rest somewhere in it.
         if ast::is_binding_pattern(node.name().unwrap())
-            && node.subtree_facts().intersects(SubtreeFacts::ContainsObjectRestOrSpread)
+            && node.subtree_facts().intersects(SubtreeFacts::CONTAINS_OBJECT_REST_OR_SPREAD)
         {
             return flatten_destructuring_binding(
                 &self.base,
@@ -550,7 +554,7 @@ impl objectRestSpreadTransformer {
     fn visit_for_oftatement(&self, node: P<Node>) -> P<Node> {
         let f = self.factory();
         let s = node.as_for_in_or_of_statement();
-        if s.initializer.subtree_facts().intersects(SubtreeFacts::ContainsObjectRestOrSpread)
+        if s.initializer.subtree_facts().intersects(SubtreeFacts::CONTAINS_OBJECT_REST_OR_SPREAD)
             || (ast::is_assignment_pattern(s.initializer)
                 && ast::contains_object_rest_or_spread(s.initializer))
         {
@@ -586,7 +590,7 @@ impl objectRestSpreadTransformer {
 
                 let list = f.new_variable_declaration_list(
                     f.new_node_list(vec![f.new_variable_declaration(temp, None, None, None)]),
-                    NodeFlags::Let,
+                    NodeFlags::LET,
                 );
                 list.set_loc(s.initializer.loc());
 
@@ -635,7 +639,7 @@ impl objectRestSpreadTransformer {
 
     // objectrestspread.go:516
     fn visit_object_literal_expression(&self, node: P<Node>) -> P<Node> {
-        if !node.subtree_facts().intersects(SubtreeFacts::ContainsObjectRestOrSpread) {
+        if !node.subtree_facts().intersects(SubtreeFacts::CONTAINS_OBJECT_REST_OR_SPREAD) {
             return self.visitor().visit_each_child(Some(node)).unwrap();
         }
         // spread elements emit like so:
@@ -731,7 +735,7 @@ impl objectRestSpreadTransformer {
     reason = "Transformer factories share an optional result so disabled transforms can return None."
 )]
 pub fn new_object_rest_spread_transformer(opt: &TransformOptions) -> Option<P<Transformer>> {
-    let tx = P::new(objectRestSpreadTransformer {
+    let tx = P::new(ObjectRestSpreadTransformer {
         base: Transformer::default(),
         compiler_options: opt.compiler_options,
         in_exported_variable_statement: Cell::new(false),

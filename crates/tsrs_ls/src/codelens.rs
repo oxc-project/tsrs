@@ -46,7 +46,7 @@ impl CodeLensVisitor<'_> {
                     self.document_uri,
                     self.projection,
                     node,
-                    lsproto::CodeLensKind::References,
+                    lsproto::CodeLensKind::REFERENCES,
                 ) {
                     if self.seen.insert(key_for_code_lens(&code_lens)) {
                         self.result.push(code_lens);
@@ -61,7 +61,7 @@ impl CodeLensVisitor<'_> {
                     self.document_uri,
                     self.projection,
                     node,
-                    lsproto::CodeLensKind::Implementations,
+                    lsproto::CodeLensKind::IMPLEMENTATIONS,
                 ) {
                     if self.seen.insert(key_for_code_lens(&code_lens)) {
                         self.result.push(code_lens);
@@ -168,7 +168,7 @@ impl LanguageService {
         let mut locs: Vec<lsproto::Location> = Vec::new();
         let mut lens_title = String::new();
         match data.kind {
-            lsproto::CodeLensKind::References => {
+            lsproto::CodeLensKind::REFERENCES => {
                 let symbols_data = self
                     .provide_symbols_and_entries_at_position(
                         ctx, program, file, position, false, false,
@@ -193,12 +193,12 @@ impl LanguageService {
                 }
 
                 if locs.len() == 1 {
-                    lens_title = diagnostics::X_1_reference.localize(&[]);
+                    lens_title = diagnostics::X_1_REFERENCE.localize(&[]);
                 } else {
-                    lens_title = diagnostics::X_0_references.localize(&[&locs.len()]);
+                    lens_title = diagnostics::X_0_REFERENCES.localize(&[&locs.len()]);
                 }
             }
-            lsproto::CodeLensKind::Implementations => {
+            lsproto::CodeLensKind::IMPLEMENTATIONS => {
                 let symbols_data = self
                     .provide_symbols_and_entries_at_position(
                         ctx, program, file, position, false, true,
@@ -226,9 +226,9 @@ impl LanguageService {
                 }
 
                 if locs.len() == 1 {
-                    lens_title = diagnostics::X_1_implementation.localize(&[]);
+                    lens_title = diagnostics::X_1_IMPLEMENTATION.localize(&[]);
                 } else {
-                    lens_title = diagnostics::X_0_implementations.localize(&[&locs.len()]);
+                    lens_title = diagnostics::X_0_IMPLEMENTATIONS.localize(&[&locs.len()]);
                 }
             }
             _ => {}
@@ -263,7 +263,7 @@ impl LanguageService {
         let (lsp_range, fidelity) = self.converters.to_lsp_range_for_feature(
             &file,
             TextRange::new(pos, node.end().expect_source("parsed nodes have source positions")),
-            Feature::CodeLens,
+            Feature::CODE_LENS,
         );
         if fidelity.is_none() {
             return None;
@@ -307,11 +307,11 @@ fn is_valid_implementations_code_lens_node(
             if user_prefs.implementations_code_lens_show_on_all_class_methods.is_true()
                 && node.parent().unwrap().kind() == Kind::ClassDeclaration
             {
-                return !ast::has_modifier(node, ModifierFlags::Private)
+                return !ast::has_modifier(node, ModifierFlags::PRIVATE)
                     && node.name().unwrap().kind() != Kind::PrivateIdentifier;
             }
             // fallthrough
-            ast::has_modifier(node, ModifierFlags::Abstract)
+            ast::has_modifier(node, ModifierFlags::ABSTRACT)
         }
 
         // Always show on abstract classes/properties/methods
@@ -319,7 +319,7 @@ fn is_valid_implementations_code_lens_node(
         | Kind::Constructor
         | Kind::GetAccessor
         | Kind::SetAccessor
-        | Kind::PropertyDeclaration => ast::has_modifier(node, ModifierFlags::Abstract),
+        | Kind::PropertyDeclaration => ast::has_modifier(node, ModifierFlags::ABSTRACT),
 
         _ => false,
     }
@@ -335,7 +335,7 @@ fn is_valid_reference_lens_node(node: P<Node>, user_prefs: &CodeLensUserPreferen
                 return true;
             }
             // fallthrough
-            ast::get_combined_modifier_flags(node).intersects(ModifierFlags::Export)
+            ast::get_combined_modifier_flags(node).intersects(ModifierFlags::EXPORT)
         }
 
         Kind::ClassDeclaration

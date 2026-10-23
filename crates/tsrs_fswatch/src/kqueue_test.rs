@@ -3,10 +3,10 @@
 use std::os::fd::IntoRawFd;
 use std::sync::Arc;
 
-use super::{dirEntry, entriesID, kqueueBackend, kqueueSubscription, new_kqueue_backend};
-use crate::debounce::debounce;
-use crate::pathcompare::pathComparer;
-use crate::watcher::{dirWatch, watcherImpl};
+use super::{DirEntry, EntriesID, KqueueBackend, KqueueSubscription, new_kqueue_backend};
+use crate::debounce::Debounce;
+use crate::pathcompare::BytePathComparer;
+use crate::watcher::{DirWatch, WatcherImpl};
 
 fn open_fd() -> i32 {
     std::fs::File::open("/dev/null").unwrap().into_raw_fd()
@@ -17,7 +17,7 @@ fn is_open(fd: i32) -> bool {
     unsafe { libc::fcntl(fd, libc::F_GETFD) >= 0 }
 }
 
-fn insert_watch(backend: &kqueueBackend, watch: &Arc<dirWatch>, map_id: entriesID) -> i32 {
+fn insert_watch(backend: &KqueueBackend, watch: &Arc<DirWatch>, map_id: EntriesID) -> i32 {
     let fd = open_fd();
     let path = watch.dir.clone();
     let mut st = backend.mu.lock().unwrap();
@@ -25,7 +25,7 @@ fn insert_watch(backend: &kqueueBackend, watch: &Arc<dirWatch>, map_id: entriesI
         map_id,
         rustc_hash::FxHashMap::from_iter([(
             path.clone(),
-            dirEntry {
+            DirEntry {
                 path: path.clone(),
                 watch_path: path.clone(),
                 is_dir: false,
@@ -34,7 +34,7 @@ fn insert_watch(backend: &kqueueBackend, watch: &Arc<dirWatch>, map_id: entriesI
         )]),
     );
     st.fd_to_entry.insert(fd, (map_id, path.clone()));
-    st.subs_by_path.entry(path.clone()).or_default().push(kqueueSubscription {
+    st.subs_by_path.entry(path.clone()).or_default().push(KqueueSubscription {
         id: backend.next_id(),
         dir_watch: Arc::clone(watch),
         path,
@@ -67,12 +67,12 @@ fn closing_watches_owns_only_current_entry_descriptors() {
         return;
     }
 
-    let db = debounce::new_without_loop_for_test();
-    let watch = dirWatch::new(
+    let db = Debounce::new_without_loop_for_test();
+    let watch = DirWatch::new(
         "/watched".into(),
         "/watched".into(),
         &db,
-        pathComparer::default(),
+        BytePathComparer::default(),
         None,
         false,
     );
@@ -105,11 +105,11 @@ fn closing_watches_owns_only_current_entry_descriptors() {
         ownership_results.push((shutdown, sentinel_open, replacement_open));
     }
 
-    let overlapping = dirWatch::new(
+    let overlapping = DirWatch::new(
         watch.dir.clone(),
         watch.dir.clone(),
         &db,
-        pathComparer::default(),
+        BytePathComparer::default(),
         None,
         true,
     );

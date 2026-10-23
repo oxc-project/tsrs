@@ -19,27 +19,27 @@ use crate::emit::{EmitOnly, EmitOptions, WriteFileData, compiler_program_emit};
 use crate::program::{Program, SignatureUpdateKind};
 use crate::snapshot::{FileEmitKind, get_file_emit_kind};
 
-type dtsMayChange = RefCell<FxHashMap<Path, FileEmitKind>>;
+type DtsMayChange = RefCell<FxHashMap<Path, FileEmitKind>>;
 
 fn add_file_to_affected_files_pending_emit(
-    c: &dtsMayChange,
+    c: &DtsMayChange,
     file_path: Path,
     emit_kind: FileEmitKind,
 ) {
     c.borrow_mut().insert(file_path, emit_kind);
 }
 
-struct updatedSignature {
+struct UpdatedSignature {
     signature: String,
     kind: SignatureUpdateKind,
 }
 
-struct affectedFilesHandler<'a> {
+struct AffectedFilesHandler<'a> {
     ctx: &'a Context,
     program: &'a Program,
     has_all_files_excluding_default_library_file: Cell<bool>,
-    updated_signatures: RefCell<FxHashMap<Path, updatedSignature>>,
-    dts_may_change: RefCell<Vec<std::rc::Rc<dtsMayChange>>>,
+    updated_signatures: RefCell<FxHashMap<Path, UpdatedSignature>>,
+    dts_may_change: RefCell<Vec<std::rc::Rc<DtsMayChange>>>,
     files_to_remove_diagnostics: RefCell<FxHashSet<Path>>,
     cleaned_diagnostics_of_lib_files: Cell<bool>,
     seen_file_and_references: RefCell<FxHashMap<Path, bool>>,
@@ -48,13 +48,13 @@ struct affectedFilesHandler<'a> {
     precomputed: RefCell<FxHashMap<Path, String>>,
 }
 
-impl affectedFilesHandler<'_> {
+impl AffectedFilesHandler<'_> {
     // affectedfileshandler.go:40
     fn get_dts_may_change(
         &self,
         affected_file_path: Path,
         affected_file_emit_kind: FileEmitKind,
-    ) -> std::rc::Rc<dtsMayChange> {
+    ) -> std::rc::Rc<DtsMayChange> {
         let mut m = FxHashMap::default();
         m.insert(affected_file_path, affected_file_emit_kind);
         let result = std::rc::Rc::new(RefCell::new(m));
@@ -187,7 +187,7 @@ impl affectedFilesHandler<'_> {
         }
         self.updated_signatures.borrow_mut().insert(
             file.path().clone(),
-            updatedSignature { signature: String::new(), kind: SignatureUpdateKind::ComputedDts },
+            UpdatedSignature { signature: String::new(), kind: SignatureUpdateKind::ComputedDts },
         );
 
         let info = self.program.snapshot.file_infos.load(file.path()).unwrap();
@@ -214,7 +214,7 @@ impl affectedFilesHandler<'_> {
         let changed = signature != prev_signature;
         self.updated_signatures
             .borrow_mut()
-            .insert(file.path().clone(), updatedSignature { signature, kind });
+            .insert(file.path().clone(), UpdatedSignature { signature, kind });
         changed
     }
 
@@ -342,7 +342,7 @@ impl affectedFilesHandler<'_> {
     // affectedfileshandler.go:183
     fn handle_dts_may_change_of_affected_file(
         &self,
-        dts_may_change: &dtsMayChange,
+        dts_may_change: &DtsMayChange,
         affected_file: P<SourceFile>,
     ) {
         self.remove_semantic_diagnostics_of(affected_file.path().clone());
@@ -403,7 +403,7 @@ impl affectedFilesHandler<'_> {
         if let Some(symbol) = affected_file.symbol() {
             if let Some(exports) = symbol.exports() {
                 for (_, exported) in exports.entries() {
-                    if exported.flags().intersects(SymbolFlags::ConstEnum) {
+                    if exported.flags().intersects(SymbolFlags::CONST_ENUM) {
                         invalidate_js_files = true;
                         break;
                     }
@@ -419,7 +419,7 @@ impl affectedFilesHandler<'_> {
                     if aliased == exported {
                         continue;
                     }
-                    if aliased.flags().intersects(SymbolFlags::ConstEnum)
+                    if aliased.flags().intersects(SymbolFlags::CONST_ENUM)
                         && aliased
                             .declarations()
                             .iter()
@@ -468,7 +468,7 @@ impl affectedFilesHandler<'_> {
     // affectedfileshandler.go:277
     fn handle_dts_may_change_of_file_and_references(
         &self,
-        dts_may_change: &dtsMayChange,
+        dts_may_change: &DtsMayChange,
         file_path: &Path,
         invalidate_js_files: bool,
     ) -> bool {
@@ -510,7 +510,7 @@ impl affectedFilesHandler<'_> {
     // affectedfileshandler.go:299
     fn handle_dts_may_change_of_global_scope(
         &self,
-        dts_may_change: &dtsMayChange,
+        dts_may_change: &DtsMayChange,
         file_path: &Path,
         invalidate_js_files: bool,
     ) -> bool {
@@ -535,7 +535,7 @@ impl affectedFilesHandler<'_> {
     // affectedfileshandler.go:314
     fn handle_dts_may_change_of(
         &self,
-        dts_may_change: &dtsMayChange,
+        dts_may_change: &DtsMayChange,
         path: &Path,
         invalidate_js_files: bool,
     ) {
@@ -565,9 +565,9 @@ impl affectedFilesHandler<'_> {
                 dts_may_change,
                 path.clone(),
                 if options.declaration_map.is_true() {
-                    FileEmitKind::AllDts
+                    FileEmitKind::ALL_DTS
                 } else {
-                    FileEmitKind::Dts
+                    FileEmitKind::DTS
                 },
             );
         }
@@ -622,7 +622,7 @@ pub(crate) fn collect_all_affected_files(ctx: &Context, program: &Program) {
         return;
     }
 
-    let handler = affectedFilesHandler {
+    let handler = AffectedFilesHandler {
         ctx,
         program,
         has_all_files_excluding_default_library_file: Cell::new(false),

@@ -6,16 +6,16 @@ use tsrs_core::json::Value;
 use tsrs_ipc as ipc;
 
 use crate::protocol::{
-    identity_mapped_output, initialize_result, no_notifications, testHandler, unexpected_method,
+    TestHandler, identity_mapped_output, initialize_result, no_notifications, unexpected_method,
     unmarshal_params,
 };
 
 // supplemental.go:11
-pub(crate) struct supplementalHandler;
+pub(crate) struct SupplementalHandler;
 
-impl testHandler for supplementalHandler {}
+impl TestHandler for SupplementalHandler {}
 
-impl ipc::Handler for supplementalHandler {
+impl ipc::Handler for SupplementalHandler {
     // supplemental.go:13
     fn handle_request(&self, method: &str, params: Option<&Value>) -> Result<Value, ipc::Error> {
         match method {

@@ -49,7 +49,7 @@ pub fn get_last_token(node: Option<P<Node>>, source_file: P<SourceFile>) -> Opti
 
     let last_child = get_last_child(node, source_file)?;
 
-    if last_child.kind() < Kind::FirstNode {
+    if last_child.kind() < Kind::FIRST_NODE {
         Some(last_child)
     } else {
         get_last_token(Some(last_child), source_file)
@@ -66,7 +66,7 @@ pub fn get_last_visited_child(node: P<Node>, source_file: P<SourceFile>) -> Opti
         let last_child = Rc::clone(&last_child);
         Rc::new(move |n: Option<P<Node>>, _: &mut NodeVisitor| {
             if let Some(nd) = n {
-                if !nd.flags().intersects(NodeFlags::Reparsed) {
+                if !nd.flags().intersects(NodeFlags::REPARSED) {
                     last_child.set(Some(nd));
                 }
             }
@@ -78,7 +78,7 @@ pub fn get_last_visited_child(node: P<Node>, source_file: P<SourceFile>) -> Opti
         Rc::new(move |node_list: Option<P<NodeList>>, _: &mut NodeVisitor| {
             if let Some(list) = node_list {
                 if let Some(v) = list.nodes().iter().rev().into_iter().find_map(|&v| {
-                    if !v.flags().intersects(NodeFlags::Reparsed) { Some(v) } else { None }
+                    if !v.flags().intersects(NodeFlags::REPARSED) { Some(v) } else { None }
                 }) {
                     last_child.set(Some(v));
                 }
@@ -100,7 +100,7 @@ pub fn get_first_token(node: P<Node>, source_file: P<SourceFile>) -> Option<P<No
     let mut first_child: Option<P<Node>> = None;
     node.for_each_child(&mut |n| {
         // Go tests `node.Flags` here (not `n.Flags`); kept as is.
-        if node.flags().intersects(NodeFlags::Reparsed) {
+        if node.flags().intersects(NodeFlags::REPARSED) {
             return false;
         }
         first_child = Some(n);
@@ -133,7 +133,7 @@ pub fn get_first_token(node: P<Node>, source_file: P<SourceFile>) -> Option<P<No
         return first_token;
     }
     let first_child = first_child?;
-    if first_child.kind() < Kind::FirstNode {
+    if first_child.kind() < Kind::FIRST_NODE {
         return Some(first_child);
     }
     get_first_token(first_child, source_file)

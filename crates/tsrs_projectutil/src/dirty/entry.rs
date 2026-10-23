@@ -1,14 +1,14 @@
 use super::interfaces::Shared;
 
 // Go `mapEntry[K, V]`, embedded in `MapEntry` and `SyncMapEntry` (their state lives behind each entry's lock).
-pub(crate) struct mapEntry<T> {
+pub(crate) struct EntryState<T> {
     pub(crate) original: Option<Shared<T>>,
     pub(crate) value: Option<Shared<T>>,
     pub(crate) dirty: bool,
     pub(crate) delete: bool,
 }
 
-impl<T> mapEntry<T> {
+impl<T> EntryState<T> {
     // entry.go:15
     pub(crate) fn original(&self) -> Option<Shared<T>> {
         self.original.clone()

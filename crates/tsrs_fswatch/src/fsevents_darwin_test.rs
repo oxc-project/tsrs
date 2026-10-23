@@ -3,13 +3,13 @@
 use std::sync::Arc;
 
 use super::{
-    flagKernelDropped, flagMustScanSubDirs, flagUserDropped, fsEventsBackend,
-    fseventsMaxRootStreams, new_fs_events_backend,
+    FLAG_KERNEL_DROPPED, FLAG_MUST_SCAN_SUB_DIRS, FLAG_USER_DROPPED, FSEVENTS_MAX_ROOT_STREAMS,
+    FsEventsBackend, new_fs_events_backend,
 };
-use crate::debounce::debounce;
+use crate::debounce::Debounce;
 use crate::fsevents_darwin_ffi::{dispatch_test_event, teardown_stream};
-use crate::pathcompare::pathComparer;
-use crate::watcher::{ErrOverflow, dirWatch, watcherImpl};
+use crate::pathcompare::BytePathComparer;
+use crate::watcher::{DirWatch, ERR_OVERFLOW, WatcherImpl};
 
 fn root_dirs(n: usize) -> (std::path::PathBuf, Vec<String>) {
     let base = std::env::temp_dir().join(format!("tsrs-fswatch-roots-{}-{n}", std::process::id()));
@@ -28,19 +28,19 @@ fn root_dirs(n: usize) -> (std::path::PathBuf, Vec<String>) {
     (base, dirs)
 }
 
-fn stream_counts(backend: &fsEventsBackend) -> (usize, usize, usize) {
+fn stream_counts(backend: &FsEventsBackend) -> (usize, usize, usize) {
     let st = backend.mu.lock().unwrap();
     (st.root_streams.len(), st.shared_roots.len(), st.shared_streams.len())
 }
 
 #[test]
 fn each_root_gets_its_own_stream_up_to_the_limit_and_the_rest_share() {
-    let (base, dirs) = root_dirs(fseventsMaxRootStreams + 3);
-    let db: Arc<debounce> = debounce::new();
-    let watches: Vec<Arc<dirWatch>> = dirs
+    let (base, dirs) = root_dirs(FSEVENTS_MAX_ROOT_STREAMS + 3);
+    let db: Arc<Debounce> = Debounce::new();
+    let watches: Vec<Arc<DirWatch>> = dirs
         .iter()
         .map(|dir| {
-            dirWatch::new(dir.clone(), dir.clone(), &db, pathComparer::default(), None, true)
+            DirWatch::new(dir.clone(), dir.clone(), &db, BytePathComparer::default(), None, true)
         })
         .collect();
     let backend = new_fs_events_backend();
@@ -49,21 +49,27 @@ fn each_root_gets_its_own_stream_up_to_the_limit_and_the_rest_share() {
     assert_eq!(stream_counts(&backend), (2, 0, 0));
 
     backend.subscribe_many(&watches[2..]).unwrap().unwrap();
-    assert_eq!(stream_counts(&backend), (fseventsMaxRootStreams, 3, 1));
+    assert_eq!(stream_counts(&backend), (FSEVENTS_MAX_ROOT_STREAMS, 3, 1));
 
     // A second watch on a root that has its own stream (here non-recursive) joins that stream.
-    let same_root =
-        dirWatch::new(dirs[0].clone(), dirs[0].clone(), &db, pathComparer::default(), None, false);
+    let same_root = DirWatch::new(
+        dirs[0].clone(),
+        dirs[0].clone(),
+        &db,
+        BytePathComparer::default(),
+        None,
+        false,
+    );
     backend.subscribe(&same_root).unwrap();
-    assert_eq!(stream_counts(&backend), (fseventsMaxRootStreams, 3, 1));
+    assert_eq!(stream_counts(&backend), (FSEVENTS_MAX_ROOT_STREAMS, 3, 1));
     backend.close_watch(&watches[0]).unwrap();
-    assert_eq!(stream_counts(&backend), (fseventsMaxRootStreams, 3, 1));
+    assert_eq!(stream_counts(&backend), (FSEVENTS_MAX_ROOT_STREAMS, 3, 1));
     backend.close_watch(&same_root).unwrap();
-    assert_eq!(stream_counts(&backend), (fseventsMaxRootStreams - 1, 3, 1));
+    assert_eq!(stream_counts(&backend), (FSEVENTS_MAX_ROOT_STREAMS - 1, 3, 1));
 
     let last = watches.len() - 1;
     backend.close_watch(&watches[last]).unwrap();
-    assert_eq!(stream_counts(&backend), (fseventsMaxRootStreams - 1, 2, 1));
+    assert_eq!(stream_counts(&backend), (FSEVENTS_MAX_ROOT_STREAMS - 1, 2, 1));
 
     for watch in &watches[1..last] {
         backend.close_watch(watch).unwrap();
@@ -75,13 +81,31 @@ fn each_root_gets_its_own_stream_up_to_the_limit_and_the_rest_share() {
 #[test]
 fn a_drop_under_one_root_does_not_overflow_another() {
     let (base, dirs) = root_dirs(2);
-    let db = debounce::new();
-    let quiet =
-        dirWatch::new(dirs[0].clone(), dirs[0].clone(), &db, pathComparer::default(), None, true);
-    let busy =
-        dirWatch::new(dirs[1].clone(), dirs[1].clone(), &db, pathComparer::default(), None, true);
-    let busy_non_recursive =
-        dirWatch::new(dirs[1].clone(), dirs[1].clone(), &db, pathComparer::default(), None, false);
+    let db = Debounce::new();
+    let quiet = DirWatch::new(
+        dirs[0].clone(),
+        dirs[0].clone(),
+        &db,
+        BytePathComparer::default(),
+        None,
+        true,
+    );
+    let busy = DirWatch::new(
+        dirs[1].clone(),
+        dirs[1].clone(),
+        &db,
+        BytePathComparer::default(),
+        None,
+        true,
+    );
+    let busy_non_recursive = DirWatch::new(
+        dirs[1].clone(),
+        dirs[1].clone(),
+        &db,
+        BytePathComparer::default(),
+        None,
+        false,
+    );
     let watches = [quiet, busy, busy_non_recursive];
     let backend = new_fs_events_backend();
     backend.subscribe_many(&watches).unwrap().unwrap();
@@ -108,8 +132,8 @@ fn a_drop_under_one_root_does_not_overflow_another() {
     // An overflow can name the root or an ancestor. The ancestor case would match the quiet root too if
     // its watch leaked into the busy stream's callback. Both logical watches on the busy root must receive it.
     for path in [dirs[1].as_str(), base.to_str().unwrap()] {
-        for dropped in [flagUserDropped, flagKernelDropped, 0] {
-            dispatch_test_event(&callbacks[1], path, flagMustScanSubDirs | dropped);
+        for dropped in [FLAG_USER_DROPPED, FLAG_KERNEL_DROPPED, 0] {
+            dispatch_test_event(&callbacks[1], path, FLAG_MUST_SCAN_SUB_DIRS | dropped);
             let (events, err) = watches[0].events.drain();
             assert_eq!(events, []);
             assert!(err.is_none(), "the busy root's drop overflowed the quiet root");
@@ -117,7 +141,7 @@ fn a_drop_under_one_root_does_not_overflow_another() {
                 let (events, err) = watch.events.drain();
                 assert_eq!(events, []);
                 assert!(
-                    err.is_some_and(|err| err.is(ErrOverflow)),
+                    err.is_some_and(|err| err.is(ERR_OVERFLOW)),
                     "the busy root missed its overflow"
                 );
             }
@@ -163,9 +187,15 @@ fn write_settling_holds_multi_file_native_batches() {
     for path in &paths {
         std::fs::write(path, "export {};\n").unwrap();
     }
-    let db = debounce::new_without_loop_for_test();
-    let watch =
-        dirWatch::new(dirs[0].clone(), dirs[0].clone(), &db, pathComparer::default(), None, true);
+    let db = Debounce::new_without_loop_for_test();
+    let watch = DirWatch::new(
+        dirs[0].clone(),
+        dirs[0].clone(),
+        &db,
+        BytePathComparer::default(),
+        None,
+        true,
+    );
     let batches = Arc::new(std::sync::Mutex::new(Vec::new()));
     let seen = Arc::clone(&batches);
     watch.add_callback(
@@ -181,12 +211,12 @@ fn write_settling_holds_multi_file_native_batches() {
         None,
         "",
     );
-    let cb = crate::fsevents_darwin_ffi::new_stream_callback(&[super::fseventsWatchSnapshot {
+    let cb = crate::fsevents_darwin_ffi::new_stream_callback(&[super::FseventsWatchSnapshot {
         w: Arc::clone(&watch),
-        state: Arc::new(super::fseventsState::default()),
+        state: Arc::new(super::FseventsState::default()),
     }])
     .unwrap();
-    let flags = super::flagItemCreated | super::flagItemIsFile;
+    let flags = super::FLAG_ITEM_CREATED | super::FLAG_ITEM_IS_FILE;
 
     dispatch_test_event(&cb, &paths[0], flags);
     assert!(

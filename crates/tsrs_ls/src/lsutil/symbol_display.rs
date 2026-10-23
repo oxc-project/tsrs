@@ -87,57 +87,57 @@ bitflags::bitflags! {
     // symbol_display.go:83 (Public is `1 << iota` with iota == 1)
     #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Default)]
     pub struct ScriptElementKindModifier: u32 {
-        const Public = 1 << 1;
-        const Private = 1 << 2;
-        const Protected = 1 << 3;
-        const Exported = 1 << 4;
-        const Ambient = 1 << 5;
-        const Static = 1 << 6;
-        const Abstract = 1 << 7;
-        const Optional = 1 << 8;
-        const Deprecated = 1 << 9;
-        const Dts = 1 << 10;
-        const Ts = 1 << 11;
-        const Tsx = 1 << 12;
-        const Js = 1 << 13;
-        const Jsx = 1 << 14;
-        const Json = 1 << 15;
-        const Dmts = 1 << 16;
-        const Mts = 1 << 17;
-        const Mjs = 1 << 18;
-        const Dcts = 1 << 19;
-        const Cts = 1 << 20;
-        const Cjs = 1 << 21;
+        const PUBLIC = 1 << 1;
+        const PRIVATE = 1 << 2;
+        const PROTECTED = 1 << 3;
+        const EXPORTED = 1 << 4;
+        const AMBIENT = 1 << 5;
+        const STATIC = 1 << 6;
+        const ABSTRACT = 1 << 7;
+        const OPTIONAL = 1 << 8;
+        const DEPRECATED = 1 << 9;
+        const DTS = 1 << 10;
+        const TS = 1 << 11;
+        const TSX = 1 << 12;
+        const JS = 1 << 13;
+        const JSX = 1 << 14;
+        const JSON = 1 << 15;
+        const DMTS = 1 << 16;
+        const MTS = 1 << 17;
+        const MJS = 1 << 18;
+        const DCTS = 1 << 19;
+        const CTS = 1 << 20;
+        const CJS = 1 << 21;
     }
 }
 
 impl ScriptElementKindModifier {
-    pub const None: ScriptElementKindModifier = ScriptElementKindModifier::empty();
+    pub const NONE: ScriptElementKindModifier = ScriptElementKindModifier::empty();
 }
 
 // symbol_display.go:108
 const SCRIPT_ELEMENT_KIND_MODIFIER_NAMES: &[(ScriptElementKindModifier, &str)] = &[
-    (ScriptElementKindModifier::Public, "public"),
-    (ScriptElementKindModifier::Private, "private"),
-    (ScriptElementKindModifier::Protected, "protected"),
-    (ScriptElementKindModifier::Exported, "export"),
-    (ScriptElementKindModifier::Ambient, "declare"),
-    (ScriptElementKindModifier::Static, "static"),
-    (ScriptElementKindModifier::Abstract, "abstract"),
-    (ScriptElementKindModifier::Optional, "optional"),
-    (ScriptElementKindModifier::Deprecated, "deprecated"),
-    (ScriptElementKindModifier::Dts, ".d.ts"),
-    (ScriptElementKindModifier::Ts, ".ts"),
-    (ScriptElementKindModifier::Tsx, ".tsx"),
-    (ScriptElementKindModifier::Js, ".js"),
-    (ScriptElementKindModifier::Jsx, ".jsx"),
-    (ScriptElementKindModifier::Json, ".json"),
-    (ScriptElementKindModifier::Dmts, ".d.mts"),
-    (ScriptElementKindModifier::Mts, ".mts"),
-    (ScriptElementKindModifier::Mjs, ".mjs"),
-    (ScriptElementKindModifier::Dcts, ".d.cts"),
-    (ScriptElementKindModifier::Cts, ".cts"),
-    (ScriptElementKindModifier::Cjs, ".cjs"),
+    (ScriptElementKindModifier::PUBLIC, "public"),
+    (ScriptElementKindModifier::PRIVATE, "private"),
+    (ScriptElementKindModifier::PROTECTED, "protected"),
+    (ScriptElementKindModifier::EXPORTED, "export"),
+    (ScriptElementKindModifier::AMBIENT, "declare"),
+    (ScriptElementKindModifier::STATIC, "static"),
+    (ScriptElementKindModifier::ABSTRACT, "abstract"),
+    (ScriptElementKindModifier::OPTIONAL, "optional"),
+    (ScriptElementKindModifier::DEPRECATED, "deprecated"),
+    (ScriptElementKindModifier::DTS, ".d.ts"),
+    (ScriptElementKindModifier::TS, ".ts"),
+    (ScriptElementKindModifier::TSX, ".tsx"),
+    (ScriptElementKindModifier::JS, ".js"),
+    (ScriptElementKindModifier::JSX, ".jsx"),
+    (ScriptElementKindModifier::JSON, ".json"),
+    (ScriptElementKindModifier::DMTS, ".d.mts"),
+    (ScriptElementKindModifier::MTS, ".mts"),
+    (ScriptElementKindModifier::MJS, ".mjs"),
+    (ScriptElementKindModifier::DCTS, ".d.cts"),
+    (ScriptElementKindModifier::CTS, ".cts"),
+    (ScriptElementKindModifier::CJS, ".cjs"),
 ];
 
 impl ScriptElementKindModifier {
@@ -154,18 +154,18 @@ impl ScriptElementKindModifier {
 }
 
 // symbol_display.go:145
-pub const FILE_EXTENSION_KIND_MODIFIERS: ScriptElementKindModifier = ScriptElementKindModifier::Dts
-    .union(ScriptElementKindModifier::Ts)
-    .union(ScriptElementKindModifier::Tsx)
-    .union(ScriptElementKindModifier::Js)
-    .union(ScriptElementKindModifier::Jsx)
-    .union(ScriptElementKindModifier::Json)
-    .union(ScriptElementKindModifier::Dmts)
-    .union(ScriptElementKindModifier::Mts)
-    .union(ScriptElementKindModifier::Mjs)
-    .union(ScriptElementKindModifier::Dcts)
-    .union(ScriptElementKindModifier::Cts)
-    .union(ScriptElementKindModifier::Cjs);
+pub const FILE_EXTENSION_KIND_MODIFIERS: ScriptElementKindModifier = ScriptElementKindModifier::DTS
+    .union(ScriptElementKindModifier::TS)
+    .union(ScriptElementKindModifier::TSX)
+    .union(ScriptElementKindModifier::JS)
+    .union(ScriptElementKindModifier::JSX)
+    .union(ScriptElementKindModifier::JSON)
+    .union(ScriptElementKindModifier::DMTS)
+    .union(ScriptElementKindModifier::MTS)
+    .union(ScriptElementKindModifier::MJS)
+    .union(ScriptElementKindModifier::DCTS)
+    .union(ScriptElementKindModifier::CTS)
+    .union(ScriptElementKindModifier::CJS);
 
 // symbol_display.go:159
 pub fn get_symbol_kind(
@@ -182,32 +182,32 @@ pub fn get_symbol_kind(
         return result;
     }
     let flags = symbol.combined_local_and_export_symbol_flags();
-    if flags.intersects(SymbolFlags::Class) {
+    if flags.intersects(SymbolFlags::CLASS) {
         let decl = ast::get_declaration_of_kind(symbol, Kind::ClassExpression);
         if decl.is_some() {
             return ScriptElementKind::LocalClassElement;
         }
         return ScriptElementKind::ClassElement;
     }
-    if flags.intersects(SymbolFlags::Enum) {
+    if flags.intersects(SymbolFlags::ENUM) {
         return ScriptElementKind::EnumElement;
     }
-    if flags.intersects(SymbolFlags::TypeAlias) {
+    if flags.intersects(SymbolFlags::TYPE_ALIAS) {
         return ScriptElementKind::TypeElement;
     }
-    if flags.intersects(SymbolFlags::Interface) {
+    if flags.intersects(SymbolFlags::INTERFACE) {
         return ScriptElementKind::InterfaceElement;
     }
-    if flags.intersects(SymbolFlags::TypeParameter) {
+    if flags.intersects(SymbolFlags::TYPE_PARAMETER) {
         return ScriptElementKind::TypeParameterElement;
     }
-    if flags.intersects(SymbolFlags::EnumMember) {
+    if flags.intersects(SymbolFlags::ENUM_MEMBER) {
         return ScriptElementKind::EnumMemberElement;
     }
-    if flags.intersects(SymbolFlags::Alias) {
+    if flags.intersects(SymbolFlags::ALIAS) {
         return ScriptElementKind::Alias;
     }
-    if flags.intersects(SymbolFlags::Module) {
+    if flags.intersects(SymbolFlags::MODULE) {
         return ScriptElementKind::ModuleElement;
     }
 
@@ -227,7 +227,7 @@ fn get_symbol_kind_of_constructor_property_method_accessor_function_or_var(
 
     // If this is a method from a mapped type, leave as a method so long as it still has a call signature, as opposed to e.g.
     // `{ [K in keyof I]: number }`.
-    if roots.len() == 1 && roots[0].flags().intersects(SymbolFlags::Method) {
+    if roots.len() == 1 && roots[0].flags().intersects(SymbolFlags::METHOD) {
         let has_call_signatures = match type_checker.as_deref_mut() {
             None => true,
             Some(c) => {
@@ -256,7 +256,7 @@ fn get_symbol_kind_of_constructor_property_method_accessor_function_or_var(
     }
 
     let flags = symbol.combined_local_and_export_symbol_flags();
-    if flags.intersects(SymbolFlags::Variable) {
+    if flags.intersects(SymbolFlags::VARIABLE) {
         if is_first_declaration_of_symbol_parameter(symbol) {
             return ScriptElementKind::ParameterElement;
         } else if symbol.value_declaration().is_some_and(ast::is_var_const) {
@@ -273,7 +273,7 @@ fn get_symbol_kind_of_constructor_property_method_accessor_function_or_var(
         }
         return ScriptElementKind::VariableElement;
     }
-    if flags.intersects(SymbolFlags::Function) {
+    if flags.intersects(SymbolFlags::FUNCTION) {
         if is_local_variable_or_function(symbol) {
             return ScriptElementKind::LocalFunctionElement;
         }
@@ -281,33 +281,33 @@ fn get_symbol_kind_of_constructor_property_method_accessor_function_or_var(
     }
     // FIXME: getter and setter use the same symbol. And it is rare to use only setter without getter, so in most cases the symbol always has getter flag.
     // So, even when the location is just on the declaration of setter, this function returns getter.
-    if flags.intersects(SymbolFlags::GetAccessor) {
+    if flags.intersects(SymbolFlags::GET_ACCESSOR) {
         return ScriptElementKind::MemberGetAccessorElement;
     }
-    if flags.intersects(SymbolFlags::SetAccessor) {
+    if flags.intersects(SymbolFlags::SET_ACCESSOR) {
         return ScriptElementKind::MemberSetAccessorElement;
     }
-    if flags.intersects(SymbolFlags::Method) {
+    if flags.intersects(SymbolFlags::METHOD) {
         return ScriptElementKind::MemberFunctionElement;
     }
-    if flags.intersects(SymbolFlags::Constructor) {
+    if flags.intersects(SymbolFlags::CONSTRUCTOR) {
         return ScriptElementKind::ConstructorImplementationElement;
     }
-    if flags.intersects(SymbolFlags::Signature) {
+    if flags.intersects(SymbolFlags::SIGNATURE) {
         return ScriptElementKind::IndexSignatureElement;
     }
 
-    if flags.intersects(SymbolFlags::Property) {
+    if flags.intersects(SymbolFlags::PROPERTY) {
         if let Some(c) = type_checker {
-            if flags.intersects(SymbolFlags::Transient)
-                && symbol.check_flags().intersects(CheckFlags::Synthetic)
+            if flags.intersects(SymbolFlags::TRANSIENT)
+                && symbol.check_flags().intersects(CheckFlags::SYNTHETIC)
             {
                 // If union property is result of union of non method (property/accessors/variables), it is labeled as property
                 let mut union_property_kind = ScriptElementKind::Unknown;
                 if roots.iter().any(|root_symbol| {
                     root_symbol
                         .flags()
-                        .intersects(SymbolFlags::PropertyOrAccessor | SymbolFlags::Variable)
+                        .intersects(SymbolFlags::PROPERTY_OR_ACCESSOR | SymbolFlags::VARIABLE)
                 }) {
                     union_property_kind = ScriptElementKind::MemberVariableElement;
                 }
@@ -390,11 +390,11 @@ pub fn get_symbol_modifiers(
     symbol: Option<P<Symbol>>,
 ) -> ScriptElementKindModifier {
     let Some(symbol) = symbol else {
-        return ScriptElementKindModifier::None;
+        return ScriptElementKindModifier::NONE;
     };
 
     let mut modifiers = get_normalized_symbol_modifiers(type_checker.as_deref_mut(), symbol);
-    if symbol.flags().intersects(SymbolFlags::Alias) {
+    if symbol.flags().intersects(SymbolFlags::ALIAS) {
         if let Some(c) = type_checker {
             let resolved_symbol = c.get_aliased_symbol(symbol);
             if resolved_symbol != symbol {
@@ -402,8 +402,8 @@ pub fn get_symbol_modifiers(
             }
         }
     }
-    if symbol.flags().intersects(SymbolFlags::Optional) {
-        modifiers |= ScriptElementKindModifier::Optional;
+    if symbol.flags().intersects(SymbolFlags::OPTIONAL) {
+        modifiers |= ScriptElementKindModifier::OPTIONAL;
     }
 
     modifiers
@@ -414,7 +414,7 @@ fn get_normalized_symbol_modifiers(
     mut type_checker: Option<&mut Checker>,
     symbol: P<Symbol>,
 ) -> ScriptElementKindModifier {
-    let mut modifier_set = ScriptElementKindModifier::None;
+    let mut modifier_set = ScriptElementKindModifier::NONE;
     if !symbol.declarations().is_empty() {
         let declaration = symbol.declarations()[0];
         let declarations = &symbol.declarations()[1..];
@@ -423,9 +423,9 @@ fn get_normalized_symbol_modifiers(
             && is_deprecated_declaration(type_checker.as_deref_mut(), declaration) // !!! include jsdoc node flags
             && declarations.iter().any(|&d| !is_deprecated_declaration(type_checker.as_deref_mut(), d))
         {
-            ModifierFlags::Deprecated
+            ModifierFlags::DEPRECATED
         } else {
-            ModifierFlags::None
+            ModifierFlags::NONE
         };
         modifier_set = get_node_modifiers(type_checker, declaration, exclude_flags);
     }
@@ -447,45 +447,45 @@ fn get_node_modifiers(
     node: P<Node>,
     exclude_flags: ModifierFlags,
 ) -> ScriptElementKindModifier {
-    let mut result = ScriptElementKindModifier::None;
-    let mut flags = ModifierFlags::None;
+    let mut result = ScriptElementKindModifier::NONE;
+    let mut flags = ModifierFlags::NONE;
     if ast::is_declaration(node) {
         flags = ast::get_combined_modifier_flags(node);
         if is_deprecated_declaration(type_checker, node) {
-            flags |= ModifierFlags::Deprecated;
+            flags |= ModifierFlags::DEPRECATED;
         }
         flags &= !exclude_flags;
     }
 
-    if flags.intersects(ModifierFlags::Private) {
-        result |= ScriptElementKindModifier::Private;
+    if flags.intersects(ModifierFlags::PRIVATE) {
+        result |= ScriptElementKindModifier::PRIVATE;
     }
-    if flags.intersects(ModifierFlags::Protected) {
-        result |= ScriptElementKindModifier::Protected;
+    if flags.intersects(ModifierFlags::PROTECTED) {
+        result |= ScriptElementKindModifier::PROTECTED;
     }
-    if flags.intersects(ModifierFlags::Public) {
-        result |= ScriptElementKindModifier::Public;
+    if flags.intersects(ModifierFlags::PUBLIC) {
+        result |= ScriptElementKindModifier::PUBLIC;
     }
-    if flags.intersects(ModifierFlags::Static) {
-        result |= ScriptElementKindModifier::Static;
+    if flags.intersects(ModifierFlags::STATIC) {
+        result |= ScriptElementKindModifier::STATIC;
     }
-    if flags.intersects(ModifierFlags::Abstract) {
-        result |= ScriptElementKindModifier::Abstract;
+    if flags.intersects(ModifierFlags::ABSTRACT) {
+        result |= ScriptElementKindModifier::ABSTRACT;
     }
-    if flags.intersects(ModifierFlags::Export) {
-        result |= ScriptElementKindModifier::Exported;
+    if flags.intersects(ModifierFlags::EXPORT) {
+        result |= ScriptElementKindModifier::EXPORTED;
     }
-    if flags.intersects(ModifierFlags::Deprecated) {
-        result |= ScriptElementKindModifier::Deprecated;
+    if flags.intersects(ModifierFlags::DEPRECATED) {
+        result |= ScriptElementKindModifier::DEPRECATED;
     }
-    if flags.intersects(ModifierFlags::Ambient) {
-        result |= ScriptElementKindModifier::Ambient;
+    if flags.intersects(ModifierFlags::AMBIENT) {
+        result |= ScriptElementKindModifier::AMBIENT;
     }
-    if node.flags().intersects(NodeFlags::Ambient) {
-        result |= ScriptElementKindModifier::Ambient;
+    if node.flags().intersects(NodeFlags::AMBIENT) {
+        result |= ScriptElementKindModifier::AMBIENT;
     }
     if node.kind() == Kind::ExportAssignment {
-        result |= ScriptElementKindModifier::Exported;
+        result |= ScriptElementKindModifier::EXPORTED;
     }
 
     result

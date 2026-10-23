@@ -6,26 +6,26 @@ use std::time::SystemTime;
 use super::logcollector::LogCollector;
 use super::logger::{Logger, format_time};
 
-struct logEntry {
+struct LogEntry {
     time: SystemTime,
     message: String,
     child: LogTree,
 }
 
 // logtree.go:20
-fn new_log_entry(child: LogTree, message: String) -> logEntry {
-    logEntry { time: SystemTime::now(), message, child }
+fn new_log_entry(child: LogTree, message: String) -> LogEntry {
+    LogEntry { time: SystemTime::now(), message, child }
 }
 
 // Go `*LogTree`; the default value is the nil tree, on which every method is a no-op (Go's nil receiver checks).
 #[derive(Clone, Default)]
-pub struct LogTree(Option<Arc<logTreeNode>>);
+pub struct LogTree(Option<Arc<LogTreeNode>>);
 
-struct logTreeNode {
+struct LogTreeNode {
     name: String,
-    logs: Mutex<Vec<logEntry>>,
+    logs: Mutex<Vec<LogEntry>>,
     // None on the root itself (Go: `root == self`).
-    root: Option<Weak<logTreeNode>>,
+    root: Option<Weak<LogTreeNode>>,
     level: usize,
     verbose: AtomicBool,
 
@@ -36,7 +36,7 @@ struct logTreeNode {
 
 // logtree.go:44
 pub fn new_log_tree(name: &str) -> LogTree {
-    LogTree(Some(Arc::new(logTreeNode {
+    LogTree(Some(Arc::new(LogTreeNode {
         name: name.to_string(),
         logs: Mutex::new(Vec::new()),
         root: None,
@@ -47,8 +47,8 @@ pub fn new_log_tree(name: &str) -> LogTree {
     })))
 }
 
-impl logTreeNode {
-    fn with_root<R>(self: &Arc<Self>, f: impl FnOnce(&logTreeNode) -> R) -> R {
+impl LogTreeNode {
+    fn with_root<R>(self: &Arc<Self>, f: impl FnOnce(&LogTreeNode) -> R) -> R {
         match &self.root {
             None => f(self),
             Some(root) => match root.upgrade() {
@@ -59,7 +59,7 @@ impl logTreeNode {
     }
 
     // logtree.go:52
-    fn add(self: &Arc<Self>, log: logEntry) {
+    fn add(self: &Arc<Self>, log: LogEntry) {
         // indent + header + message + newline
         let len = self.level + 15 + log.message.len() + 1;
         self.with_root(|root| {
@@ -160,7 +160,7 @@ impl LogTree {
             None => Arc::downgrade(c),
             Some(root) => Weak::clone(root),
         };
-        let child = LogTree(Some(Arc::new(logTreeNode {
+        let child = LogTree(Some(Arc::new(LogTreeNode {
             name: String::new(),
             logs: Mutex::new(Vec::new()),
             root: Some(root),

@@ -214,7 +214,7 @@ fn test_marshal_unmarshal_round_trip() {
             string: Some("param".to_string()),
             ..Default::default()
         },
-        kind: Some(InlayHintKind::Parameter),
+        kind: Some(InlayHintKind::PARAMETER),
         ..Default::default()
     });
     round_trip(&InlayHint {
@@ -227,7 +227,7 @@ fn test_marshal_unmarshal_round_trip() {
         start_character: Some(0),
         end_line: 10,
         end_character: Some(5),
-        kind: Some(FoldingRangeKind::Region),
+        kind: Some(FoldingRangeKind::REGION),
         collapsed_text: Some("...".to_string()),
     });
     round_trip(&Location {
@@ -565,7 +565,7 @@ fn test_unmarshal_field_ordering() {
 		}"#,
     )
     .unwrap();
-    assert_eq!(hint.kind, Some(InlayHintKind::Type));
+    assert_eq!(hint.kind, Some(InlayHintKind::TYPE));
 }
 
 // lsp_json_test.go:838
@@ -613,12 +613,12 @@ fn test_literal_types() {
 // lsp_json_test.go:936
 #[test]
 fn test_enum_string_values() {
-    assert_eq!(InlayHintKind::Type.string(), "Type");
-    assert_eq!(InlayHintKind::Parameter.string(), "Parameter");
+    assert_eq!(InlayHintKind::TYPE.string(), "Type");
+    assert_eq!(InlayHintKind::PARAMETER.string(), "Parameter");
 
-    assert_eq!(SymbolKind::File.string(), "File");
-    assert_eq!(SymbolKind::Function.string(), "Function");
-    assert_eq!(SymbolKind::Variable.string(), "Variable");
+    assert_eq!(SymbolKind::FILE.string(), "File");
+    assert_eq!(SymbolKind::FUNCTION.string(), "Function");
+    assert_eq!(SymbolKind::VARIABLE.string(), "Variable");
 
     let s = InlayHintKind(999).string();
     assert!(s.contains("999"), "should contain the numeric value, got: {s}");
@@ -647,16 +647,16 @@ fn test_round_trip() {
         },
         new_text: "hello".to_string(),
     });
-    round_trip_marshal(&MarkupContent { kind: MarkupKind::Markdown, value: "**x**".to_string() });
+    round_trip_marshal(&MarkupContent { kind: MarkupKind::MARKDOWN, value: "**x**".to_string() });
     round_trip_marshal(&DidChangeConfigurationParams {
         settings: tsrs_core::json::unmarshal(r#"{"js/ts":{"x":1}}"#).unwrap(),
     });
     round_trip_marshal(&DidChangeConfigurationParams { settings: Value::Null });
     round_trip_marshal(&CompletionItem {
         label: "pageXOffset".to_string(),
-        kind: Some(CompletionItemKind::Field),
+        kind: Some(CompletionItemKind::FIELD),
         sort_text: Some("15".to_string()),
-        insert_text_format: Some(InsertTextFormat::PlainText),
+        insert_text_format: Some(InsertTextFormat::PLAIN_TEXT),
         ..Default::default()
     });
     // StringOrTuple union (string arm and tuple arm).
@@ -715,7 +715,7 @@ fn test_unmarshal_params_requires_params() {
     for (name, raw, want_err) in no_params_tests {
         let result = params(raw).unmarshal_params::<NoParams>();
         if want_err {
-            assert!(result.unwrap_err().is_code(ErrorCode::InvalidParams), "NoParams/{name}");
+            assert!(result.unwrap_err().is_code(ErrorCode::INVALID_PARAMS), "NoParams/{name}");
         } else {
             result.unwrap();
         }
@@ -733,7 +733,7 @@ fn test_unmarshal_params_requires_params() {
     for (name, raw, want_err) in typed_tests {
         let result = params(raw).unmarshal_params::<DidChangeConfigurationParams>();
         if want_err {
-            assert!(result.unwrap_err().is_code(ErrorCode::InvalidParams), "typed/{name}");
+            assert!(result.unwrap_err().is_code(ErrorCode::INVALID_PARAMS), "typed/{name}");
         } else {
             assert!(!matches!(result.unwrap().settings, Value::Null), "typed/{name}");
         }

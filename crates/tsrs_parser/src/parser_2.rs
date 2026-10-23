@@ -50,7 +50,7 @@ impl Parser {
             identifier_name = name;
         } else {
             let loc = self.skip_range_trivia(name.loc());
-            self.parse_error_at_range(loc, &diagnostics::Identifier_expected, &[]);
+            self.parse_error_at_range(loc, &diagnostics::IDENTIFIER_EXPECTED, &[]);
             identifier_name = self.new_identifier("");
             self.finish_node(
                 identifier_name,
@@ -133,7 +133,7 @@ impl Parser {
 
         if !name_ok {
             let loc = self.skip_range_trivia(name.loc());
-            self.parse_error_at_range(loc, &diagnostics::Identifier_expected, &[]);
+            self.parse_error_at_range(loc, &diagnostics::IDENTIFIER_EXPECTED, &[]);
         }
 
         (is_type_only, property_name, name)
@@ -161,7 +161,7 @@ impl Parser {
         {
             if self.token == Kind::AssertKeyword {
                 self.parse_error_at_current_token(
-                    &diagnostics::Import_assertions_have_been_replaced_by_import_attributes_Use_with_instead_of_assert,
+                    &diagnostics::IMPORT_ASSERTIONS_HAVE_BEEN_REPLACED_BY_IMPORT_ATTRIBUTES_USE_WITH_INSTEAD_OF_ASSERT,
                     &[],
                 );
             }
@@ -178,7 +178,7 @@ impl Parser {
     ) -> P<Node> {
         let save_context_flags = self.context_flags;
         let save_has_await_identifier = self.statement_has_await_identifier;
-        self.set_context_flags(NodeFlags::AwaitContext, true);
+        self.set_context_flags(NodeFlags::AWAIT_CONTEXT, true);
         let mut is_export_equals = false;
         if self.parse_optional(Kind::EqualsToken) {
             is_export_equals = true;
@@ -228,7 +228,7 @@ impl Parser {
     ) -> P<Node> {
         let save_context_flags = self.context_flags;
         let save_has_await_identifier = self.statement_has_await_identifier;
-        self.set_context_flags(NodeFlags::AwaitContext, true);
+        self.set_context_flags(NodeFlags::AWAIT_CONTEXT, true);
         let mut export_clause: Option<P<Node>> = None;
         let mut module_specifier: Option<P<Node>> = None;
         let mut attributes: Option<P<Node>> = None;
@@ -258,7 +258,7 @@ impl Parser {
         {
             if self.token == Kind::AssertKeyword {
                 self.parse_error_at_current_token(
-                    &diagnostics::Import_assertions_have_been_replaced_by_import_attributes_Use_with_instead_of_assert,
+                    &diagnostics::IMPORT_ASSERTIONS_HAVE_BEEN_REPLACED_BY_IMPORT_ATTRIBUTES_USE_WITH_INSTEAD_OF_ASSERT,
                     &[],
                 );
             }
@@ -320,7 +320,7 @@ impl Parser {
 
     pub(crate) fn parse_type(&mut self) -> P<Node> {
         let save_context_flags = self.context_flags;
-        self.set_context_flags(NodeFlags::TypeExcludesFlags, false);
+        self.set_context_flags(NodeFlags::TYPE_EXCLUDES_FLAGS, false);
         let mut type_node;
         if self.is_start_of_function_type_or_constructor_type() {
             type_node = self.parse_function_or_constructor_type();
@@ -333,19 +333,19 @@ impl Parser {
             {
                 // The type following 'extends' is not permitted to be another conditional type
                 let extends_type = self.do_in_context(
-                    NodeFlags::DisallowConditionalTypesContext,
+                    NodeFlags::DISALLOW_CONDITIONAL_TYPES_CONTEXT,
                     true,
                     Parser::parse_type,
                 );
                 self.parse_expected(Kind::QuestionToken);
                 let true_type = self.do_in_context(
-                    NodeFlags::DisallowConditionalTypesContext,
+                    NodeFlags::DISALLOW_CONDITIONAL_TYPES_CONTEXT,
                     false,
                     Parser::parse_type,
                 );
                 self.parse_expected(Kind::ColonToken);
                 let false_type = self.do_in_context(
-                    NodeFlags::DisallowConditionalTypesContext,
+                    NodeFlags::DISALLOW_CONDITIONAL_TYPES_CONTEXT,
                     false,
                     Parser::parse_type,
                 );
@@ -435,7 +435,7 @@ impl Parser {
             _ => {}
         }
         self.do_in_context(
-            NodeFlags::DisallowConditionalTypesContext,
+            NodeFlags::DISALLOW_CONDITIONAL_TYPES_CONTEXT,
             false,
             Parser::parse_postfix_type_or_higher,
         )
@@ -473,7 +473,7 @@ impl Parser {
         let state = self.mark();
         if self.parse_optional(Kind::ExtendsKeyword) {
             let constraint = self.do_in_context(
-                NodeFlags::DisallowConditionalTypesContext,
+                NodeFlags::DISALLOW_CONDITIONAL_TYPES_CONTEXT,
                 true,
                 Parser::parse_type,
             );
@@ -710,7 +710,7 @@ impl Parser {
         self.parse_entity_name(
             true,  /*allowReservedWords*/
             false, /*allowPrivateName*/
-            Some(&diagnostics::Type_expected),
+            Some(&diagnostics::TYPE_EXPECTED),
         )
     }
 
@@ -777,7 +777,7 @@ impl Parser {
             // and not on the next token.  This is because the next token might actually
             // be an identifier and the error would be quite confusing.
             let pos = self.node_pos();
-            self.parse_error_at(pos, pos, &diagnostics::Identifier_expected, &[]);
+            self.parse_error_at(pos, pos, &diagnostics::IDENTIFIER_EXPECTED, &[]);
             return self.create_missing_identifier();
         }
         if self.token == Kind::PrivateIdentifier {
@@ -786,7 +786,7 @@ impl Parser {
                 return node;
             }
             let pos = self.node_pos();
-            self.parse_error_at(pos, pos, &diagnostics::Identifier_expected, &[]);
+            self.parse_error_at(pos, pos, &diagnostics::IDENTIFIER_EXPECTED, &[]);
             return self.create_missing_identifier();
         }
         if allow_identifier_names {
@@ -885,7 +885,7 @@ impl Parser {
     }
 
     pub(crate) fn parse_import_type(&mut self) -> P<Node> {
-        self.source_flags |= NodeFlags::PossiblyContainsDynamicImport;
+        self.source_flags |= NodeFlags::POSSIBLY_CONTAINS_DYNAMIC_IMPORT;
         let pos = self.node_pos();
         let is_type_of = self.parse_optional(Kind::TypeOfKeyword);
         self.parse_expected(Kind::ImportKeyword);
@@ -899,14 +899,14 @@ impl Parser {
             if current_token == Kind::WithKeyword || current_token == Kind::AssertKeyword {
                 if current_token == Kind::AssertKeyword {
                     self.parse_error_at_current_token(
-                        &diagnostics::Import_assertions_have_been_replaced_by_import_attributes_Use_with_instead_of_assert,
+                        &diagnostics::IMPORT_ASSERTIONS_HAVE_BEEN_REPLACED_BY_IMPORT_ATTRIBUTES_USE_WITH_INSTEAD_OF_ASSERT,
                         &[],
                     );
                 }
                 self.next_token();
             } else {
                 self.parse_error_at_current_token(
-                    &diagnostics::X_0_expected,
+                    &diagnostics::X_0_EXPECTED,
                     &[&scanner::token_to_string(Kind::WithKeyword)],
                 );
             }
@@ -915,11 +915,11 @@ impl Parser {
             self.parse_optional(Kind::CommaToken);
             if !self.parse_expected(Kind::CloseBraceToken) {
                 if let Some(&last_diagnostic) = self.diagnostics.last() {
-                    if last_diagnostic.code() == diagnostics::X_0_expected.code() {
+                    if last_diagnostic.code() == diagnostics::X_0_EXPECTED.code() {
                         let related = ast::new_diagnostic(
                             None,
                             TextRange::new(open_brace_position, open_brace_position),
-                            &diagnostics::The_parser_expected_to_find_a_1_to_match_the_0_token_here,
+                            &diagnostics::THE_PARSER_EXPECTED_TO_FIND_A_1_TO_MATCH_THE_0_TOKEN_HERE,
                             &[&"{", &"}"],
                         );
                         last_diagnostic.add_related_info(related);
@@ -955,7 +955,7 @@ impl Parser {
             self.parse_expected(Kind::ColonToken);
         } else {
             self.parse_error_at_current_token(
-                &diagnostics::Identifier_or_string_literal_expected,
+                &diagnostics::IDENTIFIER_OR_STRING_LITERAL_EXPECTED,
                 &[],
             );
         }
@@ -980,11 +980,11 @@ impl Parser {
             );
             if !self.parse_expected(Kind::CloseBraceToken) {
                 if let Some(&last_diagnostic) = self.diagnostics.last() {
-                    if last_diagnostic.code() == diagnostics::X_0_expected.code() {
+                    if last_diagnostic.code() == diagnostics::X_0_EXPECTED.code() {
                         let related = ast::new_diagnostic(
                             None,
                             TextRange::new(open_brace_position, open_brace_position),
-                            &diagnostics::The_parser_expected_to_find_a_1_to_match_the_0_token_here,
+                            &diagnostics::THE_PARSER_EXPECTED_TO_FIND_A_1_TO_MATCH_THE_0_TOKEN_HERE,
                             &[&"{", &"}"],
                         );
                         last_diagnostic.add_related_info(related);
@@ -1108,7 +1108,7 @@ impl Parser {
                 jsdoc,
                 modifiers,
                 Kind::GetAccessor,
-                ParseFlags::Type,
+                ParseFlags::TYPE,
             );
         }
         if self.parse_contextual_modifier(Kind::SetKeyword) {
@@ -1117,7 +1117,7 @@ impl Parser {
                 jsdoc,
                 modifiers,
                 Kind::SetAccessor,
-                ParseFlags::Type,
+                ParseFlags::TYPE,
             );
         }
         if self.is_index_signature() {
@@ -1138,7 +1138,7 @@ impl Parser {
             self.parse_expected(Kind::NewKeyword);
         }
         let type_parameters = self.parse_type_parameters();
-        let parameters = self.parse_parameters(ParseFlags::Type);
+        let parameters = self.parse_parameters(ParseFlags::TYPE);
         let type_node = self.parse_return_type(Kind::ColonToken, true /*isType*/);
         self.parse_type_member_semicolon();
 
@@ -1256,15 +1256,15 @@ impl Parser {
         //
         // SingleNameBinding [Yield,Await]:
         //      BindingIdentifier[?Yield,?Await]Initializer [In, ?Yield,?Await] opt
-        let in_await_context = self.context_flags.intersects(NodeFlags::AwaitContext);
+        let in_await_context = self.context_flags.intersects(NodeFlags::AWAIT_CONTEXT);
         let save_context_flags = self.context_flags;
-        self.set_context_flags(NodeFlags::YieldContext, flags.intersects(ParseFlags::Yield));
-        self.set_context_flags(NodeFlags::AwaitContext, flags.intersects(ParseFlags::Await));
+        self.set_context_flags(NodeFlags::YIELD_CONTEXT, flags.intersects(ParseFlags::YIELD));
+        self.set_context_flags(NodeFlags::AWAIT_CONTEXT, flags.intersects(ParseFlags::AWAIT));
         let parameters =
             self.parse_delimited_list(ParsingContext::Parameters, move |p: &mut Parser| {
                 let parameter = p.parse_parameter_ex(in_await_context, allow_ambiguity);
                 if let Some(parameter) = parameter {
-                    if !flags.intersects(ParseFlags::Type) {
+                    if !flags.intersects(ParseFlags::TYPE) {
                         p.check_js_syntax(parameter);
                     }
                 }
@@ -1289,7 +1289,7 @@ impl Parser {
         //      BindingElement[?Yield,?Await]
         // Decorators are parsed in the outer [Await] context, the rest of the parameter is parsed in the function's [Await] context.
         let save_context_flags = self.context_flags;
-        self.set_context_flags(NodeFlags::AwaitContext, in_outer_await_context);
+        self.set_context_flags(NodeFlags::AWAIT_CONTEXT, in_outer_await_context);
         let modifiers = self.parse_modifiers_ex(
             true,  /*allowDecorators*/
             false, /*permitConstAsModifier*/
@@ -1310,7 +1310,7 @@ impl Parser {
             if let Some(modifiers) = modifiers {
                 self.parse_error_at_range(
                     modifiers.nodes()[0].loc(),
-                    &diagnostics::Neither_decorators_nor_modifiers_may_be_applied_to_this_parameters,
+                    &diagnostics::NEITHER_DECORATORS_NOR_MODIFIERS_MAY_BE_APPLIED_TO_THIS_PARAMETERS,
                     &[],
                 );
             }
@@ -1355,7 +1355,7 @@ impl Parser {
         // FormalParameter [Yield,Await]:
         //      BindingElement[?Yield,?Await]
         let name = self.parse_identifier_or_pattern_with_diagnostic(Some(
-            &diagnostics::Private_identifiers_cannot_be_used_as_parameters,
+            &diagnostics::PRIVATE_IDENTIFIERS_CANNOT_BE_USED_AS_PARAMETERS,
         ));
         if name.loc().len() == Some(0) && modifiers.is_none() && ast::is_modifier_kind(self.token) {
             // in cases like
@@ -1378,7 +1378,7 @@ impl Parser {
     ) -> Option<P<Node>> {
         if self.should_parse_return_type(return_token, is_type) {
             return Some(self.do_in_context(
-                NodeFlags::DisallowConditionalTypesContext,
+                NodeFlags::DISALLOW_CONDITIONAL_TYPES_CONTEXT,
                 false,
                 Parser::parse_type_or_type_predicate,
             ));
@@ -1395,7 +1395,7 @@ impl Parser {
         } else if is_type && self.token == Kind::EqualsGreaterThanToken {
             // This is easy to get backward, especially in type contexts, so parse the type anyway
             self.parse_error_at_current_token(
-                &diagnostics::X_0_expected,
+                &diagnostics::X_0_EXPECTED,
                 &[&scanner::token_to_string(Kind::ColonToken)],
             );
             self.next_token();
@@ -1444,7 +1444,7 @@ impl Parser {
     ) -> P<Node> {
         let name = self.parse_property_name();
         let type_parameters = self.parse_type_parameters();
-        let parameters = self.parse_parameters(ParseFlags::None);
+        let parameters = self.parse_parameters(ParseFlags::NONE);
         let return_type = self.parse_return_type(Kind::ColonToken, false /*isType*/);
         let body = self.parse_function_block_or_semicolon(flags, None /*diagnosticMessage*/);
 
@@ -1472,7 +1472,7 @@ impl Parser {
         };
         let result = self.finish_node(result, pos);
         self.with_jsdoc(result, jsdoc);
-        if !flags.intersects(ParseFlags::Type) {
+        if !flags.intersects(ParseFlags::TYPE) {
             self.check_js_syntax(result);
         }
         result
@@ -1525,7 +1525,7 @@ impl Parser {
         diagnostic_message: Option<&'static Message>,
     ) -> Option<P<Node>> {
         if self.token != Kind::OpenBraceToken {
-            if flags.intersects(ParseFlags::Type) {
+            if flags.intersects(ParseFlags::TYPE) {
                 self.parse_type_member_semicolon();
                 return None;
             }
@@ -1544,13 +1544,15 @@ impl Parser {
     ) -> P<Node> {
         let save_context_flags = self.context_flags;
         let save_has_await_identifier = self.statement_has_await_identifier;
-        self.set_context_flags(NodeFlags::YieldContext, flags.intersects(ParseFlags::Yield));
-        self.set_context_flags(NodeFlags::AwaitContext, flags.intersects(ParseFlags::Await));
+        self.set_context_flags(NodeFlags::YIELD_CONTEXT, flags.intersects(ParseFlags::YIELD));
+        self.set_context_flags(NodeFlags::AWAIT_CONTEXT, flags.intersects(ParseFlags::AWAIT));
         // We may be in a [Decorator] context when parsing a function expression or
         // arrow function. The body of the function is not in [Decorator] context.
-        self.set_context_flags(NodeFlags::DecoratorContext, false);
-        let block = self
-            .parse_block(flags.intersects(ParseFlags::IgnoreMissingOpenBrace), diagnostic_message);
+        self.set_context_flags(NodeFlags::DECORATOR_CONTEXT, false);
+        let block = self.parse_block(
+            flags.intersects(ParseFlags::IGNORE_MISSING_OPEN_BRACE),
+            diagnostic_message,
+        );
         self.context_flags = save_context_flags;
         self.statement_has_await_identifier = save_has_await_identifier;
         block
@@ -1648,7 +1650,7 @@ impl Parser {
             // Method signatures don't exist in expression contexts.  So they have neither
             // [Yield] nor [Await]
             let type_parameters = self.parse_type_parameters();
-            let parameters = self.parse_parameters(ParseFlags::Type);
+            let parameters = self.parse_parameters(ParseFlags::TYPE);
             let return_type = self.parse_return_type(Kind::ColonToken, true /*isType*/);
             self.factory.new_method_signature_declaration(
                 modifiers,
@@ -1805,7 +1807,7 @@ impl Parser {
     }
 
     pub(crate) fn parse_template_head(&mut self, is_tagged_template: bool) -> P<Node> {
-        if !is_tagged_template && self.scanner.token_flags().intersects(TokenFlags::IsInvalid) {
+        if !is_tagged_template && self.scanner.token_flags().intersects(TokenFlags::IS_INVALID) {
             self.re_scan_template_token(false /*isTaggedTemplate*/);
         }
         let pos = self.node_pos();
@@ -1819,7 +1821,7 @@ impl Parser {
     pub(crate) fn get_template_literal_raw_text(&self, end_length: usize) -> &'static str {
         let mut end_length = end_length;
         let token_text = self.scanner.token_text();
-        if self.scanner.token_flags().intersects(TokenFlags::Unterminated) {
+        if self.scanner.token_flags().intersects(TokenFlags::UNTERMINATED) {
             end_length = 0;
         }
         &token_text[1..token_text.len() - end_length]
@@ -1853,10 +1855,10 @@ impl Parser {
             return self.parse_template_middle_or_tail();
         }
         self.parse_error_at_current_token(
-            &diagnostics::X_0_expected,
+            &diagnostics::X_0_EXPECTED,
             &[&scanner::token_to_string(Kind::CloseBraceToken)],
         );
-        let node = self.factory.new_template_tail("", "", TokenFlags::None);
+        let node = self.factory.new_template_tail("", "", TokenFlags::NONE);
         let pos = self.node_pos();
         self.finish_node(node, pos)
     }
@@ -1890,15 +1892,15 @@ impl Parser {
 
             let diagnostic: &'static Message = if type_node.kind() == Kind::FunctionType {
                 if is_in_union_type {
-                    &diagnostics::Function_type_notation_must_be_parenthesized_when_used_in_a_union_type
+                    &diagnostics::FUNCTION_TYPE_NOTATION_MUST_BE_PARENTHESIZED_WHEN_USED_IN_A_UNION_TYPE
                 } else {
-                    &diagnostics::Function_type_notation_must_be_parenthesized_when_used_in_an_intersection_type
+                    &diagnostics::FUNCTION_TYPE_NOTATION_MUST_BE_PARENTHESIZED_WHEN_USED_IN_AN_INTERSECTION_TYPE
                 }
             } else {
                 if is_in_union_type {
-                    &diagnostics::Constructor_type_notation_must_be_parenthesized_when_used_in_a_union_type
+                    &diagnostics::CONSTRUCTOR_TYPE_NOTATION_MUST_BE_PARENTHESIZED_WHEN_USED_IN_A_UNION_TYPE
                 } else {
-                    &diagnostics::Constructor_type_notation_must_be_parenthesized_when_used_in_an_intersection_type
+                    &diagnostics::CONSTRUCTOR_TYPE_NOTATION_MUST_BE_PARENTHESIZED_WHEN_USED_IN_AN_INTERSECTION_TYPE
                 }
             };
             self.parse_error_at_range(type_node.loc(), diagnostic, &[]);
@@ -1926,7 +1928,7 @@ impl Parser {
             "Per isStartOfFunctionOrConstructorType, a function type cannot have modifiers."
         );
         let type_parameters = self.parse_type_parameters();
-        let parameters = self.parse_parameters(ParseFlags::Type);
+        let parameters = self.parse_parameters(ParseFlags::TYPE);
         let return_type =
             self.parse_return_type(Kind::EqualsGreaterThanToken, false /*isType*/);
 
@@ -2088,7 +2090,7 @@ impl Parser {
         let pos = self.node_pos();
         self.parse_expected(Kind::AtToken);
         let expression = self.do_in_context(
-            NodeFlags::DecoratorContext,
+            NodeFlags::DECORATOR_CONTEXT,
             true,
             Parser::parse_decorator_expression,
         );
@@ -2102,7 +2104,7 @@ impl Parser {
             // This simply parses the missing identifier and moves on.
             let pos = self.node_pos();
             let await_expression = self
-                .parse_identifier_with_diagnostic(Some(&diagnostics::Expression_expected), None);
+                .parse_identifier_with_diagnostic(Some(&diagnostics::EXPRESSION_EXPECTED), None);
             self.next_token();
             let member_expression = self.parse_member_expression_rest(
                 pos,
@@ -2289,7 +2291,7 @@ impl Parser {
 
         // clear the decorator context when parsing Expression, as it should be unambiguous when parsing a decorator
         let save_context_flags = self.context_flags;
-        self.context_flags &= !NodeFlags::DecoratorContext;
+        self.context_flags &= !NodeFlags::DECORATOR_CONTEXT;
         let pos = self.node_pos();
         let mut expr = self.parse_assignment_expression_or_higher();
         while let Some(operator_token) = self.parse_optional_token(Kind::CommaToken) {
@@ -2301,6 +2303,6 @@ impl Parser {
     }
 
     pub(crate) fn parse_expression_allow_in(&mut self) -> P<Node> {
-        self.do_in_context(NodeFlags::DisallowInContext, false, Parser::parse_expression)
+        self.do_in_context(NodeFlags::DISALLOW_IN_CONTEXT, false, Parser::parse_expression)
     }
 }

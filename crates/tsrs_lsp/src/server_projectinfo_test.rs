@@ -3,13 +3,13 @@ use std::sync::Arc;
 use tsrs_lsproto as lsproto;
 
 use crate::lsptestutil::{
-    LSPClient, acknowledge_registrations, closeClient, new_lsp_client, test_server_options,
+    CloseClient, LSPClient, acknowledge_registrations, new_lsp_client, test_server_options,
 };
 
 // server_projectinfo_test.go:16
 fn expected_code_action_kinds() -> Vec<lsproto::CodeActionKind> {
     vec![
-        lsproto::CodeActionKind::QuickFix,
+        lsproto::CodeActionKind::QUICK_FIX,
         lsproto::CodeActionKind("source.organizeImports.ts"),
         lsproto::CodeActionKind("source.removeUnusedImports.ts"),
         lsproto::CodeActionKind("source.sortImports.ts"),
@@ -18,7 +18,7 @@ fn expected_code_action_kinds() -> Vec<lsproto::CodeActionKind> {
 }
 
 // server_projectinfo_test.go:26
-fn init_project_info_client(files: &[(&str, &str)]) -> (Arc<LSPClient>, closeClient) {
+fn init_project_info_client(files: &[(&str, &str)]) -> (Arc<LSPClient>, CloseClient) {
     let (client, close_client) = new_lsp_client(
         test_server_options("/home/projects", files),
         Some(acknowledge_registrations()),
@@ -65,7 +65,7 @@ fn project_info_config_file_path(files: &[(&str, &str)]) -> String {
         lsproto::DidOpenTextDocumentParams {
             text_document: lsproto::TextDocumentItem {
                 uri: uri.clone(),
-                language_id: lsproto::LanguageKind::TypeScript,
+                language_id: lsproto::LanguageKind::TYPE_SCRIPT,
                 text: "export const x = 1;".to_string(),
                 ..Default::default()
             },

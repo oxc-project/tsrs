@@ -672,15 +672,15 @@ mod tests {
     fn compact_mapper_kinds_and_payloads_survive_arena_growth() {
         assert_eq!(std::mem::size_of::<TypeMapper>(), 16);
         let source = Type::alloc(
-            TypeFlags::TypeParameter,
-            ObjectFlags::None,
+            TypeFlags::TYPE_PARAMETER,
+            ObjectFlags::NONE,
             TypeId(1),
             TypeParameter::default(),
         );
         let target =
-            Type::alloc(TypeFlags::Any, ObjectFlags::None, TypeId(2), IntrinsicType::default());
+            Type::alloc(TypeFlags::ANY, ObjectFlags::NONE, TypeId(2), IntrinsicType::default());
         let other =
-            Type::alloc(TypeFlags::Any, ObjectFlags::None, TypeId(3), IntrinsicType::default());
+            Type::alloc(TypeFlags::ANY, ObjectFlags::NONE, TypeId(3), IntrinsicType::default());
         source.as_type_parameter().is_this_type.set(true);
 
         let simple = new_simple_type_mapper(source, target);
@@ -711,7 +711,7 @@ mod tests {
 
         for i in 4..1028 {
             let t =
-                Type::alloc(TypeFlags::Any, ObjectFlags::None, TypeId(i), IntrinsicType::default());
+                Type::alloc(TypeFlags::ANY, ObjectFlags::NONE, TypeId(i), IntrinsicType::default());
             new_simple_type_mapper(t, other);
         }
         assert!(
@@ -736,8 +736,8 @@ mod tests {
     #[test]
     fn inference_mappers_keep_identity_and_context_alive() {
         let parameter = Type::alloc(
-            TypeFlags::TypeParameter,
-            ObjectFlags::None,
+            TypeFlags::TYPE_PARAMETER,
+            ObjectFlags::NONE,
             TypeId(1),
             TypeParameter::default(),
         );
@@ -745,8 +745,8 @@ mod tests {
         let context = Checker::new_inference_context_worker(
             &[info],
             None,
-            InferenceFlags::None,
-            &|_, _, _, _| Ternary::True,
+            InferenceFlags::NONE,
+            &|_, _, _, _| Ternary::TRUE,
         );
         if tsrs_core::lazymembers::lazy_inference_mappers() {
             assert_eq!(context.own_mappers(), [None, None]);
@@ -763,7 +763,7 @@ mod tests {
             matches!(non_fixing.data(), TypeMapperData::Inference { n, fixing: false } if n == context)
         );
 
-        let clone = Checker::clone_inference_context(Some(context), InferenceFlags::None).unwrap();
+        let clone = Checker::clone_inference_context(Some(context), InferenceFlags::NONE).unwrap();
         assert_ne!(clone.inferences.get()[0], info);
         assert_eq!(clone.inferences.get()[0].type_parameter.get(), Some(parameter));
         assert_ne!(clone.mapper().unwrap(), fixing);
@@ -776,8 +776,8 @@ mod tests {
             let disposable = Checker::new_inference_context_worker(
                 &[new_inference_info(parameter)],
                 None,
-                InferenceFlags::None,
-                &|_, _, _, _| Ternary::True,
+                InferenceFlags::NONE,
+                &|_, _, _, _| Ternary::TRUE,
             );
             InferenceContext::recycle(disposable);
         }

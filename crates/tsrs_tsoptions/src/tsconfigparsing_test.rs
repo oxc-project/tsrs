@@ -1254,7 +1254,7 @@ fn test_parse_json_config_file_content_handles_null_array_elements() {
         assert!(!parsed.errors.is_empty(), "{property}");
         assert_eq!(
             parsed.errors[0].code(),
-            diagnostics::Compiler_option_0_requires_a_value_of_type_1.code()
+            diagnostics::COMPILER_OPTION_0_REQUIRES_A_VALUE_OF_TYPE_1.code()
         );
     }
 }
@@ -1322,7 +1322,7 @@ fn test_parse_json_source_file_config_file_content_reports_invalid_extended_conf
         .errors
         .iter()
         .copied()
-        .filter(|diagnostic| diagnostic.code() == diagnostics::X_0_expected.code())
+        .filter(|diagnostic| diagnostic.code() == diagnostics::X_0_EXPECTED.code())
         .collect();
     let expected_parse_error_messages = [":", ",", ",", "}"];
     let expected_parse_error_positions = [7, 10, 14, 18];
@@ -1406,7 +1406,7 @@ fn test_parse_json_source_file_config_file_content_does_not_duplicate_unquoted_k
     for (index, diagnostic) in diags.iter().enumerate() {
         assert_eq!(
             diagnostic.code(),
-            diagnostics::String_literal_with_double_quotes_expected.code()
+            diagnostics::STRING_LITERAL_WITH_DOUBLE_QUOTES_EXPECTED.code()
         );
         assert_eq!(line_and_character(*diagnostic), expected_locations[index]);
     }
@@ -1429,7 +1429,7 @@ fn test_parse_json_source_file_config_file_content_reports_question_token_diagno
         .get_config_file_parsing_diagnostics()
         .into_iter()
         .filter(|d| {
-            d.code() == diagnostics::The_0_modifier_can_only_be_used_in_TypeScript_files.code()
+            d.code() == diagnostics::THE_0_MODIFIER_CAN_ONLY_BE_USED_IN_TYPE_SCRIPT_FILES.code()
         })
         .collect();
     assert_eq!(question_token_diagnostics.len(), 2);
@@ -1695,7 +1695,7 @@ fn test_content_mappers_require_flag() {
         ..Default::default()
     };
     let expected_code =
-        diagnostics::Content_mappers_require_the_runExternalCode_command_line_flag_to_be_enabled
+        diagnostics::CONTENT_MAPPERS_REQUIRE_THE_RUN_EXTERNAL_CODE_COMMAND_LINE_FLAG_TO_BE_ENABLED
             .code();
     for (name, get_parsed) in [
         ("json api", get_parsed_with_json_api as GetParsed),
@@ -1918,39 +1918,39 @@ fn test_content_mappers_validation() {
         (
             "extension without leading dot",
             r#"[{ "package": "vue-mapper", "extensions": ["vue"] }]"#,
-            diagnostics::Content_mapper_file_extension_0_must_begin_with_a.code(),
+            diagnostics::CONTENT_MAPPER_FILE_EXTENSION_0_MUST_BEGIN_WITH_A.code(),
         ),
         (
             "built-in extension",
             r#"[{ "package": "x", "extensions": [".ts"] }]"#,
-            diagnostics::Content_mapper_file_extension_0_is_a_built_in_extension_and_cannot_be_registered_by_a_content_mapper.code(),
+            diagnostics::CONTENT_MAPPER_FILE_EXTENSION_0_IS_A_BUILT_IN_EXTENSION_AND_CANNOT_BE_REGISTERED_BY_A_CONTENT_MAPPER.code(),
         ),
-        ("missing extensions", r#"[{ "package": "x" }]"#, diagnostics::Compiler_option_0_requires_a_value_of_type_1.code()),
+        ("missing extensions", r#"[{ "package": "x" }]"#, diagnostics::COMPILER_OPTION_0_REQUIRES_A_VALUE_OF_TYPE_1.code()),
         (
             "duplicate extension across mappers",
             r#"[{ "package": "a", "extensions": [".vue"] }, { "package": "b", "extensions": [".vue"] }]"#,
-            diagnostics::Content_mapper_file_extension_0_is_registered_by_more_than_one_content_mapper.code(),
+            diagnostics::CONTENT_MAPPER_FILE_EXTENSION_0_IS_REGISTERED_BY_MORE_THAN_ONE_CONTENT_MAPPER.code(),
         ),
         (
             "extensions is not an array",
             r#"[{ "package": "x", "extensions": ".vue" }]"#,
-            diagnostics::Compiler_option_0_requires_a_value_of_type_1.code(),
+            diagnostics::COMPILER_OPTION_0_REQUIRES_A_VALUE_OF_TYPE_1.code(),
         ),
         (
             "extensions contains a non-string",
             r#"[{ "package": "x", "extensions": [".vue", 1] }]"#,
-            diagnostics::Compiler_option_0_requires_a_value_of_type_1.code(),
+            diagnostics::COMPILER_OPTION_0_REQUIRES_A_VALUE_OF_TYPE_1.code(),
         ),
         (
             "package is not a string",
             r#"[{ "package": ["x"], "extensions": [".vue"] }]"#,
-            diagnostics::Compiler_option_0_requires_a_value_of_type_1.code(),
+            diagnostics::COMPILER_OPTION_0_REQUIRES_A_VALUE_OF_TYPE_1.code(),
         ),
-        ("missing package", r#"[{ "extensions": [".vue"] }]"#, diagnostics::Compiler_option_0_requires_a_value_of_type_1.code()),
+        ("missing package", r#"[{ "extensions": [".vue"] }]"#, diagnostics::COMPILER_OPTION_0_REQUIRES_A_VALUE_OF_TYPE_1.code()),
         (
             "options is not an object",
             r#"[{ "package": "x", "extensions": [".vue"], "options": ["strict"] }]"#,
-            diagnostics::Compiler_option_0_requires_a_value_of_type_1.code(),
+            diagnostics::COMPILER_OPTION_0_REQUIRES_A_VALUE_OF_TYPE_1.code(),
         ),
     ];
 
@@ -2050,19 +2050,19 @@ fn test_content_mapper_extension_validation_uses_host_case_sensitivity() {
             "built-in extension on case-insensitive host",
             false,
             r#"[{ "package": "mapper", "extensions": [".TS"] }]"#,
-            diagnostics::Content_mapper_file_extension_0_is_a_built_in_extension_and_cannot_be_registered_by_a_content_mapper.code(),
+            diagnostics::CONTENT_MAPPER_FILE_EXTENSION_0_IS_A_BUILT_IN_EXTENSION_AND_CANNOT_BE_REGISTERED_BY_A_CONTENT_MAPPER.code(),
         ),
         (
             "duplicate extension on case-insensitive host",
             false,
             r#"[{ "package": "a", "extensions": [".vue"] }, { "package": "b", "extensions": [".VUE"] }]"#,
-            diagnostics::Content_mapper_file_extension_0_is_registered_by_more_than_one_content_mapper.code(),
+            diagnostics::CONTENT_MAPPER_FILE_EXTENSION_0_IS_REGISTERED_BY_MORE_THAN_ONE_CONTENT_MAPPER.code(),
         ),
         (
             "built-in extension on case-sensitive host",
             true,
             r#"[{ "package": "mapper", "extensions": [".TS"] }]"#,
-            diagnostics::Content_mapper_file_extension_0_is_a_built_in_extension_and_cannot_be_registered_by_a_content_mapper.code(),
+            diagnostics::CONTENT_MAPPER_FILE_EXTENSION_0_IS_A_BUILT_IN_EXTENSION_AND_CANNOT_BE_REGISTERED_BY_A_CONTENT_MAPPER.code(),
         ),
         (
             "mapper extension casing is distinct on case-sensitive host",
@@ -2237,8 +2237,8 @@ fn test_parse_src_compiler() {
     let parsed = parse_src_compiler();
     let opts = parsed.compiler_options().unwrap();
     assert_eq!(opts.types, Some(Vec::new()));
-    assert_eq!(opts.module, ModuleKind::NodeNext);
-    assert_eq!(opts.module_resolution, ModuleResolutionKind::NodeNext);
+    assert_eq!(opts.module, ModuleKind::NODE_NEXT);
+    assert_eq!(opts.module_resolution, ModuleResolutionKind::NODE_NEXT);
     assert_eq!(opts.target, ScriptTarget::ES2020);
     assert_eq!(parsed.file_names().len(), 79);
     for file in ["checker.ts", "diagnosticInformationMap.generated.ts", "node.d.ts", "program.ts"] {

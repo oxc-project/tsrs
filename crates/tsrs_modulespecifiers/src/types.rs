@@ -219,14 +219,14 @@ pub struct ModuleSpecifierPreferences {
 // util.go
 
 #[derive(Clone, PartialEq, Eq, Hash, Debug)]
-pub struct regexPatternCacheKey {
+pub struct RegexPatternCacheKey {
     pub pattern: String,
     pub case_insensitive: bool,
 }
 
 /// Go `regexPatternCache` guarded by `regexPatternCacheMu` (one `RwLock`).
-pub(crate) static regexPatternCache: LazyLock<
-    RwLock<FxHashMap<regexPatternCacheKey, Option<P<regex::Regex>>>>,
+pub(crate) static REGEX_PATTERN_CACHE: LazyLock<
+    RwLock<FxHashMap<RegexPatternCacheKey, Option<P<regex::Regex>>>>,
 > = LazyLock::new(|| RwLock::new(FxHashMap::default()));
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
@@ -239,7 +239,7 @@ pub struct NodeModulePathParts {
 
 #[repr(u8)]
 #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Debug)]
-pub enum nodeModulesPathParseState {
+pub enum NodeModulesPathParseState {
     BeforeNodeModules,
     NodeModules,
     Scope,
@@ -249,7 +249,7 @@ pub enum nodeModulesPathParseState {
 // specifiers.go
 
 #[derive(Clone, Debug, Default)]
-pub struct ambientModuleInfo {
+pub struct AmbientModuleInfo {
     pub name: String,
     pub symbol: Option<P<Symbol>>,
 }
@@ -262,7 +262,7 @@ pub struct Info {
 }
 
 #[derive(Clone, Debug, Default)]
-pub struct pkgJsonDirAttemptResult {
+pub struct PkgJsonDirAttemptResult {
     pub module_file_to_try: String,
     pub package_root_path: String,
     pub blocked_by_exports: bool,
@@ -270,7 +270,7 @@ pub struct pkgJsonDirAttemptResult {
 }
 
 #[derive(Clone, Debug)]
-pub struct specPair {
+pub struct SpecPair {
     pub ending: ModuleSpecifierEnding,
     pub value: String,
 }

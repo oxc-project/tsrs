@@ -2,7 +2,7 @@ use super::*;
 
 /// The pending-statement state shared by the `commitPendingVariables` / `commitPendingExpressions` /
 /// `pushVariable` / `pushExpression` closures of `visitTopLevelVariableStatement`.
-struct pendingTopLevelVariables {
+struct PendingTopLevelVariables {
     statements: Vec<P<Node>>,
     variables: Vec<P<Node>>,
     expressions: Vec<P<Node>>,
@@ -12,7 +12,7 @@ struct pendingTopLevelVariables {
 impl CommonJSModuleTransformer {
     // commonjsmodule.go:986
     pub(crate) fn visit_top_level_variable_statement(&self, node: P<Node>) -> Option<P<Node>> {
-        if !ast::has_syntactic_modifier(node, ModifierFlags::Export) {
+        if !ast::has_syntactic_modifier(node, ModifierFlags::EXPORT) {
             return self.visit_top_level_nested_variable_statement(node);
         }
         let f = self.factory();
@@ -20,14 +20,14 @@ impl CommonJSModuleTransformer {
         let mut v = self.visitor();
         let declaration_list = node.as_variable_statement().declaration_list;
         // export var a = b;
-        let mut st = pendingTopLevelVariables {
+        let mut st = PendingTopLevelVariables {
             statements: Vec::new(),
             variables: Vec::new(),
             expressions: Vec::new(),
             modifiers: None,
         };
 
-        let commit_pending_variables = |st: &mut pendingTopLevelVariables| {
+        let commit_pending_variables = |st: &mut PendingTopLevelVariables| {
             if !st.variables.is_empty() {
                 let variable_list = f.new_node_list(std::mem::take(&mut st.variables));
                 let statement = f.update_variable_statement(
@@ -40,31 +40,31 @@ impl CommonJSModuleTransformer {
                     ),
                 );
                 if !st.statements.is_empty() {
-                    emit_context.add_emit_flags(statement, EmitFlags::NoComments);
+                    emit_context.add_emit_flags(statement, EmitFlags::NO_COMMENTS);
                 }
                 st.statements.push(statement);
             }
         };
 
-        let commit_pending_expressions = |st: &mut pendingTopLevelVariables| {
+        let commit_pending_expressions = |st: &mut PendingTopLevelVariables| {
             if !st.expressions.is_empty() {
                 let statement =
                     f.new_expression_statement(f.inline_expressions(&st.expressions).unwrap());
                 st.expressions.clear();
                 emit_context.assign_comment_and_source_map_ranges(statement, node);
                 if !st.statements.is_empty() {
-                    emit_context.add_emit_flags(statement, EmitFlags::NoComments);
+                    emit_context.add_emit_flags(statement, EmitFlags::NO_COMMENTS);
                 }
                 st.statements.push(statement);
             }
         };
 
-        let push_variable = |st: &mut pendingTopLevelVariables, variable: P<Node>| {
+        let push_variable = |st: &mut PendingTopLevelVariables, variable: P<Node>| {
             commit_pending_expressions(st);
             st.variables.push(variable);
         };
 
-        let push_expression = |st: &mut pendingTopLevelVariables, expression: P<Node>| {
+        let push_expression = |st: &mut PendingTopLevelVariables, expression: P<Node>| {
             commit_pending_variables(st);
             st.expressions.push(expression);
         };
@@ -87,7 +87,7 @@ impl CommonJSModuleTransformer {
                     st.modifiers = extract_modifiers(
                         emit_context,
                         node.modifiers(),
-                        !ModifierFlags::ExportDefault,
+                        !ModifierFlags::EXPORT_DEFAULT,
                     );
                 }
 
@@ -130,7 +130,7 @@ impl CommonJSModuleTransformer {
                     f.new_identifier("exports"),
                     None, /*questionDotToken*/
                     name,
-                    NodeFlags::None,
+                    NodeFlags::NONE,
                 );
                 emit_context.assign_comment_and_source_map_ranges(property_access, name);
 
@@ -192,7 +192,7 @@ impl CommonJSModuleTransformer {
             f.new_identifier("exports"),
             None, /*questionDotToken*/
             name,
-            NodeFlags::None,
+            NodeFlags::NONE,
         );
         self.emit_context().assign_comment_and_source_map_ranges(property_access, name);
         Some(f.new_assignment_expression(property_access, initializer))
@@ -217,7 +217,7 @@ impl CommonJSModuleTransformer {
         let n = node.as_for_statement();
         if let Some(initializer) = n.initializer {
             if ast::is_variable_declaration_list(initializer)
-                && !initializer.flags().intersects(NodeFlags::BlockScoped)
+                && !initializer.flags().intersects(NodeFlags::BLOCK_SCOPED)
             {
                 let mut export_statements: Vec<P<Node>> = Vec::new();
                 self.append_exports_of_variable_declaration_list(
@@ -282,7 +282,7 @@ impl CommonJSModuleTransformer {
         let emit_context = self.emit_context();
         let n = node.as_for_in_or_of_statement();
         if ast::is_variable_declaration_list(n.initializer)
-            && !n.initializer.flags().intersects(NodeFlags::BlockScoped)
+            && !n.initializer.flags().intersects(NodeFlags::BLOCK_SCOPED)
         {
             let mut export_statements: Vec<P<Node>> = Vec::new();
             self.append_exports_of_variable_declaration_list(

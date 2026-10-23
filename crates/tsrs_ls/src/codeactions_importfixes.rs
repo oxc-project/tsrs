@@ -18,27 +18,27 @@ use crate::codeactions::{
 fn import_fix_error_codes() -> &'static [i32] {
     static CODES: std::sync::LazyLock<Vec<i32>> = std::sync::LazyLock::new(|| {
         vec![
-            diagnostics::Cannot_find_name_0.code(),
-            diagnostics::Cannot_find_name_0_Did_you_mean_1.code(),
-            diagnostics::Cannot_find_name_0_Did_you_mean_the_instance_member_this_0.code(),
-            diagnostics::Cannot_find_name_0_Did_you_mean_the_static_member_1_0.code(),
-            diagnostics::Cannot_find_namespace_0.code(),
-            diagnostics::X_0_refers_to_a_UMD_global_but_the_current_file_is_a_module_Consider_adding_an_import_instead.code(),
-            diagnostics::X_0_only_refers_to_a_type_but_is_being_used_as_a_value_here.code(),
-            diagnostics::No_value_exists_in_scope_for_the_shorthand_property_0_Either_declare_one_or_provide_an_initializer.code(),
-            diagnostics::X_0_cannot_be_used_as_a_value_because_it_was_imported_using_import_type.code(),
-            diagnostics::Cannot_find_name_0_Do_you_need_to_install_type_definitions_for_jQuery_Try_npm_i_save_dev_types_Slashjquery.code(),
-            diagnostics::Cannot_find_name_0_Do_you_need_to_change_your_target_library_Try_changing_the_lib_compiler_option_to_1_or_later.code(),
-            diagnostics::Cannot_find_name_0_Do_you_need_to_change_your_target_library_Try_changing_the_lib_compiler_option_to_include_dom.code(),
-            diagnostics::Cannot_find_name_0_Do_you_need_to_install_type_definitions_for_a_test_runner_Try_npm_i_save_dev_types_Slashjest_or_npm_i_save_dev_types_Slashmocha_and_then_add_jest_or_mocha_to_the_types_field_in_your_tsconfig.code(),
-            diagnostics::Cannot_find_name_0_Did_you_mean_to_write_this_in_an_async_function.code(),
-            diagnostics::Cannot_find_name_0_Do_you_need_to_install_type_definitions_for_jQuery_Try_npm_i_save_dev_types_Slashjquery_and_then_add_jquery_to_the_types_field_in_your_tsconfig.code(),
-            diagnostics::Cannot_find_name_0_Do_you_need_to_install_type_definitions_for_a_test_runner_Try_npm_i_save_dev_types_Slashjest_or_npm_i_save_dev_types_Slashmocha.code(),
-            diagnostics::Cannot_find_name_0_Do_you_need_to_install_type_definitions_for_node_Try_npm_i_save_dev_types_Slashnode.code(),
-            diagnostics::Cannot_find_name_0_Do_you_need_to_install_type_definitions_for_node_Try_npm_i_save_dev_types_Slashnode_and_then_add_node_to_the_types_field_in_your_tsconfig.code(),
-            diagnostics::Cannot_find_namespace_0_Did_you_mean_1.code(),
-            diagnostics::Cannot_extend_an_interface_0_Did_you_mean_implements.code(),
-            diagnostics::This_JSX_tag_requires_0_to_be_in_scope_but_it_could_not_be_found.code(),
+            diagnostics::CANNOT_FIND_NAME_0.code(),
+            diagnostics::CANNOT_FIND_NAME_0_DID_YOU_MEAN_1.code(),
+            diagnostics::CANNOT_FIND_NAME_0_DID_YOU_MEAN_THE_INSTANCE_MEMBER_THIS_0.code(),
+            diagnostics::CANNOT_FIND_NAME_0_DID_YOU_MEAN_THE_STATIC_MEMBER_1_0.code(),
+            diagnostics::CANNOT_FIND_NAMESPACE_0.code(),
+            diagnostics::X_0_REFERS_TO_A_UMD_GLOBAL_BUT_THE_CURRENT_FILE_IS_A_MODULE_CONSIDER_ADDING_AN_IMPORT_INSTEAD.code(),
+            diagnostics::X_0_ONLY_REFERS_TO_A_TYPE_BUT_IS_BEING_USED_AS_A_VALUE_HERE.code(),
+            diagnostics::NO_VALUE_EXISTS_IN_SCOPE_FOR_THE_SHORTHAND_PROPERTY_0_EITHER_DECLARE_ONE_OR_PROVIDE_AN_INITIALIZER.code(),
+            diagnostics::X_0_CANNOT_BE_USED_AS_A_VALUE_BECAUSE_IT_WAS_IMPORTED_USING_IMPORT_TYPE.code(),
+            diagnostics::CANNOT_FIND_NAME_0_DO_YOU_NEED_TO_INSTALL_TYPE_DEFINITIONS_FOR_J_QUERY_TRY_NPM_I_SAVE_DEV_TYPES_SLASHJQUERY.code(),
+            diagnostics::CANNOT_FIND_NAME_0_DO_YOU_NEED_TO_CHANGE_YOUR_TARGET_LIBRARY_TRY_CHANGING_THE_LIB_COMPILER_OPTION_TO_1_OR_LATER.code(),
+            diagnostics::CANNOT_FIND_NAME_0_DO_YOU_NEED_TO_CHANGE_YOUR_TARGET_LIBRARY_TRY_CHANGING_THE_LIB_COMPILER_OPTION_TO_INCLUDE_DOM.code(),
+            diagnostics::CANNOT_FIND_NAME_0_DO_YOU_NEED_TO_INSTALL_TYPE_DEFINITIONS_FOR_A_TEST_RUNNER_TRY_NPM_I_SAVE_DEV_TYPES_SLASHJEST_OR_NPM_I_SAVE_DEV_TYPES_SLASHMOCHA_AND_THEN_ADD_JEST_OR_MOCHA_TO_THE_TYPES_FIELD_IN_YOUR_TSCONFIG.code(),
+            diagnostics::CANNOT_FIND_NAME_0_DID_YOU_MEAN_TO_WRITE_THIS_IN_AN_ASYNC_FUNCTION.code(),
+            diagnostics::CANNOT_FIND_NAME_0_DO_YOU_NEED_TO_INSTALL_TYPE_DEFINITIONS_FOR_J_QUERY_TRY_NPM_I_SAVE_DEV_TYPES_SLASHJQUERY_AND_THEN_ADD_JQUERY_TO_THE_TYPES_FIELD_IN_YOUR_TSCONFIG.code(),
+            diagnostics::CANNOT_FIND_NAME_0_DO_YOU_NEED_TO_INSTALL_TYPE_DEFINITIONS_FOR_A_TEST_RUNNER_TRY_NPM_I_SAVE_DEV_TYPES_SLASHJEST_OR_NPM_I_SAVE_DEV_TYPES_SLASHMOCHA.code(),
+            diagnostics::CANNOT_FIND_NAME_0_DO_YOU_NEED_TO_INSTALL_TYPE_DEFINITIONS_FOR_NODE_TRY_NPM_I_SAVE_DEV_TYPES_SLASHNODE.code(),
+            diagnostics::CANNOT_FIND_NAME_0_DO_YOU_NEED_TO_INSTALL_TYPE_DEFINITIONS_FOR_NODE_TRY_NPM_I_SAVE_DEV_TYPES_SLASHNODE_AND_THEN_ADD_NODE_TO_THE_TYPES_FIELD_IN_YOUR_TSCONFIG.code(),
+            diagnostics::CANNOT_FIND_NAMESPACE_0_DID_YOU_MEAN_1.code(),
+            diagnostics::CANNOT_EXTEND_AN_INTERFACE_0_DID_YOU_MEAN_IMPLEMENTS.code(),
+            diagnostics::THIS_JSX_TAG_REQUIRES_0_TO_BE_IN_SCOPE_BUT_IT_COULD_NOT_BE_FOUND.code(),
         ]
     });
     &CODES
@@ -58,7 +58,7 @@ pub(crate) static IMPORT_FIX_PROVIDER: std::sync::LazyLock<CodeFixProvider> =
     });
 
 // codeactions_importfixes.go:55
-struct fixInfo {
+struct FixInfo {
     fix: Arc<autoimport::Fix>,
     symbol_name: String,
     error_identifier_text: String,
@@ -99,7 +99,7 @@ fn get_import_code_actions(
                 description,
                 changes: edits,
                 fix_id: IMPORT_FIX_ID.to_string(),
-                fix_all_description: diagnostics::Add_all_missing_imports.localize(&[]),
+                fix_all_description: diagnostics::ADD_ALL_MISSING_IMPORTS.localize(&[]),
             })
         } else {
             None
@@ -156,7 +156,7 @@ fn get_all_import_code_actions(
     }
 
     Ok(Some(CombinedCodeActions {
-        description: diagnostics::Add_all_missing_imports.localize(&[]),
+        description: diagnostics::ADD_ALL_MISSING_IMPORTS.localize(&[]),
         changes: import_adder.edits(),
     }))
 }
@@ -200,36 +200,36 @@ fn get_fix_infos(
     fix_context: &CodeFixContext,
     error_code: i32,
     pos: u32,
-) -> Result<Vec<fixInfo>, lsproto::Error> {
+) -> Result<Vec<FixInfo>, lsproto::Error> {
     // Can't compute import fixes for dynamic/untitled files since they don't have real file paths
     if tspath::is_dynamic_file_name(fix_context.source_file.file_name()) {
         return Ok(Vec::new());
     }
 
     let symbol_token = astnav::get_token_at_position(fix_context.source_file, pos);
-    if error_code != diagnostics::X_0_refers_to_a_UMD_global_but_the_current_file_is_a_module_Consider_adding_an_import_instead.code()
+    if error_code != diagnostics::X_0_REFERS_TO_A_UMD_GLOBAL_BUT_THE_CURRENT_FILE_IS_A_MODULE_CONSIDER_ADDING_AN_IMPORT_INSTEAD.code()
         && !ast::is_identifier(symbol_token)
     {
         return Ok(Vec::new());
     }
 
     let view: Option<View>;
-    let mut info: Vec<fixInfo>;
+    let mut info: Vec<FixInfo>;
 
-    if error_code == diagnostics::X_0_refers_to_a_UMD_global_but_the_current_file_is_a_module_Consider_adding_an_import_instead.code() {
+    if error_code == diagnostics::X_0_REFERS_TO_A_UMD_GLOBAL_BUT_THE_CURRENT_FILE_IS_A_MODULE_CONSIDER_ADDING_AN_IMPORT_INSTEAD.code() {
         let v = fix_context.ls.get_current_auto_import_view(fix_context.source_file, ch);
         info = get_fixes_info_for_umd_import(symbol_token, &v, ch);
         view = Some(v);
-    } else if error_code == diagnostics::X_0_cannot_be_used_as_a_value_because_it_was_imported_using_import_type.code() {
+    } else if error_code == diagnostics::X_0_CANNOT_BE_USED_AS_A_VALUE_BECAUSE_IT_WAS_IMPORTED_USING_IMPORT_TYPE.code() {
         let compiler_options = fix_context.program.options();
         let symbol_names = get_symbol_names_to_import(fix_context.source_file, ch, symbol_token, &compiler_options);
 
-        let mut all_type_only_fixes: Vec<fixInfo> = Vec::new();
+        let mut all_type_only_fixes: Vec<FixInfo> = Vec::new();
         all_type_only_fixes.extend(symbol_names.iter().filter_map(|sn| {
             if !sn.is_type_only {
                 return None;
             }
-            get_type_only_promotion_fix(fix_context.source_file, symbol_token, &sn.name, ch).map(|fix| fixInfo {
+            get_type_only_promotion_fix(fix_context.source_file, symbol_token, &sn.name, ch).map(|fix| FixInfo {
                 fix: Arc::new(fix),
                 symbol_name: sn.name.clone(),
                 error_identifier_text: symbol_token.text().to_string(),
@@ -247,7 +247,7 @@ fn get_fix_infos(
             diagnostic_message = d.message.as_string();
         }
         if all_type_only_fixes.len() > 1 && !diagnostic_message.is_empty() {
-            let (matching, rest): (Vec<fixInfo>, Vec<fixInfo>) =
+            let (matching, rest): (Vec<FixInfo>, Vec<FixInfo>) =
                 all_type_only_fixes.into_iter().partition(|fi| diagnostic_message.contains(&format!("'{}'", fi.symbol_name)));
             info = matching;
             all_type_only_fixes = rest;
@@ -271,7 +271,7 @@ fn get_fix_infos(
 }
 
 // codeactions_importfixes.go:240
-fn get_fixes_info_for_umd_import(token: P<Node>, view: &View, ch: &mut Checker) -> Vec<fixInfo> {
+fn get_fixes_info_for_umd_import(token: P<Node>, view: &View, ch: &mut Checker) -> Vec<FixInfo> {
     let Some(umd_symbol) = get_umd_symbol(token, ch) else {
         return Vec::new();
     };
@@ -283,7 +283,7 @@ fn get_fixes_info_for_umd_import(token: P<Node>, view: &View, ch: &mut Checker) 
     let mut result = Vec::new();
     result.extend(
         view.get_fixes(&export, false, is_valid_type_only_use_site, None).into_iter().map(|fix| {
-            fixInfo {
+            FixInfo {
                 fix,
                 symbol_name: umd_symbol.name().to_string(),
                 error_identifier_text: if ast::is_identifier(token) {
@@ -319,7 +319,7 @@ fn get_umd_symbol(token: P<Node>, ch: &mut Checker) -> Option<P<Symbol>> {
         let parent_symbol = ch.resolve_name_exported(
             &jsx_namespace,
             location,
-            SymbolFlags::Value,
+            SymbolFlags::VALUE,
             false, /* excludeGlobals */
         );
         if is_umd_export_symbol(parent_symbol) {
@@ -342,13 +342,13 @@ fn get_fixes_info_for_non_umd_import(
     symbol_token: P<Node>,
     view: &View,
     ch: &mut Checker,
-) -> Vec<fixInfo> {
+) -> Vec<FixInfo> {
     let compiler_options = fix_context.program.options();
 
     let is_valid_type_only_use_site = ast::is_valid_type_only_alias_use_site(symbol_token);
     let symbol_names =
         get_symbol_names_to_import(fix_context.source_file, ch, symbol_token, &compiler_options);
-    let mut all_info: Vec<fixInfo> = Vec::new();
+    let mut all_info: Vec<FixInfo> = Vec::new();
 
     // Compute usage position for JSDoc import type fixes
     let (usage_position, fidelity) = fix_context.ls.converters.to_lsp_position(
@@ -390,7 +390,7 @@ fn get_fixes_info_for_non_umd_import(
                 is_valid_type_only_use_site,
                 Some(usage_position),
             );
-            all_info.extend(fixes.into_iter().map(|fix| fixInfo {
+            all_info.extend(fixes.into_iter().map(|fix| FixInfo {
                 fix,
                 symbol_name: symbol_name.clone(),
                 error_identifier_text: symbol_token.text().to_string(),
@@ -413,7 +413,7 @@ fn get_type_only_promotion_fix(
     let symbol = ch.resolve_name_exported(
         symbol_name,
         symbol_token,
-        SymbolFlags::Value,
+        SymbolFlags::VALUE,
         true, /* excludeGlobals */
     )?;
 
@@ -425,7 +425,7 @@ fn get_type_only_promotion_fix(
 
     Some(autoimport::Fix {
         auto_import_fix: lsproto::AutoImportFix {
-            kind: lsproto::AutoImportFixKind::PromoteTypeOnly,
+            kind: lsproto::AutoImportFixKind::PROMOTE_TYPE_ONLY,
             ..Default::default()
         },
         type_only_alias_declaration: Some(type_only_alias_declaration),
@@ -434,7 +434,7 @@ fn get_type_only_promotion_fix(
 }
 
 // codeactions_importfixes.go:372
-struct symbolNameInfo {
+struct SymbolNameInfo {
     name: String,
     is_type_only: bool, // whether the symbol currently resolves to a type-only import
 }
@@ -445,7 +445,7 @@ fn get_symbol_names_to_import(
     ch: &mut Checker,
     symbol_token: P<Node>,
     compiler_options: &CompilerOptions,
-) -> Vec<symbolNameInfo> {
+) -> Vec<SymbolNameInfo> {
     let parent = symbol_token.parent().unwrap();
     if (ast::is_jsx_opening_like_element(parent) || ast::is_jsx_closing_element(parent))
         && parent.tag_name() == symbol_token
@@ -458,17 +458,17 @@ fn get_symbol_names_to_import(
                 let comp_symbol = ch.resolve_name_exported(
                     symbol_token.text(),
                     symbol_token,
-                    SymbolFlags::Value,
+                    SymbolFlags::VALUE,
                     false, /* excludeGlobals */
                 );
                 match comp_symbol {
-                    None => result.push(symbolNameInfo {
+                    None => result.push(SymbolNameInfo {
                         name: symbol_token.text().to_string(),
                         is_type_only: false,
                     }),
                     Some(comp_symbol) => {
                         if ch.get_type_only_alias_declaration(comp_symbol).is_some() {
-                            result.push(symbolNameInfo {
+                            result.push(SymbolNameInfo {
                                 name: symbol_token.text().to_string(),
                                 is_type_only: true,
                             });
@@ -480,12 +480,12 @@ fn get_symbol_names_to_import(
             if let Some(ns_symbol) = ch.resolve_name_exported(
                 &jsx_namespace,
                 symbol_token,
-                SymbolFlags::Value,
+                SymbolFlags::VALUE,
                 true, /* excludeGlobals */
             ) {
                 ns_is_type_only = ch.get_type_only_alias_declaration(ns_symbol).is_some();
             }
-            result.push(symbolNameInfo { name: jsx_namespace, is_type_only: ns_is_type_only });
+            result.push(SymbolNameInfo { name: jsx_namespace, is_type_only: ns_is_type_only });
             return result;
         }
     }
@@ -493,12 +493,12 @@ fn get_symbol_names_to_import(
     if let Some(sym) = ch.resolve_name_exported(
         symbol_token.text(),
         symbol_token,
-        SymbolFlags::Value,
+        SymbolFlags::VALUE,
         true, /* excludeGlobals */
     ) {
         token_is_type_only = ch.get_type_only_alias_declaration(sym).is_some();
     }
-    vec![symbolNameInfo { name: symbol_token.text().to_string(), is_type_only: token_is_type_only }]
+    vec![SymbolNameInfo { name: symbol_token.text().to_string(), is_type_only: token_is_type_only }]
 }
 
 // codeactions_importfixes.go:411
@@ -509,7 +509,7 @@ fn needs_jsx_namespace_fix(jsx_namespace: &str, symbol_token: P<Node>, ch: &mut 
     let Some(namespace_symbol) = ch.resolve_name_exported(
         jsx_namespace,
         symbol_token,
-        SymbolFlags::Value,
+        SymbolFlags::VALUE,
         true, /* excludeGlobals */
     ) else {
         return true;
@@ -519,18 +519,18 @@ fn needs_jsx_namespace_fix(jsx_namespace: &str, symbol_token: P<Node>, ch: &mut 
         .iter()
         .any(|&d| ast::is_type_only_import_or_export_declaration(d))
     {
-        return !namespace_symbol.flags().intersects(SymbolFlags::Value);
+        return !namespace_symbol.flags().intersects(SymbolFlags::VALUE);
     }
     false
 }
 
 // codeactions_importfixes.go:425
 fn jsx_mode_needs_explicit_import(jsx: JsxEmit) -> bool {
-    jsx == JsxEmit::React || jsx == JsxEmit::ReactNative
+    jsx == JsxEmit::REACT || jsx == JsxEmit::REACT_NATIVE
 }
 
 // codeactions_importfixes.go:429
-fn sort_fix_info(fixes: Vec<fixInfo>, view: &View) -> Vec<fixInfo> {
+fn sort_fix_info(fixes: Vec<FixInfo>, view: &View) -> Vec<FixInfo> {
     if fixes.is_empty() {
         return fixes;
     }

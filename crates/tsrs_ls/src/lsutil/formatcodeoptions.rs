@@ -7,24 +7,24 @@ use tsrs_core::json::Value;
 pub struct IndentStyle(pub i32);
 
 impl IndentStyle {
-    pub const None: IndentStyle = IndentStyle(0);
-    pub const Block: IndentStyle = IndentStyle(1);
-    pub const Smart: IndentStyle = IndentStyle(2);
+    pub const NONE: IndentStyle = IndentStyle(0);
+    pub const BLOCK: IndentStyle = IndentStyle(1);
+    pub const SMART: IndentStyle = IndentStyle(2);
 }
 
 // formatcodeoptions.go:19
 pub(crate) fn parse_indent_style(v: &Value) -> IndentStyle {
     match v {
         Value::String(s) => match s.to_lowercase().as_str() {
-            "none" => return IndentStyle::None,
-            "block" => return IndentStyle::Block,
-            "smart" => return IndentStyle::Smart,
+            "none" => return IndentStyle::NONE,
+            "block" => return IndentStyle::BLOCK,
+            "smart" => return IndentStyle::SMART,
             _ => {}
         },
         Value::Number(s) => return IndentStyle(*s as i32),
         _ => {}
     }
-    IndentStyle::Smart
+    IndentStyle::SMART
 }
 
 // formatcodeoptions.go:38
@@ -151,7 +151,7 @@ pub fn get_default_format_code_settings() -> FormatCodeSettings {
             tab_size: tsrs_printer::get_default_indent_size() as i32,
             new_line_character: "\n".to_string(),
             convert_tabs_to_spaces: Tristate::True,
-            indent_style: IndentStyle::Smart,
+            indent_style: IndentStyle::SMART,
             trim_trailing_whitespace: Tristate::True,
             ..Default::default()
         },

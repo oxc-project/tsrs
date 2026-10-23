@@ -5,11 +5,11 @@ use bitflags::bitflags;
 bitflags! {
     #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Debug, Default)]
     pub struct FunctionFlags: u32 {
-        const Normal = 0;
-        const Generator = 1 << 0;
-        const Async = 1 << 1;
-        const Invalid = 1 << 2;
-        const AsyncGenerator = Self::Async.bits() | Self::Generator.bits();
+        const NORMAL = 0;
+        const GENERATOR = 1 << 0;
+        const ASYNC = 1 << 1;
+        const INVALID = 1 << 2;
+        const ASYNC_GENERATOR = Self::ASYNC.bits() | Self::GENERATOR.bits();
     }
 }
 
@@ -21,28 +21,28 @@ use crate::modifierflags::ModifierFlags;
 
 pub fn get_function_flags(node: Option<P<Node>>) -> FunctionFlags {
     let Some(node) = node else {
-        return FunctionFlags::Invalid;
+        return FunctionFlags::INVALID;
     };
     let Some(data) = node.body_data() else {
-        return FunctionFlags::Invalid;
+        return FunctionFlags::INVALID;
     };
-    let mut flags = FunctionFlags::Normal;
+    let mut flags = FunctionFlags::NORMAL;
     match node.kind() {
         Kind::FunctionDeclaration
         | Kind::FunctionExpression
         | Kind::MethodDeclaration
         | Kind::ArrowFunction => {
             if node.kind() != Kind::ArrowFunction && data.asterisk_token.is_some() {
-                flags |= FunctionFlags::Generator;
+                flags |= FunctionFlags::GENERATOR;
             }
-            if crate::has_syntactic_modifier(node, ModifierFlags::Async) {
-                flags |= FunctionFlags::Async;
+            if crate::has_syntactic_modifier(node, ModifierFlags::ASYNC) {
+                flags |= FunctionFlags::ASYNC;
             }
         }
         _ => {}
     }
     if data.body.is_none() {
-        flags |= FunctionFlags::Invalid;
+        flags |= FunctionFlags::INVALID;
     }
     flags
 }

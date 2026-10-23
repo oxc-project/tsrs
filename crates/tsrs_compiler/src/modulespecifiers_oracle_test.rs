@@ -13,12 +13,12 @@ use tsrs_vfs::{FS, bundled, vfstest};
 
 use crate::{ProgramOptions, new_compiler_host, new_program};
 
-struct parseConfigHost {
+struct ParseConfigHostImpl {
     fs: Arc<dyn FS>,
     cwd: String,
 }
 
-impl ParseConfigHost for parseConfigHost {
+impl ParseConfigHost for ParseConfigHostImpl {
     fn fs(&self) -> &dyn FS {
         &*self.fs
     }
@@ -70,8 +70,8 @@ fn run(s: &Value) -> Value {
     let fs: Arc<dyn FS> = Arc::new(bundled::wrap_fs(vfstest::from_map(files, case_sensitive)));
     let host =
         new_compiler_host(&cwd, std::sync::Arc::clone(&fs), &bundled::lib_path(), None, None, None);
-    let parse_host: &'static parseConfigHost =
-        Box::leak(Box::new(parseConfigHost { fs, cwd: cwd.clone() }));
+    let parse_host: &'static ParseConfigHostImpl =
+        Box::leak(Box::new(ParseConfigHostImpl { fs, cwd: cwd.clone() }));
     let (config, errors) = tsoptions::get_parsed_command_line_of_config_file(
         &str_field(s, "config"),
         Some(&CompilerOptions::default()),
@@ -143,9 +143,9 @@ fn run(s: &Value) -> Value {
                     modulespecifiers::ImportModuleSpecifierEndingPreference::Js;
             }
             let override_import_mode = match mode {
-                0 => ModuleKind::None,
-                1 => ModuleKind::CommonJS,
-                99 => ModuleKind::ESNext,
+                0 => ModuleKind::NONE,
+                1 => ModuleKind::COMMON_JS,
+                99 => ModuleKind::ES_NEXT,
                 _ => panic!("unknown mode {mode}"),
             };
             let options = program.options();

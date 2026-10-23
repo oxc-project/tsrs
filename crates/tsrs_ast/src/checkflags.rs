@@ -5,36 +5,36 @@ use bitflags::bitflags;
 bitflags! {
     #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Debug, Default)]
     pub struct CheckFlags: u32 {
-        const None = 0;
-        const Instantiated = 1 << 0; // Instantiated symbol
-        const SyntheticProperty = 1 << 1; // Property in union or intersection type
-        const SyntheticMethod = 1 << 2; // Method in union or intersection type
-        const Readonly = 1 << 3; // Readonly transient symbol
-        const ReadPartial = 1 << 4; // Synthetic property present in some but not all constituents
-        const WritePartial = 1 << 5; // Synthetic property present in some but only satisfied by an index signature in others
-        const HasNonUniformType = 1 << 6; // Synthetic property with non-uniform type in constituents
-        const HasLiteralType = 1 << 7; // Synthetic property with at least one literal type in constituents
-        const ContainsPublic = 1 << 8; // Synthetic property with public constituent(s)
-        const ContainsProtected = 1 << 9; // Synthetic property with protected constituent(s)
-        const ContainsPrivate = 1 << 10; // Synthetic property with private constituent(s)
-        const ContainsWritePublic = 1 << 11; // Synthetic property with public set accessors(s)
-        const ContainsWriteProtected = 1 << 12; // Synthetic property with protected set accessors(s)
-        const ContainsWritePrivate = 1 << 13; // Synthetic property with private set accessors(s)
-        const ContainsStatic = 1 << 14; // Synthetic property with static constituent(s)
-        const Late = 1 << 15; // Late-bound symbol for a computed property with a dynamic name
-        const ReverseMapped = 1 << 16; // Property of reverse-inferred homomorphic mapped type
-        const OptionalParameter = 1 << 17; // Optional parameter
-        const RestParameter = 1 << 18; // Rest parameter
-        const DeferredType = 1 << 19; // Calculation of the type of this symbol is deferred due to processing costs, should be fetched with `getTypeOfSymbolWithDeferredType`
-        const HasNeverType = 1 << 20; // Synthetic property with at least one never type in constituents
-        const Mapped = 1 << 21; // Property of mapped type
-        const StripOptional = 1 << 22; // Strip optionality in mapped property
-        const Unresolved = 1 << 23; // Unresolved type alias symbol
-        const IsDiscriminantComputed = 1 << 24; // IsDiscriminant flags has been computed
-        const IsDiscriminant = 1 << 25; // Discriminant property
-        const IndexSymbol = 1 << 26; // Synthetic property created from index signature
-        const Synthetic = Self::SyntheticProperty.bits() | Self::SyntheticMethod.bits();
-        const NonUniformAndLiteral = Self::HasNonUniformType.bits() | Self::HasLiteralType.bits();
-        const Partial = Self::ReadPartial.bits() | Self::WritePartial.bits();
+        const NONE = 0;
+        const INSTANTIATED = 1 << 0; // Instantiated symbol
+        const SYNTHETIC_PROPERTY = 1 << 1; // Property in union or intersection type
+        const SYNTHETIC_METHOD = 1 << 2; // Method in union or intersection type
+        const READONLY = 1 << 3; // Readonly transient symbol
+        const READ_PARTIAL = 1 << 4; // Synthetic property present in some but not all constituents
+        const WRITE_PARTIAL = 1 << 5; // Synthetic property present in some but only satisfied by an index signature in others
+        const HAS_NON_UNIFORM_TYPE = 1 << 6; // Synthetic property with non-uniform type in constituents
+        const HAS_LITERAL_TYPE = 1 << 7; // Synthetic property with at least one literal type in constituents
+        const CONTAINS_PUBLIC = 1 << 8; // Synthetic property with public constituent(s)
+        const CONTAINS_PROTECTED = 1 << 9; // Synthetic property with protected constituent(s)
+        const CONTAINS_PRIVATE = 1 << 10; // Synthetic property with private constituent(s)
+        const CONTAINS_WRITE_PUBLIC = 1 << 11; // Synthetic property with public set accessors(s)
+        const CONTAINS_WRITE_PROTECTED = 1 << 12; // Synthetic property with protected set accessors(s)
+        const CONTAINS_WRITE_PRIVATE = 1 << 13; // Synthetic property with private set accessors(s)
+        const CONTAINS_STATIC = 1 << 14; // Synthetic property with static constituent(s)
+        const LATE = 1 << 15; // Late-bound symbol for a computed property with a dynamic name
+        const REVERSE_MAPPED = 1 << 16; // Property of reverse-inferred homomorphic mapped type
+        const OPTIONAL_PARAMETER = 1 << 17; // Optional parameter
+        const REST_PARAMETER = 1 << 18; // Rest parameter
+        const DEFERRED_TYPE = 1 << 19; // Calculation of the type of this symbol is deferred due to processing costs, should be fetched with `getTypeOfSymbolWithDeferredType`
+        const HAS_NEVER_TYPE = 1 << 20; // Synthetic property with at least one never type in constituents
+        const MAPPED = 1 << 21; // Property of mapped type
+        const STRIP_OPTIONAL = 1 << 22; // Strip optionality in mapped property
+        const UNRESOLVED = 1 << 23; // Unresolved type alias symbol
+        const IS_DISCRIMINANT_COMPUTED = 1 << 24; // IsDiscriminant flags has been computed
+        const IS_DISCRIMINANT = 1 << 25; // Discriminant property
+        const INDEX_SYMBOL = 1 << 26; // Synthetic property created from index signature
+        const SYNTHETIC = Self::SYNTHETIC_PROPERTY.bits() | Self::SYNTHETIC_METHOD.bits();
+        const NON_UNIFORM_AND_LITERAL = Self::HAS_NON_UNIFORM_TYPE.bits() | Self::HAS_LITERAL_TYPE.bits();
+        const PARTIAL = Self::READ_PARTIAL.bits() | Self::WRITE_PARTIAL.bits();
     }
 }

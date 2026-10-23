@@ -204,20 +204,20 @@ impl CompilerOptions {
     }
 
     pub fn get_emit_script_target(&self) -> ScriptTarget {
-        if self.target != ScriptTarget::None {
+        if self.target != ScriptTarget::NONE {
             return self.target;
         }
-        ScriptTarget::LatestStandard
+        ScriptTarget::LATEST_STANDARD
     }
 
     pub fn get_emit_module_kind(&self) -> ModuleKind {
-        if self.module != ModuleKind::None {
+        if self.module != ModuleKind::NONE {
             return self.module;
         }
 
         let target = self.get_emit_script_target();
-        if target == ScriptTarget::ESNext {
-            return ModuleKind::ESNext;
+        if target == ScriptTarget::ES_NEXT {
+            return ModuleKind::ES_NEXT;
         }
         if target >= ScriptTarget::ES2022 {
             return ModuleKind::ES2022;
@@ -228,19 +228,19 @@ impl CompilerOptions {
         if target >= ScriptTarget::ES2015 {
             return ModuleKind::ES2015;
         }
-        ModuleKind::CommonJS
+        ModuleKind::COMMON_JS
     }
 
     pub fn get_module_resolution_kind(&self) -> ModuleResolutionKind {
         match self.module_resolution {
-            ModuleResolutionKind::Unknown
-            | ModuleResolutionKind::Classic
-            | ModuleResolutionKind::Node10 => match self.get_emit_module_kind() {
-                ModuleKind::Node16 | ModuleKind::Node18 | ModuleKind::Node20 => {
-                    ModuleResolutionKind::Node16
+            ModuleResolutionKind::UNKNOWN
+            | ModuleResolutionKind::CLASSIC
+            | ModuleResolutionKind::NODE10 => match self.get_emit_module_kind() {
+                ModuleKind::NODE16 | ModuleKind::NODE18 | ModuleKind::NODE20 => {
+                    ModuleResolutionKind::NODE16
                 }
-                ModuleKind::NodeNext => ModuleResolutionKind::NodeNext,
-                _ => ModuleResolutionKind::Bundler,
+                ModuleKind::NODE_NEXT => ModuleResolutionKind::NODE_NEXT,
+                _ => ModuleResolutionKind::BUNDLER,
             },
             _ => self.module_resolution,
         }
@@ -251,7 +251,7 @@ impl CompilerOptions {
             return self.module_detection;
         }
         let module_kind = self.get_emit_module_kind();
-        if ModuleKind::Node16 <= module_kind && module_kind <= ModuleKind::NodeNext {
+        if ModuleKind::NODE16 <= module_kind && module_kind <= ModuleKind::NODE_NEXT {
             return ModuleDetectionKind::Force;
         }
         ModuleDetectionKind::Auto
@@ -280,10 +280,10 @@ impl CompilerOptions {
         }
         match self.get_emit_module_kind() {
             // TODO in 6.0: add Node16/Node18
-            ModuleKind::Node20 | ModuleKind::NodeNext => return true,
+            ModuleKind::NODE20 | ModuleKind::NODE_NEXT => return true,
             _ => {}
         }
-        self.get_module_resolution_kind() == ModuleResolutionKind::Bundler
+        self.get_module_resolution_kind() == ModuleResolutionKind::BUNDLER
     }
 
     pub fn should_preserve_const_enums(&self) -> bool {
@@ -299,7 +299,7 @@ impl CompilerOptions {
 
     pub fn get_jsx_transform_enabled(&self) -> bool {
         let jsx = self.jsx;
-        jsx == JsxEmit::React || jsx == JsxEmit::ReactJSX || jsx == JsxEmit::ReactJSXDev
+        jsx == JsxEmit::REACT || jsx == JsxEmit::REACT_JSX || jsx == JsxEmit::REACT_JSX_DEV
     }
 
     pub fn get_strict_option_value(&self, value: Tristate) -> bool {
@@ -367,7 +367,7 @@ impl CompilerOptions {
     }
 
     pub fn has_json_module_emit_enabled(&self) -> bool {
-        !matches!(self.get_emit_module_kind(), ModuleKind::System | ModuleKind::UMD)
+        !matches!(self.get_emit_module_kind(), ModuleKind::SYSTEM | ModuleKind::UMD)
     }
 
     pub fn get_paths_base_path(&self, current_directory: &str) -> String {
@@ -427,20 +427,20 @@ impl ModuleDetectionKind {
 pub struct ModuleKind(pub i32);
 
 impl ModuleKind {
-    pub const None: ModuleKind = ModuleKind(0);
-    pub const CommonJS: ModuleKind = ModuleKind(1);
+    pub const NONE: ModuleKind = ModuleKind(0);
+    pub const COMMON_JS: ModuleKind = ModuleKind(1);
     pub const AMD: ModuleKind = ModuleKind(2);
     pub const UMD: ModuleKind = ModuleKind(3);
-    pub const System: ModuleKind = ModuleKind(4);
+    pub const SYSTEM: ModuleKind = ModuleKind(4);
     pub const ES2015: ModuleKind = ModuleKind(5);
     pub const ES2020: ModuleKind = ModuleKind(6);
     pub const ES2022: ModuleKind = ModuleKind(7);
-    pub const ESNext: ModuleKind = ModuleKind(99);
-    pub const Node16: ModuleKind = ModuleKind(100);
-    pub const Node18: ModuleKind = ModuleKind(101);
-    pub const Node20: ModuleKind = ModuleKind(102);
-    pub const NodeNext: ModuleKind = ModuleKind(199);
-    pub const Preserve: ModuleKind = ModuleKind(200);
+    pub const ES_NEXT: ModuleKind = ModuleKind(99);
+    pub const NODE16: ModuleKind = ModuleKind(100);
+    pub const NODE18: ModuleKind = ModuleKind(101);
+    pub const NODE20: ModuleKind = ModuleKind(102);
+    pub const NODE_NEXT: ModuleKind = ModuleKind(199);
+    pub const PRESERVE: ModuleKind = ModuleKind(200);
 
     /// The Go constant name of a named value.
     pub fn name(self) -> Option<&'static str> {
@@ -485,24 +485,24 @@ impl fmt::Debug for ModuleKind {
 
 impl ModuleKind {
     // ResolutionMode constants (ResolutionMode is an alias of ModuleKind).
-    pub const ESM: ModuleKind = ModuleKind::ESNext;
+    pub const ESM: ModuleKind = ModuleKind::ES_NEXT;
 
     pub fn is_non_node_esm(self) -> bool {
-        self >= ModuleKind::ES2015 && self <= ModuleKind::ESNext
+        self >= ModuleKind::ES2015 && self <= ModuleKind::ES_NEXT
     }
 
     pub fn supports_import_attributes(self) -> bool {
-        ModuleKind::Node18 <= self && self <= ModuleKind::NodeNext
-            || self == ModuleKind::Preserve
-            || self == ModuleKind::ESNext
+        ModuleKind::NODE18 <= self && self <= ModuleKind::NODE_NEXT
+            || self == ModuleKind::PRESERVE
+            || self == ModuleKind::ES_NEXT
     }
 
     pub fn supports_deferred_imports(self) -> bool {
-        self == ModuleKind::ESNext || self == ModuleKind::Preserve
+        self == ModuleKind::ES_NEXT || self == ModuleKind::PRESERVE
     }
 
     pub fn supports_source_phase_imports(self) -> bool {
-        self == ModuleKind::ESNext || self == ModuleKind::NodeNext || self == ModuleKind::Preserve
+        self == ModuleKind::ES_NEXT || self == ModuleKind::NODE_NEXT || self == ModuleKind::PRESERVE
     }
 
     /// Go stringer: the constant name, or `ModuleKind(<n>)`.
@@ -523,9 +523,9 @@ impl fmt::Display for ModuleKind {
 // ModuleKindNone | ModuleKindCommonJS | ModuleKindESNext
 pub type ResolutionMode = ModuleKind;
 
-pub const RESOLUTION_MODE_NONE: ResolutionMode = ModuleKind::None;
-pub const RESOLUTION_MODE_COMMON_JS: ResolutionMode = ModuleKind::CommonJS;
-pub const RESOLUTION_MODE_ESM: ResolutionMode = ModuleKind::ESNext;
+pub const RESOLUTION_MODE_NONE: ResolutionMode = ModuleKind::NONE;
+pub const RESOLUTION_MODE_COMMON_JS: ResolutionMode = ModuleKind::COMMON_JS;
+pub const RESOLUTION_MODE_ESM: ResolutionMode = ModuleKind::ES_NEXT;
 
 /// Preserves unnamed resolution-mode values received through the Go API.
 ///
@@ -538,12 +538,12 @@ pub const RESOLUTION_MODE_ESM: ResolutionMode = ModuleKind::ESNext;
 pub struct ModuleResolutionKind(pub i32);
 
 impl ModuleResolutionKind {
-    pub const Unknown: ModuleResolutionKind = ModuleResolutionKind(0);
-    pub const Classic: ModuleResolutionKind = ModuleResolutionKind(1);
-    pub const Node10: ModuleResolutionKind = ModuleResolutionKind(2);
-    pub const Node16: ModuleResolutionKind = ModuleResolutionKind(3);
-    pub const NodeNext: ModuleResolutionKind = ModuleResolutionKind(99);
-    pub const Bundler: ModuleResolutionKind = ModuleResolutionKind(100);
+    pub const UNKNOWN: ModuleResolutionKind = ModuleResolutionKind(0);
+    pub const CLASSIC: ModuleResolutionKind = ModuleResolutionKind(1);
+    pub const NODE10: ModuleResolutionKind = ModuleResolutionKind(2);
+    pub const NODE16: ModuleResolutionKind = ModuleResolutionKind(3);
+    pub const NODE_NEXT: ModuleResolutionKind = ModuleResolutionKind(99);
+    pub const BUNDLER: ModuleResolutionKind = ModuleResolutionKind(100);
 
     /// The Go constant name of a named value.
     pub fn name(self) -> Option<&'static str> {
@@ -579,8 +579,8 @@ pub static MODULE_KIND_TO_MODULE_RESOLUTION_KIND: LazyLock<
     FxHashMap<ModuleKind, ModuleResolutionKind>,
 > = LazyLock::new(|| {
     let mut m = FxHashMap::default();
-    m.insert(ModuleKind::Node16, ModuleResolutionKind::Node16);
-    m.insert(ModuleKind::NodeNext, ModuleResolutionKind::NodeNext);
+    m.insert(ModuleKind::NODE16, ModuleResolutionKind::NODE16);
+    m.insert(ModuleKind::NODE_NEXT, ModuleResolutionKind::NODE_NEXT);
     m
 });
 
@@ -594,14 +594,14 @@ impl ModuleResolutionKind {
     // as it probably represents a mistake when porting TS to Go.
     pub fn string(self) -> &'static str {
         match self {
-            ModuleResolutionKind::Unknown => {
+            ModuleResolutionKind::UNKNOWN => {
                 panic!("should not use zero value of ModuleResolutionKind")
             }
-            ModuleResolutionKind::Classic => "Classic",
-            ModuleResolutionKind::Node10 => "Node10",
-            ModuleResolutionKind::Node16 => "Node16",
-            ModuleResolutionKind::NodeNext => "NodeNext",
-            ModuleResolutionKind::Bundler => "Bundler",
+            ModuleResolutionKind::CLASSIC => "Classic",
+            ModuleResolutionKind::NODE10 => "Node10",
+            ModuleResolutionKind::NODE16 => "Node16",
+            ModuleResolutionKind::NODE_NEXT => "NodeNext",
+            ModuleResolutionKind::BUNDLER => "Bundler",
             _ => panic!("unhandled case in ModuleResolutionKind.String"),
         }
     }
@@ -657,7 +657,7 @@ impl NewLineKind {
 pub struct ScriptTarget(pub i32);
 
 impl ScriptTarget {
-    pub const None: ScriptTarget = ScriptTarget(0);
+    pub const NONE: ScriptTarget = ScriptTarget(0);
     pub const ES5: ScriptTarget = ScriptTarget(1);
     pub const ES2015: ScriptTarget = ScriptTarget(2);
     pub const ES2016: ScriptTarget = ScriptTarget(3);
@@ -671,7 +671,7 @@ impl ScriptTarget {
     pub const ES2024: ScriptTarget = ScriptTarget(11);
     pub const ES2025: ScriptTarget = ScriptTarget(12);
     pub const ES2026: ScriptTarget = ScriptTarget(13);
-    pub const ESNext: ScriptTarget = ScriptTarget(99);
+    pub const ES_NEXT: ScriptTarget = ScriptTarget(99);
     pub const JSON: ScriptTarget = ScriptTarget(100);
 
     /// The Go constant name of a named value.
@@ -718,8 +718,8 @@ impl fmt::Debug for ScriptTarget {
 }
 
 impl ScriptTarget {
-    pub const Latest: ScriptTarget = ScriptTarget::ESNext;
-    pub const LatestStandard: ScriptTarget = ScriptTarget::ES2026;
+    pub const LATEST: ScriptTarget = ScriptTarget::ES_NEXT;
+    pub const LATEST_STANDARD: ScriptTarget = ScriptTarget::ES2026;
 
     /// Go stringer: the constant name, or `ScriptTarget(<n>)`.
     pub fn string(self) -> std::borrow::Cow<'static, str> {
@@ -743,12 +743,12 @@ impl fmt::Display for ScriptTarget {
 pub struct JsxEmit(pub i32);
 
 impl JsxEmit {
-    pub const None: JsxEmit = JsxEmit(0);
-    pub const Preserve: JsxEmit = JsxEmit(1);
-    pub const React: JsxEmit = JsxEmit(2);
-    pub const ReactNative: JsxEmit = JsxEmit(3);
-    pub const ReactJSX: JsxEmit = JsxEmit(4);
-    pub const ReactJSXDev: JsxEmit = JsxEmit(5);
+    pub const NONE: JsxEmit = JsxEmit(0);
+    pub const PRESERVE: JsxEmit = JsxEmit(1);
+    pub const REACT: JsxEmit = JsxEmit(2);
+    pub const REACT_NATIVE: JsxEmit = JsxEmit(3);
+    pub const REACT_JSX: JsxEmit = JsxEmit(4);
+    pub const REACT_JSX_DEV: JsxEmit = JsxEmit(5);
 
     /// The Go constant name of a named value.
     pub fn name(self) -> Option<&'static str> {
@@ -786,12 +786,12 @@ impl fmt::Debug for JsxEmit {
 impl JsxEmit {
     pub fn string(self) -> &'static str {
         match self {
-            JsxEmit::None => panic!("should not use zero value of JsxEmit"),
-            JsxEmit::Preserve => "preserve",
-            JsxEmit::ReactNative => "react-native",
-            JsxEmit::React => "react",
-            JsxEmit::ReactJSX => "react-jsx",
-            JsxEmit::ReactJSXDev => "react-jsxdev",
+            JsxEmit::NONE => panic!("should not use zero value of JsxEmit"),
+            JsxEmit::PRESERVE => "preserve",
+            JsxEmit::REACT_NATIVE => "react-native",
+            JsxEmit::REACT => "react",
+            JsxEmit::REACT_JSX => "react-jsx",
+            JsxEmit::REACT_JSX_DEV => "react-jsxdev",
             _ => panic!("unhandled case in JsxEmit.String"),
         }
     }

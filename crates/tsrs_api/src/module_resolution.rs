@@ -316,9 +316,9 @@ fn mode_from(v: &Value, what: &str) -> ApiResult<Option<ResolutionMode>> {
         Value::Null => Ok(None),
         Value::Number(n) => {
             let mode = match *n as i64 {
-                0 => ModuleKind::None,
-                1 => ModuleKind::CommonJS,
-                99 => ModuleKind::ESNext,
+                0 => ModuleKind::NONE,
+                1 => ModuleKind::COMMON_JS,
+                99 => ModuleKind::ES_NEXT,
                 x => {
                     return Err(ApiError::client(format!("{what} has invalid resolutionMode {x}")));
                 }
@@ -568,7 +568,7 @@ impl Session {
             return Err(ApiError::client("moduleName is empty"));
         }
         let data = self.registration(p.u64("resolver")?)?;
-        let mode = mode_from(p.get("resolutionMode"), "request")?.unwrap_or(ModuleKind::None);
+        let mode = mode_from(p.get("resolutionMode"), "request")?.unwrap_or(ModuleKind::NONE);
         let cwd = self.current_directory().to_string();
         let dir = p.document("containingDirectory")?;
         let containing_directory =

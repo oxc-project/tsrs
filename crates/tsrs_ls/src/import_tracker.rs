@@ -237,7 +237,7 @@ pub(crate) fn get_statements_of_source_file_like(node: P<Node>) -> &'static [P<N
 }
 
 // The closures of getImportersForExport share the result lists and trackers; they are methods of this struct.
-struct importersForExport<'a> {
+struct ImportersForExport<'a> {
     source_files: &'a [P<SourceFile>],
     source_files_set: &'a Set<String>,
     all_direct_imports: &'a FxHashMap<P<Symbol>, Vec<P<Node>>>,
@@ -249,7 +249,7 @@ struct importersForExport<'a> {
     is_available_through_global: bool,
 }
 
-impl importersForExport<'_> {
+impl ImportersForExport<'_> {
     fn get_direct_imports(&self, module_symbol: P<Symbol>) -> Vec<P<Node>> {
         self.all_direct_imports.get(&module_symbol).cloned().unwrap_or_default()
     }
@@ -278,7 +278,7 @@ impl importersForExport<'_> {
         else {
             return;
         };
-        assert!(module_symbol.flags().intersects(SymbolFlags::Module));
+        assert!(module_symbol.flags().intersects(SymbolFlags::MODULE));
         for direct_import in self.get_direct_imports(module_symbol) {
             if !ast::is_import_type_node(direct_import) {
                 self.add_indirect_user(
@@ -296,7 +296,7 @@ impl importersForExport<'_> {
             if stop_at_ambient_module && is_ambient_module_declaration(n) {
                 break;
             }
-            if ast::has_syntactic_modifier(n, ModifierFlags::Export) {
+            if ast::has_syntactic_modifier(n, ModifierFlags::EXPORT) {
                 return true;
             }
             node = n.parent();
@@ -367,7 +367,7 @@ impl importersForExport<'_> {
                         checker,
                         direct,
                         direct.name().unwrap(),
-                        ast::has_syntactic_modifier(direct, ModifierFlags::Export),
+                        ast::has_syntactic_modifier(direct, ModifierFlags::EXPORT),
                         false, /*alreadyAddedDirect*/
                     );
                 }
@@ -472,7 +472,7 @@ pub(crate) fn get_importers_for_export(
     export_info: ExportInfo,
     checker: &mut Checker,
 ) -> (Vec<P<Node>>, Vec<P<SourceFile>>) {
-    let mut state = importersForExport {
+    let mut state = ImportersForExport {
         source_files,
         source_files_set,
         all_direct_imports,
@@ -524,7 +524,7 @@ pub(crate) fn find_namespace_re_exports(
 }
 
 // The closures of getSearchesFromDirectImports share the result lists; they are methods of this struct.
-struct searchesFromDirectImports {
+struct SearchesFromDirectImports {
     import_searches: Vec<LocationAndSymbol>,
     single_references: Vec<P<Node>>,
     export_symbol: P<Symbol>,
@@ -532,7 +532,7 @@ struct searchesFromDirectImports {
     is_for_rename: bool,
 }
 
-impl searchesFromDirectImports {
+impl SearchesFromDirectImports {
     fn add_search(&mut self, location: P<Node>, symbol: Option<P<Symbol>>) {
         self.import_searches
             .push(LocationAndSymbol { import_location: location, import_symbol: symbol });
@@ -541,7 +541,7 @@ impl searchesFromDirectImports {
     fn is_name_match(&self, name: &str) -> bool {
         // Use name of "default" even in `export =` case because we may have allowSyntheticDefaultImports
         name == self.export_symbol.name()
-            || self.export_kind != ExportKind::Named && name == ast::InternalSymbolNameDefault
+            || self.export_kind != ExportKind::Named && name == ast::INTERNAL_SYMBOL_NAME_DEFAULT
     }
 
     // `import x = require("./x")` or `import * as x from "./x"`.
@@ -661,7 +661,7 @@ pub(crate) fn get_searches_from_direct_imports(
     checker: &mut Checker,
     is_for_rename: bool,
 ) -> (Vec<LocationAndSymbol>, Vec<P<Node>>) {
-    let mut state = searchesFromDirectImports {
+    let mut state = SearchesFromDirectImports {
         import_searches: Vec::new(),
         single_references: Vec::new(),
         export_symbol,
@@ -714,7 +714,7 @@ pub(crate) fn get_import_or_export_symbol(
 
         // Not meant for use with export specifiers or export assignment.
         let get_export_kind_for_declaration = |node: P<Node>| -> ExportKind {
-            if ast::has_syntactic_modifier(node, ModifierFlags::Default) {
+            if ast::has_syntactic_modifier(node, ModifierFlags::DEFAULT) {
                 return ExportKind::Default;
             }
             ExportKind::Named
@@ -758,7 +758,7 @@ pub(crate) fn get_import_or_export_symbol(
         }
         let export_node = get_export_node(parent, node);
         if let Some(export_node) = export_node.filter(|&export_node| {
-            ast::has_syntactic_modifier(export_node, ModifierFlags::Export)
+            ast::has_syntactic_modifier(export_node, ModifierFlags::EXPORT)
                 || ast::is_implicitly_exported_jsdoc_declaration(export_node)
         }) {
             if ast::is_import_equals_declaration(export_node)
@@ -803,7 +803,7 @@ pub(crate) fn get_import_or_export_symbol(
         }
         // JS destructuring from `require(...)` is import-like for references, but the binding element
         // itself is still a local variable symbol rather than an alias.
-        let imported_symbol = if symbol.flags().intersects(SymbolFlags::Alias) {
+        let imported_symbol = if symbol.flags().intersects(SymbolFlags::ALIAS) {
             checker.get_immediate_aliased_symbol_exported(symbol)
         } else {
             get_property_symbol_of_object_binding_pattern_without_property_name(symbol, checker)
@@ -820,7 +820,7 @@ pub(crate) fn get_import_or_export_symbol(
         // (All imports returned from this function will be ignored anyway if we are in rename and this is a not a named export.)
         let imported_name = symbol_name_no_default(imported_symbol);
         if imported_name.is_empty()
-            || imported_name == ast::InternalSymbolNameDefault
+            || imported_name == ast::INTERNAL_SYMBOL_NAME_DEFAULT
             || imported_name == symbol.name()
         {
             return Some(ImportExportSymbol {
@@ -954,7 +954,7 @@ pub(crate) fn get_export_equals_local_symbol(
     imported_symbol: P<Symbol>,
     checker: &mut Checker,
 ) -> Option<P<Symbol>> {
-    if imported_symbol.flags().intersects(SymbolFlags::Alias) {
+    if imported_symbol.flags().intersects(SymbolFlags::ALIAS) {
         return checker.get_immediate_aliased_symbol_exported(imported_symbol);
     }
     let decl = imported_symbol.value_declaration();
@@ -973,7 +973,7 @@ pub(crate) fn get_export_equals_local_symbol(
 
 // importTracker.go:701
 pub(crate) fn symbol_name_no_default(symbol: P<Symbol>) -> &'static str {
-    if symbol.name() != ast::InternalSymbolNameDefault {
+    if symbol.name() != ast::INTERNAL_SYMBOL_NAME_DEFAULT {
         return symbol.name();
     }
     if let Some(result) = symbol.declarations().iter().find_map(|&decl| {

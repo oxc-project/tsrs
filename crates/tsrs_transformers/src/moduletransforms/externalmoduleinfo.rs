@@ -1,7 +1,7 @@
 use super::*;
 
 #[derive(Default)]
-pub(crate) struct externalModuleInfo {
+pub(crate) struct ExternalModuleInfo {
     pub(crate) external_imports: Vec<P<Node>>, // ImportDeclaration | ImportEqualsDeclaration | ExportDeclaration. imports and reexports of other external modules
     pub(crate) export_specifiers: MultiMap<&'static str, P<Node>>, // Maps local names to their associated export specifiers (excludes reexports)
     pub(crate) exported_bindings: MultiMap<P<Node>, P<Node>>, // Maps local declarations to their associated export aliases
@@ -11,13 +11,13 @@ pub(crate) struct externalModuleInfo {
     pub(crate) has_export_stars_to_export_values: bool, // whether this module contains export*
 }
 
-struct externalModuleInfoCollector {
+struct ExternalModuleInfoCollector {
     source_file: P<SourceFile>,
     emit_context: P<EmitContext>,
     resolver: ReferenceResolverRef,
     unique_exports: Set<&'static str>,
     has_export_default: bool,
-    output: externalModuleInfo,
+    output: ExternalModuleInfo,
 }
 
 // externalmoduleinfo.go:35
@@ -26,21 +26,21 @@ pub(crate) fn collect_external_module_info(
     _compiler_options: P<CompilerOptions>,
     emit_context: P<EmitContext>,
     resolver: ReferenceResolverRef,
-) -> externalModuleInfo {
-    let c = externalModuleInfoCollector {
+) -> ExternalModuleInfo {
+    let c = ExternalModuleInfoCollector {
         source_file,
         emit_context,
         resolver,
         unique_exports: Set::default(),
         has_export_default: false,
-        output: externalModuleInfo::default(),
+        output: ExternalModuleInfo::default(),
     };
     c.collect()
 }
 
-impl externalModuleInfoCollector {
+impl ExternalModuleInfoCollector {
     // externalmoduleinfo.go:46
-    fn collect(mut self) -> externalModuleInfo {
+    fn collect(mut self) -> ExternalModuleInfo {
         let mut has_import_star = false;
         let mut has_import_default = false;
         for &node in self.source_file.statements.nodes() {
@@ -129,7 +129,7 @@ impl externalModuleInfoCollector {
 
                 Kind::VariableStatement => {
                     let n = node.as_variable_statement();
-                    if ast::has_syntactic_modifier(node, ModifierFlags::Export) {
+                    if ast::has_syntactic_modifier(node, ModifierFlags::EXPORT) {
                         for &decl in
                             n.declaration_list.as_variable_declaration_list().declarations.nodes()
                         {
@@ -139,19 +139,19 @@ impl externalModuleInfoCollector {
                 }
 
                 Kind::FunctionDeclaration => {
-                    if ast::has_syntactic_modifier(node, ModifierFlags::Export) {
+                    if ast::has_syntactic_modifier(node, ModifierFlags::EXPORT) {
                         self.add_exported_function_declaration(
                             node,
                             None, /*name*/
-                            ast::has_syntactic_modifier(node, ModifierFlags::Default),
+                            ast::has_syntactic_modifier(node, ModifierFlags::DEFAULT),
                         );
                     }
                 }
 
                 Kind::ClassDeclaration
-                    if ast::has_syntactic_modifier(node, ModifierFlags::Export) =>
+                    if ast::has_syntactic_modifier(node, ModifierFlags::EXPORT) =>
                 {
-                    if ast::has_syntactic_modifier(node, ModifierFlags::Default) {
+                    if ast::has_syntactic_modifier(node, ModifierFlags::DEFAULT) {
                         // export default class { }
                         if !self.has_export_default {
                             let name = node.name().unwrap_or_else(|| {
@@ -297,7 +297,7 @@ impl externalModuleInfoCollector {
     }
 }
 
-const externalHelpersModuleNameText: &str = "tslib";
+const EXTERNAL_HELPERS_MODULE_NAME_TEXT: &str = "tslib";
 
 // externalmoduleinfo.go:257
 pub(crate) fn create_external_helpers_import_declaration_if_needed(
@@ -315,8 +315,8 @@ pub(crate) fn create_external_helpers_import_declaration_if_needed(
         let f = &emit_context.get().factory;
         let module_kind = compiler_options.get_emit_module_kind();
         let helpers = get_imported_helpers(emit_context, source_file);
-        if file_module_kind == ModuleKind::CommonJS
-            || file_module_kind == ModuleKind::None && module_kind == ModuleKind::CommonJS
+        if file_module_kind == ModuleKind::COMMON_JS
+            || file_module_kind == ModuleKind::NONE && module_kind == ModuleKind::COMMON_JS
         {
             // When we emit to a non-ES module, generate a synthetic `import tslib = require("tslib")` to be further transformed.
             let external_helpers_module_name = get_or_create_external_helpers_module_name_if_needed(
@@ -334,11 +334,13 @@ pub(crate) fn create_external_helpers_import_declaration_if_needed(
                     false, /*isTypeOnly*/
                     external_helpers_module_name,
                     f.new_external_module_reference(
-                        f.new_string_literal(externalHelpersModuleNameText, TokenFlags::None),
+                        f.new_string_literal(EXTERNAL_HELPERS_MODULE_NAME_TEXT, TokenFlags::NONE),
                     ),
                 );
-                emit_context
-                    .add_emit_flags(external_helpers_import_declaration, EmitFlags::CustomPrologue);
+                emit_context.add_emit_flags(
+                    external_helpers_import_declaration,
+                    EmitFlags::CUSTOM_PROLOGUE,
+                );
                 return Some(external_helpers_import_declaration);
             }
         } else {
@@ -381,7 +383,7 @@ pub(crate) fn create_external_helpers_import_declaration_if_needed(
                     .collect();
                 let named_bindings = f.new_named_imports(f.new_node_list(import_specifiers));
                 let parse_node = emit_context.most_original(Some(source_file.as_node())).unwrap();
-                emit_context.add_emit_flags(parse_node, EmitFlags::ExternalHelpers);
+                emit_context.add_emit_flags(parse_node, EmitFlags::EXTERNAL_HELPERS);
 
                 let external_helpers_import_declaration = f.new_import_declaration(
                     None, /*modifiers*/
@@ -390,12 +392,14 @@ pub(crate) fn create_external_helpers_import_declaration_if_needed(
                         None,          /*name*/
                         Some(named_bindings),
                     )),
-                    f.new_string_literal(externalHelpersModuleNameText, TokenFlags::None),
+                    f.new_string_literal(EXTERNAL_HELPERS_MODULE_NAME_TEXT, TokenFlags::NONE),
                     None, /*attributes*/
                 );
 
-                emit_context
-                    .add_emit_flags(external_helpers_import_declaration, EmitFlags::CustomPrologue);
+                emit_context.add_emit_flags(
+                    external_helpers_import_declaration,
+                    EmitFlags::CUSTOM_PROLOGUE,
+                );
                 return Some(external_helpers_import_declaration);
             }
         }
@@ -435,11 +439,11 @@ fn get_or_create_external_helpers_module_name_if_needed(
 
     let create = !helpers.is_empty()
         || (has_export_stars_to_export_values || has_import_star_or_import_default)
-            && file_module_kind < ModuleKind::System;
+            && file_module_kind < ModuleKind::SYSTEM;
 
     if create {
         let external_helpers_module_name =
-            emit_context.factory.new_unique_name(externalHelpersModuleNameText);
+            emit_context.factory.new_unique_name(EXTERNAL_HELPERS_MODULE_NAME_TEXT);
         emit_context.set_external_helpers_module_name(node, external_helpers_module_name);
         return Some(external_helpers_module_name);
     }

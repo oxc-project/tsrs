@@ -8,16 +8,16 @@ use crate::watcher::Error;
 pub struct EventKind(pub i32);
 
 impl EventKind {
-    pub const Update: EventKind = EventKind(1);
-    pub const Delete: EventKind = EventKind(2);
+    pub const UPDATE: EventKind = EventKind(1);
+    pub const DELETE: EventKind = EventKind(2);
 }
 
 impl std::fmt::Display for EventKind {
     // event.go:13
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match *self {
-            EventKind::Update => f.write_str("update"),
-            EventKind::Delete => f.write_str("delete"),
+            EventKind::UPDATE => f.write_str("update"),
+            EventKind::DELETE => f.write_str("delete"),
             _ => f.write_str("unknown"),
         }
     }
@@ -40,7 +40,7 @@ impl Event {
 
 // eventEntry tracks coalescing state during a debounce batch.
 #[derive(Clone, Copy, Default)]
-pub(crate) struct eventEntry {
+pub(crate) struct EventEntry {
     created_seq: u64,
     updated_seq: u64,
     deleted_seq: u64,
@@ -51,18 +51,18 @@ pub(crate) struct eventEntry {
 //   - create after delete → update (rapid delete+recreate)
 //   - getEvents skips entries that were both created and deleted
 #[derive(Default)]
-pub(crate) struct eventList {
-    mu: Mutex<eventListState>,
+pub(crate) struct EventList {
+    mu: Mutex<EventListState>,
 }
 
 #[derive(Default)]
-struct eventListState {
-    entries: FxHashMap<String, eventEntry>,
+struct EventListState {
+    entries: FxHashMap<String, EventEntry>,
     err: Option<Error>,
     seq: u64,
 }
 
-impl eventList {
+impl EventList {
     // event.go:51
     // create records a new-file event for path. Both create and update
     // produce EventUpdate externally; sequence state tracks coalescing
@@ -180,7 +180,7 @@ impl eventList {
 
     // tsrs-only: `drain_for_sequences` without the per-callback snapshots, which the caller makes outside the lock
     // (`dirWatch::trigger_callbacks`): the pending entries and the stored error, and the list cleared.
-    pub(crate) fn drain_entries(&self) -> (Vec<(String, eventEntry)>, Option<Error>) {
+    pub(crate) fn drain_entries(&self) -> (Vec<(String, EventEntry)>, Option<Error>) {
         let mut el = self.mu.lock().unwrap();
         let entries = std::mem::take(&mut el.entries);
         let err = el.err.take();
@@ -219,7 +219,7 @@ impl eventList {
     }
 }
 
-impl eventListState {
+impl EventListState {
     // event.go:65
     #[cfg(any(unix, test))]
     fn create_locked(&mut self, path: &str, seq: u64) {
@@ -267,9 +267,9 @@ impl eventListState {
     }
 
     // event.go:223
-    fn get_or_create(&mut self, path: &str) -> &mut eventEntry {
+    fn get_or_create(&mut self, path: &str) -> &mut EventEntry {
         if !self.entries.contains_key(path) {
-            self.entries.insert(path.to_string(), eventEntry::default());
+            self.entries.insert(path.to_string(), EventEntry::default());
         }
         self.entries.get_mut(path).unwrap()
     }
@@ -289,7 +289,7 @@ impl eventListState {
     }
 }
 
-impl eventEntry {
+impl EventEntry {
     // event.go:252
     #[cfg(any(unix, test))]
     fn is_deleted(&self) -> bool {
@@ -311,11 +311,11 @@ impl eventEntry {
             {
                 return None;
             }
-            return Some(EventKind::Delete);
+            return Some(EventKind::DELETE);
         }
         let seq = self.created_seq.max(self.updated_seq);
         if seq > start_seq {
-            return Some(EventKind::Update);
+            return Some(EventKind::UPDATE);
         }
         None
     }

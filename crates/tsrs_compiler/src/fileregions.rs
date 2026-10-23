@@ -200,7 +200,7 @@ pub(crate) fn force_shared_lists(program: &crate::program::Program) {
 
 /// The declaration files of the global libraries (`force_shared_lists`), in program order.
 fn global_library_files(program: &crate::program::Program) -> Vec<P<SourceFile>> {
-    use crate::file_include::fileIncludeKind as K;
+    use crate::file_include::FileIncludeKind as K;
     let reasons = &program.file_include_data.file_include_reasons;
     let mut global: FxHashSet<&str> = FxHashSet::default();
     let mut by_reference: Vec<(&str, &str)> = Vec::new(); // (referencing file's path, referenced file's path)
@@ -643,9 +643,9 @@ fn adds_nothing(program: &Program, file: P<SourceFile>) -> bool {
         return true;
     };
     exports.entries().iter().all(|&(name, s)| {
-        name != ast::InternalSymbolNameExportEquals
-            && name != ast::InternalSymbolNameExportStar
-            && !s.flags().intersects(SymbolFlags::Alias | SymbolFlags::ExportStar)
+        name != ast::INTERNAL_SYMBOL_NAME_EXPORT_EQUALS
+            && name != ast::INTERNAL_SYMBOL_NAME_EXPORT_STAR
+            && !s.flags().intersects(SymbolFlags::ALIAS | SymbolFlags::EXPORT_STAR)
     })
 }
 

@@ -24,7 +24,7 @@ use crate::lsutil::{UserPreferences, new_default_user_preferences};
 use crate::sourcemap::ECMALineInfo;
 use crate::{Host, LanguageService, new_language_service};
 
-struct dataset {
+struct Dataset {
     a: &'static str,
     b: &'static str,
     tsconfig: &'static str,
@@ -38,7 +38,7 @@ struct dataset {
 
 macro_rules! dataset {
     ($dir:literal) => {
-        dataset {
+        Dataset {
             a: include_str!(concat!("../testdata/", $dir, "/a.ts")),
             b: include_str!(concat!("../testdata/", $dir, "/b.ts")),
             tsconfig: include_str!(concat!("../testdata/", $dir, "/tsconfig.json")),
@@ -50,12 +50,12 @@ macro_rules! dataset {
     };
 }
 
-struct testHost {
+struct TestHost {
     fs: Arc<dyn FS>,
     converters: Arc<Converters>,
 }
 
-impl Host for testHost {
+impl Host for TestHost {
     fn use_case_sensitive_file_names(&self) -> bool {
         true
     }
@@ -96,11 +96,11 @@ impl Host for testHost {
     }
 }
 
-struct parseConfigHost {
+struct ParseConfigHostImpl {
     fs: Arc<dyn FS>,
 }
 
-impl ParseConfigHost for parseConfigHost {
+impl ParseConfigHost for ParseConfigHostImpl {
     fn fs(&self) -> &dyn FS {
         &*self.fs
     }
@@ -112,14 +112,14 @@ impl ParseConfigHost for parseConfigHost {
 // A minimal stand-in for the project system's query-checker pool: like Go's project pool (and unlike the
 // compiler pool, whose checkers are locked per acquisition here), a nested acquisition while a checker is held
 // gets another checker. Call hierarchy acquires checkers while holding one, as Go does.
-struct testPoolState {
+struct TestPoolState {
     program: &'static Program,
     slots: Mutex<Vec<(PooledChecker, bool)>>,
 }
 
-struct testPool(&'static testPoolState);
+struct TestPool(&'static TestPoolState);
 
-impl CheckerPool for testPool {
+impl CheckerPool for TestPool {
     fn get_checker(&self, _ctx: &Context, _file: Option<P<tsrs_ast::SourceFile>>) -> CheckerHandle {
         let state = self.0;
         let mut slots = state.slots.lock().unwrap();
@@ -142,13 +142,13 @@ impl CheckerPool for testPool {
     }
 }
 
-fn setup(d: &dataset) -> (LanguageService, Context) {
+fn setup(d: &Dataset) -> (LanguageService, Context) {
     let a_path = format!("/{}", d.a_name);
     let files = [("/tsconfig.json", d.tsconfig), (a_path.as_str(), d.a), ("/b.ts", d.b)];
     let fs: Arc<dyn FS> =
         Arc::new(bundled::wrap_fs(vfstest::from_map(files.iter().map(|&(k, v)| (k, v)), true)));
-    let config_host: &'static parseConfigHost =
-        Box::leak(Box::new(parseConfigHost { fs: std::sync::Arc::clone(&fs) }));
+    let config_host: &'static ParseConfigHostImpl =
+        Box::leak(Box::new(ParseConfigHostImpl { fs: std::sync::Arc::clone(&fs) }));
     let (config, diagnostics) = tsoptions::get_parsed_command_line_of_config_file(
         "/tsconfig.json",
         None,
@@ -161,9 +161,9 @@ fn setup(d: &dataset) -> (LanguageService, Context) {
         new_compiler_host("/", std::sync::Arc::clone(&fs), &bundled::lib_path(), None, None, None);
     let mut options = ProgramOptions::new(P::new(config.unwrap()), host);
     options.create_checker_pool = Some(Arc::new(|program: &'static Program| {
-        let state: &'static testPoolState =
-            Box::leak(Box::new(testPoolState { program, slots: Mutex::new(Vec::new()) }));
-        Box::new(testPool(state)) as Box<dyn CheckerPool>
+        let state: &'static TestPoolState =
+            Box::leak(Box::new(TestPoolState { program, slots: Mutex::new(Vec::new()) }));
+        Box::new(TestPool(state)) as Box<dyn CheckerPool>
     }));
     let program: &'static Program = new_program(options);
     program.bind_source_files();
@@ -184,7 +184,7 @@ fn setup(d: &dataset) -> (LanguageService, Context) {
                 .insert(file_name.to_string(), std::sync::Arc::clone(&line_map));
             Some(line_map)
         });
-    let host = Arc::new(testHost { fs, converters });
+    let host = Arc::new(TestHost { fs, converters });
     let ls = new_language_service(ProjectID("/tsconfig.json".to_string()), program, host, "/b.ts");
     let mut caps = lsproto::ResolvedClientCapabilities {
         vs_supports_visual_studio_extensions: d.vs,
@@ -248,10 +248,10 @@ fn references_rename_classes_exports_destructuring() {
 // recorded with CAPS='{"_vs_supportsVisualStudioExtensions":true,"textDocument":{"implementation":{"linkSupport":true}}}'.
 #[test]
 fn vs_references_and_implementation_links() {
-    run(&dataset { vs: true, ..dataset!("refs_smoke_vs") });
+    run(&Dataset { vs: true, ..dataset!("refs_smoke_vs") });
 }
 
-fn run(d: &dataset) {
+fn run(d: &Dataset) {
     let (ls, ctx) = setup(d);
     let reqs = json::unmarshal(d.reqs).unwrap();
     let Value::Array(reqs) = reqs else { panic!() };

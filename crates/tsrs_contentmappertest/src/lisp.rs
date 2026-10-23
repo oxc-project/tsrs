@@ -7,16 +7,16 @@ use tsrs_ipc as ipc;
 use tsrs_spanmap::{Feature, Kind, Segment};
 
 use crate::protocol::{
-    initialize_result, marshal_span_map, no_notifications, quote, testHandler, unexpected_method,
+    TestHandler, initialize_result, marshal_span_map, no_notifications, quote, unexpected_method,
     unmarshal_params,
 };
 
 // lisp.go:13
-pub(crate) struct lispHandler;
+pub(crate) struct LispHandler;
 
-impl testHandler for lispHandler {}
+impl TestHandler for LispHandler {}
 
-impl ipc::Handler for lispHandler {
+impl ipc::Handler for LispHandler {
     // lisp.go:15
     fn handle_request(&self, method: &str, params: Option<&Value>) -> Result<Value, ipc::Error> {
         match method {
@@ -36,13 +36,13 @@ impl ipc::Handler for lispHandler {
                         original_start,
                         original_end,
                         kind,
-                        features: Feature::All,
+                        features: Feature::ALL,
                     };
                 let mappings = marshal_span_map(&[
-                    segment(0, 3, 1, 2, Kind::Alias),
-                    segment(4, 5, 3, 4, Kind::Verbatim),
-                    segment(7, 8, 5, 6, Kind::Verbatim),
-                    segment(10, 16, 7, 13, Kind::Verbatim),
+                    segment(0, 3, 1, 2, Kind::ALIAS),
+                    segment(4, 5, 3, 4, Kind::VERBATIM),
+                    segment(7, 8, 5, 6, Kind::VERBATIM),
+                    segment(10, 16, 7, 13, Kind::VERBATIM),
                 ])?;
                 Ok(TransformResult {
                     mapped_output: MappedOutput {

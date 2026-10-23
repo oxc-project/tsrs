@@ -1,11 +1,11 @@
 use crate::*;
 
 // logicalassignment.go:8
-pub struct logicalAssignmentTransformer {
+pub struct LogicalAssignmentTransformer {
     pub base: Transformer,
 }
 
-impl logicalAssignmentTransformer {
+impl LogicalAssignmentTransformer {
     fn emit_context(&self) -> P<EmitContext> {
         self.base.emit_context()
     }
@@ -20,7 +20,7 @@ impl logicalAssignmentTransformer {
 
     // logicalassignment.go:12
     fn visit(&self, node: P<Node>) -> Option<P<Node>> {
-        if !node.subtree_facts().intersects(SubtreeFacts::ContainsLogicalAssignments) {
+        if !node.subtree_facts().intersects(SubtreeFacts::CONTAINS_LOGICAL_ASSIGNMENTS) {
             return Some(node);
         }
         match node.kind() {
@@ -61,13 +61,13 @@ impl logicalAssignmentTransformer {
                     property_access_target,
                     None,
                     left.name().unwrap(),
-                    NodeFlags::None,
+                    NodeFlags::NONE,
                 );
                 left = f.new_property_access_expression(
                     property_access_target_assignment,
                     None,
                     left.name().unwrap(),
-                    NodeFlags::None,
+                    NodeFlags::NONE,
                 );
             } else {
                 let element_access_argument_simple_copiable = is_simple_copiable_expression(
@@ -89,13 +89,13 @@ impl logicalAssignmentTransformer {
                     property_access_target,
                     None,
                     element_access_argument,
-                    NodeFlags::None,
+                    NodeFlags::NONE,
                 );
                 left = f.new_element_access_expression(
                     property_access_target_assignment,
                     None,
                     argument_expr,
-                    NodeFlags::None,
+                    NodeFlags::NONE,
                 );
             }
         }
@@ -116,7 +116,7 @@ impl logicalAssignmentTransformer {
     reason = "Transformer factories share an optional result so disabled transforms can return None."
 )]
 pub fn new_logical_assignment_transformer(opt: &TransformOptions) -> Option<P<Transformer>> {
-    let tx = P::new(logicalAssignmentTransformer { base: Transformer::default() });
+    let tx = P::new(LogicalAssignmentTransformer { base: Transformer::default() });
     Some(tx.get().base.new_transformer(
         Rc::new(move |_: &mut NodeVisitor, n: P<Node>| tx.visit(n)),
         Some(opt.context),

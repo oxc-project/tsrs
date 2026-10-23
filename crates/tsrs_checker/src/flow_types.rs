@@ -52,17 +52,17 @@ pub struct FlowState {
     pub reduce_depth: Cell<u32>,
 }
 
-pub static typeofNEFacts: LazyLock<FxHashMap<&'static str, TypeFacts>> = LazyLock::new(|| {
+pub static TYPEOF_NE_FACTS: LazyLock<FxHashMap<&'static str, TypeFacts>> = LazyLock::new(|| {
     FxHashMap::from_iter([
-        ("string", TypeFacts::TypeofNEString),
-        ("number", TypeFacts::TypeofNENumber),
-        ("bigint", TypeFacts::TypeofNEBigInt),
-        ("boolean", TypeFacts::TypeofNEBoolean),
-        ("symbol", TypeFacts::TypeofNESymbol),
-        ("undefined", TypeFacts::NEUndefined),
-        ("object", TypeFacts::TypeofNEObject),
-        ("function", TypeFacts::TypeofNEFunction),
+        ("string", TypeFacts::TYPEOF_NE_STRING),
+        ("number", TypeFacts::TYPEOF_NE_NUMBER),
+        ("bigint", TypeFacts::TYPEOF_NE_BIG_INT),
+        ("boolean", TypeFacts::TYPEOF_NE_BOOLEAN),
+        ("symbol", TypeFacts::TYPEOF_NE_SYMBOL),
+        ("undefined", TypeFacts::NE_UNDEFINED),
+        ("object", TypeFacts::TYPEOF_NE_OBJECT),
+        ("function", TypeFacts::TYPEOF_NE_FUNCTION),
     ])
 });
 
-pub const nonDottedNameCacheKey: CacheHashKey = CacheHashKey::hash_string_128("?");
+pub const NON_DOTTED_NAME_CACHE_KEY: CacheHashKey = CacheHashKey::hash_string_128("?");

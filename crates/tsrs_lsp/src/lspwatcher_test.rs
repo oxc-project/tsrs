@@ -21,17 +21,17 @@ fn stderr_logger() -> Arc<dyn Logger> {
     new_logger(Box::new(std::io::stderr()))
 }
 
-struct tempDir(String);
+struct TempDir(String);
 
-impl tempDir {
-    fn new() -> tempDir {
+impl TempDir {
+    fn new() -> TempDir {
         static N: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
         let n = N.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
         let dir =
             std::env::temp_dir().join(format!("tsrs-lspwatcher-{}-{}", std::process::id(), n));
         std::fs::create_dir_all(&dir).unwrap();
         // Go's t.TempDir() path is not resolved either; the watcher works on the requested spelling.
-        tempDir(dir.to_string_lossy().into_owned())
+        TempDir(dir.to_string_lossy().into_owned())
     }
 
     fn join(&self, rel: &str) -> String {
@@ -39,7 +39,7 @@ impl tempDir {
     }
 }
 
-impl Drop for tempDir {
+impl Drop for TempDir {
     fn drop(&mut self) {
         let _ = std::fs::remove_dir_all(&self.0);
     }
@@ -69,38 +69,38 @@ fn fsw(pattern: &str, kind: Option<lsproto::WatchKind>) -> lsproto::FileSystemWa
 
 fn all_kinds() -> lsproto::WatchKind {
     lsproto::WatchKind(
-        lsproto::WatchKind::Create.0 | lsproto::WatchKind::Change.0 | lsproto::WatchKind::Delete.0,
+        lsproto::WatchKind::CREATE.0 | lsproto::WatchKind::CHANGE.0 | lsproto::WatchKind::DELETE.0,
     )
 }
 
-type sink = Arc<Mutex<Vec<lsproto::FileEvent>>>;
+type Sink = Arc<Mutex<Vec<lsproto::FileEvent>>>;
 
-fn recorder() -> (sink, OnChanges) {
-    let got: sink = Arc::new(Mutex::new(Vec::new()));
+fn recorder() -> (Sink, OnChanges) {
+    let got: Sink = Arc::new(Mutex::new(Vec::new()));
     let g = std::sync::Arc::clone(&got);
     (got, Arc::new(move |changes: Vec<lsproto::FileEvent>| g.lock().unwrap().extend(changes)))
 }
 
 fn update(path: &str) -> fswatch::Event {
-    fswatch::Event::new(fswatch::EventKind::Update, path)
+    fswatch::Event::new(fswatch::EventKind::UPDATE, path)
 }
 
 fn delete(path: &str) -> fswatch::Event {
-    fswatch::Event::new(fswatch::EventKind::Delete, path)
+    fswatch::Event::new(fswatch::EventKind::DELETE, path)
 }
 
 fn terminated_error(detail: &str) -> fswatch::Error {
     // Go: errors.Join(fswatch.ErrWatchTerminated, errors.New(detail)).
     fswatch::Error::wrap(
-        format!("{}\n{}", fswatch::ErrWatchTerminated.0, detail),
-        &fswatch::ErrWatchTerminated.into(),
+        format!("{}\n{}", fswatch::ERR_WATCH_TERMINATED.0, detail),
+        &fswatch::ERR_WATCH_TERMINATED.into(),
     )
 }
 
 // lspwatcher_test.go:33
 #[test]
 fn watcher_create_change_delete() {
-    let dir = tempDir::new();
+    let dir = TempDir::new();
     let (got, on_changes) = recorder();
     let w = new(os_fs(), on_changes, stderr_logger());
 
@@ -112,13 +112,13 @@ fn watcher_create_change_delete() {
     let file = dir.join("a.ts");
     std::fs::write(&file, "export {}").unwrap();
     wait_for(
-        || got.lock().unwrap().iter().any(|e| e.type_ == lsproto::FileChangeType::Changed),
+        || got.lock().unwrap().iter().any(|e| e.type_ == lsproto::FileChangeType::CHANGED),
         "update event",
     );
 
     std::fs::remove_file(&file).unwrap();
     wait_for(
-        || got.lock().unwrap().iter().any(|e| e.type_ == lsproto::FileChangeType::Deleted),
+        || got.lock().unwrap().iter().any(|e| e.type_ == lsproto::FileChangeType::DELETED),
         "delete event",
     );
 
@@ -129,25 +129,25 @@ fn watcher_create_change_delete() {
 // lspwatcher_test.go:100
 #[test]
 fn watcher_kind_filter() {
-    let dir = tempDir::new();
+    let dir = TempDir::new();
     let dir_norm = tspath::normalize_slashes(&dir.0);
     let (got, on_changes) = recorder();
-    let backend = fakeBackend::new();
+    let backend = FakeBackend::new();
     let w = new_with_backend(os_fs(), Box::new(backend.clone()), on_changes, stderr_logger());
 
     let pattern = format!("{dir_norm}/**/*");
-    w.watch_files("test", &[fsw(&pattern, Some(lsproto::WatchKind::Delete))]).unwrap();
+    w.watch_files("test", &[fsw(&pattern, Some(lsproto::WatchKind::DELETE))]).unwrap();
     let x = format!("{dir_norm}/x.ts");
     backend.emit_all(&[update(&x), delete(&x)], None);
 
     wait_for(
-        || got.lock().unwrap().iter().any(|e| e.type_ == lsproto::FileChangeType::Deleted),
+        || got.lock().unwrap().iter().any(|e| e.type_ == lsproto::FileChangeType::DELETED),
         "delete event",
     );
     for e in got.lock().unwrap().iter() {
         assert_eq!(
             e.type_,
-            lsproto::FileChangeType::Deleted,
+            lsproto::FileChangeType::DELETED,
             "unexpected non-delete event: {:?}",
             e.uri
         );
@@ -169,7 +169,7 @@ fn root_from_glob_cases() {
 }
 
 #[derive(Default)]
-struct fakeBackendState {
+struct FakeBackendState {
     by_dir: FxHashMap<String, fswatch::WatchCallback>,
     closed: FxHashMap<String, i32>,
     opt_count: FxHashMap<String, usize>,
@@ -177,20 +177,20 @@ struct fakeBackendState {
 }
 
 #[derive(Clone)]
-struct fakeBackend(Arc<Mutex<fakeBackendState>>);
+struct FakeBackend(Arc<Mutex<FakeBackendState>>);
 
-struct fakeWatch(Box<dyn Fn() + Send + Sync>);
+struct FakeWatch(Box<dyn Fn() + Send + Sync>);
 
-impl fswatch::Watch for fakeWatch {
+impl fswatch::Watch for FakeWatch {
     fn close(&self) -> Result<(), fswatch::Error> {
         (self.0)();
         Ok(())
     }
 }
 
-impl fakeBackend {
-    fn new() -> fakeBackend {
-        fakeBackend(Arc::new(Mutex::new(fakeBackendState::default())))
+impl FakeBackend {
+    fn new() -> FakeBackend {
+        FakeBackend(Arc::new(Mutex::new(FakeBackendState::default())))
     }
 
     // watchedDirs returns the directories currently subscribed, for assertions.
@@ -218,7 +218,7 @@ impl fakeBackend {
     }
 }
 
-impl watcherBackend for fakeBackend {
+impl WatcherBackend for FakeBackend {
     // lspwatcher_test.go:185
     fn watch_directory(
         &self,
@@ -234,7 +234,7 @@ impl watcherBackend for fakeBackend {
         st.opt_count.insert(dir.to_string(), opts.len());
         let state = std::sync::Arc::clone(&self.0);
         let dir = dir.to_string();
-        Ok(Box::new(fakeWatch(Box::new(move || {
+        Ok(Box::new(FakeWatch(Box::new(move || {
             let mut st = state.lock().unwrap();
             st.by_dir.remove(&dir);
             *st.closed.entry(dir.clone()).or_default() += 1;
@@ -245,17 +245,17 @@ impl watcherBackend for fakeBackend {
 // lspwatcher_test.go:245
 #[test]
 fn watcher_bookkeeping_and_overflow() {
-    let dir = tempDir::new();
+    let dir = TempDir::new();
     let dir_norm = tspath::normalize_slashes(&dir.0);
     let pattern = format!("{dir_norm}/**/*");
-    let backend = fakeBackend::new();
+    let backend = FakeBackend::new();
     let (got, on_changes) = recorder();
     let w = new_with_backend(os_fs(), Box::new(backend.clone()), on_changes, stderr_logger());
 
     w.watch_files("id", &[fsw(&pattern, None)]).unwrap();
     assert!(w.watch_files("id", &[fsw(&pattern, None)]).is_err(), "expected duplicate-id error");
 
-    backend.emit_all(&[update(&format!("{dir_norm}/a.ts"))], Some(&fswatch::ErrOverflow.into()));
+    backend.emit_all(&[update(&format!("{dir_norm}/a.ts"))], Some(&fswatch::ERR_OVERFLOW.into()));
     wait_for(|| !got.lock().unwrap().is_empty(), "events after overflow");
 
     assert!(w.unwatch_files("missing").is_err(), "expected unknown-id error");
@@ -268,12 +268,12 @@ fn watcher_bookkeeping_and_overflow() {
 // lspwatcher_test.go:299
 #[test]
 fn watcher_non_recursive_glob_is_not_recursive() {
-    let dir = tempDir::new();
+    let dir = TempDir::new();
     let dir_norm = tspath::normalize_slashes(&dir.0);
     std::fs::create_dir_all(dir.join("sub")).unwrap();
     let sub_norm = tspath::normalize_slashes(&dir.join("sub"));
 
-    let backend = fakeBackend::new();
+    let backend = FakeBackend::new();
     let w = new_with_backend(os_fs(), Box::new(backend.clone()), Arc::new(|_| {}), stderr_logger());
 
     let recursive = format!("{dir_norm}/**/*");
@@ -298,7 +298,7 @@ fn watcher_non_recursive_glob_is_not_recursive() {
 // lspwatcher_test.go:333
 #[test]
 fn watcher_real_backend_missing_then_create() {
-    let base = tempDir::new();
+    let base = TempDir::new();
     let (got, on_changes) = recorder();
     let w = new(os_fs(), on_changes, stderr_logger());
 
@@ -326,10 +326,10 @@ fn watcher_real_backend_missing_then_create() {
 // lspwatcher_test.go:393
 #[test]
 fn watcher_missing_directory_tracks_ancestor() {
-    let backend = fakeBackend::new();
+    let backend = FakeBackend::new();
     let w = new_with_backend(os_fs(), Box::new(backend.clone()), Arc::new(|_| {}), stderr_logger());
 
-    let base = tempDir::new();
+    let base = TempDir::new();
     let base_norm = tspath::normalize_slashes(&base.0);
     let pattern = format!("{}/*", tspath::normalize_slashes(&base.join("pkg")));
     w.watch_files("id", &[fsw(&pattern, None)]).unwrap();
@@ -361,11 +361,11 @@ fn watcher_missing_directory_tracks_ancestor() {
 // lspwatcher_test.go:429
 #[test]
 fn watcher_missing_directory_promotes_on_create() {
-    let backend = fakeBackend::new();
+    let backend = FakeBackend::new();
     let (got, on_changes) = recorder();
     let w = new_with_backend(os_fs(), Box::new(backend.clone()), on_changes, stderr_logger());
 
-    let base = tempDir::new();
+    let base = TempDir::new();
     let base_norm = tspath::normalize_slashes(&base.0);
     let target = tspath::normalize_slashes(&base.join("pkg"));
     let pattern = format!("{target}/*");
@@ -383,7 +383,7 @@ fn watcher_missing_directory_promotes_on_create() {
     wait_for(
         || {
             let got = got.lock().unwrap();
-            let created = got.iter().filter(|e| e.type_ == lsproto::FileChangeType::Created);
+            let created = got.iter().filter(|e| e.type_ == lsproto::FileChangeType::CREATED);
             let uris: Vec<&str> = created.map(|e| e.uri.0.as_str()).collect();
             uris.iter().any(|s| s.ends_with("/pkg"))
                 && uris.iter().any(|s| s.ends_with("/pkg/index.ts"))
@@ -396,10 +396,10 @@ fn watcher_missing_directory_promotes_on_create() {
 // lspwatcher_test.go:493
 #[test]
 fn watcher_multi_level_descend() {
-    let backend = fakeBackend::new();
+    let backend = FakeBackend::new();
     let w = new_with_backend(os_fs(), Box::new(backend.clone()), Arc::new(|_| {}), stderr_logger());
 
-    let base = tempDir::new();
+    let base = TempDir::new();
     let base_norm = tspath::normalize_slashes(&base.0);
     let pattern = format!("{}/*", tspath::normalize_slashes(&base.join("a/b/c")));
     w.watch_files("id", &[fsw(&pattern, None)]).unwrap();
@@ -434,10 +434,10 @@ fn watcher_multi_level_descend() {
 // lspwatcher_test.go:537
 #[test]
 fn watcher_atomic_tree_create_race() {
-    let backend = fakeBackend::new();
+    let backend = FakeBackend::new();
     let w = new_with_backend(os_fs(), Box::new(backend.clone()), Arc::new(|_| {}), stderr_logger());
 
-    let base = tempDir::new();
+    let base = TempDir::new();
     let base_norm = tspath::normalize_slashes(&base.0);
     let target = tspath::normalize_slashes(&base.join("a/b/c"));
     let pattern = format!("{target}/*");
@@ -457,11 +457,11 @@ fn watcher_atomic_tree_create_race() {
 #[test]
 fn watcher_synthetic_create_depth() {
     for recursive in [false, true] {
-        let backend = fakeBackend::new();
+        let backend = FakeBackend::new();
         let (got, on_changes) = recorder();
         let w = new_with_backend(os_fs(), Box::new(backend.clone()), on_changes, stderr_logger());
 
-        let base = tempDir::new();
+        let base = TempDir::new();
         let base_norm = tspath::normalize_slashes(&base.0);
         let target = tspath::normalize_slashes(&base.join("pkg"));
         let pattern = if recursive { format!("{target}/**/*") } else { format!("{target}/*") };
@@ -479,7 +479,7 @@ fn watcher_synthetic_create_depth() {
             got.lock()
                 .unwrap()
                 .iter()
-                .filter(|e| e.type_ == lsproto::FileChangeType::Created)
+                .filter(|e| e.type_ == lsproto::FileChangeType::CREATED)
                 .map(|e| e.uri.0.clone())
                 .collect()
         };
@@ -517,11 +517,11 @@ fn watcher_synthetic_create_depth() {
 // lspwatcher_test.go:667
 #[test]
 fn watcher_terminated_falls_back_and_recovers() {
-    let backend = fakeBackend::new();
+    let backend = FakeBackend::new();
     let (got, on_changes) = recorder();
     let w = new_with_backend(os_fs(), Box::new(backend.clone()), on_changes, stderr_logger());
 
-    let base = tempDir::new();
+    let base = TempDir::new();
     let base_norm = tspath::normalize_slashes(&base.0);
     let target = tspath::normalize_slashes(&base.join("pkg"));
     std::fs::create_dir_all(base.join("pkg")).unwrap();
@@ -546,7 +546,7 @@ fn watcher_terminated_falls_back_and_recovers() {
             got.lock()
                 .unwrap()
                 .iter()
-                .any(|e| e.type_ == lsproto::FileChangeType::Deleted && e.uri.0.ends_with("/pkg"))
+                .any(|e| e.type_ == lsproto::FileChangeType::DELETED && e.uri.0.ends_with("/pkg"))
         },
         "forwarded delete of terminated dir",
     );
@@ -565,10 +565,10 @@ fn watcher_terminated_falls_back_and_recovers() {
 // lspwatcher_test.go:733
 #[test]
 fn watcher_genuine_failure_rolls_back_for_retry() {
-    let backend = fakeBackend::new();
+    let backend = FakeBackend::new();
     let w = new_with_backend(os_fs(), Box::new(backend.clone()), Arc::new(|_| {}), stderr_logger());
 
-    let dir = tempDir::new();
+    let dir = TempDir::new();
     let dir_norm = tspath::normalize_slashes(&dir.0);
     let pattern = format!("{dir_norm}/*");
 
@@ -605,9 +605,9 @@ fn watcher_genuine_failure_rolls_back_for_retry() {
 // lspwatcher_test.go:774
 #[test]
 fn watcher_watch_terminated_does_not_drop_events() {
-    let dir = tempDir::new();
+    let dir = TempDir::new();
     let dir_norm = tspath::normalize_slashes(&dir.0);
-    let backend = fakeBackend::new();
+    let backend = FakeBackend::new();
     let (got, on_changes) = recorder();
     let w = new_with_backend(os_fs(), Box::new(backend.clone()), on_changes, stderr_logger());
 
@@ -620,12 +620,12 @@ fn watcher_watch_terminated_does_not_drop_events() {
     w.close();
 }
 
-struct blockingBackend {
+struct BlockingBackend {
     entered: Mutex<Option<mpsc::Sender<()>>>,
     release: Mutex<mpsc::Receiver<()>>,
 }
 
-impl watcherBackend for blockingBackend {
+impl WatcherBackend for BlockingBackend {
     // lspwatcher_test.go:812
     fn watch_directory(
         &self,
@@ -638,19 +638,19 @@ impl watcherBackend for blockingBackend {
             let _ = entered.send(());
         }
         let _ = self.release.lock().unwrap().recv();
-        Ok(Box::new(fakeWatch(Box::new(|| {}))))
+        Ok(Box::new(FakeWatch(Box::new(|| {}))))
     }
 }
 
 // lspwatcher_test.go:822
 #[test]
 fn watcher_close_while_watch_files_reconciles() {
-    let dir = tempDir::new();
+    let dir = TempDir::new();
     let pattern = format!("{}/**/*", tspath::normalize_slashes(&dir.0));
     let (entered_tx, entered_rx) = mpsc::channel();
     let (release_tx, release_rx) = mpsc::channel();
     let backend =
-        blockingBackend { entered: Mutex::new(Some(entered_tx)), release: Mutex::new(release_rx) };
+        BlockingBackend { entered: Mutex::new(Some(entered_tx)), release: Mutex::new(release_rx) };
     let w = new_with_backend(os_fs(), Box::new(backend), Arc::new(|_| {}), stderr_logger());
 
     let w2 = std::sync::Arc::clone(&w);

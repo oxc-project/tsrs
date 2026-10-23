@@ -45,7 +45,7 @@ pub fn get_indentation(
 
     // no indentation when the indent style is set to none,
     // so we can return fast
-    if options.indent_style == IndentStyle::None {
+    if options.indent_style == IndentStyle::NONE {
         return 0;
     }
 
@@ -106,7 +106,7 @@ pub fn get_indentation(
     // ```
     let is_object_literal = current_token.kind() == Kind::OpenBraceToken
         && current_token.parent().is_some_and(|p| p.kind() == Kind::ObjectLiteralExpression);
-    if options.indent_style == IndentStyle::Block || is_object_literal {
+    if options.indent_style == IndentStyle::BLOCK || is_object_literal {
         return get_block_indent(source_file, position, options);
     }
 

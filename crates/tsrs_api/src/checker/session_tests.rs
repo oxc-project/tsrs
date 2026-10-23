@@ -619,7 +619,7 @@ fn shapes() -> Vec<(String, Value)> {
         "resolveName",
         s.sp(&[
             ("name", Value::String("Array".into())),
-            ("meaning", n(tsrs_ast::SymbolFlags::Type.bits())),
+            ("meaning", n(tsrs_ast::SymbolFlags::TYPE.bits())),
         ]),
     );
     s.shape(
@@ -627,7 +627,7 @@ fn shapes() -> Vec<(String, Value)> {
         "resolveName",
         s.sp(&[
             ("name", Value::String("nope".into())),
-            ("meaning", n(tsrs_ast::SymbolFlags::Value.bits())),
+            ("meaning", n(tsrs_ast::SymbolFlags::VALUE.bits())),
         ]),
     );
     s.shape("members.empty", "getMembersOfSymbol", obj(&[("symbol", s.sym_ref("box:"))]));

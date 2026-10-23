@@ -3,7 +3,7 @@ use std::sync::{Arc, Mutex, Weak};
 
 use rustc_hash::{FxHashMap, FxHashSet};
 
-use super::entry::mapEntry;
+use super::entry::EntryState;
 use super::interfaces::{Cloneable, Shared, Value};
 
 // Go `map[K]V` with pointer values, as snapshots hold it (shared between snapshots until changed).
@@ -12,16 +12,16 @@ pub type SharedMap<K, T> = Arc<FxHashMap<K, Shared<T>>>;
 // Go `Map[K, V]` is not synchronized; its locks only provide interior mutability and are never held while a
 // callback runs (a `Change` callback may delete the entry or look up other entries, as in Go).
 pub struct MapEntry<K, T> {
-    m: Weak<mapInner<K, T>>,
+    m: Weak<MapInner<K, T>>,
     key: K,
-    st: Mutex<mapEntry<T>>,
+    st: Mutex<EntryState<T>>,
 }
 
 pub struct Map<K, T> {
-    inner: Arc<mapInner<K, T>>,
+    inner: Arc<MapInner<K, T>>,
 }
 
-struct mapInner<K, T> {
+struct MapInner<K, T> {
     base: Mutex<SharedMap<K, T>>,
     dirty: Mutex<FxHashMap<K, Arc<MapEntry<K, T>>>>,
 }
@@ -150,7 +150,7 @@ impl<K: Hash + Eq + Clone, T: Cloneable + Clone> Value<T> for Arc<MapEntry<K, T>
 // map.go:57
 pub fn new_map<K, T>(base: SharedMap<K, T>) -> Map<K, T> {
     Map {
-        inner: Arc::new(mapInner {
+        inner: Arc::new(MapInner {
             base: Mutex::new(base),
             dirty: Mutex::new(FxHashMap::default()),
         }),
@@ -162,7 +162,7 @@ impl<K: Hash + Eq + Clone, T: Cloneable + Clone> Map<K, T> {
         Arc::new(MapEntry {
             m: Arc::downgrade(&self.inner),
             key,
-            st: Mutex::new(mapEntry {
+            st: Mutex::new(EntryState {
                 original: Some(value.clone()),
                 value: Some(value),
                 dirty: false,
@@ -194,7 +194,7 @@ impl<K: Hash + Eq + Clone, T: Cloneable + Clone> Map<K, T> {
         let entry = Arc::new(MapEntry {
             m: Arc::downgrade(&self.inner),
             key: key.clone(),
-            st: Mutex::new(mapEntry {
+            st: Mutex::new(EntryState {
                 original: None,
                 value: Some(value),
                 dirty: true,

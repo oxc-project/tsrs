@@ -39,11 +39,11 @@ impl LanguageService {
             self.format_options(),
             Arc::clone(&self.converters),
         );
-        let should_sort = kind == lsproto::CodeActionKind::SourceSortImportsTs
-            || kind == lsproto::CodeActionKind::SourceOrganizeImportsTs;
+        let should_sort = kind == lsproto::CodeActionKind::SOURCE_SORT_IMPORTS_TS
+            || kind == lsproto::CodeActionKind::SOURCE_ORGANIZE_IMPORTS_TS;
         let should_combine = should_sort;
-        let should_remove = kind == lsproto::CodeActionKind::SourceRemoveUnusedImportsTs
-            || kind == lsproto::CodeActionKind::SourceOrganizeImportsTs;
+        let should_remove = kind == lsproto::CodeActionKind::SOURCE_REMOVE_UNUSED_IMPORTS_TS
+            || kind == lsproto::CodeActionKind::SOURCE_ORGANIZE_IMPORTS_TS;
         let top_level_import_decls =
             lsutil::filter_import_declarations(source_file.statements.nodes());
         let top_level_import_group_decls =
@@ -87,7 +87,7 @@ impl LanguageService {
             }
         }
 
-        let comparer = organizeImportsComparerSettings {
+        let comparer = OrganizeImportsComparerSettings {
             module_specifier_comparer,
             named_import_comparer,
             type_order,
@@ -107,7 +107,7 @@ impl LanguageService {
             );
         }
 
-        if kind != lsproto::CodeActionKind::SourceRemoveUnusedImportsTs {
+        if kind != lsproto::CodeActionKind::SOURCE_REMOVE_UNUSED_IMPORTS_TS {
             let top_level_export_group_decls = get_top_level_export_groups(source_file);
             for export_group_decl in &top_level_export_group_decls {
                 organize_exports_worker(
@@ -150,7 +150,7 @@ impl LanguageService {
                 );
             }
 
-            if kind != lsproto::CodeActionKind::SourceRemoveUnusedImportsTs {
+            if kind != lsproto::CodeActionKind::SOURCE_REMOVE_UNUSED_IMPORTS_TS {
                 let ambient_module_export_decls: Vec<P<Node>> = module_body
                     .statements
                     .nodes()
@@ -175,13 +175,13 @@ impl LanguageService {
 }
 
 // organizeimports.go:116
-struct organizeImportsComparerSettings {
+struct OrganizeImportsComparerSettings {
     module_specifier_comparer: Option<StringComparer>,
     named_import_comparer: Option<StringComparer>,
     type_order: OrganizeImportsTypeOrder,
 }
 
-impl organizeImportsComparerSettings {
+impl OrganizeImportsComparerSettings {
     // Go calls the (possibly nil) func value directly; a nil comparer is only reachable when detection found
     // nothing, where Go would panic on the call too.
     fn module_specifier_comparer(&self) -> &dyn Fn(&str, &str) -> Ordering {
@@ -192,7 +192,7 @@ impl organizeImportsComparerSettings {
 // organizeimports.go:122
 fn organize_imports_worker(
     old_import_decls: &[P<Node>],
-    comparer: &organizeImportsComparerSettings,
+    comparer: &OrganizeImportsComparerSettings,
     should_sort: bool,
     should_combine: bool,
     should_remove: bool,
@@ -286,7 +286,7 @@ fn organize_imports_worker(
         );
     } else {
         for &imp in &new_import_decls {
-            change_tracker.emit_context.set_emit_flags(imp, EmitFlags::NoLeadingComments);
+            change_tracker.emit_context.set_emit_flags(imp, EmitFlags::NO_LEADING_COMMENTS);
         }
 
         let options = NodeOptions {
@@ -339,9 +339,9 @@ fn remove_unused_imports(
 ) -> Vec<P<Node>> {
     let compiler_options = program.options();
     let jsx_elements_present =
-        source_file.as_node().subtree_facts().intersects(ast::SubtreeFacts::ContainsJsx);
+        source_file.as_node().subtree_facts().intersects(ast::SubtreeFacts::CONTAINS_JSX);
     let jsx_mode_needs_explicit_import =
-        compiler_options.jsx == JsxEmit::React || compiler_options.jsx == JsxEmit::ReactNative;
+        compiler_options.jsx == JsxEmit::REACT || compiler_options.jsx == JsxEmit::REACT_NATIVE;
 
     let factory = NodeFactory::new(NodeFactoryHooks::default());
     let mut used_imports: Vec<P<Node>> = Vec::with_capacity(old_imports.len());
@@ -404,7 +404,7 @@ fn remove_unused_imports(
                                 source_file,
                             )
                         {
-                            change_tracker.emit_context.set_emit_flags(nb2, EmitFlags::MultiLine);
+                            change_tracker.emit_context.set_emit_flags(nb2, EmitFlags::MULTI_LINE);
                         }
                     }
                 }
@@ -802,7 +802,7 @@ fn coalesce_imports_worker(
                 {
                     change_tracker
                         .emit_context
-                        .set_emit_flags(new_named_imports, EmitFlags::MultiLine);
+                        .set_emit_flags(new_named_imports, EmitFlags::MULTI_LINE);
                 }
             }
 
@@ -866,22 +866,22 @@ fn coalesce_imports_worker(
 }
 
 // organizeimports.go:644
-struct categorizedImports {
+struct CategorizedImports {
     import_without_clause: Option<P<Node>>,
     source_phase_imports: Vec<P<Node>>,
-    type_only_imports: importGroup,
-    regular_imports: importGroup,
+    type_only_imports: ImportGroup,
+    regular_imports: ImportGroup,
 }
 
 // organizeimports.go:650
 #[derive(Default)]
-struct importGroup {
+struct ImportGroup {
     default_imports: Vec<P<Node>>,
     namespace_imports: Vec<P<Node>>,
     named_imports: Vec<P<Node>>,
 }
 
-impl importGroup {
+impl ImportGroup {
     // organizeimports.go:656
     fn is_empty(&self) -> bool {
         self.default_imports.is_empty()
@@ -891,11 +891,11 @@ impl importGroup {
 }
 
 // organizeimports.go:660
-fn get_categorized_imports(import_decls: &[P<Node>]) -> categorizedImports {
+fn get_categorized_imports(import_decls: &[P<Node>]) -> CategorizedImports {
     let mut import_without_clause: Option<P<Node>> = None;
     let mut source_phase_imports = Vec::new();
-    let mut type_only_imports = importGroup::default();
-    let mut regular_imports = importGroup::default();
+    let mut type_only_imports = ImportGroup::default();
+    let mut regular_imports = ImportGroup::default();
 
     for &import_decl in import_decls {
         let Some(clause_node) = import_decl.as_import_declaration().import_clause else {
@@ -929,7 +929,7 @@ fn get_categorized_imports(import_decls: &[P<Node>]) -> categorizedImports {
         }
     }
 
-    categorizedImports {
+    CategorizedImports {
         import_without_clause,
         source_phase_imports,
         type_only_imports,
@@ -1036,7 +1036,7 @@ fn get_top_level_export_groups(source_file: P<SourceFile>) -> Vec<Vec<P<Node>>> 
 // organizeimports.go:792
 fn organize_exports_worker(
     old_export_decls: &[P<Node>],
-    comparer: &organizeImportsComparerSettings,
+    comparer: &OrganizeImportsComparerSettings,
     source_file: P<SourceFile>,
     change_tracker: &mut change::Tracker,
 ) {
@@ -1071,7 +1071,7 @@ fn organize_exports_worker(
             );
         } else {
             for &exp in &new_export_decls {
-                change_tracker.emit_context.add_emit_flags(exp, EmitFlags::NoLeadingComments);
+                change_tracker.emit_context.add_emit_flags(exp, EmitFlags::NO_LEADING_COMMENTS);
             }
 
             let options = NodeOptions {
@@ -1188,7 +1188,7 @@ fn coalesce_exports_worker(
                         {
                             change_tracker
                                 .emit_context
-                                .set_emit_flags(updated, EmitFlags::MultiLine);
+                                .set_emit_flags(updated, EmitFlags::MULTI_LINE);
                         }
                     }
                 } else {
@@ -1212,14 +1212,14 @@ fn coalesce_exports_worker(
 }
 
 // organizeimports.go:928
-struct categorizedExports {
+struct CategorizedExports {
     export_without_clause: Option<P<Node>>,
     named_exports: Vec<P<Node>>,
     type_only_exports: Vec<P<Node>>,
 }
 
 // organizeimports.go:934
-fn get_categorized_exports(export_group: &[P<Node>]) -> categorizedExports {
+fn get_categorized_exports(export_group: &[P<Node>]) -> CategorizedExports {
     let mut export_without_clause: Option<P<Node>> = None;
     let mut named_exports = Vec::new();
     let mut type_only_exports = Vec::new();
@@ -1237,5 +1237,5 @@ fn get_categorized_exports(export_group: &[P<Node>]) -> categorizedExports {
         }
     }
 
-    categorizedExports { export_without_clause, named_exports, type_only_exports }
+    CategorizedExports { export_without_clause, named_exports, type_only_exports }
 }

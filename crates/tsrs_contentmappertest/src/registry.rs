@@ -1,22 +1,22 @@
 use std::sync::Arc;
 
-use crate::component::componentHandler;
-use crate::diagnostic_code_collision::diagnosticCodeCollisionHandler;
-use crate::duplicate::duplicateHandler;
-use crate::duplicate_projection::duplicateProjectionHandler;
-use crate::dynamic_verbatim::{ProjectLifecycle, dynamicVerbatimHandler};
-use crate::editing::{prefixedSupplementalHandler, unmappedFoldingHandler};
-use crate::failing::failingHandler;
-use crate::hoisting::hoistingHandler;
-use crate::lisp::lispHandler;
-use crate::protocol::testHandler;
-use crate::supplemental::supplementalHandler;
-use crate::supplemental_diagnostics::supplementalDiagnosticsHandler;
-use crate::supplemental_globals::supplementalGlobalsHandler;
-use crate::supplemental_module::supplementalModuleHandler;
-use crate::synthesizing::synthesizingHandler;
+use crate::component::ComponentHandler;
+use crate::diagnostic_code_collision::DiagnosticCodeCollisionHandler;
+use crate::duplicate::DuplicateHandler;
+use crate::duplicate_projection::DuplicateProjectionHandler;
+use crate::dynamic_verbatim::{DynamicVerbatimHandler, ProjectLifecycle};
+use crate::editing::{PrefixedSupplementalHandler, UnmappedFoldingHandler};
+use crate::failing::FailingHandler;
+use crate::hoisting::HoistingHandler;
+use crate::lisp::LispHandler;
+use crate::protocol::TestHandler;
+use crate::supplemental::SupplementalHandler;
+use crate::supplemental_diagnostics::SupplementalDiagnosticsHandler;
+use crate::supplemental_globals::SupplementalGlobalsHandler;
+use crate::supplemental_module::SupplementalModuleHandler;
+use crate::synthesizing::SynthesizingHandler;
 use crate::transforming::Handler;
-use crate::verbatim::{moduleVerbatimHandler, verbatimHandler};
+use crate::verbatim::{ModuleVerbatimHandler, VerbatimHandler};
 
 // registry.go:10
 pub const TRANSFORMING_MAPPER: &str = "compiler-test-mapper";
@@ -39,35 +39,35 @@ pub const HOISTING_MAPPER: &str = "hoisting-mapper";
 pub const DUPLICATE_PROJECTION_MAPPER: &str = "duplicate-projection-mapper";
 
 // registry.go:31
-type handlerConstructor = fn(Option<Arc<ProjectLifecycle>>) -> Arc<dyn testHandler>;
+type HandlerConstructor = fn(Option<Arc<ProjectLifecycle>>) -> Arc<dyn TestHandler>;
 
 // registry.go:33 (Go's map; looked up by name.)
-static MAPPER_HANDLERS: [(&str, handlerConstructor); 18] = [
+static MAPPER_HANDLERS: [(&str, HandlerConstructor); 18] = [
     (TRANSFORMING_MAPPER, |_| Arc::new(Handler::default())),
-    (VERBATIM_MAPPER, |_| Arc::new(verbatimHandler)),
-    (MODULE_VERBATIM_MAPPER, |_| Arc::new(moduleVerbatimHandler)),
-    (DYNAMIC_VERBATIM_MAPPER, |lifecycle| Arc::new(dynamicVerbatimHandler { lifecycle })),
-    (DIAGNOSTIC_CODE_COLLISION_MAPPER, |_| Arc::new(diagnosticCodeCollisionHandler)),
-    (FAILING_MAPPER, |_| Arc::new(failingHandler)),
-    (SYNTHESIZING_MAPPER, |_| Arc::new(synthesizingHandler)),
-    (COMPONENT_MAPPER, |_| Arc::new(componentHandler)),
-    (DUPLICATE_MAPPER, |_| Arc::new(duplicateHandler)),
-    (LISP_MAPPER, |_| Arc::new(lispHandler)),
-    (SUPPLEMENTAL_MAPPER, |_| Arc::new(supplementalHandler)),
-    (SUPPLEMENTAL_DIAGNOSTICS_MAPPER, |_| Arc::new(supplementalDiagnosticsHandler)),
-    (SUPPLEMENTAL_GLOBALS_MAPPER, |_| Arc::new(supplementalGlobalsHandler)),
-    (SUPPLEMENTAL_MODULE_MAPPER, |_| Arc::new(supplementalModuleHandler)),
-    (PREFIXED_SUPPLEMENTAL_MAPPER, |_| Arc::new(prefixedSupplementalHandler)),
-    (UNMAPPED_FOLDING_MAPPER, |_| Arc::new(unmappedFoldingHandler)),
-    (HOISTING_MAPPER, |_| Arc::new(hoistingHandler)),
-    (DUPLICATE_PROJECTION_MAPPER, |_| Arc::new(duplicateProjectionHandler)),
+    (VERBATIM_MAPPER, |_| Arc::new(VerbatimHandler)),
+    (MODULE_VERBATIM_MAPPER, |_| Arc::new(ModuleVerbatimHandler)),
+    (DYNAMIC_VERBATIM_MAPPER, |lifecycle| Arc::new(DynamicVerbatimHandler { lifecycle })),
+    (DIAGNOSTIC_CODE_COLLISION_MAPPER, |_| Arc::new(DiagnosticCodeCollisionHandler)),
+    (FAILING_MAPPER, |_| Arc::new(FailingHandler)),
+    (SYNTHESIZING_MAPPER, |_| Arc::new(SynthesizingHandler)),
+    (COMPONENT_MAPPER, |_| Arc::new(ComponentHandler)),
+    (DUPLICATE_MAPPER, |_| Arc::new(DuplicateHandler)),
+    (LISP_MAPPER, |_| Arc::new(LispHandler)),
+    (SUPPLEMENTAL_MAPPER, |_| Arc::new(SupplementalHandler)),
+    (SUPPLEMENTAL_DIAGNOSTICS_MAPPER, |_| Arc::new(SupplementalDiagnosticsHandler)),
+    (SUPPLEMENTAL_GLOBALS_MAPPER, |_| Arc::new(SupplementalGlobalsHandler)),
+    (SUPPLEMENTAL_MODULE_MAPPER, |_| Arc::new(SupplementalModuleHandler)),
+    (PREFIXED_SUPPLEMENTAL_MAPPER, |_| Arc::new(PrefixedSupplementalHandler)),
+    (UNMAPPED_FOLDING_MAPPER, |_| Arc::new(UnmappedFoldingHandler)),
+    (HOISTING_MAPPER, |_| Arc::new(HoistingHandler)),
+    (DUPLICATE_PROJECTION_MAPPER, |_| Arc::new(DuplicateProjectionHandler)),
 ];
 
 // registry.go:54
 pub(crate) fn handler_for_mapper(
     command: &[String],
     lifecycle: Option<Arc<ProjectLifecycle>>,
-) -> Result<Arc<dyn testHandler>, String> {
+) -> Result<Arc<dyn TestHandler>, String> {
     if command.is_empty() {
         return Err("contentmappertest: empty mapper command".to_string());
     }

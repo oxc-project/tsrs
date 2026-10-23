@@ -12,27 +12,27 @@ use std::sync::{Condvar, Mutex, OnceLock};
 
 pub(crate) const WORKER_STACK_SIZE: usize = 512 << 20;
 
-type job = Box<dyn FnOnce() + Send>;
+type Job = Box<dyn FnOnce() + Send>;
 
-struct workerPool {
-    state: Mutex<workerPoolState>,
+struct WorkerPool {
+    state: Mutex<WorkerPoolState>,
     cond: Condvar,
     // Workers that stay when there is no job.
     max_idle_threads: usize,
 }
 
-struct workerPoolState {
-    jobs: VecDeque<job>,
+struct WorkerPoolState {
+    jobs: VecDeque<Job>,
     threads: usize,
     idle: usize,
 }
 
-fn get_pool() -> &'static workerPool {
-    static POOL: OnceLock<workerPool> = OnceLock::new();
+fn get_pool() -> &'static WorkerPool {
+    static POOL: OnceLock<WorkerPool> = OnceLock::new();
     POOL.get_or_init(|| {
         let parallelism = std::thread::available_parallelism().map_or(1, std::num::NonZero::get);
-        workerPool {
-            state: Mutex::new(workerPoolState { jobs: VecDeque::new(), threads: 0, idle: 0 }),
+        WorkerPool {
+            state: Mutex::new(WorkerPoolState { jobs: VecDeque::new(), threads: 0, idle: 0 }),
             cond: Condvar::new(),
             max_idle_threads: parallelism.max(4),
         }
@@ -65,7 +65,7 @@ pub(crate) fn go(f: impl FnOnce() + Send + 'static) {
     }
 }
 
-fn worker_loop(pool: &'static workerPool) {
+fn worker_loop(pool: &'static WorkerPool) {
     let mut state = pool.state.lock().unwrap();
     loop {
         if let Some(job) = state.jobs.pop_front() {

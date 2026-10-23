@@ -104,7 +104,7 @@ impl ReparseCloner {
     pub fn clone_node(&mut self, node: Option<P<Node>>) -> Option<P<Node>> {
         let node = self.0.visit_node(Some(node?)).unwrap();
         set_parent_in_children(node);
-        node.set_flags(node.flags() | NodeFlags::Reparsed);
+        node.set_flags(node.flags() | NodeFlags::REPARSED);
         Some(node)
     }
 
@@ -135,7 +135,7 @@ mod tests {
         let clone = f.deep_clone_reparse(Some(name)).unwrap();
         assert_ne!(clone, name);
         assert_eq!(clone.loc(), name.loc());
-        assert!(clone.flags().intersects(NodeFlags::Reparsed));
+        assert!(clone.flags().intersects(NodeFlags::REPARSED));
         let q = clone.as_qualified_name();
         assert!(q.left != left && q.right != right);
         assert_eq!(q.left.text(), "a");
@@ -157,7 +157,7 @@ mod tests {
         assert!(ca != a && cb != b && ca != cb);
         assert_eq!(ca.text(), "a");
         assert_eq!(cb.text(), "b");
-        assert!(cb.flags().intersects(NodeFlags::Reparsed));
+        assert!(cb.flags().intersects(NodeFlags::REPARSED));
         assert!(cloner.clone_modifiers(None).is_none());
     }
 }

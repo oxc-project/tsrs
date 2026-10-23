@@ -11,7 +11,7 @@ use tsrs_vfs::FS;
 use crate::host::CompilerHost;
 use crate::projectreferencedtsfakinghost::new_project_reference_dts_faking_host;
 
-pub(crate) struct projectReferenceFileMapper {
+pub(crate) struct ProjectReferenceFileMapper {
     pub(crate) config: P<ParsedCommandLine>,
     pub(crate) use_source_of_project_reference: bool,
     pub(crate) dts_directories: FxHashSet<Path>,
@@ -33,14 +33,14 @@ pub(crate) struct projectReferenceFileMapper {
     pub(crate) loader_host: Option<&'static dyn ResolutionHost>,
 }
 
-pub(crate) struct projectReferenceFileMapperBuilder {
-    pub(crate) mapper: &'static projectReferenceFileMapper,
+pub(crate) struct ProjectReferenceFileMapperBuilder {
+    pub(crate) mapper: &'static ProjectReferenceFileMapper,
     pub(crate) host: &'static dyn ResolutionHost,
 }
 
-struct compilerResolutionHost(Arc<dyn CompilerHost>);
+struct CompilerResolutionHost(Arc<dyn CompilerHost>);
 
-impl ResolutionHost for compilerResolutionHost {
+impl ResolutionHost for CompilerResolutionHost {
     fn fs(&self) -> &dyn FS {
         self.0.fs()
     }
@@ -51,7 +51,7 @@ impl ResolutionHost for compilerResolutionHost {
 }
 
 pub(crate) fn resolution_host_for(host: Arc<dyn CompilerHost>) -> &'static dyn ResolutionHost {
-    Box::leak(Box::new(compilerResolutionHost(host)))
+    Box::leak(Box::new(CompilerResolutionHost(host)))
 }
 
 pub(crate) fn as_resolved_project_reference(
@@ -60,12 +60,12 @@ pub(crate) fn as_resolved_project_reference(
     config.get()
 }
 
-impl projectReferenceFileMapper {
+impl ProjectReferenceFileMapper {
     pub(crate) fn new(
         config: P<ParsedCommandLine>,
         use_source_of_project_reference: bool,
-    ) -> projectReferenceFileMapper {
-        projectReferenceFileMapper {
+    ) -> ProjectReferenceFileMapper {
+        ProjectReferenceFileMapper {
             config,
             use_source_of_project_reference,
             dts_directories: FxHashSet::default(),
@@ -306,8 +306,8 @@ impl projectReferenceFileMapper {
     }
 }
 
-impl projectReferenceFileMapperBuilder {
-    pub(crate) fn take_mapper(&self) -> &'static projectReferenceFileMapper {
+impl ProjectReferenceFileMapperBuilder {
+    pub(crate) fn take_mapper(&self) -> &'static ProjectReferenceFileMapper {
         self.mapper
     }
 

@@ -9,73 +9,73 @@ bitflags! {
         // Facts
         // - Flags used to indicate that a node or subtree contains syntax relevant to a specific transform
 
-        const ContainsTypeScript = 1 << 0;
-        const ContainsJsx = 1 << 1;
-        const ContainsESDecorators = 1 << 2;
-        const ContainsUsing = 1 << 3;
-        const ContainsClassStaticBlocks = 1 << 4;
-        const ContainsESClassFields = 1 << 5;
-        const ContainsLogicalAssignments = 1 << 6;
-        const ContainsNullishCoalescing = 1 << 7;
-        const ContainsOptionalChaining = 1 << 8;
-        const ContainsMissingCatchClauseVariable = 1 << 9;
-        const ContainsESObjectRestOrSpread = 1 << 10; // subtree has a `...` somewhere inside it, never cleared
-        const ContainsForAwaitOrAsyncGenerator = 1 << 11;
-        const ContainsAnyAwait = 1 << 12;
-        const ContainsExponentiationOperator = 1 << 13;
+        const CONTAINS_TYPE_SCRIPT = 1 << 0;
+        const CONTAINS_JSX = 1 << 1;
+        const CONTAINS_ES_DECORATORS = 1 << 2;
+        const CONTAINS_USING = 1 << 3;
+        const CONTAINS_CLASS_STATIC_BLOCKS = 1 << 4;
+        const CONTAINS_ES_CLASS_FIELDS = 1 << 5;
+        const CONTAINS_LOGICAL_ASSIGNMENTS = 1 << 6;
+        const CONTAINS_NULLISH_COALESCING = 1 << 7;
+        const CONTAINS_OPTIONAL_CHAINING = 1 << 8;
+        const CONTAINS_MISSING_CATCH_CLAUSE_VARIABLE = 1 << 9;
+        const CONTAINS_ES_OBJECT_REST_OR_SPREAD = 1 << 10; // subtree has a `...` somewhere inside it, never cleared
+        const CONTAINS_FOR_AWAIT_OR_ASYNC_GENERATOR = 1 << 11;
+        const CONTAINS_ANY_AWAIT = 1 << 12;
+        const CONTAINS_EXPONENTIATION_OPERATOR = 1 << 13;
 
         // Markers
         // - Flags used to indicate that a node or subtree contains a particular kind of syntax.
 
-        const ContainsLexicalThis = 1 << 14;
-        const ContainsLexicalSuper = 1 << 15;
-        const ContainsRestOrSpread = 1 << 16; // marker on any `...` - cleared on binding pattern exit
-        const ContainsObjectRestOrSpread = 1 << 17; // marker on any `{...x}` - cleared on most scope exits
-        const ContainsAwait = 1 << 18;
-        const ContainsDynamicImport = 1 << 19;
-        const ContainsClassFields = 1 << 20;
-        const ContainsDecorators = 1 << 21;
-        const ContainsIdentifier = 1 << 22;
-        const ContainsPrivateIdentifierInExpression = 1 << 23;
-        const ContainsInvalidTemplateEscape = 1 << 24;
+        const CONTAINS_LEXICAL_THIS = 1 << 14;
+        const CONTAINS_LEXICAL_SUPER = 1 << 15;
+        const CONTAINS_REST_OR_SPREAD = 1 << 16; // marker on any `...` - cleared on binding pattern exit
+        const CONTAINS_OBJECT_REST_OR_SPREAD = 1 << 17; // marker on any `{...x}` - cleared on most scope exits
+        const CONTAINS_AWAIT = 1 << 18;
+        const CONTAINS_DYNAMIC_IMPORT = 1 << 19;
+        const CONTAINS_CLASS_FIELDS = 1 << 20;
+        const CONTAINS_DECORATORS = 1 << 21;
+        const CONTAINS_IDENTIFIER = 1 << 22;
+        const CONTAINS_PRIVATE_IDENTIFIER_IN_EXPRESSION = 1 << 23;
+        const CONTAINS_INVALID_TEMPLATE_ESCAPE = 1 << 24;
 
-        const Computed = 1 << 25; // NOTE: This should always be last
-        const None = 0;
+        const COMPUTED = 1 << 25; // NOTE: This should always be last
+        const NONE = 0;
 
         // Scope Exclusions
         // - Bitmasks that exclude flags from propagating out of a specific context
         //   into the subtree flags of their container.
 
-        const ExclusionsNode = Self::Computed.bits();
-        const ExclusionsEraseable = !Self::ContainsTypeScript.bits();
-        const ExclusionsOuterExpression = Self::ExclusionsNode.bits();
-        const ExclusionsPropertyAccess = Self::ExclusionsNode.bits();
-        const ExclusionsElementAccess = Self::ExclusionsNode.bits();
-        const ExclusionsArrowFunction = Self::ExclusionsNode.bits() | Self::ContainsAwait.bits() | Self::ContainsObjectRestOrSpread.bits();
-        const ExclusionsFunction = Self::ExclusionsNode.bits() | Self::ContainsLexicalThis.bits() | Self::ContainsLexicalSuper.bits() | Self::ContainsAwait.bits() | Self::ContainsObjectRestOrSpread.bits();
-        const ExclusionsConstructor = Self::ExclusionsNode.bits() | Self::ContainsLexicalThis.bits() | Self::ContainsLexicalSuper.bits() | Self::ContainsAwait.bits() | Self::ContainsObjectRestOrSpread.bits();
-        const ExclusionsMethod = Self::ExclusionsNode.bits() | Self::ContainsLexicalThis.bits() | Self::ContainsLexicalSuper.bits() | Self::ContainsAwait.bits() | Self::ContainsObjectRestOrSpread.bits();
-        const ExclusionsAccessor = Self::ExclusionsNode.bits() | Self::ContainsLexicalThis.bits() | Self::ContainsLexicalSuper.bits() | Self::ContainsAwait.bits() | Self::ContainsObjectRestOrSpread.bits();
-        const ExclusionsProperty = Self::ExclusionsNode.bits() | Self::ContainsLexicalThis.bits() | Self::ContainsLexicalSuper.bits();
-        const ExclusionsClass = Self::ExclusionsNode.bits();
-        const ExclusionsModule = Self::ExclusionsNode.bits() | Self::ContainsLexicalThis.bits() | Self::ContainsLexicalSuper.bits();
-        const ExclusionsObjectLiteral = Self::ExclusionsNode.bits() | Self::ContainsObjectRestOrSpread.bits();
-        const ExclusionsArrayLiteral = Self::ExclusionsNode.bits();
-        const ExclusionsCall = Self::ExclusionsNode.bits();
-        const ExclusionsNew = Self::ExclusionsNode.bits();
-        const ExclusionsVariableDeclarationList = Self::ExclusionsNode.bits() | Self::ContainsObjectRestOrSpread.bits();
-        const ExclusionsParameter = Self::ExclusionsNode.bits();
-        const ExclusionsCatchClause = Self::ExclusionsNode.bits() | Self::ContainsObjectRestOrSpread.bits();
-        const ExclusionsBindingPattern = Self::ExclusionsNode.bits() | Self::ContainsRestOrSpread.bits();
+        const EXCLUSIONS_NODE = Self::COMPUTED.bits();
+        const EXCLUSIONS_ERASEABLE = !Self::CONTAINS_TYPE_SCRIPT.bits();
+        const EXCLUSIONS_OUTER_EXPRESSION = Self::EXCLUSIONS_NODE.bits();
+        const EXCLUSIONS_PROPERTY_ACCESS = Self::EXCLUSIONS_NODE.bits();
+        const EXCLUSIONS_ELEMENT_ACCESS = Self::EXCLUSIONS_NODE.bits();
+        const EXCLUSIONS_ARROW_FUNCTION = Self::EXCLUSIONS_NODE.bits() | Self::CONTAINS_AWAIT.bits() | Self::CONTAINS_OBJECT_REST_OR_SPREAD.bits();
+        const EXCLUSIONS_FUNCTION = Self::EXCLUSIONS_NODE.bits() | Self::CONTAINS_LEXICAL_THIS.bits() | Self::CONTAINS_LEXICAL_SUPER.bits() | Self::CONTAINS_AWAIT.bits() | Self::CONTAINS_OBJECT_REST_OR_SPREAD.bits();
+        const EXCLUSIONS_CONSTRUCTOR = Self::EXCLUSIONS_NODE.bits() | Self::CONTAINS_LEXICAL_THIS.bits() | Self::CONTAINS_LEXICAL_SUPER.bits() | Self::CONTAINS_AWAIT.bits() | Self::CONTAINS_OBJECT_REST_OR_SPREAD.bits();
+        const EXCLUSIONS_METHOD = Self::EXCLUSIONS_NODE.bits() | Self::CONTAINS_LEXICAL_THIS.bits() | Self::CONTAINS_LEXICAL_SUPER.bits() | Self::CONTAINS_AWAIT.bits() | Self::CONTAINS_OBJECT_REST_OR_SPREAD.bits();
+        const EXCLUSIONS_ACCESSOR = Self::EXCLUSIONS_NODE.bits() | Self::CONTAINS_LEXICAL_THIS.bits() | Self::CONTAINS_LEXICAL_SUPER.bits() | Self::CONTAINS_AWAIT.bits() | Self::CONTAINS_OBJECT_REST_OR_SPREAD.bits();
+        const EXCLUSIONS_PROPERTY = Self::EXCLUSIONS_NODE.bits() | Self::CONTAINS_LEXICAL_THIS.bits() | Self::CONTAINS_LEXICAL_SUPER.bits();
+        const EXCLUSIONS_CLASS = Self::EXCLUSIONS_NODE.bits();
+        const EXCLUSIONS_MODULE = Self::EXCLUSIONS_NODE.bits() | Self::CONTAINS_LEXICAL_THIS.bits() | Self::CONTAINS_LEXICAL_SUPER.bits();
+        const EXCLUSIONS_OBJECT_LITERAL = Self::EXCLUSIONS_NODE.bits() | Self::CONTAINS_OBJECT_REST_OR_SPREAD.bits();
+        const EXCLUSIONS_ARRAY_LITERAL = Self::EXCLUSIONS_NODE.bits();
+        const EXCLUSIONS_CALL = Self::EXCLUSIONS_NODE.bits();
+        const EXCLUSIONS_NEW = Self::EXCLUSIONS_NODE.bits();
+        const EXCLUSIONS_VARIABLE_DECLARATION_LIST = Self::EXCLUSIONS_NODE.bits() | Self::CONTAINS_OBJECT_REST_OR_SPREAD.bits();
+        const EXCLUSIONS_PARAMETER = Self::EXCLUSIONS_NODE.bits();
+        const EXCLUSIONS_CATCH_CLAUSE = Self::EXCLUSIONS_NODE.bits() | Self::CONTAINS_OBJECT_REST_OR_SPREAD.bits();
+        const EXCLUSIONS_BINDING_PATTERN = Self::EXCLUSIONS_NODE.bits() | Self::CONTAINS_REST_OR_SPREAD.bits();
 
         // Masks
         // - Additional bitmasks
 
-        const ContainsLexicalThisOrSuper = Self::ContainsLexicalThis.bits() | Self::ContainsLexicalSuper.bits();
+        const CONTAINS_LEXICAL_THIS_OR_SUPER = Self::CONTAINS_LEXICAL_THIS.bits() | Self::CONTAINS_LEXICAL_SUPER.bits();
     }
 }
 
-const NONE: SubtreeFacts = SubtreeFacts::None;
+const NONE: SubtreeFacts = SubtreeFacts::NONE;
 
 fn if_else(cond: bool, a: SubtreeFacts, b: SubtreeFacts) -> SubtreeFacts {
     if cond { a } else { b }
@@ -84,25 +84,25 @@ fn if_else(cond: bool, a: SubtreeFacts, b: SubtreeFacts) -> SubtreeFacts {
 fn propagate_eraseable_syntax_list_subtree_facts(
     children: impl Into<Option<P<NodeList>>>,
 ) -> SubtreeFacts {
-    if_else(children.into().is_some(), SubtreeFacts::ContainsTypeScript, NONE)
+    if_else(children.into().is_some(), SubtreeFacts::CONTAINS_TYPE_SCRIPT, NONE)
 }
 
 fn propagate_eraseable_syntax_subtree_facts(child: impl Into<Option<P<Node>>>) -> SubtreeFacts {
-    if_else(child.into().is_some(), SubtreeFacts::ContainsTypeScript, NONE)
+    if_else(child.into().is_some(), SubtreeFacts::CONTAINS_TYPE_SCRIPT, NONE)
 }
 
 fn propagate_object_binding_element_subtree_facts(child: P<Node>) -> SubtreeFacts {
     let mut facts = propagate_subtree_facts(child);
-    if facts.intersects(SubtreeFacts::ContainsRestOrSpread) {
-        facts &= !SubtreeFacts::ContainsRestOrSpread;
-        facts |=
-            SubtreeFacts::ContainsObjectRestOrSpread | SubtreeFacts::ContainsESObjectRestOrSpread;
+    if facts.intersects(SubtreeFacts::CONTAINS_REST_OR_SPREAD) {
+        facts &= !SubtreeFacts::CONTAINS_REST_OR_SPREAD;
+        facts |= SubtreeFacts::CONTAINS_OBJECT_REST_OR_SPREAD
+            | SubtreeFacts::CONTAINS_ES_OBJECT_REST_OR_SPREAD;
     }
     facts
 }
 
 fn propagate_binding_element_subtree_facts(child: P<Node>) -> SubtreeFacts {
-    propagate_subtree_facts(child) & !SubtreeFacts::ContainsRestOrSpread
+    propagate_subtree_facts(child) & !SubtreeFacts::CONTAINS_REST_OR_SPREAD
 }
 
 fn propagate_subtree_facts(child: impl Into<Option<P<Node>>>) -> SubtreeFacts {
@@ -144,7 +144,7 @@ fn propagate_modifier_list_subtree_facts(children: Option<P<ModifierList>>) -> S
 }
 
 fn has_ambient_modifier(modifiers: Option<P<ModifierList>>) -> bool {
-    modifiers.is_some_and(|m| m.modifier_flags.intersects(ModifierFlags::Ambient))
+    modifiers.is_some_and(|m| m.modifier_flags.intersects(ModifierFlags::AMBIENT))
 }
 
 fn prop(child: P<Node>) -> SubtreeFacts {
@@ -152,15 +152,15 @@ fn prop(child: P<Node>) -> SubtreeFacts {
 }
 
 fn template_facts(flags: TokenFlags) -> SubtreeFacts {
-    if flags.intersects(TokenFlags::ContainsInvalidEscape) {
-        return SubtreeFacts::ContainsInvalidTemplateEscape;
+    if flags.intersects(TokenFlags::CONTAINS_INVALID_ESCAPE) {
+        return SubtreeFacts::CONTAINS_INVALID_TEMPLATE_ESCAPE;
     }
     NONE
 }
 
 fn async_generator_facts(is_async: bool, is_generator: bool) -> SubtreeFacts {
-    if_else(is_async && is_generator, SubtreeFacts::ContainsForAwaitOrAsyncGenerator, NONE)
-        | if_else(is_async && !is_generator, SubtreeFacts::ContainsAnyAwait, NONE)
+    if_else(is_async && is_generator, SubtreeFacts::CONTAINS_FOR_AWAIT_OR_ASYNC_GENERATOR, NONE)
+        | if_else(is_async && !is_generator, SubtreeFacts::CONTAINS_ANY_AWAIT, NONE)
 }
 
 // Go caches the facts of composite nodes in CompositeBase; computeSubtreeFacts is idempotent, so the port
@@ -199,14 +199,14 @@ impl Node {
     pub fn subtree_facts(&self) -> SubtreeFacts {
         SUBTREE_FACTS_CACHE.with(|c| {
             if !c.enabled.get() {
-                return self.compute_subtree_facts() & !SubtreeFacts::ExclusionsNode;
+                return self.compute_subtree_facts() & !SubtreeFacts::EXCLUSIONS_NODE;
             }
             let key = std::ptr::from_ref::<Node>(self) as usize;
             if let Some(&facts) = c.facts.borrow().get(&key) {
                 return facts;
             }
             // no borrow is held here: computing asks for the children's facts
-            let facts = self.compute_subtree_facts() & !SubtreeFacts::ExclusionsNode;
+            let facts = self.compute_subtree_facts() & !SubtreeFacts::EXCLUSIONS_NODE;
             c.facts.borrow_mut().insert(key, facts);
             facts
         })
@@ -258,10 +258,10 @@ impl Node {
             | NodeData::JSDocNameReference(_)
             | NodeData::ImportTypeNode(_)
             | NodeData::TypeParameterDeclaration(_)
-            | NodeData::JSDocTypeLiteral(_) => F::ContainsTypeScript,
+            | NodeData::JSDocTypeLiteral(_) => F::CONTAINS_TYPE_SCRIPT,
 
             NodeData::Token => match self.kind() {
-                Kind::UsingKeyword => F::ContainsUsing,
+                Kind::UsingKeyword => F::CONTAINS_USING,
                 Kind::PublicKeyword
                 | Kind::PrivateKeyword
                 | Kind::ProtectedKeyword
@@ -283,24 +283,24 @@ impl Node {
                 | Kind::VoidKeyword
                 | Kind::UnknownKeyword
                 | Kind::UndefinedKeyword
-                | Kind::ExportKeyword => F::ContainsTypeScript,
-                Kind::AccessorKeyword => F::ContainsClassFields,
-                Kind::AsyncKeyword => F::ContainsAnyAwait,
-                Kind::SuperKeyword => F::ContainsLexicalSuper,
-                Kind::ThisKeyword => F::ContainsLexicalThis,
+                | Kind::ExportKeyword => F::CONTAINS_TYPE_SCRIPT,
+                Kind::AccessorKeyword => F::CONTAINS_CLASS_FIELDS,
+                Kind::AsyncKeyword => F::CONTAINS_ANY_AWAIT,
+                Kind::SuperKeyword => F::CONTAINS_LEXICAL_SUPER,
+                Kind::ThisKeyword => F::CONTAINS_LEXICAL_THIS,
                 Kind::AsteriskAsteriskToken | Kind::AsteriskAsteriskEqualsToken => {
-                    F::ContainsExponentiationOperator
+                    F::CONTAINS_EXPONENTIATION_OPERATOR
                 }
-                Kind::QuestionQuestionToken => F::ContainsNullishCoalescing,
-                Kind::QuestionDotToken => F::ContainsOptionalChaining,
+                Kind::QuestionQuestionToken => F::CONTAINS_NULLISH_COALESCING,
+                Kind::QuestionDotToken => F::CONTAINS_OPTIONAL_CHAINING,
                 Kind::QuestionQuestionEqualsToken
                 | Kind::BarBarEqualsToken
-                | Kind::AmpersandAmpersandEqualsToken => F::ContainsLogicalAssignments,
+                | Kind::AmpersandAmpersandEqualsToken => F::CONTAINS_LOGICAL_ASSIGNMENTS,
                 _ => NONE,
             },
-            NodeData::PrivateIdentifier(_) => F::ContainsClassFields,
+            NodeData::PrivateIdentifier(_) => F::CONTAINS_CLASS_FIELDS,
             NodeData::Decorator(d) => {
-                prop(d.expression()) | F::ContainsTypeScript | F::ContainsDecorators
+                prop(d.expression()) | F::CONTAINS_TYPE_SCRIPT | F::CONTAINS_DECORATORS
             }
             NodeData::ForInOrOfStatement(d) => {
                 prop(d.initializer())
@@ -308,24 +308,24 @@ impl Node {
                     | prop(d.statement())
                     | if_else(
                         d.await_modifier().is_some(),
-                        F::ContainsForAwaitOrAsyncGenerator,
+                        F::CONTAINS_FOR_AWAIT_OR_ASYNC_GENERATOR,
                         NONE,
                     )
             }
             // return in an ES2018 async generator must be awaited
             NodeData::ReturnStatement(d) => {
-                propagate_subtree_facts(d.expression()) | F::ContainsForAwaitOrAsyncGenerator
+                propagate_subtree_facts(d.expression()) | F::CONTAINS_FOR_AWAIT_OR_ASYNC_GENERATOR
             }
             NodeData::CatchClause(d) => {
                 let mut res = propagate_subtree_facts(d.variable_declaration()) | prop(d.block());
                 if d.variable_declaration().is_none() {
-                    res |= F::ContainsMissingCatchClauseVariable;
+                    res |= F::CONTAINS_MISSING_CATCH_CLAUSE_VARIABLE;
                 }
                 res
             }
             NodeData::VariableStatement(d) => {
                 if has_ambient_modifier(d.modifiers()) {
-                    F::ContainsTypeScript
+                    F::CONTAINS_TYPE_SCRIPT
                 } else {
                     propagate_modifier_list_subtree_facts(d.modifiers())
                         | prop(d.declaration_list())
@@ -339,7 +339,7 @@ impl Node {
             }
             NodeData::VariableDeclarationList(d) => {
                 propagate_node_list_subtree_facts(d.declarations(), propagate_subtree_facts)
-                    | if_else(self.flags().intersects(NodeFlags::Using), F::ContainsUsing, NONE)
+                    | if_else(self.flags().intersects(NodeFlags::USING), F::CONTAINS_USING, NONE)
             }
             NodeData::BindingPattern(d) => match self.kind() {
                 Kind::ObjectBindingPattern => propagate_node_list_subtree_facts(
@@ -354,7 +354,7 @@ impl Node {
             },
             NodeData::ParameterDeclaration(d) => {
                 if is_this_identifier(d.name()) {
-                    F::ContainsTypeScript
+                    F::CONTAINS_TYPE_SCRIPT
                 } else {
                     propagate_modifier_list_subtree_facts(d.modifiers())
                         | propagate_subtree_facts(d.name())
@@ -367,13 +367,13 @@ impl Node {
                 propagate_subtree_facts(d.property_name())
                     | propagate_subtree_facts(d.name())
                     | propagate_subtree_facts(d.initializer())
-                    | if_else(d.dot_dot_dot_token().is_some(), F::ContainsRestOrSpread, NONE)
+                    | if_else(d.dot_dot_dot_token().is_some(), F::CONTAINS_REST_OR_SPREAD, NONE)
             }
             NodeData::FunctionDeclaration(d) => {
-                if d.body().is_none() || self.modifier_flags().intersects(ModifierFlags::Ambient) {
-                    F::ContainsTypeScript
+                if d.body().is_none() || self.modifier_flags().intersects(ModifierFlags::AMBIENT) {
+                    F::CONTAINS_TYPE_SCRIPT
                 } else {
-                    let is_async = self.modifier_flags().intersects(ModifierFlags::Async);
+                    let is_async = self.modifier_flags().intersects(ModifierFlags::ASYNC);
                     let is_generator = d.asterisk_token().is_some();
                     propagate_modifier_list_subtree_facts(d.modifiers())
                         | propagate_subtree_facts(d.asterisk_token())
@@ -389,7 +389,7 @@ impl Node {
             NodeData::ClassDeclaration(_) | NodeData::ClassExpression(_) => {
                 let class = self.class_like_data().unwrap();
                 if has_ambient_modifier(class.modifiers()) {
-                    F::ContainsTypeScript
+                    F::CONTAINS_TYPE_SCRIPT
                 } else {
                     propagate_modifier_list_subtree_facts(class.modifiers())
                         | propagate_subtree_facts(class.name())
@@ -408,35 +408,35 @@ impl Node {
                 Kind::ExtendsKeyword => {
                     propagate_node_list_subtree_facts(d.types(), propagate_subtree_facts)
                 }
-                Kind::ImplementsKeyword => F::ContainsTypeScript,
+                Kind::ImplementsKeyword => F::CONTAINS_TYPE_SCRIPT,
                 _ => NONE,
             },
             NodeData::EnumMember(d) => {
-                prop(d.name()) | propagate_subtree_facts(d.initializer()) | F::ContainsTypeScript
+                prop(d.name()) | propagate_subtree_facts(d.initializer()) | F::CONTAINS_TYPE_SCRIPT
             }
             NodeData::EnumDeclaration(d) => {
                 if has_ambient_modifier(d.modifiers()) {
-                    F::ContainsTypeScript
+                    F::CONTAINS_TYPE_SCRIPT
                 } else {
                     propagate_modifier_list_subtree_facts(d.modifiers())
                         | prop(d.name())
                         | propagate_node_list_subtree_facts(d.members(), propagate_subtree_facts)
-                        | F::ContainsTypeScript
+                        | F::CONTAINS_TYPE_SCRIPT
                 }
             }
             NodeData::ModuleDeclaration(d) => {
-                if self.modifier_flags().intersects(ModifierFlags::Ambient) {
-                    F::ContainsTypeScript
+                if self.modifier_flags().intersects(ModifierFlags::AMBIENT) {
+                    F::CONTAINS_TYPE_SCRIPT
                 } else {
                     propagate_modifier_list_subtree_facts(d.modifiers())
                         | prop(d.name())
                         | propagate_subtree_facts(d.body())
-                        | F::ContainsTypeScript
+                        | F::CONTAINS_TYPE_SCRIPT
                 }
             }
             NodeData::ImportEqualsDeclaration(d) => {
                 if d.is_type_only || !is_external_module_reference(d.module_reference()) {
-                    F::ContainsTypeScript
+                    F::CONTAINS_TYPE_SCRIPT
                 } else {
                     propagate_modifier_list_subtree_facts(d.modifiers())
                         | prop(d.name())
@@ -445,14 +445,14 @@ impl Node {
             }
             NodeData::ImportSpecifier(d) => {
                 if d.is_type_only {
-                    F::ContainsTypeScript
+                    F::CONTAINS_TYPE_SCRIPT
                 } else {
                     propagate_subtree_facts(d.property_name()) | prop(d.name())
                 }
             }
             NodeData::ImportClause(d) => {
                 if d.phase_modifier() == Kind::TypeKeyword {
-                    F::ContainsTypeScript
+                    F::CONTAINS_TYPE_SCRIPT
                 } else {
                     propagate_subtree_facts(d.name()) | propagate_subtree_facts(d.named_bindings())
                 }
@@ -461,25 +461,25 @@ impl Node {
                 propagate_modifier_list_subtree_facts(d.modifiers())
                     | propagate_subtree_facts(d.type_())
                     | prop(d.expression())
-                    | if_else(d.is_export_equals, F::ContainsTypeScript, NONE)
+                    | if_else(d.is_export_equals, F::CONTAINS_TYPE_SCRIPT, NONE)
             }
             NodeData::ExportDeclaration(d) => {
                 propagate_modifier_list_subtree_facts(d.modifiers())
                     | propagate_subtree_facts(d.export_clause())
                     | propagate_subtree_facts(d.module_specifier())
                     | propagate_subtree_facts(d.attributes())
-                    | if_else(d.is_type_only, F::ContainsTypeScript, NONE)
+                    | if_else(d.is_type_only, F::CONTAINS_TYPE_SCRIPT, NONE)
             }
             NodeData::ExportSpecifier(d) => {
                 if d.is_type_only {
-                    F::ContainsTypeScript
+                    F::CONTAINS_TYPE_SCRIPT
                 } else {
                     propagate_subtree_facts(d.property_name()) | prop(d.name())
                 }
             }
             NodeData::ConstructorDeclaration(d) => {
                 if d.body().is_none() {
-                    F::ContainsTypeScript
+                    F::CONTAINS_TYPE_SCRIPT
                 } else {
                     propagate_modifier_list_subtree_facts(d.modifiers())
                         | propagate_eraseable_syntax_list_subtree_facts(d.type_parameters())
@@ -491,7 +491,7 @@ impl Node {
             }
             NodeData::GetAccessorDeclaration(_) | NodeData::SetAccessorDeclaration(_) => {
                 if self.body().is_none() {
-                    F::ContainsTypeScript
+                    F::CONTAINS_TYPE_SCRIPT
                 } else {
                     let f = self.function_like_data().unwrap();
                     propagate_modifier_list_subtree_facts(self.modifiers())
@@ -505,11 +505,11 @@ impl Node {
             }
             NodeData::MethodDeclaration(d) => {
                 if d.body().is_none() {
-                    F::ContainsTypeScript
+                    F::CONTAINS_TYPE_SCRIPT
                 } else {
                     let is_async = d
                         .modifiers()
-                        .is_some_and(|m| m.modifier_flags.intersects(ModifierFlags::Async));
+                        .is_some_and(|m| m.modifier_flags.intersects(ModifierFlags::ASYNC));
                     let is_generator = d.asterisk_token().is_some();
                     propagate_modifier_list_subtree_facts(d.modifiers())
                         | propagate_subtree_facts(d.asterisk_token())
@@ -529,20 +529,20 @@ impl Node {
                     | propagate_eraseable_syntax_subtree_facts(d.postfix_token())
                     | propagate_eraseable_syntax_subtree_facts(d.type_())
                     | propagate_subtree_facts(d.initializer())
-                    | F::ContainsClassFields
+                    | F::CONTAINS_CLASS_FIELDS
             }
             NodeData::ClassStaticBlockDeclaration(d) => {
                 propagate_modifier_list_subtree_facts(d.modifiers())
                     | prop(d.body())
-                    | F::ContainsClassFields
+                    | F::CONTAINS_CLASS_FIELDS
             }
             NodeData::KeywordExpression(_) => match self.kind() {
-                Kind::ThisKeyword => F::ContainsLexicalThis,
-                Kind::SuperKeyword => F::ContainsLexicalSuper,
+                Kind::ThisKeyword => F::CONTAINS_LEXICAL_THIS,
+                Kind::SuperKeyword => F::CONTAINS_LEXICAL_SUPER,
                 _ => NONE,
             },
             NodeData::BigIntLiteral(_) => NONE, // `bigint` is not downleveled in any way
-            NodeData::Identifier(_) => F::ContainsIdentifier,
+            NodeData::Identifier(_) => F::CONTAINS_IDENTIFIER,
             NodeData::NoSubstitutionTemplateLiteral(d) => template_facts(d.template_flags()),
             NodeData::BinaryExpression(d) => {
                 let mut facts = propagate_modifier_list_subtree_facts(d.modifiers())
@@ -553,7 +553,7 @@ impl Node {
                     | if_else(
                         d.operator_token().kind() == Kind::InKeyword
                             && is_private_identifier(d.left()),
-                        F::ContainsClassFields | F::ContainsPrivateIdentifierInExpression,
+                        F::CONTAINS_CLASS_FIELDS | F::CONTAINS_PRIVATE_IDENTIFIER_IN_EXPRESSION,
                         NONE,
                     );
                 if d.operator_token().kind() == Kind::EqualsToken
@@ -561,12 +561,12 @@ impl Node {
                         || is_array_literal_expression(d.left()))
                     && contains_object_rest_or_spread(d.left())
                 {
-                    facts |= F::ContainsObjectRestOrSpread;
+                    facts |= F::CONTAINS_OBJECT_REST_OR_SPREAD;
                 }
                 facts
             }
             NodeData::YieldExpression(d) => {
-                propagate_subtree_facts(d.expression()) | F::ContainsForAwaitOrAsyncGenerator
+                propagate_subtree_facts(d.expression()) | F::CONTAINS_FOR_AWAIT_OR_ASYNC_GENERATOR
             }
             NodeData::ArrowFunction(d) => {
                 propagate_modifier_list_subtree_facts(d.modifiers())
@@ -576,15 +576,15 @@ impl Node {
                     | propagate_eraseable_syntax_subtree_facts(d.full_signature())
                     | propagate_subtree_facts(d.body())
                     | if_else(
-                        self.modifier_flags().intersects(ModifierFlags::Async),
-                        F::ContainsAnyAwait,
+                        self.modifier_flags().intersects(ModifierFlags::ASYNC),
+                        F::CONTAINS_ANY_AWAIT,
                         NONE,
                     )
             }
             NodeData::FunctionExpression(d) => {
                 let is_async = d
                     .modifiers()
-                    .is_some_and(|m| m.modifier_flags.intersects(ModifierFlags::Async));
+                    .is_some_and(|m| m.modifier_flags.intersects(ModifierFlags::ASYNC));
                 let is_generator = d.asterisk_token().is_some();
                 propagate_modifier_list_subtree_facts(d.modifiers())
                     | propagate_subtree_facts(d.asterisk_token())
@@ -596,12 +596,12 @@ impl Node {
                     | propagate_subtree_facts(d.body())
                     | async_generator_facts(is_async, is_generator)
             }
-            NodeData::AsExpression(d) => prop(d.expression()) | F::ContainsTypeScript,
-            NodeData::SatisfiesExpression(d) => prop(d.expression()) | F::ContainsTypeScript,
+            NodeData::AsExpression(d) => prop(d.expression()) | F::CONTAINS_TYPE_SCRIPT,
+            NodeData::SatisfiesExpression(d) => prop(d.expression()) | F::CONTAINS_TYPE_SCRIPT,
             NodeData::PropertyAccessExpression(d) => {
                 let private_name = if_else(
                     !is_identifier(d.name()),
-                    F::ContainsPrivateIdentifierInExpression,
+                    F::CONTAINS_PRIVATE_IDENTIFIER_IN_EXPRESSION,
                     NONE,
                 );
                 prop(d.expression())
@@ -617,7 +617,7 @@ impl Node {
                     | if_else(
                         d.expression().kind() == Kind::ImportKeyword
                             || is_import_phase_meta_property(d.expression()),
-                        F::ContainsDynamicImport,
+                        F::CONTAINS_DYNAMIC_IMPORT,
                         NONE,
                     )
             }
@@ -626,9 +626,9 @@ impl Node {
                     | propagate_eraseable_syntax_list_subtree_facts(d.type_arguments())
                     | propagate_node_list_subtree_facts(d.arguments(), propagate_subtree_facts)
             }
-            NodeData::MetaProperty(d) => prop(d.name()) & !F::ContainsIdentifier,
-            NodeData::NonNullExpression(d) => prop(d.expression()) | F::ContainsTypeScript,
-            NodeData::SpreadElement(d) => prop(d.expression()) | F::ContainsRestOrSpread,
+            NodeData::MetaProperty(d) => prop(d.name()) & !F::CONTAINS_IDENTIFIER,
+            NodeData::NonNullExpression(d) => prop(d.expression()) | F::CONTAINS_TYPE_SCRIPT,
+            NodeData::SpreadElement(d) => prop(d.expression()) | F::CONTAINS_REST_OR_SPREAD,
             NodeData::TaggedTemplateExpression(d) => {
                 prop(d.tag())
                     | propagate_subtree_facts(d.question_dot_token())
@@ -637,8 +637,8 @@ impl Node {
             }
             NodeData::SpreadAssignment(d) => {
                 prop(d.expression())
-                    | F::ContainsESObjectRestOrSpread
-                    | F::ContainsObjectRestOrSpread
+                    | F::CONTAINS_ES_OBJECT_REST_OR_SPREAD
+                    | F::CONTAINS_OBJECT_REST_OR_SPREAD
             }
             NodeData::PropertyAssignment(d) => {
                 prop(d.name()) | propagate_subtree_facts(d.type_()) | prop(d.initializer())
@@ -647,16 +647,16 @@ impl Node {
                 prop(d.name())
                     | propagate_subtree_facts(d.type_())
                     | propagate_subtree_facts(d.object_assignment_initializer())
-                    | F::ContainsTypeScript
+                    | F::CONTAINS_TYPE_SCRIPT
             }
             // await in an ES2018 async generator must use `yield __await(expr)`
             NodeData::AwaitExpression(d) => {
                 prop(d.expression())
-                    | F::ContainsAwait
-                    | F::ContainsAnyAwait
-                    | F::ContainsForAwaitOrAsyncGenerator
+                    | F::CONTAINS_AWAIT
+                    | F::CONTAINS_ANY_AWAIT
+                    | F::CONTAINS_FOR_AWAIT_OR_ASYNC_GENERATOR
             }
-            NodeData::TypeAssertion(d) => prop(d.expression()) | F::ContainsTypeScript,
+            NodeData::TypeAssertion(d) => prop(d.expression()) | F::CONTAINS_TYPE_SCRIPT,
             NodeData::ExpressionWithTypeArguments(d) => {
                 prop(d.expression())
                     | propagate_eraseable_syntax_list_subtree_facts(d.type_arguments())
@@ -668,38 +668,40 @@ impl Node {
                 prop(d.opening_element())
                     | propagate_node_list_subtree_facts(d.children(), propagate_subtree_facts)
                     | prop(d.closing_element())
-                    | F::ContainsJsx
+                    | F::CONTAINS_JSX
             }
             NodeData::JsxAttributes(d) => {
                 propagate_node_list_subtree_facts(d.properties(), propagate_subtree_facts)
-                    | F::ContainsJsx
+                    | F::CONTAINS_JSX
             }
-            NodeData::JsxNamespacedName(d) => prop(d.namespace()) | prop(d.name()) | F::ContainsJsx,
+            NodeData::JsxNamespacedName(d) => {
+                prop(d.namespace()) | prop(d.name()) | F::CONTAINS_JSX
+            }
             NodeData::JsxOpeningElement(d) => {
                 prop(d.tag_name())
                     | propagate_eraseable_syntax_list_subtree_facts(d.type_arguments())
                     | prop(d.attributes())
-                    | F::ContainsJsx
+                    | F::CONTAINS_JSX
             }
             NodeData::JsxSelfClosingElement(d) => {
                 prop(d.tag_name())
                     | propagate_eraseable_syntax_list_subtree_facts(d.type_arguments())
                     | prop(d.attributes())
-                    | F::ContainsJsx
+                    | F::CONTAINS_JSX
             }
             NodeData::JsxFragment(d) => {
                 propagate_node_list_subtree_facts(d.children(), propagate_subtree_facts)
-                    | F::ContainsJsx
+                    | F::CONTAINS_JSX
             }
-            NodeData::JsxOpeningFragment => F::ContainsJsx,
-            NodeData::JsxClosingFragment => F::ContainsJsx,
+            NodeData::JsxOpeningFragment => F::CONTAINS_JSX,
+            NodeData::JsxClosingFragment => F::CONTAINS_JSX,
             NodeData::JsxAttribute(d) => {
-                prop(d.name()) | propagate_subtree_facts(d.initializer()) | F::ContainsJsx
+                prop(d.name()) | propagate_subtree_facts(d.initializer()) | F::CONTAINS_JSX
             }
-            NodeData::JsxSpreadAttribute(d) => prop(d.expression()) | F::ContainsJsx,
-            NodeData::JsxClosingElement(d) => prop(d.tag_name()) | F::ContainsJsx,
-            NodeData::JsxExpression(d) => propagate_subtree_facts(d.expression()) | F::ContainsJsx,
-            NodeData::JsxText(_) => F::ContainsJsx,
+            NodeData::JsxSpreadAttribute(d) => prop(d.expression()) | F::CONTAINS_JSX,
+            NodeData::JsxClosingElement(d) => prop(d.tag_name()) | F::CONTAINS_JSX,
+            NodeData::JsxExpression(d) => propagate_subtree_facts(d.expression()) | F::CONTAINS_JSX,
+            NodeData::JsxText(_) => F::CONTAINS_JSX,
             NodeData::SourceFile(d) => {
                 propagate_node_list_subtree_facts(d.statements, propagate_subtree_facts)
             }
@@ -844,67 +846,76 @@ impl Node {
             | NodeData::JSDocNameReference(_)
             | NodeData::ImportTypeNode(_)
             | NodeData::TypeParameterDeclaration(_)
-            | NodeData::JSDocTypeLiteral(_) => F::ContainsTypeScript,
-            NodeData::CatchClause(_) => self.subtree_facts() & !F::ExclusionsCatchClause,
+            | NodeData::JSDocTypeLiteral(_) => F::CONTAINS_TYPE_SCRIPT,
+            NodeData::CatchClause(_) => self.subtree_facts() & !F::EXCLUSIONS_CATCH_CLAUSE,
             NodeData::VariableDeclarationList(_) => {
-                self.subtree_facts() & !F::ExclusionsVariableDeclarationList
+                self.subtree_facts() & !F::EXCLUSIONS_VARIABLE_DECLARATION_LIST
             }
-            NodeData::BindingPattern(_) => self.subtree_facts() & !F::ExclusionsBindingPattern,
-            NodeData::ParameterDeclaration(_) => self.subtree_facts() & !F::ExclusionsParameter,
-            NodeData::FunctionDeclaration(_) => self.subtree_facts() & !F::ExclusionsFunction,
+            NodeData::BindingPattern(_) => self.subtree_facts() & !F::EXCLUSIONS_BINDING_PATTERN,
+            NodeData::ParameterDeclaration(_) => self.subtree_facts() & !F::EXCLUSIONS_PARAMETER,
+            NodeData::FunctionDeclaration(_) => self.subtree_facts() & !F::EXCLUSIONS_FUNCTION,
             NodeData::ClassDeclaration(_) | NodeData::ClassExpression(_) => {
-                self.subtree_facts() & !F::ExclusionsClass
+                self.subtree_facts() & !F::EXCLUSIONS_CLASS
             }
-            NodeData::ModuleDeclaration(_) => self.subtree_facts() & !F::ExclusionsModule,
-            NodeData::ConstructorDeclaration(_) => self.subtree_facts() & !F::ExclusionsConstructor,
+            NodeData::ModuleDeclaration(_) => self.subtree_facts() & !F::EXCLUSIONS_MODULE,
+            NodeData::ConstructorDeclaration(_) => {
+                self.subtree_facts() & !F::EXCLUSIONS_CONSTRUCTOR
+            }
             NodeData::GetAccessorDeclaration(_) | NodeData::SetAccessorDeclaration(_) => {
-                self.subtree_facts() & !F::ExclusionsAccessor | propagate_subtree_facts(self.name())
+                self.subtree_facts() & !F::EXCLUSIONS_ACCESSOR
+                    | propagate_subtree_facts(self.name())
             }
             NodeData::MethodDeclaration(_) => {
-                self.subtree_facts() & !F::ExclusionsMethod | propagate_subtree_facts(self.name())
+                self.subtree_facts() & !F::EXCLUSIONS_METHOD | propagate_subtree_facts(self.name())
             }
             NodeData::PropertyDeclaration(_) => {
-                self.subtree_facts() & !F::ExclusionsProperty | propagate_subtree_facts(self.name())
+                self.subtree_facts() & !F::EXCLUSIONS_PROPERTY
+                    | propagate_subtree_facts(self.name())
             }
-            NodeData::ArrowFunction(_) => self.subtree_facts() & !F::ExclusionsArrowFunction,
-            NodeData::FunctionExpression(_) => self.subtree_facts() & !F::ExclusionsFunction,
+            NodeData::ArrowFunction(_) => self.subtree_facts() & !F::EXCLUSIONS_ARROW_FUNCTION,
+            NodeData::FunctionExpression(_) => self.subtree_facts() & !F::EXCLUSIONS_FUNCTION,
             NodeData::AsExpression(_)
             | NodeData::SatisfiesExpression(_)
-            | NodeData::TypeAssertion(_) => self.subtree_facts() & !F::ExclusionsOuterExpression,
+            | NodeData::TypeAssertion(_) => self.subtree_facts() & !F::EXCLUSIONS_OUTER_EXPRESSION,
             NodeData::PropertyAccessExpression(_) => {
-                self.subtree_facts() & !F::ExclusionsPropertyAccess
+                self.subtree_facts() & !F::EXCLUSIONS_PROPERTY_ACCESS
             }
             NodeData::ElementAccessExpression(_) => {
-                self.subtree_facts() & !F::ExclusionsElementAccess
+                self.subtree_facts() & !F::EXCLUSIONS_ELEMENT_ACCESS
             }
-            NodeData::CallExpression(_) => self.subtree_facts() & !F::ExclusionsCall,
-            NodeData::NewExpression(_) => self.subtree_facts() & !F::ExclusionsNew,
+            NodeData::CallExpression(_) => self.subtree_facts() & !F::EXCLUSIONS_CALL,
+            NodeData::NewExpression(_) => self.subtree_facts() & !F::EXCLUSIONS_NEW,
             NodeData::ArrayLiteralExpression(_) => {
-                self.subtree_facts() & !F::ExclusionsArrayLiteral
+                self.subtree_facts() & !F::EXCLUSIONS_ARRAY_LITERAL
             }
             NodeData::ObjectLiteralExpression(_) => {
-                self.subtree_facts() & !F::ExclusionsObjectLiteral
+                self.subtree_facts() & !F::EXCLUSIONS_OBJECT_LITERAL
             }
-            _ => self.subtree_facts() & !F::ExclusionsNode,
+            _ => self.subtree_facts() & !F::EXCLUSIONS_NODE,
         }
     }
 }
 
 pub fn contains_object_rest_or_spread(node: P<Node>) -> bool {
-    if node.subtree_facts().intersects(SubtreeFacts::ContainsObjectRestOrSpread) {
+    if node.subtree_facts().intersects(SubtreeFacts::CONTAINS_OBJECT_REST_OR_SPREAD) {
         return true;
     }
-    if node.subtree_facts().intersects(SubtreeFacts::ContainsESObjectRestOrSpread) {
+    if node.subtree_facts().intersects(SubtreeFacts::CONTAINS_ES_OBJECT_REST_OR_SPREAD) {
         // check for nested spread assignments, otherwise '{ x: { a, ...b } = foo } = c'
         // will not be correctly interpreted by the rest/spread transformer
         if get_elements_of_binding_or_assignment_pattern(node).iter().any(|&element| {
             let target = get_target_of_binding_or_assignment_element(element);
             if let Some(target) = target {
                 if is_assignment_pattern(target) {
-                    if target.subtree_facts().intersects(SubtreeFacts::ContainsObjectRestOrSpread) {
+                    if target
+                        .subtree_facts()
+                        .intersects(SubtreeFacts::CONTAINS_OBJECT_REST_OR_SPREAD)
+                    {
                         return true;
                     }
-                    if target.subtree_facts().intersects(SubtreeFacts::ContainsESObjectRestOrSpread)
+                    if target
+                        .subtree_facts()
+                        .intersects(SubtreeFacts::CONTAINS_ES_OBJECT_REST_OR_SPREAD)
                         && contains_object_rest_or_spread(target)
                     {
                         return true;

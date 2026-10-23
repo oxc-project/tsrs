@@ -180,11 +180,14 @@ impl<'h> Setup<'h> {
         // The port answers member queries on instantiated references through lazy member tables without
         // setting MembersResolved; report the flag where pinned Go's resolveStructuredTypeMembers would have
         // set it (only when such a query actually happened, never for unresolved types).
-        if t.flags().intersects(TypeFlags::Object)
-            && !t.object_flags().intersects(ObjectFlags::MembersResolved)
+        if t.flags().intersects(TypeFlags::OBJECT)
+            && !t.object_flags().intersects(ObjectFlags::MEMBERS_RESOLVED)
             && self.checker.members_resolved_like_go(t)
         {
-            o.num("objectFlags", (go_object_flags(t) | ObjectFlags::MembersResolved).bits() as f64);
+            o.num(
+                "objectFlags",
+                (go_object_flags(t) | ObjectFlags::MEMBERS_RESOLVED).bits() as f64,
+            );
         }
         if let Some(symbol) = t.symbol() {
             o.set("symbol", compact_symbol_reference(self.sd.host, symbol)?);
@@ -192,7 +195,7 @@ impl<'h> Setup<'h> {
         if let Some(alias_symbol) = t.alias().and_then(|a| a.symbol()) {
             o.set("aliasSymbol", compact_symbol_reference(self.sd.host, alias_symbol)?);
         }
-        if t.object_flags().intersects(ObjectFlags::Mapped) {
+        if t.object_flags().intersects(ObjectFlags::MAPPED) {
             let mapped = t.as_mapped_type();
             tsrs_checker::MappedType::resolve_components(&mut self.checker, t);
             let tp = self.register_opt_type(mapped.type_parameter())?;
@@ -299,7 +302,7 @@ pub(crate) fn touching_property_name_at_utf16(
 
 /// Go `symbolOwnerFile`.
 pub(crate) fn symbol_owner_file(symbol: P<Symbol>) -> Option<P<SourceFile>> {
-    if symbol.flags().intersects(SymbolFlags::Transient) {
+    if symbol.flags().intersects(SymbolFlags::TRANSIENT) {
         return None;
     }
     let file = tsrs_ast::get_source_file_of_symbol(symbol)?;
@@ -381,18 +384,18 @@ fn type_response_base(t: P<Type>, id: u32) -> Obj {
     let mut is_tuple = false;
     let mut target = 0u32;
     let mut late = Obj::new();
-    if flags.intersects(TypeFlags::Freshable) {
+    if flags.intersects(TypeFlags::FRESHABLE) {
         let lit = t.as_literal_type();
-        if flags.intersects(TypeFlags::Literal) {
+        if flags.intersects(TypeFlags::LITERAL) {
             value = super::json::literal_value_to_json(lit.value());
         }
         late.nonzero("freshType", lit.fresh_type().map_or(0.0, |f| f.id().0 as f64));
         late.nonzero("regularType", lit.regular_type().map_or(0.0, |r| r.id().0 as f64));
-    } else if flags.intersects(TypeFlags::Object) {
+    } else if flags.intersects(TypeFlags::OBJECT) {
         object_flags = go_object_flags(t).bits();
         is_tuple = tsrs_checker::is_tuple_type_exported(t);
         let of = t.object_flags();
-        if of.intersects(ObjectFlags::Reference) {
+        if of.intersects(ObjectFlags::REFERENCE) {
             if tsrs_checker::is_tuple_type_target(t) {
                 let tuple = t.as_tuple_type();
                 // `elementFlags` is `omitempty`: an empty tuple target omits it (fixedLength/readonly are pointers).
@@ -410,7 +413,7 @@ fn type_response_base(t: P<Type>, id: u32) -> Obj {
             }
             target = t.target().map_or(0, |x| x.id().0);
         }
-        if of.intersects(ObjectFlags::ClassOrInterface) {
+        if of.intersects(ObjectFlags::CLASS_OR_INTERFACE) {
             let iface = t.as_interface_type();
             late.ids("typeParameters", iface.type_parameters().iter().map(|x| x.id().0 as f64));
             late.ids(
@@ -423,23 +426,23 @@ fn type_response_base(t: P<Type>, id: u32) -> Obj {
             );
             late.nonzero("thisType", iface.this_type().map_or(0.0, |x| x.id().0 as f64));
         }
-    } else if flags.intersects(TypeFlags::UnionOrIntersection) {
+    } else if flags.intersects(TypeFlags::UNION_OR_INTERSECTION) {
         // types omitted; fetched via separate request
-    } else if flags.intersects(TypeFlags::Index) {
+    } else if flags.intersects(TypeFlags::INDEX) {
         target = t.as_index_type().target().map_or(0, |x| x.id().0);
-    } else if flags.intersects(TypeFlags::IndexedAccess) {
+    } else if flags.intersects(TypeFlags::INDEXED_ACCESS) {
         let data = t.as_indexed_access_type();
         late.nonzero("objectType", data.object_type().map_or(0.0, |x| x.id().0 as f64));
         late.nonzero("indexType", data.index_type().map_or(0.0, |x| x.id().0 as f64));
-    } else if flags.intersects(TypeFlags::Conditional) {
+    } else if flags.intersects(TypeFlags::CONDITIONAL) {
         let data = t.as_conditional_type();
         late.nonzero("checkType", data.check_type().map_or(0.0, |x| x.id().0 as f64));
         late.nonzero("extendsType", data.extends_type().map_or(0.0, |x| x.id().0 as f64));
-    } else if flags.intersects(TypeFlags::Substitution) {
+    } else if flags.intersects(TypeFlags::SUBSTITUTION) {
         let data = t.as_substitution_type();
         late.nonzero("baseType", data.base_type().map_or(0.0, |x| x.id().0 as f64));
         late.nonzero("substConstraint", data.subst_constraint().map_or(0.0, |x| x.id().0 as f64));
-    } else if flags.intersects(TypeFlags::TemplateLiteral) {
+    } else if flags.intersects(TypeFlags::TEMPLATE_LITERAL) {
         let texts = t.as_template_literal_type().texts();
         if !texts.is_empty() {
             late.set(
@@ -447,11 +450,11 @@ fn type_response_base(t: P<Type>, id: u32) -> Obj {
                 Value::Array(texts.iter().map(|s| Value::String(s.to_string())).collect()),
             );
         }
-    } else if flags.intersects(TypeFlags::StringMapping) {
+    } else if flags.intersects(TypeFlags::STRING_MAPPING) {
         target = t.as_string_mapping_type().target().map_or(0, |x| x.id().0);
-    } else if flags.intersects(TypeFlags::TypeParameter) {
+    } else if flags.intersects(TypeFlags::TYPE_PARAMETER) {
         late.set("isThisType", Value::Bool(t.as_type_parameter().is_this_type()));
-    } else if flags.intersects(TypeFlags::Intrinsic) {
+    } else if flags.intersects(TypeFlags::INTRINSIC) {
         late.str_nonempty("intrinsicName", t.as_intrinsic_type().intrinsic_name());
     }
     // encoding/json v2 `omitempty` only drops empty JSON values (null, "", [], {}): uint32 0 and false
@@ -464,7 +467,7 @@ fn type_response_base(t: P<Type>, id: u32) -> Obj {
         late.ids("aliasTypeArguments", alias.type_arguments().iter().map(|x| x.id().0 as f64));
     }
     o.extend(late);
-    if !flags.intersects(TypeFlags::TypeParameter) {
+    if !flags.intersects(TypeFlags::TYPE_PARAMETER) {
         o.set("isThisType", Value::Bool(false));
     }
     o
@@ -551,5 +554,5 @@ pub(crate) fn resolve_symbol_for_program(
 // Go's ObjectFlags end at 1 << 29 (checker/types.go); tsrs keeps its isWeakType and shouldNormalizeIntersection memos
 // in bits 30 and 31 (tsrs_checker types.rs). proto.go:1261 sends `uint32(t.ObjectFlags())`, which never has them.
 fn go_object_flags(t: P<Type>) -> ObjectFlags {
-    t.object_flags() - ObjectFlags::WeakTypeMemo
+    t.object_flags() - ObjectFlags::WEAK_TYPE_MEMO
 }

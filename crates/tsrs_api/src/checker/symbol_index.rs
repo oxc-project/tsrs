@@ -15,7 +15,7 @@ struct Index {
 impl Index {
     fn add(&mut self, symbol: Option<P<Symbol>>) {
         let Some(symbol) = symbol else { return };
-        if symbol.flags().intersects(SymbolFlags::Transient) {
+        if symbol.flags().intersects(SymbolFlags::TRANSIENT) {
             return;
         }
         if tsrs_ast::get_source_file_of_symbol(symbol) != Some(self.file) {

@@ -130,7 +130,7 @@ impl Export {
         if !self.local_name.is_empty() {
             return &self.local_name;
         }
-        if self.export_name == ast::InternalSymbolNameExportEquals {
+        if self.export_name == ast::INTERNAL_SYMBOL_NAME_EXPORT_EQUALS {
             return &self.target.export_name;
         }
         &self.export_name
@@ -138,8 +138,8 @@ impl Export {
 
     // export.go:81
     pub fn is_renameable(&self) -> bool {
-        self.export_name == ast::InternalSymbolNameExportEquals
-            || self.export_name == ast::InternalSymbolNameDefault
+        self.export_name == ast::INTERNAL_SYMBOL_NAME_EXPORT_EQUALS
+            || self.export_name == ast::INTERNAL_SYMBOL_NAME_DEFAULT
     }
 
     // export.go:85
@@ -149,7 +149,7 @@ impl Export {
 
     // export.go:92
     pub fn is_unresolved_alias(&self) -> bool {
-        self.flags == SymbolFlags::Alias
+        self.flags == SymbolFlags::ALIAS
     }
 }
 
@@ -190,7 +190,7 @@ pub fn symbol_to_export(symbol: P<Symbol>, ch: &mut Checker) -> Option<Arc<Expor
     let target = ch.get_merged_symbol(skipped);
 
     if let Some(export) = try_get_module_export(
-        ast::InternalSymbolNameDefault,
+        ast::INTERNAL_SYMBOL_NAME_DEFAULT,
         target,
         module_symbol,
         ch,
@@ -201,7 +201,7 @@ pub fn symbol_to_export(symbol: P<Symbol>, ch: &mut Checker) -> Option<Arc<Expor
         return Some(export);
     }
     if let Some(export) = try_get_module_export(
-        ast::InternalSymbolNameExportEquals,
+        ast::INTERNAL_SYMBOL_NAME_EXPORT_EQUALS,
         target,
         module_symbol,
         ch,

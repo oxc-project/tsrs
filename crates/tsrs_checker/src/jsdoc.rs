@@ -62,7 +62,7 @@ impl Checker {
                 let name = last_jsdoc_param.name();
                 self.error(
                     Some(name),
-                    &diagnostics::JSDoc_param_tag_has_name_0_but_there_is_no_parameter_with_that_name_It_would_match_arguments_if_it_had_an_array_type,
+                    &diagnostics::JSDOC_PARAM_TAG_HAS_NAME_0_BUT_THERE_IS_NO_PARAMETER_WITH_THAT_NAME_IT_WOULD_MATCH_ARGUMENTS_IF_IT_HAD_AN_ARRAY_TYPE,
                     &[&name.text()],
                 );
             }
@@ -81,12 +81,12 @@ impl Checker {
                     if is_js {
                         self.error(
                             Some(name),
-                            &diagnostics::Qualified_name_0_is_not_allowed_without_a_leading_param_object_1,
+                            &diagnostics::QUALIFIED_NAME_0_IS_NOT_ALLOWED_WITHOUT_A_LEADING_PARAM_OBJECT_1,
                             &[&crate::entity_name_to_string(name), &crate::entity_name_to_string(name.as_qualified_name().left)],
                         );
                     }
                 } else if !is_name_first {
-                    self.error_or_suggestion(is_js, Some(name), &diagnostics::JSDoc_param_tag_has_name_0_but_there_is_no_parameter_with_that_name, &[&name.text()]);
+                    self.error_or_suggestion(is_js, Some(name), &diagnostics::JSDOC_PARAM_TAG_HAS_NAME_0_BUT_THERE_IS_NO_PARAMETER_WITH_THAT_NAME, &[&name.text()]);
                 }
             }
         }
@@ -95,7 +95,7 @@ impl Checker {
 
 // jsdoc.go:86
 pub(crate) fn get_all_jsdoc_tags(node: P<Node>) -> Vec<P<Node>> {
-    if !node.flags().intersects(NodeFlags::JSDoc) {
+    if !node.flags().intersects(NodeFlags::JSDOC) {
         let mut current = Some(node);
         while let Some(cur) = current {
             let jsdocs = cur.jsdoc(None);
@@ -145,7 +145,7 @@ impl Checker {
                     if let (Some(target_name), Some(source_name)) = (target_name, source_name) {
                         self.error(
                             Some(source_name),
-                            &diagnostics::JSDoc_0_1_does_not_match_the_extends_2_clause,
+                            &diagnostics::JSDOC_0_1_DOES_NOT_MATCH_THE_EXTENDS_2_CLAUSE,
                             &[&tag.tag_name().text(), &source_name.text(), &target_name.text()],
                         );
                     }
@@ -154,7 +154,7 @@ impl Checker {
                 {
                     self.error(
                         Some(source_name),
-                        &diagnostics::JSDoc_0_1_does_not_match_the_extends_2_clause,
+                        &diagnostics::JSDOC_0_1_DOES_NOT_MATCH_THE_EXTENDS_2_CLAUSE,
                         &[
                             &tag.tag_name().text(),
                             &source_name.text(),

@@ -26,12 +26,12 @@ const PATIENCE: Duration = Duration::from_secs(10);
 
 // Go's close(ch) on a channel goroutines wait on: once open, every wait returns.
 #[derive(Default)]
-struct gate {
+struct Gate {
     open: Mutex<bool>,
     cond: Condvar,
 }
 
-impl gate {
+impl Gate {
     fn open(&self) {
         *self.open.lock().unwrap() = true;
         self.cond.notify_all();
@@ -58,9 +58,9 @@ fn value(text: &str) -> Value {
 }
 
 // conn_async_test.go:19
-struct noOpHandler;
+struct NoOpHandler;
 
-impl Handler for noOpHandler {
+impl Handler for NoOpHandler {
     fn handle_request(&self, _: &str, _: Option<&Value>) -> Result<Value, Error> {
         Ok(Value::Null)
     }
@@ -71,18 +71,18 @@ impl Handler for noOpHandler {
 }
 
 // conn_async_test.go:29
-struct queuedProtocol {
+struct QueuedProtocol {
     messages: Mutex<VecDeque<Message>>,
     response_err: Option<Error>,
 }
 
-impl queuedProtocol {
-    fn new(messages: Vec<Message>, response_err: Option<Error>) -> queuedProtocol {
-        queuedProtocol { messages: Mutex::new(messages.into()), response_err }
+impl QueuedProtocol {
+    fn new(messages: Vec<Message>, response_err: Option<Error>) -> QueuedProtocol {
+        QueuedProtocol { messages: Mutex::new(messages.into()), response_err }
     }
 }
 
-impl Protocol for queuedProtocol {
+impl Protocol for QueuedProtocol {
     fn read_message(&self) -> Result<Message, Error> {
         self.messages.lock().unwrap().pop_front().ok_or_else(eof)
     }
@@ -105,19 +105,19 @@ impl Protocol for queuedProtocol {
 }
 
 // conn_async_test.go:59
-struct blockingHandler {
+struct BlockingHandler {
     started: mpsc::Sender<()>,
-    release: gate,
+    release: Gate,
 }
 
-impl blockingHandler {
-    fn new() -> (Arc<blockingHandler>, mpsc::Receiver<()>) {
+impl BlockingHandler {
+    fn new() -> (Arc<BlockingHandler>, mpsc::Receiver<()>) {
         let (started, started_rx) = mpsc::channel();
-        (Arc::new(blockingHandler { started, release: gate::default() }), started_rx)
+        (Arc::new(BlockingHandler { started, release: Gate::default() }), started_rx)
     }
 }
 
-impl Handler for blockingHandler {
+impl Handler for BlockingHandler {
     fn handle_request(&self, _: &str, _: Option<&Value>) -> Result<Value, Error> {
         self.started.send(()).unwrap();
         self.release.wait();
@@ -170,15 +170,15 @@ fn call(
 // conn_async_test.go:88
 #[test]
 fn test_async_conn_run_waits_for_handlers() {
-    let protocol = queuedProtocol::new(
+    let protocol = QueuedProtocol::new(
         vec![request(new_id_string("1"), "request"), notification("notification")],
         None,
     );
-    let (handler, started) = blockingHandler::new();
+    let (handler, started) = BlockingHandler::new();
     let conn = new_async_conn_with_protocol(
         None,
         Box::new(protocol),
-        Arc::<blockingHandler>::clone(&handler),
+        Arc::<BlockingHandler>::clone(&handler),
     );
 
     let run_done = run_in_background(&conn);
@@ -199,19 +199,19 @@ fn test_async_conn_run_waits_for_handlers() {
 fn test_async_conn_response_write_failure_with_nil_transport() {
     let response_err = Error::new("response write failed");
     let protocol =
-        queuedProtocol::new(vec![request(new_id_string("1"), "request")], Some(response_err));
-    let conn = new_async_conn_with_protocol(None, Box::new(protocol), Arc::new(noOpHandler));
+        QueuedProtocol::new(vec![request(new_id_string("1"), "request")], Some(response_err));
+    let conn = new_async_conn_with_protocol(None, Box::new(protocol), Arc::new(NoOpHandler));
 
     let err = run_bounded(&conn).unwrap_err();
     assert_eq!(err.to_string(), "ipc: failed to write response: response write failed");
 }
 
 // conn_async_test.go:153
-struct closeSignal {
-    closed: Arc<gate>,
+struct CloseSignal {
+    closed: Arc<Gate>,
 }
 
-impl Closer for closeSignal {
+impl Closer for CloseSignal {
     fn close(&self) -> std::io::Result<()> {
         self.closed.open();
         Ok(())
@@ -219,13 +219,13 @@ impl Closer for closeSignal {
 }
 
 // conn_async_test.go:171
-struct failingResponseProtocol {
-    closed: Arc<gate>,
+struct FailingResponseProtocol {
+    closed: Arc<Gate>,
     request_read: AtomicBool,
     response_err: Error,
 }
 
-impl Protocol for failingResponseProtocol {
+impl Protocol for FailingResponseProtocol {
     fn read_message(&self) -> Result<Message, Error> {
         if !self.request_read.swap(true, Ordering::SeqCst) {
             return Ok(request(new_id_int(1), "transform"));
@@ -256,7 +256,7 @@ impl Protocol for failingResponseProtocol {
 fn test_async_conn_call_returns_when_peer_closes() {
     let (client, mut server) = pipe().unwrap();
     let client_closer = Arc::clone(&client.closer);
-    let conn = new_async_conn(client, Arc::new(noOpHandler));
+    let conn = new_async_conn(client, Arc::new(NoOpHandler));
     let run_done = run_in_background(&conn);
 
     let call_done = spawn_call(&conn, "transform", None);
@@ -275,7 +275,7 @@ fn test_async_conn_call_returns_when_peer_closes() {
 #[test]
 fn test_async_conn_call_after_read_loop_failure_returns_immediately() {
     let (client, mut server) = pipe().unwrap();
-    let conn = new_async_conn(client, Arc::new(noOpHandler));
+    let conn = new_async_conn(client, Arc::new(NoOpHandler));
     let run_done = run_in_background(&conn);
 
     std::io::Write::write_all(&mut server.writer, b"oops\n").unwrap();
@@ -294,11 +294,11 @@ fn test_async_conn_call_after_read_loop_failure_returns_immediately() {
 #[test]
 fn test_async_conn_terminal_error_includes_response_write_failure() {
     let response_err = Error::new("response write failed");
-    let closed = Arc::new(gate::default());
-    let rwc = Arc::new(closeSignal { closed: Arc::clone(&closed) });
+    let closed = Arc::new(Gate::default());
+    let rwc = Arc::new(CloseSignal { closed: Arc::clone(&closed) });
     let protocol =
-        failingResponseProtocol { closed, request_read: AtomicBool::new(false), response_err };
-    let conn = new_async_conn_with_protocol(Some(rwc), Box::new(protocol), Arc::new(noOpHandler));
+        FailingResponseProtocol { closed, request_read: AtomicBool::new(false), response_err };
+    let conn = new_async_conn_with_protocol(Some(rwc), Box::new(protocol), Arc::new(NoOpHandler));
 
     let err = run_bounded(&conn).unwrap_err();
     assert_eq!(
@@ -318,8 +318,8 @@ fn test_async_conn_terminal_error_includes_response_write_failure() {
 #[test]
 fn test_async_conn_run_waits_for_request_after_peer_closes() {
     let (client, server) = pipe().unwrap();
-    let (handler, started) = blockingHandler::new();
-    let conn = new_async_conn(server, Arc::<blockingHandler>::clone(&handler));
+    let (handler, started) = BlockingHandler::new();
+    let conn = new_async_conn(server, Arc::<BlockingHandler>::clone(&handler));
     let run_done = run_in_background(&conn);
 
     let ReadWriteCloser { reader, writer, closer } = client;
@@ -350,12 +350,12 @@ fn test_async_conn_run_waits_for_request_after_peer_closes() {
 // The in-process peer that stands in for a content mapper process. "echo" returns its params, "fail" fails,
 // "panic" panics, "wait" announces itself on `started` and blocks until `release` opens; anything else is
 // rejected.
-struct testMapper {
+struct TestMapper {
     started: mpsc::Sender<()>,
-    release: gate,
+    release: Gate,
 }
 
-impl Handler for testMapper {
+impl Handler for TestMapper {
     fn handle_request(&self, method: &str, params: Option<&Value>) -> Result<Value, Error> {
         match method {
             "echo" => Ok(params.cloned().unwrap_or(Value::Null)),
@@ -377,11 +377,11 @@ impl Handler for testMapper {
 
 // Our side's handler, like hostimpl.go's rejectHandler except that it answers "ping"; it reports every request and
 // notification it gets.
-struct hostHandler {
+struct HostHandler {
     handled: mpsc::Sender<(String, Option<Value>)>,
 }
 
-impl Handler for hostHandler {
+impl Handler for HostHandler {
     fn handle_request(&self, method: &str, params: Option<&Value>) -> Result<Value, Error> {
         self.handled.send((method.to_string(), params.cloned())).unwrap();
         if method == "ping" {
@@ -397,33 +397,33 @@ impl Handler for hostHandler {
 }
 
 // One end of a connection, running on its own thread.
-struct end {
+struct End {
     conn: Arc<AsyncConn>,
     closer: Arc<dyn Closer>,
     run: mpsc::Receiver<Result<(), Error>>,
 }
 
-fn start(rwc: ReadWriteCloser, handler: Arc<dyn Handler>) -> end {
+fn start(rwc: ReadWriteCloser, handler: Arc<dyn Handler>) -> End {
     let closer = Arc::clone(&rwc.closer);
     let conn = new_async_conn(rwc, handler);
     let run = run_in_background(&conn);
-    end { conn, closer, run }
+    End { conn, closer, run }
 }
 
 // A connection to a test mapper: (host end, mapper end, the mapper, requests and notifications our handler got).
 fn connect()
--> (end, end, Arc<testMapper>, mpsc::Receiver<()>, mpsc::Receiver<(String, Option<Value>)>) {
+-> (End, End, Arc<TestMapper>, mpsc::Receiver<()>, mpsc::Receiver<(String, Option<Value>)>) {
     let (host_rwc, mapper_rwc) = pipe().unwrap();
     let (started, started_rx) = mpsc::channel();
-    let mapper_handler = Arc::new(testMapper { started, release: gate::default() });
-    let mapper = start(mapper_rwc, Arc::<testMapper>::clone(&mapper_handler));
+    let mapper_handler = Arc::new(TestMapper { started, release: Gate::default() });
+    let mapper = start(mapper_rwc, Arc::<TestMapper>::clone(&mapper_handler));
     let (handled, handled_rx) = mpsc::channel();
-    let host = start(host_rwc, Arc::new(hostHandler { handled }));
+    let host = start(host_rwc, Arc::new(HostHandler { handled }));
     (host, mapper, mapper_handler, started_rx, handled_rx)
 }
 
 // Closes the host's end of the connection and checks that both ends stop.
-fn shut_down(host: &end, mapper: &end) {
+fn shut_down(host: &End, mapper: &End) {
     host.closer.close().unwrap();
     assert_eq!(host.run.recv_timeout(PATIENCE).unwrap(), Ok(()));
     assert_eq!(mapper.run.recv_timeout(PATIENCE).unwrap(), Ok(()));
@@ -618,7 +618,7 @@ fn call_with_timeout_gives_up_with_deadline_exceeded() {
 #[test]
 fn call_writes_api_ids_and_returns_what_the_response_carries() {
     let (host_rwc, peer) = pipe().unwrap();
-    let host = start(host_rwc, Arc::new(noOpHandler));
+    let host = start(host_rwc, Arc::new(NoOpHandler));
     let ReadWriteCloser { reader, writer, closer } = peer;
     let mut r = jsonrpc::new_reader(reader);
     let mut w = jsonrpc::new_writer(writer);
@@ -670,11 +670,11 @@ fn server_timing_requests_are_answered_by_the_connection() {
 }
 
 // A protocol that panics reading once a request is out, like a bug in a Protocol implementation.
-struct panickingProtocol {
-    requested: gate,
+struct PanickingProtocol {
+    requested: Gate,
 }
 
-impl Protocol for panickingProtocol {
+impl Protocol for PanickingProtocol {
     fn read_message(&self) -> Result<Message, Error> {
         self.requested.wait();
         panic!("protocol bug");
@@ -704,8 +704,8 @@ impl Protocol for panickingProtocol {
 fn a_panic_in_the_read_loop_fails_the_waiting_calls() {
     let conn = new_async_conn_with_protocol(
         None,
-        Box::new(panickingProtocol { requested: gate::default() }),
-        Arc::new(noOpHandler),
+        Box::new(PanickingProtocol { requested: Gate::default() }),
+        Arc::new(NoOpHandler),
     );
     let run = {
         let conn = Arc::clone(&conn);

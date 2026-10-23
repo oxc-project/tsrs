@@ -242,7 +242,7 @@ const RESET_ESCAPE_SEQUENCE: &str = "\u{001b}[0m";
 const ELLIPSIS: &str = "...";
 
 fn file_appears_to_be_binary_code() -> i32 {
-    diagnostics::File_appears_to_be_binary.code()
+    diagnostics::FILE_APPEARS_TO_BE_BINARY.code()
 }
 
 pub fn format_diagnostics_with_color_and_context(
@@ -537,19 +537,19 @@ pub fn write_error_summary_text(
     let message = if total_error_count == 1 {
         // Special-case a single error.
         if global_errors > 0 || first_file_name.is_empty() {
-            diagnostics::Found_1_error.localize(&[])
+            diagnostics::FOUND_1_ERROR.localize(&[])
         } else {
-            diagnostics::Found_1_error_in_0.localize(&[&first_file_name])
+            diagnostics::FOUND_1_ERROR_IN_0.localize(&[&first_file_name])
         }
     } else {
         match num_erroring_files {
             // No file-specific errors.
-            0 => diagnostics::Found_0_errors.localize(&[&total_error_count]),
+            0 => diagnostics::FOUND_0_ERRORS.localize(&[&total_error_count]),
             // One file with errors.
-            1 => diagnostics::Found_0_errors_in_the_same_file_starting_at_Colon_1
+            1 => diagnostics::FOUND_0_ERRORS_IN_THE_SAME_FILE_STARTING_AT_COLON_1
                 .localize(&[&total_error_count, &first_file_name]),
             // Multiple files with errors.
-            _ => diagnostics::Found_0_errors_in_1_files
+            _ => diagnostics::FOUND_0_ERRORS_IN_1_FILES
                 .localize(&[&total_error_count, &num_erroring_files]),
         }
     };
@@ -570,7 +570,7 @@ fn write_tabular_errors_display(
 ) {
     let max_errors = errors_by_file.iter().map(|(_, e)| e.len()).max().unwrap_or(0);
 
-    let header_row = diagnostics::Errors_Files.localize(&[]);
+    let header_row = diagnostics::ERRORS_FILES.localize(&[]);
     let left_column_heading_length = header_row.split(' ').next().unwrap().len();
     let length_of_biggest_error_count = max_errors.to_string().len();
     let left_padding_goal = left_column_heading_length.max(length_of_biggest_error_count);

@@ -24,7 +24,7 @@ fn signature_diagnostic_prints_go_position_and_length() {
     let diagnostic = new_diagnostic(
         Some(file),
         TextRange::new(6, 7),
-        &diagnostics::Property_0_of_exported_anonymous_class_type_may_not_be_private_or_protected,
+        &diagnostics::PROPERTY_0_OF_EXPORTED_ANONYMOUS_CLASS_TYPE_MAY_NOT_BE_PRIVATE_OR_PROTECTED,
         &[&"p"],
     );
     let mut builder = String::new();

@@ -64,13 +64,13 @@ pub enum OperatorPrecedence {
 }
 
 impl OperatorPrecedence {
-    pub const Lowest: OperatorPrecedence = OperatorPrecedence::Comma;
-    pub const Highest: OperatorPrecedence = OperatorPrecedence::Parentheses;
-    pub const DisallowComma: OperatorPrecedence = OperatorPrecedence::Yield;
+    pub const LOWEST: OperatorPrecedence = OperatorPrecedence::Comma;
+    pub const HIGHEST: OperatorPrecedence = OperatorPrecedence::Parentheses;
+    pub const DISALLOW_COMMA: OperatorPrecedence = OperatorPrecedence::Yield;
     // ShortCircuitExpression:
     //     LogicalORExpression
     //     CoalesceExpression
-    pub const Coalesce: OperatorPrecedence = OperatorPrecedence::LogicalOR;
+    pub const COALESCE: OperatorPrecedence = OperatorPrecedence::LogicalOR;
 }
 
 pub(crate) fn get_operator(expression: P<Node>) -> Kind {
@@ -85,11 +85,11 @@ pub(crate) fn get_operator(expression: P<Node>) -> Kind {
 // Gets the precedence of an expression
 pub fn get_expression_precedence(expression: P<Node>) -> OperatorPrecedence {
     let operator = get_operator(expression);
-    let mut flags = OperatorPrecedenceFlags::None;
+    let mut flags = OperatorPrecedenceFlags::NONE;
     if expression.kind() == Kind::NewExpression && expression.argument_list().is_none() {
-        flags = OperatorPrecedenceFlags::NewWithoutArguments;
+        flags = OperatorPrecedenceFlags::NEW_WITHOUT_ARGUMENTS;
     } else if is_optional_chain(expression) {
-        flags = OperatorPrecedenceFlags::OptionalChain;
+        flags = OperatorPrecedenceFlags::OPTIONAL_CHAIN;
     }
     get_operator_precedence(expression.kind(), operator, flags)
 }
@@ -97,9 +97,9 @@ pub fn get_expression_precedence(expression: P<Node>) -> OperatorPrecedence {
 bitflags! {
     #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Default)]
     pub struct OperatorPrecedenceFlags: u32 {
-        const None = 0;
-        const NewWithoutArguments = 1 << 0;
-        const OptionalChain = 1 << 1;
+        const NONE = 0;
+        const NEW_WITHOUT_ARGUMENTS = 1 << 0;
+        const OPTIONAL_CHAIN = 1 << 1;
     }
 }
 
@@ -146,20 +146,20 @@ pub fn get_operator_precedence(
         Kind::PostfixUnaryExpression => OperatorPrecedence::Update,
         // !!! By necessity, this differs from the old compiler to better align with ParenthesizerRules. consider backporting
         Kind::PropertyAccessExpression | Kind::ElementAccessExpression => {
-            if flags.intersects(OperatorPrecedenceFlags::OptionalChain) {
+            if flags.intersects(OperatorPrecedenceFlags::OPTIONAL_CHAIN) {
                 return OperatorPrecedence::OptionalChain;
             }
             OperatorPrecedence::Member
         }
         Kind::CallExpression => {
-            if flags.intersects(OperatorPrecedenceFlags::OptionalChain) {
+            if flags.intersects(OperatorPrecedenceFlags::OPTIONAL_CHAIN) {
                 return OperatorPrecedence::OptionalChain;
             }
             OperatorPrecedence::Member
         }
         // !!! By necessity, this differs from the old compiler to better align with ParenthesizerRules. consider backporting
         Kind::NewExpression => {
-            if flags.intersects(OperatorPrecedenceFlags::NewWithoutArguments) {
+            if flags.intersects(OperatorPrecedenceFlags::NEW_WITHOUT_ARGUMENTS) {
                 return OperatorPrecedence::LeftHandSide;
             }
             OperatorPrecedence::Member
@@ -201,7 +201,7 @@ pub fn get_operator_precedence(
 // Gets the precedence of a binary operator
 pub fn get_binary_operator_precedence(operator_kind: Kind) -> OperatorPrecedence {
     match operator_kind {
-        Kind::QuestionQuestionToken => OperatorPrecedence::Coalesce,
+        Kind::QuestionQuestionToken => OperatorPrecedence::COALESCE,
         Kind::BarBarToken => OperatorPrecedence::LogicalOR,
         Kind::AmpersandAmpersandToken => OperatorPrecedence::LogicalAND,
         Kind::BarToken => OperatorPrecedence::BitwiseOR,
@@ -294,8 +294,8 @@ pub enum TypePrecedence {
 }
 
 impl TypePrecedence {
-    pub const Lowest: TypePrecedence = TypePrecedence::Conditional;
-    pub const Highest: TypePrecedence = TypePrecedence::NonArray;
+    pub const LOWEST: TypePrecedence = TypePrecedence::Conditional;
+    pub const HIGHEST: TypePrecedence = TypePrecedence::NonArray;
 }
 
 // Gets the precedence of a TypeNode

@@ -141,10 +141,10 @@ fn type_property(t: P<Type>, property: TypeProperty) -> CheckerResult<Option<P<T
     Ok(match property {
         TypeProperty::Target => {
             if !t.flags().intersects(
-                TypeFlags::Object
-                    | TypeFlags::TypeParameter
-                    | TypeFlags::Index
-                    | TypeFlags::StringMapping,
+                TypeFlags::OBJECT
+                    | TypeFlags::TYPE_PARAMETER
+                    | TypeFlags::INDEX
+                    | TypeFlags::STRING_MAPPING,
             ) {
                 return Err(go_panic("Unhandled case in Type.Target"));
             }
@@ -219,7 +219,8 @@ pub(crate) fn resolve_type_array_property(
     let t = s.resolve_type(p.u32("objectId")?)?;
     let types: &[P<Type>] = match property {
         TypeArrayProperty::Types => {
-            if !t.flags().intersects(TypeFlags::UnionOrIntersection | TypeFlags::TemplateLiteral) {
+            if !t.flags().intersects(TypeFlags::UNION_OR_INTERSECTION | TypeFlags::TEMPLATE_LITERAL)
+            {
                 return Err(go_panic("Unhandled case in Type.Types"));
             }
             t.types()
@@ -464,7 +465,7 @@ pub(crate) fn node_type_op(
     let mut s = setup(host, p)?;
     let node = s.resolve_node(p.string("location")?)?;
     let t = match op {
-        NodeTypeOp::Contextual => s.c().get_contextual_type_exported(node, ContextFlags::None),
+        NodeTypeOp::Contextual => s.c().get_contextual_type_exported(node, ContextFlags::NONE),
         NodeTypeOp::FromTypeNode => Some(s.c().get_type_from_type_node_exported(node)),
     };
     s.opt_type_response(t)
@@ -734,8 +735,8 @@ pub(crate) fn type_to_string(host: &dyn CheckerHost, p: &Params) -> CheckerResul
     let flags = if flags != 0 {
         TypeFormatFlags::from_bits_retain(flags as u32)
     } else {
-        TypeFormatFlags::AllowUniqueESSymbolType
-            | TypeFormatFlags::UseAliasDefinedOutsideCurrentScope
+        TypeFormatFlags::ALLOW_UNIQUE_ES_SYMBOL_TYPE
+            | TypeFormatFlags::USE_ALIAS_DEFINED_OUTSIDE_CURRENT_SCOPE
     };
     Ok(Value::String(s.c().type_to_string_ex_exported(t, enclosing, flags, None)))
 }

@@ -45,7 +45,7 @@ pub fn is_class_member_modifier(token: Kind) -> bool {
 }
 
 pub fn is_parameter_property_modifier(kind: Kind) -> bool {
-    modifier_to_flag(kind).intersects(ModifierFlags::ParameterPropertyModifier)
+    modifier_to_flag(kind).intersects(ModifierFlags::PARAMETER_PROPERTY_MODIFIER)
 }
 
 pub fn is_type_reference_type(node: P<Node>) -> bool {
@@ -71,7 +71,7 @@ pub fn get_class_extends_heritage_element(node: P<Node>) -> Option<P<Node>> {
 }
 
 pub fn is_valid_type_only_alias_use_site(use_site: P<Node>) -> bool {
-    use_site.flags().intersects(NodeFlags::Ambient | NodeFlags::JSDoc)
+    use_site.flags().intersects(NodeFlags::AMBIENT | NodeFlags::JSDOC)
         || is_part_of_type_query(use_site)
         || is_identifier_in_non_emitting_heritage_clause(use_site)
         || is_part_of_possibly_valid_type_or_abstract_computed_property_name(use_site)
@@ -101,7 +101,7 @@ pub(crate) fn is_part_of_possibly_valid_type_or_abstract_computed_property_name(
         return false;
     }
     let parent = node.parent().unwrap();
-    if has_syntactic_modifier(parent, ModifierFlags::Abstract) {
+    if has_syntactic_modifier(parent, ModifierFlags::ABSTRACT) {
         return true;
     }
     node_kind_is(parent.parent().unwrap(), &[Kind::InterfaceDeclaration, Kind::TypeLiteral])
@@ -135,7 +135,7 @@ pub fn get_property_name_for_property_name_node(name: P<Node>) -> std::borrow::C
                 }
                 return text.into();
             }
-            InternalSymbolNameMissing.into()
+            INTERNAL_SYMBOL_NAME_MISSING.into()
         }
         _ => panic!("Unhandled case in getPropertyNameForPropertyNameNode"),
     }
@@ -188,7 +188,7 @@ pub fn has_resolution_mode_override(node: impl Into<Option<P<Node>>>) -> bool {
 }
 
 pub fn is_template_literal_kind(kind: Kind) -> bool {
-    Kind::FirstTemplateToken <= kind && kind <= Kind::LastTemplateToken
+    Kind::FIRST_TEMPLATE_TOKEN <= kind && kind <= Kind::LAST_TEMPLATE_TOKEN
 }
 
 pub fn get_external_module_import_equals_declaration_expression(node: P<Node>) -> Option<P<Node>> {
@@ -201,49 +201,49 @@ pub fn create_modifiers_from_modifier_flags(
     mut create_modifier: impl FnMut(Kind) -> P<Node>,
 ) -> Vec<P<Node>> {
     let mut result = Vec::new();
-    if flags.intersects(ModifierFlags::Export) {
+    if flags.intersects(ModifierFlags::EXPORT) {
         result.push(create_modifier(Kind::ExportKeyword));
     }
-    if flags.intersects(ModifierFlags::Ambient) {
+    if flags.intersects(ModifierFlags::AMBIENT) {
         result.push(create_modifier(Kind::DeclareKeyword));
     }
-    if flags.intersects(ModifierFlags::Default) {
+    if flags.intersects(ModifierFlags::DEFAULT) {
         result.push(create_modifier(Kind::DefaultKeyword));
     }
-    if flags.intersects(ModifierFlags::Const) {
+    if flags.intersects(ModifierFlags::CONST) {
         result.push(create_modifier(Kind::ConstKeyword));
     }
-    if flags.intersects(ModifierFlags::Public) {
+    if flags.intersects(ModifierFlags::PUBLIC) {
         result.push(create_modifier(Kind::PublicKeyword));
     }
-    if flags.intersects(ModifierFlags::Private) {
+    if flags.intersects(ModifierFlags::PRIVATE) {
         result.push(create_modifier(Kind::PrivateKeyword));
     }
-    if flags.intersects(ModifierFlags::Protected) {
+    if flags.intersects(ModifierFlags::PROTECTED) {
         result.push(create_modifier(Kind::ProtectedKeyword));
     }
-    if flags.intersects(ModifierFlags::Abstract) {
+    if flags.intersects(ModifierFlags::ABSTRACT) {
         result.push(create_modifier(Kind::AbstractKeyword));
     }
-    if flags.intersects(ModifierFlags::Static) {
+    if flags.intersects(ModifierFlags::STATIC) {
         result.push(create_modifier(Kind::StaticKeyword));
     }
-    if flags.intersects(ModifierFlags::Override) {
+    if flags.intersects(ModifierFlags::OVERRIDE) {
         result.push(create_modifier(Kind::OverrideKeyword));
     }
-    if flags.intersects(ModifierFlags::Readonly) {
+    if flags.intersects(ModifierFlags::READONLY) {
         result.push(create_modifier(Kind::ReadonlyKeyword));
     }
-    if flags.intersects(ModifierFlags::Accessor) {
+    if flags.intersects(ModifierFlags::ACCESSOR) {
         result.push(create_modifier(Kind::AccessorKeyword));
     }
-    if flags.intersects(ModifierFlags::Async) {
+    if flags.intersects(ModifierFlags::ASYNC) {
         result.push(create_modifier(Kind::AsyncKeyword));
     }
-    if flags.intersects(ModifierFlags::In) {
+    if flags.intersects(ModifierFlags::IN) {
         result.push(create_modifier(Kind::InKeyword));
     }
-    if flags.intersects(ModifierFlags::Out) {
+    if flags.intersects(ModifierFlags::OUT) {
         result.push(create_modifier(Kind::OutKeyword));
     }
     result
@@ -612,8 +612,8 @@ pub fn should_transform_import_call(
     implied_node_format_for_emit: ModuleKind,
 ) -> bool {
     let module_kind = options.get_emit_module_kind();
-    if ModuleKind::Node16 <= module_kind && module_kind <= ModuleKind::NodeNext
-        || module_kind == ModuleKind::Preserve
+    if ModuleKind::NODE16 <= module_kind && module_kind <= ModuleKind::NODE_NEXT
+        || module_kind == ModuleKind::PRESERVE
     {
         return false;
     }
@@ -663,13 +663,13 @@ pub fn compare_node_positions(n1: P<Node>, n2: P<Node>) -> std::cmp::Ordering {
 
 pub fn is_unterminated_literal(node: P<Node>) -> bool {
     is_literal_kind(node.kind())
-        && node.literal_like_data().unwrap().token_flags().intersects(TokenFlags::Unterminated)
+        && node.literal_like_data().unwrap().token_flags().intersects(TokenFlags::UNTERMINATED)
         || is_template_literal_kind(node.kind())
             && node
                 .template_literal_like_data()
                 .unwrap()
                 .template_flags
-                .intersects(TokenFlags::Unterminated)
+                .intersects(TokenFlags::UNTERMINATED)
 }
 
 // Gets a value indicating whether a class element is either a static or an instance property declaration with an initializer.
@@ -678,7 +678,7 @@ pub fn is_initialized_property(member: P<Node>) -> bool {
 }
 
 pub fn has_decorators(node: P<Node>) -> bool {
-    has_syntactic_modifier(node, ModifierFlags::Decorator)
+    has_syntactic_modifier(node, ModifierFlags::DECORATOR)
 }
 
 pub struct HasFileNameImpl {
@@ -820,7 +820,7 @@ pub fn get_target_of_binding_or_assignment_element(binding_element: P<Node>) -> 
 }
 
 pub fn is_jsdoc_name_reference_context(node: P<Node>) -> bool {
-    node.flags().intersects(NodeFlags::JSDoc)
+    node.flags().intersects(NodeFlags::JSDOC)
         && find_ancestor(node, |node| is_jsdoc_name_reference(node) || is_jsdoc_link_like(node))
             .is_some()
 }
@@ -938,7 +938,7 @@ pub fn has_inferred_type(node: P<Node>) -> bool {
 }
 
 pub fn is_keyword(token: Kind) -> bool {
-    Kind::FirstKeyword <= token && token <= Kind::LastKeyword
+    Kind::FIRST_KEYWORD <= token && token <= Kind::LAST_KEYWORD
 }
 
 pub fn has_modifier(node: P<Node>, flags: ModifierFlags) -> bool {
@@ -978,7 +978,7 @@ pub fn is_implicitly_exported_jsdoc_declaration(node: P<Node>) -> bool {
     }
     // A reparsed ModuleDeclaration synthesized from a JSDoc @typedef/@callback
     // dotted name should also be treated as implicitly exported in modules.
-    is_module_declaration(node) && node.flags().intersects(NodeFlags::Reparsed)
+    is_module_declaration(node) && node.flags().intersects(NodeFlags::REPARSED)
 }
 
 pub fn has_context_sensitive_parameters(node: P<Node>) -> bool {
@@ -993,7 +993,7 @@ pub fn has_context_sensitive_parameters(node: P<Node>) -> bool {
             // an implicit 'this' parameter which is subject to contextual typing.
             let parameter = node.parameters().first().copied();
             if parameter.is_none_or(|parameter| !is_this_parameter(parameter)) {
-                return node.flags().intersects(NodeFlags::ContainsThis);
+                return node.flags().intersects(NodeFlags::CONTAINS_THIS);
             }
         }
     }
@@ -1013,10 +1013,10 @@ pub fn get_first_constructor_with_body(node: P<Node>) -> Option<P<Node>> {
 
 // Returns true for nodes that are considered executable for the purposes of unreachable code detection.
 pub fn is_potentially_executable_node(node: P<Node>) -> bool {
-    if Kind::FirstStatement <= node.kind() && node.kind() <= Kind::LastStatement {
+    if Kind::FIRST_STATEMENT <= node.kind() && node.kind() <= Kind::LAST_STATEMENT {
         if is_variable_statement(node) {
             let declaration_list = node.as_variable_statement().declaration_list;
-            if get_combined_node_flags(declaration_list).intersects(NodeFlags::BlockScoped) {
+            if get_combined_node_flags(declaration_list).intersects(NodeFlags::BLOCK_SCOPED) {
                 return true;
             }
             let declarations = declaration_list.as_variable_declaration_list().declarations.nodes();
@@ -1028,11 +1028,11 @@ pub fn is_potentially_executable_node(node: P<Node>) -> bool {
 }
 
 pub fn has_abstract_modifier(node: P<Node>) -> bool {
-    has_syntactic_modifier(node, ModifierFlags::Abstract)
+    has_syntactic_modifier(node, ModifierFlags::ABSTRACT)
 }
 
 pub fn has_ambient_modifier(node: P<Node>) -> bool {
-    has_syntactic_modifier(node, ModifierFlags::Ambient)
+    has_syntactic_modifier(node, ModifierFlags::AMBIENT)
 }
 
 pub fn node_can_be_decorated(
@@ -1243,7 +1243,7 @@ pub fn is_async_function(node: P<Node>) -> bool {
             let data = node.body_data().unwrap();
             data.body.is_some()
                 && data.asterisk_token.is_none()
-                && has_syntactic_modifier(node, ModifierFlags::Async)
+                && has_syntactic_modifier(node, ModifierFlags::ASYNC)
         }
         _ => false,
     }
@@ -1319,7 +1319,7 @@ pub(crate) fn is_argument_of_element_access_expression(node: impl Into<Option<P<
 // return the corresponding reparsed clone in the subtree. Otherwise, just return the node.
 pub fn get_reparsed_node_for_node(node: impl Into<Option<P<Node>>>) -> Option<P<Node>> {
     let node = node.into()?;
-    if node.flags().intersects(NodeFlags::JSDoc) && !node.flags().intersects(NodeFlags::Reparsed) {
+    if node.flags().intersects(NodeFlags::JSDOC) && !node.flags().intersects(NodeFlags::REPARSED) {
         if let Some(file) = get_source_file_of_node(node) {
             let reparsed_clones = file.reparsed_clones();
             if !reparsed_clones.is_empty() {
@@ -1430,7 +1430,7 @@ pub fn clone_as_import_declaration(node: P<Node>, f: &NodeFactory) -> P<Node> {
 
 // utilities.go:3028
 pub fn is_contextual_keyword(token: Kind) -> bool {
-    Kind::FirstContextualKeyword <= token && token <= Kind::LastContextualKeyword
+    Kind::FIRST_CONTEXTUAL_KEYWORD <= token && token <= Kind::LAST_CONTEXTUAL_KEYWORD
 }
 
 // utilities.go:4170
@@ -1443,7 +1443,7 @@ pub fn is_external_module_indicator(node: P<Node>) -> bool {
     // Exported top-level member indicates moduleness
     is_any_import_or_re_export(node)
         || is_export_assignment(node)
-        || has_syntactic_modifier(node, ModifierFlags::Export)
+        || has_syntactic_modifier(node, ModifierFlags::EXPORT)
 }
 
 // Language-service-only utilities (added for tsrs_ls; the batch port skipped them).
@@ -1452,7 +1452,7 @@ pub fn is_external_module_indicator(node: P<Node>) -> bool {
 pub fn find_last_visible_node(nodes: &[P<Node>]) -> Option<P<Node>> {
     let mut from_end = 1;
     while from_end <= nodes.len()
-        && nodes[nodes.len() - from_end].flags().intersects(NodeFlags::Reparsed)
+        && nodes[nodes.len() - from_end].flags().intersects(NodeFlags::REPARSED)
     {
         from_end += 1;
     }
@@ -1521,7 +1521,7 @@ pub fn is_jsdoc_single_comment_node(node: P<Node>) -> bool {
 
 // utilities.go:3806
 pub fn is_trivia(token: Kind) -> bool {
-    Kind::FirstTriviaToken <= token && token <= Kind::LastTriviaToken
+    Kind::FIRST_TRIVIA_TOKEN <= token && token <= Kind::LAST_TRIVIA_TOKEN
 }
 
 // utilities.go:3848
@@ -1584,7 +1584,7 @@ pub fn is_deprecated_declaration(declaration: P<Node>) -> bool {
 
 // utilities.go:3043
 pub fn is_let(node: P<Node>) -> bool {
-    get_combined_node_flags(node) & NodeFlags::BlockScoped == NodeFlags::Let
+    get_combined_node_flags(node) & NodeFlags::BLOCK_SCOPED == NodeFlags::LET
 }
 
 // utilities.go:3086
@@ -1826,7 +1826,7 @@ fn is_callee_worker(
     if skip_past_outer_expressions {
         // Only skip outer expressions if the target is actually an expression node
         if is_expression(target) {
-            target = skip_outer_expressions(target, OuterExpressionKinds::All);
+            target = skip_outer_expressions(target, OuterExpressionKinds::ALL);
         }
     }
     target.parent().is_some_and(|parent| pred(parent) && callee_selector(parent) == Some(target))

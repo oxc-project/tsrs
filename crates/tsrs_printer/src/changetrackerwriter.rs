@@ -7,36 +7,36 @@ use tsrs_core::stringutil;
 use tsrs_core::*;
 use tsrs_scanner as scanner;
 
-use crate::textwriter::{get_default_indent_size, textWriter};
+use crate::textwriter::{TextWriter, get_default_indent_size};
 use crate::{EmitTextWriter, PrintHandlers};
 
 // changetrackerwriter.go:19 (Go interface `*ast.Node | *ast.NodeList`, compared by pointer)
 #[derive(Clone, Copy, PartialEq, Eq, Hash)]
-enum triviaPositionKey {
+enum TriviaPositionKey {
     Node(P<Node>),
     NodeList(P<NodeList>),
 }
 
 // The fields Go's `GetPrintHandlers` closures share with the writer through the `*ChangeTrackerWriter` pointer.
 #[derive(Default)]
-struct changeTrackerPositions {
+struct ChangeTrackerPositions {
     last_non_trivia_position: u32,
-    pos: FxHashMap<triviaPositionKey, u32>,
-    end: FxHashMap<triviaPositionKey, u32>,
+    pos: FxHashMap<TriviaPositionKey, u32>,
+    end: FxHashMap<TriviaPositionKey, u32>,
 }
 
 // changetrackerwriter.go:12
 pub struct ChangeTrackerWriter {
-    text_writer: textWriter,
-    positions: Rc<RefCell<changeTrackerPositions>>,
+    text_writer: TextWriter,
+    positions: Rc<RefCell<ChangeTrackerPositions>>,
 }
 
 // changetrackerwriter.go:24
 pub fn new_change_tracker_writer(newline: &str, indent_size: Option<usize>) -> ChangeTrackerWriter {
     let indent_size = indent_size.unwrap_or_else(get_default_indent_size);
     let mut ctw = ChangeTrackerWriter {
-        text_writer: textWriter::new_with(newline, indent_size),
-        positions: Rc::new(RefCell::new(changeTrackerPositions::default())),
+        text_writer: TextWriter::new_with(newline, indent_size),
+        positions: Rc::new(RefCell::new(ChangeTrackerPositions::default())),
     };
     ctw.text_writer.clear();
     ctw
@@ -55,32 +55,32 @@ impl ChangeTrackerWriter {
             map_source_position: None,
             on_before_emit_node: Some(Box::new(move |node_opt: Option<P<Node>>| {
                 if let Some(node) = node_opt {
-                    set_pos(&p1, triviaPositionKey::Node(node));
+                    set_pos(&p1, TriviaPositionKey::Node(node));
                 }
             })),
             on_after_emit_node: Some(Box::new(move |node_opt: Option<P<Node>>| {
                 if let Some(node) = node_opt {
-                    set_end(&p2, triviaPositionKey::Node(node));
+                    set_end(&p2, TriviaPositionKey::Node(node));
                 }
             })),
             on_before_emit_node_list: Some(Box::new(move |nodes_opt: Option<P<NodeList>>| {
                 if let Some(nodes) = nodes_opt {
-                    set_pos(&p3, triviaPositionKey::NodeList(nodes));
+                    set_pos(&p3, TriviaPositionKey::NodeList(nodes));
                 }
             })),
             on_after_emit_node_list: Some(Box::new(move |nodes_opt: Option<P<NodeList>>| {
                 if let Some(nodes) = nodes_opt {
-                    set_end(&p4, triviaPositionKey::NodeList(nodes));
+                    set_end(&p4, TriviaPositionKey::NodeList(nodes));
                 }
             })),
             on_before_emit_token: Some(Box::new(move |node_opt: Option<P<Node>>| {
                 if let Some(node) = node_opt {
-                    set_pos(&p5, triviaPositionKey::Node(node));
+                    set_pos(&p5, TriviaPositionKey::Node(node));
                 }
             })),
             on_after_emit_token: Some(Box::new(move |node_opt: Option<P<Node>>| {
                 if let Some(node) = node_opt {
-                    set_end(&p6, triviaPositionKey::Node(node));
+                    set_end(&p6, TriviaPositionKey::Node(node));
                 }
             })),
             ..Default::default()
@@ -161,32 +161,32 @@ impl ChangeTrackerWriter {
 }
 
 // changetrackerwriter.go:74
-fn set_pos(positions: &Rc<RefCell<changeTrackerPositions>>, node: triviaPositionKey) {
+fn set_pos(positions: &Rc<RefCell<ChangeTrackerPositions>>, node: TriviaPositionKey) {
     let mut p = positions.borrow_mut();
     let last = p.last_non_trivia_position;
     p.pos.insert(node, last);
 }
 
 // changetrackerwriter.go:78
-fn set_end(positions: &Rc<RefCell<changeTrackerPositions>>, node: triviaPositionKey) {
+fn set_end(positions: &Rc<RefCell<ChangeTrackerPositions>>, node: TriviaPositionKey) {
     let mut p = positions.borrow_mut();
     let last = p.last_non_trivia_position;
     p.end.insert(node, last);
 }
 
 // changetrackerwriter.go:82
-fn get_pos(positions: &Rc<RefCell<changeTrackerPositions>>, node: triviaPositionKey) -> u32 {
+fn get_pos(positions: &Rc<RefCell<ChangeTrackerPositions>>, node: TriviaPositionKey) -> u32 {
     positions.borrow().pos.get(&node).copied().unwrap_or(0)
 }
 
 // changetrackerwriter.go:86
-fn get_end(positions: &Rc<RefCell<changeTrackerPositions>>, node: triviaPositionKey) -> u32 {
+fn get_end(positions: &Rc<RefCell<ChangeTrackerPositions>>, node: TriviaPositionKey) -> u32 {
     positions.borrow().end.get(&node).copied().unwrap_or(0)
 }
 
 // changetrackerwriter.go:130
 fn assign_positions_to_node_worker(
-    positions: &Rc<RefCell<changeTrackerPositions>>,
+    positions: &Rc<RefCell<ChangeTrackerPositions>>,
     node: Option<P<Node>>,
     v: &mut NodeVisitor,
 ) -> Option<P<Node>> {
@@ -206,15 +206,15 @@ fn assign_positions_to_node_worker(
         true
     });
     new_node.set_loc(TextRange::new(
-        get_pos(positions, triviaPositionKey::Node(node)),
-        get_end(positions, triviaPositionKey::Node(node)),
+        get_pos(positions, TriviaPositionKey::Node(node)),
+        get_end(positions, TriviaPositionKey::Node(node)),
     ));
     Some(new_node)
 }
 
 // changetrackerwriter.go:154
 fn assign_positions_to_node_array(
-    positions: &Rc<RefCell<changeTrackerPositions>>,
+    positions: &Rc<RefCell<ChangeTrackerPositions>>,
     nodes: Option<P<NodeList>>,
     v: &mut NodeVisitor,
 ) -> Option<P<NodeList>> {
@@ -230,8 +230,8 @@ fn assign_positions_to_node_array(
     }
 
     node_array.loc.set(TextRange::new(
-        get_pos(positions, triviaPositionKey::NodeList(nodes)),
-        get_end(positions, triviaPositionKey::NodeList(nodes)),
+        get_pos(positions, TriviaPositionKey::NodeList(nodes)),
+        get_end(positions, TriviaPositionKey::NodeList(nodes)),
     ));
     Some(node_array)
 }

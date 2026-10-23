@@ -23,7 +23,7 @@ use crate::client::Client;
 use crate::compilerhost::new_compiler_host;
 use crate::configfileregistry::ConfigFileRegistry;
 use crate::configfileregistrybuilder::{
-    changeFileResult, configFileRegistryBuilder, new_config_file_registry_builder,
+    ChangeFileResult, ConfigFileRegistryBuilder, new_config_file_registry_builder,
 };
 use crate::dirty::{self, Shared, SyncMapEntry, Value};
 use crate::extendedconfigcache::ExtendedConfigCache;
@@ -37,16 +37,16 @@ use crate::project::{
     new_inferred_project_command_line, new_synthetic_project, new_synthetic_project_id,
 };
 use crate::projectcollection::{
-    APIState, ProjectCollection, apiOpenedFile,
+    APIState, ApiOpenedFile, ProjectCollection,
     find_default_configured_project_from_program_inclusion, open_file_paths,
 };
 use crate::session::SessionOptions;
 use crate::snapshot::{APISnapshotRequest, ATAStateChange, ProjectTreeRequest};
-use crate::snapshotfs::{FileHandleSource, snapshotFSBuilder};
+use crate::snapshotfs::{FileHandleSource, SnapshotFSBuilder};
 use crate::watch::get_typings_locations_globs;
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
-pub(crate) enum projectLoadKind {
+pub(crate) enum ProjectLoadKind {
     // Project is not created or updated, only looked up in cache
     Find,
     // Project is created and then its graph is updated
@@ -55,7 +55,7 @@ pub(crate) enum projectLoadKind {
 
 // A configured, synthetic or the inferred project entry (Go passes them all as `dirty.Value[*Project]`).
 #[derive(Clone)]
-pub(crate) enum projectEntry {
+pub(crate) enum ProjectEntry {
     Configured(Arc<SyncMapEntry<ConfiguredProjectID, Project>>),
     Synthetic(Arc<SyncMapEntry<SyntheticProjectID, Project>>),
     Inferred,
@@ -75,13 +75,13 @@ pub struct ProjectCollectionBuilder {
     pub(crate) to_path: ToPath,
 
     pub(crate) ctx: Context,
-    pub(crate) fs: Arc<snapshotFSBuilder>,
+    pub(crate) fs: Arc<SnapshotFSBuilder>,
     overlays: OverlayMap,
     base: Arc<ProjectCollection>,
     compiler_options_for_inferred_projects: Option<P<CompilerOptions>>,
     inferred_content_mappers: Vec<Mapper>,
     inferred_content_mapper_extensions: Vec<String>,
-    pub(crate) config_file_registry_builder: Arc<configFileRegistryBuilder>,
+    pub(crate) config_file_registry_builder: Arc<ConfigFileRegistryBuilder>,
 
     client: Option<Arc<dyn Client>>, // optional; used for project loading notifications
 
@@ -103,7 +103,7 @@ pub struct ProjectCollectionBuilder {
 pub(crate) fn new_project_collection_builder(
     ctx: &Context,
     new_snapshot_id: u64,
-    fs: Arc<snapshotFSBuilder>,
+    fs: Arc<SnapshotFSBuilder>,
     overlays: OverlayMap,
     old_project_collection: Arc<ProjectCollection>,
     old_config_file_registry: Arc<ConfigFileRegistry>,
@@ -184,11 +184,11 @@ fn diagnostics_equal(a: &[P<Diagnostic>], b: &[P<Diagnostic>]) -> bool {
 }
 
 impl ProjectCollectionBuilder {
-    fn value_of<'a>(&'a self, entry: &'a projectEntry) -> &'a dyn Value<Project> {
+    fn value_of<'a>(&'a self, entry: &'a ProjectEntry) -> &'a dyn Value<Project> {
         match entry {
-            projectEntry::Configured(e) => e,
-            projectEntry::Synthetic(e) => e,
-            projectEntry::Inferred => &self.inferred_project,
+            ProjectEntry::Configured(e) => e,
+            ProjectEntry::Synthetic(e) => e,
+            ProjectEntry::Inferred => &self.inferred_project,
         }
     }
 
@@ -270,15 +270,15 @@ impl ProjectCollectionBuilder {
     }
 
     // projectcollectionbuilder.go:166
-    fn for_each_project(&self, mut f: impl FnMut(&projectEntry) -> bool) {
+    fn for_each_project(&self, mut f: impl FnMut(&ProjectEntry) -> bool) {
         let mut keep_going = true;
         self.configured_projects.range(|entry| {
-            keep_going = f(&projectEntry::Configured(Arc::clone(entry)));
+            keep_going = f(&ProjectEntry::Configured(Arc::clone(entry)));
             keep_going
         });
         if keep_going {
             self.synthetic_projects.range(|entry| {
-                keep_going = f(&projectEntry::Synthetic(Arc::clone(entry)));
+                keep_going = f(&ProjectEntry::Synthetic(Arc::clone(entry)));
                 keep_going
             });
         }
@@ -286,7 +286,7 @@ impl ProjectCollectionBuilder {
             return;
         }
         if self.inferred_project.value().is_some() {
-            f(&projectEntry::Inferred);
+            f(&ProjectEntry::Inferred);
         }
     }
 
@@ -327,7 +327,7 @@ impl ProjectCollectionBuilder {
                 match self.find_or_create_project(
                     config_file_name,
                     &config_path,
-                    projectLoadKind::Create,
+                    ProjectLoadKind::Create,
                     logger,
                 ) {
                     Some(entry) => {
@@ -341,7 +341,7 @@ impl ProjectCollectionBuilder {
                         if let Some(p) = &mut projects_to_close {
                             p.remove(&config_path);
                         }
-                        self.update_program(&projectEntry::Configured(entry), logger);
+                        self.update_program(&ProjectEntry::Configured(entry), logger);
                     }
                     _ => {
                         return Err(lsproto::Error::new(format!(
@@ -406,7 +406,7 @@ impl ProjectCollectionBuilder {
                 if let Some(entry) =
                     self.configured_projects.load(&ConfiguredProjectID(project_path.clone()))
                 {
-                    self.delete_project(&projectEntry::Configured(entry), logger);
+                    self.delete_project(&ProjectEntry::Configured(entry), logger);
                 }
             }
         }
@@ -446,7 +446,7 @@ impl ProjectCollectionBuilder {
             }
             self.cleanup_configured_projects(Some(&retain), logger);
             if ensure_inferred_project && self.inferred_project.value().is_some() {
-                self.update_program(&projectEntry::Inferred, logger);
+                self.update_program(&ProjectEntry::Inferred, logger);
             }
         } else if api_request.close_files.is_some() {
             self.cleanup_configured_projects(None, logger);
@@ -485,7 +485,7 @@ impl ProjectCollectionBuilder {
                         program_id.0
                     )));
                 };
-                self.delete_project(&projectEntry::Synthetic(project), logger);
+                self.delete_project(&ProjectEntry::Synthetic(project), logger);
             }
         }
         let mut created_entries = Vec::with_capacity(api_request.create_programs.len());
@@ -519,14 +519,14 @@ impl ProjectCollectionBuilder {
         // Go updates these programs in parallel goroutines; here they run one after another.
         let mut created_programs = Vec::with_capacity(created_entries.len());
         created_programs.extend(created_entries.iter().map(|entry| {
-            let entry = projectEntry::Synthetic(Arc::clone(entry));
+            let entry = ProjectEntry::Synthetic(Arc::clone(entry));
             if self.value_of(&entry).value().unwrap().dirty {
                 self.update_program(&entry, logger);
             }
             self.value_of(&entry).value()
         }));
         for entry in &reconfigured_entries {
-            let entry = projectEntry::Synthetic(Arc::clone(entry));
+            let entry = ProjectEntry::Synthetic(Arc::clone(entry));
             if self.value_of(&entry).value().unwrap().dirty {
                 self.update_program(&entry, logger);
             }
@@ -627,7 +627,7 @@ impl ProjectCollectionBuilder {
             }
 
             // Handle closed and changed files
-            self.mark_files_changed(entry, &changed_files, lsproto::FileChangeType::Changed, logger);
+            self.mark_files_changed(entry, &changed_files, lsproto::FileChangeType::CHANGED, logger);
             if value.value().unwrap().kind == Kind::Inferred && !summary.closed.is_empty() {
                 let command_line = value.value().unwrap().command_line.unwrap();
                 let root_files_map = command_line.file_names_by_path();
@@ -653,12 +653,12 @@ impl ProjectCollectionBuilder {
 
             // Handle deleted files
             if !summary.deleted.is_empty() {
-                self.mark_files_changed(entry, &deleted_files, lsproto::FileChangeType::Deleted, logger);
+                self.mark_files_changed(entry, &deleted_files, lsproto::FileChangeType::DELETED, logger);
             }
 
             // Handle created files
             if !summary.created.is_empty() {
-                self.mark_files_changed(entry, &created_files, lsproto::FileChangeType::Created, logger);
+                self.mark_files_changed(entry, &created_files, lsproto::FileChangeType::CREATED, logger);
             }
 
             true
@@ -721,7 +721,7 @@ impl ProjectCollectionBuilder {
                     if let Some(ancestor) = self.find_or_create_project(
                         config_file_name,
                         &(self.to_path)(config_file_name),
-                        projectLoadKind::Find,
+                        ProjectLoadKind::Find,
                         logger,
                     ) {
                         retain_configured_project_and_references(&ancestor.value().unwrap());
@@ -749,7 +749,7 @@ impl ProjectCollectionBuilder {
         }
         // Treat API-opened files like open files: retain their configured project (so
         // an LSP-driven open doesn't close it), or keep them as inferred project roots.
-        let api_open_files: Vec<(Path, apiOpenedFile)> = self
+        let api_open_files: Vec<(Path, ApiOpenedFile)> = self
             .api_state
             .borrow()
             .open_files
@@ -779,7 +779,7 @@ impl ProjectCollectionBuilder {
                 continue;
             }
             if let Some(p) = self.configured_projects.load(&ConfiguredProjectID(project_path)) {
-                self.delete_project(&projectEntry::Configured(p), logger);
+                self.delete_project(&ProjectEntry::Configured(p), logger);
             }
         }
         self.update_inferred_project_roots(inferred_project_files, logger);
@@ -808,7 +808,7 @@ impl ProjectCollectionBuilder {
         &self,
         mut inferred_project_files: Vec<String>,
     ) -> Vec<String> {
-        let api_open_files: Vec<(Path, apiOpenedFile)> = self
+        let api_open_files: Vec<(Path, ApiOpenedFile)> = self
             .api_state
             .borrow()
             .open_files
@@ -837,7 +837,7 @@ impl ProjectCollectionBuilder {
     pub(crate) fn did_change_content_mapper_contributions(&self, logger: &LogTree) {
         self.cleanup_inferred_project(logger);
         if self.inferred_project.value().is_some() {
-            self.update_program(&projectEntry::Inferred, logger);
+            self.update_program(&ProjectEntry::Inferred, logger);
         }
     }
 
@@ -849,7 +849,7 @@ impl ProjectCollectionBuilder {
         inferred_project_files.push(file_name.to_string());
         self.update_inferred_project_roots(inferred_project_files, logger);
         if self.inferred_project.value().is_some() {
-            self.update_program(&projectEntry::Inferred, logger);
+            self.update_program(&ProjectEntry::Inferred, logger);
         }
     }
 
@@ -893,7 +893,7 @@ impl ProjectCollectionBuilder {
                     if has_changes {
                         self.cleanup_inferred_project(logger);
                         if self.inferred_project.value().is_some() {
-                            self.update_program(&projectEntry::Inferred, logger);
+                            self.update_program(&ProjectEntry::Inferred, logger);
                         }
                     }
                     return;
@@ -903,7 +903,7 @@ impl ProjectCollectionBuilder {
             // Make sure all projects we know about are up to date...
             self.configured_projects.range(|entry| {
                 has_changes = self
-                    .update_program(&projectEntry::Configured(Arc::clone(entry)), logger)
+                    .update_program(&ProjectEntry::Configured(Arc::clone(entry)), logger)
                     || has_changes;
                 true
             });
@@ -914,7 +914,7 @@ impl ProjectCollectionBuilder {
             }
 
             if self.inferred_project.value().is_some() {
-                self.update_program(&projectEntry::Inferred, logger);
+                self.update_program(&ProjectEntry::Inferred, logger);
             }
 
             // At this point we should be able to find the default project for the file without
@@ -949,15 +949,15 @@ impl ProjectCollectionBuilder {
         if project_id.inferred().is_some() {
             // Update inferred project
             if self.inferred_project.value().is_some() {
-                self.update_program(&projectEntry::Inferred, logger);
+                self.update_program(&ProjectEntry::Inferred, logger);
             }
         } else if let Some(synthetic_id) = project_id.synthetic() {
             if let Some(entry) = self.synthetic_projects.load(&synthetic_id) {
-                self.update_program(&projectEntry::Synthetic(entry), logger);
+                self.update_program(&ProjectEntry::Synthetic(entry), logger);
             }
         } else if let Some(configured_id) = project_id.configured() {
             if let Some(entry) = self.configured_projects.load(&configured_id) {
-                self.update_program(&projectEntry::Configured(entry), logger);
+                self.update_program(&ProjectEntry::Configured(entry), logger);
             }
         }
 
@@ -988,13 +988,13 @@ impl ProjectCollectionBuilder {
         // Go queues these on a work group; tsrs's work group runs queued functions on the calling thread, last
         // queued first, which `projectTreeWork` reproduces with an explicit stack (the queued functions queue
         // more work on the same group).
-        let wg: RefCell<Vec<projectTreeWork>> = RefCell::new(Vec::new());
-        wg.borrow_mut().extend(current_projects.into_iter().map(projectTreeWork::Project));
+        let wg: RefCell<Vec<ProjectTreeWork>> = RefCell::new(Vec::new());
+        wg.borrow_mut().extend(current_projects.into_iter().map(ProjectTreeWork::Project));
         loop {
             let work = wg.borrow_mut().pop();
             match work {
                 None => break,
-                Some(projectTreeWork::Project(project_id)) => {
+                Some(ProjectTreeWork::Project(project_id)) => {
                     if let Some(entry) = self.configured_projects.load(&project_id) {
                         // If this project has potential project reference for any of the project we are loading ancestor tree for
                         // load this project first
@@ -1003,7 +1003,7 @@ impl ProjectCollectionBuilder {
                                 || project.has_potential_project_reference(project_tree_request)
                             {
                                 self.update_program(
-                                    &projectEntry::Configured(Arc::clone(&entry)),
+                                    &ProjectEntry::Configured(Arc::clone(&entry)),
                                     logger,
                                 );
                             }
@@ -1017,7 +1017,7 @@ impl ProjectCollectionBuilder {
                         );
                     }
                 }
-                Some(projectTreeWork::Child(program, child_config)) => {
+                Some(ProjectTreeWork::Child(program, child_config)) => {
                     if !project_tree_request.is_all_projects()
                         && program.range_resolved_project_reference_in_child_config(
                             Some(child_config),
@@ -1034,12 +1034,12 @@ impl ProjectCollectionBuilder {
                         .find_or_create_project(
                             child_config.config_name(),
                             child_config.config_file.unwrap().source_file.get().path(),
-                            projectLoadKind::Create,
+                            ProjectLoadKind::Create,
                             logger,
                         )
                         .unwrap();
                     self.update_program(
-                        &projectEntry::Configured(Arc::clone(&child_project_entry)),
+                        &ProjectEntry::Configured(Arc::clone(&child_project_entry)),
                         logger,
                     );
 
@@ -1059,7 +1059,7 @@ impl ProjectCollectionBuilder {
         // Callers iterate over all language service projects, so the inferred one needs a program too.
         self.cleanup_inferred_project(logger);
         if self.inferred_project.value().is_some() {
-            self.update_program(&projectEntry::Inferred, logger);
+            self.update_program(&ProjectEntry::Inferred, logger);
         }
 
         if !logger.is_nil() {
@@ -1073,7 +1073,7 @@ impl ProjectCollectionBuilder {
 
     // projectcollectionbuilder.go:761
     fn ensure_project_tree(
-        wg: &RefCell<Vec<projectTreeWork>>,
+        wg: &RefCell<Vec<ProjectTreeWork>>,
         entry: &Arc<SyncMapEntry<ConfiguredProjectID, Project>>,
         _project_tree_request: &ProjectTreeRequest,
         seen_projects: &SyncSet<ConfiguredProjectID>,
@@ -1107,7 +1107,7 @@ impl ProjectCollectionBuilder {
             children
                 .into_iter()
                 .flatten()
-                .map(|child_config| projectTreeWork::Child(program, child_config)),
+                .map(|child_config| ProjectTreeWork::Child(program, child_config)),
         );
     }
 
@@ -1207,19 +1207,19 @@ impl ProjectCollectionBuilder {
     // projectcollectionbuilder.go:893
     fn mark_projects_affected_by_config_changes(
         &self,
-        config_change_result: &changeFileResult,
+        config_change_result: &ChangeFileResult,
         logger: &LogTree,
     ) -> bool {
         for project_id in config_change_result.affected_projects.iter().flatten() {
-            let mut project: Option<projectEntry> = None;
+            let mut project: Option<ProjectEntry> = None;
             if project_id.inferred().is_some() {
-                project = Some(projectEntry::Inferred);
+                project = Some(ProjectEntry::Inferred);
             } else {
                 if let Some(synthetic_project_id) = project_id.synthetic() {
                     if let Some(synthetic_project) =
                         self.synthetic_projects.load(&synthetic_project_id)
                     {
-                        project = Some(projectEntry::Synthetic(synthetic_project));
+                        project = Some(ProjectEntry::Synthetic(synthetic_project));
                     }
                 }
                 if project.is_none() {
@@ -1227,7 +1227,7 @@ impl ProjectCollectionBuilder {
                         project = self
                             .configured_projects
                             .load(&configured_id)
-                            .map(projectEntry::Configured);
+                            .map(ProjectEntry::Configured);
                     }
                 }
             }
@@ -1262,19 +1262,19 @@ impl ProjectCollectionBuilder {
     }
 
     // projectcollectionbuilder.go:944
-    fn find_default_project(&self, file_name: &str, path: &Path) -> Option<projectEntry> {
+    fn find_default_project(&self, file_name: &str, path: &Path) -> Option<ProjectEntry> {
         if let Some(configured_project) = self.find_default_configured_project(file_name, path) {
-            return Some(projectEntry::Configured(configured_project));
+            return Some(ProjectEntry::Configured(configured_project));
         }
         if let Some(key) = self.file_default_project(path) {
             if key.inferred().is_some() {
-                return Some(projectEntry::Inferred);
+                return Some(ProjectEntry::Inferred);
             }
         }
         if let Some(inferred_project) = self.inferred_project.value() {
             if inferred_project.contains_file(path) {
                 self.set_file_default_project(path.clone(), inferred_project_id().as_id());
-                return Some(projectEntry::Inferred);
+                return Some(ProjectEntry::Inferred);
             }
         }
         None
@@ -1319,7 +1319,7 @@ impl ProjectCollectionBuilder {
                 .find_or_create_default_configured_project_for_file(
                     file_name,
                     path,
-                    projectLoadKind::Find,
+                    ProjectLoadKind::Find,
                     &LogTree::nil(),
                 )
                 .project
@@ -1337,11 +1337,11 @@ impl ProjectCollectionBuilder {
         file_name: &str,
         path: &Path,
         logger: &LogTree,
-    ) -> searchResult {
+    ) -> SearchResult {
         let mut result = self.find_or_create_default_configured_project_for_file(
             file_name,
             path,
-            projectLoadKind::Create,
+            ProjectLoadKind::Create,
             logger,
         );
         if result.project.is_some() && self.is_open_file(path) {
@@ -1355,7 +1355,7 @@ impl ProjectCollectionBuilder {
         &self,
         file_name: &str,
         path: &Path,
-        open_result: &mut searchResult,
+        open_result: &mut SearchResult,
         logger: &LogTree,
     ) {
         let mut project = open_result.project.as_ref().unwrap().value().unwrap();
@@ -1381,7 +1381,7 @@ impl ProjectCollectionBuilder {
             let Some(ancestor) = self.find_or_create_project(
                 &ancestor_config_name,
                 &ancestor_path,
-                projectLoadKind::Create,
+                ProjectLoadKind::Create,
                 logger,
             ) else {
                 return;
@@ -1413,26 +1413,26 @@ impl ProjectCollectionBuilder {
         file_name: &str,
         path: &Path,
         config_file_name: &str,
-        load_kind: projectLoadKind,
-        visited: Option<Arc<SyncSet<searchNodeKey>>>,
-        mut fallback: Option<searchResult>,
+        load_kind: ProjectLoadKind,
+        visited: Option<Arc<SyncSet<SearchNodeKey>>>,
+        mut fallback: Option<SearchResult>,
         logger: &LogTree,
-    ) -> searchResult {
+    ) -> SearchResult {
         let configs: SyncMap<Path, P<ParsedCommandLine>> = SyncMap::default();
         let visited = visited.unwrap_or_default();
 
         let mut preprocess_level =
-            |level: &mut BreadthFirstSearchLevel<'_, searchNodeKey, searchNode>| {
-                let mut to_delete: Vec<searchNodeKey> = Vec::new();
+            |level: &mut BreadthFirstSearchLevel<'_, SearchNodeKey, SearchNode>| {
+                let mut to_delete: Vec<SearchNodeKey> = Vec::new();
                 level.range(|node| {
-                    if node.load_kind == projectLoadKind::Find
-                        && level.has(&searchNodeKey {
+                    if node.load_kind == ProjectLoadKind::Find
+                        && level.has(&SearchNodeKey {
                             config_file_name: node.config_file_name.clone(),
-                            load_kind: projectLoadKind::Create,
+                            load_kind: ProjectLoadKind::Create,
                         })
                     {
                         // Remove find requests when a create request for the same project is already present.
-                        to_delete.push(searchNodeKey {
+                        to_delete.push(SearchNodeKey {
                             config_file_name: node.config_file_name.clone(),
                             load_kind: node.load_kind,
                         });
@@ -1444,12 +1444,12 @@ impl ProjectCollectionBuilder {
                 }
             };
         let search = breadth_first_search_parallel_ex(
-            searchNode {
+            SearchNode {
                 config_file_name: config_file_name.to_string(),
                 load_kind,
                 logger: logger.clone(),
             },
-            |node: &searchNode| {
+            |node: &SearchNode| {
                 if let Some(config) = configs.load(&(self.to_path)(&node.config_file_name)) {
                     if !config.project_references().is_empty() {
                         let mut reference_load_kind = node.load_kind;
@@ -1459,7 +1459,7 @@ impl ProjectCollectionBuilder {
                             .disable_referenced_project_load
                             .is_true()
                         {
-                            reference_load_kind = projectLoadKind::Find;
+                            reference_load_kind = ProjectLoadKind::Find;
                         }
 
                         let mut ref_logger = LogTree::nil();
@@ -1473,7 +1473,7 @@ impl ProjectCollectionBuilder {
                         }
                         return references
                             .iter()
-                            .map(|config_file_name| searchNode {
+                            .map(|config_file_name| SearchNode {
                                 config_file_name: config_file_name.clone(),
                                 load_kind: reference_load_kind,
                                 logger: ref_logger.fork(&format!(
@@ -1485,7 +1485,7 @@ impl ProjectCollectionBuilder {
                 }
                 Vec::new()
             },
-            |node: &searchNode| {
+            |node: &SearchNode| {
                 let config_file_path = (self.to_path)(&node.config_file_name);
                 let Some(config) =
                     self.config_file_registry_builder.find_or_acquire_config_for_file(
@@ -1527,10 +1527,10 @@ impl ProjectCollectionBuilder {
                     return (false, false);
                 };
 
-                if node.load_kind == projectLoadKind::Create {
+                if node.load_kind == ProjectLoadKind::Create {
                     // Ensure project is up to date before checking for file inclusion
                     self.update_program(
-                        &projectEntry::Configured(Arc::clone(&project)),
+                        &ProjectEntry::Configured(Arc::clone(&project)),
                         &node.logger,
                     );
                 }
@@ -1558,7 +1558,7 @@ impl ProjectCollectionBuilder {
                 visited: Some(&visited),
                 preprocess_level: Some(&mut preprocess_level),
             },
-            |node: &searchNode| searchNodeKey {
+            |node: &SearchNode| SearchNodeKey {
                 config_file_name: node.config_file_name.clone(),
                 load_kind: node.load_kind,
             },
@@ -1578,13 +1578,13 @@ impl ProjectCollectionBuilder {
 
         if search.stopped {
             // Found a project that directly contains the file.
-            return searchResult { project, retain };
+            return SearchResult { project, retain };
         }
 
         if project.is_some() {
             // If we found a project that contains the file, but it is a source from
             // a project reference, record it as a fallback.
-            fallback = Some(searchResult { project, retain: retain.clone() });
+            fallback = Some(SearchResult { project, retain: retain.clone() });
         }
 
         // Look for tsconfig.json files higher up the directory tree and do the same. This handles
@@ -1624,7 +1624,7 @@ impl ProjectCollectionBuilder {
             retain.add((self.to_path)(&node.config_file_name));
             true
         });
-        searchResult { project: None, retain }
+        SearchResult { project: None, retain }
     }
 
     // projectcollectionbuilder.go:1216
@@ -1632,17 +1632,17 @@ impl ProjectCollectionBuilder {
         &self,
         file_name: &str,
         path: &Path,
-        load_kind: projectLoadKind,
+        load_kind: ProjectLoadKind,
         logger: &LogTree,
-    ) -> searchResult {
+    ) -> SearchResult {
         if let Some(key) = self.file_default_project(path) {
             if key.inferred().is_some() {
                 // The file belongs to the inferred project
-                return searchResult::default();
+                return SearchResult::default();
             }
             let configured_id = key.configured().unwrap_or_default();
             let entry = self.configured_projects.load(&configured_id);
-            return searchResult { project: entry, retain: Set::default() };
+            return SearchResult { project: entry, retain: Set::default() };
         }
         let config_file_name = self
             .config_file_registry_builder
@@ -1675,7 +1675,7 @@ impl ProjectCollectionBuilder {
             }
             return result;
         }
-        searchResult::default()
+        SearchResult::default()
     }
 
     // projectcollectionbuilder.go:1261
@@ -1683,10 +1683,10 @@ impl ProjectCollectionBuilder {
         &self,
         config_file_name: &str,
         config_file_path: &Path,
-        load_kind: projectLoadKind,
+        load_kind: ProjectLoadKind,
         logger: &LogTree,
     ) -> Option<Arc<SyncMapEntry<ConfiguredProjectID, Project>>> {
-        if load_kind == projectLoadKind::Find {
+        if load_kind == ProjectLoadKind::Find {
             return self.configured_projects.load(&ConfiguredProjectID(config_file_path.clone()));
         }
         let (entry, _) = self.configured_projects.load_or_store(
@@ -1941,7 +1941,7 @@ impl ProjectCollectionBuilder {
     // projectcollectionbuilder.go:1440
     // updateProgram updates the program for the given project entry if necessary. It returns
     // a boolean indicating whether the update could have caused any structure-affecting changes.
-    fn update_program(&self, entry: &projectEntry, logger: &LogTree) -> bool {
+    fn update_program(&self, entry: &ProjectEntry, logger: &LogTree) -> bool {
         let value = self.value_of(entry);
         let mut update_program = false;
         let mut delete_project = false;
@@ -1982,7 +1982,7 @@ impl ProjectCollectionBuilder {
         });
         if notified_loading {
             if let Some(client) = &self.client {
-                client.progress_start(&diagnostics::Project_0, &[&display_name]);
+                client.progress_start(&diagnostics::PROJECT_0, &[&display_name]);
             }
         }
         if delete_project {
@@ -2070,7 +2070,7 @@ impl ProjectCollectionBuilder {
         }
         if notified_loading {
             if let Some(client) = &self.client {
-                client.progress_finish(&diagnostics::Project_0, &[&display_name]);
+                client.progress_finish(&diagnostics::PROJECT_0, &[&display_name]);
             }
         }
         if update_program && !logger.is_nil() {
@@ -2086,7 +2086,7 @@ impl ProjectCollectionBuilder {
     // projectcollectionbuilder.go:1543
     fn mark_files_changed(
         &self,
-        entry: &projectEntry,
+        entry: &ProjectEntry,
         paths: &[Path],
         change_type: lsproto::FileChangeType,
         logger: &LogTree,
@@ -2104,7 +2104,7 @@ impl ProjectCollectionBuilder {
                 for path in paths {
                     if p.contains_file(path) {
                         dirty = true;
-                        if change_type == lsproto::FileChangeType::Deleted {
+                        if change_type == lsproto::FileChangeType::DELETED {
                             *dirty_file_path = Path::default();
                             break;
                         }
@@ -2122,9 +2122,9 @@ impl ProjectCollectionBuilder {
                             break;
                         }
                     } else if let Some(host) = &p.host {
-                        if change_type == lsproto::FileChangeType::Created
+                        if change_type == lsproto::FileChangeType::CREATED
                             && host.source_fs.seen_file_or_missing_parent_directory(path)
-                            || change_type != lsproto::FileChangeType::Created
+                            || change_type != lsproto::FileChangeType::CREATED
                                 && host.source_fs.seen_file(path)
                         {
                             dirty = true;
@@ -2155,7 +2155,7 @@ impl ProjectCollectionBuilder {
     }
 
     // projectcollectionbuilder.go:1597
-    fn delete_project(&self, project: &projectEntry, logger: &LogTree) {
+    fn delete_project(&self, project: &ProjectEntry, logger: &LogTree) {
         let entry = self.value_of(project);
         let value = entry.value().unwrap();
         let project_id = value.id();
@@ -2211,7 +2211,7 @@ impl ProjectCollectionBuilder {
 }
 
 // projectcollectionbuilder.go:581
-fn log_change_file_result(result: &changeFileResult, logger: &LogTree) {
+fn log_change_file_result(result: &ChangeFileResult, logger: &LogTree) {
     if let Some(affected_projects) = &result.affected_projects {
         if !affected_projects.is_empty() {
             logger.logf(format_args!(
@@ -2231,26 +2231,26 @@ fn log_change_file_result(result: &changeFileResult, logger: &LogTree) {
 }
 
 // A function queued on `DidRequestProjectTrees`' work group.
-enum projectTreeWork {
+enum ProjectTreeWork {
     Project(ConfiguredProjectID),
     Child(&'static Program, P<ParsedCommandLine>),
 }
 
 #[derive(Clone)]
-struct searchNode {
+struct SearchNode {
     config_file_name: String,
-    load_kind: projectLoadKind,
+    load_kind: ProjectLoadKind,
     logger: LogTree,
 }
 
 #[derive(Clone, PartialEq, Eq, Hash, Debug)]
-pub(crate) struct searchNodeKey {
+pub(crate) struct SearchNodeKey {
     config_file_name: String,
-    load_kind: projectLoadKind,
+    load_kind: ProjectLoadKind,
 }
 
 #[derive(Clone, Default)]
-pub(crate) struct searchResult {
+pub(crate) struct SearchResult {
     project: Option<Arc<SyncMapEntry<ConfiguredProjectID, Project>>>,
     retain: Set<Path>,
 }

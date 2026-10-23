@@ -77,7 +77,7 @@ pub(crate) static EXTENDS_OPTION_DECLARATION: LazyLock<CommandLineOption> =
     LazyLock::new(|| CommandLineOption {
         name: "extends",
         kind: CommandLineOptionKind::ListOrElement,
-        category: Some(&diagnostics::File_Management),
+        category: Some(&diagnostics::FILE_MANAGEMENT),
         element_options: Some(command_line_options_to_map(&[&EXTENDS_OPTION_DECLARATION_ELEMENT])),
         ..CommandLineOption::DEFAULT
     });
@@ -350,7 +350,7 @@ fn parse_own_config_of_json_source_file(
                     property_set_errors.push(create_diagnostic_for_node_in_source_file(
                         source_file,
                         property_assignment.name().unwrap(),
-                        &diagnostics::Unknown_option_excludes_Did_you_mean_exclude,
+                        &diagnostics::UNKNOWN_OPTION_EXCLUDES_DID_YOU_MEAN_EXCLUDE,
                         &[],
                     ));
                 }
@@ -375,7 +375,7 @@ fn parse_own_config_of_json_source_file(
             errors.push(create_diagnostic_for_node_in_source_file(
                 source_file,
                 root_compiler_options[0],
-                &diagnostics::X_0_should_be_set_inside_the_compilerOptions_object_of_the_config_json_file,
+                &diagnostics::X_0_SHOULD_BE_SET_INSIDE_THE_COMPILER_OPTIONS_OBJECT_OF_THE_CONFIG_JSON_FILE,
                 &[&tsrs_ast::get_text_of_property_name(root_compiler_options[0])],
             ));
         }
@@ -465,7 +465,7 @@ pub(crate) fn convert_config_file_to_object(
             let errors = vec![create_diagnostic_for_node_in_source_file(
                 source_file,
                 root_expression,
-                &diagnostics::The_root_value_of_a_0_file_must_be_an_object,
+                &diagnostics::THE_ROOT_VALUE_OF_A_0_FILE_MUST_BE_AN_OBJECT,
                 &[&base_file_name],
             )];
             // Last-ditch error recovery. Somewhat useful because the JSON parser will recover from some parse errors by
@@ -546,7 +546,7 @@ pub(crate) fn validate_json_option_value(
                 errors.push(create_diagnostic_for_node_in_source_file_or_compiler_diagnostic(
                     source_file,
                     value_expression,
-                    &diagnostics::Locale_must_be_an_IETF_BCP_47_language_tag_Examples_Colon_0_1,
+                    &diagnostics::LOCALE_MUST_BE_AN_IETF_BCP_47_LANGUAGE_TAG_EXAMPLES_COLON_0_1,
                     &[&"en", &"ja-jp"],
                 ));
             }
@@ -649,7 +649,7 @@ pub(crate) fn convert_json_option(
             return (
                 CompilerOptionsValue::Null,
                 vec![new_compiler_diagnostic(
-                    &diagnostics::Option_0_can_only_be_specified_on_command_line,
+                    &diagnostics::OPTION_0_CAN_ONLY_BE_SPECIFIED_ON_COMMAND_LINE,
                     &[&opt.name],
                 )],
             );
@@ -659,7 +659,7 @@ pub(crate) fn convert_json_option(
             vec![create_diagnostic_for_node_in_source_file_or_compiler_diagnostic(
                 source_file,
                 node_value,
-                &diagnostics::Option_0_can_only_be_specified_on_command_line,
+                &diagnostics::OPTION_0_CAN_ONLY_BE_SPECIFIED_ON_COMMAND_LINE,
                 &[&opt.name],
             )],
         );
@@ -724,7 +724,7 @@ pub(crate) fn convert_json_option(
                 vec![create_diagnostic_for_node_in_source_file_or_compiler_diagnostic(
                     source_file,
                     value_expression,
-                    &diagnostics::Network_path_0_is_not_supported,
+                    &diagnostics::NETWORK_PATH_0_IS_NOT_SUPPORTED,
                     &[path],
                 )],
             )
@@ -737,7 +737,7 @@ pub(crate) fn convert_json_option(
             vec![create_diagnostic_for_node_in_source_file_or_compiler_diagnostic(
                 source_file,
                 value_expression,
-                &diagnostics::Compiler_option_0_requires_a_value_of_type_1,
+                &diagnostics::COMPILER_OPTION_0_REQUIRES_A_VALUE_OF_TYPE_1,
                 &[&opt.name, &get_compiler_option_value_type_string(opt)],
             )],
         )
@@ -838,7 +838,7 @@ fn get_extends_config_path(
         errors.push(create_diagnostic_for_node_in_source_file_or_compiler_diagnostic(
             error_file,
             value_expression,
-            &diagnostics::Network_path_0_is_not_supported,
+            &diagnostics::NETWORK_PATH_0_IS_NOT_SUPPORTED,
             &[&extended_config],
         ));
         return (String::new(), errors);
@@ -857,7 +857,7 @@ fn get_extends_config_path(
                 errors.push(create_diagnostic_for_node_in_source_file_or_compiler_diagnostic(
                     error_file,
                     value_expression,
-                    &diagnostics::File_0_not_found,
+                    &diagnostics::FILE_0_NOT_FOUND,
                     &[&extended_config],
                 ));
                 return (String::new(), errors);
@@ -879,14 +879,14 @@ fn get_extends_config_path(
         errors.push(create_diagnostic_for_node_in_source_file_or_compiler_diagnostic(
             error_file,
             value_expression,
-            &diagnostics::Compiler_option_0_cannot_be_given_an_empty_string,
+            &diagnostics::COMPILER_OPTION_0_CANNOT_BE_GIVEN_AN_EMPTY_STRING,
             &[&"extends"],
         ));
     } else {
         errors.push(create_diagnostic_for_node_in_source_file_or_compiler_diagnostic(
             error_file,
             value_expression,
-            &diagnostics::File_0_not_found,
+            &diagnostics::FILE_0_NOT_FOUND,
             &[&extended_config],
         ));
     }
@@ -1127,7 +1127,7 @@ fn convert_object_literal_expression_to_json(
             errors.push(new_diagnostic(
                 Some(source_file),
                 element.loc(),
-                &diagnostics::Property_assignment_expected,
+                &diagnostics::PROPERTY_ASSIGNMENT_EXPECTED,
                 &[],
             ));
             continue;
@@ -1137,7 +1137,7 @@ fn convert_object_literal_expression_to_json(
             errors.push(new_diagnostic(
                 Some(source_file),
                 token.loc(),
-                &diagnostics::The_0_modifier_can_only_be_used_in_TypeScript_files,
+                &diagnostics::THE_0_MODIFIER_CAN_ONLY_BE_USED_IN_TYPE_SCRIPT_FILES,
                 &[&"?"],
             ));
         }
@@ -1239,7 +1239,7 @@ fn convert_property_value_to_json(
                     vec![new_diagnostic(
                         Some(source_file),
                         value_expression.loc(),
-                        &diagnostics::String_literal_with_double_quotes_expected,
+                        &diagnostics::STRING_LITERAL_WITH_DOUBLE_QUOTES_EXPECTED,
                         &[],
                     )],
                 );
@@ -1294,14 +1294,14 @@ fn convert_property_value_to_json(
         vec![new_diagnostic(
             Some(source_file),
             value_expression.loc(),
-            &diagnostics::Compiler_option_0_requires_a_value_of_type_1,
+            &diagnostics::COMPILER_OPTION_0_REQUIRES_A_VALUE_OF_TYPE_1,
             &[&option.name, &get_compiler_option_value_type_string(option)],
         )]
     } else {
         vec![new_diagnostic(
             Some(source_file),
             value_expression.loc(),
-            &diagnostics::Property_value_can_only_be_string_literal_numeric_literal_true_false_null_object_literal_or_array_literal,
+            &diagnostics::PROPERTY_VALUE_CAN_ONLY_BE_STRING_LITERAL_NUMERIC_LITERAL_TRUE_FALSE_NULL_OBJECT_LITERAL_OR_ARRAY_LITERAL,
             &[],
         )]
     };
@@ -1442,7 +1442,7 @@ fn parse_own_config_of_json(
     let mut errors: Vec<P<Diagnostic>> = Vec::new();
     if json.has(&"excludes".to_string()) {
         errors.push(new_compiler_diagnostic(
-            &diagnostics::Unknown_option_excludes_Did_you_mean_exclude,
+            &diagnostics::UNKNOWN_OPTION_EXCLUDES_DID_YOU_MEAN_EXCLUDE,
             &[],
         ));
     }
@@ -1649,7 +1649,7 @@ fn parse_config(
     let mut errors: Vec<P<Diagnostic>> = Vec::new();
     if resolution_stack.contains(&resolved_path) {
         errors.push(new_compiler_diagnostic(
-            &diagnostics::Circularity_detected_while_resolving_configuration_Colon_0,
+            &diagnostics::CIRCULARITY_DETECTED_WHILE_RESOLVING_CONFIGURATION_COLON_0,
             &[],
         ));
         let result = if json.as_ref().map_or(0, tsrs_core::collections::OrderedMapExt::size) == 0 {
@@ -1956,7 +1956,7 @@ fn parse_json_config_file_content_worker(
                     if let CompilerOptionsValue::Array(a) = value {
                         if source_file.is_none() && !a.iter().all(validate_element) {
                             errors.push(new_compiler_diagnostic(
-                                &diagnostics::Compiler_option_0_requires_a_value_of_type_1,
+                                &diagnostics::COMPILER_OPTION_0_REQUIRES_A_VALUE_OF_TYPE_1,
                                 &[&prop, &element_type_name],
                             ));
                         }
@@ -1964,7 +1964,7 @@ fn parse_json_config_file_content_worker(
                     return PropOfRaw { slice_value: result, wrong_value: "" };
                 } else if source_file.is_none() {
                     errors.push(new_compiler_diagnostic(
-                        &diagnostics::Compiler_option_0_requires_a_value_of_type_1,
+                        &diagnostics::COMPILER_OPTION_0_REQUIRES_A_VALUE_OF_TYPE_1,
                         &[&prop, &"Array"],
                     ));
                     return PropOfRaw { slice_value: None, wrong_value: "not-array" };
@@ -1993,7 +1993,7 @@ fn parse_json_config_file_content_worker(
             if let Some(source_file) = source_file {
                 let file_name =
                     if !config_file_name.is_empty() { config_file_name } else { "tsconfig.json" };
-                let diagnostic_message = &diagnostics::The_files_list_in_config_file_0_is_empty;
+                let diagnostic_message = &diagnostics::THE_FILES_LIST_IN_CONFIG_FILE_0_IS_EMPTY;
                 let node_value = for_each_ts_config_prop_array(
                     Some(source_file.source_file),
                     "files",
@@ -2007,7 +2007,7 @@ fn parse_json_config_file_content_worker(
                 ));
             } else {
                 errors.push(new_compiler_diagnostic(
-                    &diagnostics::The_files_list_in_config_file_0_is_empty,
+                    &diagnostics::THE_FILES_LIST_IN_CONFIG_FILE_0_IS_EMPTY,
                     &[&config_file_name],
                 ));
             }
@@ -2093,7 +2093,7 @@ fn parse_json_config_file_content_worker(
                 errors.push(create_diagnostic_for_spec(
                     tsconfig_to_source_file(source_file),
                     "files",
-                    &diagnostics::Network_path_0_is_not_supported,
+                    &diagnostics::NETWORK_PATH_0_IS_NOT_SUPPORTED,
                     spec,
                 ));
                 continue;
@@ -2166,7 +2166,7 @@ fn parse_json_config_file_content_worker(
             if !ext.starts_with('.') {
                 errors.push(set_content_mapper_diagnostic_location(
                     new_compiler_diagnostic(
-                        &diagnostics::Content_mapper_file_extension_0_must_begin_with_a,
+                        &diagnostics::CONTENT_MAPPER_FILE_EXTENSION_0_MUST_BEGIN_WITH_A,
                         &[ext],
                     ),
                     content_mapper_source_file,
@@ -2175,7 +2175,7 @@ fn parse_json_config_file_content_worker(
             } else if ext.contains('/') || ext.contains('\\') {
                 errors.push(set_content_mapper_diagnostic_location(
                     new_compiler_diagnostic(
-                        &diagnostics::Content_mapper_extension_0_must_not_contain_path_separators,
+                        &diagnostics::CONTENT_MAPPER_EXTENSION_0_MUST_NOT_CONTAIN_PATH_SEPARATORS,
                         &[ext],
                     ),
                     content_mapper_source_file,
@@ -2184,7 +2184,7 @@ fn parse_json_config_file_content_worker(
             } else if has_reserved_source_extension(ext) {
                 errors.push(set_content_mapper_diagnostic_location(
                     new_compiler_diagnostic(
-                        &diagnostics::Content_mapper_file_extension_0_is_a_built_in_extension_and_cannot_be_registered_by_a_content_mapper,
+                        &diagnostics::CONTENT_MAPPER_FILE_EXTENSION_0_IS_A_BUILT_IN_EXTENSION_AND_CANNOT_BE_REGISTERED_BY_A_CONTENT_MAPPER,
                         &[ext],
                     ),
                     content_mapper_source_file,
@@ -2193,7 +2193,7 @@ fn parse_json_config_file_content_worker(
             } else if !seen_content_mapper_extensions.insert(canonical_ext) {
                 errors.push(set_content_mapper_diagnostic_location(
                     new_compiler_diagnostic(
-                        &diagnostics::Content_mapper_file_extension_0_is_registered_by_more_than_one_content_mapper,
+                        &diagnostics::CONTENT_MAPPER_FILE_EXTENSION_0_IS_REGISTERED_BY_MORE_THAN_ONE_CONTENT_MAPPER,
                         &[ext],
                     ),
                     content_mapper_source_file,
@@ -2216,12 +2216,12 @@ fn parse_json_config_file_content_worker(
             for extension in [source_extension, output_extension] {
                 let diagnostic = if extension.contains('/') || extension.contains('\\') {
                     Some(new_compiler_diagnostic(
-                        &diagnostics::Content_mapper_extension_0_must_not_contain_path_separators,
+                        &diagnostics::CONTENT_MAPPER_EXTENSION_0_MUST_NOT_CONTAIN_PATH_SEPARATORS,
                         &[extension],
                     ))
                 } else if !is_valid_extension(extension) {
                     Some(new_compiler_diagnostic(
-                        &diagnostics::Content_mapper_output_extension_0_must_be_non_empty_and_begin_with_a,
+                        &diagnostics::CONTENT_MAPPER_OUTPUT_EXTENSION_0_MUST_BE_NON_EMPTY_AND_BEGIN_WITH_A,
                         &[extension],
                     ))
                 } else {
@@ -2240,7 +2240,7 @@ fn parse_json_config_file_content_worker(
             }) {
                 errors.push(set_content_mapper_diagnostic_location(
                     new_compiler_diagnostic(
-                        &diagnostics::Content_mapper_output_extension_mapping_source_0_is_not_registered_by_this_content_mapper,
+                        &diagnostics::CONTENT_MAPPER_OUTPUT_EXTENSION_MAPPING_SOURCE_0_IS_NOT_REGISTERED_BY_THIS_CONTENT_MAPPER,
                         &[source_extension],
                     ),
                     content_mapper_source_file,
@@ -2253,7 +2253,7 @@ fn parse_json_config_file_content_worker(
         && !parsed_config.options.as_ref().is_some_and(|o| o.run_external_code.is_true())
     {
         errors.push(set_content_mapper_diagnostic_location(
-            new_compiler_diagnostic(&diagnostics::Content_mappers_require_the_runExternalCode_command_line_flag_to_be_enabled, &[]),
+            new_compiler_diagnostic(&diagnostics::CONTENT_MAPPERS_REQUIRE_THE_RUN_EXTERNAL_CODE_COMMAND_LINE_FLAG_TO_BE_ENABLED, &[]),
             content_mapper_source_file,
             get_content_mappers_key_syntax(content_mapper_source_file),
         ));
@@ -2320,7 +2320,7 @@ fn parse_json_config_file_content_worker(
                 {
                     errors.push(set_content_mapper_diagnostic_location(
                         new_compiler_diagnostic(
-                            &diagnostics::Content_mapper_output_extension_mapping_from_0_to_1_requires_rewriteRelativeImportExtensions_to_be_enabled,
+                            &diagnostics::CONTENT_MAPPER_OUTPUT_EXTENSION_MAPPING_FROM_0_TO_1_REQUIRES_REWRITE_RELATIVE_IMPORT_EXTENSIONS_TO_BE_ENABLED,
                             &[source_extension, output_extension],
                         ),
                         content_mapper_source_file,
@@ -2362,7 +2362,7 @@ fn parse_json_config_file_content_worker(
                 config_file_specs.exclude_specs.clone().unwrap_or_default(),
             );
             errors.push(new_compiler_diagnostic(
-                &diagnostics::No_inputs_were_found_in_config_file_0_Specified_include_paths_were_1_and_exclude_paths_were_2,
+                &diagnostics::NO_INPUTS_WERE_FOUND_IN_CONFIG_FILE_0_SPECIFIED_INCLUDE_PATHS_WERE_1_AND_EXCLUDE_PATHS_WERE_2,
                 &[&config_file_name, &stringify_json(&include_specs), &stringify_json(&exclude_specs)],
             ));
         }
@@ -2385,7 +2385,7 @@ fn parse_json_config_file_content_worker(
                         source_file,
                         index,
                         "path",
-                        &diagnostics::Compiler_option_0_requires_a_value_of_type_1,
+                        &diagnostics::COMPILER_OPTION_0_REQUIRES_A_VALUE_OF_TYPE_1,
                         &[&"reference.path", &"string"],
                     ));
                     continue;
@@ -2395,7 +2395,7 @@ fn parse_json_config_file_content_worker(
                         source_file,
                         index,
                         "path",
-                        &diagnostics::Compiler_option_0_cannot_be_given_an_empty_string,
+                        &diagnostics::COMPILER_OPTION_0_CANNOT_BE_GIVEN_AN_EMPTY_STRING,
                         &[&"reference.path"],
                     ));
                     continue;
@@ -2405,7 +2405,7 @@ fn parse_json_config_file_content_worker(
                         source_file,
                         index,
                         "path",
-                        &diagnostics::Network_path_0_is_not_supported,
+                        &diagnostics::NETWORK_PATH_0_IS_NOT_SUPPORTED,
                         &[&ref_.reference.path],
                     ));
                     continue;
@@ -2415,7 +2415,7 @@ fn parse_json_config_file_content_worker(
                         source_file,
                         index,
                         "circular",
-                        &diagnostics::Compiler_option_0_requires_a_value_of_type_1,
+                        &diagnostics::COMPILER_OPTION_0_REQUIRES_A_VALUE_OF_TYPE_1,
                         &[&"reference.circular", &"boolean"],
                     ));
                 }
@@ -2521,14 +2521,14 @@ pub(crate) fn spec_to_diagnostic(
     // A '?' in a file spec is a wildcard, so an /??/ spec can match local
     // directories. Only a normalized UNC/device root is unambiguously remote.
     if tspath::get_normalized_absolute_path(spec, base_path).starts_with("//") {
-        return Some(&diagnostics::Network_path_0_is_not_supported);
+        return Some(&diagnostics::NETWORK_PATH_0_IS_NOT_SUPPORTED);
     }
     if disallow_trailing_recursion && invalid_trailing_recursion(spec) {
-        return Some(&diagnostics::File_specification_cannot_end_in_a_recursive_directory_wildcard_Asterisk_Asterisk_Colon_0);
+        return Some(&diagnostics::FILE_SPECIFICATION_CANNOT_END_IN_A_RECURSIVE_DIRECTORY_WILDCARD_ASTERISK_ASTERISK_COLON_0);
     }
     if invalid_dot_dot_after_recursive_wildcard(spec) {
         return Some(
-            &diagnostics::File_specification_cannot_contain_a_parent_directory_that_appears_after_a_recursive_directory_wildcard_Asterisk_Asterisk_Colon_0,
+            &diagnostics::FILE_SPECIFICATION_CANNOT_CONTAIN_A_PARENT_DIRECTORY_THAT_APPEARS_AFTER_A_RECURSIVE_DIRECTORY_WILDCARD_ASTERISK_ASTERISK_COLON_0,
         );
     }
     None

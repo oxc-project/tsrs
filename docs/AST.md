@@ -194,8 +194,8 @@ other expression bases, `TypeNodeBase`, `TypeSyntaxBase`, `JSDocTypeBase`, `Comp
 `ObjectLiteralElementBase`, `LiteralExpressionBase`.
 
 **Subtree facts** (`subtreefacts.rs`, Go `subtreefacts.go` + every `computeSubtreeFacts`/`propagateSubtreeFacts`):
-`SubtreeFacts` bitflags with Go's names minus the `Subtree` prefix (`SubtreeContainsJsx` -> `SubtreeFacts::ContainsJsx`,
-`SubtreeExclusionsFunction` -> `SubtreeFacts::ExclusionsFunction`, `SubtreeFactsComputed` -> `SubtreeFacts::Computed`),
+`SubtreeFacts` bitflags with Go's names minus the `Subtree` prefix (`SubtreeContainsJsx` -> `SubtreeFacts::CONTAINS_JSX`,
+`SubtreeExclusionsFunction` -> `SubtreeFacts::EXCLUSIONS_FUNCTION`, `SubtreeFactsComputed` -> `SubtreeFacts::COMPUTED`),
 `node.subtree_facts()` (Go `Node.SubtreeFacts()`), `contains_object_rest_or_spread(node)`. Go caches the facts of
 composite nodes in `CompositeBase`; the port recomputes them (they are a pure function of the finished subtree),
 except under `with_subtree_facts_cache`, a per-thread side table that emit turns on around the transformers (which ask
@@ -322,10 +322,10 @@ antecedents (labels) share `link`; read them with `antecedent()` / `antecedents(
 
 ## Flags, kinds, ids
 
-`Kind` (enum, `#[repr(i16)]`, `Kind::FirstKeyword`-style associated consts for range markers,
+`Kind` (enum, `#[repr(i16)]`, `Kind::FIRST_KEYWORD`-style associated consts for range markers,
 `Kind::from_i16`, `Kind::Count`), `NodeFlags`, `ModifierFlags`, `SymbolFlags`, `CheckFlags`,
 `TokenFlags` (`u32`), `FunctionFlags` (+ `get_function_flags(Option<P<Node>>)`), `FlowFlags` are
-bitflags/enums per PORTING.md (`XxxFlags::None` is the empty set). `NodeId(pub u64)`, `SymbolId(pub u64)`.
+bitflags/enums per PORTING.md (`XxxFlags::NONE` is the empty set). `NodeId(pub u64)`, `SymbolId(pub u64)`.
 `get_resolution_mode_override(attributes: Option<P<Node>>, grammar_error_on_node) -> Option<ResolutionMode>` (Go's
 `(*ImportAttributesNode).GetResolutionModeOverride`, also `ImportAttributes::get_resolution_mode_override`).
 `AccessKind`, `CommentDirective{loc, kind}`, `CommentRange{text_range, kind, has_trailing_new_line}`,

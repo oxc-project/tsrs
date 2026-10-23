@@ -13,15 +13,15 @@ use crate::jsonrpc::{
 use crate::{Protocol, new_jsonrpc_protocol};
 
 #[derive(Clone, Default)]
-struct sharedBuffer(Arc<Mutex<Vec<u8>>>);
+struct SharedBuffer(Arc<Mutex<Vec<u8>>>);
 
-impl sharedBuffer {
+impl SharedBuffer {
     fn take(&self) -> String {
         String::from_utf8(std::mem::take(&mut *self.0.lock().unwrap())).unwrap()
     }
 }
 
-impl Write for sharedBuffer {
+impl Write for SharedBuffer {
     fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
         self.0.lock().unwrap().extend_from_slice(buf);
         Ok(buf.len())
@@ -44,7 +44,7 @@ fn frame(body: &str) -> String {
 // compact params, and json/v2's string escaping (no HTML escaping, U+2028 and DEL as they are).
 #[test]
 fn protocol_writes_go_wire_bytes() {
-    let out = sharedBuffer::default();
+    let out = SharedBuffer::default();
     let p = new_jsonrpc_protocol(io::empty(), out.clone());
 
     p.write_request(

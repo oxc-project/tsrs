@@ -20,13 +20,13 @@ use crate::ata;
 use crate::background::{Queue, Timer, after_func, new_queue};
 use crate::checkerpool::CheckerPoolOptions;
 use crate::client::Client;
-use crate::configfileregistry::configFileEntry;
+use crate::configfileregistry::ConfigFileEntry;
 use crate::dirty::Shared;
 use crate::filechange::{FileChange, FileChangeKind, FileChangeSummary, merge_file_change_summary};
 use crate::logging::{Logger, new_nop_logger};
-use crate::overlayfs::{FsRef, OverlayMap, ToPath, new_overlay_fs, overlayFS};
+use crate::overlayfs::{FsRef, OverlayFS, OverlayMap, ToPath, new_overlay_fs};
 use crate::parsecache::{ContentMappedParseCache, ParseCache};
-use crate::project::{ID, Kind, ProgramUpdateKind, Project, hr};
+use crate::project::{HR, ID, Kind, ProgramUpdateKind, Project};
 use crate::snapshot::{
     APISnapshotRequest, ATAStateChange, ProjectTreeRequest, ResourceRequest, Snapshot,
     SnapshotChange,
@@ -34,8 +34,8 @@ use crate::snapshot::{
 use crate::snapshotfs::{is_node_modules_path, is_relevant_extension};
 use crate::snapshothost::{SnapshotHost, new_snapshot_host};
 use crate::watch::{
-    WatchedFiles, WatchedFilesExt, WatcherID, file_system_watcher_glob_string, new_watch_registry,
-    watchRegistry,
+    WatchRegistry, WatchedFiles, WatchedFilesExt, WatcherID, file_system_watcher_glob_string,
+    new_watch_registry,
 };
 
 #[repr(u32)]
@@ -59,11 +59,11 @@ pub enum UpdateReason {
 
 // ErrNoProjectForUnknownScriptKind identifies requests for otherwise unsupported files.
 // (Go `errors.New`; errors wrapping it carry this message as their prefix, see `is_err_no_project_for_unknown_script_kind`.)
-pub const ErrNoProjectForUnknownScriptKind: &str = "no project for unknown script kind";
+pub const ERR_NO_PROJECT_FOR_UNKNOWN_SCRIPT_KIND: &str = "no project for unknown script kind";
 
 // Go `errors.Is(err, ErrNoProjectForUnknownScriptKind)`.
 pub fn is_err_no_project_for_unknown_script_kind(err: &lsproto::Error) -> bool {
-    err.message.starts_with(ErrNoProjectForUnknownScriptKind)
+    err.message.starts_with(ERR_NO_PROJECT_FOR_UNKNOWN_SCRIPT_KIND)
 }
 
 #[derive(Clone, Debug, Default)]
@@ -74,7 +74,7 @@ pub struct ContentMapperContributions {
 
 // watchRequestTimeout is the maximum time to wait for the client to respond to
 // a WatchFiles or UnwatchFiles request while holding the watches mutex.
-const watchRequestTimeout: Duration = Duration::from_secs(1);
+const WATCH_REQUEST_TIMEOUT: Duration = Duration::from_secs(1);
 
 // SessionOptions are the immutable initialization options for a session.
 // Snapshots may reference them as a pointer since they never change.
@@ -108,29 +108,29 @@ pub struct SessionInit {
     pub content_mapped_parse_cache: Option<Arc<ContentMappedParseCache>>,
 }
 
-struct userConfigState {
+struct UserConfigState {
     // current preferences
     workspace_user_preferences: UserPreferences,
     pending_user_config_changes: bool,
 }
 
 #[derive(Default)]
-struct cancelState {
+struct CancelState {
     cancel: Option<CancelFunc>,
     generation: u64,
 }
 
 #[derive(Default)]
-struct idleCacheCleanState {
+struct IdleCacheCleanState {
     timer: Option<Timer>,
     generation: u64,
     pending: usize,
     closed: bool,
 }
 
-struct idleCacheCleanDone(Arc<Session>);
+struct IdleCacheCleanDone(Arc<Session>);
 
-impl Drop for idleCacheCleanDone {
+impl Drop for IdleCacheCleanDone {
     fn drop(&mut self) {
         let mut state = self.0.idle_cache_clean.lock().unwrap();
         state.pending -= 1;
@@ -163,7 +163,7 @@ pub struct Session {
     )]
     start_time: Instant,
     npm_executor: Option<Arc<dyn ata::NpmExecutor>>,
-    fs: Arc<overlayFS>,
+    fs: Arc<OverlayFS>,
 
     // registeredContentMapperSnapshotID is the ID of the newest snapshot whose registration has been
     // applied. Registration runs from background tasks that may finish out of order, so
@@ -175,7 +175,7 @@ pub struct Session {
     // read-only after initialization
     initial_user_preferences: Mutex<UserPreferences>,
     // Go: userConfigRWMu + workspaceUserPreferences + pendingUserConfigChanges.
-    user_config: Mutex<userConfigState>,
+    user_config: Mutex<UserConfigState>,
     compiler_options_for_inferred_projects: Mutex<Option<P<CompilerOptions>>>,
     background_queue: Queue,
 
@@ -185,7 +185,7 @@ pub struct Session {
 
     // scheduledSnapshotUpdateCancel is the cancelation function for a scheduled
     // snapshot update. Snapshot updates are scheduled and debounced after file closes.
-    scheduled_snapshot_update: Mutex<cancelState>,
+    scheduled_snapshot_update: Mutex<CancelState>,
 
     configure_mu: Mutex<()>,
 
@@ -201,7 +201,7 @@ pub struct Session {
     // diagnosticsRefreshCancel is the cancelation function for a scheduled
     // diagnostics refresh. Diagnostics refreshes are scheduled and debounced
     // after file watch changes and ATA updates.
-    diagnostics_refresh: Mutex<cancelState>,
+    diagnostics_refresh: Mutex<CancelState>,
 
     // warmAutoImportCancel is the cancelation function for a running
     // auto-import cache warming task. It is cancelled on file opens,
@@ -212,7 +212,7 @@ pub struct Session {
     // idleCacheCleanTimer is a resettable timer for scheduling idle disk
     // cache cleans. The timer resets on any file event (open, close,
     // change, save, watch) and fires after 30 seconds of inactivity.
-    idle_cache_clean: Mutex<idleCacheCleanState>,
+    idle_cache_clean: Mutex<IdleCacheCleanState>,
     idle_cache_clean_done: Condvar,
 
     // performanceTelemetryCancel cancels the periodic performance telemetry ticker.
@@ -227,7 +227,7 @@ pub struct Session {
 
     // watches tracks the current watch globs and how many individual WatchedFiles
     // are using each glob.
-    watches: watchRegistry,
+    watches: WatchRegistry,
 
     // globalDiagPublishPending is set to true when a global diagnostics publish
     // task should be enqueued. It is reset when the task runs, coalescing multiple
@@ -266,7 +266,7 @@ pub fn new_session(init: &SessionInit) -> Arc<Session> {
         start_time: Instant::now(),
         snapshot: RwLock::new(Some(snapshot)),
         initial_user_preferences: Mutex::new(lsutil::new_default_user_preferences()),
-        user_config: Mutex::new(userConfigState {
+        user_config: Mutex::new(UserConfigState {
             workspace_user_preferences: lsutil::new_default_user_preferences(),
             pending_user_config_changes: false,
         }),
@@ -276,12 +276,12 @@ pub fn new_session(init: &SessionInit) -> Arc<Session> {
         content_mapper_registration: Mutex::new((None, 0)),
         compiler_options_for_inferred_projects: Mutex::new(None),
         snapshot_update_mu: Mutex::new(()),
-        scheduled_snapshot_update: Mutex::new(cancelState::default()),
+        scheduled_snapshot_update: Mutex::new(CancelState::default()),
         configure_mu: Mutex::new(()),
         pending_file_changes: Mutex::new(Vec::new()),
-        diagnostics_refresh: Mutex::new(cancelState::default()),
+        diagnostics_refresh: Mutex::new(CancelState::default()),
         warm_auto_import_cancel: Mutex::new(None),
-        idle_cache_clean: Mutex::new(idleCacheCleanState::default()),
+        idle_cache_clean: Mutex::new(IdleCacheCleanState::default()),
         idle_cache_clean_done: Condvar::new(),
         performance_telemetry_cancel: Mutex::new(None),
         seen_projects: SyncSet::default(),
@@ -518,9 +518,9 @@ impl Session {
             snapshot.content_mapper_watch_state();
         for change in changes {
             let kind = match change.type_ {
-                lsproto::FileChangeType::Created => FileChangeKind::WatchCreate,
-                lsproto::FileChangeType::Changed => FileChangeKind::WatchChange,
-                lsproto::FileChangeType::Deleted => FileChangeKind::WatchDelete,
+                lsproto::FileChangeType::CREATED => FileChangeKind::WatchCreate,
+                lsproto::FileChangeType::CHANGED => FileChangeKind::WatchChange,
+                lsproto::FileChangeType::DELETED => FileChangeKind::WatchDelete,
                 _ => continue, // Ignore unknown change types.
             };
             file_changes.push(FileChange { kind, uri: change.uri.clone(), ..Default::default() });
@@ -631,7 +631,7 @@ impl Session {
         // Enqueue the (optionally debounced) diagnostics refresh
         let s = self.arc();
         self.background_queue.enqueue(&debounce_ctx, move |ctx| {
-            let _cancel = cancelOnDrop(cancel);
+            let _cancel = CancelOnDrop(cancel);
             if !delay.is_zero() {
                 // Wait out the debounce window; a newer event cancels this one.
                 if ctx.wait_timeout(delay) {
@@ -698,7 +698,7 @@ impl Session {
         // Enqueue the debounced snapshot update
         let s = self.arc();
         self.background_queue.enqueue(&debounce_ctx, move |ctx| {
-            let _cancel = cancelOnDrop(cancel);
+            let _cancel = CancelOnDrop(cancel);
             // Sleep for the debounce delay
             if ctx.wait_timeout(s.options.debounce_delay) {
                 // Context was cancelled, newer events arrived or another snapshot update ran
@@ -779,11 +779,11 @@ impl Session {
         let generation = state.generation;
 
         let s = Weak::clone(&self.self_ref);
-        state.timer = Some(after_func(idleCacheCleanDelay, move || {
+        state.timer = Some(after_func(IDLE_CACHE_CLEAN_DELAY, move || {
             let Some(s) = s.upgrade() else {
                 return;
             };
-            let _done = idleCacheCleanDone(Arc::clone(&s));
+            let _done = IdleCacheCleanDone(Arc::clone(&s));
             {
                 let mut state = s.idle_cache_clean.lock().unwrap();
                 if state.generation == generation {
@@ -989,7 +989,7 @@ impl Session {
             if let Some(file) = snapshot.get_file(&uri.file_name()) {
                 if file.kind() == ScriptKind::Unknown {
                     return Err(lsproto::Error::new(format!(
-                        "{ErrNoProjectForUnknownScriptKind}: no project found for URI {uri}"
+                        "{ERR_NO_PROJECT_FOR_UNKNOWN_SCRIPT_KIND}: no project found for URI {uri}"
                     )));
                 }
             }
@@ -1136,7 +1136,7 @@ impl Session {
             },
             true, /*callerRef*/
         );
-        let _deref = derefOnDrop(&snapshot);
+        let _deref = DerefOnDrop(&snapshot);
         f(&snapshot);
     }
 
@@ -1152,7 +1152,7 @@ impl Session {
             ResourceRequest { documents: vec![uri.clone()], ..Default::default() },
             true, /*callerRef*/
         );
-        let _deref = derefOnDrop(&snapshot);
+        let _deref = DerefOnDrop(&snapshot);
         f(&snapshot);
     }
 
@@ -1217,7 +1217,7 @@ impl Session {
                 Ok(None)
             }
             Ok(Some(async_work)) => Ok(Some(Box::new(move || {
-                let _deref = derefOnDrop(&snapshot);
+                let _deref = DerefOnDrop(&snapshot);
                 async_work()
             }))),
         }
@@ -1543,7 +1543,7 @@ impl Session {
                 for (id, watcher) in &new_watchers {
                     // Create a fresh timeout per client call so earlier calls
                     // don't consume the deadline for later ones.
-                    let (call_ctx, call_cancel) = ctx.with_timeout(watchRequestTimeout);
+                    let (call_ctx, call_cancel) = ctx.with_timeout(WATCH_REQUEST_TIMEOUT);
                     let result = client.watch_files(&call_ctx, id.clone(), vec![watcher.clone()]);
                     call_cancel.call();
                     if let Err(err) = result {
@@ -1599,7 +1599,7 @@ impl Session {
                     if removed { Some(id) } else { None }
                 }));
                 for id in removed_ids {
-                    let (call_ctx, call_cancel) = ctx.with_timeout(watchRequestTimeout);
+                    let (call_ctx, call_cancel) = ctx.with_timeout(WATCH_REQUEST_TIMEOUT);
                     let result = client.unwatch_files(&call_ctx, id.clone());
                     call_cancel.call();
                     match result {
@@ -1671,23 +1671,23 @@ impl Session {
         let ctx = self.background_context();
         let old_configs = &old_snapshot.config_file_registry.configs;
         let new_configs = &new_snapshot.config_file_registry.configs;
-        let mut added: Vec<Shared<configFileEntry>> = Vec::new();
-        let mut removed: Vec<Shared<configFileEntry>> = Vec::new();
-        let mut changed: Vec<(Shared<configFileEntry>, Shared<configFileEntry>)> = Vec::new();
+        let mut added: Vec<Shared<ConfigFileEntry>> = Vec::new();
+        let mut removed: Vec<Shared<ConfigFileEntry>> = Vec::new();
+        let mut changed: Vec<(Shared<ConfigFileEntry>, Shared<ConfigFileEntry>)> = Vec::new();
         diff_maps_func(
             old_configs,
             new_configs,
-            |a: &Shared<configFileEntry>, b: &Shared<configFileEntry>| {
+            |a: &Shared<ConfigFileEntry>, b: &Shared<ConfigFileEntry>| {
                 a.root_files_watch.id() == b.root_files_watch.id()
             },
-            Some(|_: &Path, added_entry: &Shared<configFileEntry>| added.push(added_entry.clone())),
-            Some(|_: &Path, removed_entry: &Shared<configFileEntry>| {
+            Some(|_: &Path, added_entry: &Shared<ConfigFileEntry>| added.push(added_entry.clone())),
+            Some(|_: &Path, removed_entry: &Shared<ConfigFileEntry>| {
                 removed.push(removed_entry.clone());
             }),
             Some(
                 |_: &Path,
-                 old_entry: &Shared<configFileEntry>,
-                 new_entry: &Shared<configFileEntry>| {
+                 old_entry: &Shared<ConfigFileEntry>,
+                 new_entry: &Shared<ConfigFileEntry>| {
                     changed.push((old_entry.clone(), new_entry.clone()));
                 },
             ),
@@ -1923,7 +1923,7 @@ impl Session {
                 // New project added
                 0 => log_project(&project),
                 // Project removed
-                1 => self.logger.logf(format_args!("\nProject '{}' removed\n{}", project.id(), hr)),
+                1 => self.logger.logf(format_args!("\nProject '{}' removed\n{}", project.id(), HR)),
                 // Project updated
                 _ => {
                     if project.program_update_kind == ProgramUpdateKind::NewFiles {
@@ -2268,13 +2268,13 @@ impl Session {
 
     // session.go:1974
     fn publish_global_diagnostics(&self, ctx: &Context) {
-        struct resetPending<'a>(&'a AtomicBool);
-        impl Drop for resetPending<'_> {
+        struct ResetPending<'a>(&'a AtomicBool);
+        impl Drop for ResetPending<'_> {
             fn drop(&mut self) {
                 self.0.store(false, Ordering::SeqCst);
             }
         }
-        let _reset = resetPending(&self.global_diag_publish_pending);
+        let _reset = ResetPending(&self.global_diag_publish_pending);
 
         let snapshot = {
             let guard = self.snapshot.read().unwrap();
@@ -2282,7 +2282,7 @@ impl Session {
             snapshot.ref_();
             Arc::clone(snapshot)
         };
-        let _deref = derefOnDrop(&snapshot);
+        let _deref = DerefOnDrop(&snapshot);
 
         for project in snapshot.project_collection.projects() {
             if project.kind != Kind::Configured {
@@ -2361,14 +2361,14 @@ impl Session {
                 cancel.call();
                 return;
             }
-            let _cancel = cancelOnDrop(cancel);
+            let _cancel = CancelOnDrop(cancel);
 
             // Clone the snapshot with auto-imports using warmCtx so the expensive
             // extraction work is cancelled if a file change arrives.
             if !new_snapshot.try_ref() {
                 return;
             }
-            let _deref = derefOnDrop(new_snapshot);
+            let _deref = DerefOnDrop(new_snapshot);
 
             let warm_change = SnapshotChange {
                 reason: UpdateReason::RequestedLanguageServiceWithAutoImports,
@@ -2420,29 +2420,29 @@ fn should_publish_program_diagnostics(p: &Project, snapshot_id: u64) -> bool {
     p.program_update_kind > ProgramUpdateKind::Cloned
 }
 
-const idleCacheCleanDelay: Duration = Duration::from_secs(30);
+const IDLE_CACHE_CLEAN_DELAY: Duration = Duration::from_secs(30);
 
 // The deferred work a `WithLanguageServiceAndSnapshot` callback hands back (Go `func() error`).
 pub type AsyncWork = Box<dyn FnOnce() -> Result<(), lsproto::Error> + Send>;
 
 // Go `defer cancel()`.
-struct cancelOnDrop(CancelFunc);
+struct CancelOnDrop(CancelFunc);
 
-impl Drop for cancelOnDrop {
+impl Drop for CancelOnDrop {
     fn drop(&mut self) {
         self.0.call();
     }
 }
 
 // Go `defer snapshot.Deref()`.
-struct derefOnDrop<'a>(&'a Arc<Snapshot>);
+struct DerefOnDrop<'a>(&'a Arc<Snapshot>);
 
-impl Drop for derefOnDrop<'_> {
+impl Drop for DerefOnDrop<'_> {
     fn drop(&mut self) {
         self.0.deref();
     }
 }
 
-fn tsrs_overlays(fs: &overlayFS) -> OverlayMap {
+fn tsrs_overlays(fs: &OverlayFS) -> OverlayMap {
     crate::overlayfs::LayeredFileSystem::overlays(fs)
 }

@@ -11,7 +11,7 @@ pub(crate) fn convert_class_declaration_to_class_expression(
 ) -> P<Node> {
     let c = node.as_class_declaration();
     let updated = emit_context.factory.new_class_expression(
-        extract_modifiers(emit_context, node.modifiers(), !ModifierFlags::ExportDefault),
+        extract_modifiers(emit_context, node.modifiers(), !ModifierFlags::EXPORT_DEFAULT),
         node.name(),
         c.type_parameters(),
         c.heritage_clauses(),
@@ -63,7 +63,7 @@ pub(crate) fn create_not_null_condition(
 // and forawaitTransformer to share the tracking logic.
 // utilities.go:55
 #[derive(Default)]
-pub struct superAccessState {
+pub struct SuperAccessState {
     pub factory: OnceCell<&'static printer::NodeFactory>,
 
     // Keeps track of property names accessed on super (`super.x`) within async functions.
@@ -77,7 +77,7 @@ pub struct superAccessState {
     pub super_access_visitor: OnceCell<NodeVisitor>,
 }
 
-impl superAccessState {
+impl SuperAccessState {
     fn factory(&self) -> &'static printer::NodeFactory {
         self.factory.get().unwrap()
     }
@@ -121,7 +121,7 @@ impl superAccessState {
                         self.super_binding.get().unwrap(),
                         None,
                         node.name().unwrap(),
-                        NodeFlags::None,
+                        NodeFlags::NONE,
                     );
                 }
                 self.super_access_visitor().visit_each_child(Some(node)).unwrap()
@@ -169,7 +169,7 @@ impl superAccessState {
                 self.super_binding.get().unwrap(),
                 None,
                 expression.as_property_access_expression().name,
-                NodeFlags::None,
+                NodeFlags::NONE,
             )
         } else if ast::is_element_access_expression(expression) {
             // super[x](args) → _superIndex(x).call(this, args) or _superIndex(x).value.call(this, args)
@@ -184,7 +184,7 @@ impl superAccessState {
             target,
             None,
             f.new_identifier("call"),
-            NodeFlags::None,
+            NodeFlags::NONE,
         );
 
         let mut all_args: Vec<P<Node>> = Vec::new();
@@ -199,7 +199,7 @@ impl superAccessState {
             None,
             None,
             f.new_node_list(all_args),
-            NodeFlags::None,
+            NodeFlags::NONE,
         );
         result.set_loc(call.loc());
         result
@@ -217,14 +217,14 @@ impl superAccessState {
             None,
             None,
             f.new_node_list(vec![argument_expression]),
-            NodeFlags::None,
+            NodeFlags::NONE,
         );
         if self.has_super_property_assignment.get() {
             return f.new_property_access_expression(
                 super_index_call,
                 None,
                 f.new_identifier("value"),
-                NodeFlags::None,
+                NodeFlags::NONE,
             );
         }
         super_index_call
@@ -259,7 +259,7 @@ impl superAccessState {
                 f.new_keyword_expression(Kind::SuperKeyword),
                 None,
                 f.new_identifier(name),
-                NodeFlags::None,
+                NodeFlags::NONE,
             );
             let getter_arrow = f.new_arrow_function(
                 None,
@@ -288,7 +288,7 @@ impl superAccessState {
                     f.new_keyword_expression(Kind::SuperKeyword),
                     None,
                     f.new_identifier(name),
-                    NodeFlags::None,
+                    NodeFlags::NONE,
                 );
                 let assign_expr = f.new_assignment_expression(super_prop, f.new_identifier("v"));
                 let setter_arrow = f.new_arrow_function(
@@ -324,12 +324,12 @@ impl superAccessState {
                 f.new_identifier("Object"),
                 None,
                 f.new_identifier("create"),
-                NodeFlags::None,
+                NodeFlags::NONE,
             ),
             None,
             None,
             f.new_node_list(vec![f.new_keyword_expression(Kind::NullKeyword), descriptors_object]),
-            NodeFlags::None,
+            NodeFlags::NONE,
         );
 
         let decl = f.new_variable_declaration(
@@ -339,7 +339,7 @@ impl superAccessState {
             Some(object_create_call),
         );
         let decl_list =
-            f.new_variable_declaration_list(f.new_node_list(vec![decl]), NodeFlags::Const);
+            f.new_variable_declaration_list(f.new_node_list(vec![decl]), NodeFlags::CONST);
         f.new_variable_statement(None, decl_list)
     }
 

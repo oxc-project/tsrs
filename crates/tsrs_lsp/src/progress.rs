@@ -11,7 +11,7 @@ use crate::dynamic_queue::wait_until;
 use crate::server::Server;
 
 // progress.go:13. Go's `args []any` are stringified when the event is created (they cross threads).
-pub(crate) struct progressEvent {
+pub(crate) struct ProgressEvent {
     pub(crate) message: &'static Message,
     pub(crate) args: Vec<String>,
     pub(crate) finish: bool,
@@ -21,7 +21,7 @@ pub(crate) struct progressEvent {
 // progressReporter abstracts the LSP transport operations needed by
 // projectLoadingProgress so the progress logic can be tested without a
 // full Server instance.
-pub(crate) trait progressReporter: Send + Sync {
+pub(crate) trait ProgressReporter: Send + Sync {
     // done returns a context that is canceled when the server is shutting down (Go: a channel that is closed).
     fn done(&self) -> Context;
     // localize converts a diagnostic message to a display string.
@@ -34,11 +34,11 @@ pub(crate) trait progressReporter: Send + Sync {
 
 // progress.go:34
 // serverProgressReporter adapts *Server to the progressReporter interface.
-struct serverProgressReporter {
+struct ServerProgressReporter {
     server: Weak<Server>,
 }
 
-impl progressReporter for serverProgressReporter {
+impl ProgressReporter for ServerProgressReporter {
     // progress.go:38
     fn done(&self) -> Context {
         if let Some(server) = self.server.upgrade() {
@@ -91,16 +91,16 @@ impl progressReporter for serverProgressReporter {
 const PROGRESS_CHANNEL_CAPACITY: usize = 64;
 
 // Go's `ch chan progressEvent` (buffered, 64): a bounded queue; senders block while it is full.
-pub(crate) struct progressChannel {
-    state: Mutex<progressChannelState>,
+pub(crate) struct ProgressChannel {
+    state: Mutex<ProgressChannelState>,
     // Signaled when an event is queued or the reporter is done (the run thread waits on it).
     not_empty: Condvar,
     // Signaled when an event is taken out (blocked senders wait on it).
     not_full: Condvar,
 }
 
-pub(crate) struct progressChannelState {
-    pub(crate) events: VecDeque<progressEvent>,
+pub(crate) struct ProgressChannelState {
+    pub(crate) events: VecDeque<ProgressEvent>,
     // Test support (Go's synctest.Wait): the run thread is blocked waiting for an event, the timer or done.
     idle: bool,
     exited: bool,
@@ -118,9 +118,9 @@ pub(crate) struct progressChannelState {
 //
 // start/finish may block if the internal buffer (64 events) is full,
 // but will bail out if the server's background context is cancelled.
-pub(crate) struct projectLoadingProgress {
-    reporter: Arc<dyn progressReporter>,
-    pub(crate) ch: Arc<progressChannel>,
+pub(crate) struct ProjectLoadingProgress {
+    reporter: Arc<dyn ProgressReporter>,
+    pub(crate) ch: Arc<ProgressChannel>,
     delay: Duration, // time to wait before showing progress UI
 }
 
@@ -128,19 +128,19 @@ pub(crate) struct projectLoadingProgress {
 pub(crate) fn new_project_loading_progress(
     server: Weak<Server>,
     delay: Duration,
-) -> Arc<projectLoadingProgress> {
-    new_project_loading_progress_from_reporter(Arc::new(serverProgressReporter { server }), delay)
+) -> Arc<ProjectLoadingProgress> {
+    new_project_loading_progress_from_reporter(Arc::new(ServerProgressReporter { server }), delay)
 }
 
 // progress.go:80
 pub(crate) fn new_project_loading_progress_from_reporter(
-    reporter: Arc<dyn progressReporter>,
+    reporter: Arc<dyn ProgressReporter>,
     delay: Duration,
-) -> Arc<projectLoadingProgress> {
-    let p = Arc::new(projectLoadingProgress {
+) -> Arc<ProjectLoadingProgress> {
+    let p = Arc::new(ProjectLoadingProgress {
         reporter,
-        ch: Arc::new(progressChannel {
-            state: Mutex::new(progressChannelState {
+        ch: Arc::new(ProgressChannel {
+            state: Mutex::new(ProgressChannelState {
                 events: VecDeque::with_capacity(PROGRESS_CHANNEL_CAPACITY),
                 idle: false,
                 exited: false,
@@ -158,8 +158,8 @@ pub(crate) fn new_project_loading_progress_from_reporter(
     p
 }
 
-impl projectLoadingProgress {
-    fn send_event(&self, ev: progressEvent) {
+impl ProjectLoadingProgress {
+    fn send_event(&self, ev: ProgressEvent) {
         let done = self.reporter.done();
         let ch = Arc::clone(&self.ch);
         let guard = self.ch.state.lock().unwrap();
@@ -185,12 +185,12 @@ impl projectLoadingProgress {
 
     // progress.go:90
     pub(crate) fn start(&self, message: &'static Message, args: Vec<String>) {
-        self.send_event(progressEvent { message, args, finish: false });
+        self.send_event(ProgressEvent { message, args, finish: false });
     }
 
     // progress.go:99
     pub(crate) fn finish(&self, message: &'static Message, args: Vec<String>) {
-        self.send_event(progressEvent { message, args, finish: true });
+        self.send_event(ProgressEvent { message, args, finish: true });
     }
 
     // progress.go:110
@@ -214,10 +214,10 @@ impl projectLoadingProgress {
             ch.not_empty.notify_all();
         });
 
-        enum selected {
-            event(progressEvent),
-            delay,
-            done,
+        enum Selected {
+            Event(ProgressEvent),
+            Delay,
+            Done,
         }
 
         loop {
@@ -225,17 +225,17 @@ impl projectLoadingProgress {
                 let mut state = self.ch.state.lock().unwrap();
                 loop {
                     if done.is_canceled() {
-                        break selected::done;
+                        break Selected::Done;
                     }
                     if let Some(ev) = state.events.pop_front() {
                         self.ch.not_full.notify_all();
-                        break selected::event(ev);
+                        break Selected::Event(ev);
                     }
                     if let Some(deadline) = delay {
                         let now = Instant::now();
                         if now >= deadline {
                             delay = None;
-                            break selected::delay;
+                            break Selected::Delay;
                         }
                         state.idle = true;
                         state = self.ch.not_empty.wait_timeout(state, deadline - now).unwrap().0;
@@ -248,7 +248,7 @@ impl projectLoadingProgress {
             };
 
             match sel {
-                selected::event(ev) => {
+                Selected::Event(ev) => {
                     let text = self.reporter.localize(ev.message, &ev.args);
                     if !ev.finish {
                         *loading.entry(text.clone()).or_default() += 1;
@@ -306,7 +306,7 @@ impl projectLoadingProgress {
                     }
                 }
 
-                selected::delay => {
+                Selected::Delay => {
                     delay_fired = true;
                     if !token.is_empty() && !loading.is_empty() {
                         self.reporter.create_work_done_progress(&token);
@@ -315,7 +315,7 @@ impl projectLoadingProgress {
                     }
                 }
 
-                selected::done => {
+                Selected::Done => {
                     let mut state = self.ch.state.lock().unwrap();
                     state.exited = true;
                     state.idle = true;
@@ -330,7 +330,7 @@ impl projectLoadingProgress {
     // sends WorkDoneProgressReport. Returns true to indicate begun state.
     fn begin_or_report(&self, token: &str, text: &str, begun: bool) -> bool {
         if !begun {
-            let title = self.reporter.localize(&tsrs_diagnostics::Loading, &[]);
+            let title = self.reporter.localize(&tsrs_diagnostics::LOADING, &[]);
             self.reporter.send_progress(
                 token,
                 lsproto::WorkDoneProgressBeginOrReportOrEnd {
@@ -373,7 +373,7 @@ impl projectLoadingProgress {
 
     // Test support: queue an event without waiting (Go's `p.ch <- ev` while the buffer has room).
     #[cfg(test)]
-    pub(crate) fn fill(&self, ev: progressEvent) -> bool {
+    pub(crate) fn fill(&self, ev: ProgressEvent) -> bool {
         let mut state = self.ch.state.lock().unwrap();
         if state.events.len() >= PROGRESS_CHANNEL_CAPACITY {
             return false;

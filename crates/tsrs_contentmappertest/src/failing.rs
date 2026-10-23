@@ -2,14 +2,14 @@ use tsrs_contentmapper::{METHOD_INITIALIZE, METHOD_TRANSFORM, ProtocolJson};
 use tsrs_core::json::Value;
 use tsrs_ipc as ipc;
 
-use crate::protocol::{initialize_result, no_notifications, testHandler, unexpected_method};
+use crate::protocol::{TestHandler, initialize_result, no_notifications, unexpected_method};
 
 // failing.go:12
-pub(crate) struct failingHandler;
+pub(crate) struct FailingHandler;
 
-impl testHandler for failingHandler {}
+impl TestHandler for FailingHandler {}
 
-impl ipc::Handler for failingHandler {
+impl ipc::Handler for FailingHandler {
     // failing.go:14
     fn handle_request(&self, method: &str, _params: Option<&Value>) -> Result<Value, ipc::Error> {
         match method {

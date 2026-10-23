@@ -5,52 +5,52 @@ use bitflags::bitflags;
 bitflags! {
     #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Debug, Default)]
     pub struct ModifierFlags: u32 {
-        const None = 0;
+        const NONE = 0;
         // Syntactic/JSDoc modifiers
-        const Public = 1 << 0; // Property/Method
-        const Private = 1 << 1; // Property/Method
-        const Protected = 1 << 2; // Property/Method
-        const Readonly = 1 << 3; // Property/Method
-        const Override = 1 << 4; // Override method
+        const PUBLIC = 1 << 0; // Property/Method
+        const PRIVATE = 1 << 1; // Property/Method
+        const PROTECTED = 1 << 2; // Property/Method
+        const READONLY = 1 << 3; // Property/Method
+        const OVERRIDE = 1 << 4; // Override method
         // Syntactic-only modifiers
-        const Export = 1 << 5; // Declarations
-        const Abstract = 1 << 6; // Class/Method/ConstructSignature
-        const Ambient = 1 << 7; // Declarations (declare keyword)
-        const Static = 1 << 8; // Property/Method
-        const Accessor = 1 << 9; // Property
-        const Async = 1 << 10; // Property/Method/Function
-        const Default = 1 << 11; // Function/Class (export default declaration)
-        const Const = 1 << 12; // Const enum
-        const In = 1 << 13; // Contravariance modifier
-        const Out = 1 << 14; // Covariance modifier
-        const Decorator = 1 << 15; // Contains a decorator
+        const EXPORT = 1 << 5; // Declarations
+        const ABSTRACT = 1 << 6; // Class/Method/ConstructSignature
+        const AMBIENT = 1 << 7; // Declarations (declare keyword)
+        const STATIC = 1 << 8; // Property/Method
+        const ACCESSOR = 1 << 9; // Property
+        const ASYNC = 1 << 10; // Property/Method/Function
+        const DEFAULT = 1 << 11; // Function/Class (export default declaration)
+        const CONST = 1 << 12; // Const enum
+        const IN = 1 << 13; // Contravariance modifier
+        const OUT = 1 << 14; // Covariance modifier
+        const DECORATOR = 1 << 15; // Contains a decorator
         // JSDoc-only modifiers
-        const Deprecated = 1 << 16; // Deprecated tag
+        const DEPRECATED = 1 << 16; // Deprecated tag
         // Cache-only JSDoc-modifiers. Should match order of Syntactic/JSDoc modifiers, above.
-        const JSDocPublic = 1 << 23; // if this value changes, `selectEffectiveModifierFlags` must change accordingly
-        const JSDocPrivate = 1 << 24;
-        const JSDocProtected = 1 << 25;
-        const JSDocReadonly = 1 << 26;
-        const JSDocOverride = 1 << 27;
-        const HasComputedJSDocModifiers = 1 << 28; // Indicates the computed modifier flags include modifiers from JSDoc.
-        const HasComputedFlags = 1 << 29; // Modifier flags have been computed
+        const JSDOC_PUBLIC = 1 << 23; // if this value changes, `selectEffectiveModifierFlags` must change accordingly
+        const JSDOC_PRIVATE = 1 << 24;
+        const JSDOC_PROTECTED = 1 << 25;
+        const JSDOC_READONLY = 1 << 26;
+        const JSDOC_OVERRIDE = 1 << 27;
+        const HAS_COMPUTED_JSDOC_MODIFIERS = 1 << 28; // Indicates the computed modifier flags include modifiers from JSDoc.
+        const HAS_COMPUTED_FLAGS = 1 << 29; // Modifier flags have been computed
 
-        const SyntacticOrJSDocModifiers = Self::Public.bits() | Self::Private.bits() | Self::Protected.bits() | Self::Readonly.bits() | Self::Override.bits();
-        const SyntacticOnlyModifiers = Self::Export.bits() | Self::Ambient.bits() | Self::Abstract.bits() | Self::Static.bits() | Self::Accessor.bits() | Self::Async.bits() | Self::Default.bits() | Self::Const.bits() | Self::In.bits() | Self::Out.bits() | Self::Decorator.bits();
-        const SyntacticModifiers = Self::SyntacticOrJSDocModifiers.bits() | Self::SyntacticOnlyModifiers.bits();
-        const JSDocCacheOnlyModifiers = Self::JSDocPublic.bits() | Self::JSDocPrivate.bits() | Self::JSDocProtected.bits() | Self::JSDocReadonly.bits() | Self::JSDocOverride.bits();
-        const JSDocOnlyModifiers = Self::Deprecated.bits();
-        const NonCacheOnlyModifiers = Self::SyntacticOrJSDocModifiers.bits() | Self::SyntacticOnlyModifiers.bits() | Self::JSDocOnlyModifiers.bits();
+        const SYNTACTIC_OR_JSDOC_MODIFIERS = Self::PUBLIC.bits() | Self::PRIVATE.bits() | Self::PROTECTED.bits() | Self::READONLY.bits() | Self::OVERRIDE.bits();
+        const SYNTACTIC_ONLY_MODIFIERS = Self::EXPORT.bits() | Self::AMBIENT.bits() | Self::ABSTRACT.bits() | Self::STATIC.bits() | Self::ACCESSOR.bits() | Self::ASYNC.bits() | Self::DEFAULT.bits() | Self::CONST.bits() | Self::IN.bits() | Self::OUT.bits() | Self::DECORATOR.bits();
+        const SYNTACTIC_MODIFIERS = Self::SYNTACTIC_OR_JSDOC_MODIFIERS.bits() | Self::SYNTACTIC_ONLY_MODIFIERS.bits();
+        const JSDOC_CACHE_ONLY_MODIFIERS = Self::JSDOC_PUBLIC.bits() | Self::JSDOC_PRIVATE.bits() | Self::JSDOC_PROTECTED.bits() | Self::JSDOC_READONLY.bits() | Self::JSDOC_OVERRIDE.bits();
+        const JSDOC_ONLY_MODIFIERS = Self::DEPRECATED.bits();
+        const NON_CACHE_ONLY_MODIFIERS = Self::SYNTACTIC_OR_JSDOC_MODIFIERS.bits() | Self::SYNTACTIC_ONLY_MODIFIERS.bits() | Self::JSDOC_ONLY_MODIFIERS.bits();
 
-        const AccessibilityModifier = Self::Public.bits() | Self::Private.bits() | Self::Protected.bits();
+        const ACCESSIBILITY_MODIFIER = Self::PUBLIC.bits() | Self::PRIVATE.bits() | Self::PROTECTED.bits();
         // Accessibility modifiers and 'readonly' can be attached to a parameter in a constructor to make it a property.
-        const ParameterPropertyModifier = Self::AccessibilityModifier.bits() | Self::Readonly.bits() | Self::Override.bits();
-        const NonPublicAccessibilityModifier = Self::Private.bits() | Self::Protected.bits();
+        const PARAMETER_PROPERTY_MODIFIER = Self::ACCESSIBILITY_MODIFIER.bits() | Self::READONLY.bits() | Self::OVERRIDE.bits();
+        const NON_PUBLIC_ACCESSIBILITY_MODIFIER = Self::PRIVATE.bits() | Self::PROTECTED.bits();
 
-        const TypeScriptModifier = Self::Ambient.bits() | Self::Public.bits() | Self::Private.bits() | Self::Protected.bits() | Self::Readonly.bits() | Self::Abstract.bits() | Self::Const.bits() | Self::Override.bits() | Self::In.bits() | Self::Out.bits();
-        const ExportDefault = Self::Export.bits() | Self::Default.bits();
-        const All = Self::Export.bits() | Self::Ambient.bits() | Self::Public.bits() | Self::Private.bits() | Self::Protected.bits() | Self::Static.bits() | Self::Readonly.bits() | Self::Abstract.bits() | Self::Accessor.bits() | Self::Async.bits() | Self::Default.bits() | Self::Const.bits() | Self::Deprecated.bits() | Self::Override.bits() | Self::In.bits() | Self::Out.bits() | Self::Decorator.bits();
-        const Modifier = Self::All.bits() & !Self::Decorator.bits();
-        const JavaScript = Self::Export.bits() | Self::Static.bits() | Self::Accessor.bits() | Self::Async.bits() | Self::Default.bits();
+        const TYPE_SCRIPT_MODIFIER = Self::AMBIENT.bits() | Self::PUBLIC.bits() | Self::PRIVATE.bits() | Self::PROTECTED.bits() | Self::READONLY.bits() | Self::ABSTRACT.bits() | Self::CONST.bits() | Self::OVERRIDE.bits() | Self::IN.bits() | Self::OUT.bits();
+        const EXPORT_DEFAULT = Self::EXPORT.bits() | Self::DEFAULT.bits();
+        const ALL = Self::EXPORT.bits() | Self::AMBIENT.bits() | Self::PUBLIC.bits() | Self::PRIVATE.bits() | Self::PROTECTED.bits() | Self::STATIC.bits() | Self::READONLY.bits() | Self::ABSTRACT.bits() | Self::ACCESSOR.bits() | Self::ASYNC.bits() | Self::DEFAULT.bits() | Self::CONST.bits() | Self::DEPRECATED.bits() | Self::OVERRIDE.bits() | Self::IN.bits() | Self::OUT.bits() | Self::DECORATOR.bits();
+        const MODIFIER = Self::ALL.bits() & !Self::DECORATOR.bits();
+        const JAVA_SCRIPT = Self::EXPORT.bits() | Self::STATIC.bits() | Self::ACCESSOR.bits() | Self::ASYNC.bits() | Self::DEFAULT.bits();
     }
 }

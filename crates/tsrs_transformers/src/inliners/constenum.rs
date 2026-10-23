@@ -57,32 +57,32 @@ impl ConstEnumInliningTransformer {
                             replacement = Some(f.new_identifier("NaN"));
                         } else if v.abs() == v {
                             replacement = Some(
-                                f.new_numeric_literal(alloc_str(&v.string()), TokenFlags::None),
+                                f.new_numeric_literal(alloc_str(&v.string()), TokenFlags::NONE),
                             );
                         } else {
                             replacement = Some(f.new_prefix_unary_expression(
                                 Kind::MinusToken,
                                 f.new_numeric_literal(
                                     alloc_str(&v.abs().string()),
-                                    TokenFlags::None,
+                                    TokenFlags::NONE,
                                 ),
                             ));
                         }
                     }
                     LiteralValue::String(v) => {
-                        replacement = Some(f.new_string_literal(v, TokenFlags::None));
+                        replacement = Some(f.new_string_literal(v, TokenFlags::NONE));
                     }
                     LiteralValue::BigInt(v) => {
                         // technically not supported by strada, and issues a checker error, handled here for completeness
                         if v == jsnum::PseudoBigInt::default() {
-                            replacement = Some(f.new_big_int_literal("0", TokenFlags::None));
+                            replacement = Some(f.new_big_int_literal("0", TokenFlags::NONE));
                         } else if !v.negative {
                             replacement =
-                                Some(f.new_big_int_literal(v.base10_value, TokenFlags::None));
+                                Some(f.new_big_int_literal(v.base10_value, TokenFlags::NONE));
                         } else {
                             replacement = Some(f.new_prefix_unary_expression(
                                 Kind::MinusToken,
-                                f.new_big_int_literal(v.base10_value, TokenFlags::None),
+                                f.new_big_int_literal(v.base10_value, TokenFlags::NONE),
                             ));
                         }
                     }

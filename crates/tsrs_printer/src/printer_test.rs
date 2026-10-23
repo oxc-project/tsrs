@@ -805,12 +805,12 @@ fn test_name_generation() {
         let temp1 = f.new_temp_variable();
         let decl1 = f.new_variable_declaration(temp1, None, None, None);
         let decls1 = f.new_node_list(vec![decl1]);
-        let list1 = f.new_variable_declaration_list(decls1, NodeFlags::None);
+        let list1 = f.new_variable_declaration_list(decls1, NodeFlags::NONE);
         let statement1 = f.new_variable_statement(None, list1);
         let temp2 = f.new_temp_variable();
         let decl2 = f.new_variable_declaration(temp2, None, None, None);
         let decls2 = f.new_node_list(vec![decl2]);
-        let list2 = f.new_variable_declaration_list(decls2, NodeFlags::None);
+        let list2 = f.new_variable_declaration_list(decls2, NodeFlags::NONE);
         let statement2 = f.new_variable_statement(None, list2);
         let body_statements = f.new_node_list(vec![statement2]);
         let body = f.new_block(body_statements, true);
@@ -927,7 +927,7 @@ fn test_synthetic_comments_with_source_file() {
         "elided",
         false, /*hasTrailingNewLine*/
     );
-    ec.set_emit_flags(literal, EmitFlags::SingleLine);
+    ec.set_emit_flags(literal, EmitFlags::SINGLE_LINE);
     p.write(literal, Some(file), &mut writer, None);
     assert_eq!(writer.string(), "{ a: string; /*elided*/ }");
 }

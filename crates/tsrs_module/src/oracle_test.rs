@@ -67,42 +67,42 @@ fn strings_of(value: Option<&Json>) -> Option<Vec<String>> {
 
 fn module_kind(n: i32) -> ModuleKind {
     match n {
-        1 => ModuleKind::CommonJS,
+        1 => ModuleKind::COMMON_JS,
         2 => ModuleKind::AMD,
         3 => ModuleKind::UMD,
-        4 => ModuleKind::System,
+        4 => ModuleKind::SYSTEM,
         5 => ModuleKind::ES2015,
         6 => ModuleKind::ES2020,
         7 => ModuleKind::ES2022,
-        99 => ModuleKind::ESNext,
-        100 => ModuleKind::Node16,
-        101 => ModuleKind::Node18,
-        102 => ModuleKind::Node20,
-        199 => ModuleKind::NodeNext,
-        200 => ModuleKind::Preserve,
-        _ => ModuleKind::None,
+        99 => ModuleKind::ES_NEXT,
+        100 => ModuleKind::NODE16,
+        101 => ModuleKind::NODE18,
+        102 => ModuleKind::NODE20,
+        199 => ModuleKind::NODE_NEXT,
+        200 => ModuleKind::PRESERVE,
+        _ => ModuleKind::NONE,
     }
 }
 
 fn module_resolution_kind(n: i32) -> ModuleResolutionKind {
     match n {
-        1 => ModuleResolutionKind::Classic,
-        2 => ModuleResolutionKind::Node10,
-        3 => ModuleResolutionKind::Node16,
-        99 => ModuleResolutionKind::NodeNext,
-        100 => ModuleResolutionKind::Bundler,
-        _ => ModuleResolutionKind::Unknown,
+        1 => ModuleResolutionKind::CLASSIC,
+        2 => ModuleResolutionKind::NODE10,
+        3 => ModuleResolutionKind::NODE16,
+        99 => ModuleResolutionKind::NODE_NEXT,
+        100 => ModuleResolutionKind::BUNDLER,
+        _ => ModuleResolutionKind::UNKNOWN,
     }
 }
 
 fn jsx(n: i32) -> JsxEmit {
     match n {
-        1 => JsxEmit::Preserve,
-        2 => JsxEmit::React,
-        3 => JsxEmit::ReactNative,
-        4 => JsxEmit::ReactJSX,
-        5 => JsxEmit::ReactJSXDev,
-        _ => JsxEmit::None,
+        1 => JsxEmit::PRESERVE,
+        2 => JsxEmit::REACT,
+        3 => JsxEmit::REACT_NATIVE,
+        4 => JsxEmit::REACT_JSX,
+        5 => JsxEmit::REACT_JSX_DEV,
+        _ => JsxEmit::NONE,
     }
 }
 

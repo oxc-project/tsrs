@@ -19,23 +19,23 @@ use tsrs_module::{self as module, Resolver, ResolverOptions};
 use tsrs_tsoptions::{self as tsoptions, Mapper, ParsedCommandLine};
 
 use crate::ata;
-use crate::checkerpool::{checkerPool, checkerPoolHandle, new_checker_pool};
-use crate::compilerhost::compilerHost;
+use crate::checkerpool::{CheckerPoolHandle, CheckerPoolImpl, new_checker_pool};
+use crate::compilerhost::CompilerHostImpl;
 use crate::dirty::Cloneable;
 use crate::logging::LogTree;
-use crate::memregions::programOwner;
+use crate::memregions::ProgramOwner;
 use crate::parsecache::{parse_cache_key_for_duplicate, parse_cache_key_for_file};
 use crate::projectcollectionbuilder::ProjectCollectionBuilder;
 use crate::snapshot::{ModuleResolverFactory, ProjectTreeRequest};
 use crate::watch::{
-    PatternsAndIgnored, WatchedFiles, allWatchKinds, create_resolution_lookup_glob_mapper,
+    ALL_WATCH_KINDS, PatternsAndIgnored, WatchedFiles, create_resolution_lookup_glob_mapper,
     new_watched_files, new_watched_files_for_paths,
 };
 use tsrs_core::arena::Region;
 
-pub(crate) const inferredProjectName: &str = "/dev/null/inferred"; // lowercase so toPath is a no-op regardless of settings
-const syntheticProjectPrefix: &str = "/dev/null/synthetic/";
-pub(crate) const hr: &str = "-----------------------------------------------";
+pub(crate) const INFERRED_PROJECT_NAME: &str = "/dev/null/inferred"; // lowercase so toPath is a no-op regardless of settings
+const SYNTHETIC_PROJECT_PREFIX: &str = "/dev/null/synthetic/";
+pub(crate) const HR: &str = "-----------------------------------------------";
 
 #[derive(Clone, PartialEq, Eq, Hash, PartialOrd, Ord, Debug, Default)]
 pub struct ID(pub String);
@@ -61,7 +61,7 @@ pub struct InferredProjectID(pub String);
 pub type ModuleResolverFactoryRef = Option<Arc<dyn ModuleResolverFactory>>;
 
 pub(crate) fn inferred_project_id() -> InferredProjectID {
-    InferredProjectID(inferredProjectName.to_string())
+    InferredProjectID(INFERRED_PROJECT_NAME.to_string())
 }
 
 #[derive(Clone, PartialEq, Eq, Hash, PartialOrd, Ord, Debug, Default)]
@@ -70,7 +70,7 @@ pub struct SyntheticProjectID(pub String);
 // project.go:46
 pub fn new_synthetic_project_id(id: i64) -> SyntheticProjectID {
     assert!(id > 0, "invalid synthetic project ID: {id}");
-    SyntheticProjectID(format!("{syntheticProjectPrefix}{id}"))
+    SyntheticProjectID(format!("{SYNTHETIC_PROJECT_PREFIX}{id}"))
 }
 
 impl std::fmt::Display for ID {
@@ -106,7 +106,7 @@ impl ID {
 
     // project.go:76
     pub fn inferred(&self) -> Option<InferredProjectID> {
-        if self.0 == inferredProjectName { Some(inferred_project_id()) } else { None }
+        if self.0 == INFERRED_PROJECT_NAME { Some(inferred_project_id()) } else { None }
     }
 
     // project.go:80
@@ -118,7 +118,7 @@ impl ID {
 // project.go:62
 pub fn parse_configured_project_id(value: &Path) -> Option<ConfiguredProjectID> {
     let id: &str = value.as_str();
-    if id.is_empty() || id == inferredProjectName || parse_synthetic_project_id(id).is_some() {
+    if id.is_empty() || id == INFERRED_PROJECT_NAME || parse_synthetic_project_id(id).is_some() {
         return None;
     }
     Some(ConfiguredProjectID(value.clone()))
@@ -126,7 +126,7 @@ pub fn parse_configured_project_id(value: &Path) -> Option<ConfiguredProjectID> 
 
 // project.go:97
 pub fn parse_synthetic_project_id(value: &str) -> Option<SyntheticProjectID> {
-    let suffix = value.strip_prefix(syntheticProjectPrefix)?;
+    let suffix = value.strip_prefix(SYNTHETIC_PROJECT_PREFIX)?;
     // Go strconv.Atoi: optional sign, decimal digits.
     let id: i64 = suffix.parse().ok()?;
     if id <= 0 {
@@ -190,7 +190,7 @@ pub struct Project {
     pub(crate) dirty: bool,
     pub(crate) dirty_file_path: Path,
 
-    pub(crate) host: Option<Arc<compilerHost>>,
+    pub(crate) host: Option<Arc<CompilerHostImpl>>,
     pub command_line: Option<P<ParsedCommandLine>>,
     // Go: `commandLineWithTypingsFiles` + `commandLineWithTypingsFilesOnce`.
     pub(crate) command_line_with_typings_files: Arc<OnceLock<P<ParsedCommandLine>>>,
@@ -208,9 +208,9 @@ pub struct Project {
     pub(crate) content_mapper_watch: Option<Arc<WatchedFiles<Vec<String>>>>,
     pub(crate) content_mapper_watched_files: Option<Arc<Set<Path>>>,
 
-    pub(crate) checker_pool: Option<Arc<checkerPool>>,
+    pub(crate) checker_pool: Option<Arc<CheckerPoolImpl>>,
     // Memory regions (not in Go): owns the program and what is freed with it (memregions.rs).
-    pub(crate) program_owner: Option<Arc<programOwner>>,
+    pub(crate) program_owner: Option<Arc<ProgramOwner>>,
 
     pub(crate) module_resolver_factory: Option<Arc<dyn ModuleResolverFactory>>,
     pub(crate) module_resolver_id: u64,
@@ -265,10 +265,10 @@ pub fn new_inferred_project(
     let compiler_options = compiler_options.unwrap_or_else(|| {
         P::new(CompilerOptions {
             allow_js: Tristate::True,
-            module: ModuleKind::ESNext,
-            module_resolution: ModuleResolutionKind::Bundler,
-            target: ScriptTarget::LatestStandard,
-            jsx: JsxEmit::ReactJSX,
+            module: ModuleKind::ES_NEXT,
+            module_resolution: ModuleResolutionKind::BUNDLER,
+            target: ScriptTarget::LATEST_STANDARD,
+            jsx: JsxEmit::REACT_JSX,
             allow_importing_ts_extensions: Tristate::True,
             strict_null_checks: Tristate::True,
             strict_function_types: Tristate::True,
@@ -364,7 +364,7 @@ pub fn new_project(
     let use_case_sensitive_file_names = builder.fs.fs.use_case_sensitive_file_names();
     let program_files_watch = new_watched_files(
         format!("program files for {}", id.0),
-        allWatchKinds,
+        ALL_WATCH_KINDS,
         relative_pattern_support,
         create_resolution_lookup_glob_mapper(
             &builder.session_options.current_directory,
@@ -376,7 +376,7 @@ pub fn new_project(
     let typings_watch = if !builder.session_options.typings_location.is_empty() {
         Some(new_watched_files(
             "typings installer files".to_string(),
-            allWatchKinds,
+            ALL_WATCH_KINDS,
             relative_pattern_support,
             Arc::new(|input: &PatternsAndIgnored| input.clone()),
         ))
@@ -385,7 +385,7 @@ pub fn new_project(
     };
     let content_mapper_watch = new_watched_files_for_paths(
         format!("content mapper configuration files for {}", id.0),
-        allWatchKinds,
+        ALL_WATCH_KINDS,
         relative_pattern_support,
         &builder.session_options.current_directory,
         &builder.session_options.current_directory,
@@ -425,8 +425,8 @@ pub struct CreateProgramResult {
     pub update_kind: ProgramUpdateKind,
     // Go reads the pool back with `program.GetCheckerPool().(*checkerPool)`; the program keeps the pool behind
     // `dyn CheckerPool`, so the factory hands the concrete pool out here.
-    pub(crate) checker_pool: Option<Arc<checkerPool>>,
-    pub(crate) owner: Arc<programOwner>,
+    pub(crate) checker_pool: Option<Arc<CheckerPoolImpl>>,
+    pub(crate) owner: Arc<ProgramOwner>,
 }
 
 impl Project {
@@ -607,14 +607,14 @@ impl Project {
         let mut program_cloned = false;
         let new_program_result: &'static Program;
 
-        let pool_slot: Arc<Mutex<Option<Arc<checkerPool>>>> = Arc::new(Mutex::new(None));
+        let pool_slot: Arc<Mutex<Option<Arc<CheckerPoolImpl>>>> = Arc::new(Mutex::new(None));
         let create_checker_pool: CreateCheckerPool = {
             let options = host.session_options.checker_pool_options;
             let pool_slot = Arc::clone(&pool_slot);
             Arc::new(move |program: &'static Program| -> Box<dyn CheckerPool> {
                 let pool = new_checker_pool(options, program, None);
                 *pool_slot.lock().unwrap() = Some(Arc::clone(&pool));
-                Box::new(checkerPoolHandle(pool))
+                Box::new(CheckerPoolHandle(pool))
             })
         };
         let cleanup_module_resolver: Arc<Mutex<Option<Box<dyn FnOnce() + Send>>>> =
@@ -645,7 +645,7 @@ impl Project {
             let old_program = self.program.unwrap();
             let (program, dirty_file, cloned) = old_program.update_program(
                 &self.dirty_file_path,
-                Arc::<compilerHost>::clone(&host),
+                Arc::<CompilerHostImpl>::clone(&host),
                 Some(create_checker_pool),
                 Some(create_module_resolver),
             );
@@ -703,7 +703,7 @@ impl Project {
             (Some(old), true) => old.base.clone(),
             _ => region.clone(),
         };
-        let owner = Arc::new(programOwner::new(
+        let owner = Arc::new(ProgramOwner::new(
             new_program_result,
             checker_pool.clone(),
             region,
@@ -771,7 +771,7 @@ impl Project {
                 }
             }
         }
-        builder.push_str(hr);
+        builder.push_str(HR);
         builder.clone()
     }
 

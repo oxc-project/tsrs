@@ -129,7 +129,7 @@ impl Session {
         let config_file_name = file.to_absolute_file_name(self.current_directory());
         let Some(content) = self.base_fs().read_file(&config_file_name) else {
             let diag = tsrs_ast::new_compiler_diagnostic(
-                &tsrs_diagnostics::Cannot_read_file_0,
+                &tsrs_diagnostics::CANNOT_READ_FILE_0,
                 &[&config_file_name],
             );
             return Ok(Obj::new()

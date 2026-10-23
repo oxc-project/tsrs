@@ -176,19 +176,19 @@ crates/tsrs_cli/src/signals.rs	notify_interrupts	block	boundary	sigset_t is a pl
 crates/tsrs_compiler/src/checkerpool.rs	CheckerHandle::deref	block	logic	`from_raw`'s contract: the checker is alive and exclusively ours until release.	safe-api-possible	a handle built from a raw checker pointer; lifetime is a pool lease / held checker, enforced at run time, not by the type
 crates/tsrs_compiler/src/checkerpool.rs	CheckerHandle::deref_mut	block	logic	`from_raw`'s contract: the checker is alive and exclusively ours until release.	safe-api-possible	a handle built from a raw checker pointer; lifetime is a pool lease / held checker, enforced at run time, not by the type
 crates/tsrs_compiler/src/checkerpool.rs	CheckerHandle::from_raw	fn	logic	Until `release` runs, the caller guarantees that `checker` stays alive and that nothing else accesses it	safe-api-possible	a handle built from a raw checker pointer; lifetime is a pool lease / held checker, enforced at run time, not by the type
-crates/tsrs_compiler/src/checkerpool.rs	checkerPool::create_checkers	leak	ownership		safe-api-possible	Box<[CheckerSlot]> leaked so handles need no pool borrow; an Arc<[CheckerSlot]> does the same
+crates/tsrs_compiler/src/checkerpool.rs	CheckerPoolImpl::create_checkers	leak	ownership		safe-api-possible	Box<[CheckerSlot]> leaked so handles need no pool borrow; an Arc<[CheckerSlot]> does the same
 crates/tsrs_compiler/src/checkerpool.rs	impl Send for CheckerSlot	impl	logic	the checker's non-`Send` parts are reachable only from the checker, which is reached only through the mutex.	keep	checker crosses threads only under its mutex / after the seed is frozen
 crates/tsrs_compiler/src/checkerpool.rs	impl Send for PooledChecker	impl	logic	the checker's `Rc`s and closures are reachable only from the checker, and the pool lets one thread at a time	keep	checker crosses threads only under its mutex / after the seed is frozen
 crates/tsrs_compiler/src/checkerpool.rs	impl Sync for CheckerSlot	impl	logic	every access to the checker holds its mutex, and no reference outlives the guard (see above).	keep	checker crosses threads only under its mutex / after the seed is frozen
 crates/tsrs_compiler/src/checkerpool.rs	impl Sync for PooledChecker	impl	logic	a `&PooledChecker` is only used by the thread that holds the checker (see above).	keep	checker crosses threads only under its mutex / after the seed is frozen
-crates/tsrs_compiler/src/checkerpool.rs	poolState::drop	block	ownership	`checkers` came from `Box::leak` of a boxed slice in `create_checkers`, and no handle borrowing a	safe-api-possible	Box<[CheckerSlot]> leaked so handles need no pool borrow; an Arc<[CheckerSlot]> does the same
-crates/tsrs_compiler/src/checkerpool.rs	poolState::drop	from_raw	ownership		safe-api-possible	Box<[CheckerSlot]> leaked so handles need no pool borrow; an Arc<[CheckerSlot]> does the same
+crates/tsrs_compiler/src/checkerpool.rs	PoolState::drop	block	ownership	`checkers` came from `Box::leak` of a boxed slice in `create_checkers`, and no handle borrowing a	safe-api-possible	Box<[CheckerSlot]> leaked so handles need no pool borrow; an Arc<[CheckerSlot]> does the same
+crates/tsrs_compiler/src/checkerpool.rs	PoolState::drop	from_raw	ownership		safe-api-possible	Box<[CheckerSlot]> leaked so handles need no pool borrow; an Arc<[CheckerSlot]> does the same
 crates/tsrs_compiler/src/checkerpool.rs	thread_cpu_seconds	block	boundary	clock_gettime writes one timespec through the valid pointer.	keep	clock_gettime
 crates/tsrs_compiler/src/checkerpool.rs	thread_cpu_seconds	extern	boundary		keep	clock_gettime
 crates/tsrs_compiler/src/fileloader.rs	FreeMapperOnUnwind::drop	block	ownership	loading unwound, so no program was created from this mapper; the resolver and loader that	safe-api-possible	reclaimed through free_program / SharedProgramData; an owner type makes the reclaim a Drop
 crates/tsrs_compiler/src/fileloader.rs	add_project_reference_tasks	leak	ownership		safe-api-possible	reclaimed through free_program / SharedProgramData; an owner type makes the reclaim a Drop
 crates/tsrs_compiler/src/fileloader.rs	add_project_reference_tasks	leak	ownership	#2	safe-api-possible	reclaimed through free_program / SharedProgramData; an owner type makes the reclaim a Drop
-crates/tsrs_compiler/src/includeprocessor.rs	includeProcessor::get_reference_location	leak	ownership		safe-api-possible	owned by ordinary Rust ownership in Boshen's #638
+crates/tsrs_compiler/src/includeprocessor.rs	IncludeProcessor::get_reference_location	leak	ownership		safe-api-possible	owned by ordinary Rust ownership in Boshen's #638
 crates/tsrs_compiler/src/program.rs	Program::reuse_program	leak	ownership		defect-risk	a safe fn returns &'static Program that free_program later frees; 152 signatures carry the view
 crates/tsrs_compiler/src/program.rs	SharedProgramData::free	block	ownership	`new_program` leaked `processed` from a `Box`, and nothing refers to it (this function's contract).	safe-api-possible	a program owner type with Drop (#646 milestone 1) replaces this manual free
 crates/tsrs_compiler/src/program.rs	SharedProgramData::free	block	ownership	the file loader leaked the mapper from a `Box`, and nothing refers to it (this function's contract).	safe-api-possible	a program owner type with Drop (#646 milestone 1) replaces this manual free
@@ -436,39 +436,39 @@ crates/tsrs_fswatch/src/fsevents_darwin_ffi.rs	cf_string_to_go	block	boundary	`s
 crates/tsrs_fswatch/src/fsevents_darwin_ffi.rs	create_and_start_stream	block	boundary	`ctx` is copied by FSEventStreamCreate; `paths_to_watch` is a valid CFArray of CFStrings; `info`	keep	OS, FFI or allocator call
 crates/tsrs_fswatch/src/fsevents_darwin_ffi.rs	create_and_start_stream	block	boundary	`stream` was just created; `cb.queue` is a live serial queue.	keep	OS, FFI or allocator call
 crates/tsrs_fswatch/src/fsevents_darwin_ffi.rs	fold_native_path	block	boundary	`mut_` is a CFMutableString; NULL locale = canonical folding.	keep	OS, FFI or allocator call
-crates/tsrs_fswatch/src/fsevents_darwin_ffi.rs	fsEventsCallbackPayload::flag	block	boundary	FSEvents passes `num_events` flags; callers index below `num_events`.	keep	OS, FFI or allocator call
-crates/tsrs_fswatch/src/fsevents_darwin_ffi.rs	fsEventsCallbackPayload::id	block	boundary	as `flag`.	keep	OS, FFI or allocator call
-crates/tsrs_fswatch/src/fsevents_darwin_ffi.rs	fsEventsCallbackPayload::path_nfc	block	boundary	with kFSEventStreamCreateFlagUseCFTypes `paths` is a CFArray of `num_events` CFStrings, valid for	keep	OS, FFI or allocator call
+crates/tsrs_fswatch/src/fsevents_darwin_ffi.rs	FsEventsCallbackPayload::flag	block	boundary	FSEvents passes `num_events` flags; callers index below `num_events`.	keep	OS, FFI or allocator call
+crates/tsrs_fswatch/src/fsevents_darwin_ffi.rs	FsEventsCallbackPayload::id	block	boundary	as `flag`.	keep	OS, FFI or allocator call
+crates/tsrs_fswatch/src/fsevents_darwin_ffi.rs	FsEventsCallbackPayload::path_nfc	block	boundary	with kFSEventStreamCreateFlagUseCFTypes `paths` is a CFArray of `num_events` CFStrings, valid for	keep	OS, FFI or allocator call
 crates/tsrs_fswatch/src/fsevents_darwin_ffi.rs	fs_events_callback_c	block	boundary	`info` is the `streamCallback` passed to FSEventStreamCreate; it stays alive until	keep	OS, FFI or allocator call
 crates/tsrs_fswatch/src/fsevents_darwin_ffi.rs	fs_events_get_current_event_id	block	boundary	no arguments, no preconditions.	keep	OS, FFI or allocator call
-crates/tsrs_fswatch/src/fsevents_darwin_ffi.rs	impl Send for fsEventStream	impl	boundary	FSEventStream functions may be called from any thread once the stream is scheduled on a dispatch queue.	keep	OS, FFI or allocator call
-crates/tsrs_fswatch/src/fsevents_darwin_ffi.rs	impl Send for streamCallback	impl	boundary	the dispatch queue handle is a thread-safe libdispatch object; `watches` is immutable after creation.	keep	OS, FFI or allocator call
-crates/tsrs_fswatch/src/fsevents_darwin_ffi.rs	impl Sync for fsEventStream	impl	boundary	as for Send: the stream functions are thread-safe once it is scheduled on a dispatch queue.	keep	OS, FFI or allocator call
-crates/tsrs_fswatch/src/fsevents_darwin_ffi.rs	impl Sync for streamCallback	impl	boundary	as for Send: the queue handle is thread-safe and `watches` is never mutated after creation.	keep	OS, FFI or allocator call
+crates/tsrs_fswatch/src/fsevents_darwin_ffi.rs	impl Send for FsEventStream	impl	boundary	FSEventStream functions may be called from any thread once the stream is scheduled on a dispatch queue.	keep	OS, FFI or allocator call
+crates/tsrs_fswatch/src/fsevents_darwin_ffi.rs	impl Send for StreamCallback	impl	boundary	the dispatch queue handle is a thread-safe libdispatch object; `watches` is immutable after creation.	keep	OS, FFI or allocator call
+crates/tsrs_fswatch/src/fsevents_darwin_ffi.rs	impl Sync for FsEventStream	impl	boundary	as for Send: the stream functions are thread-safe once it is scheduled on a dispatch queue.	keep	OS, FFI or allocator call
+crates/tsrs_fswatch/src/fsevents_darwin_ffi.rs	impl Sync for StreamCallback	impl	boundary	as for Send: the queue handle is thread-safe and `watches` is never mutated after creation.	keep	OS, FFI or allocator call
 crates/tsrs_fswatch/src/fsevents_darwin_ffi.rs	new_stream_callback	block	boundary	NULL = DISPATCH_QUEUE_SERIAL; the returned attribute is a static libdispatch object (not released).	keep	OS, FFI or allocator call
 crates/tsrs_fswatch/src/fsevents_darwin_ffi.rs	new_stream_callback	block	boundary	`label` is NUL-terminated; `attr` is a serial queue attribute.	keep	OS, FFI or allocator call
-crates/tsrs_fswatch/src/fsevents_darwin_ffi.rs	streamCallback::close	block	boundary	the queue was created by `new_stream_callback` and is released exactly once.	keep	OS, FFI or allocator call
-crates/tsrs_fswatch/src/fsevents_darwin_ffi.rs	streamCallback::wait_dispatch_queue	block	boundary	`queue` is a live queue owned by this callback; the work function does nothing.	keep	OS, FFI or allocator call
+crates/tsrs_fswatch/src/fsevents_darwin_ffi.rs	StreamCallback::close	block	boundary	the queue was created by `new_stream_callback` and is released exactly once.	keep	OS, FFI or allocator call
+crates/tsrs_fswatch/src/fsevents_darwin_ffi.rs	StreamCallback::wait_dispatch_queue	block	boundary	`queue` is a live queue owned by this callback; the work function does nothing.	keep	OS, FFI or allocator call
 crates/tsrs_fswatch/src/fsevents_darwin_ffi.rs	teardown_stream	block	boundary	`stream` is a started stream that is torn down exactly once (the caller swapped it out).	keep	OS, FFI or allocator call
 crates/tsrs_fswatch/src/inotify_linux.rs	close_fd	block	boundary	closing an fd this backend opened.	keep	OS, FFI or allocator call
-crates/tsrs_fswatch/src/inotify_linux.rs	inotifyBackend::close_watch	block	boundary	removing a watch descriptor of our own inotify instance.	keep	OS, FFI or allocator call
-crates/tsrs_fswatch/src/inotify_linux.rs	inotifyBackend::handle_events	block	boundary	`buf` is a writable buffer of `buf.len()` bytes.	keep	OS, FFI or allocator call
-crates/tsrs_fswatch/src/inotify_linux.rs	inotifyBackend::handle_events	block	boundary	the kernel writes whole `inotify_event` records; `offset` is at a record start.	keep	OS, FFI or allocator call
-crates/tsrs_fswatch/src/inotify_linux.rs	inotifyBackend::handle_subscription	block	boundary	removing a watch descriptor of our own inotify instance.	keep	OS, FFI or allocator call
-crates/tsrs_fswatch/src/inotify_linux.rs	inotifyBackend::run_loop	block	boundary	`pipe_fds` has room for two fds.	keep	OS, FFI or allocator call
-crates/tsrs_fswatch/src/inotify_linux.rs	inotifyBackend::run_loop	block	boundary	`pollfds` holds two valid entries.	keep	OS, FFI or allocator call
-crates/tsrs_fswatch/src/inotify_linux.rs	inotifyBackend::run_loop	block	boundary	plain syscall.	keep	OS, FFI or allocator call
-crates/tsrs_fswatch/src/inotify_linux.rs	inotifyBackend::shutdown	block	boundary	writing one byte from a live buffer to our own pipe.	keep	OS, FFI or allocator call
-crates/tsrs_fswatch/src/inotify_linux.rs	inotifyBackend::watch_dir	block	boundary	`cpath` is NUL-terminated and outlives the call.	keep	OS, FFI or allocator call
+crates/tsrs_fswatch/src/inotify_linux.rs	InotifyBackend::close_watch	block	boundary	removing a watch descriptor of our own inotify instance.	keep	OS, FFI or allocator call
+crates/tsrs_fswatch/src/inotify_linux.rs	InotifyBackend::handle_events	block	boundary	`buf` is a writable buffer of `buf.len()` bytes.	keep	OS, FFI or allocator call
+crates/tsrs_fswatch/src/inotify_linux.rs	InotifyBackend::handle_events	block	boundary	the kernel writes whole `inotify_event` records; `offset` is at a record start.	keep	OS, FFI or allocator call
+crates/tsrs_fswatch/src/inotify_linux.rs	InotifyBackend::handle_subscription	block	boundary	removing a watch descriptor of our own inotify instance.	keep	OS, FFI or allocator call
+crates/tsrs_fswatch/src/inotify_linux.rs	InotifyBackend::run_loop	block	boundary	`pipe_fds` has room for two fds.	keep	OS, FFI or allocator call
+crates/tsrs_fswatch/src/inotify_linux.rs	InotifyBackend::run_loop	block	boundary	`pollfds` holds two valid entries.	keep	OS, FFI or allocator call
+crates/tsrs_fswatch/src/inotify_linux.rs	InotifyBackend::run_loop	block	boundary	plain syscall.	keep	OS, FFI or allocator call
+crates/tsrs_fswatch/src/inotify_linux.rs	InotifyBackend::shutdown	block	boundary	writing one byte from a live buffer to our own pipe.	keep	OS, FFI or allocator call
+crates/tsrs_fswatch/src/inotify_linux.rs	InotifyBackend::watch_dir	block	boundary	`cpath` is NUL-terminated and outlives the call.	keep	OS, FFI or allocator call
 crates/tsrs_fswatch/src/kqueue.rs	close_fd	block	boundary	closing an fd this backend opened and still tracks.	keep	OS, FFI or allocator call
 crates/tsrs_fswatch/src/kqueue.rs	fstat	block	boundary	`st` is a live, writable `stat` out-parameter for the call; `fd` is an fd this backend owns.	keep	OS, FFI or allocator call
 crates/tsrs_fswatch/src/kqueue.rs	fstat	block	boundary	zeroed `stat` is a valid out-parameter; `fd` is an fd this backend owns.	keep	OS, FFI or allocator call
 crates/tsrs_fswatch/src/kqueue.rs	kevent_register	block	boundary	one valid change, no event list.	keep	OS, FFI or allocator call
-crates/tsrs_fswatch/src/kqueue.rs	kqueueBackend::run_loop	block	boundary	`events` has room for `events.len()` results.	keep	OS, FFI or allocator call
-crates/tsrs_fswatch/src/kqueue.rs	kqueueBackend::run_loop	block	boundary	`pipe_fds` has room for two fds.	keep	OS, FFI or allocator call
-crates/tsrs_fswatch/src/kqueue.rs	kqueueBackend::run_loop	block	boundary	plain syscall.	keep	OS, FFI or allocator call
-crates/tsrs_fswatch/src/kqueue.rs	kqueueBackend::run_loop	block	boundary	zeroed kevent structs are valid.	keep	OS, FFI or allocator call
-crates/tsrs_fswatch/src/kqueue.rs	kqueueBackend::shutdown	block	boundary	writing one byte from a live buffer to our own pipe.	keep	OS, FFI or allocator call
+crates/tsrs_fswatch/src/kqueue.rs	KqueueBackend::run_loop	block	boundary	`events` has room for `events.len()` results.	keep	OS, FFI or allocator call
+crates/tsrs_fswatch/src/kqueue.rs	KqueueBackend::run_loop	block	boundary	`pipe_fds` has room for two fds.	keep	OS, FFI or allocator call
+crates/tsrs_fswatch/src/kqueue.rs	KqueueBackend::run_loop	block	boundary	plain syscall.	keep	OS, FFI or allocator call
+crates/tsrs_fswatch/src/kqueue.rs	KqueueBackend::run_loop	block	boundary	zeroed kevent structs are valid.	keep	OS, FFI or allocator call
+crates/tsrs_fswatch/src/kqueue.rs	KqueueBackend::shutdown	block	boundary	writing one byte from a live buffer to our own pipe.	keep	OS, FFI or allocator call
 crates/tsrs_fswatch/src/kqueue.rs	new_kevent	block	boundary	`kevent` is a plain C struct; all-zero is a valid value.	keep	OS, FFI or allocator call
 crates/tsrs_fswatch/src/kqueue.rs	open_for_events	block	boundary	`cpath` is NUL-terminated and outlives the call.	keep	OS, FFI or allocator call
 crates/tsrs_fswatch/src/kqueue.rs	raise_open_file_limit	block	boundary	`lim` is a live, writable rlimit out-parameter.	keep	OS, FFI or allocator call
@@ -494,14 +494,14 @@ crates/tsrs_lsproto/src/lsp.rs	intern	leak	ownership		safe-api-possible	owned by
 crates/tsrs_parser/src/parser_1.rs	missing_list_nodes	block	logic	a zero-length slice needs only a non-null pointer aligned for `P<Node>`; a `usize`	keep	dangling non-null pointer for an empty slice
 crates/tsrs_printer/src/emitcontext.rs	EmitContext::new_node_visitor	block	logic	an EmitContext is only created by `new_emit_context_in` (`new_emit_context` /	keep	self-referential writer borrow inside one call; scoped
 crates/tsrs_printer/src/printer_3.rs	Printer::source_map_generator	block	logic	`source_map_generator` is only set by `write`, from a `&mut SourceMapGenerator` that outlives the	keep	self-referential writer borrow inside one call; scoped
-crates/tsrs_printer/src/printer_3.rs	borrowedWriter::r	block	logic	see `w`.	keep	self-referential writer borrow inside one call; scoped
-crates/tsrs_printer/src/printer_3.rs	borrowedWriter::w	block	logic	`Printer::write` stores this adapter in `Printer::writer` only while it holds the `&mut` borrow the	keep	self-referential writer borrow inside one call; scoped
+crates/tsrs_printer/src/printer_3.rs	BorrowedWriter::r	block	logic	see `w`.	keep	self-referential writer borrow inside one call; scoped
+crates/tsrs_printer/src/printer_3.rs	BorrowedWriter::w	block	logic	`Printer::write` stores this adapter in `Printer::writer` only while it holds the `&mut` borrow the	keep	self-referential writer borrow inside one call; scoped
 crates/tsrs_project/src/background/queue.rs	worker_pool	leak	ownership		safe-api-possible	owned by ordinary Rust ownership in Boshen's #638
 crates/tsrs_project/src/background/timer.rs	timer_thread	leak	ownership		safe-api-possible	owned by ordinary Rust ownership in Boshen's #638
-crates/tsrs_project/src/checkerpool.rs	checkerPool::create_release	block	logic	checker `index` is marked held (`heldBy[index]`) until `release` runs, and held checkers are never	safe-api-possible	lifetime is a pool lease / held checker, enforced at run time, not by the type
-crates/tsrs_project/src/checkerpool.rs	checkerPool::get_persistent_checker	block	logic	the persistent checker is held (`persistentHeld`, one semaphore slot) until `release` runs; the	safe-api-possible	lifetime is a pool lease / held checker, enforced at run time, not by the type
-crates/tsrs_project/src/memregions.rs	programOwner::drop	block	ownership	the last project value referring to the program is being dropped: no snapshot, language service or	safe-api-possible	a program owner type with Drop (#646 milestone 1) replaces this manual free
-crates/tsrs_project/src/memregions.rs	programOwner::new	block	ownership	`base` is freed after the last program owner holding it freed its program.	safe-api-possible	a program owner type with Drop (#646 milestone 1) replaces this manual free
+crates/tsrs_project/src/checkerpool.rs	CheckerPoolImpl::create_release	block	logic	checker `index` is marked held (`heldBy[index]`) until `release` runs, and held checkers are never	safe-api-possible	lifetime is a pool lease / held checker, enforced at run time, not by the type
+crates/tsrs_project/src/checkerpool.rs	CheckerPoolImpl::get_persistent_checker	block	logic	the persistent checker is held (`persistentHeld`, one semaphore slot) until `release` runs; the	safe-api-possible	lifetime is a pool lease / held checker, enforced at run time, not by the type
+crates/tsrs_project/src/memregions.rs	ProgramOwner::drop	block	ownership	the last project value referring to the program is being dropped: no snapshot, language service or	safe-api-possible	a program owner type with Drop (#646 milestone 1) replaces this manual free
+crates/tsrs_project/src/memregions.rs	ProgramOwner::new	block	ownership	`base` is freed after the last program owner holding it freed its program.	safe-api-possible	a program owner type with Drop (#646 milestone 1) replaces this manual free
 crates/tsrs_testrunner/src/compile.rs	create_program_like	leak	ownership		keep	test runner, bench or wasm one-shot; process lifetime
 crates/tsrs_testrunner/src/compile.rs	create_program_like	leak	ownership	#2	keep	test runner, bench or wasm one-shot; process lifetime
 crates/tsrs_testrunner/src/options.rs	new_option	leak	ownership		keep	test runner, bench or wasm one-shot; process lifetime

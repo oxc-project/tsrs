@@ -13,11 +13,11 @@ use super::aliasresolver::new_alias_resolver;
 use super::registry::{ProjectID, RegistryCloneHost};
 
 // aliasresolver_crash_test.go:20
-struct fakeCloneHost {
+struct FakeCloneHost {
     fs: Box<dyn FS>,
 }
 
-impl ResolutionHost for fakeCloneHost {
+impl ResolutionHost for FakeCloneHost {
     fn fs(&self) -> &dyn FS {
         &*self.fs
     }
@@ -26,7 +26,7 @@ impl ResolutionHost for fakeCloneHost {
     }
 }
 
-impl RegistryCloneHost for fakeCloneHost {
+impl RegistryCloneHost for FakeCloneHost {
     fn get_default_project(&self, _path: &Path) -> (Option<ProjectID>, Option<&'static Program>) {
         (None, None)
     }
@@ -56,7 +56,7 @@ fn test_alias_resolver_get_diagnostics_does_not_panic() {
         "declare function f(arg: { a: string }): () => void;\nexport const x = f({ a: 1 });\n";
 
     let fs = vfstest::from_map([(file_name, text)], true /*useCaseSensitiveFileNames*/);
-    let host: &'static fakeCloneHost = Box::leak(Box::new(fakeCloneHost { fs: Box::new(fs) }));
+    let host: &'static FakeCloneHost = Box::leak(Box::new(FakeCloneHost { fs: Box::new(fs) }));
 
     let source_file = tsrs_parser::parse_source_file(
         SourceFileParseOptions {

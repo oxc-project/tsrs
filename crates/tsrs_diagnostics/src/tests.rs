@@ -16,27 +16,27 @@ fn message_count_matches_go() {
 
 #[test]
 fn spot_checks() {
-    let m = &diagnostics::Type_0_is_not_assignable_to_type_1;
+    let m = &diagnostics::TYPE_0_IS_NOT_ASSIGNABLE_TO_TYPE_1;
     assert_eq!(m.code(), 2322);
     assert_eq!(m.category(), Category::Error);
     assert_eq!(m.key(), Key("Type_0_is_not_assignable_to_type_1_2322"));
     assert_eq!(m.text(), "Type '{0}' is not assignable to type '{1}'.");
 
-    assert_eq!(diagnostics::X_0_expected.code(), 1005);
-    assert_eq!(diagnostics::X_0_expected.key().as_str(), "_0_expected_1005");
+    assert_eq!(diagnostics::X_0_EXPECTED.code(), 1005);
+    assert_eq!(diagnostics::X_0_EXPECTED.key().as_str(), "_0_expected_1005");
 
     assert!(
-        diagnostics::Call_signature_return_types_0_and_1_are_incompatible
+        diagnostics::CALL_SIGNATURE_RETURN_TYPES_0_AND_1_ARE_INCOMPATIBLE
             .elided_in_compatibility_pyramid()
     );
-    assert!(!diagnostics::Type_0_is_not_assignable_to_type_1.reports_unnecessary());
+    assert!(!diagnostics::TYPE_0_IS_NOT_ASSIGNABLE_TO_TYPE_1.reports_unnecessary());
     assert_eq!(
-        diagnostics::X_k_must_be_followed_by_a_capturing_group_name_enclosed_in_angle_brackets
+        diagnostics::X_K_MUST_BE_FOLLOWED_BY_A_CAPTURING_GROUP_NAME_ENCLOSED_IN_ANGLE_BRACKETS
             .text(),
         "'\\k' must be followed by a capturing group name enclosed in angle brackets."
     );
     assert_eq!(
-        diagnostics::Module_declaration_names_may_only_use_or_quoted_strings.text(),
+        diagnostics::MODULE_DECLARATION_NAMES_MAY_ONLY_USE_OR_QUOTED_STRINGS.text(),
         "Module declaration names may only use ' or \" quoted strings."
     );
 
@@ -60,7 +60,7 @@ fn category_names() {
 #[test]
 fn key_lookup() {
     let m = key_to_message("Identifier_expected_1003").unwrap();
-    assert!(std::ptr::eq(m, &raw const diagnostics::Identifier_expected));
+    assert!(std::ptr::eq(m, &raw const diagnostics::IDENTIFIER_EXPECTED));
     assert!(key_to_message("Removed_diagnostic_99999").is_none());
     assert_eq!(localize(None, Key("_0_expected_1005"), &[")".to_string()]), "')' expected.");
     assert_eq!(localize(None, Key("Identifier_expected_1003"), &[]), "Identifier expected.");
@@ -68,15 +68,15 @@ fn key_lookup() {
 
 #[test]
 fn formatting() {
-    assert_eq!(diagnostics::Identifier_expected.format(&[]), "Identifier expected.");
-    assert_eq!(diagnostics::X_0_expected.format(&[&")"]), "')' expected.");
+    assert_eq!(diagnostics::IDENTIFIER_EXPECTED.format(&[]), "Identifier expected.");
+    assert_eq!(diagnostics::X_0_EXPECTED.format(&[&")"]), "')' expected.");
     assert_eq!(
-        diagnostics::The_parser_expected_to_find_a_1_to_match_the_0_token_here
+        diagnostics::THE_PARSER_EXPECTED_TO_FIND_A_1_TO_MATCH_THE_0_TOKEN_HERE
             .format(&[&"{", &"}"]),
         "The parser expected to find a '}' to match the '{' token here."
     );
     assert_eq!(
-        diagnostics::Type_0_is_not_assignable_to_type_1.localize(&[&"string", &42]),
+        diagnostics::TYPE_0_IS_NOT_ASSIGNABLE_TO_TYPE_1.localize(&[&"string", &42]),
         "Type 'string' is not assignable to type '42'."
     );
     // Substituted text is not re-scanned; repeated and out-of-order placeholders work.

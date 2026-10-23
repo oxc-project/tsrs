@@ -5,32 +5,32 @@ use bitflags::bitflags;
 bitflags! {
     #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Debug, Default)]
     pub struct TokenFlags: u32 {
-        const None = 0;
-        const PrecedingLineBreak = 1 << 0;
-        const PrecedingJSDocComment = 1 << 1;
-        const Unterminated = 1 << 2;
-        const ExtendedUnicodeEscape = 1 << 3; // e.g. `\u{10ffff}`
-        const Scientific = 1 << 4; // e.g. `10e2`
-        const Octal = 1 << 5; // e.g. `0777`
-        const HexSpecifier = 1 << 6; // e.g. `0x00000000`
-        const BinarySpecifier = 1 << 7; // e.g. `0b0110010000000000`
-        const OctalSpecifier = 1 << 8; // e.g. `0o777`
-        const ContainsSeparator = 1 << 9; // e.g. `0b1100_0101`
-        const UnicodeEscape = 1 << 10; // e.g. `\u00a0`
-        const ContainsInvalidEscape = 1 << 11; // e.g. `\uhello`
-        const HexEscape = 1 << 12; // e.g. `\xa0`
-        const ContainsLeadingZero = 1 << 13; // e.g. `0888`
-        const ContainsInvalidSeparator = 1 << 14; // e.g. `0_1`
-        const PrecedingJSDocLeadingAsterisks = 1 << 15;
-        const SingleQuote = 1 << 16; // e.g. `'abc'`
-        const PrecedingJSDocWithDeprecated = 1 << 17; // Preceding JSDoc comment contains @deprecated
-        const PrecedingJSDocWithSeeOrLink = 1 << 18; // Preceding JSDoc comment contains @see or @link
-        const BinaryOrOctalSpecifier = Self::BinarySpecifier.bits() | Self::OctalSpecifier.bits();
-        const WithSpecifier = Self::HexSpecifier.bits() | Self::BinaryOrOctalSpecifier.bits();
-        const StringLiteralFlags = Self::Unterminated.bits() | Self::HexEscape.bits() | Self::UnicodeEscape.bits() | Self::ExtendedUnicodeEscape.bits() | Self::ContainsInvalidEscape.bits() | Self::SingleQuote.bits();
-        const NumericLiteralFlags = Self::Scientific.bits() | Self::Octal.bits() | Self::ContainsLeadingZero.bits() | Self::WithSpecifier.bits() | Self::ContainsSeparator.bits() | Self::ContainsInvalidSeparator.bits();
-        const TemplateLiteralLikeFlags = Self::Unterminated.bits() | Self::HexEscape.bits() | Self::UnicodeEscape.bits() | Self::ExtendedUnicodeEscape.bits() | Self::ContainsInvalidEscape.bits();
-        const RegularExpressionLiteralFlags = Self::Unterminated.bits();
-        const IsInvalid = Self::Octal.bits() | Self::ContainsLeadingZero.bits() | Self::ContainsInvalidSeparator.bits() | Self::ContainsInvalidEscape.bits();
+        const NONE = 0;
+        const PRECEDING_LINE_BREAK = 1 << 0;
+        const PRECEDING_JSDOC_COMMENT = 1 << 1;
+        const UNTERMINATED = 1 << 2;
+        const EXTENDED_UNICODE_ESCAPE = 1 << 3; // e.g. `\u{10ffff}`
+        const SCIENTIFIC = 1 << 4; // e.g. `10e2`
+        const OCTAL = 1 << 5; // e.g. `0777`
+        const HEX_SPECIFIER = 1 << 6; // e.g. `0x00000000`
+        const BINARY_SPECIFIER = 1 << 7; // e.g. `0b0110010000000000`
+        const OCTAL_SPECIFIER = 1 << 8; // e.g. `0o777`
+        const CONTAINS_SEPARATOR = 1 << 9; // e.g. `0b1100_0101`
+        const UNICODE_ESCAPE = 1 << 10; // e.g. `\u00a0`
+        const CONTAINS_INVALID_ESCAPE = 1 << 11; // e.g. `\uhello`
+        const HEX_ESCAPE = 1 << 12; // e.g. `\xa0`
+        const CONTAINS_LEADING_ZERO = 1 << 13; // e.g. `0888`
+        const CONTAINS_INVALID_SEPARATOR = 1 << 14; // e.g. `0_1`
+        const PRECEDING_JSDOC_LEADING_ASTERISKS = 1 << 15;
+        const SINGLE_QUOTE = 1 << 16; // e.g. `'abc'`
+        const PRECEDING_JSDOC_WITH_DEPRECATED = 1 << 17; // Preceding JSDoc comment contains @deprecated
+        const PRECEDING_JSDOC_WITH_SEE_OR_LINK = 1 << 18; // Preceding JSDoc comment contains @see or @link
+        const BINARY_OR_OCTAL_SPECIFIER = Self::BINARY_SPECIFIER.bits() | Self::OCTAL_SPECIFIER.bits();
+        const WITH_SPECIFIER = Self::HEX_SPECIFIER.bits() | Self::BINARY_OR_OCTAL_SPECIFIER.bits();
+        const STRING_LITERAL_FLAGS = Self::UNTERMINATED.bits() | Self::HEX_ESCAPE.bits() | Self::UNICODE_ESCAPE.bits() | Self::EXTENDED_UNICODE_ESCAPE.bits() | Self::CONTAINS_INVALID_ESCAPE.bits() | Self::SINGLE_QUOTE.bits();
+        const NUMERIC_LITERAL_FLAGS = Self::SCIENTIFIC.bits() | Self::OCTAL.bits() | Self::CONTAINS_LEADING_ZERO.bits() | Self::WITH_SPECIFIER.bits() | Self::CONTAINS_SEPARATOR.bits() | Self::CONTAINS_INVALID_SEPARATOR.bits();
+        const TEMPLATE_LITERAL_LIKE_FLAGS = Self::UNTERMINATED.bits() | Self::HEX_ESCAPE.bits() | Self::UNICODE_ESCAPE.bits() | Self::EXTENDED_UNICODE_ESCAPE.bits() | Self::CONTAINS_INVALID_ESCAPE.bits();
+        const REGULAR_EXPRESSION_LITERAL_FLAGS = Self::UNTERMINATED.bits();
+        const IS_INVALID = Self::OCTAL.bits() | Self::CONTAINS_LEADING_ZERO.bits() | Self::CONTAINS_INVALID_SEPARATOR.bits() | Self::CONTAINS_INVALID_ESCAPE.bits();
     }
 }

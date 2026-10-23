@@ -11498,179 +11498,179 @@ impl Json for Registration {
         if let Some(raw_register_options) = raw_register_options {
             let mut register_options = RegisterOptions::default();
             match Method::from_str(&method) {
-                Method::TextDocumentImplementation => {
+                Method::TEXT_DOCUMENT_IMPLEMENTATION => {
                     register_options.text_document_implementation =
                         arm_buffered(raw_register_options)?;
                 }
-                Method::TextDocumentTypeDefinition => {
+                Method::TEXT_DOCUMENT_TYPE_DEFINITION => {
                     register_options.text_document_type_definition =
                         arm_buffered(raw_register_options)?;
                 }
-                Method::TextDocumentDocumentColor => {
+                Method::TEXT_DOCUMENT_DOCUMENT_COLOR => {
                     register_options.text_document_document_color =
                         arm_buffered(raw_register_options)?;
                 }
-                Method::TextDocumentColorPresentation => {
+                Method::TEXT_DOCUMENT_COLOR_PRESENTATION => {
                     register_options.text_document_color_presentation =
                         arm_buffered(raw_register_options)?;
                 }
-                Method::TextDocumentFoldingRange => {
+                Method::TEXT_DOCUMENT_FOLDING_RANGE => {
                     register_options.text_document_folding_range =
                         arm_buffered(raw_register_options)?;
                 }
-                Method::TextDocumentDeclaration => {
+                Method::TEXT_DOCUMENT_DECLARATION => {
                     register_options.text_document_declaration =
                         arm_buffered(raw_register_options)?;
                 }
-                Method::TextDocumentSelectionRange => {
+                Method::TEXT_DOCUMENT_SELECTION_RANGE => {
                     register_options.text_document_selection_range =
                         arm_buffered(raw_register_options)?;
                 }
-                Method::TextDocumentPrepareCallHierarchy => {
+                Method::TEXT_DOCUMENT_PREPARE_CALL_HIERARCHY => {
                     register_options.text_document_prepare_call_hierarchy =
                         arm_buffered(raw_register_options)?;
                 }
-                Method::TextDocumentSemanticTokens => {
+                Method::TEXT_DOCUMENT_SEMANTIC_TOKENS => {
                     register_options.text_document_semantic_tokens =
                         arm_buffered(raw_register_options)?;
                 }
-                Method::TextDocumentLinkedEditingRange => {
+                Method::TEXT_DOCUMENT_LINKED_EDITING_RANGE => {
                     register_options.text_document_linked_editing_range =
                         arm_buffered(raw_register_options)?;
                 }
-                Method::WorkspaceWillCreateFiles => {
+                Method::WORKSPACE_WILL_CREATE_FILES => {
                     register_options.workspace_will_create_files =
                         arm_buffered(raw_register_options)?;
                 }
-                Method::WorkspaceWillRenameFiles => {
+                Method::WORKSPACE_WILL_RENAME_FILES => {
                     register_options.workspace_will_rename_files =
                         arm_buffered(raw_register_options)?;
                 }
-                Method::WorkspaceWillDeleteFiles => {
+                Method::WORKSPACE_WILL_DELETE_FILES => {
                     register_options.workspace_will_delete_files =
                         arm_buffered(raw_register_options)?;
                 }
-                Method::TextDocumentMoniker => {
+                Method::TEXT_DOCUMENT_MONIKER => {
                     register_options.text_document_moniker = arm_buffered(raw_register_options)?;
                 }
-                Method::TextDocumentPrepareTypeHierarchy => {
+                Method::TEXT_DOCUMENT_PREPARE_TYPE_HIERARCHY => {
                     register_options.text_document_prepare_type_hierarchy =
                         arm_buffered(raw_register_options)?;
                 }
-                Method::TextDocumentInlineValue => {
+                Method::TEXT_DOCUMENT_INLINE_VALUE => {
                     register_options.text_document_inline_value =
                         arm_buffered(raw_register_options)?;
                 }
-                Method::TextDocumentInlayHint => {
+                Method::TEXT_DOCUMENT_INLAY_HINT => {
                     register_options.text_document_inlay_hint = arm_buffered(raw_register_options)?;
                 }
-                Method::TextDocumentDiagnostic => {
+                Method::TEXT_DOCUMENT_DIAGNOSTIC => {
                     register_options.text_document_diagnostic = arm_buffered(raw_register_options)?;
                 }
-                Method::TextDocumentInlineCompletion => {
+                Method::TEXT_DOCUMENT_INLINE_COMPLETION => {
                     register_options.text_document_inline_completion =
                         arm_buffered(raw_register_options)?;
                 }
-                Method::WorkspaceTextDocumentContent => {
+                Method::WORKSPACE_TEXT_DOCUMENT_CONTENT => {
                     register_options.workspace_text_document_content =
                         arm_buffered(raw_register_options)?;
                 }
-                Method::TextDocumentWillSaveWaitUntil => {
+                Method::TEXT_DOCUMENT_WILL_SAVE_WAIT_UNTIL => {
                     register_options.text_document_will_save_wait_until =
                         arm_buffered(raw_register_options)?;
                 }
-                Method::TextDocumentCompletion => {
+                Method::TEXT_DOCUMENT_COMPLETION => {
                     register_options.text_document_completion = arm_buffered(raw_register_options)?;
                 }
-                Method::TextDocumentHover => {
+                Method::TEXT_DOCUMENT_HOVER => {
                     register_options.text_document_hover = arm_buffered(raw_register_options)?;
                 }
-                Method::TextDocumentSignatureHelp => {
+                Method::TEXT_DOCUMENT_SIGNATURE_HELP => {
                     register_options.text_document_signature_help =
                         arm_buffered(raw_register_options)?;
                 }
-                Method::TextDocumentDefinition => {
+                Method::TEXT_DOCUMENT_DEFINITION => {
                     register_options.text_document_definition = arm_buffered(raw_register_options)?;
                 }
-                Method::TextDocumentReferences => {
+                Method::TEXT_DOCUMENT_REFERENCES => {
                     register_options.text_document_references = arm_buffered(raw_register_options)?;
                 }
-                Method::TextDocumentDocumentHighlight => {
+                Method::TEXT_DOCUMENT_DOCUMENT_HIGHLIGHT => {
                     register_options.text_document_document_highlight =
                         arm_buffered(raw_register_options)?;
                 }
-                Method::TextDocumentDocumentSymbol => {
+                Method::TEXT_DOCUMENT_DOCUMENT_SYMBOL => {
                     register_options.text_document_document_symbol =
                         arm_buffered(raw_register_options)?;
                 }
-                Method::TextDocumentCodeAction => {
+                Method::TEXT_DOCUMENT_CODE_ACTION => {
                     register_options.text_document_code_action =
                         arm_buffered(raw_register_options)?;
                 }
-                Method::WorkspaceSymbol => {
+                Method::WORKSPACE_SYMBOL => {
                     register_options.workspace_symbol = arm_buffered(raw_register_options)?;
                 }
-                Method::TextDocumentCodeLens => {
+                Method::TEXT_DOCUMENT_CODE_LENS => {
                     register_options.text_document_code_lens = arm_buffered(raw_register_options)?;
                 }
-                Method::TextDocumentDocumentLink => {
+                Method::TEXT_DOCUMENT_DOCUMENT_LINK => {
                     register_options.text_document_document_link =
                         arm_buffered(raw_register_options)?;
                 }
-                Method::TextDocumentFormatting => {
+                Method::TEXT_DOCUMENT_FORMATTING => {
                     register_options.text_document_formatting = arm_buffered(raw_register_options)?;
                 }
-                Method::TextDocumentRangeFormatting => {
+                Method::TEXT_DOCUMENT_RANGE_FORMATTING => {
                     register_options.text_document_range_formatting =
                         arm_buffered(raw_register_options)?;
                 }
-                Method::TextDocumentRangesFormatting => {
+                Method::TEXT_DOCUMENT_RANGES_FORMATTING => {
                     register_options.text_document_ranges_formatting =
                         arm_buffered(raw_register_options)?;
                 }
-                Method::TextDocumentOnTypeFormatting => {
+                Method::TEXT_DOCUMENT_ON_TYPE_FORMATTING => {
                     register_options.text_document_on_type_formatting =
                         arm_buffered(raw_register_options)?;
                 }
-                Method::TextDocumentRename => {
+                Method::TEXT_DOCUMENT_RENAME => {
                     register_options.text_document_rename = arm_buffered(raw_register_options)?;
                 }
-                Method::WorkspaceExecuteCommand => {
+                Method::WORKSPACE_EXECUTE_COMMAND => {
                     register_options.workspace_execute_command =
                         arm_buffered(raw_register_options)?;
                 }
-                Method::WorkspaceDidCreateFiles => {
+                Method::WORKSPACE_DID_CREATE_FILES => {
                     register_options.workspace_did_create_files =
                         arm_buffered(raw_register_options)?;
                 }
-                Method::WorkspaceDidRenameFiles => {
+                Method::WORKSPACE_DID_RENAME_FILES => {
                     register_options.workspace_did_rename_files =
                         arm_buffered(raw_register_options)?;
                 }
-                Method::WorkspaceDidDeleteFiles => {
+                Method::WORKSPACE_DID_DELETE_FILES => {
                     register_options.workspace_did_delete_files =
                         arm_buffered(raw_register_options)?;
                 }
-                Method::WorkspaceDidChangeConfiguration => {
+                Method::WORKSPACE_DID_CHANGE_CONFIGURATION => {
                     register_options.workspace_did_change_configuration =
                         arm_buffered(raw_register_options)?;
                 }
-                Method::TextDocumentDidOpen => {
+                Method::TEXT_DOCUMENT_DID_OPEN => {
                     register_options.text_document_did_open = arm_buffered(raw_register_options)?;
                 }
-                Method::TextDocumentDidChange => {
+                Method::TEXT_DOCUMENT_DID_CHANGE => {
                     register_options.text_document_did_change = arm_buffered(raw_register_options)?;
                 }
-                Method::TextDocumentDidClose => {
+                Method::TEXT_DOCUMENT_DID_CLOSE => {
                     register_options.text_document_did_close = arm_buffered(raw_register_options)?;
                 }
-                Method::TextDocumentDidSave => {
+                Method::TEXT_DOCUMENT_DID_SAVE => {
                     register_options.text_document_did_save = arm_buffered(raw_register_options)?;
                 }
-                Method::TextDocumentWillSave => {
+                Method::TEXT_DOCUMENT_WILL_SAVE => {
                     register_options.text_document_will_save = arm_buffered(raw_register_options)?;
                 }
-                Method::WorkspaceDidChangeWatchedFiles => {
+                Method::WORKSPACE_DID_CHANGE_WATCHED_FILES => {
                     register_options.workspace_did_change_watched_files =
                         arm_buffered(raw_register_options)?;
                 }
@@ -22089,34 +22089,34 @@ impl Json for CompletionItemDefaultsData {
 pub struct SemanticTokenType(pub &'static str);
 
 impl SemanticTokenType {
-    pub const Namespace: SemanticTokenType = SemanticTokenType("namespace");
+    pub const NAMESPACE: SemanticTokenType = SemanticTokenType("namespace");
     // Represents a generic type. Acts as a fallback for types which can't be mapped to
     // a specific type like class or enum.
-    pub const Type: SemanticTokenType = SemanticTokenType("type");
-    pub const Class: SemanticTokenType = SemanticTokenType("class");
-    pub const Enum: SemanticTokenType = SemanticTokenType("enum");
-    pub const Interface: SemanticTokenType = SemanticTokenType("interface");
-    pub const Struct: SemanticTokenType = SemanticTokenType("struct");
-    pub const TypeParameter: SemanticTokenType = SemanticTokenType("typeParameter");
-    pub const Parameter: SemanticTokenType = SemanticTokenType("parameter");
-    pub const Variable: SemanticTokenType = SemanticTokenType("variable");
-    pub const Property: SemanticTokenType = SemanticTokenType("property");
-    pub const EnumMember: SemanticTokenType = SemanticTokenType("enumMember");
-    pub const Event: SemanticTokenType = SemanticTokenType("event");
-    pub const Function: SemanticTokenType = SemanticTokenType("function");
-    pub const Method: SemanticTokenType = SemanticTokenType("method");
-    pub const Macro: SemanticTokenType = SemanticTokenType("macro");
-    pub const Keyword: SemanticTokenType = SemanticTokenType("keyword");
-    pub const Modifier: SemanticTokenType = SemanticTokenType("modifier");
-    pub const Comment: SemanticTokenType = SemanticTokenType("comment");
-    pub const String: SemanticTokenType = SemanticTokenType("string");
-    pub const Number: SemanticTokenType = SemanticTokenType("number");
-    pub const Regexp: SemanticTokenType = SemanticTokenType("regexp");
-    pub const Operator: SemanticTokenType = SemanticTokenType("operator");
+    pub const TYPE: SemanticTokenType = SemanticTokenType("type");
+    pub const CLASS: SemanticTokenType = SemanticTokenType("class");
+    pub const ENUM: SemanticTokenType = SemanticTokenType("enum");
+    pub const INTERFACE: SemanticTokenType = SemanticTokenType("interface");
+    pub const STRUCT: SemanticTokenType = SemanticTokenType("struct");
+    pub const TYPE_PARAMETER: SemanticTokenType = SemanticTokenType("typeParameter");
+    pub const PARAMETER: SemanticTokenType = SemanticTokenType("parameter");
+    pub const VARIABLE: SemanticTokenType = SemanticTokenType("variable");
+    pub const PROPERTY: SemanticTokenType = SemanticTokenType("property");
+    pub const ENUM_MEMBER: SemanticTokenType = SemanticTokenType("enumMember");
+    pub const EVENT: SemanticTokenType = SemanticTokenType("event");
+    pub const FUNCTION: SemanticTokenType = SemanticTokenType("function");
+    pub const METHOD: SemanticTokenType = SemanticTokenType("method");
+    pub const MACRO: SemanticTokenType = SemanticTokenType("macro");
+    pub const KEYWORD: SemanticTokenType = SemanticTokenType("keyword");
+    pub const MODIFIER: SemanticTokenType = SemanticTokenType("modifier");
+    pub const COMMENT: SemanticTokenType = SemanticTokenType("comment");
+    pub const STRING: SemanticTokenType = SemanticTokenType("string");
+    pub const NUMBER: SemanticTokenType = SemanticTokenType("number");
+    pub const REGEXP: SemanticTokenType = SemanticTokenType("regexp");
+    pub const OPERATOR: SemanticTokenType = SemanticTokenType("operator");
     // Since: 3.17.0
-    pub const Decorator: SemanticTokenType = SemanticTokenType("decorator");
+    pub const DECORATOR: SemanticTokenType = SemanticTokenType("decorator");
     // Since: 3.18.0
-    pub const Label: SemanticTokenType = SemanticTokenType("label");
+    pub const LABEL: SemanticTokenType = SemanticTokenType("label");
 }
 
 impl Json for SemanticTokenType {
@@ -22146,16 +22146,16 @@ impl IsZero for SemanticTokenType {
 pub struct SemanticTokenModifier(pub &'static str);
 
 impl SemanticTokenModifier {
-    pub const Declaration: SemanticTokenModifier = SemanticTokenModifier("declaration");
-    pub const Definition: SemanticTokenModifier = SemanticTokenModifier("definition");
-    pub const Readonly: SemanticTokenModifier = SemanticTokenModifier("readonly");
-    pub const Static: SemanticTokenModifier = SemanticTokenModifier("static");
-    pub const Deprecated: SemanticTokenModifier = SemanticTokenModifier("deprecated");
-    pub const Abstract: SemanticTokenModifier = SemanticTokenModifier("abstract");
-    pub const Async: SemanticTokenModifier = SemanticTokenModifier("async");
-    pub const Modification: SemanticTokenModifier = SemanticTokenModifier("modification");
-    pub const Documentation: SemanticTokenModifier = SemanticTokenModifier("documentation");
-    pub const DefaultLibrary: SemanticTokenModifier = SemanticTokenModifier("defaultLibrary");
+    pub const DECLARATION: SemanticTokenModifier = SemanticTokenModifier("declaration");
+    pub const DEFINITION: SemanticTokenModifier = SemanticTokenModifier("definition");
+    pub const READONLY: SemanticTokenModifier = SemanticTokenModifier("readonly");
+    pub const STATIC: SemanticTokenModifier = SemanticTokenModifier("static");
+    pub const DEPRECATED: SemanticTokenModifier = SemanticTokenModifier("deprecated");
+    pub const ABSTRACT: SemanticTokenModifier = SemanticTokenModifier("abstract");
+    pub const ASYNC: SemanticTokenModifier = SemanticTokenModifier("async");
+    pub const MODIFICATION: SemanticTokenModifier = SemanticTokenModifier("modification");
+    pub const DOCUMENTATION: SemanticTokenModifier = SemanticTokenModifier("documentation");
+    pub const DEFAULT_LIBRARY: SemanticTokenModifier = SemanticTokenModifier("defaultLibrary");
 }
 
 impl Json for SemanticTokenModifier {
@@ -22185,10 +22185,10 @@ pub struct DocumentDiagnosticReportKind(pub &'static str);
 impl DocumentDiagnosticReportKind {
     // A diagnostic report with a full
     // set of problems.
-    pub const Full: DocumentDiagnosticReportKind = DocumentDiagnosticReportKind("full");
+    pub const FULL: DocumentDiagnosticReportKind = DocumentDiagnosticReportKind("full");
     // A report indicating that the last
     // returned report is still accurate.
-    pub const Unchanged: DocumentDiagnosticReportKind = DocumentDiagnosticReportKind("unchanged");
+    pub const UNCHANGED: DocumentDiagnosticReportKind = DocumentDiagnosticReportKind("unchanged");
 }
 
 impl Json for DocumentDiagnosticReportKind {
@@ -22215,28 +22215,28 @@ impl IsZero for DocumentDiagnosticReportKind {
 pub struct ErrorCode(pub i32);
 
 impl ErrorCode {
-    pub const ParseError: ErrorCode = ErrorCode(-32700);
-    pub const InvalidRequest: ErrorCode = ErrorCode(-32600);
-    pub const MethodNotFound: ErrorCode = ErrorCode(-32601);
-    pub const InvalidParams: ErrorCode = ErrorCode(-32602);
-    pub const InternalError: ErrorCode = ErrorCode(-32603);
+    pub const PARSE_ERROR: ErrorCode = ErrorCode(-32700);
+    pub const INVALID_REQUEST: ErrorCode = ErrorCode(-32600);
+    pub const METHOD_NOT_FOUND: ErrorCode = ErrorCode(-32601);
+    pub const INVALID_PARAMS: ErrorCode = ErrorCode(-32602);
+    pub const INTERNAL_ERROR: ErrorCode = ErrorCode(-32603);
     // Error code indicating that a server received a notification or
     // request before the server has received the `initialize` request.
-    pub const ServerNotInitialized: ErrorCode = ErrorCode(-32002);
-    pub const UnknownErrorCode: ErrorCode = ErrorCode(-32001);
+    pub const SERVER_NOT_INITIALIZED: ErrorCode = ErrorCode(-32002);
+    pub const UNKNOWN_ERROR_CODE: ErrorCode = ErrorCode(-32001);
     // A request failed but it was syntactically correct, e.g the
     // method name was known and the parameters were valid. The error
     // message should contain human readable information about why
     // the request failed.
     //
     // Since: 3.17.0
-    pub const RequestFailed: ErrorCode = ErrorCode(-32803);
+    pub const REQUEST_FAILED: ErrorCode = ErrorCode(-32803);
     // The server cancelled the request. This error code should
     // only be used for requests that explicitly support being
     // server cancellable.
     //
     // Since: 3.17.0
-    pub const ServerCancelled: ErrorCode = ErrorCode(-32802);
+    pub const SERVER_CANCELLED: ErrorCode = ErrorCode(-32802);
     // The server detected that the content of a document got
     // modified outside normal conditions. A server should
     // NOT send this error code if it detects a content change
@@ -22245,10 +22245,10 @@ impl ErrorCode {
     //
     // If a client decides that a result is not of any use anymore
     // the client should cancel the request.
-    pub const ContentModified: ErrorCode = ErrorCode(-32801);
+    pub const CONTENT_MODIFIED: ErrorCode = ErrorCode(-32801);
     // The client has canceled a request and a server has detected
     // the cancel.
-    pub const RequestCancelled: ErrorCode = ErrorCode(-32800);
+    pub const REQUEST_CANCELLED: ErrorCode = ErrorCode(-32800);
 }
 
 impl ErrorCode {
@@ -22302,11 +22302,11 @@ pub struct FoldingRangeKind(pub &'static str);
 
 impl FoldingRangeKind {
     // Folding range for a comment
-    pub const Comment: FoldingRangeKind = FoldingRangeKind("comment");
+    pub const COMMENT: FoldingRangeKind = FoldingRangeKind("comment");
     // Folding range for an import or include
-    pub const Imports: FoldingRangeKind = FoldingRangeKind("imports");
+    pub const IMPORTS: FoldingRangeKind = FoldingRangeKind("imports");
     // Folding range for a region (e.g. `#region`)
-    pub const Region: FoldingRangeKind = FoldingRangeKind("region");
+    pub const REGION: FoldingRangeKind = FoldingRangeKind("region");
 }
 
 impl Json for FoldingRangeKind {
@@ -22332,32 +22332,32 @@ impl IsZero for FoldingRangeKind {
 pub struct SymbolKind(pub u32);
 
 impl SymbolKind {
-    pub const File: SymbolKind = SymbolKind(1);
-    pub const Module: SymbolKind = SymbolKind(2);
-    pub const Namespace: SymbolKind = SymbolKind(3);
-    pub const Package: SymbolKind = SymbolKind(4);
-    pub const Class: SymbolKind = SymbolKind(5);
-    pub const Method: SymbolKind = SymbolKind(6);
-    pub const Property: SymbolKind = SymbolKind(7);
-    pub const Field: SymbolKind = SymbolKind(8);
-    pub const Constructor: SymbolKind = SymbolKind(9);
-    pub const Enum: SymbolKind = SymbolKind(10);
-    pub const Interface: SymbolKind = SymbolKind(11);
-    pub const Function: SymbolKind = SymbolKind(12);
-    pub const Variable: SymbolKind = SymbolKind(13);
-    pub const Constant: SymbolKind = SymbolKind(14);
-    pub const String: SymbolKind = SymbolKind(15);
-    pub const Number: SymbolKind = SymbolKind(16);
-    pub const Boolean: SymbolKind = SymbolKind(17);
-    pub const Array: SymbolKind = SymbolKind(18);
-    pub const Object: SymbolKind = SymbolKind(19);
-    pub const Key: SymbolKind = SymbolKind(20);
-    pub const Null: SymbolKind = SymbolKind(21);
-    pub const EnumMember: SymbolKind = SymbolKind(22);
-    pub const Struct: SymbolKind = SymbolKind(23);
-    pub const Event: SymbolKind = SymbolKind(24);
-    pub const Operator: SymbolKind = SymbolKind(25);
-    pub const TypeParameter: SymbolKind = SymbolKind(26);
+    pub const FILE: SymbolKind = SymbolKind(1);
+    pub const MODULE: SymbolKind = SymbolKind(2);
+    pub const NAMESPACE: SymbolKind = SymbolKind(3);
+    pub const PACKAGE: SymbolKind = SymbolKind(4);
+    pub const CLASS: SymbolKind = SymbolKind(5);
+    pub const METHOD: SymbolKind = SymbolKind(6);
+    pub const PROPERTY: SymbolKind = SymbolKind(7);
+    pub const FIELD: SymbolKind = SymbolKind(8);
+    pub const CONSTRUCTOR: SymbolKind = SymbolKind(9);
+    pub const ENUM: SymbolKind = SymbolKind(10);
+    pub const INTERFACE: SymbolKind = SymbolKind(11);
+    pub const FUNCTION: SymbolKind = SymbolKind(12);
+    pub const VARIABLE: SymbolKind = SymbolKind(13);
+    pub const CONSTANT: SymbolKind = SymbolKind(14);
+    pub const STRING: SymbolKind = SymbolKind(15);
+    pub const NUMBER: SymbolKind = SymbolKind(16);
+    pub const BOOLEAN: SymbolKind = SymbolKind(17);
+    pub const ARRAY: SymbolKind = SymbolKind(18);
+    pub const OBJECT: SymbolKind = SymbolKind(19);
+    pub const KEY: SymbolKind = SymbolKind(20);
+    pub const NULL: SymbolKind = SymbolKind(21);
+    pub const ENUM_MEMBER: SymbolKind = SymbolKind(22);
+    pub const STRUCT: SymbolKind = SymbolKind(23);
+    pub const EVENT: SymbolKind = SymbolKind(24);
+    pub const OPERATOR: SymbolKind = SymbolKind(25);
+    pub const TYPE_PARAMETER: SymbolKind = SymbolKind(26);
 }
 
 impl SymbolKind {
@@ -22426,7 +22426,7 @@ pub struct SymbolTag(pub u32);
 
 impl SymbolTag {
     // Render a symbol as obsolete, usually using a strike-out.
-    pub const Deprecated: SymbolTag = SymbolTag(1);
+    pub const DEPRECATED: SymbolTag = SymbolTag(1);
 }
 
 impl SymbolTag {
@@ -22470,15 +22470,15 @@ pub struct UniquenessLevel(pub &'static str);
 
 impl UniquenessLevel {
     // The moniker is only unique inside a document
-    pub const Document: UniquenessLevel = UniquenessLevel("document");
+    pub const DOCUMENT: UniquenessLevel = UniquenessLevel("document");
     // The moniker is unique inside a project for which a dump got created
-    pub const Project: UniquenessLevel = UniquenessLevel("project");
+    pub const PROJECT: UniquenessLevel = UniquenessLevel("project");
     // The moniker is unique inside the group to which a project belongs
-    pub const Group: UniquenessLevel = UniquenessLevel("group");
+    pub const GROUP: UniquenessLevel = UniquenessLevel("group");
     // The moniker is unique inside the moniker scheme.
-    pub const Scheme: UniquenessLevel = UniquenessLevel("scheme");
+    pub const SCHEME: UniquenessLevel = UniquenessLevel("scheme");
     // The moniker is globally unique
-    pub const Global: UniquenessLevel = UniquenessLevel("global");
+    pub const GLOBAL: UniquenessLevel = UniquenessLevel("global");
 }
 
 impl Json for UniquenessLevel {
@@ -22507,12 +22507,12 @@ pub struct MonikerKind(pub &'static str);
 
 impl MonikerKind {
     // The moniker represent a symbol that is imported into a project
-    pub const Import: MonikerKind = MonikerKind("import");
+    pub const IMPORT: MonikerKind = MonikerKind("import");
     // The moniker represents a symbol that is exported from a project
-    pub const Export: MonikerKind = MonikerKind("export");
+    pub const EXPORT: MonikerKind = MonikerKind("export");
     // The moniker represents a symbol that is local to a project (e.g. a local
     // variable of a function, a class not visible outside the project, ...)
-    pub const Local: MonikerKind = MonikerKind("local");
+    pub const LOCAL: MonikerKind = MonikerKind("local");
 }
 
 impl Json for MonikerKind {
@@ -22541,9 +22541,9 @@ pub struct InlayHintKind(pub u32);
 
 impl InlayHintKind {
     // An inlay hint that for a type annotation.
-    pub const Type: InlayHintKind = InlayHintKind(1);
+    pub const TYPE: InlayHintKind = InlayHintKind(1);
     // An inlay hint that is for a parameter.
-    pub const Parameter: InlayHintKind = InlayHintKind(2);
+    pub const PARAMETER: InlayHintKind = InlayHintKind(2);
 }
 
 impl InlayHintKind {
@@ -22586,17 +22586,17 @@ pub struct MessageType(pub u32);
 
 impl MessageType {
     // An error message.
-    pub const Error: MessageType = MessageType(1);
+    pub const ERROR: MessageType = MessageType(1);
     // A warning message.
-    pub const Warning: MessageType = MessageType(2);
+    pub const WARNING: MessageType = MessageType(2);
     // An information message.
-    pub const Info: MessageType = MessageType(3);
+    pub const INFO: MessageType = MessageType(3);
     // A log message.
-    pub const Log: MessageType = MessageType(4);
+    pub const LOG: MessageType = MessageType(4);
     // A debug message.
     //
     // Since: 3.18.0
-    pub const Debug: MessageType = MessageType(5);
+    pub const DEBUG: MessageType = MessageType(5);
 }
 
 impl MessageType {
@@ -22643,14 +22643,14 @@ pub struct TextDocumentSyncKind(pub u32);
 
 impl TextDocumentSyncKind {
     // Documents should not be synced at all.
-    pub const None: TextDocumentSyncKind = TextDocumentSyncKind(0);
+    pub const NONE: TextDocumentSyncKind = TextDocumentSyncKind(0);
     // Documents are synced by always sending the full content
     // of the document.
-    pub const Full: TextDocumentSyncKind = TextDocumentSyncKind(1);
+    pub const FULL: TextDocumentSyncKind = TextDocumentSyncKind(1);
     // Documents are synced by sending the full content on open.
     // After that only incremental updates to the document are
     // send.
-    pub const Incremental: TextDocumentSyncKind = TextDocumentSyncKind(2);
+    pub const INCREMENTAL: TextDocumentSyncKind = TextDocumentSyncKind(2);
 }
 
 impl TextDocumentSyncKind {
@@ -22695,11 +22695,11 @@ pub struct TextDocumentSaveReason(pub u32);
 impl TextDocumentSaveReason {
     // Manually triggered, e.g. by the user pressing save, by starting debugging,
     // or by an API call.
-    pub const Manual: TextDocumentSaveReason = TextDocumentSaveReason(1);
+    pub const MANUAL: TextDocumentSaveReason = TextDocumentSaveReason(1);
     // Automatic after a delay.
-    pub const AfterDelay: TextDocumentSaveReason = TextDocumentSaveReason(2);
+    pub const AFTER_DELAY: TextDocumentSaveReason = TextDocumentSaveReason(2);
     // When the editor lost focus.
-    pub const FocusOut: TextDocumentSaveReason = TextDocumentSaveReason(3);
+    pub const FOCUS_OUT: TextDocumentSaveReason = TextDocumentSaveReason(3);
 }
 
 impl TextDocumentSaveReason {
@@ -22742,31 +22742,31 @@ impl IsZero for TextDocumentSaveReason {
 pub struct CompletionItemKind(pub u32);
 
 impl CompletionItemKind {
-    pub const Text: CompletionItemKind = CompletionItemKind(1);
-    pub const Method: CompletionItemKind = CompletionItemKind(2);
-    pub const Function: CompletionItemKind = CompletionItemKind(3);
-    pub const Constructor: CompletionItemKind = CompletionItemKind(4);
-    pub const Field: CompletionItemKind = CompletionItemKind(5);
-    pub const Variable: CompletionItemKind = CompletionItemKind(6);
-    pub const Class: CompletionItemKind = CompletionItemKind(7);
-    pub const Interface: CompletionItemKind = CompletionItemKind(8);
-    pub const Module: CompletionItemKind = CompletionItemKind(9);
-    pub const Property: CompletionItemKind = CompletionItemKind(10);
-    pub const Unit: CompletionItemKind = CompletionItemKind(11);
-    pub const Value: CompletionItemKind = CompletionItemKind(12);
-    pub const Enum: CompletionItemKind = CompletionItemKind(13);
-    pub const Keyword: CompletionItemKind = CompletionItemKind(14);
-    pub const Snippet: CompletionItemKind = CompletionItemKind(15);
-    pub const Color: CompletionItemKind = CompletionItemKind(16);
-    pub const File: CompletionItemKind = CompletionItemKind(17);
-    pub const Reference: CompletionItemKind = CompletionItemKind(18);
-    pub const Folder: CompletionItemKind = CompletionItemKind(19);
-    pub const EnumMember: CompletionItemKind = CompletionItemKind(20);
-    pub const Constant: CompletionItemKind = CompletionItemKind(21);
-    pub const Struct: CompletionItemKind = CompletionItemKind(22);
-    pub const Event: CompletionItemKind = CompletionItemKind(23);
-    pub const Operator: CompletionItemKind = CompletionItemKind(24);
-    pub const TypeParameter: CompletionItemKind = CompletionItemKind(25);
+    pub const TEXT: CompletionItemKind = CompletionItemKind(1);
+    pub const METHOD: CompletionItemKind = CompletionItemKind(2);
+    pub const FUNCTION: CompletionItemKind = CompletionItemKind(3);
+    pub const CONSTRUCTOR: CompletionItemKind = CompletionItemKind(4);
+    pub const FIELD: CompletionItemKind = CompletionItemKind(5);
+    pub const VARIABLE: CompletionItemKind = CompletionItemKind(6);
+    pub const CLASS: CompletionItemKind = CompletionItemKind(7);
+    pub const INTERFACE: CompletionItemKind = CompletionItemKind(8);
+    pub const MODULE: CompletionItemKind = CompletionItemKind(9);
+    pub const PROPERTY: CompletionItemKind = CompletionItemKind(10);
+    pub const UNIT: CompletionItemKind = CompletionItemKind(11);
+    pub const VALUE: CompletionItemKind = CompletionItemKind(12);
+    pub const ENUM: CompletionItemKind = CompletionItemKind(13);
+    pub const KEYWORD: CompletionItemKind = CompletionItemKind(14);
+    pub const SNIPPET: CompletionItemKind = CompletionItemKind(15);
+    pub const COLOR: CompletionItemKind = CompletionItemKind(16);
+    pub const FILE: CompletionItemKind = CompletionItemKind(17);
+    pub const REFERENCE: CompletionItemKind = CompletionItemKind(18);
+    pub const FOLDER: CompletionItemKind = CompletionItemKind(19);
+    pub const ENUM_MEMBER: CompletionItemKind = CompletionItemKind(20);
+    pub const CONSTANT: CompletionItemKind = CompletionItemKind(21);
+    pub const STRUCT: CompletionItemKind = CompletionItemKind(22);
+    pub const EVENT: CompletionItemKind = CompletionItemKind(23);
+    pub const OPERATOR: CompletionItemKind = CompletionItemKind(24);
+    pub const TYPE_PARAMETER: CompletionItemKind = CompletionItemKind(25);
 }
 
 impl CompletionItemKind {
@@ -22835,7 +22835,7 @@ pub struct CompletionItemTag(pub u32);
 
 impl CompletionItemTag {
     // Render a completion as obsolete, usually using a strike-out.
-    pub const Deprecated: CompletionItemTag = CompletionItemTag(1);
+    pub const DEPRECATED: CompletionItemTag = CompletionItemTag(1);
 }
 
 impl CompletionItemTag {
@@ -22878,7 +22878,7 @@ pub struct InsertTextFormat(pub u32);
 
 impl InsertTextFormat {
     // The primary text to be inserted is treated as a plain string.
-    pub const PlainText: InsertTextFormat = InsertTextFormat(1);
+    pub const PLAIN_TEXT: InsertTextFormat = InsertTextFormat(1);
     // The primary text to be inserted is treated as a snippet.
     //
     // A snippet can define tab stops and placeholders with `$1`, `$2`
@@ -22887,7 +22887,7 @@ impl InsertTextFormat {
     // that is typing in one will update others too.
     //
     // See also: https://microsoft.github.io/language-server-protocol/specifications/specification-current/#snippet_syntax
-    pub const Snippet: InsertTextFormat = InsertTextFormat(2);
+    pub const SNIPPET: InsertTextFormat = InsertTextFormat(2);
 }
 
 impl InsertTextFormat {
@@ -22937,7 +22937,7 @@ impl InsertTextMode {
     // inserted using the indentation defined in the string value.
     // The client will not apply any kind of adjustments to the
     // string.
-    pub const AsIs: InsertTextMode = InsertTextMode(1);
+    pub const AS_IS: InsertTextMode = InsertTextMode(1);
     // The editor adjusts leading whitespace of new lines so that
     // they match the indentation up to the cursor of the line for
     // which the item is accepted.
@@ -22945,7 +22945,7 @@ impl InsertTextMode {
     // Consider a line like this: <2tabs><cursor><3tabs>foo. Accepting a
     // multi line completion item is indented using 2 tabs and all
     // following lines inserted will be indented using 2 tabs as well.
-    pub const AdjustIndentation: InsertTextMode = InsertTextMode(2);
+    pub const ADJUST_INDENTATION: InsertTextMode = InsertTextMode(2);
 }
 
 impl InsertTextMode {
@@ -22988,11 +22988,11 @@ pub struct DocumentHighlightKind(pub u32);
 
 impl DocumentHighlightKind {
     // A textual occurrence.
-    pub const Text: DocumentHighlightKind = DocumentHighlightKind(1);
+    pub const TEXT: DocumentHighlightKind = DocumentHighlightKind(1);
     // Read-access of a symbol, like reading a variable.
-    pub const Read: DocumentHighlightKind = DocumentHighlightKind(2);
+    pub const READ: DocumentHighlightKind = DocumentHighlightKind(2);
     // Write-access of a symbol, like writing to a variable.
-    pub const Write: DocumentHighlightKind = DocumentHighlightKind(3);
+    pub const WRITE: DocumentHighlightKind = DocumentHighlightKind(3);
 }
 
 impl DocumentHighlightKind {
@@ -23036,11 +23036,11 @@ pub struct CodeActionKind(pub &'static str);
 
 impl CodeActionKind {
     // Empty kind.
-    pub const Empty: CodeActionKind = CodeActionKind("");
+    pub const EMPTY: CodeActionKind = CodeActionKind("");
     // Base kind for quickfix actions: 'quickfix'
-    pub const QuickFix: CodeActionKind = CodeActionKind("quickfix");
+    pub const QUICK_FIX: CodeActionKind = CodeActionKind("quickfix");
     // Base kind for refactoring actions: 'refactor'
-    pub const Refactor: CodeActionKind = CodeActionKind("refactor");
+    pub const REFACTOR: CodeActionKind = CodeActionKind("refactor");
     // Base kind for refactoring extraction actions: 'refactor.extract'
     //
     // Example extract actions:
@@ -23050,7 +23050,7 @@ impl CodeActionKind {
     // - Extract variable
     // - Extract interface from class
     // - ...
-    pub const RefactorExtract: CodeActionKind = CodeActionKind("refactor.extract");
+    pub const REFACTOR_EXTRACT: CodeActionKind = CodeActionKind("refactor.extract");
     // Base kind for refactoring inline actions: 'refactor.inline'
     //
     // Example inline actions:
@@ -23059,7 +23059,7 @@ impl CodeActionKind {
     // - Inline variable
     // - Inline constant
     // - ...
-    pub const RefactorInline: CodeActionKind = CodeActionKind("refactor.inline");
+    pub const REFACTOR_INLINE: CodeActionKind = CodeActionKind("refactor.inline");
     // Base kind for refactoring move actions: `refactor.move`
     //
     // Example move actions:
@@ -23070,7 +23070,7 @@ impl CodeActionKind {
     // - ...
     //
     // Since: 3.18.0
-    pub const RefactorMove: CodeActionKind = CodeActionKind("refactor.move");
+    pub const REFACTOR_MOVE: CodeActionKind = CodeActionKind("refactor.move");
     // Base kind for refactoring rewrite actions: 'refactor.rewrite'
     //
     // Example rewrite actions:
@@ -23081,20 +23081,20 @@ impl CodeActionKind {
     // - Make method static
     // - Move method to base class
     // - ...
-    pub const RefactorRewrite: CodeActionKind = CodeActionKind("refactor.rewrite");
+    pub const REFACTOR_REWRITE: CodeActionKind = CodeActionKind("refactor.rewrite");
     // Base kind for source actions: `source`
     //
     // Source code actions apply to the entire file.
-    pub const Source: CodeActionKind = CodeActionKind("source");
+    pub const SOURCE: CodeActionKind = CodeActionKind("source");
     // Base kind for an organize imports source action: `source.organizeImports`
-    pub const SourceOrganizeImports: CodeActionKind = CodeActionKind("source.organizeImports");
+    pub const SOURCE_ORGANIZE_IMPORTS: CodeActionKind = CodeActionKind("source.organizeImports");
     // Base kind for auto-fix source actions: `source.fixAll`.
     //
     // Fix all actions automatically fix errors that have a clear fix that do not require user input.
     // They should not suppress errors or perform unsafe fixes such as generating new types or classes.
     //
     // Since: 3.15.0
-    pub const SourceFixAll: CodeActionKind = CodeActionKind("source.fixAll");
+    pub const SOURCE_FIX_ALL: CodeActionKind = CodeActionKind("source.fixAll");
 }
 
 impl Json for CodeActionKind {
@@ -23123,7 +23123,7 @@ pub struct CodeActionTag(pub u32);
 
 impl CodeActionTag {
     // Marks the code action as LLM-generated.
-    pub const LLMGenerated: CodeActionTag = CodeActionTag(1);
+    pub const LLM_GENERATED: CodeActionTag = CodeActionTag(1);
 }
 
 impl CodeActionTag {
@@ -23164,11 +23164,11 @@ pub struct TraceValue(pub &'static str);
 
 impl TraceValue {
     // Turn tracing off.
-    pub const Off: TraceValue = TraceValue("off");
+    pub const OFF: TraceValue = TraceValue("off");
     // Trace messages only.
-    pub const Messages: TraceValue = TraceValue("messages");
+    pub const MESSAGES: TraceValue = TraceValue("messages");
     // Verbose message tracing.
-    pub const Verbose: TraceValue = TraceValue("verbose");
+    pub const VERBOSE: TraceValue = TraceValue("verbose");
 }
 
 impl Json for TraceValue {
@@ -23199,9 +23199,9 @@ pub struct MarkupKind(pub &'static str);
 
 impl MarkupKind {
     // Plain text is supported as a content format
-    pub const PlainText: MarkupKind = MarkupKind("plaintext");
+    pub const PLAIN_TEXT: MarkupKind = MarkupKind("plaintext");
     // Markdown is supported as a content format
-    pub const Markdown: MarkupKind = MarkupKind("markdown");
+    pub const MARKDOWN: MarkupKind = MarkupKind("markdown");
 }
 
 impl Json for MarkupKind {
@@ -23230,67 +23230,67 @@ pub struct LanguageKind(pub &'static str);
 
 impl LanguageKind {
     pub const ABAP: LanguageKind = LanguageKind("abap");
-    pub const WindowsBat: LanguageKind = LanguageKind("bat");
-    pub const BibTeX: LanguageKind = LanguageKind("bibtex");
-    pub const Clojure: LanguageKind = LanguageKind("clojure");
-    pub const Coffeescript: LanguageKind = LanguageKind("coffeescript");
+    pub const WINDOWS_BAT: LanguageKind = LanguageKind("bat");
+    pub const BIB_TE_X: LanguageKind = LanguageKind("bibtex");
+    pub const CLOJURE: LanguageKind = LanguageKind("clojure");
+    pub const COFFEESCRIPT: LanguageKind = LanguageKind("coffeescript");
     pub const C: LanguageKind = LanguageKind("c");
     pub const CPP: LanguageKind = LanguageKind("cpp");
-    pub const CSharp: LanguageKind = LanguageKind("csharp");
+    pub const C_SHARP: LanguageKind = LanguageKind("csharp");
     pub const CSS: LanguageKind = LanguageKind("css");
     // Since: 3.18.0
     pub const D: LanguageKind = LanguageKind("d");
     // Since: 3.18.0
-    pub const Delphi: LanguageKind = LanguageKind("pascal");
-    pub const Diff: LanguageKind = LanguageKind("diff");
-    pub const Dart: LanguageKind = LanguageKind("dart");
-    pub const Dockerfile: LanguageKind = LanguageKind("dockerfile");
-    pub const Elixir: LanguageKind = LanguageKind("elixir");
-    pub const Erlang: LanguageKind = LanguageKind("erlang");
-    pub const FSharp: LanguageKind = LanguageKind("fsharp");
-    pub const GitCommit: LanguageKind = LanguageKind("git-commit");
-    pub const GitRebase: LanguageKind = LanguageKind("git-rebase");
-    pub const Go: LanguageKind = LanguageKind("go");
-    pub const Groovy: LanguageKind = LanguageKind("groovy");
-    pub const Handlebars: LanguageKind = LanguageKind("handlebars");
-    pub const Haskell: LanguageKind = LanguageKind("haskell");
+    pub const DELPHI: LanguageKind = LanguageKind("pascal");
+    pub const DIFF: LanguageKind = LanguageKind("diff");
+    pub const DART: LanguageKind = LanguageKind("dart");
+    pub const DOCKERFILE: LanguageKind = LanguageKind("dockerfile");
+    pub const ELIXIR: LanguageKind = LanguageKind("elixir");
+    pub const ERLANG: LanguageKind = LanguageKind("erlang");
+    pub const F_SHARP: LanguageKind = LanguageKind("fsharp");
+    pub const GIT_COMMIT: LanguageKind = LanguageKind("git-commit");
+    pub const GIT_REBASE: LanguageKind = LanguageKind("git-rebase");
+    pub const GO: LanguageKind = LanguageKind("go");
+    pub const GROOVY: LanguageKind = LanguageKind("groovy");
+    pub const HANDLEBARS: LanguageKind = LanguageKind("handlebars");
+    pub const HASKELL: LanguageKind = LanguageKind("haskell");
     pub const HTML: LanguageKind = LanguageKind("html");
-    pub const Ini: LanguageKind = LanguageKind("ini");
-    pub const Java: LanguageKind = LanguageKind("java");
-    pub const JavaScript: LanguageKind = LanguageKind("javascript");
-    pub const JavaScriptReact: LanguageKind = LanguageKind("javascriptreact");
+    pub const INI: LanguageKind = LanguageKind("ini");
+    pub const JAVA: LanguageKind = LanguageKind("java");
+    pub const JAVA_SCRIPT: LanguageKind = LanguageKind("javascript");
+    pub const JAVA_SCRIPT_REACT: LanguageKind = LanguageKind("javascriptreact");
     pub const JSON: LanguageKind = LanguageKind("json");
-    pub const LaTeX: LanguageKind = LanguageKind("latex");
-    pub const Less: LanguageKind = LanguageKind("less");
-    pub const Lua: LanguageKind = LanguageKind("lua");
-    pub const Makefile: LanguageKind = LanguageKind("makefile");
-    pub const Markdown: LanguageKind = LanguageKind("markdown");
-    pub const ObjectiveC: LanguageKind = LanguageKind("objective-c");
-    pub const ObjectiveCPP: LanguageKind = LanguageKind("objective-cpp");
+    pub const LA_TE_X: LanguageKind = LanguageKind("latex");
+    pub const LESS: LanguageKind = LanguageKind("less");
+    pub const LUA: LanguageKind = LanguageKind("lua");
+    pub const MAKEFILE: LanguageKind = LanguageKind("makefile");
+    pub const MARKDOWN: LanguageKind = LanguageKind("markdown");
+    pub const OBJECTIVE_C: LanguageKind = LanguageKind("objective-c");
+    pub const OBJECTIVE_CPP: LanguageKind = LanguageKind("objective-cpp");
     // Since: 3.18.0
-    pub const Pascal: LanguageKind = LanguageKind("pascal");
-    pub const Perl: LanguageKind = LanguageKind("perl");
-    pub const Perl6: LanguageKind = LanguageKind("perl6");
+    pub const PASCAL: LanguageKind = LanguageKind("pascal");
+    pub const PERL: LanguageKind = LanguageKind("perl");
+    pub const PERL6: LanguageKind = LanguageKind("perl6");
     pub const PHP: LanguageKind = LanguageKind("php");
-    pub const Plaintext: LanguageKind = LanguageKind("plaintext");
-    pub const Powershell: LanguageKind = LanguageKind("powershell");
-    pub const Pug: LanguageKind = LanguageKind("jade");
-    pub const Python: LanguageKind = LanguageKind("python");
+    pub const PLAINTEXT: LanguageKind = LanguageKind("plaintext");
+    pub const POWERSHELL: LanguageKind = LanguageKind("powershell");
+    pub const PUG: LanguageKind = LanguageKind("jade");
+    pub const PYTHON: LanguageKind = LanguageKind("python");
     pub const R: LanguageKind = LanguageKind("r");
-    pub const Razor: LanguageKind = LanguageKind("razor");
-    pub const Ruby: LanguageKind = LanguageKind("ruby");
-    pub const Rust: LanguageKind = LanguageKind("rust");
+    pub const RAZOR: LanguageKind = LanguageKind("razor");
+    pub const RUBY: LanguageKind = LanguageKind("ruby");
+    pub const RUST: LanguageKind = LanguageKind("rust");
     pub const SCSS: LanguageKind = LanguageKind("scss");
     pub const SASS: LanguageKind = LanguageKind("sass");
-    pub const Scala: LanguageKind = LanguageKind("scala");
-    pub const ShaderLab: LanguageKind = LanguageKind("shaderlab");
-    pub const ShellScript: LanguageKind = LanguageKind("shellscript");
+    pub const SCALA: LanguageKind = LanguageKind("scala");
+    pub const SHADER_LAB: LanguageKind = LanguageKind("shaderlab");
+    pub const SHELL_SCRIPT: LanguageKind = LanguageKind("shellscript");
     pub const SQL: LanguageKind = LanguageKind("sql");
-    pub const Swift: LanguageKind = LanguageKind("swift");
-    pub const TypeScript: LanguageKind = LanguageKind("typescript");
-    pub const TypeScriptReact: LanguageKind = LanguageKind("typescriptreact");
-    pub const TeX: LanguageKind = LanguageKind("tex");
-    pub const VisualBasic: LanguageKind = LanguageKind("vb");
+    pub const SWIFT: LanguageKind = LanguageKind("swift");
+    pub const TYPE_SCRIPT: LanguageKind = LanguageKind("typescript");
+    pub const TYPE_SCRIPT_REACT: LanguageKind = LanguageKind("typescriptreact");
+    pub const TE_X: LanguageKind = LanguageKind("tex");
+    pub const VISUAL_BASIC: LanguageKind = LanguageKind("vb");
     pub const XML: LanguageKind = LanguageKind("xml");
     pub const XSL: LanguageKind = LanguageKind("xsl");
     pub const YAML: LanguageKind = LanguageKind("yaml");
@@ -23322,9 +23322,9 @@ pub struct InlineCompletionTriggerKind(pub u32);
 
 impl InlineCompletionTriggerKind {
     // Completion was triggered explicitly by a user gesture.
-    pub const Invoked: InlineCompletionTriggerKind = InlineCompletionTriggerKind(1);
+    pub const INVOKED: InlineCompletionTriggerKind = InlineCompletionTriggerKind(1);
     // Completion was triggered automatically while editing.
-    pub const Automatic: InlineCompletionTriggerKind = InlineCompletionTriggerKind(2);
+    pub const AUTOMATIC: InlineCompletionTriggerKind = InlineCompletionTriggerKind(2);
 }
 
 impl InlineCompletionTriggerKind {
@@ -23408,11 +23408,11 @@ pub struct FileChangeType(pub u32);
 
 impl FileChangeType {
     // The file got created.
-    pub const Created: FileChangeType = FileChangeType(1);
+    pub const CREATED: FileChangeType = FileChangeType(1);
     // The file got changed.
-    pub const Changed: FileChangeType = FileChangeType(2);
+    pub const CHANGED: FileChangeType = FileChangeType(2);
     // The file got deleted.
-    pub const Deleted: FileChangeType = FileChangeType(3);
+    pub const DELETED: FileChangeType = FileChangeType(3);
 }
 
 impl FileChangeType {
@@ -23455,11 +23455,11 @@ pub struct WatchKind(pub u32);
 
 impl WatchKind {
     // Interested in create events.
-    pub const Create: WatchKind = WatchKind(1);
+    pub const CREATE: WatchKind = WatchKind(1);
     // Interested in change events
-    pub const Change: WatchKind = WatchKind(2);
+    pub const CHANGE: WatchKind = WatchKind(2);
     // Interested in delete events
-    pub const Delete: WatchKind = WatchKind(4);
+    pub const DELETE: WatchKind = WatchKind(4);
 }
 
 impl WatchKind {
@@ -23514,13 +23514,13 @@ pub struct DiagnosticSeverity(pub u32);
 
 impl DiagnosticSeverity {
     // Reports an error.
-    pub const Error: DiagnosticSeverity = DiagnosticSeverity(1);
+    pub const ERROR: DiagnosticSeverity = DiagnosticSeverity(1);
     // Reports a warning.
-    pub const Warning: DiagnosticSeverity = DiagnosticSeverity(2);
+    pub const WARNING: DiagnosticSeverity = DiagnosticSeverity(2);
     // Reports an information.
-    pub const Information: DiagnosticSeverity = DiagnosticSeverity(3);
+    pub const INFORMATION: DiagnosticSeverity = DiagnosticSeverity(3);
     // Reports a hint.
-    pub const Hint: DiagnosticSeverity = DiagnosticSeverity(4);
+    pub const HINT: DiagnosticSeverity = DiagnosticSeverity(4);
 }
 
 impl DiagnosticSeverity {
@@ -23570,11 +23570,11 @@ impl DiagnosticTag {
     //
     // Clients are allowed to render diagnostics with this tag faded out instead of having
     // an error squiggle.
-    pub const Unnecessary: DiagnosticTag = DiagnosticTag(1);
+    pub const UNNECESSARY: DiagnosticTag = DiagnosticTag(1);
     // Deprecated or obsolete code.
     //
     // Clients are allowed to rendered diagnostics with this tag strike through.
-    pub const Deprecated: DiagnosticTag = DiagnosticTag(2);
+    pub const DEPRECATED: DiagnosticTag = DiagnosticTag(2);
 }
 
 impl DiagnosticTag {
@@ -23618,12 +23618,12 @@ pub struct CompletionTriggerKind(pub u32);
 impl CompletionTriggerKind {
     // Completion was triggered by typing an identifier (24x7 code
     // complete), manual invocation (e.g Ctrl+Space) or via API.
-    pub const Invoked: CompletionTriggerKind = CompletionTriggerKind(1);
+    pub const INVOKED: CompletionTriggerKind = CompletionTriggerKind(1);
     // Completion was triggered by a trigger character specified by
     // the `triggerCharacters` properties of the `CompletionRegistrationOptions`.
-    pub const TriggerCharacter: CompletionTriggerKind = CompletionTriggerKind(2);
+    pub const TRIGGER_CHARACTER: CompletionTriggerKind = CompletionTriggerKind(2);
     // Completion was re-triggered as current completion list is incomplete
-    pub const TriggerForIncompleteCompletions: CompletionTriggerKind = CompletionTriggerKind(3);
+    pub const TRIGGER_FOR_INCOMPLETE_COMPLETIONS: CompletionTriggerKind = CompletionTriggerKind(3);
 }
 
 impl CompletionTriggerKind {
@@ -23671,12 +23671,12 @@ pub struct ApplyKind(pub u32);
 impl ApplyKind {
     // The value from the individual item (if provided and not `null`) will be
     // used instead of the default.
-    pub const Replace: ApplyKind = ApplyKind(1);
+    pub const REPLACE: ApplyKind = ApplyKind(1);
     // The value from the item will be merged with the default.
     //
     // The specific rules for mergeing values are defined against each field
     // that supports merging.
-    pub const Merge: ApplyKind = ApplyKind(2);
+    pub const MERGE: ApplyKind = ApplyKind(2);
 }
 
 impl ApplyKind {
@@ -23721,11 +23721,11 @@ pub struct SignatureHelpTriggerKind(pub u32);
 
 impl SignatureHelpTriggerKind {
     // Signature help was invoked manually by the user or by a command.
-    pub const Invoked: SignatureHelpTriggerKind = SignatureHelpTriggerKind(1);
+    pub const INVOKED: SignatureHelpTriggerKind = SignatureHelpTriggerKind(1);
     // Signature help was triggered by a trigger character.
-    pub const TriggerCharacter: SignatureHelpTriggerKind = SignatureHelpTriggerKind(2);
+    pub const TRIGGER_CHARACTER: SignatureHelpTriggerKind = SignatureHelpTriggerKind(2);
     // Signature help was triggered by the cursor moving or by the document content changing.
-    pub const ContentChange: SignatureHelpTriggerKind = SignatureHelpTriggerKind(3);
+    pub const CONTENT_CHANGE: SignatureHelpTriggerKind = SignatureHelpTriggerKind(3);
 }
 
 impl SignatureHelpTriggerKind {
@@ -23771,12 +23771,12 @@ pub struct CodeActionTriggerKind(pub u32);
 
 impl CodeActionTriggerKind {
     // Code actions were explicitly requested by the user or by an extension.
-    pub const Invoked: CodeActionTriggerKind = CodeActionTriggerKind(1);
+    pub const INVOKED: CodeActionTriggerKind = CodeActionTriggerKind(1);
     // Code actions were requested automatically.
     //
     // This typically happens when current selection in a file changes, but can
     // also be triggered when file content changes.
-    pub const Automatic: CodeActionTriggerKind = CodeActionTriggerKind(2);
+    pub const AUTOMATIC: CodeActionTriggerKind = CodeActionTriggerKind(2);
 }
 
 impl CodeActionTriggerKind {
@@ -23822,9 +23822,9 @@ pub struct FileOperationPatternKind(pub &'static str);
 
 impl FileOperationPatternKind {
     // The pattern matches a file only.
-    pub const File: FileOperationPatternKind = FileOperationPatternKind("file");
+    pub const FILE: FileOperationPatternKind = FileOperationPatternKind("file");
     // The pattern matches a folder only.
-    pub const Folder: FileOperationPatternKind = FileOperationPatternKind("folder");
+    pub const FOLDER: FileOperationPatternKind = FileOperationPatternKind("folder");
 }
 
 impl Json for FileOperationPatternKind {
@@ -23850,11 +23850,11 @@ pub struct ResourceOperationKind(pub &'static str);
 
 impl ResourceOperationKind {
     // Supports creating new files and folders.
-    pub const Create: ResourceOperationKind = ResourceOperationKind("create");
+    pub const CREATE: ResourceOperationKind = ResourceOperationKind("create");
     // Supports renaming existing files and folders.
-    pub const Rename: ResourceOperationKind = ResourceOperationKind("rename");
+    pub const RENAME: ResourceOperationKind = ResourceOperationKind("rename");
     // Supports deleting existing files and folders.
-    pub const Delete: ResourceOperationKind = ResourceOperationKind("delete");
+    pub const DELETE: ResourceOperationKind = ResourceOperationKind("delete");
 }
 
 impl Json for ResourceOperationKind {
@@ -23881,18 +23881,18 @@ pub struct FailureHandlingKind(pub &'static str);
 impl FailureHandlingKind {
     // Applying the workspace change is simply aborted if one of the changes provided
     // fails. All operations executed before the failing operation stay executed.
-    pub const Abort: FailureHandlingKind = FailureHandlingKind("abort");
+    pub const ABORT: FailureHandlingKind = FailureHandlingKind("abort");
     // All operations are executed transactional. That means they either all
     // succeed or no changes at all are applied to the workspace.
-    pub const Transactional: FailureHandlingKind = FailureHandlingKind("transactional");
+    pub const TRANSACTIONAL: FailureHandlingKind = FailureHandlingKind("transactional");
     // If the workspace edit contains only textual file changes they are executed transactional.
     // If resource changes (create, rename or delete file) are part of the change the failure
     // handling strategy is abort.
-    pub const TextOnlyTransactional: FailureHandlingKind =
+    pub const TEXT_ONLY_TRANSACTIONAL: FailureHandlingKind =
         FailureHandlingKind("textOnlyTransactional");
     // The client tries to undo the operations already executed. But there is no
     // guarantee that this is succeeding.
-    pub const Undo: FailureHandlingKind = FailureHandlingKind("undo");
+    pub const UNDO: FailureHandlingKind = FailureHandlingKind("undo");
 }
 
 impl Json for FailureHandlingKind {
@@ -23919,7 +23919,7 @@ pub struct PrepareSupportDefaultBehavior(pub u32);
 impl PrepareSupportDefaultBehavior {
     // The client's default behavior is to select the identifier
     // according the to language's syntax rule.
-    pub const Identifier: PrepareSupportDefaultBehavior = PrepareSupportDefaultBehavior(1);
+    pub const IDENTIFIER: PrepareSupportDefaultBehavior = PrepareSupportDefaultBehavior(1);
 }
 
 impl PrepareSupportDefaultBehavior {
@@ -23960,7 +23960,7 @@ impl IsZero for PrepareSupportDefaultBehavior {
 pub struct TokenFormat(pub &'static str);
 
 impl TokenFormat {
-    pub const Relative: TokenFormat = TokenFormat("relative");
+    pub const RELATIVE: TokenFormat = TokenFormat("relative");
 }
 
 impl Json for TokenFormat {
@@ -23987,9 +23987,9 @@ pub struct VSContainerElementStyle(pub i32);
 
 impl VSContainerElementStyle {
     // Child elements are laid out inline, wrapping as needed (e.g. an icon next to a signature line).
-    pub const Wrapped: VSContainerElementStyle = VSContainerElementStyle(0);
+    pub const WRAPPED: VSContainerElementStyle = VSContainerElementStyle(0);
     // Child elements are stacked vertically, each on its own line (e.g. a signature line followed by documentation).
-    pub const Stacked: VSContainerElementStyle = VSContainerElementStyle(1);
+    pub const STACKED: VSContainerElementStyle = VSContainerElementStyle(1);
 }
 
 impl VSContainerElementStyle {
@@ -24032,17 +24032,17 @@ pub struct LogVerbosity(pub i32);
 
 impl LogVerbosity {
     // All logging disabled.
-    pub const Off: LogVerbosity = LogVerbosity(0);
+    pub const OFF: LogVerbosity = LogVerbosity(0);
     // Most verbose; includes LSP request/response traces.
-    pub const Trace: LogVerbosity = LogVerbosity(1);
+    pub const TRACE: LogVerbosity = LogVerbosity(1);
     // Verbose server logs.
-    pub const Debug: LogVerbosity = LogVerbosity(2);
+    pub const DEBUG: LogVerbosity = LogVerbosity(2);
     // Normal server logs.
-    pub const Info: LogVerbosity = LogVerbosity(3);
+    pub const INFO: LogVerbosity = LogVerbosity(3);
     // Warnings only.
-    pub const Warning: LogVerbosity = LogVerbosity(4);
+    pub const WARNING: LogVerbosity = LogVerbosity(4);
     // Errors only.
-    pub const Error: LogVerbosity = LogVerbosity(5);
+    pub const ERROR: LogVerbosity = LogVerbosity(5);
 }
 
 impl LogVerbosity {
@@ -24089,11 +24089,11 @@ pub struct DiagnosticFlakeLogLevel(pub i32);
 
 impl DiagnosticFlakeLogLevel {
     // All flake logging disabled.
-    pub const Off: DiagnosticFlakeLogLevel = DiagnosticFlakeLogLevel(0);
+    pub const OFF: DiagnosticFlakeLogLevel = DiagnosticFlakeLogLevel(0);
     // Log flaky diagnostics to the error log.
-    pub const Log: DiagnosticFlakeLogLevel = DiagnosticFlakeLogLevel(1);
+    pub const LOG: DiagnosticFlakeLogLevel = DiagnosticFlakeLogLevel(1);
     // Panic on flaky diagnostics.
-    pub const Panic: DiagnosticFlakeLogLevel = DiagnosticFlakeLogLevel(2);
+    pub const PANIC: DiagnosticFlakeLogLevel = DiagnosticFlakeLogLevel(2);
 }
 
 impl DiagnosticFlakeLogLevel {
@@ -24135,24 +24135,24 @@ impl IsZero for DiagnosticFlakeLogLevel {
 pub struct VSReferenceKind(pub i32);
 
 impl VSReferenceKind {
-    pub const Inactive: VSReferenceKind = VSReferenceKind(0);
-    pub const Comment: VSReferenceKind = VSReferenceKind(1);
-    pub const String: VSReferenceKind = VSReferenceKind(2);
-    pub const Read: VSReferenceKind = VSReferenceKind(3);
-    pub const Write: VSReferenceKind = VSReferenceKind(4);
-    pub const Reference: VSReferenceKind = VSReferenceKind(5);
-    pub const Name: VSReferenceKind = VSReferenceKind(6);
-    pub const Qualified: VSReferenceKind = VSReferenceKind(7);
-    pub const TypeArgument: VSReferenceKind = VSReferenceKind(8);
-    pub const TypeConstraint: VSReferenceKind = VSReferenceKind(9);
-    pub const BaseType: VSReferenceKind = VSReferenceKind(10);
-    pub const Constructor: VSReferenceKind = VSReferenceKind(11);
-    pub const Destructor: VSReferenceKind = VSReferenceKind(12);
-    pub const Import: VSReferenceKind = VSReferenceKind(13);
-    pub const Declaration: VSReferenceKind = VSReferenceKind(14);
-    pub const AddressOf: VSReferenceKind = VSReferenceKind(15);
-    pub const NotReference: VSReferenceKind = VSReferenceKind(16);
-    pub const Unknown: VSReferenceKind = VSReferenceKind(17);
+    pub const INACTIVE: VSReferenceKind = VSReferenceKind(0);
+    pub const COMMENT: VSReferenceKind = VSReferenceKind(1);
+    pub const STRING: VSReferenceKind = VSReferenceKind(2);
+    pub const READ: VSReferenceKind = VSReferenceKind(3);
+    pub const WRITE: VSReferenceKind = VSReferenceKind(4);
+    pub const REFERENCE: VSReferenceKind = VSReferenceKind(5);
+    pub const NAME: VSReferenceKind = VSReferenceKind(6);
+    pub const QUALIFIED: VSReferenceKind = VSReferenceKind(7);
+    pub const TYPE_ARGUMENT: VSReferenceKind = VSReferenceKind(8);
+    pub const TYPE_CONSTRAINT: VSReferenceKind = VSReferenceKind(9);
+    pub const BASE_TYPE: VSReferenceKind = VSReferenceKind(10);
+    pub const CONSTRUCTOR: VSReferenceKind = VSReferenceKind(11);
+    pub const DESTRUCTOR: VSReferenceKind = VSReferenceKind(12);
+    pub const IMPORT: VSReferenceKind = VSReferenceKind(13);
+    pub const DECLARATION: VSReferenceKind = VSReferenceKind(14);
+    pub const ADDRESS_OF: VSReferenceKind = VSReferenceKind(15);
+    pub const NOT_REFERENCE: VSReferenceKind = VSReferenceKind(16);
+    pub const UNKNOWN: VSReferenceKind = VSReferenceKind(17);
 }
 
 impl VSReferenceKind {
@@ -24209,8 +24209,8 @@ impl IsZero for VSReferenceKind {
 pub struct CodeLensKind(pub &'static str);
 
 impl CodeLensKind {
-    pub const References: CodeLensKind = CodeLensKind("references");
-    pub const Implementations: CodeLensKind = CodeLensKind("implementations");
+    pub const REFERENCES: CodeLensKind = CodeLensKind("references");
+    pub const IMPLEMENTATIONS: CodeLensKind = CodeLensKind("implementations");
 }
 
 impl Json for CodeLensKind {
@@ -24236,15 +24236,15 @@ pub struct AutoImportFixKind(pub i32);
 
 impl AutoImportFixKind {
     // Augment an existing namespace import.
-    pub const UseNamespace: AutoImportFixKind = AutoImportFixKind(0);
+    pub const USE_NAMESPACE: AutoImportFixKind = AutoImportFixKind(0);
     // Add a JSDoc-only type import.
-    pub const JsdocTypeImport: AutoImportFixKind = AutoImportFixKind(1);
+    pub const JSDOC_TYPE_IMPORT: AutoImportFixKind = AutoImportFixKind(1);
     // Insert into an existing import declaration.
-    pub const AddToExisting: AutoImportFixKind = AutoImportFixKind(2);
+    pub const ADD_TO_EXISTING: AutoImportFixKind = AutoImportFixKind(2);
     // Create a fresh import statement.
-    pub const AddNew: AutoImportFixKind = AutoImportFixKind(3);
+    pub const ADD_NEW: AutoImportFixKind = AutoImportFixKind(3);
     // Promote a type-only import when necessary.
-    pub const PromoteTypeOnly: AutoImportFixKind = AutoImportFixKind(4);
+    pub const PROMOTE_TYPE_ONLY: AutoImportFixKind = AutoImportFixKind(4);
 }
 
 impl AutoImportFixKind {
@@ -24289,13 +24289,13 @@ pub struct ImportKind(pub i32);
 
 impl ImportKind {
     // Adds a named import.
-    pub const Named: ImportKind = ImportKind(0);
+    pub const NAMED: ImportKind = ImportKind(0);
     // Adds a default import.
-    pub const Default: ImportKind = ImportKind(1);
+    pub const DEFAULT: ImportKind = ImportKind(1);
     // Adds a namespace import.
-    pub const Namespace: ImportKind = ImportKind(2);
+    pub const NAMESPACE: ImportKind = ImportKind(2);
     // Adds a CommonJS import assignment.
-    pub const CommonJS: ImportKind = ImportKind(3);
+    pub const COMMON_JS: ImportKind = ImportKind(3);
 }
 
 impl ImportKind {
@@ -24339,11 +24339,11 @@ pub struct AddAsTypeOnly(pub i32);
 
 impl AddAsTypeOnly {
     // Import may be marked type-only if needed.
-    pub const Allowed: AddAsTypeOnly = AddAsTypeOnly(1);
+    pub const ALLOWED: AddAsTypeOnly = AddAsTypeOnly(1);
     // Import must be marked type-only.
-    pub const Required: AddAsTypeOnly = AddAsTypeOnly(2);
+    pub const REQUIRED: AddAsTypeOnly = AddAsTypeOnly(2);
     // Import cannot be marked type-only.
-    pub const NotAllowed: AddAsTypeOnly = AddAsTypeOnly(4);
+    pub const NOT_ALLOWED: AddAsTypeOnly = AddAsTypeOnly(4);
 }
 
 impl AddAsTypeOnly {
@@ -24387,44 +24387,44 @@ pub struct ClassificationTypeName(pub &'static str);
 
 impl ClassificationTypeName {
     // Language keyword (e.g., function, const, class).
-    pub const Keyword: ClassificationTypeName = ClassificationTypeName("keyword");
+    pub const KEYWORD: ClassificationTypeName = ClassificationTypeName("keyword");
     // Punctuation characters (e.g., parentheses, commas, semicolons).
-    pub const Punctuation: ClassificationTypeName = ClassificationTypeName("punctuation");
+    pub const PUNCTUATION: ClassificationTypeName = ClassificationTypeName("punctuation");
     // Operators (e.g., =, +, ?).
-    pub const Operator: ClassificationTypeName = ClassificationTypeName("operator");
+    pub const OPERATOR: ClassificationTypeName = ClassificationTypeName("operator");
     // Whitespace including spaces and line breaks.
-    pub const WhiteSpace: ClassificationTypeName = ClassificationTypeName("whitespace");
+    pub const WHITE_SPACE: ClassificationTypeName = ClassificationTypeName("whitespace");
     // Plain text with no special classification.
-    pub const Text: ClassificationTypeName = ClassificationTypeName("text");
+    pub const TEXT: ClassificationTypeName = ClassificationTypeName("text");
     // String and literal values.
-    pub const String: ClassificationTypeName = ClassificationTypeName("string");
+    pub const STRING: ClassificationTypeName = ClassificationTypeName("string");
     // Numeric literal values.
-    pub const Number: ClassificationTypeName = ClassificationTypeName("number");
+    pub const NUMBER: ClassificationTypeName = ClassificationTypeName("number");
     // Comment text.
-    pub const Comment: ClassificationTypeName = ClassificationTypeName("comment");
+    pub const COMMENT: ClassificationTypeName = ClassificationTypeName("comment");
     // Class names.
-    pub const ClassName: ClassificationTypeName = ClassificationTypeName("class name");
+    pub const CLASS_NAME: ClassificationTypeName = ClassificationTypeName("class name");
     // Interface names.
-    pub const InterfaceName: ClassificationTypeName = ClassificationTypeName("interface name");
+    pub const INTERFACE_NAME: ClassificationTypeName = ClassificationTypeName("interface name");
     // Enum names.
-    pub const EnumName: ClassificationTypeName = ClassificationTypeName("enum name");
+    pub const ENUM_NAME: ClassificationTypeName = ClassificationTypeName("enum name");
     // Module/namespace names.
-    pub const ModuleName: ClassificationTypeName = ClassificationTypeName("module name");
+    pub const MODULE_NAME: ClassificationTypeName = ClassificationTypeName("module name");
     // Method and function names.
-    pub const MethodName: ClassificationTypeName = ClassificationTypeName("method name");
+    pub const METHOD_NAME: ClassificationTypeName = ClassificationTypeName("method name");
     // Parameter names.
-    pub const ParameterName: ClassificationTypeName = ClassificationTypeName("parameter name");
+    pub const PARAMETER_NAME: ClassificationTypeName = ClassificationTypeName("parameter name");
     // Property and accessor names.
-    pub const PropertyName: ClassificationTypeName = ClassificationTypeName("property name");
+    pub const PROPERTY_NAME: ClassificationTypeName = ClassificationTypeName("property name");
     // Field names (e.g., enum members).
-    pub const FieldName: ClassificationTypeName = ClassificationTypeName("field name");
+    pub const FIELD_NAME: ClassificationTypeName = ClassificationTypeName("field name");
     // Local variable names.
-    pub const LocalName: ClassificationTypeName = ClassificationTypeName("local name");
+    pub const LOCAL_NAME: ClassificationTypeName = ClassificationTypeName("local name");
     // Type parameter names.
-    pub const TypeParameterName: ClassificationTypeName =
+    pub const TYPE_PARAMETER_NAME: ClassificationTypeName =
         ClassificationTypeName("type parameter name");
     // General identifiers (e.g., type aliases, imports).
-    pub const Identifier: ClassificationTypeName = ClassificationTypeName("identifier");
+    pub const IDENTIFIER: ClassificationTypeName = ClassificationTypeName("identifier");
 }
 
 impl Json for ClassificationTypeName {
@@ -24450,13 +24450,13 @@ impl Method {
     // A request to resolve the implementation locations of a symbol at a given text
     // document position. The request's parameter is of type TextDocumentPositionParams
     // the response is of type Definition or a Thenable that resolves to such.
-    pub const TextDocumentImplementation: Method = Method("textDocument/implementation");
+    pub const TEXT_DOCUMENT_IMPLEMENTATION: Method = Method("textDocument/implementation");
     // A request to resolve the type definition locations of a symbol at a given text
     // document position. The request's parameter is of type TextDocumentPositionParams
     // the response is of type Definition or a Thenable that resolves to such.
-    pub const TextDocumentTypeDefinition: Method = Method("textDocument/typeDefinition");
+    pub const TEXT_DOCUMENT_TYPE_DEFINITION: Method = Method("textDocument/typeDefinition");
     // The `workspace/workspaceFolders` is sent from the server to the client to fetch the open workspace folders.
-    pub const WorkspaceWorkspaceFolders: Method = Method("workspace/workspaceFolders");
+    pub const WORKSPACE_WORKSPACE_FOLDERS: Method = Method("workspace/workspaceFolders");
     // The 'workspace/configuration' request is sent from the server to the client to fetch a certain
     // configuration setting.
     //
@@ -24464,73 +24464,77 @@ impl Method {
     // event. If the server still needs to react to configuration changes (since the server caches the
     // result of `workspace/configuration` requests) the server should register for an empty configuration
     // change event and empty the cache if such an event is received.
-    pub const WorkspaceConfiguration: Method = Method("workspace/configuration");
+    pub const WORKSPACE_CONFIGURATION: Method = Method("workspace/configuration");
     // A request to list all color symbols found in a given text document. The request's
     // parameter is of type DocumentColorParams the
     // response is of type ColorInformation[] or a Thenable
     // that resolves to such.
-    pub const TextDocumentDocumentColor: Method = Method("textDocument/documentColor");
+    pub const TEXT_DOCUMENT_DOCUMENT_COLOR: Method = Method("textDocument/documentColor");
     // A request to list all presentation for a color. The request's
     // parameter is of type ColorPresentationParams the
     // response is of type ColorPresentation[] or a Thenable
     // that resolves to such.
-    pub const TextDocumentColorPresentation: Method = Method("textDocument/colorPresentation");
+    pub const TEXT_DOCUMENT_COLOR_PRESENTATION: Method = Method("textDocument/colorPresentation");
     // A request to provide folding ranges in a document. The request's
     // parameter is of type FoldingRangeParams, the
     // response is of type FoldingRangeList or a Thenable
     // that resolves to such.
-    pub const TextDocumentFoldingRange: Method = Method("textDocument/foldingRange");
+    pub const TEXT_DOCUMENT_FOLDING_RANGE: Method = Method("textDocument/foldingRange");
     // A request to refresh the folding ranges in a document.
     //
     // Since: 3.18.0
-    pub const WorkspaceFoldingRangeRefresh: Method = Method("workspace/foldingRange/refresh");
+    pub const WORKSPACE_FOLDING_RANGE_REFRESH: Method = Method("workspace/foldingRange/refresh");
     // A request to resolve the type definition locations of a symbol at a given text
     // document position. The request's parameter is of type TextDocumentPositionParams
     // the response is of type Declaration or a typed array of DeclarationLink
     // or a Thenable that resolves to such.
-    pub const TextDocumentDeclaration: Method = Method("textDocument/declaration");
+    pub const TEXT_DOCUMENT_DECLARATION: Method = Method("textDocument/declaration");
     // A request to provide selection ranges in a document. The request's
     // parameter is of type SelectionRangeParams, the
     // response is of type SelectionRange[] or a Thenable
     // that resolves to such.
-    pub const TextDocumentSelectionRange: Method = Method("textDocument/selectionRange");
+    pub const TEXT_DOCUMENT_SELECTION_RANGE: Method = Method("textDocument/selectionRange");
     // The `window/workDoneProgress/create` request is sent from the server to the client to initiate progress
     // reporting from the server.
-    pub const WindowWorkDoneProgressCreate: Method = Method("window/workDoneProgress/create");
+    pub const WINDOW_WORK_DONE_PROGRESS_CREATE: Method = Method("window/workDoneProgress/create");
     // A request to result a `CallHierarchyItem` in a document at a given position.
     // Can be used as an input to an incoming or outgoing call hierarchy.
     //
     // Since: 3.16.0
-    pub const TextDocumentPrepareCallHierarchy: Method =
+    pub const TEXT_DOCUMENT_PREPARE_CALL_HIERARCHY: Method =
         Method("textDocument/prepareCallHierarchy");
     // A request to resolve the incoming calls for a given `CallHierarchyItem`.
     //
     // Since: 3.16.0
-    pub const CallHierarchyIncomingCalls: Method = Method("callHierarchy/incomingCalls");
+    pub const CALL_HIERARCHY_INCOMING_CALLS: Method = Method("callHierarchy/incomingCalls");
     // A request to resolve the outgoing calls for a given `CallHierarchyItem`.
     //
     // Since: 3.16.0
-    pub const CallHierarchyOutgoingCalls: Method = Method("callHierarchy/outgoingCalls");
+    pub const CALL_HIERARCHY_OUTGOING_CALLS: Method = Method("callHierarchy/outgoingCalls");
     // Since: 3.16.0
-    pub const TextDocumentSemanticTokensFull: Method = Method("textDocument/semanticTokens/full");
+    pub const TEXT_DOCUMENT_SEMANTIC_TOKENS_FULL: Method =
+        Method("textDocument/semanticTokens/full");
     // Since: 3.16.0
-    pub const TextDocumentSemanticTokensFullDelta: Method =
+    pub const TEXT_DOCUMENT_SEMANTIC_TOKENS_FULL_DELTA: Method =
         Method("textDocument/semanticTokens/full/delta");
     // Since: 3.16.0
-    pub const TextDocumentSemanticTokensRange: Method = Method("textDocument/semanticTokens/range");
+    pub const TEXT_DOCUMENT_SEMANTIC_TOKENS_RANGE: Method =
+        Method("textDocument/semanticTokens/range");
     // Since: 3.16.0
-    pub const WorkspaceSemanticTokensRefresh: Method = Method("workspace/semanticTokens/refresh");
+    pub const WORKSPACE_SEMANTIC_TOKENS_REFRESH: Method =
+        Method("workspace/semanticTokens/refresh");
     // A request to show a document. This request might open an
     // external program depending on the value of the URI to open.
     // For example a request to open `https://code.visualstudio.com/`
     // will very likely open the URI in a WEB browser.
     //
     // Since: 3.16.0
-    pub const WindowShowDocument: Method = Method("window/showDocument");
+    pub const WINDOW_SHOW_DOCUMENT: Method = Method("window/showDocument");
     // A request to provide ranges that can be edited together.
     //
     // Since: 3.16.0
-    pub const TextDocumentLinkedEditingRange: Method = Method("textDocument/linkedEditingRange");
+    pub const TEXT_DOCUMENT_LINKED_EDITING_RANGE: Method =
+        Method("textDocument/linkedEditingRange");
     // The will create files request is sent from the client to the server before files are actually
     // created as long as the creation is triggered from within the client.
     //
@@ -24539,113 +24543,113 @@ impl Method {
     // to be created.
     //
     // Since: 3.16.0
-    pub const WorkspaceWillCreateFiles: Method = Method("workspace/willCreateFiles");
+    pub const WORKSPACE_WILL_CREATE_FILES: Method = Method("workspace/willCreateFiles");
     // The will rename files request is sent from the client to the server before files are actually
     // renamed as long as the rename is triggered from within the client.
     //
     // Since: 3.16.0
-    pub const WorkspaceWillRenameFiles: Method = Method("workspace/willRenameFiles");
+    pub const WORKSPACE_WILL_RENAME_FILES: Method = Method("workspace/willRenameFiles");
     // The did delete files notification is sent from the client to the server when
     // files were deleted from within the client.
     //
     // Since: 3.16.0
-    pub const WorkspaceWillDeleteFiles: Method = Method("workspace/willDeleteFiles");
+    pub const WORKSPACE_WILL_DELETE_FILES: Method = Method("workspace/willDeleteFiles");
     // A request to get the moniker of a symbol at a given text document position.
     // The request parameter is of type TextDocumentPositionParams.
     // The response is of type Moniker[] or `null`.
-    pub const TextDocumentMoniker: Method = Method("textDocument/moniker");
+    pub const TEXT_DOCUMENT_MONIKER: Method = Method("textDocument/moniker");
     // A request to result a `TypeHierarchyItem` in a document at a given position.
     // Can be used as an input to a subtypes or supertypes type hierarchy.
     //
     // Since: 3.17.0
-    pub const TextDocumentPrepareTypeHierarchy: Method =
+    pub const TEXT_DOCUMENT_PREPARE_TYPE_HIERARCHY: Method =
         Method("textDocument/prepareTypeHierarchy");
     // A request to resolve the supertypes for a given `TypeHierarchyItem`.
     //
     // Since: 3.17.0
-    pub const TypeHierarchySupertypes: Method = Method("typeHierarchy/supertypes");
+    pub const TYPE_HIERARCHY_SUPERTYPES: Method = Method("typeHierarchy/supertypes");
     // A request to resolve the subtypes for a given `TypeHierarchyItem`.
     //
     // Since: 3.17.0
-    pub const TypeHierarchySubtypes: Method = Method("typeHierarchy/subtypes");
+    pub const TYPE_HIERARCHY_SUBTYPES: Method = Method("typeHierarchy/subtypes");
     // A request to provide inline values in a document. The request's parameter is of
     // type InlineValueParams, the response is of type
     // InlineValue[] or a Thenable that resolves to such.
     //
     // Since: 3.17.0
-    pub const TextDocumentInlineValue: Method = Method("textDocument/inlineValue");
+    pub const TEXT_DOCUMENT_INLINE_VALUE: Method = Method("textDocument/inlineValue");
     // Since: 3.17.0
-    pub const WorkspaceInlineValueRefresh: Method = Method("workspace/inlineValue/refresh");
+    pub const WORKSPACE_INLINE_VALUE_REFRESH: Method = Method("workspace/inlineValue/refresh");
     // A request to provide inlay hints in a document. The request's parameter is of
     // type InlayHintsParams, the response is of type
     // InlayHint[] or a Thenable that resolves to such.
     //
     // Since: 3.17.0
-    pub const TextDocumentInlayHint: Method = Method("textDocument/inlayHint");
+    pub const TEXT_DOCUMENT_INLAY_HINT: Method = Method("textDocument/inlayHint");
     // A request to resolve additional properties for an inlay hint.
     // The request's parameter is of type InlayHint, the response is
     // of type InlayHint or a Thenable that resolves to such.
     //
     // Since: 3.17.0
-    pub const InlayHintResolve: Method = Method("inlayHint/resolve");
+    pub const INLAY_HINT_RESOLVE: Method = Method("inlayHint/resolve");
     // Since: 3.17.0
-    pub const WorkspaceInlayHintRefresh: Method = Method("workspace/inlayHint/refresh");
+    pub const WORKSPACE_INLAY_HINT_REFRESH: Method = Method("workspace/inlayHint/refresh");
     // The document diagnostic request definition.
     //
     // Since: 3.17.0
-    pub const TextDocumentDiagnostic: Method = Method("textDocument/diagnostic");
+    pub const TEXT_DOCUMENT_DIAGNOSTIC: Method = Method("textDocument/diagnostic");
     // The workspace diagnostic request definition.
     //
     // Since: 3.17.0
-    pub const WorkspaceDiagnostic: Method = Method("workspace/diagnostic");
+    pub const WORKSPACE_DIAGNOSTIC: Method = Method("workspace/diagnostic");
     // The diagnostic refresh request definition.
     //
     // Since: 3.17.0
-    pub const WorkspaceDiagnosticRefresh: Method = Method("workspace/diagnostic/refresh");
+    pub const WORKSPACE_DIAGNOSTIC_REFRESH: Method = Method("workspace/diagnostic/refresh");
     // A request to provide inline completions in a document. The request's parameter is of
     // type InlineCompletionParams, the response is of type
     // InlineCompletion[] or a Thenable that resolves to such.
     //
     // Since: 3.18.0
-    pub const TextDocumentInlineCompletion: Method = Method("textDocument/inlineCompletion");
+    pub const TEXT_DOCUMENT_INLINE_COMPLETION: Method = Method("textDocument/inlineCompletion");
     // The `workspace/textDocumentContent` request is sent from the client to the
     // server to request the content of a text document.
     //
     // Since: 3.18.0
-    pub const WorkspaceTextDocumentContent: Method = Method("workspace/textDocumentContent");
+    pub const WORKSPACE_TEXT_DOCUMENT_CONTENT: Method = Method("workspace/textDocumentContent");
     // The `workspace/textDocumentContent` request is sent from the server to the client to refresh
     // the content of a specific text document.
     //
     // Since: 3.18.0
-    pub const WorkspaceTextDocumentContentRefresh: Method =
+    pub const WORKSPACE_TEXT_DOCUMENT_CONTENT_REFRESH: Method =
         Method("workspace/textDocumentContent/refresh");
     // The `client/registerCapability` request is sent from the server to the client to register a new capability
     // handler on the client side.
-    pub const ClientRegisterCapability: Method = Method("client/registerCapability");
+    pub const CLIENT_REGISTER_CAPABILITY: Method = Method("client/registerCapability");
     // The `client/unregisterCapability` request is sent from the server to the client to unregister a previously registered capability
     // handler on the client side.
-    pub const ClientUnregisterCapability: Method = Method("client/unregisterCapability");
+    pub const CLIENT_UNREGISTER_CAPABILITY: Method = Method("client/unregisterCapability");
     // The initialize request is sent from the client to the server.
     // It is sent once as the request after starting up the server.
     // The requests parameter is of type InitializeParams
     // the response if of type InitializeResult of a Thenable that
     // resolves to such.
-    pub const Initialize: Method = Method("initialize");
+    pub const INITIALIZE: Method = Method("initialize");
     // A shutdown request is sent from the client to the server.
     // It is sent once when the client decides to shutdown the
     // server. The only notification that is sent after a shutdown request
     // is the exit event.
-    pub const Shutdown: Method = Method("shutdown");
+    pub const SHUTDOWN: Method = Method("shutdown");
     // The show message request is sent from the server to the client to show a message
     // and a set of options actions to the user.
-    pub const WindowShowMessageRequest: Method = Method("window/showMessageRequest");
+    pub const WINDOW_SHOW_MESSAGE_REQUEST: Method = Method("window/showMessageRequest");
     // A document will save request is sent from the client to the server before
     // the document is actually saved. The request can return an array of TextEdits
     // which will be applied to the text document before it is saved. Please note that
     // clients might drop results if computing the text edits took too long or if a
     // server constantly fails on this request. This is done to keep the save fast and
     // reliable.
-    pub const TextDocumentWillSaveWaitUntil: Method = Method("textDocument/willSaveWaitUntil");
+    pub const TEXT_DOCUMENT_WILL_SAVE_WAIT_UNTIL: Method = Method("textDocument/willSaveWaitUntil");
     // Request to request completion at a given text document position. The request's
     // parameter is of type TextDocumentPosition the response
     // is of type CompletionItem[] or CompletionList
@@ -24655,42 +24659,42 @@ impl Method {
     // and `documentation` properties to the `completionItem/resolve`
     // request. However, properties that are needed for the initial sorting and filtering, like `sortText`,
     // `filterText`, `insertText`, and `textEdit`, must not be changed during resolve.
-    pub const TextDocumentCompletion: Method = Method("textDocument/completion");
+    pub const TEXT_DOCUMENT_COMPLETION: Method = Method("textDocument/completion");
     // Request to resolve additional information for a given completion item.The request's
     // parameter is of type CompletionItem the response
     // is of type CompletionItem or a Thenable that resolves to such.
-    pub const CompletionItemResolve: Method = Method("completionItem/resolve");
+    pub const COMPLETION_ITEM_RESOLVE: Method = Method("completionItem/resolve");
     // Request to request hover information at a given text document position. The request's
     // parameter is of type TextDocumentPosition the response is of
     // type Hover or a Thenable that resolves to such.
-    pub const TextDocumentHover: Method = Method("textDocument/hover");
-    pub const TextDocumentSignatureHelp: Method = Method("textDocument/signatureHelp");
+    pub const TEXT_DOCUMENT_HOVER: Method = Method("textDocument/hover");
+    pub const TEXT_DOCUMENT_SIGNATURE_HELP: Method = Method("textDocument/signatureHelp");
     // A request to resolve the definition location of a symbol at a given text
     // document position. The request's parameter is of type TextDocumentPosition
     // the response is of either type Definition or a typed array of
     // DefinitionLink or a Thenable that resolves to such.
-    pub const TextDocumentDefinition: Method = Method("textDocument/definition");
+    pub const TEXT_DOCUMENT_DEFINITION: Method = Method("textDocument/definition");
     // A request to resolve project-wide references for the symbol denoted
     // by the given text document position. The request's parameter is of
     // type ReferenceParams the response is of type
     // Location[] or a Thenable that resolves to such.
-    pub const TextDocumentReferences: Method = Method("textDocument/references");
+    pub const TEXT_DOCUMENT_REFERENCES: Method = Method("textDocument/references");
     // Request to resolve a DocumentHighlight for a given
     // text document position. The request's parameter is of type TextDocumentPosition
     // the request response is an array of type DocumentHighlight
     // or a Thenable that resolves to such.
-    pub const TextDocumentDocumentHighlight: Method = Method("textDocument/documentHighlight");
+    pub const TEXT_DOCUMENT_DOCUMENT_HIGHLIGHT: Method = Method("textDocument/documentHighlight");
     // A request to list all symbols found in a given text document. The request's
     // parameter is of type TextDocumentIdentifier the
     // response is of type SymbolInformation[] or a Thenable
     // that resolves to such.
-    pub const TextDocumentDocumentSymbol: Method = Method("textDocument/documentSymbol");
+    pub const TEXT_DOCUMENT_DOCUMENT_SYMBOL: Method = Method("textDocument/documentSymbol");
     // A request to provide commands for the given text document and range.
-    pub const TextDocumentCodeAction: Method = Method("textDocument/codeAction");
+    pub const TEXT_DOCUMENT_CODE_ACTION: Method = Method("textDocument/codeAction");
     // Request to resolve additional information for a given code action.The request's
     // parameter is of type CodeAction the response
     // is of type CodeAction or a Thenable that resolves to such.
-    pub const CodeActionResolve: Method = Method("codeAction/resolve");
+    pub const CODE_ACTION_RESOLVE: Method = Method("codeAction/resolve");
     // A request to list project-wide symbols matching the query string given
     // by the WorkspaceSymbolParams. The response is
     // of type SymbolInformation[] or a Thenable that
@@ -24699,116 +24703,117 @@ impl Method {
     // Since: 3.17.0 - support for WorkspaceSymbol in the returned data. Clients
     //  need to advertise support for WorkspaceSymbols via the client capability
     //  `workspace.symbol.resolveSupport`.
-    pub const WorkspaceSymbol: Method = Method("workspace/symbol");
+    pub const WORKSPACE_SYMBOL: Method = Method("workspace/symbol");
     // A request to resolve the range inside the workspace
     // symbol's location.
     //
     // Since: 3.17.0
-    pub const WorkspaceSymbolResolve: Method = Method("workspaceSymbol/resolve");
+    pub const WORKSPACE_SYMBOL_RESOLVE: Method = Method("workspaceSymbol/resolve");
     // A request to provide code lens for the given text document.
-    pub const TextDocumentCodeLens: Method = Method("textDocument/codeLens");
+    pub const TEXT_DOCUMENT_CODE_LENS: Method = Method("textDocument/codeLens");
     // A request to resolve a command for a given code lens.
-    pub const CodeLensResolve: Method = Method("codeLens/resolve");
+    pub const CODE_LENS_RESOLVE: Method = Method("codeLens/resolve");
     // A request to refresh all code actions
     //
     // Since: 3.16.0
-    pub const WorkspaceCodeLensRefresh: Method = Method("workspace/codeLens/refresh");
+    pub const WORKSPACE_CODE_LENS_REFRESH: Method = Method("workspace/codeLens/refresh");
     // A request to provide document links
-    pub const TextDocumentDocumentLink: Method = Method("textDocument/documentLink");
+    pub const TEXT_DOCUMENT_DOCUMENT_LINK: Method = Method("textDocument/documentLink");
     // Request to resolve additional information for a given document link. The request's
     // parameter is of type DocumentLink the response
     // is of type DocumentLink or a Thenable that resolves to such.
-    pub const DocumentLinkResolve: Method = Method("documentLink/resolve");
+    pub const DOCUMENT_LINK_RESOLVE: Method = Method("documentLink/resolve");
     // A request to format a whole document.
-    pub const TextDocumentFormatting: Method = Method("textDocument/formatting");
+    pub const TEXT_DOCUMENT_FORMATTING: Method = Method("textDocument/formatting");
     // A request to format a range in a document.
-    pub const TextDocumentRangeFormatting: Method = Method("textDocument/rangeFormatting");
+    pub const TEXT_DOCUMENT_RANGE_FORMATTING: Method = Method("textDocument/rangeFormatting");
     // A request to format ranges in a document.
     //
     // Since: 3.18.0
-    pub const TextDocumentRangesFormatting: Method = Method("textDocument/rangesFormatting");
+    pub const TEXT_DOCUMENT_RANGES_FORMATTING: Method = Method("textDocument/rangesFormatting");
     // A request to format a document on type.
-    pub const TextDocumentOnTypeFormatting: Method = Method("textDocument/onTypeFormatting");
+    pub const TEXT_DOCUMENT_ON_TYPE_FORMATTING: Method = Method("textDocument/onTypeFormatting");
     // A request to rename a symbol.
-    pub const TextDocumentRename: Method = Method("textDocument/rename");
+    pub const TEXT_DOCUMENT_RENAME: Method = Method("textDocument/rename");
     // A request to test and perform the setup necessary for a rename.
     //
     // Since: 3.16 - support for default behavior
-    pub const TextDocumentPrepareRename: Method = Method("textDocument/prepareRename");
+    pub const TEXT_DOCUMENT_PREPARE_RENAME: Method = Method("textDocument/prepareRename");
     // A request send from the client to the server to execute a command. The request might return
     // a workspace edit which the client will apply to the workspace.
-    pub const WorkspaceExecuteCommand: Method = Method("workspace/executeCommand");
+    pub const WORKSPACE_EXECUTE_COMMAND: Method = Method("workspace/executeCommand");
     // A request sent from the server to the client to modified certain resources.
-    pub const WorkspaceApplyEdit: Method = Method("workspace/applyEdit");
+    pub const WORKSPACE_APPLY_EDIT: Method = Method("workspace/applyEdit");
     // Triggers garbage collection in the language server.
-    pub const CustomRunGC: Method = Method("custom/runGC");
+    pub const CUSTOM_RUN_GC: Method = Method("custom/runGC");
     // Saves a heap profile to the specified directory.
-    pub const CustomSaveHeapProfile: Method = Method("custom/saveHeapProfile");
+    pub const CUSTOM_SAVE_HEAP_PROFILE: Method = Method("custom/saveHeapProfile");
     // Saves an allocation profile to the specified directory.
-    pub const CustomSaveAllocProfile: Method = Method("custom/saveAllocProfile");
+    pub const CUSTOM_SAVE_ALLOC_PROFILE: Method = Method("custom/saveAllocProfile");
     // Starts CPU profiling, writing to the specified directory when stopped.
-    pub const CustomStartCPUProfile: Method = Method("custom/startCPUProfile");
+    pub const CUSTOM_START_CPU_PROFILE: Method = Method("custom/startCPUProfile");
     // Stops CPU profiling and saves the profile.
-    pub const CustomStopCPUProfile: Method = Method("custom/stopCPUProfile");
+    pub const CUSTOM_STOP_CPU_PROFILE: Method = Method("custom/stopCPUProfile");
     // Custom request to initialize an API session.
-    pub const CustomInitializeAPISession: Method = Method("custom/initializeAPISession");
+    pub const CUSTOM_INITIALIZE_API_SESSION: Method = Method("custom/initializeAPISession");
     // Returns project information (e.g. the tsconfig.json path) for a given text document.
-    pub const CustomProjectInfo: Method = Method("custom/projectInfo");
+    pub const CUSTOM_PROJECT_INFO: Method = Method("custom/projectInfo");
     // Replaces extension content mapper contributions and discovers configured mappers for matching open documents.
-    pub const CustomSetContentMapperContributions: Method =
+    pub const CUSTOM_SET_CONTENT_MAPPER_CONTRIBUTIONS: Method =
         Method("custom/setContentMapperContributions");
     // Request to get source definitions for a position.
-    pub const CustomTextDocumentSourceDefinition: Method =
+    pub const CUSTOM_TEXT_DOCUMENT_SOURCE_DEFINITION: Method =
         Method("custom/textDocument/sourceDefinition");
     // Request to get document highlights across multiple files.
-    pub const CustomTextDocumentMultiDocumentHighlight: Method =
+    pub const CUSTOM_TEXT_DOCUMENT_MULTI_DOCUMENT_HIGHLIGHT: Method =
         Method("custom/textDocument/multiDocumentHighlight");
     // Request for auto-insert when a trigger character is typed (VS-specific).
-    pub const TextDocumentVSOnAutoInsert: Method = Method("textDocument/_vs_onAutoInsert");
+    pub const TEXT_DOCUMENT_VS_ON_AUTO_INSERT: Method = Method("textDocument/_vs_onAutoInsert");
     // VS-specific request for Find All References with grouped reference items.
-    pub const TextDocumentVSReferences: Method = Method("textDocument/_vs_references");
+    pub const TEXT_DOCUMENT_VS_REFERENCES: Method = Method("textDocument/_vs_references");
     // The `workspace/didChangeWorkspaceFolders` notification is sent from the client to the server when the workspace
     // folder configuration changes.
-    pub const WorkspaceDidChangeWorkspaceFolders: Method =
+    pub const WORKSPACE_DID_CHANGE_WORKSPACE_FOLDERS: Method =
         Method("workspace/didChangeWorkspaceFolders");
     // The `window/workDoneProgress/cancel` notification is sent from the client to the server to cancel a progress
     // initiated on the server side.
-    pub const WindowWorkDoneProgressCancel: Method = Method("window/workDoneProgress/cancel");
+    pub const WINDOW_WORK_DONE_PROGRESS_CANCEL: Method = Method("window/workDoneProgress/cancel");
     // The did create files notification is sent from the client to the server when
     // files were created from within the client.
     //
     // Since: 3.16.0
-    pub const WorkspaceDidCreateFiles: Method = Method("workspace/didCreateFiles");
+    pub const WORKSPACE_DID_CREATE_FILES: Method = Method("workspace/didCreateFiles");
     // The did rename files notification is sent from the client to the server when
     // files were renamed from within the client.
     //
     // Since: 3.16.0
-    pub const WorkspaceDidRenameFiles: Method = Method("workspace/didRenameFiles");
+    pub const WORKSPACE_DID_RENAME_FILES: Method = Method("workspace/didRenameFiles");
     // The will delete files request is sent from the client to the server before files are actually
     // deleted as long as the deletion is triggered from within the client.
     //
     // Since: 3.16.0
-    pub const WorkspaceDidDeleteFiles: Method = Method("workspace/didDeleteFiles");
+    pub const WORKSPACE_DID_DELETE_FILES: Method = Method("workspace/didDeleteFiles");
     // The initialized notification is sent from the client to the
     // server after the client is fully initialized and the server
     // is allowed to send requests from the server to the client.
-    pub const Initialized: Method = Method("initialized");
+    pub const INITIALIZED: Method = Method("initialized");
     // The exit event is sent from the client to the server to
     // ask the server to exit its process.
-    pub const Exit: Method = Method("exit");
+    pub const EXIT: Method = Method("exit");
     // The configuration change notification is sent from the client to the server
     // when the client's configuration has changed. The notification contains
     // the changed configuration as defined by the language client.
-    pub const WorkspaceDidChangeConfiguration: Method = Method("workspace/didChangeConfiguration");
+    pub const WORKSPACE_DID_CHANGE_CONFIGURATION: Method =
+        Method("workspace/didChangeConfiguration");
     // The show message notification is sent from a server to a client to ask
     // the client to display a particular message in the user interface.
-    pub const WindowShowMessage: Method = Method("window/showMessage");
+    pub const WINDOW_SHOW_MESSAGE: Method = Method("window/showMessage");
     // The log message notification is sent from the server to the client to ask
     // the client to log a particular message.
-    pub const WindowLogMessage: Method = Method("window/logMessage");
+    pub const WINDOW_LOG_MESSAGE: Method = Method("window/logMessage");
     // The telemetry event notification is sent from the server to the client to ask
     // the client to log telemetry data.
-    pub const TelemetryEvent: Method = Method("telemetry/event");
+    pub const TELEMETRY_EVENT: Method = Method("telemetry/event");
     // The document open notification is sent from the client to the server to signal
     // newly opened text documents. The document's truth is now managed by the client
     // and the server must not try to read the document's truth using the document's
@@ -24817,10 +24822,10 @@ impl Method {
     // be sent more than once without a corresponding close notification send before.
     // This means open and close notification must be balanced and the max open count
     // is one.
-    pub const TextDocumentDidOpen: Method = Method("textDocument/didOpen");
+    pub const TEXT_DOCUMENT_DID_OPEN: Method = Method("textDocument/didOpen");
     // The document change notification is sent from the client to the server to signal
     // changes to a text document.
-    pub const TextDocumentDidChange: Method = Method("textDocument/didChange");
+    pub const TEXT_DOCUMENT_DID_CHANGE: Method = Method("textDocument/didChange");
     // The document close notification is sent from the client to the server when
     // the document got closed in the client. The document's truth now exists where
     // the document's uri points to (e.g. if the document's uri is a file uri the
@@ -24828,27 +24833,28 @@ impl Method {
     // is about managing the document's content. Receiving a close notification
     // doesn't mean that the document was open in an editor before. A close
     // notification requires a previous open notification to be sent.
-    pub const TextDocumentDidClose: Method = Method("textDocument/didClose");
+    pub const TEXT_DOCUMENT_DID_CLOSE: Method = Method("textDocument/didClose");
     // The document save notification is sent from the client to the server when
     // the document got saved in the client.
-    pub const TextDocumentDidSave: Method = Method("textDocument/didSave");
+    pub const TEXT_DOCUMENT_DID_SAVE: Method = Method("textDocument/didSave");
     // A document will save notification is sent from the client to the server before
     // the document is actually saved.
-    pub const TextDocumentWillSave: Method = Method("textDocument/willSave");
+    pub const TEXT_DOCUMENT_WILL_SAVE: Method = Method("textDocument/willSave");
     // The watched files notification is sent from the client to the server when
     // the client detects changes to file watched by the language client.
-    pub const WorkspaceDidChangeWatchedFiles: Method = Method("workspace/didChangeWatchedFiles");
+    pub const WORKSPACE_DID_CHANGE_WATCHED_FILES: Method =
+        Method("workspace/didChangeWatchedFiles");
     // Diagnostics notification are sent from the server to the client to signal
     // results of validation runs.
-    pub const TextDocumentPublishDiagnostics: Method = Method("textDocument/publishDiagnostics");
-    pub const SetTrace: Method = Method("$/setTrace");
-    pub const LogTrace: Method = Method("$/logTrace");
-    pub const CancelRequest: Method = Method("$/cancelRequest");
-    pub const Progress: Method = Method("$/progress");
+    pub const TEXT_DOCUMENT_PUBLISH_DIAGNOSTICS: Method = Method("textDocument/publishDiagnostics");
+    pub const SET_TRACE: Method = Method("$/setTrace");
+    pub const LOG_TRACE: Method = Method("$/logTrace");
+    pub const CANCEL_REQUEST: Method = Method("$/cancelRequest");
+    pub const PROGRESS: Method = Method("$/progress");
     // Notification to set the server's log verbosity level based on the output channel's log level.
-    pub const CustomSetLogVerbosity: Method = Method("custom/setLogVerbosity");
+    pub const CUSTOM_SET_LOG_VERBOSITY: Method = Method("custom/setLogVerbosity");
     // Registration-only method for textDocument/semanticTokens.
-    pub const TextDocumentSemanticTokens: Method = Method("textDocument/semanticTokens");
+    pub const TEXT_DOCUMENT_SEMANTIC_TOKENS: Method = Method("textDocument/semanticTokens");
 }
 
 impl Method {
@@ -24858,113 +24864,121 @@ impl Method {
     )]
     pub fn from_str(s: &str) -> Method {
         match s {
-            "textDocument/implementation" => Method::TextDocumentImplementation,
-            "textDocument/typeDefinition" => Method::TextDocumentTypeDefinition,
-            "workspace/workspaceFolders" => Method::WorkspaceWorkspaceFolders,
-            "workspace/configuration" => Method::WorkspaceConfiguration,
-            "textDocument/documentColor" => Method::TextDocumentDocumentColor,
-            "textDocument/colorPresentation" => Method::TextDocumentColorPresentation,
-            "textDocument/foldingRange" => Method::TextDocumentFoldingRange,
-            "workspace/foldingRange/refresh" => Method::WorkspaceFoldingRangeRefresh,
-            "textDocument/declaration" => Method::TextDocumentDeclaration,
-            "textDocument/selectionRange" => Method::TextDocumentSelectionRange,
-            "window/workDoneProgress/create" => Method::WindowWorkDoneProgressCreate,
-            "textDocument/prepareCallHierarchy" => Method::TextDocumentPrepareCallHierarchy,
-            "callHierarchy/incomingCalls" => Method::CallHierarchyIncomingCalls,
-            "callHierarchy/outgoingCalls" => Method::CallHierarchyOutgoingCalls,
-            "textDocument/semanticTokens/full" => Method::TextDocumentSemanticTokensFull,
-            "textDocument/semanticTokens/full/delta" => Method::TextDocumentSemanticTokensFullDelta,
-            "textDocument/semanticTokens/range" => Method::TextDocumentSemanticTokensRange,
-            "workspace/semanticTokens/refresh" => Method::WorkspaceSemanticTokensRefresh,
-            "window/showDocument" => Method::WindowShowDocument,
-            "textDocument/linkedEditingRange" => Method::TextDocumentLinkedEditingRange,
-            "workspace/willCreateFiles" => Method::WorkspaceWillCreateFiles,
-            "workspace/willRenameFiles" => Method::WorkspaceWillRenameFiles,
-            "workspace/willDeleteFiles" => Method::WorkspaceWillDeleteFiles,
-            "textDocument/moniker" => Method::TextDocumentMoniker,
-            "textDocument/prepareTypeHierarchy" => Method::TextDocumentPrepareTypeHierarchy,
-            "typeHierarchy/supertypes" => Method::TypeHierarchySupertypes,
-            "typeHierarchy/subtypes" => Method::TypeHierarchySubtypes,
-            "textDocument/inlineValue" => Method::TextDocumentInlineValue,
-            "workspace/inlineValue/refresh" => Method::WorkspaceInlineValueRefresh,
-            "textDocument/inlayHint" => Method::TextDocumentInlayHint,
-            "inlayHint/resolve" => Method::InlayHintResolve,
-            "workspace/inlayHint/refresh" => Method::WorkspaceInlayHintRefresh,
-            "textDocument/diagnostic" => Method::TextDocumentDiagnostic,
-            "workspace/diagnostic" => Method::WorkspaceDiagnostic,
-            "workspace/diagnostic/refresh" => Method::WorkspaceDiagnosticRefresh,
-            "textDocument/inlineCompletion" => Method::TextDocumentInlineCompletion,
-            "workspace/textDocumentContent" => Method::WorkspaceTextDocumentContent,
-            "workspace/textDocumentContent/refresh" => Method::WorkspaceTextDocumentContentRefresh,
-            "client/registerCapability" => Method::ClientRegisterCapability,
-            "client/unregisterCapability" => Method::ClientUnregisterCapability,
-            "initialize" => Method::Initialize,
-            "shutdown" => Method::Shutdown,
-            "window/showMessageRequest" => Method::WindowShowMessageRequest,
-            "textDocument/willSaveWaitUntil" => Method::TextDocumentWillSaveWaitUntil,
-            "textDocument/completion" => Method::TextDocumentCompletion,
-            "completionItem/resolve" => Method::CompletionItemResolve,
-            "textDocument/hover" => Method::TextDocumentHover,
-            "textDocument/signatureHelp" => Method::TextDocumentSignatureHelp,
-            "textDocument/definition" => Method::TextDocumentDefinition,
-            "textDocument/references" => Method::TextDocumentReferences,
-            "textDocument/documentHighlight" => Method::TextDocumentDocumentHighlight,
-            "textDocument/documentSymbol" => Method::TextDocumentDocumentSymbol,
-            "textDocument/codeAction" => Method::TextDocumentCodeAction,
-            "codeAction/resolve" => Method::CodeActionResolve,
-            "workspace/symbol" => Method::WorkspaceSymbol,
-            "workspaceSymbol/resolve" => Method::WorkspaceSymbolResolve,
-            "textDocument/codeLens" => Method::TextDocumentCodeLens,
-            "codeLens/resolve" => Method::CodeLensResolve,
-            "workspace/codeLens/refresh" => Method::WorkspaceCodeLensRefresh,
-            "textDocument/documentLink" => Method::TextDocumentDocumentLink,
-            "documentLink/resolve" => Method::DocumentLinkResolve,
-            "textDocument/formatting" => Method::TextDocumentFormatting,
-            "textDocument/rangeFormatting" => Method::TextDocumentRangeFormatting,
-            "textDocument/rangesFormatting" => Method::TextDocumentRangesFormatting,
-            "textDocument/onTypeFormatting" => Method::TextDocumentOnTypeFormatting,
-            "textDocument/rename" => Method::TextDocumentRename,
-            "textDocument/prepareRename" => Method::TextDocumentPrepareRename,
-            "workspace/executeCommand" => Method::WorkspaceExecuteCommand,
-            "workspace/applyEdit" => Method::WorkspaceApplyEdit,
-            "custom/runGC" => Method::CustomRunGC,
-            "custom/saveHeapProfile" => Method::CustomSaveHeapProfile,
-            "custom/saveAllocProfile" => Method::CustomSaveAllocProfile,
-            "custom/startCPUProfile" => Method::CustomStartCPUProfile,
-            "custom/stopCPUProfile" => Method::CustomStopCPUProfile,
-            "custom/initializeAPISession" => Method::CustomInitializeAPISession,
-            "custom/projectInfo" => Method::CustomProjectInfo,
-            "custom/setContentMapperContributions" => Method::CustomSetContentMapperContributions,
-            "custom/textDocument/sourceDefinition" => Method::CustomTextDocumentSourceDefinition,
-            "custom/textDocument/multiDocumentHighlight" => {
-                Method::CustomTextDocumentMultiDocumentHighlight
+            "textDocument/implementation" => Method::TEXT_DOCUMENT_IMPLEMENTATION,
+            "textDocument/typeDefinition" => Method::TEXT_DOCUMENT_TYPE_DEFINITION,
+            "workspace/workspaceFolders" => Method::WORKSPACE_WORKSPACE_FOLDERS,
+            "workspace/configuration" => Method::WORKSPACE_CONFIGURATION,
+            "textDocument/documentColor" => Method::TEXT_DOCUMENT_DOCUMENT_COLOR,
+            "textDocument/colorPresentation" => Method::TEXT_DOCUMENT_COLOR_PRESENTATION,
+            "textDocument/foldingRange" => Method::TEXT_DOCUMENT_FOLDING_RANGE,
+            "workspace/foldingRange/refresh" => Method::WORKSPACE_FOLDING_RANGE_REFRESH,
+            "textDocument/declaration" => Method::TEXT_DOCUMENT_DECLARATION,
+            "textDocument/selectionRange" => Method::TEXT_DOCUMENT_SELECTION_RANGE,
+            "window/workDoneProgress/create" => Method::WINDOW_WORK_DONE_PROGRESS_CREATE,
+            "textDocument/prepareCallHierarchy" => Method::TEXT_DOCUMENT_PREPARE_CALL_HIERARCHY,
+            "callHierarchy/incomingCalls" => Method::CALL_HIERARCHY_INCOMING_CALLS,
+            "callHierarchy/outgoingCalls" => Method::CALL_HIERARCHY_OUTGOING_CALLS,
+            "textDocument/semanticTokens/full" => Method::TEXT_DOCUMENT_SEMANTIC_TOKENS_FULL,
+            "textDocument/semanticTokens/full/delta" => {
+                Method::TEXT_DOCUMENT_SEMANTIC_TOKENS_FULL_DELTA
             }
-            "textDocument/_vs_onAutoInsert" => Method::TextDocumentVSOnAutoInsert,
-            "textDocument/_vs_references" => Method::TextDocumentVSReferences,
-            "workspace/didChangeWorkspaceFolders" => Method::WorkspaceDidChangeWorkspaceFolders,
-            "window/workDoneProgress/cancel" => Method::WindowWorkDoneProgressCancel,
-            "workspace/didCreateFiles" => Method::WorkspaceDidCreateFiles,
-            "workspace/didRenameFiles" => Method::WorkspaceDidRenameFiles,
-            "workspace/didDeleteFiles" => Method::WorkspaceDidDeleteFiles,
-            "initialized" => Method::Initialized,
-            "exit" => Method::Exit,
-            "workspace/didChangeConfiguration" => Method::WorkspaceDidChangeConfiguration,
-            "window/showMessage" => Method::WindowShowMessage,
-            "window/logMessage" => Method::WindowLogMessage,
-            "telemetry/event" => Method::TelemetryEvent,
-            "textDocument/didOpen" => Method::TextDocumentDidOpen,
-            "textDocument/didChange" => Method::TextDocumentDidChange,
-            "textDocument/didClose" => Method::TextDocumentDidClose,
-            "textDocument/didSave" => Method::TextDocumentDidSave,
-            "textDocument/willSave" => Method::TextDocumentWillSave,
-            "workspace/didChangeWatchedFiles" => Method::WorkspaceDidChangeWatchedFiles,
-            "textDocument/publishDiagnostics" => Method::TextDocumentPublishDiagnostics,
-            "$/setTrace" => Method::SetTrace,
-            "$/logTrace" => Method::LogTrace,
-            "$/cancelRequest" => Method::CancelRequest,
-            "$/progress" => Method::Progress,
-            "custom/setLogVerbosity" => Method::CustomSetLogVerbosity,
-            "textDocument/semanticTokens" => Method::TextDocumentSemanticTokens,
+            "textDocument/semanticTokens/range" => Method::TEXT_DOCUMENT_SEMANTIC_TOKENS_RANGE,
+            "workspace/semanticTokens/refresh" => Method::WORKSPACE_SEMANTIC_TOKENS_REFRESH,
+            "window/showDocument" => Method::WINDOW_SHOW_DOCUMENT,
+            "textDocument/linkedEditingRange" => Method::TEXT_DOCUMENT_LINKED_EDITING_RANGE,
+            "workspace/willCreateFiles" => Method::WORKSPACE_WILL_CREATE_FILES,
+            "workspace/willRenameFiles" => Method::WORKSPACE_WILL_RENAME_FILES,
+            "workspace/willDeleteFiles" => Method::WORKSPACE_WILL_DELETE_FILES,
+            "textDocument/moniker" => Method::TEXT_DOCUMENT_MONIKER,
+            "textDocument/prepareTypeHierarchy" => Method::TEXT_DOCUMENT_PREPARE_TYPE_HIERARCHY,
+            "typeHierarchy/supertypes" => Method::TYPE_HIERARCHY_SUPERTYPES,
+            "typeHierarchy/subtypes" => Method::TYPE_HIERARCHY_SUBTYPES,
+            "textDocument/inlineValue" => Method::TEXT_DOCUMENT_INLINE_VALUE,
+            "workspace/inlineValue/refresh" => Method::WORKSPACE_INLINE_VALUE_REFRESH,
+            "textDocument/inlayHint" => Method::TEXT_DOCUMENT_INLAY_HINT,
+            "inlayHint/resolve" => Method::INLAY_HINT_RESOLVE,
+            "workspace/inlayHint/refresh" => Method::WORKSPACE_INLAY_HINT_REFRESH,
+            "textDocument/diagnostic" => Method::TEXT_DOCUMENT_DIAGNOSTIC,
+            "workspace/diagnostic" => Method::WORKSPACE_DIAGNOSTIC,
+            "workspace/diagnostic/refresh" => Method::WORKSPACE_DIAGNOSTIC_REFRESH,
+            "textDocument/inlineCompletion" => Method::TEXT_DOCUMENT_INLINE_COMPLETION,
+            "workspace/textDocumentContent" => Method::WORKSPACE_TEXT_DOCUMENT_CONTENT,
+            "workspace/textDocumentContent/refresh" => {
+                Method::WORKSPACE_TEXT_DOCUMENT_CONTENT_REFRESH
+            }
+            "client/registerCapability" => Method::CLIENT_REGISTER_CAPABILITY,
+            "client/unregisterCapability" => Method::CLIENT_UNREGISTER_CAPABILITY,
+            "initialize" => Method::INITIALIZE,
+            "shutdown" => Method::SHUTDOWN,
+            "window/showMessageRequest" => Method::WINDOW_SHOW_MESSAGE_REQUEST,
+            "textDocument/willSaveWaitUntil" => Method::TEXT_DOCUMENT_WILL_SAVE_WAIT_UNTIL,
+            "textDocument/completion" => Method::TEXT_DOCUMENT_COMPLETION,
+            "completionItem/resolve" => Method::COMPLETION_ITEM_RESOLVE,
+            "textDocument/hover" => Method::TEXT_DOCUMENT_HOVER,
+            "textDocument/signatureHelp" => Method::TEXT_DOCUMENT_SIGNATURE_HELP,
+            "textDocument/definition" => Method::TEXT_DOCUMENT_DEFINITION,
+            "textDocument/references" => Method::TEXT_DOCUMENT_REFERENCES,
+            "textDocument/documentHighlight" => Method::TEXT_DOCUMENT_DOCUMENT_HIGHLIGHT,
+            "textDocument/documentSymbol" => Method::TEXT_DOCUMENT_DOCUMENT_SYMBOL,
+            "textDocument/codeAction" => Method::TEXT_DOCUMENT_CODE_ACTION,
+            "codeAction/resolve" => Method::CODE_ACTION_RESOLVE,
+            "workspace/symbol" => Method::WORKSPACE_SYMBOL,
+            "workspaceSymbol/resolve" => Method::WORKSPACE_SYMBOL_RESOLVE,
+            "textDocument/codeLens" => Method::TEXT_DOCUMENT_CODE_LENS,
+            "codeLens/resolve" => Method::CODE_LENS_RESOLVE,
+            "workspace/codeLens/refresh" => Method::WORKSPACE_CODE_LENS_REFRESH,
+            "textDocument/documentLink" => Method::TEXT_DOCUMENT_DOCUMENT_LINK,
+            "documentLink/resolve" => Method::DOCUMENT_LINK_RESOLVE,
+            "textDocument/formatting" => Method::TEXT_DOCUMENT_FORMATTING,
+            "textDocument/rangeFormatting" => Method::TEXT_DOCUMENT_RANGE_FORMATTING,
+            "textDocument/rangesFormatting" => Method::TEXT_DOCUMENT_RANGES_FORMATTING,
+            "textDocument/onTypeFormatting" => Method::TEXT_DOCUMENT_ON_TYPE_FORMATTING,
+            "textDocument/rename" => Method::TEXT_DOCUMENT_RENAME,
+            "textDocument/prepareRename" => Method::TEXT_DOCUMENT_PREPARE_RENAME,
+            "workspace/executeCommand" => Method::WORKSPACE_EXECUTE_COMMAND,
+            "workspace/applyEdit" => Method::WORKSPACE_APPLY_EDIT,
+            "custom/runGC" => Method::CUSTOM_RUN_GC,
+            "custom/saveHeapProfile" => Method::CUSTOM_SAVE_HEAP_PROFILE,
+            "custom/saveAllocProfile" => Method::CUSTOM_SAVE_ALLOC_PROFILE,
+            "custom/startCPUProfile" => Method::CUSTOM_START_CPU_PROFILE,
+            "custom/stopCPUProfile" => Method::CUSTOM_STOP_CPU_PROFILE,
+            "custom/initializeAPISession" => Method::CUSTOM_INITIALIZE_API_SESSION,
+            "custom/projectInfo" => Method::CUSTOM_PROJECT_INFO,
+            "custom/setContentMapperContributions" => {
+                Method::CUSTOM_SET_CONTENT_MAPPER_CONTRIBUTIONS
+            }
+            "custom/textDocument/sourceDefinition" => {
+                Method::CUSTOM_TEXT_DOCUMENT_SOURCE_DEFINITION
+            }
+            "custom/textDocument/multiDocumentHighlight" => {
+                Method::CUSTOM_TEXT_DOCUMENT_MULTI_DOCUMENT_HIGHLIGHT
+            }
+            "textDocument/_vs_onAutoInsert" => Method::TEXT_DOCUMENT_VS_ON_AUTO_INSERT,
+            "textDocument/_vs_references" => Method::TEXT_DOCUMENT_VS_REFERENCES,
+            "workspace/didChangeWorkspaceFolders" => Method::WORKSPACE_DID_CHANGE_WORKSPACE_FOLDERS,
+            "window/workDoneProgress/cancel" => Method::WINDOW_WORK_DONE_PROGRESS_CANCEL,
+            "workspace/didCreateFiles" => Method::WORKSPACE_DID_CREATE_FILES,
+            "workspace/didRenameFiles" => Method::WORKSPACE_DID_RENAME_FILES,
+            "workspace/didDeleteFiles" => Method::WORKSPACE_DID_DELETE_FILES,
+            "initialized" => Method::INITIALIZED,
+            "exit" => Method::EXIT,
+            "workspace/didChangeConfiguration" => Method::WORKSPACE_DID_CHANGE_CONFIGURATION,
+            "window/showMessage" => Method::WINDOW_SHOW_MESSAGE,
+            "window/logMessage" => Method::WINDOW_LOG_MESSAGE,
+            "telemetry/event" => Method::TELEMETRY_EVENT,
+            "textDocument/didOpen" => Method::TEXT_DOCUMENT_DID_OPEN,
+            "textDocument/didChange" => Method::TEXT_DOCUMENT_DID_CHANGE,
+            "textDocument/didClose" => Method::TEXT_DOCUMENT_DID_CLOSE,
+            "textDocument/didSave" => Method::TEXT_DOCUMENT_DID_SAVE,
+            "textDocument/willSave" => Method::TEXT_DOCUMENT_WILL_SAVE,
+            "workspace/didChangeWatchedFiles" => Method::WORKSPACE_DID_CHANGE_WATCHED_FILES,
+            "textDocument/publishDiagnostics" => Method::TEXT_DOCUMENT_PUBLISH_DIAGNOSTICS,
+            "$/setTrace" => Method::SET_TRACE,
+            "$/logTrace" => Method::LOG_TRACE,
+            "$/cancelRequest" => Method::CANCEL_REQUEST,
+            "$/progress" => Method::PROGRESS,
+            "custom/setLogVerbosity" => Method::CUSTOM_SET_LOG_VERBOSITY,
+            "textDocument/semanticTokens" => Method::TEXT_DOCUMENT_SEMANTIC_TOKENS,
             _ => Method(intern(s)),
         }
     }
@@ -24979,7 +24993,7 @@ pub type ImplementationResponse = LocationOrLocationsOrDefinitionLinksOrNull;
 pub const TEXT_DOCUMENT_IMPLEMENTATION_INFO: RequestInfo<
     ImplementationParams,
     ImplementationResponse,
-> = RequestInfo::new(Method::TextDocumentImplementation);
+> = RequestInfo::new(Method::TEXT_DOCUMENT_IMPLEMENTATION);
 
 // Response type for `textDocument/typeDefinition`
 pub type TypeDefinitionResponse = LocationOrLocationsOrDefinitionLinksOrNull;
@@ -24988,21 +25002,21 @@ pub type TypeDefinitionResponse = LocationOrLocationsOrDefinitionLinksOrNull;
 pub const TEXT_DOCUMENT_TYPE_DEFINITION_INFO: RequestInfo<
     TypeDefinitionParams,
     TypeDefinitionResponse,
-> = RequestInfo::new(Method::TextDocumentTypeDefinition);
+> = RequestInfo::new(Method::TEXT_DOCUMENT_TYPE_DEFINITION);
 
 // Response type for `workspace/workspaceFolders`
 pub type WorkspaceFoldersResponse = WorkspaceFoldersOrNull;
 
 // Type mapping info for `workspace/workspaceFolders`
 pub const WORKSPACE_WORKSPACE_FOLDERS_INFO: RequestInfo<NoParams, WorkspaceFoldersResponse> =
-    RequestInfo::new(Method::WorkspaceWorkspaceFolders);
+    RequestInfo::new(Method::WORKSPACE_WORKSPACE_FOLDERS);
 
 // Response type for `workspace/configuration`
 pub type ConfigurationResponse = Vec<Value>;
 
 // Type mapping info for `workspace/configuration`
 pub const WORKSPACE_CONFIGURATION_INFO: RequestInfo<ConfigurationParams, ConfigurationResponse> =
-    RequestInfo::new(Method::WorkspaceConfiguration);
+    RequestInfo::new(Method::WORKSPACE_CONFIGURATION);
 
 // Response type for `textDocument/documentColor`
 pub type DocumentColorResponse = Vec<ColorInformation>;
@@ -25011,7 +25025,7 @@ pub type DocumentColorResponse = Vec<ColorInformation>;
 pub const TEXT_DOCUMENT_DOCUMENT_COLOR_INFO: RequestInfo<
     DocumentColorParams,
     DocumentColorResponse,
-> = RequestInfo::new(Method::TextDocumentDocumentColor);
+> = RequestInfo::new(Method::TEXT_DOCUMENT_DOCUMENT_COLOR);
 
 // Response type for `textDocument/colorPresentation`
 pub type ColorPresentationResponse = Vec<ColorPresentation>;
@@ -25020,28 +25034,28 @@ pub type ColorPresentationResponse = Vec<ColorPresentation>;
 pub const TEXT_DOCUMENT_COLOR_PRESENTATION_INFO: RequestInfo<
     ColorPresentationParams,
     ColorPresentationResponse,
-> = RequestInfo::new(Method::TextDocumentColorPresentation);
+> = RequestInfo::new(Method::TEXT_DOCUMENT_COLOR_PRESENTATION);
 
 // Response type for `textDocument/foldingRange`
 pub type FoldingRangeResponse = FoldingRangesOrNull;
 
 // Type mapping info for `textDocument/foldingRange`
 pub const TEXT_DOCUMENT_FOLDING_RANGE_INFO: RequestInfo<FoldingRangeParams, FoldingRangeResponse> =
-    RequestInfo::new(Method::TextDocumentFoldingRange);
+    RequestInfo::new(Method::TEXT_DOCUMENT_FOLDING_RANGE);
 
 // Response type for `workspace/foldingRange/refresh`
 pub type FoldingRangeRefreshResponse = Null;
 
 // Type mapping info for `workspace/foldingRange/refresh`
 pub const WORKSPACE_FOLDING_RANGE_REFRESH_INFO: RequestInfo<NoParams, FoldingRangeRefreshResponse> =
-    RequestInfo::new(Method::WorkspaceFoldingRangeRefresh);
+    RequestInfo::new(Method::WORKSPACE_FOLDING_RANGE_REFRESH);
 
 // Response type for `textDocument/declaration`
 pub type DeclarationResponse = LocationOrLocationsOrDeclarationLinksOrNull;
 
 // Type mapping info for `textDocument/declaration`
 pub const TEXT_DOCUMENT_DECLARATION_INFO: RequestInfo<DeclarationParams, DeclarationResponse> =
-    RequestInfo::new(Method::TextDocumentDeclaration);
+    RequestInfo::new(Method::TEXT_DOCUMENT_DECLARATION);
 
 // Response type for `textDocument/selectionRange`
 pub type SelectionRangeResponse = SelectionRangesOrNull;
@@ -25050,7 +25064,7 @@ pub type SelectionRangeResponse = SelectionRangesOrNull;
 pub const TEXT_DOCUMENT_SELECTION_RANGE_INFO: RequestInfo<
     SelectionRangeParams,
     SelectionRangeResponse,
-> = RequestInfo::new(Method::TextDocumentSelectionRange);
+> = RequestInfo::new(Method::TEXT_DOCUMENT_SELECTION_RANGE);
 
 // Response type for `window/workDoneProgress/create`
 pub type WorkDoneProgressCreateResponse = Null;
@@ -25059,7 +25073,7 @@ pub type WorkDoneProgressCreateResponse = Null;
 pub const WINDOW_WORK_DONE_PROGRESS_CREATE_INFO: RequestInfo<
     WorkDoneProgressCreateParams,
     WorkDoneProgressCreateResponse,
-> = RequestInfo::new(Method::WindowWorkDoneProgressCreate);
+> = RequestInfo::new(Method::WINDOW_WORK_DONE_PROGRESS_CREATE);
 
 // Response type for `textDocument/prepareCallHierarchy`
 pub type CallHierarchyPrepareResponse = CallHierarchyItemsOrNull;
@@ -25068,7 +25082,7 @@ pub type CallHierarchyPrepareResponse = CallHierarchyItemsOrNull;
 pub const TEXT_DOCUMENT_PREPARE_CALL_HIERARCHY_INFO: RequestInfo<
     CallHierarchyPrepareParams,
     CallHierarchyPrepareResponse,
-> = RequestInfo::new(Method::TextDocumentPrepareCallHierarchy);
+> = RequestInfo::new(Method::TEXT_DOCUMENT_PREPARE_CALL_HIERARCHY);
 
 // Response type for `callHierarchy/incomingCalls`
 pub type CallHierarchyIncomingCallsResponse = CallHierarchyIncomingCallsOrNull;
@@ -25077,7 +25091,7 @@ pub type CallHierarchyIncomingCallsResponse = CallHierarchyIncomingCallsOrNull;
 pub const CALL_HIERARCHY_INCOMING_CALLS_INFO: RequestInfo<
     CallHierarchyIncomingCallsParams,
     CallHierarchyIncomingCallsResponse,
-> = RequestInfo::new(Method::CallHierarchyIncomingCalls);
+> = RequestInfo::new(Method::CALL_HIERARCHY_INCOMING_CALLS);
 
 // Response type for `callHierarchy/outgoingCalls`
 pub type CallHierarchyOutgoingCallsResponse = CallHierarchyOutgoingCallsOrNull;
@@ -25086,7 +25100,7 @@ pub type CallHierarchyOutgoingCallsResponse = CallHierarchyOutgoingCallsOrNull;
 pub const CALL_HIERARCHY_OUTGOING_CALLS_INFO: RequestInfo<
     CallHierarchyOutgoingCallsParams,
     CallHierarchyOutgoingCallsResponse,
-> = RequestInfo::new(Method::CallHierarchyOutgoingCalls);
+> = RequestInfo::new(Method::CALL_HIERARCHY_OUTGOING_CALLS);
 
 // Response type for `textDocument/semanticTokens/full`
 pub type SemanticTokensResponse = SemanticTokensOrNull;
@@ -25095,7 +25109,7 @@ pub type SemanticTokensResponse = SemanticTokensOrNull;
 pub const TEXT_DOCUMENT_SEMANTIC_TOKENS_FULL_INFO: RequestInfo<
     SemanticTokensParams,
     SemanticTokensResponse,
-> = RequestInfo::new(Method::TextDocumentSemanticTokensFull);
+> = RequestInfo::new(Method::TEXT_DOCUMENT_SEMANTIC_TOKENS_FULL);
 
 // Response type for `textDocument/semanticTokens/full/delta`
 pub type SemanticTokensDeltaResponse = SemanticTokensOrSemanticTokensDeltaOrNull;
@@ -25104,7 +25118,7 @@ pub type SemanticTokensDeltaResponse = SemanticTokensOrSemanticTokensDeltaOrNull
 pub const TEXT_DOCUMENT_SEMANTIC_TOKENS_FULL_DELTA_INFO: RequestInfo<
     SemanticTokensDeltaParams,
     SemanticTokensDeltaResponse,
-> = RequestInfo::new(Method::TextDocumentSemanticTokensFullDelta);
+> = RequestInfo::new(Method::TEXT_DOCUMENT_SEMANTIC_TOKENS_FULL_DELTA);
 
 // Response type for `textDocument/semanticTokens/range`
 pub type SemanticTokensRangeResponse = SemanticTokensOrNull;
@@ -25113,7 +25127,7 @@ pub type SemanticTokensRangeResponse = SemanticTokensOrNull;
 pub const TEXT_DOCUMENT_SEMANTIC_TOKENS_RANGE_INFO: RequestInfo<
     SemanticTokensRangeParams,
     SemanticTokensRangeResponse,
-> = RequestInfo::new(Method::TextDocumentSemanticTokensRange);
+> = RequestInfo::new(Method::TEXT_DOCUMENT_SEMANTIC_TOKENS_RANGE);
 
 // Response type for `workspace/semanticTokens/refresh`
 pub type SemanticTokensRefreshResponse = Null;
@@ -25122,14 +25136,14 @@ pub type SemanticTokensRefreshResponse = Null;
 pub const WORKSPACE_SEMANTIC_TOKENS_REFRESH_INFO: RequestInfo<
     NoParams,
     SemanticTokensRefreshResponse,
-> = RequestInfo::new(Method::WorkspaceSemanticTokensRefresh);
+> = RequestInfo::new(Method::WORKSPACE_SEMANTIC_TOKENS_REFRESH);
 
 // Response type for `window/showDocument`
 pub type ShowDocumentResponse = ShowDocumentResult;
 
 // Type mapping info for `window/showDocument`
 pub const WINDOW_SHOW_DOCUMENT_INFO: RequestInfo<ShowDocumentParams, ShowDocumentResponse> =
-    RequestInfo::new(Method::WindowShowDocument);
+    RequestInfo::new(Method::WINDOW_SHOW_DOCUMENT);
 
 // Response type for `textDocument/linkedEditingRange`
 pub type LinkedEditingRangeResponse = LinkedEditingRangesOrNull;
@@ -25138,7 +25152,7 @@ pub type LinkedEditingRangeResponse = LinkedEditingRangesOrNull;
 pub const TEXT_DOCUMENT_LINKED_EDITING_RANGE_INFO: RequestInfo<
     LinkedEditingRangeParams,
     LinkedEditingRangeResponse,
-> = RequestInfo::new(Method::TextDocumentLinkedEditingRange);
+> = RequestInfo::new(Method::TEXT_DOCUMENT_LINKED_EDITING_RANGE);
 
 // Response type for `workspace/willCreateFiles`
 pub type WillCreateFilesResponse = WorkspaceEditOrNull;
@@ -25147,7 +25161,7 @@ pub type WillCreateFilesResponse = WorkspaceEditOrNull;
 pub const WORKSPACE_WILL_CREATE_FILES_INFO: RequestInfo<
     CreateFilesParams,
     WillCreateFilesResponse,
-> = RequestInfo::new(Method::WorkspaceWillCreateFiles);
+> = RequestInfo::new(Method::WORKSPACE_WILL_CREATE_FILES);
 
 // Response type for `workspace/willRenameFiles`
 pub type WillRenameFilesResponse = WorkspaceEditOrNull;
@@ -25156,7 +25170,7 @@ pub type WillRenameFilesResponse = WorkspaceEditOrNull;
 pub const WORKSPACE_WILL_RENAME_FILES_INFO: RequestInfo<
     RenameFilesParams,
     WillRenameFilesResponse,
-> = RequestInfo::new(Method::WorkspaceWillRenameFiles);
+> = RequestInfo::new(Method::WORKSPACE_WILL_RENAME_FILES);
 
 // Response type for `workspace/willDeleteFiles`
 pub type WillDeleteFilesResponse = WorkspaceEditOrNull;
@@ -25165,14 +25179,14 @@ pub type WillDeleteFilesResponse = WorkspaceEditOrNull;
 pub const WORKSPACE_WILL_DELETE_FILES_INFO: RequestInfo<
     DeleteFilesParams,
     WillDeleteFilesResponse,
-> = RequestInfo::new(Method::WorkspaceWillDeleteFiles);
+> = RequestInfo::new(Method::WORKSPACE_WILL_DELETE_FILES);
 
 // Response type for `textDocument/moniker`
 pub type MonikerResponse = MonikersOrNull;
 
 // Type mapping info for `textDocument/moniker`
 pub const TEXT_DOCUMENT_MONIKER_INFO: RequestInfo<MonikerParams, MonikerResponse> =
-    RequestInfo::new(Method::TextDocumentMoniker);
+    RequestInfo::new(Method::TEXT_DOCUMENT_MONIKER);
 
 // Response type for `textDocument/prepareTypeHierarchy`
 pub type TypeHierarchyPrepareResponse = TypeHierarchyItemsOrNull;
@@ -25181,7 +25195,7 @@ pub type TypeHierarchyPrepareResponse = TypeHierarchyItemsOrNull;
 pub const TEXT_DOCUMENT_PREPARE_TYPE_HIERARCHY_INFO: RequestInfo<
     TypeHierarchyPrepareParams,
     TypeHierarchyPrepareResponse,
-> = RequestInfo::new(Method::TextDocumentPrepareTypeHierarchy);
+> = RequestInfo::new(Method::TEXT_DOCUMENT_PREPARE_TYPE_HIERARCHY);
 
 // Response type for `typeHierarchy/supertypes`
 pub type TypeHierarchySupertypesResponse = TypeHierarchyItemsOrNull;
@@ -25190,7 +25204,7 @@ pub type TypeHierarchySupertypesResponse = TypeHierarchyItemsOrNull;
 pub const TYPE_HIERARCHY_SUPERTYPES_INFO: RequestInfo<
     TypeHierarchySupertypesParams,
     TypeHierarchySupertypesResponse,
-> = RequestInfo::new(Method::TypeHierarchySupertypes);
+> = RequestInfo::new(Method::TYPE_HIERARCHY_SUPERTYPES);
 
 // Response type for `typeHierarchy/subtypes`
 pub type TypeHierarchySubtypesResponse = TypeHierarchyItemsOrNull;
@@ -25199,42 +25213,42 @@ pub type TypeHierarchySubtypesResponse = TypeHierarchyItemsOrNull;
 pub const TYPE_HIERARCHY_SUBTYPES_INFO: RequestInfo<
     TypeHierarchySubtypesParams,
     TypeHierarchySubtypesResponse,
-> = RequestInfo::new(Method::TypeHierarchySubtypes);
+> = RequestInfo::new(Method::TYPE_HIERARCHY_SUBTYPES);
 
 // Response type for `textDocument/inlineValue`
 pub type InlineValueResponse = InlineValuesOrNull;
 
 // Type mapping info for `textDocument/inlineValue`
 pub const TEXT_DOCUMENT_INLINE_VALUE_INFO: RequestInfo<InlineValueParams, InlineValueResponse> =
-    RequestInfo::new(Method::TextDocumentInlineValue);
+    RequestInfo::new(Method::TEXT_DOCUMENT_INLINE_VALUE);
 
 // Response type for `workspace/inlineValue/refresh`
 pub type InlineValueRefreshResponse = Null;
 
 // Type mapping info for `workspace/inlineValue/refresh`
 pub const WORKSPACE_INLINE_VALUE_REFRESH_INFO: RequestInfo<NoParams, InlineValueRefreshResponse> =
-    RequestInfo::new(Method::WorkspaceInlineValueRefresh);
+    RequestInfo::new(Method::WORKSPACE_INLINE_VALUE_REFRESH);
 
 // Response type for `textDocument/inlayHint`
 pub type InlayHintResponse = InlayHintsOrNull;
 
 // Type mapping info for `textDocument/inlayHint`
 pub const TEXT_DOCUMENT_INLAY_HINT_INFO: RequestInfo<InlayHintParams, InlayHintResponse> =
-    RequestInfo::new(Method::TextDocumentInlayHint);
+    RequestInfo::new(Method::TEXT_DOCUMENT_INLAY_HINT);
 
 // Response type for `inlayHint/resolve`
 pub type InlayHintResolveResponse = InlayHint;
 
 // Type mapping info for `inlayHint/resolve`
 pub const INLAY_HINT_RESOLVE_INFO: RequestInfo<InlayHint, InlayHintResolveResponse> =
-    RequestInfo::new(Method::InlayHintResolve);
+    RequestInfo::new(Method::INLAY_HINT_RESOLVE);
 
 // Response type for `workspace/inlayHint/refresh`
 pub type InlayHintRefreshResponse = Null;
 
 // Type mapping info for `workspace/inlayHint/refresh`
 pub const WORKSPACE_INLAY_HINT_REFRESH_INFO: RequestInfo<NoParams, InlayHintRefreshResponse> =
-    RequestInfo::new(Method::WorkspaceInlayHintRefresh);
+    RequestInfo::new(Method::WORKSPACE_INLAY_HINT_REFRESH);
 
 // Response type for `textDocument/diagnostic`
 pub type DocumentDiagnosticResponse =
@@ -25244,7 +25258,7 @@ pub type DocumentDiagnosticResponse =
 pub const TEXT_DOCUMENT_DIAGNOSTIC_INFO: RequestInfo<
     DocumentDiagnosticParams,
     DocumentDiagnosticResponse,
-> = RequestInfo::new(Method::TextDocumentDiagnostic);
+> = RequestInfo::new(Method::TEXT_DOCUMENT_DIAGNOSTIC);
 
 // Response type for `workspace/diagnostic`
 pub type WorkspaceDiagnosticResponse = WorkspaceDiagnosticReport;
@@ -25253,14 +25267,14 @@ pub type WorkspaceDiagnosticResponse = WorkspaceDiagnosticReport;
 pub const WORKSPACE_DIAGNOSTIC_INFO: RequestInfo<
     WorkspaceDiagnosticParams,
     WorkspaceDiagnosticResponse,
-> = RequestInfo::new(Method::WorkspaceDiagnostic);
+> = RequestInfo::new(Method::WORKSPACE_DIAGNOSTIC);
 
 // Response type for `workspace/diagnostic/refresh`
 pub type DiagnosticRefreshResponse = Null;
 
 // Type mapping info for `workspace/diagnostic/refresh`
 pub const WORKSPACE_DIAGNOSTIC_REFRESH_INFO: RequestInfo<NoParams, DiagnosticRefreshResponse> =
-    RequestInfo::new(Method::WorkspaceDiagnosticRefresh);
+    RequestInfo::new(Method::WORKSPACE_DIAGNOSTIC_REFRESH);
 
 // Response type for `textDocument/inlineCompletion`
 pub type InlineCompletionResponse = InlineCompletionListOrItemsOrNull;
@@ -25269,7 +25283,7 @@ pub type InlineCompletionResponse = InlineCompletionListOrItemsOrNull;
 pub const TEXT_DOCUMENT_INLINE_COMPLETION_INFO: RequestInfo<
     InlineCompletionParams,
     InlineCompletionResponse,
-> = RequestInfo::new(Method::TextDocumentInlineCompletion);
+> = RequestInfo::new(Method::TEXT_DOCUMENT_INLINE_COMPLETION);
 
 // Response type for `workspace/textDocumentContent`
 pub type TextDocumentContentResponse = TextDocumentContentResult;
@@ -25278,7 +25292,7 @@ pub type TextDocumentContentResponse = TextDocumentContentResult;
 pub const WORKSPACE_TEXT_DOCUMENT_CONTENT_INFO: RequestInfo<
     TextDocumentContentParams,
     TextDocumentContentResponse,
-> = RequestInfo::new(Method::WorkspaceTextDocumentContent);
+> = RequestInfo::new(Method::WORKSPACE_TEXT_DOCUMENT_CONTENT);
 
 // Response type for `workspace/textDocumentContent/refresh`
 pub type TextDocumentContentRefreshResponse = Null;
@@ -25287,14 +25301,14 @@ pub type TextDocumentContentRefreshResponse = Null;
 pub const WORKSPACE_TEXT_DOCUMENT_CONTENT_REFRESH_INFO: RequestInfo<
     TextDocumentContentRefreshParams,
     TextDocumentContentRefreshResponse,
-> = RequestInfo::new(Method::WorkspaceTextDocumentContentRefresh);
+> = RequestInfo::new(Method::WORKSPACE_TEXT_DOCUMENT_CONTENT_REFRESH);
 
 // Response type for `client/registerCapability`
 pub type RegistrationResponse = Null;
 
 // Type mapping info for `client/registerCapability`
 pub const CLIENT_REGISTER_CAPABILITY_INFO: RequestInfo<RegistrationParams, RegistrationResponse> =
-    RequestInfo::new(Method::ClientRegisterCapability);
+    RequestInfo::new(Method::CLIENT_REGISTER_CAPABILITY);
 
 // Response type for `client/unregisterCapability`
 pub type UnregistrationResponse = Null;
@@ -25303,21 +25317,21 @@ pub type UnregistrationResponse = Null;
 pub const CLIENT_UNREGISTER_CAPABILITY_INFO: RequestInfo<
     UnregistrationParams,
     UnregistrationResponse,
-> = RequestInfo::new(Method::ClientUnregisterCapability);
+> = RequestInfo::new(Method::CLIENT_UNREGISTER_CAPABILITY);
 
 // Response type for `initialize`
 pub type InitializeResponse = InitializeResult;
 
 // Type mapping info for `initialize`
 pub const INITIALIZE_INFO: RequestInfo<InitializeParams, InitializeResponse> =
-    RequestInfo::new(Method::Initialize);
+    RequestInfo::new(Method::INITIALIZE);
 
 // Response type for `shutdown`
 pub type ShutdownResponse = Null;
 
 // Type mapping info for `shutdown`
 pub const SHUTDOWN_INFO: RequestInfo<NoParams, ShutdownResponse> =
-    RequestInfo::new(Method::Shutdown);
+    RequestInfo::new(Method::SHUTDOWN);
 
 // Response type for `window/showMessageRequest`
 pub type ShowMessageResponse = MessageActionItemOrNull;
@@ -25326,7 +25340,7 @@ pub type ShowMessageResponse = MessageActionItemOrNull;
 pub const WINDOW_SHOW_MESSAGE_REQUEST_INFO: RequestInfo<
     ShowMessageRequestParams,
     ShowMessageResponse,
-> = RequestInfo::new(Method::WindowShowMessageRequest);
+> = RequestInfo::new(Method::WINDOW_SHOW_MESSAGE_REQUEST);
 
 // Response type for `textDocument/willSaveWaitUntil`
 pub type WillSaveTextDocumentWaitUntilResponse = TextEditsOrNull;
@@ -25335,28 +25349,28 @@ pub type WillSaveTextDocumentWaitUntilResponse = TextEditsOrNull;
 pub const TEXT_DOCUMENT_WILL_SAVE_WAIT_UNTIL_INFO: RequestInfo<
     WillSaveTextDocumentParams,
     WillSaveTextDocumentWaitUntilResponse,
-> = RequestInfo::new(Method::TextDocumentWillSaveWaitUntil);
+> = RequestInfo::new(Method::TEXT_DOCUMENT_WILL_SAVE_WAIT_UNTIL);
 
 // Response type for `textDocument/completion`
 pub type CompletionResponse = CompletionItemsOrListOrNull;
 
 // Type mapping info for `textDocument/completion`
 pub const TEXT_DOCUMENT_COMPLETION_INFO: RequestInfo<CompletionParams, CompletionResponse> =
-    RequestInfo::new(Method::TextDocumentCompletion);
+    RequestInfo::new(Method::TEXT_DOCUMENT_COMPLETION);
 
 // Response type for `completionItem/resolve`
 pub type CompletionResolveResponse = CompletionItem;
 
 // Type mapping info for `completionItem/resolve`
 pub const COMPLETION_ITEM_RESOLVE_INFO: RequestInfo<CompletionItem, CompletionResolveResponse> =
-    RequestInfo::new(Method::CompletionItemResolve);
+    RequestInfo::new(Method::COMPLETION_ITEM_RESOLVE);
 
 // Response type for `textDocument/hover`
 pub type HoverResponse = HoverOrNull;
 
 // Type mapping info for `textDocument/hover`
 pub const TEXT_DOCUMENT_HOVER_INFO: RequestInfo<HoverParams, HoverResponse> =
-    RequestInfo::new(Method::TextDocumentHover);
+    RequestInfo::new(Method::TEXT_DOCUMENT_HOVER);
 
 // Response type for `textDocument/signatureHelp`
 pub type SignatureHelpResponse = SignatureHelpOrNull;
@@ -25365,21 +25379,21 @@ pub type SignatureHelpResponse = SignatureHelpOrNull;
 pub const TEXT_DOCUMENT_SIGNATURE_HELP_INFO: RequestInfo<
     SignatureHelpParams,
     SignatureHelpResponse,
-> = RequestInfo::new(Method::TextDocumentSignatureHelp);
+> = RequestInfo::new(Method::TEXT_DOCUMENT_SIGNATURE_HELP);
 
 // Response type for `textDocument/definition`
 pub type DefinitionResponse = LocationOrLocationsOrDefinitionLinksOrNull;
 
 // Type mapping info for `textDocument/definition`
 pub const TEXT_DOCUMENT_DEFINITION_INFO: RequestInfo<DefinitionParams, DefinitionResponse> =
-    RequestInfo::new(Method::TextDocumentDefinition);
+    RequestInfo::new(Method::TEXT_DOCUMENT_DEFINITION);
 
 // Response type for `textDocument/references`
 pub type ReferencesResponse = LocationsOrNull;
 
 // Type mapping info for `textDocument/references`
 pub const TEXT_DOCUMENT_REFERENCES_INFO: RequestInfo<ReferenceParams, ReferencesResponse> =
-    RequestInfo::new(Method::TextDocumentReferences);
+    RequestInfo::new(Method::TEXT_DOCUMENT_REFERENCES);
 
 // Response type for `textDocument/documentHighlight`
 pub type DocumentHighlightResponse = DocumentHighlightsOrNull;
@@ -25388,7 +25402,7 @@ pub type DocumentHighlightResponse = DocumentHighlightsOrNull;
 pub const TEXT_DOCUMENT_DOCUMENT_HIGHLIGHT_INFO: RequestInfo<
     DocumentHighlightParams,
     DocumentHighlightResponse,
-> = RequestInfo::new(Method::TextDocumentDocumentHighlight);
+> = RequestInfo::new(Method::TEXT_DOCUMENT_DOCUMENT_HIGHLIGHT);
 
 // Response type for `textDocument/documentSymbol`
 pub type DocumentSymbolResponse = SymbolInformationsOrDocumentSymbolsOrNull;
@@ -25397,28 +25411,28 @@ pub type DocumentSymbolResponse = SymbolInformationsOrDocumentSymbolsOrNull;
 pub const TEXT_DOCUMENT_DOCUMENT_SYMBOL_INFO: RequestInfo<
     DocumentSymbolParams,
     DocumentSymbolResponse,
-> = RequestInfo::new(Method::TextDocumentDocumentSymbol);
+> = RequestInfo::new(Method::TEXT_DOCUMENT_DOCUMENT_SYMBOL);
 
 // Response type for `textDocument/codeAction`
 pub type CodeActionResponse = CommandOrCodeActionArrayOrNull;
 
 // Type mapping info for `textDocument/codeAction`
 pub const TEXT_DOCUMENT_CODE_ACTION_INFO: RequestInfo<CodeActionParams, CodeActionResponse> =
-    RequestInfo::new(Method::TextDocumentCodeAction);
+    RequestInfo::new(Method::TEXT_DOCUMENT_CODE_ACTION);
 
 // Response type for `codeAction/resolve`
 pub type CodeActionResolveResponse = CodeAction;
 
 // Type mapping info for `codeAction/resolve`
 pub const CODE_ACTION_RESOLVE_INFO: RequestInfo<CodeAction, CodeActionResolveResponse> =
-    RequestInfo::new(Method::CodeActionResolve);
+    RequestInfo::new(Method::CODE_ACTION_RESOLVE);
 
 // Response type for `workspace/symbol`
 pub type WorkspaceSymbolResponse = SymbolInformationsOrWorkspaceSymbolsOrNull;
 
 // Type mapping info for `workspace/symbol`
 pub const WORKSPACE_SYMBOL_INFO: RequestInfo<WorkspaceSymbolParams, WorkspaceSymbolResponse> =
-    RequestInfo::new(Method::WorkspaceSymbol);
+    RequestInfo::new(Method::WORKSPACE_SYMBOL);
 
 // Response type for `workspaceSymbol/resolve`
 pub type WorkspaceSymbolResolveResponse = WorkspaceSymbol;
@@ -25427,42 +25441,42 @@ pub type WorkspaceSymbolResolveResponse = WorkspaceSymbol;
 pub const WORKSPACE_SYMBOL_RESOLVE_INFO: RequestInfo<
     WorkspaceSymbol,
     WorkspaceSymbolResolveResponse,
-> = RequestInfo::new(Method::WorkspaceSymbolResolve);
+> = RequestInfo::new(Method::WORKSPACE_SYMBOL_RESOLVE);
 
 // Response type for `textDocument/codeLens`
 pub type CodeLensResponse = CodeLensesOrNull;
 
 // Type mapping info for `textDocument/codeLens`
 pub const TEXT_DOCUMENT_CODE_LENS_INFO: RequestInfo<CodeLensParams, CodeLensResponse> =
-    RequestInfo::new(Method::TextDocumentCodeLens);
+    RequestInfo::new(Method::TEXT_DOCUMENT_CODE_LENS);
 
 // Response type for `codeLens/resolve`
 pub type CodeLensResolveResponse = CodeLens;
 
 // Type mapping info for `codeLens/resolve`
 pub const CODE_LENS_RESOLVE_INFO: RequestInfo<CodeLens, CodeLensResolveResponse> =
-    RequestInfo::new(Method::CodeLensResolve);
+    RequestInfo::new(Method::CODE_LENS_RESOLVE);
 
 // Response type for `workspace/codeLens/refresh`
 pub type CodeLensRefreshResponse = Null;
 
 // Type mapping info for `workspace/codeLens/refresh`
 pub const WORKSPACE_CODE_LENS_REFRESH_INFO: RequestInfo<NoParams, CodeLensRefreshResponse> =
-    RequestInfo::new(Method::WorkspaceCodeLensRefresh);
+    RequestInfo::new(Method::WORKSPACE_CODE_LENS_REFRESH);
 
 // Response type for `textDocument/documentLink`
 pub type DocumentLinkResponse = DocumentLinksOrNull;
 
 // Type mapping info for `textDocument/documentLink`
 pub const TEXT_DOCUMENT_DOCUMENT_LINK_INFO: RequestInfo<DocumentLinkParams, DocumentLinkResponse> =
-    RequestInfo::new(Method::TextDocumentDocumentLink);
+    RequestInfo::new(Method::TEXT_DOCUMENT_DOCUMENT_LINK);
 
 // Response type for `documentLink/resolve`
 pub type DocumentLinkResolveResponse = DocumentLink;
 
 // Type mapping info for `documentLink/resolve`
 pub const DOCUMENT_LINK_RESOLVE_INFO: RequestInfo<DocumentLink, DocumentLinkResolveResponse> =
-    RequestInfo::new(Method::DocumentLinkResolve);
+    RequestInfo::new(Method::DOCUMENT_LINK_RESOLVE);
 
 // Response type for `textDocument/formatting`
 pub type DocumentFormattingResponse = TextEditsOrNull;
@@ -25471,7 +25485,7 @@ pub type DocumentFormattingResponse = TextEditsOrNull;
 pub const TEXT_DOCUMENT_FORMATTING_INFO: RequestInfo<
     DocumentFormattingParams,
     DocumentFormattingResponse,
-> = RequestInfo::new(Method::TextDocumentFormatting);
+> = RequestInfo::new(Method::TEXT_DOCUMENT_FORMATTING);
 
 // Response type for `textDocument/rangeFormatting`
 pub type DocumentRangeFormattingResponse = TextEditsOrNull;
@@ -25480,7 +25494,7 @@ pub type DocumentRangeFormattingResponse = TextEditsOrNull;
 pub const TEXT_DOCUMENT_RANGE_FORMATTING_INFO: RequestInfo<
     DocumentRangeFormattingParams,
     DocumentRangeFormattingResponse,
-> = RequestInfo::new(Method::TextDocumentRangeFormatting);
+> = RequestInfo::new(Method::TEXT_DOCUMENT_RANGE_FORMATTING);
 
 // Response type for `textDocument/rangesFormatting`
 pub type DocumentRangesFormattingResponse = TextEditsOrNull;
@@ -25489,7 +25503,7 @@ pub type DocumentRangesFormattingResponse = TextEditsOrNull;
 pub const TEXT_DOCUMENT_RANGES_FORMATTING_INFO: RequestInfo<
     DocumentRangesFormattingParams,
     DocumentRangesFormattingResponse,
-> = RequestInfo::new(Method::TextDocumentRangesFormatting);
+> = RequestInfo::new(Method::TEXT_DOCUMENT_RANGES_FORMATTING);
 
 // Response type for `textDocument/onTypeFormatting`
 pub type DocumentOnTypeFormattingResponse = TextEditsOrNull;
@@ -25498,14 +25512,14 @@ pub type DocumentOnTypeFormattingResponse = TextEditsOrNull;
 pub const TEXT_DOCUMENT_ON_TYPE_FORMATTING_INFO: RequestInfo<
     DocumentOnTypeFormattingParams,
     DocumentOnTypeFormattingResponse,
-> = RequestInfo::new(Method::TextDocumentOnTypeFormatting);
+> = RequestInfo::new(Method::TEXT_DOCUMENT_ON_TYPE_FORMATTING);
 
 // Response type for `textDocument/rename`
 pub type RenameResponse = WorkspaceEditOrNull;
 
 // Type mapping info for `textDocument/rename`
 pub const TEXT_DOCUMENT_RENAME_INFO: RequestInfo<RenameParams, RenameResponse> =
-    RequestInfo::new(Method::TextDocumentRename);
+    RequestInfo::new(Method::TEXT_DOCUMENT_RENAME);
 
 // Response type for `textDocument/prepareRename`
 pub type PrepareRenameResponse =
@@ -25515,7 +25529,7 @@ pub type PrepareRenameResponse =
 pub const TEXT_DOCUMENT_PREPARE_RENAME_INFO: RequestInfo<
     PrepareRenameParams,
     PrepareRenameResponse,
-> = RequestInfo::new(Method::TextDocumentPrepareRename);
+> = RequestInfo::new(Method::TEXT_DOCUMENT_PREPARE_RENAME);
 
 // Response type for `workspace/executeCommand`
 pub type ExecuteCommandResponse = LSPAnyOrNull;
@@ -25524,7 +25538,7 @@ pub type ExecuteCommandResponse = LSPAnyOrNull;
 pub const WORKSPACE_EXECUTE_COMMAND_INFO: RequestInfo<
     ExecuteCommandParams,
     ExecuteCommandResponse,
-> = RequestInfo::new(Method::WorkspaceExecuteCommand);
+> = RequestInfo::new(Method::WORKSPACE_EXECUTE_COMMAND);
 
 // Response type for `workspace/applyEdit`
 pub type ApplyWorkspaceEditResponse = ApplyWorkspaceEditResult;
@@ -25533,42 +25547,42 @@ pub type ApplyWorkspaceEditResponse = ApplyWorkspaceEditResult;
 pub const WORKSPACE_APPLY_EDIT_INFO: RequestInfo<
     ApplyWorkspaceEditParams,
     ApplyWorkspaceEditResponse,
-> = RequestInfo::new(Method::WorkspaceApplyEdit);
+> = RequestInfo::new(Method::WORKSPACE_APPLY_EDIT);
 
 // Response type for `custom/runGC`
 pub type RunGCResponse = Null;
 
 // Type mapping info for `custom/runGC`
 pub const CUSTOM_RUN_GC_INFO: RequestInfo<NoParams, RunGCResponse> =
-    RequestInfo::new(Method::CustomRunGC);
+    RequestInfo::new(Method::CUSTOM_RUN_GC);
 
 // Response type for `custom/saveHeapProfile`
 pub type SaveHeapProfileResponse = ProfileResult;
 
 // Type mapping info for `custom/saveHeapProfile`
 pub const CUSTOM_SAVE_HEAP_PROFILE_INFO: RequestInfo<ProfileParams, SaveHeapProfileResponse> =
-    RequestInfo::new(Method::CustomSaveHeapProfile);
+    RequestInfo::new(Method::CUSTOM_SAVE_HEAP_PROFILE);
 
 // Response type for `custom/saveAllocProfile`
 pub type SaveAllocProfileResponse = ProfileResult;
 
 // Type mapping info for `custom/saveAllocProfile`
 pub const CUSTOM_SAVE_ALLOC_PROFILE_INFO: RequestInfo<ProfileParams, SaveAllocProfileResponse> =
-    RequestInfo::new(Method::CustomSaveAllocProfile);
+    RequestInfo::new(Method::CUSTOM_SAVE_ALLOC_PROFILE);
 
 // Response type for `custom/startCPUProfile`
 pub type StartCPUProfileResponse = Null;
 
 // Type mapping info for `custom/startCPUProfile`
 pub const CUSTOM_START_CPU_PROFILE_INFO: RequestInfo<ProfileParams, StartCPUProfileResponse> =
-    RequestInfo::new(Method::CustomStartCPUProfile);
+    RequestInfo::new(Method::CUSTOM_START_CPU_PROFILE);
 
 // Response type for `custom/stopCPUProfile`
 pub type StopCPUProfileResponse = ProfileResult;
 
 // Type mapping info for `custom/stopCPUProfile`
 pub const CUSTOM_STOP_CPU_PROFILE_INFO: RequestInfo<NoParams, StopCPUProfileResponse> =
-    RequestInfo::new(Method::CustomStopCPUProfile);
+    RequestInfo::new(Method::CUSTOM_STOP_CPU_PROFILE);
 
 // Response type for `custom/initializeAPISession`
 pub type CustomInitializeAPISessionResponse = InitializeAPISessionResult;
@@ -25577,14 +25591,14 @@ pub type CustomInitializeAPISessionResponse = InitializeAPISessionResult;
 pub const CUSTOM_INITIALIZE_API_SESSION_INFO: RequestInfo<
     InitializeAPISessionParams,
     CustomInitializeAPISessionResponse,
-> = RequestInfo::new(Method::CustomInitializeAPISession);
+> = RequestInfo::new(Method::CUSTOM_INITIALIZE_API_SESSION);
 
 // Response type for `custom/projectInfo`
 pub type CustomProjectInfoResponse = ProjectInfoResult;
 
 // Type mapping info for `custom/projectInfo`
 pub const CUSTOM_PROJECT_INFO_INFO: RequestInfo<ProjectInfoParams, CustomProjectInfoResponse> =
-    RequestInfo::new(Method::CustomProjectInfo);
+    RequestInfo::new(Method::CUSTOM_PROJECT_INFO);
 
 // Response type for `custom/setContentMapperContributions`
 pub type CustomSetContentMapperContributionsResponse = Null;
@@ -25593,7 +25607,7 @@ pub type CustomSetContentMapperContributionsResponse = Null;
 pub const CUSTOM_SET_CONTENT_MAPPER_CONTRIBUTIONS_INFO: RequestInfo<
     SetContentMapperContributionsParams,
     CustomSetContentMapperContributionsResponse,
-> = RequestInfo::new(Method::CustomSetContentMapperContributions);
+> = RequestInfo::new(Method::CUSTOM_SET_CONTENT_MAPPER_CONTRIBUTIONS);
 
 // Response type for `custom/textDocument/sourceDefinition`
 pub type CustomTextDocumentSourceDefinitionResponse = LocationOrLocationsOrDefinitionLinksOrNull;
@@ -25602,7 +25616,7 @@ pub type CustomTextDocumentSourceDefinitionResponse = LocationOrLocationsOrDefin
 pub const CUSTOM_TEXT_DOCUMENT_SOURCE_DEFINITION_INFO: RequestInfo<
     TextDocumentPositionParams,
     CustomTextDocumentSourceDefinitionResponse,
-> = RequestInfo::new(Method::CustomTextDocumentSourceDefinition);
+> = RequestInfo::new(Method::CUSTOM_TEXT_DOCUMENT_SOURCE_DEFINITION);
 
 // Response type for `custom/textDocument/multiDocumentHighlight`
 pub type CustomMultiDocumentHighlightResponse = MultiDocumentHighlightsOrNull;
@@ -25611,7 +25625,7 @@ pub type CustomMultiDocumentHighlightResponse = MultiDocumentHighlightsOrNull;
 pub const CUSTOM_TEXT_DOCUMENT_MULTI_DOCUMENT_HIGHLIGHT_INFO: RequestInfo<
     MultiDocumentHighlightParams,
     CustomMultiDocumentHighlightResponse,
-> = RequestInfo::new(Method::CustomTextDocumentMultiDocumentHighlight);
+> = RequestInfo::new(Method::CUSTOM_TEXT_DOCUMENT_MULTI_DOCUMENT_HIGHLIGHT);
 
 // Response type for `textDocument/_vs_onAutoInsert`
 pub type VSOnAutoInsertResponse = VSOnAutoInsertResponseItemOrNull;
@@ -25620,105 +25634,105 @@ pub type VSOnAutoInsertResponse = VSOnAutoInsertResponseItemOrNull;
 pub const TEXT_DOCUMENT_VS_ON_AUTO_INSERT_INFO: RequestInfo<
     VSOnAutoInsertParams,
     VSOnAutoInsertResponse,
-> = RequestInfo::new(Method::TextDocumentVSOnAutoInsert);
+> = RequestInfo::new(Method::TEXT_DOCUMENT_VS_ON_AUTO_INSERT);
 
 // Response type for `textDocument/_vs_references`
 pub type VSReferencesResponse = VSReferenceItemsOrNull;
 
 // Type mapping info for `textDocument/_vs_references`
 pub const TEXT_DOCUMENT_VS_REFERENCES_INFO: RequestInfo<ReferenceParams, VSReferencesResponse> =
-    RequestInfo::new(Method::TextDocumentVSReferences);
+    RequestInfo::new(Method::TEXT_DOCUMENT_VS_REFERENCES);
 
 // Type mapping info for `workspace/didChangeWorkspaceFolders`
 pub const WORKSPACE_DID_CHANGE_WORKSPACE_FOLDERS_INFO: NotificationInfo<
     DidChangeWorkspaceFoldersParams,
-> = NotificationInfo::new(Method::WorkspaceDidChangeWorkspaceFolders);
+> = NotificationInfo::new(Method::WORKSPACE_DID_CHANGE_WORKSPACE_FOLDERS);
 
 // Type mapping info for `window/workDoneProgress/cancel`
 pub const WINDOW_WORK_DONE_PROGRESS_CANCEL_INFO: NotificationInfo<WorkDoneProgressCancelParams> =
-    NotificationInfo::new(Method::WindowWorkDoneProgressCancel);
+    NotificationInfo::new(Method::WINDOW_WORK_DONE_PROGRESS_CANCEL);
 
 // Type mapping info for `workspace/didCreateFiles`
 pub const WORKSPACE_DID_CREATE_FILES_INFO: NotificationInfo<CreateFilesParams> =
-    NotificationInfo::new(Method::WorkspaceDidCreateFiles);
+    NotificationInfo::new(Method::WORKSPACE_DID_CREATE_FILES);
 
 // Type mapping info for `workspace/didRenameFiles`
 pub const WORKSPACE_DID_RENAME_FILES_INFO: NotificationInfo<RenameFilesParams> =
-    NotificationInfo::new(Method::WorkspaceDidRenameFiles);
+    NotificationInfo::new(Method::WORKSPACE_DID_RENAME_FILES);
 
 // Type mapping info for `workspace/didDeleteFiles`
 pub const WORKSPACE_DID_DELETE_FILES_INFO: NotificationInfo<DeleteFilesParams> =
-    NotificationInfo::new(Method::WorkspaceDidDeleteFiles);
+    NotificationInfo::new(Method::WORKSPACE_DID_DELETE_FILES);
 
 // Type mapping info for `initialized`
 pub const INITIALIZED_INFO: NotificationInfo<InitializedParams> =
-    NotificationInfo::new(Method::Initialized);
+    NotificationInfo::new(Method::INITIALIZED);
 
 // Type mapping info for `exit`
-pub const EXIT_INFO: NotificationInfo<NoParams> = NotificationInfo::new(Method::Exit);
+pub const EXIT_INFO: NotificationInfo<NoParams> = NotificationInfo::new(Method::EXIT);
 
 // Type mapping info for `workspace/didChangeConfiguration`
 pub const WORKSPACE_DID_CHANGE_CONFIGURATION_INFO: NotificationInfo<DidChangeConfigurationParams> =
-    NotificationInfo::new(Method::WorkspaceDidChangeConfiguration);
+    NotificationInfo::new(Method::WORKSPACE_DID_CHANGE_CONFIGURATION);
 
 // Type mapping info for `window/showMessage`
 pub const WINDOW_SHOW_MESSAGE_INFO: NotificationInfo<ShowMessageParams> =
-    NotificationInfo::new(Method::WindowShowMessage);
+    NotificationInfo::new(Method::WINDOW_SHOW_MESSAGE);
 
 // Type mapping info for `window/logMessage`
 pub const WINDOW_LOG_MESSAGE_INFO: NotificationInfo<LogMessageParams> =
-    NotificationInfo::new(Method::WindowLogMessage);
+    NotificationInfo::new(Method::WINDOW_LOG_MESSAGE);
 
 // Type mapping info for `telemetry/event`
 pub const TELEMETRY_EVENT_INFO: NotificationInfo<TelemetryEvent> =
-    NotificationInfo::new(Method::TelemetryEvent);
+    NotificationInfo::new(Method::TELEMETRY_EVENT);
 
 // Type mapping info for `textDocument/didOpen`
 pub const TEXT_DOCUMENT_DID_OPEN_INFO: NotificationInfo<DidOpenTextDocumentParams> =
-    NotificationInfo::new(Method::TextDocumentDidOpen);
+    NotificationInfo::new(Method::TEXT_DOCUMENT_DID_OPEN);
 
 // Type mapping info for `textDocument/didChange`
 pub const TEXT_DOCUMENT_DID_CHANGE_INFO: NotificationInfo<DidChangeTextDocumentParams> =
-    NotificationInfo::new(Method::TextDocumentDidChange);
+    NotificationInfo::new(Method::TEXT_DOCUMENT_DID_CHANGE);
 
 // Type mapping info for `textDocument/didClose`
 pub const TEXT_DOCUMENT_DID_CLOSE_INFO: NotificationInfo<DidCloseTextDocumentParams> =
-    NotificationInfo::new(Method::TextDocumentDidClose);
+    NotificationInfo::new(Method::TEXT_DOCUMENT_DID_CLOSE);
 
 // Type mapping info for `textDocument/didSave`
 pub const TEXT_DOCUMENT_DID_SAVE_INFO: NotificationInfo<DidSaveTextDocumentParams> =
-    NotificationInfo::new(Method::TextDocumentDidSave);
+    NotificationInfo::new(Method::TEXT_DOCUMENT_DID_SAVE);
 
 // Type mapping info for `textDocument/willSave`
 pub const TEXT_DOCUMENT_WILL_SAVE_INFO: NotificationInfo<WillSaveTextDocumentParams> =
-    NotificationInfo::new(Method::TextDocumentWillSave);
+    NotificationInfo::new(Method::TEXT_DOCUMENT_WILL_SAVE);
 
 // Type mapping info for `workspace/didChangeWatchedFiles`
 pub const WORKSPACE_DID_CHANGE_WATCHED_FILES_INFO: NotificationInfo<DidChangeWatchedFilesParams> =
-    NotificationInfo::new(Method::WorkspaceDidChangeWatchedFiles);
+    NotificationInfo::new(Method::WORKSPACE_DID_CHANGE_WATCHED_FILES);
 
 // Type mapping info for `textDocument/publishDiagnostics`
 pub const TEXT_DOCUMENT_PUBLISH_DIAGNOSTICS_INFO: NotificationInfo<PublishDiagnosticsParams> =
-    NotificationInfo::new(Method::TextDocumentPublishDiagnostics);
+    NotificationInfo::new(Method::TEXT_DOCUMENT_PUBLISH_DIAGNOSTICS);
 
 // Type mapping info for `$/setTrace`
 pub const SET_TRACE_INFO: NotificationInfo<SetTraceParams> =
-    NotificationInfo::new(Method::SetTrace);
+    NotificationInfo::new(Method::SET_TRACE);
 
 // Type mapping info for `$/logTrace`
 pub const LOG_TRACE_INFO: NotificationInfo<LogTraceParams> =
-    NotificationInfo::new(Method::LogTrace);
+    NotificationInfo::new(Method::LOG_TRACE);
 
 // Type mapping info for `$/cancelRequest`
 pub const CANCEL_REQUEST_INFO: NotificationInfo<CancelParams> =
-    NotificationInfo::new(Method::CancelRequest);
+    NotificationInfo::new(Method::CANCEL_REQUEST);
 
 // Type mapping info for `$/progress`
-pub const PROGRESS_INFO: NotificationInfo<ProgressParams> = NotificationInfo::new(Method::Progress);
+pub const PROGRESS_INFO: NotificationInfo<ProgressParams> = NotificationInfo::new(Method::PROGRESS);
 
 // Type mapping info for `custom/setLogVerbosity`
 pub const CUSTOM_SET_LOG_VERBOSITY_INFO: NotificationInfo<SetLogVerbosityParams> =
-    NotificationInfo::new(Method::CustomSetLogVerbosity);
+    NotificationInfo::new(Method::CUSTOM_SET_LOG_VERBOSITY);
 
 // Type aliases
 

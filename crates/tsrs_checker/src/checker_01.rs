@@ -155,7 +155,7 @@ impl Checker {
     // checker.go:1146
     pub(crate) fn report_unreliable_worker(&mut self, t: P<Type>) -> P<Type> {
         if t == self.marker_super_type || t == self.marker_sub_type || t == self.marker_other_type {
-            self.reliability_flags |= RelationComparisonResult::ReportsUnreliable;
+            self.reliability_flags |= RelationComparisonResult::REPORTS_UNRELIABLE;
         }
         t
     }
@@ -163,7 +163,7 @@ impl Checker {
     // checker.go:1153
     pub(crate) fn report_unmeasurable_worker(&mut self, t: P<Type>) -> P<Type> {
         if t == self.marker_super_type || t == self.marker_sub_type || t == self.marker_other_type {
-            self.reliability_flags |= RelationComparisonResult::ReportsUnmeasurable;
+            self.reliability_flags |= RelationComparisonResult::REPORTS_UNMEASURABLE;
         }
         t
     }
@@ -181,8 +181,8 @@ impl Checker {
     ) -> Option<P<Symbol>> {
         let symbol = self.get_global_symbol(
             name,
-            SymbolFlags::TypeAlias,
-            if report_errors { Some(&diagnostics::Cannot_find_global_type_0) } else { None },
+            SymbolFlags::TYPE_ALIAS,
+            if report_errors { Some(&diagnostics::CANNOT_FIND_GLOBAL_TYPE_0) } else { None },
         )?;
         // Resolve the declared type of the symbol. This resolves type parameters for the type alias so that we can check arity.
         self.get_declared_type_of_symbol(symbol);
@@ -195,7 +195,7 @@ impl Checker {
                     .find(|d| ast::is_type_alias_declaration(*d));
                 self.error(
                     decl,
-                    &diagnostics::Global_type_0_must_have_1_type_parameter_s,
+                    &diagnostics::GLOBAL_TYPE_0_MUST_HAVE_1_TYPE_PARAMETER_S,
                     &[&ast::symbol_name(symbol), &arity],
                 );
             }
@@ -207,7 +207,7 @@ impl Checker {
     // checker.go:1212
     pub fn get_type_alias_type_parameters(&mut self, symbol: P<Symbol>) -> Vec<P<Type>> {
         assert!(
-            symbol.flags().intersects(SymbolFlags::TypeAlias),
+            symbol.flags().intersects(SymbolFlags::TYPE_ALIAS),
             "Attempted to fetch type alias parameters for non-type-alias symbol"
         );
         self.get_declared_type_of_symbol(symbol);
@@ -223,11 +223,11 @@ impl Checker {
     ) -> P<Type> {
         let symbol = self.get_global_symbol(
             name,
-            SymbolFlags::Type,
-            if report_errors { Some(&diagnostics::Cannot_find_global_type_0) } else { None },
+            SymbolFlags::TYPE,
+            if report_errors { Some(&diagnostics::CANNOT_FIND_GLOBAL_TYPE_0) } else { None },
         );
         if let Some(symbol) = symbol {
-            if symbol.flags().intersects(SymbolFlags::Class | SymbolFlags::Interface) {
+            if symbol.flags().intersects(SymbolFlags::CLASS | SymbolFlags::INTERFACE) {
                 let t = self.get_declared_type_of_symbol(symbol);
                 if t.as_interface_type().type_parameters().len() == arity {
                     return t;
@@ -235,14 +235,14 @@ impl Checker {
                 if report_errors {
                     self.error(
                         get_global_type_declaration(symbol),
-                        &diagnostics::Global_type_0_must_have_1_type_parameter_s,
+                        &diagnostics::GLOBAL_TYPE_0_MUST_HAVE_1_TYPE_PARAMETER_S,
                         &[&ast::symbol_name(symbol), &arity],
                     );
                 }
             } else if report_errors {
                 self.error(
                     get_global_type_declaration(symbol),
-                    &diagnostics::Global_type_0_must_be_a_class_or_interface_type,
+                    &diagnostics::GLOBAL_TYPE_0_MUST_BE_A_CLASS_OR_INTERFACE_TYPE,
                     &[&ast::symbol_name(symbol)],
                 );
             }
@@ -307,16 +307,16 @@ impl Checker {
         self.sync_iteration_types_resolver = P::new(IterationTypesResolver {
             is_async: false,
             iterator_symbol_name: "iterator",
-            must_have_a_next_method_diagnostic: &diagnostics::An_iterator_must_have_a_next_method,
-            must_be_a_method_diagnostic: &diagnostics::The_0_property_of_an_iterator_must_be_a_method,
-            must_have_a_value_diagnostic: &diagnostics::The_type_returned_by_the_0_method_of_an_iterator_must_have_a_value_property,
+            must_have_a_next_method_diagnostic: &diagnostics::AN_ITERATOR_MUST_HAVE_A_NEXT_METHOD,
+            must_be_a_method_diagnostic: &diagnostics::THE_0_PROPERTY_OF_AN_ITERATOR_MUST_BE_A_METHOD,
+            must_have_a_value_diagnostic: &diagnostics::THE_TYPE_RETURNED_BY_THE_0_METHOD_OF_AN_ITERATOR_MUST_HAVE_A_VALUE_PROPERTY,
         });
         self.async_iteration_types_resolver = P::new(IterationTypesResolver {
             is_async: true,
             iterator_symbol_name: "asyncIterator",
-            must_have_a_next_method_diagnostic: &diagnostics::An_async_iterator_must_have_a_next_method,
-            must_be_a_method_diagnostic: &diagnostics::The_0_property_of_an_async_iterator_must_be_a_method,
-            must_have_a_value_diagnostic: &diagnostics::The_type_returned_by_the_0_method_of_an_async_iterator_must_be_a_promise_for_a_type_with_a_value_property,
+            must_have_a_next_method_diagnostic: &diagnostics::AN_ASYNC_ITERATOR_MUST_HAVE_A_NEXT_METHOD,
+            must_be_a_method_diagnostic: &diagnostics::THE_0_PROPERTY_OF_AN_ASYNC_ITERATOR_MUST_BE_A_METHOD,
+            must_have_a_value_diagnostic: &diagnostics::THE_TYPE_RETURNED_BY_THE_0_METHOD_OF_AN_ASYNC_ITERATOR_MUST_BE_A_PROMISE_FOR_A_TYPE_WITH_A_VALUE_PROPERTY,
         });
     }
 
@@ -336,7 +336,7 @@ impl Checker {
                     for &d in declarations {
                         self.add_diagnostic(new_diagnostic_for_node(
                             Some(d),
-                            Some(&diagnostics::Declaration_name_conflicts_with_built_in_global_identifier_0),
+                            Some(&diagnostics::DECLARATION_NAME_CONFLICTS_WITH_BUILT_IN_GLOBAL_IDENTIFIER_0),
                             &[&"globalThis"],
                         ));
                     }
@@ -345,7 +345,7 @@ impl Checker {
                     for symbol in locals.values() {
                         // We defer merging of global ambient module declarations since they may require other global symbols
                         // and types to be resolved. See https://github.com/microsoft/TypeScript/tsc/issues/2953.
-                        if symbol.flags().intersects(SymbolFlags::Module)
+                        if symbol.flags().intersects(SymbolFlags::MODULE)
                             && ast::is_ambient_module_symbol_name(symbol.name())
                         {
                             ambient_module_symbols.push(symbol);
@@ -398,7 +398,7 @@ impl Checker {
         let links = self.value_symbol_links.get(self.global_this_symbol);
         links
             .resolved_type
-            .set(Some(self.new_object_type(ObjectFlags::Anonymous, Some(self.global_this_symbol))));
+            .set(Some(self.new_object_type(ObjectFlags::ANONYMOUS, Some(self.global_this_symbol))));
         // Initialize special types
         self.global_array_type =
             self.get_global_type("Array", 1 /*arity*/, true /*reportErrors*/);
@@ -534,10 +534,10 @@ impl Checker {
                 .parent()
                 .unwrap()
                 .flags()
-                .intersects(NodeFlags::Ambient)
+                .intersects(NodeFlags::AMBIENT)
             {
                 module_not_found_error = Some(
-                    &diagnostics::Invalid_module_name_in_augmentation_module_0_cannot_be_found,
+                    &diagnostics::INVALID_MODULE_NAME_IN_AUGMENTATION_MODULE_0_CANNOT_BE_FOUND,
                 );
             }
             // We ban import attributes on module augmentation declarations.
@@ -554,7 +554,7 @@ impl Checker {
             // obtain item referenced by 'export='
             let main_module =
                 self.resolve_external_module_symbol(main_module, false /*dontResolveAlias*/);
-            if main_module.flags().intersects(SymbolFlags::Namespace) {
+            if main_module.flags().intersects(SymbolFlags::NAMESPACE) {
                 // If we're merging an augmentation to a pattern ambient module, we want to
                 // perform the merge unidirectionally from the augmentation ('a.foo') to
                 // the pattern ('*.foo'), so that 'getMergedSymbol()' on a.foo gives you
@@ -583,7 +583,7 @@ impl Checker {
                     let augmentation_exports = module_augmentation_symbol.exports();
                     if main_module
                         .exports()
-                        .and_then(|exports| exports.lookup(ast::InternalSymbolNameExportStar))
+                        .and_then(|exports| exports.lookup(ast::INTERNAL_SYMBOL_NAME_EXPORT_STAR))
                         .is_some()
                         && augmentation_exports.map_or(0, |exports| exports.len()) != 0
                     {
@@ -616,7 +616,7 @@ impl Checker {
                 }
             } else {
                 // moduleName will be a StringLiteral since this is not `declare global`.
-                self.error(Some(module_name), &diagnostics::Cannot_augment_module_0_because_it_resolves_to_a_non_module_entity, &[&module_name.text()]);
+                self.error(Some(module_name), &diagnostics::CANNOT_AUGMENT_MODULE_0_BECAUSE_IT_RESOLVES_TO_A_NON_MODULE_ENTITY, &[&module_name.text()]);
             }
         }
     }
@@ -631,7 +631,7 @@ impl Checker {
                 if !ast::is_type_declaration(declaration) {
                     self.add_diagnostic(create_diagnostic_for_node(
                         Some(declaration),
-                        &diagnostics::Declaration_name_conflicts_with_built_in_global_identifier_0,
+                        &diagnostics::DECLARATION_NAME_CONFLICTS_WITH_BUILT_IN_GLOBAL_IDENTIFIER_0,
                         &[&name],
                     ));
                 }
@@ -770,9 +770,9 @@ impl Checker {
                     .type_node()
                     .is_some_and(|t| t.loc().contains_inclusive(error_location.unwrap().pos()))
             {
-                &diagnostics::Type_of_instance_member_variable_0_cannot_reference_identifier_1_declared_in_the_constructor
+                &diagnostics::TYPE_OF_INSTANCE_MEMBER_VARIABLE_0_CANNOT_REFERENCE_IDENTIFIER_1_DECLARED_IN_THE_CONSTRUCTOR
             } else {
-                &diagnostics::Initializer_of_instance_member_variable_0_cannot_reference_identifier_1_declared_in_the_constructor
+                &diagnostics::INITIALIZER_OF_INSTANCE_MEMBER_VARIABLE_0_CANNOT_REFERENCE_IDENTIFIER_1_DECLARED_IN_THE_CONSTRUCTOR
             };
             self.error(
                 error_location,
@@ -815,7 +815,7 @@ impl Checker {
                     let class_name = self.symbol_to_string(class_symbol);
                     self.error(
                         Some(error_location),
-                        &diagnostics::Cannot_find_name_0_Did_you_mean_the_static_member_1_0,
+                        &diagnostics::CANNOT_FIND_NAME_0_DID_YOU_MEAN_THE_STATIC_MEMBER_1_0,
                         &[&name, &class_name],
                     );
                     return true;
@@ -831,7 +831,7 @@ impl Checker {
                         .unwrap();
                     // TODO: GH#18217
                     if self.get_property_of_type(instance_type, name).is_some() {
-                        self.error(Some(error_location), &diagnostics::Cannot_find_name_0_Did_you_mean_the_instance_member_this_0, &[&name]);
+                        self.error(Some(error_location), &diagnostics::CANNOT_FIND_NAME_0_DID_YOU_MEAN_THE_INSTANCE_MEMBER_THIS_0, &[&name]);
                         return true;
                     }
                 }
@@ -898,12 +898,12 @@ impl Checker {
                     Some(suggestion),
                     false, /*excludeClasses*/
                 );
-                let message = if meaning == SymbolFlags::Namespace {
-                    &diagnostics::Cannot_find_namespace_0_Did_you_mean_1
+                let message = if meaning == SymbolFlags::NAMESPACE {
+                    &diagnostics::CANNOT_FIND_NAMESPACE_0_DID_YOU_MEAN_1
                 } else if is_unchecked_js {
-                    &diagnostics::Could_not_find_name_0_Did_you_mean_1
+                    &diagnostics::COULD_NOT_FIND_NAME_0_DID_YOU_MEAN_1
                 } else {
-                    &diagnostics::Cannot_find_name_0_Did_you_mean_1
+                    &diagnostics::CANNOT_FIND_NAME_0_DID_YOU_MEAN_1
                 };
                 let diagnostic = new_diagnostic_for_node(
                     error_location,
@@ -913,7 +913,7 @@ impl Checker {
                 if let Some(value_declaration) = suggestion.value_declaration() {
                     diagnostic.add_related_info(new_diagnostic_for_node(
                         Some(value_declaration),
-                        Some(&diagnostics::X_0_is_declared_here),
+                        Some(&diagnostics::X_0_IS_DECLARED_HERE),
                         &[&suggestion_name],
                     ));
                 }
@@ -932,12 +932,12 @@ impl Checker {
         name: &str,
         meaning: SymbolFlags,
     ) -> bool {
-        if meaning == SymbolFlags::Namespace {
+        if meaning == SymbolFlags::NAMESPACE {
             let symbol = self
                 .resolve_name(
                     Some(error_location),
                     name,
-                    SymbolFlags::Type & !SymbolFlags::Namespace,
+                    SymbolFlags::TYPE & !SymbolFlags::NAMESPACE,
                     None,  /*nameNotFoundMessage*/
                     false, /*isUse*/
                     false, /*excludeGlobals*/
@@ -956,7 +956,7 @@ impl Checker {
                     if prop_type.is_some() {
                         self.error(
                             Some(parent),
-                            &diagnostics::Cannot_access_0_1_because_0_is_a_type_but_not_a_namespace_Did_you_mean_to_retrieve_the_type_of_the_property_1_in_0_with_0_1,
+                            &diagnostics::CANNOT_ACCESS_0_1_BECAUSE_0_IS_A_TYPE_BUT_NOT_A_NAMESPACE_DID_YOU_MEAN_TO_RETRIEVE_THE_TYPE_OF_THE_PROPERTY_1_IN_0_WITH_0_1,
                             &[&name, &prop_name],
                         );
                         return true;
@@ -964,7 +964,7 @@ impl Checker {
                 }
                 self.error(
                     Some(error_location),
-                    &diagnostics::X_0_only_refers_to_a_type_but_is_being_used_as_a_namespace_here,
+                    &diagnostics::X_0_ONLY_REFERS_TO_A_TYPE_BUT_IS_BEING_USED_AS_A_NAMESPACE_HERE,
                     &[&name],
                 );
                 return true;
@@ -984,7 +984,7 @@ impl Checker {
         {
             self.error(
                 Some(error_location),
-                &diagnostics::Cannot_export_0_Only_local_declarations_can_be_exported_from_a_module,
+                &diagnostics::CANNOT_EXPORT_0_ONLY_LOCAL_DECLARATIONS_CAN_BE_EXPORTED_FROM_A_MODULE,
                 &[&name],
             );
             return true;
@@ -1006,12 +1006,12 @@ impl Checker {
         name: &str,
         meaning: SymbolFlags,
     ) -> bool {
-        if meaning.intersects(SymbolFlags::Value & !SymbolFlags::Type) {
+        if meaning.intersects(SymbolFlags::VALUE & !SymbolFlags::TYPE) {
             let symbol = self
                 .resolve_name(
                     Some(error_location),
                     name,
-                    SymbolFlags::NamespaceModule,
+                    SymbolFlags::NAMESPACE_MODULE,
                     None,  /*nameNotFoundMessage*/
                     false, /*isUse*/
                     false, /*excludeGlobals*/
@@ -1023,18 +1023,18 @@ impl Checker {
                 if !is_export_assignment_expression_name(Some(error_location)) {
                     self.error(
                         Some(error_location),
-                        &diagnostics::Cannot_use_namespace_0_as_a_value,
+                        &diagnostics::CANNOT_USE_NAMESPACE_0_AS_A_VALUE,
                         &[&name],
                     );
                 }
                 return true;
             }
-        } else if meaning.intersects(SymbolFlags::Type & !SymbolFlags::Value) {
+        } else if meaning.intersects(SymbolFlags::TYPE & !SymbolFlags::VALUE) {
             let symbol = self
                 .resolve_name(
                     Some(error_location),
                     name,
-                    SymbolFlags::Module,
+                    SymbolFlags::MODULE,
                     None,  /*nameNotFoundMessage*/
                     false, /*isUse*/
                     false, /*excludeGlobals*/
@@ -1043,7 +1043,7 @@ impl Checker {
             if symbol.is_some() {
                 self.error(
                     Some(error_location),
-                    &diagnostics::Cannot_use_namespace_0_as_a_type,
+                    &diagnostics::CANNOT_USE_NAMESPACE_0_AS_A_TYPE,
                     &[&name],
                 );
                 return true;
@@ -1059,7 +1059,7 @@ impl Checker {
         name: &str,
         meaning: SymbolFlags,
     ) -> bool {
-        if meaning.intersects(SymbolFlags::Value) {
+        if meaning.intersects(SymbolFlags::VALUE) {
             if is_primitive_type_name(name) {
                 let grandparent = error_location.parent().unwrap().parent();
                 if let Some(grandparent) =
@@ -1073,14 +1073,14 @@ impl Checker {
                     {
                         self.error(
                             Some(error_location),
-                            &diagnostics::An_interface_cannot_extend_a_primitive_type_like_0_It_can_only_extend_other_named_object_types,
+                            &diagnostics::AN_INTERFACE_CANNOT_EXTEND_A_PRIMITIVE_TYPE_LIKE_0_IT_CAN_ONLY_EXTEND_OTHER_NAMED_OBJECT_TYPES,
                             &[&name],
                         );
                     } else if ast::is_class_like(container) && heritage_kind == Kind::ExtendsKeyword
                     {
                         self.error(
                             Some(error_location),
-                            &diagnostics::A_class_cannot_extend_a_primitive_type_like_0_Classes_can_only_extend_constructable_values,
+                            &diagnostics::A_CLASS_CANNOT_EXTEND_A_PRIMITIVE_TYPE_LIKE_0_CLASSES_CAN_ONLY_EXTEND_CONSTRUCTABLE_VALUES,
                             &[&name],
                         );
                     } else if ast::is_class_like(container)
@@ -1088,14 +1088,14 @@ impl Checker {
                     {
                         self.error(
                             Some(error_location),
-                            &diagnostics::A_class_cannot_implement_a_primitive_type_like_0_It_can_only_implement_other_named_object_types,
+                            &diagnostics::A_CLASS_CANNOT_IMPLEMENT_A_PRIMITIVE_TYPE_LIKE_0_IT_CAN_ONLY_IMPLEMENT_OTHER_NAMED_OBJECT_TYPES,
                             &[&name],
                         );
                     }
                 } else {
                     self.error(
                         Some(error_location),
-                        &diagnostics::X_0_only_refers_to_a_type_but_is_being_used_as_a_value_here,
+                        &diagnostics::X_0_ONLY_REFERS_TO_A_TYPE_BUT_IS_BEING_USED_AS_A_VALUE_HERE,
                         &[&name],
                     );
                 }
@@ -1105,7 +1105,7 @@ impl Checker {
                 .resolve_name(
                     Some(error_location),
                     name,
-                    SymbolFlags::Type & !SymbolFlags::Value,
+                    SymbolFlags::TYPE & !SymbolFlags::VALUE,
                     None,  /*nameNotFoundMessage*/
                     false, /*isUse*/
                     false, /*excludeGlobals*/
@@ -1113,7 +1113,7 @@ impl Checker {
                 .map(|s| self.resolve_symbol(s));
             if let Some(symbol) = symbol {
                 let all_flags = self.get_symbol_flags(symbol);
-                if !all_flags.intersects(SymbolFlags::Value) {
+                if !all_flags.intersects(SymbolFlags::VALUE) {
                     // `export = SomeType` may legitimately reference a type-only name; checkExportAssignment
                     // decides whether that is an error, so don't report "used as a value" here.
                     if is_export_assignment_expression_name(Some(error_location)) {
@@ -1122,17 +1122,17 @@ impl Checker {
                     if is_es2015_or_later_constructor_name(name) {
                         self.error(
                             Some(error_location),
-                            &diagnostics::X_0_only_refers_to_a_type_but_is_being_used_as_a_value_here_Do_you_need_to_change_your_target_library_Try_changing_the_lib_compiler_option_to_es2015_or_later,
+                            &diagnostics::X_0_ONLY_REFERS_TO_A_TYPE_BUT_IS_BEING_USED_AS_A_VALUE_HERE_DO_YOU_NEED_TO_CHANGE_YOUR_TARGET_LIBRARY_TRY_CHANGING_THE_LIB_COMPILER_OPTION_TO_ES2015_OR_LATER,
                             &[&name],
                         );
                     } else if self.maybe_mapped_type(error_location, symbol) {
                         self.error(
                             Some(error_location),
-                            &diagnostics::X_0_only_refers_to_a_type_but_is_being_used_as_a_value_here_Did_you_mean_to_use_1_in_0,
+                            &diagnostics::X_0_ONLY_REFERS_TO_A_TYPE_BUT_IS_BEING_USED_AS_A_VALUE_HERE_DID_YOU_MEAN_TO_USE_1_IN_0,
                             &[&name, &if name == "K" { "P" } else { "K" }],
                         );
                     } else {
-                        self.error(Some(error_location), &diagnostics::X_0_only_refers_to_a_type_but_is_being_used_as_a_value_here, &[&name]);
+                        self.error(Some(error_location), &diagnostics::X_0_ONLY_REFERS_TO_A_TYPE_BUT_IS_BEING_USED_AS_A_VALUE_HERE, &[&name]);
                     }
                     return true;
                 }
@@ -1161,10 +1161,10 @@ impl Checker {
         }
         if ast::is_type_literal_node(node) && node.members().len() == 1 {
             let t = self.get_declared_type_of_symbol(symbol);
-            return t.flags().intersects(TypeFlags::Union)
+            return t.flags().intersects(TypeFlags::UNION)
                 && self.all_types_assignable_to_kind_ex(
                     t,
-                    TypeFlags::StringOrNumberLiteral,
+                    TypeFlags::STRING_OR_NUMBER_LITERAL,
                     true, /*strict*/
                 );
         }
@@ -1178,20 +1178,20 @@ impl Checker {
         name: &str,
         meaning: SymbolFlags,
     ) -> bool {
-        if meaning.intersects(SymbolFlags::Type & !SymbolFlags::Namespace) {
+        if meaning.intersects(SymbolFlags::TYPE & !SymbolFlags::NAMESPACE) {
             let symbol = self
                 .resolve_name(
                     Some(error_location),
                     name,
-                    !SymbolFlags::Type & SymbolFlags::Value,
+                    !SymbolFlags::TYPE & SymbolFlags::VALUE,
                     None,  /*nameNotFoundMessage*/
                     false, /*isUse*/
                     false, /*excludeGlobals*/
                 )
                 .map(|s| self.resolve_symbol(s));
             if let Some(symbol) = symbol {
-                if !symbol.flags().intersects(SymbolFlags::Namespace) {
-                    self.error(Some(error_location), &diagnostics::X_0_refers_to_a_value_but_is_being_used_as_a_type_here_Did_you_mean_typeof_0, &[&name]);
+                if !symbol.flags().intersects(SymbolFlags::NAMESPACE) {
+                    self.error(Some(error_location), &diagnostics::X_0_REFERS_TO_A_VALUE_BUT_IS_BEING_USED_AS_A_TYPE_HERE_DID_YOU_MEAN_TYPEOF_0, &[&name]);
                     return true;
                 }
             }
@@ -1254,7 +1254,7 @@ impl Checker {
             return symbol;
         }
         let mut extras: Vec<P<Symbol>> = Vec::new();
-        if meaning.intersects(SymbolFlags::GlobalLookup) {
+        if meaning.intersects(SymbolFlags::GLOBAL_LOOKUP) {
             extras = get_primitive_type_alias_suggestions(symbols);
         }
         let mut candidates = symbols.map_or_else(Vec::new, |symbols| symbols.values());
@@ -1289,14 +1289,14 @@ impl Checker {
             let candidate_name = ast::symbol_name(candidate);
             if candidate_name.is_empty()
                 || candidate_name.as_bytes()[0] == b'"'
-                || candidate_name.as_bytes()[0] == ast::InternalSymbolNamePrefixByte
+                || candidate_name.as_bytes()[0] == ast::INTERNAL_SYMBOL_NAME_PREFIX_BYTE
             {
                 return "";
             }
             if candidate.flags().intersects(meaning) {
                 return candidate_name;
             }
-            if candidate.flags().intersects(SymbolFlags::Alias) {
+            if candidate.flags().intersects(SymbolFlags::ALIAS) {
                 let alias = c.borrow_mut().try_resolve_alias(candidate);
                 if alias.is_some_and(|alias| alias.flags().intersects(meaning)) {
                     return candidate_name;
@@ -1339,14 +1339,14 @@ impl Checker {
         // try to resolve name in /*1*/ which is used in variable position,
         // we want to check for block-scoped
         if let Some(error_location) = error_location {
-            if meaning.intersects(SymbolFlags::BlockScopedVariable)
-                || meaning.intersects(SymbolFlags::Class | SymbolFlags::Enum)
-                    && meaning & SymbolFlags::Value == SymbolFlags::Value
+            if meaning.intersects(SymbolFlags::BLOCK_SCOPED_VARIABLE)
+                || meaning.intersects(SymbolFlags::CLASS | SymbolFlags::ENUM)
+                    && meaning & SymbolFlags::VALUE == SymbolFlags::VALUE
             {
                 let export_or_local_symbol =
                     self.get_export_symbol_of_value_symbol_if_exported(Some(result)).unwrap();
                 if export_or_local_symbol.flags().intersects(
-                    SymbolFlags::BlockScopedVariable | SymbolFlags::Class | SymbolFlags::Enum,
+                    SymbolFlags::BLOCK_SCOPED_VARIABLE | SymbolFlags::CLASS | SymbolFlags::ENUM,
                 ) {
                     self.check_resolved_block_scoped_variable(
                         export_or_local_symbol,
@@ -1357,8 +1357,8 @@ impl Checker {
         }
         // If we're in an external module, we can't reference value symbols created from UMD export declarations
         if is_in_external_module
-            && (meaning & SymbolFlags::Value) == SymbolFlags::Value
-            && !error_location.unwrap().flags().intersects(NodeFlags::JSDoc)
+            && (meaning & SymbolFlags::VALUE) == SymbolFlags::VALUE
+            && !error_location.unwrap().flags().intersects(NodeFlags::JSDOC)
         {
             let merged = self.get_merged_symbol(result);
             let declarations = merged.declarations();
@@ -1371,7 +1371,7 @@ impl Checker {
                 self.error_or_suggestion(
                     self.compiler_options.allow_umd_global_access != Tristate::True,
                     error_location,
-                    &diagnostics::X_0_refers_to_a_UMD_global_but_the_current_file_is_a_module_Consider_adding_an_import_instead,
+                    &diagnostics::X_0_REFERS_TO_A_UMD_GLOBAL_BUT_THE_CURRENT_FILE_IS_A_MODULE_CONSIDER_ADDING_AN_IMPORT_INSTEAD,
                     &[&name],
                 );
             }
@@ -1379,7 +1379,7 @@ impl Checker {
         // If we're in a parameter initializer or binding name, we can't reference the values of the parameter whose initializer we're within or parameters to the right
         if let Some(associated) = associated_declaration_for_containing_initializer_or_binding_name
         {
-            if !within_deferred_context && (meaning & SymbolFlags::Value) == SymbolFlags::Value {
+            if !within_deferred_context && (meaning & SymbolFlags::VALUE) == SymbolFlags::VALUE {
                 let late_bound = self.get_late_bound_symbol(result);
                 let candidate = self.get_merged_symbol(late_bound);
                 let root = ast::get_root_declaration(associated);
@@ -1387,7 +1387,7 @@ impl Checker {
                 if Some(candidate) == self.get_symbol_of_declaration(associated) {
                     self.error(
                         error_location,
-                        &diagnostics::Parameter_0_cannot_reference_itself,
+                        &diagnostics::PARAMETER_0_CANNOT_REFERENCE_ITSELF,
                         &[&tsrs_scanner::declaration_name_to_string(associated.name())],
                     );
                 } else if candidate
@@ -1399,7 +1399,7 @@ impl Checker {
                 {
                     self.error(
                         error_location,
-                        &diagnostics::Parameter_0_cannot_reference_identifier_1_declared_after_it,
+                        &diagnostics::PARAMETER_0_CANNOT_REFERENCE_IDENTIFIER_1_DECLARED_AFTER_IT,
                         &[
                             &tsrs_scanner::declaration_name_to_string(associated.name()),
                             &tsrs_scanner::declaration_name_to_string(error_location),
@@ -1409,21 +1409,21 @@ impl Checker {
             }
         }
         if let Some(loc) = error_location {
-            if meaning.intersects(SymbolFlags::Value)
-                && result.flags().intersects(SymbolFlags::Alias)
-                && !result.flags().intersects(SymbolFlags::Value)
+            if meaning.intersects(SymbolFlags::VALUE)
+                && result.flags().intersects(SymbolFlags::ALIAS)
+                && !result.flags().intersects(SymbolFlags::VALUE)
                 && !ast::is_valid_type_only_alias_use_site(loc)
             {
                 let type_only_declaration =
-                    self.get_type_only_alias_declaration_ex(result, SymbolFlags::Value);
+                    self.get_type_only_alias_declaration_ex(result, SymbolFlags::VALUE);
                 if let Some(type_only_declaration) = type_only_declaration {
                     let message = if ast::node_kind_is(
                         type_only_declaration,
                         &[Kind::ExportSpecifier, Kind::ExportDeclaration, Kind::NamespaceExport],
                     ) {
-                        &diagnostics::X_0_cannot_be_used_as_a_value_because_it_was_exported_using_export_type
+                        &diagnostics::X_0_CANNOT_BE_USED_AS_A_VALUE_BECAUSE_IT_WAS_EXPORTED_USING_EXPORT_TYPE
                     } else {
-                        &diagnostics::X_0_cannot_be_used_as_a_value_because_it_was_imported_using_import_type
+                        &diagnostics::X_0_CANNOT_BE_USED_AS_A_VALUE_BECAUSE_IT_WAS_IMPORTED_USING_IMPORT_TYPE
                     };
                     let diagnostic = self.error(error_location, message, &[&name]);
                     Self::add_type_only_declaration_related_info(
@@ -1438,7 +1438,7 @@ impl Checker {
         // here because 'verbatimModuleSyntax' will already have an error for importing a type without 'import type'.
         if self.compiler_options.isolated_modules == Tristate::True
             && is_in_external_module
-            && (meaning & SymbolFlags::Value) == SymbolFlags::Value
+            && (meaning & SymbolFlags::VALUE) == SymbolFlags::VALUE
         {
             let globals = self.globals;
             let is_global = self.get_symbol(Some(globals), name, meaning) == Some(result);
@@ -1446,7 +1446,7 @@ impl Checker {
             let last_location = last_location.unwrap();
             if is_global && ast::is_source_file(last_location) {
                 non_value_symbol =
-                    self.get_symbol(last_location.locals(), name, !SymbolFlags::Value);
+                    self.get_symbol(last_location.locals(), name, !SymbolFlags::VALUE);
             }
             if let Some(non_value_symbol) = non_value_symbol {
                 let import_decl = non_value_symbol.declarations().iter().copied().find(|d| {
@@ -1464,7 +1464,7 @@ impl Checker {
                     if !ast::is_type_only_import_declaration(import_decl) {
                         self.error(
                             Some(import_decl),
-                            &diagnostics::Import_0_conflicts_with_global_value_used_in_this_file_so_must_be_declared_with_a_type_only_import_when_isolatedModules_is_enabled,
+                            &diagnostics::IMPORT_0_CONFLICTS_WITH_GLOBAL_VALUE_USED_IN_THIS_FILE_SO_MUST_BE_DECLARED_WITH_A_TYPE_ONLY_IMPORT_WHEN_ISOLATED_MODULES_IS_ENABLED,
                             &[&name],
                         );
                     }
@@ -1480,13 +1480,13 @@ impl Checker {
         error_location: P<Node>,
     ) {
         assert!(
-            result.flags().intersects(SymbolFlags::BlockScopedVariable)
-                || result.flags().intersects(SymbolFlags::Class)
-                || result.flags().intersects(SymbolFlags::Enum)
+            result.flags().intersects(SymbolFlags::BLOCK_SCOPED_VARIABLE)
+                || result.flags().intersects(SymbolFlags::CLASS)
+                || result.flags().intersects(SymbolFlags::ENUM)
         );
         if result.flags().intersects(
-            SymbolFlags::Function | SymbolFlags::FunctionScopedVariable | SymbolFlags::Assignment,
-        ) && result.flags().intersects(SymbolFlags::Class)
+            SymbolFlags::FUNCTION | SymbolFlags::FUNCTION_SCOPED_VARIABLE | SymbolFlags::ASSIGNMENT,
+        ) && result.flags().intersects(SymbolFlags::CLASS)
         {
             // constructor functions aren't block scoped
             return;
@@ -1500,36 +1500,36 @@ impl Checker {
         let Some(declaration) = declaration else {
             panic!("checkResolvedBlockScopedVariable could not find block-scoped declaration");
         };
-        if !declaration.flags().intersects(NodeFlags::Ambient)
+        if !declaration.flags().intersects(NodeFlags::AMBIENT)
             && !self.is_block_scoped_name_declared_before_use(declaration, error_location)
         {
             let mut diagnostic: Option<P<Diagnostic>> = None;
             let declaration_name =
                 tsrs_scanner::declaration_name_to_string(ast::get_name_of_declaration(declaration));
-            if result.flags().intersects(SymbolFlags::BlockScopedVariable) {
+            if result.flags().intersects(SymbolFlags::BLOCK_SCOPED_VARIABLE) {
                 diagnostic = Some(self.error(
                     Some(error_location),
-                    &diagnostics::Block_scoped_variable_0_used_before_its_declaration,
+                    &diagnostics::BLOCK_SCOPED_VARIABLE_0_USED_BEFORE_ITS_DECLARATION,
                     &[&declaration_name],
                 ));
-            } else if result.flags().intersects(SymbolFlags::Class) {
+            } else if result.flags().intersects(SymbolFlags::CLASS) {
                 diagnostic = Some(self.error(
                     Some(error_location),
-                    &diagnostics::Class_0_used_before_its_declaration,
+                    &diagnostics::CLASS_0_USED_BEFORE_ITS_DECLARATION,
                     &[&declaration_name],
                 ));
-            } else if result.flags().intersects(SymbolFlags::RegularEnum) {
+            } else if result.flags().intersects(SymbolFlags::REGULAR_ENUM) {
                 diagnostic = Some(self.error(
                     Some(error_location),
-                    &diagnostics::Enum_0_used_before_its_declaration,
+                    &diagnostics::ENUM_0_USED_BEFORE_ITS_DECLARATION,
                     &[&declaration_name],
                 ));
             } else {
-                assert!(result.flags().intersects(SymbolFlags::ConstEnum));
+                assert!(result.flags().intersects(SymbolFlags::CONST_ENUM));
                 if self.compiler_options.get_isolated_modules() {
                     diagnostic = Some(self.error(
                         Some(error_location),
-                        &diagnostics::Enum_0_used_before_its_declaration,
+                        &diagnostics::ENUM_0_USED_BEFORE_ITS_DECLARATION,
                         &[&declaration_name],
                     ));
                 }
@@ -1537,7 +1537,7 @@ impl Checker {
             if let Some(diagnostic) = diagnostic {
                 diagnostic.add_related_info(create_diagnostic_for_node(
                     Some(declaration),
-                    &diagnostics::X_0_is_declared_here,
+                    &diagnostics::X_0_IS_DECLARED_HERE,
                     &[&declaration_name],
                 ));
             }
@@ -1558,7 +1558,7 @@ impl Checker {
             return true;
         }
         // deferred usage in a type context is always OK regardless of the usage position:
-        if usage.flags().intersects(NodeFlags::JSDoc)
+        if usage.flags().intersects(NodeFlags::JSDOC)
             || is_in_type_query(usage)
             || Self::is_in_ambient_or_type_node(usage)
         {
@@ -1870,7 +1870,7 @@ pub(crate) fn is_same_scope_descendent_of(
             || ast::is_function_like(cur)
                 && (ast::get_immediately_invoked_function_expression(cur).is_none()
                     || ast::get_function_flags(Some(cur))
-                        .intersects(ast::FunctionFlags::AsyncGenerator))
+                        .intersects(ast::FunctionFlags::ASYNC_GENERATOR))
         {
             return false;
         }

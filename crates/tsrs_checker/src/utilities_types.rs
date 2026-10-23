@@ -17,16 +17,16 @@ pub type AssignmentTarget = Node; // BinaryExpression | PrefixUnaryExpression | 
 
 /// orderedSetMapThreshold is the size at which an orderedSet materializes its dedup map. Below this,
 /// `contains()` scans the values slice.
-pub const orderedSetMapThreshold: usize = 16;
+pub const ORDERED_SET_MAP_THRESHOLD: usize = 16;
 
-pub struct orderedSet<T: Copy + Eq + std::hash::Hash> {
+pub struct CheckerOrderedSet<T: Copy + Eq + std::hash::Hash> {
     pub values_by_key: Option<FxHashSet<T>>,
     pub values: Vec<T>,
 }
 
-impl<T: Copy + Eq + std::hash::Hash> Default for orderedSet<T> {
+impl<T: Copy + Eq + std::hash::Hash> Default for CheckerOrderedSet<T> {
     fn default() -> Self {
-        orderedSet { values_by_key: None, values: Vec::new() }
+        CheckerOrderedSet { values_by_key: None, values: Vec::new() }
     }
 }
 

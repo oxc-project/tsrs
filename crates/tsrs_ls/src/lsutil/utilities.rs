@@ -20,7 +20,7 @@ pub fn probably_uses_semicolons(file: P<SourceFile>) -> bool {
         without_semicolon: &mut usize,
         n_statements_to_observe: usize,
     ) -> bool {
-        if node.flags().intersects(NodeFlags::Reparsed) {
+        if node.flags().intersects(NodeFlags::REPARSED) {
             return false;
         }
         if syntax_requires_trailing_semicolon_or_asi(node.kind()) {
@@ -104,7 +104,7 @@ pub fn should_use_uri_style_node_core_modules(file: P<SourceFile>, program: &Pro
 
 // utilities.go:91
 pub fn quote_preference_from_string(str: P<Node>) -> QuotePreference {
-    if str.as_string_literal().token_flags().intersects(TokenFlags::SingleQuote) {
+    if str.as_string_literal().token_flags().intersects(TokenFlags::SINGLE_QUOTE) {
         return QuotePreference::Single;
     }
     QuotePreference::Double

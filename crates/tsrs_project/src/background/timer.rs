@@ -11,18 +11,18 @@ use rustc_hash::FxHashMap;
 
 use super::queue::go;
 
-type callback = Arc<dyn Fn() + Send + Sync>;
+type Callback = Arc<dyn Fn() + Send + Sync>;
 
-struct timerState {
+struct TimerState {
     heap: BinaryHeap<Reverse<(Instant, u64, u64)>>,
     // timer id -> (generation of its pending deadline, callback); absent when stopped or fired.
-    pending: FxHashMap<u64, (u64, callback)>,
+    pending: FxHashMap<u64, (u64, Callback)>,
     next_id: u64,
     next_generation: u64,
 }
 
-struct timerThread {
-    st: Mutex<timerState>,
+struct TimerThread {
+    st: Mutex<TimerState>,
     wake: Condvar,
 }
 
@@ -30,11 +30,11 @@ struct timerThread {
     clippy::infinite_loop,
     reason = "the process-wide timer thread waits for deadlines until process exit"
 )]
-fn timer_thread() -> &'static timerThread {
-    static TIMERS: OnceLock<&'static timerThread> = OnceLock::new();
+fn timer_thread() -> &'static TimerThread {
+    static TIMERS: OnceLock<&'static TimerThread> = OnceLock::new();
     TIMERS.get_or_init(|| {
-        let t: &'static timerThread = Box::leak(Box::new(timerThread {
-            st: Mutex::new(timerState {
+        let t: &'static TimerThread = Box::leak(Box::new(TimerThread {
+            st: Mutex::new(TimerState {
                 heap: BinaryHeap::new(),
                 pending: FxHashMap::default(),
                 next_id: 0,
@@ -76,13 +76,13 @@ fn timer_thread() -> &'static timerThread {
 // Go `*time.Timer` created by `time.AfterFunc`.
 pub struct Timer {
     id: u64,
-    f: callback,
+    f: Callback,
 }
 
 // Go `time.AfterFunc(d, f)`.
 pub fn after_func(d: Duration, f: impl Fn() + Send + Sync + 'static) -> Timer {
     let t = timer_thread();
-    let f: callback = Arc::new(f);
+    let f: Callback = Arc::new(f);
     let mut st = t.st.lock().unwrap();
     st.next_id += 1;
     let id = st.next_id;
@@ -92,7 +92,7 @@ pub fn after_func(d: Duration, f: impl Fn() + Send + Sync + 'static) -> Timer {
     Timer { id, f }
 }
 
-fn schedule(st: &mut timerState, id: u64, d: Duration, f: callback) {
+fn schedule(st: &mut TimerState, id: u64, d: Duration, f: Callback) {
     st.next_generation += 1;
     let generation = st.next_generation;
     st.pending.insert(id, (generation, f));

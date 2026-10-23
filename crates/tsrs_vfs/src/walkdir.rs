@@ -55,7 +55,7 @@ pub fn walk_dir(
             root_entry = DirEntry {
                 path: root.to_string(),
                 name: tspath::get_base_file_name(root),
-                mode: FileMode::Symlink,
+                mode: FileMode::SYMLINK,
                 info: None,
             };
         }
@@ -145,9 +145,9 @@ impl WalkState {
                 continue;
             }
 
-            let mut mode = FileMode::None;
+            let mut mode = FileMode::NONE;
             if directories.contains(name) {
-                mode = FileMode::Dir;
+                mode = FileMode::DIR;
             }
             let mut child_realpath = String::new();
             let is_symlink;
@@ -162,7 +162,7 @@ impl WalkState {
                     !self.equivalent(&child_realpath, &tspath::combine_paths(realpath, &[name]));
             }
             if is_symlink {
-                mode = FileMode::Symlink;
+                mode = FileMode::SYMLINK;
             }
             let child_entry =
                 DirEntry { path: child_path.clone(), name: name.to_string(), mode, info: None };
@@ -226,7 +226,7 @@ impl DirEntry {
         if let Some(info) = &self.info {
             return Ok(info.clone());
         }
-        if self.mode.intersects(FileMode::Symlink) {
+        if self.mode.intersects(FileMode::SYMLINK) {
             return Ok(FileInfo {
                 name: self.name.clone(),
                 size: 0,

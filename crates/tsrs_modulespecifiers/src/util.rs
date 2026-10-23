@@ -77,13 +77,13 @@ pub(crate) fn string_to_regex(pattern: &str) -> Option<P<regex::Regex>> {
             }
         }
     }
-    let key = regexPatternCacheKey { pattern: pattern.to_string(), case_insensitive };
+    let key = RegexPatternCacheKey { pattern: pattern.to_string(), case_insensitive };
 
-    if let Some(re) = regexPatternCache.read().unwrap().get(&key) {
+    if let Some(re) = REGEX_PATTERN_CACHE.read().unwrap().get(&key) {
         return *re;
     }
 
-    let mut cache = regexPatternCache.write().unwrap();
+    let mut cache = REGEX_PATTERN_CACHE.write().unwrap();
 
     if let Some(re) = cache.get(&key) {
         return *re;
@@ -302,35 +302,35 @@ pub fn get_node_module_path_parts(full_path: &str) -> Option<NodeModulePathParts
 
     let mut part_start = 0;
     let mut part_end = Some(0);
-    let mut state = nodeModulesPathParseState::BeforeNodeModules;
+    let mut state = NodeModulesPathParseState::BeforeNodeModules;
 
     while let Some(end) = part_end {
         part_start = end;
         part_end = index_after(full_path, "/", part_start + 1);
         match state {
-            nodeModulesPathParseState::BeforeNodeModules => {
+            NodeModulesPathParseState::BeforeNodeModules => {
                 if full_path[part_start..].starts_with("/node_modules/") {
                     top_level_node_modules_index = part_start;
                     top_level_package_name_index =
                         part_end.expect("node_modules path has a following package segment");
-                    state = nodeModulesPathParseState::NodeModules;
+                    state = NodeModulesPathParseState::NodeModules;
                 }
             }
-            nodeModulesPathParseState::NodeModules | nodeModulesPathParseState::Scope => {
-                if state == nodeModulesPathParseState::NodeModules
+            NodeModulesPathParseState::NodeModules | NodeModulesPathParseState::Scope => {
+                if state == NodeModulesPathParseState::NodeModules
                     && full_path.as_bytes()[part_start + 1] == b'@'
                 {
-                    state = nodeModulesPathParseState::Scope;
+                    state = NodeModulesPathParseState::Scope;
                 } else {
                     package_root_index = part_end;
-                    state = nodeModulesPathParseState::PackageContent;
+                    state = NodeModulesPathParseState::PackageContent;
                 }
             }
-            nodeModulesPathParseState::PackageContent => {
+            NodeModulesPathParseState::PackageContent => {
                 if full_path[part_start..].starts_with("/node_modules/") {
-                    state = nodeModulesPathParseState::NodeModules;
+                    state = NodeModulesPathParseState::NodeModules;
                 } else {
-                    state = nodeModulesPathParseState::PackageContent;
+                    state = NodeModulesPathParseState::PackageContent;
                 }
             }
         }
@@ -338,7 +338,7 @@ pub fn get_node_module_path_parts(full_path: &str) -> Option<NodeModulePathParts
 
     let file_name_index = part_start;
 
-    if state > nodeModulesPathParseState::NodeModules {
+    if state > NodeModulesPathParseState::NodeModules {
         return Some(NodeModulePathParts {
             top_level_node_modules_index,
             top_level_package_name_index,

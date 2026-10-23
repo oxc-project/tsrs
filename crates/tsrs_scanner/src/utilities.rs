@@ -26,7 +26,7 @@ pub(crate) fn is_jsdoc_type_expression_or_child(node: P<Node>) -> bool {
     if ast::is_jsdoc_type_expression(node) {
         return true;
     }
-    if !node.flags().intersects(NodeFlags::JSDoc | NodeFlags::Reparsed) {
+    if !node.flags().intersects(NodeFlags::JSDOC | NodeFlags::REPARSED) {
         return false;
     }
     let current = Some(node);
@@ -96,10 +96,10 @@ pub fn get_text_of_node_from_source_text(
     if is_jsdoc_type_expression_or_child(node) {
         text = normalize_jsdoc_type_source_text(&text);
     }
-    if node.flags().intersects(NodeFlags::ReparserTransformedLiteral) {
+    if node.flags().intersects(NodeFlags::REPARSER_TRANSFORMED_LITERAL) {
         // This is similar to `getLiteralTextOfNode` in the printer, but without the context of an `emitContext` to provide overrides
         if ast::is_string_literal(node) {
-            if node.as_string_literal().token_flags().intersects(TokenFlags::SingleQuote) {
+            if node.as_string_literal().token_flags().intersects(TokenFlags::SINGLE_QUOTE) {
                 return format!("'{text}'");
             }
             return format!("\"{text}\"");

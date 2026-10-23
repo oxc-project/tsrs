@@ -19,7 +19,7 @@ fn watched_files_omits_network_paths() {
     ] {
         let watcher = new_watched_files_for_paths(
             "test".to_string(),
-            tsrs_lsproto::WatchKind::Create,
+            tsrs_lsproto::WatchKind::CREATE,
             true,
             workspace,
             "/",

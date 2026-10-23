@@ -96,8 +96,9 @@ debug = false # set to `true` for debug information
 panic = "unwind"
 
 [workspace.lints.rust]
-non_upper_case_globals = "allow"
-non_camel_case_types = "allow"
+non_upper_case_globals = "deny"
+non_camel_case_types = "deny"
+non_snake_case = "deny"
 # Rust 1.99: forming raw pointers through intermediate references can strengthen aliasing assumptions accidentally.
 raw_borrows_via_references = "warn"
 

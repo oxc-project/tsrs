@@ -2,14 +2,14 @@ use rustc_hash::{FxHashMap, FxHashSet};
 use std::sync::{Arc, Condvar, Mutex};
 use std::time::{Duration, Instant};
 
-pub(crate) const defaultMinWaitTime: Duration = Duration::from_millis(50);
-pub(crate) const defaultMaxWaitTime: Duration = Duration::from_millis(500);
+pub(crate) const DEFAULT_MIN_WAIT_TIME: Duration = Duration::from_millis(50);
+pub(crate) const DEFAULT_MAX_WAIT_TIME: Duration = Duration::from_millis(500);
 
 // Go keeps these as package variables so tests can shorten them; nothing changes them here.
-const minWaitTime: Duration = defaultMinWaitTime;
-const maxWaitTime: Duration = defaultMaxWaitTime;
+const MIN_WAIT_TIME: Duration = DEFAULT_MIN_WAIT_TIME;
+const MAX_WAIT_TIME: Duration = DEFAULT_MAX_WAIT_TIME;
 
-type debounceCallback = Arc<dyn Fn() + Send + Sync>;
+type DebounceCallback = Arc<dyn Fn() + Send + Sync>;
 
 // debounce batches filesystem events for one backend. Each *watcher
 // owns one debounce instance, created lazily on first subscribe and
@@ -24,17 +24,17 @@ type debounceCallback = Arc<dyn Fn() + Send + Sync>;
 //
 // Go's latch channels (`waitCh` closed = signalled, `triggerCh` replaced on each trigger) are a mutex-guarded
 // `notified` flag and trigger generation with a condition variable.
-pub(crate) struct debounce {
-    mu: Mutex<debounceState>,
-    latch_mu: Mutex<latchState>,
+pub(crate) struct Debounce {
+    mu: Mutex<DebounceState>,
+    latch_mu: Mutex<LatchState>,
     latch_cv: Condvar,
     // tsrs-only (`set_write_settling`): files a writer has written or created and not closed yet, with the times of
     // the first and the last write.
-    writes: Mutex<writeState>,
+    writes: Mutex<WriteState>,
 }
 
 #[derive(Default)]
-struct writeState {
+struct WriteState {
     open: FxHashMap<String, (Instant, Instant)>,
     // Files that stopped holding the callbacks (`settleIdleTime`, `settleMaxTime`) and are still open: a writer that
     // keeps its file open (an editor's swap file, a log) would otherwise hold every cycle of the session for up to
@@ -45,28 +45,28 @@ struct writeState {
 // tsrs-only (`set_write_settling`): a file that was written to but not closed stops holding the callbacks once it has
 // not been written for `settleIdleTime`, or `settleMaxTime` after its first write (a writer that keeps the file open,
 // such as a log).
-const settleIdleTime: Duration = Duration::from_millis(1000);
-const settleMaxTime: Duration = Duration::from_millis(2000);
+const SETTLE_IDLE_TIME: Duration = Duration::from_millis(1000);
+const SETTLE_MAX_TIME: Duration = Duration::from_millis(2000);
 
-struct debounceState {
-    callbacks: FxHashMap<usize, debounceCallback>,
+struct DebounceState {
+    callbacks: FxHashMap<usize, DebounceCallback>,
     last_time: Option<Instant>,
 }
 
 #[derive(Default)]
-struct latchState {
+struct LatchState {
     notified: bool,
     trigger_gen: u64,
 }
 
-impl debounce {
+impl Debounce {
     // debounce.go:42
-    pub(crate) fn new() -> Arc<debounce> {
-        let d = Arc::new(debounce {
-            mu: Mutex::new(debounceState { callbacks: FxHashMap::default(), last_time: None }),
-            latch_mu: Mutex::new(latchState::default()),
+    pub(crate) fn new() -> Arc<Debounce> {
+        let d = Arc::new(Debounce {
+            mu: Mutex::new(DebounceState { callbacks: FxHashMap::default(), last_time: None }),
+            latch_mu: Mutex::new(LatchState::default()),
             latch_cv: Condvar::new(),
-            writes: Mutex::new(writeState::default()),
+            writes: Mutex::new(WriteState::default()),
         });
         let looper = Arc::clone(&d);
         std::thread::Builder::new()
@@ -78,7 +78,7 @@ impl debounce {
 
     // debounce.go:51
     // add registers a callback under key.
-    pub(crate) fn add(&self, key: usize, cb: debounceCallback) {
+    pub(crate) fn add(&self, key: usize, cb: DebounceCallback) {
         self.mu.lock().unwrap().callbacks.insert(key, cb);
     }
 
@@ -134,7 +134,7 @@ impl debounce {
     pub(crate) fn hold_leading_edge(&self) {
         let mut st = self.mu.lock().unwrap();
         let now = Instant::now();
-        if st.last_time.is_none_or(|last| now.duration_since(last) > maxWaitTime) {
+        if st.last_time.is_none_or(|last| now.duration_since(last) > MAX_WAIT_TIME) {
             st.last_time = Some(now);
         }
     }
@@ -143,16 +143,18 @@ impl debounce {
     fn pending_write_deadline(&self) -> Option<Instant> {
         let now = Instant::now();
         let mut writes = self.writes.lock().unwrap();
-        let writeState { open, long_lived } = &mut *writes;
+        let WriteState { open, long_lived } = &mut *writes;
         open.retain(|path, &mut (first, last)| {
-            let settling = now.duration_since(last) < settleIdleTime
-                && now.duration_since(first) < settleMaxTime;
+            let settling = now.duration_since(last) < SETTLE_IDLE_TIME
+                && now.duration_since(first) < SETTLE_MAX_TIME;
             if !settling {
                 long_lived.insert(path.clone());
             }
             settling
         });
-        open.values().map(|&(first, last)| (last + settleIdleTime).min(first + settleMaxTime)).min()
+        open.values()
+            .map(|&(first, last)| (last + SETTLE_IDLE_TIME).min(first + SETTLE_MAX_TIME))
+            .min()
     }
 
     // debounce.go:76
@@ -178,7 +180,7 @@ impl debounce {
         let mut st = self.mu.lock().unwrap();
         let now = Instant::now();
         // Go's zero lastTime makes the first gap larger than maxWaitTime.
-        let gap_exceeded = st.last_time.is_none_or(|last| now.duration_since(last) > maxWaitTime);
+        let gap_exceeded = st.last_time.is_none_or(|last| now.duration_since(last) > MAX_WAIT_TIME);
         if gap_exceeded {
             st.last_time = Some(now);
             drop(st);
@@ -194,7 +196,7 @@ impl debounce {
         let l = self.latch_mu.lock().unwrap();
         let r#gen = l.trigger_gen;
         let (l, timeout) =
-            self.latch_cv.wait_timeout_while(l, minWaitTime, |l| l.trigger_gen == r#gen).unwrap();
+            self.latch_cv.wait_timeout_while(l, MIN_WAIT_TIME, |l| l.trigger_gen == r#gen).unwrap();
         drop(l);
         if timeout.timed_out() {
             self.fire_callbacks();
@@ -207,7 +209,7 @@ impl debounce {
     fn fire_callbacks(&self) {
         let mut st = self.mu.lock().unwrap();
         st.last_time = Some(Instant::now());
-        let cbs: Vec<debounceCallback> = st.callbacks.values().cloned().collect();
+        let cbs: Vec<DebounceCallback> = st.callbacks.values().cloned().collect();
         drop(st);
 
         self.latch_reset();
@@ -233,14 +235,14 @@ impl debounce {
 }
 
 #[cfg(all(test, target_os = "macos"))]
-impl debounce {
+impl Debounce {
     // Drive the real event classifier synchronously without a background thread draining its pending batch.
     pub(crate) fn new_without_loop_for_test() -> Arc<Self> {
         Arc::new(Self {
-            mu: Mutex::new(debounceState { callbacks: FxHashMap::default(), last_time: None }),
-            latch_mu: Mutex::new(latchState::default()),
+            mu: Mutex::new(DebounceState { callbacks: FxHashMap::default(), last_time: None }),
+            latch_mu: Mutex::new(LatchState::default()),
             latch_cv: Condvar::new(),
-            writes: Mutex::new(writeState::default()),
+            writes: Mutex::new(WriteState::default()),
         })
     }
 

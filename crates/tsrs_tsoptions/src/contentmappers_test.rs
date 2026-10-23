@@ -288,7 +288,7 @@ fn test_resolve_content_mapper_manifest() {
         resolve_content_mapper_manifest(host, "/home/project/tsconfig.json", "missing-mapper");
     assert_eq!(
         diagnostic.unwrap().code(),
-        diagnostics::The_content_mapper_package_0_could_not_be_resolved.code()
+        diagnostics::THE_CONTENT_MAPPER_PACKAGE_0_COULD_NOT_BE_RESOLVED.code()
     );
 
     // A package whose package.json has no name reports a diagnostic.
@@ -297,7 +297,7 @@ fn test_resolve_content_mapper_manifest() {
     assert_eq!(package_directory, "/home/project/node_modules/no-name");
     assert_eq!(
         diagnostic.unwrap().code(),
-        diagnostics::The_package_json_of_the_content_mapper_package_0_does_not_specify_a_name
+        diagnostics::THE_PACKAGE_JSON_OF_THE_CONTENT_MAPPER_PACKAGE_0_DOES_NOT_SPECIFY_A_NAME
             .code()
     );
 
@@ -306,7 +306,7 @@ fn test_resolve_content_mapper_manifest() {
         resolve_content_mapper_manifest(host, "/home/project/tsconfig.json", "no-manifest");
     assert_eq!(
         diagnostic.unwrap().code(),
-        diagnostics::The_package_json_of_the_content_mapper_package_0_does_not_declare_a_typescript_contentMapper_object.code()
+        diagnostics::THE_PACKAGE_JSON_OF_THE_CONTENT_MAPPER_PACKAGE_0_DOES_NOT_DECLARE_A_TYPESCRIPT_CONTENT_MAPPER_OBJECT.code()
     );
 
     // A "typescript.contentMapper" with no "exec", or an "exec" of the wrong type, reports a diagnostic.
@@ -318,7 +318,7 @@ fn test_resolve_content_mapper_manifest() {
         };
         assert_eq!(
             diagnostic.code(),
-            diagnostics::The_typescript_contentMapper_exec_of_the_content_mapper_package_0_must_be_a_non_empty_array_of_strings.code()
+            diagnostics::THE_TYPESCRIPT_CONTENT_MAPPER_EXEC_OF_THE_CONTENT_MAPPER_PACKAGE_0_MUST_BE_A_NON_EMPTY_ARRAY_OF_STRINGS.code()
         );
     }
 }
@@ -398,11 +398,11 @@ fn test_static_content_mapper_transform_identity() {
 
     let jsx_mapper = named("jsx", "", "jsx", "1.0.0", &["jsx"]);
     let jsx_preserve_identity = jsx_mapper.transform_identity(Some(&CompilerOptions {
-        jsx: JsxEmit::Preserve,
+        jsx: JsxEmit::PRESERVE,
         ..Default::default()
     }));
     let jsx_react_identity = jsx_mapper
-        .transform_identity(Some(&CompilerOptions { jsx: JsxEmit::React, ..Default::default() }));
+        .transform_identity(Some(&CompilerOptions { jsx: JsxEmit::REACT, ..Default::default() }));
     assert_ne!(jsx_preserve_identity, jsx_react_identity);
 
     let options_a = named("vue", r#"{"mode":"a"}"#, "vue", "1.0.0", &[]);
@@ -438,9 +438,9 @@ fn test_transform_identity_hashes_declared_options_json() {
     let mut paths = OrderedMap::default();
     paths.insert("@/*".to_string(), Some(vec!["src/*".to_string()]));
     let options = CompilerOptions {
-        target: ScriptTarget::ESNext,
+        target: ScriptTarget::ES_NEXT,
         strict: Tristate::False,
-        jsx: JsxEmit::Preserve,
+        jsx: JsxEmit::PRESERVE,
         lib: Some(vec!["es2022".to_string(), "dom".to_string()]),
         paths: Some(paths),
         ..Default::default()

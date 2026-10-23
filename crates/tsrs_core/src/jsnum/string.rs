@@ -20,7 +20,7 @@ impl Number {
         }
 
         // Fast path: for safe integers, directly convert to string.
-        if MinSafeInteger <= self && self <= MaxSafeInteger {
+        if MIN_SAFE_INTEGER <= self && self <= MAX_SAFE_INTEGER {
             let i = self.0 as i64;
             if i as f64 == self.0 {
                 return i.to_string();

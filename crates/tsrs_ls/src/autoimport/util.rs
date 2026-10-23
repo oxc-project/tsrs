@@ -128,7 +128,7 @@ pub(crate) fn get_default_like_export_name_from_declaration(symbol: P<Symbol>) -
         // "export default" in this case. See `ExportAssignment`for more details.
         if ast::is_export_assignment(d) {
             let inner_expression =
-                ast::skip_outer_expressions(d.expression().unwrap(), ast::OEK::All);
+                ast::skip_outer_expressions(d.expression().unwrap(), ast::OEK::ALL);
             if ast::is_identifier(inner_expression) {
                 return Some(inner_expression.text().to_string());
             }
@@ -136,7 +136,7 @@ pub(crate) fn get_default_like_export_name_from_declaration(symbol: P<Symbol>) -
         }
         // "export { ~ as default }"
         if ast::is_export_specifier(d)
-            && d.symbol().unwrap().flags() == SymbolFlags::Alias
+            && d.symbol().unwrap().flags() == SymbolFlags::ALIAS
             && d.property_name().is_some()
         {
             if d.property_name().unwrap().kind() == Kind::Identifier {
@@ -243,17 +243,17 @@ pub(crate) fn add_project_reference_output_mappings(
 // util.go:203
 // Go's pool hands out up to GOMAXPROCS checkers to the extraction goroutines; extraction runs sequentially here,
 // so the pool holds the one checker the first request creates.
-pub(crate) struct checkerPool {
+pub(crate) struct CheckerPoolImpl {
     program: &'static dyn checker::Program,
     checker: Option<Box<Checker>>,
     created: usize,
 }
 
-pub(crate) fn create_checker_pool(program: &'static dyn checker::Program) -> checkerPool {
-    checkerPool { program, checker: None, created: 0 }
+pub(crate) fn create_checker_pool(program: &'static dyn checker::Program) -> CheckerPoolImpl {
+    CheckerPoolImpl { program, checker: None, created: 0 }
 }
 
-impl checkerPool {
+impl CheckerPoolImpl {
     pub(crate) fn get_checker(&mut self) -> &mut Checker {
         if self.checker.is_none() {
             self.checker = Some(checker::new_checker(self.program));
@@ -359,12 +359,12 @@ pub(crate) fn get_package_realpath_funcs(
 }
 
 // util.go:318
-struct resolutionHost {
-    fs: wrapvfs::wrappedFS,
+struct ResolutionHostImpl {
+    fs: wrapvfs::WrappedFS,
     current_directory: String,
 }
 
-impl ResolutionHost for resolutionHost {
+impl ResolutionHost for ResolutionHostImpl {
     // util.go:325
     fn get_current_directory(&self) -> &str {
         &self.current_directory
@@ -383,7 +383,7 @@ pub(crate) fn get_module_resolver(
     host: &'static dyn RegistryCloneHost,
     realpath: PathFunc,
 ) -> DefaultResolver<'static> {
-    let rh: &'static resolutionHost = tsrs_core::alloc(resolutionHost {
+    let rh: &'static ResolutionHostImpl = tsrs_core::alloc(ResolutionHostImpl {
         fs: wrapvfs::wrap(
             host.fs(),
             wrapvfs::Replacements {

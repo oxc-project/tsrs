@@ -56,8 +56,8 @@ pub(crate) fn get_vs_hover_image_id(
     kind: ScriptElementKind,
     modifiers: ScriptElementKindModifier,
 ) -> lsproto::VSImageId {
-    let is_private = modifiers.intersects(ScriptElementKindModifier::Private);
-    let is_protected = modifiers.intersects(ScriptElementKindModifier::Protected);
+    let is_private = modifiers.intersects(ScriptElementKindModifier::PRIVATE);
+    let is_protected = modifiers.intersects(ScriptElementKindModifier::PROTECTED);
 
     // No internal/exported arm: the *Internal VS icons carry a chevron overlay that conveys
     // C# assembly-scoped visibility, a concept that doesn't apply to TypeScript.
@@ -141,7 +141,7 @@ pub(crate) fn build_vs_hover_raw_content(
     }
 
     let display_line = lsproto::VSContainerElement {
-        style: lsproto::VSContainerElementStyle::Wrapped,
+        style: lsproto::VSContainerElementStyle::WRAPPED,
         elements: vec![
             lsproto::VSImageElementOrClassifiedTextElementOrContainerElement {
                 image_element: Some(lsproto::VSImageElement { image_id, ..Default::default() }),
@@ -163,7 +163,7 @@ pub(crate) fn build_vs_hover_raw_content(
     }
 
     Some(lsproto::VSContainerElement {
-        style: lsproto::VSContainerElementStyle::Stacked,
+        style: lsproto::VSContainerElementStyle::STACKED,
         elements: vec![
             lsproto::VSImageElementOrClassifiedTextElementOrContainerElement {
                 container_element: Some(display_line),

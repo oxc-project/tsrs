@@ -6,22 +6,22 @@ use super::*;
 
 // testValue is a simple cloneable type for testing
 #[derive(Clone, Debug)]
-struct testValue {
+struct TestValue {
     data: String,
 }
 
-impl Cloneable for testValue {
-    fn clone_value(&self) -> testValue {
-        testValue { data: self.data.clone() }
+impl Cloneable for TestValue {
+    fn clone_value(&self) -> TestValue {
+        TestValue { data: self.data.clone() }
     }
 }
 
-fn base_of(entries: &[(&str, &str)]) -> SharedMap<String, testValue> {
+fn base_of(entries: &[(&str, &str)]) -> SharedMap<String, TestValue> {
     let mut m = FxHashMap::default();
     m.extend(
         entries
             .iter()
-            .map(|(k, v)| (k.to_string(), Shared::new(testValue { data: v.to_string() }))),
+            .map(|(k, v)| (k.to_string(), Shared::new(TestValue { data: v.to_string() }))),
     );
     Arc::new(m)
 }
@@ -113,8 +113,8 @@ fn sync_map_proxy_operations_delegation() {
     assert_eq!(target.dirty(), proxy.dirty());
 
     // Locked operations should work through proxy
-    proxy.locked(&mut |v: &dyn Value<testValue>| {
-        v.change(&mut |val: &mut testValue| val.data = "locked_change".to_string());
+    proxy.locked(&mut |v: &dyn Value<TestValue>| {
+        v.change(&mut |val: &mut TestValue| val.data = "locked_change".to_string());
     });
     assert_eq!("locked_change", target.value().unwrap().data);
     assert_eq!("locked_change", proxy.value().unwrap().data);

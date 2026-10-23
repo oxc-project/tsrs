@@ -28,7 +28,7 @@ fn source_end(range: tsrs_core::TextRange) -> u32 {
 #[test]
 fn test_virtual_to_original_span_verbatim() {
     // Virtual [0,10) is a verbatim copy of original [100,110).
-    let m = new(&[segment(0, 10, 100, 110, Kind::Verbatim, Feature::All)]);
+    let m = new(&[segment(0, 10, 100, 110, Kind::VERBATIM, Feature::ALL)]);
 
     let (got, fidelity) = m.virtual_to_original_span(new_text_range(3, 7));
     assert_eq!(source_pos(got), 103);
@@ -40,7 +40,7 @@ fn test_virtual_to_original_span_verbatim() {
 #[test]
 fn test_virtual_to_original_span_atom() {
     // Virtual [0,3) is a synthesized gap; [3,14) ("MyComponent") is an atom of the original [60,71).
-    let m = new(&[segment(3, 14, 60, 71, Kind::Atom, Feature::All)]);
+    let m = new(&[segment(3, 14, 60, 71, Kind::ATOM, Feature::ALL)]);
 
     // A span inside the atom maps to the whole atom span.
     let (got, fidelity) = m.virtual_to_original_span(new_text_range(5, 9));
@@ -52,20 +52,20 @@ fn test_virtual_to_original_span_atom() {
 // spanmap_test.go:40
 #[test]
 fn test_virtual_alias() {
-    let m = new(&[segment(3, 6, 10, 11, Kind::Alias, Feature::All)]);
+    let m = new(&[segment(3, 6, 10, 11, Kind::ALIAS, Feature::ALL)]);
 
     let (got, fidelity) = m.virtual_to_original_span(new_text_range(3, 6));
     assert_eq!(got, new_text_range(10, 11));
     assert_eq!(fidelity, Fidelity::Atom);
     let alias = m.alias_for_virtual_span(new_text_range(3, 6));
     assert!(alias.is_some());
-    assert_eq!(alias.unwrap().kind, Kind::Alias);
+    assert_eq!(alias.unwrap().kind, Kind::ALIAS);
     let partial = m.alias_for_virtual_span(new_text_range(4, 6));
     assert!(partial.is_none());
 
     let data = m.marshal().unwrap();
     let decoded = unmarshal(&data).unwrap();
-    assert_eq!(decoded.segments()[0].kind, Kind::Alias);
+    assert_eq!(decoded.segments()[0].kind, Kind::ALIAS);
 }
 
 // spanmap_test.go:63
@@ -74,8 +74,8 @@ fn test_virtual_to_original_span_synthesized_gap() {
     // A gap between two verbatim segments is synthesized: it maps to the insertion point (the preceding
     // segment's original end) with no fidelity.
     let m = new(&[
-        segment(0, 10, 100, 110, Kind::Verbatim, Feature::All),
-        segment(20, 30, 200, 210, Kind::Verbatim, Feature::All),
+        segment(0, 10, 100, 110, Kind::VERBATIM, Feature::ALL),
+        segment(20, 30, 200, 210, Kind::VERBATIM, Feature::ALL),
     ]);
 
     let (got, fidelity) = m.virtual_to_original_span(new_text_range(12, 15));
@@ -92,11 +92,11 @@ fn test_original_to_virtual_intersecting_spans_allows_uncovered_endpoints() {
         20,
         100,
         110,
-        Kind::Verbatim,
-        Feature::SemanticTokens | Feature::InlayHints,
+        Kind::VERBATIM,
+        Feature::SEMANTIC_TOKENS | Feature::INLAY_HINTS,
     )]);
 
-    for feature in [Feature::SemanticTokens, Feature::InlayHints] {
+    for feature in [Feature::SEMANTIC_TOKENS, Feature::INLAY_HINTS] {
         let got = m.original_to_virtual_intersecting_spans(new_text_range(90, 120), feature);
         assert_eq!(got.len(), 1);
         assert_eq!(got[0].span, new_text_range(10, 20));
@@ -119,8 +119,8 @@ fn test_virtual_to_original_span_empty_is_synthesized() {
 #[test]
 fn test_virtual_to_original_span_crossing_segments() {
     let m = new(&[
-        segment(0, 10, 100, 110, Kind::Verbatim, Feature::None),
-        segment(10, 20, 200, 210, Kind::Verbatim, Feature::None),
+        segment(0, 10, 100, 110, Kind::VERBATIM, Feature::NONE),
+        segment(10, 20, 200, 210, Kind::VERBATIM, Feature::NONE),
     ]);
 
     let (got, fidelity) = m.virtual_to_original_span(new_text_range(5, 15));
@@ -143,8 +143,8 @@ fn test_virtual_to_original_span_nil_identity() {
 fn test_virtual_to_original_position() {
     // Virtual [0,10) is a verbatim copy of original [100,110); [10,20) is an atom of original [200,210).
     let m = new(&[
-        segment(0, 10, 100, 110, Kind::Verbatim, Feature::All),
-        segment(20, 30, 200, 210, Kind::Atom, Feature::All),
+        segment(0, 10, 100, 110, Kind::VERBATIM, Feature::ALL),
+        segment(20, 30, 200, 210, Kind::ATOM, Feature::ALL),
     ]);
 
     struct Case {
@@ -173,9 +173,9 @@ fn test_virtual_to_original_position() {
 #[test]
 fn test_virtual_to_original_position_exact() {
     let m = new(&[
-        segment(0, 10, 100, 110, Kind::Verbatim, Feature::All),
-        segment(10, 20, 110, 120, Kind::Atom, Feature::All),
-        segment(20, 30, 120, 130, Kind::Verbatim, Feature::All),
+        segment(0, 10, 100, 110, Kind::VERBATIM, Feature::ALL),
+        segment(10, 20, 110, 120, Kind::ATOM, Feature::ALL),
+        segment(20, 30, 120, 130, Kind::VERBATIM, Feature::ALL),
     ]);
 
     for (pos, want, ok) in
@@ -191,8 +191,8 @@ fn test_virtual_to_original_position_exact() {
 #[test]
 fn test_virtual_to_original_position_exact_rejects_discontinuous_boundary() {
     let m = new(&[
-        segment(0, 10, 0, 10, Kind::Verbatim, Feature::None),
-        segment(10, 20, 100, 110, Kind::Verbatim, Feature::None),
+        segment(0, 10, 0, 10, Kind::VERBATIM, Feature::NONE),
+        segment(10, 20, 100, 110, Kind::VERBATIM, Feature::NONE),
     ]);
 
     let (mapped, ok) = m.virtual_to_original_position_exact(10);
@@ -204,8 +204,8 @@ fn test_virtual_to_original_position_exact_rejects_discontinuous_boundary() {
 #[test]
 fn test_zero_length_spans_at_segment_ends() {
     let m = new(&[
-        segment(0, 10, 100, 110, Kind::Verbatim, Feature::Hover),
-        segment(20, 30, 200, 210, Kind::Verbatim, Feature::Hover),
+        segment(0, 10, 100, 110, Kind::VERBATIM, Feature::HOVER),
+        segment(20, 30, 200, 210, Kind::VERBATIM, Feature::HOVER),
     ]);
 
     let (position, fidelity) = m.virtual_to_original_position(30);
@@ -216,9 +216,9 @@ fn test_zero_length_spans_at_segment_ends() {
     assert_eq!(fidelity, Fidelity::Exact);
 
     for (name, original_end) in [("before gap", 110), ("final", 210)] {
-        let positions = m.original_to_virtual_positions(original_end, Feature::Hover);
+        let positions = m.original_to_virtual_positions(original_end, Feature::HOVER);
         let spans =
-            m.original_to_virtual_spans(new_text_range(original_end, original_end), Feature::Hover);
+            m.original_to_virtual_spans(new_text_range(original_end, original_end), Feature::HOVER);
         assert_eq!(positions.len(), 1, "{name}");
         assert_eq!(spans.len(), 1, "{name}");
         assert_eq!(
@@ -242,9 +242,9 @@ fn test_map_position_nil_identity() {
 #[test]
 fn test_original_to_virtual_span_verbatim() {
     // Virtual [0,10) is a verbatim copy of original [100,110).
-    let m = new(&[segment(0, 10, 100, 110, Kind::Verbatim, Feature::All)]);
+    let m = new(&[segment(0, 10, 100, 110, Kind::VERBATIM, Feature::ALL)]);
 
-    let results = m.original_to_virtual_spans(new_text_range(103, 107), Feature::All);
+    let results = m.original_to_virtual_spans(new_text_range(103, 107), Feature::ALL);
     assert_eq!(results.len(), 1);
     assert_eq!(source_pos(results[0].span), 3);
     assert_eq!(source_end(results[0].span), 7);
@@ -255,10 +255,10 @@ fn test_original_to_virtual_span_verbatim() {
 #[test]
 fn test_original_to_virtual_span_atom() {
     // Virtual [3,14) is an atom of the original [60,71).
-    let m = new(&[segment(3, 14, 60, 71, Kind::Atom, Feature::All)]);
+    let m = new(&[segment(3, 14, 60, 71, Kind::ATOM, Feature::ALL)]);
 
     // A span inside the original atom maps to the whole virtual span.
-    let results = m.original_to_virtual_spans(new_text_range(63, 67), Feature::All);
+    let results = m.original_to_virtual_spans(new_text_range(63, 67), Feature::ALL);
     assert_eq!(results.len(), 1);
     assert_eq!(source_pos(results[0].span), 3);
     assert_eq!(source_end(results[0].span), 14);
@@ -270,17 +270,17 @@ fn test_original_to_virtual_span_atom() {
 fn test_original_to_virtual_span_gap() {
     // An original range with no covering segment has no virtual counterpart.
     let m = new(&[
-        segment(0, 10, 100, 110, Kind::Verbatim, Feature::All),
-        segment(20, 30, 200, 210, Kind::Verbatim, Feature::All),
+        segment(0, 10, 100, 110, Kind::VERBATIM, Feature::ALL),
+        segment(20, 30, 200, 210, Kind::VERBATIM, Feature::ALL),
     ]);
 
-    assert_eq!(m.original_to_virtual_spans(new_text_range(150, 160), Feature::All).len(), 0);
+    assert_eq!(m.original_to_virtual_spans(new_text_range(150, 160), Feature::ALL).len(), 0);
 }
 
 // spanmap_test.go:288
 #[test]
 fn test_original_to_virtual_span_nil_identity() {
-    let results = original_to_virtual_spans(None, new_text_range(3, 7), Feature::All);
+    let results = original_to_virtual_spans(None, new_text_range(3, 7), Feature::ALL);
     assert_eq!(results.len(), 1);
     assert_eq!(source_pos(results[0].span), 3);
     assert_eq!(source_end(results[0].span), 7);
@@ -292,8 +292,8 @@ fn test_original_to_virtual_span_nil_identity() {
 fn test_original_to_virtual_positions() {
     // Original [100,110) is a verbatim copy of virtual [0,10); [200,210) is an atom of virtual [20,30).
     let m = new(&[
-        segment(0, 10, 100, 110, Kind::Verbatim, Feature::All),
-        segment(20, 30, 200, 210, Kind::Atom, Feature::All),
+        segment(0, 10, 100, 110, Kind::VERBATIM, Feature::ALL),
+        segment(20, 30, 200, 210, Kind::ATOM, Feature::ALL),
     ]);
 
     struct Case {
@@ -308,8 +308,8 @@ fn test_original_to_virtual_positions() {
         Case { name: "gap has no projection", pos: 150, want: 0, fidelity: Fidelity::None },
     ];
     for tc in &test_cases {
-        let positions = m.original_to_virtual_positions(tc.pos, Feature::All);
-        let spans = m.original_to_virtual_spans(new_text_range(tc.pos, tc.pos), Feature::All);
+        let positions = m.original_to_virtual_positions(tc.pos, Feature::ALL);
+        let spans = m.original_to_virtual_spans(new_text_range(tc.pos, tc.pos), Feature::ALL);
         if tc.fidelity.is_none() {
             assert_eq!(positions.len(), 0, "{}", tc.name);
             assert_eq!(spans.len(), 0, "{}", tc.name);
@@ -328,36 +328,36 @@ fn test_original_to_virtual_positions() {
 #[test]
 fn test_original_to_virtual_positions_at_endpoint() {
     let m = new(&[
-        segment(2, 5, 10, 13, Kind::Verbatim, Feature::Completion),
-        segment(8, 11, 13, 16, Kind::Verbatim, Feature::Completion),
-        segment(20, 23, 30, 35, Kind::Atom, Feature::Completion),
+        segment(2, 5, 10, 13, Kind::VERBATIM, Feature::COMPLETION),
+        segment(8, 11, 13, 16, Kind::VERBATIM, Feature::COMPLETION),
+        segment(20, 23, 30, 35, Kind::ATOM, Feature::COMPLETION),
     ]);
 
     assert_eq!(
-        m.original_to_virtual_positions(13, Feature::Completion),
+        m.original_to_virtual_positions(13, Feature::COMPLETION),
         vec![
             MappedPosition { position: 5, fidelity: Fidelity::Exact },
             MappedPosition { position: 8, fidelity: Fidelity::Exact }
         ]
     );
     assert_eq!(
-        m.original_to_virtual_positions(35, Feature::Completion),
+        m.original_to_virtual_positions(35, Feature::COMPLETION),
         vec![MappedPosition { position: 23, fidelity: Fidelity::Atom }]
     );
 
     let filtered = new(&[
-        segment(20, 23, 10, 13, Kind::Verbatim, Feature::Hover),
-        segment(2, 5, 13, 16, Kind::Verbatim, Feature::Completion),
+        segment(20, 23, 10, 13, Kind::VERBATIM, Feature::HOVER),
+        segment(2, 5, 13, 16, Kind::VERBATIM, Feature::COMPLETION),
     ]);
     assert_eq!(
-        filtered.original_to_virtual_positions(13, Feature::All),
+        filtered.original_to_virtual_positions(13, Feature::ALL),
         vec![
             MappedPosition { position: 2, fidelity: Fidelity::Exact },
             MappedPosition { position: 23, fidelity: Fidelity::Exact }
         ]
     );
     assert_eq!(
-        filtered.original_to_virtual_positions(13, Feature::Completion),
+        filtered.original_to_virtual_positions(13, Feature::COMPLETION),
         vec![MappedPosition { position: 2, fidelity: Fidelity::Exact }]
     );
 }
@@ -366,24 +366,24 @@ fn test_original_to_virtual_positions_at_endpoint() {
 #[test]
 fn test_original_to_virtual_duplicate_group() {
     let m = new(&[
-        segment(0, 3, 10, 13, Kind::Verbatim, Feature::Definition),
-        segment(10, 13, 10, 13, Kind::Verbatim, Feature::Hover),
-        segment(20, 25, 10, 13, Kind::Atom, Feature::Definition),
+        segment(0, 3, 10, 13, Kind::VERBATIM, Feature::DEFINITION),
+        segment(10, 13, 10, 13, Kind::VERBATIM, Feature::HOVER),
+        segment(20, 25, 10, 13, Kind::ATOM, Feature::DEFINITION),
     ]);
 
-    let semantic = m.original_to_virtual_positions(11, Feature::Hover);
+    let semantic = m.original_to_virtual_positions(11, Feature::HOVER);
     assert_eq!(semantic.len(), 1);
     assert_eq!(semantic[0].position, 11);
     assert_eq!(semantic[0].fidelity, Fidelity::Exact);
 
-    let navigation = m.original_to_virtual_positions(11, Feature::Definition);
+    let navigation = m.original_to_virtual_positions(11, Feature::DEFINITION);
     assert_eq!(navigation.len(), 2);
     assert_eq!(navigation[0].position, 1);
     assert_eq!(navigation[0].fidelity, Fidelity::Exact);
     assert_eq!(navigation[1].position, 20);
     assert_eq!(navigation[1].fidelity, Fidelity::Atom);
 
-    let spans = m.original_to_virtual_spans(new_text_range(10, 13), Feature::Definition);
+    let spans = m.original_to_virtual_spans(new_text_range(10, 13), Feature::DEFINITION);
     assert_eq!(spans.len(), 2);
     assert_eq!(source_pos(spans[0].span), 0);
     assert_eq!(source_end(spans[0].span), 3);
@@ -395,20 +395,20 @@ fn test_original_to_virtual_duplicate_group() {
 #[test]
 fn test_original_to_virtual_overlapping_spans() {
     let m = new(&[
-        segment(0, 6, 0, 6, Kind::Verbatim, Feature::Hover),
-        segment(10, 12, 2, 4, Kind::Verbatim, Feature::Hover),
-        segment(20, 24, 3, 7, Kind::Verbatim, Feature::Hover),
+        segment(0, 6, 0, 6, Kind::VERBATIM, Feature::HOVER),
+        segment(10, 12, 2, 4, Kind::VERBATIM, Feature::HOVER),
+        segment(20, 24, 3, 7, Kind::VERBATIM, Feature::HOVER),
     ]);
 
     assert_eq!(
-        m.original_to_virtual_positions(3, Feature::Hover),
+        m.original_to_virtual_positions(3, Feature::HOVER),
         vec![
             MappedPosition { position: 3, fidelity: Fidelity::Exact },
             MappedPosition { position: 11, fidelity: Fidelity::Exact },
             MappedPosition { position: 20, fidelity: Fidelity::Exact },
         ]
     );
-    let spans = m.original_to_virtual_spans(new_text_range(3, 4), Feature::Hover);
+    let spans = m.original_to_virtual_spans(new_text_range(3, 4), Feature::HOVER);
     let want_spans = [
         MappedSpan { span: new_text_range(3, 4), fidelity: Fidelity::Exact },
         MappedSpan { span: new_text_range(11, 12), fidelity: Fidelity::Exact },
@@ -426,30 +426,30 @@ fn test_original_to_virtual_position_finds_early_covering_segment() {
     // Binary search lands near [90,95), which does not contain 97. The interval index must still find the
     // earlier [0,100) segment without scanning every segment whose start precedes the query.
     let m = new(&[
-        segment(0, 100, 0, 100, Kind::Verbatim, Feature::Hover),
-        segment(100, 105, 80, 85, Kind::Verbatim, Feature::Hover),
-        segment(105, 110, 90, 95, Kind::Verbatim, Feature::Hover),
-        segment(110, 113, 100, 103, Kind::Verbatim, Feature::Hover),
+        segment(0, 100, 0, 100, Kind::VERBATIM, Feature::HOVER),
+        segment(100, 105, 80, 85, Kind::VERBATIM, Feature::HOVER),
+        segment(105, 110, 90, 95, Kind::VERBATIM, Feature::HOVER),
+        segment(110, 113, 100, 103, Kind::VERBATIM, Feature::HOVER),
     ]);
 
     assert_eq!(
-        m.original_to_virtual_positions(97, Feature::Hover),
+        m.original_to_virtual_positions(97, Feature::HOVER),
         vec![MappedPosition { position: 97, fidelity: Fidelity::Exact }]
     );
-    let spans = m.original_to_virtual_spans(new_text_range(97, 98), Feature::Hover);
+    let spans = m.original_to_virtual_spans(new_text_range(97, 98), Feature::HOVER);
     assert_eq!(spans.len(), 1);
     assert_eq!(spans[0], MappedSpan { span: new_text_range(97, 98), fidelity: Fidelity::Exact });
 
     // Point lookup includes both sides of a shared endpoint, including an early interval found through the
     // max-end tree. Nonempty span lookup treats segment ends as exclusive and uses only the right segment.
     assert_eq!(
-        m.original_to_virtual_positions(100, Feature::Hover),
+        m.original_to_virtual_positions(100, Feature::HOVER),
         vec![
             MappedPosition { position: 100, fidelity: Fidelity::Exact },
             MappedPosition { position: 110, fidelity: Fidelity::Exact }
         ]
     );
-    let spans = m.original_to_virtual_spans(new_text_range(100, 101), Feature::Hover);
+    let spans = m.original_to_virtual_spans(new_text_range(100, 101), Feature::HOVER);
     assert_eq!(spans.len(), 1);
     assert_eq!(spans[0], MappedSpan { span: new_text_range(110, 111), fidelity: Fidelity::Exact });
 }
@@ -458,12 +458,12 @@ fn test_original_to_virtual_position_finds_early_covering_segment() {
 #[test]
 fn test_original_to_virtual_overlap_falls_back_from_disabled_container() {
     let m = new(&[
-        segment(0, 6, 0, 6, Kind::Verbatim, Feature::Definition),
-        segment(10, 13, 0, 3, Kind::Verbatim, Feature::Hover),
-        segment(13, 16, 3, 6, Kind::Verbatim, Feature::Hover),
+        segment(0, 6, 0, 6, Kind::VERBATIM, Feature::DEFINITION),
+        segment(10, 13, 0, 3, Kind::VERBATIM, Feature::HOVER),
+        segment(13, 16, 3, 6, Kind::VERBATIM, Feature::HOVER),
     ]);
 
-    let spans = m.original_to_virtual_spans(new_text_range(1, 5), Feature::Hover);
+    let spans = m.original_to_virtual_spans(new_text_range(1, 5), Feature::HOVER);
     assert_eq!(spans.len(), 1);
     assert_eq!(
         spans[0],
@@ -475,13 +475,13 @@ fn test_original_to_virtual_overlap_falls_back_from_disabled_container() {
 #[test]
 fn test_original_to_virtual_cross_group_projections() {
     let m = new(&[
-        segment(0, 2, 0, 2, Kind::Verbatim, Feature::Hover),
-        segment(2, 4, 2, 4, Kind::Verbatim, Feature::Hover),
-        segment(10, 12, 0, 2, Kind::Verbatim, Feature::Hover),
-        segment(12, 14, 2, 4, Kind::Verbatim, Feature::Hover),
+        segment(0, 2, 0, 2, Kind::VERBATIM, Feature::HOVER),
+        segment(2, 4, 2, 4, Kind::VERBATIM, Feature::HOVER),
+        segment(10, 12, 0, 2, Kind::VERBATIM, Feature::HOVER),
+        segment(12, 14, 2, 4, Kind::VERBATIM, Feature::HOVER),
     ]);
 
-    let spans = m.original_to_virtual_spans(new_text_range(1, 3), Feature::Hover);
+    let spans = m.original_to_virtual_spans(new_text_range(1, 3), Feature::HOVER);
     assert_eq!(spans.len(), 2);
     assert_eq!(spans[0].span, new_text_range(1, 3));
     assert_eq!(spans[1].span, new_text_range(11, 13));
@@ -493,40 +493,40 @@ fn test_original_to_virtual_cross_group_projections() {
 // spanmap_test.go:506
 #[test]
 fn test_original_to_virtual_explicit_zero_features() {
-    let m = new(&[segment(0, 3, 10, 13, Kind::Verbatim, Feature::None)]);
+    let m = new(&[segment(0, 3, 10, 13, Kind::VERBATIM, Feature::NONE)]);
 
-    assert_eq!(m.original_to_virtual_positions(11, Feature::Hover).len(), 0);
-    assert_eq!(m.original_to_virtual_positions(11, Feature::Definition).len(), 0);
-    assert_eq!(m.original_to_virtual_spans(new_text_range(10, 13), Feature::Hover).len(), 0);
+    assert_eq!(m.original_to_virtual_positions(11, Feature::HOVER).len(), 0);
+    assert_eq!(m.original_to_virtual_positions(11, Feature::DEFINITION).len(), 0);
+    assert_eq!(m.original_to_virtual_spans(new_text_range(10, 13), Feature::HOVER).len(), 0);
 
     let data = m.marshal().unwrap();
     assert_eq!(String::from_utf8(data.clone()).unwrap(), "[[0,3,10,3,0,0]]");
     let decoded = unmarshal(&data).unwrap();
     let segments = decoded.segments();
-    assert_eq!(segments[0].features, Feature::None);
+    assert_eq!(segments[0].features, Feature::NONE);
 
     let legacy = unmarshal(b"[[0,3,10,3,0]]").unwrap();
-    assert_eq!(legacy.segments()[0].features, Feature::All);
-    assert_eq!(legacy.original_to_virtual_positions(11, Feature::Hover).len(), 1);
+    assert_eq!(legacy.segments()[0].features, Feature::ALL);
+    assert_eq!(legacy.original_to_virtual_positions(11, Feature::HOVER).len(), 1);
 }
 
 // spanmap_test.go:531
 #[test]
 fn test_feature_participation_original_and_virtual() {
     let m = new(&[
-        segment(0, 3, 10, 13, Kind::Verbatim, Feature::Hover),
-        segment(3, 6, 20, 23, Kind::Verbatim, Feature::Completion),
+        segment(0, 3, 10, 13, Kind::VERBATIM, Feature::HOVER),
+        segment(3, 6, 20, 23, Kind::VERBATIM, Feature::COMPLETION),
     ]);
 
-    assert_eq!(m.original_to_virtual_positions(11, Feature::Hover).len(), 1);
-    assert_eq!(m.original_to_virtual_positions(11, Feature::Completion).len(), 0);
+    assert_eq!(m.original_to_virtual_positions(11, Feature::HOVER).len(), 1);
+    assert_eq!(m.original_to_virtual_positions(11, Feature::COMPLETION).len(), 0);
 
     let (mapped, fidelity) =
-        m.virtual_to_original_span_for_feature(new_text_range(0, 3), Feature::Hover);
+        m.virtual_to_original_span_for_feature(new_text_range(0, 3), Feature::HOVER);
     assert_eq!(mapped, new_text_range(10, 13));
     assert_eq!(fidelity, Fidelity::Exact);
     let (_, fidelity) =
-        m.virtual_to_original_span_for_feature(new_text_range(0, 3), Feature::Completion);
+        m.virtual_to_original_span_for_feature(new_text_range(0, 3), Feature::COMPLETION);
     assert_eq!(fidelity, Fidelity::None);
 
     // Diagnostics and edit safety use unfiltered geometry and cannot be disabled by feature flags.
@@ -540,14 +540,14 @@ fn test_feature_participation_original_and_virtual() {
 fn test_original_to_virtual_span_round_trip() {
     // Original spans are out of order relative to virtual spans, exercising the reverse index.
     let m = new(&[
-        segment(0, 10, 200, 210, Kind::Verbatim, Feature::All),
-        segment(10, 20, 100, 110, Kind::Verbatim, Feature::All),
+        segment(0, 10, 200, 210, Kind::VERBATIM, Feature::ALL),
+        segment(10, 20, 100, 110, Kind::VERBATIM, Feature::ALL),
     ]);
 
     for r in [new_text_range(2, 8), new_text_range(12, 18)] {
         let (orig, fidelity) = m.virtual_to_original_span(r);
         assert_eq!(fidelity, Fidelity::Exact);
-        let back = m.original_to_virtual_spans(orig, Feature::All);
+        let back = m.original_to_virtual_spans(orig, Feature::ALL);
         assert_eq!(back.len(), 1);
         assert_eq!(back[0].fidelity, Fidelity::Exact);
         assert_eq!(back[0].span.pos(), r.pos());
@@ -559,8 +559,8 @@ fn test_original_to_virtual_span_round_trip() {
 #[test]
 fn test_marshal_round_trip() {
     let original = new(&[
-        segment(3, 14, 60, 71, Kind::Atom, Feature::None),
-        segment(14, 24, 71, 81, Kind::Verbatim, Feature::None),
+        segment(3, 14, 60, 71, Kind::ATOM, Feature::NONE),
+        segment(14, 24, 71, 81, Kind::VERBATIM, Feature::NONE),
     ]);
 
     let data = original.marshal().unwrap();
@@ -596,22 +596,22 @@ fn test_validate() {
                 transformed_len,
                 script_start,
                 script_start + transformed_len,
-                Kind::Verbatim,
-                Feature::None,
+                Kind::VERBATIM,
+                Feature::NONE,
             )],
             want_kind: None,
         },
         Case { name: "empty is valid", segs: vec![], want_kind: None },
         Case {
             name: "gap is allowed",
-            segs: vec![segment(3, transformed_len, 0, 0, Kind::Atom, Feature::None)],
+            segs: vec![segment(3, transformed_len, 0, 0, Kind::ATOM, Feature::NONE)],
             want_kind: None,
         },
         Case {
             name: "overlap",
             segs: vec![
-                segment(0, 10, 0, 0, Kind::Atom, Feature::None),
-                segment(5, transformed_len, 0, 0, Kind::Atom, Feature::None),
+                segment(0, 10, 0, 0, Kind::ATOM, Feature::NONE),
+                segment(5, transformed_len, 0, 0, Kind::ATOM, Feature::NONE),
             ],
             want_kind: Some(MappingErrorKind::Overlap),
         },
@@ -622,8 +622,8 @@ fn test_validate() {
                 transformed_len,
                 0,
                 original_len + 10,
-                Kind::Atom,
-                Feature::None,
+                Kind::ATOM,
+                Feature::NONE,
             )],
             want_kind: Some(MappingErrorKind::OutOfBounds),
         },
@@ -634,14 +634,14 @@ fn test_validate() {
                 transformed_len,
                 0,
                 transformed_len,
-                Kind::Verbatim,
-                Feature::None,
+                Kind::VERBATIM,
+                Feature::NONE,
             )],
             want_kind: Some(MappingErrorKind::VerbatimMismatch),
         },
         Case {
             name: "unknown kind",
-            segs: vec![segment(0, 1, 0, 1, Kind(3), Feature::None)],
+            segs: vec![segment(0, 1, 0, 1, Kind(3), Feature::NONE)],
             want_kind: Some(MappingErrorKind::Kind),
         },
     ];
@@ -670,51 +670,51 @@ fn test_validate_original_overlap_and_features() {
         Case {
             name: "identical duplicate group",
             segments: vec![
-                segment(0, 3, 0, 3, Kind::Verbatim, Feature::Definition),
-                segment(3, 6, 0, 3, Kind::Verbatim, Feature::Hover),
+                segment(0, 3, 0, 3, Kind::VERBATIM, Feature::DEFINITION),
+                segment(3, 6, 0, 3, Kind::VERBATIM, Feature::HOVER),
             ],
             want_kind: None,
         },
         Case {
             name: "partial original overlap is valid",
             segments: vec![
-                segment(0, 3, 0, 3, Kind::Atom, Feature::None),
-                segment(3, 6, 2, 5, Kind::Atom, Feature::None),
+                segment(0, 3, 0, 3, Kind::ATOM, Feature::NONE),
+                segment(3, 6, 2, 5, Kind::ATOM, Feature::NONE),
             ],
             want_kind: None,
         },
         Case {
             name: "nested original overlap is valid",
             segments: vec![
-                segment(0, 5, 0, 5, Kind::Atom, Feature::None),
-                segment(5, 6, 1, 4, Kind::Atom, Feature::None),
+                segment(0, 5, 0, 5, Kind::ATOM, Feature::NONE),
+                segment(5, 6, 1, 4, Kind::ATOM, Feature::NONE),
             ],
             want_kind: None,
         },
         Case {
             name: "duplicate without explicit features is tolerant",
             segments: vec![
-                segment(0, 3, 0, 3, Kind::Atom, Feature::None),
-                segment(3, 6, 0, 3, Kind::Atom, Feature::Definition),
+                segment(0, 3, 0, 3, Kind::ATOM, Feature::NONE),
+                segment(3, 6, 0, 3, Kind::ATOM, Feature::DEFINITION),
             ],
             want_kind: None,
         },
         Case {
             name: "duplicate with shared feature members is tolerant",
             segments: vec![
-                segment(0, 3, 0, 3, Kind::Atom, Feature::Hover),
-                segment(3, 6, 0, 3, Kind::Atom, Feature::Hover | Feature::Definition),
+                segment(0, 3, 0, 3, Kind::ATOM, Feature::HOVER),
+                segment(3, 6, 0, 3, Kind::ATOM, Feature::HOVER | Feature::DEFINITION),
             ],
             want_kind: None,
         },
         Case {
             name: "features on sole cover are valid",
-            segments: vec![segment(0, 3, 0, 3, Kind::Atom, Feature::Definition)],
+            segments: vec![segment(0, 3, 0, 3, Kind::ATOM, Feature::DEFINITION)],
             want_kind: None,
         },
         Case {
             name: "unknown feature flag",
-            segments: vec![segment(0, 3, 0, 3, Kind::Atom, Feature::from_bits_retain(1 << 22))],
+            segments: vec![segment(0, 3, 0, 3, Kind::ATOM, Feature::from_bits_retain(1 << 22))],
             want_kind: Some(MappingErrorKind::Feature),
         },
     ];

@@ -103,7 +103,7 @@ pub(crate) fn report_cross_product(c: &Checker, types: &[P<Type>], size: usize) 
         checking_file(c)
     );
     for &t in types {
-        if t.flags().intersects(TypeFlags::Union) {
+        if t.flags().intersects(TypeFlags::UNION) {
             let described: Vec<String> = t.types().iter().map(|&m| describe(m)).collect();
             let mut sorted = described.clone();
             sorted.sort_unstable();
@@ -187,8 +187,9 @@ fn describe(t: P<Type>) -> String {
 
 fn describe_into(t: P<Type>, depth: u32, out: &mut String) {
     let _ = write!(out, "{:x}", t.flags().bits());
-    if t.flags().intersects(TypeFlags::Object) {
-        let _ = write!(out, "/{:x}", (t.object_flags() & ObjectFlags::ObjectTypeKindMask).bits());
+    if t.flags().intersects(TypeFlags::OBJECT) {
+        let _ =
+            write!(out, "/{:x}", (t.object_flags() & ObjectFlags::OBJECT_TYPE_KIND_MASK).bits());
     }
     if let Some(symbol) = t.alias().and_then(|a| a.symbol.get()) {
         out.push_str(" alias ");
@@ -198,7 +199,7 @@ fn describe_into(t: P<Type>, depth: u32, out: &mut String) {
         out.push(' ');
         describe_symbol(symbol, out);
     }
-    if t.flags().intersects(TypeFlags::Literal) {
+    if t.flags().intersects(TypeFlags::LITERAL) {
         if let Some(value) = t.as_literal_type().value.get() {
             let _ = write!(out, " {value:?}");
         }
@@ -206,8 +207,8 @@ fn describe_into(t: P<Type>, depth: u32, out: &mut String) {
     if depth == 0 {
         return;
     }
-    let nested: Option<&[P<Type>]> = if t.flags().intersects(TypeFlags::Object)
-        && t.object_flags().intersects(ObjectFlags::Reference)
+    let nested: Option<&[P<Type>]> = if t.flags().intersects(TypeFlags::OBJECT)
+        && t.object_flags().intersects(ObjectFlags::REFERENCE)
     {
         let reference = t.as_type_reference();
         if let Some(symbol) = reference.target.get().and_then(|target| target.symbol()) {
@@ -215,7 +216,7 @@ fn describe_into(t: P<Type>, depth: u32, out: &mut String) {
             describe_symbol(symbol, out);
         }
         reference.resolved_type_arguments.get()
-    } else if t.flags().intersects(TypeFlags::UnionOrIntersection) {
+    } else if t.flags().intersects(TypeFlags::UNION_OR_INTERSECTION) {
         Some(t.types())
     } else {
         None

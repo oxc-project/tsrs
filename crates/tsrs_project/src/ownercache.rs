@@ -4,11 +4,11 @@ use std::sync::{Arc, Mutex};
 use rustc_hash::FxHashSet;
 use tsrs_core::collections::SyncMap;
 
-struct ownerCacheEntry<V> {
-    mu: Mutex<ownerCacheEntryState<V>>,
+struct OwnerCacheEntry<V> {
+    mu: Mutex<OwnerCacheEntryState<V>>,
 }
 
-struct ownerCacheEntryState<V> {
+struct OwnerCacheEntryState<V> {
     value: Option<V>,
     owners: FxHashSet<u64>,
 }
@@ -27,7 +27,7 @@ pub trait LoadArgs {
 }
 
 pub struct OwnerCache<K: Hash + Eq, V, A: LoadArgs> {
-    entries: SyncMap<K, Arc<ownerCacheEntry<V>>>,
+    entries: SyncMap<K, Arc<OwnerCacheEntry<V>>>,
 
     is_expired: Option<Box<dyn for<'a> Fn(&K, &V, &A::Args<'a>) -> bool + Send + Sync>>,
     parse: Box<dyn for<'a> Fn(&K, &A::Args<'a>) -> V + Send + Sync>,
@@ -103,11 +103,11 @@ impl<K: Hash + Eq + Clone, V: Clone, A: LoadArgs> OwnerCache<K, V, A> {
     fn load_or_store_locked_entry<R>(
         &self,
         key: &K,
-        f: impl FnOnce(&mut ownerCacheEntryState<V>, bool) -> R,
+        f: impl FnOnce(&mut OwnerCacheEntryState<V>, bool) -> R,
     ) -> R {
         loop {
-            let entry = Arc::new(ownerCacheEntry {
-                mu: Mutex::new(ownerCacheEntryState { value: None, owners: FxHashSet::default() }),
+            let entry = Arc::new(OwnerCacheEntry {
+                mu: Mutex::new(OwnerCacheEntryState { value: None, owners: FxHashSet::default() }),
             });
             let mut guard = entry.mu.lock().unwrap();
             let (existing, loaded) = self.entries.load_or_store(key.clone(), Arc::clone(&entry));

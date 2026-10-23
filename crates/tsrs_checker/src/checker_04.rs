@@ -89,7 +89,7 @@ impl Checker {
     pub(crate) fn is_reference_to_type(t: Option<P<Type>>, target: P<Type>) -> bool {
         match t {
             Some(t) => {
-                t.object_flags().intersects(ObjectFlags::Reference) && t.target() == Some(target)
+                t.object_flags().intersects(ObjectFlags::REFERENCE) && t.target() == Some(target)
             }
             None => false,
         }
@@ -99,7 +99,7 @@ impl Checker {
     pub(crate) fn is_reference_to_some_type(t: Option<P<Type>>, targets: &[P<Type>]) -> bool {
         match t {
             Some(t) => {
-                t.object_flags().intersects(ObjectFlags::Reference)
+                t.object_flags().intersects(ObjectFlags::REFERENCE)
                     && t.target().is_some_and(|target| targets.contains(&target))
             }
             None => false,
@@ -203,7 +203,7 @@ impl Checker {
     ) -> IterationTypes {
         let name = self.get_property_name_for_known_symbol_name(r.iterator_symbol_name);
         if let Some(method) = self.get_property_of_type(t, &name) {
-            if !method.flags().intersects(SymbolFlags::Optional) {
+            if !method.flags().intersects(SymbolFlags::OPTIONAL) {
                 let method_type = self.get_type_of_symbol(method);
                 if is_type_any(Some(method_type)) {
                     return IterationTypes {
@@ -381,12 +381,13 @@ impl Checker {
         }
         let mut method_type: Option<P<Type>> = None;
         if let Some(method) = method {
-            if !(method_name == "next" && method.flags().intersects(SymbolFlags::Optional)) {
+            if !(method_name == "next" && method.flags().intersects(SymbolFlags::OPTIONAL)) {
                 if method_name == "next" {
                     method_type = Some(self.get_type_of_symbol(method));
                 } else {
                     let ty = self.get_type_of_symbol(method);
-                    method_type = Some(self.get_type_with_facts(ty, TypeFacts::NEUndefinedOrNull));
+                    method_type =
+                        Some(self.get_type_with_facts(ty, TypeFacts::NE_UNDEFINED_OR_NULL));
                 }
             }
         }
@@ -622,9 +623,9 @@ impl Checker {
         allow_async_iterables: bool,
     ) -> P<Diagnostic> {
         let message: &'static Message = if allow_async_iterables {
-            &diagnostics::Type_0_must_have_a_Symbol_asyncIterator_method_that_returns_an_async_iterator
+            &diagnostics::TYPE_0_MUST_HAVE_A_SYMBOL_ASYNC_ITERATOR_METHOD_THAT_RETURNS_AN_ASYNC_ITERATOR
         } else {
-            &diagnostics::Type_0_must_have_a_Symbol_iterator_method_that_returns_an_iterator
+            &diagnostics::TYPE_0_MUST_HAVE_A_SYMBOL_ITERATOR_METHOD_THAT_RETURNS_AN_ITERATOR
         };
         let suggest_await = self.get_awaited_type_of_promise(t).is_some()
             || (!allow_async_iterables
@@ -663,17 +664,17 @@ impl Checker {
             None, /*errorNode*/
         );
         if yield_type.is_some() {
-            return (&diagnostics::Type_0_can_only_be_iterated_through_when_using_the_downlevelIteration_flag_or_with_a_target_of_es2015_or_higher, false);
+            return (&diagnostics::TYPE_0_CAN_ONLY_BE_ITERATED_THROUGH_WHEN_USING_THE_DOWNLEVEL_ITERATION_FLAG_OR_WITH_A_TARGET_OF_ES2015_OR_HIGHER, false);
         }
         if let Some(symbol) = input_type.symbol() {
             if is_es2015_or_later_iterable(symbol.name()) {
-                return (&diagnostics::Type_0_can_only_be_iterated_through_when_using_the_downlevelIteration_flag_or_with_a_target_of_es2015_or_higher, true);
+                return (&diagnostics::TYPE_0_CAN_ONLY_BE_ITERATED_THROUGH_WHEN_USING_THE_DOWNLEVEL_ITERATION_FLAG_OR_WITH_A_TARGET_OF_ES2015_OR_HIGHER, true);
             }
         }
         if allows_strings {
-            return (&diagnostics::Type_0_is_not_an_array_type_or_a_string_type, true);
+            return (&diagnostics::TYPE_0_IS_NOT_AN_ARRAY_TYPE_OR_A_STRING_TYPE, true);
         }
-        (&diagnostics::Type_0_is_not_an_array_type, true)
+        (&diagnostics::TYPE_0_IS_NOT_AN_ARRAY_TYPE, true)
     }
 }
 
@@ -712,7 +713,7 @@ impl Checker {
         let target_flags = self.get_symbol_flags(target);
         // A type-only import/export will already have a grammar error in a JS file, so no need to issue more errors within
         if is_in_js_file(node)
-            && !target_flags.intersects(SymbolFlags::Value)
+            && !target_flags.intersects(SymbolFlags::VALUE)
             && !is_type_only_import_or_export_declaration(node)
         {
             let error_node = node.property_name_or_name().unwrap_or(node);
@@ -720,7 +721,7 @@ impl Checker {
             if is_export_specifier(node) {
                 let diag = self.error(
                     Some(error_node),
-                    &diagnostics::Types_cannot_appear_in_export_declarations_in_JavaScript_files,
+                    &diagnostics::TYPES_CANNOT_APPEAR_IN_EXPORT_DECLARATIONS_IN_JAVA_SCRIPT_FILES,
                     &[],
                 );
                 if let Some(source_symbol) =
@@ -738,7 +739,7 @@ impl Checker {
                         if let Some(exporting_declaration) = exporting_declaration {
                             diag.add_related_info(new_diagnostic_for_node(
                                 Some(exporting_declaration),
-                                Some(&diagnostics::X_0_is_automatically_exported_here),
+                                Some(&diagnostics::X_0_IS_AUTOMATICALLY_EXPORTED_HERE),
                                 &[&already_exported_symbol.name()],
                             ));
                         }
@@ -765,31 +766,31 @@ impl Checker {
                 }
                 self.error(
                     Some(error_node),
-                    &diagnostics::X_0_is_a_type_and_cannot_be_imported_in_JavaScript_files_Use_1_in_a_JSDoc_type_annotation,
+                    &diagnostics::X_0_IS_A_TYPE_AND_CANNOT_BE_IMPORTED_IN_JAVA_SCRIPT_FILES_USE_1_IN_A_JSDOC_TYPE_ANNOTATION,
                     &[&identifier_text, &import_text],
                 );
             }
             return;
         }
         let excluded_meanings =
-            (if symbol.flags().intersects(SymbolFlags::Value | SymbolFlags::ExportValue) {
-                SymbolFlags::Value
+            (if symbol.flags().intersects(SymbolFlags::VALUE | SymbolFlags::EXPORT_VALUE) {
+                SymbolFlags::VALUE
             } else {
-                SymbolFlags::None
-            }) | (if symbol.flags().intersects(SymbolFlags::Type) {
-                SymbolFlags::Type
+                SymbolFlags::NONE
+            }) | (if symbol.flags().intersects(SymbolFlags::TYPE) {
+                SymbolFlags::TYPE
             } else {
-                SymbolFlags::None
-            }) | (if symbol.flags().intersects(SymbolFlags::Namespace) {
-                SymbolFlags::Namespace
+                SymbolFlags::NONE
+            }) | (if symbol.flags().intersects(SymbolFlags::NAMESPACE) {
+                SymbolFlags::NAMESPACE
             } else {
-                SymbolFlags::None
+                SymbolFlags::NONE
             });
         if target_flags.intersects(excluded_meanings) {
             let message: &'static Message = if is_export_specifier(node) {
-                &diagnostics::Export_declaration_conflicts_with_exported_declaration_of_0
+                &diagnostics::EXPORT_DECLARATION_CONFLICTS_WITH_EXPORTED_DECLARATION_OF_0
             } else {
-                &diagnostics::Import_declaration_conflicts_with_local_declaration_of_0
+                &diagnostics::IMPORT_DECLARATION_CONFLICTS_WITH_LOCAL_DECLARATION_OF_0
             };
             let symbol_string = self.symbol_to_string(symbol);
             self.error(Some(node), message, &[&symbol_string]);
@@ -799,42 +800,42 @@ impl Checker {
             let appears_valuey_to_transpiler = self.compiler_options.isolated_modules.is_true()
                 && find_ancestor(node, is_type_only_import_or_export_declaration).is_none();
             if appears_valuey_to_transpiler
-                && symbol.flags().intersects(SymbolFlags::Value | SymbolFlags::ExportValue)
+                && symbol.flags().intersects(SymbolFlags::VALUE | SymbolFlags::EXPORT_VALUE)
             {
                 let symbol_string = self.symbol_to_string(symbol);
                 let flag_name = self.get_isolated_modules_like_flag_name();
                 self.error(
                     Some(node),
-                    &diagnostics::Import_0_conflicts_with_local_value_so_must_be_declared_with_a_type_only_import_when_isolatedModules_is_enabled,
+                    &diagnostics::IMPORT_0_CONFLICTS_WITH_LOCAL_VALUE_SO_MUST_BE_DECLARED_WITH_A_TYPE_ONLY_IMPORT_WHEN_ISOLATED_MODULES_IS_ENABLED,
                     &[&symbol_string, &flag_name],
                 );
             }
         }
         if self.compiler_options.get_isolated_modules()
             && !is_type_only_import_or_export_declaration(node)
-            && !node.flags().intersects(NodeFlags::Ambient)
+            && !node.flags().intersects(NodeFlags::AMBIENT)
         {
             let type_only_alias = self.get_type_only_alias_declaration(symbol);
-            let is_type = !target_flags.intersects(SymbolFlags::Value);
+            let is_type = !target_flags.intersects(SymbolFlags::VALUE);
             if is_type || type_only_alias.is_some() {
                 match node.kind() {
                     Kind::ImportClause | Kind::ImportSpecifier | Kind::ImportEqualsDeclaration => {
                         if self.compiler_options.verbatim_module_syntax.is_true() {
                             assert!(node.name().is_some(), "An ImportClause with a symbol should have a name");
                             let message: &'static Message = if self.compiler_options.verbatim_module_syntax.is_true() && crate::is_internal_module_import_equals_declaration(node) {
-                                &diagnostics::An_import_alias_cannot_resolve_to_a_type_or_type_only_declaration_when_verbatimModuleSyntax_is_enabled
+                                &diagnostics::AN_IMPORT_ALIAS_CANNOT_RESOLVE_TO_A_TYPE_OR_TYPE_ONLY_DECLARATION_WHEN_VERBATIM_MODULE_SYNTAX_IS_ENABLED
                             } else if is_type {
-                                &diagnostics::X_0_is_a_type_and_must_be_imported_using_a_type_only_import_when_verbatimModuleSyntax_is_enabled
+                                &diagnostics::X_0_IS_A_TYPE_AND_MUST_BE_IMPORTED_USING_A_TYPE_ONLY_IMPORT_WHEN_VERBATIM_MODULE_SYNTAX_IS_ENABLED
                             } else {
-                                &diagnostics::X_0_resolves_to_a_type_only_declaration_and_must_be_imported_using_a_type_only_import_when_verbatimModuleSyntax_is_enabled
+                                &diagnostics::X_0_RESOLVES_TO_A_TYPE_ONLY_DECLARATION_AND_MUST_BE_IMPORTED_USING_A_TYPE_ONLY_IMPORT_WHEN_VERBATIM_MODULE_SYNTAX_IS_ENABLED
                             };
                             let name = node.property_name_or_name().unwrap().text();
                             let diag = self.error(Some(node), message, &[&name]);
                             Self::add_type_only_declaration_related_info(diag, if is_type { None } else { type_only_alias }, name);
                         }
-                        if is_type && node.kind() == Kind::ImportEqualsDeclaration && has_modifier(node, ModifierFlags::Export) {
+                        if is_type && node.kind() == Kind::ImportEqualsDeclaration && has_modifier(node, ModifierFlags::EXPORT) {
                             let flag_name = self.get_isolated_modules_like_flag_name();
-                            self.error(Some(node), &diagnostics::Cannot_use_export_import_on_a_type_or_type_only_namespace_when_0_is_enabled, &[&flag_name]);
+                            self.error(Some(node), &diagnostics::CANNOT_USE_EXPORT_IMPORT_ON_A_TYPE_OR_TYPE_ONLY_NAMESPACE_WHEN_0_IS_ENABLED, &[&flag_name]);
                         }
                     }
                     Kind::ExportSpecifier
@@ -845,12 +846,12 @@ impl Checker {
                             let name = node.property_name_or_name().unwrap().text();
                             let diagnostic = if is_type {
                                 let flag_name = self.get_isolated_modules_like_flag_name();
-                                self.error(Some(node), &diagnostics::Re_exporting_a_type_when_0_is_enabled_requires_using_export_type, &[&flag_name])
+                                self.error(Some(node), &diagnostics::RE_EXPORTING_A_TYPE_WHEN_0_IS_ENABLED_REQUIRES_USING_EXPORT_TYPE, &[&flag_name])
                             } else {
                                 let flag_name = self.get_isolated_modules_like_flag_name();
                                 self.error(
                                     Some(node),
-                                    &diagnostics::X_0_resolves_to_a_type_only_declaration_and_must_be_re_exported_using_a_type_only_re_export_when_1_is_enabled,
+                                    &diagnostics::X_0_RESOLVES_TO_A_TYPE_ONLY_DECLARATION_AND_MUST_BE_RE_EXPORTED_USING_A_TYPE_ONLY_RE_EXPORT_WHEN_1_IS_ENABLED,
                                     &[&name, &flag_name],
                                 )
                             };
@@ -863,30 +864,30 @@ impl Checker {
                 && !is_import_equals_declaration(node)
                 && !is_in_js_file(node)
                 && self.emit_module_format_of_file(get_source_file_of_node(node).unwrap())
-                    == ModuleKind::CommonJS
+                    == ModuleKind::COMMON_JS
             {
                 self.error(Some(node), get_verbatim_module_syntax_error_message(node), &[]);
-            } else if self.module_kind == ModuleKind::Preserve
+            } else if self.module_kind == ModuleKind::PRESERVE
                 && !is_import_equals_declaration(node)
                 && !is_variable_declaration(node)
                 && !is_binding_element(node)
                 && self.emit_module_format_of_file(get_source_file_of_node(node).unwrap())
-                    == ModuleKind::CommonJS
+                    == ModuleKind::COMMON_JS
             {
                 // In `--module preserve`, ESM input syntax emits ESM output syntax, but there will be times
                 // when we look at the `impliedNodeFormat` of this file and decide it's CommonJS (i.e., currently,
                 // only if the file extension is .cjs/.cts). To avoid that inconsistency, we disallow ESM syntax
                 // in files that are unambiguously CommonJS in this mode.
-                self.error(Some(node), &diagnostics::ECMAScript_module_syntax_is_not_allowed_in_a_CommonJS_module_when_module_is_set_to_preserve, &[]);
+                self.error(Some(node), &diagnostics::ECMA_SCRIPT_MODULE_SYNTAX_IS_NOT_ALLOWED_IN_A_COMMON_JS_MODULE_WHEN_MODULE_IS_SET_TO_PRESERVE, &[]);
             }
             if self.compiler_options.verbatim_module_syntax.is_true()
                 && !is_type_only_import_or_export_declaration(node)
-                && !node.flags().intersects(NodeFlags::Ambient)
-                && target_flags.intersects(SymbolFlags::ConstEnum)
+                && !node.flags().intersects(NodeFlags::AMBIENT)
+                && target_flags.intersects(SymbolFlags::CONST_ENUM)
             {
                 let const_enum_declaration = target.value_declaration();
                 if let Some(const_enum_declaration) = const_enum_declaration {
-                    if const_enum_declaration.flags().intersects(NodeFlags::Ambient) {
+                    if const_enum_declaration.flags().intersects(NodeFlags::AMBIENT) {
                         let redirect = self.program.get_project_reference_from_output_dts(
                             get_source_file_of_node(const_enum_declaration).unwrap().path(),
                         );
@@ -901,7 +902,7 @@ impl Checker {
                             let flag_name = self.get_isolated_modules_like_flag_name();
                             self.error(
                                 Some(node),
-                                &diagnostics::Cannot_access_ambient_const_enums_when_0_is_enabled,
+                                &diagnostics::CANNOT_ACCESS_AMBIENT_CONST_ENUMS_WHEN_0_IS_ENABLED,
                                 &[&flag_name],
                             );
                         }
@@ -930,12 +931,12 @@ impl Checker {
         if is_optional_declaration(left) != is_optional_declaration(right) {
             return false;
         }
-        let interesting_flags = ModifierFlags::Private
-            | ModifierFlags::Protected
-            | ModifierFlags::Async
-            | ModifierFlags::Abstract
-            | ModifierFlags::Readonly
-            | ModifierFlags::Static;
+        let interesting_flags = ModifierFlags::PRIVATE
+            | ModifierFlags::PROTECTED
+            | ModifierFlags::ASYNC
+            | ModifierFlags::ABSTRACT
+            | ModifierFlags::READONLY
+            | ModifierFlags::STATIC;
         get_selected_modifier_flags(left, interesting_flags)
             == get_selected_modifier_flags(right, interesting_flags)
     }
@@ -946,12 +947,12 @@ impl Checker {
         self.check_grammar_modifiers(node);
         self.check_type_name_is_reserved(
             node.name().unwrap(),
-            &diagnostics::Type_alias_name_cannot_be_0,
+            &diagnostics::TYPE_ALIAS_NAME_CANNOT_BE_0,
         );
         if !Self::container_allows_block_scoped_variable(node.parent().unwrap()) {
             self.grammar_error_on_node(
                 node,
-                &diagnostics::X_0_declarations_can_only_be_declared_inside_a_block,
+                &diagnostics::X_0_DECLARATIONS_CAN_ONLY_BE_DECLARED_INSIDE_A_BLOCK,
                 &[&"type"],
             );
         }
@@ -965,13 +966,13 @@ impl Checker {
                 let name = node.name().unwrap().text();
                 if !(type_parameters.is_empty() && name == "BuiltinIteratorReturn"
                     || type_parameters.len() == 1
-                        && intrinsicTypeKinds
+                        && INTRINSIC_TYPE_KINDS
                             .get(name)
                             .copied()
                             .unwrap_or(IntrinsicTypeKind::Unknown)
                             != IntrinsicTypeKind::Unknown)
                 {
-                    self.error(Some(type_node), &diagnostics::The_intrinsic_keyword_can_only_be_used_to_declare_compiler_provided_intrinsic_types, &[]);
+                    self.error(Some(type_node), &diagnostics::THE_INTRINSIC_KEYWORD_CAN_ONLY_BE_USED_TO_DECLARE_COMPILER_PROVIDED_INTRINSIC_TYPES, &[]);
                 }
                 // The `intrinsic` keyword is a leaf type node with no child nodes to check,
                 // so skipping the checkSourceElement below visits nothing.
@@ -1013,16 +1014,16 @@ impl Checker {
         if symbol.declarations().len() < 2 || !self.merged_exports_checked.add_if_absent(symbol) {
             return;
         }
-        let mut exported_declaration_spaces = DeclarationSpaces::None;
-        let mut non_exported_declaration_spaces = DeclarationSpaces::None;
-        let mut default_exported_declaration_spaces = DeclarationSpaces::None;
+        let mut exported_declaration_spaces = DeclarationSpaces::NONE;
+        let mut non_exported_declaration_spaces = DeclarationSpaces::NONE;
+        let mut default_exported_declaration_spaces = DeclarationSpaces::NONE;
         let declarations = symbol.declarations();
         for &d in declarations {
             let declaration_spaces = self.get_declaration_spaces(d);
             let effective_declaration_flags = self
-                .get_effective_declaration_flags(d, ModifierFlags::Export | ModifierFlags::Default);
-            if effective_declaration_flags.intersects(ModifierFlags::Export) {
-                if effective_declaration_flags.intersects(ModifierFlags::Default) {
+                .get_effective_declaration_flags(d, ModifierFlags::EXPORT | ModifierFlags::DEFAULT);
+            if effective_declaration_flags.intersects(ModifierFlags::EXPORT) {
+                if effective_declaration_flags.intersects(ModifierFlags::DEFAULT) {
                     default_exported_declaration_spaces |= declaration_spaces;
                 } else {
                     exported_declaration_spaces |= declaration_spaces;
@@ -1052,13 +1053,13 @@ impl Checker {
                 {
                     self.error(
                         name,
-                        &diagnostics::Merged_declaration_0_cannot_include_a_default_export_declaration_Consider_adding_a_separate_export_default_0_declaration_instead,
+                        &diagnostics::MERGED_DECLARATION_0_CANNOT_INCLUDE_A_DEFAULT_EXPORT_DECLARATION_CONSIDER_ADDING_A_SEPARATE_EXPORT_DEFAULT_0_DECLARATION_INSTEAD,
                         &[&tsrs_scanner::declaration_name_to_string(name)],
                     );
                 } else if declaration_spaces
                     .intersects(common_declaration_spaces_for_exports_and_locals)
                 {
-                    self.error(name, &diagnostics::Individual_declarations_in_merged_declaration_0_must_be_all_exported_or_all_local, &[&tsrs_scanner::declaration_name_to_string(name)]);
+                    self.error(name, &diagnostics::INDIVIDUAL_DECLARATIONS_IN_MERGED_DECLARATION_0_MUST_BE_ALL_EXPORTED_OR_ALL_LOCAL, &[&tsrs_scanner::declaration_name_to_string(name)]);
                 }
             }
         }
@@ -1067,7 +1068,7 @@ impl Checker {
     // checker.go:7133
     pub(crate) fn get_declaration_spaces(&mut self, node: P<Node>) -> DeclarationSpaces {
         fn alias_spaces(c: &mut Checker, node: P<Node>) -> DeclarationSpaces {
-            let mut result = DeclarationSpaces::None;
+            let mut result = DeclarationSpaces::NONE;
             let symbol = c.get_symbol_of_declaration(node).unwrap();
             let target = c.resolve_alias(symbol);
             let declarations = target.declarations();
@@ -1083,22 +1084,22 @@ impl Checker {
             | Kind::TypeAliasDeclaration
             | Kind::JSTypeAliasDeclaration
             | Kind::JSDocTypedefTag
-            | Kind::JSDocCallbackTag => DeclarationSpaces::ExportType,
+            | Kind::JSDocCallbackTag => DeclarationSpaces::EXPORT_TYPE,
             Kind::ModuleDeclaration => {
                 if is_ambient_module(node)
                     || get_module_instance_state(node) != ModuleInstanceState::NonInstantiated
                 {
-                    return DeclarationSpaces::ExportNamespace | DeclarationSpaces::ExportValue;
+                    return DeclarationSpaces::EXPORT_NAMESPACE | DeclarationSpaces::EXPORT_VALUE;
                 }
-                DeclarationSpaces::ExportNamespace
+                DeclarationSpaces::EXPORT_NAMESPACE
             }
             Kind::ClassDeclaration | Kind::EnumDeclaration | Kind::EnumMember => {
-                DeclarationSpaces::ExportType | DeclarationSpaces::ExportValue
+                DeclarationSpaces::EXPORT_TYPE | DeclarationSpaces::EXPORT_VALUE
             }
             Kind::SourceFile => {
-                DeclarationSpaces::ExportType
-                    | DeclarationSpaces::ExportValue
-                    | DeclarationSpaces::ExportNamespace
+                DeclarationSpaces::EXPORT_TYPE
+                    | DeclarationSpaces::EXPORT_VALUE
+                    | DeclarationSpaces::EXPORT_NAMESPACE
             }
             Kind::ExportAssignment | Kind::BinaryExpression => {
                 let expression = if is_export_assignment(node) {
@@ -1112,9 +1113,9 @@ impl Checker {
                         .get_symbol_of_declaration(node)
                         .unwrap()
                         .flags()
-                        .intersects(SymbolFlags::Alias)
+                        .intersects(SymbolFlags::ALIAS)
                 {
-                    return DeclarationSpaces::ExportValue;
+                    return DeclarationSpaces::EXPORT_VALUE;
                 }
                 // The below options all declare an Alias, which is allowed to merge with other values within the importing module.
                 alias_spaces(self, node)
@@ -1125,8 +1126,8 @@ impl Checker {
             Kind::VariableDeclaration
             | Kind::BindingElement
             | Kind::FunctionDeclaration
-            | Kind::ImportSpecifier => DeclarationSpaces::ExportValue,
-            Kind::MethodSignature | Kind::PropertySignature => DeclarationSpaces::ExportType,
+            | Kind::ImportSpecifier => DeclarationSpaces::EXPORT_VALUE,
+            Kind::MethodSignature | Kind::PropertySignature => DeclarationSpaces::EXPORT_TYPE,
             _ => panic!("Unhandled case in getDeclarationSpaces: {}", node.kind_string()),
         }
     }
@@ -1147,7 +1148,7 @@ impl Checker {
             } else if seen_default {
                 self.error(
                     Some(node),
-                    &diagnostics::Required_type_parameters_may_not_follow_optional_type_parameters,
+                    &diagnostics::REQUIRED_TYPE_PARAMETERS_MAY_NOT_FOLLOW_OPTIONAL_TYPE_PARAMETERS,
                     &[],
                 );
             }
@@ -1155,7 +1156,7 @@ impl Checker {
                 if element.symbol() == node.symbol() {
                     self.error(
                         node.name(),
-                        &diagnostics::Duplicate_identifier_0,
+                        &diagnostics::DUPLICATE_IDENTIFIER_0,
                         &[&tsrs_scanner::declaration_name_to_string(node.name())],
                     );
                 }
@@ -1179,10 +1180,10 @@ impl Checker {
         ) -> bool {
             if is_type_reference_node(node) {
                 let t = c.get_type_from_type_reference(node);
-                if t.flags().intersects(TypeFlags::TypeParameter) {
+                if t.flags().intersects(TypeFlags::TYPE_PARAMETER) {
                     for element in type_parameters.iter().skip(index) {
                         if t.symbol() == c.get_symbol_of_declaration(*element) {
-                            c.error(Some(node), &diagnostics::Type_parameter_defaults_can_only_reference_previously_declared_type_parameters, &[]);
+                            c.error(Some(node), &diagnostics::TYPE_PARAMETER_DEFAULTS_CAN_ONLY_REFERENCE_PREVIOUSLY_DECLARED_TYPE_PARAMETERS, &[]);
                         }
                     }
                 }
@@ -1276,7 +1277,7 @@ impl Checker {
     ) {
         if !location
             .flags()
-            .intersects(NodeFlags::Ambient | NodeFlags::ThisNodeOrAnySubNodesHasError)
+            .intersects(NodeFlags::AMBIENT | NodeFlags::THIS_NODE_OR_ANY_SUB_NODES_HAS_ERROR)
         {
             let is_error = self.unused_is_error(kind);
             if is_error {
@@ -1306,15 +1307,15 @@ impl Checker {
                 | Kind::GetAccessor
                 | Kind::SetAccessor => {
                     if is_set_accessor_declaration(member)
-                        && member.symbol().unwrap().flags().intersects(SymbolFlags::GetAccessor)
+                        && member.symbol().unwrap().flags().intersects(SymbolFlags::GET_ACCESSOR)
                     {
                         continue; // Already would have reported an error on the getter.
                     }
                     let symbol = self.get_symbol_of_declaration(member).unwrap();
                     if !self.is_referenced(symbol)
-                        && (has_modifier(member, ModifierFlags::Private)
+                        && (has_modifier(member, ModifierFlags::PRIVATE)
                             || member.name().is_some_and(is_private_identifier))
-                        && !member.flags().intersects(NodeFlags::Ambient)
+                        && !member.flags().intersects(NodeFlags::AMBIENT)
                     {
                         let symbol_string = self.symbol_to_string(symbol);
                         self.report_unused(
@@ -1322,7 +1323,7 @@ impl Checker {
                             UnusedKind::Local,
                             new_diagnostic_for_node(
                                 member.name(),
-                                Some(&diagnostics::X_0_is_declared_but_its_value_is_never_read),
+                                Some(&diagnostics::X_0_IS_DECLARED_BUT_ITS_VALUE_IS_NEVER_READ),
                                 &[&symbol_string],
                             ),
                         );
@@ -1331,14 +1332,14 @@ impl Checker {
                 Kind::Constructor => {
                     for &parameter in member.parameters() {
                         if !self.is_referenced(parameter.symbol().unwrap())
-                            && has_syntactic_modifier(parameter, ModifierFlags::Private)
+                            && has_syntactic_modifier(parameter, ModifierFlags::PRIVATE)
                         {
                             self.report_unused(
                                 parameter,
                                 UnusedKind::Local,
                                 new_diagnostic_for_node(
                                     parameter.name(),
-                                    Some(&diagnostics::Property_0_is_declared_but_its_value_is_never_read),
+                                    Some(&diagnostics::PROPERTY_0_IS_DECLARED_BUT_ITS_VALUE_IS_NEVER_READ),
                                     &[&symbol_name(parameter.symbol().unwrap())],
                                 ),
                             );
@@ -1364,13 +1365,13 @@ impl Checker {
         let locals = node.locals().map(|l| l.values()).unwrap_or_default();
         for local in locals {
             let reference_kinds = self.reference_kinds(local);
-            if local.flags().intersects(SymbolFlags::TypeParameter)
-                && (!local.flags().intersects(SymbolFlags::Variable)
-                    || reference_kinds.intersects(SymbolFlags::Variable))
-                || !local.flags().intersects(SymbolFlags::TypeParameter)
+            if local.flags().intersects(SymbolFlags::TYPE_PARAMETER)
+                && (!local.flags().intersects(SymbolFlags::VARIABLE)
+                    || reference_kinds.intersects(SymbolFlags::VARIABLE))
+                || !local.flags().intersects(SymbolFlags::TYPE_PARAMETER)
                     && (!reference_kinds.is_empty()
                         || local.export_symbol().is_some()
-                        || local.flags().intersects(SymbolFlags::ModuleExports))
+                        || local.flags().intersects(SymbolFlags::MODULE_EXPORTS))
             {
                 continue;
             }
@@ -1411,9 +1412,9 @@ impl Checker {
     // checker.go:7353
     pub(crate) fn report_unused_local(&mut self, node: P<Node>, name: &str) {
         let message: &'static Message = if is_type_declaration(node) {
-            &diagnostics::X_0_is_declared_but_never_used
+            &diagnostics::X_0_IS_DECLARED_BUT_NEVER_USED
         } else {
-            &diagnostics::X_0_is_declared_but_its_value_is_never_read
+            &diagnostics::X_0_IS_DECLARED_BUT_ITS_VALUE_IS_NEVER_READ
         };
         self.report_unused(
             node,
@@ -1432,7 +1433,7 @@ impl Checker {
                 node,
                 new_diagnostic_for_node(
                     Some(node),
-                    Some(&diagnostics::All_variables_are_unused),
+                    Some(&diagnostics::ALL_VARIABLES_ARE_UNUSED),
                     &[],
                 ),
             );
@@ -1456,7 +1457,7 @@ impl Checker {
                 node,
                 new_diagnostic_for_node(
                     Some(node),
-                    Some(&diagnostics::All_destructured_elements_are_unused),
+                    Some(&diagnostics::ALL_DESTRUCTURED_ELEMENTS_ARE_UNUSED),
                     &[],
                 ),
             );
@@ -1480,7 +1481,7 @@ impl Checker {
                             declaration,
                             new_diagnostic_for_node(
                                 Some(name),
-                                Some(&diagnostics::X_0_is_declared_but_its_value_is_never_read),
+                                Some(&diagnostics::X_0_IS_DECLARED_BUT_ITS_VALUE_IS_NEVER_READ),
                                 &[&name.text()],
                             ),
                         );
@@ -1499,7 +1500,7 @@ impl Checker {
             return name.elements().iter().all(|&e| self.is_unreferenced_variable_declaration(e));
         }
         let symbol = self.get_symbol_of_declaration(node).unwrap();
-        if self.reference_kinds(symbol).intersects(SymbolFlags::Variable) {
+        if self.reference_kinds(symbol).intersects(SymbolFlags::VARIABLE) {
             return false;
         }
         if is_binding_element(node) && is_object_binding_pattern(node.parent().unwrap()) {
@@ -1512,7 +1513,7 @@ impl Checker {
         if (is_parameter_declaration(node)
             || is_variable_declaration(node)
                 && (is_for_in_or_of_statement(node.parent().unwrap().parent())
-                    || self.get_combined_node_flags_cached(node).intersects(NodeFlags::Using))
+                    || self.get_combined_node_flags_cached(node).intersects(NodeFlags::USING))
             || is_binding_element(node)
                 && !(is_object_binding_pattern(node.parent().unwrap())
                     && node.property_name().is_none()))
@@ -1540,7 +1541,7 @@ impl Checker {
                 UnusedKind::Local,
                 new_diagnostic_for_node(
                     node.parent(),
-                    Some(&diagnostics::All_imports_in_import_declaration_are_unused),
+                    Some(&diagnostics::ALL_IMPORTS_IN_IMPORT_DECLARATION_ARE_UNUSED),
                     &[],
                 ),
             );
@@ -1577,7 +1578,7 @@ impl Checker {
                 UnusedKind::Parameter,
                 new_diagnostic_for_node(
                     Some(name),
-                    Some(&diagnostics::X_0_is_declared_but_never_used),
+                    Some(&diagnostics::X_0_IS_DECLARED_BUT_NEVER_USED),
                     &[&name.text()],
                 ),
             );
@@ -1601,7 +1602,7 @@ impl Checker {
             self.report_unused(
                 node,
                 UnusedKind::Parameter,
-                new_diagnostic(Some(file), loc, &diagnostics::All_type_parameters_are_unused, &[]),
+                new_diagnostic(Some(file), loc, &diagnostics::ALL_TYPE_PARAMETERS_ARE_UNUSED, &[]),
             );
         } else {
             for &type_parameter in type_parameter_list.nodes() {
@@ -1612,7 +1613,7 @@ impl Checker {
                         UnusedKind::Parameter,
                         new_diagnostic_for_node(
                             Some(type_parameter),
-                            Some(&diagnostics::X_0_is_declared_but_never_used),
+                            Some(&diagnostics::X_0_IS_DECLARED_BUT_NEVER_USED),
                             &[&name.text()],
                         ),
                     );
@@ -1624,7 +1625,7 @@ impl Checker {
     // checker.go:7482
     pub(crate) fn is_unreferenced_type_parameter(&mut self, type_parameter: P<Node>) -> bool {
         let symbol = self.get_merged_symbol(type_parameter.symbol().unwrap());
-        !self.reference_kinds(symbol).intersects(SymbolFlags::TypeParameter)
+        !self.reference_kinds(symbol).intersects(SymbolFlags::TYPE_PARAMETER)
             && !is_identifier_that_starts_with_underscore(type_parameter.name().unwrap())
     }
 
@@ -1641,7 +1642,7 @@ impl Checker {
                 );
                 let diagnostic = new_diagnostic_for_node(
                     node.name(),
-                    Some(&diagnostics::X_0_is_an_unused_renaming_of_1_Did_you_intend_to_use_it_as_a_type_annotation),
+                    Some(&diagnostics::X_0_IS_AN_UNUSED_RENAMING_OF_1_DID_YOU_INTEND_TO_USE_IT_AS_A_TYPE_ANNOTATION),
                     &[&tsrs_scanner::declaration_name_to_string(node.name()), &tsrs_scanner::declaration_name_to_string(node.property_name())],
                 );
                 if wrapping_declaration.type_node().is_none() {
@@ -1649,7 +1650,7 @@ impl Checker {
                     diagnostic.add_related_info(new_diagnostic(
                         get_source_file_of_node(wrapping_declaration),
                         TextRange::from_text_pos(wrapping_declaration.end(), wrapping_declaration.end()),
-                        &diagnostics::We_can_only_write_a_type_for_0_by_adding_a_type_for_the_entire_parameter_here,
+                        &diagnostics::WE_CAN_ONLY_WRITE_A_TYPE_FOR_0_BY_ADDING_A_TYPE_FOR_THE_ENTIRE_PARAMETER_HERE,
                         &[&tsrs_scanner::declaration_name_to_string(node.property_name())],
                     ));
                 }
@@ -1682,7 +1683,7 @@ impl Checker {
             return cached_type;
         }
         let start_invocation_count = self.flow_invocation_count;
-        let t = self.check_expression_ex(node, CheckMode::TypeOnly);
+        let t = self.check_expression_ex(node, CheckMode::TYPE_ONLY);
         // If control flow analysis was required to determine the type, it is worth caching.
         if self.flow_invocation_count != start_invocation_count {
             let previous =
@@ -1798,22 +1799,22 @@ impl Checker {
         node: P<Node>,
         mut report_error: impl FnMut(&mut Checker, P<Node>, TypeFacts),
     ) -> P<Type> {
-        if self.strict_null_checks && t.flags().intersects(TypeFlags::Unknown) {
+        if self.strict_null_checks && t.flags().intersects(TypeFlags::UNKNOWN) {
             if is_entity_name_expression(node) {
                 let node_text = crate::entity_name_to_string(node);
                 if node_text.len() < 100 {
-                    self.error(Some(node), &diagnostics::X_0_is_of_type_unknown, &[&node_text]);
+                    self.error(Some(node), &diagnostics::X_0_IS_OF_TYPE_UNKNOWN, &[&node_text]);
                     return self.error_type;
                 }
             }
-            self.error(Some(node), &diagnostics::Object_is_of_type_unknown, &[]);
+            self.error(Some(node), &diagnostics::OBJECT_IS_OF_TYPE_UNKNOWN, &[]);
             return self.error_type;
         }
-        let facts = self.get_type_facts(t, TypeFacts::IsUndefinedOrNull);
-        if facts.intersects(TypeFacts::IsUndefinedOrNull) {
+        let facts = self.get_type_facts(t, TypeFacts::IS_UNDEFINED_OR_NULL);
+        if facts.intersects(TypeFacts::IS_UNDEFINED_OR_NULL) {
             report_error(self, node, facts);
             let non_nullable = self.get_non_nullable_type(t);
-            if non_nullable.flags().intersects(TypeFlags::Nullable | TypeFlags::Never) {
+            if non_nullable.flags().intersects(TypeFlags::NULLABLE | TypeFlags::NEVER) {
                 return self.error_type;
             }
             return non_nullable;
@@ -1824,23 +1825,23 @@ impl Checker {
     // checker.go:7609
     pub(crate) fn check_non_null_non_void_type(&mut self, t: P<Type>, node: P<Node>) -> P<Type> {
         let non_null_type = self.check_non_null_type(t, node);
-        if non_null_type.flags().intersects(TypeFlags::Void) {
+        if non_null_type.flags().intersects(TypeFlags::VOID) {
             if is_entity_name_expression(node) {
                 let node_text = crate::entity_name_to_string(node);
                 if is_identifier(node) && node_text == "undefined" {
                     self.error(
                         Some(node),
-                        &diagnostics::The_value_0_cannot_be_used_here,
+                        &diagnostics::THE_VALUE_0_CANNOT_BE_USED_HERE,
                         &[&node_text],
                     );
                     return non_null_type;
                 }
                 if node_text.len() < 100 {
-                    self.error(Some(node), &diagnostics::X_0_is_possibly_undefined, &[&node_text]);
+                    self.error(Some(node), &diagnostics::X_0_IS_POSSIBLY_UNDEFINED, &[&node_text]);
                     return non_null_type;
                 }
             }
-            self.error(Some(node), &diagnostics::Object_is_possibly_undefined, &[]);
+            self.error(Some(node), &diagnostics::OBJECT_IS_POSSIBLY_UNDEFINED, &[]);
         }
         non_null_type
     }
@@ -1856,37 +1857,37 @@ impl Checker {
             node_text = crate::entity_name_to_string(node);
         }
         if node.kind() == Kind::NullKeyword {
-            self.error(Some(node), &diagnostics::The_value_0_cannot_be_used_here, &[&"null"]);
+            self.error(Some(node), &diagnostics::THE_VALUE_0_CANNOT_BE_USED_HERE, &[&"null"]);
             return;
         }
         if !node_text.is_empty() && node_text.len() < 100 {
             if is_identifier(node) && node_text == "undefined" {
                 self.error(
                     Some(node),
-                    &diagnostics::The_value_0_cannot_be_used_here,
+                    &diagnostics::THE_VALUE_0_CANNOT_BE_USED_HERE,
                     &[&"undefined"],
                 );
                 return;
             }
-            let message: &'static Message = if facts.intersects(TypeFacts::IsUndefined) {
-                if facts.intersects(TypeFacts::IsNull) {
-                    &diagnostics::X_0_is_possibly_null_or_undefined
+            let message: &'static Message = if facts.intersects(TypeFacts::IS_UNDEFINED) {
+                if facts.intersects(TypeFacts::IS_NULL) {
+                    &diagnostics::X_0_IS_POSSIBLY_NULL_OR_UNDEFINED
                 } else {
-                    &diagnostics::X_0_is_possibly_undefined
+                    &diagnostics::X_0_IS_POSSIBLY_UNDEFINED
                 }
             } else {
-                &diagnostics::X_0_is_possibly_null
+                &diagnostics::X_0_IS_POSSIBLY_NULL
             };
             self.error(Some(node), message, &[&node_text]);
         } else {
-            let message: &'static Message = if facts.intersects(TypeFacts::IsUndefined) {
-                if facts.intersects(TypeFacts::IsNull) {
-                    &diagnostics::Object_is_possibly_null_or_undefined
+            let message: &'static Message = if facts.intersects(TypeFacts::IS_UNDEFINED) {
+                if facts.intersects(TypeFacts::IS_NULL) {
+                    &diagnostics::OBJECT_IS_POSSIBLY_NULL_OR_UNDEFINED
                 } else {
-                    &diagnostics::Object_is_possibly_undefined
+                    &diagnostics::OBJECT_IS_POSSIBLY_UNDEFINED
                 }
             } else {
-                &diagnostics::Object_is_possibly_null
+                &diagnostics::OBJECT_IS_POSSIBLY_NULL
             };
             self.error(Some(node), message, &[]);
         }
@@ -1951,11 +1952,11 @@ impl Checker {
         let mut t = self.check_expression_ex(
             node,
             check_mode
-                | CheckMode::Contextual
+                | CheckMode::CONTEXTUAL
                 | if inference_context.is_some() {
-                    CheckMode::Inferential
+                    CheckMode::INFERENTIAL
                 } else {
-                    CheckMode::Normal
+                    CheckMode::NORMAL
                 },
         );
         // In CheckMode.Inferential we collect intra-expression inference sites to process before fixing any type
@@ -1968,9 +1969,9 @@ impl Checker {
         // We strip literal freshness when an appropriate contextual type is present such that contextually typed
         // literals always preserve their literal types (otherwise they might widen during type inference). An alternative
         // here would be to not mark contextually typed literals as fresh in the first place.
-        if self.maybe_type_of_kind(t, TypeFlags::Literal) && {
+        if self.maybe_type_of_kind(t, TypeFlags::LITERAL) && {
             let instantiated =
-                self.instantiate_contextual_type(Some(contextual_type), node, ContextFlags::None);
+                self.instantiate_contextual_type(Some(contextual_type), node, ContextFlags::NONE);
             self.is_literal_of_contextual_type(t, instantiated)
         } {
             t = self.get_regular_type_of_literal_type(t);
@@ -1991,7 +1992,7 @@ impl Checker {
 
     // checker.go:7685
     pub(crate) fn check_expression_cached(&mut self, node: P<Node>) -> P<Type> {
-        self.check_expression_cached_ex(node, CheckMode::Normal)
+        self.check_expression_cached_ex(node, CheckMode::NORMAL)
     }
 
     // checker.go:7689
@@ -2000,7 +2001,7 @@ impl Checker {
         node: P<Node>,
         check_mode: CheckMode,
     ) -> P<Type> {
-        if check_mode != CheckMode::Normal {
+        if check_mode != CheckMode::NORMAL {
             return self.check_expression_ex(node, check_mode);
         }
         let links = self.type_node_links.get(node);
@@ -2030,7 +2031,7 @@ impl Checker {
         }
         let any_type = self.any_type;
         self.push_contextual_type(node, Some(any_type), false /*isCache*/);
-        let t = self.check_expression_ex(node, CheckMode::SkipContextSensitive);
+        let t = self.check_expression_ex(node, CheckMode::SKIP_CONTEXT_SENSITIVE);
         self.context_free_types.insert(node, t);
         self.pop_contextual_type();
         t
@@ -2038,7 +2039,7 @@ impl Checker {
 
     // checker.go:7725
     pub(crate) fn check_expression(&mut self, node: P<Node>) -> P<Type> {
-        self.check_expression_ex(node, CheckMode::Normal)
+        self.check_expression_ex(node, CheckMode::NORMAL)
     }
 
     // checker.go:7729
@@ -2088,7 +2089,7 @@ impl Checker {
         if !ok {
             self.error(
                 Some(node),
-                &diagnostics::X_const_enums_can_only_be_used_in_property_or_index_access_expressions_or_the_right_hand_side_of_an_import_declaration_or_export_assignment_or_type_query,
+                &diagnostics::X_CONST_ENUMS_CAN_ONLY_BE_USED_IN_PROPERTY_OR_INDEX_ACCESS_EXPRESSIONS_OR_THE_RIGHT_HAND_SIDE_OF_AN_IMPORT_DECLARATION_OR_EXPORT_ASSIGNMENT_OR_TYPE_QUERY,
                 &[],
             );
         }
@@ -2102,7 +2103,7 @@ impl Checker {
                     .resolve_name(
                         Some(node),
                         get_first_identifier(node).text(),
-                        SymbolFlags::Alias,
+                        SymbolFlags::ALIAS,
                         None,
                         false,
                         true,
@@ -2110,12 +2111,12 @@ impl Checker {
                     .is_none()
         {
             let symbol = t.symbol().unwrap();
-            assert!(symbol.flags().intersects(SymbolFlags::ConstEnum));
+            assert!(symbol.flags().intersects(SymbolFlags::CONST_ENUM));
             let const_enum_declaration = symbol.value_declaration().unwrap();
             let redirect = self.program.get_project_reference_from_output_dts(
                 get_source_file_of_node(const_enum_declaration).unwrap().path(),
             );
-            if const_enum_declaration.flags().intersects(NodeFlags::Ambient)
+            if const_enum_declaration.flags().intersects(NodeFlags::AMBIENT)
                 && !is_valid_type_only_alias_use_site(node)
                 && (redirect.is_none()
                     || !redirect
@@ -2128,7 +2129,7 @@ impl Checker {
                 let flag_name = self.get_isolated_modules_like_flag_name();
                 self.error(
                     Some(node),
-                    &diagnostics::Cannot_access_ambient_const_enums_when_0_is_enabled,
+                    &diagnostics::CANNOT_ACCESS_AMBIENT_CONST_ENUMS_WHEN_0_IS_ENABLED,
                     &[&flag_name],
                 );
             }
@@ -2142,7 +2143,7 @@ impl Checker {
         t: P<Type>,
         check_mode: CheckMode,
     ) -> P<Type> {
-        if !check_mode.intersects(CheckMode::Inferential | CheckMode::SkipGenericFunctions) {
+        if !check_mode.intersects(CheckMode::INFERENTIAL | CheckMode::SKIP_GENERIC_FUNCTIONS) {
             return t;
         }
         let call_signature =
@@ -2157,7 +2158,7 @@ impl Checker {
             return t;
         }
         let Some(contextual_type) =
-            self.get_apparent_type_of_contextual_type(node, ContextFlags::NoConstraints)
+            self.get_apparent_type_of_contextual_type(node, ContextFlags::NO_CONSTRAINTS)
         else {
             return t;
         };
@@ -2173,7 +2174,7 @@ impl Checker {
         if !contextual_signature.type_parameters().is_empty() {
             return t;
         }
-        if check_mode.intersects(CheckMode::SkipGenericFunctions) {
+        if check_mode.intersects(CheckMode::SKIP_GENERIC_FUNCTIONS) {
             self.skipped_generic_function(node, check_mode);
             return self.any_function_type;
         }
@@ -2218,7 +2219,7 @@ impl Checker {
                             &inferences,
                             source,
                             target,
-                            InferencePriority::None,
+                            InferencePriority::NONE,
                             true, /*contravariant*/
                         );
                     },
@@ -2234,7 +2235,7 @@ impl Checker {
                                 &inferences,
                                 source,
                                 target,
-                                InferencePriority::None,
+                                InferencePriority::NONE,
                                 false,
                             );
                         },
@@ -2287,7 +2288,7 @@ impl Checker {
                 let mut all: Vec<P<Type>> = context.inferred_type_parameters().to_vec();
                 all.extend_from_slice(&result);
                 let new_name = get_unique_type_parameter_name(&all, name);
-                let symbol = self.new_symbol(SymbolFlags::TypeParameter, alloc_str(&new_name));
+                let symbol = self.new_symbol(SymbolFlags::TYPE_PARAMETER, alloc_str(&new_name));
                 let new_type_parameter = self.new_type_parameter(Some(symbol));
                 new_type_parameter.as_type_parameter().target.set(Some(tp));
                 old_type_parameters.push(tp);
@@ -2524,21 +2525,21 @@ impl Checker {
             if current.is_some_and(is_computed_property_name) {
                 self.error(
                     Some(node),
-                    &diagnostics::X_super_cannot_be_referenced_in_a_computed_property_name,
+                    &diagnostics::X_SUPER_CANNOT_BE_REFERENCED_IN_A_COMPUTED_PROPERTY_NAME,
                     &[],
                 );
             } else if is_call_expression {
-                self.error(Some(node), &diagnostics::Super_calls_are_not_permitted_outside_constructors_or_in_nested_functions_inside_constructors, &[]);
+                self.error(Some(node), &diagnostics::SUPER_CALLS_ARE_NOT_PERMITTED_OUTSIDE_CONSTRUCTORS_OR_IN_NESTED_FUNCTIONS_INSIDE_CONSTRUCTORS, &[]);
             } else if container.is_none()
                 || container.unwrap().parent().is_none()
                 || !(is_class_like(container.unwrap().parent().unwrap())
                     || is_object_literal_expression(container.unwrap().parent().unwrap()))
             {
-                self.error(Some(node), &diagnostics::X_super_can_only_be_referenced_in_members_of_derived_classes_or_object_literal_expressions, &[]);
+                self.error(Some(node), &diagnostics::X_SUPER_CAN_ONLY_BE_REFERENCED_IN_MEMBERS_OF_DERIVED_CLASSES_OR_OBJECT_LITERAL_EXPRESSIONS, &[]);
             } else {
                 self.error(
                     Some(node),
-                    &diagnostics::X_super_property_access_is_permitted_only_in_a_constructor_member_function_or_member_accessor_of_a_derived_class,
+                    &diagnostics::X_SUPER_PROPERTY_ACCESS_IS_PERMITTED_ONLY_IN_A_CONSTRUCTOR_MEMBER_FUNCTION_OR_MEMBER_ACCESSOR_OF_A_DERIVED_CLASS,
                     &[],
                 );
             }
@@ -2549,7 +2550,7 @@ impl Checker {
             self.check_this_before_super(
                 node,
                 container,
-                &diagnostics::X_super_must_be_called_before_accessing_a_property_of_super_in_the_constructor_of_a_derived_class,
+                &diagnostics::X_SUPER_MUST_BE_CALLED_BEFORE_ACCESSING_A_PROPERTY_OF_SUPER_IN_THE_CONSTRUCTOR_OF_A_DERIVED_CLASS,
             );
         }
         if container.parent().unwrap().kind() == Kind::ObjectLiteralExpression {
@@ -2561,7 +2562,7 @@ impl Checker {
         if get_class_extends_heritage_element(class_like_declaration).is_none() {
             self.error(
                 Some(node),
-                &diagnostics::X_super_can_only_be_referenced_in_a_derived_class,
+                &diagnostics::X_SUPER_CAN_ONLY_BE_REFERENCED_IN_A_DERIVED_CLASS,
                 &[],
             );
             return self.error_type;
@@ -2584,7 +2585,7 @@ impl Checker {
             // issue custom error message for super property access in constructor arguments (to be aligned with old compiler)
             self.error(
                 Some(node),
-                &diagnostics::X_super_cannot_be_referenced_in_constructor_arguments,
+                &diagnostics::X_SUPER_CANNOT_BE_REFERENCED_IN_CONSTRUCTOR_ARGUMENTS,
                 &[],
             );
             return self.error_type;
@@ -2606,7 +2607,7 @@ impl Checker {
                         let links = self.node_links.get(cur);
                         links.flags.set(
                             links.flags.get()
-                                | NodeCheckFlags::ContainsSuperPropertyInStaticInitializer,
+                                | NodeCheckFlags::CONTAINS_SUPER_PROPERTY_IN_STATIC_INITIALIZER,
                         );
                     }
                     current = get_enclosing_block_scope_container(cur);
@@ -2645,10 +2646,10 @@ impl Checker {
         texts[0] = expr.head.text();
         for (i, &span) in spans.iter().enumerate() {
             let t = self.check_expression(span.expression().unwrap());
-            if self.maybe_type_of_kind_considering_base_constraint(t, TypeFlags::ESSymbolLike) {
+            if self.maybe_type_of_kind_considering_base_constraint(t, TypeFlags::ES_SYMBOL_LIKE) {
                 self.error(
                     span.expression(),
-                    &diagnostics::Implicit_conversion_of_a_symbol_to_a_string_will_fail_at_runtime_Consider_wrapping_this_expression_in_String,
+                    &diagnostics::IMPLICIT_CONVERSION_OF_A_SYMBOL_TO_A_STRING_WILL_FAIL_AT_RUNTIME_CONSIDER_WRAPPING_THIS_EXPRESSION_IN_STRING,
                     &[],
                 );
             }
@@ -2673,7 +2674,7 @@ impl Checker {
         }
         if self.is_const_context(node) || Self::is_template_literal_context(node) || {
             let contextual_type =
-                self.get_contextual_type(node, ContextFlags::None).unwrap_or(self.unknown_type);
+                self.get_contextual_type(node, ContextFlags::NONE).unwrap_or(self.unknown_type);
             some_type(
                 self,
                 contextual_type,
@@ -2695,18 +2696,18 @@ impl Checker {
 
     // checker.go:8180
     pub(crate) fn is_template_literal_contextual_type(&mut self, t: P<Type>) -> bool {
-        t.flags().intersects(TypeFlags::StringLiteral | TypeFlags::TemplateLiteral)
-            || t.flags().intersects(TypeFlags::InstantiableNonPrimitive) && {
+        t.flags().intersects(TypeFlags::STRING_LITERAL | TypeFlags::TEMPLATE_LITERAL)
+            || t.flags().intersects(TypeFlags::INSTANTIABLE_NON_PRIMITIVE) && {
                 let constraint = self.get_base_constraint_of_type(t).unwrap_or(self.unknown_type);
-                self.maybe_type_of_kind(constraint, TypeFlags::StringLike)
+                self.maybe_type_of_kind(constraint, TypeFlags::STRING_LIKE)
             }
     }
 
     // checker.go:8184
     pub(crate) fn check_regular_expression_literal(&mut self, node: P<Node>) -> P<Type> {
         let node_links = self.node_links.get(node);
-        if !node_links.flags.get().intersects(NodeCheckFlags::TypeChecked) {
-            node_links.flags.set(node_links.flags.get() | NodeCheckFlags::TypeChecked);
+        if !node_links.flags.get().intersects(NodeCheckFlags::TYPE_CHECKED) {
+            node_links.flags.set(node_links.flags.get() | NodeCheckFlags::TYPE_CHECKED);
             self.check_grammar_regular_expression_literal(node);
         }
         self.global_reg_exp_type
@@ -2721,7 +2722,7 @@ impl Checker {
         self.push_cached_contextual_type(node);
         let in_destructuring_pattern = is_assignment_target(node);
         let in_const_context = self.is_const_context(node);
-        let contextual_type = self.get_apparent_type_of_contextual_type(node, ContextFlags::None);
+        let contextual_type = self.get_apparent_type_of_contextual_type(node, ContextFlags::NONE);
         let in_tuple_context = is_spread_into_call_or_new(node)
             || contextual_type.is_some_and(|contextual_type| {
                 some_type(self, contextual_type, |c, t| {
@@ -2741,7 +2742,7 @@ impl Checker {
                 if self.is_array_like_type(spread_type) {
                     element_types[i] = spread_type;
                     element_infos[i] =
-                        TupleElementInfo { flags: ElementFlags::Variadic, ..Default::default() };
+                        TupleElementInfo { flags: ElementFlags::VARIADIC, ..Default::default() };
                 } else if in_destructuring_pattern {
                     // Given the following situation:
                     //    var c: {};
@@ -2761,7 +2762,7 @@ impl Checker {
                     if rest_element_type.is_none() {
                         let undefined_type = self.undefined_type;
                         rest_element_type = self.get_iterated_type_or_element_type(
-                            IterationUse::Destructuring,
+                            IterationUse::DESTRUCTURING,
                             spread_type,
                             undefined_type,
                             None,  /*errorNode*/
@@ -2773,38 +2774,38 @@ impl Checker {
                     }
                     element_types[i] = rest_element_type.unwrap();
                     element_infos[i] =
-                        TupleElementInfo { flags: ElementFlags::Rest, ..Default::default() };
+                        TupleElementInfo { flags: ElementFlags::REST, ..Default::default() };
                 } else {
                     let undefined_type = self.undefined_type;
                     element_types[i] = self.check_iterated_type_or_element_type(
-                        IterationUse::Spread,
+                        IterationUse::SPREAD,
                         spread_type,
                         undefined_type,
                         e.expression(),
                     );
                     element_infos[i] =
-                        TupleElementInfo { flags: ElementFlags::Rest, ..Default::default() };
+                        TupleElementInfo { flags: ElementFlags::REST, ..Default::default() };
                 }
             } else if self.exact_optional_property_types && is_omitted_expression(e) {
                 has_omitted_expression = true;
                 element_types[i] = self.undefined_or_missing_type;
                 element_infos[i] =
-                    TupleElementInfo { flags: ElementFlags::Optional, ..Default::default() };
+                    TupleElementInfo { flags: ElementFlags::OPTIONAL, ..Default::default() };
             } else {
                 let t = self.check_expression_for_mutable_location(e, check_mode);
                 element_types[i] =
                     self.add_optionality_ex(t, true /*isProperty*/, has_omitted_expression);
                 element_infos[i] = TupleElementInfo {
                     flags: if has_omitted_expression {
-                        ElementFlags::Optional
+                        ElementFlags::OPTIONAL
                     } else {
-                        ElementFlags::Required
+                        ElementFlags::REQUIRED
                     },
                     ..Default::default()
                 };
                 if in_tuple_context
-                    && check_mode.intersects(CheckMode::Inferential)
-                    && !check_mode.intersects(CheckMode::SkipContextSensitive)
+                    && check_mode.intersects(CheckMode::INFERENTIAL)
+                    && !check_mode.intersects(CheckMode::SKIP_CONTEXT_SENSITIVE)
                     && self.is_context_sensitive(e)
                 {
                     let inference_context = self.get_inference_context(node);
@@ -2817,7 +2818,7 @@ impl Checker {
         if in_destructuring_pattern {
             return self.create_tuple_type_ex(&element_types, &element_infos, false);
         }
-        if check_mode.intersects(CheckMode::ForceTuple) || in_const_context || in_tuple_context {
+        if check_mode.intersects(CheckMode::FORCE_TUPLE) || in_const_context || in_tuple_context {
             let readonly = in_const_context
                 && !contextual_type.is_some_and(|contextual_type| {
                     some_type(
@@ -2837,13 +2838,13 @@ impl Checker {
         let element_type: P<Type> = if !element_types.is_empty() {
             for (i, element) in element_types.iter_mut().enumerate() {
                 let e = *element;
-                if element_infos[i].flags.intersects(ElementFlags::Variadic) {
+                if element_infos[i].flags.intersects(ElementFlags::VARIADIC) {
                     let number_type = self.number_type;
                     (*element) = self
                         .get_indexed_access_type_or_undefined(
                             e,
                             number_type,
-                            AccessFlags::None,
+                            AccessFlags::NONE,
                             None,
                             AliasArg::None,
                         )
@@ -2862,7 +2863,7 @@ impl Checker {
 
     // checker.go:8275
     pub(crate) fn create_array_literal_type(&mut self, t: P<Type>) -> P<Type> {
-        if !t.object_flags().intersects(ObjectFlags::Reference) {
+        if !t.object_flags().intersects(ObjectFlags::REFERENCE) {
             return t;
         }
         let key = CachedTypeKey { kind: CachedTypeKind::ArrayLiteralType, type_id: t.id };
@@ -2872,8 +2873,8 @@ impl Checker {
         let literal_type = self.clone_type_reference(t);
         literal_type.object_flags.set(
             literal_type.object_flags_lazy()
-                | ObjectFlags::ArrayLiteral
-                | ObjectFlags::ContainsObjectOrArrayLiteral,
+                | ObjectFlags::ARRAY_LITERAL
+                | ObjectFlags::CONTAINS_OBJECT_OR_ARRAY_LITERAL,
         );
         self.cached_types.insert(key, literal_type);
         literal_type
@@ -2908,7 +2909,7 @@ impl Checker {
 
     // checker.go:8305
     pub(crate) fn check_indexed_access(&mut self, node: P<Node>, check_mode: CheckMode) -> P<Type> {
-        if node.flags().intersects(NodeFlags::OptionalChain) {
+        if node.flags().intersects(NodeFlags::OPTIONAL_CHAIN) {
             return self.check_element_access_chain(node, check_mode);
         }
         let expr_type = self.check_non_null_expression(node.expression().unwrap());
@@ -2950,7 +2951,7 @@ impl Checker {
         if is_const_enum_object_type(object_type) && !is_string_literal_like(index_expression) {
             self.error(
                 Some(index_expression),
-                &diagnostics::A_const_enum_member_can_only_be_accessed_using_a_string_literal,
+                &diagnostics::A_CONST_ENUM_MEMBER_CAN_ONLY_BE_ACCESSED_USING_A_STRING_LITERAL,
                 &[],
             );
             return self.error_type;
@@ -2961,20 +2962,20 @@ impl Checker {
         }
         let assignment_target_kind = get_assignment_target_kind(node);
         let access_flags = if assignment_target_kind == AssignmentKind::None {
-            AccessFlags::ExpressionPosition
+            AccessFlags::EXPRESSION_POSITION
         } else {
-            AccessFlags::Writing
+            AccessFlags::WRITING
                 | (if assignment_target_kind == AssignmentKind::Compound {
-                    AccessFlags::ExpressionPosition
+                    AccessFlags::EXPRESSION_POSITION
                 } else {
-                    AccessFlags::None
+                    AccessFlags::NONE
                 })
                 | (if self.is_generic_object_type(object_type)
                     && !is_this_type_parameter(object_type)
                 {
-                    AccessFlags::NoIndexSignatures
+                    AccessFlags::NO_INDEX_SIGNATURES
                 } else {
-                    AccessFlags::None
+                    AccessFlags::NONE
                 })
         };
         let indexed_access_type = self
@@ -3004,7 +3005,7 @@ impl Checker {
         let e = skip_parentheses(expr);
         if is_identifier(e) {
             let symbol = self.get_resolved_symbol(e);
-            if symbol.flags().intersects(SymbolFlags::Variable) {
+            if symbol.flags().intersects(SymbolFlags::VARIABLE) {
                 let mut child = expr;
                 let mut node = expr.parent();
                 while let Some(n) = node {
@@ -3058,7 +3059,7 @@ impl Checker {
         t: P<Type>,
         access_node: P<Node>,
     ) -> P<Type> {
-        if !t.flags().intersects(TypeFlags::IndexedAccess) {
+        if !t.flags().intersects(TypeFlags::INDEXED_ACCESS) {
             return t;
         }
         // Check if the index type is assignable to 'keyof T' for the object type.
@@ -3067,20 +3068,20 @@ impl Checker {
         let number_type = self.number_type;
         let has_number_index_info = self.get_index_info_of_type(object_type, number_type).is_some();
         if every_type(self, index_type, |c, t| {
-            let object_index_type = c.get_index_type_ex(object_type, IndexFlags::None);
+            let object_index_type = c.get_index_type_ex(object_type, IndexFlags::NONE);
             c.is_type_assignable_to(t, object_index_type)
                 || has_number_index_info && c.is_applicable_index_type(t, number_type)
         }) {
             if access_node.kind() == Kind::ElementAccessExpression
                 && is_assignment_target(access_node)
-                && object_type.object_flags().intersects(ObjectFlags::Mapped)
+                && object_type.object_flags().intersects(ObjectFlags::MAPPED)
                 && get_mapped_type_modifiers(object_type)
-                    .intersects(MappedTypeModifiers::IncludeReadonly)
+                    .intersects(MappedTypeModifiers::INCLUDE_READONLY)
             {
                 let type_string = self.type_to_string(object_type, None);
                 self.error(
                     Some(access_node),
-                    &diagnostics::Index_signature_in_type_0_only_permits_reading,
+                    &diagnostics::INDEX_SIGNATURE_IN_TYPE_0_ONLY_PERMITS_READING,
                     &[&type_string],
                 );
             }
@@ -3088,13 +3089,13 @@ impl Checker {
         }
         if self.is_generic_object_type(object_type) {
             let property_name = Self::get_property_name_from_index(index_type, Some(access_node));
-            if property_name != InternalSymbolNameMissing {
+            if property_name != INTERNAL_SYMBOL_NAME_MISSING {
                 let property_symbol = self.get_constituent_property(object_type, &property_name);
                 if let Some(property_symbol) = property_symbol {
                     if get_declaration_modifier_flags_from_symbol(property_symbol)
-                        .intersects(ModifierFlags::NonPublicAccessibilityModifier)
+                        .intersects(ModifierFlags::NON_PUBLIC_ACCESSIBILITY_MODIFIER)
                     {
-                        self.error(Some(access_node), &diagnostics::Private_or_protected_member_0_cannot_be_accessed_on_a_type_parameter, &[&property_name]);
+                        self.error(Some(access_node), &diagnostics::PRIVATE_OR_PROTECTED_MEMBER_0_CANNOT_BE_ACCESSED_ON_A_TYPE_PARAMETER, &[&property_name]);
                         return self.error_type;
                     }
                 }
@@ -3104,7 +3105,7 @@ impl Checker {
         let object_string = self.type_to_string(object_type, None);
         self.error(
             Some(access_node),
-            &diagnostics::Type_0_cannot_be_used_to_index_type_1,
+            &diagnostics::TYPE_0_CANNOT_BE_USED_TO_INDEX_TYPE_1,
             &[&index_string, &object_string],
         );
         self.error_type
@@ -3146,7 +3147,7 @@ impl Checker {
         {
             self.check_external_emit_helpers(
                 node,
-                ExternalEmitHelpers::RewriteRelativeImportExtension,
+                ExternalEmitHelpers::REWRITE_RELATIVE_IMPORT_EXTENSION,
             );
         }
         let specifier_type = self.check_expression_cached(specifier);
@@ -3159,13 +3160,13 @@ impl Checker {
             self.check_expression_cached(arg);
         }
         let string_type = self.string_type;
-        if specifier_type.flags().intersects(TypeFlags::Nullable)
+        if specifier_type.flags().intersects(TypeFlags::NULLABLE)
             || !self.is_type_assignable_to(specifier_type, string_type)
         {
             let type_string = self.type_to_string(specifier_type, None);
             self.error(
                 Some(specifier),
-                &diagnostics::Dynamic_import_s_specifier_must_be_of_type_string_but_here_has_type_0,
+                &diagnostics::DYNAMIC_IMPORT_S_SPECIFIER_MUST_BE_OF_TYPE_STRING_BUT_HERE_HAS_TYPE_0,
                 &[&type_string],
             );
         }
@@ -3173,7 +3174,7 @@ impl Checker {
         if let Some(options_type) = options_type {
             let import_call_options_type = self.get_global_import_call_options_type_checked();
             if import_call_options_type != self.empty_object_type {
-                let target = self.get_nullable_type(import_call_options_type, TypeFlags::Undefined);
+                let target = self.get_nullable_type(import_call_options_type, TypeFlags::UNDEFINED);
                 self.check_type_assignable_to(options_type, target, Some(args[1]), None);
             }
             if is_object_literal_expression(args[1]) {
@@ -3191,7 +3192,7 @@ impl Checker {
                         },
                     )
                 {
-                    self.error(prop.name(), &diagnostics::Import_assertions_have_been_replaced_by_import_attributes_Use_with_instead_of_assert, &[]);
+                    self.error(prop.name(), &diagnostics::IMPORT_ASSERTIONS_HAVE_BEEN_REPLACED_BY_IMPORT_ATTRIBUTES_USE_WITH_INSTEAD_OF_ASSERT, &[]);
                 }
             }
             import_attributes_type = self.get_type_of_property_of_type(options_type, "with");
@@ -3252,7 +3253,7 @@ impl Checker {
         {
             self.check_external_emit_helpers(
                 node,
-                ExternalEmitHelpers::RewriteRelativeImportExtension,
+                ExternalEmitHelpers::REWRITE_RELATIVE_IMPORT_EXTENSION,
             );
         }
         self.check_grammar_type_arguments(node, node.type_argument_list());
@@ -3276,7 +3277,7 @@ impl Checker {
                 {
                     // When resolved signature is a call signature (and not a construct signature) the result type is any
                     if self.no_implicit_any {
-                        self.error(Some(node), &diagnostics::X_new_expression_whose_target_lacks_a_construct_signature_implicitly_has_an_any_type, &[]);
+                        self.error(Some(node), &diagnostics::X_NEW_EXPRESSION_WHOSE_TARGET_LACKS_A_CONSTRUCT_SIGNATURE_IMPLICITLY_HAS_AN_ANY_TYPE, &[]);
                     }
                     return self.any_type;
                 }
@@ -3288,7 +3289,7 @@ impl Checker {
         let return_type = self.get_return_type_of_signature(signature);
         // Treat any call to the global 'Symbol' function that is part of a const variable or readonly property
         // as a fresh unique symbol literal type.
-        if return_type.flags().intersects(TypeFlags::ESSymbolLike)
+        if return_type.flags().intersects(TypeFlags::ES_SYMBOL_LIKE)
             && self.is_symbol_or_symbol_for_call(node)
         {
             return self.get_es_symbol_like_type_for_node(
@@ -3298,16 +3299,16 @@ impl Checker {
         if is_call_expression(node)
             && node.question_dot_token().is_none()
             && is_expression_statement(node.parent().unwrap())
-            && return_type.flags().intersects(TypeFlags::Void)
+            && return_type.flags().intersects(TypeFlags::VOID)
             && self.get_type_predicate_of_signature(signature).is_some()
         {
             let expression = node.expression().unwrap();
             if !is_dotted_name(expression) {
-                self.error(Some(expression), &diagnostics::Assertions_require_the_call_target_to_be_an_identifier_or_qualified_name, &[]);
+                self.error(Some(expression), &diagnostics::ASSERTIONS_REQUIRE_THE_CALL_TARGET_TO_BE_AN_IDENTIFIER_OR_QUALIFIED_NAME, &[]);
             } else if self.get_effects_signature(node).is_none() {
                 let diagnostic = self.error(
                     Some(expression),
-                    &diagnostics::Assertions_require_every_name_in_the_call_target_to_be_declared_with_an_explicit_type_annotation,
+                    &diagnostics::ASSERTIONS_REQUIRE_EVERY_NAME_IN_THE_CALL_TARGET_TO_BE_DECLARED_WITH_AN_EXPLICIT_TYPE_ANNOTATION,
                     &[],
                 );
                 self.get_type_of_dotted_name(expression, Some(diagnostic));
@@ -3318,7 +3319,7 @@ impl Checker {
 
     // checker.go:8538
     pub(crate) fn check_deprecated_signature(&mut self, sig: P<Signature>, node: P<Node>) {
-        if sig.flags().intersects(SignatureFlags::IsSignatureCandidateForOverloadFailure) {
+        if sig.flags().intersects(SignatureFlags::IS_SIGNATURE_CANDIDATE_FOR_OVERLOAD_FAILURE) {
             return;
         }
         if let Some(declaration) = sig.declaration() {
@@ -3346,9 +3347,9 @@ impl Checker {
         signature_string: &str,
     ) -> P<Diagnostic> {
         let message: &'static Message = if !deprecated_entity.is_empty() {
-            &diagnostics::The_signature_0_of_1_is_deprecated
+            &diagnostics::THE_SIGNATURE_0_OF_1_IS_DEPRECATED
         } else {
-            &diagnostics::X_0_is_deprecated
+            &diagnostics::X_0_IS_DEPRECATED
         };
         let diagnostic = new_diagnostic_for_node(
             Some(location),
@@ -3378,7 +3379,7 @@ impl Checker {
             == self.resolve_name(
                 Some(left),
                 "Symbol",
-                SymbolFlags::Value,
+                SymbolFlags::VALUE,
                 None,  /*nameNotFoundMessage*/
                 false, /*isUse*/
                 false,
@@ -3511,7 +3512,7 @@ impl Checker {
                         &base_constructors,
                         candidates_out_array,
                         check_mode,
-                        SignatureFlags::None,
+                        SignatureFlags::NONE,
                         None,
                     );
                 }
@@ -3526,15 +3527,15 @@ impl Checker {
         if is_call_chain(node) {
             let non_optional_type = self.get_optional_expression_type(func_type, expression);
             call_chain_flags = if non_optional_type == func_type {
-                SignatureFlags::None
+                SignatureFlags::NONE
             } else if is_outermost_optional_chain(node) {
-                SignatureFlags::IsOuterCallChain
+                SignatureFlags::IS_OUTER_CALL_CHAIN
             } else {
-                SignatureFlags::IsInnerCallChain
+                SignatureFlags::IS_INNER_CALL_CHAIN
             };
             func_type = non_optional_type;
         } else {
-            call_chain_flags = SignatureFlags::None;
+            call_chain_flags = SignatureFlags::NONE;
         }
         func_type = self.check_non_null_type_with_reporter(
             func_type,
@@ -3570,7 +3571,7 @@ impl Checker {
             if !self.is_error_type(func_type) && node.type_argument_list().is_some() {
                 self.error(
                     Some(node),
-                    &diagnostics::Untyped_function_calls_may_not_accept_type_arguments,
+                    &diagnostics::UNTYPED_FUNCTION_CALLS_MAY_NOT_ACCEPT_TYPE_ARGUMENTS,
                     &[],
                 );
             }
@@ -3584,7 +3585,7 @@ impl Checker {
                 let type_string = self.type_to_string(func_type, None);
                 self.error(
                     Some(node),
-                    &diagnostics::Value_of_type_0_is_not_callable_Did_you_mean_to_include_new,
+                    &diagnostics::VALUE_OF_TYPE_0_IS_NOT_CALLABLE_DID_YOU_MEAN_TO_INCLUDE_NEW,
                     &[&type_string],
                 );
             } else {
@@ -3603,7 +3604,7 @@ impl Checker {
                     if stringutil::is_line_break(u32::from(text.as_bytes()[(pos - 1) as usize])) {
                         related_information = Some(create_diagnostic_for_node(
                             Some(expression),
-                            &diagnostics::Are_you_missing_a_semicolon,
+                            &diagnostics::ARE_YOU_MISSING_A_SEMICOLON,
                             &[],
                         ));
                     }
@@ -3629,7 +3630,7 @@ impl Checker {
         // use the resolvingSignature singleton to indicate that we deferred processing. This result will be
         // propagated out and eventually turned into silentNeverType (a type that is assignable to anything and
         // from which we never make inferences).
-        if check_mode.intersects(CheckMode::SkipGenericFunctions)
+        if check_mode.intersects(CheckMode::SKIP_GENERIC_FUNCTIONS)
             && node.type_arguments().is_empty()
             && call_signatures.iter().any(|&sig| self.is_generic_function_returning_function(sig))
         {

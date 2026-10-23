@@ -67,7 +67,7 @@ impl BuildInfoRoot {
 }
 
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
-pub struct buildInfoFileInfoNoSignature {
+pub struct BuildInfoFileInfoNoSignature {
     pub version: String,
     pub no_signature: bool,
     pub affects_global_scope: bool,
@@ -78,7 +78,7 @@ pub struct buildInfoFileInfoNoSignature {
 //		 - undefined if FileInfo.version === FileInfo.signature
 //		 - string actual signature
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
-pub struct buildInfoFileInfoWithSignature {
+pub struct BuildInfoFileInfoWithSignature {
     pub version: String,
     pub signature: String,
     pub affects_global_scope: bool,
@@ -88,14 +88,14 @@ pub struct buildInfoFileInfoWithSignature {
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct BuildInfoFileInfo {
     signature: String,
-    no_signature: Option<buildInfoFileInfoNoSignature>,
-    file_info: Option<buildInfoFileInfoWithSignature>,
+    no_signature: Option<BuildInfoFileInfoNoSignature>,
+    file_info: Option<BuildInfoFileInfoWithSignature>,
 }
 
 // buildInfo.go:98
 pub fn new_build_info_file_info(file_info: &FileInfo) -> BuildInfoFileInfo {
     if file_info.version == file_info.signature {
-        if !file_info.affects_global_scope && file_info.implied_node_format == ModuleKind::CommonJS
+        if !file_info.affects_global_scope && file_info.implied_node_format == ModuleKind::COMMON_JS
         {
             return BuildInfoFileInfo {
                 signature: file_info.signature.clone(),
@@ -104,7 +104,7 @@ pub fn new_build_info_file_info(file_info: &FileInfo) -> BuildInfoFileInfo {
         }
     } else if file_info.signature.is_empty() {
         return BuildInfoFileInfo {
-            no_signature: Some(buildInfoFileInfoNoSignature {
+            no_signature: Some(BuildInfoFileInfoNoSignature {
                 version: file_info.version.clone(),
                 no_signature: true,
                 affects_global_scope: file_info.affects_global_scope,
@@ -114,7 +114,7 @@ pub fn new_build_info_file_info(file_info: &FileInfo) -> BuildInfoFileInfo {
         };
     }
     BuildInfoFileInfo {
-        file_info: Some(buildInfoFileInfoWithSignature {
+        file_info: Some(BuildInfoFileInfoWithSignature {
             version: file_info.version.clone(),
             signature: if file_info.signature == file_info.version {
                 String::new()
@@ -136,7 +136,7 @@ impl BuildInfoFileInfo {
                 version: self.signature.clone(),
                 signature: self.signature.clone(),
                 affects_global_scope: false,
-                implied_node_format: ModuleKind::CommonJS,
+                implied_node_format: ModuleKind::COMMON_JS,
             };
         }
         if let Some(no_signature) = &self.no_signature {
@@ -192,9 +192,9 @@ impl BuildInfoFileInfo {
         if let Value::String(v_signature) = data {
             return Ok(BuildInfoFileInfo { signature: v_signature.clone(), ..Default::default() });
         }
-        let no_signature = (|| -> Result<buildInfoFileInfoNoSignature, String> {
+        let no_signature = (|| -> Result<BuildInfoFileInfoNoSignature, String> {
             let o = as_object(data)?;
-            Ok(buildInfoFileInfoNoSignature {
+            Ok(BuildInfoFileInfoNoSignature {
                 version: get_string(o, "version")?,
                 no_signature: get_bool(o, "noSignature")?,
                 affects_global_scope: get_bool(o, "affectsGlobalScope")?,
@@ -206,9 +206,9 @@ impl BuildInfoFileInfo {
                 Ok(BuildInfoFileInfo { no_signature: Some(no_signature), ..Default::default() })
             }
             _ => {
-                let file_info = (|| -> Result<buildInfoFileInfoWithSignature, String> {
+                let file_info = (|| -> Result<BuildInfoFileInfoWithSignature, String> {
                     let o = as_object(data)?;
-                    Ok(buildInfoFileInfoWithSignature {
+                    Ok(BuildInfoFileInfoWithSignature {
                         version: get_string(o, "version")?,
                         signature: get_string(o, "signature")?,
                         affects_global_scope: get_bool(o, "affectsGlobalScope")?,
@@ -477,10 +477,10 @@ pub struct BuildInfoFilePendingEmit {
 impl BuildInfoFilePendingEmit {
     // buildInfo.go:304
     pub fn marshal_json(&self) -> Value {
-        if self.emit_kind == FileEmitKind::None {
+        if self.emit_kind == FileEmitKind::NONE {
             return num(self.file_id);
         }
-        if self.emit_kind == FileEmitKind::Dts {
+        if self.emit_kind == FileEmitKind::DTS {
             return Value::Array(vec![num(self.file_id)]);
         }
         Value::Array(vec![num(self.file_id), num(self.emit_kind.bits())])
@@ -489,14 +489,14 @@ impl BuildInfoFilePendingEmit {
     // buildInfo.go:316
     pub fn unmarshal_json(data: &Value) -> Result<BuildInfoFilePendingEmit, String> {
         if let Some(file_id) = as_uint(data) {
-            return Ok(BuildInfoFilePendingEmit { file_id, emit_kind: FileEmitKind::None });
+            return Ok(BuildInfoFilePendingEmit { file_id, emit_kind: FileEmitKind::NONE });
         }
         let int_tuple = as_uint_list(data)
             .filter(|t| !t.is_empty())
             .ok_or_else(|| format!("invalid BuildInfoFilePendingEmit: {}", show(data)))?;
         match int_tuple.len() {
             1 => {
-                Ok(BuildInfoFilePendingEmit { file_id: int_tuple[0], emit_kind: FileEmitKind::Dts })
+                Ok(BuildInfoFilePendingEmit { file_id: int_tuple[0], emit_kind: FileEmitKind::DTS })
             }
             2 => Ok(BuildInfoFilePendingEmit {
                 file_id: int_tuple[0],
@@ -957,9 +957,9 @@ impl BuildInfo {
                 &self.get_compiler_options(build_info_directory),
             );
             if resolved_options.no_emit.is_true() {
-                pending_emit &= FileEmitKind::DtsErrors;
+                pending_emit &= FileEmitKind::DTS_ERRORS;
             }
-            return pending_emit != FileEmitKind::None;
+            return pending_emit != FileEmitKind::NONE;
         }
         false
     }
@@ -1346,20 +1346,20 @@ pub(crate) fn category_from_i32(c: i32) -> Category {
 
 pub(crate) fn module_kind_from_i32(v: i32) -> ModuleKind {
     match v {
-        1 => ModuleKind::CommonJS,
+        1 => ModuleKind::COMMON_JS,
         2 => ModuleKind::AMD,
         3 => ModuleKind::UMD,
-        4 => ModuleKind::System,
+        4 => ModuleKind::SYSTEM,
         5 => ModuleKind::ES2015,
         6 => ModuleKind::ES2020,
         7 => ModuleKind::ES2022,
-        99 => ModuleKind::ESNext,
-        100 => ModuleKind::Node16,
-        101 => ModuleKind::Node18,
-        102 => ModuleKind::Node20,
-        199 => ModuleKind::NodeNext,
-        200 => ModuleKind::Preserve,
-        _ => ModuleKind::None,
+        99 => ModuleKind::ES_NEXT,
+        100 => ModuleKind::NODE16,
+        101 => ModuleKind::NODE18,
+        102 => ModuleKind::NODE20,
+        199 => ModuleKind::NODE_NEXT,
+        200 => ModuleKind::PRESERVE,
+        _ => ModuleKind::NONE,
     }
 }
 
@@ -1434,9 +1434,9 @@ mod tests {
             tsrs_canonical_check_signature: "go4-v1:0123456789abcdef0123456789abcdef".into(),
             file_names: vec!["lib.d.ts".into(), "../src/a.ts".into(), "../src/ü \"q\".ts".into()],
             file_infos: vec![
-                info("v1", "v1", false, ModuleKind::CommonJS),
-                info("v2", "", true, ModuleKind::ESNext),
-                info("v3", "s3", false, ModuleKind::ESNext),
+                info("v1", "v1", false, ModuleKind::COMMON_JS),
+                info("v2", "", true, ModuleKind::ES_NEXT),
+                info("v3", "s3", false, ModuleKind::ES_NEXT),
             ],
             file_infos_non_nil: true,
             file_ids_list: vec![vec![1, 2], vec![3], vec![1, 2, 3, 123_456_789]],
@@ -1462,7 +1462,7 @@ mod tests {
             change_file_set: vec![2, 3],
             affected_files_pending_emit: vec![BuildInfoFilePendingEmit {
                 file_id: 2,
-                emit_kind: FileEmitKind::Js,
+                emit_kind: FileEmitKind::JS,
             }],
             latest_changed_dts_file: "../out/a.d.ts".into(),
             emit_signatures: vec![BuildInfoEmitSignature {

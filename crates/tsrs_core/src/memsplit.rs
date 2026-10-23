@@ -366,7 +366,8 @@ pub fn process_memory() -> usize {
 #[cfg(target_os = "macos")]
 fn read_process_memory() -> usize {
     unsafe extern "C" {
-        static mach_task_self_: u32;
+        #[link_name = "mach_task_self_"]
+        static MACH_TASK_SELF_: u32;
         fn task_info(
             target_task: u32,
             flavor: i32,
@@ -379,7 +380,7 @@ fn read_process_memory() -> usize {
     let mut info = [0u32; 128];
     let mut count = info.len() as u32;
     // SAFETY: `info` has room for `count` naturals; the kernel writes at most that many and updates `count`.
-    let kr = unsafe { task_info(mach_task_self_, TASK_VM_INFO, info.as_mut_ptr(), &raw mut count) };
+    let kr = unsafe { task_info(MACH_TASK_SELF_, TASK_VM_INFO, info.as_mut_ptr(), &raw mut count) };
     if kr != 0 || count < 38 {
         return 0;
     }

@@ -27,16 +27,16 @@ pub fn flatten_destructuring_assignment(
     f.create_assignment_callback = create_assignment_callback;
     f.hoist_temp_variables = true;
     // Assignment mode callbacks
-    f.emit_binding_or_assignment = flattener::emit_assignment;
-    f.create_array_binding_or_assignment_pattern = flattener::create_array_assignment_pattern;
-    f.create_object_binding_or_assignment_pattern = flattener::create_object_assignment_pattern;
-    f.create_array_binding_or_assignment_element = flattener::create_array_assignment_element;
+    f.emit_binding_or_assignment = Flattener::emit_assignment;
+    f.create_array_binding_or_assignment_pattern = Flattener::create_array_assignment_pattern;
+    f.create_object_binding_or_assignment_pattern = Flattener::create_object_assignment_pattern;
+    f.create_array_binding_or_assignment_element = Flattener::create_array_assignment_element;
     f.flatten_destructuring_assignment(node, needs_value)
 }
 
 // pendingDecl tracks a pending variable declaration during binding flattening.
 #[derive(Clone)]
-struct pendingDecl {
+struct PendingDecl {
     pending_expressions: Vec<P<Node>>,
     name: P<Node>,
     value: P<Node>,
@@ -59,16 +59,16 @@ pub fn flatten_destructuring_binding(
     let mut f = new_flattener(tx, level);
     f.hoist_temp_variables = hoist_temp_variables;
     // Binding mode callbacks
-    f.emit_binding_or_assignment = flattener::emit_binding;
-    f.create_array_binding_or_assignment_pattern = flattener::create_array_binding_pattern;
-    f.create_object_binding_or_assignment_pattern = flattener::create_object_binding_pattern;
-    f.create_array_binding_or_assignment_element = flattener::create_array_binding_element;
+    f.emit_binding_or_assignment = Flattener::emit_binding;
+    f.create_array_binding_or_assignment_pattern = Flattener::create_array_binding_pattern;
+    f.create_object_binding_or_assignment_pattern = Flattener::create_object_binding_pattern;
+    f.create_array_binding_or_assignment_element = Flattener::create_array_binding_element;
     f.flatten_destructuring_binding(node, rval, skip_initializer)
 }
 
 // flattener encapsulates the state and logic for flattening destructuring patterns.
 // It is equivalent to TypeScript's FlattenContext in destructuring.ts.
-struct flattener<'a> {
+struct Flattener<'a> {
     tx: &'a Transformer,
     level: FlattenLevel,
 
@@ -76,21 +76,21 @@ struct flattener<'a> {
 
     // State
     expressions: Vec<P<Node>>,
-    declarations: Vec<pendingDecl>,
+    declarations: Vec<PendingDecl>,
     has_transformed_prior_element: bool,
     hoist_temp_variables: bool,
 
     // Mode callbacks (set by FlattenDestructuringAssignment or FlattenDestructuringBinding)
     emit_binding_or_assignment:
-        fn(&mut flattener<'a>, P<Node>, P<Node>, TextRange, Option<P<Node>>),
-    create_array_binding_or_assignment_pattern: fn(&mut flattener<'a>, Vec<P<Node>>) -> P<Node>,
-    create_object_binding_or_assignment_pattern: fn(&mut flattener<'a>, Vec<P<Node>>) -> P<Node>,
-    create_array_binding_or_assignment_element: fn(&mut flattener<'a>, P<Node>) -> P<Node>,
+        fn(&mut Flattener<'a>, P<Node>, P<Node>, TextRange, Option<P<Node>>),
+    create_array_binding_or_assignment_pattern: fn(&mut Flattener<'a>, Vec<P<Node>>) -> P<Node>,
+    create_object_binding_or_assignment_pattern: fn(&mut Flattener<'a>, Vec<P<Node>>) -> P<Node>,
+    create_array_binding_or_assignment_element: fn(&mut Flattener<'a>, P<Node>) -> P<Node>,
 }
 
 // destructuring.go:97
-fn new_flattener(tx: &Transformer, level: FlattenLevel) -> flattener<'_> {
-    flattener {
+fn new_flattener(tx: &Transformer, level: FlattenLevel) -> Flattener<'_> {
+    Flattener {
         tx,
         level,
         create_assignment_callback: None,
@@ -98,20 +98,20 @@ fn new_flattener(tx: &Transformer, level: FlattenLevel) -> flattener<'_> {
         declarations: Vec::new(),
         has_transformed_prior_element: false,
         hoist_temp_variables: false,
-        emit_binding_or_assignment: flattener::emit_assignment,
-        create_array_binding_or_assignment_pattern: flattener::create_array_assignment_pattern,
-        create_object_binding_or_assignment_pattern: flattener::create_object_assignment_pattern,
-        create_array_binding_or_assignment_element: flattener::create_array_assignment_element,
+        emit_binding_or_assignment: Flattener::emit_assignment,
+        create_array_binding_or_assignment_pattern: Flattener::create_array_assignment_pattern,
+        create_object_binding_or_assignment_pattern: Flattener::create_object_assignment_pattern,
+        create_array_binding_or_assignment_element: Flattener::create_array_assignment_element,
     }
 }
 
 #[derive(Clone, Copy)]
-struct restIdElemPair {
+struct RestIdElemPair {
     id: P<Node>,
     element: P<Node>,
 }
 
-impl flattener<'_> {
+impl Flattener<'_> {
     fn factory(&self) -> &'static printer::NodeFactory {
         self.tx.factory()
     }
@@ -202,7 +202,7 @@ impl flattener<'_> {
             expressions.push(value);
             value = self.factory().inline_expressions(&expressions).unwrap();
         }
-        self.declarations.push(pendingDecl {
+        self.declarations.push(PendingDecl {
             pending_expressions: Vec::new(),
             name: target,
             value,
@@ -269,15 +269,15 @@ impl flattener<'_> {
         if ast::is_computed_property_name(property_name) {
             let visited = self.visit_node(property_name.expression()).unwrap();
             let argument_expression = self.ensure_identifier(visited, false, property_name.loc());
-            f.new_element_access_expression(value, None, argument_expression, NodeFlags::None)
+            f.new_element_access_expression(value, None, argument_expression, NodeFlags::NONE)
         } else if ast::is_string_or_numeric_literal_like(property_name)
             || ast::is_big_int_literal(property_name)
         {
             let argument_expression = property_name.clone_node(f);
-            f.new_element_access_expression(value, None, argument_expression, NodeFlags::None)
+            f.new_element_access_expression(value, None, argument_expression, NodeFlags::NONE)
         } else {
             let name = f.new_identifier(property_name.text());
-            f.new_property_access_expression(value, None, name, NodeFlags::None)
+            f.new_property_access_expression(value, None, name, NodeFlags::NONE)
         }
     }
 
@@ -498,15 +498,15 @@ impl flattener<'_> {
                     try_get_property_name_of_binding_or_assignment_element(element).unwrap();
                 if self.level >= FlattenLevel::ObjectRest
                     && !element.subtree_facts().intersects(
-                        SubtreeFacts::ContainsRestOrSpread
-                            | SubtreeFacts::ContainsObjectRestOrSpread,
+                        SubtreeFacts::CONTAINS_REST_OR_SPREAD
+                            | SubtreeFacts::CONTAINS_OBJECT_REST_OR_SPREAD,
                     )
                     && !ast::get_target_of_binding_or_assignment_element(element)
                         .unwrap()
                         .subtree_facts()
                         .intersects(
-                            SubtreeFacts::ContainsRestOrSpread
-                                | SubtreeFacts::ContainsObjectRestOrSpread,
+                            SubtreeFacts::CONTAINS_REST_OR_SPREAD
+                                | SubtreeFacts::CONTAINS_OBJECT_REST_OR_SPREAD,
                         )
                     && !ast::is_computed_property_name(property_name)
                 {
@@ -595,10 +595,10 @@ impl flattener<'_> {
             value = self.ensure_identifier(value, reuse_identifier_expressions, location);
         }
         let mut binding_elements: Vec<P<Node>> = Vec::new();
-        let mut rest_containing_elements: Vec<restIdElemPair> = Vec::new();
+        let mut rest_containing_elements: Vec<RestIdElemPair> = Vec::new();
         for (i, &element) in elements.iter().enumerate() {
             if self.level >= FlattenLevel::ObjectRest {
-                if element.subtree_facts().intersects(SubtreeFacts::ContainsObjectRestOrSpread)
+                if element.subtree_facts().intersects(SubtreeFacts::CONTAINS_OBJECT_REST_OR_SPREAD)
                     || self.has_transformed_prior_element
                         && !is_simple_binding_or_assignment_element(element)
                 {
@@ -607,7 +607,7 @@ impl flattener<'_> {
                     if self.hoist_temp_variables {
                         self.tx.emit_context().add_variable_declaration(temp);
                     }
-                    rest_containing_elements.push(restIdElemPair { id: temp, element });
+                    rest_containing_elements.push(RestIdElemPair { id: temp, element });
                     let e = (self.create_array_binding_or_assignment_element)(self, temp);
                     binding_elements.push(e);
                 } else {
@@ -619,8 +619,8 @@ impl flattener<'_> {
                     let rhs_value = f.new_element_access_expression(
                         value,
                         None,
-                        f.new_numeric_literal(alloc_str(&i.to_string()), TokenFlags::None),
-                        NodeFlags::None,
+                        f.new_numeric_literal(alloc_str(&i.to_string()), TokenFlags::NONE),
+                        NodeFlags::NONE,
                     );
                     self.flatten_binding_or_assignment_element(
                         element,

@@ -31,19 +31,19 @@ pub const SIGNATURE_HELP_RETRIGGER_CHARACTERS: [&str; 1] = [")"];
 
 // signaturehelp.go:29
 #[derive(Clone, Copy)]
-pub(crate) struct callInvocation {
+pub(crate) struct CallInvocation {
     pub(crate) node: P<Node>,
 }
 
 // signaturehelp.go:33
 #[derive(Clone, Copy)]
-pub(crate) struct typeArgsInvocation {
+pub(crate) struct TypeArgsInvocation {
     pub(crate) called: P<Node>,
 }
 
 // signaturehelp.go:37
 #[derive(Clone, Copy)]
-pub(crate) struct contextualInvocation {
+pub(crate) struct ContextualInvocation {
     pub(crate) signature: P<Signature>,
     pub(crate) node: P<Node>, // Just for enclosingDeclaration for printing types
     pub(crate) symbol: P<Symbol>,
@@ -51,10 +51,10 @@ pub(crate) struct contextualInvocation {
 
 // signaturehelp.go:43
 #[derive(Clone, Copy, Default)]
-pub(crate) struct invocation {
-    pub(crate) call_invocation: Option<callInvocation>,
-    pub(crate) type_args_invocation: Option<typeArgsInvocation>,
-    pub(crate) contextual_invocation: Option<contextualInvocation>,
+pub(crate) struct Invocation {
+    pub(crate) call_invocation: Option<CallInvocation>,
+    pub(crate) type_args_invocation: Option<TypeArgsInvocation>,
+    pub(crate) contextual_invocation: Option<ContextualInvocation>,
 }
 
 impl LanguageService {
@@ -70,7 +70,7 @@ impl LanguageService {
         let positions = self.converters.from_lsp_position_for_source_file(
             source_file,
             position,
-            Feature::SignatureHelp,
+            Feature::SIGNATURE_HELP,
         );
         if let Some(result) = positions.into_iter().find_map(|projection| {
             if !projection.fidelity.is_single_segment() {
@@ -111,7 +111,7 @@ impl LanguageService {
         let starting_token = astnav::find_preceding_token(source_file, position)?;
 
         #[derive(Clone, Copy, PartialEq, Eq)]
-        enum signatureHelpTriggerReasonKind {
+        enum SignatureHelpTriggerReasonKind {
             None,           // was undefined
             Invoked,        // was "invoked"
             CharacterTyped, // was "characterTyped"
@@ -119,37 +119,37 @@ impl LanguageService {
         }
 
         // Emulate VS Code's toTsTriggerReason.
-        let mut trigger_reason_kind = signatureHelpTriggerReasonKind::None;
+        let mut trigger_reason_kind = SignatureHelpTriggerReasonKind::None;
         if let Some(context) = context {
             trigger_reason_kind = match context.trigger_kind {
-                lsproto::SignatureHelpTriggerKind::TriggerCharacter => {
+                lsproto::SignatureHelpTriggerKind::TRIGGER_CHARACTER => {
                     if context.trigger_character.is_some() {
                         if context.is_retrigger {
-                            signatureHelpTriggerReasonKind::Retriggered
+                            SignatureHelpTriggerReasonKind::Retriggered
                         } else {
-                            signatureHelpTriggerReasonKind::CharacterTyped
+                            SignatureHelpTriggerReasonKind::CharacterTyped
                         }
                     } else {
-                        signatureHelpTriggerReasonKind::Invoked
+                        SignatureHelpTriggerReasonKind::Invoked
                     }
                 }
-                lsproto::SignatureHelpTriggerKind::ContentChange => {
+                lsproto::SignatureHelpTriggerKind::CONTENT_CHANGE => {
                     if context.is_retrigger {
-                        signatureHelpTriggerReasonKind::Retriggered
+                        SignatureHelpTriggerReasonKind::Retriggered
                     } else {
-                        signatureHelpTriggerReasonKind::CharacterTyped
+                        SignatureHelpTriggerReasonKind::CharacterTyped
                     }
                 }
-                lsproto::SignatureHelpTriggerKind::Invoked => {
-                    signatureHelpTriggerReasonKind::Invoked
+                lsproto::SignatureHelpTriggerKind::INVOKED => {
+                    SignatureHelpTriggerReasonKind::Invoked
                 }
-                _ => signatureHelpTriggerReasonKind::Invoked,
+                _ => SignatureHelpTriggerReasonKind::Invoked,
             };
         }
 
         // Only need to be careful if the user typed a character and signature help wasn't showing.
         let only_use_syntactic_owners =
-            trigger_reason_kind == signatureHelpTriggerReasonKind::CharacterTyped;
+            trigger_reason_kind == SignatureHelpTriggerReasonKind::CharacterTyped;
 
         // Bail out quickly in the middle of a string or comment, don't provide signature help unless the user explicitly requested it.
         if only_use_syntactic_owners
@@ -159,7 +159,7 @@ impl LanguageService {
             return None;
         }
 
-        let is_manually_invoked = trigger_reason_kind == signatureHelpTriggerReasonKind::Invoked;
+        let is_manually_invoked = trigger_reason_kind == SignatureHelpTriggerReasonKind::Invoked;
         let argument_info = get_containing_argument_info(
             starting_token,
             source_file,
@@ -225,7 +225,7 @@ impl LanguageService {
 fn create_type_help_items(
     ctx: &Context,
     symbol: P<Symbol>,
-    argument_info: &argumentListInfo,
+    argument_info: &ArgumentListInfo,
     source_file: P<SourceFile>,
     c: &mut Checker,
 ) -> Option<lsproto::SignatureHelp> {
@@ -286,7 +286,7 @@ fn get_type_help_item(
     enclosing_declaration: P<Node>,
     source_file: P<SourceFile>,
     c: &mut Checker,
-) -> signatureInformation {
+) -> SignatureInformationBuilder {
     let emit_context = printer::new_emit_context();
     let builder = checker::new_node_builder(c, emit_context);
     let mut printer = printer::new_printer(
@@ -295,7 +295,7 @@ fn get_type_help_item(
         Some(emit_context),
     );
 
-    let mut parameters: Vec<signatureHelpParameter> = Vec::with_capacity(type_parameter.len());
+    let mut parameters: Vec<SignatureHelpParameter> = Vec::with_capacity(type_parameter.len());
     parameters.extend(type_parameter.iter().map(|&type_param| {
         create_signature_help_parameter_for_type_parameter(
             type_param,
@@ -321,7 +321,7 @@ fn get_type_help_item(
         display_parts.push_str(scanner::token_to_string(Kind::GreaterThanToken));
     }
 
-    signatureInformation {
+    SignatureInformationBuilder {
         label: display_parts,
         documentation: None,
         parameters,
@@ -338,7 +338,7 @@ impl LanguageService {
     fn create_js_signature_help_items(
         &self,
         ctx: &Context,
-        argument_info: &argumentListInfo,
+        argument_info: &ArgumentListInfo,
         program: &'static Program,
         c: &mut Checker,
     ) -> Option<lsproto::SignatureHelp> {
@@ -375,7 +375,7 @@ impl LanguageService {
         ctx: &Context,
         source_file: P<SourceFile>,
         name: &str,
-        argument_info: &argumentListInfo,
+        argument_info: &ArgumentListInfo,
         c: &mut Checker,
     ) -> Option<lsproto::SignatureHelp> {
         fn visit(
@@ -384,7 +384,7 @@ impl LanguageService {
             node: P<Node>,
             source_file: P<SourceFile>,
             name: &str,
-            argument_info: &argumentListInfo,
+            argument_info: &ArgumentListInfo,
             c: &mut Checker,
             result: &mut Option<lsproto::SignatureHelp>,
         ) -> bool {
@@ -428,7 +428,7 @@ impl LanguageService {
         ctx: &Context,
         candidates: &[P<Signature>],
         resolved_signature: Option<P<Signature>>,
-        argument_info: &argumentListInfo,
+        argument_info: &ArgumentListInfo,
         source_file: P<SourceFile>,
         c: &mut Checker,
         use_full_prefix: bool,
@@ -462,13 +462,13 @@ impl LanguageService {
         // no prefix (as we already do when there is no call target symbol) rather than
         // leaking the internal name.
         if let Some(call_target_symbol) = call_target_symbol {
-            if !call_target_symbol.name().starts_with(ast::InternalSymbolNamePrefix) {
+            if !call_target_symbol.name().starts_with(ast::INTERNAL_SYMBOL_NAME_PREFIX) {
                 if use_full_prefix {
                     call_target_display_parts.push_str(&c.symbol_to_string_ex_exported(
                         call_target_symbol,
                         Some(source_file.as_node()),
-                        SymbolFlags::None,
-                        SymbolFormatFlags::UseAliasDefinedOutsideCurrentScope,
+                        SymbolFlags::NONE,
+                        SymbolFormatFlags::USE_ALIAS_DEFINED_OUTSIDE_CURRENT_SCOPE,
                     ));
                 } else {
                     call_target_display_parts
@@ -476,7 +476,7 @@ impl LanguageService {
                 }
             }
         }
-        let mut items: Vec<Vec<signatureInformation>> = Vec::with_capacity(candidates.len());
+        let mut items: Vec<Vec<SignatureInformationBuilder>> = Vec::with_capacity(candidates.len());
         items.extend(candidates.iter().map(|&candidate_signature| {
             self.get_signature_help_item(
                 candidate_signature,
@@ -508,7 +508,8 @@ impl LanguageService {
             item_seen += item.len();
         }
 
-        let flattened_signatures: Vec<signatureInformation> = items.into_iter().flatten().collect();
+        let flattened_signatures: Vec<SignatureInformationBuilder> =
+            items.into_iter().flatten().collect();
         if flattened_signatures.is_empty() {
             return None;
         }
@@ -584,7 +585,7 @@ impl LanguageService {
     // handling variadic signatures and null support appropriately.
     // signaturehelp.go:419
     fn compute_active_parameter(
-        sig: &signatureInformation,
+        sig: &SignatureInformationBuilder,
         argument_index: usize,
         supports_null: bool,
     ) -> Option<lsproto::UintegerOrNull> {
@@ -631,7 +632,7 @@ impl LanguageService {
         c: &mut Checker,
         doc_format: lsproto::MarkupKind,
         vs_capability: bool,
-    ) -> Vec<signatureInformation> {
+    ) -> Vec<SignatureInformationBuilder> {
         let emit_context = printer::new_emit_context();
         let infos = if is_type_parameter_list {
             Self::item_info_for_type_parameters(
@@ -667,7 +668,7 @@ impl LanguageService {
         // Generate documentation from the signature's declaration
         let mut documentation: Option<String> = None;
         if let Some(declaration) = candidate.declaration() {
-            let mapper = self.documentation_location_mapper(Feature::SignatureHelp);
+            let mapper = self.documentation_location_mapper(Feature::SIGNATURE_HELP);
             let doc = get_documentation_from_declaration(
                 &mapper,
                 c,
@@ -682,7 +683,7 @@ impl LanguageService {
             }
         }
 
-        let mut result: Vec<signatureInformation> = Vec::with_capacity(infos.len());
+        let mut result: Vec<SignatureInformationBuilder> = Vec::with_capacity(infos.len());
         result.extend(infos.into_iter().map(|info| {
             let mut label_dpw = new_display_parts_writer(vs_capability);
             if !call_target_symbol.is_empty() {
@@ -691,7 +692,7 @@ impl LanguageService {
             label_dpw.write_from(&info.writer);
             label_dpw.write_from(&suffix_dpw);
 
-            signatureInformation {
+            SignatureInformationBuilder {
                 label: label_dpw.string(),
                 documentation: documentation.clone(),
                 parameters: info.parameters,
@@ -755,7 +756,7 @@ impl LanguageService {
         _doc_format: lsproto::MarkupKind,
         vs_capability: bool,
         emit_context: P<printer::EmitContext>,
-    ) -> Vec<signatureHelpItemInfo> {
+    ) -> Vec<SignatureHelpItemInfo> {
         let builder = checker::new_node_builder(c, emit_context);
         let mut p = printer::new_printer(
             PrinterOptions { new_line: NewLineKind::LF, ..Default::default() },
@@ -768,7 +769,7 @@ impl LanguageService {
         } else {
             candidate_signature.type_parameters()
         };
-        let mut signature_help_type_parameters: Vec<signatureHelpParameter> =
+        let mut signature_help_type_parameters: Vec<SignatureHelpParameter> =
             Vec::with_capacity(type_parameters.len());
         signature_help_type_parameters.extend(type_parameters.iter().map(|&type_parameter| {
             create_signature_help_parameter_for_type_parameter(
@@ -791,7 +792,7 @@ impl LanguageService {
                 dpw.write_punctuation(", ");
             }
             let label = type_parameter.parameter_info.label.string.as_ref().unwrap();
-            dpw.write_classified(label, lsproto::ClassificationTypeName::TypeParameterName);
+            dpw.write_classified(label, lsproto::ClassificationTypeName::TYPE_PARAMETER_NAME);
         }
         let greater_than_token = scanner::token_to_string(Kind::GreaterThanToken);
         dpw.write_punctuation(greater_than_token);
@@ -803,7 +804,7 @@ impl LanguageService {
             dpw.write_punctuation(open_paren);
         }
 
-        let mut result: Vec<signatureHelpItemInfo> = Vec::with_capacity(lists.len());
+        let mut result: Vec<SignatureHelpItemInfo> = Vec::with_capacity(lists.len());
         for parameter_list in &lists {
             let mut param_dpw = new_display_parts_writer(vs_capability);
             param_dpw.write_from(&dpw);
@@ -815,7 +816,7 @@ impl LanguageService {
                         param,
                         Some(enclosing_declaration),
                         SIGNATURE_HELP_NODE_BUILDER_FLAGS,
-                        InternalFlags::None,
+                        InternalFlags::NONE,
                         None,
                     )
                     .unwrap();
@@ -831,7 +832,7 @@ impl LanguageService {
             let close_paren = scanner::token_to_string(Kind::CloseParenToken);
             param_dpw.write_punctuation(close_paren);
 
-            result.push(signatureHelpItemInfo {
+            result.push(SignatureHelpItemInfo {
                 is_variadic: false,
                 parameters: signature_help_type_parameters.clone(),
                 writer: param_dpw,
@@ -850,7 +851,7 @@ impl LanguageService {
         doc_format: lsproto::MarkupKind,
         vs_capability: bool,
         emit_context: P<printer::EmitContext>,
-    ) -> Vec<signatureHelpItemInfo> {
+    ) -> Vec<SignatureHelpItemInfo> {
         let builder = checker::new_node_builder(c, emit_context);
         let mut p = printer::new_printer(
             PrinterOptions { new_line: NewLineKind::LF, ..Default::default() },
@@ -858,7 +859,7 @@ impl LanguageService {
             Some(emit_context),
         );
 
-        let mut signature_help_type_parameters: Vec<signatureHelpParameter> =
+        let mut signature_help_type_parameters: Vec<SignatureHelpParameter> =
             Vec::with_capacity(candidate_signature.type_parameters().len());
         if !candidate_signature.type_parameters().is_empty() {
             signature_help_type_parameters.extend(
@@ -886,7 +887,7 @@ impl LanguageService {
                     dpw.write_punctuation(", ");
                 }
                 let label = type_parameter.parameter_info.label.string.as_ref().unwrap();
-                dpw.write_classified(label, lsproto::ClassificationTypeName::TypeParameterName);
+                dpw.write_classified(label, lsproto::ClassificationTypeName::TYPE_PARAMETER_NAME);
             }
             let greater_than_token = scanner::token_to_string(Kind::GreaterThanToken);
             dpw.write_punctuation(greater_than_token);
@@ -910,12 +911,12 @@ impl LanguageService {
             !parameter_list.is_empty()
                 && parameter_list[parameter_list.len() - 1]
                     .check_flags()
-                    .intersects(CheckFlags::RestParameter)
+                    .intersects(CheckFlags::REST_PARAMETER)
         };
 
-        let mut result: Vec<signatureHelpItemInfo> = Vec::with_capacity(lists.len());
+        let mut result: Vec<SignatureHelpItemInfo> = Vec::with_capacity(lists.len());
         for parameter_list in &lists {
-            let mut parameters: Vec<signatureHelpParameter> =
+            let mut parameters: Vec<SignatureHelpParameter> =
                 Vec::with_capacity(parameter_list.len());
             let mut param_dpw = new_display_parts_writer(vs_capability);
             param_dpw.write_from(&dpw);
@@ -927,7 +928,7 @@ impl LanguageService {
                         param,
                         Some(enclosing_declaratipn),
                         SIGNATURE_HELP_NODE_BUILDER_FLAGS,
-                        InternalFlags::None,
+                        InternalFlags::NONE,
                         None,
                     )
                     .unwrap();
@@ -952,7 +953,7 @@ impl LanguageService {
             let close_paren = scanner::token_to_string(Kind::CloseParenToken);
             param_dpw.write_punctuation(close_paren);
 
-            result.push(signatureHelpItemInfo {
+            result.push(SignatureHelpItemInfo {
                 is_variadic: is_variadic(c, parameter_list),
                 parameters,
                 writer: param_dpw,
@@ -963,9 +964,9 @@ impl LanguageService {
 }
 
 // signaturehelp.go:666
-const SIGNATURE_HELP_NODE_BUILDER_FLAGS: Flags = Flags::OmitParameterModifiers
-    .union(Flags::IgnoreErrors)
-    .union(Flags::UseAliasDefinedOutsideCurrentScope);
+const SIGNATURE_HELP_NODE_BUILDER_FLAGS: Flags = Flags::OMIT_PARAMETER_MODIFIERS
+    .union(Flags::IGNORE_ERRORS)
+    .union(Flags::USE_ALIAS_DEFINED_OUTSIDE_CURRENT_SCOPE);
 
 impl LanguageService {
     // createSignatureHelpParameterFromLabel creates a signatureHelpParameter from a pre-computed label string.
@@ -976,11 +977,11 @@ impl LanguageService {
         label: &str,
         c: &mut Checker,
         doc_format: lsproto::MarkupKind,
-    ) -> signatureHelpParameter {
-        let is_rest = parameter.check_flags().intersects(CheckFlags::RestParameter);
+    ) -> SignatureHelpParameter {
+        let is_rest = parameter.check_flags().intersects(CheckFlags::REST_PARAMETER);
         let mut documentation: Option<lsproto::StringOrMarkupContent> = None;
         if let Some(value_declaration) = parameter.value_declaration() {
-            let mapper = self.documentation_location_mapper(Feature::SignatureHelp);
+            let mapper = self.documentation_location_mapper(Feature::SIGNATURE_HELP);
             let doc = get_documentation_from_declaration(
                 &mapper,
                 c,
@@ -997,7 +998,7 @@ impl LanguageService {
                 });
             }
         }
-        signatureHelpParameter {
+        SignatureHelpParameter {
             parameter_info: lsproto::ParameterInformation {
                 label: lsproto::StringOrTuple {
                     string: Some(label.to_string()),
@@ -1018,19 +1019,19 @@ fn create_signature_help_parameter_for_type_parameter(
     builder: P<checker::NodeBuilder>,
     c: &mut Checker,
     p: &mut Printer,
-) -> signatureHelpParameter {
+) -> SignatureHelpParameter {
     let node = builder
         .type_parameter_to_declaration(
             c,
             t,
             Some(enclosing_declaration),
             SIGNATURE_HELP_NODE_BUILDER_FLAGS,
-            InternalFlags::None,
+            InternalFlags::NONE,
             None,
         )
         .unwrap();
     let display = p.emit(node, Some(source_file));
-    signatureHelpParameter {
+    SignatureHelpParameter {
         parameter_info: lsproto::ParameterInformation {
             label: lsproto::StringOrTuple { string: Some(display), ..Default::default() },
             ..Default::default()
@@ -1043,7 +1044,7 @@ fn create_signature_help_parameter_for_type_parameter(
 // can have a label, like a function-name, a doc-comment, and
 // a set of parameters.
 // signaturehelp.go:713
-struct signatureInformation {
+struct SignatureInformationBuilder {
     // The Label of this signature. Will be shown in
     // the UI.
     label: String,
@@ -1051,7 +1052,7 @@ struct signatureInformation {
     // in the UI but can be omitted.
     documentation: Option<String>,
     // The Parameters of this signature.
-    parameters: Vec<signatureHelpParameter>,
+    parameters: Vec<SignatureHelpParameter>,
     // Needed only here, not in lsp
     is_variadic: bool,
     // Classified text runs for VS colorized label
@@ -1059,21 +1060,21 @@ struct signatureInformation {
 }
 
 // signaturehelp.go:728
-struct signatureHelpItemInfo {
+struct SignatureHelpItemInfo {
     is_variadic: bool,
-    parameters: Vec<signatureHelpParameter>,
+    parameters: Vec<SignatureHelpParameter>,
     writer: DisplayPartsWriter,
 }
 
 // signaturehelp.go:734 (Go's isOptional field is never read)
 #[derive(Clone)]
-struct signatureHelpParameter {
+struct SignatureHelpParameter {
     parameter_info: lsproto::ParameterInformation,
     is_rest: bool,
 }
 
 // signaturehelp.go:740
-fn get_enclosing_declaration_from_invocation(invocation: &invocation) -> P<Node> {
+fn get_enclosing_declaration_from_invocation(invocation: &Invocation) -> P<Node> {
     if let Some(call_invocation) = invocation.call_invocation {
         call_invocation.node
     } else if let Some(type_args_invocation) = invocation.type_args_invocation {
@@ -1084,7 +1085,7 @@ fn get_enclosing_declaration_from_invocation(invocation: &invocation) -> P<Node>
 }
 
 // signaturehelp.go:750
-fn get_expression_from_invocation(argument_info: &argumentListInfo) -> P<Node> {
+fn get_expression_from_invocation(argument_info: &ArgumentListInfo) -> P<Node> {
     if let Some(call_invocation) = argument_info.invocation.call_invocation {
         return ast::get_invoked_expression(call_invocation.node);
     }
@@ -1092,20 +1093,20 @@ fn get_expression_from_invocation(argument_info: &argumentListInfo) -> P<Node> {
 }
 
 // signaturehelp.go:757
-struct candidateInfo {
+struct CandidateInfo {
     candidates: Vec<P<Signature>>,
     resolved_signature: Option<P<Signature>>,
 }
 
 // signaturehelp.go:762
 struct CandidateOrTypeInfo {
-    candidate_info: Option<candidateInfo>,
+    candidate_info: Option<CandidateInfo>,
     type_info: Option<P<Symbol>>,
 }
 
 // signaturehelp.go:767
 fn get_candidate_or_type_info(
-    info: &argumentListInfo,
+    info: &ArgumentListInfo,
     c: &mut Checker,
     source_file: P<SourceFile>,
     starting_token: P<Node>,
@@ -1128,7 +1129,7 @@ fn get_candidate_or_type_info(
         }
 
         return Some(CandidateOrTypeInfo {
-            candidate_info: Some(candidateInfo { candidates, resolved_signature }),
+            candidate_info: Some(CandidateInfo { candidates, resolved_signature }),
             type_info: None,
         });
     }
@@ -1149,7 +1150,7 @@ fn get_candidate_or_type_info(
         if !candidates.is_empty() {
             let resolved_signature = Some(candidates[0]);
             return Some(CandidateOrTypeInfo {
-                candidate_info: Some(candidateInfo { candidates, resolved_signature }),
+                candidate_info: Some(CandidateInfo { candidates, resolved_signature }),
                 type_info: None,
             });
         }
@@ -1164,7 +1165,7 @@ fn get_candidate_or_type_info(
 
     if let Some(contextual_invocation) = info.invocation.contextual_invocation {
         return Some(CandidateOrTypeInfo {
-            candidate_info: Some(candidateInfo {
+            candidate_info: Some(CandidateInfo {
                 candidates: vec![contextual_invocation.signature],
                 resolved_signature: Some(contextual_invocation.signature),
             }),
@@ -1224,8 +1225,8 @@ fn get_containing_argument_info(
     checker: &mut Checker,
     is_manually_invoked: bool,
     position: u32,
-) -> Option<argumentListInfo> {
-    let mut first_argument_info: Option<argumentListInfo> = None;
+) -> Option<ArgumentListInfo> {
+    let mut first_argument_info: Option<ArgumentListInfo> = None;
     let mut n = node;
     while !ast::is_source_file(n) && (is_manually_invoked || !ast::is_block(n)) {
         // If the node is not a subspan of its parent, this is a big problem.
@@ -1285,7 +1286,7 @@ fn get_immediately_containing_argument_or_contextual_parameter_info(
     position: u32,
     source_file: P<SourceFile>,
     checker: &mut Checker,
-) -> Option<argumentListInfo> {
+) -> Option<ArgumentListInfo> {
     let result = try_get_parameter_info(node, source_file, checker);
     if result.is_none() {
         return get_immediately_containing_argument_info(node, position, source_file, checker);
@@ -1295,9 +1296,9 @@ fn get_immediately_containing_argument_or_contextual_parameter_info(
 
 // signaturehelp.go:912
 #[derive(Clone, Copy)]
-pub(crate) struct argumentListInfo {
+pub(crate) struct ArgumentListInfo {
     pub(crate) is_type_parameter_list: bool,
-    pub(crate) invocation: invocation,
+    pub(crate) invocation: Invocation,
     pub(crate) arguments_span: TextRange,
     pub(crate) argument_index: usize,
     // argumentCount is the *apparent* number of arguments.
@@ -1312,7 +1313,7 @@ pub(crate) fn get_immediately_containing_argument_info(
     position: u32,
     source_file: P<SourceFile>,
     c: &mut Checker,
-) -> Option<argumentListInfo> {
+) -> Option<ArgumentListInfo> {
     let parent = node.parent().unwrap();
     if ast::is_call_or_new_expression(parent) {
         // There are 3 cases to handle:
@@ -1342,10 +1343,10 @@ pub(crate) fn get_immediately_containing_argument_info(
                 is_type_parameter_list = true;
             }
         }
-        return Some(argumentListInfo {
+        return Some(ArgumentListInfo {
             is_type_parameter_list,
-            invocation: invocation {
-                call_invocation: Some(callInvocation { node: parent }),
+            invocation: Invocation {
+                call_invocation: Some(CallInvocation { node: parent }),
                 ..Default::default()
             },
             arguments_span,
@@ -1417,10 +1418,10 @@ pub(crate) fn get_immediately_containing_argument_info(
                 .end()
                 .expect_source("parsed JSX attributes have source positions"),
         );
-        return Some(argumentListInfo {
+        return Some(ArgumentListInfo {
             is_type_parameter_list: false,
-            invocation: invocation {
-                call_invocation: Some(callInvocation { node: parent }),
+            invocation: Invocation {
+                call_invocation: Some(CallInvocation { node: parent }),
                 ..Default::default()
             },
             arguments_span: TextRange::new(attribute_span_start, attribute_span_end),
@@ -1432,11 +1433,11 @@ pub(crate) fn get_immediately_containing_argument_info(
     if let Some(type_arg_info) = type_arg_info {
         let called = type_arg_info.called;
         let n_type_arguments = type_arg_info.n_type_arguments;
-        let invoc = typeArgsInvocation { called };
+        let invoc = TypeArgsInvocation { called };
         let argument_range = TextRange::from_text_pos(called.loc().pos(), node.end());
-        return Some(argumentListInfo {
+        return Some(ArgumentListInfo {
             is_type_parameter_list: true,
-            invocation: invocation { type_args_invocation: Some(invoc), ..Default::default() },
+            invocation: Invocation { type_args_invocation: Some(invoc), ..Default::default() },
             arguments_span: argument_range,
             argument_index: n_type_arguments,
             argument_count: n_type_arguments + 1,
@@ -1497,7 +1498,7 @@ fn get_adjusted_node(node: P<Node>) -> Option<P<Node>> {
 }
 
 // signaturehelp.go:1067
-struct contextualSignatureLocationInfo {
+struct ContextualSignatureLocationInfo {
     contextual_type: P<Type>,
     argument_index: usize,
     argument_count: usize,
@@ -1516,7 +1517,7 @@ fn get_spread_element_count(node: P<Node>, c: &mut Checker) -> usize {
         }
 
         let first_optional_index =
-            element_flags.iter().position(|f| !f.intersects(ElementFlags::Required));
+            element_flags.iter().position(|f| !f.intersects(ElementFlags::REQUIRED));
         let Some(first_optional_index) = first_optional_index else {
             return fixed_length;
         };
@@ -1601,7 +1602,7 @@ fn get_argument_index_or_count(
 }
 
 // signaturehelp.go:1148
-struct argumentOrParameterListInfo {
+struct ArgumentOrParameterListInfo {
     list: Option<P<NodeList>>,
     argument_index: usize,
     argument_count: usize,
@@ -1613,13 +1614,13 @@ fn get_argument_or_parameter_list_info(
     node: P<Node>,
     source_file: P<SourceFile>,
     c: &mut Checker,
-) -> Option<argumentOrParameterListInfo> {
+) -> Option<ArgumentOrParameterListInfo> {
     let info = get_argument_or_parameter_list_and_index(node, source_file, c)?;
     let list = info.list;
     let argument_index = info.argument_index;
     let argument_count = get_argument_count(node, list, source_file, c);
     let arguments_span = get_applicable_span_for_arguments(list, Some(node), source_file);
-    Some(argumentOrParameterListInfo { list, argument_index, argument_count, arguments_span })
+    Some(ArgumentOrParameterListInfo { list, argument_index, argument_count, arguments_span })
 }
 
 // signaturehelp.go:1172
@@ -1675,7 +1676,7 @@ fn ensure_minimum_span_size(start: u32, end: u32) -> u32 {
 }
 
 // signaturehelp.go:1211
-struct argumentOrParameterListAndIndex {
+struct ArgumentOrParameterListAndIndex {
     list: Option<P<NodeList>>,
     argument_index: usize,
 }
@@ -1685,12 +1686,12 @@ fn get_argument_or_parameter_list_and_index(
     node: P<Node>,
     source_file: P<SourceFile>,
     c: &mut Checker,
-) -> Option<argumentOrParameterListAndIndex> {
+) -> Option<ArgumentOrParameterListAndIndex> {
     if node.kind() == Kind::LessThanToken || node.kind() == Kind::OpenParenToken {
         // Find the list that starts right *after* the < or ( token.
         // If the user has just opened a list, consider this item 0.
         let list = get_child_list_that_starts_with_opener_token(node.parent().unwrap(), node);
-        Some(argumentOrParameterListAndIndex { list, argument_index: 0 })
+        Some(ArgumentOrParameterListAndIndex { list, argument_index: 0 })
     } else {
         // findListItemInfo can return undefined if we are not in parent's argument list
         // or type argument list. This includes cases where the cursor is:
@@ -1699,7 +1700,7 @@ fn get_argument_or_parameter_list_and_index(
         //   - On the target of the call (parent.func)
         //   - On the 'new' keyword in a 'new' expression
         let list = find_containing_list(node, source_file)?;
-        Some(argumentOrParameterListAndIndex {
+        Some(ArgumentOrParameterListAndIndex {
             list: Some(list),
             // Find the index of the argument that contains the node.
             argument_index: get_argument_index(node, Some(list), source_file, c),
@@ -1726,7 +1727,7 @@ fn try_get_parameter_info(
     starting_token: P<Node>,
     source_file: P<SourceFile>,
     c: &mut Checker,
-) -> Option<argumentListInfo> {
+) -> Option<ArgumentListInfo> {
     let node = get_adjusted_node(starting_token)?;
     let info = get_contextual_signature_location_info(node, source_file, c)?;
 
@@ -1745,14 +1746,14 @@ fn try_get_parameter_info(
     }
     let signature = signatures[signatures.len() - 1];
 
-    let contextual_invocation = contextualInvocation {
+    let contextual_invocation = ContextualInvocation {
         signature,
         node: starting_token,
         symbol: choose_better_symbol(symbol),
     };
-    Some(argumentListInfo {
+    Some(ArgumentListInfo {
         is_type_parameter_list: false,
-        invocation: invocation {
+        invocation: Invocation {
             contextual_invocation: Some(contextual_invocation),
             ..Default::default()
         },
@@ -1764,7 +1765,7 @@ fn try_get_parameter_info(
 
 // signaturehelp.go:1302
 fn choose_better_symbol(s: P<Symbol>) -> P<Symbol> {
-    if s.name() == ast::InternalSymbolNameType {
+    if s.name() == ast::INTERNAL_SYMBOL_NAME_TYPE {
         if let Some(result) = s.declarations().iter().find_map(|&d| {
             if ast::is_function_type_node(d) && ast::can_have_symbol(d.parent().unwrap()) {
                 // Go returns `d.Parent.Symbol()` (nil-able) where a symbol is expected.
@@ -1784,7 +1785,7 @@ fn get_contextual_signature_location_info(
     node: P<Node>,
     source_file: P<SourceFile>,
     c: &mut Checker,
-) -> Option<contextualSignatureLocationInfo> {
+) -> Option<ContextualSignatureLocationInfo> {
     let parent = node.parent().unwrap();
     match parent.kind() {
         Kind::ParenthesizedExpression
@@ -1799,13 +1800,13 @@ fn get_contextual_signature_location_info(
             let contextual_type = if ast::is_method_declaration(parent) {
                 c.get_contextual_type_for_object_literal_element_exported(
                     parent,
-                    ContextFlags::None,
+                    ContextFlags::NONE,
                 )
             } else {
-                c.get_contextual_type_exported(parent, ContextFlags::None)
+                c.get_contextual_type_exported(parent, ContextFlags::NONE)
             };
             if let Some(contextual_type) = contextual_type {
-                return Some(contextualSignatureLocationInfo {
+                return Some(ContextualSignatureLocationInfo {
                     contextual_type,
                     argument_index,
                     argument_count,
@@ -1817,12 +1818,12 @@ fn get_contextual_signature_location_info(
         Kind::BinaryExpression => {
             let highest_binary = get_highest_binary(parent);
             let contextual_type =
-                c.get_contextual_type_exported(highest_binary, ContextFlags::None);
+                c.get_contextual_type_exported(highest_binary, ContextFlags::NONE);
             if node.kind() != Kind::OpenParenToken {
                 let argument_index = count_binary_expression_parameters(parent) - 1;
                 let argument_count = count_binary_expression_parameters(highest_binary);
                 if let Some(contextual_type) = contextual_type {
-                    return Some(contextualSignatureLocationInfo {
+                    return Some(ContextualSignatureLocationInfo {
                         contextual_type,
                         argument_index,
                         argument_count,
@@ -1902,7 +1903,7 @@ fn get_argument_list_info_for_template(
     tag_expression: P<Node>,
     argument_index: usize,
     source_file: P<SourceFile>,
-) -> argumentListInfo {
+) -> ArgumentListInfo {
     // argumentCount is either 1 or (numSpans + 1) to account for the template strings array argument.
     let template = tag_expression.as_tagged_template_expression().template;
     let mut argument_count = 1;
@@ -1912,10 +1913,10 @@ fn get_argument_list_info_for_template(
     if argument_index != 0 {
         assert!(argument_index < argument_count);
     }
-    argumentListInfo {
+    ArgumentListInfo {
         is_type_parameter_list: false,
-        invocation: invocation {
-            call_invocation: Some(callInvocation { node: tag_expression }),
+        invocation: Invocation {
+            call_invocation: Some(CallInvocation { node: tag_expression }),
             ..Default::default()
         },
         argument_index,

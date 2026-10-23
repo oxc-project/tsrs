@@ -77,7 +77,7 @@ fn decoded_tree_shape() {
     );
     let f = stmts[1].as_function_declaration();
     assert_eq!(f.name().unwrap().text(), "foo");
-    assert!(stmts[1].modifier_flags().intersects(ModifierFlags::Export));
+    assert!(stmts[1].modifier_flags().intersects(ModifierFlags::EXPORT));
     assert_eq!(f.type_parameters().unwrap().nodes().len(), 2);
     assert_eq!(f.parameters().unwrap().nodes().len(), 2);
     let import = stmts[0].as_import_declaration();

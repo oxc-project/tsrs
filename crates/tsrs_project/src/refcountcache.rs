@@ -3,11 +3,11 @@ use std::sync::{Arc, Mutex};
 
 use tsrs_core::collections::SyncMap;
 
-struct refCountCacheEntry<V> {
-    mu: Mutex<refCountCacheEntryState<V>>,
+struct RefCountCacheEntry<V> {
+    mu: Mutex<RefCountCacheEntryState<V>>,
 }
 
-struct refCountCacheEntryState<V> {
+struct RefCountCacheEntryState<V> {
     value: Option<V>,
     ref_count: usize,
 }
@@ -21,7 +21,7 @@ pub struct RefCountCacheOptions {
 
 pub struct RefCountCache<K: Hash + Eq, V, AcquireArgs> {
     pub options: RefCountCacheOptions,
-    entries: SyncMap<K, Arc<refCountCacheEntry<V>>>,
+    entries: SyncMap<K, Arc<RefCountCacheEntry<V>>>,
 
     parse: Box<dyn Fn(&K, AcquireArgs) -> V + Send + Sync>,
 
@@ -166,11 +166,11 @@ impl<K: Hash + Eq + Clone, V: Clone, AcquireArgs> RefCountCache<K, V, AcquireArg
     fn load_or_store_new_locked_entry<R>(
         &self,
         key: &K,
-        f: impl FnOnce(&mut refCountCacheEntryState<V>, bool) -> R,
+        f: impl FnOnce(&mut RefCountCacheEntryState<V>, bool) -> R,
     ) -> R {
         loop {
-            let entry = Arc::new(refCountCacheEntry {
-                mu: Mutex::new(refCountCacheEntryState { value: None, ref_count: 1 }),
+            let entry = Arc::new(RefCountCacheEntry {
+                mu: Mutex::new(RefCountCacheEntryState { value: None, ref_count: 1 }),
             });
             let mut guard = entry.mu.lock().unwrap();
             let (existing, loaded) = self.entries.load_or_store(key.clone(), Arc::clone(&entry));

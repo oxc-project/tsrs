@@ -11,7 +11,7 @@ use crate::filechange::{FileChange, FileChangeKind};
 use crate::snapshotfs::FileHandleSource;
 
 // Helper to create test overlayFS
-fn create_overlay_fs() -> overlayFS {
+fn create_overlay_fs() -> OverlayFS {
     let test_fs = vfstest::from_map(
         [
             ("/test1.ts", "// existing content"),
@@ -62,8 +62,8 @@ fn process_changes_multiple_opens_should_panic() {
     let fs = create_overlay_fs();
 
     let changes = vec![
-        open(test_uri1(), 1, "const x = 1;", lsproto::LanguageKind::TypeScript),
-        open(test_uri2(), 1, "const y = 2;", lsproto::LanguageKind::TypeScript),
+        open(test_uri1(), 1, "const x = 1;", lsproto::LanguageKind::TYPE_SCRIPT),
+        open(test_uri2(), 1, "const y = 2;", lsproto::LanguageKind::TYPE_SCRIPT),
     ];
 
     let panicked = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
@@ -118,7 +118,7 @@ fn process_changes_save_marks_overlay_as_matching_disk() {
     let fs = create_overlay_fs();
 
     // First create an overlay
-    fs.process_changes(&[open(test_uri1(), 1, "const x = 1;", lsproto::LanguageKind::TypeScript)]);
+    fs.process_changes(&[open(test_uri1(), 1, "const x = 1;", lsproto::LanguageKind::TYPE_SCRIPT)]);
     // Then save
     let (result, _) = fs.process_changes(&[change(FileChangeKind::Save, test_uri1())]);
     // We don't observe saves for snapshot changes,
@@ -174,7 +174,7 @@ fn process_changes_watch_change_on_overlay_marks_as_not_matching_disk() {
     let fs = create_overlay_fs();
 
     // First create an overlay
-    fs.process_changes(&[open(test_uri1(), 1, "const x = 1;", lsproto::LanguageKind::TypeScript)]);
+    fs.process_changes(&[open(test_uri1(), 1, "const x = 1;", lsproto::LanguageKind::TYPE_SCRIPT)]);
     assert!(!fs.get_file(&test_uri1().file_name()).unwrap().matches_disk_text());
 
     // Then save
@@ -204,7 +204,7 @@ fn process_changes_save_without_overlay_should_not_panic() {
 fn process_changes_close_and_change_without_overlay_should_not_panic() {
     let fs = create_overlay_fs();
 
-    fs.process_changes(&[open(test_uri1(), 1, "const x = 1;", lsproto::LanguageKind::TypeScript)]);
+    fs.process_changes(&[open(test_uri1(), 1, "const x = 1;", lsproto::LanguageKind::TYPE_SCRIPT)]);
     fs.process_changes(&[change(FileChangeKind::Close, test_uri1())]);
 
     let (result, _) = fs.process_changes(&[change(FileChangeKind::Close, test_uri1())]);
@@ -232,7 +232,7 @@ fn process_changes_close_and_change_without_overlay_should_not_panic() {
 #[test]
 fn process_changes_change_after_close_in_same_batch_is_dropped() {
     let fs = create_overlay_fs();
-    fs.process_changes(&[open(test_uri1(), 1, "const x = 1;", lsproto::LanguageKind::TypeScript)]);
+    fs.process_changes(&[open(test_uri1(), 1, "const x = 1;", lsproto::LanguageKind::TYPE_SCRIPT)]);
     let edit = FileChange {
         kind: FileChangeKind::Change,
         uri: test_uri1(),
@@ -261,12 +261,12 @@ fn process_changes_close_then_open_in_same_batch_marks_as_changed() {
     let fs = create_overlay_fs();
 
     // First create an overlay
-    fs.process_changes(&[open(test_uri1(), 1, "const x = 1;", lsproto::LanguageKind::TypeScript)]);
+    fs.process_changes(&[open(test_uri1(), 1, "const x = 1;", lsproto::LanguageKind::TYPE_SCRIPT)]);
 
     // Now close and reopen in the same batch (like Neovim does for file reload)
     let (result, _) = fs.process_changes(&[
         change(FileChangeKind::Close, test_uri1()),
-        open(test_uri1(), 0, "const x = 2;", lsproto::LanguageKind::TypeScript),
+        open(test_uri1(), 0, "const x = 2;", lsproto::LanguageKind::TYPE_SCRIPT),
     ]);
 
     // Should not be marked as opened since it was already open

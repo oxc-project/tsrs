@@ -33,7 +33,8 @@ use std::sync::{Arc, Condvar, Mutex};
 
 use crate::walkdir_unix::walk_dir;
 use crate::watcher::{
-    Error, dirWatch, dwKey, err_watched_directory_removed, watcher, watcherBase, watcherImpl,
+    DirWatch, DwKey, Error, PlatformWatcher, WatcherBase, WatcherImpl,
+    err_watched_directory_removed,
 };
 
 // kqueue.go:85
@@ -114,7 +115,7 @@ fn close_fd(fd: i32) {
     unsafe { libc::close(fd) };
 }
 
-const vnodeFflags: u32 = libc::NOTE_DELETE
+const VNODE_FFLAGS: u32 = libc::NOTE_DELETE
     | libc::NOTE_WRITE
     | libc::NOTE_EXTEND
     | libc::NOTE_ATTRIB
@@ -143,34 +144,34 @@ fn kevent_register(kq: i32, ev: &libc::kevent) -> Result<(), Error> {
 
 // dirEntry tracks a watched path for kqueue's fd↔path mapping.
 #[derive(Clone)]
-struct dirEntry {
+struct DirEntry {
     path: String,
     watch_path: String,
     is_dir: bool,
     state: Option<i32>, // stores the open fd
 }
 
-type entriesID = u64;
+type EntriesID = u64;
 
 #[derive(Clone)]
-struct kqueueSubscription {
+struct KqueueSubscription {
     id: u64,
-    dir_watch: Arc<dirWatch>,
+    dir_watch: Arc<DirWatch>,
     path: String,
-    entries: entriesID,
+    entries: EntriesID,
 }
 
 #[derive(Default)]
-struct kqState {
-    subs_by_path: FxHashMap<String, Vec<kqueueSubscription>>, // multimap<path, sub>
-    fd_to_entry: FxHashMap<i32, (entriesID, String)>,
-    entry_maps: FxHashMap<entriesID, FxHashMap<String, dirEntry>>,
+struct KqState {
+    subs_by_path: FxHashMap<String, Vec<KqueueSubscription>>, // multimap<path, sub>
+    fd_to_entry: FxHashMap<i32, (EntriesID, String)>,
+    entry_maps: FxHashMap<EntriesID, FxHashMap<String, DirEntry>>,
 }
 
-pub(crate) struct kqueueBackend {
-    base: watcherBase,
+pub(crate) struct KqueueBackend {
+    base: WatcherBase,
 
-    mu: Mutex<kqState>, // local lock for kqueue-specific maps
+    mu: Mutex<KqState>, // local lock for kqueue-specific maps
     kq: AtomicI32,
     // pipeFDs[0] is read in the start thread only. pipeFDs[1] is written
     // by shutdown (any thread) to wake the loop, so it lives in
@@ -183,16 +184,16 @@ pub(crate) struct kqueueBackend {
 }
 
 // kqueue.go:129 (init)
-pub(crate) fn init(mut w: watcher) -> watcher {
-    w.factory = Some(|| Arc::new(new_kqueue_backend()) as Arc<dyn watcherImpl>);
+pub(crate) fn init(mut w: PlatformWatcher) -> PlatformWatcher {
+    w.factory = Some(|| Arc::new(new_kqueue_backend()) as Arc<dyn WatcherImpl>);
     w
 }
 
 // kqueue.go:133
-fn new_kqueue_backend() -> kqueueBackend {
-    kqueueBackend {
-        base: watcherBase::default(),
-        mu: Mutex::new(kqState::default()),
+fn new_kqueue_backend() -> KqueueBackend {
+    KqueueBackend {
+        base: WatcherBase::default(),
+        mu: Mutex::new(KqState::default()),
         kq: AtomicI32::new(-1),
         pipe_read_fd: AtomicI32::new(-1),
         pipe_write_fd: AtomicI32::new(-1),
@@ -202,7 +203,7 @@ fn new_kqueue_backend() -> kqueueBackend {
     }
 }
 
-impl kqueueBackend {
+impl KqueueBackend {
     fn next_id(&self) -> u64 {
         self.next_id.fetch_add(1, Ordering::Relaxed)
     }
@@ -239,7 +240,7 @@ impl kqueueBackend {
 
         // SAFETY: zeroed kevent structs are valid.
         let mut events: Vec<libc::kevent> = vec![unsafe { std::mem::zeroed() }; 128];
-        let mut watchers_touched: Vec<Arc<dirWatch>> = Vec::new();
+        let mut watchers_touched: Vec<Arc<DirWatch>> = Vec::new();
         loop {
             // SAFETY: `events` has room for `events.len()` results.
             let n = unsafe {
@@ -352,9 +353,9 @@ impl kqueueBackend {
     fn handle_file_event(
         &self,
         fflags: u32,
-        map_id: entriesID,
+        map_id: EntriesID,
         entry_path: &str,
-        touched: &mut Vec<Arc<dirWatch>>,
+        touched: &mut Vec<Arc<DirWatch>>,
     ) {
         let mut st = self.mu.lock().unwrap();
         let subs = st.find_subscriptions_locked(entry_path);
@@ -441,7 +442,7 @@ impl kqueueBackend {
     // tryRewatchLocked checks whether a deleted path was immediately recreated
     // with the same type. If so, it opens a new fd, registers a kqueue watch,
     // and returns true. The caller should emit update instead of delete.
-    fn try_rewatch_locked(&self, st: &mut kqState, map_id: entriesID, entry: &dirEntry) -> bool {
+    fn try_rewatch_locked(&self, st: &mut KqState, map_id: EntriesID, entry: &DirEntry) -> bool {
         let Ok(md) = std::fs::symlink_metadata(&entry.watch_path) else {
             return false;
         };
@@ -461,7 +462,7 @@ impl kqueueBackend {
             fd,
             libc::EVFILT_VNODE,
             libc::EV_ADD | libc::EV_CLEAR | libc::EV_ENABLE,
-            vnodeFflags,
+            VNODE_FFLAGS,
         );
         if kevent_register(self.kq.load(Ordering::SeqCst), &ev).is_err() {
             close_fd(fd);
@@ -477,10 +478,10 @@ impl kqueueBackend {
     // watchPath corresponds to `kqueueBackend::watchDir`.
     fn watch_path_locked(
         &self,
-        st: &mut kqState,
-        w: &Arc<dirWatch>,
+        st: &mut KqState,
+        w: &Arc<DirWatch>,
         path: &str,
-        map_id: entriesID,
+        map_id: EntriesID,
     ) -> bool {
         let Some(entry) = st.entry_maps.get(&map_id).and_then(|m| m.get(path)).cloned() else {
             return false;
@@ -500,7 +501,7 @@ impl kqueueBackend {
                 fd,
                 libc::EVFILT_VNODE,
                 libc::EV_ADD | libc::EV_CLEAR | libc::EV_ENABLE,
-                vnodeFflags,
+                VNODE_FFLAGS,
             );
             if kevent_register(self.kq.load(Ordering::SeqCst), &ev).is_err() {
                 close_fd(fd);
@@ -509,7 +510,7 @@ impl kqueueBackend {
             st.set_entry_state(map_id, path, Some(fd));
             st.fd_to_entry.insert(fd, (map_id, path.to_string()));
         }
-        let sub = kqueueSubscription {
+        let sub = KqueueSubscription {
             id: self.next_id(),
             dir_watch: Arc::clone(w),
             path: path.to_string(),
@@ -523,7 +524,7 @@ impl kqueueBackend {
     // compareDir mirrors `kqueueBackend::compareDir`. Triggered when a watched
     // directory has NOTE_WRITE: list the dir, diff against the tree, emit
     // create/remove events.
-    fn compare_dir(&self, _fd: i32, path: &str, touched: &mut Vec<Arc<dirWatch>>) -> bool {
+    fn compare_dir(&self, _fd: i32, path: &str, touched: &mut Vec<Arc<DirWatch>>) -> bool {
         let mut st = self.mu.lock().unwrap();
         let subs = st.find_subscriptions_locked(path);
 
@@ -546,11 +547,11 @@ impl kqueueBackend {
         let subs = filtered_subs;
 
         let dir_start = format!("{path}/");
-        struct diskSnapshot {
+        struct DiskSnapshot {
             entries: Vec<(String, bool)>,
             current_display_paths: rustc_hash::FxHashSet<String>,
         }
-        let mut snapshots: FxHashMap<String, Arc<diskSnapshot>> = FxHashMap::default();
+        let mut snapshots: FxHashMap<String, Arc<DiskSnapshot>> = FxHashMap::default();
 
         // Each subscription has its own entries map (built in subscribe).
         // Multiple subs at the same path arise from multiple dirWatches
@@ -573,7 +574,7 @@ impl kqueueBackend {
                 };
                 let current_display_paths =
                     disk_entries.iter().map(|(name, _)| format!("{dir_start}{name}")).collect();
-                let s = Arc::new(diskSnapshot { entries: disk_entries, current_display_paths });
+                let s = Arc::new(DiskSnapshot { entries: disk_entries, current_display_paths });
                 snapshots.insert(watch_path.clone(), Arc::clone(&s));
                 s
             };
@@ -631,7 +632,7 @@ impl kqueueBackend {
                     }
                     continue;
                 }
-                let e = dirEntry {
+                let e = DirEntry {
                     path: full_path.clone(),
                     watch_path: full_watch_path.clone(),
                     is_dir: *ent_is_dir,
@@ -702,9 +703,9 @@ impl kqueueBackend {
     // The `walkDir(fullWatchPath, true, ...)` closures of compareDir.
     fn walk_new_subtree_locked(
         &self,
-        st: &mut kqState,
-        sub: &kqueueSubscription,
-        map_id: entriesID,
+        st: &mut KqState,
+        sub: &KqueueSubscription,
+        map_id: EntriesID,
         full_watch_path: &str,
     ) {
         let mut found = Vec::new();
@@ -717,7 +718,7 @@ impl kqueueBackend {
         });
         for (p, p_is_dir) in found {
             let display_path = sub.dir_watch.display_path(&p);
-            let e = dirEntry {
+            let e = DirEntry {
                 path: display_path.clone(),
                 watch_path: p,
                 is_dir: p_is_dir,
@@ -730,7 +731,7 @@ impl kqueueBackend {
     }
 }
 
-fn touch(touched: &mut Vec<Arc<dirWatch>>, w: &Arc<dirWatch>) {
+fn touch(touched: &mut Vec<Arc<DirWatch>>, w: &Arc<DirWatch>) {
     if !touched.iter().any(|t| Arc::ptr_eq(t, w)) {
         touched.push(Arc::clone(w));
     }
@@ -753,8 +754,8 @@ fn fstat(fd: i32) -> Option<(u64, u64)> {
     Some((st.st_dev as u64, st.st_ino as u64))
 }
 
-impl kqState {
-    fn set_entry_state(&mut self, map_id: entriesID, path: &str, state: Option<i32>) {
+impl KqState {
+    fn set_entry_state(&mut self, map_id: EntriesID, path: &str, state: Option<i32>) {
         if let Some(e) = self.entry_maps.get_mut(&map_id).and_then(|m| m.get_mut(path)) {
             e.state = state;
         }
@@ -765,7 +766,7 @@ impl kqState {
     // path lives strictly under root, removing the kevent registration and
     // the corresponding b.subsByPath / b.fdToEntry bookkeeping, and emits a
     // delete event for each.
-    fn close_descendant_fds_locked(&mut self, w: &Arc<dirWatch>, map_id: entriesID, root: &str) {
+    fn close_descendant_fds_locked(&mut self, w: &Arc<DirWatch>, map_id: EntriesID, root: &str) {
         let prefix = format!("{root}/");
         let Some(m) = self.entry_maps.get_mut(&map_id) else {
             return;
@@ -792,7 +793,7 @@ impl kqState {
     }
 
     // kqueue.go:408
-    fn close_entry_locked(&mut self, map_id: entriesID, path: &str) {
+    fn close_entry_locked(&mut self, map_id: EntriesID, path: &str) {
         let Some(e) = self.entry_maps.get_mut(&map_id).and_then(|m| m.get_mut(path)) else {
             return;
         };
@@ -820,7 +821,7 @@ impl kqState {
     // kqueue.go:432
     fn remove_entry_and_descendants_locked(
         &mut self,
-        map_id: entriesID,
+        map_id: EntriesID,
         path: &str,
         include_root: bool,
         sub_id: u64,
@@ -845,14 +846,14 @@ impl kqState {
     }
 
     // kqueue.go:449
-    fn find_subscriptions_locked(&self, path: &str) -> Vec<kqueueSubscription> {
+    fn find_subscriptions_locked(&self, path: &str) -> Vec<KqueueSubscription> {
         self.subs_by_path.get(path).cloned().unwrap_or_default()
     }
 
     // kqueue.go:468
     // cleanupEntriesLocked closes fds for all entries that have been opened.
     // Called on subscribe failure to avoid fd leaks. Must be called under b.mu.
-    fn cleanup_entries_locked(&mut self, entries: &mut FxHashMap<String, dirEntry>) {
+    fn cleanup_entries_locked(&mut self, entries: &mut FxHashMap<String, DirEntry>) {
         #[expect(
             clippy::iter_over_hash_type,
             reason = "closes every opened fd and drops its fd_to_entry key; Go ranges the map too"
@@ -883,13 +884,13 @@ fn read_entries(path: &str) -> Result<Vec<(String, bool)>, Error> {
 // kqueue.go:774
 // removeEntryAndDescendants removes path and all paths prefixed with
 // path + separator from the entries map.
-fn remove_entry_and_descendants(entries: &mut FxHashMap<String, dirEntry>, path: &str) {
+fn remove_entry_and_descendants(entries: &mut FxHashMap<String, DirEntry>, path: &str) {
     entries.remove(path);
     entries.retain(|k, _| !is_descendant(k, path));
 }
 
-impl watcherImpl for kqueueBackend {
-    fn base(&self) -> &watcherBase {
+impl WatcherImpl for KqueueBackend {
+    fn base(&self) -> &WatcherBase {
         &self.base
     }
 
@@ -919,15 +920,15 @@ impl watcherImpl for kqueueBackend {
     // kqueue.go:455
     // subscribe mirrors `kqueueBackend::subscribe`. Called under watcherBase.mu
     // via watchAdd.
-    fn subscribe(&self, w: &Arc<dirWatch>) -> Result<(), Error> {
+    fn subscribe(&self, w: &Arc<DirWatch>) -> Result<(), Error> {
         // Build the entries map without registering any watches or
         // subscriptions, so the event loop never sees a partially built map.
-        let mut entries: FxHashMap<String, dirEntry> = FxHashMap::default();
+        let mut entries: FxHashMap<String, DirEntry> = FxHashMap::default();
         walk_dir(&w.physical_dir, w.recursive, &mut |watch_path, is_dir| {
             let path = w.display_path(watch_path);
             entries.insert(
                 path.clone(),
-                dirEntry { path, watch_path: watch_path.to_string(), is_dir, state: None },
+                DirEntry { path, watch_path: watch_path.to_string(), is_dir, state: None },
             );
             Ok(())
         })?;
@@ -962,7 +963,7 @@ impl watcherImpl for kqueueBackend {
                 fd,
                 libc::EVFILT_VNODE,
                 libc::EV_ADD | libc::EV_CLEAR | libc::EV_ENABLE,
-                vnodeFflags,
+                VNODE_FFLAGS,
             );
             if let Err(err) = kevent_register(kq, &ev) {
                 close_fd(fd);
@@ -982,7 +983,7 @@ impl watcherImpl for kqueueBackend {
             reason = "one subscription per distinct path; subscription ids are only compared for equality; Go ranges the map too"
         )]
         for path in entries.keys() {
-            let sub = kqueueSubscription {
+            let sub = KqueueSubscription {
                 id: self.next_id(),
                 dir_watch: Arc::clone(w),
                 path: path.clone(),
@@ -996,22 +997,22 @@ impl watcherImpl for kqueueBackend {
 
     // kqueue.go:737
     // closeWatch mirrors `kqueueBackend::closeWatch`.
-    fn close_watch(&self, w: &Arc<dirWatch>) -> Result<(), Error> {
+    fn close_watch(&self, w: &Arc<DirWatch>) -> Result<(), Error> {
         let mut st = self.mu.lock().unwrap();
-        let key = dwKey(Arc::clone(w));
+        let key = DwKey(Arc::clone(w));
         let mut maps_of_watch = rustc_hash::FxHashSet::default();
         let paths: Vec<String> = st.subs_by_path.keys().cloned().collect();
         for path in paths {
             let list = &st.subs_by_path[&path];
-            let removed_any = list.iter().any(|s| dwKey(Arc::clone(&s.dir_watch)) == key);
+            let removed_any = list.iter().any(|s| DwKey(Arc::clone(&s.dir_watch)) == key);
             if !removed_any {
                 continue;
             }
             maps_of_watch.extend(
-                list.iter().filter(|s| dwKey(Arc::clone(&s.dir_watch)) == key).map(|s| s.entries),
+                list.iter().filter(|s| DwKey(Arc::clone(&s.dir_watch)) == key).map(|s| s.entries),
             );
-            let kept: Vec<kqueueSubscription> =
-                list.iter().filter(|s| dwKey(Arc::clone(&s.dir_watch)) != key).cloned().collect();
+            let kept: Vec<KqueueSubscription> =
+                list.iter().filter(|s| DwKey(Arc::clone(&s.dir_watch)) != key).cloned().collect();
             if kept.is_empty() {
                 st.subs_by_path.remove(&path);
             } else {

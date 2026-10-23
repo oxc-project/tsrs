@@ -77,7 +77,7 @@ fn goldens_cover_every_parser_node_kind() {
         "SyntheticReferenceExpression",
         "NotEmittedTypeElement",
     ];
-    let missing: Vec<String> = (tsrs_ast::Kind::FirstNode as u32..tsrs_ast::Kind::Count as u32)
+    let missing: Vec<String> = (tsrs_ast::Kind::FIRST_NODE as u32..tsrs_ast::Kind::Count as u32)
         .filter(|k| !seen.contains(k))
         .map(|k| format!("{:?}", kind_from_u32(k).unwrap()))
         .filter(|n| !not_parsed.contains(&n.as_str()))

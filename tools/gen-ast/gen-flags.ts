@@ -2,6 +2,7 @@
 // from the Go sources in ts-ref/tsc/internal/ast. Run: node tools/gen-ast/gen-flags.ts
 import * as fs from "node:fs";
 import * as path from "node:path";
+import { constantNames, screamingSnakeCase } from "../lib/rust-names.mjs";
 
 const root = path.resolve(import.meta.dirname, "../..");
 const goDir = path.join(root, "ts-ref/tsc/internal/ast");
@@ -37,7 +38,8 @@ function genKind() {
     out += names.map(n => `            Kind::${n} => "${n}",`).join("\n");
     out += "\n        })\n    }\n}\n\n";
     out += "impl Kind {\n";
-    for (const [n, v] of consts) out += `    pub const ${n}: Kind = Kind::${v};\n`;
+    const rustConsts = constantNames(consts.map(([n]) => n));
+    for (const [n, v] of consts) out += `    pub const ${rustConsts.get(n)}: Kind = Kind::${rustConsts.get(v) ?? v};\n`;
     out += "\n    #[inline]\n    pub fn from_i16(v: i16) -> Kind {\n        assert!(v >= 0 && v <= Kind::Count as i16);\n        // SAFETY: Kind is repr(i16) with contiguous discriminants 0..=Count.\n        unsafe { std::mem::transmute::<i16, Kind>(v) }\n    }\n}\n\n";
     const aliases = src.slice(src.indexOf("type ("));
     for (const m of aliases.matchAll(/^\t(\w+)\s+= Kind(.*)$/gm)) out += `pub type ${m[1]} = Kind;\n`;
@@ -47,7 +49,7 @@ function genKind() {
 function convertExpr(expr: string, prefix: string): string {
     let e = expr.trim();
     e = e.replace(/1<<30 - 1/, "(1 << 30) - 1");
-    e = e.replace(new RegExp(`\\b${prefix}(\\w+)`, "g"), "Self::$1.bits()");
+    e = e.replace(new RegExp(`\\b${prefix}(\\w+)`, "g"), (_, name) => `Self::${screamingSnakeCase(name)}.bits()`);
     e = e.replace(/& \^/g, "& !").replace(/(^|[\s(])\^/g, "$1!");
     return e;
 }
@@ -58,6 +60,7 @@ function genFlags(file: string, typeName: string) {
     const rustInt = ({ uint32: "u32", int32: "u32", uint64: "u64", int64: "u64" } as Record<string, string>)[typeM[1]];
     const start = src.indexOf("const (");
     const block = src.slice(start + 7, src.indexOf("\n)\n", start));
+    const rustConsts = constantNames([...block.matchAll(new RegExp(`^\\s*${typeName}(\\w+)\\s`, "gm"))].map(m => m[1]));
     let out = header + "use bitflags::bitflags;\n\nbitflags! {\n";
     out += `    #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Debug, Default)]\n    pub struct ${typeName}: ${rustInt} {\n`;
     for (const raw of block.split("\n")) {
@@ -69,7 +72,7 @@ function genFlags(file: string, typeName: string) {
         const comment = idx >= 0 ? " " + line.slice(idx) : "";
         const m = new RegExp(`^${typeName.replace("Flags", "Flags")}(\\w+)(?:\\s+${typeName})?\\s*=\\s*(.*)$`).exec(code.trim());
         if (!m) throw new Error(`bad line in ${file}: ${line}`);
-        out += `        const ${m[1]} = ${convertExpr(m[2], typeName)};${comment}\n`;
+        out += `        const ${rustConsts.get(m[1])} = ${convertExpr(m[2], typeName)};${comment}\n`;
     }
     out += "    }\n}\n";
     fs.writeFileSync(path.join(outDir, file + ".rs"), out.replace(/\n\n\n+/g, "\n\n").replace(/\{\n\n/g, "{\n").replace(/\n\n    \}/g, "\n    }"));
@@ -91,25 +94,25 @@ use crate::modifierflags::ModifierFlags;
 
 pub fn get_function_flags(node: Option<P<Node>>) -> FunctionFlags {
     let Some(node) = node else {
-        return FunctionFlags::Invalid;
+        return FunctionFlags::INVALID;
     };
     let Some(data) = node.body_data() else {
-        return FunctionFlags::Invalid;
+        return FunctionFlags::INVALID;
     };
-    let mut flags = FunctionFlags::Normal;
+    let mut flags = FunctionFlags::NORMAL;
     match node.kind() {
         Kind::FunctionDeclaration | Kind::FunctionExpression | Kind::MethodDeclaration | Kind::ArrowFunction => {
             if node.kind() != Kind::ArrowFunction && data.asterisk_token.is_some() {
-                flags |= FunctionFlags::Generator;
+                flags |= FunctionFlags::GENERATOR;
             }
-            if crate::has_syntactic_modifier(node, ModifierFlags::Async) {
-                flags |= FunctionFlags::Async;
+            if crate::has_syntactic_modifier(node, ModifierFlags::ASYNC) {
+                flags |= FunctionFlags::ASYNC;
             }
         }
         _ => {}
     }
     if data.body.is_none() {
-        flags |= FunctionFlags::Invalid;
+        flags |= FunctionFlags::INVALID;
     }
     flags
 }

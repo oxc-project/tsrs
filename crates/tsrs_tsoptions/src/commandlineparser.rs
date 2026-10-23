@@ -139,25 +139,25 @@ pub fn parse_build_command_line(
     // Nonsensical combinations
     if result.build_options.clean.is_true() && result.build_options.force.is_true() {
         result.errors.push(new_compiler_diagnostic(
-            &diagnostics::Options_0_and_1_cannot_be_combined,
+            &diagnostics::OPTIONS_0_AND_1_CANNOT_BE_COMBINED,
             &[&"clean", &"force"],
         ));
     }
     if result.build_options.clean.is_true() && result.build_options.verbose.is_true() {
         result.errors.push(new_compiler_diagnostic(
-            &diagnostics::Options_0_and_1_cannot_be_combined,
+            &diagnostics::OPTIONS_0_AND_1_CANNOT_BE_COMBINED,
             &[&"clean", &"verbose"],
         ));
     }
     if result.build_options.clean.is_true() && result.compiler_options.watch.is_true() {
         result.errors.push(new_compiler_diagnostic(
-            &diagnostics::Options_0_and_1_cannot_be_combined,
+            &diagnostics::OPTIONS_0_AND_1_CANNOT_BE_COMBINED,
             &[&"clean", &"watch"],
         ));
     }
     if result.compiler_options.watch.is_true() && result.build_options.dry.is_true() {
         result.errors.push(new_compiler_diagnostic(
-            &diagnostics::Options_0_and_1_cannot_be_combined,
+            &diagnostics::OPTIONS_0_AND_1_CANNOT_BE_COMBINED,
             &[&"watch", &"dry"],
         ));
     }
@@ -279,7 +279,7 @@ impl CommandLineParser {
                     pos += 1;
                 } else {
                     self.errors.push(new_compiler_diagnostic(
-                        &diagnostics::Unterminated_quoted_string_in_response_file_0,
+                        &diagnostics::UNTERMINATED_QUOTED_STRING_IN_RESPONSE_FILE_0,
                         &[&file_name],
                     ));
                 }
@@ -304,7 +304,7 @@ pub(crate) fn try_read_file(
     } else {
         // !!! Divergence: the returned error will not give a useful message
         // errors = append(errors, ast.NewCompilerDiagnostic(diagnostics.Cannot_read_file_0_Colon_1, *e));
-        errors.push(new_compiler_diagnostic(&diagnostics::Cannot_read_file_0, &[&file_name]));
+        errors.push(new_compiler_diagnostic(&diagnostics::CANNOT_READ_FILE_0, &[&file_name]));
         String::new()
     };
     (text, errors)
@@ -332,13 +332,13 @@ impl CommandLineParser {
                         i += 1;
                     }
                     self.errors.push(new_compiler_diagnostic(
-                        &diagnostics::Option_0_can_only_be_specified_in_tsconfig_json_file_or_set_to_false_or_null_on_command_line,
+                        &diagnostics::OPTION_0_CAN_ONLY_BE_SPECIFIED_IN_TSCONFIG_JSON_FILE_OR_SET_TO_FALSE_OR_NULL_ON_COMMAND_LINE,
                         &[&opt.name],
                     ));
                 }
             } else {
                 self.errors.push(new_compiler_diagnostic(
-                    &diagnostics::Option_0_can_only_be_specified_in_tsconfig_json_file_or_set_to_null_on_command_line,
+                    &diagnostics::OPTION_0_CAN_ONLY_BE_SPECIFIED_IN_TSCONFIG_JSON_FILE_OR_SET_TO_NULL_ON_COMMAND_LINE,
                     &[&opt.name],
                 ));
                 if !opt_value.is_empty() && !opt_value.starts_with('-') {
@@ -377,7 +377,7 @@ impl CommandLineParser {
                                         .set(opt.name.to_string(), CompilerOptionsValue::Int(num));
                                 } else {
                                     self.errors.push(new_compiler_diagnostic(
-                                        &diagnostics::Option_0_requires_value_to_be_greater_than_1,
+                                        &diagnostics::OPTION_0_REQUIRES_VALUE_TO_BE_GREATER_THAN_1,
                                         &[&opt.name, &opt.min_value.to_string()],
                                     ));
                                 }
@@ -419,7 +419,7 @@ impl CommandLineParser {
                             && is_network_path_value(path, &self.current_directory)
                         {
                             self.errors.push(new_compiler_diagnostic(
-                                &diagnostics::Network_path_0_is_not_supported,
+                                &diagnostics::NETWORK_PATH_0_IS_NOT_SUPPORTED,
                                 &[path],
                             ));
                         } else if err.is_empty() {

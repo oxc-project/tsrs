@@ -15,12 +15,12 @@ use crate::languageservice::LanguageService;
 use crate::lsconv::{self, Converters};
 
 // file_rename.go:22
-type pathUpdater<'a> = Box<dyn Fn(&str) -> Option<String> + 'a>;
+type PathUpdater<'a> = Box<dyn Fn(&str) -> Option<String> + 'a>;
 
 // tsrs-only (`update_imports_for_file_rename`): whether the rename moves the file or directory a relative specifier
 // in `import_from_path` points at.
 fn relative_target_moved(
-    old_to_new: &pathUpdater,
+    old_to_new: &PathUpdater,
     import_from_path: &str,
     relative_specifier: &str,
 ) -> bool {
@@ -32,13 +32,13 @@ fn relative_target_moved(
 }
 
 // file_rename.go:24
-struct toImport {
+struct ToImport {
     new_file_name: String,
     updated: bool,
 }
 
 // file_rename.go:29
-struct movedFile {
+struct MovedFile {
     source_file: P<SourceFile>,
     new_file_name: String,
 }
@@ -145,7 +145,7 @@ impl LanguageService {
 
     // Maps a path to where `renames` (old, new) moves it: the first rename of the path itself, else the first rename
     // of a directory that contains it.
-    fn create_path_updater<'a>(&'a self, renames: &[(String, String)]) -> pathUpdater<'a> {
+    fn create_path_updater<'a>(&'a self, renames: &[(String, String)]) -> PathUpdater<'a> {
         let compare_options = ComparePathsOptions {
             use_case_sensitive_file_names: self.use_case_sensitive_file_names(),
             ..Default::default()
@@ -203,7 +203,7 @@ impl LanguageService {
         &self,
         program: &'static Program,
         change_tracker: &mut change::Tracker,
-        old_to_new: &pathUpdater,
+        old_to_new: &PathUpdater,
         renames: &[(String, String)],
     ) {
         let command_line = program.command_line();
@@ -253,7 +253,7 @@ impl LanguageService {
                                             new_path,
                                             use_case_sensitive_file_names,
                                         )),
-                                        TokenFlags::None,
+                                        TokenFlags::NONE,
                                     );
                                     change_tracker.insert_node_after(
                                         config_file,
@@ -325,7 +325,7 @@ impl LanguageService {
     // file_rename.go:212
     fn update_relative_path(
         &self,
-        old_to_new: &pathUpdater,
+        old_to_new: &PathUpdater,
         old_import_from_path: &str,
         new_import_from_path: &str,
         relative_specifier: &str,
@@ -347,16 +347,16 @@ impl LanguageService {
         &self,
         program: &'static Program,
         change_tracker: &mut change::Tracker,
-        old_to_new: &pathUpdater,
+        old_to_new: &PathUpdater,
     ) {
         let all_files = program.get_source_files();
         let mut checker = program.get_type_checker(&Context::background());
         let module_specifier_preferences = self.user_preferences().module_specifier_preferences();
 
-        let mut moved_files: Vec<movedFile> = Vec::new();
+        let mut moved_files: Vec<MovedFile> = Vec::new();
         moved_files.extend(all_files.iter().filter_map(|&source_file| {
             old_to_new(crate::lsconv::Script::original_file_name(&source_file))
-                .map(|new_file_name| movedFile { source_file, new_file_name })
+                .map(|new_file_name| MovedFile { source_file, new_file_name })
         }));
 
         for &source_file in all_files {
@@ -418,8 +418,8 @@ impl LanguageService {
         checker: &mut Checker,
         source_file: P<SourceFile>, // old importing source file
         import_literal: P<Node>,
-        old_to_new: &pathUpdater,
-        moved_files: &[movedFile],
+        old_to_new: &PathUpdater,
+        moved_files: &[MovedFile],
         new_import_from_path: &str,
         importing_source_file_moved: bool,
         user_preferences: &modulespecifiers::UserPreferences,
@@ -495,7 +495,7 @@ fn update_paths_property(
     config_dir: &str,
     property: P<Node>,
     change_tracker: &mut change::Tracker,
-    old_to_new: &pathUpdater,
+    old_to_new: &PathUpdater,
     converters: &Converters,
     use_case_sensitive_file_names: bool,
 ) -> bool {
@@ -530,7 +530,7 @@ fn try_update_config_string(
     config_dir: &str,
     element: P<Node>,
     change_tracker: &mut change::Tracker,
-    old_to_new: &pathUpdater,
+    old_to_new: &PathUpdater,
     converters: &Converters,
     use_case_sensitive_file_names: bool,
 ) -> bool {
@@ -563,17 +563,17 @@ fn get_source_file_to_import(
     program: &'static Program,
     source_file: P<SourceFile>,
     import_literal: P<Node>,
-    old_to_new: &pathUpdater,
-) -> Option<toImport> {
+    old_to_new: &PathUpdater,
+) -> Option<ToImport> {
     if let Some(resolved) =
         program.get_resolved_module_from_module_specifier(source_file, import_literal)
     {
         if !resolved.resolved_file_name.is_empty() {
             let old_file_name = resolved.resolved_file_name.to_string();
             if let Some(new_file_name) = old_to_new(&old_file_name) {
-                return Some(toImport { new_file_name, updated: true });
+                return Some(ToImport { new_file_name, updated: true });
             }
-            return Some(toImport { new_file_name: old_file_name, updated: false });
+            return Some(ToImport { new_file_name: old_file_name, updated: false });
         }
     }
 
@@ -587,7 +587,7 @@ fn get_updated_import_specifier_from_moved_source_files(
     program: &'static Program,
     source_file: P<SourceFile>,
     import_literal: P<Node>,
-    moved_files: &[movedFile],
+    moved_files: &[MovedFile],
     importing_source_file_name: &str,
     user_preferences: &modulespecifiers::UserPreferences,
 ) -> String {

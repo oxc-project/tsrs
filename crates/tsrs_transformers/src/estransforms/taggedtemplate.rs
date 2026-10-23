@@ -6,7 +6,7 @@ fn newline_normalizer_replace(text: &str) -> String {
 }
 
 // taggedtemplate.go:15
-pub struct taggedTemplateTransformer {
+pub struct TaggedTemplateTransformer {
     pub base: Transformer,
     current_source_file: Cell<Option<P<SourceFile>>>,
 
@@ -21,7 +21,7 @@ pub struct taggedTemplateTransformer {
 pub fn new_tagged_template_lift_restriction_transformer(
     opt: &TransformOptions,
 ) -> Option<P<Transformer>> {
-    let tx = P::new(taggedTemplateTransformer {
+    let tx = P::new(TaggedTemplateTransformer {
         base: Transformer::default(),
         current_source_file: Cell::new(None),
         tagged_template_string_declarations: RefCell::new(Vec::new()),
@@ -32,7 +32,7 @@ pub fn new_tagged_template_lift_restriction_transformer(
     ))
 }
 
-impl taggedTemplateTransformer {
+impl TaggedTemplateTransformer {
     fn emit_context(&self) -> P<EmitContext> {
         self.base.emit_context()
     }
@@ -47,7 +47,7 @@ impl taggedTemplateTransformer {
 
     // taggedtemplate.go:27
     fn visit(&self, node: P<Node>) -> Option<P<Node>> {
-        if !node.subtree_facts().intersects(SubtreeFacts::ContainsInvalidTemplateEscape) {
+        if !node.subtree_facts().intersects(SubtreeFacts::CONTAINS_INVALID_TEMPLATE_ESCAPE) {
             return Some(node);
         }
         match node.kind() {
@@ -70,7 +70,7 @@ impl taggedTemplateTransformer {
             let mut statements: Vec<P<Node>> = visited_source_file.statements.nodes().to_vec();
             statements.push(f.new_variable_statement(
                 None, /*modifiers*/
-                f.new_variable_declaration_list(f.new_node_list(declarations), NodeFlags::None),
+                f.new_variable_declaration_list(f.new_node_list(declarations), NodeFlags::NONE),
             ));
             let stmt_list = f.new_node_list(statements);
             stmt_list.loc.set(node.statements.loc.get());
@@ -156,7 +156,7 @@ impl taggedTemplateTransformer {
             None, /*questionDotToken*/
             None, /*typeArguments*/
             f.new_node_list(template_arguments.into_iter().flatten().collect()),
-            NodeFlags::None,
+            NodeFlags::NONE,
         );
         call.set_loc(node.loc());
         call
@@ -168,10 +168,10 @@ fn create_template_cooked(
     f: &printer::NodeFactory,
     template: &TemplateLiteralLikeNodeBase,
 ) -> P<Node> {
-    if template.template_flags.intersects(TokenFlags::IsInvalid) {
+    if template.template_flags.intersects(TokenFlags::IS_INVALID) {
         return f.new_void_zero_expression();
     }
-    f.new_string_literal(template.literal_like_node_base.text(), TokenFlags::None)
+    f.new_string_literal(template.literal_like_node_base.text(), TokenFlags::NONE)
 }
 
 // taggedtemplate.go:135
@@ -201,7 +201,7 @@ fn get_raw_literal(f: &printer::NodeFactory, node: P<Node>) -> P<Node> {
     // <CR><LF> and <CR> LineTerminatorSequences are normalized to <LF> for both TV and TRV.
     let text = newline_normalizer_replace(&text);
 
-    let result = f.new_string_literal(alloc_str(&text), TokenFlags::None);
+    let result = f.new_string_literal(alloc_str(&text), TokenFlags::NONE);
     result.set_loc(node.loc());
     result
 }
@@ -213,7 +213,7 @@ fn has_invalid_escape(template: P<Node>) -> bool {
             .template_literal_like_data()
             .unwrap()
             .template_flags
-            .intersects(TokenFlags::ContainsInvalidEscape);
+            .intersects(TokenFlags::CONTAINS_INVALID_ESCAPE);
     }
     let te = template.as_template_expression();
     if te
@@ -221,7 +221,7 @@ fn has_invalid_escape(template: P<Node>) -> bool {
         .template_literal_like_data()
         .unwrap()
         .template_flags
-        .intersects(TokenFlags::ContainsInvalidEscape)
+        .intersects(TokenFlags::CONTAINS_INVALID_ESCAPE)
     {
         return true;
     }
@@ -231,6 +231,6 @@ fn has_invalid_escape(template: P<Node>) -> bool {
             .template_literal_like_data()
             .unwrap()
             .template_flags
-            .intersects(TokenFlags::ContainsInvalidEscape)
+            .intersects(TokenFlags::CONTAINS_INVALID_ESCAPE)
     })
 }

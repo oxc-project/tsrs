@@ -371,7 +371,7 @@ fn test_response_file_parsing() {
     );
     let parsed = parse_command_line(&args(&["@args.txt"]), host);
     assert_eq!(parsed.errors.len(), 1);
-    assert_eq!(parsed.errors[0].code(), diagnostics::Network_path_0_is_not_supported.code());
+    assert_eq!(parsed.errors[0].code(), diagnostics::NETWORK_PATH_0_IS_NOT_SUPPORTED.code());
     assert_eq!(parsed.compiler_options().unwrap().pprof_dir, "");
     assert_eq!(parsed.compiler_options().unwrap().out_dir, "/project/dist");
 
@@ -426,8 +426,8 @@ fn create_verify_null_for_non_null_included(
         name: "optionName",
         kind,
         is_tsconfig_only: true,
-        category: Some(&diagnostics::Backwards_Compatibility),
-        description: Some(&diagnostics::Enable_project_compilation),
+        category: Some(&diagnostics::BACKWARDS_COMPATIBILITY),
+        description: Some(&diagnostics::ENABLE_PROJECT_COMPILATION),
         default_value_description: DefaultValueDescription::None,
         ..CommandLineOption::DEFAULT
     })

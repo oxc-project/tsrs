@@ -62,7 +62,7 @@ pub enum TrailingTriviaOption {
 
 // tracker.go:58
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub(crate) enum trackerEditKind {
+pub(crate) enum TrackerEditKind {
     Text = 1,
     ReplaceWithSingleNode = 3,
     ReplaceWithMultipleNodes = 4,
@@ -70,8 +70,8 @@ pub(crate) enum trackerEditKind {
 
 // tracker.go:67
 #[derive(Clone, Debug)]
-pub(crate) struct trackerEdit {
-    pub(crate) kind: trackerEditKind,
+pub(crate) struct TrackerEdit {
+    pub(crate) kind: TrackerEditKind,
     pub(crate) text_range: TextRange,
 
     pub(crate) new_text: String, // kind == text
@@ -82,7 +82,7 @@ pub(crate) struct trackerEdit {
 }
 
 // tracker.go:78
-pub(crate) struct nodesInsertedAtStartState {
+pub(crate) struct NodesInsertedAtStartState {
     pub(crate) node: P<Node>,
     pub(crate) source_file: P<SourceFile>,
 }
@@ -99,9 +99,9 @@ pub struct Tracker {
     pub node_factory: NodeFactory,
 
     // Go `collections.MultiMap` (random iteration order; the edits are sorted per file afterwards).
-    pub(crate) changes: OrderedMap<P<SourceFile>, Vec<trackerEdit>>,
-    pub(crate) deleted_nodes: Vec<deletedNode>,
-    pub(crate) nodes_with_insertions_at_start: OrderedMap<P<Node>, nodesInsertedAtStartState>,
+    pub(crate) changes: OrderedMap<P<SourceFile>, Vec<TrackerEdit>>,
+    pub(crate) deleted_nodes: Vec<DeletedNode>,
+    pub(crate) nodes_with_insertions_at_start: OrderedMap<P<Node>, NodesInsertedAtStartState>,
 
     // unmappableFiles collects the files for which an edit could not be represented within a single
     // verbatim span of the original text. GetChanges drops their edits so a partial, corrupting change is
@@ -118,7 +118,7 @@ impl std::ops::Deref for Tracker {
 
 // tracker.go:107
 #[derive(Clone, Copy)]
-pub(crate) struct deletedNode {
+pub(crate) struct DeletedNode {
     pub(crate) source_file: P<SourceFile>,
     pub(crate) node: P<Node>,
 }
@@ -167,7 +167,7 @@ impl Tracker {
         &self.new_line
     }
 
-    pub(crate) fn add_change(&mut self, source_file: P<SourceFile>, edit: trackerEdit) {
+    pub(crate) fn add_change(&mut self, source_file: P<SourceFile>, edit: TrackerEdit) {
         self.changes.entry(source_file).or_default().push(edit);
     }
 
@@ -215,7 +215,7 @@ impl Tracker {
         let spans = self.converters.from_lsp_range_for_source_file(
             source_file,
             lsproto_range,
-            Feature::All,
+            Feature::ALL,
         );
         if let Some(result) = spans.iter().find_map(|span| {
             if span.fidelity.is_exact() && span.script == source_file {
@@ -317,8 +317,8 @@ impl Tracker {
     ) {
         self.add_change(
             source_file,
-            trackerEdit {
-                kind: trackerEditKind::ReplaceWithSingleNode,
+            TrackerEdit {
+                kind: TrackerEditKind::ReplaceWithSingleNode,
                 text_range,
                 options,
                 node: Some(new_node),
@@ -352,8 +352,8 @@ impl Tracker {
     ) {
         self.add_change(
             source_file,
-            trackerEdit {
-                kind: trackerEditKind::Text,
+            TrackerEdit {
+                kind: TrackerEditKind::Text,
                 text_range,
                 new_text: text.to_string(),
                 node: None,
@@ -378,8 +378,8 @@ impl Tracker {
         }
         self.add_change(
             source_file,
-            trackerEdit {
-                kind: trackerEditKind::ReplaceWithMultipleNodes,
+            TrackerEdit {
+                kind: TrackerEditKind::ReplaceWithMultipleNodes,
                 text_range,
                 nodes: new_nodes,
                 options,
@@ -561,7 +561,7 @@ impl Tracker {
     // Delete queues a node for deletion with smart handling of list items, imports, etc.
     // The actual deletion happens in finishDeleteDeclarations during GetChanges.
     pub fn delete(&mut self, source_file: P<SourceFile>, node: P<Node>) {
-        self.deleted_nodes.push(deletedNode { source_file, node });
+        self.deleted_nodes.push(DeletedNode { source_file, node });
     }
 
     // tracker.go:335
@@ -917,7 +917,7 @@ impl Tracker {
         // maps exactly to the original file, and use its original position when deciding leading trivia.
         if let Some(span_map) = crate::lsconv::Script::span_map(&source_file) {
             for segment in span_map.segments() {
-                if segment.kind != spanmap::Kind::Verbatim || segment.virtual_end <= pos {
+                if segment.kind != spanmap::Kind::VERBATIM || segment.virtual_end <= pos {
                     continue;
                 }
                 if segment.virtual_start > pos {
@@ -1147,7 +1147,7 @@ impl Tracker {
         let has_previous_insertion = match self.nodes_with_insertions_at_start.entry(node) {
             Entry::Occupied(_) => true,
             Entry::Vacant(entry) => {
-                entry.insert(nodesInsertedAtStartState { node, source_file });
+                entry.insert(NodesInsertedAtStartState { node, source_file });
                 false
             }
         };

@@ -8,31 +8,31 @@ use tsrs_lsproto::{Error, ErrorCode, ErrorTag, Json, Message, ResponseMessage};
 use crate::server::{Reader, ServerOptions, Writer, new_server, to_writer};
 
 // server_test.go:16
-struct shutdownTestReader;
+struct ShutdownTestReader;
 
-impl Reader for shutdownTestReader {
+impl Reader for ShutdownTestReader {
     fn read(&mut self) -> (Option<Message>, Option<Error>) {
         (None, Some(Error::tagged(ErrorTag::EOF, "EOF")))
     }
 }
 
 // server_test.go:20
-struct shutdownTestWriter;
+struct ShutdownTestWriter;
 
-impl Writer for shutdownTestWriter {
+impl Writer for ShutdownTestWriter {
     fn write(&mut self, _msg: &Message) -> Result<(), Error> {
         Ok(())
     }
 }
 
 // server_test.go:24
-struct cancelingTestWriter {
+struct CancelingTestWriter {
     writer: Box<dyn Writer>,
     cancel: CancelFunc,
     messages: Arc<Mutex<Vec<Message>>>,
 }
 
-impl Writer for cancelingTestWriter {
+impl Writer for CancelingTestWriter {
     fn write(&mut self, msg: &Message) -> Result<(), Error> {
         self.writer.write(msg)?;
         let mut messages = self.messages.lock().unwrap();
@@ -46,7 +46,7 @@ impl Writer for cancelingTestWriter {
 
 fn options(out: Box<dyn Writer>) -> ServerOptions {
     ServerOptions {
-        in_: Box::new(shutdownTestReader),
+        in_: Box::new(ShutdownTestReader),
         out,
         err: Box::new(std::io::sink()),
         cwd: "/test".to_string(),
@@ -63,13 +63,13 @@ fn options(out: Box<dyn Writer>) -> ServerOptions {
 // server_test.go:115
 #[test]
 fn test_server_outgoing_queue_does_not_block_without_writer() {
-    let server = new_server(options(Box::new(shutdownTestWriter)));
+    let server = new_server(options(Box::new(ShutdownTestWriter)));
     let (test_ctx, cancel) = Context::background().with_cancel();
     let _ = server.background_ctx.set(test_ctx);
 
     let msg = lsproto::WINDOW_LOG_MESSAGE_INFO
         .new_notification_message(lsproto::LogMessageParams {
-            type_: lsproto::MessageType::Info,
+            type_: lsproto::MessageType::INFO,
             message: "queued".to_string(),
         })
         .message();
@@ -113,7 +113,7 @@ fn test_write_loop_recovers_from_unserializable_response() {
 fn write_loop_recovers_from_unserializable_response() {
     let (ctx, cancel) = Context::background().with_cancel();
     let messages = Arc::new(Mutex::new(Vec::new()));
-    let writer = cancelingTestWriter {
+    let writer = CancelingTestWriter {
         writer: to_writer(std::io::sink()),
         cancel,
         messages: std::sync::Arc::clone(&messages),
@@ -171,10 +171,10 @@ fn write_loop_recovers_from_unserializable_response() {
                 ),
                 Some(error) => assert_eq!(
                     error.code,
-                    ErrorCode::InternalError.0,
+                    ErrorCode::INTERNAL_ERROR.0,
                     "error response code = {}, want {}",
                     error.code,
-                    ErrorCode::InternalError.0
+                    ErrorCode::INTERNAL_ERROR.0
                 ),
             }
             saw_error = true;
@@ -224,7 +224,7 @@ fn server_shutdown_no_deadlock() {
             false,
         )));
 
-    let mut opts = options(Box::new(shutdownTestWriter));
+    let mut opts = options(Box::new(ShutdownTestWriter));
     opts.fs = Some(std::sync::Arc::clone(&fs));
     opts.default_library_path = tsrs_vfs::bundled::lib_path();
     let server = new_server(opts);
@@ -267,7 +267,7 @@ fn server_shutdown_no_deadlock() {
         "file:///test/index.ts".into(),
         1,
         "const x = 1;".to_string(),
-        lsproto::LanguageKind::TypeScript,
+        lsproto::LanguageKind::TYPE_SCRIPT,
     );
     session.wait_for_background_tasks();
 
@@ -333,7 +333,7 @@ fn completion_resolve_snaps_client_data_position() {
         lsproto::DidOpenTextDocumentParams {
             text_document: lsproto::TextDocumentItem {
                 uri: uri.clone(),
-                language_id: lsproto::LanguageKind::TypeScript,
+                language_id: lsproto::LanguageKind::TYPE_SCRIPT,
                 text: text.to_string(),
                 ..Default::default()
             },
@@ -401,7 +401,7 @@ fn bad_client_input_does_not_end_the_session() {
             lsproto::DidOpenTextDocumentParams {
                 text_document: lsproto::TextDocumentItem {
                     uri: uri.clone(),
-                    language_id: lsproto::LanguageKind::TypeScript,
+                    language_id: lsproto::LanguageKind::TYPE_SCRIPT,
                     text: "export const abc = 1;\n".to_string(),
                     ..Default::default()
                 },
@@ -409,7 +409,7 @@ fn bad_client_input_does_not_end_the_session() {
         );
     };
     let is_invalid_params = |msg: &lsproto::ResponseMessage| {
-        msg.error.as_ref().is_some_and(|e| e.code == lsproto::ErrorCode::InvalidParams.0)
+        msg.error.as_ref().is_some_and(|e| e.code == lsproto::ErrorCode::INVALID_PARAMS.0)
     };
     open(&good);
 
@@ -519,7 +519,7 @@ fn document_requests_before_initialized_get_an_error() {
             ..Default::default()
         },
     );
-    assert_eq!(msg.error.map(|e| e.code), Some(lsproto::ErrorCode::ServerNotInitialized.0));
+    assert_eq!(msg.error.map(|e| e.code), Some(lsproto::ErrorCode::SERVER_NOT_INITIALIZED.0));
     let _ = close_client.close();
 }
 
@@ -553,7 +553,7 @@ fn a_bad_root_uri_falls_back_to_the_server_directory() {
         lsproto::DidOpenTextDocumentParams {
             text_document: lsproto::TextDocumentItem {
                 uri: uri.clone(),
-                language_id: lsproto::LanguageKind::TypeScript,
+                language_id: lsproto::LanguageKind::TYPE_SCRIPT,
                 text: "export const abc = 1;\n".to_string(),
                 ..Default::default()
             },
@@ -611,7 +611,7 @@ fn will_rename_files(
         lsproto::DidOpenTextDocumentParams {
             text_document: lsproto::TextDocumentItem {
                 uri: lsproto::DocumentUri::from(format!("file://{file_name}")),
-                language_id: lsproto::LanguageKind::TypeScript,
+                language_id: lsproto::LanguageKind::TYPE_SCRIPT,
                 text: text.to_string(),
                 ..Default::default()
             },

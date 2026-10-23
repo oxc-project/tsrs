@@ -39,12 +39,12 @@ pub fn new_diagnostic_chain_for_node(
 
 // utilities.go:55
 pub(crate) fn has_override_modifier(node: P<Node>) -> bool {
-    ast::has_syntactic_modifier(node, ModifierFlags::Override)
+    ast::has_syntactic_modifier(node, ModifierFlags::OVERRIDE)
 }
 
 // utilities.go:59
 pub(crate) fn has_async_modifier(node: P<Node>) -> bool {
-    ast::has_syntactic_modifier(node, ModifierFlags::Async)
+    ast::has_syntactic_modifier(node, ModifierFlags::ASYNC)
 }
 
 // utilities.go:63
@@ -54,7 +54,7 @@ pub(crate) fn get_selected_modifier_flags(node: P<Node>, flags: ModifierFlags) -
 
 // utilities.go:67
 pub(crate) fn has_readonly_modifier(node: P<Node>) -> bool {
-    ast::has_modifier(node, ModifierFlags::Readonly)
+    ast::has_modifier(node, ModifierFlags::READONLY)
 }
 
 // utilities.go:71
@@ -317,7 +317,7 @@ pub(crate) fn is_top_level_in_external_module_augmentation(node: Option<P<Node>>
 // utilities.go:249
 pub(crate) fn is_syntactic_default(node: P<Node>) -> bool {
     (ast::is_export_assignment(node) && !node.as_export_assignment().is_export_equals)
-        || ast::has_syntactic_modifier(node, ModifierFlags::Default)
+        || ast::has_syntactic_modifier(node, ModifierFlags::DEFAULT)
         || ast::is_export_specifier(node)
         || ast::is_namespace_export(node)
 }
@@ -325,7 +325,7 @@ pub(crate) fn is_syntactic_default(node: P<Node>) -> bool {
 // utilities.go:256
 pub(crate) fn has_export_assignment_symbol(module_symbol: P<Symbol>) -> bool {
     match module_symbol.exports() {
-        Some(exports) => exports.lookup(InternalSymbolNameExportEquals).is_some(),
+        Some(exports) => exports.lookup(INTERNAL_SYMBOL_NAME_EXPORT_EQUALS).is_some(),
         None => false,
     }
 }
@@ -361,7 +361,7 @@ pub(crate) fn has_dot_dot_dot_token(node: P<Node>) -> bool {
 
 // utilities.go:286
 pub fn is_type_any(t: Option<P<Type>>) -> bool {
-    matches!(t, Some(t) if t.flags().intersects(TypeFlags::Any))
+    matches!(t, Some(t) if t.flags().intersects(TypeFlags::ANY))
 }
 
 // utilities.go:294
@@ -398,8 +398,8 @@ impl Checker {
             return parameter_index
                 >= self.get_min_argument_count_ex(
                     signature,
-                    MinArgumentCountFlags::StrongArityForUntypedJS
-                        | MinArgumentCountFlags::VoidIsNonOptional,
+                    MinArgumentCountFlags::STRONG_ARITY_FOR_UNTYPED_JS
+                        | MinArgumentCountFlags::VOID_IS_NON_OPTIONAL,
                 );
         }
         let iife = ast::get_immediately_invoked_function_expression(parent);
@@ -434,9 +434,9 @@ pub(crate) fn declaration_belongs_to_private_ambient_member(declaration: P<Node>
 
 // utilities.go:342
 pub(crate) fn is_private_within_ambient(node: P<Node>) -> bool {
-    (ast::has_modifier(node, ModifierFlags::Private)
+    (ast::has_modifier(node, ModifierFlags::PRIVATE)
         || ast::is_private_identifier_class_element_declaration(node))
-        && node.flags().intersects(NodeFlags::Ambient)
+        && node.flags().intersects(NodeFlags::AMBIENT)
 }
 
 // utilities.go:346
@@ -650,7 +650,7 @@ pub fn compare_types(c: &mut Checker, t1: Option<P<Type>>, t2: Option<P<Type>>) 
     }
     // Two string literals without aliases (no name symbol): by value, then id, as compare_types_same_flags orders
     // them. Large unions of string literals are built by binary insertion with this.
-    if t1.flags() == TypeFlags::StringLiteral && t1.alias().is_none() && t2.alias().is_none() {
+    if t1.flags() == TypeFlags::STRING_LITERAL && t1.alias().is_none() && t2.alias().is_none() {
         return compare_string_literal_types(t1, t2);
     }
     compare_types_same_flags(c, t1, t2)
@@ -671,25 +671,25 @@ fn compare_types_same_flags(c: &mut Checker, t1: P<Type>, t2: P<Type>) -> Orderi
     // We have unnamed types or types with identical names. Now sort by data specific to the type.
     let flags = t1.flags();
     if flags.intersects(
-        TypeFlags::Any
-            | TypeFlags::Unknown
-            | TypeFlags::String
-            | TypeFlags::Number
-            | TypeFlags::Boolean
-            | TypeFlags::BigInt
-            | TypeFlags::ESSymbol
-            | TypeFlags::Void
-            | TypeFlags::Undefined
-            | TypeFlags::Null
-            | TypeFlags::Never
-            | TypeFlags::NonPrimitive,
+        TypeFlags::ANY
+            | TypeFlags::UNKNOWN
+            | TypeFlags::STRING
+            | TypeFlags::NUMBER
+            | TypeFlags::BOOLEAN
+            | TypeFlags::BIG_INT
+            | TypeFlags::ES_SYMBOL
+            | TypeFlags::VOID
+            | TypeFlags::UNDEFINED
+            | TypeFlags::NULL
+            | TypeFlags::NEVER
+            | TypeFlags::NON_PRIMITIVE,
     ) {
         // Only distinguished by type IDs, handled below.
-    } else if flags.intersects(TypeFlags::Object) {
+    } else if flags.intersects(TypeFlags::OBJECT) {
         // Order instantiation expression types without relying on lazy symbol IDs.
         // Order other unnamed or identically named object types by symbol.
-        if t1.object_flags().intersects(ObjectFlags::InstantiationExpressionType)
-            && t2.object_flags().intersects(ObjectFlags::InstantiationExpressionType)
+        if t1.object_flags().intersects(ObjectFlags::INSTANTIATION_EXPRESSION_TYPE)
+            && t2.object_flags().intersects(ObjectFlags::INSTANTIATION_EXPRESSION_TYPE)
         {
             let declaration1 = t1.symbol().and_then(|s| s.declarations().first().copied());
             let declaration2 = t2.symbol().and_then(|s| s.declarations().first().copied());
@@ -713,15 +713,15 @@ fn compare_types_same_flags(c: &mut Checker, t1: P<Type>, t2: P<Type>) -> Orderi
             }
         }
         // When object types have the same or no symbol, order by kind. We order type references before other kinds.
-        if t1.object_flags().intersects(ObjectFlags::Reference)
-            && t2.object_flags().intersects(ObjectFlags::Reference)
+        if t1.object_flags().intersects(ObjectFlags::REFERENCE)
+            && t2.object_flags().intersects(ObjectFlags::REFERENCE)
         {
             let r1 = t1.as_type_reference();
             let r2 = t2.as_type_reference();
             let r1_target = r1.target.get().unwrap();
             let r2_target = r2.target.get().unwrap();
-            if r1_target.object_flags().intersects(ObjectFlags::Tuple)
-                && r2_target.object_flags().intersects(ObjectFlags::Tuple)
+            if r1_target.object_flags().intersects(ObjectFlags::TUPLE)
+                && r2_target.object_flags().intersects(ObjectFlags::TUPLE)
             {
                 // Tuple types have no associated symbol, instead we order by tuple element information.
                 let r = compare_tuple_types(r1_target.as_tuple_type(), r2_target.as_tuple_type());
@@ -757,19 +757,19 @@ fn compare_types_same_flags(c: &mut Checker, t1: P<Type>, t2: P<Type>) -> Orderi
                     return r;
                 }
             }
-        } else if t1.object_flags().intersects(ObjectFlags::Reference) {
+        } else if t1.object_flags().intersects(ObjectFlags::REFERENCE) {
             return Ordering::Less;
-        } else if t2.object_flags().intersects(ObjectFlags::Reference) {
+        } else if t2.object_flags().intersects(ObjectFlags::REFERENCE) {
             return Ordering::Greater;
         } else {
             // Order unnamed non-reference object types by kind and instantiation data.
-            let r = (t1.object_flags() & ObjectFlags::ObjectTypeKindMask)
+            let r = (t1.object_flags() & ObjectFlags::OBJECT_TYPE_KIND_MASK)
                 .bits()
-                .cmp(&(t2.object_flags() & ObjectFlags::ObjectTypeKindMask).bits());
+                .cmp(&(t2.object_flags() & ObjectFlags::OBJECT_TYPE_KIND_MASK).bits());
             if r != Ordering::Equal {
                 return r;
             }
-            if t1.object_flags().intersects(ObjectFlags::ReverseMapped) {
+            if t1.object_flags().intersects(ObjectFlags::REVERSE_MAPPED) {
                 let r1 = t1.as_reverse_mapped_type();
                 let r2 = t2.as_reverse_mapped_type();
                 let r = compare_types(c, r1.source.get(), r2.source.get());
@@ -787,7 +787,7 @@ fn compare_types_same_flags(c: &mut Checker, t1: P<Type>, t2: P<Type>) -> Orderi
             }
             let mut m1 = t1.as_object_type().mapper.get();
             let mut m2 = t2.as_object_type().mapper.get();
-            if t1.object_flags().intersects(ObjectFlags::Mapped) {
+            if t1.object_flags().intersects(ObjectFlags::MAPPED) {
                 // instantiateAnonymousType prepends a fresh type parameter mapping.
                 // Compare the effective instantiation, not the identity of that fresh parameter.
                 if let Some(m) = m1 {
@@ -802,7 +802,7 @@ fn compare_types_same_flags(c: &mut Checker, t1: P<Type>, t2: P<Type>) -> Orderi
                 return r;
             }
         }
-    } else if flags.intersects(TypeFlags::Union) {
+    } else if flags.intersects(TypeFlags::UNION) {
         // Unions are ordered by origin and then constituent type lists.
         let o1 = t1.as_union_type().origin();
         let o2 = t2.as_union_type().origin();
@@ -821,37 +821,38 @@ fn compare_types_same_flags(c: &mut Checker, t1: P<Type>, t2: P<Type>) -> Orderi
                 return r;
             }
         }
-    } else if flags.intersects(TypeFlags::Intersection) {
+    } else if flags.intersects(TypeFlags::INTERSECTION) {
         // Intersections are ordered by their constituent type lists.
         let r = compare_type_lists(c, t1.types(), t2.types());
         if r != Ordering::Equal {
             return r;
         }
-    } else if flags.intersects(TypeFlags::Enum | TypeFlags::EnumLiteral | TypeFlags::UniqueESSymbol)
+    } else if flags
+        .intersects(TypeFlags::ENUM | TypeFlags::ENUM_LITERAL | TypeFlags::UNIQUE_ES_SYMBOL)
     {
         // Enum members are ordered by their symbol (and thus their declaration order).
         let r = c.compare_symbols_worker(t1.symbol(), t2.symbol());
         if r != Ordering::Equal {
             return r;
         }
-    } else if flags.intersects(TypeFlags::StringLiteral) {
+    } else if flags.intersects(TypeFlags::STRING_LITERAL) {
         // String literal types are ordered by their values.
         let r = literal_string_value(t1).cmp(literal_string_value(t2));
         if r != Ordering::Equal {
             return r;
         }
-    } else if flags.intersects(TypeFlags::NumberLiteral) {
+    } else if flags.intersects(TypeFlags::NUMBER_LITERAL) {
         // Numeric literal types are ordered by their values.
         let r = compare_numbers(literal_number_value(t1), literal_number_value(t2));
         if r != Ordering::Equal {
             return r;
         }
-    } else if flags.intersects(TypeFlags::BigIntLiteral) {
+    } else if flags.intersects(TypeFlags::BIG_INT_LITERAL) {
         let r = get_big_int_literal_value(t1).compare(get_big_int_literal_value(t2));
         if r != Ordering::Equal {
             return r;
         }
-    } else if flags.intersects(TypeFlags::BooleanLiteral) {
+    } else if flags.intersects(TypeFlags::BOOLEAN_LITERAL) {
         let b1 = literal_bool_value(t1);
         let b2 = literal_bool_value(t2);
         if b1 != b2 {
@@ -860,12 +861,12 @@ fn compare_types_same_flags(c: &mut Checker, t1: P<Type>, t2: P<Type>) -> Orderi
             }
             return Ordering::Less;
         }
-    } else if flags.intersects(TypeFlags::TypeParameter) {
+    } else if flags.intersects(TypeFlags::TYPE_PARAMETER) {
         let r = c.compare_symbols_worker(t1.symbol(), t2.symbol());
         if r != Ordering::Equal {
             return r;
         }
-    } else if flags.intersects(TypeFlags::Index) {
+    } else if flags.intersects(TypeFlags::INDEX) {
         let r = compare_types(c, t1.as_index_type().target.get(), t2.as_index_type().target.get());
         if r != Ordering::Equal {
             return r;
@@ -879,7 +880,7 @@ fn compare_types_same_flags(c: &mut Checker, t1: P<Type>, t2: P<Type>) -> Orderi
         if r != Ordering::Equal {
             return r;
         }
-    } else if flags.intersects(TypeFlags::IndexedAccess) {
+    } else if flags.intersects(TypeFlags::INDEXED_ACCESS) {
         let r = compare_types(
             c,
             t1.as_indexed_access_type().object_type.get(),
@@ -896,7 +897,7 @@ fn compare_types_same_flags(c: &mut Checker, t1: P<Type>, t2: P<Type>) -> Orderi
         if r != Ordering::Equal {
             return r;
         }
-    } else if flags.intersects(TypeFlags::Conditional) {
+    } else if flags.intersects(TypeFlags::CONDITIONAL) {
         let r = c.compare_nodes(
             t1.as_conditional_type().root.get().unwrap().node.get(),
             t2.as_conditional_type().root.get().unwrap().node.get(),
@@ -912,7 +913,7 @@ fn compare_types_same_flags(c: &mut Checker, t1: P<Type>, t2: P<Type>) -> Orderi
         if r != Ordering::Equal {
             return r;
         }
-    } else if flags.intersects(TypeFlags::Substitution) {
+    } else if flags.intersects(TypeFlags::SUBSTITUTION) {
         let r = compare_types(
             c,
             t1.as_substitution_type().base_type.get(),
@@ -929,7 +930,7 @@ fn compare_types_same_flags(c: &mut Checker, t1: P<Type>, t2: P<Type>) -> Orderi
         if r != Ordering::Equal {
             return r;
         }
-    } else if flags.intersects(TypeFlags::TemplateLiteral) {
+    } else if flags.intersects(TypeFlags::TEMPLATE_LITERAL) {
         let r = t1
             .as_template_literal_type()
             .texts
@@ -946,7 +947,7 @@ fn compare_types_same_flags(c: &mut Checker, t1: P<Type>, t2: P<Type>) -> Orderi
         if r != Ordering::Equal {
             return r;
         }
-    } else if flags.intersects(TypeFlags::StringMapping) {
+    } else if flags.intersects(TypeFlags::STRING_MAPPING) {
         let r = compare_types(
             c,
             t1.as_string_mapping_type().target.get(),
@@ -993,10 +994,10 @@ fn literal_bool_value(t: P<Type>) -> bool {
 // utilities.go:624
 pub(crate) fn get_sort_order_flags(t: P<Type>) -> u32 {
     // Return TypeFlagsEnum for all enum-like unit types (they'll be sorted by their symbols)
-    if t.flags().intersects(TypeFlags::EnumLiteral | TypeFlags::Enum)
-        && !t.flags().intersects(TypeFlags::Union)
+    if t.flags().intersects(TypeFlags::ENUM_LITERAL | TypeFlags::ENUM)
+        && !t.flags().intersects(TypeFlags::UNION)
     {
-        return TypeFlags::Enum.bits();
+        return TypeFlags::ENUM.bits();
     }
     t.flags().bits()
 }
@@ -1041,8 +1042,8 @@ pub(crate) fn get_type_name_symbol(t: P<Type>) -> Option<P<Symbol>> {
     if let Some(alias) = t.alias() {
         return alias.symbol();
     }
-    if t.flags().intersects(TypeFlags::TypeParameter | TypeFlags::StringMapping)
-        || t.object_flags().intersects(ObjectFlags::ClassOrInterface | ObjectFlags::Reference)
+    if t.flags().intersects(TypeFlags::TYPE_PARAMETER | TypeFlags::STRING_MAPPING)
+        || t.object_flags().intersects(ObjectFlags::CLASS_OR_INTERFACE | ObjectFlags::REFERENCE)
     {
         return t.symbol();
     }
@@ -1172,12 +1173,12 @@ pub fn get_declaration_modifier_flags_from_symbol(s: P<Symbol>) -> ModifierFlags
 /// is not a class has neither (its accessibility modifiers are dropped below), so its declaration is not read.
 #[inline]
 pub(crate) fn get_declaration_non_public_flags_from_symbol(s: P<Symbol>) -> ModifierFlags {
-    if !s.check_flags().intersects(CheckFlags::Synthetic)
-        && !s.parent().is_some_and(|p| p.flags().intersects(SymbolFlags::Class))
+    if !s.check_flags().intersects(CheckFlags::SYNTHETIC)
+        && !s.parent().is_some_and(|p| p.flags().intersects(SymbolFlags::CLASS))
     {
-        return ModifierFlags::None;
+        return ModifierFlags::NONE;
     }
-    get_declaration_modifier_flags_from_symbol(s) & ModifierFlags::NonPublicAccessibilityModifier
+    get_declaration_modifier_flags_from_symbol(s) & ModifierFlags::NON_PUBLIC_ACCESSIBILITY_MODIFIER
 }
 
 // utilities.go:761
@@ -1186,23 +1187,23 @@ pub(crate) fn get_declaration_modifier_flags_from_symbol_ex(
     is_write: bool,
 ) -> ModifierFlags {
     let check_flags = s.check_flags();
-    if check_flags.intersects(CheckFlags::Synthetic) {
-        let mut access_modifier = ModifierFlags::None;
-        if !is_write && check_flags.intersects(CheckFlags::ContainsPublic)
-            || is_write && check_flags.intersects(CheckFlags::ContainsWritePublic)
+    if check_flags.intersects(CheckFlags::SYNTHETIC) {
+        let mut access_modifier = ModifierFlags::NONE;
+        if !is_write && check_flags.intersects(CheckFlags::CONTAINS_PUBLIC)
+            || is_write && check_flags.intersects(CheckFlags::CONTAINS_WRITE_PUBLIC)
         {
-            access_modifier = ModifierFlags::Public;
-        } else if !is_write && check_flags.intersects(CheckFlags::ContainsProtected)
-            || is_write && check_flags.intersects(CheckFlags::ContainsWriteProtected)
+            access_modifier = ModifierFlags::PUBLIC;
+        } else if !is_write && check_flags.intersects(CheckFlags::CONTAINS_PROTECTED)
+            || is_write && check_flags.intersects(CheckFlags::CONTAINS_WRITE_PROTECTED)
         {
-            access_modifier = ModifierFlags::Protected;
-        } else if !is_write && check_flags.intersects(CheckFlags::ContainsPrivate)
-            || is_write && check_flags.intersects(CheckFlags::ContainsWritePrivate)
+            access_modifier = ModifierFlags::PROTECTED;
+        } else if !is_write && check_flags.intersects(CheckFlags::CONTAINS_PRIVATE)
+            || is_write && check_flags.intersects(CheckFlags::CONTAINS_WRITE_PRIVATE)
         {
-            access_modifier = ModifierFlags::Private;
+            access_modifier = ModifierFlags::PRIVATE;
         }
-        if check_flags.intersects(CheckFlags::ContainsStatic) {
-            return access_modifier | ModifierFlags::Static;
+        if check_flags.intersects(CheckFlags::CONTAINS_STATIC) {
+            return access_modifier | ModifierFlags::STATIC;
         }
         return access_modifier;
     }
@@ -1212,23 +1213,23 @@ pub(crate) fn get_declaration_modifier_flags_from_symbol_ex(
             declaration =
                 s.declarations().iter().copied().find(|&d| ast::is_set_accessor_declaration(d));
         }
-        if declaration.is_none() && s.flags().intersects(SymbolFlags::GetAccessor) {
+        if declaration.is_none() && s.flags().intersects(SymbolFlags::GET_ACCESSOR) {
             declaration =
                 s.declarations().iter().copied().find(|&d| ast::is_get_accessor_declaration(d));
         }
         let declaration = declaration.unwrap_or(value_declaration);
         let flags = ast::get_combined_modifier_flags(declaration);
         if let Some(parent) = s.parent() {
-            if parent.flags().intersects(SymbolFlags::Class) {
+            if parent.flags().intersects(SymbolFlags::CLASS) {
                 return flags;
             }
         }
-        return flags & !ModifierFlags::AccessibilityModifier;
+        return flags & !ModifierFlags::ACCESSIBILITY_MODIFIER;
     }
-    if s.flags().intersects(SymbolFlags::Prototype) {
-        return ModifierFlags::Public | ModifierFlags::Static;
+    if s.flags().intersects(SymbolFlags::PROTOTYPE) {
+        return ModifierFlags::PUBLIC | ModifierFlags::STATIC;
     }
-    ModifierFlags::None
+    ModifierFlags::NONE
 }
 
 // utilities.go:800
@@ -1270,16 +1271,16 @@ pub(crate) fn is_shift_operator_or_higher(kind: Kind) -> bool {
 
 // utilities.go:867
 pub(crate) fn is_object_literal_type(t: P<Type>) -> bool {
-    t.object_flags().intersects(ObjectFlags::ObjectLiteral)
+    t.object_flags().intersects(ObjectFlags::OBJECT_LITERAL)
 }
 
 // utilities.go:871
 pub(crate) fn is_declaration_readonly(declaration: P<Node>) -> bool {
-    ast::get_combined_modifier_flags(declaration).intersects(ModifierFlags::Readonly)
+    ast::get_combined_modifier_flags(declaration).intersects(ModifierFlags::READONLY)
         && !ast::is_parameter_property_declaration(declaration, declaration.parent().unwrap())
 }
 
-impl<T: Copy + Eq + std::hash::Hash> orderedSet<T> {
+impl<T: Copy + Eq + std::hash::Hash> CheckerOrderedSet<T> {
     // utilities.go:884
     pub(crate) fn contains(&self, value: T) -> bool {
         match &self.values_by_key {
@@ -1294,7 +1295,7 @@ impl<T: Copy + Eq + std::hash::Hash> orderedSet<T> {
         // Small sets are served by a linear scan over values; only materialize the map once the set
         // grows large enough for hashing to win.
         if self.values_by_key.is_none() {
-            if self.values.len() <= orderedSetMapThreshold {
+            if self.values.len() <= ORDERED_SET_MAP_THRESHOLD {
                 return;
             }
             let mut m =
@@ -1325,19 +1326,19 @@ pub(crate) fn is_node_descendant_of(node: Option<P<Node>>, ancestor: P<Node>) ->
 
 // utilities.go:922
 pub fn is_type_usable_as_property_name(t: P<Type>) -> bool {
-    t.flags().intersects(TypeFlags::StringOrNumberLiteralOrUnique)
+    t.flags().intersects(TypeFlags::STRING_OR_NUMBER_LITERAL_OR_UNIQUE)
 }
 
 // Gets the symbolic name for a member from its type.
 // utilities.go:929
 pub fn get_property_name_from_type(t: P<Type>) -> std::borrow::Cow<'static, str> {
-    if t.flags().intersects(TypeFlags::StringLiteral) {
+    if t.flags().intersects(TypeFlags::STRING_LITERAL) {
         return literal_string_value(t).into();
     }
-    if t.flags().intersects(TypeFlags::NumberLiteral) {
+    if t.flags().intersects(TypeFlags::NUMBER_LITERAL) {
         return literal_number_value(t).string().into();
     }
-    if t.flags().intersects(TypeFlags::UniqueESSymbol) {
+    if t.flags().intersects(TypeFlags::UNIQUE_ES_SYMBOL) {
         return t.as_unique_es_symbol_type().name.get().into();
     }
     panic!("Unhandled case in getPropertyNameFromType")
@@ -1409,7 +1410,7 @@ pub(crate) fn is_valid_big_int_string(s: &str, round_trip_only: bool) -> bool {
     success
         && result == Kind::BigIntLiteral
         && scanner.token_end() == s.len() as u32 + 1
-        && !flags.intersects(TokenFlags::ContainsSeparator)
+        && !flags.intersects(TokenFlags::CONTAINS_SEPARATOR)
         && (!round_trip_only
             || s == pseudo_big_int_to_string(jsnum::new_pseudo_big_int(
                 &jsnum::parse_pseudo_big_int(scanner.token_value()),
@@ -1449,20 +1450,20 @@ pub fn is_private_identifier_symbol(symbol: Option<P<Symbol>>) -> bool {
     };
     let name = symbol.name();
     name.len() >= 2
-        && name.as_bytes()[0] == InternalSymbolNamePrefixByte
+        && name.as_bytes()[0] == INTERNAL_SYMBOL_NAME_PREFIX_BYTE
         && name.as_bytes()[1] == b'#'
 }
 
 // utilities.go:1029
 pub(crate) fn is_late_bound_name(name: &str) -> bool {
     name.len() >= 2
-        && name.as_bytes()[0] == InternalSymbolNamePrefixByte
+        && name.as_bytes()[0] == INTERNAL_SYMBOL_NAME_PREFIX_BYTE
         && name.as_bytes()[1] == b'@'
 }
 
 // utilities.go:1033
 pub(crate) fn is_object_or_array_literal_type(t: P<Type>) -> bool {
-    t.object_flags().intersects(ObjectFlags::ObjectLiteral | ObjectFlags::ArrayLiteral)
+    t.object_flags().intersects(ObjectFlags::OBJECT_LITERAL | ObjectFlags::ARRAY_LITERAL)
 }
 
 // utilities.go:1037
@@ -1487,7 +1488,7 @@ pub(crate) fn get_containing_class_excluding_class_decorators(node: P<Node>) -> 
 
 // utilities.go:1056
 pub(crate) fn is_this_type_parameter(t: P<Type>) -> bool {
-    t.flags().intersects(TypeFlags::TypeParameter) && t.as_type_parameter().is_this_type.get()
+    t.flags().intersects(TypeFlags::TYPE_PARAMETER) && t.as_type_parameter().is_this_type.get()
 }
 
 // utilities.go:1060
@@ -1530,8 +1531,8 @@ pub(crate) fn is_this_initialized_declaration(node: Option<P<Node>>) -> bool {
 impl Checker {
     // utilities.go:1083
     pub(crate) fn is_constant_variable(&mut self, symbol: P<Symbol>) -> bool {
-        symbol.flags().intersects(SymbolFlags::Variable)
-            && self.get_declaration_node_flags_from_symbol(symbol).intersects(NodeFlags::Constant)
+        symbol.flags().intersects(SymbolFlags::VARIABLE)
+            && self.get_declaration_node_flags_from_symbol(symbol).intersects(NodeFlags::CONSTANT)
     }
 
     // utilities.go:1087
@@ -1551,8 +1552,8 @@ impl Checker {
     pub(crate) fn is_mutable_local_variable_declaration(declaration: P<Node>) -> bool {
         // Return true if symbol is a non-exported and non-global `let` variable
         let parent = declaration.parent().unwrap();
-        parent.flags().intersects(NodeFlags::Let)
-            && !(ast::get_combined_modifier_flags(declaration).intersects(ModifierFlags::Export)
+        parent.flags().intersects(NodeFlags::LET)
+            && !(ast::get_combined_modifier_flags(declaration).intersects(ModifierFlags::EXPORT)
                 || parent.parent().unwrap().kind() == Kind::VariableStatement
                     && ast::is_global_source_file(parent.parent().unwrap().parent().unwrap()))
     }
@@ -1560,7 +1561,7 @@ impl Checker {
 
 // utilities.go:1101
 pub(crate) fn is_in_ambient_or_type_node(node: P<Node>) -> bool {
-    node.flags().intersects(NodeFlags::Ambient)
+    node.flags().intersects(NodeFlags::AMBIENT)
         || ast::find_ancestor(node, |n| {
             ast::is_interface_declaration(n)
                 || ast::is_type_or_js_type_alias_declaration(n)
@@ -1593,7 +1594,7 @@ pub(crate) fn get_binding_element_property_name(node: P<Node>) -> Option<P<Node>
 
 // utilities.go:1128
 pub(crate) fn is_call_chain(node: P<Node>) -> bool {
-    ast::is_call_expression(node) && node.flags().intersects(NodeFlags::OptionalChain)
+    ast::is_call_expression(node) && node.flags().intersects(NodeFlags::OPTIONAL_CHAIN)
 }
 
 impl Checker {
@@ -1825,7 +1826,7 @@ pub(crate) fn for_each_yield_expression(
 // utilities.go:1298
 pub(crate) fn get_enclosing_container(node: P<Node>) -> Option<P<Node>> {
     ast::find_ancestor(node.parent(), |n| {
-        tsrs_binder::get_container_flags(n).intersects(tsrs_binder::ContainerFlags::IsContainer)
+        tsrs_binder::get_container_flags(n).intersects(tsrs_binder::ContainerFlags::IS_CONTAINER)
     })
 }
 
@@ -1930,8 +1931,8 @@ pub(crate) fn all_declarations_in_same_source_file(symbol: P<Symbol>) -> bool {
 // utilities.go:1647
 pub(crate) fn contains_non_missing_undefined_type(c: &Checker, t: P<Type>) -> bool {
     let candidate =
-        if t.flags().intersects(TypeFlags::Union) { t.as_union_type().types.get()[0] } else { t };
-    candidate.flags().intersects(TypeFlags::Undefined) && candidate != c.missing_type
+        if t.flags().intersects(TypeFlags::UNION) { t.as_union_type().types.get()[0] } else { t };
+    candidate.flags().intersects(TypeFlags::UNDEFINED) && candidate != c.missing_type
 }
 
 // utilities.go:1657
@@ -1951,7 +1952,7 @@ pub(crate) fn get_any_import_syntax(node: P<Node>) -> Option<P<Node>> {
 // utilities.go:1677
 pub(crate) fn is_reserved_member_name(name: &str) -> bool {
     let b = name.as_bytes();
-    b.len() >= 2 && b[0] == InternalSymbolNamePrefixByte && b[1] != b'@' && b[1] != b'#'
+    b.len() >= 2 && b[0] == INTERNAL_SYMBOL_NAME_PREFIX_BYTE && b[1] != b'@' && b[1] != b'#'
 }
 
 // utilities.go:1681
@@ -1983,7 +1984,7 @@ pub(crate) fn symbols_to_array(symbols: Option<P<SymbolTable>>) -> Vec<P<Symbol>
 
 // utilities.go:1700
 pub fn skip_alias(symbol: P<Symbol>, checker: &mut Checker) -> P<Symbol> {
-    if symbol.flags().intersects(SymbolFlags::Alias) {
+    if symbol.flags().intersects(SymbolFlags::ALIAS) {
         return checker.get_aliased_symbol(symbol);
     }
     symbol
@@ -2076,7 +2077,7 @@ impl Checker {
                     && declaration_file.is_some()
                     && ast::is_global_source_file(declaration_file.unwrap().as_node())
                     || exclude_classes
-                        && matches!(suggestion, Some(s) if s.flags().intersects(SymbolFlags::Class))
+                        && matches!(suggestion, Some(s) if s.flags().intersects(SymbolFlags::CLASS))
                         && suggestion_has_no_extends_or_decorators)
                     && !(matches!(node, Some(n) if exclude_classes && ast::is_property_access_expression(n) && n.expression().unwrap().kind() == Kind::ThisKeyword)
                         && suggestion_has_no_extends_or_decorators);
@@ -2098,13 +2099,13 @@ impl Checker {
             return false;
             // Flag is meaningless under `noImplicitAny` mode
         }
-        if t.object_flags().intersects(ObjectFlags::JSLiteral) {
+        if t.object_flags().intersects(ObjectFlags::JS_LITERAL) {
             return true;
         }
-        if t.flags().intersects(TypeFlags::Union) {
+        if t.flags().intersects(TypeFlags::UNION) {
             return t.as_union_type().types.get().iter().all(|&t| self.is_js_literal_type(t));
         }
-        if t.flags().intersects(TypeFlags::Intersection) {
+        if t.flags().intersects(TypeFlags::INTERSECTION) {
             return t
                 .as_intersection_type()
                 .types
@@ -2112,7 +2113,7 @@ impl Checker {
                 .iter()
                 .any(|&t| self.is_js_literal_type(t));
         }
-        if t.flags().intersects(TypeFlags::Instantiable) {
+        if t.flags().intersects(TypeFlags::INSTANTIABLE) {
             let constraint = self
                 .get_resolved_base_constraint(t, crate::checker_13::BaseConstraintStack::default());
             return constraint != t && self.is_js_literal_type(constraint);
@@ -2143,7 +2144,7 @@ pub fn create_module_not_found_chain(
                     "@types/".to_string() + &tsrs_module::mangle_scoped_package_name(&package_name);
             }
             return DiagnosticDetails {
-                message: &diagnostics::There_are_types_at_0_but_this_result_could_not_be_resolved_when_respecting_package_json_exports_The_1_library_may_need_to_update_its_package_json_or_typings,
+                message: &diagnostics::THERE_ARE_TYPES_AT_0_BUT_THIS_RESULT_COULD_NOT_BE_RESOLVED_WHEN_RESPECTING_PACKAGE_JSON_EXPORTS_THE_1_LIBRARY_MAY_NEED_TO_UPDATE_ITS_PACKAGE_JSON_OR_TYPINGS,
                 args: vec![resolved_module.alternate_result.to_string(), package_name],
             };
         }
@@ -2152,18 +2153,18 @@ pub fn create_module_not_found_chain(
     let packages_map = program.get_packages_map();
     if packages_map.contains_key(&tsrs_module::get_types_package_name(&package_name)) {
         return DiagnosticDetails {
-            message: &diagnostics::If_the_0_package_actually_exposes_this_module_consider_sending_a_pull_request_to_amend_https_Colon_Slash_Slashgithub_com_SlashDefinitelyTyped_SlashDefinitelyTyped_Slashtree_Slashmaster_Slashtypes_Slash_1,
+            message: &diagnostics::IF_THE_0_PACKAGE_ACTUALLY_EXPOSES_THIS_MODULE_CONSIDER_SENDING_A_PULL_REQUEST_TO_AMEND_HTTPS_COLON_SLASH_SLASHGITHUB_COM_SLASH_DEFINITELY_TYPED_SLASH_DEFINITELY_TYPED_SLASHTREE_SLASHMASTER_SLASHTYPES_SLASH_1,
             args: vec![package_name.clone(), tsrs_module::mangle_scoped_package_name(&package_name)],
         };
     }
     if packages_map.get(&package_name).copied().unwrap_or(false) {
         return DiagnosticDetails {
-            message: &diagnostics::If_the_0_package_actually_exposes_this_module_try_adding_a_new_declaration_d_ts_file_containing_declare_module_1,
+            message: &diagnostics::IF_THE_0_PACKAGE_ACTUALLY_EXPOSES_THIS_MODULE_TRY_ADDING_A_NEW_DECLARATION_D_TS_FILE_CONTAINING_DECLARE_MODULE_1,
             args: vec![package_name, module_reference.to_string()],
         };
     }
     DiagnosticDetails {
-        message: &diagnostics::Try_npm_i_save_dev_types_Slash_1_if_it_exists_or_add_a_new_declaration_d_ts_file_containing_declare_module_0,
+        message: &diagnostics::TRY_NPM_I_SAVE_DEV_TYPES_SLASH_1_IF_IT_EXISTS_OR_ADD_A_NEW_DECLARATION_D_TS_FILE_CONTAINING_DECLARE_MODULE_0,
         args: vec![module_reference.to_string(), tsrs_module::mangle_scoped_package_name(&package_name)],
     }
 }
@@ -2192,23 +2193,23 @@ pub fn create_mode_mismatch_details(
     if !package_json_directory.is_empty() && package_json_type.is_empty() {
         if !target_ext.is_empty() {
             return DiagnosticDetails {
-                message: &diagnostics::To_convert_this_file_to_an_ECMAScript_module_change_its_file_extension_to_0_or_add_the_field_type_Colon_module_to_1,
+                message: &diagnostics::TO_CONVERT_THIS_FILE_TO_AN_ECMA_SCRIPT_MODULE_CHANGE_ITS_FILE_EXTENSION_TO_0_OR_ADD_THE_FIELD_TYPE_COLON_MODULE_TO_1,
                 args: vec![target_ext.to_string(), tspath::combine_paths(&package_json_directory, &["package.json"])],
             };
         }
         return DiagnosticDetails {
-            message: &diagnostics::To_convert_this_file_to_an_ECMAScript_module_add_the_field_type_Colon_module_to_0,
+            message: &diagnostics::TO_CONVERT_THIS_FILE_TO_AN_ECMA_SCRIPT_MODULE_ADD_THE_FIELD_TYPE_COLON_MODULE_TO_0,
             args: vec![tspath::combine_paths(&package_json_directory, &["package.json"])],
         };
     }
     if !target_ext.is_empty() {
         return DiagnosticDetails {
-            message: &diagnostics::To_convert_this_file_to_an_ECMAScript_module_change_its_file_extension_to_0_or_create_a_local_package_json_file_with_type_Colon_module,
+            message: &diagnostics::TO_CONVERT_THIS_FILE_TO_AN_ECMA_SCRIPT_MODULE_CHANGE_ITS_FILE_EXTENSION_TO_0_OR_CREATE_A_LOCAL_PACKAGE_JSON_FILE_WITH_TYPE_COLON_MODULE,
             args: vec![target_ext.to_string()],
         };
     }
     DiagnosticDetails {
-        message: &diagnostics::To_convert_this_file_to_an_ECMAScript_module_create_a_local_package_json_file_with_type_Colon_module,
+        message: &diagnostics::TO_CONVERT_THIS_FILE_TO_AN_ECMA_SCRIPT_MODULE_CREATE_A_LOCAL_PACKAGE_JSON_FILE_WITH_TYPE_COLON_MODULE,
         args: Vec::new(),
     }
 }
@@ -2217,7 +2218,7 @@ pub fn create_mode_mismatch_details(
 pub(crate) fn walk_up_outer_expressions(node: P<Node>) -> Option<P<Node>> {
     let mut parent = node.parent();
     while let Some(p) = parent {
-        if !ast::is_outer_expression(p, OuterExpressionKinds::All) {
+        if !ast::is_outer_expression(p, OuterExpressionKinds::ALL) {
             break;
         }
         parent = p.parent();

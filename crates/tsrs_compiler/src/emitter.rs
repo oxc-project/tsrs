@@ -193,7 +193,7 @@ mod emit {
     }
 
     // emitter.go:33
-    pub(crate) struct emitter<'a> {
+    pub(crate) struct Emitter<'a> {
         pub(crate) host: &'static EmitHost,
         pub(crate) emit_only: EmitOnly,
         pub(crate) emitter_diagnostics: DiagnosticsCollection,
@@ -203,9 +203,9 @@ mod emit {
         pub(crate) force_emit: bool,
         pub(crate) write_file: Option<WriteFile<'a>>,
         pub(crate) times: &'a EmitTimes,
-        pub(crate) pending_js: Option<pendingPrint>,
+        pub(crate) pending_js: Option<PendingPrint>,
         pub(crate) declaration_diagnostics: Vec<P<Diagnostic>>,
-        pub(crate) pending_declaration: Option<pendingPrint>,
+        pub(crate) pending_declaration: Option<PendingPrint>,
         pub(crate) emit_context: P<EmitContext>,
     }
 
@@ -218,7 +218,7 @@ mod emit {
     // tsrs-only: what printing a transformed file needs. Go prints and writes each file while it still holds the
     // file's checker; tsrs splits `emit` into `transform` (needs the checker) and `print` (does not), so that
     // `Program::emit` can print and write on another thread while the checker transforms the next file.
-    pub(crate) struct pendingPrint {
+    pub(crate) struct PendingPrint {
         source_file: P<SourceFile>,
         emit_context: P<EmitContext>,
         printer_options: PrinterOptions,
@@ -236,7 +236,7 @@ mod emit {
         dyn Fn(printer::SourceMapSource, u32) -> Option<(printer::SourceMapSource, u32)> + Send,
     >;
 
-    impl emitter<'_> {
+    impl Emitter<'_> {
         // emitter.go:46 `emit` is `transform` followed by `print`. This part runs the transformers (and so needs the
         // file's checker).
         pub(crate) fn transform(&mut self) {
@@ -275,7 +275,7 @@ mod emit {
 
         fn print_pending(
             &mut self,
-            mut pending: pendingPrint,
+            mut pending: PendingPrint,
             writer: &mut (dyn EmitTextWriter + 'static),
         ) {
             // create a printer to print the nodes
@@ -403,7 +403,7 @@ mod emit {
             };
 
             // the printer is created, and the file printed, in `print`
-            self.pending_js = Some(pendingPrint {
+            self.pending_js = Some(PendingPrint {
                 source_file,
                 emit_context,
                 printer_options,
@@ -482,7 +482,7 @@ mod emit {
             if let Some(span_map) =
                 content_mapped_source.span_map().filter(|_| emit_declaration_map)
             {
-                let original_source: &'static declarationMapSource =
+                let original_source: &'static DeclarationMapSource =
                     new_declaration_map_source(content_mapped_source);
                 let content_mapped_file_name = content_mapped_source.get().file_name();
                 map_source_position =
@@ -506,7 +506,7 @@ mod emit {
                 ..Default::default()
             };
             let should_emit = should_emit_source_maps(&declaration_map_options, source_file);
-            self.pending_declaration = Some(pendingPrint {
+            self.pending_declaration = Some(PendingPrint {
                 source_file,
                 emit_context,
                 printer_options,
@@ -600,7 +600,7 @@ mod emit {
                     match err {
                         Err(err) => {
                             self.emitter_diagnostics.add(new_compiler_diagnostic(
-                                &diagnostics::Could_not_write_file_0_Colon_1,
+                                &diagnostics::COULD_NOT_WRITE_FILE_0_COLON_1,
                                 &[&js_file_path, &err],
                             ));
                         }
@@ -631,7 +631,7 @@ mod emit {
             match err {
                 Err(err) => {
                     self.emitter_diagnostics.add(new_compiler_diagnostic(
-                        &diagnostics::Could_not_write_file_0_Colon_1,
+                        &diagnostics::COULD_NOT_WRITE_FILE_0_COLON_1,
                         &[&js_file_path, &err],
                     ));
                 }
@@ -756,7 +756,7 @@ mod emit {
 
     // emitter.go:295
     // Go `declarationMapSource`: the original (content-mapped) source a declaration map points at.
-    pub(crate) struct declarationMapSource {
+    pub(crate) struct DeclarationMapSource {
         pub(crate) file_name: String,
         pub(crate) text: &'static str,
         pub(crate) line_map: Vec<u32>,
@@ -765,9 +765,9 @@ mod emit {
     // emitter.go:301
     pub(crate) fn new_declaration_map_source(
         source_file: P<SourceFile>,
-    ) -> &'static declarationMapSource {
+    ) -> &'static DeclarationMapSource {
         let text = source_file.original_text();
-        P::new(declarationMapSource {
+        P::new(DeclarationMapSource {
             file_name: source_file.original_file_name().to_string(),
             text,
             line_map: tsrs_core::compute_ecma_line_starts(text),
@@ -775,7 +775,7 @@ mod emit {
         .get()
     }
 
-    impl tsrs_sourcemap::Source for declarationMapSource {
+    impl tsrs_sourcemap::Source for DeclarationMapSource {
         // emitter.go:310
         fn file_name(&self) -> &str {
             &self.file_name
@@ -793,19 +793,19 @@ mod emit {
     // emitter.go:93
     fn get_module_transformer(opts: &TransformOptions) -> Option<P<Transformer>> {
         match opts.compiler_options.get_emit_module_kind() {
-            ModuleKind::Preserve => {
+            ModuleKind::PRESERVE => {
                 // `ESModuleTransformer` contains logic for preserving CJS input syntax in `--module preserve`
                 moduletransforms::new_es_module_transformer(opts)
             }
-            ModuleKind::ESNext
+            ModuleKind::ES_NEXT
             | ModuleKind::ES2022
             | ModuleKind::ES2020
             | ModuleKind::ES2015
-            | ModuleKind::Node20
-            | ModuleKind::Node18
-            | ModuleKind::Node16
-            | ModuleKind::NodeNext
-            | ModuleKind::CommonJS => moduletransforms::new_implied_module_transformer(opts),
+            | ModuleKind::NODE20
+            | ModuleKind::NODE18
+            | ModuleKind::NODE16
+            | ModuleKind::NODE_NEXT
+            | ModuleKind::COMMON_JS => moduletransforms::new_implied_module_transformer(opts),
             _ => moduletransforms::new_common_js_module_transformer(opts),
         }
     }

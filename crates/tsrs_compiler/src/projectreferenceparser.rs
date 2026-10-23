@@ -6,28 +6,28 @@ use tsrs_core::tspath::{self, Path};
 use tsrs_tsoptions::ParsedCommandLine;
 
 use crate::host::CompilerHost;
-use crate::projectreferencefilemapper::projectReferenceFileMapper;
+use crate::projectreferencefilemapper::ProjectReferenceFileMapper;
 
 // Go's tasks are shared pointers (a deduplicated task appears in several subTasks lists); here they live in
 // `projectReferenceParser.tasks` and are referenced by index.
-type taskId = usize;
+type TaskId = usize;
 
-struct projectReferenceParseTask {
+struct ProjectReferenceParseTask {
     config_name: String,
     resolved: Option<P<ParsedCommandLine>>,
-    sub_tasks: Vec<taskId>,
+    sub_tasks: Vec<TaskId>,
 }
 
 // projectreferenceparser.go:13
-pub(crate) struct projectReferenceParser<'a> {
+pub(crate) struct ProjectReferenceParser<'a> {
     host: &'a dyn CompilerHost,
-    tasks: Vec<projectReferenceParseTask>,
-    tasks_by_file_name: FxHashMap<Path, taskId>,
+    tasks: Vec<ProjectReferenceParseTask>,
+    tasks_by_file_name: FxHashMap<Path, TaskId>,
 }
 
-impl<'a> projectReferenceParser<'a> {
-    pub(crate) fn new(host: &'a dyn CompilerHost) -> projectReferenceParser<'a> {
-        projectReferenceParser { host, tasks: Vec::new(), tasks_by_file_name: FxHashMap::default() }
+impl<'a> ProjectReferenceParser<'a> {
+    pub(crate) fn new(host: &'a dyn CompilerHost) -> ProjectReferenceParser<'a> {
+        ProjectReferenceParser { host, tasks: Vec::new(), tasks_by_file_name: FxHashMap::default() }
     }
 
     fn to_path(&self, file_name: &str) -> Path {
@@ -39,7 +39,7 @@ impl<'a> projectReferenceParser<'a> {
     }
 
     // projectreferenceparser.go:19
-    fn parse_task(&mut self, task: taskId) {
+    fn parse_task(&mut self, task: TaskId) {
         let config_name = self.tasks[task].config_name.clone();
         let path = self.to_path(&config_name);
         let resolved = self.host.get_resolved_project_reference(&config_name, path);
@@ -58,11 +58,11 @@ impl<'a> projectReferenceParser<'a> {
     pub(crate) fn create_project_reference_parse_tasks(
         &mut self,
         project_references: &[String],
-    ) -> Vec<taskId> {
+    ) -> Vec<TaskId> {
         project_references
             .iter()
             .map(|config_name| {
-                self.tasks.push(projectReferenceParseTask {
+                self.tasks.push(ProjectReferenceParseTask {
                     config_name: config_name.clone(),
                     resolved: None,
                     sub_tasks: Vec::new(),
@@ -74,13 +74,13 @@ impl<'a> projectReferenceParser<'a> {
 
     // projectreferenceparser.go:48 (Go parses the tasks on a work group; here they are parsed in queue order on the
     // calling thread, which gives the same deduplication and mapper contents)
-    pub(crate) fn parse(&mut self, tasks: &mut [taskId], mapper: &mut projectReferenceFileMapper) {
+    pub(crate) fn parse(&mut self, tasks: &mut [TaskId], mapper: &mut ProjectReferenceFileMapper) {
         self.start(tasks);
         self.init_mapper(tasks, mapper);
     }
 
     // projectreferenceparser.go:54
-    fn start(&mut self, tasks: &mut [taskId]) {
+    fn start(&mut self, tasks: &mut [TaskId]) {
         for task_slot in tasks.iter_mut() {
             let task = *task_slot;
             let path = self.to_path(&self.tasks[task].config_name);
@@ -102,7 +102,7 @@ impl<'a> projectReferenceParser<'a> {
     }
 
     // projectreferenceparser.go:68
-    fn init_mapper(&self, tasks: &[taskId], mapper: &mut projectReferenceFileMapper) {
+    fn init_mapper(&self, tasks: &[TaskId], mapper: &mut ProjectReferenceFileMapper) {
         let total_references = self.tasks_by_file_name.len() + 1;
         mapper.config_to_project_reference =
             FxHashMap::with_capacity_and_hasher(total_references, rustc_hash::FxBuildHasher);
@@ -117,9 +117,9 @@ impl<'a> projectReferenceParser<'a> {
     // projectreferenceparser.go:78
     fn init_mapper_worker(
         &self,
-        tasks: &[taskId],
-        seen: &mut FxHashSet<taskId>,
-        mapper: &mut projectReferenceFileMapper,
+        tasks: &[TaskId],
+        seen: &mut FxHashSet<TaskId>,
+        mapper: &mut ProjectReferenceFileMapper,
     ) -> Vec<Path> {
         if tasks.is_empty() {
             return Vec::new();

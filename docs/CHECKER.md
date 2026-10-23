@@ -158,10 +158,10 @@ take `&self`, so Go's nested calls port as written: `b.f.new_type_reference_node
 `b.f.new_node_list(vec![…])`, `node.clone_node(&b.f)`, `b.f.deep_clone_node(Some(n))`. `ast.ReplaceModifiers(f, …)`
 is `replace_modifiers(&b.f, node, modifiers)`, `ast.CreateModifiersFromModifierFlags(flags, f.NewModifier)` is
 `create_modifiers_from_modifier_flags(flags, |k| b.f.new_modifier(k))`. `b.e` is `P<EmitContext>`; its methods take
-`&self`: `b.e.add_emit_flags(node, EmitFlags::NoAsciiEscaping)`, `set_emit_flags`, `original(node) -> Option`,
+`&self`: `b.e.add_emit_flags(node, EmitFlags::NO_ASCII_ESCAPING)`, `set_emit_flags`, `original(node) -> Option`,
 `most_original(Option<P<Node>>) -> Option<P<Node>>` (Go nil in, nil out), `set_original_ex(node, original, allow_overwrite)`,
 `assign_comment_range(to, from)`, `add_synthetic_leading_comment(node, kind, text, has_trailing_new_line) -> P<Node>`
-(and `_trailing_`). `printer.EFSingleLine` -> `EmitFlags::SingleLine`.
+(and `_trailing_`). `printer.EFSingleLine` -> `EmitFlags::SINGLE_LINE`.
 
 **The `tsrs_printer` seam.** The checker names the printer crate (API documented at the top of
 `crates/tsrs_printer/src/lib.rs`) only through the re-exports at the top of printer_types.rs: `EmitContext`,

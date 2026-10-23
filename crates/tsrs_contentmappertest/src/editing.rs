@@ -7,14 +7,14 @@ use tsrs_ipc as ipc;
 use tsrs_spanmap::{Feature, Kind, Segment};
 
 use crate::protocol::{
-    initialize_result, marshal_span_map, no_notifications, testHandler, unexpected_method,
+    TestHandler, initialize_result, marshal_span_map, no_notifications, unexpected_method,
     unmarshal_params,
 };
 
 // editing.go:15
-pub(crate) struct prefixedSupplementalHandler;
+pub(crate) struct PrefixedSupplementalHandler;
 
-impl testHandler for prefixedSupplementalHandler {}
+impl TestHandler for PrefixedSupplementalHandler {}
 
 // A verbatim segment with every feature, the shape most of editing.go's segments have.
 fn verbatim_segment(
@@ -28,12 +28,12 @@ fn verbatim_segment(
         virtual_end: virtual_end as u32,
         original_start: original_start as u32,
         original_end: original_end as u32,
-        kind: Kind::Verbatim,
-        features: Feature::All,
+        kind: Kind::VERBATIM,
+        features: Feature::ALL,
     }
 }
 
-impl ipc::Handler for prefixedSupplementalHandler {
+impl ipc::Handler for PrefixedSupplementalHandler {
     // editing.go:17
     fn handle_request(&self, method: &str, params: Option<&Value>) -> Result<Value, ipc::Error> {
         match method {
@@ -42,12 +42,12 @@ impl ipc::Handler for prefixedSupplementalHandler {
                 let p: TransformParams = unmarshal_params(params)?;
                 let content = p.content.as_str();
                 const PREFIX: &str = "/* generated */\n";
-                let mut features = Feature::All;
+                let mut features = Feature::ALL;
                 if p.file_name.contains("folding-disabled")
                     || p.file_name.contains("codelens-disabled")
                     || p.file_name.contains("formatting-disabled")
                 {
-                    features = Feature::None;
+                    features = Feature::NONE;
                 }
                 let mut supplemental_text = format!("{PREFIX}{content}");
                 let mut segments = vec![Segment {
@@ -168,11 +168,11 @@ impl ipc::Handler for prefixedSupplementalHandler {
 }
 
 // editing.go:139
-pub(crate) struct unmappedFoldingHandler;
+pub(crate) struct UnmappedFoldingHandler;
 
-impl testHandler for unmappedFoldingHandler {}
+impl TestHandler for UnmappedFoldingHandler {}
 
-impl ipc::Handler for unmappedFoldingHandler {
+impl ipc::Handler for UnmappedFoldingHandler {
     // editing.go:141
     fn handle_request(&self, method: &str, _params: Option<&Value>) -> Result<Value, ipc::Error> {
         match method {

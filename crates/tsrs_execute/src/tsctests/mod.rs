@@ -32,28 +32,28 @@ use sys::{TestClock, TestSys};
 
 const TSC_LIB_PATH: &str = "/home/src/tslibs/TS/Lib";
 
-struct scenarioFile {
+struct ScenarioFile {
     path: String,
     content: String,
     symlink: String,
 }
 
-struct scenarioOp {
+struct ScenarioOp {
     op: String,
     path: String,
     content: String,
     target: String,
 }
 
-struct scenarioEdit {
+struct ScenarioEdit {
     caption: String,
     args: Option<Vec<String>>,
     expected_diff: String,
-    ops: Vec<scenarioOp>,
-    fresh_ops: Vec<scenarioOp>,
+    ops: Vec<ScenarioOp>,
+    fresh_ops: Vec<ScenarioOp>,
 }
 
-struct scenario {
+struct Scenario {
     baseline: String,
     args: Vec<String>,
     cwd: String,
@@ -61,9 +61,9 @@ struct scenario {
     output_is_tty: Option<bool>,
     ignore_case: bool,
     windows_style_root: String,
-    files: Vec<scenarioFile>,
+    files: Vec<ScenarioFile>,
     default_libs: Vec<String>,
-    edits: Vec<scenarioEdit>,
+    edits: Vec<ScenarioEdit>,
     // tsrs-only: run the watch's signature job after each cycle (`CommandLineTesting::run_signature_job`).
     signature_job: bool,
 }
@@ -82,13 +82,13 @@ fn strings(v: Option<&Value>) -> Option<Vec<String>> {
     }
 }
 
-fn ops(v: Option<&Value>) -> Vec<scenarioOp> {
+fn ops(v: Option<&Value>) -> Vec<ScenarioOp> {
     match v {
         Some(Value::Array(a)) => a
             .iter()
             .map(|o| {
                 let Value::Object(o) = o else { panic!("op") };
-                scenarioOp {
+                ScenarioOp {
                     op: s(o.get("op")),
                     path: s(o.get("path")),
                     content: s(o.get("content")),
@@ -100,7 +100,7 @@ fn ops(v: Option<&Value>) -> Vec<scenarioOp> {
     }
 }
 
-fn load_scenario(path: &FsPath) -> scenario {
+fn load_scenario(path: &FsPath) -> Scenario {
     let text = tsrs_core::utf8::read_to_string(path).unwrap();
     let Value::Object(o) = tsrs_core::json::unmarshal(&text).unwrap() else { panic!("scenario") };
     let mut env = FxHashMap::default();
@@ -112,7 +112,7 @@ fn load_scenario(path: &FsPath) -> scenario {
             .iter()
             .map(|f| {
                 let Value::Object(f) = f else { panic!("file") };
-                scenarioFile {
+                ScenarioFile {
                     path: s(f.get("path")),
                     content: s(f.get("content")),
                     symlink: s(f.get("symlink")),
@@ -126,7 +126,7 @@ fn load_scenario(path: &FsPath) -> scenario {
             .iter()
             .map(|e| {
                 let Value::Object(e) = e else { panic!("edit") };
-                scenarioEdit {
+                ScenarioEdit {
                     caption: s(e.get("caption")),
                     args: strings(e.get("args")),
                     expected_diff: s(e.get("expectedDiff")),
@@ -137,7 +137,7 @@ fn load_scenario(path: &FsPath) -> scenario {
             .collect(),
         _ => Vec::new(),
     };
-    scenario {
+    Scenario {
         baseline: s(o.get("baseline")),
         args: strings(o.get("args")).unwrap_or_default(),
         cwd: s(o.get("cwd")),
@@ -157,7 +157,7 @@ fn load_scenario(path: &FsPath) -> scenario {
 
 // sys.go newTestSys: the initial file system comes from the dump (it already contains the default libraries,
 // written after the test's own files like ensureLibPathExists does).
-fn new_test_sys(test: &scenario) -> &'static TestSys {
+fn new_test_sys(test: &Scenario) -> &'static TestSys {
     let clock = TestClock::new();
     let libs: FxHashSet<String> = test.default_libs.iter().cloned().collect();
     let mut initial: Vec<(String, MapFile)> = Vec::new();
@@ -177,7 +177,7 @@ fn new_test_sys(test: &scenario) -> &'static TestSys {
         !test.ignore_case,
         Arc::new(move || clock_fn.now()),
     ));
-    let mut lib_files: Vec<&scenarioFile> =
+    let mut lib_files: Vec<&ScenarioFile> =
         test.files.iter().filter(|f| libs.contains(&f.path)).collect();
     lib_files.sort_by(|a, b| a.path.cmp(&b.path));
     for f in lib_files {
@@ -218,7 +218,7 @@ fn new_test_sys(test: &scenario) -> &'static TestSys {
 /// after the cycle took its events.
 pub(crate) const LATE_EVENT_WRITE: &str = "writeLateEvent";
 
-fn apply_ops(sys: &TestSys, ops: &[scenarioOp]) {
+fn apply_ops(sys: &TestSys, ops: &[ScenarioOp]) {
     let fs = sys.fs_from_file_map();
     for op in ops {
         match op.op.as_str() {
@@ -252,14 +252,14 @@ fn execute_command(
     let result = crate::execute::command_line_with_testing(sys, args.to_vec(), Some(testing));
     baseline.push_str(match result.status {
         ExitStatus::Success => "ExitStatus:: Success",
-        ExitStatus::DiagnosticsPresent_OutputsSkipped => {
+        ExitStatus::DiagnosticsPresentOutputsSkipped => {
             "ExitStatus:: DiagnosticsPresent_OutputsSkipped"
         }
-        ExitStatus::DiagnosticsPresent_OutputsGenerated => {
+        ExitStatus::DiagnosticsPresentOutputsGenerated => {
             "ExitStatus:: DiagnosticsPresent_OutputsGenerated"
         }
-        ExitStatus::InvalidProject_OutputsSkipped => "ExitStatus:: InvalidProject_OutputsSkipped",
-        ExitStatus::ProjectReferenceCycle_OutputsSkipped => {
+        ExitStatus::InvalidProjectOutputsSkipped => "ExitStatus:: InvalidProject_OutputsSkipped",
+        ExitStatus::ProjectReferenceCycleOutputsSkipped => {
             "ExitStatus:: ProjectReferenceCycle_OutputsSkipped"
         }
         ExitStatus::NotImplemented => "ExitStatus:: NotImplemented",
@@ -330,7 +330,7 @@ fn diff_text(old_name: &str, new_name: &str, expected: &str, actual: &str) -> St
 }
 
 // runner.go run
-fn run_scenario(test: &scenario) -> String {
+fn run_scenario(test: &Scenario) -> String {
     let mut baseline = String::new();
     let sys = new_test_sys(test);
     write!(
@@ -445,7 +445,7 @@ fn tsctests() {
         );
         return;
     }
-    let scenarios: Vec<scenario> =
+    let scenarios: Vec<Scenario> =
         files.iter().map(|f| load_scenario(f)).filter(|s| s.baseline.contains(&filter)).collect();
     let results_dir = root.join("target/tsctests-results");
     let _ = std::fs::remove_dir_all(&results_dir);
@@ -462,8 +462,8 @@ fn tsctests() {
                     let i = next.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
                     let Some(test) = scenarios.get(i) else { break };
                     // SAFETY: scenarios stays immutable and alive until every scoped worker ends; the inner thread is joined below.
-                    let test_ref: &'static scenario =
-                        unsafe { &*std::ptr::from_ref::<scenario>(test) };
+                    let test_ref: &'static Scenario =
+                        unsafe { &*std::ptr::from_ref::<Scenario>(test) };
                     let outcome = std::thread::Builder::new()
                         .stack_size(512 << 20)
                         .spawn(move || std::panic::catch_unwind(|| run_scenario(test_ref)))

@@ -14,6 +14,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import url from "node:url";
+import { constantNames, screamingSnakeCase } from "../lib/rust-names.mjs";
 import type {
     Enumeration,
     MetaModel,
@@ -2205,7 +2206,7 @@ function rustIdent(goName: string): string {
 }
 
 function screaming(goName: string): string {
-    return snake(goName).toUpperCase();
+    return screamingSnakeCase(goName);
 }
 
 function rustStr(s: string): string {
@@ -2716,7 +2717,7 @@ function generateCode() {
         writeLine(`            let mut register_options = RegisterOptions::default();`);
         writeLine(`            match Method::from_str(&method) {`);
         for (const reg of registrationMethods) {
-            writeLine(`                Method::${reg.fieldName} => {`);
+            writeLine(`                Method::${screaming(reg.fieldName)} => {`);
             writeLine(`                    register_options.${rustIdent(reg.fieldName)} = arm_buffered(raw_register_options)?;`);
             writeLine(`                }`);
         }
@@ -2896,10 +2897,12 @@ function generateCode() {
             value: String(value.value),
             numericValue: Number(value.value),
             name: value.name,
-            identifier: titleCase(value.name),
+            identifier: screaming(value.name),
             documentation: value.documentation,
             deprecated: value.deprecated,
         }));
+
+        constantNames(enumValues.map(value => value.name));
 
         writeLine(`impl ${enumeration.name} {`);
         for (const entry of enumValues) {
@@ -3006,18 +3009,19 @@ function generateCode() {
     }
 
     // Methods
+    constantNames([...requestsAndNotifications.map(request => methodNameIdentifier(request.method)), ...registrationMethods.filter(reg => reg.isRegistrationOnly).map(reg => reg.fieldName)]);
     writeLine("// Methods");
     writeLine("impl Method {");
     for (const request of requestsAndNotifications) {
         writeDoc(request.documentation, "    ");
         const methodName = methodNameIdentifier(request.method);
-        writeLine(`    pub const ${methodName}: Method = Method(${rustStr(request.method)});`);
+        writeLine(`    pub const ${screaming(methodName)}: Method = Method(${rustStr(request.method)});`);
     }
     // Emit constants for registration-only methods (not also a request/notification)
     for (const reg of registrationMethods) {
         if (reg.isRegistrationOnly) {
             writeLine(`    // Registration-only method for ${reg.registrationMethod}.`);
-            writeLine(`    pub const ${reg.fieldName}: Method = Method(${rustStr(reg.registrationMethod)});`);
+            writeLine(`    pub const ${screaming(reg.fieldName)}: Method = Method(${rustStr(reg.registrationMethod)});`);
         }
     }
     writeLine("}");
@@ -3032,12 +3036,12 @@ function generateCode() {
     for (const request of requestsAndNotifications) {
         if (knownMethods.has(request.method)) continue;
         knownMethods.add(request.method);
-        writeLine(`            ${rustStr(request.method)} => Method::${methodNameIdentifier(request.method)},`);
+        writeLine(`            ${rustStr(request.method)} => Method::${screaming(methodNameIdentifier(request.method))},`);
     }
     for (const reg of registrationMethods) {
         if (reg.isRegistrationOnly && !knownMethods.has(reg.registrationMethod)) {
             knownMethods.add(reg.registrationMethod);
-            writeLine(`            ${rustStr(reg.registrationMethod)} => Method::${reg.fieldName},`);
+            writeLine(`            ${rustStr(reg.registrationMethod)} => Method::${screaming(reg.fieldName)},`);
         }
     }
     writeLine("            _ => Method(intern(s)),");
@@ -3087,10 +3091,10 @@ function generateCode() {
 
         writeLine(`// Type mapping info for \`${request.method}\``);
         if (responseTypeName) {
-            writeLine(`pub const ${screaming(methodName + "Info")}: RequestInfo<${paramType}, ${responseTypeName}> = RequestInfo::new(Method::${methodName});`);
+            writeLine(`pub const ${screaming(methodName + "Info")}: RequestInfo<${paramType}, ${responseTypeName}> = RequestInfo::new(Method::${screaming(methodName)});`);
         }
         else {
-            writeLine(`pub const ${screaming(methodName + "Info")}: NotificationInfo<${paramType}> = NotificationInfo::new(Method::${methodName});`);
+            writeLine(`pub const ${screaming(methodName + "Info")}: NotificationInfo<${paramType}> = NotificationInfo::new(Method::${screaming(methodName)});`);
         }
         writeLine("");
     }

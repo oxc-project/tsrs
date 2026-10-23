@@ -119,13 +119,13 @@ pub(crate) fn parse_content_mapper(
                 mapper.definition.package.clone_from(str);
             }
             _ => errors.push(new_compiler_diagnostic(
-                &diagnostics::Compiler_option_0_requires_a_value_of_type_1,
+                &diagnostics::COMPILER_OPTION_0_REQUIRES_A_VALUE_OF_TYPE_1,
                 &[&"contentMapper.package", &"string"],
             )),
         }
     } else {
         errors.push(new_compiler_diagnostic(
-            &diagnostics::Compiler_option_0_requires_a_value_of_type_1,
+            &diagnostics::COMPILER_OPTION_0_REQUIRES_A_VALUE_OF_TYPE_1,
             &[&"contentMapper.package", &"string"],
         ));
     }
@@ -134,13 +134,13 @@ pub(crate) fn parse_content_mapper(
             mapper.definition.extensions = strs;
         } else {
             errors.push(new_compiler_diagnostic(
-                &diagnostics::Compiler_option_0_requires_a_value_of_type_1,
+                &diagnostics::COMPILER_OPTION_0_REQUIRES_A_VALUE_OF_TYPE_1,
                 &[&"contentMapper.extensions", &"string[]"],
             ));
         }
     } else {
         errors.push(new_compiler_diagnostic(
-            &diagnostics::Compiler_option_0_requires_a_value_of_type_1,
+            &diagnostics::COMPILER_OPTION_0_REQUIRES_A_VALUE_OF_TYPE_1,
             &[&"contentMapper.extensions", &"string[]"],
         ));
     }
@@ -151,7 +151,7 @@ pub(crate) fn parse_content_mapper(
                 mapper.definition.output_extensions_present = true;
             } else {
                 errors.push(new_compiler_diagnostic(
-                    &diagnostics::Compiler_option_0_requires_a_value_of_type_1,
+                    &diagnostics::COMPILER_OPTION_0_REQUIRES_A_VALUE_OF_TYPE_1,
                     &[&"contentMapper.outputExtensions", &"object or null"],
                 ));
             }
@@ -160,7 +160,7 @@ pub(crate) fn parse_content_mapper(
     if let Some(options) = v.get("options") {
         if !matches!(options, CompilerOptionsValue::Object(_)) {
             errors.push(new_compiler_diagnostic(
-                &diagnostics::Compiler_option_0_requires_a_value_of_type_1,
+                &diagnostics::COMPILER_OPTION_0_REQUIRES_A_VALUE_OF_TYPE_1,
                 &[&"contentMapper.options", &"object"],
             ));
         } else {

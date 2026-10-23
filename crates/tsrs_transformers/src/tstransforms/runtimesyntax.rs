@@ -130,9 +130,9 @@ impl RuntimeSyntaxTransformer {
     }
 
     fn visit_worker(&self, node: P<Node>) -> Option<P<Node>> {
-        if !node.subtree_facts().intersects(SubtreeFacts::ContainsTypeScript)
+        if !node.subtree_facts().intersects(SubtreeFacts::CONTAINS_TYPE_SCRIPT)
             && (self.current_namespace.get().is_none() && self.current_enum.get().is_none()
-                || !node.subtree_facts().intersects(SubtreeFacts::ContainsIdentifier))
+                || !node.subtree_facts().intersects(SubtreeFacts::CONTAINS_IDENTIFIER))
         {
             return Some(node);
         }
@@ -246,7 +246,7 @@ impl RuntimeSyntaxTransformer {
     fn is_export_of_namespace(&self, node: P<Node>) -> bool {
         self.current_namespace.get().is_some()
             && self.current_scope.get().is_none_or(|scope| scope.kind() != Kind::Block)
-            && node.modifier_flags().intersects(ModifierFlags::Export)
+            && node.modifier_flags().intersects(ModifierFlags::EXPORT)
     }
 
     // Gets an expression that represents a property name, such as `"foo"` for the identifier `foo`.
@@ -260,12 +260,12 @@ impl RuntimeSyntaxTransformer {
                 // enums don't support computed properties so we always generate the 'expression' part of the name as-is.
                 self.visitor().visit_node(name.expression()).unwrap()
             }
-            Kind::Identifier => f.new_string_literal(name.text(), TokenFlags::None),
+            Kind::Identifier => f.new_string_literal(name.text(), TokenFlags::NONE),
             Kind::StringLiteral => {
                 // !!! propagate token flags (will produce new diffs)
-                f.new_string_literal(name.text(), TokenFlags::None)
+                f.new_string_literal(name.text(), TokenFlags::NONE)
             }
-            Kind::NumericLiteral => f.new_numeric_literal(name.text(), TokenFlags::None),
+            Kind::NumericLiteral => f.new_numeric_literal(name.text(), TokenFlags::NONE),
             _ => name,
         }
     }
@@ -279,10 +279,10 @@ impl RuntimeSyntaxTransformer {
         );
         self.emit_context().add_emit_flags(
             prop,
-            EmitFlags::NoComments
-                | EmitFlags::NoNestedComments
-                | EmitFlags::NoSourceMap
-                | EmitFlags::NoNestedSourceMaps,
+            EmitFlags::NO_COMMENTS
+                | EmitFlags::NO_NESTED_COMMENTS
+                | EmitFlags::NO_SOURCE_MAP
+                | EmitFlags::NO_NESTED_SOURCE_MAPS,
         );
         prop
     }
@@ -310,7 +310,7 @@ impl RuntimeSyntaxTransformer {
             ns,
             None, /*questionDotToken*/
             expression,
-            NodeFlags::None,
+            NodeFlags::NONE,
         );
         self.emit_context().assign_comment_and_source_map_ranges(qualified_name, expression);
         qualified_name
@@ -349,15 +349,15 @@ impl RuntimeSyntaxTransformer {
         );
         let var_decl = f.new_variable_declaration(name, None, None, None);
         let var_flags = if self.current_scope.get() == self.current_source_file.get() {
-            NodeFlags::None
+            NodeFlags::NONE
         } else {
-            NodeFlags::Let
+            NodeFlags::LET
         };
         let var_decls = f.new_variable_declaration_list(f.new_node_list(vec![var_decl]), var_flags);
         // Replicate modifierVisitor: strip decorators, TypeScript modifiers, and export when in namespace.
-        let mut modifier_mask = !(ModifierFlags::TypeScriptModifier | ModifierFlags::Decorator);
+        let mut modifier_mask = !(ModifierFlags::TYPE_SCRIPT_MODIFIER | ModifierFlags::DECORATOR);
         if self.current_namespace.get().is_some() {
-            modifier_mask &= !ModifierFlags::Export;
+            modifier_mask &= !ModifierFlags::EXPORT;
         }
         let modifiers = extract_modifiers(emit_context, node.modifiers(), modifier_mask);
         let var_statement = f.new_variable_statement(modifiers, var_decls);
@@ -390,7 +390,7 @@ impl RuntimeSyntaxTransformer {
         //     })(E || (E = {})); // trailing comment
         //
         emit_context.set_comment_range(var_statement, node.loc());
-        emit_context.add_emit_flags(var_statement, EmitFlags::NoTrailingComments);
+        emit_context.add_emit_flags(var_statement, EmitFlags::NO_TRAILING_COMMENTS);
         statements.push(var_statement);
 
         true
@@ -412,12 +412,12 @@ impl RuntimeSyntaxTransformer {
 
         // If we emit a leading variable declaration, we should not emit leading comments for the enum body, but we should
         // still emit the comments if we are emitting to a System module.
-        let mut emit_flags = EmitFlags::None;
+        let mut emit_flags = EmitFlags::NONE;
         if var_added
-            && (self.compiler_options.get_emit_module_kind() != ModuleKind::System
+            && (self.compiler_options.get_emit_module_kind() != ModuleKind::SYSTEM
                 || self.current_scope.get() != self.current_source_file.get())
         {
-            emit_flags |= EmitFlags::NoLeadingComments;
+            emit_flags |= EmitFlags::NO_LEADING_COMMENTS;
         }
 
         //  x || (x = {})
@@ -462,7 +462,7 @@ impl RuntimeSyntaxTransformer {
             None,
             None,
             f.new_node_list(vec![enum_arg]),
-            NodeFlags::None,
+            NodeFlags::NONE,
         );
         let enum_statement = f.new_expression_statement(enum_call);
         emit_context.set_original(enum_statement, node);
@@ -549,7 +549,7 @@ impl RuntimeSyntaxTransformer {
                     self.get_namespace_container_name(enum_),
                     None, /*questionDotToken*/
                     expression,
-                    NodeFlags::None,
+                    NodeFlags::NONE,
                 ),
                 self.get_expression_for_property_name(member_node),
             );
@@ -580,12 +580,12 @@ impl RuntimeSyntaxTransformer {
 
         // If we emit a leading variable declaration, we should not emit leading comments for the module body, but we should
         // still emit the comments if we are emitting to a System module.
-        let mut emit_flags = EmitFlags::None;
+        let mut emit_flags = EmitFlags::NONE;
         if var_added
-            && (self.compiler_options.get_emit_module_kind() != ModuleKind::System
+            && (self.compiler_options.get_emit_module_kind() != ModuleKind::SYSTEM
                 || self.current_scope.get() != self.current_source_file.get())
         {
-            emit_flags |= EmitFlags::NoLeadingComments;
+            emit_flags |= EmitFlags::NO_LEADING_COMMENTS;
         }
 
         //  x || (x = {})
@@ -631,7 +631,7 @@ impl RuntimeSyntaxTransformer {
             None,
             None,
             f.new_node_list(vec![module_arg]),
-            NodeFlags::None,
+            NodeFlags::NONE,
         );
         let module_statement = f.new_expression_statement(module_call);
         emit_context.set_original(module_statement, node);
@@ -718,7 +718,7 @@ impl RuntimeSyntaxTransformer {
         //
         // We only want to emit comment on the namespace which contains block body itself, not the containing namespaces.
         if node.body().is_none_or(|body| body.kind() != Kind::ModuleBlock) {
-            emit_context.add_emit_flags(block, EmitFlags::NoComments);
+            emit_context.add_emit_flags(block, EmitFlags::NO_COMMENTS);
         }
         block
     }
@@ -733,8 +733,10 @@ impl RuntimeSyntaxTransformer {
         let f = self.factory();
         let emit_context = self.emit_context();
         let module_reference = f.create_expression_from_entity_name(n.module_reference);
-        emit_context
-            .set_emit_flags(module_reference, EmitFlags::NoComments | EmitFlags::NoNestedComments);
+        emit_context.set_emit_flags(
+            module_reference,
+            EmitFlags::NO_COMMENTS | EmitFlags::NO_NESTED_COMMENTS,
+        );
         if !self.is_export_of_namespace(node) {
             //  export var ${name} = ${moduleReference};
             //  var ${name} = ${moduleReference};
@@ -746,9 +748,9 @@ impl RuntimeSyntaxTransformer {
             );
             emit_context.set_original(var_decl, node);
             let var_list =
-                f.new_variable_declaration_list(f.new_node_list(vec![var_decl]), NodeFlags::None);
+                f.new_variable_declaration_list(f.new_node_list(vec![var_decl]), NodeFlags::NONE);
             let var_modifiers =
-                extract_modifiers(emit_context, node.modifiers(), ModifierFlags::Export);
+                extract_modifiers(emit_context, node.modifiers(), ModifierFlags::EXPORT);
             let var_statement = f.new_variable_statement(var_modifiers, var_list);
             emit_context.set_original(var_statement, node);
             emit_context.assign_comment_and_source_map_ranges(var_statement, node);
@@ -858,7 +860,7 @@ impl RuntimeSyntaxTransformer {
                 v.visit_modifiers(extract_modifiers(
                     self.emit_context(),
                     node.modifiers(),
-                    !ModifierFlags::Export,
+                    !ModifierFlags::EXPORT,
                 )),
                 node.as_function_declaration().asterisk_token(),
                 v.visit_node(node.name()),
@@ -899,7 +901,7 @@ impl RuntimeSyntaxTransformer {
             v.visit_modifiers(extract_modifiers(
                 emit_context,
                 node.modifiers(),
-                !ModifierFlags::ExportDefault,
+                !ModifierFlags::EXPORT_DEFAULT,
             ))
         } else {
             v.visit_modifiers(node.modifiers())
@@ -913,7 +915,7 @@ impl RuntimeSyntaxTransformer {
                     node,
                     None,
                 )
-                || !node.modifier_flags().contains(ModifierFlags::ExportDefault)
+                || !node.modifier_flags().contains(ModifierFlags::EXPORT_DEFAULT)
                     && ast::node_is_decorated(
                         self.compiler_options.experimental_decorators.is_true(),
                         node,
@@ -977,7 +979,7 @@ impl RuntimeSyntaxTransformer {
         let modifiers = v.visit_modifiers(extract_modifiers(
             emit_context,
             node.modifiers(),
-            !ModifierFlags::ExportDefault,
+            !ModifierFlags::EXPORT_DEFAULT,
         ));
         let name = v.visit_node(node.name());
         let heritage_clauses = v.visit_nodes(node.as_class_expression().heritage_clauses());
@@ -1075,12 +1077,12 @@ impl RuntimeSyntaxTransformer {
                     property_name.set_parent(parameter_name.parent()); // .Parent set to get node to printback using text from original file instead of processed text; TODO: this should be achievable via EmitFlags instead
                     emit_context.add_emit_flags(
                         property_name,
-                        EmitFlags::NoComments | EmitFlags::NoSourceMap,
+                        EmitFlags::NO_COMMENTS | EmitFlags::NO_SOURCE_MAP,
                     );
 
                     let local_name = parameter_name.clone_node(f);
                     local_name.set_parent(parameter_name.parent()); // .Parent set to get node to printback using text from original file instead of processed text; TODO: this should be achievable via EmitFlags instead
-                    emit_context.add_emit_flags(local_name, EmitFlags::NoComments);
+                    emit_context.add_emit_flags(local_name, EmitFlags::NO_COMMENTS);
 
                     let parameter_property =
                         f.new_expression_statement(f.new_assignment_expression(
@@ -1088,12 +1090,12 @@ impl RuntimeSyntaxTransformer {
                                 f.new_this_expression(),
                                 None, /*questionDotToken*/
                                 property_name,
-                                NodeFlags::None,
+                                NodeFlags::NONE,
                             ),
                             local_name,
                         ));
                     emit_context.set_original(parameter_property, parameter);
-                    emit_context.add_emit_flags(parameter_property, EmitFlags::StartOnNewLine);
+                    emit_context.add_emit_flags(parameter_property, EmitFlags::START_ON_NEW_LINE);
                     Some(parameter_property)
                 } else {
                     None
@@ -1266,7 +1268,7 @@ impl RuntimeSyntaxTransformer {
                     let member_name = node.clone_node(f);
                     emit_context.set_emit_flags(
                         member_name,
-                        EmitFlags::NoComments | EmitFlags::NoSourceMap,
+                        EmitFlags::NO_COMMENTS | EmitFlags::NO_SOURCE_MAP,
                     );
 
                     let expression = f.get_namespace_member_name(

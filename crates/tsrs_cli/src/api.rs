@@ -9,7 +9,7 @@ use tsrs_api_transport as transport;
 use tsrs_api_transport::{CallbackConfig, CallbackFs};
 use tsrs_vfs::{FS, bundled, osvfs};
 
-use crate::lsp::flagSet;
+use crate::lsp::FlagSet;
 
 /// Go `apiFlags`.
 pub(crate) struct ApiFlags {
@@ -24,7 +24,7 @@ pub(crate) struct ApiFlags {
 
 /// Go `parseAPIFlags`.
 pub(crate) fn parse_api_flags(args: &[String]) -> Result<ApiFlags, ()> {
-    let mut flags = flagSet::new("api");
+    let mut flags = FlagSet::new("api");
     flags.string("cwd", "current working directory");
     flags.string(
         "pipe",

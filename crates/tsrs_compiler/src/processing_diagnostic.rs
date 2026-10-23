@@ -8,35 +8,35 @@ use tsrs_diagnostics::{self as diagnostics, Message};
 use tsrs_tsoptions as tsoptions;
 
 use crate::file_include::{
-    self, FileIncludeReason, fileIncludeKind, get_referenced_location, is_referenced_file,
+    self, FileIncludeKind, FileIncludeReason, get_referenced_location, is_referenced_file,
 };
 use crate::program::Program;
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
-pub(crate) enum processingDiagnosticKind {
+pub(crate) enum ProcessingDiagnosticKind {
     UnknownReference,
     ExplainingFileInclude,
 }
 
 #[derive(Clone)]
-pub(crate) struct processingDiagnostic {
-    pub(crate) kind: processingDiagnosticKind,
+pub(crate) struct ProcessingDiagnostic {
+    pub(crate) kind: ProcessingDiagnosticKind,
     pub(crate) reason: Option<P<FileIncludeReason>>,
-    pub(crate) explanation: Option<includeExplainingDiagnostic>,
+    pub(crate) explanation: Option<IncludeExplainingDiagnostic>,
 }
 
-impl processingDiagnostic {
-    pub(crate) fn unknown_reference(reason: P<FileIncludeReason>) -> processingDiagnostic {
-        processingDiagnostic {
-            kind: processingDiagnosticKind::UnknownReference,
+impl ProcessingDiagnostic {
+    pub(crate) fn unknown_reference(reason: P<FileIncludeReason>) -> ProcessingDiagnostic {
+        ProcessingDiagnostic {
+            kind: ProcessingDiagnosticKind::UnknownReference,
             reason: Some(reason),
             explanation: None,
         }
     }
 
-    pub(crate) fn explaining(explanation: includeExplainingDiagnostic) -> processingDiagnostic {
-        processingDiagnostic {
-            kind: processingDiagnosticKind::ExplainingFileInclude,
+    pub(crate) fn explaining(explanation: IncludeExplainingDiagnostic) -> ProcessingDiagnostic {
+        ProcessingDiagnostic {
+            kind: ProcessingDiagnosticKind::ExplainingFileInclude,
             reason: None,
             explanation: Some(explanation),
         }
@@ -46,32 +46,32 @@ impl processingDiagnostic {
         self.reason.unwrap()
     }
 
-    fn as_include_explaining_diagnostic(&self) -> &includeExplainingDiagnostic {
+    fn as_include_explaining_diagnostic(&self) -> &IncludeExplainingDiagnostic {
         self.explanation.as_ref().unwrap()
     }
 }
 
 #[derive(Clone)]
-pub(crate) struct includeExplainingDiagnostic {
+pub(crate) struct IncludeExplainingDiagnostic {
     pub(crate) file: Option<Path>,
     pub(crate) diagnostic_reason: Option<P<FileIncludeReason>>,
     pub(crate) message: &'static Message,
     pub(crate) args: Vec<String>,
 }
 
-impl processingDiagnostic {
+impl ProcessingDiagnostic {
     pub(crate) fn to_diagnostic(&self, program: &Program) -> P<Diagnostic> {
         match self.kind {
-            processingDiagnosticKind::UnknownReference => {
+            ProcessingDiagnosticKind::UnknownReference => {
                 let ref_ = self.as_file_include_reason();
                 let loc = get_referenced_location(ref_, program);
                 let file_ref = loc.ref_.unwrap();
                 match ref_.kind {
-                    fileIncludeKind::TypeReferenceDirective => loc.diagnostic_at(
-                        &diagnostics::Cannot_find_type_definition_file_for_0,
+                    FileIncludeKind::TypeReferenceDirective => loc.diagnostic_at(
+                        &diagnostics::CANNOT_FIND_TYPE_DEFINITION_FILE_FOR_0,
                         &[&file_ref.file_name],
                     ),
-                    fileIncludeKind::LibReferenceDirective => {
+                    FileIncludeKind::LibReferenceDirective => {
                         let lib_name = tspath::to_file_name_lower_case(&file_ref.file_name);
                         let unqualified = lib_name.strip_prefix("lib.").unwrap_or(&lib_name);
                         let unqualified_lib_name =
@@ -84,16 +84,16 @@ impl processingDiagnostic {
                         )
                         .unwrap_or("");
                         let message = if !suggestion.is_empty() {
-                            &diagnostics::Cannot_find_lib_definition_for_0_Did_you_mean_1
+                            &diagnostics::CANNOT_FIND_LIB_DEFINITION_FOR_0_DID_YOU_MEAN_1
                         } else {
-                            &diagnostics::Cannot_find_lib_definition_for_0
+                            &diagnostics::CANNOT_FIND_LIB_DEFINITION_FOR_0
                         };
                         loc.diagnostic_at(message, &[&lib_name, &suggestion])
                     }
                     _ => panic!("unknown include kind"),
                 }
             }
-            processingDiagnosticKind::ExplainingFileInclude => {
+            ProcessingDiagnosticKind::ExplainingFileInclude => {
                 self.create_diagnostic_explaining_file(program)
             }
         }
@@ -181,7 +181,7 @@ impl processingDiagnostic {
         if let Some(include_details) = &include_details {
             if preferred_location.is_none() || seen_len != 1 {
                 let file_reason = new_compiler_diagnostic(
-                    &diagnostics::The_file_is_in_the_program_because_Colon,
+                    &diagnostics::THE_FILE_IS_IN_THE_PROGRAM_BECAUSE_COLON,
                     &[],
                 );
                 file_reason.set_message_chain(include_details);

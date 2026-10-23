@@ -225,7 +225,7 @@ pub(crate) fn resolve_content_mapper_manifest(
     let resolver = tsrs_module::new_resolver(tsrs_module::ResolverOptions::new(
         &resolver_host,
         P::new(CompilerOptions {
-            module_resolution: ModuleResolutionKind::Bundler,
+            module_resolution: ModuleResolutionKind::BUNDLER,
             ..Default::default()
         }),
     ));
@@ -240,7 +240,7 @@ pub(crate) fn resolve_content_mapper_manifest(
             Manifest::default(),
             String::new(),
             Some(new_compiler_diagnostic(
-                &diagnostics::The_content_mapper_package_0_could_not_be_resolved,
+                &diagnostics::THE_CONTENT_MAPPER_PACKAGE_0_COULD_NOT_BE_RESOLVED,
                 &[&package_name],
             )),
         );
@@ -253,7 +253,7 @@ pub(crate) fn resolve_content_mapper_manifest(
             Manifest::default(),
             package_directory,
             Some(new_compiler_diagnostic(
-                &diagnostics::The_content_mapper_package_0_could_not_be_resolved,
+                &diagnostics::THE_CONTENT_MAPPER_PACKAGE_0_COULD_NOT_BE_RESOLVED,
                 &[&package_name],
             )),
         );
@@ -263,7 +263,7 @@ pub(crate) fn resolve_content_mapper_manifest(
             Manifest::default(),
             package_directory,
             Some(new_compiler_diagnostic(
-                &diagnostics::The_package_json_of_the_content_mapper_package_0_could_not_be_parsed,
+                &diagnostics::THE_PACKAGE_JSON_OF_THE_CONTENT_MAPPER_PACKAGE_0_COULD_NOT_BE_PARSED,
                 &[&package_name],
             )),
         );
@@ -275,7 +275,7 @@ pub(crate) fn resolve_content_mapper_manifest(
             Manifest::default(),
             package_directory,
             Some(new_compiler_diagnostic(
-                &diagnostics::The_package_json_of_the_content_mapper_package_0_does_not_specify_a_name,
+                &diagnostics::THE_PACKAGE_JSON_OF_THE_CONTENT_MAPPER_PACKAGE_0_DOES_NOT_SPECIFY_A_NAME,
                 &[&package_name],
             )),
         );
@@ -289,7 +289,7 @@ pub(crate) fn resolve_content_mapper_manifest(
             Manifest::default(),
             package_directory,
             Some(new_compiler_diagnostic(
-                &diagnostics::The_package_json_of_the_content_mapper_package_0_does_not_declare_a_typescript_contentMapper_object,
+                &diagnostics::THE_PACKAGE_JSON_OF_THE_CONTENT_MAPPER_PACKAGE_0_DOES_NOT_DECLARE_A_TYPESCRIPT_CONTENT_MAPPER_OBJECT,
                 &[&package_name],
             )),
         );
@@ -301,7 +301,7 @@ pub(crate) fn resolve_content_mapper_manifest(
                 Manifest::default(),
                 package_directory,
                 Some(new_compiler_diagnostic(
-                    &diagnostics::The_typescript_contentMapper_exec_of_the_content_mapper_package_0_must_be_a_non_empty_array_of_strings,
+                    &diagnostics::THE_TYPESCRIPT_CONTENT_MAPPER_EXEC_OF_THE_CONTENT_MAPPER_PACKAGE_0_MUST_BE_A_NON_EMPTY_ARRAY_OF_STRINGS,
                     &[&package_name],
                 )),
             );
@@ -313,7 +313,7 @@ pub(crate) fn resolve_content_mapper_manifest(
         return (
             Manifest::default(), package_directory,
             Some(new_compiler_diagnostic(
-                &diagnostics::The_typescript_contentMapper_outputExtensions_of_the_content_mapper_package_0_must_be_an_object_with_string_values,
+                &diagnostics::THE_TYPESCRIPT_CONTENT_MAPPER_OUTPUT_EXTENSIONS_OF_THE_CONTENT_MAPPER_PACKAGE_0_MUST_BE_AN_OBJECT_WITH_STRING_VALUES,
                 &[&package_name],
             )),
         );
@@ -329,7 +329,7 @@ pub(crate) fn resolve_content_mapper_manifest(
                     Manifest::default(),
                     package_directory,
                     Some(new_compiler_diagnostic(
-                        &diagnostics::Content_mapper_extension_0_must_not_contain_path_separators,
+                        &diagnostics::CONTENT_MAPPER_EXTENSION_0_MUST_NOT_CONTAIN_PATH_SEPARATORS,
                         &[extension],
                     )),
                 );
@@ -339,7 +339,7 @@ pub(crate) fn resolve_content_mapper_manifest(
             return (
                 Manifest::default(), package_directory,
                 Some(new_compiler_diagnostic(
-                    &diagnostics::The_typescript_contentMapper_outputExtensions_of_the_content_mapper_package_0_contains_an_invalid_mapping_from_1_to_2_Extensions_must_be_non_empty_and_begin_with_a,
+                    &diagnostics::THE_TYPESCRIPT_CONTENT_MAPPER_OUTPUT_EXTENSIONS_OF_THE_CONTENT_MAPPER_PACKAGE_0_CONTAINS_AN_INVALID_MAPPING_FROM_1_TO_2_EXTENSIONS_MUST_BE_NON_EMPTY_AND_BEGIN_WITH_A,
                     &[&package_name, source, target],
                 )),
             );

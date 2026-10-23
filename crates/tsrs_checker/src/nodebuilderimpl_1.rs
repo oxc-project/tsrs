@@ -83,12 +83,12 @@ impl NodeBuilderImpl {
         if ctx.truncating.get() {
             return ctx.truncating.get();
         }
-        let max_length = if ctx.flags.get().intersects(Flags::NoTruncation) {
-            noTruncationMaximumTruncationLength
+        let max_length = if ctx.flags.get().intersects(Flags::NO_TRUNCATION) {
+            NO_TRUNCATION_MAXIMUM_TRUNCATION_LENGTH
         } else if ctx.max_truncation_length.get() > 0 {
             ctx.max_truncation_length.get()
         } else {
-            defaultMaximumTruncationLength
+            DEFAULT_MAXIMUM_TRUNCATION_LENGTH
         };
         ctx.truncating.set(ctx.approximate_length.get() > max_length);
         ctx.truncating.get()
@@ -117,20 +117,20 @@ impl NodeBuilderImpl {
             return false;
         }
         let object_flags = t.object_flags();
-        if t.flags().intersects(TypeFlags::EnumLike)
-            || object_flags.intersects(ObjectFlags::Reference)
-            || object_flags.intersects(ObjectFlags::ClassOrInterface)
+        if t.flags().intersects(TypeFlags::ENUM_LIKE)
+            || object_flags.intersects(ObjectFlags::REFERENCE)
+            || object_flags.intersects(ObjectFlags::CLASS_OR_INTERFACE)
         {
             return true;
         }
-        if object_flags.intersects(ObjectFlags::Anonymous)
+        if object_flags.intersects(ObjectFlags::ANONYMOUS)
             && t.symbol().is_some()
             && t.symbol().unwrap().flags().intersects(
-                SymbolFlags::Class
-                    | SymbolFlags::Enum
-                    | SymbolFlags::ValueModule
-                    | SymbolFlags::Function
-                    | SymbolFlags::Method,
+                SymbolFlags::CLASS
+                    | SymbolFlags::ENUM
+                    | SymbolFlags::VALUE_MODULE
+                    | SymbolFlags::FUNCTION
+                    | SymbolFlags::METHOD,
             )
         {
             return true;
@@ -221,7 +221,7 @@ impl NodeBuilderImpl {
             return;
         }
         // Recurse into type arguments (e.g., check Apple in Promise<Apple>).
-        if t.object_flags().intersects(ObjectFlags::Reference) {
+        if t.object_flags().intersects(ObjectFlags::REFERENCE) {
             for &arg in c.get_type_arguments(t) {
                 self.check_type_expandability(c, Some(arg));
                 if self.ctx().can_increase_expansion_depth.get() {
@@ -278,7 +278,7 @@ impl NodeBuilderImpl {
         } else if is_type_reference_node(root) {
             let type_ref = root.as_type_reference_node();
             let type_arguments = root.type_argument_list();
-            if self.ctx().flags.get().intersects(Flags::UseInstantiationExpressions)
+            if self.ctx().flags.get().intersects(Flags::USE_INSTANTIATION_EXPRESSIONS)
                 && type_arguments.is_some()
                 && !type_arguments.unwrap().nodes().is_empty()
             {
@@ -286,7 +286,7 @@ impl NodeBuilderImpl {
                 let mut expr =
                     self.create_expression_with_type_arguments(c, access, type_arguments);
                 expr = get_access_stack(ref_).into_iter().fold(expr, |mut expr, id| {
-                    expr = self.f.new_property_access_expression(expr, None, id, NodeFlags::None);
+                    expr = self.f.new_property_access_expression(expr, None, id, NodeFlags::NONE);
 
                     expr
                 });
@@ -302,7 +302,7 @@ impl NodeBuilderImpl {
         }
         let mut expr = self.create_access_expression(root);
         expr = get_access_stack(ref_).into_iter().fold(expr, |mut expr, id| {
-            expr = self.f.new_property_access_expression(expr, None, id, NodeFlags::None);
+            expr = self.f.new_property_access_expression(expr, None, id, NodeFlags::NONE);
 
             expr
         });
@@ -326,10 +326,10 @@ pub(crate) fn get_access_stack(ref_: P<Node>) -> Vec<P<Node>> {
 // nodebuilderimpl.go:337
 pub(crate) fn is_class_instance_side(c: &mut Checker, t: P<Type>) -> bool {
     t.symbol().is_some()
-        && t.symbol().unwrap().flags().intersects(SymbolFlags::Class)
+        && t.symbol().unwrap().flags().intersects(SymbolFlags::CLASS)
         && (t == c.get_declared_type_of_class_or_interface(t.symbol().unwrap())
-            || (t.flags().intersects(TypeFlags::Object)
-                && t.object_flags().intersects(ObjectFlags::IsClassInstanceClone)))
+            || (t.flags().intersects(TypeFlags::OBJECT)
+                && t.object_flags().intersects(ObjectFlags::IS_CLASS_INSTANCE_CLONE)))
 }
 
 impl NodeBuilderImpl {
@@ -337,7 +337,7 @@ impl NodeBuilderImpl {
     pub(crate) fn create_elided_information_placeholder(&self, _c: &mut Checker) -> P<Node> {
         let ctx = self.ctx();
         ctx.approximate_length.set(ctx.approximate_length.get() + 3);
-        if !ctx.flags.get().intersects(Flags::NoTruncation) {
+        if !ctx.flags.get().intersects(Flags::NO_TRUNCATION) {
             return self.f.new_type_reference_node(
                 self.f.new_identifier("..."),
                 None, /*typeArguments*/
@@ -364,7 +364,7 @@ impl NodeBuilderImpl {
 
         if self.check_truncation_length(c) {
             if !is_bare_list {
-                let node = if self.ctx().flags.get().intersects(Flags::NoTruncation) {
+                let node = if self.ctx().flags.get().intersects(Flags::NO_TRUNCATION) {
                     self.e.add_synthetic_leading_comment(
                         self.f.new_keyword_type_node(Kind::AnyKeyword),
                         Kind::MultiLineCommentTrivia,
@@ -382,7 +382,7 @@ impl NodeBuilderImpl {
                 let first = self.type_to_type_node(c, Some(list[0]));
                 let last = self.type_to_type_node(c, Some(list[list.len() - 1]));
 
-                let middle = if self.ctx().flags.get().intersects(Flags::NoTruncation) {
+                let middle = if self.ctx().flags.get().intersects(Flags::NO_TRUNCATION) {
                     self.e.add_synthetic_leading_comment(
                         self.f.new_keyword_type_node(Kind::AnyKeyword),
                         Kind::MultiLineCommentTrivia,
@@ -401,13 +401,13 @@ impl NodeBuilderImpl {
         }
 
         let may_have_name_collisions =
-            !self.ctx().flags.get().intersects(Flags::UseFullyQualifiedType);
+            !self.ctx().flags.get().intersects(Flags::USE_FULLY_QUALIFIED_TYPE);
         #[derive(Clone, Copy)]
-        struct seenName {
+        struct SeenName {
             t: P<Type>,
             i: usize,
         }
-        let mut seen_names: Option<tsrs_core::collections::MultiMap<&'static str, seenName>> = None;
+        let mut seen_names: Option<tsrs_core::collections::MultiMap<&'static str, SeenName>> = None;
         if may_have_name_collisions {
             seen_names = Some(tsrs_core::collections::MultiMap::default());
         }
@@ -417,7 +417,7 @@ impl NodeBuilderImpl {
         for (i, &t) in list.iter().enumerate() {
             let display_index = i + 1;
             if self.check_truncation_length(c) && (display_index + 2 < list.len() - 1) {
-                if self.ctx().flags.get().intersects(Flags::NoTruncation) {
+                if self.ctx().flags.get().intersects(Flags::NO_TRUNCATION) {
                     result.push(self.e.add_synthetic_leading_comment(
                         self.f.new_keyword_type_node(Kind::AnyKeyword),
                         Kind::MultiLineCommentTrivia,
@@ -446,7 +446,7 @@ impl NodeBuilderImpl {
                     if is_identifier_type_reference(type_node) {
                         seen_names.add(
                             type_node.as_type_reference_node().type_name.text(),
-                            seenName { t, i: result.len() - 1 },
+                            SeenName { t, i: result.len() - 1 },
                         );
                     }
                 }
@@ -463,9 +463,9 @@ impl NodeBuilderImpl {
             // `UseFullyQualifiedType` flag enabled.
             let mut restore_flags = self.save_restore_flags(c);
             let ctx = self.ctx();
-            ctx.flags.set(ctx.flags.get() | Flags::UseFullyQualifiedType);
+            ctx.flags.set(ctx.flags.get() | Flags::USE_FULLY_QUALIFIED_TYPE);
             for types in seen_names.values() {
-                if !array_is_homogeneous(types, |a: seenName, b: seenName| {
+                if !array_is_homogeneous(types, |a: SeenName, b: SeenName| {
                     types_are_same_reference(a.t, b.t)
                 }) {
                     for seen in types {
@@ -488,14 +488,14 @@ impl NodeBuilderImpl {
         is_type_of: bool,
         type_arguments: Option<P<NodeList>>,
     ) -> Option<P<Node>> {
-        let mut meaning = SymbolFlags::Type;
+        let mut meaning = SymbolFlags::TYPE;
         if is_type_of {
-            meaning = SymbolFlags::Value;
+            meaning = SymbolFlags::VALUE;
         }
         let symbol = c.resolve_entity_name(node, meaning, true, false, Some(node))?;
 
         let mut resolved_symbol = symbol;
-        if symbol.flags().intersects(SymbolFlags::Alias) {
+        if symbol.flags().intersects(SymbolFlags::ALIAS) {
             resolved_symbol = c.resolve_alias(symbol);
         }
 
@@ -578,7 +578,7 @@ impl NodeBuilderImpl {
         // !!!
         // used to be hasEffectiveQuestionToken for JSDoc
         if is_optional_declaration(annotated_declaration) {
-            return c.get_type_with_facts(t, TypeFacts::NEUndefined) == type_from_type_node;
+            return c.get_type_with_facts(t, TypeFacts::NE_UNDEFINED) == type_from_type_node;
         }
         false
     }
@@ -611,7 +611,7 @@ impl NodeBuilderImpl {
         t: P<Type>,
     ) -> bool {
         // In JS, you can say something like `Foo` and get a `Foo<any>` implicitly - we don't want to preserve that original `Foo` in these cases, though.
-        if !t.object_flags().intersects(ObjectFlags::Reference) {
+        if !t.object_flags().intersects(ObjectFlags::REFERENCE) {
             return true;
         }
         if !is_type_reference_node(existing) {
@@ -683,7 +683,7 @@ impl NodeBuilderImpl {
             .construct_signatures()
             .iter()
             .copied()
-            .filter(|signature| !signature.flags.get().intersects(SignatureFlags::Abstract))
+            .filter(|signature| !signature.flags.get().intersects(SignatureFlags::ABSTRACT))
             .collect();
         if construct_signatures.len() == st.construct_signatures().len() {
             c.object_types_without_abstract_construct_signatures.insert(t, t);
@@ -708,7 +708,7 @@ impl NodeBuilderImpl {
         symbol: P<Symbol>,
         meaning: SymbolFlags,
     ) -> P<Node> {
-        if self.ctx().internal_flags.get().intersects(InternalFlags::WriteComputedProps) {
+        if self.ctx().internal_flags.get().intersects(InternalFlags::WRITE_COMPUTED_PROPS) {
             if let Some(value_declaration) = symbol.value_declaration() {
                 let name = get_name_of_declaration(value_declaration);
                 if let Some(name) = name {
@@ -722,7 +722,7 @@ impl NodeBuilderImpl {
                 if let Some(name_type) = name_type {
                     if name_type
                         .flags()
-                        .intersects(TypeFlags::EnumLiteral | TypeFlags::UniqueESSymbol)
+                        .intersects(TypeFlags::ENUM_LITERAL | TypeFlags::UNIQUE_ES_SYMBOL)
                     {
                         let old_enclosing = self.ctx().enclosing_declaration.get();
                         self.ctx()
@@ -756,7 +756,7 @@ impl NodeBuilderImpl {
         if expects_identifier
             && chain.len() != 1
             && !ctx.encountered_error.get()
-            && ctx.flags.get().intersects(Flags::AllowQualifiedNameInPlaceOfIdentifier)
+            && ctx.flags.get().intersects(Flags::ALLOW_QUALIFIED_NAME_IN_PLACE_OF_IDENTIFIER)
         {
             ctx.encountered_error.set(true);
         }
@@ -774,15 +774,15 @@ impl NodeBuilderImpl {
         let symbol = chain[index];
 
         if index == 0 {
-            self.ctx().flags.set(self.ctx().flags.get() | Flags::InInitialEntityName);
+            self.ctx().flags.set(self.ctx().flags.get() | Flags::IN_INITIAL_ENTITY_NAME);
         }
         let symbol_name = self.get_name_of_symbol_as_written(c, symbol);
         if index == 0 {
-            self.ctx().flags.set(self.ctx().flags.get() ^ Flags::InInitialEntityName);
+            self.ctx().flags.set(self.ctx().flags.get() ^ Flags::IN_INITIAL_ENTITY_NAME);
         }
 
         let identifier = self.new_identifier(c, &symbol_name, Some(symbol));
-        self.e.add_emit_flags(identifier, EmitFlags::NoAsciiEscaping);
+        self.e.add_emit_flags(identifier, EmitFlags::NO_ASCII_ESCAPING);
         // !!! TODO: smuggle type arguments out
         // if (typeParameterNodes) setIdentifierTypeArguments(identifier, factory.createNodeArray<TypeNode | TypeParameterDeclaration>(typeParameterNodes));
         // identifier.symbol = symbol;
@@ -820,12 +820,12 @@ impl NodeBuilderImpl {
             c,
             symbol,
             mask,
-            !self.ctx().flags.get().intersects(Flags::UseAliasDefinedOutsideCurrentScope),
+            !self.ctx().flags.get().intersects(Flags::USE_ALIAS_DEFINED_OUTSIDE_CURRENT_SCOPE),
         ); // If we're using aliases outside the current scope, dont bother with the module
         if chain.is_empty() {
             return None; // TODO: shouldn't be possible, `lookupSymbolChain` should always at least return the input symbol and issue an error
         }
-        let is_type_of = mask == SymbolFlags::Value;
+        let is_type_of = mask == SymbolFlags::VALUE;
         let root_is_module = chain[0]
             .declarations()
             .iter()
@@ -850,21 +850,21 @@ impl NodeBuilderImpl {
                 self.e.most_original(self.ctx().enclosing_declaration.get()),
             ); // TODO: Just use b.ctx.enclosingFile ? Or is the delayed lookup important for context moves?
             let target_file = get_source_file_of_module(chain[0]);
-            let mut specifier_result = moduleSpecifierResult::default();
+            let mut specifier_result = ModuleSpecifierResult::default();
             let mut import_mode_override = RESOLUTION_MODE_NONE;
             let module_resolution_kind = c.compiler_options.get_module_resolution_kind();
-            if module_resolution_kind == ModuleResolutionKind::Node16
-                || module_resolution_kind == ModuleResolutionKind::NodeNext
+            if module_resolution_kind == ModuleResolutionKind::NODE16
+                || module_resolution_kind == ModuleResolutionKind::NODE_NEXT
             {
                 // An `import` type directed at an esm format file is only going to resolve in esm mode - set the esm mode assertion
                 if let (Some(target_file), Some(context_file)) = (target_file, context_file) {
-                    if c.emit_module_format_of_file(target_file) == ModuleKind::ESNext
+                    if c.emit_module_format_of_file(target_file) == ModuleKind::ES_NEXT
                         && c.emit_module_format_of_file(target_file)
                             != c.emit_module_format_of_file(context_file)
                     {
                         specifier_result =
-                            self.get_specifier_for_module_symbol(c, chain[0], ModuleKind::ESNext);
-                        import_mode_override = ModuleKind::ESNext;
+                            self.get_specifier_for_module_symbol(c, chain[0], ModuleKind::ES_NEXT);
+                        import_mode_override = ModuleKind::ES_NEXT;
                     }
                 }
             }
@@ -872,18 +872,18 @@ impl NodeBuilderImpl {
                 specifier_result =
                     self.get_specifier_for_module_symbol(c, chain[0], RESOLUTION_MODE_NONE);
             }
-            if !self.ctx().flags.get().intersects(Flags::AllowNodeModulesRelativePaths) /* && b.ch.compilerOptions.GetModuleResolutionKind() != core.ModuleResolutionKindClassic */ && specifier_result.specifier.contains("/node_modules/")
+            if !self.ctx().flags.get().intersects(Flags::ALLOW_NODE_MODULES_RELATIVE_PATHS) /* && b.ch.compilerOptions.GetModuleResolutionKind() != core.ModuleResolutionKindClassic */ && specifier_result.specifier.contains("/node_modules/")
             {
                 let old_specifier_result = specifier_result;
 
                 let module_resolution_kind = c.compiler_options.get_module_resolution_kind();
-                if module_resolution_kind == ModuleResolutionKind::Node16
-                    || module_resolution_kind == ModuleResolutionKind::NodeNext
+                if module_resolution_kind == ModuleResolutionKind::NODE16
+                    || module_resolution_kind == ModuleResolutionKind::NODE_NEXT
                 {
                     // We might be able to write a portable import type using a mode override; try specifier generation again, but with a different mode set
-                    let mut swapped_mode = ModuleKind::ESNext;
-                    if c.emit_module_format_of_file(context_file.unwrap()) == ModuleKind::ESNext {
-                        swapped_mode = ModuleKind::CommonJS;
+                    let mut swapped_mode = ModuleKind::ES_NEXT;
+                    if c.emit_module_format_of_file(context_file.unwrap()) == ModuleKind::ES_NEXT {
+                        swapped_mode = ModuleKind::COMMON_JS;
                     }
                     specifier_result =
                         self.get_specifier_for_module_symbol(c, chain[0], swapped_mode);
@@ -1002,10 +1002,10 @@ impl NodeBuilderImpl {
         let mut symbol_name = String::new();
         if index == 0 {
             let ctx = self.ctx();
-            ctx.flags.set(ctx.flags.get() | Flags::InInitialEntityName);
+            ctx.flags.set(ctx.flags.get() | Flags::IN_INITIAL_ENTITY_NAME);
             symbol_name = self.get_name_of_symbol_as_written(c, symbol);
             ctx.approximate_length.set(ctx.approximate_length.get() + symbol_name.len() + 1);
-            ctx.flags.set(ctx.flags.get() ^ Flags::InInitialEntityName);
+            ctx.flags.set(ctx.flags.get() ^ Flags::IN_INITIAL_ENTITY_NAME);
         } else {
             // lookup a ref to symbol within parent to handle export aliases
             if let Some(parent) = parent {
@@ -1013,7 +1013,7 @@ impl NodeBuilderImpl {
                 if let Some(exports) = exports {
                     // avoid exhaustive iteration in the common case
                     let res = exports.lookup(symbol.name());
-                    if symbol.name() != ast::InternalSymbolNameExportEquals
+                    if symbol.name() != ast::INTERNAL_SYMBOL_NAME_EXPORT_EQUALS
                         && !is_late_bound_name(symbol.name())
                         && res.is_some()
                         && c.get_symbol_if_same_reference(res.unwrap(), symbol).is_some()
@@ -1024,7 +1024,7 @@ impl NodeBuilderImpl {
                         results.extend(exports.entries().into_iter().filter_map(|(name, ex)| {
                             if c.get_symbol_if_same_reference(ex, symbol).is_some()
                                 && !is_late_bound_name(name)
-                                && name != ast::InternalSymbolNameExportEquals
+                                && name != ast::INTERNAL_SYMBOL_NAME_EXPORT_EQUALS
                             {
                                 Some((ex, name))
                                 // break // must collect all results and sort them - exports are randomly iterated
@@ -1075,7 +1075,7 @@ impl NodeBuilderImpl {
         let ctx = self.ctx();
         ctx.approximate_length.set(ctx.approximate_length.get() + symbol_name.len() + 1);
 
-        if !self.ctx().flags.get().intersects(Flags::ForbidIndexedAccessSymbolReferences)
+        if !self.ctx().flags.get().intersects(Flags::FORBID_INDEXED_ACCESS_SYMBOL_REFERENCES)
             && parent.is_some()
             && c.get_members_of_symbol(parent.unwrap()).is_some()
             && c.get_members_of_symbol(parent.unwrap()).unwrap().lookup(symbol.name()).is_some()
@@ -1107,7 +1107,7 @@ impl NodeBuilderImpl {
         }
 
         let identifier = self.new_identifier(c, &symbol_name, Some(symbol));
-        self.e.add_emit_flags(identifier, EmitFlags::NoAsciiEscaping);
+        self.e.add_emit_flags(identifier, EmitFlags::NO_ASCII_ESCAPING);
 
         if index > stopper {
             let lhs = self.create_access_from_symbol_chain(
@@ -1117,7 +1117,7 @@ impl NodeBuilderImpl {
                 stopper,
                 override_type_arguments,
             );
-            if !self.ctx().flags.get().intersects(Flags::UseInstantiationExpressions)
+            if !self.ctx().flags.get().intersects(Flags::USE_INSTANTIATION_EXPRESSIONS)
                 || is_entity_name(lhs)
                     && (type_parameter_nodes.is_none()
                         || type_parameter_nodes.unwrap().nodes().is_empty())
@@ -1127,7 +1127,7 @@ impl NodeBuilderImpl {
             let access = self.create_access_expression(lhs);
             return self.create_expression_with_type_arguments(
                 c,
-                self.f.new_property_access_expression(access, None, identifier, NodeFlags::None),
+                self.f.new_property_access_expression(access, None, identifier, NodeFlags::NONE),
                 type_parameter_nodes,
             );
         }
@@ -1168,11 +1168,11 @@ impl NodeBuilderImpl {
         let symbol = chain[index];
 
         if index == 0 {
-            self.ctx().flags.set(self.ctx().flags.get() | Flags::InInitialEntityName);
+            self.ctx().flags.set(self.ctx().flags.get() | Flags::IN_INITIAL_ENTITY_NAME);
         }
         let mut symbol_name = self.get_name_of_symbol_as_written(c, symbol);
         if index == 0 {
-            self.ctx().flags.set(self.ctx().flags.get() ^ Flags::InInitialEntityName);
+            self.ctx().flags.set(self.ctx().flags.get() ^ Flags::IN_INITIAL_ENTITY_NAME);
         }
 
         if starts_with_single_or_double_quote(&symbol_name)
@@ -1191,7 +1191,7 @@ impl NodeBuilderImpl {
 
         if index == 0 || can_use_property_access(&symbol_name) {
             let identifier = self.new_identifier(c, &symbol_name, Some(symbol));
-            self.e.add_emit_flags(identifier, EmitFlags::NoAsciiEscaping);
+            self.e.add_emit_flags(identifier, EmitFlags::NO_ASCII_ESCAPING);
             let ctx = self.ctx();
             ctx.approximate_length.set(ctx.approximate_length.get() + 1 + symbol_name.len());
             if index > 0 {
@@ -1199,9 +1199,9 @@ impl NodeBuilderImpl {
                     self.create_expression_from_symbol_chain(c, chain, index - 1),
                     None,
                     identifier,
-                    NodeFlags::None,
+                    NodeFlags::NONE,
                 );
-                self.e.add_emit_flags(result, EmitFlags::NoIndentation);
+                self.e.add_emit_flags(result, EmitFlags::NO_INDENTATION);
                 return self.create_expression_with_type_arguments(c, result, type_parameter_nodes);
             }
             return self.create_expression_with_type_arguments(c, identifier, type_parameter_nodes);
@@ -1213,7 +1213,7 @@ impl NodeBuilderImpl {
 
         let mut expression: Option<P<Node>> = None;
         if starts_with_single_or_double_quote(&symbol_name)
-            && !symbol.flags().intersects(SymbolFlags::EnumMember)
+            && !symbol.flags().intersects(SymbolFlags::ENUM_MEMBER)
         {
             let literal_text = tsrs_core::stringutil::unquote_string(&symbol_name);
             let ctx = self.ctx();
@@ -1229,13 +1229,13 @@ impl NodeBuilderImpl {
             let ctx = self.ctx();
             ctx.approximate_length.set(ctx.approximate_length.get() + symbol_name.len());
             expression =
-                Some(self.f.new_numeric_literal(self.f.alloc_text(&symbol_name), TokenFlags::None));
+                Some(self.f.new_numeric_literal(self.f.alloc_text(&symbol_name), TokenFlags::NONE));
         }
         if expression.is_none() {
             let ctx = self.ctx();
             ctx.approximate_length.set(ctx.approximate_length.get() + symbol_name.len());
             let e = self.new_identifier(c, &symbol_name, Some(symbol));
-            self.e.add_emit_flags(e, EmitFlags::NoAsciiEscaping);
+            self.e.add_emit_flags(e, EmitFlags::NO_ASCII_ESCAPING);
             expression = Some(e);
         }
         let ctx = self.ctx();
@@ -1243,7 +1243,7 @@ impl NodeBuilderImpl {
         let lhs = self.create_expression_from_symbol_chain(c, chain, index - 1);
         self.create_expression_with_type_arguments(
             c,
-            self.f.new_element_access_expression(lhs, None, expression.unwrap(), NodeFlags::None),
+            self.f.new_element_access_expression(lhs, None, expression.unwrap(), NodeFlags::NONE),
             type_parameter_nodes,
         )
     }
@@ -1289,7 +1289,7 @@ impl NodeBuilderImpl {
             let Some(name_type) = c.value_symbol_links.get(symbol).name_type() else {
                 return String::new();
             };
-            if name_type.flags().intersects(TypeFlags::StringOrNumberLiteral) {
+            if name_type.flags().intersects(TypeFlags::STRING_OR_NUMBER_LITERAL) {
                 let value = name_type.as_literal_type().value.get();
                 let name = match value {
                     Some(LiteralValue::String(v)) => v.to_string(),
@@ -1306,7 +1306,7 @@ impl NodeBuilderImpl {
                 }
                 return name;
             }
-            if name_type.flags().intersects(TypeFlags::UniqueESSymbol) {
+            if name_type.flags().intersects(TypeFlags::UNIQUE_ES_SYMBOL) {
                 let text = self.get_name_of_symbol_as_written(c, name_type.symbol().unwrap());
                 return format!("[{text}]");
             }
@@ -1334,10 +1334,10 @@ impl NodeBuilderImpl {
             symbol = result;
         }
         let ctx = self.ctx();
-        if symbol.name() == ast::InternalSymbolNameDefault
-            && !ctx.flags.get().intersects(Flags::UseAliasDefinedOutsideCurrentScope)
+        if symbol.name() == ast::INTERNAL_SYMBOL_NAME_DEFAULT
+            && !ctx.flags.get().intersects(Flags::USE_ALIAS_DEFINED_OUTSIDE_CURRENT_SCOPE)
             // If it's not the first part of an entity name, it must print as `default`
-            && (!ctx.flags.get().intersects(Flags::InInitialEntityName)
+            && (!ctx.flags.get().intersects(Flags::IN_INITIAL_ENTITY_NAME)
                 // if the symbol is synthesized, it will only be referenced externally it must print as `default`
                 || symbol.declarations().is_empty()
                 // if not in the same binding context (source file, module declaration), it must print as `default`
@@ -1355,7 +1355,7 @@ impl NodeBuilderImpl {
                 // 	return symbol.Name
                 // }
                 if is_computed_property_name(name)
-                    && !symbol.check_flags().intersects(CheckFlags::Late)
+                    && !symbol.check_flags().intersects(CheckFlags::LATE)
                 {
                     if c.value_symbol_links.has(symbol)
                         && c.value_symbol_links.get(symbol).name_type().is_some()
@@ -1364,7 +1364,7 @@ impl NodeBuilderImpl {
                             .name_type()
                             .unwrap()
                             .flags()
-                            .intersects(TypeFlags::StringOrNumberLiteral)
+                            .intersects(TypeFlags::STRING_OR_NUMBER_LITERAL)
                     {
                         let result = self.get_name_of_symbol_from_name_type(c, symbol);
                         if !result.is_empty() {
@@ -1388,7 +1388,7 @@ impl NodeBuilderImpl {
             {
                 if self.ctx.get().is_some()
                     && !ctx.encountered_error.get()
-                    && !ctx.flags.get().intersects(Flags::AllowAnonymousIdentifier)
+                    && !ctx.flags.get().intersects(Flags::ALLOW_ANONYMOUS_IDENTIFIER)
                 {
                     ctx.encountered_error.set(true);
                 }
@@ -1436,7 +1436,7 @@ impl NodeBuilderImpl {
         }
         self.ctx().type_parameter_symbol_list.borrow_mut().add(symbol_id);
 
-        if self.ctx().flags.get().intersects(Flags::WriteTypeParametersInQualifiedName)
+        if self.ctx().flags.get().intersects(Flags::WRITE_TYPE_PARAMETERS_IN_QUALIFIED_NAME)
             && index < chain.len() - 1
         {
             if let Some(type_argument_nodes) =
@@ -1478,12 +1478,12 @@ impl NodeBuilderImpl {
     ) -> Vec<P<Symbol>> {
         // Try to get qualified name if the symbol is not a type parameter and there is an enclosing declaration.
         let mut chain: Vec<P<Symbol>> = Vec::new();
-        let is_type_parameter = symbol.flags().intersects(SymbolFlags::TypeParameter);
+        let is_type_parameter = symbol.flags().intersects(SymbolFlags::TYPE_PARAMETER);
         let ctx = self.ctx();
         if !is_type_parameter
             && (ctx.enclosing_declaration.get().is_some()
-                || ctx.flags.get().intersects(Flags::UseFullyQualifiedType))
-            && !ctx.internal_flags.get().intersects(InternalFlags::DoNotIncludeSymbolChain)
+                || ctx.flags.get().intersects(Flags::USE_FULLY_QUALIFIED_TYPE))
+            && !ctx.internal_flags.get().intersects(InternalFlags::DO_NOT_INCLUDE_SYMBOL_CHAIN)
         {
             let res = self.get_symbol_chain(
                 c,
@@ -1515,7 +1515,7 @@ impl NodeBuilderImpl {
             symbol,
             enclosing_declaration,
             meaning,
-            self.ctx().flags.get().intersects(Flags::UseOnlyExternalAliasing),
+            self.ctx().flags.get().intersects(Flags::USE_ONLY_EXTERNAL_ALIASING),
         );
         let mut qualifier_meaning = meaning;
         if accessible_symbol_chain.len() > 1 {
@@ -1535,7 +1535,7 @@ impl NodeBuilderImpl {
             }
             let parents = c.get_containers_of_symbol(root, enclosing_declaration, meaning);
             if !parents.is_empty() {
-                let mut parent_specifiers: Vec<sortedSymbolNamePair> = parents
+                let mut parent_specifiers: Vec<SortedSymbolNamePair> = parents
                     .iter()
                     .map(|&symbol| {
                         if symbol
@@ -1543,7 +1543,7 @@ impl NodeBuilderImpl {
                             .iter()
                             .any(|&d| has_non_global_augmentation_external_module_symbol(d))
                         {
-                            return sortedSymbolNamePair {
+                            return SortedSymbolNamePair {
                                 sym: symbol,
                                 name: self
                                     .get_specifier_for_module_symbol(
@@ -1555,7 +1555,7 @@ impl NodeBuilderImpl {
                                     .to_string(),
                             };
                         }
-                        sortedSymbolNamePair { sym: symbol, name: String::new() }
+                        SortedSymbolNamePair { sym: symbol, name: String::new() }
                     })
                     .collect();
                 parent_specifiers.sort_by(|a, b| Self::sort_by_best_name(c, a, b));
@@ -1570,7 +1570,7 @@ impl NodeBuilderImpl {
                     );
                     if !parent_chain.is_empty() {
                         if let Some(exports) = parent.exports() {
-                            let exported = exports.lookup(ast::InternalSymbolNameExportEquals);
+                            let exported = exports.lookup(ast::INTERNAL_SYMBOL_NAME_EXPORT_EQUALS);
                             if let Some(exported) = exported {
                                 if c.get_symbol_if_same_reference(exported, symbol).is_some() {
                                     // parentChain root _is_ symbol - symbol is a module export=, so it kinda looks like it's own parent
@@ -1603,7 +1603,7 @@ impl NodeBuilderImpl {
         // If this is the last part of outputting the symbol, always output. The cases apply only to parent symbols.
         end_of_chain ||
             // If a parent symbol is an anonymous type, don't write it.
-            !symbol.flags().intersects(SymbolFlags::TypeLiteral | SymbolFlags::ObjectLiteral)
+            !symbol.flags().intersects(SymbolFlags::TYPE_LITERAL | SymbolFlags::OBJECT_LITERAL)
         {
             // If a parent symbol is an external module, don't write it. (We prefer just `x` vs `"foo/bar".x`.)
             if !end_of_chain
@@ -1623,8 +1623,8 @@ impl NodeBuilderImpl {
     // nodebuilderimpl.go:1153
     pub(crate) fn sort_by_best_name(
         c: &mut Checker,
-        a: &sortedSymbolNamePair,
-        b: &sortedSymbolNamePair,
+        a: &SortedSymbolNamePair,
+        b: &SortedSymbolNamePair,
     ) -> std::cmp::Ordering {
         let specifier_a = &a.name;
         let specifier_b = &b.name;
@@ -1720,7 +1720,7 @@ impl NodeBuilderImpl {
         c: &mut Checker,
         symbol: P<Symbol>,
         override_import_mode: ModuleKind,
-    ) -> moduleSpecifierResult {
+    ) -> ModuleSpecifierResult {
         let enclosing_declaration = self.e.most_original(self.ctx().enclosing_declaration.get());
         let mut original_module_specifier: Option<P<Node>> = None;
         if can_have_module_specifier(enclosing_declaration) {
@@ -1760,25 +1760,25 @@ impl NodeBuilderImpl {
                         symbol,
                     )
                 {
-                    return moduleSpecifierResult {
+                    return ModuleSpecifierResult {
                         specifier,
                         import_attributes_type: original_import_attributes_type,
                     };
                 }
-                return moduleSpecifierResult {
+                return ModuleSpecifierResult {
                     specifier,
                     import_attributes_type: Some(c.get_type_of_module_import_attributes(symbol)),
                 };
             }
             if let Some(specifier) = try_get_ambient_module_name_from_symbol_name(symbol.name()) {
-                return moduleSpecifierResult { specifier, import_attributes_type: None };
+                return ModuleSpecifierResult { specifier, import_attributes_type: None };
             }
         }
         if self.ctx().enclosing_file.get().is_none() {
             if let Some(specifier) = try_get_ambient_module_name_from_symbol_name(symbol.name()) {
-                return moduleSpecifierResult { specifier, import_attributes_type: None };
+                return ModuleSpecifierResult { specifier, import_attributes_type: None };
             }
-            return moduleSpecifierResult {
+            return ModuleSpecifierResult {
                 specifier: get_source_file_of_module(symbol).unwrap().get().file_name(),
                 import_attributes_type: None,
             };
@@ -1836,7 +1836,7 @@ impl NodeBuilderImpl {
             false, /*forAutoImports*/
         );
         assert_ne!(module_specifiers_result.specifiers, [] as [std::string::String; 0]);
-        let mut result = moduleSpecifierResult {
+        let mut result = ModuleSpecifierResult {
             specifier: self.f.alloc_text(&module_specifiers_result.specifiers[0]),
             import_attributes_type: None,
         };
@@ -1852,10 +1852,10 @@ impl NodeBuilderImpl {
     pub(crate) fn module_specifier_result_for_symbol(
         &self,
         c: &mut Checker,
-        result: moduleSpecifierResult,
+        result: ModuleSpecifierResult,
         import_attributes_type: Option<P<Type>>,
         symbol: P<Symbol>,
-    ) -> moduleSpecifierResult {
+    ) -> ModuleSpecifierResult {
         let mut result = result;
         if let Some(import_attributes_type) = import_attributes_type {
             if self.module_specifier_resolves_to_symbol(
@@ -1879,7 +1879,7 @@ impl NodeBuilderImpl {
         specifier: &str,
     ) -> Option<String> {
         let ctx = self.ctx();
-        if !ctx.internal_flags.get().intersects(InternalFlags::RewriteModuleSpecifiers)
+        if !ctx.internal_flags.get().intersects(InternalFlags::REWRITE_MODULE_SPECIFIERS)
             || !c.compiler_options.rewrite_relative_import_extensions.is_true()
         {
             return None;
@@ -1928,7 +1928,7 @@ impl NodeBuilderImpl {
     pub(crate) fn create_import_attributes_for_module_specifier(
         &self,
         c: &mut Checker,
-        result: moduleSpecifierResult,
+        result: ModuleSpecifierResult,
         import_mode_override: ModuleKind,
     ) -> Option<P<Node>> {
         let is_empty_attributes_type = result.import_attributes_type.is_none()
@@ -1958,7 +1958,7 @@ impl NodeBuilderImpl {
         for property in properties {
             let name = property.name();
             let property_type = c.get_type_of_symbol(property);
-            if !property_type.flags().intersects(TypeFlags::StringLiteral) {
+            if !property_type.flags().intersects(TypeFlags::STRING_LITERAL) {
                 continue;
             }
             let value = get_string_literal_value(property_type);
@@ -1997,7 +1997,7 @@ impl NodeBuilderImpl {
     ) -> P<Node> {
         let mut restore_flags = self.save_restore_flags(c);
         let ctx = self.ctx();
-        ctx.flags.set(ctx.flags.get() & !Flags::WriteTypeParametersInQualifiedName); // Avoids potential infinite loop when building for a claimspace with a generic
+        ctx.flags.set(ctx.flags.get() & !Flags::WRITE_TYPE_PARAMETERS_IN_QUALIFIED_NAME); // Avoids potential infinite loop when building for a claimspace with a generic
         let modifier_flags = checker::Checker::get_type_parameter_modifiers(type_parameter);
         let modifiers =
             create_modifiers_from_modifier_flags(modifier_flags, |k| self.f.new_modifier(k));
@@ -2040,7 +2040,7 @@ impl NodeBuilderImpl {
         let mut range_ = range_;
         let enclosing_file = self.ctx().enclosing_file.get();
         if !node_is_synthesized(range_)
-            || !range_.flags().intersects(NodeFlags::Synthesized)
+            || !range_.flags().intersects(NodeFlags::SYNTHESIZED)
             || enclosing_file.is_none()
             || enclosing_file != get_source_file_of_node(self.e.most_original(Some(range_)))
         {
@@ -2089,13 +2089,13 @@ impl NodeBuilderImpl {
         let result = c.resolve_name(
             self.ctx().enclosing_declaration.get(),
             name,
-            SymbolFlags::Type,
+            SymbolFlags::TYPE,
             None,
             false,
             false,
         );
         if let Some(result) = result {
-            if result.flags().intersects(SymbolFlags::TypeParameter) {
+            if result.flags().intersects(SymbolFlags::TYPE_PARAMETER) {
                 return Some(result) != type_parameter.symbol();
             }
         }
@@ -2108,7 +2108,7 @@ impl NodeBuilderImpl {
         c: &mut Checker,
         type_parameter: P<Type>,
     ) -> P<Node> {
-        if self.ctx().flags.get().intersects(Flags::GenerateNamesForShadowedTypeParams) {
+        if self.ctx().flags.get().intersects(Flags::GENERATE_NAMES_FOR_SHADOWED_TYPE_PARAMS) {
             let cached = self.ctx().type_parameter_names.borrow().get(&type_parameter.id).copied();
             if let Some(cached) = cached {
                 return cached;
@@ -2117,7 +2117,7 @@ impl NodeBuilderImpl {
         let mut result = self.symbol_to_name(
             c,
             type_parameter.symbol().unwrap(),
-            SymbolFlags::Type,
+            SymbolFlags::TYPE,
             true, /*expectsIdentifier*/
         );
         if !is_identifier(result) {
@@ -2131,7 +2131,7 @@ impl NodeBuilderImpl {
                 }
             }
         }
-        if self.ctx().flags.get().intersects(Flags::GenerateNamesForShadowedTypeParams) {
+        if self.ctx().flags.get().intersects(Flags::GENERATE_NAMES_FOR_SHADOWED_TYPE_PARAMS) {
             let raw_text = result.text();
             let mut i = self
                 .ctx()
@@ -2195,7 +2195,7 @@ impl NodeBuilderImpl {
 
     // nodebuilderimpl.go:1530
     pub(crate) fn create_mapped_type_node_from_type(&self, c: &mut Checker, t: P<Type>) -> P<Node> {
-        assert!(t.flags().intersects(TypeFlags::Object));
+        assert!(t.flags().intersects(TypeFlags::OBJECT));
         let mapped = t.as_mapped_type();
         let declaration = mapped.declaration.get().unwrap();
         let decl = declaration.as_mapped_type_node();
@@ -2215,27 +2215,31 @@ impl NodeBuilderImpl {
         // If the mapped type isn't `keyof` constraint-declared, _but_ still has modifiers preserved, and its naive instantiation won't preserve modifiers because its constraint isn't `keyof` constrained, we have work to do
         let needs_modifier_preserving_wrapper =
             !(checker::Checker::is_mapped_type_with_keyof_constraint_declaration(t)
-                || c.get_modifiers_type_from_mapped_type(t).flags().intersects(TypeFlags::Unknown)
-                || !self.ctx().flags.get().intersects(Flags::GenerateNamesForShadowedTypeParams)
+                || c.get_modifiers_type_from_mapped_type(t).flags().intersects(TypeFlags::UNKNOWN)
+                || !self
+                    .ctx()
+                    .flags
+                    .get()
+                    .intersects(Flags::GENERATE_NAMES_FOR_SHADOWED_TYPE_PARAMS)
                 || c.get_constraint_type_from_mapped_type(t)
                     .flags()
-                    .intersects(TypeFlags::TypeParameter)
+                    .intersects(TypeFlags::TYPE_PARAMETER)
                     && {
                         let constraint_type = c.get_constraint_type_from_mapped_type(t);
                         c.get_constraint_of_type_parameter(constraint_type)
                             .unwrap()
                             .flags()
-                            .intersects(TypeFlags::Index)
+                            .intersects(TypeFlags::INDEX)
                     });
 
         let appropriate_constraint_type_node: Option<P<Node>> =
             if checker::Checker::is_mapped_type_with_keyof_constraint_declaration(t) {
                 // We have a { [P in keyof T]: X }
                 // We do this to ensure we retain the toplevel keyof-ness of the type which may be lost due to keyof distribution during `getConstraintTypeFromMappedType`
-                if self.ctx().flags.get().intersects(Flags::GenerateNamesForShadowedTypeParams)
+                if self.ctx().flags.get().intersects(Flags::GENERATE_NAMES_FOR_SHADOWED_TYPE_PARAMS)
                     && Self::is_homomorphic_mapped_type_with_non_homomorphic_instantiation(c, t)
                 {
-                    let new_symbol = c.new_symbol(SymbolFlags::TypeParameter, "T");
+                    let new_symbol = c.new_symbol(SymbolFlags::TYPE_PARAMETER, "T");
                     let new_constraint_param = c.new_type_parameter(Some(new_symbol));
                     let name = self.type_parameter_to_name(c, new_constraint_param);
                     let target = t.target().unwrap();
@@ -2259,7 +2263,7 @@ impl NodeBuilderImpl {
                 Some(self.f.new_type_operator_node(Kind::KeyOfKeyword, index_target.unwrap()))
             } else if needs_modifier_preserving_wrapper {
                 // So, step 1: new type variable
-                let new_symbol = c.new_symbol(SymbolFlags::TypeParameter, "T");
+                let new_symbol = c.new_symbol(SymbolFlags::TYPE_PARAMETER, "T");
                 let new_param = c.new_type_parameter(Some(new_symbol));
                 let name = self.type_parameter_to_name(c, new_param);
                 new_type_variable = Some(self.f.new_type_reference_node(name, None));
@@ -2286,7 +2290,7 @@ impl NodeBuilderImpl {
         }
         let without_missing = c.remove_missing_type(
             template_type,
-            get_mapped_type_modifiers(t).intersects(MappedTypeModifiers::IncludeOptional),
+            get_mapped_type_modifiers(t).intersects(MappedTypeModifiers::INCLUDE_OPTIONAL),
         );
         let template_type_node = self.type_to_type_node(c, Some(without_missing));
         cleanup(c);
@@ -2300,9 +2304,9 @@ impl NodeBuilderImpl {
         );
         let ctx = self.ctx();
         ctx.approximate_length.set(ctx.approximate_length.get() + 10);
-        self.e.add_emit_flags(result, EmitFlags::SingleLine);
+        self.e.add_emit_flags(result, EmitFlags::SINGLE_LINE);
 
-        if self.ctx().flags.get().intersects(Flags::GenerateNamesForShadowedTypeParams)
+        if self.ctx().flags.get().intersects(Flags::GENERATE_NAMES_FOR_SHADOWED_TYPE_PARAMS)
             && Self::is_homomorphic_mapped_type_with_non_homomorphic_instantiation(c, t)
         {
             // homomorphic mapped type with a non-homomorphic naive inlining
@@ -2330,7 +2334,7 @@ impl NodeBuilderImpl {
             );
 
             let mut original_constraint_node: Option<P<Node>> = None;
-            if !original_constraint.flags().intersects(TypeFlags::Unknown) {
+            if !original_constraint.flags().intersects(TypeFlags::UNKNOWN) {
                 original_constraint_node = self.type_to_type_node(c, Some(original_constraint));
             }
 
@@ -2396,7 +2400,7 @@ impl NodeBuilderImpl {
         let parameter_name: P<Node>;
         if kind == TypePredicateKind::Identifier || kind == TypePredicateKind::AssertsIdentifier {
             parameter_name = self.f.new_identifier(predicate.parameter_name.get());
-            self.e.add_emit_flags(parameter_name, EmitFlags::NoAsciiEscaping);
+            self.e.add_emit_flags(parameter_name, EmitFlags::NO_ASCII_ESCAPING);
         } else {
             parameter_name = self.f.new_this_type_node();
         }
@@ -2467,7 +2471,7 @@ impl NodeBuilderImpl {
         let target_symbol = c.get_target_symbol(symbol).unwrap();
         if target_symbol
             .flags()
-            .intersects(SymbolFlags::Class | SymbolFlags::Interface | SymbolFlags::Alias)
+            .intersects(SymbolFlags::CLASS | SymbolFlags::INTERFACE | SymbolFlags::ALIAS)
         {
             let mut results: Vec<P<Node>> = Vec::new();
             let params = c.get_local_type_parameters_of_class_or_interface_or_type_alias(symbol);
@@ -2475,7 +2479,7 @@ impl NodeBuilderImpl {
                 params.into_iter().map(|param| self.type_parameter_to_declaration(c, param)),
             );
             return results;
-        } else if target_symbol.flags().intersects(SymbolFlags::Function) {
+        } else if target_symbol.flags().intersects(SymbolFlags::FUNCTION) {
             let mut results: Vec<P<Node>> = Vec::new();
             results.extend(
                 c.get_type_parameters_from_declaration(symbol.value_declaration().unwrap())
@@ -2494,7 +2498,7 @@ pub(crate) fn get_effective_parameter_declaration(symbol: P<Symbol>) -> Option<P
     if parameter_declaration.is_some() {
         return parameter_declaration;
     }
-    if !symbol.flags().intersects(SymbolFlags::Transient) {
+    if !symbol.flags().intersects(SymbolFlags::TRANSIENT) {
         return get_declaration_of_kind(symbol, Kind::JSDocParameterTag);
     }
     None
@@ -2519,7 +2523,7 @@ impl NodeBuilderImpl {
             true,
         );
         let mut modifiers: Option<P<ModifierList>> = None;
-        if !self.ctx().flags.get().intersects(Flags::OmitParameterModifiers)
+        if !self.ctx().flags.get().intersects(Flags::OMIT_PARAMETER_MODIFIERS)
             && preserve_modifier_flags
             && let Some(parameter_declaration) = parameter_declaration
             && can_have_modifiers(parameter_declaration)
@@ -2538,7 +2542,7 @@ impl NodeBuilderImpl {
         }
         let is_rest = parameter_declaration.is_some()
             && is_rest_parameter(parameter_declaration.unwrap())
-            || parameter_symbol.check_flags().intersects(CheckFlags::RestParameter);
+            || parameter_symbol.check_flags().intersects(CheckFlags::REST_PARAMETER);
         let mut dot_dot_dot_token: Option<P<Node>> = None;
         if is_rest {
             dot_dot_dot_token = Some(self.f.new_token(Kind::DotDotDotToken));
@@ -2550,7 +2554,7 @@ impl NodeBuilderImpl {
         );
         let is_optional = parameter_declaration.is_some()
             && c.is_optional_parameter(parameter_declaration.unwrap())
-            || parameter_symbol.check_flags().intersects(CheckFlags::OptionalParameter);
+            || parameter_symbol.check_flags().intersects(CheckFlags::OPTIONAL_PARAMETER);
         let mut question_token: Option<P<Node>> = None;
         if is_optional {
             question_token = Some(self.f.new_token(Kind::QuestionToken));
@@ -2585,13 +2589,13 @@ impl NodeBuilderImpl {
         match name.kind() {
             Kind::Identifier => {
                 let cloned = self.f.deep_clone_node(Some(name)).unwrap();
-                self.e.set_emit_flags(cloned, EmitFlags::NoAsciiEscaping);
+                self.e.set_emit_flags(cloned, EmitFlags::NO_ASCII_ESCAPING);
                 self.id_to_symbol.borrow_mut().insert(cloned, parameter_symbol);
                 cloned
             }
             Kind::QualifiedName => {
                 let cloned = self.f.deep_clone_node(Some(name.as_qualified_name().right)).unwrap();
-                self.e.set_emit_flags(cloned, EmitFlags::NoAsciiEscaping);
+                self.e.set_emit_flags(cloned, EmitFlags::NO_ASCII_ESCAPING);
                 self.id_to_symbol.borrow_mut().insert(cloned, parameter_symbol);
                 cloned
             }
@@ -2632,7 +2636,7 @@ impl NodeBuilderImpl {
             visited = self.f.deep_clone_node(Some(visited)).unwrap();
         }
 
-        self.e.set_emit_flags(visited, EmitFlags::SingleLine | EmitFlags::NoAsciiEscaping);
+        self.e.set_emit_flags(visited, EmitFlags::SINGLE_LINE | EmitFlags::NO_ASCII_ESCAPING);
         visited
     }
 
@@ -2694,7 +2698,7 @@ impl NodeBuilderImpl {
         if kind == TypePredicateKind::Identifier || kind == TypePredicateKind::AssertsIdentifier {
             parameter_name =
                 self.new_identifier(c, type_predicate.parameter_name.get(), None /*symbol*/);
-            self.e.set_emit_flags(parameter_name, EmitFlags::NoAsciiEscaping);
+            self.e.set_emit_flags(parameter_name, EmitFlags::NO_ASCII_ESCAPING);
         } else {
             parameter_name = self.f.new_this_type_node();
         }

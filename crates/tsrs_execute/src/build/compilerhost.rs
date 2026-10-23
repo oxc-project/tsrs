@@ -11,15 +11,15 @@ use tsrs_diagnostics::Message;
 use tsrs_tsoptions::ParsedCommandLine;
 use tsrs_vfs::FS;
 
-use super::host::host;
+use super::host::HostImpl;
 
-pub(crate) struct compilerHost {
-    pub(crate) host: &'static host,
+pub(crate) struct CompilerHostImpl {
+    pub(crate) host: &'static HostImpl,
     pub(crate) trace: Box<dyn Fn(&'static Message, &[&dyn std::fmt::Display]) + Send + Sync>,
     pub(crate) content_mapper_project: Option<Arc<dyn Project>>,
 }
 
-impl CompilerHost for compilerHost {
+impl CompilerHost for CompilerHostImpl {
     fn fs(&self) -> &dyn FS {
         CompilerHost::fs(self.host)
     }

@@ -18,7 +18,7 @@ use tsrs_core::P;
 use tsrs_core::arena::Region;
 
 use crate::checkerpool::Context;
-use crate::emitter::{EmitOnly, emitter};
+use crate::emitter::{EmitOnly, Emitter};
 use crate::program::Program;
 use crate::programlike::{ProgramLike, get_diagnostics_of_any_program_like};
 use tsrs_tsoptions::outputpaths::{self, ForceEmitPaths};
@@ -223,7 +223,7 @@ impl Program {
         // printed and written; the checker escapes to its own arena (`CheckerSlot::with`), and so do diagnostics
         // and the program's caches (`EmitHost`).
         let transform =
-            |c: &mut tsrs_checker::Checker, source_file: P<SourceFile>| -> (emitter, Region) {
+            |c: &mut tsrs_checker::Checker, source_file: P<SourceFile>| -> (Emitter, Region) {
                 let outer_before = if mem_log { tsrs_core::ptr::arena_used_bytes() } else { 0 };
                 let region = Region::new_scratch(EMIT_REGION_FIRST_CHUNK);
                 let e = {
@@ -243,7 +243,7 @@ impl Program {
                                 && options.emit_only == EmitOnly::EmitOnlyDts,
                         },
                     );
-                    let mut e = emitter {
+                    let mut e = Emitter {
                         host,
                         emit_only: options.emit_only,
                         emitter_diagnostics: tsrs_ast::DiagnosticsCollection::default(),
@@ -273,7 +273,7 @@ impl Program {
                 }
                 (e, region)
             };
-        let print = |(mut e, region): (emitter, Region), index: usize| {
+        let print = |(mut e, region): (Emitter, Region), index: usize| {
             let outer_before = if mem_log { tsrs_core::ptr::arena_used_bytes() } else { 0 };
             let used_before = if mem_log { region.used_bytes() } else { 0 };
             let result = {

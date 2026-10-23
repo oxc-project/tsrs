@@ -7,16 +7,16 @@ use tsrs_ipc as ipc;
 use tsrs_spanmap::{Feature, Kind, Segment};
 
 use crate::protocol::{
-    initialize_result, marshal_span_map, no_notifications, testHandler, unexpected_method,
+    TestHandler, initialize_result, marshal_span_map, no_notifications, unexpected_method,
     unmarshal_params,
 };
 
 // hoisting.go:15
-pub(crate) struct hoistingHandler;
+pub(crate) struct HoistingHandler;
 
-impl testHandler for hoistingHandler {}
+impl TestHandler for HoistingHandler {}
 
-impl ipc::Handler for hoistingHandler {
+impl ipc::Handler for HoistingHandler {
     // hoisting.go:17
     fn handle_request(&self, method: &str, params: Option<&Value>) -> Result<Value, ipc::Error> {
         match method {
@@ -76,8 +76,8 @@ fn transform_hoisting(content: &str) -> Result<(String, Value), ipc::Error> {
             virtual_end: virtual_.len() as u32,
             original_start: original_start as u32,
             original_end: original_end as u32,
-            kind: Kind::Verbatim,
-            features: Feature::All,
+            kind: Kind::VERBATIM,
+            features: Feature::ALL,
         });
     };
 

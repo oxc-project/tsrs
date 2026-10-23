@@ -48,7 +48,7 @@ pub fn evaluate<H>(
     // on code that might break Babel.
     let expr = ast::skip_outer_expressions(
         expr,
-        outer_expressions_to_skip | ast::OuterExpressionKinds::Parentheses,
+        outer_expressions_to_skip | ast::OuterExpressionKinds::PARENTHESES,
     );
     match expr.kind() {
         Kind::PrefixUnaryExpression => {

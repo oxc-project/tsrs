@@ -47,8 +47,8 @@ impl Compilation {
             matches!(
                 self.status,
                 ExitStatus::Success
-                    | ExitStatus::DiagnosticsPresent_OutputsSkipped
-                    | ExitStatus::DiagnosticsPresent_OutputsGenerated
+                    | ExitStatus::DiagnosticsPresentOutputsSkipped
+                    | ExitStatus::DiagnosticsPresentOutputsGenerated
             ),
             "benchmark compilation failed: {self:?}"
         );

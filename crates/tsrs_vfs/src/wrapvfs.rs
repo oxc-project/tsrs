@@ -24,16 +24,16 @@ pub struct Replacements {
 }
 
 // wrapvfs.go:23
-pub fn wrap(fs: &'static dyn FS, replacements: Replacements) -> wrappedFS {
-    wrappedFS { fs, replacements }
+pub fn wrap(fs: &'static dyn FS, replacements: Replacements) -> WrappedFS {
+    WrappedFS { fs, replacements }
 }
 
-pub struct wrappedFS {
+pub struct WrappedFS {
     fs: &'static dyn FS,
     replacements: Replacements,
 }
 
-impl FS for wrappedFS {
+impl FS for WrappedFS {
     // wrapvfs.go:36
     fn use_case_sensitive_file_names(&self) -> bool {
         if let Some(f) = &self.replacements.use_case_sensitive_file_names {

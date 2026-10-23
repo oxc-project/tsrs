@@ -8,7 +8,7 @@ use tsrs_vfs::{FS, bundled, osvfs};
 
 // lsp.go:20
 pub fn run_lsp(args: &[String]) -> i32 {
-    let mut flag = flagSet::new("lsp");
+    let mut flag = FlagSet::new("lsp");
     flag.bool("stdio", "use stdio for communication");
     flag.string("pprofDir", "Generate pprof CPU/memory profiles to the given directory.");
     flag.string("pipe", "use named pipe for communication");
@@ -166,58 +166,58 @@ fn is_process_alive(_pid: i64) -> bool {
 }
 
 // The subset of Go's `flag` package (FlagSet with ContinueOnError) that runLSP uses.
-enum flagValue {
+enum FlagValue {
     Bool(bool),
     String(String),
     Int(i64),
 }
 
-struct flagDef {
+struct FlagDef {
     name: &'static str,
     usage: &'static str,
-    value: flagValue,
+    value: FlagValue,
 }
 
-pub(crate) struct flagSet {
+pub(crate) struct FlagSet {
     name: &'static str,
-    flags: Vec<flagDef>,
+    flags: Vec<FlagDef>,
 }
 
-impl flagSet {
-    pub(crate) fn new(name: &'static str) -> flagSet {
-        flagSet { name, flags: Vec::new() }
+impl FlagSet {
+    pub(crate) fn new(name: &'static str) -> FlagSet {
+        FlagSet { name, flags: Vec::new() }
     }
 
     pub(crate) fn bool(&mut self, name: &'static str, usage: &'static str) {
-        self.flags.push(flagDef { name, usage, value: flagValue::Bool(false) });
+        self.flags.push(FlagDef { name, usage, value: FlagValue::Bool(false) });
     }
 
     pub(crate) fn string(&mut self, name: &'static str, usage: &'static str) {
-        self.flags.push(flagDef { name, usage, value: flagValue::String(String::new()) });
+        self.flags.push(FlagDef { name, usage, value: FlagValue::String(String::new()) });
     }
 
     pub(crate) fn int(&mut self, name: &'static str, usage: &'static str) {
-        self.flags.push(flagDef { name, usage, value: flagValue::Int(0) });
+        self.flags.push(FlagDef { name, usage, value: FlagValue::Int(0) });
     }
 
-    fn lookup(&self, name: &str) -> Option<&flagDef> {
+    fn lookup(&self, name: &str) -> Option<&FlagDef> {
         self.flags.iter().find(|f| f.name == name)
     }
 
     pub(crate) fn bool_value(&self, name: &str) -> bool {
-        matches!(self.lookup(name).map(|f| &f.value), Some(flagValue::Bool(true)))
+        matches!(self.lookup(name).map(|f| &f.value), Some(FlagValue::Bool(true)))
     }
 
     pub(crate) fn string_value(&self, name: &str) -> String {
         match self.lookup(name).map(|f| &f.value) {
-            Some(flagValue::String(s)) => s.clone(),
+            Some(FlagValue::String(s)) => s.clone(),
             _ => String::new(),
         }
     }
 
     pub(crate) fn int_value(&self, name: &str) -> i64 {
         match self.lookup(name).map(|f| &f.value) {
-            Some(flagValue::Int(i)) => *i,
+            Some(FlagValue::Int(i)) => *i,
             _ => 0,
         }
     }
@@ -225,14 +225,14 @@ impl flagSet {
     // flag.(*FlagSet).PrintDefaults via the default Usage.
     fn usage(&self) {
         let mut out = format!("Usage of {}:\n", self.name);
-        let mut flags: Vec<&flagDef> = self.flags.iter().collect();
+        let mut flags: Vec<&FlagDef> = self.flags.iter().collect();
         flags.sort_by_key(|f| f.name);
         for f in flags {
             let mut line = format!("  -{}", f.name);
             match f.value {
-                flagValue::Bool(_) => {}
-                flagValue::String(_) => line.push_str(" string"),
-                flagValue::Int(_) => line.push_str(" int"),
+                FlagValue::Bool(_) => {}
+                FlagValue::String(_) => line.push_str(" string"),
+                FlagValue::Int(_) => line.push_str(" int"),
             }
             // Boolean flags of one ASCII character are so common we treat them specially, putting their usage on
             // the same line.
@@ -290,7 +290,7 @@ impl flagSet {
                 return self.fail(&format!("flag provided but not defined: -{name}"));
             };
 
-            if let flagValue::Bool(_) = self.flags[index].value {
+            if let FlagValue::Bool(_) = self.flags[index].value {
                 let b = match value.as_deref() {
                     None => true,
                     Some("1" | "t" | "T" | "TRUE" | "true" | "True") => true,
@@ -301,7 +301,7 @@ impl flagSet {
                         ));
                     }
                 };
-                self.flags[index].value = flagValue::Bool(b);
+                self.flags[index].value = FlagValue::Bool(b);
             } else {
                 let value = if let Some(value) = value {
                     value
@@ -313,15 +313,15 @@ impl flagSet {
                     args[i - 1].clone()
                 };
                 let new_value = match self.flags[index].value {
-                    flagValue::Int(_) => match parse_go_int(&value) {
-                        Ok(n) => flagValue::Int(n),
+                    FlagValue::Int(_) => match parse_go_int(&value) {
+                        Ok(n) => FlagValue::Int(n),
                         Err(reason) => {
                             return self.fail(&format!(
                                 "invalid value {value:?} for flag -{name}: {reason}"
                             ));
                         }
                     },
-                    _ => flagValue::String(value),
+                    _ => FlagValue::String(value),
                 };
                 self.flags[index].value = new_value;
             }

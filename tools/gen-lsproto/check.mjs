@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { ROOT, read, args, main } from "../lib/cli.mjs";
 import path from "node:path";
+import { screamingSnakeCase } from "../lib/rust-names.mjs";
 const keywords = new Set(
     "type ref match loop mod in as fn impl move self static struct super trait true false use where while async await dyn box do final macro override priv typeof unsized virtual yield try gen const crate else enum extern for if let pub return unsafe abstract become break continue".split(
         " ",
@@ -24,10 +25,16 @@ main(() => {
             if (!ok) missing.push(what);
         },
         matches = (text, pattern) => [...text.matchAll(pattern)].map((m) => m[1]);
-    const structs = new Map([...rs.matchAll(/^pub struct (\w+) \{\n(.*?)^\}/gms)].map((m) => [m[1], m[2]])),
+    const structs = new Map([...rs.matchAll(/^pub struct (\w+)\s*\{\n(.*?)^\}/gms)].map((m) => [m[1], m[2]])),
         tuples = new Set(matches(rs, /^pub struct (\w+)\(/gm)),
         aliases = new Set(matches(rs, /^pub type (\w+) =/gm));
-    const types = new Set([...structs.keys(), ...tuples, ...aliases, ...matches(rs, /^pub struct (\w+);/gm)]),
+    const types = new Set([
+            ...structs.keys(),
+            ...tuples,
+            ...aliases,
+            ...matches(rs, /^pub struct (\w+);/gm),
+            ...matches(rs, /^pub struct (\w+)\s*\{\s*\}/gm),
+        ]),
         constants = new Map(),
         methods = new Map();
     for (const m of rs.matchAll(/^impl (\w+) \{\n(.*?)^\}/gms)) {
@@ -59,11 +66,12 @@ main(() => {
             const [, name, type] = c;
             if (type === "Method" || enums.has(type)) {
                 const suffix = name.slice(type.length);
-                need(constants.get(type)?.has(suffix), `const ${name} -> ${type}::${suffix}`);
+                const rust = screamingSnakeCase(suffix);
+                need(constants.get(type)?.has(rust), `const ${name} -> ${type}::${rust}`);
             } else missing.push(`unexpected const ${name} ${type}`);
         }
     for (const name of matches(go, /^var (\w+Info) = (?:Request|Notification)Info/gm))
-        need(top.has(snake(name).toUpperCase()), `var ${name} -> ${snake(name).toUpperCase()}`);
+        need(top.has(screamingSnakeCase(name)), `var ${name} -> ${screamingSnakeCase(name)}`);
     for (const m of go.matchAll(/^func \((\w+) \*?(\w+)\) (\w+)\(/gm)) {
         const [, , type, method] = m,
             trait = {

@@ -20,7 +20,7 @@
 use std::cell::Cell;
 use std::sync::{Condvar, Mutex, OnceLock};
 
-struct slots {
+struct Slots {
     in_use: Mutex<usize>,
     freed: Condvar,
     capacity: usize,
@@ -30,9 +30,9 @@ thread_local! {
     static HOLDS_SLOT: Cell<bool> = const { Cell::new(false) };
 }
 
-fn get_slots() -> &'static slots {
-    static SLOTS: OnceLock<slots> = OnceLock::new();
-    SLOTS.get_or_init(|| slots {
+fn get_slots() -> &'static Slots {
+    static SLOTS: OnceLock<Slots> = OnceLock::new();
+    SLOTS.get_or_init(|| Slots {
         in_use: Mutex::new(0),
         freed: Condvar::new(),
         capacity: std::thread::available_parallelism().map_or(1, std::num::NonZero::get),
@@ -46,7 +46,7 @@ pub fn run<R>(f: impl FnOnce() -> R) -> R {
         return f();
     }
     acquire();
-    let _release = releaseOnDrop;
+    let _release = ReleaseOnDrop;
     f()
 }
 
@@ -57,7 +57,7 @@ pub fn blocking<R>(f: impl FnOnce() -> R) -> R {
         return f();
     }
     release();
-    let _reacquire = reacquireOnDrop;
+    let _reacquire = ReacquireOnDrop;
     f()
 }
 
@@ -79,17 +79,17 @@ fn release() {
 }
 
 // Also on unwind: a panicking job (recovered by the server) gives its slot back.
-struct releaseOnDrop;
+struct ReleaseOnDrop;
 
-impl Drop for releaseOnDrop {
+impl Drop for ReleaseOnDrop {
     fn drop(&mut self) {
         release();
     }
 }
 
-struct reacquireOnDrop;
+struct ReacquireOnDrop;
 
-impl Drop for reacquireOnDrop {
+impl Drop for ReacquireOnDrop {
     fn drop(&mut self) {
         let s = get_slots();
         *s.in_use.lock().unwrap_or_else(std::sync::PoisonError::into_inner) += 1;

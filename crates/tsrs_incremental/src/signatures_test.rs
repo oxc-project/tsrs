@@ -19,11 +19,11 @@ use tsrs_vfs::{FS, vfstest};
 use crate::emit::{EmitOptions, ProgramLike, WriteFileData};
 use crate::program::Program;
 
-struct configHost {
+struct ConfigHost {
     fs: Arc<dyn FS>,
 }
 
-impl ParseConfigHost for configHost {
+impl ParseConfigHost for ConfigHost {
     fn fs(&self) -> &dyn FS {
         &*self.fs
     }
@@ -108,7 +108,7 @@ fn compiler_host(files: &[(&'static str, String)]) -> Arc<dyn CompilerHost> {
 fn compiler_program(files: &[(&'static str, String)]) -> &'static CompilerProgram {
     let fs: Arc<dyn FS> =
         Arc::new(vfstest::from_map(files.iter().map(|(k, v)| (*k, v.as_str())), true));
-    let config_host: &'static configHost = Box::leak(Box::new(configHost { fs }));
+    let config_host: &'static ConfigHost = Box::leak(Box::new(ConfigHost { fs }));
     let (config, diagnostics) = tsoptions::get_parsed_command_line_of_config_file(
         "/src/tsconfig.json",
         None,

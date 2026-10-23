@@ -12,10 +12,10 @@ pub(crate) fn get_rules(
     let bucket = &get_rules_map()
         [get_rule_bucket_index(context.current_token_span.kind, context.next_token_span.kind)];
     if !bucket.is_empty() {
-        let mut rule_action_mask = RuleAction::None;
+        let mut rule_action_mask = RuleAction::NONE;
         'outer: for &rule in bucket {
             let accept_rule_actions = !get_rule_action_exclusion(rule_action_mask);
-            if rule.action() & accept_rule_actions != RuleAction::None {
+            if rule.action() & accept_rule_actions != RuleAction::NONE {
                 let preds = rule.context();
                 if !preds.iter().all(|p| p(context)) {
                     continue 'outer;
@@ -32,7 +32,7 @@ pub(crate) fn get_rules(
 // rulesmap.go:34
 fn get_rule_bucket_index(row: Kind, column: Kind) -> usize {
     assert!(
-        row <= Kind::LastKeyword && column <= Kind::LastKeyword,
+        row <= Kind::LAST_KEYWORD && column <= Kind::LAST_KEYWORD,
         "Must compute formatting context from tokens"
     );
     (row as usize * MAP_ROW_LENGTH) + column as usize
@@ -41,7 +41,7 @@ fn get_rule_bucket_index(row: Kind, column: Kind) -> usize {
 // rulesmap.go:40
 const MASK_BIT_SIZE: u32 = 5;
 const MASK: u32 = 0b11111; // MaskBitSize bits
-const MAP_ROW_LENGTH: usize = Kind::LastToken as usize + 1;
+const MAP_ROW_LENGTH: usize = Kind::LAST_TOKEN as usize + 1;
 
 // rulesmap.go:49
 /*
@@ -49,18 +49,18 @@ const MAP_ROW_LENGTH: usize = Kind::LastToken as usize + 1;
  * cannot be applied at the same position.
  */
 fn get_rule_action_exclusion(rule_action: RuleAction) -> RuleAction {
-    let mut mask = RuleAction::None;
-    if rule_action & RuleAction::StopProcessingSpaceActions != RuleAction::None {
-        mask |= RuleAction::ModifySpaceAction;
+    let mut mask = RuleAction::NONE;
+    if rule_action & RuleAction::STOP_PROCESSING_SPACE_ACTIONS != RuleAction::NONE {
+        mask |= RuleAction::MODIFY_SPACE_ACTION;
     }
-    if rule_action & RuleAction::StopProcessingTokenActions != RuleAction::None {
-        mask |= RuleAction::ModifyTokenAction;
+    if rule_action & RuleAction::STOP_PROCESSING_TOKEN_ACTIONS != RuleAction::NONE {
+        mask |= RuleAction::MODIFY_TOKEN_ACTION;
     }
-    if rule_action & RuleAction::ModifySpaceAction != RuleAction::None {
-        mask |= RuleAction::ModifySpaceAction;
+    if rule_action & RuleAction::MODIFY_SPACE_ACTION != RuleAction::NONE {
+        mask |= RuleAction::MODIFY_SPACE_ACTION;
     }
-    if rule_action & RuleAction::ModifyTokenAction != RuleAction::None {
-        mask |= RuleAction::ModifyTokenAction;
+    if rule_action & RuleAction::MODIFY_TOKEN_ACTION != RuleAction::NONE {
+        mask |= RuleAction::MODIFY_TOKEN_ACTION;
     }
     mask
 }
@@ -102,12 +102,12 @@ fn build_rules_map() -> Vec<Vec<&'static RuleImpl>> {
 pub struct RulesPosition(pub u32);
 
 impl RulesPosition {
-    pub const StopRulesSpecific: RulesPosition = RulesPosition(0);
-    pub const StopRulesAny: RulesPosition = RulesPosition(MASK_BIT_SIZE);
-    pub const ContextRulesSpecific: RulesPosition = RulesPosition(MASK_BIT_SIZE * 2);
-    pub const ContextRulesAny: RulesPosition = RulesPosition(MASK_BIT_SIZE * 3);
-    pub const NoContextRulesSpecific: RulesPosition = RulesPosition(MASK_BIT_SIZE * 4);
-    pub const NoContextRulesAny: RulesPosition = RulesPosition(MASK_BIT_SIZE * 5);
+    pub const STOP_RULES_SPECIFIC: RulesPosition = RulesPosition(0);
+    pub const STOP_RULES_ANY: RulesPosition = RulesPosition(MASK_BIT_SIZE);
+    pub const CONTEXT_RULES_SPECIFIC: RulesPosition = RulesPosition(MASK_BIT_SIZE * 2);
+    pub const CONTEXT_RULES_ANY: RulesPosition = RulesPosition(MASK_BIT_SIZE * 3);
+    pub const NO_CONTEXT_RULES_SPECIFIC: RulesPosition = RulesPosition(MASK_BIT_SIZE * 4);
+    pub const NO_CONTEXT_RULES_ANY: RulesPosition = RulesPosition(MASK_BIT_SIZE * 5);
 }
 
 // rulesmap.go:114
@@ -134,18 +134,22 @@ fn add_rule(
     construction_state: &mut [u32],
     rules_bucket_index: usize,
 ) {
-    let position = if rule.action() & RuleAction::StopAction != RuleAction::None {
-        if specific_tokens { RulesPosition::StopRulesSpecific } else { RulesPosition::StopRulesAny }
+    let position = if rule.action() & RuleAction::STOP_ACTION != RuleAction::NONE {
+        if specific_tokens {
+            RulesPosition::STOP_RULES_SPECIFIC
+        } else {
+            RulesPosition::STOP_RULES_ANY
+        }
     } else if !rule.context().is_empty() {
         if specific_tokens {
-            RulesPosition::ContextRulesSpecific
+            RulesPosition::CONTEXT_RULES_SPECIFIC
         } else {
-            RulesPosition::ContextRulesAny
+            RulesPosition::CONTEXT_RULES_ANY
         }
     } else if specific_tokens {
-        RulesPosition::NoContextRulesSpecific
+        RulesPosition::NO_CONTEXT_RULES_SPECIFIC
     } else {
-        RulesPosition::NoContextRulesAny
+        RulesPosition::NO_CONTEXT_RULES_ANY
     };
 
     let state = construction_state[rules_bucket_index];

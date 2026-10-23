@@ -2,30 +2,30 @@ use crate::*;
 use printer::{EmitFlags, GeneratedIdentifierFlags};
 use tsrs_core::collections::OrderedSet;
 
-use super::superAccessState;
+use super::SuperAccessState;
 
 // async.go:13
-type asyncContextFlags = u32;
+type AsyncContextFlags = u32;
 
-const asyncContextNonTopLevel: asyncContextFlags = 1 << 0;
-const asyncContextHasLexicalThis: asyncContextFlags = 1 << 1;
+const ASYNC_CONTEXT_NON_TOP_LEVEL: AsyncContextFlags = 1 << 0;
+const ASYNC_CONTEXT_HAS_LEXICAL_THIS: AsyncContextFlags = 1 << 1;
 
 // async.go:20
 #[derive(Clone, Copy, Default)]
-struct lexicalArgumentsInfo {
+struct LexicalArgumentsInfo {
     binding: Option<P<Node>>,
     used: bool,
 }
 
 // async.go:25
-pub struct asyncTransformer {
+pub struct AsyncTransformer {
     pub base: Transformer,
-    super_access_state: superAccessState,
+    super_access_state: SuperAccessState,
 
-    context_flags: Cell<asyncContextFlags>,
+    context_flags: Cell<AsyncContextFlags>,
 
     enclosing_function_parameter_names: RefCell<Option<FxHashSet<String>>>,
-    lexical_arguments: Cell<lexicalArgumentsInfo>,
+    lexical_arguments: Cell<LexicalArgumentsInfo>,
 
     async_body_visitor: OnceCell<NodeVisitor>,
     fallback_node_visitor: OnceCell<NodeVisitor>,
@@ -37,12 +37,12 @@ pub struct asyncTransformer {
     reason = "Transformer factories share an optional result so disabled transforms can return None."
 )]
 pub fn new_async_transformer(opt: &TransformOptions) -> Option<P<Transformer>> {
-    let tx = P::new(asyncTransformer {
+    let tx = P::new(AsyncTransformer {
         base: Transformer::default(),
-        super_access_state: superAccessState::default(),
+        super_access_state: SuperAccessState::default(),
         context_flags: Cell::new(0),
         enclosing_function_parameter_names: RefCell::new(None),
-        lexical_arguments: Cell::new(lexicalArgumentsInfo::default()),
+        lexical_arguments: Cell::new(LexicalArgumentsInfo::default()),
         async_body_visitor: OnceCell::new(),
         fallback_node_visitor: OnceCell::new(),
     });
@@ -61,7 +61,7 @@ pub fn new_async_transformer(opt: &TransformOptions) -> Option<P<Transformer>> {
     Some(result)
 }
 
-impl asyncTransformer {
+impl AsyncTransformer {
     fn emit_context(&self) -> P<EmitContext> {
         self.base.emit_context()
     }
@@ -82,7 +82,7 @@ impl asyncTransformer {
         self.fallback_node_visitor.get().unwrap().clone()
     }
 
-    fn sas(&self) -> &superAccessState {
+    fn sas(&self) -> &SuperAccessState {
         &self.super_access_state
     }
 
@@ -90,7 +90,7 @@ impl asyncTransformer {
         self.factory().new_unique_name_ex(
             text,
             printer::AutoGenerateOptions {
-                flags: GeneratedIdentifierFlags::Optimistic | GeneratedIdentifierFlags::FileLevel,
+                flags: GeneratedIdentifierFlags::OPTIMISTIC | GeneratedIdentifierFlags::FILE_LEVEL,
                 ..Default::default()
             },
         )
@@ -102,15 +102,15 @@ impl asyncTransformer {
             return node;
         }
 
-        self.set_context_flag(asyncContextNonTopLevel, false);
-        self.set_context_flag(asyncContextHasLexicalThis, false);
+        self.set_context_flag(ASYNC_CONTEXT_NON_TOP_LEVEL, false);
+        self.set_context_flag(ASYNC_CONTEXT_HAS_LEXICAL_THIS, false);
         let visited = self.visitor().visit_each_child(Some(node)).unwrap();
         self.emit_context().add_emit_helper(visited, &self.emit_context().read_emit_helpers());
         visited
     }
 
     // async.go:59
-    fn set_context_flag(&self, flag: asyncContextFlags, val: bool) {
+    fn set_context_flag(&self, flag: AsyncContextFlags, val: bool) {
         if val {
             self.context_flags.set(self.context_flags.get() | flag);
         } else {
@@ -119,25 +119,25 @@ impl asyncTransformer {
     }
 
     // async.go:67
-    fn in_context(&self, flags: asyncContextFlags) -> bool {
+    fn in_context(&self, flags: AsyncContextFlags) -> bool {
         self.context_flags.get() & flags != 0
     }
 
     // async.go:71
     fn in_top_level_context(&self) -> bool {
-        !self.in_context(asyncContextNonTopLevel)
+        !self.in_context(ASYNC_CONTEXT_NON_TOP_LEVEL)
     }
 
     // async.go:75
     fn in_has_lexical_this_context(&self) -> bool {
-        self.in_context(asyncContextHasLexicalThis)
+        self.in_context(ASYNC_CONTEXT_HAS_LEXICAL_THIS)
     }
 
     // async.go:79
     fn do_with_context(
         &self,
-        flags: asyncContextFlags,
-        cb: fn(&asyncTransformer, P<Node>) -> Option<P<Node>>,
+        flags: AsyncContextFlags,
+        cb: fn(&AsyncTransformer, P<Node>) -> Option<P<Node>>,
         node: P<Node>,
     ) -> Option<P<Node>> {
         let flags_to_set = flags & !self.context_flags.get();
@@ -183,7 +183,7 @@ impl asyncTransformer {
                     && !ast::is_label_name(node)
                 {
                     self.lexical_arguments
-                        .set(lexicalArgumentsInfo { binding: la.binding, used: true });
+                        .set(LexicalArgumentsInfo { binding: la.binding, used: true });
                     return la.binding;
                 }
             }
@@ -200,12 +200,12 @@ impl asyncTransformer {
     // async.go:126
     fn visit(&self, node: P<Node>) -> Option<P<Node>> {
         // Go: `defer tx.setContextFlag(asyncContextHasLexicalThis, true)`
-        if self.emit_context().emit_flags(node).intersects(EmitFlags::NoLexicalThis)
+        if self.emit_context().emit_flags(node).intersects(EmitFlags::NO_LEXICAL_THIS)
             && self.in_has_lexical_this_context()
         {
-            self.set_context_flag(asyncContextHasLexicalThis, false);
+            self.set_context_flag(ASYNC_CONTEXT_HAS_LEXICAL_THIS, false);
             let result = self.visit_worker(node);
-            self.set_context_flag(asyncContextHasLexicalThis, true);
+            self.set_context_flag(ASYNC_CONTEXT_HAS_LEXICAL_THIS, true);
             return result;
         }
         self.visit_worker(node)
@@ -215,7 +215,7 @@ impl asyncTransformer {
     fn visit_worker(&self, node: P<Node>) -> Option<P<Node>> {
         if !node
             .subtree_facts()
-            .intersects(SubtreeFacts::ContainsAnyAwait | SubtreeFacts::ContainsAwait)
+            .intersects(SubtreeFacts::CONTAINS_ANY_AWAIT | SubtreeFacts::CONTAINS_AWAIT)
         {
             return self.fallback_visitor(node);
         }
@@ -228,43 +228,43 @@ impl asyncTransformer {
             Kind::SourceFile => Some(self.visit_source_file(node)),
             Kind::AwaitExpression => Some(self.visit_await_expression(node)),
             Kind::MethodDeclaration => self.do_with_context(
-                asyncContextNonTopLevel | asyncContextHasLexicalThis,
-                asyncTransformer::visit_method_declaration,
+                ASYNC_CONTEXT_NON_TOP_LEVEL | ASYNC_CONTEXT_HAS_LEXICAL_THIS,
+                AsyncTransformer::visit_method_declaration,
                 node,
             ),
             Kind::FunctionDeclaration => self.do_with_context(
-                asyncContextNonTopLevel | asyncContextHasLexicalThis,
-                asyncTransformer::visit_function_declaration,
+                ASYNC_CONTEXT_NON_TOP_LEVEL | ASYNC_CONTEXT_HAS_LEXICAL_THIS,
+                AsyncTransformer::visit_function_declaration,
                 node,
             ),
             Kind::FunctionExpression => self.do_with_context(
-                asyncContextNonTopLevel | asyncContextHasLexicalThis,
-                asyncTransformer::visit_function_expression,
+                ASYNC_CONTEXT_NON_TOP_LEVEL | ASYNC_CONTEXT_HAS_LEXICAL_THIS,
+                AsyncTransformer::visit_function_expression,
                 node,
             ),
             Kind::ArrowFunction => self.do_with_context(
-                asyncContextNonTopLevel,
-                asyncTransformer::visit_arrow_function,
+                ASYNC_CONTEXT_NON_TOP_LEVEL,
+                AsyncTransformer::visit_arrow_function,
                 node,
             ),
             Kind::GetAccessor => self.do_with_context(
-                asyncContextNonTopLevel | asyncContextHasLexicalThis,
-                asyncTransformer::visit_get_accessor_declaration,
+                ASYNC_CONTEXT_NON_TOP_LEVEL | ASYNC_CONTEXT_HAS_LEXICAL_THIS,
+                AsyncTransformer::visit_get_accessor_declaration,
                 node,
             ),
             Kind::SetAccessor => self.do_with_context(
-                asyncContextNonTopLevel | asyncContextHasLexicalThis,
-                asyncTransformer::visit_set_accessor_declaration,
+                ASYNC_CONTEXT_NON_TOP_LEVEL | ASYNC_CONTEXT_HAS_LEXICAL_THIS,
+                AsyncTransformer::visit_set_accessor_declaration,
                 node,
             ),
             Kind::Constructor => self.do_with_context(
-                asyncContextNonTopLevel | asyncContextHasLexicalThis,
-                asyncTransformer::visit_constructor_declaration,
+                ASYNC_CONTEXT_NON_TOP_LEVEL | ASYNC_CONTEXT_HAS_LEXICAL_THIS,
+                AsyncTransformer::visit_constructor_declaration,
                 node,
             ),
             Kind::ClassDeclaration | Kind::ClassExpression => self.do_with_context(
-                asyncContextNonTopLevel | asyncContextHasLexicalThis,
-                asyncTransformer::visit_default,
+                ASYNC_CONTEXT_NON_TOP_LEVEL | ASYNC_CONTEXT_HAS_LEXICAL_THIS,
+                AsyncTransformer::visit_default,
                 node,
             ),
             _ => self.visitor().visit_each_child(Some(node)),
@@ -448,7 +448,7 @@ impl asyncTransformer {
     )]
     fn visit_constructor_declaration(&self, node: P<Node>) -> Option<P<Node>> {
         let saved_lexical_arguments =
-            self.lexical_arguments.replace(lexicalArgumentsInfo::default());
+            self.lexical_arguments.replace(LexicalArgumentsInfo::default());
         let modifiers = self.visitor().visit_modifiers(node.modifiers());
         let parameters =
             self.emit_context().visit_parameters(node.parameter_list(), &mut self.visitor());
@@ -478,11 +478,11 @@ impl asyncTransformer {
     fn visit_method_declaration(&self, node: P<Node>) -> Option<P<Node>> {
         let function_flags = ast::get_function_flags(Some(node));
         let saved_lexical_arguments =
-            self.lexical_arguments.replace(lexicalArgumentsInfo::default());
+            self.lexical_arguments.replace(LexicalArgumentsInfo::default());
 
         let parameters;
         let body;
-        if function_flags.intersects(FunctionFlags::Async) {
+        if function_flags.intersects(FunctionFlags::ASYNC) {
             parameters = Some(self.transform_async_function_parameter_list(node));
             body = self.transform_async_function_body(node, parameters.unwrap());
         } else {
@@ -515,7 +515,7 @@ impl asyncTransformer {
     )]
     fn visit_get_accessor_declaration(&self, node: P<Node>) -> Option<P<Node>> {
         let saved_lexical_arguments =
-            self.lexical_arguments.replace(lexicalArgumentsInfo::default());
+            self.lexical_arguments.replace(LexicalArgumentsInfo::default());
         let modifiers = self.visitor().visit_modifiers(node.modifiers());
         let parameters =
             self.emit_context().visit_parameters(node.parameter_list(), &mut self.visitor());
@@ -541,7 +541,7 @@ impl asyncTransformer {
     )]
     fn visit_set_accessor_declaration(&self, node: P<Node>) -> Option<P<Node>> {
         let saved_lexical_arguments =
-            self.lexical_arguments.replace(lexicalArgumentsInfo::default());
+            self.lexical_arguments.replace(LexicalArgumentsInfo::default());
         let modifiers = self.visitor().visit_modifiers(node.modifiers());
         let parameters =
             self.emit_context().visit_parameters(node.parameter_list(), &mut self.visitor());
@@ -572,11 +572,11 @@ impl asyncTransformer {
     fn visit_function_declaration(&self, node: P<Node>) -> Option<P<Node>> {
         let function_flags = ast::get_function_flags(Some(node));
         let saved_lexical_arguments =
-            self.lexical_arguments.replace(lexicalArgumentsInfo::default());
+            self.lexical_arguments.replace(LexicalArgumentsInfo::default());
 
         let parameters;
         let body;
-        if function_flags.intersects(FunctionFlags::Async) {
+        if function_flags.intersects(FunctionFlags::ASYNC) {
             parameters = Some(self.transform_async_function_parameter_list(node));
             body = Some(self.transform_async_function_body(node, parameters.unwrap()));
         } else {
@@ -614,11 +614,11 @@ impl asyncTransformer {
     fn visit_function_expression(&self, node: P<Node>) -> Option<P<Node>> {
         let function_flags = ast::get_function_flags(Some(node));
         let saved_lexical_arguments =
-            self.lexical_arguments.replace(lexicalArgumentsInfo::default());
+            self.lexical_arguments.replace(LexicalArgumentsInfo::default());
 
         let parameters;
         let body;
-        if function_flags.intersects(FunctionFlags::Async) {
+        if function_flags.intersects(FunctionFlags::ASYNC) {
             parameters = Some(self.transform_async_function_parameter_list(node));
             body = Some(self.transform_async_function_body(node, parameters.unwrap()));
         } else {
@@ -654,9 +654,9 @@ impl asyncTransformer {
         // behavior for baseline compatibility. In Strada, checker-based `isArgumentsLocalBinding`
         // returns false for `arguments` in static blocks (since the binding doesn't exist due to
         // the error), so the async transform leaves them untouched.
-        if self.emit_context().emit_flags(node).intersects(EmitFlags::NoLexicalArguments) {
+        if self.emit_context().emit_flags(node).intersects(EmitFlags::NO_LEXICAL_ARGUMENTS) {
             let saved_lexical_arguments =
-                self.lexical_arguments.replace(lexicalArgumentsInfo::default());
+                self.lexical_arguments.replace(LexicalArgumentsInfo::default());
             // Go: `defer func() { tx.lexicalArguments = savedLexicalArguments }()`
             let result = self.visit_arrow_function_worker(node);
             self.lexical_arguments.set(saved_lexical_arguments);
@@ -675,7 +675,7 @@ impl asyncTransformer {
 
         let parameters;
         let body;
-        if function_flags.intersects(FunctionFlags::Async) {
+        if function_flags.intersects(FunctionFlags::ASYNC) {
             parameters = Some(self.transform_async_function_parameter_list(node));
             body = Some(self.transform_async_function_body(node, parameters.unwrap()));
         } else {
@@ -719,7 +719,7 @@ impl asyncTransformer {
             return false;
         };
         ast::is_variable_declaration_list(node)
-            && !node.flags().intersects(NodeFlags::BlockScoped)
+            && !node.flags().intersects(NodeFlags::BLOCK_SCOPED)
             && node
                 .as_variable_declaration_list()
                 .declarations
@@ -849,7 +849,7 @@ impl asyncTransformer {
         let captured_size = s.captured_super_properties.borrow().as_ref().unwrap().len();
         let emit_super_helpers = (captured_size > 0 || s.has_super_element_access.get())
             && !ast::get_function_flags(Some(self.get_original_if_function_like(node)))
-                .contains(FunctionFlags::AsyncGenerator);
+                .contains(FunctionFlags::ASYNC_GENERATOR);
 
         if emit_super_helpers && captured_size > 0 {
             self.emit_context()
@@ -903,10 +903,10 @@ impl asyncTransformer {
             Some(f.new_identifier("arguments")),
         );
         let decl_list =
-            f.new_variable_declaration_list(f.new_node_list(vec![variable]), NodeFlags::None);
+            f.new_variable_declaration_list(f.new_node_list(vec![variable]), NodeFlags::NONE);
         let statement = f.new_variable_statement(None, decl_list);
         self.emit_context()
-            .add_emit_flags(statement, EmitFlags::StartOnNewLine | EmitFlags::CustomPrologue);
+            .add_emit_flags(statement, EmitFlags::START_ON_NEW_LINE | EmitFlags::CUSTOM_PROLOGUE);
         statement
     }
 
@@ -933,7 +933,7 @@ impl asyncTransformer {
                         f.new_unique_name_ex(
                             "args",
                             printer::AutoGenerateOptions {
-                                flags: GeneratedIdentifierFlags::ReservedInNestedScopes,
+                                flags: GeneratedIdentifierFlags::RESERVED_IN_NESTED_SCOPES,
                                 ..Default::default()
                             },
                         ),
@@ -953,7 +953,7 @@ impl asyncTransformer {
                 f.new_generated_name_for_node_ex(
                     param.name(),
                     printer::AutoGenerateOptions {
-                        flags: GeneratedIdentifierFlags::ReservedInNestedScopes,
+                        flags: GeneratedIdentifierFlags::RESERVED_IN_NESTED_SCOPES,
                         ..Default::default()
                     },
                 ),
@@ -1000,7 +1000,7 @@ impl asyncTransformer {
         let saved_lexical_arguments = self.lexical_arguments.get();
         let capture_lexical_arguments = self.lexical_arguments.get().binding.is_none();
         if capture_lexical_arguments {
-            self.lexical_arguments.set(lexicalArgumentsInfo {
+            self.lexical_arguments.set(LexicalArgumentsInfo {
                 binding: Some(f.new_unique_name("arguments")),
                 used: false,
             });
@@ -1159,7 +1159,7 @@ impl asyncTransformer {
         } else if capture_lexical_arguments {
             // Keep the binding but clear the used flag so siblings don't re-emit the capture statement.
             let la = self.lexical_arguments.get();
-            self.lexical_arguments.set(lexicalArgumentsInfo { binding: la.binding, used: false });
+            self.lexical_arguments.set(LexicalArgumentsInfo { binding: la.binding, used: false });
         }
         result
     }

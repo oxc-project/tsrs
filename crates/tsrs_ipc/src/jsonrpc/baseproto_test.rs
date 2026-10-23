@@ -120,9 +120,9 @@ fn test_base_writer() {
 // baseproto_test.go:139
 #[test]
 fn test_base_writer_write_error() {
-    struct errorWriter;
+    struct ErrorWriter;
 
-    impl Write for errorWriter {
+    impl Write for ErrorWriter {
         fn write(&mut self, _: &[u8]) -> io::Result<usize> {
             Err(io::Error::other("test error"))
         }
@@ -132,7 +132,7 @@ fn test_base_writer_write_error() {
         }
     }
 
-    let mut w = new_writer(errorWriter);
+    let mut w = new_writer(ErrorWriter);
     let err = w.write(b"{}").unwrap_err();
     assert_eq!(err.to_string(), "test error");
 }
@@ -141,12 +141,12 @@ fn test_base_writer_write_error() {
 // truncated one (bufio.Writer's sticky error).
 #[test]
 fn writer_fails_every_write_after_the_first_failure() {
-    struct failOnce {
+    struct FailOnce {
         failed: bool,
         written: Vec<u8>,
     }
 
-    impl Write for failOnce {
+    impl Write for FailOnce {
         fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
             if !self.failed {
                 self.failed = true;
@@ -161,7 +161,7 @@ fn writer_fails_every_write_after_the_first_failure() {
         }
     }
 
-    let mut sink = failOnce { failed: false, written: Vec::new() };
+    let mut sink = FailOnce { failed: false, written: Vec::new() };
     let mut w = new_writer(&mut sink);
     assert_eq!(w.write(b"{\"a\":1}").unwrap_err().to_string(), "transient");
     assert_eq!(w.write(b"{}").unwrap_err().to_string(), "transient");
@@ -255,9 +255,9 @@ fn reader_does_not_trust_a_huge_content_length() {
 // Frames split across reads, as from a pipe.
 #[test]
 fn reader_reassembles_frames_delivered_a_byte_at_a_time() {
-    struct trickle(std::collections::VecDeque<u8>);
+    struct Trickle(std::collections::VecDeque<u8>);
 
-    impl Read for trickle {
+    impl Read for Trickle {
         fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
             match (buf.first_mut(), self.0.pop_front()) {
                 (Some(slot), Some(byte)) => {
@@ -270,7 +270,7 @@ fn reader_reassembles_frames_delivered_a_byte_at_a_time() {
     }
 
     let data = "Content-Length: 6\r\n\r\n\"\u{e9}\u{e9}\"Content-Length: 2\r\n\r\n{}".as_bytes();
-    let mut r = new_reader(trickle(data.iter().copied().collect()));
+    let mut r = new_reader(Trickle(data.iter().copied().collect()));
     assert_eq!(r.read().unwrap(), "\"\u{e9}\u{e9}\"".as_bytes());
     assert_eq!(r.read().unwrap(), b"{}");
     assert!(r.read().unwrap_err().is(ErrorTag::EOF));

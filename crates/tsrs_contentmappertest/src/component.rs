@@ -7,16 +7,16 @@ use tsrs_ipc as ipc;
 use tsrs_spanmap::{Feature, Kind, Segment};
 
 use crate::protocol::{
-    initialize_result, marshal_span_map, no_notifications, testHandler, unexpected_method,
+    TestHandler, initialize_result, marshal_span_map, no_notifications, unexpected_method,
     unmarshal_params,
 };
 
 // component.go:15
-pub(crate) struct componentHandler;
+pub(crate) struct ComponentHandler;
 
-impl testHandler for componentHandler {}
+impl TestHandler for ComponentHandler {}
 
-impl ipc::Handler for componentHandler {
+impl ipc::Handler for ComponentHandler {
     // component.go:17
     fn handle_request(&self, method: &str, params: Option<&Value>) -> Result<Value, ipc::Error> {
         match method {
@@ -50,12 +50,12 @@ impl ipc::Handler for componentHandler {
 
 // Go's writeSynthesized, writeMapped and writeAnchored closures share the builder and the segments, which
 // `componentWriter` holds.
-struct componentWriter {
+struct ComponentWriter {
     virtual_: String,
     segments: Vec<Segment>,
 }
 
-impl componentWriter {
+impl ComponentWriter {
     // component.go:40
     fn write_synthesized(&mut self, text: &str) {
         self.virtual_.push_str(text);
@@ -71,7 +71,7 @@ impl componentWriter {
             original_start: original_start as u32,
             original_end: original_end as u32,
             kind,
-            features: Feature::All,
+            features: Feature::ALL,
         });
     }
 
@@ -84,7 +84,7 @@ impl componentWriter {
             virtual_end: self.virtual_.len() as u32,
             original_start: original_position as u32,
             original_end: original_position as u32,
-            kind: Kind::Atom,
+            kind: Kind::ATOM,
             features,
         });
     }
@@ -92,7 +92,7 @@ impl componentWriter {
 
 // component.go:36
 fn transform_component(content: &str) -> Result<(String, Value), ipc::Error> {
-    let mut w = componentWriter { virtual_: String::new(), segments: Vec::new() };
+    let mut w = ComponentWriter { virtual_: String::new(), segments: Vec::new() };
 
     if let Some(script_open) = content.find("<script") {
         let Some(open_end_rel) = content[script_open..].find('>') else {
@@ -107,7 +107,7 @@ fn transform_component(content: &str) -> Result<(String, Value), ipc::Error> {
             &content[script_start..script_end],
             script_start,
             script_end,
-            Kind::Verbatim,
+            Kind::VERBATIM,
         );
     }
 
@@ -133,7 +133,7 @@ fn transform_component(content: &str) -> Result<(String, Value), ipc::Error> {
             }
             let mut end = pos + 1;
             end += (end..expr_end).take_while(|&index| is_identifier_part(bytes[index])).count();
-            w.write_mapped(&content[pos..end], pos, end, Kind::Atom);
+            w.write_mapped(&content[pos..end], pos, end, Kind::ATOM);
             pos = end;
         }
         w.write_synthesized(");\n");
@@ -142,10 +142,10 @@ fn transform_component(content: &str) -> Result<(String, Value), ipc::Error> {
     w.write_synthesized("}\n");
     if let Some((name_start, name_end)) = component_name_range(content) {
         w.write_synthesized("export class ");
-        w.write_mapped(&content[name_start..name_end], name_start, name_end, Kind::Atom);
+        w.write_mapped(&content[name_start..name_end], name_start, name_end, Kind::ATOM);
         w.write_synthesized(" {}\n");
     }
-    w.write_anchored("export default {};\n", 0, Feature::Definition | Feature::References);
+    w.write_anchored("export default {};\n", 0, Feature::DEFINITION | Feature::REFERENCES);
 
     let mappings = marshal_span_map(&w.segments)?;
     Ok((w.virtual_, mappings))

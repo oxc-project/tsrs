@@ -12,17 +12,17 @@ use std::time::{Duration, Instant};
 
 #[derive(Clone, Default)]
 pub struct Context {
-    node: Option<Arc<ctxNode>>,
+    node: Option<Arc<CtxNode>>,
 }
 
-struct ctxNode {
+struct CtxNode {
     parent: Context,
-    kind: ctxKind,
+    kind: CtxKind,
 }
 
-enum ctxKind {
+enum CtxKind {
     Value(TypeId, Arc<dyn Any + Send + Sync>),
-    Cancel(Arc<cancelState>),
+    Cancel(Arc<CancelState>),
 }
 
 // Go `context.Canceled` / `context.DeadlineExceeded`.
@@ -41,42 +41,42 @@ impl fmt::Display for ContextError {
     }
 }
 
-type afterFunc = Box<dyn FnOnce() + Send>;
+type AfterFunc = Box<dyn FnOnce() + Send>;
 
 // Go's `cancelCtx` (plus `timerCtx`'s deadline). Children are canceled with their parent; `after` holds the
 // `context.AfterFunc` callbacks, each run once on its own thread when the context is canceled (Go runs each in
 // its own goroutine).
-struct cancelState {
+struct CancelState {
     deadline: Option<Instant>,
     // Set (under `inner`) once `inner.err` is set, so that polling a live context (the checker's `isCanceled`
     // runs once per statement) is one atomic load instead of a lock.
     canceled: AtomicBool,
-    inner: Mutex<cancelInner>,
+    inner: Mutex<CancelInner>,
     done: Condvar,
 }
 
 #[derive(Default)]
-struct cancelInner {
+struct CancelInner {
     err: Option<ContextError>,
     cause: Option<String>,
-    children: Vec<Weak<cancelState>>,
-    after: Vec<(u64, afterFunc)>,
+    children: Vec<Weak<CancelState>>,
+    after: Vec<(u64, AfterFunc)>,
     next_after_id: u64,
 }
 
-fn spawn_after_func(f: afterFunc) {
+fn spawn_after_func(f: AfterFunc) {
     std::thread::Builder::new()
         .name("context-afterfunc".to_string())
         .spawn(f)
         .expect("failed to spawn context.AfterFunc thread");
 }
 
-impl cancelState {
-    fn new(deadline: Option<Instant>) -> Arc<cancelState> {
-        Arc::new(cancelState {
+impl CancelState {
+    fn new(deadline: Option<Instant>) -> Arc<CancelState> {
+        Arc::new(CancelState {
             deadline,
             canceled: AtomicBool::new(false),
-            inner: Mutex::new(cancelInner::default()),
+            inner: Mutex::new(CancelInner::default()),
             done: Condvar::new(),
         })
     }
@@ -117,11 +117,11 @@ impl cancelState {
 }
 
 // The cancellation state a new child must be registered with (Go `parentCancelCtx`).
-fn nearest_cancel(ctx: &Context) -> Option<&Arc<cancelState>> {
+fn nearest_cancel(ctx: &Context) -> Option<&Arc<CancelState>> {
     let cur = ctx.node.as_ref();
     if let Some(state) =
         std::iter::successors(cur, |node| node.parent.node.as_ref()).find_map(|node| {
-            if let ctxKind::Cancel(state) = &node.kind { Some(state) } else { None }
+            if let CtxKind::Cancel(state) = &node.kind { Some(state) } else { None }
         })
     {
         return Some(state);
@@ -131,7 +131,7 @@ fn nearest_cancel(ctx: &Context) -> Option<&Arc<cancelState>> {
 
 // Go `context.CancelFunc`: cancels the context it was returned with. Calling it more than once is a no-op.
 #[derive(Clone)]
-pub struct CancelFunc(Arc<cancelState>);
+pub struct CancelFunc(Arc<CancelState>);
 
 impl CancelFunc {
     pub fn call(&self) {
@@ -141,7 +141,7 @@ impl CancelFunc {
 
 // Go `context.CancelCauseFunc`.
 #[derive(Clone)]
-pub struct CancelCauseFunc(Arc<cancelState>);
+pub struct CancelCauseFunc(Arc<CancelState>);
 
 impl CancelCauseFunc {
     pub fn call(&self, cause: Option<String>) {
@@ -151,7 +151,7 @@ impl CancelCauseFunc {
 
 // Go's `stop func() bool` returned by `context.AfterFunc`.
 pub struct AfterFuncStop {
-    state: Option<Weak<cancelState>>,
+    state: Option<Weak<CancelState>>,
     id: u64,
 }
 
@@ -174,15 +174,15 @@ impl Context {
         Context::default()
     }
 
-    fn push(&self, kind: ctxKind) -> Context {
-        Context { node: Some(Arc::new(ctxNode { parent: self.clone(), kind })) }
+    fn push(&self, kind: CtxKind) -> Context {
+        Context { node: Some(Arc::new(CtxNode { parent: self.clone(), kind })) }
     }
 
     // Go `context.WithValue(ctx, key, value)` where the key is the value's type (callers use a newtype per key,
     // as Go code uses an unexported key type).
     #[must_use]
     pub fn with_value<T: Any + Send + Sync>(&self, value: T) -> Context {
-        self.push(ctxKind::Value(TypeId::of::<T>(), Arc::new(value)))
+        self.push(CtxKind::Value(TypeId::of::<T>(), Arc::new(value)))
     }
 
     // Go `ctx.Value(key).(T)`.
@@ -190,7 +190,7 @@ impl Context {
         let cur = self.node.as_ref();
         if let Some(value) =
             std::iter::successors(cur, |node| node.parent.node.as_ref()).find_map(|node| {
-                if let ctxKind::Value(id, value) = &node.kind {
+                if let CtxKind::Value(id, value) = &node.kind {
                     if *id == TypeId::of::<T>() {
                         return Some(value.downcast_ref::<T>());
                     }
@@ -203,13 +203,13 @@ impl Context {
         None
     }
 
-    fn with_cancel_state(&self, deadline: Option<Instant>) -> (Context, Arc<cancelState>) {
+    fn with_cancel_state(&self, deadline: Option<Instant>) -> (Context, Arc<CancelState>) {
         let parent = nearest_cancel(self);
         let deadline = match (deadline, parent.and_then(|p| p.deadline)) {
             (Some(d), Some(pd)) => Some(d.min(pd)),
             (d, pd) => d.or(pd),
         };
-        let state = cancelState::new(deadline);
+        let state = CancelState::new(deadline);
         if let Some(parent) = parent {
             if let Some(err) = parent.err() {
                 state.cancel(err, None);
@@ -224,7 +224,7 @@ impl Context {
                 }
             }
         }
-        (self.push(ctxKind::Cancel(Arc::clone(&state))), state)
+        (self.push(CtxKind::Cancel(Arc::clone(&state))), state)
     }
 
     // Go `context.WithCancel(parent)`.
@@ -347,16 +347,16 @@ impl fmt::Debug for Context {
 
 // core/context.go
 
-struct requestIDKey(String);
+struct RequestIDKey(String);
 
 // context.go:14
 pub fn with_request_id(ctx: &Context, id: &str) -> Context {
-    ctx.with_value(requestIDKey(id.to_string()))
+    ctx.with_value(RequestIDKey(id.to_string()))
 }
 
 // context.go:18
 pub fn get_request_id(ctx: &Context) -> &str {
-    match ctx.value::<requestIDKey>() {
+    match ctx.value::<RequestIDKey>() {
         Some(id) => &id.0,
         None => "",
     }
@@ -375,16 +375,16 @@ pub enum CheckerLifetime {
     API = 2,
 }
 
-struct checkerLifetimeKey(CheckerLifetime);
+struct CheckerLifetimeKey(CheckerLifetime);
 
 // context.go:33
 pub fn with_checker_lifetime(ctx: &Context, lifetime: CheckerLifetime) -> Context {
-    ctx.with_value(checkerLifetimeKey(lifetime))
+    ctx.with_value(CheckerLifetimeKey(lifetime))
 }
 
 // context.go:37
 pub fn get_checker_lifetime(ctx: &Context) -> CheckerLifetime {
-    match ctx.value::<checkerLifetimeKey>() {
+    match ctx.value::<CheckerLifetimeKey>() {
         Some(lifetime) => lifetime.0,
         None => CheckerLifetime::Temporary,
     }
@@ -409,16 +409,16 @@ impl fmt::Display for Locale {
     }
 }
 
-struct localeKey(Locale);
+struct LocaleKey(Locale);
 
 // locale.go `WithLocale`.
 pub fn with_locale(ctx: &Context, locale: Locale) -> Context {
-    ctx.with_value(localeKey(locale))
+    ctx.with_value(LocaleKey(locale))
 }
 
 // locale.go `FromContext`.
 pub fn locale_from_context(ctx: &Context) -> Locale {
-    match ctx.value::<localeKey>() {
+    match ctx.value::<LocaleKey>() {
         Some(locale) => locale.0.clone(),
         None => Locale::DEFAULT,
     }
@@ -426,7 +426,7 @@ pub fn locale_from_context(ctx: &Context) -> Locale {
 
 // locale.go `HasLocale`.
 pub fn has_locale(ctx: &Context) -> bool {
-    ctx.value::<localeKey>().is_some()
+    ctx.value::<LocaleKey>().is_some()
 }
 
 #[cfg(test)]

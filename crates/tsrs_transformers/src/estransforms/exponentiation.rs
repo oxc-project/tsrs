@@ -1,11 +1,11 @@
 use crate::*;
 
 // exponentiation.go:8
-pub struct exponentiationTransformer {
+pub struct ExponentiationTransformer {
     pub base: Transformer,
 }
 
-impl exponentiationTransformer {
+impl ExponentiationTransformer {
     fn emit_context(&self) -> P<EmitContext> {
         self.base.emit_context()
     }
@@ -20,7 +20,7 @@ impl exponentiationTransformer {
 
     // exponentiation.go:12
     fn visit(&self, node: P<Node>) -> Option<P<Node>> {
-        if !node.subtree_facts().intersects(SubtreeFacts::ContainsExponentiationOperator) {
+        if !node.subtree_facts().intersects(SubtreeFacts::CONTAINS_EXPONENTIATION_OPERATOR) {
             return Some(node);
         }
         match node.kind() {
@@ -64,13 +64,13 @@ impl exponentiationTransformer {
             );
             access_expr.set_loc(left.as_element_access_expression().argument_expression.loc());
 
-            target = f.new_element_access_expression(obj_expr, None, access_expr, NodeFlags::None);
+            target = f.new_element_access_expression(obj_expr, None, access_expr, NodeFlags::NONE);
 
             value = f.new_element_access_expression(
                 expression_temp,
                 None,
                 argument_expression_temp,
-                NodeFlags::None,
+                NodeFlags::NONE,
             );
             value.set_loc(left.loc());
         } else if ast::is_property_access_expression(left) {
@@ -84,7 +84,7 @@ impl exponentiationTransformer {
                 assignment,
                 None,
                 left.name().unwrap(),
-                NodeFlags::None,
+                NodeFlags::NONE,
             );
             target.set_loc(left.loc());
 
@@ -92,7 +92,7 @@ impl exponentiationTransformer {
                 expression_temp,
                 None,
                 left.name().unwrap(),
-                NodeFlags::None,
+                NodeFlags::NONE,
             );
             value.set_loc(left.loc());
         } else {
@@ -125,7 +125,7 @@ impl exponentiationTransformer {
     reason = "Transformer factories share an optional result so disabled transforms can return None."
 )]
 pub fn new_exponentiation_transformer(opt: &TransformOptions) -> Option<P<Transformer>> {
-    let tx = P::new(exponentiationTransformer { base: Transformer::default() });
+    let tx = P::new(ExponentiationTransformer { base: Transformer::default() });
     Some(tx.get().base.new_transformer(
         Rc::new(move |_: &mut NodeVisitor, n: P<Node>| tx.visit(n)),
         Some(opt.context),

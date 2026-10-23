@@ -43,7 +43,7 @@ pub trait FileHandle: FileContent + Send + Sync {
 }
 
 #[derive(Clone, Default)]
-pub(crate) struct fileBase {
+pub(crate) struct FileBase {
     pub(crate) file_name: String,
     pub(crate) content: String,
     pub(crate) hash: Hash128,
@@ -52,9 +52,9 @@ pub(crate) struct fileBase {
     line_info: OnceLock<Arc<ECMALineInfo>>,
 }
 
-impl fileBase {
-    pub(crate) fn new(file_name: String, content: String, hash: Hash128) -> fileBase {
-        fileBase { file_name, content, hash, line_map: OnceLock::new(), line_info: OnceLock::new() }
+impl FileBase {
+    pub(crate) fn new(file_name: String, content: String, hash: Hash128) -> FileBase {
+        FileBase { file_name, content, hash, line_map: OnceLock::new(), line_info: OnceLock::new() }
     }
 
     // overlayfs.go:49
@@ -79,17 +79,17 @@ impl fileBase {
 // A field-by-field copy (used when a shared value must be copied before mutation); Go's `Clone` is
 // `Cloneable::clone_value`.
 #[derive(Clone, Default)]
-pub(crate) struct cachedFile {
-    pub(crate) base: fileBase,
+pub(crate) struct CachedFile {
+    pub(crate) base: FileBase,
     pub(crate) needs_reload: bool,
     pub(crate) realpath_path: Path,
 }
 
 // overlayfs.go:82
-pub(crate) fn new_cached_file(file_name: String, content: String) -> cachedFile {
+pub(crate) fn new_cached_file(file_name: String, content: String) -> CachedFile {
     let hash = hash_string_128(&content);
-    cachedFile {
-        base: fileBase::new(file_name, content, hash),
+    CachedFile {
+        base: FileBase::new(file_name, content, hash),
         needs_reload: false,
         realpath_path: Path::default(),
     }
@@ -100,7 +100,7 @@ pub fn new_cached_file_handle(file_name: &str, content: &str) -> Arc<dyn FileHan
     Arc::new(new_cached_file(file_name.to_string(), content.to_string()))
 }
 
-impl FileContent for cachedFile {
+impl FileContent for CachedFile {
     // overlayfs.go:57
     fn content(&self) -> &str {
         &self.base.content
@@ -112,7 +112,7 @@ impl FileContent for cachedFile {
     }
 }
 
-impl FileHandle for cachedFile {
+impl FileHandle for CachedFile {
     fn file_name(&self) -> &str {
         self.base.file_name()
     }
@@ -146,12 +146,12 @@ impl FileHandle for cachedFile {
     }
 }
 
-impl crate::dirty::Cloneable for cachedFile {
+impl crate::dirty::Cloneable for CachedFile {
     // overlayfs.go:112
-    fn clone_value(&self) -> cachedFile {
-        cachedFile {
+    fn clone_value(&self) -> CachedFile {
+        CachedFile {
             realpath_path: self.realpath_path.clone(),
-            base: fileBase::new(
+            base: FileBase::new(
                 self.base.file_name.clone(),
                 self.base.content.clone(),
                 self.base.hash,
@@ -162,7 +162,7 @@ impl crate::dirty::Cloneable for cachedFile {
 }
 
 pub struct Overlay {
-    pub(crate) base: fileBase,
+    pub(crate) base: FileBase,
     pub(crate) version: i32,
     pub(crate) kind: ScriptKind,
     pub(crate) matches_disk_text: bool,
@@ -177,7 +177,7 @@ pub(crate) fn new_overlay(
 ) -> Overlay {
     let hash = hash_string_128(&content);
     Overlay {
-        base: fileBase::new(file_name, content, hash),
+        base: FileBase::new(file_name, content, hash),
         version,
         kind,
         matches_disk_text: false,
@@ -332,15 +332,15 @@ impl FsRef {
     }
 }
 
-pub struct overlayFS {
+pub struct OverlayFS {
     to_path: ToPath,
     host: FsRef,
     position_encoding: lsproto::PositionEncodingKind,
 
-    mu: RwLock<overlayFSState>,
+    mu: RwLock<OverlayFSState>,
 }
 
-struct overlayFSState {
+struct OverlayFSState {
     overlays: OverlayMap,
     overlay_directories: FxHashMap<Path, FxHashMap<Path, String>>,
 }
@@ -349,7 +349,7 @@ pub trait LayeredFileSystem: FS + FileHandleSource {
     fn overlays(&self) -> OverlayMap;
 
     // Go's `fs.(*overlayFS)` type assertion.
-    fn as_overlay_fs(&self) -> Option<&overlayFS> {
+    fn as_overlay_fs(&self) -> Option<&OverlayFS> {
         None
     }
 
@@ -377,23 +377,23 @@ pub(crate) fn new_overlay_fs(
     overlays: OverlayMap,
     position_encoding: lsproto::PositionEncodingKind,
     to_path: ToPath,
-) -> overlayFS {
+) -> OverlayFS {
     let overlay_directories = create_overlay_directories(&overlays);
-    overlayFS {
+    OverlayFS {
         host: fs,
         position_encoding,
-        mu: RwLock::new(overlayFSState { overlays, overlay_directories }),
+        mu: RwLock::new(OverlayFSState { overlays, overlay_directories }),
         to_path,
     }
 }
 
-impl LayeredFileSystem for overlayFS {
+impl LayeredFileSystem for OverlayFS {
     // overlayfs.go:220
     fn overlays(&self) -> OverlayMap {
         Arc::clone(&self.mu.read().unwrap().overlays)
     }
 
-    fn as_overlay_fs(&self) -> Option<&overlayFS> {
+    fn as_overlay_fs(&self) -> Option<&OverlayFS> {
         Some(self)
     }
 }
@@ -427,7 +427,7 @@ pub(crate) fn layer_overlay_file_system(
     }
 }
 
-impl FileHandleSource for overlayFS {
+impl FileHandleSource for OverlayFS {
     // overlayfs.go:243
     fn get_file(&self, file_name: &str) -> Option<Arc<dyn FileHandle>> {
         self.get_file_by_path(file_name, &(self.to_path)(file_name))
@@ -454,7 +454,7 @@ impl FileHandleSource for overlayFS {
     }
 }
 
-impl FS for overlayFS {
+impl FS for OverlayFS {
     // overlayfs.go:269
     fn use_case_sensitive_file_names(&self) -> bool {
         self.host.fs().use_case_sensitive_file_names()
@@ -591,7 +591,7 @@ fn overlay_directory_info(name: &str) -> FileInfo {
     FileInfo {
         name: name.to_string(),
         size: 0,
-        mode: FileMode::Dir | FileMode::from_bits_retain(0o555),
+        mode: FileMode::DIR | FileMode::from_bits_retain(0o555),
         mod_time: None,
     }
 }
@@ -627,7 +627,7 @@ fn create_overlay_directories(
 
 // Reduced collection of changes that occurred on a single file
 #[derive(Default)]
-struct fileEvents {
+struct FileEvents {
     open_change: Option<FileChange>,
     close_change: Option<FileChange>,
     watch_changed: bool,
@@ -637,7 +637,7 @@ struct fileEvents {
     deleted: bool,
 }
 
-impl overlayFS {
+impl OverlayFS {
     // overlayfs.go:407
     pub(crate) fn process_changes(
         &self,
@@ -648,7 +648,7 @@ impl overlayFS {
         let mut result = FileChangeSummary::default();
         let mut new_overlays: FxHashMap<Path, Arc<Overlay>> = (*st.overlays).clone();
 
-        let mut file_event_map: FxHashMap<lsproto::DocumentUri, fileEvents> = FxHashMap::default();
+        let mut file_event_map: FxHashMap<lsproto::DocumentUri, FileEvents> = FxHashMap::default();
         let mut order: Vec<lsproto::DocumentUri> = Vec::new();
 
         for change in changes {
@@ -806,7 +806,7 @@ impl overlayFS {
                             let ranges = converters.from_lsp_range(
                                 &*current,
                                 partial_change.range,
-                                spanmap::Feature::All,
+                                spanmap::Feature::ALL,
                             );
                             assert!(
                                 ranges.len() == 1,

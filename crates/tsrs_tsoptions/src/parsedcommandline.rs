@@ -251,7 +251,7 @@ impl ParsedCommandLine {
                 // `rewriteRelativeImportExtensions` import into a referenced project; docs/LSP.md "Memory management").
                 let _region = tsrs_core::arena::enter_owner(std::ptr::from_ref(self) as usize);
                 self.common_source_directory_errors.lock().unwrap().push(tsrs_ast::new_compiler_diagnostic(
-                    &tsrs_diagnostics::File_0_is_not_under_rootDir_1_rootDir_is_expected_to_contain_all_source_files,
+                    &tsrs_diagnostics::FILE_0_IS_NOT_UNDER_ROOT_DIR_1_ROOT_DIR_IS_EXPECTED_TO_CONTAIN_ALL_SOURCE_FILES,
                     &[&absolute_source_file_path, &root_directory],
                 ));
                 all_files_belong_to_path = false;

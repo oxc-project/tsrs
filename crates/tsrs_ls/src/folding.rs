@@ -117,7 +117,7 @@ impl LanguageService {
                 let positions = self.converters.from_lsp_position_for_source_file(
                     source_file,
                     lsproto::Position { line: r.end_line, character: end_character },
-                    Feature::FoldingRanges,
+                    Feature::FOLDING_RANGES,
                 );
                 let position =
                     positions.iter().find(|p| p.script == source_file && !p.fidelity.is_none());
@@ -177,7 +177,7 @@ impl LanguageService {
             }
             let last_import = current - 1;
             if last_import != first_import {
-                let folding_range_kind = lsproto::FoldingRangeKind::Imports;
+                let folding_range_kind = lsproto::FoldingRangeKind::IMPORTS;
                 let imports = create_folding_range_from_bounds(
                     ctx,
                     astnav::get_start_of_node(
@@ -270,7 +270,7 @@ impl LanguageService {
                     continue;
                 }
                 let mut folding_range =
-                    create_folding_range(ctx, text_range, lsproto::FoldingRangeKind::Region, "");
+                    create_folding_range(ctx, text_range, lsproto::FoldingRangeKind::REGION, "");
                 folding_range.collapsed_text = region.collapsed_text;
                 out.push(folding_range);
             }
@@ -288,7 +288,7 @@ fn visit_node(
     l: &LanguageService,
 ) -> Vec<lsproto::FoldingRange> {
     let mut depth_remaining = depth_remaining;
-    if n.flags().intersects(NodeFlags::Reparsed) || depth_remaining == 0 || ctx.err().is_some() {
+    if n.flags().intersects(NodeFlags::REPARSED) || depth_remaining == 0 || ctx.err().is_some() {
         return Vec::new();
     }
     let mut folding_range = Vec::with_capacity(40);
@@ -442,7 +442,7 @@ fn add_outlining_for_leading_comments_for_pos(
     let mut first_single_line_comment_start = None;
     let mut last_single_line_comment_end = None;
     let mut single_line_comment_count = 0_usize;
-    let folding_range_kind_comment = lsproto::FoldingRangeKind::Comment;
+    let folding_range_kind_comment = lsproto::FoldingRangeKind::COMMENT;
 
     let combine_and_add_multiple_single_line_comments = |single_line_comment_count: usize,
                                                          first: Option<u32>,
@@ -618,7 +618,7 @@ fn get_outlining_span_for_node(
             // Block was a standalone block.  In this case we want to only collapse
             // the span of the block, independent of any parent span.
             let (text_range, fidelity) =
-                l.create_lsp_range_from_node_for_feature(n, source_file, Feature::FoldingRanges);
+                l.create_lsp_range_from_node_for_feature(n, source_file, Feature::FOLDING_RANGES);
             if fidelity.is_none() {
                 return None;
             }
@@ -1022,7 +1022,7 @@ impl LanguageService {
         self.converters.to_lsp_range_for_feature(
             &source_file,
             TextRange::new(start, end),
-            Feature::FoldingRanges,
+            Feature::FOLDING_RANGES,
         )
     }
 }

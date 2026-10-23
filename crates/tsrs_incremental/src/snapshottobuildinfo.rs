@@ -13,7 +13,7 @@ use tsrs_tsoptions::{
 use crate::buildinfo::*;
 use crate::referencemap::RefSet;
 use crate::snapshot::{
-    DiagnosticsOrBuildInfoDiagnosticsWithFileName, Snapshot, buildInfoDiagnosticWithFileName,
+    BuildInfoDiagnosticWithFileName, DiagnosticsOrBuildInfoDiagnosticsWithFileName, Snapshot,
     get_file_emit_kind,
 };
 
@@ -30,7 +30,7 @@ pub(crate) fn snapshot_to_build_info(
         content_mapper_identities,
         ..Default::default()
     };
-    let mut to = toBuildInfo {
+    let mut to = ToBuildInfo {
         snapshot,
         program,
         build_info: &mut build_info,
@@ -85,7 +85,7 @@ fn relative_to_build_info(
     ))
 }
 
-struct toBuildInfo<'a> {
+struct ToBuildInfo<'a> {
     snapshot: &'a Snapshot,
     program: &'static CompilerProgram,
     build_info: &'a mut BuildInfo,
@@ -96,7 +96,7 @@ struct toBuildInfo<'a> {
     roots: FxHashMap<P<SourceFile>, Path>,
 }
 
-impl toBuildInfo<'_> {
+impl ToBuildInfo<'_> {
     // snapshottobuildinfo.go:73
     fn relative_to_build_info(&self, path: &str) -> String {
         relative_to_build_info(&self.build_info_directory, &self.compare_paths_options, path)
@@ -200,7 +200,7 @@ impl toBuildInfo<'_> {
     )]
     fn to_build_info_diagnostics_from_file_name_diagnostics(
         &mut self,
-        diagnostics: &[buildInfoDiagnosticWithFileName],
+        diagnostics: &[BuildInfoDiagnosticWithFileName],
     ) -> Vec<BuildInfoDiagnostic> {
         diagnostics
             .iter()
@@ -597,7 +597,7 @@ impl toBuildInfo<'_> {
             self.build_info.affected_files_pending_emit.push(BuildInfoFilePendingEmit {
                 file_id,
                 emit_kind: if pending_emit == full_emit_kind {
-                    crate::snapshot::FileEmitKind::None
+                    crate::snapshot::FileEmitKind::NONE
                 } else {
                     pending_emit
                 },

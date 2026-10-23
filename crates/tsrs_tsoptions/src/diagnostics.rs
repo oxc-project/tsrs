@@ -35,14 +35,14 @@ pub(crate) fn get_parse_command_line_worker_diagnostics(
     ParseCommandLineWorkerDiagnostics {
         did_you_mean: DidYouMeanOptionsDiagnostics {
             alternate_mode: Some(AlternateModeDiagnostics {
-                diagnostic: &diagnostics::Compiler_option_0_may_only_be_used_with_build,
+                diagnostic: &diagnostics::COMPILER_OPTION_0_MAY_ONLY_BE_USED_WITH_BUILD,
                 options_name_map: Some(&BUILD_NAME_MAP),
             }),
             option_declarations: decls.to_vec(),
-            unknown_option_diagnostic: &diagnostics::Unknown_compiler_option_0,
-            unknown_did_you_mean_diagnostic: &diagnostics::Unknown_compiler_option_0_Did_you_mean_1,
+            unknown_option_diagnostic: &diagnostics::UNKNOWN_COMPILER_OPTION_0,
+            unknown_did_you_mean_diagnostic: &diagnostics::UNKNOWN_COMPILER_OPTION_0_DID_YOU_MEAN_1,
         },
-        option_type_mismatch_diagnostic: &diagnostics::Compiler_option_0_expects_an_argument,
+        option_type_mismatch_diagnostic: &diagnostics::COMPILER_OPTION_0_EXPECTS_AN_ARGUMENT,
     }
 }
 
@@ -51,12 +51,12 @@ pub(crate) static BUILD_OPTIONS_DID_YOU_MEAN_DIAGNOSTICS: LazyLock<
 > = LazyLock::new(|| ParseCommandLineWorkerDiagnostics {
     did_you_mean: DidYouMeanOptionsDiagnostics {
         alternate_mode: Some(AlternateModeDiagnostics {
-            diagnostic: &diagnostics::Compiler_option_0_may_not_be_used_with_build,
+            diagnostic: &diagnostics::COMPILER_OPTION_0_MAY_NOT_BE_USED_WITH_BUILD,
             options_name_map: Some(&COMPILER_NAME_MAP),
         }),
         option_declarations: BUILD_OPTS.clone(),
-        unknown_option_diagnostic: &diagnostics::Unknown_build_option_0,
-        unknown_did_you_mean_diagnostic: &diagnostics::Unknown_build_option_0_Did_you_mean_1,
+        unknown_option_diagnostic: &diagnostics::UNKNOWN_BUILD_OPTION_0,
+        unknown_did_you_mean_diagnostic: &diagnostics::UNKNOWN_BUILD_OPTION_0_DID_YOU_MEAN_1,
     },
-    option_type_mismatch_diagnostic: &diagnostics::Build_option_0_requires_a_value_of_type_1,
+    option_type_mismatch_diagnostic: &diagnostics::BUILD_OPTION_0_REQUIRES_A_VALUE_OF_TYPE_1,
 });

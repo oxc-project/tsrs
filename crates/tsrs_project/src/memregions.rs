@@ -18,27 +18,27 @@ use std::sync::Arc;
 use tsrs_compiler::Program;
 use tsrs_core::arena::Region;
 
-use crate::checkerpool::checkerPool;
+use crate::checkerpool::CheckerPoolImpl;
 
-pub(crate) struct programOwner {
+pub(crate) struct ProgramOwner {
     program: &'static Program,
-    checker_pool: Option<Arc<checkerPool>>,
+    checker_pool: Option<Arc<CheckerPoolImpl>>,
     // Dropped in this order after `drop` freed the checkers and the program.
     region: Region,
     pub(crate) base: Region,
     files: Vec<Region>,
 }
 
-impl programOwner {
+impl ProgramOwner {
     // `full_build`: the program does not share data with an older version; `base` is then its own region, which
     // also becomes the owner of the shared processed-file data (`Program::get_symlink_cache` routes there).
     pub(crate) fn new(
         program: &'static Program,
-        checker_pool: Option<Arc<checkerPool>>,
+        checker_pool: Option<Arc<CheckerPoolImpl>>,
         region: Region,
         base: Region,
         full_build: bool,
-    ) -> programOwner {
+    ) -> ProgramOwner {
         if full_build {
             base.adopt_owner(processed_files_addr(program));
             // The data shared by every version cloned from this build lives exactly as long as `base` (each
@@ -61,7 +61,7 @@ impl programOwner {
                 base.allocated_bytes() >> 10
             )
         });
-        programOwner { program, checker_pool, region, base, files }
+        ProgramOwner { program, checker_pool, region, base, files }
     }
 }
 
@@ -70,7 +70,7 @@ fn processed_files_addr(program: &'static Program) -> usize {
     std::ptr::from_ref(&**program).cast::<()>() as usize
 }
 
-impl Drop for programOwner {
+impl Drop for ProgramOwner {
     fn drop(&mut self) {
         log_region(|| {
             format!(

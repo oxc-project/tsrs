@@ -177,7 +177,7 @@ impl crate::NodeFactory {
             // TODO(rbuckton): Does this need to be parented?
             right.set_parent(qn_right.parent());
             let prop_access =
-                self.new_property_access_expression(left, None, right, NodeFlags::None);
+                self.new_property_access_expression(left, None, right, NodeFlags::NONE);
             prop_access.set_loc(node.loc());
             return prop_access;
         }
@@ -243,21 +243,21 @@ impl crate::NodeFactory {
         arguments_list: Vec<P<Node>>,
     ) -> P<Node> {
         // Preserve the optionality of `object`.
-        if ast::is_call_expression(object) && object.flags().intersects(NodeFlags::OptionalChain) {
+        if ast::is_call_expression(object) && object.flags().intersects(NodeFlags::OPTIONAL_CHAIN) {
             return self.new_call_expression(
-                self.new_property_access_expression(object, None, method_name, NodeFlags::None),
+                self.new_property_access_expression(object, None, method_name, NodeFlags::NONE),
                 None,
                 None,
                 self.new_node_list(arguments_list),
-                NodeFlags::OptionalChain,
+                NodeFlags::OPTIONAL_CHAIN,
             );
         }
         self.new_call_expression(
-            self.new_property_access_expression(object, None, method_name, NodeFlags::None),
+            self.new_property_access_expression(object, None, method_name, NodeFlags::NONE),
             None,
             None,
             self.new_node_list(arguments_list),
-            NodeFlags::None,
+            NodeFlags::NONE,
         )
     }
 
@@ -294,7 +294,7 @@ impl crate::NodeFactory {
     pub fn new_array_slice_call(&self, array: P<Node>, start: usize) -> P<Node> {
         let mut args = Vec::new();
         if start != 0 {
-            args.push(self.new_numeric_literal(alloc_str(&start.to_string()), TokenFlags::None));
+            args.push(self.new_numeric_literal(alloc_str(&start.to_string()), TokenFlags::NONE));
         }
         self.new_method_call(array, self.new_identifier("slice"), args)
     }
@@ -380,7 +380,7 @@ impl crate::NodeFactory {
                     self.restore_outer_expressions(
                         outer_expression.expression(),
                         inner_expression,
-                        OuterExpressionKinds::All,
+                        OuterExpressionKinds::ALL,
                     ),
                 );
             }
@@ -399,7 +399,7 @@ impl crate::NodeFactory {
             }
         }
         let use_strict_prologue =
-            self.new_expression_statement(self.new_string_literal("use strict", TokenFlags::None));
+            self.new_expression_statement(self.new_string_literal("use strict", TokenFlags::NONE));
         let mut result = Vec::with_capacity(statements.len() + 1);
         result.push(use_strict_prologue);
         result.extend_from_slice(statements);
@@ -436,7 +436,7 @@ impl crate::NodeFactory {
     ) -> (&'a [P<Node>], &'a [P<Node>]) {
         if let Some(result) = source.iter().enumerate().find_map(|(i, &statement)| {
             if ast::is_prologue_directive(statement)
-                || !self.emit_context().emit_flags(statement).intersects(EmitFlags::CustomPrologue)
+                || !self.emit_context().emit_flags(statement).intersects(EmitFlags::CUSTOM_PROLOGUE)
             {
                 Some((&source[..i], &source[i..]))
             } else {
@@ -471,10 +471,10 @@ impl crate::NodeFactory {
         if let Some(node_name) = node_name {
             let name = node_name.clone_node(self.as_node_factory());
             if !opts.allow_comments {
-                emit_flags |= EmitFlags::NoComments;
+                emit_flags |= EmitFlags::NO_COMMENTS;
             }
             if !opts.allow_source_maps {
-                emit_flags |= EmitFlags::NoSourceMap;
+                emit_flags |= EmitFlags::NO_SOURCE_MAP;
             }
             self.emit_context().add_emit_flags(name, emit_flags);
             return name;
@@ -494,7 +494,7 @@ impl crate::NodeFactory {
 
     // factory.go:531
     pub fn get_local_name_ex(&self, node: P<Node>, opts: AssignedNameOptions) -> P<Node> {
-        self.get_name(Some(node), EmitFlags::LocalName, opts)
+        self.get_name(Some(node), EmitFlags::LOCAL_NAME, opts)
     }
 
     // Gets the export name of a declaration. This is primarily used for declarations that can be
@@ -508,7 +508,7 @@ impl crate::NodeFactory {
 
     // factory.go:547
     pub fn get_export_name_ex(&self, node: P<Node>, opts: AssignedNameOptions) -> P<Node> {
-        self.get_name(Some(node), EmitFlags::ExportName, opts)
+        self.get_name(Some(node), EmitFlags::EXPORT_NAME, opts)
     }
 
     // Gets the name of a declaration to use during emit.
@@ -521,7 +521,7 @@ impl crate::NodeFactory {
     pub fn get_declaration_name_ex(&self, node: P<Node>, opts: NameOptions) -> P<Node> {
         self.get_name(
             Some(node),
-            EmitFlags::None,
+            EmitFlags::NONE,
             AssignedNameOptions {
                 allow_comments: opts.allow_comments,
                 allow_source_maps: opts.allow_source_maps,
@@ -545,14 +545,14 @@ impl crate::NodeFactory {
             ns,
             None, /*questionDotToken*/
             name,
-            NodeFlags::None,
+            NodeFlags::NONE,
         );
         ec.assign_comment_and_source_map_ranges(qualified_name, name);
         if !opts.allow_comments {
-            ec.add_emit_flags(qualified_name, EmitFlags::NoComments);
+            ec.add_emit_flags(qualified_name, EmitFlags::NO_COMMENTS);
         }
         if !opts.allow_source_maps {
-            ec.add_emit_flags(qualified_name, EmitFlags::NoSourceMap);
+            ec.add_emit_flags(qualified_name, EmitFlags::NO_SOURCE_MAP);
         }
         qualified_name
     }
@@ -570,7 +570,7 @@ impl crate::NodeFactory {
         allow_source_maps: bool,
     ) -> P<Node> {
         if let Some(ns) = ns {
-            if ast::has_syntactic_modifier(node, ModifierFlags::Export) {
+            if ast::has_syntactic_modifier(node, ModifierFlags::EXPORT) {
                 let name_opts = NameOptions { allow_comments, allow_source_maps };
                 return self.get_namespace_member_name(
                     ns,
@@ -593,7 +593,7 @@ impl crate::NodeFactory {
     // factory.go:593
     pub fn new_unscoped_helper_name(&self, name: &str) -> P<Node> {
         let node = self.new_identifier(alloc_str(name));
-        self.emit_context().set_emit_flags(node, EmitFlags::HelperName);
+        self.emit_context().set_emit_flags(node, EmitFlags::HELPER_NAME);
         node
     }
 
@@ -603,7 +603,7 @@ impl crate::NodeFactory {
             None, /*questionDotToken*/
             None, /*typeArguments*/
             self.new_node_list(arguments),
-            NodeFlags::None,
+            NodeFlags::NONE,
         )
     }
 
@@ -641,7 +641,7 @@ impl crate::NodeFactory {
         self.new_helper_call(
             "__metadata",
             vec![
-                self.new_string_literal(alloc_str(metadata_key), TokenFlags::None),
+                self.new_string_literal(alloc_str(metadata_key), TokenFlags::NONE),
                 metadata_value,
             ],
         )
@@ -660,7 +660,7 @@ impl crate::NodeFactory {
             vec![
                 self.new_numeric_literal(
                     alloc_str(&parameter_offset.to_string()),
-                    TokenFlags::None,
+                    TokenFlags::NONE,
                 ),
                 expression,
             ],
@@ -711,9 +711,9 @@ impl crate::NodeFactory {
     ) -> P<Node> {
         self.emit_context().request_emit_helper(helper(&CLASS_PRIVATE_FIELD_GET_HELPER));
         let args = match fn_ {
-            None => vec![receiver, state, self.new_string_literal(kind.as_str(), TokenFlags::None)],
+            None => vec![receiver, state, self.new_string_literal(kind.as_str(), TokenFlags::NONE)],
             Some(fn_) => {
-                vec![receiver, state, self.new_string_literal(kind.as_str(), TokenFlags::None), fn_]
+                vec![receiver, state, self.new_string_literal(kind.as_str(), TokenFlags::NONE), fn_]
             }
         };
         self.new_helper_call("__classPrivateFieldGet", args)
@@ -734,13 +734,13 @@ impl crate::NodeFactory {
                 receiver,
                 state,
                 value,
-                self.new_string_literal(kind.as_str(), TokenFlags::None),
+                self.new_string_literal(kind.as_str(), TokenFlags::NONE),
             ],
             Some(fn_) => vec![
                 receiver,
                 state,
                 value,
-                self.new_string_literal(kind.as_str(), TokenFlags::None),
+                self.new_string_literal(kind.as_str(), TokenFlags::NONE),
                 fn_,
             ],
         };
@@ -764,12 +764,12 @@ impl crate::NodeFactory {
                 self.new_identifier(object),
                 None,
                 self.new_identifier(method),
-                NodeFlags::None,
+                NodeFlags::NONE,
             ),
             None, /*questionDotToken*/
             None, /*typeArguments*/
             self.new_node_list(arguments),
-            NodeFlags::None,
+            NodeFlags::NONE,
         )
     }
 
@@ -838,7 +838,7 @@ impl crate::NodeFactory {
             None, /*questionDotToken*/
             None, /*typeArguments*/
             self.new_node_list(vec![]),
-            NodeFlags::None,
+            NodeFlags::NONE,
         )
     }
 
@@ -869,12 +869,12 @@ impl crate::NodeFactory {
                 self.new_identifier("Object"),
                 None,
                 self.new_identifier("assign"),
-                NodeFlags::None,
+                NodeFlags::NONE,
             ),
             None,
             None,
             self.new_node_list(attributes_segments),
-            NodeFlags::None,
+            NodeFlags::NONE,
         )
     }
 
@@ -916,7 +916,7 @@ impl crate::NodeFactory {
                             temp,
                             None,
                             self.new_token(Kind::PlusToken),
-                            self.new_string_literal("", TokenFlags::None),
+                            self.new_string_literal("", TokenFlags::NONE),
                         ),
                     ));
                 } else {
@@ -932,7 +932,7 @@ impl crate::NodeFactory {
             None,
             None,
             self.new_node_list(vec![value, prop_names]),
-            NodeFlags::None,
+            NodeFlags::NONE,
         )
     }
 
@@ -959,7 +959,7 @@ impl crate::NodeFactory {
         // Mark this node as originally an async function body
         ec.add_emit_flags(
             generator_func,
-            EmitFlags::AsyncFunctionBody | EmitFlags::ReuseTempVariableScope,
+            EmitFlags::ASYNC_FUNCTION_BODY | EmitFlags::REUSE_TEMP_VARIABLE_SCOPE,
         );
 
         let this_arg = if has_lexical_this {
@@ -1022,7 +1022,7 @@ impl crate::NodeFactory {
         // Mark this node as originally an async function body
         ec.add_emit_flags(
             generator_func,
-            EmitFlags::AsyncFunctionBody | EmitFlags::ReuseTempVariableScope,
+            EmitFlags::ASYNC_FUNCTION_BODY | EmitFlags::REUSE_TEMP_VARIABLE_SCOPE,
         );
 
         let this_arg = if has_lexical_this {
@@ -1056,7 +1056,7 @@ impl crate::NodeFactory {
                 self.new_identifier("kind"),
                 None,
                 None,
-                self.new_string_literal("class", TokenFlags::None),
+                self.new_string_literal("class", TokenFlags::NONE),
             ),
             self.new_property_assignment(None, self.new_identifier("name"), None, None, name_expr),
             self.new_property_assignment(
@@ -1081,14 +1081,14 @@ impl crate::NodeFactory {
                 self.new_identifier("obj"),
                 None,
                 name_expr,
-                NodeFlags::None,
+                NodeFlags::NONE,
             )
         } else {
             self.new_property_access_expression(
                 self.new_identifier("obj"),
                 None,
                 name_expr,
-                NodeFlags::None,
+                NodeFlags::NONE,
             )
         };
 
@@ -1125,14 +1125,14 @@ impl crate::NodeFactory {
                 self.new_identifier("obj"),
                 None,
                 name_expr,
-                NodeFlags::None,
+                NodeFlags::NONE,
             )
         } else {
             self.new_property_access_expression(
                 self.new_identifier("obj"),
                 None,
                 name_expr,
-                NodeFlags::None,
+                NodeFlags::NONE,
             )
         };
 
@@ -1300,7 +1300,7 @@ impl crate::NodeFactory {
                 self.new_identifier("kind"),
                 None,
                 None,
-                self.new_string_literal(alloc_str(kind), TokenFlags::None),
+                self.new_string_literal(alloc_str(kind), TokenFlags::NONE),
             ),
             self.new_property_assignment(None, self.new_identifier("name"), None, None, name_value),
             self.new_property_assignment(
@@ -1390,7 +1390,7 @@ impl crate::NodeFactory {
     ) -> P<Node> {
         self.emit_context().request_emit_helper(helper(&SET_FUNCTION_NAME_HELPER));
         let arguments = if !prefix.is_empty() {
-            vec![fn_, name, self.new_string_literal(alloc_str(prefix), TokenFlags::None)]
+            vec![fn_, name, self.new_string_literal(alloc_str(prefix), TokenFlags::NONE)]
         } else {
             vec![fn_, name]
         };
@@ -1451,7 +1451,7 @@ impl crate::NodeFactory {
             self.new_parenthesized_expression(obj_literal),
             None, /*questionDotToken*/
             self.new_identifier("value"),
-            NodeFlags::None,
+            NodeFlags::NONE,
         )
     }
 
@@ -1483,10 +1483,10 @@ impl crate::NodeFactory {
             .map(|extension| {
                 self.new_property_assignment(
                     None,
-                    self.new_string_literal(alloc_str(&extension.source), TokenFlags::None),
+                    self.new_string_literal(alloc_str(&extension.source), TokenFlags::NONE),
                     None,
                     None,
-                    self.new_string_literal(alloc_str(&extension.target), TokenFlags::None),
+                    self.new_string_literal(alloc_str(&extension.target), TokenFlags::NONE),
                 )
             })
             .collect();

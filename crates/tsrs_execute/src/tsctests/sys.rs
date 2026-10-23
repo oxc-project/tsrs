@@ -49,13 +49,13 @@ impl TestClock {
 }
 
 // fs.go testFs
-pub(crate) struct testFs {
+pub(crate) struct TestFs {
     pub(crate) fs: Arc<IoVFS<MapFS>>,
     pub(crate) default_libs: Mutex<Option<FxHashSet<String>>>,
     pub(crate) written_files: Mutex<FxHashSet<String>>,
 }
 
-impl testFs {
+impl TestFs {
     fn remove_ignore_lib_path(&self, path: &str) {
         if let Some(libs) = self.default_libs.lock().unwrap().as_mut() {
             libs.remove(path);
@@ -99,7 +99,7 @@ impl testFs {
     }
 }
 
-impl FS for testFs {
+impl FS for TestFs {
     fn use_case_sensitive_file_names(&self) -> bool {
         self.fs.use_case_sensitive_file_names()
     }
@@ -160,7 +160,7 @@ pub(crate) struct TestSys {
     tracer: Mutex<FxHashMap<Path, bool>>, // TracerForBaselining.packageJsonCache
     serialized_diff: Mutex<Option<Snapshot>>,
 
-    pub(crate) fs: Arc<testFs>,
+    pub(crate) fs: Arc<TestFs>,
     pub(crate) default_library_path: String,
     pub(crate) cwd: String,
     pub(crate) env: FxHashMap<String, String>,
@@ -186,7 +186,7 @@ impl TestSys {
             program_include_baselines: Mutex::new(String::new()),
             tracer: Mutex::new(FxHashMap::default()),
             serialized_diff: Mutex::new(None),
-            fs: Arc::new(testFs {
+            fs: Arc::new(TestFs {
                 fs,
                 default_libs: Mutex::new(default_libs),
                 written_files: Mutex::new(FxHashSet::default()),
@@ -259,7 +259,7 @@ impl TestSys {
     pub(crate) fn get_output(&self, for_comparing: bool) -> String {
         let text = self.current_write.lock().unwrap().clone();
         let lines: Vec<&str> = text.split('\n').collect();
-        let mut o = outputSanitizer { for_comparing, lines, index: 0, output_lines: Vec::new() };
+        let mut o = OutputSanitizer { for_comparing, lines, index: 0, output_lines: Vec::new() };
         o.transform_lines()
     }
 
@@ -276,7 +276,7 @@ impl TestSys {
         };
         let mut changes = Vec::new();
         for (path, file) in self.map_fs().entries() {
-            if file.mode.intersects(FileMode::Symlink) || !file.mode.is_regular() {
+            if file.mode.intersects(FileMode::SYMLINK) || !file.mode.is_regular() {
                 continue;
             }
             match old_snap.snap.get(&path) {
@@ -310,7 +310,7 @@ impl TestSys {
         let mut serialized = self.serialized_diff.lock().unwrap();
         let current_libs = self.fs.default_libs.lock().unwrap().clone();
         for (path, file) in self.map_fs().entries() {
-            if file.mode.intersects(FileMode::Symlink) {
+            if file.mode.intersects(FileMode::SYMLINK) {
                 let target = self
                     .map_fs()
                     .get_target_of_symlink(&path)
@@ -500,14 +500,14 @@ pub(crate) fn sanitize_internal_symbol_name(s: &str) -> String {
     out
 }
 
-struct outputSanitizer<'a> {
+struct OutputSanitizer<'a> {
     for_comparing: bool,
     lines: Vec<&'a str>,
     index: usize,
     output_lines: Vec<String>,
 }
 
-impl outputSanitizer<'_> {
+impl OutputSanitizer<'_> {
     fn add_output_line(&mut self, s: &str) {
         let s = s.replace(&format!("'{}'", tsrs_core::version()), &format!("'{FAKE_TS_VERSION}'"));
         let english_version = format!("Version {}", tsrs_core::version());
@@ -631,7 +631,7 @@ fn output_sanitizer_version_padding() {
         ),
     ];
     for (name, input, expected) in cases {
-        let mut sanitizer = outputSanitizer {
+        let mut sanitizer = OutputSanitizer {
             for_comparing: false,
             lines: Vec::new(),
             index: 0,
@@ -644,7 +644,7 @@ fn output_sanitizer_version_padding() {
 
 impl System for TestSys {
     fn fs(&self) -> Arc<dyn FS> {
-        Arc::<testFs>::clone(&self.fs)
+        Arc::<TestFs>::clone(&self.fs)
     }
     fn default_library_path(&self) -> &str {
         &self.default_library_path

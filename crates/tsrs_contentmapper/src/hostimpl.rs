@@ -463,8 +463,8 @@ pub struct DiagnosticDirectivePolicy(pub u8);
 
 impl DiagnosticDirectivePolicy {
     // hostimpl.go:128
-    pub const Ignore: DiagnosticDirectivePolicy = DiagnosticDirectivePolicy(0);
-    pub const Expect: DiagnosticDirectivePolicy = DiagnosticDirectivePolicy(1);
+    pub const IGNORE: DiagnosticDirectivePolicy = DiagnosticDirectivePolicy(0);
+    pub const EXPECT: DiagnosticDirectivePolicy = DiagnosticDirectivePolicy(1);
 }
 
 impl fmt::Display for DiagnosticDirectivePolicy {
@@ -772,7 +772,7 @@ impl ProtocolJson for Diagnostic {
 // dialFunc establishes a running connection to a mapper. In production it spawns the mapper's process;
 // tests substitute an in-memory connection. It returns the connection and a closer that tears it down.
 // hostimpl.go:218 (Go also passes the host's context, which the port does not have.)
-type dialFunc = dyn Fn(
+type DialFunc = dyn Fn(
         &Mapper,
         &Locale,
     ) -> Result<(Arc<dyn Conn>, Arc<dyn Closer>, PositionEncoding, String), Error>
@@ -782,31 +782,31 @@ type dialFunc = dyn Fn(
 // host manages one child process per mapper identity. It is the production implementation of Host.
 // hostimpl.go:221 (Go's ctx, cancel and stop are not ported: the port has no context. The owner closes the host, and
 // dropping the last reference closes it too, where Go closes it when its context ends.)
-pub(crate) struct host {
+pub(crate) struct HostImpl {
     // The host's own Arc, which project leases and Acquire's release function hold, as Go's do a *host.
-    this: Weak<host>,
-    dial: Box<dialFunc>,
-    timing: Arc<timingCollector>,
+    this: Weak<HostImpl>,
+    dial: Box<DialFunc>,
+    timing: Arc<TimingCollector>,
 
     // Go's lifecycleMu and the diagnosticLocale it guards. SetLocale and Close hold it for writing; every method
     // that may talk to a mapper holds it for reading, so processes are never replaced or torn down under one.
     lifecycle_mu: RwLock<Locale>,
 
     // Go's mu and the state it guards. Lock order: lifecycle_mu, then mu.
-    mu: Mutex<hostLocked>,
+    mu: Mutex<HostLocked>,
 }
 
 // The fields of Go's host that mu guards. Close sets the maps to Go's nil (None). Go's maps are iterated in random
 // order; these keep insertion order.
-struct hostLocked {
-    conns: Option<OrderedMap<String, mapperConn>>,
-    projects: Option<OrderedMap<String, projectEntry>>,
-    project_leases: Option<FxHashMap<String, Arc<projectLease>>>,
+struct HostLocked {
+    conns: Option<OrderedMap<String, MapperConn>>,
+    projects: Option<OrderedMap<String, ProjectEntry>>,
+    project_leases: Option<FxHashMap<String, Arc<ProjectLease>>>,
     next_project_id: u64,
 }
 
 // hostimpl.go:238
-struct projectEntry {
+struct ProjectEntry {
     mapper: &'static Mapper,
     spec: ProjectSpec,
     project_handle: String,
@@ -818,7 +818,7 @@ struct projectEntry {
 
 // hostimpl.go:248
 #[derive(Default)]
-struct mapperConn {
+struct MapperConn {
     conn: Option<Arc<dyn Conn>>,
     closer: Option<Arc<dyn Closer>>,
     // err, when non-nil, records that this mapper failed to start; it is cached so we do not repeatedly
@@ -832,13 +832,13 @@ struct mapperConn {
 
 // hostimpl.go:260
 #[derive(Default)]
-struct operationTiming {
+struct OperationTimingState {
     count: AtomicU64,
     // Nanoseconds (Go's time.Duration).
     duration: AtomicU64,
 }
 
-impl operationTiming {
+impl OperationTimingState {
     // hostimpl.go:265
     fn record(&self, start: Instant) {
         self.count.fetch_add(1, Ordering::SeqCst);
@@ -858,13 +858,13 @@ impl operationTiming {
 }
 
 // hostimpl.go:274
-struct timingCollector {
-    mu: Mutex<timingCollectorLocked>,
+struct TimingCollector {
+    mu: Mutex<TimingCollectorLocked>,
 }
 
 // The fields of Go's timingCollector that its mu guards.
-struct timingCollectorLocked {
-    mappers: OrderedMap<String, Arc<mapperTimingCollector>>,
+struct TimingCollectorLocked {
+    mappers: OrderedMap<String, Arc<MapperTimingCollector>>,
     active_requests: u64,
     request_wait_start: Instant,
     request_wait_elapsed: Duration,
@@ -872,19 +872,19 @@ struct timingCollectorLocked {
 
 // hostimpl.go:282 (The owner is a weak reference: the owner's map holds the mapper collectors.)
 #[derive(Default)]
-struct mapperTimingCollector {
-    spawn: operationTiming,
-    initialize: operationTiming,
-    open_project: operationTiming,
-    close_project: operationTiming,
-    transform: operationTiming,
-    owner: Weak<timingCollector>,
+struct MapperTimingCollector {
+    spawn: OperationTimingState,
+    initialize: OperationTimingState,
+    open_project: OperationTimingState,
+    close_project: OperationTimingState,
+    transform: OperationTimingState,
+    owner: Weak<TimingCollector>,
 }
 
-impl timingCollector {
-    fn new() -> Arc<timingCollector> {
-        Arc::new(timingCollector {
-            mu: Mutex::new(timingCollectorLocked {
+impl TimingCollector {
+    fn new() -> Arc<TimingCollector> {
+        Arc::new(TimingCollector {
+            mu: Mutex::new(TimingCollectorLocked {
                 mappers: OrderedMap::default(),
                 active_requests: 0,
                 request_wait_start: Instant::now(),
@@ -894,13 +894,13 @@ impl timingCollector {
     }
 
     // hostimpl.go:291
-    fn mapper(self: &Arc<Self>, identity: &str) -> Arc<mapperTimingCollector> {
+    fn mapper(self: &Arc<Self>, identity: &str) -> Arc<MapperTimingCollector> {
         let mut t = lock(&self.mu);
         if let Some(timing) = t.mappers.get(identity) {
             return Arc::clone(timing);
         }
         let timing =
-            Arc::new(mapperTimingCollector { owner: Arc::downgrade(self), ..Default::default() });
+            Arc::new(MapperTimingCollector { owner: Arc::downgrade(self), ..Default::default() });
         t.mappers.insert(identity.to_string(), Arc::clone(&timing));
         timing
     }
@@ -935,7 +935,7 @@ impl timingCollector {
     }
 }
 
-impl mapperTimingCollector {
+impl MapperTimingCollector {
     // hostimpl.go:324
     fn start_request(&self) -> Instant {
         if let Some(owner) = self.owner.upgrade() {
@@ -949,7 +949,7 @@ impl mapperTimingCollector {
     }
 
     // hostimpl.go:334
-    fn finish_request(&self, operation: &operationTiming, start: Instant) {
+    fn finish_request(&self, operation: &OperationTimingState, start: Instant) {
         operation.record(start);
         if let Some(owner) = self.owner.upgrade() {
             let mut t = lock(&owner.mu);
@@ -1013,13 +1013,13 @@ pub struct HostOptions {
 }
 
 // hostimpl.go:372
-struct loggingProtocol {
+struct LoggingProtocol {
     protocol: Box<dyn Protocol>,
     mapper_name: String,
     logger: Logger,
 }
 
-impl loggingProtocol {
+impl LoggingProtocol {
     // hostimpl.go:378 (Go marshals the message here; the callers pass the result of marshaling it.)
     fn log(&self, direction: &str, message: Result<String, ipc::Error>) {
         match message {
@@ -1035,7 +1035,7 @@ impl loggingProtocol {
     }
 }
 
-impl Protocol for loggingProtocol {
+impl Protocol for LoggingProtocol {
     // hostimpl.go:387
     fn read_message(&self) -> Result<Message, ipc::Error> {
         let message = self.protocol.read_message();
@@ -1077,13 +1077,13 @@ impl Protocol for loggingProtocol {
 }
 
 // hostimpl.go:419 (Go's string of pending bytes is bytes here; a line is logged lossily if it is not UTF-8.)
-struct stderrLogger {
+struct StderrLogger {
     mapper_name: String,
     logger: Logger,
     mu: Mutex<Vec<u8>>,
 }
 
-impl stderrLogger {
+impl StderrLogger {
     // hostimpl.go:426
     #[expect(
         clippy::unnecessary_wraps,
@@ -1117,9 +1117,9 @@ impl stderrLogger {
 }
 
 // The io.Writer Go hands the spawner, which is the *stderrLogger itself.
-struct stderrLoggerWriter(Arc<stderrLogger>);
+struct StderrLoggerWriter(Arc<StderrLogger>);
 
-impl Write for stderrLoggerWriter {
+impl Write for StderrLoggerWriter {
     fn write(&mut self, data: &[u8]) -> io::Result<usize> {
         self.0.write(data)
     }
@@ -1133,12 +1133,12 @@ impl Write for stderrLoggerWriter {
 // hostimpl.go:454 (Go embeds the io.ReadWriteCloser; only Close is wrapped, and the reader and writer pass through.
 // No exit_code: the embedded io.ReadWriteCloser's method set has no ExitCode, so Go's process-exit probe sees none
 // through a logged process.)
-struct loggedProcess {
+struct LoggedProcess {
     closer: Arc<dyn Closer>,
-    stderr: Arc<stderrLogger>,
+    stderr: Arc<StderrLogger>,
 }
 
-impl Closer for loggedProcess {
+impl Closer for LoggedProcess {
     // hostimpl.go:459
     fn close(&self) -> io::Result<()> {
         let err = self.closer.close();
@@ -1148,12 +1148,12 @@ impl Closer for loggedProcess {
 }
 
 // hostimpl.go:465 (Go's sync.Once and the error it records.)
-struct closeOnceReadWriteCloser {
+struct CloseOnceReadWriteCloser {
     closer: Arc<dyn Closer>,
     once: OnceLock<Option<(io::ErrorKind, String)>>,
 }
 
-impl Closer for closeOnceReadWriteCloser {
+impl Closer for CloseOnceReadWriteCloser {
     // hostimpl.go:471
     fn close(&self) -> io::Result<()> {
         let err = self
@@ -1188,7 +1188,7 @@ pub fn new_host_with_options(
     options: HostOptions,
 ) -> Arc<dyn Host> {
     let logger = options.logger;
-    let timing = timingCollector::new();
+    let timing = TimingCollector::new();
     let dial_timing = Arc::clone(&timing);
     let dial = move |mapper: &Mapper, diagnostic_locale: &Locale| {
         if mapper.manifest.exec.is_empty() {
@@ -1201,14 +1201,14 @@ pub fn new_host_with_options(
         let diagnostic_name = mapper.diagnostic_name().to_string();
         let spawn_start = Instant::now();
         let mut stderr: Option<Box<dyn Write + Send>> = None;
-        let mut stderr_log: Option<Arc<stderrLogger>> = None;
+        let mut stderr_log: Option<Arc<StderrLogger>> = None;
         if let Some(logger) = &logger {
-            let log = Arc::new(stderrLogger {
+            let log = Arc::new(StderrLogger {
                 mapper_name: diagnostic_name.clone(),
                 logger: Arc::clone(logger),
                 mu: Mutex::new(Vec::new()),
             });
-            stderr = Some(Box::new(stderrLoggerWriter(Arc::clone(&log))));
+            stderr = Some(Box::new(StderrLoggerWriter(Arc::clone(&log))));
             stderr_log = Some(log);
         }
         let spawned = spawner.spawn(&mapper.manifest.exec, &mapper.package_directory, stderr);
@@ -1227,13 +1227,13 @@ pub fn new_host_with_options(
         };
         let mut closer = closer;
         if let Some(stderr_log) = stderr_log {
-            closer = Arc::new(loggedProcess { closer, stderr: stderr_log });
+            closer = Arc::new(LoggedProcess { closer, stderr: stderr_log });
         }
         let rwc: Arc<dyn Closer> =
-            Arc::new(closeOnceReadWriteCloser { closer, once: OnceLock::new() });
+            Arc::new(CloseOnceReadWriteCloser { closer, once: OnceLock::new() });
         let mut protocol: Box<dyn Protocol> = Box::new(ipc::new_jsonrpc_protocol(reader, writer));
         if let Some(logger) = &logger {
-            protocol = Box::new(loggingProtocol {
+            protocol = Box::new(LoggingProtocol {
                 protocol,
                 mapper_name: diagnostic_name.clone(),
                 logger: Arc::clone(logger),
@@ -1242,7 +1242,7 @@ pub fn new_host_with_options(
         let conn = ipc::new_async_conn_with_protocol(
             Some(Arc::clone(&rwc)),
             protocol,
-            Arc::new(rejectHandler),
+            Arc::new(RejectHandler),
         );
         // Go's `go func() { _ = conn.Run(ctx); _ = rwc.Close() }()`. The thread is never joined: closing the stream
         // ends the read loop, except while a grandchild of the mapper keeps its stdout open (process.rs), and then
@@ -1317,15 +1317,15 @@ const CONN_THREAD: &str = "contentmapper-conn";
 // hostimpl.go:555
 fn new_with_dial(
     diagnostic_locale: Locale,
-    timing: Arc<timingCollector>,
-    dial: Box<dialFunc>,
-) -> Arc<host> {
-    Arc::new_cyclic(|this| host {
+    timing: Arc<TimingCollector>,
+    dial: Box<DialFunc>,
+) -> Arc<HostImpl> {
+    Arc::new_cyclic(|this| HostImpl {
         this: Weak::clone(this),
         dial,
         timing,
         lifecycle_mu: RwLock::new(diagnostic_locale),
-        mu: Mutex::new(hostLocked {
+        mu: Mutex::new(HostLocked {
             conns: Some(OrderedMap::default()),
             projects: Some(OrderedMap::default()),
             project_leases: Some(FxHashMap::default()),
@@ -1334,7 +1334,7 @@ fn new_with_dial(
     })
 }
 
-impl Host for host {
+impl Host for HostImpl {
     // hostimpl.go:562
     fn timings(&self) -> Timings {
         self.timing.snapshot()
@@ -1351,7 +1351,7 @@ impl Host for host {
         let mut closers: Vec<Arc<dyn Closer>> = Vec::new();
         {
             let mut state = lock(&self.mu);
-            let hostLocked { conns, projects, .. } = &mut *state;
+            let HostLocked { conns, projects, .. } = &mut *state;
             for entry in conns.iter_mut().flat_map(|conns| conns.values_mut()) {
                 if let Some(closer) = entry.closer.take() {
                     closers.push(closer);
@@ -1376,7 +1376,7 @@ impl Host for host {
 
         let key = project_spec_key(&spec);
         let mut state = lock(&self.mu);
-        let hostLocked { conns, projects, project_leases, next_project_id } = &mut *state;
+        let HostLocked { conns, projects, project_leases, next_project_id } = &mut *state;
         let (Some(conns), Some(projects), Some(project_leases)) = (conns, projects, project_leases)
         else {
             return None;
@@ -1390,7 +1390,7 @@ impl Host for host {
         for &mapper in &spec.mappers {
             let entry_key = format!("{}:{}", mapper.identity(), next_project_id);
             *next_project_id += 1;
-            let entry = projectEntry {
+            let entry = ProjectEntry {
                 mapper,
                 spec: spec.clone(),
                 project_handle: entry_key.clone(),
@@ -1403,7 +1403,7 @@ impl Host for host {
             conns.entry(mapper.identity()).or_default().refs += 1;
             entries.insert(mapper_key(mapper), entry_key);
         }
-        let lease = Arc::new(projectLease {
+        let lease = Arc::new(ProjectLease {
             host: self.this.upgrade().expect("a content mapper host is alive while it is used"),
             key: lease_entry.key().clone(),
             mappers: spec.mappers.clone(),
@@ -1492,7 +1492,7 @@ impl Host for host {
 
 // Go binds the host to its context (hostimpl.go:558 `h.stop = context.AfterFunc(ctx, func() { _ = h.Close() })`);
 // the port closes it when the last reference to it goes away.
-impl Drop for host {
+impl Drop for HostImpl {
     fn drop(&mut self) {
         let _ = Host::close(self);
     }
@@ -1544,14 +1544,14 @@ fn mapper_key(mapper: &Mapper) -> usize {
     std::ptr::from_ref(mapper).addr()
 }
 
-impl host {
+impl HostImpl {
     // hostimpl.go:650 (Go reaches h.conns through the receiver; the caller passes it, as it also holds a mutable
     // reference into h.projects. The lifecycle lock's locale goes to the dial.)
     fn open_project_locked(
         &self,
-        conns: &mut Option<OrderedMap<String, mapperConn>>,
+        conns: &mut Option<OrderedMap<String, MapperConn>>,
         diagnostic_locale: &Locale,
-        entry: &mut projectEntry,
+        entry: &mut ProjectEntry,
     ) -> Result<(), Error> {
         if entry.opened {
             return Ok(());
@@ -1718,7 +1718,7 @@ impl host {
     // hostimpl.go:831
     fn conn_for_locked(
         &self,
-        conns: &mut Option<OrderedMap<String, mapperConn>>,
+        conns: &mut Option<OrderedMap<String, MapperConn>>,
         diagnostic_locale: &Locale,
         mapper: &Mapper,
     ) -> Result<(Arc<dyn Conn>, PositionEncoding, String), Error> {
@@ -1782,8 +1782,8 @@ impl host {
 }
 
 // hostimpl.go:853 (refs is guarded by host.mu, as in Go; it is an atomic only so that the lease can be shared.)
-struct projectLease {
-    host: Arc<host>,
+struct ProjectLease {
+    host: Arc<HostImpl>,
     key: String,
     mappers: Vec<&'static Mapper>,
     // Go's map[*Mapper]string, keyed by the mapper's address.
@@ -1793,16 +1793,16 @@ struct projectLease {
 }
 
 // hostimpl.go:862 (Go embeds the *projectLease; every method but Close delegates to it.)
-struct retainedProject {
-    lease: Arc<projectLease>,
+struct RetainedProject {
+    lease: Arc<ProjectLease>,
     once: Once,
 }
 
-impl projectLease {
+impl ProjectLease {
     // hostimpl.go:867
     fn retain_locked(self: &Arc<Self>) -> Arc<dyn Project> {
         self.refs.fetch_add(1, Ordering::SeqCst);
-        Arc::new(retainedProject { lease: Arc::clone(self), once: Once::new() })
+        Arc::new(RetainedProject { lease: Arc::clone(self), once: Once::new() })
     }
 
     // Go's `p.entries[mapper]`: the empty string for a mapper outside the project, which names no project entry.
@@ -1828,7 +1828,7 @@ impl projectLease {
                 if refs != 0 {
                     return Ok(());
                 }
-                let hostLocked { conns, projects, project_leases, .. } = &mut *state;
+                let HostLocked { conns, projects, project_leases, .. } = &mut *state;
                 if let Some(project_leases) = project_leases {
                     if project_leases
                         .get(&self.key)
@@ -1868,12 +1868,12 @@ impl projectLease {
     }
 }
 
-impl Project for projectLease {
+impl Project for ProjectLease {
     // hostimpl.go:877
     fn refresh(&self) -> Result<(), Error> {
         let _lifecycle = read(&self.host.lifecycle_mu);
         let mut state = lock(&self.host.mu);
-        let hostLocked { conns, projects, .. } = &mut *state;
+        let HostLocked { conns, projects, .. } = &mut *state;
         let Some(projects) = projects else {
             return Ok(());
         };
@@ -1905,7 +1905,7 @@ impl Project for projectLease {
     fn identities(&self) -> Result<Vec<String>, Error> {
         let diagnostic_locale = read(&self.host.lifecycle_mu);
         let mut state = lock(&self.host.mu);
-        let hostLocked { conns, projects, .. } = &mut *state;
+        let HostLocked { conns, projects, .. } = &mut *state;
         let Some(projects) = projects else {
             return Ok(Vec::new());
         };
@@ -1933,7 +1933,7 @@ impl Project for projectLease {
     fn identity(&self, mapper: &Mapper) -> Result<String, Error> {
         let diagnostic_locale = read(&self.host.lifecycle_mu);
         let mut state = lock(&self.host.mu);
-        let hostLocked { conns, projects, .. } = &mut *state;
+        let HostLocked { conns, projects, .. } = &mut *state;
         let Some(projects) = projects else {
             return Ok(String::new());
         };
@@ -1959,7 +1959,7 @@ impl Project for projectLease {
     fn watched_files(&self) -> Result<Vec<String>, Error> {
         let diagnostic_locale = read(&self.host.lifecycle_mu);
         let mut state = lock(&self.host.mu);
-        let hostLocked { conns, projects, .. } = &mut *state;
+        let HostLocked { conns, projects, .. } = &mut *state;
         let Some(projects) = projects else {
             return Ok(Vec::new());
         };
@@ -2010,7 +2010,7 @@ impl Project for projectLease {
         let diagnostic_locale = read(&self.host.lifecycle_mu);
         let handle = {
             let mut state = lock(&self.host.mu);
-            let hostLocked { conns, projects, .. } = &mut *state;
+            let HostLocked { conns, projects, .. } = &mut *state;
             let Some(entry) =
                 projects.as_mut().and_then(|projects| projects.get_mut(self.entry_key(mapper)))
             else {
@@ -2037,7 +2037,7 @@ impl Project for projectLease {
     }
 }
 
-impl Project for retainedProject {
+impl Project for RetainedProject {
     fn refresh(&self) -> Result<(), Error> {
         self.lease.refresh()
     }
@@ -2214,7 +2214,7 @@ fn decode_mapped_output<'a>(
     original_text: &'a str,
     position_encoding: &PositionEncoding,
     diagnostic_source: &str,
-) -> Result<(MappedResult, positionNormalizer<'a>), Error> {
+) -> Result<(MappedResult, PositionNormalizer<'a>), Error> {
     if !is_supported_virtual_extension(&output.extension) {
         return Err(InvalidVirtualExtensionError { extension: output.extension }.into());
     }
@@ -2252,8 +2252,8 @@ fn decode_mapped_output<'a>(
 // hostimpl.go:1208 (The directives' strings are arena text, like the rest of the source file that will hold them.)
 fn normalize_diagnostic_directives(
     diagnostic_directives: Option<&DiagnosticDirectives>,
-    virtual_positions: &positionNormalizer<'_>,
-    original_positions: &positionNormalizer<'_>,
+    virtual_positions: &PositionNormalizer<'_>,
+    original_positions: &PositionNormalizer<'_>,
     diagnostic_source: &str,
 ) -> Result<Vec<ast::MappedDiagnosticDirective>, Error> {
     let Some(diagnostic_directives) = diagnostic_directives else {
@@ -2275,10 +2275,10 @@ fn normalize_diagnostic_directives(
         };
         let mut normalized = ast::MappedDiagnosticDirective { source, ..Default::default() };
         match directive.policy {
-            DiagnosticDirectivePolicy::Ignore => {
+            DiagnosticDirectivePolicy::IGNORE => {
                 normalized.policy = ast::MappedDiagnosticDirectivePolicy::Ignore;
             }
-            DiagnosticDirectivePolicy::Expect => {
+            DiagnosticDirectivePolicy::EXPECT => {
                 let mut unused_diagnostic_index = 0;
                 if let Some(index) = directive.unused_expect_directive_index {
                     unused_diagnostic_index = index;
@@ -2361,8 +2361,8 @@ fn normalize_diagnostic_directives(
 // hostimpl.go:1291
 fn normalize_mappings(
     mappings: &SpanMap,
-    virtual_positions: &positionNormalizer<'_>,
-    original_positions: &positionNormalizer<'_>,
+    virtual_positions: &PositionNormalizer<'_>,
+    original_positions: &PositionNormalizer<'_>,
 ) -> Result<P<SpanMap>, Error> {
     let mut segments = mappings.segments();
     for (i, segment) in segments.iter_mut().enumerate() {
@@ -2387,7 +2387,7 @@ fn normalize_mappings(
 }
 
 // hostimpl.go:1316
-struct positionNormalizer<'a> {
+struct PositionNormalizer<'a> {
     text: &'a str,
     encoding: PositionEncoding,
     position_map: Option<ast::PositionMap>,
@@ -2398,9 +2398,9 @@ struct positionNormalizer<'a> {
 fn new_position_normalizer<'a>(
     text: &'a str,
     encoding: &PositionEncoding,
-) -> Result<positionNormalizer<'a>, String> {
+) -> Result<PositionNormalizer<'a>, String> {
     let mut normalizer =
-        positionNormalizer { text, encoding: encoding.clone(), position_map: None, length: 0 };
+        PositionNormalizer { text, encoding: encoding.clone(), position_map: None, length: 0 };
     if *encoding == PositionEncoding::UTF8 {
         normalizer.length = text.len() as i64;
     } else if *encoding == PositionEncoding::UTF16 {
@@ -2416,7 +2416,7 @@ fn new_position_normalizer<'a>(
     Ok(normalizer)
 }
 
-impl positionNormalizer<'_> {
+impl PositionNormalizer<'_> {
     // hostimpl.go:1337
     fn normalize_text_pos(&self, position: u32) -> Result<u32, String> {
         self.normalize(i64::from(position))
@@ -2454,9 +2454,9 @@ impl positionNormalizer<'_> {
 // rejectHandler rejects any request initiated by the mapper. The content mapper protocol is currently
 // parent-driven only; a request from the child is a protocol violation.
 // hostimpl.go:1364
-struct rejectHandler;
+struct RejectHandler;
 
-impl Handler for rejectHandler {
+impl Handler for RejectHandler {
     // hostimpl.go:1366
     fn handle_request(&self, method: &str, _params: Option<&Value>) -> Result<Value, ipc::Error> {
         Err(ipc::Error::new(format!("content mapper sent an unexpected request: {method}")))

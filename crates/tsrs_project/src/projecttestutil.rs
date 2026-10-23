@@ -15,7 +15,7 @@ use crate::logging::{LogCollector, Logger, new_test_logger};
 use crate::session::{Session, SessionInit, SessionOptions, new_session};
 use crate::watch::WatcherID;
 
-pub(crate) const TestTypingsLocation: &str = "/home/src/Library/Caches/typescript";
+pub(crate) const TEST_TYPINGS_LOCATION: &str = "/home/src/Library/Caches/typescript";
 
 #[derive(Clone)]
 pub(crate) struct WatchFilesCall {
@@ -221,7 +221,7 @@ pub(crate) fn default_session_options() -> SessionOptions {
     SessionOptions {
         current_directory: "/".to_string(),
         default_library_path: bundled::lib_path(),
-        typings_location: TestTypingsLocation.to_string(),
+        typings_location: TEST_TYPINGS_LOCATION.to_string(),
         position_encoding: lsproto::PositionEncodingKind::UTF8,
         watch_enabled: true,
         logging_enabled: true,

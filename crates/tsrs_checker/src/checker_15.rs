@@ -103,14 +103,14 @@ impl Checker {
                                 let element_infos = spread_type.target_tuple_type().element_infos();
                                 let flags = element_infos[i].flags;
                                 let mut synthetic_type = t;
-                                if flags.intersects(ElementFlags::Rest) {
+                                if flags.intersects(ElementFlags::REST) {
                                     synthetic_type = self.create_array_type(t);
                                 }
 
                                 self.create_synthetic_expression(
                                     arg,
                                     synthetic_type,
-                                    flags.intersects(ElementFlags::Variable),
+                                    flags.intersects(ElementFlags::VARIABLE),
                                     element_infos[i].labeled_declaration,
                                 )
                             },
@@ -750,7 +750,7 @@ impl Checker {
         let any_keyword = self.factory.new_keyword_type_node(Kind::AnyKeyword);
         let decl = self.factory.new_function_type_node(None, None, Some(any_keyword));
         self.new_signature(
-            SignatureFlags::None,
+            SignatureFlags::NONE,
             Some(decl),
             type_parameters,
             this_parameter,
@@ -785,7 +785,7 @@ impl Checker {
             }
             Kind::ComputedPropertyName => {
                 let name_type = self.check_computed_property_name(name);
-                if self.is_type_assignable_to_kind(name_type, TypeFlags::ESSymbolLike) {
+                if self.is_type_assignable_to_kind(name_type, TypeFlags::ES_SYMBOL_LIKE) {
                     return name_type;
                 }
                 return self.string_type;
@@ -811,7 +811,7 @@ impl Checker {
         name: &str,
         name_type: Option<P<Type>>,
     ) -> Option<P<Type>> {
-        if t.flags().intersects(TypeFlags::Union)
+        if t.flags().intersects(TypeFlags::UNION)
             && let Some(result) = self.contextual_property_type_of_large_union(t, name, name_type)
         {
             return result;
@@ -830,11 +830,11 @@ impl Checker {
         name: &str,
         name_type: Option<P<Type>>,
     ) -> Option<P<Type>> {
-        if t.flags().intersects(TypeFlags::Intersection) {
+        if t.flags().intersects(TypeFlags::INTERSECTION) {
             let mut types: Vec<P<Type>> = Vec::new();
             let mut ignore_index_infos = false;
             for &constituent_type in t.types() {
-                if !constituent_type.flags().intersects(TypeFlags::Object) {
+                if !constituent_type.flags().intersects(TypeFlags::OBJECT) {
                     continue;
                 }
                 if self.is_generic_mapped_type(constituent_type)
@@ -862,7 +862,7 @@ impl Checker {
             // the first constituent with it, so they are used only when no constituent has it: all of them, in order.
             if !ignore_index_infos {
                 for &candidate in t.types() {
-                    if !candidate.flags().intersects(TypeFlags::Object)
+                    if !candidate.flags().intersects(TypeFlags::OBJECT)
                         || self.is_generic_mapped_type(candidate)
                             && self.get_mapped_type_name_type_kind(candidate)
                                 != MappedTypeNameTypeKind::Remapping
@@ -882,7 +882,7 @@ impl Checker {
             }
             return Some(self.get_intersection_type(&types));
         }
-        if !t.flags().intersects(TypeFlags::Object) {
+        if !t.flags().intersects(TypeFlags::OBJECT) {
             return None;
         }
         if self.is_generic_mapped_type(t)
@@ -920,7 +920,7 @@ impl Checker {
     ) -> Option<Option<P<Type>>> {
         let u = t.as_union_type();
         let types = match u.origin() {
-            Some(origin) if origin.flags().intersects(TypeFlags::Union) => origin.types(),
+            Some(origin) if origin.flags().intersects(TypeFlags::UNION) => origin.types(),
             _ => u.types.get(),
         };
         if types.len() < 8 {
@@ -955,7 +955,7 @@ impl Checker {
         mapped_types.extend(relevant.iter().filter_map(|&i| {
             let s = types[i as usize];
 
-            if s.flags().intersects(TypeFlags::Union) {
+            if s.flags().intersects(TypeFlags::UNION) {
                 self.map_type_ex(
                     s,
                     |c, t| c.contextual_property_type_of_constituent(t, name, name_type),
@@ -976,9 +976,9 @@ impl Checker {
 
     /// See `contextual_property_type_of_large_union`.
     fn is_skippable_contextual_constituent(&mut self, t: P<Type>, key: HashedName<'_>) -> bool {
-        t.flags() == TypeFlags::Object
-            && t.object_flags_lazy() & (ObjectFlags::MembersResolved | ObjectFlags::Mapped)
-                == ObjectFlags::MembersResolved
+        t.flags() == TypeFlags::OBJECT
+            && t.object_flags_lazy() & (ObjectFlags::MEMBERS_RESOLVED | ObjectFlags::MAPPED)
+                == ObjectFlags::MEMBERS_RESOLVED
             && !is_tuple_type(t)
             && t.as_structured_type().members().is_none_or(|m| m.lookup_hashed(key).is_none())
             && self.index_infos_of_structured_type(t).is_empty()
@@ -1018,9 +1018,9 @@ impl Checker {
         t: P<Type>,
         property_name_type: P<Type>,
     ) -> bool {
-        if t.flags().intersects(TypeFlags::Conditional) {
+        if t.flags().intersects(TypeFlags::CONDITIONAL) {
             let true_type = self.get_true_type_from_conditional_type(t);
-            if !self.get_reduced_type(true_type).flags().intersects(TypeFlags::Never) {
+            if !self.get_reduced_type(true_type).flags().intersects(TypeFlags::NEVER) {
                 return false;
             }
             let false_type = self.get_false_type_from_conditional_type(t);
@@ -1033,7 +1033,7 @@ impl Checker {
                     t.as_conditional_type().extends_type.get().unwrap(),
                 );
         }
-        if t.flags().intersects(TypeFlags::Intersection) {
+        if t.flags().intersects(TypeFlags::INTERSECTION) {
             return t
                 .types()
                 .iter()
@@ -1054,7 +1054,7 @@ impl Checker {
             return None;
         }
         let prop_type = self.get_type_of_symbol(prop);
-        Some(self.remove_missing_type(prop_type, prop.flags().intersects(SymbolFlags::Optional)))
+        Some(self.remove_missing_type(prop_type, prop.flags().intersects(SymbolFlags::OPTIONAL)))
     }
 
     // checker.go:31135
@@ -1091,7 +1091,7 @@ impl Checker {
 
     // checker.go:31152
     pub(crate) fn is_circular_mapped_property(&mut self, symbol: P<Symbol>) -> bool {
-        if symbol.check_flags().intersects(CheckFlags::Mapped) {
+        if symbol.check_flags().intersects(CheckFlags::MAPPED) {
             let links = self.value_symbol_links.get(symbol);
             return links.resolved_type.get().is_none()
                 && self
@@ -1117,7 +1117,7 @@ impl Checker {
         let Some(t) = t else {
             return;
         };
-        types.push(if t.flags().intersects(TypeFlags::Any) { self.unknown_type } else { t });
+        types.push(if t.flags().intersects(TypeFlags::ANY) { self.unknown_type } else { t });
     }
 
     // Return the contextual type for a given expression node. During overload resolution, a contextual type may temporarily
@@ -1136,14 +1136,14 @@ impl Checker {
         let instantiated_type =
             self.instantiate_contextual_type(contextual_type, node, context_flags);
         if let Some(instantiated_type) = instantiated_type {
-            if !(context_flags.intersects(ContextFlags::NoConstraints)
-                && instantiated_type.flags().intersects(TypeFlags::TypeVariable))
+            if !(context_flags.intersects(ContextFlags::NO_CONSTRAINTS)
+                && instantiated_type.flags().intersects(TypeFlags::TYPE_VARIABLE))
             {
                 let apparent_type = self
                     .map_type_ex(
                         instantiated_type,
                         |c, t| {
-                            if t.object_flags().intersects(ObjectFlags::Mapped) {
+                            if t.object_flags().intersects(ObjectFlags::MAPPED) {
                                 return Some(t);
                             }
                             Some(c.get_apparent_type(t))
@@ -1151,13 +1151,13 @@ impl Checker {
                         true,
                     )
                     .unwrap();
-                if apparent_type.flags().intersects(TypeFlags::Union)
+                if apparent_type.flags().intersects(TypeFlags::UNION)
                     && ast::is_object_literal_expression(node)
                 {
                     return Some(
                         self.discriminate_contextual_type_by_object_members(node, apparent_type),
                     );
-                } else if apparent_type.flags().intersects(TypeFlags::Union)
+                } else if apparent_type.flags().intersects(TypeFlags::UNION)
                     && ast::is_jsx_attributes(node)
                 {
                     return Some(
@@ -1248,7 +1248,7 @@ impl Checker {
             discriminant_members.extend(
                 self.get_properties_of_type(contextual_type).iter().copied().filter(|&s| {
                     let node_members = node.symbol().unwrap().members();
-                    s.flags().intersects(SymbolFlags::Optional)
+                    s.flags().intersects(SymbolFlags::OPTIONAL)
                         && node_members.is_none_or(|m| m.lookup(s.name()).is_none())
                         && self.is_discriminant_property(Some(contextual_type), s.name())
                 }),
@@ -1335,13 +1335,13 @@ impl Checker {
         context_flags: ContextFlags,
     ) -> Option<P<Type>> {
         if let Some(contextual_type) = contextual_type {
-            if self.maybe_type_of_kind(contextual_type, TypeFlags::Instantiable) {
+            if self.maybe_type_of_kind(contextual_type, TypeFlags::INSTANTIABLE) {
                 let inference_context = self.get_inference_context(node);
                 // If no inferences have been made, and none of the type parameters for which we are inferring
                 // specify default types, nothing is gained from instantiating as type parameters would just be
                 // replaced with their constraints similar to the apparent type.
                 if let Some(inference_context) = inference_context {
-                    if context_flags.intersects(ContextFlags::Signature)
+                    if context_flags.intersects(ContextFlags::SIGNATURE)
                         && inference_context
                             .inferences
                             .get()
@@ -1354,7 +1354,7 @@ impl Checker {
                             contextual_type,
                             inference_context.non_fixing_mapper().unwrap(),
                         );
-                        if !t.flags().intersects(TypeFlags::AnyOrUnknown) {
+                        if !t.flags().intersects(TypeFlags::ANY_OR_UNKNOWN) {
                             return Some(t);
                         }
                     }
@@ -1364,8 +1364,8 @@ impl Checker {
                         // the 'boolean' type from the contextual type such that contextually typed boolean
                         // literals actually end up widening to 'boolean' (see #48363).
                         let t = self.instantiate_instantiable_types(contextual_type, return_mapper);
-                        if !t.flags().intersects(TypeFlags::AnyOrUnknown) {
-                            if t.flags().intersects(TypeFlags::Union)
+                        if !t.flags().intersects(TypeFlags::ANY_OR_UNKNOWN) {
+                            if t.flags().intersects(TypeFlags::UNION)
                                 && contains_type(self, t.types(), self.regular_false_type)
                                 && contains_type(self, t.types(), self.regular_true_type)
                             {
@@ -1391,15 +1391,15 @@ impl Checker {
         t: P<Type>,
         mapper: P<TypeMapper>,
     ) -> P<Type> {
-        if t.flags().intersects(TypeFlags::Instantiable) {
+        if t.flags().intersects(TypeFlags::INSTANTIABLE) {
             return self.instantiate_type(t, Some(mapper));
         }
-        if t.flags().intersects(TypeFlags::Union) {
+        if t.flags().intersects(TypeFlags::UNION) {
             let types: Vec<P<Type>> =
                 t.types().iter().map(|&t| self.instantiate_instantiable_types(t, mapper)).collect();
             return self.get_union_type_ex(&types, UnionReduction::None, AliasArg::None, None);
         }
-        if t.flags().intersects(TypeFlags::Intersection) {
+        if t.flags().intersects(TypeFlags::INTERSECTION) {
             let types: Vec<P<Type>> =
                 t.types().iter().map(|&t| self.instantiate_instantiable_types(t, mapper)).collect();
             return self.get_intersection_type(&types);
@@ -1409,7 +1409,7 @@ impl Checker {
 
     // checker.go:31361
     pub(crate) fn push_cached_contextual_type(&mut self, node: P<Node>) {
-        let t = self.get_contextual_type(node, ContextFlags::None);
+        let t = self.get_contextual_type(node, ContextFlags::NONE);
         self.push_contextual_type(node, t, true /*isCache*/);
     }
 
@@ -1536,7 +1536,7 @@ impl Checker {
 
     // checker.go:31440
     pub(crate) fn has_context_sensitive_yield_expression(&mut self, node: P<Node>) -> bool {
-        ast::get_function_flags(Some(node)).intersects(FunctionFlags::Generator)
+        ast::get_function_flags(Some(node)).intersects(FunctionFlags::GENERATOR)
             && node.body().is_some()
             && for_each_yield_expression(node.body().unwrap(), |n| self.is_context_sensitive(n))
     }
@@ -1572,7 +1572,7 @@ impl Checker {
 
     // checker.go:31467
     pub fn has_type_facts(&mut self, t: P<Type>, mask: TypeFacts) -> bool {
-        self.get_type_facts(t, mask) != TypeFacts::None
+        self.get_type_facts(t, mask) != TypeFacts::NONE
     }
 
     // checker.go:31471
@@ -1582,139 +1582,139 @@ impl Checker {
         caller_only_needs: TypeFacts,
     ) -> TypeFacts {
         let mut t = t;
-        if t.flags().intersects(TypeFlags::Intersection | TypeFlags::Instantiable) {
+        if t.flags().intersects(TypeFlags::INTERSECTION | TypeFlags::INSTANTIABLE) {
             t = match self.get_base_constraint_of_type(t) {
                 Some(t) => t,
                 None => self.unknown_type,
             };
         }
         let flags = t.flags();
-        if flags.intersects(TypeFlags::String | TypeFlags::StringMapping) {
+        if flags.intersects(TypeFlags::STRING | TypeFlags::STRING_MAPPING) {
             if self.strict_null_checks {
-                return TypeFacts::StringStrictFacts;
+                return TypeFacts::STRING_STRICT_FACTS;
             }
-            return TypeFacts::StringFacts;
-        } else if flags.intersects(TypeFlags::StringLiteral | TypeFlags::TemplateLiteral) {
-            let is_empty = flags.intersects(TypeFlags::StringLiteral)
+            return TypeFacts::STRING_FACTS;
+        } else if flags.intersects(TypeFlags::STRING_LITERAL | TypeFlags::TEMPLATE_LITERAL) {
+            let is_empty = flags.intersects(TypeFlags::STRING_LITERAL)
                 && get_string_literal_value(t).is_empty();
             if self.strict_null_checks {
                 if is_empty {
-                    return TypeFacts::EmptyStringStrictFacts;
+                    return TypeFacts::EMPTY_STRING_STRICT_FACTS;
                 }
-                return TypeFacts::NonEmptyStringStrictFacts;
+                return TypeFacts::NON_EMPTY_STRING_STRICT_FACTS;
             }
             if is_empty {
-                return TypeFacts::EmptyStringFacts;
+                return TypeFacts::EMPTY_STRING_FACTS;
             }
-            return TypeFacts::NonEmptyStringFacts;
-        } else if flags.intersects(TypeFlags::Number | TypeFlags::Enum) {
+            return TypeFacts::NON_EMPTY_STRING_FACTS;
+        } else if flags.intersects(TypeFlags::NUMBER | TypeFlags::ENUM) {
             if self.strict_null_checks {
-                return TypeFacts::NumberStrictFacts;
+                return TypeFacts::NUMBER_STRICT_FACTS;
             }
-            return TypeFacts::NumberFacts;
-        } else if flags.intersects(TypeFlags::NumberLiteral) {
+            return TypeFacts::NUMBER_FACTS;
+        } else if flags.intersects(TypeFlags::NUMBER_LITERAL) {
             let is_zero = get_number_literal_value(t).0 == 0.0;
             if self.strict_null_checks {
                 if is_zero {
-                    return TypeFacts::ZeroNumberStrictFacts;
+                    return TypeFacts::ZERO_NUMBER_STRICT_FACTS;
                 }
-                return TypeFacts::NonZeroNumberStrictFacts;
+                return TypeFacts::NON_ZERO_NUMBER_STRICT_FACTS;
             }
             if is_zero {
-                return TypeFacts::ZeroNumberFacts;
+                return TypeFacts::ZERO_NUMBER_FACTS;
             }
-            return TypeFacts::NonZeroNumberFacts;
-        } else if flags.intersects(TypeFlags::BigInt) {
+            return TypeFacts::NON_ZERO_NUMBER_FACTS;
+        } else if flags.intersects(TypeFlags::BIG_INT) {
             if self.strict_null_checks {
-                return TypeFacts::BigIntStrictFacts;
+                return TypeFacts::BIG_INT_STRICT_FACTS;
             }
-            return TypeFacts::BigIntFacts;
-        } else if flags.intersects(TypeFlags::BigIntLiteral) {
+            return TypeFacts::BIG_INT_FACTS;
+        } else if flags.intersects(TypeFlags::BIG_INT_LITERAL) {
             let is_zero = is_zero_big_int(t);
             if self.strict_null_checks {
                 if is_zero {
-                    return TypeFacts::ZeroBigIntStrictFacts;
+                    return TypeFacts::ZERO_BIG_INT_STRICT_FACTS;
                 }
-                return TypeFacts::NonZeroBigIntStrictFacts;
+                return TypeFacts::NON_ZERO_BIG_INT_STRICT_FACTS;
             }
             if is_zero {
-                return TypeFacts::ZeroBigIntFacts;
+                return TypeFacts::ZERO_BIG_INT_FACTS;
             }
-            return TypeFacts::NonZeroBigIntFacts;
-        } else if flags.intersects(TypeFlags::Boolean) {
+            return TypeFacts::NON_ZERO_BIG_INT_FACTS;
+        } else if flags.intersects(TypeFlags::BOOLEAN) {
             if self.strict_null_checks {
-                return TypeFacts::BooleanStrictFacts;
+                return TypeFacts::BOOLEAN_STRICT_FACTS;
             }
-            return TypeFacts::BooleanFacts;
-        } else if flags.intersects(TypeFlags::BooleanLike) {
+            return TypeFacts::BOOLEAN_FACTS;
+        } else if flags.intersects(TypeFlags::BOOLEAN_LIKE) {
             let is_false = t == self.false_type || t == self.regular_false_type;
             if self.strict_null_checks {
                 if is_false {
-                    return TypeFacts::FalseStrictFacts;
+                    return TypeFacts::FALSE_STRICT_FACTS;
                 }
-                return TypeFacts::TrueStrictFacts;
+                return TypeFacts::TRUE_STRICT_FACTS;
             }
             if is_false {
-                return TypeFacts::FalseFacts;
+                return TypeFacts::FALSE_FACTS;
             }
-            return TypeFacts::TrueFacts;
-        } else if flags.intersects(TypeFlags::Object) {
+            return TypeFacts::TRUE_FACTS;
+        } else if flags.intersects(TypeFlags::OBJECT) {
             let possible_facts = if self.strict_null_checks {
-                TypeFacts::EmptyObjectStrictFacts
-                    | TypeFacts::FunctionStrictFacts
-                    | TypeFacts::ObjectStrictFacts
+                TypeFacts::EMPTY_OBJECT_STRICT_FACTS
+                    | TypeFacts::FUNCTION_STRICT_FACTS
+                    | TypeFacts::OBJECT_STRICT_FACTS
             } else {
-                TypeFacts::EmptyObjectFacts | TypeFacts::FunctionFacts | TypeFacts::ObjectFacts
+                TypeFacts::EMPTY_OBJECT_FACTS | TypeFacts::FUNCTION_FACTS | TypeFacts::OBJECT_FACTS
             };
-            if (caller_only_needs & possible_facts) == TypeFacts::None {
+            if (caller_only_needs & possible_facts) == TypeFacts::NONE {
                 // If the caller doesn't care about any of the facts that we could possibly produce,
                 // return zero so we can skip resolving members.
-                return TypeFacts::None;
+                return TypeFacts::NONE;
             }
-            if t.object_flags().intersects(ObjectFlags::Anonymous) && self.is_empty_object_type(t) {
+            if t.object_flags().intersects(ObjectFlags::ANONYMOUS) && self.is_empty_object_type(t) {
                 if self.strict_null_checks {
-                    return TypeFacts::EmptyObjectStrictFacts;
+                    return TypeFacts::EMPTY_OBJECT_STRICT_FACTS;
                 }
-                return TypeFacts::EmptyObjectFacts;
+                return TypeFacts::EMPTY_OBJECT_FACTS;
             } else if self.is_function_object_type(t) {
                 if self.strict_null_checks {
-                    return TypeFacts::FunctionStrictFacts;
+                    return TypeFacts::FUNCTION_STRICT_FACTS;
                 }
-                return TypeFacts::FunctionFacts;
+                return TypeFacts::FUNCTION_FACTS;
             } else if self.strict_null_checks {
-                return TypeFacts::ObjectStrictFacts;
+                return TypeFacts::OBJECT_STRICT_FACTS;
             }
-            return TypeFacts::ObjectFacts;
-        } else if flags.intersects(TypeFlags::Void) {
-            return TypeFacts::VoidFacts;
-        } else if flags.intersects(TypeFlags::Undefined) {
-            return TypeFacts::UndefinedFacts;
-        } else if flags.intersects(TypeFlags::Null) {
-            return TypeFacts::NullFacts;
-        } else if flags.intersects(TypeFlags::ESSymbolLike) {
+            return TypeFacts::OBJECT_FACTS;
+        } else if flags.intersects(TypeFlags::VOID) {
+            return TypeFacts::VOID_FACTS;
+        } else if flags.intersects(TypeFlags::UNDEFINED) {
+            return TypeFacts::UNDEFINED_FACTS;
+        } else if flags.intersects(TypeFlags::NULL) {
+            return TypeFacts::NULL_FACTS;
+        } else if flags.intersects(TypeFlags::ES_SYMBOL_LIKE) {
             if self.strict_null_checks {
-                return TypeFacts::SymbolStrictFacts;
+                return TypeFacts::SYMBOL_STRICT_FACTS;
             }
-            return TypeFacts::SymbolFacts;
-        } else if flags.intersects(TypeFlags::NonPrimitive) {
+            return TypeFacts::SYMBOL_FACTS;
+        } else if flags.intersects(TypeFlags::NON_PRIMITIVE) {
             if self.strict_null_checks {
-                return TypeFacts::ObjectStrictFacts;
+                return TypeFacts::OBJECT_STRICT_FACTS;
             }
-            return TypeFacts::ObjectFacts;
-        } else if flags.intersects(TypeFlags::Never) {
-            return TypeFacts::None;
-        } else if flags.intersects(TypeFlags::Union) {
-            let mut facts = TypeFacts::None;
+            return TypeFacts::OBJECT_FACTS;
+        } else if flags.intersects(TypeFlags::NEVER) {
+            return TypeFacts::NONE;
+        } else if flags.intersects(TypeFlags::UNION) {
+            let mut facts = TypeFacts::NONE;
             facts = t.types().iter().fold(facts, |mut facts, &t| {
                 facts |= self.get_type_facts_worker(t, caller_only_needs);
 
                 facts
             });
             return facts;
-        } else if flags.intersects(TypeFlags::Intersection) {
+        } else if flags.intersects(TypeFlags::INTERSECTION) {
             return self.get_intersection_type_facts(t, caller_only_needs);
         }
-        TypeFacts::UnknownFacts
+        TypeFacts::UNKNOWN_FACTS
     }
 
     // checker.go:31607
@@ -1725,19 +1725,19 @@ impl Checker {
     ) -> TypeFacts {
         // When an intersection contains a primitive type we ignore object type constituents as they are
         // presumably type tags. For example, in string & { __kind__: "name" } we ignore the object type.
-        let ignore_objects = self.maybe_type_of_kind(t, TypeFlags::Primitive);
+        let ignore_objects = self.maybe_type_of_kind(t, TypeFlags::PRIMITIVE);
         // When computing the type facts of an intersection type, certain type facts are computed as `and`
         // and others are computed as `or`.
-        let mut ored_facts = TypeFacts::None;
-        let mut anded_facts = TypeFacts::All;
+        let mut ored_facts = TypeFacts::NONE;
+        let mut anded_facts = TypeFacts::ALL;
         for &t in t.types() {
-            if !(ignore_objects && t.flags().intersects(TypeFlags::Object)) {
+            if !(ignore_objects && t.flags().intersects(TypeFlags::OBJECT)) {
                 let f = self.get_type_facts_worker(t, caller_only_needs);
                 ored_facts |= f;
                 anded_facts &= f;
             }
         }
-        ored_facts & TypeFacts::OrFactsMask | anded_facts & TypeFacts::AndFactsMask
+        ored_facts & TypeFacts::OR_FACTS_MASK | anded_facts & TypeFacts::AND_FACTS_MASK
     }
 }
 
@@ -1749,7 +1749,7 @@ pub(crate) fn is_zero_big_int(t: P<Type>) -> bool {
 impl Checker {
     // checker.go:31629
     pub(crate) fn is_function_object_type(&mut self, t: P<Type>) -> bool {
-        if t.object_flags().intersects(ObjectFlags::EvolvingArray) {
+        if t.object_flags().intersects(ObjectFlags::EVOLVING_ARRAY) {
             return false;
         }
         // We do a quick check for a "bind" property before performing the more expensive subtype
@@ -1773,7 +1773,7 @@ impl Checker {
     // instantiable types with {}, {} | null, or {} | undefined in order to remove null and/or undefined.
     // checker.go:31648
     pub(crate) fn get_adjusted_type_with_facts(&mut self, t: P<Type>, facts: TypeFacts) -> P<Type> {
-        let source = if self.strict_null_checks && t.flags().intersects(TypeFlags::Unknown) {
+        let source = if self.strict_null_checks && t.flags().intersects(TypeFlags::UNKNOWN) {
             self.unknown_union_type
         } else {
             t
@@ -1781,28 +1781,28 @@ impl Checker {
         let with_facts = self.get_type_with_facts(source, facts);
         let reduced = self.recombine_unknown_type(with_facts);
         if self.strict_null_checks {
-            if facts == TypeFacts::NEUndefined {
+            if facts == TypeFacts::NE_UNDEFINED {
                 let null_type = self.null_type;
                 return self.remove_nullable_by_intersection(
                     reduced,
-                    TypeFacts::EQUndefined,
-                    TypeFacts::EQNull,
-                    TypeFacts::IsNull,
+                    TypeFacts::EQ_UNDEFINED,
+                    TypeFacts::EQ_NULL,
+                    TypeFacts::IS_NULL,
                     null_type,
                 );
-            } else if facts == TypeFacts::NENull {
+            } else if facts == TypeFacts::NE_NULL {
                 let undefined_type = self.undefined_type;
                 return self.remove_nullable_by_intersection(
                     reduced,
-                    TypeFacts::EQNull,
-                    TypeFacts::EQUndefined,
-                    TypeFacts::IsUndefined,
+                    TypeFacts::EQ_NULL,
+                    TypeFacts::EQ_UNDEFINED,
+                    TypeFacts::IS_UNDEFINED,
                     undefined_type,
                 );
-            } else if facts == TypeFacts::NEUndefinedOrNull || facts == TypeFacts::Truthy {
+            } else if facts == TypeFacts::NE_UNDEFINED_OR_NULL || facts == TypeFacts::TRUTHY {
                 return self
                     .map_type(reduced, |c, t| {
-                        if c.has_type_facts(t, TypeFacts::EQUndefinedOrNull) {
+                        if c.has_type_facts(t, TypeFacts::EQ_UNDEFINED_OR_NULL) {
                             return Some(c.get_global_non_nullable_type_instantiation(t));
                         }
                         Some(t)
@@ -1824,7 +1824,10 @@ impl Checker {
     ) -> P<Type> {
         let facts = self.get_type_facts(
             t,
-            TypeFacts::EQUndefined | TypeFacts::EQNull | TypeFacts::IsUndefined | TypeFacts::IsNull,
+            TypeFacts::EQ_UNDEFINED
+                | TypeFacts::EQ_NULL
+                | TypeFacts::IS_UNDEFINED
+                | TypeFacts::IS_NULL,
         );
         // Simply return the type if it never compares equal to the target nullable.
         if !facts.intersects(target_facts) {
@@ -1958,10 +1961,10 @@ impl Checker {
             return Some(awaited_type);
         }
         // For a union, get a union of the awaited types of each constituent.
-        if t.flags().intersects(TypeFlags::Union) {
+        if t.flags().intersects(TypeFlags::UNION) {
             if self.awaited_type_stack.contains(&t) {
                 if error_node.is_some() {
-                    self.error(error_node, &diagnostics::Type_is_referenced_directly_or_indirectly_in_the_fulfillment_callback_of_its_own_then_method, &[]);
+                    self.error(error_node, &diagnostics::TYPE_IS_REFERENCED_DIRECTLY_OR_INDIRECTLY_IN_THE_FULFILLMENT_CALLBACK_OF_ITS_OWN_THEN_METHOD, &[]);
                 }
                 return None;
             }
@@ -2028,7 +2031,7 @@ impl Checker {
                 //  }
                 //
                 if error_node.is_some() {
-                    self.error(error_node, &diagnostics::Type_is_referenced_directly_or_indirectly_in_the_fulfillment_callback_of_its_own_then_method, &[]);
+                    self.error(error_node, &diagnostics::TYPE_IS_REFERENCED_DIRECTLY_OR_INDIRECTLY_IN_THE_FULFILLMENT_CALLBACK_OF_ITS_OWN_THEN_METHOD, &[]);
                 }
                 return None;
             }
@@ -2067,7 +2070,7 @@ impl Checker {
                 if let Some(this_type_for_error) = this_type_for_error {
                     let t_str = self.type_to_string_exported(t);
                     let this_str = self.type_to_string_exported(this_type_for_error);
-                    diagnostic = Some(new_diagnostic_for_node(Some(error_node), Some(&diagnostics::The_this_context_of_type_0_is_not_assignable_to_method_s_this_of_type_1), &[&t_str, &this_str]));
+                    diagnostic = Some(new_diagnostic_for_node(Some(error_node), Some(&diagnostics::THE_THIS_CONTEXT_OF_TYPE_0_IS_NOT_ASSIGNABLE_TO_METHOD_S_THIS_OF_TYPE_1), &[&t_str, &this_str]));
                 }
                 self.add_diagnostic(new_diagnostic_chain_for_node(
                     diagnostic,
@@ -2084,7 +2087,7 @@ impl Checker {
 
     // checker.go:31873
     pub(crate) fn is_awaited_type_instantiation(&mut self, t: P<Type>) -> bool {
-        if t.flags().intersects(TypeFlags::Conditional) {
+        if t.flags().intersects(TypeFlags::CONDITIONAL) {
             let awaited_symbol = self.get_global_awaited_symbol_or_nil();
             return awaited_symbol.is_some()
                 && t.alias().is_some_and(|alias| {
@@ -2106,11 +2109,11 @@ impl Checker {
             // We only need `Awaited<T>` if `T` is a type variable that has no base constraint, or the base constraint of `T` is `any`, `unknown`, `{}`, `object`,
             // or is promise-like.
             if let Some(base_constraint) = base_constraint {
-                return base_constraint.flags().intersects(TypeFlags::AnyOrUnknown)
+                return base_constraint.flags().intersects(TypeFlags::ANY_OR_UNKNOWN)
                     || self.is_empty_object_type(base_constraint)
                     || some_type(self, base_constraint, super::checker::Checker::is_thenable_type);
             }
-            return self.maybe_type_of_kind(t, TypeFlags::TypeVariable);
+            return self.maybe_type_of_kind(t, TypeFlags::TYPE_VARIABLE);
         }
         false
     }
@@ -2149,7 +2152,7 @@ impl Checker {
     // For a generic `Awaited<T>`, gets `T`.
     // checker.go:31928
     pub(crate) fn unwrap_awaited_type(&mut self, t: P<Type>) -> P<Type> {
-        if t.flags().intersects(TypeFlags::Union) {
+        if t.flags().intersects(TypeFlags::UNION) {
             return self.map_type(t, |c, t| Some(c.unwrap_awaited_type(t))).unwrap();
         } else if self.is_awaited_type_instantiation(t) {
             return t.alias().unwrap().type_arguments.get()[0];
@@ -2160,7 +2163,7 @@ impl Checker {
     // checker.go:31938
     pub(crate) fn is_thenable_type(&mut self, t: P<Type>) -> bool {
         let constraint = self.get_base_constraint_or_type(t);
-        if self.all_types_assignable_to_kind(constraint, TypeFlags::Primitive | TypeFlags::Never) {
+        if self.all_types_assignable_to_kind(constraint, TypeFlags::PRIMITIVE | TypeFlags::NEVER) {
             // primitive types cannot be considered "thenable" since they are not objects.
             return false;
         }
@@ -2168,7 +2171,7 @@ impl Checker {
         let Some(then_function) = then_function else {
             return false;
         };
-        let then_type = self.get_type_with_facts(then_function, TypeFacts::NEUndefinedOrNull);
+        let then_type = self.get_type_with_facts(then_function, TypeFacts::NE_UNDEFINED_OR_NULL);
         !self.get_signatures_of_type(then_type, SignatureKind::Call).is_empty()
     }
 
@@ -2211,7 +2214,7 @@ impl Checker {
 
     // checker.go:31973
     pub(crate) fn get_target_type(t: P<Type>) -> Option<P<Type>> {
-        if t.object_flags().intersects(ObjectFlags::Reference) {
+        if t.object_flags().intersects(ObjectFlags::REFERENCE) {
             return t.as_type_reference().target.get();
         }
         Some(t)
@@ -2235,7 +2238,7 @@ impl Checker {
         // control flow analysis an opportunity to narrow it further. For example, for a reference of a type
         // parameter type 'T extends string | undefined' with a contextual type 'string', we substitute
         // 'string | undefined' to give control flow analysis the opportunity to narrow to type 'string'.
-        let substitute_constraints = !check_mode.intersects(CheckMode::Inferential)
+        let substitute_constraints = !check_mode.intersects(CheckMode::INFERENTIAL)
             && self.some_generic_type_with_union_constraint(t)
             && (self.is_constraint_position(t, reference)
                 || self.has_contextual_type_with_no_generic_types(reference, check_mode));
@@ -2259,7 +2262,7 @@ impl Checker {
         let position_read = self.some_generic_type_with_union_constraint(t);
         let substitute_constraints = position_read
             && (self.is_constraint_position(t, reference)
-                || self.has_contextual_type_with_no_generic_types(reference, CheckMode::Normal));
+                || self.has_contextual_type_with_no_generic_types(reference, CheckMode::NORMAL));
         if substitute_constraints {
             return (
                 self.map_type(t, |c, t| Some(c.get_base_constraint_or_type(t))).unwrap(),
@@ -2303,11 +2306,11 @@ impl Checker {
     /// same test in `checker_07.rs`.
     #[inline]
     pub(crate) fn some_generic_type_with_union_constraint(&mut self, t: P<Type>) -> bool {
-        if t.flags().intersects(TypeFlags::Union)
+        if t.flags().intersects(TypeFlags::UNION)
             && t.object_flags_lazy()
-                & (ObjectFlags::CouldContainTypeVariablesComputed
-                    | ObjectFlags::CouldContainTypeVariables)
-                == ObjectFlags::CouldContainTypeVariablesComputed
+                & (ObjectFlags::COULD_CONTAIN_TYPE_VARIABLES_COMPUTED
+                    | ObjectFlags::COULD_CONTAIN_TYPE_VARIABLES)
+                == ObjectFlags::COULD_CONTAIN_TYPE_VARIABLES_COMPUTED
         {
             if cfg!(debug_assertions) {
                 let walked = some_type(self, t, Self::is_generic_type_with_union_constraint);
@@ -2323,24 +2326,24 @@ impl Checker {
 
     // checker.go:32008
     pub(crate) fn is_generic_type_with_union_constraint(&mut self, t: P<Type>) -> bool {
-        if t.flags().intersects(TypeFlags::Intersection) {
+        if t.flags().intersects(TypeFlags::INTERSECTION) {
             return t.types().iter().any(|&t| self.is_generic_type_with_union_constraint(t));
         }
-        t.flags().intersects(TypeFlags::Instantiable)
+        t.flags().intersects(TypeFlags::INSTANTIABLE)
             && self
                 .get_base_constraint_or_type(t)
                 .flags()
-                .intersects(TypeFlags::Nullable | TypeFlags::Union)
+                .intersects(TypeFlags::NULLABLE | TypeFlags::UNION)
     }
 
     // checker.go:32015
     pub(crate) fn is_generic_type_without_nullable_constraint(&mut self, t: P<Type>) -> bool {
-        if t.flags().intersects(TypeFlags::Intersection) {
+        if t.flags().intersects(TypeFlags::INTERSECTION) {
             return t.types().iter().any(|&t| self.is_generic_type_without_nullable_constraint(t));
         }
-        t.flags().intersects(TypeFlags::Instantiable) && {
+        t.flags().intersects(TypeFlags::INSTANTIABLE) && {
             let constraint = self.get_base_constraint_or_type(t);
-            !self.maybe_type_of_kind(constraint, TypeFlags::Nullable)
+            !self.maybe_type_of_kind(constraint, TypeFlags::NULLABLE)
         }
     }
 
@@ -2361,10 +2364,10 @@ impl Checker {
             && !((ast::is_jsx_opening_element(parent) || ast::is_jsx_self_closing_element(parent))
                 && parent.tag_name() == node)
         {
-            let context_flags = if check_mode.intersects(CheckMode::RestBindingElement) {
-                ContextFlags::SkipBindingPatterns
+            let context_flags = if check_mode.intersects(CheckMode::REST_BINDING_ELEMENT) {
+                ContextFlags::SKIP_BINDING_PATTERNS
             } else {
-                ContextFlags::None
+                ContextFlags::NONE
             };
             let contextual_type = self.get_contextual_type(node, context_flags);
             if let Some(contextual_type) = contextual_type {
@@ -2380,22 +2383,22 @@ impl Checker {
         if some_type(self, t, super::checker::Checker::is_generic_type_with_undefined_constraint) {
             type_or_constraint = self
                 .map_type(t, |c, t| {
-                    if t.flags().intersects(TypeFlags::Instantiable) {
+                    if t.flags().intersects(TypeFlags::INSTANTIABLE) {
                         return Some(c.get_base_constraint_or_type(t));
                     }
                     Some(t)
                 })
                 .unwrap();
         }
-        self.get_type_with_facts(type_or_constraint, TypeFacts::NEUndefined)
+        self.get_type_with_facts(type_or_constraint, TypeFacts::NE_UNDEFINED)
     }
 
     // checker.go:32050
     pub(crate) fn is_generic_type_with_undefined_constraint(&mut self, t: P<Type>) -> bool {
-        if t.flags().intersects(TypeFlags::Instantiable) {
+        if t.flags().intersects(TypeFlags::INSTANTIABLE) {
             let constraint = self.get_base_constraint_of_type(t);
             if let Some(constraint) = constraint {
-                return self.maybe_type_of_kind(constraint, TypeFlags::Undefined);
+                return self.maybe_type_of_kind(constraint, TypeFlags::UNDEFINED);
             }
         }
         false
@@ -2403,11 +2406,11 @@ impl Checker {
 
     // checker.go:32060
     pub(crate) fn get_actual_type_variable(&mut self, t: P<Type>) -> Option<P<Type>> {
-        if t.flags().intersects(TypeFlags::Substitution) {
+        if t.flags().intersects(TypeFlags::SUBSTITUTION) {
             return self
                 .get_actual_type_variable(t.as_substitution_type().base_type.get().unwrap());
         }
-        if t.flags().intersects(TypeFlags::IndexedAccess) {
+        if t.flags().intersects(TypeFlags::INDEXED_ACCESS) {
             let indexed_access = t.as_indexed_access_type();
             let object_type =
                 self.get_actual_type_variable(indexed_access.object_type.get().unwrap());
@@ -2456,7 +2459,7 @@ impl Checker {
         let parent = node.parent().unwrap();
         let grand_parent = parent.parent();
 
-        if node.flags().intersects(NodeFlags::InWithStatement) {
+        if node.flags().intersects(NodeFlags::IN_WITH_STATEMENT) {
             // We cannot answer semantic questions within a with block, do not proceed any further
             return None;
         }
@@ -2720,10 +2723,10 @@ impl Checker {
             let success = self.resolve_entity_name(
                 name,
                 /*all meanings*/
-                SymbolFlags::Value
-                    | SymbolFlags::Type
-                    | SymbolFlags::Namespace
-                    | SymbolFlags::Alias,
+                SymbolFlags::VALUE
+                    | SymbolFlags::TYPE
+                    | SymbolFlags::NAMESPACE
+                    | SymbolFlags::ALIAS,
                 true,  /*ignoreErrors*/
                 false, /*dontResolveAlias*/
                 None,  /*location*/
@@ -2765,20 +2768,20 @@ impl Checker {
                 // A heritage element name may appear in type space, value space, or both;
                 // ensure the meaning matches its context.
                 meaning = if ast::is_part_of_type_node(name) {
-                    SymbolFlags::Type
+                    SymbolFlags::TYPE
                 } else {
-                    SymbolFlags::Value
+                    SymbolFlags::VALUE
                 };
 
                 // In a class 'extends' clause we are also looking for a value.
                 if ast::is_expression_with_type_arguments_in_class_extends_clause(name_parent) {
-                    meaning |= SymbolFlags::Value;
+                    meaning |= SymbolFlags::VALUE;
                 }
             } else {
-                meaning = SymbolFlags::Namespace;
+                meaning = SymbolFlags::NAMESPACE;
             }
 
-            meaning |= SymbolFlags::Alias;
+            meaning |= SymbolFlags::ALIAS;
             let mut entity_name_symbol = None;
             if ast::is_entity_name_expression(name) {
                 entity_name_symbol = self.resolve_entity_name(
@@ -2804,9 +2807,9 @@ impl Checker {
                     return if symbol == Some(self.unknown_symbol) { None } else { symbol };
                 }
                 let meaning = if is_jsdoc {
-                    SymbolFlags::Value | SymbolFlags::Type | SymbolFlags::Namespace
+                    SymbolFlags::VALUE | SymbolFlags::TYPE | SymbolFlags::NAMESPACE
                 } else {
-                    SymbolFlags::Value
+                    SymbolFlags::VALUE
                 };
                 let mut location = None;
                 if is_jsdoc {
@@ -2843,7 +2846,7 @@ impl Checker {
                 if ast::is_property_access_expression(name) {
                     self.check_property_access_expression(
                         name,
-                        CheckMode::Normal,
+                        CheckMode::NORMAL,
                         false, /*writeOnly*/
                     );
                     if links.resolved_symbol.get().is_none()
@@ -2857,7 +2860,7 @@ impl Checker {
                         links.resolved_symbol.set(symbol);
                     }
                 } else {
-                    self.check_qualified_name(name, CheckMode::Normal);
+                    self.check_qualified_name(name, CheckMode::NORMAL);
                 }
                 if links.resolved_symbol.get().is_none() && is_jsdoc && ast::is_qualified_name(name)
                 {
@@ -2867,9 +2870,9 @@ impl Checker {
             }
         } else if ast::is_entity_name(name) && is_type_reference_identifier(name) {
             let meaning = if name.parent().unwrap().kind() == Kind::TypeReference {
-                SymbolFlags::Type
+                SymbolFlags::TYPE
             } else {
-                SymbolFlags::Namespace
+                SymbolFlags::NAMESPACE
             };
             let symbol = self.resolve_entity_name(
                 name, meaning, true, /*ignoreErrors*/
@@ -2888,10 +2891,10 @@ impl Checker {
         if name.parent().unwrap().kind() == Kind::TypePredicate {
             return self.resolve_entity_name(
                 name,
-                SymbolFlags::FunctionScopedVariable, /*meaning*/
-                true,                                /*ignoreErrors*/
-                false,                               /*dontResolveAlias*/
-                None,                                /*location*/
+                SymbolFlags::FUNCTION_SCOPED_VARIABLE, /*meaning*/
+                true,                                  /*ignoreErrors*/
+                false,                                 /*dontResolveAlias*/
+                None,                                  /*location*/
             );
         }
         None
@@ -2905,7 +2908,7 @@ impl Checker {
             return self.error_type;
         }
 
-        if node.flags().intersects(NodeFlags::InWithStatement) {
+        if node.flags().intersects(NodeFlags::IN_WITH_STATEMENT) {
             // We cannot answer semantic questions within a with block, do not proceed any further
             return self.error_type;
         }
@@ -2969,7 +2972,7 @@ impl Checker {
             let t = self.get_type_for_variable_like_declaration(
                 node,
                 true, /*includeOptionality*/
-                CheckMode::Normal,
+                CheckMode::NORMAL,
             );
             if let Some(t) = t {
                 return t;
@@ -2998,7 +3001,7 @@ impl Checker {
             let t = self.get_type_for_variable_like_declaration(
                 node.parent().unwrap(),
                 true, /*includeOptionality*/
-                CheckMode::Normal,
+                CheckMode::NORMAL,
             );
             if let Some(t) = t {
                 return t;
@@ -3047,7 +3050,7 @@ impl Checker {
                 break;
             }
             literal = literal.parent().unwrap().parent().unwrap();
-            t = self.get_apparent_type_of_contextual_type(literal, ContextFlags::None);
+            t = self.get_apparent_type_of_contextual_type(literal, ContextFlags::NONE);
         }
         None
     }
@@ -3055,7 +3058,7 @@ impl Checker {
     // checker.go:32552
     pub(crate) fn get_this_type_from_contextual_type(&mut self, t: P<Type>) -> Option<P<Type>> {
         self.map_type(t, |c, t| {
-            if t.flags().intersects(TypeFlags::Intersection) {
+            if t.flags().intersects(TypeFlags::INTERSECTION) {
                 if let Some(result) = t.types().iter().find_map(|&t| {
                     let type_arg = c.get_this_type_argument(t);
                     if type_arg.is_some() {
@@ -3075,7 +3078,7 @@ impl Checker {
 
     // checker.go:32568
     pub(crate) fn get_this_type_argument(&mut self, t: P<Type>) -> Option<P<Type>> {
-        if t.object_flags().intersects(ObjectFlags::Reference)
+        if t.object_flags().intersects(ObjectFlags::REFERENCE)
             && t.as_type_reference().target.get() == Some(self.global_this_type)
         {
             return Some(self.get_type_arguments(t)[0]);
@@ -3127,8 +3130,8 @@ impl Checker {
                     }
                     if !declarations.is_empty() {
                         let symbol =
-                            self.new_symbol(SymbolFlags::Property, InternalSymbolNameIndex);
-                        symbol.set_check_flags(symbol.check_flags() | CheckFlags::IndexSymbol);
+                            self.new_symbol(SymbolFlags::PROPERTY, INTERNAL_SYMBOL_NAME_INDEX);
+                        symbol.set_check_flags(symbol.check_flags() | CheckFlags::INDEX_SYMBOL);
                         symbol.set_value_declaration(Some(declarations[0]));
                         symbol.set_declarations(&declarations);
                         symbol.set_parent(t.symbol());

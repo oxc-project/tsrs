@@ -91,12 +91,12 @@ impl LanguageService {
 }
 
 // source_map.go:65
-pub(crate) struct script {
+pub(crate) struct SourceMapScript {
     file_name: String,
     text: String,
 }
 
-impl Script for script {
+impl Script for SourceMapScript {
     // source_map.go:70
     fn file_name(&self) -> &str {
         &self.file_name
@@ -125,9 +125,9 @@ impl Script for script {
 
 impl LanguageService {
     // source_map.go:85
-    pub(crate) fn get_script(&self, file_name: &str) -> Option<script> {
+    pub(crate) fn get_script(&self, file_name: &str) -> Option<SourceMapScript> {
         let text = self.read_file(file_name)?;
-        Some(script { file_name: file_name.to_string(), text })
+        Some(SourceMapScript { file_name: file_name.to_string(), text })
     }
 
     // source_map.go:93

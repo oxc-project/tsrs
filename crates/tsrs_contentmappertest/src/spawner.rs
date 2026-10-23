@@ -6,7 +6,7 @@ use tsrs_contentmapper::Spawner;
 use tsrs_ipc::{self as ipc, Conn, Handler, ReadWriteCloser};
 
 use crate::dynamic_verbatim::ProjectLifecycle;
-use crate::protocol::staticProjectHandler;
+use crate::protocol::StaticProjectHandler;
 use crate::registry::{DYNAMIC_VERBATIM_MAPPER, handler_for_mapper};
 use crate::transforming::Handler as transformingHandler;
 
@@ -18,7 +18,7 @@ const SERVER_THREAD: &str = "contentmappertest-server";
 pub fn serve(rwc: ReadWriteCloser) -> Result<(), ipc::Error> {
     ipc::new_async_conn(
         rwc,
-        Arc::new(staticProjectHandler { handler: Arc::new(transformingHandler::default()) }),
+        Arc::new(StaticProjectHandler { handler: Arc::new(transformingHandler::default()) }),
     )
     .run()
 }
@@ -26,21 +26,21 @@ pub fn serve(rwc: ReadWriteCloser) -> Result<(), ipc::Error> {
 // NewSpawner returns an in-process spawner for the test mapper implementations.
 // spawner.go:18
 pub fn new_spawner() -> Arc<dyn Spawner> {
-    Arc::new(spawner { lifecycle: None })
+    Arc::new(SpawnerImpl { lifecycle: None })
 }
 
 // NewSpawnerWithProjectLifecycle returns an in-process spawner that records project protocol calls.
 // spawner.go:23
 pub fn new_spawner_with_project_lifecycle(lifecycle: Arc<ProjectLifecycle>) -> Arc<dyn Spawner> {
-    Arc::new(spawner { lifecycle: Some(lifecycle) })
+    Arc::new(SpawnerImpl { lifecycle: Some(lifecycle) })
 }
 
 // spawner.go:27
-struct spawner {
+struct SpawnerImpl {
     lifecycle: Option<Arc<ProjectLifecycle>>,
 }
 
-impl Spawner for spawner {
+impl Spawner for SpawnerImpl {
     // spawner.go:31 (Go's net.Pipe is tsrs_ipc's socket pair.)
     fn spawn(
         &self,
@@ -50,7 +50,7 @@ impl Spawner for spawner {
     ) -> Result<ReadWriteCloser, String> {
         let handler = handler_for_mapper(command, self.lifecycle.clone())?;
         let handler: Arc<dyn Handler> = if command[0] != DYNAMIC_VERBATIM_MAPPER {
-            Arc::new(staticProjectHandler { handler })
+            Arc::new(StaticProjectHandler { handler })
         } else {
             handler
         };

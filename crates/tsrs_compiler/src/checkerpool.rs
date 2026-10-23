@@ -33,10 +33,10 @@ pub trait CheckerPool: Send + Sync {
 // Go's `(*checker.Checker, func())` pair. Dropping the handle is Go's `done()`; like Go's `sync.OnceFunc`
 // releases it runs exactly once.
 pub struct CheckerHandle {
-    kind: checkerHandleKind,
+    kind: CheckerHandleKind,
 }
 
-enum checkerHandleKind {
+enum CheckerHandleKind {
     // The built-in pool's checkers live behind a mutex per checker (Go `locks[i]`).
     // The scope makes the checker's region (`SlotChecker::region`) the allocation target while the handle is held.
     Locked { guard: MutexGuard<'static, SlotChecker>, _scope: Option<CheckerScope> },
@@ -48,7 +48,7 @@ impl CheckerHandle {
     fn locked(guard: MutexGuard<'static, SlotChecker>) -> CheckerHandle {
         let scope = guard.enter();
         crate::sharedgraph::enter_checker(&guard);
-        CheckerHandle { kind: checkerHandleKind::Locked { guard, _scope: scope } }
+        CheckerHandle { kind: CheckerHandleKind::Locked { guard, _scope: scope } }
     }
 
     /// Hands out a checker owned by a pool outside this crate; `release` runs when the handle is dropped.
@@ -61,7 +61,7 @@ impl CheckerHandle {
         release: impl FnOnce() + 'static,
     ) -> CheckerHandle {
         CheckerHandle {
-            kind: checkerHandleKind::External { checker, release: Some(Box::new(release)) },
+            kind: CheckerHandleKind::External { checker, release: Some(Box::new(release)) },
         }
     }
 
@@ -77,9 +77,9 @@ impl std::ops::Deref for CheckerHandle {
     type Target = Checker;
     fn deref(&self) -> &Checker {
         match &self.kind {
-            checkerHandleKind::Locked { guard, .. } => &guard.checker,
+            CheckerHandleKind::Locked { guard, .. } => &guard.checker,
             // SAFETY: `from_raw`'s contract: the checker is alive and exclusively ours until release.
-            checkerHandleKind::External { checker, .. } => unsafe { checker.as_ref() },
+            CheckerHandleKind::External { checker, .. } => unsafe { checker.as_ref() },
         }
     }
 }
@@ -87,16 +87,16 @@ impl std::ops::Deref for CheckerHandle {
 impl std::ops::DerefMut for CheckerHandle {
     fn deref_mut(&mut self) -> &mut Checker {
         match &mut self.kind {
-            checkerHandleKind::Locked { guard, .. } => &mut guard.checker,
+            CheckerHandleKind::Locked { guard, .. } => &mut guard.checker,
             // SAFETY: `from_raw`'s contract: the checker is alive and exclusively ours until release.
-            checkerHandleKind::External { checker, .. } => unsafe { checker.as_mut() },
+            CheckerHandleKind::External { checker, .. } => unsafe { checker.as_mut() },
         }
     }
 }
 
 impl Drop for CheckerHandle {
     fn drop(&mut self) {
-        if let checkerHandleKind::External { release, .. } = &mut self.kind {
+        if let CheckerHandleKind::External { release, .. } = &mut self.kind {
             if let Some(release) = release.take() {
                 release();
             }
@@ -376,7 +376,7 @@ unsafe impl Sync for CheckerSlot {}
 
 // A pool is dropped only with its program (`free_program` / `free_unshared_program`: no checker handle is held
 // any more), so the leaked checkers can be freed with it. Programs that are never freed (the CLI) never get here.
-impl Drop for poolState {
+impl Drop for PoolState {
     fn drop(&mut self) {
         // SAFETY: `checkers` came from `Box::leak` of a boxed slice in `create_checkers`, and no handle borrowing a
         // checker outlives the pool's program.
@@ -386,7 +386,7 @@ impl Drop for poolState {
     }
 }
 
-pub(crate) struct poolState {
+pub(crate) struct PoolState {
     /// The shared graph is on (sharedgraph.rs): the type-check pass starts the seed and turns its checkers into forks.
     shared_graph: bool,
     // Leaked like the program that owns the pool, so a handle can hold a checker's lock without borrowing the pool.
@@ -479,11 +479,11 @@ pub(crate) fn thread_cpu_seconds() -> f64 {
     0.0
 }
 
-pub(crate) struct checkerPool {
+pub(crate) struct CheckerPoolImpl {
     program: &'static Program,
     checker_count: usize,
     single_threaded: bool,
-    state: OnceLock<poolState>,
+    state: OnceLock<PoolState>,
     // tsrs-only: the file assignment of the pool of the program this one reuses (`inherited_associations`).
     pub(crate) inherited_associations: Option<Vec<usize>>,
 }
@@ -516,7 +516,7 @@ const CHECKER_ASSOCIATION_BALANCE_PENALTY_MULTIPLIER: i64 = 16;
 const CHECKER_ASSOCIATION_PRIORITIZED_SOURCE_PENALTY: i64 = 12;
 const CHECKER_ASSOCIATION_STRONG_BALANCE_MIN_CHECKER_COUNT: usize = 4;
 
-struct checkerAssociationPolicy {
+struct CheckerAssociationPolicy {
     prioritize_source_files: bool,
     source_file_weight_multiplier: i64,
     balance_penalty_multiplier: i64,
@@ -526,22 +526,22 @@ fn get_checker_association_policy(
     total_weight: i64,
     declaration_weight: i64,
     checker_count: usize,
-) -> checkerAssociationPolicy {
+) -> CheckerAssociationPolicy {
     if should_prioritize_source_files(total_weight, declaration_weight, checker_count) {
-        return checkerAssociationPolicy {
+        return CheckerAssociationPolicy {
             prioritize_source_files: true,
             source_file_weight_multiplier: 1,
             balance_penalty_multiplier: CHECKER_ASSOCIATION_PRIORITIZED_SOURCE_PENALTY,
         };
     }
     if checker_count >= CHECKER_ASSOCIATION_STRONG_BALANCE_MIN_CHECKER_COUNT {
-        return checkerAssociationPolicy {
+        return CheckerAssociationPolicy {
             prioritize_source_files: false,
             source_file_weight_multiplier: CHECKER_ASSOCIATION_SOURCE_FILE_WEIGHT_MULTIPLIER,
             balance_penalty_multiplier: CHECKER_ASSOCIATION_BALANCE_PENALTY_MULTIPLIER,
         };
     }
-    checkerAssociationPolicy {
+    CheckerAssociationPolicy {
         prioritize_source_files: false,
         source_file_weight_multiplier: 1,
         balance_penalty_multiplier: 1,
@@ -706,9 +706,12 @@ fn get_checker_association_weights(base_weights: &[i64], import_counts: &[i64]) 
         .collect()
 }
 
-impl checkerPool {
+impl CheckerPoolImpl {
     // checkerpool.go:305 newCheckerPool / checkerpool.go:309 newCheckerPoolWithTracing (tracing is not ported).
-    pub(crate) fn new(program: &'static Program, previous: Option<&checkerPool>) -> checkerPool {
+    pub(crate) fn new(
+        program: &'static Program,
+        previous: Option<&CheckerPoolImpl>,
+    ) -> CheckerPoolImpl {
         // Go's default is a constant 4; tsrs picks it per machine and program (default_checker_count).
         let checker_count: i64 = if program.single_threaded() {
             1
@@ -723,7 +726,7 @@ impl checkerPool {
 
         let inherited_associations =
             previous.and_then(|previous| inherited_associations(program, checker_count, previous));
-        checkerPool {
+        CheckerPoolImpl {
             program,
             checker_count,
             single_threaded: program.single_threaded() || checker_count == 1,
@@ -767,7 +770,7 @@ impl checkerPool {
     }
 
     // checkerpool.go:367
-    fn create_checkers(&self) -> &poolState {
+    fn create_checkers(&self) -> &PoolState {
         let program = self.program;
         self.state.get_or_init(|| {
             if tsrs_core::ptr::shared_check::enabled() {
@@ -842,7 +845,7 @@ impl checkerPool {
             let associations_for_reuse = associations;
             let weights =
                 if self.checker_count > 1 { checked_file_weights(program) } else { Vec::new() };
-            poolState {
+            PoolState {
                 shared_graph: shared,
                 checkers,
                 file_indices,
@@ -857,7 +860,7 @@ impl checkerPool {
         })
     }
 
-    pub(crate) fn state(&self) -> &poolState {
+    pub(crate) fn state(&self) -> &PoolState {
         self.create_checkers()
     }
 
@@ -1147,12 +1150,12 @@ impl checkerPool {
     }
 }
 
-impl checkerPool {
+impl CheckerPoolImpl {
     // Replaces the checker in `slot` by a fresh one in a new region and frees the old checker and its region, keeping
     // its global diagnostics and counters (`RetiredCheckers`). Called between two files of the type-check pass: the
     // diagnostics of the files the old checker checked have been collected, and no later pass runs a checker over
     // them (the CLI's `--noEmit` check, as for leaf freeing).
-    fn retire_checker(&self, state: &poolState, slot: &mut SlotChecker) {
+    fn retire_checker(&self, state: &PoolState, slot: &mut SlotChecker) {
         let diagnostics = slot.diagnostics.take();
         let mut old =
             std::mem::replace(slot, SlotChecker::new_replacement(self.program, diagnostics));
@@ -1189,7 +1192,7 @@ impl checkerPool {
     }
 }
 
-impl poolState {
+impl PoolState {
     // The checker that runs `file` now (see `owners`).
     fn owner_of(&self, file: P<SourceFile>) -> Option<usize> {
         // Written by stealing inside a work group, read after it joined.
@@ -1571,7 +1574,7 @@ fn queues_next(
     }
 }
 
-impl CheckerPool for checkerPool {
+impl CheckerPool for CheckerPoolImpl {
     fn get_checker(&self, _ctx: &Context, file: Option<P<SourceFile>>) -> CheckerHandle {
         self.get_checker_exclusive(file)
     }
@@ -1670,7 +1673,7 @@ fn go_associations_with_adjacency(
 fn inherited_associations(
     program: &Program,
     checker_count: usize,
-    previous: &checkerPool,
+    previous: &CheckerPoolImpl,
 ) -> Option<Vec<usize>> {
     let state = previous.state.get()?;
     let reusable = matches!(checker_assignment(), CheckerAssignment::Locality)

@@ -1,16 +1,16 @@
 #!/usr/bin/env node
 import { args, read, write, requireValue, main } from "../lib/cli.mjs";
+import { screamingSnakeCase as scream } from "../lib/rust-names.mjs";
 const snake = (s) =>
     s
         .replace(/([A-Z]+)([A-Z][a-z])/g, "$1_$2")
         .replace(/([a-z0-9])([A-Z])/g, "$1_$2")
         .toLowerCase();
-const scream = (s) => snake(s).toUpperCase(),
-    moved = new Set(
-        "affects_declaration_path affects_program_structure affects_semantic_diagnostics affects_build_info affects_bind_diagnostics affects_source_file affects_module_resolution affects_emit allow_js_flag strict_flag transpile_option_value allow_config_dir_template_substitution".split(
-            " ",
-        ),
-    );
+const moved = new Set(
+    "affects_declaration_path affects_program_structure affects_semantic_diagnostics affects_build_info affects_bind_diagnostics affects_source_file affects_module_resolution affects_emit allow_js_flag strict_flag transpile_option_value allow_config_dir_template_substitution".split(
+        " ",
+    ),
+);
 const tristate = (s) =>
     ({ "core.TSUnknown": "Tristate::Unknown", "core.TSTrue": "Tristate::True", "core.TSFalse": "Tristate::False" })[s];
 function defaultValue(s) {
@@ -18,9 +18,9 @@ function defaultValue(s) {
     if (s === "nil") return "None";
     if (s.startsWith('"')) return `Str(${s})`;
     if (/^-?\d+$/.test(s)) return `Int(${s})`;
-    if (s.startsWith("diagnostics.")) return `Message(&diagnostics::${s.slice(12)})`;
+    if (s.startsWith("diagnostics.")) return `Message(&diagnostics::${scream(s.slice(12))})`;
     if (s.startsWith("core.TS")) return `Tristate(${tristate(s)})`;
-    if (s.startsWith("core.ScriptTarget")) return `ScriptTarget(ScriptTarget::${s.slice(17)})`;
+    if (s.startsWith("core.ScriptTarget")) return `ScriptTarget(ScriptTarget::${scream(s.slice(17))})`;
     throw new Error(`unknown default value ${s}`);
 }
 function field(key, value) {
@@ -33,7 +33,7 @@ function field(key, value) {
     }
     if (key === "Category" || key === "Description") {
         requireValue(value.startsWith("diagnostics."), `unknown diagnostic ${value}`);
-        return `${snake(key)}: Some(&diagnostics::${value.slice(12)})`;
+        return `${snake(key)}: Some(&diagnostics::${scream(value.slice(12))})`;
     }
     if (key === "DefaultValueDescription")
         return `default_value_description: DefaultValueDescription::${defaultValue(value)}`;

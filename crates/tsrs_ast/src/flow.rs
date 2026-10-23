@@ -9,22 +9,22 @@ use crate::kind::Kind;
 bitflags! {
     #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Debug, Default)]
     pub struct FlowFlags: u32 {
-        const None = 0;
-        const Unreachable = 1 << 0; // Unreachable code
-        const Start = 1 << 1; // Start of flow graph
-        const BranchLabel = 1 << 2; // Non-looping junction
-        const LoopLabel = 1 << 3; // Looping junction
-        const Assignment = 1 << 4; // Assignment
-        const TrueCondition = 1 << 5; // Condition known to be true
-        const FalseCondition = 1 << 6; // Condition known to be false
-        const SwitchClause = 1 << 7; // Switch statement clause
-        const ArrayMutation = 1 << 8; // Potential array mutation
-        const Call = 1 << 9; // Potential assertion call
-        const ReduceLabel = 1 << 10; // Temporarily reduce antecedents of label
-        const Referenced = 1 << 11; // Referenced as antecedent once
-        const Shared = 1 << 12; // Referenced as antecedent more than once
-        const Label = Self::BranchLabel.bits() | Self::LoopLabel.bits();
-        const Condition = Self::TrueCondition.bits() | Self::FalseCondition.bits();
+        const NONE = 0;
+        const UNREACHABLE = 1 << 0; // Unreachable code
+        const START = 1 << 1; // Start of flow graph
+        const BRANCH_LABEL = 1 << 2; // Non-looping junction
+        const LOOP_LABEL = 1 << 3; // Looping junction
+        const ASSIGNMENT = 1 << 4; // Assignment
+        const TRUE_CONDITION = 1 << 5; // Condition known to be true
+        const FALSE_CONDITION = 1 << 6; // Condition known to be false
+        const SWITCH_CLAUSE = 1 << 7; // Switch statement clause
+        const ARRAY_MUTATION = 1 << 8; // Potential array mutation
+        const CALL = 1 << 9; // Potential assertion call
+        const REDUCE_LABEL = 1 << 10; // Temporarily reduce antecedents of label
+        const REFERENCED = 1 << 11; // Referenced as antecedent once
+        const SHARED = 1 << 12; // Referenced as antecedent more than once
+        const LABEL = Self::BRANCH_LABEL.bits() | Self::LOOP_LABEL.bits();
+        const CONDITION = Self::TRUE_CONDITION.bits() | Self::FALSE_CONDITION.bits();
     }
 }
 
@@ -62,7 +62,7 @@ impl FlowNode {
         text_index: u32,
     ) -> FlowNode {
         assert!(
-            antecedent.is_none() || !flags.intersects(FlowFlags::Label),
+            antecedent.is_none() || !flags.intersects(FlowFlags::LABEL),
             "flow label created with an antecedent"
         );
         FlowNode {
@@ -86,7 +86,7 @@ impl FlowNode {
     #[inline]
     pub fn antecedent(&self) -> Option<P<FlowNode>> {
         // SAFETY: a non-label's link is 0 or the antecedent stored by `new`.
-        (!self.flags.get().intersects(FlowFlags::Label))
+        (!self.flags.get().intersects(FlowFlags::LABEL))
             .then(|| unsafe { P::from_key_opt(self.link.get()) })
             .flatten()
     }
@@ -96,14 +96,14 @@ impl FlowNode {
         // SAFETY: a label's link is 0 or the list stored by `set_antecedents`.
         self.flags
             .get()
-            .intersects(FlowFlags::Label)
+            .intersects(FlowFlags::LABEL)
             .then(|| unsafe { P::from_key_opt(self.link.get()) })
             .flatten()
     }
     /// Go `Antecedents = list`. Panics on a flow node that is not a label (Go gives antecedents only to labels).
     pub fn set_antecedents(&self, list: Option<P<FlowList>>) {
         assert!(
-            self.flags.get().intersects(FlowFlags::Label),
+            self.flags.get().intersects(FlowFlags::LABEL),
             "antecedents on a flow node that is not a label"
         );
         self.link.set(P::key_opt(list));

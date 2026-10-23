@@ -80,11 +80,11 @@ impl Host for TestHost {
     }
 }
 
-struct parseConfigHost {
+struct ParseConfigHostImpl {
     fs: Arc<dyn FS>,
 }
 
-impl ParseConfigHost for parseConfigHost {
+impl ParseConfigHost for ParseConfigHostImpl {
     fn fs(&self) -> &dyn FS {
         &*self.fs
     }
@@ -117,8 +117,8 @@ fn setup(spec: &Value) -> (LanguageService, Context, Vec<(String, String)>) {
         files.iter().map(|(k, v)| (k.as_str(), v.as_str())),
         true,
     )));
-    let config_host: &'static parseConfigHost =
-        Box::leak(Box::new(parseConfigHost { fs: std::sync::Arc::clone(&fs) }));
+    let config_host: &'static ParseConfigHostImpl =
+        Box::leak(Box::new(ParseConfigHostImpl { fs: std::sync::Arc::clone(&fs) }));
     let (config, diagnostics) = tsoptions::get_parsed_command_line_of_config_file(
         "/tsconfig.json",
         None,
@@ -254,7 +254,7 @@ fn run_profile(name: &str) {
                 "textDocument/completion" => {
                     let context = match field(case, "context") {
                         Value::Null => lsproto::CompletionContext {
-                            trigger_kind: lsproto::CompletionTriggerKind::Invoked,
+                            trigger_kind: lsproto::CompletionTriggerKind::INVOKED,
                             ..Default::default()
                         },
                         c => lsproto::CompletionContext::from_json(c).unwrap(),

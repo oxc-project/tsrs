@@ -10,11 +10,11 @@ use crate::harnessutil::TestFile;
 
 // Go builds the record in a strings.Builder, which holds bytes; positions below are byte offsets, as in Go.
 #[derive(Default)]
-pub(crate) struct writerAggregator {
+pub(crate) struct WriterAggregator {
     buf: Vec<u8>,
 }
 
-impl writerAggregator {
+impl WriterAggregator {
     fn write_string(&mut self, s: &str) {
         self.buf.extend_from_slice(s.as_bytes());
     }
@@ -34,33 +34,33 @@ impl writerAggregator {
 }
 
 #[derive(Clone)]
-struct sourceMapSpanWithDecodeErrors {
+struct SourceMapSpanWithDecodeErrors {
     source_map_span: Mapping,
     decode_errors: Vec<String>,
 }
 
-struct decodedMapping {
+struct DecodedMapping {
     source_map_span: Mapping,
     error: Option<String>,
 }
 
-struct sourceMapDecoder {
+struct SourceMapDecoder {
     source_map_mappings: String,
     mappings: sourcemap::MappingsDecoder,
 }
 
-fn new_source_map_decoder(source_map: &RawSourceMap) -> sourceMapDecoder {
-    sourceMapDecoder {
+fn new_source_map_decoder(source_map: &RawSourceMap) -> SourceMapDecoder {
+    SourceMapDecoder {
         source_map_mappings: source_map.mappings.clone(),
         mappings: sourcemap::decode_mappings(&source_map.mappings),
     }
 }
 
-impl sourceMapDecoder {
-    fn decode_next_encoded_source_map_span(&mut self) -> decodedMapping {
+impl SourceMapDecoder {
+    fn decode_next_encoded_source_map_span(&mut self) -> DecodedMapping {
         match self.mappings.next() {
             None => {
-                let mut mapping = decodedMapping {
+                let mut mapping = DecodedMapping {
                     error: self.mappings.error().map(str::to_string),
                     source_map_span: self.mappings.state(),
                 };
@@ -69,7 +69,7 @@ impl sourceMapDecoder {
                 }
                 mapping
             }
-            Some(value) => decodedMapping { source_map_span: value, error: None },
+            Some(value) => DecodedMapping { source_map_span: value, error: None },
         }
     }
 
@@ -82,26 +82,26 @@ impl sourceMapDecoder {
     }
 }
 
-pub(crate) struct sourceMapSpanWriter<'a> {
-    source_map_recorder: &'a mut writerAggregator,
+pub(crate) struct SourceMapSpanWriter<'a> {
+    source_map_recorder: &'a mut WriterAggregator,
     source_map_sources: Vec<String>,
     source_map_names: Vec<String>,
     js_file: TestFile,
     js_line_map: Vec<u32>,
     ts_code: String,
     ts_line_map: Vec<u32>,
-    spans_on_single_line: Vec<sourceMapSpanWithDecodeErrors>,
+    spans_on_single_line: Vec<SourceMapSpanWithDecodeErrors>,
     prev_written_source_pos: u32,
     next_js_line_to_write: usize,
     span_marker_continues: bool,
-    source_map_decoder: sourceMapDecoder,
+    source_map_decoder: SourceMapDecoder,
 }
 
 pub(crate) fn new_source_map_span_writer<'a>(
-    source_map_recorder: &'a mut writerAggregator,
+    source_map_recorder: &'a mut WriterAggregator,
     source_map: &RawSourceMap,
     js_file: TestFile,
-) -> sourceMapSpanWriter<'a> {
+) -> SourceMapSpanWriter<'a> {
     let js_line_map = compute_ecma_line_starts(&js_file.content);
     let line_info = sourcemap::create_ecma_line_info(js_file.content.clone(), js_line_map.clone());
     source_map_recorder
@@ -133,7 +133,7 @@ pub(crate) fn new_source_map_span_writer<'a>(
     }
     source_map_recorder
         .write_line("===================================================================");
-    sourceMapSpanWriter {
+    SourceMapSpanWriter {
         source_map_recorder,
         source_map_sources: source_map.sources.clone(),
         source_map_names: source_map.names.clone(),
@@ -149,7 +149,7 @@ pub(crate) fn new_source_map_span_writer<'a>(
     }
 }
 
-impl sourceMapSpanWriter<'_> {
+impl SourceMapSpanWriter<'_> {
     fn get_source_map_span_string(
         &self,
         map_entry: &Mapping,
@@ -215,7 +215,7 @@ impl sourceMapSpanWriter<'_> {
             self.spans_on_single_line = Vec::new();
         }
         self.spans_on_single_line
-            .push(sourceMapSpanWithDecodeErrors { source_map_span, decode_errors });
+            .push(SourceMapSpanWithDecodeErrors { source_map_span, decode_errors });
     }
 
     pub(crate) fn record_new_source_file_span(
@@ -312,7 +312,7 @@ impl sourceMapSpanWriter<'_> {
 
     fn write_recorded_spans(&mut self) {
         let mut recorded_span_writer =
-            recordedSpanWriter { marker_ids: Vec::new(), prev_emitted_col: 0, w: self };
+            RecordedSpanWriter { marker_ids: Vec::new(), prev_emitted_col: 0, w: self };
         recorded_span_writer.write_recorded_spans();
     }
 }
@@ -324,13 +324,13 @@ fn remove_byte_order_mark(text: &[u8]) -> &[u8] {
     }
 }
 
-struct recordedSpanWriter<'w, 'a> {
+struct RecordedSpanWriter<'w, 'a> {
     marker_ids: Vec<String>,
     prev_emitted_col: u32,
-    w: &'w mut sourceMapSpanWriter<'a>,
+    w: &'w mut SourceMapSpanWriter<'a>,
 }
 
-impl recordedSpanWriter<'_, '_> {
+impl RecordedSpanWriter<'_, '_> {
     fn get_marker_id(&self, marker_index: usize) -> String {
         let mut marker_id;
         if self.w.span_marker_continues {
@@ -346,7 +346,7 @@ impl recordedSpanWriter<'_, '_> {
         marker_id
     }
 
-    fn iterate_spans(&mut self, f: fn(&mut Self, &sourceMapSpanWithDecodeErrors, usize)) {
+    fn iterate_spans(&mut self, f: fn(&mut Self, &SourceMapSpanWithDecodeErrors, usize)) {
         self.prev_emitted_col = 0;
         for i in 0..self.w.spans_on_single_line.len() {
             let span = self.w.spans_on_single_line[i].clone();
@@ -365,7 +365,7 @@ impl recordedSpanWriter<'_, '_> {
 
     fn write_source_map_marker(
         &mut self,
-        current_span: &sourceMapSpanWithDecodeErrors,
+        current_span: &SourceMapSpanWithDecodeErrors,
         index: usize,
     ) {
         self.write_source_map_marker_ex(
@@ -378,7 +378,7 @@ impl recordedSpanWriter<'_, '_> {
 
     fn write_source_map_marker_ex(
         &mut self,
-        _current_span: Option<&sourceMapSpanWithDecodeErrors>,
+        _current_span: Option<&SourceMapSpanWithDecodeErrors>,
         index: usize,
         end_column: u32,
         end_continues: bool,
@@ -398,7 +398,7 @@ impl recordedSpanWriter<'_, '_> {
 
     fn write_source_map_source_text(
         &mut self,
-        current_span: &sourceMapSpanWithDecodeErrors,
+        current_span: &SourceMapSpanWithDecodeErrors,
         index: usize,
     ) {
         // Convert UTF-16 character offset from the source map to a byte position.
@@ -444,7 +444,7 @@ impl recordedSpanWriter<'_, '_> {
                 self.write_source_map_indent(self.prev_emitted_col, "  >");
             }
             let text =
-                sourceMapSpanWriter::get_text_of_line(i, &ts_code_line_map, &source_text_str)
+                SourceMapSpanWriter::get_text_of_line(i, &ts_code_line_map, &source_text_str)
                     .to_vec();
             self.w.source_map_recorder.write_bytes(&text);
             if i == ts_code_line_map.len() - 1 {
@@ -455,7 +455,7 @@ impl recordedSpanWriter<'_, '_> {
         self.w.prev_written_source_pos = source_pos;
     }
 
-    fn write_span_details(&mut self, current_span: &sourceMapSpanWithDecodeErrors, index: usize) {
+    fn write_span_details(&mut self, current_span: &SourceMapSpanWithDecodeErrors, index: usize) {
         let line = format!(
             "{}{}",
             self.marker_ids[index],
@@ -480,7 +480,7 @@ impl recordedSpanWriter<'_, '_> {
             self.iterate_spans(Self::write_source_map_marker);
 
             let js_file_text_len = u32::try_from(
-                sourceMapSpanWriter::get_text_of_line(
+                SourceMapSpanWriter::get_text_of_line(
                     current_js_line + 1,
                     &self.w.js_line_map,
                     &self.w.js_file.content,
@@ -535,7 +535,7 @@ pub(crate) fn get_source_map_record(
         return String::new();
     }
 
-    let mut source_map_recorder = writerAggregator::default();
+    let mut source_map_recorder = WriterAggregator::default();
     for source_map_data in source_maps {
         let mut prev_source_file: Option<usize> = None;
         let current_file =

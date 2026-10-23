@@ -3,21 +3,21 @@ use std::io::Write;
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, UNIX_EPOCH};
 
-use super::logger::{Logger, format_time, logger};
+use super::logger::{Logger, LoggerImpl, format_time};
 
 // Go `LogCollector`: a Logger whose output can be read back (`String()`).
 pub trait LogCollector: Logger {
     fn string(&self) -> String;
 }
 
-pub struct logCollector {
-    logger: logger,
+pub struct LogCollectorImpl {
+    logger: LoggerImpl,
     builder: Arc<Mutex<String>>,
 }
 
-struct sharedBuilder(Arc<Mutex<String>>);
+struct SharedBuilder(Arc<Mutex<String>>);
 
-impl Write for sharedBuilder {
+impl Write for SharedBuilder {
     fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
         self.0.lock().unwrap().push_str(&tsrs_core::utf8::from_utf8_lossy(buf));
         Ok(buf.len())
@@ -28,14 +28,14 @@ impl Write for sharedBuilder {
     }
 }
 
-impl LogCollector for logCollector {
+impl LogCollector for LogCollectorImpl {
     // logcollector.go:19
     fn string(&self) -> String {
         self.builder.lock().unwrap().clone()
     }
 }
 
-impl Logger for logCollector {
+impl Logger for LogCollectorImpl {
     fn error(&self, msg: &str) {
         self.logger.error(msg);
     }
@@ -75,9 +75,9 @@ impl Logger for logCollector {
 // logcollector.go:23
 pub fn new_test_logger() -> Arc<dyn LogCollector> {
     let builder = Arc::new(Mutex::new(String::new()));
-    Arc::new(logCollector {
-        logger: logger::new(
-            Box::new(sharedBuilder(Arc::clone(&builder))),
+    Arc::new(LogCollectorImpl {
+        logger: LoggerImpl::new(
+            Box::new(SharedBuilder(Arc::clone(&builder))),
             Box::new(|| format_time(UNIX_EPOCH + Duration::from_secs(1_349_085_672))),
         ),
         builder,

@@ -19,7 +19,7 @@ impl Printer {
     ) {
         let mut format = format;
         if self.should_emit_on_multiple_lines(parent_node) {
-            format |= ListFormat::PreferNewLine | ListFormat::Indented;
+            format |= ListFormat::PREFER_NEW_LINE | ListFormat::INDENTED;
         }
 
         self.emit_list_range(emit, Some(parent_node), children, format, 0, None);
@@ -42,12 +42,12 @@ impl Printer {
         }
         let count = count.unwrap_or_else(|| length.saturating_sub(start));
 
-        if is_nil && format.intersects(ListFormat::OptionalIfNil) {
+        if is_nil && format.intersects(ListFormat::OPTIONAL_IF_NIL) {
             return;
         }
 
         let is_empty = is_nil || start >= length || count == 0;
-        if is_empty && format.intersects(ListFormat::OptionalIfEmpty) {
+        if is_empty && format.intersects(ListFormat::OPTIONAL_IF_EMPTY) {
             if let Some(on_before_emit_node_list) =
                 &mut self.print_handlers.on_before_emit_node_list
             {
@@ -60,10 +60,10 @@ impl Printer {
             return;
         }
 
-        if format.intersects(ListFormat::BracketsMask) {
+        if format.intersects(ListFormat::BRACKETS_MASK) {
             self.write_punctuation(get_opening_bracket(format));
             if is_empty && !is_nil {
-                self.emit_trailing_comments(children.unwrap().pos(), commentSeparator::Before); // Emit comments within empty lists
+                self.emit_trailing_comments(children.unwrap().pos(), CommentSeparator::Before); // Emit comments within empty lists
             }
         }
 
@@ -73,7 +73,7 @@ impl Printer {
 
         if is_empty {
             // Write a line terminator if the parent node was multi-line
-            if format.intersects(ListFormat::MultiLine)
+            if format.intersects(ListFormat::MULTI_LINE)
                 && !(self.options.preserve_source_newlines
                     && (parent_node.is_none()
                         || self.current_source_file().is_some()
@@ -83,8 +83,8 @@ impl Printer {
                             )))
             {
                 self.write_line();
-            } else if format.intersects(ListFormat::SpaceBetweenBraces)
-                && !format.intersects(ListFormat::NoSpaceIfEmpty)
+            } else if format.intersects(ListFormat::SPACE_BETWEEN_BRACES)
+                && !format.intersects(ListFormat::NO_SPACE_IF_EMPTY)
             {
                 self.write_space();
             }
@@ -107,7 +107,7 @@ impl Printer {
             on_after_emit_node_list(children);
         }
 
-        if format.intersects(ListFormat::BracketsMask) {
+        if format.intersects(ListFormat::BRACKETS_MASK) {
             if is_empty && !is_nil {
                 self.emit_leading_comments(children.unwrap().end(), false /*elided*/); // Emit comments within empty lists
             }
@@ -195,19 +195,19 @@ impl Printer {
     }
 
     pub(crate) fn write_delimiter(&mut self, format: ListFormat) {
-        let delimiter = format & ListFormat::DelimitersMask;
-        if delimiter == ListFormat::None {
+        let delimiter = format & ListFormat::DELIMITERS_MASK;
+        if delimiter == ListFormat::NONE {
             // no delimiter for this format
-        } else if delimiter == ListFormat::CommaDelimited {
+        } else if delimiter == ListFormat::COMMA_DELIMITED {
             self.write_punctuation(",");
-        } else if delimiter == ListFormat::BarDelimited {
+        } else if delimiter == ListFormat::BAR_DELIMITED {
             self.write_space();
             self.write_punctuation("|");
-        } else if delimiter == ListFormat::AsteriskDelimited {
+        } else if delimiter == ListFormat::ASTERISK_DELIMITED {
             self.write_space();
             self.write_punctuation("*");
             self.write_space();
-        } else if delimiter == ListFormat::AmpersandDelimited {
+        } else if delimiter == ListFormat::AMPERSAND_DELIMITED {
             self.write_space();
             self.write_punctuation("&");
         }
@@ -226,7 +226,7 @@ impl Printer {
         children_text_range: TextRange,
     ) {
         // Write the opening line terminator or leading whitespace.
-        let may_emit_intervening_comments = !format.intersects(ListFormat::NoInterveningComments);
+        let may_emit_intervening_comments = !format.intersects(ListFormat::NO_INTERVENING_COMMENTS);
         let mut should_emit_intervening_comments = may_emit_intervening_comments;
 
         let mut leading_line_terminator_count = 0;
@@ -239,12 +239,12 @@ impl Printer {
                 self.write_line();
             }
             should_emit_intervening_comments = false;
-        } else if format.intersects(ListFormat::SpaceBetweenBraces) {
+        } else if format.intersects(ListFormat::SPACE_BETWEEN_BRACES) {
             self.write_space();
         }
 
         // Increase the indent, if requested.
-        if format.intersects(ListFormat::Indented) {
+        if format.intersects(ListFormat::INDENTED) {
             self.increase_indent();
         }
 
@@ -255,7 +255,7 @@ impl Printer {
         let mut should_decrease_indent_after_emit = false;
         for &child in children {
             // Write the delimiter if this is not the first node.
-            if format.intersects(ListFormat::AsteriskDelimited) {
+            if format.intersects(ListFormat::ASTERISK_DELIMITED) {
                 // always write JSDoc in the format "\n *"
                 self.write_line();
                 self.write_delimiter(format);
@@ -266,7 +266,7 @@ impl Printer {
                 //          a
                 //          /* End of parameter a */ -> this comment isn't considered to be trailing comment of parameter "a" due to newline
                 //          ,
-                if format.intersects(ListFormat::DelimitersMask) && previous.end() != parent_end {
+                if format.intersects(ListFormat::DELIMITERS_MASK) && previous.end() != parent_end {
                     if !self.comments_disabled && self.should_emit_trailing_comments(previous) {
                         self.emit_leading_comments(previous.end(), false /*elided*/);
                     }
@@ -280,22 +280,22 @@ impl Printer {
                 if separating_line_terminator_count > 0 {
                     // If a synthesized node in a single-line list starts on a new
                     // line, we should increase the indent.
-                    if format & (ListFormat::LinesMask | ListFormat::Indented)
-                        == ListFormat::SingleLine
+                    if format & (ListFormat::LINES_MASK | ListFormat::INDENTED)
+                        == ListFormat::SINGLE_LINE
                     {
                         self.increase_indent();
                         should_decrease_indent_after_emit = true;
                     }
 
                     if should_emit_intervening_comments
-                        && format.intersects(ListFormat::DelimitersMask)
+                        && format.intersects(ListFormat::DELIMITERS_MASK)
                         && !position_is_synthesized(child.pos())
                         && self.should_emit_leading_comments(child)
                     {
                         let comment_range = self.emit_context.comment_range(child);
                         self.emit_trailing_comments_of_position(
                             comment_range.pos(),
-                            format.intersects(ListFormat::SpaceBetweenSiblings),
+                            format.intersects(ListFormat::SPACE_BETWEEN_SIBLINGS),
                             true, /*forceNoNewline*/
                         );
                     }
@@ -305,7 +305,7 @@ impl Printer {
                     }
 
                     should_emit_intervening_comments = false;
-                } else if format.intersects(ListFormat::SpaceBetweenSiblings) {
+                } else if format.intersects(ListFormat::SPACE_BETWEEN_SIBLINGS) {
                     self.write_space();
                 }
             }
@@ -338,8 +338,8 @@ impl Printer {
         let skip_trailing_comments = self.comments_disabled
             || previous_sibling.is_some_and(|p| !self.should_emit_trailing_comments(p));
         let emit_trailing_comma = has_trailing_comma
-            && format.intersects(ListFormat::AllowTrailingComma)
-            && format.intersects(ListFormat::CommaDelimited);
+            && format.intersects(ListFormat::ALLOW_TRAILING_COMMA)
+            && format.intersects(ListFormat::COMMA_DELIMITED);
         if emit_trailing_comma {
             if let Some(previous) = previous_sibling
                 && !skip_trailing_comments
@@ -358,7 +358,7 @@ impl Printer {
         //       ];
         if let Some(previous) = previous_sibling {
             if parent_end != previous.end()
-                && format.intersects(ListFormat::DelimitersMask)
+                && format.intersects(ListFormat::DELIMITERS_MASK)
                 && !skip_trailing_comments
             {
                 let comments_pos = if emit_trailing_comma
@@ -373,7 +373,7 @@ impl Printer {
         }
 
         // Decrease the indent, if requested.
-        if format.intersects(ListFormat::Indented) {
+        if format.intersects(ListFormat::INDENTED) {
             self.decrease_indent();
         }
 
@@ -388,7 +388,8 @@ impl Printer {
             for _ in 0..closing_line_terminator_count {
                 self.write_line();
             }
-        } else if format.intersects(ListFormat::SpaceAfterList | ListFormat::SpaceBetweenBraces) {
+        } else if format.intersects(ListFormat::SPACE_AFTER_LIST | ListFormat::SPACE_BETWEEN_BRACES)
+        {
             self.write_space();
         }
     }
@@ -400,9 +401,9 @@ impl Printer {
 
 /// Adapter that lets the printer hold the caller's writer for the duration of `Printer::write`, like Go's
 /// `p.writer = writer` (a Rust field cannot hold the `&mut` borrow without a lifetime parameter).
-struct borrowedWriter(*mut (dyn EmitTextWriter + 'static));
+struct BorrowedWriter(*mut (dyn EmitTextWriter + 'static));
 
-impl borrowedWriter {
+impl BorrowedWriter {
     fn w(&mut self) -> &mut (dyn EmitTextWriter + 'static) {
         // SAFETY: `Printer::write` stores this adapter in `Printer::writer` only while it holds the `&mut` borrow the
         // pointer came from, and removes it (restoring the previous writer) before returning; no other code can reach it.
@@ -415,7 +416,7 @@ impl borrowedWriter {
     }
 }
 
-impl EmitTextWriter for borrowedWriter {
+impl EmitTextWriter for BorrowedWriter {
     fn write(&mut self, s: &str) {
         self.w().write(s);
     }
@@ -528,7 +529,7 @@ impl Printer {
             if self
                 .emit_context
                 .emit_flags(self.emit_context.most_original(Some(source_file.as_node())).unwrap())
-                .intersects(EmitFlags::ExternalHelpers)
+                .intersects(EmitFlags::EXTERNAL_HELPERS)
             {
                 self.unique_helper_names = Some(FxHashMap::default());
             }
@@ -566,7 +567,7 @@ impl Printer {
 
         self.set_source_file(source_file);
         let mut writer: Box<dyn EmitTextWriter> =
-            Box::new(borrowedWriter(std::ptr::from_mut::<dyn EmitTextWriter + 'static>(writer)));
+            Box::new(BorrowedWriter(std::ptr::from_mut::<dyn EmitTextWriter + 'static>(writer)));
         if self.options.omit_trailing_semicolon {
             writer = get_trailing_semicolon_deferring_writer(writer);
         }
@@ -676,7 +677,7 @@ impl Printer {
                 } else if is_statement(node) {
                     self.emit_statement(node);
                 } else if is_expression(node) {
-                    self.emit_expression(node, OperatorPrecedence::Lowest);
+                    self.emit_expression(node, OperatorPrecedence::LOWEST);
                 } else if is_keyword_kind(node.kind()) {
                     self.emit_keyword_node(Some(node));
                 } else if is_punctuation_kind(node.kind()) {
@@ -705,7 +706,7 @@ impl Printer {
 //
 
 impl Printer {
-    pub(crate) fn emit_comments_before_node(&mut self, node: P<Node>) -> Option<commentState> {
+    pub(crate) fn emit_comments_before_node(&mut self, node: P<Node>) -> Option<CommentState> {
         if !self.should_emit_comments(node) {
             return None;
         }
@@ -719,11 +720,11 @@ impl Printer {
         // Emit leading comments
         self.emit_leading_comments_of_node(node, emit_flags, comment_range);
         self.emit_leading_synthetic_comments_of_node(node, emit_flags);
-        if emit_flags.intersects(EmitFlags::NoNestedComments) {
+        if emit_flags.intersects(EmitFlags::NO_NESTED_COMMENTS) {
             self.comments_disabled = true;
         }
 
-        Some(commentState {
+        Some(CommentState {
             emit_flags,
             comment_range,
             container_pos,
@@ -732,7 +733,7 @@ impl Printer {
         })
     }
 
-    pub(crate) fn emit_comments_after_node(&mut self, node: P<Node>, state: Option<commentState>) {
+    pub(crate) fn emit_comments_after_node(&mut self, node: P<Node>, state: Option<CommentState>) {
         let Some(state) = state else {
             return;
         };
@@ -744,7 +745,7 @@ impl Printer {
         let declaration_list_container_end = state.declaration_list_container_end;
 
         // Emit trailing comments
-        if emit_flags.intersects(EmitFlags::NoNestedComments) {
+        if emit_flags.intersects(EmitFlags::NO_NESTED_COMMENTS) {
             self.comments_disabled = false;
         }
 
@@ -776,10 +777,10 @@ impl Printer {
         _token: Kind,
         pos: TextPos,
         context_node: P<Node>,
-        flags: tokenEmitFlags,
-    ) -> (Option<commentState>, TextPos) {
+        flags: TokenEmitFlags,
+    ) -> (Option<CommentState>, TextPos) {
         let mut pos = pos;
-        if flags.intersects(tokenEmitFlags::NoComments) || self.comments_disabled {
+        if flags.intersects(TokenEmitFlags::NO_COMMENTS) || self.comments_disabled {
             // Still skip trivia so that the returned pos correctly identifies the token position.
             // This is needed for trailing source map positions (writeTokenText advances pos by token length).
             if let Some(current_source_file) = self.current_source_file() {
@@ -812,7 +813,7 @@ impl Printer {
         }
 
         if context_node.pos() != start_pos {
-            let indent_leading = flags.intersects(tokenEmitFlags::IndentLeadingComments);
+            let indent_leading = flags.intersects(TokenEmitFlags::INDENT_LEADING_COMMENTS);
             let needs_indent = indent_leading
                 && self.current_source_file().is_some()
                 && !positions_are_on_same_line(start_pos, pos, self.current_source_file().unwrap());
@@ -821,7 +822,7 @@ impl Printer {
             self.decrease_indent_if(needs_indent);
         }
 
-        (Some(commentState::default()), pos)
+        (Some(CommentState::default()), pos)
     }
 
     pub(crate) fn emit_comments_after_token(
@@ -829,7 +830,7 @@ impl Printer {
         _token: Kind,
         pos: TextPos,
         context_node: P<Node>,
-        state: Option<commentState>,
+        state: Option<CommentState>,
     ) {
         if state.is_none() {
             return;
@@ -839,7 +840,7 @@ impl Printer {
             let is_jsx_expr_context = context_node.kind() == Kind::JsxExpression;
             self.emit_trailing_comments(
                 pos,
-                if is_jsx_expr_context { commentSeparator::None } else { commentSeparator::Before },
+                if is_jsx_expr_context { CommentSeparator::None } else { CommentSeparator::Before },
             );
         }
     }
@@ -848,7 +849,7 @@ impl Printer {
         &mut self,
         node: P<Node>,
         detached_range: TextRange,
-    ) -> Option<commentState> {
+    ) -> Option<CommentState> {
         if !Self::should_emit_detached_comments(node) {
             return None;
         }
@@ -858,17 +859,17 @@ impl Printer {
         let container_end = self.container_end;
         let declaration_list_container_end = self.declaration_list_container_end;
         let skip_leading_comments = position_is_synthesized(detached_range.pos())
-            || emit_flags.intersects(EmitFlags::NoLeadingComments);
+            || emit_flags.intersects(EmitFlags::NO_LEADING_COMMENTS);
 
         if !skip_leading_comments {
             self.emit_detached_comments_and_update_comments_info(detached_range);
         }
 
-        if emit_flags.intersects(EmitFlags::NoNestedComments) {
+        if emit_flags.intersects(EmitFlags::NO_NESTED_COMMENTS) {
             self.comments_disabled = true;
         }
 
-        Some(commentState {
+        Some(CommentState {
             emit_flags,
             comment_range: detached_range,
             container_pos,
@@ -881,7 +882,7 @@ impl Printer {
         &mut self,
         _node: P<Node>,
         detached_range: TextRange,
-        state: Option<commentState>,
+        state: Option<CommentState>,
     ) {
         let Some(state) = state else {
             return;
@@ -890,7 +891,7 @@ impl Printer {
         let emit_flags = state.emit_flags;
         let skip_trailing_comments = self.comments_disabled
             || position_is_synthesized(detached_range.end())
-            || emit_flags.intersects(EmitFlags::NoTrailingComments);
+            || emit_flags.intersects(EmitFlags::NO_TRAILING_COMMENTS);
 
         if !skip_trailing_comments {
             let has_written_comment =
@@ -915,10 +916,10 @@ impl Printer {
             // We have to explicitly check that the node is JsxText because if the compilerOptions.jsx is "preserve" we will not do any transformation.
             // It is expensive to walk entire tree just to set one kind of node to have no comments.
             let skip_leading_comments = position_is_synthesized(pos)
-                || emit_flags.intersects(EmitFlags::NoLeadingComments)
+                || emit_flags.intersects(EmitFlags::NO_LEADING_COMMENTS)
                 || node.kind() == Kind::JsxText;
             let skip_trailing_comments = position_is_synthesized(end)
-                || emit_flags.intersects(EmitFlags::NoTrailingComments)
+                || emit_flags.intersects(EmitFlags::NO_TRAILING_COMMENTS)
                 || node.kind() == Kind::JsxText;
 
             // Emit leading comments if the position is not synthesized and the node
@@ -931,14 +932,14 @@ impl Printer {
             }
 
             if !skip_leading_comments
-                || (!pos.is_synthetic() && emit_flags.intersects(EmitFlags::NoLeadingComments))
+                || (!pos.is_synthetic() && emit_flags.intersects(EmitFlags::NO_LEADING_COMMENTS))
             {
                 // Advance the container position if comments get emitted or if they've been disabled explicitly using NoLeadingComments.
                 self.container_pos = pos;
             }
 
             if !skip_trailing_comments
-                || (!end.is_synthetic() && emit_flags.intersects(EmitFlags::NoTrailingComments))
+                || (!end.is_synthetic() && emit_flags.intersects(EmitFlags::NO_TRAILING_COMMENTS))
             {
                 // Advance the container end if comments get emitted or if they've been disabled explicitly using NoTrailingComments.
                 self.container_end = end;
@@ -964,7 +965,7 @@ impl Printer {
         let pos = comment_range.pos();
         let end = comment_range.end();
         let skip_trailing_comments = end.is_synthetic()
-            || emit_flags.intersects(EmitFlags::NoTrailingComments)
+            || emit_flags.intersects(EmitFlags::NO_TRAILING_COMMENTS)
             || node.kind() == Kind::JsxText;
         if (!position_is_synthesized(pos) || !position_is_synthesized(end)) && pos != end {
             // Restore previous container state.
@@ -975,7 +976,7 @@ impl Printer {
             // Emit trailing comments if the position is not synthesized and the node
             // has not opted out from emitting leading comments and is an emitted node.
             if !skip_trailing_comments && node.kind() != Kind::NotEmittedStatement {
-                self.emit_trailing_comments(end, commentSeparator::Before);
+                self.emit_trailing_comments(end, CommentSeparator::Before);
             }
         }
     }
@@ -985,7 +986,7 @@ impl Printer {
         node: P<Node>,
         emit_flags: EmitFlags,
     ) {
-        if emit_flags.intersects(EmitFlags::NoLeadingComments) {
+        if emit_flags.intersects(EmitFlags::NO_LEADING_COMMENTS) {
             return;
         }
         let synth = self.emit_context.get_synthetic_leading_comments(node);
@@ -1011,7 +1012,7 @@ impl Printer {
         node: P<Node>,
         emit_flags: EmitFlags,
     ) {
-        if emit_flags.intersects(EmitFlags::NoTrailingComments) {
+        if emit_flags.intersects(EmitFlags::NO_TRAILING_COMMENTS) {
             return;
         }
         let synth = self.emit_context.get_synthetic_trailing_comments(node);
@@ -1109,7 +1110,7 @@ impl Printer {
         }
 
         // Leading comments are emitted as /*leading comment1*/space/*leading comment*/space
-        self.emit_comments(&comments, commentSeparator::After)
+        self.emit_comments(&comments, CommentSeparator::After)
     }
 
     pub(crate) fn should_emit_comment_if_triple_slash(
@@ -1152,7 +1153,7 @@ impl Printer {
     pub(crate) fn emit_trailing_comments(
         &mut self,
         pos: TextPos,
-        comment_separator: commentSeparator,
+        comment_separator: CommentSeparator,
     ) {
         if self.comments_disabled {
             return;
@@ -1252,7 +1253,7 @@ impl Printer {
     pub(crate) fn emit_detached_comments(
         &mut self,
         text_range: TextRange,
-    ) -> Option<detachedCommentsInfo> {
+    ) -> Option<DetachedCommentsInfo> {
         let current_source_file = self.current_source_file()?;
 
         let text = current_source_file.text();
@@ -1343,9 +1344,9 @@ impl Printer {
                             self.write_line();
                         }
 
-                        self.emit_comments(&comments_to_emit, commentSeparator::After);
+                        self.emit_comments(&comments_to_emit, CommentSeparator::After);
                     }
-                    result = Some(detachedCommentsInfo {
+                    result = Some(DetachedCommentsInfo {
                         node_pos: text_range.pos(),
                         detached_comment_end_pos: detached_comments.last().unwrap().end().into(),
                     });
@@ -1358,7 +1359,7 @@ impl Printer {
 
 #[repr(u32)]
 #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Debug)]
-pub(crate) enum commentSeparator {
+pub(crate) enum CommentSeparator {
     None,
     Before,
     After,
@@ -1368,14 +1369,14 @@ impl Printer {
     pub(crate) fn emit_comments(
         &mut self,
         comments: &[CommentRange],
-        comment_separator: commentSeparator,
+        comment_separator: CommentSeparator,
     ) -> bool {
         let mut intervening_separator = false;
         if comments.is_empty() {
             return false;
         }
 
-        if comment_separator == commentSeparator::Before {
+        if comment_separator == CommentSeparator::Before {
             self.write_space();
         }
 
@@ -1388,15 +1389,15 @@ impl Printer {
             self.emit_comment(comment);
 
             if comment.kind == Kind::SingleLineCommentTrivia
-                || comment.has_trailing_new_line && comment_separator != commentSeparator::None
+                || comment.has_trailing_new_line && comment_separator != CommentSeparator::None
             {
                 self.write_line();
             } else {
-                intervening_separator = comment_separator != commentSeparator::None;
+                intervening_separator = comment_separator != CommentSeparator::None;
             }
         }
 
-        if intervening_separator && comment_separator == commentSeparator::After {
+        if intervening_separator && comment_separator == CommentSeparator::After {
             self.write_space();
         }
 
@@ -1473,7 +1474,7 @@ impl Printer {
         let source = self.source_map_source.unwrap();
         let mut source_index = self.source_map_source_index;
         // Go shares the cache through a pointer; `mapped_cache` holds the mapped source's fresh cache instead.
-        let mut mapped_cache: Option<lineCharacterCache> = None;
+        let mut mapped_cache: Option<LineCharacterCache> = None;
         if let Some(map_source_position) = &self.print_handlers.map_source_position {
             let Some((mapped_source, mapped_pos)) = map_source_position(source, pos) else {
                 let (line, column) = (self.writer().get_line(), self.writer().get_column());
@@ -1534,7 +1535,7 @@ impl Printer {
 
     // TODO: Support emitting nameIndex for source maps (Go emitSourcePosName is commented out)
 
-    pub(crate) fn emit_source_maps_before_node(&mut self, node: P<Node>) -> Option<sourceMapState> {
+    pub(crate) fn emit_source_maps_before_node(&mut self, node: P<Node>) -> Option<SourceMapState> {
         if !self.should_emit_source_maps(node) {
             return None;
         }
@@ -1543,7 +1544,7 @@ impl Printer {
         let loc = self.emit_context.source_map_range(node);
 
         if !is_not_emitted_statement(node)
-            && !emit_flags.intersects(EmitFlags::NoLeadingSourceMap)
+            && !emit_flags.intersects(EmitFlags::NO_LEADING_SOURCE_MAP)
             && self.current_source_file().is_some()
             && !position_is_synthesized(loc.pos())
         {
@@ -1554,11 +1555,11 @@ impl Printer {
             self.emit_source_pos(self.source_map_source, pos.into());
         }
 
-        if emit_flags.intersects(EmitFlags::NoNestedSourceMaps) {
+        if emit_flags.intersects(EmitFlags::NO_NESTED_SOURCE_MAPS) {
             self.source_maps_disabled = true;
         }
 
-        Some(sourceMapState {
+        Some(SourceMapState {
             emit_flags,
             source_map_range: loc,
             has_token_source_map_range: false,
@@ -1568,7 +1569,7 @@ impl Printer {
     pub(crate) fn emit_source_maps_after_node(
         &mut self,
         node: P<Node>,
-        previous_state: Option<sourceMapState>,
+        previous_state: Option<SourceMapState>,
     ) {
         let Some(previous_state) = previous_state else {
             return;
@@ -1577,12 +1578,12 @@ impl Printer {
         let emit_flags = previous_state.emit_flags;
         let loc = previous_state.source_map_range;
 
-        if emit_flags.intersects(EmitFlags::NoNestedSourceMaps) {
+        if emit_flags.intersects(EmitFlags::NO_NESTED_SOURCE_MAPS) {
             self.source_maps_disabled = false;
         }
 
         if !is_not_emitted_statement(node)
-            && !emit_flags.intersects(EmitFlags::NoTrailingSourceMap)
+            && !emit_flags.intersects(EmitFlags::NO_TRAILING_SOURCE_MAP)
             && !position_is_synthesized(loc.end())
         {
             self.emit_source_pos(self.source_map_source, loc.end());
@@ -1594,8 +1595,8 @@ impl Printer {
         token: Kind,
         pos: TextPos,
         context_node: P<Node>,
-        flags: tokenEmitFlags,
-    ) -> Option<sourceMapState> {
+        flags: TokenEmitFlags,
+    ) -> Option<SourceMapState> {
         if !self.should_emit_token_source_maps(token, pos, context_node, flags) {
             return None;
         }
@@ -1617,11 +1618,11 @@ impl Printer {
                 .into();
             }
         }
-        if !emit_flags.intersects(EmitFlags::NoTokenLeadingSourceMaps) && !pos.is_synthetic() {
+        if !emit_flags.intersects(EmitFlags::NO_TOKEN_LEADING_SOURCE_MAPS) && !pos.is_synthetic() {
             self.emit_source_pos(self.source_map_source, pos);
         }
 
-        Some(sourceMapState {
+        Some(SourceMapState {
             emit_flags,
             source_map_range: loc,
             has_token_source_map_range: has_loc,
@@ -1633,7 +1634,7 @@ impl Printer {
         _token: Kind,
         pos: TextPos,
         _context_node: P<Node>,
-        previous_state: Option<sourceMapState>,
+        previous_state: Option<SourceMapState>,
     ) {
         let Some(previous_state) = previous_state else {
             return;
@@ -1643,7 +1644,7 @@ impl Printer {
         let emit_flags = previous_state.emit_flags;
         let loc = previous_state.source_map_range;
         let has_loc = previous_state.has_token_source_map_range;
-        if !emit_flags.intersects(EmitFlags::NoTokenTrailingSourceMaps) {
+        if !emit_flags.intersects(EmitFlags::NO_TOKEN_TRAILING_SOURCE_MAPS) {
             if has_loc {
                 pos = loc.end();
             }
@@ -1661,7 +1662,7 @@ impl Printer {
 impl Printer {
     pub(crate) fn should_reuse_temp_variable_scope(&self, node: Option<P<Node>>) -> bool {
         node.is_some_and(|node| {
-            self.emit_context.emit_flags(node).intersects(EmitFlags::ReuseTempVariableScope)
+            self.emit_context.emit_flags(node).intersects(EmitFlags::REUSE_TEMP_VARIABLE_SCOPE)
         })
     }
 
@@ -1808,8 +1809,8 @@ impl Printer {
 //
 
 impl Printer {
-    pub(crate) fn enter_node(&mut self, node: P<Node>) -> printerState {
-        let mut state = printerState::default();
+    pub(crate) fn enter_node(&mut self, node: P<Node>) -> PrinterState {
+        let mut state = PrinterState::default();
 
         if let Some(on_before_emit_node) = &mut self.print_handlers.on_before_emit_node {
             on_before_emit_node(Some(node));
@@ -1820,7 +1821,7 @@ impl Printer {
         state
     }
 
-    pub(crate) fn exit_node(&mut self, node: P<Node>, previous_state: printerState) {
+    pub(crate) fn exit_node(&mut self, node: P<Node>, previous_state: PrinterState) {
         self.emit_source_maps_after_node(node, previous_state.source_map_state);
         self.emit_comments_after_node(node, previous_state.comment_state);
 
@@ -1832,24 +1833,24 @@ impl Printer {
     pub(crate) fn enter_token_node(
         &mut self,
         node: P<Node>,
-        flags: tokenEmitFlags,
-    ) -> printerState {
-        let mut state = printerState::default();
+        flags: TokenEmitFlags,
+    ) -> PrinterState {
+        let mut state = PrinterState::default();
 
         if let Some(on_before_emit_token) = &mut self.print_handlers.on_before_emit_token {
             on_before_emit_token(Some(node));
         }
 
-        if !flags.intersects(tokenEmitFlags::NoComments) {
+        if !flags.intersects(TokenEmitFlags::NO_COMMENTS) {
             state.comment_state = self.emit_comments_before_node(node);
         }
-        if !flags.intersects(tokenEmitFlags::NoSourceMaps) {
+        if !flags.intersects(TokenEmitFlags::NO_SOURCE_MAPS) {
             state.source_map_state = self.emit_source_maps_before_node(node);
         }
         state
     }
 
-    pub(crate) fn exit_token_node(&mut self, node: P<Node>, previous_state: printerState) {
+    pub(crate) fn exit_token_node(&mut self, node: P<Node>, previous_state: PrinterState) {
         self.emit_source_maps_after_node(node, previous_state.source_map_state);
         self.emit_comments_after_node(node, previous_state.comment_state);
 
@@ -1861,12 +1862,12 @@ impl Printer {
 
 bitflags::bitflags! {
     #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Debug, Default)]
-    pub(crate) struct tokenEmitFlags: u32 {
-        const NoComments = 1 << 0;
-        const IndentLeadingComments = 1 << 1;
-        const NoSourceMaps = 1 << 2;
+    pub(crate) struct TokenEmitFlags: u32 {
+        const NO_COMMENTS = 1 << 0;
+        const INDENT_LEADING_COMMENTS = 1 << 1;
+        const NO_SOURCE_MAPS = 1 << 2;
 
-        const None = 0;
+        const NONE = 0;
     }
 }
 
@@ -1876,9 +1877,9 @@ impl Printer {
         token: Kind,
         pos: TextPos,
         context_node: P<Node>,
-        flags: tokenEmitFlags,
-    ) -> (printerState, TextPos) {
-        let mut state = printerState::default();
+        flags: TokenEmitFlags,
+    ) -> (PrinterState, TextPos) {
+        let mut state = PrinterState::default();
         let (comment_state, pos) = self.emit_comments_before_token(token, pos, context_node, flags);
         state.comment_state = comment_state;
         state.source_map_state =
@@ -1891,7 +1892,7 @@ impl Printer {
         token: Kind,
         pos: TextPos,
         context_node: P<Node>,
-        previous_state: printerState,
+        previous_state: PrinterState,
     ) {
         self.emit_source_maps_after_token(
             token,
@@ -1906,103 +1907,103 @@ impl Printer {
 bitflags::bitflags! {
     #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Debug, Default)]
     pub struct ListFormat: u32 {
-        const None = 0;
+        const NONE = 0;
 
         // Line separators
-        const SingleLine = 0; // Prints the list on a single line (default).
-        const MultiLine = 1 << 0; // Prints the list on multiple lines.
-        const PreserveLines = 1 << 1; // Prints the list using line preservation if possible.
-        const LinesMask = Self::SingleLine.bits() | Self::MultiLine.bits() | Self::PreserveLines.bits();
+        const SINGLE_LINE = 0; // Prints the list on a single line (default).
+        const MULTI_LINE = 1 << 0; // Prints the list on multiple lines.
+        const PRESERVE_LINES = 1 << 1; // Prints the list using line preservation if possible.
+        const LINES_MASK = Self::SINGLE_LINE.bits() | Self::MULTI_LINE.bits() | Self::PRESERVE_LINES.bits();
 
         // Delimiters
-        const NotDelimited = 0; // There is no delimiter between list items (default).
-        const BarDelimited = 1 << 2; // Each list item is space-and-bar (" |") delimited.
-        const AmpersandDelimited = 1 << 3; // Each list item is space-and-ampersand (" &") delimited.
-        const CommaDelimited = 1 << 4; // Each list item is comma (",") delimited.
-        const AsteriskDelimited = 1 << 5; // Each list item is asterisk ("\n *") delimited, used with JSDoc.
-        const DelimitersMask = Self::BarDelimited.bits() | Self::AmpersandDelimited.bits() | Self::CommaDelimited.bits() | Self::AsteriskDelimited.bits();
+        const NOT_DELIMITED = 0; // There is no delimiter between list items (default).
+        const BAR_DELIMITED = 1 << 2; // Each list item is space-and-bar (" |") delimited.
+        const AMPERSAND_DELIMITED = 1 << 3; // Each list item is space-and-ampersand (" &") delimited.
+        const COMMA_DELIMITED = 1 << 4; // Each list item is comma (",") delimited.
+        const ASTERISK_DELIMITED = 1 << 5; // Each list item is asterisk ("\n *") delimited, used with JSDoc.
+        const DELIMITERS_MASK = Self::BAR_DELIMITED.bits() | Self::AMPERSAND_DELIMITED.bits() | Self::COMMA_DELIMITED.bits() | Self::ASTERISK_DELIMITED.bits();
 
-        const AllowTrailingComma = 1 << 6; // Write a trailing comma (",") if present.
+        const ALLOW_TRAILING_COMMA = 1 << 6; // Write a trailing comma (",") if present.
 
         // Whitespace
-        const Indented = 1 << 7; // The list should be indented.
-        const SpaceBetweenBraces = 1 << 8; // Inserts a space after the opening brace and before the closing brace.
-        const SpaceBetweenSiblings = 1 << 9; // Inserts a space between each sibling node.
+        const INDENTED = 1 << 7; // The list should be indented.
+        const SPACE_BETWEEN_BRACES = 1 << 8; // Inserts a space after the opening brace and before the closing brace.
+        const SPACE_BETWEEN_SIBLINGS = 1 << 9; // Inserts a space between each sibling node.
 
         // Brackets/Braces
-        const Braces = 1 << 10; // The list is surrounded by "{" and "}".
-        const Parenthesis = 1 << 11; // The list is surrounded by "(" and ")".
-        const AngleBrackets = 1 << 12; // The list is surrounded by "<" and ">".
-        const SquareBrackets = 1 << 13; // The list is surrounded by "[" and "]".
-        const BracketsMask = Self::Braces.bits() | Self::Parenthesis.bits() | Self::AngleBrackets.bits() | Self::SquareBrackets.bits();
+        const BRACES = 1 << 10; // The list is surrounded by "{" and "}".
+        const PARENTHESIS = 1 << 11; // The list is surrounded by "(" and ")".
+        const ANGLE_BRACKETS = 1 << 12; // The list is surrounded by "<" and ">".
+        const SQUARE_BRACKETS = 1 << 13; // The list is surrounded by "[" and "]".
+        const BRACKETS_MASK = Self::BRACES.bits() | Self::PARENTHESIS.bits() | Self::ANGLE_BRACKETS.bits() | Self::SQUARE_BRACKETS.bits();
 
-        const OptionalIfNil = 1 << 14; // Do not emit brackets if the list is nil.
-        const OptionalIfEmpty = 1 << 15; // Do not emit brackets if the list is empty.
-        const Optional = Self::OptionalIfNil.bits() | Self::OptionalIfEmpty.bits();
+        const OPTIONAL_IF_NIL = 1 << 14; // Do not emit brackets if the list is nil.
+        const OPTIONAL_IF_EMPTY = 1 << 15; // Do not emit brackets if the list is empty.
+        const OPTIONAL = Self::OPTIONAL_IF_NIL.bits() | Self::OPTIONAL_IF_EMPTY.bits();
 
         // Other
-        const PreferNewLine = 1 << 16; // Prefer adding a LineTerminator between synthesized nodes.
-        const NoTrailingNewLine = 1 << 17; // Do not emit a trailing NewLine for a MultiLine list.
-        const NoInterveningComments = 1 << 18; // Do not emit comments between each node
-        const NoSpaceIfEmpty = 1 << 19; // If the literal is empty, do not add spaces between braces.
-        const SingleElement = 1 << 20;
-        const SpaceAfterList = 1 << 21; // Add space after list
+        const PREFER_NEW_LINE = 1 << 16; // Prefer adding a LineTerminator between synthesized nodes.
+        const NO_TRAILING_NEW_LINE = 1 << 17; // Do not emit a trailing NewLine for a MultiLine list.
+        const NO_INTERVENING_COMMENTS = 1 << 18; // Do not emit comments between each node
+        const NO_SPACE_IF_EMPTY = 1 << 19; // If the literal is empty, do not add spaces between braces.
+        const SINGLE_ELEMENT = 1 << 20;
+        const SPACE_AFTER_LIST = 1 << 21; // Add space after list
 
         // Precomputed Formats
-        const Modifiers = Self::SingleLine.bits() | Self::SpaceBetweenSiblings.bits() | Self::NoInterveningComments.bits() | Self::SpaceAfterList.bits();
-        const HeritageClauses = Self::SingleLine.bits() | Self::SpaceBetweenSiblings.bits();
-        const SingleLineTypeLiteralMembers = Self::SingleLine.bits() | Self::SpaceBetweenBraces.bits() | Self::SpaceBetweenSiblings.bits();
-        const MultiLineTypeLiteralMembers = Self::MultiLine.bits() | Self::Indented.bits() | Self::OptionalIfEmpty.bits();
+        const MODIFIERS = Self::SINGLE_LINE.bits() | Self::SPACE_BETWEEN_SIBLINGS.bits() | Self::NO_INTERVENING_COMMENTS.bits() | Self::SPACE_AFTER_LIST.bits();
+        const HERITAGE_CLAUSES = Self::SINGLE_LINE.bits() | Self::SPACE_BETWEEN_SIBLINGS.bits();
+        const SINGLE_LINE_TYPE_LITERAL_MEMBERS = Self::SINGLE_LINE.bits() | Self::SPACE_BETWEEN_BRACES.bits() | Self::SPACE_BETWEEN_SIBLINGS.bits();
+        const MULTI_LINE_TYPE_LITERAL_MEMBERS = Self::MULTI_LINE.bits() | Self::INDENTED.bits() | Self::OPTIONAL_IF_EMPTY.bits();
 
-        const SingleLineTupleTypeElements = Self::CommaDelimited.bits() | Self::SpaceBetweenSiblings.bits() | Self::SingleLine.bits();
-        const MultiLineTupleTypeElements = Self::CommaDelimited.bits() | Self::Indented.bits() | Self::SpaceBetweenSiblings.bits() | Self::MultiLine.bits();
-        const UnionTypeConstituents = Self::BarDelimited.bits() | Self::SpaceBetweenSiblings.bits() | Self::SingleLine.bits();
-        const IntersectionTypeConstituents = Self::AmpersandDelimited.bits() | Self::SpaceBetweenSiblings.bits() | Self::SingleLine.bits();
-        const ObjectBindingPatternElements = Self::SingleLine.bits() | Self::AllowTrailingComma.bits() | Self::SpaceBetweenBraces.bits() | Self::CommaDelimited.bits() | Self::SpaceBetweenSiblings.bits() | Self::NoSpaceIfEmpty.bits();
-        const ArrayBindingPatternElements = Self::SingleLine.bits() | Self::AllowTrailingComma.bits() | Self::CommaDelimited.bits() | Self::SpaceBetweenSiblings.bits() | Self::NoSpaceIfEmpty.bits();
-        const ObjectLiteralExpressionProperties = Self::PreserveLines.bits() | Self::CommaDelimited.bits() | Self::SpaceBetweenSiblings.bits() | Self::SpaceBetweenBraces.bits() | Self::Indented.bits() | Self::Braces.bits() | Self::NoSpaceIfEmpty.bits();
-        const ImportAttributes = Self::PreserveLines.bits() | Self::CommaDelimited.bits() | Self::SpaceBetweenSiblings.bits() | Self::SpaceBetweenBraces.bits() | Self::Indented.bits() | Self::Braces.bits() | Self::NoSpaceIfEmpty.bits();
-        const ArrayLiteralExpressionElements = Self::PreserveLines.bits() | Self::CommaDelimited.bits() | Self::SpaceBetweenSiblings.bits() | Self::AllowTrailingComma.bits() | Self::Indented.bits() | Self::SquareBrackets.bits();
-        const CommaListElements = Self::CommaDelimited.bits() | Self::SpaceBetweenSiblings.bits() | Self::SingleLine.bits();
-        const CallExpressionArguments = Self::CommaDelimited.bits() | Self::SpaceBetweenSiblings.bits() | Self::SingleLine.bits() | Self::Parenthesis.bits();
-        const NewExpressionArguments = Self::CommaDelimited.bits() | Self::SpaceBetweenSiblings.bits() | Self::SingleLine.bits() | Self::Parenthesis.bits() | Self::OptionalIfNil.bits();
-        const TemplateExpressionSpans = Self::SingleLine.bits() | Self::NoInterveningComments.bits();
-        const SingleLineBlockStatements = Self::SpaceBetweenBraces.bits() | Self::SpaceBetweenSiblings.bits() | Self::SingleLine.bits();
-        const MultiLineBlockStatements = Self::Indented.bits() | Self::MultiLine.bits();
-        const VariableDeclarationList = Self::CommaDelimited.bits() | Self::SpaceBetweenSiblings.bits() | Self::SingleLine.bits();
-        const SingleLineFunctionBodyStatements = Self::SingleLine.bits() | Self::SpaceBetweenSiblings.bits() | Self::SpaceBetweenBraces.bits();
-        const MultiLineFunctionBodyStatements = Self::MultiLine.bits();
-        const ClassHeritageClauses = Self::SingleLine.bits();
-        const ClassMembers = Self::Indented.bits() | Self::MultiLine.bits();
-        const InterfaceMembers = Self::Indented.bits() | Self::MultiLine.bits();
-        const EnumMembers = Self::CommaDelimited.bits() | Self::Indented.bits() | Self::MultiLine.bits();
-        const CaseBlockClauses = Self::Indented.bits() | Self::MultiLine.bits();
-        const NamedImportsOrExportsElements = Self::CommaDelimited.bits() | Self::SpaceBetweenSiblings.bits() | Self::AllowTrailingComma.bits() | Self::SingleLine.bits() | Self::SpaceBetweenBraces.bits() | Self::NoSpaceIfEmpty.bits();
-        const JsxElementOrFragmentChildren = Self::SingleLine.bits() | Self::NoInterveningComments.bits();
-        const JsxElementAttributes = Self::SingleLine.bits() | Self::SpaceBetweenSiblings.bits() | Self::NoInterveningComments.bits();
-        const CaseOrDefaultClauseStatements = Self::Indented.bits() | Self::MultiLine.bits() | Self::NoTrailingNewLine.bits() | Self::OptionalIfEmpty.bits();
-        const HeritageClauseTypes = Self::CommaDelimited.bits() | Self::SpaceBetweenSiblings.bits() | Self::SingleLine.bits();
-        const SourceFileStatements = Self::MultiLine.bits() | Self::NoTrailingNewLine.bits();
-        const Decorators = Self::MultiLine.bits() | Self::Optional.bits() | Self::SpaceAfterList.bits();
-        const TypeArguments = Self::CommaDelimited.bits() | Self::SpaceBetweenSiblings.bits() | Self::SingleLine.bits() | Self::AngleBrackets.bits() | Self::Optional.bits();
-        const TypeParameters = Self::CommaDelimited.bits() | Self::SpaceBetweenSiblings.bits() | Self::SingleLine.bits() | Self::AngleBrackets.bits() | Self::Optional.bits();
-        const Parameters = Self::CommaDelimited.bits() | Self::SpaceBetweenSiblings.bits() | Self::SingleLine.bits() | Self::Parenthesis.bits();
-        const SingleArrowParameter = Self::CommaDelimited.bits() | Self::SpaceBetweenSiblings.bits() | Self::SingleLine.bits();
-        const IndexSignatureParameters = Self::CommaDelimited.bits() | Self::SpaceBetweenSiblings.bits() | Self::SingleLine.bits() | Self::Indented.bits() | Self::SquareBrackets.bits();
-        const JSDocComment = Self::MultiLine.bits() | Self::AsteriskDelimited.bits();
-        const ImportClauseEntries = Self::ImportAttributes.bits(); // Deprecated: Use LFImportAttributes
+        const SINGLE_LINE_TUPLE_TYPE_ELEMENTS = Self::COMMA_DELIMITED.bits() | Self::SPACE_BETWEEN_SIBLINGS.bits() | Self::SINGLE_LINE.bits();
+        const MULTI_LINE_TUPLE_TYPE_ELEMENTS = Self::COMMA_DELIMITED.bits() | Self::INDENTED.bits() | Self::SPACE_BETWEEN_SIBLINGS.bits() | Self::MULTI_LINE.bits();
+        const UNION_TYPE_CONSTITUENTS = Self::BAR_DELIMITED.bits() | Self::SPACE_BETWEEN_SIBLINGS.bits() | Self::SINGLE_LINE.bits();
+        const INTERSECTION_TYPE_CONSTITUENTS = Self::AMPERSAND_DELIMITED.bits() | Self::SPACE_BETWEEN_SIBLINGS.bits() | Self::SINGLE_LINE.bits();
+        const OBJECT_BINDING_PATTERN_ELEMENTS = Self::SINGLE_LINE.bits() | Self::ALLOW_TRAILING_COMMA.bits() | Self::SPACE_BETWEEN_BRACES.bits() | Self::COMMA_DELIMITED.bits() | Self::SPACE_BETWEEN_SIBLINGS.bits() | Self::NO_SPACE_IF_EMPTY.bits();
+        const ARRAY_BINDING_PATTERN_ELEMENTS = Self::SINGLE_LINE.bits() | Self::ALLOW_TRAILING_COMMA.bits() | Self::COMMA_DELIMITED.bits() | Self::SPACE_BETWEEN_SIBLINGS.bits() | Self::NO_SPACE_IF_EMPTY.bits();
+        const OBJECT_LITERAL_EXPRESSION_PROPERTIES = Self::PRESERVE_LINES.bits() | Self::COMMA_DELIMITED.bits() | Self::SPACE_BETWEEN_SIBLINGS.bits() | Self::SPACE_BETWEEN_BRACES.bits() | Self::INDENTED.bits() | Self::BRACES.bits() | Self::NO_SPACE_IF_EMPTY.bits();
+        const IMPORT_ATTRIBUTES = Self::PRESERVE_LINES.bits() | Self::COMMA_DELIMITED.bits() | Self::SPACE_BETWEEN_SIBLINGS.bits() | Self::SPACE_BETWEEN_BRACES.bits() | Self::INDENTED.bits() | Self::BRACES.bits() | Self::NO_SPACE_IF_EMPTY.bits();
+        const ARRAY_LITERAL_EXPRESSION_ELEMENTS = Self::PRESERVE_LINES.bits() | Self::COMMA_DELIMITED.bits() | Self::SPACE_BETWEEN_SIBLINGS.bits() | Self::ALLOW_TRAILING_COMMA.bits() | Self::INDENTED.bits() | Self::SQUARE_BRACKETS.bits();
+        const COMMA_LIST_ELEMENTS = Self::COMMA_DELIMITED.bits() | Self::SPACE_BETWEEN_SIBLINGS.bits() | Self::SINGLE_LINE.bits();
+        const CALL_EXPRESSION_ARGUMENTS = Self::COMMA_DELIMITED.bits() | Self::SPACE_BETWEEN_SIBLINGS.bits() | Self::SINGLE_LINE.bits() | Self::PARENTHESIS.bits();
+        const NEW_EXPRESSION_ARGUMENTS = Self::COMMA_DELIMITED.bits() | Self::SPACE_BETWEEN_SIBLINGS.bits() | Self::SINGLE_LINE.bits() | Self::PARENTHESIS.bits() | Self::OPTIONAL_IF_NIL.bits();
+        const TEMPLATE_EXPRESSION_SPANS = Self::SINGLE_LINE.bits() | Self::NO_INTERVENING_COMMENTS.bits();
+        const SINGLE_LINE_BLOCK_STATEMENTS = Self::SPACE_BETWEEN_BRACES.bits() | Self::SPACE_BETWEEN_SIBLINGS.bits() | Self::SINGLE_LINE.bits();
+        const MULTI_LINE_BLOCK_STATEMENTS = Self::INDENTED.bits() | Self::MULTI_LINE.bits();
+        const VARIABLE_DECLARATION_LIST = Self::COMMA_DELIMITED.bits() | Self::SPACE_BETWEEN_SIBLINGS.bits() | Self::SINGLE_LINE.bits();
+        const SINGLE_LINE_FUNCTION_BODY_STATEMENTS = Self::SINGLE_LINE.bits() | Self::SPACE_BETWEEN_SIBLINGS.bits() | Self::SPACE_BETWEEN_BRACES.bits();
+        const MULTI_LINE_FUNCTION_BODY_STATEMENTS = Self::MULTI_LINE.bits();
+        const CLASS_HERITAGE_CLAUSES = Self::SINGLE_LINE.bits();
+        const CLASS_MEMBERS = Self::INDENTED.bits() | Self::MULTI_LINE.bits();
+        const INTERFACE_MEMBERS = Self::INDENTED.bits() | Self::MULTI_LINE.bits();
+        const ENUM_MEMBERS = Self::COMMA_DELIMITED.bits() | Self::INDENTED.bits() | Self::MULTI_LINE.bits();
+        const CASE_BLOCK_CLAUSES = Self::INDENTED.bits() | Self::MULTI_LINE.bits();
+        const NAMED_IMPORTS_OR_EXPORTS_ELEMENTS = Self::COMMA_DELIMITED.bits() | Self::SPACE_BETWEEN_SIBLINGS.bits() | Self::ALLOW_TRAILING_COMMA.bits() | Self::SINGLE_LINE.bits() | Self::SPACE_BETWEEN_BRACES.bits() | Self::NO_SPACE_IF_EMPTY.bits();
+        const JSX_ELEMENT_OR_FRAGMENT_CHILDREN = Self::SINGLE_LINE.bits() | Self::NO_INTERVENING_COMMENTS.bits();
+        const JSX_ELEMENT_ATTRIBUTES = Self::SINGLE_LINE.bits() | Self::SPACE_BETWEEN_SIBLINGS.bits() | Self::NO_INTERVENING_COMMENTS.bits();
+        const CASE_OR_DEFAULT_CLAUSE_STATEMENTS = Self::INDENTED.bits() | Self::MULTI_LINE.bits() | Self::NO_TRAILING_NEW_LINE.bits() | Self::OPTIONAL_IF_EMPTY.bits();
+        const HERITAGE_CLAUSE_TYPES = Self::COMMA_DELIMITED.bits() | Self::SPACE_BETWEEN_SIBLINGS.bits() | Self::SINGLE_LINE.bits();
+        const SOURCE_FILE_STATEMENTS = Self::MULTI_LINE.bits() | Self::NO_TRAILING_NEW_LINE.bits();
+        const DECORATORS = Self::MULTI_LINE.bits() | Self::OPTIONAL.bits() | Self::SPACE_AFTER_LIST.bits();
+        const TYPE_ARGUMENTS = Self::COMMA_DELIMITED.bits() | Self::SPACE_BETWEEN_SIBLINGS.bits() | Self::SINGLE_LINE.bits() | Self::ANGLE_BRACKETS.bits() | Self::OPTIONAL.bits();
+        const TYPE_PARAMETERS = Self::COMMA_DELIMITED.bits() | Self::SPACE_BETWEEN_SIBLINGS.bits() | Self::SINGLE_LINE.bits() | Self::ANGLE_BRACKETS.bits() | Self::OPTIONAL.bits();
+        const PARAMETERS = Self::COMMA_DELIMITED.bits() | Self::SPACE_BETWEEN_SIBLINGS.bits() | Self::SINGLE_LINE.bits() | Self::PARENTHESIS.bits();
+        const SINGLE_ARROW_PARAMETER = Self::COMMA_DELIMITED.bits() | Self::SPACE_BETWEEN_SIBLINGS.bits() | Self::SINGLE_LINE.bits();
+        const INDEX_SIGNATURE_PARAMETERS = Self::COMMA_DELIMITED.bits() | Self::SPACE_BETWEEN_SIBLINGS.bits() | Self::SINGLE_LINE.bits() | Self::INDENTED.bits() | Self::SQUARE_BRACKETS.bits();
+        const JSDOC_COMMENT = Self::MULTI_LINE.bits() | Self::ASTERISK_DELIMITED.bits();
+        const IMPORT_CLAUSE_ENTRIES = Self::IMPORT_ATTRIBUTES.bits(); // Deprecated: Use LFImportAttributes
     }
 }
 
 pub(crate) fn get_opening_bracket(format: ListFormat) -> &'static str {
-    let brackets = format & ListFormat::BracketsMask;
-    if brackets == ListFormat::Braces {
+    let brackets = format & ListFormat::BRACKETS_MASK;
+    if brackets == ListFormat::BRACES {
         "{"
-    } else if brackets == ListFormat::Parenthesis {
+    } else if brackets == ListFormat::PARENTHESIS {
         "("
-    } else if brackets == ListFormat::AngleBrackets {
+    } else if brackets == ListFormat::ANGLE_BRACKETS {
         "<"
-    } else if brackets == ListFormat::SquareBrackets {
+    } else if brackets == ListFormat::SQUARE_BRACKETS {
         "["
     } else {
         panic!("Unexpected bracket: {brackets:?}")
@@ -2010,14 +2011,14 @@ pub(crate) fn get_opening_bracket(format: ListFormat) -> &'static str {
 }
 
 pub(crate) fn get_closing_bracket(format: ListFormat) -> &'static str {
-    let brackets = format & ListFormat::BracketsMask;
-    if brackets == ListFormat::Braces {
+    let brackets = format & ListFormat::BRACKETS_MASK;
+    if brackets == ListFormat::BRACES {
         "}"
-    } else if brackets == ListFormat::Parenthesis {
+    } else if brackets == ListFormat::PARENTHESIS {
         ")"
-    } else if brackets == ListFormat::AngleBrackets {
+    } else if brackets == ListFormat::ANGLE_BRACKETS {
         ">"
-    } else if brackets == ListFormat::SquareBrackets {
+    } else if brackets == ListFormat::SQUARE_BRACKETS {
         "]"
     } else {
         panic!("Unexpected bracket: {brackets:?}")

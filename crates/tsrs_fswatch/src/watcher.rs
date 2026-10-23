@@ -5,9 +5,9 @@ use std::sync::{Arc, Condvar, LazyLock, Mutex};
 use tsrs_core::tspath;
 
 use crate::canonicalize::canonicalize_path;
-use crate::debounce::debounce;
-use crate::event::{Event, EventKind, eventList};
-use crate::pathcompare::{comparisonCache, comparisonPath, pathComparer};
+use crate::debounce::Debounce;
+use crate::event::{Event, EventKind, EventList};
+use crate::pathcompare::{BytePathComparer, ComparisonCache, ComparisonPath};
 
 // ----- errors -----------------------------------------------------------------
 //
@@ -102,47 +102,47 @@ impl fmt::Display for Error {
 
 impl std::error::Error for Error {}
 
-pub(crate) static errNilCallback: Sentinel = Sentinel("fswatch: callback must not be nil");
+pub(crate) static ERR_NIL_CALLBACK: Sentinel = Sentinel("fswatch: callback must not be nil");
 
 // errRootPath is returned by WatchFile when the supplied path is a
 // filesystem root with no parent directory to watch.
-pub(crate) static errRootPath: Sentinel = Sentinel("fswatch: cannot watch a root path");
+pub(crate) static ERR_ROOT_PATH: Sentinel = Sentinel("fswatch: cannot watch a root path");
 
 // errNotAbsolute is returned by [Watcher.WatchDirectory] and
 // [Watcher.WatchFile] when the supplied path is not absolute.
-pub(crate) static errNotAbsolute: Sentinel = Sentinel("fswatch: path must be absolute");
+pub(crate) static ERR_NOT_ABSOLUTE: Sentinel = Sentinel("fswatch: path must be absolute");
 
 // Returned when a requested watch may resolve to a network location.
-pub(crate) static errNetworkPath: Sentinel = Sentinel("fswatch: network paths are not supported");
+pub(crate) static ERR_NETWORK_PATH: Sentinel = Sentinel("fswatch: network paths are not supported");
 
 // ErrOverflow indicates that the kernel event queue overflowed and
 // some filesystem changes were missed. The watch remains
 // active; further events will continue to be delivered. Callers
 // should treat this as a signal to rescan the watched directory.
-pub static ErrOverflow: Sentinel = Sentinel("fswatch: event overflow; some changes were missed");
+pub static ERR_OVERFLOW: Sentinel = Sentinel("fswatch: event overflow; some changes were missed");
 
 // ErrWatchTerminated indicates that the watch was terminated due to
 // an unrecoverable error (e.g. the watched directory was deleted or
 // the watch descriptor was revoked). No further events will be
 // delivered. Call Close to release remaining state.
-pub static ErrWatchTerminated: Sentinel = Sentinel("fswatch: watch terminated");
+pub static ERR_WATCH_TERMINATED: Sentinel = Sentinel("fswatch: watch terminated");
 
 // ErrUnavailable indicates that a requested watcher is not
 // available on the current platform.
-pub static ErrUnavailable: Sentinel = Sentinel("fswatch: watcher not available on this platform");
+pub static ERR_UNAVAILABLE: Sentinel = Sentinel("fswatch: watcher not available on this platform");
 
 // ErrFilesystemUnsupported indicates that the active watcher backend cannot
 // operate on the target filesystem, even though the backend is available on
 // the current platform.
-pub static ErrFilesystemUnsupported: Sentinel =
+pub static ERR_FILESYSTEM_UNSUPPORTED: Sentinel =
     Sentinel("fswatch: watcher backend unsupported on this filesystem");
 
 // `fmt.Errorf("%w: watched directory removed", ErrWatchTerminated)`.
 #[cfg(unix)]
 pub(crate) fn err_watched_directory_removed() -> Error {
     Error::wrap(
-        format!("{}: watched directory removed", ErrWatchTerminated.0),
-        &ErrWatchTerminated.into(),
+        format!("{}: watched directory removed", ERR_WATCH_TERMINATED.0),
+        &ERR_WATCH_TERMINATED.into(),
     )
 }
 
@@ -225,7 +225,7 @@ pub enum WatchOption {
 }
 
 impl WatchOption {
-    fn apply_watch_option(&self, opts: &mut watchOptions) {
+    fn apply_watch_option(&self, opts: &mut WatchOptions) {
         match self {
             WatchOption::Ignore(f) => opts.ignore = Some(Arc::clone(f)),
             WatchOption::Recursive => opts.recursive = true,
@@ -244,7 +244,7 @@ pub struct WatchDirectoryRequest {
 }
 
 #[derive(Default)]
-struct watchOptions {
+struct WatchOptions {
     ignore: Option<IgnoreFunc>,
     recursive: bool,
     file: String,
@@ -274,20 +274,20 @@ pub trait Watch: Send + Sync {
 }
 
 // Package-level watcher instances. Platform init() functions set the factory.
-pub(crate) static inotifyWatcher: LazyLock<watcher> = LazyLock::new(|| {
-    let w = watcher::new("inotify");
+pub(crate) static INOTIFY_WATCHER: LazyLock<PlatformWatcher> = LazyLock::new(|| {
+    let w = PlatformWatcher::new("inotify");
     #[cfg(target_os = "linux")]
     let w = crate::inotify_linux::init(w);
     w
 });
-pub(crate) static fseventsWatcher: LazyLock<watcher> = LazyLock::new(|| {
-    let w = watcher::new("fsevents");
+pub(crate) static FSEVENTS_WATCHER: LazyLock<PlatformWatcher> = LazyLock::new(|| {
+    let w = PlatformWatcher::new("fsevents");
     #[cfg(target_os = "macos")]
     let w = crate::fsevents_darwin::init(w);
     w
 });
-pub(crate) static kqueueWatcher: LazyLock<watcher> = LazyLock::new(|| {
-    let w = watcher::new("kqueue");
+pub(crate) static KQUEUE_WATCHER: LazyLock<PlatformWatcher> = LazyLock::new(|| {
+    let w = PlatformWatcher::new("kqueue");
     #[cfg(any(
         target_os = "macos",
         target_os = "freebsd",
@@ -299,13 +299,16 @@ pub(crate) static kqueueWatcher: LazyLock<watcher> = LazyLock::new(|| {
     w
 });
 // windows.go (ReadDirectoryChangesW) is not ported: Windows builds get an unavailable watcher.
-pub(crate) static windowsWatcher: LazyLock<watcher> = LazyLock::new(|| watcher::new("windows"));
+pub(crate) static WINDOWS_WATCHER: LazyLock<PlatformWatcher> =
+    LazyLock::new(|| PlatformWatcher::new("windows"));
 // fanotify_linux.go is not ported: fanotify().Available() is false, so Linux uses inotify (Go's Default() falls
 // back to inotify the same way on kernels without fanotify).
-pub(crate) static fanotifyWatcher: LazyLock<watcher> = LazyLock::new(|| watcher::new("fanotify"));
-pub(crate) static fanotifyFallbackWatcher: LazyLock<fallbackWatcher> =
-    LazyLock::new(|| fallbackWatcher { primary: &*fanotifyWatcher, secondary: &*inotifyWatcher });
-static unsupportedWatcher: LazyLock<watcher> = LazyLock::new(|| watcher::new("unsupported"));
+pub(crate) static FANOTIFY_WATCHER: LazyLock<PlatformWatcher> =
+    LazyLock::new(|| PlatformWatcher::new("fanotify"));
+pub(crate) static FANOTIFY_FALLBACK_WATCHER: LazyLock<FallbackWatcher> =
+    LazyLock::new(|| FallbackWatcher { primary: &*FANOTIFY_WATCHER, secondary: &*INOTIFY_WATCHER });
+static UNSUPPORTED_WATCHER: LazyLock<PlatformWatcher> =
+    LazyLock::new(|| PlatformWatcher::new("unsupported"));
 
 // watcher.go:203
 // AllWatchers returns a fresh slice listing every watcher backend the package
@@ -313,43 +316,43 @@ static unsupportedWatcher: LazyLock<watcher> = LazyLock::new(|| watcher::new("un
 // OS.
 pub fn all_watchers() -> Vec<&'static dyn Watcher> {
     vec![
-        &*inotifyWatcher,
-        &*fseventsWatcher,
-        &*kqueueWatcher,
-        &*windowsWatcher,
-        &*fanotifyFallbackWatcher,
+        &*INOTIFY_WATCHER,
+        &*FSEVENTS_WATCHER,
+        &*KQUEUE_WATCHER,
+        &*WINDOWS_WATCHER,
+        &*FANOTIFY_FALLBACK_WATCHER,
     ]
 }
 
 // watcher.go:214
 // Inotify returns the inotify watcher (Linux and Android).
 pub fn inotify() -> &'static dyn Watcher {
-    &*inotifyWatcher
+    &*INOTIFY_WATCHER
 }
 
 // watcher.go:217
 // FSEvents returns the FSEvents watcher (macOS).
 pub fn fsevents() -> &'static dyn Watcher {
-    &*fseventsWatcher
+    &*FSEVENTS_WATCHER
 }
 
 // watcher.go:220
 // Kqueue returns the kqueue watcher (macOS, FreeBSD, and other BSDs).
 pub fn kqueue() -> &'static dyn Watcher {
-    &*kqueueWatcher
+    &*KQUEUE_WATCHER
 }
 
 // watcher.go:223
 // Windows returns the ReadDirectoryChangesW watcher (Windows).
 pub fn windows() -> &'static dyn Watcher {
-    &*windowsWatcher
+    &*WINDOWS_WATCHER
 }
 
 // watcher.go:227
 // Fanotify returns the fanotify watcher (Linux, kernel ≥ 5.13). Directories on
 // filesystems that don't support fanotify watches automatically use inotify instead.
 pub fn fanotify() -> &'static dyn Watcher {
-    &*fanotifyFallbackWatcher
+    &*FANOTIFY_FALLBACK_WATCHER
 }
 
 static WRITE_SETTLING: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
@@ -398,18 +401,18 @@ pub fn default() -> &'static dyn Watcher {
     )) {
         kqueue()
     } else {
-        &*unsupportedWatcher
+        &*UNSUPPORTED_WATCHER
     }
 }
 
 // fallbackWatcher keeps the primary backend for supported filesystems while
 // routing individual unsupported watches to the secondary backend.
-pub(crate) struct fallbackWatcher {
+pub(crate) struct FallbackWatcher {
     primary: &'static dyn Watcher,
     secondary: &'static dyn Watcher,
 }
 
-impl Watcher for fallbackWatcher {
+impl Watcher for FallbackWatcher {
     fn name(&self) -> &str {
         self.primary.name()
     }
@@ -442,16 +445,16 @@ impl Watcher for fallbackWatcher {
     ) -> Result<Vec<Box<dyn Watch>>, Error> {
         match self.primary.watch_directories(requests.clone()) {
             Ok(watches) => return Ok(watches),
-            Err(err) if !err.is(ErrFilesystemUnsupported) => return Err(err),
+            Err(err) if !err.is(ERR_FILESYSTEM_UNSUPPORTED) => return Err(err),
             Err(_) => {}
         }
 
         let mut watches: Vec<Box<dyn Watch>> = Vec::with_capacity(requests.len());
         for request in requests {
-            let f = request.callback.clone().ok_or_else(|| Error::from(errNilCallback))?;
+            let f = request.callback.clone().ok_or_else(|| Error::from(ERR_NIL_CALLBACK))?;
             let mut result =
                 self.primary.watch_directory(&request.dir, Arc::clone(&f), request.options.clone());
-            if matches!(&result, Err(err) if err.is(ErrFilesystemUnsupported)) {
+            if matches!(&result, Err(err) if err.is(ERR_FILESYSTEM_UNSUPPORTED)) {
                 result = self.secondary.watch_directory(&request.dir, f, request.options.clone());
             }
             match result {
@@ -473,7 +476,7 @@ impl Watcher for fallbackWatcher {
     // watcher.go:300
     fn watch_file(&self, path: &str, f: WatchCallback) -> Result<Box<dyn Watch>, Error> {
         let watch = self.primary.watch_file(path, Arc::clone(&f));
-        if matches!(&watch, Err(err) if err.is(ErrFilesystemUnsupported)) {
+        if matches!(&watch, Err(err) if err.is(ERR_FILESYSTEM_UNSUPPORTED)) {
             return self.secondary.watch_file(path, f);
         }
         watch
@@ -482,44 +485,49 @@ impl Watcher for fallbackWatcher {
 
 // Pointer-identity key for `*dirWatch` map keys.
 #[derive(Clone)]
-pub(crate) struct dwKey(pub(crate) Arc<dirWatch>);
+pub(crate) struct DwKey(pub(crate) Arc<DirWatch>);
 
-impl PartialEq for dwKey {
+impl PartialEq for DwKey {
     fn eq(&self, other: &Self) -> bool {
         Arc::ptr_eq(&self.0, &other.0)
     }
 }
-impl Eq for dwKey {}
-impl std::hash::Hash for dwKey {
+impl Eq for DwKey {}
+impl std::hash::Hash for DwKey {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
         (Arc::as_ptr(&self.0) as usize).hash(state);
     }
 }
 
-pub(crate) type watcherFactory = fn() -> Arc<dyn watcherImpl>;
+pub(crate) type WatcherFactory = fn() -> Arc<dyn WatcherImpl>;
 
 // watcher is the concrete implementation of [Watcher]. Each platform
 // watcher is a package-level *watcher whose factory is set by the
 // platform's init() function.
-pub(crate) struct watcher {
+pub(crate) struct PlatformWatcher {
     pub(crate) name: &'static str,
-    mu: Mutex<watcherState>,
-    pub(crate) factory: Option<watcherFactory>, // nil if not available on this platform
+    mu: Mutex<WatcherState>,
+    pub(crate) factory: Option<WatcherFactory>, // nil if not available on this platform
     pub(crate) sequence: Option<fn() -> u64>,
 }
 
 #[derive(Default)]
-struct watcherState {
-    impl_: Option<Arc<dyn watcherImpl>>,
-    dir_watches: FxHashMap<String, Arc<dirWatch>>,
-    debounce: Option<Arc<debounce>>, // lazily created in getOrCreateDirWatch
+struct WatcherState {
+    impl_: Option<Arc<dyn WatcherImpl>>,
+    dir_watches: FxHashMap<String, Arc<DirWatch>>,
+    debounce: Option<Arc<Debounce>>, // lazily created in getOrCreateDirWatch
 }
 
-const recursiveConsolidateThreshold: usize = 10;
+const RECURSIVE_CONSOLIDATE_THRESHOLD: usize = 10;
 
-impl watcher {
-    fn new(name: &'static str) -> watcher {
-        watcher { name, mu: Mutex::new(watcherState::default()), factory: None, sequence: None }
+impl PlatformWatcher {
+    fn new(name: &'static str) -> PlatformWatcher {
+        PlatformWatcher {
+            name,
+            mu: Mutex::new(WatcherState::default()),
+            factory: None,
+            sequence: None,
+        }
     }
 
     // watcher.go:340
@@ -530,7 +538,7 @@ impl watcher {
     }
 
     // watcher.go:346
-    fn get_impl(&self) -> Result<Arc<dyn watcherImpl>, Error> {
+    fn get_impl(&self) -> Result<Arc<dyn WatcherImpl>, Error> {
         let st = self.mu.lock().unwrap();
         if let Some(impl_) = &st.impl_ {
             return Ok(Arc::clone(impl_));
@@ -539,7 +547,7 @@ impl watcher {
         drop(st);
 
         let Some(factory) = factory else {
-            return Err(ErrUnavailable.into());
+            return Err(ERR_UNAVAILABLE.into());
         };
 
         let impl_ = factory();
@@ -566,12 +574,12 @@ impl watcher {
 
     // watcher.go:384
     fn find_covering_recursive_watch_locked(
-        st: &watcherState,
+        st: &WatcherState,
         dir: &str,
         physical_dir: &str,
-        comparer: pathComparer,
-    ) -> Option<Arc<dirWatch>> {
-        let mut best: Option<&Arc<dirWatch>> = None;
+        comparer: BytePathComparer,
+    ) -> Option<Arc<DirWatch>> {
+        let mut best: Option<&Arc<DirWatch>> = None;
         #[expect(
             clippy::iter_over_hash_type,
             reason = "the longest covering dir is unique: candidates are prefixes of one path, one key per dir; Go ranges the map too"
@@ -594,7 +602,7 @@ impl watcher {
     // watcher.go:397
     fn find_consolidation_dir_locked(
         &self,
-        st: &watcherState,
+        st: &WatcherState,
         dir: &str,
         physical_dir: &str,
     ) -> String {
@@ -630,7 +638,7 @@ impl watcher {
                 })
                 .any(|dw| {
                     children.insert(child_on_path(&parent, &dw.dir));
-                    children.len() >= recursiveConsolidateThreshold
+                    children.len() >= RECURSIVE_CONSOLIDATE_THRESHOLD
                 });
             if enough {
                 return parent;
@@ -651,11 +659,11 @@ impl watcher {
         dir: &str,
         physical_dir: &str,
         recursive: bool,
-        comparer: pathComparer,
-    ) -> Result<Arc<dirWatch>, Error> {
+        comparer: BytePathComparer,
+    ) -> Result<Arc<DirWatch>, Error> {
         let mut st = self.mu.lock().unwrap();
         if st.debounce.is_none() {
-            st.debounce = Some(debounce::new());
+            st.debounce = Some(Debounce::new());
         }
         let (mut dir, mut physical_dir, mut recursive) =
             (dir.to_string(), physical_dir.to_string(), recursive);
@@ -689,7 +697,7 @@ impl watcher {
         if let Some(dw) = st.dir_watches.get(&key) {
             return Ok(Arc::clone(dw));
         }
-        let dw = dirWatch::new(
+        let dw = DirWatch::new(
             dir,
             physical_dir,
             st.debounce.as_ref().unwrap(),
@@ -702,7 +710,7 @@ impl watcher {
     }
 
     // watcher.go:471
-    fn remove_dir_watch(&self, dw: &Arc<dirWatch>) {
+    fn remove_dir_watch(&self, dw: &Arc<DirWatch>) {
         let mut st = self.mu.lock().unwrap();
         let key = Self::key_for_dir_watch(&dw.dir, dw.recursive);
         if let Some(existing) = st.dir_watches.get(&key) {
@@ -714,7 +722,7 @@ impl watcher {
     }
 }
 
-impl Watcher for watcher {
+impl Watcher for PlatformWatcher {
     fn name(&self) -> &str {
         self.name
     }
@@ -750,21 +758,21 @@ impl Watcher for watcher {
         requests: Vec<WatchDirectoryRequest>,
     ) -> Result<Vec<Box<dyn Watch>>, Error> {
         if !self.available() {
-            return Err(ErrUnavailable.into());
+            return Err(ERR_UNAVAILABLE.into());
         }
         if requests.is_empty() {
             return Ok(Vec::new());
         }
 
-        struct preparedWatch {
-            dw: Arc<dirWatch>,
+        struct PreparedWatch {
+            dw: Arc<DirWatch>,
             id: u64,
         }
-        let mut prepared: Vec<preparedWatch> = Vec::with_capacity(requests.len());
-        let mut unique_dir_watches: Vec<Arc<dirWatch>> = Vec::with_capacity(requests.len());
-        let mut seen_dir_watches: FxHashSet<dwKey> =
+        let mut prepared: Vec<PreparedWatch> = Vec::with_capacity(requests.len());
+        let mut unique_dir_watches: Vec<Arc<DirWatch>> = Vec::with_capacity(requests.len());
+        let mut seen_dir_watches: FxHashSet<DwKey> =
             FxHashSet::with_capacity_and_hasher(requests.len(), rustc_hash::FxBuildHasher);
-        let rollback = |prepared: &[preparedWatch]| {
+        let rollback = |prepared: &[PreparedWatch]| {
             for p in prepared.iter().rev() {
                 p.dw.unwatch(p.id);
                 p.dw.unref(self);
@@ -774,16 +782,16 @@ impl Watcher for watcher {
         for request in requests {
             let Some(f) = request.callback else {
                 rollback(&prepared);
-                return Err(errNilCallback.into());
+                return Err(ERR_NIL_CALLBACK.into());
             };
             if tspath::is_network_path(&request.dir) {
                 rollback(&prepared);
-                return Err(errNetworkPath.into());
+                return Err(ERR_NETWORK_PATH.into());
             }
             let dir = filepath_clean(&request.dir);
             if !dir.starts_with('/') {
                 rollback(&prepared);
-                return Err(errNotAbsolute.into());
+                return Err(ERR_NOT_ABSOLUTE.into());
             }
             let dir = canonicalize_path(&dir);
             if self.can_share_recursive_dir_watches() {
@@ -794,7 +802,7 @@ impl Watcher for watcher {
             }
             let physical_dir = physical_dir_for(&dir);
 
-            let mut sopts = watchOptions::default();
+            let mut sopts = WatchOptions::default();
             for o in &request.options {
                 o.apply_watch_option(&mut sopts);
             }
@@ -820,8 +828,8 @@ impl Watcher for watcher {
             };
             let id =
                 dw.add_callback(&dir, &physical_dir, sopts.recursive, f, sopts.ignore, &sopts.file);
-            prepared.push(preparedWatch { dw: Arc::clone(&dw), id });
-            if seen_dir_watches.insert(dwKey(Arc::clone(&dw))) {
+            prepared.push(PreparedWatch { dw: Arc::clone(&dw), id });
+            if seen_dir_watches.insert(DwKey(Arc::clone(&dw))) {
                 unique_dir_watches.push(dw);
             }
         }
@@ -838,11 +846,11 @@ impl Watcher for watcher {
             return Err(err);
         }
 
-        let self_static: &'static watcher = self.as_static();
+        let self_static: &'static PlatformWatcher = self.as_static();
         Ok(prepared
             .into_iter()
             .map(|p| {
-                Box::new(watch {
+                Box::new(WatchHandle {
                     mu: Mutex::new(false),
                     w: self_static,
                     dw: p.dw,
@@ -856,35 +864,35 @@ impl Watcher for watcher {
     // watcher.go:589
     fn watch_file(&self, path: &str, f: WatchCallback) -> Result<Box<dyn Watch>, Error> {
         if !self.available() {
-            return Err(ErrUnavailable.into());
+            return Err(ERR_UNAVAILABLE.into());
         }
         if tspath::is_network_path(path) {
-            return Err(errNetworkPath.into());
+            return Err(ERR_NETWORK_PATH.into());
         }
         let path = filepath_clean(path);
         if !path.starts_with('/') {
-            return Err(errNotAbsolute.into());
+            return Err(ERR_NOT_ABSOLUTE.into());
         }
         let path = canonicalize_path(&path);
         let dir = filepath_dir(&path);
         if dir == path {
-            return Err(errRootPath.into());
+            return Err(ERR_ROOT_PATH.into());
         }
 
         self.watch_directory(&dir, f, vec![WatchOption::File(path)])
     }
 }
 
-impl watcher {
+impl PlatformWatcher {
     // Every `watcher` is one of the package-level statics.
-    fn as_static(&self) -> &'static watcher {
+    fn as_static(&self) -> &'static PlatformWatcher {
         if let Some(result) = ([
-            &*inotifyWatcher,
-            &*fseventsWatcher,
-            &*kqueueWatcher,
-            &*windowsWatcher,
-            &*fanotifyWatcher,
-            &*unsupportedWatcher,
+            &*INOTIFY_WATCHER,
+            &*FSEVENTS_WATCHER,
+            &*KQUEUE_WATCHER,
+            &*WINDOWS_WATCHER,
+            &*FANOTIFY_WATCHER,
+            &*UNSUPPORTED_WATCHER,
         ])
         .into_iter()
         .find(|w| std::ptr::eq(*w, self))
@@ -905,15 +913,15 @@ fn validate_watch_directory(dir: &str) -> Result<(), Error> {
     Ok(())
 }
 
-struct watch {
+struct WatchHandle {
     mu: Mutex<bool>, // cancelled
-    w: &'static watcher,
-    dw: Arc<dirWatch>,
-    impl_: Arc<dyn watcherImpl>,
+    w: &'static PlatformWatcher,
+    dw: Arc<DirWatch>,
+    impl_: Arc<dyn WatcherImpl>,
     id: u64,
 }
 
-impl Watch for watch {
+impl Watch for WatchHandle {
     // watcher.go:620
     fn close(&self) -> Result<(), Error> {
         let mut cancelled = self.mu.lock().unwrap();
@@ -933,35 +941,35 @@ impl Watch for watch {
 // watcherImpl is the internal interface implemented by each platform watcher.
 // Go embeds `watcherBase` (shared watch tracking and lifecycle) in each backend and dispatches through
 // `self`; here `base()` returns the embedded value and the shared logic is the free functions below.
-pub(crate) trait watcherImpl: Send + Sync + 'static {
-    fn base(&self) -> &watcherBase;
+pub(crate) trait WatcherImpl: Send + Sync + 'static {
+    fn base(&self) -> &WatcherBase;
     // Runs on its own thread (Go: a goroutine started by watcherBase.run) and returns when the backend stops.
     fn start(self: Arc<Self>) -> Result<(), Error>;
     fn shutdown(&self) {}
-    fn subscribe(&self, w: &Arc<dirWatch>) -> Result<(), Error>;
+    fn subscribe(&self, w: &Arc<DirWatch>) -> Result<(), Error>;
     // Go: the optional `subscribeMany` interface; None = not implemented.
-    fn subscribe_many(&self, _watches: &[Arc<dirWatch>]) -> Option<Result<(), Error>> {
+    fn subscribe_many(&self, _watches: &[Arc<DirWatch>]) -> Option<Result<(), Error>> {
         None
     }
-    fn close_watch(&self, w: &Arc<dirWatch>) -> Result<(), Error>;
+    fn close_watch(&self, w: &Arc<DirWatch>) -> Result<(), Error>;
 }
 
 // watcherBase provides shared watch-tracking and lifecycle logic.
 // Concrete backends embed it and override subscribe/closeWatch/start.
 #[derive(Default)]
-pub(crate) struct watcherBase {
-    pub(crate) mu: Mutex<watcherBaseState>,
+pub(crate) struct WatcherBase {
+    pub(crate) mu: Mutex<WatcherBaseState>,
     started: Mutex<bool>,
     started_cv: Condvar,
 }
 
 #[derive(Default)]
-pub(crate) struct watcherBaseState {
-    subscriptions: FxHashSet<dwKey>,
+pub(crate) struct WatcherBaseState {
+    subscriptions: FxHashSet<DwKey>,
     start_err: Option<Error>,
 }
 
-impl watcherBase {
+impl WatcherBase {
     // watcher.go:669
     pub(crate) fn notify_started(&self) {
         let mut started = self.started.lock().unwrap();
@@ -975,7 +983,7 @@ impl watcherBase {
     fn handle_start_error(&self, err: &Error) {
         let mut st = self.mu.lock().unwrap();
         st.start_err = Some(err.clone());
-        let subs: Vec<Arc<dirWatch>> = st.subscriptions.iter().map(|k| Arc::clone(&k.0)).collect();
+        let subs: Vec<Arc<DirWatch>> = st.subscriptions.iter().map(|k| Arc::clone(&k.0)).collect();
         drop(st);
         for w in subs {
             w.notify_error(err);
@@ -985,7 +993,7 @@ impl watcherBase {
 }
 
 // watcher.go:680
-fn run(impl_: &Arc<dyn watcherImpl>) -> Result<(), Error> {
+fn run(impl_: &Arc<dyn WatcherImpl>) -> Result<(), Error> {
     let starter = Arc::clone(impl_);
     std::thread::Builder::new()
         .name("fswatch-backend".to_string())
@@ -1017,13 +1025,13 @@ fn run(impl_: &Arc<dyn watcherImpl>) -> Result<(), Error> {
 
 // watcher.go:717
 pub(crate) fn watch_add_many(
-    impl_: &Arc<dyn watcherImpl>,
-    watches: &[Arc<dirWatch>],
+    impl_: &Arc<dyn WatcherImpl>,
+    watches: &[Arc<DirWatch>],
 ) -> Result<(), Error> {
     let mut st = impl_.base().mu.lock().unwrap();
-    let to_add: Vec<Arc<dirWatch>> = watches
+    let to_add: Vec<Arc<DirWatch>> = watches
         .iter()
-        .filter(|w| !st.subscriptions.contains(&dwKey(Arc::clone(*w))))
+        .filter(|w| !st.subscriptions.contains(&DwKey(Arc::clone(*w))))
         .cloned()
         .collect();
     if to_add.is_empty() {
@@ -1032,29 +1040,29 @@ pub(crate) fn watch_add_many(
 
     if let Some(result) = impl_.subscribe_many(&to_add) {
         result?;
-        st.subscriptions.extend(to_add.into_iter().map(dwKey));
+        st.subscriptions.extend(to_add.into_iter().map(DwKey));
         return Ok(());
     }
 
-    let mut added: Vec<Arc<dirWatch>> = Vec::with_capacity(to_add.len());
+    let mut added: Vec<Arc<DirWatch>> = Vec::with_capacity(to_add.len());
     for w in to_add {
         if let Err(err) = impl_.subscribe(&w) {
             for added_watch in &added {
-                st.subscriptions.remove(&dwKey(Arc::clone(added_watch)));
+                st.subscriptions.remove(&DwKey(Arc::clone(added_watch)));
                 let _ = impl_.close_watch(added_watch);
             }
             return Err(err);
         }
-        st.subscriptions.insert(dwKey(Arc::clone(&w)));
+        st.subscriptions.insert(DwKey(Arc::clone(&w)));
         added.push(w);
     }
     Ok(())
 }
 
 // watcher.go:764
-pub(crate) fn watch_remove(impl_: &Arc<dyn watcherImpl>, w: &Arc<dirWatch>) {
+pub(crate) fn watch_remove(impl_: &Arc<dyn WatcherImpl>, w: &Arc<DirWatch>) {
     let mut st = impl_.base().mu.lock().unwrap();
-    if !st.subscriptions.remove(&dwKey(Arc::clone(w))) {
+    if !st.subscriptions.remove(&DwKey(Arc::clone(w))) {
         return;
     }
     let _ = impl_.close_watch(w);
@@ -1065,11 +1073,11 @@ pub(crate) fn watch_remove(impl_: &Arc<dyn watcherImpl>, w: &Arc<dirWatch>) {
     dead_code,
     reason = "its only Go caller, windows.go (windowsSubscription.fatal), is not ported"
 )]
-pub(crate) fn handle_watcher_error(impl_: &Arc<dyn watcherImpl>, werr: &dirWatchError) {
+pub(crate) fn handle_watcher_error(impl_: &Arc<dyn WatcherImpl>, werr: &DirWatchError) {
     watch_remove(impl_, &werr.dir_watch);
     let err = Error::wrap2(
-        format!("{}: {}", ErrWatchTerminated.0, werr.err),
-        &ErrWatchTerminated.into(),
+        format!("{}: {}", ERR_WATCH_TERMINATED.0, werr.err),
+        &ERR_WATCH_TERMINATED.into(),
         &werr.err,
     );
     werr.dir_watch.notify_error(&err);
@@ -1078,7 +1086,7 @@ pub(crate) fn handle_watcher_error(impl_: &Arc<dyn watcherImpl>, werr: &dirWatch
 // ----- dirWatch: per-directory watch state -------------------------
 
 #[derive(Clone)]
-pub(crate) struct callback {
+pub(crate) struct Callback {
     id: u64,
     dir: String,
     physical_dir: String,
@@ -1090,40 +1098,40 @@ pub(crate) struct callback {
     since_seq: u64,
     terminal: Option<Error>,
     delivered: bool,
-    comparer: pathComparer,
+    comparer: BytePathComparer,
     #[cfg(target_os = "macos")] // read only by terminate_callbacks_for_deleted_root
-    dir_comparison: comparisonPath<'static>,
-    physical_comparison: comparisonPath<'static>,
-    file_comparison: comparisonPath<'static>,
+    dir_comparison: ComparisonPath<'static>,
+    physical_comparison: ComparisonPath<'static>,
+    file_comparison: ComparisonPath<'static>,
 }
 
 // dirWatchError associates an error with a specific directory watch.
-pub(crate) struct dirWatchError {
+pub(crate) struct DirWatchError {
     pub(crate) err: Error,
     #[expect(
         dead_code,
         reason = "read only by handle_watcher_error, whose Go caller (windows.go) is not ported"
     )]
-    pub(crate) dir_watch: Arc<dirWatch>,
+    pub(crate) dir_watch: Arc<DirWatch>,
 }
 
-impl From<dirWatchError> for Error {
-    fn from(e: dirWatchError) -> Error {
+impl From<DirWatchError> for Error {
+    fn from(e: DirWatchError) -> Error {
         e.err
     }
 }
 
 // dirWatch holds per-directory state: pending events, registered callbacks,
 // and a reference to the shared debouncer. Each watched directory has one.
-pub(crate) struct dirWatch {
+pub(crate) struct DirWatch {
     // dir is the caller-visible watch root used in delivered event paths.
     pub(crate) dir: String,
     // physicalDir is the path passed to OS watcher APIs. It differs from dir
     // when dir or an ancestor is a symlink or reparse point to a directory.
     pub(crate) physical_dir: String,
     pub(crate) recursive: bool,
-    pub(crate) events: eventList,
-    pub(crate) comparer: pathComparer,
+    pub(crate) events: EventList,
+    pub(crate) comparer: BytePathComparer,
     #[cfg(target_os = "macos")] // read only by the FSEvents backend
     pub(crate) dir_fold: String,
     #[cfg(target_os = "macos")] // read only by the FSEvents backend
@@ -1135,28 +1143,28 @@ pub(crate) struct dirWatch {
     // sequence returns a backend event sequence cutoff for new logical callbacks.
     sequence: Option<fn() -> u64>,
 
-    mu: Mutex<dirWatchState>,
+    mu: Mutex<DirWatchState>,
     key: usize,
 }
 
-struct dirWatchState {
-    callbacks: Vec<callback>,
-    debounce: Option<Arc<debounce>>,
+struct DirWatchState {
+    callbacks: Vec<Callback>,
+    debounce: Option<Arc<Debounce>>,
     next_cb_id: u64,
 }
 
-static nextDirWatchKey: AtomicU64 = AtomicU64::new(1);
+static NEXT_DIR_WATCH_KEY: AtomicU64 = AtomicU64::new(1);
 
-impl dirWatch {
+impl DirWatch {
     // watcher.go:834 (newDirWatch + setComparer + the fields getOrCreateDirWatch assigns before publishing it)
     pub(crate) fn new(
         dir: String,
         physical_dir: String,
-        db: &Arc<debounce>,
-        comparer: pathComparer,
+        db: &Arc<Debounce>,
+        comparer: BytePathComparer,
         sequence: Option<fn() -> u64>,
         recursive: bool,
-    ) -> Arc<dirWatch> {
+    ) -> Arc<DirWatch> {
         #[cfg(target_os = "macos")]
         let dir_fold = comparer.prepare(&dir).folded;
         #[cfg(target_os = "macos")]
@@ -1165,11 +1173,11 @@ impl dirWatch {
         } else {
             comparer.prepare(&physical_dir).folded
         };
-        let dw = Arc::new(dirWatch {
+        let dw = Arc::new(DirWatch {
             dir,
             physical_dir,
             recursive,
-            events: eventList::default(),
+            events: EventList::default(),
             comparer,
             #[cfg(target_os = "macos")]
             dir_fold,
@@ -1178,12 +1186,12 @@ impl dirWatch {
             #[cfg(target_os = "macos")]
             state: Mutex::new(None),
             sequence,
-            mu: Mutex::new(dirWatchState {
+            mu: Mutex::new(DirWatchState {
                 callbacks: Vec::new(),
                 debounce: Some(Arc::clone(db)),
                 next_cb_id: 0,
             }),
-            key: nextDirWatchKey.fetch_add(1, Ordering::Relaxed) as usize,
+            key: NEXT_DIR_WATCH_KEY.fetch_add(1, Ordering::Relaxed) as usize,
         });
         let target = Arc::clone(&dw);
         db.add(dw.key, Arc::new(move || target.trigger_callbacks()));
@@ -1270,7 +1278,7 @@ impl dirWatch {
         let mut st = self.mu.lock().unwrap();
         let has_error = self.events.has_error();
         let has_events = self.events.size() > 0;
-        let mut cbs: Vec<callback> = Vec::with_capacity(st.callbacks.len());
+        let mut cbs: Vec<Callback> = Vec::with_capacity(st.callbacks.len());
         let mut has_terminal = false;
         for cb in &st.callbacks {
             if cb.delivered {
@@ -1305,8 +1313,8 @@ impl dirWatch {
         }
         drop(st);
 
-        let comparisons = Mutex::new(comparisonCache::default());
-        let index = (cbs.len() > 1 && entries.len() > 1).then(|| eventIndex::new(&entries, self));
+        let comparisons = Mutex::new(ComparisonCache::default());
+        let index = (cbs.len() > 1 && entries.len() > 1).then(|| EventIndex::new(&entries, self));
         for cb in &cbs {
             let mut cb_events: Vec<Event> =
                 match index.as_ref().and_then(|index| index.candidates(cb)) {
@@ -1328,7 +1336,7 @@ impl dirWatch {
                 for e in cb_events {
                     let mut e = cb.map_event_cached(e, Some(&comparisons));
                     if !cb.file_comparison.path.is_empty() {
-                        let mut path = comparisonPath {
+                        let mut path = ComparisonPath {
                             path: e.path.clone(),
                             cache: Some(&comparisons),
                             ..Default::default()
@@ -1347,7 +1355,7 @@ impl dirWatch {
                     if cb.dir != self.dir
                         && !e.included_watch_root
                         && e.path == cb.dir
-                        && e.kind == EventKind::Update
+                        && e.kind == EventKind::UPDATE
                     {
                         continue;
                     }
@@ -1383,8 +1391,8 @@ impl dirWatch {
     ) -> bool {
         let mut st = self.mu.lock().unwrap();
         let mut changed = false;
-        let comparisons = Mutex::new(comparisonCache::default());
-        let deleted = comparisonPath {
+        let comparisons = Mutex::new(ComparisonCache::default());
+        let deleted = ComparisonPath {
             path: path.to_string(),
             cache: Some(&comparisons),
             ..Default::default()
@@ -1393,7 +1401,7 @@ impl dirWatch {
             if cb.delivered || cb.terminal.is_some() || cb.since_seq >= seq {
                 continue;
             }
-            let physical_path = comparisonPath {
+            let physical_path = ComparisonPath {
                 path: cb.event_physical_path(path),
                 cache: Some(&comparisons),
                 ..Default::default()
@@ -1444,7 +1452,7 @@ impl dirWatch {
         if let Some(sequence) = self.sequence {
             since_seq = sequence();
         }
-        st.callbacks.push(callback {
+        st.callbacks.push(Callback {
             id,
             dir: dir.to_string(),
             physical_dir: physical_dir.to_string(),
@@ -1476,7 +1484,7 @@ impl dirWatch {
     }
 
     // watcher.go:1158
-    fn unref(self: &Arc<Self>, w: &watcher) {
+    fn unref(self: &Arc<Self>, w: &PlatformWatcher) {
         let empty = self.mu.lock().unwrap().callbacks.is_empty();
         if empty {
             w.remove_dir_watch(self);
@@ -1494,7 +1502,7 @@ impl dirWatch {
     }
 }
 
-impl callback {
+impl Callback {
     // watcher.go:1046
     #[expect(
         dead_code,
@@ -1505,11 +1513,11 @@ impl callback {
     }
 
     // watcher.go:1050
-    fn map_event_cached(&self, mut e: Event, cache: Option<&Mutex<comparisonCache>>) -> Event {
+    fn map_event_cached(&self, mut e: Event, cache: Option<&Mutex<ComparisonCache>>) -> Event {
         if !self.physical_dir.is_empty()
             && (self.physical_dir != self.dir || self.comparer.ignore_case)
         {
-            let mut physical_path = comparisonPath {
+            let mut physical_path = ComparisonPath {
                 path: self.event_physical_path(&e.path),
                 cache,
                 ..Default::default()
@@ -1545,16 +1553,16 @@ impl callback {
 // non-ASCII path, which folding would compare through CoreFoundation, is a candidate for every callback. The callback's
 // filter then runs on the candidates unchanged, so the keys only need to cover every event it can accept: a direct
 // child of its directory, or its directory itself.
-struct eventIndex {
+struct EventIndex {
     ignore_case: bool,
     by_parent: FxHashMap<String, Vec<usize>>,
     by_path: FxHashMap<String, Vec<usize>>,
     everyone: Vec<usize>,
 }
 
-impl eventIndex {
-    fn new(entries: &[(String, crate::event::eventEntry)], w: &dirWatch) -> eventIndex {
-        let mut index = eventIndex {
+impl EventIndex {
+    fn new(entries: &[(String, crate::event::EventEntry)], w: &DirWatch) -> EventIndex {
+        let mut index = EventIndex {
             ignore_case: w.comparer.ignore_case,
             by_parent: FxHashMap::default(),
             by_path: FxHashMap::default(),
@@ -1597,7 +1605,7 @@ impl eventIndex {
 
     // The entries `cb` may accept, in entry order; None when it may accept any (a recursive callback, or a directory
     // the keys cannot express).
-    fn candidates(&self, cb: &callback) -> Option<Vec<usize>> {
+    fn candidates(&self, cb: &Callback) -> Option<Vec<usize>> {
         if cb.recursive {
             return None;
         }

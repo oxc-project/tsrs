@@ -40,14 +40,14 @@ pub struct RenameInfo {
 }
 
 // rename.go:34
-struct mappedRenameEdit {
+struct MappedRenameEdit {
     uri: lsproto::DocumentUri,
     edit: lsproto::TextEdit,
 }
 
 // rename.go:39
 #[derive(Clone, PartialEq, Eq, Hash)]
-struct renameEditKey {
+struct RenameEditKey {
     uri: lsproto::DocumentUri,
     text_range: lsproto::Range,
 }
@@ -55,13 +55,13 @@ struct renameEditKey {
 // Go returns `(map, ok)`; the map's iteration order is random in Go, the port keeps first-seen order.
 // rename.go:44
 fn deduplicate_rename_edits(
-    mapped_edits: Vec<mappedRenameEdit>,
+    mapped_edits: Vec<MappedRenameEdit>,
 ) -> Option<OrderedMap<lsproto::DocumentUri, Vec<lsproto::TextEdit>>> {
-    let mut edit_texts: FxHashMap<renameEditKey, String> = FxHashMap::default();
-    let mut unique_edits: Vec<mappedRenameEdit> = Vec::with_capacity(mapped_edits.len());
+    let mut edit_texts: FxHashMap<RenameEditKey, String> = FxHashMap::default();
+    let mut unique_edits: Vec<MappedRenameEdit> = Vec::with_capacity(mapped_edits.len());
     for mapped_edit in mapped_edits {
         let key =
-            renameEditKey { uri: mapped_edit.uri.clone(), text_range: mapped_edit.edit.range };
+            RenameEditKey { uri: mapped_edit.uri.clone(), text_range: mapped_edit.edit.range };
         match edit_texts.entry(key) {
             Entry::Occupied(entry) => {
                 if *entry.get() != mapped_edit.edit.new_text {
@@ -116,7 +116,7 @@ impl LanguageService {
         let positions = self.converters.from_lsp_position_for_source_file(
             source_file,
             position,
-            Feature::Rename,
+            Feature::RENAME,
         );
         if let Some(result) = positions.into_iter().find_map(|mapped| {
             if !mapped.fidelity.is_exact() {
@@ -141,7 +141,7 @@ impl LanguageService {
         }) {
             return result;
         }
-        get_rename_info_error(ctx, &diagnostics::You_cannot_rename_this_element)
+        get_rename_info_error(ctx, &diagnostics::YOU_CANNOT_RENAME_THIS_ELEMENT)
     }
 
     // rename.go:98
@@ -180,7 +180,7 @@ impl LanguageService {
 
         let entries: Vec<_> =
             data.symbols_and_entries.iter().flat_map(|s| s.references.iter().cloned()).collect();
-        let mut mapped_edits: Vec<mappedRenameEdit> = Vec::new();
+        let mut mapped_edits: Vec<MappedRenameEdit> = Vec::new();
         let mut ch = program.get_type_checker(ctx);
         let ch: &mut Checker = &mut ch;
 
@@ -214,7 +214,7 @@ impl LanguageService {
                     use_aliases_for_rename,
                 ),
             };
-            Some(mappedRenameEdit { uri, edit: text_edit })
+            Some(MappedRenameEdit { uri, edit: text_edit })
         }));
         let Some(changes) = deduplicate_rename_edits(mapped_edits) else {
             return Ok(lsproto::WorkspaceEditOrNull::default());
@@ -346,7 +346,7 @@ impl LanguageService {
     ) -> Option<&'static Message> {
         if let Some(result) = symbol.declarations().iter().find_map(|&declaration| {
             if is_defined_in_library_file(program, declaration) {
-                Some(Some(&diagnostics::You_cannot_rename_elements_that_are_defined_in_the_standard_TypeScript_library))
+                Some(Some(&diagnostics::YOU_CANNOT_RENAME_ELEMENTS_THAT_ARE_DEFINED_IN_THE_STANDARD_TYPE_SCRIPT_LIBRARY))
             } else {
                 None
             }
@@ -357,9 +357,9 @@ impl LanguageService {
         // Cannot rename `default` as in `import { default as foo } from "./someModule"`
         if ast::is_identifier(node)
             && node.text() == "default"
-            && symbol.parent().is_some_and(|parent| parent.flags().intersects(SymbolFlags::Module))
+            && symbol.parent().is_some_and(|parent| parent.flags().intersects(SymbolFlags::MODULE))
         {
-            return Some(&diagnostics::You_cannot_rename_this_element);
+            return Some(&diagnostics::YOU_CANNOT_RENAME_THIS_ELEMENT);
         }
 
         if let Some(msg) =
@@ -390,7 +390,7 @@ fn would_rename_in_other_node_modules(
 ) -> Option<&'static Message> {
     let mut sym = symbol;
     if !preferences.use_aliases_for_rename.is_true_or_unknown()
-        && sym.flags().intersects(SymbolFlags::Alias)
+        && sym.flags().intersects(SymbolFlags::ALIAS)
     {
         let import_specifier =
             sym.declarations().iter().copied().find(|&d| ast::is_import_specifier(d));
@@ -412,7 +412,7 @@ fn would_rename_in_other_node_modules(
         // Original source file is not in node_modules.
         if let Some(result) = declarations.iter().find_map(|&declaration| {
             if is_inside_node_modules(ast::get_source_file_of_node(declaration).unwrap().file_name()) {
-                Some(Some(&diagnostics::You_cannot_rename_elements_that_are_defined_in_a_node_modules_folder))
+                Some(Some(&diagnostics::YOU_CANNOT_RENAME_ELEMENTS_THAT_ARE_DEFINED_IN_A_NODE_MODULES_FOLDER))
             } else {
                 None
             }
@@ -426,7 +426,7 @@ fn would_rename_in_other_node_modules(
     if let Some(result) = declarations.iter().find_map(|&declaration| {
         let decl_package = tsrs_module::node_module_package_root_for_file(ast::get_source_file_of_node(declaration).unwrap().file_name());
         if !decl_package.is_empty() && decl_package != original_package {
-            return Some(Some(&diagnostics::You_cannot_rename_elements_that_are_defined_in_another_node_modules_folder));
+            return Some(Some(&diagnostics::YOU_CANNOT_RENAME_ELEMENTS_THAT_ARE_DEFINED_IN_ANOTHER_NODE_MODULES_FOLDER));
         }
 
         None
@@ -452,7 +452,7 @@ pub fn client_supports_rename_resource_operations(ctx: &Context) -> bool {
         .workspace
         .workspace_edit
         .resource_operations
-        .contains(&lsproto::ResourceOperationKind::Rename)
+        .contains(&lsproto::ResourceOperationKind::RENAME)
 }
 
 impl LanguageService {
@@ -469,7 +469,7 @@ impl LanguageService {
         if !tspath::is_external_module_name_relative(specifier.text()) {
             return Some(get_rename_info_error(
                 ctx,
-                &diagnostics::You_cannot_rename_a_module_via_a_global_import,
+                &diagnostics::YOU_CANNOT_RENAME_A_MODULE_VIA_A_GLOBAL_IMPORT,
             ));
         }
         if !client_supports_document_changes(ctx)
@@ -477,7 +477,7 @@ impl LanguageService {
         {
             return Some(get_rename_info_error(
                 ctx,
-                &diagnostics::File_rename_is_not_supported_by_the_editor,
+                &diagnostics::FILE_RENAME_IS_NOT_SUPPORTED_BY_THE_EDITOR,
             ));
         }
 

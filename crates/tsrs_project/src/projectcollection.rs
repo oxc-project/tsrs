@@ -50,7 +50,7 @@ pub struct APIState {
     // openFiles is the ref-counted set of files to keep open for API clients,
     // keyed by file path. Files with no configured project are loaded into the
     // inferred project.
-    pub(crate) open_files: FxHashMap<Path, apiOpenedFile>,
+    pub(crate) open_files: FxHashMap<Path, ApiOpenedFile>,
 }
 
 impl APIState {
@@ -67,7 +67,7 @@ impl APIState {
 
 // apiOpenedFile tracks a file kept open by API clients along with its ref count.
 #[derive(Clone, Debug, Default, PartialEq)]
-pub(crate) struct apiOpenedFile {
+pub(crate) struct ApiOpenedFile {
     pub(crate) file_name: String,
     pub(crate) ref_count: usize,
 }

@@ -250,7 +250,7 @@ pub(crate) fn format_diagnostics_with_color_and_context(
         flattened_message(*diagnostic, new_line, 0, &mut out);
 
         if let Some(file) = diagnostic.file() {
-            if diagnostic.code() != tsrs_diagnostics::File_appears_to_be_binary.code() {
+            if diagnostic.code() != tsrs_diagnostics::FILE_APPEARS_TO_BE_BINARY.code() {
                 out.push_str(new_line);
                 write_code_snippet(
                     &mut out,

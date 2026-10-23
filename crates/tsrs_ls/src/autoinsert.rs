@@ -31,7 +31,7 @@ impl LanguageService {
         let positions = self.converters.from_lsp_position_for_source_file(
             source_file,
             params.vs_position,
-            Feature::AutoInsert,
+            Feature::AUTO_INSERT,
         );
         if positions.len() != 1 || !positions[0].fidelity.is_exact() {
             return Ok(lsproto::VSOnAutoInsertResponse::default());
@@ -83,7 +83,7 @@ impl LanguageService {
 
         Ok(lsproto::VSOnAutoInsertResponse {
             vs_on_auto_insert_response_item: Some(lsproto::VSOnAutoInsertResponseItem {
-                vs_text_edit_format: lsproto::InsertTextFormat::Snippet,
+                vs_text_edit_format: lsproto::InsertTextFormat::SNIPPET,
                 vs_text_edit: lsproto::TextEdit {
                     range: lsproto::Range { start: params.vs_position, end: params.vs_position },
                     // Tag names can contain `$` (valid JSX identifier characters), so
@@ -118,7 +118,7 @@ fn is_unclosed_tag(node: P<Node>) -> bool {
 // autoinsert.go:93
 fn is_unclosed_fragment(node: P<Node>) -> bool {
     let closing_fragment = node.as_jsx_fragment().closing_fragment;
-    if closing_fragment.flags().intersects(NodeFlags::ThisNodeHasError) {
+    if closing_fragment.flags().intersects(NodeFlags::THIS_NODE_HAS_ERROR) {
         return true;
     }
 

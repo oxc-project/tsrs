@@ -4,7 +4,7 @@ use crate::*;
 pub(crate) fn needs_scope_marker(result: P<Node>) -> bool {
     !ast::is_any_import_or_re_export(result)
         && !ast::is_export_assignment(result)
-        && !ast::has_syntactic_modifier(result, ModifierFlags::Export)
+        && !ast::has_syntactic_modifier(result, ModifierFlags::EXPORT)
         && !ast::is_ambient_module(result)
 }
 
@@ -12,7 +12,7 @@ pub(crate) fn needs_scope_marker(result: P<Node>) -> bool {
 pub(crate) fn can_have_literal_initializer(resolver: Resolver, node: P<Node>) -> bool {
     match node.kind() {
         Kind::PropertyDeclaration | Kind::PropertySignature => {
-            resolver.get_effective_declaration_flags(node, ModifierFlags::Private).is_empty()
+            resolver.get_effective_declaration_flags(node, ModifierFlags::PRIVATE).is_empty()
         }
         Kind::Parameter | Kind::VariableDeclaration => true,
         _ => false,
@@ -51,7 +51,7 @@ pub(crate) fn can_produce_diagnostics(node: P<Node>) -> bool {
 pub(crate) fn can_reuse_modifier_nodes(nodes: &[P<Node>]) -> bool {
     !(nodes
         .iter()
-        .any(|&node| ast::is_modifier(node) && node.flags().intersects(NodeFlags::Reparsed)))
+        .any(|&node| ast::is_modifier(node) && node.flags().intersects(NodeFlags::REPARSED)))
 }
 
 // util.go:61
@@ -128,13 +128,13 @@ pub(crate) fn mask_modifier_flags(
     modifier_additions: ModifierFlags,
 ) -> ModifierFlags {
     let mut flags = (ast::get_combined_modifier_flags(node) & modifier_mask) | modifier_additions;
-    if flags.intersects(ModifierFlags::Default) && !flags.intersects(ModifierFlags::Export) {
+    if flags.intersects(ModifierFlags::DEFAULT) && !flags.intersects(ModifierFlags::EXPORT) {
         // A non-exported default is a nonsequitor - we usually try to remove all export modifiers
         // from statements in ambient declarations; but a default export must retain its export modifier to be syntactically valid
-        flags ^= ModifierFlags::Export;
+        flags ^= ModifierFlags::EXPORT;
     }
-    if flags.intersects(ModifierFlags::Default) && flags.intersects(ModifierFlags::Ambient) {
-        flags ^= ModifierFlags::Ambient; // `declare` is never required alongside `default` (and would be an error if printed)
+    if flags.intersects(ModifierFlags::DEFAULT) && flags.intersects(ModifierFlags::AMBIENT) {
+        flags ^= ModifierFlags::AMBIENT; // `declare` is never required alongside `default` (and would be an error if printed)
     }
     flags
 }
@@ -152,7 +152,7 @@ pub(crate) fn unwrap_parenthesized_expression(o: P<Node>) -> P<Node> {
 pub(crate) fn is_private_method_type_parameter(resolver: Resolver, node: P<Node>) -> bool {
     let parent = node.parent().unwrap();
     parent.kind() == Kind::MethodDeclaration
-        && !resolver.get_effective_declaration_flags(parent, ModifierFlags::Private).is_empty()
+        && !resolver.get_effective_declaration_flags(parent, ModifierFlags::PRIVATE).is_empty()
 }
 
 // util.go:153

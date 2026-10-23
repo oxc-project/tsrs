@@ -9,7 +9,7 @@ use crate::parser_1::{JSDocInfo, Parser, ParsingContext};
 
 impl Parser {
     pub(crate) fn finish_reparsed_node(&mut self, node: P<Node>, location_node: P<Node>) {
-        node.set_flags(self.context_flags | NodeFlags::Reparsed);
+        node.set_flags(self.context_flags | NodeFlags::REPARSED);
         node.set_loc(location_node.loc());
         self.override_parent_in_immediate_children(node);
     }
@@ -37,7 +37,7 @@ impl Parser {
 
     pub(crate) fn add_transformed_reparse(&mut self, new_node: P<Node>, old: P<Node>) -> P<Node> {
         self.finish_reparsed_node(new_node, old);
-        new_node.set_flags(new_node.flags() | NodeFlags::ReparserTransformedLiteral);
+        new_node.set_flags(new_node.flags() | NodeFlags::REPARSER_TRANSFORMED_LITERAL);
         self.reparsed_clones.push(new_node);
         new_node
     }
@@ -52,7 +52,7 @@ impl Parser {
                 let pos = name.loc().pos().expect_source("parsed nodes have source positions");
                 err_loc = TextRange::new(pos - 1, pos);
             }
-            self.parse_error_at_range(err_loc, &diagnostics::Identifier_expected, &[]);
+            self.parse_error_at_range(err_loc, &diagnostics::IDENTIFIER_EXPECTED, &[]);
         }
         Some(name)
     }
@@ -103,7 +103,7 @@ impl Parser {
                 type_alias.as_type_alias_declaration().type_.set(t);
                 self.finish_reparsed_node(type_alias, tag);
                 self.jsdoc_infos.push(JSDocInfo { parent: type_alias, js_docs: alloc_slice(&[js_doc]) });
-                type_alias.set_flags(type_alias.flags() | NodeFlags::HasJSDoc);
+                type_alias.set_flags(type_alias.flags() | NodeFlags::HAS_JSDOC);
                 let result = self.wrap_in_jsdoc_namespace(full_name, type_alias, false /*nested*/);
                 tsrs_core::arena_pin();
                 self.reparse_list.push(result);
@@ -126,7 +126,7 @@ impl Parser {
                 type_alias.as_type_alias_declaration().type_parameters.set(type_parameters);
                 self.finish_reparsed_node(type_alias, tag);
                 self.jsdoc_infos.push(JSDocInfo { parent: type_alias, js_docs: alloc_slice(&[js_doc]) });
-                type_alias.set_flags(type_alias.flags() | NodeFlags::HasJSDoc);
+                type_alias.set_flags(type_alias.flags() | NodeFlags::HAS_JSDOC);
                 let result = self.wrap_in_jsdoc_namespace(full_name, type_alias, false /*nested*/);
                 tsrs_core::arena_pin();
                 self.reparse_list.push(result);
@@ -234,7 +234,7 @@ impl Parser {
                 let this_tag = param.as_jsdoc_this_tag();
                 let this_ident = self.factory.new_identifier("this");
                 this_ident.set_loc(param.loc());
-                this_ident.set_flags(self.context_flags | NodeFlags::Reparsed);
+                this_ident.set_flags(self.context_flags | NodeFlags::REPARSED);
                 parameter = self
                     .factory
                     .new_parameter_declaration(None, None, this_ident, None, None, None);
@@ -258,7 +258,7 @@ impl Parser {
                     if type_expression.type_node().unwrap().kind() == Kind::JSDocVariadicType {
                         let token = self.factory.new_token(Kind::DotDotDotToken);
                         token.set_loc(param.loc());
-                        token.set_flags(self.context_flags | NodeFlags::Reparsed);
+                        token.set_flags(self.context_flags | NodeFlags::REPARSED);
                         dot_dot_dot_token = Some(token);
 
                         let variadic_type =
@@ -349,7 +349,7 @@ impl Parser {
                 {
                     let literal = self
                         .factory
-                        .new_string_literal(name.as_identifier().text(), TokenFlags::None);
+                        .new_string_literal(name.as_identifier().text(), TokenFlags::NONE);
                     name = self.add_transformed_reparse(literal, name);
                 } else {
                     name = self.add_deep_clone_reparse(Some(name)).unwrap();
@@ -396,7 +396,7 @@ impl Parser {
             self.finish_reparsed_node(prop_jsdoc, tag);
             prop_jsdoc.set_parent(Some(node));
             self.jsdoc_infos.push(JSDocInfo { parent: node, js_docs: alloc_slice(&[prop_jsdoc]) });
-            node.set_flags(node.flags() | NodeFlags::HasJSDoc);
+            node.set_flags(node.flags() | NodeFlags::HAS_JSDOC);
         }
     }
 
@@ -780,7 +780,7 @@ impl Parser {
                     };
                     let modifier = self.factory.new_modifier(keyword);
                     modifier.set_loc(tag.loc());
-                    modifier.set_flags(self.context_flags | NodeFlags::Reparsed);
+                    modifier.set_flags(self.context_flags | NodeFlags::REPARSED);
                     let nodes: Vec<P<Node>>;
                     let loc;
                     match parent.modifiers() {
@@ -904,7 +904,7 @@ impl Parser {
         {
             let token = self.factory.new_token(Kind::QuestionToken);
             token.set_loc(parameter.loc());
-            token.set_flags(self.context_flags | NodeFlags::Reparsed);
+            token.set_flags(self.context_flags | NodeFlags::REPARSED);
             question_token = Some(token);
         }
         question_token
@@ -927,7 +927,7 @@ impl Parser {
     pub(crate) fn create_export_modifier(&self, location_node: P<Node>) -> P<ModifierList> {
         let export_modifier = self.factory.new_modifier(Kind::ExportKeyword);
         export_modifier.set_loc(location_node.loc());
-        export_modifier.set_flags(self.context_flags | NodeFlags::Reparsed);
+        export_modifier.set_flags(self.context_flags | NodeFlags::REPARSED);
         self.new_modifier_list(location_node.loc(), &[export_modifier])
     }
 

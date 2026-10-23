@@ -12,11 +12,11 @@ use std::sync::{Arc, Condvar, Mutex};
 
 use crate::walkdir_unix::walk_dir;
 use crate::watcher::{
-    ErrOverflow, Error, dirWatch, dwKey, err_watched_directory_removed, watcher, watcherBase,
-    watcherImpl,
+    DirWatch, DwKey, ERR_OVERFLOW, Error, PlatformWatcher, WatcherBase, WatcherImpl,
+    err_watched_directory_removed,
 };
 
-const inotifyMask: u32 = libc::IN_CREATE
+const INOTIFY_MASK: u32 = libc::IN_CREATE
     | libc::IN_DELETE
     | libc::IN_DELETE_SELF
     | libc::IN_MODIFY
@@ -26,36 +26,36 @@ const inotifyMask: u32 = libc::IN_CREATE
     | libc::IN_DONT_FOLLOW
     | libc::IN_ONLYDIR
     | libc::IN_EXCL_UNLINK;
-const inotifyBufferSize: usize = 8192;
+const INOTIFY_BUFFER_SIZE: usize = 8192;
 
 #[derive(Clone)]
-struct inotifySubscription {
+struct InotifySubscription {
     path: String,
     watch_path: String,
-    dir_watch: Arc<dirWatch>,
+    dir_watch: Arc<DirWatch>,
 }
 
-pub(crate) struct inotifyBackend {
-    base: watcherBase,
+pub(crate) struct InotifyBackend {
+    base: WatcherBase,
 
     pipe_read_fd: AtomicI32,
     pipe_write_fd: AtomicI32,
     inotify: AtomicI32,
-    subscriptions: Mutex<FxHashMap<i32, Vec<inotifySubscription>>>, // multimap<wd, sub>
+    subscriptions: Mutex<FxHashMap<i32, Vec<InotifySubscription>>>, // multimap<wd, sub>
     ended: Mutex<bool>,
     ended_cv: Condvar,
 }
 
 // inotify_linux.go:66 (init)
-pub(crate) fn init(mut w: watcher) -> watcher {
-    w.factory = Some(|| Arc::new(new_inotify_backend()) as Arc<dyn watcherImpl>);
+pub(crate) fn init(mut w: PlatformWatcher) -> PlatformWatcher {
+    w.factory = Some(|| Arc::new(new_inotify_backend()) as Arc<dyn WatcherImpl>);
     w
 }
 
 // inotify_linux.go:70
-fn new_inotify_backend() -> inotifyBackend {
-    inotifyBackend {
-        base: watcherBase::default(),
+fn new_inotify_backend() -> InotifyBackend {
+    InotifyBackend {
+        base: WatcherBase::default(),
         pipe_read_fd: AtomicI32::new(-1),
         pipe_write_fd: AtomicI32::new(-1),
         inotify: AtomicI32::new(-1),
@@ -74,7 +74,7 @@ fn last_errno() -> i32 {
     std::io::Error::last_os_error().raw_os_error().unwrap_or(0)
 }
 
-impl inotifyBackend {
+impl InotifyBackend {
     fn run_loop(&self) -> Result<(), Error> {
         let mut pipe_fds = [-1i32; 2];
         // SAFETY: `pipe_fds` has room for two fds.
@@ -103,7 +103,7 @@ impl inotifyBackend {
 
         self.base.notify_started();
 
-        let mut buf = vec![0u8; inotifyBufferSize];
+        let mut buf = vec![0u8; INOTIFY_BUFFER_SIZE];
         loop {
             // SAFETY: `pollfds` holds two valid entries.
             let r = unsafe { libc::poll(pollfds.as_mut_ptr(), 2, 500) };
@@ -140,8 +140,8 @@ impl inotifyBackend {
     // inotify_linux.go:205
     fn watch_dir(
         &self,
-        subs: &mut FxHashMap<i32, Vec<inotifySubscription>>,
-        w: &Arc<dirWatch>,
+        subs: &mut FxHashMap<i32, Vec<InotifySubscription>>,
+        w: &Arc<DirWatch>,
         path: &str,
         watch_path: &str,
     ) -> Result<i32, Error> {
@@ -158,7 +158,7 @@ impl inotifyBackend {
         if wd < 0 {
             return Err(Error::from_errno(last_errno()));
         }
-        let sub = inotifySubscription {
+        let sub = InotifySubscription {
             path: path.to_string(),
             watch_path: watch_path.to_string(),
             dir_watch: Arc::clone(w),
@@ -169,7 +169,7 @@ impl inotifyBackend {
 
     // inotify_linux.go:218
     fn handle_events(&self, buf: &mut [u8]) -> Result<(), Error> {
-        let mut watchers_touched: Vec<Arc<dirWatch>> = Vec::new();
+        let mut watchers_touched: Vec<Arc<DirWatch>> = Vec::new();
         let header = std::mem::size_of::<libc::inotify_event>();
 
         loop {
@@ -220,7 +220,7 @@ impl inotifyBackend {
                     )]
                     for list in subs.values() {
                         for sub in list {
-                            sub.dir_watch.events.set_error(ErrOverflow.into());
+                            sub.dir_watch.events.set_error(ERR_OVERFLOW.into());
                             touch(&mut watchers_touched, &sub.dir_watch);
                         }
                     }
@@ -239,7 +239,7 @@ impl inotifyBackend {
     }
 
     // inotify_linux.go:278
-    fn handle_event(&self, ev: &libc::inotify_event, name: &str, touched: &mut Vec<Arc<dirWatch>>) {
+    fn handle_event(&self, ev: &libc::inotify_event, name: &str, touched: &mut Vec<Arc<DirWatch>>) {
         let _base = self.base.mu.lock().unwrap();
         let mut subs = self.subscriptions.lock().unwrap();
         let list = subs.get(&ev.wd).cloned().unwrap_or_default();
@@ -253,10 +253,10 @@ impl inotifyBackend {
     // inotify_linux.go:289
     fn handle_subscription(
         &self,
-        subs: &mut FxHashMap<i32, Vec<inotifySubscription>>,
+        subs: &mut FxHashMap<i32, Vec<InotifySubscription>>,
         ev: &libc::inotify_event,
         name: &str,
-        sub: &inotifySubscription,
+        sub: &InotifySubscription,
     ) -> bool {
         let w = &sub.dir_watch;
         let mut path = sub.path.clone();
@@ -334,7 +334,11 @@ impl inotifyBackend {
 
 // tsrs-only: with write settling (`set_write_settling`), also the closes of files opened for writing.
 fn watch_mask() -> u32 {
-    if crate::watcher::write_settling() { inotifyMask | libc::IN_CLOSE_WRITE } else { inotifyMask }
+    if crate::watcher::write_settling() {
+        INOTIFY_MASK | libc::IN_CLOSE_WRITE
+    } else {
+        INOTIFY_MASK
+    }
 }
 
 // A created entry that a writer may still be writing: a regular file (not a directory, symlink or device, which get
@@ -347,14 +351,14 @@ fn is_regular_file(path: &str) -> bool {
     std::fs::symlink_metadata(path).is_ok_and(|m| m.file_type().is_file())
 }
 
-fn touch(touched: &mut Vec<Arc<dirWatch>>, w: &Arc<dirWatch>) {
+fn touch(touched: &mut Vec<Arc<DirWatch>>, w: &Arc<DirWatch>) {
     if !touched.iter().any(|t| Arc::ptr_eq(t, w)) {
         touched.push(Arc::clone(w));
     }
 }
 
-impl watcherImpl for inotifyBackend {
-    fn base(&self) -> &watcherBase {
+impl WatcherImpl for InotifyBackend {
+    fn base(&self) -> &WatcherBase {
         &self.base
     }
 
@@ -380,7 +384,7 @@ impl watcherImpl for inotifyBackend {
     }
 
     // inotify_linux.go:168
-    fn subscribe(&self, w: &Arc<dirWatch>) -> Result<(), Error> {
+    fn subscribe(&self, w: &Arc<DirWatch>) -> Result<(), Error> {
         let mut subs = self.subscriptions.lock().unwrap();
         if !w.recursive {
             if let Err(err) = self.watch_dir(&mut subs, w, &w.dir, &w.physical_dir) {
@@ -413,15 +417,15 @@ impl watcherImpl for inotifyBackend {
     }
 
     // inotify_linux.go:399
-    fn close_watch(&self, w: &Arc<dirWatch>) -> Result<(), Error> {
+    fn close_watch(&self, w: &Arc<DirWatch>) -> Result<(), Error> {
         let mut subs = self.subscriptions.lock().unwrap();
-        let key = dwKey(Arc::clone(w));
+        let key = DwKey(Arc::clone(w));
         let mut first_err = None;
         let wds: Vec<i32> = subs.keys().copied().collect();
         for wd in wds {
             let list = subs.get_mut(&wd).unwrap();
             let before = list.len();
-            list.retain(|s| dwKey(Arc::clone(&s.dir_watch)) != key);
+            list.retain(|s| DwKey(Arc::clone(&s.dir_watch)) != key);
             if list.len() == before {
                 continue;
             }

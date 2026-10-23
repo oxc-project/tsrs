@@ -8,31 +8,31 @@ use tsrs_tsoptions::ParsedCommandLine;
 
 use crate::dirty::{Cloneable, SharedMap};
 use crate::project::{ID, PendingReload};
-use crate::watch::{PatternsAndIgnored, WatchedFiles, allWatchKinds, new_watched_files};
+use crate::watch::{ALL_WATCH_KINDS, PatternsAndIgnored, WatchedFiles, new_watched_files};
 
 #[derive(Clone, Default)]
 pub struct ConfigFileRegistry {
     // configs is a map of config file paths to their entries.
-    pub(crate) configs: SharedMap<Path, configFileEntry>,
+    pub(crate) configs: SharedMap<Path, ConfigFileEntry>,
     // configFileNames is a map of open file paths to information
     // about their ancestor config file names. It is only used as
     // a cache during
-    pub(crate) config_file_names: SharedMap<Path, configFileNames>,
+    pub(crate) config_file_names: SharedMap<Path, ConfigFileNames>,
     // customConfigFileName is the custom config file name preference that was
     // used when building this registry's configFileNames cache.
     pub(crate) custom_config_file_name: String,
-    pub(crate) all_configured_content_mappers: Option<Arc<configuredContentMappers>>,
+    pub(crate) all_configured_content_mappers: Option<Arc<ConfiguredContentMappers>>,
 }
 
 #[derive(Clone, Debug, Default, PartialEq)]
-pub(crate) struct configuredContentMappers {
+pub(crate) struct ConfiguredContentMappers {
     pub(crate) extensions: Vec<String>,
 }
 
 // configfileregistry.go:32
 pub(crate) fn collect_configured_content_mappers(
     command_lines: &[P<ParsedCommandLine>],
-) -> Arc<configuredContentMappers> {
+) -> Arc<ConfiguredContentMappers> {
     let mut seen_extensions: Set<String> = Set::default();
     let mut extensions: Vec<String> = Vec::new();
     extensions.extend(
@@ -44,12 +44,12 @@ pub(crate) fn collect_configured_content_mappers(
             .cloned(),
     );
     extensions.sort();
-    Arc::new(configuredContentMappers { extensions })
+    Arc::new(ConfiguredContentMappers { extensions })
 }
 
 impl ConfigFileRegistry {
     // configfileregistry.go:48
-    pub(crate) fn content_mappers(&self) -> Arc<configuredContentMappers> {
+    pub(crate) fn content_mappers(&self) -> Arc<ConfiguredContentMappers> {
         if let Some(mappers) = &self.all_configured_content_mappers {
             return Arc::clone(mappers);
         }
@@ -60,7 +60,7 @@ impl ConfigFileRegistry {
 }
 
 #[derive(Clone)]
-pub(crate) struct configFileEntry {
+pub(crate) struct ConfigFileEntry {
     pub(crate) file_name: String,
     pub(crate) pending_reload: PendingReload,
     pub(crate) command_line: Option<P<ParsedCommandLine>>,
@@ -91,8 +91,8 @@ pub(crate) struct configFileEntry {
 pub(crate) fn new_config_file_entry(
     has_relative_pattern_capability: bool,
     file_name: &str,
-) -> configFileEntry {
-    configFileEntry {
+) -> ConfigFileEntry {
+    ConfigFileEntry {
         file_name: file_name.to_string(),
         pending_reload: PendingReload::Full,
         command_line: None,
@@ -101,7 +101,7 @@ pub(crate) fn new_config_file_entry(
         retaining_configs: None,
         root_files_watch: Some(new_watched_files(
             format!("root files for {file_name}"),
-            allWatchKinds,
+            ALL_WATCH_KINDS,
             has_relative_pattern_capability,
             Arc::new(|input: &PatternsAndIgnored| input.clone()),
         )),
@@ -112,10 +112,10 @@ pub(crate) fn new_config_file_entry(
 pub(crate) fn new_extended_config_file_entry(
     file_name: &str,
     extending_config_path: Path,
-) -> configFileEntry {
+) -> ConfigFileEntry {
     let mut retaining_configs = FxHashSet::default();
     retaining_configs.insert(extending_config_path);
-    configFileEntry {
+    ConfigFileEntry {
         file_name: file_name.to_string(),
         pending_reload: PendingReload::Full,
         command_line: None,
@@ -126,10 +126,10 @@ pub(crate) fn new_extended_config_file_entry(
     }
 }
 
-impl Cloneable for configFileEntry {
+impl Cloneable for ConfigFileEntry {
     // configfileregistry.go:109
-    fn clone_value(&self) -> configFileEntry {
-        configFileEntry {
+    fn clone_value(&self) -> ConfigFileEntry {
+        ConfigFileEntry {
             file_name: self.file_name.clone(),
             pending_reload: self.pending_reload,
             command_line: self.command_line,
@@ -194,7 +194,7 @@ pub struct TestConfigEntry {
     pub retaining_configs: Vec<Path>,
 }
 
-fn test_config_entry(entry: &configFileEntry) -> TestConfigEntry {
+fn test_config_entry(entry: &ConfigFileEntry) -> TestConfigEntry {
     TestConfigEntry {
         file_name: entry.file_name.clone(),
         retaining_projects: entry.retaining_projects.iter().flatten().cloned().collect(),
@@ -262,7 +262,7 @@ pub struct TestConfigFileNamesEntry {
 }
 
 #[derive(Clone, Default)]
-pub(crate) struct configFileNames {
+pub(crate) struct ConfigFileNames {
     // nearestConfigFileName is the file name of the nearest ancestor config file.
     pub(crate) nearest_config_file_name: String,
     // ancestors is a map from one ancestor config file path to the next.
@@ -275,10 +275,10 @@ pub(crate) struct configFileNames {
     pub(crate) ancestors: Option<FxHashMap<String, String>>,
 }
 
-impl Cloneable for configFileNames {
+impl Cloneable for ConfigFileNames {
     // configfileregistry.go:239
-    fn clone_value(&self) -> configFileNames {
-        configFileNames {
+    fn clone_value(&self) -> ConfigFileNames {
+        ConfigFileNames {
             nearest_config_file_name: self.nearest_config_file_name.clone(),
             ancestors: self.ancestors.clone(),
         }

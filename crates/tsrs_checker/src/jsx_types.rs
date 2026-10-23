@@ -9,10 +9,10 @@ use crate::*;
 bitflags! {
     #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Debug, Default)]
     pub struct JsxFlags: u32 {
-        const None = 0;
-        const IntrinsicNamedElement = 1 << 0; // An element from a named property of the JSX.IntrinsicElements interface
-        const IntrinsicIndexedElement = 1 << 1; // An element inferred from the string index signature of the JSX.IntrinsicElements interface
-        const IntrinsicElement = Self::IntrinsicNamedElement.bits() | Self::IntrinsicIndexedElement.bits();
+        const NONE = 0;
+        const INTRINSIC_NAMED_ELEMENT = 1 << 0; // An element from a named property of the JSX.IntrinsicElements interface
+        const INTRINSIC_INDEXED_ELEMENT = 1 << 1; // An element inferred from the string index signature of the JSX.IntrinsicElements interface
+        const INTRINSIC_ELEMENT = Self::INTRINSIC_NAMED_ELEMENT.bits() | Self::INTRINSIC_INDEXED_ELEMENT.bits();
     }
 }
 
@@ -47,7 +47,7 @@ pub struct JsxNamesStruct {
     pub library_managed_attributes: &'static str,
 }
 
-pub static JsxNames: JsxNamesStruct = JsxNamesStruct {
+pub static JSX_NAMES: JsxNamesStruct = JsxNamesStruct {
     jsx: "JSX",
     intrinsic_elements: "IntrinsicElements",
     element_class: "ElementClass",
@@ -64,7 +64,7 @@ pub struct ReactNamesStruct {
     pub fragment: &'static str,
 }
 
-pub static ReactNames: ReactNamesStruct = ReactNamesStruct { fragment: "Fragment" };
+pub static REACT_NAMES: ReactNamesStruct = ReactNamesStruct { fragment: "Fragment" };
 
 #[derive(Clone, Default)]
 pub struct JsxElaborationElement {

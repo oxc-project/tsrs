@@ -34,32 +34,32 @@ pub trait Logger: Send + Sync {
 pub type Writer = Box<dyn Write + Send>;
 
 // Go `*logger`; `inner == None` is the nil logger (`NewNopLogger`).
-pub struct logger {
-    inner: Option<loggerInner>,
+pub struct LoggerImpl {
+    inner: Option<LoggerInner>,
 }
 
-struct loggerInner {
-    mu: Mutex<loggerState>,
+struct LoggerInner {
+    mu: Mutex<LoggerState>,
     prefix: Box<dyn Fn() -> String + Send + Sync>,
 }
 
-struct loggerState {
+struct LoggerState {
     verbose: bool,
     writer: Writer,
 }
 
-impl logger {
-    pub(crate) fn new(writer: Writer, prefix: Box<dyn Fn() -> String + Send + Sync>) -> logger {
-        logger {
-            inner: Some(loggerInner {
-                mu: Mutex::new(loggerState { verbose: false, writer }),
+impl LoggerImpl {
+    pub(crate) fn new(writer: Writer, prefix: Box<dyn Fn() -> String + Send + Sync>) -> LoggerImpl {
+        LoggerImpl {
+            inner: Some(LoggerInner {
+                mu: Mutex::new(LoggerState { verbose: false, writer }),
                 prefix,
             }),
         }
     }
 }
 
-impl Logger for logger {
+impl Logger for LoggerImpl {
     // logger.go:46
     fn log(&self, msg: &str) {
         let Some(l) = &self.inner else {
@@ -135,14 +135,14 @@ impl Logger for logger {
 
 // logger.go:118
 pub fn new_logger(output: Writer) -> Arc<dyn Logger> {
-    Arc::new(logger::new(output, Box::new(|| format_time(SystemTime::now()))))
+    Arc::new(LoggerImpl::new(output, Box::new(|| format_time(SystemTime::now()))))
 }
 
 // logger.go:129
 // NewNopLogger returns a no-op Logger that discards all log messages.
 // It is safe to call any method on the returned Logger.
 pub fn new_nop_logger() -> Arc<dyn Logger> {
-    Arc::new(logger { inner: None })
+    Arc::new(LoggerImpl { inner: None })
 }
 
 // logger.go:133

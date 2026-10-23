@@ -63,11 +63,11 @@ impl TypeEraserTransformer {
 
     // typeeraser.go:43
     fn visit(&self, node: P<Node>) -> Option<P<Node>> {
-        if !node.subtree_facts().intersects(SubtreeFacts::ContainsTypeScript) {
+        if !node.subtree_facts().intersects(SubtreeFacts::CONTAINS_TYPE_SCRIPT) {
             return Some(node);
         }
 
-        if ast::is_statement(node) && ast::has_syntactic_modifier(node, ModifierFlags::Ambient) {
+        if ast::is_statement(node) && ast::has_syntactic_modifier(node, ModifierFlags::AMBIENT) {
             return Some(self.elide(node));
         }
 
@@ -164,11 +164,11 @@ impl TypeEraserTransformer {
             }
 
             Kind::PropertyDeclaration => {
-                if self.compiler_options.experimental_decorators.is_true() && ast::has_syntactic_modifier(node, ModifierFlags::Ambient | ModifierFlags::Abstract) && ast::has_decorators(node) {
+                if self.compiler_options.experimental_decorators.is_true() && ast::has_syntactic_modifier(node, ModifierFlags::AMBIENT | ModifierFlags::ABSTRACT) && ast::has_decorators(node) {
                     // declare/abstract props with decorators must be preserved until the decorator transform can process them and remove them
                     return Some(f.update_property_declaration(node, v.visit_modifiers(node.modifiers()), v.visit_node(node.name()).unwrap(), None, None, v.visit_node(node.initializer())));
                 }
-                if ast::has_syntactic_modifier(node, ModifierFlags::Ambient | ModifierFlags::Abstract) {
+                if ast::has_syntactic_modifier(node, ModifierFlags::AMBIENT | ModifierFlags::ABSTRACT) {
                     // TypeScript `declare` fields are elided
                     return None;
                 }
@@ -204,7 +204,7 @@ impl TypeEraserTransformer {
             }
 
             Kind::GetAccessor => {
-                if ast::node_is_missing(node.body()) && ast::has_syntactic_modifier(node, ModifierFlags::Abstract) {
+                if ast::node_is_missing(node.body()) && ast::has_syntactic_modifier(node, ModifierFlags::ABSTRACT) {
                     // Abstract accessors are elided
                     return None;
                 }
@@ -213,7 +213,7 @@ impl TypeEraserTransformer {
             }
 
             Kind::SetAccessor => {
-                if ast::node_is_missing(node.body()) && ast::has_syntactic_modifier(node, ModifierFlags::Abstract) {
+                if ast::node_is_missing(node.body()) && ast::has_syntactic_modifier(node, ModifierFlags::ABSTRACT) {
                     // Abstract accessors are elided
                     return None;
                 }
@@ -277,7 +277,7 @@ impl TypeEraserTransformer {
                 // preserve parameter property modifiers to be handled by the runtime transformer
                 let mut modifiers: Option<P<ModifierList>> = None;
                 if ast::is_parameter_property_declaration(node, self.parent_node.get().unwrap()) {
-                    modifiers = extract_modifiers(self.emit_context(), node.modifiers(), ModifierFlags::ParameterPropertyModifier);
+                    modifiers = extract_modifiers(self.emit_context(), node.modifiers(), ModifierFlags::PARAMETER_PROPERTY_MODIFIER);
                 }
                 // preserve decorators for the decorator transforms
                 if ast::has_decorators(node) {
@@ -320,7 +320,7 @@ impl TypeEraserTransformer {
             Kind::ParenthesizedExpression => {
                 if !ast::is_jsdoc_type_assertion(node) {
                     let n = node.as_parenthesized_expression();
-                    let expression = ast::skip_outer_expressions(n.expression(), OuterExpressionKinds::AllExceptAssertionsOrExpressionsWithTypeArguments);
+                    let expression = ast::skip_outer_expressions(n.expression(), OuterExpressionKinds::ALL_EXCEPT_ASSERTIONS_OR_EXPRESSIONS_WITH_TYPE_ARGUMENTS);
                     if ast::is_assertion_expression(expression) || ast::is_satisfies_expression(expression) {
                         let partial = f.new_partially_emitted_expression(v.visit_node(Some(n.expression())).unwrap());
                         self.emit_context().set_original(partial, node);

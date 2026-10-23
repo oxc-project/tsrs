@@ -30,7 +30,7 @@ fn test_flaky_diagnostic_tracking_parallel_emit() {
             lsproto::InitializeParams {
                 initialization_options: Some(lsproto::InitializationOptionsOrNull {
                     initialization_options: Some(lsproto::InitializationOptions {
-                        track_flaky_diagnostics: Some(lsproto::DiagnosticFlakeLogLevel::Panic),
+                        track_flaky_diagnostics: Some(lsproto::DiagnosticFlakeLogLevel::PANIC),
                         ..Default::default()
                     }),
                 }),
@@ -47,7 +47,7 @@ fn test_flaky_diagnostic_tracking_parallel_emit() {
             lsproto::DidOpenTextDocumentParams {
                 text_document: lsproto::TextDocumentItem {
                     uri: uri.clone(),
-                    language_id: lsproto::LanguageKind::TypeScript,
+                    language_id: lsproto::LanguageKind::TYPE_SCRIPT,
                     text: a.to_string(),
                     ..Default::default()
                 },

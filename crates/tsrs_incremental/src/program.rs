@@ -28,7 +28,7 @@ pub enum SignatureUpdateKind {
 }
 
 #[derive(Default)]
-struct nestedEmitState {
+struct NestedEmitState {
     depth: usize,
     start: Option<Instant>,
     time: Duration,
@@ -43,7 +43,7 @@ pub struct Program {
     pub(crate) testing_data: Option<Mutex<TestingData>>,
 
     nested_emit_now: Option<fn() -> Instant>,
-    nested_emit: Mutex<nestedEmitState>,
+    nested_emit: Mutex<NestedEmitState>,
 }
 
 // program.go:46
@@ -71,7 +71,7 @@ pub fn new_program(
         host: Some(host),
         testing_data,
         nested_emit_now: nested_emit_now.filter(|_| program.options().diagnostics_enabled()),
-        nested_emit: Mutex::new(nestedEmitState::default()),
+        nested_emit: Mutex::new(NestedEmitState::default()),
     })
 }
 
@@ -98,7 +98,7 @@ impl Program {
             host: None,
             testing_data: None,
             nested_emit_now: None,
-            nested_emit: Mutex::new(nestedEmitState::default()),
+            nested_emit: Mutex::new(NestedEmitState::default()),
         })
     }
 
@@ -565,7 +565,7 @@ impl Program {
             return Some(EmitResult {
                 emit_skipped: true,
                 diagnostics: vec![new_compiler_diagnostic(
-                    &diagnostics::Could_not_write_file_0_Colon_1,
+                    &diagnostics::COULD_NOT_WRITE_FILE_0_COLON_1,
                     &[&build_info_file_name, &err],
                 )],
                 ..Default::default()

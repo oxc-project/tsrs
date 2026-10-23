@@ -171,7 +171,7 @@ fn transpile_in_current_region(
     }
 
     let file_name = if file_name.is_empty() {
-        if opts.jsx != JsxEmit::None { "module.tsx" } else { "module.ts" }
+        if opts.jsx != JsxEmit::NONE { "module.tsx" } else { "module.ts" }
     } else {
         file_name
     };

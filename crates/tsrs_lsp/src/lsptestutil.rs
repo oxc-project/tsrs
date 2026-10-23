@@ -17,22 +17,22 @@ use crate::server::{Reader, Server, ServerOptions, Writer, new_server, to_reader
 
 // Go's io.Pipe (buffered here: writes do not wait for the reader).
 #[derive(Default)]
-struct pipeState {
+struct PipeState {
     buf: VecDeque<u8>,
     closed: bool,
 }
 
 #[derive(Clone, Default)]
-struct pipe(Arc<(Mutex<pipeState>, Condvar)>);
+struct Pipe(Arc<(Mutex<PipeState>, Condvar)>);
 
-impl pipe {
+impl Pipe {
     fn close(&self) {
         self.0.0.lock().unwrap().closed = true;
         self.0.1.notify_all();
     }
 }
 
-impl Read for pipe {
+impl Read for Pipe {
     fn read(&mut self, out: &mut [u8]) -> std::io::Result<usize> {
         let mut state = self.0.0.lock().unwrap();
         while state.buf.is_empty() && !state.closed {
@@ -46,7 +46,7 @@ impl Read for pipe {
     }
 }
 
-impl Write for pipe {
+impl Write for Pipe {
     fn write(&mut self, data: &[u8]) -> std::io::Result<usize> {
         let mut state = self.0.0.lock().unwrap();
         if state.closed {
@@ -70,19 +70,19 @@ impl Write for pipe {
 // clientTransport wires a test client to a server using real LSP
 // "Content-Length"-framed JSON streamed over byte pipes, exactly like
 // communication with a real editor.
-struct clientTransport {
+struct ClientTransport {
     server_in: Box<dyn Reader>,
     server_out: Box<dyn Writer>,
     client_in: Box<dyn Reader>,
     client_out: Box<dyn Writer>,
-    client_to_server: pipe,
-    server_to_client: pipe,
+    client_to_server: Pipe,
+    server_to_client: Pipe,
 }
 
-fn new_client_transport() -> clientTransport {
-    let client_to_server = pipe::default();
-    let server_to_client = pipe::default();
-    clientTransport {
+fn new_client_transport() -> ClientTransport {
+    let client_to_server = Pipe::default();
+    let server_to_client = Pipe::default();
+    ClientTransport {
         server_in: to_reader(client_to_server.clone()),
         server_out: to_writer(server_to_client.clone()),
         client_in: to_reader(server_to_client.clone()),
@@ -112,13 +112,13 @@ pub struct LSPClient {
     pending_requests: Mutex<FxHashMap<ID, std::sync::mpsc::SyncSender<ResponseMessage>>>,
 }
 
-pub struct closeClient {
+pub struct CloseClient {
     cancel: CancelFunc,
-    client_to_server: pipe,
+    client_to_server: Pipe,
     threads: Vec<JoinHandle<Result<(), Error>>>,
 }
 
-impl closeClient {
+impl CloseClient {
     // lspclient.go:117
     pub fn close(self) -> Result<(), Error> {
         self.cancel.call();
@@ -141,7 +141,7 @@ impl closeClient {
 pub fn new_lsp_client(
     mut server_opts: ServerOptions,
     on_server_request: Option<ServerRequestHandler>,
-) -> (Arc<LSPClient>, closeClient) {
+) -> (Arc<LSPClient>, CloseClient) {
     let transport = new_client_transport();
     server_opts.in_ = transport.server_in;
     server_opts.out = transport.server_out;
@@ -178,7 +178,7 @@ pub fn new_lsp_client(
         threads.push(std::thread::spawn(move || client.message_router(&ctx, &mut *output_reader)));
     }
 
-    (client, closeClient { cancel, client_to_server: transport.client_to_server, threads })
+    (client, CloseClient { cancel, client_to_server: transport.client_to_server, threads })
 }
 
 impl LSPClient {
@@ -244,7 +244,7 @@ impl LSPClient {
         let response = response.unwrap_or_else(|| ResponseMessage {
             id: req.id.clone(),
             error: Some(jsonrpc::ResponseError {
-                code: lsproto::ErrorCode::MethodNotFound.0,
+                code: lsproto::ErrorCode::METHOD_NOT_FOUND.0,
                 message: format!("Unknown method: {}", req.method),
                 data: None,
             }),
@@ -318,9 +318,9 @@ pub(crate) fn acknowledge_registrations() -> ServerRequestHandler {
     Box::new(|req: &RequestMessage| {
         use lsproto::Method;
         match req.method {
-            Method::ClientRegisterCapability
-            | Method::ClientUnregisterCapability
-            | Method::WindowWorkDoneProgressCreate => Some(ResponseMessage {
+            Method::CLIENT_REGISTER_CAPABILITY
+            | Method::CLIENT_UNREGISTER_CAPABILITY
+            | Method::WINDOW_WORK_DONE_PROGRESS_CREATE => Some(ResponseMessage {
                 id: req.id.clone(),
                 result: Some(lsproto::Null.to_json()),
                 ..Default::default()
@@ -336,8 +336,8 @@ pub(crate) fn test_server_options(cwd: &str, files: &[(&str, &str)]) -> ServerOp
         tsrs_vfs::vfstest::from_map(files.iter().copied(), false),
     ));
     ServerOptions {
-        in_: Box::new(nullReader),
-        out: Box::new(nullWriter),
+        in_: Box::new(NullReader),
+        out: Box::new(NullWriter),
         err: Box::new(std::io::sink()),
         cwd: cwd.to_string(),
         fs: Some(fs),
@@ -351,20 +351,20 @@ pub(crate) fn test_server_options(cwd: &str, files: &[(&str, &str)]) -> ServerOp
 }
 
 #[cfg(test)]
-struct nullReader;
+struct NullReader;
 
 #[cfg(test)]
-impl Reader for nullReader {
+impl Reader for NullReader {
     fn read(&mut self) -> (Option<Message>, Option<Error>) {
         (None, Some(Error::tagged(ErrorTag::EOF, "EOF")))
     }
 }
 
 #[cfg(test)]
-struct nullWriter;
+struct NullWriter;
 
 #[cfg(test)]
-impl Writer for nullWriter {
+impl Writer for NullWriter {
     fn write(&mut self, _msg: &Message) -> Result<(), Error> {
         Ok(())
     }

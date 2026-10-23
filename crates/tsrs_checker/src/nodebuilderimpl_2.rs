@@ -40,7 +40,7 @@ impl NodeBuilderImpl {
         add_approximate_length(self, 3);
         // Usually a signature contributes a few more characters than this, but 3 is the minimum
 
-        if self.ctx().flags.get().intersects(Flags::WriteTypeArgumentsOfSignature)
+        if self.ctx().flags.get().intersects(Flags::WRITE_TYPE_ARGUMENTS_OF_SIGNATURE)
             && signature.target().is_some()
             && signature.mapper.get().is_some()
             && !signature.target().unwrap().type_parameters().is_empty()
@@ -62,11 +62,11 @@ impl NodeBuilderImpl {
         }
 
         let mut restore_flags = self.save_restore_flags(c);
-        self.ctx().flags.set(self.ctx().flags.get() & !Flags::SuppressAnyReturnType);
+        self.ctx().flags.set(self.ctx().flags.get() & !Flags::SUPPRESS_ANY_RETURN_TYPE);
         // If the expanded parameter list had a variadic in a non-trailing position, don't expand it
         let last_expanded_param = expanded_params.last().copied();
         let has_non_trailing_rest = expanded_params.iter().any(|&p| {
-            Some(p) != last_expanded_param && p.check_flags().intersects(CheckFlags::RestParameter)
+            Some(p) != last_expanded_param && p.check_flags().intersects(CheckFlags::REST_PARAMETER)
         });
         let parameter_symbols: Vec<P<Symbol>> =
             if has_non_trailing_rest { signature.parameters().to_vec() } else { expanded_params };
@@ -76,7 +76,7 @@ impl NodeBuilderImpl {
                 self.symbol_to_parameter_declaration(c, parameter, kind == Kind::Constructor)
             })
             .collect();
-        let this_parameter = if self.ctx().flags.get().intersects(Flags::OmitThisParameter) {
+        let this_parameter = if self.ctx().flags.get().intersects(Flags::OMIT_THIS_PARAMETER) {
             None
         } else {
             self.try_get_this_parameter_declaration(c, signature)
@@ -92,11 +92,11 @@ impl NodeBuilderImpl {
         if let Some(options) = options {
             modifiers = options.modifiers.to_vec();
         }
-        if (kind == Kind::ConstructorType) && signature.flags().intersects(SignatureFlags::Abstract)
+        if (kind == Kind::ConstructorType) && signature.flags().intersects(SignatureFlags::ABSTRACT)
         {
             let flags = ast::modifiers_to_flags(&modifiers);
             modifiers =
-                create_modifiers_from_modifier_flags(flags | ModifierFlags::Abstract, |k| {
+                create_modifiers_from_modifier_flags(flags | ModifierFlags::ABSTRACT, |k| {
                     self.f.new_modifier(k)
                 });
         }
@@ -326,16 +326,16 @@ fn expand_signature_parameters_with_tuple_members(
             // }
             let name = alloc_str(&associated_names[i]);
             let flags = rest_type.target().unwrap().as_tuple_type().element_infos.get()[i].flags;
-            let check_flags = if flags.intersects(ElementFlags::Variable) {
-                CheckFlags::RestParameter
-            } else if flags.intersects(ElementFlags::Optional) {
-                CheckFlags::OptionalParameter
+            let check_flags = if flags.intersects(ElementFlags::VARIABLE) {
+                CheckFlags::REST_PARAMETER
+            } else if flags.intersects(ElementFlags::OPTIONAL) {
+                CheckFlags::OPTIONAL_PARAMETER
             } else {
-                CheckFlags::None
+                CheckFlags::NONE
             };
-            let symbol = c.new_symbol_ex(SymbolFlags::FunctionScopedVariable, name, check_flags);
+            let symbol = c.new_symbol_ex(SymbolFlags::FUNCTION_SCOPED_VARIABLE, name, check_flags);
             let links = c.value_symbol_links.get(symbol);
-            if flags.intersects(ElementFlags::Rest) {
+            if flags.intersects(ElementFlags::REST) {
                 let array_type = c.create_array_type(t);
                 links.resolved_type.set(Some(array_type));
             } else {
@@ -369,7 +369,7 @@ impl Checker {
                     rest_symbol,
                 )];
             } else if !skip_union_expanding
-                && rest_type.flags().intersects(TypeFlags::Union)
+                && rest_type.flags().intersects(TypeFlags::UNION)
                 && rest_type.as_union_type().types.get().iter().all(|&t| is_tuple_type(t))
             {
                 return rest_type
@@ -429,10 +429,10 @@ impl NodeBuilderImpl {
         signature: P<Signature>,
         try_reuse: bool,
     ) -> Option<P<Node>> {
-        let suppress_any = self.ctx().flags.get().intersects(Flags::SuppressAnyReturnType);
+        let suppress_any = self.ctx().flags.get().intersects(Flags::SUPPRESS_ANY_RETURN_TYPE);
         let mut restore_flags = self.save_restore_flags(c);
         if suppress_any {
-            self.ctx().flags.set(self.ctx().flags.get() & !Flags::SuppressAnyReturnType); // suppress only toplevel `any`s
+            self.ctx().flags.set(self.ctx().flags.get() & !Flags::SUPPRESS_ANY_RETURN_TYPE); // suppress only toplevel `any`s
         }
         let mut return_type_node: Option<P<Node>> = None;
 
@@ -637,7 +637,7 @@ impl NodeBuilderImpl {
             }
         }
         if index_info.value_type.get().is_none()
-            && !self.ctx().flags.get().intersects(Flags::AllowEmptyIndexInfoType)
+            && !self.ctx().flags.get().intersects(Flags::ALLOW_EMPTY_INDEX_INFO_TYPE)
         {
             self.ctx().encountered_error.set(true);
         }
@@ -710,7 +710,7 @@ impl NodeBuilderImpl {
                         t = c.get_type_for_variable_like_declaration(
                             declaration.unwrap(),
                             false,
-                            CheckMode::Normal,
+                            CheckMode::NORMAL,
                         );
                     } else {
                         t = Some(c.error_type);
@@ -724,14 +724,14 @@ impl NodeBuilderImpl {
                         .get(&ast::get_symbol_id(symbol))
                         .copied();
                     if t.is_none() {
-                        if symbol.flags().intersects(SymbolFlags::Accessor)
+                        if symbol.flags().intersects(SymbolFlags::ACCESSOR)
                             && declaration.unwrap().kind() == Kind::SetAccessor
                         {
                             let write_type = c.get_write_type_of_symbol(symbol).unwrap();
                             t = Some(c.instantiate_type(write_type, self.ctx().mapper.get()));
                         } else if !symbol
                             .flags()
-                            .intersects(SymbolFlags::TypeLiteral | SymbolFlags::Signature)
+                            .intersects(SymbolFlags::TYPE_LITERAL | SymbolFlags::SIGNATURE)
                         {
                             let type_of_symbol = c.get_type_of_symbol(symbol);
                             let widened = c.get_widened_literal_type(type_of_symbol);
@@ -766,7 +766,7 @@ impl NodeBuilderImpl {
         }
 
         let mut restore_flags = self.save_restore_flags(c);
-        if t.flags().intersects(TypeFlags::UniqueESSymbol)
+        if t.flags().intersects(TypeFlags::UNIQUE_ES_SYMBOL)
             && t.symbol() == symbol
             && (self.ctx().enclosing_declaration.get().is_none() || {
                 let enclosing_file = self.ctx().enclosing_file.get();
@@ -777,7 +777,7 @@ impl NodeBuilderImpl {
                     .any(|&d| ast::get_source_file_of_node(d) == enclosing_file)
             })
         {
-            self.ctx().flags.set(self.ctx().flags.get() | Flags::AllowUniqueESSymbolType);
+            self.ctx().flags.set(self.ctx().flags.get() | Flags::ALLOW_UNIQUE_ES_SYMBOL_TYPE);
         }
         let mut result: Option<P<Node>> = None;
         let mut reported_inference_fallback = false;
@@ -789,7 +789,7 @@ impl NodeBuilderImpl {
             && (ast::is_accessor(declaration)
                 || (ast::has_inferred_type(declaration)
                     && !ast::node_is_synthesized(declaration)
-                    && !t.object_flags().intersects(ObjectFlags::RequiresWidening)))
+                    && !t.object_flags().intersects(ObjectFlags::REQUIRES_WIDENING)))
         {
             let mut remove: Option<Box<dyn FnMut(&mut Checker)>> = None;
             if let Some(symbol) = symbol {
@@ -834,7 +834,7 @@ impl NodeBuilderImpl {
                 {
                     pt = Some(pseudochecker::new_pseudo_type_union(&[
                         pt.unwrap(),
-                        *pseudochecker::PseudoTypeUndefined,
+                        *pseudochecker::PSEUDO_TYPE_UNDEFINED,
                     ]));
                 }
                 result = self.pseudo_type_to_node_with_checker_fallback(c, pt.unwrap(), t);
@@ -858,7 +858,7 @@ impl NodeBuilderImpl {
                 if should_add_undefined {
                     pt = Some(pseudochecker::new_pseudo_type_union(&[
                         pt.unwrap(),
-                        *pseudochecker::PseudoTypeUndefined,
+                        *pseudochecker::PSEUDO_TYPE_UNDEFINED,
                     ]));
                     if self.pseudo_type_equivalent_to_type(c, pt, Some(t), false, report_errors) {
                         result = self.pseudo_type_to_node_with_checker_fallback(c, pt.unwrap(), t);
@@ -894,7 +894,7 @@ impl NodeBuilderImpl {
         property_symbol: P<Symbol>,
     ) -> bool {
         // Reverse mapped type placeholders are for display, not declaration emit.
-        if !self.ctx().flags.get().intersects(Flags::AllowAnonymousIdentifier) {
+        if !self.ctx().flags.get().intersects(Flags::ALLOW_ANONYMOUS_IDENTIFIER) {
             return false;
         }
         // Use placeholders for reverse mapped types we've either
@@ -907,7 +907,7 @@ impl NodeBuilderImpl {
         // for deep mappings which likely come from expressions, while truncating those parts which
         // come from mappings over library functions.
         // Condition (3) limits printing of possibly infinitely deep reverse mapped types.
-        if !property_symbol.check_flags().intersects(CheckFlags::ReverseMapped) {
+        if !property_symbol.check_flags().intersects(CheckFlags::REVERSE_MAPPED) {
             return false;
         }
         let reverse_mapped_stack = self.ctx().reverse_mapped_stack.borrow().clone();
@@ -922,7 +922,7 @@ impl NodeBuilderImpl {
                 let links = c.reverse_mapped_symbol_links.try_get(last).unwrap();
                 let property_type = links.property_type.get();
                 if property_type.is_some()
-                    && !property_type.unwrap().object_flags().intersects(ObjectFlags::Anonymous)
+                    && !property_type.unwrap().object_flags().intersects(ObjectFlags::ANONYMOUS)
                 {
                     return true;
                 }
@@ -975,25 +975,25 @@ impl NodeBuilderImpl {
         let name = c.resolve_name(
             enclosing_declaration,
             first_identifier.text(),
-            SymbolFlags::Value | SymbolFlags::ExportValue,
+            SymbolFlags::VALUE | SymbolFlags::EXPORT_VALUE,
             None, /*nameNotFoundMessage*/
             true, /*isUse*/
             false,
         );
         if let Some(name) = name {
-            self.tracker().track_symbol(c, name, enclosing_declaration, SymbolFlags::Value);
+            self.tracker().track_symbol(c, name, enclosing_declaration, SymbolFlags::VALUE);
         } else {
             // Name does not resolve at target location, track symbol at dest location (should be inaccessible)
             let fallback = c.resolve_name(
                 Some(first_identifier),
                 first_identifier.text(),
-                SymbolFlags::Value | SymbolFlags::ExportValue,
+                SymbolFlags::VALUE | SymbolFlags::EXPORT_VALUE,
                 None, /*nameNotFoundMessage*/
                 true, /*isUse*/
                 false,
             );
             if let Some(fallback) = fallback {
-                self.tracker().track_symbol(c, fallback, enclosing_declaration, SymbolFlags::Value);
+                self.tracker().track_symbol(c, fallback, enclosing_declaration, SymbolFlags::VALUE);
             }
         }
     }
@@ -1004,17 +1004,17 @@ pub(crate) fn classify_property_name(
     name: &str,
     string_named: bool,
     is_method: bool,
-) -> propertyNameNodeKind {
+) -> PropertyNameNodeKind {
     if is_method && name == "new" {
-        return propertyNameNodeKind::StringLiteral;
+        return PropertyNameNodeKind::StringLiteral;
     }
     if tsrs_scanner::is_identifier_text(name, LanguageVariant::Standard) {
-        return propertyNameNodeKind::Identifier;
+        return PropertyNameNodeKind::Identifier;
     }
     if !string_named && is_numeric_literal_name(name) && jsnum::from_string(name).0 >= 0.0 {
-        propertyNameNodeKind::NumericLiteral
+        PropertyNameNodeKind::NumericLiteral
     } else {
-        propertyNameNodeKind::StringLiteral
+        PropertyNameNodeKind::StringLiteral
     }
 }
 
@@ -1030,13 +1030,13 @@ impl NodeBuilderImpl {
         symbol: P<Symbol>,
     ) -> P<Node> {
         match classify_property_name(name, string_named, is_method) {
-            propertyNameNodeKind::Identifier => self.new_identifier(c, name, Some(symbol)),
-            propertyNameNodeKind::NumericLiteral => {
-                self.f.new_numeric_literal(self.f.alloc_text(name), TokenFlags::None)
+            PropertyNameNodeKind::Identifier => self.new_identifier(c, name, Some(symbol)),
+            PropertyNameNodeKind::NumericLiteral => {
+                self.f.new_numeric_literal(self.f.alloc_text(name), TokenFlags::NONE)
             }
-            propertyNameNodeKind::StringLiteral => self.f.new_string_literal(
+            PropertyNameNodeKind::StringLiteral => self.f.new_string_literal(
                 self.f.alloc_text(name),
-                if single_quote { TokenFlags::SingleQuote } else { TokenFlags::None },
+                if single_quote { TokenFlags::SINGLE_QUOTE } else { TokenFlags::NONE },
             ),
         }
     }
@@ -1049,11 +1049,11 @@ impl NodeBuilderImpl {
         };
         if ast::is_computed_property_name(name) {
             let t = c.check_expression(name.expression().unwrap());
-            return t.flags().intersects(TypeFlags::StringLike);
+            return t.flags().intersects(TypeFlags::STRING_LIKE);
         }
         if ast::is_element_access_expression(name) {
             let t = c.check_expression(name.as_element_access_expression().argument_expression);
-            return t.flags().intersects(TypeFlags::StringLike);
+            return t.flags().intersects(TypeFlags::STRING_LIKE);
         }
         ast::is_string_literal(name)
     }
@@ -1063,7 +1063,7 @@ impl NodeBuilderImpl {
         let name = ast::get_name_of_declaration(d);
         name.is_some()
             && ast::is_string_literal(name.unwrap())
-            && name.unwrap().as_string_literal().token_flags().intersects(TokenFlags::SingleQuote)
+            && name.unwrap().as_string_literal().token_flags().intersects(TokenFlags::SINGLE_QUOTE)
     }
 
     // nodebuilderimpl.go:2498
@@ -1085,7 +1085,7 @@ impl NodeBuilderImpl {
             !declarations.is_empty() && declarations.iter().all(|&d| Self::is_string_named(c, d));
         let single_quote = !declarations.is_empty()
             && declarations.iter().all(|&d| Self::is_single_quoted_string_named(c, d));
-        let is_method = symbol.flags().intersects(SymbolFlags::Method);
+        let is_method = symbol.flags().intersects(SymbolFlags::METHOD);
         let from_name_type = self.get_property_name_node_for_symbol_from_name_type(
             c,
             symbol,
@@ -1099,7 +1099,7 @@ impl NodeBuilderImpl {
         }
 
         let mut name: String = symbol.name().to_string();
-        let private_name_prefix = format!("{InternalSymbolNamePrefix}#");
+        let private_name_prefix = format!("{INTERNAL_SYMBOL_NAME_PREFIX}#");
         if name.starts_with(&private_name_prefix) {
             // symbol IDs are unstable - replace #nnn# with #private#
             name = name[private_name_prefix.len()..].to_string();
@@ -1141,7 +1141,7 @@ impl NodeBuilderImpl {
                 enum_enclosing_declaration = Some(enclosing_file.as_node());
             }
         }
-        if name_type.flags().intersects(TypeFlags::EnumLiteral) {
+        if name_type.flags().intersects(TypeFlags::ENUM_LITERAL) {
             let name_type_symbol = name_type.symbol().unwrap();
             let enum_symbol = match name_type_symbol.parent() {
                 Some(parent) => parent,
@@ -1151,18 +1151,18 @@ impl NodeBuilderImpl {
                 && c.is_symbol_accessible_by_flags(
                     enum_symbol,
                     enum_enclosing_declaration,
-                    SymbolFlags::Value,
+                    SymbolFlags::VALUE,
                 )
             {
                 let save_enclosing_declaration = self.ctx().enclosing_declaration.get();
                 self.ctx().enclosing_declaration.set(enum_enclosing_declaration);
-                let expression = self.symbol_to_expression(c, name_type_symbol, SymbolFlags::Value);
+                let expression = self.symbol_to_expression(c, name_type_symbol, SymbolFlags::VALUE);
                 let result = self.f.new_computed_property_name(expression);
                 self.ctx().enclosing_declaration.set(save_enclosing_declaration);
                 return Some(result);
             }
         }
-        if name_type.flags().intersects(TypeFlags::StringOrNumberLiteral) {
+        if name_type.flags().intersects(TypeFlags::STRING_OR_NUMBER_LITERAL) {
             let name: String = match name_type.as_literal_type().value.get() {
                 Some(LiteralValue::Number(n)) => n.string(),
                 Some(LiteralValue::String(s)) => s.to_string(),
@@ -1173,7 +1173,7 @@ impl NodeBuilderImpl {
             {
                 let node = self.f.new_string_literal(
                     self.f.alloc_text(&name),
-                    if single_quote { TokenFlags::SingleQuote } else { TokenFlags::None },
+                    if single_quote { TokenFlags::SINGLE_QUOTE } else { TokenFlags::NONE },
                 );
                 return Some(node);
             }
@@ -1181,7 +1181,7 @@ impl NodeBuilderImpl {
                 return Some(self.f.new_computed_property_name(
                     self.f.new_prefix_unary_expression(
                         Kind::MinusToken,
-                        self.f.new_numeric_literal(self.f.alloc_text(&name[1..]), TokenFlags::None),
+                        self.f.new_numeric_literal(self.f.alloc_text(&name[1..]), TokenFlags::NONE),
                     ),
                 ));
             }
@@ -1194,13 +1194,13 @@ impl NodeBuilderImpl {
                 symbol,
             ));
         }
-        if name_type.flags().intersects(TypeFlags::UniqueESSymbol) {
+        if name_type.flags().intersects(TypeFlags::UNIQUE_ES_SYMBOL) {
             // The reference was tracked in the destination scope by trackComputedName.
             // Reconstructing its spelling in the source scope must not paint that scope's declarations visible.
             let expression = self.symbol_to_expression_worker(
                 c,
                 name_type.symbol().unwrap(),
-                SymbolFlags::Value,
+                SymbolFlags::VALUE,
             );
             return Some(self.f.new_computed_property_name(expression));
         }
@@ -1216,7 +1216,7 @@ impl NodeBuilderImpl {
     ) -> Vec<P<Node>> {
         let mut type_elements: Vec<P<Node>> = type_elements.to_vec();
         let property_is_reverse_mapped =
-            property_symbol.check_flags().intersects(CheckFlags::ReverseMapped);
+            property_symbol.check_flags().intersects(CheckFlags::REVERSE_MAPPED);
         let property_type = if self.should_use_placeholder_for_property(c, property_symbol) {
             c.any_type
         } else {
@@ -1268,13 +1268,13 @@ impl NodeBuilderImpl {
         self.ctx().enclosing_declaration.set(save_enclosing_declaration);
         add_approximate_length(self, ast::symbol_name(property_symbol).len() + 1);
 
-        if property_symbol.flags().intersects(SymbolFlags::Accessor) {
+        if property_symbol.flags().intersects(SymbolFlags::ACCESSOR) {
             let write_type = c.get_write_type_of_symbol(property_symbol).unwrap();
             if !c.is_error_type(property_type) && !c.is_error_type(write_type) {
                 let prop_declaration =
                     ast::get_declaration_of_kind(property_symbol, Kind::PropertyDeclaration);
                 let parent_is_class = property_symbol.parent().is_some()
-                    && property_symbol.parent().unwrap().flags().intersects(SymbolFlags::Class);
+                    && property_symbol.parent().unwrap().flags().intersects(SymbolFlags::CLASS);
                 if property_type != write_type || parent_is_class && prop_declaration.is_none() {
                     let symbol_mapper = c.value_symbol_links.get(property_symbol).mapper();
                     if let Some(getter_declaration) =
@@ -1330,7 +1330,7 @@ impl NodeBuilderImpl {
                 {
                     let prop_declaration = prop_declaration.unwrap();
                     let fake_getter_signature = c.new_signature(
-                        SignatureFlags::None,
+                        SignatureFlags::NONE,
                         None,
                         &[],
                         None,
@@ -1351,11 +1351,11 @@ impl NodeBuilderImpl {
                     self.set_comment_range(c, fake_getter_declaration, Some(prop_declaration));
                     type_elements.push(fake_getter_declaration);
 
-                    let setter_param = c.new_symbol(SymbolFlags::FunctionScopedVariable, "arg");
+                    let setter_param = c.new_symbol(SymbolFlags::FUNCTION_SCOPED_VARIABLE, "arg");
                     c.value_symbol_links.get(setter_param).resolved_type.set(Some(write_type));
                     let void_type = c.void_type;
                     let fake_setter_signature = c.new_signature(
-                        SignatureFlags::None,
+                        SignatureFlags::NONE,
                         None,
                         &[],
                         None,
@@ -1379,17 +1379,17 @@ impl NodeBuilderImpl {
             }
         }
 
-        let optional_token = if property_symbol.flags().intersects(SymbolFlags::Optional) {
+        let optional_token = if property_symbol.flags().intersects(SymbolFlags::OPTIONAL) {
             Some(self.f.new_token(Kind::QuestionToken))
         } else {
             None
         };
-        if property_symbol.flags().intersects(SymbolFlags::Function | SymbolFlags::Method)
+        if property_symbol.flags().intersects(SymbolFlags::FUNCTION | SymbolFlags::METHOD)
             && c.get_properties_of_object_type(property_type).is_empty()
             && !c.is_readonly_symbol(property_symbol)
         {
             let filtered_type =
-                c.filter_type(property_type, |_c, t| !t.flags().intersects(TypeFlags::Undefined));
+                c.filter_type(property_type, |_c, t| !t.flags().intersects(TypeFlags::UNDEFINED));
             let signatures = c.get_signatures_of_type(filtered_type, SignatureKind::Call);
             type_elements.extend(signatures.iter().map(|&signature| {
                 let method_declaration = self.signature_to_signature_declaration_helper(
@@ -1461,7 +1461,7 @@ impl NodeBuilderImpl {
         resolved_type: P<Type>,
     ) -> Option<P<NodeList>> {
         if self.check_truncation_length(c) {
-            if self.ctx().flags.get().intersects(Flags::NoTruncation) {
+            if self.ctx().flags.get().intersects(Flags::NO_TRUNCATION) {
                 let elem = self.f.new_not_emitted_type_element();
                 return Some(self.f.new_node_list(vec![self.e.add_synthetic_trailing_comment(
                     elem,
@@ -1485,7 +1485,7 @@ impl NodeBuilderImpl {
         }));
         type_elements.extend(structured_type.construct_signatures().iter().filter_map(
             |&signature| {
-                if signature.flags().intersects(SignatureFlags::Abstract) {
+                if signature.flags().intersects(SignatureFlags::ABSTRACT) {
                     return None;
                 }
                 Some(self.signature_to_signature_declaration_helper(
@@ -1497,8 +1497,8 @@ impl NodeBuilderImpl {
             },
         ));
         type_elements.extend(structured_type.index_infos().iter().flat_map(|&info| {
-            let type_node = if resolved_type.object_flags().intersects(ObjectFlags::ReverseMapped)
-                && self.ctx().flags.get().intersects(Flags::AllowAnonymousIdentifier)
+            let type_node = if resolved_type.object_flags().intersects(ObjectFlags::REVERSE_MAPPED)
+                && self.ctx().flags.get().intersects(Flags::ALLOW_ANONYMOUS_IDENTIFIER)
             {
                 Some(self.create_elided_information_placeholder(c))
             } else {
@@ -1515,17 +1515,17 @@ impl NodeBuilderImpl {
         let mut i: usize = 0;
         for &property_symbol in properties {
             if is_expanding(self.ctx())
-                && property_symbol.flags().intersects(SymbolFlags::Prototype)
+                && property_symbol.flags().intersects(SymbolFlags::PROTOTYPE)
             {
                 continue;
             }
             i += 1;
-            if self.ctx().flags.get().intersects(Flags::WriteClassExpressionAsTypeLiteral) {
-                if property_symbol.flags().intersects(SymbolFlags::Prototype) {
+            if self.ctx().flags.get().intersects(Flags::WRITE_CLASS_EXPRESSION_AS_TYPE_LITERAL) {
+                if property_symbol.flags().intersects(SymbolFlags::PROTOTYPE) {
                     continue;
                 }
                 if get_declaration_modifier_flags_from_symbol(property_symbol)
-                    .intersects(ModifierFlags::Private | ModifierFlags::Protected)
+                    .intersects(ModifierFlags::PRIVATE | ModifierFlags::PROTECTED)
                 {
                     self.tracker()
                         .report_private_in_base_of_class_expression(property_symbol.name());
@@ -1537,7 +1537,7 @@ impl NodeBuilderImpl {
                 }
             }
             if self.check_truncation_length(c) && (i + 2 < properties.len() - 1) {
-                if self.ctx().flags.get().intersects(Flags::NoTruncation) {
+                if self.ctx().flags.get().intersects(Flags::NO_TRUNCATION) {
                     let last = type_elements.len() - 1;
                     type_elements[last] = self.e.add_synthetic_trailing_comment(
                         type_elements[last],
@@ -1574,7 +1574,7 @@ impl NodeBuilderImpl {
         t: P<Type>,
     ) -> Option<P<Node>> {
         if c.is_generic_mapped_type(t)
-            || (t.object_flags().intersects(ObjectFlags::Mapped)
+            || (t.object_flags().intersects(ObjectFlags::MAPPED)
                 && t.as_mapped_type().contains_error.get())
         {
             return Some(self.create_mapped_type_node_from_type(c, t));
@@ -1587,7 +1587,7 @@ impl NodeBuilderImpl {
             if call_sigs.is_empty() && ctor_sigs.is_empty() {
                 add_approximate_length(self, 2);
                 let result = self.f.new_type_literal_node(self.f.new_node_list(vec![]));
-                self.e.set_emit_flags(result, EmitFlags::SingleLine);
+                self.e.set_emit_flags(result, EmitFlags::SINGLE_LINE);
                 return Some(result);
             }
 
@@ -1617,7 +1617,7 @@ impl NodeBuilderImpl {
         let abstract_signatures: Vec<P<Signature>> = ctor_sigs
             .iter()
             .copied()
-            .filter(|signature| signature.flags().intersects(SignatureFlags::Abstract))
+            .filter(|signature| signature.flags().intersects(SignatureFlags::ABSTRACT))
             .collect();
         if !abstract_signatures.is_empty() {
             let mut types: Vec<P<Type>> = abstract_signatures
@@ -1629,10 +1629,15 @@ impl NodeBuilderImpl {
             let type_element_count = call_sigs.len()
                 + (ctor_sigs.len() - abstract_signatures.len())
                 + resolved.index_infos().len()
-                + if self.ctx().flags.get().intersects(Flags::WriteClassExpressionAsTypeLiteral) {
+                + if self
+                    .ctx()
+                    .flags
+                    .get()
+                    .intersects(Flags::WRITE_CLASS_EXPRESSION_AS_TYPE_LITERAL)
+                {
                     properties
                         .iter()
-                        .filter(|p| !p.flags().intersects(SymbolFlags::Prototype))
+                        .filter(|p| !p.flags().intersects(SymbolFlags::PROTOTYPE))
                         .count()
                 } else {
                     properties.len()
@@ -1649,7 +1654,7 @@ impl NodeBuilderImpl {
         }
 
         let mut restore_flags = self.save_restore_flags(c);
-        self.ctx().flags.set(self.ctx().flags.get() | Flags::InObjectTypeLiteral);
+        self.ctx().flags.set(self.ctx().flags.get() | Flags::IN_OBJECT_TYPE_LITERAL);
         let members = self.create_type_nodes_from_resolved_type(c, t);
         restore_flags(c);
         // Go passes a possibly-nil member list; the printer emits a nil and an empty list identically here.
@@ -1661,10 +1666,10 @@ impl NodeBuilderImpl {
         add_approximate_length(self, 2);
         self.e.set_emit_flags(
             type_literal_node,
-            if self.ctx().flags.get().intersects(Flags::MultilineObjectLiterals) {
+            if self.ctx().flags.get().intersects(Flags::MULTILINE_OBJECT_LITERALS) {
                 EmitFlags::empty()
             } else {
-                EmitFlags::SingleLine
+                EmitFlags::SINGLE_LINE
             },
         );
         Some(type_literal_node)
@@ -1674,7 +1679,7 @@ impl NodeBuilderImpl {
 // nodebuilderimpl.go:2842
 pub(crate) fn get_type_alias_for_type_literal(c: &mut Checker, t: P<Type>) -> Option<P<Symbol>> {
     if let Some(symbol) = t.symbol() {
-        if symbol.flags().intersects(SymbolFlags::TypeLiteral) && !symbol.declarations().is_empty()
+        if symbol.flags().intersects(SymbolFlags::TYPE_LITERAL) && !symbol.declarations().is_empty()
         {
             let first_declaration = symbol.declarations()[0];
             let node = ast::walk_up_parenthesized_types(first_declaration.parent()).unwrap();
@@ -1696,7 +1701,7 @@ impl NodeBuilderImpl {
     ) -> (bool, Option<P<Symbol>>) {
         let declarations: Vec<P<Node>> = symbol.declarations().to_vec();
         // `typeof C.name` can only be written when the member name is a valid identifier
-        let is_static_method_symbol = symbol.flags().intersects(SymbolFlags::Method)
+        let is_static_method_symbol = symbol.flags().intersects(SymbolFlags::METHOD)
             && tsrs_scanner::is_identifier_text(symbol.name(), LanguageVariant::Standard)
             && declarations.iter().any(|&declaration| {
                 ast::is_static(declaration)
@@ -1706,7 +1711,7 @@ impl NodeBuilderImpl {
             });
         let mut is_non_local_function_symbol = false;
         let mut is_function_expression_symbol = false;
-        if symbol.flags().intersects(SymbolFlags::Function) {
+        if symbol.flags().intersects(SymbolFlags::FUNCTION) {
             if symbol.parent().is_some() {
                 is_non_local_function_symbol = true;
             } else {
@@ -1745,8 +1750,8 @@ impl NodeBuilderImpl {
                 symbol = vd.parent().unwrap().symbol().map(|s| c.get_merged_symbol(s));
             }
             // typeof is allowed only for static/non local functions
-            let result = (self.ctx().flags.get().intersects(Flags::UseTypeOfFunction) || self.ctx().visited_types.borrow().has(&type_id)) // it is type of the symbol uses itself recursively
-                && (!self.ctx().flags.get().intersects(Flags::UseStructuralFallback) || c.is_value_symbol_accessible(symbol, self.ctx().enclosing_declaration.get())); // And the build is going to succeed without visibility error or there is no structural fallback allowed
+            let result = (self.ctx().flags.get().intersects(Flags::USE_TYPE_OF_FUNCTION) || self.ctx().visited_types.borrow().has(&type_id)) // it is type of the symbol uses itself recursively
+                && (!self.ctx().flags.get().intersects(Flags::USE_STRUCTURAL_FALLBACK) || c.is_value_symbol_accessible(symbol, self.ctx().enclosing_declaration.get())); // And the build is going to succeed without visibility error or there is no structural fallback allowed
             return (result, symbol);
         }
         (false, Some(symbol))
@@ -1774,12 +1779,16 @@ impl NodeBuilderImpl {
         if force_expansion {
             return (false, Some(symbol));
         }
-        let non_function_result = symbol.flags().intersects(SymbolFlags::Class)
+        let non_function_result = symbol.flags().intersects(SymbolFlags::CLASS)
             && !force_class_expansion
             && c.get_base_type_variable_of_class(symbol).is_none()
             && !(symbol.value_declaration().is_some()
                 && ast::is_class_like(symbol.value_declaration().unwrap())
-                && self.ctx().flags.get().intersects(Flags::WriteClassExpressionAsTypeLiteral)
+                && self
+                    .ctx()
+                    .flags
+                    .get()
+                    .intersects(Flags::WRITE_CLASS_EXPRESSION_AS_TYPE_LITERAL)
                 && (!ast::is_class_declaration(symbol.value_declaration().unwrap())
                     || c.is_symbol_accessible(
                         Some(symbol),
@@ -1789,7 +1798,7 @@ impl NodeBuilderImpl {
                     )
                     .accessibility
                         != SymbolAccessibility::Accessible))
-            || symbol.flags().intersects(SymbolFlags::Enum | SymbolFlags::ValueModule);
+            || symbol.flags().intersects(SymbolFlags::ENUM | SymbolFlags::VALUE_MODULE);
         if non_function_result {
             return (true, Some(symbol));
         }
@@ -1808,7 +1817,7 @@ impl NodeBuilderImpl {
         let symbol = t.symbol();
         if let Some(symbol) = symbol {
             let is_instantiation_expression_type =
-                t.object_flags().intersects(ObjectFlags::InstantiationExpressionType);
+                t.object_flags().intersects(ObjectFlags::INSTANTIATION_EXPRESSION_TYPE);
             if is_instantiation_expression_type {
                 let instantiation_expression_type = t.as_instantiation_expression_type();
                 let existing = instantiation_expression_type.node.get().unwrap();
@@ -1846,7 +1855,7 @@ impl NodeBuilderImpl {
                 });
             }
             let is_instance_type =
-                if is_class_instance_side(c, t) { SymbolFlags::Type } else { SymbolFlags::Value };
+                if is_class_instance_side(c, t) { SymbolFlags::TYPE } else { SymbolFlags::VALUE };
 
             // !!! JS support
             // if c.isJSConstructor(symbol.ValueDeclaration) {
@@ -1872,7 +1881,7 @@ impl NodeBuilderImpl {
                 let type_alias = get_type_alias_for_type_literal(c, t);
                 if let Some(type_alias) = type_alias {
                     // The specified symbol flags need to be reinterpreted as type flags
-                    self.symbol_to_type_node(c, type_alias, SymbolFlags::Type, None)
+                    self.symbol_to_type_node(c, type_alias, SymbolFlags::TYPE, None)
                 } else {
                     Some(self.create_cyclic_structure_placeholder(c))
                 }
@@ -1881,8 +1890,8 @@ impl NodeBuilderImpl {
                     b.create_type_node_from_object_type(c, t)
                 })
             }
-        } else if t.object_flags().intersects(ObjectFlags::ReverseMapped)
-            && !self.ctx().flags.get().intersects(Flags::AllowAnonymousIdentifier)
+        } else if t.object_flags().intersects(ObjectFlags::REVERSE_MAPPED)
+            && !self.ctx().flags.get().intersects(Flags::ALLOW_ANONYMOUS_IDENTIFIER)
         {
             if self.ctx().visited_types.borrow().has(&type_id) {
                 return Some(self.create_cyclic_structure_placeholder(c));
@@ -1923,7 +1932,7 @@ impl NodeBuilderImpl {
         c: &mut Checker,
         t: P<Type>,
     ) -> Option<P<Node>> {
-        if t.flags().intersects(TypeFlags::Union) {
+        if t.flags().intersects(TypeFlags::UNION) {
             if self.ctx().visited_types.borrow().has(&t.id) {
                 return Some(self.create_cyclic_structure_placeholder(c));
             }
@@ -1935,7 +1944,7 @@ impl NodeBuilderImpl {
     // nodebuilderimpl.go:3005
     #[inline(never)]
     pub(crate) fn create_cyclic_structure_placeholder(&self, c: &mut Checker) -> P<Node> {
-        if !self.ctx().flags.get().intersects(Flags::AllowAnonymousIdentifier) {
+        if !self.ctx().flags.get().intersects(Flags::ALLOW_ANONYMOUS_IDENTIFIER) {
             self.ctx().encountered_error.set(true);
             self.tracker().report_cyclic_structure_error();
         }
@@ -1951,12 +1960,12 @@ impl NodeBuilderImpl {
         let root = t.root.get().unwrap();
         let check_type_node = self.type_to_type_node(c, t.check_type.get());
         add_approximate_length(self, 15);
-        if self.ctx().flags.get().intersects(Flags::GenerateNamesForShadowedTypeParams)
+        if self.ctx().flags.get().intersects(Flags::GENERATE_NAMES_FOR_SHADOWED_TYPE_PARAMS)
             && root.is_distributive.get()
-            && !t.check_type.get().unwrap().flags().intersects(TypeFlags::TypeParameter)
+            && !t.check_type.get().unwrap().flags().intersects(TypeFlags::TYPE_PARAMETER)
         {
             let new_param_symbol =
-                c.new_symbol(SymbolFlags::TypeParameter, "T" /* as __String */);
+                c.new_symbol(SymbolFlags::TYPE_PARAMETER, "T" /* as __String */);
             let new_param = c.new_type_parameter(Some(new_param_symbol));
             let name = self.type_parameter_to_name(c, new_param);
             let new_type_variable = self.f.new_type_reference_node(name, None);
@@ -2058,7 +2067,7 @@ impl NodeBuilderImpl {
         let mut type_arguments: Vec<P<Type>> = c.get_type_arguments(t).to_vec();
         let target = t.target().unwrap();
         if target == c.global_array_type || target == c.global_readonly_array_type {
-            if self.ctx().flags.get().intersects(Flags::WriteArrayAsGenericType) {
+            if self.ctx().flags.get().intersects(Flags::WRITE_ARRAY_AS_GENERIC_TYPE) {
                 let type_argument_node = self.type_to_type_node(c, Some(type_arguments[0]));
                 let type_name = self.new_identifier(
                     c,
@@ -2078,7 +2087,7 @@ impl NodeBuilderImpl {
                 Some(self.f.new_type_operator_node(Kind::ReadonlyKeyword, array_type))
             }
         } else {
-            assert!(target.object_flags().intersects(ObjectFlags::Tuple));
+            assert!(target.object_flags().intersects(ObjectFlags::TUPLE));
             let element_infos = target.as_tuple_type().element_infos.get();
             type_arguments = type_arguments
                 .iter()
@@ -2086,7 +2095,7 @@ impl NodeBuilderImpl {
                 .map(|(i, &arg)| {
                     let mut is_optional = false;
                     if i < element_infos.len() {
-                        is_optional = element_infos[i].flags.intersects(ElementFlags::Optional);
+                        is_optional = element_infos[i].flags.intersects(ElementFlags::OPTIONAL);
                     }
                     c.remove_missing_type(arg, is_optional)
                 })
@@ -2102,19 +2111,19 @@ impl NodeBuilderImpl {
                         let labeled_element_declaration = element_infos[i].labeled_declaration;
 
                         if labeled_element_declaration.is_some() {
-                            let dot_dot_dot_token = if flags.intersects(ElementFlags::Variable) {
+                            let dot_dot_dot_token = if flags.intersects(ElementFlags::VARIABLE) {
                                 Some(self.f.new_token(Kind::DotDotDotToken))
                             } else {
                                 None
                             };
                             let label = Checker::get_tuple_element_label(element_infos[i], None, i);
                             let name = self.new_identifier(c, &label, None /*symbol*/);
-                            let question_token = if flags.intersects(ElementFlags::Optional) {
+                            let question_token = if flags.intersects(ElementFlags::OPTIONAL) {
                                 Some(self.f.new_token(Kind::QuestionToken))
                             } else {
                                 None
                             };
-                            let type_node = if flags.intersects(ElementFlags::Rest) {
+                            let type_node = if flags.intersects(ElementFlags::REST) {
                                 self.f.new_array_type_node(*element)
                             } else {
                                 *element
@@ -2125,15 +2134,15 @@ impl NodeBuilderImpl {
                                 question_token,
                                 type_node,
                             );
-                        } else if flags.intersects(ElementFlags::Variable) {
+                        } else if flags.intersects(ElementFlags::VARIABLE) {
                             (*element) = self.f.new_rest_type_node(
-                                if flags.intersects(ElementFlags::Rest) {
+                                if flags.intersects(ElementFlags::REST) {
                                     self.f.new_array_type_node(*element)
                                 } else {
                                     *element
                                 },
                             );
-                        } else if flags.intersects(ElementFlags::Optional) {
+                        } else if flags.intersects(ElementFlags::OPTIONAL) {
                             (*element) = self.f.new_optional_type_node(*element);
                         }
                     }
@@ -2141,7 +2150,7 @@ impl NodeBuilderImpl {
                     let node_list = self.f.new_node_list(nodes);
                     node_list.loc.set(tuple_constituent_nodes.loc.get());
                     let tuple_type_node = self.f.new_tuple_type_node(node_list);
-                    self.e.set_emit_flags(tuple_type_node, EmitFlags::SingleLine);
+                    self.e.set_emit_flags(tuple_type_node, EmitFlags::SINGLE_LINE);
                     if target.as_tuple_type().readonly.get() {
                         return Some(
                             self.f.new_type_operator_node(Kind::ReadonlyKeyword, tuple_type_node),
@@ -2151,10 +2160,10 @@ impl NodeBuilderImpl {
                 }
             }
             if self.ctx().encountered_error.get()
-                || self.ctx().flags.get().intersects(Flags::AllowEmptyTuple)
+                || self.ctx().flags.get().intersects(Flags::ALLOW_EMPTY_TUPLE)
             {
                 let tuple_type_node = self.f.new_tuple_type_node(self.f.new_node_list(vec![]));
-                self.e.set_emit_flags(tuple_type_node, EmitFlags::SingleLine);
+                self.e.set_emit_flags(tuple_type_node, EmitFlags::SINGLE_LINE);
                 if target.as_tuple_type().readonly.get() {
                     return Some(
                         self.f.new_type_operator_node(Kind::ReadonlyKeyword, tuple_type_node),
@@ -2176,7 +2185,7 @@ impl NodeBuilderImpl {
     ) -> Option<P<Node>> {
         let type_arguments: Vec<P<Type>> = c.get_type_arguments(t).to_vec();
         let target = t.target().unwrap();
-        if self.ctx().flags.get().intersects(Flags::WriteClassExpressionAsTypeLiteral)
+        if self.ctx().flags.get().intersects(Flags::WRITE_CLASS_EXPRESSION_AS_TYPE_LITERAL)
             && t.symbol().unwrap().value_declaration().is_some()
             && ast::is_class_like(t.symbol().unwrap().value_declaration().unwrap())
             && !c.is_value_symbol_accessible(t.symbol(), self.ctx().enclosing_declaration.get())
@@ -2216,12 +2225,12 @@ impl NodeBuilderImpl {
                         );
                         let mut restore_flags = self.save_restore_flags(c);
                         self.ctx().flags.set(
-                            self.ctx().flags.get() | Flags::ForbidIndexedAccessSymbolReferences,
+                            self.ctx().flags.get() | Flags::FORBID_INDEXED_ACCESS_SYMBOL_REFERENCES,
                         );
                         let ref_ = self.symbol_to_type_node(
                             c,
                             parent.unwrap(),
-                            SymbolFlags::Type,
+                            SymbolFlags::TYPE,
                             type_argument_slice,
                         );
                         restore_flags(c);
@@ -2306,11 +2315,11 @@ impl NodeBuilderImpl {
             let mut restore_flags = self.save_restore_flags(c);
             self.ctx()
                 .flags
-                .set(self.ctx().flags.get() | Flags::ForbidIndexedAccessSymbolReferences);
+                .set(self.ctx().flags.get() | Flags::FORBID_INDEXED_ACCESS_SYMBOL_REFERENCES);
             let final_ref = self.symbol_to_type_node(
                 c,
                 t.symbol().unwrap(),
-                SymbolFlags::Type,
+                SymbolFlags::TYPE,
                 type_argument_nodes,
             );
             restore_flags(c);
@@ -2346,13 +2355,13 @@ impl NodeBuilderImpl {
             return Some(self.create_cyclic_structure_placeholder(c));
         }
 
-        let is_constructor_object = t.object_flags().intersects(ObjectFlags::Anonymous)
+        let is_constructor_object = t.object_flags().intersects(ObjectFlags::ANONYMOUS)
             && t.symbol().is_some()
-            && t.symbol().unwrap().flags().intersects(SymbolFlags::Class);
+            && t.symbol().unwrap().flags().intersects(SymbolFlags::CLASS);
         let id: Option<CompositeSymbolIdentity> = if is_array_or_tuple {
             // Do not bound finite container nesting by the shared Array symbol or tuple origin.
             None
-        } else if t.object_flags().intersects(ObjectFlags::Reference)
+        } else if t.object_flags().intersects(ObjectFlags::REFERENCE)
             && t.as_type_reference().node.get().is_some()
         {
             Some(CompositeSymbolIdentity {
@@ -2360,7 +2369,7 @@ impl NodeBuilderImpl {
                 symbol_id: SymbolId(0),
                 node_id: ast::get_node_id(t.as_type_reference().node.get().unwrap()),
             })
-        } else if t.flags().intersects(TypeFlags::Conditional) {
+        } else if t.flags().intersects(TypeFlags::CONDITIONAL) {
             Some(CompositeSymbolIdentity {
                 is_constructor_node: false,
                 symbol_id: SymbolId(0),
@@ -2414,7 +2423,7 @@ impl NodeBuilderImpl {
             }
         }
 
-        let origin_depth = if t.object_flags().intersects(ObjectFlags::ReverseMapped) {
+        let origin_depth = if t.object_flags().intersects(ObjectFlags::REVERSE_MAPPED) {
             // Growing type arguments can prevent a reverse mapped type from repeating.
             // Bound expansion by its mapped declaration as well as its type identity.
             let origin = CompositeSymbolIdentity {
@@ -2512,11 +2521,11 @@ impl NodeBuilderImpl {
 
     // nodebuilderimpl.go:3303
     pub(crate) fn type_to_type_node(&self, c: &mut Checker, t: Option<P<Type>>) -> Option<P<Node>> {
-        let in_type_alias = self.ctx().flags.get() & Flags::InTypeAlias;
-        self.ctx().flags.set(self.ctx().flags.get() & !Flags::InTypeAlias);
+        let in_type_alias = self.ctx().flags.get() & Flags::IN_TYPE_ALIAS;
+        self.ctx().flags.set(self.ctx().flags.get() & !Flags::IN_TYPE_ALIAS);
 
         let Some(t) = t else {
-            if !self.ctx().flags.get().intersects(Flags::AllowEmptyUnionOrIntersection) {
+            if !self.ctx().flags.get().intersects(Flags::ALLOW_EMPTY_UNION_OR_INTERSECTION) {
                 self.ctx().encountered_error.set(true);
                 return None;
                 // TODO: GH#18217
@@ -2538,11 +2547,11 @@ impl NodeBuilderImpl {
             None
         };
 
-        if !self.ctx().flags.get().intersects(Flags::NoTypeReduction) {
+        if !self.ctx().flags.get().intersects(Flags::NO_TYPE_REDUCTION) {
             t = c.get_reduced_type(t);
         }
 
-        if t.flags().intersects(TypeFlags::Any) {
+        if t.flags().intersects(TypeFlags::ANY) {
             if let Some(alias) = t.alias() {
                 return Some(alias.to_type_reference_node(c, self.as_p()));
             }
@@ -2561,31 +2570,31 @@ impl NodeBuilderImpl {
                 Kind::AnyKeyword
             }));
         }
-        if t.flags().intersects(TypeFlags::Unknown) {
+        if t.flags().intersects(TypeFlags::UNKNOWN) {
             return Some(self.f.new_keyword_type_node(Kind::UnknownKeyword));
         }
-        if t.flags().intersects(TypeFlags::String) {
+        if t.flags().intersects(TypeFlags::STRING) {
             add_approximate_length(self, 6);
             return Some(self.f.new_keyword_type_node(Kind::StringKeyword));
         }
-        if t.flags().intersects(TypeFlags::Number) {
+        if t.flags().intersects(TypeFlags::NUMBER) {
             add_approximate_length(self, 6);
             return Some(self.f.new_keyword_type_node(Kind::NumberKeyword));
         }
-        if t.flags().intersects(TypeFlags::BigInt) {
+        if t.flags().intersects(TypeFlags::BIG_INT) {
             add_approximate_length(self, 6);
             return Some(self.f.new_keyword_type_node(Kind::BigIntKeyword));
         }
-        if t.flags().intersects(TypeFlags::Boolean) && t.alias().is_none() {
+        if t.flags().intersects(TypeFlags::BOOLEAN) && t.alias().is_none() {
             add_approximate_length(self, 7);
             return Some(self.f.new_keyword_type_node(Kind::BooleanKeyword));
         }
         let mut expanding_enum = false;
-        if t.flags().intersects(TypeFlags::EnumLike) {
-            if t.symbol().unwrap().flags().intersects(SymbolFlags::EnumMember) {
+        if t.flags().intersects(TypeFlags::ENUM_LIKE) {
+            if t.symbol().unwrap().flags().intersects(SymbolFlags::ENUM_MEMBER) {
                 let parent_symbol = c.get_parent_of_symbol(t.symbol().unwrap()).unwrap();
                 let parent_name =
-                    self.symbol_to_type_node(c, parent_symbol, SymbolFlags::Type, None);
+                    self.symbol_to_type_node(c, parent_symbol, SymbolFlags::TYPE, None);
                 if c.get_declared_type_of_symbol(parent_symbol) == t {
                     return parent_name;
                 }
@@ -2632,23 +2641,23 @@ impl NodeBuilderImpl {
                 }
                 panic!("Unhandled type node kind returned from `symbolToTypeNode`.");
             }
-            if !t.flags().intersects(TypeFlags::Union)
+            if !t.flags().intersects(TypeFlags::UNION)
                 || !self.should_expand_type(c, t, false /*isAlias*/)
             {
-                return self.symbol_to_type_node(c, t.symbol().unwrap(), SymbolFlags::Type, None);
+                return self.symbol_to_type_node(c, t.symbol().unwrap(), SymbolFlags::TYPE, None);
             }
             expanding_enum = true;
         }
-        if t.flags().intersects(TypeFlags::StringLiteral) {
+        if t.flags().intersects(TypeFlags::STRING_LITERAL) {
             let Some(LiteralValue::String(value)) = t.as_literal_type().value.get() else {
                 panic!("string literal type without a string value");
             };
             add_approximate_length(self, value.len() + 2);
             let lit = self.new_string_literal(c, value);
-            self.e.add_emit_flags(lit, EmitFlags::NoAsciiEscaping);
+            self.e.add_emit_flags(lit, EmitFlags::NO_ASCII_ESCAPING);
             return Some(self.f.new_literal_type_node(lit));
         }
-        if t.flags().intersects(TypeFlags::NumberLiteral) {
+        if t.flags().intersects(TypeFlags::NUMBER_LITERAL) {
             let Some(LiteralValue::Number(value)) = t.as_literal_type().value.get() else {
                 panic!("number literal type without a number value");
             };
@@ -2660,26 +2669,26 @@ impl NodeBuilderImpl {
                         Kind::MinusToken,
                         self.f.new_numeric_literal(
                             self.f.alloc_text(&value_text[1..]),
-                            TokenFlags::None,
+                            TokenFlags::NONE,
                         ),
                     ),
                 ));
             }
             return Some(self.f.new_literal_type_node(
-                self.f.new_numeric_literal(self.f.alloc_text(&value_text), TokenFlags::None),
+                self.f.new_numeric_literal(self.f.alloc_text(&value_text), TokenFlags::NONE),
             ));
         }
-        if t.flags().intersects(TypeFlags::BigIntLiteral) {
+        if t.flags().intersects(TypeFlags::BIG_INT_LITERAL) {
             add_approximate_length(
                 self,
                 pseudo_big_int_to_string(get_big_int_literal_value(t)).len() + 1,
             );
             return Some(self.f.new_literal_type_node(self.f.new_big_int_literal(
                 self.f.alloc_text(&(pseudo_big_int_to_string(get_big_int_literal_value(t)) + "n")),
-                TokenFlags::None,
+                TokenFlags::NONE,
             )));
         }
-        if t.flags().intersects(TypeFlags::BooleanLiteral) {
+        if t.flags().intersects(TypeFlags::BOOLEAN_LITERAL) {
             let value =
                 matches!(t.as_literal_type().value.get(), Some(LiteralValue::Boolean(true)));
             if value {
@@ -2693,15 +2702,15 @@ impl NodeBuilderImpl {
                 self.f.new_literal_type_node(self.f.new_keyword_expression(Kind::FalseKeyword)),
             );
         }
-        if t.flags().intersects(TypeFlags::UniqueESSymbol) {
-            if !self.ctx().flags.get().intersects(Flags::AllowUniqueESSymbolType) {
+        if t.flags().intersects(TypeFlags::UNIQUE_ES_SYMBOL) {
+            if !self.ctx().flags.get().intersects(Flags::ALLOW_UNIQUE_ES_SYMBOL_TYPE) {
                 if c.is_value_symbol_accessible(t.symbol(), self.ctx().enclosing_declaration.get())
                 {
                     add_approximate_length(self, 6);
                     return self.symbol_to_type_node(
                         c,
                         t.symbol().unwrap(),
-                        SymbolFlags::Value,
+                        SymbolFlags::VALUE,
                         None,
                     );
                 }
@@ -2713,36 +2722,36 @@ impl NodeBuilderImpl {
                 self.f.new_keyword_type_node(Kind::SymbolKeyword),
             ));
         }
-        if t.flags().intersects(TypeFlags::Void) {
+        if t.flags().intersects(TypeFlags::VOID) {
             add_approximate_length(self, 4);
             return Some(self.f.new_keyword_type_node(Kind::VoidKeyword));
         }
-        if t.flags().intersects(TypeFlags::Undefined) {
+        if t.flags().intersects(TypeFlags::UNDEFINED) {
             add_approximate_length(self, 9);
             return Some(self.f.new_keyword_type_node(Kind::UndefinedKeyword));
         }
-        if t.flags().intersects(TypeFlags::Null) {
+        if t.flags().intersects(TypeFlags::NULL) {
             add_approximate_length(self, 4);
             return Some(
                 self.f.new_literal_type_node(self.f.new_keyword_expression(Kind::NullKeyword)),
             );
         }
-        if t.flags().intersects(TypeFlags::Never) {
+        if t.flags().intersects(TypeFlags::NEVER) {
             add_approximate_length(self, 5);
             return Some(self.f.new_keyword_type_node(Kind::NeverKeyword));
         }
-        if t.flags().intersects(TypeFlags::ESSymbol) {
+        if t.flags().intersects(TypeFlags::ES_SYMBOL) {
             add_approximate_length(self, 6);
             return Some(self.f.new_keyword_type_node(Kind::SymbolKeyword));
         }
-        if t.flags().intersects(TypeFlags::NonPrimitive) {
+        if t.flags().intersects(TypeFlags::NON_PRIMITIVE) {
             add_approximate_length(self, 6);
             return Some(self.f.new_keyword_type_node(Kind::ObjectKeyword));
         }
         if is_this_type_parameter(t) {
-            if self.ctx().flags.get().intersects(Flags::InObjectTypeLiteral) {
+            if self.ctx().flags.get().intersects(Flags::IN_OBJECT_TYPE_LITERAL) {
                 if !self.ctx().encountered_error.get()
-                    && !self.ctx().flags.get().intersects(Flags::AllowThisInObjectLiteral)
+                    && !self.ctx().flags.get().intersects(Flags::ALLOW_THIS_IN_OBJECT_LITERAL)
                 {
                     self.ctx().encountered_error.set(true);
                 }
@@ -2754,7 +2763,7 @@ impl NodeBuilderImpl {
 
         let _decrement_depth = if in_type_alias.is_empty()
             && t.alias().is_some()
-            && (self.ctx().flags.get().intersects(Flags::UseAliasDefinedOutsideCurrentScope)
+            && (self.ctx().flags.get().intersects(Flags::USE_ALIAS_DEFINED_OUTSIDE_CURRENT_SCOPE)
                 || c.is_type_symbol_accessible(
                     t.alias().symbol().unwrap(),
                     self.ctx().enclosing_declaration.get(),
@@ -2768,7 +2777,7 @@ impl NodeBuilderImpl {
                     false, /*isBareList*/
                 );
                 if is_reserved_member_name(sym.name())
-                    && !sym.flags().intersects(SymbolFlags::Class)
+                    && !sym.flags().intersects(SymbolFlags::CLASS)
                 {
                     return Some(
                         self.f.new_type_reference_node(
@@ -2783,7 +2792,7 @@ impl NodeBuilderImpl {
                 {
                     return Some(self.f.new_array_type_node(type_argument_nodes.nodes()[0]));
                 }
-                return self.symbol_to_type_node(c, sym, SymbolFlags::Type, type_argument_nodes);
+                return self.symbol_to_type_node(c, sym, SymbolFlags::TYPE, type_argument_nodes);
             }
             // Expanding: increment depth and process the underlying type
             self.ctx().depth.set(self.ctx().depth.get() + 1);
@@ -2797,8 +2806,8 @@ impl NodeBuilderImpl {
 
         let object_flags = t.object_flags();
 
-        if object_flags.intersects(ObjectFlags::Reference) {
-            assert!(t.flags().intersects(TypeFlags::Object));
+        if object_flags.intersects(ObjectFlags::REFERENCE) {
+            assert!(t.flags().intersects(TypeFlags::OBJECT));
             // When expanding, expand type references to their structural form
             if self.should_expand_type(c, t, false /*isAlias*/) {
                 self.ctx().depth.set(self.ctx().depth.get() + 1);
@@ -2818,11 +2827,11 @@ impl NodeBuilderImpl {
             }
             return self.type_reference_to_type_node(c, t);
         }
-        if t.flags().intersects(TypeFlags::TypeParameter)
-            || object_flags.intersects(ObjectFlags::ClassOrInterface)
+        if t.flags().intersects(TypeFlags::TYPE_PARAMETER)
+            || object_flags.intersects(ObjectFlags::CLASS_OR_INTERFACE)
         {
             // When expanding class or interface types, show their structural form
-            if object_flags.intersects(ObjectFlags::ClassOrInterface)
+            if object_flags.intersects(ObjectFlags::CLASS_OR_INTERFACE)
                 && self.should_expand_type(c, t, false /*isAlias*/)
             {
                 self.ctx().depth.set(self.ctx().depth.get() + 1);
@@ -2833,7 +2842,7 @@ impl NodeBuilderImpl {
                 self.ctx().depth.set(self.ctx().depth.get() - 1);
                 return result;
             }
-            if t.flags().intersects(TypeFlags::TypeParameter)
+            if t.flags().intersects(TypeFlags::TYPE_PARAMETER)
                 && self.ctx().infer_type_parameters.get().contains(&t)
             {
                 add_approximate_length(self, ast::symbol_name(t.symbol().unwrap()).len() + 6);
@@ -2858,8 +2867,8 @@ impl NodeBuilderImpl {
                     self.type_parameter_to_declaration_with_constraint(c, t, constraint_node),
                 ));
             }
-            if self.ctx().flags.get().intersects(Flags::GenerateNamesForShadowedTypeParams)
-                && t.flags().intersects(TypeFlags::TypeParameter)
+            if self.ctx().flags.get().intersects(Flags::GENERATE_NAMES_FOR_SHADOWED_TYPE_PARAMS)
+                && t.flags().intersects(TypeFlags::TYPE_PARAMETER)
             {
                 let name = self.type_parameter_to_name(c, t);
                 add_approximate_length(self, name.text().len());
@@ -2870,7 +2879,7 @@ impl NodeBuilderImpl {
             }
             // Ignore constraint/default when creating a usage (as opposed to declaration) of a type parameter.
             if let Some(symbol) = t.symbol() {
-                return self.symbol_to_type_node(c, symbol, SymbolFlags::Type, None);
+                return self.symbol_to_type_node(c, symbol, SymbolFlags::TYPE, None);
             }
             let name: String = if (t == c.marker_super_type_for_check
                 || t == c.marker_sub_type_for_check)
@@ -2890,11 +2899,11 @@ impl NodeBuilderImpl {
                 None, /*typeArguments*/
             ));
         }
-        if t.flags().intersects(TypeFlags::Union) && t.as_union_type().origin().is_some() {
+        if t.flags().intersects(TypeFlags::UNION) && t.as_union_type().origin().is_some() {
             t = t.as_union_type().origin().unwrap();
         }
-        if t.flags().intersects(TypeFlags::Union | TypeFlags::Intersection) {
-            let types: Vec<P<Type>> = if t.flags().intersects(TypeFlags::Union) {
+        if t.flags().intersects(TypeFlags::UNION | TypeFlags::INTERSECTION) {
+            let types: Vec<P<Type>> = if t.flags().intersects(TypeFlags::UNION) {
                 c.format_union_types(t.as_union_type().types.get(), expanding_enum)
             } else {
                 t.as_intersection_type().types.get().to_vec()
@@ -2906,25 +2915,25 @@ impl NodeBuilderImpl {
             if let Some(type_nodes) = type_nodes
                 && !type_nodes.nodes().is_empty()
             {
-                if t.flags().intersects(TypeFlags::Union) {
+                if t.flags().intersects(TypeFlags::UNION) {
                     return Some(self.f.new_union_type_node(type_nodes));
                 }
                 return Some(self.f.new_intersection_type_node(type_nodes));
             }
             if !self.ctx().encountered_error.get()
-                && !self.ctx().flags.get().intersects(Flags::AllowEmptyUnionOrIntersection)
+                && !self.ctx().flags.get().intersects(Flags::ALLOW_EMPTY_UNION_OR_INTERSECTION)
             {
                 self.ctx().encountered_error.set(true);
             }
             return None;
             // TODO: GH#18217
         }
-        if object_flags.intersects(ObjectFlags::Anonymous | ObjectFlags::Mapped) {
-            assert!(t.flags().intersects(TypeFlags::Object));
+        if object_flags.intersects(ObjectFlags::ANONYMOUS | ObjectFlags::MAPPED) {
+            assert!(t.flags().intersects(TypeFlags::OBJECT));
             // The type is an object literal type.
             return self.create_anonymous_type_node(c, t);
         }
-        if t.flags().intersects(TypeFlags::Index) {
+        if t.flags().intersects(TypeFlags::INDEX) {
             let indexed_type = t.as_index_type().target.get();
             add_approximate_length(self, 6);
             let index_type_node = self.type_to_type_node(c, indexed_type);
@@ -2932,21 +2941,21 @@ impl NodeBuilderImpl {
                 self.f.new_type_operator_node(Kind::KeyOfKeyword, index_type_node.unwrap()),
             );
         }
-        if t.flags().intersects(TypeFlags::TemplateLiteral) {
+        if t.flags().intersects(TypeFlags::TEMPLATE_LITERAL) {
             let texts = t.as_template_literal_type().texts.get();
             let types = t.as_template_literal_type().types.get();
-            let template_head = self.f.new_template_head(texts[0], "", TokenFlags::None);
-            self.e.add_emit_flags(template_head, EmitFlags::NoAsciiEscaping);
+            let template_head = self.f.new_template_head(texts[0], "", TokenFlags::NONE);
+            self.e.add_emit_flags(template_head, EmitFlags::NO_ASCII_ESCAPING);
             let spans: Vec<P<Node>> = types
                 .iter()
                 .enumerate()
                 .map(|(i, &t)| {
                     let res = if i < types.len() - 1 {
-                        self.f.new_template_middle(texts[i + 1], "", TokenFlags::None)
+                        self.f.new_template_middle(texts[i + 1], "", TokenFlags::NONE)
                     } else {
-                        self.f.new_template_tail(texts[i + 1], "", TokenFlags::None)
+                        self.f.new_template_tail(texts[i + 1], "", TokenFlags::NONE)
                     };
-                    self.e.add_emit_flags(res, EmitFlags::NoAsciiEscaping);
+                    self.e.add_emit_flags(res, EmitFlags::NO_ASCII_ESCAPING);
                     let type_node = self.type_to_type_node(c, Some(t));
                     self.f.new_template_literal_type_span(type_node.unwrap(), res)
                 })
@@ -2955,16 +2964,16 @@ impl NodeBuilderImpl {
             add_approximate_length(self, 2);
             return Some(self.f.new_template_literal_type_node(template_head, template_spans));
         }
-        if t.flags().intersects(TypeFlags::StringMapping) {
+        if t.flags().intersects(TypeFlags::STRING_MAPPING) {
             let type_node = self.type_to_type_node(c, t.as_string_mapping_type().target.get());
             return self.symbol_to_type_node(
                 c,
                 t.symbol().unwrap(),
-                SymbolFlags::Type,
+                SymbolFlags::TYPE,
                 Some(self.f.new_node_list(vec![type_node.unwrap()])),
             );
         }
-        if t.flags().intersects(TypeFlags::IndexedAccess) {
+        if t.flags().intersects(TypeFlags::INDEXED_ACCESS) {
             let object_type_node =
                 self.type_to_type_node(c, t.as_indexed_access_type().object_type.get());
             let index_type_node =
@@ -2975,12 +2984,12 @@ impl NodeBuilderImpl {
                 index_type_node.unwrap(),
             ));
         }
-        if t.flags().intersects(TypeFlags::Conditional) {
+        if t.flags().intersects(TypeFlags::CONDITIONAL) {
             return self.visit_and_transform_type(c, t, |c, b, t| {
                 Some(b.conditional_type_to_type_node(c, t))
             });
         }
-        if t.flags().intersects(TypeFlags::Substitution) {
+        if t.flags().intersects(TypeFlags::SUBSTITUTION) {
             let type_node = self.type_to_type_node(c, t.as_substitution_type().base_type.get());
             if !checker::Checker::is_no_infer_type(t) {
                 return type_node;
@@ -2990,7 +2999,7 @@ impl NodeBuilderImpl {
                 return self.symbol_to_type_node(
                     c,
                     no_infer_symbol,
-                    SymbolFlags::Type,
+                    SymbolFlags::TYPE,
                     Some(self.f.new_node_list(vec![type_node.unwrap()])),
                 );
             }
@@ -3012,11 +3021,11 @@ impl NodeBuilderImpl {
         text: &str,
         is_single_quote: bool,
     ) -> P<Node> {
-        let mut flags = TokenFlags::None;
+        let mut flags = TokenFlags::NONE;
         if is_single_quote
-            || self.ctx().flags.get().intersects(Flags::UseSingleQuotesForStringLiteralType)
+            || self.ctx().flags.get().intersects(Flags::USE_SINGLE_QUOTES_FOR_STRING_LITERAL_TYPE)
         {
-            flags |= TokenFlags::SingleQuote;
+            flags |= TokenFlags::SINGLE_QUOTE;
         }
 
         self.f.new_string_literal(self.f.alloc_text(text), flags)
@@ -3028,9 +3037,9 @@ impl NodeBuilderImpl {
     pub(crate) fn mark_symbol_name_literal(&self, node: P<Node>) -> P<Node> {
         if ast::is_string_literal(node)
             && node.text().len() > 1
-            && node.text().as_bytes()[0] == InternalSymbolNamePrefixByte
+            && node.text().as_bytes()[0] == INTERNAL_SYMBOL_NAME_PREFIX_BYTE
         {
-            self.e.add_emit_flags(node, EmitFlags::InternalSymbolName);
+            self.e.add_emit_flags(node, EmitFlags::INTERNAL_SYMBOL_NAME);
         }
         node
     }
@@ -3072,7 +3081,7 @@ impl NodeBuilderImpl {
                 left,
                 None, /*questionDotToken*/
                 self.f.deep_clone_node(Some(qualified_name.right)).unwrap(),
-                NodeFlags::None,
+                NodeFlags::NONE,
             )
         } else if ast::is_identifier(node)
             || ast::is_property_access_expression(node)
@@ -3109,12 +3118,12 @@ impl NodeBuilderImpl {
         if self.should_write_type_parameters_in_qualified_name(c, chain, index) {
             let symbol = chain[index];
             let next_symbol = chain[index + 1];
-            if !next_symbol.check_flags().intersects(CheckFlags::Instantiated) {
+            if !next_symbol.check_flags().intersects(CheckFlags::INSTANTIATED) {
                 return None;
             }
 
             let mut target_symbol = symbol;
-            if symbol.flags().intersects(SymbolFlags::Alias)
+            if symbol.flags().intersects(SymbolFlags::ALIAS)
                 && !checker::Checker::can_get_type_parameters_of_class_or_interface(symbol)
             {
                 target_symbol = c.resolve_alias(symbol);
@@ -3170,7 +3179,7 @@ impl NodeBuilderImpl {
         chain: &[P<Symbol>],
         index: usize,
     ) -> bool {
-        self.ctx().flags.get().intersects(Flags::WriteTypeParametersInQualifiedName)
+        self.ctx().flags.get().intersects(Flags::WRITE_TYPE_PARAMETERS_IN_QUALIFIED_NAME)
             && index < chain.len() - 1
     }
 }

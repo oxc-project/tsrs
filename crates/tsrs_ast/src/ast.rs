@@ -132,7 +132,7 @@ pub fn new_node_factory_ex(hooks: NodeFactoryHooks, scratch: bool) -> NodeFactor
 fn node_header(kind: Kind, data_tag: NodeDataTag) -> Node {
     Node {
         header: OwnedCell::new(NodeHeaderWord::new(kind, data_tag)),
-        flags: OwnedCell::new(NodeFlags::None),
+        flags: OwnedCell::new(NodeFlags::NONE),
         id: AtomicU32::new(0),
         loc: OwnedCell::new(undefined_text_range()),
     }
@@ -1079,7 +1079,7 @@ impl Node {
     pub fn modifier_flags(&self) -> ModifierFlags {
         match self.modifiers() {
             Some(modifiers) => modifiers.modifier_flags,
-            None => ModifierFlags::None,
+            None => ModifierFlags::NONE,
         }
     }
 
@@ -1519,7 +1519,7 @@ impl Node {
 
     // if you provide nil for file, this code will walk to the root of the tree to find the file
     pub fn jsdoc(&self, file: Option<&'static SourceFile>) -> &'static [P<Node>] {
-        if !self.flags.get().intersects(NodeFlags::HasJSDoc) {
+        if !self.flags.get().intersects(NodeFlags::HAS_JSDOC) {
             return &[];
         }
         let file = match file {
@@ -1538,7 +1538,7 @@ impl Node {
     // EagerJSDoc returns JSDoc nodes that have already been parsed and cached,
     // without triggering lazy JSDoc parsing.
     pub fn eager_jsdoc(&self, file: Option<&'static SourceFile>) -> &'static [P<Node>] {
-        if !self.flags.get().intersects(NodeFlags::HasJSDoc) {
+        if !self.flags.get().intersects(NodeFlags::HAS_JSDOC) {
             return &[];
         }
         let file = match file {
@@ -1634,7 +1634,7 @@ fn declaration_is_write_access(decl: Option<P<Node>>) -> bool {
         return false;
     };
     // Consider anything in an ambient declaration to be a write access since it may be coming from JS.
-    if decl.flags.get().intersects(NodeFlags::Ambient) {
+    if decl.flags.get().intersects(NodeFlags::AMBIENT) {
         return true;
     }
 
@@ -1859,7 +1859,7 @@ impl ImportAttributes {
             if let Some(f) = grammar_error_on_node.as_mut() {
                 f(
                     elem.value,
-                    &diagnostics::X_resolution_mode_should_be_either_require_or_import,
+                    &diagnostics::X_RESOLUTION_MODE_SHOULD_BE_EITHER_REQUIRE_OR_IMPORT,
                     &[],
                 );
             }
@@ -1868,7 +1868,7 @@ impl ImportAttributes {
         if text == "import" {
             Some(tsrs_core::RESOLUTION_MODE_ESM)
         } else {
-            Some(tsrs_core::ModuleKind::CommonJS)
+            Some(tsrs_core::ModuleKind::COMMON_JS)
         }
     }
 }
@@ -2682,7 +2682,7 @@ impl SourceFile {
             }
             Entry::Vacant(entry) => {
                 assert!(
-                    !parent.flags().intersects(NodeFlags::Reparsed),
+                    !parent.flags().intersects(NodeFlags::REPARSED),
                     "Cannot create token from reparsed node of kind {:?}",
                     parent.kind()
                 );
@@ -2776,7 +2776,7 @@ impl SourceFile {
                 Kind::Parameter | Kind::VariableDeclaration | Kind::BindingElement => {
                     // Only consider parameter properties
                     if node.kind() == Kind::Parameter
-                        && !has_syntactic_modifier(node, ModifierFlags::ParameterPropertyModifier)
+                        && !has_syntactic_modifier(node, ModifierFlags::PARAMETER_PROPERTY_MODIFIER)
                     {
                         return false;
                     }
@@ -2963,13 +2963,13 @@ pub struct Pragma {
 
 pub type PragmaKindFlags = u8;
 
-pub const PragmaKindTripleSlashXML: PragmaKindFlags = 1 << 0;
-pub const PragmaKindSingleLine: PragmaKindFlags = 1 << 1;
-pub const PragmaKindMultiLine: PragmaKindFlags = 1 << 2;
-pub const PragmaKindFlagsNone: PragmaKindFlags = 0;
-pub const PragmaKindAll: PragmaKindFlags =
-    PragmaKindTripleSlashXML | PragmaKindSingleLine | PragmaKindMultiLine;
-pub const PragmaKindDefault: PragmaKindFlags = PragmaKindAll;
+pub const PRAGMA_KIND_TRIPLE_SLASH_XML: PragmaKindFlags = 1 << 0;
+pub const PRAGMA_KIND_SINGLE_LINE: PragmaKindFlags = 1 << 1;
+pub const PRAGMA_KIND_MULTI_LINE: PragmaKindFlags = 1 << 2;
+pub const PRAGMA_KIND_FLAGS_NONE: PragmaKindFlags = 0;
+pub const PRAGMA_KIND_ALL: PragmaKindFlags =
+    PRAGMA_KIND_TRIPLE_SLASH_XML | PRAGMA_KIND_SINGLE_LINE | PRAGMA_KIND_MULTI_LINE;
+pub const PRAGMA_KIND_DEFAULT: PragmaKindFlags = PRAGMA_KIND_ALL;
 
 #[derive(Clone, PartialEq, Eq, Debug)]
 pub struct PragmaArgumentSpecification {
@@ -2986,7 +2986,7 @@ pub struct PragmaSpecification {
 
 impl PragmaSpecification {
     pub fn is_triple_slash(&self) -> bool {
-        (self.kind & PragmaKindTripleSlashXML) > 0
+        (self.kind & PRAGMA_KIND_TRIPLE_SLASH_XML) > 0
     }
 }
 
@@ -3111,7 +3111,7 @@ mod tests {
 
         let type_keyword = f.new_token(Kind::NumberKeyword);
         assert!(matches!(type_keyword.data(), NodeData::KeywordTypeNode));
-        assert!(type_keyword.subtree_facts().contains(SubtreeFacts::ContainsTypeScript));
+        assert!(type_keyword.subtree_facts().contains(SubtreeFacts::CONTAINS_TYPE_SCRIPT));
 
         assert!(matches!(f.new_token(Kind::PlusToken).data(), NodeData::Token));
         assert_eq!(f.text_count(), 0);
@@ -3262,12 +3262,12 @@ mod tests {
         let m = f.new_modifier(Kind::ExportKeyword);
         decl.set_modifiers(None);
         let stmt_list = f.new_node_list(vec![decl]);
-        let list = f.new_variable_declaration_list(stmt_list, NodeFlags::Const);
-        assert!(list.flags().contains(NodeFlags::Const));
+        let list = f.new_variable_declaration_list(stmt_list, NodeFlags::CONST);
+        assert!(list.flags().contains(NodeFlags::CONST));
         let mods = f.new_modifier_list(vec![m]);
         let var_stmt = f.new_variable_statement(None, list);
         var_stmt.set_modifiers(Some(mods));
-        assert_eq!(var_stmt.modifier_flags(), ModifierFlags::Export);
+        assert_eq!(var_stmt.modifier_flags(), ModifierFlags::EXPORT);
         assert_eq!(children(var_stmt), vec![m, list]);
     }
 
@@ -3312,8 +3312,8 @@ mod tests {
     #[test]
     fn symbol_table_order_and_snapshot() {
         let table = SymbolTable::new();
-        let s1 = Symbol::new(SymbolFlags::Variable, "b");
-        let s2 = Symbol::new(SymbolFlags::Function, "a");
+        let s1 = Symbol::new(SymbolFlags::VARIABLE, "b");
+        let s2 = Symbol::new(SymbolFlags::FUNCTION, "a");
         table.set("b", s1);
         table.set("a", s2);
         assert_eq!(table.keys(), vec!["b", "a"]);
@@ -3325,8 +3325,8 @@ mod tests {
         assert_eq!(table.len(), 1);
         assert_eq!(table.lookup("b"), Some(s1));
         assert!(!table.has("a"));
-        assert!(InternalSymbolNameCall.starts_with(InternalSymbolNamePrefix));
-        assert_eq!(escape_symbol_name(InternalSymbolNameCall), "__call");
+        assert!(INTERNAL_SYMBOL_NAME_CALL.starts_with(INTERNAL_SYMBOL_NAME_PREFIX));
+        assert_eq!(escape_symbol_name(INTERNAL_SYMBOL_NAME_CALL), "__call");
     }
 
     // Regression: a table past the linear-search size keeps insertion order, keeps the original position on
@@ -3337,7 +3337,7 @@ mod tests {
         let names: Vec<&'static str> =
             (0..20).map(|i| &*Box::leak(format!("n{i}").into_boxed_str())).collect();
         let syms: Vec<P<Symbol>> =
-            names.iter().map(|n| Symbol::new(SymbolFlags::Property, n)).collect();
+            names.iter().map(|n| Symbol::new(SymbolFlags::PROPERTY, n)).collect();
         let table = SymbolTable::with_capacity(2);
         for (n, s) in names.iter().zip(&syms) {
             table.set(n, *s);
@@ -3384,7 +3384,7 @@ mod tests {
         let names: Vec<&'static str> =
             (0..40).map(|i| long(char::from(b'a' + (i % 26) as u8), 63 + i / 26)).collect();
         let syms: Vec<P<Symbol>> =
-            names.iter().map(|n| Symbol::new(SymbolFlags::Property, n)).collect();
+            names.iter().map(|n| Symbol::new(SymbolFlags::PROPERTY, n)).collect();
         for count in [5, 40] {
             let table = SymbolTable::new();
             for i in 0..count {
@@ -3402,16 +3402,16 @@ mod tests {
 
     #[test]
     fn kinds_and_flags() {
-        assert_eq!(Kind::FirstKeyword, Kind::BreakKeyword);
-        assert_eq!(Kind::LastToken, Kind::SourceKeyword);
+        assert_eq!(Kind::FIRST_KEYWORD, Kind::BreakKeyword);
+        assert_eq!(Kind::LAST_TOKEN, Kind::SourceKeyword);
         assert_eq!(Kind::from_i16(Kind::Identifier as i16), Kind::Identifier);
         assert!(is_keyword_kind(Kind::ClassKeyword));
         assert!(is_assignment_operator(Kind::PlusEqualsToken));
-        assert_eq!(NodeFlags::BlockScoped, NodeFlags::Let | NodeFlags::Const | NodeFlags::Using);
-        assert!(SymbolFlags::Value.contains(SymbolFlags::Function));
+        assert_eq!(NodeFlags::BLOCK_SCOPED, NodeFlags::LET | NodeFlags::CONST | NodeFlags::USING);
+        assert!(SymbolFlags::VALUE.contains(SymbolFlags::FUNCTION));
         assert!(
-            !SymbolFlags::FunctionScopedVariableExcludes
-                .intersects(SymbolFlags::FunctionScopedVariable)
+            !SymbolFlags::FUNCTION_SCOPED_VARIABLE_EXCLUDES
+                .intersects(SymbolFlags::FUNCTION_SCOPED_VARIABLE)
         );
         assert_eq!(std::mem::size_of::<Node>(), 24);
     }

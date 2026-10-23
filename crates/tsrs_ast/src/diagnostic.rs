@@ -794,16 +794,16 @@ mod tests {
     fn diagnostics_collection_deduplicates_exact_diagnostics_on_add() {
         let mut collection = DiagnosticsCollection::default();
         let first =
-            new_compiler_diagnostic(&diagnostics::Cannot_find_name_0, &[&"x"]).add_related_info(
-                Some(new_compiler_diagnostic(&diagnostics::X_0_is_declared_here, &[&"first"])),
+            new_compiler_diagnostic(&diagnostics::CANNOT_FIND_NAME_0, &[&"x"]).add_related_info(
+                Some(new_compiler_diagnostic(&diagnostics::X_0_IS_DECLARED_HERE, &[&"first"])),
             );
         let second =
-            new_compiler_diagnostic(&diagnostics::Cannot_find_name_0, &[&"x"]).add_related_info(
-                Some(new_compiler_diagnostic(&diagnostics::X_0_is_declared_here, &[&"first"])),
+            new_compiler_diagnostic(&diagnostics::CANNOT_FIND_NAME_0, &[&"x"]).add_related_info(
+                Some(new_compiler_diagnostic(&diagnostics::X_0_IS_DECLARED_HERE, &[&"first"])),
             );
         let different =
-            new_compiler_diagnostic(&diagnostics::Cannot_find_name_0, &[&"x"]).add_related_info(
-                Some(new_compiler_diagnostic(&diagnostics::X_0_is_declared_here, &[&"second"])),
+            new_compiler_diagnostic(&diagnostics::CANNOT_FIND_NAME_0, &[&"x"]).add_related_info(
+                Some(new_compiler_diagnostic(&diagnostics::X_0_IS_DECLARED_HERE, &[&"second"])),
             );
 
         assert_eq!(collection.add(first), first);
@@ -812,7 +812,7 @@ mod tests {
         assert_eq!(collection.add(different), different);
 
         canonical.add_related_info(Some(new_compiler_diagnostic(
-            &diagnostics::X_0_is_declared_here,
+            &diagnostics::X_0_IS_DECLARED_HERE,
             &[&"third"],
         )));
         let collected = collection.get_global_diagnostics();
@@ -867,8 +867,8 @@ mod tests {
             virtual_end: 11,
             original_start: 5,
             original_end: 6,
-            kind: tsrs_spanmap::Kind::Alias,
-            features: tsrs_spanmap::Feature::All,
+            kind: tsrs_spanmap::Kind::ALIAS,
+            features: tsrs_spanmap::Feature::ALL,
         }]);
         file.set_content_mapper_info(crate::ContentMapperSourceFileInfo {
             content_mapper: "mapper@1.0.0",
@@ -881,7 +881,7 @@ mod tests {
         let alias = new_diagnostic(
             Some(file),
             TextRange::new(4, 11),
-            &diagnostics::Cannot_find_name_0,
+            &diagnostics::CANNOT_FIND_NAME_0,
             &[&"__alias"],
         );
         assert_eq!(alias.localize(), "Cannot find name 'x'.");
@@ -889,14 +889,14 @@ mod tests {
         let partial = new_diagnostic(
             Some(file),
             TextRange::new(5, 11),
-            &diagnostics::Cannot_find_name_0,
+            &diagnostics::CANNOT_FIND_NAME_0,
             &[&"__alias"],
         );
         assert_eq!(partial.localize(), "Cannot find name '__alias'.");
         let external = new_diagnostic(
             Some(file),
             TextRange::new(4, 11),
-            &diagnostics::Cannot_find_name_0,
+            &diagnostics::CANNOT_FIND_NAME_0,
             &[&"__alias"],
         )
         .set_external_data("mapper", "");

@@ -51,7 +51,7 @@ pub fn new_es2016_transformer(opts: &TransformOptions) -> Option<P<Transformer>>
 pub fn get_es_transformer(opts: &TransformOptions) -> Option<P<Transformer>> {
     let options = opts.compiler_options;
     match options.get_emit_script_target() {
-        ScriptTarget::ESNext => es_decorator_and_class_fields(opts),
+        ScriptTarget::ES_NEXT => es_decorator_and_class_fields(opts),
         ScriptTarget::ES2026
         | ScriptTarget::ES2025
         | ScriptTarget::ES2024

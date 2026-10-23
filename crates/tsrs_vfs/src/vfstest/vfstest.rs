@@ -139,7 +139,7 @@ fn from_map_with_clock_option<K: AsRef<str>, F: Into<MapFile>>(
         let mut file = f;
         file.mod_time = Some(now(&clock));
 
-        if file.mode.intersects(FileMode::Symlink) {
+        if file.mode.intersects(FileMode::SYMLINK) {
             let target = tsrs_core::utf8::from_utf8_lossy(&file.data).into_owned();
             check_path(&target);
 
@@ -244,7 +244,7 @@ fn cut(s: &str, sep: char) -> (&str, &str, bool) {
 
 // Symlink returns a MapFile describing a symbolic link to target.
 pub fn symlink(target: &str) -> MapFile {
-    MapFile { data: target.as_bytes().to_vec(), mode: FileMode::Symlink, mod_time: None }
+    MapFile { data: target.as_bytes().to_vec(), mode: FileMode::SYMLINK, mod_time: None }
 }
 
 fn split_path(s: &str, offset: usize) -> (&str, &str) {
@@ -317,7 +317,7 @@ impl MapFS {
         symlink_to: String,
     ) -> (String, Result<(), FsError>) {
         if let Some(file) = inner.m.get(&p) {
-            if !file.file.mode.intersects(FileMode::Symlink) {
+            if !file.file.mode.intersects(FileMode::SYMLINK) {
                 return (p, Ok(()));
             }
         }
@@ -359,7 +359,7 @@ impl MapFS {
     fn set_entry(&self, inner: &mut MapFSInner, realpath: &str, canonical: &str, file: MapFile) {
         assert!(!(realpath.is_empty() || canonical.is_empty()), "empty path");
 
-        let is_symlink = file.mode.intersects(FileMode::Symlink);
+        let is_symlink = file.mode.intersects(FileMode::SYMLINK);
         let target = if is_symlink {
             Some(self.get_canonical_path(&tsrs_core::utf8::from_utf8_lossy(&file.data)))
         } else {
@@ -434,7 +434,7 @@ impl MapFS {
                 &canonical,
                 MapFile {
                     data: Vec::new(),
-                    mode: FileMode::Dir | FileMode::from_bits_retain(perm.bits() & !UMASK),
+                    mode: FileMode::DIR | FileMode::from_bits_retain(perm.bits() & !UMASK),
                     mod_time: Some(self.now()),
                 },
             );
@@ -514,7 +514,7 @@ impl MapFS {
             FileInfo {
                 name: ".".to_string(),
                 size: 0,
-                mode: FileMode::Dir | FileMode::from_bits_retain(0o555),
+                mode: FileMode::DIR | FileMode::from_bits_retain(0o555),
                 mod_time: None,
             }
         };
@@ -537,7 +537,7 @@ impl MapFS {
             &mut inner,
             path,
             &canonical,
-            MapFile { data: target.as_bytes().to_vec(), mode: FileMode::Symlink, mod_time: None },
+            MapFile { data: target.as_bytes().to_vec(), mode: FileMode::SYMLINK, mod_time: None },
         );
     }
 
@@ -609,7 +609,7 @@ impl MapFS {
         }
 
         let mut existing: Vec<u8> = Vec::new();
-        let mut existing_mode = FileMode::None;
+        let mut existing_mode = FileMode::NONE;
         let (cp, err) = Self::get_following_symlinks(&inner, &self.get_canonical_path(path));
         if let Err(err) = err {
             // No other errors are possible.
@@ -679,7 +679,7 @@ impl MapFS {
         let inner = self.inner.read().unwrap();
         let canonical = self.get_canonical_path(path);
         if let Some(file_info) = inner.m.get(&canonical) {
-            if file_info.file.mode.intersects(FileMode::Symlink) {
+            if file_info.file.mode.intersects(FileMode::SYMLINK) {
                 return Some(format!(
                     "/{}",
                     tsrs_core::utf8::from_utf8_lossy(&file_info.file.data)

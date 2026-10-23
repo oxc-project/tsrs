@@ -6,22 +6,22 @@ use tsrs_module::symlinks::{KnownDirectoryLink, KnownSymlinks};
 use tsrs_module::{self as module, ResolutionHost};
 use tsrs_vfs::{Entries, FS, FileInfo, cachedvfs};
 
-use crate::projectreferencefilemapper::projectReferenceFileMapper;
+use crate::projectreferencefilemapper::ProjectReferenceFileMapper;
 
-struct projectReferenceDtsFakingHost {
+struct ProjectReferenceDtsFakingHost {
     current_directory: String,
-    fs: cachedvfs::FS<projectReferenceDtsFakingVfs>,
+    fs: cachedvfs::FS<ProjectReferenceDtsFakingVfs>,
 }
 
 // projectreferencedtsfakinghost.go:22
 pub(crate) fn new_project_reference_dts_faking_host(
     host: &'static dyn ResolutionHost,
-    references: &'static projectReferenceFileMapper,
+    references: &'static ProjectReferenceFileMapper,
 ) -> &'static dyn ResolutionHost {
     // Create a new host that will fake the dts files
-    Box::leak(Box::new(projectReferenceDtsFakingHost {
+    Box::leak(Box::new(ProjectReferenceDtsFakingHost {
         current_directory: host.get_current_directory().to_string(),
-        fs: cachedvfs::from(projectReferenceDtsFakingVfs {
+        fs: cachedvfs::from(ProjectReferenceDtsFakingVfs {
             host,
             project_reference_file_mapper: references,
             known_symlinks: KnownSymlinks::default(),
@@ -29,7 +29,7 @@ pub(crate) fn new_project_reference_dts_faking_host(
     }))
 }
 
-impl ResolutionHost for projectReferenceDtsFakingHost {
+impl ResolutionHost for ProjectReferenceDtsFakingHost {
     // projectreferencedtsfakinghost.go:35
     fn fs(&self) -> &dyn FS {
         &self.fs
@@ -41,13 +41,13 @@ impl ResolutionHost for projectReferenceDtsFakingHost {
     }
 }
 
-struct projectReferenceDtsFakingVfs {
+struct ProjectReferenceDtsFakingVfs {
     host: &'static dyn ResolutionHost,
-    project_reference_file_mapper: &'static projectReferenceFileMapper,
+    project_reference_file_mapper: &'static ProjectReferenceFileMapper,
     known_symlinks: KnownSymlinks,
 }
 
-impl FS for projectReferenceDtsFakingVfs {
+impl FS for ProjectReferenceDtsFakingVfs {
     // projectreferencedtsfakinghost.go:53
     fn use_case_sensitive_file_names(&self) -> bool {
         self.host.fs().use_case_sensitive_file_names()
@@ -119,7 +119,7 @@ impl FS for projectReferenceDtsFakingVfs {
     }
 }
 
-impl projectReferenceDtsFakingVfs {
+impl ProjectReferenceDtsFakingVfs {
     // projectreferencedtsfakinghost.go:123
     fn to_path(&self, path: &str) -> Path {
         tspath::to_path(
@@ -297,8 +297,8 @@ mod region_tests {
     use tsrs_module::symlinks::KnownSymlinks;
     use tsrs_vfs::{FS, vfstest};
 
-    use super::projectReferenceDtsFakingVfs;
-    use crate::projectreferencefilemapper::{projectReferenceFileMapper, resolution_host_for};
+    use super::ProjectReferenceDtsFakingVfs;
+    use crate::projectreferencefilemapper::{ProjectReferenceFileMapper, resolution_host_for};
 
     // A symlinked node_modules directory the build never probed, first seen while a region is the allocation target
     // (a checker's, looking up a package.json for a module specifier): the host shared by later program versions must
@@ -319,9 +319,9 @@ mod region_tests {
             Vec::new(),
             tsrs_core::tspath::ComparePathsOptions::default(),
         ));
-        let mapper: &'static projectReferenceFileMapper =
-            Box::leak(Box::new(projectReferenceFileMapper::new(config, true)));
-        let vfs = projectReferenceDtsFakingVfs {
+        let mapper: &'static ProjectReferenceFileMapper =
+            Box::leak(Box::new(ProjectReferenceFileMapper::new(config, true)));
+        let vfs = ProjectReferenceDtsFakingVfs {
             host,
             project_reference_file_mapper: mapper,
             known_symlinks: KnownSymlinks::default(),

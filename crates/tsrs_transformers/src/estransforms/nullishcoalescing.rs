@@ -1,11 +1,11 @@
 use super::*;
 
 // nullishcoalescing.go:8
-pub struct nullishCoalescingTransformer {
+pub struct NullishCoalescingTransformer {
     pub base: Transformer,
 }
 
-impl nullishCoalescingTransformer {
+impl NullishCoalescingTransformer {
     fn emit_context(&self) -> P<EmitContext> {
         self.base.emit_context()
     }
@@ -20,7 +20,7 @@ impl nullishCoalescingTransformer {
 
     // nullishcoalescing.go:12
     fn visit(&self, node: P<Node>) -> Option<P<Node>> {
-        if !node.subtree_facts().intersects(SubtreeFacts::ContainsNullishCoalescing) {
+        if !node.subtree_facts().intersects(SubtreeFacts::CONTAINS_NULLISH_COALESCING) {
             return Some(node);
         }
         match node.kind() {
@@ -61,7 +61,7 @@ impl nullishCoalescingTransformer {
     reason = "Transformer factories share an optional result so disabled transforms can return None."
 )]
 pub fn new_nullish_coalescing_transformer(opt: &TransformOptions) -> Option<P<Transformer>> {
-    let tx = P::new(nullishCoalescingTransformer { base: Transformer::default() });
+    let tx = P::new(NullishCoalescingTransformer { base: Transformer::default() });
     Some(tx.get().base.new_transformer(
         Rc::new(move |_: &mut NodeVisitor, n: P<Node>| tx.visit(n)),
         Some(opt.context),

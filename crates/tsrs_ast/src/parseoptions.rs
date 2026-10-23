@@ -36,7 +36,7 @@ pub fn get_external_module_indicator_options(
         // If jsx is react-jsx or react-jsxdev then jsx tags force module-ness
         // otherwise, the presence of import or export statments (or import.meta) implies module-ness
         ModuleDetectionKind::Auto => ExternalModuleIndicatorOptions {
-            jsx: options.jsx == JsxEmit::ReactJSX || options.jsx == JsxEmit::ReactJSXDev,
+            jsx: options.jsx == JsxEmit::REACT_JSX || options.jsx == JsxEmit::REACT_JSX_DEV,
             force: is_file_forced_to_be_module_by_format(file_name, options, metadata),
         },
         ModuleDetectionKind::None => crate::parseoptions::ExternalModuleIndicatorOptions::default(),
@@ -55,7 +55,7 @@ fn is_file_forced_to_be_module_by_format(
     // for back compat purposes. The only non-declaration files _not_ forced to be a module are `.js` files
     // that aren't esm-mode (meaning not in a `type: module` scope).
     get_implied_node_format_for_emit_worker(file_name, options.get_emit_module_kind(), metadata)
-        == ModuleKind::ESNext
+        == ModuleKind::ES_NEXT
         || tspath::file_extension_is_one_of(
             file_name,
             IS_FILE_FORCED_TO_BE_MODULE_BY_FORMAT_EXTENSIONS,
@@ -105,7 +105,7 @@ fn is_file_probably_external_module(source_file: &SourceFile) -> Option<P<Node>>
 }
 
 fn is_an_external_module_indicator_node(node: P<Node>) -> bool {
-    has_syntactic_modifier(node, ModifierFlags::Export)
+    has_syntactic_modifier(node, ModifierFlags::EXPORT)
         || is_import_equals_declaration(node)
             && is_external_module_reference(node.as_import_equals_declaration().module_reference)
         || is_import_declaration(node)
@@ -114,7 +114,7 @@ fn is_an_external_module_indicator_node(node: P<Node>) -> bool {
 }
 
 fn get_import_meta_if_necessary(source_file: &SourceFile) -> Option<P<Node>> {
-    if source_file.as_node().flags.get().intersects(NodeFlags::PossiblyContainsImportMeta) {
+    if source_file.as_node().flags.get().intersects(NodeFlags::POSSIBLY_CONTAINS_IMPORT_META) {
         return find_child_node(source_file.as_node(), is_import_meta);
     }
     None
@@ -145,7 +145,7 @@ fn walk_tree_for_jsx_tags(node: P<Node>) -> Option<P<Node>> {
         if found.is_some() {
             return true;
         }
-        if !node.subtree_facts().intersects(SubtreeFacts::ContainsJsx) {
+        if !node.subtree_facts().intersects(SubtreeFacts::CONTAINS_JSX) {
             return false;
         }
         if is_jsx_opening_like_element(node) || is_jsx_fragment(node) {

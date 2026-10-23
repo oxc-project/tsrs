@@ -56,7 +56,7 @@ fn source12_user_preferences_parsing_edge_cases() {
     expected.organize_imports_case_first = OrganizeImportsCaseFirst::Lower;
     expected.inlay_hints.include_inlay_parameter_name_hints = IncludeInlayParameterNameHints::All;
     expected.organize_imports_type_order = OrganizeImportsTypeOrder::First;
-    expected.workspace_symbols_scope = WorkspaceSymbolsScope::CurrentProject;
+    expected.workspace_symbols_scope = WorkspaceSymbolsScope::CURRENT_PROJECT;
     assert_eq!(base.clone().with_config(&enums), expected);
 
     let primary_null = config(r#"{"suggest":{"jsdoc":{"enabled":null},"completeJSDocs":false}}"#);
@@ -73,7 +73,7 @@ fn source12_user_preferences_parsing_edge_cases() {
     );
     let mut expected = base.clone();
     expected.maximum_hover_length = 9;
-    expected.format_code_settings.editor_settings.indent_style = IndentStyle::Block;
+    expected.format_code_settings.editor_settings.indent_style = IndentStyle::BLOCK;
     expected.auto_import_file_exclude_patterns = Some(vec!["first".into(), "second".into()]);
     assert_eq!(base.clone().with_config(&numeric_and_array), expected);
 
@@ -111,7 +111,7 @@ fn fill_non_zero_value(field: FieldMut<'_>) {
         FieldMut::ImportModuleSpecifierEndingPreference(f) => {
             *f = ImportModuleSpecifierEndingPreference::Js;
         }
-        FieldMut::WorkspaceSymbolsScope(f) => *f = WorkspaceSymbolsScope::CurrentProject,
+        FieldMut::WorkspaceSymbolsScope(f) => *f = WorkspaceSymbolsScope::CURRENT_PROJECT,
         FieldMut::String(f) => *f = "test".to_string(),
         FieldMut::Slice(f) => *f = Some(vec!["test".to_string()]),
     }
@@ -465,7 +465,7 @@ fn test_user_preferences_parse_unstable() {
                 display_parts_for_jsdoc: Tristate::True,
                 import_module_specifier_preference: ImportModuleSpecifierPreference::Relative,
                 exclude_library_symbols_in_nav_to: Tristate::True,
-                workspace_symbols_scope: WorkspaceSymbolsScope::CurrentProject,
+                workspace_symbols_scope: WorkspaceSymbolsScope::CURRENT_PROJECT,
                 ..Default::default()
             },
         ),

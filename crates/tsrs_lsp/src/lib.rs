@@ -11,7 +11,7 @@ mod stack_sanitizer;
 mod workerpool;
 
 pub use server::{
-    Reader, Server, ServerOptions, Writer, new_server, npmInstallFunc, to_reader, to_writer,
+    NpmInstallFunc, Reader, Server, ServerOptions, Writer, new_server, to_reader, to_writer,
 };
 
 #[cfg(test)]

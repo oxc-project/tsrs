@@ -58,39 +58,39 @@ pub fn compute_hash(text: &str, hash_with_text: bool) -> String {
 bitflags::bitflags! {
     #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
     pub struct FileEmitKind: u32 {
-        const None        = 0;
-        const Js          = 1 << 0; // emit js file
-        const JsMap       = 1 << 1; // emit js.map file
-        const JsInlineMap = 1 << 2; // emit inline source map in js file
-        const DtsErrors   = 1 << 3; // emit dts errors
-        const DtsEmit     = 1 << 4; // emit d.ts file
-        const DtsMap      = 1 << 5; // emit d.ts.map file
+        const NONE        = 0;
+        const JS          = 1 << 0; // emit js file
+        const JS_MAP       = 1 << 1; // emit js.map file
+        const JS_INLINE_MAP = 1 << 2; // emit inline source map in js file
+        const DTS_ERRORS   = 1 << 3; // emit dts errors
+        const DTS_EMIT     = 1 << 4; // emit d.ts file
+        const DTS_MAP      = 1 << 5; // emit d.ts.map file
 
-        const Dts        = Self::DtsErrors.bits() | Self::DtsEmit.bits();
-        const AllJs      = Self::Js.bits() | Self::JsMap.bits() | Self::JsInlineMap.bits();
-        const AllDtsEmit = Self::DtsEmit.bits() | Self::DtsMap.bits();
-        const AllDts     = Self::Dts.bits() | Self::DtsMap.bits();
-        const All        = Self::AllJs.bits() | Self::AllDts.bits();
+        const DTS        = Self::DTS_ERRORS.bits() | Self::DTS_EMIT.bits();
+        const ALL_JS      = Self::JS.bits() | Self::JS_MAP.bits() | Self::JS_INLINE_MAP.bits();
+        const ALL_DTS_EMIT = Self::DTS_EMIT.bits() | Self::DTS_MAP.bits();
+        const ALL_DTS     = Self::DTS.bits() | Self::DTS_MAP.bits();
+        const ALL        = Self::ALL_JS.bits() | Self::ALL_DTS.bits();
     }
 }
 
 // snapshot.go:62
 pub fn get_file_emit_kind(options: &CompilerOptions) -> FileEmitKind {
-    let mut result = FileEmitKind::Js;
+    let mut result = FileEmitKind::JS;
     if options.source_map.is_true() {
-        result |= FileEmitKind::JsMap;
+        result |= FileEmitKind::JS_MAP;
     }
     if options.inline_source_map.is_true() {
-        result |= FileEmitKind::JsInlineMap;
+        result |= FileEmitKind::JS_INLINE_MAP;
     }
     if options.get_emit_declarations() {
-        result |= FileEmitKind::Dts;
+        result |= FileEmitKind::DTS;
     }
     if options.declaration_map.is_true() {
-        result |= FileEmitKind::DtsMap;
+        result |= FileEmitKind::DTS_MAP;
     }
     if options.emit_declaration_only.is_true() {
-        result &= FileEmitKind::AllDts;
+        result &= FileEmitKind::ALL_DTS;
     }
     result
 }
@@ -111,24 +111,24 @@ pub(crate) fn get_pending_emit_kind(
     old_emit_kind: FileEmitKind,
 ) -> FileEmitKind {
     if old_emit_kind == emit_kind {
-        return FileEmitKind::None;
+        return FileEmitKind::NONE;
     }
     if old_emit_kind.is_empty() || emit_kind.is_empty() {
         return emit_kind;
     }
     let diff = old_emit_kind ^ emit_kind;
-    let mut result = FileEmitKind::None;
+    let mut result = FileEmitKind::NONE;
     // If there is diff in Js emit, pending emit is js emit flags
-    if diff.intersects(FileEmitKind::AllJs) {
-        result |= emit_kind & FileEmitKind::AllJs;
+    if diff.intersects(FileEmitKind::ALL_JS) {
+        result |= emit_kind & FileEmitKind::ALL_JS;
     }
     // If dts errors pending, add dts errors flag
-    if diff.intersects(FileEmitKind::DtsErrors) {
-        result |= emit_kind & FileEmitKind::AllDts;
+    if diff.intersects(FileEmitKind::DTS_ERRORS) {
+        result |= emit_kind & FileEmitKind::ALL_DTS;
     }
     // If there is diff in Dts emit, pending emit is dts emit flags
-    if diff.intersects(FileEmitKind::AllDtsEmit) {
-        result |= emit_kind & FileEmitKind::AllDtsEmit;
+    if diff.intersects(FileEmitKind::ALL_DTS_EMIT) {
+        result |= emit_kind & FileEmitKind::ALL_DTS_EMIT;
     }
     result
 }
@@ -166,7 +166,7 @@ impl EmitSignature {
 }
 
 #[derive(Clone, Debug)]
-pub(crate) struct buildInfoDiagnosticWithFileName {
+pub(crate) struct BuildInfoDiagnosticWithFileName {
     // filename if it is for a File thats other than its stored for
     pub(crate) file: Path,
     pub(crate) no_file: bool,
@@ -178,17 +178,17 @@ pub(crate) struct buildInfoDiagnosticWithFileName {
     pub(crate) message_text: String,
     pub(crate) message_key: String,
     pub(crate) message_args: Vec<String>,
-    pub(crate) message_chain: Vec<buildInfoDiagnosticWithFileName>,
-    pub(crate) related_information: Vec<buildInfoDiagnosticWithFileName>,
+    pub(crate) message_chain: Vec<BuildInfoDiagnosticWithFileName>,
+    pub(crate) related_information: Vec<BuildInfoDiagnosticWithFileName>,
     pub(crate) reports_unnecessary: bool,
     pub(crate) reports_deprecated: bool,
     pub(crate) skipped_on_no_emit: bool,
     pub(crate) repopulate_info: Option<RepopulateDiagnosticInfo>,
 }
 
-impl Default for buildInfoDiagnosticWithFileName {
+impl Default for BuildInfoDiagnosticWithFileName {
     fn default() -> Self {
-        buildInfoDiagnosticWithFileName {
+        BuildInfoDiagnosticWithFileName {
             file: Path::default(),
             no_file: false,
             pos: 0,
@@ -212,7 +212,7 @@ impl Default for buildInfoDiagnosticWithFileName {
 #[derive(Debug, Default)]
 pub struct DiagnosticsOrBuildInfoDiagnosticsWithFileName {
     pub(crate) diagnostics: Mutex<Option<Vec<P<Diagnostic>>>>,
-    pub(crate) build_info_diagnostics: Vec<buildInfoDiagnosticWithFileName>,
+    pub(crate) build_info_diagnostics: Vec<BuildInfoDiagnosticWithFileName>,
 }
 
 impl DiagnosticsOrBuildInfoDiagnosticsWithFileName {
@@ -238,7 +238,7 @@ fn key_of(key: &str) -> Key {
     Key(alloc_str(key))
 }
 
-impl buildInfoDiagnosticWithFileName {
+impl BuildInfoDiagnosticWithFileName {
     // snapshot.go:150
     pub(crate) fn to_diagnostic(
         &self,
@@ -316,7 +316,7 @@ impl buildInfoDiagnosticWithFileName {
 // program state which may have changed between incremental builds.
 // snapshot.go:189
 pub(crate) fn repopulate_diagnostic_chain(
-    b: &buildInfoDiagnosticWithFileName,
+    b: &BuildInfoDiagnosticWithFileName,
     p: &'static CompilerProgram,
     file: Option<P<SourceFile>>,
 ) -> P<Diagnostic> {
@@ -331,7 +331,7 @@ pub(crate) fn repopulate_diagnostic_chain(
 
 // snapshot.go:225
 fn repopulate_mode_mismatch_chain(
-    b: &buildInfoDiagnosticWithFileName,
+    b: &BuildInfoDiagnosticWithFileName,
     p: &'static CompilerProgram,
     file: Option<P<SourceFile>>,
 ) -> P<Diagnostic> {
@@ -362,7 +362,7 @@ fn repopulate_mode_mismatch_chain(
 
 // snapshot.go:252
 fn repopulate_module_not_found_chain(
-    b: &buildInfoDiagnosticWithFileName,
+    b: &BuildInfoDiagnosticWithFileName,
     p: &'static CompilerProgram,
     file: Option<P<SourceFile>>,
     info: &RepopulateDiagnosticInfo,
@@ -493,7 +493,7 @@ impl Snapshot {
     ) {
         let existing_kind = self.affected_files_pending_emit.load(file_path).unwrap_or_default();
         self.affected_files_pending_emit.store(file_path.clone(), existing_kind | emit_kind);
-        if emit_kind.intersects(FileEmitKind::DtsErrors) {
+        if emit_kind.intersects(FileEmitKind::DTS_ERRORS) {
             self.emit_diagnostics_per_file.delete(file_path);
         }
         self.build_info_emit_pending.set(true);

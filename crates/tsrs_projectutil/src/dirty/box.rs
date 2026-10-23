@@ -5,10 +5,10 @@ use super::interfaces::{Cloneable, Shared, Value};
 // Go `Box[T]` has no synchronization; the mutex only provides interior mutability and is never held while a
 // callback runs (a callback may use the box again, as in Go).
 pub struct Box<T> {
-    st: Mutex<boxState<T>>,
+    st: Mutex<BoxState<T>>,
 }
 
-struct boxState<T> {
+struct BoxState<T> {
     original: Option<Shared<T>>,
     value: Option<Shared<T>>,
     dirty: bool,
@@ -18,7 +18,7 @@ struct boxState<T> {
 // box.go:10
 pub fn new_box<T>(original: Option<Shared<T>>) -> Box<T> {
     Box {
-        st: Mutex::new(boxState {
+        st: Mutex::new(BoxState {
             original: original.clone(),
             value: original,
             dirty: false,

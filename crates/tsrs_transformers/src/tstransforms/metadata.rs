@@ -62,7 +62,7 @@ impl MetadataTransformer {
 
     // metadata.go:34
     fn visit(&self, node: P<Node>) -> P<Node> {
-        if !node.subtree_facts().intersects(SubtreeFacts::ContainsDecorators) {
+        if !node.subtree_facts().intersects(SubtreeFacts::CONTAINS_DECORATORS) {
             return node;
         }
 

@@ -3,19 +3,19 @@ use std::time::Duration;
 
 use super::{CompileTimes, EmitInput};
 
-struct tableRow {
+struct TableRow {
     name: String,
     value: String,
 }
 
 #[derive(Default)]
-struct table {
-    rows: Vec<tableRow>,
+struct Table {
+    rows: Vec<TableRow>,
 }
 
-impl table {
+impl Table {
     fn add(&mut self, name: &str, value: &dyn std::fmt::Display) {
-        self.rows.push(tableRow { name: name.to_string(), value: value.to_string() });
+        self.rows.push(TableRow { name: name.to_string(), value: value.to_string() });
     }
 
     fn add_duration(&mut self, name: &str, d: Duration) {
@@ -155,7 +155,7 @@ impl Statistics {
     }
 
     fn report_worker(&self, w: &dyn Fn(&str)) {
-        let mut table = table::default();
+        let mut table = Table::default();
         let prefix = if self.is_aggregate { "Aggregate " } else { "" };
 
         if self.is_aggregate {
@@ -203,7 +203,7 @@ impl Statistics {
             return;
         }
         // tsrs-only sub-phases (tsrs_core::phases), in the order they first ran.
-        let mut table = table::default();
+        let mut table = Table::default();
         for (name, value) in tsrs_core::phases::snapshot() {
             match value {
                 tsrs_core::phases::PhaseValue::Time(d) => table.add_duration(name, d),
@@ -212,7 +212,7 @@ impl Statistics {
         }
         table.print(w);
         if let Some(stats) = &self.lazy_member_stats {
-            let mut table = table::default();
+            let mut table = Table::default();
             for (name, value) in stats.rows() {
                 table.add(name, &value);
             }
@@ -221,7 +221,7 @@ impl Statistics {
     }
 
     // statistics.go:136
-    fn add_content_mapper_statistics(&self, table: &mut table, prefix: &str) {
+    fn add_content_mapper_statistics(&self, table: &mut Table, prefix: &str) {
         let timings = &self.compile_times.content_mapper_times;
         if !timings.request_wait.is_zero() {
             table.add_duration(

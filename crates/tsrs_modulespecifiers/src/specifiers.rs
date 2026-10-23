@@ -125,14 +125,14 @@ pub fn get_module_specifiers_for_file_with_info(
 pub(crate) fn try_get_module_name_from_ambient_module(
     module_symbol: P<Symbol>,
     checker: &mut dyn CheckerShape,
-) -> ambientModuleInfo {
+) -> AmbientModuleInfo {
     let declarations = module_symbol.declarations();
     if let Some(result) = declarations.iter().find_map(|&decl| {
         if ast::is_module_with_string_literal_name(decl)
             && (!ast::is_module_augmentation_external(decl)
                 || !tspath::is_external_module_name_relative(decl.name().unwrap().text()))
         {
-            Some(ambientModuleInfo {
+            Some(AmbientModuleInfo {
                 name: decl.name().unwrap().text().to_string(),
                 symbol: Some(module_symbol),
             })
@@ -170,7 +170,7 @@ pub(crate) fn try_get_module_name_from_ambient_module(
             .symbol()
             .unwrap()
             .exports()
-            .and_then(|exports| exports.lookup(ast::InternalSymbolNameExportEquals));
+            .and_then(|exports| exports.lookup(ast::INTERNAL_SYMBOL_NAME_EXPORT_EQUALS));
         let Some(sym) = sym else {
             continue;
         };
@@ -185,18 +185,18 @@ pub(crate) fn try_get_module_name_from_ambient_module(
         let Some(mut export_symbol) = export_symbol else {
             continue;
         };
-        if export_symbol.flags().intersects(SymbolFlags::Alias) {
+        if export_symbol.flags().intersects(SymbolFlags::ALIAS) {
             export_symbol = checker.get_aliased_symbol(export_symbol);
         }
         // TODO: Possible strada bug - isn't this insufficient in the presence of merge symbols?
         if Some(export_symbol) == d.symbol() {
-            return ambientModuleInfo {
+            return AmbientModuleInfo {
                 name: possible_container.name().unwrap().text().to_string(),
                 symbol: possible_container.symbol(),
             };
         }
     }
-    ambientModuleInfo::default()
+    AmbientModuleInfo::default()
 }
 
 // specifiers.go:168
@@ -1036,7 +1036,7 @@ pub(crate) fn try_directory_with_package_json(
     override_mode: ModuleKind,
     options: &CompilerOptions,
     allowed_endings: &[ModuleSpecifierEnding],
-) -> pkgJsonDirAttemptResult {
+) -> PkgJsonDirAttemptResult {
     let root_idx = parts.package_root_index.unwrap_or(path_obj.file_name.len());
     let package_root_path = path_obj.file_name[0..root_idx].to_string();
     let package_json_path = tspath::combine_paths(&package_root_path, &["package.json"]);
@@ -1050,13 +1050,13 @@ pub(crate) fn try_directory_with_package_json(
             || file_name == "index.ts"
             || file_name == "index.tsx"
         {
-            return pkgJsonDirAttemptResult {
+            return PkgJsonDirAttemptResult {
                 module_file_to_try,
                 package_root_path,
                 ..Default::default()
             };
         }
-        return pkgJsonDirAttemptResult { module_file_to_try, ..Default::default() };
+        return PkgJsonDirAttemptResult { module_file_to_try, ..Default::default() };
     };
 
     let mut import_mode = override_mode;
@@ -1121,7 +1121,7 @@ pub(crate) fn try_directory_with_package_json(
             };
         }
         if !from_exports.is_empty() {
-            return pkgJsonDirAttemptResult {
+            return PkgJsonDirAttemptResult {
                 module_file_to_try: from_exports,
                 verbatim_from_exports: true,
                 ..Default::default()
@@ -1130,7 +1130,7 @@ pub(crate) fn try_directory_with_package_json(
         if package_json_content
             .is_some_and(|c| c.fields.exports.type_() != JSONValueType::NotPresent)
         {
-            return pkgJsonDirAttemptResult {
+            return PkgJsonDirAttemptResult {
                 module_file_to_try: path_obj.file_name.clone(),
                 blocked_by_exports: true,
                 ..Default::default()
@@ -1202,7 +1202,7 @@ pub(crate) fn try_directory_with_package_json(
         ) == std::cmp::Ordering::Equal
         {
             // ^ An arbitrary removal of file extension for this comparison is almost certainly wrong
-            return pkgJsonDirAttemptResult {
+            return PkgJsonDirAttemptResult {
                 module_file_to_try,
                 package_root_path,
                 ..Default::default()
@@ -1230,7 +1230,7 @@ pub(crate) fn try_directory_with_package_json(
             // example mainExportFile: `pkg/lib` and moduleFileToTry: `pkg/lib/index`, we can use packageRootPath
             // but this behavior is deprecated for packages with "type": "module", so we only do this for packages without "type": "module"
             // and make sure that the extension on index.{???} is something that supports omitting the extension
-            return pkgJsonDirAttemptResult {
+            return PkgJsonDirAttemptResult {
                 module_file_to_try,
                 package_root_path,
                 ..Default::default()
@@ -1238,7 +1238,7 @@ pub(crate) fn try_directory_with_package_json(
         }
     }
 
-    pkgJsonDirAttemptResult { module_file_to_try, ..Default::default() }
+    PkgJsonDirAttemptResult { module_file_to_try, ..Default::default() }
 }
 
 // specifiers.go:981
@@ -1338,8 +1338,8 @@ pub(crate) fn try_get_module_name_from_package_json_imports(
                     continue; // invalid imports entry
                 }
                 if k.starts_with("#/")
-                    && options.get_module_resolution_kind() != ModuleResolutionKind::NodeNext
-                    && options.get_module_resolution_kind() != ModuleResolutionKind::Bundler
+                    && options.get_module_resolution_kind() != ModuleResolutionKind::NODE_NEXT
+                    && options.get_module_resolution_kind() != ModuleResolutionKind::BUNDLER
                 {
                     continue; // "#/" imports keys are only valid in nodenext/bundler
                 }
@@ -1437,14 +1437,14 @@ pub(crate) fn try_get_module_name_from_paths(
             // in module specifier generation. I have included it last, as it's difficult to tell exactly where it should be
             // sorted among the others for a particular value of `importModuleSpecifierEnding`.
 
-            let mut candidates: Vec<specPair> = Vec::new();
+            let mut candidates: Vec<SpecPair> = Vec::new();
             candidates.extend(allowed_endings.iter().map(|&ending| {
                 let result =
                     process_ending(relative_to_base_url, &[ending], compiler_options, Some(host));
-                specPair { ending, value: result }
+                SpecPair { ending, value: result }
             }));
             if !tspath::try_get_extension_from_path(&pattern).is_empty() {
-                candidates.push(specPair {
+                candidates.push(SpecPair {
                     ending: ModuleSpecifierEnding::JsExtension,
                     value: relative_to_base_url.to_string(),
                 });
@@ -1486,7 +1486,7 @@ pub(crate) fn try_get_module_name_from_paths(
 
 // specifiers.go:1193
 pub(crate) fn validate_ending(
-    c: &specPair,
+    c: &SpecPair,
     relative_to_base_url: &str,
     compiler_options: &CompilerOptions,
     host: &dyn ModuleSpecifierGenerationHost,

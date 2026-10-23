@@ -44,7 +44,7 @@ fn test_unmarshal_completion_item() {
         result,
         CompletionItem {
             label: "pageXOffset".to_string(),
-            insert_text_format: Some(InsertTextFormat::PlainText),
+            insert_text_format: Some(InsertTextFormat::PLAIN_TEXT),
             text_edit: Some(TextEditOrInsertReplaceEdit {
                 insert_replace_edit: Some(InsertReplaceEdit {
                     new_text: "pageXOffset".to_string(),
@@ -59,7 +59,7 @@ fn test_unmarshal_completion_item() {
                 }),
                 ..Default::default()
             }),
-            kind: Some(CompletionItemKind::Variable),
+            kind: Some(CompletionItemKind::VARIABLE),
             sort_text: Some("15".to_string()),
             commit_characters: Some(vec![".".to_string(), ",".to_string(), ";".to_string()]),
             ..Default::default()

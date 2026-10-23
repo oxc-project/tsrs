@@ -88,8 +88,8 @@ pub(crate) fn infer_preference(
 
 fn module_resolution_is_node_next(compiler_options: &CompilerOptions) -> bool {
     let module_resolution = compiler_options.get_module_resolution_kind();
-    ModuleResolutionKind::Node16 <= module_resolution
-        && module_resolution <= ModuleResolutionKind::NodeNext
+    ModuleResolutionKind::NODE16 <= module_resolution
+        && module_resolution <= ModuleResolutionKind::NODE_NEXT
 }
 
 // preferences.go:69

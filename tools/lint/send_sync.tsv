@@ -29,7 +29,7 @@ crates/tsrs_core/src/ptr.rs	Sync	<T> SP<T>
 crates/tsrs_core/src/ptr.rs	Sync	<T> StaticSlicePtr<T>
 crates/tsrs_core/src/ptr.rs	Sync	<T> ThinSlice<T>
 crates/tsrs_core/src/ptr.rs	Sync	PackedStr
-crates/tsrs_fswatch/src/fsevents_darwin_ffi.rs	Send	fsEventStream
-crates/tsrs_fswatch/src/fsevents_darwin_ffi.rs	Send	streamCallback
-crates/tsrs_fswatch/src/fsevents_darwin_ffi.rs	Sync	fsEventStream
-crates/tsrs_fswatch/src/fsevents_darwin_ffi.rs	Sync	streamCallback
+crates/tsrs_fswatch/src/fsevents_darwin_ffi.rs	Send	FsEventStream
+crates/tsrs_fswatch/src/fsevents_darwin_ffi.rs	Send	StreamCallback
+crates/tsrs_fswatch/src/fsevents_darwin_ffi.rs	Sync	FsEventStream
+crates/tsrs_fswatch/src/fsevents_darwin_ffi.rs	Sync	StreamCallback

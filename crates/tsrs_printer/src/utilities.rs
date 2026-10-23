@@ -7,13 +7,13 @@ use crate::*;
 
 bitflags::bitflags! {
     #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Debug, Default)]
-    pub(crate) struct getLiteralTextFlags: u32 {
-        const None = 0;
-        const NeverAsciiEscape = 1 << 0;
-        const JsxAttributeEscape = 1 << 1;
-        const TerminateUnterminatedLiterals = 1 << 2;
-        const AllowNumericSeparator = 1 << 3;
-        const InternalSymbolName = 1 << 4; // Port-only: see `EmitFlags::InternalSymbolName`.
+    pub(crate) struct GetLiteralTextFlags: u32 {
+        const NONE = 0;
+        const NEVER_ASCII_ESCAPE = 1 << 0;
+        const JSX_ATTRIBUTE_ESCAPE = 1 << 1;
+        const TERMINATE_UNTERMINATED_LITERALS = 1 << 2;
+        const ALLOW_NUMERIC_SEPARATOR = 1 << 3;
+        const INTERNAL_SYMBOL_NAME = 1 << 4; // Port-only: see `EmitFlags::InternalSymbolName`.
     }
 }
 
@@ -73,7 +73,7 @@ fn encode_utf16_escape_sequence(b: &mut String, char_code: stringutil::Rune) {
 pub(crate) fn escape_string_worker(
     s: &str,
     quote_char: QuoteChar,
-    flags: getLiteralTextFlags,
+    flags: GetLiteralTextFlags,
     b: &mut String,
 ) {
     let bytes = s.as_bytes();
@@ -81,8 +81,8 @@ pub(crate) fn escape_string_worker(
     let mut i = 0;
     while i < bytes.len() {
         let (mut ch, mut size) = if i == 0
-            && flags.intersects(getLiteralTextFlags::InternalSymbolName)
-            && bytes[0] == InternalSymbolNamePrefixByte
+            && flags.intersects(GetLiteralTextFlags::INTERNAL_SYMBOL_NAME)
+            && bytes[0] == INTERNAL_SYMBOL_NAME_PREFIX_BYTE
         {
             // An internal symbol name the node builder put into a string literal (`(typeof E)["�missing"]`):
             // Go's prefix is the invalid byte 0xFE, which it decodes as a stray RuneError. Any other U+007F is user
@@ -109,7 +109,7 @@ pub(crate) fn escape_string_worker(
         // `escapedCharsMap` and/or `jsxEscapedCharsMap` must be updated. Note that this *does not* include the 'delete'
         // character. There is no reason for this other than that JSON.stringify does not handle it either.
         if ch == '\\' as stringutil::Rune {
-            if !flags.intersects(getLiteralTextFlags::JsxAttributeEscape) {
+            if !flags.intersects(GetLiteralTextFlags::JSX_ATTRIBUTE_ESCAPE) {
                 escape = true;
             }
         } else if ch == '$' as stringutil::Rune {
@@ -129,7 +129,7 @@ pub(crate) fn escape_string_worker(
                 escape = true;
             }
         } else if ch <= 0x1f
-            || !flags.intersects(getLiteralTextFlags::NeverAsciiEscape) && ch > 0x7f
+            || !flags.intersects(GetLiteralTextFlags::NEVER_ASCII_ESCAPE) && ch > 0x7f
         {
             escape = true;
         }
@@ -140,7 +140,7 @@ pub(crate) fn escape_string_worker(
                 b.push_str(&s[pos..i]);
             }
 
-            if flags.intersects(getLiteralTextFlags::JsxAttributeEscape) {
+            if flags.intersects(GetLiteralTextFlags::JSX_ATTRIBUTE_ESCAPE) {
                 if ch == 0 {
                     b.push_str("&#0;");
                 } else if let Some(m) = jsx_escaped_chars_map(ch) {
@@ -191,13 +191,13 @@ pub(crate) fn escape_string_worker(
 
 pub fn escape_string(s: &str, quote_char: QuoteChar) -> String {
     let mut b = String::with_capacity(s.len() + 2);
-    escape_string_worker(s, quote_char, getLiteralTextFlags::NeverAsciiEscape, &mut b);
+    escape_string_worker(s, quote_char, GetLiteralTextFlags::NEVER_ASCII_ESCAPE, &mut b);
     b
 }
 
 pub(crate) fn escape_non_ascii_string(s: &str, quote_char: QuoteChar) -> String {
     let mut b = String::with_capacity(s.len() + 2);
-    escape_string_worker(s, quote_char, getLiteralTextFlags::None, &mut b);
+    escape_string_worker(s, quote_char, GetLiteralTextFlags::NONE, &mut b);
     b
 }
 
@@ -206,19 +206,19 @@ pub(crate) fn escape_jsx_attribute_string(s: &str, quote_char: QuoteChar) -> Str
     escape_string_worker(
         s,
         quote_char,
-        getLiteralTextFlags::JsxAttributeEscape | getLiteralTextFlags::NeverAsciiEscape,
+        GetLiteralTextFlags::JSX_ATTRIBUTE_ESCAPE | GetLiteralTextFlags::NEVER_ASCII_ESCAPE,
         &mut b,
     );
     b
 }
 
-pub(crate) fn can_use_original_text(node: P<Node>, flags: getLiteralTextFlags) -> bool {
+pub(crate) fn can_use_original_text(node: P<Node>, flags: GetLiteralTextFlags) -> bool {
     // A synthetic node has no original text, nor does a node without a parent as we would be unable to find the
     // containing SourceFile. We also cannot use the original text if the literal was unterminated and the caller has
     // requested proper termination of unterminated literals
     if node_is_synthesized(node)
         || node.parent().is_none()
-        || flags.intersects(getLiteralTextFlags::TerminateUnterminatedLiterals)
+        || flags.intersects(GetLiteralTextFlags::TERMINATE_UNTERMINATED_LITERALS)
             && is_unterminated_literal(node)
     {
         return false;
@@ -227,13 +227,13 @@ pub(crate) fn can_use_original_text(node: P<Node>, flags: getLiteralTextFlags) -
     if node.kind() == Kind::NumericLiteral {
         let token_flags = node.as_numeric_literal().token_flags();
         // For a numeric literal, we cannot use the original text if the original text was an invalid literal
-        if token_flags.intersects(TokenFlags::IsInvalid) {
+        if token_flags.intersects(TokenFlags::IS_INVALID) {
             return false;
         }
         // We also cannot use the original text if the literal contains numeric separators, but numeric separators
         // are not permitted
-        if token_flags.intersects(TokenFlags::ContainsSeparator) {
-            return flags.intersects(getLiteralTextFlags::AllowNumericSeparator);
+        if token_flags.intersects(TokenFlags::CONTAINS_SEPARATOR) {
+            return flags.intersects(GetLiteralTextFlags::ALLOW_NUMERIC_SEPARATOR);
         }
     }
 
@@ -247,7 +247,7 @@ pub(crate) fn can_use_original_text(node: P<Node>, flags: getLiteralTextFlags) -
 pub(crate) fn get_literal_text(
     node: P<Node>,
     source_file: Option<P<SourceFile>>,
-    flags: getLiteralTextFlags,
+    flags: GetLiteralTextFlags,
 ) -> String {
     // If we don't need to downlevel and we can reach the original source text using
     // the node's parent reference, then simply get the text as it was originally written.
@@ -266,7 +266,7 @@ pub(crate) fn get_literal_text(
     match node.kind() {
         Kind::StringLiteral => {
             let quote_char =
-                if node.as_string_literal().token_flags().intersects(TokenFlags::SingleQuote) {
+                if node.as_string_literal().token_flags().intersects(TokenFlags::SINGLE_QUOTE) {
                     QuoteChar::SingleQuote
                 } else {
                     QuoteChar::DoubleQuote
@@ -342,7 +342,7 @@ pub(crate) fn get_literal_text(
         Kind::NumericLiteral | Kind::BigIntLiteral => node.text().to_string(),
 
         Kind::RegularExpressionLiteral => {
-            if flags.intersects(getLiteralTextFlags::TerminateUnterminatedLiterals)
+            if flags.intersects(GetLiteralTextFlags::TERMINATE_UNTERMINATED_LITERALS)
                 && is_unterminated_literal(node)
             {
                 let text = node.text();
@@ -1071,7 +1071,7 @@ pub(crate) fn calculate_indent(text: &str, pos: u32, end: u32) -> i32 {
 //
 // Character offsets are measured in UTF-16 code units per the source map specification.
 #[derive(Clone, Copy)]
-pub(crate) struct lineCharacterCache {
+pub(crate) struct LineCharacterCache {
     pub(crate) line_map: &'static [u32],
     pub(crate) text: &'static str,
     pub(crate) cached_line: usize,
@@ -1083,8 +1083,8 @@ pub(crate) struct lineCharacterCache {
 // utilities.go:903
 pub(crate) fn new_line_character_cache(
     source: &'static dyn tsrs_sourcemap::Source,
-) -> lineCharacterCache {
-    lineCharacterCache {
+) -> LineCharacterCache {
+    LineCharacterCache {
         line_map: source.ecma_line_map(),
         text: source.text(),
         cached_line: 0,
@@ -1094,7 +1094,7 @@ pub(crate) fn new_line_character_cache(
     }
 }
 
-impl lineCharacterCache {
+impl LineCharacterCache {
     // utilities.go:912
     // getLineAndCharacter returns the 0-based line number and UTF-16 code unit
     // offset from the start of that line for the given byte position.

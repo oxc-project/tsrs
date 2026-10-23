@@ -31,7 +31,7 @@ pub fn new_default_user_preferences() -> UserPreferences {
         report_style_checks_as_warnings: Tristate::True,
 
         exclude_library_symbols_in_nav_to: Tristate::True,
-        workspace_symbols_scope: WorkspaceSymbolsScope::AllOpenProjects,
+        workspace_symbols_scope: WorkspaceSymbolsScope::ALL_OPEN_PROJECTS,
         ..Default::default()
     }
 }
@@ -772,9 +772,9 @@ impl QuotePreference {
 pub struct WorkspaceSymbolsScope(pub Cow<'static, str>);
 
 impl WorkspaceSymbolsScope {
-    pub const AllOpenProjects: WorkspaceSymbolsScope =
+    pub const ALL_OPEN_PROJECTS: WorkspaceSymbolsScope =
         WorkspaceSymbolsScope(Cow::Borrowed("allOpenProjects"));
-    pub const CurrentProject: WorkspaceSymbolsScope =
+    pub const CURRENT_PROJECT: WorkspaceSymbolsScope =
         WorkspaceSymbolsScope(Cow::Borrowed("currentProject"));
 }
 
@@ -986,8 +986,8 @@ pub(crate) fn parse_import_module_specifier_ending_preference(
 pub(crate) fn parse_workspace_symbols_scope(val: &Value) -> WorkspaceSymbolsScope {
     if let Value::String(s) = val {
         match s.to_lowercase().as_str() {
-            "allopenprojects" => return WorkspaceSymbolsScope::AllOpenProjects,
-            "currentproject" => return WorkspaceSymbolsScope::CurrentProject,
+            "allopenprojects" => return WorkspaceSymbolsScope::ALL_OPEN_PROJECTS,
+            "currentproject" => return WorkspaceSymbolsScope::CURRENT_PROJECT,
             _ => {}
         }
     }

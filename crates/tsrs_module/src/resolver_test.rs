@@ -29,18 +29,18 @@ fn host(fs: impl FS + 'static, cwd: &str) -> &'static ResolutionHostStub {
 
 fn bundler_options() -> P<CompilerOptions> {
     P::new(CompilerOptions {
-        module_resolution: ModuleResolutionKind::Bundler,
-        module: ModuleKind::ESNext,
-        target: ScriptTarget::ESNext,
+        module_resolution: ModuleResolutionKind::BUNDLER,
+        module: ModuleKind::ES_NEXT,
+        target: ScriptTarget::ES_NEXT,
         ..Default::default()
     })
 }
 
 fn dynamic_options(module: ModuleKind, root_dirs: Option<Vec<String>>) -> P<CompilerOptions> {
     P::new(CompilerOptions {
-        module_resolution: ModuleResolutionKind::Bundler,
+        module_resolution: ModuleResolutionKind::BUNDLER,
         module,
-        target: ScriptTarget::ESNext,
+        target: ScriptTarget::ES_NEXT,
         root_dirs,
         ..Default::default()
     })
@@ -75,7 +75,7 @@ fn test_resolve_dynamic_module_name_using_root_dirs() {
         let resolved = resolve_dynamic(
             [(SOURCE, ""), (target_file, "export const value = 1;")],
             dynamic_options(
-                ModuleKind::ESNext,
+                ModuleKind::ES_NEXT,
                 Some(vec![
                     "^/~ts-uri~/custom/ts-nul-authority/src".to_string(),
                     target_root.to_string(),
@@ -83,7 +83,7 @@ fn test_resolve_dynamic_module_name_using_root_dirs() {
             ),
             SOURCE,
             "./~ts-uri-escape~file",
-            ModuleKind::ESNext,
+            ModuleKind::ES_NEXT,
         );
         assert_eq!(resolved, target_file);
     }
@@ -100,7 +100,7 @@ fn test_root_dirs_preserves_exceptional_dynamic_segments() {
             ("^/~ts-uri~/custom/ts-nul-authority/dep.ts", "export const wrong = 1;"),
         ],
         dynamic_options(
-            ModuleKind::ESNext,
+            ModuleKind::ES_NEXT,
             Some(vec![
                 "^/~ts-uri~/custom/ts-nul-authority/src".to_string(),
                 "^/~ts-uri~/custom/ts-nul-authority/generated".to_string(),
@@ -108,7 +108,7 @@ fn test_root_dirs_preserves_exceptional_dynamic_segments() {
         ),
         SOURCE,
         "./dep",
-        ModuleKind::ESNext,
+        ModuleKind::ES_NEXT,
     );
     assert_eq!(resolved, TARGET);
 }
@@ -126,10 +126,10 @@ fn test_resolve_dynamic_package_subpath_file() {
             ),
             (TARGET, "export const value = 1;"),
         ],
-        dynamic_options(ModuleKind::ESNext, None),
+        dynamic_options(ModuleKind::ES_NEXT, None),
         SOURCE,
         "pkg/~ts-uri-escape~666f6f~.ts",
-        ModuleKind::ESNext,
+        ModuleKind::ES_NEXT,
     );
     assert_eq!(resolved, TARGET);
 }
@@ -140,10 +140,10 @@ fn test_resolve_dynamic_dotted_directory() {
     const TARGET: &str = "^/~ts-uri~/custom/ts-nul-authority/src/~ts-uri-escape~7e74732d7572692d6573636170657e6469722e6a73~/index.ts";
     let resolved = resolve_dynamic(
         [(SOURCE, ""), (TARGET, "export const value = 1;")],
-        dynamic_options(ModuleKind::CommonJS, None),
+        dynamic_options(ModuleKind::COMMON_JS, None),
         SOURCE,
         "./~ts-uri-escape~dir.js",
-        ModuleKind::CommonJS,
+        ModuleKind::COMMON_JS,
     );
     assert_eq!(resolved, TARGET);
 }
@@ -158,7 +158,7 @@ fn test_root_dirs_rejects_unrepresentable_disk_segments() {
         let resolved = resolve_dynamic(
             [(source, ""), ("c:/dep.ts", "export const wrong = 1;")],
             dynamic_options(
-                ModuleKind::ESNext,
+                ModuleKind::ES_NEXT,
                 Some(vec![
                     "^/~ts-uri~/custom/ts-nul-authority/src".to_string(),
                     "c:/generated".to_string(),
@@ -166,7 +166,7 @@ fn test_root_dirs_rejects_unrepresentable_disk_segments() {
             ),
             source,
             "./dep",
-            ModuleKind::ESNext,
+            ModuleKind::ES_NEXT,
         );
         assert!(resolved.is_empty(), "{source} resolved to {resolved}");
     }
@@ -187,10 +187,10 @@ fn test_resolve_dynamic_package_json_path() {
             (FALLBACK, "export const fallback: number;"),
             (TARGET, "export const value: number;"),
         ],
-        dynamic_options(ModuleKind::ESNext, None),
+        dynamic_options(ModuleKind::ES_NEXT, None),
         SOURCE,
         "pkg",
-        ModuleKind::ESNext,
+        ModuleKind::ES_NEXT,
     );
     assert_eq!(resolved, TARGET);
 }
@@ -209,10 +209,10 @@ fn test_resolve_dynamic_esm_package_index_from_reserved_directory() {
             ),
             (TARGET, "exports.value = 1;"),
         ],
-        dynamic_options(ModuleKind::ESNext, None),
+        dynamic_options(ModuleKind::ES_NEXT, None),
         SOURCE,
         "~ts-uri-escape~pkg.js",
-        ModuleKind::ESNext,
+        ModuleKind::ES_NEXT,
     );
     assert_eq!(resolved, TARGET, "{PACKAGE_DIR}");
 }
@@ -229,9 +229,9 @@ fn test_generated_dynamic_entrypoint_specifier_resolves_encoded_file() {
     );
     let resolver = new_resolver(ResolverOptions::new(
         host(fs, "^/~ts-uri~/custom/ts-nul-authority/"),
-        dynamic_options(ModuleKind::ESNext, None),
+        dynamic_options(ModuleKind::ES_NEXT, None),
     ));
-    resolver.resolve_module_name("Pkg", SOURCE, ModuleKind::ESNext, None).unwrap();
+    resolver.resolve_module_name("Pkg", SOURCE, ModuleKind::ES_NEXT, None).unwrap();
     let mut package_json = None;
     resolver.get_resolution_data().package_json_cache_entries(|_, entry| {
         if entry.exists() {
@@ -247,7 +247,7 @@ fn test_generated_dynamic_entrypoint_specifier_resolves_encoded_file() {
     assert_eq!(entrypoints.len(), 1);
     assert_eq!(entrypoints[0].module_specifier, SPECIFIER);
     let (resolved, _) =
-        resolver.resolve_module_name(SPECIFIER, SOURCE, ModuleKind::ESNext, None).unwrap();
+        resolver.resolve_module_name(SPECIFIER, SOURCE, ModuleKind::ES_NEXT, None).unwrap();
     assert_eq!(resolved.resolved_file_name, FILE);
 }
 
@@ -273,7 +273,7 @@ fn test_resolve_module_name_trailing_slash() {
 
     for name in ["pkg", "pkg/"] {
         let (r, _) = resolver
-            .resolve_module_name(name, "/repo/src/file.ts", ModuleKind::ESNext, None)
+            .resolve_module_name(name, "/repo/src/file.ts", ModuleKind::ES_NEXT, None)
             .unwrap();
         assert!(r.is_resolved(), "{name:?} failed to resolve");
     }
@@ -305,19 +305,19 @@ fn test_resolution_data_caches() {
     );
     let resolver = new_resolver(ResolverOptions::new(
         old_host,
-        P::new(CompilerOptions { module: ModuleKind::NodeNext, ..Default::default() }),
+        P::new(CompilerOptions { module: ModuleKind::NODE_NEXT, ..Default::default() }),
     ));
     let (resolved, _) =
-        resolver.resolve_module_name("pkg", "/src/index.ts", ModuleKind::CommonJS, None).unwrap();
+        resolver.resolve_module_name("pkg", "/src/index.ts", ModuleKind::COMMON_JS, None).unwrap();
     assert!(resolved.is_resolved());
     let (cached, _) =
-        resolver.resolve_module_name("pkg", "/src/index.ts", ModuleKind::CommonJS, None).unwrap();
+        resolver.resolve_module_name("pkg", "/src/index.ts", ModuleKind::COMMON_JS, None).unwrap();
     assert_eq!(cached, resolved);
 
     resolver.resolve_type_reference_directive(
         "missing",
         "/src/index.ts",
-        ModuleKind::CommonJS,
+        ModuleKind::COMMON_JS,
         None,
     );
     let mut paths = new_ordered_map_with_size_hint(1);
@@ -528,7 +528,7 @@ fn test_resolve_module_name_trailing_slash_race() {
                     (
                         name,
                         resolver
-                            .resolve_module_name(name, containing_file, ModuleKind::ESNext, None)
+                            .resolve_module_name(name, containing_file, ModuleKind::ES_NEXT, None)
                             .unwrap()
                             .0
                             .is_resolved(),
@@ -584,7 +584,7 @@ fn test_resolve_subpath_nil_contents_race() {
                             .resolve_module_name(
                                 "pkg/sub",
                                 containing_file,
-                                ModuleKind::ESNext,
+                                ModuleKind::ES_NEXT,
                                 None,
                             )
                             .unwrap()
@@ -675,7 +675,7 @@ fn test_resolve_peer_dependency_nil_contents_race() {
             let results_tx = results_tx.clone();
             s.spawn(move || {
                 let resolved = resolver
-                    .resolve_module_name("pkg", containing_file, ModuleKind::ESNext, None)
+                    .resolve_module_name("pkg", containing_file, ModuleKind::ES_NEXT, None)
                     .unwrap()
                     .0
                     .is_resolved();

@@ -145,7 +145,7 @@ struct DocumentSymbolsVisitor<'a> {
 
 impl DocumentSymbolsVisitor<'_> {
     fn add_symbol_for_node(&mut self, node: P<Node>, name: Option<P<Node>>, children: Vec<DocSym>) {
-        if !node.flags().intersects(NodeFlags::Reparsed) {
+        if !node.flags().intersects(NodeFlags::REPARSED) {
             if let Some(symbol) = self.ls.new_document_symbol(node, name, children) {
                 self.symbols.push(symbol);
             }
@@ -197,7 +197,7 @@ impl DocumentSymbolsVisitor<'_> {
         if self.ctx.err().is_some() {
             return true;
         }
-        if !node.flags().intersects(NodeFlags::Reparsed) {
+        if !node.flags().intersects(NodeFlags::REPARSED) {
             let jsdocs = node.jsdoc(Some(self.file.get()));
             for &jsdoc in jsdocs {
                 if let Some(tag_list) = jsdoc.as_jsdoc().tags {
@@ -493,7 +493,7 @@ impl LanguageService {
         let (selection_range, selection_fidelity) = self.converters.to_lsp_range_for_feature(
             &file,
             TextRange::new(name_start_pos, name_end_pos),
-            Feature::DocumentSymbols,
+            Feature::DOCUMENT_SYMBOLS,
         );
         if !selection_fidelity.is_single_segment() {
             return None;
@@ -504,7 +504,7 @@ impl LanguageService {
                 node_start_pos,
                 node.end().expect_source("document-symbol nodes have source positions"),
             ),
-            Feature::DocumentSymbols,
+            Feature::DOCUMENT_SYMBOLS,
         );
         if range_fidelity.is_none() {
             symbol_range = selection_range;
@@ -534,13 +534,13 @@ fn merge_expandos(symbols: Vec<DocSym>) -> Vec<DocSym> {
         if is_anonymous_name(&symbol.name) {
             continue;
         }
-        if symbol.kind == lsproto::SymbolKind::Class
-            || symbol.kind == lsproto::SymbolKind::Function
-            || symbol.kind == lsproto::SymbolKind::Variable
+        if symbol.kind == lsproto::SymbolKind::CLASS
+            || symbol.kind == lsproto::SymbolKind::FUNCTION
+            || symbol.kind == lsproto::SymbolKind::VARIABLE
         {
             name_to_expando_target_index.add(symbol.name.clone(), i);
         }
-        if symbol.kind == lsproto::SymbolKind::Namespace {
+        if symbol.kind == lsproto::SymbolKind::NAMESPACE {
             name_to_namespace_index.entry(symbol.name.clone()).or_insert(i);
         }
     }
@@ -565,7 +565,7 @@ fn merge_expandos(symbols: Vec<DocSym>) -> Vec<DocSym> {
         }
 
         // Merge expandos.
-        if kind == lsproto::SymbolKind::Property {
+        if kind == lsproto::SymbolKind::PROPERTY {
             let symbols_with_same_name = name_to_expando_target_index.get(&name).to_vec();
             for &target_index in symbols_with_same_name.iter().rev() {
                 // Go reads symbols[targetIndex], which a namespace merge may have set to nil (never a
@@ -577,7 +577,7 @@ fn merge_expandos(symbols: Vec<DocSym>) -> Vec<DocSym> {
             }
         }
         // Merge namespaces.
-        if kind == lsproto::SymbolKind::Namespace {
+        if kind == lsproto::SymbolKind::NAMESPACE {
             if let Some(&target_index) = name_to_namespace_index.get(&name) {
                 if target_index != i {
                     let target_symbol = symbols[target_index].clone().unwrap();
@@ -667,7 +667,7 @@ fn get_unnamed_node_label(node: P<Node>) -> String {
     }
     match node.kind() {
         Kind::FunctionDeclaration | Kind::FunctionExpression | Kind::ArrowFunction => {
-            if node.modifier_flags().intersects(ModifierFlags::Default) {
+            if node.modifier_flags().intersects(ModifierFlags::DEFAULT) {
                 return "default".to_string();
             }
             let parent = node.parent().unwrap();
@@ -685,7 +685,7 @@ fn get_unnamed_node_label(node: P<Node>) -> String {
             "<function>".to_string()
         }
         Kind::ClassDeclaration | Kind::ClassExpression => {
-            if node.modifier_flags().intersects(ModifierFlags::Default) {
+            if node.modifier_flags().intersects(ModifierFlags::DEFAULT) {
                 return "default".to_string();
             }
             "<class>".to_string()
@@ -843,7 +843,7 @@ pub fn provide_workspace_symbols(
         let (location, fidelity) = converters.to_lsp_location_for_feature(
             &source_file,
             name_range,
-            Feature::DocumentSymbols,
+            Feature::DOCUMENT_SYMBOLS,
         );
         if !fidelity.is_single_segment() {
             // The name has no counterpart in the original text, so there is nothing to navigate to.
@@ -945,41 +945,41 @@ pub(crate) fn get_symbol_kind_from_node(node: P<Node>) -> lsproto::SymbolKind {
     match node.kind() {
         Kind::SourceFile => {
             if ast::is_external_module(node.as_source_file_p()) {
-                return lsproto::SymbolKind::Module;
+                return lsproto::SymbolKind::MODULE;
             }
-            return lsproto::SymbolKind::File;
+            return lsproto::SymbolKind::FILE;
         }
-        Kind::ModuleDeclaration => return lsproto::SymbolKind::Namespace,
-        Kind::ClassDeclaration | Kind::ClassExpression => return lsproto::SymbolKind::Class,
-        Kind::InterfaceDeclaration => return lsproto::SymbolKind::Interface,
+        Kind::ModuleDeclaration => return lsproto::SymbolKind::NAMESPACE,
+        Kind::ClassDeclaration | Kind::ClassExpression => return lsproto::SymbolKind::CLASS,
+        Kind::InterfaceDeclaration => return lsproto::SymbolKind::INTERFACE,
         Kind::TypeAliasDeclaration | Kind::JSDocTypedefTag | Kind::JSDocCallbackTag => {
-            return lsproto::SymbolKind::Class;
+            return lsproto::SymbolKind::CLASS;
         }
-        Kind::EnumDeclaration => return lsproto::SymbolKind::Enum,
-        Kind::VariableDeclaration => return lsproto::SymbolKind::Variable,
+        Kind::EnumDeclaration => return lsproto::SymbolKind::ENUM,
+        Kind::VariableDeclaration => return lsproto::SymbolKind::VARIABLE,
         Kind::ArrowFunction | Kind::FunctionDeclaration | Kind::FunctionExpression => {
-            return lsproto::SymbolKind::Function;
+            return lsproto::SymbolKind::FUNCTION;
         }
-        Kind::GetAccessor | Kind::SetAccessor => return lsproto::SymbolKind::Property,
-        Kind::MethodDeclaration | Kind::MethodSignature => return lsproto::SymbolKind::Method,
+        Kind::GetAccessor | Kind::SetAccessor => return lsproto::SymbolKind::PROPERTY,
+        Kind::MethodDeclaration | Kind::MethodSignature => return lsproto::SymbolKind::METHOD,
         Kind::PropertyDeclaration
         | Kind::PropertySignature
         | Kind::PropertyAssignment
         | Kind::ShorthandPropertyAssignment
         | Kind::SpreadAssignment
-        | Kind::IndexSignature => return lsproto::SymbolKind::Property,
-        Kind::CallSignature => return lsproto::SymbolKind::Method,
-        Kind::ConstructSignature => return lsproto::SymbolKind::Constructor,
+        | Kind::IndexSignature => return lsproto::SymbolKind::PROPERTY,
+        Kind::CallSignature => return lsproto::SymbolKind::METHOD,
+        Kind::ConstructSignature => return lsproto::SymbolKind::CONSTRUCTOR,
         Kind::Constructor | Kind::ClassStaticBlockDeclaration => {
-            return lsproto::SymbolKind::Constructor;
+            return lsproto::SymbolKind::CONSTRUCTOR;
         }
-        Kind::TypeParameter => return lsproto::SymbolKind::TypeParameter,
-        Kind::EnumMember => return lsproto::SymbolKind::EnumMember,
+        Kind::TypeParameter => return lsproto::SymbolKind::TYPE_PARAMETER,
+        Kind::EnumMember => return lsproto::SymbolKind::ENUM_MEMBER,
         Kind::Parameter => {
-            if ast::has_syntactic_modifier(node, ModifierFlags::ParameterPropertyModifier) {
-                return lsproto::SymbolKind::Property;
+            if ast::has_syntactic_modifier(node, ModifierFlags::PARAMETER_PROPERTY_MODIFIER) {
+                return lsproto::SymbolKind::PROPERTY;
             }
-            return lsproto::SymbolKind::Variable;
+            return lsproto::SymbolKind::VARIABLE;
         }
         Kind::BinaryExpression | Kind::CallExpression => {
             let kind = ast::get_assignment_declaration_kind(node);
@@ -989,14 +989,14 @@ pub(crate) fn get_symbol_kind_from_node(node: P<Node>) -> lsproto::SymbolKind {
                     | JSDeclarationKind::Property
                     | JSDeclarationKind::ObjectDefinePropertyValue
             ) {
-                return lsproto::SymbolKind::Property;
+                return lsproto::SymbolKind::PROPERTY;
             }
         }
         Kind::StringLiteral | Kind::NoSubstitutionTemplateLiteral | Kind::NumericLiteral => {
             // String literals used as property names (e.g., in Object.defineProperty)
-            return lsproto::SymbolKind::Property;
+            return lsproto::SymbolKind::PROPERTY;
         }
         _ => {}
     }
-    lsproto::SymbolKind::Variable
+    lsproto::SymbolKind::VARIABLE
 }

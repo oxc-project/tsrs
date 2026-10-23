@@ -58,9 +58,9 @@ pub fn emit_and_report_statistics(input: &EmitInput) -> (CompileAndEmitResult, O
     }
 
     if result.emit_skipped && !result.diagnostics.is_empty() {
-        result.status = ExitStatus::DiagnosticsPresent_OutputsSkipped;
+        result.status = ExitStatus::DiagnosticsPresentOutputsSkipped;
     } else if !result.diagnostics.is_empty() {
-        result.status = ExitStatus::DiagnosticsPresent_OutputsGenerated;
+        result.status = ExitStatus::DiagnosticsPresentOutputsGenerated;
     }
     (result, statistics)
 }

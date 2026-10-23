@@ -23,7 +23,7 @@ fn main() {
         let _ = serve(ReadWriteCloser {
             reader: Box::new(io::stdin()),
             writer: Box::new(io::stdout()),
-            closer: Arc::new(stdio),
+            closer: Arc::new(ProcessStdio),
         });
         std::process::exit(0);
     }
@@ -33,9 +33,9 @@ fn main() {
 
 // stdio adapts the process's stdin/stdout to an io.ReadWriteCloser for the mapper server.
 // mapper_test.go:32
-struct stdio;
+struct ProcessStdio;
 
-impl Closer for stdio {
+impl Closer for ProcessStdio {
     // mapper_test.go:36
     fn close(&self) -> io::Result<()> {
         Ok(())
@@ -74,7 +74,7 @@ fn transform_request() -> Request<'static> {
 // subprocess and drives it over stdio through the production content mapper host.
 // mapper_test.go:59
 fn test_out_of_process() {
-    let host = new_host(Arc::new(execSpawner), Locale::DEFAULT);
+    let host = new_host(Arc::new(ExecSpawner), Locale::DEFAULT);
     let mapper = test_mapper();
     let request = transform_request();
     let compiler_options =
@@ -97,9 +97,9 @@ fn test_out_of_process() {
 // execSpawner spawns the test binary itself as the mapper subprocess (guarded by helperEnv), so the test
 // talks to a genuinely separate process over real pipes.
 // mapper_test.go:81
-struct execSpawner;
+struct ExecSpawner;
 
-impl Spawner for execSpawner {
+impl Spawner for ExecSpawner {
     // mapper_test.go:83
     fn spawn(
         &self,
@@ -119,8 +119,8 @@ impl Spawner for execSpawner {
         let stdout = child.stdout.take().expect("the child's stdout is piped");
         Ok(ReadWriteCloser {
             reader: Box::new(stdout),
-            writer: Box::new(processStdin(Arc::clone(&stdin))),
-            closer: Arc::new(process { child: Mutex::new(child), stdin }),
+            writer: Box::new(ProcessStdin(Arc::clone(&stdin))),
+            closer: Arc::new(Process { child: Mutex::new(child), stdin }),
         })
     }
 }
@@ -128,14 +128,14 @@ impl Spawner for execSpawner {
 // process adapts a spawned subprocess's stdio to an io.ReadWriteCloser: reads come from its stdout, writes
 // go to its stdin, and Close tears the process down.
 // mapper_test.go:102
-struct process {
+struct Process {
     child: Mutex<Child>,
     stdin: Arc<Mutex<Option<ChildStdin>>>,
 }
 
-struct processStdin(Arc<Mutex<Option<ChildStdin>>>);
+struct ProcessStdin(Arc<Mutex<Option<ChildStdin>>>);
 
-impl Write for processStdin {
+impl Write for ProcessStdin {
     // mapper_test.go:109
     fn write(&mut self, data: &[u8]) -> io::Result<usize> {
         match self.0.lock().unwrap_or_else(PoisonError::into_inner).as_mut() {
@@ -152,7 +152,7 @@ impl Write for processStdin {
     }
 }
 
-impl Closer for process {
+impl Closer for Process {
     // mapper_test.go:111
     fn close(&self) -> io::Result<()> {
         drop(self.stdin.lock().unwrap_or_else(PoisonError::into_inner).take());

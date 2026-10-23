@@ -10,8 +10,8 @@ use tsrs_core::json::Value;
 use tsrs_core::tspath;
 use tsrs_ipc as ipc;
 
-use crate::protocol::{raw_text, testHandler, unmarshal_params};
-use crate::verbatim::verbatimHandler;
+use crate::protocol::{TestHandler, raw_text, unmarshal_params};
+use crate::verbatim::VerbatimHandler;
 
 // ProjectLifecycle records mapper project protocol calls.
 // dynamic_verbatim.go:14
@@ -22,13 +22,13 @@ pub struct ProjectLifecycle {
 }
 
 // dynamic_verbatim.go:19 (Go embeds verbatimHandler, which carries no state.)
-pub(crate) struct dynamicVerbatimHandler {
+pub(crate) struct DynamicVerbatimHandler {
     pub(crate) lifecycle: Option<Arc<ProjectLifecycle>>,
 }
 
-impl testHandler for dynamicVerbatimHandler {}
+impl TestHandler for DynamicVerbatimHandler {}
 
-impl ipc::Handler for dynamicVerbatimHandler {
+impl ipc::Handler for DynamicVerbatimHandler {
     // dynamic_verbatim.go:24
     fn handle_request(&self, method: &str, params: Option<&Value>) -> Result<Value, ipc::Error> {
         match method {
@@ -81,10 +81,10 @@ impl ipc::Handler for dynamicVerbatimHandler {
             }
             _ => {}
         }
-        verbatimHandler.handle_request(method, params)
+        VerbatimHandler.handle_request(method, params)
     }
 
     fn handle_notification(&self, method: &str, params: Option<&Value>) -> Result<(), ipc::Error> {
-        verbatimHandler.handle_notification(method, params)
+        VerbatimHandler.handle_notification(method, params)
     }
 }

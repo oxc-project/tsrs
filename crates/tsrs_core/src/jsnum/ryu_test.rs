@@ -24,12 +24,12 @@ use super::*;
 
 fn ieee_parts2_double(sign: bool, ieee_exponent: u32, ieee_mantissa: u64) -> Number {
     assert!(ieee_exponent <= 2047, "ieeeExponent > 2047");
-    assert!(ieee_mantissa <= max_mantissa, "ieeeMantissa > maxMantissa");
+    assert!(ieee_mantissa <= MAX_MANTISSA, "ieeeMantissa > maxMantissa");
     let sign_bit: u64 = u64::from(sign);
     number_from_bits((sign_bit << 63) | ((ieee_exponent as u64) << 52) | ieee_mantissa)
 }
 
-const max_mantissa: u64 = (1 << 53) - 1;
+const MAX_MANTISSA: u64 = (1 << 53) - 1;
 
 pub(super) fn ryu_tests() -> Vec<StringTest> {
     vec![
@@ -70,13 +70,13 @@ pub(super) fn ryu_tests() -> Vec<StringTest> {
         st(Number(4.294_967_297), "4.294967297"),
         st(Number(4.294_967_298), "4.294967298"),
         st(ieee_parts2_double(false, 4, 0), "1.7800590868057611e-307"),
-        st(ieee_parts2_double(false, 6, max_mantissa), "2.8480945388892175e-306"),
+        st(ieee_parts2_double(false, 6, MAX_MANTISSA), "2.8480945388892175e-306"),
         st(ieee_parts2_double(false, 41, 0), "2.446494580089078e-296"),
-        st(ieee_parts2_double(false, 40, max_mantissa), "4.8929891601781557e-296"),
+        st(ieee_parts2_double(false, 40, MAX_MANTISSA), "4.8929891601781557e-296"),
         st(ieee_parts2_double(false, 1077, 0), "18014398509481984"),
-        st(ieee_parts2_double(false, 1076, max_mantissa), "36028797018963964"),
+        st(ieee_parts2_double(false, 1076, MAX_MANTISSA), "36028797018963964"),
         st(ieee_parts2_double(false, 307, 0), "2.900835519859558e-216"),
-        st(ieee_parts2_double(false, 306, max_mantissa), "5.801671039719115e-216"),
+        st(ieee_parts2_double(false, 306, MAX_MANTISSA), "5.801671039719115e-216"),
         st(ieee_parts2_double(false, 934, 0x000F_A716_1A4D_6E0C), "3.196104012172126e-27"),
         st(Number(9_007_199_254_740_991.0), "9007199254740991"),
         st(Number(9_007_199_254_740_992.0), "9007199254740992"),

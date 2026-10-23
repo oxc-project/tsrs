@@ -6,19 +6,19 @@ use crate::textwriter::last_rune_is_white_space_like;
 
 // Go pools these writers; the release function is kept for call-site parity and does nothing.
 pub fn get_single_line_string_writer() -> (Box<dyn EmitTextWriter>, impl FnOnce()) {
-    let mut w = singleLineStringWriter::default();
+    let mut w = SingleLineStringWriter::default();
     w.clear();
     (Box::new(w) as Box<dyn EmitTextWriter>, || {})
 }
 
 #[derive(Default)]
-pub struct singleLineStringWriter {
+pub struct SingleLineStringWriter {
     builder: String,
     // Go keeps the last written string; only whether its last rune is white space is ever read.
     last_written_is_white_space_like: bool,
 }
 
-impl singleLineStringWriter {
+impl SingleLineStringWriter {
     fn set_last_written(&mut self, s: &str) {
         self.last_written_is_white_space_like = last_rune_is_white_space_like(s);
     }
@@ -29,7 +29,7 @@ impl singleLineStringWriter {
     }
 }
 
-impl EmitTextWriter for singleLineStringWriter {
+impl EmitTextWriter for SingleLineStringWriter {
     fn clear(&mut self) {
         self.last_written_is_white_space_like = false;
         self.builder.clear();

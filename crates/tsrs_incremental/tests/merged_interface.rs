@@ -52,7 +52,7 @@ fn in_memory_interface_diagnostics_preserve_first_declaration_across_cache_polic
         incremental: Tristate::True,
         no_emit: Tristate::True,
         no_lib: Tristate::True,
-        module: ModuleKind::NodeNext,
+        module: ModuleKind::NODE_NEXT,
         ts_build_info_file: build_info_path.to_str().unwrap().to_string(),
         ..Default::default()
     };

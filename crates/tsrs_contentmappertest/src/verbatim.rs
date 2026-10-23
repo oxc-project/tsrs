@@ -5,19 +5,19 @@ use tsrs_core::json::Value;
 use tsrs_ipc as ipc;
 
 use crate::protocol::{
-    identity_mapped_output, initialize_result, no_notifications, testHandler, unexpected_method,
+    TestHandler, identity_mapped_output, initialize_result, no_notifications, unexpected_method,
     unmarshal_params,
 };
 
 // verbatim.go:11
-pub(crate) struct verbatimHandler;
+pub(crate) struct VerbatimHandler;
 
 // verbatim.go:13
-pub(crate) struct moduleVerbatimHandler;
+pub(crate) struct ModuleVerbatimHandler;
 
-impl testHandler for verbatimHandler {}
+impl TestHandler for VerbatimHandler {}
 
-impl ipc::Handler for verbatimHandler {
+impl ipc::Handler for VerbatimHandler {
     // verbatim.go:15
     fn handle_request(&self, method: &str, params: Option<&Value>) -> Result<Value, ipc::Error> {
         match method {
@@ -40,9 +40,9 @@ impl ipc::Handler for verbatimHandler {
     }
 }
 
-impl testHandler for moduleVerbatimHandler {}
+impl TestHandler for ModuleVerbatimHandler {}
 
-impl ipc::Handler for moduleVerbatimHandler {
+impl ipc::Handler for ModuleVerbatimHandler {
     // verbatim.go:34
     fn handle_request(&self, method: &str, params: Option<&Value>) -> Result<Value, ipc::Error> {
         match method {

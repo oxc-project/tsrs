@@ -6,7 +6,7 @@ use tsrs_core::json::Value;
 use tsrs_ipc as ipc;
 
 use crate::protocol::{
-    identity_mapped_output, initialize_result, no_notifications, testHandler, unexpected_method,
+    TestHandler, identity_mapped_output, initialize_result, no_notifications, unexpected_method,
     unmarshal_params,
 };
 
@@ -14,11 +14,11 @@ use crate::protocol::{
 // one, so a single original span has an identical counterpart in two distinct virtual source files that
 // share an OriginalFileName. An edit to that span is therefore recorded once per projection.
 // duplicate_projection.go:14
-pub(crate) struct duplicateProjectionHandler;
+pub(crate) struct DuplicateProjectionHandler;
 
-impl testHandler for duplicateProjectionHandler {}
+impl TestHandler for DuplicateProjectionHandler {}
 
-impl ipc::Handler for duplicateProjectionHandler {
+impl ipc::Handler for DuplicateProjectionHandler {
     // duplicate_projection.go:16
     fn handle_request(&self, method: &str, params: Option<&Value>) -> Result<Value, ipc::Error> {
         match method {

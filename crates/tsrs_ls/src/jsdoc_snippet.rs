@@ -12,12 +12,12 @@ use crate::format;
 use crate::languageservice::LanguageService;
 
 // jsdoc_snippet.go:19
-struct docCommentTemplate {
+struct DocCommentTemplate {
     new_text: String,
 }
 
 // jsdoc_snippet.go:23
-struct commentOwnerInfo {
+struct CommentOwnerInfo {
     comment_owner: P<Node>,
     parameters: &'static [P<Node>],
     has_return: bool,
@@ -52,7 +52,7 @@ impl LanguageService {
         let mut insert_text_format: Option<lsproto::InsertTextFormat> = None;
         if client_supports_item_snippet(ctx) {
             insert_text = template_to_snippet(&insert_text, &new_line);
-            insert_text_format = Some(lsproto::InsertTextFormat::Snippet);
+            insert_text_format = Some(lsproto::InsertTextFormat::SNIPPET);
         }
 
         let edit_range = self.get_jsdoc_snippet_completion_range(ctx, file, position, &insert_text);
@@ -62,9 +62,9 @@ impl LanguageService {
         }
         let item = CompletionItem::new(lsproto::CompletionItem {
             label: "/** */".to_string(),
-            kind: Some(lsproto::CompletionItemKind::Text),
+            kind: Some(lsproto::CompletionItemKind::TEXT),
             // English only (docs/LSP.md): Go localizes with locale.FromContext(ctx).
-            detail: Some(diagnostics::JSDoc_comment.localize(&[])),
+            detail: Some(diagnostics::JSDOC_COMMENT.localize(&[])),
             sort_text: Some("\x00".to_string()),
             insert_text_format,
             text_edit: edit_range,
@@ -147,7 +147,7 @@ fn get_doc_comment_template_at_position(
     position: u32,
     generate_return_in_doc_template: bool,
     new_line: &str,
-) -> Option<docCommentTemplate> {
+) -> Option<DocCommentTemplate> {
     // Go checks the token for nil; GetTokenAtPosition never returns nil.
     let mut token_at_pos = astnav::get_token_at_position(source_file, position);
 
@@ -220,11 +220,11 @@ fn get_doc_comment_template_at_position(
         if token_start == position {
             end_line = format!("{new_line}{indentation}");
         }
-        return Some(docCommentTemplate {
+        return Some(DocCommentTemplate {
             new_text: format!("{preamble}{new_line}{tags}{indentation} */{end_line}"),
         });
     }
-    Some(docCommentTemplate { new_text: "/** */".to_string() })
+    Some(DocCommentTemplate { new_text: "/** */".to_string() })
 }
 
 // jsdoc_snippet.go:181
@@ -265,7 +265,7 @@ fn skip_whitespace(text: &str, position: u32) -> u32 {
 fn get_comment_owner_info(
     token_at_pos: P<Node>,
     generate_return_in_doc_template: bool,
-) -> Option<commentOwnerInfo> {
+) -> Option<CommentOwnerInfo> {
     let mut node = Some(token_at_pos);
     while let Some(n) = node {
         let (info, quit) = get_comment_owner_info_worker(Some(n), generate_return_in_doc_template);
@@ -281,11 +281,11 @@ fn get_comment_owner_info(
 fn get_comment_owner_info_worker(
     comment_owner: Option<P<Node>>,
     generate_return_in_doc_template: bool,
-) -> (Option<commentOwnerInfo>, bool) {
+) -> (Option<CommentOwnerInfo>, bool) {
     let Some(comment_owner) = comment_owner else {
         return (None, false);
     };
-    let plain = |comment_owner: P<Node>| commentOwnerInfo {
+    let plain = |comment_owner: P<Node>| CommentOwnerInfo {
         comment_owner,
         parameters: &[],
         has_return: false,
@@ -297,7 +297,7 @@ fn get_comment_owner_info_worker(
         | Kind::Constructor
         | Kind::MethodSignature
         | Kind::ArrowFunction => (
-            Some(commentOwnerInfo {
+            Some(CommentOwnerInfo {
                 comment_owner,
                 parameters: comment_owner.parameters(),
                 has_return: has_return(comment_owner, generate_return_in_doc_template),
@@ -317,7 +317,7 @@ fn get_comment_owner_info_worker(
             if let Some(type_node) = comment_owner.as_property_signature_declaration().type_() {
                 if ast::is_function_type_node(type_node) {
                     return (
-                        Some(commentOwnerInfo {
+                        Some(CommentOwnerInfo {
                             comment_owner,
                             parameters: type_node.parameters(),
                             has_return: has_return(type_node, generate_return_in_doc_template),
@@ -339,7 +339,7 @@ fn get_comment_owner_info_worker(
                 if let Some(initializer) = declarations[0].as_variable_declaration().initializer() {
                     if let Some(host) = get_right_hand_side_of_assignment(Some(initializer)) {
                         return (
-                            Some(commentOwnerInfo {
+                            Some(CommentOwnerInfo {
                                 comment_owner,
                                 parameters: host.parameters(),
                                 has_return: has_return(host, generate_return_in_doc_template),
@@ -370,7 +370,7 @@ fn get_comment_owner_info_worker(
             let right = binary_expression.right();
             if ast::is_function_like(right) {
                 return (
-                    Some(commentOwnerInfo {
+                    Some(CommentOwnerInfo {
                         comment_owner,
                         parameters: right.parameters(),
                         has_return: has_return(right, generate_return_in_doc_template),
@@ -384,7 +384,7 @@ fn get_comment_owner_info_worker(
             if let Some(initializer) = comment_owner.as_property_declaration().initializer() {
                 if ast::is_function_expression_or_arrow_function(initializer) {
                     return (
-                        Some(commentOwnerInfo {
+                        Some(CommentOwnerInfo {
                             comment_owner,
                             parameters: initializer.parameters(),
                             has_return: has_return(initializer, generate_return_in_doc_template),

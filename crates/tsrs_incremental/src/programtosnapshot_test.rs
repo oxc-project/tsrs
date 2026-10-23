@@ -17,11 +17,11 @@ use crate::emit::ProgramLike;
 use crate::program::Program;
 use crate::snapshot::FileEmitKind;
 
-struct configHost {
+struct ConfigHost {
     fs: Arc<dyn FS>,
 }
 
-impl ParseConfigHost for configHost {
+impl ParseConfigHost for ConfigHost {
     fn fs(&self) -> &dyn FS {
         &*self.fs
     }
@@ -78,7 +78,7 @@ fn compiler_program_with(
     host: Arc<dyn CompilerHost>,
 ) -> &'static CompilerProgram {
     let fs: Arc<dyn FS> = Arc::new(vfstest::from_map(files.iter().copied(), true));
-    let config_host: &'static configHost = Box::leak(Box::new(configHost { fs }));
+    let config_host: &'static ConfigHost = Box::leak(Box::new(ConfigHost { fs }));
     let (config, diagnostics) = tsoptions::get_parsed_command_line_of_config_file(
         "/src/tsconfig.json",
         None,
@@ -91,12 +91,12 @@ fn compiler_program_with(
 }
 
 // A host that hands out the file it parsed first for each path, like the watch's source file cache.
-struct cachingHost {
+struct CachingHost {
     inner: Arc<dyn CompilerHost>,
     cache: Arc<Mutex<rustc_hash::FxHashMap<Path, P<tsrs_ast::SourceFile>>>>,
 }
 
-impl CompilerHost for cachingHost {
+impl CompilerHost for CachingHost {
     fn fs(&self) -> &dyn FS {
         self.inner.fs()
     }
@@ -295,12 +295,12 @@ fn a_full_rebuild_that_shares_files_looks_up_their_references_again() {
     ]);
     let old_program = compiler_program_with(
         &before,
-        Arc::new(cachingHost { inner: compiler_host(&before), cache: Arc::clone(&cache) }),
+        Arc::new(CachingHost { inner: compiler_host(&before), cache: Arc::clone(&cache) }),
     );
     let old = incremental(old_program, None);
     let new_program = compiler_program_with(
         &after,
-        Arc::new(cachingHost { inner: compiler_host(&after), cache }),
+        Arc::new(CachingHost { inner: compiler_host(&after), cache }),
     );
     let e = Path::from("/src/e.ts");
     assert_eq!(
@@ -327,7 +327,7 @@ fn mixed_deletions_visit_a_global_file_after_a_non_global_file() {
         info.affects_global_scope = index == 1;
         old.snapshot.file_infos.store(path.clone(), info);
         old.snapshot.changed_files_set.add(path.clone());
-        old.snapshot.affected_files_pending_emit.store(path.clone(), FileEmitKind::Js);
+        old.snapshot.affected_files_pending_emit.store(path.clone(), FileEmitKind::JS);
     }
     old.snapshot.build_info_emit_pending.set(false);
 
@@ -353,7 +353,7 @@ fn deleted_pending_paths_without_file_info_are_not_reused() {
     let missing = Path::from("/src/missing.ts");
     assert!(old.snapshot.file_infos.load(&missing).is_none());
     old.snapshot.changed_files_set.add(missing.clone());
-    old.snapshot.affected_files_pending_emit.store(missing.clone(), FileEmitKind::Js);
+    old.snapshot.affected_files_pending_emit.store(missing.clone(), FileEmitKind::JS);
     old.snapshot.build_info_emit_pending.set(false);
 
     let current = incremental(compiler_program(&FILES), Some(old));

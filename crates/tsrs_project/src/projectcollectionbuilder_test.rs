@@ -119,15 +119,15 @@ fn files_for_indirect_project(project_index: usize, compiler_options: &str) -> F
     ]
 }
 
-const main_uri: &str = "file:///user/username/projects/myproject/src/main.ts";
+const MAIN_URI: &str = "file:///user/username/projects/myproject/src/main.ts";
 
 fn open_main(session: &Session, files: &Files) {
     session.did_open_file(
         &ctx(),
-        uri(main_uri),
+        uri(MAIN_URI),
         1,
         get(files, "/user/username/projects/myproject/src/main.ts"),
-        lsproto::LanguageKind::TypeScript,
+        lsproto::LanguageKind::TYPE_SCRIPT,
     );
 }
 
@@ -139,7 +139,7 @@ fn close_and_open_dummy(session: &Session, uri_to_close: &str) {
         uri("file:///user/username/workspaces/dummy/dummy.ts"),
         1,
         "const x = 1;".to_string(),
-        lsproto::LanguageKind::TypeScript,
+        lsproto::LanguageKind::TYPE_SCRIPT,
     );
     let snapshot = session.snapshot();
     assert_eq!(snapshot.project_collection.projects().len(), 1);
@@ -176,7 +176,7 @@ fn when_project_found_is_solution_referencing_default_project_directly() {
     );
 
     // Ensure request can use existing snapshot
-    session.get_language_service(&ctx(), &uri(main_uri)).unwrap();
+    session.get_language_service(&ctx(), &uri(MAIN_URI)).unwrap();
     let request_snapshot = session.snapshot();
     assert!(Arc::ptr_eq(&request_snapshot, &snapshot));
 
@@ -190,7 +190,7 @@ fn when_project_found_is_solution_referencing_default_project_directly() {
         "direct reference should be present"
     );
 
-    close_and_open_dummy(&session, main_uri);
+    close_and_open_dummy(&session, MAIN_URI);
 
     // Config files should have been released
     assert!(!has_config(&session, "/user/username/projects/myproject/tsconfig.json"));
@@ -219,7 +219,7 @@ fn when_project_found_is_solution_referencing_default_project_indirectly() {
     assert!(src_project.is_some());
 
     // Verify the default project is the source project
-    assert!(same((snapshot.get_default_project(&uri(main_uri))).as_ref(), (src_project).as_ref()));
+    assert!(same((snapshot.get_default_project(&uri(MAIN_URI))).as_ref(), (src_project).as_ref()));
 
     // Searched configs should be present while file is open
     assert!(
@@ -235,7 +235,7 @@ fn when_project_found_is_solution_referencing_default_project_indirectly() {
         "indirect reference should be present"
     );
 
-    close_and_open_dummy(&session, main_uri);
+    close_and_open_dummy(&session, MAIN_URI);
 
     // Config files should be released
     for config in
@@ -271,7 +271,7 @@ fn when_project_found_is_solution_with_disable_referenced_project_load_referenci
     );
 
     // Should use inferred project instead
-    let default_project = snapshot.get_default_project(&uri(main_uri)).unwrap();
+    let default_project = snapshot.get_default_project(&uri(MAIN_URI)).unwrap();
     assert_eq!(default_project.kind, Kind::Inferred);
 
     // Searched configs should be present while file is open
@@ -284,7 +284,7 @@ fn when_project_found_is_solution_with_disable_referenced_project_load_referenci
         "direct reference should not be present"
     );
 
-    close_and_open_dummy(&session, main_uri);
+    close_and_open_dummy(&session, MAIN_URI);
 
     // Config files should be released
     assert!(!has_config(&session, "/user/username/projects/myproject/tsconfig.json"));
@@ -311,7 +311,7 @@ fn when_project_found_is_solution_referencing_default_project_indirectly_through
     );
 
     // Should use inferred project instead
-    assert_eq!(snapshot.get_default_project(&uri(main_uri)).unwrap().kind, Kind::Inferred);
+    assert_eq!(snapshot.get_default_project(&uri(MAIN_URI)).unwrap().kind, Kind::Inferred);
 
     // Searched configs should be present while file is open
     assert!(
@@ -327,7 +327,7 @@ fn when_project_found_is_solution_referencing_default_project_indirectly_through
         "indirect reference should not be present"
     );
 
-    close_and_open_dummy(&session, main_uri);
+    close_and_open_dummy(&session, MAIN_URI);
 
     // Config files should be released
     for config in ["tsconfig.json", "tsconfig-src.json", "tsconfig-indirect1.json"] {
@@ -361,7 +361,7 @@ fn when_project_found_is_solution_referencing_default_project_indirectly_through
     assert!(src_project.is_some());
 
     // Verify the default project is the source project (found through indirect2, not indirect1)
-    assert!(same((snapshot.get_default_project(&uri(main_uri))).as_ref(), (src_project).as_ref()));
+    assert!(same((snapshot.get_default_project(&uri(MAIN_URI))).as_ref(), (src_project).as_ref()));
 
     // Searched configs should be present while file is open
     for config in
@@ -373,7 +373,7 @@ fn when_project_found_is_solution_referencing_default_project_indirectly_through
         );
     }
 
-    close_and_open_dummy(&session, main_uri);
+    close_and_open_dummy(&session, MAIN_URI);
 
     // Config files should be released
     for config in
@@ -414,7 +414,7 @@ fn when_project_found_is_project_with_own_files_referencing_the_file_from_refere
     );
 
     // Verify the default project is the source project
-    assert!(same((snapshot.get_default_project(&uri(main_uri))).as_ref(), (src_project).as_ref()));
+    assert!(same((snapshot.get_default_project(&uri(MAIN_URI))).as_ref(), (src_project).as_ref()));
 
     // Searched configs should be present while file is open
     assert!(
@@ -426,7 +426,7 @@ fn when_project_found_is_project_with_own_files_referencing_the_file_from_refere
         "direct reference should be present"
     );
 
-    close_and_open_dummy(&session, main_uri);
+    close_and_open_dummy(&session, MAIN_URI);
 
     // Config files should be released
     assert!(!has_config(&session, "/user/username/projects/myproject/tsconfig.json"));
@@ -498,7 +498,7 @@ fn when_file_is_not_part_of_first_config_tree_found_looks_into_ancestor_folder_a
         uri(u),
         1,
         get(&files, "/home/src/projects/project/app/Component-demos.ts"),
-        lsproto::LanguageKind::TypeScript,
+        lsproto::LanguageKind::TYPE_SCRIPT,
     );
     let snapshot = session.snapshot();
     assert_eq!(snapshot.project_collection.projects().len(), 2);
@@ -578,7 +578,7 @@ fn when_dts_file_is_next_to_ts_file_and_included_as_root_in_referenced_project()
         uri(u),
         1,
         get(&files, "/home/src/projects/project/src/index.d.ts"),
-        lsproto::LanguageKind::TypeScript,
+        lsproto::LanguageKind::TYPE_SCRIPT,
     );
     let snapshot = session.snapshot();
     assert_eq!(snapshot.project_collection.projects().len(), 2);
@@ -643,7 +643,7 @@ fn issue_1630() {
         uri("file:///project/lib/b.ts"),
         1,
         "export const b = 1;".to_string(),
-        lsproto::LanguageKind::TypeScript,
+        lsproto::LanguageKind::TYPE_SCRIPT,
     );
     // opening an unrelated file triggers cleanup of /project/lib/tsconfig.json since no open file is part of that project,
     // but will keep the config file in the registry since lib/b.ts is still open
@@ -652,7 +652,7 @@ fn issue_1630() {
         uri("untitled:Untitled-1"),
         1,
         String::new(),
-        lsproto::LanguageKind::TypeScript,
+        lsproto::LanguageKind::TYPE_SCRIPT,
     );
     // Opening index.ts searches /project/tsconfig.json and then checks /project/lib/tsconfig.json without opening it.
     session.did_open_file(
@@ -660,7 +660,7 @@ fn issue_1630() {
         uri("file:///project/index.ts"),
         1,
         String::new(),
-        lsproto::LanguageKind::TypeScript,
+        lsproto::LanguageKind::TYPE_SCRIPT,
     );
 }
 
@@ -682,7 +682,7 @@ fn inferred_project_root_files_are_in_stable_order() {
             uri(&format!("file:///project/{name}.ts")),
             1,
             format!("export const {name} = 1;"),
-            lsproto::LanguageKind::TypeScript,
+            lsproto::LanguageKind::TYPE_SCRIPT,
         );
     }
 
@@ -749,7 +749,7 @@ fn project_lookup_terminates() {
         uri("file:///script.ts"),
         1,
         "export const a = 1;".to_string(),
-        lsproto::LanguageKind::TypeScript,
+        lsproto::LanguageKind::TYPE_SCRIPT,
     );
     // Test should terminate
 }
@@ -771,7 +771,7 @@ fn file_moves_to_inferred_project_after_import_is_deleted() {
         root_uri.clone(),
         1,
         files[1].1.to_string(),
-        lsproto::LanguageKind::TypeScript,
+        lsproto::LanguageKind::TYPE_SCRIPT,
     );
     session.get_language_service(&ctx(), &root_uri).unwrap();
 
@@ -782,7 +782,7 @@ fn file_moves_to_inferred_project_after_import_is_deleted() {
         dep_uri.clone(),
         1,
         files[2].1.to_string(),
-        lsproto::LanguageKind::TypeScript,
+        lsproto::LanguageKind::TYPE_SCRIPT,
     );
 
     let snapshot = session.snapshot();
@@ -859,7 +859,7 @@ fn should_update_project_on_package_json_change() {
         index_uri.clone(),
         1,
         files[2].1.to_string(),
-        lsproto::LanguageKind::TypeScript,
+        lsproto::LanguageKind::TYPE_SCRIPT,
     );
 
     // Verify initial state: #utils resolves to utils.ts, so utils.ts is in the program
@@ -888,7 +888,7 @@ fn should_update_project_on_package_json_change() {
         &ctx(),
         &[lsproto::FileEvent {
             uri: uri("file:///home/projects/myproject/package.json"),
-            type_: lsproto::FileChangeType::Changed,
+            type_: lsproto::FileChangeType::CHANGED,
         }],
     );
 

@@ -85,7 +85,7 @@ fn marshal_span_map(segments: &[Segment]) -> Value {
 
 // A mapper of these tests. fakeSpawner wraps one that does not handle openProject and closeProject itself in
 // noOpProjectMapper; Go asks with a type assertion for the `handlesProjects` marker method.
-trait testMapper: Handler {
+trait TestMapper: Handler {
     fn handles_projects(&self) -> bool {
         false
     }
@@ -93,22 +93,22 @@ trait testMapper: Handler {
 
 // fakeMapper is an in-process mapper that transforms content verbatim and reports one diagnostic.
 // host_test.go:28
-struct fakeMapper;
+struct FakeMapper;
 
 // host_test.go:30
-struct responseMapper {
+struct ResponseMapper {
     response: Box<dyn Fn(TransformParams) -> Value + Send + Sync>,
 }
 
 fn response_mapper(
     response: impl Fn(TransformParams) -> Value + Send + Sync + 'static,
-) -> responseMapper {
-    responseMapper { response: Box::new(response) }
+) -> ResponseMapper {
+    ResponseMapper { response: Box::new(response) }
 }
 
-impl testMapper for responseMapper {}
+impl TestMapper for ResponseMapper {}
 
-impl Handler for responseMapper {
+impl Handler for ResponseMapper {
     // host_test.go:34
     fn handle_request(&self, method: &str, params_: Option<&Value>) -> Result<Value, ipc::Error> {
         match method {
@@ -135,9 +135,9 @@ impl Handler for responseMapper {
     }
 }
 
-impl testMapper for fakeMapper {}
+impl TestMapper for FakeMapper {}
 
-impl Handler for fakeMapper {
+impl Handler for FakeMapper {
     // host_test.go:53
     fn handle_request(&self, method: &str, params_: Option<&Value>) -> Result<Value, ipc::Error> {
         match method {
@@ -153,7 +153,7 @@ impl Handler for fakeMapper {
                 let mappings = marshal_span_map(&[Segment {
                     virtual_end: content_len,
                     original_end: content_len,
-                    kind: Kind::Verbatim,
+                    kind: Kind::VERBATIM,
                     ..Default::default()
                 }]);
                 Ok(TransformResult {
@@ -188,7 +188,7 @@ impl Handler for fakeMapper {
 }
 
 // host_test.go:84
-struct unicodeMapper {
+struct UnicodeMapper {
     encoding: PositionEncoding,
     source: Option<String>,
 }
@@ -201,9 +201,9 @@ fn protocol_diagnostic_directives(
     DiagnosticDirectives { unused_expect_directive_diagnostics: unused, directives }
 }
 
-impl testMapper for unicodeMapper {}
+impl TestMapper for UnicodeMapper {}
 
-impl Handler for unicodeMapper {
+impl Handler for UnicodeMapper {
     // host_test.go:96
     fn handle_request(&self, method: &str, params_: Option<&Value>) -> Result<Value, ipc::Error> {
         match method {
@@ -248,13 +248,13 @@ impl Handler for unicodeMapper {
                     Value::Array(values.iter().map(|&v| Value::Number(v as f64)).collect())
                 };
                 let mappings = Value::Array(vec![
-                    tuple([0, emoji_length, 0, emoji_length, i64::from(Kind::Verbatim.0)]),
+                    tuple([0, emoji_length, 0, emoji_length, i64::from(Kind::VERBATIM.0)]),
                     tuple([
                         emoji_length,
                         text_length - emoji_length,
                         emoji_length,
                         text_length - emoji_length,
-                        i64::from(Kind::Verbatim.0),
+                        i64::from(Kind::VERBATIM.0),
                     ]),
                 ]);
                 Ok(TransformResult {
@@ -268,7 +268,7 @@ impl Handler for unicodeMapper {
                                 original_length: text_length - emoji_length,
                                 virtual_start: emoji_length,
                                 virtual_end: text_length,
-                                policy: DiagnosticDirectivePolicy::Ignore,
+                                policy: DiagnosticDirectivePolicy::IGNORE,
                                 ..Default::default()
                             }],
                             Vec::new(),
@@ -299,13 +299,13 @@ impl Handler for unicodeMapper {
 }
 
 // host_test.go:160
-struct invalidDiagnosticMapper {
+struct InvalidDiagnosticMapper {
     encoding: PositionEncoding,
 }
 
-impl testMapper for invalidDiagnosticMapper {}
+impl TestMapper for InvalidDiagnosticMapper {}
 
-impl Handler for invalidDiagnosticMapper {
+impl Handler for InvalidDiagnosticMapper {
     // host_test.go:164
     fn handle_request(&self, method: &str, _params: Option<&Value>) -> Result<Value, ipc::Error> {
         match method {
@@ -343,20 +343,20 @@ impl Handler for invalidDiagnosticMapper {
 // tests can assert process consolidation. When handler is nil it serves a fakeMapper.
 // host_test.go:190
 #[derive(Default)]
-struct fakeSpawner {
+struct FakeSpawner {
     spawns: AtomicUsize,
     closes: Arc<AtomicUsize>,
-    handler: Option<Arc<dyn testMapper>>,
+    handler: Option<Arc<dyn TestMapper>>,
 }
 
-fn fake_spawner(handler: Option<Arc<dyn testMapper>>) -> Arc<fakeSpawner> {
-    Arc::new(fakeSpawner { handler, ..Default::default() })
+fn fake_spawner(handler: Option<Arc<dyn TestMapper>>) -> Arc<FakeSpawner> {
+    Arc::new(FakeSpawner { handler, ..Default::default() })
 }
 
 // host_test.go:196 (Go embeds the handler it wraps.)
-struct noOpProjectMapper(Arc<dyn testMapper>);
+struct NoOpProjectMapper(Arc<dyn TestMapper>);
 
-impl Handler for noOpProjectMapper {
+impl Handler for NoOpProjectMapper {
     // host_test.go:200
     fn handle_request(&self, method: &str, params: Option<&Value>) -> Result<Value, ipc::Error> {
         match method {
@@ -371,7 +371,7 @@ impl Handler for noOpProjectMapper {
     }
 }
 
-impl Spawner for fakeSpawner {
+impl Spawner for FakeSpawner {
     // host_test.go:211
     fn spawn(
         &self,
@@ -380,17 +380,17 @@ impl Spawner for fakeSpawner {
         _stderr: Option<Box<dyn Write + Send>>,
     ) -> Result<ReadWriteCloser, String> {
         self.spawns.fetch_add(1, SeqCst);
-        let handler: Arc<dyn testMapper> = match &self.handler {
+        let handler: Arc<dyn TestMapper> = match &self.handler {
             Some(handler) => Arc::clone(handler),
-            None => Arc::new(fakeMapper),
+            None => Arc::new(FakeMapper),
         };
         let handler: Arc<dyn Handler> =
-            if handler.handles_projects() { handler } else { Arc::new(noOpProjectMapper(handler)) };
+            if handler.handles_projects() { handler } else { Arc::new(NoOpProjectMapper(handler)) };
         let (client, server) = ipc::pipe().map_err(|err| err.to_string())?;
         thread::spawn(move || {
             let _ = ipc::new_async_conn(server, handler).run();
         });
-        let closer = Arc::new(countingReadWriteCloser {
+        let closer = Arc::new(CountingReadWriteCloser {
             closer: client.closer,
             closes: Arc::clone(&self.closes),
             once: Once::new(),
@@ -400,13 +400,13 @@ impl Spawner for fakeSpawner {
 }
 
 // host_test.go:225
-struct countingReadWriteCloser {
+struct CountingReadWriteCloser {
     closer: Arc<dyn Closer>,
     closes: Arc<AtomicUsize>,
     once: Once,
 }
 
-impl Closer for countingReadWriteCloser {
+impl Closer for CountingReadWriteCloser {
     // host_test.go:231
     fn close(&self) -> io::Result<()> {
         self.once.call_once(|| {
@@ -504,13 +504,13 @@ fn test_runner_transform_response_validation() {
 }
 
 // host_test.go:425
-struct closeSignalReadWriteCloser {
+struct CloseSignalReadWriteCloser {
     closer: Arc<dyn Closer>,
     closed: Mutex<Sender<()>>,
     once: Once,
 }
 
-impl Closer for closeSignalReadWriteCloser {
+impl Closer for CloseSignalReadWriteCloser {
     // host_test.go:430
     fn close(&self) -> io::Result<()> {
         let err = self.closer.close();
@@ -523,9 +523,9 @@ impl Closer for closeSignalReadWriteCloser {
 
 // The writer of a pipe end shared by a protocol and the test, which also writes to it directly (Go writes to the
 // net.Conn it gave the protocol).
-struct sharedWriter(Arc<Mutex<Box<dyn Write + Send>>>);
+struct SharedWriter(Arc<Mutex<Box<dyn Write + Send>>>);
 
-impl Write for sharedWriter {
+impl Write for SharedWriter {
     fn write(&mut self, data: &[u8]) -> io::Result<usize> {
         lock(&self.0).write(data)
     }
@@ -546,7 +546,7 @@ fn test_host_closes_process_when_read_loop_fails() {
             thread::spawn(move || {
                 let ReadWriteCloser { reader, writer, closer } = server;
                 let writer = Arc::new(Mutex::new(writer));
-                let protocol = ipc::new_jsonrpc_protocol(reader, sharedWriter(Arc::clone(&writer)));
+                let protocol = ipc::new_jsonrpc_protocol(reader, SharedWriter(Arc::clone(&writer)));
                 let message = protocol.read_message().unwrap();
                 assert_eq!(message.method, METHOD_INITIALIZE);
                 protocol
@@ -562,7 +562,7 @@ fn test_host_closes_process_when_read_loop_fails() {
                 lock(&writer).write_all(b"oops\n").unwrap();
                 let _ = closer.close();
             });
-            let closer = Arc::new(closeSignalReadWriteCloser {
+            let closer = Arc::new(CloseSignalReadWriteCloser {
                 closer: client.closer,
                 closed: Mutex::new(lock(&closed_tx).clone()),
                 once: Once::new(),
@@ -579,12 +579,12 @@ fn test_host_closes_process_when_read_loop_fails() {
 
 // host_test.go:410
 #[derive(Default)]
-struct exitOnCloseReadWriteCloser {
+struct ExitOnCloseReadWriteCloser {
     closer: Option<Arc<dyn Closer>>,
     exited: AtomicBool,
 }
 
-impl Closer for exitOnCloseReadWriteCloser {
+impl Closer for ExitOnCloseReadWriteCloser {
     // host_test.go:415
     fn close(&self) -> io::Result<()> {
         self.exited.store(true, SeqCst);
@@ -613,7 +613,7 @@ fn test_host_reports_initialization_timeout_before_closing_process() {
                 let _ = lock(&done).recv();
                 let _ = closer.close();
             });
-            let closer = Arc::new(exitOnCloseReadWriteCloser {
+            let closer = Arc::new(ExitOnCloseReadWriteCloser {
                 closer: Some(client.closer),
                 ..Default::default()
             });
@@ -630,12 +630,12 @@ fn test_host_reports_initialization_timeout_before_closing_process() {
 }
 
 // host_test.go:401
-struct exitedReadWriteCloser {
+struct ExitedReadWriteCloser {
     closer: Arc<dyn Closer>,
     exit_code: i32,
 }
 
-impl Closer for exitedReadWriteCloser {
+impl Closer for ExitedReadWriteCloser {
     fn close(&self) -> io::Result<()> {
         self.closer.close()
     }
@@ -654,7 +654,7 @@ fn test_host_reports_process_exit_before_initialization() {
             let (client, server) = ipc::pipe().map_err(|err| err.to_string())?;
             server.closer.close().unwrap();
             drop(server);
-            let closer = Arc::new(exitedReadWriteCloser { closer: client.closer, exit_code: 42 });
+            let closer = Arc::new(ExitedReadWriteCloser { closer: client.closer, exit_code: 42 });
             Ok(ReadWriteCloser { reader: client.reader, writer: client.writer, closer })
         }));
     let host = new_host(spawner, Locale::DEFAULT);
@@ -693,7 +693,7 @@ fn test_runner_transform_diagnostic_directives() {
                 original_length: 9,
                 virtual_start: 8,
                 virtual_end: 14,
-                policy: DiagnosticDirectivePolicy::Expect,
+                policy: DiagnosticDirectivePolicy::EXPECT,
                 ..Default::default()
             }],
             vec![UnusedExpectDirectiveDiagnostic {
@@ -722,7 +722,7 @@ fn test_runner_transform_diagnostic_directives() {
                 original_length: 9,
                 virtual_start: 8,
                 virtual_end: 14,
-                policy: DiagnosticDirectivePolicy::Expect,
+                policy: DiagnosticDirectivePolicy::EXPECT,
                 unused_expect_directive_index: Some(1),
                 ..Default::default()
             }],
@@ -742,7 +742,7 @@ fn test_runner_transform_diagnostic_directives() {
         diagnostic_directives: Some(protocol_diagnostic_directives(
             vec![MappedDiagnosticDirective {
                 original_start: -1,
-                policy: DiagnosticDirectivePolicy::Ignore,
+                policy: DiagnosticDirectivePolicy::IGNORE,
                 ..Default::default()
             }],
             vec![UnusedExpectDirectiveDiagnostic::default()],
@@ -763,8 +763,8 @@ fn test_runner_transform_diagnostic_directives() {
             ..Default::default()
         }
     };
-    let ignore = DiagnosticDirectivePolicy::Ignore;
-    let expect = DiagnosticDirectivePolicy::Expect;
+    let ignore = DiagnosticDirectivePolicy::IGNORE;
+    let expect = DiagnosticDirectivePolicy::EXPECT;
     let invalid = [
         (
             "invalid range",
@@ -846,8 +846,8 @@ fn test_mapped_diagnostic_directive_json() {
         ..Default::default()
     };
     let tests = [
-        ("ignore", directive(DiagnosticDirectivePolicy::Ignore), "[0,9,8,14,0]"),
-        ("expect", directive(DiagnosticDirectivePolicy::Expect), "[0,9,8,14,1]"),
+        ("ignore", directive(DiagnosticDirectivePolicy::IGNORE), "[0,9,8,14,0]"),
+        ("expect", directive(DiagnosticDirectivePolicy::EXPECT), "[0,9,8,14,1]"),
     ];
     for (name, directive, want) in tests {
         let data = json::marshal(&directive.marshal_json()).unwrap();
@@ -873,7 +873,7 @@ fn test_mapped_diagnostic_directive_json() {
             original_length: 3,
             virtual_start: 5,
             virtual_end: 9,
-            policy: DiagnosticDirectivePolicy::Expect,
+            policy: DiagnosticDirectivePolicy::EXPECT,
             unused_expect_directive_index: Some(1),
         }],
     };
@@ -906,7 +906,7 @@ fn test_runner_transform_supplemental_outputs() {
                             diagnostic_directives: Some(protocol_diagnostic_directives(
                                 vec![MappedDiagnosticDirective {
                                     virtual_end: 7,
-                                    policy: DiagnosticDirectivePolicy::Ignore,
+                                    policy: DiagnosticDirectivePolicy::IGNORE,
                                     ..Default::default()
                                 }],
                                 Vec::new(),
@@ -962,7 +962,7 @@ fn test_runner_transform_invalid_supplemental_diagnostic_directive() {
                     SupplementalOutput {
                         mapped_output: output(Some(protocol_diagnostic_directives(
                             vec![MappedDiagnosticDirective {
-                                policy: DiagnosticDirectivePolicy::Expect,
+                                policy: DiagnosticDirectivePolicy::EXPECT,
                                 ..Default::default()
                             }],
                             Vec::new(),
@@ -1032,7 +1032,7 @@ fn test_runner_rejects_invalid_virtual_extension() {
 fn test_runner_position_encodings() {
     for encoding in [PositionEncoding::UTF8, PositionEncoding::UTF16] {
         let r = new_host(
-            fake_spawner(Some(Arc::new(unicodeMapper {
+            fake_spawner(Some(Arc::new(UnicodeMapper {
                 encoding: encoding.clone(),
                 source: None,
             }))),
@@ -1068,7 +1068,7 @@ fn test_runner_position_encodings() {
 fn test_runner_rejects_unsupported_position_encoding() {
     let encoding = PositionEncoding(std::borrow::Cow::Borrowed("utf-32"));
     let r = new_host(
-        fake_spawner(Some(Arc::new(unicodeMapper { encoding, source: None }))),
+        fake_spawner(Some(Arc::new(UnicodeMapper { encoding, source: None }))),
         Locale::DEFAULT,
     );
     let mapper = leak(new_mapper("", &[], "invalid", "", &["mapper"]));
@@ -1082,7 +1082,7 @@ fn test_runner_rejects_unsupported_position_encoding() {
 fn test_runner_rejects_invalid_diagnostic_source() {
     for source in ["", " ", "ts", "TS", "d.ts", "json", "typescript", "TypeScript", "tsc", "TSC"] {
         let handler =
-            unicodeMapper { encoding: PositionEncoding::UTF8, source: Some(source.to_string()) };
+            UnicodeMapper { encoding: PositionEncoding::UTF8, source: Some(source.to_string()) };
         let r = new_host(fake_spawner(Some(Arc::new(handler))), Locale::DEFAULT);
         let mapper = leak(new_mapper("", &[], "invalid", "", &["mapper"]));
         let err = r.transform(mapper, request("/a.vue", "x")).unwrap_err().to_string();
@@ -1100,7 +1100,7 @@ fn test_runner_rejects_invalid_diagnostic_source() {
 fn test_runner_rejects_positions_inside_unicode_characters() {
     for (encoding, content) in [(PositionEncoding::UTF8, "é"), (PositionEncoding::UTF16, "😀")] {
         let r = new_host(
-            fake_spawner(Some(Arc::new(invalidDiagnosticMapper { encoding: encoding.clone() }))),
+            fake_spawner(Some(Arc::new(InvalidDiagnosticMapper { encoding: encoding.clone() }))),
             Locale::DEFAULT,
         );
         let mapper = leak(new_mapper("", &[], &encoding.0, "", &["mapper"]));
@@ -1173,8 +1173,8 @@ fn test_runner_lease_lifecycle() {
 // recordingMapper captures project configuration and lifecycle requests for host protocol tests.
 // host_test.go:868 (The fields Go guards with mu; the configuration fields are set before the mapper is used.)
 #[derive(Default)]
-struct recordingMapper {
-    mu: Mutex<recordingMapperState>,
+struct RecordingMapper {
+    mu: Mutex<RecordingMapperState>,
     watched_files: Option<Vec<String>>,
     config_identity: Option<String>,
     dynamic_config: bool,
@@ -1182,7 +1182,7 @@ struct recordingMapper {
 }
 
 #[derive(Default)]
-struct recordingMapperState {
+struct RecordingMapperState {
     received: String,
     received_options: String,
     received_locale: String,
@@ -1193,8 +1193,8 @@ struct recordingMapperState {
 }
 
 // host_test.go:884
-struct blockingMapper {
-    recording_mapper: recordingMapper,
+struct BlockingMapper {
+    recording_mapper: RecordingMapper,
     // Go's `close(started)`: dropping the sender.
     started: Mutex<Option<Sender<()>>>,
     // Go's `<-proceed`, which the test's `close(proceed)` releases: the receiver sees the sender dropped.
@@ -1202,19 +1202,19 @@ struct blockingMapper {
 }
 
 // host_test.go:890 handlesProjects
-impl testMapper for recordingMapper {
+impl TestMapper for RecordingMapper {
     fn handles_projects(&self) -> bool {
         true
     }
 }
 
-impl testMapper for blockingMapper {
+impl TestMapper for BlockingMapper {
     fn handles_projects(&self) -> bool {
         true
     }
 }
 
-impl Handler for blockingMapper {
+impl Handler for BlockingMapper {
     // host_test.go:892
     fn handle_request(&self, method: &str, params: Option<&Value>) -> Result<Value, ipc::Error> {
         if method == METHOD_TRANSFORM {
@@ -1234,7 +1234,7 @@ fn raw_text(raw: Option<&Value>) -> String {
     raw.map(|value| json::marshal(value).unwrap()).unwrap_or_default()
 }
 
-impl Handler for recordingMapper {
+impl Handler for RecordingMapper {
     // host_test.go:900
     fn handle_request(&self, method: &str, params_: Option<&Value>) -> Result<Value, ipc::Error> {
         match method {
@@ -1342,8 +1342,8 @@ fn project_mapper(
 // host_test.go:971
 #[test]
 fn test_project_lifecycle() {
-    let mapper_process = Arc::new(recordingMapper { dynamic_config: true, ..Default::default() });
-    let spawner = fake_spawner(Some(Arc::clone(&mapper_process) as Arc<dyn testMapper>));
+    let mapper_process = Arc::new(RecordingMapper { dynamic_config: true, ..Default::default() });
+    let spawner = fake_spawner(Some(Arc::clone(&mapper_process) as Arc<dyn TestMapper>));
     let host = new_host(Arc::clone(&spawner) as Arc<dyn Spawner>, Locale::DEFAULT);
 
     let static_mapper = project_mapper(r#"{"mode":"static"}"#, "static", &[], false);
@@ -1382,7 +1382,7 @@ fn test_project_lifecycle() {
     let project_different_options = project(
         "/repo/options/tsconfig.json",
         vec![dynamic_a],
-        Some(compiler_options(CompilerOptions { jsx: JsxEmit::React, ..Default::default() })),
+        Some(compiler_options(CompilerOptions { jsx: JsxEmit::REACT, ..Default::default() })),
     );
     let project_b = project(
         "/repo/b/tsconfig.json",
@@ -1440,7 +1440,7 @@ fn test_project_lifecycle() {
 // host_test.go:1074
 #[test]
 fn test_project_methods_after_host_close() {
-    let mapper_process = Arc::new(recordingMapper { dynamic_config: true, ..Default::default() });
+    let mapper_process = Arc::new(RecordingMapper { dynamic_config: true, ..Default::default() });
     let host = new_host(fake_spawner(Some(mapper_process)), Locale::DEFAULT);
     let mapper = project_mapper("", "dynamic", &[], true);
     let project = host
@@ -1473,7 +1473,7 @@ fn test_project_methods_after_host_close() {
 // Runs one transform of a project whose mapper is `mapper_process` and returns its error's ProjectError kind (Go's
 // errors.AsType of a *TransformError, then of a *ProjectError in it).
 fn project_error_kind(
-    mapper_process: recordingMapper,
+    mapper_process: RecordingMapper,
     project_mapper_: &'static Mapper,
 ) -> ProjectErrorKind {
     let host = new_host(fake_spawner(Some(Arc::new(mapper_process))), Locale::DEFAULT);
@@ -1506,7 +1506,7 @@ fn dynamic_package_mapper() -> &'static Mapper {
 // host_test.go:1112
 #[test]
 fn test_project_rejects_relative_watched_files() {
-    let mapper_process = recordingMapper {
+    let mapper_process = RecordingMapper {
         watched_files: Some(vec!["mapper.config.js".to_string()]),
         dynamic_config: true,
         ..Default::default()
@@ -1520,7 +1520,7 @@ fn test_project_rejects_relative_watched_files() {
 // host_test.go:1135
 #[test]
 fn test_dynamic_project_requires_config_identity() {
-    let mapper_process = recordingMapper {
+    let mapper_process = RecordingMapper {
         config_identity: Some(String::new()),
         dynamic_config: true,
         ..Default::default()
@@ -1537,12 +1537,12 @@ fn test_static_mapper_rejects_dynamic_project_response_fields() {
     let tests = [
         (
             "config identity",
-            recordingMapper { config_identity: Some("dynamic".to_string()), ..Default::default() },
+            RecordingMapper { config_identity: Some("dynamic".to_string()), ..Default::default() },
             ProjectErrorKind::UnexpectedConfigIdentity,
         ),
         (
             "watched files",
-            recordingMapper {
+            RecordingMapper {
                 watched_files: Some(vec!["/repo/mapper.config.js".to_string()]),
                 ..Default::default()
             },
@@ -1558,7 +1558,7 @@ fn test_static_mapper_rejects_dynamic_project_response_fields() {
 // host_test.go:1191
 #[test]
 fn test_project_rejects_invalid_option_diagnostic_path() {
-    let mapper_process = recordingMapper {
+    let mapper_process = RecordingMapper {
         option_diagnostics: vec![OptionDiagnosticResult {
             path: vec![Value::Null],
             message_text: "Invalid option.".to_string(),
@@ -1588,10 +1588,10 @@ fn test_project_rejects_invalid_option_diagnostic_path() {
 // host_test.go:1215 (Go `locale.Parse("cs-CZ")`: tsrs ports English only and keeps a locale's tag.)
 #[test]
 fn test_runner_forwards_project_options() {
-    let mapper = Arc::new(recordingMapper::default());
+    let mapper = Arc::new(RecordingMapper::default());
     let diagnostic_locale = Locale("cs-CZ".to_string());
     let r =
-        new_host(fake_spawner(Some(Arc::clone(&mapper) as Arc<dyn testMapper>)), diagnostic_locale);
+        new_host(fake_spawner(Some(Arc::clone(&mapper) as Arc<dyn TestMapper>)), diagnostic_locale);
 
     let mapper_definition =
         project_mapper(r#"{"strictTemplates":true}"#, "vue", &["target", "jsx"], false);
@@ -1625,8 +1625,8 @@ fn test_runner_forwards_project_options() {
 // host_test.go:1247
 #[test]
 fn test_host_set_locale_restarts_mapper() {
-    let mapper = Arc::new(recordingMapper::default());
-    let spawner = fake_spawner(Some(Arc::clone(&mapper) as Arc<dyn testMapper>));
+    let mapper = Arc::new(RecordingMapper::default());
+    let spawner = fake_spawner(Some(Arc::clone(&mapper) as Arc<dyn TestMapper>));
     let r = new_host(Arc::clone(&spawner) as Arc<dyn Spawner>, Locale::DEFAULT);
 
     let definition = leak(new_mapper("", &[], "vue", "1.0.0", &["vue-mapper"]));
@@ -1650,8 +1650,8 @@ fn test_host_set_locale_restarts_mapper() {
 fn test_host_set_locale_waits_for_transform() {
     let (started_tx, started) = mpsc::channel::<()>();
     let (proceed, proceed_rx) = mpsc::channel::<()>();
-    let mapper = Arc::new(blockingMapper {
-        recording_mapper: recordingMapper::default(),
+    let mapper = Arc::new(BlockingMapper {
+        recording_mapper: RecordingMapper::default(),
         started: Mutex::new(Some(started_tx)),
         proceed: Mutex::new(proceed_rx),
     });

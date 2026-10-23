@@ -9,7 +9,7 @@ use tsrs_vfs::{FS, bundled, osvfs};
 
 use crate::tsc::System;
 
-pub struct osSys {
+pub struct OsSys {
     writer: Mutex<std::io::BufWriter<std::io::Stdout>>,
     fs: Arc<dyn FS>,
     default_library_path: String,
@@ -17,7 +17,7 @@ pub struct osSys {
     start: Instant,
 }
 
-impl System for osSys {
+impl System for OsSys {
     fn since_start(&self) -> Duration {
         self.start.elapsed()
     }
@@ -80,19 +80,19 @@ fn exit_on_broken_pipe(result: &std::io::Result<()>) {
         libc::signal(libc::SIGPIPE, libc::SIG_DFL);
         libc::raise(libc::SIGPIPE);
     }
-    std::process::exit(crate::tsc::ExitStatus::DiagnosticsPresent_OutputsSkipped as i32);
+    std::process::exit(crate::tsc::ExitStatus::DiagnosticsPresentOutputsSkipped as i32);
 }
 
-pub fn new_system() -> osSys {
+pub fn new_system() -> OsSys {
     let cwd = match std::env::current_dir() {
         Ok(cwd) => cwd,
         Err(err) => {
             eprintln!("Error getting current directory: {err}");
-            std::process::exit(crate::tsc::ExitStatus::InvalidProject_OutputsSkipped as i32);
+            std::process::exit(crate::tsc::ExitStatus::InvalidProjectOutputsSkipped as i32);
         }
     };
 
-    osSys {
+    OsSys {
         cwd: tspath::normalize_path(&cwd.to_string_lossy()),
         fs: Arc::new(bundled::wrap_fs(osvfs::fs())),
         default_library_path: bundled::default_lib_path(),

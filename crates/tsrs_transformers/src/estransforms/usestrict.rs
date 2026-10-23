@@ -6,7 +6,7 @@ use crate::*;
     reason = "Transformer factories share an optional result so disabled transforms can return None."
 )]
 pub fn new_use_strict_transformer(opts: &TransformOptions) -> Option<P<Transformer>> {
-    let tx = P::new(useStrictTransformer {
+    let tx = P::new(UseStrictTransformer {
         base: Transformer::default(),
         compiler_options: opts.compiler_options,
         get_emit_module_format_of_file: Rc::clone(&opts.get_emit_module_format_of_file),
@@ -18,13 +18,13 @@ pub fn new_use_strict_transformer(opts: &TransformOptions) -> Option<P<Transform
 }
 
 // usestrict.go:17
-pub struct useStrictTransformer {
+pub struct UseStrictTransformer {
     pub base: Transformer,
     pub compiler_options: P<CompilerOptions>,
     pub get_emit_module_format_of_file: Rc<dyn Fn(P<SourceFile>) -> ModuleKind>,
 }
 
-impl useStrictTransformer {
+impl UseStrictTransformer {
     // usestrict.go:23
     fn visit(&self, node: P<Node>) -> P<Node> {
         if node.kind() != Kind::SourceFile {
@@ -47,7 +47,7 @@ impl useStrictTransformer {
         // has not been requested, then skip adding "use strict".
         if is_external_module
             && module_kind >= ModuleKind::ES2015
-            && (module_kind == ModuleKind::Preserve || format >= ModuleKind::ES2015)
+            && (module_kind == ModuleKind::PRESERVE || format >= ModuleKind::ES2015)
         {
             return node.as_node();
         }

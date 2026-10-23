@@ -44,7 +44,7 @@ impl LanguageService {
         let mapped_ranges = self.converters.from_lsp_range_intersecting_for_source_file(
             file,
             params.range,
-            Feature::InlayHints,
+            Feature::INLAY_HINTS,
         );
         let mut result = Vec::with_capacity(mapped_ranges.len());
         result.extend(mapped_ranges.iter().flat_map(|mapped| {
@@ -82,7 +82,7 @@ struct InlayHintState<'a> {
 impl InlayHintState<'_> {
     // inlay_hints.go:72
     fn visit(&mut self, node: P<Node>) -> bool {
-        if node.end() == node.pos() || node.flags().intersects(ast::NodeFlags::Reparsed) {
+        if node.end() == node.pos() || node.flags().intersects(ast::NodeFlags::REPARSED) {
             return false;
         }
 
@@ -206,7 +206,7 @@ impl InlayHintState<'_> {
                     }
                     let required_args = element_flags
                         .iter()
-                        .position(|f| !f.intersects(ElementFlags::Required))
+                        .position(|f| !f.intersects(ElementFlags::REQUIRED))
                         .unwrap_or(fixed_length);
                     if required_args > 0 {
                         spread_args = required_args;
@@ -267,7 +267,7 @@ impl InlayHintState<'_> {
     fn visit_variable_like_declaration(&mut self, decl: P<Node>) {
         let missing_initializer_without_specific_property_type = decl.initializer().is_none()
             && (!ast::is_property_declaration(decl)
-                || self.checker.get_type_at_location(decl).flags().intersects(TypeFlags::Any));
+                || self.checker.get_type_at_location(decl).flags().intersects(TypeFlags::ANY));
         if missing_initializer_without_specific_property_type
             || ast::is_binding_pattern(decl.name().unwrap())
             || (ast::is_variable_declaration(decl) && !is_hintable_declaration(decl))
@@ -365,9 +365,9 @@ impl InlayHintState<'_> {
 
     // inlay_hints.go:320
     fn type_to_inlay_hint_parts(&mut self, t: P<Type>) -> lsproto::StringOrInlayHintLabelParts {
-        let flags = Flags::IgnoreErrors
-            | Flags::AllowUniqueESSymbolType
-            | Flags::UseAliasDefinedOutsideCurrentScope;
+        let flags = Flags::IGNORE_ERRORS
+            | Flags::ALLOW_UNIQUE_ES_SYMBOL_TYPE
+            | Flags::USE_ALIAS_DEFINED_OUTSIDE_CURRENT_SCOPE;
         let id_to_symbol: P<RefCell<FxHashMap<P<Node>, P<Symbol>>>> =
             P::new(RefCell::new(FxHashMap::default()));
         // !!! Avoid type node reuse so we collect identifier symbols.
@@ -390,9 +390,9 @@ impl InlayHintState<'_> {
         &mut self,
         type_predicate: P<TypePredicate>,
     ) -> lsproto::StringOrInlayHintLabelParts {
-        let flags = Flags::IgnoreErrors
-            | Flags::AllowUniqueESSymbolType
-            | Flags::UseAliasDefinedOutsideCurrentScope;
+        let flags = Flags::IGNORE_ERRORS
+            | Flags::ALLOW_UNIQUE_ES_SYMBOL_TYPE
+            | Flags::USE_ALIAS_DEFINED_OUTSIDE_CURRENT_SCOPE;
         let id_to_symbol: P<RefCell<FxHashMap<P<Node>, P<Symbol>>>> =
             P::new(RefCell::new(FxHashMap::default()));
         // !!! Avoid type node reuse so we collect identifier symbols.
@@ -415,7 +415,7 @@ impl InlayHintState<'_> {
         let (lsp_position, fidelity) = self.converters.to_lsp_position_for_feature(
             &self.file,
             position.into(),
-            Feature::InlayHints,
+            Feature::INLAY_HINTS,
         );
         if fidelity.is_none() {
             return;
@@ -431,7 +431,7 @@ impl InlayHintState<'_> {
         self.result.push(lsproto::InlayHint {
             label: hint,
             position: lsp_position,
-            kind: Some(lsproto::InlayHintKind::Type),
+            kind: Some(lsproto::InlayHintKind::TYPE),
             padding_left: Some(true),
             ..Default::default()
         });
@@ -442,7 +442,7 @@ impl InlayHintState<'_> {
         let (lsp_position, fidelity) = self.converters.to_lsp_position_for_feature(
             &self.file,
             position.into(),
-            Feature::InlayHints,
+            Feature::INLAY_HINTS,
         );
         if fidelity.is_none() {
             return;
@@ -469,7 +469,7 @@ impl InlayHintState<'_> {
         let (lsp_position, fidelity) = self.converters.to_lsp_position_for_feature(
             &self.file,
             position.into(),
-            Feature::InlayHints,
+            Feature::INLAY_HINTS,
         );
         if fidelity.is_none() {
             return;
@@ -487,7 +487,7 @@ impl InlayHintState<'_> {
         self.result.push(lsproto::InlayHint {
             label: label_parts,
             position: lsp_position,
-            kind: Some(lsproto::InlayHintKind::Parameter),
+            kind: Some(lsproto::InlayHintKind::PARAMETER),
             padding_right: Some(true),
             ..Default::default()
         });
@@ -556,7 +556,7 @@ fn is_hintable_literal(node: P<Node>) -> bool {
 
 // inlay_hints.go:438
 fn is_module_reference_type(t: P<Type>) -> bool {
-    t.symbol().is_some_and(|symbol| symbol.flags().intersects(SymbolFlags::Module))
+    t.symbol().is_some_and(|symbol| symbol.flags().intersects(SymbolFlags::MODULE))
 }
 
 // The closures of getInlayHintLabelParts share `parts`.
@@ -967,7 +967,7 @@ impl InlayHintState<'_> {
         let (lsp_range, fidelity) = self.converters.to_lsp_range_for_feature(
             &file,
             TextRange::new(pos, end),
-            Feature::InlayHints,
+            Feature::INLAY_HINTS,
         );
         if fidelity.is_single_segment() {
             part.location = Some(lsproto::Location {

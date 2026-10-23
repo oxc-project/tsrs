@@ -114,7 +114,7 @@ impl Symbol {
             source
         };
         let s = P::new(Symbol {
-            flags: OwnedCell::new(source.flags() | SymbolFlags::Transient),
+            flags: OwnedCell::new(source.flags() | SymbolFlags::TRANSIENT),
             check_flags_and_kind: OwnedCell::new(SHARED_DATA),
             id: AtomicU32::new(0),
             parent_or_tables: OwnedCell::new(data.key()),
@@ -347,7 +347,7 @@ impl Symbol {
     }
 
     pub fn is_external_module(&self) -> bool {
-        self.flags.get().intersects(SymbolFlags::Module)
+        self.flags.get().intersects(SymbolFlags::MODULE)
             && is_ambient_module_symbol_name(self.name())
     }
 
@@ -356,7 +356,7 @@ impl Symbol {
             return false;
         };
         let modifier_flags = value_declaration.modifier_flags();
-        modifier_flags.intersects(ModifierFlags::Static)
+        modifier_flags.intersects(ModifierFlags::STATIC)
     }
 
     // See comment on `declareModuleMember` in `binder.go`.
@@ -373,23 +373,23 @@ impl Symbol {
 // Ownership recovery walks only the first declaration's AST parents.
 pub fn get_source_file_of_symbol(symbol: P<Symbol>) -> Option<P<SourceFile>> {
     let mut symbol = symbol;
-    if symbol.flags.get().intersects(SymbolFlags::Transient) {
+    if symbol.flags.get().intersects(SymbolFlags::TRANSIENT) {
         return None;
     }
     if symbol.declarations().is_empty() {
         // A class's implicit prototype has no declaration of its own.
         assert!(
-            symbol.flags.get().intersects(SymbolFlags::Prototype),
+            symbol.flags.get().intersects(SymbolFlags::PROTOTYPE),
             "File-bound symbol has no declarations"
         );
         let parent = symbol.parent();
         assert!(
-            parent.is_some_and(|p| p.flags.get().intersects(SymbolFlags::Class)),
+            parent.is_some_and(|p| p.flags.get().intersects(SymbolFlags::CLASS)),
             "Prototype has no declaring class"
         );
         symbol = parent.unwrap();
         assert!(
-            !symbol.flags.get().intersects(SymbolFlags::Transient),
+            !symbol.flags.get().intersects(SymbolFlags::TRANSIENT),
             "Prototype parent is not file-bound"
         );
         assert!(!symbol.declarations().is_empty(), "Prototype parent has no declarations");
@@ -1171,29 +1171,29 @@ impl SymbolTable {
 // (DEL): a single byte, so `name.as_bytes()[0]` / `name.as_bytes()[1]` checks translate one to one, and it
 // cannot occur in an IdentifierName. Translate Go `name[0] == '\xFE'` to
 // `name.as_bytes().first() == Some(&InternalSymbolNamePrefixByte)`.
-pub const InternalSymbolNamePrefix: &str = "\u{7f}";
-pub const InternalSymbolNamePrefixByte: u8 = 0x7f;
+pub const INTERNAL_SYMBOL_NAME_PREFIX: &str = "\u{7f}";
+pub const INTERNAL_SYMBOL_NAME_PREFIX_BYTE: u8 = 0x7f;
 
-pub const InternalSymbolNameCall: &str = "\u{7f}call"; // Call signatures
-pub const InternalSymbolNameConstructor: &str = "\u{7f}constructor"; // Constructor implementations
-pub const InternalSymbolNameNew: &str = "\u{7f}new"; // Constructor signatures
-pub const InternalSymbolNameIndex: &str = "\u{7f}index"; // Index signatures
-pub const InternalSymbolNameExportStar: &str = "\u{7f}export"; // Module export * declarations
-pub const InternalSymbolNameGlobal: &str = "\u{7f}global"; // Global self-reference
-pub const InternalSymbolNameMissing: &str = "\u{7f}missing"; // Indicates missing symbol
-pub const InternalSymbolNameType: &str = "\u{7f}type"; // Anonymous type literal symbol
-pub const InternalSymbolNameObject: &str = "\u{7f}object"; // Anonymous object literal declaration
-pub const InternalSymbolNameJSXAttributes: &str = "\u{7f}jsxAttributes"; // Anonymous JSX attributes object literal declaration
-pub const InternalSymbolNameClass: &str = "\u{7f}class"; // Unnamed class expression
-pub const InternalSymbolNameFunction: &str = "\u{7f}function"; // Unnamed function expression
-pub const InternalSymbolNameComputed: &str = "\u{7f}computed"; // Computed property name declaration with dynamic name
-pub const InternalSymbolNameAssignmentDeclaration: &str = "\u{7f}assignment"; // Assignment declarations
-pub const InternalSymbolNameInstantiationExpression: &str = "\u{7f}instantiationExpression"; // Instantiation expressions
-pub const InternalSymbolNameImportAttributes: &str = "\u{7f}importAttributes";
-pub const InternalSymbolNameExportEquals: &str = "export="; // Export assignment symbol
-pub const InternalSymbolNameDefault: &str = "default"; // Default export symbol (technically not wholly internal, but included here for usability)
-pub const InternalSymbolNameThis: &str = "this";
-pub const InternalSymbolNameModuleExports: &str = "module.exports";
+pub const INTERNAL_SYMBOL_NAME_CALL: &str = "\u{7f}call"; // Call signatures
+pub const INTERNAL_SYMBOL_NAME_CONSTRUCTOR: &str = "\u{7f}constructor"; // Constructor implementations
+pub const INTERNAL_SYMBOL_NAME_NEW: &str = "\u{7f}new"; // Constructor signatures
+pub const INTERNAL_SYMBOL_NAME_INDEX: &str = "\u{7f}index"; // Index signatures
+pub const INTERNAL_SYMBOL_NAME_EXPORT_STAR: &str = "\u{7f}export"; // Module export * declarations
+pub const INTERNAL_SYMBOL_NAME_GLOBAL: &str = "\u{7f}global"; // Global self-reference
+pub const INTERNAL_SYMBOL_NAME_MISSING: &str = "\u{7f}missing"; // Indicates missing symbol
+pub const INTERNAL_SYMBOL_NAME_TYPE: &str = "\u{7f}type"; // Anonymous type literal symbol
+pub const INTERNAL_SYMBOL_NAME_OBJECT: &str = "\u{7f}object"; // Anonymous object literal declaration
+pub const INTERNAL_SYMBOL_NAME_JSX_ATTRIBUTES: &str = "\u{7f}jsxAttributes"; // Anonymous JSX attributes object literal declaration
+pub const INTERNAL_SYMBOL_NAME_CLASS: &str = "\u{7f}class"; // Unnamed class expression
+pub const INTERNAL_SYMBOL_NAME_FUNCTION: &str = "\u{7f}function"; // Unnamed function expression
+pub const INTERNAL_SYMBOL_NAME_COMPUTED: &str = "\u{7f}computed"; // Computed property name declaration with dynamic name
+pub const INTERNAL_SYMBOL_NAME_ASSIGNMENT_DECLARATION: &str = "\u{7f}assignment"; // Assignment declarations
+pub const INTERNAL_SYMBOL_NAME_INSTANTIATION_EXPRESSION: &str = "\u{7f}instantiationExpression"; // Instantiation expressions
+pub const INTERNAL_SYMBOL_NAME_IMPORT_ATTRIBUTES: &str = "\u{7f}importAttributes";
+pub const INTERNAL_SYMBOL_NAME_EXPORT_EQUALS: &str = "export="; // Export assignment symbol
+pub const INTERNAL_SYMBOL_NAME_DEFAULT: &str = "default"; // Default export symbol (technically not wholly internal, but included here for usability)
+pub const INTERNAL_SYMBOL_NAME_THIS: &str = "this";
+pub const INTERNAL_SYMBOL_NAME_MODULE_EXPORTS: &str = "module.exports";
 
 pub fn symbol_name(symbol: P<Symbol>) -> &'static str {
     if let Some(value_declaration) = symbol.value_declaration() {
@@ -1206,11 +1206,11 @@ pub fn symbol_name(symbol: P<Symbol>) -> &'static str {
 
 // EscapeAllInternalSymbolNames replaces internal symbol name markers with "__".
 pub fn escape_all_internal_symbol_names(name: &str) -> String {
-    name.replace(InternalSymbolNamePrefix, "__")
+    name.replace(INTERNAL_SYMBOL_NAME_PREFIX, "__")
 }
 
 pub fn escape_internal_symbol_name(name: &str) -> String {
-    if let Some(rest) = name.strip_prefix(InternalSymbolNamePrefix) {
+    if let Some(rest) = name.strip_prefix(INTERNAL_SYMBOL_NAME_PREFIX) {
         return format!("__{rest}");
     }
     name.to_string()
@@ -1221,7 +1221,7 @@ pub fn escape_internal_symbol_name(name: &str) -> String {
 // and user names that already begin with "__" gain an extra leading underscore
 // so they can be distinguished from internal names.
 pub fn escape_symbol_name(name: &str) -> String {
-    if let Some(rest) = name.strip_prefix(InternalSymbolNamePrefix) {
+    if let Some(rest) = name.strip_prefix(INTERNAL_SYMBOL_NAME_PREFIX) {
         return format!("__{rest}");
     }
     let b = name.as_bytes();
@@ -1237,9 +1237,9 @@ mod tests {
 
     #[test]
     fn optional_symbol_tables_allocate_only_for_values() {
-        let source = Symbol::new(SymbolFlags::Class, "source");
+        let source = Symbol::new(SymbolFlags::CLASS, "source");
         let alias = Symbol::new_shared_data(source);
-        let parent = Symbol::new(SymbolFlags::Module, "parent");
+        let parent = Symbol::new(SymbolFlags::MODULE, "parent");
         source.set_parent(Some(parent));
 
         alias.set_members(None);
@@ -1257,7 +1257,7 @@ mod tests {
         assert_eq!(source.parent(), Some(parent));
 
         let exports = SymbolTable::new();
-        let export_symbol = Symbol::new(SymbolFlags::Alias, "export");
+        let export_symbol = Symbol::new(SymbolFlags::ALIAS, "export");
         source.set_exports(Some(exports));
         alias.set_export_symbol(Some(export_symbol));
         assert_eq!(source.tables(), Some(tail));
@@ -1278,9 +1278,9 @@ mod tests {
         let factory = NodeFactory::default();
         let first = factory.new_identifier("first");
         let second = factory.new_identifier("second");
-        let source = Symbol::new(SymbolFlags::Property, "original");
-        let parent = Symbol::new(SymbolFlags::Class, "parent");
-        let export = Symbol::new(SymbolFlags::Alias, "export");
+        let source = Symbol::new(SymbolFlags::PROPERTY, "original");
+        let parent = Symbol::new(SymbolFlags::CLASS, "parent");
+        let export = Symbol::new(SymbolFlags::ALIAS, "export");
         source.set_declarations(&[first]);
         source.set_value_declaration(Some(first));
         source.set_parent(Some(parent));
@@ -1294,8 +1294,8 @@ mod tests {
         assert_ne!(instance, nested);
         assert_ne!(get_symbol_id(source), get_symbol_id(instance));
         assert_ne!(get_symbol_id(instance), get_symbol_id(nested));
-        assert_eq!(instance.flags(), SymbolFlags::Property | SymbolFlags::Transient);
-        assert_eq!(instance.check_flags(), CheckFlags::None);
+        assert_eq!(instance.flags(), SymbolFlags::PROPERTY | SymbolFlags::TRANSIENT);
+        assert_eq!(instance.check_flags(), CheckFlags::NONE);
         assert_eq!(instance.name(), "original");
         assert_eq!(instance.declarations(), &[first]);
         assert_eq!(instance.value_declaration(), Some(first));
@@ -1326,21 +1326,21 @@ mod tests {
         assert_eq!(source.parent(), None);
         assert_eq!(instance.export_symbol(), None);
 
-        source.set_flags(SymbolFlags::Class);
-        source.set_check_flags(CheckFlags::Readonly);
-        instance.set_check_flags(CheckFlags::None);
+        source.set_flags(SymbolFlags::CLASS);
+        source.set_check_flags(CheckFlags::READONLY);
+        instance.set_check_flags(CheckFlags::NONE);
         assert_eq!(instance.name(), "renamed");
         assert_eq!(instance.declarations(), &[second]);
-        instance.set_check_flags(CheckFlags::Instantiated | CheckFlags::Late);
-        assert_eq!(source.flags(), SymbolFlags::Class);
-        assert_eq!(instance.flags(), SymbolFlags::Property | SymbolFlags::Transient);
-        assert_eq!(source.check_flags(), CheckFlags::Readonly);
-        assert_eq!(instance.check_flags(), CheckFlags::Instantiated | CheckFlags::Late);
+        instance.set_check_flags(CheckFlags::INSTANTIATED | CheckFlags::LATE);
+        assert_eq!(source.flags(), SymbolFlags::CLASS);
+        assert_eq!(instance.flags(), SymbolFlags::PROPERTY | SymbolFlags::TRANSIENT);
+        assert_eq!(source.check_flags(), CheckFlags::READONLY);
+        assert_eq!(instance.check_flags(), CheckFlags::INSTANTIATED | CheckFlags::LATE);
 
         // Neither kind of semantic flags determines the allocation layout.
-        instance.set_flags(SymbolFlags::None);
+        instance.set_flags(SymbolFlags::NONE);
         nested.set_check_flags(CheckFlags::all());
-        nested.set_check_flags(CheckFlags::None);
+        nested.set_check_flags(CheckFlags::NONE);
         source.set_check_flags(CheckFlags::all());
         assert_eq!(nested.check_flags().bits(), 0);
         assert_eq!(source.check_flags(), CheckFlags::all());
@@ -1354,16 +1354,16 @@ mod tests {
     #[test]
     fn symbol_check_flags_reject_layout_bit_without_changing_data() {
         for symbol in [
-            Symbol::new(SymbolFlags::None, ""),
-            Symbol::new_shared_data(Symbol::new(SymbolFlags::Property, "source")),
+            Symbol::new(SymbolFlags::NONE, ""),
+            Symbol::new_shared_data(Symbol::new(SymbolFlags::PROPERTY, "source")),
         ] {
-            symbol.set_check_flags(CheckFlags::Readonly);
+            symbol.set_check_flags(CheckFlags::READONLY);
             let name = symbol.name();
             let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
                 symbol.set_check_flags(CheckFlags::from_bits_retain(SHARED_DATA));
             }));
             assert!(result.is_err());
-            assert_eq!(symbol.check_flags(), CheckFlags::Readonly);
+            assert_eq!(symbol.check_flags(), CheckFlags::READONLY);
             assert_eq!(symbol.name(), name);
         }
     }
@@ -1373,7 +1373,7 @@ mod tests {
         let factory = NodeFactory::default();
         let first = factory.new_identifier("first");
         let second = factory.new_identifier("second");
-        let source = Symbol::new(SymbolFlags::Property, "long");
+        let source = Symbol::new(SymbolFlags::PROPERTY, "long");
         let declarations = tsrs_core::alloc_vec(vec![first; 65536]);
         source.set_declarations_static(declarations);
         source.set_value_declaration(Some(first));
@@ -1403,9 +1403,9 @@ mod tests {
                 Box::leak(format!("member{i}{}", "x".repeat(i % 23)).into_boxed_str());
             names.push(name);
             let table = if i < 10 { &small } else { &large };
-            table.set(name, Symbol::new(SymbolFlags::Property, name));
+            table.set(name, Symbol::new(SymbolFlags::PROPERTY, name));
         }
-        small.set("odd", Symbol::new(SymbolFlags::Property, "other"));
+        small.set("odd", Symbol::new(SymbolFlags::PROPERTY, "other"));
         names.push("odd");
         let mut filter = NameFilter::default();
         filter.add_keys(&small);
@@ -1429,7 +1429,7 @@ mod tests {
                 (0..600).map(|i| &*Box::leak(format!("k{i}").into_boxed_str())).collect();
             let mut expected: Vec<(&'static str, P<Symbol>)> = Vec::new();
             for (i, &name) in names.iter().enumerate() {
-                let symbol = Symbol::new(SymbolFlags::Property, if i == 7 { "odd" } else { name });
+                let symbol = Symbol::new(SymbolFlags::PROPERTY, if i == 7 { "odd" } else { name });
                 table.set(name, symbol);
                 expected.push((name, symbol));
                 if i % 97 == 50 {
@@ -1438,7 +1438,7 @@ mod tests {
                     assert!(table.lookup(gone).is_none(), "{gone}");
                 }
                 if i % 89 == 3 {
-                    let replaced = Symbol::new(SymbolFlags::Property, expected[i / 2].0);
+                    let replaced = Symbol::new(SymbolFlags::PROPERTY, expected[i / 2].0);
                     table.set(expected[i / 2].0, replaced);
                     expected[i / 2].1 = replaced;
                 }

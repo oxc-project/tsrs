@@ -15,7 +15,7 @@ use tsrs_modulespecifiers::{self as modulespecifiers, ModuleSpecifierEnding};
 use tsrs_scanner as scanner;
 
 use super::export::{Export, ExportID, ModuleID};
-use super::fix::{Fix, existingImport};
+use super::fix::{ExistingImport, Fix};
 use super::registry::{ProjectID, Registry, RegistryBucket};
 use super::util::add_package_json_dependencies;
 use crate::lsutil;
@@ -36,7 +36,7 @@ pub struct View {
     allowed_endings: OnceCell<Vec<ModuleSpecifierEnding>>,
     pub(crate) conditions: Set<String>,
     pub(crate) should_use_uri_style_node_core_modules: Tristate,
-    existing_imports: OnceCell<Rc<FxHashMap<ModuleID, Vec<existingImport>>>>,
+    existing_imports: OnceCell<Rc<FxHashMap<ModuleID, Vec<ExistingImport>>>>,
     should_use_require_for_fixes: OnceCell<bool>,
 }
 
@@ -230,14 +230,14 @@ impl View {
         let results = self.search(prefix, QueryKind::WordPrefix);
 
         #[derive(Clone, PartialEq, Eq, Hash)]
-        struct exportGroupKey {
+        struct ExportGroupKey {
             target: ExportID,
             name: String,
             ambient_module_or_package_name: String,
         }
         // Go map (random iteration order); groups are kept in first-seen order.
         let mut grouped: indexmap::IndexMap<
-            exportGroupKey,
+            ExportGroupKey,
             Vec<Arc<Export>>,
             rustc_hash::FxBuildHasher,
         > = indexmap::IndexMap::default();
@@ -257,7 +257,7 @@ impl View {
                 target = e.target.clone();
             }
             let ambient = e.ambient_module_name();
-            let mut key = exportGroupKey {
+            let mut key = ExportGroupKey {
                 target,
                 name,
                 ambient_module_or_package_name: if !ambient.is_empty() {
@@ -328,7 +328,7 @@ impl View {
 
     pub(crate) fn existing_imports_cell(
         &self,
-    ) -> &OnceCell<Rc<FxHashMap<ModuleID, Vec<existingImport>>>> {
+    ) -> &OnceCell<Rc<FxHashMap<ModuleID, Vec<ExistingImport>>>> {
         &self.existing_imports
     }
 

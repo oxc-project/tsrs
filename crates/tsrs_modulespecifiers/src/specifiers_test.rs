@@ -13,14 +13,14 @@ use super::*;
 
 // Mock host for testing
 #[derive(Default)]
-struct mockModuleSpecifierGenerationHost {
+struct MockModuleSpecifierGenerationHost {
     current_dir: String,
     content_mapper_extensions: Vec<String>,
     use_case_sensitive_file_names: bool,
     symlink_cache: Option<P<KnownSymlinks>>,
 }
 
-impl OutputPathsHost for mockModuleSpecifierGenerationHost {
+impl OutputPathsHost for MockModuleSpecifierGenerationHost {
     fn common_source_directory(&self) -> String {
         self.current_dir.clone()
     }
@@ -35,7 +35,7 @@ impl OutputPathsHost for mockModuleSpecifierGenerationHost {
     }
 }
 
-impl ModuleSpecifierGenerationHost for mockModuleSpecifierGenerationHost {
+impl ModuleSpecifierGenerationHost for MockModuleSpecifierGenerationHost {
     fn get_symlink_cache(&self) -> P<KnownSymlinks> {
         self.symlink_cache.unwrap()
     }
@@ -85,8 +85,8 @@ impl ModuleSpecifierGenerationHost for mockModuleSpecifierGenerationHost {
     }
 }
 
-fn project_host() -> mockModuleSpecifierGenerationHost {
-    mockModuleSpecifierGenerationHost {
+fn project_host() -> MockModuleSpecifierGenerationHost {
+    MockModuleSpecifierGenerationHost {
         current_dir: "/project".to_string(),
         use_case_sensitive_file_names: true,
         symlink_cache: Some(P::new(new_known_symlink("/project", true))),
@@ -248,7 +248,7 @@ fn test_try_get_module_name_from_exports_or_imports() {
     for (name, target_file_path, expected) in tests {
         let result = try_get_module_name_from_exports_or_imports(
             &CompilerOptions::default(),
-            &mockModuleSpecifierGenerationHost::default(),
+            &MockModuleSpecifierGenerationHost::default(),
             target_file_path,
             "/pkg",
             "./src/things/*",

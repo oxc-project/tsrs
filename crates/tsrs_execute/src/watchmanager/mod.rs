@@ -11,7 +11,7 @@ use std::sync::{Arc, Condvar, Mutex, MutexGuard};
 use rustc_hash::FxHashMap;
 use tsrs_core::tspath::{self, ComparePathsOptions};
 use tsrs_fswatch::{
-    ErrOverflow, ErrWatchTerminated, Error, Event, EventKind, IgnoreFunc, WatchCallback,
+    ERR_OVERFLOW, ERR_WATCH_TERMINATED, Error, Event, EventKind, IgnoreFunc, WatchCallback,
 };
 
 use crate::tsc::SyncWriter;
@@ -61,7 +61,7 @@ impl WatchBackend for FsWatchBackend {
     }
 }
 
-struct watchedDir {
+struct WatchedDir {
     closer: Option<Box<dyn tsrs_fswatch::Watch>>,
     recursive: bool,
     // Identity for handleWatchTerminated (Go compares *watchedDir pointers).
@@ -71,19 +71,19 @@ struct watchedDir {
 /// The state Go guards with `WatchManager.mu`.
 pub struct WatchState {
     backend: Option<Arc<dyn WatchBackend>>,
-    watched_dirs: FxHashMap<String, watchedDir>,
+    watched_dirs: FxHashMap<String, WatchedDir>,
     next_id: u64,
 }
 
 #[derive(Default)]
-struct changedState {
+struct ChangedState {
     paths: Option<FxHashMap<String, EventKind>>,
     overflow: bool,
 }
 
 pub struct WatchManager {
     mu: Mutex<WatchState>,
-    changed: Mutex<changedState>,
+    changed: Mutex<ChangedState>,
     // Go's `doCycleCh` (buffered, capacity 1): a pending signal coalesces with later ones.
     do_cycle: Mutex<bool>,
     do_cycle_cv: Condvar,
@@ -107,7 +107,7 @@ impl WatchManager {
                 watched_dirs: FxHashMap::default(),
                 next_id: 0,
             }),
-            changed: Mutex::new(changedState::default()),
+            changed: Mutex::new(ChangedState::default()),
             do_cycle: Mutex::new(false),
             do_cycle_cv: Condvar::new(),
             stopped: Mutex::new(false),
@@ -121,7 +121,7 @@ impl WatchManager {
         self.mu.lock().unwrap_or_else(std::sync::PoisonError::into_inner)
     }
 
-    fn changed(&self) -> MutexGuard<'_, changedState> {
+    fn changed(&self) -> MutexGuard<'_, ChangedState> {
         self.changed.lock().unwrap_or_else(std::sync::PoisonError::into_inner)
     }
 
@@ -171,7 +171,7 @@ impl WatchManager {
             let mut changed = self.changed();
             let map = changed.paths.get_or_insert_with(FxHashMap::default);
             for path in paths {
-                map.insert(path, EventKind::Update);
+                map.insert(path, EventKind::UPDATE);
             }
         }
         self.signal_do_cycle();
@@ -189,7 +189,7 @@ impl WatchManager {
 
     fn on_watch_events(&self, events: &[Event], err: Option<&Error>) {
         if let Some(err) = err {
-            if err.is(ErrOverflow) {
+            if err.is(ERR_OVERFLOW) {
                 self.debug(|| "[watch] event overflow, triggering rebuild\n".to_string());
                 self.changed().overflow = true;
                 self.signal_do_cycle();
@@ -268,7 +268,7 @@ impl WatchManager {
             callback: Arc::new(move |events: Vec<Event>, err: Option<Error>| {
                 let Some(wm) = wm.upgrade() else { return };
                 if let Some(e) = &err
-                    && e.is(ErrWatchTerminated)
+                    && e.is(ERR_WATCH_TERMINATED)
                 {
                     wm.handle_watch_terminated(&watch_dir, id);
                     return;
@@ -392,7 +392,7 @@ impl WatchManager {
                 for (((dir, recursive), id), closer) in updates.into_iter().zip(ids).zip(closers) {
                     state
                         .watched_dirs
-                        .insert(dir, watchedDir { closer: Some(closer), recursive, id });
+                        .insert(dir, WatchedDir { closer: Some(closer), recursive, id });
                 }
                 Ok(())
             }

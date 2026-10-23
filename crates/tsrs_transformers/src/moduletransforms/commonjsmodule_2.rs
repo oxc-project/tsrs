@@ -48,9 +48,9 @@ impl CommonJSModuleTransformer {
         if let Some(location) = location {
             emit_context.set_comment_range(statement, location);
         }
-        emit_context.add_emit_flags(statement, EmitFlags::StartOnNewLine);
+        emit_context.add_emit_flags(statement, EmitFlags::START_ON_NEW_LINE);
         if !allow_comments {
-            emit_context.add_emit_flags(statement, EmitFlags::NoComments);
+            emit_context.add_emit_flags(statement, EmitFlags::NO_COMMENTS);
         }
         statement
     }
@@ -73,7 +73,7 @@ impl CommonJSModuleTransformer {
                     f.new_identifier("Object"),
                     None, /*questionDotToken*/
                     f.new_identifier("defineProperty"),
-                    NodeFlags::None,
+                    NodeFlags::NONE,
                 ),
                 None, /*questionDotToken*/
                 None, /*typeArguments*/
@@ -112,7 +112,7 @@ impl CommonJSModuleTransformer {
                         false, /*multiLine*/
                     ),
                 ]),
-                NodeFlags::None,
+                NodeFlags::NONE,
             )
         } else {
             // Otherwise, we emit a simple property assignment.
@@ -123,7 +123,7 @@ impl CommonJSModuleTransformer {
                     f.new_identifier("exports"),
                     None, /*questionDotToken*/
                     f.new_string_literal_from_node(name),
-                    NodeFlags::None,
+                    NodeFlags::NONE,
                 )
             } else {
                 // emits:
@@ -132,7 +132,7 @@ impl CommonJSModuleTransformer {
                     f.new_identifier("exports"),
                     None, /*questionDotToken*/
                     name.clone_node(f),
-                    NodeFlags::None,
+                    NodeFlags::NONE,
                 )
             };
             f.new_assignment_expression(left, value)
@@ -176,7 +176,7 @@ impl CommonJSModuleTransformer {
             None, /*questionDotToken*/
             None, /*typeArguments*/
             f.new_node_list(args),
-            NodeFlags::None,
+            NodeFlags::NONE,
         )
     }
 
@@ -259,7 +259,7 @@ impl CommonJSModuleTransformer {
 
         let var_statement = f.new_variable_statement(
             None, /*modifiers*/
-            f.new_variable_declaration_list(f.new_node_list(variables), NodeFlags::Const),
+            f.new_variable_declaration_list(f.new_node_list(variables), NodeFlags::CONST),
         );
 
         emit_context.set_original(var_statement, node);
@@ -283,7 +283,7 @@ impl CommonJSModuleTransformer {
         let f = self.factory();
         let emit_context = self.emit_context();
         let mut statements: Vec<P<Node>> = Vec::new();
-        if ast::has_syntactic_modifier(node, ModifierFlags::Export) {
+        if ast::has_syntactic_modifier(node, ModifierFlags::EXPORT) {
             // export import m = require("mod");
             let statement = f.new_expression_statement(self.create_export_expression(
                 node.name().unwrap(),
@@ -306,7 +306,7 @@ impl CommonJSModuleTransformer {
                         None, /*typeNode*/
                         Some(self.create_require_call(node)),
                     )]),
-                    NodeFlags::Const,
+                    NodeFlags::CONST,
                 ),
             );
             emit_context.set_original(statement, node);
@@ -344,7 +344,7 @@ impl CommonJSModuleTransformer {
                             None, /*type*/
                             Some(self.create_require_call(node)),
                         )]),
-                        NodeFlags::None,
+                        NodeFlags::NONE,
                     ),
                 );
                 emit_context.set_original(var_statement, node);
@@ -373,14 +373,14 @@ impl CommonJSModuleTransformer {
                             target,
                             None, /*questionDotToken*/
                             specifier_name,
-                            NodeFlags::None,
+                            NodeFlags::NONE,
                         )
                     } else {
                         f.new_property_access_expression(
                             target,
                             None, /*questionDotToken*/
                             specifier_name,
-                            NodeFlags::None,
+                            NodeFlags::NONE,
                         )
                     };
                     let statement = f.new_expression_statement(self.create_export_expression(
@@ -447,7 +447,7 @@ impl CommonJSModuleTransformer {
 
     // commonjsmodule.go:949
     pub(crate) fn visit_top_level_function_declaration(&self, node: P<Node>) -> P<Node> {
-        if ast::has_syntactic_modifier(node, ModifierFlags::Export) {
+        if ast::has_syntactic_modifier(node, ModifierFlags::EXPORT) {
             let f = self.factory();
             let mut v = self.visitor();
             f.update_function_declaration(
@@ -455,7 +455,7 @@ impl CommonJSModuleTransformer {
                 extract_modifiers(
                     self.emit_context(),
                     node.modifiers(),
-                    !ModifierFlags::ExportDefault,
+                    !ModifierFlags::EXPORT_DEFAULT,
                 ),
                 node.as_function_declaration().asterisk_token(),
                 Some(f.get_declaration_name(node)),
@@ -475,13 +475,13 @@ impl CommonJSModuleTransformer {
         let f = self.factory();
         let mut v = self.visitor();
         let mut statements: Vec<P<Node>> = Vec::new();
-        if ast::has_syntactic_modifier(node, ModifierFlags::Export) {
+        if ast::has_syntactic_modifier(node, ModifierFlags::EXPORT) {
             statements.push(f.update_class_declaration(
                 node,
                 v.visit_modifiers(extract_modifiers(
                     self.emit_context(),
                     node.modifiers(),
-                    !ModifierFlags::ExportDefault,
+                    !ModifierFlags::EXPORT_DEFAULT,
                 )),
                 Some(f.get_declaration_name(node)),
                 None, /*typeParameters*/

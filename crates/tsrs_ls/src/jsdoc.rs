@@ -39,7 +39,7 @@ pub fn get_symbol_documentation_comment(c: &mut Checker, symbol: Option<P<Symbol
             Some(symbol),
             Some(decl),
             Some(decl),
-            lsproto::MarkupKind::PlainText,
+            lsproto::MarkupKind::PLAIN_TEXT,
             true, /*commentOnly*/
         );
         if !doc.is_empty() && !parts.contains(&doc) {
@@ -87,7 +87,7 @@ pub fn get_symbol_jsdoc_tags(symbol: Option<P<Symbol>>) -> Vec<JSDocTagInfo> {
 // JSDoc comment location chain like the checker's getAllJSDocTags.
 // jsdoc.go:85
 fn declaration_jsdoc_tags(node: P<Node>) -> &'static [P<Node>] {
-    if !node.flags().intersects(NodeFlags::JSDoc) {
+    if !node.flags().intersects(NodeFlags::JSDOC) {
         let mut current = Some(node);
         while let Some(cur) = current {
             let jsdocs = cur.jsdoc(None);

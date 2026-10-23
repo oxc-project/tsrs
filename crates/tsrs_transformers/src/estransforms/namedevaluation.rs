@@ -74,7 +74,7 @@ pub(crate) fn is_anonymous_function_definition(
     node: P<Node>,
     cb: Option<&dyn Fn(P<Node>) -> bool>,
 ) -> bool {
-    let node = ast::skip_outer_expressions(node, OEK::All);
+    let node = ast::skip_outer_expressions(node, OEK::ALL);
     match node.kind() {
         Kind::ClassExpression => {
             if class_has_declared_or_explicitly_assigned_name(emit_context, node) {
@@ -142,13 +142,13 @@ pub(crate) fn get_assigned_name_of_identifier(
     expression: P<Node>, /*WrappedExpression<AnonymousFunctionDefinition>*/
 ) -> P<Node> {
     let original = emit_context
-        .most_original(Some(ast::skip_outer_expressions(expression, OEK::All)))
+        .most_original(Some(ast::skip_outer_expressions(expression, OEK::ALL)))
         .unwrap();
     if (ast::is_class_declaration(original) || ast::is_function_declaration(original))
         && original.name().is_none()
-        && ast::has_syntactic_modifier(original, ModifierFlags::Default)
+        && ast::has_syntactic_modifier(original, ModifierFlags::DEFAULT)
     {
-        return emit_context.factory.new_string_literal("default", TokenFlags::None);
+        return emit_context.factory.new_string_literal("default", TokenFlags::NONE);
     }
     emit_context.factory.new_string_literal_from_node(name)
 }
@@ -162,7 +162,7 @@ pub(crate) fn get_assigned_name_of_property_name(
     let factory = &emit_context.factory;
     if !assigned_name_text.is_empty() {
         let assigned_name =
-            factory.new_string_literal(alloc_str(assigned_name_text), TokenFlags::None);
+            factory.new_string_literal(alloc_str(assigned_name_text), TokenFlags::NONE);
         return (assigned_name, name);
     }
 
@@ -318,7 +318,7 @@ pub(crate) fn finish_transform_named_evaluation(
     }
 
     let factory = &emit_context.factory;
-    let inner_expression = ast::skip_outer_expressions(expression, OEK::All);
+    let inner_expression = ast::skip_outer_expressions(expression, OEK::ALL);
 
     let updated_expression = if ast::is_class_expression(inner_expression) {
         inject_class_named_evaluation_helper_block_if_missing(
@@ -331,7 +331,7 @@ pub(crate) fn finish_transform_named_evaluation(
         factory.new_set_function_name_helper(inner_expression, assigned_name, "" /*prefix*/)
     };
 
-    factory.restore_outer_expressions(Some(expression), updated_expression, OEK::All)
+    factory.restore_outer_expressions(Some(expression), updated_expression, OEK::ALL)
 }
 
 // namedevaluation.go:273
@@ -386,7 +386,7 @@ pub(crate) fn transform_named_evaluation_of_shorthand_assignment_property(
     let s = node.as_shorthand_property_assignment();
     let object_assignment_initializer_in = s.object_assignment_initializer().unwrap();
     let assigned_name = if !assigned_name_text.is_empty() {
-        factory.new_string_literal(alloc_str(assigned_name_text), TokenFlags::None)
+        factory.new_string_literal(alloc_str(assigned_name_text), TokenFlags::NONE)
     } else {
         get_assigned_name_of_identifier(
             emit_context,
@@ -434,7 +434,7 @@ pub(crate) fn transform_named_evaluation_of_variable_declaration(
 
     let factory = &emit_context.factory;
     let assigned_name = if !assigned_name_text.is_empty() {
-        factory.new_string_literal(alloc_str(assigned_name_text), TokenFlags::None)
+        factory.new_string_literal(alloc_str(assigned_name_text), TokenFlags::NONE)
     } else {
         get_assigned_name_of_identifier(
             emit_context,
@@ -482,7 +482,7 @@ pub(crate) fn transform_named_evaluation_of_parameter_declaration(
 
     let factory = &emit_context.factory;
     let assigned_name = if !assigned_name_text.is_empty() {
-        factory.new_string_literal(alloc_str(assigned_name_text), TokenFlags::None)
+        factory.new_string_literal(alloc_str(assigned_name_text), TokenFlags::NONE)
     } else {
         get_assigned_name_of_identifier(
             emit_context,
@@ -532,7 +532,7 @@ pub(crate) fn transform_named_evaluation_of_binding_element(
 
     let factory = &emit_context.factory;
     let assigned_name = if !assigned_name_text.is_empty() {
-        factory.new_string_literal(alloc_str(assigned_name_text), TokenFlags::None)
+        factory.new_string_literal(alloc_str(assigned_name_text), TokenFlags::NONE)
     } else {
         get_assigned_name_of_identifier(
             emit_context,
@@ -625,7 +625,7 @@ pub(crate) fn transform_named_evaluation_of_assignment_expression(
     let factory = &emit_context.factory;
     let b = node.as_binary_expression();
     let assigned_name = if !assigned_name_text.is_empty() {
-        factory.new_string_literal(alloc_str(assigned_name_text), TokenFlags::None)
+        factory.new_string_literal(alloc_str(assigned_name_text), TokenFlags::NONE)
     } else {
         get_assigned_name_of_identifier(emit_context, b.left, b.right())
     };
@@ -664,11 +664,11 @@ pub(crate) fn transform_named_evaluation_of_export_assignment(
     let factory = &emit_context.factory;
     let e = node.as_export_assignment();
     let assigned_name = if !assigned_name_text.is_empty() {
-        factory.new_string_literal(alloc_str(assigned_name_text), TokenFlags::None)
+        factory.new_string_literal(alloc_str(assigned_name_text), TokenFlags::NONE)
     } else if e.is_export_equals {
-        factory.new_string_literal("", TokenFlags::None)
+        factory.new_string_literal("", TokenFlags::NONE)
     } else {
-        factory.new_string_literal("default", TokenFlags::None)
+        factory.new_string_literal("default", TokenFlags::NONE)
     };
     let expression = finish_transform_named_evaluation(
         emit_context,

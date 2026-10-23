@@ -14,13 +14,13 @@ pub(crate) fn get_this_property_assignment_key(
     name: Option<P<Node>>,
     node: P<Node>,
     is_static: bool,
-) -> thisPropertyAssignmentKey {
+) -> ThisPropertyAssignmentKey {
     // Go dereferences `name` here (IsPrivateIdentifier(nil) panics).
     let is_private = ast::is_private_identifier(name.unwrap());
     if let Some(name) = name {
         if !ast::is_dynamic_name(name) {
             if let Some(name_text) = ast::try_get_text_of_property_name(name) {
-                return thisPropertyAssignmentKey {
+                return ThisPropertyAssignmentKey {
                     name: name_text,
                     node: None,
                     is_static,
@@ -29,7 +29,7 @@ pub(crate) fn get_this_property_assignment_key(
             }
         }
     }
-    thisPropertyAssignmentKey { name: String::new(), node: Some(node), is_static, is_private }
+    ThisPropertyAssignmentKey { name: String::new(), node: Some(node), is_static, is_private }
 }
 
 // transform.go:103
@@ -106,7 +106,7 @@ pub fn new_declaration_transformer(
                     if ast::is_binary_expression(error_target) {
                         error_target = error_target.as_binary_expression().left;
                     }
-                    tx.state.add_diagnostic(create_diagnostic_for_node(error_target, &diagnostics::Assigning_properties_to_functions_without_declaring_them_is_not_supported_with_isolatedDeclarations_Add_an_explicit_declaration_for_the_properties_assigned_to_this_function, &[]));
+                    tx.state.add_diagnostic(create_diagnostic_for_node(error_target, &diagnostics::ASSIGNING_PROPERTIES_TO_FUNCTIONS_WITHOUT_DECLARING_THEM_IS_NOT_SUPPORTED_WITH_ISOLATED_DECLARATIONS_ADD_AN_EXPLICIT_DECLARATION_FOR_THE_PROPERTIES_ASSIGNED_TO_THIS_FUNCTION, &[]));
                 }
             }
         },
@@ -401,12 +401,12 @@ impl DeclarationTransformer {
                 let export_equals = node
                     .symbol()
                     .and_then(|s| s.exports())
-                    .and_then(|e| e.lookup(InternalSymbolNameExportEquals));
+                    .and_then(|e| e.lookup(INTERNAL_SYMBOL_NAME_EXPORT_EQUALS));
                 if let Some(export_equals) = export_equals {
                     let declarations = export_equals.declarations().to_vec();
                     if declarations.len() > 1 {
                         for &node in &declarations {
-                            self.state.add_diagnostic(create_diagnostic_for_node(node, &diagnostics::Multiple_module_exports_assignments_cannot_be_serialized_for_declaration_emit, &[]));
+                            self.state.add_diagnostic(create_diagnostic_for_node(node, &diagnostics::MULTIPLE_MODULE_EXPORTS_ASSIGNMENTS_CANNOT_BE_SERIALIZED_FOR_DECLARATION_EMIT, &[]));
                         }
                     }
                 }
@@ -688,7 +688,7 @@ impl DeclarationTransformer {
                         if ast::is_class_declaration(input.parent().unwrap())
                             || ast::is_object_literal_expression(input.parent().unwrap())
                         {
-                            self.state.add_diagnostic(create_diagnostic_for_node(input, &diagnostics::Computed_property_names_on_class_or_object_literals_cannot_be_inferred_with_isolatedDeclarations, &[]));
+                            self.state.add_diagnostic(create_diagnostic_for_node(input, &diagnostics::COMPUTED_PROPERTY_NAMES_ON_CLASS_OR_OBJECT_LITERALS_CANNOT_BE_INFERRED_WITH_ISOLATED_DECLARATIONS, &[]));
                             return None;
                         } else if (ast::is_interface_declaration(input.parent().unwrap())
                             || ast::is_type_literal_node(input.parent().unwrap()))
@@ -697,7 +697,7 @@ impl DeclarationTransformer {
                             )
                         {
                             // Type declarations just need to double-check that the input computed name is an entity name expression
-                            self.state.add_diagnostic(create_diagnostic_for_node(input, &diagnostics::Computed_properties_must_be_number_or_string_literals_variables_or_dotted_expressions_with_isolatedDeclarations, &[]));
+                            self.state.add_diagnostic(create_diagnostic_for_node(input, &diagnostics::COMPUTED_PROPERTIES_MUST_BE_NUMBER_OR_STRING_LITERALS_VARIABLES_OR_DOTTED_EXPRESSIONS_WITH_ISOLATED_DECLARATIONS, &[]));
                             return None;
                         }
                     }
@@ -766,7 +766,7 @@ impl DeclarationTransformer {
             Kind::QualifiedName => {
                 let right = input.as_qualified_name().right;
                 if right.kind() == Kind::PrivateIdentifier {
-                    self.state.add_diagnostic(create_diagnostic_for_node(input, &diagnostics::Declaration_emit_elides_private_members_but_0_refers_to_a_private_member_Write_an_explicit_type_here, &[&right.text()]));
+                    self.state.add_diagnostic(create_diagnostic_for_node(input, &diagnostics::DECLARATION_EMIT_ELIDES_PRIVATE_MEMBERS_BUT_0_REFERS_TO_A_PRIVATE_MEMBER_WRITE_AN_EXPLICIT_TYPE_HERE, &[&right.text()]));
                 }
                 self.visitor().visit_each_child(Some(input))
             }
@@ -775,7 +775,7 @@ impl DeclarationTransformer {
                 if let Some(result) = result {
                     if transformers::is_original_node_single_line(self.emit_context(), Some(input))
                     {
-                        self.emit_context().add_emit_flags(result, printer::EmitFlags::SingleLine);
+                        self.emit_context().add_emit_flags(result, printer::EmitFlags::SINGLE_LINE);
                     }
                 }
                 result
@@ -1203,8 +1203,8 @@ impl DeclarationTransformer {
                 input,
                 self.resolver.get_effective_declaration_flags(
                     self.emit_context().parse_node(Some(input)).unwrap(),
-                    ModifierFlags::Private,
-                ) != ModifierFlags::None,
+                    ModifierFlags::PRIVATE,
+                ) != ModifierFlags::NONE,
             )),
             None,
             None,
@@ -1226,8 +1226,8 @@ impl DeclarationTransformer {
                 input,
                 self.resolver.get_effective_declaration_flags(
                     self.emit_context().parse_node(Some(input)).unwrap(),
-                    ModifierFlags::Private,
-                ) != ModifierFlags::None,
+                    ModifierFlags::PRIVATE,
+                ) != ModifierFlags::NONE,
             )),
             self.ensure_type(input, false),
             None,
@@ -1336,8 +1336,8 @@ impl DeclarationTransformer {
     pub(crate) fn transform_method_signature_declaration(&self, input: P<Node>) -> Option<P<Node>> {
         if self.resolver.get_effective_declaration_flags(
             self.emit_context().parse_node(Some(input)).unwrap(),
-            ModifierFlags::Private,
-        ) != ModifierFlags::None
+            ModifierFlags::PRIVATE,
+        ) != ModifierFlags::NONE
         {
             self.omit_private_method_type(input)
         } else if ast::is_private_identifier(input.name().unwrap()) {
@@ -1359,8 +1359,8 @@ impl DeclarationTransformer {
     pub(crate) fn transform_method_declaration(&self, input: P<Node>) -> Option<P<Node>> {
         if self.resolver.get_effective_declaration_flags(
             self.emit_context().parse_node(Some(input)).unwrap(),
-            ModifierFlags::Private,
-        ) != ModifierFlags::None
+            ModifierFlags::PRIVATE,
+        ) != ModifierFlags::NONE
         {
             self.omit_private_method_type(input)
         } else if ast::is_private_identifier(input.name().unwrap()) {
@@ -1448,7 +1448,7 @@ impl DeclarationTransformer {
                 name_node = Some(self.factory().new_unique_name_ex(
                     name_text,
                     printer::AutoGenerateOptions {
-                        flags: printer::GeneratedIdentifierFlags::Optimistic,
+                        flags: printer::GeneratedIdentifierFlags::OPTIMISTIC,
                         ..Default::default()
                     },
                 ));
@@ -1477,7 +1477,7 @@ impl DeclarationTransformer {
                     self.factory().new_unique_name_ex(
                         "_exports",
                         printer::AutoGenerateOptions {
-                            flags: printer::GeneratedIdentifierFlags::Optimistic,
+                            flags: printer::GeneratedIdentifierFlags::OPTIMISTIC,
                             ..Default::default()
                         },
                     )
@@ -1485,7 +1485,7 @@ impl DeclarationTransformer {
                     self.factory().new_unique_name_ex(
                         "_default",
                         printer::AutoGenerateOptions {
-                            flags: printer::GeneratedIdentifierFlags::Optimistic,
+                            flags: printer::GeneratedIdentifierFlags::OPTIMISTIC,
                             ..Default::default()
                         },
                     )
@@ -1523,7 +1523,7 @@ impl DeclarationTransformer {
             Rc::new(move |_: &SymbolAccessibilityResult| {
                 Some(P::new(SymbolAccessibilityDiagnostic {
                     diagnostic_message:
-                        &diagnostics::Default_export_of_the_module_has_or_is_using_private_name_0,
+                        &diagnostics::DEFAULT_EXPORT_OF_THE_MODULE_HAS_OR_IS_USING_PRIVATE_NAME_0,
                     error_node: Some(input),
                     type_name: None,
                 }))
@@ -1533,7 +1533,7 @@ impl DeclarationTransformer {
         // Check if the expression is a class expression - emit as a class declaration + export assignment
         let unwrapped = ast::skip_outer_expressions(
             expression,
-            OuterExpressionKinds::ExpressionTypePassthrough,
+            OuterExpressionKinds::EXPRESSION_TYPE_PASSTHROUGH,
         );
         let new_id = self.get_name_of_exported_assigned_expression(unwrapped, is_export_equals);
         if ast::is_class_expression(unwrapped) {
@@ -1602,7 +1602,7 @@ impl DeclarationTransformer {
             Some(mod_list),
             self.factory().new_variable_declaration_list(
                 self.factory().new_node_list(vec![var_decl]),
-                NodeFlags::Const,
+                NodeFlags::CONST,
             ),
         );
         let export_assignment =
@@ -1648,7 +1648,7 @@ impl DeclarationTransformer {
                         self.visitor().visit_node(sig),
                         None,
                     )]),
-                    NodeFlags::Const,
+                    NodeFlags::CONST,
                 ),
             )
         }

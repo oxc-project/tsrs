@@ -155,7 +155,7 @@ impl LanguageService {
                     for mapped in self.converters.from_lsp_range_for_source_file(
                         file,
                         diag.range,
-                        Feature::CodeActions,
+                        Feature::CODE_ACTIONS,
                     ) {
                         let fix_context = CodeFixContext {
                             source_file: mapped.script,
@@ -241,7 +241,7 @@ impl LanguageService {
             let combined = get_all_code_actions(ctx, &fix_context)?;
             if let Some(combined) = combined {
                 if !combined.changes.is_empty() {
-                    let kind = lsproto::CodeActionKind::QuickFix;
+                    let kind = lsproto::CodeActionKind::QUICK_FIX;
                     let mut changes = OrderedMap::default();
                     changes.insert(uri.clone(), combined.changes);
                     actions.push(lsproto::CommandOrCodeAction {
@@ -273,7 +273,7 @@ impl LanguageService {
         file: P<SourceFile>,
         uri: &lsproto::DocumentUri,
     ) -> Result<Option<lsproto::CommandOrCodeAction>, lsproto::Error> {
-        let kind = lsproto::CodeActionKind::SourceFixAllTs;
+        let kind = lsproto::CodeActionKind::SOURCE_FIX_ALL_TS;
         let mut lsp_changes: OrderedMap<lsproto::DocumentUri, Vec<lsproto::TextEdit>> =
             OrderedMap::default();
 
@@ -306,7 +306,7 @@ impl LanguageService {
 
         Ok(Some(lsproto::CommandOrCodeAction {
             code_action: Some(lsproto::CodeAction {
-                title: diagnostics::Fix_All.localize(&[]),
+                title: diagnostics::FIX_ALL.localize(&[]),
                 kind: Some(kind),
                 edit: Some(lsproto::WorkspaceEdit {
                     changes: Some(lsp_changes),
@@ -405,7 +405,7 @@ pub(crate) fn is_fixable_diagnostic(diagnostic: P<Diagnostic>, error_codes: &[i3
 // codeactions.go:225
 // isFixAllKind returns true if the requested kind matches source.fixAll
 fn is_fix_all_kind(kind: lsproto::CodeActionKind) -> bool {
-    kind.contains(lsproto::CodeActionKind::SourceFixAllTs)
+    kind.contains(lsproto::CodeActionKind::SOURCE_FIX_ALL_TS)
 }
 
 // codeactions.go:231
@@ -418,18 +418,18 @@ fn wants_quick_fixes(only: Option<&[lsproto::CodeActionKind]>) -> bool {
     if only.is_empty() {
         return true;
     }
-    only.iter().any(|&kind| kind.contains(lsproto::CodeActionKind::QuickFix))
+    only.iter().any(|&kind| kind.contains(lsproto::CodeActionKind::QUICK_FIX))
 }
 
 // codeactions.go:299
 // getOrganizeImportsActionTitle returns the appropriate title for the given organize imports kind
 fn get_organize_imports_action_title(kind: lsproto::CodeActionKind) -> String {
     match kind {
-        lsproto::CodeActionKind::SourceRemoveUnusedImportsTs => {
-            diagnostics::Remove_Unused_Imports.localize(&[])
+        lsproto::CodeActionKind::SOURCE_REMOVE_UNUSED_IMPORTS_TS => {
+            diagnostics::REMOVE_UNUSED_IMPORTS.localize(&[])
         }
-        lsproto::CodeActionKind::SourceSortImportsTs => diagnostics::Sort_Imports.localize(&[]),
-        _ => diagnostics::Organize_Imports.localize(&[]),
+        lsproto::CodeActionKind::SOURCE_SORT_IMPORTS_TS => diagnostics::SORT_IMPORTS.localize(&[]),
+        _ => diagnostics::ORGANIZE_IMPORTS.localize(&[]),
     }
 }
 
@@ -440,9 +440,9 @@ fn get_organize_imports_actions_for_kind(
     requested_kind: lsproto::CodeActionKind,
 ) -> Vec<lsproto::CodeActionKind> {
     let organize_imports_kinds = [
-        lsproto::CodeActionKind::SourceOrganizeImportsTs,
-        lsproto::CodeActionKind::SourceRemoveUnusedImportsTs,
-        lsproto::CodeActionKind::SourceSortImportsTs,
+        lsproto::CodeActionKind::SOURCE_ORGANIZE_IMPORTS_TS,
+        lsproto::CodeActionKind::SOURCE_REMOVE_UNUSED_IMPORTS_TS,
+        lsproto::CodeActionKind::SOURCE_SORT_IMPORTS_TS,
     ];
 
     let mut result = Vec::new();
@@ -472,7 +472,7 @@ fn convert_to_lsp_code_action(
     diag: &lsproto::Diagnostic,
     uri: &lsproto::DocumentUri,
 ) -> lsproto::CommandOrCodeAction {
-    let kind = lsproto::CodeActionKind::QuickFix;
+    let kind = lsproto::CodeActionKind::QUICK_FIX;
     let mut changes = OrderedMap::default();
     changes.insert(uri.clone(), action.changes.clone());
     let diagnostics = vec![diag.clone()];

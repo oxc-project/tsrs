@@ -14,12 +14,12 @@ pub trait BuildInfoReader {
     fn read_build_info(&self, config: &ParsedCommandLine) -> Option<BuildInfo>;
 }
 
-struct buildInfoReader {
+struct BuildInfoReaderImpl {
     host: Arc<dyn CompilerHost>,
     canonical_diagnostics: bool,
 }
 
-impl BuildInfoReader for buildInfoReader {
+impl BuildInfoReader for BuildInfoReaderImpl {
     // incremental.go:19
     fn read_build_info(&self, config: &ParsedCommandLine) -> Option<BuildInfo> {
         let build_info_file_name = config.get_build_info_file_name();
@@ -62,7 +62,7 @@ pub fn new_build_info_reader_with_canonical_diagnostics(
     host: Arc<dyn CompilerHost>,
     canonical_diagnostics: bool,
 ) -> Box<dyn BuildInfoReader> {
-    Box::new(buildInfoReader { host, canonical_diagnostics })
+    Box::new(BuildInfoReaderImpl { host, canonical_diagnostics })
 }
 
 // incremental.go:44

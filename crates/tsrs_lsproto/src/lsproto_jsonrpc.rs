@@ -106,8 +106,8 @@ fn unmarshal_raw_message(v: &Value, response_fields: bool) -> Result<RawMessage,
 // Go `fmt.Errorf("%w: %w", ErrorCodeInvalidRequest, err)` returned from a v1 UnmarshalJSON method.
 fn invalid_request(v: &Value, go_type: &str, err: &JsonError) -> JsonError {
     let mut wrapped =
-        JsonError::method_v1(kind(v), go_type, format!("{}: {}", ErrorCode::InvalidRequest, err));
-    wrapped.codes = vec![ErrorCode::InvalidRequest];
+        JsonError::method_v1(kind(v), go_type, format!("{}: {}", ErrorCode::INVALID_REQUEST, err));
+    wrapped.codes = vec![ErrorCode::INVALID_REQUEST];
     wrapped.codes.extend_from_slice(&err.codes);
     wrapped
 }

@@ -6,16 +6,16 @@ use tsrs_diagnostics as diagnostics;
 use tsrs_ipc as ipc;
 
 use crate::protocol::{
-    identity_mapped_output, initialize_result, no_notifications, testHandler, unexpected_method,
+    TestHandler, identity_mapped_output, initialize_result, no_notifications, unexpected_method,
     unmarshal_params,
 };
 
 // diagnostic_code_collision.go:13
-pub(crate) struct diagnosticCodeCollisionHandler;
+pub(crate) struct DiagnosticCodeCollisionHandler;
 
-impl testHandler for diagnosticCodeCollisionHandler {}
+impl TestHandler for DiagnosticCodeCollisionHandler {}
 
-impl ipc::Handler for diagnosticCodeCollisionHandler {
+impl ipc::Handler for DiagnosticCodeCollisionHandler {
     // diagnostic_code_collision.go:15
     fn handle_request(&self, method: &str, params: Option<&Value>) -> Result<Value, ipc::Error> {
         match method {
@@ -33,7 +33,7 @@ impl ipc::Handler for diagnosticCodeCollisionHandler {
                         message_text: "Mapper diagnostic with a colliding code.".to_string(),
                         start,
                         length: "foo".len() as i64,
-                        code: diagnostics::Function_must_have_an_explicit_return_type_annotation_with_isolatedDeclarations.code(),
+                        code: diagnostics::FUNCTION_MUST_HAVE_AN_EXPLICIT_RETURN_TYPE_ANNOTATION_WITH_ISOLATED_DECLARATIONS.code(),
                     }],
                     ..Default::default()
                 }

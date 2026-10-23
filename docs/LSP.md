@@ -105,7 +105,7 @@ reproducible offline). Mapping, chosen so that the `ls` and `lsp` code ports mec
 - structures -> structs, fields snake_case; Go `*T` optional field -> `Option<T>` (`Box` only where the type is
   recursive), `[]T` / `[]*T` -> `Vec<T>`, `map[K]V` -> `OrderedMap` / `FxHashMap` as Go's iteration order requires.
 - enumerations -> newtypes over the base type with associated consts named like the rest of the port
-  (`lsproto.SymbolKindFile` -> `SymbolKind::File`), because LSP enums are open sets (Go accepts any value).
+  (`lsproto.SymbolKindFile` -> `SymbolKind::FILE`), because LSP enums are open sets (Go accepts any value).
 - unions (`IntegerOrString`, `LocationOrLocationsOrDefinitionLinksOrNull`, …) -> structs of `Option`s with Go's
   field names, exactly like Go, so `if x.Integer != nil` ports as `if let Some(i) = &x.integer`.
 - JSON goes through `tsrs_core::json::Value` (already Go-compatible: key order preserved, Go's number and string

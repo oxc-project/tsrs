@@ -17,7 +17,7 @@ use super::registry::RegistryCloneHost;
 
 // aliasresolver.go:16
 #[derive(Clone, Debug)]
-pub(crate) struct pathAndFileName {
+pub(crate) struct PathAndFileName {
     pub(crate) path: Path,
     pub(crate) file_name: String,
 }
@@ -25,14 +25,14 @@ pub(crate) struct pathAndFileName {
 pub(crate) type OnFailedAmbientModuleLookup = Box<dyn Fn(P<SourceFile>, &str) + Send + Sync>;
 
 // aliasresolver.go:21
-pub(crate) struct aliasResolver {
+pub(crate) struct AliasResolver {
     to_path: ToPathFunc,
     host: &'static dyn RegistryCloneHost,
     module_resolver: &'static DefaultResolver<'static>,
 
     pub(crate) root_files: Vec<P<SourceFile>>,
     // symlinks maps from realpath to symlinked path and file name
-    pub(crate) symlinks: FxHashMap<Path, pathAndFileName>,
+    pub(crate) symlinks: FxHashMap<Path, PathAndFileName>,
     on_failed_ambient_module_lookup: OnFailedAmbientModuleLookup,
     resolved_modules: Mutex<FxHashMap<Path, Arc<Mutex<ModeAwareCache<P<ResolvedModule>>>>>>,
 
@@ -45,14 +45,14 @@ pub(crate) struct aliasResolver {
 // aliasresolver.go:33
 pub(crate) fn new_alias_resolver(
     root_files: Vec<P<SourceFile>>,
-    symlinks: FxHashMap<Path, pathAndFileName>,
+    symlinks: FxHashMap<Path, PathAndFileName>,
     host: &'static dyn RegistryCloneHost,
     module_resolver: &'static DefaultResolver<'static>,
     to_path: ToPathFunc,
     on_failed_ambient_module_lookup: OnFailedAmbientModuleLookup,
-) -> aliasResolver {
+) -> AliasResolver {
     let root_files_static = tsrs_core::alloc_slice(&root_files);
-    aliasResolver {
+    AliasResolver {
         to_path,
         host,
         module_resolver,
@@ -68,7 +68,7 @@ pub(crate) fn new_alias_resolver(
     }
 }
 
-impl aliasResolver {
+impl AliasResolver {
     // aliasresolver.go:76
     pub(crate) fn get_source_file(&self, file_name: &str) -> Option<P<SourceFile>> {
         let file = self.host.get_source_file(file_name, &(self.to_path)(file_name));
@@ -79,7 +79,7 @@ impl aliasResolver {
     }
 }
 
-impl checker::Program for aliasResolver {
+impl checker::Program for AliasResolver {
     // aliasresolver.go:61
     fn options(&self) -> P<CompilerOptions> {
         self.options
@@ -106,17 +106,17 @@ impl checker::Program for aliasResolver {
     }
 
     fn get_source_file(&self, file_name: &str) -> Option<P<SourceFile>> {
-        aliasResolver::get_source_file(self, file_name)
+        AliasResolver::get_source_file(self, file_name)
     }
 
     // aliasresolver.go:131
     fn get_source_file_for_resolved_module(&self, file_name: &str) -> Option<P<SourceFile>> {
-        aliasResolver::get_source_file(self, file_name)
+        AliasResolver::get_source_file(self, file_name)
     }
 
     // aliasresolver.go:91
     fn get_emit_module_format_of_file(&self, _source_file: P<SourceFile>) -> ModuleKind {
-        ModuleKind::ESNext
+        ModuleKind::ES_NEXT
     }
 
     // aliasresolver.go:96
@@ -125,12 +125,12 @@ impl checker::Program for aliasResolver {
         _source_file: P<SourceFile>,
         _usage_location: P<Node>,
     ) -> ResolutionMode {
-        ModuleKind::ESNext
+        ModuleKind::ES_NEXT
     }
 
     // aliasresolver.go:101
     fn get_implied_node_format_for_emit(&self, _source_file: P<SourceFile>) -> ModuleKind {
-        ModuleKind::ESNext
+        ModuleKind::ES_NEXT
     }
 
     // aliasresolver.go:111
@@ -242,7 +242,7 @@ impl checker::Program for aliasResolver {
 
     // aliasresolver.go:86
     fn get_default_resolution_mode_for_file(&self, _file: P<SourceFile>) -> ResolutionMode {
-        ModuleKind::ESNext
+        ModuleKind::ES_NEXT
     }
 
     // aliasresolver.go:106
@@ -251,7 +251,7 @@ impl checker::Program for aliasResolver {
         _file: P<SourceFile>,
         _module_specifier: P<Node>,
     ) -> ResolutionMode {
-        ModuleKind::ESNext
+        ModuleKind::ES_NEXT
     }
 
     fn as_module_specifier_generation_host(&self) -> &dyn ModuleSpecifierGenerationHost {
@@ -259,7 +259,7 @@ impl checker::Program for aliasResolver {
     }
 }
 
-impl OutputPathsHost for aliasResolver {
+impl OutputPathsHost for AliasResolver {
     // aliasresolver.go:153
     fn common_source_directory(&self) -> String {
         panic!("unimplemented")
@@ -281,7 +281,7 @@ impl OutputPathsHost for aliasResolver {
     }
 }
 
-impl ModuleSpecifierGenerationHost for aliasResolver {
+impl ModuleSpecifierGenerationHost for AliasResolver {
     // aliasresolver.go:143
     fn get_symlink_cache(&self) -> P<KnownSymlinks> {
         panic!("unimplemented")
@@ -327,7 +327,7 @@ impl ModuleSpecifierGenerationHost for aliasResolver {
 
     // aliasresolver.go:86
     fn get_default_resolution_mode_for_file(&self, _file: P<SourceFile>) -> ResolutionMode {
-        ModuleKind::ESNext
+        ModuleKind::ES_NEXT
     }
 
     // aliasresolver.go:216
@@ -345,6 +345,6 @@ impl ModuleSpecifierGenerationHost for aliasResolver {
         _file: P<SourceFile>,
         _module_specifier: P<Node>,
     ) -> ResolutionMode {
-        ModuleKind::ESNext
+        ModuleKind::ES_NEXT
     }
 }

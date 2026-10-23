@@ -12,9 +12,9 @@ pub static TSC_BUILD_OPTION: CommandLineOption = CommandLineOption {
     kind: CommandLineOptionKind::Boolean,
     short_name: "b",
     show_in_simplified_help_view: true,
-    category: Some(&diagnostics::Command_line_Options),
+    category: Some(&diagnostics::COMMAND_LINE_OPTIONS),
     description: Some(
-        &diagnostics::Build_one_or_more_projects_and_their_dependencies_if_out_of_date,
+        &diagnostics::BUILD_ONE_OR_MORE_PROJECTS_AND_THEIR_DEPENDENCIES_IF_OUT_OF_DATE,
     ),
     default_value_description: DefaultValueDescription::Bool(false),
     ..CommandLineOption::DEFAULT
@@ -24,8 +24,8 @@ static OPTIONS_FOR_BUILD_ITEMS: [CommandLineOption; 6] = [
     CommandLineOption {
         name: "verbose",
         short_name: "v",
-        category: Some(&diagnostics::Command_line_Options),
-        description: Some(&diagnostics::Enable_verbose_logging),
+        category: Some(&diagnostics::COMMAND_LINE_OPTIONS),
+        description: Some(&diagnostics::ENABLE_VERBOSE_LOGGING),
         kind: CommandLineOptionKind::Boolean,
         default_value_description: DefaultValueDescription::Bool(false),
         ..CommandLineOption::DEFAULT
@@ -33,9 +33,9 @@ static OPTIONS_FOR_BUILD_ITEMS: [CommandLineOption; 6] = [
     CommandLineOption {
         name: "dry",
         short_name: "d",
-        category: Some(&diagnostics::Command_line_Options),
+        category: Some(&diagnostics::COMMAND_LINE_OPTIONS),
         description: Some(
-            &diagnostics::Show_what_would_be_built_or_deleted_if_specified_with_clean,
+            &diagnostics::SHOW_WHAT_WOULD_BE_BUILT_OR_DELETED_IF_SPECIFIED_WITH_CLEAN,
         ),
         kind: CommandLineOptionKind::Boolean,
         default_value_description: DefaultValueDescription::Bool(false),
@@ -44,9 +44,9 @@ static OPTIONS_FOR_BUILD_ITEMS: [CommandLineOption; 6] = [
     CommandLineOption {
         name: "force",
         short_name: "f",
-        category: Some(&diagnostics::Command_line_Options),
+        category: Some(&diagnostics::COMMAND_LINE_OPTIONS),
         description: Some(
-            &diagnostics::Build_all_projects_including_those_that_appear_to_be_up_to_date,
+            &diagnostics::BUILD_ALL_PROJECTS_INCLUDING_THOSE_THAT_APPEAR_TO_BE_UP_TO_DATE,
         ),
         kind: CommandLineOptionKind::Boolean,
         default_value_description: DefaultValueDescription::Bool(false),
@@ -54,8 +54,8 @@ static OPTIONS_FOR_BUILD_ITEMS: [CommandLineOption; 6] = [
     },
     CommandLineOption {
         name: "clean",
-        category: Some(&diagnostics::Command_line_Options),
-        description: Some(&diagnostics::Delete_the_outputs_of_all_projects),
+        category: Some(&diagnostics::COMMAND_LINE_OPTIONS),
+        description: Some(&diagnostics::DELETE_THE_OUTPUTS_OF_ALL_PROJECTS),
         kind: CommandLineOptionKind::Boolean,
         default_value_description: DefaultValueDescription::Bool(false),
         ..CommandLineOption::DEFAULT
@@ -63,19 +63,19 @@ static OPTIONS_FOR_BUILD_ITEMS: [CommandLineOption; 6] = [
     CommandLineOption {
         name: "builders",
         kind: CommandLineOptionKind::Number,
-        category: Some(&diagnostics::Command_line_Options),
-        description: Some(&diagnostics::Set_the_number_of_projects_to_build_concurrently),
+        category: Some(&diagnostics::COMMAND_LINE_OPTIONS),
+        description: Some(&diagnostics::SET_THE_NUMBER_OF_PROJECTS_TO_BUILD_CONCURRENTLY),
         default_value_description: DefaultValueDescription::Message(
-            &diagnostics::X_4_unless_singleThreaded_is_passed,
+            &diagnostics::X_4_UNLESS_SINGLE_THREADED_IS_PASSED,
         ),
         min_value: 1,
         ..CommandLineOption::DEFAULT
     },
     CommandLineOption {
         name: "stopBuildOnErrors",
-        category: Some(&diagnostics::Command_line_Options),
+        category: Some(&diagnostics::COMMAND_LINE_OPTIONS),
         description: Some(
-            &diagnostics::Skip_building_downstream_projects_on_error_in_upstream_project,
+            &diagnostics::SKIP_BUILDING_DOWNSTREAM_PROJECTS_ON_ERROR_IN_UPSTREAM_PROJECT,
         ),
         kind: CommandLineOptionKind::Boolean,
         default_value_description: DefaultValueDescription::Bool(false),

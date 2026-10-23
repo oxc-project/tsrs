@@ -20,9 +20,9 @@ use tsrs_core::tspath::{self, ComparePathsOptions, Path};
 use tsrs_diagnostics as diagnostics;
 use tsrs_tsoptions::ParsedBuildCommandLine;
 
-use super::buildtask::{BuildTask, taskResult};
-use super::host::host;
-use super::parsecache::parseCache;
+use super::buildtask::{BuildTask, TaskResult};
+use super::host::HostImpl;
+use super::parsecache::ParseCache;
 use crate::tsc::{
     self, CommandLineResult, CommandLineTesting, DiagnosticReporter, DiagnosticsReporter,
     ExitStatus, Statistics, System, Writer, create_builder_status_reporter,
@@ -61,12 +61,12 @@ impl OrchestratorResult {
                 let errors = self.errors.as_ref().map_or(0, Vec::len);
                 watch_status_reporter(if errors == 1 {
                     new_compiler_diagnostic(
-                        &diagnostics::Found_1_error_Watching_for_file_changes,
+                        &diagnostics::FOUND_1_ERROR_WATCHING_FOR_FILE_CHANGES,
                         &[],
                     )
                 } else {
                     new_compiler_diagnostic(
-                        &diagnostics::Found_0_errors_Watching_for_file_changes,
+                        &diagnostics::FOUND_0_ERRORS_WATCHING_FOR_FILE_CHANGES,
                         &[&errors],
                     )
                 });
@@ -80,7 +80,7 @@ impl OrchestratorResult {
                     let _ = write!(file_list, "\r\n * {file}");
                 }
                 o.create_builder_status_reporter(None)(new_compiler_diagnostic(
-                    &diagnostics::A_non_dry_build_would_delete_the_following_files_Colon_0,
+                    &diagnostics::A_NON_DRY_BUILD_WOULD_DELETE_THE_FOLLOWING_FILES_COLON_0,
                     &[&file_list],
                 ));
             }
@@ -98,7 +98,7 @@ impl OrchestratorResult {
 pub struct Orchestrator {
     pub(crate) opts: Options,
     pub(crate) compare_paths_options: ComparePathsOptions,
-    host: OnceLock<&'static host>,
+    host: OnceLock<&'static HostImpl>,
 
     // contentMapperHost transforms content-mapped files; it is created once per build session (when
     // enabled) and shared across all projects so mapper processes are consolidated. It closes itself when
@@ -141,7 +141,7 @@ pub struct Orchestrator {
 }
 
 impl Orchestrator {
-    pub(crate) fn host(&self) -> &'static host {
+    pub(crate) fn host(&self) -> &'static HostImpl {
         self.host.get().unwrap()
     }
 
@@ -258,7 +258,7 @@ impl Orchestrator {
             if analyzing.has(&path) {
                 if !in_circular_context {
                     self.errors.lock().unwrap().push(new_compiler_diagnostic(
-                        &diagnostics::Project_references_may_not_form_a_circular_graph_Cycle_detected_Colon_0,
+                        &diagnostics::PROJECT_REFERENCES_MAY_NOT_FORM_A_CIRCULAR_GRAPH_CYCLE_DETECTED_COLON_0,
                         &[&circularity_stack.join("\n")],
                     ));
                 }
@@ -279,7 +279,7 @@ impl Orchestrator {
                         circularity_stack,
                     );
                     if let Some(upstream) = upstream {
-                        task.up_stream.lock().unwrap().push(super::buildtask::upstreamTask {
+                        task.up_stream.lock().unwrap().push(super::buildtask::UpstreamTask {
                             task: upstream,
                             ref_index: index,
                         });
@@ -389,7 +389,7 @@ impl Orchestrator {
         // Under the test harness a watch session returns after the first build; the harness drives the cycles.
         let watcher = (self.opts.command.compiler_options.watch.is_true()
             && self.opts.testing.is_some())
-        .then(|| Box::new(orchestratorWatcher(self)) as Box<dyn tsc::Watcher>);
+        .then(|| Box::new(OrchestratorWatcher(self)) as Box<dyn tsc::Watcher>);
         CommandLineResult { status, watcher }
     }
 
@@ -449,7 +449,7 @@ impl Orchestrator {
         let errors = self.errors.lock().unwrap().clone();
         if !errors.is_empty() {
             let mut result = OrchestratorResult {
-                status: Some(ExitStatus::ProjectReferenceCycle_OutputsSkipped),
+                status: Some(ExitStatus::ProjectReferenceCycleOutputsSkipped),
                 errors: Some(errors),
                 ..Default::default()
             };
@@ -458,7 +458,7 @@ impl Orchestrator {
         }
         let Some(mut order) = self.get_build_order_for(project) else {
             return OrchestratorResult {
-                status: Some(ExitStatus::InvalidProject_OutputsSkipped),
+                status: Some(ExitStatus::InvalidProjectOutputsSkipped),
                 ..Default::default()
             };
         };
@@ -474,7 +474,7 @@ impl Orchestrator {
             let task = self.get_task(&self.to_path(config));
             let Some(resolved) = task.resolved_opt() else {
                 let diagnostic =
-                    new_compiler_diagnostic(&diagnostics::File_0_not_found, &[&task.config]);
+                    new_compiler_diagnostic(&diagnostics::FILE_0_NOT_FOUND, &[&task.config]);
                 report_diagnostic(diagnostic);
                 result.errors.get_or_insert_with(Vec::new).push(diagnostic);
                 continue;
@@ -541,7 +541,7 @@ impl Orchestrator {
             return false;
         }
         if fs.remove(output_file).is_err() {
-            report(new_compiler_diagnostic(&diagnostics::Failed_to_delete_file_0, &[&output_file]));
+            report(new_compiler_diagnostic(&diagnostics::FAILED_TO_DELETE_FILE_0, &[&output_file]));
             return false;
         }
         true
@@ -559,10 +559,10 @@ impl Orchestrator {
         let close_host =
             if watch && self.opts.testing.is_some() { None } else { content_mapper_host };
         let _close_content_mapper_host =
-            tsc::contentMapperCloser { host: close_host, project: None };
+            tsc::ContentMapperCloser { host: close_host, project: None };
         if let Some(watch_status_reporter) = &self.watch_status_reporter {
             watch_status_reporter(new_compiler_diagnostic(
-                &diagnostics::Starting_compilation_in_watch_mode,
+                &diagnostics::STARTING_COMPILATION_IN_WATCH_MODE,
                 &[],
             ));
         }
@@ -576,14 +576,14 @@ impl Orchestrator {
         }
         let Some(mut order) = self.get_build_order_for(project) else {
             return OrchestratorResult {
-                status: Some(ExitStatus::InvalidProject_OutputsSkipped),
+                status: Some(ExitStatus::InvalidProjectOutputsSkipped),
                 ..Default::default()
             };
         };
         if only_references && self.errors.lock().unwrap().is_empty() {
             if project.is_empty() {
                 return OrchestratorResult {
-                    status: Some(ExitStatus::InvalidProject_OutputsSkipped),
+                    status: Some(ExitStatus::InvalidProjectOutputsSkipped),
                     ..Default::default()
                 };
             }
@@ -660,7 +660,7 @@ impl Orchestrator {
                 let _ = write!(project_list, "\r\n    * {}", self.relative_file_name(project));
             }
             self.create_builder_status_reporter(None)(new_compiler_diagnostic(
-                &diagnostics::Projects_in_this_build_Colon_0,
+                &diagnostics::PROJECTS_IN_THIS_BUILD_COLON_0,
                 &[&project_list],
             ));
         }
@@ -727,7 +727,7 @@ impl Orchestrator {
             assert!(!aborted_report, "build aborted");
         } else {
             // Circularity errors prevent any project from being built
-            build_result.status = Some(ExitStatus::ProjectReferenceCycle_OutputsSkipped);
+            build_result.status = Some(ExitStatus::ProjectReferenceCycleOutputsSkipped);
             let report_diagnostic = self.create_diagnostic_reporter(None);
             for &err in self.errors.lock().unwrap().iter() {
                 report_diagnostic(err);
@@ -808,7 +808,7 @@ impl Orchestrator {
     // orchestrator.go:888
     fn build_or_clean_project(&'static self, task: P<BuildTask>, path: &Path) {
         let builder: Arc<Mutex<String>> = Arc::new(Mutex::new(String::new()));
-        *task.result.lock().unwrap() = Some(taskResult::new(builder));
+        *task.result.lock().unwrap() = Some(TaskResult::new(builder));
         let report_status = self.create_builder_status_reporter(Some(task));
         let diagnostic_reporter = self.create_diagnostic_reporter(Some(task));
         {
@@ -937,7 +937,7 @@ impl Orchestrator {
             order.iter().map(|config| self.get_task(&self.to_path(config))).collect();
         let before = changed_paths.len();
         changed_paths.retain(|path, kind| {
-            *kind != tsrs_fswatch::EventKind::Update
+            *kind != tsrs_fswatch::EventKind::UPDATE
                 || versions
                     .get(path)
                     .is_none_or(|versions| !self.read_by_every_task(path, versions, &tasks))
@@ -1114,7 +1114,7 @@ impl Orchestrator {
         }
         if let Some(watch_status_reporter) = &self.watch_status_reporter {
             watch_status_reporter(new_compiler_diagnostic(
-                &diagnostics::File_change_detected_Starting_incremental_compilation,
+                &diagnostics::FILE_CHANGE_DETECTED_STARTING_INCREMENTAL_COMPILATION,
                 &[],
             ));
         }
@@ -1403,7 +1403,7 @@ impl Orchestrator {
             return true;
         }
         changed_paths.iter().any(|(changed, &kind)| {
-            kind == tsrs_fswatch::EventKind::Delete
+            kind == tsrs_fswatch::EventKind::DELETE
                 && tspath::contains_path(
                     changed.as_str(),
                     package_json_path.as_str(),
@@ -1605,9 +1605,9 @@ impl Orchestrator {
 }
 
 // Go's `tsc.Watcher` for the test harness.
-struct orchestratorWatcher(&'static Orchestrator);
+struct OrchestratorWatcher(&'static Orchestrator);
 
-impl tsc::Watcher for orchestratorWatcher {
+impl tsc::Watcher for OrchestratorWatcher {
     fn do_cycle(&mut self) {
         self.0.do_cycle();
     }
@@ -1687,7 +1687,7 @@ pub unsafe fn free_api_orchestrator(o: &'static Orchestrator) {
     // (maps of `P<..>` pointers, Arcs); none dereferences arena memory, which is still alive here. Keep it that way:
     // a destructor that reads region memory must run before `drop(regions)`.
     // SAFETY: `new_orchestrator` leaked both from `Box`es, and nothing uses them afterwards (this function's contract).
-    drop(unsafe { Box::from_raw(std::ptr::from_ref::<host>(h).cast_mut()) });
+    drop(unsafe { Box::from_raw(std::ptr::from_ref::<HostImpl>(h).cast_mut()) });
     // SAFETY: as above.
     drop(unsafe { Box::from_raw(std::ptr::from_ref::<Orchestrator>(o).cast_mut()) });
     drop(regions);
@@ -1750,14 +1750,14 @@ pub fn new_orchestrator(opts: Options) -> &'static Orchestrator {
         None,
         None,
     );
-    let h: &'static host = Box::leak(Box::new(host {
+    let h: &'static HostImpl = Box::leak(Box::new(HostImpl {
         orchestrator: OnceLock::new(),
         host: compiler_host,
         cached_fs,
         extended_config_cache: Mutex::new(Arc::new(tsc::ExtendedConfigCache::default())),
-        source_files: parseCache::default(),
+        source_files: ParseCache::default(),
         config_times: Mutex::new(FxHashMap::default()),
-        resolved_references: parseCache::default(),
+        resolved_references: ParseCache::default(),
         m_times: Mutex::new(Arc::new(Mutex::new(FxHashMap::default()))),
         watch_source_files: watch.then(|| Mutex::new(FxHashMap::default())),
         watch_file_regions: crate::watchmem::FileRegions::default(),
@@ -1770,7 +1770,7 @@ pub fn new_orchestrator(opts: Options) -> &'static Orchestrator {
 #[cfg(test)]
 mod scheduling_tests {
     use super::*;
-    use crate::build::buildtask::upstreamTask;
+    use crate::build::buildtask::UpstreamTask;
 
     #[test]
     fn schedules_full_selected_and_references_only_graphs_by_dependency_depth() {
@@ -1795,10 +1795,10 @@ mod scheduling_tests {
             .up_stream
             .lock()
             .unwrap()
-            .push(upstreamTask { task: tasks["Leaf"], ref_index: 0 });
+            .push(UpstreamTask { task: tasks["Leaf"], ref_index: 0 });
         tasks["Root"].up_stream.lock().unwrap().extend([
-            upstreamTask { task: tasks["Middle"], ref_index: 0 },
-            upstreamTask { task: tasks["Independent"], ref_index: 1 },
+            UpstreamTask { task: tasks["Middle"], ref_index: 0 },
+            UpstreamTask { task: tasks["Independent"], ref_index: 1 },
         ]);
 
         let full = orchestrator.order();

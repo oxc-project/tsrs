@@ -12,11 +12,11 @@ pub trait Host {
     fn set_m_time(&self, file_name: &str, m_time: Option<SystemTime>) -> Result<(), String>;
 }
 
-struct host {
+struct HostImpl {
     host: Arc<dyn CompilerHost>,
 }
 
-impl Host for host {
+impl Host for HostImpl {
     fn fs(&self) -> &dyn FS {
         self.host.fs()
     }
@@ -33,7 +33,7 @@ impl Host for host {
 }
 
 pub fn create_host(compiler_host: Arc<dyn CompilerHost>) -> Box<dyn Host + Send + Sync> {
-    Box::new(host { host: compiler_host })
+    Box::new(HostImpl { host: compiler_host })
 }
 
 // host.go:37

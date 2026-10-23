@@ -11,9 +11,9 @@ use tsrs_core::tspath::{self, Path};
 use crate::program::Program;
 use crate::referencemap::RefSet;
 use crate::snapshot::{
-    DiagnosticsCache, DiagnosticsOrBuildInfoDiagnosticsWithFileName, EmitSignature, FileEmitKind,
-    FileInfo, Snapshot, buildInfoDiagnosticWithFileName, get_file_emit_kind,
-    get_pending_emit_kind_with_options, repopulate_diagnostic_chain,
+    BuildInfoDiagnosticWithFileName, DiagnosticsCache,
+    DiagnosticsOrBuildInfoDiagnosticsWithFileName, EmitSignature, FileEmitKind, FileInfo, Snapshot,
+    get_file_emit_kind, get_pending_emit_kind_with_options, repopulate_diagnostic_chain,
 };
 
 // programtosnapshot.go:16
@@ -35,7 +35,7 @@ pub(crate) fn program_to_snapshot(
     });
     snapshot.options.set(Some(program.options()));
     snapshot.check_pending.set(program.options().no_check.is_true());
-    let mut to = toProgramSnapshot {
+    let mut to = ToProgramSnapshot {
         program,
         old_program,
         snapshot,
@@ -56,7 +56,7 @@ pub(crate) fn program_to_snapshot(
 }
 
 // What computeProgramFileChanges' per-file function stores into the snapshot besides the file info and references.
-struct fileChange {
+struct FileChange {
     add_to_change_set: bool,
     // The old state had the file affecting the global scope and the new program does not (handle_global_scope_change).
     global_scope_lost: bool,
@@ -65,7 +65,7 @@ struct fileChange {
     emit_signature: Option<EmitSignature>,
 }
 
-struct toProgramSnapshot {
+struct ToProgramSnapshot {
     program: &'static CompilerProgram,
     old_program: Option<P<Program>>,
     snapshot: P<Snapshot>,
@@ -89,7 +89,7 @@ fn for_each_deleted_file(
     });
 }
 
-impl toProgramSnapshot {
+impl ToProgramSnapshot {
     // programtosnapshot.go:50
     fn reuse_from_old_program(&self) {
         if let Some(old_program) = self.old_program {
@@ -202,8 +202,8 @@ impl toProgramSnapshot {
         // snapshot's sync maps. Here the per-file work runs on the program's worker pool and only reads shared state;
         // its results are stored in file order afterwards, so the maps are filled in the same order as a sequential run.
         let compute = |file: P<SourceFile>,
-                       checker_references: Option<checkerReferences>|
-         -> (FileInfo, Option<std::sync::Arc<RefSet>>, fileChange) {
+                       checker_references: Option<CheckerReferences>|
+         -> (FileInfo, Option<std::sync::Arc<RefSet>>, FileChange) {
             // programtosnapshot.go:94
             let old_file_info = old.and_then(|old| old.file_infos.load(file.path()));
             let version = match reused_version(old_compiler_program, old_file_info.as_ref(), file) {
@@ -236,7 +236,7 @@ impl toProgramSnapshot {
                     &shared_ambient_paths,
                 )
             };
-            let mut change = fileChange {
+            let mut change = FileChange {
                 add_to_change_set: false,
                 global_scope_lost: false,
                 emit_diagnostics: None,
@@ -319,7 +319,7 @@ impl toProgramSnapshot {
                 change,
             )
         };
-        let results: Vec<(FileInfo, Option<std::sync::Arc<RefSet>>, fileChange)> =
+        let results: Vec<(FileInfo, Option<std::sync::Arc<RefSet>>, FileChange)> =
             if self.program.single_threaded() {
                 files.iter().map(|&file| compute(file, None)).collect()
             } else {
@@ -327,7 +327,7 @@ impl toProgramSnapshot {
                 // The checker lookups first, one task per checker that holds its checker for all of its files (in file
                 // order) instead of 18 workers taking turns on 4 checker locks per file; then the rest of the per-file
                 // work on the worker pool. Without a pool of its own the program locks per file.
-                let checker_references: Vec<std::sync::OnceLock<checkerReferences>> =
+                let checker_references: Vec<std::sync::OnceLock<CheckerReferences>> =
                     files.iter().map(|_| std::sync::OnceLock::new()).collect();
                 let looked_up: Vec<usize> =
                     (0..files.len()).filter(|&i| !keeps_references(files[i])).collect();
@@ -341,7 +341,7 @@ impl toProgramSnapshot {
                             &ambient_module_files_by_checker,
                         ));
                     });
-                let checker_references: Vec<Option<checkerReferences>> = checker_references
+                let checker_references: Vec<Option<CheckerReferences>> = checker_references
                     .into_iter()
                     .map(|r| if batched { r.into_inner() } else { None })
                     .collect();
@@ -519,7 +519,7 @@ impl toProgramSnapshot {
                     &old_program.snapshot.options(),
                 )
             };
-            if pending_emit_kind != FileEmitKind::None {
+            if pending_emit_kind != FileEmitKind::NONE {
                 // Add all files to affectedFilesPendingEmit since emit changed
                 for &file in self.program.get_source_files() {
                     // Add to affectedFilesPending emit only if not changed since any changed file will do full emit
@@ -639,7 +639,7 @@ type AmbientModuleFilesByChecker =
 // The part of getReferencedFiles that needs the file's checker: the files declaring the symbols of the file's imports
 // and module augmentations, and the files declaring the checker's ambient modules (the file itself included;
 // referenced_files_of leaves it out).
-struct checkerReferences {
+struct CheckerReferences {
     import_files: Vec<P<SourceFile>>,
     augmentation_files: Vec<P<SourceFile>>,
     ambient_module_files: AmbientModuleFiles,
@@ -649,7 +649,7 @@ fn checker_references_of(
     file: P<SourceFile>,
     checker: &mut Checker,
     ambient_module_files_by_checker: &AmbientModuleFilesByChecker,
-) -> checkerReferences {
+) -> CheckerReferences {
     let mut import_files: Vec<P<SourceFile>> = Vec::new();
     let mut augmentation_files: Vec<P<SourceFile>> = Vec::new();
     for &import_name in file.imports() {
@@ -690,7 +690,7 @@ fn checker_references_of(
         ambient_module_files_by_checker.lock().unwrap().insert(key, Arc::clone(&declaring_files));
         declaring_files
     });
-    checkerReferences { import_files, augmentation_files, ambient_module_files }
+    CheckerReferences { import_files, augmentation_files, ambient_module_files }
 }
 
 // Gets the referenced files for a file from the program with values for the keys as referenced file's path to be true
@@ -705,11 +705,11 @@ fn checker_references_of(
 fn referenced_files_of(
     program: &'static CompilerProgram,
     file: P<SourceFile>,
-    checker_references: checkerReferences,
+    checker_references: CheckerReferences,
     old: Option<&std::sync::Arc<RefSet>>,
     shared_ambient_paths: &SharedAmbientPaths,
 ) -> Option<std::sync::Arc<RefSet>> {
-    let checkerReferences { import_files, augmentation_files, ambient_module_files } =
+    let CheckerReferences { import_files, augmentation_files, ambient_module_files } =
         checker_references;
     let (ambient_files, ambient_file_set, ambient_paths) = &*ambient_module_files;
     let source_file_directory = tspath::get_directory_path(file.file_name());
@@ -956,7 +956,7 @@ fn repopulate_diagnostic_message_chain(
     for &c in chain {
         if let Some(info) = c.repopulate_info() {
             // Convert to buildInfoDiagnosticWithFileName and repopulate
-            let mut b = buildInfoDiagnosticWithFileName {
+            let mut b = BuildInfoDiagnosticWithFileName {
                 pos: c.pos().unwrap_or(0),
                 end: c.end().unwrap_or(0),
                 code: c.code(),
@@ -994,8 +994,8 @@ fn repopulate_diagnostic_message_chain(
 }
 
 // programtosnapshot.go:420
-fn ast_diag_to_build_info_diag(d: P<Diagnostic>) -> buildInfoDiagnosticWithFileName {
-    let mut b = buildInfoDiagnosticWithFileName {
+fn ast_diag_to_build_info_diag(d: P<Diagnostic>) -> BuildInfoDiagnosticWithFileName {
+    let mut b = BuildInfoDiagnosticWithFileName {
         pos: d.pos().unwrap_or(0),
         end: d.end().unwrap_or(0),
         code: d.code(),

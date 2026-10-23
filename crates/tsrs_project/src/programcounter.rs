@@ -6,7 +6,7 @@ use tsrs_compiler::Program;
 
 // Programs are keyed by address.
 #[derive(Default)]
-pub(crate) struct programCounter {
+pub(crate) struct ProgramCounter {
     mu: Mutex<FxHashMap<usize, usize>>,
 }
 
@@ -14,7 +14,7 @@ fn key(program: &'static Program) -> usize {
     std::ptr::from_ref::<Program>(program) as usize
 }
 
-impl programCounter {
+impl ProgramCounter {
     // programcounter.go:16
     // Ref increments the reference count for a program. If the program is not
     // yet tracked, it is added with a reference count of 1.

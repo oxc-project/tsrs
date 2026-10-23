@@ -32,8 +32,8 @@ use crate::projectcollection::{ProjectCollection, new_project_collection, open_f
 use crate::projectcollectionbuilder::new_project_collection_builder;
 use crate::session::{ContentMapperContributions, UpdateReason};
 use crate::snapshotfs::{
-    FileHandleSource, SnapshotFS, new_snapshot_fs_builder_from_source, new_source_fs,
-    snapshotFSBuilder,
+    FileHandleSource, SnapshotFS, SnapshotFSBuilder, new_snapshot_fs_builder_from_source,
+    new_source_fs,
 };
 use crate::snapshothost::SnapshotHost;
 use crate::watch::WatchedFiles;
@@ -287,12 +287,12 @@ pub struct ATAStateChange {
 }
 
 // Go's `defer func() { if r := recover(); r != nil { sessionLogger.Log(logger.String()); panic(r) } }()`.
-struct logOnPanic<'a> {
+struct LogOnPanic<'a> {
     session_logger: Option<&'a dyn Logger>,
     logger: &'a LogTree,
 }
 
-impl Drop for logOnPanic<'_> {
+impl Drop for LogOnPanic<'_> {
     fn drop(&mut self) {
         if std::thread::panicking() {
             if let Some(session_logger) = self.session_logger {
@@ -341,7 +341,7 @@ impl Snapshot {
     // snapshot.go:134
     pub(crate) fn process_file_changes(
         &self,
-        fs: &snapshotFSBuilder,
+        fs: &SnapshotFSBuilder,
         mut file_changes: FileChangeSummary,
         logger: &LogTree,
         content_mapper_contributions: Option<&ContentMapperContributions>,
@@ -528,7 +528,7 @@ impl Snapshot {
             logger = new_log_tree(&format!("Cloning snapshot {}", self.id));
         }
         // Print in-progress logs immediately if cloning fails
-        let _log_on_panic = logOnPanic {
+        let _log_on_panic = LogOnPanic {
             session_logger: if store.options.logging_enabled { session_logger } else { None },
             logger: &logger,
         };

@@ -10,7 +10,7 @@ use tsrs_core::tspath::Path;
 use tsrs_lsproto::{self as lsproto, HasLocation, HasLocations};
 
 use crate::findallreferences::{
-    SymbolAndEntriesData, SymbolEntryTransformOptions, nonLocalDefinition,
+    NonLocalDefinition, SymbolAndEntriesData, SymbolEntryTransformOptions,
 };
 use crate::languageservice::LanguageService;
 
@@ -24,7 +24,7 @@ pub trait Project: Send + Sync {
 // The default project's item carries the default language service (`ls`); other items fetch theirs from the
 // orchestrator.
 // crossproject.go:23
-struct projectAndTextDocumentPosition<'a> {
+struct ProjectAndTextDocumentPosition<'a> {
     project: Arc<dyn Project>,
     ls: Option<&'a LanguageService>,
     uri: lsproto::DocumentUri,
@@ -35,7 +35,7 @@ struct projectAndTextDocumentPosition<'a> {
 
 // crossproject.go:32
 #[derive(Default)]
-struct response<Resp> {
+struct Response<Resp> {
     complete: bool,
     result: Resp,
     for_original_location: bool,
@@ -110,32 +110,32 @@ impl LanguageService {
 
         let default_project = orchestrator.get_default_project();
         let all_projects = orchestrator.get_all_projects_for_initial_request();
-        let mut results: OrderedMap<String, response<Resp>> = OrderedMap::default();
-        let mut default_definition: Option<nonLocalDefinition> = None;
-        let mut queue: Vec<projectAndTextDocumentPosition> = Vec::new();
+        let mut results: OrderedMap<String, Response<Resp>> = OrderedMap::default();
+        let mut default_definition: Option<NonLocalDefinition> = None;
+        let mut queue: Vec<ProjectAndTextDocumentPosition> = Vec::new();
         let mut err: Option<lsproto::Error> = None;
         let mut panics_occurred: Vec<String> = Vec::new();
 
         fn can_search_project<Resp>(
-            results: &OrderedMap<String, response<Resp>>,
+            results: &OrderedMap<String, Response<Resp>>,
             project: &Arc<dyn Project>,
         ) -> bool {
             !results.contains_key(&project.id())
         }
         fn enqueue_item<'a, Resp: Default>(
-            results: &mut OrderedMap<String, response<Resp>>,
-            queue: &mut Vec<projectAndTextDocumentPosition<'a>>,
-            item: projectAndTextDocumentPosition<'a>,
+            results: &mut OrderedMap<String, Response<Resp>>,
+            queue: &mut Vec<ProjectAndTextDocumentPosition<'a>>,
+            item: ProjectAndTextDocumentPosition<'a>,
         ) {
             let id = item.project.id();
             if let Entry::Vacant(entry) = results.entry(id) {
-                entry.insert(response::default());
+                entry.insert(Response::default());
                 queue.push(item);
             }
         }
 
         // Initial set of projects and locations in the queue, starting with default project
-        let initial_item = projectAndTextDocumentPosition {
+        let initial_item = ProjectAndTextDocumentPosition {
             project: Arc::clone(&default_project),
             ls: Some(default_ls),
             uri: params.text_document_uri().clone(),
@@ -149,7 +149,7 @@ impl LanguageService {
                 enqueue_item(
                     &mut results,
                     &mut queue,
-                    projectAndTextDocumentPosition {
+                    ProjectAndTextDocumentPosition {
                         project: Arc::clone(project),
                         ls: None,
                         // TODO!! symlinks need to change the URI
@@ -225,7 +225,7 @@ impl LanguageService {
                                                 enqueue_item(
                                                     &mut results,
                                                     &mut queue,
-                                                    projectAndTextDocumentPosition {
+                                                    ProjectAndTextDocumentPosition {
                                                         project: def_project,
                                                         ls: None,
                                                         uri: uri.clone(),
@@ -324,7 +324,7 @@ impl LanguageService {
                         enqueue_item(
                             &mut results,
                             &mut queue,
-                            projectAndTextDocumentPosition {
+                            ProjectAndTextDocumentPosition {
                                 project: loaded_project,
                                 ls: None,
                                 uri,

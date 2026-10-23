@@ -5,7 +5,7 @@ impl DeclarationTransformer {
     pub(crate) fn ensure_modifiers(&self, node: P<Node>) -> Option<P<ModifierList>> {
         let current_flags =
             ast::get_combined_modifier_flags(self.emit_context().parse_node(Some(node)).unwrap())
-                & ModifierFlags::All;
+                & ModifierFlags::ALL;
         let new_flags = self.ensure_modifier_flags(node);
         if current_flags == new_flags {
             // Elide decorators
@@ -30,19 +30,19 @@ impl DeclarationTransformer {
 
     // transform.go:2348
     pub(crate) fn ensure_modifier_flags(&self, node: P<Node>) -> ModifierFlags {
-        let mut mask = ModifierFlags::All
-            ^ (ModifierFlags::Public | ModifierFlags::Async | ModifierFlags::Override); // No async and override modifiers in declaration files
-        let mut additions = ModifierFlags::None;
+        let mut mask = ModifierFlags::ALL
+            ^ (ModifierFlags::PUBLIC | ModifierFlags::ASYNC | ModifierFlags::OVERRIDE); // No async and override modifiers in declaration files
+        let mut additions = ModifierFlags::NONE;
         if self.needs_declare.get() && !is_always_type(node) {
-            additions = ModifierFlags::Ambient;
+            additions = ModifierFlags::AMBIENT;
         }
         let parent_is_file = node.parent().unwrap().kind() == Kind::SourceFile;
         if !parent_is_file {
-            mask ^= ModifierFlags::Ambient;
-            additions = ModifierFlags::None;
+            mask ^= ModifierFlags::AMBIENT;
+            additions = ModifierFlags::NONE;
         }
         if ast::is_implicitly_exported_jsdoc_declaration(node) {
-            additions |= ModifierFlags::Export;
+            additions |= ModifierFlags::EXPORT;
         }
         mask_modifier_flags(node, mask, additions)
     }
@@ -59,7 +59,7 @@ impl DeclarationTransformer {
             .resolver
             .get_effective_declaration_flags(
                 self.emit_context().parse_node(Some(node)).unwrap(),
-                ModifierFlags::Private,
+                ModifierFlags::PRIVATE,
             )
             .is_empty()
         {
@@ -85,8 +85,8 @@ impl DeclarationTransformer {
                 if let Some(nodes) = self.resolver.create_type_parameters_of_signature_declaration(
                     node,
                     self.enclosing_declaration.get(),
-                    declarationEmitNodeBuilderFlags,
-                    declarationEmitInternalNodeBuilderFlags,
+                    DECLARATION_EMIT_NODE_BUILDER_FLAGS,
+                    DECLARATION_EMIT_INTERNAL_NODE_BUILDER_FLAGS,
                     self.tracker.get(),
                 ) {
                     type_parameters = Some(P::new(NodeList::new(node.loc(), alloc_vec(nodes))));
@@ -107,7 +107,7 @@ impl DeclarationTransformer {
             .resolver
             .get_effective_declaration_flags(
                 self.emit_context().parse_node(Some(node)).unwrap(),
-                ModifierFlags::Private,
+                ModifierFlags::PRIVATE,
             )
             .is_empty()
             || params.nodes().is_empty()
@@ -319,7 +319,7 @@ impl DeclarationTransformer {
         // Augmentation of export depends on import
         if self.resolver.is_import_required_by_augmentation(decl) {
             if self.state.isolated_declarations {
-                self.state.add_diagnostic(create_diagnostic_for_node(decl, &diagnostics::Declaration_emit_for_this_file_requires_preserving_this_import_for_augmentations_This_is_not_supported_with_isolatedDeclarations, &[]));
+                self.state.add_diagnostic(create_diagnostic_for_node(decl, &diagnostics::DECLARATION_EMIT_FOR_THIS_FILE_REQUIRES_PRESERVING_THIS_IMPORT_FOR_AUGMENTATIONS_THIS_IS_NOT_SUPPORTED_WITH_ISOLATED_DECLARATIONS, &[]));
             }
             return Some(self.factory().update_import_declaration(
                 decl,
@@ -411,7 +411,7 @@ impl DeclarationTransformer {
         let mut name_expr = name_expr;
         if ast::is_numeric_literal(name_expr) {
             // Numeric property names are string properties in JS; convert to string literal
-            name_expr = self.factory().new_string_literal(name_expr.text(), TokenFlags::None);
+            name_expr = self.factory().new_string_literal(name_expr.text(), TokenFlags::NONE);
         }
         if ast::is_string_literal_like(name_expr)
             && scanner::is_identifier_text(name_expr.text(), tsrs_core::LanguageVariant::Standard)
@@ -422,7 +422,7 @@ impl DeclarationTransformer {
             if kw_kind == Kind::Unknown || kw_kind == Kind::DefaultKeyword {
                 // fake this into a parse tree node so the reference resolver resolves the node via `resolveName`
                 result.set_parent(name_expr.parent());
-                result.set_flags(result.flags() & !NodeFlags::Synthesized);
+                result.set_flags(result.flags() & !NodeFlags::SYNTHESIZED);
                 // intentionally leave Loc unset so the string isn't used as the text source of the identifier
                 return result;
             }
@@ -442,7 +442,7 @@ impl DeclarationTransformer {
         let mods = node.modifiers();
         if let Some(mods) = mods {
             let flags = node.modifier_flags();
-            if flags.intersects(ModifierFlags::Ambient) {
+            if flags.intersects(ModifierFlags::AMBIENT) {
                 let filtered: Vec<P<Node>> =
                     mods.nodes().iter().copied().filter(|&m| is_not_declare_modifier(m)).collect();
                 node.as_mutable().set_modifiers(Some(self.factory().new_modifier_list(filtered)));
@@ -539,7 +539,7 @@ impl DeclarationTransformer {
         let left = node.as_binary_expression().left;
 
         let symbol = node.symbol();
-        let Some(symbol) = symbol.filter(|s| s.flags().intersects(SymbolFlags::Assignment)) else {
+        let Some(symbol) = symbol.filter(|s| s.flags().intersects(SymbolFlags::ASSIGNMENT)) else {
             return;
         };
 
@@ -645,7 +645,7 @@ impl DeclarationTransformer {
 
         if preexisting_expando_has_export {
             var_modifiers = Some(self.factory().new_modifier_list(
-                ast::create_modifiers_from_modifier_flags(ModifierFlags::Export, |k| {
+                ast::create_modifiers_from_modifier_flags(ModifierFlags::EXPORT, |k| {
                     self.factory().new_modifier(k)
                 }),
             ));
@@ -678,7 +678,7 @@ impl DeclarationTransformer {
                     self.ensure_type(node, false),
                     None, /*initializer*/
                 )]),
-                NodeFlags::None,
+                NodeFlags::NONE,
             ),
         )];
 
@@ -714,7 +714,7 @@ impl DeclarationTransformer {
         let members = self.expando_members.borrow().get(&host_id).cloned().unwrap_or_default();
         for decl in members {
             // only invoked when `self.expando_members` does not *yet* contain an `export` declaration, so no need to skip one here to prevent `export export {}`
-            let modifier_flags = ModifierFlags::Export | ast::get_combined_modifier_flags(decl);
+            let modifier_flags = ModifierFlags::EXPORT | ast::get_combined_modifier_flags(decl);
             decl.as_mutable().set_modifiers(Some(self.factory().new_modifier_list(
                 ast::create_modifiers_from_modifier_flags(modifier_flags, |k| {
                     self.factory().new_modifier(k)
@@ -750,15 +750,15 @@ impl DeclarationTransformer {
         self.needs_declare.set(true);
 
         let mut modifier_flags = self.ensure_modifier_flags(root);
-        let default_export = modifier_flags.intersects(ModifierFlags::Export)
-            && modifier_flags.intersects(ModifierFlags::Default);
+        let default_export = modifier_flags.intersects(ModifierFlags::EXPORT)
+            && modifier_flags.intersects(ModifierFlags::DEFAULT);
 
         self.needs_declare.set(save_needs_declare);
 
         if default_export {
-            modifier_flags |= ModifierFlags::Ambient;
-            modifier_flags ^= ModifierFlags::Default;
-            modifier_flags ^= ModifierFlags::Export;
+            modifier_flags |= ModifierFlags::AMBIENT;
+            modifier_flags ^= ModifierFlags::DEFAULT;
+            modifier_flags ^= ModifierFlags::EXPORT;
         }
 
         let (_, mut cleanup_diagnostic_context) = self.setup_diagnostic_context(declaration);

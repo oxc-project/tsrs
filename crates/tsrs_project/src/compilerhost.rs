@@ -11,34 +11,34 @@ use tsrs_tsoptions::ParsedCommandLine;
 use tsrs_vfs::FS;
 
 use crate::configfileregistry::ConfigFileRegistry;
-use crate::configfileregistrybuilder::configFileRegistryBuilder;
+use crate::configfileregistrybuilder::ConfigFileRegistryBuilder;
 use crate::logging::LogTree;
 use crate::parsecache::{ParseCache, ParseCacheJournal, new_parse_cache_key};
 use crate::project::{ID, Project};
 use crate::projectcollectionbuilder::ProjectCollectionBuilder;
 use crate::session::SessionOptions;
-use crate::snapshotfs::{FileHandleSource, SnapshotFS, new_source_fs, sourceFS};
+use crate::snapshotfs::{FileHandleSource, SnapshotFS, SourceFS, new_source_fs};
 
 // The parts of the ProjectCollectionBuilder the host uses while the program is built (Go keeps the whole
 // builder pointer and clears it in `freeze`).
-pub(crate) struct hostBuilder {
+pub(crate) struct HostBuilder {
     pub(crate) parse_cache: Arc<ParseCache>,
     pub(crate) parse_cache_journal: Arc<ParseCacheJournal>,
-    pub(crate) config_file_registry_builder: Arc<configFileRegistryBuilder>,
+    pub(crate) config_file_registry_builder: Arc<ConfigFileRegistryBuilder>,
     pub(crate) ctx: Context,
 }
 
 // compilerhost.go:21 (Go's configFilePath field is never read)
-pub(crate) struct compilerHost {
+pub(crate) struct CompilerHostImpl {
     current_directory: String,
     pub(crate) session_options: Arc<SessionOptions>,
 
-    pub(crate) source_fs: Arc<sourceFS>,
+    pub(crate) source_fs: Arc<SourceFS>,
     config_file_registry: RwLock<Option<Arc<ConfigFileRegistry>>>,
 
     // Go keeps `project *Project`, the project being updated, and reads only its ID.
     project: RwLock<Option<ID>>,
-    builder: RwLock<Option<hostBuilder>>,
+    builder: RwLock<Option<HostBuilder>>,
     logger: RwLock<LogTree>,
 }
 
@@ -48,20 +48,20 @@ pub(crate) fn new_compiler_host(
     project: &Project,
     builder: &ProjectCollectionBuilder,
     logger: LogTree,
-) -> Arc<compilerHost> {
-    Arc::new(compilerHost {
+) -> Arc<CompilerHostImpl> {
+    Arc::new(CompilerHostImpl {
         current_directory: current_directory.to_string(),
         session_options: Arc::clone(&builder.session_options),
 
         source_fs: Arc::new(new_source_fs(
             true,
-            Arc::<crate::snapshotfs::snapshotFSBuilder>::clone(&builder.fs),
+            Arc::<crate::snapshotfs::SnapshotFSBuilder>::clone(&builder.fs),
             Arc::clone(&builder.to_path),
         )),
         config_file_registry: RwLock::new(None),
 
         project: RwLock::new(Some(project.id())),
-        builder: RwLock::new(Some(hostBuilder {
+        builder: RwLock::new(Some(HostBuilder {
             parse_cache: Arc::clone(&builder.parse_cache),
             parse_cache_journal: Arc::clone(&builder.parse_cache_journal),
             config_file_registry_builder: Arc::clone(&builder.config_file_registry_builder),
@@ -71,7 +71,7 @@ pub(crate) fn new_compiler_host(
     })
 }
 
-impl compilerHost {
+impl CompilerHostImpl {
     // compilerhost.go:57
     // freeze clears references to mutable state to make the compilerHost safe for use
     // after the snapshot has been finalized. See the usage in snapshot.go for more details.
@@ -111,7 +111,7 @@ impl compilerHost {
     }
 }
 
-impl CompilerHost for compilerHost {
+impl CompilerHost for CompilerHostImpl {
     // compilerhost.go:81
     fn fs(&self) -> &dyn FS {
         &*self.source_fs

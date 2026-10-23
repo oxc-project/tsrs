@@ -8,29 +8,29 @@ use tsrs_diagnostics as diagnostics;
 use tsrs_tsoptions as tsoptions;
 
 use crate::file_include::{
-    self, FileIncludeReason, get_referenced_location, is_referenced_file, referenceFileLocation,
+    self, FileIncludeReason, ReferenceFileLocation, get_referenced_location, is_referenced_file,
 };
-use crate::processing_diagnostic::{includeExplainingDiagnostic, processingDiagnostic};
+use crate::processing_diagnostic::{IncludeExplainingDiagnostic, ProcessingDiagnostic};
 use crate::program::Program;
 
 #[derive(Default)]
-pub(crate) struct fileIncludeData {
+pub(crate) struct FileIncludeData {
     pub(crate) file_include_reasons: FxHashMap<Path, Vec<P<FileIncludeReason>>>,
-    pub(crate) processing_diagnostics: Vec<processingDiagnostic>,
+    pub(crate) processing_diagnostics: Vec<ProcessingDiagnostic>,
 }
 
 #[derive(Default)]
-pub(crate) struct includeProcessor {
+pub(crate) struct IncludeProcessor {
     pub(crate) reason_diagnostics: Mutex<FxHashMap<(P<FileIncludeReason>, bool), P<Diagnostic>>>,
     reason_to_reference_location:
-        Mutex<FxHashMap<P<FileIncludeReason>, &'static referenceFileLocation>>,
+        Mutex<FxHashMap<P<FileIncludeReason>, &'static ReferenceFileLocation>>,
     include_reason_to_related_info: Mutex<FxHashMap<P<FileIncludeReason>, Option<P<Diagnostic>>>>,
     redirect_and_file_format: Mutex<FxHashMap<Path, Option<Vec<P<Diagnostic>>>>>,
     computed_diagnostics: OnceLock<Mutex<DiagnosticsCollection>>,
     compiler_options_syntax: OnceLock<Option<P<Node>>>,
 }
 
-impl includeProcessor {
+impl IncludeProcessor {
     pub(crate) fn get_diagnostics(&self, p: &Program) -> &Mutex<DiagnosticsCollection> {
         self.computed_diagnostics.get_or_init(|| {
             let mut computed = DiagnosticsCollection::default();
@@ -74,11 +74,11 @@ impl includeProcessor {
         &self,
         r: P<FileIncludeReason>,
         program: &Program,
-    ) -> &'static referenceFileLocation {
+    ) -> &'static ReferenceFileLocation {
         if let Some(existing) = self.reason_to_reference_location.lock().unwrap().get(&r) {
             return existing;
         }
-        let loc: &'static referenceFileLocation =
+        let loc: &'static ReferenceFileLocation =
             Box::leak(Box::new(get_referenced_location(r, program)));
         self.reason_to_reference_location.lock().unwrap().entry(r).or_insert(loc)
     }
@@ -133,7 +133,7 @@ impl includeProcessor {
         let source = program.get_source_of_project_reference_if_output_included(&file_name, &path);
         if source != file_name {
             result.get_or_insert_with(Vec::new).push(new_compiler_diagnostic(
-                &diagnostics::File_is_output_of_project_reference_source_0,
+                &diagnostics::FILE_IS_OUTPUT_OF_PROJECT_REFERENCE_SOURCE_0,
                 &[&to_file_name(&source)],
             ));
         }
@@ -141,7 +141,7 @@ impl includeProcessor {
         if let Some(redirects_file) = redirects_file {
             let target_file = program.get_source_file_by_path(&redirects_file.target).unwrap();
             result.get_or_insert_with(Vec::new).push(new_compiler_diagnostic(
-                &diagnostics::File_redirects_to_file_0,
+                &diagnostics::FILE_REDIRECTS_TO_FILE_0,
                 &[&to_file_name(target_file.file_name())],
             ));
         }
@@ -151,28 +151,28 @@ impl includeProcessor {
                 let meta_data = program.get_source_file_meta_data(&path);
                 let package_json = format!("{}/package.json", meta_data.package_json_directory);
                 match program.get_implied_node_format_for_emit(source_file) {
-                    ModuleKind::ESNext => {
+                    ModuleKind::ES_NEXT => {
                         if meta_data.package_json_type == "module" {
                             result.get_or_insert_with(Vec::new).push(new_compiler_diagnostic(
-                                &diagnostics::File_is_ECMAScript_module_because_0_has_field_type_with_value_module,
+                                &diagnostics::FILE_IS_ECMA_SCRIPT_MODULE_BECAUSE_0_HAS_FIELD_TYPE_WITH_VALUE_MODULE,
                                 &[&to_file_name(&package_json)],
                             ));
                         }
                     }
-                    ModuleKind::CommonJS => {
+                    ModuleKind::COMMON_JS => {
                         if !meta_data.package_json_type.is_empty() {
                             result.get_or_insert_with(Vec::new).push(new_compiler_diagnostic(
-                                &diagnostics::File_is_CommonJS_module_because_0_has_field_type_whose_value_is_not_module,
+                                &diagnostics::FILE_IS_COMMON_JS_MODULE_BECAUSE_0_HAS_FIELD_TYPE_WHOSE_VALUE_IS_NOT_MODULE,
                                 &[&to_file_name(&package_json)],
                             ));
                         } else if !meta_data.package_json_directory.is_empty() {
                             result.get_or_insert_with(Vec::new).push(new_compiler_diagnostic(
-                                &diagnostics::File_is_CommonJS_module_because_0_does_not_have_field_type,
+                                &diagnostics::FILE_IS_COMMON_JS_MODULE_BECAUSE_0_DOES_NOT_HAVE_FIELD_TYPE,
                                 &[&to_file_name(&package_json)],
                             ));
                         } else {
                             result.get_or_insert_with(Vec::new).push(new_compiler_diagnostic(
-                                &diagnostics::File_is_CommonJS_module_because_package_json_was_not_found,
+                                &diagnostics::FILE_IS_COMMON_JS_MODULE_BECAUSE_PACKAGE_JSON_WAS_NOT_FOUND,
                                 &[],
                             ));
                         }
@@ -191,8 +191,8 @@ impl includeProcessor {
     }
 }
 
-impl fileIncludeData {
-    pub(crate) fn add_processing_diagnostic(&mut self, d: processingDiagnostic) {
+impl FileIncludeData {
+    pub(crate) fn add_processing_diagnostic(&mut self, d: ProcessingDiagnostic) {
         self.processing_diagnostics.push(d);
     }
 
@@ -208,17 +208,17 @@ impl fileIncludeData {
             .get(&file)
             .is_some_and(|reasons| reasons.iter().any(|r| r.is_referenced_file()));
         if !is_referenced_file(reason) && already_referenced {
-            self.add_processing_diagnostic(processingDiagnostic::explaining(includeExplainingDiagnostic {
+            self.add_processing_diagnostic(ProcessingDiagnostic::explaining(IncludeExplainingDiagnostic {
                 file: Some(file),
                 diagnostic_reason: reason,
-                message: &diagnostics::Already_included_file_name_0_differs_from_file_name_1_only_in_casing,
+                message: &diagnostics::ALREADY_INCLUDED_FILE_NAME_0_DIFFERS_FROM_FILE_NAME_1_ONLY_IN_CASING,
                 args: vec![existing_casing.to_string(), current_casing.to_string()],
             }));
         } else {
-            self.add_processing_diagnostic(processingDiagnostic::explaining(includeExplainingDiagnostic {
+            self.add_processing_diagnostic(ProcessingDiagnostic::explaining(IncludeExplainingDiagnostic {
                 file: Some(file),
                 diagnostic_reason: reason,
-                message: &diagnostics::File_name_0_differs_from_already_included_file_name_1_only_in_casing,
+                message: &diagnostics::FILE_NAME_0_DIFFERS_FROM_ALREADY_INCLUDED_FILE_NAME_1_ONLY_IN_CASING,
                 args: vec![current_casing.to_string(), existing_casing.to_string()],
             }));
         }

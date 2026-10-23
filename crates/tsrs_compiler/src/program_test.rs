@@ -8,17 +8,17 @@ use tsrs_core::tspath::Path;
 use tsrs_tsoptions::{self as tsoptions, ParseConfigHost};
 use tsrs_vfs::{FS, vfstest};
 
-use crate::checkerpool::checkerPool;
+use crate::checkerpool::CheckerPoolImpl;
 use crate::{
     CheckerHandle, CheckerPool, CompilerHost, Context, CreateCheckerPool, PooledChecker, Program,
     ProgramOptions, new_compiler_host, new_program,
 };
 
-struct parseConfigHost {
+struct ParseConfigHostImpl {
     fs: Arc<dyn FS>,
 }
 
-impl ParseConfigHost for parseConfigHost {
+impl ParseConfigHost for ParseConfigHostImpl {
     fn fs(&self) -> &dyn FS {
         &*self.fs
     }
@@ -54,8 +54,8 @@ fn later_relative_import_restarts_package_imports_at_lower_depth() {
         ("/src/node_modules/lib/util.ts", vfstest::symlink("/src/lib/util.ts")),
     ];
     let fs: Arc<dyn FS> = Arc::new(vfstest::from_map(files, true));
-    let config_host: &'static parseConfigHost =
-        Box::leak(Box::new(parseConfigHost { fs: Arc::clone(&fs) }));
+    let config_host: &'static ParseConfigHostImpl =
+        Box::leak(Box::new(ParseConfigHostImpl { fs: Arc::clone(&fs) }));
     let (config, diagnostics) = tsoptions::get_parsed_command_line_of_config_file(
         "/src/tsconfig.json",
         None,
@@ -131,7 +131,7 @@ fn source_phase_imports_do_not_resolve_or_keep_stale_programs() {
 
 fn config_for(files: &[(&str, &str)]) -> P<tsoptions::ParsedCommandLine> {
     let fs: Arc<dyn FS> = Arc::new(vfstest::from_map(files.iter().map(|&(k, v)| (k, v)), true));
-    let host: &'static parseConfigHost = Box::leak(Box::new(parseConfigHost { fs }));
+    let host: &'static ParseConfigHostImpl = Box::leak(Box::new(ParseConfigHostImpl { fs }));
     let (config, diagnostics) = tsoptions::get_parsed_command_line_of_config_file(
         "/src/tsconfig.json",
         None,
@@ -145,13 +145,13 @@ fn config_for(files: &[(&str, &str)]) -> P<tsoptions::ParsedCommandLine> {
 
 // A pool outside the built-in one: hands out checkers through `CheckerHandle::from_raw` and takes them back on
 // release, like the project system's pool.
-struct testPool {
+struct TestPool {
     program: &'static Program,
     idle: Arc<Mutex<Vec<PooledChecker>>>,
     acquired: Arc<AtomicUsize>,
 }
 
-impl CheckerPool for testPool {
+impl CheckerPool for TestPool {
     fn get_checker(&self, _ctx: &Context, _file: Option<P<tsrs_ast::SourceFile>>) -> CheckerHandle {
         self.acquired.fetch_add(1, Ordering::Relaxed);
         let mut checker = self
@@ -187,7 +187,7 @@ fn program_hosts_and_factories() {
     let pools_c = std::sync::Arc::clone(&pools);
     opts.create_checker_pool = Some(Arc::new(move |p: &'static Program| -> Box<dyn CheckerPool> {
         pools_c.fetch_add(1, Ordering::Relaxed);
-        Box::new(checkerPool::new(p, None))
+        Box::new(CheckerPoolImpl::new(p, None))
     }));
     let resolvers_c = std::sync::Arc::clone(&resolvers);
     opts.create_module_resolver = Some(Arc::new(
@@ -226,7 +226,7 @@ fn program_hosts_and_factories() {
         pools_c.fetch_add(1, Ordering::Relaxed);
         assert!(Arc::ptr_eq(p.host(), &new_host_c));
         assert_eq!(p.get_source_file("/src/index.ts").unwrap().text(), format!("\n{index}"));
-        Box::new(checkerPool::new(p, None))
+        Box::new(CheckerPoolImpl::new(p, None))
     });
     let (cloned, changed, reused) = p.reuse_program(
         &Path::from("/src/index.ts"),
@@ -316,7 +316,7 @@ fn external_checker_pool_diagnostics() {
     let (idle_c, acquired_c) = (std::sync::Arc::clone(&idle), std::sync::Arc::clone(&acquired));
     opts.create_checker_pool =
         Some(Arc::new(move |program: &'static Program| -> Box<dyn CheckerPool> {
-            Box::new(testPool {
+            Box::new(TestPool {
                 program,
                 idle: std::sync::Arc::clone(&idle_c),
                 acquired: std::sync::Arc::clone(&acquired_c),

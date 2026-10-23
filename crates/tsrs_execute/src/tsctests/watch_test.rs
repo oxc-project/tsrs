@@ -8,7 +8,7 @@
 
 use rustc_hash::FxHashMap;
 
-use super::{LATE_EVENT_WRITE, run_scenario, scenario, scenarioEdit, scenarioFile, scenarioOp};
+use super::{LATE_EVENT_WRITE, Scenario, ScenarioEdit, ScenarioFile, ScenarioOp, run_scenario};
 
 const LIB_FILE: &str = "/home/src/tslibs/TS/Lib/lib.esnext.full.d.ts";
 const LIB: &str = "/// <reference no-default-lib=\"true\"/>\ninterface Boolean {}\ninterface Function {}\ninterface CallableFunction {}\ninterface NewableFunction {}\ninterface IArguments {}\ninterface Number {}\ninterface Object {}\ninterface RegExp {}\ninterface String {}\ninterface Array<T> { length: number; [n: number]: T; }\ninterface ReadonlyArray<T> {}\n";
@@ -461,7 +461,7 @@ fn run(
     name: &str,
     args: &[&str],
     files: &[(&str, &str)],
-    edits: Vec<(&str, Vec<scenarioOp>)>,
+    edits: Vec<(&str, Vec<ScenarioOp>)>,
 ) -> String {
     run_with(name, args, files, edits, false)
 }
@@ -471,13 +471,13 @@ fn run_with(
     name: &str,
     args: &[&str],
     files: &[(&str, &str)],
-    edits: Vec<(&str, Vec<scenarioOp>)>,
+    edits: Vec<(&str, Vec<ScenarioOp>)>,
     signature_job: bool,
 ) -> String {
-    let mut files: Vec<scenarioFile> =
+    let mut files: Vec<ScenarioFile> =
         files.iter().map(|(path, content)| file(&format!("{ROOT}/{path}"), content)).collect();
     files.push(file(LIB_FILE, LIB));
-    let mut all_ops: Vec<scenarioOp> = Vec::new();
+    let mut all_ops: Vec<ScenarioOp> = Vec::new();
     let edits = edits
         .into_iter()
         .map(|(caption, ops)| {
@@ -490,7 +490,7 @@ fn run_with(
             } else {
                 ""
             };
-            scenarioEdit {
+            ScenarioEdit {
                 caption: caption.to_string(),
                 args: None,
                 expected_diff: expected_diff.to_string(),
@@ -499,7 +499,7 @@ fn run_with(
             }
         })
         .collect();
-    let test = scenario {
+    let test = Scenario {
         baseline: format!("watch_test/{name}"),
         args: args.iter().map(std::string::ToString::to_string).collect(),
         cwd: ROOT.to_string(),
@@ -523,12 +523,12 @@ fn run_with(
 const NO_CYCLE: &str = "No cycle runs";
 const LATE_EVENT: &str = "A file's event comes with the next edit";
 
-fn file(path: &str, content: &str) -> scenarioFile {
-    scenarioFile { path: path.to_string(), content: content.to_string(), symlink: String::new() }
+fn file(path: &str, content: &str) -> ScenarioFile {
+    ScenarioFile { path: path.to_string(), content: content.to_string(), symlink: String::new() }
 }
 
-fn write_late_event(path: &str, content: &str) -> scenarioOp {
-    scenarioOp {
+fn write_late_event(path: &str, content: &str) -> ScenarioOp {
+    ScenarioOp {
         op: LATE_EVENT_WRITE.to_string(),
         path: format!("{ROOT}/{path}"),
         content: content.to_string(),
@@ -536,8 +536,8 @@ fn write_late_event(path: &str, content: &str) -> scenarioOp {
     }
 }
 
-fn write(path: &str, content: &str) -> scenarioOp {
-    scenarioOp {
+fn write(path: &str, content: &str) -> ScenarioOp {
+    ScenarioOp {
         op: "write".to_string(),
         path: format!("{ROOT}/{path}"),
         content: content.to_string(),
@@ -545,8 +545,8 @@ fn write(path: &str, content: &str) -> scenarioOp {
     }
 }
 
-fn delete(path: &str) -> scenarioOp {
-    scenarioOp {
+fn delete(path: &str) -> ScenarioOp {
+    ScenarioOp {
         op: "delete".to_string(),
         path: format!("{ROOT}/{path}"),
         content: String::new(),
@@ -554,8 +554,8 @@ fn delete(path: &str) -> scenarioOp {
     }
 }
 
-fn touch(path: &str) -> scenarioOp {
-    scenarioOp {
+fn touch(path: &str) -> ScenarioOp {
+    ScenarioOp {
         op: "touch".to_string(),
         path: format!("{ROOT}/{path}"),
         content: String::new(),
@@ -563,8 +563,8 @@ fn touch(path: &str) -> scenarioOp {
     }
 }
 
-fn clone_op(op: &scenarioOp) -> scenarioOp {
-    scenarioOp {
+fn clone_op(op: &ScenarioOp) -> ScenarioOp {
+    ScenarioOp {
         op: op.op.clone(),
         path: op.path.clone(),
         content: op.content.clone(),

@@ -23,7 +23,7 @@ fn ctx_with(request_id: &str, lifetime: CheckerLifetime) -> Context {
 }
 
 // checkerpool_test.go:20
-fn setup_checker_pool_session(opts: CheckerPoolOptions) -> (Arc<Session>, Arc<checkerPool>) {
+fn setup_checker_pool_session(opts: CheckerPoolOptions) -> (Arc<Session>, Arc<CheckerPoolImpl>) {
     let files = [
         ("/src/tsconfig.json", r#"{ "compilerOptions": { "noLib": true } }"#),
         ("/src/index.ts", "export const x: number = 1;"),
@@ -52,7 +52,7 @@ fn setup_checker_pool_session(opts: CheckerPoolOptions) -> (Arc<Session>, Arc<ch
         lsproto::DocumentUri("file:///src/index.ts".to_string()),
         1,
         "export const x: number = 1;".to_string(),
-        lsproto::LanguageKind::TypeScript,
+        lsproto::LanguageKind::TYPE_SCRIPT,
     );
 
     let snapshot = session.snapshot();
@@ -78,7 +78,10 @@ fn program_of(session: &Session) -> &'static Program {
 }
 
 // checkerpool_test.go:55
-fn new_test_checker_pool(program: &'static Program, opts: CheckerPoolOptions) -> Arc<checkerPool> {
+fn new_test_checker_pool(
+    program: &'static Program,
+    opts: CheckerPoolOptions,
+) -> Arc<CheckerPoolImpl> {
     new_checker_pool(opts, program, Some(Box::new(|_: &str| {})))
 }
 
@@ -817,11 +820,11 @@ fn checker_pool_merged_global_diagnostic_keeps_the_checker_region() {
     let (first, second) = {
         let _scope = region.enter();
         let related =
-            |name: &str| new_compiler_diagnostic(&diagnostics::X_0_is_declared_here, &[&name]);
+            |name: &str| new_compiler_diagnostic(&diagnostics::X_0_IS_DECLARED_HERE, &[&name]);
         (
-            new_compiler_diagnostic(&diagnostics::Cannot_find_global_type_0, &[&"Array"])
+            new_compiler_diagnostic(&diagnostics::CANNOT_FIND_GLOBAL_TYPE_0, &[&"Array"])
                 .add_related_info(Some(related("a"))),
-            new_compiler_diagnostic(&diagnostics::Cannot_find_global_type_0, &[&"Array"])
+            new_compiler_diagnostic(&diagnostics::CANNOT_FIND_GLOBAL_TYPE_0, &[&"Array"])
                 .add_related_info(Some(related("b"))),
         )
     };

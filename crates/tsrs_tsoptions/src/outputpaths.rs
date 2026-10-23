@@ -339,7 +339,7 @@ pub fn get_external_output_file_name(
 pub fn get_output_extension(file_name: &str, jsx: JsxEmit) -> &'static str {
     if tspath::file_extension_is(file_name, tspath::EXTENSION_JSON) {
         tspath::EXTENSION_JSON
-    } else if jsx == JsxEmit::Preserve
+    } else if jsx == JsxEmit::PRESERVE
         && tspath::file_extension_is_one_of(
             file_name,
             &[tspath::EXTENSION_JSX, tspath::EXTENSION_TSX],

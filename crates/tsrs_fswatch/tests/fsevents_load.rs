@@ -7,7 +7,7 @@ use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::time::{Duration, Instant};
 
-use tsrs_fswatch::{ErrOverflow, fsevents};
+use tsrs_fswatch::{ERR_OVERFLOW, fsevents};
 
 #[test]
 fn a_burst_under_load_drops_no_events() {
@@ -23,7 +23,7 @@ fn a_burst_under_load_drops_no_events() {
         .watch_directory(
             dir.to_str().unwrap(),
             Arc::new(move |batch, err| {
-                if err.is_some_and(|err| err.is(ErrOverflow)) {
+                if err.is_some_and(|err| err.is(ERR_OVERFLOW)) {
                     o.fetch_add(1, Ordering::SeqCst);
                 }
                 e.fetch_add(batch.len(), Ordering::SeqCst);

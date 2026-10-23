@@ -22,7 +22,7 @@ use tsrs_scanner as scanner;
 use crate::astnav;
 use crate::autoimport::{self, ImportAdder};
 use crate::change;
-use crate::codeactions_missingmemberfixer::{new_missing_member_fixer, preserveOptionalFlags};
+use crate::codeactions_missingmemberfixer::{PreserveOptionalFlags, new_missing_member_fixer};
 use crate::completions::*;
 use crate::languageservice::LanguageService;
 use crate::lsutil::{self, JsxAttributeCompletionStyle, QuotePreference, UserPreferences};
@@ -49,7 +49,7 @@ impl LanguageService {
         type_checker: &mut Checker,
         file: P<SourceFile>,
         compiler_options: P<CompilerOptions>,
-        data: &mut completionDataData,
+        data: &mut CompletionDataData,
         position: u32,
         optional_replacement_span: Option<lsproto::Range>,
         include_symbols: bool,
@@ -211,7 +211,7 @@ impl LanguageService {
         &self,
         ctx: &Context,
         type_checker: &mut Checker,
-        data: &completionDataData,
+        data: &CompletionDataData,
         replacement_token: Option<P<Node>>,
         position: u32,
         file: P<SourceFile>,
@@ -229,7 +229,7 @@ impl LanguageService {
         // Value is set to false for global variables or completions from external module exports, because we can have multiple of those;
         // true otherwise. Based on the order we add things we will always see locals first, then globals, then module exports.
         // So adding a completion for a local will prevent us from adding completions for external module exports sharing the same name.
-        let mut uniques = uniqueNamesMap::default();
+        let mut uniques = UniqueNamesMap::default();
         for (index, &symbol) in data.symbols.iter().enumerate() {
             let origin = data.symbol_to_origin_info_map.get(&index);
             let (name, needs_convert_property_access) =
@@ -354,13 +354,13 @@ impl LanguageService {
 
             if !auto_import.export.is_unresolved_alias() {
                 if data.is_type_only_location {
-                    if !auto_import.export.flags.intersects(SymbolFlags::Type)
-                        && !auto_import.export.flags.intersects(SymbolFlags::Module)
+                    if !auto_import.export.flags.intersects(SymbolFlags::TYPE)
+                        && !auto_import.export.flags.intersects(SymbolFlags::MODULE)
                     {
                         continue;
                     }
                 } else if data.import_statement_completion.is_none()
-                    && !auto_import.export.flags.intersects(SymbolFlags::Value)
+                    && !auto_import.export.flags.intersects(SymbolFlags::VALUE)
                 {
                     continue;
                 }
@@ -430,7 +430,7 @@ pub(crate) fn completion_name_for_literal(
 fn get_insert_text_and_replacement_span_for_import_completion(
     fix: &autoimport::Fix,
     import_kind: lsproto::ImportKind,
-    import_statement_completion: &importStatementCompletionInfo,
+    import_statement_completion: &ImportStatementCompletionInfo,
     use_semicolons: bool,
     file: P<SourceFile>,
     preferences: &UserPreferences,
@@ -452,25 +452,25 @@ fn get_insert_text_and_replacement_span_for_import_completion(
     let replacement_span = import_statement_completion.replacement_span;
 
     match import_kind {
-        lsproto::ImportKind::CommonJS => (
+        lsproto::ImportKind::COMMON_JS => (
             format!(
                 "import{top_level_type_only_text}{name}{tab_stop} = require({quoted_module_specifier}){suffix}"
             ),
             replacement_span,
         ),
-        lsproto::ImportKind::Default => (
+        lsproto::ImportKind::DEFAULT => (
             format!(
                 "import{top_level_type_only_text}{name}{tab_stop} from {quoted_module_specifier}{suffix}"
             ),
             replacement_span,
         ),
-        lsproto::ImportKind::Namespace => (
+        lsproto::ImportKind::NAMESPACE => (
             format!(
                 "import{top_level_type_only_text}* as {name} from {quoted_module_specifier}{suffix}"
             ),
             replacement_span,
         ),
-        lsproto::ImportKind::Named => (
+        lsproto::ImportKind::NAMED => (
             format!(
                 "import{}{{ {}{}{} }} from {}{}",
                 top_level_type_only_text,
@@ -498,7 +498,7 @@ fn create_completion_item_for_literal(
 ) -> lsproto::CompletionItem {
     lsproto::CompletionItem {
         label: completion_name_for_literal(file, preferences, literal),
-        kind: Some(lsproto::CompletionItemKind::Constant),
+        kind: Some(lsproto::CompletionItemKind::CONSTANT),
         sort_text: Some(SORT_TEXT_LOCATION_PRIORITY.to_string()),
         commit_characters: Some(Vec::new()),
         ..Default::default()
@@ -514,12 +514,12 @@ impl LanguageService {
         symbol: P<Symbol>,
         mut sort_text: SortText,
         replacement_token: Option<P<Node>>,
-        data: &completionDataData,
+        data: &CompletionDataData,
         position: u32,
         file: P<SourceFile>,
         mut name: String,
         needs_convert_property_access: bool,
-        origin: Option<&symbolOriginInfo>,
+        origin: Option<&SymbolOriginInfo>,
         _use_semicolons: bool,
         _compiler_options: P<CompilerOptions>,
         is_member_completion: bool,
@@ -777,7 +777,7 @@ impl LanguageService {
                 if t.is_string_like()
                     || t.is_union()
                         && t.types().iter().all(|&t| {
-                            t.flags().intersects(TypeFlags::StringLike | TypeFlags::Undefined)
+                            t.flags().intersects(TypeFlags::STRING_LIKE | TypeFlags::UNDEFINED)
                                 || is_string_and_empty_anonymous_object_intersection(
                                     type_checker,
                                     t,
@@ -879,7 +879,7 @@ impl LanguageService {
 }
 
 // completions.go:2467
-pub(crate) struct memberCompletionEntry {
+pub(crate) struct MemberCompletionEntry {
     insert_text: String,
     filter_text: String,
     is_snippet: bool,
@@ -895,7 +895,7 @@ impl LanguageService {
         symbol: P<Symbol>,
         enclosing_declaration: P<Node>,
         file: P<SourceFile>,
-    ) -> Option<symbolOriginInfoObjectLiteralMethod> {
+    ) -> Option<SymbolOriginInfoObjectLiteralMethod> {
         let mut snippet_printer = create_snippet_printer(
             printer::PrinterOptions {
                 remove_comments: true,
@@ -924,7 +924,7 @@ impl LanguageService {
         );
         insert_text += ",";
 
-        Some(symbolOriginInfoObjectLiteralMethod {
+        Some(SymbolOriginInfoObjectLiteralMethod {
             insert_text,
             label_details: Some(lsproto::CompletionItemLabelDetails {
                 detail: Some(self.print_object_literal_method_label_detail(
@@ -941,7 +941,7 @@ impl LanguageService {
     // completions.go:2499
     fn create_object_literal_method(
         &self,
-        snippet_printer: &snippetPrinter,
+        snippet_printer: &SnippetPrinter,
         type_checker: &mut Checker,
         symbol: P<Symbol>,
         enclosing_declaration: P<Node>,
@@ -961,12 +961,12 @@ impl LanguageService {
             .get_type_of_symbol_at_location(symbol, Some(enclosing_declaration))
             .unwrap();
         let mut effective_type = type_checker.get_widened_type_exported(type_of_symbol);
-        if effective_type.flags().intersects(TypeFlags::Union) && effective_type.types().len() < 10
+        if effective_type.flags().intersects(TypeFlags::UNION) && effective_type.types().len() < 10
         {
             effective_type = type_checker
                 .get_union_type_ex_exported(effective_type.types(), UnionReduction::Subtype);
         }
-        if effective_type.flags().intersects(TypeFlags::Union) {
+        if effective_type.flags().intersects(TypeFlags::UNION) {
             let mut function_type: Option<P<Type>> = None;
             for &union_type in effective_type.types() {
                 if type_checker
@@ -989,9 +989,9 @@ impl LanguageService {
             return None;
         }
 
-        let mut flags = Flags::OmitThisParameter;
+        let mut flags = Flags::OMIT_THIS_PARAMETER;
         if lsutil::get_quote_preference(file, self.user_preferences()) == QuotePreference::Single {
-            flags |= Flags::UseSingleQuotesForStringLiteralType;
+            flags |= Flags::USE_SINGLE_QUOTES_FOR_STRING_LITERAL_TYPE;
         }
         let type_node = type_checker.type_to_type_node(
             effective_type,
@@ -1051,9 +1051,9 @@ fn is_object_literal_method_completion_candidate_declaration(declaration: Option
 }
 
 // completions.go:2585
-pub(crate) struct objectLiteralMethodSymbol {
+pub(crate) struct ObjectLiteralMethodSymbol {
     pub(crate) symbol: P<Symbol>,
-    pub(crate) origin: symbolOriginInfo,
+    pub(crate) origin: SymbolOriginInfo,
 }
 
 impl LanguageService {
@@ -1065,7 +1065,7 @@ impl LanguageService {
         members: &[P<Symbol>],
         enclosing_declaration: P<Node>,
         file: P<SourceFile>,
-    ) -> Vec<objectLiteralMethodSymbol> {
+    ) -> Vec<ObjectLiteralMethodSymbol> {
         if ast::is_source_file_js(file) {
             return Vec::new();
         }
@@ -1094,11 +1094,11 @@ impl LanguageService {
                 enclosing_declaration,
                 file,
             )?;
-            Some(objectLiteralMethodSymbol {
+            Some(ObjectLiteralMethodSymbol {
                 symbol: member,
-                origin: symbolOriginInfo {
-                    kind: symbolOriginInfoKind::ObjectLiteralMethod,
-                    data: symbolOriginData::ObjectLiteralMethod(entry),
+                origin: SymbolOriginInfo {
+                    kind: SymbolOriginInfoKind::OBJECT_LITERAL_METHOD,
+                    data: SymbolOriginData::ObjectLiteralMethod(entry),
                 },
             })
         }));
@@ -1108,7 +1108,7 @@ impl LanguageService {
 
 // completions.go:2620
 fn is_object_literal_method_symbol(symbol: P<Symbol>) -> bool {
-    symbol.flags().intersects(SymbolFlags::Property | SymbolFlags::Method)
+    symbol.flags().intersects(SymbolFlags::PROPERTY | SymbolFlags::METHOD)
 }
 
 impl LanguageService {
@@ -1152,7 +1152,7 @@ impl LanguageService {
         position: u32,
         context_token: Option<P<Node>>,
         file: P<SourceFile>,
-    ) -> Result<Option<memberCompletionEntry>, lsproto::Error> {
+    ) -> Result<Option<MemberCompletionEntry>, lsproto::Error> {
         let Some(class_like_declaration) = ast::find_ancestor(location, ast::is_class_like) else {
             return Ok(None);
         };
@@ -1167,8 +1167,8 @@ impl LanguageService {
         );
 
         let present_modifiers = self.get_present_member_modifiers(context_token, file, position);
-        let abstract_ = present_modifiers.modifiers.intersects(ModifierFlags::Abstract)
-            && class_like_declaration.modifier_flags().intersects(ModifierFlags::Abstract);
+        let abstract_ = present_modifiers.modifiers.intersects(ModifierFlags::ABSTRACT)
+            && class_like_declaration.modifier_flags().intersects(ModifierFlags::ABSTRACT);
         let is_snippet = client_supports_item_snippet(ctx);
         let mut body = change_tracker.node_factory.new_block(
             change_tracker.node_factory.new_node_list(Vec::new()),
@@ -1195,7 +1195,7 @@ impl LanguageService {
                 class_like_declaration,
                 file,
                 Some(body),
-                preserveOptionalFlags::Property,
+                PreserveOptionalFlags::PROPERTY,
                 abstract_,
             )
         };
@@ -1210,13 +1210,13 @@ impl LanguageService {
                 .push(lsproto::TextEdit { range: erase_range, new_text: String::new() });
         }
 
-        let mut modifiers = ModifierFlags::None;
+        let mut modifiers = ModifierFlags::NONE;
         let mut completion_nodes: Vec<P<Node>> = Vec::with_capacity(nodes.len());
         for node in nodes {
             if completion_nodes.is_empty() {
                 modifiers = node.modifier_flags();
                 if abstract_ {
-                    modifiers |= ModifierFlags::Abstract;
+                    modifiers |= ModifierFlags::ABSTRACT;
                 }
                 if ast::is_class_element(node)
                     && type_checker.get_member_override_modifier_status_exported(
@@ -1225,14 +1225,14 @@ impl LanguageService {
                         Some(symbol),
                     ) == MemberOverrideStatus::NeedsOverride
                 {
-                    modifiers |= ModifierFlags::Override;
+                    modifiers |= ModifierFlags::OVERRIDE;
                 }
             }
             completion_nodes.push(node);
         }
 
         if completion_nodes.is_empty() {
-            return Ok(Some(memberCompletionEntry {
+            return Ok(Some(MemberCompletionEntry {
                 insert_text: name.to_string(),
                 filter_text: name.to_string(),
                 is_snippet,
@@ -1240,11 +1240,11 @@ impl LanguageService {
             }));
         }
 
-        let mut allowed_modifiers = modifiers | ModifierFlags::Override | ModifierFlags::Public;
-        if symbol.flags().intersects(SymbolFlags::Method) {
-            allowed_modifiers |= ModifierFlags::Async;
+        let mut allowed_modifiers = modifiers | ModifierFlags::OVERRIDE | ModifierFlags::PUBLIC;
+        if symbol.flags().intersects(SymbolFlags::METHOD) {
+            allowed_modifiers |= ModifierFlags::ASYNC;
         } else {
-            allowed_modifiers |= ModifierFlags::Ambient | ModifierFlags::Readonly;
+            allowed_modifiers |= ModifierFlags::AMBIENT | ModifierFlags::READONLY;
         }
 
         let allowed_and_present = present_modifiers.modifiers & allowed_modifiers;
@@ -1252,16 +1252,16 @@ impl LanguageService {
             return Ok(None);
         }
 
-        if modifiers.intersects(ModifierFlags::Protected)
-            && allowed_and_present.intersects(ModifierFlags::Public)
+        if modifiers.intersects(ModifierFlags::PROTECTED)
+            && allowed_and_present.intersects(ModifierFlags::PUBLIC)
         {
-            modifiers &= !ModifierFlags::Protected;
+            modifiers &= !ModifierFlags::PROTECTED;
         }
 
-        if allowed_and_present != ModifierFlags::None
-            && !allowed_and_present.intersects(ModifierFlags::Public)
+        if allowed_and_present != ModifierFlags::NONE
+            && !allowed_and_present.intersects(ModifierFlags::PUBLIC)
         {
-            modifiers &= !ModifierFlags::Public;
+            modifiers &= !ModifierFlags::PUBLIC;
         }
 
         modifiers |= allowed_and_present;
@@ -1307,7 +1307,7 @@ impl LanguageService {
             return Ok(None);
         }
 
-        Ok(Some(memberCompletionEntry {
+        Ok(Some(MemberCompletionEntry {
             insert_text,
             filter_text: name.to_string(),
             is_snippet,
@@ -1318,7 +1318,7 @@ impl LanguageService {
 
 // completions.go:2760
 #[derive(Default)]
-pub(crate) struct presentMemberModifiers {
+pub(crate) struct PresentMemberModifiers {
     modifiers: ModifierFlags,
     decorators: Vec<P<Node>>,
     erase_range: Option<lsproto::Range>,
@@ -1331,9 +1331,9 @@ impl LanguageService {
         context_token: Option<P<Node>>,
         file: P<SourceFile>,
         position: u32,
-    ) -> presentMemberModifiers {
+    ) -> PresentMemberModifiers {
         let Some(context_token) = context_token else {
-            return presentMemberModifiers::default();
+            return PresentMemberModifiers::default();
         };
         if get_line_of_position(file, position)
             > get_line_of_position(
@@ -1341,10 +1341,10 @@ impl LanguageService {
                 context_token.end().expect_source("parsed tokens have source positions"),
             )
         {
-            return presentMemberModifiers::default();
+            return PresentMemberModifiers::default();
         }
 
-        let mut modifiers = ModifierFlags::None;
+        let mut modifiers = ModifierFlags::NONE;
         let mut decorators: Vec<P<Node>> = Vec::new();
         let mut range_pos = position;
         let mut range_end = position;
@@ -1353,12 +1353,12 @@ impl LanguageService {
         if ast::is_property_declaration(ct_parent) {
             let context_modifier_kind = modifier_like_kind(Some(context_token));
             if context_modifier_kind == Kind::Unknown {
-                return presentMemberModifiers::default();
+                return PresentMemberModifiers::default();
             }
 
             let modifier_nodes = ct_parent.modifier_nodes();
             if !modifier_nodes.is_empty() {
-                modifiers |= ast::modifiers_to_flags(modifier_nodes) & ModifierFlags::Modifier;
+                modifiers |= ast::modifiers_to_flags(modifier_nodes) & ModifierFlags::MODIFIER;
                 for &modifier in modifier_nodes {
                     if ast::is_decorator(modifier) {
                         decorators.push(modifier);
@@ -1397,7 +1397,7 @@ impl LanguageService {
             }
         }
 
-        presentMemberModifiers { modifiers, decorators, erase_range }
+        PresentMemberModifiers { modifiers, decorators, erase_range }
     }
 }
 
@@ -1479,7 +1479,7 @@ fn is_recommended_completion_match(
     type_checker: &mut Checker,
 ) -> bool {
     Some(local_symbol) == recommended_completion
-        || local_symbol.flags().intersects(SymbolFlags::ExportValue)
+        || local_symbol.flags().intersects(SymbolFlags::EXPORT_VALUE)
             && Some(type_checker.get_export_symbol_of_symbol(local_symbol))
                 == recommended_completion
 }
@@ -1708,7 +1708,7 @@ fn is_class_like_member_completion(
     if ast::is_in_js_file(location) {
         return false;
     }
-    let member_flags = SymbolFlags::ClassMember & SymbolFlags::EnumMemberExcludes;
+    let member_flags = SymbolFlags::CLASS_MEMBER & SymbolFlags::ENUM_MEMBER_EXCLUDES;
     symbol.flags().intersects(member_flags)
         && (ast::is_class_like(location)
             || (location.parent().is_some()
@@ -1726,16 +1726,16 @@ fn is_class_like_member_completion(
 // completions.go:3060
 fn symbol_appears_to_be_type_only(symbol: P<Symbol>, type_checker: &mut Checker) -> bool {
     let flags = checker::skip_alias(symbol, type_checker).combined_local_and_export_symbol_flags();
-    !flags.intersects(SymbolFlags::Value)
+    !flags.intersects(SymbolFlags::VALUE)
         && (symbol.declarations().is_empty()
             || !ast::is_in_js_file(symbol.declarations()[0])
-            || flags.intersects(SymbolFlags::Type))
+            || flags.intersects(SymbolFlags::TYPE))
 }
 
 // completions.go:3066
 fn should_include_symbol(
     symbol: P<Symbol>,
-    data: &completionDataData,
+    data: &CompletionDataData,
     closest_symbol_declaration: Option<P<Node>>,
     file: P<SourceFile>,
     type_checker: &mut Checker,
@@ -1838,13 +1838,13 @@ fn should_include_symbol(
     }
 
     all_flags |= symbol_origin.combined_local_and_export_symbol_flags();
-    if symbol.flags().intersects(SymbolFlags::Alias) {
+    if symbol.flags().intersects(SymbolFlags::ALIAS) {
         all_flags |= type_checker.get_symbol_flags_exported(symbol);
     }
 
     // import m = /**/ <-- It can only access namespace (if typing import = x. this would get member symbols and not namespace)
     if crate::utilities::is_in_right_side_of_internal_import_equals_declaration(data.location) {
-        return all_flags.intersects(SymbolFlags::Namespace);
+        return all_flags.intersects(SymbolFlags::NAMESPACE);
     }
 
     if data.is_type_only_location {
@@ -1853,7 +1853,7 @@ fn should_include_symbol(
     }
 
     // expressions are value space (which includes the value namespaces)
-    all_flags.intersects(SymbolFlags::Value)
+    all_flags.intersects(SymbolFlags::VALUE)
 }
 
 // completions.go:3158
@@ -1861,7 +1861,7 @@ pub(crate) fn get_completion_entry_display_name_for_symbol(
     file: P<SourceFile>,
     preferences: &UserPreferences,
     symbol: P<Symbol>,
-    origin: Option<&symbolOriginInfo>,
+    origin: Option<&SymbolOriginInfo>,
     completion_kind: CompletionKind,
     is_jsx_identifier_expected: bool,
 ) -> (String, bool) {
@@ -1877,7 +1877,7 @@ pub(crate) fn get_completion_entry_display_name_for_symbol(
     if name.is_empty()
         // If the symbol is external module, don't show it in the completion list
         // (i.e declare module "http" { const x; } | // <= request completion here, "http" should not be there)
-        || symbol.flags().intersects(SymbolFlags::Module) && starts_with_quote(&name)
+        || symbol.flags().intersects(SymbolFlags::MODULE) && starts_with_quote(&name)
         // If the symbol is the internal name of an ES symbol, it is not a valid entry. Internal names for ES symbols start with "__@"
         || checker::is_known_symbol(symbol)
     {
@@ -1895,7 +1895,7 @@ pub(crate) fn get_completion_entry_display_name_for_symbol(
     {
         return (name, false);
     }
-    if symbol.flags().intersects(SymbolFlags::Alias) {
+    if symbol.flags().intersects(SymbolFlags::ALIAS) {
         // Allow non-identifier import/export aliases since we can insert them as string literals
         return (name, true);
     }
@@ -1923,52 +1923,52 @@ pub(crate) fn get_completion_entry_display_name_for_symbol(
 
 // !!! refactor symbolOriginInfo so that we can tell the difference between flags and the kind of data it has
 // completions.go:3220
-pub(crate) fn origin_is_ignore(origin: Option<&symbolOriginInfo>) -> bool {
-    origin.is_some_and(|o| o.kind.intersects(symbolOriginInfoKind::Ignore))
+pub(crate) fn origin_is_ignore(origin: Option<&SymbolOriginInfo>) -> bool {
+    origin.is_some_and(|o| o.kind.intersects(SymbolOriginInfoKind::IGNORE))
 }
 
 // completions.go:3224
-pub(crate) fn origin_includes_symbol_name(origin: Option<&symbolOriginInfo>) -> bool {
+pub(crate) fn origin_includes_symbol_name(origin: Option<&SymbolOriginInfo>) -> bool {
     origin_is_computed_property_name(origin)
 }
 
 // completions.go:3228
-pub(crate) fn origin_is_computed_property_name(origin: Option<&symbolOriginInfo>) -> bool {
-    origin.is_some_and(|o| o.kind.intersects(symbolOriginInfoKind::ComputedPropertyName))
+pub(crate) fn origin_is_computed_property_name(origin: Option<&SymbolOriginInfo>) -> bool {
+    origin.is_some_and(|o| o.kind.intersects(SymbolOriginInfoKind::COMPUTED_PROPERTY_NAME))
 }
 
 // completions.go:3232
-pub(crate) fn origin_is_object_literal_method(origin: Option<&symbolOriginInfo>) -> bool {
-    origin.is_some_and(|o| o.kind.intersects(symbolOriginInfoKind::ObjectLiteralMethod))
+pub(crate) fn origin_is_object_literal_method(origin: Option<&SymbolOriginInfo>) -> bool {
+    origin.is_some_and(|o| o.kind.intersects(SymbolOriginInfoKind::OBJECT_LITERAL_METHOD))
 }
 
 // completions.go:3236
-pub(crate) fn origin_is_this_type_node(origin: Option<&symbolOriginInfo>) -> bool {
-    origin.is_some_and(|o| o.kind.intersects(symbolOriginInfoKind::ThisType))
+pub(crate) fn origin_is_this_type_node(origin: Option<&SymbolOriginInfo>) -> bool {
+    origin.is_some_and(|o| o.kind.intersects(SymbolOriginInfoKind::THIS_TYPE))
 }
 
 // completions.go:3240
-pub(crate) fn origin_is_type_only_alias(origin: Option<&symbolOriginInfo>) -> bool {
-    origin.is_some_and(|o| o.kind.intersects(symbolOriginInfoKind::TypeOnlyAlias))
+pub(crate) fn origin_is_type_only_alias(origin: Option<&SymbolOriginInfo>) -> bool {
+    origin.is_some_and(|o| o.kind.intersects(SymbolOriginInfoKind::TYPE_ONLY_ALIAS))
 }
 
 // completions.go:3244
-pub(crate) fn origin_is_symbol_member(origin: Option<&symbolOriginInfo>) -> bool {
-    origin.is_some_and(|o| o.kind.intersects(symbolOriginInfoKind::SymbolMember))
+pub(crate) fn origin_is_symbol_member(origin: Option<&SymbolOriginInfo>) -> bool {
+    origin.is_some_and(|o| o.kind.intersects(SymbolOriginInfoKind::SYMBOL_MEMBER))
 }
 
 // completions.go:3248
-pub(crate) fn origin_is_nullable_member(origin: Option<&symbolOriginInfo>) -> bool {
-    origin.is_some_and(|o| o.kind.intersects(symbolOriginInfoKind::Nullable))
+pub(crate) fn origin_is_nullable_member(origin: Option<&SymbolOriginInfo>) -> bool {
+    origin.is_some_and(|o| o.kind.intersects(SymbolOriginInfoKind::NULLABLE))
 }
 
 // completions.go:3252
-pub(crate) fn origin_is_promise(origin: Option<&symbolOriginInfo>) -> bool {
-    origin.is_some_and(|o| o.kind.intersects(symbolOriginInfoKind::Promise))
+pub(crate) fn origin_is_promise(origin: Option<&SymbolOriginInfo>) -> bool {
+    origin.is_some_and(|o| o.kind.intersects(SymbolOriginInfoKind::PROMISE))
 }
 
 // completions.go:3256
-pub(crate) fn get_source_from_origin(origin: Option<&symbolOriginInfo>) -> &'static str {
+pub(crate) fn get_source_from_origin(origin: Option<&SymbolOriginInfo>) -> &'static str {
     if origin_is_this_type_node(origin) {
         return COMPLETION_SOURCE_THIS_PROPERTY;
     }
@@ -2161,10 +2161,10 @@ fn non_alias_can_be_referenced_at_type_location(
     type_checker: &mut Checker,
     mut seen_modules: SeenModules,
 ) -> bool {
-    if symbol.flags().intersects(SymbolFlags::Type) || type_checker.is_unknown_symbol(symbol) {
+    if symbol.flags().intersects(SymbolFlags::TYPE) || type_checker.is_unknown_symbol(symbol) {
         return true;
     }
-    if symbol.flags().intersects(SymbolFlags::Module)
+    if symbol.flags().intersects(SymbolFlags::MODULE)
         && seen_modules_add_if_absent(&mut seen_modules, ast::get_symbol_id(symbol))
     {
         if type_checker.get_exports_of_module_exported(symbol).into_iter().any(|e| {
@@ -2211,7 +2211,7 @@ pub(crate) fn get_first_symbol_in_chain(
     let chain = type_checker.get_accessible_symbol_chain_exported(
         symbol,
         enclosing_declaration,
-        SymbolFlags::All, /*meaning*/
+        SymbolFlags::ALL, /*meaning*/
         false,            /*useOnlyExternalAliasing*/
     );
     if !chain.is_empty() {
@@ -2233,12 +2233,12 @@ fn is_module_symbol(symbol: P<Symbol>) -> bool {
 
 // completions.go:3440
 pub(crate) fn get_nullable_symbol_origin_info_kind(
-    kind: symbolOriginInfoKind,
+    kind: SymbolOriginInfoKind,
     insert_question_dot: bool,
-) -> symbolOriginInfoKind {
+) -> SymbolOriginInfoKind {
     let mut kind = kind;
     if insert_question_dot {
-        kind |= symbolOriginInfoKind::Nullable;
+        kind |= SymbolOriginInfoKind::NULLABLE;
     }
     kind
 }
@@ -2246,7 +2246,7 @@ pub(crate) fn get_nullable_symbol_origin_info_kind(
 // completions.go:3447
 pub(crate) fn is_static_property(symbol: P<Symbol>) -> bool {
     symbol.value_declaration().is_some_and(|vd| {
-        vd.modifier_flags().intersects(ModifierFlags::Static)
+        vd.modifier_flags().intersects(ModifierFlags::STATIC)
             && ast::is_class_like(vd.parent().unwrap())
     })
 }
@@ -2270,9 +2270,9 @@ pub(crate) fn get_contextual_type_for_conditional_expression(
     }
     // Fall through to regular contextual type logic if not in an argument
     let contextual_type = type_checker
-        .get_contextual_type_exported(conditional_expr, ContextFlags::IgnoreNodeInferences);
+        .get_contextual_type_exported(conditional_expr, ContextFlags::IGNORE_NODE_INFERENCES);
     if contextual_type.is_some() {
         return contextual_type;
     }
-    type_checker.get_contextual_type_exported(conditional_expr, ContextFlags::None)
+    type_checker.get_contextual_type_exported(conditional_expr, ContextFlags::NONE)
 }

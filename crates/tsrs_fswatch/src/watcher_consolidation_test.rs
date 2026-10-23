@@ -1,9 +1,9 @@
 // tsrs-only: recursive-watch consolidation (`find_consolidation_dir_locked`) joins the watches of a directory's
 // children, and does not climb past them because one subtree below holds many watches.
 
-use super::watcher;
+use super::PlatformWatcher;
 
-fn dir_watch_root(w: &watcher, dir: &str) -> String {
+fn dir_watch_root(w: &PlatformWatcher, dir: &str) -> String {
     let comparer = w.path_comparer(dir).unwrap();
     w.get_or_create_dir_watch(dir, dir, true, comparer).unwrap().dir.clone()
 }
@@ -24,7 +24,7 @@ fn consolidates_siblings_but_not_their_unrelated_ancestors() {
         std::fs::create_dir_all(dir).unwrap();
     }
 
-    let w = watcher::new("fsevents");
+    let w = PlatformWatcher::new("fsevents");
     for package in &packages[..9] {
         assert_eq!(dir_watch_root(&w, package), *package);
     }

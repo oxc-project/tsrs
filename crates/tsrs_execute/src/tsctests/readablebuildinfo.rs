@@ -7,9 +7,9 @@ use tsrs_incremental::{
 };
 
 #[derive(Default)]
-struct obj(JsonMap);
+struct Obj(JsonMap);
 
-impl obj {
+impl Obj {
     fn set(&mut self, k: &str, v: Value) {
         self.0.insert(k.to_string(), v);
     }
@@ -47,12 +47,12 @@ fn map_nonempty<T>(v: &[T], f: impl Fn(&T) -> Value) -> Option<Vec<Value>> {
     if v.is_empty() { None } else { Some(v.iter().map(f).collect()) }
 }
 
-struct readable<'a> {
+struct Readable<'a> {
     build_info: &'a BuildInfo,
     file_ids_list: Vec<Vec<String>>,
 }
 
-impl readable<'_> {
+impl Readable<'_> {
     fn to_file_path(&self, file_id: BuildInfoFileId) -> String {
         self.build_info.file_names[file_id as usize - 1].clone()
     }
@@ -61,7 +61,7 @@ impl readable<'_> {
         diagnostics
             .iter()
             .map(|d| {
-                let mut o = obj::default();
+                let mut o = Obj::default();
                 if d.file != 0 {
                     o.str("file", &self.to_file_path(d.file));
                 }
@@ -88,7 +88,7 @@ impl readable<'_> {
                 o.bool("reportsDeprecated", d.reports_deprecated);
                 o.bool("skippedOnNoEmit", d.skipped_on_no_emit);
                 if let Some(info) = &d.repopulate_info {
-                    let mut r = obj::default();
+                    let mut r = Obj::default();
                     r.set("kind", Value::Number(info.kind as i32 as f64));
                     r.str("moduleReference", &info.module_reference);
                     r.int("mode", info.mode.value() as i64);
@@ -118,26 +118,26 @@ pub(crate) fn to_readable_file_emit_kind(file_emit_kind: FileEmitKind) -> String
         builder.push_str(flags);
     };
     if !file_emit_kind.is_empty() {
-        if file_emit_kind.intersects(FileEmitKind::Js) {
+        if file_emit_kind.intersects(FileEmitKind::JS) {
             add_flags("Js");
         }
-        if file_emit_kind.intersects(FileEmitKind::JsMap) {
+        if file_emit_kind.intersects(FileEmitKind::JS_MAP) {
             add_flags("JsMap");
         }
-        if file_emit_kind.intersects(FileEmitKind::JsInlineMap) {
+        if file_emit_kind.intersects(FileEmitKind::JS_INLINE_MAP) {
             add_flags("JsInlineMap");
         }
-        if file_emit_kind.contains(FileEmitKind::Dts) {
+        if file_emit_kind.contains(FileEmitKind::DTS) {
             add_flags("Dts");
         } else {
-            if file_emit_kind.intersects(FileEmitKind::DtsEmit) {
+            if file_emit_kind.intersects(FileEmitKind::DTS_EMIT) {
                 add_flags("DtsEmit");
             }
-            if file_emit_kind.intersects(FileEmitKind::DtsErrors) {
+            if file_emit_kind.intersects(FileEmitKind::DTS_ERRORS) {
                 add_flags("DtsErrors");
             }
         }
-        if file_emit_kind.intersects(FileEmitKind::DtsMap) {
+        if file_emit_kind.intersects(FileEmitKind::DTS_MAP) {
             add_flags("DtsMap");
         }
     }
@@ -154,8 +154,8 @@ pub(crate) fn to_readable_build_info(build_info: &BuildInfo, build_info_text: &s
         .iter()
         .map(|ids| ids.iter().map(|&id| build_info.file_names[id as usize - 1].clone()).collect())
         .collect();
-    let r = readable { build_info, file_ids_list };
-    let mut o = obj::default();
+    let r = Readable { build_info, file_ids_list };
+    let mut o = Obj::default();
     o.str("version", &build_info.version);
     o.bool("errors", build_info.errors);
     o.bool("checkPending", build_info.check_pending);
@@ -170,7 +170,7 @@ pub(crate) fn to_readable_build_info(build_info: &BuildInfo, build_info_text: &s
             } else {
                 (original.start..=original.end).map(|i| r.to_file_path(i)).collect()
             };
-            let mut ro = obj::default();
+            let mut ro = Obj::default();
             if !files.is_empty() {
                 ro.set("files", strings(&files));
             }
@@ -195,7 +195,7 @@ pub(crate) fn to_readable_build_info(build_info: &BuildInfo, build_info_text: &s
             .enumerate()
             .map(|(index, original)| {
                 let file_info = original.get_file_info();
-                let mut fo = obj::default();
+                let mut fo = Obj::default();
                 fo.str("fileName", &r.to_file_path(index as BuildInfoFileId + 1));
                 fo.str("version", file_info.version());
                 fo.str("signature", file_info.signature());
@@ -270,7 +270,7 @@ pub(crate) fn to_readable_build_info(build_info: &BuildInfo, build_info_text: &s
     o.list(
         "emitSignatures",
         map_nonempty(&build_info.emit_signatures, |signature| {
-            let mut so = obj::default();
+            let mut so = Obj::default();
             so.str("file", &r.to_file_path(signature.file_id));
             so.str("signature", &signature.signature);
             so.bool("differsOnlyInDtsMap", signature.differs_only_in_dts_map);

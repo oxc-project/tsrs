@@ -35,10 +35,10 @@ mod watcher_test;
 
 pub use canonicalize::path_comparer_for_path;
 pub use event::{Event, EventKind};
-pub use pathkey::{NativePathComparisonAvailable, PathComparer};
+pub use pathkey::{NATIVE_PATH_COMPARISON_AVAILABLE, PathComparer};
 pub use watcher::{
-    ErrFilesystemUnsupported, ErrOverflow, ErrUnavailable, ErrWatchTerminated, Error, IgnoreFunc,
-    Sentinel, Watch, WatchCallback, WatchDirectoryRequest, WatchOption, Watcher, all_watchers,
-    default, fanotify, fsevents, inotify, kqueue, set_write_settling, windows, with_ignore,
-    with_recursive,
+    ERR_FILESYSTEM_UNSUPPORTED, ERR_OVERFLOW, ERR_UNAVAILABLE, ERR_WATCH_TERMINATED, Error,
+    IgnoreFunc, Sentinel, Watch, WatchCallback, WatchDirectoryRequest, WatchOption, Watcher,
+    all_watchers, default, fanotify, fsevents, inotify, kqueue, set_write_settling, windows,
+    with_ignore, with_recursive,
 };

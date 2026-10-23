@@ -26,23 +26,23 @@ fn config_with_mappers(mappers: Vec<Mapper>) -> P<ParsedCommandLine> {
 }
 
 // buildinfo_contentmapper_test.go:52
-struct fakeBuildInfoReader {
+struct FakeBuildInfoReader {
     build_info: BuildInfo,
 }
 
-impl BuildInfoReader for fakeBuildInfoReader {
+impl BuildInfoReader for FakeBuildInfoReader {
     fn read_build_info(&self, _config: &ParsedCommandLine) -> Option<BuildInfo> {
         Some(self.build_info.clone())
     }
 }
 
 // buildinfo_contentmapper_test.go:60
-struct fakeContentMapperProject {
+struct FakeContentMapperProject {
     identities: Vec<String>,
     err: Option<contentmapper::Error>,
 }
 
-impl contentmapper::Project for fakeContentMapperProject {
+impl contentmapper::Project for FakeContentMapperProject {
     fn refresh(&self) -> Result<(), contentmapper::Error> {
         Ok(())
     }
@@ -112,7 +112,7 @@ fn incremental_build_info(content_mapper_identities: &[&str]) -> BuildInfo {
 #[test]
 fn test_dynamic_content_mapper_identities() {
     let config = config_with_mappers(vec![mapper("dynamic", "dynamic", "1.0.0", true)]);
-    let project = Arc::new(fakeContentMapperProject {
+    let project = Arc::new(FakeContentMapperProject {
         identities: vec!["dynamic@1.0.0:opaque".to_string()],
         err: None,
     });
@@ -121,7 +121,7 @@ fn test_dynamic_content_mapper_identities() {
 
     let build_info = incremental_build_info(&["dynamic@1.0.0:old"]);
     let host = host_with(project);
-    let program = read_build_info_program(config, &fakeBuildInfoReader { build_info }, &*host);
+    let program = read_build_info_program(config, &FakeBuildInfoReader { build_info }, &*host);
     assert!(
         program.is_none(),
         "expected opaque mapper identity changes to discard the old program"
@@ -132,7 +132,7 @@ fn test_dynamic_content_mapper_identities() {
 #[test]
 fn test_content_mapper_identity_error() {
     let want = contentmapper::Error::Other("identity failed".to_string());
-    let result = content_mapper_identities(Some(&fakeContentMapperProject {
+    let result = content_mapper_identities(Some(&FakeContentMapperProject {
         identities: Vec::new(),
         err: Some(want.clone()),
     }));
@@ -149,13 +149,13 @@ fn test_read_build_info_program_content_mapper_identity_mismatch() {
     // project cannot be reused: the old program is discarded (nil) so the project is rebuilt.
     let build_info = incremental_build_info(&["vue@1.0.0"]);
     let config = config_with_mappers(vec![mapper("vue", "vue", "2.0.0", false)]);
-    let project = Arc::new(fakeContentMapperProject {
+    let project = Arc::new(FakeContentMapperProject {
         identities: vec!["vue@2.0.0:current".to_string()],
         err: None,
     });
     let host = host_with(project);
 
-    let program = read_build_info_program(config, &fakeBuildInfoReader { build_info }, &*host);
+    let program = read_build_info_program(config, &FakeBuildInfoReader { build_info }, &*host);
     assert!(
         program.is_none(),
         "expected the old program to be discarded when the mapper identity changed"

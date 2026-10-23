@@ -3,12 +3,12 @@
 use crate::*;
 
 // chain.go:10
-pub struct chainedTransformer {
+pub struct ChainedTransformer {
     pub base: Transformer,
     pub components: Vec<P<Transformer>>,
 }
 
-impl chainedTransformer {
+impl ChainedTransformer {
     // chain.go:15
     fn visit(&self, node: P<Node>) -> P<Node> {
         assert!(
@@ -66,7 +66,7 @@ pub fn chain(
             _ => {}
         }
         let ch =
-            P::new(chainedTransformer { base: Transformer::default(), components: constructed });
+            P::new(ChainedTransformer { base: Transformer::default(), components: constructed });
         Some(ch.get().base.new_transformer(
             Rc::new(move |_: &mut NodeVisitor, n: P<Node>| Some(ch.visit(n))),
             Some(opt.context),

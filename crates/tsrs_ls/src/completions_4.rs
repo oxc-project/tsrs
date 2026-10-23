@@ -181,8 +181,8 @@ impl LanguageService {
 
 // completions.go:5609
 #[derive(Default)]
-struct detailsData {
-    symbol: Option<symbolDetails>,
+struct DetailsData {
+    symbol: Option<SymbolDetails>,
     request: Option<CompletionData>,
     literal: Option<LiteralValue>,
     cases: Option<()>,
@@ -193,13 +193,13 @@ struct detailsData {
     dead_code,
     reason = "Go reads only symbol and location too; the rest wait for `!!! fill in additionalTextEdits from code actions` (completions.go:5712)"
 )]
-struct symbolDetails {
+struct SymbolDetails {
     symbol: P<Symbol>,
     location: P<Node>,
-    origin: Option<symbolOriginInfo>,
+    origin: Option<SymbolOriginInfo>,
     previous_token: Option<P<Node>>,
     context_token: Option<P<Node>>,
-    jsx_initializer: jsxInitializer,
+    jsx_initializer: JsxInitializer,
     is_type_only_location: bool,
 }
 
@@ -212,9 +212,9 @@ impl LanguageService {
         file: P<SourceFile>,
         position: u32,
         item_data: &lsproto::CompletionItemData,
-    ) -> detailsData {
+    ) -> DetailsData {
         if item_data.source == SOURCE_SWITCH_CASES {
-            return detailsData { cases: Some(()), ..Default::default() };
+            return DetailsData { cases: Some(()), ..Default::default() };
         }
 
         let preferences = self.user_preferences().clone();
@@ -231,13 +231,13 @@ impl LanguageService {
         };
 
         let Some(completion_data) = completion_data else {
-            return detailsData::default();
+            return DetailsData::default();
         };
 
         let data = match completion_data {
             CompletionData::Data(data) => data,
             other => {
-                return detailsData { request: Some(other), ..Default::default() };
+                return DetailsData { request: Some(other), ..Default::default() };
             }
         };
 
@@ -249,7 +249,7 @@ impl LanguageService {
             })
             .copied();
         if literal.is_some() {
-            return detailsData { literal, ..Default::default() };
+            return DetailsData { literal, ..Default::default() };
         }
 
         // Find the symbol with the matching entry name.
@@ -268,14 +268,14 @@ impl LanguageService {
             );
             if display_name == item_data.name
                 && (item_data.source == COMPLETION_SOURCE_CLASS_MEMBER_SNIPPET
-                    && symbol.flags().intersects(SymbolFlags::ClassMember)
+                    && symbol.flags().intersects(SymbolFlags::CLASS_MEMBER)
                     || item_data.source == COMPLETION_SOURCE_OBJECT_LITERAL_METHOD_SNIPPET
-                        && symbol.flags().intersects(SymbolFlags::Property | SymbolFlags::Method)
+                        && symbol.flags().intersects(SymbolFlags::PROPERTY | SymbolFlags::METHOD)
                     || get_source_from_origin(origin) == item_data.source
                     || item_data.source == COMPLETION_SOURCE_OBJECT_LITERAL_MEMBER_WITH_COMMA)
             {
-                return Some(detailsData {
-                    symbol: Some(symbolDetails {
+                return Some(DetailsData {
+                    symbol: Some(SymbolDetails {
                         symbol,
                         location: data.location,
                         origin: origin.cloned(),
@@ -292,7 +292,7 @@ impl LanguageService {
         }) {
             return result;
         }
-        detailsData::default()
+        DetailsData::default()
     }
 }
 
@@ -333,7 +333,7 @@ pub(crate) fn create_completion_details(
     dead_code,
     reason = "Go has no user yet either: `!!! fill in additionalTextEdits from code actions` (completions.go:5712)"
 )]
-struct codeAction {
+struct CodeAction {
     // Description of the code action to display in the UI of the editor
     description: String,
     // Text changes to apply to each file as part of the code action
@@ -367,8 +367,8 @@ impl LanguageService {
         &self,
         context_token: P<Node>,
         source_file: P<SourceFile>,
-    ) -> importStatementCompletionInfo {
-        let mut result = importStatementCompletionInfo::default();
+    ) -> ImportStatementCompletionInfo {
+        let mut result = ImportStatementCompletionInfo::default();
         let mut candidate: Option<P<Node>> = None;
         let parent = context_token.parent().unwrap();
         if ast::is_import_equals_declaration(parent) {
@@ -790,7 +790,7 @@ fn js_doc_tag_name_completion_items() -> &'static [lsproto::CompletionItem] {
         let mut items = Vec::with_capacity(JS_DOC_TAG_NAMES.len());
         items.extend(JS_DOC_TAG_NAMES.iter().map(|tag_name| lsproto::CompletionItem {
             label: tag_name.to_string(),
-            kind: Some(lsproto::CompletionItemKind::Keyword),
+            kind: Some(lsproto::CompletionItemKind::KEYWORD),
             sort_text: Some(SORT_TEXT_LOCATION_PRIORITY.to_string()),
             ..Default::default()
         }));
@@ -805,7 +805,7 @@ fn js_doc_tag_completion_items() -> &'static [lsproto::CompletionItem] {
         let mut items = Vec::with_capacity(JS_DOC_TAG_NAMES.len());
         items.extend(JS_DOC_TAG_NAMES.iter().map(|tag_name| lsproto::CompletionItem {
             label: format!("@{tag_name}"),
-            kind: Some(lsproto::CompletionItemKind::Keyword),
+            kind: Some(lsproto::CompletionItemKind::KEYWORD),
             sort_text: Some(SORT_TEXT_LOCATION_PRIORITY.to_string()),
             ..Default::default()
         }));
@@ -914,11 +914,11 @@ pub(crate) fn get_jsdoc_parameter_completions(
 
             result.push(CompletionItem::new(lsproto::CompletionItem {
                 label: display_text,
-                kind: Some(lsproto::CompletionItemKind::Variable),
+                kind: Some(lsproto::CompletionItemKind::VARIABLE),
                 sort_text: Some(SORT_TEXT_LOCATION_PRIORITY.to_string()),
                 insert_text: str_ptr_to(&snippet_text),
                 insert_text_format: if is_snippet {
-                    Some(lsproto::InsertTextFormat::Snippet)
+                    Some(lsproto::InsertTextFormat::SNIPPET)
                 } else {
                     None
                 },
@@ -965,11 +965,11 @@ pub(crate) fn get_jsdoc_parameter_completions(
             }
             result.push(CompletionItem::new(lsproto::CompletionItem {
                 label: display_text,
-                kind: Some(lsproto::CompletionItemKind::Variable),
+                kind: Some(lsproto::CompletionItemKind::VARIABLE),
                 sort_text: Some(SORT_TEXT_LOCATION_PRIORITY.to_string()),
                 insert_text: str_ptr_to(&snippet_text),
                 insert_text_format: if is_snippet {
-                    Some(lsproto::InsertTextFormat::Snippet)
+                    Some(lsproto::InsertTextFormat::SNIPPET)
                 } else {
                     None
                 },
@@ -1016,13 +1016,13 @@ fn get_jsdoc_param_annotation(
             if let Some(initializer) = initializer {
                 let inferred_type =
                     type_checker.get_type_at_location(initializer.parent().unwrap());
-                if !inferred_type.flags().intersects(TypeFlags::Any | TypeFlags::Void) {
+                if !inferred_type.flags().intersects(TypeFlags::ANY | TypeFlags::VOID) {
                     let file = ast::get_source_file_of_node(initializer).unwrap();
                     let quote_preference = lsutil::get_quote_preference(file, preferences);
                     let builder_flags = if quote_preference == QuotePreference::Single {
-                        Flags::UseSingleQuotesForStringLiteralType
+                        Flags::USE_SINGLE_QUOTES_FOR_STRING_LITERAL_TYPE
                     } else {
-                        Flags::None
+                        Flags::NONE
                     };
                     let type_node = type_checker.type_to_type_node(
                         inferred_type,
@@ -1046,7 +1046,7 @@ fn get_jsdoc_param_annotation(
                             printer::PrintHandlers::default(),
                             Some(emit_context),
                         );
-                        emit_context.set_emit_flags(type_node, EmitFlags::SingleLine);
+                        emit_context.set_emit_flags(type_node, EmitFlags::SINGLE_LINE);
                         t = p.emit(type_node, Some(file));
                     }
                 }
@@ -1305,7 +1305,7 @@ pub(crate) fn get_jsdoc_parameter_name_completions(tag: P<Node>) -> Vec<Completi
 
         Some(CompletionItem::new(lsproto::CompletionItem {
             label: name.to_string(),
-            kind: Some(lsproto::CompletionItemKind::Variable),
+            kind: Some(lsproto::CompletionItemKind::VARIABLE),
             sort_text: Some(SORT_TEXT_LOCATION_PRIORITY.to_string()),
             ..Default::default()
         }))
@@ -1397,13 +1397,13 @@ impl LanguageService {
                                         Kind::MinusToken,
                                         factory.new_big_int_literal(
                                             tsrs_core::alloc_str(&(v.string() + "n")),
-                                            TokenFlags::None,
+                                            TokenFlags::NONE,
                                         ),
                                     )
                                 } else {
                                     factory.new_big_int_literal(
                                         tsrs_core::alloc_str(&(v.string() + "n")),
-                                        TokenFlags::None,
+                                        TokenFlags::NONE,
                                     )
                                 };
                                 elements.push(big_int);
@@ -1414,13 +1414,13 @@ impl LanguageService {
                                         Kind::MinusToken,
                                         factory.new_numeric_literal(
                                             tsrs_core::alloc_str(&v.abs().string()),
-                                            TokenFlags::None,
+                                            TokenFlags::NONE,
                                         ),
                                     )
                                 } else {
                                     factory.new_numeric_literal(
                                         tsrs_core::alloc_str(&v.string()),
-                                        TokenFlags::None,
+                                        TokenFlags::NONE,
                                     )
                                 };
                                 elements.push(number);
@@ -1429,9 +1429,9 @@ impl LanguageService {
                                 let literal = factory.new_string_literal(
                                     v,
                                     if quote_preference == QuotePreference::Single {
-                                        TokenFlags::SingleQuote
+                                        TokenFlags::SINGLE_QUOTE
                                     } else {
-                                        TokenFlags::None
+                                        TokenFlags::NONE
                                     },
                                 );
                                 elements.push(literal);
@@ -1487,12 +1487,12 @@ impl LanguageService {
 
             return Ok(Some(lsproto::CompletionItem {
                 label: name.clone(),
-                kind: Some(lsproto::CompletionItemKind::Snippet),
+                kind: Some(lsproto::CompletionItemKind::SNIPPET),
                 sort_text: Some(SORT_TEXT_GLOBALS_OR_KEYWORDS.to_string()),
                 insert_text: str_ptr_to(&insert_text),
                 additional_text_edits,
                 insert_text_format: if client_supports_item_snippet(ctx) {
-                    Some(lsproto::InsertTextFormat::Snippet)
+                    Some(lsproto::InsertTextFormat::SNIPPET)
                 } else {
                     None
                 },
@@ -1546,7 +1546,7 @@ fn type_node_to_expression(
                     object_expression,
                     None, /*questionDotToken*/
                     index_expression,
-                    NodeFlags::None,
+                    NodeFlags::NONE,
                 ));
             }
             None
@@ -1558,9 +1558,9 @@ fn type_node_to_expression(
                     let expr = factory.new_string_literal(
                         literal.text(),
                         if quote_preference == QuotePreference::Single {
-                            TokenFlags::SingleQuote
+                            TokenFlags::SINGLE_QUOTE
                         } else {
-                            TokenFlags::None
+                            TokenFlags::NONE
                         },
                     );
                     Some(expr)
@@ -1625,20 +1625,20 @@ fn entity_name_to_expression(
         ),
         None, /*questionDotToken*/
         entity_name.as_qualified_name().right,
-        NodeFlags::None,
+        NodeFlags::NONE,
     )
 }
 
 // completions.go:6785 (Go keeps `baseWriter` and `writer.ChangeTrackerWriter` as the same pointer; here the base
 // writer lives inside `writer`)
-pub(crate) struct snippetPrinter {
+pub(crate) struct SnippetPrinter {
     pub(crate) emit_context: P<EmitContext>,
     printer: Printer,
-    writer: snippetEmitTextWriter,
+    writer: SnippetEmitTextWriter,
     pub(crate) factory: NodeFactory,
 }
 
-impl snippetPrinter {
+impl SnippetPrinter {
     // completions.go:6802
     pub(crate) fn print_unescaped_node(&mut self, node: P<Node>) -> String {
         self.writer.escapes.clear();
@@ -1707,14 +1707,14 @@ impl snippetPrinter {
 pub(crate) fn create_snippet_printer(
     options: PrinterOptions,
     emit_context: Option<P<EmitContext>>,
-) -> snippetPrinter {
+) -> SnippetPrinter {
     let emit_context = emit_context.unwrap_or_else(printer::new_emit_context);
     let base_writer =
         printer::new_change_tracker_writer(options.new_line.get_new_line_character(), None);
     let printer =
         printer::new_printer(options, base_writer.get_print_handlers(), Some(emit_context));
-    let writer = snippetEmitTextWriter { base: base_writer, escapes: Vec::new() };
-    snippetPrinter {
+    let writer = SnippetEmitTextWriter { base: base_writer, escapes: Vec::new() };
+    SnippetPrinter {
         emit_context,
         printer,
         writer,
@@ -1724,12 +1724,12 @@ pub(crate) fn create_snippet_printer(
 
 // Override base writer methods to perform snippet escaping.
 // completions.go:6855
-struct snippetEmitTextWriter {
+struct SnippetEmitTextWriter {
     base: ChangeTrackerWriter,
     escapes: Vec<TextChange>,
 }
 
-impl snippetEmitTextWriter {
+impl SnippetEmitTextWriter {
     // The formatter/scanner will have issues with snippet-escaped text,
     // so instead of writing the escaped text directly to the writer,
     // generate a set of changes that can be applied to the unescaped text
@@ -1749,7 +1749,7 @@ impl snippetEmitTextWriter {
     }
 }
 
-impl EmitTextWriter for snippetEmitTextWriter {
+impl EmitTextWriter for SnippetEmitTextWriter {
     // completions.go:6860
     fn write(&mut self, s: &str) {
         self.escaping_write(s, |w| w.write(s));

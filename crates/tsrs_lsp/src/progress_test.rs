@@ -10,13 +10,13 @@ use tsrs_diagnostics::Message;
 use tsrs_lsproto as lsproto;
 
 use crate::progress::{
-    new_project_loading_progress_from_reporter, progressEvent, progressReporter,
-    projectLoadingProgress,
+    ProgressEvent, ProgressReporter, ProjectLoadingProgress,
+    new_project_loading_progress_from_reporter,
 };
 
 // progress_test.go:15
 #[derive(Clone, Debug, Default)]
-struct progressCall {
+struct ProgressCall {
     method: &'static str, // "create", "begin", "report", "end"
     token: String,
     title: String, // begin only
@@ -24,12 +24,12 @@ struct progressCall {
 }
 
 // progress_test.go:22
-struct fakeProgressReporter {
-    calls: Mutex<Vec<progressCall>>,
+struct FakeProgressReporter {
+    calls: Mutex<Vec<ProgressCall>>,
     ctx: Context,
 }
 
-impl progressReporter for fakeProgressReporter {
+impl ProgressReporter for FakeProgressReporter {
     // progress_test.go:28
     fn done(&self) -> Context {
         self.ctx.clone()
@@ -42,7 +42,7 @@ impl progressReporter for fakeProgressReporter {
 
     // progress_test.go:36
     fn create_work_done_progress(&self, token: &str) {
-        self.calls.lock().unwrap().push(progressCall {
+        self.calls.lock().unwrap().push(ProgressCall {
             method: "create",
             token: token.to_string(),
             ..Default::default()
@@ -53,21 +53,21 @@ impl progressReporter for fakeProgressReporter {
     fn send_progress(&self, token: &str, value: lsproto::WorkDoneProgressBeginOrReportOrEnd) {
         let mut calls = self.calls.lock().unwrap();
         if let Some(begin) = value.begin {
-            calls.push(progressCall {
+            calls.push(ProgressCall {
                 method: "begin",
                 token: token.to_string(),
                 title: begin.title,
                 msg: begin.message.unwrap_or_default(),
             });
         } else if let Some(report) = value.report {
-            calls.push(progressCall {
+            calls.push(ProgressCall {
                 method: "report",
                 token: token.to_string(),
                 msg: report.message.unwrap_or_default(),
                 ..Default::default()
             });
         } else if value.end.is_some() {
-            calls.push(progressCall {
+            calls.push(ProgressCall {
                 method: "end",
                 token: token.to_string(),
                 ..Default::default()
@@ -76,18 +76,18 @@ impl progressReporter for fakeProgressReporter {
     }
 }
 
-impl fakeProgressReporter {
+impl FakeProgressReporter {
     // progress_test.go:63
-    fn get_calls(&self) -> Vec<progressCall> {
+    fn get_calls(&self) -> Vec<ProgressCall> {
         self.calls.lock().unwrap().clone()
     }
 }
 
-fn setup(delay_ms: u64) -> (Arc<fakeProgressReporter>, Arc<projectLoadingProgress>, CancelFunc) {
+fn setup(delay_ms: u64) -> (Arc<FakeProgressReporter>, Arc<ProjectLoadingProgress>, CancelFunc) {
     let (ctx, cancel) = Context::background().with_cancel();
-    let reporter = Arc::new(fakeProgressReporter { calls: Mutex::new(Vec::new()), ctx });
+    let reporter = Arc::new(FakeProgressReporter { calls: Mutex::new(Vec::new()), ctx });
     let p = new_project_loading_progress_from_reporter(
-        Arc::<fakeProgressReporter>::clone(&reporter),
+        Arc::<FakeProgressReporter>::clone(&reporter),
         Duration::from_millis(delay_ms),
     );
     (reporter, p, cancel)
@@ -103,7 +103,7 @@ fn sleep_past(ms: u64) {
 }
 
 fn project_0() -> &'static Message {
-    &tsrs_diagnostics::Project_0
+    &tsrs_diagnostics::PROJECT_0
 }
 
 // progress_test.go:72
@@ -145,9 +145,9 @@ fn test_progress_shows_after_delay() {
     assert_eq!(calls[1].method, "begin", "expected begin, got {:?}", calls[1]);
     assert_eq!(
         calls[1].title,
-        tsrs_diagnostics::Loading.text(),
+        tsrs_diagnostics::LOADING.text(),
         "expected title {:?}, got {:?}",
-        tsrs_diagnostics::Loading.text(),
+        tsrs_diagnostics::LOADING.text(),
         calls[1].title
     );
 
@@ -335,8 +335,8 @@ fn test_progress_shutdown_during_start_and_finish() {
     p.wait_idle();
 
     // Fill the channel buffer so start/finish block on send.
-    for _ in 0..projectLoadingProgress::capacity() {
-        assert!(p.fill(progressEvent {
+    for _ in 0..ProjectLoadingProgress::capacity() {
+        assert!(p.fill(ProgressEvent {
             message: project_0(),
             args: project("fill"),
             finish: false

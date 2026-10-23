@@ -2,31 +2,31 @@ use rustc_hash::FxHashMap;
 use std::sync::Mutex;
 use tsrs_core::stringutil::equal_fold;
 
-use crate::canonicalize::{fold_native_path, nativePathFolding};
+use crate::canonicalize::{NATIVE_PATH_FOLDING, fold_native_path};
 use crate::watcher::{is_in_directory_or_self, join_path_suffix, rebase_path};
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug, Default)]
-pub(crate) struct pathComparer {
+pub(crate) struct BytePathComparer {
     pub(crate) ignore_case: bool,
 }
 
 // Watch roots are prepared before publication and are immutable thereafter.
 // Event paths are local to one routing operation and folded only on demand.
 #[derive(Clone, Default)]
-pub(crate) struct comparisonPath<'c> {
+pub(crate) struct ComparisonPath<'c> {
     pub(crate) path: String,
     pub(crate) folded: String,
     pub(crate) ready: bool,
-    pub(crate) cache: Option<&'c Mutex<comparisonCache>>,
+    pub(crate) cache: Option<&'c Mutex<ComparisonCache>>,
 }
 
 // Shared only within a synchronous callback/termination pass, never published
 // to a subscriber or stored on a watch.
-pub(crate) type comparisonCache = FxHashMap<String, String>;
+pub(crate) type ComparisonCache = FxHashMap<String, String>;
 
-impl comparisonPath<'_> {
-    pub(crate) fn new(path: &str) -> comparisonPath<'static> {
-        comparisonPath { path: path.to_string(), ..Default::default() }
+impl ComparisonPath<'_> {
+    pub(crate) fn new(path: &str) -> ComparisonPath<'static> {
+        ComparisonPath { path: path.to_string(), ..Default::default() }
     }
 
     // pathcompare.go:34
@@ -49,11 +49,11 @@ impl comparisonPath<'_> {
     }
 }
 
-impl pathComparer {
+impl BytePathComparer {
     // pathcompare.go:26
-    pub(crate) fn prepare(self, path: &str) -> comparisonPath<'static> {
-        let mut p = comparisonPath::new(path);
-        if self.ignore_case && nativePathFolding {
+    pub(crate) fn prepare(self, path: &str) -> ComparisonPath<'static> {
+        let mut p = ComparisonPath::new(path);
+        if self.ignore_case && NATIVE_PATH_FOLDING {
             p.fold();
         }
         p
@@ -63,15 +63,15 @@ impl pathComparer {
     // suffix returns the part of path below root, respecting directory boundaries.
     #[cfg(test)] // only contains and tests call it, in Go too
     pub(crate) fn suffix(self, root: &str, path: &str) -> Option<String> {
-        let mut p = comparisonPath::new(path);
-        self.suffix_prepared(&comparisonPath::new(root), &mut p)
+        let mut p = ComparisonPath::new(path);
+        self.suffix_prepared(&ComparisonPath::new(root), &mut p)
     }
 
     // pathcompare.go:61
     pub(crate) fn suffix_prepared(
         self,
-        root: &comparisonPath,
-        path: &mut comparisonPath,
+        root: &ComparisonPath,
+        path: &mut ComparisonPath,
     ) -> Option<String> {
         if is_in_directory_or_self(&root.path, &path.path) {
             return Some(path.path[root.path.len()..].to_string());
@@ -88,10 +88,10 @@ impl pathComparer {
 
     // pathcompare.go:75
     pub(crate) fn suffix_unicode(
-        root: &comparisonPath,
-        path: &mut comparisonPath,
+        root: &ComparisonPath,
+        path: &mut ComparisonPath,
     ) -> Option<String> {
-        if !nativePathFolding {
+        if !NATIVE_PATH_FOLDING {
             return path_suffix_fold_unicode(&root.path, &path.path);
         }
         let mut root = root.clone();
@@ -135,15 +135,15 @@ impl pathComparer {
 
     // pathcompare.go:171
     pub(crate) fn rebase(self, path: &str, from: &str, to: &str) -> Option<String> {
-        let mut p = comparisonPath::new(path);
-        self.rebase_prepared(&mut p, &comparisonPath::new(from), to)
+        let mut p = ComparisonPath::new(path);
+        self.rebase_prepared(&mut p, &ComparisonPath::new(from), to)
     }
 
     // pathcompare.go:176
     pub(crate) fn rebase_prepared(
         self,
-        path: &mut comparisonPath,
-        from: &comparisonPath,
+        path: &mut ComparisonPath,
+        from: &ComparisonPath,
         to: &str,
     ) -> Option<String> {
         if is_in_directory_or_self(&from.path, &path.path) {

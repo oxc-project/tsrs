@@ -513,7 +513,7 @@ impl MetadataSerializer {
             self.serialize_entity_name_as_expression(qn.left).unwrap(),
             None,
             qn.right,
-            NodeFlags::None,
+            NodeFlags::NONE,
         )
     }
 
@@ -549,7 +549,7 @@ impl MetadataSerializer {
                     self.f.new_void_zero_expression(),
                 ),
             ),
-            self.f.new_property_access_expression(temp, None, qn.right, NodeFlags::None),
+            self.f.new_property_access_expression(temp, None, qn.right, NodeFlags::NONE),
         )
     }
 
@@ -569,7 +569,7 @@ impl MetadataSerializer {
         self.f.new_logical_and_expression(
             self.f.new_strict_inequality_expression(
                 self.f.new_type_of_expression(left),
-                self.f.new_string_literal("undefined", TokenFlags::None),
+                self.f.new_string_literal("undefined", TokenFlags::NONE),
             ),
             right,
         )

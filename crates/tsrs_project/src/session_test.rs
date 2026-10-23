@@ -17,7 +17,7 @@ fn ctx() -> Context {
     Context::background()
 }
 
-const default_files: &[(&str, &str)] = &[
+const DEFAULT_FILES: &[(&str, &str)] = &[
     (
         "/home/projects/TS/p1/tsconfig.json",
         r#"{
@@ -60,7 +60,7 @@ fn partial(
 // session_test.go:45 TestSession/DidOpenFile/create configured project
 #[test]
 fn did_open_file_create_configured_project() {
-    let (session, _) = setup(default_files);
+    let (session, _) = setup(DEFAULT_FILES);
     let snapshot = session.snapshot();
     assert_eq!(snapshot.project_collection.projects().len(), 0);
 
@@ -68,8 +68,8 @@ fn did_open_file_create_configured_project() {
         &ctx(),
         uri("file:///home/projects/TS/p1/src/index.ts"),
         1,
-        file(default_files, "/home/projects/TS/p1/src/index.ts"),
-        lsproto::LanguageKind::TypeScript,
+        file(DEFAULT_FILES, "/home/projects/TS/p1/src/index.ts"),
+        lsproto::LanguageKind::TYPE_SCRIPT,
     );
 
     let snapshot = session.snapshot();
@@ -95,14 +95,14 @@ fn did_open_file_create_configured_project() {
 // session_test.go:67 TestSession/DidOpenFile/create inferred project
 #[test]
 fn did_open_file_create_inferred_project() {
-    let (session, _) = setup(default_files);
+    let (session, _) = setup(DEFAULT_FILES);
 
     session.did_open_file(
         &ctx(),
         uri("file:///home/projects/TS/p1/config.ts"),
         1,
-        file(default_files, "/home/projects/TS/p1/config.ts"),
-        lsproto::LanguageKind::TypeScript,
+        file(DEFAULT_FILES, "/home/projects/TS/p1/config.ts"),
+        lsproto::LanguageKind::TYPE_SCRIPT,
     );
 
     // Find tsconfig, load, notice config.ts is not included, create inferred project
@@ -121,28 +121,28 @@ fn did_open_file_create_inferred_project() {
 // session_test.go:84 TestSession/DidOpenFile/inferred project for in-memory files
 #[test]
 fn did_open_file_inferred_project_for_in_memory_files() {
-    let (session, _) = setup(default_files);
+    let (session, _) = setup(DEFAULT_FILES);
 
     session.did_open_file(
         &ctx(),
         uri("file:///home/projects/TS/p1/config.ts"),
         1,
-        file(default_files, "/home/projects/TS/p1/config.ts"),
-        lsproto::LanguageKind::TypeScript,
+        file(DEFAULT_FILES, "/home/projects/TS/p1/config.ts"),
+        lsproto::LanguageKind::TYPE_SCRIPT,
     );
     session.did_open_file(
         &ctx(),
         uri("untitled:Untitled-1"),
         1,
         "x".to_string(),
-        lsproto::LanguageKind::TypeScript,
+        lsproto::LanguageKind::TYPE_SCRIPT,
     );
     session.did_open_file(
         &ctx(),
         uri("untitled:Untitled-2"),
         1,
         "y".to_string(),
-        lsproto::LanguageKind::TypeScript,
+        lsproto::LanguageKind::TYPE_SCRIPT,
     );
 
     let snapshot = session.snapshot();
@@ -163,7 +163,7 @@ fn did_open_file_inferred_project_js_file() {
         uri("file:///home/projects/TS/p1/index.js"),
         1,
         file(js_files, "/home/projects/TS/p1/index.js"),
-        lsproto::LanguageKind::JavaScript,
+        lsproto::LanguageKind::JAVA_SCRIPT,
     );
 
     let snapshot = session.snapshot();
@@ -225,7 +225,7 @@ fn watch_change_and_did_open_in_same_batch_rebuilds_program() {
         uri("file:///home/projects/TS/p1/src/b.ts"),
         1,
         file(files, "/home/projects/TS/p1/src/b.ts"),
-        lsproto::LanguageKind::TypeScript,
+        lsproto::LanguageKind::TYPE_SCRIPT,
     );
 
     // Verify a.ts is in the program with the original content.
@@ -244,7 +244,7 @@ fn watch_change_and_did_open_in_same_batch_rebuilds_program() {
     session.did_change_watched_files(
         &ctx(),
         &[lsproto::FileEvent {
-            type_: lsproto::FileChangeType::Changed,
+            type_: lsproto::FileChangeType::CHANGED,
             uri: uri("file:///home/projects/TS/p1/src/a.ts"),
         }],
     );
@@ -255,7 +255,7 @@ fn watch_change_and_did_open_in_same_batch_rebuilds_program() {
         uri("file:///home/projects/TS/p1/src/a.ts"),
         1,
         new_content.to_string(),
-        lsproto::LanguageKind::TypeScript,
+        lsproto::LanguageKind::TYPE_SCRIPT,
     );
 
     // The program's SourceFile must reflect the overlay (new) content.
@@ -270,14 +270,14 @@ fn watch_change_and_did_open_in_same_batch_rebuilds_program() {
 // session_test.go:184 TestSession/DidChangeFile/update file and program
 #[test]
 fn did_change_file_update_file_and_program() {
-    let (session, _) = setup(default_files);
+    let (session, _) = setup(DEFAULT_FILES);
 
     session.did_open_file(
         &ctx(),
         uri("file:///home/projects/TS/p1/src/x.ts"),
         1,
-        file(default_files, "/home/projects/TS/p1/src/x.ts"),
-        lsproto::LanguageKind::TypeScript,
+        file(DEFAULT_FILES, "/home/projects/TS/p1/src/x.ts"),
+        lsproto::LanguageKind::TYPE_SCRIPT,
     );
 
     let ls_before =
@@ -306,14 +306,14 @@ fn did_change_file_update_file_and_program() {
 // session_test.go:221 TestSession/DidChangeFile/update untitled file
 #[test]
 fn did_change_file_update_untitled_file() {
-    let (session, _) = setup(default_files);
+    let (session, _) = setup(DEFAULT_FILES);
 
     session.did_open_file(
         &ctx(),
         uri("untitled:Untitled-1"),
         1,
         "let x = 1;".to_string(),
-        lsproto::LanguageKind::TypeScript,
+        lsproto::LanguageKind::TYPE_SCRIPT,
     );
 
     let ls_before = session.get_language_service(&ctx(), &uri("untitled:Untitled-1")).unwrap();
@@ -333,14 +333,14 @@ fn did_change_file_update_untitled_file() {
 // session_test.go:259 TestSession/DidChangeFile/unchanged source files are reused
 #[test]
 fn did_change_file_unchanged_source_files_are_reused() {
-    let (session, _) = setup(default_files);
+    let (session, _) = setup(DEFAULT_FILES);
 
     session.did_open_file(
         &ctx(),
         uri("file:///home/projects/TS/p1/src/x.ts"),
         1,
-        file(default_files, "/home/projects/TS/p1/src/x.ts"),
-        lsproto::LanguageKind::TypeScript,
+        file(DEFAULT_FILES, "/home/projects/TS/p1/src/x.ts"),
+        lsproto::LanguageKind::TYPE_SCRIPT,
     );
 
     let ls_before =
@@ -369,7 +369,7 @@ fn did_change_file_unchanged_source_files_are_reused() {
 // session_test.go:296 TestSession/DidChangeFile/change can pull in new files
 #[test]
 fn did_change_file_change_can_pull_in_new_files() {
-    let mut files: Vec<(&str, &str)> = default_files.to_vec();
+    let mut files: Vec<(&str, &str)> = DEFAULT_FILES.to_vec();
     files.push(("/home/projects/TS/p1/y.ts", "export const y = 2;"));
     let (session, _) = setup(&files);
 
@@ -378,7 +378,7 @@ fn did_change_file_change_can_pull_in_new_files() {
         uri("file:///home/projects/TS/p1/src/index.ts"),
         1,
         file(&files, "/home/projects/TS/p1/src/index.ts"),
-        lsproto::LanguageKind::TypeScript,
+        lsproto::LanguageKind::TYPE_SCRIPT,
     );
 
     // Verify y.ts is not initially in the program
@@ -404,7 +404,7 @@ fn did_change_file_change_can_pull_in_new_files() {
 // session_test.go:336 TestSession/DidChangeFile/single-file change followed by config change reloads program
 #[test]
 fn did_change_file_single_file_change_followed_by_config_change_reloads_program() {
-    let mut files: Vec<(&str, &str)> = default_files.to_vec();
+    let mut files: Vec<(&str, &str)> = DEFAULT_FILES.to_vec();
     files[0].1 = r#"{
 				"compilerOptions": {
 					"noLib": true,
@@ -420,7 +420,7 @@ fn did_change_file_single_file_change_followed_by_config_change_reloads_program(
         uri("file:///home/projects/TS/p1/src/index.ts"),
         1,
         file(&files, "/home/projects/TS/p1/src/index.ts"),
-        lsproto::LanguageKind::TypeScript,
+        lsproto::LanguageKind::TYPE_SCRIPT,
     );
 
     let ls_before = session
@@ -453,7 +453,7 @@ fn did_change_file_single_file_change_followed_by_config_change_reloads_program(
     session.did_change_watched_files(
         &ctx(),
         &[lsproto::FileEvent {
-            type_: lsproto::FileChangeType::Changed,
+            type_: lsproto::FileChangeType::CHANGED,
             uri: uri("file:///home/projects/TS/p1/tsconfig.json"),
         }],
     );
@@ -467,13 +467,13 @@ fn did_change_file_single_file_change_followed_by_config_change_reloads_program(
 // tsrs-only: snapshots, programs and parse cache entries are released when the session moves on.
 #[test]
 fn snapshot_refs_release_parse_cache() {
-    let (session, _) = setup(default_files);
+    let (session, _) = setup(DEFAULT_FILES);
     session.did_open_file(
         &ctx(),
         uri("file:///home/projects/TS/p1/src/x.ts"),
         1,
-        file(default_files, "/home/projects/TS/p1/src/x.ts"),
-        lsproto::LanguageKind::TypeScript,
+        file(DEFAULT_FILES, "/home/projects/TS/p1/src/x.ts"),
+        lsproto::LanguageKind::TYPE_SCRIPT,
     );
     let _ =
         session.get_language_service(&ctx(), &uri("file:///home/projects/TS/p1/src/x.ts")).unwrap();
@@ -496,7 +496,7 @@ fn snapshot_refs_release_parse_cache() {
     assert_eq!(session.snapshot_host().parse_cache.len(), entries);
     assert_eq!(session.snapshot().ref_count(), 1);
     let _ = Arc::strong_count(&session);
-    let _ = projecttestutil::TestTypingsLocation;
+    let _ = projecttestutil::TEST_TYPINGS_LOCATION;
 }
 
 // refcountcache_test.go:752 TestRefCountingCaches/session close releases the current snapshot
@@ -509,7 +509,7 @@ fn session_close_releases_current_snapshot() {
         uri("file:///project/index.ts"),
         1,
         "export const value = 1;".to_string(),
-        lsproto::LanguageKind::TypeScript,
+        lsproto::LanguageKind::TYPE_SCRIPT,
     );
     let program = session
         .get_language_service(&ctx(), &uri("file:///project/index.ts"))
@@ -532,7 +532,7 @@ fn open(session: &crate::session::Session, files: &[(&str, &str)], name: &str) {
         uri(&format!("file://{name}")),
         1,
         file(files, name),
-        lsproto::LanguageKind::TypeScript,
+        lsproto::LanguageKind::TYPE_SCRIPT,
     );
 }
 
@@ -566,7 +566,7 @@ fn delete_close_recreate(files: &[(&str, &str)]) {
         uri("file:///home/projects/TS/p1/src/x.ts"),
         1,
         String::new(),
-        lsproto::LanguageKind::TypeScript,
+        lsproto::LanguageKind::TYPE_SCRIPT,
     );
 
     let program = ls_program(&session, "/home/projects/TS/p1/src/x.ts");
@@ -576,13 +576,13 @@ fn delete_close_recreate(files: &[(&str, &str)]) {
 // session_test.go:402 TestSession/DidCloseFile/Configured projects/delete a file, close it, recreate it
 #[test]
 fn did_close_file_configured_delete_close_recreate() {
-    delete_close_recreate(default_files);
+    delete_close_recreate(DEFAULT_FILES);
 }
 
 // session_test.go:433 TestSession/DidCloseFile/Inferred projects/delete a file, close it, recreate it
 #[test]
 fn did_close_file_inferred_delete_close_recreate() {
-    let files: Vec<(&str, &str)> = default_files
+    let files: Vec<(&str, &str)> = DEFAULT_FILES
         .iter()
         .copied()
         .filter(|(k, _)| *k != "/home/projects/TS/p1/tsconfig.json")
@@ -593,14 +593,14 @@ fn did_close_file_inferred_delete_close_recreate() {
 // session_test.go:464 TestSession/DidCloseFile/Inferred projects/close untitled file
 #[test]
 fn did_close_file_close_untitled_file() {
-    let (session, _) = setup(default_files);
+    let (session, _) = setup(DEFAULT_FILES);
 
     session.did_open_file(
         &ctx(),
         uri("untitled:Untitled-1"),
         1,
         "let x = 1;".to_string(),
-        lsproto::LanguageKind::TypeScript,
+        lsproto::LanguageKind::TYPE_SCRIPT,
     );
     session.did_close_file(&ctx(), uri("untitled:Untitled-1"));
     session.did_open_file(
@@ -608,13 +608,13 @@ fn did_close_file_close_untitled_file() {
         uri("untitled:Untitled-2"),
         1,
         String::new(),
-        lsproto::LanguageKind::TypeScript,
+        lsproto::LanguageKind::TYPE_SCRIPT,
     );
 }
 
 fn did_save_file(save_first: bool) {
-    let (session, _) = setup(default_files);
-    open(&session, default_files, "/home/projects/TS/p1/src/index.ts");
+    let (session, _) = setup(DEFAULT_FILES);
+    open(&session, DEFAULT_FILES, "/home/projects/TS/p1/src/index.ts");
 
     assert_eq!(session.snapshot().id(), 1);
 
@@ -623,13 +623,13 @@ fn did_save_file(save_first: bool) {
         watch_changed(
             &session,
             "/home/projects/TS/p1/src/index.ts",
-            lsproto::FileChangeType::Changed,
+            lsproto::FileChangeType::CHANGED,
         );
     } else {
         watch_changed(
             &session,
             "/home/projects/TS/p1/src/index.ts",
-            lsproto::FileChangeType::Changed,
+            lsproto::FileChangeType::CHANGED,
         );
         session.did_save_file(&ctx(), uri("file:///home/projects/TS/p1/src/index.ts"));
     }
@@ -639,7 +639,7 @@ fn did_save_file(save_first: bool) {
     assert_eq!(session.snapshot().id(), 1);
 
     // Open another file to force a snapshot update so we can see the changes.
-    open(&session, default_files, "/home/projects/TS/p1/src/x.ts");
+    open(&session, DEFAULT_FILES, "/home/projects/TS/p1/src/x.ts");
     assert!(
         session
             .snapshot()
@@ -664,7 +664,7 @@ fn did_save_file_watch_event_first() {
 // session_test.go:534 TestSession/Source file sharing/projects with similar options share source files
 #[test]
 fn source_file_sharing_similar_options() {
-    let mut files: Vec<(&str, &str)> = default_files.to_vec();
+    let mut files: Vec<(&str, &str)> = DEFAULT_FILES.to_vec();
     files.push((
         "/home/projects/TS/p2/tsconfig.json",
         r#"{
@@ -696,7 +696,7 @@ fn source_file_sharing_similar_options() {
 // session_test.go:569 TestSession/Source file sharing/projects with different options do not share source files
 #[test]
 fn source_file_sharing_different_options() {
-    let mut files: Vec<(&str, &str)> = default_files.to_vec();
+    let mut files: Vec<(&str, &str)> = DEFAULT_FILES.to_vec();
     files.push((
         "/home/projects/TS/p2/tsconfig.json",
         r#"{
@@ -729,16 +729,16 @@ fn source_file_sharing_different_options() {
 // session_test.go:608 TestSession/DidChangeWatchedFiles/change open file
 #[test]
 fn did_change_watched_files_change_open_file() {
-    let (session, utils) = setup(default_files);
+    let (session, utils) = setup(DEFAULT_FILES);
 
-    open(&session, default_files, "/home/projects/TS/p1/src/x.ts");
-    open(&session, default_files, "/home/projects/TS/p1/src/index.ts");
+    open(&session, DEFAULT_FILES, "/home/projects/TS/p1/src/x.ts");
+    open(&session, DEFAULT_FILES, "/home/projects/TS/p1/src/index.ts");
 
     let program_before = ls_program(&session, "/home/projects/TS/p1/src/index.ts");
 
     utils.fs().write_file("/home/projects/TS/p1/src/x.ts", "export const x = 2;").unwrap();
 
-    watch_changed(&session, "/home/projects/TS/p1/src/x.ts", lsproto::FileChangeType::Changed);
+    watch_changed(&session, "/home/projects/TS/p1/src/x.ts", lsproto::FileChangeType::CHANGED);
 
     // Program should remain the same since the file is open and changes are handled through DidChangeTextDocument
     assert!(std::ptr::eq(
@@ -750,15 +750,15 @@ fn did_change_watched_files_change_open_file() {
 // session_test.go:636 TestSession/DidChangeWatchedFiles/change closed program file
 #[test]
 fn did_change_watched_files_change_closed_program_file() {
-    let (session, utils) = setup(default_files);
+    let (session, utils) = setup(DEFAULT_FILES);
 
-    open(&session, default_files, "/home/projects/TS/p1/src/index.ts");
+    open(&session, DEFAULT_FILES, "/home/projects/TS/p1/src/index.ts");
 
     let program_before = ls_program(&session, "/home/projects/TS/p1/src/index.ts");
 
     utils.fs().write_file("/home/projects/TS/p1/src/x.ts", "export const x = 2;").unwrap();
 
-    watch_changed(&session, "/home/projects/TS/p1/src/x.ts", lsproto::FileChangeType::Changed);
+    watch_changed(&session, "/home/projects/TS/p1/src/x.ts", lsproto::FileChangeType::CHANGED);
 
     assert!(!std::ptr::eq(
         program_before,
@@ -822,7 +822,7 @@ fn did_change_watched_files_change_config_file() {
         )
         .unwrap();
 
-    watch_changed(&session, "/home/projects/TS/p1/tsconfig.json", lsproto::FileChangeType::Changed);
+    watch_changed(&session, "/home/projects/TS/p1/tsconfig.json", lsproto::FileChangeType::CHANGED);
 
     let program = ls_program(&session, "/home/projects/TS/p1/src/index.ts");
     assert_eq!(semantic_diagnostics_count(program, "/home/projects/TS/p1/src/index.ts"), 1);
@@ -853,7 +853,7 @@ fn did_change_watched_files_delete_explicitly_included_file() {
 
     utils.fs().remove("/home/projects/TS/p1/src/x.ts").unwrap();
 
-    watch_changed(&session, "/home/projects/TS/p1/src/x.ts", lsproto::FileChangeType::Deleted);
+    watch_changed(&session, "/home/projects/TS/p1/src/x.ts", lsproto::FileChangeType::DELETED);
 
     let program = ls_program(&session, "/home/projects/TS/p1/src/index.ts");
     // File name is still in the command line, was explicitly included
@@ -867,7 +867,7 @@ fn did_change_watched_files_delete_explicitly_included_file() {
         uri("untitled:Untitled-1"),
         1,
         String::new(),
-        lsproto::LanguageKind::TypeScript,
+        lsproto::LanguageKind::TYPE_SCRIPT,
     );
     assert!(session.snapshot().get_file("/home/projects/TS/p1/src/x.ts").is_none());
 }
@@ -897,7 +897,7 @@ fn did_change_watched_files_delete_wildcard_included_file() {
 
     utils.fs().remove("/home/projects/TS/p1/src/index.ts").unwrap();
 
-    watch_changed(&session, "/home/projects/TS/p1/src/index.ts", lsproto::FileChangeType::Deleted);
+    watch_changed(&session, "/home/projects/TS/p1/src/index.ts", lsproto::FileChangeType::DELETED);
 
     let program = ls_program(&session, "/home/projects/TS/p1/src/x.ts");
     // File name is gone from the command line, was originally included via wildcard
@@ -910,7 +910,7 @@ fn did_change_watched_files_delete_wildcard_included_file() {
         uri("untitled:Untitled-1"),
         1,
         String::new(),
-        lsproto::LanguageKind::TypeScript,
+        lsproto::LanguageKind::TYPE_SCRIPT,
     );
     assert!(session.snapshot().get_file("/home/projects/TS/p1/src/index.ts").is_none());
 }
@@ -942,7 +942,7 @@ fn delete_directory(files_spec: &str, check_root_names: bool) {
     utils.fs().remove("/home/projects/TS/p1/src/sub").unwrap();
 
     // Send a delete event for the directory URI.
-    watch_changed(&session, "/home/projects/TS/p1/src/sub", lsproto::FileChangeType::Deleted);
+    watch_changed(&session, "/home/projects/TS/p1/src/sub", lsproto::FileChangeType::DELETED);
 
     let program = ls_program(&session, "/home/projects/TS/p1/src/index.ts");
     if check_root_names {
@@ -1025,7 +1025,7 @@ fn delete_sibling_folder(open_third: bool) {
 
     utils.fs().remove("/home/projects/TS/p1/f").unwrap();
 
-    watch_changed(&session, "/home/projects/TS/p1/f", lsproto::FileChangeType::Deleted);
+    watch_changed(&session, "/home/projects/TS/p1/f", lsproto::FileChangeType::DELETED);
     if open_third {
         open(&session, files, "/home/projects/TS/p1/third.ts");
     } else {
@@ -1078,7 +1078,7 @@ fn did_change_watched_files_create_explicitly_included_file() {
     // Add the missing file
     utils.fs().write_file("/home/projects/TS/p1/src/y.ts", "export const y = 1;").unwrap();
 
-    watch_changed(&session, "/home/projects/TS/p1/src/y.ts", lsproto::FileChangeType::Created);
+    watch_changed(&session, "/home/projects/TS/p1/src/y.ts", lsproto::FileChangeType::CREATED);
 
     // Error should be resolved
     let program = ls_program(&session, "/home/projects/TS/p1/src/index.ts");
@@ -1109,7 +1109,7 @@ fn did_change_watched_files_create_failed_lookup_location() {
 
     // Add a new file through failed lookup watch
     utils.fs().write_file("/home/projects/TS/p1/src/z.ts", "export const z = 1;").unwrap();
-    watch_changed(&session, "/home/projects/TS/p1/src/z.ts", lsproto::FileChangeType::Created);
+    watch_changed(&session, "/home/projects/TS/p1/src/z.ts", lsproto::FileChangeType::CREATED);
 
     // Error should be resolved and the new file should be included in the program
     let program = ls_program(&session, "/home/projects/TS/p1/src/index.ts");
@@ -1141,7 +1141,7 @@ fn did_change_watched_files_create_wildcard_included_file() {
 
     // Add a new file through wildcard watch
     utils.fs().write_file("/home/projects/TS/p1/src/a.ts", "const a = 1;").unwrap();
-    watch_changed(&session, "/home/projects/TS/p1/src/a.ts", lsproto::FileChangeType::Created);
+    watch_changed(&session, "/home/projects/TS/p1/src/a.ts", lsproto::FileChangeType::CREATED);
 
     // Error should be resolved and the new file should be included in the program
     let program = ls_program(&session, "/home/projects/TS/p1/src/index.ts");
@@ -1180,15 +1180,15 @@ fn did_change_watched_files_irrelevant_extension_changes_are_filtered_out() {
         &ctx(),
         &[
             lsproto::FileEvent {
-                type_: lsproto::FileChangeType::Changed,
+                type_: lsproto::FileChangeType::CHANGED,
                 uri: uri("file:///home/projects/TS/p1/src/data.txt"),
             },
             lsproto::FileEvent {
-                type_: lsproto::FileChangeType::Created,
+                type_: lsproto::FileChangeType::CREATED,
                 uri: uri("file:///home/projects/TS/p1/src/styles.css"),
             },
             lsproto::FileEvent {
-                type_: lsproto::FileChangeType::Created,
+                type_: lsproto::FileChangeType::CREATED,
                 uri: uri("file:///home/projects/TS/p1/src/image.png"),
             },
         ],
@@ -1240,7 +1240,7 @@ fn did_change_watched_files_pnpm_install_links_local_package() {
     // Simulate pnpm install: create a symlink from beta's node_modules/@repo/alpha to packages/alpha.
     utils
         .map_fs()
-        .mkdir_all("home/projects/pnpm/packages/beta/node_modules/@repo", tsrs_vfs::FileMode::Perm)
+        .mkdir_all("home/projects/pnpm/packages/beta/node_modules/@repo", tsrs_vfs::FileMode::PERM)
         .unwrap();
     utils.map_fs().add_symlink(
         "home/projects/pnpm/packages/beta/node_modules/@repo/alpha",
@@ -1253,24 +1253,24 @@ fn did_change_watched_files_pnpm_install_links_local_package() {
         &ctx(),
         &[
             ev(
-                lsproto::FileChangeType::Created,
+                lsproto::FileChangeType::CREATED,
                 "file:///home/projects/pnpm/packages/beta/node_modules",
             ),
             ev(
-                lsproto::FileChangeType::Created,
+                lsproto::FileChangeType::CREATED,
                 "file:///home/projects/pnpm/packages/beta/node_modules/%40repo",
             ),
             ev(
-                lsproto::FileChangeType::Created,
+                lsproto::FileChangeType::CREATED,
                 "file:///home/projects/pnpm/packages/beta/node_modules/%40repo/alpha",
             ),
-            ev(lsproto::FileChangeType::Created, "file:///home/projects/pnpm/pnpm-lock.yaml"),
+            ev(lsproto::FileChangeType::CREATED, "file:///home/projects/pnpm/pnpm-lock.yaml"),
             ev(
-                lsproto::FileChangeType::Changed,
+                lsproto::FileChangeType::CHANGED,
                 "file:///home/projects/pnpm/packages/beta/node_modules/.bin/tsc",
             ),
             ev(
-                lsproto::FileChangeType::Changed,
+                lsproto::FileChangeType::CHANGED,
                 "file:///home/projects/pnpm/packages/beta/node_modules/.bin/tsserver",
             ),
         ],
@@ -1346,7 +1346,7 @@ fn did_change_watched_files_symlinked_node_modules_package_json_change_invalidat
         .unwrap();
 
     // Fire watch event for the realpath of the changed package.json.
-    watch_changed(&session, "/home/projects/mylib/package.json", lsproto::FileChangeType::Changed);
+    watch_changed(&session, "/home/projects/mylib/package.json", lsproto::FileChangeType::CHANGED);
 
     // After removing "main" from package.json, the import should no longer resolve.
     let program = ls_program(&session, "/home/projects/myproject/src/index.ts");
@@ -1387,7 +1387,7 @@ fn did_change_watched_files_create_file_in_non_existent_directory() {
     watch_changed(
         &session,
         "/home/projects/TS/p1/src/lib/helper.ts",
-        lsproto::FileChangeType::Created,
+        lsproto::FileChangeType::CREATED,
     );
 
     // Error should be resolved.
@@ -1428,7 +1428,7 @@ fn did_change_watched_files_create_symlink_directory_matching_include_pattern() 
     utils.map_fs().add_symlink("home/projects/TS/p1/src/linked", "home/projects/TS/shared");
 
     // Send directory creation event (what VS Code sends when a symlink directory appears).
-    watch_changed(&session, "/home/projects/TS/p1/src/linked", lsproto::FileChangeType::Created);
+    watch_changed(&session, "/home/projects/TS/p1/src/linked", lsproto::FileChangeType::CREATED);
 
     // After the symlink directory is created, the files inside it should be
     // picked up by the wildcard include pattern.
@@ -1467,32 +1467,32 @@ fn did_change_watched_files_skips_irrelevant_extensions() {
     let mut baseline_refresh_count = refreshes();
 
     // Scenario A: irrelevant .svg
-    send(&[(lsproto::FileChangeType::Created, "file:///home/projects/TS/p1/icon.svg")]);
+    send(&[(lsproto::FileChangeType::CREATED, "file:///home/projects/TS/p1/icon.svg")]);
     assert_eq!(refreshes(), baseline_refresh_count, "irrelevant .svg should not trigger refresh");
 
     // Scenario B: relevant .ts
-    send(&[(lsproto::FileChangeType::Created, "file:///home/projects/TS/p1/src/new.ts")]);
+    send(&[(lsproto::FileChangeType::CREATED, "file:///home/projects/TS/p1/src/new.ts")]);
     assert!(refreshes() > baseline_refresh_count, "relevant .ts should trigger refresh");
     baseline_refresh_count = refreshes();
 
     // Scenario C: tsconfig.json
-    send(&[(lsproto::FileChangeType::Changed, "file:///home/projects/TS/p1/tsconfig.json")]);
+    send(&[(lsproto::FileChangeType::CHANGED, "file:///home/projects/TS/p1/tsconfig.json")]);
     assert!(refreshes() > baseline_refresh_count, "tsconfig.json should trigger refresh");
     baseline_refresh_count = refreshes();
 
     // Scenario D: directory creation (no extension)
     utils
         .map_fs()
-        .mkdir_all("home/projects/TS/p1/node_modules/@types", tsrs_vfs::FileMode::Perm)
+        .mkdir_all("home/projects/TS/p1/node_modules/@types", tsrs_vfs::FileMode::PERM)
         .unwrap();
-    send(&[(lsproto::FileChangeType::Created, "file:///home/projects/TS/p1/node_modules/@types")]);
+    send(&[(lsproto::FileChangeType::CREATED, "file:///home/projects/TS/p1/node_modules/@types")]);
     assert!(refreshes() > baseline_refresh_count, "directory change should trigger refresh");
     baseline_refresh_count = refreshes();
 
     // Scenario E: mixed batch
     send(&[
-        (lsproto::FileChangeType::Created, "file:///home/projects/TS/p1/icon.png"),
-        (lsproto::FileChangeType::Changed, "file:///home/projects/TS/p1/src/index.ts"),
+        (lsproto::FileChangeType::CREATED, "file:///home/projects/TS/p1/icon.png"),
+        (lsproto::FileChangeType::CHANGED, "file:///home/projects/TS/p1/src/index.ts"),
     ]);
     assert!(
         refreshes() > baseline_refresh_count,
@@ -1502,10 +1502,10 @@ fn did_change_watched_files_skips_irrelevant_extensions() {
 
     // Scenario F: package install noise
     send(&[
-        (lsproto::FileChangeType::Created, "file:///home/projects/TS/p1/node_modules/pkg/LICENSE"),
-        (lsproto::FileChangeType::Created, "file:///home/projects/TS/p1/README.md"),
-        (lsproto::FileChangeType::Created, "file:///home/projects/TS/p1/LICENSE.txt"),
-        (lsproto::FileChangeType::Created, "file:///home/projects/TS/p1/style.css"),
+        (lsproto::FileChangeType::CREATED, "file:///home/projects/TS/p1/node_modules/pkg/LICENSE"),
+        (lsproto::FileChangeType::CREATED, "file:///home/projects/TS/p1/README.md"),
+        (lsproto::FileChangeType::CREATED, "file:///home/projects/TS/p1/LICENSE.txt"),
+        (lsproto::FileChangeType::CREATED, "file:///home/projects/TS/p1/style.css"),
     ]);
     assert_eq!(
         refreshes(),
@@ -1733,7 +1733,7 @@ fn jsconfig_used_for_js_files_when_tsconfig_exists_in_same_directory() {
         uri("file:///home/projects/TS/p1/app.js"),
         1,
         file(files, "/home/projects/TS/p1/app.js"),
-        lsproto::LanguageKind::JavaScript,
+        lsproto::LanguageKind::JAVA_SCRIPT,
     );
 
     let default_project = session
@@ -1792,7 +1792,7 @@ fn did_change_watched_files_change_program_file_not_in_tsconfig_root_files() {
 
         utils.fs().write_file("/home/projects/TS/x.ts", "export const x = 2;").unwrap();
 
-        watch_changed(&session, "/home/projects/TS/x.ts", lsproto::FileChangeType::Changed);
+        watch_changed(&session, "/home/projects/TS/x.ts", lsproto::FileChangeType::CHANGED);
 
         assert!(
             !std::ptr::eq(
@@ -1819,7 +1819,7 @@ fn close_does_not_block_on_idle_cache_clean_timer() {
         uri("file:///home/projects/TS/p1/src/index.ts"),
         1,
         file(files, "/home/projects/TS/p1/src/index.ts"),
-        lsproto::LanguageKind::TypeScript,
+        lsproto::LanguageKind::TYPE_SCRIPT,
     );
 
     let start = Instant::now();

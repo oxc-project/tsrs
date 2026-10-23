@@ -105,7 +105,7 @@ fn main() {
         .name("tsrs".to_string())
         .stack_size(512 << 20)
         .spawn(move || {
-            let sys: &'static sys::osSys = Box::leak(Box::new(sys::new_system()));
+            let sys: &'static sys::OsSys = Box::leak(Box::new(sys::new_system()));
             let result = execute::command_line(sys, args);
             tsc::System::flush(sys);
             tsrs_compiler::dump_site_counts();

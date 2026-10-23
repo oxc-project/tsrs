@@ -4,8 +4,8 @@ use std::ops::{Add, Div, Mul, Neg, Sub};
 use super::big;
 use super::math;
 
-pub const MaxSafeInteger: Number = Number(((1u64 << 53) - 1) as f64);
-pub const MinSafeInteger: Number = Number(-MaxSafeInteger.0);
+pub const MAX_SAFE_INTEGER: Number = Number(((1u64 << 53) - 1) as f64);
+pub const MIN_SAFE_INTEGER: Number = Number(-MAX_SAFE_INTEGER.0);
 
 // Number represents a JS-like number.
 //
@@ -82,8 +82,8 @@ impl Number {
 
 pub(crate) fn is_non_finite(x: f64) -> bool {
     // This is equivalent to checking `math.IsNaN(x) || math.IsInf(x, 0)` in one operation.
-    const mask: u64 = 0x7FF0_0000_0000_0000;
-    x.to_bits() & mask == mask
+    const MASK: u64 = 0x7FF0_0000_0000_0000;
+    x.to_bits() & MASK == MASK
 }
 
 impl Number {
@@ -182,7 +182,7 @@ impl Number {
 }
 
 #[cfg(test)] // only tests use it, in Go too
-pub(crate) const negative_zero: Number = Number(-0.0);
+pub(crate) const NEGATIVE_ZERO: Number = Number(-0.0);
 
 impl Number {
     // https://tc39.es/ecma262/2024/multipage/ecmascript-data-types-and-values.html#sec-numeric-types-number-remainder

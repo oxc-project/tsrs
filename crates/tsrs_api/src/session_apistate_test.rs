@@ -112,7 +112,7 @@ fn file_uri(file_name: &str) -> lsproto::DocumentUri {
 fn did_change_watched_file(project_session: &tsrs_project::Session, file_name: &str) {
     project_session.did_change_watched_files(
         &Context::background(),
-        &[lsproto::FileEvent { uri: file_uri(file_name), type_: lsproto::FileChangeType::Changed }],
+        &[lsproto::FileEvent { uri: file_uri(file_name), type_: lsproto::FileChangeType::CHANGED }],
     );
 }
 
@@ -269,7 +269,7 @@ fn get_current_language_server_snapshot_flushes_pending_lsp_changes() {
         file_uri(FILE_NAME),
         1,
         r#"export const value: string = "ok";"#.to_string(),
-        lsproto::LanguageKind::TypeScript,
+        lsproto::LanguageKind::TYPE_SCRIPT,
     );
 
     let session = Session::new_lsp_session(Arc::clone(&project_session), false);
@@ -487,7 +487,7 @@ fn get_current_language_server_snapshot_opening_lsp_file_ensures_configured_prog
         uri.clone(),
         1,
         "export const value = 1;".to_string(),
-        lsproto::LanguageKind::TypeScript,
+        lsproto::LanguageKind::TYPE_SCRIPT,
     );
 
     let session = Session::new_lsp_session(Arc::clone(&project_session), false);
@@ -536,7 +536,7 @@ fn created_snapshot_reads_the_host_file_system() {
         file_uri(FILE_NAME),
         1,
         "export const value = 2;".to_string(),
-        lsproto::LanguageKind::TypeScript,
+        lsproto::LanguageKind::TYPE_SCRIPT,
     );
     let session = Session::new_lsp_session(Arc::clone(&project_session), false);
 

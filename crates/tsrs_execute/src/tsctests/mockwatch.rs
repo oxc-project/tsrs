@@ -6,11 +6,11 @@ use std::sync::{Arc, Mutex};
 
 use rustc_hash::FxHashMap;
 use tsrs_core::tspath;
-use tsrs_fswatch::{ErrOverflow, Error, Event, EventKind, IgnoreFunc, Watch, WatchCallback};
+use tsrs_fswatch::{ERR_OVERFLOW, Error, Event, EventKind, IgnoreFunc, Watch, WatchCallback};
 
 use crate::watchmanager::{WatchBackend, WatchDirectoryRequest};
 
-struct mockWatch {
+struct MockWatch {
     path: String,
     callback: WatchCallback,
     recursive: bool,
@@ -18,9 +18,9 @@ struct mockWatch {
     closed: Arc<Mutex<bool>>,
 }
 
-struct mockCloser(Arc<Mutex<bool>>);
+struct MockCloser(Arc<Mutex<bool>>);
 
-impl Watch for mockCloser {
+impl Watch for MockCloser {
     fn close(&self) -> Result<(), Error> {
         *self.0.lock().unwrap() = true;
         Ok(())
@@ -35,7 +35,7 @@ pub(crate) struct FileChange {
 
 pub(crate) struct MockWatchBackend {
     // The mock keeps closed watches (Go: `Dirs`), so "is watched" checks the closed flag.
-    dirs: Mutex<FxHashMap<String, mockWatch>>,
+    dirs: Mutex<FxHashMap<String, MockWatch>>,
     pub(crate) directory_exists: Box<dyn Fn(&str) -> bool + Send + Sync>,
     pub(crate) use_case_sensitive_file_names: bool,
 }
@@ -111,7 +111,7 @@ impl MockWatchBackend {
             .map(|w| Arc::clone(&w.callback))
             .collect();
         for callback in callbacks {
-            callback(Vec::new(), Some(Error::wrap("overflow", &Error::new(ErrOverflow.0))));
+            callback(Vec::new(), Some(Error::wrap("overflow", &Error::new(ERR_OVERFLOW.0))));
         }
     }
 
@@ -121,14 +121,14 @@ impl MockWatchBackend {
         let mut events = Vec::with_capacity(changes.len() * 2);
         let mut seen_dirs: rustc_hash::FxHashSet<String> = rustc_hash::FxHashSet::default();
         for c in changes {
-            let kind = if c.deleted { EventKind::Delete } else { EventKind::Update };
+            let kind = if c.deleted { EventKind::DELETE } else { EventKind::UPDATE };
             events.push(Event::new(kind, c.path.clone()));
             let mut dir = path_dir(&c.path);
             while !dir.is_empty() && dir != "/" && dir != "." {
                 if !seen_dirs.insert(dir.clone()) {
                     break;
                 }
-                events.push(Event::new(EventKind::Update, dir.clone()));
+                events.push(Event::new(EventKind::UPDATE, dir.clone()));
                 let parent = path_dir(&dir);
                 if parent == dir {
                     break;
@@ -142,7 +142,7 @@ impl MockWatchBackend {
     /// Go `WatchState`.
     pub(crate) fn watch_state(&self) -> String {
         let dirs = self.dirs.lock().unwrap();
-        let mut open: Vec<&mockWatch> =
+        let mut open: Vec<&MockWatch> =
             dirs.values().filter(|w| !*w.closed.lock().unwrap()).collect();
         open.sort_by(|a, b| a.path.cmp(&b.path));
         let mut b = String::from("Watch Registrations::\nDirectory watches::\n");
@@ -172,10 +172,10 @@ impl WatchBackend for MockWatchBackend {
         let mut closers: Vec<Box<dyn Watch>> = Vec::with_capacity(requests.len());
         for r in requests {
             let closed = Arc::new(Mutex::new(false));
-            closers.push(Box::new(mockCloser(Arc::clone(&closed))));
+            closers.push(Box::new(MockCloser(Arc::clone(&closed))));
             dirs.insert(
                 r.dir.clone(),
-                mockWatch {
+                MockWatch {
                     path: r.dir,
                     callback: r.callback,
                     recursive: r.recursive,

@@ -40,7 +40,7 @@ fn main() {
     let mut p = new_printer(
         PrinterOptions {
             source_map: true,
-            target: tsrs_core::ScriptTarget::ESNext,
+            target: tsrs_core::ScriptTarget::ES_NEXT,
             ..Default::default()
         },
         PrintHandlers::default(),

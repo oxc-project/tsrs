@@ -35,7 +35,7 @@ impl LanguageService {
     ) -> Result<lsproto::DefinitionResponse, lsproto::Error> {
         let (program, file) = self.get_program_and_file(document_uri);
         let positions =
-            self.converters.from_lsp_position_for_source_file(file, position, Feature::Definition);
+            self.converters.from_lsp_position_for_source_file(file, position, Feature::DEFINITION);
         let mut results: Vec<lsproto::DefinitionResponse> = Vec::with_capacity(positions.len());
         for mapped in positions {
             if mapped.fidelity.is_single_segment() {
@@ -93,7 +93,7 @@ impl LanguageService {
                     client_supports_link,
                     &declarations,
                     None, /*reference*/
-                    Feature::Definition,
+                    Feature::DEFINITION,
                 ));
             }
             return Ok(lsproto::LocationOrLocationsOrDefinitionLinksOrNull::default());
@@ -129,7 +129,7 @@ impl LanguageService {
                         client_supports_link,
                         &get_source_definition_entry_declarations(source_file),
                         None,
-                        Feature::Definition,
+                        Feature::DEFINITION,
                     ));
                 }
             }
@@ -168,7 +168,7 @@ impl LanguageService {
                     client_supports_link,
                     &unique_declaration_nodes(&module_results),
                     None,
-                    Feature::Definition,
+                    Feature::DEFINITION,
                 ));
             }
         }
@@ -203,7 +203,7 @@ impl LanguageService {
                         client_supports_link,
                         &get_source_definition_entry_declarations(source_file),
                         None,
-                        Feature::Definition,
+                        Feature::DEFINITION,
                     ));
                 }
             }
@@ -220,16 +220,16 @@ impl LanguageService {
             client_supports_link,
             &declarations,
             None, /*reference*/
-            Feature::Definition,
+            Feature::DEFINITION,
         ))
     }
 }
 
 // Go passes `program.Host()` (a compiler.CompilerHost, which has the FS/GetCurrentDirectory methods of
 // module.ResolutionHost) to module.NewResolver; Rust needs the explicit adapter.
-struct compilerHostResolutionHost(&'static dyn CompilerHost);
+struct CompilerHostResolutionHost(&'static dyn CompilerHost);
 
-impl ResolutionHost for compilerHostResolutionHost {
+impl ResolutionHost for CompilerHostResolutionHost {
     fn fs(&self) -> &dyn FS {
         self.0.fs()
     }
@@ -265,8 +265,8 @@ impl LanguageService {
         let mut no_dts_options: CompilerOptions = (*options).clone();
         no_dts_options.no_dts_resolution = Tristate::True;
         let host: &'static dyn CompilerHost = &**program.host();
-        let resolution_host: &'static compilerHostResolutionHost =
-            tsrs_core::alloc(compilerHostResolutionHost(host));
+        let resolution_host: &'static CompilerHostResolutionHost =
+            tsrs_core::alloc(CompilerHostResolutionHost(host));
         SourceDefResolver {
             ls: self,
             fs: host.fs(),
@@ -627,11 +627,11 @@ impl SourceDefResolver<'_> {
         preferred_mode: ResolutionMode,
     ) -> String {
         let mut modes = vec![preferred_mode];
-        if preferred_mode != ModuleKind::ESNext {
-            modes.push(ModuleKind::ESNext);
+        if preferred_mode != ModuleKind::ES_NEXT {
+            modes.push(ModuleKind::ES_NEXT);
         }
-        if preferred_mode != ModuleKind::CommonJS {
-            modes.push(ModuleKind::CommonJS);
+        if preferred_mode != ModuleKind::COMMON_JS {
+            modes.push(ModuleKind::COMMON_JS);
         }
 
         if let Some(result) = modes.into_iter().find_map(|mode| {
@@ -805,8 +805,8 @@ fn get_candidate_source_declaration_names(
             names.push("default".to_string());
         }
         if (ast::is_function_declaration(declaration) || ast::is_class_declaration(declaration))
-            && declaration.modifier_flags() & ModifierFlags::ExportDefault
-                == ModifierFlags::ExportDefault
+            && declaration.modifier_flags() & ModifierFlags::EXPORT_DEFAULT
+                == ModifierFlags::EXPORT_DEFAULT
         {
             names.push("default".to_string());
         }
@@ -877,7 +877,8 @@ fn find_declaration_nodes_by_name(source_file: P<SourceFile>, names: &[String]) 
         }
         if want_default
             && (ast::is_function_declaration(node) || ast::is_class_declaration(node))
-            && node.modifier_flags() & ModifierFlags::ExportDefault == ModifierFlags::ExportDefault
+            && node.modifier_flags() & ModifierFlags::EXPORT_DEFAULT
+                == ModifierFlags::EXPORT_DEFAULT
         {
             matched = true;
         }

@@ -7,16 +7,16 @@ use tsrs_ipc as ipc;
 use tsrs_spanmap::{Feature, Kind, Segment};
 
 use crate::protocol::{
-    initialize_result, marshal_span_map, no_notifications, testHandler, unexpected_method,
+    TestHandler, initialize_result, marshal_span_map, no_notifications, unexpected_method,
     unmarshal_params,
 };
 
 // supplemental_diagnostics.go:13
-pub(crate) struct supplementalDiagnosticsHandler;
+pub(crate) struct SupplementalDiagnosticsHandler;
 
-impl testHandler for supplementalDiagnosticsHandler {}
+impl TestHandler for SupplementalDiagnosticsHandler {}
 
-impl ipc::Handler for supplementalDiagnosticsHandler {
+impl ipc::Handler for SupplementalDiagnosticsHandler {
     // supplemental_diagnostics.go:15
     fn handle_request(&self, method: &str, params: Option<&Value>) -> Result<Value, ipc::Error> {
         match method {
@@ -28,8 +28,8 @@ impl ipc::Handler for supplementalDiagnosticsHandler {
                     virtual_start: PREFIX.len() as u32,
                     virtual_end: (PREFIX.len() + p.content.len()) as u32,
                     original_end: p.content.len() as u32,
-                    kind: Kind::Verbatim,
-                    features: Feature::All,
+                    kind: Kind::VERBATIM,
+                    features: Feature::ALL,
                     ..Default::default()
                 }])?;
                 Ok(TransformResult {

@@ -36,7 +36,7 @@ pub(crate) fn settings(
             base_indent_size,
             new_line_character: "\n".to_string(),
             convert_tabs_to_spaces,
-            indent_style: IndentStyle::Smart,
+            indent_style: IndentStyle::SMART,
             trim_trailing_whitespace: Tristate::True,
         },
         ..Default::default()

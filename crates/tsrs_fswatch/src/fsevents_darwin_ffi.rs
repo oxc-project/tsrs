@@ -13,13 +13,13 @@
 
 use std::ffi::{CString, c_char, c_void};
 
-use crate::fsevents_darwin::{fs_events_callback, fseventsWatchSnapshot};
+use crate::fsevents_darwin::{FseventsWatchSnapshot, fs_events_callback};
 
 type CFTypeRef = *const c_void;
 type CFIndex = isize;
 type Boolean = u8;
 type FSEventStreamRef = *mut c_void;
-type dispatch_queue_t = *mut c_void;
+type DispatchQueueT = *mut c_void;
 
 // FSEventStreamContext mirrors the C struct of the same name.
 #[repr(C)]
@@ -42,29 +42,39 @@ type FSEventStreamCallback = extern "C" fn(
 
 #[link(name = "CoreFoundation", kind = "framework")]
 unsafe extern "C" {
-    fn CFRelease(cf: CFTypeRef);
-    fn CFStringCreateWithCString(
+    #[link_name = "CFRelease"]
+    fn cf_release(cf: CFTypeRef);
+    #[link_name = "CFStringCreateWithCString"]
+    fn cf_string_create_with_c_string(
         alloc: CFTypeRef,
         c_str: *const c_char,
         encoding: u32,
     ) -> CFTypeRef;
-    fn CFArrayCreate(
+    #[link_name = "CFArrayCreate"]
+    fn native_cf_array_create(
         alloc: CFTypeRef,
         values: *const CFTypeRef,
         num_values: CFIndex,
         callbacks: *const c_void,
     ) -> CFTypeRef;
-    fn CFArrayGetValueAtIndex(array: CFTypeRef, idx: CFIndex) -> CFTypeRef;
-    fn CFStringCreateMutableCopy(
+    #[link_name = "CFArrayGetValueAtIndex"]
+    fn cf_array_get_value_at_index(array: CFTypeRef, idx: CFIndex) -> CFTypeRef;
+    #[link_name = "CFStringCreateMutableCopy"]
+    fn native_cf_string_create_mutable_copy(
         alloc: CFTypeRef,
         max_length: CFIndex,
         string: CFTypeRef,
     ) -> CFTypeRef;
-    fn CFStringNormalize(string: CFTypeRef, the_form: CFIndex);
-    fn CFStringFold(string: CFTypeRef, the_flags: usize, the_locale: CFTypeRef);
-    fn CFStringGetLength(string: CFTypeRef) -> CFIndex;
-    fn CFStringGetMaximumSizeForEncoding(length: CFIndex, encoding: u32) -> CFIndex;
-    fn CFStringGetCString(
+    #[link_name = "CFStringNormalize"]
+    fn native_cf_string_normalize(string: CFTypeRef, the_form: CFIndex);
+    #[link_name = "CFStringFold"]
+    fn cf_string_fold(string: CFTypeRef, the_flags: usize, the_locale: CFTypeRef);
+    #[link_name = "CFStringGetLength"]
+    fn cf_string_get_length(string: CFTypeRef) -> CFIndex;
+    #[link_name = "CFStringGetMaximumSizeForEncoding"]
+    fn cf_string_get_maximum_size_for_encoding(length: CFIndex, encoding: u32) -> CFIndex;
+    #[link_name = "CFStringGetCString"]
+    fn cf_string_get_c_string(
         string: CFTypeRef,
         buffer: *mut c_char,
         buffer_size: CFIndex,
@@ -74,7 +84,8 @@ unsafe extern "C" {
 
 #[link(name = "CoreServices", kind = "framework")]
 unsafe extern "C" {
-    fn FSEventStreamCreate(
+    #[link_name = "FSEventStreamCreate"]
+    fn fs_event_stream_create(
         allocator: CFTypeRef,
         callback: FSEventStreamCallback,
         context: *const FSEventStreamContext,
@@ -83,18 +94,25 @@ unsafe extern "C" {
         latency: f64,
         flags: u32,
     ) -> FSEventStreamRef;
-    fn FSEventStreamSetDispatchQueue(stream: FSEventStreamRef, q: dispatch_queue_t);
-    fn FSEventStreamStart(stream: FSEventStreamRef) -> Boolean;
-    fn FSEventStreamFlushSync(stream: FSEventStreamRef);
-    fn FSEventsGetCurrentEventId() -> u64;
-    fn FSEventStreamStop(stream: FSEventStreamRef);
-    fn FSEventStreamInvalidate(stream: FSEventStreamRef);
-    fn FSEventStreamRelease(stream: FSEventStreamRef);
+    #[link_name = "FSEventStreamSetDispatchQueue"]
+    fn fs_event_stream_set_dispatch_queue(stream: FSEventStreamRef, q: DispatchQueueT);
+    #[link_name = "FSEventStreamStart"]
+    fn fs_event_stream_start(stream: FSEventStreamRef) -> Boolean;
+    #[link_name = "FSEventStreamFlushSync"]
+    fn fs_event_stream_flush_sync(stream: FSEventStreamRef);
+    #[link_name = "FSEventsGetCurrentEventId"]
+    fn native_fs_events_get_current_event_id() -> u64;
+    #[link_name = "FSEventStreamStop"]
+    fn fs_event_stream_stop(stream: FSEventStreamRef);
+    #[link_name = "FSEventStreamInvalidate"]
+    fn fs_event_stream_invalidate(stream: FSEventStreamRef);
+    #[link_name = "FSEventStreamRelease"]
+    fn fs_event_stream_release(stream: FSEventStreamRef);
 }
 
 // libSystem (always linked).
 unsafe extern "C" {
-    fn dispatch_queue_create(label: *const c_char, attr: *const c_void) -> dispatch_queue_t;
+    fn dispatch_queue_create(label: *const c_char, attr: *const c_void) -> DispatchQueueT;
     fn dispatch_queue_attr_make_with_qos_class(
         attr: *const c_void,
         qos_class: u32,
@@ -102,17 +120,17 @@ unsafe extern "C" {
     ) -> *const c_void;
     fn dispatch_release(object: *mut c_void);
     fn dispatch_sync_f(
-        queue: dispatch_queue_t,
+        queue: DispatchQueueT,
         context: *mut c_void,
         work: extern "C" fn(*mut c_void),
     );
 }
 
-pub(crate) const cfStringEncodingUTF8: u32 = 0x0800_0100;
-const cfStringNormalizationFormC: CFIndex = 2; // kCFStringNormalizationFormC
+pub(crate) const CF_STRING_ENCODING_UTF8: u32 = 0x0800_0100;
+const CF_STRING_NORMALIZATION_FORM_C: CFIndex = 2; // kCFStringNormalizationFormC
 // kFSEventStreamCreateFlagUseCFTypes (0x1) | kFSEventStreamCreateFlagFileEvents (0x10); Go hardcodes it in the
 // assembly trampolines.
-const fsEventStreamCreateFlags: u32 = 0x11;
+const FS_EVENT_STREAM_CREATE_FLAGS: u32 = 0x11;
 
 // An owned CoreFoundation object reference (released on drop).
 pub(crate) struct CFRef(CFTypeRef);
@@ -121,7 +139,7 @@ impl Drop for CFRef {
     fn drop(&mut self) {
         // SAFETY: `CFRef` is only constructed from a non-NULL object returned by a CF "Create"/"Copy" function,
         // which the caller owns exactly once.
-        unsafe { CFRelease(self.0) }
+        unsafe { cf_release(self.0) }
     }
 }
 
@@ -129,8 +147,9 @@ impl Drop for CFRef {
 pub(crate) fn cf_string_create(s: &str) -> Option<CFRef> {
     let cstr = CString::new(s).ok()?;
     // SAFETY: `cstr` is NUL-terminated and outlives the call; NULL allocator = default.
-    let r =
-        unsafe { CFStringCreateWithCString(std::ptr::null(), cstr.as_ptr(), cfStringEncodingUTF8) };
+    let r = unsafe {
+        cf_string_create_with_c_string(std::ptr::null(), cstr.as_ptr(), CF_STRING_ENCODING_UTF8)
+    };
     (!r.is_null()).then_some(CFRef(r))
 }
 
@@ -140,23 +159,28 @@ pub(crate) fn cf_array_create(values: &[CFRef]) -> Option<CFRef> {
     let ptrs: Vec<CFTypeRef> = values.iter().map(|v| v.0).collect();
     // SAFETY: `ptrs` holds `ptrs.len()` valid CF objects for the duration of the call.
     let r = unsafe {
-        CFArrayCreate(std::ptr::null(), ptrs.as_ptr(), ptrs.len() as CFIndex, std::ptr::null())
+        native_cf_array_create(
+            std::ptr::null(),
+            ptrs.as_ptr(),
+            ptrs.len() as CFIndex,
+            std::ptr::null(),
+        )
     };
     (!r.is_null()).then_some(CFRef(r))
 }
 
 fn cf_string_create_mutable_copy(src: CFTypeRef) -> Option<CFRef> {
     // SAFETY: `src` is a valid CFString (callers pass objects they own or borrow for the call).
-    let r = unsafe { CFStringCreateMutableCopy(std::ptr::null(), 0, src) };
+    let r = unsafe { native_cf_string_create_mutable_copy(std::ptr::null(), 0, src) };
     (!r.is_null()).then_some(CFRef(r))
 }
 
 fn cf_string_normalize(mut_str: &CFRef, form: CFIndex) {
     // SAFETY: `mut_str` is a CFMutableString created by `cf_string_create_mutable_copy`.
-    unsafe { CFStringNormalize(mut_str.0, form) }
+    unsafe { native_cf_string_normalize(mut_str.0, form) }
 }
 
-pub(crate) const nativePathFolding: bool = true;
+pub(crate) const NATIVE_PATH_FOLDING: bool = true;
 
 // fsevents_darwin_ffi.go:206
 // foldNativePath is a comparison form, never a displayed or opened path.
@@ -177,11 +201,11 @@ pub(crate) fn fold_native_path(s: &str) -> String {
     };
     // Normalize before folding as well: a decomposed capital I with dot
     // must have the same comparison form as precomposed dotted capital I.
-    cf_string_normalize(&mut_, cfStringNormalizationFormC);
-    const cfCompareCaseInsensitive: usize = 1;
+    cf_string_normalize(&mut_, CF_STRING_NORMALIZATION_FORM_C);
+    const CF_COMPARE_CASE_INSENSITIVE: usize = 1;
     // SAFETY: `mut_` is a CFMutableString; NULL locale = canonical folding.
-    unsafe { CFStringFold(mut_.0, cfCompareCaseInsensitive, std::ptr::null()) };
-    cf_string_normalize(&mut_, cfStringNormalizationFormC);
+    unsafe { cf_string_fold(mut_.0, CF_COMPARE_CASE_INSENSITIVE, std::ptr::null()) };
+    cf_string_normalize(&mut_, CF_STRING_NORMALIZATION_FORM_C);
     let folded = cf_string_to_go(mut_.0);
     assert!(!folded.is_empty(), "fswatch: cannot extract folded CFString");
     folded
@@ -218,7 +242,7 @@ fn cf_string_normalized_to_go(src: CFTypeRef) -> String {
     let Some(mut_) = cf_string_create_mutable_copy(src) else {
         return String::new();
     };
-    cf_string_normalize(&mut_, cfStringNormalizationFormC);
+    cf_string_normalize(&mut_, CF_STRING_NORMALIZATION_FORM_C);
     cf_string_to_go(mut_.0)
 }
 
@@ -228,14 +252,14 @@ fn cf_string_normalized_to_go(src: CFTypeRef) -> String {
 fn cf_string_to_go(src: CFTypeRef) -> String {
     // SAFETY: `src` is a valid CFString for the duration of these calls; `buf` has `buf_size` bytes.
     unsafe {
-        let length = CFStringGetLength(src);
-        let buf_size = CFStringGetMaximumSizeForEncoding(length, cfStringEncodingUTF8) + 1;
+        let length = cf_string_get_length(src);
+        let buf_size = cf_string_get_maximum_size_for_encoding(length, CF_STRING_ENCODING_UTF8) + 1;
         let mut buf = vec![0u8; buf_size as usize];
-        if CFStringGetCString(
+        if cf_string_get_c_string(
             src,
             buf.as_mut_ptr().cast::<c_char>(),
             buf_size,
-            cfStringEncodingUTF8,
+            CF_STRING_ENCODING_UTF8,
         ) == 0
         {
             return String::new();
@@ -269,19 +293,19 @@ pub(crate) fn normalize_nfc(s: &str) -> String {
 // Go `fsEventsGetCurrentEventID`.
 pub(crate) fn fs_events_get_current_event_id() -> u64 {
     // SAFETY: no arguments, no preconditions.
-    unsafe { FSEventsGetCurrentEventId() }
+    unsafe { native_fs_events_get_current_event_id() }
 }
 
 // The borrowed arguments of one FSEvents callback (Go's retained/copied `fsEventsCallbackPayload`; here the
 // callback runs synchronously, so nothing is retained or freed).
-pub(crate) struct fsEventsCallbackPayload {
+pub(crate) struct FsEventsCallbackPayload {
     pub(crate) num_events: usize,
     paths: CFTypeRef,
     pub(crate) flags: *const u32,
     pub(crate) ids: *const u64,
 }
 
-impl fsEventsCallbackPayload {
+impl FsEventsCallbackPayload {
     pub(crate) fn is_empty(&self) -> bool {
         self.paths.is_null() || self.flags.is_null() || self.ids.is_null()
     }
@@ -300,18 +324,18 @@ impl fsEventsCallbackPayload {
     pub(crate) fn path_nfc(&self, i: usize) -> String {
         // SAFETY: with kFSEventStreamCreateFlagUseCFTypes `paths` is a CFArray of `num_events` CFStrings, valid for
         // the duration of the callback.
-        let path_ref = unsafe { CFArrayGetValueAtIndex(self.paths, i as CFIndex) };
+        let path_ref = unsafe { cf_array_get_value_at_index(self.paths, i as CFIndex) };
         cf_string_to_nfc(path_ref)
     }
 }
 
 // Keep the borrowed CF objects and arrays alive while a test exercises the real event classifier.
 #[cfg(test)]
-pub(crate) fn dispatch_test_event(cb: &streamCallback, path: &str, flags: u32) {
+pub(crate) fn dispatch_test_event(cb: &StreamCallback, path: &str, flags: u32) {
     let path = cf_string_create(path).unwrap();
     let paths = cf_array_create(std::slice::from_ref(&path)).unwrap();
     let id = 1;
-    let payload = fsEventsCallbackPayload {
+    let payload = FsEventsCallbackPayload {
         num_events: 1,
         paths: paths.0,
         flags: &raw const flags,
@@ -321,15 +345,15 @@ pub(crate) fn dispatch_test_event(cb: &streamCallback, path: &str, flags: u32) {
 }
 
 // streamCallback is the per-stream state the C callback receives as FSEventStreamContext.info.
-pub(crate) struct streamCallback {
-    queue: dispatch_queue_t, // per-stream serial dispatch queue
-    pub(crate) watches: Vec<fseventsWatchSnapshot>,
+pub(crate) struct StreamCallback {
+    queue: DispatchQueueT, // per-stream serial dispatch queue
+    pub(crate) watches: Vec<FseventsWatchSnapshot>,
 }
 
 // SAFETY: the dispatch queue handle is a thread-safe libdispatch object; `watches` is immutable after creation.
-unsafe impl Send for streamCallback {}
+unsafe impl Send for StreamCallback {}
 // SAFETY: as for Send: the queue handle is thread-safe and `watches` is never mutated after creation.
-unsafe impl Sync for streamCallback {}
+unsafe impl Sync for StreamCallback {}
 
 // fsevents_darwin_ffi.go:536
 // newStreamCallback allocates a streamCallback with its own per-stream serial dispatch queue. The per-stream
@@ -343,8 +367,8 @@ unsafe impl Sync for streamCallback {}
 // attribute and on none with QOS_CLASS_DEFAULT or QOS_CLASS_USER_INITIATED. The callback is short (tens of
 // microseconds per batch), so running it ahead of the compiler's threads costs nothing measurable.
 pub(crate) fn new_stream_callback(
-    watches: &[fseventsWatchSnapshot],
-) -> Option<Box<streamCallback>> {
+    watches: &[FseventsWatchSnapshot],
+) -> Option<Box<StreamCallback>> {
     let label = b"typescript.fswatch.fsevents.stream\0";
     const QOS_CLASS_USER_INITIATED: u32 = 0x19;
     // SAFETY: NULL = DISPATCH_QUEUE_SERIAL; the returned attribute is a static libdispatch object (not released).
@@ -356,12 +380,12 @@ pub(crate) fn new_stream_callback(
     if queue.is_null() {
         return None;
     }
-    Some(Box::new(streamCallback { queue, watches: watches.to_vec() }))
+    Some(Box::new(StreamCallback { queue, watches: watches.to_vec() }))
 }
 
 extern "C" fn dispatch_noop(_: *mut c_void) {}
 
-impl streamCallback {
+impl StreamCallback {
     // fsevents_darwin_ffi.go:565
     pub(crate) fn wait_dispatch_queue(&self) {
         if !self.queue.is_null() {
@@ -391,8 +415,8 @@ extern "C" fn fs_events_callback_c(
 ) {
     // SAFETY: `info` is the `streamCallback` passed to FSEventStreamCreate; it stays alive until
     // `teardown_stream` has waited for the stream's queue, so no callback outlives it.
-    let cb = unsafe { &*(info as *const streamCallback) };
-    let payload = fsEventsCallbackPayload {
+    let cb = unsafe { &*(info as *const StreamCallback) };
+    let payload = FsEventsCallbackPayload {
         num_events,
         paths: event_paths.cast_const(),
         flags: event_flags,
@@ -405,15 +429,15 @@ extern "C" fn fs_events_callback_c(
 }
 
 // An FSEventStream handle (Go keeps it as an atomic uintptr).
-pub(crate) struct fsEventStream(FSEventStreamRef);
+pub(crate) struct FsEventStream(FSEventStreamRef);
 
 // SAFETY: FSEventStream functions may be called from any thread once the stream is scheduled on a dispatch queue.
-unsafe impl Send for fsEventStream {}
+unsafe impl Send for FsEventStream {}
 // SAFETY: as for Send: the stream functions are thread-safe once it is scheduled on a dispatch queue.
-unsafe impl Sync for fsEventStream {}
+unsafe impl Sync for FsEventStream {}
 
 #[derive(Clone, Copy)]
-pub(crate) enum streamStartError {
+pub(crate) enum StreamStartError {
     CFStringCreateNull,
     CFArrayCreateNull,
     StreamCreateNull,
@@ -424,13 +448,13 @@ pub(crate) enum streamStartError {
 // callback's queue, start and flush it. On failure the callback is closed (Go: `cb.close()`).
 pub(crate) fn create_and_start_stream(
     paths: &[String],
-    cb: &mut Box<streamCallback>,
-) -> Result<fsEventStream, streamStartError> {
+    cb: &mut Box<StreamCallback>,
+) -> Result<FsEventStream, StreamStartError> {
     let mut cf_strings = Vec::with_capacity(paths.len());
     cf_strings = match paths.iter().try_fold(cf_strings, |mut cf_strings, path| {
         match cf_string_create(path) {
             Some(s) => cf_strings.push(s),
-            None => return std::ops::ControlFlow::Break(Err(streamStartError::CFStringCreateNull)),
+            None => return std::ops::ControlFlow::Break(Err(StreamStartError::CFStringCreateNull)),
         }
 
         std::ops::ControlFlow::Continue(cf_strings)
@@ -439,10 +463,10 @@ pub(crate) fn create_and_start_stream(
         std::ops::ControlFlow::Break(value) => return value,
     };
     let Some(paths_to_watch) = cf_array_create(&cf_strings) else {
-        return Err(streamStartError::CFArrayCreateNull);
+        return Err(StreamStartError::CFArrayCreateNull);
     };
 
-    let info: *mut streamCallback = &raw mut **cb;
+    let info: *mut StreamCallback = &raw mut **cb;
     let ctx = FSEventStreamContext {
         version: 0,
         info: info.cast::<c_void>(),
@@ -451,39 +475,39 @@ pub(crate) fn create_and_start_stream(
         copy_description: std::ptr::null(),
     };
     // kFSEventStreamEventIdSinceNow == ((FSEventStreamEventId)0xFFFFFFFFFFFFFFFFULL)
-    const eventIDSinceNow: u64 = 0xFFFF_FFFF_FFFF_FFFF;
+    const EVENT_ID_SINCE_NOW: u64 = 0xFFFF_FFFF_FFFF_FFFF;
     // SAFETY: `ctx` is copied by FSEventStreamCreate; `paths_to_watch` is a valid CFArray of CFStrings; `info`
     // points into the boxed callback, whose address is stable until the stream is torn down.
     let stream = unsafe {
-        FSEventStreamCreate(
+        fs_event_stream_create(
             std::ptr::null(),
             fs_events_callback_c,
             &raw const ctx,
             paths_to_watch.0,
-            eventIDSinceNow,
+            EVENT_ID_SINCE_NOW,
             0.001,
-            fsEventStreamCreateFlags,
+            FS_EVENT_STREAM_CREATE_FLAGS,
         )
     };
     drop(paths_to_watch);
     drop(cf_strings);
     if stream.is_null() {
         cb.close();
-        return Err(streamStartError::StreamCreateNull);
+        return Err(StreamStartError::StreamCreateNull);
     }
 
     // SAFETY: `stream` was just created; `cb.queue` is a live serial queue.
     unsafe {
-        FSEventStreamSetDispatchQueue(stream, cb.queue);
-        if FSEventStreamStart(stream) == 0 {
-            FSEventStreamInvalidate(stream);
-            FSEventStreamRelease(stream);
+        fs_event_stream_set_dispatch_queue(stream, cb.queue);
+        if fs_event_stream_start(stream) == 0 {
+            fs_event_stream_invalidate(stream);
+            fs_event_stream_release(stream);
             cb.close();
-            return Err(streamStartError::StreamStartFailed);
+            return Err(StreamStartError::StreamStartFailed);
         }
-        FSEventStreamFlushSync(stream);
+        fs_event_stream_flush_sync(stream);
     }
-    Ok(fsEventStream(stream))
+    Ok(FsEventStream(stream))
 }
 
 // fsevents_darwin.go:350
@@ -494,30 +518,30 @@ pub(crate) fn create_and_start_stream(
     clippy::needless_pass_by_value,
     reason = "takes the stream by value: it is torn down exactly once and must not be used after"
 )]
-pub(crate) fn teardown_stream(stream: fsEventStream, cb: Option<&mut Box<streamCallback>>) {
+pub(crate) fn teardown_stream(stream: FsEventStream, cb: Option<&mut Box<StreamCallback>>) {
     // SAFETY: `stream` is a started stream that is torn down exactly once (the caller swapped it out).
     unsafe {
-        FSEventStreamStop(stream.0);
+        fs_event_stream_stop(stream.0);
         match cb {
             Some(cb) => {
-                FSEventStreamInvalidate(stream.0);
+                fs_event_stream_invalidate(stream.0);
                 cb.wait_dispatch_queue();
                 cb.close();
             }
-            None => FSEventStreamInvalidate(stream.0),
+            None => fs_event_stream_invalidate(stream.0),
         }
-        FSEventStreamRelease(stream.0);
+        fs_event_stream_release(stream.0);
     }
 }
 
 #[cfg(test)]
-pub(crate) fn dispatch_test_events(cb: &streamCallback, events: &[(&str, u32)]) {
+pub(crate) fn dispatch_test_events(cb: &StreamCallback, events: &[(&str, u32)]) {
     let path_refs: Vec<_> =
         events.iter().map(|(path, _)| cf_string_create(path).unwrap()).collect();
     let paths = cf_array_create(&path_refs).unwrap();
     let flags: Vec<_> = events.iter().map(|(_, flags)| *flags).collect();
     let ids: Vec<_> = (1..=events.len() as u64).collect();
-    let payload = fsEventsCallbackPayload {
+    let payload = FsEventsCallbackPayload {
         num_events: events.len(),
         paths: paths.0,
         flags: flags.as_ptr(),

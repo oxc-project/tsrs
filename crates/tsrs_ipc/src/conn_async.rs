@@ -34,13 +34,13 @@ pub struct AsyncConn {
 
     // For server→client requests
     seq: AtomicU64,
-    pending_mu: Mutex<pendingCalls>,
+    pending_mu: Mutex<PendingCalls>,
     write_mu: Mutex<()>,
     // Go's `handlers sync.WaitGroup`: Run starts the handler threads in a std::thread::scope, which waits for them.
 }
 
 // The state Go guards with pendingMu.
-struct pendingCalls {
+struct PendingCalls {
     pending: FxHashMap<ID, SyncSender<Message>>,
     terminal: Option<Error>,
     has_cause: bool,
@@ -72,7 +72,7 @@ pub fn new_async_conn_with_protocol(
         protocol,
         handler,
         seq: AtomicU64::new(0),
-        pending_mu: Mutex::new(pendingCalls {
+        pending_mu: Mutex::new(PendingCalls {
             pending: FxHashMap::default(),
             terminal: None,
             has_cause: false,
@@ -361,7 +361,7 @@ impl AsyncConn {
     }
 }
 
-impl pendingCalls {
+impl PendingCalls {
     // conn_async.go:134
     fn record_terminal_error_locked(&mut self, terminal_err: Option<&Error>) -> bool {
         if self.terminal.is_none() {

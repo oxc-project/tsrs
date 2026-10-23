@@ -329,7 +329,7 @@ impl<'a> Decoder<'a> {
             if k == Kind::SourceFile {
                 node.as_source_file()
                     .is_declaration_file
-                    .set(node.flags().intersects(NodeFlags::Ambient));
+                    .set(node.flags().intersects(NodeFlags::AMBIENT));
             }
             self.nodes[i] = Some(node);
         }

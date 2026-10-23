@@ -122,7 +122,7 @@ impl PseudoChecker {
             if let Some(init) = init {
                 if !is_contextually_typed(node) {
                     // explicit fail on readonly template literals to allow for literal freshness in the future
-                    if has_modifier(node, ModifierFlags::Readonly) && is_template_expression(init) {
+                    if has_modifier(node, ModifierFlags::READONLY) && is_template_expression(init) {
                         return new_pseudo_type_no_result(node);
                     }
                     let expr = self.type_from_expression(init);
@@ -296,7 +296,7 @@ impl PseudoChecker {
         if let Some(f) = fn_ {
             if !node_is_missing(f.body()) {
                 let flags = get_function_flags(Some(f));
-                if flags.intersects(FunctionFlags::AsyncGenerator) {
+                if flags.intersects(FunctionFlags::ASYNC_GENERATOR) {
                     return Some(new_pseudo_type_inferred(f, true));
                 }
 
@@ -345,7 +345,7 @@ impl PseudoChecker {
     // This is basically `checkExpression` for pseudotypes
     pub(crate) fn type_from_expression(&self, node: P<Node>) -> Option<P<PseudoType>> {
         match node.kind() {
-            Kind::OmittedExpression => return Some(*PseudoTypeUndefined),
+            Kind::OmittedExpression => return Some(*PSEUDO_TYPE_UNDEFINED),
             Kind::ParenthesizedExpression => {
                 // assertions transformed on reparse, just unwrap
                 return self.type_from_expression(node.as_parenthesized_expression().expression());
@@ -354,10 +354,10 @@ impl PseudoChecker {
                 // !!! TODO: in strada, this uses symbol information to ensure `node` refers to the global `undefined` symbol instead
                 // we should probably import `resolveName` and use it here to check for the same; but we have to setup some barebones pseudoglobals for that to work!
                 if node.as_identifier().text() == "undefined" {
-                    return Some(*PseudoTypeUndefined);
+                    return Some(*PSEUDO_TYPE_UNDEFINED);
                 }
             }
-            Kind::NullKeyword => return Some(*PseudoTypeNull),
+            Kind::NullKeyword => return Some(*PSEUDO_TYPE_NULL),
             Kind::ArrowFunction | Kind::FunctionExpression => {
                 return Some(self.type_from_function_like_expression(node));
             }
@@ -391,49 +391,49 @@ impl PseudoChecker {
                 return Some(new_pseudo_type_maybe_const_location(
                     node,
                     new_pseudo_type_inferred(node, false),
-                    *PseudoTypeString,
+                    *PSEUDO_TYPE_STRING,
                 ));
             }
             Kind::NumericLiteral => {
                 return Some(new_pseudo_type_maybe_const_location(
                     node,
                     new_pseudo_type_numeric_literal(node),
-                    *PseudoTypeNumber,
+                    *PSEUDO_TYPE_NUMBER,
                 ));
             }
             Kind::NoSubstitutionTemplateLiteral => {
                 return Some(new_pseudo_type_maybe_const_location(
                     node,
                     new_pseudo_type_string_literal(node),
-                    *PseudoTypeString,
+                    *PSEUDO_TYPE_STRING,
                 ));
             }
             Kind::StringLiteral => {
                 return Some(new_pseudo_type_maybe_const_location(
                     node,
                     new_pseudo_type_string_literal(node),
-                    *PseudoTypeString,
+                    *PSEUDO_TYPE_STRING,
                 ));
             }
             Kind::BigIntLiteral => {
                 return Some(new_pseudo_type_maybe_const_location(
                     node,
                     new_pseudo_type_big_int_literal(node),
-                    *PseudoTypeBigInt,
+                    *PSEUDO_TYPE_BIG_INT,
                 ));
             }
             Kind::TrueKeyword => {
                 return Some(new_pseudo_type_maybe_const_location(
                     node,
-                    *PseudoTypeTrue,
-                    *PseudoTypeBoolean,
+                    *PSEUDO_TYPE_TRUE,
+                    *PSEUDO_TYPE_BOOLEAN,
                 ));
             }
             Kind::FalseKeyword => {
                 return Some(new_pseudo_type_maybe_const_location(
                     node,
-                    *PseudoTypeFalse,
-                    *PseudoTypeBoolean,
+                    *PSEUDO_TYPE_FALSE,
+                    *PSEUDO_TYPE_BOOLEAN,
                 ));
             }
             _ => {}
@@ -566,14 +566,14 @@ impl PseudoChecker {
         }
         let mut error_nodes: Vec<P<Node>> = Vec::new();
         error_nodes.extend(properties.iter().filter_map(|&e| {
-            if e.flags().intersects(NodeFlags::ThisNodeHasError) {
+            if e.flags().intersects(NodeFlags::THIS_NODE_HAS_ERROR) {
                 return Some(e);
             }
             if e.kind() == Kind::ShorthandPropertyAssignment || e.kind() == Kind::SpreadAssignment {
                 return Some(e);
             }
             let name = e.name().unwrap();
-            if name.flags().intersects(NodeFlags::ThisNodeHasError) {
+            if name.flags().intersects(NodeFlags::THIS_NODE_HAS_ERROR) {
                 return Some(name);
             }
             if name.kind() == Kind::PrivateIdentifier {
@@ -666,14 +666,14 @@ impl PseudoChecker {
             return Some(new_pseudo_type_maybe_const_location(
                 node,
                 new_pseudo_type_big_int_literal(expr),
-                *PseudoTypeBigInt,
+                *PSEUDO_TYPE_BIG_INT,
             ));
         }
         if inner.kind() == Kind::NumericLiteral {
             return Some(new_pseudo_type_maybe_const_location(
                 node,
                 new_pseudo_type_numeric_literal(expr),
-                *PseudoTypeNumber,
+                *PSEUDO_TYPE_NUMBER,
             ));
         }
         debug::fail_bad_syntax_kind(&inner.kind_string(), &[])
@@ -827,7 +827,7 @@ pub(crate) fn add_undefined_if_definitely_required(expr: P<PseudoType>) -> P<Pse
         return expr; // will just error later, more like than not, unless the `undefined` is explicit in the pseudo
     }
     // Explicitly add an `| undefined`
-    new_pseudo_type_union(&[expr, *PseudoTypeUndefined])
+    new_pseudo_type_union(&[expr, *PSEUDO_TYPE_UNDEFINED])
 }
 
 impl PseudoChecker {

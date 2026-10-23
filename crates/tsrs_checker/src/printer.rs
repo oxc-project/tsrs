@@ -69,8 +69,8 @@ impl Checker {
         self.type_to_string_ex(
             t,
             enclosing_declaration,
-            TypeFormatFlags::AllowUniqueESSymbolType
-                | TypeFormatFlags::UseAliasDefinedOutsideCurrentScope,
+            TypeFormatFlags::ALLOW_UNIQUE_ES_SYMBOL_TYPE
+                | TypeFormatFlags::USE_ALIAS_DEFINED_OUTSIDE_CURRENT_SCOPE,
             None,
         )
     }
@@ -78,7 +78,7 @@ impl Checker {
 
 // printer.go:51
 pub(crate) fn to_node_builder_flags(flags: TypeFormatFlags) -> Flags {
-    Flags::from_bits_retain((flags & TypeFormatFlags::NodeBuilderFlagsMask).bits())
+    Flags::from_bits_retain((flags & TypeFormatFlags::NODE_BUILDER_FLAGS_MASK).bits())
 }
 
 impl Checker {
@@ -104,20 +104,20 @@ impl Checker {
         // Serialization of types can lead to (lazy) resolution of members, which can cause diagnostics that again require
         // serialization of types. This can potentially result in infinite recursion and stack overflows. To prevent that,
         // after a certain number of recursive invocations the function simply returns "?".
-        if self.serialization_level >= maxSerializationLevel {
+        if self.serialization_level >= MAX_SERIALIZATION_LEVEL {
             return "?".to_string();
         }
         let mut new_line = "";
-        if flags.intersects(TypeFormatFlags::MultilineObjectLiterals) {
+        if flags.intersects(TypeFormatFlags::MULTILINE_OBJECT_LITERALS) {
             new_line = "\n";
         }
         let mut writer = new_text_writer(new_line, 0);
         let no_truncation = ((vc.is_none() || vc.unwrap().max_truncation_length.get() == 0)
             && self.compiler_options.no_error_truncation == Tristate::True)
-            || flags.intersects(TypeFormatFlags::NoTruncation);
-        let mut combined_flags = to_node_builder_flags(flags) | Flags::IgnoreErrors;
+            || flags.intersects(TypeFormatFlags::NO_TRUNCATION);
+        let mut combined_flags = to_node_builder_flags(flags) | Flags::IGNORE_ERRORS;
         if no_truncation {
-            combined_flags |= Flags::NoTruncation;
+            combined_flags |= Flags::NO_TRUNCATION;
         }
         let (node_builder, mut release) = self.get_node_builder();
         let old_verbosity = node_builder.verbosity.get();
@@ -128,7 +128,7 @@ impl Checker {
             t,
             enclosing_declaration,
             combined_flags,
-            InternalFlags::None,
+            InternalFlags::NONE,
             None,
         );
         self.serialization_level -= 1;
@@ -149,14 +149,14 @@ impl Checker {
         p.write(type_node, source_file, &mut *writer, None);
         let result = writer.string();
 
-        let mut max_length = defaultMaximumTruncationLength * 2;
+        let mut max_length = DEFAULT_MAXIMUM_TRUNCATION_LENGTH * 2;
         if let Some(vc) = vc {
             if vc.max_truncation_length.get() > 0 {
                 max_length = vc.max_truncation_length.get() * 10; // hard cutoff matching Strada's absoluteMaximumLength
             }
         }
         if no_truncation {
-            max_length = noTruncationMaximumTruncationLength * 2;
+            max_length = NO_TRUNCATION_MAXIMUM_TRUNCATION_LENGTH * 2;
         }
         // Go's deferred calls: restore the verbosity, then release.
         node_builder.verbosity.set(old_verbosity);
@@ -182,8 +182,8 @@ impl Checker {
         self.symbol_to_string_ex(
             symbol,
             None,
-            SymbolFlags::All,
-            SymbolFormatFlags::AllowAnyNodeKind,
+            SymbolFlags::ALL,
+            SymbolFormatFlags::ALLOW_ANY_NODE_KIND,
         )
     }
 
@@ -208,22 +208,22 @@ impl Checker {
     ) -> String {
         let (mut writer, put_writer) = get_single_line_string_writer();
 
-        let mut node_flags = Flags::IgnoreErrors;
-        let mut internal_node_flags = InternalFlags::None;
-        if flags.intersects(SymbolFormatFlags::UseOnlyExternalAliasing) {
-            node_flags |= Flags::UseOnlyExternalAliasing;
+        let mut node_flags = Flags::IGNORE_ERRORS;
+        let mut internal_node_flags = InternalFlags::NONE;
+        if flags.intersects(SymbolFormatFlags::USE_ONLY_EXTERNAL_ALIASING) {
+            node_flags |= Flags::USE_ONLY_EXTERNAL_ALIASING;
         }
-        if flags.intersects(SymbolFormatFlags::WriteTypeParametersOrArguments) {
-            node_flags |= Flags::WriteTypeParametersInQualifiedName;
+        if flags.intersects(SymbolFormatFlags::WRITE_TYPE_PARAMETERS_OR_ARGUMENTS) {
+            node_flags |= Flags::WRITE_TYPE_PARAMETERS_IN_QUALIFIED_NAME;
         }
-        if flags.intersects(SymbolFormatFlags::UseAliasDefinedOutsideCurrentScope) {
-            node_flags |= Flags::UseAliasDefinedOutsideCurrentScope;
+        if flags.intersects(SymbolFormatFlags::USE_ALIAS_DEFINED_OUTSIDE_CURRENT_SCOPE) {
+            node_flags |= Flags::USE_ALIAS_DEFINED_OUTSIDE_CURRENT_SCOPE;
         }
-        if flags.intersects(SymbolFormatFlags::DoNotIncludeSymbolChain) {
-            internal_node_flags |= InternalFlags::DoNotIncludeSymbolChain;
+        if flags.intersects(SymbolFormatFlags::DO_NOT_INCLUDE_SYMBOL_CHAIN) {
+            internal_node_flags |= InternalFlags::DO_NOT_INCLUDE_SYMBOL_CHAIN;
         }
-        if flags.intersects(SymbolFormatFlags::WriteComputedProps) {
-            internal_node_flags |= InternalFlags::WriteComputedProps;
+        if flags.intersects(SymbolFormatFlags::WRITE_COMPUTED_PROPS) {
+            internal_node_flags |= InternalFlags::WRITE_COMPUTED_PROPS;
         }
 
         let (node_builder, mut release) = self.get_node_builder();
@@ -240,7 +240,7 @@ impl Checker {
             create_printer_with_remove_comments_omit_trailing_semicolon(node_builder.emit_context())
         };
 
-        let entity = if flags.intersects(SymbolFormatFlags::AllowAnyNodeKind) {
+        let entity = if flags.intersects(SymbolFormatFlags::ALLOW_ANY_NODE_KIND) {
             node_builder.symbol_to_node(
                 self,
                 symbol,
@@ -270,7 +270,7 @@ impl Checker {
 
     // printer.go:179
     pub(crate) fn signature_to_string(&mut self, signature: P<Signature>) -> String {
-        self.signature_to_string_ex(signature, None, TypeFormatFlags::None, None)
+        self.signature_to_string_ex(signature, None, TypeFormatFlags::NONE, None)
     }
 
     // printer.go:183
@@ -292,9 +292,9 @@ impl Checker {
         flags: TypeFormatFlags,
         vc: Option<P<VerbosityContext>>,
     ) -> String {
-        let is_constructor = signature.flags.get().intersects(SignatureFlags::Construct)
-            && !flags.intersects(TypeFormatFlags::WriteCallStyleSignature);
-        let sig_output = if flags.intersects(TypeFormatFlags::WriteArrowStyleSignature) {
+        let is_constructor = signature.flags.get().intersects(SignatureFlags::CONSTRUCT)
+            && !flags.intersects(TypeFormatFlags::WRITE_CALL_STYLE_SIGNATURE);
+        let sig_output = if flags.intersects(TypeFormatFlags::WRITE_ARROW_STYLE_SIGNATURE) {
             if is_constructor { Kind::ConstructorType } else { Kind::FunctionType }
         } else if is_constructor {
             Kind::ConstructSignature
@@ -306,15 +306,15 @@ impl Checker {
         let old_verbosity = node_builder.verbosity.get();
         node_builder.verbosity.set(vc);
         let combined_flags = to_node_builder_flags(flags)
-            | Flags::IgnoreErrors
-            | Flags::WriteTypeParametersInQualifiedName;
+            | Flags::IGNORE_ERRORS
+            | Flags::WRITE_TYPE_PARAMETERS_IN_QUALIFIED_NAME;
         let sig = node_builder.signature_to_signature_declaration(
             self,
             signature,
             sig_output,
             enclosing_declaration,
             combined_flags,
-            InternalFlags::None,
+            InternalFlags::NONE,
             None,
         );
         let mut p = create_printer_with_remove_comments_omit_trailing_semicolon_never_ascii_escape(
@@ -324,7 +324,7 @@ impl Checker {
         if let Some(enclosing_declaration) = enclosing_declaration {
             source_file = ast::get_source_file_of_node(enclosing_declaration);
         }
-        let result = if flags.intersects(TypeFormatFlags::MultilineObjectLiterals) {
+        let result = if flags.intersects(TypeFormatFlags::MULTILINE_OBJECT_LITERALS) {
             let mut writer = new_text_writer("\n", 0);
             p.write(sig.unwrap(), source_file, &mut *writer, None);
             writer.string()
@@ -345,7 +345,7 @@ impl Checker {
         self.type_predicate_to_string_ex(
             type_predicate,
             None,
-            TypeFormatFlags::UseAliasDefinedOutsideCurrentScope,
+            TypeFormatFlags::USE_ALIAS_DEFINED_OUTSIDE_CURRENT_SCOPE,
         )
     }
 
@@ -359,14 +359,14 @@ impl Checker {
         let (mut writer, put_writer) = get_single_line_string_writer();
         let (node_builder, mut release) = self.get_node_builder();
         let combined_flags = to_node_builder_flags(flags)
-            | Flags::IgnoreErrors
-            | Flags::WriteTypeParametersInQualifiedName;
+            | Flags::IGNORE_ERRORS
+            | Flags::WRITE_TYPE_PARAMETERS_IN_QUALIFIED_NAME;
         let predicate = node_builder.type_predicate_to_type_predicate_node(
             self,
             type_predicate,
             enclosing_declaration,
             combined_flags,
-            InternalFlags::None,
+            InternalFlags::NONE,
             None,
         ); // TODO: GH#18217
         let mut printer_ = create_printer_with_remove_comments(node_builder.emit_context());
@@ -393,21 +393,21 @@ impl Checker {
         expanding_enum: bool,
     ) -> Vec<P<Type>> {
         let mut result = Vec::new();
-        let mut flags = TypeFlags::None;
+        let mut flags = TypeFlags::NONE;
         let mut i = 0;
         while i < types.len() {
             let t = types[i];
             flags |= t.flags();
-            if !t.flags().intersects(TypeFlags::Nullable) {
-                if t.flags().intersects(TypeFlags::BooleanLiteral)
-                    || (!expanding_enum && t.flags().intersects(TypeFlags::EnumLike))
+            if !t.flags().intersects(TypeFlags::NULLABLE) {
+                if t.flags().intersects(TypeFlags::BOOLEAN_LITERAL)
+                    || (!expanding_enum && t.flags().intersects(TypeFlags::ENUM_LIKE))
                 {
-                    let base_type = if t.flags().intersects(TypeFlags::BooleanLiteral) {
+                    let base_type = if t.flags().intersects(TypeFlags::BOOLEAN_LITERAL) {
                         self.boolean_type
                     } else {
                         self.get_base_type_of_enum_like_type(t)
                     };
-                    if base_type.flags().intersects(TypeFlags::Union) {
+                    if base_type.flags().intersects(TypeFlags::UNION) {
                         let base_types = base_type.as_union_type().types.get();
                         let count = base_types.len();
                         if i + count <= types.len()
@@ -425,10 +425,10 @@ impl Checker {
             }
             i += 1;
         }
-        if flags.intersects(TypeFlags::Null) {
+        if flags.intersects(TypeFlags::NULL) {
             result.push(self.null_type);
         }
-        if flags.intersects(TypeFlags::Undefined) {
+        if flags.intersects(TypeFlags::UNDEFINED) {
             result.push(self.undefined_type);
         }
         result
@@ -448,7 +448,7 @@ impl Checker {
             t,
             enclosing_declaration,
             flags,
-            InternalFlags::None,
+            InternalFlags::NONE,
             None,
         )
     }
@@ -468,7 +468,7 @@ impl Checker {
             kind,
             enclosing_declaration,
             flags,
-            InternalFlags::None,
+            InternalFlags::NONE,
             None,
         );
         release(self);
@@ -524,8 +524,8 @@ impl Checker {
             self,
             t,
             enclosing_declaration,
-            Flags::IgnoreErrors,
-            InternalFlags::None,
+            Flags::IGNORE_ERRORS,
+            InternalFlags::NONE,
             None,
         );
         let result = match type_param_node {
@@ -571,7 +571,7 @@ impl Checker {
             t,
             enclosing_declaration,
             flags,
-            InternalFlags::None,
+            InternalFlags::NONE,
             None,
         )
     }
@@ -589,7 +589,7 @@ impl Checker {
         let access = self.is_symbol_accessible_worker(
             Some(type_symbol),
             enclosing_declaration,
-            SymbolFlags::Type, /*shouldComputeAliasesToMakeVisible*/
+            SymbolFlags::TYPE, /*shouldComputeAliasesToMakeVisible*/
             false,             /*allowModules*/
             true,
         );
@@ -605,7 +605,7 @@ impl Checker {
         let access = self.is_symbol_accessible_worker(
             symbol,
             enclosing_declaration,
-            SymbolFlags::Value,
+            SymbolFlags::VALUE,
             false, /*shouldComputeAliasesToMakeVisible*/
             true,  /*allowModules*/
         );
@@ -732,8 +732,8 @@ impl Checker {
                 module_name = self.symbol_to_string_ex(
                     had_accessible_chain,
                     enclosing_declaration,
-                    SymbolFlags::Namespace,
-                    SymbolFormatFlags::AllowAnyNodeKind,
+                    SymbolFlags::NAMESPACE,
+                    SymbolFormatFlags::ALLOW_ANY_NODE_KIND,
                 );
             }
             return Some(P::new_scratch(SymbolAccessibilityResult {
@@ -742,7 +742,7 @@ impl Checker {
                     initial_symbol,
                     enclosing_declaration,
                     meaning,
-                    SymbolFormatFlags::AllowAnyNodeKind,
+                    SymbolFormatFlags::ALLOW_ANY_NODE_KIND,
                 ),
                 error_module_name: module_name,
                 ..Default::default()
@@ -762,10 +762,10 @@ pub(crate) fn has_non_global_augmentation_external_module_symbol(declaration: P<
 // symbolaccessibility.go:109
 pub(crate) fn get_qualified_left_meaning(right_meaning: SymbolFlags) -> SymbolFlags {
     // If we are looking in value space, the parent meaning is value, other wise it is namespace
-    if right_meaning == SymbolFlags::Value {
-        return SymbolFlags::Value;
+    if right_meaning == SymbolFlags::VALUE {
+        return SymbolFlags::VALUE;
     }
-    SymbolFlags::Namespace
+    SymbolFlags::NAMESPACE
 }
 
 impl Checker {
@@ -796,7 +796,7 @@ impl Checker {
                 .get_accessible_symbol_chain(
                     container,
                     enclosing_declaration,
-                    SymbolFlags::Namespace, /*useOnlyExternalAliasing*/
+                    SymbolFlags::NAMESPACE, /*useOnlyExternalAliasing*/
                     false,
                 )
                 .is_empty()
@@ -813,9 +813,9 @@ impl Checker {
         // we potentially have a symbol which is a member of the instance side of something - look for a variable in scope with the container's type
         // which may be acting like a namespace (eg, `Symbol` acts like a namespace when looking up `Symbol.toStringTag`)
         let mut variable_matches: Vec<P<Symbol>> = Vec::new();
-        if (meaning == SymbolFlags::Value && !container.flags().intersects(left_meaning))
-            && container.flags().intersects(SymbolFlags::Type)
-            && self.get_declared_type_of_symbol(container).flags().intersects(TypeFlags::Object)
+        if (meaning == SymbolFlags::VALUE && !container.flags().intersects(left_meaning))
+            && container.flags().intersects(SymbolFlags::TYPE)
+            && self.get_declared_type_of_symbol(container).flags().intersects(TypeFlags::OBJECT)
         {
             self.some_symbol_table_in_scope(enclosing_declaration, |c, t, _, _, _, _| {
                 let mut found = false;
@@ -926,7 +926,7 @@ impl Checker {
         // If we're trying to reference some object literal in, eg `var a = { x: 1 }`, the symbol for the literal, `__object`, is distinct
         // from the symbol of the declaration it is being assigned to. Since we can use the declaration to refer to the literal, however,
         // we'd like to make that connection here - potentially causing us to paint the declaration's visibility, and therefore the literal.
-        if !meaning.intersects(SymbolFlags::Value) {
+        if !meaning.intersects(SymbolFlags::VALUE) {
             return None;
         }
         let first_decl = {
@@ -974,7 +974,7 @@ impl Checker {
     ) -> Option<P<Symbol>> {
         let file_symbol = self.get_external_module_container(d)?;
         let exports = file_symbol.exports()?;
-        let exported = exports.lookup(InternalSymbolNameExportEquals)?;
+        let exported = exports.lookup(INTERNAL_SYMBOL_NAME_EXPORT_EQUALS)?;
         if self.get_symbol_if_same_reference(exported, container).is_some() {
             return Some(file_symbol);
         }
@@ -995,7 +995,7 @@ impl Checker {
         let container = self.get_parent_of_symbol(symbol);
         // Type parameters end up in the `members` lists but are not externally visible
         if let Some(container) = container {
-            if !symbol.flags().intersects(SymbolFlags::TypeParameter) {
+            if !symbol.flags().intersects(SymbolFlags::TYPE_PARAMETER) {
                 return self.get_with_alternative_containers(
                     container,
                     symbol,
@@ -1107,7 +1107,9 @@ impl Checker {
         // Check if container is a thing with an `export=` which points directly at `symbol`, and if so, return
         // the container itself as the alias for the symbol
         if let Some(container_exports) = container.exports() {
-            if let Some(export_equals) = container_exports.lookup(InternalSymbolNameExportEquals) {
+            if let Some(export_equals) =
+                container_exports.lookup(INTERNAL_SYMBOL_NAME_EXPORT_EQUALS)
+            {
                 if self.get_symbol_if_same_reference(export_equals, symbol).is_some() {
                     return Some(container);
                 }
@@ -1154,7 +1156,7 @@ impl Checker {
             return None;
         }
         let merged = self.get_merged_symbol(symbol);
-        if merged.flags().intersects(SymbolFlags::Alias)
+        if merged.flags().intersects(SymbolFlags::ALIAS)
             && self.alias_symbol_links.get(merged).alias_target.get().is_none()
         {
             return None;
@@ -1229,8 +1231,8 @@ impl Checker {
     // See modules_exporting; true when module `i` (symbol `sym`) is summarized.
     fn summarize_module_exports(&mut self, i: u32, sym: P<Symbol>) -> bool {
         if self.alias_cache_blockers != 0
-            || !sym.flags().intersects(SymbolFlags::Module)
-            || sym.flags().intersects(SymbolFlags::LateBindingContainer)
+            || !sym.flags().intersects(SymbolFlags::MODULE)
+            || sym.flags().intersects(SymbolFlags::LATE_BINDING_CONTAINER)
         {
             return false;
         }
@@ -1245,10 +1247,10 @@ impl Checker {
         }
         let mut targets: Vec<P<Symbol>> = index.targets().collect();
         if let Some(export_equals) =
-            sym.exports().and_then(|exports| exports.lookup(InternalSymbolNameExportEquals))
+            sym.exports().and_then(|exports| exports.lookup(INTERNAL_SYMBOL_NAME_EXPORT_EQUALS))
         {
             let merged = self.get_merged_symbol(export_equals);
-            if merged.flags().intersects(SymbolFlags::Alias)
+            if merged.flags().intersects(SymbolFlags::ALIAS)
                 && self.alias_symbol_links.get(merged).alias_target.get().is_none()
             {
                 return false;
@@ -1328,7 +1330,7 @@ impl Checker {
         meaning: SymbolFlags,
         use_only_external_aliasing: bool,
     ) -> Vec<P<Symbol>> {
-        self.get_accessible_symbol_chain_ex(&accessibleSymbolChainContext {
+        self.get_accessible_symbol_chain_ex(&AccessibleSymbolChainContext {
             symbol: Some(symbol),
             enclosing_declaration,
             meaning,
@@ -1357,16 +1359,16 @@ impl Checker {
 // symbolTableID uniquely identifies a symbol table by encoding its source.
 // The high 3 bits encode the kind, and the remaining bits encode the
 // NodeId or SymbolId of the source.
-pub const stKindShift: u64 = 61;
+pub const ST_KIND_SHIFT: u64 = 61;
 
-pub const stKindLocals: symbolTableID = 0 << stKindShift;
-pub const stKindExports: symbolTableID = 1 << stKindShift;
-pub const stKindMembers: symbolTableID = 2 << stKindShift;
-pub const stKindGlobals: symbolTableID = 3 << stKindShift;
-pub const stKindResolvedExports: symbolTableID = 4 << stKindShift; // resolved/derived exports from getExportsOfSymbol, distinct from raw sym.Exports
+pub const ST_KIND_LOCALS: SymbolTableID = 0 << ST_KIND_SHIFT;
+pub const ST_KIND_EXPORTS: SymbolTableID = 1 << ST_KIND_SHIFT;
+pub const ST_KIND_MEMBERS: SymbolTableID = 2 << ST_KIND_SHIFT;
+pub const ST_KIND_GLOBALS: SymbolTableID = 3 << ST_KIND_SHIFT;
+pub const ST_KIND_RESOLVED_EXPORTS: SymbolTableID = 4 << ST_KIND_SHIFT; // resolved/derived exports from getExportsOfSymbol, distinct from raw sym.Exports
 
 // stKindMask extracts the kind bits from a symbolTableID.
-pub const stKindMask: symbolTableID = !((1 << stKindShift) - 1);
+pub const ST_KIND_MASK: SymbolTableID = !((1 << ST_KIND_SHIFT) - 1);
 
 #[cfg(test)]
 mod symbol_table_kind_tests {
@@ -1375,22 +1377,26 @@ mod symbol_table_kind_tests {
     #[test]
     fn mask_extracts_every_table_kind_without_source_id_bits() {
         let source_id = 0x12345;
-        for kind in
-            [stKindLocals, stKindExports, stKindMembers, stKindGlobals, stKindResolvedExports]
-        {
-            assert_eq!((kind | source_id) & stKindMask, kind);
+        for kind in [
+            ST_KIND_LOCALS,
+            ST_KIND_EXPORTS,
+            ST_KIND_MEMBERS,
+            ST_KIND_GLOBALS,
+            ST_KIND_RESOLVED_EXPORTS,
+        ] {
+            assert_eq!((kind | source_id) & ST_KIND_MASK, kind);
         }
     }
 }
 
 // symbolaccessibility.go:417
-pub(crate) fn symbol_table_id_from_locals(node: P<Node>) -> symbolTableID {
-    stKindLocals | ast::get_node_id(node).0
+pub(crate) fn symbol_table_id_from_locals(node: P<Node>) -> SymbolTableID {
+    ST_KIND_LOCALS | ast::get_node_id(node).0
 }
 
 // symbolaccessibility.go:421
-pub(crate) fn symbol_table_id_from_exports(sym: P<Symbol>) -> symbolTableID {
-    stKindExports | ast::get_symbol_id(sym).0
+pub(crate) fn symbol_table_id_from_exports(sym: P<Symbol>) -> SymbolTableID {
+    ST_KIND_EXPORTS | ast::get_symbol_id(sym).0
 }
 
 // symbolTableIDFromResolvedExports returns an ID for resolved/derived export tables
@@ -1398,25 +1404,25 @@ pub(crate) fn symbol_table_id_from_exports(sym: P<Symbol>) -> symbolTableID {
 // and late-bound members). This is distinct from symbolTableIDFromExports to prevent
 // cache collisions with raw sym.Exports tables passed by someSymbolTableInScope.
 // symbolaccessibility.go:429
-pub(crate) fn symbol_table_id_from_resolved_exports(sym: P<Symbol>) -> symbolTableID {
-    stKindResolvedExports | ast::get_symbol_id(sym).0
+pub(crate) fn symbol_table_id_from_resolved_exports(sym: P<Symbol>) -> SymbolTableID {
+    ST_KIND_RESOLVED_EXPORTS | ast::get_symbol_id(sym).0
 }
 
 // symbolaccessibility.go:433
-pub(crate) fn symbol_table_id_from_members(sym: P<Symbol>) -> symbolTableID {
-    stKindMembers | ast::get_symbol_id(sym).0
+pub(crate) fn symbol_table_id_from_members(sym: P<Symbol>) -> SymbolTableID {
+    ST_KIND_MEMBERS | ast::get_symbol_id(sym).0
 }
 
 // symbolaccessibility.go:437
-pub(crate) fn symbol_table_id_from_globals() -> symbolTableID {
-    stKindGlobals
+pub(crate) fn symbol_table_id_from_globals() -> SymbolTableID {
+    ST_KIND_GLOBALS
 }
 
 impl Checker {
     // symbolaccessibility.go:441
     pub(crate) fn get_accessible_symbol_chain_ex(
         &mut self,
-        ctx: &accessibleSymbolChainContext,
+        ctx: &AccessibleSymbolChainContext,
     ) -> Vec<P<Symbol>> {
         let Some(symbol) = ctx.symbol else {
             return Vec::new();
@@ -1431,7 +1437,7 @@ impl Checker {
             true
         });
         let links = self.symbol_container_links.get(symbol);
-        let link_key = accessibleChainCacheKey {
+        let link_key = AccessibleChainCacheKey {
             use_only_external_aliasing: ctx.use_only_external_aliasing,
             location: first_relevant_location,
             meaning: ctx.meaning,
@@ -1479,9 +1485,9 @@ impl Checker {
     // symbolaccessibility.go:481
     pub(crate) fn get_accessible_symbol_chain_from_symbol_table(
         &mut self,
-        ctx: &accessibleSymbolChainContext,
+        ctx: &AccessibleSymbolChainContext,
         t: Option<P<SymbolTable>>,
-        table_id: symbolTableID,
+        table_id: SymbolTableID,
         ignore_qualification: bool,
         is_local_name_lookup: bool,
     ) -> Vec<P<Symbol>> {
@@ -1510,16 +1516,16 @@ impl Checker {
     pub(crate) fn get_symbol_table_aliases(
         &mut self,
         symbols: Option<P<SymbolTable>>,
-        table_id: symbolTableID,
+        table_id: SymbolTableID,
     ) -> Vec<P<Symbol>> {
-        let kind = table_id & stKindMask;
+        let kind = table_id & ST_KIND_MASK;
         // Members tables never contain alias symbols; skip entirely.
-        if kind == stKindMembers {
+        if kind == ST_KIND_MEMBERS {
             return Vec::new();
         }
         // Cache globals and exports tables (which are large and revisited often).
         // Locals tables are small and per-scope, so they are filtered but not cached.
-        if kind == stKindGlobals || kind == stKindExports || kind == stKindResolvedExports {
+        if kind == ST_KIND_GLOBALS || kind == ST_KIND_EXPORTS || kind == ST_KIND_RESOLVED_EXPORTS {
             if let Some(aliases) = self.symbol_table_alias_cache.get(&table_id) {
                 return aliases.to_vec();
             }
@@ -1530,10 +1536,10 @@ impl Checker {
                 symbols
                     .values()
                     .into_iter()
-                    .filter(|sym| sym.flags().intersects(SymbolFlags::Alias)),
+                    .filter(|sym| sym.flags().intersects(SymbolFlags::ALIAS)),
             );
         }
-        if kind == stKindGlobals || kind == stKindExports || kind == stKindResolvedExports {
+        if kind == ST_KIND_GLOBALS || kind == ST_KIND_EXPORTS || kind == ST_KIND_RESOLVED_EXPORTS {
             self.symbol_table_alias_cache.insert(table_id, alloc_slice(&aliases));
         }
         aliases
@@ -1542,14 +1548,14 @@ impl Checker {
     // symbolaccessibility.go:535
     pub(crate) fn try_symbol_table(
         &mut self,
-        ctx: &accessibleSymbolChainContext,
+        ctx: &AccessibleSymbolChainContext,
         symbols: Option<P<SymbolTable>>,
-        table_id: symbolTableID,
+        table_id: SymbolTableID,
         ignore_qualification: bool,
         is_local_name_lookup: bool,
     ) -> Vec<P<Symbol>> {
         let ctx_symbol = ctx.symbol.unwrap();
-        let is_globals = table_id == stKindGlobals;
+        let is_globals = table_id == ST_KIND_GLOBALS;
         // If symbol is directly available by its name in the symbol table
         let res = symbols.and_then(|symbols| symbols.lookup(ctx_symbol.name()));
         if let Some(res) = res {
@@ -1580,8 +1586,8 @@ impl Checker {
         candidate_chains.extend(self.get_symbol_table_aliases(symbols, table_id).into_iter().filter_map(|symbol_from_symbol_table| {
             let declarations = symbol_from_symbol_table.declarations().to_vec();
             // for every non-default, non-export= alias symbol in scope, check if it refers to or can chain to the target symbol
-            if symbol_from_symbol_table.name() != InternalSymbolNameExportEquals
-                    && symbol_from_symbol_table.name() != InternalSymbolNameDefault
+            if symbol_from_symbol_table.name() != INTERNAL_SYMBOL_NAME_EXPORT_EQUALS
+                    && symbol_from_symbol_table.name() != INTERNAL_SYMBOL_NAME_DEFAULT
                     && !(is_umd_export_symbol(Some(symbol_from_symbol_table))
                         && ctx.enclosing_declaration.is_some()
                         && ast::is_external_module(ast::get_source_file_of_node(ctx.enclosing_declaration).unwrap()))
@@ -1660,7 +1666,7 @@ impl Checker {
     // symbolaccessibility.go:620
     pub(crate) fn get_candidate_list_for_symbol(
         &mut self,
-        ctx: &accessibleSymbolChainContext,
+        ctx: &AccessibleSymbolChainContext,
         symbol_from_symbol_table: P<Symbol>,
         resolved_imported_symbol: P<Symbol>,
         ignore_qualification: bool,
@@ -1705,7 +1711,7 @@ impl Checker {
     // symbolaccessibility.go:647
     pub(crate) fn is_accessible(
         &mut self,
-        ctx: &accessibleSymbolChainContext,
+        ctx: &AccessibleSymbolChainContext,
         symbol_from_symbol_table: P<Symbol>,
         resolved_alias_symbol: Option<P<Symbol>>,
         ignore_qualification: bool,
@@ -1726,10 +1732,10 @@ impl Checker {
         }
         if !like_symbols {
             if let Some(mut resolved_alias_symbol) =
-                resolved_alias_symbol.filter(|symbol| symbol.flags().intersects(SymbolFlags::Alias))
+                resolved_alias_symbol.filter(|symbol| symbol.flags().intersects(SymbolFlags::ALIAS))
             {
                 let mut seen_aliases = FxHashSet::default();
-                while resolved_alias_symbol.flags().intersects(SymbolFlags::Alias)
+                while resolved_alias_symbol.flags().intersects(SymbolFlags::ALIAS)
                     && seen_aliases.insert(resolved_alias_symbol)
                 {
                     let target = self.resolve_alias(resolved_alias_symbol);
@@ -1761,7 +1767,7 @@ impl Checker {
     // symbolaccessibility.go:677
     pub(crate) fn can_qualify_symbol(
         &mut self,
-        ctx: &accessibleSymbolChainContext,
+        ctx: &AccessibleSymbolChainContext,
         symbol_from_symbol_table: P<Symbol>,
         meaning: SymbolFlags,
     ) -> bool {
@@ -1769,7 +1775,7 @@ impl Checker {
         !self.needs_qualification(symbol_from_symbol_table, ctx.enclosing_declaration, meaning) ||
             // If symbol needs qualification, make sure that parent is accessible, if it is then this symbol is accessible too
             !self
-                .get_accessible_symbol_chain_ex(&accessibleSymbolChainContext {
+                .get_accessible_symbol_chain_ex(&AccessibleSymbolChainContext {
                     symbol: symbol_from_symbol_table.parent(),
                     enclosing_declaration: ctx.enclosing_declaration,
                     meaning: get_qualified_left_meaning(meaning),
@@ -1804,7 +1810,7 @@ impl Checker {
             // Qualify if the symbol from symbol table has same meaning as expected
             let should_resolve_alias = symbol_from_symbol_table
                 .flags()
-                .intersects(SymbolFlags::Alias)
+                .intersects(SymbolFlags::ALIAS)
                 && ast::get_declaration_of_kind(symbol_from_symbol_table, Kind::ExportSpecifier)
                     .is_none();
             if should_resolve_alias {
@@ -1855,7 +1861,7 @@ impl Checker {
         mut callback: impl FnMut(
             &mut Checker,
             Option<P<SymbolTable>>,
-            symbolTableID,
+            SymbolTableID,
             bool,
             bool,
             Option<P<Node>>,
@@ -1913,7 +1919,7 @@ impl Checker {
                         for (key, member_symbol) in members.entries() {
                             if member_symbol
                                 .flags()
-                                .intersects(SymbolFlags::Type & !SymbolFlags::Assignment)
+                                .intersects(SymbolFlags::TYPE & !SymbolFlags::ASSIGNMENT)
                             {
                                 if table.is_none() {
                                     table = Some(SymbolTable::new());
@@ -2051,7 +2057,7 @@ impl Checker {
                             symbol,
                             enclosing_declaration,
                             meaning,
-                            SymbolFormatFlags::AllowAnyNodeKind,
+                            SymbolFormatFlags::ALLOW_ANY_NODE_KIND,
                         ),
                         error_module_name: self.symbol_to_string(symbol_external_module),
                         error_node: if ast::is_in_js_file(enclosing) {
@@ -2071,7 +2077,7 @@ impl Checker {
                     symbol,
                     enclosing_declaration,
                     meaning,
-                    SymbolFormatFlags::AllowAnyNodeKind,
+                    SymbolFormatFlags::ALLOW_ANY_NODE_KIND,
                 ),
                 ..Default::default()
             };
@@ -2124,7 +2130,7 @@ impl SymbolTrackerImpl {
                 return true;
             }
             // Skip recording type parameters as they dont contribute to late painted statements
-            if !symbol.flags().intersects(SymbolFlags::TypeParameter) {
+            if !symbol.flags().intersects(SymbolFlags::TYPE_PARAMETER) {
                 self.context.tracked_symbols.borrow_mut().push(TrackedSymbolArgs {
                     symbol,
                     enclosing_declaration,

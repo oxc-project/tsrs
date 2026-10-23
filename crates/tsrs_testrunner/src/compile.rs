@@ -339,11 +339,11 @@ fn compile_files_ex(
 }
 
 // harnessutil.go:953 testBuildInfoReader: reads the build info as if this compiler had written it.
-struct testBuildInfoReader {
+struct TestBuildInfoReader {
     inner: Box<dyn tsrs_incremental::BuildInfoReader>,
 }
 
-impl tsrs_incremental::BuildInfoReader for testBuildInfoReader {
+impl tsrs_incremental::BuildInfoReader for TestBuildInfoReader {
     fn read_build_info(&self, config: &ParsedCommandLine) -> Option<tsrs_incremental::BuildInfo> {
         let mut r = self.inner.read_build_info(config)?;
         r.version = tsrs_core::version().to_string();
@@ -359,7 +359,7 @@ fn create_program_like(
 ) -> &'static dyn compiler::ProgramLike {
     let program = create_program(Arc::clone(&host), config);
     if config.compiler_options().unwrap().incremental.is_true() {
-        let reader = testBuildInfoReader {
+        let reader = TestBuildInfoReader {
             inner: tsrs_incremental::new_build_info_reader(Arc::clone(&host)),
         };
         let old_program = tsrs_incremental::read_build_info_program(config, &reader, &*host);

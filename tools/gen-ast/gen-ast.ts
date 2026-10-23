@@ -13,6 +13,7 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 import type { MemberInfo, NodeType } from "./schema.ts";
 import { api, kindGuardName } from "./schema.ts";
+import { screamingSnakeCase } from "../lib/rust-names.mjs";
 
 const root = path.resolve(import.meta.dirname, "../..");
 const outPath = path.join(root, "crates/tsrs_ast/src/generated.rs");
@@ -320,14 +321,14 @@ function defaultValue(ty: string): string {
     if (ty === "bool") return "false";
     if (ty === "&'static str") return '""';
     if (ty.startsWith("&'static [")) return "&[]";
-    if (ty === "TokenFlags" || ty === "NodeFlags" || ty === "ModifierFlags") return `${ty}::None`;
+    if (ty === "TokenFlags" || ty === "NodeFlags" || ty === "ModifierFlags") return `${ty}::NONE`;
     throw new Error(`no default for ${ty}`);
 }
 
 function flagConst(mask: string): string {
     const m = /^(TokenFlags|NodeFlags|ModifierFlags)(\w+)$/.exec(mask);
     if (!m) throw new Error(`bad mask ${mask}`);
-    return `${m[1]}::${m[2]}`;
+    return `${m[1]}::${screamingSnakeCase(m[2])}`;
 }
 
 function isStringType(ty: string) {
@@ -975,7 +976,7 @@ function genKindAliasGuards() {
         const fn = snake(tsName);
         w(`pub fn ${fn}(kind: Kind) -> bool {`);
         if (g.type === "range") {
-            w(`    kind >= Kind::${g.first} && kind <= Kind::${g.last}`);
+            w(`    kind >= Kind::${screamingSnakeCase(g.first)} && kind <= Kind::${screamingSnakeCase(g.last)}`);
         }
         else {
             const expanded = api.expandKindAliasMembers(g.aliasName);

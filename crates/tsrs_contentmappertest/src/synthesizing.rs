@@ -6,7 +6,7 @@ use tsrs_core::json::Value;
 use tsrs_ipc as ipc;
 
 use crate::protocol::{
-    initialize_result, marshal_span_map, no_notifications, testHandler, unexpected_method,
+    TestHandler, initialize_result, marshal_span_map, no_notifications, unexpected_method,
     unmarshal_params,
 };
 
@@ -14,11 +14,11 @@ use crate::protocol::{
 const SYNTHESIZED_OUTPUT: &str = "export const el = jsxRuntime(Widget);\n";
 
 // synthesizing.go:14
-pub(crate) struct synthesizingHandler;
+pub(crate) struct SynthesizingHandler;
 
-impl testHandler for synthesizingHandler {}
+impl TestHandler for SynthesizingHandler {}
 
-impl ipc::Handler for synthesizingHandler {
+impl ipc::Handler for SynthesizingHandler {
     // synthesizing.go:16
     fn handle_request(&self, method: &str, params: Option<&Value>) -> Result<Value, ipc::Error> {
         match method {

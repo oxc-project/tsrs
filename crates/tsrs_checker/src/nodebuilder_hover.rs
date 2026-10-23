@@ -23,21 +23,21 @@ impl NodeBuilderImpl {
         symbol: P<Symbol>,
     ) -> Vec<P<Node>> {
         let mut results: Vec<P<Node>> = Vec::new();
-        if symbol.flags().intersects(SymbolFlags::Enum) {
+        if symbol.flags().intersects(SymbolFlags::ENUM) {
             let node = self.expand_enum_decl(c, symbol);
             results.push(node);
         }
-        if symbol.flags().intersects(SymbolFlags::Class) {
+        if symbol.flags().intersects(SymbolFlags::CLASS) {
             let node = self.expand_class_decl(c, symbol);
             results.push(node);
         }
         // Module/namespace before interface (matching Strada ordering for merged declarations)
-        if symbol.flags().intersects(SymbolFlags::ValueModule | SymbolFlags::NamespaceModule) {
+        if symbol.flags().intersects(SymbolFlags::VALUE_MODULE | SymbolFlags::NAMESPACE_MODULE) {
             let node = self.expand_module_decl(c, symbol);
             results.push(node);
         }
-        if symbol.flags().intersects(SymbolFlags::Interface)
-            && !symbol.flags().intersects(SymbolFlags::Class)
+        if symbol.flags().intersects(SymbolFlags::INTERFACE)
+            && !symbol.flags().intersects(SymbolFlags::CLASS)
         {
             let node = self.expand_interface_decl(c, symbol);
             results.push(node);
@@ -56,7 +56,7 @@ impl NodeBuilderImpl {
             .get_properties_of_type(type_of_symbol)
             .iter()
             .copied()
-            .filter(|p| p.flags().intersects(SymbolFlags::EnumMember))
+            .filter(|p| p.flags().intersects(SymbolFlags::ENUM_MEMBER))
             .collect();
         let mut members: Vec<P<Node>> = Vec::new();
         for (i, &p) in member_props.iter().enumerate() {
@@ -65,7 +65,7 @@ impl NodeBuilderImpl {
                 members.push(self.f.new_enum_member(
                     self.f.new_string_literal(
                         alloc_str(&format!(" ... {} more ... ", member_props.len() - i - 1)),
-                        TokenFlags::None,
+                        TokenFlags::NONE,
                     ),
                     None,
                 ));
@@ -90,9 +90,9 @@ impl NodeBuilderImpl {
             members.push(self.f.new_enum_member(self.f.new_identifier(p.name()), initializer));
         }
 
-        let mut const_modifier = ModifierFlags::None;
+        let mut const_modifier = ModifierFlags::NONE;
         if is_const_enum_symbol(symbol) {
-            const_modifier = ModifierFlags::Const;
+            const_modifier = ModifierFlags::CONST;
         }
         let mut mods: Option<P<ModifierList>> = None;
         if !const_modifier.is_empty() {
@@ -116,9 +116,9 @@ impl NodeBuilderImpl {
         let val = c.get_constant_value(member_decl);
         let val = val?;
         match val {
-            LiteralValue::String(v) => Some(self.f.new_string_literal(v, TokenFlags::None)),
+            LiteralValue::String(v) => Some(self.f.new_string_literal(v, TokenFlags::NONE)),
             LiteralValue::Number(v) => {
-                Some(self.f.new_numeric_literal(alloc_str(&v.string()), TokenFlags::None))
+                Some(self.f.new_numeric_literal(alloc_str(&v.string()), TokenFlags::NONE))
             }
             _ => None,
         }
@@ -171,7 +171,7 @@ impl NodeBuilderImpl {
         // Static members
         let mut static_props: Vec<P<Symbol>> = Vec::new();
         static_props.extend(c.get_properties_of_type(static_type).iter().copied().filter(|&p| {
-            !p.flags().intersects(SymbolFlags::Prototype)
+            !p.flags().intersects(SymbolFlags::PROTOTYPE)
                 && p.name() != "prototype"
                 && !Self::is_namespace_member(c, p)
         }));
@@ -244,9 +244,9 @@ impl NodeBuilderImpl {
                 continue;
             };
             let mut mod_flags =
-                get_declaration_modifier_flags_from_symbol(member_symbol) & !ModifierFlags::Async;
+                get_declaration_modifier_flags_from_symbol(member_symbol) & !ModifierFlags::ASYNC;
             if is_static {
-                mod_flags |= ModifierFlags::Static;
+                mod_flags |= ModifierFlags::STATIC;
             }
             if !mod_flags.is_empty() && can_have_modifiers(m) {
                 let existing = m.modifier_flags();
@@ -339,7 +339,7 @@ impl NodeBuilderImpl {
         members.extend(self.serialize_index_signatures_of_type(c, interface_type, base_type));
         // Construct signatures (skip abstract)
         members.extend(resolved.construct_signatures().iter().filter_map(|&sig| {
-            if sig.flags.get().intersects(SignatureFlags::Abstract) {
+            if sig.flags.get().intersects(SignatureFlags::ABSTRACT) {
                 return None;
             }
             Some(self.signature_to_signature_declaration_helper(
@@ -419,7 +419,7 @@ impl NodeBuilderImpl {
         let properties: Vec<P<Symbol>> = properties
             .iter()
             .copied()
-            .filter(|p| !p.flags().intersects(SymbolFlags::Prototype))
+            .filter(|p| !p.flags().intersects(SymbolFlags::PROTOTYPE))
             .collect();
         let mut elements: Vec<P<Node>> = elements.to_vec();
         for (i, &p) in properties.iter().enumerate() {
@@ -461,7 +461,7 @@ impl NodeBuilderImpl {
         if is_non_constructable {
             let ctx = self.ctx();
             ctx.approximate_length.set(ctx.approximate_length.get() + 21);
-            let modifiers = create_modifiers_from_modifier_flags(ModifierFlags::Private, |k| {
+            let modifiers = create_modifiers_from_modifier_flags(ModifierFlags::PRIVATE, |k| {
                 self.f.new_modifier(k)
             });
             return vec![self.f.new_constructor_declaration(
@@ -490,7 +490,7 @@ impl NodeBuilderImpl {
                         false,
                         true,
                         super::checker::Checker::compare_types_identical,
-                    ) != Ternary::True
+                    ) != Ternary::TRUE
                     {
                         all_match = false;
                         break;
@@ -500,12 +500,12 @@ impl NodeBuilderImpl {
                     return Vec::new();
                 }
             }
-            let mut private_protected = ModifierFlags::None;
+            let mut private_protected = ModifierFlags::NONE;
             private_protected =
                 signatures.iter().fold(private_protected, |mut private_protected, sig| {
                     if let Some(declaration) = sig.declaration.get() {
                         private_protected |= declaration.modifier_flags()
-                            & (ModifierFlags::Private | ModifierFlags::Protected);
+                            & (ModifierFlags::PRIVATE | ModifierFlags::PROTECTED);
                     }
 
                     private_protected
@@ -571,15 +571,15 @@ impl NodeBuilderImpl {
         name: &str,
     ) -> P<Node> {
         let flags = resolved.flags();
-        if flags.intersects(SymbolFlags::TypeAlias) {
+        if flags.intersects(SymbolFlags::TYPE_ALIAS) {
             self.serialize_type_alias_for_namespace(c, resolved, name)
-        } else if flags.intersects(SymbolFlags::Enum) {
+        } else if flags.intersects(SymbolFlags::ENUM) {
             self.expand_enum_decl(c, resolved)
-        } else if flags.intersects(SymbolFlags::Class) {
+        } else if flags.intersects(SymbolFlags::CLASS) {
             self.expand_class_decl(c, resolved)
-        } else if flags.intersects(SymbolFlags::Interface) {
+        } else if flags.intersects(SymbolFlags::INTERFACE) {
             self.expand_interface_decl(c, resolved)
-        } else if flags.intersects(SymbolFlags::ValueModule | SymbolFlags::NamespaceModule) {
+        } else if flags.intersects(SymbolFlags::VALUE_MODULE | SymbolFlags::NAMESPACE_MODULE) {
             self.expand_module_decl(c, resolved)
         } else {
             let type_of_symbol = c.get_type_of_symbol(resolved);
@@ -598,7 +598,7 @@ impl NodeBuilderImpl {
                         Some(type_node),
                         None,
                     )]),
-                    NodeFlags::Let,
+                    NodeFlags::LET,
                 ),
             )
         }
@@ -629,10 +629,10 @@ impl NodeBuilderImpl {
         let old_flags = ctx.flags.get();
         ctx.flags.set(
             ctx.flags.get()
-                | Flags::WriteTypeParametersInQualifiedName
-                | Flags::from_bits_retain(SymbolFormatFlags::UseOnlyExternalAliasing.bits()),
+                | Flags::WRITE_TYPE_PARAMETERS_IN_QUALIFIED_NAME
+                | Flags::from_bits_retain(SymbolFormatFlags::USE_ONLY_EXTERNAL_ALIASING.bits()),
         );
-        let local_name = self.symbol_to_node(c, symbol, SymbolFlags::All);
+        let local_name = self.symbol_to_node(c, symbol, SymbolFlags::ALL);
         self.ctx().flags.set(old_flags);
 
         struct HoverStatement {
@@ -658,16 +658,16 @@ impl NodeBuilderImpl {
             }
 
             // Handle alias/re-export symbols
-            if m.flags().intersects(SymbolFlags::Alias) {
+            if m.flags().intersects(SymbolFlags::ALIAS) {
                 let alias_decl = checker::Checker::get_declaration_of_alias_symbol(m);
                 let target =
                     c.get_target_of_alias_declaration(alias_decl).map(|t| c.get_merged_symbol(t));
                 if let Some(target) = target {
                     // If the alias target is a local symbol (not itself an export), emit its declaration first
                     if target.flags().intersects(
-                        SymbolFlags::BlockScopedVariable
-                            | SymbolFlags::FunctionScopedVariable
-                            | SymbolFlags::Property,
+                        SymbolFlags::BLOCK_SCOPED_VARIABLE
+                            | SymbolFlags::FUNCTION_SCOPED_VARIABLE
+                            | SymbolFlags::PROPERTY,
                     ) && emitted_locals.add_if_absent(target)
                     {
                         let type_of_target = c.get_type_of_symbol(target);
@@ -692,7 +692,7 @@ impl NodeBuilderImpl {
                                     Some(type_node),
                                     None,
                                 )]),
-                                NodeFlags::Let,
+                                NodeFlags::LET,
                             ),
                         );
                         body_stmts.push(HoverStatement { node: local_stmt, is_local: true });
@@ -725,7 +725,7 @@ impl NodeBuilderImpl {
             let resolved = c.resolve_symbol(m);
 
             // Handle functions as function declarations
-            if resolved.flags().intersects(SymbolFlags::Function | SymbolFlags::Method) {
+            if resolved.flags().intersects(SymbolFlags::FUNCTION | SymbolFlags::METHOD) {
                 let t = c.get_type_of_symbol(resolved);
                 let sigs = c.get_signatures_of_type(t, SignatureKind::Call);
                 body_stmts.extend(sigs.iter().map(|&sig| {
@@ -748,7 +748,7 @@ impl NodeBuilderImpl {
                 let merged = c.get_merged_symbol(resolved);
                 let has_module_exports = merged
                     .flags()
-                    .intersects(SymbolFlags::ValueModule | SymbolFlags::NamespaceModule)
+                    .intersects(SymbolFlags::VALUE_MODULE | SymbolFlags::NAMESPACE_MODULE)
                     && merged.exports().is_some_and(|e| !e.is_empty());
                 if !has_module_exports {
                     body_stmts.push(HoverStatement {
@@ -776,7 +776,7 @@ impl NodeBuilderImpl {
                 continue;
             }
             if can_have_modifiers(s.node) {
-                let mf = s.node.modifier_flags() | ModifierFlags::Export;
+                let mf = s.node.modifier_flags() | ModifierFlags::EXPORT;
                 s.node = replace_modifiers(
                     &self.f,
                     s.node,
@@ -790,12 +790,12 @@ impl NodeBuilderImpl {
         // Collect nodes, stripping export if all statements are exported.
         let mut body_statements: Vec<P<Node>> = body_stmts.iter().map(|s| s.node).collect();
         let all_exported = !body_statements.is_empty()
-            && body_statements.iter().all(|&d| has_syntactic_modifier(d, ModifierFlags::Export));
+            && body_statements.iter().all(|&d| has_syntactic_modifier(d, ModifierFlags::EXPORT));
         if all_exported {
             for element in &mut body_statements {
                 let stmt = *element;
                 if can_have_modifiers(stmt) {
-                    let mf = stmt.modifier_flags() & !ModifierFlags::Export;
+                    let mf = stmt.modifier_flags() & !ModifierFlags::EXPORT;
                     (*element) =
                         replace_modifiers(
                             &self.f,
@@ -820,7 +820,7 @@ impl NodeBuilderImpl {
         });
         if let Some(declaration) = declaration {
             attributes = self.f.deep_clone_node(declaration.as_module_declaration().attributes);
-            self.e.set_emit_flags(attributes.unwrap(), EmitFlags::SingleLine);
+            self.e.set_emit_flags(attributes.unwrap(), EmitFlags::SINGLE_LINE);
         }
         let result = self.f.new_module_declaration(
             None,
@@ -846,7 +846,7 @@ impl NodeBuilderImpl {
         let type_param_decls: Vec<P<Node>> =
             type_params.iter().map(|&p| self.type_parameter_to_declaration(c, p)).collect();
         let mut restore_flags = self.save_restore_flags(c);
-        self.ctx().flags.set(self.ctx().flags.get() | Flags::InTypeAlias);
+        self.ctx().flags.set(self.ctx().flags.get() | Flags::IN_TYPE_ALIAS);
         let type_node = self.type_to_type_node(c, Some(alias_type));
         restore_flags(c);
         let ctx = self.ctx();
@@ -897,8 +897,8 @@ impl NodeBuilderImpl {
 
     // nodebuilder_hover.go:598
     pub(crate) fn is_namespace_member(_c: &mut Checker, p: P<Symbol>) -> bool {
-        p.flags().intersects(SymbolFlags::Type | SymbolFlags::Namespace | SymbolFlags::Alias)
-            || !(p.flags().intersects(SymbolFlags::Prototype)
+        p.flags().intersects(SymbolFlags::TYPE | SymbolFlags::NAMESPACE | SymbolFlags::ALIAS)
+            || !(p.flags().intersects(SymbolFlags::PROTOTYPE)
                 || p.name() == "prototype"
                 || p.value_declaration()
                     .is_some_and(|d| has_static_modifier(d) && is_class_like(d.parent().unwrap())))

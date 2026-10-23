@@ -100,7 +100,7 @@ fn api_session_sees_the_language_servers_open_files() {
         lsproto::DidOpenTextDocumentParams {
             text_document: lsproto::TextDocumentItem {
                 uri: lsproto::DocumentUri::from(format!("file://{FILE_NAME}").as_str()),
-                language_id: lsproto::LanguageKind::TypeScript,
+                language_id: lsproto::LanguageKind::TYPE_SCRIPT,
                 version: 1,
                 text: r#"export const x: number = "unsaved";"#.to_string(),
             },

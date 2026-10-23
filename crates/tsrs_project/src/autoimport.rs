@@ -14,14 +14,14 @@ use crate::overlayfs::{FileHandle, ToPath};
 use crate::parsecache::{ParseCache, ParseCacheKey, new_parse_cache_key};
 use crate::project::ID;
 use crate::projectcollection::ProjectCollection;
-use crate::snapshotfs::{FileHandleSource, FileSource, new_source_fs, snapshotFSBuilder, sourceFS};
+use crate::snapshotfs::{FileHandleSource, FileSource, SnapshotFSBuilder, SourceFS, new_source_fs};
 
-struct autoImportBuilderFS {
-    snapshot_fs_builder: Arc<snapshotFSBuilder>,
+struct AutoImportBuilderFS {
+    snapshot_fs_builder: Arc<SnapshotFSBuilder>,
     untracked_files: SyncMap<Path, Option<Arc<dyn FileHandle>>>,
 }
 
-impl FileHandleSource for autoImportBuilderFS {
+impl FileHandleSource for AutoImportBuilderFS {
     // autoimport.go:29
     fn get_file(&self, file_name: &str) -> Option<Arc<dyn FileHandle>> {
         let path = self.snapshot_fs_builder.to_path(file_name);
@@ -47,7 +47,7 @@ impl FileHandleSource for autoImportBuilderFS {
     }
 }
 
-impl FileSource for autoImportBuilderFS {
+impl FileSource for AutoImportBuilderFS {
     // autoimport.go:24
     fn fs(&self) -> &dyn FS {
         &*self.snapshot_fs_builder.fs
@@ -64,10 +64,10 @@ impl FileSource for autoImportBuilderFS {
     }
 }
 
-pub(crate) struct autoImportRegistryCloneHost {
+pub(crate) struct AutoImportRegistryCloneHost {
     project_collection: Arc<ProjectCollection>,
     parse_cache: Arc<ParseCache>,
-    fs: sourceFS,
+    fs: SourceFS,
     current_directory: String,
 
     // Go: filesMu + files.
@@ -78,16 +78,16 @@ pub(crate) struct autoImportRegistryCloneHost {
 pub(crate) fn new_auto_import_registry_clone_host(
     project_collection: Arc<ProjectCollection>,
     parse_cache: Arc<ParseCache>,
-    snapshot_fs_builder: Arc<snapshotFSBuilder>,
+    snapshot_fs_builder: Arc<SnapshotFSBuilder>,
     current_directory: &str,
     to_path: ToPath,
-) -> autoImportRegistryCloneHost {
-    autoImportRegistryCloneHost {
+) -> AutoImportRegistryCloneHost {
+    AutoImportRegistryCloneHost {
         project_collection,
         parse_cache,
         fs: new_source_fs(
             false,
-            Arc::new(autoImportBuilderFS {
+            Arc::new(AutoImportBuilderFS {
                 snapshot_fs_builder,
                 untracked_files: SyncMap::default(),
             }),
@@ -98,7 +98,7 @@ pub(crate) fn new_auto_import_registry_clone_host(
     }
 }
 
-impl ResolutionHost for autoImportRegistryCloneHost {
+impl ResolutionHost for AutoImportRegistryCloneHost {
     // autoimport.go:89
     fn fs(&self) -> &dyn FS {
         &self.fs
@@ -110,7 +110,7 @@ impl ResolutionHost for autoImportRegistryCloneHost {
     }
 }
 
-impl RegistryCloneHost for autoImportRegistryCloneHost {
+impl RegistryCloneHost for AutoImportRegistryCloneHost {
     // autoimport.go:99
     fn get_default_project(&self, path: &Path) -> (Option<ProjectID>, Option<&'static Program>) {
         let Some(project) = self.project_collection.get_default_project(path) else {

@@ -7,19 +7,19 @@ import { ROOT, args, read, write, walk, main } from "../lib/cli.mjs";
 const dir = path.join(ROOT, "tools/lint");
 const compact = (s) => s.trim().replace(/\s+/g, " ");
 const codePart = (s) => s.split("//")[0];
-function* sources() {
+function* sources(all = false) {
     for (const base of ["crates", "tasks"]) {
         const folder = path.join(ROOT, base);
         if (!fs.existsSync(folder)) continue;
         for (const entry of fs.readdirSync(folder).sort()) {
-            const src = path.join(folder, entry, "src");
+            const src = path.join(folder, entry, ...(all ? [] : ["src"]));
             if (!fs.existsSync(src)) continue;
             for (const file of walk(
                 src,
-                (f) => f.endsWith(".rs") && !/(?:_tests?\.rs|\/tests\.rs|\/tests[^/]*\/)/.test(f),
+                (f) => f.endsWith(".rs") && (all || !/(?:_tests?\.rs|\/tests\.rs|\/tests[^/]*\/)/.test(f)),
             )) {
                 const text = read(file);
-                if (/Code generated|@generated/.test(text.split("\n")[0])) continue;
+                if (!all && /Code generated|@generated/.test(text.split("\n")[0])) continue;
                 yield [path.relative(ROOT, file), text];
             }
         }
@@ -126,6 +126,19 @@ function stripComments(text) {
             match = a[0];
         return groups.literal !== undefined ? match : "\n".repeat(match.split("\n").length - 1);
     });
+}
+function flagNames(text) {
+    // bitflags suppresses non_upper_case_globals on its expansion, including caller declarations.
+    const code = stripComments(text).replace(new RegExp(literal, "g"), (s) => s.replace(/[^\n]/g, " ")),
+        found = [];
+    for (const m of code.matchAll(/\b(?:bitflags|direct_bitflags)!\s*([({\[])/g)) {
+        const open = m.index + m[0].length - 1,
+            close = matching(code, open, m[1], { "(": ")", "{": "}", "[": "]" }[m[1]]);
+        for (const c of code.slice(open + 1, close - 1).matchAll(/\bconst\s+(\w+)\s*=/g))
+            if (!/^[A-Z_][A-Z0-9_]*$/.test(c[1]))
+                found.push([code.slice(0, open + 1 + c.index).split("\n").length, c[1]]);
+    }
+    return found;
 }
 function items(code) {
     const out = [],
@@ -292,7 +305,7 @@ const sortRows = (rows) =>
         return a.length - b.length;
     });
 main(() => {
-    const a = args("Check Send/Sync, atomic comments, reference frees and unsafe site inventories.", {
+    const a = args("Check flag names, Send/Sync, atomic comments, reference frees and unsafe site inventories.", {
         update: false,
         "allow-increase": false,
         "self-test": false,
@@ -468,6 +481,9 @@ main(() => {
         return;
     }
     const problems = [];
+    for (const [rel, text] of sources(true))
+        for (const [line, name] of flagNames(text))
+            problems.push(`${rel}:${line}: flag constant ${name} must use SCREAMING_SNAKE_CASE`);
     const old = new Set(tsv(path.join(dir, "send_sync.tsv")).map(key)),
         current = new Set(inventory.map(key));
     for (const [rel, n, line] of frees)

@@ -3,9 +3,9 @@
 // x*y+z into a single fused multiply-add, and its Exp is written in assembly
 // using fused multiply-adds; mul_add reproduces both.
 
-const shift: u32 = 64 - 11 - 1;
-const mask: u64 = 0x7FF;
-const bias: i64 = 1023;
+const SHIFT: u32 = 64 - 11 - 1;
+const MASK: u64 = 0x7FF;
+const BIAS: i64 = 1023;
 
 pub(crate) fn modf(f: f64) -> (f64, f64) {
     let integer = f.trunc();
@@ -15,14 +15,14 @@ pub(crate) fn modf(f: f64) -> (f64, f64) {
 
 // Go's archExp for arm64 (exp_arm64.s).
 pub(crate) fn exp(x: f64) -> f64 {
-    const Ln2Hi: f64 = 6.931_471_803_691_238e-1;
-    const Ln2Lo: f64 = 1.908_214_929_270_587_7e-10;
+    const LN2_HI: f64 = 6.931_471_803_691_238e-1;
+    const LN2_LO: f64 = 1.908_214_929_270_587_7e-10;
     #[expect(clippy::approx_constant, reason = "the literal from Go's math.Exp, kept verbatim")]
-    const Log2e: f64 = 1.442_695_040_888_963_4;
-    const Overflow: f64 = 7.097_827_128_933_84e2;
-    const Underflow: f64 = -7.451_332_191_019_411e2;
-    const NearZero: f64 = 1.0 / (1u64 << 28) as f64;
-    const FracMask: u64 = 0x000f_ffff_ffff_ffff;
+    const LOG2E: f64 = 1.442_695_040_888_963_4;
+    const OVERFLOW: f64 = 7.097_827_128_933_84e2;
+    const UNDERFLOW: f64 = -7.451_332_191_019_411e2;
+    const NEAR_ZERO: f64 = 1.0 / (1u64 << 28) as f64;
+    const FRAC_MASK: u64 = 0x000f_ffff_ffff_ffff;
     const P1: f64 = 1.666_666_666_666_666_6e-1;
     const P2: f64 = -2.777_777_777_701_559_3e-3;
     const P3: f64 = 6.613_756_321_437_934e-5;
@@ -32,23 +32,23 @@ pub(crate) fn exp(x: f64) -> f64 {
     if x.is_nan() {
         return x;
     }
-    if x > Overflow {
+    if x > OVERFLOW {
         return f64::INFINITY;
     }
-    if x < Underflow {
+    if x < UNDERFLOW {
         return 0.0;
     }
-    if x.abs() < NearZero {
+    if x.abs() < NEAR_ZERO {
         return 1.0 + x;
     }
 
     // argument reduction, x = k*ln2 + r,  |r| <= 0.5*ln2
     // computed as r = hi - lo for extra precision.
-    let k = if x < 0.0 { Log2e.mul_add(x, -0.5) } else { Log2e.mul_add(x, 0.5) };
+    let k = if x < 0.0 { LOG2E.mul_add(x, -0.5) } else { LOG2E.mul_add(x, 0.5) };
     let ki = k as i64;
     let k = ki as f64;
-    let hi = (-k).mul_add(Ln2Hi, x);
-    let lo = k * Ln2Lo;
+    let hi = (-k).mul_add(LN2_HI, x);
+    let lo = k * LN2_LO;
     let r = hi - lo;
     let t = r * r;
     let mut c = t.mul_add(P5, P4);
@@ -60,7 +60,7 @@ pub(crate) fn exp(x: f64) -> f64 {
 
     // inline Ldexp(y, k)
     let bits = y.to_bits();
-    let frac = bits & FracMask;
+    let frac = bits & FRAC_MASK;
     let mut e = ((bits >> 52) as i64).wrapping_add(ki);
     let mut m: f64 = 1.0;
     if e < 1 {
@@ -71,8 +71,8 @@ pub(crate) fn exp(x: f64) -> f64 {
 }
 
 pub(crate) fn log(x: f64) -> f64 {
-    const Ln2Hi: f64 = 6.931_471_803_691_238e-1; /* 3fe62e42 fee00000 */
-    const Ln2Lo: f64 = 1.908_214_929_270_587_7e-10; /* 3dea39ef 35793c76 */
+    const LN2_HI: f64 = 6.931_471_803_691_238e-1; /* 3fe62e42 fee00000 */
+    const LN2_LO: f64 = 1.908_214_929_270_587_7e-10; /* 3dea39ef 35793c76 */
     const L1: f64 = 6.666_666_666_666_735e-1; /* 3FE55555 55555593 */
     const L2: f64 = 3.999_999_999_940_942e-1; /* 3FD99999 9997FA04 */
     const L3: f64 = 2.857_142_874_366_239e-1; /* 3FD24924 94229359 */
@@ -113,14 +113,14 @@ pub(crate) fn log(x: f64) -> f64 {
     let r = s2.mul_add(s4.mul_add(s4.mul_add(s4.mul_add(L7, L5), L3), L1), t2);
     let hfsq_f = 0.5 * f;
     let a = hfsq_f.mul_add(f, r);
-    let b = s.mul_add(a, k * Ln2Lo);
+    let b = s.mul_add(a, k * LN2_LO);
     let d = hfsq_f.mul_add(f, -b) - f;
-    k.mul_add(Ln2Hi, -d)
+    k.mul_add(LN2_HI, -d)
 }
 
 fn normalize(x: f64) -> (f64, i64) {
-    const SmallestNormal: f64 = 2.225_073_858_507_201_4e-308;
-    if x.abs() < SmallestNormal {
+    const SMALLEST_NORMAL: f64 = 2.225_073_858_507_201_4e-308;
+    if x.abs() < SMALLEST_NORMAL {
         return (x * (1u64 << 52) as f64, -52);
     }
     (x, 0)
@@ -135,9 +135,9 @@ pub(crate) fn frexp(f: f64) -> (f64, i64) {
     }
     let (f, mut exp) = normalize(f);
     let mut x = f.to_bits();
-    exp += ((x >> shift) & mask) as i64 - bias + 1;
-    x &= !(mask << shift);
-    x |= ((-1 + bias) as u64) << shift;
+    exp += ((x >> SHIFT) & MASK) as i64 - BIAS + 1;
+    x &= !(MASK << SHIFT);
+    x |= ((-1 + BIAS) as u64) << SHIFT;
     (f64::from_bits(x), exp)
 }
 
@@ -151,7 +151,7 @@ pub(crate) fn ldexp(frac: f64, exp: i64) -> f64 {
     let (frac, e) = normalize(frac);
     let mut exp = exp + e;
     let mut x = frac.to_bits();
-    exp += ((x >> shift) & mask) as i64 - bias;
+    exp += ((x >> SHIFT) & MASK) as i64 - BIAS;
     if exp < -1075 {
         return 0f64.copysign(frac);
     }
@@ -166,8 +166,8 @@ pub(crate) fn ldexp(frac: f64, exp: i64) -> f64 {
         exp += 53;
         m = 1.0 / (1u64 << 53) as f64;
     }
-    x &= !(mask << shift);
-    x |= ((exp + bias) as u64) << shift;
+    x &= !(MASK << SHIFT);
+    x |= ((exp + BIAS) as u64) << SHIFT;
     m * f64::from_bits(x)
 }
 

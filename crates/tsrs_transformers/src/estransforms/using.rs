@@ -1,7 +1,7 @@
 use super::*;
 
 // using.go:11
-pub struct usingDeclarationTransformer {
+pub struct UsingDeclarationTransformer {
     pub base: Transformer,
 
     export_bindings: RefCell<Option<FxHashMap<&'static str, P<Node>>>>,
@@ -17,7 +17,7 @@ pub struct usingDeclarationTransformer {
     reason = "Transformer factories share an optional result so disabled transforms can return None."
 )]
 pub fn new_using_declaration_transformer(opt: &TransformOptions) -> Option<P<Transformer>> {
-    let tx = P::new(usingDeclarationTransformer {
+    let tx = P::new(UsingDeclarationTransformer {
         base: Transformer::default(),
         export_bindings: RefCell::new(None),
         export_binding_names: RefCell::new(Vec::new()),
@@ -33,13 +33,13 @@ pub fn new_using_declaration_transformer(opt: &TransformOptions) -> Option<P<Tra
 
 // using.go:26
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Debug)]
-enum usingKind {
+enum UsingKind {
     None,
     Sync,
     Async,
 }
 
-impl usingDeclarationTransformer {
+impl UsingDeclarationTransformer {
     fn emit_context(&self) -> P<EmitContext> {
         self.base.emit_context()
     }
@@ -54,7 +54,7 @@ impl usingDeclarationTransformer {
 
     // using.go:34
     fn visit(&self, node: P<Node>) -> P<Node> {
-        if !node.subtree_facts().intersects(SubtreeFacts::ContainsUsing) {
+        if !node.subtree_facts().intersects(SubtreeFacts::CONTAINS_USING) {
             return node;
         }
 
@@ -77,7 +77,7 @@ impl usingDeclarationTransformer {
         let emit_context = self.emit_context();
 
         let using_kind = get_using_kind_of_statements(node.statements.nodes());
-        let visited: P<Node> = if using_kind != usingKind::None {
+        let visited: P<Node> = if using_kind != UsingKind::None {
             // Imports and exports must stay at the top level. This means we must hoist all imports, exports, and
             // top-level function declarations and bindings out of the `try` statements we generate (see using.go for
             // the worked example). We hoist bindings, functions, imports and exports to a new outer statement list
@@ -100,7 +100,7 @@ impl usingDeclarationTransformer {
             let mut pos = 0;
             while pos < rest.len() {
                 let statement = rest[pos];
-                if get_using_kind(statement) != usingKind::None {
+                if get_using_kind(statement) != UsingKind::None {
                     if pos > 0 {
                         top_level_statements
                             .extend_from_slice(self.visitor().visit_slice(&rest[..pos]).0);
@@ -151,13 +151,13 @@ impl usingDeclarationTransformer {
             if !export_vars.is_empty() {
                 top_level_statements.push(f.new_variable_statement(
                     Some(f.new_modifier_list(vec![f.new_modifier(Kind::ExportKeyword)])),
-                    f.new_variable_declaration_list(f.new_node_list(export_vars), NodeFlags::Let),
+                    f.new_variable_declaration_list(f.new_node_list(export_vars), NodeFlags::LET),
                 ));
             }
             top_level_statements.extend(self.create_downlevel_using_statements(
                 body_statements,
                 env_binding,
-                using_kind == usingKind::Async,
+                using_kind == UsingKind::Async,
             ));
 
             if let Some(export_equals_binding) = self.export_equals_binding.get() {
@@ -191,7 +191,7 @@ impl usingDeclarationTransformer {
         let f = self.factory();
         let block = node.as_block();
         let using_kind = get_using_kind_of_statements(block.statements.nodes());
-        if using_kind != usingKind::None {
+        if using_kind != UsingKind::None {
             let (prologue, rest) = f.split_standard_prologue(block.statements.nodes());
             let env_binding = self.create_env_binding();
             let mut statements: Vec<P<Node>> = Vec::with_capacity(prologue.len() + 2);
@@ -204,7 +204,7 @@ impl usingDeclarationTransformer {
             statements.extend(self.create_downlevel_using_statements(
                 body,
                 env_binding,
-                using_kind == usingKind::Async,
+                using_kind == UsingKind::Async,
             ));
             let statement_list = f.new_node_list(statements);
             statement_list.loc.set(block.statements.loc.get());
@@ -281,7 +281,7 @@ impl usingDeclarationTransformer {
                 });
 
             let is_await_using =
-                get_using_kind_of_variable_declaration_list(for_initializer) == usingKind::Async;
+                get_using_kind_of_variable_declaration_list(for_initializer) == UsingKind::Async;
             let temp = f.new_generated_name_for_node(for_decl.name().unwrap());
             let using_var = f.update_variable_declaration(
                 for_decl,
@@ -292,7 +292,7 @@ impl usingDeclarationTransformer {
             );
             let using_var_list = f.new_variable_declaration_list(
                 f.new_node_list(vec![using_var]),
-                if is_await_using { NodeFlags::AwaitUsing } else { NodeFlags::Using },
+                if is_await_using { NodeFlags::AWAIT_USING } else { NodeFlags::USING },
             );
             let using_var_statement =
                 f.new_variable_statement(None /*modifiers*/, using_var_list);
@@ -319,7 +319,7 @@ impl usingDeclarationTransformer {
                             None, /*type*/
                             None,
                         )]),
-                        NodeFlags::Const,
+                        NodeFlags::CONST,
                     ),
                     n.expression,
                     statement,
@@ -377,7 +377,7 @@ impl usingDeclarationTransformer {
 
         for &statement in statements_in {
             let using_kind = get_using_kind(statement);
-            if using_kind != usingKind::None {
+            if using_kind != UsingKind::None {
                 let var_statement = statement.as_variable_statement();
                 let declaration_list = var_statement.declaration_list;
                 let mut declarations: Vec<P<Node>> = Vec::new();
@@ -413,7 +413,7 @@ impl usingDeclarationTransformer {
                         Some(f.new_add_disposable_resource_helper(
                             env_binding,
                             initializer,
-                            using_kind == usingKind::Async,
+                            using_kind == UsingKind::Async,
                         )),
                     ));
                 }
@@ -422,7 +422,7 @@ impl usingDeclarationTransformer {
                 if !declarations.is_empty() {
                     let var_list = f.new_variable_declaration_list(
                         f.new_node_list(declarations),
-                        NodeFlags::Const,
+                        NodeFlags::CONST,
                     );
                     emit_context.set_original(var_list, declaration_list);
                     var_list.set_loc(declaration_list.loc());
@@ -492,9 +492,9 @@ impl usingDeclarationTransformer {
         let default_export_binding = f.new_unique_name_ex(
             "_default",
             AutoGenerateOptions {
-                flags: GeneratedIdentifierFlags::ReservedInNestedScopes
-                    | GeneratedIdentifierFlags::FileLevel
-                    | GeneratedIdentifierFlags::Optimistic,
+                flags: GeneratedIdentifierFlags::RESERVED_IN_NESTED_SCOPES
+                    | GeneratedIdentifierFlags::FILE_LEVEL
+                    | GeneratedIdentifierFlags::OPTIMISTIC,
                 ..Default::default()
             },
         );
@@ -509,7 +509,7 @@ impl usingDeclarationTransformer {
         // give a class or function expression an assigned name, if needed.
         let mut expression = node.expression().unwrap();
         let mut inner_expression =
-            ast::skip_outer_expressions(expression, OuterExpressionKinds::All);
+            ast::skip_outer_expressions(expression, OuterExpressionKinds::ALL);
         if is_named_evaluation(emit_context, inner_expression) {
             inner_expression = transform_named_evaluation(
                 emit_context,
@@ -520,7 +520,7 @@ impl usingDeclarationTransformer {
             expression = f.restore_outer_expressions(
                 Some(expression),
                 inner_expression,
-                OuterExpressionKinds::All,
+                OuterExpressionKinds::ALL,
             );
         }
 
@@ -557,9 +557,9 @@ impl usingDeclarationTransformer {
         let export_equals_binding = f.new_unique_name_ex(
             "_default",
             AutoGenerateOptions {
-                flags: GeneratedIdentifierFlags::ReservedInNestedScopes
-                    | GeneratedIdentifierFlags::FileLevel
-                    | GeneratedIdentifierFlags::Optimistic,
+                flags: GeneratedIdentifierFlags::RESERVED_IN_NESTED_SCOPES
+                    | GeneratedIdentifierFlags::FILE_LEVEL
+                    | GeneratedIdentifierFlags::OPTIMISTIC,
                 ..Default::default()
             },
         );
@@ -582,8 +582,8 @@ impl usingDeclarationTransformer {
 
         let f = self.factory();
         let emit_context = self.emit_context();
-        let is_exported = ast::has_syntactic_modifier(node, ModifierFlags::Export);
-        let is_default = ast::has_syntactic_modifier(node, ModifierFlags::Default);
+        let is_exported = ast::has_syntactic_modifier(node, ModifierFlags::EXPORT);
+        let is_default = ast::has_syntactic_modifier(node, ModifierFlags::DEFAULT);
 
         // When hoisting a class declaration at the top level of a file containing a top-level `using` statement, we
         // must first convert it to a class expression so that we can hoist the binding outside of the `try`.
@@ -638,9 +638,9 @@ impl usingDeclarationTransformer {
             let default_export_binding = f.new_unique_name_ex(
                 "_default",
                 AutoGenerateOptions {
-                    flags: GeneratedIdentifierFlags::ReservedInNestedScopes
-                        | GeneratedIdentifierFlags::FileLevel
-                        | GeneratedIdentifierFlags::Optimistic,
+                    flags: GeneratedIdentifierFlags::RESERVED_IN_NESTED_SCOPES
+                        | GeneratedIdentifierFlags::FILE_LEVEL
+                        | GeneratedIdentifierFlags::OPTIMISTIC,
                     ..Default::default()
                 },
             );
@@ -672,7 +672,7 @@ impl usingDeclarationTransformer {
         let f = self.factory();
         let emit_context = self.emit_context();
         let mut expressions: Vec<P<Node>> = Vec::new();
-        let is_exported = ast::has_syntactic_modifier(node, ModifierFlags::Export);
+        let is_exported = ast::has_syntactic_modifier(node, ModifierFlags::EXPORT);
         expressions.extend(
             node.as_variable_statement()
                 .declaration_list
@@ -712,7 +712,7 @@ impl usingDeclarationTransformer {
             let target = name.clone_node(f);
             emit_context.set_emit_flags(
                 target,
-                emit_context.emit_flags(target) & !(EmitFlags::LocalName | EmitFlags::ExportName),
+                emit_context.emit_flags(target) & !(EmitFlags::LOCAL_NAME | EmitFlags::EXPORT_NAME),
             );
             target
         } else {
@@ -856,7 +856,7 @@ impl usingDeclarationTransformer {
             Some(env_object),
         );
         let env_var_list =
-            f.new_variable_declaration_list(f.new_node_list(vec![env_var]), NodeFlags::Const);
+            f.new_variable_declaration_list(f.new_node_list(vec![env_var]), NodeFlags::CONST);
         let env_var_statement = f.new_variable_statement(None /*modifiers*/, env_var_list);
         statements.push(env_var_statement);
 
@@ -907,7 +907,7 @@ impl usingDeclarationTransformer {
                             env_binding,
                             None,
                             f.new_identifier("error"),
-                            NodeFlags::None,
+                            NodeFlags::NONE,
                         ),
                         body_catch_binding,
                     )),
@@ -916,7 +916,7 @@ impl usingDeclarationTransformer {
                             env_binding,
                             None,
                             f.new_identifier("hasError"),
-                            NodeFlags::None,
+                            NodeFlags::NONE,
                         ),
                         f.new_true_expression(),
                     )),
@@ -938,7 +938,7 @@ impl usingDeclarationTransformer {
                                 None, /*type*/
                                 Some(f.new_dispose_resources_helper(env_binding)),
                             )]),
-                            NodeFlags::Const,
+                            NodeFlags::CONST,
                         ),
                     ),
                     f.new_if_statement(
@@ -967,41 +967,41 @@ impl usingDeclarationTransformer {
 // using.go:761
 fn is_using_variable_declaration_list(node: P<Node>) -> bool {
     ast::is_variable_declaration_list(node)
-        && get_using_kind_of_variable_declaration_list(node) != usingKind::None
+        && get_using_kind_of_variable_declaration_list(node) != UsingKind::None
 }
 
 // using.go:765
-fn get_using_kind_of_variable_declaration_list(node: P<Node>) -> usingKind {
-    let flags = node.flags() & NodeFlags::BlockScoped;
-    if flags == NodeFlags::AwaitUsing {
-        usingKind::Async
-    } else if flags == NodeFlags::Using {
-        usingKind::Sync
+fn get_using_kind_of_variable_declaration_list(node: P<Node>) -> UsingKind {
+    let flags = node.flags() & NodeFlags::BLOCK_SCOPED;
+    if flags == NodeFlags::AWAIT_USING {
+        UsingKind::Async
+    } else if flags == NodeFlags::USING {
+        UsingKind::Sync
     } else {
-        usingKind::None
+        UsingKind::None
     }
 }
 
 // using.go:776
-fn get_using_kind_of_variable_statement(node: P<Node>) -> usingKind {
+fn get_using_kind_of_variable_statement(node: P<Node>) -> UsingKind {
     get_using_kind_of_variable_declaration_list(node.as_variable_statement().declaration_list)
 }
 
 // using.go:780
-fn get_using_kind(statement: P<Node>) -> usingKind {
+fn get_using_kind(statement: P<Node>) -> UsingKind {
     if ast::is_variable_statement(statement) {
         return get_using_kind_of_variable_statement(statement);
     }
-    usingKind::None
+    UsingKind::None
 }
 
 // using.go:787
-fn get_using_kind_of_statements(statements: &[P<Node>]) -> usingKind {
-    let mut result = usingKind::None;
+fn get_using_kind_of_statements(statements: &[P<Node>]) -> UsingKind {
+    let mut result = UsingKind::None;
     for &statement in statements {
         let using_kind = get_using_kind(statement);
-        if using_kind == usingKind::Async {
-            return usingKind::Async;
+        if using_kind == UsingKind::Async {
+            return UsingKind::Async;
         }
         if using_kind > result {
             result = using_kind;

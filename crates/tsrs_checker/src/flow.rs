@@ -61,7 +61,7 @@ impl Checker {
     // flow.go:28
     pub(crate) fn new_flow_type(&self, t: P<Type>, incomplete: bool) -> FlowType {
         let mut t = t;
-        if incomplete && t.flags().intersects(TypeFlags::Never) {
+        if incomplete && t.flags().intersects(TypeFlags::NEVER) {
             t = self.silent_never_type;
         }
         FlowType { t: Some(t), incomplete }
@@ -232,7 +232,7 @@ impl Checker {
         // we give type 'any[]' to 'x' instead of using the type determined by control flow analysis such that operations
         // on empty arrays are possible without implicit any errors and new element types can be inferred without
         // type mismatch errors.
-        let result_type = if evolved_type.object_flags().intersects(ObjectFlags::EvolvingArray)
+        let result_type = if evolved_type.object_flags().intersects(ObjectFlags::EVOLVING_ARRAY)
             && self.is_evolving_array_operation_target(reference)
         {
             self.auto_array_type
@@ -242,11 +242,11 @@ impl Checker {
         if result_type == self.unreachable_never_type
             || reference.parent().is_some()
                 && ast::is_non_null_expression(reference.parent().unwrap())
-                && !result_type.flags().intersects(TypeFlags::Never)
+                && !result_type.flags().intersects(TypeFlags::NEVER)
                 && self
-                    .get_type_with_facts(result_type, TypeFacts::NEUndefinedOrNull)
+                    .get_type_with_facts(result_type, TypeFacts::NE_UNDEFINED_OR_NULL)
                     .flags()
-                    .intersects(TypeFlags::Never)
+                    .intersects(TypeFlags::NEVER)
         {
             return declared_type;
         }
@@ -308,7 +308,7 @@ impl Checker {
                 }
             }
             let flags = flow.flags();
-            if flags.intersects(FlowFlags::Shared) {
+            if flags.intersects(FlowFlags::SHARED) {
                 // We cache results of flow type resolution for shared nodes that were previously visited in
                 // the same getFlowTypeOfReference invocation. A node is considered shared when it is the
                 // antecedent of more than one node.
@@ -430,39 +430,39 @@ impl Checker {
         flags: FlowFlags,
     ) -> FlowStep {
         let t: FlowType;
-        if flags.intersects(FlowFlags::Assignment) {
+        if flags.intersects(FlowFlags::ASSIGNMENT) {
             t = self.get_type_at_flow_assignment(f, flow);
             if t.is_nil() {
                 return FlowStep::Next(flow.antecedent().unwrap());
             }
-        } else if flags.intersects(FlowFlags::Call) {
+        } else if flags.intersects(FlowFlags::CALL) {
             t = self.get_type_at_flow_call(f, flow);
             if t.is_nil() {
                 return FlowStep::Next(flow.antecedent().unwrap());
             }
-        } else if flags.intersects(FlowFlags::Condition) {
+        } else if flags.intersects(FlowFlags::CONDITION) {
             t = self.get_type_at_flow_condition(f, flow);
-        } else if flags.intersects(FlowFlags::SwitchClause) {
+        } else if flags.intersects(FlowFlags::SWITCH_CLAUSE) {
             t = self.get_type_at_switch_clause(f, flow);
-        } else if flags.intersects(FlowFlags::BranchLabel) {
+        } else if flags.intersects(FlowFlags::BRANCH_LABEL) {
             let antecedents =
                 get_branch_label_antecedents(flow, &f.reduce_labels.borrow()).unwrap();
             if antecedents.next.get().is_none() {
                 return FlowStep::Next(antecedents.flow);
             }
             t = self.get_type_at_flow_branch_label(f, flow, antecedents);
-        } else if flags.intersects(FlowFlags::LoopLabel) {
+        } else if flags.intersects(FlowFlags::LOOP_LABEL) {
             let antecedents = flow.antecedents().unwrap();
             if antecedents.next.get().is_none() {
                 return FlowStep::Next(antecedents.flow);
             }
             t = self.get_type_at_flow_loop_label(f, flow);
-        } else if flags.intersects(FlowFlags::ArrayMutation) {
+        } else if flags.intersects(FlowFlags::ARRAY_MUTATION) {
             t = self.get_type_at_flow_array_mutation(f, flow);
             if t.is_nil() {
                 return FlowStep::Next(flow.antecedent().unwrap());
             }
-        } else if flags.intersects(FlowFlags::ReduceLabel) {
+        } else if flags.intersects(FlowFlags::REDUCE_LABEL) {
             // Flow memo: the antecedents of a branch label below depend on the reduce labels above it, which the
             // memo key does not have; and Go's sharedFlows keep what a shared node got under a reduce label for the
             // rest of the walk.
@@ -472,7 +472,7 @@ impl Checker {
             t = self.get_type_at_flow_node(f, flow.antecedent().unwrap());
             f.reduce_depth.set(f.reduce_depth.get() - 1);
             f.reduce_labels.borrow_mut().pop();
-        } else if flags.intersects(FlowFlags::Start) {
+        } else if flags.intersects(FlowFlags::START) {
             // Check if we should continue with the control flow of the containing function.
             let container = flow.node();
             if let Some(container) = container {
@@ -510,8 +510,8 @@ impl Checker {
         key: u128,
         entry_depth: u32,
     ) -> Option<(MemoHit, bool)> {
-        let ends_iteration = flags.intersects(FlowFlags::Condition | FlowFlags::SwitchClause)
-            || flags.intersects(FlowFlags::BranchLabel | FlowFlags::LoopLabel)
+        let ends_iteration = flags.intersects(FlowFlags::CONDITION | FlowFlags::SWITCH_CLAUSE)
+            || flags.intersects(FlowFlags::BRANCH_LABEL | FlowFlags::LOOP_LABEL)
                 && flow.antecedents().is_some_and(|a| a.next.get().is_some());
         if !ends_iteration && flow != entry_flow {
             if !is_flow_memo_checkpoint(flow) {
@@ -710,7 +710,7 @@ impl Checker {
             if is_in_compound_like_assignment(node) {
                 t = self.get_base_type_of_literal_type(t);
             }
-            if t.flags().intersects(TypeFlags::Union) {
+            if t.flags().intersects(TypeFlags::UNION) {
                 let initial_or_assigned = self.get_initial_or_assigned_type(f, flow);
                 return flow_type_of(self.get_assignment_reduced_type(t, initial_or_assigned));
             }
@@ -837,7 +837,7 @@ impl Checker {
                     return self.new_flow_type(narrowed_type, flow_type.incomplete);
                 }
             }
-            if self.get_return_type_of_signature(signature).flags().intersects(TypeFlags::Never) {
+            if self.get_return_type_of_signature(signature).flags().intersects(TypeFlags::NEVER) {
                 return flow_type_of(self.unreachable_never_type);
             }
         }
@@ -874,7 +874,7 @@ impl Checker {
                     if self.strict_null_checks
                         && self.optional_chain_contains_reference(predicate_argument, f.ref_node())
                         && (assume_true
-                            && !self.has_type_facts(predicate_type, TypeFacts::EQUndefined)
+                            && !self.has_type_facts(predicate_type, TypeFacts::EQ_UNDEFINED)
                             || !assume_true
                                 && every_type(
                                     self,
@@ -882,7 +882,7 @@ impl Checker {
                                     super::checker::Checker::is_nullable_type,
                                 ))
                     {
-                        t = self.get_adjusted_type_with_facts(t, TypeFacts::NEUndefinedOrNull);
+                        t = self.get_adjusted_type_with_facts(t, TypeFacts::NE_UNDEFINED_OR_NULL);
                     }
                     let access = self.get_discriminant_property_access(f, predicate_argument, t);
                     if let Some(access) = access {
@@ -934,7 +934,7 @@ impl Checker {
         flow: P<FlowNode>,
     ) -> FlowType {
         let flow_type = self.get_type_at_flow_node(f, flow.antecedent().unwrap());
-        if f.memo_aborted.get() || flow_type.t.unwrap().flags().intersects(TypeFlags::Never) {
+        if f.memo_aborted.get() || flow_type.t.unwrap().flags().intersects(TypeFlags::NEVER) {
             return flow_type;
         }
         // If we have an antecedent type (meaning we're reachable in some way), we first
@@ -944,7 +944,7 @@ impl Checker {
         // have the complete type. We proceed by switching to the silent never type which
         // doesn't report errors when operators are applied to it. Note that this is the
         // *only* place a silent never type is ever generated.
-        let assume_true = flow.flags().intersects(FlowFlags::TrueCondition);
+        let assume_true = flow.flags().intersects(FlowFlags::TRUE_CONDITION);
         let non_evolving_type = self.finalize_evolving_array_type(flow_type.t.unwrap());
         let narrowed_type =
             self.narrow_type(f, non_evolving_type, flow.node().unwrap(), assume_true);
@@ -1053,9 +1053,9 @@ impl Checker {
             return self.get_adjusted_type_with_facts(
                 t,
                 if assume_present {
-                    TypeFacts::NEUndefinedOrNull
+                    TypeFacts::NE_UNDEFINED_OR_NULL
                 } else {
-                    TypeFacts::EQUndefinedOrNull
+                    TypeFacts::EQ_UNDEFINED_OR_NULL
                 },
             );
         }
@@ -1065,9 +1065,9 @@ impl Checker {
                 c.get_type_with_facts(
                     t,
                     if assume_present {
-                        TypeFacts::NEUndefinedOrNull
+                        TypeFacts::NE_UNDEFINED_OR_NULL
                     } else {
-                        TypeFacts::EQUndefinedOrNull
+                        TypeFacts::EQ_UNDEFINED_OR_NULL
                     },
                 )
             });
@@ -1087,21 +1087,21 @@ impl Checker {
         if self.is_matching_reference(f.ref_node(), expr) {
             return self.get_adjusted_type_with_facts(
                 t,
-                if assume_true { TypeFacts::Truthy } else { TypeFacts::Falsy },
+                if assume_true { TypeFacts::TRUTHY } else { TypeFacts::FALSY },
             );
         }
         if self.strict_null_checks
             && assume_true
             && self.optional_chain_contains_reference(expr, f.ref_node())
         {
-            t = self.get_adjusted_type_with_facts(t, TypeFacts::NEUndefinedOrNull);
+            t = self.get_adjusted_type_with_facts(t, TypeFacts::NE_UNDEFINED_OR_NULL);
         }
         let access = self.get_discriminant_property_access(f, expr, t);
         if let Some(access) = access {
             return self.narrow_type_by_discriminant(t, access, move |c, t| {
                 c.get_type_with_facts(
                     t,
-                    if assume_true { TypeFacts::Truthy } else { TypeFacts::Falsy },
+                    if assume_true { TypeFacts::TRUTHY } else { TypeFacts::FALSY },
                 )
             });
         }
@@ -1155,7 +1155,7 @@ impl Checker {
                 if ok && ast::is_string_literal_like(argument) && accessed_name == argument.text() {
                     return self.get_type_with_facts(
                         t,
-                        if assume_true { TypeFacts::NEUndefined } else { TypeFacts::EQUndefined },
+                        if assume_true { TypeFacts::NE_UNDEFINED } else { TypeFacts::EQ_UNDEFINED },
                     );
                 }
             }
@@ -1291,9 +1291,9 @@ impl Checker {
                             return self.get_type_with_facts(
                                 t,
                                 if assume_true {
-                                    TypeFacts::NEUndefined
+                                    TypeFacts::NE_UNDEFINED
                                 } else {
-                                    TypeFacts::EQUndefined
+                                    TypeFacts::EQ_UNDEFINED
                                 },
                             );
                         }
@@ -1350,7 +1350,7 @@ impl Checker {
         assume_true: bool,
     ) -> P<Type> {
         let mut assume_true = assume_true;
-        if t.flags().intersects(TypeFlags::Any) {
+        if t.flags().intersects(TypeFlags::ANY) {
             return t;
         }
         if operator == Kind::ExclamationEqualsToken
@@ -1361,41 +1361,41 @@ impl Checker {
         let value_type = self.get_type_of_expression(value);
         let double_equals =
             operator == Kind::EqualsEqualsToken || operator == Kind::ExclamationEqualsToken;
-        if value_type.flags().intersects(TypeFlags::Nullable) {
+        if value_type.flags().intersects(TypeFlags::NULLABLE) {
             if !self.strict_null_checks {
                 return t;
             }
             let facts = if double_equals {
                 if assume_true {
-                    TypeFacts::EQUndefinedOrNull
+                    TypeFacts::EQ_UNDEFINED_OR_NULL
                 } else {
-                    TypeFacts::NEUndefinedOrNull
+                    TypeFacts::NE_UNDEFINED_OR_NULL
                 }
-            } else if value_type.flags().intersects(TypeFlags::Null) {
-                if assume_true { TypeFacts::EQNull } else { TypeFacts::NENull }
+            } else if value_type.flags().intersects(TypeFlags::NULL) {
+                if assume_true { TypeFacts::EQ_NULL } else { TypeFacts::NE_NULL }
             } else if assume_true {
-                TypeFacts::EQUndefined
+                TypeFacts::EQ_UNDEFINED
             } else {
-                TypeFacts::NEUndefined
+                TypeFacts::NE_UNDEFINED
             };
             return self.get_adjusted_type_with_facts(t, facts);
         }
         if assume_true {
             if !double_equals
-                && (t.flags().intersects(TypeFlags::Unknown)
+                && (t.flags().intersects(TypeFlags::UNKNOWN)
                     || some_type(self, t, super::checker::Checker::is_empty_anonymous_object_type))
             {
-                if value_type.flags().intersects(TypeFlags::Primitive | TypeFlags::NonPrimitive)
+                if value_type.flags().intersects(TypeFlags::PRIMITIVE | TypeFlags::NON_PRIMITIVE)
                     || self.is_empty_anonymous_object_type(value_type)
                 {
                     return value_type;
                 }
-                if value_type.flags().intersects(TypeFlags::Object) {
+                if value_type.flags().intersects(TypeFlags::OBJECT) {
                     return self.non_primitive_type;
                 }
             }
             if !double_equals
-                && value_type.flags().intersects(TypeFlags::Primitive)
+                && value_type.flags().intersects(TypeFlags::PRIMITIVE)
                 && self.is_uniform_union_type(t)
             {
                 let regular_type = self.get_regular_type_of_literal_type(value_type);
@@ -1448,7 +1448,7 @@ impl Checker {
                 && self.optional_chain_contains_reference(target, f.ref_node())
                 && assume_true == (literal.text() != "undefined")
             {
-                t = self.get_adjusted_type_with_facts(t, TypeFacts::NEUndefinedOrNull);
+                t = self.get_adjusted_type_with_facts(t, TypeFacts::NE_UNDEFINED_OR_NULL);
             }
             let property_access = self.get_discriminant_property_access(f, target, t);
             if let Some(property_access) = property_access {
@@ -1471,9 +1471,9 @@ impl Checker {
         if assume_true {
             return self.narrow_type_by_type_name(t, literal.text());
         }
-        let facts = match typeofNEFacts.get(literal.text()) {
+        let facts = match TYPEOF_NE_FACTS.get(literal.text()) {
             Some(&facts) => facts,
-            None => TypeFacts::TypeofNEHostObject,
+            None => TypeFacts::TYPEOF_NE_HOST_OBJECT,
         };
         self.get_adjusted_type_with_facts(t, facts)
     }
@@ -1485,70 +1485,70 @@ impl Checker {
                 return self.narrow_type_by_type_facts(
                     t,
                     self.string_type,
-                    TypeFacts::TypeofEQString,
+                    TypeFacts::TYPEOF_EQ_STRING,
                 );
             }
             "number" => {
                 return self.narrow_type_by_type_facts(
                     t,
                     self.number_type,
-                    TypeFacts::TypeofEQNumber,
+                    TypeFacts::TYPEOF_EQ_NUMBER,
                 );
             }
             "bigint" => {
                 return self.narrow_type_by_type_facts(
                     t,
                     self.bigint_type,
-                    TypeFacts::TypeofEQBigInt,
+                    TypeFacts::TYPEOF_EQ_BIG_INT,
                 );
             }
             "boolean" => {
                 return self.narrow_type_by_type_facts(
                     t,
                     self.boolean_type,
-                    TypeFacts::TypeofEQBoolean,
+                    TypeFacts::TYPEOF_EQ_BOOLEAN,
                 );
             }
             "symbol" => {
                 return self.narrow_type_by_type_facts(
                     t,
                     self.es_symbol_type,
-                    TypeFacts::TypeofEQSymbol,
+                    TypeFacts::TYPEOF_EQ_SYMBOL,
                 );
             }
             "object" => {
-                if t.flags().intersects(TypeFlags::Any) {
+                if t.flags().intersects(TypeFlags::ANY) {
                     return t;
                 }
                 let object_type = self.narrow_type_by_type_facts(
                     t,
                     self.non_primitive_type,
-                    TypeFacts::TypeofEQObject,
+                    TypeFacts::TYPEOF_EQ_OBJECT,
                 );
                 let null_type =
-                    self.narrow_type_by_type_facts(t, self.null_type, TypeFacts::EQNull);
+                    self.narrow_type_by_type_facts(t, self.null_type, TypeFacts::EQ_NULL);
                 return self.get_union_type(&[object_type, null_type]);
             }
             "function" => {
-                if t.flags().intersects(TypeFlags::Any) {
+                if t.flags().intersects(TypeFlags::ANY) {
                     return t;
                 }
                 return self.narrow_type_by_type_facts(
                     t,
                     self.global_function_type,
-                    TypeFacts::TypeofEQFunction,
+                    TypeFacts::TYPEOF_EQ_FUNCTION,
                 );
             }
             "undefined" => {
                 return self.narrow_type_by_type_facts(
                     t,
                     self.undefined_type,
-                    TypeFacts::EQUndefined,
+                    TypeFacts::EQ_UNDEFINED,
                 );
             }
             _ => {}
         }
-        self.narrow_type_by_type_facts(t, self.non_primitive_type, TypeFacts::TypeofEQHostObject)
+        self.narrow_type_by_type_facts(t, self.non_primitive_type, TypeFacts::TYPEOF_EQ_HOST_OBJECT)
     }
 
     // flow.go:685
@@ -1585,7 +1585,7 @@ impl Checker {
     ) -> P<Type> {
         if (operator == Kind::EqualsEqualsEqualsToken
             || operator == Kind::ExclamationEqualsEqualsToken)
-            && t.flags().intersects(TypeFlags::Union)
+            && t.flags().intersects(TypeFlags::UNION)
         {
             let key_property_name = self.get_key_property_name(t);
             if !key_property_name.is_empty() {
@@ -1631,10 +1631,10 @@ impl Checker {
         let optional_chain = ast::is_optional_chain(access);
         let remove_nullable = self.strict_null_checks
             && (optional_chain || is_non_null_access(access))
-            && self.maybe_type_of_kind(t, TypeFlags::Nullable);
+            && self.maybe_type_of_kind(t, TypeFlags::NULLABLE);
         let mut non_null_type = t;
         if remove_nullable {
-            non_null_type = self.get_type_with_facts(t, TypeFacts::NEUndefinedOrNull);
+            non_null_type = self.get_type_with_facts(t, TypeFacts::NE_UNDEFINED_OR_NULL);
         }
         let Some(mut prop_type) = self.get_type_of_property_of_type(non_null_type, &prop_name)
         else {
@@ -1648,8 +1648,8 @@ impl Checker {
             let discriminant_type = c
                 .get_type_of_property_or_index_signature_of_type(t, &prop_name)
                 .unwrap_or(c.unknown_type);
-            !discriminant_type.flags().intersects(TypeFlags::Never)
-                && !narrowed_prop_type.flags().intersects(TypeFlags::Never)
+            !discriminant_type.flags().intersects(TypeFlags::NEVER)
+                && !narrowed_prop_type.flags().intersects(TypeFlags::NEVER)
                 && c.are_types_comparable(narrowed_prop_type, discriminant_type)
         })
     }
@@ -1730,10 +1730,10 @@ impl Checker {
         // This is because you may have a class `A` that defines some set of properties, and another class `B`
         // that defines the same set of properties as class `A`, in that case they are structurally the same
         // type, but when you do something like `instanceOfA.constructor === B` it will return false.
-        if source.flags().intersects(TypeFlags::Object)
-            && source.object_flags().intersects(ObjectFlags::Class)
-            || target.flags().intersects(TypeFlags::Object)
-                && target.object_flags().intersects(ObjectFlags::Class)
+        if source.flags().intersects(TypeFlags::OBJECT)
+            && source.object_flags().intersects(ObjectFlags::CLASS)
+            || target.flags().intersects(TypeFlags::OBJECT)
+                && target.object_flags().intersects(ObjectFlags::CLASS)
         {
             return source.symbol() == target.symbol();
         }
@@ -1772,7 +1772,7 @@ impl Checker {
                 && self.strict_null_checks
                 && self.optional_chain_contains_reference(left, f.ref_node())
             {
-                return self.get_adjusted_type_with_facts(t, TypeFacts::NEUndefinedOrNull);
+                return self.get_adjusted_type_with_facts(t, TypeFacts::NE_UNDEFINED_OR_NULL);
             }
             return t;
         }
@@ -1810,7 +1810,7 @@ impl Checker {
             && (instance_type == self.global_object_type
                 || instance_type == self.global_function_type)
             || !(assume_true
-                || instance_type.flags().intersects(TypeFlags::Object)
+                || instance_type.flags().intersects(TypeFlags::OBJECT)
                     && !self.is_empty_anonymous_object_type(instance_type))
         {
             return t;
@@ -1826,7 +1826,7 @@ impl Checker {
         assume_true: bool,
         check_derived: bool,
     ) -> P<Type> {
-        if !t.flags().intersects(TypeFlags::Union) {
+        if !t.flags().intersects(TypeFlags::UNION) {
             return self.get_narrowed_type_worker(t, candidate, assume_true, check_derived);
         }
         let key = NarrowedTypeKey { t, candidate, assume_true, check_derived };
@@ -1854,7 +1854,7 @@ impl Checker {
             if check_derived {
                 return self.filter_type(t, move |c, t| !c.is_type_derived_from(t, candidate));
             }
-            if t.flags().intersects(TypeFlags::Unknown) {
+            if t.flags().intersects(TypeFlags::UNKNOWN) {
                 t = self.unknown_union_type;
             }
             let true_type = self.get_narrowed_type(
@@ -1864,7 +1864,7 @@ impl Checker {
             let filtered = self.filter_type(t, move |c, t| !c.is_type_subset_of(t, true_type));
             return self.recombine_unknown_type(filtered);
         }
-        if t.flags().intersects(TypeFlags::AnyOrUnknown) {
+        if t.flags().intersects(TypeFlags::ANY_OR_UNKNOWN) {
             return candidate;
         }
         if t == candidate {
@@ -1873,7 +1873,7 @@ impl Checker {
         // We first attempt to filter the current type, narrowing constituents as appropriate and removing
         // constituents that are unrelated to the candidate.
         let mut key_property_name = String::new();
-        if t.flags().intersects(TypeFlags::Union) {
+        if t.flags().intersects(TypeFlags::UNION) {
             key_property_name = self.get_key_property_name(t);
         }
         let narrowed_type = self
@@ -1920,7 +1920,7 @@ impl Checker {
                     }
                 };
                 let directly_related = c.map_type(matching, map_type).unwrap();
-                if !directly_related.flags().intersects(TypeFlags::Never) {
+                if !directly_related.flags().intersects(TypeFlags::NEVER) {
                     return Some(directly_related);
                 }
                 // If no constituents are directly related, create intersections for any generic constituents that
@@ -1933,7 +1933,7 @@ impl Checker {
                     }
                 };
                 c.map_type(t, |c, t| {
-                    if c.maybe_type_of_kind(t, TypeFlags::Instantiable) {
+                    if c.maybe_type_of_kind(t, TypeFlags::INSTANTIABLE) {
                         let constraint = c.get_base_constraint_of_type(t);
                         if constraint.is_none() || is_related(c, n, constraint.unwrap()) {
                             return Some(c.get_intersection_type(&[t, n]));
@@ -1945,7 +1945,7 @@ impl Checker {
             .unwrap();
         // If filtering produced a non-empty type, return that. Otherwise, pick the most specific of the two
         // based on assignability, or as a last resort produce an intersection.
-        if !narrowed_type.flags().intersects(TypeFlags::Never) {
+        if !narrowed_type.flags().intersects(TypeFlags::NEVER) {
             return narrowed_type;
         } else if self.is_type_subtype_of(candidate, t) {
             return candidate;
@@ -2049,8 +2049,8 @@ impl Checker {
     ) -> bool {
         let prop = self.get_property_of_type(t, prop_name);
         if let Some(prop) = prop {
-            return prop.flags().intersects(SymbolFlags::Optional)
-                || prop.check_flags().intersects(CheckFlags::Partial)
+            return prop.flags().intersects(SymbolFlags::OPTIONAL)
+                || prop.check_flags().intersects(CheckFlags::PARTIAL)
                 || assume_true;
         }
         self.get_applicable_index_info_for_name(t, prop_name).is_some() || !assume_true
@@ -2078,9 +2078,9 @@ impl Checker {
             operator == Kind::EqualsEqualsToken || operator == Kind::EqualsEqualsEqualsToken;
         let nullable_flags =
             if operator == Kind::EqualsEqualsToken || operator == Kind::ExclamationEqualsToken {
-                TypeFlags::Nullable
+                TypeFlags::NULLABLE
             } else {
-                TypeFlags::Undefined
+                TypeFlags::UNDEFINED
             };
         let value_type = self.get_type_of_expression(value);
         // Note that we include any and unknown in the exclusion test because their domain includes null and undefined.
@@ -2088,10 +2088,10 @@ impl Checker {
             && every_type(self, value_type, |_, t| t.flags().intersects(nullable_flags))
             || equals_operator == assume_true
                 && every_type(self, value_type, |_, t| {
-                    !t.flags().intersects(TypeFlags::AnyOrUnknown | nullable_flags)
+                    !t.flags().intersects(TypeFlags::ANY_OR_UNKNOWN | nullable_flags)
                 });
         if remove_nullable {
-            return self.get_adjusted_type_with_facts(t, TypeFacts::NEUndefinedOrNull);
+            return self.get_adjusted_type_with_facts(t, TypeFacts::NE_UNDEFINED_OR_NULL);
         }
         t
     }
@@ -2123,15 +2123,15 @@ impl Checker {
             if self.strict_null_checks {
                 if self.optional_chain_contains_reference(expr, f.ref_node()) {
                     t = self.narrow_type_by_switch_optional_chain_containment(t, data, |_, t| {
-                        !t.flags().intersects(TypeFlags::Undefined | TypeFlags::Never)
+                        !t.flags().intersects(TypeFlags::UNDEFINED | TypeFlags::NEVER)
                     });
                 } else if ast::is_type_of_expression(expr)
                     && self
                         .optional_chain_contains_reference(expr.expression().unwrap(), f.ref_node())
                 {
                     t = self.narrow_type_by_switch_optional_chain_containment(t, data, |_, t| {
-                        !(t.flags().intersects(TypeFlags::Never)
-                            || t.flags().intersects(TypeFlags::StringLiteral)
+                        !(t.flags().intersects(TypeFlags::NEVER)
+                            || t.flags().intersects(TypeFlags::STRING_LITERAL)
                                 && get_string_literal_value(t) == "undefined")
                     });
                 }
@@ -2162,14 +2162,14 @@ impl Checker {
         let clause_types = &switch_types[data.clause_start..data.clause_end];
         let has_default_clause =
             data.clause_start == data.clause_end || clause_types.contains(&self.never_type);
-        if t.flags().intersects(TypeFlags::Unknown) && !has_default_clause {
+        if t.flags().intersects(TypeFlags::UNKNOWN) && !has_default_clause {
             let mut ground_clause_types: Option<Vec<P<Type>>> = None;
             for (i, &s) in clause_types.iter().enumerate() {
-                if s.flags().intersects(TypeFlags::Primitive | TypeFlags::NonPrimitive) {
+                if s.flags().intersects(TypeFlags::PRIMITIVE | TypeFlags::NON_PRIMITIVE) {
                     if let Some(ground_clause_types) = &mut ground_clause_types {
                         ground_clause_types.push(s);
                     }
-                } else if s.flags().intersects(TypeFlags::Object) {
+                } else if s.flags().intersects(TypeFlags::OBJECT) {
                     if ground_clause_types.is_none() {
                         ground_clause_types = Some(clause_types[..i].to_vec());
                     }
@@ -2185,10 +2185,10 @@ impl Checker {
         }
         let discriminant_type = self.get_union_type(clause_types);
         let mut case_type: Option<P<Type>> = None;
-        if discriminant_type.flags().intersects(TypeFlags::Never) {
+        if discriminant_type.flags().intersects(TypeFlags::NEVER) {
             case_type = Some(self.never_type);
         } else {
-            if discriminant_type.flags().intersects(TypeFlags::Primitive)
+            if discriminant_type.flags().intersects(TypeFlags::PRIMITIVE)
                 && self.is_uniform_union_type(t)
             {
                 let regular_type = self.get_regular_type_of_literal_type(discriminant_type);
@@ -2212,13 +2212,13 @@ impl Checker {
                 return true;
             }
             let mut u = c.undefined_type;
-            if !t.flags().intersects(TypeFlags::Undefined) {
+            if !t.flags().intersects(TypeFlags::UNDEFINED) {
                 let unit_type = checker::Checker::extract_unit_type(t);
                 u = c.get_regular_type_of_literal_type(unit_type);
             }
             !switch_types.iter().any(|&st| is_unit_type(st) && c.are_types_comparable(st, u))
         });
-        if case_type.flags().intersects(TypeFlags::Never) {
+        if case_type.flags().intersects(TypeFlags::NEVER) {
             return default_type;
         }
         self.get_union_type(&[case_type, default_type])
@@ -2329,7 +2329,7 @@ impl Checker {
                 .any(|&s| !clause_check(self, s)))
         };
         if every_clause_checks {
-            return self.get_type_with_facts(t, TypeFacts::NEUndefinedOrNull);
+            return self.get_type_with_facts(t, TypeFacts::NE_UNDEFINED_OR_NULL);
         }
         t
     }
@@ -2343,7 +2343,7 @@ impl Checker {
     ) -> P<Type> {
         let clause_data = data.as_flow_switch_clause_data();
         if clause_data.clause_start < clause_data.clause_end
-            && t.flags().intersects(TypeFlags::Union)
+            && t.flags().intersects(TypeFlags::UNION)
         {
             let (accessed_name, _) = self.get_accessed_property_name(access);
             if !accessed_name.is_empty() && self.get_key_property_name(t) == accessed_name {
@@ -2385,7 +2385,7 @@ impl Checker {
             next = list.next.get();
             let antecedent = list.flow;
             if bypass_flow.is_none()
-                && antecedent.flags().intersects(FlowFlags::SwitchClause)
+                && antecedent.flags().intersects(FlowFlags::SWITCH_CLAUSE)
                 && antecedent.node().unwrap().as_flow_switch_clause_data().is_empty()
             {
                 // The antecedent is the bypass branch of a potentially exhaustive switch statement.
@@ -2429,7 +2429,7 @@ impl Checker {
             // If the bypass flow contributes a type we haven't seen yet and the switch statement
             // isn't exhaustive, process the bypass flow type. Since exhaustiveness checks increase
             // the risk of circularities, we only want to perform them when they make a difference.
-            if !flow_type_t.flags().intersects(TypeFlags::Never)
+            if !flow_type_t.flags().intersects(TypeFlags::NEVER)
                 && !self.antecedent_types[antecedent_start..].contains(&flow_type_t)
                 && !self.is_exhaustive_switch_statement(
                     bypass_flow.node().unwrap().as_flow_switch_clause_data().switch_statement,
@@ -2483,7 +2483,7 @@ impl Checker {
         let result = self.recombine_unknown_type(union_type);
         let declared_type = f.declared();
         if result != declared_type
-            && (result.flags() & declared_type.flags()).intersects(TypeFlags::Union)
+            && (result.flags() & declared_type.flags()).intersects(TypeFlags::UNION)
             && result.as_union_type().types() == declared_type.as_union_type().types()
         {
             return declared_type;
@@ -2501,7 +2501,7 @@ impl Checker {
             let ref_key = self.get_flow_reference_key(f);
             f.ref_key.set(ref_key);
         }
-        if f.ref_key.get() == nonDottedNameCacheKey {
+        if f.ref_key.get() == NON_DOTTED_NAME_CACHE_KEY {
             // No cache key is generated when binding patterns are in unnarrowable situations
             return flow_type_of(f.declared());
         }
@@ -2625,7 +2625,7 @@ impl Checker {
                     return flow_type;
                 }
                 let flow_type_t = flow_type.t.unwrap();
-                if flow_type_t.object_flags().intersects(ObjectFlags::EvolvingArray) {
+                if flow_type_t.object_flags().intersects(ObjectFlags::EVOLVING_ARRAY) {
                     let mut evolved_type = flow_type_t;
                     if ast::is_call_expression(node) {
                         evolved_type =
@@ -2643,7 +2643,7 @@ impl Checker {
                                 .as_element_access_expression()
                                 .argument_expression,
                         );
-                        if self.is_type_assignable_to_kind(index_type, TypeFlags::NumberLike) {
+                        if self.is_type_assignable_to_kind(index_type, TypeFlags::NUMBER_LIKE) {
                             evolved_type = self.add_evolving_array_element_type(
                                 evolved_type,
                                 node.as_binary_expression().right(),
@@ -2669,15 +2669,15 @@ impl Checker {
         // a discriminant property. In cases where the computed type isn't a subset, e.g because of a preceding type
         // predicate narrowing, we use the actual computed type.
         let declared_type = f.declared();
-        if declared_type.flags().intersects(TypeFlags::Union)
-            || computed_type.flags().intersects(TypeFlags::Union)
+        if declared_type.flags().intersects(TypeFlags::UNION)
+            || computed_type.flags().intersects(TypeFlags::UNION)
         {
             let access = self.get_candidate_discriminant_property_access(f, expr);
             if let Some(access) = access {
                 let (name, ok) = self.get_accessed_property_name(access);
                 if ok {
                     let mut t = computed_type;
-                    if declared_type.flags().intersects(TypeFlags::Union)
+                    if declared_type.flags().intersects(TypeFlags::UNION)
                         && self.is_type_subset_of(computed_type, declared_type)
                     {
                         t = declared_type;
@@ -2783,7 +2783,7 @@ impl Checker {
         if let Some(result) = result {
             result
         } else {
-            let result = self.new_object_type(ObjectFlags::EvolvingArray, None);
+            let result = self.new_object_type(ObjectFlags::EVOLVING_ARRAY, None);
             result.as_evolving_array_type().element_type.set(Some(element_type));
             self.cached_types.insert(key, result);
             result
@@ -2792,7 +2792,7 @@ impl Checker {
 
     // flow.go:1520
     pub(crate) fn get_element_type_of_evolving_array_type(&self, t: P<Type>) -> P<Type> {
-        if t.object_flags().intersects(ObjectFlags::EvolvingArray) {
+        if t.object_flags().intersects(ObjectFlags::EVOLVING_ARRAY) {
             return t.as_evolving_array_type().element_type.get().unwrap();
         }
         self.never_type
@@ -2803,8 +2803,8 @@ impl Checker {
 pub(crate) fn is_evolving_array_type_list(types: &[P<Type>]) -> bool {
     let mut has_evolving_array_type = false;
     for &t in types {
-        if !t.flags().intersects(TypeFlags::Never) {
-            if !t.object_flags().intersects(ObjectFlags::EvolvingArray) {
+        if !t.flags().intersects(TypeFlags::NEVER) {
+            if !t.object_flags().intersects(ObjectFlags::EVOLVING_ARRAY) {
                 return false;
             }
             has_evolving_array_type = true;
@@ -2836,7 +2836,7 @@ impl Checker {
                 let index_type = self.get_type_of_expression(
                     parent.as_element_access_expression().argument_expression,
                 );
-                self.is_type_assignable_to_kind(index_type, TypeFlags::NumberLike)
+                self.is_type_assignable_to_kind(index_type, TypeFlags::NUMBER_LIKE)
             };
         is_length_push_or_unshift || is_element_assignment
     }
@@ -2863,7 +2863,7 @@ impl Checker {
 
     // flow.go:1566
     pub(crate) fn finalize_evolving_array_type(&mut self, t: P<Type>) -> P<Type> {
-        if t.object_flags().intersects(ObjectFlags::EvolvingArray) {
+        if t.object_flags().intersects(ObjectFlags::EVOLVING_ARRAY) {
             return self.get_final_array_type(t.as_evolving_array_type());
         }
         t
@@ -2880,9 +2880,9 @@ impl Checker {
 
     // flow.go:1580
     pub(crate) fn create_final_array_type(&mut self, element_type: P<Type>) -> P<Type> {
-        if element_type.flags().intersects(TypeFlags::Never) {
+        if element_type.flags().intersects(TypeFlags::NEVER) {
             return self.auto_array_type;
-        } else if element_type.flags().intersects(TypeFlags::Union) {
+        } else if element_type.flags().intersects(TypeFlags::UNION) {
             let union_type = self.get_union_type_ex(
                 element_type.types(),
                 UnionReduction::Subtype,
@@ -2906,7 +2906,7 @@ impl Checker {
                 .pos()
                 .expect_source("parsed node lists have source positions"),
         );
-        self.add_diagnostic(ast::new_diagnostic(Some(source_file), span, &diagnostics::The_containing_function_or_module_body_is_too_large_for_control_flow_analysis, &[]));
+        self.add_diagnostic(ast::new_diagnostic(Some(source_file), span, &diagnostics::THE_CONTAINING_FUNCTION_OR_MODULE_BODY_IS_TOO_LARGE_FOR_CONTROL_FLOW_ANALYSIS, &[]));
     }
 
     // flow.go:1597
@@ -3019,7 +3019,7 @@ impl Checker {
     // The result is nonDottedNameCacheKey if the reference isn't a dotted name.
     // flow.go:1657
     pub(crate) fn get_flow_reference_key(&mut self, f: P<FlowState>) -> CacheHashKey {
-        let mut b = keyBuilder::default();
+        let mut b = KeyBuilder::default();
         if self.write_flow_cache_key(
             &mut b,
             f.ref_node(),
@@ -3029,13 +3029,13 @@ impl Checker {
         ) {
             return b.hash();
         }
-        nonDottedNameCacheKey // Reference isn't a dotted name
+        NON_DOTTED_NAME_CACHE_KEY // Reference isn't a dotted name
     }
 
     // flow.go:1665
     pub(crate) fn write_flow_cache_key(
         &mut self,
-        b: &mut keyBuilder,
+        b: &mut KeyBuilder,
         node: P<Node>,
         declared_type: P<Type>,
         initial_type: P<Type>,
@@ -3192,7 +3192,7 @@ impl Checker {
     ) -> (String, bool) {
         let symbol = self.resolve_entity_name(
             node,
-            SymbolFlags::Value,
+            SymbolFlags::VALUE,
             true, /*ignoreErrors*/
             false,
             None,
@@ -3200,7 +3200,7 @@ impl Checker {
         let symbol = match symbol {
             Some(symbol)
                 if self.is_constant_variable(symbol)
-                    || symbol.flags().intersects(SymbolFlags::EnumMember) =>
+                    || symbol.flags().intersects(SymbolFlags::ENUM_MEMBER) =>
             {
                 symbol
             }
@@ -3238,9 +3238,9 @@ impl Checker {
 
 // flow.go:1782
 pub(crate) fn try_get_name_from_type(t: P<Type>) -> (String, bool) {
-    if t.flags().intersects(TypeFlags::UniqueESSymbol) {
+    if t.flags().intersects(TypeFlags::UNIQUE_ES_SYMBOL) {
         return (t.as_unique_es_symbol_type().name.get().to_string(), true);
-    } else if t.flags().intersects(TypeFlags::StringOrNumberLiteral) {
+    } else if t.flags().intersects(TypeFlags::STRING_OR_NUMBER_LITERAL) {
         return (evaluator::any_to_string(t.as_literal_type().value.get().unwrap()), true);
     }
     (String::new(), false)
@@ -3271,7 +3271,7 @@ impl Checker {
     // flow.go:1806
     pub(crate) fn get_literal_property_name_text(&mut self, name: P<Node>) -> (String, bool) {
         let t = self.get_literal_type_from_property_name(name);
-        if t.flags().intersects(TypeFlags::StringLiteral | TypeFlags::NumberLiteral) {
+        if t.flags().intersects(TypeFlags::STRING_LITERAL | TypeFlags::NUMBER_LITERAL) {
             return (evaluator::any_to_string(t.as_literal_type().value.get().unwrap()), true);
         }
         (String::new(), false)
@@ -3429,43 +3429,46 @@ impl Checker {
     ) -> P<Type> {
         if self.maybe_type_of_kind(
             type_with_primitives,
-            TypeFlags::String | TypeFlags::TemplateLiteral | TypeFlags::Number | TypeFlags::BigInt,
+            TypeFlags::STRING
+                | TypeFlags::TEMPLATE_LITERAL
+                | TypeFlags::NUMBER
+                | TypeFlags::BIG_INT,
         ) && self.maybe_type_of_kind(
             type_with_literals,
-            TypeFlags::StringLiteral
-                | TypeFlags::TemplateLiteral
-                | TypeFlags::StringMapping
-                | TypeFlags::NumberLiteral
-                | TypeFlags::BigIntLiteral,
+            TypeFlags::STRING_LITERAL
+                | TypeFlags::TEMPLATE_LITERAL
+                | TypeFlags::STRING_MAPPING
+                | TypeFlags::NUMBER_LITERAL
+                | TypeFlags::BIG_INT_LITERAL,
         ) {
             return self
                 .map_type(type_with_primitives, move |c, t| {
-                    if t.flags().intersects(TypeFlags::String) {
+                    if t.flags().intersects(TypeFlags::STRING) {
                         Some(c.extract_types_of_kind(
                             type_with_literals,
-                            TypeFlags::String
-                                | TypeFlags::StringLiteral
-                                | TypeFlags::TemplateLiteral
-                                | TypeFlags::StringMapping,
+                            TypeFlags::STRING
+                                | TypeFlags::STRING_LITERAL
+                                | TypeFlags::TEMPLATE_LITERAL
+                                | TypeFlags::STRING_MAPPING,
                         ))
                     } else if c.is_pattern_literal_type(t)
                         && !c.maybe_type_of_kind(
                             type_with_literals,
-                            TypeFlags::String
-                                | TypeFlags::TemplateLiteral
-                                | TypeFlags::StringMapping,
+                            TypeFlags::STRING
+                                | TypeFlags::TEMPLATE_LITERAL
+                                | TypeFlags::STRING_MAPPING,
                         )
                     {
-                        Some(c.extract_types_of_kind(type_with_literals, TypeFlags::StringLiteral))
-                    } else if t.flags().intersects(TypeFlags::Number) {
+                        Some(c.extract_types_of_kind(type_with_literals, TypeFlags::STRING_LITERAL))
+                    } else if t.flags().intersects(TypeFlags::NUMBER) {
                         Some(c.extract_types_of_kind(
                             type_with_literals,
-                            TypeFlags::Number | TypeFlags::NumberLiteral,
+                            TypeFlags::NUMBER | TypeFlags::NUMBER_LITERAL,
                         ))
-                    } else if t.flags().intersects(TypeFlags::BigInt) {
+                    } else if t.flags().intersects(TypeFlags::BIG_INT) {
                         Some(c.extract_types_of_kind(
                             type_with_literals,
-                            TypeFlags::BigInt | TypeFlags::BigIntLiteral,
+                            TypeFlags::BIG_INT | TypeFlags::BIG_INT_LITERAL,
                         ))
                     } else {
                         Some(t)
@@ -3479,8 +3482,8 @@ impl Checker {
 
 // flow.go:1928
 pub(crate) fn is_coercible_under_double_equals(source: P<Type>, target: P<Type>) -> bool {
-    source.flags().intersects(TypeFlags::Number | TypeFlags::String | TypeFlags::BooleanLiteral)
-        && target.flags().intersects(TypeFlags::Number | TypeFlags::String | TypeFlags::Boolean)
+    source.flags().intersects(TypeFlags::NUMBER | TypeFlags::STRING | TypeFlags::BOOLEAN_LITERAL)
+        && target.flags().intersects(TypeFlags::NUMBER | TypeFlags::STRING | TypeFlags::BOOLEAN)
 }
 
 impl Checker {
@@ -3516,9 +3519,9 @@ impl Checker {
             let operand_constraint = self.get_base_constraint_or_type(operand_type);
             // Get the not-equal flags for all handled cases.
             let not_equal_facts = Self::get_not_equal_facts_from_typeof_switch(0, 0, witnesses);
-            if operand_constraint.flags().intersects(TypeFlags::AnyOrUnknown) {
+            if operand_constraint.flags().intersects(TypeFlags::ANY_OR_UNKNOWN) {
                 // We special case the top types to be exhaustive when all cases are handled.
-                return TypeFacts::AllTypeofNE & not_equal_facts == TypeFacts::AllTypeofNE;
+                return TypeFacts::ALL_TYPEOF_NE & not_equal_facts == TypeFacts::ALL_TYPEOF_NE;
             }
             // A missing not-equal flag indicates that the type wasn't handled by some case.
             return !some_type(self, operand_constraint, |c, t| {
@@ -3543,7 +3546,7 @@ impl Checker {
 
     // flow.go:1978
     pub(crate) fn each_type_contained_in(source: P<Type>, types: &[P<Type>]) -> bool {
-        if source.flags().intersects(TypeFlags::Union) {
+        if source.flags().intersects(TypeFlags::UNION) {
             return !source.as_union_type().types().iter().any(|t| !types.contains(t));
         }
         types.contains(&source)
@@ -3587,12 +3590,12 @@ impl Checker {
         end: usize,
         witnesses: &[&str],
     ) -> TypeFacts {
-        let mut facts = TypeFacts::None;
+        let mut facts = TypeFacts::NONE;
         for (i, &witness) in witnesses.iter().enumerate() {
             if (i < start || i >= end) && !witness.is_empty() {
-                let f = match typeofNEFacts.get(witness) {
+                let f = match TYPEOF_NE_FACTS.get(witness) {
                     Some(&f) => f,
-                    None => TypeFacts::TypeofNEHostObject,
+                    None => TypeFacts::TYPEOF_NE_HOST_OBJECT,
                 };
                 facts |= f;
             }
@@ -3661,7 +3664,7 @@ impl Checker {
             if signatures.len() == 1 && signatures[0].type_parameters().is_empty() {
                 signature = Some(signatures[0]);
             } else if signatures.iter().any(|&s| self.has_type_predicate_or_never_return_type(s)) {
-                signature = Some(self.get_resolved_signature(node, None, CheckMode::Normal));
+                signature = Some(self.get_resolved_signature(node, None, CheckMode::NORMAL));
             }
             if !(signature.is_some()
                 && self.has_type_predicate_or_never_return_type(signature.unwrap()))
@@ -3686,7 +3689,7 @@ impl Checker {
     ) -> Option<P<Type>> {
         let has_instance_property_name =
             self.get_property_name_for_known_symbol_name("hasInstance");
-        if self.all_types_assignable_to_kind(t, TypeFlags::NonPrimitive) {
+        if self.all_types_assignable_to_kind(t, TypeFlags::NON_PRIMITIVE) {
             let has_instance_property = self.get_property_of_type(t, &has_instance_property_name);
             if let Some(has_instance_property) = has_instance_property {
                 let has_instance_property_type = self.get_type_of_symbol(has_instance_property);
@@ -3713,7 +3716,7 @@ impl Checker {
                 }
             }
         }
-        format!("{}@{}", ast::InternalSymbolNamePrefix, symbol_name)
+        format!("{}@{}", ast::INTERNAL_SYMBOL_NAME_PREFIX, symbol_name)
     }
 
     // We require the dotted function name in an assertion expression to be comprised of identifiers
@@ -3726,7 +3729,7 @@ impl Checker {
         node: P<Node>,
         diagnostic: Option<P<Diagnostic>>,
     ) -> Option<P<Type>> {
-        if !node.flags().intersects(NodeFlags::InWithStatement) {
+        if !node.flags().intersects(NodeFlags::IN_WITH_STATEMENT) {
             match node.kind() {
                 Kind::Identifier => {
                     let resolved = self.get_resolved_symbol(node);
@@ -3793,15 +3796,15 @@ impl Checker {
         diagnostic: Option<P<Diagnostic>>,
     ) -> Option<P<Type>> {
         if symbol.flags().intersects(
-            SymbolFlags::Function
-                | SymbolFlags::Method
-                | SymbolFlags::Class
-                | SymbolFlags::ValueModule,
+            SymbolFlags::FUNCTION
+                | SymbolFlags::METHOD
+                | SymbolFlags::CLASS
+                | SymbolFlags::VALUE_MODULE,
         ) {
             return Some(self.get_type_of_symbol(symbol));
         }
-        if symbol.flags().intersects(SymbolFlags::Variable | SymbolFlags::Property) {
-            if symbol.check_flags().intersects(CheckFlags::Mapped) {
+        if symbol.flags().intersects(SymbolFlags::VARIABLE | SymbolFlags::PROPERTY) {
+            if symbol.check_flags().intersects(CheckFlags::MAPPED) {
                 let origin = self.mapped_symbol_links.get(symbol).synthetic_origin.get();
                 if let Some(origin) = origin {
                     if self.get_explicit_type_of_symbol(origin, diagnostic).is_some() {
@@ -3825,9 +3828,9 @@ impl Checker {
                     if let Some(expression_type) = expression_type {
                         let use_ = if statement.as_for_in_or_of_statement().await_modifier.is_some()
                         {
-                            IterationUse::ForAwaitOf
+                            IterationUse::FOR_AWAIT_OF
                         } else {
-                            IterationUse::ForOf
+                            IterationUse::FOR_OF
                         };
                         let undefined_type = self.undefined_type;
                         return Some(self.check_iterated_type_or_element_type(
@@ -3842,7 +3845,7 @@ impl Checker {
                     let symbol_string = self.symbol_to_string(symbol);
                     diagnostic.add_related_info(create_diagnostic_for_node(
                         Some(declaration),
-                        &diagnostics::X_0_needs_an_explicit_type_annotation,
+                        &diagnostics::X_0_NEEDS_AN_EXPLICIT_TYPE_ANNOTATION,
                         &[&symbol_string],
                     ));
                 }
@@ -3881,7 +3884,7 @@ impl Checker {
             Some(declaration) => {
                 let return_type =
                     self.get_return_type_from_annotation(declaration).unwrap_or(self.unknown_type);
-                return_type.flags().intersects(TypeFlags::Never)
+                return_type.flags().intersects(TypeFlags::NEVER)
             }
             None => false,
         }
@@ -4046,7 +4049,7 @@ impl Checker {
         }
         let undefined_type = self.undefined_type;
         let element_type = self.check_iterated_type_or_element_type(
-            IterationUse::Destructuring,
+            IterationUse::DESTRUCTURING,
             t,
             undefined_type,
             None, /*errorNode*/
@@ -4072,7 +4075,7 @@ impl Checker {
     pub(crate) fn get_type_of_destructured_spread_expression(&mut self, t: P<Type>) -> P<Type> {
         let undefined_type = self.undefined_type;
         let element_type = self.check_iterated_type_or_element_type(
-            IterationUse::Destructuring,
+            IterationUse::DESTRUCTURING,
             t,
             undefined_type,
             None, /*errorNode*/
@@ -4151,7 +4154,7 @@ impl Checker {
         if declared_type == assigned_type {
             return declared_type;
         }
-        if assigned_type.flags().intersects(TypeFlags::Never) {
+        if assigned_type.flags().intersects(TypeFlags::NEVER) {
             return assigned_type;
         }
         let key = AssignmentReducedKey { id1: declared_type.id, id2: assigned_type.id };
@@ -4173,7 +4176,7 @@ impl Checker {
             .filter_type(declared_type, move |c, t| c.type_maybe_assignable_to(assigned_type, t));
         // Ensure that we narrow to fresh types if the assignment is a fresh boolean literal type.
         let mut reduced_type = filtered_type;
-        if assigned_type.flags().intersects(TypeFlags::BooleanLiteral)
+        if assigned_type.flags().intersects(TypeFlags::BOOLEAN_LITERAL)
             && is_fresh_literal_type(assigned_type)
         {
             reduced_type = self
@@ -4192,7 +4195,7 @@ impl Checker {
 
     // flow.go:2434
     pub(crate) fn type_maybe_assignable_to(&mut self, source: P<Type>, target: P<Type>) -> bool {
-        if !source.flags().intersects(TypeFlags::Union) {
+        if !source.flags().intersects(TypeFlags::UNION) {
             return self.is_type_assignable_to(source, target);
         }
         // Quick exit when source union contains the target type
@@ -4234,19 +4237,19 @@ impl Checker {
         constructor: P<Node>,
     ) -> Option<P<Type>> {
         let symbol_name = symbol.name();
-        let access_name = if symbol_name.starts_with(&format!("{}#", ast::InternalSymbolNamePrefix))
-        {
-            let start = symbol_name.find('@').map_or(0, |i| i + 1);
-            self.factory.new_private_identifier(alloc_str(&symbol_name[start..]))
-        } else {
-            self.factory.new_identifier(symbol_name)
-        };
+        let access_name =
+            if symbol_name.starts_with(&format!("{}#", ast::INTERNAL_SYMBOL_NAME_PREFIX)) {
+                let start = symbol_name.find('@').map_or(0, |i| i + 1);
+                self.factory.new_private_identifier(alloc_str(&symbol_name[start..]))
+            } else {
+                self.factory.new_identifier(symbol_name)
+            };
         let this_keyword = self.factory.new_keyword_expression(Kind::ThisKeyword);
         let reference = self.factory.new_property_access_expression(
             this_keyword,
             None,
             access_name,
-            NodeFlags::None,
+            NodeFlags::NONE,
         );
         reference.expression().unwrap().set_parent(Some(reference));
         reference.set_parent(Some(constructor));
@@ -4259,7 +4262,7 @@ impl Checker {
             let type_string = self.type_to_string_exported(flow_type);
             self.error(
                 symbol.value_declaration(),
-                &diagnostics::Member_0_implicitly_has_an_1_type,
+                &diagnostics::MEMBER_0_IMPLICITLY_HAS_AN_1_TYPE,
                 &[&symbol_string, &type_string],
             );
         }
@@ -4277,20 +4280,20 @@ impl Checker {
         static_blocks: &[P<Node>],
     ) -> Option<P<Type>> {
         let symbol_name = symbol.name();
-        let access_name = if symbol_name.starts_with(&format!("{}#", ast::InternalSymbolNamePrefix))
-        {
-            let start = symbol_name.find('@').map_or(0, |i| i + 1);
-            self.factory.new_private_identifier(alloc_str(&symbol_name[start..]))
-        } else {
-            self.factory.new_identifier(symbol_name)
-        };
+        let access_name =
+            if symbol_name.starts_with(&format!("{}#", ast::INTERNAL_SYMBOL_NAME_PREFIX)) {
+                let start = symbol_name.find('@').map_or(0, |i| i + 1);
+                self.factory.new_private_identifier(alloc_str(&symbol_name[start..]))
+            } else {
+                self.factory.new_identifier(symbol_name)
+            };
         if let Some(result) = static_blocks.iter().find_map(|&static_block| {
             let this_keyword = self.factory.new_keyword_expression(Kind::ThisKeyword);
             let reference = self.factory.new_property_access_expression(
                 this_keyword,
                 None,
                 access_name,
-                NodeFlags::None,
+                NodeFlags::NONE,
             );
             reference.expression().unwrap().set_parent(Some(reference));
             reference.set_parent(Some(static_block));
@@ -4305,7 +4308,7 @@ impl Checker {
                 let type_string = self.type_to_string_exported(flow_type);
                 self.error(
                     symbol.value_declaration(),
-                    &diagnostics::Member_0_implicitly_has_an_1_type,
+                    &diagnostics::MEMBER_0_IMPLICITLY_HAS_AN_1_TYPE,
                     &[&symbol_string, &type_string],
                 );
             }
@@ -4344,7 +4347,7 @@ impl Checker {
                 return self.last_flow_node_reachable;
             }
             let flags = flow.flags();
-            if flags.intersects(FlowFlags::Shared) {
+            if flags.intersects(FlowFlags::SHARED) {
                 if !no_cache_check && f.reduce_labels.borrow().is_empty() {
                     if let Some(&reachable) = self.flow_node_reachable.get(&flow) {
                         return reachable;
@@ -4356,11 +4359,11 @@ impl Checker {
                 }
                 no_cache_check = false;
             }
-            if flags
-                .intersects(FlowFlags::Assignment | FlowFlags::Condition | FlowFlags::ArrayMutation)
-            {
+            if flags.intersects(
+                FlowFlags::ASSIGNMENT | FlowFlags::CONDITION | FlowFlags::ARRAY_MUTATION,
+            ) {
                 flow = flow.antecedent().unwrap();
-            } else if flags.intersects(FlowFlags::Call) {
+            } else if flags.intersects(FlowFlags::CALL) {
                 let node = flow.node().unwrap();
                 if let Some(signature) = self.get_effects_signature(node) {
                     if let Some(predicate) = self.get_type_predicate_of_signature(signature) {
@@ -4380,13 +4383,13 @@ impl Checker {
                     if self
                         .get_return_type_of_signature(signature)
                         .flags()
-                        .intersects(TypeFlags::Never)
+                        .intersects(TypeFlags::NEVER)
                     {
                         return false;
                     }
                 }
                 flow = flow.antecedent().unwrap();
-            } else if flags.intersects(FlowFlags::BranchLabel) {
+            } else if flags.intersects(FlowFlags::BRANCH_LABEL) {
                 // A branching point is reachable if any branch is reachable.
                 let mut next = get_branch_label_antecedents(flow, &f.reduce_labels.borrow());
                 while let Some(list) = next {
@@ -4396,13 +4399,13 @@ impl Checker {
                     }
                 }
                 return false;
-            } else if flags.intersects(FlowFlags::LoopLabel) {
+            } else if flags.intersects(FlowFlags::LOOP_LABEL) {
                 let Some(antecedents) = flow.antecedents() else {
                     return false;
                 };
                 // A loop is reachable if the control flow path that leads to the top is reachable.
                 flow = antecedents.flow;
-            } else if flags.intersects(FlowFlags::SwitchClause) {
+            } else if flags.intersects(FlowFlags::SWITCH_CLAUSE) {
                 // The control flow path representing an unmatched value in a switch statement with
                 // no default clause is unreachable if the switch statement is exhaustive.
                 let data = flow.node().unwrap().as_flow_switch_clause_data();
@@ -4412,7 +4415,7 @@ impl Checker {
                     return false;
                 }
                 flow = flow.antecedent().unwrap();
-            } else if flags.intersects(FlowFlags::ReduceLabel) {
+            } else if flags.intersects(FlowFlags::REDUCE_LABEL) {
                 // Cache is unreliable once we start adjusting labels
                 self.last_flow_node = None;
                 f.reduce_labels
@@ -4426,7 +4429,7 @@ impl Checker {
                 f.reduce_labels.borrow_mut().pop();
                 return result;
             } else {
-                return !flags.intersects(FlowFlags::Unreachable);
+                return !flags.intersects(FlowFlags::UNREACHABLE);
             }
         }
     }
@@ -4474,7 +4477,7 @@ impl Checker {
         let mut no_cache_check = no_cache_check;
         loop {
             let flags = flow.flags();
-            if flags.intersects(FlowFlags::Shared) {
+            if flags.intersects(FlowFlags::SHARED) {
                 if !no_cache_check {
                     if let Some(&post_super) = self.flow_node_post_super.get(&flow) {
                         return post_super;
@@ -4486,18 +4489,18 @@ impl Checker {
                 no_cache_check = false;
             }
             if flags.intersects(
-                FlowFlags::Assignment
-                    | FlowFlags::Condition
-                    | FlowFlags::ArrayMutation
-                    | FlowFlags::SwitchClause,
+                FlowFlags::ASSIGNMENT
+                    | FlowFlags::CONDITION
+                    | FlowFlags::ARRAY_MUTATION
+                    | FlowFlags::SWITCH_CLAUSE,
             ) {
                 flow = flow.antecedent().unwrap();
-            } else if flags.intersects(FlowFlags::Call) {
+            } else if flags.intersects(FlowFlags::CALL) {
                 if flow.node().unwrap().expression().unwrap().kind() == Kind::SuperKeyword {
                     return true;
                 }
                 flow = flow.antecedent().unwrap();
-            } else if flags.intersects(FlowFlags::BranchLabel) {
+            } else if flags.intersects(FlowFlags::BRANCH_LABEL) {
                 let mut next = get_branch_label_antecedents(flow, &f.reduce_labels.borrow());
                 while let Some(list) = next {
                     next = list.next.get();
@@ -4508,10 +4511,10 @@ impl Checker {
                     }
                 }
                 return true;
-            } else if flags.intersects(FlowFlags::LoopLabel) {
+            } else if flags.intersects(FlowFlags::LOOP_LABEL) {
                 // A loop is post-super if the control flow path that leads to the top is post-super.
                 flow = flow.antecedents().unwrap().flow;
-            } else if flags.intersects(FlowFlags::ReduceLabel) {
+            } else if flags.intersects(FlowFlags::REDUCE_LABEL) {
                 f.reduce_labels
                     .borrow_mut()
                     .push(flow.node().unwrap().as_flow_reduce_label_data_p());
@@ -4524,7 +4527,7 @@ impl Checker {
                 return result;
             } else {
                 // Unreachable nodes are considered post-super to silence errors
-                return flags.intersects(FlowFlags::Unreachable);
+                return flags.intersects(FlowFlags::UNREACHABLE);
             }
         }
     }
@@ -4572,8 +4575,8 @@ impl Checker {
             return;
         };
         let links = self.node_links.get(parent);
-        if !links.flags.get().intersects(NodeCheckFlags::AssignmentsMarked) {
-            links.flags.set(links.flags.get() | NodeCheckFlags::AssignmentsMarked);
+        if !links.flags.get().intersects(NodeCheckFlags::ASSIGNMENTS_MARKED) {
+            links.flags.set(links.flags.get() | NodeCheckFlags::ASSIGNMENTS_MARKED);
             if !self.has_parent_with_assignments_marked(parent) {
                 self.mark_node_assignments(parent);
             }
@@ -4589,7 +4592,7 @@ impl Checker {
                     .get(node)
                     .flags
                     .get()
-                    .intersects(NodeCheckFlags::AssignmentsMarked)
+                    .intersects(NodeCheckFlags::ASSIGNMENTS_MARKED)
         })
         .is_some()
     }
@@ -4646,7 +4649,7 @@ impl Checker {
                 {
                     let symbol = self.resolve_entity_name(
                         name,
-                        SymbolFlags::Value,
+                        SymbolFlags::VALUE,
                         true, /*ignoreErrors*/
                         true, /*dontResolveAlias*/
                         None,

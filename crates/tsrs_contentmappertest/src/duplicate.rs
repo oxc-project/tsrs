@@ -7,16 +7,16 @@ use tsrs_ipc as ipc;
 use tsrs_spanmap::{Feature, Kind, Segment};
 
 use crate::protocol::{
-    initialize_result, marshal_span_map, no_notifications, testHandler, unexpected_method,
+    TestHandler, initialize_result, marshal_span_map, no_notifications, unexpected_method,
     unmarshal_params,
 };
 
 // duplicate.go:14
-pub(crate) struct duplicateHandler;
+pub(crate) struct DuplicateHandler;
 
-impl testHandler for duplicateHandler {}
+impl TestHandler for DuplicateHandler {}
 
-impl ipc::Handler for duplicateHandler {
+impl ipc::Handler for DuplicateHandler {
     // duplicate.go:16
     fn handle_request(&self, method: &str, params: Option<&Value>) -> Result<Value, ipc::Error> {
         match method {
@@ -31,7 +31,7 @@ impl ipc::Handler for duplicateHandler {
                     virtual_end: (virtual_start + length) as u32,
                     original_start: 0,
                     original_end: length as u32,
-                    kind: Kind::Verbatim,
+                    kind: Kind::VERBATIM,
                     features,
                 };
                 let result = |virtual_: String, mappings: Value| {
@@ -51,8 +51,8 @@ impl ipc::Handler for duplicateHandler {
                     let first = "// ".len();
                     let second = first + length + "\nconst ".len();
                     let mappings = marshal_span_map(&[
-                        segment(first, Feature::Hover),
-                        segment(second, Feature::Hover),
+                        segment(first, Feature::HOVER),
+                        segment(second, Feature::HOVER),
                     ])?;
                     return Ok(result(virtual_, mappings));
                 }
@@ -63,8 +63,8 @@ impl ipc::Handler for duplicateHandler {
                     let first = index(&virtual_, content);
                     let second = last_index(&virtual_, content);
                     let mappings = marshal_span_map(&[
-                        segment(first, Feature::Hover),
-                        segment(second, Feature::Hover),
+                        segment(first, Feature::HOVER),
+                        segment(second, Feature::HOVER),
                     ])?;
                     return Ok(result(virtual_, mappings));
                 }
@@ -75,8 +75,8 @@ impl ipc::Handler for duplicateHandler {
                     let first = "// ".len();
                     let second = last_index(&virtual_, content);
                     let mappings = marshal_span_map(&[
-                        segment(first, Feature::SignatureHelp),
-                        segment(second, Feature::SignatureHelp),
+                        segment(first, Feature::SIGNATURE_HELP),
+                        segment(second, Feature::SIGNATURE_HELP),
                     ])?;
                     return Ok(result(virtual_, mappings));
                 }
@@ -90,9 +90,9 @@ impl ipc::Handler for duplicateHandler {
                     let third =
                         index(&virtual_[(second + length) as usize..], content) + second + length;
                     let mappings = marshal_span_map(&[
-                        segment(first, Feature::Rename),
-                        segment(second, Feature::Rename),
-                        segment(third, Feature::Rename),
+                        segment(first, Feature::RENAME),
+                        segment(second, Feature::RENAME),
+                        segment(third, Feature::RENAME),
                     ])?;
                     return Ok(result(virtual_, mappings));
                 }
@@ -101,12 +101,12 @@ impl ipc::Handler for duplicateHandler {
                 let second = first + length + " = 1;\n".len();
                 let disabled = p.file_name.contains("disabled");
                 let mut semantic_features =
-                    Feature::Hover | Feature::Definition | Feature::References | Feature::Rename;
+                    Feature::HOVER | Feature::DEFINITION | Feature::REFERENCES | Feature::RENAME;
                 let mut navigation_features =
-                    Feature::Definition | Feature::References | Feature::Rename;
+                    Feature::DEFINITION | Feature::REFERENCES | Feature::RENAME;
                 if disabled {
-                    semantic_features = Feature::None;
-                    navigation_features = Feature::None;
+                    semantic_features = Feature::NONE;
+                    navigation_features = Feature::NONE;
                 }
                 let mappings = marshal_span_map(&[
                     segment(first, semantic_features),

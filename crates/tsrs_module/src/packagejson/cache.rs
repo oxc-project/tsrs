@@ -62,14 +62,14 @@ impl PackageJson {
         let types_versions = &self.fields.types_versions;
         if types_versions.type_() == JSONValueType::NotPresent {
             trace(
-                &diagnostics::X_package_json_does_not_have_a_0_field,
+                &diagnostics::X_PACKAGE_JSON_DOES_NOT_HAVE_A_0_FIELD,
                 vec!["typesVersions".to_string()],
             );
             return (VersionPaths::default(), version_traces);
         }
         if types_versions.type_() != JSONValueType::Object {
             trace(
-                &diagnostics::Expected_type_of_0_field_in_package_json_to_be_1_got_2,
+                &diagnostics::EXPECTED_TYPE_OF_0_FIELD_IN_PACKAGE_JSON_TO_BE_1_GOT_2,
                 vec![
                     "typesVersions".to_string(),
                     "object".to_string(),
@@ -80,19 +80,19 @@ impl PackageJson {
         }
 
         trace(
-            &diagnostics::X_package_json_has_a_typesVersions_field_with_version_specific_path_mappings,
+            &diagnostics::X_PACKAGE_JSON_HAS_A_TYPES_VERSIONS_FIELD_WITH_VERSION_SPECIFIC_PATH_MAPPINGS,
             vec!["typesVersions".to_string()],
         );
 
         for (key, value) in types_versions.as_object() {
             let Some(key_range) = semver::try_parse_version_range(key) else {
-                trace(&diagnostics::X_package_json_has_a_typesVersions_entry_0_that_is_not_a_valid_semver_range, vec![key.clone()]);
+                trace(&diagnostics::X_PACKAGE_JSON_HAS_A_TYPES_VERSIONS_ENTRY_0_THAT_IS_NOT_A_VALID_SEMVER_RANGE, vec![key.clone()]);
                 continue;
             };
             if key_range.test(&TYPE_SCRIPT_VERSION) {
                 if value.type_() != JSONValueType::Object {
                     trace(
-                        &diagnostics::Expected_type_of_0_field_in_package_json_to_be_1_got_2,
+                        &diagnostics::EXPECTED_TYPE_OF_0_FIELD_IN_PACKAGE_JSON_TO_BE_1_GOT_2,
                         vec![
                             format!("typesVersions['{}']", key),
                             "object".to_string(),
@@ -121,7 +121,7 @@ impl PackageJson {
         }
 
         trace(
-            &diagnostics::X_package_json_does_not_have_a_typesVersions_entry_that_matches_version_0,
+            &diagnostics::X_PACKAGE_JSON_DOES_NOT_HAVE_A_TYPES_VERSIONS_ENTRY_THAT_MATCHES_VERSION_0,
             vec![tsrs_core::version_major_minor().to_string()],
         );
         (VersionPaths::default(), version_traces)

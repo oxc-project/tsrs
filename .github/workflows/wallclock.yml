@@ -184,8 +184,11 @@ jobs:
 
       - uses: taiki-e/install-action@a4d3f3f761dcd95cce1b72cb61cb6d1963438177 # v2.87.30
         with:
-          tool: hyperfine
+          tool: hyperfine@2.0.0
           fallback: none
+
+      - name: Enable hardware counters
+        run: sudo sysctl -w kernel.perf_event_paranoid=1
 
       - name: Runner information
         run: |
@@ -216,10 +219,14 @@ jobs:
 
       - name: Compare main and PR with Hyperfine
         run: |
-          node bench/wallclock.mjs measure --project "$PROJECT" \
-            --base "$RUNNER_TEMP/wallclock-binaries/main/tsrs" \
-            --head "$RUNNER_TEMP/wallclock-binaries/pr/tsrs" \
-            --out "$RUNNER_TEMP/wallclock-results/$PROJECT.json" --runs 10
+          benchmark_status=0
+          for mode in check incremental; do
+            node bench/wallclock.mjs measure --project "$PROJECT" --mode "$mode" \
+              --base "$RUNNER_TEMP/wallclock-binaries/main/tsrs" \
+              --head "$RUNNER_TEMP/wallclock-binaries/pr/tsrs" \
+              --out "$RUNNER_TEMP/wallclock-results/$PROJECT.$mode.json" --runs 10 || benchmark_status=1
+          done
+          exit "$benchmark_status"
 
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()

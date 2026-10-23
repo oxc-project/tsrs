@@ -7,21 +7,19 @@ import {
     ROOT,
     args,
     json,
-    read,
     writeJSON,
     run,
     median,
-    quote,
     required,
     requireValue,
     main,
     isMain,
 } from "../tools/lib/cli.mjs";
-import { measure as measureProcess } from "./measure.mjs";
+import { hyperfine, measureOne } from "./runner.mjs";
 const BENCH = path.join(ROOT, "bench"),
     API = "https://api.github.com",
     MARKER = "<!-- tsrs-wallclock-benchmark -->",
-    flags = ["--noEmit", "--incremental", "false", "--pretty", "false"];
+    modes = ["check", "incremental"];
 async function requestJSON(url, token, method = "GET", data) {
     const response = await fetch(url, {
         method,
@@ -42,17 +40,9 @@ const positive = (v) => {
     return v;
 };
 const digest = (file) => createHash("sha256").update(fs.readFileSync(file)).digest("hex");
-export function hyperfineTime(result) {
-    if ("measurements" in result) {
-        requireValue(result.measurements.length === 1, "Hyperfine did not return one time for each binary");
-        const wall = result.measurements[0].time_wall_clock;
-        requireValue(wall.unit === "second", "Hyperfine did not return wall time in seconds");
-        return positive(wall.value);
-    }
-    requireValue(result.times.length === 1, "Hyperfine did not return one time for each binary");
-    return positive(result.times[0]);
-}
 const suffix = (file, ending) => file.replace(/\.[^/.]*$/, "") + ending;
+const workloads = () => json(path.join(BENCH, "projects.json")).projects
+    .flatMap(({ name }) => modes.map((mode) => ({ name, mode })));
 async function decide() {
     const event = json(process.env.GITHUB_EVENT_PATH),
         pr = event.pull_request;
@@ -86,11 +76,18 @@ async function decide() {
                 "invalid PR file metadata",
             );
             const change = { path: name, status, additions, deletions };
-            if (![".github/", "bench/", "docs/", "notes/"].some((p) => name.startsWith(p)) && !name.endsWith(".md")) {
+            const metadataOnly =
+                [".github/", "bench/", "docs/", "notes/"].some((p) => name.startsWith(p)) ||
+                /(^|\/)(tests?|testdata|fixtures)\//.test(name) ||
+                /(?:\.md|\.test\.[cm]?js)$/.test(name);
+            if (!metadataOnly) {
                 const patch = file.patch;
                 requireValue(typeof patch === "string" && patch, "GitHub did not provide a patch");
                 const size = Buffer.byteLength(patch);
-                requireValue(size <= 4096 && bytes + size <= 24576, "PR patch exceeds the Clef context limit");
+                requireValue(
+                    size <= 4096 && bytes + size <= 24576,
+                    `${name}: PR patch exceeds the Clef context limit (${size} bytes)`,
+                );
                 requireValue(
                     patch.split("\n").filter((l) => l.startsWith("+")).length === additions &&
                         patch.split("\n").filter((l) => l.startsWith("-")).length === deletions,
@@ -105,15 +102,18 @@ async function decide() {
         const state = {
                 workload: {
                     build: "cargo build --release --locked -p tsrs_cli",
-                    command: "tsrs -p <project> --noEmit --incremental false --pretty false",
-                    checker_count: "default",
-                    metrics: ["wall time", "peak RSS", "instructions at the default checker count"],
+                    commands: [
+                        "tsrs -p <project> --noEmit --incremental false --pretty false",
+                        "tsrs -p <project> --noEmit --incremental true --tsBuildInfoFile <fresh file> --pretty false",
+                    ],
+                    checker_count: "default for wall time/RSS; --singleThreaded for instructions",
+                    metrics: ["wall time", "peak RSS", "single-threaded instructions"],
                     projects: json(path.join(BENCH, "projects.json")).projects.map((p) => p.name),
                 },
                 files: changes,
             },
             names = ["wall_time_impact", "rss_impact", "instructions_impact"],
-            metrics = ["wall time", "peak RSS", "instruction count at the default checker count"];
+            metrics = ["wall time", "peak RSS", "single-threaded instruction count"];
         const questions = Object.fromEntries(
             names.map((name, i) => [
                 name,
@@ -146,20 +146,29 @@ async function decide() {
         run = Math.max(...probabilities) >= 0.1;
         reason = `Clef estimated ${probabilities.map((p, i) => `${(p * 100).toFixed(1)}% ${metrics[i]}`).join(", ")} impact probability`;
     } catch (error) {
-        reason = `Running benchmarks because the decision was unavailable (${error.name})`;
+        reason = `Running benchmarks because the decision was unavailable (${error.message})`;
     }
     console.log(reason);
     fs.appendFileSync(
         process.env.GITHUB_OUTPUT,
-        `run=${run}\nprobability=${probability}\nreason=${reason.replaceAll("\n", " ")}\n`,
+        `run=${run}\nprobability=${probability}\nreason=${reason.replaceAll(/[\r\n]/g, " ")}\n`,
     );
 }
 async function measure(a) {
     const cfg = json(path.join(BENCH, "projects.json")),
         project = cfg.projects.find((p) => p.name === a.project);
     requireValue(project, `unknown benchmark project: ${a.project}`);
+    requireValue(modes.includes(a.mode), `unknown benchmark mode: ${a.mode}`);
     requireValue(a.runs >= 2 && Number.isInteger(a.runs), "at least two timing pairs are required");
-    const work = path.resolve(a["work-dir"]);
+    a.out = path.resolve(a.out);
+    fs.mkdirSync(path.dirname(a.out), { recursive: true });
+    fs.rmSync(a.out, { force: true });
+    const work = path.resolve(a["work-dir"]),
+        hf = await hyperfine(work);
+    // Fail before project setup if this runner cannot read hardware counters.
+    await measureOne(hf, [process.execPath, "-e", "let n = 0; for (let i = 0; i < 100000; i++) n += i;"], {
+        output: suffix(a.out, ".probe.json"),
+    });
     run(["node", path.join(BENCH, "bench.mjs"), "prepare", "--projects", a.project, "--work-dir", work], {
         cwd: ROOT,
         inherit: true,
@@ -168,92 +177,79 @@ async function measure(a) {
             ? path.join(work, "suite", project.suite_dir)
             : path.join(work, "solutions", project.name),
         config = path.resolve(cwd, project.project),
+        buildInfo = suffix(a.out, ".tsbuildinfo"),
+        flags = [
+            "--noEmit",
+            "--pretty",
+            "false",
+            "--incremental",
+            String(a.mode === "incremental"),
+            ...(a.mode === "incremental" ? ["--tsBuildInfoFile", buildInfo] : []),
+        ],
         commands = {
             main: [path.resolve(a.base), "-p", config, ...flags],
             pr: [path.resolve(a.head), "-p", config, ...flags],
         },
         exits = {},
+        singleExits = {},
         pairs = [],
-        peaks = { main: [], pr: [] },
         counted = { main: [], pr: [] };
-    fs.mkdirSync(path.dirname(a.out), { recursive: true });
-    for (const [name, cmd] of Object.entries(commands)) {
-        const p = run(cmd, { cwd, check: false });
-        exits[name] = p.code;
-        fs.writeFileSync(suffix(a.out, `.${name}.log`), p.stdout + p.stderr);
-        requireValue([0, 1, 2].includes(p.code), `${cmd[0]} failed before timing: exit ${p.code}`);
+    const reset = () => fs.rmSync(buildInfo, { force: true });
+    for (const single of [false, true]) {
+        for (const [name, cmd] of Object.entries(commands)) {
+            reset();
+            const p = run([...cmd, ...(single ? ["--singleThreaded"] : [])], { cwd, check: false });
+            (single ? singleExits : exits)[name] = p.code;
+            fs.writeFileSync(suffix(a.out, `.${name}${single ? ".single" : ""}.log`), p.stdout + p.stderr);
+            requireValue([0, 1, 2].includes(p.code), `${cmd[0]} failed before timing: exit ${p.code}`);
+        }
     }
-    const raw = suffix(a.out, "-hyperfine.json"),
-        checked = (name) => `${commands[name].map(quote).join(" ")}; code=$?; [ "$code" -eq ${exits[name]} ]`;
+    const sample = async (name, i, single) => {
+        reset();
+        const r = await measureOne(hf, [...commands[name], ...(single ? ["--singleThreaded"] : [])], {
+            cwd,
+            name,
+            accept: [(single ? singleExits : exits)[name]],
+            output: suffix(a.out, `.${name}.${single ? "single" : "default"}.${i}.json`),
+        });
+        requireValue(a.mode !== "incremental" || fs.existsSync(buildInfo), "incremental run did not write build info");
+        return r;
+    };
     for (let i = 0; i < a.runs; i++) {
         const order = i % 2 ? ["pr", "main"] : ["main", "pr"];
-        run(
-            [
-                "hyperfine",
-                "--shell=default",
-                "--warmup",
-                "0",
-                "--runs",
-                "1",
-                "--export-json",
-                raw,
-                ...order.map(checked),
-            ],
-            { cwd, inherit: true, timeout: 1800 },
-        );
-        const results = json(raw).results;
-        requireValue(results.length === 2, "invalid Hyperfine results");
-        pairs.push(Object.fromEntries(order.map((name, j) => [name, hyperfineTime(results[j])])));
+        const pair = {};
+        for (const name of order) pair[name] = await sample(name, i, false);
+        pairs.push(pair);
     }
-    writeJSON(raw, { pairs });
-    for (let i = 0; i < 3; i++)
-        for (const name of i % 2 ? ["pr", "main"] : ["main", "pr"]) {
-            const r = measureProcess(commands[name], { cwd });
-            requireValue(r.code === exits[name], "RSS measurement exit differs");
-            peaks[name].push(positive(r.max_rss_bytes));
-        }
     for (let i = 0; i < 3; i++) {
-        for (const name of i % 2 ? ["pr", "main"] : ["main", "pr"]) {
-            const r = measureProcess(commands[name], { cwd, instructions: true });
-            requireValue([0, 1, 2].includes(r.code), "instruction count run failed");
-            fs.writeFileSync(suffix(a.out, `.${name}.${i}.count.log`), r.stdout + r.stderr);
-            writeJSON(suffix(a.out, `.${name}.${i}.count.json`), {
-                instructions: r.instructions,
-                exit: r.code,
-                error: r.error,
-            });
-            counted[name].push(r);
-        }
-        if (Object.values(counted).some((r) => r.at(-1).instructions === null)) break;
+        for (const name of i % 2 ? ["pr", "main"] : ["main", "pr"])
+            counted[name].push(await sample(name, i, true));
     }
-    const n = counted.main.length,
-        have = n === 3 && Object.values(counted).every((runs) => runs.every((r) => r.instructions !== null)),
-        expected = digest(suffix(a.out, ".main.log")),
-        partial = {
-            project: a.project,
-            ...Object.fromEntries(
-                ["main", "pr"].map((name) => [
-                    name,
-                    {
-                        median_s: median(pairs.map((p) => p[name])),
-                        peak_rss_bytes: median(peaks[name]),
-                        instructions: have ? median(counted[name].map((r) => r.instructions)) : null,
-                    },
-                ]),
-            ),
-            pair_ratios: pairs.map((p) => p.pr / p.main),
-            instruction_ratios: have ? counted.main.map((r, i) => counted.pr[i].instructions / r.instructions) : [],
-            instruction_pairs: n,
-            timing_pairs: pairs.length,
-            rss_runs: peaks.main.length,
-            main_exit: exits.main,
-            pr_exit: exits.pr,
-            diagnostics_match: expected === digest(suffix(a.out, ".pr.log")),
-            count_exit_match: ["main", "pr"].every((name) => counted[name].every((r) => r.code === exits[name])),
-            count_diagnostics_match: ["main", "pr"].every((name) =>
-                counted[name].every((_, i) => digest(suffix(a.out, `.${name}.${i}.count.log`)) === expected),
-            ),
-        };
+    reset();
+    const partial = {
+        project: a.project,
+        mode: a.mode,
+        ...Object.fromEntries(
+            ["main", "pr"].map((name) => [
+                name,
+                {
+                    median_s: median(pairs.map((p) => p[name].wallSeconds)),
+                    peak_rss_bytes: median(pairs.map((p) => p[name].peakRssBytes)),
+                    instructions: median(counted[name].map((r) => r.instructions)),
+                },
+            ]),
+        ),
+        pair_ratios: pairs.map((p) => p.pr.wallSeconds / p.main.wallSeconds),
+        instruction_ratios: counted.main.map((r, i) => counted.pr[i].instructions / r.instructions),
+        instruction_pairs: counted.main.length,
+        timing_pairs: pairs.length,
+        rss_runs: pairs.length,
+        main_exit: exits.main,
+        pr_exit: exits.pr,
+        diagnostics_match: digest(suffix(a.out, ".main.log")) === digest(suffix(a.out, ".pr.log")),
+        count_exit_match: singleExits.main === singleExits.pr,
+        count_diagnostics_match: digest(suffix(a.out, ".main.single.log")) === digest(suffix(a.out, ".pr.single.log")),
+    };
     writeJSON(a.out, partial);
 }
 export function renderReport(a) {
@@ -282,19 +278,20 @@ export function renderReport(a) {
     }
     const missing = [],
         mismatched = [],
-        uncounted = [],
         pct = (n) => `${n >= 0 ? "+" : ""}${n.toFixed(1)}%`;
     lines.push(
-        "Release builds, default checker count; ten alternating main/PR timing pairs and three RSS runs per binary. Instructions count all threads in three separate alternating pairs.",
+        "Release builds with Hyperfine 2 hardware counters. After warming each binary, ten alternating main/PR pairs measure wall time and peak RSS at the default checker count; three separate pairs measure single-threaded instructions.",
+        "Incremental runs start with fresh build info before every invocation; check runs disable incremental compilation.",
         "",
-        "| Project | Wall time Δ | Peak RSS Δ | Instructions Δ |",
-        "| --- | ---: | ---: | ---: |",
+        "| Project | Mode | Wall time Δ | Peak RSS Δ | Instructions Δ |",
+        "| --- | --- | ---: | ---: | ---: |",
     );
-    for (const { name } of json(path.join(BENCH, "projects.json")).projects) {
+    for (const { name, mode } of workloads()) {
         try {
-            const d = results[name];
+            const d = results[`${name}.${mode}`];
             requireValue(
                 d.project === name &&
+                    d.mode === mode &&
                     Array.isArray(d.pair_ratios) &&
                     d.pair_ratios.length === d.timing_pairs &&
                     d.timing_pairs >= 2 &&
@@ -305,32 +302,24 @@ export function renderReport(a) {
                 positive(d[side].median_s);
                 positive(d[side].peak_rss_bytes);
                 requireValue(
-                    d[side].instructions === null ||
-                        (Number.isSafeInteger(d[side].instructions) && d[side].instructions > 0),
+                    Number.isSafeInteger(d[side].instructions) && d[side].instructions > 0,
                     "invalid instruction count",
                 );
             }
             d.pair_ratios.forEach(positive);
             d.instruction_ratios.forEach(positive);
-            const have = d.main.instructions !== null && d.pr.instructions !== null;
-            requireValue(
-                have
-                    ? d.instruction_ratios.length === 3 && d.instruction_pairs === 3
-                    : d.instruction_ratios.length === 0,
-                "incomplete instruction samples",
-            );
+            requireValue(d.instruction_ratios.length === 3 && d.instruction_pairs === 3, "incomplete instruction samples");
             for (const k of ["diagnostics_match", "count_exit_match", "count_diagnostics_match"])
                 requireValue(typeof d[k] === "boolean", "invalid diagnostic comparison");
             requireValue(Number.isInteger(d.main_exit) && Number.isInteger(d.pr_exit), "invalid exits");
             lines.push(
-                `| ${name} | ${pct((median(d.pair_ratios) - 1) * 100)} | ${pct((d.pr.peak_rss_bytes / d.main.peak_rss_bytes - 1) * 100)} | ${have ? pct((median(d.instruction_ratios) - 1) * 100) : "—"} |`,
+                `| ${name} | ${mode} | ${pct((median(d.pair_ratios) - 1) * 100)} | ${pct((d.pr.peak_rss_bytes / d.main.peak_rss_bytes - 1) * 100)} | ${pct((median(d.instruction_ratios) - 1) * 100)} |`,
             );
-            if (!have) uncounted.push(name);
             if (!d.diagnostics_match || d.main_exit !== d.pr_exit || !d.count_exit_match || !d.count_diagnostics_match)
-                mismatched.push(name);
+                mismatched.push(`${name} (${mode})`);
         } catch {
-            missing.push(name);
-            lines.push(`| ${name} | failed | — | — |`);
+            missing.push(`${name} (${mode})`);
+            lines.push(`| ${name} | ${mode} | failed | — | — |`);
         }
     }
     lines.push(
@@ -338,7 +327,6 @@ export function renderReport(a) {
         "Negative means the PR used less; positive means it used more. Deltas are medians of paired PR/main ratios for wall time and instructions. Shared CI machines and parallel scheduling add noise to small changes.",
     );
     if (mismatched.length) lines.push(`Diagnostics or exit status differed on: ${mismatched.join(", ")}.`);
-    if (uncounted.length) lines.push(`Instruction counters unavailable on: ${uncounted.join(", ")}.`);
     if (missing.length)
         lines.push(`Measurements missing or invalid on: ${missing.join(", ")}. See the workflow run for errors.`);
     return lines.join("\n") + "\n";
@@ -382,6 +370,7 @@ if (isMain(import.meta.url))
                     base: null,
                     head: null,
                     out: null,
+                    mode: "check",
                     "work-dir": path.join(BENCH, ".work"),
                     runs: 10,
                 },
@@ -412,15 +401,15 @@ if (isMain(import.meta.url))
         else if (command === "comment") await comment(a);
         else {
             const projects = {};
-            for (const { name } of json(path.join(BENCH, "projects.json")).projects) {
+            for (const { name, mode } of workloads()) {
                 try {
-                    const file = path.join(a.results, name + ".json");
+                    const file = path.join(a.results, `${name}.${mode}.json`);
                     requireValue(fs.statSync(file).size <= 100000, "result too large");
                     const d = json(file);
-                    requireValue(d.project === name, "wrong project in result");
-                    projects[name] = d;
+                    requireValue(d.project === name && d.mode === mode, "wrong project or mode in result");
+                    projects[`${name}.${mode}`] = d;
                 } catch (error) {
-                    console.error(`Skipping ${name}: ${error.message}`);
+                    console.error(`Skipping ${name} (${mode}): ${error.message}`);
                 }
             }
             writeJSON(a.out, { projects });

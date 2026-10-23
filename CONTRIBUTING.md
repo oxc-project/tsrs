@@ -129,9 +129,11 @@ Capture its combined stdout and stderr, replacing the case's absolute directory 
   and determinism use those same binaries. The Linux checks have separate Rust caches: `lint` runs Clippy and source checks;
   `test` runs Rust checks and all workspace tests, compiler conformance in
   both checker modes, and regressions; `determinism` compares every benchmark project against committed snapshots
-  from the root pnpm TypeScript release matching Cargo metadata, using Go and locality assignments at four and all
-  available CPU checkers, three runs each. Diagnostic order and exit status must match; crashes and incomplete runs fail.
-  See [the determinism task](tasks/determinism/README.md) for snapshot updates. Regression output must still match
+  from the root pnpm TypeScript release matching Cargo metadata, using Go, locality and default scheduling at four and
+  all available CPU checkers, three runs each, plus three fixed random assignments per count. It also sweeps every
+  regression fixture under default and seeded random scheduling at two and four checkers. Diagnostic order and exit
+  status must match; crashes and incomplete runs fail.
+  See [the determinism task](tasks/determinism/DETERMINISM.md) for snapshot updates. Regression output must still match
   the checked-in reference output; `fourslash` runs the server framing checks, gate checks, and
   [Go fourslash subprocess gate](tools/go-fourslash/README.md#ci-gate); `node-api-clients` runs the pinned upstream
   sync and async client suites against both compilers.

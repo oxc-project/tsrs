@@ -3,8 +3,11 @@
 This Rust task checks that tsrs reports the same ordered errors and exit status as
 the matching npm Go compiler, across checker assignments, checker counts, and
 repeated runs. Every project in `bench/projects.json` is covered: currently 19
-projects and 228 comparisons. Compiler errors are valid results; compiler crashes
+projects and 456 comparisons. Compiler errors are valid results; compiler crashes
 and incomplete runs always fail.
+
+A separate regression sweep checks fixture expectations across default and seeded
+random schedules, so focused reproductions retain multithreaded coverage.
 
 The expectation is one committed JSON snapshot per project in `snapshots/`.
 Snapshots come from the upstream native Go compiler with `--singleThreaded`.
@@ -21,6 +24,7 @@ cargo build --profile dev -p tsrs_cli -p tsrs_testrunner -p tsrs_determinism
 target/debug/tsrs_determinism plan
 target/debug/tsrs_determinism check
 target/debug/tsrs_determinism check --projects webpack --tsrs target/debug/tsrs
+target/debug/tsrs_determinism regressions
 ```
 
 The task prepares the selected benchmark checkouts using the existing benchmark
@@ -71,6 +75,10 @@ and one row of the following matrix, in table order:
 | `go` | max | 3 |
 | `locality` | 4 | 3 |
 | `locality` | max | 3 |
+| omitted (default scheduler) | 4 | 3 |
+| omitted (default scheduler) | max | 3 |
+| `random:1`, `random:2`, `random:3` | 4 | 1 per seed |
+| `random:1`, `random:2`, `random:3` | max | 1 per seed |
 
 `max` means the available CPU parallelism, capped at the compiler limit of 256;
 the task passes its numeric value and logs it. Both labels run even if max is 4.
@@ -79,10 +87,41 @@ Projects and compiler invocations run sequentially in catalog and matrix order.
 CI checks the full catalog in one task invocation, sharing one tooling install
 and benchmark cache, and uploads one combined results artifact.
 
-These explicit assignments disable work stealing. The task checks agreement with
-Go, repeatability, and consistency across these static assignments and counts.
-It does not enumerate arbitrary file orders or test randomized visit orders.
-Other regression and compiler conformance checks remain separate.
+Named assignments disable work stealing. The default rows omit the assignment
+flag, exercising the production scheduler and timing-dependent work stealing.
+Each random seed varies both checker ownership and file visit order. Fixed seeds
+make that permutation reproducible; repeating default runs samples the scheduler's
+timing. Seeds do not make dynamic thread scheduling reproducible or enumerate all
+possible schedules. The random run's label and recorded command include the seed
+(for example, `random-max-2` uses `--checkerAssignment random:2`). All variants
+compare against the same upstream snapshot.
+
+## Regression scheduling
+
+The `regressions` command retains the previous gate's scheduling coverage for every
+`testdata/regressions/*/tsconfig.json` fixture, without benchmark preparation:
+
+```sh
+target/debug/tsrs_determinism regressions
+target/debug/tsrs_determinism regressions --projects union-too-complex-cross-product
+```
+
+First it runs `-p <fixture> --pretty false --singleThreaded` and compares the full
+combined output with the fixture's committed `expected.txt`, normalizing CRLF and
+the absolute fixture directory to `<dir>`. As in `tools/regressions.sh`, the
+`expected.txt` comparison ignores trailing newlines; schedule comparisons retain
+them. It then compares the full ordered output and exit status with that checked
+single-threaded run under 2 and 4 checkers:
+three default scheduler runs and one run each for `random:1` through `random:6`.
+That is 19 invocations per fixture. Crashes, timeouts and incomplete runs fail.
+
+These fixtures retain their existing expectations because some exercise intentional
+canonical-history differences from Go. Go history is tested in the benchmark
+snapshot matrix. The regression sweep uses the same CLI invocation as
+`tools/regressions.sh`; it includes resolution traces and never rewrites expectations.
+Results default to `target/determinism/regressions/`, with a separate summary and
+per-fixture logs, JSON and diffs. CI runs the sweep in the same determinism job,
+including when a benchmark comparison fails, and uploads it with the benchmark results.
 
 ## Comparisons and failures
 
@@ -112,15 +151,16 @@ diff before changing expectations. A compiler mismatch is a failing parity case.
 
 ## Options
 
-All commands accept `--projects all|name,...` (default: all, in catalog order).
-`snapshot` and `check` also accept:
+All commands accept `--projects all|name,...` (default: all). Benchmark names run
+in catalog order; `regressions` selects fixture names in alphabetical order.
+`snapshot`, `check` and `regressions` also accept:
 
 | Option | Default |
 | --- | --- |
-| `--tsrs BIN` | `target/debug/tsrs` (used by `check`) |
+| `--tsrs BIN` | `target/debug/tsrs` (used by `check` and `regressions`) |
 | `--work-dir DIR` | `bench/.work` |
 | `--snapshots-dir DIR` | `tasks/determinism/snapshots` |
-| `--out-dir DIR` | `target/determinism` |
+| `--out-dir DIR` | `target/determinism` (`target/determinism/regressions` for the regression sweep) |
 | `--timeout SECONDS` | `900` |
 
 Relative paths are resolved from the repository root. Snapshot generation requires

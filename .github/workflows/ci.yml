@@ -352,7 +352,12 @@ jobs:
           key: determinism-work-${{ runner.os }}-${{ runner.arch }}-all-${{ steps.keys.outputs.work }}
 
       - name: Check committed tsgo snapshots
+        id: snapshots
         run: target/ci/tsrs_determinism check --projects all --tsrs target/ci/tsrs
+
+      - name: Check regression scheduling
+        if: success() || steps.snapshots.outcome == 'failure'
+        run: target/ci/tsrs_determinism regressions --tsrs target/ci/tsrs
 
       - name: Upload determinism results
         if: always()

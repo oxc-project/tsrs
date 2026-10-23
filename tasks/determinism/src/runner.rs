@@ -7,9 +7,13 @@ use std::time::{Duration, Instant};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
+mod regressions;
+
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 const FLAGS: &[&str] = &["--noEmit", "--incremental", "false", "--pretty", "false"];
-const USAGE: &str = "tsrs_determinism <plan|snapshot|check> [--projects all|a,b] [--tsrs BIN]\n\
+const ASSIGNMENTS: &[&str] = &["go", "locality", "default", "random"];
+const REPETITIONS: usize = 3;
+const USAGE: &str = "tsrs_determinism <plan|snapshot|check|regressions> [--projects all|a,b] [--tsrs BIN]\n\
     [--work-dir DIR] [--snapshots-dir DIR] [--out-dir DIR] [--timeout SECONDS]";
 
 #[derive(Deserialize)]
@@ -18,6 +22,8 @@ struct Input {
     cwd: PathBuf,
     config: PathBuf,
     identity: Value,
+    #[serde(default)]
+    regression: bool,
 }
 
 #[derive(Deserialize)]
@@ -79,12 +85,17 @@ pub fn main(args: &[String]) -> Result<()> {
         println!("{USAGE}");
         return Ok(());
     }
-    if !matches!(mode.as_str(), "plan" | "snapshot" | "check") {
+    if !matches!(mode.as_str(), "plan" | "snapshot" | "check" | "regressions") {
         return Err(USAGE.into());
     }
     let options = options(rest)?;
     let root = repo_root()?;
-    let names = selection(&root, options.get("--projects").map_or("all", String::as_str))?;
+    let selected = options.get("--projects").map_or("all", String::as_str);
+    let names = if mode == "regressions" {
+        regressions::selection(&root, selected)?
+    } else {
+        selection(&root, selected)?
+    };
     if mode == "plan" {
         println!("{}", serde_json::to_string(&names)?);
         return Ok(());
@@ -107,7 +118,16 @@ pub fn main(args: &[String]) -> Result<()> {
     let settings = Settings {
         work: option_path(&root, &options, "--work-dir", "bench/.work"),
         snapshots: option_path(&root, &options, "--snapshots-dir", "tasks/determinism/snapshots"),
-        out: option_path(&root, &options, "--out-dir", "target/determinism"),
+        out: option_path(
+            &root,
+            &options,
+            "--out-dir",
+            if mode == "regressions" {
+                "target/determinism/regressions"
+            } else {
+                "target/determinism"
+            },
+        ),
         tsrs: option_path(&root, &options, "--tsrs", "target/debug/tsrs"),
         timeout,
         max: std::thread::available_parallelism()?.get().min(256),
@@ -115,7 +135,11 @@ pub fn main(args: &[String]) -> Result<()> {
         root,
         version,
     };
-    run(&settings, mode, &names)
+    if mode == "regressions" {
+        regressions::run(&settings, &names)
+    } else {
+        run(&settings, mode, &names)
+    }
 }
 
 fn options(args: &[String]) -> Result<BTreeMap<String, String>> {
@@ -293,12 +317,17 @@ fn prepare(settings: &Settings, input: &Input) -> Result<()> {
 }
 
 fn summary(settings: &Settings, mode: &str, projects: usize, cases: &[Case]) -> Result<()> {
+    let per_project = match mode {
+        "check" => ASSIGNMENTS.len() * 2 * REPETITIONS,
+        "regressions" => 1 + 2 * (REPETITIONS + regressions::SEEDS),
+        _ => 1,
+    };
     write_json(
         &settings.out.join("summary.json"),
         &serde_json::json!({
             "mode": mode,
             "max_checkers": settings.max,
-            "expected_cases": projects * if mode == "check" { 12 } else { 1 },
+            "expected_cases": projects * per_project,
             "cases": cases,
         }),
     )
@@ -366,16 +395,19 @@ fn check_project(settings: &Settings, input: &Input, cases: &mut Vec<Case>) -> R
             return Ok(());
         }
     };
-    for assignment in ["go", "locality"] {
+    for &assignment in ASSIGNMENTS {
         for (count_label, count) in [("4", 4), ("max", settings.max)] {
-            for repetition in 1..=3 {
+            for repetition in 1..=REPETITIONS {
                 let label = format!("{assignment}-{count_label}-{repetition}");
-                let flags = vec![
-                    "--checkerAssignment".into(),
-                    assignment.into(),
-                    "--checkers".into(),
-                    count.to_string(),
-                ];
+                let mut flags = vec!["--checkers".into(), count.to_string()];
+                if assignment != "default" {
+                    flags.push("--checkerAssignment".into());
+                    flags.push(if assignment == "random" {
+                        format!("random:{repetition}")
+                    } else {
+                        assignment.into()
+                    });
+                }
                 let mut outcome = invoke(settings, input, &settings.tsrs, &flags, &label)?;
                 let mut failure = outcome.failure.clone();
                 if failure.is_none()
@@ -445,7 +477,10 @@ fn invoke(
     let log = fs::File::create(&log_path)?;
     let args: Vec<String> = [
         vec!["-p".into(), input.config.to_string_lossy().into_owned()],
-        FLAGS.iter().map(|s| (*s).into()).collect(),
+        if input.regression { &["--pretty", "false"][..] } else { FLAGS }
+            .iter()
+            .map(|s| (*s).into())
+            .collect(),
         flags.to_vec(),
     ]
     .concat();
@@ -526,7 +561,9 @@ fn normalize(settings: &Settings, output: &str) -> Result<String> {
     let mut text = output.replace("\r\n", "\n");
     for (path, placeholder) in [(&settings.work, "<work>"), (&settings.root, "<repo>")] {
         text = text.replace(path.to_string_lossy().as_ref(), placeholder);
-        text = text.replace(path.canonicalize()?.to_string_lossy().as_ref(), placeholder);
+        if path.exists() {
+            text = text.replace(path.canonicalize()?.to_string_lossy().as_ref(), placeholder);
+        }
     }
     Ok(text)
 }

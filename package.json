@@ -40,7 +40,7 @@
         "ci:conformance": "bash .github/scripts/conformance-gate.sh",
         "ci:diagnostics": "node tools/ci/compare_diagnostics.mjs",
         "ci:skip-marker": "node tools/ci/skip_marker.mjs",
-        "ci:determinism": "cargo run --profile dev -p tsrs_determinism -- check",
+        "ci:determinism": "cargo run --profile dev -p tsrs_determinism -- check && cargo run --profile dev -p tsrs_determinism -- regressions",
         "ci:tsan": "bash tools/ci/tsan.sh",
         "ci:tsan-summary": "node tools/ci/tsan_summary.mjs",
         "ci:workloads": "node tools/ci/workloads.mjs",

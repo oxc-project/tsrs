@@ -266,6 +266,9 @@ retains the translated runner's historical results and verify-family breakdown.
 
 ## Known gaps
 
+- A pending API session with no connected client is stopped by an explicit LSP `shutdown`, but EOF or context
+  cancellation alone leaves its listener pending and its private Unix socket directory behind. This matches
+  `handleInitializeAPISession` and `closeAPISessions` in the pinned Go source (`3e9236361fa9`).
 - Content mappers are not loaded by the language server; 57 fourslash groups are explicitly skipped after source 79 adds two output-extension project-reference groups. `custom/setContentMapperContributions` validates contributions, including `outputExtensions`, and forwards them to the project session; the empty startup handshake succeeds.
   CLI checks and builds support them ([content-mapper note](../notes/contentmappers.md)). The language service's
   span-map branches are retained but receive no content-mapped scripts.

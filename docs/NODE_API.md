@@ -162,7 +162,10 @@ Source 101 makes `--api --pipe <path>` create a new private directory on Unix, w
 `<path>/socket` (`0700` directory, `0600` socket); an existing path is an error. On Windows,
 `<path>` is a named pipe restricted to the current user. The spawned sync client gives its
 Windows pipe a random 128-bit suffix. LSP `custom/initializeAPISession` returns the same private pipe transport for an API session over the language
-server's project session; disconnect releases its resources, and LSP shutdown stops pending and connected sessions.
+server's project session; an API-client disconnect releases its resources, and an explicit LSP shutdown stops pending
+and connected sessions. Like pinned Go (`3e9236361fa9`), LSP EOF or context cancellation alone does not stop a
+pending API accept. Its listener remains until explicitly stopped or the process exits, and the private Unix socket
+directory survives process exit. See the [LSP known gaps](LSP.md#known-gaps).
 `getCurrentLanguageServerSnapshot` flushes pending editor changes and applies the API client's opens, closes and
 program changes. Each client owns its open references and synthetic programs; closing it releases those resources.
 Standalone API sessions reject this method with Go's client error.

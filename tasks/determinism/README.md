@@ -75,7 +75,9 @@ and one row of the following matrix, in table order:
 `max` means the available CPU parallelism, capped at the compiler limit of 256;
 the task passes its numeric value and logs it. Both labels run even if max is 4.
 The compiler may further cap the actual checker count to the number of files.
-Runs are sequential within a project. CI shards by project.
+Projects and compiler invocations run sequentially in catalog and matrix order.
+CI checks the full catalog in one task invocation, sharing one tooling install
+and benchmark cache, and uploads one combined results artifact.
 
 These explicit assignments disable work stealing. The task checks agreement with
 Go, repeatability, and consistency across these static assignments and counts.

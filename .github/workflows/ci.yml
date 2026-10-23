@@ -56,8 +56,6 @@ jobs:
 
   build-correctness:
     name: Build correctness binaries
-    outputs:
-      determinism-projects: ${{ steps.determinism.outputs.projects }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -70,10 +68,6 @@ jobs:
 
       - name: Build correctness binaries
         run: cargo build --profile ci --locked -p tsrs_cli -p tsrs_testrunner -p tsrs_determinism
-
-      - name: Plan determinism projects
-        id: determinism
-        run: echo "projects=$(target/ci/tsrs_determinism plan)" >> "$GITHUB_OUTPUT"
 
       - name: Upload correctness binaries
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -320,20 +314,13 @@ jobs:
             target/go-fourslash/reference/tsc/testdata/baselines/local/fourslash/
           if-no-files-found: ignore
 
-  determinism-project:
-    name: Determinism (${{ matrix.project }})
+  determinism:
+    name: Determinism
     needs: build-correctness
     runs-on: nscloud-ubuntu-24.04-amd64-8x16
     timeout-minutes: 300
     permissions:
       contents: read
-    strategy:
-      fail-fast: false
-      max-parallel: 8
-      matrix:
-        project: ${{ fromJSON(needs.build-correctness.outputs.determinism-projects) }}
-    env:
-      PROJECT: ${{ matrix.project }}
     steps:
       - uses: taiki-e/checkout-action@7d1e50e93dc4fb3bba58f85018fadf77898aee8b # v1.4.2
 
@@ -353,47 +340,34 @@ jobs:
 
       - name: Benchmark cache key
         id: keys
-        run: echo "work=$(node bench/bench.mjs plan --format keys --projects "$PROJECT" | sha256sum | cut -c1-16)" >> "$GITHUB_OUTPUT"
+        run: echo "work=$(node bench/bench.mjs plan --format keys --projects all | sha256sum | cut -c1-16)" >> "$GITHUB_OUTPUT"
 
-      - name: Restore benchmark project
-        id: project-cache
+      - name: Restore benchmark projects
+        id: projects-cache
         uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: |
             bench/.work/suite
-            bench/.work/solutions/${{ matrix.project }}
-          key: determinism-work-${{ runner.os }}-${{ runner.arch }}-${{ matrix.project }}-${{ steps.keys.outputs.work }}
+            bench/.work/solutions
+          key: determinism-work-${{ runner.os }}-${{ runner.arch }}-all-${{ steps.keys.outputs.work }}
 
       - name: Check committed tsgo snapshots
-        run: target/ci/tsrs_determinism check --projects "$PROJECT" --tsrs target/ci/tsrs
+        run: target/ci/tsrs_determinism check --projects all --tsrs target/ci/tsrs
 
       - name: Upload determinism results
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: determinism-${{ matrix.project }}
+          name: determinism
           path: target/determinism/
           if-no-files-found: warn
           retention-days: 14
 
-      - name: Save benchmark project on main
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.project-cache.outputs.cache-hit != 'true'
+      - name: Save benchmark projects on main
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.projects-cache.outputs.cache-hit != 'true'
         uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: |
             bench/.work/suite
-            bench/.work/solutions/${{ matrix.project }}
-          key: ${{ steps.project-cache.outputs.cache-primary-key }}
-
-  determinism:
-    name: Determinism
-    if: always()
-    needs: [build-correctness, determinism-project]
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - name: Require every determinism shard
-        env:
-          BUILD_RESULT: ${{ needs.build-correctness.result }}
-          PROJECT_RESULT: ${{ needs.determinism-project.result }}
-        run: '[[ "$BUILD_RESULT" = success && "$PROJECT_RESULT" = success ]]'
+            bench/.work/solutions
+          key: ${{ steps.projects-cache.outputs.cache-primary-key }}

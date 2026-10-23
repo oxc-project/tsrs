@@ -1,5 +1,5 @@
 {
-  "date": "2026-10-23T20:43:43.183Z",
+  "date": "2026-10-23T20:59:48.934Z",
   "baseCommit": "00a4a894301a912420b2865a93981110524dac42",
   "variant": "lookup-hint",
   "method": {
@@ -233,39 +233,39 @@
     }
   ],
   "sourceCommit": "9988cd2bfa6ba78d35841262b9d151bbe325b2d0",
-  "status": "Draft: catalog measurement still in progress",
-  "pendingProjects": [
-    "Compiler-Unions",
-    "cal-diy",
-    "formbricks-web",
-    "supabase-studio",
-    "t3code-server",
-    "mikro-orm",
-    "next-packages-next",
-    "next-root",
-    "storybook",
-    "nuxt",
-    "playwright",
-    "drizzle-orm",
-    "typeorm",
-    "date-fns"
-  ],
-  "strippedCopies": {
-    "method": "A separate copy, xcrun strip -S -x followed by ad-hoc codesign; not a separate Cargo release rebuild.",
-    "baselineBytes": 21353872,
-    "candidateBytes": 21353872
-  },
   "integration": {
     "base": "204777b3839ec38f55ee1f6491a505cf63d317a4",
     "sourceSha256": "3d29701b881209a1bd554857bed0bd81569eb935e64bb44b0dfaf28fb45130e7",
     "description": "Keep main's equivalent let-chain syntax when applying the measured lookup-reuse change.",
-    "validation": "Post-integration CI pending; the validation below belongs to the measured source commit."
+    "validation": "Post-integration CI pending; the validation below belongs to the measured source commit.",
+    "commit": "c0a7a6467e567f11f04260797cf7ef6cf8533e26"
+  },
+  "status": "Complete catalog measurement",
+  "pendingProjects": [],
+  "strippedCopies": {
+    "method": "A separate copy, xcrun strip -S -x followed by ad-hoc codesign; not a separate Cargo release rebuild.",
+    "baselineBytes": 21353872,
+    "candidateBytes": 21353872
   },
   "results": [
     {"project":"vscode","instructions":[80769703640,80758891275,-0.002748,3,4,-0.0266,0.004181],"rss":[2167169024,2161844224,-0.364359,2,4,-1.698872,0.496831],"wall":[0.955975,0.955151,-0.215641,3,4,-1.479168,7.774323],"configurationNote":null},
     {"project":"xstate-main","instructions":[5907122608,5907380128,0.005184,1,4,-0.008895,0.006489],"rss":[263192576,263741440,0.130578,2,4,-0.536093,0.630974],"wall":[0.12275,0.123272,0.644735,1,4,-1.180253,2.588536],"configurationNote":null},
     {"project":"webpack","instructions":[10769441074.5,10769470676,0.005189,1,4,-0.00362,0.011574],"rss":[508510208,506953728,0.063282,2,4,-1.552646,0.780469],"wall":[0.157016,0.153088,-2.493458,3,4,-4.106107,1.701717],"configurationNote":null},
     {"project":"mui-docs","instructions":[37394390874,37406342588.5,0.032159,0,4,0.01374,3.282628],"rss":[1605017600,1603338240,-0.349198,3,4,-0.802463,0.10513],"wall":[1.144377,1.153097,0.812403,1,4,-0.011123,1.854129],"configurationNote":null},
-    {"project":"Compiler","instructions":[1694635523.5,1694637227.5,-0.004218,2,4,-0.009854,0.196084],"rss":[80642048,80723968,0.030537,1,4,-0.141901,0.407498],"wall":[0.063756,0.065254,0.696563,2,4,-4.219861,4.508594],"configurationNote":null}
+    {"project":"Compiler","instructions":[1694635523.5,1694637227.5,-0.004218,2,4,-0.009854,0.196084],"rss":[80642048,80723968,0.030537,1,4,-0.141901,0.407498],"wall":[0.063756,0.065254,0.696563,2,4,-4.219861,4.508594],"configurationNote":null},
+    {"project":"Compiler-Unions","instructions":[2888514646,2888319389.5,-0.006552,4,4,-0.022533,-0.002458],"rss":[86016000,85622784,-0.303605,2,4,-1.512859,0.076658],"wall":[0.095717,0.097108,0.792957,1,4,-0.456204,2.474445],"configurationNote":null},
+    {"project":"cal-diy","instructions":[31209605095,31212304687.5,0.011109,0,4,0.000828,0.017638],"rss":[1869258752,1858699264,-0.561871,3,4,-1.805771,0.433818],"wall":[0.746657,0.757153,1.059959,1,4,-1.906795,4.033025],"configurationNote":null},
+    {"project":"formbricks-web","instructions":[39865807534.5,39873875459,0.020046,2,4,-0.019454,2.504326],"rss":[1986527232,1989484544,0.134615,1,4,-0.212222,0.750172],"wall":[0.791058,0.784438,-0.098376,2,4,-2.649664,2.109996],"configurationNote":null},
+    {"project":"supabase-studio","instructions":[43983679620,43977800983.5,-0.014557,2,4,-2.5366,0.010649],"rss":[1683267584,1683103744,-0.015124,2,4,-0.376521,1.100135],"wall":[0.821895,0.817957,-1.123232,3,4,-2.391729,2.746256],"configurationNote":null},
+    {"project":"t3code-server","instructions":[39414192673,39414469571.5,-0.000426,3,4,-0.002644,0.007002],"rss":[2105458688,2119499776,0.522887,1,4,-0.691751,1.555912],"wall":[1.387563,1.409818,0.758035,2,4,-0.481128,9.422992],"configurationNote":null},
+    {"project":"mikro-orm","instructions":[47238592605.5,47230480275.5,-0.017386,4,4,-0.018822,-0.014945],"rss":[1988673536,1984430080,-0.086692,2,4,-1.030733,0.825371],"wall":[1.238377,1.237757,-0.049837,2,4,-1.432175,1.678326],"configurationNote":null},
+    {"project":"next-packages-next","instructions":[16837764564,16838294419,0.002348,2,4,-0.004294,0.043012],"rss":[654524416,657367040,0.597009,1,4,-0.833292,2.359875],"wall":[0.337404,0.336915,0.452079,2,4,-2.979568,5.246528],"configurationNote":null},
+    {"project":"next-root","instructions":[16459329448.5,16455761222.5,-0.021677,4,4,-5.60791,-0.00185],"rss":[484171776,498876416,3.079112,0,4,0.053583,4.677007],"wall":[0.423785,0.417483,-1.934602,3,4,-4.584247,4.681679],"configurationNote":null},
+    {"project":"storybook","instructions":[9787521657.5,9786086494,-0.019763,3,4,-4.174811,0.003876],"rss":[497983488,497631232,0.024849,2,4,-0.97062,0.914877],"wall":[0.234907,0.229347,-4.696341,3,4,-5.653823,9.128027],"configurationNote":null},
+    {"project":"nuxt","instructions":[9971517481,9972881407.5,0.013678,1,4,-0.006168,0.019189],"rss":[519938048,513769472,-0.855524,4,4,-2.156665,-0.17221],"wall":[0.270354,0.26151,-2.967227,3,4,-10.529557,4.000669],"configurationNote":null},
+    {"project":"playwright","instructions":[7472361880,7473502691.5,0.015906,0,4,0.005356,0.023627],"rss":[464084992,463314944,0.230194,2,4,-2.239458,1.227663],"wall":[0.161346,0.165406,4.081806,2,4,-8.756734,14.067398],"configurationNote":null},
+    {"project":"drizzle-orm","instructions":[6160753487,6161662647,0.014987,1,4,-0.006389,0.023899],"rss":[564273152,562331648,-1.643445,3,4,-3.462713,2.809107],"wall":[0.204545,0.187615,-8.260256,3,4,-11.690162,9.440359],"configurationNote":"Supplemental config removes unsupported baseUrl and preserves ~/* source mapping. Original catalog command exits before checking."},
+    {"project":"typeorm","instructions":[7603811493,7603871636.5,-0.000029,2,4,-0.007573,0.011121],"rss":[263135232,263651328,-0.003178,2,4,-1.120797,0.498473],"wall":[0.17092,0.171653,0.280375,0,4,0.159966,0.758903],"configurationNote":null},
+    {"project":"date-fns","instructions":[4325568694,4324622585,-0.019416,4,4,-5.223401,-0.005971],"rss":[197697536,198082560,0.07044,2,4,-0.747881,1.508801],"wall":[0.125267,0.127135,1.49028,1,4,-0.791941,4.546244],"configurationNote":"Supplemental --composite false --declaration true permits the standard --incremental false check while preserving declaration behavior. Original exits with TS6379."}
   ]
 }

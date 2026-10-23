@@ -1,6 +1,6 @@
 {
-  "date": "2026-10-23T20:50:30.251Z",
-  "status": "Draft: performance assessment and full validation pending",
+  "date": "2026-10-23T21:15:22.576Z",
+  "status": "Complete catalog measurement",
   "baseCommit": "00a4a894301a912420b2865a93981110524dac42",
   "sourceCommit": "ba3866092618b1ee9d6a768700d65a3ab71172a8",
   "variant": "entries-pending",
@@ -12,7 +12,7 @@
     "hostGuard": "At least 10 seconds of observed quiet before a pair, carried across continuously monitored adjacent pairs. Active compiler jobs (running/uninterruptible or at least 1% CPU) and other processes above three cores checked every 2 seconds. Idle compiler parents are recorded but do not block. Desktop bursts above one core are recorded but retained. A competing workload terminates only the owned measurement process group and invalidates the current pair. Previously completed pairs remain. Conditions are checked again after each pair.",
     "cpu": "Apple M3 Max",
     "cores": 14,
-    "started": "2026-10-23T19:55:49.406Z"
+    "started": "2026-10-23T21:00:29.884Z"
   },
   "profile": {
     "release": {
@@ -44,8 +44,91 @@
     },
     "lint": "Clippy all targets with warnings denied; source checks; cargo fmt",
     "releasePreflights": "Identical ordered diagnostics and exit codes; identical single-threaded semantic counters on the measured projects",
-    "fullConformance": "Not run locally for this variant; PR CI pending",
-    "regressionsAndAssignmentSweep": "Not run locally for this variant; PR CI pending"
+    "fullConformance": "Passed in PR CI on the recorded commit; both Go history and canonical/default-checker history. Not rerun locally for this variant.",
+    "regressionsAndAssignmentSweep": "Regression cases and determinism snapshot verification passed in PR CI. The separate local 76-comparison assignment sweep was not run for this variant.",
+    "mappedCases": {
+      "go": {
+        "codes": 0,
+        "crash": 0,
+        "fail": 0,
+        "pass": 58,
+        "skip": 0,
+        "timeout": 0
+      },
+      "canonical": {
+        "codes": 0,
+        "crash": 0,
+        "fail": 0,
+        "pass": 58,
+        "skip": 0,
+        "timeout": 0
+      },
+      "eager": {
+        "codes": 0,
+        "crash": 0,
+        "fail": 0,
+        "pass": 58,
+        "skip": 0,
+        "timeout": 0
+      }
+    },
+    "ci": {
+      "headCommit": "9ce1f9cb6a0a451f877e0503cb5bdd97d78ae5c1",
+      "url": "https://github.com/oxc-project/tsrs/actions/runs/40022506105",
+      "runId": 40022506105,
+      "conclusion": "success",
+      "scope": "GitHub PR workflow on the merge ref; performance measurements use the separately recorded frozen baseline and candidate binaries.",
+      "jobs": [
+        {
+          "id": 120650328705,
+          "name": "Fourslash",
+          "conclusion": "success"
+        },
+        {
+          "id": 120650328929,
+          "name": "Node API clients and parity",
+          "conclusion": "success"
+        },
+        {
+          "id": 120650328935,
+          "name": "API transport Windows",
+          "conclusion": "success"
+        },
+        {
+          "id": 120650328945,
+          "name": "Build correctness binaries",
+          "conclusion": "success"
+        },
+        {
+          "id": 120650328975,
+          "name": "Lint",
+          "conclusion": "success"
+        },
+        {
+          "id": 120651298244,
+          "name": "Determinism",
+          "conclusion": "success"
+        },
+        {
+          "id": 120651298338,
+          "name": "Test Linux",
+          "conclusion": "success"
+        }
+      ],
+      "conformance": {
+        "histories": [
+          "go",
+          "canonical"
+        ],
+        "variantsPerHistory": 15448,
+        "passedPerHistory": 13700,
+        "skippedPerHistory": 1748,
+        "failed": 0,
+        "crashed": 0,
+        "timedOut": 0
+      },
+      "verifiedAt": "2026-10-23T21:13:17.785Z"
+    }
   },
   "metricColumns": [
     "baseline median",
@@ -215,27 +298,31 @@
       "measuredConfig": "<work>/solutions/date-fns/pkgs/core/tsconfig.json"
     }
   ],
-  "pendingProjects": [
-    "vscode",
-    "xstate-main",
-    "webpack",
-    "Compiler",
-    "Compiler-Unions",
-    "cal-diy",
-    "formbricks-web",
-    "supabase-studio",
-    "t3code-server",
-    "mikro-orm",
-    "next-packages-next",
-    "next-root",
-    "storybook",
-    "nuxt",
-    "playwright",
-    "drizzle-orm",
-    "typeorm",
-    "date-fns"
-  ],
+  "pendingProjects": [],
+  "strippedCopies": {
+    "method": "A separate copy, xcrun strip -S -x followed by ad-hoc codesign; not a separate Cargo release rebuild.",
+    "baselineBytes": 21353872,
+    "candidateBytes": 21353872
+  },
   "results": [
-    {"project":"mui-docs","instructions":[37348544654.5,37367125999.5,0.054733,0,4,0.019321,0.104585],"rss":[1602437120,1609129984,0.394714,0,4,0.130362,1.139377],"wall":[1.140302,1.157404,0.413551,2,4,-0.993757,9.939196],"configurationNote":null}
+    {"project":"mui-docs","instructions":[37348544654.5,37367125999.5,0.054733,0,4,0.019321,0.104585],"rss":[1602437120,1609129984,0.394714,0,4,0.130362,1.139377],"wall":[1.140302,1.157404,0.413551,2,4,-0.993757,9.939196],"configurationNote":null},
+    {"project":"vscode","instructions":[80929814929,80936879713,0.004582,2,4,-0.013103,0.031381],"rss":[2186207232,2151055360,-1.177371,4,4,-3.186549,-0.686343],"wall":[1.072124,1.075916,0.949982,1,4,-1.057428,3.391026],"configurationNote":null},
+    {"project":"xstate-main","instructions":[5907312581.5,5907197966,-0.000054,2,4,-0.013752,0.00125],"rss":[263421952,263045120,-0.195886,3,4,-0.285732,0.343407],"wall":[0.122249,0.122821,0.494785,0,4,0.29375,0.567387],"configurationNote":null},
+    {"project":"webpack","instructions":[10770167923,10770406243,0.002979,1,4,-0.011385,1.955121],"rss":[509386752,511623168,0.439584,1,4,-1.440941,1.629942],"wall":[0.152896,0.154864,0.468557,1,4,-0.328852,4.159258],"configurationNote":null},
+    {"project":"Compiler","instructions":[1694435255,1694496696,0.005424,2,4,-0.007719,0.01905],"rss":[80568320,80748544,0.345818,1,4,-0.020263,0.407914],"wall":[0.062306,0.063111,1.29947,2,4,-0.739766,8.568448],"configurationNote":null},
+    {"project":"Compiler-Unions","instructions":[2888472525,2888410266,-0.000384,2,4,-0.005405,0.004247],"rss":[85450752,85540864,0.134283,1,4,-0.876691,0.287632],"wall":[0.095082,0.098041,3.114761,1,4,-3.976005,4.689457],"configurationNote":null},
+    {"project":"cal-diy","instructions":[31219083888.5,31224450955,0.029705,1,4,-0.02204,3.02346],"rss":[1864368128,1854619648,-0.651738,4,4,-1.007532,-0.16509],"wall":[0.750761,0.744341,-0.543919,4,4,-1.097349,-0.376053],"configurationNote":null},
+    {"project":"formbricks-web","instructions":[39958074435,39959219950,-0.027011,2,4,-1.166945,0.048072],"rss":[1986650112,1984446464,-0.154096,3,4,-0.192932,0.223288],"wall":[0.766626,0.76791,0.527117,1,4,-0.524518,1.400589],"configurationNote":null},
+    {"project":"supabase-studio","instructions":[44059304683,44051713161,-0.009733,3,4,-0.028473,0.009668],"rss":[1678811136,1681424384,0.155576,1,4,-0.564675,0.903945],"wall":[0.792529,0.799846,1.042537,1,4,-0.849286,1.176408],"configurationNote":null},
+    {"project":"t3code-server","instructions":[39473622363,39466711624,-0.005908,3,4,-0.043728,0.00541],"rss":[2098298880,2098700288,0.218845,1,4,-0.363897,0.417251],"wall":[1.307329,1.323512,0.251769,2,4,-2.886133,4.908245],"configurationNote":null},
+    {"project":"mikro-orm","instructions":[47474097092,47297097103.5,-0.37582,3,4,-0.770922,0.681485],"rss":[1956864000,1980071936,0.343116,1,4,-0.158823,2.040748],"wall":[0.752607,0.752015,-0.203378,3,4,-0.831444,1.796361],"configurationNote":null},
+    {"project":"next-packages-next","instructions":[16849928936.5,16855748997,0.008843,1,4,-0.065366,2.24145],"rss":[653459456,656203776,0.654062,1,4,-0.203099,0.842401],"wall":[0.244262,0.248243,1.557312,0,4,1.147928,3.140359],"configurationNote":null},
+    {"project":"next-root","instructions":[16468289352,16467181647.5,0.0213,1,4,-0.03341,2.647137],"rss":[490496000,491708416,0.172442,2,4,-1.796608,1.309439],"wall":[0.368608,0.365915,-1.108643,3,4,-2.186006,1.854603],"configurationNote":null},
+    {"project":"storybook","instructions":[9786219076,9786605041,-0.002655,3,4,-0.015245,0.012575],"rss":[497229824,498212864,-0.325757,2,4,-0.932051,1.211741],"wall":[0.184849,0.18745,1.431068,1,4,-4.30363,5.85637],"configurationNote":null},
+    {"project":"nuxt","instructions":[9976780849.5,9972708199,-0.018488,4,4,-0.124752,-0.007798],"rss":[511418368,513040384,0.442538,2,4,-3.68079,2.235465],"wall":[0.224211,0.218339,-2.630139,3,4,-7.765096,7.631548],"configurationNote":null},
+    {"project":"playwright","instructions":[7472255519,7473006299,0.008325,1,4,-0.247174,0.015676],"rss":[468164608,471990272,1.153473,1,4,-3.151598,2.417026],"wall":[0.137932,0.140267,0.772134,2,4,-4.536602,5.638235],"configurationNote":null},
+    {"project":"drizzle-orm","instructions":[6160148595.5,6160090666.5,-0.00094,2,4,-0.045418,0.001607],"rss":[561102848,558039040,-1.438127,2,4,-3.391307,3.168722],"wall":[0.161201,0.162207,2.298257,1,4,-1.363779,6.706879],"configurationNote":"Supplemental config removes unsupported baseUrl and preserves ~/* source mapping. Original catalog command exits before checking."},
+    {"project":"typeorm","instructions":[7604443757,7602160579.5,-0.030024,4,4,-0.051266,-0.007554],"rss":[263503872,263258112,-0.093176,2,4,-0.835293,0.593083],"wall":[0.172392,0.172237,-1.124411,3,4,-1.69382,1.35086],"configurationNote":null},
+    {"project":"date-fns","instructions":[4323312672,4323284754,-0.000646,2,4,-0.02584,0.072049],"rss":[198524928,199041024,0.259885,1,4,-2.485188,1.207709],"wall":[0.12372,0.125301,1.414009,2,4,-3.678012,7.668534],"configurationNote":"Supplemental --composite false --declaration true permits the standard --incremental false check while preserving declaration behavior. Original exits with TS6379."}
   ]
 }

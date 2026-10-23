@@ -323,13 +323,13 @@ impl DeclarationTransformer {
 }
 
 // transform.go:1569
-pub(crate) fn is_common_js_alias_export(node: P<Node>) -> bool {
-    if ast::is_binary_expression(node) && ast::is_identifier(node.as_binary_expression().right()) {
-        if let Some(symbol) = node.symbol() {
-            if symbol.declarations().len() == 1 {
-                return true;
-            }
-        }
+pub fn is_common_js_alias_export(node: P<Node>) -> bool {
+    if ast::is_binary_expression(node)
+        && ast::is_identifier(node.as_binary_expression().right())
+        && let Some(symbol) = node.symbol()
+        && symbol.declarations().len() == 1
+    {
+        return true;
     }
     false
 }
@@ -581,14 +581,14 @@ impl DeclarationTransformer {
         }
         if input.kind() == Kind::ImportDeclaration || input.kind() == Kind::JSImportDeclaration {
             let res = self.transform_import_declaration(input);
-            if let Some(res) = res {
-                if res.kind() != Kind::ImportDeclaration {
-                    // Go: `res := res.Clone(tx.Factory()); res.Kind = ast.KindImportDeclaration`
-                    return Some(ast::clone_as_import_declaration(
-                        res,
-                        self.factory().as_node_factory(),
-                    ));
-                }
+            if let Some(res) = res
+                && res.kind() != Kind::ImportDeclaration
+            {
+                // Go: `res := res.Clone(tx.Factory()); res.Kind = ast.KindImportDeclaration`
+                return Some(ast::clone_as_import_declaration(
+                    res,
+                    self.factory().as_node_factory(),
+                ));
             }
             return res;
         }
@@ -1065,13 +1065,13 @@ impl DeclarationTransformer {
                 if is_static {
                     modifier_flags |= ModifierFlags::Static;
                 }
-                let mods = if modifier_flags != ModifierFlags::None {
+                let mods = if modifier_flags == ModifierFlags::None {
+                    None
+                } else {
                     Some(f.new_modifier_list(ast::create_modifiers_from_modifier_flags(
                         modifier_flags,
                         |kind| f.new_modifier(kind),
                     )))
-                } else {
-                    None
                 };
                 if ast::has_dynamic_name(node) {
                     if !is_simple_inlineable_expression(name) {
@@ -1109,7 +1109,7 @@ impl DeclarationTransformer {
 }
 
 // transform.go:2160
-pub(crate) fn is_class_extending_null(node: Option<P<Node>>) -> bool {
+pub fn is_class_extending_null(node: Option<P<Node>>) -> bool {
     let Some(node) = node else {
         return false;
     };

@@ -536,10 +536,10 @@ impl Session {
     fn module_resolution_error(snapshot: &Snapshot) -> ApiResult<()> {
         if let Some(result) =
             snapshot.project_collection.projects().into_iter().find_map(|project| {
-                if let Some(program) = project.get_program() {
-                    if let Some(err) = program.module_resolution_error() {
-                        return Some(Err(ApiError::internal(err.to_string())));
-                    }
+                if let Some(program) = project.get_program()
+                    && let Some(err) = program.module_resolution_error()
+                {
+                    return Some(Err(ApiError::internal(err.to_string())));
                 }
 
                 None

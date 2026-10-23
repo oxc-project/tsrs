@@ -178,7 +178,7 @@ struct FlagDef {
     value: FlagValue,
 }
 
-pub(crate) struct FlagSet {
+pub struct FlagSet {
     name: &'static str,
     flags: Vec<FlagDef>,
 }

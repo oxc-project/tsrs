@@ -38,13 +38,13 @@ pub fn assert(value: bool, message: &[&dyn Display]) {
 
 #[cold]
 fn assert_slow(message: &[&dyn Display]) {
-    let msg = if !message.is_empty() {
+    let msg = if message.is_empty() {
+        "False expression.".to_string()
+    } else {
         format!(
             "False expression: {}",
             message.iter().map(std::string::ToString::to_string).collect::<String>()
         )
-    } else {
-        "False expression.".to_string()
     };
     fail(&msg);
 }

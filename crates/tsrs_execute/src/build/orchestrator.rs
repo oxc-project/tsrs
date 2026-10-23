@@ -73,17 +73,15 @@ impl OrchestratorResult {
             }
             None => (o.error_summary_reporter)(self.errors.as_deref().unwrap_or_default()),
         }
-        if report_files_to_delete {
-            if let Some(files_to_delete) = &self.files_to_delete {
-                let mut file_list = String::new();
-                for file in files_to_delete {
-                    let _ = write!(file_list, "\r\n * {file}");
-                }
-                o.create_builder_status_reporter(None)(new_compiler_diagnostic(
-                    &diagnostics::A_NON_DRY_BUILD_WOULD_DELETE_THE_FOLLOWING_FILES_COLON_0,
-                    &[&file_list],
-                ));
+        if report_files_to_delete && let Some(files_to_delete) = &self.files_to_delete {
+            let mut file_list = String::new();
+            for file in files_to_delete {
+                let _ = write!(file_list, "\r\n * {file}");
             }
+            o.create_builder_status_reporter(None)(new_compiler_diagnostic(
+                &diagnostics::A_NON_DRY_BUILD_WOULD_DELETE_THE_FOLLOWING_FILES_COLON_0,
+                &[&file_list],
+            ));
         }
         let options = &o.opts.command.compiler_options;
         if !options.diagnostics.is_true() && !options.extended_diagnostics.is_true() {
@@ -215,12 +213,12 @@ impl Orchestrator {
             let mut task = None;
             let mut build_info = None;
             if let Some(existing) = old_tasks.and_then(|old| old.get(&path)) {
-                if !existing.dirty.load(Ordering::SeqCst) {
-                    // Reuse existing task if config is same
-                    task = Some(*existing);
-                } else {
+                if existing.dirty.load(Ordering::SeqCst) {
                     existing.close_content_mapper_project();
                     build_info = existing.take_build_info_entry();
+                } else {
+                    // Reuse existing task if config is same
+                    task = Some(*existing);
                 }
             }
             let task = task.unwrap_or_else(|| {
@@ -614,16 +612,6 @@ impl Orchestrator {
 
     // orchestrator.go:426
     fn get_build_order_for(&self, project: &str) -> Option<Vec<String>> {
-        if project.is_empty() {
-            return Some(self.order.lock().unwrap().clone());
-        }
-
-        let config = tsrs_core::resolve_config_file_name_of_project_reference(
-            &tspath::resolve_path(self.opts.sys.get_current_directory(), &[project]),
-        );
-        let target = *self.tasks.lock().unwrap().get(&self.to_path(&config))?;
-
-        let mut projects: Set<Path> = Set::default();
         fn add_project_and_references(
             o: &Orchestrator,
             projects: &mut Set<Path>,
@@ -638,6 +626,17 @@ impl Orchestrator {
                 add_project_and_references(o, projects, upstream.task);
             }
         }
+
+        if project.is_empty() {
+            return Some(self.order.lock().unwrap().clone());
+        }
+
+        let config = tsrs_core::resolve_config_file_name_of_project_reference(
+            &tspath::resolve_path(self.opts.sys.get_current_directory(), &[project]),
+        );
+        let target = *self.tasks.lock().unwrap().get(&self.to_path(&config))?;
+
+        let mut projects: Set<Path> = Set::default();
         add_project_and_references(self, &mut projects, target);
 
         let order: Vec<String> = self
@@ -817,10 +816,10 @@ impl Orchestrator {
             result.report_status = Some(report_status);
             result.diagnostic_reporter = Some(diagnostic_reporter);
         }
-        if !self.opts.command.build_options.clean.is_true() {
-            task.get().build_project(self, path);
-        } else {
+        if self.opts.command.build_options.clean.is_true() {
             task.clean_project(self, path);
+        } else {
+            task.get().build_project(self, path);
         }
         if self.opts.testing.is_none() {
             // The program is only needed by Testing.OnProgram at report time; drop it now so a task

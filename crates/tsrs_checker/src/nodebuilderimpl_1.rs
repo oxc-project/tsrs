@@ -19,7 +19,7 @@ use tsrs_core::*;
 //   type sortedSymbolNamePair (nodebuilderimpl.go:1081)
 
 // nodebuilderimpl.go:125
-pub(crate) fn new_node_builder_impl(
+pub fn new_node_builder_impl(
     ch: &Checker,
     e: P<EmitContext>,
     id_to_symbol: Option<P<RefCell<FxHashMap<P<Node>, P<Symbol>>>>>,
@@ -311,7 +311,7 @@ impl NodeBuilderImpl {
 }
 
 // nodebuilderimpl.go:325
-pub(crate) fn get_access_stack(ref_: P<Node>) -> Vec<P<Node>> {
+pub fn get_access_stack(ref_: P<Node>) -> Vec<P<Node>> {
     let mut state: P<Node> = ref_.as_type_reference_node().type_name;
     let mut ids: Vec<P<Node>> = vec![];
     while !is_identifier(state) {
@@ -324,7 +324,7 @@ pub(crate) fn get_access_stack(ref_: P<Node>) -> Vec<P<Node>> {
 }
 
 // nodebuilderimpl.go:337
-pub(crate) fn is_class_instance_side(c: &mut Checker, t: P<Type>) -> bool {
+pub fn is_class_instance_side(c: &mut Checker, t: P<Type>) -> bool {
     t.symbol().is_some()
         && t.symbol().unwrap().flags().intersects(SymbolFlags::Class)
         && (t == c.get_declared_type_of_class_or_interface(t.symbol().unwrap())
@@ -358,6 +358,12 @@ impl NodeBuilderImpl {
         list: &[P<Type>],
         is_bare_list: bool,
     ) -> Option<P<NodeList>> {
+        #[derive(Clone, Copy)]
+        struct SeenName {
+            t: P<Type>,
+            i: usize,
+        }
+
         if list.is_empty() {
             return None;
         }
@@ -402,11 +408,6 @@ impl NodeBuilderImpl {
 
         let may_have_name_collisions =
             !self.ctx().flags.get().intersects(Flags::UseFullyQualifiedType);
-        #[derive(Clone, Copy)]
-        struct SeenName {
-            t: P<Type>,
-            i: usize,
-        }
         let mut seen_names: Option<tsrs_core::collections::MultiMap<&'static str, SeenName>> = None;
         if may_have_name_collisions {
             seen_names = Some(tsrs_core::collections::MultiMap::default());
@@ -442,13 +443,13 @@ impl NodeBuilderImpl {
             let type_node = self.type_to_type_node(c, Some(t));
             if let Some(type_node) = type_node {
                 result.push(type_node);
-                if let Some(seen_names) = seen_names.as_mut() {
-                    if is_identifier_type_reference(type_node) {
-                        seen_names.add(
-                            type_node.as_type_reference_node().type_name.text(),
-                            SeenName { t, i: result.len() - 1 },
-                        );
-                    }
+                if let Some(seen_names) = seen_names.as_mut()
+                    && is_identifier_type_reference(type_node)
+                {
+                    seen_names.add(
+                        type_node.as_type_reference_node().type_name.text(),
+                        SeenName { t, i: result.len() - 1 },
+                    );
                 }
             }
         }
@@ -515,15 +516,12 @@ impl NodeBuilderImpl {
 }
 
 // nodebuilderimpl.go:463
-pub(crate) fn is_identifier_type_reference(node: P<Node>) -> bool {
+pub fn is_identifier_type_reference(node: P<Node>) -> bool {
     is_type_reference_node(node) && is_identifier(node.as_type_reference_node().type_name)
 }
 
 // nodebuilderimpl.go:467
-pub(crate) fn array_is_homogeneous<T: Clone>(
-    array: &[T],
-    mut comparer: impl FnMut(T, T) -> bool,
-) -> bool {
+pub fn array_is_homogeneous<T: Clone>(array: &[T], mut comparer: impl FnMut(T, T) -> bool) -> bool {
     if array.len() < 2 {
         return true;
     }
@@ -538,7 +536,7 @@ pub(crate) fn array_is_homogeneous<T: Clone>(
 }
 
 // nodebuilderimpl.go:481
-pub(crate) fn types_are_same_reference(a: P<Type>, b: P<Type>) -> bool {
+pub fn types_are_same_reference(a: P<Type>, b: P<Type>) -> bool {
     a == b
         || a.symbol().is_some() && a.symbol() == b.symbol()
         || a.alias().is_some() && a.alias() == b.alias()
@@ -552,13 +550,12 @@ impl NodeBuilderImpl {
         node: P<Node>,
         range_: Option<P<Node>>,
     ) {
-        if let Some(range_) = range_ {
-            if self.ctx().enclosing_file.get().is_some()
-                && self.ctx().enclosing_file.get() == get_source_file_of_node(range_)
-            {
-                // Copy comments to node for declaration emit
-                self.e.assign_comment_range(node, range_);
-            }
+        if let Some(range_) = range_
+            && self.ctx().enclosing_file.get().is_some()
+            && self.ctx().enclosing_file.get() == get_source_file_of_node(range_)
+        {
+            // Copy comments to node for declaration emit
+            self.e.assign_comment_range(node, range_);
         }
     }
 
@@ -652,14 +649,13 @@ impl NodeBuilderImpl {
         if annotation_type.is_none() {
             annotation_type = self.get_type_from_type_node(c, existing, true);
         }
-        if let Some(annotation_type) = annotation_type {
-            if Self::type_node_is_equivalent_to_type(c, host, t, annotation_type)
-                && Self::can_reuse_existing_js_type_node(c, existing, t)
-            {
-                let result = self.try_reuse_existing_node_helper(c, existing);
-                if result.is_some() {
-                    return result;
-                }
+        if let Some(annotation_type) = annotation_type
+            && Self::type_node_is_equivalent_to_type(c, host, t, annotation_type)
+            && Self::can_reuse_existing_js_type_node(c, existing, t)
+        {
+            let result = self.try_reuse_existing_node_helper(c, existing);
+            if result.is_some() {
+                return result;
             }
         }
         None
@@ -711,32 +707,28 @@ impl NodeBuilderImpl {
         if self.ctx().internal_flags.get().intersects(InternalFlags::WriteComputedProps) {
             if let Some(value_declaration) = symbol.value_declaration() {
                 let name = get_name_of_declaration(value_declaration);
-                if let Some(name) = name {
-                    if is_computed_property_name(name) {
-                        return name;
-                    }
+                if let Some(name) = name
+                    && is_computed_property_name(name)
+                {
+                    return name;
                 }
             }
             if c.value_symbol_links.has(symbol) {
                 let name_type = c.value_symbol_links.get(symbol).name_type();
-                if let Some(name_type) = name_type {
-                    if name_type
+                if let Some(name_type) = name_type
+                    && name_type
                         .flags()
                         .intersects(TypeFlags::EnumLiteral | TypeFlags::UniqueESSymbol)
-                    {
-                        let old_enclosing = self.ctx().enclosing_declaration.get();
-                        self.ctx()
-                            .enclosing_declaration
-                            .set(name_type.symbol().unwrap().value_declaration());
-                        let result =
-                            self.f.new_computed_property_name(self.symbol_to_expression_worker(
-                                c,
-                                name_type.symbol().unwrap(),
-                                meaning,
-                            ));
-                        self.ctx().enclosing_declaration.set(old_enclosing);
-                        return result;
-                    }
+                {
+                    let old_enclosing = self.ctx().enclosing_declaration.get();
+                    self.ctx()
+                        .enclosing_declaration
+                        .set(name_type.symbol().unwrap().value_declaration());
+                    let result = self.f.new_computed_property_name(
+                        self.symbol_to_expression_worker(c, name_type.symbol().unwrap(), meaning),
+                    );
+                    self.ctx().enclosing_declaration.set(old_enclosing);
+                    return result;
                 }
             }
         }
@@ -857,15 +849,14 @@ impl NodeBuilderImpl {
                 || module_resolution_kind == ModuleResolutionKind::NODE_NEXT
             {
                 // An `import` type directed at an esm format file is only going to resolve in esm mode - set the esm mode assertion
-                if let (Some(target_file), Some(context_file)) = (target_file, context_file) {
-                    if c.emit_module_format_of_file(target_file) == ModuleKind::ES_NEXT
-                        && c.emit_module_format_of_file(target_file)
-                            != c.emit_module_format_of_file(context_file)
-                    {
-                        specifier_result =
-                            self.get_specifier_for_module_symbol(c, chain[0], ModuleKind::ES_NEXT);
-                        import_mode_override = ModuleKind::ES_NEXT;
-                    }
+                if let (Some(target_file), Some(context_file)) = (target_file, context_file)
+                    && c.emit_module_format_of_file(target_file) == ModuleKind::ES_NEXT
+                    && c.emit_module_format_of_file(target_file)
+                        != c.emit_module_format_of_file(context_file)
+                {
+                    specifier_result =
+                        self.get_specifier_for_module_symbol(c, chain[0], ModuleKind::ES_NEXT);
+                    import_mode_override = ModuleKind::ES_NEXT;
                 }
             }
             if specifier_result.specifier.is_empty() {
@@ -971,7 +962,7 @@ impl NodeBuilderImpl {
 }
 
 // nodebuilderimpl.go:745
-pub(crate) fn get_topmost_indexed_access_type(node: P<Node>) -> P<Node> {
+pub fn get_topmost_indexed_access_type(node: P<Node>) -> P<Node> {
     let object_type = node.as_indexed_access_type_node().object_type;
     if is_indexed_access_type_node(object_type) {
         return get_topmost_indexed_access_type(object_type);
@@ -1051,24 +1042,24 @@ impl NodeBuilderImpl {
                     break;
                 }
             }
-            if let Some(name) = name {
-                if is_computed_property_name(name) && is_entity_name(name.expression().unwrap()) {
-                    let lhs = self.create_access_from_symbol_chain(
-                        c,
-                        chain,
-                        index - 1,
-                        stopper,
-                        override_type_arguments,
+            if let Some(name) = name
+                && is_computed_property_name(name)
+                && is_entity_name(name.expression().unwrap())
+            {
+                let lhs = self.create_access_from_symbol_chain(
+                    c,
+                    chain,
+                    index - 1,
+                    stopper,
+                    override_type_arguments,
+                );
+                if is_entity_name(lhs) {
+                    return self.f.new_indexed_access_type_node(
+                        self.f.new_parenthesized_type_node(self.f.new_type_query_node(lhs, None)),
+                        self.f.new_type_query_node(name.expression().unwrap(), None),
                     );
-                    if is_entity_name(lhs) {
-                        return self.f.new_indexed_access_type_node(
-                            self.f
-                                .new_parenthesized_type_node(self.f.new_type_query_node(lhs, None)),
-                            self.f.new_type_query_node(name.expression().unwrap(), None),
-                        );
-                    }
-                    return lhs;
                 }
+                return lhs;
             }
             symbol_name = self.get_name_of_symbol_as_written(c, symbol);
         }
@@ -1250,7 +1241,7 @@ impl NodeBuilderImpl {
 }
 
 // nodebuilderimpl.go:912
-pub(crate) fn can_use_property_access(name: &str) -> bool {
+pub fn can_use_property_access(name: &str) -> bool {
     if name.is_empty() {
         return false;
     }
@@ -1264,17 +1255,17 @@ pub(crate) fn can_use_property_access(name: &str) -> bool {
 }
 
 // nodebuilderimpl.go:924
-pub(crate) fn starts_with_single_or_double_quote(str: &str) -> bool {
+pub fn starts_with_single_or_double_quote(str: &str) -> bool {
     str.starts_with('\'') || str.starts_with('"')
 }
 
 // nodebuilderimpl.go:928
-pub(crate) fn starts_with_square_bracket(str: &str) -> bool {
+pub fn starts_with_square_bracket(str: &str) -> bool {
     str.starts_with('[')
 }
 
 // nodebuilderimpl.go:932
-pub(crate) fn is_default_binding_context(location: P<Node>) -> bool {
+pub fn is_default_binding_context(location: P<Node>) -> bool {
     location.kind() == Kind::SourceFile || is_ambient_module(location)
 }
 
@@ -1356,31 +1347,29 @@ impl NodeBuilderImpl {
                 // }
                 if is_computed_property_name(name)
                     && !symbol.check_flags().intersects(CheckFlags::Late)
+                    && c.value_symbol_links.has(symbol)
+                    && c.value_symbol_links.get(symbol).name_type().is_some()
+                    && c.value_symbol_links
+                        .get(symbol)
+                        .name_type()
+                        .unwrap()
+                        .flags()
+                        .intersects(TypeFlags::StringOrNumberLiteral)
                 {
-                    if c.value_symbol_links.has(symbol)
-                        && c.value_symbol_links.get(symbol).name_type().is_some()
-                        && c.value_symbol_links
-                            .get(symbol)
-                            .name_type()
-                            .unwrap()
-                            .flags()
-                            .intersects(TypeFlags::StringOrNumberLiteral)
-                    {
-                        let result = self.get_name_of_symbol_from_name_type(c, symbol);
-                        if !result.is_empty() {
-                            return result;
-                        }
+                    let result = self.get_name_of_symbol_from_name_type(c, symbol);
+                    if !result.is_empty() {
+                        return result;
                     }
                 }
                 return tsrs_scanner::declaration_name_to_string(Some(name));
             }
             let declaration = declarations[0]; // Declaration may be nameless, but we'll try anyway
-            if let Some(parent) = declaration.parent() {
-                if parent.kind() == Kind::VariableDeclaration {
-                    return tsrs_scanner::declaration_name_to_string(Some(
-                        parent.as_variable_declaration().name,
-                    ));
-                }
+            if let Some(parent) = declaration.parent()
+                && parent.kind() == Kind::VariableDeclaration
+            {
+                return tsrs_scanner::declaration_name_to_string(Some(
+                    parent.as_variable_declaration().name,
+                ));
             }
             if is_class_expression(declaration)
                 || is_function_expression(declaration)
@@ -1571,13 +1560,13 @@ impl NodeBuilderImpl {
                     if !parent_chain.is_empty() {
                         if let Some(exports) = parent.exports() {
                             let exported = exports.lookup(ast::INTERNAL_SYMBOL_NAME_EXPORT_EQUALS);
-                            if let Some(exported) = exported {
-                                if c.get_symbol_if_same_reference(exported, symbol).is_some() {
-                                    // parentChain root _is_ symbol - symbol is a module export=, so it kinda looks like it's own parent
-                                    // No need to lookup an alias for the symbol in itself
-                                    accessible_symbol_chain = parent_chain;
-                                    break;
-                                }
+                            if let Some(exported) = exported
+                                && c.get_symbol_if_same_reference(exported, symbol).is_some()
+                            {
+                                // parentChain root _is_ symbol - symbol is a module export=, so it kinda looks like it's own parent
+                                // No need to lookup an alias for the symbol in itself
+                                accessible_symbol_chain = parent_chain;
+                                break;
                             }
                         }
                         let mut next_syms = accessible_symbol_chain.clone();
@@ -1647,7 +1636,7 @@ impl NodeBuilderImpl {
 }
 
 // nodebuilderimpl.go:1172
-pub(crate) fn can_have_module_specifier(node: Option<P<Node>>) -> bool {
+pub fn can_have_module_specifier(node: Option<P<Node>>) -> bool {
     let Some(node) = node else {
         return false;
     };
@@ -1677,7 +1666,7 @@ pub fn try_get_module_specifier_from_declaration(node: P<Node>) -> Option<P<Node
 }
 
 // nodebuilderimpl.go:1201
-pub(crate) fn try_get_module_specifier_from_declaration_worker(node: P<Node>) -> Option<P<Node>> {
+pub fn try_get_module_specifier_from_declaration_worker(node: P<Node>) -> Option<P<Node>> {
     match node.kind() {
         Kind::VariableDeclaration | Kind::BindingElement => {
             let module_call = find_ancestor(node.initializer(), |node| {
@@ -1857,15 +1846,15 @@ impl NodeBuilderImpl {
         symbol: P<Symbol>,
     ) -> ModuleSpecifierResult {
         let mut result = result;
-        if let Some(import_attributes_type) = import_attributes_type {
-            if self.module_specifier_resolves_to_symbol(
+        if let Some(import_attributes_type) = import_attributes_type
+            && self.module_specifier_resolves_to_symbol(
                 c,
                 result.specifier,
                 import_attributes_type,
                 symbol,
-            ) {
-                result.import_attributes_type = Some(import_attributes_type);
-            }
+            )
+        {
+            result.import_attributes_type = Some(import_attributes_type);
         }
         if let Some(specifier) = self.rewrite_content_mapped_module_specifier(c, result.specifier) {
             result.specifier = self.f.alloc_text(&specifier);
@@ -1902,10 +1891,10 @@ impl NodeBuilderImpl {
         symbol: P<Symbol>,
     ) -> bool {
         let mut location = self.ctx().enclosing_declaration.get();
-        if location.is_none() {
-            if let Some(enclosing_file) = self.ctx().enclosing_file.get() {
-                location = Some(enclosing_file.as_node());
-            }
+        if location.is_none()
+            && let Some(enclosing_file) = self.ctx().enclosing_file.get()
+        {
+            location = Some(enclosing_file.as_node());
         }
         if location.is_none() {
             return false;
@@ -2094,10 +2083,10 @@ impl NodeBuilderImpl {
             false,
             false,
         );
-        if let Some(result) = result {
-            if result.flags().intersects(SymbolFlags::TypeParameter) {
-                return Some(result) != type_parameter.symbol();
-            }
+        if let Some(result) = result
+            && result.flags().intersects(SymbolFlags::TypeParameter)
+        {
+            return Some(result) != type_parameter.symbol();
         }
         false
     }
@@ -2125,10 +2114,10 @@ impl NodeBuilderImpl {
         }
         if let Some(symbol) = type_parameter.symbol() {
             let decl = symbol.declarations().first().copied();
-            if let Some(decl) = decl {
-                if is_type_parameter_declaration(decl) {
-                    result = self.set_text_range(c, result, decl.name());
-                }
+            if let Some(decl) = decl
+                && is_type_parameter_declaration(decl)
+            {
+                result = self.set_text_range(c, result, decl.name());
             }
         }
         if self.ctx().flags.get().intersects(Flags::GenerateNamesForShadowedTypeParams) {
@@ -2489,7 +2478,7 @@ impl NodeBuilderImpl {
 }
 
 // nodebuilderimpl.go:1715
-pub(crate) fn get_effective_parameter_declaration(symbol: P<Symbol>) -> Option<P<Node>> {
+pub fn get_effective_parameter_declaration(symbol: P<Symbol>) -> Option<P<Node>> {
     let parameter_declaration = get_declaration_of_kind(symbol, Kind::Parameter);
     if parameter_declaration.is_some() {
         return parameter_declaration;

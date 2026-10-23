@@ -3,12 +3,12 @@ use tsrs_core::*;
 
 use crate::EmitTextWriter;
 
-pub(crate) struct TrailingSemicolonDeferringWriter {
+pub struct TrailingSemicolonDeferringWriter {
     pub(crate) inner: Box<dyn EmitTextWriter>,
     has_pending_semicolon: bool,
 }
 
-pub(crate) fn get_trailing_semicolon_deferring_writer(
+pub fn get_trailing_semicolon_deferring_writer(
     writer: Box<dyn EmitTextWriter>,
 ) -> Box<dyn EmitTextWriter> {
     Box::new(TrailingSemicolonDeferringWriter { inner: writer, has_pending_semicolon: false })

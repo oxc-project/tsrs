@@ -12,7 +12,7 @@ use crate::protocol::{
 };
 
 // supplemental_diagnostics.go:13
-pub(crate) struct SupplementalDiagnosticsHandler;
+pub struct SupplementalDiagnosticsHandler;
 
 impl TestHandler for SupplementalDiagnosticsHandler {}
 
@@ -22,8 +22,9 @@ impl ipc::Handler for SupplementalDiagnosticsHandler {
         match method {
             METHOD_INITIALIZE => Ok(initialize_result("mapper").marshal_json()),
             METHOD_TRANSFORM => {
-                let p: TransformParams = unmarshal_params(params)?;
                 const PREFIX: &str = "missingSupplementalGlobal;\n";
+
+                let p: TransformParams = unmarshal_params(params)?;
                 let mappings = marshal_span_map(&[Segment {
                     virtual_start: PREFIX.len() as u32,
                     virtual_end: (PREFIX.len() + p.content.len()) as u32,

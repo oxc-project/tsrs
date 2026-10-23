@@ -39,7 +39,7 @@ use crate::projectreferenceparser::ProjectReferenceParser;
 // fileloader.go:34
 const MAX_CONTENT_MAPPER_FAILURES: usize = 5;
 
-pub(crate) struct LibResolution {
+pub struct LibResolution {
     pub(crate) library_name: String,
     pub(crate) resolution: Option<P<ResolvedModule>>,
     pub(crate) trace: Vec<DiagAndArgs>,
@@ -51,12 +51,12 @@ pub struct LibFile {
     pub replaced: bool,
 }
 
-pub(crate) struct SourceFileFromReferenceDiagnostic {
+pub struct SourceFileFromReferenceDiagnostic {
     pub(crate) message: &'static Message,
     pub(crate) args: Vec<String>,
 }
 
-pub(crate) struct FileLoader {
+pub struct FileLoader {
     pub(crate) opts: ProgramConfig,
     pub(crate) host: std::sync::Arc<dyn CompilerHost>,
     pub(crate) resolver: Box<dyn Resolver>,
@@ -89,7 +89,7 @@ pub(crate) struct FileLoader {
 // fileloader.go:65-68, the fields `contentMapperMu` guards. Go keys by `*contentmapper.Mapper`; the keys here are the
 // mappers' addresses (references into the command line's `content_mappers()`).
 #[derive(Default)]
-pub(crate) struct ContentMapperBookkeeping {
+pub struct ContentMapperBookkeeping {
     content_mapper_failures: FxHashMap<usize, usize>,
     content_mapper_init_failed: FxHashSet<usize>,
     pub(crate) content_mapper_diagnostics: Vec<P<Diagnostic>>,
@@ -99,7 +99,7 @@ fn mapper_key(mapper: &Mapper) -> usize {
     std::ptr::from_ref(mapper) as usize
 }
 
-pub(crate) struct RedirectsFile {
+pub struct RedirectsFile {
     // Index of file at which this redirect file needs to be iterated
     pub(crate) index: usize,
     pub(crate) file_name: String,
@@ -157,7 +157,7 @@ pub struct ProcessedFiles {
     pub(crate) finished_processing: bool,
 }
 
-pub(crate) struct JsxRuntimeImportSpecifier {
+pub struct JsxRuntimeImportSpecifier {
     pub(crate) module_reference: String,
     pub(crate) specifier: P<Node>,
 }
@@ -188,25 +188,10 @@ fn add_project_reference_tasks(
     ProjectReferenceFileMapperBuilder { mapper, host: mapper.resolution_host(resolution_host) }
 }
 
-pub(crate) fn process_all_program_files(
+pub fn process_all_program_files(
     opts: &ProgramOptions,
     single_threaded: bool,
 ) -> (ProcessedFiles, P<module::ResolutionData>, Option<String>) {
-    let _regions = crate::programregions::enter(opts.regions.as_deref());
-    let compiler_options = opts.config.compiler_options().unwrap();
-    let root_files = opts.config.file_names();
-    let content_mapper_extensions = opts.config.content_mapper_extensions();
-    let supported_extensions =
-        tsoptions::get_supported_extensions(Some(&compiler_options), &content_mapper_extensions);
-    let supported_extensions_with_json_if_resolve_json_module =
-        tsoptions::get_supported_extensions_with_json_if_resolve_json_module(
-            Some(&compiler_options),
-            &supported_extensions,
-        );
-    let max_node_module_js_depth = compiler_options.max_node_module_js_depth.unwrap_or(0);
-    let host = Arc::clone(&opts.host);
-    let project_references =
-        add_project_reference_tasks(&opts.program_config(), &host, single_threaded);
     // The mapper (with its resolution hosts) is leaked for the program to own (`SharedProgramData`). If loading
     // unwinds (a panic while loading, e.g. the module resolver's `Unexpected moduleResolution`, which the API turns
     // into an error), no program will own it: free it then. Declared before the resolver and loader, so it is
@@ -225,6 +210,22 @@ pub(crate) fn process_all_program_files(
             }
         }
     }
+
+    let _regions = crate::programregions::enter(opts.regions.as_deref());
+    let compiler_options = opts.config.compiler_options().unwrap();
+    let root_files = opts.config.file_names();
+    let content_mapper_extensions = opts.config.content_mapper_extensions();
+    let supported_extensions =
+        tsoptions::get_supported_extensions(Some(&compiler_options), &content_mapper_extensions);
+    let supported_extensions_with_json_if_resolve_json_module =
+        tsoptions::get_supported_extensions_with_json_if_resolve_json_module(
+            Some(&compiler_options),
+            &supported_extensions,
+        );
+    let max_node_module_js_depth = compiler_options.max_node_module_js_depth.unwrap_or(0);
+    let host = Arc::clone(&opts.host);
+    let project_references =
+        add_project_reference_tasks(&opts.program_config(), &host, single_threaded);
     let _free_mapper_on_unwind = FreeMapperOnUnwind(project_references.mapper);
     let resolver_options = module::ResolverOptions {
         host: project_references.host,
@@ -432,10 +433,10 @@ impl FileLoader {
 
     fn add_automatic_type_directive_tasks(&mut self) {
         let compiler_options = self.opts.config.compiler_options().unwrap();
-        let containing_directory = if !compiler_options.config_file_path.is_empty() {
-            tspath::get_directory_path(&compiler_options.config_file_path)
-        } else {
+        let containing_directory = if compiler_options.config_file_path.is_empty() {
             self.host.get_current_directory().to_string()
+        } else {
+            tspath::get_directory_path(&compiler_options.config_file_path)
         };
         let containing_file_name =
             tspath::combine_paths(&containing_directory, &[module::INFERRED_TYPES_CONTAINING_FILE]);
@@ -576,7 +577,7 @@ impl FileLoader {
 // and the content-mapper methods), shared by the sequential load and the parallel parse ahead of it
 // (filesparser.rs `prefetch`), which Go's work group runs concurrently too.
 #[derive(Clone, Copy)]
-pub(crate) struct SourceFileParser<'a> {
+pub struct SourceFileParser<'a> {
     pub(crate) opts: &'a ProgramConfig,
     pub(crate) host: &'a dyn CompilerHost,
     pub(crate) content_mapper_extensions: &'a [String],
@@ -886,10 +887,10 @@ impl SourceFileParser<'_> {
     // compiler options it declared) as 32 hex digits.
     // fileloader.go:590
     fn get_content_mapper_transform_identity(&self, mapper: &Mapper) -> String {
-        if let Some(project) = self.host.content_mapper_project() {
-            if let Ok(identity) = project.identity(mapper) {
-                return identity;
-            }
+        if let Some(project) = self.host.content_mapper_project()
+            && let Ok(identity) = project.identity(mapper)
+        {
+            return identity;
         }
         format!(
             "{:032x}",
@@ -930,10 +931,10 @@ pub fn content_mapper_initialization_diagnostic(
     err: &contentmapper::Error,
 ) -> P<Diagnostic> {
     let mut label = label;
-    if let Some(initialize_error) = err.as_initialize_error() {
-        if label.is_empty() {
-            label = &initialize_error.mapper_name;
-        }
+    if let Some(initialize_error) = err.as_initialize_error()
+        && label.is_empty()
+    {
+        label = &initialize_error.mapper_name;
     }
     let diagnostic = new_compiler_diagnostic(
         &diagnostics::THE_CONTENT_MAPPER_0_COULD_NOT_BE_INITIALIZED,
@@ -1038,7 +1039,7 @@ impl SourceFileParser<'_> {
     }
 }
 
-pub(crate) fn source_file_meta_data(
+pub fn source_file_meta_data(
     opts: &ProgramConfig,
     resolver: &dyn Resolver,
     project_references: &ProjectReferenceFileMapperBuilder,
@@ -1063,8 +1064,8 @@ pub(crate) fn source_file_meta_data(
     let mut package_json_directory = String::new();
     if let Some(scope) = package_json_scope.filter(|s| s.exists()) {
         package_json_directory = scope.package_directory.to_string();
-        if let Some(value) = scope.contents.unwrap().fields.type_.get_value() {
-            if !tspath::file_extension_is_one_of(
+        if let Some(value) = scope.contents.unwrap().fields.type_.get_value()
+            && (!tspath::file_extension_is_one_of(
                 file_name,
                 &[
                     tspath::EXTENSION_MTS,
@@ -1074,10 +1075,9 @@ pub(crate) fn source_file_meta_data(
                 ],
             ) && ModuleResolutionKind::NODE16 <= module_resolution_kind
                 && module_resolution_kind <= ModuleResolutionKind::NODE_NEXT
-                || file_name.contains("/node_modules/")
-            {
-                package_json_type.clone_from(value);
-            }
+                || file_name.contains("/node_modules/"))
+        {
+            package_json_type.clone_from(value);
         }
     }
 
@@ -1085,7 +1085,7 @@ pub(crate) fn source_file_meta_data(
     SourceFileMetaData { package_json_type, package_json_directory, implied_node_format }
 }
 
-pub(crate) fn parse_options_for(
+pub fn parse_options_for(
     host: &dyn CompilerHost,
     project_references: &ProjectReferenceFileMapperBuilder,
     normalized_file_path: &str,
@@ -1120,7 +1120,7 @@ pub(crate) fn parse_options_for(
 // name), and one per type reference directive, in source order. Resolution results do not depend on the order
 // in which files are resolved (the resolver caches are keyed by name, directory, mode and redirect), so the
 // sequential load consumes them exactly as if it had resolved on the spot.
-pub(crate) struct PrefetchedResolutions {
+pub struct PrefetchedResolutions {
     pub(crate) referenced_files: Vec<(String, Option<SourceFileFromReferenceDiagnostic>)>,
     pub(crate) imports: Vec<Option<PrefetchedImport>>,
     pub(crate) type_references: Vec<(P<ResolvedTypeReferenceDirective>, Vec<DiagAndArgs>)>,
@@ -1138,7 +1138,7 @@ impl PrefetchedResolutions {
     }
 }
 
-pub(crate) struct PrefetchedImport {
+pub struct PrefetchedImport {
     pub(crate) resolution: Result<(P<ResolvedModule>, Vec<DiagAndArgs>), String>,
     // The import's resolution mode.
     pub(crate) mode: ResolutionMode,
@@ -1151,7 +1151,7 @@ pub(crate) struct PrefetchedImport {
 // map held when the round's prefetch started. Everything depends only on the file, its metadata, the resolution and
 // the tasks that exist before the round; `data_id` is `NO_DATA` for a path first seen in this round, and the
 // sequential load then looks it up again (an earlier file of the round may have added it).
-pub(crate) struct PreparedSubTask {
+pub struct PreparedSubTask {
     pub(crate) normalized_file_path: Arc<str>,
     pub(crate) path: Path,
     pub(crate) data_id: u32,
@@ -1162,7 +1162,7 @@ pub(crate) struct PreparedSubTask {
 }
 
 // The parts of the file loader that the parallel prefetch reads (the loader itself is not Sync).
-pub(crate) struct PrefetchContext<'a> {
+pub struct PrefetchContext<'a> {
     pub(crate) opts: &'a ProgramConfig,
     pub(crate) host: &'a dyn CompilerHost,
     pub(crate) resolver: &'a dyn Resolver,
@@ -1233,7 +1233,7 @@ fn tripleslash_reference_lookup(
     (normalized_file_name, looked_up)
 }
 
-pub(crate) fn prefetch_resolutions(
+pub fn prefetch_resolutions(
     ctx: &PrefetchContext,
     file: P<SourceFile>,
     meta: &SourceFileMetaData,
@@ -1317,33 +1317,33 @@ pub(crate) fn prefetch_resolutions(
             resolutions_in_file
                 .insert(ModeAwareCacheKey { name: alloc_str(module_name), mode }, resolved_module);
             let mut prepared = None;
-            if let Ok((resolved, _)) = &resolution {
-                if resolved.is_resolved() {
-                    let (should_add_file, is_js_file_from_node_modules) = resolved_import_sub_task(
-                        project_references,
-                        ctx.host,
-                        &options_for_file,
-                        file,
-                        module_name,
+            if let Ok((resolved, _)) = &resolution
+                && resolved.is_resolved()
+            {
+                let (should_add_file, is_js_file_from_node_modules) = resolved_import_sub_task(
+                    project_references,
+                    ctx.host,
+                    &options_for_file,
+                    file,
+                    module_name,
+                    Some(import_index),
+                    resolved,
+                );
+                if should_add_file {
+                    let reason_path = *reason_path
+                        .get_or_insert_with(|| tsrs_core::alloc_str(file.path().as_str()));
+                    let include_reason = FileIncludeReason::new_referenced(
+                        FileIncludeKind::Import,
+                        reason_path,
                         Some(import_index),
-                        resolved,
+                        None,
                     );
-                    if should_add_file {
-                        let reason_path = *reason_path
-                            .get_or_insert_with(|| tsrs_core::alloc_str(file.path().as_str()));
-                        let include_reason = FileIncludeReason::new_referenced(
-                            FileIncludeKind::Import,
-                            reason_path,
-                            Some(import_index),
-                            None,
-                        );
-                        prepared = Some(prepare_sub_task(
-                            ctx,
-                            resolved,
-                            include_reason,
-                            is_js_file_from_node_modules,
-                        ));
-                    }
+                    prepared = Some(prepare_sub_task(
+                        ctx,
+                        resolved,
+                        include_reason,
+                        is_js_file_from_node_modules,
+                    ));
                 }
             }
             imports.push(Some(PrefetchedImport { resolution, mode, prepared }));
@@ -1538,16 +1538,14 @@ impl FileLoader {
             self.opts.config.compiler_options().unwrap(),
             redirect,
         );
-        if is_java_script_file
+        if (is_java_script_file
             || (!file.is_declaration_file.get()
-                && (options_for_file.get_isolated_modules() || is_external_module_file))
+                && (options_for_file.get_isolated_modules() || is_external_module_file)))
+            && options_for_file.import_helpers.is_true()
         {
-            if options_for_file.import_helpers.is_true() {
-                let specifier =
-                    self.create_synthetic_import(EXTERNAL_HELPERS_MODULE_NAME_TEXT, file);
-                module_names.push(specifier);
-                self.tasks[t].data().import_helpers_import_specifier = Some(specifier);
-            }
+            let specifier = self.create_synthetic_import(EXTERNAL_HELPERS_MODULE_NAME_TEXT, file);
+            module_names.push(specifier);
+            self.tasks[t].data().import_helpers_import_specifier = Some(specifier);
         }
 
         if is_java_script_file || file.script_kind.get() == tsrs_core::ScriptKind::TSX {
@@ -1583,30 +1581,30 @@ impl FileLoader {
                 ModeAwareCache::default();
             let mut resolutions_trace = Vec::new();
             let prefetched = self.tasks[t].data().prefetched_resolutions.take();
-            if imports_start == 0 {
-                if let Some(prefetched) = prefetched {
-                    // Without synthetic imports the module names are the prefetch's, in its order: its map of
-                    // resolutions is the one this loop would build. Only the sub tasks and the first resolution
-                    // error remain.
-                    resolutions_in_file = prefetched.resolutions_in_file;
-                    for import in prefetched.imports.into_iter().flatten() {
-                        match import.resolution {
-                            Ok((_, trace)) => resolutions_trace.extend(trace),
-                            Err(err) => {
-                                if self.module_resolution_error.is_none() {
-                                    self.module_resolution_error = Some(err);
-                                }
+            if imports_start == 0
+                && let Some(prefetched) = prefetched
+            {
+                // Without synthetic imports the module names are the prefetch's, in its order: its map of
+                // resolutions is the one this loop would build. Only the sub tasks and the first resolution
+                // error remain.
+                resolutions_in_file = prefetched.resolutions_in_file;
+                for import in prefetched.imports.into_iter().flatten() {
+                    match import.resolution {
+                        Ok((_, trace)) => resolutions_trace.extend(trace),
+                        Err(err) => {
+                            if self.module_resolution_error.is_none() {
+                                self.module_resolution_error = Some(err);
                             }
                         }
-                        if let Some(prepared) = import.prepared {
-                            self.add_prepared_sub_task(t, prepared);
-                        }
                     }
-                    let data = self.tasks[t].data();
-                    data.resolutions_in_file = resolutions_in_file;
-                    data.resolutions_trace = resolutions_trace;
-                    return;
+                    if let Some(prepared) = import.prepared {
+                        self.add_prepared_sub_task(t, prepared);
+                    }
                 }
+                let data = self.tasks[t].data();
+                data.resolutions_in_file = resolutions_in_file;
+                data.resolutions_trace = resolutions_trace;
+                return;
             }
             let mut prefetched = prefetched.map(|p| p.imports);
             // The metadata (two strings, cloned) only serves resolution modes the prefetch did not compute.
@@ -1810,19 +1808,17 @@ impl FileLoader {
     pub(crate) fn add_prepared_sub_task(&mut self, t: TaskId, prepared: PreparedSubTask) {
         let mut sub_task = ParseTask::with_path(prepared.normalized_file_path, prepared.path);
         sub_task.data_id = prepared.data_id;
-        if sub_task.data_id == crate::filesparser::NO_DATA {
-            if let Some((known_path, &data)) =
+        if sub_task.data_id == crate::filesparser::NO_DATA
+            && let Some((known_path, &data)) =
                 self.files_parser.task_data_by_path.get_key_value(&sub_task.path)
+        {
+            sub_task.path = known_path.clone();
+            if let Some((name, _)) =
+                self.files_parser.datas[data].tasks.get_key_value(&sub_task.normalized_file_path)
             {
-                sub_task.path = known_path.clone();
-                if let Some((name, _)) = self.files_parser.datas[data]
-                    .tasks
-                    .get_key_value(&sub_task.normalized_file_path)
-                {
-                    sub_task.normalized_file_path = Arc::clone(name);
-                }
-                sub_task.data_id = data as u32;
+                sub_task.normalized_file_path = Arc::clone(name);
             }
+            sub_task.data_id = data as u32;
         }
         sub_task.increase_depth = prepared.increase_depth;
         sub_task.elide_on_depth = prepared.elide_on_depth;
@@ -1875,7 +1871,7 @@ impl FileLoader {
 // The part of resolveImportsAndModuleAugmentations that decides whether the file a resolved import names is added
 // to the program, and whether that sub task is elided past maxNodeModuleJsDepth (`isJsFileFromNodeModules`).
 // The speculative parse (filesParser::prefetch) asks the same question.
-pub(crate) fn resolved_import_sub_task(
+pub fn resolved_import_sub_task(
     project_references: &ProjectReferenceFileMapperBuilder,
     host: &dyn CompilerHost,
     options_for_file: &CompilerOptions,
@@ -1925,7 +1921,7 @@ pub(crate) fn resolved_import_sub_task(
 }
 
 // fileLoader.getSourceFileFromReference; `is_referenced_file_reason` is what it asks of the include reason.
-pub(crate) fn source_file_from_reference(
+pub fn source_file_from_reference(
     options: &CompilerOptions,
     fs: &dyn tsrs_vfs::FS,
     supported_extensions: &[Vec<String>],
@@ -2029,7 +2025,7 @@ pub(crate) fn source_file_from_reference(
     )
 }
 
-pub(crate) fn is_supported_extension(
+pub fn is_supported_extension(
     supported_extensions_with_json: &[Vec<String>],
     canonical_file_name: &str,
 ) -> bool {
@@ -2073,10 +2069,10 @@ fn get_inferred_library_name_resolve_from(
     current_directory: &str,
     lib_file_name: &str,
 ) -> String {
-    let containing_directory = if !options.config_file_path.is_empty() {
-        tspath::get_directory_path(&options.config_file_path)
-    } else {
+    let containing_directory = if options.config_file_path.is_empty() {
         current_directory.to_string()
+    } else {
+        tspath::get_directory_path(&options.config_file_path)
     };
     tspath::combine_paths(
         &containing_directory,
@@ -2084,20 +2080,20 @@ fn get_inferred_library_name_resolve_from(
     )
 }
 
-pub(crate) fn get_mode_for_type_reference_directive_in_file(
+pub fn get_mode_for_type_reference_directive_in_file(
     ref_: P<FileReference>,
     file: P<SourceFile>,
     meta: &SourceFileMetaData,
     options: &CompilerOptions,
 ) -> ResolutionMode {
-    if ref_.resolution_mode != ModuleKind::NONE {
-        ref_.resolution_mode
-    } else {
+    if ref_.resolution_mode == ModuleKind::NONE {
         get_default_resolution_mode_for_file(file.file_name(), meta, options)
+    } else {
+        ref_.resolution_mode
     }
 }
 
-pub(crate) fn get_default_resolution_mode_for_file(
+pub fn get_default_resolution_mode_for_file(
     file_name: &str,
     meta: &SourceFileMetaData,
     options: &CompilerOptions,
@@ -2113,7 +2109,7 @@ pub(crate) fn get_default_resolution_mode_for_file(
     }
 }
 
-pub(crate) fn get_mode_for_usage_location(
+pub fn get_mode_for_usage_location(
     file_name: &str,
     meta: &SourceFileMetaData,
     usage: P<Node>,
@@ -2140,19 +2136,20 @@ pub(crate) fn get_mode_for_usage_location(
             }
         }
     }
-    if ast::is_literal_type_node(parent) && ast::is_import_type_node(parent.parent().unwrap()) {
-        if let Some(override_) = ast::get_resolution_mode_override(
+    if ast::is_literal_type_node(parent)
+        && ast::is_import_type_node(parent.parent().unwrap())
+        && let Some(override_) = ast::get_resolution_mode_override(
             parent.parent().unwrap().as_import_type_node().attributes,
             None,
-        ) {
-            return override_;
-        }
+        )
+    {
+        return override_;
     }
 
-    if let Some(options) = options {
-        if import_syntax_affects_module_resolution(options) {
-            return get_emit_syntax_for_usage_location_worker(file_name, meta, usage, options);
-        }
+    if let Some(options) = options
+        && import_syntax_affects_module_resolution(options)
+    {
+        return get_emit_syntax_for_usage_location_worker(file_name, meta, usage, options);
     }
 
     ModuleKind::NONE
@@ -2166,7 +2163,7 @@ fn import_syntax_affects_module_resolution(options: &CompilerOptions) -> bool {
         || options.get_resolve_package_json_imports()
 }
 
-pub(crate) fn get_emit_syntax_for_usage_location_worker(
+pub fn get_emit_syntax_for_usage_location_worker(
     file_name: &str,
     meta: &SourceFileMetaData,
     usage: P<Node>,
@@ -2206,6 +2203,6 @@ pub(crate) fn get_emit_syntax_for_usage_location_worker(
     ModuleKind::NONE
 }
 
-pub(crate) fn str_slice(group: &[String]) -> Vec<&str> {
+pub fn str_slice(group: &[String]) -> Vec<&str> {
     group.iter().map(std::string::String::as_str).collect()
 }

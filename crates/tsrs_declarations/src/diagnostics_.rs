@@ -8,7 +8,7 @@ use crate::*;
 // the selector, so the selector is `Fn + 'static` (Go passes named functions and one closure).
 
 // diagnostics.go:18
-pub(crate) fn wrap_simple_diagnostic_selector(
+pub fn wrap_simple_diagnostic_selector(
     node: P<Node>,
     selector: impl Fn(P<Node>, &SymbolAccessibilityResult) -> Option<&'static Message> + 'static,
 ) -> GetSymbolAccessibilityDiagnostic {
@@ -23,7 +23,7 @@ pub(crate) fn wrap_simple_diagnostic_selector(
 }
 
 // diagnostics.go:32
-pub(crate) fn wrap_named_diagnostic_selector(
+pub fn wrap_named_diagnostic_selector(
     node: P<Node>,
     selector: impl Fn(P<Node>, &SymbolAccessibilityResult) -> &'static Message + 'static,
 ) -> GetSymbolAccessibilityDiagnostic {
@@ -39,7 +39,7 @@ pub(crate) fn wrap_named_diagnostic_selector(
 }
 
 // diagnostics.go:47
-pub(crate) fn wrap_fallback_error_diagnostic_selector(
+pub fn wrap_fallback_error_diagnostic_selector(
     node: P<Node>,
     selector: impl Fn(P<Node>, &SymbolAccessibilityResult) -> &'static Message + 'static,
 ) -> GetSymbolAccessibilityDiagnostic {
@@ -58,7 +58,7 @@ pub(crate) fn wrap_fallback_error_diagnostic_selector(
 }
 
 // diagnostics.go:64
-pub(crate) fn select_diagnostic_based_on_module_name(
+pub fn select_diagnostic_based_on_module_name(
     symbol_accessibility_result: &SymbolAccessibilityResult,
     module_not_nameable: &'static Message,
     private_module: &'static Message,
@@ -74,7 +74,7 @@ pub(crate) fn select_diagnostic_based_on_module_name(
 }
 
 // diagnostics.go:74
-pub(crate) fn select_diagnostic_based_on_module_name_no_name_check(
+pub fn select_diagnostic_based_on_module_name_no_name_check(
     symbol_accessibility_result: &SymbolAccessibilityResult,
     private_module: &'static Message,
     non_module: &'static Message,
@@ -86,7 +86,7 @@ pub(crate) fn select_diagnostic_based_on_module_name_no_name_check(
 }
 
 // diagnostics.go:81
-pub(crate) fn create_get_symbol_accessibility_diagnostic_for_node_name(
+pub fn create_get_symbol_accessibility_diagnostic_for_node_name(
     node: P<Node>,
 ) -> GetSymbolAccessibilityDiagnostic {
     if ast::is_set_accessor_declaration(node) || ast::is_get_accessor_declaration(node) {
@@ -103,7 +103,7 @@ pub(crate) fn create_get_symbol_accessibility_diagnostic_for_node_name(
 }
 
 // diagnostics.go:91
-pub(crate) fn get_accessor_name_visibility_diagnostic_message(
+pub fn get_accessor_name_visibility_diagnostic_message(
     node: P<Node>,
     symbol_accessibility_result: &SymbolAccessibilityResult,
 ) -> &'static Message {
@@ -131,7 +131,7 @@ pub(crate) fn get_accessor_name_visibility_diagnostic_message(
 }
 
 // diagnostics.go:115
-pub(crate) fn get_method_name_visibility_diagnostic_message(
+pub fn get_method_name_visibility_diagnostic_message(
     node: P<Node>,
     symbol_accessibility_result: &SymbolAccessibilityResult,
 ) -> &'static Message {
@@ -159,7 +159,7 @@ pub(crate) fn get_method_name_visibility_diagnostic_message(
 }
 
 // diagnostics.go:139
-pub(crate) fn create_get_symbol_accessibility_diagnostic_for_node(
+pub fn create_get_symbol_accessibility_diagnostic_for_node(
     node: P<Node>,
 ) -> GetSymbolAccessibilityDiagnostic {
     if ast::is_variable_declaration(node)
@@ -280,7 +280,7 @@ pub(crate) fn create_get_symbol_accessibility_diagnostic_for_node(
 }
 
 // diagnostics.go:223
-pub(crate) fn get_variable_declaration_type_visibility_diagnostic_message(
+pub fn get_variable_declaration_type_visibility_diagnostic_message(
     node: P<Node>,
     symbol_accessibility_result: &SymbolAccessibilityResult,
 ) -> Option<&'static Message> {
@@ -331,7 +331,7 @@ pub(crate) fn get_variable_declaration_type_visibility_diagnostic_message(
 }
 
 // diagnostics.go:263
-pub(crate) fn get_accessor_declaration_type_visibility_diagnostic_message(
+pub fn get_accessor_declaration_type_visibility_diagnostic_message(
     node: P<Node>,
     symbol_accessibility_result: &SymbolAccessibilityResult,
 ) -> &'static Message {
@@ -369,7 +369,7 @@ pub(crate) fn get_accessor_declaration_type_visibility_diagnostic_message(
 }
 
 // diagnostics.go:299
-pub(crate) fn get_return_type_visibility_diagnostic_message(
+pub fn get_return_type_visibility_diagnostic_message(
     node: P<Node>,
     symbol_accessibility_result: &SymbolAccessibilityResult,
 ) -> &'static Message {
@@ -434,7 +434,7 @@ pub(crate) fn get_return_type_visibility_diagnostic_message(
 }
 
 // diagnostics.go:358
-pub(crate) fn get_parameter_declaration_type_visibility_diagnostic_message(
+pub fn get_parameter_declaration_type_visibility_diagnostic_message(
     node: P<Node>,
     symbol_accessibility_result: &SymbolAccessibilityResult,
 ) -> &'static Message {
@@ -517,7 +517,7 @@ pub(crate) fn get_parameter_declaration_type_visibility_diagnostic_message(
 }
 
 // diagnostics.go:436
-pub(crate) fn get_type_parameter_constraint_visibility_diagnostic_message(
+pub fn get_type_parameter_constraint_visibility_diagnostic_message(
     node: P<Node>,
     _symbol_accessibility_result: &SymbolAccessibilityResult,
 ) -> &'static Message {
@@ -549,7 +549,7 @@ pub(crate) fn get_type_parameter_constraint_visibility_diagnostic_message(
 }
 
 // diagnostics.go:471
-pub(crate) fn get_related_suggestion_by_declaration_kind(kind: Kind) -> Option<&'static Message> {
+pub fn get_related_suggestion_by_declaration_kind(kind: Kind) -> Option<&'static Message> {
     match kind {
         Kind::ArrowFunction | Kind::FunctionExpression => Some(&diagnostics::ADD_A_RETURN_TYPE_TO_THE_FUNCTION_EXPRESSION),
         Kind::MethodDeclaration => Some(&diagnostics::ADD_A_RETURN_TYPE_TO_THE_METHOD),
@@ -565,7 +565,7 @@ pub(crate) fn get_related_suggestion_by_declaration_kind(kind: Kind) -> Option<&
 }
 
 // diagnostics.go:502
-pub(crate) fn get_error_by_declaration_kind(kind: Kind) -> Option<&'static Message> {
+pub fn get_error_by_declaration_kind(kind: Kind) -> Option<&'static Message> {
     match kind {
         Kind::FunctionExpression | Kind::FunctionDeclaration | Kind::ArrowFunction => Some(&diagnostics::FUNCTION_MUST_HAVE_AN_EXPLICIT_RETURN_TYPE_ANNOTATION_WITH_ISOLATED_DECLARATIONS),
         Kind::MethodDeclaration | Kind::ConstructSignature => Some(&diagnostics::METHOD_MUST_HAVE_AN_EXPLICIT_RETURN_TYPE_ANNOTATION_WITH_ISOLATED_DECLARATIONS),
@@ -584,7 +584,7 @@ pub(crate) fn get_error_by_declaration_kind(kind: Kind) -> Option<&'static Messa
 }
 
 // diagnostics.go:543
-pub(crate) fn is_declaration_enough_for_errors(node: P<Node>) -> bool {
+pub fn is_declaration_enough_for_errors(node: P<Node>) -> bool {
     ast::is_export_assignment(node)
         || ast::is_statement(node)
         || ast::is_variable_declaration(node)
@@ -593,12 +593,12 @@ pub(crate) fn is_declaration_enough_for_errors(node: P<Node>) -> bool {
 }
 
 // diagnostics.go:547
-pub(crate) fn is_function_like_and_not_constructor(node: P<Node>) -> bool {
+pub fn is_function_like_and_not_constructor(node: P<Node>) -> bool {
     ast::is_function_like_declaration(node) && !ast::is_constructor_declaration(node)
 }
 
 // diagnostics.go:551
-pub(crate) fn find_nearest_declaration(node: P<Node>) -> Option<P<Node>> {
+pub fn find_nearest_declaration(node: P<Node>) -> Option<P<Node>> {
     let result = ast::find_ancestor(node, is_declaration_enough_for_errors)?;
     if ast::is_export_assignment(result) {
         return Some(result);
@@ -613,7 +613,7 @@ pub(crate) fn find_nearest_declaration(node: P<Node>) -> Option<P<Node>> {
 }
 
 // diagnostics.go:568
-pub(crate) fn create_entity_in_type_node_error(node: P<Node>) -> P<Diagnostic> {
+pub fn create_entity_in_type_node_error(node: P<Node>) -> P<Diagnostic> {
     let diag = create_diagnostic_for_node(
         node,
         &diagnostics::TYPE_CONTAINING_PRIVATE_NAME_0_CAN_T_BE_USED_WITH_ISOLATED_DECLARATIONS,
@@ -624,7 +624,7 @@ pub(crate) fn create_entity_in_type_node_error(node: P<Node>) -> P<Diagnostic> {
 }
 
 // diagnostics.go:574
-pub(crate) fn add_parent_declaration_related_info(node: P<Node>, diag: P<Diagnostic>) {
+pub fn add_parent_declaration_related_info(node: P<Node>, diag: P<Diagnostic>) {
     let Some(parent_declaration) = find_nearest_declaration(node) else {
         return;
     };
@@ -640,7 +640,7 @@ pub(crate) fn add_parent_declaration_related_info(node: P<Node>, diag: P<Diagnos
 }
 
 // diagnostics.go:586
-pub(crate) fn create_accessor_type_error(node: P<Node>) -> P<Diagnostic> {
+pub fn create_accessor_type_error(node: P<Node>) -> P<Diagnostic> {
     let all_declarations = ast::get_all_accessor_declarations_for_declaration(
         node,
         node.symbol().unwrap().declarations(),
@@ -674,7 +674,7 @@ pub(crate) fn create_accessor_type_error(node: P<Node>) -> P<Diagnostic> {
 }
 
 // diagnostics.go:604
-pub(crate) fn create_object_literal_error(node: P<Node>) -> P<Diagnostic> {
+pub fn create_object_literal_error(node: P<Node>) -> P<Diagnostic> {
     let diag =
         create_diagnostic_for_node(node, get_error_by_declaration_kind(node.kind()).unwrap(), &[]);
     add_parent_declaration_related_info(node, diag);
@@ -682,7 +682,7 @@ pub(crate) fn create_object_literal_error(node: P<Node>) -> P<Diagnostic> {
 }
 
 // diagnostics.go:610
-pub(crate) fn create_array_literal_error(node: P<Node>) -> P<Diagnostic> {
+pub fn create_array_literal_error(node: P<Node>) -> P<Diagnostic> {
     let diag =
         create_diagnostic_for_node(node, get_error_by_declaration_kind(node.kind()).unwrap(), &[]);
     add_parent_declaration_related_info(node, diag);
@@ -690,7 +690,7 @@ pub(crate) fn create_array_literal_error(node: P<Node>) -> P<Diagnostic> {
 }
 
 // diagnostics.go:616
-pub(crate) fn create_return_type_error(node: P<Node>) -> P<Diagnostic> {
+pub fn create_return_type_error(node: P<Node>) -> P<Diagnostic> {
     let diag =
         create_diagnostic_for_node(node, get_error_by_declaration_kind(node.kind()).unwrap(), &[]);
     add_parent_declaration_related_info(node, diag);
@@ -703,12 +703,12 @@ pub(crate) fn create_return_type_error(node: P<Node>) -> P<Diagnostic> {
 }
 
 // diagnostics.go:623
-pub(crate) fn create_binding_element_error(node: P<Node>) -> P<Diagnostic> {
+pub fn create_binding_element_error(node: P<Node>) -> P<Diagnostic> {
     create_diagnostic_for_node(node, &diagnostics::BINDING_ELEMENTS_WITH_INITIALIZERS_CAN_T_BE_EXPORTED_DIRECTLY_WITH_ISOLATED_DECLARATIONS, &[])
 }
 
 // diagnostics.go:627
-pub(crate) fn create_variable_or_property_error(node: P<Node>) -> P<Diagnostic> {
+pub fn create_variable_or_property_error(node: P<Node>) -> P<Diagnostic> {
     let diag =
         create_diagnostic_for_node(node, get_error_by_declaration_kind(node.kind()).unwrap(), &[]);
     diag.add_related_info(create_diagnostic_for_node(
@@ -720,17 +720,17 @@ pub(crate) fn create_variable_or_property_error(node: P<Node>) -> P<Diagnostic> 
 }
 
 // diagnostics.go:633
-pub(crate) fn create_expression_error(node: P<Node>) -> P<Diagnostic> {
+pub fn create_expression_error(node: P<Node>) -> P<Diagnostic> {
     create_expression_error_ex(node, None)
 }
 
 // diagnostics.go:637
-pub(crate) fn create_class_expression_error(node: P<Node>) -> P<Diagnostic> {
+pub fn create_class_expression_error(node: P<Node>) -> P<Diagnostic> {
     create_expression_error_ex(node, Some(&diagnostics::INFERENCE_FROM_CLASS_EXPRESSIONS_IS_NOT_SUPPORTED_WITH_ISOLATED_DECLARATIONS))
 }
 
 // diagnostics.go:641
-pub(crate) fn is_parent_for_idd_iagnostic(node: P<Node>) -> FindAncestorResult {
+pub fn is_parent_for_idd_iagnostic(node: P<Node>) -> FindAncestorResult {
     if ast::is_export_assignment(node) {
         return FindAncestorResult::True;
     }
@@ -743,7 +743,7 @@ pub(crate) fn is_parent_for_idd_iagnostic(node: P<Node>) -> FindAncestorResult {
 }
 
 // diagnostics.go:651
-pub(crate) fn create_expression_error_ex(
+pub fn create_expression_error_ex(
     node: P<Node>,
     mut diagnostic_message: Option<&'static Message>,
 ) -> P<Diagnostic> {
@@ -788,9 +788,7 @@ pub(crate) fn create_expression_error_ex(
 }
 
 // diagnostics.go:683
-pub(crate) fn create_get_isolated_declaration_errors(
-    resolver: Resolver,
-) -> GetIsolatedDeclarationError {
+pub fn create_get_isolated_declaration_errors(resolver: Resolver) -> GetIsolatedDeclarationError {
     let create_parameter_error = move |c: &mut Checker, node: P<Node>| -> P<Diagnostic> {
         if ast::is_set_accessor_declaration(node.parent().unwrap()) {
             return create_accessor_type_error(node.parent().unwrap());

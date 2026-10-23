@@ -5,7 +5,7 @@ use tsrs_scanner as scanner;
 use crate::astnav;
 
 // util.go:10
-pub(crate) fn range_is_on_one_line(node: TextRange, file: P<SourceFile>) -> bool {
+pub fn range_is_on_one_line(node: TextRange, file: P<SourceFile>) -> bool {
     let start_line = scanner::get_ecma_line_of_position(
         file.get(),
         node.pos().expect_source("formatting ranges have source positions"),
@@ -18,7 +18,7 @@ pub(crate) fn range_is_on_one_line(node: TextRange, file: P<SourceFile>) -> bool
 }
 
 // util.go:16
-pub(crate) fn get_open_token_for_list(node: P<Node>, list: P<NodeList>) -> Kind {
+pub fn get_open_token_for_list(node: P<Node>, list: P<NodeList>) -> Kind {
     match node.kind() {
         Kind::Constructor
         | Kind::FunctionDeclaration
@@ -70,7 +70,7 @@ pub(crate) fn get_open_token_for_list(node: P<Node>, list: P<NodeList>) -> Kind 
 }
 
 // util.go:63
-pub(crate) fn get_close_token_for_open_token(kind: Kind) -> Kind {
+pub fn get_close_token_for_open_token(kind: Kind) -> Kind {
     // TODO: matches strada - seems like it could handle more pairs of braces, though? [] notably missing
     match kind {
         Kind::OpenParenToken => Kind::CloseParenToken,
@@ -92,7 +92,7 @@ pub fn get_line_start_position_for_position(position: u32, source_file: P<Source
  * Validating `expectedTokenKind` ensures the token was typed in the context we expect (eg: not a comment).
  * @param expectedTokenKind The kind of the last token constituting the desired parent node.
  */
-pub(crate) fn find_immediately_preceding_token_of_kind(
+pub fn find_immediately_preceding_token_of_kind(
     end: u32,
     expected_token_kind: Kind,
     source_file: P<SourceFile>,
@@ -120,7 +120,7 @@ pub(crate) fn find_immediately_preceding_token_of_kind(
  * Upon typing the closing curly, we want to format the entire `while`-statement, but not the preceding
  * variable declaration.
  */
-pub(crate) fn find_outermost_node_within_list_level(node: Option<P<Node>>) -> Option<P<Node>> {
+pub fn find_outermost_node_within_list_level(node: Option<P<Node>>) -> Option<P<Node>> {
     let mut current = node;
     while let Some(c) = current {
         let Some(parent) = c.parent() else {
@@ -161,7 +161,7 @@ fn is_list_element(parent: P<Node>, node: P<Node>) -> bool {
 }
 
 // util.go:137
-pub(crate) fn is_member_list_element(parent: P<Node>, node: P<Node>) -> bool {
+pub fn is_member_list_element(parent: P<Node>, node: P<Node>) -> bool {
     match parent.kind() {
         Kind::ClassDeclaration
         | Kind::ClassExpression

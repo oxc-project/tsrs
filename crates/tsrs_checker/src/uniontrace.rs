@@ -27,7 +27,7 @@ use std::sync::OnceLock;
 
 use crate::*;
 
-pub(crate) fn enabled() -> bool {
+pub fn enabled() -> bool {
     static ON: OnceLock<bool> = OnceLock::new();
     *ON.get_or_init(|| {
         std::env::var("TSRS_TRACE_UNION_REDUCTION").is_ok_and(|v| !v.is_empty() && v != "0")
@@ -35,14 +35,14 @@ pub(crate) fn enabled() -> bool {
 }
 
 /// The 100,000-comparison checkpoint of `remove_subtypes`: sources begun so far and the estimate taken there.
-pub(crate) struct Checkpoint {
+pub struct Checkpoint {
     pub(crate) sources: i64,
     pub(crate) estimate: i64,
 }
 
 /// One trace line for the reduction of `input` (in the union's order) that kept `kept`: everything the reduction
 /// returned, or what was left when it gave up with TS2590. `comparisons` is `None` for an answer from the cache.
-pub(crate) fn report(
+pub fn report(
     c: &Checker,
     input: &[P<Type>],
     kept: &[P<Type>],
@@ -93,7 +93,7 @@ pub(crate) fn report(
 
 /// One trace line for a cross product of `types` that `check_cross_product_union` sized at `size`: each union is
 /// described by its length, fingerprints and first two members, any other type by `describe`.
-pub(crate) fn report_cross_product(c: &Checker, types: &[P<Type>], size: usize) {
+pub fn report_cross_product(c: &Checker, types: &[P<Type>], size: usize) {
     // The limit of `check_cross_product_union`.
     let verdict = if size >= 100_000 { "too complex (TS2590)" } else { "allowed" };
     let mut line = format!(
@@ -125,11 +125,7 @@ pub(crate) fn report_cross_product(c: &Checker, types: &[P<Type>], size: usize) 
 
 /// One trace line when checker `c` begins to check `file`, or the range of its statements `piece` when it checks a
 /// piece of a split declaration file (`check_source_file_piece`).
-pub(crate) fn report_check_file(
-    c: &Checker,
-    file: P<SourceFile>,
-    piece: Option<&std::ops::Range<usize>>,
-) {
+pub fn report_check_file(c: &Checker, file: P<SourceFile>, piece: Option<&std::ops::Range<usize>>) {
     match piece {
         Some(statements) => eprintln!(
             "tsrs check file: checker {} begins statements {}..{} of {}",
@@ -198,10 +194,10 @@ fn describe_into(t: P<Type>, depth: u32, out: &mut String) {
         out.push(' ');
         describe_symbol(symbol, out);
     }
-    if t.flags().intersects(TypeFlags::Literal) {
-        if let Some(value) = t.as_literal_type().value.get() {
-            let _ = write!(out, " {value:?}");
-        }
+    if t.flags().intersects(TypeFlags::Literal)
+        && let Some(value) = t.as_literal_type().value.get()
+    {
+        let _ = write!(out, " {value:?}");
     }
     if depth == 0 {
         return;
@@ -235,11 +231,10 @@ fn describe_into(t: P<Type>, depth: u32, out: &mut String) {
 // The declaration's file by its base name, so that the fingerprints do not depend on the directory tsrs runs in.
 fn describe_symbol(symbol: P<Symbol>, out: &mut String) {
     out.push_str(symbol.name());
-    if let Some(&declaration) = symbol.declarations().first() {
-        if let Some(file) = ast::get_source_file_of_node(declaration) {
-            let name = file.file_name();
-            let _ =
-                write!(out, "@{}:{:?}", name.rsplit('/').next().unwrap_or(name), declaration.pos());
-        }
+    if let Some(&declaration) = symbol.declarations().first()
+        && let Some(file) = ast::get_source_file_of_node(declaration)
+    {
+        let name = file.file_name();
+        let _ = write!(out, "@{}:{:?}", name.rsplit('/').next().unwrap_or(name), declaration.pos());
     }
 }

@@ -64,7 +64,7 @@ static MAPPER_HANDLERS: [(&str, HandlerConstructor); 18] = [
 ];
 
 // registry.go:54
-pub(crate) fn handler_for_mapper(
+pub fn handler_for_mapper(
     command: &[String],
     lifecycle: Option<Arc<ProjectLifecycle>>,
 ) -> Result<Arc<dyn TestHandler>, String> {

@@ -450,10 +450,10 @@ impl InferenceContext {
     // `recycle` frees them with it (notes/mem-scoped-arenas.md).
     pub fn set_return_mapper(&self, mapper: Option<P<TypeMapper>>) {
         if mapper.is_some() || self.rare().is_some() {
-            if let Some(m) = mapper {
-                if self.escaped() {
-                    escape_mapper(m);
-                }
+            if let Some(m) = mapper
+                && self.escaped()
+            {
+                escape_mapper(m);
             }
             self.rare_for_write().return_mapper.set(mapper);
         }
@@ -463,10 +463,10 @@ impl InferenceContext {
     }
     pub fn set_outer_return_mapper(&self, mapper: Option<P<TypeMapper>>) {
         if mapper.is_some() || self.rare().is_some() {
-            if let Some(m) = mapper {
-                if self.escaped() {
-                    escape_mapper(m);
-                }
+            if let Some(m) = mapper
+                && self.escaped()
+            {
+                escape_mapper(m);
             }
             self.rare_for_write().outer_return_mapper.set(mapper);
         }
@@ -524,20 +524,20 @@ impl InferenceContext {
             // outer return mapper `createOuterReturnMapper` cached here (the mapper of another clone, merged after
             // the return mapper of that time). Only this context refers to them unless they escaped.
             let return_mapper = rare.return_mapper.get();
-            if let Some(o) = rare.outer_return_mapper.get() {
-                if !o.escaped() {
-                    match o.data() {
-                        TypeMapperData::Merged { m1, m2 } => {
-                            // SAFETY: made by `createOuterReturnMapper` for this context only.
-                            unsafe { tsrs_core::free!(o) };
-                            InferenceContext::recycle_held_mapper(m2);
-                            if Some(m1) != return_mapper {
-                                // A replaced return mapper: `o` was its last holder.
-                                InferenceContext::recycle_held_mapper(m1);
-                            }
+            if let Some(o) = rare.outer_return_mapper.get()
+                && !o.escaped()
+            {
+                match o.data() {
+                    TypeMapperData::Merged { m1, m2 } => {
+                        // SAFETY: made by `createOuterReturnMapper` for this context only.
+                        unsafe { tsrs_core::free!(o) };
+                        InferenceContext::recycle_held_mapper(m2);
+                        if Some(m1) != return_mapper {
+                            // A replaced return mapper: `o` was its last holder.
+                            InferenceContext::recycle_held_mapper(m1);
                         }
-                        _ => InferenceContext::recycle_held_mapper(o),
                     }
+                    _ => InferenceContext::recycle_held_mapper(o),
                 }
             }
             if let Some(r) = return_mapper {

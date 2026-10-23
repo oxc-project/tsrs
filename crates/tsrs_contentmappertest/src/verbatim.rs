@@ -10,10 +10,10 @@ use crate::protocol::{
 };
 
 // verbatim.go:11
-pub(crate) struct VerbatimHandler;
+pub struct VerbatimHandler;
 
 // verbatim.go:13
-pub(crate) struct ModuleVerbatimHandler;
+pub struct ModuleVerbatimHandler;
 
 impl TestHandler for VerbatimHandler {}
 

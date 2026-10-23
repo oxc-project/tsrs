@@ -186,7 +186,7 @@ impl<T: Named + Clone> Index<T> {
                     None
                 }
             }));
-            if !new_indices.is_empty() { Some((r, new_indices)) } else { None }
+            if new_indices.is_empty() { None } else { Some((r, new_indices)) }
         }));
 
         new_idx

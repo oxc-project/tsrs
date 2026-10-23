@@ -18,7 +18,7 @@ use crate::snapshot::{
 };
 
 // snapshottobuildinfo.go:18
-pub(crate) fn snapshot_to_build_info(
+pub fn snapshot_to_build_info(
     snapshot: &Snapshot,
     program: &'static CompilerProgram,
     build_info_file_name: &str,
@@ -176,19 +176,18 @@ impl ToBuildInfo<'_> {
         v: CompilerOptionsValue,
     ) -> CompilerOptionsValue {
         if option.kind == CommandLineOptionKind::List {
-            if option.elements().unwrap().is_file_path {
-                if let CompilerOptionsValue::StringArray(arr) = &v {
-                    return CompilerOptionsValue::StringArray(
-                        arr.iter().map(|s| self.relative_to_build_info(s)).collect(),
-                    );
-                }
+            if option.elements().unwrap().is_file_path
+                && let CompilerOptionsValue::StringArray(arr) = &v
+            {
+                return CompilerOptionsValue::StringArray(
+                    arr.iter().map(|s| self.relative_to_build_info(s)).collect(),
+                );
             }
-        } else if option.is_file_path {
-            if let CompilerOptionsValue::String(s) = &v {
-                if !s.is_empty() {
-                    return CompilerOptionsValue::String(self.relative_to_build_info(s));
-                }
-            }
+        } else if option.is_file_path
+            && let CompilerOptionsValue::String(s) = &v
+            && !s.is_empty()
+        {
+            return CompilerOptionsValue::String(self.relative_to_build_info(s));
         }
         v
     }
@@ -205,7 +204,7 @@ impl ToBuildInfo<'_> {
         diagnostics
             .iter()
             .map(|d| {
-                let file = if !d.file.is_empty() { self.to_file_id(&d.file) } else { 0 };
+                let file = if d.file.is_empty() { 0 } else { self.to_file_id(&d.file) };
                 BuildInfoDiagnostic {
                     file,
                     no_file: d.no_file,
@@ -311,10 +310,10 @@ impl ToBuildInfo<'_> {
         let program = self.program;
         self.roots.extend(program.command_line().file_names().iter().filter_map(|file_name| {
             let redirect = program.get_parse_file_redirect(file_name);
-            let file = if !redirect.is_empty() {
-                program.get_source_file(&redirect)
-            } else {
+            let file = if redirect.is_empty() {
                 program.get_source_file(file_name)
+            } else {
+                program.get_source_file(&redirect)
             };
             file.map(|file| {
                 (

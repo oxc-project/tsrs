@@ -152,7 +152,7 @@ fn file_baseline(
 
 // One file's section of the `.types` (or `.symbols`) baseline for a whole project (tsrs-test types-dump): the
 // walk of `source_file` under `unit_name`, without the `//// [header] ////` prefix.
-pub(crate) fn project_file_baseline(
+pub fn project_file_baseline(
     walker: &mut TypeWriterWalker,
     source_file: P<SourceFile>,
     unit_name: &str,
@@ -163,7 +163,7 @@ pub(crate) fn project_file_baseline(
     file_baseline(unit_name, source_file.text(), &results, is_symbol_baseline).unwrap_or_default()
 }
 
-pub(crate) struct TypeWriterWalker {
+pub struct TypeWriterWalker {
     program: &'static Program,
     had_error_baseline: bool,
     current_source_file: Option<P<SourceFile>>,

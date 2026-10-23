@@ -6,7 +6,7 @@ use crate::scanner::{
     decode_rune, is_identifier_part_ex, is_identifier_start, skip_trivia, text_to_keyword,
 };
 
-pub(crate) fn token_is_identifier_or_keyword(token: Kind) -> bool {
+pub fn token_is_identifier_or_keyword(token: Kind) -> bool {
     token >= Kind::Identifier
 }
 
@@ -22,7 +22,7 @@ pub fn get_source_text_of_node_from_source_file(
     get_text_of_node_from_source_text(source_file.text(), node, include_trivia)
 }
 
-pub(crate) fn is_jsdoc_type_expression_or_child(node: P<Node>) -> bool {
+pub fn is_jsdoc_type_expression_or_child(node: P<Node>) -> bool {
     if ast::is_jsdoc_type_expression(node) {
         return true;
     }
@@ -46,7 +46,7 @@ fn trim_left_white_space_like(s: &str) -> &str {
     &s[i..]
 }
 
-pub(crate) fn normalize_jsdoc_type_source_text(text: &str) -> String {
+pub fn normalize_jsdoc_type_source_text(text: &str) -> String {
     let line_starts = tsrs_core::compute_ecma_line_starts(text);
     if line_starts.len() == 1 {
         return strip_leading_jsdoc_comment(text).to_string();

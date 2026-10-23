@@ -67,7 +67,7 @@ fn oracle_file_name() {
                 format!("PANIC {}", payload.downcast_ref::<String>().cloned().unwrap_or_default())
             }
         };
-        if got != expected { Some(format!("{uri}: go {expected:?}, rust {got:?}")) } else { None }
+        if got == expected { None } else { Some(format!("{uri}: go {expected:?}, rust {got:?}")) }
     }));
     assert!(failures.is_empty(), "{}", failures.join("\n"));
 }

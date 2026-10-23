@@ -216,17 +216,16 @@ impl Checker {
         // If the object type is a mapped type { [P in K]: E }, where K is generic, or { [P in K as N]: E }, where
         // K is generic and N is assignable to P, instantiate E using a mapper that substitutes the index type for P.
         // For example, for an index access { [P in K]: Box<T[P]> }[X], we construct the type Box<T[X]>.
-        if self.is_generic_mapped_type(object_type) {
-            if self.get_mapped_type_name_type_kind(object_type) != MappedTypeNameTypeKind::Remapping
-            {
-                let substituted = self.substitute_indexed_mapped_type(
-                    object_type,
-                    t.as_indexed_access_type().index_type.get().unwrap(),
-                );
-                return self
-                    .map_type(substituted, |c, t| Some(c.get_simplified_type(t, writing)))
-                    .unwrap();
-            }
+        if self.is_generic_mapped_type(object_type)
+            && self.get_mapped_type_name_type_kind(object_type) != MappedTypeNameTypeKind::Remapping
+        {
+            let substituted = self.substitute_indexed_mapped_type(
+                object_type,
+                t.as_indexed_access_type().index_type.get().unwrap(),
+            );
+            return self
+                .map_type(substituted, |c, t| Some(c.get_simplified_type(t, writing)))
+                .unwrap();
         }
         t
     }
@@ -722,10 +721,10 @@ impl Checker {
                             return;
                         }
                     }
-                    if let Some(computed_name) = computed_name {
-                        if is_invalid_computed_property_name(computed_name) {
-                            return;
-                        }
+                    if let Some(computed_name) = computed_name
+                        && is_invalid_computed_property_name(computed_name)
+                    {
+                        return;
                     }
                     if let Some(heritage_clause) = heritage_clause {
                         let hc_parent = heritage_clause.parent().unwrap();
@@ -738,16 +737,12 @@ impl Checker {
                         // `class C extends A, B`) and are never resolved during checking.
                         if is_class_like(hc_parent)
                             && heritage_clause.as_heritage_clause().token == Kind::ExtendsKeyword
-                        {
-                            if let Some(first_extends) =
+                            && let Some(first_extends) =
                                 get_class_extends_heritage_element(hc_parent)
-                            {
-                                if location != first_extends
-                                    && !ast::is_node_descendant_of(location, first_extends)
-                                {
-                                    return;
-                                }
-                            }
+                            && location != first_extends
+                            && !ast::is_node_descendant_of(location, first_extends)
+                        {
+                            return;
                         }
                     }
                     // Identifiers in expression contexts are emitted, so we need to follow their referenced aliases and mark them as used
@@ -834,7 +829,7 @@ impl Checker {
 }
 
 // checker.go:28826
-pub(crate) fn is_export_or_export_expression(location: P<Node>) -> bool {
+pub fn is_export_or_export_expression(location: P<Node>) -> bool {
     find_ancestor(location, |n| {
         if let Some(parent) = n.parent() {
             if is_any_export_assignment(parent) {
@@ -850,7 +845,7 @@ pub(crate) fn is_export_or_export_expression(location: P<Node>) -> bool {
 }
 
 // checker.go:28841
-pub(crate) fn should_mark_identifier_alias_referenced(node: P<Node>) -> bool {
+pub fn should_mark_identifier_alias_referenced(node: P<Node>) -> bool {
     if let Some(parent) = node.parent() {
         // A property access expression LHS? checkPropertyAccessExpression will handle that.
         if is_property_access_expression(parent) && parent.expression() == Some(node) {
@@ -860,19 +855,19 @@ pub(crate) fn should_mark_identifier_alias_referenced(node: P<Node>) -> bool {
         if is_export_specifier(parent) && parent.is_type_only() {
             return false;
         }
-        if let Some(grandparent) = parent.parent() {
-            if let Some(great_grandparent) = grandparent.parent() {
-                if is_export_declaration(great_grandparent) && great_grandparent.is_type_only() {
-                    return false;
-                }
-            }
+        if let Some(grandparent) = parent.parent()
+            && let Some(great_grandparent) = grandparent.parent()
+            && is_export_declaration(great_grandparent)
+            && great_grandparent.is_type_only()
+        {
+            return false;
         }
     }
     true
 }
 
 // checker.go:28862
-pub(crate) fn is_internal_module_import_equals_declaration(node: P<Node>) -> bool {
+pub fn is_internal_module_import_equals_declaration(node: P<Node>) -> bool {
     node.kind() == Kind::ImportEqualsDeclaration
         && node.as_import_equals_declaration().module_reference.kind()
             != Kind::ExternalModuleReference
@@ -981,7 +976,7 @@ impl Checker {
 }
 
 // checker.go:28949
-pub(crate) fn is_part_of_import_equals_module_reference(location: P<Node>) -> bool {
+pub fn is_part_of_import_equals_module_reference(location: P<Node>) -> bool {
     let Some(import_equals) = find_ancestor_kind(location, Kind::ImportEqualsDeclaration) else {
         return false;
     };
@@ -1125,10 +1120,10 @@ impl Checker {
                 // Do nothing, non-local symbol
             } else {
                 let mut target = symbol;
-                if let Some(t) = target {
-                    if t.flags().intersects(SymbolFlags::Alias) {
-                        target = Some(self.resolve_alias(t));
-                    }
+                if let Some(t) = target
+                    && t.flags().intersects(SymbolFlags::Alias)
+                {
+                    target = Some(self.resolve_alias(t));
                 }
                 if target.is_none()
                     || self.get_symbol_flags(target.unwrap()).intersects(SymbolFlags::Value)
@@ -1366,10 +1361,10 @@ impl Checker {
         node: Option<P<Node>>,
     ) {
         let entity_name = self.get_entity_name_for_decorator_metadata(node);
-        if let Some(entity_name) = entity_name {
-            if is_entity_name(entity_name) {
-                self.mark_entity_name_or_entity_expression_as_reference(Some(entity_name), true);
-            }
+        if let Some(entity_name) = entity_name
+            && is_entity_name(entity_name)
+        {
+            self.mark_entity_name_or_entity_expression_as_reference(Some(entity_name), true);
         }
     }
 
@@ -1747,7 +1742,7 @@ pub fn get_mapped_type_modifiers(t: P<Type>) -> MappedTypeModifiers {
 }
 
 // checker.go:29496
-pub(crate) fn get_mapped_type_optionality(t: P<Type>) -> std::cmp::Ordering {
+pub fn get_mapped_type_optionality(t: P<Type>) -> std::cmp::Ordering {
     let modifiers = get_mapped_type_modifiers(t);
     if modifiers.intersects(MappedTypeModifiers::ExcludeOptional) {
         return std::cmp::Ordering::Less;
@@ -1777,10 +1772,10 @@ impl Checker {
         if t.flags().intersects(TypeFlags::Intersection) {
             let optionality = self.get_combined_mapped_type_optionality(t.types()[0]);
             if let Some(result) = t.types()[1..].iter().find_map(|&t| {
-                if self.get_combined_mapped_type_optionality(t) != optionality {
-                    Some(std::cmp::Ordering::Equal)
-                } else {
+                if self.get_combined_mapped_type_optionality(t) == optionality {
                     None
+                } else {
+                    Some(std::cmp::Ordering::Equal)
                 }
             }) {
                 return result;
@@ -1792,7 +1787,7 @@ impl Checker {
 }
 
 // checker.go:29530
-pub(crate) fn is_partial_mapped_type(t: P<Type>) -> bool {
+pub fn is_partial_mapped_type(t: P<Type>) -> bool {
     t.object_flags().intersects(ObjectFlags::Mapped)
         && get_mapped_type_modifiers(t).intersects(MappedTypeModifiers::IncludeOptional)
 }
@@ -1893,18 +1888,18 @@ impl Checker {
 
     // checker.go:29602
     pub(crate) fn get_constraint_declaration(t: P<Type>) -> Option<P<Node>> {
-        if let Some(symbol) = t.symbol() {
-            if let Some(result) = symbol.declarations().iter().find_map(|&d| {
-                if is_type_parameter_declaration(d) {
-                    if let Some(constraint) = d.as_type_parameter_declaration().constraint {
-                        return Some(Some(constraint));
-                    }
+        if let Some(symbol) = t.symbol()
+            && let Some(result) = symbol.declarations().iter().find_map(|&d| {
+                if is_type_parameter_declaration(d)
+                    && let Some(constraint) = d.as_type_parameter_declaration().constraint
+                {
+                    return Some(Some(constraint));
                 }
 
                 None
-            }) {
-                return result;
-            }
+            })
+        {
+            return result;
         }
         None
     }
@@ -2097,7 +2092,7 @@ fn add_template_spans(
 }
 
 // checker.go:29731
-pub(crate) fn apply_string_mapping(symbol: P<Symbol>, str: &str) -> String {
+pub fn apply_string_mapping(symbol: P<Symbol>, str: &str) -> String {
     match INTRINSIC_TYPE_KINDS.get(symbol.name()).copied().unwrap_or_default() {
         IntrinsicTypeKind::Uppercase => stringutil::to_upper_js(str),
         IntrinsicTypeKind::Lowercase => stringutil::to_lower_js(str),
@@ -2601,10 +2596,10 @@ impl Checker {
                 }
                 info.flags = ElementFlags::Required;
             }
-            if is_synthetic_expression(arg) {
-                if let Some(tuple_name_source) = arg.as_synthetic_expression().tuple_name_source {
-                    info.labeled_declaration = Some(tuple_name_source);
-                }
+            if is_synthetic_expression(arg)
+                && let Some(tuple_name_source) = arg.as_synthetic_expression().tuple_name_source
+            {
+                info.labeled_declaration = Some(tuple_name_source);
             }
             types.push(t);
             infos.push(info);
@@ -2653,18 +2648,16 @@ impl Checker {
         let parent = declaration.parent().unwrap().parent().unwrap();
         let mut parent_type =
             self.get_contextual_type_for_variable_like_declaration(parent, context_flags);
-        if parent_type.is_none() {
-            if !is_binding_element(parent) && parent.initializer().is_some() {
-                parent_type = Some(self.check_declaration_initializer(
-                    parent,
-                    if_else(
-                        has_dot_dot_dot_token(declaration),
-                        CheckMode::RestBindingElement,
-                        CheckMode::Normal,
-                    ),
-                    None,
-                ));
-            }
+        if parent_type.is_none() && !is_binding_element(parent) && parent.initializer().is_some() {
+            parent_type = Some(self.check_declaration_initializer(
+                parent,
+                if_else(
+                    has_dot_dot_dot_token(declaration),
+                    CheckMode::RestBindingElement,
+                    CheckMode::Normal,
+                ),
+                None,
+            ));
         }
         let parent_type = parent_type?;
         if is_array_binding_pattern(parent.name().unwrap()) {
@@ -2795,34 +2788,34 @@ impl Checker {
         // Otherwise, if the containing function is contextually typed by a function type with exactly one call signature
         // and that call signature is non-generic, return statements are contextually typed by the return type of the signature
         let signature = self.get_contextual_signature_for_function_like_declaration(function_decl);
-        if let Some(signature) = signature {
-            if !self.is_resolving_return_type_of_signature(signature) {
-                let return_type = self.get_return_type_of_signature(signature);
-                let function_flags = get_function_flags(Some(function_decl));
-                if function_flags.intersects(FunctionFlags::Generator) {
-                    return Some(self.filter_type(return_type, |c, t| {
-                        t.flags().intersects(
-                            TypeFlags::AnyOrUnknown
-                                | TypeFlags::Void
-                                | TypeFlags::InstantiableNonPrimitive,
-                        ) || c.check_generator_instantiation_assignability_to_return_type(
-                            t,
-                            function_flags,
-                            None, /*errorNode*/
-                        )
-                    }));
-                }
-                if function_flags.intersects(FunctionFlags::Async) {
-                    return Some(self.filter_type(return_type, |c, t| {
-                        t.flags().intersects(
-                            TypeFlags::AnyOrUnknown
-                                | TypeFlags::Void
-                                | TypeFlags::InstantiableNonPrimitive,
-                        ) || c.get_awaited_type_of_promise(t).is_some()
-                    }));
-                }
-                return Some(return_type);
+        if let Some(signature) = signature
+            && !self.is_resolving_return_type_of_signature(signature)
+        {
+            let return_type = self.get_return_type_of_signature(signature);
+            let function_flags = get_function_flags(Some(function_decl));
+            if function_flags.intersects(FunctionFlags::Generator) {
+                return Some(self.filter_type(return_type, |c, t| {
+                    t.flags().intersects(
+                        TypeFlags::AnyOrUnknown
+                            | TypeFlags::Void
+                            | TypeFlags::InstantiableNonPrimitive,
+                    ) || c.check_generator_instantiation_assignability_to_return_type(
+                        t,
+                        function_flags,
+                        None, /*errorNode*/
+                    )
+                }));
             }
+            if function_flags.intersects(FunctionFlags::Async) {
+                return Some(self.filter_type(return_type, |c, t| {
+                    t.flags().intersects(
+                        TypeFlags::AnyOrUnknown
+                            | TypeFlags::Void
+                            | TypeFlags::InstantiableNonPrimitive,
+                    ) || c.get_awaited_type_of_promise(t).is_some()
+                }));
+            }
+            return Some(return_type);
         }
         let iife = get_immediately_invoked_function_expression(function_decl);
         if let Some(iife) = iife {
@@ -3115,28 +3108,27 @@ impl Checker {
                         // declaration has no contextual type.
                         if let Some(value_declaration) =
                             symbol.value_declaration().filter(|&d| is_variable_declaration(d))
+                            && let Some(type_node) = value_declaration.type_node()
                         {
-                            if let Some(type_node) = value_declaration.type_node() {
-                                if is_property_access_expression(left) {
-                                    let t = self.get_type_from_type_node(type_node);
-                                    return self.get_type_of_property_of_contextual_type(
-                                        t,
-                                        left.name().unwrap().text(),
-                                    );
-                                }
-                                let name_type = self.check_expression_cached(
-                                    left.as_element_access_expression().argument_expression,
+                            if is_property_access_expression(left) {
+                                let t = self.get_type_from_type_node(type_node);
+                                return self.get_type_of_property_of_contextual_type(
+                                    t,
+                                    left.name().unwrap().text(),
                                 );
-                                if is_type_usable_as_property_name(name_type) {
-                                    let t = self.get_type_from_type_node(type_node);
-                                    return self.get_type_of_property_of_contextual_type_ex(
-                                        t,
-                                        &get_property_name_from_type(name_type),
-                                        Some(name_type),
-                                    );
-                                }
-                                return Some(self.get_type_of_expression(left));
                             }
+                            let name_type = self.check_expression_cached(
+                                left.as_element_access_expression().argument_expression,
+                            );
+                            if is_type_usable_as_property_name(name_type) {
+                                let t = self.get_type_from_type_node(type_node);
+                                return self.get_type_of_property_of_contextual_type_ex(
+                                    t,
+                                    &get_property_name_from_type(name_type),
+                                    Some(name_type),
+                                );
+                            }
+                            return Some(self.get_type_of_expression(left));
                         }
                         return None;
                     }
@@ -3175,33 +3167,30 @@ impl Checker {
                             );
                         }
                     }
-                    if let Some(symbol) = symbol {
-                        if let Some(d) = symbol.value_declaration() {
-                            if (is_property_declaration(d) || is_property_signature_declaration(d))
-                                && d.type_node().is_none()
-                                && d.initializer().is_none()
-                            {
-                                // No contextual type for 'this.xxx = expr', where xxx is declared as a property with no type annotation or initializer.
-                                return None;
-                            }
-                        }
+                    if let Some(symbol) = symbol
+                        && let Some(d) = symbol.value_declaration()
+                        && (is_property_declaration(d) || is_property_signature_declaration(d))
+                        && d.type_node().is_none()
+                        && d.initializer().is_none()
+                    {
+                        // No contextual type for 'this.xxx = expr', where xxx is declared as a property with no type annotation or initializer.
+                        return None;
                     }
-                    if let Some(binary_symbol) = binary.symbol() {
-                        if binary_symbol
+                    if let Some(binary_symbol) = binary.symbol()
+                        && binary_symbol
                             .value_declaration()
                             .is_some_and(|d| d.type_node().is_none())
-                        {
-                            // We have an assignment declaration 'this.xxx = expr' with no (synthetic) type annotation
-                            let this_container = Self::get_this_container(expr, false, false);
-                            if !is_object_literal_method(this_container) {
-                                return None;
-                            }
-                            // and now for one single case of object literal methods
-                            let name = get_element_or_property_access_name(left);
-                            name?;
-                            // !!! contextual typing for `this` in object literals
+                    {
+                        // We have an assignment declaration 'this.xxx = expr' with no (synthetic) type annotation
+                        let this_container = Self::get_this_container(expr, false, false);
+                        if !is_object_literal_method(this_container) {
                             return None;
                         }
+                        // and now for one single case of object literal methods
+                        let name = get_element_or_property_access_name(left);
+                        name?;
+                        // !!! contextual typing for `this` in object literals
+                        return None;
                     }
                 }
                 _ => {}
@@ -3216,10 +3205,10 @@ impl Checker {
         element: P<Node>,
         context_flags: ContextFlags,
     ) -> Option<P<Type>> {
-        if let Some(t) = element.type_node() {
-            if !is_object_literal_method(element) {
-                return Some(self.get_type_from_type_node(t));
-            }
+        if let Some(t) = element.type_node()
+            && !is_object_literal_method(element)
+        {
+            return Some(self.get_type_from_type_node(t));
         }
         let object_literal = element.parent().unwrap();
         let t = self.get_apparent_type_of_contextual_type(object_literal, context_flags);

@@ -234,12 +234,12 @@ impl Relater {
             {
                 candidate = Some(types[2]);
             }
-            if let Some(candidate) = candidate {
-                if !candidate.flags().intersects(TypeFlags::Nullable) {
-                    target = c.get_normalized_type(candidate, true /*writing*/);
-                    if source == target {
-                        return Ternary::TRUE;
-                    }
+            if let Some(candidate) = candidate
+                && !candidate.flags().intersects(TypeFlags::Nullable)
+            {
+                target = c.get_normalized_type(candidate, true /*writing*/);
+                if source == target {
+                    return Ternary::TRUE;
                 }
             }
         }
@@ -257,22 +257,18 @@ impl Relater {
                 .intersects(IntersectionState::Target)
                 && is_object_literal_type(source)
                 && source.object_flags().intersects(ObjectFlags::FreshLiteral);
-            if is_performing_excess_property_checks {
-                if self.has_excess_properties(c, source, target, report_errors) {
-                    if report_errors {
-                        self.report_relation_error(
-                            c,
-                            head_message,
-                            source,
-                            if original_target.alias().is_some() {
-                                original_target
-                            } else {
-                                target
-                            },
-                        );
-                    }
-                    return Ternary::FALSE;
+            if is_performing_excess_property_checks
+                && self.has_excess_properties(c, source, target, report_errors)
+            {
+                if report_errors {
+                    self.report_relation_error(
+                        c,
+                        head_message,
+                        source,
+                        if original_target.alias().is_some() { original_target } else { target },
+                    );
                 }
+                return Ternary::FALSE;
             }
             let is_performing_common_property_checks = (self.rel() != c.comparable_relation
                 || is_unit_type(source))
@@ -433,15 +429,14 @@ impl Relater {
                         {
                             // JsxAttributes has an object-literal flag and undergo same type-assignablity check as normal object-literal.
                             // However, using an object-literal error message will be very confusing to the users so we give different a message.
-                            if let Some(value_declaration) = prop.value_declaration() {
-                                if ast::is_jsx_attribute(value_declaration)
-                                    && get_source_file_of_node(error_node)
-                                        == get_source_file_of_node(value_declaration.name())
-                                {
-                                    // Note that extraneous children (as in `<NoChild>extra</NoChild>`) don't pass this check,
-                                    // since `children` is a Kind.PropertySignature instead of a Kind.JsxAttribute.
-                                    self.error_node.set(value_declaration.name());
-                                }
+                            if let Some(value_declaration) = prop.value_declaration()
+                                && ast::is_jsx_attribute(value_declaration)
+                                && get_source_file_of_node(error_node)
+                                    == get_source_file_of_node(value_declaration.name())
+                            {
+                                // Note that extraneous children (as in `<NoChild>extra</NoChild>`) don't pass this check,
+                                // since `children` is a Kind.PropertySignature instead of a Kind.JsxAttribute.
+                                self.error_node.set(value_declaration.name());
                             }
                             let prop_name = c.symbol_to_string(prop);
                             let suggestion_symbol = c
@@ -468,34 +463,33 @@ impl Relater {
                                 object_literal_declaration = symbol.declarations().first().copied();
                             }
                             let mut suggestion = String::new();
-                            if let Some(value_declaration) = prop.value_declaration() {
-                                if ast::is_object_literal_element(value_declaration)
-                                    && find_ancestor(value_declaration, |d| {
-                                        Some(d) == object_literal_declaration
-                                    })
-                                    .is_some()
-                                    && get_source_file_of_node(object_literal_declaration)
-                                        == get_source_file_of_node(self.error_node.get())
-                                {
-                                    let name = value_declaration.name();
-                                    self.error_node.set(name);
-                                    let name = name.unwrap();
-                                    if ast::is_identifier(name) {
-                                        suggestion = c.get_suggestion_for_nonexistent_property(
-                                            name.text(),
-                                            error_target,
-                                        );
-                                    }
+                            if let Some(value_declaration) = prop.value_declaration()
+                                && ast::is_object_literal_element(value_declaration)
+                                && find_ancestor(value_declaration, |d| {
+                                    Some(d) == object_literal_declaration
+                                })
+                                .is_some()
+                                && get_source_file_of_node(object_literal_declaration)
+                                    == get_source_file_of_node(self.error_node.get())
+                            {
+                                let name = value_declaration.name();
+                                self.error_node.set(name);
+                                let name = name.unwrap();
+                                if ast::is_identifier(name) {
+                                    suggestion = c.get_suggestion_for_nonexistent_property(
+                                        name.text(),
+                                        error_target,
+                                    );
                                 }
                             }
-                            if !suggestion.is_empty() {
-                                let prop_string = c.symbol_to_string(prop);
-                                let error_target_string = c.type_to_string_exported(error_target);
-                                self.report_error(c, &diagnostics::OBJECT_LITERAL_MAY_ONLY_SPECIFY_KNOWN_PROPERTIES_BUT_0_DOES_NOT_EXIST_IN_TYPE_1_DID_YOU_MEAN_TO_WRITE_2, &[&prop_string, &error_target_string, &suggestion]);
-                            } else {
+                            if suggestion.is_empty() {
                                 let prop_string = c.symbol_to_string(prop);
                                 let error_target_string = c.type_to_string_exported(error_target);
                                 self.report_error(c, &diagnostics::OBJECT_LITERAL_MAY_ONLY_SPECIFY_KNOWN_PROPERTIES_AND_0_DOES_NOT_EXIST_IN_TYPE_1, &[&prop_string, &error_target_string]);
+                            } else {
+                                let prop_string = c.symbol_to_string(prop);
+                                let error_target_string = c.type_to_string_exported(error_target);
+                                self.report_error(c, &diagnostics::OBJECT_LITERAL_MAY_ONLY_SPECIFY_KNOWN_PROPERTIES_BUT_0_DOES_NOT_EXIST_IN_TYPE_1_DID_YOU_MEAN_TO_WRITE_2, &[&prop_string, &error_target_string, &suggestion]);
                             }
                         }
                     }
@@ -562,17 +556,14 @@ impl Checker {
 
 // relater.go:2855
 // container is nil-able (Go only dereferences it after checking prop.ValueDeclaration).
-pub(crate) fn should_check_as_excess_property(
-    prop: P<Symbol>,
-    container: Option<P<Symbol>>,
-) -> bool {
+pub fn should_check_as_excess_property(prop: P<Symbol>, container: Option<P<Symbol>>) -> bool {
     prop.value_declaration().is_some()
         && container.unwrap().value_declaration().is_some()
         && prop.value_declaration().unwrap().parent() == container.unwrap().value_declaration()
 }
 
 // relater.go:2859
-pub(crate) fn is_ignored_jsx_property(source: P<Type>, source_prop: P<Symbol>) -> bool {
+pub fn is_ignored_jsx_property(source: P<Type>, source_prop: P<Symbol>) -> bool {
     source.object_flags().intersects(ObjectFlags::JsxAttributes)
         && is_hyphenated_jsx_name(source_prop.name())
 }
@@ -629,24 +620,22 @@ impl Relater {
                 // originated in an intersection. If so, and if that intersection contains the target type, then we know
                 // the result to be true (for any two types A and B, A & B is related to both A and B).
                 let source_origin = source.as_union_type().origin();
-                if let Some(source_origin) = source_origin {
-                    if source_origin.flags().intersects(TypeFlags::Intersection)
-                        && target.alias().is_some()
-                        && source_origin.types().contains(&target)
-                    {
-                        return Ternary::TRUE;
-                    }
+                if let Some(source_origin) = source_origin
+                    && source_origin.flags().intersects(TypeFlags::Intersection)
+                    && target.alias().is_some()
+                    && source_origin.types().contains(&target)
+                {
+                    return Ternary::TRUE;
                 }
                 // Similarly, in unions of unions the we preserve the original list of unions. This original list is often
                 // much shorter than the normalized result, so we scan it in the following fast path.
                 let target_origin = target.as_union_type().origin();
-                if let Some(target_origin) = target_origin {
-                    if target_origin.flags().intersects(TypeFlags::Union)
-                        && source.alias().is_some()
-                        && target_origin.types().contains(&source)
-                    {
-                        return Ternary::TRUE;
-                    }
+                if let Some(target_origin) = target_origin
+                    && target_origin.flags().intersects(TypeFlags::Union)
+                    && source.alias().is_some()
+                    && target_origin.types().contains(&source)
+                {
+                    return Ternary::TRUE;
                 }
             }
             if self.rel() == c.comparable_relation {
@@ -1249,7 +1238,7 @@ impl Relater {
         let entry = self.rel().lookup(id);
         crate::sitecount::hit(
             "relation cache (recursiveTypeRelatedTo)",
-            if entry != RelationComparisonResult::None { "hit" } else { "miss" },
+            if entry == RelationComparisonResult::None { "miss" } else { "hit" },
         );
         if c.census_on() {
             let k = crate::workcensus::rel_kind(c, self.rel()) as usize;
@@ -1363,22 +1352,7 @@ impl Relater {
         // tsrs-only: a result computed while a TS2590 was reported (a constraint that became the error type) is not
         // recorded, so that the next comparison evaluates and reports again (`Checker::too_complex_since`).
         let record = !c.too_complex_since(too_complex_before);
-        if result != Ternary::FALSE {
-            if result == Ternary::TRUE
-                || (self.source_stack.borrow().is_empty() && self.target_stack.borrow().is_empty())
-            {
-                if (result == Ternary::TRUE || result == Ternary::MAYBE) && record {
-                    // If result is definitely true, record all maybe keys as having succeeded. Also, record Ternary.Maybe
-                    // results as having succeeded once we reach depth 0, but never record Ternary.Unknown results.
-                    self.reset_maybe_stack(c, maybe_start, propagating_variance_flags, true);
-                } else {
-                    self.reset_maybe_stack(c, maybe_start, propagating_variance_flags, false);
-                }
-            }
-            // Note: it's intentional that we don't reset in the else case;
-            // we leave them on the stack such that when we hit depth zero
-            // above, we can report all of them as successful.
-        } else {
+        if result == Ternary::FALSE {
             // A false result goes straight into global cache (when something is false under
             // assumptions it will also be false without assumptions)
             if record {
@@ -1390,6 +1364,16 @@ impl Relater {
                 self.relation_count.set(self.relation_count.get() - 1);
             }
             self.reset_maybe_stack(c, maybe_start, propagating_variance_flags, false);
+        } else if result == Ternary::TRUE
+            || (self.source_stack.borrow().is_empty() && self.target_stack.borrow().is_empty())
+        {
+            if (result == Ternary::TRUE || result == Ternary::MAYBE) && record {
+                // If result is definitely true, record all maybe keys as having succeeded. Also, record Ternary.Maybe
+                // results as having succeeded once we reach depth 0, but never record Ternary.Unknown results.
+                self.reset_maybe_stack(c, maybe_start, propagating_variance_flags, true);
+            } else {
+                self.reset_maybe_stack(c, maybe_start, propagating_variance_flags, false);
+            }
         }
         result
     }
@@ -1562,19 +1546,19 @@ impl Relater {
                     source_types,
                     target.flags().intersects(TypeFlags::Union),
                 );
-                if let Some(constraint) = constraint {
-                    if every_type(c, constraint, |_, t| t != source) {
-                        // TODO: Stack errors so we get a pyramid for the "normal" comparison above, _and_ a second for this
-                        result = self.is_related_to_ex(
-                            c,
-                            constraint,
-                            target,
-                            RecursionFlags::Source,
-                            false, /*reportErrors*/
-                            None,  /*headMessage*/
-                            intersection_state,
-                        );
-                    }
+                if let Some(constraint) = constraint
+                    && every_type(c, constraint, |_, t| t != source)
+                {
+                    // TODO: Stack errors so we get a pyramid for the "normal" comparison above, _and_ a second for this
+                    result = self.is_related_to_ex(
+                        c,
+                        constraint,
+                        target,
+                        RecursionFlags::Source,
+                        false, /*reportErrors*/
+                        None,  /*headMessage*/
+                        intersection_state,
+                    );
                 }
             }
             // When the target is an intersection we need an extra property check in order to detect nested excess
@@ -1868,16 +1852,16 @@ impl Relater {
                     }
                     return result;
                 }
-            } else if source.flags().intersects(TypeFlags::StringMapping) {
-                if source.symbol() == target.symbol() {
-                    return self.is_related_to(
-                        c,
-                        source.as_string_mapping_type().target.get().unwrap(),
-                        target.as_string_mapping_type().target.get().unwrap(),
-                        RecursionFlags::Both,
-                        false, /*reportErrors*/
-                    );
-                }
+            } else if source.flags().intersects(TypeFlags::StringMapping)
+                && source.symbol() == target.symbol()
+            {
+                return self.is_related_to(
+                    c,
+                    source.as_string_mapping_type().target.get().unwrap(),
+                    target.as_string_mapping_type().target.get().unwrap(),
+                    RecursionFlags::Both,
+                    false, /*reportErrors*/
+                );
             }
             if !source.flags().intersects(TypeFlags::Object) {
                 return Ternary::FALSE;
@@ -2010,23 +1994,21 @@ impl Relater {
                     self.is_related_to(c, index_type, constraint_type, RecursionFlags::Both, false)
                         != Ternary::FALSE
                 }
-            {
-                if !get_mapped_type_modifiers(source)
+                && !get_mapped_type_modifiers(source)
                     .intersects(MappedTypeModifiers::IncludeOptional)
-                {
-                    let template_type = c.get_template_type_from_mapped_type(source);
-                    let type_parameter = c.get_type_parameter_from_mapped_type(source);
-                    let indexed_access_type = c.get_indexed_access_type(target, type_parameter);
-                    result = self.is_related_to(
-                        c,
-                        template_type,
-                        indexed_access_type,
-                        RecursionFlags::Both,
-                        report_errors,
-                    );
-                    if result != Ternary::FALSE {
-                        return result;
-                    }
+            {
+                let template_type = c.get_template_type_from_mapped_type(source);
+                let type_parameter = c.get_type_parameter_from_mapped_type(source);
+                let indexed_access_type = c.get_indexed_access_type(target, type_parameter);
+                result = self.is_related_to(
+                    c,
+                    template_type,
+                    indexed_access_type,
+                    RecursionFlags::Both,
+                    report_errors,
+                );
+                if result != Ternary::FALSE {
+                    return result;
                 }
             }
             if self.rel() == c.comparable_relation
@@ -2034,18 +2016,18 @@ impl Relater {
             {
                 // This is a carve-out in comparability to essentially forbid comparing a type parameter with another type parameter
                 // unless one extends the other. (Remember: comparability is mostly bidirectional!)
-                if let Some(constraint) = c.get_constraint_of_type_parameter(source) {
-                    if some_type(c, constraint, |_, t| {
+                if let Some(constraint) = c.get_constraint_of_type_parameter(source)
+                    && some_type(c, constraint, |_, t| {
                         t.flags().intersects(TypeFlags::TypeParameter)
-                    }) {
-                        return self.is_related_to(
-                            c,
-                            constraint,
-                            target,
-                            RecursionFlags::Source,
-                            false, /*reportErrors*/
-                        );
-                    }
+                    })
+                {
+                    return self.is_related_to(
+                        c,
+                        constraint,
+                        target,
+                        RecursionFlags::Source,
+                        false, /*reportErrors*/
+                    );
                 }
                 return Ternary::FALSE;
             }
@@ -2087,10 +2069,10 @@ impl Relater {
                     && !c.is_generic_index_type(base_index_type)
                 {
                     let access_flags = AccessFlags::Writing
-                        | if base_object_type != object_type {
-                            AccessFlags::NoIndexSignatures
-                        } else {
+                        | if base_object_type == object_type {
                             AccessFlags::None
+                        } else {
+                            AccessFlags::NoIndexSignatures
                         };
                     let constraint = c.get_indexed_access_type_or_undefined(
                         base_object_type,
@@ -2120,12 +2102,10 @@ impl Relater {
                         if report_errors
                             && original_error_chain.is_some()
                             && self.error_chain.get().is_some()
-                        {
-                            if chain_depth(original_error_chain)
+                            && chain_depth(original_error_chain)
                                 <= chain_depth(self.error_chain.get())
-                            {
-                                self.error_chain.set(original_error_chain);
-                            }
+                        {
+                            self.error_chain.set(original_error_chain);
                         }
                     }
                 }
@@ -2313,10 +2293,10 @@ impl Relater {
                 return Ternary::TRUE;
             }
         } else if target.flags().intersects(TypeFlags::StringMapping) {
-            if !source.flags().intersects(TypeFlags::StringMapping) {
-                if c.is_member_of_string_mapping(source, target) {
-                    return Ternary::TRUE;
-                }
+            if !source.flags().intersects(TypeFlags::StringMapping)
+                && c.is_member_of_string_mapping(source, target)
+            {
+                return Ternary::TRUE;
             }
         } else if c.is_generic_mapped_type(target) && self.rel() != c.identity_relation {
             // Check if source type `S` is related to target type `{ [P in Q]: T }` or `{ [P in Q as R]: T}`.
@@ -2667,18 +2647,18 @@ impl Relater {
         {
             if !target.flags().intersects(TypeFlags::TemplateLiteral) {
                 let constraint = c.get_base_constraint_of_type(source);
-                if let Some(constraint) = constraint {
-                    if constraint != source {
-                        result = self.is_related_to(
-                            c,
-                            constraint,
-                            target,
-                            RecursionFlags::Source,
-                            report_errors,
-                        );
-                        if result != Ternary::FALSE {
-                            return result;
-                        }
+                if let Some(constraint) = constraint
+                    && constraint != source
+                {
+                    result = self.is_related_to(
+                        c,
+                        constraint,
+                        target,
+                        RecursionFlags::Source,
+                        report_errors,
+                    );
+                    if result != Ternary::FALSE {
+                        return result;
                     }
                 }
             }
@@ -3556,25 +3536,25 @@ impl Relater {
                         None => c.get_property_of_type(source, name),
                     },
                 };
-                if let Some(source_prop) = source_prop {
-                    if source_prop != target_prop {
-                        let skip_optional = self.rel() == c.comparable_relation;
-                        let related = self.property_related_to(
-                            c,
-                            source,
-                            target,
-                            source_prop,
-                            target_prop,
-                            super::checker::Checker::get_non_missing_type_of_symbol,
-                            report_errors,
-                            intersection_state,
-                            skip_optional,
-                        );
-                        if related == Ternary::FALSE {
-                            return Ternary::FALSE;
-                        }
-                        result &= related;
+                if let Some(source_prop) = source_prop
+                    && source_prop != target_prop
+                {
+                    let skip_optional = self.rel() == c.comparable_relation;
+                    let related = self.property_related_to(
+                        c,
+                        source,
+                        target,
+                        source_prop,
+                        target_prop,
+                        super::checker::Checker::get_non_missing_type_of_symbol,
+                        report_errors,
+                        intersection_state,
+                        skip_optional,
+                    );
+                    if related == Ternary::FALSE {
+                        return Ternary::FALSE;
                     }
+                    result &= related;
                 }
             }
         }
@@ -3766,23 +3746,20 @@ impl Relater {
         require_optional_properties: bool,
     ) {
         // give specific error in case where private names have the same description
-        if let Some(value_declaration) = unmatched_property.value_declaration() {
-            if value_declaration.name().is_some_and(ast::is_private_identifier)
-                && source.symbol().is_some_and(|s| s.flags().intersects(SymbolFlags::Class))
-            {
-                let private_identifier_description = value_declaration.name().unwrap().text();
-                let symbol_table_key = tsrs_binder::get_symbol_name_for_private_identifier(
-                    source.symbol().unwrap(),
-                    private_identifier_description,
-                );
-                if c.get_property_of_type(source, &symbol_table_key).is_some() {
-                    let source_symbol_string =
-                        c.symbol_to_string_exported(source.symbol().unwrap());
-                    let target_symbol_string =
-                        c.symbol_to_string_exported(target.symbol().unwrap());
-                    self.report_error(c, &diagnostics::PROPERTY_0_IN_TYPE_1_REFERS_TO_A_DIFFERENT_MEMBER_THAT_CANNOT_BE_ACCESSED_FROM_WITHIN_TYPE_2, &[&private_identifier_description, &source_symbol_string, &target_symbol_string]);
-                    return;
-                }
+        if let Some(value_declaration) = unmatched_property.value_declaration()
+            && value_declaration.name().is_some_and(ast::is_private_identifier)
+            && source.symbol().is_some_and(|s| s.flags().intersects(SymbolFlags::Class))
+        {
+            let private_identifier_description = value_declaration.name().unwrap().text();
+            let symbol_table_key = tsrs_binder::get_symbol_name_for_private_identifier(
+                source.symbol().unwrap(),
+                private_identifier_description,
+            );
+            if c.get_property_of_type(source, &symbol_table_key).is_some() {
+                let source_symbol_string = c.symbol_to_string_exported(source.symbol().unwrap());
+                let target_symbol_string = c.symbol_to_string_exported(target.symbol().unwrap());
+                self.report_error(c, &diagnostics::PROPERTY_0_IN_TYPE_1_REFERS_TO_A_DIFFERENT_MEMBER_THAT_CANNOT_BE_ACCESSED_FROM_WITHIN_TYPE_2, &[&private_identifier_description, &source_symbol_string, &target_symbol_string]);
+                return;
             }
         }
         let props = c.get_unmatched_properties(
@@ -4784,7 +4761,7 @@ impl Relater {
 }
 
 // relater.go:4912
-pub(crate) fn add_to_dotted_name(head: &str, tail: &str) -> String {
+pub fn add_to_dotted_name(head: &str, tail: &str) -> String {
     let mut head = head.to_string();
     if head.starts_with("new ") {
         head = "(".to_string() + &head + ")";
@@ -4833,10 +4810,10 @@ impl Relater {
     pub(crate) fn chain_args_match(&self, _c: &mut Checker, args: &[Option<&str>]) -> bool {
         let chain = self.error_chain.get().unwrap();
         if args.iter().enumerate().any(|(i, a)| {
-            if let Some(a) = a {
-                if *a != chain.args[i] {
-                    return true;
-                }
+            if let Some(a) = a
+                && *a != chain.args[i]
+            {
+                return true;
             }
 
             false
@@ -4848,7 +4825,7 @@ impl Relater {
 }
 
 // relater.go:4959
-pub(crate) fn get_property_name_arg(arg: &str) -> String {
+pub fn get_property_name_arg(arg: &str) -> String {
     let s = arg;
     if !s.is_empty()
         && (s.as_bytes()[0] == b'"' || s.as_bytes()[0] == b'\'' || s.as_bytes()[0] == b'`')
@@ -4859,7 +4836,7 @@ pub(crate) fn get_property_name_arg(arg: &str) -> String {
 }
 
 // relater.go:4967
-pub(crate) fn is_conversion_or_interface_implementation_message(message: &'static Message) -> bool {
+pub fn is_conversion_or_interface_implementation_message(message: &'static Message) -> bool {
     std::ptr::eq(message, &raw const diagnostics::CLASS_0_INCORRECTLY_IMPLEMENTS_INTERFACE_1)
         || std::ptr::eq(message, &raw const diagnostics::CLASS_0_INCORRECTLY_IMPLEMENTS_CLASS_1_DID_YOU_MEAN_TO_EXTEND_1_AND_INHERIT_ITS_MEMBERS_AS_A_SUBCLASS)
         || std::ptr::eq(message, &raw const diagnostics::CONVERSION_OF_TYPE_0_TO_TYPE_1_MAY_BE_A_MISTAKE_BECAUSE_NEITHER_TYPE_SUFFICIENTLY_OVERLAPS_WITH_THE_OTHER_IF_THIS_WAS_INTENTIONAL_CONVERT_THE_EXPRESSION_TO_UNKNOWN_FIRST)
@@ -4869,7 +4846,7 @@ pub(crate) fn is_conversion_or_interface_implementation_message(message: &'stati
 }
 
 // relater.go:4976
-pub(crate) fn chain_depth(chain: Option<P<ErrorChain>>) -> usize {
+pub fn chain_depth(chain: Option<P<ErrorChain>>) -> usize {
     let mut chain = chain;
     let mut depth = 0;
     while let Some(c) = chain {

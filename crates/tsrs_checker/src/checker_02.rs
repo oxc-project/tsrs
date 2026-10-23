@@ -281,10 +281,9 @@ impl Checker {
 
         if !self.within_unreachable_code
             && self.compiler_options.allow_unreachable_code != Tristate::True
+            && self.check_source_element_unreachable(node)
         {
-            if self.check_source_element_unreachable(node) {
-                self.within_unreachable_code = true;
-            }
+            self.within_unreachable_code = true;
         }
 
         match node.kind() {
@@ -573,37 +572,36 @@ impl Checker {
 
     // checker.go:2597
     pub(crate) fn resolve_jsdoc_member_name(&mut self, name: Option<P<Node>>) -> Option<P<Symbol>> {
-        if let Some(name) = name {
-            if ast::is_entity_name(name) {
-                let meaning = SymbolFlags::Type | SymbolFlags::Namespace | SymbolFlags::Value;
-                if let Some(symbol) = self.resolve_entity_name(
-                    name,
-                    meaning,
-                    true, /*ignoreErrors*/
-                    true, /*dontResolveAlias*/
-                    ast::get_host_signature_from_jsdoc(name),
-                ) {
-                    return Some(symbol);
-                }
-                if ast::is_qualified_name(name) {
-                    if let Some(symbol) =
-                        self.resolve_jsdoc_member_name(Some(name.as_qualified_name().left))
-                    {
-                        let mut t: Option<P<Type>> = None;
-                        if symbol.flags().intersects(SymbolFlags::Value) {
-                            let symbol_type = self.get_type_of_symbol(symbol);
-                            let proto = self.get_property_of_type(symbol_type, "prototype");
-                            if let Some(proto) = proto {
-                                t = Some(self.get_type_of_symbol(proto));
-                            }
-                        }
-                        let t = match t {
-                            Some(t) => t,
-                            None => self.get_declared_type_of_symbol(symbol),
-                        };
-                        return self.get_property_of_type(t, name.as_qualified_name().right.text());
+        if let Some(name) = name
+            && ast::is_entity_name(name)
+        {
+            let meaning = SymbolFlags::Type | SymbolFlags::Namespace | SymbolFlags::Value;
+            if let Some(symbol) = self.resolve_entity_name(
+                name,
+                meaning,
+                true, /*ignoreErrors*/
+                true, /*dontResolveAlias*/
+                ast::get_host_signature_from_jsdoc(name),
+            ) {
+                return Some(symbol);
+            }
+            if ast::is_qualified_name(name)
+                && let Some(symbol) =
+                    self.resolve_jsdoc_member_name(Some(name.as_qualified_name().left))
+            {
+                let mut t: Option<P<Type>> = None;
+                if symbol.flags().intersects(SymbolFlags::Value) {
+                    let symbol_type = self.get_type_of_symbol(symbol);
+                    let proto = self.get_property_of_type(symbol_type, "prototype");
+                    if let Some(proto) = proto {
+                        t = Some(self.get_type_of_symbol(proto));
                     }
                 }
+                let t = match t {
+                    Some(t) => t,
+                    None => self.get_declared_type_of_symbol(symbol),
+                };
+                return self.get_property_of_type(t, name.as_qualified_name().right.text());
             }
         }
         None
@@ -754,10 +752,10 @@ impl Checker {
         self.check_variable_like_declaration(node);
         let fn_ = ast::get_containing_function(node);
         let mut param_name = "";
-        if let Some(name) = node.name() {
-            if ast::is_identifier(name) {
-                param_name = name.text();
-            }
+        if let Some(name) = node.name()
+            && ast::is_identifier(name)
+        {
+            param_name = name.text();
         }
         if ast::has_syntactic_modifier(node, ModifierFlags::ParameterPropertyModifier) {
             if self.should_check_erasable_syntax(node) {
@@ -843,11 +841,14 @@ impl Checker {
         // property signatures already report "initializer not allowed in ambient context" elsewhere
         if ast::has_syntactic_modifier(node, ModifierFlags::Abstract)
             && ast::is_property_declaration(node)
+            && node.initializer().is_some()
         {
-            if node.initializer().is_some() {
-                let name = tsrs_scanner::declaration_name_to_string(node.name());
-                self.error(Some(node), &diagnostics::PROPERTY_0_CANNOT_HAVE_AN_INITIALIZER_BECAUSE_IT_IS_MARKED_ABSTRACT, &[&name]);
-            }
+            let name = tsrs_scanner::declaration_name_to_string(node.name());
+            self.error(
+                Some(node),
+                &diagnostics::PROPERTY_0_CANNOT_HAVE_AN_INITIALIZER_BECAUSE_IT_IS_MARKED_ABSTRACT,
+                &[&name],
+            );
         }
     }
 
@@ -1075,13 +1076,7 @@ impl Checker {
             if super_call_should_be_root_level {
                 // Until we have better flow analysis, it is an error to place the super call within any kind of block or conditional
                 // See GH #8277
-                if !super_call_is_root_level_in_constructor(super_call, node.body().unwrap()) {
-                    self.error(
-                        Some(super_call),
-                        &diagnostics::A_SUPER_CALL_MUST_BE_A_ROOT_LEVEL_STATEMENT_WITHIN_A_CONSTRUCTOR_OF_A_DERIVED_CLASS_THAT_CONTAINS_INITIALIZED_PROPERTIES_PARAMETER_PROPERTIES_OR_PRIVATE_IDENTIFIERS,
-                        &[],
-                    );
-                } else {
+                if super_call_is_root_level_in_constructor(super_call, node.body().unwrap()) {
                     let mut super_call_statement: Option<P<Node>> = None;
                     for &statement in node.body().unwrap().statements() {
                         if ast::is_expression_statement(statement)
@@ -1106,6 +1101,12 @@ impl Checker {
                             &[],
                         );
                     }
+                } else {
+                    self.error(
+                        Some(super_call),
+                        &diagnostics::A_SUPER_CALL_MUST_BE_A_ROOT_LEVEL_STATEMENT_WITHIN_A_CONSTRUCTOR_OF_A_DERIVED_CLASS_THAT_CONTAINS_INITIALIZED_PROPERTIES_PARAMETER_PROPERTIES_OR_PRIVATE_IDENTIFIERS,
+                        &[],
+                    );
                 }
             }
         } else if !class_extends_null {
@@ -1135,21 +1136,19 @@ impl Checker {
 }
 
 // checker.go:2952
-pub(crate) fn is_instance_property_with_initializer_or_private_identifier_property(
-    n: P<Node>,
-) -> bool {
+pub fn is_instance_property_with_initializer_or_private_identifier_property(n: P<Node>) -> bool {
     ast::is_private_identifier_class_element_declaration(n)
         || ast::is_property_declaration(n) && !ast::is_static(n) && n.initializer().is_some()
 }
 
 // checker.go:2956
-pub(crate) fn super_call_is_root_level_in_constructor(super_call: P<Node>, body: P<Node>) -> bool {
+pub fn super_call_is_root_level_in_constructor(super_call: P<Node>, body: P<Node>) -> bool {
     let super_call_parent = ast::walk_up_parenthesized_expressions(super_call.parent()).unwrap();
     ast::is_expression_statement(super_call_parent) && super_call_parent.parent() == Some(body)
 }
 
 // checker.go:2961
-pub(crate) fn node_immediately_references_super_or_this(node: P<Node>) -> bool {
+pub fn node_immediately_references_super_or_this(node: P<Node>) -> bool {
     match node.kind() {
         Kind::SuperKeyword | Kind::ThisKeyword => return true,
         Kind::ArrowFunction
@@ -1184,15 +1183,13 @@ impl Checker {
         }
         self.check_decorators(node);
         self.check_signature_declaration(node);
-        if ast::is_get_accessor_declaration(node) {
-            if !node.flags().intersects(NodeFlags::Ambient)
-                && ast::node_is_present(node.body())
-                && node.flags().intersects(NodeFlags::HasImplicitReturn)
-            {
-                if !node.flags().intersects(NodeFlags::HasExplicitReturn) {
-                    self.error(Some(name), &diagnostics::A_GET_ACCESSOR_MUST_RETURN_A_VALUE, &[]);
-                }
-            }
+        if ast::is_get_accessor_declaration(node)
+            && !node.flags().intersects(NodeFlags::Ambient)
+            && ast::node_is_present(node.body())
+            && node.flags().intersects(NodeFlags::HasImplicitReturn)
+            && !node.flags().intersects(NodeFlags::HasExplicitReturn)
+        {
+            self.error(Some(name), &diagnostics::A_GET_ACCESSOR_MUST_RETURN_A_VALUE, &[]);
         }
         // Do not use hasDynamicName here, because that returns false for well known symbols.
         // We want to perform checkComputedPropertyName for all computed properties, including
@@ -1206,36 +1203,42 @@ impl Checker {
             let symbol = self.get_symbol_of_declaration(node).unwrap();
             let getter = ast::get_declaration_of_kind(symbol, Kind::GetAccessor);
             let setter = ast::get_declaration_of_kind(symbol, Kind::SetAccessor);
-            if let (Some(getter), Some(setter)) = (getter, setter) {
-                if !self.node_links.get(getter).flags.get().intersects(NodeCheckFlags::TypeChecked)
+            if let (Some(getter), Some(setter)) = (getter, setter)
+                && !self.node_links.get(getter).flags.get().intersects(NodeCheckFlags::TypeChecked)
+            {
+                let getter_links = self.node_links.get(getter);
+                getter_links.flags.set(getter_links.flags.get() | NodeCheckFlags::TypeChecked);
+                let getter_flags = getter.modifier_flags();
+                let setter_flags = setter.modifier_flags();
+                if (getter_flags & ModifierFlags::Abstract)
+                    != (setter_flags & ModifierFlags::Abstract)
                 {
-                    let getter_links = self.node_links.get(getter);
-                    getter_links.flags.set(getter_links.flags.get() | NodeCheckFlags::TypeChecked);
-                    let getter_flags = getter.modifier_flags();
-                    let setter_flags = setter.modifier_flags();
-                    if (getter_flags & ModifierFlags::Abstract)
-                        != (setter_flags & ModifierFlags::Abstract)
-                    {
-                        self.error(
-                            getter.name(),
-                            &diagnostics::ACCESSORS_MUST_BOTH_BE_ABSTRACT_OR_NON_ABSTRACT,
-                            &[],
-                        );
-                        self.error(
-                            setter.name(),
-                            &diagnostics::ACCESSORS_MUST_BOTH_BE_ABSTRACT_OR_NON_ABSTRACT,
-                            &[],
-                        );
-                    }
-                    if (getter_flags.intersects(ModifierFlags::Protected)
-                        && !setter_flags
-                            .intersects(ModifierFlags::Protected | ModifierFlags::Private))
-                        || (getter_flags.intersects(ModifierFlags::Private)
-                            && !setter_flags.intersects(ModifierFlags::Private))
-                    {
-                        self.error(getter.name(), &diagnostics::A_GET_ACCESSOR_MUST_BE_AT_LEAST_AS_ACCESSIBLE_AS_THE_SETTER, &[]);
-                        self.error(setter.name(), &diagnostics::A_GET_ACCESSOR_MUST_BE_AT_LEAST_AS_ACCESSIBLE_AS_THE_SETTER, &[]);
-                    }
+                    self.error(
+                        getter.name(),
+                        &diagnostics::ACCESSORS_MUST_BOTH_BE_ABSTRACT_OR_NON_ABSTRACT,
+                        &[],
+                    );
+                    self.error(
+                        setter.name(),
+                        &diagnostics::ACCESSORS_MUST_BOTH_BE_ABSTRACT_OR_NON_ABSTRACT,
+                        &[],
+                    );
+                }
+                if (getter_flags.intersects(ModifierFlags::Protected)
+                    && !setter_flags.intersects(ModifierFlags::Protected | ModifierFlags::Private))
+                    || (getter_flags.intersects(ModifierFlags::Private)
+                        && !setter_flags.intersects(ModifierFlags::Private))
+                {
+                    self.error(
+                        getter.name(),
+                        &diagnostics::A_GET_ACCESSOR_MUST_BE_AT_LEAST_AS_ACCESSIBLE_AS_THE_SETTER,
+                        &[],
+                    );
+                    self.error(
+                        setter.name(),
+                        &diagnostics::A_GET_ACCESSOR_MUST_BE_AT_LEAST_AS_ACCESSIBLE_AS_THE_SETTER,
+                        &[],
+                    );
                 }
             }
         }
@@ -1253,23 +1256,23 @@ impl Checker {
         self.check_grammar_type_arguments(node, node.type_argument_list());
         if ast::is_type_reference_node(node) && !node.flags().intersects(NodeFlags::JSDoc) {
             let data = node.as_type_reference_node();
-            if let Some(type_arguments) = node.type_argument_list() {
-                if data.type_name.end() != type_arguments.pos() {
-                    // If there was a token between the type name and the type arguments, check if it was a DotToken
-                    let source_file = ast::get_source_file_of_node(node).unwrap();
-                    let type_name_end =
-                        data.type_name.end().expect_source("parsed nodes have source positions");
-                    if tsrs_scanner::scan_token_at_position(source_file, type_name_end)
-                        == Kind::DotToken
-                    {
-                        self.grammar_error_at_pos(
-                            node,
-                            tsrs_scanner::skip_trivia(source_file.text(), type_name_end),
-                            1,
-                            &diagnostics::JSDOC_TYPES_CAN_ONLY_BE_USED_INSIDE_DOCUMENTATION_COMMENTS,
-                            &[],
-                        );
-                    }
+            if let Some(type_arguments) = node.type_argument_list()
+                && data.type_name.end() != type_arguments.pos()
+            {
+                // If there was a token between the type name and the type arguments, check if it was a DotToken
+                let source_file = ast::get_source_file_of_node(node).unwrap();
+                let type_name_end =
+                    data.type_name.end().expect_source("parsed nodes have source positions");
+                if tsrs_scanner::scan_token_at_position(source_file, type_name_end)
+                    == Kind::DotToken
+                {
+                    self.grammar_error_at_pos(
+                        node,
+                        tsrs_scanner::skip_trivia(source_file.text(), type_name_end),
+                        1,
+                        &diagnostics::JSDOC_TYPES_CAN_ONLY_BE_USED_INSIDE_DOCUMENTATION_COMMENTS,
+                        &[],
+                    );
                 }
             }
         }
@@ -1516,14 +1519,14 @@ impl Checker {
                 );
                 return true;
             }
-            if ast::is_array_binding_pattern(name) || ast::is_object_binding_pattern(name) {
-                if self.check_if_type_predicate_variable_is_declared_in_binding_pattern(
+            if (ast::is_array_binding_pattern(name) || ast::is_object_binding_pattern(name))
+                && self.check_if_type_predicate_variable_is_declared_in_binding_pattern(
                     name,
                     predicate_variable_node,
                     predicate_variable_name,
-                ) {
-                    return true;
-                }
+                )
+            {
+                return true;
             }
 
             false
@@ -1553,10 +1556,6 @@ impl Checker {
         node: P<Node>,
         check_private_names: bool,
     ) {
-        let mut instance_names: FxHashMap<String, u8> = FxHashMap::default();
-        let mut static_names: FxHashMap<String, u8> = FxHashMap::default();
-        let mut private_names: FxHashMap<String, u8> = FxHashMap::default();
-        let node_in_ambient_context = node.flags().intersects(NodeFlags::Ambient);
         fn check_property_or_accessor(
             c: &mut Checker,
             node: P<Node>,
@@ -1586,6 +1585,11 @@ impl Checker {
                 }
             }
         }
+
+        let mut instance_names: FxHashMap<String, u8> = FxHashMap::default();
+        let mut static_names: FxHashMap<String, u8> = FxHashMap::default();
+        let mut private_names: FxHashMap<String, u8> = FxHashMap::default();
+        let node_in_ambient_context = node.flags().intersects(NodeFlags::Ambient);
         for &member in node.members() {
             if ast::is_constructor_declaration(member) {
                 for &param in member.parameters() {
@@ -1693,11 +1697,12 @@ impl Checker {
                         }
                     }
                 }
-            } else if let Some(symbol) = self.get_symbol_of_declaration(member) {
-                if symbol.name() == name && (!check_static || is_static == ast::is_static(member)) {
-                    let s = self.symbol_to_string(symbol);
-                    self.error(member.name(), message, &[&s]);
-                }
+            } else if let Some(symbol) = self.get_symbol_of_declaration(member)
+                && symbol.name() == name
+                && (!check_static || is_static == ast::is_static(member))
+            {
+                let s = self.symbol_to_string(symbol);
+                self.error(member.name(), message, &[&s]);
             }
         }
     }
@@ -1947,12 +1952,12 @@ impl Checker {
         // Do not use hasDynamicName here, because that returns false for well known symbols.
         // We want to perform checkComputedPropertyName for all computed properties, including
         // well known symbols.
-        if let Some(name) = node.name() {
-            if ast::is_computed_property_name(name) {
-                // This check will account for methods in class/interface declarations,
-                // as well as accessors in classes/object literals
-                self.check_computed_property_name(name);
-            }
+        if let Some(name) = node.name()
+            && ast::is_computed_property_name(name)
+        {
+            // This check will account for methods in class/interface declarations,
+            // as well as accessors in classes/object literals
+            self.check_computed_property_name(name);
         }
         if self.has_bindable_name(node) {
             // first we want to check the local symbol that contain this declaration
@@ -2008,25 +2013,6 @@ impl Checker {
 
     // checker.go:3497
     pub(crate) fn check_function_or_constructor_symbol_worker(&mut self, symbol: P<Symbol>) {
-        let flags_to_check = ModifierFlags::Export
-            | ModifierFlags::Ambient
-            | ModifierFlags::Private
-            | ModifierFlags::Protected
-            | ModifierFlags::Abstract;
-        let mut some_node_flags = ModifierFlags::None;
-        let mut all_node_flags = flags_to_check;
-        let mut some_have_question_token = false;
-        let mut all_have_question_token = true;
-        let mut has_overloads = false;
-        let mut body_declaration: Option<P<Node>> = None;
-        let mut last_seen_non_ambient_declaration: Option<P<Node>> = None;
-        let mut previous_declaration: Option<P<Node>> = None;
-        let declarations: Vec<P<Node>> = symbol.declarations().to_vec();
-        let is_constructor = symbol.flags().intersects(SymbolFlags::Constructor);
-        let mut duplicate_function_declaration = false;
-        let mut multiple_constructor_implementation = false;
-        let mut has_non_ambient_class = false;
-        let mut function_declarations: Vec<P<Node>> = Vec::new();
         fn get_canonical_overload(
             overloads: &[P<Node>],
             implementation: Option<P<Node>>,
@@ -2156,8 +2142,8 @@ impl Checker {
                 if is_consecutive && is_same_kind {
                     let subsequent_name = subsequent_node.name();
                     let error_node = subsequent_name.or(Some(subsequent_node));
-                    if let (Some(name), Some(subsequent_name)) = (name, subsequent_name) {
-                        if ast::is_private_identifier(name)
+                    if let (Some(name), Some(subsequent_name)) = (name, subsequent_name)
+                        && (ast::is_private_identifier(name)
                             && ast::is_private_identifier(subsequent_name)
                             && name.text() == subsequent_name.text()
                             || ast::is_computed_property_name(name)
@@ -2169,25 +2155,24 @@ impl Checker {
                                 }
                             || ast::is_property_name_literal(name)
                                 && ast::is_property_name_literal(subsequent_name)
-                                && name.text() == subsequent_name.text()
-                        {
-                            let report_error = (ast::is_method_declaration(node)
-                                || ast::is_method_signature_declaration(node))
-                                && ast::is_static(node) != ast::is_static(subsequent_node);
-                            // we can get here in two cases
-                            // 1. mixed static and instance class members
-                            // 2. something with the same name was defined before the set of overloads that prevents them from merging
-                            // here we'll report error only for the first case since for second we should already report error in binder
-                            if report_error {
-                                let diagnostic = if_else(
-                                    ast::is_static(node),
-                                    &diagnostics::FUNCTION_OVERLOAD_MUST_BE_STATIC,
-                                    &diagnostics::FUNCTION_OVERLOAD_MUST_NOT_BE_STATIC,
-                                );
-                                c.error(error_node, diagnostic, &[]);
-                            }
-                            return;
+                                && name.text() == subsequent_name.text())
+                    {
+                        let report_error = (ast::is_method_declaration(node)
+                            || ast::is_method_signature_declaration(node))
+                            && ast::is_static(node) != ast::is_static(subsequent_node);
+                        // we can get here in two cases
+                        // 1. mixed static and instance class members
+                        // 2. something with the same name was defined before the set of overloads that prevents them from merging
+                        // here we'll report error only for the first case since for second we should already report error in binder
+                        if report_error {
+                            let diagnostic = if_else(
+                                ast::is_static(node),
+                                &diagnostics::FUNCTION_OVERLOAD_MUST_BE_STATIC,
+                                &diagnostics::FUNCTION_OVERLOAD_MUST_NOT_BE_STATIC,
+                            );
+                            c.error(error_node, diagnostic, &[]);
                         }
+                        return;
                     }
                     if ast::node_is_present(subsequent_node.body()) {
                         let name_str = tsrs_scanner::declaration_name_to_string(name);
@@ -2217,6 +2202,26 @@ impl Checker {
                 }
             }
         }
+
+        let flags_to_check = ModifierFlags::Export
+            | ModifierFlags::Ambient
+            | ModifierFlags::Private
+            | ModifierFlags::Protected
+            | ModifierFlags::Abstract;
+        let mut some_node_flags = ModifierFlags::None;
+        let mut all_node_flags = flags_to_check;
+        let mut some_have_question_token = false;
+        let mut all_have_question_token = true;
+        let mut has_overloads = false;
+        let mut body_declaration: Option<P<Node>> = None;
+        let mut last_seen_non_ambient_declaration: Option<P<Node>> = None;
+        let mut previous_declaration: Option<P<Node>> = None;
+        let declarations: Vec<P<Node>> = symbol.declarations().to_vec();
+        let is_constructor = symbol.flags().intersects(SymbolFlags::Constructor);
+        let mut duplicate_function_declaration = false;
+        let mut multiple_constructor_implementation = false;
+        let mut has_non_ambient_class = false;
+        let mut function_declarations: Vec<P<Node>> = Vec::new();
         for &node in &declarations {
             let in_ambient_context = node.flags().intersects(NodeFlags::Ambient);
             let in_ambient_context_or_interface = in_ambient_context
@@ -2330,13 +2335,12 @@ impl Checker {
             }
         }
         // Abstract methods can't have an implementation -- in particular, they don't need one.
-        if let Some(last) = last_seen_non_ambient_declaration {
-            if last.body().is_none()
-                && !ast::has_syntactic_modifier(last, ModifierFlags::Abstract)
-                && !is_optional_declaration(last)
-            {
-                report_implementation_expected_error(self, last, is_constructor);
-            }
+        if let Some(last) = last_seen_non_ambient_declaration
+            && last.body().is_none()
+            && !ast::has_syntactic_modifier(last, ModifierFlags::Abstract)
+            && !is_optional_declaration(last)
+        {
+            report_implementation_expected_error(self, last, is_constructor);
         }
         if has_overloads {
             check_flag_agreement_between_overloads(
@@ -2358,10 +2362,10 @@ impl Checker {
                 let signatures = self.get_signatures_of_symbol(Some(symbol));
                 let body_signature = self.get_signature_from_declaration(body_declaration);
                 if let Some(signature) = signatures.iter().find_map(|&signature| {
-                    if !self.is_implementation_compatible_with_overload(body_signature, signature) {
-                        Some(signature)
-                    } else {
+                    if self.is_implementation_compatible_with_overload(body_signature, signature) {
                         None
+                    } else {
+                        Some(signature)
                     }
                 }) {
                     let error_node = signature.declaration.get();
@@ -2447,12 +2451,11 @@ impl Checker {
         }
         // Functions with an explicitly specified return type that includes `void` or is exactly `any` or `undefined` don't
         // need any return statements.
-        if let Some(t) = t {
-            if self.maybe_type_of_kind(t, TypeFlags::Void)
-                || t.flags().intersects(TypeFlags::Any | TypeFlags::Undefined)
-            {
-                return;
-            }
+        if let Some(t) = t
+            && (self.maybe_type_of_kind(t, TypeFlags::Void)
+                || t.flags().intersects(TypeFlags::Any | TypeFlags::Undefined))
+        {
+            return;
         }
         // If all we have is a function signature, or an arrow function with an expression body, then there is nothing to check.
         // also if HasImplicitReturn flag is not set this means that all codepaths in function body end with return or throw
@@ -2465,12 +2468,11 @@ impl Checker {
         }
         let has_explicit_return = fn_.flags().intersects(NodeFlags::HasExplicitReturn);
         let mut error_node = fn_.type_node();
-        if error_node.is_none() {
-            if let Some(data) = fn_.function_like_data() {
-                if let Some(full_signature) = data.full_signature() {
-                    error_node = Some(full_signature);
-                }
-            }
+        if error_node.is_none()
+            && let Some(data) = fn_.function_like_data()
+            && let Some(full_signature) = data.full_signature()
+        {
+            error_node = Some(full_signature);
         }
         if error_node.is_none() {
             error_node = Some(fn_);
@@ -2795,12 +2797,11 @@ impl Checker {
 
     // checker.go:3987
     pub(crate) fn check_for_statement(&mut self, node: P<Node>) {
-        if !self.check_grammar_statement_in_ambient_context(node) {
-            if let Some(init) = node.initializer() {
-                if init.kind() == Kind::VariableDeclarationList {
-                    self.check_grammar_variable_declaration_list(init);
-                }
-            }
+        if !self.check_grammar_statement_in_ambient_context(node)
+            && let Some(init) = node.initializer()
+            && init.kind() == Kind::VariableDeclarationList
+        {
+            self.check_grammar_variable_declaration_list(init);
         }
         let data = node.as_for_statement();
         if let Some(initializer) = data.initializer {
@@ -2853,15 +2854,15 @@ impl Checker {
                 self.error(Some(var_expr), &diagnostics::THE_LEFT_HAND_SIDE_OF_A_FOR_IN_STATEMENT_CANNOT_BE_A_DESTRUCTURING_PATTERN, &[]);
             } else {
                 let index_type = self.get_index_type_or_string(right_type);
-                if !self.is_type_assignable_to(index_type, left_type) {
-                    self.error(Some(var_expr), &diagnostics::THE_LEFT_HAND_SIDE_OF_A_FOR_IN_STATEMENT_MUST_BE_OF_TYPE_STRING_OR_ANY, &[]);
-                } else {
+                if self.is_type_assignable_to(index_type, left_type) {
                     // run check only former check succeeded to avoid cascading errors
                     self.check_reference_expression(
                         var_expr,
                         &diagnostics::THE_LEFT_HAND_SIDE_OF_A_FOR_IN_STATEMENT_MUST_BE_A_VARIABLE_OR_A_PROPERTY_ACCESS,
                         &diagnostics::THE_LEFT_HAND_SIDE_OF_A_FOR_IN_STATEMENT_MAY_NOT_BE_AN_OPTIONAL_PROPERTY_ACCESS,
                     );
+                } else {
+                    self.error(Some(var_expr), &diagnostics::THE_LEFT_HAND_SIDE_OF_A_FOR_IN_STATEMENT_MUST_BE_OF_TYPE_STRING_OR_ANY, &[]);
                 }
             }
         }
@@ -3017,17 +3018,17 @@ impl Checker {
                     self.error(Some(node), &diagnostics::SETTERS_CANNOT_RETURN_A_VALUE, &[]);
                 }
             } else if ast::is_constructor_declaration(container) {
-                if let Some(expr_node) = expr_node {
-                    if !self.check_type_assignable_to_and_optionally_elaborate(
+                if let Some(expr_node) = expr_node
+                    && !self.check_type_assignable_to_and_optionally_elaborate(
                         expr_type,
                         return_type,
                         Some(node),
                         Some(expr_node),
                         None,
                         None,
-                    ) {
-                        self.error(Some(node), &diagnostics::RETURN_TYPE_OF_CONSTRUCTOR_SIGNATURE_MUST_BE_ASSIGNABLE_TO_THE_INSTANCE_TYPE_OF_THE_CLASS, &[]);
-                    }
+                    )
+                {
+                    self.error(Some(node), &diagnostics::RETURN_TYPE_OF_CONSTRUCTOR_SIGNATURE_MUST_BE_ASSIGNABLE_TO_THE_INSTANCE_TYPE_OF_THE_CLASS, &[]);
                 }
             } else if self.get_return_type_from_annotation(container).is_some() {
                 let unwrapped_return_type =
@@ -3117,14 +3118,14 @@ impl Checker {
 
     // checker.go:4184
     pub(crate) fn check_with_statement(&mut self, node: P<Node>) {
-        if !self.check_grammar_statement_in_ambient_context(node) {
-            if node.flags().intersects(NodeFlags::AwaitContext) {
-                self.grammar_error_on_first_token(
-                    node,
-                    &diagnostics::X_WITH_STATEMENTS_ARE_NOT_ALLOWED_IN_AN_ASYNC_FUNCTION_BLOCK,
-                    &[],
-                );
-            }
+        if !self.check_grammar_statement_in_ambient_context(node)
+            && node.flags().intersects(NodeFlags::AwaitContext)
+        {
+            self.grammar_error_on_first_token(
+                node,
+                &diagnostics::X_WITH_STATEMENTS_ARE_NOT_ALLOWED_IN_AN_ASYNC_FUNCTION_BLOCK,
+                &[],
+            );
         }
         self.check_expression(node.expression().unwrap());
         let source_file = ast::get_source_file_of_node(node).unwrap();
@@ -3175,14 +3176,12 @@ impl Checker {
                 }
             }
             self.check_source_elements(clause.statements());
-            if self.compiler_options.no_fallthrough_cases_in_switch.is_true() {
-                if let Some(flow_node) =
+            if self.compiler_options.no_fallthrough_cases_in_switch.is_true()
+                && let Some(flow_node) =
                     clause.as_case_or_default_clause().fallthrough_flow_node.get()
-                {
-                    if self.is_reachable_flow_node(flow_node) {
-                        self.error(Some(clause), &diagnostics::FALLTHROUGH_CASE_IN_SWITCH, &[]);
-                    }
-                }
+                && self.is_reachable_flow_node(flow_node)
+            {
+                self.error(Some(clause), &diagnostics::FALLTHROUGH_CASE_IN_SWITCH, &[]);
             }
         }
         if case_block.locals().is_some() {
@@ -3228,16 +3227,17 @@ impl Checker {
     // checker.go:4253
     pub(crate) fn check_throw_statement(&mut self, node: P<Node>) {
         let throw_expr = node.expression().unwrap();
-        if !self.check_grammar_statement_in_ambient_context(node) {
-            if ast::is_identifier(throw_expr) && throw_expr.text().is_empty() {
-                self.grammar_error_at_pos(
-                    node,
-                    throw_expr.pos().expect_source("parsed nodes have source positions"),
-                    0, /*length*/
-                    &diagnostics::LINE_BREAK_NOT_PERMITTED_HERE,
-                    &[],
-                );
-            }
+        if !self.check_grammar_statement_in_ambient_context(node)
+            && ast::is_identifier(throw_expr)
+            && throw_expr.text().is_empty()
+        {
+            self.grammar_error_at_pos(
+                node,
+                throw_expr.pos().expect_source("parsed nodes have source positions"),
+                0, /*length*/
+                &diagnostics::LINE_BREAK_NOT_PERMITTED_HERE,
+                &[],
+            );
         }
         self.check_expression(throw_expr);
     }
@@ -3278,17 +3278,15 @@ impl Checker {
                     let caught_names: Vec<&'static str> =
                         node.locals().map(|locals| locals.keys()).unwrap_or_default();
                     for caught_name in caught_names {
-                        if let Some(block_local) = block_locals.lookup(caught_name) {
-                            if let Some(value_declaration) = block_local.value_declaration() {
-                                if block_local.flags().intersects(SymbolFlags::BlockScopedVariable)
-                                {
-                                    self.grammar_error_on_node(
-                                        value_declaration,
-                                        &diagnostics::CANNOT_REDECLARE_IDENTIFIER_0_IN_CATCH_CLAUSE,
-                                        &[&caught_name],
-                                    );
-                                }
-                            }
+                        if let Some(block_local) = block_locals.lookup(caught_name)
+                            && let Some(value_declaration) = block_local.value_declaration()
+                            && block_local.flags().intersects(SymbolFlags::BlockScopedVariable)
+                        {
+                            self.grammar_error_on_node(
+                                value_declaration,
+                                &diagnostics::CANNOT_REDECLARE_IDENTIFIER_0_IN_CATCH_CLAUSE,
+                                &[&caught_name],
+                            );
                         }
                     }
                 }

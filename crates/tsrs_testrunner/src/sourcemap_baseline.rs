@@ -10,7 +10,7 @@ use crate::baseline::NO_CONTENT;
 use crate::harnessutil::{HarnessOptions, TestFile};
 use crate::tsbaseline::remove_test_path_prefixes;
 
-pub(crate) struct SourceMapCompilationResult<'a> {
+pub struct SourceMapCompilationResult<'a> {
     // result.Maps (in the harness's output order)
     pub(crate) maps: &'a [TestFile],
     // result.DTS.Size()
@@ -31,7 +31,7 @@ pub(crate) struct SourceMapCompilationResult<'a> {
 
 // js_emit_baseline.go:149
 // TODO(emit/core): shared with the `.js` baseline (js_emit_baseline.go); keep one copy once both have landed.
-pub(crate) fn file_output(file: &TestFile, settings: &HarnessOptions) -> String {
+pub fn file_output(file: &TestFile, settings: &HarnessOptions) -> String {
     let file_name = if settings.full_emit_paths {
         remove_test_path_prefixes(&file.unit_name, false /*retainTrailingDirectorySeparator*/)
     } else {
@@ -43,7 +43,7 @@ pub(crate) fn file_output(file: &TestFile, settings: &HarnessOptions) -> String 
 // sourcemap_baseline.go:18
 // Returns the baseline path and content to compare, `Ok(None)` when Go returns without a baseline, and `Err` for
 // Go's `t.Fatal`.
-pub(crate) fn do_sourcemap_baseline(
+pub fn do_sourcemap_baseline(
     baseline_path: &str,
     options: &CompilerOptions,
     result: &SourceMapCompilationResult,
@@ -104,7 +104,7 @@ pub(crate) fn do_sourcemap_baseline(
 }
 
 // sourcemap_baseline.go:72
-pub(crate) fn create_source_map_preview_link(
+pub fn create_source_map_preview_link(
     source_map: &TestFile,
     result: &SourceMapCompilationResult,
 ) -> String {
@@ -133,13 +133,10 @@ pub(crate) fn create_source_map_preview_link(
         .iter()
         .map(|s| {
             let source_file = result.inputs.iter().find(|td| td.unit_name.ends_with(s.as_str()));
-            if let Some(source_file) = source_file {
-                if let Some(text) = (result.get_program_source_text)(&source_file.unit_name) {
-                    return Some(TestFile {
-                        unit_name: source_file.unit_name.clone(),
-                        content: text,
-                    });
-                }
+            if let Some(source_file) = source_file
+                && let Some(text) = (result.get_program_source_text)(&source_file.unit_name)
+            {
+                return Some(TestFile { unit_name: source_file.unit_name.clone(), content: text });
             }
             source_file.cloned()
         })
@@ -239,7 +236,7 @@ fn base64_std_encode(data: &[u8]) -> String {
 
 // sourcemap_record_baseline.go:12
 // Returns the baseline path and content to compare.
-pub(crate) fn do_sourcemap_record_baseline(
+pub fn do_sourcemap_record_baseline(
     baseline_path: &str,
     options: &CompilerOptions,
     result: &SourceMapCompilationResult,

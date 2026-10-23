@@ -122,10 +122,11 @@ impl DocumentUri {
         } else {
             encoded_authority.to_string()
         };
-        if encoded && has_authority {
-            if let Some(suffix) = tspath::decode_dynamic_uri_no_path(encoded_path) {
-                return Some(Self(format!("{scheme}://{authority}{suffix}")));
-            }
+        if encoded
+            && has_authority
+            && let Some(suffix) = tspath::decode_dynamic_uri_no_path(encoded_path)
+        {
+            return Some(Self(format!("{scheme}://{authority}{suffix}")));
         }
         let path = if encoded {
             if strict {
@@ -449,7 +450,7 @@ fn unescape(s: &str, mode: Encoding) -> Result<String, String> {
 }
 
 // Go `strconv.Quote` (as `%q` formats a string or byte slice).
-pub(crate) fn go_quote(b: &[u8]) -> String {
+pub fn go_quote(b: &[u8]) -> String {
     tsrs_core::gocompat::quote(b, tsrs_core::gocompat::QuoteStyle::Lsp)
 }
 
@@ -555,10 +556,11 @@ impl IsZero for Method {
 
 // The process-lifetime string for `s` (Go converts a decoded string to a named string type).
 pub fn intern(s: &str) -> &'static str {
+    static TABLE: OnceLock<Mutex<FxHashSet<&'static str>>> = OnceLock::new();
+
     if s.is_empty() {
         return "";
     }
-    static TABLE: OnceLock<Mutex<FxHashSet<&'static str>>> = OnceLock::new();
     let mut table = TABLE.get_or_init(Default::default).lock().unwrap();
     if let Some(interned) = table.get(s) {
         return interned;
@@ -569,32 +571,32 @@ pub fn intern(s: &str) -> &'static str {
 }
 
 // lsp.go:87
-pub(crate) fn err_not_object(k: u8) -> String {
+pub fn err_not_object(k: u8) -> String {
     format!("expected object start, but encountered {}", kind_string(k))
 }
 
 // lsp.go:91
-pub(crate) fn err_null(field: &str) -> String {
+pub fn err_null(field: &str) -> String {
     format!("null value is not allowed for field {}", go_quote(field.as_bytes()))
 }
 
 // lsp.go:95
-pub(crate) fn err_missing(props: &[&str]) -> String {
+pub fn err_missing(props: &[&str]) -> String {
     format!("missing required properties: {}", props.join(", "))
 }
 
 // lsp.go:99
-pub(crate) fn err_invalid_kind(type_name: &str, got: u8) -> String {
+pub fn err_invalid_kind(type_name: &str, got: u8) -> String {
     format!("invalid {}: got {}", type_name, kind_string(got))
 }
 
 // lsp.go:103
-pub(crate) fn err_invalid_value(type_name: &str, data: &Value) -> String {
+pub fn err_invalid_value(type_name: &str, data: &Value) -> String {
     format!("invalid {}: {}", type_name, tsrs_core::json::marshal(data).unwrap_or_default())
 }
 
 // lsp.go:107
-pub(crate) fn err_literal_mismatch(type_name: &str, expected: &str, got: &Value) -> String {
+pub fn err_literal_mismatch(type_name: &str, expected: &str, got: &Value) -> String {
     format!(
         "expected {} value {}, got {}",
         type_name,
@@ -604,22 +606,18 @@ pub(crate) fn err_literal_mismatch(type_name: &str, expected: &str, got: &Value)
 }
 
 // lsp.go:111
-pub(crate) fn assert_only_one(message: &str, count: usize) {
+pub fn assert_only_one(message: &str, count: usize) {
     assert!(count == 1, "{}", message);
 }
 
 // lsp.go:117
-pub(crate) fn assert_at_most_one(message: &str, count: usize) {
+pub fn assert_at_most_one(message: &str, count: usize) {
     assert!(count <= 1, "{}", message);
 }
 
 // lsp.go:131: the value of a top-level field of a JSON object; None if `data` is not an object or has
 // no such field. (Go's jsonKeyCheck compares raw key tokens; decoded keys are compared directly.)
-#[expect(
-    dead_code,
-    reason = "tools/gen-lsproto emits calls for a union with a discriminator field; no generated union has one now (same in Go)"
-)]
-pub(crate) fn json_object_raw_field<'a>(data: &'a Value, field: &str) -> Option<&'a Value> {
+pub fn json_object_raw_field<'a>(data: &'a Value, field: &str) -> Option<&'a Value> {
     let Value::Object(members) = data else {
         return None;
     };
@@ -628,7 +626,7 @@ pub(crate) fn json_object_raw_field<'a>(data: &'a Value, field: &str) -> Option<
 
 // lsp.go:161: the index in `keys` of the first top-level key of the object (in document order) that is
 // one of `keys`.
-pub(crate) fn json_object_has_key(data: &Value, keys: &[&str]) -> Option<usize> {
+pub fn json_object_has_key(data: &Value, keys: &[&str]) -> Option<usize> {
     let Value::Object(members) = data else {
         return None;
     };

@@ -14,7 +14,7 @@ use crate::protocol::{
 const SYNTHESIZED_OUTPUT: &str = "export const el = jsxRuntime(Widget);\n";
 
 // synthesizing.go:14
-pub(crate) struct SynthesizingHandler;
+pub struct SynthesizingHandler;
 
 impl TestHandler for SynthesizingHandler {}
 

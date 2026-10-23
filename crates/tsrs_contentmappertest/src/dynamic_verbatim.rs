@@ -22,7 +22,7 @@ pub struct ProjectLifecycle {
 }
 
 // dynamic_verbatim.go:19 (Go embeds verbatimHandler, which carries no state.)
-pub(crate) struct DynamicVerbatimHandler {
+pub struct DynamicVerbatimHandler {
     pub(crate) lifecycle: Option<Arc<ProjectLifecycle>>,
 }
 

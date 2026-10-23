@@ -154,6 +154,6 @@ fn parse_int(s: &[u8]) -> Result<i64, String> {
 // Go's `%q` of a byte slice (strconv.Quote): printable runes as they are, the usual backslash escapes, `\x` for
 // invalid UTF-8 and ASCII controls, `\u` / `\U` for other non-printable runes. Go's unicode.IsPrint is
 // approximated: controls, white space other than ' ', and the format characters a header is likely to contain.
-pub(crate) fn go_quote(b: &[u8]) -> String {
+pub fn go_quote(b: &[u8]) -> String {
     tsrs_core::gocompat::quote(b, tsrs_core::gocompat::QuoteStyle::Header)
 }

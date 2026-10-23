@@ -3,26 +3,26 @@ use std::fmt;
 use std::sync::LazyLock;
 
 // Go's `(?i)[a-z]` also matches U+017F (folds to 's') and U+212A (folds to 'k').
-pub(crate) fn is_letter_fold(c: char) -> bool {
+pub fn is_letter_fold(c: char) -> bool {
     c.is_ascii_alphabetic() || c == '\u{17F}' || c == '\u{212A}'
 }
 
-pub(crate) fn is_digit(c: char) -> bool {
+pub fn is_digit(c: char) -> bool {
     c.is_ascii_digit()
 }
 
 // [a-z0-9-.] with (?i)
-pub(crate) fn is_identifier_or_dot_char(c: char) -> bool {
+pub fn is_identifier_or_dot_char(c: char) -> bool {
     is_letter_fold(c) || is_digit(c) || c == '-' || c == '.'
 }
 
 // Length in bytes of the longest prefix of `text` whose chars all satisfy `f`.
-pub(crate) fn span(text: &str, f: impl Fn(char) -> bool) -> usize {
+pub fn span(text: &str, f: impl Fn(char) -> bool) -> usize {
     text.char_indices().find(|&(_, c)| !f(c)).map_or(text.len(), |(i, _)| i)
 }
 
 // 0|[1-9]\d*
-pub(crate) fn match_numeric_component(text: &str) -> Option<usize> {
+pub fn match_numeric_component(text: &str) -> Option<usize> {
     let b = text.as_bytes();
     match b.first() {
         Some(b'0') => Some(1),
@@ -36,7 +36,7 @@ pub(crate) fn match_numeric_component(text: &str) -> Option<usize> {
 // Every group is deterministic and anything a skipped optional group would have consumed
 // must then be matched by `$`, so a greedy parse followed by an end check is equivalent.
 // Non-participating groups are "", as in Go's FindStringSubmatch.
-pub(crate) fn find_version_like_submatch(
+pub fn find_version_like_submatch(
     text: &str,
     component: fn(&str) -> Option<usize>,
 ) -> Option<[&str; 6]> {
@@ -81,7 +81,7 @@ pub(crate) fn find_version_like_submatch(
 // NOTE: We differ here in that we allow X and X.Y, with missing parts having the default
 // value of `0`.
 // (?i)^(0|[1-9]\d*)(?:\.(0|[1-9]\d*)(?:\.(0|[1-9]\d*)(?:-([a-z0-9-.]+))?(?:\+([a-z0-9-.]+))?)?)?$
-pub(crate) fn version_regexp_find_string_submatch(text: &str) -> Option<[&str; 6]> {
+pub fn version_regexp_find_string_submatch(text: &str) -> Option<[&str; 6]> {
     find_version_like_submatch(text, match_numeric_component)
 }
 
@@ -106,7 +106,7 @@ fn is_prerelease_part(part: &str) -> bool {
 // > alphanumerics and hyphen [0-9A-Za-z-]. Identifiers MUST NOT be empty. Numeric identifiers
 // > MUST NOT include leading zeroes.
 // (?i)^(?:0|[1-9]\d*|[a-z-][a-z0-9-]*)(?:\.(?:0|[1-9]\d*|[a-zA-Z-][a-zA-Z0-9-]*))*$
-pub(crate) fn prerelease_regexp_match_string(text: &str) -> bool {
+pub fn prerelease_regexp_match_string(text: &str) -> bool {
     text.split('.').all(is_prerelease_part)
 }
 
@@ -120,14 +120,14 @@ fn is_build_part(part: &str) -> bool {
 // > identifiers immediately following the patch or pre-release version. Identifiers MUST
 // > comprise only ASCII alphanumerics and hyphen [0-9A-Za-z-]. Identifiers MUST NOT be empty.
 // (?i)^[a-z0-9-]+(?:\.[a-z0-9-]+)*$
-pub(crate) fn build_reg_exp_match_string(text: &str) -> bool {
+pub fn build_reg_exp_match_string(text: &str) -> bool {
     text.split('.').all(is_build_part)
 }
 
 // https://semver.org/#spec-item-9
 // > Numeric identifiers MUST NOT include leading zeroes.
 // ^(?:0|[1-9]\d*)$
-pub(crate) fn numeric_identifier_reg_exp_match_string(text: &str) -> bool {
+pub fn numeric_identifier_reg_exp_match_string(text: &str) -> bool {
     match_numeric_component(text) == Some(text.len())
 }
 
@@ -140,7 +140,7 @@ pub struct Version {
     pub(crate) build: Vec<String>,
 }
 
-pub(crate) static VERSION_ZERO: LazyLock<Version> =
+pub static VERSION_ZERO: LazyLock<Version> =
     LazyLock::new(|| Version { prerelease: vec!["0".to_string()], ..Default::default() });
 
 impl Version {
@@ -162,9 +162,9 @@ impl Version {
     }
 }
 
-pub(crate) const COMPARISON_LESS_THAN: Ordering = Ordering::Less;
-pub(crate) const COMPARISON_EQUAL_TO: Ordering = Ordering::Equal;
-pub(crate) const COMPARISON_GREATER_THAN: Ordering = Ordering::Greater;
+pub const COMPARISON_LESS_THAN: Ordering = Ordering::Less;
+pub const COMPARISON_EQUAL_TO: Ordering = Ordering::Equal;
+pub const COMPARISON_GREATER_THAN: Ordering = Ordering::Greater;
 
 fn cmp_compare<T: Ord + Copy>(a: T, b: T) -> Ordering {
     a.cmp(&b)
@@ -208,7 +208,7 @@ impl Version {
     }
 }
 
-pub(crate) fn compare_pre_release_identifiers(left: &[String], right: &[String]) -> Ordering {
+pub fn compare_pre_release_identifiers(left: &[String], right: &[String]) -> Ordering {
     // https://semver.org/#spec-item-11
     // > When major, minor, and patch are equal, a pre-release version has lower precedence
     // > than a normal version.
@@ -238,7 +238,7 @@ pub(crate) fn compare_pre_release_identifiers(left: &[String], right: &[String])
     cmp_compare(left.len(), right.len())
 }
 
-pub(crate) fn compare_pre_release_identifier(left: &str, right: &str) -> Ordering {
+pub fn compare_pre_release_identifier(left: &str, right: &str) -> Ordering {
     // https://semver.org/#spec-item-11
     // > Precedence for two pre-release versions with the same major, minor, and patch version
     // > MUST be determined by comparing each dot separated identifier from left to right until
@@ -358,7 +358,7 @@ pub fn must_parse(text: &str) -> Version {
 }
 
 // strconv.ParseUint(text, 10, 32)
-pub(crate) fn get_uint_component(text: &str) -> Result<u32, String> {
+pub fn get_uint_component(text: &str) -> Result<u32, String> {
     if text.is_empty() || !text.bytes().all(|b| b.is_ascii_digit()) {
         return Err(format!("strconv.ParseUint: parsing {text:?}: invalid syntax"));
     }

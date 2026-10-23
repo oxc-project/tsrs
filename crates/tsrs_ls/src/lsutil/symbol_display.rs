@@ -299,31 +299,30 @@ fn get_symbol_kind_of_constructor_property_method_accessor_function_or_var(
     }
 
     if flags.intersects(SymbolFlags::Property) {
-        if let Some(c) = type_checker {
-            if flags.intersects(SymbolFlags::Transient)
-                && symbol.check_flags().intersects(CheckFlags::Synthetic)
-            {
-                // If union property is result of union of non method (property/accessors/variables), it is labeled as property
-                let mut union_property_kind = ScriptElementKind::Unknown;
-                if roots.iter().any(|root_symbol| {
-                    root_symbol
-                        .flags()
-                        .intersects(SymbolFlags::PropertyOrAccessor | SymbolFlags::Variable)
-                }) {
-                    union_property_kind = ScriptElementKind::MemberVariableElement;
-                }
-                if union_property_kind == ScriptElementKind::Unknown {
-                    // If this was union of all methods,
-                    // make sure it has call signatures before we can label it as method.
-                    let type_of_union_property =
-                        c.get_type_of_symbol_at_location(symbol, Some(location)).unwrap();
-                    if !c.get_call_signatures(type_of_union_property).is_empty() {
-                        return ScriptElementKind::MemberFunctionElement;
-                    }
-                    return ScriptElementKind::MemberVariableElement;
-                }
-                return union_property_kind;
+        if let Some(c) = type_checker
+            && flags.intersects(SymbolFlags::Transient)
+            && symbol.check_flags().intersects(CheckFlags::Synthetic)
+        {
+            // If union property is result of union of non method (property/accessors/variables), it is labeled as property
+            let mut union_property_kind = ScriptElementKind::Unknown;
+            if roots.iter().any(|root_symbol| {
+                root_symbol
+                    .flags()
+                    .intersects(SymbolFlags::PropertyOrAccessor | SymbolFlags::Variable)
+            }) {
+                union_property_kind = ScriptElementKind::MemberVariableElement;
             }
+            if union_property_kind == ScriptElementKind::Unknown {
+                // If this was union of all methods,
+                // make sure it has call signatures before we can label it as method.
+                let type_of_union_property =
+                    c.get_type_of_symbol_at_location(symbol, Some(location)).unwrap();
+                if !c.get_call_signatures(type_of_union_property).is_empty() {
+                    return ScriptElementKind::MemberFunctionElement;
+                }
+                return ScriptElementKind::MemberVariableElement;
+            }
+            return union_property_kind;
         }
 
         return ScriptElementKind::MemberVariableElement;
@@ -395,12 +394,12 @@ pub fn get_symbol_modifiers(
     };
 
     let mut modifiers = get_normalized_symbol_modifiers(type_checker.as_deref_mut(), symbol);
-    if symbol.flags().intersects(SymbolFlags::Alias) {
-        if let Some(c) = type_checker {
-            let resolved_symbol = c.get_aliased_symbol(symbol);
-            if resolved_symbol != symbol {
-                modifiers |= get_normalized_symbol_modifiers(Some(c), resolved_symbol);
-            }
+    if symbol.flags().intersects(SymbolFlags::Alias)
+        && let Some(c) = type_checker
+    {
+        let resolved_symbol = c.get_aliased_symbol(symbol);
+        if resolved_symbol != symbol {
+            modifiers |= get_normalized_symbol_modifiers(Some(c), resolved_symbol);
         }
     }
     if symbol.flags().intersects(SymbolFlags::Optional) {

@@ -18,15 +18,15 @@ impl NodeBuilderImpl {
             let ctx = self.ctx();
             if !ctx.suppress_report_inference_fallback.get() {
                 let error_nodes = t.as_pseudo_type_inferred().error_nodes;
-                if !error_nodes.is_empty() {
-                    for &n in error_nodes {
-                        ctx.tracker.get().unwrap().report_inference_fallback(c, n);
-                    }
-                } else {
+                if error_nodes.is_empty() {
                     ctx.tracker
                         .get()
                         .unwrap()
                         .report_inference_fallback(c, t.as_pseudo_type_inferred().expression);
+                } else {
+                    for &n in error_nodes {
+                        ctx.tracker.get().unwrap().report_inference_fallback(c, n);
+                    }
                 }
             }
             let old_suppress = ctx.suppress_report_inference_fallback.get();
@@ -156,10 +156,6 @@ impl NodeBuilderImpl {
                 }
             }
             PseudoTypeKind::Union => {
-                let mut res: Vec<P<Node>> = Vec::new();
-                let mut has_elided_type = false;
-                let mut has_undefined = false;
-                let members = t.as_pseudo_type_union().types;
                 fn append_type_node(
                     node: P<Node>,
                     res: &mut Vec<P<Node>>,
@@ -179,6 +175,11 @@ impl NodeBuilderImpl {
                     }
                     res.push(node);
                 }
+
+                let mut res: Vec<P<Node>> = Vec::new();
+                let mut has_elided_type = false;
+                let mut has_undefined = false;
+                let members = t.as_pseudo_type_union().types;
                 for &m in members {
                     if !c.strict_null_checks
                         && (m.kind == PseudoTypeKind::Undefined || m.kind == PseudoTypeKind::Null)
@@ -467,10 +468,10 @@ impl NodeBuilderImpl {
         report_errors: bool,
     ) -> bool {
         // if type_ resolves to an error, we charitably assume equality, since we might be in a single-file checking mode
-        if let Some(ty) = type_ {
-            if c.is_error_type(ty) {
-                return true;
-            }
+        if let Some(ty) = type_
+            && c.is_error_type(ty)
+        {
+            return true;
         }
         // If we can easily operate on just types, we should
         let type_from_pseudo = Self::pseudo_type_to_type(c, t); // note: cannot convert complex types like objects, which must be validated separately
@@ -570,11 +571,11 @@ impl NodeBuilderImpl {
                         // Name lookup failed or returned no result; search target properties
                         // for one whose declaration name node matches the one we have
                         for &prop in target_props {
-                            if let Some(value_declaration) = prop.value_declaration() {
-                                if value_declaration.name() == Some(e.name) {
-                                    target_prop = Some(prop);
-                                    break;
-                                }
+                            if let Some(value_declaration) = prop.value_declaration()
+                                && value_declaration.name() == Some(e.name)
+                            {
+                                target_prop = Some(prop);
+                                break;
                             }
                         }
                         if target_prop.is_none() {
@@ -926,7 +927,7 @@ impl NodeBuilderImpl {
 }
 
 // pseudotypenodebuilder.go:632
-pub(crate) fn is_structural_pseudo_type(t: P<PseudoType>) -> bool {
+pub fn is_structural_pseudo_type(t: P<PseudoType>) -> bool {
     match t.kind {
         PseudoTypeKind::ObjectLiteral
         | PseudoTypeKind::Tuple

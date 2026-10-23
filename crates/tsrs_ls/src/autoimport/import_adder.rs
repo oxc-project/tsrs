@@ -535,14 +535,14 @@ pub fn try_get_auto_importable_reference_from_type_node(
                 return Some(node.visit_each_child(visitor));
             };
             let name = get_name_for_exported_symbol(symbol, false /*preferCapitalized*/);
-            let qualifier = if name != first_identifier.text() {
+            let qualifier = if name == first_identifier.text() {
+                qualifier_node
+            } else {
                 replace_first_identifier_of_entity_name(
                     &visit_factory,
                     qualifier_node,
                     visit_factory.new_identifier(tsrs_core::alloc_str(&name)),
                 )
-            } else {
-                qualifier_node
             };
             visit_symbols.borrow_mut().push(symbol);
             let type_arguments = visitor.visit_nodes(import_type_node.type_arguments());

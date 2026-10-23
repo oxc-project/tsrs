@@ -24,13 +24,13 @@ pub struct ConfigFileRegistry {
     pub(crate) all_configured_content_mappers: Option<Arc<ConfiguredContentMappers>>,
 }
 
-#[derive(Clone, Debug, Default, PartialEq)]
-pub(crate) struct ConfiguredContentMappers {
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+pub struct ConfiguredContentMappers {
     pub(crate) extensions: Vec<String>,
 }
 
 // configfileregistry.go:32
-pub(crate) fn collect_configured_content_mappers(
+pub fn collect_configured_content_mappers(
     command_lines: &[P<ParsedCommandLine>],
 ) -> Arc<ConfiguredContentMappers> {
     let mut seen_extensions: Set<String> = Set::default();
@@ -60,7 +60,7 @@ impl ConfigFileRegistry {
 }
 
 #[derive(Clone)]
-pub(crate) struct ConfigFileEntry {
+pub struct ConfigFileEntry {
     pub(crate) file_name: String,
     pub(crate) pending_reload: PendingReload,
     pub(crate) command_line: Option<P<ParsedCommandLine>>,
@@ -88,7 +88,7 @@ pub(crate) struct ConfigFileEntry {
 }
 
 // configfileregistry.go:88
-pub(crate) fn new_config_file_entry(
+pub fn new_config_file_entry(
     has_relative_pattern_capability: bool,
     file_name: &str,
 ) -> ConfigFileEntry {
@@ -109,7 +109,7 @@ pub(crate) fn new_config_file_entry(
 }
 
 // configfileregistry.go:101
-pub(crate) fn new_extended_config_file_entry(
+pub fn new_extended_config_file_entry(
     file_name: &str,
     extending_config_path: Path,
 ) -> ConfigFileEntry {
@@ -262,7 +262,7 @@ pub struct TestConfigFileNamesEntry {
 }
 
 #[derive(Clone, Default)]
-pub(crate) struct ConfigFileNames {
+pub struct ConfigFileNames {
     // nearestConfigFileName is the file name of the nearest ancestor config file.
     pub(crate) nearest_config_file_name: String,
     // ancestors is a map from one ancestor config file path to the next.

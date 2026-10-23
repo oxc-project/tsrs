@@ -28,12 +28,12 @@ impl Watch for MockCloser {
 }
 
 /// Go `fsbaselineutil.FileChange`.
-pub(crate) struct FileChange {
+pub struct FileChange {
     pub(crate) path: String,
     pub(crate) deleted: bool,
 }
 
-pub(crate) struct MockWatchBackend {
+pub struct MockWatchBackend {
     // The mock keeps closed watches (Go: `Dirs`), so "is watched" checks the closed flag.
     dirs: Mutex<FxHashMap<String, MockWatch>>,
     pub(crate) directory_exists: Box<dyn Fn(&str) -> bool + Send + Sync>,

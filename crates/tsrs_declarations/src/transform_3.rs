@@ -80,18 +80,17 @@ impl DeclarationTransformer {
             }
         }
 
-        if let Some(data) = node.function_like_data() {
-            if data.full_signature.get().is_some() {
-                if let Some(nodes) = self.resolver.create_type_parameters_of_signature_declaration(
-                    node,
-                    self.enclosing_declaration.get(),
-                    DECLARATION_EMIT_NODE_BUILDER_FLAGS,
-                    DECLARATION_EMIT_INTERNAL_NODE_BUILDER_FLAGS,
-                    self.tracker.get(),
-                ) {
-                    type_parameters = Some(P::new(NodeList::new(node.loc(), alloc_vec(nodes))));
-                }
-            }
+        if let Some(data) = node.function_like_data()
+            && data.full_signature.get().is_some()
+            && let Some(nodes) = self.resolver.create_type_parameters_of_signature_declaration(
+                node,
+                self.enclosing_declaration.get(),
+                DECLARATION_EMIT_NODE_BUILDER_FLAGS,
+                DECLARATION_EMIT_INTERNAL_NODE_BUILDER_FLAGS,
+                self.tracker.get(),
+            )
+        {
+            type_parameters = Some(P::new(NodeList::new(node.loc(), alloc_vec(nodes))));
         }
 
         self.state.error_name_node.set(old_error_name_node);
@@ -171,15 +170,14 @@ impl DeclarationTransformer {
                 self.binding_name_visitor().visit_each_child(Some(node)).unwrap()
             }
             Kind::BindingElement => {
-                if let Some(property_name) = node.property_name() {
-                    if ast::is_computed_property_name(property_name)
-                        && ast::is_entity_name_expression(property_name.expression().unwrap())
-                    {
-                        self.check_entity_name_visibility(
-                            property_name.expression().unwrap(),
-                            self.enclosing_declaration.get(),
-                        );
-                    }
+                if let Some(property_name) = node.property_name()
+                    && ast::is_computed_property_name(property_name)
+                    && ast::is_entity_name_expression(property_name.expression().unwrap())
+                {
+                    self.check_entity_name_visibility(
+                        property_name.expression().unwrap(),
+                        self.enclosing_declaration.get(),
+                    );
                 }
                 let elem = node.as_binding_element();
                 self.factory().update_binding_element(
@@ -431,7 +429,7 @@ impl DeclarationTransformer {
 }
 
 // transform.go:2668
-pub(crate) fn is_not_declare_modifier(mod_: P<Node>) -> bool {
+pub fn is_not_declare_modifier(mod_: P<Node>) -> bool {
     mod_.kind() != Kind::DeclareKeyword
 }
 
@@ -457,20 +455,19 @@ impl DeclarationTransformer {
     ) -> Option<P<Node>> {
         let expression = expression?;
         let (_, mut cleanup_diagnostic_context) = self.setup_diagnostic_context(expression);
-        if ast::get_assignment_declaration_kind(expression) == JSDeclarationKind::ModuleExports {
-            if self.state.current_source_file.get().unwrap().common_js_module_indicator().is_some()
-            {
-                let result = Some(self.transform_export_assignment(
-                    expression.parent().unwrap(),
-                    expression,
-                    expression.as_binary_expression().right(),
-                    true, /*isExportEquals*/
-                ));
-                if let Some(result) = result {
-                    self.cjs_export_assignment.set(Some(result));
-                    self.result_has_scope_marker.set(true);
-                    self.result_has_external_module_indicator.set(true);
-                }
+        if ast::get_assignment_declaration_kind(expression) == JSDeclarationKind::ModuleExports
+            && self.state.current_source_file.get().unwrap().common_js_module_indicator().is_some()
+        {
+            let result = Some(self.transform_export_assignment(
+                expression.parent().unwrap(),
+                expression,
+                expression.as_binary_expression().right(),
+                true, /*isExportEquals*/
+            ));
+            if let Some(result) = result {
+                self.cjs_export_assignment.set(Some(result));
+                self.result_has_scope_marker.set(true);
+                self.result_has_external_module_indicator.set(true);
             }
         }
         let result = self.cjs_export_assignment_visitor().visit_each_child(Some(expression)); // recur through the whole tree, looking for module.exports=
@@ -887,7 +884,7 @@ impl DeclarationTransformer {
 }
 
 // transform.go:2980
-pub(crate) fn extract_expando_host_params(
+pub fn extract_expando_host_params(
     node: P<Node>,
 ) -> (Option<P<NodeList>>, Option<P<NodeList>>, Option<P<Node>>) {
     match node.kind() {

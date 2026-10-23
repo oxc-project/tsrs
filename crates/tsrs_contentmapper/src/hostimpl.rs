@@ -782,7 +782,7 @@ type DialFunc = dyn Fn(
 // host manages one child process per mapper identity. It is the production implementation of Host.
 // hostimpl.go:221 (Go's ctx, cancel and stop are not ported: the port has no context. The owner closes the host, and
 // dropping the last reference closes it too, where Go closes it when its context ends.)
-pub(crate) struct HostImpl {
+pub struct HostImpl {
     // The host's own Arc, which project leases and Acquire's release function hold, as Go's do a *host.
     this: Weak<HostImpl>,
     dial: Box<DialFunc>,
@@ -1765,12 +1765,11 @@ impl HostImpl {
                         .refs
                         .checked_sub(1)
                         .expect("content mapper connection reference count below zero");
-                    if entry.refs == 0 {
-                        if let Some(closer) =
+                    if entry.refs == 0
+                        && let Some(closer) =
                             conns.shift_remove(identity).and_then(|entry| entry.closer)
-                        {
-                            closers.push(closer);
-                        }
+                    {
+                        closers.push(closer);
                     }
                 }
             }
@@ -1829,13 +1828,12 @@ impl ProjectLease {
                     return Ok(());
                 }
                 let HostLocked { conns, projects, project_leases, .. } = &mut *state;
-                if let Some(project_leases) = project_leases {
-                    if project_leases
+                if let Some(project_leases) = project_leases
+                    && project_leases
                         .get(&self.key)
                         .is_some_and(|lease| std::ptr::eq(Arc::as_ptr(lease), self))
-                    {
-                        project_leases.remove(&self.key);
-                    }
+                {
+                    project_leases.remove(&self.key);
                 }
                 for key in self.entries.values() {
                     let Some(entry) =
@@ -1844,20 +1842,15 @@ impl ProjectLease {
                         continue;
                     };
                     let identity = entry.mapper.identity();
-                    if entry.opened {
-                        if let Some(conn) = conns
+                    if entry.opened
+                        && let Some(conn) = conns
                             .as_ref()
                             .and_then(|conns| conns.get(&identity))
                             .and_then(|entry| entry.conn.as_ref())
-                        {
-                            if let Err(err) = self.host.close_project(
-                                entry.mapper,
-                                &**conn,
-                                &entry.project_handle,
-                            ) {
-                                result = Some(join(result, err));
-                            }
-                        }
+                        && let Err(err) =
+                            self.host.close_project(entry.mapper, &**conn, &entry.project_handle)
+                    {
+                        result = Some(join(result, err));
                     }
                     released_identities.push(identity);
                 }
@@ -1889,12 +1882,10 @@ impl Project for ProjectLease {
                 .as_ref()
                 .and_then(|conns| conns.get(&entry.mapper.identity()))
                 .and_then(|entry| entry.conn.as_ref())
-            {
-                if let Err(err) =
+                && let Err(err) =
                     self.host.close_project(entry.mapper, &**conn, &entry.project_handle)
-                {
-                    result = Some(join(result, err));
-                }
+            {
+                result = Some(join(result, err));
             }
             entry.opened = false;
         }

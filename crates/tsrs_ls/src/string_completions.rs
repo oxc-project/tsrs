@@ -33,33 +33,33 @@ use crate::utilities::{
 };
 
 // string_completions.go:30
-pub(crate) struct CompletionsFromTypes {
+pub struct CompletionsFromTypes {
     types: Vec<P<Type>>,
     is_new_identifier: bool,
 }
 
 // string_completions.go:35
-pub(crate) struct CompletionsFromProperties {
+pub struct CompletionsFromProperties {
     symbols: Vec<P<Symbol>>,
     has_index_signature: bool,
 }
 
 // string_completions.go:40
-pub(crate) struct PathCompletion {
+pub struct PathCompletion {
     name: String,
     kind: ScriptElementKind,
     extension: String,
 }
 
 // string_completions.go:46
-pub(crate) struct PathCompletions {
+pub struct PathCompletions {
     entries: Vec<PathCompletion>,
     replacement_span: Option<lsproto::Range>,
 }
 
 // string_completions.go:51
 #[derive(Default)]
-pub(crate) struct StringLiteralCompletions {
+pub struct StringLiteralCompletions {
     from_types: Option<CompletionsFromTypes>,
     from_properties: Option<CompletionsFromProperties>,
     from_paths: Option<PathCompletions>,
@@ -456,10 +456,10 @@ impl LanguageService {
             Kind::ImportSpecifier | Kind::ExportSpecifier => {
                 // Complete string aliases in `import { "|" } from` and `export { "|" } from`
                 let specifier = parent;
-                if let Some(property_name) = specifier.property_name() {
-                    if node != property_name {
-                        return None; // Don't complete in `export { "..." as "|" } from`
-                    }
+                if let Some(property_name) = specifier.property_name()
+                    && node != property_name
+                {
+                    return None; // Don't complete in `export { "..." as "|" } from`
                 }
                 let named_imports_or_exports = specifier.parent().unwrap();
                 let module_specifier = if named_imports_or_exports.kind() == Kind::NamedImports {
@@ -875,19 +875,18 @@ impl LanguageService {
         let result = RefCell::new(ModuleCompletionNameAndKindSet::default());
         let module_resolution = compiler_options.get_module_resolution_kind();
 
-        if let Some(paths) = paths {
-            if !paths.is_empty() {
-                let absolute =
-                    compiler_options.get_paths_base_path(program.get_current_directory());
-                self.add_completion_entries_from_paths(
-                    &mut result.borrow_mut(),
-                    program,
-                    fragment,
-                    &absolute,
-                    extension_options,
-                    paths,
-                );
-            }
+        if let Some(paths) = paths
+            && !paths.is_empty()
+        {
+            let absolute = compiler_options.get_paths_base_path(program.get_current_directory());
+            self.add_completion_entries_from_paths(
+                &mut result.borrow_mut(),
+                program,
+                fragment,
+                &absolute,
+                extension_options,
+                paths,
+            );
         }
 
         let fragment_directory = get_fragment_directory(fragment);
@@ -1095,14 +1094,13 @@ fn get_pattern_from_first_matching_condition(
     if target.type_() == JSONValueType::Object {
         let obj = target.as_object();
         if let Some(result) = obj.keys().into_iter().find_map(|condition| {
-            if condition == "default"
+            if (condition == "default"
                 || conditions.iter().any(|c| c == condition)
                 || (conditions.iter().any(|c| c == "types")
-                    && tsrs_module::is_applicable_versioned_types_key(condition))
+                    && tsrs_module::is_applicable_versioned_types_key(condition)))
+                && let Some(pattern) = obj.get(condition)
             {
-                if let Some(pattern) = obj.get(condition) {
-                    return Some(get_pattern_from_first_matching_condition(pattern, conditions));
-                }
+                return Some(get_pattern_from_first_matching_condition(pattern, conditions));
             }
 
             None
@@ -1145,10 +1143,10 @@ fn get_ambient_module_completions(
 // string_completions.go:923
 fn get_ambient_module_name(symbol: P<Symbol>) -> String {
     let declaration = ast::get_non_augmentation_declaration(symbol);
-    if let Some(declaration) = declaration {
-        if ast::is_module_with_string_literal_name(declaration) {
-            return declaration.name().unwrap().text().to_string();
-        }
+    if let Some(declaration) = declaration
+        && ast::is_module_with_string_literal_name(declaration)
+    {
+        return declaration.name().unwrap().text().to_string();
     }
     stringutil::strip_quotes(symbol.name()).to_string()
 }
@@ -1217,10 +1215,11 @@ impl LanguageService {
 
         for type_directory_name in self.get_directories(directory) {
             let package_name = tsrs_module::unmangle_scoped_package_name(&type_directory_name);
-            if let Some(types) = &options.types {
-                if !types.is_empty() && !types.contains(&package_name) {
-                    continue;
-                }
+            if let Some(types) = &options.types
+                && !types.is_empty()
+                && !types.contains(&package_name)
+            {
+                continue;
             }
 
             if fragment_directory.is_empty() {
@@ -1258,7 +1257,7 @@ impl LanguageService {
 }
 
 // string_completions.go:1000
-pub(crate) fn try_remove_directory_prefix(
+pub fn try_remove_directory_prefix(
     path: &str,
     prefix: &str,
     use_case_sensitive_file_names: bool,
@@ -1285,15 +1284,15 @@ impl LanguageService {
                 let package_json_path = tspath::combine_paths(directory, &["package.json"]);
                 let package_json_info =
                     self.get_program().get_package_json_info(&package_json_path);
-                if package_json_info.exists() {
-                    if let Some(contents) = package_json_info.unwrap().contents {
-                        contents.range_dependencies(|name, _version, _dependency_field| {
-                            if !name.starts_with("@types/") {
-                                result.push(name.to_string());
-                            }
-                            true
-                        });
-                    }
+                if package_json_info.exists()
+                    && let Some(contents) = package_json_info.unwrap().contents
+                {
+                    contents.range_dependencies(|name, _version, _dependency_field| {
+                        if !name.starts_with("@types/") {
+                            result.push(name.to_string());
+                        }
+                        true
+                    });
                 }
                 None
             },
@@ -1419,10 +1418,10 @@ impl LanguageService {
         extension_options: &ExtensionOptions,
     ) -> Vec<ModuleCompletionNameAndKind> {
         let options = program.options();
-        let base_path = if !options.project.is_empty() {
-            options.project.clone()
-        } else {
+        let base_path = if options.project.is_empty() {
             program.get_current_directory().to_string()
+        } else {
+            options.project.clone()
         };
         let ignore_case = !program.use_case_sensitive_file_names();
         let base_directories = get_base_directories_from_root_dirs(
@@ -1533,7 +1532,7 @@ fn deduplicate_module_completions(
 
 // string_completions.go:1231
 #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Debug)]
-pub(crate) enum ModuleCompletionKind {
+pub enum ModuleCompletionKind {
     Directory,
     File,
     ExternalModuleName,
@@ -1541,7 +1540,7 @@ pub(crate) enum ModuleCompletionKind {
 
 // string_completions.go:1239
 #[derive(Clone, Debug)]
-pub(crate) struct ModuleCompletionNameAndKind {
+pub struct ModuleCompletionNameAndKind {
     name: String,
     kind: ModuleCompletionKind,
     extension: String,
@@ -1549,7 +1548,7 @@ pub(crate) struct ModuleCompletionNameAndKind {
 
 // string_completions.go:1245 (Go map; insertion order here)
 #[derive(Default)]
-pub(crate) struct ModuleCompletionNameAndKindSet {
+pub struct ModuleCompletionNameAndKindSet {
     names: OrderedMap<String, ModuleCompletionNameAndKind>,
 }
 
@@ -1564,7 +1563,7 @@ impl ModuleCompletionNameAndKindSet {
 }
 
 // string_completions.go:1256
-pub(crate) struct ExtensionOptions {
+pub struct ExtensionOptions {
     extensions_to_search: Vec<String>,
     reference_kind: ReferenceKind,
     importing_source_file: P<SourceFile>,
@@ -1574,7 +1573,7 @@ pub(crate) struct ExtensionOptions {
 
 // string_completions.go:1264
 #[derive(Clone, Copy, PartialEq, Eq)]
-pub(crate) enum ReferenceKind {
+pub enum ReferenceKind {
     FileName,
     ModuleSpecifier,
 }
@@ -1615,30 +1614,30 @@ impl LanguageService {
                 let package_json_path =
                     tspath::combine_paths(&package_json_directory, &["package.json"]);
                 let package_json_info = program.get_package_json_info(&package_json_path);
-                if let Some(contents) = package_json_info.and_then(|i| i.contents) {
-                    if contents.types_versions.type_() == JSONValueType::Object {
-                        let version_paths = contents.get_version_paths(None);
-                        let paths = version_paths.get_paths();
-                        if let Some(paths) = paths.filter(|p| !p.is_empty()) {
-                            let path_in_package = base_directory
-                                [tspath::ensure_trailing_directory_separator(
-                                    &package_json_directory,
-                                )
-                                .len()..]
-                                .to_string();
-                            if self.add_completion_entries_from_paths(
-                                result,
-                                program,
-                                &path_in_package,
+                if let Some(contents) = package_json_info.and_then(|i| i.contents)
+                    && contents.types_versions.type_() == JSONValueType::Object
+                {
+                    let version_paths = contents.get_version_paths(None);
+                    let paths = version_paths.get_paths();
+                    if let Some(paths) = paths.filter(|p| !p.is_empty()) {
+                        let path_in_package = base_directory
+                            [tspath::ensure_trailing_directory_separator(
                                 &package_json_directory,
-                                extension_options,
-                                paths,
-                            ) {
-                                // One of the `versionPaths` was matched, which will block relative resolution
-                                // to files and folders from here.
-                                // All reachable paths given the pattern match are already added.
-                                return;
-                            }
+                            )
+                            .len()..]
+                            .to_string();
+                        if self.add_completion_entries_from_paths(
+                            result,
+                            program,
+                            &path_in_package,
+                            &package_json_directory,
+                            extension_options,
+                            paths,
+                        ) {
+                            // One of the `versionPaths` was matched, which will block relative resolution
+                            // to files and folders from here.
+                            // All reachable paths given the pattern match are already added.
+                            return;
                         }
                     }
                 }
@@ -2078,10 +2077,10 @@ impl LanguageService {
         // interpreted as "any character" can only return *too many* results as compared to the literal
         // interpretation, so we can filter those superfluous results out via `trimPrefixAndSuffix` as we've always
         // done.
-        let include_globs: Vec<String> = if !normalized_suffix.is_empty() {
-            matching_suffixes.iter().map(|suffix| format!("**/*{suffix}")).collect()
-        } else {
+        let include_globs: Vec<String> = if normalized_suffix.is_empty() {
             vec!["./*".to_string()]
+        } else {
+            matching_suffixes.iter().map(|suffix| format!("**/*{suffix}")).collect()
         };
 
         let is_exports_or_imports_wildcard = (is_exports || is_imports) && pattern.ends_with("/*");
@@ -2113,39 +2112,37 @@ impl LanguageService {
             let mut result: Vec<ModuleCompletionNameAndKind> = Vec::new();
             result.extend(matches.into_iter().filter_map(|m| {
                 let trimmed_with_pattern = trim_prefix_and_suffix(&m, &complete_prefix);
-                if !trimmed_with_pattern.is_empty() {
-                    if contains_slash(&trimmed_with_pattern) {
-                        let path_components = tspath::get_path_components(
-                            remove_leading_directory_separator(&trimmed_with_pattern),
-                            "",
-                        );
-                        if path_components.len() > 1 {
-                            Some(ModuleCompletionNameAndKind {
-                                name: path_components[1].clone(),
-                                kind: ModuleCompletionKind::Directory,
-                                extension: String::new(),
-                            })
-                        } else {
-                            None
-                        }
-                    } else {
-                        let (name, mut extension) = get_filename_with_extension_option(
-                            &trimmed_with_pattern,
-                            program,
-                            extension_options,
-                            is_exports_or_imports_wildcard,
-                        );
-                        if extension.is_empty() {
-                            extension = get_file_extension(&m);
-                        }
+                if trimmed_with_pattern.is_empty() {
+                    None
+                } else if contains_slash(&trimmed_with_pattern) {
+                    let path_components = tspath::get_path_components(
+                        remove_leading_directory_separator(&trimmed_with_pattern),
+                        "",
+                    );
+                    if path_components.len() > 1 {
                         Some(ModuleCompletionNameAndKind {
-                            name,
-                            kind: ModuleCompletionKind::File,
-                            extension,
+                            name: path_components[1].clone(),
+                            kind: ModuleCompletionKind::Directory,
+                            extension: String::new(),
                         })
+                    } else {
+                        None
                     }
                 } else {
-                    None
+                    let (name, mut extension) = get_filename_with_extension_option(
+                        &trimmed_with_pattern,
+                        program,
+                        extension_options,
+                        is_exports_or_imports_wildcard,
+                    );
+                    if extension.is_empty() {
+                        extension = get_file_extension(&m);
+                    }
+                    Some(ModuleCompletionNameAndKind {
+                        name,
+                        kind: ModuleCompletionKind::File,
+                        extension,
+                    })
                 }
             }));
             result
@@ -2155,14 +2152,14 @@ impl LanguageService {
             let directories = self.get_directories(directory_name);
             let mut result: Vec<ModuleCompletionNameAndKind> = Vec::new();
             result.extend(directories.into_iter().filter_map(|dir| {
-                if dir != "node_modules" {
+                if dir == "node_modules" {
+                    None
+                } else {
                     Some(ModuleCompletionNameAndKind {
                         name: dir,
                         kind: ModuleCompletionKind::Directory,
                         extension: String::new(),
                     })
-                } else {
-                    None
                 }
             }));
             result
@@ -2517,13 +2514,10 @@ impl LanguageService {
                     item, symbol, checker, location, position, doc_format,
                 );
             }
-        } else if let Some(types) = &completion.from_types {
-            if types.types.iter().any(|&t| string_literal_value(t) == name) {
-                return create_completion_details(
-                    item, name, "", /*documentation*/
-                    doc_format,
-                );
-            }
+        } else if let Some(types) = &completion.from_types
+            && types.types.iter().any(|&t| string_literal_value(t) == name)
+        {
+            return create_completion_details(item, name, "" /*documentation*/, doc_format);
         }
         item
     }

@@ -19,7 +19,7 @@ use tsrs_core::arena::Region;
 
 /// The regions of the files a watch session parsed, by the address of the file.
 #[derive(Default)]
-pub(crate) struct FileRegions(Mutex<FxHashMap<usize, Region>>);
+pub struct FileRegions(Mutex<FxHashMap<usize, Region>>);
 
 impl FileRegions {
     /// Runs `parse` (a compiler host's `get_source_file`) with a fresh region as the allocation target. `size` is the
@@ -90,7 +90,7 @@ type FreeJob = Box<dyn FnOnce() + Send>;
 /// harness frees in place, for deterministic runs, and so does a build without threads (WebAssembly). The thread starts
 /// with the first queued free, so a build that frees nothing (an API build, which creates one with its orchestrator)
 /// starts none: in the WebAssembly module, which cannot spawn threads, `-b` panicked creating it.
-pub(crate) struct Freer {
+pub struct Freer {
     in_place: bool,
     tx: std::sync::OnceLock<Mutex<mpsc::Sender<FreeJob>>>,
     bounded_pending: Arc<AtomicUsize>,

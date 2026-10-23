@@ -57,7 +57,7 @@ const FIX_MISSING_TYPE_ANNOTATION_ON_EXPORTS_FIX_ID: &str = "fixMissingTypeAnnot
 
 // codeactions_fixmissingtypeannotation.go:48
 // IsolatedDeclarationsFixProvider is the CodeFixProvider for isolatedDeclarations-related type annotation fixes.
-pub(crate) static ISOLATED_DECLARATIONS_FIX_PROVIDER: std::sync::LazyLock<CodeFixProvider> =
+pub static ISOLATED_DECLARATIONS_FIX_PROVIDER: std::sync::LazyLock<CodeFixProvider> =
     std::sync::LazyLock::new(|| CodeFixProvider {
         error_codes: isolated_declarations_fix_error_codes(),
         get_code_actions: get_isolated_declarations_code_actions,
@@ -183,10 +183,10 @@ fn get_all_isolated_declarations_code_actions(
     };
 
     for diag in all_diags {
-        if is_fixable_diagnostic(diag, isolated_declarations_fix_error_codes()) {
-            if let Some(span) = diag.loc() {
-                fixer.add_type_annotation(span);
-            }
+        if is_fixable_diagnostic(diag, isolated_declarations_fix_error_codes())
+            && let Some(span) = diag.loc()
+        {
+            fixer.add_type_annotation(span);
         }
     }
 
@@ -767,7 +767,10 @@ impl IsolatedDeclarationsFixer<'_> {
         let factory = self.factory();
         let mut new_nodes: Vec<P<Node>> = Vec::new();
 
-        let base_expr_node = if !ast::is_identifier(initializer) {
+        let base_expr_node = if ast::is_identifier(initializer) {
+            // Use a new identifier to avoid referencing original source positions
+            factory.new_identifier(initializer.text())
+        } else {
             // Create a temporary variable for complex expressions
             let temp_name = self.change_tracker.emit_context.factory.new_unique_name_ex(
                 "dest",
@@ -786,9 +789,6 @@ impl IsolatedDeclarationsFixer<'_> {
             let var_stmt = factory.new_variable_statement(None, var_decl_list);
             new_nodes.push(var_stmt);
             temp_name
-        } else {
-            // Use a new identifier to avoid referencing original source positions
-            factory.new_identifier(initializer.text())
         };
 
         // Extract each binding element as a separate variable with type annotation
@@ -1270,11 +1270,11 @@ impl IsolatedDeclarationsFixer<'_> {
             },
         );
 
-        let initializer = if !is_in_const_context {
-            factory.deep_clone_node(Some(expression)).unwrap()
-        } else {
+        let initializer = if is_in_const_context {
             let const_ref = factory.new_type_reference_node(factory.new_identifier("const"), None);
             factory.new_as_expression(factory.deep_clone_node(Some(expression)).unwrap(), const_ref)
+        } else {
+            factory.deep_clone_node(Some(expression)).unwrap()
         };
 
         let var_decl = factory.new_variable_declaration(temp_name, None, None, Some(initializer));
@@ -1345,27 +1345,27 @@ impl IsolatedDeclarationsFixer<'_> {
         if ast::is_array_literal_expression(node) {
             let var_decl = ast::find_ancestor_kind(node, Kind::VariableDeclaration);
             let mut part_name = "";
-            if let Some(var_decl) = var_decl {
-                if let Some(n) = var_decl.name().filter(|n| ast::is_identifier(*n)) {
-                    part_name = n.text();
-                }
+            if let Some(var_decl) = var_decl
+                && let Some(n) = var_decl.name().filter(|n| ast::is_identifier(*n))
+            {
+                part_name = n.text();
             }
             return self.type_from_array_spread_elements(node, part_name);
         }
         if ast::is_object_literal_expression(node) {
             let var_decl = ast::find_ancestor_kind(node, Kind::VariableDeclaration);
             let mut part_name = "";
-            if let Some(var_decl) = var_decl {
-                if let Some(n) = var_decl.name().filter(|n| ast::is_identifier(*n)) {
-                    part_name = n.text();
-                }
+            if let Some(var_decl) = var_decl
+                && let Some(n) = var_decl.name().filter(|n| ast::is_identifier(*n))
+            {
+                part_name = n.text();
             }
             return self.type_from_object_spread_assignment(node, part_name);
         }
-        if ast::is_variable_declaration(node) {
-            if let Some(initializer) = node.initializer() {
-                return self.relative_type(initializer);
-            }
+        if ast::is_variable_declaration(node)
+            && let Some(initializer) = node.initializer()
+        {
+            return self.relative_type(initializer);
         }
         if ast::is_conditional_expression(node) {
             let cond = node.as_conditional_expression();
@@ -1448,10 +1448,10 @@ impl IsolatedDeclarationsFixer<'_> {
             // Parenthesize paren-less arrow function parameters (`x => ...`) so the inserted `: T`
             // produces `(x: T) => ...` instead of the invalid `x: T => ...`. Queued after the type
             // annotation so that the `)` edit at param.End() sorts after the annotation insertion.
-            if ast::is_parameter_declaration(decl) {
-                if let Some(parent) = decl.parent().filter(|p| ast::is_arrow_function(*p)) {
-                    self.change_tracker.parenthesize_arrow_parameters(self.source_file, parent);
-                }
+            if ast::is_parameter_declaration(decl)
+                && let Some(parent) = decl.parent().filter(|p| ast::is_arrow_function(*p))
+            {
+                self.change_tracker.parenthesize_arrow_parameters(self.source_file, parent);
             }
         }
         diagnostics::ADD_ANNOTATION_OF_TYPE_0.localize(&[&type_to_string_for_diag(

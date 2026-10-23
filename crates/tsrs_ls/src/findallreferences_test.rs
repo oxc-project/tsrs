@@ -86,6 +86,8 @@ impl ParseConfigHost for ParseConfigHostImpl {
 // findallreferences_test.go:35
 #[test]
 fn test_implementations_worklist_does_not_blow_up() {
+    const K: usize = 40;
+
     let measure = |k: usize| -> (usize, usize) {
         let mut b = String::new();
         b.push_str("interface I { m(): void; }\n");
@@ -164,7 +166,6 @@ fn test_implementations_worklist_does_not_blow_up() {
         (refs, data.symbols_and_entries.len())
     };
 
-    const K: usize = 40;
     let (small_refs, small_groups) = measure(K);
     let (large_refs, large_groups) = measure(2 * K);
 

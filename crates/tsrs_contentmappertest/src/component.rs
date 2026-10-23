@@ -12,7 +12,7 @@ use crate::protocol::{
 };
 
 // component.go:15
-pub(crate) struct ComponentHandler;
+pub struct ComponentHandler;
 
 impl TestHandler for ComponentHandler {}
 

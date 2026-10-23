@@ -80,7 +80,7 @@ impl Number {
     }
 }
 
-pub(crate) fn is_non_finite(x: f64) -> bool {
+pub fn is_non_finite(x: f64) -> bool {
     // This is equivalent to checking `math.IsNaN(x) || math.IsInf(x, 0)` in one operation.
     const MASK: u64 = 0x7FF0_0000_0000_0000;
     x.to_bits() & MASK == MASK
@@ -182,7 +182,7 @@ impl Number {
 }
 
 #[cfg(test)] // only tests use it, in Go too
-pub(crate) const NEGATIVE_ZERO: Number = Number(-0.0);
+pub const NEGATIVE_ZERO: Number = Number(-0.0);
 
 impl Number {
     // https://tc39.es/ecma262/2024/multipage/ecmascript-data-types-and-values.html#sec-numeric-types-number-remainder

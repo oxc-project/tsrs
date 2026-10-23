@@ -231,10 +231,10 @@ fn run(scenario: &Json) -> Vec<(String, String, String)> {
                     .join(","),
                 _ => String::new(),
             };
-            if &want != value {
-                Some((label.clone(), field.to_string(), format!("want {want:?}, got {value:?}")))
-            } else {
+            if &want == value {
                 None
+            } else {
+                Some((label.clone(), field.to_string(), format!("want {want:?}, got {value:?}")))
             }
         }));
         let want_traces: Vec<String> = match get(expected, "traces") {

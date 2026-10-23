@@ -1,7 +1,7 @@
 use super::*;
 
 #[derive(Default)]
-pub(crate) struct ExternalModuleInfo {
+pub struct ExternalModuleInfo {
     pub(crate) external_imports: Vec<P<Node>>, // ImportDeclaration | ImportEqualsDeclaration | ExportDeclaration. imports and reexports of other external modules
     pub(crate) export_specifiers: MultiMap<&'static str, P<Node>>, // Maps local names to their associated export specifiers (excludes reexports)
     pub(crate) exported_bindings: MultiMap<P<Node>, P<Node>>, // Maps local declarations to their associated export aliases
@@ -21,7 +21,7 @@ struct ExternalModuleInfoCollector {
 }
 
 // externalmoduleinfo.go:35
-pub(crate) fn collect_external_module_info(
+pub fn collect_external_module_info(
     source_file: P<SourceFile>,
     _compiler_options: P<CompilerOptions>,
     emit_context: P<EmitContext>,
@@ -48,12 +48,12 @@ impl ExternalModuleInfoCollector {
             // (e.g., `declare export = x` is elided by the type eraser but must still be collected)
             if ast::is_not_emitted_statement(node) {
                 let original = self.emit_context.most_original(Some(node));
-                if let Some(original) = original {
-                    if ast::is_export_assignment(original) {
-                        let n = original.as_export_assignment();
-                        if n.is_export_equals && self.output.export_equals.is_none() {
-                            self.output.export_equals = Some(original);
-                        }
+                if let Some(original) = original
+                    && ast::is_export_assignment(original)
+                {
+                    let n = original.as_export_assignment();
+                    if n.is_export_equals && self.output.export_equals.is_none() {
+                        self.output.export_equals = Some(original);
                     }
                 }
                 continue;
@@ -162,11 +162,11 @@ impl ExternalModuleInfoCollector {
                         }
                     } else {
                         // export class x { }
-                        if let Some(name) = node.name() {
-                            if self.add_unique_export(name.text()) {
-                                self.add_exported_binding(node, name);
-                                self.add_exported_name(name);
-                            }
+                        if let Some(name) = node.name()
+                            && self.add_unique_export(name.text())
+                        {
+                            self.add_exported_binding(node, name);
+                            self.add_exported_name(name);
                         }
                     }
                 }
@@ -300,7 +300,7 @@ impl ExternalModuleInfoCollector {
 const EXTERNAL_HELPERS_MODULE_NAME_TEXT: &str = "tslib";
 
 // externalmoduleinfo.go:257
-pub(crate) fn create_external_helpers_import_declaration_if_needed(
+pub fn create_external_helpers_import_declaration_if_needed(
     emit_context: P<EmitContext>,
     source_file: P<SourceFile>,
     compiler_options: &CompilerOptions,
@@ -453,19 +453,19 @@ fn is_named_default_reference(e: P<Node> /*ImportSpecifier | ExportSpecifier*/) 
 }
 
 // externalmoduleinfo.go:353
-pub(crate) fn contains_default_reference(
+pub fn contains_default_reference(
     node: Option<P<Node>>, /*NamedImportBindings | NamedExportBindings*/
 ) -> bool {
     matches!(node, Some(node) if (ast::is_named_imports(node) || ast::is_named_exports(node)) && node.elements().iter().any(|&e| is_named_default_reference(e)))
 }
 
 // externalmoduleinfo.go:357
-pub(crate) fn get_export_needs_import_star_helper(node: P<Node>) -> bool {
+pub fn get_export_needs_import_star_helper(node: P<Node>) -> bool {
     ast::get_namespace_declaration_node(node).is_some()
 }
 
 // externalmoduleinfo.go:361
-pub(crate) fn get_import_needs_import_star_helper(node: P<Node>) -> bool {
+pub fn get_import_needs_import_star_helper(node: P<Node>) -> bool {
     if ast::get_namespace_declaration_node(node).is_some() {
         return true;
     }
@@ -493,7 +493,7 @@ pub(crate) fn get_import_needs_import_star_helper(node: P<Node>) -> bool {
 }
 
 // externalmoduleinfo.go:385
-pub(crate) fn get_import_needs_import_default_helper(node: P<Node>) -> bool {
+pub fn get_import_needs_import_default_helper(node: P<Node>) -> bool {
     // Import default is needed if there's a default import or a default ref and no other refs (meaning an import star helper wasn't requested)
     let import_clause = node.as_import_declaration().import_clause;
     !get_import_needs_import_star_helper(node)

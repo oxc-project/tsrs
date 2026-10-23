@@ -282,12 +282,12 @@ impl Session {
             if let Some(result) = (["fileName", "path", "contentHash", "parseOptionsKey", "nodeId"])
                 .into_iter()
                 .find_map(|key| {
-                    if !matches!(o.get(key), None | Some(Value::Null | Value::String(_))) {
+                    if matches!(o.get(key), None | Some(Value::Null | Value::String(_))) {
+                        None
+                    } else {
                         Some(Err(ApiError::invalid_request(format!(
                             "cannot unmarshal into Go string within \"/file/{key}\""
                         ))))
-                    } else {
-                        None
                     }
                 })
             {

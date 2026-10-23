@@ -129,12 +129,11 @@ impl LanguageService {
                 true, /*forRename*/
                 Some(source_file),
             );
-            if node_is_eligible_for_rename(Some(node)) {
-                if let Some(rename_info) =
+            if node_is_eligible_for_rename(Some(node))
+                && let Some(rename_info) =
                     self.get_rename_info_for_node(ctx, new_name, node, source_file, program)
-                {
-                    return Some(rename_info);
-                }
+            {
+                return Some(rename_info);
             }
 
             None
@@ -269,18 +268,17 @@ impl LanguageService {
             if ast::is_string_literal_like(node) {
                 // Allow renaming of string literal types with contextual string literal types
                 let typ = get_contextual_type_from_parent_or_ancestor_type_node(node, ch);
-                if let Some(typ) = typ {
-                    if typ.is_string_literal()
+                if let Some(typ) = typ
+                    && (typ.is_string_literal()
                         || (typ.is_union()
-                            && typ.types().iter().all(|t: &P<Type>| t.is_string_literal()))
-                    {
-                        return Some(get_rename_info_success(
-                            node,
-                            source_file,
-                            node.text(),
-                            &self.converters,
-                        ));
-                    }
+                            && typ.types().iter().all(|t: &P<Type>| t.is_string_literal())))
+                {
+                    return Some(get_rename_info_success(
+                        node,
+                        source_file,
+                        node.text(),
+                        &self.converters,
+                    ));
                 }
             } else if ast::is_label_name(node) {
                 let name = node.text();
@@ -317,7 +315,7 @@ impl LanguageService {
 }
 
 // rename.go:209
-pub(crate) fn node_is_eligible_for_rename(node: Option<P<Node>>) -> bool {
+pub fn node_is_eligible_for_rename(node: Option<P<Node>>) -> bool {
     let Some(node) = node else {
         return false;
     };
@@ -394,10 +392,10 @@ fn would_rename_in_other_node_modules(
     {
         let import_specifier =
             sym.declarations().iter().copied().find(|&d| ast::is_import_specifier(d));
-        if let Some(import_specifier) = import_specifier {
-            if import_specifier.as_import_specifier().property_name().is_none() {
-                sym = ch.get_aliased_symbol(sym);
-            }
+        if let Some(import_specifier) = import_specifier
+            && import_specifier.as_import_specifier().property_name().is_none()
+        {
+            sym = ch.get_aliased_symbol(sym);
         }
     }
 

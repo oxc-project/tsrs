@@ -7,14 +7,14 @@ const SHIFT: u32 = 64 - 11 - 1;
 const MASK: u64 = 0x7FF;
 const BIAS: i64 = 1023;
 
-pub(crate) fn modf(f: f64) -> (f64, f64) {
+pub fn modf(f: f64) -> (f64, f64) {
     let integer = f.trunc();
     let fractional = (f - integer).copysign(f);
     (integer, fractional)
 }
 
 // Go's archExp for arm64 (exp_arm64.s).
-pub(crate) fn exp(x: f64) -> f64 {
+pub fn exp(x: f64) -> f64 {
     const LN2_HI: f64 = 6.931_471_803_691_238e-1;
     const LN2_LO: f64 = 1.908_214_929_270_587_7e-10;
     #[expect(clippy::approx_constant, reason = "the literal from Go's math.Exp, kept verbatim")]
@@ -70,7 +70,7 @@ pub(crate) fn exp(x: f64) -> f64 {
     m * f64::from_bits(((e as u64) << 52) | frac)
 }
 
-pub(crate) fn log(x: f64) -> f64 {
+pub fn log(x: f64) -> f64 {
     const LN2_HI: f64 = 6.931_471_803_691_238e-1; /* 3fe62e42 fee00000 */
     const LN2_LO: f64 = 1.908_214_929_270_587_7e-10; /* 3dea39ef 35793c76 */
     const L1: f64 = 6.666_666_666_666_735e-1; /* 3FE55555 55555593 */
@@ -126,7 +126,7 @@ fn normalize(x: f64) -> (f64, i64) {
     (x, 0)
 }
 
-pub(crate) fn frexp(f: f64) -> (f64, i64) {
+pub fn frexp(f: f64) -> (f64, i64) {
     if f == 0.0 {
         return (f, 0);
     }
@@ -141,7 +141,7 @@ pub(crate) fn frexp(f: f64) -> (f64, i64) {
     (f64::from_bits(x), exp)
 }
 
-pub(crate) fn ldexp(frac: f64, exp: i64) -> f64 {
+pub fn ldexp(frac: f64, exp: i64) -> f64 {
     if frac == 0.0 {
         return frac;
     }
@@ -175,7 +175,7 @@ pub(crate) fn ldexp(frac: f64, exp: i64) -> f64 {
     clippy::float_cmp,
     reason = "Exact equality preserves JavaScript numeric identity; an epsilon comparison would merge distinct values."
 )]
-pub(crate) fn log2(x: f64) -> f64 {
+pub fn log2(x: f64) -> f64 {
     let (frac, exp) = frexp(x);
     // Make sure exact powers of two give an exact answer.
     // Don't depend on Log(0.5)*(1/Ln2)+exp being exactly exp-1.
@@ -202,7 +202,7 @@ fn is_odd_int(x: f64) -> bool {
     clippy::float_cmp,
     reason = "Exact equality preserves JavaScript numeric identity; an epsilon comparison would merge distinct values."
 )]
-pub(crate) fn pow(x: f64, y: f64) -> f64 {
+pub fn pow(x: f64, y: f64) -> f64 {
     if y == 0.0 || x == 1.0 {
         return 1.0;
     } else if y == 1.0 {

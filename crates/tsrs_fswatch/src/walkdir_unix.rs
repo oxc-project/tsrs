@@ -11,7 +11,7 @@ use crate::watcher::Error;
 
 // walkdir_unix.go:21
 // walkDir walks dir, optionally recursively, invoking fn for each entry.
-pub(crate) fn walk_dir(
+pub fn walk_dir(
     dir: &str,
     recursive: bool,
     f: &mut dyn FnMut(&str, bool) -> Result<(), Error>,

@@ -58,10 +58,10 @@ pub fn get_indentation(
 
     let enclosing_comment_range =
         get_range_of_enclosing_comment(source_file, position, preceding_token);
-    if let Some(enclosing_comment_range) = enclosing_comment_range {
-        if enclosing_comment_range.kind == Kind::MultiLineCommentTrivia {
-            return get_comment_indent(source_file, position, options, &enclosing_comment_range);
-        }
+    if let Some(enclosing_comment_range) = enclosing_comment_range
+        && enclosing_comment_range.kind == Kind::MultiLineCommentTrivia
+    {
+        return get_comment_indent(source_file, position, options, &enclosing_comment_range);
     }
 
     let Some(preceding_token) = preceding_token else {
@@ -123,23 +123,20 @@ pub fn get_indentation(
 
     let container_list = get_list_by_position(position, preceding_token.parent(), source_file);
     // use list position if the preceding token is before any list items
-    if let Some(container_list) = container_list {
-        if !preceding_token.loc().contained_by(container_list.loc.get()) {
-            let use_the_same_base_indentation = current_token.parent().is_some_and(|p| {
-                p.kind() == Kind::FunctionExpression || p.kind() == Kind::ArrowFunction
-            });
-            let mut indent_size = 0;
-            if !use_the_same_base_indentation {
-                indent_size = options.indent_size;
-            }
-            match get_actual_indentation_for_list_start_line(
-                Some(container_list),
-                source_file,
-                options,
-            ) {
-                Some(indentation) => return indentation + indent_size,
-                None => return indent_size,
-            }
+    if let Some(container_list) = container_list
+        && !preceding_token.loc().contained_by(container_list.loc.get())
+    {
+        let use_the_same_base_indentation = current_token.parent().is_some_and(|p| {
+            p.kind() == Kind::FunctionExpression || p.kind() == Kind::ArrowFunction
+        });
+        let mut indent_size = 0;
+        if !use_the_same_base_indentation {
+            indent_size = options.indent_size;
+        }
+        match get_actual_indentation_for_list_start_line(Some(container_list), source_file, options)
+        {
+            Some(indentation) => return indentation + indent_size,
+            None => return indent_size,
         }
     }
 
@@ -600,12 +597,11 @@ fn get_actual_indentation_for_list_item(
     }
     let containing_list = get_containing_list(node, source_file);
     if let Some(containing_list) = containing_list {
-        if let Some(index) = containing_list.nodes().iter().position(|&element| element == node) {
-            if let Some(result) =
+        if let Some(index) = containing_list.nodes().iter().position(|&element| element == node)
+            && let Some(result) =
                 derive_actual_indentation_from_list(containing_list, index, source_file, options)
-            {
-                return Some(result);
-            }
+        {
+            return Some(result);
         }
         let mut delta = 0;
         if list_indents_child {
@@ -707,7 +703,7 @@ pub fn find_first_non_whitespace_column(
 * value of 'character' for '$' is 3
 * value of 'column' for '$' is 6 (assuming that tab size is 4)
  */
-pub(crate) fn find_first_non_whitespace_character_and_column(
+pub fn find_first_non_whitespace_character_and_column(
     start_pos: u32,
     end_pos: u32,
     source_file: P<SourceFile>,
@@ -736,7 +732,7 @@ pub(crate) fn find_first_non_whitespace_character_and_column(
 }
 
 // indent.go:500
-pub(crate) fn child_starts_on_the_same_line_with_else_in_if_statement(
+pub fn child_starts_on_the_same_line_with_else_in_if_statement(
     parent: P<Node>,
     child: P<Node>,
     child_start_line: usize,
@@ -1093,7 +1089,7 @@ pub fn node_will_indent_child(
 // whenTrue and whenFalse children to avoid double-indenting their contents. To identify this scenario,
 // we check for the whenTrue branch beginning on the line that the condition ends, and the whenFalse
 // branch beginning on the line that the whenTrue branch ends.
-pub(crate) fn child_is_unindented_branch_of_conditional_expression(
+pub fn child_is_unindented_branch_of_conditional_expression(
     parent: P<Node>,
     child: P<Node>,
     child_start_line: usize,
@@ -1137,7 +1133,7 @@ pub(crate) fn child_is_unindented_branch_of_conditional_expression(
 }
 
 // indent.go:800
-pub(crate) fn argument_starts_on_same_line_as_previous_argument(
+pub fn argument_starts_on_same_line_as_previous_argument(
     parent: P<Node>,
     child: P<Node>,
     child_start_line: usize,

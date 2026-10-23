@@ -10,7 +10,7 @@ struct References {
     ambient_module_names: Vec<&'static str>,
 }
 
-pub(crate) fn collect_external_module_references(file: P<SourceFile>) {
+pub fn collect_external_module_references(file: P<SourceFile>) {
     let mut refs = References {
         imports: file.imports().to_vec(),
         module_augmentations: file.module_augmentations().to_vec(),

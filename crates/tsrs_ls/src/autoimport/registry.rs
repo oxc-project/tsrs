@@ -385,7 +385,7 @@ impl RegistryBucket {
 
 // registry.go:329
 #[derive(Clone)]
-pub(crate) struct Directory {
+pub struct Directory {
     name: String,
     pub(crate) package_json: P<InfoCacheEntry>,
     has_node_modules: bool,
@@ -402,7 +402,7 @@ impl Cloneable for Directory {
     }
 }
 
-pub(crate) type SpecifierCache = Arc<SyncMap<Path, String>>;
+pub type SpecifierCache = Arc<SyncMap<Path, String>>;
 
 // registry.go:343
 pub struct Registry {
@@ -492,10 +492,10 @@ impl Registry {
 
         let mut dir_path = path.get_directory_path();
         loop {
-            if let Some(dir_bucket) = self.node_modules.get(&dir_path) {
-                if dir_bucket.state.possibly_needs_rebuild_for_file(&path, preferences) {
-                    return false;
-                }
+            if let Some(dir_bucket) = self.node_modules.get(&dir_path)
+                && dir_bucket.state.possibly_needs_rebuild_for_file(&path, preferences)
+            {
+                return false;
             }
             let parent = dir_path.get_directory_path();
             if parent == dir_path {
@@ -871,22 +871,22 @@ impl RegistryBuilder<'_> {
         // core.DiffMapsFunc(base.projects, neededProjects, nil onChanged)
         // order-independent: adds missing buckets to the projects map; the order only reaches log lines (Go's DiffMapsFunc ranges a map too)
         added_projects.extend(needed_projects.iter().filter_map(|project_id| {
-            if !self.base.projects.contains_key(project_id) {
+            if self.base.projects.contains_key(project_id) {
+                None
+            } else {
                 // Need and don't have
                 self.projects.add(project_id.clone(), Shared::new(new_registry_bucket()));
                 Some(project_id.clone())
-            } else {
-                None
             }
         }));
         // order-independent: deletes unneeded buckets; the order only reaches log lines (Go's DiffMapsFunc ranges a map too)
         removed_projects.extend(self.base.projects.keys().filter_map(|project_id| {
-            if !needed_projects.contains(project_id) {
+            if needed_projects.contains(project_id) {
+                None
+            } else {
                 // Have and don't need
                 self.projects.delete(project_id);
                 Some(project_id.clone())
-            } else {
-                None
             }
         }));
         if !logger.is_nil() {
@@ -1278,10 +1278,8 @@ impl RegistryBuilder<'_> {
                             || known_recursive_search_packages().has(&pkg.package_name);
                         // Record actual directory-searched packages so the stored set
                         // reflects reality for rebuild detection and stats.
-                        if enable_dir_search {
-                            if let Some(t) = &mut target_recursive_packages {
-                                t.add(pkg.package_name.clone());
-                            }
+                        if enable_dir_search && let Some(t) = &mut target_recursive_packages {
+                            t.add(pkg.package_name.clone());
                         }
                         if ctx.err().is_none() {
                             let result = self.extract_package(
@@ -1638,7 +1636,7 @@ fn has_symlink_to_node_modules(
 }
 
 // registry.go:1204
-pub(crate) struct FailedAmbientModuleLookupSource {
+pub struct FailedAmbientModuleLookupSource {
     file_name: String,
     package_name: String,
 }
@@ -2413,14 +2411,14 @@ impl RegistryBuilder<'_> {
                 let mut filtered: Vec<String> = Vec::new();
                 filtered.extend(file_names.iter().filter_map(|file_name| {
                     let path = (self.base.to_path)(file_name);
-                    if let Some(pkg_name) = existing_bucket.paths.get(&path) {
-                        if dirty_packages.has(pkg_name) {
-                            return None;
-                        }
+                    if let Some(pkg_name) = existing_bucket.paths.get(&path)
+                        && dirty_packages.has(pkg_name)
+                    {
+                        return None;
                     }
                     Some(file_name.clone())
                 }));
-                if !filtered.is_empty() { Some((module_name.clone(), filtered)) } else { None }
+                if filtered.is_empty() { None } else { Some((module_name.clone(), filtered)) }
             },
         ));
         // Add newly extracted ambient module names
@@ -2525,12 +2523,11 @@ impl RegistryBuilder<'_> {
     fn resolve_ambient_module_name(&self, module_name: &str, from_path: &Path) -> Vec<String> {
         from_path
             .for_each_ancestor_directory(|dir_path| {
-                if let Some(bucket) = self.node_modules.get(dir_path) {
-                    if let Some(file_names) =
+                if let Some(bucket) = self.node_modules.get(dir_path)
+                    && let Some(file_names) =
                         bucket.value().unwrap().ambient_module_names.get(module_name)
-                    {
-                        return Some(file_names.clone());
-                    }
+                {
+                    return Some(file_names.clone());
                 }
                 None
             })

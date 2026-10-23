@@ -48,14 +48,14 @@ pub fn get_detection_lists(
         };
 
     let type_orders_to_test =
-        if preferences.organize_imports_type_order != OrganizeImportsTypeOrder::Auto {
-            vec![preferences.organize_imports_type_order]
-        } else {
+        if preferences.organize_imports_type_order == OrganizeImportsTypeOrder::Auto {
             vec![
                 OrganizeImportsTypeOrder::Last,
                 OrganizeImportsTypeOrder::Inline,
                 OrganizeImportsTypeOrder::First,
             ]
+        } else {
+            vec![preferences.organize_imports_type_order]
         };
 
     (comparers_to_test, type_orders_to_test)
@@ -294,9 +294,7 @@ fn compare_organize_imports_case(
 }
 
 // organizeimports.go:248
-pub(crate) fn get_organize_imports_preset_string_comparer(
-    sort: OrganizeImportsSort,
-) -> StringComparer {
+pub fn get_organize_imports_preset_string_comparer(sort: OrganizeImportsSort) -> StringComparer {
     match sort {
         OrganizeImportsSort::OrdinalIgnoreCase => {
             get_organize_imports_ordinal_string_comparer(true)
@@ -343,12 +341,12 @@ fn get_module_specifier_expression(declaration: P<Node>) -> Option<P<Node>> {
                 .nodes();
             if !declarations.is_empty() {
                 let initializer = declarations[0].initializer();
-                if let Some(initializer) = initializer {
-                    if initializer.kind() == Kind::CallExpression {
-                        let call_expr = initializer.as_call_expression();
-                        if !call_expr.arguments.nodes().is_empty() {
-                            return Some(call_expr.arguments.nodes()[0]);
-                        }
+                if let Some(initializer) = initializer
+                    && initializer.kind() == Kind::CallExpression
+                {
+                    let call_expr = initializer.as_call_expression();
+                    if !call_expr.arguments.nodes().is_empty() {
+                        return Some(call_expr.arguments.nodes()[0]);
                     }
                 }
             }
@@ -361,10 +359,10 @@ fn get_module_specifier_expression(declaration: P<Node>) -> Option<P<Node>> {
 // organizeimports.go:299
 // GetExternalModuleName returns the module name from a module specifier expression.
 pub fn get_external_module_name(specifier: Option<P<Node>>) -> &'static str {
-    if let Some(specifier) = specifier {
-        if ast::is_string_literal_like(specifier) {
-            return specifier.text();
-        }
+    if let Some(specifier) = specifier
+        && ast::is_string_literal_like(specifier)
+    {
+        return specifier.text();
     }
     ""
 }
@@ -809,41 +807,40 @@ pub fn get_named_import_specifier_comparer_with_detection(
         get_named_import_specifier_comparer(preferences, Some(Rc::clone(&comparers_to_test[0])));
     let mut is_sorted = Tristate::Unknown;
 
-    if resolve_organize_imports_sort(preferences) == OrganizeImportsSort::Auto
-        || preferences.organize_imports_type_order == OrganizeImportsTypeOrder::Auto
+    if (resolve_organize_imports_sort(preferences) == OrganizeImportsSort::Auto
+        || preferences.organize_imports_type_order == OrganizeImportsTypeOrder::Auto)
+        && let Some(import_stmt) = import_stmt
     {
-        if let Some(import_stmt) = import_stmt {
-            let detect_from_decl = detect_named_import_organization_by_sort_worker(
-                &[import_stmt],
+        let detect_from_decl = detect_named_import_organization_by_sort_worker(
+            &[import_stmt],
+            &comparers_to_test,
+            &type_orders_to_test,
+        );
+        if let Some(detect_from_decl) = detect_from_decl {
+            is_sorted = bool_to_tristate(detect_from_decl.is_sorted);
+            specifier_comparer = get_named_import_specifier_comparer(
+                &UserPreferences {
+                    organize_imports_type_order: detect_from_decl.type_order,
+                    ..Default::default()
+                },
+                detect_from_decl.named_import_comparer,
+            );
+        } else if let Some(source_file) = source_file {
+            let all_imports = filter_import_declarations(source_file.statements.nodes());
+            let detect_from_file = detect_named_import_organization_by_sort_worker(
+                &all_imports,
                 &comparers_to_test,
                 &type_orders_to_test,
             );
-            if let Some(detect_from_decl) = detect_from_decl {
-                is_sorted = bool_to_tristate(detect_from_decl.is_sorted);
+            if let Some(detect_from_file) = detect_from_file {
+                is_sorted = bool_to_tristate(detect_from_file.is_sorted);
                 specifier_comparer = get_named_import_specifier_comparer(
                     &UserPreferences {
-                        organize_imports_type_order: detect_from_decl.type_order,
+                        organize_imports_type_order: detect_from_file.type_order,
                         ..Default::default()
                     },
-                    detect_from_decl.named_import_comparer,
+                    detect_from_file.named_import_comparer,
                 );
-            } else if let Some(source_file) = source_file {
-                let all_imports = filter_import_declarations(source_file.statements.nodes());
-                let detect_from_file = detect_named_import_organization_by_sort_worker(
-                    &all_imports,
-                    &comparers_to_test,
-                    &type_orders_to_test,
-                );
-                if let Some(detect_from_file) = detect_from_file {
-                    is_sorted = bool_to_tristate(detect_from_file.is_sorted);
-                    specifier_comparer = get_named_import_specifier_comparer(
-                        &UserPreferences {
-                            organize_imports_type_order: detect_from_file.type_order,
-                            ..Default::default()
-                        },
-                        detect_from_file.named_import_comparer,
-                    );
-                }
             }
         }
     }

@@ -206,19 +206,18 @@ impl Selection {
                 };
                 items.extend(expanded.into_iter().filter_map(|item| {
                     let id = item.id();
-                    if let Some(f) = &self.filter {
-                        if !id.contains(f.as_str()) && !re.as_ref().is_some_and(|r| r.is_match(&id))
-                        {
-                            return None;
-                        }
+                    if let Some(f) = &self.filter
+                        && !id.contains(f.as_str())
+                        && !re.as_ref().is_some_and(|r| r.is_match(&id))
+                    {
+                        return None;
                     }
-                    if let Some(list) = &self.list {
-                        if !list.contains(&id)
-                            && !list.contains(&item.name)
-                            && !list.contains(&basename)
-                        {
-                            return None;
-                        }
+                    if let Some(list) = &self.list
+                        && !list.contains(&id)
+                        && !list.contains(&item.name)
+                        && !list.contains(&basename)
+                    {
+                        return None;
                     }
                     Some(item)
                 }));

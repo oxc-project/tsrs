@@ -5,7 +5,7 @@ use crate::*;
 // classthis.go:10
 // Gets whether a node is a `static {}` block containing only a single assignment of the static `this` to the `_classThis`
 // (or similar) variable stored in the `classthis` property of the block's `EmitNode`.
-pub(crate) fn is_class_this_assignment_block(emit_context: P<EmitContext>, node: P<Node>) -> bool {
+pub fn is_class_this_assignment_block(emit_context: P<EmitContext>, node: P<Node>) -> bool {
     if ast::is_class_static_block_declaration(node) {
         let n = node.as_class_static_block_declaration();
         let body = n.body.as_block();

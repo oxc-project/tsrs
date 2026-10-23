@@ -48,12 +48,11 @@ impl NameMap {
     ) -> Option<&'static CommandLineOption> {
         let mut option_name = option_name.to_lowercase();
         // Try to translate short option names to their full equivalents.
-        if allow_short {
-            if let Some(short) = self.short_option_names.get(&option_name) {
-                if !short.is_empty() {
-                    option_name = short.clone();
-                }
-            }
+        if allow_short
+            && let Some(short) = self.short_option_names.get(&option_name)
+            && !short.is_empty()
+        {
+            option_name = short.clone();
         }
         self.get(&option_name)
     }

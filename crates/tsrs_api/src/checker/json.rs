@@ -3,7 +3,7 @@
 use tsrs_checker::LiteralValue;
 use tsrs_core::json::{JsonMap, Value};
 
-pub(crate) struct Obj {
+pub struct Obj {
     map: JsonMap,
 }
 
@@ -68,12 +68,12 @@ impl Obj {
     }
 }
 
-pub(crate) fn obj() -> Obj {
+pub fn obj() -> Obj {
     Obj::new()
 }
 
 /// Go `literalValueToJSON`.
-pub(crate) fn literal_value_to_json(value: Option<LiteralValue>) -> Value {
+pub fn literal_value_to_json(value: Option<LiteralValue>) -> Value {
     match value {
         Some(LiteralValue::String(s)) => Value::String(s.to_string()),
         Some(LiteralValue::Number(n)) => {

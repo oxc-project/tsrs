@@ -165,10 +165,10 @@ fn new_test_sys(test: &Scenario) -> &'static TestSys {
         if libs.contains(&f.path) {
             return None;
         }
-        if !f.symlink.is_empty() {
-            Some((f.path.clone(), vfstest::symlink(&f.symlink)))
-        } else {
+        if f.symlink.is_empty() {
             Some((f.path.clone(), MapFile::from(f.content.as_str())))
+        } else {
+            Some((f.path.clone(), vfstest::symlink(&f.symlink)))
         }
     }));
     let clock_fn = std::sync::Arc::clone(&clock);
@@ -216,7 +216,7 @@ fn new_test_sys(test: &Scenario) -> &'static TestSys {
 
 /// tsrs-only: a write whose event the watch gets with the next edit's, as when a file is saved while a cycle runs,
 /// after the cycle took its events.
-pub(crate) const LATE_EVENT_WRITE: &str = "writeLateEvent";
+pub const LATE_EVENT_WRITE: &str = "writeLateEvent";
 
 fn apply_ops(sys: &TestSys, ops: &[ScenarioOp]) {
     let fs = sys.fs_from_file_map();

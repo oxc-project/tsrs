@@ -19153,7 +19153,7 @@ pub static JSDOC_COMMENT: Message = Message {
     reports_deprecated: false,
 };
 
-pub(crate) static ALL_MESSAGES: [&Message; 2229] = [
+pub static ALL_MESSAGES: [&Message; 2229] = [
     &UNTERMINATED_STRING_LITERAL,
     &IDENTIFIER_EXPECTED,
     &X_0_EXPECTED,

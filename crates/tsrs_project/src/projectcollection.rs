@@ -42,7 +42,7 @@ pub struct ProjectCollection {
 // APIState tracks the projects and files that API clients have explicitly opened.
 // Opens and closes are ref-counted so multiple API clients don't clobber each
 // other, and it is carried across snapshots so API-opened resources stay loaded.
-#[derive(Clone, Debug, Default, PartialEq)]
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct APIState {
     // openProjects is the ref-counted set of projects to keep open for API
     // clients, keyed by config file path.
@@ -66,13 +66,13 @@ impl APIState {
 }
 
 // apiOpenedFile tracks a file kept open by API clients along with its ref count.
-#[derive(Clone, Debug, Default, PartialEq)]
-pub(crate) struct ApiOpenedFile {
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+pub struct ApiOpenedFile {
     pub(crate) file_name: String,
     pub(crate) ref_count: usize,
 }
 
-pub(crate) fn new_project_collection(to_path: ToPath, open_files: Set<Path>) -> ProjectCollection {
+pub fn new_project_collection(to_path: ToPath, open_files: Set<Path>) -> ProjectCollection {
     ProjectCollection {
         to_path,
         config_file_registry: Arc::default(),
@@ -198,10 +198,10 @@ impl ProjectCollection {
                 }
             },
         ));
-        if let Some(inferred_project) = &self.inferred_project {
-            if inferred_project.contains_file(path) {
-                projects.push(Arc::<Project>::clone(inferred_project.arc()));
-            }
+        if let Some(inferred_project) = &self.inferred_project
+            && inferred_project.contains_file(path)
+        {
+            projects.push(Arc::<Project>::clone(inferred_project.arc()));
         }
         projects
     }
@@ -218,13 +218,11 @@ impl ProjectCollection {
             for path in self.open_files.keys() {
                 if let Some(project_id) =
                     self.file_default_projects.as_ref().and_then(|m| m.get(path))
+                    && let Some(configured_id) = project_id.configured()
+                    && self.configured_projects.contains_key(&configured_id)
                 {
-                    if let Some(configured_id) = project_id.configured() {
-                        if self.configured_projects.contains_key(&configured_id) {
-                            open_projects.add(configured_id);
-                            continue;
-                        }
-                    }
+                    open_projects.add(configured_id);
+                    continue;
                 }
 
                 // only inserts into a set; Go ranges the map too
@@ -275,10 +273,10 @@ impl ProjectCollection {
             return Some(containing_projects[0].clone());
         }
         if containing_projects.is_empty() {
-            if let Some(inferred_project) = &self.inferred_project {
-                if inferred_project.contains_file(path) {
-                    return Some(inferred_project.clone());
-                }
+            if let Some(inferred_project) = &self.inferred_project
+                && inferred_project.contains_file(path)
+            {
+                return Some(inferred_project.clone());
             }
             return None;
         }
@@ -364,10 +362,10 @@ impl ProjectCollection {
         // Look for tsconfig.json files higher up the directory tree and do the same. This handles
         // the common case where a higher-level "solution" tsconfig.json contains all projects in a
         // workspace.
-        if let Some(config) = self.config_file_registry.get_config(path) {
-            if config.compiler_options().unwrap().disable_solution_searching.is_true() {
-                return fallback;
-            }
+        if let Some(config) = self.config_file_registry.get_config(path)
+            && config.compiler_options().unwrap().disable_solution_searching.is_true()
+        {
+            return fallback;
         }
         let ancestor_config_name =
             self.config_file_registry.get_ancestor_config_file_name(path, config_file_name);
@@ -400,7 +398,7 @@ impl ProjectCollection {
 }
 
 // projectcollection.go:202
-pub(crate) fn open_file_paths(overlays: &OverlayMap) -> Set<Path> {
+pub fn open_file_paths(overlays: &OverlayMap) -> Set<Path> {
     let mut open_files = new_set_with_size_hint(overlays.len());
     // pure set insert; Go ranges the map too
     open_files.m.extend(overlays.keys().map(std::clone::Clone::clone));
@@ -414,7 +412,7 @@ pub(crate) fn open_file_paths(overlays: &OverlayMap) -> Set<Path> {
 // Along with the resulting project path, a boolean is returned indicating whether there were multiple
 // direct inclusions of the file in different projects, indicating that the caller may want to perform
 // additional logic to determine the best project.
-pub(crate) fn find_default_configured_project_from_program_inclusion(
+pub fn find_default_configured_project_from_program_inclusion(
     _file_name: &str,
     path: &Path,
     project_paths: &[Path],

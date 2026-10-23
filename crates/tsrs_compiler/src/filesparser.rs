@@ -20,10 +20,10 @@ use crate::fileloader::{
 use crate::includeprocessor::FileIncludeData;
 use crate::processing_diagnostic::{IncludeExplainingDiagnostic, ProcessingDiagnostic};
 
-pub(crate) type TaskId = usize;
-pub(crate) type DataId = usize;
+pub type TaskId = usize;
+pub type DataId = usize;
 
-pub(crate) struct ParseTask {
+pub struct ParseTask {
     // Shared (like `path`) by the tasks of every reference to the same file name (`add_sub_task_normalized`).
     pub(crate) normalized_file_path: std::sync::Arc<str>,
     pub(crate) path: Path,
@@ -53,10 +53,10 @@ pub(crate) struct ParseTask {
     pub(crate) data_id: u32,
 }
 
-pub(crate) const NO_DATA: u32 = u32::MAX;
+pub const NO_DATA: u32 = u32::MAX;
 
 #[derive(Default)]
-pub(crate) struct ParseTaskLoaded {
+pub struct ParseTaskLoaded {
     pub(crate) metadata: SourceFileMetaData,
     pub(crate) prefetched_resolutions: Option<Box<PrefetchedResolutions>>,
     pub(crate) resolutions_in_file: ModeAwareCache<P<ResolvedModule>>,
@@ -386,7 +386,7 @@ fn load_automatic_type_directives(t: TaskId, loader: &mut FileLoader) {
     }
 }
 
-pub(crate) struct ResolvedRef {
+pub struct ResolvedRef {
     // Borrowed for a resolved module (an arena string); owned for libs and triple-slash references.
     pub(crate) file_name: std::borrow::Cow<'static, str>,
     pub(crate) increase_depth: bool,
@@ -395,7 +395,7 @@ pub(crate) struct ResolvedRef {
     pub(crate) package_id: PackageId,
 }
 
-pub(crate) struct ParseTaskData {
+pub struct ParseTaskData {
     // map of tasks by file casing
     pub(crate) tasks: TasksByCasing,
     lowest_depth: Option<u32>,
@@ -406,7 +406,7 @@ pub(crate) struct ParseTaskData {
 /// Go's `map[string]*parseTask` of a file's casings, in insertion order (nearly always one entry; a map per
 /// file cost more than the tasks it indexes).
 #[derive(Default)]
-pub(crate) struct TasksByCasing(Vec<(std::sync::Arc<str>, TaskId)>);
+pub struct TasksByCasing(Vec<(std::sync::Arc<str>, TaskId)>);
 
 impl TasksByCasing {
     pub(crate) fn get_key_value(&self, casing: &str) -> Option<(&std::sync::Arc<str>, TaskId)> {
@@ -464,7 +464,7 @@ impl NodeModulesDepthLimit {
 // drained in rounds: every file that a round will load is first parsed in parallel, then the
 // round's closures run sequentially. The resulting task graph (and therefore the file order
 // computed by getProcessedFiles) is the same fixed point Go reaches.
-pub(crate) struct FilesParser {
+pub struct FilesParser {
     pub(crate) task_data_by_path: FxHashMap<Path, DataId>,
     pub(crate) datas: Vec<ParseTaskData>,
     queue: Vec<QueuedTask>,
@@ -536,10 +536,10 @@ impl Speculation<'_> {
         let imports = file.imports();
         out.extend(resolutions.imports.iter().take(imports.len()).filter_map(|entry| {
             let prepared = entry.as_ref().and_then(|entry| entry.prepared.as_ref())?;
-            if !prepared.elide_on_depth {
-                Some((prepared.normalized_file_path.to_string(), prepared.path.clone()))
-            } else {
+            if prepared.elide_on_depth {
                 None
+            } else {
+                Some((prepared.normalized_file_path.to_string(), prepared.path.clone()))
             }
         }));
         out
@@ -609,9 +609,10 @@ impl Speculation<'_> {
     }
 
     fn run<'s>(&'s self, scope: &rayon::Scope<'s>, file_name: String, path: Path) {
+        use tsrs_core::festats::{self, Cat};
+
         let ctx = self.ctx;
         let _regions = crate::programregions::enter(ctx.opts.regions.as_deref());
-        use tsrs_core::festats::{self, Cat};
         let job_start = festats::enabled().then(std::time::Instant::now);
         let metadata = festats::timed(Cat::Meta, || {
             source_file_meta_data(ctx.opts, ctx.resolver, ctx.project_references, &file_name)
@@ -926,8 +927,9 @@ impl FilesParser {
                 let spec = &spec;
                 jobs.into_par_iter()
                     .map(|(t, file_name, path, is_lib, is_root)| {
-                        let _regions = crate::programregions::enter(opts.regions.as_deref());
                         use tsrs_core::festats::{self, Cat};
+
+                        let _regions = crate::programregions::enter(opts.regions.as_deref());
                         let job_start = festats::enabled().then(std::time::Instant::now);
                         let file_name: &str = &file_name;
                         let mut metadata = if is_lib {
@@ -961,10 +963,11 @@ impl FilesParser {
                             }
                             _ => None,
                         });
-                        if speculate && !is_lib {
-                            if let (Some(file), Some(resolutions)) = (file, &resolutions) {
-                                spec.spawn_sub_tasks(scope, file, resolutions);
-                            }
+                        if speculate
+                            && !is_lib
+                            && let (Some(file), Some(resolutions)) = (file, &resolutions)
+                        {
+                            spec.spawn_sub_tasks(scope, file, resolutions);
                         }
                         if let Some(start) = job_start {
                             let wall = start.elapsed().as_nanos() as u64;
@@ -982,6 +985,23 @@ impl FilesParser {
             tsrs_core::phases::record("Program:   parallel parse + resolve", parse_elapsed);
         }
         if stats {
+            const ROWS: [&str; tsrs_core::festats::CATS] = [
+                "Program:     stats: job wall",
+                "Program:     stats: metadata",
+                "Program:     stats: read",
+                "Program:     stats: parse",
+                "Program:     stats: bind",
+                "Program:     stats: resolve",
+                "Program:     stats: lock claimed",
+                "Program:     stats: lock syncmap",
+                "Program:     stats: lock vfs",
+                "Program:     stats: claim ops",
+                "Program:     stats: syncmap ops",
+                "Program:     stats: vfs ops",
+                "Program:     stats: jobs",
+                "Program:     stats: longest job",
+            ];
+
             let pool = crate::program::worker_pool();
             let cpu_after: Vec<f64> = pool.broadcast(|_| crate::checkerpool::thread_cpu_seconds());
             let per_thread: Vec<[u64; tsrs_core::festats::CATS]> =
@@ -1002,22 +1022,6 @@ impl FilesParser {
                 "Program:     stats: thread cpu",
                 std::time::Duration::from_secs_f64(cpu),
             );
-            const ROWS: [&str; tsrs_core::festats::CATS] = [
-                "Program:     stats: job wall",
-                "Program:     stats: metadata",
-                "Program:     stats: read",
-                "Program:     stats: parse",
-                "Program:     stats: bind",
-                "Program:     stats: resolve",
-                "Program:     stats: lock claimed",
-                "Program:     stats: lock syncmap",
-                "Program:     stats: lock vfs",
-                "Program:     stats: claim ops",
-                "Program:     stats: syncmap ops",
-                "Program:     stats: vfs ops",
-                "Program:     stats: jobs",
-                "Program:     stats: longest job",
-            ];
             for (i, (row, v)) in ROWS.iter().zip(sum).enumerate() {
                 if tsrs_core::festats::is_count(i) {
                     tsrs_core::phases::count(true, row, v);
@@ -1051,6 +1055,25 @@ impl FilesParser {
     }
 
     pub(crate) fn get_processed_files(loader: &mut FileLoader) -> ProcessedFiles {
+        struct Collector<'a> {
+            loader: &'a mut FileLoader,
+            // By data: the task whose casing the data was first walked under, and the address of that casing (a map
+            // keyed by data hashed once per visit). The address answers the common case, the same shared name, as
+            // `Arc<str>`'s `==` does, without reading the task; it is never dereferenced. Not an `Arc` clone: its
+            // refcount update waited for the walk's earlier stores, which made it a tenth of the walk (notes/perf-serial-collect.md).
+            seen: Vec<Option<(TaskId, *const str)>>,
+        }
+
+        // An explicit stack replaces Go's recursive collectFiles (the import graph of a large
+        // project is deeper than the default thread stack allows). Each frame is a task list and
+        // the index of the next task to visit; the post-subtask work of a task runs when its
+        // child frame is popped.
+        // A list frame names the task whose sub tasks it walks (None: the root tasks) instead of copying the list.
+        enum Frame {
+            List { owner: Option<TaskId>, next: usize },
+            After { task: TaskId, data: DataId },
+        }
+
         let total_file_count = loader.total_file_count;
         let lib_file_count = loader.lib_file_count;
 
@@ -1104,25 +1127,6 @@ impl FilesParser {
             .unwrap()
             .force_consistent_casing_in_file_names
             .is_false();
-
-        struct Collector<'a> {
-            loader: &'a mut FileLoader,
-            // By data: the task whose casing the data was first walked under, and the address of that casing (a map
-            // keyed by data hashed once per visit). The address answers the common case, the same shared name, as
-            // `Arc<str>`'s `==` does, without reading the task; it is never dereferenced. Not an `Arc` clone: its
-            // refcount update waited for the walk's earlier stores, which made it a tenth of the walk (notes/perf-serial-collect.md).
-            seen: Vec<Option<(TaskId, *const str)>>,
-        }
-
-        // An explicit stack replaces Go's recursive collectFiles (the import graph of a large
-        // project is deeper than the default thread stack allows). Each frame is a task list and
-        // the index of the next task to visit; the post-subtask work of a task runs when its
-        // child frame is popped.
-        // A list frame names the task whose sub tasks it walks (None: the root tasks) instead of copying the list.
-        enum Frame {
-            List { owner: Option<TaskId>, next: usize },
-            After { task: TaskId, data: DataId },
-        }
 
         // recordedDuplicates tracks, per task data, the set of file-name casings that
         // have already been recorded in duplicateSourceFiles. A file that is reached
@@ -1250,15 +1254,14 @@ impl FilesParser {
                         let name = &loader.tasks[task].normalized_file_path;
                         let differs = !std::ptr::eq(checked_ptr, Arc::as_ptr(name))
                             && *loader.tasks[checked_task].normalized_file_path != **name;
-                        if let Some(file) = loader.tasks[task].file {
-                            if differs
-                                && recorded_duplicates
-                                    .entry(data)
-                                    .or_default()
-                                    .insert(loader.tasks[task].normalized_file_path.to_string())
-                            {
-                                duplicate_source_files.push(duplicate_source_file(file));
-                            }
+                        if let Some(file) = loader.tasks[task].file
+                            && differs
+                            && recorded_duplicates
+                                .entry(data)
+                                .or_default()
+                                .insert(loader.tasks[task].normalized_file_path.to_string())
+                        {
+                            duplicate_source_files.push(duplicate_source_file(file));
                         }
                         // Identical names normalize identically; only differing ones need the comparison.
                         if force_consistent_casing && differs {
@@ -1456,14 +1459,14 @@ fn add_include_reason(
 ) {
     if let Some(redirected) = loader.tasks[task].redirected_parse_task {
         add_include_reason(loader, reasons_by_data, reasons_order, redirected, reason);
-    } else if loader.tasks[task].loaded {
-        if let Some(reason) = reason {
-            let data = task_data(loader, task);
-            if reasons_by_data[data].is_empty() {
-                reasons_order.push((data, task));
-            }
-            reasons_by_data[data].push(reason);
+    } else if loader.tasks[task].loaded
+        && let Some(reason) = reason
+    {
+        let data = task_data(loader, task);
+        if reasons_by_data[data].is_empty() {
+            reasons_order.push((data, task));
         }
+        reasons_by_data[data].push(reason);
     }
 }
 

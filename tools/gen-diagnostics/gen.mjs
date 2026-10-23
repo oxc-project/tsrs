@@ -90,7 +90,7 @@ if (isMain(import.meta.url))
                 "",
             );
         out.push(
-            `pub(crate) static ALL_MESSAGES: [&Message; ${messages.length}] = [`,
+            `pub static ALL_MESSAGES: [&Message; ${messages.length}] = [`,
             ...order.map((n) => `    &${rustNames.get(n)},`),
             "];",
             "",

@@ -5,7 +5,7 @@ use crate::astnav::{parse_for_test, repo_root};
 use crate::lsutil::{EditorSettings, FormatCodeSettings, IndentStyle};
 
 // api_test.go:19
-pub(crate) fn apply_bulk_edits(text: &str, edits: &[TextChange]) -> String {
+pub fn apply_bulk_edits(text: &str, edits: &[TextChange]) -> String {
     let mut b = String::with_capacity(text.len());
     let mut last_end = 0usize;
     for e in edits {
@@ -22,7 +22,7 @@ pub(crate) fn apply_bulk_edits(text: &str, edits: &[TextChange]) -> String {
     b
 }
 
-pub(crate) fn settings(
+pub fn settings(
     tab_size: i32,
     indent_size: i32,
     base_indent_size: i32,

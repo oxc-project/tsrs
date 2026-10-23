@@ -39,7 +39,7 @@ use std::sync::atomic::{AtomicU64, Ordering};
 use tsrs_core::ptr::PKey;
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
-pub(crate) enum UnionCacheMode {
+pub enum UnionCacheMode {
     Off,
     On,
     Shadow,
@@ -58,7 +58,7 @@ fn env_mode() -> Option<UnionCacheMode> {
 /// The mode of the indexed-access memo (`TSRS_IA_MEMO`, `checker_13.rs`
 /// `get_indexed_access_type_by_union_memoized`): on unless turned off or under Go-compatible history, like
 /// the union front cache.
-pub(crate) fn indexed_access_memo_mode() -> UnionCacheMode {
+pub fn indexed_access_memo_mode() -> UnionCacheMode {
     static MODE: OnceLock<UnionCacheMode> = OnceLock::new();
     *MODE.get_or_init(|| match std::env::var("TSRS_IA_MEMO").as_deref() {
         Ok("0" | "off") => UnionCacheMode::Off,
@@ -70,7 +70,7 @@ pub(crate) fn indexed_access_memo_mode() -> UnionCacheMode {
 }
 
 /// The mode for a checker created now: the environment's; by default on, except under Go-compatible history.
-pub(crate) fn union_cache_mode() -> UnionCacheMode {
+pub fn union_cache_mode() -> UnionCacheMode {
     match env_mode() {
         Some(mode) => mode,
         None if tsrs_core::compat::go_compatible_history() => UnionCacheMode::Off,
@@ -105,7 +105,7 @@ fn bits() -> u32 {
     })
 }
 /// Key words: the inputs, then for an alias its symbol and type arguments.
-pub(crate) const MAX_WORDS: usize = 8;
+pub const MAX_WORDS: usize = 8;
 
 #[derive(Clone, Copy, Default)]
 struct Slot {
@@ -116,7 +116,7 @@ struct Slot {
     result: Option<P<Type>>,
 }
 
-pub(crate) struct UnionFrontCache {
+pub struct UnionFrontCache {
     pub(crate) mode: UnionCacheMode,
     /// Calls that took a reduction whose answer can change (see the module comment); stores are skipped across them.
     pub(crate) impure: u32,
@@ -171,7 +171,7 @@ static BYPASS_SIZE: AtomicU64 = AtomicU64::new(0);
 
 /// Stats mode: a 2+ input call with an origin (`origin`) or a key longer than `MAX_WORDS`.
 #[inline]
-pub(crate) fn count_bypass_origin(cache: &UnionFrontCache) {
+pub fn count_bypass_origin(cache: &UnionFrontCache) {
     count(cache.stats, &BYPASS_ORIGIN);
 }
 

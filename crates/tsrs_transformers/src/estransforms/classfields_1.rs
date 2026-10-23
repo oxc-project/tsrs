@@ -23,7 +23,7 @@ bitflags::bitflags! {
 // classfields.go:31
 // privateIdentifierKind represents the kind of private identifier declaration.
 // privateIdentifierInfo stores information about a private identifier during transformation.
-pub(crate) struct PrivateIdentifierInfo {
+pub struct PrivateIdentifierInfo {
     pub(crate) kind: PrivateIdentifierKind,
     // brandCheckIdentifier can contain:
     //  - For instance field: The WeakMap that will be the storage for the field.
@@ -48,7 +48,7 @@ pub(crate) struct PrivateIdentifierInfo {
 // classfields.go:54
 // privateEnvironmentData stores class-scoped environment data for private identifiers.
 #[derive(Default)]
-pub(crate) struct PrivateEnvironmentData {
+pub struct PrivateEnvironmentData {
     // className is used for prefixing generated variable names.
     pub(crate) class_name: Cell<Option<P<Node>>>,
     // weakSetName is used for brand check on private methods.
@@ -61,7 +61,7 @@ pub(crate) struct PrivateEnvironmentData {
 // and one for generated identifiers (keyed by original AST node). This prevents collisions
 // when different auto-accessors produce generated backing field names with the same text.
 #[derive(Default)]
-pub(crate) struct PrivateEnvironment {
+pub struct PrivateEnvironment {
     pub(crate) data: PrivateEnvironmentData,
     pub(crate) members: RefCell<FxHashMap<String, P<PrivateIdentifierInfo>>>,
     pub(crate) generated_identifiers: RefCell<FxHashMap<P<Node>, P<PrivateIdentifierInfo>>>,
@@ -70,7 +70,7 @@ pub(crate) struct PrivateEnvironment {
 // classfields.go:72
 // classLexicalEnvironment stores information about the lexical environment of a class.
 #[derive(Default)]
-pub(crate) struct ClassLexicalEnvironment {
+pub struct ClassLexicalEnvironment {
     pub(crate) facts: Cell<classFacts>,
     // classConstructor is used for brand checks on static members, and `this` references in static initializers.
     pub(crate) class_constructor: Cell<Option<P<Node>>>,
@@ -81,7 +81,7 @@ pub(crate) struct ClassLexicalEnvironment {
 
 // classfields.go:82
 // classLexicalEnv is a linked list of class lexical environments.
-pub(crate) struct ClassLexicalEnv {
+pub struct ClassLexicalEnv {
     pub(crate) previous: Option<P<ClassLexicalEnv>>,
     pub(crate) data: Cell<Option<P<ClassLexicalEnvironment>>>,
     pub(crate) private_env: Cell<Option<P<PrivateEnvironment>>>,
@@ -634,13 +634,13 @@ impl ClassFieldsTransformer {
         );
         if let Some(declaration) = declaration {
             let alias = self.class_aliases.borrow().get(&declaration).copied();
-            if let Some(alias) = alias {
-                if self.enclosing_class_declarations.borrow().contains(&declaration) {
-                    let clone = alias.clone_node(self.factory());
-                    self.emit_context().set_source_map_range(clone, node.loc());
-                    self.emit_context().set_comment_range(clone, node.loc());
-                    return clone;
-                }
+            if let Some(alias) = alias
+                && self.enclosing_class_declarations.borrow().contains(&declaration)
+            {
+                let clone = alias.clone_node(self.factory());
+                self.emit_context().set_source_map_range(clone, node.loc());
+                self.emit_context().set_comment_range(clone, node.loc());
+                return clone;
             }
         }
         node
@@ -1040,8 +1040,9 @@ impl ClassFieldsTransformer {
     ) -> Option<P<Node>> {
         if self.current_class_element.get().is_some() {
             let original = self.emit_context().most_original(Some(node));
-            if original != Some(node) && self.current_class_container.get().is_some() {
-                if let Some(result) =
+            if original != Some(node)
+                && self.current_class_container.get().is_some()
+                && let Some(result) =
                     self.current_class_container.get().unwrap().members().iter().find_map(
                         |member| {
                             if self.emit_context().most_original(Some(*member)) == original
@@ -1059,9 +1060,8 @@ impl ClassFieldsTransformer {
                             None
                         },
                     )
-                {
-                    return result;
-                }
+            {
+                return result;
             }
         }
         self.set_current_class_element_and(None, Self::visit_each_child_of_node, node)
@@ -1941,12 +1941,12 @@ impl ClassFieldsTransformer {
                 let result = self.visitor().visit_node(body_statements.nodes()[0].expression());
                 // If the generated `_classThis` assignment is a noop (i.e., `_classThis = _classThis`), we can
                 // eliminate the expression
-                if let Some(r) = result {
-                    if ast::is_assignment_expression(r, true /*excludeCompoundAssignment*/) {
-                        let binary = r.as_binary_expression();
-                        if binary.left == binary.right() {
-                            return None;
-                        }
+                if let Some(r) = result
+                    && ast::is_assignment_expression(r, true /*excludeCompoundAssignment*/)
+                {
+                    let binary = r.as_binary_expression();
+                    if binary.left == binary.right() {
+                        return None;
                     }
                 }
                 return result;
@@ -2046,12 +2046,12 @@ impl ClassFieldsTransformer {
                 self.visitor().visit_node(Some(b.right())).unwrap(),
             );
 
-            let result: P<Node> = if !self.pending_expressions.borrow().is_empty() {
+            let result: P<Node> = if self.pending_expressions.borrow().is_empty() {
+                updated
+            } else {
                 let mut exprs = self.pending_expressions.borrow().clone();
                 exprs.push(updated);
                 self.factory().inline_expressions(&exprs).unwrap()
-            } else {
-                updated
             };
             *self.pending_expressions.borrow_mut() = saved_pending_expressions;
             return Some(result);
@@ -2339,8 +2339,6 @@ impl ClassFieldsTransformer {
         member: P<Node>,
         class_decl: P<Node>,
     ) -> bool {
-        let class_original = self.emit_context().most_original(Some(class_decl));
-        let class_name = ast::get_name_of_declaration(class_decl);
         fn check(
             tx: &ClassFieldsTransformer,
             class_original: Option<P<Node>>,
@@ -2360,6 +2358,9 @@ impl ClassFieldsTransformer {
             }
             n.for_each_child(&mut |c| check(tx, class_original, class_name, c))
         }
+
+        let class_original = self.emit_context().most_original(Some(class_decl));
+        let class_name = ast::get_name_of_declaration(class_decl);
         // Check only the body/initializer of the member, not the name (which may be
         // a computed property name that shouldn't trigger alias substitution).
         if ast::is_class_static_block_declaration(member) {
@@ -2369,18 +2370,18 @@ impl ClassFieldsTransformer {
             }
         } else {
             let body = member.body();
-            if let Some(body) = body {
-                if check(self, class_original, class_name, body) {
-                    return true;
-                }
+            if let Some(body) = body
+                && check(self, class_original, class_name, body)
+            {
+                return true;
             }
         }
         if ast::is_property_declaration(member) {
             let init = member.initializer();
-            if let Some(init) = init {
-                if check(self, class_original, class_name, init) {
-                    return true;
-                }
+            if let Some(init) = init
+                && check(self, class_original, class_name, init)
+            {
+                return true;
             }
         }
         false
@@ -2449,11 +2450,10 @@ impl ClassFieldsTransformer {
                     }
                     if self.should_transform_super_in_static_initializers.get()
                         && member.subtree_facts().intersects(SubtreeFacts::ContainsLexicalSuper)
+                        && !facts.intersects(classFacts::ClassWasDecorated)
                     {
-                        if !facts.intersects(classFacts::ClassWasDecorated) {
-                            facts |= classFacts::NeedsClassConstructorReference
-                                | classFacts::NeedsClassSuperReference;
-                        }
+                        facts |= classFacts::NeedsClassConstructorReference
+                            | classFacts::NeedsClassSuperReference;
                     }
                 }
             } else if !ast::has_abstract_modifier(
@@ -2547,29 +2547,29 @@ impl ClassFieldsTransformer {
             let name = ast::get_name_of_declaration(node);
             if let Some(name) = name.filter(|n| ast::is_identifier(*n)) {
                 self.get_private_identifier_environment().data.class_name.set(Some(name));
-            } else if let Some(assigned_name) = self.emit_context().assigned_name(node) {
-                if ast::is_string_literal(assigned_name) {
-                    // If the assigned name has a textSourceNode that is an identifier, use it directly.
-                    if let Some(text_source_node) = self
-                        .emit_context()
-                        .text_source(assigned_name)
-                        .filter(|t| ast::is_identifier(*t))
-                    {
-                        self.get_private_identifier_environment()
-                            .data
-                            .class_name
-                            .set(Some(text_source_node));
-                    } else if scanner::is_identifier_text(
-                        assigned_name.text(),
-                        tsrs_core::LanguageVariant::Standard,
-                    ) {
-                        // If the text is a valid identifier, create an identifier from it.
-                        let prefix_name = self.factory().new_identifier(assigned_name.text());
-                        self.get_private_identifier_environment()
-                            .data
-                            .class_name
-                            .set(Some(prefix_name));
-                    }
+            } else if let Some(assigned_name) = self.emit_context().assigned_name(node)
+                && ast::is_string_literal(assigned_name)
+            {
+                // If the assigned name has a textSourceNode that is an identifier, use it directly.
+                if let Some(text_source_node) = self
+                    .emit_context()
+                    .text_source(assigned_name)
+                    .filter(|t| ast::is_identifier(*t))
+                {
+                    self.get_private_identifier_environment()
+                        .data
+                        .class_name
+                        .set(Some(text_source_node));
+                } else if scanner::is_identifier_text(
+                    assigned_name.text(),
+                    tsrs_core::LanguageVariant::Standard,
+                ) {
+                    // If the text is a valid identifier, create an identifier from it.
+                    let prefix_name = self.factory().new_identifier(assigned_name.text());
+                    self.get_private_identifier_environment()
+                        .data
+                        .class_name
+                        .set(Some(prefix_name));
                 }
             }
         }

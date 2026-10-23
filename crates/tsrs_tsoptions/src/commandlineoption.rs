@@ -118,7 +118,7 @@ pub struct CommandLineOption {
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
-pub(crate) enum ExtraValidation {
+pub enum ExtraValidation {
     None,
     Locale,
 }
@@ -185,132 +185,131 @@ impl CommandLineOption {
 }
 
 // CommandLineOption.Elements()
-pub(crate) static COMMAND_LINE_OPTION_ELEMENTS: LazyLock<
-    FxHashMap<&'static str, CommandLineOption>,
-> = LazyLock::new(|| {
-    let mut m = FxHashMap::default();
-    m.insert(
-        "lib",
-        CommandLineOption {
-            name: "lib",
-            kind: CommandLineOptionKind::Enum, // libMap,
-            default_value_description: DefaultValueDescription::Tristate(Tristate::Unknown),
-            ..CommandLineOption::DEFAULT
-        },
-    );
-    m.insert(
-        "rootDirs",
-        CommandLineOption {
-            name: "rootDirs",
-            kind: CommandLineOptionKind::String,
-            is_file_path: true,
-            ..CommandLineOption::DEFAULT
-        },
-    );
-    m.insert(
-        "typeRoots",
-        CommandLineOption {
-            name: "typeRoots",
-            kind: CommandLineOptionKind::String,
-            is_file_path: true,
-            ..CommandLineOption::DEFAULT
-        },
-    );
-    m.insert(
-        "types",
-        CommandLineOption {
-            name: "types",
-            kind: CommandLineOptionKind::String,
-            ..CommandLineOption::DEFAULT
-        },
-    );
-    m.insert(
-        "moduleSuffixes",
-        CommandLineOption {
-            name: "moduleSuffixes",
-            kind: CommandLineOptionKind::String,
-            ..CommandLineOption::DEFAULT
-        },
-    );
-    m.insert(
-        "customConditions",
-        CommandLineOption {
-            name: "condition",
-            kind: CommandLineOptionKind::String,
-            ..CommandLineOption::DEFAULT
-        },
-    );
-    m.insert(
-        "plugins",
-        CommandLineOption {
-            name: "plugin",
-            kind: CommandLineOptionKind::Object,
-            ..CommandLineOption::DEFAULT
-        },
-    );
-    // For tsconfig root options
-    m.insert(
-        "references",
-        CommandLineOption {
-            name: "references",
-            kind: CommandLineOptionKind::Object,
-            ..CommandLineOption::DEFAULT
-        },
-    );
-    m.insert(
-        "contentMappers",
-        CommandLineOption {
-            name: "contentMappers",
-            kind: CommandLineOptionKind::Object,
-            ..CommandLineOption::DEFAULT
-        },
-    );
-    m.insert(
-        "files",
-        CommandLineOption {
-            name: "files",
-            kind: CommandLineOptionKind::String,
-            ..CommandLineOption::DEFAULT
-        },
-    );
-    m.insert(
-        "include",
-        CommandLineOption {
-            name: "include",
-            kind: CommandLineOptionKind::String,
-            ..CommandLineOption::DEFAULT
-        },
-    );
-    m.insert(
-        "exclude",
-        CommandLineOption {
-            name: "exclude",
-            kind: CommandLineOptionKind::String,
-            ..CommandLineOption::DEFAULT
-        },
-    );
-    m.insert(
-        "extends",
-        CommandLineOption {
-            name: "extends",
-            kind: CommandLineOptionKind::String,
-            ..CommandLineOption::DEFAULT
-        },
-    );
-    // Test infra options
-    m.insert(
-        "libFiles",
-        CommandLineOption {
-            name: "libFiles",
-            kind: CommandLineOptionKind::String,
-            ..CommandLineOption::DEFAULT
-        },
-    );
-    m
-});
+pub static COMMAND_LINE_OPTION_ELEMENTS: LazyLock<FxHashMap<&'static str, CommandLineOption>> =
+    LazyLock::new(|| {
+        let mut m = FxHashMap::default();
+        m.insert(
+            "lib",
+            CommandLineOption {
+                name: "lib",
+                kind: CommandLineOptionKind::Enum, // libMap,
+                default_value_description: DefaultValueDescription::Tristate(Tristate::Unknown),
+                ..CommandLineOption::DEFAULT
+            },
+        );
+        m.insert(
+            "rootDirs",
+            CommandLineOption {
+                name: "rootDirs",
+                kind: CommandLineOptionKind::String,
+                is_file_path: true,
+                ..CommandLineOption::DEFAULT
+            },
+        );
+        m.insert(
+            "typeRoots",
+            CommandLineOption {
+                name: "typeRoots",
+                kind: CommandLineOptionKind::String,
+                is_file_path: true,
+                ..CommandLineOption::DEFAULT
+            },
+        );
+        m.insert(
+            "types",
+            CommandLineOption {
+                name: "types",
+                kind: CommandLineOptionKind::String,
+                ..CommandLineOption::DEFAULT
+            },
+        );
+        m.insert(
+            "moduleSuffixes",
+            CommandLineOption {
+                name: "moduleSuffixes",
+                kind: CommandLineOptionKind::String,
+                ..CommandLineOption::DEFAULT
+            },
+        );
+        m.insert(
+            "customConditions",
+            CommandLineOption {
+                name: "condition",
+                kind: CommandLineOptionKind::String,
+                ..CommandLineOption::DEFAULT
+            },
+        );
+        m.insert(
+            "plugins",
+            CommandLineOption {
+                name: "plugin",
+                kind: CommandLineOptionKind::Object,
+                ..CommandLineOption::DEFAULT
+            },
+        );
+        // For tsconfig root options
+        m.insert(
+            "references",
+            CommandLineOption {
+                name: "references",
+                kind: CommandLineOptionKind::Object,
+                ..CommandLineOption::DEFAULT
+            },
+        );
+        m.insert(
+            "contentMappers",
+            CommandLineOption {
+                name: "contentMappers",
+                kind: CommandLineOptionKind::Object,
+                ..CommandLineOption::DEFAULT
+            },
+        );
+        m.insert(
+            "files",
+            CommandLineOption {
+                name: "files",
+                kind: CommandLineOptionKind::String,
+                ..CommandLineOption::DEFAULT
+            },
+        );
+        m.insert(
+            "include",
+            CommandLineOption {
+                name: "include",
+                kind: CommandLineOptionKind::String,
+                ..CommandLineOption::DEFAULT
+            },
+        );
+        m.insert(
+            "exclude",
+            CommandLineOption {
+                name: "exclude",
+                kind: CommandLineOptionKind::String,
+                ..CommandLineOption::DEFAULT
+            },
+        );
+        m.insert(
+            "extends",
+            CommandLineOption {
+                name: "extends",
+                kind: CommandLineOptionKind::String,
+                ..CommandLineOption::DEFAULT
+            },
+        );
+        // Test infra options
+        m.insert(
+            "libFiles",
+            CommandLineOption {
+                name: "libFiles",
+                kind: CommandLineOptionKind::String,
+                ..CommandLineOption::DEFAULT
+            },
+        );
+        m
+    });
 
 // CommandLineOption.EnumMap()
-pub(crate) static COMMAND_LINE_OPTION_ENUM_MAP: LazyLock<
+pub static COMMAND_LINE_OPTION_ENUM_MAP: LazyLock<
     FxHashMap<&'static str, &'static LazyLock<OrderedMap<&'static str, CompilerOptionsValue>>>,
 > = LazyLock::new(|| {
     let mut m: FxHashMap<
@@ -328,7 +327,7 @@ pub(crate) static COMMAND_LINE_OPTION_ENUM_MAP: LazyLock<
 });
 
 // CommandLineOption.DeprecatedKeys()
-pub(crate) static COMMAND_LINE_OPTION_DEPRECATED: LazyLock<
+pub static COMMAND_LINE_OPTION_DEPRECATED: LazyLock<
     FxHashMap<&'static str, FxHashSet<&'static str>>,
 > = LazyLock::new(|| {
     let mut m = FxHashMap::default();

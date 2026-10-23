@@ -356,15 +356,15 @@ fn remove_unused_imports(
         let mut name = clause.name();
         let mut named_bindings = clause.named_bindings;
 
-        if let Some(n) = name {
-            if !type_checker.is_declaration_used(
+        if let Some(n) = name
+            && !type_checker.is_declaration_used(
                 source_file,
                 n,
                 jsx_elements_present,
                 jsx_mode_needs_explicit_import,
-            ) {
-                name = None;
-            }
+            )
+        {
+            name = None;
         }
 
         if let Some(nb) = named_bindings {
@@ -397,15 +397,11 @@ fn remove_unused_imports(
                         let updated_named_imports = factory.update_named_imports(nb, new_list);
                         named_bindings = Some(updated_named_imports);
                     }
-                    if let Some(nb2) = named_bindings {
-                        if !ast::node_is_synthesized(original_bindings)
-                            && !printer::range_is_on_single_line(
-                                original_bindings.loc(),
-                                source_file,
-                            )
-                        {
-                            change_tracker.emit_context.set_emit_flags(nb2, EmitFlags::MultiLine);
-                        }
+                    if let Some(nb2) = named_bindings
+                        && !ast::node_is_synthesized(original_bindings)
+                        && !printer::range_is_on_single_line(original_bindings.loc(), source_file)
+                    {
+                        change_tracker.emit_context.set_emit_flags(nb2, EmitFlags::MultiLine);
                     }
                 }
                 _ => {}
@@ -533,7 +529,7 @@ fn get_import_attributes_key(attributes: Option<P<Node>>) -> String {
 
 // organizeimports.go:388
 // groupByNewlineContiguous groups declarations by blank lines between them.
-pub(crate) fn group_by_newline_contiguous(
+pub fn group_by_newline_contiguous(
     source_file: P<SourceFile>,
     decls: &[P<Node>],
 ) -> Vec<Vec<P<Node>>> {
@@ -979,11 +975,11 @@ fn try_get_named_binding_elements(named_import: P<Node>) -> Option<&'static [P<N
     let clause = clause_node.as_import_clause();
     let named_bindings = clause.named_bindings;
 
-    if let Some(nb) = named_bindings {
-        if nb.kind() == Kind::NamedImports {
-            let named_imports_node = nb.as_named_imports();
-            return Some(named_imports_node.elements.nodes());
-        }
+    if let Some(nb) = named_bindings
+        && nb.kind() == Kind::NamedImports
+    {
+        let named_imports_node = nb.as_named_imports();
+        return Some(named_imports_node.elements.nodes());
     }
 
     None
@@ -1182,14 +1178,11 @@ fn coalesce_exports_worker(
                     let updated = factory.update_named_exports(export_clause, sorted_list);
                     updated_export_clause = Some(updated);
 
-                    if let Some(source_file) = source_file {
-                        if !ast::node_is_synthesized(export_clause)
-                            && !printer::range_is_on_single_line(export_clause.loc(), source_file)
-                        {
-                            change_tracker
-                                .emit_context
-                                .set_emit_flags(updated, EmitFlags::MultiLine);
-                        }
+                    if let Some(source_file) = source_file
+                        && !ast::node_is_synthesized(export_clause)
+                        && !printer::range_is_on_single_line(export_clause.loc(), source_file)
+                    {
+                        change_tracker.emit_context.set_emit_flags(updated, EmitFlags::MultiLine);
                     }
                 } else {
                     updated_export_clause = Some(export_clause);

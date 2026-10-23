@@ -6,7 +6,7 @@ use tsrs_core::tspath;
 
 use crate::FS;
 
-pub(crate) fn wrap_fs<T: FS>(fs: T) -> T {
+pub fn wrap_fs<T: FS>(fs: T) -> T {
     fs
 }
 
@@ -42,7 +42,7 @@ pub(super) fn executable_realpath(path: &Path) -> io::Result<PathBuf> {
     }
 }
 
-pub(crate) fn lib_path() -> String {
+pub fn lib_path() -> String {
     LIB_PATH.clone()
 }
 

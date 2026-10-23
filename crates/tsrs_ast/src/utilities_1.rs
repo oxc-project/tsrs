@@ -913,10 +913,10 @@ pub(crate) fn is_block_statement(node: P<Node>) -> bool {
     if node.kind() != Kind::Block {
         return false;
     }
-    if let Some(parent) = node.parent() {
-        if parent.kind() == Kind::TryStatement || parent.kind() == Kind::CatchClause {
-            return false;
-        }
+    if let Some(parent) = node.parent()
+        && (parent.kind() == Kind::TryStatement || parent.kind() == Kind::CatchClause)
+    {
+        return false;
     }
     !is_function_block(node)
 }
@@ -1453,21 +1453,21 @@ pub fn get_combined_modifier_flags(node: P<Node>) -> ModifierFlags {
     let node = get_root_declaration(node);
     let mut flags = node.modifier_flags();
     let mut node = Some(node);
-    if let Some(n) = node {
-        if n.kind() == Kind::VariableDeclaration {
-            node = n.parent();
-        }
+    if let Some(n) = node
+        && n.kind() == Kind::VariableDeclaration
+    {
+        node = n.parent();
     }
-    if let Some(n) = node {
-        if n.kind() == Kind::VariableDeclarationList {
-            flags |= n.modifier_flags();
-            node = n.parent();
-        }
+    if let Some(n) = node
+        && n.kind() == Kind::VariableDeclarationList
+    {
+        flags |= n.modifier_flags();
+        node = n.parent();
     }
-    if let Some(n) = node {
-        if n.kind() == Kind::VariableStatement {
-            flags |= n.modifier_flags();
-        }
+    if let Some(n) = node
+        && n.kind() == Kind::VariableStatement
+    {
+        flags |= n.modifier_flags();
     }
     flags
 }
@@ -1476,21 +1476,21 @@ pub fn get_combined_node_flags(node: P<Node>) -> NodeFlags {
     let node = get_root_declaration(node);
     let mut flags = node.flags();
     let mut node = Some(node);
-    if let Some(n) = node {
-        if n.kind() == Kind::VariableDeclaration {
-            node = n.parent();
-        }
+    if let Some(n) = node
+        && n.kind() == Kind::VariableDeclaration
+    {
+        node = n.parent();
     }
-    if let Some(n) = node {
-        if n.kind() == Kind::VariableDeclarationList {
-            flags |= n.flags();
-            node = n.parent();
-        }
+    if let Some(n) = node
+        && n.kind() == Kind::VariableDeclarationList
+    {
+        flags |= n.flags();
+        node = n.parent();
     }
-    if let Some(n) = node {
-        if n.kind() == Kind::VariableStatement {
-            flags |= n.flags();
-        }
+    if let Some(n) = node
+        && n.kind() == Kind::VariableStatement
+    {
+        flags |= n.flags();
     }
     flags
 }
@@ -1498,14 +1498,13 @@ pub fn get_combined_node_flags(node: P<Node>) -> NodeFlags {
 // GetJSDocDeprecatedTag returns the first @deprecated JSDoc tag for the given node, or nil if none exists.
 pub fn get_jsdoc_deprecated_tag(node: P<Node>) -> Option<P<Node>> {
     for &jsdoc in node.jsdoc(None) {
-        if let Some(tags) = jsdoc.as_jsdoc().tags {
-            if let Some(result) = tags
+        if let Some(tags) = jsdoc.as_jsdoc().tags
+            && let Some(result) = tags
                 .nodes()
                 .iter()
                 .find_map(|&tag| if is_jsdoc_deprecated_tag(tag) { Some(Some(tag)) } else { None })
-            {
-                return result;
-            }
+        {
+            return result;
         }
     }
     None
@@ -1687,10 +1686,10 @@ pub fn is_bindable_static_element_access_expression(
 }
 
 pub fn is_prototype_access(node: P<Node>) -> bool {
-    if is_bindable_static_access_expression(node, false /*excludeThisKeyword*/) {
-        if let Some(name) = get_element_or_property_access_name(node) {
-            return name.text() == "prototype";
-        }
+    if is_bindable_static_access_expression(node, false /*excludeThisKeyword*/)
+        && let Some(name) = get_element_or_property_access_name(node)
+    {
+        return name.text() == "prototype";
     }
     false
 }

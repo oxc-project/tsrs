@@ -182,12 +182,12 @@ impl Chunks {
     fn put(&mut self, mut off: usize, size: usize) {
         self.live -= size;
         let mut len = size;
-        if let Some((&prev, &prev_len)) = self.free.range(..off).next_back() {
-            if prev + prev_len == off {
-                self.free.remove(&prev);
-                off = prev;
-                len += prev_len;
-            }
+        if let Some((&prev, &prev_len)) = self.free.range(..off).next_back()
+            && prev + prev_len == off
+        {
+            self.free.remove(&prev);
+            off = prev;
+            len += prev_len;
         }
         if let Some(next_len) = self.free.remove(&(off + len)) {
             len += next_len;

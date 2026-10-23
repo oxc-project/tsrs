@@ -107,12 +107,11 @@ impl Conn for AsyncConn {
                         let started = thread::Builder::new()
                             .name(HANDLER_THREAD.to_string())
                             .spawn_scoped(s, move || {
-                                if let Err(request_err) = self.handle_request(&msg) {
-                                    if self.record_request_error(request_err, request_errors) {
-                                        if let Some(rwc) = &self.rwc {
-                                            let _ = rwc.close();
-                                        }
-                                    }
+                                if let Err(request_err) = self.handle_request(&msg)
+                                    && self.record_request_error(request_err, request_errors)
+                                    && let Some(rwc) = &self.rwc
+                                {
+                                    let _ = rwc.close();
                                 }
                             });
                         if let Err(err) = started {

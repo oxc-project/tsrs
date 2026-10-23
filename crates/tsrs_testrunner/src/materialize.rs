@@ -58,7 +58,6 @@ fn relative(from_dir: &str, to: &str) -> String {
 }
 
 fn copy_test_libs(root: &Path) -> std::io::Result<()> {
-    let src = compiler_runner::testdata_path().join("tests/lib");
     fn walk(dir: &Path, base: &Path, dest: &Path) -> std::io::Result<()> {
         for entry in std::fs::read_dir(dir)? {
             let path = entry?.path();
@@ -72,6 +71,8 @@ fn copy_test_libs(root: &Path) -> std::io::Result<()> {
         }
         Ok(())
     }
+
+    let src = compiler_runner::testdata_path().join("tests/lib");
     walk(&src, &src, &root.join(TEST_LIB_FOLDER.trim_start_matches('/')))
 }
 

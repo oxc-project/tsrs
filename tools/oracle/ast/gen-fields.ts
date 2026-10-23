@@ -70,8 +70,8 @@ rs.push("use tsrs_ast::{Node, NodeData};");
 rs.push("");
 rs.push("use crate::Dumper;");
 rs.push("");
-rs.push("pub(crate) fn dump_fields(n: &Node, d: &mut Dumper) {");
-rs.push("    match n.data {");
+rs.push("pub fn dump_fields(n: &Node, d: &mut Dumper) {");
+rs.push("    match n.data() {");
 for (const n of api.nodes()) {
     const fields: [string, Cat][] = [];
     for (const m of n.members) {

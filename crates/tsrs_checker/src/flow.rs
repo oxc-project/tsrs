@@ -99,7 +99,7 @@ impl Checker {
 }
 
 // flow.go:69
-pub(crate) fn get_flow_node_of_node(node: P<Node>) -> Option<P<FlowNode>> {
+pub fn get_flow_node_of_node(node: P<Node>) -> Option<P<FlowNode>> {
     node.flow_node()
 }
 
@@ -337,18 +337,17 @@ impl Checker {
                 }
                 shared_flow = Some(flow);
             }
-            if let Some(memo) = memo {
-                if let Some((memo_hit, ends_iteration)) =
+            if let Some(memo) = memo
+                && let Some((memo_hit, ends_iteration)) =
                     self.flow_memo_at_node(f, entry_flow, flow, flags, memo.key, entry_depth)
-                {
-                    if !ends_iteration {
-                        // Go walks on from here and records the last shared node of the whole iteration, which this
-                        // frame does not know; leave the record out (a later visit walks or hits the memo again).
-                        shared_flow = None;
-                    }
-                    hit = Some(memo_hit);
-                    break flow_type_of(memo_hit.t);
+            {
+                if !ends_iteration {
+                    // Go walks on from here and records the last shared node of the whole iteration, which this
+                    // frame does not know; leave the record out (a later visit walks or hits the memo again).
+                    shared_flow = None;
                 }
+                hit = Some(memo_hit);
+                break flow_type_of(memo_hit.t);
             }
             match self.get_type_at_flow_node_step(f, flow, flags) {
                 FlowStep::Next(next) => flow = next,
@@ -662,7 +661,7 @@ impl Checker {
 }
 
 // flow.go:208
-pub(crate) fn get_branch_label_antecedents(
+pub fn get_branch_label_antecedents(
     flow: P<FlowNode>,
     reduce_labels: &[P<ast::FlowReduceLabelData>],
 ) -> Option<P<FlowList>> {
@@ -728,12 +727,10 @@ impl Checker {
             // in which case we continue control flow analysis back to the function's declaration
             if ast::is_variable_declaration(node)
                 && (ast::is_in_js_file(node) || ast::is_var_const_like(node))
+                && let Some(init) = node.initializer()
+                && ast::is_function_expression_or_arrow_function(init)
             {
-                if let Some(init) = node.initializer() {
-                    if ast::is_function_expression_or_arrow_function(init) {
-                        return self.get_type_at_flow_node(f, flow.antecedent().unwrap());
-                    }
-                }
+                return self.get_type_at_flow_node(f, flow.antecedent().unwrap());
             }
             return flow_type_of(f.declared());
         }
@@ -805,37 +802,32 @@ impl Checker {
         let signature = self.get_effects_signature(node);
         if let Some(signature) = signature {
             let predicate = self.get_type_predicate_of_signature(signature);
-            if let Some(predicate) = predicate {
-                if predicate.kind.get() == TypePredicateKind::AssertsThis
-                    || predicate.kind.get() == TypePredicateKind::AssertsIdentifier
-                {
-                    let flow_type = self.get_type_at_flow_node(f, flow.antecedent().unwrap());
-                    if f.memo_aborted.get() {
-                        return flow_type;
-                    }
-                    let t = self.finalize_evolving_array_type(flow_type.t.unwrap());
-                    let parameter_index = predicate.parameter_index.get();
-                    let narrowed_type = if predicate.t.get().is_some() {
-                        self.narrow_type_by_type_predicate(
-                            f, t, predicate, node, true, /*assumeTrue*/
-                        )
-                    } else if predicate.kind.get() == TypePredicateKind::AssertsIdentifier
-                        && parameter_index
-                            .is_some_and(|parameter_index| parameter_index < node.arguments().len())
-                    {
-                        self.narrow_type_by_assertion(
-                            f,
-                            t,
-                            node.arguments()[parameter_index.unwrap()],
-                        )
-                    } else {
-                        t
-                    };
-                    if narrowed_type == t {
-                        return flow_type;
-                    }
-                    return self.new_flow_type(narrowed_type, flow_type.incomplete);
+            if let Some(predicate) = predicate
+                && (predicate.kind.get() == TypePredicateKind::AssertsThis
+                    || predicate.kind.get() == TypePredicateKind::AssertsIdentifier)
+            {
+                let flow_type = self.get_type_at_flow_node(f, flow.antecedent().unwrap());
+                if f.memo_aborted.get() {
+                    return flow_type;
                 }
+                let t = self.finalize_evolving_array_type(flow_type.t.unwrap());
+                let parameter_index = predicate.parameter_index.get();
+                let narrowed_type = if predicate.t.get().is_some() {
+                    self.narrow_type_by_type_predicate(
+                        f, t, predicate, node, true, /*assumeTrue*/
+                    )
+                } else if predicate.kind.get() == TypePredicateKind::AssertsIdentifier
+                    && parameter_index
+                        .is_some_and(|parameter_index| parameter_index < node.arguments().len())
+                {
+                    self.narrow_type_by_assertion(f, t, node.arguments()[parameter_index.unwrap()])
+                } else {
+                    t
+                };
+                if narrowed_type == t {
+                    return flow_type;
+                }
+                return self.new_flow_type(narrowed_type, flow_type.incomplete);
             }
             if self.get_return_type_of_signature(signature).flags().intersects(TypeFlags::Never) {
                 return flow_type_of(self.unreachable_never_type);
@@ -855,46 +847,43 @@ impl Checker {
     ) -> P<Type> {
         let mut t = t;
         // Don't narrow from 'any' if the predicate type is exactly 'Object' or 'Function'
-        if let Some(predicate_type) = predicate.t.get() {
-            if !(is_type_any(Some(t))
+        if let Some(predicate_type) = predicate.t.get()
+            && !(is_type_any(Some(t))
                 && (predicate_type == self.global_object_type
                     || predicate_type == self.global_function_type))
-            {
-                let predicate_argument =
-                    Self::get_type_predicate_argument(predicate, call_expression);
-                if let Some(predicate_argument) = predicate_argument {
-                    if self.is_matching_reference(f.ref_node(), predicate_argument) {
-                        return self.get_narrowed_type(
+        {
+            let predicate_argument = Self::get_type_predicate_argument(predicate, call_expression);
+            if let Some(predicate_argument) = predicate_argument {
+                if self.is_matching_reference(f.ref_node(), predicate_argument) {
+                    return self.get_narrowed_type(
+                        t,
+                        predicate_type,
+                        assume_true,
+                        false, /*checkDerived*/
+                    );
+                }
+                if self.strict_null_checks
+                    && self.optional_chain_contains_reference(predicate_argument, f.ref_node())
+                    && (assume_true && !self.has_type_facts(predicate_type, TypeFacts::EQUndefined)
+                        || !assume_true
+                            && every_type(
+                                self,
+                                predicate_type,
+                                super::checker::Checker::is_nullable_type,
+                            ))
+                {
+                    t = self.get_adjusted_type_with_facts(t, TypeFacts::NEUndefinedOrNull);
+                }
+                let access = self.get_discriminant_property_access(f, predicate_argument, t);
+                if let Some(access) = access {
+                    return self.narrow_type_by_discriminant(t, access, move |c, t| {
+                        c.get_narrowed_type(
                             t,
                             predicate_type,
                             assume_true,
                             false, /*checkDerived*/
-                        );
-                    }
-                    if self.strict_null_checks
-                        && self.optional_chain_contains_reference(predicate_argument, f.ref_node())
-                        && (assume_true
-                            && !self.has_type_facts(predicate_type, TypeFacts::EQUndefined)
-                            || !assume_true
-                                && every_type(
-                                    self,
-                                    predicate_type,
-                                    super::checker::Checker::is_nullable_type,
-                                ))
-                    {
-                        t = self.get_adjusted_type_with_facts(t, TypeFacts::NEUndefinedOrNull);
-                    }
-                    let access = self.get_discriminant_property_access(f, predicate_argument, t);
-                    if let Some(access) = access {
-                        return self.narrow_type_by_discriminant(t, access, move |c, t| {
-                            c.get_narrowed_type(
-                                t,
-                                predicate_type,
-                                assume_true,
-                                false, /*checkDerived*/
-                            )
-                        });
-                    }
+                        )
+                    });
                 }
             }
         }
@@ -990,22 +979,21 @@ impl Checker {
                             let symbol = self.get_resolved_symbol(expr);
                             if self.is_constant_variable(symbol) {
                                 let declaration = symbol.value_declaration();
-                                if let Some(declaration) = declaration {
-                                    if ast::is_variable_declaration(declaration)
-                                        && declaration.type_node().is_none()
-                                        && declaration.initializer().is_some()
-                                        && self.is_constant_reference_of_walk(f)
-                                    {
-                                        self.inline_level += 1;
-                                        let result = self.narrow_type(
-                                            f,
-                                            t,
-                                            declaration.initializer().unwrap(),
-                                            assume_true,
-                                        );
-                                        self.inline_level -= 1;
-                                        return result;
-                                    }
+                                if let Some(declaration) = declaration
+                                    && ast::is_variable_declaration(declaration)
+                                    && declaration.type_node().is_none()
+                                    && declaration.initializer().is_some()
+                                    && self.is_constant_reference_of_walk(f)
+                                {
+                                    self.inline_level += 1;
+                                    let result = self.narrow_type(
+                                        f,
+                                        t,
+                                        declaration.initializer().unwrap(),
+                                        assume_true,
+                                    );
+                                    self.inline_level -= 1;
+                                    return result;
                                 }
                             }
                         } else {
@@ -1124,18 +1112,17 @@ impl Checker {
                     predicate = self.get_type_predicate_of_signature(signature);
                 }
             }
-            if let Some(predicate) = predicate {
-                if predicate.kind.get() == TypePredicateKind::This
-                    || predicate.kind.get() == TypePredicateKind::Identifier
-                {
-                    return self.narrow_type_by_type_predicate(
-                        f,
-                        t,
-                        predicate,
-                        call_expression,
-                        assume_true,
-                    );
-                }
+            if let Some(predicate) = predicate
+                && (predicate.kind.get() == TypePredicateKind::This
+                    || predicate.kind.get() == TypePredicateKind::Identifier)
+            {
+                return self.narrow_type_by_type_predicate(
+                    f,
+                    t,
+                    predicate,
+                    call_expression,
+                    assume_true,
+                );
             }
         }
         let reference = f.ref_node();
@@ -1601,10 +1588,9 @@ impl Checker {
                         }
                         if let Some(prop_type) =
                             self.get_type_of_property_of_type(candidate, &key_property_name)
+                            && is_unit_type(prop_type)
                         {
-                            if is_unit_type(prop_type) {
-                                return self.remove_type(t, candidate);
-                            }
+                            return self.remove_type(t, candidate);
                         }
                         return t;
                     }
@@ -1788,17 +1774,16 @@ impl Checker {
         if let Some(signature) = self.get_effects_signature(expr) {
             predicate = self.get_type_predicate_of_signature(signature);
         }
-        if let Some(predicate) = predicate {
-            if predicate.kind.get() == TypePredicateKind::Identifier
-                && predicate.parameter_index.get() == Some(0)
-            {
-                return self.get_narrowed_type(
-                    t,
-                    predicate.t.get().unwrap(),
-                    assume_true,
-                    true, /*checkDerived*/
-                );
-            }
+        if let Some(predicate) = predicate
+            && predicate.kind.get() == TypePredicateKind::Identifier
+            && predicate.parameter_index.get() == Some(0)
+        {
+            return self.get_narrowed_type(
+                t,
+                predicate.t.get().unwrap(),
+                assume_true,
+                true, /*checkDerived*/
+            );
         }
         if !self.is_type_derived_from(right_type, self.global_function_type) {
             return t;
@@ -1880,16 +1865,12 @@ impl Checker {
             .map_type(candidate, |c, n| {
                 // If a discriminant property is available, use that to reduce the type.
                 let mut matching = t;
-                if !key_property_name.is_empty() {
-                    if let Some(discriminant) =
+                if !key_property_name.is_empty()
+                    && let Some(discriminant) =
                         c.get_type_of_property_of_type(n, &key_property_name)
-                    {
-                        if let Some(constituent) =
-                            c.get_constituent_type_for_key_type(t, discriminant)
-                        {
-                            matching = constituent;
-                        }
-                    }
+                    && let Some(constituent) = c.get_constituent_type_for_key_type(t, discriminant)
+                {
+                    matching = constituent;
                 }
                 // For each constituent t in the current type, if t and c are directly related, pick the most
                 // specific of the two. When t and c are related in both directions, we prefer c for type predicates
@@ -1961,10 +1942,10 @@ impl Checker {
     pub(crate) fn get_instance_type(&mut self, constructor_type: P<Type>) -> P<Type> {
         let prototype_property_type =
             self.get_type_of_property_of_type(constructor_type, "prototype");
-        if let Some(prototype_property_type) = prototype_property_type {
-            if !is_type_any(Some(prototype_property_type)) {
-                return prototype_property_type;
-            }
+        if let Some(prototype_property_type) = prototype_property_type
+            && !is_type_any(Some(prototype_property_type))
+        {
+            return prototype_property_type;
         }
         let construct_signatures =
             self.get_signatures_of_type(constructor_type, SignatureKind::Construct);
@@ -2255,7 +2236,7 @@ impl Checker {
         let clause_witnesses = &witnesses[clause_start..clause_end];
         let mut types = Vec::with_capacity(clause_witnesses.len());
         types.extend(clause_witnesses.iter().map(|&text| {
-            if !text.is_empty() { self.narrow_type_by_type_name(t, text) } else { self.never_type }
+            if text.is_empty() { self.never_type } else { self.narrow_type_by_type_name(t, text) }
         }));
         self.get_union_type(&types)
     }
@@ -2711,15 +2692,14 @@ impl Checker {
                     .get_export_symbol_of_value_symbol_if_exported(Some(symbol))
                     .unwrap()
                     .value_declaration();
-                if let Some(declaration) = declaration {
-                    if (ast::is_binding_element(declaration)
+                if let Some(declaration) = declaration
+                    && (ast::is_binding_element(declaration)
                         || ast::is_parameter_declaration(declaration))
-                        && Some(reference) == declaration.parent()
-                        && declaration.initializer().is_none()
-                        && !has_dot_dot_dot_token(declaration)
-                    {
-                        return Some(declaration);
-                    }
+                    && Some(reference) == declaration.parent()
+                    && declaration.initializer().is_none()
+                    && !has_dot_dot_dot_token(declaration)
+                {
+                    return Some(declaration);
                 }
             }
         } else if ast::is_access_expression(expr) {
@@ -2733,25 +2713,23 @@ impl Checker {
                 let declaration = symbol.value_declaration().unwrap();
                 let initializer = get_candidate_variable_declaration_initializer(declaration);
                 // Given 'const x = obj.kind', allow 'x' as an alias for 'obj.kind'
-                if let Some(initializer) = initializer {
-                    if ast::is_access_expression(initializer)
-                        && self.is_matching_reference(reference, initializer.expression().unwrap())
-                    {
-                        return Some(initializer);
-                    }
+                if let Some(initializer) = initializer
+                    && ast::is_access_expression(initializer)
+                    && self.is_matching_reference(reference, initializer.expression().unwrap())
+                {
+                    return Some(initializer);
                 }
                 // Given 'const { kind: x } = obj', allow 'x' as an alias for 'obj.kind'
                 if ast::is_binding_element(declaration) && declaration.initializer().is_none() {
                     let initializer = get_candidate_variable_declaration_initializer(
                         declaration.parent().unwrap().parent().unwrap(),
                     );
-                    if let Some(initializer) = initializer {
-                        if (ast::is_identifier(initializer)
+                    if let Some(initializer) = initializer
+                        && (ast::is_identifier(initializer)
                             || ast::is_access_expression(initializer))
-                            && self.is_matching_reference(reference, initializer)
-                        {
-                            return Some(declaration);
-                        }
+                        && self.is_matching_reference(reference, initializer)
+                    {
+                        return Some(declaration);
                     }
                 }
             }
@@ -2761,11 +2739,12 @@ impl Checker {
 }
 
 // flow.go:1496
-pub(crate) fn get_candidate_variable_declaration_initializer(node: P<Node>) -> Option<P<Node>> {
-    if ast::is_variable_declaration(node) && node.type_node().is_none() {
-        if let Some(initializer) = node.initializer() {
-            return Some(ast::skip_parentheses(initializer));
-        }
+pub fn get_candidate_variable_declaration_initializer(node: P<Node>) -> Option<P<Node>> {
+    if ast::is_variable_declaration(node)
+        && node.type_node().is_none()
+        && let Some(initializer) = node.initializer()
+    {
+        return Some(ast::skip_parentheses(initializer));
     }
     None
 }
@@ -2800,7 +2779,7 @@ impl Checker {
 }
 
 // flow.go:1527
-pub(crate) fn is_evolving_array_type_list(types: &[P<Type>]) -> bool {
+pub fn is_evolving_array_type_list(types: &[P<Type>]) -> bool {
     let mut has_evolving_array_type = false;
     for &t in types {
         if !t.flags().intersects(TypeFlags::Never) {
@@ -3237,7 +3216,7 @@ impl Checker {
 }
 
 // flow.go:1782
-pub(crate) fn try_get_name_from_type(t: P<Type>) -> (String, bool) {
+pub fn try_get_name_from_type(t: P<Type>) -> (String, bool) {
     if t.flags().intersects(TypeFlags::UniqueESSymbol) {
         return (t.as_unique_es_symbol_type().name.get().to_string(), true);
     } else if t.flags().intersects(TypeFlags::StringOrNumberLiteral) {
@@ -3478,7 +3457,7 @@ impl Checker {
 }
 
 // flow.go:1928
-pub(crate) fn is_coercible_under_double_equals(source: P<Type>, target: P<Type>) -> bool {
+pub fn is_coercible_under_double_equals(source: P<Type>, target: P<Type>) -> bool {
     source.flags().intersects(TypeFlags::Number | TypeFlags::String | TypeFlags::BooleanLiteral)
         && target.flags().intersects(TypeFlags::Number | TypeFlags::String | TypeFlags::Boolean)
 }
@@ -3707,10 +3686,10 @@ impl Checker {
         if let Some(ctor_type) = ctor_type {
             let ctor_symbol_type = self.get_type_of_symbol(ctor_type);
             let unique_type = self.get_type_of_property_of_type(ctor_symbol_type, symbol_name);
-            if let Some(unique_type) = unique_type {
-                if is_type_usable_as_property_name(unique_type) {
-                    return get_property_name_from_type(unique_type).into_owned();
-                }
+            if let Some(unique_type) = unique_type
+                && is_type_usable_as_property_name(unique_type)
+            {
+                return get_property_name_from_type(unique_type).into_owned();
             }
         }
         format!("{}@{}", ast::INTERNAL_SYMBOL_NAME_PREFIX, symbol_name)
@@ -3803,10 +3782,10 @@ impl Checker {
         if symbol.flags().intersects(SymbolFlags::Variable | SymbolFlags::Property) {
             if symbol.check_flags().intersects(CheckFlags::Mapped) {
                 let origin = self.mapped_symbol_links.get(symbol).synthetic_origin.get();
-                if let Some(origin) = origin {
-                    if self.get_explicit_type_of_symbol(origin, diagnostic).is_some() {
-                        return Some(self.get_type_of_symbol(symbol));
-                    }
+                if let Some(origin) = origin
+                    && self.get_explicit_type_of_symbol(origin, diagnostic).is_some()
+                {
+                    return Some(self.get_type_of_symbol(symbol));
                 }
             }
             let declaration = symbol.value_declaration();
@@ -3899,18 +3878,14 @@ impl Checker {
                 return self.get_explicit_type_of_symbol(this_parameter, None);
             }
         }
-        if let Some(parent) = container.parent() {
-            if ast::is_class_like(parent) {
-                let symbol = self.get_symbol_of_declaration(parent).unwrap();
-                if ast::is_static(container) {
-                    return Some(self.get_type_of_symbol(symbol));
-                }
-                return self
-                    .get_declared_type_of_symbol(symbol)
-                    .as_interface_type()
-                    .this_type
-                    .get();
+        if let Some(parent) = container.parent()
+            && ast::is_class_like(parent)
+        {
+            let symbol = self.get_symbol_of_declaration(parent).unwrap();
+            if ast::is_static(container) {
+                return Some(self.get_type_of_symbol(symbol));
             }
+            return self.get_declared_type_of_symbol(symbol).as_interface_type().this_type.get();
         }
         None
     }
@@ -4039,10 +4014,10 @@ impl Checker {
         t: P<Type>,
         index: usize,
     ) -> P<Type> {
-        if every_type(self, t, super::checker::Checker::is_tuple_like_type) {
-            if let Some(element_type) = self.get_tuple_element_type(t, index) {
-                return element_type;
-            }
+        if every_type(self, t, super::checker::Checker::is_tuple_like_type)
+            && let Some(element_type) = self.get_tuple_element_type(t, index)
+        {
+            return element_type;
         }
         let undefined_type = self.undefined_type;
         let element_type = self.check_iterated_type_or_element_type(
@@ -4363,18 +4338,17 @@ impl Checker {
             } else if flags.intersects(FlowFlags::Call) {
                 let node = flow.node().unwrap();
                 if let Some(signature) = self.get_effects_signature(node) {
-                    if let Some(predicate) = self.get_type_predicate_of_signature(signature) {
-                        if predicate.kind.get() == TypePredicateKind::AssertsIdentifier
-                            && predicate.t.get().is_none()
+                    if let Some(predicate) = self.get_type_predicate_of_signature(signature)
+                        && predicate.kind.get() == TypePredicateKind::AssertsIdentifier
+                        && predicate.t.get().is_none()
+                    {
+                        let arguments = node.arguments();
+                        let parameter_index = predicate.parameter_index.get();
+                        if let Some(parameter_index) = parameter_index
+                            .filter(|&parameter_index| parameter_index < arguments.len())
+                            && Self::is_false_expression(arguments[parameter_index])
                         {
-                            let arguments = node.arguments();
-                            let parameter_index = predicate.parameter_index.get();
-                            if let Some(parameter_index) = parameter_index
-                                .filter(|&parameter_index| parameter_index < arguments.len())
-                                && Self::is_false_expression(arguments[parameter_index])
-                            {
-                                return false;
-                            }
+                            return false;
                         }
                     }
                     if self
@@ -4651,11 +4625,11 @@ impl Checker {
                         true, /*dontResolveAlias*/
                         None,
                     );
-                    if let Some(symbol) = symbol {
-                        if Self::is_parameter_or_mutable_local_variable(symbol) {
-                            let links = self.marked_assignment_symbol_links.get(symbol);
-                            links.last_assignment_pos.set(LastAssignmentPosition::BeyondAll);
-                        }
+                    if let Some(symbol) = symbol
+                        && Self::is_parameter_or_mutable_local_variable(symbol)
+                    {
+                        let links = self.marked_assignment_symbol_links.get(symbol);
+                        links.last_assignment_pos.set(LastAssignmentPosition::BeyondAll);
                     }
                 }
                 return false;

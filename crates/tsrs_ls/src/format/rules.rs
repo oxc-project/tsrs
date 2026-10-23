@@ -10,13 +10,13 @@ macro_rules! preds {
 }
 
 // rules.go:10
-pub(crate) fn get_all_rules() -> Vec<RuleSpec> {
+pub fn get_all_rules() -> Vec<RuleSpec> {
     let mut all_tokens: Vec<Kind> =
         Vec::with_capacity((Kind::LAST_TOKEN as usize) - (Kind::FIRST_TOKEN as usize) + 1);
     all_tokens.extend(((Kind::FIRST_TOKEN as i16)..=(Kind::LAST_TOKEN as i16)).filter_map(
         |token| {
             let token = Kind::from_i16(token);
-            if token != Kind::EndOfFile { Some(token) } else { None }
+            if token == Kind::EndOfFile { None } else { Some(token) }
         },
     ));
 

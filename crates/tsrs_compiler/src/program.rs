@@ -175,7 +175,7 @@ impl ProgramConfig {
 }
 
 // program.go:91
-pub(crate) struct PackageNamesInfo {
+pub struct PackageNamesInfo {
     resolved: Set<String>,
     unresolved: Set<String>,
     deep_import_packages: Set<String>,
@@ -460,10 +460,10 @@ impl Program {
 
             return self.get_source_file_for_resolved_module(&file_name);
         }
-        if allow_non_ts_extensions {
-            if let Some(extensionless) = self.get_source_file_for_resolved_module(&file_name) {
-                return Some(extensionless);
-            }
+        if allow_non_ts_extensions
+            && let Some(extensionless) = self.get_source_file_for_resolved_module(&file_name)
+        {
+            return Some(extensionless);
         }
 
         // Only try adding extensions from the first supported group (which should be .ts/.tsx/.d.ts)
@@ -660,7 +660,7 @@ impl SharedProgramData {
 ///
 /// # Safety
 /// `mapper` came from `Box::leak` in the file loader, and nothing refers to it or its hosts any more.
-pub(crate) unsafe fn free_project_reference_file_mapper(mapper: *mut ProjectReferenceFileMapper) {
+pub unsafe fn free_project_reference_file_mapper(mapper: *mut ProjectReferenceFileMapper) {
     // SAFETY: `mapper` is a live leaked `Box` (this function's contract).
     let (dts_faking_host, loader_host) =
         unsafe { ((*mapper).dts_faking_host.get().copied(), (*mapper).loader_host) };
@@ -733,7 +733,9 @@ impl Program {
         let new_file;
         let mut old_supplemental_files: &[P<SourceFile>] = &[];
         let mut new_supplemental_files: Vec<P<SourceFile>> = Vec::new();
-        if !old_file.content_mapper().is_empty() {
+        if old_file.content_mapper().is_empty() {
+            new_file = new_host.get_source_file(old_file.parse_options().clone());
+        } else {
             // Content-mapped files are produced by running an external transform, which a plain reparse can't
             // reproduce. Re-run the transform through the host; any failure (or a missing file) falls back to
             // a full rebuild so the file loader's failure policy runs.
@@ -752,8 +754,6 @@ impl Program {
                     new_supplemental_files = files.supplemental;
                 }
             }
-        } else {
-            new_file = new_host.get_source_file(old_file.parse_options().clone());
         }
 
         // If this file is part of a package redirect group (same package installed in multiple
@@ -1590,10 +1590,10 @@ impl Program {
     }
 
     fn can_include_bind_and_check_diagnostics(&self, source_file: P<SourceFile>) -> bool {
-        if let Some(directive) = source_file.check_js_directive.get() {
-            if !directive.enabled {
-                return false;
-            }
+        if let Some(directive) = source_file.check_js_directive.get()
+            && !directive.enabled
+        {
+            return false;
         }
 
         if source_file.script_kind.get() == ScriptKind::TS
@@ -2137,18 +2137,18 @@ impl Program {
             );
         }
 
-        if options.isolated_modules.is_true() || options.verbatim_module_syntax.is_true() {
-            if options.preserve_const_enums.is_false() {
-                create_diagnostic_for_option_name!(
-                    &diagnostics::OPTION_PRESERVE_CONST_ENUMS_CANNOT_BE_DISABLED_WHEN_0_IS_ENABLED,
-                    if options.verbatim_module_syntax.is_true() {
-                        "verbatimModuleSyntax"
-                    } else {
-                        "isolatedModules"
-                    },
-                    "preserveConstEnums"
-                );
-            }
+        if (options.isolated_modules.is_true() || options.verbatim_module_syntax.is_true())
+            && options.preserve_const_enums.is_false()
+        {
+            create_diagnostic_for_option_name!(
+                &diagnostics::OPTION_PRESERVE_CONST_ENUMS_CANNOT_BE_DISABLED_WHEN_0_IS_ENABLED,
+                if options.verbatim_module_syntax.is_true() {
+                    "verbatimModuleSyntax"
+                } else {
+                    "isolatedModules"
+                },
+                "preserveConstEnums"
+            );
         }
 
         self.program_diagnostics.append(&mut diags);
@@ -2475,10 +2475,10 @@ impl Program {
                     self.block_emitting_of_file(emit_file_name, diag);
                 }
 
-                let emit_file_key = if !self.host().fs().use_case_sensitive_file_names() {
-                    tspath::to_file_name_lower_case(&emit_file_path)
-                } else {
+                let emit_file_key = if self.host().fs().use_case_sensitive_file_names() {
                     emit_file_path.as_str().to_string()
+                } else {
+                    tspath::to_file_name_lower_case(&emit_file_path)
                 };
 
                 // Report error if multiple files write into same file
@@ -2519,10 +2519,10 @@ impl Program {
 
     // program.go:1402
     fn verify_project_references(&mut self) {
-        let build_info_file_name = if !self.options().suppress_output_path_check.is_true() {
-            self.opts.config.get_build_info_file_name()
-        } else {
+        let build_info_file_name = if self.options().suppress_output_path_check.is_true() {
             String::new()
+        } else {
+            self.opts.config.get_build_info_file_name()
         };
         let mut program_diagnostics = Vec::new();
         let mut emit_blocking = Vec::new();
@@ -2546,8 +2546,8 @@ impl Program {
                 return true;
             };
             let ref_options = config.compiler_options().unwrap();
-            if !ref_options.composite.is_true() || ref_options.no_emit.is_true() {
-                if !parent.file_names().is_empty() {
+            if (!ref_options.composite.is_true() || ref_options.no_emit.is_true())
+                && !parent.file_names().is_empty() {
                     if !ref_options.composite.is_true() {
                         create_diagnostic_for_reference(parent, index, &diagnostics::REFERENCED_PROJECT_0_MUST_HAVE_SETTING_COMPOSITE_COLON_TRUE, &[&ref_.path]);
                     }
@@ -2555,7 +2555,6 @@ impl Program {
                         create_diagnostic_for_reference(parent, index, &diagnostics::REFERENCED_PROJECT_0_MAY_NOT_DISABLE_EMIT, &[&ref_.path]);
                     }
                 }
-            }
             if !build_info_file_name.is_empty() && build_info_file_name == config.get_build_info_file_name() {
                 create_diagnostic_for_reference(
                     parent,
@@ -3329,15 +3328,12 @@ impl Program {
                                 // 2. GetPackageScopeForPath - get name from package.json in the package directory
                                 if let Some(package_scope) = resolver
                                     .get_package_scope_for_path(resolved_module.resolved_file_name)
+                                    && package_scope.exists()
+                                    && let Some(scope_name) = package_scope
+                                        .contents
+                                        .and_then(|c| c.get().name.get_value())
                                 {
-                                    if package_scope.exists() {
-                                        if let Some(scope_name) = package_scope
-                                            .contents
-                                            .and_then(|c| c.get().name.get_value())
-                                        {
-                                            name.clone_from(scope_name);
-                                        }
-                                    }
+                                    name.clone_from(scope_name);
                                 }
                             }
                             if name.is_empty() {
@@ -3353,22 +3349,16 @@ impl Program {
                                 // These are imports like "lodash/fp" where the package has no exports
                                 // map, so auto-import can only find them via recursive directory search.
                                 let (_, rest) = module::parse_package_name(imp.text());
-                                if !rest.is_empty() {
-                                    if let Some(scope) = resolver.get_package_scope_for_path(
+                                if !rest.is_empty()
+                                    && let Some(scope) = resolver.get_package_scope_for_path(
                                         resolved_module.resolved_file_name,
-                                    ) {
-                                        if scope.exists()
-                                            && !scope
-                                                .contents
-                                                .is_some_and(|c| c.exports.is_present())
-                                        {
-                                            package_names.deep_import_packages.add(
-                                                module::get_package_name_from_types_package_name(
-                                                    &name,
-                                                ),
-                                            );
-                                        }
-                                    }
+                                    )
+                                    && scope.exists()
+                                    && !scope.contents.is_some_and(|c| c.exports.is_present())
+                                {
+                                    package_names.deep_import_packages.add(
+                                        module::get_package_name_from_types_package_name(&name),
+                                    );
                                 }
                             }
                             continue 'imports;
@@ -3662,31 +3652,32 @@ fn get_additional_js_syntactic_diagnostics(
     file: P<SourceFile>,
     options: &CompilerOptions,
 ) -> Vec<P<Diagnostic>> {
-    if options.experimental_decorators.is_true() {
-        return Vec::new();
-    }
-    let mut diags = Vec::new();
     // Parameter decorators are only valid with experimentalDecorators. Without it,
     // the checker would report this, but the checker doesn't run on unchecked JS files.
     fn walk(node: P<Node>, file: P<SourceFile>, diags: &mut Vec<P<Diagnostic>>) -> bool {
         if !node.subtree_facts().intersects(ast::SubtreeFacts::ContainsDecorators) {
             return false;
         }
-        if node.kind() == Kind::Parameter && ast::has_decorators(node) {
-            if let Some(decorator) =
+        if node.kind() == Kind::Parameter
+            && ast::has_decorators(node)
+            && let Some(decorator) =
                 node.modifier_nodes().iter().copied().find(|n| ast::is_decorator(*n))
-            {
-                diags.push(new_diagnostic(
-                    Some(file),
-                    decorator.loc(),
-                    &diagnostics::DECORATORS_ARE_NOT_VALID_HERE,
-                    &[],
-                ));
-            }
+        {
+            diags.push(new_diagnostic(
+                Some(file),
+                decorator.loc(),
+                &diagnostics::DECORATORS_ARE_NOT_VALID_HERE,
+                &[],
+            ));
         }
         node.for_each_child(&mut |child| walk(child, file, diags));
         false
     }
+
+    if options.experimental_decorators.is_true() {
+        return Vec::new();
+    }
+    let mut diags = Vec::new();
     file.as_node().for_each_child(&mut |child| walk(child, file, &mut diags));
     diags
 }

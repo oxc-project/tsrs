@@ -14,19 +14,19 @@ use crate::gojson;
 
 // Go json.Marshal of core.CompilerOptions, core.BuildOptions and core.TypeAcquisition: the gojson module's
 // encoding, which contentmapper.MarshalDeclaredOptions also uses.
-pub(crate) fn compiler_options_to_json(options: &CompilerOptions) -> Value {
+pub fn compiler_options_to_json(options: &CompilerOptions) -> Value {
     gojson::compiler_options_to_go_json(options)
 }
 
-pub(crate) fn build_options_to_json(options: &BuildOptions) -> Value {
+pub fn build_options_to_json(options: &BuildOptions) -> Value {
     gojson::build_options_to_go_json(options)
 }
 
-pub(crate) fn type_acquisition_to_json(options: &TypeAcquisition) -> Value {
+pub fn type_acquisition_to_json(options: &TypeAcquisition) -> Value {
     gojson::type_acquisition_to_go_json(options)
 }
 
-pub(crate) fn option_value_to_json(value: &CompilerOptionsValue) -> Value {
+pub fn option_value_to_json(value: &CompilerOptionsValue) -> Value {
     json::unmarshal(&crate::tsconfigparsing::stringify_json(value)).unwrap()
 }
 
@@ -40,7 +40,7 @@ fn flattened_message(d: P<Diagnostic>, new_line: &str, indent: usize, out: &mut 
 }
 
 // diagnosticwriter.WriteFormatDiagnostics
-pub(crate) fn write_format_diagnostics(diagnostics: &[P<Diagnostic>], new_line: &str) -> String {
+pub fn write_format_diagnostics(diagnostics: &[P<Diagnostic>], new_line: &str) -> String {
     let mut out = String::new();
     for d in diagnostics {
         if let Some(file) = d.file() {
@@ -217,7 +217,7 @@ fn write_code_snippet(
 }
 
 // diagnosticwriter.FormatDiagnosticsWithColorAndContext (no related information in these baselines).
-pub(crate) fn format_diagnostics_with_color_and_context(
+pub fn format_diagnostics_with_color_and_context(
     diagnostics: &[P<Diagnostic>],
     new_line: &str,
     options: &ComparePathsOptions,
@@ -249,20 +249,20 @@ pub(crate) fn format_diagnostics_with_color_and_context(
         );
         flattened_message(*diagnostic, new_line, 0, &mut out);
 
-        if let Some(file) = diagnostic.file() {
-            if diagnostic.code() != tsrs_diagnostics::FILE_APPEARS_TO_BE_BINARY.code() {
-                out.push_str(new_line);
-                write_code_snippet(
-                    &mut out,
-                    file,
-                    diagnostic.pos().expect("file diagnostics have source positions"),
-                    diagnostic.len().expect("file diagnostics have source positions"),
-                    category_color(diagnostic.category()),
-                    "",
-                    new_line,
-                );
-                out.push_str(new_line);
-            }
+        if let Some(file) = diagnostic.file()
+            && diagnostic.code() != tsrs_diagnostics::FILE_APPEARS_TO_BE_BINARY.code()
+        {
+            out.push_str(new_line);
+            write_code_snippet(
+                &mut out,
+                file,
+                diagnostic.pos().expect("file diagnostics have source positions"),
+                diagnostic.len().expect("file diagnostics have source positions"),
+                category_color(diagnostic.category()),
+                "",
+                new_line,
+            );
+            out.push_str(new_line);
         }
     }
     out

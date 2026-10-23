@@ -17,7 +17,7 @@ use tsrs_core::context::{Context, ContextError};
 // Waiting for "ready" is cancelable through the context like Go's select on ctx.Done().)
 
 // dynamic_queue.go:17
-pub(crate) struct DynamicQueue<T> {
+pub struct DynamicQueue<T> {
     inner: Arc<DynamicQueueInner<T>>,
 }
 
@@ -27,12 +27,12 @@ struct DynamicQueueInner<T> {
 }
 
 // dynamic_queue.go:22
-pub(crate) struct DynamicQueueState<T> {
+pub struct DynamicQueueState<T> {
     items: VecDeque<T>,
 }
 
 // dynamic_queue.go:26
-pub(crate) fn new_dynamic_queue<T: Send + 'static>() -> DynamicQueue<T> {
+pub fn new_dynamic_queue<T: Send + 'static>() -> DynamicQueue<T> {
     DynamicQueue {
         inner: Arc::new(DynamicQueueInner {
             state: Mutex::new(DynamicQueueState { items: VecDeque::new() }),
@@ -110,7 +110,7 @@ impl<T: Send + 'static> DynamicQueue<T> {
 // Waits on `cond` until `ready(&state)` holds or `ctx` is canceled (Go: a select on a channel and `ctx.Done()`).
 // `wake` must lock the mutex and notify `cond`; it runs (on its own thread) when the context is canceled while
 // waiting, so the waiter observes the cancellation without polling.
-pub(crate) fn wait_until<'a, S>(
+pub fn wait_until<'a, S>(
     ctx: &Context,
     cond: &Condvar,
     mut guard: MutexGuard<'a, S>,

@@ -76,7 +76,7 @@ impl LanguageService {
 }
 
 // jsdoc_snippet.go:74
-pub(crate) fn is_potentially_valid_jsdoc_snippet_completion_position(
+pub fn is_potentially_valid_jsdoc_snippet_completion_position(
     file: P<SourceFile>,
     position: u32,
 ) -> bool {
@@ -314,17 +314,17 @@ fn get_comment_owner_info_worker(
         | Kind::EnumMember
         | Kind::TypeAliasDeclaration => (Some(plain(comment_owner)), false),
         Kind::PropertySignature => {
-            if let Some(type_node) = comment_owner.as_property_signature_declaration().type_() {
-                if ast::is_function_type_node(type_node) {
-                    return (
-                        Some(CommentOwnerInfo {
-                            comment_owner,
-                            parameters: type_node.parameters(),
-                            has_return: has_return(type_node, generate_return_in_doc_template),
-                        }),
-                        false,
-                    );
-                }
+            if let Some(type_node) = comment_owner.as_property_signature_declaration().type_()
+                && ast::is_function_type_node(type_node)
+            {
+                return (
+                    Some(CommentOwnerInfo {
+                        comment_owner,
+                        parameters: type_node.parameters(),
+                        has_return: has_return(type_node, generate_return_in_doc_template),
+                    }),
+                    false,
+                );
             }
             (Some(plain(comment_owner)), false)
         }
@@ -335,19 +335,18 @@ fn get_comment_owner_info_worker(
                 .as_variable_declaration_list()
                 .declarations
                 .nodes();
-            if declarations.len() == 1 {
-                if let Some(initializer) = declarations[0].as_variable_declaration().initializer() {
-                    if let Some(host) = get_right_hand_side_of_assignment(Some(initializer)) {
-                        return (
-                            Some(CommentOwnerInfo {
-                                comment_owner,
-                                parameters: host.parameters(),
-                                has_return: has_return(host, generate_return_in_doc_template),
-                            }),
-                            false,
-                        );
-                    }
-                }
+            if declarations.len() == 1
+                && let Some(initializer) = declarations[0].as_variable_declaration().initializer()
+                && let Some(host) = get_right_hand_side_of_assignment(Some(initializer))
+            {
+                return (
+                    Some(CommentOwnerInfo {
+                        comment_owner,
+                        parameters: host.parameters(),
+                        has_return: has_return(host, generate_return_in_doc_template),
+                    }),
+                    false,
+                );
             }
             (Some(plain(comment_owner)), false)
         }
@@ -381,17 +380,17 @@ fn get_comment_owner_info_worker(
             (Some(plain(comment_owner)), false)
         }
         Kind::PropertyDeclaration => {
-            if let Some(initializer) = comment_owner.as_property_declaration().initializer() {
-                if ast::is_function_expression_or_arrow_function(initializer) {
-                    return (
-                        Some(CommentOwnerInfo {
-                            comment_owner,
-                            parameters: initializer.parameters(),
-                            has_return: has_return(initializer, generate_return_in_doc_template),
-                        }),
-                        false,
-                    );
-                }
+            if let Some(initializer) = comment_owner.as_property_declaration().initializer()
+                && ast::is_function_expression_or_arrow_function(initializer)
+            {
+                return (
+                    Some(CommentOwnerInfo {
+                        comment_owner,
+                        parameters: initializer.parameters(),
+                        has_return: has_return(initializer, generate_return_in_doc_template),
+                    }),
+                    false,
+                );
             }
             (None, false)
         }
@@ -407,12 +406,11 @@ fn has_return(node: P<Node>, generate_return_in_doc_template: bool) -> bool {
     if ast::is_function_type_node(node) {
         return true;
     }
-    if ast::is_arrow_function(node) {
-        if let Some(body) = node.body() {
-            if ast::is_expression(body) {
-                return true;
-            }
-        }
+    if ast::is_arrow_function(node)
+        && let Some(body) = node.body()
+        && ast::is_expression(body)
+    {
+        return true;
     }
     ast::is_function_like_declaration(node)
         && node.body().is_some()

@@ -12,8 +12,7 @@ use tsrs_diagnostics::Message;
 
 /// Go's `getInvalidTextDiagnostic func() (*diagnostics.Message, []any)`; shared (`Rc`) because the
 /// `createDiagnostic` closure of a JSX text elaboration element captures it.
-pub(crate) type InvalidTextDiagnosticFn =
-    Rc<dyn Fn(&mut Checker) -> (&'static Message, Vec<String>)>;
+pub type InvalidTextDiagnosticFn = Rc<dyn Fn(&mut Checker) -> (&'static Message, Vec<String>)>;
 
 impl Checker {
     // jsx.go:72
@@ -81,10 +80,10 @@ impl Checker {
             && compiler_options.jsx_fragment_factory.is_empty()
             && ast::get_pragma_from_source_file(node_source_file, "jsxfrag").is_none()
         {
-            let message = if !compiler_options.jsx_factory.is_empty() {
-                &diagnostics::THE_JSX_FRAGMENT_FACTORY_COMPILER_OPTION_MUST_BE_PROVIDED_TO_USE_JSX_FRAGMENTS_WITH_THE_JSX_FACTORY_COMPILER_OPTION
-            } else {
+            let message = if compiler_options.jsx_factory.is_empty() {
                 &diagnostics::AN_JSX_FRAG_PRAGMA_IS_REQUIRED_WHEN_USING_AN_JSX_PRAGMA_WITH_JSX_FRAGMENTS
+            } else {
+                &diagnostics::THE_JSX_FRAGMENT_FACTORY_COMPILER_OPTION_MUST_BE_PROVIDED_TO_USE_JSX_FRAGMENTS_WITH_THE_JSX_FACTORY_COMPILER_OPTION
             };
             self.error(Some(node), message, &[]);
         }
@@ -297,16 +296,15 @@ impl Checker {
         node: P<Node>,
         context_flags: ContextFlags,
     ) -> Option<P<Type>> {
-        if ast::is_jsx_opening_element(node) && context_flags != ContextFlags::IgnoreNodeInferences
-        {
-            if let Some(index) = self
+        if ast::is_jsx_opening_element(node)
+            && context_flags != ContextFlags::IgnoreNodeInferences
+            && let Some(index) = self
                 .find_contextual_node(node.parent().unwrap(), context_flags == ContextFlags::None)
-            {
-                // Contextually applied type is moved from attributes up to the outer jsx attributes so when walking up from the children they get hit
-                // _However_ to hit them from the _attributes_ we must look for them here; otherwise we'll used the declared type
-                // (as below) instead!
-                return self.contextual_infos[index].t;
-            }
+        {
+            // Contextually applied type is moved from attributes up to the outer jsx attributes so when walking up from the children they get hit
+            // _However_ to hit them from the _attributes_ we must look for them here; otherwise we'll used the declared type
+            // (as below) instead!
+            return self.contextual_infos[index].t;
         }
         Some(self.get_contextual_type_for_argument_at_index(node, 0))
     }
@@ -472,7 +470,17 @@ impl Checker {
 
             let iterable_type = self.get_global_iterable_type();
             let (array_like_target_parts, non_array_like_target_parts) =
-                if iterable_type != self.empty_generic_type {
+                if iterable_type == self.empty_generic_type {
+                    (
+                        self.filter_type(
+                            children_target_type,
+                            super::checker::Checker::is_array_or_tuple_like_type,
+                        ),
+                        self.filter_type(children_target_type, |c, t| {
+                            !c.is_array_or_tuple_like_type(t)
+                        }),
+                    )
+                } else {
                     let any_type = self.any_type;
                     let any_iterable = self.create_iterable_type(any_type);
                     (
@@ -481,16 +489,6 @@ impl Checker {
                         }),
                         self.filter_type(children_target_type, |c, t| {
                             !c.is_type_assignable_to(t, any_iterable)
-                        }),
-                    )
-                } else {
-                    (
-                        self.filter_type(
-                            children_target_type,
-                            super::checker::Checker::is_array_or_tuple_like_type,
-                        ),
-                        self.filter_type(children_target_type, |c, t| {
-                            !c.is_array_or_tuple_like_type(t)
                         }),
                     )
                 };
@@ -513,22 +511,7 @@ impl Checker {
                 },
             );
             if more_than_one_real_children {
-                if array_like_target_parts != self.never_type {
-                    let child_types =
-                        self.check_jsx_children(containing_element, CheckMode::Normal);
-                    let real_source = self.create_tuple_type(&child_types);
-                    let children = Self::generate_jsx_children(
-                        containing_element,
-                        Rc::clone(&get_invalid_textual_child_diagnostic),
-                    );
-                    reported_error = self.elaborate_iterable_or_array_like_target_elementwise(
-                        children,
-                        real_source,
-                        array_like_target_parts,
-                        relation,
-                        diagnostic_output.as_deref_mut(),
-                    ) || reported_error;
-                } else {
+                if array_like_target_parts == self.never_type {
                     let source_children_type =
                         self.get_indexed_access_type(source, children_name_type);
                     if !self.is_type_related_to(
@@ -547,6 +530,21 @@ impl Checker {
                         self.report_diagnostic(Some(diag), diagnostic_output.as_deref_mut());
                         reported_error = true;
                     }
+                } else {
+                    let child_types =
+                        self.check_jsx_children(containing_element, CheckMode::Normal);
+                    let real_source = self.create_tuple_type(&child_types);
+                    let children = Self::generate_jsx_children(
+                        containing_element,
+                        Rc::clone(&get_invalid_textual_child_diagnostic),
+                    );
+                    reported_error = self.elaborate_iterable_or_array_like_target_elementwise(
+                        children,
+                        real_source,
+                        array_like_target_parts,
+                        relation,
+                        diagnostic_output.as_deref_mut(),
+                    ) || reported_error;
                 }
             } else if non_array_like_target_parts != self.never_type {
                 let child = valid_children[0];
@@ -706,14 +704,14 @@ impl Checker {
                     name_type,
                 );
             }
-            if let Some(target_indexed_prop_type) = target_indexed_prop_type {
-                if !target_indexed_prop_type.flags().intersects(TypeFlags::IndexedAccess) {
-                    if let Some(iteration_type) = iteration_type {
-                        target_prop_type =
-                            Some(self.get_union_type(&[iteration_type, target_indexed_prop_type]));
-                    } else {
-                        target_prop_type = Some(target_indexed_prop_type);
-                    }
+            if let Some(target_indexed_prop_type) = target_indexed_prop_type
+                && !target_indexed_prop_type.flags().intersects(TypeFlags::IndexedAccess)
+            {
+                if let Some(iteration_type) = iteration_type {
+                    target_prop_type =
+                        Some(self.get_union_type(&[iteration_type, target_indexed_prop_type]));
+                } else {
+                    target_prop_type = Some(target_indexed_prop_type);
                 }
             }
             let Some(mut target_prop_type) = target_prop_type else {
@@ -913,7 +911,9 @@ impl Checker {
     ) -> P<Signature> {
         let is_jsx_open_fragment = ast::is_jsx_opening_fragment(node);
 
-        let expr_types = if !is_jsx_open_fragment {
+        let expr_types = if is_jsx_open_fragment {
+            self.get_jsx_fragment_type(node)
+        } else {
             if is_jsx_intrinsic_tag_name(node.tag_name()) {
                 let result =
                     self.get_intrinsic_attributes_type_from_jsx_opening_like_element(node).unwrap();
@@ -961,8 +961,6 @@ impl Checker {
                 return fake_signature;
             }
             self.check_expression(node.tag_name())
-        } else {
-            self.get_jsx_fragment_type(node)
         };
         let apparent_type = self.get_apparent_type(expr_types);
         if self.is_error_type(apparent_type) {
@@ -1083,17 +1081,6 @@ impl Checker {
         opening_like_element: P<Node>,
         check_mode: CheckMode,
     ) -> P<Type> {
-        // Local to this call: owned here, not allocated in the arena (as `checkObjectLiteral`'s table).
-        let all_attributes_table: Option<SymbolTable> =
-            self.strict_null_checks.then(SymbolTable::default);
-        let mut attributes_table = SymbolTable::new();
-        let mut attributes_symbol: Option<P<Symbol>> = None;
-        let mut attribute_parent = opening_like_element;
-        let mut spread = self.empty_jsx_object_type;
-        let mut has_spread_any_type = false;
-        let mut type_to_intersect: Option<P<Type>> = None;
-        let mut explicitly_specify_children_attribute = false;
-        let mut object_flags = ObjectFlags::JsxAttributes;
         fn create_jsx_attributes_type(
             c: &mut Checker,
             object_flags: &mut ObjectFlags,
@@ -1111,6 +1098,38 @@ impl Checker {
             );
             result
         }
+
+        fn parent_has_semantic_jsx_children(opening_like_element: P<Node>) -> bool {
+            // Handle children attribute
+            let Some(parent) = opening_like_element.parent() else {
+                return false;
+            };
+            let mut children: &[P<Node>] = &[];
+
+            if ast::is_jsx_element(parent) {
+                // We have to check that openingElement of the parent is the one we are visiting as this may not be true for selfClosingElement
+                if parent.as_jsx_element().opening_element == opening_like_element {
+                    children = parent.children().nodes();
+                }
+            } else if ast::is_jsx_fragment(parent)
+                && parent.as_jsx_fragment().opening_fragment == opening_like_element
+            {
+                children = parent.children().nodes();
+            }
+            !ast::get_semantic_jsx_children(children).is_empty()
+        }
+
+        // Local to this call: owned here, not allocated in the arena (as `checkObjectLiteral`'s table).
+        let all_attributes_table: Option<SymbolTable> =
+            self.strict_null_checks.then(SymbolTable::default);
+        let mut attributes_table = SymbolTable::new();
+        let mut attributes_symbol: Option<P<Symbol>> = None;
+        let mut attribute_parent = opening_like_element;
+        let mut spread = self.empty_jsx_object_type;
+        let mut has_spread_any_type = false;
+        let mut type_to_intersect: Option<P<Type>> = None;
+        let mut explicitly_specify_children_attribute = false;
+        let mut object_flags = ObjectFlags::JsxAttributes;
         let jsx_namespace = self.get_jsx_namespace_at(Some(opening_like_element));
         let jsx_children_property_name = self.get_jsx_element_children_property_name(jsx_namespace);
         let is_jsx_open_fragment = ast::is_jsx_opening_fragment(opening_like_element);
@@ -1218,42 +1237,21 @@ impl Checker {
                     }
                 }
             }
-            if !has_spread_any_type {
-                if !attributes_table.is_empty() {
-                    let t = create_jsx_attributes_type(
-                        self,
-                        &mut object_flags,
-                        attributes_symbol,
-                        attributes_table,
-                    );
-                    spread = self.get_spread_type(
-                        spread,
-                        t,
-                        attributes_symbol,
-                        object_flags,
-                        false, /*readonly*/
-                    );
-                }
+            if !has_spread_any_type && !attributes_table.is_empty() {
+                let t = create_jsx_attributes_type(
+                    self,
+                    &mut object_flags,
+                    attributes_symbol,
+                    attributes_table,
+                );
+                spread = self.get_spread_type(
+                    spread,
+                    t,
+                    attributes_symbol,
+                    object_flags,
+                    false, /*readonly*/
+                );
             }
-        }
-        fn parent_has_semantic_jsx_children(opening_like_element: P<Node>) -> bool {
-            // Handle children attribute
-            let Some(parent) = opening_like_element.parent() else {
-                return false;
-            };
-            let mut children: &[P<Node>] = &[];
-
-            if ast::is_jsx_element(parent) {
-                // We have to check that openingElement of the parent is the one we are visiting as this may not be true for selfClosingElement
-                if parent.as_jsx_element().opening_element == opening_like_element {
-                    children = parent.children().nodes();
-                }
-            } else if ast::is_jsx_fragment(parent) {
-                if parent.as_jsx_fragment().opening_fragment == opening_like_element {
-                    children = parent.children().nodes();
-                }
-            }
-            !ast::get_semantic_jsx_children(children).is_empty()
         }
         if parent_has_semantic_jsx_children(opening_like_element) {
             let child_types: Vec<P<Type>> =
@@ -1269,16 +1267,16 @@ impl Checker {
                     self.error(Some(attribute_parent), &diagnostics::X_0_ARE_SPECIFIED_TWICE_THE_ATTRIBUTE_NAMED_0_WILL_BE_OVERWRITTEN, &[&jsx_children_property_name]);
                 }
                 let mut children_contextual_type: Option<P<Type>> = None;
-                if ast::is_jsx_opening_element(opening_like_element) {
-                    if let Some(contextual_type) = self.get_apparent_type_of_contextual_type(
+                if ast::is_jsx_opening_element(opening_like_element)
+                    && let Some(contextual_type) = self.get_apparent_type_of_contextual_type(
                         opening_like_element.attributes().unwrap(),
                         ContextFlags::None,
-                    ) {
-                        children_contextual_type = self.get_type_of_property_of_contextual_type(
-                            contextual_type,
-                            &jsx_children_property_name,
-                        );
-                    }
+                    )
+                {
+                    children_contextual_type = self.get_type_of_property_of_contextual_type(
+                        contextual_type,
+                        &jsx_children_property_name,
+                    );
                 }
                 // If there are children in the body of JSX element, create dummy attribute "children" with the union of children types so that it will pass the attribute checking process
                 let children_prop_symbol =
@@ -1368,10 +1366,10 @@ impl Checker {
             // In React, JSX text that contains only whitespaces will be ignored so we don't want to type-check that
             // because then type of children property will have constituent of string type.
             if ast::is_jsx_text(child) {
-                if !child.as_jsx_text().contains_only_trivia_white_spaces {
-                    Some(self.string_type)
-                } else {
+                if child.as_jsx_text().contains_only_trivia_white_spaces {
                     None
+                } else {
+                    Some(self.string_type)
                 }
             } else {
                 if ast::is_jsx_expression(child) && child.expression().is_none() {
@@ -1513,7 +1511,9 @@ impl Checker {
             );
             let host_class_type = self.get_return_type_of_signature(sig);
 
-            let library_managed_attribute_type = if !type_params.is_empty() {
+            let library_managed_attribute_type = if type_params.is_empty() {
+                intrinsic_class_attribs
+            } else {
                 // apply JSX.IntrinsicClassAttributes<hostClassType, ...>
                 let min_type_argument_count =
                     checker::Checker::get_min_type_argument_count(&type_params);
@@ -1531,8 +1531,6 @@ impl Checker {
                 };
                 let mapper = new_type_mapper(type_params, inferred_args);
                 self.instantiate_type(intrinsic_class_attribs, Some(mapper))
-            } else {
-                intrinsic_class_attribs
             };
             apparent_attributes_type = self
                 .intersect_types(
@@ -2013,12 +2011,11 @@ impl Checker {
 
     // jsx.go:1293
     pub(crate) fn get_jsx_type(&mut self, name: &str, location: P<Node>) -> P<Type> {
-        if let Some(namespace) = self.get_jsx_namespace_at(Some(location)) {
-            if let Some(exports) = self.get_exports_of_symbol(namespace) {
-                if let Some(type_symbol) = self.get_symbol(Some(exports), name, SymbolFlags::Type) {
-                    return self.get_declared_type_of_symbol(type_symbol);
-                }
-            }
+        if let Some(namespace) = self.get_jsx_namespace_at(Some(location))
+            && let Some(exports) = self.get_exports_of_symbol(namespace)
+            && let Some(type_symbol) = self.get_symbol(Some(exports), name, SymbolFlags::Type)
+        {
+            return self.get_declared_type_of_symbol(type_symbol);
         }
         self.error_type
     }
@@ -2029,12 +2026,11 @@ impl Checker {
         if let Some(location) = location {
             links = Some(self.jsx_element_links.get(location));
         }
-        if let Some(links) = links {
-            if let Some(jsx_namespace) = links.jsx_namespace.get() {
-                if jsx_namespace != self.unknown_symbol {
-                    return Some(jsx_namespace);
-                }
-            }
+        if let Some(links) = links
+            && let Some(jsx_namespace) = links.jsx_namespace.get()
+            && jsx_namespace != self.unknown_symbol
+        {
+            return Some(jsx_namespace);
         }
         if links.is_none() || links.unwrap().jsx_namespace.get() != Some(self.unknown_symbol) {
             // Go dereferences the source file of location here, so location is non-nil on this path.
@@ -2057,13 +2053,13 @@ impl Checker {
                 let candidate = self
                     .get_symbol(exports, JSX_NAMES.jsx, SymbolFlags::Namespace)
                     .map(|s| self.resolve_symbol(s));
-                if let Some(candidate) = candidate {
-                    if candidate != self.unknown_symbol {
-                        if let Some(links) = links {
-                            links.jsx_namespace.set(Some(candidate));
-                        }
-                        return Some(candidate);
+                if let Some(candidate) = candidate
+                    && candidate != self.unknown_symbol
+                {
+                    if let Some(links) = links {
+                        links.jsx_namespace.set(Some(candidate));
                     }
+                    return Some(candidate);
                 }
             }
             if let Some(links) = links {
@@ -2224,7 +2220,7 @@ fn pragma_factory_argument(pragma: &'static Pragma) -> &'static str {
 }
 
 // jsx.go:1443
-pub(crate) fn mark_as_synthetic(node: P<Node>) -> bool {
+pub fn mark_as_synthetic(node: P<Node>) -> bool {
     node.set_loc(TextRange::synthetic());
     node.for_each_child(&mut |child| mark_as_synthetic(child));
     false
@@ -2275,11 +2271,11 @@ impl Checker {
             None, /*importAttributesType*/
         );
         let mut result: Option<P<Symbol>> = None;
-        if let Some(mod_) = mod_ {
-            if mod_ != self.unknown_symbol {
-                let resolved = self.resolve_symbol(mod_);
-                result = Some(self.get_merged_symbol(resolved));
-            }
+        if let Some(mod_) = mod_
+            && mod_ != self.unknown_symbol
+        {
+            let resolved = self.resolve_symbol(mod_);
+            result = Some(self.get_merged_symbol(resolved));
         }
         links.jsx_implicit_import_container.set(Some(result.unwrap_or(self.unknown_symbol)));
         result
@@ -2387,15 +2383,15 @@ fn check_tag_name_does_not_expect_too_many_arguments(
             &[&tag_name_text, &absolute_min_arg_count, &factory_text, &max_param_count],
         );
         let tag_name_symbol = c.get_symbol_at_location(tag_name, false);
-        if let Some(tag_name_symbol) = tag_name_symbol {
-            if let Some(value_declaration) = tag_name_symbol.value_declaration() {
-                let tag_name_text = crate::entity_name_to_string(tag_name);
-                diag.add_related_info(new_diagnostic_for_node(
-                    Some(value_declaration),
-                    Some(&diagnostics::X_0_IS_DECLARED_HERE),
-                    &[&tag_name_text],
-                ));
-            }
+        if let Some(tag_name_symbol) = tag_name_symbol
+            && let Some(value_declaration) = tag_name_symbol.value_declaration()
+        {
+            let tag_name_text = crate::entity_name_to_string(tag_name);
+            diag.add_related_info(new_diagnostic_for_node(
+                Some(value_declaration),
+                Some(&diagnostics::X_0_IS_DECLARED_HERE),
+                &[&tag_name_text],
+            ));
         }
         c.report_diagnostic(Some(diag), diagnostic_output);
     }

@@ -2,8 +2,8 @@ use rustc_hash::{FxHashMap, FxHashSet};
 use std::sync::{Arc, Condvar, Mutex};
 use std::time::{Duration, Instant};
 
-pub(crate) const DEFAULT_MIN_WAIT_TIME: Duration = Duration::from_millis(50);
-pub(crate) const DEFAULT_MAX_WAIT_TIME: Duration = Duration::from_millis(500);
+pub const DEFAULT_MIN_WAIT_TIME: Duration = Duration::from_millis(50);
+pub const DEFAULT_MAX_WAIT_TIME: Duration = Duration::from_millis(500);
 
 // Go keeps these as package variables so tests can shorten them; nothing changes them here.
 const MIN_WAIT_TIME: Duration = DEFAULT_MIN_WAIT_TIME;
@@ -24,7 +24,7 @@ type DebounceCallback = Arc<dyn Fn() + Send + Sync>;
 //
 // Go's latch channels (`waitCh` closed = signalled, `triggerCh` replaced on each trigger) are a mutex-guarded
 // `notified` flag and trigger generation with a condition variable.
-pub(crate) struct Debounce {
+pub struct Debounce {
     mu: Mutex<DebounceState>,
     latch_mu: Mutex<LatchState>,
     latch_cv: Condvar,

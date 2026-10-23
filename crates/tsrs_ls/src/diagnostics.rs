@@ -13,7 +13,7 @@ use crate::spanmap::Fidelity;
 // getAllDiagnostics collects all diagnostics for a file: syntactic, semantic,
 // suggestion, and (when declarations are emitted) declaration diagnostics.
 // diagnostics.go:18
-pub(crate) fn get_all_diagnostics(
+pub fn get_all_diagnostics(
     ctx: &Context,
     program: &'static Program,
     file: P<SourceFile>,

@@ -126,14 +126,14 @@ unsafe extern "C" {
     );
 }
 
-pub(crate) const CF_STRING_ENCODING_UTF8: u32 = 0x0800_0100;
+pub const CF_STRING_ENCODING_UTF8: u32 = 0x0800_0100;
 const CF_STRING_NORMALIZATION_FORM_C: CFIndex = 2; // kCFStringNormalizationFormC
 // kFSEventStreamCreateFlagUseCFTypes (0x1) | kFSEventStreamCreateFlagFileEvents (0x10); Go hardcodes it in the
 // assembly trampolines.
 const FS_EVENT_STREAM_CREATE_FLAGS: u32 = 0x11;
 
 // An owned CoreFoundation object reference (released on drop).
-pub(crate) struct CFRef(CFTypeRef);
+pub struct CFRef(CFTypeRef);
 
 impl Drop for CFRef {
     fn drop(&mut self) {
@@ -144,7 +144,7 @@ impl Drop for CFRef {
 }
 
 // Go `cfStringCreate(0, cstr, UTF8)`; None when CFStringCreateWithCString returns NULL (or `s` contains NUL).
-pub(crate) fn cf_string_create(s: &str) -> Option<CFRef> {
+pub fn cf_string_create(s: &str) -> Option<CFRef> {
     let cstr = CString::new(s).ok()?;
     // SAFETY: `cstr` is NUL-terminated and outlives the call; NULL allocator = default.
     let r = unsafe {
@@ -155,7 +155,7 @@ pub(crate) fn cf_string_create(s: &str) -> Option<CFRef> {
 
 // Go `cfArrayCreate(0, values, n, 0)`: NULL callbacks, so the array does not retain its values; the caller keeps
 // `values` alive while the array is used (Go's `defer cfRelease` order).
-pub(crate) fn cf_array_create(values: &[CFRef]) -> Option<CFRef> {
+pub fn cf_array_create(values: &[CFRef]) -> Option<CFRef> {
     let ptrs: Vec<CFTypeRef> = values.iter().map(|v| v.0).collect();
     // SAFETY: `ptrs` holds `ptrs.len()` valid CF objects for the duration of the call.
     let r = unsafe {
@@ -180,13 +180,15 @@ fn cf_string_normalize(mut_str: &CFRef, form: CFIndex) {
     unsafe { native_cf_string_normalize(mut_str.0, form) }
 }
 
-pub(crate) const NATIVE_PATH_FOLDING: bool = true;
+pub const NATIVE_PATH_FOLDING: bool = true;
 
 // fsevents_darwin_ffi.go:206
 // foldNativePath is a comparison form, never a displayed or opened path.
 // Case folding expands sharp s and ligatures without making diacritics,
 // dotless i, circled letters, or character widths interchangeable.
-pub(crate) fn fold_native_path(s: &str) -> String {
+pub fn fold_native_path(s: &str) -> String {
+    const CF_COMPARE_CASE_INSENSITIVE: usize = 1;
+
     if is_ascii(s) {
         return s.to_ascii_lowercase();
     }
@@ -202,7 +204,6 @@ pub(crate) fn fold_native_path(s: &str) -> String {
     // Normalize before folding as well: a decomposed capital I with dot
     // must have the same comparison form as precomposed dotted capital I.
     cf_string_normalize(&mut_, CF_STRING_NORMALIZATION_FORM_C);
-    const CF_COMPARE_CASE_INSENSITIVE: usize = 1;
     // SAFETY: `mut_` is a CFMutableString; NULL locale = canonical folding.
     unsafe { cf_string_fold(mut_.0, CF_COMPARE_CASE_INSENSITIVE, std::ptr::null()) };
     cf_string_normalize(&mut_, CF_STRING_NORMALIZATION_FORM_C);
@@ -224,7 +225,7 @@ fn is_ascii(s: &str) -> bool {
 // If normalization fails, it falls back to the unnormalized UTF-8 contents.
 // Returns "" only if both the normalized and unnormalized conversions fail
 // (e.g. src is not a CFString, or allocation fails).
-pub(crate) fn cf_string_to_nfc(src: CFTypeRef) -> String {
+pub fn cf_string_to_nfc(src: CFTypeRef) -> String {
     if src.is_null() {
         return String::new();
     }
@@ -276,7 +277,7 @@ fn cf_string_to_go(src: CFTypeRef) -> String {
 // inputs are returned unchanged. Non-ASCII inputs go through CoreFoundation;
 // if any step fails (e.g. invalid UTF-8 from a corrupt path), the original
 // string is returned so the caller still sees *something* rather than nothing.
-pub(crate) fn normalize_nfc(s: &str) -> String {
+pub fn normalize_nfc(s: &str) -> String {
     if is_ascii(s) {
         return s.to_string();
     }
@@ -291,14 +292,14 @@ pub(crate) fn normalize_nfc(s: &str) -> String {
 }
 
 // Go `fsEventsGetCurrentEventID`.
-pub(crate) fn fs_events_get_current_event_id() -> u64 {
+pub fn fs_events_get_current_event_id() -> u64 {
     // SAFETY: no arguments, no preconditions.
     unsafe { native_fs_events_get_current_event_id() }
 }
 
 // The borrowed arguments of one FSEvents callback (Go's retained/copied `fsEventsCallbackPayload`; here the
 // callback runs synchronously, so nothing is retained or freed).
-pub(crate) struct FsEventsCallbackPayload {
+pub struct FsEventsCallbackPayload {
     pub(crate) num_events: usize,
     paths: CFTypeRef,
     pub(crate) flags: *const u32,
@@ -331,7 +332,7 @@ impl FsEventsCallbackPayload {
 
 // Keep the borrowed CF objects and arrays alive while a test exercises the real event classifier.
 #[cfg(test)]
-pub(crate) fn dispatch_test_event(cb: &StreamCallback, path: &str, flags: u32) {
+pub fn dispatch_test_event(cb: &StreamCallback, path: &str, flags: u32) {
     let path = cf_string_create(path).unwrap();
     let paths = cf_array_create(std::slice::from_ref(&path)).unwrap();
     let id = 1;
@@ -345,7 +346,7 @@ pub(crate) fn dispatch_test_event(cb: &StreamCallback, path: &str, flags: u32) {
 }
 
 // streamCallback is the per-stream state the C callback receives as FSEventStreamContext.info.
-pub(crate) struct StreamCallback {
+pub struct StreamCallback {
     queue: DispatchQueueT, // per-stream serial dispatch queue
     pub(crate) watches: Vec<FseventsWatchSnapshot>,
 }
@@ -366,11 +367,10 @@ unsafe impl Sync for StreamCallback {}
 // overflow and a full rebuild. Writing 10k files with all cores busy dropped events on every run with a NULL
 // attribute and on none with QOS_CLASS_DEFAULT or QOS_CLASS_USER_INITIATED. The callback is short (tens of
 // microseconds per batch), so running it ahead of the compiler's threads costs nothing measurable.
-pub(crate) fn new_stream_callback(
-    watches: &[FseventsWatchSnapshot],
-) -> Option<Box<StreamCallback>> {
-    let label = b"typescript.fswatch.fsevents.stream\0";
+pub fn new_stream_callback(watches: &[FseventsWatchSnapshot]) -> Option<Box<StreamCallback>> {
     const QOS_CLASS_USER_INITIATED: u32 = 0x19;
+
+    let label = b"typescript.fswatch.fsevents.stream\0";
     // SAFETY: NULL = DISPATCH_QUEUE_SERIAL; the returned attribute is a static libdispatch object (not released).
     let attr = unsafe {
         dispatch_queue_attr_make_with_qos_class(std::ptr::null(), QOS_CLASS_USER_INITIATED, 0)
@@ -429,7 +429,7 @@ extern "C" fn fs_events_callback_c(
 }
 
 // An FSEventStream handle (Go keeps it as an atomic uintptr).
-pub(crate) struct FsEventStream(FSEventStreamRef);
+pub struct FsEventStream(FSEventStreamRef);
 
 // SAFETY: FSEventStream functions may be called from any thread once the stream is scheduled on a dispatch queue.
 unsafe impl Send for FsEventStream {}
@@ -437,7 +437,7 @@ unsafe impl Send for FsEventStream {}
 unsafe impl Sync for FsEventStream {}
 
 #[derive(Clone, Copy)]
-pub(crate) enum StreamStartError {
+pub enum StreamStartError {
     CFStringCreateNull,
     CFArrayCreateNull,
     StreamCreateNull,
@@ -446,10 +446,13 @@ pub(crate) enum StreamStartError {
 
 // The FFI part of fsevents_darwin.go `startStream`: create the CF path array and the stream, schedule it on the
 // callback's queue, start and flush it. On failure the callback is closed (Go: `cb.close()`).
-pub(crate) fn create_and_start_stream(
+pub fn create_and_start_stream(
     paths: &[String],
     cb: &mut Box<StreamCallback>,
 ) -> Result<FsEventStream, StreamStartError> {
+    // kFSEventStreamEventIdSinceNow == ((FSEventStreamEventId)0xFFFFFFFFFFFFFFFFULL)
+    const EVENT_ID_SINCE_NOW: u64 = 0xFFFF_FFFF_FFFF_FFFF;
+
     let mut cf_strings = Vec::with_capacity(paths.len());
     cf_strings = match paths.iter().try_fold(cf_strings, |mut cf_strings, path| {
         match cf_string_create(path) {
@@ -474,8 +477,6 @@ pub(crate) fn create_and_start_stream(
         release: std::ptr::null(),
         copy_description: std::ptr::null(),
     };
-    // kFSEventStreamEventIdSinceNow == ((FSEventStreamEventId)0xFFFFFFFFFFFFFFFFULL)
-    const EVENT_ID_SINCE_NOW: u64 = 0xFFFF_FFFF_FFFF_FFFF;
     // SAFETY: `ctx` is copied by FSEventStreamCreate; `paths_to_watch` is a valid CFArray of CFStrings; `info`
     // points into the boxed callback, whose address is stable until the stream is torn down.
     let stream = unsafe {
@@ -518,7 +519,7 @@ pub(crate) fn create_and_start_stream(
     clippy::needless_pass_by_value,
     reason = "takes the stream by value: it is torn down exactly once and must not be used after"
 )]
-pub(crate) fn teardown_stream(stream: FsEventStream, cb: Option<&mut Box<StreamCallback>>) {
+pub fn teardown_stream(stream: FsEventStream, cb: Option<&mut Box<StreamCallback>>) {
     // SAFETY: `stream` is a started stream that is torn down exactly once (the caller swapped it out).
     unsafe {
         fs_event_stream_stop(stream.0);
@@ -535,7 +536,7 @@ pub(crate) fn teardown_stream(stream: FsEventStream, cb: Option<&mut Box<StreamC
 }
 
 #[cfg(test)]
-pub(crate) fn dispatch_test_events(cb: &StreamCallback, events: &[(&str, u32)]) {
+pub fn dispatch_test_events(cb: &StreamCallback, events: &[(&str, u32)]) {
     let path_refs: Vec<_> =
         events.iter().map(|(path, _)| cf_string_create(path).unwrap()).collect();
     let paths = cf_array_create(&path_refs).unwrap();

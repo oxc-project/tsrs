@@ -625,6 +625,6 @@ impl From<ipc::Error> for Error {
 }
 
 // Go `strconv.Quote`, which fmt's %q verb uses for a string.
-pub(crate) fn quote(s: &str) -> String {
+pub fn quote(s: &str) -> String {
     tsrs_core::gocompat::quote(s.as_bytes(), tsrs_core::gocompat::QuoteStyle::Header)
 }

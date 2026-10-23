@@ -6,7 +6,7 @@ use super::*;
 
 // esdecorator.go:1232
 #[derive(Default)]
-pub(crate) struct PartialResult {
+pub struct PartialResult {
     pub modifiers: Option<P<ModifierList>>,
     pub referenced_name: Option<P<Node>>,
     pub name: Option<P<Node>>,
@@ -17,7 +17,7 @@ pub(crate) struct PartialResult {
 }
 
 // esdecorator.go:1242
-pub(crate) type CreateDescriptorFunc =
+pub type CreateDescriptorFunc =
     fn(&EsDecoratorTransformer, P<Node>, Option<P<ModifierList>>) -> P<Node>;
 
 impl EsDecoratorTransformer {
@@ -410,10 +410,10 @@ impl EsDecoratorTransformer {
             result = self.base.visitor().visit_each_child(Some(node)).unwrap();
             // Transfer AssignedName metadata to the new node so isClassNamedEvaluationHelperBlock
             // can still find it after visiting (visiting may create a new node when this->_classThis)
-            if let Some(assigned_name) = ec.assigned_name(node) {
-                if result != node {
-                    ec.set_assigned_name(result, assigned_name);
-                }
+            if let Some(assigned_name) = ec.assigned_name(node)
+                && result != node
+            {
+                ec.set_assigned_name(result, assigned_name);
             }
         } else if is_class_this_assignment_block(ec, node) {
             let saved_class_this = self.class_this.get();
@@ -506,10 +506,11 @@ impl EsDecoratorTransformer {
                 Some(f.new_run_initializers_helper(this_arg, initializers_name, Some(value)));
         }
 
-        if ast::is_static(node) && initializer.is_some() {
-            if let Some(ci) = self.class_info_stack.get() {
-                ci.has_static_initializers.set(true);
-            }
+        if ast::is_static(node)
+            && initializer.is_some()
+            && let Some(ci) = self.class_info_stack.get()
+        {
+            ci.has_static_initializers.set(true);
         }
 
         let declarations = ec.end_variable_environment();
@@ -789,7 +790,7 @@ impl EsDecoratorTransformer {
 }
 
 // esdecorator.go:1877
-pub(crate) fn is_anonymous_class_needing_assigned_name(node: P<Node>) -> bool {
+pub fn is_anonymous_class_needing_assigned_name(node: P<Node>) -> bool {
     ast::is_class_expression(node) && node.name().is_none() && is_decorated_class_like(node)
 }
 
@@ -798,7 +799,7 @@ pub(crate) fn is_anonymous_class_needing_assigned_name(node: P<Node>) -> bool {
 // `var class_1 = class { };`, and thus the empty string cannot be ignored. However, The IIFE
 // produced for `(class { @dec x; })` will not result in an assigned name since it
 // transforms to `return class { };`, and thus the empty string *can* be ignored.
-pub(crate) fn can_ignore_empty_string_literal_in_assigned_name(node: Option<P<Node>>) -> bool {
+pub fn can_ignore_empty_string_literal_in_assigned_name(node: Option<P<Node>>) -> bool {
     let Some(node) = node else {
         return false;
     };
@@ -1875,7 +1876,7 @@ impl EsDecoratorTransformer {
 }
 
 // esdecorator.go:2719
-pub(crate) fn inject_class_this_assignment_if_missing(
+pub fn inject_class_this_assignment_if_missing(
     ec: P<EmitContext>,
     f: &printer::NodeFactory,
     node: P<Node>,

@@ -14,7 +14,7 @@ use crate::lsutil::FormatCodeSettings;
 
 // span.go:20
 /* find node that fully contains given text range */
-pub(crate) fn find_enclosing_node(r: TextRange, source_file: P<SourceFile>) -> P<Node> {
+pub fn find_enclosing_node(r: TextRange, source_file: P<SourceFile>) -> P<Node> {
     fn find(n: P<Node>, r: TextRange, source_file: P<SourceFile>) -> P<Node> {
         let mut candidate: Option<P<Node>> = None;
         n.for_each_child(&mut |c| {
@@ -42,7 +42,7 @@ pub(crate) fn find_enclosing_node(r: TextRange, source_file: P<SourceFile>) -> P
  * This function will look for token that is located before the start of target range
  * and return its end as start position for the scanner.
  */
-pub(crate) fn get_scan_start_position(
+pub fn get_scan_start_position(
     enclosing_node: P<Node>,
     original_range: TextRange,
     source_file: P<SourceFile>,
@@ -90,7 +90,7 @@ pub(crate) fn get_scan_start_position(
  * if parent is on the different line - its delta was already contributed
  * to the initial indentation.
  */
-pub(crate) fn get_own_or_inherited_delta(
+pub fn get_own_or_inherited_delta(
     n: P<Node>,
     options: &FormatCodeSettings,
     source_file: P<SourceFile>,
@@ -125,10 +125,10 @@ fn range_has_no_errors(_: TextRange) -> bool {
     false
 }
 
-pub(crate) type RangeContainsError = Box<dyn FnMut(TextRange) -> bool>;
+pub type RangeContainsError = Box<dyn FnMut(TextRange) -> bool>;
 
 // span.go:113
-pub(crate) fn prepare_range_contains_error_function(
+pub fn prepare_range_contains_error_function(
     errors: &[P<Diagnostic>],
     original_range: TextRange,
 ) -> RangeContainsError {
@@ -176,7 +176,7 @@ pub(crate) fn prepare_range_contains_error_function(
 }
 
 // span.go:155
-pub(crate) struct FormatSpanWorker {
+pub struct FormatSpanWorker {
     original_range: TextRange,
     enclosing_node: P<Node>,
     initial_indentation: i32,
@@ -209,7 +209,7 @@ pub(crate) struct FormatSpanWorker {
 }
 
 // span.go:188
-pub(crate) fn new_format_span_worker(
+pub fn new_format_span_worker(
     ctx: &FormatContext,
     original_range: TextRange,
     enclosing_node: P<Node>,
@@ -1047,7 +1047,10 @@ impl FormatSpanWorker {
         let mut trim_trailing_whitespaces = !self.fc().options.trim_trailing_whitespace.is_false();
         let mut line_action = LineAction::None;
 
-        if !self.current_rules.is_empty() {
+        if self.current_rules.is_empty() {
+            trim_trailing_whitespaces =
+                trim_trailing_whitespaces && current_item.kind != Kind::EndOfFile;
+        } else {
             // Apply rules in reverse order so that higher priority rules (which are first in the array)
             // win in a conflict with lower priority rules.
             let rules = self.current_rules.clone();
@@ -1103,9 +1106,6 @@ impl FormatSpanWorker {
                     && (rule.action() & RuleAction::DELETE_SPACE == RuleAction::NONE)
                     && rule.flags() != RuleFlags::CanDeleteNewLines;
             }
-        } else {
-            trim_trailing_whitespaces =
-                trim_trailing_whitespaces && current_item.kind != Kind::EndOfFile;
         }
 
         if current_start_line != previous_start_line && trim_trailing_whitespaces {
@@ -1467,7 +1467,7 @@ impl FormatSpanWorker {
 }
 
 // span.go:870
-pub(crate) fn is_string_or_regular_expression_or_template_literal(kind: Kind) -> bool {
+pub fn is_string_or_regular_expression_or_template_literal(kind: Kind) -> bool {
     kind == Kind::StringLiteral
         || kind == Kind::RegularExpressionLiteral
         || ast::is_template_literal_kind(kind)
@@ -1669,9 +1669,11 @@ impl FormatSpanWorker {
 }
 
 // span.go:998
-pub(crate) fn get_indentation_string(indentation: i32, options: &FormatCodeSettings) -> String {
+pub fn get_indentation_string(indentation: i32, options: &FormatCodeSettings) -> String {
     // go's `strings.Repeat` already has static, global caching for repeated tabs and spaces, so there's no need to cache here like in strada
-    if !options.convert_tabs_to_spaces.is_true() {
+    if options.convert_tabs_to_spaces.is_true() {
+        " ".repeat(indentation.max(0) as usize)
+    } else {
         if options.tab_size == 0 {
             return String::new();
         }
@@ -1683,8 +1685,6 @@ pub(crate) fn get_indentation_string(indentation: i32, options: &FormatCodeSetti
         }
 
         res
-    } else {
-        " ".repeat(indentation.max(0) as usize)
     }
 }
 
@@ -1772,7 +1772,11 @@ impl FormatSpanWorker {
             if !range_has_error {
                 if line_action == LineAction::None {
                     // indent token only if end line of previous range does not match start line of the token
-                    if save_previous_range != new_text_range_with_kind(0, 0, Kind::Unknown) {
+                    if save_previous_range == new_text_range_with_kind(0, 0, Kind::Unknown) {
+                        // When there's no previous range (first token), TS sets prevEndLine to undefined.
+                        // tokenStart.line !== undefined is always true in JS, so indentToken = lastTriviaWasNewLine.
+                        indent_token = last_trivia_was_new_line;
+                    } else {
                         let prev_end_line = scanner::get_ecma_line_of_position(
                             self.source_file.get(),
                             save_previous_range
@@ -1782,10 +1786,6 @@ impl FormatSpanWorker {
                         );
                         indent_token =
                             last_trivia_was_new_line && token_start_line != prev_end_line;
-                    } else {
-                        // When there's no previous range (first token), TS sets prevEndLine to undefined.
-                        // tokenStart.line !== undefined is always true in JS, so indentToken = lastTriviaWasNewLine.
-                        indent_token = last_trivia_was_new_line;
                     }
                 } else {
                     indent_token = line_action == LineAction::LineAdded;
@@ -1876,7 +1876,7 @@ impl FormatSpanWorker {
 }
 
 // span.go:1121
-pub(crate) struct DynamicIndenter {
+pub struct DynamicIndenter {
     node: P<Node>,
     node_start_line: usize,
     indentation: Cell<i32>,
@@ -1887,7 +1887,7 @@ pub(crate) struct DynamicIndenter {
 }
 
 // Go passes `*dynamicIndenter` around and mutates it in place (recomputeIndentation).
-pub(crate) type DynamicIndenterRef = Rc<DynamicIndenter>;
+pub type DynamicIndenterRef = Rc<DynamicIndenter>;
 
 impl DynamicIndenter {
     // span.go:1131

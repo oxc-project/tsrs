@@ -77,7 +77,9 @@ impl UsingDeclarationTransformer {
         let emit_context = self.emit_context();
 
         let using_kind = get_using_kind_of_statements(node.statements.nodes());
-        let visited: P<Node> = if using_kind != UsingKind::None {
+        let visited: P<Node> = if using_kind == UsingKind::None {
+            self.visitor().visit_each_child(Some(node.as_node())).unwrap()
+        } else {
             // Imports and exports must stay at the top level. This means we must hoist all imports, exports, and
             // top-level function declarations and bindings out of the `try` statements we generate (see using.go for
             // the worked example). We hoist bindings, functions, imports and exports to a new outer statement list
@@ -174,8 +176,6 @@ impl UsingDeclarationTransformer {
                 f.new_node_list(top_level_statements),
                 node.end_of_file_token,
             )
-        } else {
-            self.visitor().visit_each_child(Some(node.as_node())).unwrap()
         };
         emit_context.add_emit_helper(visited, &emit_context.read_emit_helpers());
         self.export_vars.borrow_mut().clear();
@@ -217,37 +217,37 @@ impl UsingDeclarationTransformer {
     fn visit_for_statement(&self, node: P<Node>) -> P<Node> {
         let f = self.factory();
         let n = node.as_for_statement();
-        if let Some(initializer) = n.initializer {
-            if is_using_variable_declaration_list(initializer) {
-                // given:
-                //
-                //  for (using x = expr; cond; incr) { ... }
-                //
-                // produces a shallow transformation to:
-                //
-                //  {
-                //    using x = expr;
-                //    for (; cond; incr) { ... }
-                //  }
-                //
-                // before handing the shallow transformation back to the visitor for an in-depth transformation.
-                return self
-                    .visitor()
-                    .visit_node(Some(f.new_block(
-                        f.new_node_list(vec![
-                            f.new_variable_statement(None /*modifiers*/, initializer),
-                            f.update_for_statement(
-                                node,
-                                None, /*initializer*/
-                                n.condition,
-                                n.incrementor,
-                                n.statement(),
-                            ),
-                        ]),
-                        false, /*multiLine*/
-                    )))
-                    .unwrap();
-            }
+        if let Some(initializer) = n.initializer
+            && is_using_variable_declaration_list(initializer)
+        {
+            // given:
+            //
+            //  for (using x = expr; cond; incr) { ... }
+            //
+            // produces a shallow transformation to:
+            //
+            //  {
+            //    using x = expr;
+            //    for (; cond; incr) { ... }
+            //  }
+            //
+            // before handing the shallow transformation back to the visitor for an in-depth transformation.
+            return self
+                .visitor()
+                .visit_node(Some(f.new_block(
+                    f.new_node_list(vec![
+                        f.new_variable_statement(None /*modifiers*/, initializer),
+                        f.update_for_statement(
+                            node,
+                            None, /*initializer*/
+                            n.condition,
+                            n.incrementor,
+                            n.statement(),
+                        ),
+                    ]),
+                    false, /*multiLine*/
+                )))
+                .unwrap();
         }
         self.visitor().visit_each_child(Some(node)).unwrap()
     }

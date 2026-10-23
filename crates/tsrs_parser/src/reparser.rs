@@ -315,11 +315,11 @@ impl Parser {
         let parameter_list = self.new_node_list(parameter_list_loc, &parameters);
         signature.function_like_data().unwrap().parameters.set(Some(parameter_list));
 
-        if let Some(return_tag) = js_signature.type_node() {
-            if let Some(type_expression) = return_tag.type_expression() {
-                let t = self.add_deep_clone_reparse(type_expression.type_node());
-                signature.function_like_data().unwrap().type_.set(t);
-            }
+        if let Some(return_tag) = js_signature.type_node()
+            && let Some(type_expression) = return_tag.type_expression()
+        {
+            let t = self.add_deep_clone_reparse(type_expression.type_node());
+            signature.function_like_data().unwrap().type_.set(t);
         }
         let mut loc = js_signature;
         if tag.kind() == Kind::JSDocOverloadTag {
@@ -469,8 +469,7 @@ impl Parser {
                     Kind::VariableStatement => {
                         if let Some(declaration_list) =
                             Some(parent.as_variable_statement().declaration_list)
-                        {
-                            if let Some(&declaration) = declaration_list
+                            && let Some(&declaration) = declaration_list
                                 .as_variable_declaration_list()
                                 .declarations
                                 .nodes()
@@ -479,14 +478,12 @@ impl Parser {
                                     declaration.type_node().is_none()
                                         && tag.type_expression().is_some()
                                 })
-                            {
-                                let t = self.add_deep_clone_reparse(
-                                    tag.type_expression().unwrap().type_node(),
-                                );
-                                declaration.as_mutable().set_type(t);
-                                self.finish_mutated_node(declaration);
-                                return;
-                            }
+                        {
+                            let t = self
+                                .add_deep_clone_reparse(tag.type_expression().unwrap().type_node());
+                            declaration.as_mutable().set_type(t);
+                            self.finish_mutated_node(declaration);
+                            return;
                         }
                     }
                     Kind::VariableDeclaration
@@ -566,8 +563,7 @@ impl Parser {
                 Kind::VariableStatement => {
                     if let Some(declaration_list) =
                         Some(parent.as_variable_statement().declaration_list)
-                    {
-                        if let Some(declaration) = declaration_list
+                        && let Some(declaration) = declaration_list
                             .as_variable_declaration_list()
                             .declarations
                             .nodes()
@@ -581,18 +577,17 @@ impl Parser {
                                     None
                                 }
                             })
-                        {
-                            let t = self
-                                .add_deep_clone_reparse(tag.type_expression().unwrap().type_node())
-                                .unwrap();
-                            let cast = self.make_new_cast(
-                                t,
-                                declaration.initializer().unwrap(),
-                                false, /*isAssertion*/
-                            );
-                            declaration.as_mutable().set_initializer(cast);
-                            self.finish_mutated_node(declaration);
-                        }
+                    {
+                        let t = self
+                            .add_deep_clone_reparse(tag.type_expression().unwrap().type_node())
+                            .unwrap();
+                        let cast = self.make_new_cast(
+                            t,
+                            declaration.initializer().unwrap(),
+                            false, /*isAssertion*/
+                        );
+                        declaration.as_mutable().set_initializer(cast);
+                        self.finish_mutated_node(declaration);
                     }
                 }
                 Kind::VariableDeclaration
@@ -680,24 +675,22 @@ impl Parser {
             Kind::JSDocParameterTag => {
                 if let Some(fun) = get_function_like_host(parent)
                     .filter(|fun| fun.function_like_data().unwrap().full_signature.get().is_none())
+                    && let Some(param) = find_matching_parameter(fun, tag, js_doc)
                 {
-                    if let Some(param) = find_matching_parameter(fun, tag, js_doc) {
-                        let parameter_tag = tag.as_jsdoc_parameter_or_property_tag();
-                        let param_data = param.as_parameter_declaration();
-                        if param_data.type_.get().is_none() {
-                            if let Some(type_expression) = parameter_tag.type_expression {
-                                let t =
-                                    self.reparse_jsdoc_type_literal(type_expression.type_node());
-                                param_data.type_.set(t);
-                            }
-                        }
-                        if param_data.question_token.get().is_none() {
-                            if let Some(question) = self.make_question_if_optional(tag) {
-                                param_data.question_token.set(Some(question));
-                            }
-                        }
-                        self.finish_mutated_node(param);
+                    let parameter_tag = tag.as_jsdoc_parameter_or_property_tag();
+                    let param_data = param.as_parameter_declaration();
+                    if param_data.type_.get().is_none()
+                        && let Some(type_expression) = parameter_tag.type_expression
+                    {
+                        let t = self.reparse_jsdoc_type_literal(type_expression.type_node());
+                        param_data.type_.set(t);
                     }
+                    if param_data.question_token.get().is_none()
+                        && let Some(question) = self.make_question_if_optional(tag)
+                    {
+                        param_data.question_token.set(Some(question));
+                    }
+                    self.finish_mutated_node(param);
                 }
             }
             Kind::JSDocThisTag => {
@@ -737,13 +730,12 @@ impl Parser {
             Kind::JSDocReturnTag => {
                 if let Some(fun) = get_function_like_host(parent)
                     .filter(|fun| fun.function_like_data().unwrap().full_signature.get().is_none())
+                    && fun.type_node().is_none()
+                    && tag.type_expression().is_some()
                 {
-                    if fun.type_node().is_none() && tag.type_expression().is_some() {
-                        let t =
-                            self.add_deep_clone_reparse(tag.type_expression().unwrap().type_node());
-                        fun.function_like_data().unwrap().type_.set(t);
-                        self.finish_mutated_node(fun);
-                    }
+                    let t = self.add_deep_clone_reparse(tag.type_expression().unwrap().type_node());
+                    fun.function_like_data().unwrap().type_.set(t);
+                    self.finish_mutated_node(fun);
                 }
             }
             Kind::JSDocReadonlyTag
@@ -804,24 +796,22 @@ impl Parser {
                 if let Some(class) = get_class_like_data(parent) {
                     let implements_tag = tag.as_jsdoc_implements_tag();
 
-                    if let Some(heritage_clauses) = class.heritage_clauses.get() {
-                        if let Some(implements_clause) =
+                    if let Some(heritage_clauses) = class.heritage_clauses.get()
+                        && let Some(implements_clause) =
                             heritage_clauses.nodes().iter().copied().find(|node| {
                                 node.as_heritage_clause().token == Kind::ImplementsKeyword
                             })
-                        {
-                            let heritage_clause = implements_clause.as_heritage_clause();
-                            let types = heritage_clause.types();
-                            let clone = self
-                                .add_deep_clone_reparse(Some(implements_tag.class_name))
-                                .unwrap();
-                            let mut nodes = types.nodes().to_vec();
-                            nodes.push(clone);
-                            let new_types = self.new_node_list(types.loc(), &nodes);
-                            heritage_clause.set_types(new_types);
-                            self.finish_mutated_node(implements_clause);
-                            return;
-                        }
+                    {
+                        let heritage_clause = implements_clause.as_heritage_clause();
+                        let types = heritage_clause.types();
+                        let clone =
+                            self.add_deep_clone_reparse(Some(implements_tag.class_name)).unwrap();
+                        let mut nodes = types.nodes().to_vec();
+                        nodes.push(clone);
+                        let new_types = self.new_node_list(types.loc(), &nodes);
+                        heritage_clause.set_types(new_types);
+                        self.finish_mutated_node(implements_clause);
+                        return;
                     }
                     let clone =
                         self.add_deep_clone_reparse(Some(implements_tag.class_name)).unwrap();
@@ -848,34 +838,28 @@ impl Parser {
                 }
             }
             Kind::JSDocAugmentsTag => {
-                if let Some(class) = get_class_like_data(parent) {
-                    if let Some(heritage_clauses) = class.heritage_clauses.get() {
-                        if let Some(extends_clause) =
-                            heritage_clauses.nodes().iter().copied().find(|node| {
-                                node.as_heritage_clause().token == Kind::ExtendsKeyword
-                            })
-                        {
-                            if extends_clause.as_heritage_clause().types().nodes().len() == 1 {
-                                let target_node =
-                                    extends_clause.as_heritage_clause().types().nodes()[0];
-                                let target = target_node.as_expression_with_type_arguments();
-                                let source = tag.class_name().as_expression_with_type_arguments();
-                                if target.type_arguments.get().is_none()
-                                    && let Some(source_type_arguments) = source.type_arguments.get()
-                                    && target.expression.kind() != Kind::NullKeyword
-                                    && (!ast::is_entity_name_expression(target.expression)
-                                        || ast::has_same_property_access_name(
-                                            target.expression,
-                                            source.expression,
-                                        ))
-                                {
-                                    self.set_reparsed_type_arguments(
-                                        target_node,
-                                        source_type_arguments,
-                                    );
-                                }
-                            }
-                        }
+                if let Some(class) = get_class_like_data(parent)
+                    && let Some(heritage_clauses) = class.heritage_clauses.get()
+                    && let Some(extends_clause) = heritage_clauses
+                        .nodes()
+                        .iter()
+                        .copied()
+                        .find(|node| node.as_heritage_clause().token == Kind::ExtendsKeyword)
+                    && extends_clause.as_heritage_clause().types().nodes().len() == 1
+                {
+                    let target_node = extends_clause.as_heritage_clause().types().nodes()[0];
+                    let target = target_node.as_expression_with_type_arguments();
+                    let source = tag.class_name().as_expression_with_type_arguments();
+                    if target.type_arguments.get().is_none()
+                        && let Some(source_type_arguments) = source.type_arguments.get()
+                        && target.expression.kind() != Kind::NullKeyword
+                        && (!ast::is_entity_name_expression(target.expression)
+                            || ast::has_same_property_access_name(
+                                target.expression,
+                                source.expression,
+                            ))
+                    {
+                        self.set_reparsed_type_arguments(target_node, source_type_arguments);
                     }
                 }
             }

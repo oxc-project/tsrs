@@ -466,19 +466,6 @@ fn check_assertions(
     text: &str,
     outcome: &mut CompilerOutcome,
 ) -> Result<()> {
-    let relative = rel_path(dt, file_name);
-    let (mut assertions, duplicates) = parse_assertions(text);
-    let positions = TextIndex::new(text);
-    for line in duplicates {
-        outcome.issues.push(Issue {
-            kind: "assertion".to_string(),
-            config: config.to_string(),
-            file: relative.clone(),
-            start: line as i64,
-            end: line as i64,
-            message: "This line has 2 $ExpectType assertions.".to_string(),
-        });
-    }
     fn visit(
         node: P<Node>,
         api: &mut Api,
@@ -572,6 +559,20 @@ fn check_assertions(
             )?;
         }
         Ok(())
+    }
+
+    let relative = rel_path(dt, file_name);
+    let (mut assertions, duplicates) = parse_assertions(text);
+    let positions = TextIndex::new(text);
+    for line in duplicates {
+        outcome.issues.push(Issue {
+            kind: "assertion".to_string(),
+            config: config.to_string(),
+            file: relative.clone(),
+            start: line as i64,
+            end: line as i64,
+            message: "This line has 2 $ExpectType assertions.".to_string(),
+        });
     }
     let mut roots = Vec::new();
     ast.file().as_node().for_each_child(&mut |child| {

@@ -32,7 +32,7 @@ impl Deref for NodeFactory {
 /// Builds the factory for an emit context that is not allocated yet; `set_emit_context` must be called before the
 /// factory creates its first node.
 /// `scratch`: see `ast::NodeFactory::scratch`.
-pub(crate) fn new_node_factory_for_context(scratch: bool) -> NodeFactory {
+pub fn new_node_factory_for_context(scratch: bool) -> NodeFactory {
     let slot: Rc<Cell<Option<P<EmitContext>>>> = Rc::default();
     let (s1, s2, s3) = (Rc::clone(&slot), Rc::clone(&slot), Rc::clone(&slot));
     NodeFactory {

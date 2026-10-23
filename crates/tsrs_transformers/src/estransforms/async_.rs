@@ -318,13 +318,13 @@ impl AsyncTransformer {
         )]
         for escaped_name in &catch_clause_names {
             let enclosing = self.enclosing_function_parameter_names.borrow();
-            if let Some(enclosing) = enclosing.as_ref() {
-                if enclosing.contains(escaped_name) {
-                    if catch_clause_unshadowed_names.is_none() {
-                        catch_clause_unshadowed_names = Some(enclosing.clone());
-                    }
-                    catch_clause_unshadowed_names.as_mut().unwrap().remove(escaped_name);
+            if let Some(enclosing) = enclosing.as_ref()
+                && enclosing.contains(escaped_name)
+            {
+                if catch_clause_unshadowed_names.is_none() {
+                    catch_clause_unshadowed_names = Some(enclosing.clone());
                 }
+                catch_clause_unshadowed_names.as_mut().unwrap().remove(escaped_name);
             }
         }
 
@@ -817,12 +817,12 @@ impl AsyncTransformer {
                 .as_ref()
                 .is_some_and(|names| names.contains(name.text()));
         }
-        if ast::is_binding_pattern(name) {
-            if name.as_binding_pattern().elements.nodes().iter().any(|&element| {
+        if ast::is_binding_pattern(name)
+            && name.as_binding_pattern().elements.nodes().iter().any(|&element| {
                 !ast::is_omitted_expression(element) && self.collides_with_parameter_name(element)
-            }) {
-                return true;
-            }
+            })
+        {
+            return true;
         }
         false
     }
@@ -1070,7 +1070,31 @@ impl AsyncTransformer {
             async_body = s.substitute_super_accesses_in_body(async_body);
         }
 
-        let result = if !is_arrow {
+        let result = if is_arrow {
+            let mut r = f.new_awaiter_helper(
+                has_lexical_this,
+                arguments_expression,
+                inner_parameters,
+                async_body,
+            );
+
+            if capture_lexical_arguments && self.lexical_arguments.get().used {
+                let block =
+                    self.emit_context().convert_to_function_block(r, true /*multiLine*/);
+                if !ast::is_block(r) {
+                    self.emit_context().set_original(block.statement_list().unwrap().nodes()[0], r);
+                }
+                r = f.update_block(
+                    block,
+                    self.emit_context().merge_environment_list(
+                        block.statement_list().unwrap(),
+                        &[self.create_capture_arguments_statement()],
+                    ),
+                    block.as_block().multi_line,
+                );
+            }
+            r
+        } else {
             self.emit_context().start_variable_environment();
 
             // Minor optimization, emit `_super` helper to capture `super` access in an arrow.
@@ -1114,30 +1138,6 @@ impl AsyncTransformer {
             }
 
             block
-        } else {
-            let mut r = f.new_awaiter_helper(
-                has_lexical_this,
-                arguments_expression,
-                inner_parameters,
-                async_body,
-            );
-
-            if capture_lexical_arguments && self.lexical_arguments.get().used {
-                let block =
-                    self.emit_context().convert_to_function_block(r, true /*multiLine*/);
-                if !ast::is_block(r) {
-                    self.emit_context().set_original(block.statement_list().unwrap().nodes()[0], r);
-                }
-                r = f.update_block(
-                    block,
-                    self.emit_context().merge_environment_list(
-                        block.statement_list().unwrap(),
-                        &[self.create_capture_arguments_statement()],
-                    ),
-                    block.as_block().multi_line,
-                );
-            }
-            r
         };
 
         *self.enclosing_function_parameter_names.borrow_mut() =
@@ -1186,10 +1186,10 @@ impl AsyncTransformer {
     // async.go:955
     fn get_original_if_function_like(&self, node: P<Node>) -> P<Node> {
         let original = self.emit_context().most_original(Some(node));
-        if let Some(original) = original {
-            if ast::is_function_like_declaration(original) {
-                return original;
-            }
+        if let Some(original) = original
+            && ast::is_function_like_declaration(original)
+        {
+            return original;
         }
         node
     }
@@ -1200,7 +1200,7 @@ impl AsyncTransformer {
 // This avoids relying on parent pointers (IsAssignmentTarget) which may not be set
 // on synthesized AST nodes from prior transforms.
 // async.go:909
-pub(crate) fn assignment_target_contains_super_property(node: P<Node>) -> bool {
+pub fn assignment_target_contains_super_property(node: P<Node>) -> bool {
     match node.kind() {
         Kind::PropertyAccessExpression | Kind::ElementAccessExpression => {
             return node.expression().unwrap().kind() == Kind::SuperKeyword;
@@ -1258,7 +1258,7 @@ pub(crate) fn assignment_target_contains_super_property(node: P<Node>) -> bool {
 
 // isUpdateExpression checks if a prefix/postfix unary expression is ++ or --.
 // async.go:942
-pub(crate) fn is_update_expression(node: P<Node>) -> bool {
+pub fn is_update_expression(node: P<Node>) -> bool {
     if ast::is_prefix_unary_expression(node) {
         let op = node.as_prefix_unary_expression().operator;
         return op == Kind::PlusPlusToken || op == Kind::MinusMinusToken;
@@ -1272,7 +1272,7 @@ pub(crate) fn is_update_expression(node: P<Node>) -> bool {
 
 // isSimpleParameterList checks if every parameter has no initializer and an Identifier name.
 // async.go:963
-pub(crate) fn is_simple_parameter_list(params: &[P<Node>]) -> bool {
+pub fn is_simple_parameter_list(params: &[P<Node>]) -> bool {
     if params.iter().any(|&param| {
         let p = param.as_parameter_declaration();
         p.initializer().is_some() || !ast::is_identifier(p.name())

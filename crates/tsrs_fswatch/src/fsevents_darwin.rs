@@ -57,18 +57,18 @@ const IGNORED_FLAGS: u32 = FLAG_ITEM_IS_HARDLINK
     | FLAG_ITEM_CLONED;
 
 #[derive(Default)]
-pub(crate) struct FseventsState {
+pub struct FseventsState {
     terminated: AtomicBool,
 }
 
-pub(crate) struct FseventsStream {
+pub struct FseventsStream {
     stream: Mutex<Option<FsEventStream>>,
     cb: Mutex<Option<Box<StreamCallback>>>,
 }
 
 // ----- the watcherImpl -------------------------------------------------------
 
-pub(crate) struct FsEventsBackend {
+pub struct FsEventsBackend {
     base: WatcherBase,
     mu: Mutex<FsEventsState>,
 }
@@ -84,7 +84,7 @@ struct FsEventsState {
 }
 
 // fsevents_darwin.go:161 (init)
-pub(crate) fn init(mut w: PlatformWatcher) -> PlatformWatcher {
+pub fn init(mut w: PlatformWatcher) -> PlatformWatcher {
     w.factory = Some(|| Arc::new(new_fs_events_backend()) as Arc<dyn WatcherImpl>);
     w.sequence = Some(fs_events_get_current_event_id);
     w
@@ -146,7 +146,7 @@ const FSEVENTS_PATHS_PER_STREAM: usize = 512;
 const FSEVENTS_MAX_ROOT_STREAMS: usize = 256;
 
 #[derive(Clone)]
-pub(crate) struct FseventsWatchSnapshot {
+pub struct FseventsWatchSnapshot {
     pub(crate) w: Arc<DirWatch>,
     state: Arc<FseventsState>,
 }
@@ -434,7 +434,7 @@ impl WatcherImpl for FsEventsBackend {
 
 // fsevents_darwin.go:467
 // fsEventsCallback processes a batch of FSEvents (on the stream's serial dispatch queue thread).
-pub(crate) fn fs_events_callback(cb: &StreamCallback, payload: &FsEventsCallbackPayload) {
+pub fn fs_events_callback(cb: &StreamCallback, payload: &FsEventsCallbackPayload) {
     if payload.is_empty() {
         return;
     }

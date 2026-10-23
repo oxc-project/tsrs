@@ -368,33 +368,34 @@ impl Parser {
         // close paren.
         let type_parameters = self.parse_type_parameters();
         let parameters: P<NodeList>;
-        if !self.parse_expected(Kind::OpenParenToken) {
-            if !allow_ambiguity {
-                return None;
-            }
-            parameters = self.create_missing_list();
-        } else {
-            if !allow_ambiguity {
+        if self.parse_expected(Kind::OpenParenToken) {
+            if allow_ambiguity {
+                parameters =
+                    self.parse_parameters_worker(signature_flags, allow_ambiguity).unwrap();
+            } else {
                 let maybe_parameters =
                     self.parse_parameters_worker(signature_flags, allow_ambiguity);
                 {
                     let maybe_parameters = maybe_parameters?;
                     parameters = maybe_parameters;
                 }
-            } else {
-                parameters =
-                    self.parse_parameters_worker(signature_flags, allow_ambiguity).unwrap();
             }
             if !self.parse_expected(Kind::CloseParenToken) && !allow_ambiguity {
                 return None;
             }
+        } else {
+            if !allow_ambiguity {
+                return None;
+            }
+            parameters = self.create_missing_list();
         }
         let has_return_colon = self.token == Kind::ColonToken;
         let return_type = self.parse_return_type(Kind::ColonToken, false /*isType*/);
-        if let Some(return_type) = return_type {
-            if !allow_ambiguity && type_has_arrow_function_blocking_parse_error(return_type) {
-                return None;
-            }
+        if let Some(return_type) = return_type
+            && !allow_ambiguity
+            && type_has_arrow_function_blocking_parse_error(return_type)
+        {
+            return None;
         }
         // Parsing a signature isn't enough.
         // Parenthesized arrow signatures often look like other valid expressions.
@@ -1918,17 +1919,21 @@ impl Parser {
                 &[],
             );
         }
-        if ast::is_expression_with_type_arguments(expression) {
-            if let Some(type_arguments) = expression.type_argument_list() {
-                let loc = TextRange::new(
-                    type_arguments.pos().expect_source("parsed lists have source positions") - 1,
-                    scanner::skip_trivia(
-                        self.source_text,
-                        type_arguments.end().expect_source("parsed lists have source positions"),
-                    ) + 1,
-                );
-                self.parse_error_at_range(loc, &diagnostics::AN_INSTANTIATION_EXPRESSION_CANNOT_BE_FOLLOWED_BY_A_PROPERTY_ACCESS, &[]);
-            }
+        if ast::is_expression_with_type_arguments(expression)
+            && let Some(type_arguments) = expression.type_argument_list()
+        {
+            let loc = TextRange::new(
+                type_arguments.pos().expect_source("parsed lists have source positions") - 1,
+                scanner::skip_trivia(
+                    self.source_text,
+                    type_arguments.end().expect_source("parsed lists have source positions"),
+                ) + 1,
+            );
+            self.parse_error_at_range(
+                loc,
+                &diagnostics::AN_INSTANTIATION_EXPRESSION_CANNOT_BE_FOLLOWED_BY_A_PROPERTY_ACCESS,
+                &[],
+            );
         }
         self.finish_node(property_access, pos)
     }
@@ -3517,31 +3522,30 @@ impl Parser {
                     &[],
                 );
             }
-        } else if ast::can_have_decorators(node) {
-            if let Some(decorator_index) = find_index(modifiers, ast::is_decorator) {
-                if ast::is_class_declaration(node) {
-                    if let Some(export_index) = find_index(modifiers, is_export_modifier) {
-                        let default_index =
-                            find_index(modifiers, |m| m.kind() == Kind::DefaultKeyword);
-                        if decorator_index > export_index
-                            && default_index
-                                .is_some_and(|default_index| decorator_index < default_index)
-                        {
-                            // Decorator between `export` and `default`
-                            self.js_error_at_range(
-                                modifiers[decorator_index].loc(),
-                                &diagnostics::DECORATORS_ARE_NOT_VALID_HERE,
-                                &[],
-                            );
-                        } else if decorator_index < export_index {
-                            // Find a trailing decorator after the export keyword
-                            let trailing_decorator_index = modifiers[export_index..]
-                                .iter()
-                                .position(|&modifier| ast::is_decorator(modifier))
-                                .map(|index| index + export_index);
-                            if let Some(trailing_decorator_index) = trailing_decorator_index {
-                                let trailing = modifiers[trailing_decorator_index];
-                                let diag = ast::new_diagnostic(
+        } else if ast::can_have_decorators(node)
+            && let Some(decorator_index) = find_index(modifiers, ast::is_decorator)
+            && ast::is_class_declaration(node)
+            && let Some(export_index) = find_index(modifiers, is_export_modifier)
+        {
+            let default_index = find_index(modifiers, |m| m.kind() == Kind::DefaultKeyword);
+            if decorator_index > export_index
+                && default_index.is_some_and(|default_index| decorator_index < default_index)
+            {
+                // Decorator between `export` and `default`
+                self.js_error_at_range(
+                    modifiers[decorator_index].loc(),
+                    &diagnostics::DECORATORS_ARE_NOT_VALID_HERE,
+                    &[],
+                );
+            } else if decorator_index < export_index {
+                // Find a trailing decorator after the export keyword
+                let trailing_decorator_index = modifiers[export_index..]
+                    .iter()
+                    .position(|&modifier| ast::is_decorator(modifier))
+                    .map(|index| index + export_index);
+                if let Some(trailing_decorator_index) = trailing_decorator_index {
+                    let trailing = modifiers[trailing_decorator_index];
+                    let diag = ast::new_diagnostic(
                                     None,
                                     TextRange::new(
                                         scanner::skip_trivia(
@@ -3553,28 +3557,26 @@ impl Parser {
                                     &diagnostics::DECORATORS_MAY_NOT_APPEAR_AFTER_EXPORT_OR_EXPORT_DEFAULT_IF_THEY_ALSO_APPEAR_BEFORE_EXPORT,
                                     &[],
                                 );
-                                let decorator = modifiers[decorator_index];
-                                diag.add_related_info(ast::new_diagnostic(
-                                    None,
-                                    TextRange::new(
-                                        scanner::skip_trivia(
-                                            self.source_text,
-                                            decorator.loc().pos().expect_source(
-                                                "parsed nodes have source positions",
-                                            ),
-                                        ),
-                                        decorator
-                                            .loc()
-                                            .end()
-                                            .expect_source("parsed nodes have source positions"),
-                                    ),
-                                    &diagnostics::DECORATOR_USED_BEFORE_EXPORT_HERE,
-                                    &[],
-                                ));
-                                self.js_diagnostics.push(diag);
-                            }
-                        }
-                    }
+                    let decorator = modifiers[decorator_index];
+                    diag.add_related_info(ast::new_diagnostic(
+                        None,
+                        TextRange::new(
+                            scanner::skip_trivia(
+                                self.source_text,
+                                decorator
+                                    .loc()
+                                    .pos()
+                                    .expect_source("parsed nodes have source positions"),
+                            ),
+                            decorator
+                                .loc()
+                                .end()
+                                .expect_source("parsed nodes have source positions"),
+                        ),
+                        &diagnostics::DECORATOR_USED_BEFORE_EXPORT_HERE,
+                        &[],
+                    ));
+                    self.js_diagnostics.push(diag);
                 }
             }
         }
@@ -3607,20 +3609,17 @@ impl Parser {
                 if matches!(
                     node.kind(),
                     Kind::Parameter | Kind::PropertyDeclaration | Kind::MethodDeclaration
-                ) {
-                    if let Some(token) = node.question_token() {
-                        if !token.flags().intersects(NodeFlags::Reparsed)
-                            && ast::is_question_token(token)
-                        {
-                            self.js_error_at_range(
-                                token.loc(),
-                                &diagnostics::THE_0_MODIFIER_CAN_ONLY_BE_USED_IN_TYPE_SCRIPT_FILES,
-                                &[&"?"],
-                            );
-                        }
-                    }
-                    // fallthrough
+                ) && let Some(token) = node.question_token()
+                    && !token.flags().intersects(NodeFlags::Reparsed)
+                    && ast::is_question_token(token)
+                {
+                    self.js_error_at_range(
+                        token.loc(),
+                        &diagnostics::THE_0_MODIFIER_CAN_ONLY_BE_USED_IN_TYPE_SCRIPT_FILES,
+                        &[&"?"],
+                    );
                 }
+                // fallthrough
                 if ast::is_function_like(Some(node)) && node.body().is_none() {
                     self.js_error_at_range(
                         node.loc(),
@@ -3761,14 +3760,13 @@ impl Parser {
             | Kind::ArrowFunction
             | Kind::VariableStatement
             | Kind::PropertyDeclaration => {
-                if !matches!(node.kind(), Kind::VariableStatement | Kind::PropertyDeclaration) {
-                    if let Some(list) = node.type_parameter_list() {
-                        if list.nodes().iter().any(|n| !n.flags().intersects(NodeFlags::Reparsed)) {
-                            self.js_error_at_range(list.loc.get(), &diagnostics::TYPE_PARAMETER_DECLARATIONS_CAN_ONLY_BE_USED_IN_TYPE_SCRIPT_FILES, &[]);
-                        }
-                    }
-                    // fallthrough
+                if !matches!(node.kind(), Kind::VariableStatement | Kind::PropertyDeclaration)
+                    && let Some(list) = node.type_parameter_list()
+                    && list.nodes().iter().any(|n| !n.flags().intersects(NodeFlags::Reparsed))
+                {
+                    self.js_error_at_range(list.loc.get(), &diagnostics::TYPE_PARAMETER_DECLARATIONS_CAN_ONLY_BE_USED_IN_TYPE_SCRIPT_FILES, &[]);
                 }
+                // fallthrough
                 for &modifier in node.modifier_nodes() {
                     if !modifier.flags().intersects(NodeFlags::Reparsed)
                         && modifier.kind() != Kind::Decorator
@@ -3799,14 +3797,14 @@ impl Parser {
             | Kind::JsxSelfClosingElement
             | Kind::JsxOpeningElement
             | Kind::TaggedTemplateExpression => {
-                if let Some(list) = node.type_argument_list() {
-                    if list.nodes().iter().any(|n| !n.flags().intersects(NodeFlags::Reparsed)) {
-                        self.js_error_at_range(
-                            list.loc.get(),
-                            &diagnostics::TYPE_ARGUMENTS_CAN_ONLY_BE_USED_IN_TYPE_SCRIPT_FILES,
-                            &[],
-                        );
-                    }
+                if let Some(list) = node.type_argument_list()
+                    && list.nodes().iter().any(|n| !n.flags().intersects(NodeFlags::Reparsed))
+                {
+                    self.js_error_at_range(
+                        list.loc.get(),
+                        &diagnostics::TYPE_ARGUMENTS_CAN_ONLY_BE_USED_IN_TYPE_SCRIPT_FILES,
+                        &[],
+                    );
                 }
             }
             _ => {}
@@ -3843,11 +3841,11 @@ fn should_consume_binary_operator(
     operator_precedence == current_precedence && operator == Kind::AsteriskAsteriskToken
 }
 
-pub(crate) fn is_reserved_word(token: Kind) -> bool {
+pub fn is_reserved_word(token: Kind) -> bool {
     Kind::FIRST_RESERVED_WORD <= token && token <= Kind::LAST_RESERVED_WORD
 }
 
-pub(crate) fn attach_file_to_diagnostics(
+pub fn attach_file_to_diagnostics(
     diagnostics: &[P<ast::Diagnostic>],
     file: P<ast::SourceFile>,
 ) -> Vec<P<ast::Diagnostic>> {
@@ -3860,7 +3858,7 @@ pub(crate) fn attach_file_to_diagnostics(
     diagnostics.to_vec()
 }
 
-pub(crate) fn get_comment_pragmas(
+pub fn get_comment_pragmas(
     _f: &mut ast::NodeFactory,
     source_text: &'static str,
 ) -> Vec<ast::Pragma> {

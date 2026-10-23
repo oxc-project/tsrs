@@ -121,15 +121,16 @@ impl LanguageService {
                 );
                 let position =
                     positions.iter().find(|p| p.script == source_file && !p.fidelity.is_none());
-                if let Some(position) = position {
-                    if position.position > 0 && position.position as usize <= source_text.len() {
-                        let end_offset = position.position;
-                        let fold_end_char = source_text[end_offset as usize - 1];
-                        if matches!(fold_end_char, b'}' | b']' | b')' | b'`' | b'>')
-                            && r.end_line > r.start_line
-                        {
-                            r.end_line -= 1;
-                        }
+                if let Some(position) = position
+                    && position.position > 0
+                    && position.position as usize <= source_text.len()
+                {
+                    let end_offset = position.position;
+                    let fold_end_char = source_text[end_offset as usize - 1];
+                    if matches!(fold_end_char, b'}' | b']' | b')' | b'`' | b'>')
+                        && r.end_line > r.start_line
+                    {
+                        r.end_line -= 1;
                     }
                 }
             }
@@ -300,19 +301,17 @@ fn visit_node(
     {
         folding_range.extend(add_outlining_for_leading_comments_for_node(ctx, n, source_file, l));
     }
-    if ast::is_function_like(n) {
-        if let Some(parent) = n.parent() {
-            if ast::is_binary_expression(parent)
-                && ast::is_property_access_expression(parent.as_binary_expression().left)
-            {
-                folding_range.extend(add_outlining_for_leading_comments_for_node(
-                    ctx,
-                    parent.as_binary_expression().left,
-                    source_file,
-                    l,
-                ));
-            }
-        }
+    if ast::is_function_like(n)
+        && let Some(parent) = n.parent()
+        && ast::is_binary_expression(parent)
+        && ast::is_property_access_expression(parent.as_binary_expression().left)
+    {
+        folding_range.extend(add_outlining_for_leading_comments_for_node(
+            ctx,
+            parent.as_binary_expression().left,
+            source_file,
+            l,
+        ));
     }
     if ast::is_block(n) {
         let statements = n.as_block().statements;
@@ -599,17 +598,17 @@ fn get_outlining_span_for_node(
                             source_file,
                             l,
                         );
-                    } else if try_statement.finally_block == Some(n) {
-                        if let Some(span) = span_for_node(
+                    } else if try_statement.finally_block == Some(n)
+                        && let Some(span) = span_for_node(
                             ctx,
                             n,
                             Kind::OpenBraceToken,
                             true, /*useFullStart*/
                             source_file,
                             l,
-                        ) {
-                            return Some(span);
-                        }
+                        )
+                    {
+                        return Some(span);
                     }
                     // fallthrough
                 }
@@ -929,7 +928,7 @@ fn span_for_node(
     l: &LanguageService,
 ) -> Option<lsproto::FoldingRange> {
     let close_brace =
-        if open != Kind::OpenBraceToken { Kind::CloseBracketToken } else { Kind::CloseBraceToken };
+        if open == Kind::OpenBraceToken { Kind::CloseBraceToken } else { Kind::CloseBracketToken };
     let open_token = astnav::find_child_of_kind(node, open, source_file);
     let close_token = astnav::find_child_of_kind(node, close_brace, source_file);
     if let (Some(open_token), Some(close_token)) = (open_token, close_token) {
@@ -978,7 +977,7 @@ fn create_folding_range(
     folding_range_kind: lsproto::FoldingRangeKind,
     collapsed_text: &str,
 ) -> lsproto::FoldingRange {
-    let kind = if !folding_range_kind.0.is_empty() { Some(folding_range_kind) } else { None };
+    let kind = if folding_range_kind.0.is_empty() { None } else { Some(folding_range_kind) };
     let mut result = lsproto::FoldingRange {
         start_line: text_range.start.line,
         start_character: Some(text_range.start.character),
@@ -1054,12 +1053,11 @@ fn try_get_function_open_token(
     body: P<Node>,
     source_file: P<SourceFile>,
 ) -> Option<P<Node>> {
-    if is_node_array_multi_line(node.parameters(), source_file) {
-        if let Some(open_paren_token) =
+    if is_node_array_multi_line(node.parameters(), source_file)
+        && let Some(open_paren_token) =
             astnav::find_child_of_kind(node, Kind::OpenParenToken, source_file)
-        {
-            return Some(open_paren_token);
-        }
+    {
+        return Some(open_paren_token);
     }
     astnav::find_child_of_kind(body, Kind::OpenBraceToken, source_file)
 }

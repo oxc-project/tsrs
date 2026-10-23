@@ -38,12 +38,12 @@ impl<K: Hash + Eq + Clone + Send + Sync, T: Cloneable + Clone> Value<T> for Lock
     // syncmap.go:30
     fn change_if(&self, cond: &mut dyn FnMut(&T) -> bool, apply: &mut dyn FnMut(&mut T)) -> bool {
         let value = self.st.borrow().e.value();
-        if let Some(value) = value {
-            if cond(&value) {
-                drop(value);
-                self.e.change_locked(&mut self.st.borrow_mut(), apply);
-                return true;
-            }
+        if let Some(value) = value
+            && cond(&value)
+        {
+            drop(value);
+            self.e.change_locked(&mut self.st.borrow_mut(), apply);
+            return true;
         }
         false
     }
@@ -187,12 +187,12 @@ impl<K: Hash + Eq + Clone + Send + Sync, T: Cloneable + Clone> SyncMapEntry<K, T
         }
 
         let value = st.e.value.clone();
-        if let Some(value) = value {
-            if cond(&value) {
-                drop(value);
-                self.change_locked(&mut st, apply);
-                return true;
-            }
+        if let Some(value) = value
+            && cond(&value)
+        {
+            drop(value);
+            self.change_locked(&mut st, apply);
+            return true;
         }
         false
     }
@@ -252,11 +252,11 @@ impl<K: Hash + Eq + Clone + Send + Sync, T: Cloneable + Clone> SyncMapEntry<K, T
             return;
         }
         let value = st.e.value.clone();
-        if let Some(value) = value {
-            if cond(&value) {
-                drop(value);
-                self.delete_locked(&mut st);
-            }
+        if let Some(value) = value
+            && cond(&value)
+        {
+            drop(value);
+            self.delete_locked(&mut st);
         }
     }
 }

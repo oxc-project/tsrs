@@ -11,7 +11,7 @@ use crate::format;
 // delete.go:17
 // deleteDeclaration deletes a node with smart handling for different node types.
 // This handles special cases like import specifiers in lists, parameters, etc.
-pub(crate) fn delete_declaration(
+pub fn delete_declaration(
     t: &mut Tracker,
     deleted_nodes_in_lists: &mut OrderedMap<P<Node>, bool>,
     source_file: P<SourceFile>,
@@ -456,7 +456,7 @@ impl Tracker {
 }
 
 // delete.go:254
-pub(crate) fn positions_are_on_same_line(pos1: u32, pos2: u32, source_file: P<SourceFile>) -> bool {
+pub fn positions_are_on_same_line(pos1: u32, pos2: u32, source_file: P<SourceFile>) -> bool {
     format::get_line_start_position_for_position(pos1, source_file)
         == format::get_line_start_position_for_position(pos2, source_file)
 }

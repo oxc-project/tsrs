@@ -5,7 +5,7 @@ use tsrs_ast as ast;
 //   type localsRecord (nodebuilderscopes.go:35)
 
 // nodebuilderscopes.go:10
-pub(crate) fn clone_node_builder_context(context: P<NodeBuilderContext>) -> Box<dyn FnMut()> {
+pub fn clone_node_builder_context(context: P<NodeBuilderContext>) -> Box<dyn FnMut()> {
     // Make type parameters created within this context not consume the name outside this context
     // The symbol serializer ends up creating many sibling scopes that all need "separate" contexts when
     // it comes to naming things - within a normal `typeToTypeNode` call, the node builder only ever descends
@@ -215,14 +215,13 @@ fn push_fake_scope(
             existing_fake_scope = Some(enclosing_declaration);
         }
     }
-    if existing_fake_scope.is_none() {
-        if let Some(parent) = enclosing_declaration.parent() {
-            if b.links.has(parent) {
-                let links = b.links.get(parent);
-                if links.fake_scope_for_signature_declaration.get() == Some(kind) {
-                    existing_fake_scope = Some(parent);
-                }
-            }
+    if existing_fake_scope.is_none()
+        && let Some(parent) = enclosing_declaration.parent()
+        && b.links.has(parent)
+    {
+        let links = b.links.get(parent);
+        if links.fake_scope_for_signature_declaration.get() == Some(kind) {
+            existing_fake_scope = Some(parent);
         }
     }
     assert!(existing_fake_scope.is_none() || ast::is_block(existing_fake_scope.unwrap()));

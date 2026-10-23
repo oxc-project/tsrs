@@ -96,10 +96,10 @@ impl std::ops::DerefMut for CheckerHandle {
 
 impl Drop for CheckerHandle {
     fn drop(&mut self) {
-        if let CheckerHandleKind::External { release, .. } = &mut self.kind {
-            if let Some(release) = release.take() {
-                release();
-            }
+        if let CheckerHandleKind::External { release, .. } = &mut self.kind
+            && let Some(release) = release.take()
+        {
+            release();
         }
     }
 }
@@ -197,14 +197,14 @@ struct CheckerSlot(Mutex<SlotChecker>);
 // With `ProgramOptions::checker_diagnostic_regions` (watch mode), the diagnostics the checker makes go to a second region of the slot
 // (`arena::Region::route_diagnostics`), freed with the program like the checker's: the snapshot that keeps some of
 // them copies those (tsrs_incremental `Program::copy_diagnostics`).
-pub(crate) struct SlotChecker {
+pub struct SlotChecker {
     checker: Box<Checker>,
     region: Option<tsrs_core::arena::Region>,
     diagnostics: Option<tsrs_core::arena::Region>,
 }
 
 /// `SlotChecker::enter`.
-pub(crate) struct CheckerScope {
+pub struct CheckerScope {
     // Before the region's scope: the route applies while the region is the target.
     _route: Option<tsrs_core::arena::DiagnosticRoute>,
     _scope: tsrs_core::arena::ScratchScope,
@@ -278,7 +278,7 @@ impl std::ops::DerefMut for SlotChecker {
 // What the checkers retired during the type-check pass leave behind: their global diagnostics and counters, which the
 // pool adds to those of the live checkers.
 #[derive(Default)]
-pub(crate) struct RetiredCheckers {
+pub struct RetiredCheckers {
     pub(crate) count: usize,
     pub(crate) global_diagnostics: Vec<P<Diagnostic>>,
     pub(crate) symbol_count: u64,
@@ -386,7 +386,7 @@ impl Drop for PoolState {
     }
 }
 
-pub(crate) struct PoolState {
+pub struct PoolState {
     /// The shared graph is on (sharedgraph.rs): the type-check pass starts the seed and turns its checkers into forks.
     shared_graph: bool,
     // Leaked like the program that owns the pool, so a handle can hold a checker's lock without borrowing the pool.
@@ -412,18 +412,12 @@ pub(crate) struct PoolState {
 // TSRS_FILE_TIMES=<path> (experiments): after checking, write one line per file run by a checker group:
 // checker, seconds, thread CPU seconds, node count, text length, import count, file name, and the file's node-kind
 // histogram (`Kind=count` pairs), for fitting assignment cost models offline.
-pub(crate) fn file_times_path() -> Option<&'static str> {
+pub fn file_times_path() -> Option<&'static str> {
     static PATH: OnceLock<Option<String>> = OnceLock::new();
     PATH.get_or_init(|| std::env::var("TSRS_FILE_TIMES").ok().filter(|v| !v.is_empty())).as_deref()
 }
 
-pub(crate) fn write_file_times(program: &'static Program) {
-    use std::fmt::Write;
-    let (Some(path), Some(state)) =
-        (file_times_path(), program.compiler_checker_pool().and_then(|pool| pool.state.get()))
-    else {
-        return;
-    };
+pub fn write_file_times(program: &'static Program) {
     fn count_kinds(node: P<tsrs_ast::Node>, counts: &mut [u32]) {
         counts[node.kind() as usize] += 1;
         node.for_each_child(&mut |child| {
@@ -431,6 +425,13 @@ pub(crate) fn write_file_times(program: &'static Program) {
             false
         });
     }
+
+    use std::fmt::Write;
+    let (Some(path), Some(state)) =
+        (file_times_path(), program.compiler_checker_pool().and_then(|pool| pool.state.get()))
+    else {
+        return;
+    };
     let mut out = String::new();
     for &(file, checker, seconds, cpu) in state.file_times.lock().unwrap().iter() {
         let mut counts = vec![0u32; tsrs_ast::Kind::Count as usize + 1];
@@ -453,7 +454,7 @@ pub(crate) fn write_file_times(program: &'static Program) {
 
 // CPU time of the calling thread: used by the per-file timing and checker-cost-cache tools.
 #[cfg(unix)]
-pub(crate) fn thread_cpu_seconds() -> f64 {
+pub fn thread_cpu_seconds() -> f64 {
     #[repr(C)]
     struct Timespec {
         tv_sec: i64,
@@ -479,7 +480,7 @@ pub(crate) fn thread_cpu_seconds() -> f64 {
     0.0
 }
 
-pub(crate) struct CheckerPoolImpl {
+pub struct CheckerPoolImpl {
     program: &'static Program,
     checker_count: usize,
     single_threaded: bool,
@@ -659,10 +660,10 @@ fn get_checker_association_order(
     let mut file_order: Vec<usize> = (0..file_weights.len()).collect();
     file_order.sort_by(|&left, &right| {
         if is_declaration_file[left] != is_declaration_file[right] {
-            return if !is_declaration_file[left] {
-                std::cmp::Ordering::Less
-            } else {
+            return if is_declaration_file[left] {
                 std::cmp::Ordering::Greater
+            } else {
+                std::cmp::Ordering::Less
             };
         }
         if file_weights[left] != file_weights[right] {
@@ -1172,19 +1173,19 @@ impl CheckerPoolImpl {
             retired.instantiation_count += u64::from(old.checker.total_instantiation_count);
             retired.lazy_member_stats.add(&old.checker.lazy_member_stats);
             drop(retired);
-            if crate::sharedgraph::debug_regions() {
-                if let Some(region) = &old.region {
-                    region.retire_on_free();
-                    let chunks: Vec<String> =
-                        region.chunks().iter().map(|&(s, n)| format!("{s:x}+{n:x}")).collect();
-                    eprintln!(
-                        "dbg-retire thread={} fork={} types={} chunks={}",
-                        std::thread::current().name().unwrap_or("?"),
-                        old.checker.is_fork,
-                        old.checker.type_count,
-                        chunks.join(",")
-                    );
-                }
+            if crate::sharedgraph::debug_regions()
+                && let Some(region) = &old.region
+            {
+                region.retire_on_free();
+                let chunks: Vec<String> =
+                    region.chunks().iter().map(|&(s, n)| format!("{s:x}+{n:x}")).collect();
+                eprintln!(
+                    "dbg-retire thread={} fork={} types={} chunks={}",
+                    std::thread::current().name().unwrap_or("?"),
+                    old.checker.is_fork,
+                    old.checker.type_count,
+                    chunks.join(",")
+                );
             }
             drop(old.checker);
         }
@@ -1686,7 +1687,7 @@ fn inherited_associations(
 // checker's index and the file's index in the program, in whose order each checker visits its files
 // (`forEachCheckerGroupDo`). Files it does not type check are absent. Whatever tsrs's own checker count and assignment,
 // this is what tsgo's history-dependent checks saw (`Checker::reports_interface_check_errors`).
-pub(crate) fn tsgo_default_check_slots(program: &Program) -> FxHashMap<P<SourceFile>, (u32, u32)> {
+pub fn tsgo_default_check_slots(program: &Program) -> FxHashMap<P<SourceFile>, (u32, u32)> {
     let checker_count = GO_DEFAULT_CHECKERS.min(program.files.len() as i64).max(1) as usize;
     // Called while holding a checker and initializing a OnceLock: nested worker-pool jobs could re-enter either.
     // The import graph comes from the program this one reuses when there is one (`Program::tsgo_import_adjacency`):
@@ -1814,7 +1815,7 @@ fn read_cost_cache(path: &str) -> (FxHashMap<String, CostEntry>, usize) {
 
 // Writes the cost cache when it is enabled and more than one checker ran: per type-checked file, its thread CPU
 // seconds summed over the checker passes and its checker. Files of other runs are dropped.
-pub(crate) fn write_cost_cache(program: &'static Program) {
+pub fn write_cost_cache(program: &'static Program) {
     use std::fmt::Write;
     // Programs with an external checker pool (language server / API projects) have no cost state to write.
     let (Some(path), Some(state)) = (

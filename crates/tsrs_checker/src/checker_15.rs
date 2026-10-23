@@ -90,10 +90,10 @@ impl Checker {
                 let mut spread_type = None;
                 // We can call checkExpressionCached because spread expressions never have a contextual type.
                 if ast::is_spread_element(arg) {
-                    if !self.flow_loop_stack.is_empty() {
-                        spread_type = Some(self.check_expression(arg.expression().unwrap()));
-                    } else {
+                    if self.flow_loop_stack.is_empty() {
                         spread_type = Some(self.check_expression_cached(arg.expression().unwrap()));
+                    } else {
+                        spread_type = Some(self.check_expression(arg.expression().unwrap()));
                     }
                 }
                 if let Some(spread_type) = spread_type.filter(|&t| is_tuple_type(t)) {
@@ -132,14 +132,14 @@ impl Checker {
 }
 
 // checker.go:30601
-pub(crate) fn is_spread_argument(arg: P<Node>) -> bool {
+pub fn is_spread_argument(arg: P<Node>) -> bool {
     ast::is_spread_element(arg)
         || ast::is_synthetic_expression(arg) && arg.as_synthetic_expression().is_spread
 }
 
 // Go `node.AsSyntheticExpression().Type.(*Type)`. The Go `any` field holds the checker type as a `&'static P<Type>`;
 // `create_synthetic_expression` is the only writer.
-pub(crate) fn synthetic_expression_type(node: P<Node>) -> P<Type> {
+pub fn synthetic_expression_type(node: P<Node>) -> P<Type> {
     *node
         .as_synthetic_expression()
         .type_
@@ -1135,37 +1135,36 @@ impl Checker {
         };
         let instantiated_type =
             self.instantiate_contextual_type(contextual_type, node, context_flags);
-        if let Some(instantiated_type) = instantiated_type {
-            if !(context_flags.intersects(ContextFlags::NoConstraints)
+        if let Some(instantiated_type) = instantiated_type
+            && !(context_flags.intersects(ContextFlags::NoConstraints)
                 && instantiated_type.flags().intersects(TypeFlags::TypeVariable))
+        {
+            let apparent_type = self
+                .map_type_ex(
+                    instantiated_type,
+                    |c, t| {
+                        if t.object_flags().intersects(ObjectFlags::Mapped) {
+                            return Some(t);
+                        }
+                        Some(c.get_apparent_type(t))
+                    },
+                    true,
+                )
+                .unwrap();
+            if apparent_type.flags().intersects(TypeFlags::Union)
+                && ast::is_object_literal_expression(node)
             {
-                let apparent_type = self
-                    .map_type_ex(
-                        instantiated_type,
-                        |c, t| {
-                            if t.object_flags().intersects(ObjectFlags::Mapped) {
-                                return Some(t);
-                            }
-                            Some(c.get_apparent_type(t))
-                        },
-                        true,
-                    )
-                    .unwrap();
-                if apparent_type.flags().intersects(TypeFlags::Union)
-                    && ast::is_object_literal_expression(node)
-                {
-                    return Some(
-                        self.discriminate_contextual_type_by_object_members(node, apparent_type),
-                    );
-                } else if apparent_type.flags().intersects(TypeFlags::Union)
-                    && ast::is_jsx_attributes(node)
-                {
-                    return Some(
-                        self.discriminate_contextual_type_by_jsx_attributes(node, apparent_type),
-                    );
-                }
-                return Some(apparent_type);
+                return Some(
+                    self.discriminate_contextual_type_by_object_members(node, apparent_type),
+                );
+            } else if apparent_type.flags().intersects(TypeFlags::Union)
+                && ast::is_jsx_attributes(node)
+            {
+                return Some(
+                    self.discriminate_contextual_type_by_jsx_attributes(node, apparent_type),
+                );
             }
+            return Some(apparent_type);
         }
         None
     }
@@ -1334,47 +1333,47 @@ impl Checker {
         node: P<Node>,
         context_flags: ContextFlags,
     ) -> Option<P<Type>> {
-        if let Some(contextual_type) = contextual_type {
-            if self.maybe_type_of_kind(contextual_type, TypeFlags::Instantiable) {
-                let inference_context = self.get_inference_context(node);
-                // If no inferences have been made, and none of the type parameters for which we are inferring
-                // specify default types, nothing is gained from instantiating as type parameters would just be
-                // replaced with their constraints similar to the apparent type.
-                if let Some(inference_context) = inference_context {
-                    if context_flags.intersects(ContextFlags::Signature)
-                        && inference_context
-                            .inferences
-                            .get()
-                            .iter()
-                            .any(|&info| has_inference_candidates_or_default(info))
-                    {
-                        // For contextual signatures we incorporate all inferences made so far, e.g. from return
-                        // types as well as arguments to the left in a function call.
-                        let t = self.instantiate_instantiable_types(
-                            contextual_type,
-                            inference_context.non_fixing_mapper().unwrap(),
-                        );
-                        if !t.flags().intersects(TypeFlags::AnyOrUnknown) {
-                            return Some(t);
-                        }
+        if let Some(contextual_type) = contextual_type
+            && self.maybe_type_of_kind(contextual_type, TypeFlags::Instantiable)
+        {
+            let inference_context = self.get_inference_context(node);
+            // If no inferences have been made, and none of the type parameters for which we are inferring
+            // specify default types, nothing is gained from instantiating as type parameters would just be
+            // replaced with their constraints similar to the apparent type.
+            if let Some(inference_context) = inference_context {
+                if context_flags.intersects(ContextFlags::Signature)
+                    && inference_context
+                        .inferences
+                        .get()
+                        .iter()
+                        .any(|&info| has_inference_candidates_or_default(info))
+                {
+                    // For contextual signatures we incorporate all inferences made so far, e.g. from return
+                    // types as well as arguments to the left in a function call.
+                    let t = self.instantiate_instantiable_types(
+                        contextual_type,
+                        inference_context.non_fixing_mapper().unwrap(),
+                    );
+                    if !t.flags().intersects(TypeFlags::AnyOrUnknown) {
+                        return Some(t);
                     }
-                    if let Some(return_mapper) = inference_context.return_mapper() {
-                        // For other purposes (e.g. determining whether to produce literal types) we only
-                        // incorporate inferences made from the return type in a function call. We remove
-                        // the 'boolean' type from the contextual type such that contextually typed boolean
-                        // literals actually end up widening to 'boolean' (see #48363).
-                        let t = self.instantiate_instantiable_types(contextual_type, return_mapper);
-                        if !t.flags().intersects(TypeFlags::AnyOrUnknown) {
-                            if t.flags().intersects(TypeFlags::Union)
-                                && contains_type(self, t.types(), self.regular_false_type)
-                                && contains_type(self, t.types(), self.regular_true_type)
-                            {
-                                return Some(self.filter_type(t, |c, t| {
-                                    t != c.regular_false_type && t != c.regular_true_type
-                                }));
-                            }
-                            return Some(t);
+                }
+                if let Some(return_mapper) = inference_context.return_mapper() {
+                    // For other purposes (e.g. determining whether to produce literal types) we only
+                    // incorporate inferences made from the return type in a function call. We remove
+                    // the 'boolean' type from the contextual type such that contextually typed boolean
+                    // literals actually end up widening to 'boolean' (see #48363).
+                    let t = self.instantiate_instantiable_types(contextual_type, return_mapper);
+                    if !t.flags().intersects(TypeFlags::AnyOrUnknown) {
+                        if t.flags().intersects(TypeFlags::Union)
+                            && contains_type(self, t.types(), self.regular_false_type)
+                            && contains_type(self, t.types(), self.regular_true_type)
+                        {
+                            return Some(self.filter_type(t, |c, t| {
+                                t != c.regular_false_type && t != c.regular_true_type
+                            }));
                         }
+                        return Some(t);
                     }
                 }
             }
@@ -1742,7 +1741,7 @@ impl Checker {
 }
 
 // checker.go:31625
-pub(crate) fn is_zero_big_int(t: P<Type>) -> bool {
+pub fn is_zero_big_int(t: P<Type>) -> bool {
     get_big_int_literal_value(t) == jsnum::PseudoBigInt::default()
 }
 
@@ -2507,8 +2506,8 @@ impl Checker {
                     node.pos().expect_source("parsed nodes have source positions"),
                     false,
                 );
-                if ast::is_function_like(func) {
-                    if let Some(result) = func.parameters().iter().find_map(|&param| {
+                if ast::is_function_like(func)
+                    && let Some(result) = func.parameters().iter().find_map(|&param| {
                         if ast::is_identifier(param.name().unwrap())
                             && param.name().unwrap().text() == node.text()
                         {
@@ -2516,9 +2515,9 @@ impl Checker {
                         } else {
                             None
                         }
-                    }) {
-                        return result;
-                    }
+                    })
+                {
+                    return result;
                 }
             }
         }
@@ -2658,10 +2657,10 @@ impl Checker {
                     let t = self.get_type_of_expression(parent.as_binary_expression().right());
                     let has_instance_method_type =
                         self.get_symbol_has_instance_method_of_object_type(t);
-                    if let Some(has_instance_method_type) = has_instance_method_type {
-                        if has_instance_method_type.symbol().is_some() {
-                            return has_instance_method_type.symbol();
-                        }
+                    if let Some(has_instance_method_type) = has_instance_method_type
+                        && has_instance_method_type.symbol().is_some()
+                    {
+                        return has_instance_method_type.symbol();
                     }
                     return t.symbol();
                 }
@@ -2816,19 +2815,19 @@ impl Checker {
                     true, /*dontResolveAlias*/
                     location,
                 );
-                if result.is_none() && is_jsdoc {
-                    if let Some(container) =
+                if result.is_none()
+                    && is_jsdoc
+                    && let Some(container) =
                         ast::find_ancestor(name, ast::is_class_or_interface_like)
-                    {
-                        let symbol = self.get_symbol_of_declaration(container).unwrap();
-                        // Handle unqualified references to class static members and class or interface instance members
-                        let exports = self.get_exports_of_symbol(symbol);
-                        let found = self.get_symbol(exports, name.text(), meaning);
-                        result = found.map(|s| self.get_merged_symbol(s));
-                        if result.is_none() {
-                            let declared_type = self.get_declared_type_of_symbol(symbol);
-                            result = self.get_property_of_type(declared_type, name.text());
-                        }
+                {
+                    let symbol = self.get_symbol_of_declaration(container).unwrap();
+                    // Handle unqualified references to class static members and class or interface instance members
+                    let exports = self.get_exports_of_symbol(symbol);
+                    let found = self.get_symbol(exports, name.text(), meaning);
+                    result = found.map(|s| self.get_merged_symbol(s));
+                    if result.is_none() {
+                        let declared_type = self.get_declared_type_of_symbol(symbol);
+                        result = self.get_property_of_type(declared_type, name.text());
                     }
                 }
                 return result;
@@ -2934,20 +2933,20 @@ impl Checker {
             return self.get_regular_type_of_expression(node);
         }
 
-        if let Some(class_type) = class_type {
-            if !is_implements {
-                // A SyntaxKind.ExpressionWithTypeArguments is considered a type node, except when it occurs in the
-                // extends clause of a class. We handle that case here.
-                let base_type = first_or_nil(self.get_base_types(class_type));
-                if let Some(base_type) = base_type {
-                    return self.get_type_with_this_argument(
-                        base_type,
-                        class_type.as_interface_type().this_type.get(),
-                        false, /*needApparentType*/
-                    );
-                }
-                return self.error_type;
+        if let Some(class_type) = class_type
+            && !is_implements
+        {
+            // A SyntaxKind.ExpressionWithTypeArguments is considered a type node, except when it occurs in the
+            // extends clause of a class. We handle that case here.
+            let base_type = first_or_nil(self.get_base_types(class_type));
+            if let Some(base_type) = base_type {
+                return self.get_type_with_this_argument(
+                    base_type,
+                    class_type.as_interface_type().this_type.get(),
+                    false, /*needApparentType*/
+                );
             }
+            return self.error_type;
         }
 
         if ast::is_type_declaration(node) {
@@ -3106,38 +3105,37 @@ impl Checker {
         t: P<Type>,
         key_type: P<Type>,
     ) -> Option<P<Symbol>> {
-        if let Some(info) = self.get_applicable_index_info(t, key_type) {
-            if info != self.any_base_type_index_info {
-                if info.index_symbol.get().is_none() {
-                    let mut declarations = Vec::new();
-                    if let Some(declaration) = info.declaration.get() {
-                        declarations = vec![declaration];
-                    } else {
-                        declarations.extend(
-                            self.get_index_infos_of_type(t).iter().copied().filter_map(|info| {
-                                info.declaration.get().filter(|&_declaration| {
-                                    self.is_applicable_index_type(
-                                        key_type,
-                                        info.key_type.get().unwrap(),
-                                    )
-                                })
-                            }),
-                        );
-                    }
-                    if !declarations.is_empty() {
-                        let symbol =
-                            self.new_symbol(SymbolFlags::Property, INTERNAL_SYMBOL_NAME_INDEX);
-                        symbol.set_check_flags(symbol.check_flags() | CheckFlags::IndexSymbol);
-                        symbol.set_value_declaration(Some(declarations[0]));
-                        symbol.set_declarations(&declarations);
-                        symbol.set_parent(t.symbol());
-                        let links = self.value_symbol_links.get(symbol);
-                        links.resolved_type.set(info.value_type.get());
-                        info.index_symbol.set(Some(symbol));
-                    }
+        if let Some(info) = self.get_applicable_index_info(t, key_type)
+            && info != self.any_base_type_index_info
+        {
+            if info.index_symbol.get().is_none() {
+                let mut declarations = Vec::new();
+                if let Some(declaration) = info.declaration.get() {
+                    declarations = vec![declaration];
+                } else {
+                    declarations.extend(
+                        self.get_index_infos_of_type(t).iter().copied().filter_map(|info| {
+                            info.declaration.get().filter(|&_declaration| {
+                                self.is_applicable_index_type(
+                                    key_type,
+                                    info.key_type.get().unwrap(),
+                                )
+                            })
+                        }),
+                    );
                 }
-                return info.index_symbol.get();
+                if !declarations.is_empty() {
+                    let symbol = self.new_symbol(SymbolFlags::Property, INTERNAL_SYMBOL_NAME_INDEX);
+                    symbol.set_check_flags(symbol.check_flags() | CheckFlags::IndexSymbol);
+                    symbol.set_value_declaration(Some(declarations[0]));
+                    symbol.set_declarations(&declarations);
+                    symbol.set_parent(t.symbol());
+                    let links = self.value_symbol_links.get(symbol);
+                    links.resolved_type.set(info.value_type.get());
+                    info.index_symbol.set(Some(symbol));
+                }
             }
+            return info.index_symbol.get();
         }
         None
     }
@@ -3154,14 +3152,6 @@ impl Checker {
 
     // checker.go:32615
     pub(crate) fn contains_arguments_reference(&mut self, node: P<Node>) -> bool {
-        let Some(body) = node.body() else {
-            return false;
-        };
-
-        if let Some(&contains_arguments) = self.cached_arguments_referenced.get(&node) {
-            return contains_arguments;
-        }
-
         fn visit(c: &mut Checker, node: Option<P<Node>>) -> bool {
             let Some(node) = node else {
                 return false;
@@ -3192,6 +3182,14 @@ impl Checker {
                 return false;
             }
             node.for_each_child(&mut |child| visit(c, Some(child)))
+        }
+
+        let Some(body) = node.body() else {
+            return false;
+        };
+
+        if let Some(&contains_arguments) = self.cached_arguments_referenced.get(&node) {
+            return contains_arguments;
         }
 
         let contains_arguments = visit(self, Some(body));

@@ -141,18 +141,19 @@ fn test_virtual_to_original_span_nil_identity() {
 // spanmap_test.go:130
 #[test]
 fn test_virtual_to_original_position() {
-    // Virtual [0,10) is a verbatim copy of original [100,110); [10,20) is an atom of original [200,210).
-    let m = new(&[
-        segment(0, 10, 100, 110, Kind::VERBATIM, Feature::All),
-        segment(20, 30, 200, 210, Kind::ATOM, Feature::All),
-    ]);
-
     struct Case {
         name: &'static str,
         pos: u32,
         want: u32,
         fidelity: Fidelity,
     }
+
+    // Virtual [0,10) is a verbatim copy of original [100,110); [10,20) is an atom of original [200,210).
+    let m = new(&[
+        segment(0, 10, 100, 110, Kind::VERBATIM, Feature::All),
+        segment(20, 30, 200, 210, Kind::ATOM, Feature::All),
+    ]);
+
     let test_cases = [
         Case { name: "verbatim interpolates", pos: 3, want: 103, fidelity: Fidelity::Exact },
         Case { name: "atom maps to its start", pos: 25, want: 200, fidelity: Fidelity::Atom },
@@ -290,18 +291,19 @@ fn test_original_to_virtual_span_nil_identity() {
 // spanmap_test.go:299
 #[test]
 fn test_original_to_virtual_positions() {
-    // Original [100,110) is a verbatim copy of virtual [0,10); [200,210) is an atom of virtual [20,30).
-    let m = new(&[
-        segment(0, 10, 100, 110, Kind::VERBATIM, Feature::All),
-        segment(20, 30, 200, 210, Kind::ATOM, Feature::All),
-    ]);
-
     struct Case {
         name: &'static str,
         pos: u32,
         want: u32,
         fidelity: Fidelity,
     }
+
+    // Original [100,110) is a verbatim copy of virtual [0,10); [200,210) is an atom of virtual [20,30).
+    let m = new(&[
+        segment(0, 10, 100, 110, Kind::VERBATIM, Feature::All),
+        segment(20, 30, 200, 210, Kind::ATOM, Feature::All),
+    ]);
+
     let test_cases = [
         Case { name: "verbatim interpolates", pos: 103, want: 3, fidelity: Fidelity::Exact },
         Case { name: "atom maps to its start", pos: 205, want: 20, fidelity: Fidelity::Atom },
@@ -577,17 +579,18 @@ fn test_marshal_round_trip() {
 // spanmap_test.go:594
 #[test]
 fn test_validate() {
+    struct Case {
+        name: &'static str,
+        segs: Vec<Segment>,
+        want_kind: Option<MappingErrorKind>,
+    }
+
     const TRANSFORMED: &str = "const greeting = 1;\n";
     const ORIGINAL: &str = "<x>const greeting = 1;\n</x>";
     let script_start = 3; // index of "const" in original
     let transformed_len = TRANSFORMED.len() as u32;
     let original_len = ORIGINAL.len() as u32;
 
-    struct Case {
-        name: &'static str,
-        segs: Vec<Segment>,
-        want_kind: Option<MappingErrorKind>,
-    }
     let test_cases = [
         Case {
             name: "valid verbatim",

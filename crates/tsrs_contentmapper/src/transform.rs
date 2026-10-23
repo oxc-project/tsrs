@@ -143,7 +143,7 @@ pub fn parse_result(
 }
 
 // transform.go:123
-pub(crate) fn is_module_virtual_extension(extension: &str) -> bool {
+pub fn is_module_virtual_extension(extension: &str) -> bool {
     [tspath::EXTENSION_MTS, tspath::EXTENSION_CTS, tspath::EXTENSION_MJS, tspath::EXTENSION_CJS]
         .contains(&extension)
 }

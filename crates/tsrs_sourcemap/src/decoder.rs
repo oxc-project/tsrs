@@ -258,7 +258,7 @@ impl MappingsDecoder {
 }
 
 // decoder.go:238
-pub(crate) fn base64_format_decode(ch: u8) -> Option<u8> {
+pub fn base64_format_decode(ch: u8) -> Option<u8> {
     match ch {
         b'A'..=b'Z' => Some(ch - b'A'),
         b'a'..=b'z' => Some(ch - b'a' + 26),

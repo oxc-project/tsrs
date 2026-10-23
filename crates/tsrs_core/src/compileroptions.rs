@@ -313,9 +313,7 @@ impl CompilerOptions {
         if let Some(type_roots) = &self.type_roots {
             return (type_roots.clone(), true);
         }
-        let base_dir = if !self.config_file_path.is_empty() {
-            tspath::get_directory_path(&self.config_file_path)
-        } else {
+        let base_dir = if self.config_file_path.is_empty() {
             // This was accounted for in the TS codebase, but only for third-party API usage
             // where the module resolution host does not provide a getCurrentDirectory().
             assert!(
@@ -323,6 +321,8 @@ impl CompilerOptions {
                 "cannot get effective type roots without a config file path or current directory"
             );
             current_directory.to_string()
+        } else {
+            tspath::get_directory_path(&self.config_file_path)
         };
 
         let mut type_roots = Vec::with_capacity(base_dir.matches('/').count());

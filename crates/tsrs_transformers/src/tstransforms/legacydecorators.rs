@@ -93,13 +93,12 @@ impl LegacyDecoratorsTransformer {
         // takes the place of `substituteIdentifier` in the strada transform
         let enclosing: Vec<P<Node>> = self.enclosing_classes.borrow().clone();
         if let Some(result) = enclosing.into_iter().find_map(|d| {
-            if let Some(alias) = self.class_alias_of(d) {
-                if self.reference_resolver.get_referenced_value_declaration(
+            if let Some(alias) = self.class_alias_of(d)
+                && self.reference_resolver.get_referenced_value_declaration(
                     self.emit_context().most_original(Some(node)).unwrap(),
                 ) == self.emit_context().most_original(Some(d))
-                {
-                    return Some(alias);
-                }
+            {
+                return Some(alias);
             }
 
             None
@@ -474,21 +473,21 @@ impl LegacyDecoratorsTransformer {
         let is_export = ast::has_syntactic_modifier(node, ModifierFlags::Export);
         let is_default = ast::has_syntactic_modifier(node, ModifierFlags::Default);
         let mut modifiers: Option<P<ModifierList>> = None;
-        if let Some(node_modifiers) = node.modifiers() {
-            if !node_modifiers.nodes().is_empty() {
-                let modifier_nodes: Vec<P<Node>> = node_modifiers
-                    .nodes()
-                    .iter()
-                    .copied()
-                    .filter(|n| is_not_export_or_default_or_decorator(*n))
-                    .collect();
-                if modifier_nodes.len() != node_modifiers.nodes().len() {
-                    let m = f.new_modifier_list(modifier_nodes);
-                    m.list.loc.set(node_modifiers.list.loc.get());
-                    modifiers = Some(m);
-                } else {
-                    modifiers = Some(node_modifiers);
-                }
+        if let Some(node_modifiers) = node.modifiers()
+            && !node_modifiers.nodes().is_empty()
+        {
+            let modifier_nodes: Vec<P<Node>> = node_modifiers
+                .nodes()
+                .iter()
+                .copied()
+                .filter(|n| is_not_export_or_default_or_decorator(*n))
+                .collect();
+            if modifier_nodes.len() == node_modifiers.nodes().len() {
+                modifiers = Some(node_modifiers);
+            } else {
+                let m = f.new_modifier_list(modifier_nodes);
+                m.list.loc.set(node_modifiers.list.loc.get());
+                modifiers = Some(m);
             }
         }
 
@@ -548,10 +547,10 @@ impl LegacyDecoratorsTransformer {
         }
 
         let mut expr_name = name;
-        if let Some(name) = name {
-            if is_generated_identifier(self.emit_context(), name) {
-                expr_name = None;
-            }
+        if let Some(name) = name
+            && is_generated_identifier(self.emit_context(), name)
+        {
+            expr_name = None;
         }
         let class_expression =
             f.new_class_expression(modifiers, expr_name, None, heritage_clauses, members.unwrap());
@@ -562,10 +561,10 @@ impl LegacyDecoratorsTransformer {
         //  let ${name} = ${classExpression} where name is either declaredName if the class doesn't contain self-reference
         //                                         or decoratedClassAlias if the class contain self-reference.
         let mut var_initializer = class_expression;
-        if let Some(class_alias) = class_alias {
-            if !assign_class_alias_in_static_block {
-                var_initializer = f.new_assignment_expression(class_alias, class_expression);
-            }
+        if let Some(class_alias) = class_alias
+            && !assign_class_alias_in_static_block
+        {
+            var_initializer = f.new_assignment_expression(class_alias, class_expression);
         }
         let var_decl = f.new_variable_declaration(decl_name, None, None, Some(var_initializer));
         self.emit_context().set_original(var_decl, node);
@@ -604,7 +603,6 @@ impl LegacyDecoratorsTransformer {
 
     // legacydecorators.go:512
     fn has_internal_static_reference(&self, node: P<Node>) -> bool {
-        let class_node = self.emit_context().most_original(Some(node));
         fn is_or_contains_static_self_reference(
             tx: &LegacyDecoratorsTransformer,
             class_node: Option<P<Node>>,
@@ -628,6 +626,8 @@ impl LegacyDecoratorsTransformer {
             }
             n.for_each_child(&mut |c| is_or_contains_static_self_reference(tx, class_node, c))
         }
+
+        let class_node = self.emit_context().most_original(Some(node));
         node.members().iter().any(|member| {
             member
                 .for_each_child(&mut |c| is_or_contains_static_self_reference(self, class_node, c))
@@ -645,10 +645,10 @@ impl LegacyDecoratorsTransformer {
             return None;
         }
         let mut name_text = "default";
-        if let Some(name) = node.name() {
-            if !is_generated_identifier(self.emit_context(), name) {
-                name_text = name.text();
-            }
+        if let Some(name) = node.name()
+            && !is_generated_identifier(self.emit_context(), name)
+        {
+            name_text = name.text();
         }
 
         let class_alias = self.factory().new_unique_name(name_text);
@@ -778,7 +778,7 @@ fn has_class_element_with_decorator_containing_private_identifier_in_expression(
 }
 
 // legacydecorators.go:652
-pub(crate) struct AllDecorators {
+pub struct AllDecorators {
     decorators: Vec<P<Node>>,
     parameters: Vec<Vec<P<Node>>>,
 }
@@ -851,10 +851,10 @@ fn get_all_decorators_of_accessors(
     let mut first_accessor_with_decorators: Option<P<Node>> = None;
     if ast::has_decorators(decls.first_accessor) {
         first_accessor_with_decorators = Some(decls.first_accessor);
-    } else if let Some(second_accessor) = decls.second_accessor {
-        if ast::has_decorators(second_accessor) {
-            first_accessor_with_decorators = Some(second_accessor);
-        }
+    } else if let Some(second_accessor) = decls.second_accessor
+        && ast::has_decorators(second_accessor)
+    {
+        first_accessor_with_decorators = Some(second_accessor);
     }
 
     let first_accessor_with_decorators = first_accessor_with_decorators?;
@@ -864,10 +864,8 @@ fn get_all_decorators_of_accessors(
 
     let decorators = first_accessor_with_decorators.decorators();
     let mut parameters: Vec<Vec<P<Node>>> = Vec::new();
-    if use_legacy_decorators {
-        if let Some(set_accessor) = decls.set_accessor {
-            parameters = get_decorators_of_parameters(Some(set_accessor));
-        }
+    if use_legacy_decorators && let Some(set_accessor) = decls.set_accessor {
+        parameters = get_decorators_of_parameters(Some(set_accessor));
     }
 
     if decorators.is_empty() && parameters.is_empty() {
@@ -910,7 +908,7 @@ fn get_all_decorators_of_method(
  *
  * @param node The function-like node.
  */
-pub(crate) fn get_decorators_of_parameters(node: Option<P<Node>>) -> Vec<Vec<P<Node>>> {
+pub fn get_decorators_of_parameters(node: Option<P<Node>>) -> Vec<Vec<P<Node>>> {
     let mut decorators: Vec<Vec<P<Node>>> = Vec::new();
     if let Some(node) = node {
         let parameters = node.parameters();
@@ -948,10 +946,10 @@ impl LegacyDecoratorsTransformer {
         decoration_statements.extend(self.get_class_element_decoration_statements(node, true));
         if has_class_element_with_decorator_containing_private_identifier_in_expression(node) {
             let mut member_nodes: &[P<Node>] = &[];
-            if let Some(m) = members {
-                if !m.nodes().is_empty() {
-                    member_nodes = m.nodes();
-                }
+            if let Some(m) = members
+                && !m.nodes().is_empty()
+            {
+                member_nodes = m.nodes();
             }
             let f = self.factory();
             let mut list: Vec<P<Node>> = member_nodes.to_vec();

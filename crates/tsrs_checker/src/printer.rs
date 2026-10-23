@@ -10,12 +10,12 @@ use crate::*;
 
 // TODO: Memoize once per checker to retain threadsafety
 // printer.go:13
-pub(crate) fn create_printer_with_defaults(emit_context: P<EmitContext>) -> Printer {
+pub fn create_printer_with_defaults(emit_context: P<EmitContext>) -> Printer {
     new_printer(PrinterOptions::default(), PrintHandlers::default(), Some(emit_context))
 }
 
 // printer.go:17
-pub(crate) fn create_printer_with_remove_comments(emit_context: P<EmitContext>) -> Printer {
+pub fn create_printer_with_remove_comments(emit_context: P<EmitContext>) -> Printer {
     new_printer(
         PrinterOptions { remove_comments: true, ..Default::default() },
         PrintHandlers::default(),
@@ -24,7 +24,7 @@ pub(crate) fn create_printer_with_remove_comments(emit_context: P<EmitContext>) 
 }
 
 // printer.go:21
-pub(crate) fn create_printer_with_remove_comments_omit_trailing_semicolon(
+pub fn create_printer_with_remove_comments_omit_trailing_semicolon(
     emit_context: P<EmitContext>,
 ) -> Printer {
     new_printer(
@@ -39,7 +39,7 @@ pub(crate) fn create_printer_with_remove_comments_omit_trailing_semicolon(
 }
 
 // printer.go:28
-pub(crate) fn create_printer_with_remove_comments_omit_trailing_semicolon_never_ascii_escape(
+pub fn create_printer_with_remove_comments_omit_trailing_semicolon_never_ascii_escape(
     emit_context: P<EmitContext>,
 ) -> Printer {
     new_printer(
@@ -77,7 +77,7 @@ impl Checker {
 }
 
 // printer.go:51
-pub(crate) fn to_node_builder_flags(flags: TypeFormatFlags) -> Flags {
+pub fn to_node_builder_flags(flags: TypeFormatFlags) -> Flags {
     Flags::from_bits_retain((flags & TypeFormatFlags::NodeBuilderFlagsMask).bits())
 }
 
@@ -150,10 +150,10 @@ impl Checker {
         let result = writer.string();
 
         let mut max_length = DEFAULT_MAXIMUM_TRUNCATION_LENGTH * 2;
-        if let Some(vc) = vc {
-            if vc.max_truncation_length.get() > 0 {
-                max_length = vc.max_truncation_length.get() * 10; // hard cutoff matching Strada's absoluteMaximumLength
-            }
+        if let Some(vc) = vc
+            && vc.max_truncation_length.get() > 0
+        {
+            max_length = vc.max_truncation_length.get() * 10; // hard cutoff matching Strada's absoluteMaximumLength
         }
         if no_truncation {
             max_length = NO_TRUNCATION_MAXIMUM_TRUNCATION_LENGTH * 2;
@@ -753,14 +753,14 @@ impl Checker {
 }
 
 // symbolaccessibility.go:105
-pub(crate) fn has_non_global_augmentation_external_module_symbol(declaration: P<Node>) -> bool {
+pub fn has_non_global_augmentation_external_module_symbol(declaration: P<Node>) -> bool {
     ast::is_module_with_string_literal_name(declaration)
         || (declaration.kind() == Kind::SourceFile
             && ast::is_external_or_common_js_module(declaration.as_source_file_p()))
 }
 
 // symbolaccessibility.go:109
-pub(crate) fn get_qualified_left_meaning(right_meaning: SymbolFlags) -> SymbolFlags {
+pub fn get_qualified_left_meaning(right_meaning: SymbolFlags) -> SymbolFlags {
     // If we are looking in value space, the parent meaning is value, other wise it is namespace
     if right_meaning == SymbolFlags::Value {
         return SymbolFlags::Value;
@@ -950,7 +950,7 @@ impl Checker {
 }
 
 // symbolaccessibility.go:249
-pub(crate) fn has_external_module_symbol(declaration: P<Node>) -> bool {
+pub fn has_external_module_symbol(declaration: P<Node>) -> bool {
     ast::is_ambient_module(declaration)
         || (declaration.kind() == Kind::SourceFile
             && ast::is_external_or_common_js_module(declaration.as_source_file_p()))
@@ -994,47 +994,45 @@ impl Checker {
     ) -> Vec<P<Symbol>> {
         let container = self.get_parent_of_symbol(symbol);
         // Type parameters end up in the `members` lists but are not externally visible
-        if let Some(container) = container {
-            if !symbol.flags().intersects(SymbolFlags::TypeParameter) {
-                return self.get_with_alternative_containers(
-                    container,
-                    symbol,
-                    enclosing_declaration,
-                    meaning,
-                );
-            }
+        if let Some(container) = container
+            && !symbol.flags().intersects(SymbolFlags::TypeParameter)
+        {
+            return self.get_with_alternative_containers(
+                container,
+                symbol,
+                enclosing_declaration,
+                meaning,
+            );
         }
         let mut candidates: Vec<P<Symbol>> = Vec::new();
         let declarations = symbol.declarations().to_vec();
         for d in declarations {
-            if !ast::is_ambient_module(d) {
-                if let Some(parent) = d.parent() {
-                    // direct children of a module
-                    if has_non_global_augmentation_external_module_symbol(parent) {
-                        let sym = self.get_symbol_of_declaration(parent);
-                        if let Some(sym) = sym {
-                            if !candidates.contains(&sym) {
-                                candidates.push(sym);
-                            }
-                        }
-                        continue;
+            if !ast::is_ambient_module(d)
+                && let Some(parent) = d.parent()
+            {
+                // direct children of a module
+                if has_non_global_augmentation_external_module_symbol(parent) {
+                    let sym = self.get_symbol_of_declaration(parent);
+                    if let Some(sym) = sym
+                        && !candidates.contains(&sym)
+                    {
+                        candidates.push(sym);
                     }
-                    // export ='d member of an ambient module
-                    if ast::is_module_block(parent) && parent.parent().is_some() && {
-                        let module_symbol =
-                            self.get_symbol_of_declaration(parent.parent().unwrap());
-                        module_symbol.is_some_and(|m| {
-                            self.resolve_external_module_symbol(m, false) == symbol
-                        })
-                    } {
-                        let sym = self.get_symbol_of_declaration(parent.parent().unwrap());
-                        if let Some(sym) = sym {
-                            if !candidates.contains(&sym) {
-                                candidates.push(sym);
-                            }
-                        }
-                        continue;
+                    continue;
+                }
+                // export ='d member of an ambient module
+                if ast::is_module_block(parent) && parent.parent().is_some() && {
+                    let module_symbol = self.get_symbol_of_declaration(parent.parent().unwrap());
+                    module_symbol
+                        .is_some_and(|m| self.resolve_external_module_symbol(m, false) == symbol)
+                } {
+                    let sym = self.get_symbol_of_declaration(parent.parent().unwrap());
+                    if let Some(sym) = sym
+                        && !candidates.contains(&sym)
+                    {
+                        candidates.push(sym);
                     }
+                    continue;
                 }
             }
             if ast::is_class_expression(d) && ast::is_binary_expression(d.parent().unwrap()) && {
@@ -1051,20 +1049,20 @@ impl Checker {
                     let sym = self.get_symbol_of_declaration(
                         ast::get_source_file_of_node(d).unwrap().as_node(),
                     );
-                    if let Some(sym) = sym {
-                        if !candidates.contains(&sym) {
-                            candidates.push(sym);
-                        }
+                    if let Some(sym) = sym
+                        && !candidates.contains(&sym)
+                    {
+                        candidates.push(sym);
                     }
                     continue;
                 }
                 self.check_expression_cached(left.expression().unwrap());
                 let sym =
                     self.symbol_node_links.get(left.expression().unwrap()).resolved_symbol.get();
-                if let Some(sym) = sym {
-                    if !candidates.contains(&sym) {
-                        candidates.push(sym);
-                    }
+                if let Some(sym) = sym
+                    && !candidates.contains(&sym)
+                {
+                    candidates.push(sym);
                 }
             }
         }
@@ -1106,29 +1104,29 @@ impl Checker {
         }
         // Check if container is a thing with an `export=` which points directly at `symbol`, and if so, return
         // the container itself as the alias for the symbol
-        if let Some(container_exports) = container.exports() {
-            if let Some(export_equals) =
+        if let Some(container_exports) = container.exports()
+            && let Some(export_equals) =
                 container_exports.lookup(INTERNAL_SYMBOL_NAME_EXPORT_EQUALS)
-            {
-                if self.get_symbol_if_same_reference(export_equals, symbol).is_some() {
-                    return Some(container);
-                }
-            }
+            && self.get_symbol_if_same_reference(export_equals, symbol).is_some()
+        {
+            return Some(container);
         }
         let exports = self.get_exports_of_symbol(container);
         let quick = exports.and_then(|exports| exports.lookup(symbol.name()));
-        if let Some(quick) = quick {
-            if self.get_symbol_if_same_reference(quick, symbol).is_some() {
-                return Some(quick);
-            }
+        if let Some(quick) = quick
+            && self.get_symbol_if_same_reference(quick, symbol).is_some()
+        {
+            return Some(quick);
         }
         let mut candidates: Vec<P<Symbol>> = Vec::new();
-        if let Some(exports) = exports {
-            if !self.exports_by_target(exports, symbol, &mut candidates) {
-                candidates.extend(exports.values().into_iter().filter(|&exported| {
+        if let Some(exports) = exports
+            && !self.exports_by_target(exports, symbol, &mut candidates)
+        {
+            candidates.extend(
+                exports.values().into_iter().filter(|&exported| {
                     self.get_symbol_if_same_reference(exported, symbol).is_some()
-                }));
-            }
+                }),
+            );
         }
         if !candidates.is_empty() {
             self.sort_symbols(&mut candidates); // _must_ sort exports for stable results - symbol table is randomly iterated
@@ -1196,10 +1194,10 @@ impl Checker {
             return None;
         }
         found.extend(self.module_export_index.files_with_target(target));
-        if let Some(parent) = self.get_parent_of_symbol(symbol) {
-            if let Some(&i) = self.module_export_index.by_symbol.get(&parent) {
-                found.push(i);
-            }
+        if let Some(parent) = self.get_parent_of_symbol(symbol)
+            && let Some(&i) = self.module_export_index.by_symbol.get(&parent)
+        {
+            found.push(i);
         }
         found.sort_unstable();
         found.dedup();
@@ -1390,12 +1388,12 @@ mod symbol_table_kind_tests {
 }
 
 // symbolaccessibility.go:417
-pub(crate) fn symbol_table_id_from_locals(node: P<Node>) -> SymbolTableID {
+pub fn symbol_table_id_from_locals(node: P<Node>) -> SymbolTableID {
     ST_KIND_LOCALS | ast::get_node_id(node).0
 }
 
 // symbolaccessibility.go:421
-pub(crate) fn symbol_table_id_from_exports(sym: P<Symbol>) -> SymbolTableID {
+pub fn symbol_table_id_from_exports(sym: P<Symbol>) -> SymbolTableID {
     ST_KIND_EXPORTS | ast::get_symbol_id(sym).0
 }
 
@@ -1404,17 +1402,17 @@ pub(crate) fn symbol_table_id_from_exports(sym: P<Symbol>) -> SymbolTableID {
 // and late-bound members). This is distinct from symbolTableIDFromExports to prevent
 // cache collisions with raw sym.Exports tables passed by someSymbolTableInScope.
 // symbolaccessibility.go:429
-pub(crate) fn symbol_table_id_from_resolved_exports(sym: P<Symbol>) -> SymbolTableID {
+pub fn symbol_table_id_from_resolved_exports(sym: P<Symbol>) -> SymbolTableID {
     ST_KIND_RESOLVED_EXPORTS | ast::get_symbol_id(sym).0
 }
 
 // symbolaccessibility.go:433
-pub(crate) fn symbol_table_id_from_members(sym: P<Symbol>) -> SymbolTableID {
+pub fn symbol_table_id_from_members(sym: P<Symbol>) -> SymbolTableID {
     ST_KIND_MEMBERS | ast::get_symbol_id(sym).0
 }
 
 // symbolaccessibility.go:437
-pub(crate) fn symbol_table_id_from_globals() -> SymbolTableID {
+pub fn symbol_table_id_from_globals() -> SymbolTableID {
     ST_KIND_GLOBALS
 }
 
@@ -1469,12 +1467,11 @@ impl Checker {
         links.accessible_chain_cache.borrow_mut().insert(link_key, alloc_slice(&result));
         // A location in a file's emit scratch region (a synthesized node) dies with it; its handle may then name a
         // new node, so the entry is forgotten when the file's transform ends (`forget_scratch_keyed_caches`).
-        if let Some(location) = first_relevant_location {
-            if !ast::is_parse_tree_node(location)
-                && tsrs_core::arena::scratch_contains(location.addr())
-            {
-                self.scratch_keyed_chain_cache.push((symbol, link_key));
-            }
+        if let Some(location) = first_relevant_location
+            && !ast::is_parse_tree_node(location)
+            && tsrs_core::arena::scratch_contains(location.addr())
+        {
+            self.scratch_keyed_chain_cache.push((symbol, link_key));
         }
         result
     }
@@ -1525,10 +1522,10 @@ impl Checker {
         }
         // Cache globals and exports tables (which are large and revisited often).
         // Locals tables are small and per-scope, so they are filtered but not cached.
-        if kind == ST_KIND_GLOBALS || kind == ST_KIND_EXPORTS || kind == ST_KIND_RESOLVED_EXPORTS {
-            if let Some(aliases) = self.symbol_table_alias_cache.get(&table_id) {
-                return aliases.to_vec();
-            }
+        if (kind == ST_KIND_GLOBALS || kind == ST_KIND_EXPORTS || kind == ST_KIND_RESOLVED_EXPORTS)
+            && let Some(aliases) = self.symbol_table_alias_cache.get(&table_id)
+        {
+            return aliases.to_vec();
         }
         let mut aliases: Vec<P<Symbol>> = Vec::new();
         if let Some(symbols) = symbols {
@@ -1558,10 +1555,10 @@ impl Checker {
         let is_globals = table_id == ST_KIND_GLOBALS;
         // If symbol is directly available by its name in the symbol table
         let res = symbols.and_then(|symbols| symbols.lookup(ctx_symbol.name()));
-        if let Some(res) = res {
-            if self.is_accessible(ctx, res /*resolvedAliasSymbol*/, None, ignore_qualification) {
-                return vec![ctx_symbol];
-            }
+        if let Some(res) = res
+            && self.is_accessible(ctx, res /*resolvedAliasSymbol*/, None, ignore_qualification)
+        {
+            return vec![ctx_symbol];
         }
 
         let mut candidate_chains: Vec<Vec<P<Symbol>>> = Vec::new();
@@ -1601,7 +1598,7 @@ impl Checker {
             {
                 let resolved_imported_symbol = self.resolve_alias(symbol_from_symbol_table);
                 let candidate = self.get_candidate_list_for_symbol(ctx, symbol_from_symbol_table, resolved_imported_symbol, ignore_qualification);
-                if !candidate.is_empty() { Some(candidate) } else { None }
+                if candidate.is_empty() { None } else { Some(candidate) }
             } else {
                 None
             }
@@ -1650,7 +1647,7 @@ impl Checker {
 }
 
 // symbolaccessibility.go:612
-pub(crate) fn is_umd_export_symbol(symbol: Option<P<Symbol>>) -> bool {
+pub fn is_umd_export_symbol(symbol: Option<P<Symbol>>) -> bool {
     symbol.is_some_and(|symbol| {
         let declarations = symbol.declarations();
         !declarations.is_empty() && ast::is_namespace_export_declaration(declarations[0])
@@ -1658,7 +1655,7 @@ pub(crate) fn is_umd_export_symbol(symbol: Option<P<Symbol>>) -> bool {
 }
 
 // symbolaccessibility.go:616
-pub(crate) fn is_namespace_reexport_declaration(node: P<Node>) -> bool {
+pub fn is_namespace_reexport_declaration(node: P<Node>) -> bool {
     ast::is_namespace_export(node) && node.parent().unwrap().module_specifier().is_some()
 }
 
@@ -1730,20 +1727,19 @@ impl Checker {
         if symbol == self.get_merged_symbol(symbol_from_symbol_table) {
             like_symbols = true;
         }
-        if !like_symbols {
-            if let Some(mut resolved_alias_symbol) =
+        if !like_symbols
+            && let Some(mut resolved_alias_symbol) =
                 resolved_alias_symbol.filter(|symbol| symbol.flags().intersects(SymbolFlags::Alias))
+        {
+            let mut seen_aliases = FxHashSet::default();
+            while resolved_alias_symbol.flags().intersects(SymbolFlags::Alias)
+                && seen_aliases.insert(resolved_alias_symbol)
             {
-                let mut seen_aliases = FxHashSet::default();
-                while resolved_alias_symbol.flags().intersects(SymbolFlags::Alias)
-                    && seen_aliases.insert(resolved_alias_symbol)
-                {
-                    let target = self.resolve_alias(resolved_alias_symbol);
-                    resolved_alias_symbol = self.get_merged_symbol(target);
-                    if symbol == resolved_alias_symbol {
-                        like_symbols = true;
-                        break;
-                    }
+                let target = self.resolve_alias(resolved_alias_symbol);
+                resolved_alias_symbol = self.get_merged_symbol(target);
+                if symbol == resolved_alias_symbol {
+                    like_symbols = true;
+                    break;
                 }
             }
         }
@@ -1834,7 +1830,7 @@ impl Checker {
 }
 
 // symbolaccessibility.go:728
-pub(crate) fn is_property_or_method_declaration_symbol(symbol: P<Symbol>) -> bool {
+pub fn is_property_or_method_declaration_symbol(symbol: P<Symbol>) -> bool {
     let declarations = symbol.declarations();
     if !declarations.is_empty() {
         if declarations.iter().any(|declaration| {
@@ -1870,17 +1866,19 @@ impl Checker {
         let mut location = enclosing_declaration;
         while let Some(loc) = location {
             // Locals of a source file are not in scope (because they get merged into the global symbol table)
-            if can_have_locals(loc) && loc.locals().is_some() && !ast::is_global_source_file(loc) {
-                if callback(
+            if can_have_locals(loc)
+                && loc.locals().is_some()
+                && !ast::is_global_source_file(loc)
+                && callback(
                     self,
                     loc.locals(),
                     symbol_table_id_from_locals(loc),
                     false,
                     true,
                     Some(loc),
-                ) {
-                    return true;
-                }
+                )
+            {
+                return true;
             }
             match loc.kind() {
                 Kind::SourceFile | Kind::ModuleDeclaration => {

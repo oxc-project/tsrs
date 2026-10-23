@@ -27,7 +27,7 @@ fn get_deep_clone_visitor(f: NodeFactory, synthetic_location: bool) -> NodeVisit
         Rc::new(move |nodes: Option<P<NodeList>>, v: &mut NodeVisitor| {
             let nodes = nodes?;
             let visited = v.visit_nodes(Some(nodes)).unwrap();
-            let new_list = if visited != nodes { visited } else { nodes.clone_list(&v.factory) };
+            let new_list = if visited == nodes { nodes.clone_list(&v.factory) } else { visited };
             if synthetic_location {
                 new_list.loc.set(undefined_text_range());
                 if nodes.has_trailing_comma() {
@@ -40,7 +40,7 @@ fn get_deep_clone_visitor(f: NodeFactory, synthetic_location: bool) -> NodeVisit
         Rc::new(move |nodes: Option<P<ModifierList>>, v: &mut NodeVisitor| {
             let nodes = nodes?;
             let visited = v.visit_modifiers(Some(nodes)).unwrap();
-            let new_list = if visited != nodes { visited } else { nodes.clone_list(&v.factory) };
+            let new_list = if visited == nodes { nodes.clone_list(&v.factory) } else { visited };
             if synthetic_location {
                 new_list.list.loc.set(undefined_text_range());
                 if nodes.has_trailing_comma() {

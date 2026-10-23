@@ -5,7 +5,7 @@ use crate::*;
 use tsrs_core::collections::{OrderedSet, OrderedSetExt};
 
 // utilities.go:10
-pub(crate) fn convert_class_declaration_to_class_expression(
+pub fn convert_class_declaration_to_class_expression(
     emit_context: P<EmitContext>,
     node: P<Node>,
 ) -> P<Node> {
@@ -23,7 +23,7 @@ pub(crate) fn convert_class_declaration_to_class_expression(
 }
 
 // utilities.go:23
-pub(crate) fn create_not_null_condition(
+pub fn create_not_null_condition(
     emit_context: P<EmitContext>,
     left: P<Node>,
     right: P<Node>,
@@ -399,7 +399,7 @@ impl SuperAccessState {
 
 // utilities.go:280
 // createAccessorPropertyBackingField creates a private backing field for an `accessor` PropertyDeclaration.
-pub(crate) fn create_accessor_property_backing_field(
+pub fn create_accessor_property_backing_field(
     f: &printer::NodeFactory,
     node: P<Node>,
     modifiers: Option<P<ModifierList>>,

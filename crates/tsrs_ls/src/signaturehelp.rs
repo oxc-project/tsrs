@@ -31,19 +31,19 @@ pub const SIGNATURE_HELP_RETRIGGER_CHARACTERS: [&str; 1] = [")"];
 
 // signaturehelp.go:29
 #[derive(Clone, Copy)]
-pub(crate) struct CallInvocation {
+pub struct CallInvocation {
     pub(crate) node: P<Node>,
 }
 
 // signaturehelp.go:33
 #[derive(Clone, Copy)]
-pub(crate) struct TypeArgsInvocation {
+pub struct TypeArgsInvocation {
     pub(crate) called: P<Node>,
 }
 
 // signaturehelp.go:37
 #[derive(Clone, Copy)]
-pub(crate) struct ContextualInvocation {
+pub struct ContextualInvocation {
     pub(crate) signature: P<Signature>,
     pub(crate) node: P<Node>, // Just for enclosingDeclaration for printing types
     pub(crate) symbol: P<Symbol>,
@@ -51,7 +51,7 @@ pub(crate) struct ContextualInvocation {
 
 // signaturehelp.go:43
 #[derive(Clone, Copy, Default)]
-pub(crate) struct Invocation {
+pub struct Invocation {
     pub(crate) call_invocation: Option<CallInvocation>,
     pub(crate) type_args_invocation: Option<TypeArgsInvocation>,
     pub(crate) contextual_invocation: Option<ContextualInvocation>,
@@ -103,13 +103,6 @@ impl LanguageService {
         source_file: P<SourceFile>,
         context: Option<&lsproto::SignatureHelpContext>,
     ) -> Option<lsproto::SignatureHelp> {
-        let mut checker_handle = program.get_type_checker_for_file(ctx, source_file);
-        let type_checker: &mut Checker = &mut checker_handle;
-
-        // Decide whether to show signature help
-        // We are at the beginning of the file
-        let starting_token = astnav::find_preceding_token(source_file, position)?;
-
         #[derive(Clone, Copy, PartialEq, Eq)]
         enum SignatureHelpTriggerReasonKind {
             None,           // was undefined
@@ -117,6 +110,13 @@ impl LanguageService {
             CharacterTyped, // was "characterTyped"
             Retriggered,    // was "retrigger"
         }
+
+        let mut checker_handle = program.get_type_checker_for_file(ctx, source_file);
+        let type_checker: &mut Checker = &mut checker_handle;
+
+        // Decide whether to show signature help
+        // We are at the beginning of the file
+        let starting_token = astnav::find_preceding_token(source_file, position)?;
 
         // Emulate VS Code's toTsTriggerReason.
         let mut trigger_reason_kind = SignatureHelpTriggerReasonKind::None;
@@ -391,24 +391,23 @@ impl LanguageService {
             if result.is_some() {
                 return true;
             }
-            if ast::get_declaration_name(node) == name {
-                if let Some(symbol) = node.symbol() {
-                    if let Some(t) = c.get_type_of_symbol_at_location(symbol, Some(node)) {
-                        let call_signatures = c.get_call_signatures(t);
-                        if !call_signatures.is_empty() {
-                            *result = l.create_signature_help_items(
-                                ctx,
-                                call_signatures,
-                                Some(call_signatures[0]),
-                                argument_info,
-                                source_file,
-                                c,
-                                true, /*useFullPrefix*/
-                            );
-                            if result.is_some() {
-                                return true;
-                            }
-                        }
+            if ast::get_declaration_name(node) == name
+                && let Some(symbol) = node.symbol()
+                && let Some(t) = c.get_type_of_symbol_at_location(symbol, Some(node))
+            {
+                let call_signatures = c.get_call_signatures(t);
+                if !call_signatures.is_empty() {
+                    *result = l.create_signature_help_items(
+                        ctx,
+                        call_signatures,
+                        Some(call_signatures[0]),
+                        argument_info,
+                        source_file,
+                        c,
+                        true, /*useFullPrefix*/
+                    );
+                    if result.is_some() {
+                        return true;
                     }
                 }
             }
@@ -448,10 +447,11 @@ impl LanguageService {
         } else {
             call_target_symbol =
                 c.get_symbol_at_location_exported(get_expression_from_invocation(argument_info));
-            if call_target_symbol.is_none() && use_full_prefix {
-                if let Some(declaration) = resolved_signature.unwrap().declaration() {
-                    call_target_symbol = declaration.symbol();
-                }
+            if call_target_symbol.is_none()
+                && use_full_prefix
+                && let Some(declaration) = resolved_signature.unwrap().declaration()
+            {
+                call_target_symbol = declaration.symbol();
             }
         }
 
@@ -461,19 +461,19 @@ impl LanguageService {
         // "\xFEtype". There is no meaningful name to show, so render the signature with
         // no prefix (as we already do when there is no call target symbol) rather than
         // leaking the internal name.
-        if let Some(call_target_symbol) = call_target_symbol {
-            if !call_target_symbol.name().starts_with(ast::INTERNAL_SYMBOL_NAME_PREFIX) {
-                if use_full_prefix {
-                    call_target_display_parts.push_str(&c.symbol_to_string_ex_exported(
-                        call_target_symbol,
-                        Some(source_file.as_node()),
-                        SymbolFlags::None,
-                        SymbolFormatFlags::UseAliasDefinedOutsideCurrentScope,
-                    ));
-                } else {
-                    call_target_display_parts
-                        .push_str(&c.symbol_to_string_exported(call_target_symbol));
-                }
+        if let Some(call_target_symbol) = call_target_symbol
+            && !call_target_symbol.name().starts_with(ast::INTERNAL_SYMBOL_NAME_PREFIX)
+        {
+            if use_full_prefix {
+                call_target_display_parts.push_str(&c.symbol_to_string_ex_exported(
+                    call_target_symbol,
+                    Some(source_file.as_node()),
+                    SymbolFlags::None,
+                    SymbolFormatFlags::UseAliasDefinedOutsideCurrentScope,
+                ));
+            } else {
+                call_target_display_parts
+                    .push_str(&c.symbol_to_string_exported(call_target_symbol));
             }
         }
         let mut items: Vec<Vec<SignatureInformationBuilder>> = Vec::with_capacity(candidates.len());
@@ -497,12 +497,12 @@ impl LanguageService {
             let item = element;
             if Some(candidates[i]) == resolved_signature {
                 selected_item_index = item_seen;
-                if item.len() > 1 {
-                    if let Some(count) = item.iter().position(|j| {
+                if item.len() > 1
+                    && let Some(count) = item.iter().position(|j| {
                         j.is_variadic || j.parameters.len() >= argument_info.argument_count
-                    }) {
-                        selected_item_index = item_seen + count;
-                    }
+                    })
+                {
+                    selected_item_index = item_seen + count;
                 }
             }
             item_seen += item.len();
@@ -1296,7 +1296,7 @@ fn get_immediately_containing_argument_or_contextual_parameter_info(
 
 // signaturehelp.go:912
 #[derive(Clone, Copy)]
-pub(crate) struct ArgumentListInfo {
+pub struct ArgumentListInfo {
     pub(crate) is_type_parameter_list: bool,
     pub(crate) invocation: Invocation,
     pub(crate) arguments_span: TextRange,
@@ -1308,7 +1308,7 @@ pub(crate) struct ArgumentListInfo {
 // Returns relevant information for the argument list and the current argument if we are
 // in the argument of an invocation; returns undefined otherwise.
 // signaturehelp.go:923
-pub(crate) fn get_immediately_containing_argument_info(
+pub fn get_immediately_containing_argument_info(
     node: P<Node>,
     position: u32,
     source_file: P<SourceFile>,
@@ -1637,17 +1637,17 @@ fn get_applicable_span_for_arguments(
     //
     // The applicable span is from the first bar to the second bar (inclusive,
     // but not including parentheses).
-    if argument_list.is_none() {
-        if let Some(node) = node {
-            // If the user has just opened a list, and there are no arguments.
-            // For example, foo(    )
-            //                  |  |
-            // The span should include positions inside the parentheses.
-            let span_start = node.end().expect_source("parsed nodes have source positions");
-            let mut span_end = scanner::skip_trivia(source_file.text(), span_start);
-            span_end = ensure_minimum_span_size(span_start, span_end);
-            return TextRange::new(span_start, span_end);
-        }
+    if argument_list.is_none()
+        && let Some(node) = node
+    {
+        // If the user has just opened a list, and there are no arguments.
+        // For example, foo(    )
+        //                  |  |
+        // The span should include positions inside the parentheses.
+        let span_start = node.end().expect_source("parsed nodes have source positions");
+        let mut span_end = scanner::skip_trivia(source_file.text(), span_start);
+        span_end = ensure_minimum_span_size(span_start, span_end);
+        return TextRange::new(span_start, span_end);
     }
     let argument_list = argument_list.unwrap();
     let applicable_span_start =
@@ -1765,17 +1765,17 @@ fn try_get_parameter_info(
 
 // signaturehelp.go:1302
 fn choose_better_symbol(s: P<Symbol>) -> P<Symbol> {
-    if s.name() == ast::INTERNAL_SYMBOL_NAME_TYPE {
-        if let Some(result) = s.declarations().iter().find_map(|&d| {
+    if s.name() == ast::INTERNAL_SYMBOL_NAME_TYPE
+        && let Some(result) = s.declarations().iter().find_map(|&d| {
             if ast::is_function_type_node(d) && ast::can_have_symbol(d.parent().unwrap()) {
                 // Go returns `d.Parent.Symbol()` (nil-able) where a symbol is expected.
                 return Some(d.parent().unwrap().symbol().unwrap());
             }
 
             None
-        }) {
-            return result;
-        }
+        })
+    {
+        return result;
     }
     s
 }

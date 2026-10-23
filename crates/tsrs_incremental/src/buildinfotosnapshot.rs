@@ -16,7 +16,7 @@ use crate::snapshot::{
 };
 
 // buildinfotosnapshot.go:12
-pub(crate) fn build_info_to_snapshot(
+pub fn build_info_to_snapshot(
     build_info: &BuildInfo,
     config: &ParsedCommandLine,
     host: &dyn CompilerHost,

@@ -138,10 +138,10 @@ pub fn decode_message(data: &[u8]) -> Result<Message, TransportError> {
     crate::strictjson::validate(data).map_err(TransportError::Protocol)?;
     let wire: WireMessage<'_> = serde_json::from_slice(data)
         .map_err(|e| TransportError::Protocol(format!("jsonrpc: {e}")))?;
-    if let Some(version) = wire.jsonrpc {
-        if version.get() != "\"2.0\"" {
-            return Err(TransportError::Protocol("invalid JSON-RPC version".to_string()));
-        }
+    if let Some(version) = wire.jsonrpc
+        && version.get() != "\"2.0\""
+    {
+        return Err(TransportError::Protocol("invalid JSON-RPC version".to_string()));
     }
     let id = match wire.id {
         None => None,

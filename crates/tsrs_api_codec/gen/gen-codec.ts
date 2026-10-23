@@ -208,7 +208,7 @@ function genGetNodeDataType() {
         else if (info.dataType === "extended") extendedKinds.push(...kinds);
     }
     w("/// Go `getNodeDataType`.");
-    w("pub(crate) fn node_data_type(node: P<Node>) -> u32 {");
+    w("pub fn node_data_type(node: P<Node>) -> u32 {");
     w("    match node.kind() {");
     w(`        ${stringKinds.join("\n        | ")} => NODE_DATA_TYPE_STRING,`);
     w(`        ${extendedKinds.join("\n        | ")} => NODE_DATA_TYPE_EXTENDED_DATA,`);
@@ -220,7 +220,7 @@ function genGetNodeDataType() {
 
 function genGetChildrenPropertyMask() {
     w("/// Go `getChildrenPropertyMask`: one bit per encoded child property, in visitor order.");
-    w("pub(crate) fn children_property_mask(node: P<Node>) -> u8 {");
+    w("pub fn children_property_mask(node: P<Node>) -> u8 {");
     w("    match node.kind() {");
     for (const node of api.nodes()) {
         const info = analyzeNode(node);
@@ -249,7 +249,7 @@ function genGetChildrenPropertyMask() {
 
 function genGetNodeCommonData() {
     w("/// Go `getNodeCommonData`: the 6 bits at 24..30 of the node data word.");
-    w("pub(crate) fn node_common_data(node: P<Node>) -> Result<u32, EncodeError> {");
+    w("pub fn node_common_data(node: P<Node>) -> Result<u32, EncodeError> {");
     w("    Ok(match node.kind() {");
     for (const node of api.nodes()) {
         const info = analyzeNode(node);
@@ -292,7 +292,7 @@ function genGetNodeCommonData() {
 
 function genRecordNodeStrings() {
     w("/// Go `recordNodeStrings`.");
-    w("pub(crate) fn record_node_strings(node: P<Node>, strs: &mut StringTable) -> u32 {");
+    w("pub fn record_node_strings(node: P<Node>, strs: &mut StringTable) -> u32 {");
     w("    match node.kind() {");
     const patternsByAccess = new Map<string, string[]>();
     for (const node of api.nodes()) {
@@ -315,7 +315,7 @@ function genRecordNodeStrings() {
 
 function genRecordExtendedData() {
     w("/// Go `recordExtendedData`: dispatches to the hand-written `record_extended_data_*` functions.");
-    w("pub(crate) fn record_extended_data(node: P<Node>, cx: &mut EncodeContext) -> Result<u32, EncodeError> {");
+    w("pub fn record_extended_data(node: P<Node>, cx: &mut EncodeContext) -> Result<u32, EncodeError> {");
     w("    let offset = cx.extended_data.len() as u32;");
     w("    match node.kind() {");
     for (const node of api.nodes()) {

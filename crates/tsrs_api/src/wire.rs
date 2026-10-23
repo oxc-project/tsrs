@@ -92,10 +92,10 @@ impl<'a> Params<'a> {
     /// own exact literal is used (f64 would turn e.g. 9007199254740993 into another ID); values outside the
     /// tree (copies) use the parsed value.
     pub fn u64(self, key: &str) -> ApiResult<u64> {
-        if let Value::Number(_) = self.get(key) {
-            if let Some(n) = crate::predecode::exact_u64(self.0, key) {
-                return Ok(n);
-            }
+        if let Value::Number(_) = self.get(key)
+            && let Some(n) = crate::predecode::exact_u64(self.0, key)
+        {
+            return Ok(n);
         }
         as_u64(self.get(key), key)
     }

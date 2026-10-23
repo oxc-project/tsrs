@@ -134,10 +134,10 @@ pub fn breadth_first_search_parallel_ex<K: Hash + Eq + Clone, N: Clone + 'static
             let (_, &job) = level.entry_at(index).unwrap();
             return BreadthFirstSearchResult { stopped: true, path: create_path(Some(job)) };
         }
-        if fallback.is_none() {
-            if let Some(index) = lowest_fallback {
-                fallback = Some(*level.entry_at(index).unwrap().1);
-            }
+        if fallback.is_none()
+            && let Some(index) = lowest_fallback
+        {
+            fallback = Some(*level.entry_at(index).unwrap().1);
         }
 
         let count = next.iter().map(std::vec::Vec::len).sum();

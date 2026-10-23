@@ -152,10 +152,10 @@ impl Checker {
                 reduced_types.extend(type_set.iter().copied().filter(|t| !named.contains(t)));
             } else {
                 reduced_types.extend(type_set.iter().filter_map(|&t| {
-                    if !named_unions.iter().any(|u| contains_type(self, u.types(), t)) {
-                        Some(t)
-                    } else {
+                    if named_unions.iter().any(|u| contains_type(self, u.types(), t)) {
                         None
+                    } else {
+                        Some(t)
                     }
                 }));
             }
@@ -243,22 +243,6 @@ impl Checker {
         &mut self,
         source_types: &[P<Type>],
     ) -> (Vec<P<Type>>, TypeFlags) {
-        let total_order = self.program.source_files_complete();
-        let mut capacity = source_types.len();
-        if source_types.len() == 2 {
-            capacity = source_types.iter().fold(capacity, |mut capacity, &t| {
-                if t.flags().intersects(TypeFlags::Union) {
-                    capacity += t.types().len() - 1;
-                }
-
-                capacity
-            });
-            if source_types[0] == source_types[1] {
-                capacity /= 2;
-            }
-        }
-        let mut types: Vec<P<Type>> = Vec::with_capacity(capacity);
-        let mut includes = TypeFlags::empty();
         fn add_type(c: &Checker, types: &mut Vec<P<Type>>, includes: &mut TypeFlags, t: P<Type>) {
             let flags = t.flags();
             // We ignore 'never' types in unions
@@ -288,6 +272,23 @@ impl Checker {
             }
             types.push(t);
         }
+
+        let total_order = self.program.source_files_complete();
+        let mut capacity = source_types.len();
+        if source_types.len() == 2 {
+            capacity = source_types.iter().fold(capacity, |mut capacity, &t| {
+                if t.flags().intersects(TypeFlags::Union) {
+                    capacity += t.types().len() - 1;
+                }
+
+                capacity
+            });
+            if source_types[0] == source_types[1] {
+                capacity /= 2;
+            }
+        }
+        let mut types: Vec<P<Type>> = Vec::with_capacity(capacity);
+        let mut includes = TypeFlags::empty();
         if total_order
             && source_types.len() == 2
             && (source_types[0].flags() & source_types[1].flags()).intersects(TypeFlags::Union)
@@ -684,28 +685,27 @@ impl Checker {
                             }
                         }
                         count += 1;
-                        if let Some(key_property) = key_property {
-                            if target.flags().intersects(
+                        if let Some(key_property) = key_property
+                            && target.flags().intersects(
                                 TypeFlags::Object
                                     | TypeFlags::Intersection
                                     | TypeFlags::InstantiableNonPrimitive,
-                            ) {
-                                let of = Some((key_property.name(), self.members_reset_epoch));
-                                if key_types_of != of {
-                                    key_types.clear();
-                                    key_types_of = of;
-                                }
-                                let t = *key_types.entry(target).or_insert_with(|| {
-                                    self.get_type_of_property_of_type(target, key_property.name())
-                                });
-                                if let Some(t) = t {
-                                    if is_unit_type(t)
-                                        && Some(self.get_regular_type_of_literal_type(t))
-                                            != key_property_type
-                                    {
-                                        continue;
-                                    }
-                                }
+                            )
+                        {
+                            let of = Some((key_property.name(), self.members_reset_epoch));
+                            if key_types_of != of {
+                                key_types.clear();
+                                key_types_of = of;
+                            }
+                            let t = *key_types.entry(target).or_insert_with(|| {
+                                self.get_type_of_property_of_type(target, key_property.name())
+                            });
+                            if let Some(t) = t
+                                && is_unit_type(t)
+                                && Some(self.get_regular_type_of_literal_type(t))
+                                    != key_property_type
+                            {
+                                continue;
                             }
                         }
                         if (source == self.empty_object_type
@@ -857,7 +857,7 @@ impl Checker {
             }
             return self.null_type;
         }
-        if includes.intersects(TypeFlags::String)
+        if (includes.intersects(TypeFlags::String)
             && includes.intersects(
                 TypeFlags::StringLiteral | TypeFlags::TemplateLiteral | TypeFlags::StringMapping,
             )
@@ -869,11 +869,10 @@ impl Checker {
                 && includes.intersects(TypeFlags::UniqueESSymbol)
             || includes.intersects(TypeFlags::Void) && includes.intersects(TypeFlags::Undefined)
             || includes.intersects(TypeFlags::IncludesEmptyObject)
-                && includes.intersects(TypeFlags::DefinitelyNonNullable)
+                && includes.intersects(TypeFlags::DefinitelyNonNullable))
+            && !flags.intersects(IntersectionFlags::NoSupertypeReduction)
         {
-            if !flags.intersects(IntersectionFlags::NoSupertypeReduction) {
-                self.remove_redundant_supertypes(type_set, includes);
-            }
+            self.remove_redundant_supertypes(type_set, includes);
         }
         if includes.intersects(TypeFlags::IncludesMissingType) {
             let undefined_type = self.undefined_type;
@@ -1042,7 +1041,7 @@ impl Checker {
 /// Go's `stack` of `getResolvedBaseConstraint`: the recursion identities of the enclosing calls, as a list through
 /// their frames (Go appends to a slice; this needs no copy per level).
 #[derive(Clone, Copy, Default)]
-pub(crate) struct BaseConstraintStack<'a> {
+pub struct BaseConstraintStack<'a> {
     len: usize,
     top: Option<&'a (RecursionId, BaseConstraintStack<'a>)>,
 }
@@ -1061,34 +1060,34 @@ impl BaseConstraintStack<'_> {
 }
 
 // checker.go:26695
-pub(crate) fn is_union_with_undefined(t: P<Type>) -> bool {
+pub fn is_union_with_undefined(t: P<Type>) -> bool {
     t.flags().intersects(TypeFlags::Union) && t.types()[0].flags().intersects(TypeFlags::Undefined)
 }
 
 // checker.go:26699
-pub(crate) fn is_union_with_null(t: P<Type>) -> bool {
+pub fn is_union_with_null(t: P<Type>) -> bool {
     t.flags().intersects(TypeFlags::Union)
         && (t.types()[0].flags().intersects(TypeFlags::Null)
             || t.types()[1].flags().intersects(TypeFlags::Null))
 }
 
 // checker.go:26703
-pub(crate) fn is_intersection_type(t: P<Type>) -> bool {
+pub fn is_intersection_type(t: P<Type>) -> bool {
     t.flags().intersects(TypeFlags::Intersection)
 }
 
 // checker.go:26707
-pub(crate) fn is_primitive_union(t: P<Type>) -> bool {
+pub fn is_primitive_union(t: P<Type>) -> bool {
     t.object_flags().intersects(ObjectFlags::PrimitiveUnion)
 }
 
 // checker.go:26711
-pub(crate) fn is_not_undefined_type(t: P<Type>) -> bool {
+pub fn is_not_undefined_type(t: P<Type>) -> bool {
     !t.flags().intersects(TypeFlags::Undefined)
 }
 
 // checker.go:26715
-pub(crate) fn is_not_null_type(t: P<Type>) -> bool {
+pub fn is_not_null_type(t: P<Type>) -> bool {
     !t.flags().intersects(TypeFlags::Null)
 }
 
@@ -1260,24 +1259,22 @@ impl Checker {
             for &t in u.types() {
                 let inserted;
                 (checked, inserted) = insert_type(self, &checked, t);
-                if inserted {
-                    if self.each_union_contains(&union_types, t) {
-                        // undefinedType/missingType are always sorted first so we leverage that here
-                        if t == self.undefined_type
-                            && !result.is_empty()
-                            && result[0] == self.missing_type
-                        {
-                            continue;
-                        }
-                        if t == self.missing_type
-                            && !result.is_empty()
-                            && result[0] == self.undefined_type
-                        {
-                            result[0] = self.missing_type;
-                            continue;
-                        }
-                        result = insert_type(self, &result, t).0;
+                if inserted && self.each_union_contains(&union_types, t) {
+                    // undefinedType/missingType are always sorted first so we leverage that here
+                    if t == self.undefined_type
+                        && !result.is_empty()
+                        && result[0] == self.missing_type
+                    {
+                        continue;
                     }
+                    if t == self.missing_type
+                        && !result.is_empty()
+                        && result[0] == self.undefined_type
+                    {
+                        result[0] = self.missing_type;
+                        continue;
+                    }
+                    result = insert_type(self, &result, t).0;
                 }
             }
         }
@@ -1370,20 +1367,20 @@ impl Checker {
 }
 
 // checker.go:26922
-pub(crate) fn get_constituent_count(t: P<Type>) -> usize {
+pub fn get_constituent_count(t: P<Type>) -> usize {
     if !t.flags().intersects(TypeFlags::UnionOrIntersection) || t.alias().is_some() {
         return 1;
     }
-    if t.flags().intersects(TypeFlags::Union) {
-        if let Some(origin) = t.as_union_type().origin() {
-            return get_constituent_count(origin);
-        }
+    if t.flags().intersects(TypeFlags::Union)
+        && let Some(origin) = t.as_union_type().origin()
+    {
+        return get_constituent_count(origin);
     }
     get_constituent_count_of_types(t.types())
 }
 
 // checker.go:26932
-pub(crate) fn get_constituent_count_of_types(types: &[P<Type>]) -> usize {
+pub fn get_constituent_count_of_types(types: &[P<Type>]) -> usize {
     let mut n = 0;
     for &t in types {
         n += get_constituent_count(t);
@@ -1433,15 +1430,15 @@ impl Checker {
     // isEmptyResolvedType(resolveStructuredTypeMembers(t)); notes/mem-lazy.md L11: a type with a lazy member table
     // (an instantiated reference, never anyFunctionType) is asked without resolving it.
     pub(crate) fn is_empty_structured_type(&mut self, t: P<Type>) -> bool {
-        if self.lazy_empty {
-            if let Some(lm) = self.get_ready_lazy_member_table(t) {
-                self.lazy_member_stats.empty_lazy_queries += 1;
-                let ready = lm.ready.get().unwrap();
-                return ready.call_signatures.get().is_empty()
-                    && ready.construct_signatures.get().is_empty()
-                    && ready.index_infos.get().is_empty()
-                    && !self.has_properties_of_structured_type(t);
-            }
+        if self.lazy_empty
+            && let Some(lm) = self.get_ready_lazy_member_table(t)
+        {
+            self.lazy_member_stats.empty_lazy_queries += 1;
+            let ready = lm.ready.get().unwrap();
+            return ready.call_signatures.get().is_empty()
+                && ready.construct_signatures.get().is_empty()
+                && ready.index_infos.get().is_empty()
+                && !self.has_properties_of_structured_type(t);
         }
         let resolved = self.resolve_structured_type_members(t);
         self.is_empty_resolved_type(resolved)
@@ -1517,7 +1514,7 @@ impl Checker {
 // checker.go:26997
 // The callbacks of these Go free functions receive the checker (PORTING.md callback rule) so that callers never
 // capture `self`; `c` is only passed through.
-pub(crate) fn for_each_type(c: &mut Checker, t: P<Type>, mut f: impl FnMut(&mut Checker, P<Type>)) {
+pub fn for_each_type(c: &mut Checker, t: P<Type>, mut f: impl FnMut(&mut Checker, P<Type>)) {
     if t.flags().intersects(TypeFlags::Union) {
         for &u in t.types() {
             f(c, u);
@@ -1528,7 +1525,7 @@ pub(crate) fn for_each_type(c: &mut Checker, t: P<Type>, mut f: impl FnMut(&mut 
 }
 
 // checker.go:27007
-pub(crate) fn some_type(
+pub fn some_type(
     c: &mut Checker,
     t: P<Type>,
     mut f: impl FnMut(&mut Checker, P<Type>) -> bool,
@@ -1540,7 +1537,7 @@ pub(crate) fn some_type(
 }
 
 // checker.go:27014
-pub(crate) fn every_type(
+pub fn every_type(
     c: &mut Checker,
     t: P<Type>,
     mut f: impl FnMut(&mut Checker, P<Type>) -> bool,
@@ -1552,7 +1549,7 @@ pub(crate) fn every_type(
 }
 
 // checker.go:27021
-pub(crate) fn every_contained_type(
+pub fn every_contained_type(
     c: &mut Checker,
     t: P<Type>,
     mut f: impl FnMut(&mut Checker, P<Type>) -> bool,
@@ -1622,12 +1619,11 @@ impl Checker {
             }
             return t;
         }
-        if let Some(origin) = t.as_union_type().origin() {
-            if origin.flags().intersects(TypeFlags::Union)
-                && contains_type(self, origin.types(), target_type)
-            {
-                return self.filter_type(t, |_, t| t != target_type);
-            }
+        if let Some(origin) = t.as_union_type().origin()
+            && origin.flags().intersects(TypeFlags::Union)
+            && contains_type(self, origin.types(), target_type)
+        {
+            return self.filter_type(t, |_, t| t != target_type);
         }
         let types = t.types();
         if let (i, true) =
@@ -1659,15 +1655,15 @@ impl Checker {
 /// which only identical types compare equal; a type in several runs ends up repeated next to itself.
 fn merge_ascending_runs(c: &mut Checker, types: &mut Vec<P<Type>>, run_starts: &[usize]) {
     let n = types.len();
-    if let [mid] = *run_starts {
-        if mid == 1 || mid == n - 1 {
-            let t = types.remove(if mid == 1 { 0 } else { n - 1 });
-            let (i, _) = tsrs_core::goslices::binary_search_func(types, &t, |&probe, &t| {
-                compare_types(c, Some(probe), Some(t))
-            });
-            types.insert(i, t);
-            return;
-        }
+    if let [mid] = *run_starts
+        && (mid == 1 || mid == n - 1)
+    {
+        let t = types.remove(if mid == 1 { 0 } else { n - 1 });
+        let (i, _) = tsrs_core::goslices::binary_search_func(types, &t, |&probe, &t| {
+            compare_types(c, Some(probe), Some(t))
+        });
+        types.insert(i, t);
+        return;
     }
     let mut bounds: Vec<usize> = Vec::with_capacity(run_starts.len() + 2);
     bounds.push(0);
@@ -1781,7 +1777,7 @@ fn maybe_constituent_of_kind(types: &[P<Type>], kind: TypeFlags) -> bool {
 }
 
 // checker.go:27086
-pub(crate) fn contains_type(c: &mut Checker, types: &[P<Type>], t: P<Type>) -> bool {
+pub fn contains_type(c: &mut Checker, types: &[P<Type>], t: P<Type>) -> bool {
     // tsrs-only (can1357's 628f51ceb): small lists often hold the very type asked for, found without comparing
     // structure; a miss still searches. Only while the binary search would find it too (a total order).
     if types.len() <= 8 && types.contains(&t) && c.program.source_files_complete() {
@@ -1812,7 +1808,7 @@ fn contains_regular_literal_type(
 /// (`Program::source_files_complete`). tsrs-only: `contains_type` for each source type binary-searches the target
 /// with `compare_types`; in sorted lists each source type can only be found after the previous one's position, so a
 /// forward scan by identity answers the same with no comparisons. Used when the scan is the cheaper of the two.
-pub(crate) fn is_sorted_subset(source: &[P<Type>], target: &[P<Type>]) -> bool {
+pub fn is_sorted_subset(source: &[P<Type>], target: &[P<Type>]) -> bool {
     let mut rest = target;
     !(source.iter().any(|&t| {
         match rest.iter().position(|&u| u == t) {
@@ -1825,7 +1821,7 @@ pub(crate) fn is_sorted_subset(source: &[P<Type>], target: &[P<Type>]) -> bool {
 }
 
 // checker.go:27091
-pub(crate) fn insert_type(c: &mut Checker, types: &[P<Type>], t: P<Type>) -> (Vec<P<Type>>, bool) {
+pub fn insert_type(c: &mut Checker, types: &[P<Type>], t: P<Type>) -> (Vec<P<Type>>, bool) {
     if let (i, false) = tsrs_core::goslices::binary_search_func(types, &t, |&probe, &t| {
         compare_types(c, Some(probe), Some(t))
     }) {
@@ -1837,7 +1833,7 @@ pub(crate) fn insert_type(c: &mut Checker, types: &[P<Type>], t: P<Type>) -> (Ve
 }
 
 // checker.go:27098
-pub(crate) fn count_types(t: P<Type>) -> usize {
+pub fn count_types(t: P<Type>) -> usize {
     if t.flags().intersects(TypeFlags::Union) {
         return t.types().len();
     } else if t.flags().intersects(TypeFlags::Never) {
@@ -2107,10 +2103,10 @@ impl Checker {
                     }
                 }
             }
-            if let Some(t) = t {
-                if t.flags().intersects(include) {
-                    return t;
-                }
+            if let Some(t) = t
+                && t.flags().intersects(include)
+            {
+                return t;
             }
         }
         self.never_type
@@ -2149,7 +2145,7 @@ impl Checker {
 }
 
 // checker.go:27266
-pub(crate) fn is_invalid_computed_property_name(node: P<Node>) -> bool {
+pub fn is_invalid_computed_property_name(node: P<Node>) -> bool {
     let grand_parent = node.parent().unwrap().parent().unwrap();
     (is_type_literal_node(grand_parent)
         || is_class_like(grand_parent)
@@ -2268,15 +2264,6 @@ impl Checker {
         t: P<Type>,
         index_flags: IndexFlags,
     ) -> P<Type> {
-        let type_parameter = self.get_type_parameter_from_mapped_type(t);
-        let constraint_type = self.get_constraint_type_from_mapped_type(t);
-        let name_type =
-            self.get_name_type_from_mapped_type(t.as_mapped_type().target.get().unwrap_or(t));
-        if name_type.is_none() && !index_flags.intersects(IndexFlags::NoIndexSignatures) {
-            // no mapping and no filtering required, just quickly bail to returning the constraint in the common case
-            return constraint_type;
-        }
-        let mut key_types: Vec<P<Type>> = Vec::new();
         fn add_member_for_key_type(
             c: &mut Checker,
             key_types: &mut Vec<P<Type>>,
@@ -2301,6 +2288,16 @@ impl Checker {
                 prop_name_type,
             ));
         }
+
+        let type_parameter = self.get_type_parameter_from_mapped_type(t);
+        let constraint_type = self.get_constraint_type_from_mapped_type(t);
+        let name_type =
+            self.get_name_type_from_mapped_type(t.as_mapped_type().target.get().unwrap_or(t));
+        if name_type.is_none() && !index_flags.intersects(IndexFlags::NoIndexSignatures) {
+            // no mapping and no filtering required, just quickly bail to returning the constraint in the common case
+            return constraint_type;
+        }
+        let mut key_types: Vec<P<Type>> = Vec::new();
         // Calling getApparentType on the `T` of a `keyof T` in the constraint type of a generic mapped type can
         // trigger a circularity. For example, `T extends { [P in keyof T & string as Captitalize<P>]: any }` is
         // a circular definition. For this reason, we only eagerly manifest the keys if the constraint is non-generic.
@@ -2652,10 +2649,10 @@ impl Checker {
         access_flags: AccessFlags,
     ) -> Option<P<Type>> {
         let mut access_expression: Option<P<Node>> = None;
-        if let Some(access_node) = access_node {
-            if is_element_access_expression(access_node) {
-                access_expression = Some(access_node);
-            }
+        if let Some(access_node) = access_node
+            && is_element_access_expression(access_node)
+        {
+            access_expression = Some(access_node);
         }
         let mut prop_name = std::borrow::Cow::Borrowed("");
         let mut has_prop_name = false;
@@ -2956,27 +2953,13 @@ impl Checker {
                             suggestion = self
                                 .get_suggestion_for_nonexistent_property(&prop_name, object_type);
                         }
-                        if !suggestion.is_empty() {
-                            let type_string = self.type_to_string_exported(object_type);
-                            self.error(
-                                Some(
-                                    access_expression
-                                        .as_element_access_expression()
-                                        .argument_expression,
-                                ),
-                                &diagnostics::PROPERTY_0_DOES_NOT_EXIST_ON_TYPE_1_DID_YOU_MEAN_2,
-                                &[&prop_name /* as string */, &type_string, &suggestion],
-                            );
-                        } else {
+                        if suggestion.is_empty() {
                             suggestion = self.get_suggestion_for_nonexistent_index_signature(
                                 object_type,
                                 access_expression,
                                 index_type,
                             );
-                            if !suggestion.is_empty() {
-                                let type_string = self.type_to_string_exported(object_type);
-                                self.error(Some(access_expression), &diagnostics::ELEMENT_IMPLICITLY_HAS_AN_ANY_TYPE_BECAUSE_TYPE_0_HAS_NO_INDEX_SIGNATURE_DID_YOU_MEAN_TO_CALL_1, &[&type_string, &suggestion]);
-                            } else {
+                            if suggestion.is_empty() {
                                 let mut diagnostic: Option<P<Diagnostic>> = None;
                                 if index_type.flags().intersects(TypeFlags::EnumLiteral) {
                                     let name = "[".to_string()
@@ -3029,7 +3012,21 @@ impl Checker {
                                     Some(&diagnostics::ELEMENT_IMPLICITLY_HAS_AN_ANY_TYPE_BECAUSE_EXPRESSION_OF_TYPE_0_CAN_T_BE_USED_TO_INDEX_TYPE_1),
                                     &[&full_index_string, &type_string],
                                 ));
+                            } else {
+                                let type_string = self.type_to_string_exported(object_type);
+                                self.error(Some(access_expression), &diagnostics::ELEMENT_IMPLICITLY_HAS_AN_ANY_TYPE_BECAUSE_TYPE_0_HAS_NO_INDEX_SIGNATURE_DID_YOU_MEAN_TO_CALL_1, &[&type_string, &suggestion]);
                             }
+                        } else {
+                            let type_string = self.type_to_string_exported(object_type);
+                            self.error(
+                                Some(
+                                    access_expression
+                                        .as_element_access_expression()
+                                        .argument_expression,
+                                ),
+                                &diagnostics::PROPERTY_0_DOES_NOT_EXIST_ON_TYPE_1_DID_YOU_MEAN_2,
+                                &[&prop_name /* as string */, &type_string, &suggestion],
+                            );
                         }
                     }
                 }
@@ -3173,7 +3170,7 @@ impl Checker {
 }
 
 // checker.go:27727
-pub(crate) fn get_index_node_for_access_expression(access_node: P<Node>) -> Option<P<Node>> {
+pub fn get_index_node_for_access_expression(access_node: P<Node>) -> Option<P<Node>> {
     match access_node.kind() {
         Kind::ElementAccessExpression => {
             Some(access_node.as_element_access_expression().argument_expression)
@@ -3192,17 +3189,16 @@ impl Checker {
         object_type: P<Type>,
         access_expression: Option<P<Node>>,
     ) {
-        if let (Some(index_info), Some(access_expression)) = (index_info, access_expression) {
-            if index_info.is_readonly()
-                && (is_assignment_target(access_expression) || is_delete_target(access_expression))
-            {
-                let type_string = self.type_to_string_exported(object_type);
-                self.error(
-                    Some(access_expression),
-                    &diagnostics::INDEX_SIGNATURE_IN_TYPE_0_ONLY_PERMITS_READING,
-                    &[&type_string],
-                );
-            }
+        if let (Some(index_info), Some(access_expression)) = (index_info, access_expression)
+            && index_info.is_readonly()
+            && (is_assignment_target(access_expression) || is_delete_target(access_expression))
+        {
+            let type_string = self.type_to_string_exported(object_type);
+            self.error(
+                Some(access_expression),
+                &diagnostics::INDEX_SIGNATURE_IN_TYPE_0_ONLY_PERMITS_READING,
+                &[&type_string],
+            );
         }
     }
 
@@ -3383,7 +3379,7 @@ impl Checker {
 }
 
 // checker.go:27851
-pub(crate) fn index_type_less_than(c: &mut Checker, index_type: P<Type>, limit: usize) -> bool {
+pub fn index_type_less_than(c: &mut Checker, index_type: P<Type>, limit: usize) -> bool {
     every_type(c, index_type, |_, t| {
         if t.flags().intersects(TypeFlags::StringOrNumberLiteral) {
             let prop_name = get_property_name_from_type(t);
@@ -3527,16 +3523,15 @@ impl Checker {
                         &diagnostics::TYPE_PARAMETER_0_HAS_A_CIRCULAR_CONSTRAINT,
                         &[&type_string],
                     );
-                    if let Some(current_node) = self.current_node {
-                        if !crate::is_node_descendant_of(Some(error_node), current_node)
-                            && !crate::is_node_descendant_of(Some(current_node), error_node)
-                        {
-                            diagnostic.add_related_info(new_diagnostic_for_node(
-                                Some(current_node),
-                                Some(&diagnostics::CIRCULARITY_ORIGINATES_IN_TYPE_AT_THIS_LOCATION),
-                                &[],
-                            ));
-                        }
+                    if let Some(current_node) = self.current_node
+                        && !crate::is_node_descendant_of(Some(error_node), current_node)
+                        && !crate::is_node_descendant_of(Some(current_node), error_node)
+                    {
+                        diagnostic.add_related_info(new_diagnostic_for_node(
+                            Some(current_node),
+                            Some(&diagnostics::CIRCULARITY_ORIGINATES_IN_TYPE_AT_THIS_LOCATION),
+                            &[],
+                        ));
                     }
                 }
             }
@@ -3686,15 +3681,14 @@ impl Checker {
                     && element_infos[i].flags.intersects(ElementFlags::Variadic)
                 {
                     let constraint = self.get_next_base_constraint(Some(v), stack);
-                    if let Some(constraint) = constraint {
-                        if constraint != v
-                            && every_type(self, constraint, |c, n| {
-                                c.is_array_or_tuple_type(n)
-                                    && !checker::Checker::is_generic_tuple_type(n)
-                            })
-                        {
-                            new_element = constraint;
-                        }
+                    if let Some(constraint) = constraint
+                        && constraint != v
+                        && every_type(self, constraint, |c, n| {
+                            c.is_array_or_tuple_type(n)
+                                && !checker::Checker::is_generic_tuple_type(n)
+                        })
+                    {
+                        new_element = constraint;
                     }
                 }
                 new_elements.push(new_element);
@@ -3730,13 +3724,6 @@ impl Checker {
     /// (0.9G calls on the 38k-file codebase, most of them for constituents of large unions).
     #[inline]
     pub(crate) fn maybe_type_of_kind(&mut self, t: P<Type>, kind: TypeFlags) -> bool {
-        let flags = t.flags();
-        if flags.intersects(kind) {
-            return true;
-        }
-        if !flags.intersects(TypeFlags::UnionOrIntersection) {
-            return false;
-        }
         // A union of primitives has no constituent of these kinds (`NotPrimitiveUnion` in getUnionType); `kind` is
         // nearly always a constant, so this test folds away for the other kinds.
         const NOT_IN_PRIMITIVE_UNION: TypeFlags = TypeFlags::Any
@@ -3746,6 +3733,14 @@ impl Checker {
             .union(TypeFlags::Object)
             .union(TypeFlags::Intersection)
             .union(TypeFlags::Instantiable);
+
+        let flags = t.flags();
+        if flags.intersects(kind) {
+            return true;
+        }
+        if !flags.intersects(TypeFlags::UnionOrIntersection) {
+            return false;
+        }
         if NOT_IN_PRIMITIVE_UNION.contains(kind)
             && t.object_flags().intersects(ObjectFlags::PrimitiveUnion)
         {
@@ -3863,13 +3858,13 @@ impl Checker {
 }
 
 // checker.go:28134
-pub(crate) fn is_const_enum_object_type(t: P<Type>) -> bool {
+pub fn is_const_enum_object_type(t: P<Type>) -> bool {
     t.object_flags().intersects(ObjectFlags::Anonymous)
         && t.symbol().is_some_and(is_const_enum_symbol)
 }
 
 // checker.go:28138
-pub(crate) fn is_const_enum_symbol(symbol: P<Symbol>) -> bool {
+pub fn is_const_enum_symbol(symbol: P<Symbol>) -> bool {
     symbol.flags().intersects(SymbolFlags::ConstEnum)
 }
 
@@ -3913,7 +3908,7 @@ impl Checker {
 }
 
 // checker.go:28169
-pub(crate) fn compare_types_equal(s: P<Type>, t: P<Type>) -> Ternary {
+pub fn compare_types_equal(s: P<Type>, t: P<Type>) -> Ternary {
     if s == t {
         return Ternary::TRUE;
     }
@@ -3960,18 +3955,18 @@ impl Checker {
 }
 
 // checker.go:28257
-pub(crate) fn has_rest_parameter(signature: P<Node>) -> bool {
+pub fn has_rest_parameter(signature: P<Node>) -> bool {
     let last = signature.parameters().last().copied();
     last.is_some_and(is_rest_parameter)
 }
 
 // checker.go:28262
-pub(crate) fn is_rest_parameter(param: P<Node>) -> bool {
+pub fn is_rest_parameter(param: P<Node>) -> bool {
     param.as_parameter_declaration().dot_dot_dot_token().is_some()
 }
 
 // checker.go:28266
-pub(crate) fn get_name_from_index_info(info: P<IndexInfo>) -> String {
+pub fn get_name_from_index_info(info: P<IndexInfo>) -> String {
     if let Some(declaration) = info.declaration() {
         return tsrs_scanner::declaration_name_to_string(declaration.parameters()[0].name());
     }

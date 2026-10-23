@@ -83,105 +83,101 @@ impl LanguageService {
         }
 
         let (origin_selection_range, _) = self.create_lsp_range_from_node(node, file);
-        if let Some(reference) = &reference {
-            if reference.file.is_some() {
-                return self.create_definition_locations(
-                    origin_selection_range,
-                    client_supports_link,
-                    &[],
-                    Some(reference),
-                    Feature::Definition,
-                );
-            }
+        if let Some(reference) = &reference
+            && reference.file.is_some()
+        {
+            return self.create_definition_locations(
+                origin_selection_range,
+                client_supports_link,
+                &[],
+                Some(reference),
+                Feature::Definition,
+            );
         }
 
         let mut c = program.get_type_checker_for_file(ctx, file);
         let c: &mut Checker = &mut c;
 
-        if node.kind() == Kind::OverrideKeyword {
-            if let Some(sym) = get_symbol_for_overridden_member(c, node) {
-                return self.create_definition_locations(
-                    origin_selection_range,
-                    client_supports_link,
-                    sym.declarations(),
-                    None, /*reference*/
-                    Feature::Definition,
-                );
-            }
-        }
-
-        if ast::is_jump_statement_target(node) {
-            if let Some(label) = get_target_label(node.parent(), node.text()) {
-                return self.create_definition_locations(
-                    origin_selection_range,
-                    client_supports_link,
-                    &[label],
-                    None, /*reference*/
-                    Feature::Definition,
-                );
-            }
-        }
-
-        if node.kind() == Kind::CaseKeyword
-            || node.kind() == Kind::DefaultKeyword && ast::is_default_clause(node.parent().unwrap())
+        if node.kind() == Kind::OverrideKeyword
+            && let Some(sym) = get_symbol_for_overridden_member(c, node)
         {
-            if let Some(stmt) = ast::find_ancestor(node.parent(), ast::is_switch_statement) {
-                let file = ast::get_source_file_of_node(stmt).unwrap();
-                return self.create_location_from_file_and_range(
+            return self.create_definition_locations(
+                origin_selection_range,
+                client_supports_link,
+                sym.declarations(),
+                None, /*reference*/
+                Feature::Definition,
+            );
+        }
+
+        if ast::is_jump_statement_target(node)
+            && let Some(label) = get_target_label(node.parent(), node.text())
+        {
+            return self.create_definition_locations(
+                origin_selection_range,
+                client_supports_link,
+                &[label],
+                None, /*reference*/
+                Feature::Definition,
+            );
+        }
+
+        if (node.kind() == Kind::CaseKeyword
+            || node.kind() == Kind::DefaultKeyword
+                && ast::is_default_clause(node.parent().unwrap()))
+            && let Some(stmt) = ast::find_ancestor(node.parent(), ast::is_switch_statement)
+        {
+            let file = ast::get_source_file_of_node(stmt).unwrap();
+            return self.create_location_from_file_and_range(
+                file,
+                scanner::get_range_of_token_at_position(
                     file,
-                    scanner::get_range_of_token_at_position(
-                        file,
-                        stmt.pos().expect_source("parsed switch statements have source positions"),
-                    ),
-                    Feature::Definition,
-                );
-            }
+                    stmt.pos().expect_source("parsed switch statements have source positions"),
+                ),
+                Feature::Definition,
+            );
         }
 
-        if node.kind() == Kind::ReturnKeyword
+        if (node.kind() == Kind::ReturnKeyword
             || node.kind() == Kind::YieldKeyword
-            || node.kind() == Kind::AwaitKeyword
+            || node.kind() == Kind::AwaitKeyword)
+            && let Some(f) = ast::find_ancestor(node, ast::is_function_like_declaration)
         {
-            if let Some(f) = ast::find_ancestor(node, ast::is_function_like_declaration) {
-                return self.create_definition_locations(
-                    origin_selection_range,
-                    client_supports_link,
-                    &[f],
-                    None, /*reference*/
-                    Feature::Definition,
-                );
-            }
+            return self.create_definition_locations(
+                origin_selection_range,
+                client_supports_link,
+                &[f],
+                None, /*reference*/
+                Feature::Definition,
+            );
         }
 
         let mut declarations = get_declarations_from_location(c, node);
         let called_declaration = try_get_signature_declaration(c, node);
-        if let Some(called_declaration) = called_declaration {
-            if !(ast::is_jsx_opening_like_element(node.parent().unwrap())
+        if let Some(called_declaration) = called_declaration
+            && !(ast::is_jsx_opening_like_element(node.parent().unwrap())
                 && is_jsx_constructor_like(called_declaration))
-            {
-                let symbol =
-                    c.get_symbol_at_location_exported(get_declaration_name_for_keyword(node));
-                let matches = match symbol {
-                    Some(symbol) => c.get_root_symbols(symbol).into_iter().any(|root_symbol| {
-                        symbol_matches_signature(Some(root_symbol), Some(called_declaration))
-                    }),
-                    None => false,
-                };
-                if matches {
-                    if !ast::is_constructor_declaration(called_declaration) {
-                        declarations = Vec::new();
-                    } else {
-                        declarations.retain(|&node| {
-                            node != called_declaration
-                                && (ast::is_class_declaration(node)
-                                    || ast::is_class_expression(node))
-                        });
-                    }
+        {
+            let symbol = c.get_symbol_at_location_exported(get_declaration_name_for_keyword(node));
+            let matches = match symbol {
+                Some(symbol) => c.get_root_symbols(symbol).into_iter().any(|root_symbol| {
+                    symbol_matches_signature(Some(root_symbol), Some(called_declaration))
+                }),
+                None => false,
+            };
+            if matches {
+                if ast::is_constructor_declaration(called_declaration) {
+                    declarations.retain(|&node| {
+                        node != called_declaration
+                            && (ast::is_class_declaration(node) || ast::is_class_expression(node))
+                    });
                 } else {
-                    declarations.retain(|&node| node != called_declaration);
+                    declarations = Vec::new();
                 }
-                declarations.push(called_declaration);
+            } else {
+                declarations.retain(|&node| node != called_declaration);
             }
+            declarations.push(called_declaration);
         }
         self.create_definition_locations(
             origin_selection_range,
@@ -285,7 +281,7 @@ impl LanguageService {
 }
 
 // definition.go:162
-pub(crate) fn combine_definition_responses(
+pub fn combine_definition_responses(
     results: Vec<lsproto::DefinitionResponse>,
     links: bool,
 ) -> lsproto::DefinitionResponse {
@@ -310,16 +306,16 @@ pub(crate) fn combine_definition_responses(
                 },
             );
         }
-        if let Some(location) = result.location {
-            if seen.insert(location.clone()) {
-                definition_links.push(lsproto::LocationLink {
-                    target_uri: location.uri.clone(),
-                    target_range: location.range,
-                    target_selection_range: location.range,
-                    ..Default::default()
-                });
-                locations.push(location);
-            }
+        if let Some(location) = result.location
+            && seen.insert(location.clone())
+        {
+            definition_links.push(lsproto::LocationLink {
+                target_uri: location.uri.clone(),
+                target_range: location.range,
+                target_selection_range: location.range,
+                ..Default::default()
+            });
+            locations.push(location);
         }
         if let Some(result_locations) = result.locations {
             (definition_links, locations) = result_locations.into_iter().fold(
@@ -353,22 +349,20 @@ pub(crate) fn combine_definition_responses(
 }
 
 // definition.go:195
-pub(crate) fn get_declaration_name_for_keyword(node: P<Node>) -> P<Node> {
+pub fn get_declaration_name_for_keyword(node: P<Node>) -> P<Node> {
     if node.kind() >= Kind::FIRST_KEYWORD && node.kind() <= Kind::LAST_KEYWORD {
         let parent = node.parent().unwrap();
         if ast::is_variable_declaration_list(parent) {
             if let Some(&decl) = parent.as_variable_declaration_list().declarations.nodes().first()
+                && let Some(name) = decl.name()
             {
-                if let Some(name) = decl.name() {
-                    return name;
-                }
+                return name;
             }
-        } else if parent.declaration_data().is_some() {
-            if let Some(name) = parent.name() {
-                if node.pos() < name.pos() {
-                    return name;
-                }
-            }
+        } else if parent.declaration_data().is_some()
+            && let Some(name) = parent.name()
+            && node.pos() < name.pos()
+        {
+            return name;
         }
     }
     node
@@ -466,7 +460,7 @@ impl LanguageService {
 }
 
 // definition.go:281
-pub(crate) fn lsp_range_contains(outer: lsproto::Range, inner: lsproto::Range) -> bool {
+pub fn lsp_range_contains(outer: lsproto::Range, inner: lsproto::Range) -> bool {
     lsproto::compare_positions(outer.start, inner.start).is_le()
         && lsproto::compare_positions(inner.end, outer.end).is_le()
 }
@@ -504,7 +498,7 @@ impl LanguageService {
 }
 
 // definition.go:306
-pub(crate) fn get_declarations_from_location(c: &mut Checker, node: P<Node>) -> Vec<P<Node>> {
+pub fn get_declarations_from_location(c: &mut Checker, node: P<Node>) -> Vec<P<Node>> {
     if ast::is_identifier(node) && ast::is_shorthand_property_assignment(node.parent().unwrap()) {
         // Because name in short-hand property assignment has two different meanings: property name and property value,
         // using go-to-definition at such position should go to the variable declaration of the property value rather than
@@ -536,22 +530,21 @@ pub(crate) fn get_declarations_from_location(c: &mut Checker, node: P<Node>) -> 
         let binding_el = parent.as_binding_element();
         if binding_el.dot_dot_dot_token().is_none()
             && Some(node) == binding_el.property_name().or(parent.name())
+            && let Some(name) = ast::try_get_text_of_property_name(node)
         {
-            if let Some(name) = ast::try_get_text_of_property_name(node) {
-                let t = c.get_type_at_location(parent.parent().unwrap());
-                let types: Vec<P<Type>> = if t.is_union() { t.types().to_vec() } else { vec![t] };
-                let mut result: Vec<P<Node>> = Vec::new();
-                result.extend(
-                    types
-                        .into_iter()
-                        .filter_map(|union_type| {
-                            c.get_property_of_type_exported(union_type, &name)
-                                .map(|prop| prop.declarations().iter().copied())
-                        })
-                        .flatten(),
-                );
-                return result;
-            }
+            let t = c.get_type_at_location(parent.parent().unwrap());
+            let types: Vec<P<Type>> = if t.is_union() { t.types().to_vec() } else { vec![t] };
+            let mut result: Vec<P<Node>> = Vec::new();
+            result.extend(
+                types
+                    .into_iter()
+                    .filter_map(|union_type| {
+                        c.get_property_of_type_exported(union_type, &name)
+                            .map(|prop| prop.declarations().iter().copied())
+                    })
+                    .flatten(),
+            );
+            return result;
         }
     }
 
@@ -560,17 +553,15 @@ pub(crate) fn get_declarations_from_location(c: &mut Checker, node: P<Node>) -> 
         if symbol.flags().intersects(SymbolFlags::Class)
             && !symbol.flags().intersects(SymbolFlags::Function | SymbolFlags::Variable)
             && node.kind() == Kind::ConstructorKeyword
-        {
-            if let Some(constructor) =
+            && let Some(constructor) =
                 symbol.members().and_then(|m| m.lookup(ast::INTERNAL_SYMBOL_NAME_CONSTRUCTOR))
-            {
-                symbol = constructor;
-            }
+        {
+            symbol = constructor;
         }
-        if symbol.flags().intersects(SymbolFlags::Alias) {
-            if let (Some(resolved), true) = c.resolve_alias_exported(Some(symbol)) {
-                symbol = resolved;
-            }
+        if symbol.flags().intersects(SymbolFlags::Alias)
+            && let (Some(resolved), true) = c.resolve_alias_exported(Some(symbol))
+        {
+            symbol = resolved;
         }
         let object_literal_element_declarations =
             get_declarations_from_object_literal_element(c, node);
@@ -613,19 +604,16 @@ fn get_declarations_from_object_literal_element(c: &mut Checker, node: P<Node>) 
                 && ast::is_object_literal_element(vd)
                 && vd.name() == Some(node)
         })
-    }) {
-        if let Some(without_node_inferences_type) = c.get_contextual_type_exported(
-            element.parent().unwrap(),
-            ContextFlags::IgnoreNodeInferences,
-        ) {
-            let without_node_inferences_properties = c.get_property_symbols_from_contextual_type(
-                element,
-                without_node_inferences_type,
-                false, /*unionSymbolOk*/
-            );
-            if !without_node_inferences_properties.is_empty() {
-                properties = without_node_inferences_properties;
-            }
+    }) && let Some(without_node_inferences_type) = c
+        .get_contextual_type_exported(element.parent().unwrap(), ContextFlags::IgnoreNodeInferences)
+    {
+        let without_node_inferences_properties = c.get_property_symbols_from_contextual_type(
+            element,
+            without_node_inferences_type,
+            false, /*unionSymbolOk*/
+        );
+        if !without_node_inferences_properties.is_empty() {
+            properties = without_node_inferences_properties;
         }
     }
 
@@ -646,21 +634,17 @@ fn get_ancestor_call_like_expression(node: P<Node>) -> Option<P<Node>> {
 }
 
 // definition.go:421
-pub(crate) fn try_get_signature_declaration(
-    type_checker: &mut Checker,
-    node: P<Node>,
-) -> Option<P<Node>> {
+pub fn try_get_signature_declaration(type_checker: &mut Checker, node: P<Node>) -> Option<P<Node>> {
     let call_like = get_ancestor_call_like_expression(node);
     let signature =
         call_like.map(|call_like| type_checker.get_resolved_signature_exported(call_like));
     // Don't go to a function type, go to the value having that type.
-    if let Some(signature) = signature {
-        if let Some(declaration) = signature.declaration() {
-            if ast::is_function_like(Some(declaration)) && !ast::is_function_type_node(declaration)
-            {
-                return Some(declaration);
-            }
-        }
+    if let Some(signature) = signature
+        && let Some(declaration) = signature.declaration()
+        && ast::is_function_like(Some(declaration))
+        && !ast::is_function_type_node(declaration)
+    {
+        return Some(declaration);
     }
     None
 }

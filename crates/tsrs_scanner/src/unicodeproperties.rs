@@ -4,7 +4,7 @@ use rustc_hash::FxHashSet;
 
 // Table 66: Non-binary Unicode property aliases and their canonical property names
 // https://tc39.es/ecma262/#table-nonbinary-unicode-properties
-pub(crate) static NON_BINARY_UNICODE_PROPERTIES: &[(&str, &str)] = &[
+pub static NON_BINARY_UNICODE_PROPERTIES: &[(&str, &str)] = &[
     ("General_Category", "General_Category"),
     ("gc", "General_Category"),
     ("Script", "Script"),
@@ -14,13 +14,13 @@ pub(crate) static NON_BINARY_UNICODE_PROPERTIES: &[(&str, &str)] = &[
 ];
 
 /// Go `nonBinaryUnicodeProperties[name]` ("comma ok").
-pub(crate) fn non_binary_unicode_properties(name: &str) -> Option<&'static str> {
+pub fn non_binary_unicode_properties(name: &str) -> Option<&'static str> {
     NON_BINARY_UNICODE_PROPERTIES.iter().find(|&&(k, _)| k == name).map(|&(_, v)| v)
 }
 
 // Table 67: Binary Unicode property aliases and their canonical property names
 // https://tc39.es/ecma262/#table-binary-unicode-properties
-pub(crate) static BINARY_UNICODE_PROPERTIES: &[&str] = &[
+pub static BINARY_UNICODE_PROPERTIES: &[&str] = &[
     "ASCII",
     "ASCII_Hex_Digit",
     "AHex",
@@ -123,7 +123,7 @@ pub(crate) static BINARY_UNICODE_PROPERTIES: &[&str] = &[
 
 // Table 68: Binary Unicode properties of strings
 // https://tc39.es/ecma262/#table-binary-unicode-properties-of-strings
-pub(crate) static BINARY_UNICODE_PROPERTIES_OF_STRINGS: &[&str] = &[
+pub static BINARY_UNICODE_PROPERTIES_OF_STRINGS: &[&str] = &[
     "Basic_Emoji",
     "Emoji_Keycap_Sequence",
     "RGI_Emoji_Modifier_Sequence",
@@ -134,7 +134,7 @@ pub(crate) static BINARY_UNICODE_PROPERTIES_OF_STRINGS: &[&str] = &[
 ];
 
 // Unicode 15.1
-pub(crate) static SCRIPT_VALUES: &[&str] = &[
+pub static SCRIPT_VALUES: &[&str] = &[
     "Adlm",
     "Adlam",
     "Aghb",
@@ -461,7 +461,7 @@ pub(crate) static SCRIPT_VALUES: &[&str] = &[
     "Unknown",
 ];
 
-pub(crate) static GENERAL_CATEGORY_VALUES: &[&str] = &[
+pub static GENERAL_CATEGORY_VALUES: &[&str] = &[
     "C",
     "Other",
     "Cc",
@@ -548,12 +548,12 @@ fn set_of(items: &'static [&'static str]) -> FxHashSet<&'static str> {
     items.iter().copied().collect()
 }
 
-pub(crate) fn binary_unicode_properties() -> &'static FxHashSet<&'static str> {
+pub fn binary_unicode_properties() -> &'static FxHashSet<&'static str> {
     static S: OnceLock<FxHashSet<&'static str>> = OnceLock::new();
     S.get_or_init(|| set_of(BINARY_UNICODE_PROPERTIES))
 }
 
-pub(crate) fn binary_unicode_properties_of_strings() -> &'static FxHashSet<&'static str> {
+pub fn binary_unicode_properties_of_strings() -> &'static FxHashSet<&'static str> {
     static S: OnceLock<FxHashSet<&'static str>> = OnceLock::new();
     S.get_or_init(|| set_of(BINARY_UNICODE_PROPERTIES_OF_STRINGS))
 }
@@ -563,13 +563,13 @@ fn script_values() -> &'static FxHashSet<&'static str> {
     S.get_or_init(|| set_of(SCRIPT_VALUES))
 }
 
-pub(crate) fn general_category_values() -> &'static FxHashSet<&'static str> {
+pub fn general_category_values() -> &'static FxHashSet<&'static str> {
     static S: OnceLock<FxHashSet<&'static str>> = OnceLock::new();
     S.get_or_init(|| set_of(GENERAL_CATEGORY_VALUES))
 }
 
 /// Go `valuesOfNonBinaryUnicodeProperties[name]`.
-pub(crate) fn values_of_non_binary_unicode_properties(
+pub fn values_of_non_binary_unicode_properties(
     property_name: &str,
 ) -> Option<&'static FxHashSet<&'static str>> {
     match property_name {
@@ -584,7 +584,7 @@ pub(crate) fn values_of_non_binary_unicode_properties(
 }
 
 /// The key list of `valuesOfNonBinaryUnicodeProperties[name]`, for spelling suggestions.
-pub(crate) fn values_list_of_non_binary_unicode_properties(
+pub fn values_list_of_non_binary_unicode_properties(
     property_name: &str,
 ) -> Option<&'static [&'static str]> {
     match property_name {

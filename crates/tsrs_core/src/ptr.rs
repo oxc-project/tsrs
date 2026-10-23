@@ -209,15 +209,15 @@ impl<T> P<T> {
     #[inline]
     pub fn new_recycled(value: T) -> P<T> {
         let class = const { arena::free_class(p_layout::<T>().size(), p_layout::<T>().align()) };
-        if class != 0 {
-            if let Some((block, a)) = with_arena(|a| a.pop_free(class).map(|b| (b, a))) {
-                let p = block.cast::<T>();
-                // SAFETY: a dead block of exactly `p_layout::<T>().size()` bytes, 8-aligned (`free_class`).
-                unsafe { p.as_ptr().write(value) };
-                a.track_drop(p.as_ptr(), 1);
-                // SAFETY: as above; the block is now owned by the new value.
-                return unsafe { P::from_arena(&*p.as_ptr()) };
-            }
+        if class != 0
+            && let Some((block, a)) = with_arena(|a| a.pop_free(class).map(|b| (b, a)))
+        {
+            let p = block.cast::<T>();
+            // SAFETY: a dead block of exactly `p_layout::<T>().size()` bytes, 8-aligned (`free_class`).
+            unsafe { p.as_ptr().write(value) };
+            a.track_drop(p.as_ptr(), 1);
+            // SAFETY: as above; the block is now owned by the new value.
+            return unsafe { P::from_arena(&*p.as_ptr()) };
         }
         P::new(value)
     }
@@ -1372,16 +1372,16 @@ pub fn alloc_slice_recycled<T: Copy>(items: &[T]) -> &'static [T] {
         return &[];
     }
     let class = arena::free_class(std::mem::size_of_val(items), std::mem::align_of::<T>());
-    if class != 0 {
-        if let Some(block) = with_arena(|a| a.pop_free(class)) {
-            let p = block.cast::<T>();
-            // SAFETY: a dead block of exactly `size_of_val(items)` bytes, 8-aligned; `T: Copy`.
-            let s: &'static [T] = unsafe {
-                std::ptr::copy_nonoverlapping(items.as_ptr(), p.as_ptr(), items.len());
-                std::slice::from_raw_parts(p.as_ptr(), items.len())
-            };
-            return s;
-        }
+    if class != 0
+        && let Some(block) = with_arena(|a| a.pop_free(class))
+    {
+        let p = block.cast::<T>();
+        // SAFETY: a dead block of exactly `size_of_val(items)` bytes, 8-aligned; `T: Copy`.
+        let s: &'static [T] = unsafe {
+            std::ptr::copy_nonoverlapping(items.as_ptr(), p.as_ptr(), items.len());
+            std::slice::from_raw_parts(p.as_ptr(), items.len())
+        };
+        return s;
     }
     alloc_slice(items)
 }
@@ -1705,10 +1705,11 @@ pub mod shared_check {
 
     #[inline]
     pub fn enabled() -> bool {
+        static ENABLED: OnceLock<bool> = OnceLock::new();
+
         if !cfg!(any(debug_assertions, feature = "checked-cells")) {
             return false;
         }
-        static ENABLED: OnceLock<bool> = OnceLock::new();
         *ENABLED.get_or_init(|| std::env::var("TSRS_CHECK_SHARED").is_ok_and(|v| v == "1"))
     }
 

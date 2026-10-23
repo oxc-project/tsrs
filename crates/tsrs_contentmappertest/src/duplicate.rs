@@ -12,7 +12,7 @@ use crate::protocol::{
 };
 
 // duplicate.go:14
-pub(crate) struct DuplicateHandler;
+pub struct DuplicateHandler;
 
 impl TestHandler for DuplicateHandler {}
 

@@ -47,7 +47,7 @@ fn language_service(
     Ok(tsrs_ls::new_language_service(LsProjectID(project.to_string()), program, host, active_file))
 }
 
-pub(crate) fn get_signature_usages(host: &dyn CheckerHost, p: &Params) -> CheckerResult<Value> {
+pub fn get_signature_usages(host: &dyn CheckerHost, p: &Params) -> CheckerResult<Value> {
     let sd = snapshot_ctx(host, p)?;
     let program = sd.program()?;
     let decl = host.resolve_node_handle(program, p.string("signatureDecl")?)?;
@@ -70,10 +70,7 @@ pub(crate) fn get_signature_usages(host: &dyn CheckerHost, p: &Params) -> Checke
     Ok(Value::Array(out))
 }
 
-pub(crate) fn get_referenced_symbols_for_node(
-    host: &dyn CheckerHost,
-    p: &Params,
-) -> CheckerResult<Value> {
+pub fn get_referenced_symbols_for_node(host: &dyn CheckerHost, p: &Params) -> CheckerResult<Value> {
     let sd = snapshot_ctx(host, p)?;
     let program = sd.program()?;
     let node = host.resolve_node_handle(program, p.string("node")?)?;
@@ -116,10 +113,7 @@ pub(crate) fn get_referenced_symbols_for_node(
     Ok(Value::Array(out))
 }
 
-pub(crate) fn get_completions_at_position(
-    host: &dyn CheckerHost,
-    p: &Params,
-) -> CheckerResult<Value> {
+pub fn get_completions_at_position(host: &dyn CheckerHost, p: &Params) -> CheckerResult<Value> {
     let include_symbol = p.bool("includeSymbol")?;
     let mut ctx = host.context();
     if include_symbol {
@@ -244,16 +238,7 @@ pub(crate) fn get_completions_at_position(
 }
 
 /// Go `handleGetImportAdderEdits`.
-pub(crate) fn get_import_adder_edits(host: &dyn CheckerHost, p: &Params) -> CheckerResult<Value> {
-    let sd = snapshot_ctx(host, p)?;
-    let file = p.document("file")?;
-    let file_name = file.to_file_name();
-    let mut program = sd.program()?;
-    let mut source_file = program.get_source_file(&file_name).ok_or_else(|| {
-        CheckerError::client(format!("source file not found: {}", file.display()))
-    })?;
-    let project_id = LsProjectID(sd.project.clone());
-
+pub fn get_import_adder_edits(host: &dyn CheckerHost, p: &Params) -> CheckerResult<Value> {
     // Decode actions like Go's unmarshalling of `[]ImportAdderAction` (before the handler runs, so a decode
     // error consumes no snapshot): wrong JSON kinds are invalid requests; `null` elements and absent fields
     // are zero values. Semantic validation (unknown kind, missing symbol, unresolvable symbol) is a client
@@ -263,6 +248,26 @@ pub(crate) fn get_import_adder_edits(host: &dyn CheckerHost, p: &Params) -> Chec
         symbol: Option<SymbolReference<'a>>,
         valid: bool,
     }
+
+    // Release the auto-import snapshot on every exit, including a panic in the import adder (Go: defer).
+    struct Release(Option<Arc<Snapshot>>);
+    impl Drop for Release {
+        fn drop(&mut self) {
+            if let Some(s) = self.0.take() {
+                s.deref();
+            }
+        }
+    }
+
+    let sd = snapshot_ctx(host, p)?;
+    let file = p.document("file")?;
+    let file_name = file.to_file_name();
+    let mut program = sd.program()?;
+    let mut source_file = program.get_source_file(&file_name).ok_or_else(|| {
+        CheckerError::client(format!("source file not found: {}", file.display()))
+    })?;
+    let project_id = LsProjectID(sd.project.clone());
+
     let mut actions: Vec<Action> = Vec::new();
     actions = (p.array("actions")?).iter().try_fold(actions, |mut actions, action| {
         if matches!(action, Value::Null) {
@@ -342,15 +347,6 @@ pub(crate) fn get_import_adder_edits(host: &dyn CheckerHost, p: &Params) -> Chec
             Err(e) => {
                 working.deref();
                 return Err(e);
-            }
-        }
-    }
-    // Release the auto-import snapshot on every exit, including a panic in the import adder (Go: defer).
-    struct Release(Option<Arc<Snapshot>>);
-    impl Drop for Release {
-        fn drop(&mut self) {
-            if let Some(s) = self.0.take() {
-                s.deref();
             }
         }
     }

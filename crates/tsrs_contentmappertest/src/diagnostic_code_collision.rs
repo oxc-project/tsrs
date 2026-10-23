@@ -11,7 +11,7 @@ use crate::protocol::{
 };
 
 // diagnostic_code_collision.go:13
-pub(crate) struct DiagnosticCodeCollisionHandler;
+pub struct DiagnosticCodeCollisionHandler;
 
 impl TestHandler for DiagnosticCodeCollisionHandler {}
 

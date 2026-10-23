@@ -140,10 +140,10 @@ impl<'a> EmitFilesHandler<'a> {
 
     // emitfileshandler.go:105
     fn update_has_emit_diagnostics(&self, result: Option<&EmitResult>) {
-        if let Some(result) = result {
-            if !result.diagnostics.is_empty() {
-                self.has_emit_diagnostics.store(true, Ordering::Relaxed);
-            }
+        if let Some(result) = result
+            && !result.diagnostics.is_empty()
+        {
+            self.has_emit_diagnostics.store(true, Ordering::Relaxed);
         }
     }
 
@@ -432,12 +432,12 @@ impl<'a> EmitFilesHandler<'a> {
         let mut old_signature = String::new();
         let old_signature_format = self.program.snapshot.emit_signatures.load(file.path());
         if let Some(old_signature_format) = &old_signature_format {
-            if !old_signature_format.signature.is_empty() {
-                old_signature.clone_from(&old_signature_format.signature);
-            } else {
+            if old_signature_format.signature.is_empty() {
                 old_signature.clone_from(
                     &old_signature_format.signature_with_different_options.as_ref().unwrap()[0],
                 );
+            } else {
+                old_signature.clone_from(&old_signature_format.signature);
             }
         }
         if new_signature.is_empty() {
@@ -545,7 +545,7 @@ impl<'a> EmitFilesHandler<'a> {
 }
 
 // emitfileshandler.go:341
-pub(crate) fn emit_files(
+pub fn emit_files(
     ctx: &Context,
     program: P<Program>,
     options: &EmitOptions,

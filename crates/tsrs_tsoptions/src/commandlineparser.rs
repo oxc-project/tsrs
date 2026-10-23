@@ -48,7 +48,7 @@ impl CommandLineParser {
 }
 
 // The Go struct also holds the file system; here it is passed to the methods that read response files.
-pub(crate) struct CommandLineParser {
+pub struct CommandLineParser {
     pub(crate) worker_diagnostics: &'static ParseCommandLineWorkerDiagnostics,
     pub(crate) options_map: NameMap,
     pub(crate) current_directory: String,
@@ -165,7 +165,7 @@ pub fn parse_build_command_line(
     result
 }
 
-pub(crate) fn parse_command_line_worker(
+pub fn parse_command_line_worker(
     parse_command_line_with_diagnostics: &'static ParseCommandLineWorkerDiagnostics,
     command_line: &[String],
     fs: Option<&dyn FS>,
@@ -225,7 +225,7 @@ impl CommandLineParser {
     }
 }
 
-pub(crate) fn get_input_option_name(input: &str) -> &str {
+pub fn get_input_option_name(input: &str) -> &str {
     // removes at most two leading '-' from the input string
     let input = input.strip_prefix('-').unwrap_or(input);
     input.strip_prefix('-').unwrap_or(input)
@@ -293,7 +293,7 @@ impl CommandLineParser {
     }
 }
 
-pub(crate) fn try_read_file(
+pub fn try_read_file(
     file_name: &str,
     read_file: impl FnOnce(&str) -> Option<String>,
     mut errors: Vec<P<Diagnostic>>,
@@ -348,7 +348,9 @@ impl CommandLineParser {
         } else {
             // Check to see if no argument was provided (e.g. "--locale" is the last command-line argument).
             if i >= args.len() {
-                if opt.kind != CommandLineOptionKind::Boolean {
+                if opt.kind == CommandLineOptionKind::Boolean {
+                    self.options.set(opt.name.to_string(), CompilerOptionsValue::Bool(true));
+                } else {
                     self.errors.push(new_compiler_diagnostic(
                         diag,
                         &[&opt.name, &get_compiler_option_value_type_string(opt)],
@@ -361,12 +363,13 @@ impl CommandLineParser {
                     } else if opt.kind == CommandLineOptionKind::Enum {
                         self.errors.push(create_diagnostic_for_invalid_enum_type(opt, None, None));
                     }
-                } else {
-                    self.options.set(opt.name.to_string(), CompilerOptionsValue::Bool(true));
                 }
                 return i;
             }
-            if args[i] != "null" {
+            if args[i] == "null" {
+                self.options.set(opt.name.to_string(), CompilerOptionsValue::Null);
+                i += 1;
+            } else {
                 match opt.kind {
                     CommandLineOptionKind::Number => {
                         // !!! Make sure this parseInt matches JS parseInt
@@ -455,9 +458,6 @@ impl CommandLineParser {
                         i += 1;
                     }
                 }
-            } else {
-                self.options.set(opt.name.to_string(), CompilerOptionsValue::Null);
-                i += 1;
             }
         }
         i
@@ -507,11 +507,12 @@ pub fn parse_list_type_option(
                     None,
                     None,
                 );
-                if let CompilerOptionsValue::String(s) = &val {
-                    if err.is_empty() && !s.is_empty() {
-                        result.push(CompilerOptionsValue::String(s.clone()));
-                        continue;
-                    }
+                if let CompilerOptionsValue::String(s) = &val
+                    && err.is_empty()
+                    && !s.is_empty()
+                {
+                    result.push(CompilerOptionsValue::String(s.clone()));
+                    continue;
                 }
                 errors.extend(err);
             }
@@ -533,11 +534,12 @@ pub fn parse_list_type_option(
                     None,
                     None,
                 );
-                if let CompilerOptionsValue::String(s) = &val {
-                    if err.is_empty() && !s.is_empty() {
-                        result.push(CompilerOptionsValue::String(s.clone()));
-                        continue;
-                    }
+                if let CompilerOptionsValue::String(s) = &val
+                    && err.is_empty()
+                    && !s.is_empty()
+                {
+                    result.push(CompilerOptionsValue::String(s.clone()));
+                    continue;
                 }
                 errors.extend(err);
             }
@@ -546,7 +548,7 @@ pub fn parse_list_type_option(
     }
 }
 
-pub(crate) fn convert_json_option_of_enum_type(
+pub fn convert_json_option_of_enum_type(
     opt: &'static CommandLineOption,
     value: &str,
     value_expression: Option<P<Node>>,

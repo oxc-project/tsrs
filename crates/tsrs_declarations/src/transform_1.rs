@@ -10,24 +10,18 @@ use crate::*;
 //   const declarationEmitInternalNodeBuilderFlags (transform.go:223)
 
 // transform.go:53
-pub(crate) fn get_this_property_assignment_key(
+pub fn get_this_property_assignment_key(
     name: Option<P<Node>>,
     node: P<Node>,
     is_static: bool,
 ) -> ThisPropertyAssignmentKey {
     // Go dereferences `name` here (IsPrivateIdentifier(nil) panics).
     let is_private = ast::is_private_identifier(name.unwrap());
-    if let Some(name) = name {
-        if !ast::is_dynamic_name(name) {
-            if let Some(name_text) = ast::try_get_text_of_property_name(name) {
-                return ThisPropertyAssignmentKey {
-                    name: name_text,
-                    node: None,
-                    is_static,
-                    is_private,
-                };
-            }
-        }
+    if let Some(name) = name
+        && !ast::is_dynamic_name(name)
+        && let Some(name_text) = ast::try_get_text_of_property_name(name)
+    {
+        return ThisPropertyAssignmentKey { name: name_text, node: None, is_static, is_private };
     }
     ThisPropertyAssignmentKey { name: String::new(), node: Some(node), is_static, is_private }
 }
@@ -166,10 +160,10 @@ impl DeclarationTransformer {
             let params = parse_tree_node.parent().unwrap().parameters();
             let param_idx = params.iter().position(|p| *p == parse_tree_node);
             let mut previous_sibling: Option<P<Node>> = None;
-            if let Some(param_idx) = param_idx {
-                if param_idx > 0 {
-                    previous_sibling = Some(params[param_idx - 1]);
-                }
+            if let Some(param_idx) = param_idx
+                && param_idx > 0
+            {
+                previous_sibling = Some(params[param_idx - 1]);
             }
 
             let text = source_file.text();
@@ -239,10 +233,7 @@ impl DeclarationTransformer {
 }
 
 // transform.go:210
-pub(crate) fn has_internal_annotation(
-    comment_range: CommentRange,
-    source_file: P<SourceFile>,
-) -> bool {
+pub fn has_internal_annotation(comment_range: CommentRange, source_file: P<SourceFile>) -> bool {
     let comment = &source_file.text()[comment_range.pos() as usize..comment_range.end() as usize];
     comment.contains("@internal")
 }
@@ -295,9 +286,7 @@ impl DeclarationTransformer {
 }
 
 // transform.go:276
-pub(crate) fn throw_diagnostic(
-    result: &SymbolAccessibilityResult,
-) -> P<SymbolAccessibilityDiagnostic> {
+pub fn throw_diagnostic(result: &SymbolAccessibilityResult) -> P<SymbolAccessibilityDiagnostic> {
     let _ = result;
     panic!("Diagnostic emitted without context")
 }
@@ -355,7 +344,7 @@ impl DeclarationTransformer {
 }
 
 // transform.go:316
-pub(crate) fn node_or_syntax_list_children(node: P<Node>) -> Vec<P<Node>> {
+pub fn node_or_syntax_list_children(node: P<Node>) -> Vec<P<Node>> {
     if ast::is_syntax_list(node) {
         return node.as_syntax_list().children.to_vec();
     }
@@ -363,7 +352,7 @@ pub(crate) fn node_or_syntax_list_children(node: P<Node>) -> Vec<P<Node>> {
 }
 
 // transform.go:323
-pub(crate) fn flatten_syntax_lists(nodes: &[P<Node>]) -> Vec<P<Node>> {
+pub fn flatten_syntax_lists(nodes: &[P<Node>]) -> Vec<P<Node>> {
     nodes.iter().flat_map(|n| node_or_syntax_list_children(*n)).collect()
 }
 
@@ -448,7 +437,7 @@ impl DeclarationTransformer {
 }
 
 // transform.go:382
-pub(crate) fn create_empty_exports(factory: &NodeFactory) -> P<Node> {
+pub fn create_empty_exports(factory: &NodeFactory) -> P<Node> {
     factory.new_export_declaration(
         None, /*isTypeOnly*/
         false,
@@ -772,11 +761,10 @@ impl DeclarationTransformer {
             }
             Kind::TupleType => {
                 let result = self.visitor().visit_each_child(Some(input));
-                if let Some(result) = result {
-                    if transformers::is_original_node_single_line(self.emit_context(), Some(input))
-                    {
-                        self.emit_context().add_emit_flags(result, printer::EmitFlags::SingleLine);
-                    }
+                if let Some(result) = result
+                    && transformers::is_original_node_single_line(self.emit_context(), Some(input))
+                {
+                    self.emit_context().add_emit_flags(result, printer::EmitFlags::SingleLine);
                 }
                 result
             }
@@ -1001,7 +989,7 @@ impl DeclarationTransformer {
 }
 
 // transform.go:859
-pub(crate) fn has_any_binding_initializers(binding_pattern: P<Node>) -> bool {
+pub fn has_any_binding_initializers(binding_pattern: P<Node>) -> bool {
     if binding_pattern.as_binding_pattern().elements.nodes().iter().any(|&elem| {
         if !ast::is_binding_element(elem) {
             return false;
@@ -1010,10 +998,11 @@ pub(crate) fn has_any_binding_initializers(binding_pattern: P<Node>) -> bool {
         if e.initializer().is_some() {
             return true;
         }
-        if let Some(name) = e.name {
-            if ast::is_binding_pattern(name) && has_any_binding_initializers(name) {
-                return true;
-            }
+        if let Some(name) = e.name
+            && ast::is_binding_pattern(name)
+            && has_any_binding_initializers(name)
+        {
+            return true;
         }
 
         false
@@ -1242,10 +1231,8 @@ impl DeclarationTransformer {
         is_private: bool,
     ) -> P<NodeList> {
         let mut new_params: Vec<P<Node>> = Vec::new();
-        if !is_private {
-            if let Some(this_param) = ast::get_this_parameter(input) {
-                new_params.push(self.ensure_parameter(this_param));
-            }
+        if !is_private && let Some(this_param) = ast::get_this_parameter(input) {
+            new_params.push(self.ensure_parameter(this_param));
         }
         if ast::is_set_accessor_declaration(input) {
             let mut value_param: Option<P<Node>> = None;

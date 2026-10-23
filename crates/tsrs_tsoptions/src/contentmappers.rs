@@ -60,7 +60,7 @@ pub struct Mapper {
 }
 
 // contentmapper.go:58
-pub(crate) const SUPPORTED_VIRTUAL_EXTENSIONS: [&str; 9] =
+pub const SUPPORTED_VIRTUAL_EXTENSIONS: [&str; 9] =
     [".js", ".jsx", ".mjs", ".cjs", ".ts", ".tsx", ".mts", ".cts", ".json"];
 
 // contentmapper.go:62
@@ -216,7 +216,7 @@ pub struct OptionPathSegment {
 // and package directory. It never executes the package. On failure it returns a diagnostic describing why
 // the mapper could not be resolved; on success the diagnostic is nil.
 // contentmappers.go:17
-pub(crate) fn resolve_content_mapper_manifest(
+pub fn resolve_content_mapper_manifest(
     host: &dyn ParseConfigHost,
     containing_file: &str,
     package_name: &str,

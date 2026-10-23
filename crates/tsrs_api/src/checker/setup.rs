@@ -19,7 +19,7 @@ use super::symbol_index::source_file_symbol;
 
 /// A snapshot + project without a checker (Go `getSnapshotData` + `params.Project`), used by the property
 /// handlers that Go serves straight from the registries.
-pub(crate) struct SnapshotCtx<'h> {
+pub struct SnapshotCtx<'h> {
     pub(crate) host: &'h dyn CheckerHost,
     pub(crate) scope: SnapshotScope,
     pub(crate) project: String,
@@ -116,7 +116,7 @@ impl<'h> SnapshotCtx<'h> {
 }
 
 /// Go `checkerSetup`. Field order matters: the checker handle is released before the snapshot scope.
-pub(crate) struct Setup<'h> {
+pub struct Setup<'h> {
     pub(crate) checker: CheckerHandle,
     // Dropped after `checker`: the gate is released only once the checker slot is free again.
     _lease: super::lease::ApiCheckerLease,
@@ -289,16 +289,13 @@ impl<'h> Setup<'h> {
 }
 
 /// `astnav.GetTouchingPropertyName(file, positionMap.UTF16ToUTF8(position))`.
-pub(crate) fn touching_property_name_at_utf16(
-    source_file: P<SourceFile>,
-    position: u32,
-) -> P<Node> {
+pub fn touching_property_name_at_utf16(source_file: P<SourceFile>, position: u32) -> P<Node> {
     let utf8 = source_file.get_position_map().utf16_to_utf8(position);
     tsrs_astnav::get_touching_property_name(source_file, utf8)
 }
 
 /// Go `symbolOwnerFile`.
-pub(crate) fn symbol_owner_file(symbol: P<Symbol>) -> Option<P<SourceFile>> {
+pub fn symbol_owner_file(symbol: P<Symbol>) -> Option<P<SourceFile>> {
     if symbol.flags().intersects(SymbolFlags::Transient) {
         return None;
     }
@@ -310,10 +307,7 @@ pub(crate) fn symbol_owner_file(symbol: P<Symbol>) -> Option<P<SourceFile>> {
 }
 
 /// Go `newFileSymbolResponse`.
-pub(crate) fn file_symbol_response(
-    host: &dyn CheckerHost,
-    symbol: P<Symbol>,
-) -> CheckerResult<Value> {
+pub fn file_symbol_response(host: &dyn CheckerHost, symbol: P<Symbol>) -> CheckerResult<Value> {
     let file = symbol_owner_file(symbol).expect("Expected a file-owned symbol");
     let mut reference = Obj::new();
     reference.num("kind", SYMBOL_OWNER_KIND_FILE as f64);
@@ -358,10 +352,7 @@ fn build_symbol_response(
 }
 
 /// Go `newSymbolReference` (`CompactSymbolReference`).
-pub(crate) fn compact_symbol_reference(
-    host: &dyn CheckerHost,
-    symbol: P<Symbol>,
-) -> CheckerResult<Value> {
+pub fn compact_symbol_reference(host: &dyn CheckerHost, symbol: P<Symbol>) -> CheckerResult<Value> {
     let mut o = Obj::new();
     o.num("id", tsrs_ast::get_symbol_id(symbol).0 as f64);
     if let Some(file) = symbol_owner_file(symbol) {
@@ -508,7 +499,7 @@ const TYPE_RESPONSE_FIELD_ORDER: &[&str] = &[
 
 /// Go `checkerSetup{sd, snapshot, program, projectID}.resolveSymbolHandle(ref)`: snapshot-owned references
 /// must name this snapshot; file-owned references must name a file of `program` with an identical descriptor.
-pub(crate) fn resolve_symbol_for_program(
+pub fn resolve_symbol_for_program(
     sd: &SnapshotCtx,
     program: &'static Program,
     r: &SymbolReference,

@@ -412,19 +412,19 @@ fn get_smart_selection_range(
                 node.end().expect_source("parsed nodes have source positions"),
             )
             .next();
-            if let Some(found_comment) = found_comment {
-                if found_comment.kind == Kind::SingleLineCommentTrivia {
-                    s.push_selection_comment_range(
-                        found_comment
-                            .text_range
-                            .pos()
-                            .expect_source("comment ranges have source positions"),
-                        found_comment
-                            .text_range
-                            .end()
-                            .expect_source("comment ranges have source positions"),
-                    );
-                }
+            if let Some(found_comment) = found_comment
+                && found_comment.kind == Kind::SingleLineCommentTrivia
+            {
+                s.push_selection_comment_range(
+                    found_comment
+                        .text_range
+                        .pos()
+                        .expect_source("comment ranges have source positions"),
+                    found_comment
+                        .text_range
+                        .end()
+                        .expect_source("comment ranges have source positions"),
+                );
             }
 
             if s.node_contains_position(Some(node)) {

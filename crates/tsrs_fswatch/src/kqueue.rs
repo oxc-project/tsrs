@@ -168,7 +168,7 @@ struct KqState {
     entry_maps: FxHashMap<EntriesID, FxHashMap<String, DirEntry>>,
 }
 
-pub(crate) struct KqueueBackend {
+pub struct KqueueBackend {
     base: WatcherBase,
 
     mu: Mutex<KqState>, // local lock for kqueue-specific maps
@@ -184,7 +184,7 @@ pub(crate) struct KqueueBackend {
 }
 
 // kqueue.go:129 (init)
-pub(crate) fn init(mut w: PlatformWatcher) -> PlatformWatcher {
+pub fn init(mut w: PlatformWatcher) -> PlatformWatcher {
     w.factory = Some(|| Arc::new(new_kqueue_backend()) as Arc<dyn WatcherImpl>);
     w
 }
@@ -525,6 +525,11 @@ impl KqueueBackend {
     // directory has NOTE_WRITE: list the dir, diff against the tree, emit
     // create/remove events.
     fn compare_dir(&self, _fd: i32, path: &str, touched: &mut Vec<Arc<DirWatch>>) -> bool {
+        struct DiskSnapshot {
+            entries: Vec<(String, bool)>,
+            current_display_paths: rustc_hash::FxHashSet<String>,
+        }
+
         let mut st = self.mu.lock().unwrap();
         let subs = st.find_subscriptions_locked(path);
 
@@ -547,10 +552,6 @@ impl KqueueBackend {
         let subs = filtered_subs;
 
         let dir_start = format!("{path}/");
-        struct DiskSnapshot {
-            entries: Vec<(String, bool)>,
-            current_display_paths: rustc_hash::FxHashSet<String>,
-        }
         let mut snapshots: FxHashMap<String, Arc<DiskSnapshot>> = FxHashMap::default();
 
         // Each subscription has its own entries map (built in subscribe).
@@ -1028,13 +1029,11 @@ impl WatcherImpl for KqueueBackend {
         for map_id in maps_of_watch {
             let still_used =
                 st.subs_by_path.values().any(|l| l.iter().any(|s| s.entries == map_id));
-            if !still_used {
-                if let Some(entries) = st.entry_maps.remove(&map_id) {
-                    for entry in entries.into_values() {
-                        if let Some(fd) = entry.state {
-                            close_fd(fd);
-                            st.fd_to_entry.remove(&fd);
-                        }
+            if !still_used && let Some(entries) = st.entry_maps.remove(&map_id) {
+                for entry in entries.into_values() {
+                    if let Some(fd) = entry.state {
+                        close_fd(fd);
+                        st.fd_to_entry.remove(&fd);
                     }
                 }
             }

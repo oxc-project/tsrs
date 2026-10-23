@@ -288,16 +288,16 @@ fn run(d: &Dataset) {
             "textDocument/prepareRename" => {
                 let p: lsproto::PrepareRenameParams = decode(&params);
                 let info = ls.get_rename_info(&ctx, "", &p.text_document.uri, p.position);
-                if !info.can_rename {
-                    format!(
-                        r#"{{"error":{{"code":-32803,"message":"{}"}}}}"#,
-                        info.localized_error_message
-                    )
-                } else {
+                if info.can_rename {
                     to_line(&lsproto::PrepareRenamePlaceholder {
                         range: info.trigger_span,
                         placeholder: info.display_name,
                     })
+                } else {
+                    format!(
+                        r#"{{"error":{{"code":-32803,"message":"{}"}}}}"#,
+                        info.localized_error_message
+                    )
                 }
             }
             "textDocument/documentHighlight" => {

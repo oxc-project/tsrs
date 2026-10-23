@@ -41,32 +41,28 @@ impl CodeLensVisitor<'_> {
 
             if self.user_prefs.references_code_lens_enabled.is_true()
                 && is_valid_reference_lens_node(node, self.user_prefs)
-            {
-                if let Some(code_lens) = self.l.new_code_lens_for_node(
+                && let Some(code_lens) = self.l.new_code_lens_for_node(
                     self.document_uri,
                     self.projection,
                     node,
                     lsproto::CodeLensKind::REFERENCES,
-                ) {
-                    if self.seen.insert(key_for_code_lens(&code_lens)) {
-                        self.result.push(code_lens);
-                    }
-                }
+                )
+                && self.seen.insert(key_for_code_lens(&code_lens))
+            {
+                self.result.push(code_lens);
             }
 
             if self.user_prefs.implementations_code_lens_enabled.is_true()
                 && is_valid_implementations_code_lens_node(node, self.user_prefs)
-            {
-                if let Some(code_lens) = self.l.new_code_lens_for_node(
+                && let Some(code_lens) = self.l.new_code_lens_for_node(
                     self.document_uri,
                     self.projection,
                     node,
                     lsproto::CodeLensKind::IMPLEMENTATIONS,
-                ) {
-                    if self.seen.insert(key_for_code_lens(&code_lens)) {
-                        self.result.push(code_lens);
-                    }
-                }
+                )
+                && self.seen.insert(key_for_code_lens(&code_lens))
+            {
+                self.result.push(code_lens);
             }
         }
 

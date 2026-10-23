@@ -5,7 +5,7 @@ use tsrs_ast::Kind;
 use super::*;
 
 // rulesmap.go:11
-pub(crate) fn get_rules(
+pub fn get_rules(
     context: &FormattingContext,
     mut rules: Vec<&'static RuleImpl>,
 ) -> Vec<&'static RuleImpl> {

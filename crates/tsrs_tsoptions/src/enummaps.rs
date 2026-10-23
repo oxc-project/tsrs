@@ -265,20 +265,22 @@ pub fn get_lib_file_name(lib_name: &str) -> Option<String> {
     Some(lib.as_str().unwrap().to_string())
 }
 
-pub(crate) static MODULE_RESOLUTION_OPTION_MAP: LazyLock<
-    OrderedMap<&'static str, CompilerOptionsValue>,
-> = LazyLock::new(|| {
-    new_map(&[
-        ("node16", CompilerOptionsValue::ModuleResolutionKind(ModuleResolutionKind::NODE16)),
-        ("nodenext", CompilerOptionsValue::ModuleResolutionKind(ModuleResolutionKind::NODE_NEXT)),
-        ("bundler", CompilerOptionsValue::ModuleResolutionKind(ModuleResolutionKind::BUNDLER)),
-        ("classic", CompilerOptionsValue::ModuleResolutionKind(ModuleResolutionKind::CLASSIC)),
-        ("node", CompilerOptionsValue::ModuleResolutionKind(ModuleResolutionKind::NODE10)),
-        ("node10", CompilerOptionsValue::ModuleResolutionKind(ModuleResolutionKind::NODE10)),
-    ])
-});
+pub static MODULE_RESOLUTION_OPTION_MAP: LazyLock<OrderedMap<&'static str, CompilerOptionsValue>> =
+    LazyLock::new(|| {
+        new_map(&[
+            ("node16", CompilerOptionsValue::ModuleResolutionKind(ModuleResolutionKind::NODE16)),
+            (
+                "nodenext",
+                CompilerOptionsValue::ModuleResolutionKind(ModuleResolutionKind::NODE_NEXT),
+            ),
+            ("bundler", CompilerOptionsValue::ModuleResolutionKind(ModuleResolutionKind::BUNDLER)),
+            ("classic", CompilerOptionsValue::ModuleResolutionKind(ModuleResolutionKind::CLASSIC)),
+            ("node", CompilerOptionsValue::ModuleResolutionKind(ModuleResolutionKind::NODE10)),
+            ("node10", CompilerOptionsValue::ModuleResolutionKind(ModuleResolutionKind::NODE10)),
+        ])
+    });
 
-pub(crate) static TARGET_OPTION_MAP: LazyLock<OrderedMap<&'static str, CompilerOptionsValue>> =
+pub static TARGET_OPTION_MAP: LazyLock<OrderedMap<&'static str, CompilerOptionsValue>> =
     LazyLock::new(|| {
         new_map(&[
             ("es5", CompilerOptionsValue::ScriptTarget(ScriptTarget::ES5)),
@@ -299,7 +301,7 @@ pub(crate) static TARGET_OPTION_MAP: LazyLock<OrderedMap<&'static str, CompilerO
         ])
     });
 
-pub(crate) static MODULE_OPTION_MAP: LazyLock<OrderedMap<&'static str, CompilerOptionsValue>> =
+pub static MODULE_OPTION_MAP: LazyLock<OrderedMap<&'static str, CompilerOptionsValue>> =
     LazyLock::new(|| {
         new_map(&[
             ("commonjs", CompilerOptionsValue::ModuleKind(ModuleKind::COMMON_JS)),
@@ -319,17 +321,16 @@ pub(crate) static MODULE_OPTION_MAP: LazyLock<OrderedMap<&'static str, CompilerO
         ])
     });
 
-pub(crate) static MODULE_DETECTION_OPTION_MAP: LazyLock<
-    OrderedMap<&'static str, CompilerOptionsValue>,
-> = LazyLock::new(|| {
-    new_map(&[
-        ("auto", CompilerOptionsValue::ModuleDetectionKind(ModuleDetectionKind::Auto)),
-        ("legacy", CompilerOptionsValue::ModuleDetectionKind(ModuleDetectionKind::Legacy)),
-        ("force", CompilerOptionsValue::ModuleDetectionKind(ModuleDetectionKind::Force)),
-    ])
-});
+pub static MODULE_DETECTION_OPTION_MAP: LazyLock<OrderedMap<&'static str, CompilerOptionsValue>> =
+    LazyLock::new(|| {
+        new_map(&[
+            ("auto", CompilerOptionsValue::ModuleDetectionKind(ModuleDetectionKind::Auto)),
+            ("legacy", CompilerOptionsValue::ModuleDetectionKind(ModuleDetectionKind::Legacy)),
+            ("force", CompilerOptionsValue::ModuleDetectionKind(ModuleDetectionKind::Force)),
+        ])
+    });
 
-pub(crate) static JSX_OPTION_MAP: LazyLock<OrderedMap<&'static str, CompilerOptionsValue>> =
+pub static JSX_OPTION_MAP: LazyLock<OrderedMap<&'static str, CompilerOptionsValue>> =
     LazyLock::new(|| {
         new_map(&[
             ("preserve", CompilerOptionsValue::JsxEmit(JsxEmit::PRESERVE)),
@@ -340,7 +341,7 @@ pub(crate) static JSX_OPTION_MAP: LazyLock<OrderedMap<&'static str, CompilerOpti
         ])
     });
 
-pub(crate) static NEW_LINE_OPTION_MAP: LazyLock<OrderedMap<&'static str, CompilerOptionsValue>> =
+pub static NEW_LINE_OPTION_MAP: LazyLock<OrderedMap<&'static str, CompilerOptionsValue>> =
     LazyLock::new(|| {
         new_map(&[
             ("crlf", CompilerOptionsValue::NewLineKind(NewLineKind::CRLF)),
@@ -348,7 +349,7 @@ pub(crate) static NEW_LINE_OPTION_MAP: LazyLock<OrderedMap<&'static str, Compile
         ])
     });
 
-pub(crate) static TARGET_TO_LIB_MAP: LazyLock<FxHashMap<ScriptTarget, &'static str>> =
+pub static TARGET_TO_LIB_MAP: LazyLock<FxHashMap<ScriptTarget, &'static str>> =
     LazyLock::new(|| {
         let mut m = FxHashMap::default();
         m.insert(ScriptTarget::ES_NEXT, "lib.esnext.full.d.ts");

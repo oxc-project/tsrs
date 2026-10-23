@@ -11,7 +11,7 @@ use tsrs_vfs::FS;
 use crate::host::CompilerHost;
 use crate::projectreferencedtsfakinghost::new_project_reference_dts_faking_host;
 
-pub(crate) struct ProjectReferenceFileMapper {
+pub struct ProjectReferenceFileMapper {
     pub(crate) config: P<ParsedCommandLine>,
     pub(crate) use_source_of_project_reference: bool,
     pub(crate) dts_directories: FxHashSet<Path>,
@@ -33,7 +33,7 @@ pub(crate) struct ProjectReferenceFileMapper {
     pub(crate) loader_host: Option<&'static dyn ResolutionHost>,
 }
 
-pub(crate) struct ProjectReferenceFileMapperBuilder {
+pub struct ProjectReferenceFileMapperBuilder {
     pub(crate) mapper: &'static ProjectReferenceFileMapper,
     pub(crate) host: &'static dyn ResolutionHost,
 }
@@ -50,11 +50,11 @@ impl ResolutionHost for CompilerResolutionHost {
     }
 }
 
-pub(crate) fn resolution_host_for(host: Arc<dyn CompilerHost>) -> &'static dyn ResolutionHost {
+pub fn resolution_host_for(host: Arc<dyn CompilerHost>) -> &'static dyn ResolutionHost {
     Box::leak(Box::new(CompilerResolutionHost(host)))
 }
 
-pub(crate) fn as_resolved_project_reference(
+pub fn as_resolved_project_reference(
     config: P<ParsedCommandLine>,
 ) -> &'static dyn ResolvedProjectReference {
     config.get()
@@ -114,10 +114,10 @@ impl ProjectReferenceFileMapper {
             }
         } else {
             // Map to dts file from project reference
-            if let Some(output) = self.get_project_reference_from_source(path) {
-                if !output.output_dts.is_empty() {
-                    return output.output_dts.clone();
-                }
+            if let Some(output) = self.get_project_reference_from_source(path)
+                && !output.output_dts.is_empty()
+            {
+                return output.output_dts.clone();
             }
         }
         String::new()
@@ -268,10 +268,10 @@ impl ProjectReferenceFileMapper {
                 .map_or(&[] as &[Path], std::vec::Vec::as_slice);
             // A reference that did not resolve has no references of its own (Go recurses with a nil parent over
             // an empty list).
-            if let Some(config) = config {
-                if !self.range_resolved_reference_worker(child_refs, f, config, seen_ref) {
-                    return true;
-                }
+            if let Some(config) = config
+                && !self.range_resolved_reference_worker(child_refs, f, config, seen_ref)
+            {
+                return true;
             }
 
             false
@@ -383,9 +383,7 @@ impl ProjectReferenceFileMapperBuilder {
         if !self.mapper.config.resolved_project_reference_paths().is_empty()
             && self.mapper.config.compiler_options().unwrap().preserve_symlinks.is_true()
         {
-            if !file_name.contains("/node_modules/") {
-                self.mapper.realpath_dts_to_source.store(path.clone(), None);
-            } else {
+            if file_name.contains("/node_modules/") {
                 let real_declaration_path = tspath::to_path(
                     &self.host.fs().realpath(file_name),
                     self.host.get_current_directory(),
@@ -399,6 +397,8 @@ impl ProjectReferenceFileMapperBuilder {
                         self.mapper.get_project_reference_from_output_dts(&real_declaration_path),
                     );
                 }
+            } else {
+                self.mapper.realpath_dts_to_source.store(path.clone(), None);
             }
         }
     }

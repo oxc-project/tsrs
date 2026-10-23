@@ -479,13 +479,13 @@ impl NodeBuilderImpl {
                     // The pseudochecker is unaware of inferred type predicates, so it produces boolean where
                     // the checker infers e.g. `x is string`.
                     let type_predicate = c.get_type_predicate_of_signature(signature);
-                    if let Some(type_predicate) = type_predicate {
-                        if !Self::pseudo_return_type_matches_predicate(c, pt, type_predicate) {
-                            if !self.ctx().suppress_report_inference_fallback.get() {
-                                self.tracker().report_inference_fallback(c, declaration);
-                            }
-                            pt = None;
+                    if let Some(type_predicate) = type_predicate
+                        && !Self::pseudo_return_type_matches_predicate(c, pt, type_predicate)
+                    {
+                        if !self.ctx().suppress_report_inference_fallback.get() {
+                            self.tracker().report_inference_fallback(c, declaration);
                         }
+                        pt = None;
                     }
                     if let Some(pt) = pt {
                         // !!! TODO: If annotated type node is a reference with insufficient type arguments, we should still fall back to type serialization
@@ -657,7 +657,7 @@ impl NodeBuilderImpl {
 }
 
 // nodebuilderimpl.go:2234
-pub(crate) fn has_type_annotation(declaration: Option<P<Node>>) -> bool {
+pub fn has_type_annotation(declaration: Option<P<Node>>) -> bool {
     if declaration.is_none() || declaration.unwrap().type_node().is_none() {
         return false;
     }
@@ -691,13 +691,13 @@ impl NodeBuilderImpl {
         let mut declaration = declaration;
         let mut t = t;
         let mut symbol = symbol;
-        if declaration.is_none() {
-            if let Some(symbol) = symbol {
-                declaration = symbol.value_declaration();
-                if declaration.is_none() {
-                    // TODO: prefer annotated declarations like in strada (but does this ever even matter in practice? All callers should supply a declaration!)
-                    declaration = symbol.declarations().first().copied();
-                }
+        if declaration.is_none()
+            && let Some(symbol) = symbol
+        {
+            declaration = symbol.value_declaration();
+            if declaration.is_none() {
+                // TODO: prefer annotated declarations like in strada (but does this ever even matter in practice? All callers should supply a declaration!)
+                declaration = symbol.declarations().first().copied();
             }
         }
         if symbol.is_none() {
@@ -1000,7 +1000,7 @@ impl NodeBuilderImpl {
 }
 
 // nodebuilderimpl.go:2456
-pub(crate) fn classify_property_name(
+pub fn classify_property_name(
     name: &str,
     string_named: bool,
     is_method: bool,
@@ -1136,10 +1136,10 @@ impl NodeBuilderImpl {
         let name_type = c.value_symbol_links.try_get(symbol).unwrap().name_type();
         let name_type = name_type?;
         let mut enum_enclosing_declaration = enclosing_declaration;
-        if enum_enclosing_declaration.is_none() {
-            if let Some(enclosing_file) = self.ctx().enclosing_file.get() {
-                enum_enclosing_declaration = Some(enclosing_file.as_node());
-            }
+        if enum_enclosing_declaration.is_none()
+            && let Some(enclosing_file) = self.ctx().enclosing_file.get()
+        {
+            enum_enclosing_declaration = Some(enclosing_file.as_node());
         }
         if name_type.flags().intersects(TypeFlags::EnumLiteral) {
             let name_type_symbol = name_type.symbol().unwrap();
@@ -1564,7 +1564,7 @@ impl NodeBuilderImpl {
             }
             type_elements = self.add_property_to_element_list(c, property_symbol, &type_elements);
         }
-        if !type_elements.is_empty() { Some(self.f.new_node_list(type_elements)) } else { None }
+        if type_elements.is_empty() { None } else { Some(self.f.new_node_list(type_elements)) }
     }
 
     // nodebuilderimpl.go:2782
@@ -1672,15 +1672,15 @@ impl NodeBuilderImpl {
 }
 
 // nodebuilderimpl.go:2842
-pub(crate) fn get_type_alias_for_type_literal(c: &mut Checker, t: P<Type>) -> Option<P<Symbol>> {
-    if let Some(symbol) = t.symbol() {
-        if symbol.flags().intersects(SymbolFlags::TypeLiteral) && !symbol.declarations().is_empty()
-        {
-            let first_declaration = symbol.declarations()[0];
-            let node = ast::walk_up_parenthesized_types(first_declaration.parent()).unwrap();
-            if ast::is_type_alias_declaration(node) {
-                return c.get_symbol_of_declaration(node);
-            }
+pub fn get_type_alias_for_type_literal(c: &mut Checker, t: P<Type>) -> Option<P<Symbol>> {
+    if let Some(symbol) = t.symbol()
+        && symbol.flags().intersects(SymbolFlags::TypeLiteral)
+        && !symbol.declarations().is_empty()
+    {
+        let first_declaration = symbol.declarations()[0];
+        let node = ast::walk_up_parenthesized_types(first_declaration.parent()).unwrap();
+        if ast::is_type_alias_declaration(node) {
+            return c.get_symbol_of_declaration(node);
         }
     }
     None

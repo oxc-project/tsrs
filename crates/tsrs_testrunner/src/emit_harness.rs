@@ -312,7 +312,7 @@ fn get_output_path(
 }
 
 // js_emit_baseline.go:174
-pub(crate) fn file_output(file: &TestFile, settings: &HarnessOptions) -> String {
+pub fn file_output(file: &TestFile, settings: &HarnessOptions) -> String {
     let file_name = if settings.full_emit_paths {
         tsbaseline::remove_test_path_prefixes(
             &file.unit_name,
@@ -495,10 +495,10 @@ pub fn do_js_emit_baseline(
         compare_result_file_sets(&without.js, &outputs.js);
     }
 
-    if !js_code.is_empty() {
-        Ok(ts_code + "\r\n\r\n" + &js_code)
-    } else {
+    if js_code.is_empty() {
         Ok(NO_CONTENT.to_string())
+    } else {
+        Ok(ts_code + "\r\n\r\n" + &js_code)
     }
 }
 
@@ -540,15 +540,15 @@ fn prepare_declaration_compilation_context(
             return Err(format!("panic: Program has no source file with name '{file_name}'"));
         };
         // Is this file going to be emitted separately
-        let source_file_name = if !options.out_dir.is_empty() {
+        let source_file_name = if options.out_dir.is_empty() {
+            source_file.file_name().to_string()
+        } else {
             let mut source_file_path = tspath::get_normalized_absolute_path(
                 source_file.file_name(),
                 result.host.get_current_directory(),
             );
             source_file_path = source_file_path.replacen(program.common_source_directory(), "", 1);
             tspath::combine_paths(&options.out_dir, &[&source_file_path])
-        } else {
-            source_file.file_name().to_string()
         };
 
         let d_ts_file_name =
@@ -571,21 +571,18 @@ fn prepare_declaration_compilation_context(
         } else if program.get_source_file(&file.unit_name).is_some()
             && (tspath::has_ts_file_extension(&file.unit_name)
                 || (tspath::has_js_file_extension(&file.unit_name) && options.get_allow_js()))
+            && let Some(decl_file) = find_result_code_file(&file.unit_name)?
+            && !find_unit(&decl_file.unit_name, decl_input_files)
+            && !find_unit(&decl_file.unit_name, decl_other_files)
         {
-            if let Some(decl_file) = find_result_code_file(&file.unit_name)? {
-                if !find_unit(&decl_file.unit_name, decl_input_files)
-                    && !find_unit(&decl_file.unit_name, decl_other_files)
-                {
-                    let content = decl_file
-                        .content
-                        .strip_prefix('\u{FEFF}')
-                        .unwrap_or(&decl_file.content)
-                        .to_string();
-                    let dts_files =
-                        if into_input { &mut *decl_input_files } else { &mut *decl_other_files };
-                    dts_files.push(TestFile { unit_name: decl_file.unit_name, content });
-                }
-            }
+            let content = decl_file
+                .content
+                .strip_prefix('\u{FEFF}')
+                .unwrap_or(&decl_file.content)
+                .to_string();
+            let dts_files =
+                if into_input { &mut *decl_input_files } else { &mut *decl_other_files };
+            dts_files.push(TestFile { unit_name: decl_file.unit_name, content });
         }
         Ok(())
     };

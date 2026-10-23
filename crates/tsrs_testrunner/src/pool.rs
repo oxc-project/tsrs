@@ -240,24 +240,24 @@ pub fn run_pool(items: &[TestItem], opts: &PoolOptions) -> Vec<Option<TestResult
 
         // Timeouts
         for w in workers.iter_mut().filter(|w| w.alive) {
-            if let Some((i, since)) = w.running {
-                if now.duration_since(since) > opts.timeout {
-                    let _ = w.child.kill();
-                    let _ = w.child.wait();
-                    w.alive = false;
-                    active -= 1;
-                    let idx = w.batch[i];
-                    results[idx] = Some(TestResult::harness(
-                        Class::Timeout,
-                        opts.timeout.as_millis() as u64,
-                        String::new(),
-                    ));
-                    completed += 1;
-                    for &rest in w.batch[i + 1..].iter().rev() {
-                        queue.push_front(rest);
-                    }
-                    w.done = w.batch.len();
+            if let Some((i, since)) = w.running
+                && now.duration_since(since) > opts.timeout
+            {
+                let _ = w.child.kill();
+                let _ = w.child.wait();
+                w.alive = false;
+                active -= 1;
+                let idx = w.batch[i];
+                results[idx] = Some(TestResult::harness(
+                    Class::Timeout,
+                    opts.timeout.as_millis() as u64,
+                    String::new(),
+                ));
+                completed += 1;
+                for &rest in w.batch[i + 1..].iter().rev() {
+                    queue.push_front(rest);
                 }
+                w.done = w.batch.len();
             }
         }
 

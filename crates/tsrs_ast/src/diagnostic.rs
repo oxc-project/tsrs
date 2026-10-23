@@ -640,10 +640,10 @@ fn get_diagnostic_message_identity(diagnostic: P<Diagnostic>) -> &'static str {
     if !diagnostic.message_text().is_empty() {
         return diagnostic.message_text();
     }
-    if let Some(message) = diagnostic.message {
-        if diagnostic.code() == -1 {
-            return message.text();
-        }
+    if let Some(message) = diagnostic.message
+        && diagnostic.code() == -1
+    {
+        return message.text();
     }
     diagnostic.message_key().as_str()
 }

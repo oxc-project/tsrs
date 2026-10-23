@@ -78,16 +78,16 @@ impl NodeVisitor {
             return Some(node);
         };
         let mut visited = visit(self, node);
-        if let Some(v) = visited {
-            if v.kind() == Kind::SyntaxList {
-                let nodes = v.as_syntax_list().children;
-                assert!(nodes.len() == 1, "Expected only a single node to be written to output");
-                visited = Some(nodes[0]);
-                assert!(
-                    nodes[0].kind() != Kind::SyntaxList,
-                    "The result of visiting and lifting a Node may not be SyntaxList"
-                );
-            }
+        if let Some(v) = visited
+            && v.kind() == Kind::SyntaxList
+        {
+            let nodes = v.as_syntax_list().children;
+            assert!(nodes.len() == 1, "Expected only a single node to be written to output");
+            visited = Some(nodes[0]);
+            assert!(
+                nodes[0].kind() != Kind::SyntaxList,
+                "The result of visiting and lifting a Node may not be SyntaxList"
+            );
         }
         visited
     }

@@ -9,7 +9,7 @@ struct ParseCacheEntry<V> {
     value: Mutex<Option<V>>,
 }
 
-pub(crate) struct ParseCache<K, V> {
+pub struct ParseCache<K, V> {
     entries: Mutex<FxHashMap<K, Arc<ParseCacheEntry<V>>>>,
 }
 
@@ -20,7 +20,7 @@ impl<K, V> Default for ParseCache<K, V> {
 }
 
 // Go compares the value with its zero value (`allowZero`); every V here is an Option.
-pub(crate) trait IsZeroValue {
+pub trait IsZeroValue {
     fn is_zero_value(&self) -> bool;
 }
 
@@ -52,10 +52,10 @@ impl<K: Hash + Eq + Clone, V: Clone + IsZeroValue> ParseCache<K, V> {
         if let Some(entry) = existing {
             drop(new_guard);
             let mut guard = entry.value.lock().unwrap();
-            if let Some(value) = guard.as_ref() {
-                if allow_zero || !value.is_zero_value() {
-                    return value.clone();
-                }
+            if let Some(value) = guard.as_ref()
+                && (allow_zero || !value.is_zero_value())
+            {
+                return value.clone();
             }
             let value = parse(key);
             *guard = Some(value.clone());

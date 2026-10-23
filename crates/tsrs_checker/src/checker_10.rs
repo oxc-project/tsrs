@@ -8,7 +8,7 @@ use tsrs_diagnostics as diagnostics;
 use tsrs_diagnostics::Message;
 
 // checker.go:19608
-pub(crate) fn get_base_type_node_of_class(t: P<Type>) -> Option<P<Node>> {
+pub fn get_base_type_node_of_class(t: P<Type>) -> Option<P<Node>> {
     let decl = ast::get_class_like_declaration_of_symbol(t.symbol().unwrap());
     if let Some(decl) = decl {
         return ast::get_class_extends_heritage_element(decl);
@@ -188,26 +188,25 @@ impl Checker {
         kind: SignatureKind,
         allow_members: bool,
     ) -> Option<P<Signature>> {
-        if t.flags().intersects(TypeFlags::Object) {
-            if allow_members
+        if t.flags().intersects(TypeFlags::Object)
+            && (allow_members
                 || !self.has_properties_of_structured_type(t)
-                    && self.index_infos_of_structured_type(t).is_empty()
+                    && self.index_infos_of_structured_type(t).is_empty())
+        {
+            let call_signatures = self.signatures_of_structured_type(t, SignatureKind::Call);
+            let construct_signatures =
+                self.signatures_of_structured_type(t, SignatureKind::Construct);
+            if kind == SignatureKind::Call
+                && call_signatures.len() == 1
+                && construct_signatures.is_empty()
             {
-                let call_signatures = self.signatures_of_structured_type(t, SignatureKind::Call);
-                let construct_signatures =
-                    self.signatures_of_structured_type(t, SignatureKind::Construct);
-                if kind == SignatureKind::Call
-                    && call_signatures.len() == 1
-                    && construct_signatures.is_empty()
-                {
-                    return Some(call_signatures[0]);
-                }
-                if kind == SignatureKind::Construct
-                    && construct_signatures.len() == 1
-                    && call_signatures.is_empty()
-                {
-                    return Some(construct_signatures[0]);
-                }
+                return Some(call_signatures[0]);
+            }
+            if kind == SignatureKind::Construct
+                && construct_signatures.len() == 1
+                && call_signatures.is_empty()
+            {
+                return Some(construct_signatures[0]);
             }
         }
         None
@@ -288,10 +287,10 @@ impl Checker {
         // that uses the original type identities for all unconstrained type parameters.
         let mut type_arguments = Vec::with_capacity(signature.type_parameters().len());
         type_arguments.extend(signature.type_parameters().iter().map(|&tp| {
-            if let Some(target) = tp.target() {
-                if self.get_constraint_of_type_parameter(target).is_none() {
-                    return target;
-                }
+            if let Some(target) = tp.target()
+                && self.get_constraint_of_type_parameter(target).is_none()
+            {
+                return target;
             }
             tp
         }));
@@ -494,7 +493,7 @@ fn has_base_type_check(c: &mut Checker, t: P<Type>, check_base: Option<P<Type>>)
 }
 
 // checker.go:19907
-pub(crate) fn get_target_type(t: P<Type>) -> Option<P<Type>> {
+pub fn get_target_type(t: P<Type>) -> Option<P<Type>> {
     if t.object_flags().intersects(ObjectFlags::Reference) {
         return t.target();
     }
@@ -680,7 +679,7 @@ impl Checker {
             property_symbols.extend(
                 sibling_symbols
                     .iter()
-                    .filter_map(|&sym| if sym != index_symbol { Some(sym) } else { None }),
+                    .filter_map(|&sym| if sym == index_symbol { None } else { Some(sym) }),
             );
             // aggregate similar index infos implied to be the same key to the same combined index info
             if has_computed_string_property
@@ -893,20 +892,19 @@ impl Checker {
             let mut param_symbol = param.symbol();
             let type_node = param.type_node();
             // Include parameter symbol instead of property symbol in the signature
-            if let Some(ps) = param_symbol {
-                if ps.flags().intersects(SymbolFlags::Property)
-                    && !ast::is_binding_pattern(param.name().unwrap())
-                {
-                    let resolved_symbol = self.resolve_name(
-                        Some(param),
-                        ps.name(),
-                        SymbolFlags::Value,
-                        None,  /*nameNotFoundMessage*/
-                        false, /*isUse*/
-                        false, /*excludeGlobals*/
-                    );
-                    param_symbol = resolved_symbol;
-                }
+            if let Some(ps) = param_symbol
+                && ps.flags().intersects(SymbolFlags::Property)
+                && !ast::is_binding_pattern(param.name().unwrap())
+            {
+                let resolved_symbol = self.resolve_name(
+                    Some(param),
+                    ps.name(),
+                    SymbolFlags::Value,
+                    None,  /*nameNotFoundMessage*/
+                    false, /*isUse*/
+                    false, /*excludeGlobals*/
+                );
+                param_symbol = resolved_symbol;
             }
             if i == 0 && param_symbol.unwrap().name() == INTERNAL_SYMBOL_NAME_THIS {
                 has_this_parameter = true;
@@ -1089,7 +1087,7 @@ impl Checker {
 }
 
 // checker.go:20331
-pub(crate) fn is_late_bindable_ast(node: P<Node>) -> bool {
+pub fn is_late_bindable_ast(node: P<Node>) -> bool {
     let mut expr = None;
     if ast::is_computed_property_name(node) {
         expr = node.expression();
@@ -1129,10 +1127,10 @@ impl Checker {
             t = match annotated {
                 Some(annotated) => annotated,
                 None => {
-                    if !ast::node_is_missing(declaration.body()) {
-                        self.get_return_type_from_body(declaration, CheckMode::Normal)
-                    } else {
+                    if ast::node_is_missing(declaration.body()) {
                         self.any_type
+                    } else {
+                        self.get_return_type_from_body(declaration, CheckMode::Normal)
                     }
                 }
             };
@@ -1278,7 +1276,7 @@ impl Checker {
 }
 
 // checker.go:20459
-pub(crate) fn get_effective_set_accessor_type_annotation_node(node: P<Node>) -> Option<P<Node>> {
+pub fn get_effective_set_accessor_type_annotation_node(node: P<Node>) -> Option<P<Node>> {
     let param = get_set_accessor_value_parameter(node);
     if let Some(param) = param {
         return param.type_node();
@@ -1551,7 +1549,7 @@ impl Checker {
 }
 
 // checker.go:20653
-pub(crate) fn may_return_never(fn_: P<Node>) -> bool {
+pub fn may_return_never(fn_: P<Node>) -> bool {
     match fn_.kind() {
         Kind::FunctionExpression | Kind::ArrowFunction => return true,
         Kind::MethodDeclaration => return ast::is_object_literal_expression(fn_.parent().unwrap()),
@@ -1706,24 +1704,22 @@ impl Checker {
         is_async: bool,
     ) -> Option<P<Type>> {
         let mut t = t;
-        if let Some(ty) = t {
-            if is_unit_type(ty) {
-                let mut contextual_type = None;
-                match contextual_signature_return_type {
-                    None => {
-                        // No contextual type
-                    }
-                    Some(csrt) if is_async => {
-                        contextual_type = self.get_promised_type_of_promise(csrt);
-                    }
-                    Some(csrt) => {
-                        contextual_type = Some(csrt);
-                    }
+        if let Some(ty) = t
+            && is_unit_type(ty)
+        {
+            let mut contextual_type = None;
+            match contextual_signature_return_type {
+                None => {
+                    // No contextual type
                 }
-                t = Some(
-                    self.get_widened_literal_like_type_for_contextual_type(ty, contextual_type),
-                );
+                Some(csrt) if is_async => {
+                    contextual_type = self.get_promised_type_of_promise(csrt);
+                }
+                Some(csrt) => {
+                    contextual_type = Some(csrt);
+                }
             }
+            t = Some(self.get_widened_literal_like_type_for_contextual_type(ty, contextual_type));
         }
         t
     }
@@ -1737,20 +1733,18 @@ impl Checker {
         is_async_generator: bool,
     ) -> Option<P<Type>> {
         let mut t = t;
-        if let Some(ty) = t {
-            if is_unit_type(ty) {
-                let mut contextual_type = None;
-                if let Some(csrt) = contextual_signature_return_type {
-                    contextual_type = self.get_iteration_type_of_generator_function_return_type(
-                        kind,
-                        csrt,
-                        is_async_generator,
-                    );
-                }
-                t = Some(
-                    self.get_widened_literal_like_type_for_contextual_type(ty, contextual_type),
+        if let Some(ty) = t
+            && is_unit_type(ty)
+        {
+            let mut contextual_type = None;
+            if let Some(csrt) = contextual_signature_return_type {
+                contextual_type = self.get_iteration_type_of_generator_function_return_type(
+                    kind,
+                    csrt,
+                    is_async_generator,
                 );
             }
+            t = Some(self.get_widened_literal_like_type_for_contextual_type(ty, contextual_type));
         }
         t
     }
@@ -1801,18 +1795,18 @@ impl Checker {
         t: P<Type>,
         widening_kind: WideningKind,
     ) {
-        if self.no_implicit_any && t.object_flags().intersects(ObjectFlags::ContainsWideningType) {
-            if widening_kind == WideningKind::Normal
+        if self.no_implicit_any
+            && t.object_flags().intersects(ObjectFlags::ContainsWideningType)
+            && (widening_kind == WideningKind::Normal
                 || ast::is_function_like_declaration(declaration)
                     && self.should_report_errors_from_widening_with_contextual_signature(
                         declaration,
                         widening_kind,
-                    )
-            {
-                // Report implicit any error within type if possible, otherwise report error on declaration
-                if !self.report_widening_errors_in_type(t) {
-                    self.report_implicit_any(declaration, t, widening_kind);
-                }
+                    ))
+        {
+            // Report implicit any error within type if possible, otherwise report error on declaration
+            if !self.report_widening_errors_in_type(t) {
+                self.report_implicit_any(declaration, t, widening_kind);
             }
         }
     }
@@ -2315,17 +2309,17 @@ impl Checker {
         }
         // If the type of the symbol is already resolved, and if that type could not possibly
         // be affected by instantiation, simply return the symbol itself.
-        if let Some(resolved_type) = links.resolved_type.get() {
-            if !self.could_contain_type_variables(resolved_type) {
-                if !symbol.flags().intersects(SymbolFlags::SetAccessor) {
-                    return true;
-                }
-                // If we're a setter, check writeType.
-                if let Some(write_type) = links.write_type() {
-                    if !self.could_contain_type_variables(write_type) {
-                        return true;
-                    }
-                }
+        if let Some(resolved_type) = links.resolved_type.get()
+            && !self.could_contain_type_variables(resolved_type)
+        {
+            if !symbol.flags().intersects(SymbolFlags::SetAccessor) {
+                return true;
+            }
+            // If we're a setter, check writeType.
+            if let Some(write_type) = links.write_type()
+                && !self.could_contain_type_variables(write_type)
+            {
+                return true;
             }
         }
         false
@@ -2376,7 +2370,7 @@ impl Checker {
 // inferred from their initializers and function members with inferred return types are conservatively
 // assumed not to be free of "this" references.
 // checker.go:21139
-pub(crate) fn is_thisless(symbol: P<Symbol>) -> bool {
+pub fn is_thisless(symbol: P<Symbol>) -> bool {
     let declarations = symbol.declarations();
     if declarations.len() == 1 {
         let declaration = declarations[0];
@@ -2401,7 +2395,7 @@ pub(crate) fn is_thisless(symbol: P<Symbol>) -> bool {
 // A variable-like declaration is free of this references if it has a type annotation
 // that is thisless, or if it has no type annotation and no initializer (and is thus of type any).
 // checker.go:21158
-pub(crate) fn is_thisless_variable_like_declaration(node: P<Node>) -> bool {
+pub fn is_thisless_variable_like_declaration(node: P<Node>) -> bool {
     let type_node = node.type_node();
     if let Some(type_node) = type_node {
         return is_thisless_type(type_node);
@@ -2413,7 +2407,7 @@ pub(crate) fn is_thisless_variable_like_declaration(node: P<Node>) -> bool {
 // literal type, an array with an element type that is free of this references, or a type reference that is
 // free of this references.
 // checker.go:21169
-pub(crate) fn is_thisless_type(node: P<Node>) -> bool {
+pub fn is_thisless_type(node: P<Node>) -> bool {
     match node.kind() {
         Kind::AnyKeyword
         | Kind::UnknownKeyword
@@ -2438,7 +2432,7 @@ pub(crate) fn is_thisless_type(node: P<Node>) -> bool {
 // annotation that is free of this references and if each parameter is thisless and if
 // each type parameter (if present) is thisless.
 // checker.go:21185
-pub(crate) fn is_thisless_function_like_declaration(node: P<Node>) -> bool {
+pub fn is_thisless_function_like_declaration(node: P<Node>) -> bool {
     let return_type = node.type_node();
     (ast::is_constructor_declaration(node) || return_type.is_some_and(is_thisless_type))
         && node.parameters().iter().all(|n| is_thisless_variable_like_declaration(*n))
@@ -2447,7 +2441,7 @@ pub(crate) fn is_thisless_function_like_declaration(node: P<Node>) -> bool {
 
 // A type parameter is thisless if its constraint is thisless, or if it has no constraint. */
 // checker.go:21193
-pub(crate) fn is_thisless_type_parameter(node: P<Node>) -> bool {
+pub fn is_thisless_type_parameter(node: P<Node>) -> bool {
     let constraint = node.as_type_parameter_declaration().constraint;
     constraint.is_none() || is_thisless_type(constraint.unwrap())
 }
@@ -2709,7 +2703,7 @@ impl Checker {
 
 // Mapped types { [P in keyof T]: X } where T is an object type get a lazy table that creates
 // members and index infos as they are asked for, the way resolveMappedTypeMembers would.
-pub(crate) struct LazyMappedTable {
+pub struct LazyMappedTable {
     pub(crate) type_parameter: P<Type>,
     pub(crate) modifiers_type: P<Type>,
     pub(crate) template_modifiers: MappedTypeModifiers,
@@ -2830,30 +2824,30 @@ impl Checker {
             return Some(t.as_structured_type().members().and_then(|m| m.lookup(name)));
         }
         let mut member = None;
-        if let Some(modifiers_prop) = modifiers_prop {
-            if self.is_named_member(modifiers_prop, name) {
-                let key_type = self.get_literal_type_from_property(
-                    modifiers_prop,
-                    TypeFlags::StringOrNumberLiteralOrUnique,
-                    false,
-                );
-                if !is_type_usable_as_property_name(key_type)
-                    || get_property_name_from_type(key_type) != name
-                {
-                    lazy.members.borrow_mut().remove(name);
-                    return None;
-                }
-                self.lazy_member_stats.mapped_members_created += 1;
-                member = Some(self.new_mapped_type_member(
-                    t,
-                    lazy.modifiers_type,
-                    lazy.template_modifiers,
-                    lazy.should_link_prop_declarations,
-                    key_type,
-                    key_type,
-                    name,
-                ));
+        if let Some(modifiers_prop) = modifiers_prop
+            && self.is_named_member(modifiers_prop, name)
+        {
+            let key_type = self.get_literal_type_from_property(
+                modifiers_prop,
+                TypeFlags::StringOrNumberLiteralOrUnique,
+                false,
+            );
+            if !is_type_usable_as_property_name(key_type)
+                || get_property_name_from_type(key_type) != name
+            {
+                lazy.members.borrow_mut().remove(name);
+                return None;
             }
+            self.lazy_member_stats.mapped_members_created += 1;
+            member = Some(self.new_mapped_type_member(
+                t,
+                lazy.modifiers_type,
+                lazy.template_modifiers,
+                lazy.should_link_prop_declarations,
+                key_type,
+                key_type,
+                name,
+            ));
         }
         lazy.members.borrow_mut().insert(name.to_string(), member);
         self.lazy_member_stats.mapped_member_lookups += 1;
@@ -3731,10 +3725,10 @@ impl Checker {
         if t.flags().intersects(TypeFlags::Object) {
             let resolved = self.resolve_structured_type_members(t);
             let symbol = resolved.members().and_then(|m| m.lookup_hashed(key));
-            if let Some(symbol) = symbol {
-                if self.symbol_is_value(symbol) {
-                    return Some(symbol);
-                }
+            if let Some(symbol) = symbol
+                && self.symbol_is_value(symbol)
+            {
+                return Some(symbol);
             }
         }
         None

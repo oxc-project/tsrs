@@ -55,7 +55,7 @@ mod tests {
 }
 
 #[derive(Clone, PartialEq, Eq, Debug)]
-pub(crate) struct ModuleResolutionCacheKey {
+pub struct ModuleResolutionCacheKey {
     pub(crate) containing_directory: String,
     pub(crate) module_name: String,
     pub(crate) resolution_mode: ResolutionMode,
@@ -63,9 +63,11 @@ pub(crate) struct ModuleResolutionCacheKey {
 }
 
 /// The key's fields as borrowed values: a lookup builds this from the resolver's arguments instead of an owned
-/// key, so a cache hit (most resolutions in a program) allocates nothing. The owned key and the borrowed view
+/// key, so a cache hit (most resolutions in a program) allocates nothing.
+///
+/// The owned key and the borrowed view
 /// hash and compare through the same tuple.
-pub(crate) trait ModuleResolutionKey {
+pub trait ModuleResolutionKey {
     fn parts(&self) -> (&str, &str, ResolutionMode, &str);
 }
 
@@ -113,7 +115,7 @@ impl<'a> std::borrow::Borrow<dyn ModuleResolutionKey + 'a> for ModuleResolutionC
 }
 
 #[derive(Default)]
-pub(crate) struct ModuleResolutionCache {
+pub struct ModuleResolutionCache {
     cache: SyncMap<ModuleResolutionCacheKey, P<ResolvedModule>>,
 }
 
@@ -141,7 +143,7 @@ impl ModuleResolutionCache {
 }
 
 #[derive(Clone, PartialEq, Eq, Hash, Debug)]
-pub(crate) struct TypeRefDirectiveResolutionCacheKey {
+pub struct TypeRefDirectiveResolutionCacheKey {
     pub(crate) containing_directory: String,
     pub(crate) type_reference_name: String,
     pub(crate) resolution_mode: ResolutionMode,
@@ -150,7 +152,7 @@ pub(crate) struct TypeRefDirectiveResolutionCacheKey {
 }
 
 #[derive(Default)]
-pub(crate) struct TypeRefDirectiveResolutionCache {
+pub struct TypeRefDirectiveResolutionCache {
     cache: SyncMap<TypeRefDirectiveResolutionCacheKey, P<ResolvedTypeReferenceDirective>>,
 }
 
@@ -178,7 +180,7 @@ impl TypeRefDirectiveResolutionCache {
 
 // Keyed by the identity (address) of the path mappings, like Go's pointer key.
 #[derive(Default)]
-pub(crate) struct ParsedPatternsCache {
+pub struct ParsedPatternsCache {
     cache: SyncMap<usize, P<ParsedPatterns>>,
 }
 
@@ -210,7 +212,7 @@ pub struct ResolutionData {
     pub(crate) package_json_info_cache: P<InfoCache>,
 }
 
-pub(crate) fn new_resolution_data(opts: ResolverOptions<'_>) -> P<ResolutionData> {
+pub fn new_resolution_data(opts: ResolverOptions<'_>) -> P<ResolutionData> {
     let package_json_info_cache = match opts.package_json_cache {
         Some(cache) => cache,
         None => P::new(packagejson::new_info_cache(
@@ -248,11 +250,11 @@ impl ResolutionData {
     }
 }
 
-pub(crate) fn get_redirect_config_name(redirect: Option<&dyn ResolvedProjectReference>) -> String {
+pub fn get_redirect_config_name(redirect: Option<&dyn ResolvedProjectReference>) -> String {
     redirect_config_name(redirect).to_string()
 }
 
-pub(crate) fn redirect_config_name(redirect: Option<&dyn ResolvedProjectReference>) -> &str {
+pub fn redirect_config_name(redirect: Option<&dyn ResolvedProjectReference>) -> &str {
     match redirect {
         None => "",
         Some(redirect) => redirect.config_name(),

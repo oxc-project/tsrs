@@ -17,15 +17,15 @@ use crate::snapshot::{
 };
 
 // programtosnapshot.go:16
-pub(crate) fn program_to_snapshot(
+pub fn program_to_snapshot(
     program: &'static CompilerProgram,
     old_program: Option<P<Program>>,
     hash_with_text: bool,
 ) -> P<Snapshot> {
-    if let Some(old_program) = old_program {
-        if old_program.program.is_some_and(|p| std::ptr::eq(p, program)) {
-            return old_program.snapshot;
-        }
+    if let Some(old_program) = old_program
+        && old_program.program.is_some_and(|p| std::ptr::eq(p, program))
+    {
+        return old_program.snapshot;
     }
     // Recycled: a watch session frees the snapshot it replaces (`Program::drop_replaced`).
     let snapshot = P::new_recycled(Snapshot {
@@ -301,14 +301,13 @@ impl ToProgramSnapshot {
                         }
                     }
                 }
-                if can_copy_emit_signatures {
-                    if let Some(old_emit_signature) = old.emit_signatures.load(file.path()) {
-                        change.emit_signature =
-                            Some(old_emit_signature.get_new_emit_signature(
-                                old_options.as_ref().unwrap(),
-                                &new_options,
-                            ));
-                    }
+                if can_copy_emit_signatures
+                    && let Some(old_emit_signature) = old.emit_signatures.load(file.path())
+                {
+                    change.emit_signature = Some(
+                        old_emit_signature
+                            .get_new_emit_signature(old_options.as_ref().unwrap(), &new_options),
+                    );
                 }
             } else {
                 signature.clone_from(&version);
@@ -537,13 +536,12 @@ impl ToProgramSnapshot {
 
     // programtosnapshot.go:226
     fn handle_pending_check(&self) {
-        if let Some(old_program) = self.old_program {
-            if self.snapshot.semantic_diagnostics_per_file.size()
+        if let Some(old_program) = self.old_program
+            && self.snapshot.semantic_diagnostics_per_file.size()
                 != self.program.get_source_files().len()
-                && old_program.snapshot.check_pending.get() != self.snapshot.check_pending.get()
-            {
-                self.snapshot.build_info_emit_pending.set(true);
-            }
+            && old_program.snapshot.check_pending.get() != self.snapshot.check_pending.get()
+        {
+            self.snapshot.build_info_emit_pending.set(true);
         }
     }
 }
@@ -553,7 +551,7 @@ fn contains_interface_declaration(node: P<Node>) -> bool {
 }
 
 // programtosnapshot.go:235
-pub(crate) fn file_affects_global_scope(file: P<SourceFile>) -> bool {
+pub fn file_affects_global_scope(file: P<SourceFile>) -> bool {
     tsrs_binder::bind_source_file(file);
     // if file contains anything that augments to global scope we need to build them as if
     // they are global files as well as module
@@ -611,15 +609,15 @@ fn add_referenced_files_from_import_literal(
 // programtosnapshot.go:281 (addReferencedFileFromFileName, returning the path it adds)
 fn referenced_file_path_from_file_name(program: &CompilerProgram, file_name: &str) -> Path {
     let redirect = program.get_parse_file_redirect(file_name);
-    if !redirect.is_empty() {
+    if redirect.is_empty() {
         tspath::to_path(
-            &redirect,
+            file_name,
             program.get_current_directory(),
             program.use_case_sensitive_file_names(),
         )
     } else {
         tspath::to_path(
-            file_name,
+            &redirect,
             program.get_current_directory(),
             program.use_case_sensitive_file_names(),
         )
@@ -727,10 +725,10 @@ fn referenced_files_of(
     {
         // the paths go into a set, and references_equal does not depend on their order
         file_name_paths.extend(type_refs_in_file.values().filter_map(|type_ref| {
-            if !type_ref.resolved_file_name.is_empty() {
-                Some(referenced_file_path_from_file_name(program, type_ref.resolved_file_name))
-            } else {
+            if type_ref.resolved_file_name.is_empty() {
                 None
+            } else {
+                Some(referenced_file_path_from_file_name(program, type_ref.resolved_file_name))
             }
         }));
     }
@@ -787,12 +785,12 @@ fn referenced_files_of(
         import_files
             .into_iter()
             .chain(augmentation_files)
-            .filter_map(|f| if !in_shared(f.path()) { Some(f.path().clone()) } else { None }),
+            .filter_map(|f| if in_shared(f.path()) { None } else { Some(f.path().clone()) }),
     );
     own.m.extend(
         file_name_paths
             .into_iter()
-            .filter_map(|path| if !in_shared(&path) { Some(path) } else { None }),
+            .filter_map(|path| if in_shared(&path) { None } else { Some(path) }),
     );
     let shared_len = ambient_paths.len() - usize::from(file_is_ambient);
     if own.len() + shared_len == 0 {

@@ -85,11 +85,11 @@ fn encode_batch_response(method: &str, result: &str, error: Option<&str>) -> Str
     out.push_str(&json::marshal_string(method));
     out.push_str(",\"result\":");
     out.push_str(result);
-    if let Some(e) = error {
-        if !e.is_empty() {
-            out.push_str(",\"error\":");
-            out.push_str(&json::marshal_string(e));
-        }
+    if let Some(e) = error
+        && !e.is_empty()
+    {
+        out.push_str(",\"error\":");
+        out.push_str(&json::marshal_string(e));
     }
     out.push('}');
     out
@@ -148,13 +148,7 @@ impl Session {
             _ => DEFAULT_MAX_RESPONSE_BYTES_PER_PAGE,
         };
         let token = p.str("continuationToken")?;
-        let encoded = if !token.is_empty() {
-            self.batch_pages
-                .lock()
-                .unwrap()
-                .remove(token)
-                .ok_or_else(|| ApiError::client("invalid batch continuation token"))?
-        } else {
+        let encoded = if token.is_empty() {
             {
                 // Raw params of every item, indexed in one pass (rescanning per item would be quadratic).
                 let requests = p.array("requests")?;
@@ -164,6 +158,12 @@ impl Session {
                     .map(|r| self.handle_batch_request(r, raw.next().flatten()))
                     .collect()
             }
+        } else {
+            self.batch_pages
+                .lock()
+                .unwrap()
+                .remove(token)
+                .ok_or_else(|| ApiError::client("invalid batch continuation token"))?
         };
         Ok(self.paginate_batch_responses(encoded, max))
     }

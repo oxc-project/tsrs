@@ -79,12 +79,11 @@ impl PseudoChecker {
             let init = node.initializer();
             if let Some(init) = init {
                 let expr = self.type_from_expression(init);
-                if let Some(expr) = expr {
-                    if expr.kind != PseudoTypeKind::Inferred
-                        || !expr.as_pseudo_type_inferred().error_nodes.is_empty()
-                    {
-                        return expr;
-                    }
+                if let Some(expr) = expr
+                    && (expr.kind != PseudoTypeKind::Inferred
+                        || !expr.as_pseudo_type_inferred().error_nodes.is_empty())
+                {
+                    return expr;
                 }
                 // fallback to NoResult if PseudoTypeKindInferred without error nodes
             }
@@ -112,29 +111,28 @@ impl PseudoChecker {
         }
         if is_property_declaration(node) {
             let init = node.initializer();
-            if let Some(init) = init {
-                if !is_contextually_typed(node) {
-                    // explicit fail on readonly template literals to allow for literal freshness in the future
-                    if has_modifier(node, ModifierFlags::Readonly) && is_template_expression(init) {
-                        return new_pseudo_type_no_result(node);
-                    }
-                    let expr = self.type_from_expression(init);
-                    if let Some(expr) = expr {
-                        if expr.kind != PseudoTypeKind::Inferred
-                            || !expr.as_pseudo_type_inferred().error_nodes.is_empty()
-                        {
-                            let postfix_token = node.as_property_declaration().postfix_token();
-                            if expr.kind != PseudoTypeKind::Direct
-                                && postfix_token.is_some_and(|t| t.kind() == Kind::QuestionToken)
-                            {
-                                // type comes from the initializer expression on a property with a `?` - add `| undefined` to the type
-                                return add_undefined_if_definitely_required(expr);
-                            }
-                            return expr;
-                        }
-                    }
-                    // fallback to NoResult if PseudoTypeKindInferred without error nodes
+            if let Some(init) = init
+                && !is_contextually_typed(node)
+            {
+                // explicit fail on readonly template literals to allow for literal freshness in the future
+                if has_modifier(node, ModifierFlags::Readonly) && is_template_expression(init) {
+                    return new_pseudo_type_no_result(node);
                 }
+                let expr = self.type_from_expression(init);
+                if let Some(expr) = expr
+                    && (expr.kind != PseudoTypeKind::Inferred
+                        || !expr.as_pseudo_type_inferred().error_nodes.is_empty())
+                {
+                    let postfix_token = node.as_property_declaration().postfix_token();
+                    if expr.kind != PseudoTypeKind::Direct
+                        && postfix_token.is_some_and(|t| t.kind() == Kind::QuestionToken)
+                    {
+                        // type comes from the initializer expression on a property with a `?` - add `| undefined` to the type
+                        return add_undefined_if_definitely_required(expr);
+                    }
+                    return expr;
+                }
+                // fallback to NoResult if PseudoTypeKindInferred without error nodes
             }
         }
         new_pseudo_type_no_result(node)
@@ -159,12 +157,11 @@ impl PseudoChecker {
                     return new_pseudo_type_no_result(declaration);
                 }
                 let expr = self.type_from_expression(init);
-                if let Some(expr) = expr {
-                    if expr.kind != PseudoTypeKind::Inferred
-                        || !expr.as_pseudo_type_inferred().error_nodes.is_empty()
-                    {
-                        return expr;
-                    }
+                if let Some(expr) = expr
+                    && (expr.kind != PseudoTypeKind::Inferred
+                        || !expr.as_pseudo_type_inferred().error_nodes.is_empty())
+                {
+                    return expr;
                 }
                 // fallback to NoResult if PseudoTypeKindInferred without error nodes
             }
@@ -186,10 +183,10 @@ impl PseudoChecker {
             accessor,
             accessor_declarations,
         );
-        if let Some(accessor_type) = accessor_type {
-            if !is_type_predicate_node(accessor_type) {
-                return Some(new_pseudo_type_direct(accessor_type));
-            }
+        if let Some(accessor_type) = accessor_type
+            && !is_type_predicate_node(accessor_type)
+        {
+            return Some(new_pseudo_type_direct(accessor_type));
         }
         if let Some(get_accessor) = accessor_declarations.get_accessor {
             let mut res = self.create_return_from_signature(get_accessor).unwrap();
@@ -220,12 +217,11 @@ impl PseudoChecker {
         if accessor_type.is_none() && node != accessors.first_accessor {
             accessor_type = Self::get_type_annotation_from_accessor(accessors.first_accessor);
         }
-        if accessor_type.is_none() {
-            if let Some(second_accessor) = accessors.second_accessor {
-                if node != second_accessor {
-                    accessor_type = Self::get_type_annotation_from_accessor(second_accessor);
-                }
-            }
+        if accessor_type.is_none()
+            && let Some(second_accessor) = accessors.second_accessor
+            && node != second_accessor
+        {
+            accessor_type = Self::get_type_annotation_from_accessor(second_accessor);
         }
         accessor_type
     }
@@ -253,7 +249,7 @@ impl PseudoChecker {
 }
 
 // lookup.go:196
-pub(crate) fn is_value_signature_declaration(node: P<Node>) -> bool {
+pub fn is_value_signature_declaration(node: P<Node>) -> bool {
     is_function_expression(node)
         || is_arrow_function(node)
         || is_method_declaration(node)
@@ -286,32 +282,32 @@ impl PseudoChecker {
         fn_: Option<P<Node>>,
     ) -> Option<P<PseudoType>> {
         let mut candidate_expr: Option<P<Node>> = None;
-        if let Some(f) = fn_ {
-            if !node_is_missing(f.body()) {
-                let flags = get_function_flags(Some(f));
-                if flags.intersects(FunctionFlags::AsyncGenerator) {
-                    return Some(new_pseudo_type_inferred(f, true));
-                }
+        if let Some(f) = fn_
+            && !node_is_missing(f.body())
+        {
+            let flags = get_function_flags(Some(f));
+            if flags.intersects(FunctionFlags::AsyncGenerator) {
+                return Some(new_pseudo_type_inferred(f, true));
+            }
 
-                let body = f.body().unwrap();
-                if is_block(body) {
-                    for_each_return_statement(body, |stmt| {
-                        if stmt.parent() != Some(body) {
-                            // Why bail on nested return statements?
-                            candidate_expr = None;
-                            return true;
-                        }
-                        if candidate_expr.is_none() {
-                            candidate_expr = stmt.as_return_statement().expression();
-                        } else {
-                            candidate_expr = None;
-                            return true;
-                        }
-                        false
-                    });
-                } else {
-                    candidate_expr = Some(body);
-                }
+            let body = f.body().unwrap();
+            if is_block(body) {
+                for_each_return_statement(body, |stmt| {
+                    if stmt.parent() != Some(body) {
+                        // Why bail on nested return statements?
+                        candidate_expr = None;
+                        return true;
+                    }
+                    if candidate_expr.is_none() {
+                        candidate_expr = stmt.as_return_statement().expression();
+                    } else {
+                        candidate_expr = None;
+                        return true;
+                    }
+                    false
+                });
+            } else {
+                candidate_expr = Some(body);
             }
         }
         if let Some(candidate_expr) = candidate_expr {
@@ -322,10 +318,10 @@ impl PseudoChecker {
                 } else if candidate_expr.kind() == Kind::AsExpression {
                     t = Some(candidate_expr.as_as_expression().type_);
                 }
-                if let Some(t) = t {
-                    if !is_const_type_reference(t) {
-                        return Some(new_pseudo_type_direct(t));
-                    }
+                if let Some(t) = t
+                    && !is_const_type_reference(t)
+                {
+                    return Some(new_pseudo_type_direct(t));
                 }
             } else {
                 return self.type_from_expression(candidate_expr);
@@ -498,30 +494,27 @@ impl PseudoChecker {
         // TODO: handle pseudo-annotations from get accessor return positions?
         if let (Some(get_accessor), Some(set_accessor)) =
             (all_accessors.get_accessor, all_accessors.set_accessor)
+            && get_accessor.as_get_accessor_declaration().type_().is_some()
         {
-            if get_accessor.as_get_accessor_declaration().type_().is_some() {
-                let set_params = set_accessor.parameters();
-                if !set_params.is_empty()
-                    && set_params[0].as_parameter_declaration().type_().is_some()
-                {
-                    // We have possible types for both accessors, we can't know if they are the same type so we keep both accessors
+            let set_params = set_accessor.parameters();
+            if !set_params.is_empty() && set_params[0].as_parameter_declaration().type_().is_some()
+            {
+                // We have possible types for both accessors, we can't know if they are the same type so we keep both accessors
 
-                    if is_get_accessor_declaration(accessor) {
-                        return Some(new_pseudo_get_accessor(
-                            accessor,
-                            name,
-                            false,
-                            self.type_from_accessor(accessor).unwrap(),
-                        ));
-                    }
-                    return Some(new_pseudo_set_accessor(
+                if is_get_accessor_declaration(accessor) {
+                    return Some(new_pseudo_get_accessor(
                         accessor,
                         name,
                         false,
-                        self.clone_parameters(accessor.as_set_accessor_declaration().parameters())
-                            [0],
+                        self.type_from_accessor(accessor).unwrap(),
                     ));
                 }
+                return Some(new_pseudo_set_accessor(
+                    accessor,
+                    name,
+                    false,
+                    self.clone_parameters(accessor.as_set_accessor_declaration().parameters())[0],
+                ));
             }
         }
 
@@ -567,7 +560,7 @@ impl PseudoChecker {
             }
             if name.kind() == Kind::ComputedPropertyName {
                 let expression = name.expression().unwrap();
-                if !is_primitive_literal_value(expression, false) { Some(name) } else { None }
+                if is_primitive_literal_value(expression, false) { None } else { Some(name) }
             } else {
                 None
             }
@@ -613,7 +606,7 @@ impl PseudoChecker {
 
 // lookup.go:470
 // See `isConstContext` in `checker.go` - this is basically any node kind mentioned in that
-pub(crate) fn is_const_context_propagating_kind(kind: Kind) -> bool {
+pub fn is_const_context_propagating_kind(kind: Kind) -> bool {
     matches!(
         kind,
         Kind::ArrayLiteralExpression
@@ -707,14 +700,14 @@ impl PseudoChecker {
 }
 
 // lookup.go:546
-pub(crate) fn is_undefined_pseudo_type(t: P<PseudoType>) -> bool {
+pub fn is_undefined_pseudo_type(t: P<PseudoType>) -> bool {
     t.kind == PseudoTypeKind::Undefined
         || (t.kind == PseudoTypeKind::MaybeConstLocation
             && is_undefined_pseudo_type(t.as_pseudo_type_maybe_const_location().const_type))
 }
 
 // lookup.go:550
-pub(crate) fn type_node_could_refer_to_undefined(node: P<Node>) -> bool {
+pub fn type_node_could_refer_to_undefined(node: P<Node>) -> bool {
     let mut node = node;
     while node.kind() == Kind::ParenthesizedType {
         node = node.as_parenthesized_type_node().type_;
@@ -782,7 +775,7 @@ pub fn could_already_refer_to_undefined_type(t: P<PseudoType>) -> bool {
 }
 
 // lookup.go:597
-pub(crate) fn is_optional_initialized_or_rest_parameter(node: P<Node>) -> bool {
+pub fn is_optional_initialized_or_rest_parameter(node: P<Node>) -> bool {
     let p = node.as_parameter_declaration();
     if p.dot_dot_dot_token().is_some() || p.initializer().is_some() || p.question_token().is_some()
     {
@@ -797,9 +790,9 @@ pub(crate) fn is_optional_initialized_or_rest_parameter(node: P<Node>) -> bool {
 // and no rest token. This is computed in a single reverse pass so callers can
 // determine "has required parameter after index i" with `i+1 < lastRequired`
 // (equivalently, `i < lastRequired-1`) in O(1).
-pub(crate) fn last_required_param_index(params: &[P<Node>]) -> usize {
+pub fn last_required_param_index(params: &[P<Node>]) -> usize {
     if let Some(result) = params.iter().enumerate().rev().into_iter().find_map(|(i, param)| {
-        if !is_optional_initialized_or_rest_parameter(*param) { Some(i + 1) } else { None }
+        if is_optional_initialized_or_rest_parameter(*param) { None } else { Some(i + 1) }
     }) {
         return result;
     }
@@ -807,7 +800,7 @@ pub(crate) fn last_required_param_index(params: &[P<Node>]) -> usize {
 }
 
 // lookup.go:619
-pub(crate) fn add_undefined_if_definitely_required(expr: P<PseudoType>) -> P<PseudoType> {
+pub fn add_undefined_if_definitely_required(expr: P<PseudoType>) -> P<PseudoType> {
     // If `expr` doesn't already contain `| undefined` or a direct/inferred type that may contain `undefined`, add `| undefined`
     // in Strada, this reached into the checker to see if `undefined` was necessary, using `isRequiredOptionalParameter` from the emit resolver,
     // but that's not required on top of the syntactic checks to get the same behavior. (If we get the type wrong, it'll mismatch later and be discarded
@@ -867,29 +860,29 @@ impl PseudoChecker {
             }
             return Some(result);
         }
-        if let Some(initializer) = p_decl.initializer() {
-            if is_identifier(node.name().unwrap()) && !is_contextually_typed(node) {
-                let mut expr = self.type_from_expression(initializer);
-                if let Some(e) = expr {
-                    if e.kind == PseudoTypeKind::Inferred
-                        && e.as_pseudo_type_inferred().error_nodes.is_empty()
-                    {
-                        expr = Some(new_pseudo_type_inferred_with_errors(
-                            e.as_pseudo_type_inferred().expression,
-                            false,
-                            &[node],
-                        )); // Move error up to the parameter
-                    }
-                }
-                if !self.strict_null_checks {
-                    return expr;
-                }
-                if !has_required_after {
-                    return expr;
-                }
-                // if there is a non-optional parameter after this one, a `| undefined` will need to explicitly be emitted on this parameter, if it's not already there
-                return Some(add_undefined_if_definitely_required(expr.unwrap()));
+        if let Some(initializer) = p_decl.initializer()
+            && is_identifier(node.name().unwrap())
+            && !is_contextually_typed(node)
+        {
+            let mut expr = self.type_from_expression(initializer);
+            if let Some(e) = expr
+                && e.kind == PseudoTypeKind::Inferred
+                && e.as_pseudo_type_inferred().error_nodes.is_empty()
+            {
+                expr = Some(new_pseudo_type_inferred_with_errors(
+                    e.as_pseudo_type_inferred().expression,
+                    false,
+                    &[node],
+                )); // Move error up to the parameter
             }
+            if !self.strict_null_checks {
+                return expr;
+            }
+            if !has_required_after {
+                return expr;
+            }
+            // if there is a non-optional parameter after this one, a `| undefined` will need to explicitly be emitted on this parameter, if it's not already there
+            return Some(add_undefined_if_definitely_required(expr.unwrap()));
         }
         // TODO: In strada, the ID checker doesn't infer a parameter type from binding pattern names, but the real checker _does_!
         // This means ID won't let you write, say, `({elem}) => false` without an annotation, even though it's trivially of type
@@ -929,7 +922,7 @@ impl PseudoChecker {
 }
 
 // lookup.go:715
-pub(crate) fn is_contextually_typed(node: P<Node>) -> bool {
+pub fn is_contextually_typed(node: P<Node>) -> bool {
     find_ancestor(node.parent(), |n| {
         // Functions calls or parent type annotations (but not the return type of a function expression) may impact the inferred type and local inference is unreliable
         if is_call_expression(n) {

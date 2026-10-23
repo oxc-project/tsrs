@@ -17,15 +17,15 @@ use super::registry::RegistryCloneHost;
 
 // aliasresolver.go:16
 #[derive(Clone, Debug)]
-pub(crate) struct PathAndFileName {
+pub struct PathAndFileName {
     pub(crate) path: Path,
     pub(crate) file_name: String,
 }
 
-pub(crate) type OnFailedAmbientModuleLookup = Box<dyn Fn(P<SourceFile>, &str) + Send + Sync>;
+pub type OnFailedAmbientModuleLookup = Box<dyn Fn(P<SourceFile>, &str) + Send + Sync>;
 
 // aliasresolver.go:21
-pub(crate) struct AliasResolver {
+pub struct AliasResolver {
     to_path: ToPathFunc,
     host: &'static dyn RegistryCloneHost,
     module_resolver: &'static DefaultResolver<'static>,
@@ -43,7 +43,7 @@ pub(crate) struct AliasResolver {
 }
 
 // aliasresolver.go:33
-pub(crate) fn new_alias_resolver(
+pub fn new_alias_resolver(
     root_files: Vec<P<SourceFile>>,
     symlinks: FxHashMap<Path, PathAndFileName>,
     host: &'static dyn RegistryCloneHost,

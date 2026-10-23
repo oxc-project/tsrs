@@ -13,7 +13,7 @@ pub struct LoggerImpl {
 }
 
 // logger.go:19
-pub(crate) fn new_logger(server: Weak<Server>) -> LoggerImpl {
+pub fn new_logger(server: Weak<Server>) -> LoggerImpl {
     LoggerImpl { server, mu: Mutex::new(LogVerbosity::INFO) }
 }
 
@@ -31,7 +31,7 @@ fn max_verbosity_for_message_type(msg_type: MessageType) -> LogVerbosity {
 
 // logger.go:44
 // isValidLogVerbosity reports whether v is one of the defined LogVerbosity values.
-pub(crate) fn is_valid_log_verbosity(v: LogVerbosity) -> bool {
+pub fn is_valid_log_verbosity(v: LogVerbosity) -> bool {
     v.0 >= LogVerbosity::OFF.0 && v.0 <= LogVerbosity::ERROR.0
 }
 

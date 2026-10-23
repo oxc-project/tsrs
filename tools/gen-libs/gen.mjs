@@ -38,7 +38,7 @@ main(() => {
     write(
         path.join(crate, "src/bundled/embed_generated.rs"),
         header +
-            "pub(crate) static EMBEDDED_CONTENTS: &[(&str, &str)] = &[\n" +
+            "pub static EMBEDDED_CONTENTS: &[(&str, &str)] = &[\n" +
             libs.map((lib) => `    ("libs/${lib}", include_str!("../../libs/${lib}")),`).join("\n") +
             "\n];\n",
     );

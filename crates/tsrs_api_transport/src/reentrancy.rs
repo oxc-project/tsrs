@@ -351,10 +351,10 @@ impl<T> std::ops::DerefMut for RequestGuard<'_, T> {
 
 impl<T> Drop for RequestGuard<'_, T> {
     fn drop(&mut self) {
-        if let Some(key) = self.key {
-            if let Some(map) = lock_holders().as_mut() {
-                map.remove(&key);
-            }
+        if let Some(key) = self.key
+            && let Some(map) = lock_holders().as_mut()
+        {
+            map.remove(&key);
         }
     }
 }

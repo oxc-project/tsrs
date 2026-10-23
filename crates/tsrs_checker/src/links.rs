@@ -704,10 +704,10 @@ impl<V: Default + LinkCopy + 'static> InlineIdStore<V> {
     #[inline]
     #[cfg_attr(feature = "site-counts", track_caller)]
     pub fn get(&mut self, id: u64) -> &'static V {
-        if let Ok(narrow) = u32::try_from(id) {
-            if let Some(value) = self.narrow(narrow) {
-                return value;
-            }
+        if let Ok(narrow) = u32::try_from(id)
+            && let Some(value) = self.narrow(narrow)
+        {
+            return value;
         }
         self.create(id)
     }

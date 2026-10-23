@@ -292,10 +292,10 @@ impl Symbol {
     #[inline]
     pub fn exports(&self) -> Option<P<SymbolTable>> {
         let t = self.tables()?;
-        if let Some(lazy) = t.lazy.get() {
-            if lazy.fills_exports() {
-                lazy.ensure();
-            }
+        if let Some(lazy) = t.lazy.get()
+            && lazy.fills_exports()
+        {
+            lazy.ensure();
         }
         t.exports.get()
     }
@@ -1196,10 +1196,10 @@ pub const INTERNAL_SYMBOL_NAME_THIS: &str = "this";
 pub const INTERNAL_SYMBOL_NAME_MODULE_EXPORTS: &str = "module.exports";
 
 pub fn symbol_name(symbol: P<Symbol>) -> &'static str {
-    if let Some(value_declaration) = symbol.value_declaration() {
-        if is_private_identifier_class_element_declaration(value_declaration) {
-            return value_declaration.name().unwrap().text();
-        }
+    if let Some(value_declaration) = symbol.value_declaration()
+        && is_private_identifier_class_element_declaration(value_declaration)
+    {
+        return value_declaration.name().unwrap().text();
     }
     symbol.name()
 }

@@ -132,14 +132,14 @@ use tsrs_diagnostics::Message;
 //   var primitiveTypeAliasSuggestions (checker.go:1786)
 
 // checker.go:1128
-pub(crate) fn create_file_index_map(files: &[P<SourceFile>]) -> FxHashMap<P<SourceFile>, usize> {
+pub fn create_file_index_map(files: &[P<SourceFile>]) -> FxHashMap<P<SourceFile>, usize> {
     let mut result = FxHashMap::with_capacity_and_hasher(files.len(), rustc_hash::FxBuildHasher);
     result.extend(files.iter().enumerate().map(|(i, file)| (*file, i)));
     result
 }
 
 // checker.go:1136
-pub(crate) fn count_global_symbols(files: &[P<SourceFile>]) -> usize {
+pub fn count_global_symbols(files: &[P<SourceFile>]) -> usize {
     let mut count = 0;
     count = files.iter().fold(count, |mut count, file| {
         if !ast::is_external_or_common_js_module(*file) {
@@ -255,7 +255,7 @@ impl Checker {
 }
 
 // checker.go:1241
-pub(crate) fn get_global_type_declaration(symbol: P<Symbol>) -> Option<P<Node>> {
+pub fn get_global_type_declaration(symbol: P<Symbol>) -> Option<P<Node>> {
     if let Some(result) = symbol.declarations().iter().find_map(|declaration| {
         match declaration.kind() {
             Kind::ClassDeclaration
@@ -595,16 +595,12 @@ impl Checker {
                         for (key, value) in augmentation_exports.unwrap().entries() {
                             if let Some(resolved) = resolved_exports
                                 .and_then(|resolved_exports| resolved_exports.lookup(key))
-                            {
-                                if main_module
+                                && main_module
                                     .exports()
                                     .and_then(|exports| exports.lookup(key))
                                     .is_none()
-                                {
-                                    self.merge_symbol(
-                                        resolved, value, false, /*unidirectional*/
-                                    );
-                                }
+                            {
+                                self.merge_symbol(resolved, value, false /*unidirectional*/);
                             }
                         }
                     }
@@ -754,12 +750,11 @@ impl Checker {
         result: Option<P<Symbol>>,
     ) -> bool {
         if !self.compiler_options.get_emit_standard_class_fields() {
-            if let Some(error_location) = error_location {
-                if result.is_none()
-                    && self.check_and_report_error_for_missing_prefix(error_location, name)
-                {
-                    return true;
-                }
+            if let Some(error_location) = error_location
+                && result.is_none()
+                && self.check_and_report_error_for_missing_prefix(error_location, name)
+            {
+                return true;
             }
             // We have a match, but the reference occurred within a property initializer and the identifier also binds
             // to a local variable in the constructor where the code will be emitted. Note that this is actually allowed
@@ -854,25 +849,26 @@ impl Checker {
         if is_const_type_reference_name(error_location) {
             return;
         }
-        if let Some(loc) = error_location {
-            if loc.parent().unwrap().kind() == Kind::JSDocLink
+        if let Some(loc) = error_location
+            && (loc.parent().unwrap().kind() == Kind::JSDocLink
                 || self.check_and_report_error_for_missing_prefix(loc, name)
                 || self.check_and_report_error_for_extending_interface(loc)
                 || self.check_and_report_error_for_using_type_as_namespace(loc, name, meaning)
                 || self.check_and_report_error_for_exporting_primitive_type(loc, name)
-                || self
-                    .check_and_report_error_for_using_namespace_as_type_or_value(loc, name, meaning)
+                || self.check_and_report_error_for_using_namespace_as_type_or_value(
+                    loc, name, meaning,
+                )
                 || self.check_and_report_error_for_using_type_as_value(loc, name, meaning)
-                || self.check_and_report_error_for_using_value_as_type(loc, name, meaning)
-            {
-                return;
-            }
+                || self.check_and_report_error_for_using_value_as_type(loc, name, meaning))
+        {
+            return;
         }
         let mut declaration_name = name.to_string();
-        if let Some(loc) = error_location {
-            if ast::is_identifier(loc) && loc.text() == name {
-                declaration_name = tsrs_scanner::declaration_name_to_string(Some(loc)); // use escape sequences from original file
-            }
+        if let Some(loc) = error_location
+            && ast::is_identifier(loc)
+            && loc.text() == name
+        {
+            declaration_name = tsrs_scanner::declaration_name_to_string(Some(loc)); // use escape sequences from original file
         }
         // Report missing lib first
         let suggested_lib = Self::get_suggested_lib_for_non_existent_name(name);
@@ -887,39 +883,39 @@ impl Checker {
         // Then spelling suggestions
         let suggestion =
             self.get_suggested_symbol_for_nonexistent_symbol(error_location, name, meaning);
-        if let Some(suggestion) = suggestion {
-            if !suggestion.value_declaration().is_some_and(|value_declaration| {
+        if let Some(suggestion) = suggestion
+            && !suggestion.value_declaration().is_some_and(|value_declaration| {
                 ast::is_ambient_module(value_declaration)
                     && ast::is_global_scope_augmentation(value_declaration)
-            }) {
-                let suggestion_name = self.symbol_to_string(suggestion);
-                let is_unchecked_js = self.is_unchecked_js_suggestion(
-                    error_location,
-                    Some(suggestion),
-                    false, /*excludeClasses*/
-                );
-                let message = if meaning == SymbolFlags::Namespace {
-                    &diagnostics::CANNOT_FIND_NAMESPACE_0_DID_YOU_MEAN_1
-                } else if is_unchecked_js {
-                    &diagnostics::COULD_NOT_FIND_NAME_0_DID_YOU_MEAN_1
-                } else {
-                    &diagnostics::CANNOT_FIND_NAME_0_DID_YOU_MEAN_1
-                };
-                let diagnostic = new_diagnostic_for_node(
-                    error_location,
-                    Some(message),
-                    &[&declaration_name, &suggestion_name],
-                );
-                if let Some(value_declaration) = suggestion.value_declaration() {
-                    diagnostic.add_related_info(new_diagnostic_for_node(
-                        Some(value_declaration),
-                        Some(&diagnostics::X_0_IS_DECLARED_HERE),
-                        &[&suggestion_name],
-                    ));
-                }
-                self.add_error_or_suggestion(!is_unchecked_js, diagnostic);
-                return;
+            })
+        {
+            let suggestion_name = self.symbol_to_string(suggestion);
+            let is_unchecked_js = self.is_unchecked_js_suggestion(
+                error_location,
+                Some(suggestion),
+                false, /*excludeClasses*/
+            );
+            let message = if meaning == SymbolFlags::Namespace {
+                &diagnostics::CANNOT_FIND_NAMESPACE_0_DID_YOU_MEAN_1
+            } else if is_unchecked_js {
+                &diagnostics::COULD_NOT_FIND_NAME_0_DID_YOU_MEAN_1
+            } else {
+                &diagnostics::CANNOT_FIND_NAME_0_DID_YOU_MEAN_1
+            };
+            let diagnostic = new_diagnostic_for_node(
+                error_location,
+                Some(message),
+                &[&declaration_name, &suggestion_name],
+            );
+            if let Some(value_declaration) = suggestion.value_declaration() {
+                diagnostic.add_related_info(new_diagnostic_for_node(
+                    Some(value_declaration),
+                    Some(&diagnostics::X_0_IS_DECLARED_HERE),
+                    &[&suggestion_name],
+                ));
             }
+            self.add_error_or_suggestion(!is_unchecked_js, diagnostic);
+            return;
         }
         // And then fall back to unspecified "not found"
         self.error(error_location, name_not_found_message, &[&declaration_name]);
@@ -994,7 +990,7 @@ impl Checker {
 }
 
 // checker.go:1678
-pub(crate) fn is_primitive_type_name(s: &str) -> bool {
+pub fn is_primitive_type_name(s: &str) -> bool {
     s == "any" || s == "string" || s == "number" || s == "boolean" || s == "never" || s == "unknown"
 }
 
@@ -1143,7 +1139,7 @@ impl Checker {
 }
 
 // checker.go:1745
-pub(crate) fn is_es2015_or_later_constructor_name(s: &str) -> bool {
+pub fn is_es2015_or_later_constructor_name(s: &str) -> bool {
     s == "Promise" || s == "Symbol" || s == "Map" || s == "WeakMap" || s == "Set" || s == "WeakSet"
 }
 
@@ -1189,11 +1185,11 @@ impl Checker {
                     false, /*excludeGlobals*/
                 )
                 .map(|s| self.resolve_symbol(s));
-            if let Some(symbol) = symbol {
-                if !symbol.flags().intersects(SymbolFlags::Namespace) {
-                    self.error(Some(error_location), &diagnostics::X_0_REFERS_TO_A_VALUE_BUT_IS_BEING_USED_AS_A_TYPE_HERE_DID_YOU_MEAN_TYPEOF_0, &[&name]);
-                    return true;
-                }
+            if let Some(symbol) = symbol
+                && !symbol.flags().intersects(SymbolFlags::Namespace)
+            {
+                self.error(Some(error_location), &diagnostics::X_0_REFERS_TO_A_VALUE_BUT_IS_BEING_USED_AS_A_TYPE_HERE_DID_YOU_MEAN_TYPEOF_0, &[&name]);
+                return true;
             }
         }
         false
@@ -1225,9 +1221,7 @@ impl Checker {
 }
 
 // checker.go:1804
-pub(crate) fn get_primitive_type_alias_suggestions(
-    symbols: Option<P<SymbolTable>>,
-) -> Vec<P<Symbol>> {
+pub fn get_primitive_type_alias_suggestions(symbols: Option<P<SymbolTable>>) -> Vec<P<Symbol>> {
     let mut result = Vec::new();
     result.extend(primitive_type_alias_suggestions().iter().filter_map(
         |(builtin_name, suggestion)| {
@@ -1338,21 +1332,17 @@ impl Checker {
         // block-scoped variable and namespace module. However, only when we
         // try to resolve name in /*1*/ which is used in variable position,
         // we want to check for block-scoped
-        if let Some(error_location) = error_location {
-            if meaning.intersects(SymbolFlags::BlockScopedVariable)
+        if let Some(error_location) = error_location
+            && (meaning.intersects(SymbolFlags::BlockScopedVariable)
                 || meaning.intersects(SymbolFlags::Class | SymbolFlags::Enum)
-                    && meaning & SymbolFlags::Value == SymbolFlags::Value
-            {
-                let export_or_local_symbol =
-                    self.get_export_symbol_of_value_symbol_if_exported(Some(result)).unwrap();
-                if export_or_local_symbol.flags().intersects(
-                    SymbolFlags::BlockScopedVariable | SymbolFlags::Class | SymbolFlags::Enum,
-                ) {
-                    self.check_resolved_block_scoped_variable(
-                        export_or_local_symbol,
-                        error_location,
-                    );
-                }
+                    && meaning & SymbolFlags::Value == SymbolFlags::Value)
+        {
+            let export_or_local_symbol =
+                self.get_export_symbol_of_value_symbol_if_exported(Some(result)).unwrap();
+            if export_or_local_symbol.flags().intersects(
+                SymbolFlags::BlockScopedVariable | SymbolFlags::Class | SymbolFlags::Enum,
+            ) {
+                self.check_resolved_block_scoped_variable(export_or_local_symbol, error_location);
             }
         }
         // If we're in an external module, we can't reference value symbols created from UMD export declarations
@@ -1378,60 +1368,59 @@ impl Checker {
         }
         // If we're in a parameter initializer or binding name, we can't reference the values of the parameter whose initializer we're within or parameters to the right
         if let Some(associated) = associated_declaration_for_containing_initializer_or_binding_name
+            && !within_deferred_context
+            && (meaning & SymbolFlags::Value) == SymbolFlags::Value
         {
-            if !within_deferred_context && (meaning & SymbolFlags::Value) == SymbolFlags::Value {
-                let late_bound = self.get_late_bound_symbol(result);
-                let candidate = self.get_merged_symbol(late_bound);
-                let root = ast::get_root_declaration(associated);
-                // A parameter initializer or binding pattern initializer within a parameter cannot refer to itself
-                if Some(candidate) == self.get_symbol_of_declaration(associated) {
-                    self.error(
-                        error_location,
-                        &diagnostics::PARAMETER_0_CANNOT_REFERENCE_ITSELF,
-                        &[&tsrs_scanner::declaration_name_to_string(associated.name())],
-                    );
-                } else if candidate
-                    .value_declaration()
-                    .is_some_and(|value_declaration| value_declaration.pos() > associated.pos())
-                    && root.parent().unwrap().locals().is_some()
-                    && self.get_symbol(root.parent().unwrap().locals(), candidate.name(), meaning)
-                        == Some(candidate)
-                {
-                    self.error(
-                        error_location,
-                        &diagnostics::PARAMETER_0_CANNOT_REFERENCE_IDENTIFIER_1_DECLARED_AFTER_IT,
-                        &[
-                            &tsrs_scanner::declaration_name_to_string(associated.name()),
-                            &tsrs_scanner::declaration_name_to_string(error_location),
-                        ],
-                    );
-                }
+            let late_bound = self.get_late_bound_symbol(result);
+            let candidate = self.get_merged_symbol(late_bound);
+            let root = ast::get_root_declaration(associated);
+            // A parameter initializer or binding pattern initializer within a parameter cannot refer to itself
+            if Some(candidate) == self.get_symbol_of_declaration(associated) {
+                self.error(
+                    error_location,
+                    &diagnostics::PARAMETER_0_CANNOT_REFERENCE_ITSELF,
+                    &[&tsrs_scanner::declaration_name_to_string(associated.name())],
+                );
+            } else if candidate
+                .value_declaration()
+                .is_some_and(|value_declaration| value_declaration.pos() > associated.pos())
+                && root.parent().unwrap().locals().is_some()
+                && self.get_symbol(root.parent().unwrap().locals(), candidate.name(), meaning)
+                    == Some(candidate)
+            {
+                self.error(
+                    error_location,
+                    &diagnostics::PARAMETER_0_CANNOT_REFERENCE_IDENTIFIER_1_DECLARED_AFTER_IT,
+                    &[
+                        &tsrs_scanner::declaration_name_to_string(associated.name()),
+                        &tsrs_scanner::declaration_name_to_string(error_location),
+                    ],
+                );
             }
         }
-        if let Some(loc) = error_location {
-            if meaning.intersects(SymbolFlags::Value)
-                && result.flags().intersects(SymbolFlags::Alias)
-                && !result.flags().intersects(SymbolFlags::Value)
-                && !ast::is_valid_type_only_alias_use_site(loc)
-            {
-                let type_only_declaration =
-                    self.get_type_only_alias_declaration_ex(result, SymbolFlags::Value);
-                if let Some(type_only_declaration) = type_only_declaration {
-                    let message = if ast::node_kind_is(
-                        type_only_declaration,
-                        &[Kind::ExportSpecifier, Kind::ExportDeclaration, Kind::NamespaceExport],
-                    ) {
-                        &diagnostics::X_0_CANNOT_BE_USED_AS_A_VALUE_BECAUSE_IT_WAS_EXPORTED_USING_EXPORT_TYPE
-                    } else {
-                        &diagnostics::X_0_CANNOT_BE_USED_AS_A_VALUE_BECAUSE_IT_WAS_IMPORTED_USING_IMPORT_TYPE
-                    };
-                    let diagnostic = self.error(error_location, message, &[&name]);
-                    Self::add_type_only_declaration_related_info(
-                        diagnostic,
-                        Some(type_only_declaration),
-                        name,
-                    );
-                }
+        if let Some(loc) = error_location
+            && meaning.intersects(SymbolFlags::Value)
+            && result.flags().intersects(SymbolFlags::Alias)
+            && !result.flags().intersects(SymbolFlags::Value)
+            && !ast::is_valid_type_only_alias_use_site(loc)
+        {
+            let type_only_declaration =
+                self.get_type_only_alias_declaration_ex(result, SymbolFlags::Value);
+            if let Some(type_only_declaration) = type_only_declaration {
+                let message = if ast::node_kind_is(
+                    type_only_declaration,
+                    &[Kind::ExportSpecifier, Kind::ExportDeclaration, Kind::NamespaceExport],
+                ) {
+                    &diagnostics::X_0_CANNOT_BE_USED_AS_A_VALUE_BECAUSE_IT_WAS_EXPORTED_USING_EXPORT_TYPE
+                } else {
+                    &diagnostics::X_0_CANNOT_BE_USED_AS_A_VALUE_BECAUSE_IT_WAS_IMPORTED_USING_IMPORT_TYPE
+                };
+                let diagnostic = self.error(error_location, message, &[&name]);
+                Self::add_type_only_declaration_related_info(
+                    diagnostic,
+                    Some(type_only_declaration),
+                    name,
+                );
             }
         }
         // Look at 'compilerOptions.isolatedModules' and not 'getIsolatedModules(...)' (which considers 'verbatimModuleSyntax')
@@ -1460,14 +1449,14 @@ impl Checker {
                         ],
                     )
                 });
-                if let Some(import_decl) = import_decl {
-                    if !ast::is_type_only_import_declaration(import_decl) {
-                        self.error(
+                if let Some(import_decl) = import_decl
+                    && !ast::is_type_only_import_declaration(import_decl)
+                {
+                    self.error(
                             Some(import_decl),
                             &diagnostics::IMPORT_0_CONFLICTS_WITH_GLOBAL_VALUE_USED_IN_THIS_FILE_SO_MUST_BE_DECLARED_WITH_A_TYPE_ONLY_IMPORT_WHEN_ISOLATED_MODULES_IS_ENABLED,
                             &[&name],
                         );
-                    }
                 }
             }
         }
@@ -1797,29 +1786,29 @@ impl Checker {
             }
         }
 
-        if let Some(decorator) = current.parent().filter(|p| ast::is_decorator(*p)) {
-            if decorator.expression() == Some(current) {
-                let decorator_parent = decorator.parent().unwrap();
-                if ast::is_parameter_declaration(decorator_parent) {
-                    if self.is_used_in_function_or_instance_property(
-                        decorator_parent.parent().unwrap().parent().unwrap(),
-                        declaration,
-                        decl_container,
-                    ) {
-                        return ast::FindAncestorResult::True;
-                    }
-                    return ast::FindAncestorResult::Quit;
+        if let Some(decorator) = current.parent().filter(|p| ast::is_decorator(*p))
+            && decorator.expression() == Some(current)
+        {
+            let decorator_parent = decorator.parent().unwrap();
+            if ast::is_parameter_declaration(decorator_parent) {
+                if self.is_used_in_function_or_instance_property(
+                    decorator_parent.parent().unwrap().parent().unwrap(),
+                    declaration,
+                    decl_container,
+                ) {
+                    return ast::FindAncestorResult::True;
                 }
-                if ast::is_method_declaration(decorator_parent) {
-                    if self.is_used_in_function_or_instance_property(
-                        decorator_parent.parent().unwrap(),
-                        declaration,
-                        decl_container,
-                    ) {
-                        return ast::FindAncestorResult::True;
-                    }
-                    return ast::FindAncestorResult::Quit;
+                return ast::FindAncestorResult::Quit;
+            }
+            if ast::is_method_declaration(decorator_parent) {
+                if self.is_used_in_function_or_instance_property(
+                    decorator_parent.parent().unwrap(),
+                    declaration,
+                    decl_container,
+                ) {
+                    return ast::FindAncestorResult::True;
                 }
+                return ast::FindAncestorResult::Quit;
             }
         }
 
@@ -1828,7 +1817,7 @@ impl Checker {
 }
 
 // checker.go:2113
-pub(crate) fn is_immediately_used_in_initializer_of_block_scoped_variable(
+pub fn is_immediately_used_in_initializer_of_block_scoped_variable(
     declaration: P<Node>,
     usage: P<Node>,
     decl_container: P<Node>,
@@ -1853,7 +1842,7 @@ pub(crate) fn is_immediately_used_in_initializer_of_block_scoped_variable(
 // If current node is an IIFE, continue walking up.
 // Return false if 'stopAt' node is reached or isFunctionLike(current) === true.
 // checker.go:2131
-pub(crate) fn is_same_scope_descendent_of(
+pub fn is_same_scope_descendent_of(
     initial: P<Node>,
     parent: Option<P<Node>>,
     stop_at: P<Node>,
@@ -1881,7 +1870,7 @@ pub(crate) fn is_same_scope_descendent_of(
 
 // isPropertyImmediatelyReferencedWithinDeclaration is used for detecting ES-standard class field use-before-def errors
 // checker.go:2147
-pub(crate) fn is_property_immediately_referenced_within_declaration(
+pub fn is_property_immediately_referenced_within_declaration(
     declaration: P<Node>,
     usage: P<Node>,
     stop_at_any_property_declaration: bool,

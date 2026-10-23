@@ -1421,14 +1421,14 @@ fn pinned_go_differential() {
         let q = str_of(field(&v, "q"));
         let mut r = field(&v, "r").clone();
         let mut raw = None;
-        if let Value::Object(o) = &mut r {
-            if let Some(Value::Number(f)) = o.get("objectFlags").cloned() {
-                raw = Some(f as u64);
-                o.insert(
-                    "objectFlags".to_string(),
-                    Value::Number((f as u64 & !MEMBERS_RESOLVED) as f64),
-                );
-            }
+        if let Value::Object(o) = &mut r
+            && let Some(Value::Number(f)) = o.get("objectFlags").cloned()
+        {
+            raw = Some(f as u64);
+            o.insert(
+                "objectFlags".to_string(),
+                Value::Number((f as u64 & !MEMBERS_RESOLVED) as f64),
+            );
         }
         (q, r, raw)
     };

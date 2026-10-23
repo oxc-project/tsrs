@@ -481,10 +481,11 @@ impl GlobPattern {
     }
 
     fn has_min_js_suffix(&self, filename: &str) -> bool {
+        const MIN_JS: &str = ".min.js";
+
         if self.case_sensitive {
             return filename.ends_with(".min.js");
         }
-        const MIN_JS: &str = ".min.js";
         let f = filename.as_bytes();
         if f.len() < MIN_JS.len() {
             return false;
@@ -498,10 +499,10 @@ impl GlobPattern {
             if seg.kind != SegmentKind::Literal {
                 return false;
             }
-            let lit = if !self.case_sensitive {
-                stringutil::go_strings_to_lower(&seg.literal)
-            } else {
+            let lit = if self.case_sensitive {
                 seg.literal.clone()
+            } else {
+                stringutil::go_strings_to_lower(&seg.literal)
             };
             lit.contains(".min.js") || lit.contains(".min.")
         }) {
@@ -880,10 +881,10 @@ impl GlobVisitor {
         resolved_real_path: &str,
     ) {
         // Detect symlink cycles
-        let real_path = if !resolved_real_path.is_empty() {
-            resolved_real_path.to_string()
-        } else {
+        let real_path = if resolved_real_path.is_empty() {
             host.realpath(absolute_path)
+        } else {
+            resolved_real_path.to_string()
         };
         let canonical_path =
             tspath::get_canonical_file_name(&real_path, self.use_case_sensitive_file_names);
@@ -937,13 +938,13 @@ impl GlobVisitor {
             }
             let abs_dir = format!("{abs_prefix}{dir}");
             let mut child_real_path = String::new();
-            if let Some(symlinks) = &entries.symlinks {
-                if !symlinks.contains(dir) {
-                    // Non-symlink directory: compute realpath incrementally.
-                    child_real_path = tspath::combine_paths(&real_path, &[dir]);
-                }
-                // else: symlink directory; leave childRealPath empty to force Realpath call.
+            if let Some(symlinks) = &entries.symlinks
+                && !symlinks.contains(dir)
+            {
+                // Non-symlink directory: compute realpath incrementally.
+                child_real_path = tspath::combine_paths(&real_path, &[dir]);
             }
+            // else: symlink directory; leave childRealPath empty to force Realpath call.
             // If Symlinks is None, the FS doesn't track symlinks;
             // leave childRealPath empty to call Realpath (preserving old behavior).
             self.visit(

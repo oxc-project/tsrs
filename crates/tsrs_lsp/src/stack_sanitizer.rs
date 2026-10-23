@@ -28,7 +28,7 @@ fn match_generic_secret_keyword_at(s: &[u8], i: usize) -> Option<usize> {
 }
 
 // stack_sanitizer.go:19
-pub(crate) fn defeat_generic_secret_regex(s: &str) -> String {
+pub fn defeat_generic_secret_regex(s: &str) -> String {
     let b = s.as_bytes();
     let mut result = String::with_capacity(s.len());
     let mut last = 0;
@@ -49,7 +49,7 @@ pub(crate) fn defeat_generic_secret_regex(s: &str) -> String {
 }
 
 // stack_sanitizer.go:23
-pub(crate) fn sanitize_stack_trace(stack: &str) -> String {
+pub fn sanitize_stack_trace(stack: &str) -> String {
     // TODO: should we just look for the first '(' and
     // just strip everything before the prior newline?
     let Some(start_index) = stack.find("runtime/debug.Stack()") else {

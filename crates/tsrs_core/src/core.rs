@@ -164,7 +164,7 @@ pub fn first_non_nil<T, U>(slice: &[T], f: impl FnMut(&T) -> Option<U>) -> Optio
 pub fn first_non_zero<T: Clone + Default + PartialEq>(values: &[T]) -> T {
     let zero = T::default();
     if let Some(result) =
-        values.iter().find_map(|value| if *value != zero { Some(value.clone()) } else { None })
+        values.iter().find_map(|value| if *value == zero { None } else { Some(value.clone()) })
     {
         return result;
     }
@@ -735,10 +735,10 @@ pub fn diff_maps_func<K: Hash + Eq, V1, V2>(
     let mut on_removed = on_removed;
     for (k, v1) in m1 {
         if let Some(v2) = m2.get(k) {
-            if let Some(on_changed) = on_changed.as_mut() {
-                if !equal_values(v1, v2) {
-                    on_changed(k, v1, v2);
-                }
+            if let Some(on_changed) = on_changed.as_mut()
+                && !equal_values(v1, v2)
+            {
+                on_changed(k, v1, v2);
             }
         } else if let Some(on_removed) = on_removed.as_mut() {
             on_removed(k, v1);

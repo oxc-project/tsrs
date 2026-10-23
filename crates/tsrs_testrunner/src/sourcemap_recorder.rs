@@ -10,7 +10,7 @@ use crate::harnessutil::TestFile;
 
 // Go builds the record in a strings.Builder, which holds bytes; positions below are byte offsets, as in Go.
 #[derive(Default)]
-pub(crate) struct WriterAggregator {
+pub struct WriterAggregator {
     buf: Vec<u8>,
 }
 
@@ -82,7 +82,7 @@ impl SourceMapDecoder {
     }
 }
 
-pub(crate) struct SourceMapSpanWriter<'a> {
+pub struct SourceMapSpanWriter<'a> {
     source_map_recorder: &'a mut WriterAggregator,
     source_map_sources: Vec<String>,
     source_map_names: Vec<String>,
@@ -97,7 +97,7 @@ pub(crate) struct SourceMapSpanWriter<'a> {
     source_map_decoder: SourceMapDecoder,
 }
 
-pub(crate) fn new_source_map_span_writer<'a>(
+pub fn new_source_map_span_writer<'a>(
     source_map_recorder: &'a mut WriterAggregator,
     source_map: &RawSourceMap,
     js_file: TestFile,
@@ -113,23 +113,23 @@ pub(crate) fn new_source_map_span_writer<'a>(
     ));
     source_map_recorder.write_line(&format!("sourceRoot: {}", source_map.source_root));
     source_map_recorder.write_line(&format!("sources: {}", source_map.sources.join(",")));
-    if let Some(sources_content) = &source_map.sources_content {
-        if !sources_content.is_empty() {
-            let value = Value::Array(
-                sources_content
-                    .iter()
-                    .map(|s| match s {
-                        Some(s) => Value::String(s.clone()),
-                        None => Value::Null,
-                    })
-                    .collect(),
-            );
-            let content = match json::marshal(&value) {
-                Ok(content) => content,
-                Err(err) => panic!("{}", err),
-            };
-            source_map_recorder.write_line(&format!("sourcesContent: {content}"));
-        }
+    if let Some(sources_content) = &source_map.sources_content
+        && !sources_content.is_empty()
+    {
+        let value = Value::Array(
+            sources_content
+                .iter()
+                .map(|s| match s {
+                    Some(s) => Value::String(s.clone()),
+                    None => Value::Null,
+                })
+                .collect(),
+        );
+        let content = match json::marshal(&value) {
+            Ok(content) => content,
+            Err(err) => panic!("{}", err),
+        };
+        source_map_recorder.write_line(&format!("sourcesContent: {content}"));
     }
     source_map_recorder
         .write_line("===================================================================");
@@ -517,7 +517,7 @@ fn bytes_to_string(bytes: &[u8]) -> String {
 }
 
 // harnessutil.go:931 (`CompilationResult.GetSourceMapRecord`)
-pub(crate) struct SourceMapRecordInput<'a> {
+pub struct SourceMapRecordInput<'a> {
     pub(crate) generated_file: &'a str,
     pub(crate) input_source_file_names: &'a [String],
     pub(crate) source_map: &'a RawSourceMap,
@@ -525,7 +525,7 @@ pub(crate) struct SourceMapRecordInput<'a> {
 
 // `get_output` is `c.DTS.GetOrZero` / `c.JS.GetOrZero` (Go picks by `IsDeclarationFileName`, done here), and
 // `get_source_file` is `c.Program.GetSourceFile(name)` returning the file's identity and `OriginalText()`.
-pub(crate) fn get_source_map_record(
+pub fn get_source_map_record(
     source_maps: &[SourceMapRecordInput],
     get_js: impl Fn(&str) -> Option<TestFile>,
     get_dts: impl Fn(&str) -> Option<TestFile>,
@@ -565,14 +565,14 @@ pub(crate) fn get_source_map_record(
             let current_source_file =
                 get_source_file(&source_map_data.input_source_file_names[source_index]);
             let current_key = current_source_file.as_ref().map(|(k, _)| *k);
-            if current_key != prev_source_file {
+            if current_key == prev_source_file {
+                source_map_span_writer.record_source_map_span(decoded_source_mapping);
+            } else {
                 if let Some((_, text)) = &current_source_file {
                     source_map_span_writer
                         .record_new_source_file_span(decoded_source_mapping, text);
                 }
                 prev_source_file = current_key;
-            } else {
-                source_map_span_writer.record_source_map_span(decoded_source_mapping);
             }
         }
         source_map_span_writer.close();

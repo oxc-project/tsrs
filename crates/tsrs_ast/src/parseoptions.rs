@@ -82,10 +82,10 @@ fn get_external_module_indicator(
         return None;
     }
 
-    if opts.jsx {
-        if let Some(node) = is_file_module_from_using_jsx_tag(file) {
-            return Some(node);
-        }
+    if opts.jsx
+        && let Some(node) = is_file_module_from_using_jsx_tag(file)
+    {
+        return Some(node);
     }
 
     if opts.force {

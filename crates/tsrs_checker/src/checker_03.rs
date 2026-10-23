@@ -66,22 +66,20 @@ impl Checker {
                     class_type_data.this_type.get(),
                     false,
                 );
-                if !self.check_type_assignable_to(type_with_this, base_with_this, None, None) {
+                if self.check_type_assignable_to(type_with_this, base_with_this, None, None) {
+                    // Report static side error only when instance type is assignable
+                    let t = self.get_type_without_signatures(static_base_type);
+                    self.check_type_assignable_to(static_type, t, Some(node.name().unwrap_or(node)), Some(&diagnostics::CLASS_STATIC_SIDE_0_INCORRECTLY_EXTENDS_BASE_CLASS_STATIC_SIDE_1));
+                } else {
                     self.issue_member_specific_error(
                         node,
                         type_with_this,
                         base_with_this,
                         &diagnostics::CLASS_0_INCORRECTLY_EXTENDS_BASE_CLASS_1,
                     );
-                } else {
-                    // Report static side error only when instance type is assignable
-                    let t = self.get_type_without_signatures(static_base_type);
-                    self.check_type_assignable_to(static_type, t, Some(node.name().unwrap_or(node)), Some(&diagnostics::CLASS_STATIC_SIDE_0_INCORRECTLY_EXTENDS_BASE_CLASS_STATIC_SIDE_1));
                 }
                 if base_constructor_type.flags().intersects(TypeFlags::TypeVariable) {
-                    if !self.is_mixin_constructor_type(static_type) {
-                        self.error(Some(node.name().unwrap_or(node)), &diagnostics::A_MIXIN_CLASS_MUST_HAVE_A_CONSTRUCTOR_WITH_A_SINGLE_REST_PARAMETER_OF_TYPE_ANY, &[]);
-                    } else {
+                    if self.is_mixin_constructor_type(static_type) {
                         let construct_signatures = self.get_signatures_of_type(
                             base_constructor_type,
                             SignatureKind::Construct,
@@ -93,6 +91,8 @@ impl Checker {
                         {
                             self.error(Some(node.name().unwrap_or(node)), &diagnostics::A_MIXIN_CLASS_THAT_EXTENDS_FROM_A_TYPE_VARIABLE_CONTAINING_AN_ABSTRACT_CONSTRUCT_SIGNATURE_MUST_ALSO_BE_DECLARED_ABSTRACT, &[]);
                         }
+                    } else {
+                        self.error(Some(node.name().unwrap_or(node)), &diagnostics::A_MIXIN_CLASS_MUST_HAVE_A_CONSTRUCTOR_WITH_A_SINGLE_REST_PARAMETER_OF_TYPE_ANY, &[]);
                     }
                 }
                 if !(static_base_type
@@ -180,22 +180,20 @@ impl Checker {
         for &member in node.members() {
             let member_name_node = member.name();
             let is_static_member = ast::is_static(member);
-            if is_static_member {
-                if let Some(member_name_node) = member_name_node {
-                    let (member_name, _) =
-                        self.get_effective_property_name_for_property_name_node(member_name_node);
-                    match member_name.as_str() {
-                        "name" | "length" | "caller" | "arguments" => {
-                            let class_symbol = self.get_symbol_of_declaration(node).unwrap();
-                            let class_name = self.symbol_to_string(class_symbol);
-                            self.error(
+            if is_static_member && let Some(member_name_node) = member_name_node {
+                let (member_name, _) =
+                    self.get_effective_property_name_for_property_name_node(member_name_node);
+                match member_name.as_str() {
+                    "name" | "length" | "caller" | "arguments" => {
+                        let class_symbol = self.get_symbol_of_declaration(node).unwrap();
+                        let class_name = self.symbol_to_string(class_symbol);
+                        self.error(
                                 Some(member_name_node),
                                 &diagnostics::STATIC_PROPERTY_0_CONFLICTS_WITH_BUILT_IN_PROPERTY_FUNCTION_0_OF_CONSTRUCTOR_FUNCTION_1,
                                 &[&member_name, &class_name],
                             );
-                        }
-                        _ => {}
                     }
+                    _ => {}
                 }
             }
         }
@@ -332,27 +330,27 @@ impl Checker {
             if ast::is_static(member) {
                 continue;
             }
-            if let Some(declared_prop) = self.get_symbol_of_declaration(member) {
-                if declared_prop.name() != INTERNAL_SYMBOL_NAME_COMPUTED {
-                    let prop = self.get_property_of_type(type_with_this, declared_prop.name());
-                    let base_prop = self.get_property_of_type(base_with_this, declared_prop.name());
-                    if let (Some(prop), Some(base_prop)) = (prop, base_prop) {
-                        let mut diags: Vec<P<Diagnostic>> = Vec::new();
-                        let prop_type = self.get_type_of_symbol(prop);
-                        let base_prop_type = self.get_type_of_symbol(base_prop);
-                        if !self.check_type_assignable_to_ex(
-                            prop_type,
-                            base_prop_type,
-                            Some(member.name().unwrap_or(member)),
-                            None, /*headMessage*/
-                            &mut diags,
-                        ) {
-                            let a0 = self.symbol_to_string(declared_prop);
-                            let a1 = self.type_to_string(type_with_this, None);
-                            let a2 = self.type_to_string(base_with_this, None);
-                            self.add_diagnostic(ast::new_diagnostic_chain(diags[0], &diagnostics::PROPERTY_0_IN_TYPE_1_IS_NOT_ASSIGNABLE_TO_THE_SAME_PROPERTY_IN_BASE_TYPE_2, &[&a0, &a1, &a2]));
-                            issued_member_error = true;
-                        }
+            if let Some(declared_prop) = self.get_symbol_of_declaration(member)
+                && declared_prop.name() != INTERNAL_SYMBOL_NAME_COMPUTED
+            {
+                let prop = self.get_property_of_type(type_with_this, declared_prop.name());
+                let base_prop = self.get_property_of_type(base_with_this, declared_prop.name());
+                if let (Some(prop), Some(base_prop)) = (prop, base_prop) {
+                    let mut diags: Vec<P<Diagnostic>> = Vec::new();
+                    let prop_type = self.get_type_of_symbol(prop);
+                    let base_prop_type = self.get_type_of_symbol(base_prop);
+                    if !self.check_type_assignable_to_ex(
+                        prop_type,
+                        base_prop_type,
+                        Some(member.name().unwrap_or(member)),
+                        None, /*headMessage*/
+                        &mut diags,
+                    ) {
+                        let a0 = self.symbol_to_string(declared_prop);
+                        let a1 = self.type_to_string(type_with_this, None);
+                        let a2 = self.type_to_string(base_with_this, None);
+                        self.add_diagnostic(ast::new_diagnostic_chain(diags[0], &diagnostics::PROPERTY_0_IN_TYPE_1_IS_NOT_ASSIGNABLE_TO_THE_SAME_PROPERTY_IN_BASE_TYPE_2, &[&a0, &a1, &a2]));
+                        issued_member_error = true;
                     }
                 }
             }
@@ -461,11 +459,10 @@ impl Checker {
                             }
                             if let Some(base_symbol) =
                                 self.get_property_of_object_type(other_base_type, base.name())
+                                && Some(base) != self.get_target_symbol(base_symbol)
                             {
-                                if Some(base) != self.get_target_symbol(base_symbol) {
-                                    // Derived property exists elsewhere.
-                                    continue 'base_property_check;
-                                }
+                                // Derived property exists elsewhere.
+                                continue 'base_property_check;
                             }
                         }
                         let base_type_name = self.type_to_string(base_type, None);
@@ -533,40 +530,38 @@ impl Checker {
                             .iter()
                             .copied()
                             .find(|&d| is_property_declaration(d) && d.initializer().is_none());
-                        if let Some(uninitialized) = uninitialized {
-                            if !derived.flags().intersects(SymbolFlags::Transient)
-                                && !base_declaration_flags.intersects(ModifierFlags::Abstract)
-                                && !derived_declaration_flags.intersects(ModifierFlags::Abstract)
-                                && !derived
-                                    .declarations()
-                                    .iter()
-                                    .any(|d| d.flags().intersects(NodeFlags::Ambient))
+                        if let Some(uninitialized) = uninitialized
+                            && !derived.flags().intersects(SymbolFlags::Transient)
+                            && !base_declaration_flags.intersects(ModifierFlags::Abstract)
+                            && !derived_declaration_flags.intersects(ModifierFlags::Abstract)
+                            && !derived
+                                .declarations()
+                                .iter()
+                                .any(|d| d.flags().intersects(NodeFlags::Ambient))
+                        {
+                            let constructor = find_constructor_declaration(
+                                get_class_like_declaration_of_symbol(t.symbol().unwrap()).unwrap(),
+                            );
+                            let prop_name = uninitialized.name().unwrap();
+                            if is_exclamation_token(uninitialized.postfix_token())
+                                || constructor.is_none()
+                                || !is_identifier(prop_name)
+                                || !self.strict_null_checks
+                                || !self.is_property_initialized_in_constructor(
+                                    prop_name,
+                                    t,
+                                    constructor.unwrap(),
+                                )
                             {
-                                let constructor = find_constructor_declaration(
-                                    get_class_like_declaration_of_symbol(t.symbol().unwrap())
-                                        .unwrap(),
+                                let error_message = &diagnostics::PROPERTY_0_WILL_OVERWRITE_THE_BASE_PROPERTY_IN_1_IF_THIS_IS_INTENTIONAL_ADD_AN_INITIALIZER_OTHERWISE_ADD_A_DECLARE_MODIFIER_OR_REMOVE_THE_REDUNDANT_DECLARATION;
+                                let a0 = self.symbol_to_string(base);
+                                let a1 = self.type_to_string(base_type, None);
+                                self.error(
+                                    get_name_of_declaration(derived.value_declaration())
+                                        .or(derived.value_declaration()),
+                                    error_message,
+                                    &[&a0, &a1],
                                 );
-                                let prop_name = uninitialized.name().unwrap();
-                                if is_exclamation_token(uninitialized.postfix_token())
-                                    || constructor.is_none()
-                                    || !is_identifier(prop_name)
-                                    || !self.strict_null_checks
-                                    || !self.is_property_initialized_in_constructor(
-                                        prop_name,
-                                        t,
-                                        constructor.unwrap(),
-                                    )
-                                {
-                                    let error_message = &diagnostics::PROPERTY_0_WILL_OVERWRITE_THE_BASE_PROPERTY_IN_1_IF_THIS_IS_INTENTIONAL_ADD_AN_INITIALIZER_OTHERWISE_ADD_A_DECLARE_MODIFIER_OR_REMOVE_THE_REDUNDANT_DECLARATION;
-                                    let a0 = self.symbol_to_string(base);
-                                    let a1 = self.type_to_string(base_type, None);
-                                    self.error(
-                                        get_name_of_declaration(derived.value_declaration())
-                                            .or(derived.value_declaration()),
-                                        error_message,
-                                        &[&a0, &a1],
-                                    );
-                                }
                             }
                         }
                     }
@@ -810,19 +805,16 @@ impl Checker {
         error_node: Option<P<Node>>,
     ) -> MemberOverrideStatus {
         let is_js = is_in_js_file(node);
-        if member_has_override_modifier {
-            if let Some(value_declaration) = member.value_declaration() {
-                if is_class_element(value_declaration) {
-                    if let Some(name) = value_declaration.name() {
-                        if self.is_non_bindable_dynamic_name(name) {
-                            if error_node.is_some() {
-                                self.error(error_node, if is_js { &diagnostics::THIS_MEMBER_CANNOT_HAVE_A_JSDOC_COMMENT_WITH_AN_OVERRIDE_TAG_BECAUSE_ITS_NAME_IS_DYNAMIC } else { &diagnostics::THIS_MEMBER_CANNOT_HAVE_AN_OVERRIDE_MODIFIER_BECAUSE_ITS_NAME_IS_DYNAMIC }, &[]);
-                            }
-                            return MemberOverrideStatus::HasInvalidOverride;
-                        }
-                    }
-                }
+        if member_has_override_modifier
+            && let Some(value_declaration) = member.value_declaration()
+            && is_class_element(value_declaration)
+            && let Some(name) = value_declaration.name()
+            && self.is_non_bindable_dynamic_name(name)
+        {
+            if error_node.is_some() {
+                self.error(error_node, if is_js { &diagnostics::THIS_MEMBER_CANNOT_HAVE_A_JSDOC_COMMENT_WITH_AN_OVERRIDE_TAG_BECAUSE_ITS_NAME_IS_DYNAMIC } else { &diagnostics::THIS_MEMBER_CANNOT_HAVE_AN_OVERRIDE_MODIFIER_BECAUSE_ITS_NAME_IS_DYNAMIC }, &[]);
             }
+            return MemberOverrideStatus::HasInvalidOverride;
         }
 
         if let Some(base_with_this) = base_with_this.filter(|_| {
@@ -851,41 +843,40 @@ impl Checker {
                 return MemberOverrideStatus::HasInvalidOverride;
             }
 
-            if let (Some(_), Some(base_prop)) = (prop, base_prop) {
-                if !base_prop.declarations().is_empty()
-                    && self.compiler_options.no_implicit_override.is_true()
-                    && !node.flags().intersects(NodeFlags::Ambient)
-                {
-                    let base_has_abstract =
-                        base_prop.declarations().iter().any(|&d| has_abstract_modifier(d));
-                    if member_has_override_modifier {
-                        return MemberOverrideStatus::None;
-                    }
-                    if !base_has_abstract {
-                        if error_node.is_some() {
-                            let message = if member_is_parameter_property {
-                                if is_js {
-                                    &diagnostics::THIS_PARAMETER_PROPERTY_MUST_HAVE_A_JSDOC_COMMENT_WITH_AN_OVERRIDE_TAG_BECAUSE_IT_OVERRIDES_A_MEMBER_IN_THE_BASE_CLASS_0
-                                } else {
-                                    &diagnostics::THIS_PARAMETER_PROPERTY_MUST_HAVE_AN_OVERRIDE_MODIFIER_BECAUSE_IT_OVERRIDES_A_MEMBER_IN_BASE_CLASS_0
-                                }
-                            } else if is_js {
-                                &diagnostics::THIS_MEMBER_MUST_HAVE_A_JSDOC_COMMENT_WITH_AN_OVERRIDE_TAG_BECAUSE_IT_OVERRIDES_A_MEMBER_IN_THE_BASE_CLASS_0
+            if let (Some(_), Some(base_prop)) = (prop, base_prop)
+                && !base_prop.declarations().is_empty()
+                && self.compiler_options.no_implicit_override.is_true()
+                && !node.flags().intersects(NodeFlags::Ambient)
+            {
+                let base_has_abstract =
+                    base_prop.declarations().iter().any(|&d| has_abstract_modifier(d));
+                if member_has_override_modifier {
+                    return MemberOverrideStatus::None;
+                }
+                if !base_has_abstract {
+                    if error_node.is_some() {
+                        let message = if member_is_parameter_property {
+                            if is_js {
+                                &diagnostics::THIS_PARAMETER_PROPERTY_MUST_HAVE_A_JSDOC_COMMENT_WITH_AN_OVERRIDE_TAG_BECAUSE_IT_OVERRIDES_A_MEMBER_IN_THE_BASE_CLASS_0
                             } else {
-                                &diagnostics::THIS_MEMBER_MUST_HAVE_AN_OVERRIDE_MODIFIER_BECAUSE_IT_OVERRIDES_A_MEMBER_IN_THE_BASE_CLASS_0
-                            };
-                            let a0 = self.type_to_string(base_with_this, None);
-                            self.error(error_node, message, &[&a0]);
-                        }
-                        return MemberOverrideStatus::NeedsOverride;
+                                &diagnostics::THIS_PARAMETER_PROPERTY_MUST_HAVE_AN_OVERRIDE_MODIFIER_BECAUSE_IT_OVERRIDES_A_MEMBER_IN_BASE_CLASS_0
+                            }
+                        } else if is_js {
+                            &diagnostics::THIS_MEMBER_MUST_HAVE_A_JSDOC_COMMENT_WITH_AN_OVERRIDE_TAG_BECAUSE_IT_OVERRIDES_A_MEMBER_IN_THE_BASE_CLASS_0
+                        } else {
+                            &diagnostics::THIS_MEMBER_MUST_HAVE_AN_OVERRIDE_MODIFIER_BECAUSE_IT_OVERRIDES_A_MEMBER_IN_THE_BASE_CLASS_0
+                        };
+                        let a0 = self.type_to_string(base_with_this, None);
+                        self.error(error_node, message, &[&a0]);
                     }
-                    if member_has_abstract_modifier {
-                        if error_node.is_some() {
-                            let a0 = self.type_to_string(base_with_this, None);
-                            self.error(error_node, &diagnostics::THIS_MEMBER_MUST_HAVE_AN_OVERRIDE_MODIFIER_BECAUSE_IT_OVERRIDES_AN_ABSTRACT_METHOD_THAT_IS_DECLARED_IN_THE_BASE_CLASS_0, &[&a0]);
-                        }
-                        return MemberOverrideStatus::NeedsOverride;
+                    return MemberOverrideStatus::NeedsOverride;
+                }
+                if member_has_abstract_modifier {
+                    if error_node.is_some() {
+                        let a0 = self.type_to_string(base_with_this, None);
+                        self.error(error_node, &diagnostics::THIS_MEMBER_MUST_HAVE_AN_OVERRIDE_MODIFIER_BECAUSE_IT_OVERRIDES_AN_ABSTRACT_METHOD_THAT_IS_DECLARED_IN_THE_BASE_CLASS_0, &[&a0]);
                     }
+                    return MemberOverrideStatus::NeedsOverride;
                 }
             }
         } else if member_has_override_modifier {
@@ -1004,29 +995,27 @@ impl Checker {
                     error_node = interface_declaration;
                 }
             }
-            if let Some(error_node) = error_node {
-                if !self.is_type_assignable_to(prop_type, info.value_type()) {
+            if let Some(error_node) = error_node
+                && !self.is_type_assignable_to(prop_type, info.value_type())
+            {
+                let a0 = self.symbol_to_string(prop);
+                let a1 = self.type_to_string(prop_type, None);
+                let a2 = self.type_to_string(info.key_type(), None);
+                let a3 = self.type_to_string(info.value_type(), None);
+                let diagnostic = new_diagnostic_for_node(
+                    Some(error_node),
+                    Some(&diagnostics::PROPERTY_0_OF_TYPE_1_IS_NOT_ASSIGNABLE_TO_2_INDEX_TYPE_3),
+                    &[&a0, &a1, &a2, &a3],
+                );
+                if let Some(prop_declaration) = prop_declaration.filter(|&d| d != error_node) {
                     let a0 = self.symbol_to_string(prop);
-                    let a1 = self.type_to_string(prop_type, None);
-                    let a2 = self.type_to_string(info.key_type(), None);
-                    let a3 = self.type_to_string(info.value_type(), None);
-                    let diagnostic = new_diagnostic_for_node(
-                        Some(error_node),
-                        Some(
-                            &diagnostics::PROPERTY_0_OF_TYPE_1_IS_NOT_ASSIGNABLE_TO_2_INDEX_TYPE_3,
-                        ),
-                        &[&a0, &a1, &a2, &a3],
-                    );
-                    if let Some(prop_declaration) = prop_declaration.filter(|&d| d != error_node) {
-                        let a0 = self.symbol_to_string(prop);
-                        diagnostic.add_related_info(new_diagnostic_for_node(
-                            Some(prop_declaration),
-                            Some(&diagnostics::X_0_IS_DECLARED_HERE),
-                            &[&a0],
-                        ));
-                    }
-                    self.add_diagnostic(diagnostic);
+                    diagnostic.add_related_info(new_diagnostic_for_node(
+                        Some(prop_declaration),
+                        Some(&diagnostics::X_0_IS_DECLARED_HERE),
+                        &[&a0],
+                    ));
                 }
+                self.add_diagnostic(diagnostic);
             }
         }
     }
@@ -1125,11 +1114,11 @@ impl Checker {
         for &declaration in declarations {
             if is_index_signature_declaration(declaration) {
                 let parameters = declaration.parameters();
-                if parameters.len() == 1 {
-                    if let Some(type_node) = parameters[0].type_node() {
-                        for t in self.get_type_from_type_node(type_node).distributed_iter() {
-                            index_signature_map.entry(t).or_default().push(declaration);
-                        }
+                if parameters.len() == 1
+                    && let Some(type_node) = parameters[0].type_node()
+                {
+                    for t in self.get_type_from_type_node(type_node).distributed_iter() {
+                        index_signature_map.entry(t).or_default().push(declaration);
                     }
                 }
             }
@@ -1172,16 +1161,14 @@ impl Checker {
                     let t = self.get_type_of_symbol(member_symbol);
                     if !(t.flags().intersects(TypeFlags::AnyOrUnknown)
                         || Self::contains_undefined_type(t))
-                    {
-                        if constructor.is_none()
+                        && (constructor.is_none()
                             || !self.is_property_initialized_in_constructor(
                                 prop_name,
                                 t,
                                 constructor.unwrap(),
-                            )
-                        {
-                            self.error(member.name(), &diagnostics::PROPERTY_0_HAS_NO_INITIALIZER_AND_IS_NOT_DEFINITELY_ASSIGNED_IN_THE_CONSTRUCTOR, &[&tsrs_scanner::declaration_name_to_string(Some(prop_name))]);
-                        }
+                            ))
+                    {
+                        self.error(member.name(), &diagnostics::PROPERTY_0_HAS_NO_INITIALIZER_AND_IS_NOT_DEFINITELY_ASSIGNED_IN_THE_CONSTRUCTOR, &[&tsrs_scanner::declaration_name_to_string(Some(prop_name))]);
                     }
                 }
             }
@@ -1538,14 +1525,15 @@ impl Checker {
             // If we hit a module declaration in an illegal context, just bail out to avoid cascading errors.
             return;
         }
-        if !self.check_grammar_modifiers(node) {
-            if !in_ambient_context && is_string_literal(node.name().unwrap()) {
-                self.grammar_error_on_node(
-                    node.name().unwrap(),
-                    &diagnostics::ONLY_AMBIENT_MODULES_CAN_USE_QUOTED_NAMES,
-                    &[],
-                );
-            }
+        if !self.check_grammar_modifiers(node)
+            && !in_ambient_context
+            && is_string_literal(node.name().unwrap())
+        {
+            self.grammar_error_on_node(
+                node.name().unwrap(),
+                &diagnostics::ONLY_AMBIENT_MODULES_CAN_USE_QUOTED_NAMES,
+                &[],
+            );
         }
         if is_identifier(node.name().unwrap()) {
             self.check_collisions_for_declaration_name(node, node.name());
@@ -1620,11 +1608,9 @@ impl Checker {
                         .unwrap()
                         .flags()
                         .intersects(SymbolFlags::Transient);
-                if check_body {
-                    if let Some(body) = node.body() {
-                        for &statement in body.statements() {
-                            self.check_module_augmentation_element(statement);
-                        }
+                if check_body && let Some(body) = node.body() {
+                    for &statement in body.statements() {
+                        self.check_module_augmentation_element(statement);
                     }
                 }
             } else if is_global_source_file(node.parent().unwrap()) {
@@ -1695,16 +1681,14 @@ impl Checker {
 }
 
 // checker.go:5352
-pub(crate) fn is_instantiated_module(node: P<Node>, preserve_const_enums: bool) -> bool {
+pub fn is_instantiated_module(node: P<Node>, preserve_const_enums: bool) -> bool {
     let module_state = get_module_instance_state(node);
     module_state == ModuleInstanceState::Instantiated
         || preserve_const_enums && module_state == ModuleInstanceState::ConstEnumOnly
 }
 
 // checker.go:5357
-pub(crate) fn get_first_non_ambient_class_or_function_declaration(
-    symbol: P<Symbol>,
-) -> Option<P<Node>> {
+pub fn get_first_non_ambient_class_or_function_declaration(symbol: P<Symbol>) -> Option<P<Node>> {
     if let Some(result) = symbol.declarations().iter().find_map(|&declaration| {
         if (is_class_declaration(declaration)
             || is_function_declaration(declaration) && node_is_present(declaration.body()))
@@ -1920,10 +1904,10 @@ impl Checker {
         }
         if !is_import_equals_declaration(node) {
             let attributes = get_import_attributes(node);
-            if let Some(attributes) = attributes {
-                if self.check_grammar_import_attribute_values(attributes) {
-                    return false;
-                }
+            if let Some(attributes) = attributes
+                && self.check_grammar_import_attribute_values(attributes)
+            {
+                return false;
             }
         }
         true
@@ -1955,16 +1939,16 @@ impl Checker {
         };
         if !allow_string_literal {
             self.grammar_error_on_node(name, &diagnostics::IDENTIFIER_EXPECTED, &[]);
-        } else if self.module_kind == ModuleKind::ES2015 || self.module_kind == ModuleKind::ES2020 {
-            if !get_source_file_of_node(name).unwrap().is_declaration_file() {
-                self.grammar_error_on_node(name, &diagnostics::STRING_LITERAL_IMPORT_AND_EXPORT_NAMES_ARE_NOT_SUPPORTED_WHEN_THE_MODULE_FLAG_IS_SET_TO_ES2015_OR_ES2020, &[]);
-            }
+        } else if (self.module_kind == ModuleKind::ES2015 || self.module_kind == ModuleKind::ES2020)
+            && !get_source_file_of_node(name).unwrap().is_declaration_file()
+        {
+            self.grammar_error_on_node(name, &diagnostics::STRING_LITERAL_IMPORT_AND_EXPORT_NAMES_ARE_NOT_SUPPORTED_WHEN_THE_MODULE_FLAG_IS_SET_TO_ES2015_OR_ES2020, &[]);
         }
     }
 }
 
 // checker.go:5530
-pub(crate) fn has_type_json_import_attribute(node: P<Node>) -> bool {
+pub fn has_type_json_import_attribute(node: P<Node>) -> bool {
     let attributes = node.as_import_declaration().attributes();
     attributes.is_some_and(|attributes| {
         attributes.as_import_attributes().attributes.nodes().iter().any(|&attr| {
@@ -1999,13 +1983,12 @@ impl Checker {
             return;
         }
 
-        if let Some(module_specifier) = get_external_module_name(declaration) {
-            if self.get_emit_syntax_for_module_specifier_expression(module_specifier)
+        if let Some(module_specifier) = get_external_module_name(declaration)
+            && self.get_emit_syntax_for_module_specifier_expression(module_specifier)
                 == ModuleKind::COMMON_JS
-            {
-                self.grammar_error_on_node(node, &diagnostics::IMPORT_ATTRIBUTES_ARE_NOT_ALLOWED_ON_STATEMENTS_THAT_COMPILE_TO_COMMON_JS_REQUIRE_CALLS, &[]);
-                return;
-            }
+        {
+            self.grammar_error_on_node(node, &diagnostics::IMPORT_ATTRIBUTES_ARE_NOT_ALLOWED_ON_STATEMENTS_THAT_COMPILE_TO_COMMON_JS_REQUIRE_CALLS, &[]);
+            return;
         }
 
         if override_ != ModuleKind::NONE {
@@ -2311,7 +2294,7 @@ impl Checker {
 }
 
 // checker.go:5740
-pub(crate) fn is_contained_by_namespace(node: P<Node>) -> bool {
+pub fn is_contained_by_namespace(node: P<Node>) -> bool {
     let mut container = node.parent().unwrap();
     if !is_source_file(container) {
         container = container.parent().unwrap();
@@ -2522,7 +2505,7 @@ impl Checker {
 }
 
 // checker.go:5846
-pub(crate) fn get_verbatim_module_syntax_error_message(node: P<Node>) -> &'static Message {
+pub fn get_verbatim_module_syntax_error_message(node: P<Node>) -> &'static Message {
     let source_file = get_source_file_of_node(node).unwrap();
     let file_name = source_file.file_name();
 
@@ -2545,17 +2528,16 @@ impl Checker {
                 module_symbol.exports().and_then(|e| e.lookup(INTERNAL_SYMBOL_NAME_EXPORT_EQUALS));
             // An export assignment is in error if (a) the module exports value members or (b) if the module exports type or
             // namespace members and the exported entity also exports type or namespace members.
-            if let Some(export_equals_symbol) = export_equals_symbol {
-                if self.has_exported_members_of_kind(module_symbol, SymbolFlags::Value)
-                    || self.has_shadowed_namespace(export_equals_symbol)
+            if let Some(export_equals_symbol) = export_equals_symbol
+                && (self.has_exported_members_of_kind(module_symbol, SymbolFlags::Value)
+                    || self.has_shadowed_namespace(export_equals_symbol))
+            {
+                let declaration = Self::get_declaration_of_alias_symbol(export_equals_symbol)
+                    .or(export_equals_symbol.value_declaration());
+                if let Some(declaration) = declaration
+                    && !is_top_level_in_external_module_augmentation(Some(declaration))
                 {
-                    let declaration = Self::get_declaration_of_alias_symbol(export_equals_symbol)
-                        .or(export_equals_symbol.value_declaration());
-                    if let Some(declaration) = declaration {
-                        if !is_top_level_in_external_module_augmentation(Some(declaration)) {
-                            self.error(Some(declaration), &diagnostics::AN_EXPORT_ASSIGNMENT_CANNOT_BE_USED_IN_A_MODULE_WITH_OTHER_EXPORTED_ELEMENTS, &[]);
-                        }
-                    }
+                    self.error(Some(declaration), &diagnostics::AN_EXPORT_ASSIGNMENT_CANNOT_BE_USED_IN_A_MODULE_WITH_OTHER_EXPORTED_ELEMENTS, &[]);
                 }
             }
             // Checks for export * conflicts
@@ -2638,7 +2620,7 @@ impl Checker {
 }
 
 // checker.go:5921
-pub(crate) fn is_not_overload(node: P<Node>) -> bool {
+pub fn is_not_overload(node: P<Node>) -> bool {
     !is_function_declaration(node) && !is_method_declaration(node) || node.body().is_some()
 }
 
@@ -2925,18 +2907,18 @@ impl Checker {
                 }
             }
             let declarations = symbol.declarations();
-            if declarations.len() > 1 {
-                if declarations.iter().any(|&d| {
+            if declarations.len() > 1
+                && declarations.iter().any(|&d| {
                     d != node
                         && is_variable_like(d)
                         && !Self::are_declaration_flags_identical(d, node)
-                }) {
-                    self.error(
-                        Some(name),
-                        &diagnostics::ALL_DECLARATIONS_OF_0_MUST_HAVE_IDENTICAL_MODIFIERS,
-                        &[&tsrs_scanner::declaration_name_to_string(Some(name))],
-                    );
-                }
+                })
+            {
+                self.error(
+                    Some(name),
+                    &diagnostics::ALL_DECLARATIONS_OF_0_MUST_HAVE_IDENTICAL_MODIFIERS,
+                    &[&tsrs_scanner::declaration_name_to_string(Some(name))],
+                );
             }
         } else {
             // Node is a secondary declaration, check that type is identical to primary declaration and check that
@@ -2966,14 +2948,14 @@ impl Checker {
                     None,
                 );
             }
-            if let Some(value_declaration) = symbol.value_declaration() {
-                if !Self::are_declaration_flags_identical(node, value_declaration) {
-                    self.error(
-                        Some(name),
-                        &diagnostics::ALL_DECLARATIONS_OF_0_MUST_HAVE_IDENTICAL_MODIFIERS,
-                        &[&tsrs_scanner::declaration_name_to_string(Some(name))],
-                    );
-                }
+            if let Some(value_declaration) = symbol.value_declaration()
+                && !Self::are_declaration_flags_identical(node, value_declaration)
+            {
+                self.error(
+                    Some(name),
+                    &diagnostics::ALL_DECLARATIONS_OF_0_MUST_HAVE_IDENTICAL_MODIFIERS,
+                    &[&tsrs_scanner::declaration_name_to_string(Some(name))],
+                );
             }
         }
         if !is_property_declaration(node) && !is_property_signature_declaration(node) {
@@ -3062,41 +3044,38 @@ impl Checker {
                 false, /*isUse*/
                 false,
             );
-            if let Some(local_declaration_symbol) = local_declaration_symbol {
-                if local_declaration_symbol != symbol
-                    && local_declaration_symbol.flags().intersects(SymbolFlags::BlockScopedVariable)
+            if let Some(local_declaration_symbol) = local_declaration_symbol
+                && local_declaration_symbol != symbol
+                && local_declaration_symbol.flags().intersects(SymbolFlags::BlockScopedVariable)
+                && self
+                    .get_declaration_node_flags_from_symbol(local_declaration_symbol)
+                    .intersects(NodeFlags::BlockScoped)
+            {
+                let var_decl_list = find_ancestor_kind(
+                    local_declaration_symbol.value_declaration(),
+                    Kind::VariableDeclarationList,
+                )
+                .unwrap();
+                let mut container: Option<P<Node>> = None;
+                let var_decl_list_parent = var_decl_list.parent().unwrap();
+                if is_variable_statement(var_decl_list_parent)
+                    && var_decl_list_parent.parent().is_some()
                 {
-                    if self
-                        .get_declaration_node_flags_from_symbol(local_declaration_symbol)
-                        .intersects(NodeFlags::BlockScoped)
-                    {
-                        let var_decl_list = find_ancestor_kind(
-                            local_declaration_symbol.value_declaration(),
-                            Kind::VariableDeclarationList,
-                        )
-                        .unwrap();
-                        let mut container: Option<P<Node>> = None;
-                        let var_decl_list_parent = var_decl_list.parent().unwrap();
-                        if is_variable_statement(var_decl_list_parent)
-                            && var_decl_list_parent.parent().is_some()
-                        {
-                            container = var_decl_list_parent.parent();
-                        }
-                        // names of block-scoped and function scoped variables can collide only
-                        // if block scoped variable is defined in the function\module\source file scope (because of variable hoisting)
-                        let names_share_scope = container.is_some_and(|container| {
-                            is_block(container) && is_function_like(container.parent())
-                                || is_module_block(container)
-                                || is_module_declaration(container)
-                                || is_source_file(container)
-                        });
-                        // here we know that function scoped variable is "shadowed" by block scoped one
-                        // a var declaration can't hoist past a lexical declaration and it results in a SyntaxError at runtime
-                        if !names_share_scope {
-                            let name = self.symbol_to_string(local_declaration_symbol);
-                            self.error(Some(node), &diagnostics::CANNOT_INITIALIZE_OUTER_SCOPED_VARIABLE_0_IN_THE_SAME_SCOPE_AS_BLOCK_SCOPED_DECLARATION_1, &[&name, &name]);
-                        }
-                    }
+                    container = var_decl_list_parent.parent();
+                }
+                // names of block-scoped and function scoped variables can collide only
+                // if block scoped variable is defined in the function\module\source file scope (because of variable hoisting)
+                let names_share_scope = container.is_some_and(|container| {
+                    is_block(container) && is_function_like(container.parent())
+                        || is_module_block(container)
+                        || is_module_declaration(container)
+                        || is_source_file(container)
+                });
+                // here we know that function scoped variable is "shadowed" by block scoped one
+                // a var declaration can't hoist past a lexical declaration and it results in a SyntaxError at runtime
+                if !names_share_scope {
+                    let name = self.symbol_to_string(local_declaration_symbol);
+                    self.error(Some(node), &diagnostics::CANNOT_INITIALIZE_OUTER_SCOPED_VARIABLE_0_IN_THE_SAME_SCOPE_AS_BLOCK_SCOPED_DECLARATION_1, &[&name, &name]);
                 }
             }
         }
@@ -3254,21 +3233,19 @@ impl Checker {
                 use_,
                 if iterable_exists { error_node } else { None },
             );
-            if check_assignability {
-                if let Some(next_type) = iteration_types.next_type {
-                    let mut diagnostic: Option<&'static Message> = None;
-                    if use_.intersects(IterationUse::ForOfFlag) {
-                        diagnostic = Some(&diagnostics::CANNOT_ITERATE_VALUE_BECAUSE_THE_NEXT_METHOD_OF_ITS_ITERATOR_EXPECTS_TYPE_1_BUT_FOR_OF_WILL_ALWAYS_SEND_0);
-                    } else if use_.intersects(IterationUse::SpreadFlag) {
-                        diagnostic = Some(&diagnostics::CANNOT_ITERATE_VALUE_BECAUSE_THE_NEXT_METHOD_OF_ITS_ITERATOR_EXPECTS_TYPE_1_BUT_ARRAY_SPREAD_WILL_ALWAYS_SEND_0);
-                    } else if use_.intersects(IterationUse::DestructuringFlag) {
-                        diagnostic = Some(&diagnostics::CANNOT_ITERATE_VALUE_BECAUSE_THE_NEXT_METHOD_OF_ITS_ITERATOR_EXPECTS_TYPE_1_BUT_ARRAY_DESTRUCTURING_WILL_ALWAYS_SEND_0);
-                    } else if use_.intersects(IterationUse::YieldStarFlag) {
-                        diagnostic = Some(&diagnostics::CANNOT_DELEGATE_ITERATION_TO_VALUE_BECAUSE_THE_NEXT_METHOD_OF_ITS_ITERATOR_EXPECTS_TYPE_1_BUT_THE_CONTAINING_GENERATOR_WILL_ALWAYS_SEND_0);
-                    }
-                    if diagnostic.is_some() {
-                        self.check_type_assignable_to(sent_type, next_type, error_node, diagnostic);
-                    }
+            if check_assignability && let Some(next_type) = iteration_types.next_type {
+                let mut diagnostic: Option<&'static Message> = None;
+                if use_.intersects(IterationUse::ForOfFlag) {
+                    diagnostic = Some(&diagnostics::CANNOT_ITERATE_VALUE_BECAUSE_THE_NEXT_METHOD_OF_ITS_ITERATOR_EXPECTS_TYPE_1_BUT_FOR_OF_WILL_ALWAYS_SEND_0);
+                } else if use_.intersects(IterationUse::SpreadFlag) {
+                    diagnostic = Some(&diagnostics::CANNOT_ITERATE_VALUE_BECAUSE_THE_NEXT_METHOD_OF_ITS_ITERATOR_EXPECTS_TYPE_1_BUT_ARRAY_SPREAD_WILL_ALWAYS_SEND_0);
+                } else if use_.intersects(IterationUse::DestructuringFlag) {
+                    diagnostic = Some(&diagnostics::CANNOT_ITERATE_VALUE_BECAUSE_THE_NEXT_METHOD_OF_ITS_ITERATOR_EXPECTS_TYPE_1_BUT_ARRAY_DESTRUCTURING_WILL_ALWAYS_SEND_0);
+                } else if use_.intersects(IterationUse::YieldStarFlag) {
+                    diagnostic = Some(&diagnostics::CANNOT_DELEGATE_ITERATION_TO_VALUE_BECAUSE_THE_NEXT_METHOD_OF_ITS_ITERATOR_EXPECTS_TYPE_1_BUT_THE_CONTAINING_GENERATOR_WILL_ALWAYS_SEND_0);
+                }
+                if diagnostic.is_some() {
+                    self.check_type_assignable_to(sent_type, next_type, error_node, diagnostic);
                 }
             }
             if iteration_types.yield_type.is_some() || iterable_exists {

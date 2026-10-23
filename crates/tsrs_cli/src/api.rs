@@ -12,7 +12,7 @@ use tsrs_vfs::{FS, bundled, osvfs};
 use crate::lsp::FlagSet;
 
 /// Go `apiFlags`.
-pub(crate) struct ApiFlags {
+pub struct ApiFlags {
     pub cwd: String,
     pub pipe_path: String,
     pub callbacks: Vec<String>,
@@ -23,7 +23,7 @@ pub(crate) struct ApiFlags {
 }
 
 /// Go `parseAPIFlags`.
-pub(crate) fn parse_api_flags(args: &[String]) -> Result<ApiFlags, ()> {
+pub fn parse_api_flags(args: &[String]) -> Result<ApiFlags, ()> {
     let mut flags = FlagSet::new("api");
     flags.string("cwd", "current working directory");
     flags.string(
@@ -73,7 +73,7 @@ pub(crate) fn parse_api_flags(args: &[String]) -> Result<ApiFlags, ()> {
 
 /// Go `StdioServer.Run` setup: the session over bundled libs + OS filesystem, wrapped by the client
 /// callback filesystem (the CLI always passes a case-sensitivity setting, so Go always wraps).
-pub(crate) fn new_api_session(flags: &ApiFlags) -> Result<(Arc<Session>, Arc<CallbackFs>), String> {
+pub fn new_api_session(flags: &ApiFlags) -> Result<(Arc<Session>, Arc<CallbackFs>), String> {
     let base: Arc<dyn FS> = Arc::new(bundled::wrap_fs(osvfs::fs()));
     let config = CallbackConfig::parse(&flags.callbacks)?;
     let callback_fs = Arc::new(CallbackFs::new(base, &config, Some(flags.case_sensitive)));

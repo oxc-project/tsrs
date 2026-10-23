@@ -10,10 +10,7 @@ use tsrs_ast::*;
 //   type EmitResolver (emitresolver.go:34)
 
 // emitresolver.go:45
-pub(crate) fn new_emit_resolver(
-    checker: &Checker,
-    emit_context: P<EmitContext>,
-) -> P<EmitResolver> {
+pub fn new_emit_resolver(checker: &Checker, emit_context: P<EmitContext>) -> P<EmitResolver> {
     // Go also wires `isValueAliasDeclaration` / `aliasMarkingVisitor` (method values of the `...Worker` methods, which
     // Rust calls directly) and `checkerMu` (dropped: the caller serializes checker access, see nodebuilder_types.rs).
     P::new_in(
@@ -242,22 +239,19 @@ impl EmitResolver {
 }
 
 // emitresolver.go:249
-pub(crate) fn is_common_js_module_exports(node: P<Node>) -> bool {
-    if ast::is_binary_expression(node) {
-        if let Some(parent) = node.parent() {
-            if ast::is_expression_statement(parent) {
-                if let Some(grand_parent) = parent.parent() {
-                    if ast::is_source_file(grand_parent)
-                        && grand_parent.as_source_file().common_js_module_indicator.get().is_some()
-                    {
-                        match ast::get_assignment_declaration_kind(node) {
-                            ast::JSDeclarationKind::ModuleExports
-                            | ast::JSDeclarationKind::ExportsProperty => return true,
-                            _ => {}
-                        }
-                    }
-                }
+pub fn is_common_js_module_exports(node: P<Node>) -> bool {
+    if ast::is_binary_expression(node)
+        && let Some(parent) = node.parent()
+        && ast::is_expression_statement(parent)
+        && let Some(grand_parent) = parent.parent()
+        && ast::is_source_file(grand_parent)
+        && grand_parent.as_source_file().common_js_module_indicator.get().is_some()
+    {
+        match ast::get_assignment_declaration_kind(node) {
+            ast::JSDeclarationKind::ModuleExports | ast::JSDeclarationKind::ExportsProperty => {
+                return true;
             }
+            _ => {}
         }
     }
     false
@@ -355,7 +349,7 @@ impl EmitResolver {
 }
 
 // emitresolver.go:311
-pub(crate) fn get_meaning_of_entity_name_reference(entity_name: P<Node>) -> SymbolFlags {
+pub fn get_meaning_of_entity_name_reference(entity_name: P<Node>) -> SymbolFlags {
     let parent = entity_name.parent().unwrap();
     // get symbol of the first identifier of the entityName
     if parent.kind() == Kind::TypeQuery
@@ -424,15 +418,14 @@ impl EmitResolver {
             false,
         );
 
-        if let Some(symbol) = symbol {
-            if symbol.flags().intersects(SymbolFlags::TypeParameter)
-                && meaning.intersects(SymbolFlags::Type)
-            {
-                return SymbolAccessibilityResult {
-                    accessibility: SymbolAccessibility::Accessible,
-                    ..Default::default()
-                };
-            }
+        if let Some(symbol) = symbol
+            && symbol.flags().intersects(SymbolFlags::TypeParameter)
+            && meaning.intersects(SymbolFlags::Type)
+        {
+            return SymbolAccessibilityResult {
+                accessibility: SymbolAccessibility::Accessible,
+                ..Default::default()
+            };
         }
 
         if symbol.is_none() && ast::is_this_identifier(first_identifier) {
@@ -476,7 +469,7 @@ impl EmitResolver {
 }
 
 // emitresolver.go:382
-pub(crate) fn noop_add_visible_alias(declaration: P<Node>, aliasing_statement: P<Node>) {
+pub fn noop_add_visible_alias(declaration: P<Node>, aliasing_statement: P<Node>) {
     let _ = (declaration, aliasing_statement);
 }
 
@@ -522,13 +515,12 @@ impl EmitResolver {
                     // Mark the unexported alias as visible if its parent is visible
                     // because these kind of aliases can be used to name types in declaration file
                     let any_import_syntax = get_any_import_syntax(declaration);
-                    if let Some(any_import_syntax) = any_import_syntax {
-                        if !ast::has_syntactic_modifier(any_import_syntax, ModifierFlags::Export) && // import clause without export
+                    if let Some(any_import_syntax) = any_import_syntax
+                        && !ast::has_syntactic_modifier(any_import_syntax, ModifierFlags::Export) && // import clause without export
                             self.is_declaration_visible(c, any_import_syntax.parent())
-                        {
-                            add_visible_alias(declaration, any_import_syntax);
-                            continue;
-                        }
+                    {
+                        add_visible_alias(declaration, any_import_syntax);
+                        continue;
                     }
                     if ast::is_variable_declaration(declaration) {
                         let variable_statement = declaration.parent().unwrap().parent().unwrap();
@@ -553,23 +545,19 @@ impl EmitResolver {
                         {
                             // exported import-like top-level JS require statement
                             let p2 = declaration.parent().and_then(|p| p.parent());
-                            if let Some(p2) = p2 {
-                                if ast::is_variable_declaration(p2) {
-                                    let p4 = p2.parent().unwrap().parent();
-                                    if let Some(p4) = p4 {
-                                        if ast::is_variable_statement(p4)
-                                            && !ast::has_syntactic_modifier(
-                                                p4,
-                                                ModifierFlags::Export,
-                                            )
-                                        {
-                                            // check if the thing containing the variable statement is visible (ie, the file)
-                                            let p5 = p4.parent();
-                                            if p5.is_some() && self.is_declaration_visible(c, p5) {
-                                                add_visible_alias(declaration, p4);
-                                                continue;
-                                            }
-                                        }
+                            if let Some(p2) = p2
+                                && ast::is_variable_declaration(p2)
+                            {
+                                let p4 = p2.parent().unwrap().parent();
+                                if let Some(p4) = p4
+                                    && ast::is_variable_statement(p4)
+                                    && !ast::has_syntactic_modifier(p4, ModifierFlags::Export)
+                                {
+                                    // check if the thing containing the variable statement is visible (ie, the file)
+                                    let p5 = p4.parent();
+                                    if p5.is_some() && self.is_declaration_visible(c, p5) {
+                                        add_visible_alias(declaration, p4);
+                                        continue;
                                     }
                                 }
                             }
@@ -682,15 +670,14 @@ impl EmitResolver {
         let exports = c.get_exports_of_module(file_symbol);
         for s in exports.values() {
             let merged = c.get_merged_symbol(s);
-            if merged != s {
-                if !merged.declarations().is_empty() {
-                    if merged.declarations().iter().any(|&d| {
-                        let decl_file = ast::get_source_file_of_node(d);
-                        decl_file == Some(import_target)
-                    }) {
-                        return true;
-                    }
-                }
+            if merged != s
+                && !merged.declarations().is_empty()
+                && merged.declarations().iter().any(|&d| {
+                    let decl_file = ast::get_source_file_of_node(d);
+                    decl_file == Some(import_target)
+                })
+            {
+                return true;
             }
         }
         false
@@ -954,7 +941,7 @@ impl EmitResolver {
 }
 
 // emitresolver.go:693
-pub(crate) fn is_const_enum_or_const_enum_only_module(s: P<Symbol>) -> bool {
+pub fn is_const_enum_or_const_enum_only_module(s: P<Symbol>) -> bool {
     is_const_enum_symbol(s) || s.flags().intersects(SymbolFlags::ConstEnumOnlyModule)
 }
 
@@ -969,22 +956,21 @@ impl EmitResolver {
             return true;
         }
 
-        if ast::is_alias_symbol_declaration(node) {
-            if let Some(symbol) = c.get_symbol_of_declaration(node) {
-                let alias_links = c.alias_symbol_links.get(symbol);
-                if alias_links.referenced.get() {
-                    return true;
-                }
-                let target = alias_links.alias_target.get();
-                if let Some(target) = target {
-                    if node.modifier_flags().intersects(ModifierFlags::Export)
-                        && c.get_symbol_flags(target).intersects(SymbolFlags::Value)
-                        && (c.compiler_options.should_preserve_const_enums()
-                            || !is_const_enum_or_const_enum_only_module(target))
-                    {
-                        return true;
-                    }
-                }
+        if ast::is_alias_symbol_declaration(node)
+            && let Some(symbol) = c.get_symbol_of_declaration(node)
+        {
+            let alias_links = c.alias_symbol_links.get(symbol);
+            if alias_links.referenced.get() {
+                return true;
+            }
+            let target = alias_links.alias_target.get();
+            if let Some(target) = target
+                && node.modifier_flags().intersects(ModifierFlags::Export)
+                && c.get_symbol_flags(target).intersects(SymbolFlags::Value)
+                && (c.compiler_options.should_preserve_const_enums()
+                    || !is_const_enum_or_const_enum_only_module(target))
+            {
+                return true;
             }
         }
         false
@@ -1067,16 +1053,16 @@ impl EmitResolver {
         let Some(symbol) = symbol else {
             return false;
         };
-        if let Some(value_declaration) = symbol.value_declaration() {
-            if let Some(container) = ast::get_source_file_of_node(value_declaration) {
-                let file_symbol = c.get_symbol_of_declaration(container.as_node());
-                // Ensures cjs export assignment is setup, since this symbol may point at, and merge with, the file itself.
-                // If we don't, the merge may not have yet occurred, and the flags check below will be missing flags that
-                // are added as a result of the merge.
-                // (Go's resolveExternalModuleSymbol returns a nil module symbol unchanged.)
-                if let Some(file_symbol) = file_symbol {
-                    c.resolve_external_module_symbol(file_symbol, false /*dontResolveAlias*/);
-                }
+        if let Some(value_declaration) = symbol.value_declaration()
+            && let Some(container) = ast::get_source_file_of_node(value_declaration)
+        {
+            let file_symbol = c.get_symbol_of_declaration(container.as_node());
+            // Ensures cjs export assignment is setup, since this symbol may point at, and merge with, the file itself.
+            // If we don't, the merge may not have yet occurred, and the flags check below will be missing flags that
+            // are added as a result of the merge.
+            // (Go's resolveExternalModuleSymbol returns a nil module symbol unchanged.)
+            if let Some(file_symbol) = file_symbol {
+                c.resolve_external_module_symbol(file_symbol, false /*dontResolveAlias*/);
             }
         }
         let resolved = c.resolve_alias(symbol);
@@ -1126,10 +1112,10 @@ impl EmitResolver {
         reason = "EmitResolver methods implement the instance resolver API used by declaration and JavaScript transforms."
     )]
     pub fn mark_linked_references_recursively(&self, c: &mut Checker, file: Option<P<SourceFile>>) {
-        if let Some(file) = file {
-            if !ast::is_parse_tree_node(file.as_node()) {
-                return;
-            }
+        if let Some(file) = file
+            && !ast::is_parse_tree_node(file.as_node())
+        {
+            return;
         }
 
         if let Some(file) = file {
@@ -1649,18 +1635,18 @@ impl EmitResolver {
                     internal_flags,
                     Some(tracker),
                 );
-                if let Some(n) = node {
-                    if is_static {
-                        let mut mod_nodes = vec![f.new_modifier(Kind::StaticKeyword)];
-                        mod_nodes.extend_from_slice(n.modifier_nodes());
-                        let mods = f.new_modifier_list(mod_nodes);
-                        node = Some(f.update_index_signature_declaration(
-                            n,
-                            Some(mods),
-                            n.parameter_list(),
-                            n.type_node(),
-                        ));
-                    }
+                if let Some(n) = node
+                    && is_static
+                {
+                    let mut mod_nodes = vec![f.new_modifier(Kind::StaticKeyword)];
+                    mod_nodes.extend_from_slice(n.modifier_nodes());
+                    let mods = f.new_modifier_list(mod_nodes);
+                    node = Some(f.update_index_signature_declaration(
+                        n,
+                        Some(mods),
+                        n.parameter_list(),
+                        n.type_node(),
+                    ));
                 }
                 if let Some(node) = node {
                     result.push(node);
@@ -1723,22 +1709,22 @@ impl EmitResolver {
                 location,
             );
 
-            if let Some(root_value_symbol) = root_value_symbol {
-                if !root_value_symbol.declarations().is_empty() {
-                    is_type_only = root_value_symbol
-                        .declarations()
-                        .iter()
-                        .all(|&d| ast::is_type_only_import_or_export_declaration(d));
-                }
+            if let Some(root_value_symbol) = root_value_symbol
+                && !root_value_symbol.declarations().is_empty()
+            {
+                is_type_only = root_value_symbol
+                    .declarations()
+                    .iter()
+                    .all(|&d| ast::is_type_only_import_or_export_declaration(d));
             }
         }
         let value_symbol =
             c.resolve_entity_name(type_name, SymbolFlags::Value, true, true, location);
         let mut resolved_value_symbol = value_symbol;
-        if let Some(value_symbol) = value_symbol {
-            if value_symbol.flags().intersects(SymbolFlags::Alias) {
-                resolved_value_symbol = Some(c.resolve_alias(value_symbol));
-            }
+        if let Some(value_symbol) = value_symbol
+            && value_symbol.flags().intersects(SymbolFlags::Alias)
+        {
+            resolved_value_symbol = Some(c.resolve_alias(value_symbol));
         }
 
         is_type_only = is_type_only
@@ -1749,10 +1735,10 @@ impl EmitResolver {
         // Resolve the symbol as a type so that we can provide a more useful hint for the type serializer.
         let type_symbol = c.resolve_entity_name(type_name, SymbolFlags::Type, true, true, location);
         let mut resolved_type_symbol = type_symbol;
-        if let Some(type_symbol) = type_symbol {
-            if type_symbol.flags().intersects(SymbolFlags::Alias) {
-                resolved_type_symbol = Some(c.resolve_alias(type_symbol));
-            }
+        if let Some(type_symbol) = type_symbol
+            && type_symbol.flags().intersects(SymbolFlags::Alias)
+        {
+            resolved_type_symbol = Some(c.resolve_alias(type_symbol));
         }
         // In case the value symbol can't be resolved (e.g. because of missing declarations), use type symbol for reachability check.
         is_type_only = is_type_only
@@ -1760,22 +1746,22 @@ impl EmitResolver {
                 c.get_type_only_alias_declaration_ex(s, SymbolFlags::Type).is_some()
             });
 
-        if let Some(resolved_value_symbol) = resolved_value_symbol {
-            if Some(resolved_value_symbol) == resolved_type_symbol {
-                let global_promise_symbol = c.get_global_promise_constructor_symbol();
-                if global_promise_symbol.is_some()
-                    && Some(resolved_value_symbol) == global_promise_symbol
-                {
-                    return TypeReferenceSerializationKind::Promise;
-                }
+        if let Some(resolved_value_symbol) = resolved_value_symbol
+            && Some(resolved_value_symbol) == resolved_type_symbol
+        {
+            let global_promise_symbol = c.get_global_promise_constructor_symbol();
+            if global_promise_symbol.is_some()
+                && Some(resolved_value_symbol) == global_promise_symbol
+            {
+                return TypeReferenceSerializationKind::Promise;
+            }
 
-                let constructor_type = c.get_type_of_symbol(resolved_value_symbol);
-                if c.is_constructor_type(constructor_type) {
-                    if is_type_only {
-                        return TypeReferenceSerializationKind::TypeWithCallSignature;
-                    }
-                    return TypeReferenceSerializationKind::TypeWithConstructSignatureAndValue;
+            let constructor_type = c.get_type_of_symbol(resolved_value_symbol);
+            if c.is_constructor_type(constructor_type) {
+                if is_type_only {
+                    return TypeReferenceSerializationKind::TypeWithCallSignature;
                 }
+                return TypeReferenceSerializationKind::TypeWithConstructSignatureAndValue;
             }
         }
 

@@ -128,9 +128,7 @@ impl MetadataTransformer {
         self.parent.set(Some(node));
 
         let result =
-            if !ast::class_or_constructor_parameter_is_decorated(self.legacy_decorators, node) {
-                self.visitor().visit_each_child(Some(node)).unwrap()
-            } else {
+            if ast::class_or_constructor_parameter_is_decorated(self.legacy_decorators, node) {
                 let c = node.as_class_expression();
                 let modifiers = self.inject_class_type_metadata(
                     self.visitor().visit_modifiers(node.modifiers()),
@@ -144,6 +142,8 @@ impl MetadataTransformer {
                     self.visitor().visit_nodes(c.heritage_clauses()),
                     self.visitor().visit_nodes(Some(c.members())).unwrap(),
                 )
+            } else {
+                self.visitor().visit_each_child(Some(node)).unwrap()
             };
         self.set_parent(old_parent);
         result
@@ -155,9 +155,7 @@ impl MetadataTransformer {
         self.parent.set(Some(node));
 
         let result =
-            if !ast::class_or_constructor_parameter_is_decorated(self.legacy_decorators, node) {
-                self.visitor().visit_each_child(Some(node)).unwrap()
-            } else {
+            if ast::class_or_constructor_parameter_is_decorated(self.legacy_decorators, node) {
                 let c = node.as_class_declaration();
                 let modifiers = self.inject_class_type_metadata(
                     self.visitor().visit_modifiers(node.modifiers()),
@@ -171,6 +169,8 @@ impl MetadataTransformer {
                     self.visitor().visit_nodes(c.heritage_clauses()),
                     self.visitor().visit_nodes(Some(c.members())).unwrap(),
                 )
+            } else {
+                self.visitor().visit_each_child(Some(node)).unwrap()
             };
         self.set_parent(old_parent);
         result

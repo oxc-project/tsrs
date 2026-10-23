@@ -40,7 +40,7 @@ pub fn parse_string_array(value: &CompilerOptionsValue) -> Option<Vec<String>> {
     None
 }
 
-pub(crate) fn parse_string_map(
+pub fn parse_string_map(
     value: &CompilerOptionsValue,
 ) -> Option<OrderedMap<String, Option<Vec<String>>>> {
     if let CompilerOptionsValue::Object(m) = value {
@@ -59,7 +59,7 @@ pub fn parse_string(value: &CompilerOptionsValue) -> String {
 }
 
 // parseNumber into a Go `*int` (64-bit) option.
-pub(crate) fn parse_number_int(value: &CompilerOptionsValue) -> Option<i64> {
+pub fn parse_number_int(value: &CompilerOptionsValue) -> Option<i64> {
     match value {
         CompilerOptionsValue::Int(num) => Some(*num),
         CompilerOptionsValue::Float(num) => Some(*num as i64),
@@ -67,7 +67,7 @@ pub(crate) fn parse_number_int(value: &CompilerOptionsValue) -> Option<i64> {
     }
 }
 
-pub(crate) struct ProjectReferenceParseResult {
+pub struct ProjectReferenceParseResult {
     pub(crate) reference: ProjectReference,
     pub(crate) has_path: bool,
     pub(crate) path_valid: bool,
@@ -75,9 +75,7 @@ pub(crate) struct ProjectReferenceParseResult {
     pub(crate) circular_valid: bool,
 }
 
-pub(crate) fn parse_project_reference(
-    json: &CompilerOptionsValue,
-) -> Option<ProjectReferenceParseResult> {
+pub fn parse_project_reference(json: &CompilerOptionsValue) -> Option<ProjectReferenceParseResult> {
     if let CompilerOptionsValue::Object(v) = json {
         let mut result = ProjectReferenceParseResult {
             reference: ProjectReference::default(),
@@ -105,9 +103,7 @@ pub(crate) fn parse_project_reference(
     None
 }
 
-pub(crate) fn parse_content_mapper(
-    value: &CompilerOptionsValue,
-) -> (Option<Mapper>, Vec<P<Diagnostic>>) {
+pub fn parse_content_mapper(value: &CompilerOptionsValue) -> (Option<Mapper>, Vec<P<Diagnostic>>) {
     let CompilerOptionsValue::Object(v) = value else {
         return (None, Vec::new());
     };
@@ -144,27 +140,27 @@ pub(crate) fn parse_content_mapper(
             &[&"contentMapper.extensions", &"string[]"],
         ));
     }
-    if let Some(output_extensions) = v.get("outputExtensions") {
-        if !matches!(output_extensions, CompilerOptionsValue::Null) {
-            if let Some(values) = parse_string_string_map_strict(output_extensions) {
-                mapper.definition.output_extensions = values;
-                mapper.definition.output_extensions_present = true;
-            } else {
-                errors.push(new_compiler_diagnostic(
-                    &diagnostics::COMPILER_OPTION_0_REQUIRES_A_VALUE_OF_TYPE_1,
-                    &[&"contentMapper.outputExtensions", &"object or null"],
-                ));
-            }
+    if let Some(output_extensions) = v.get("outputExtensions")
+        && !matches!(output_extensions, CompilerOptionsValue::Null)
+    {
+        if let Some(values) = parse_string_string_map_strict(output_extensions) {
+            mapper.definition.output_extensions = values;
+            mapper.definition.output_extensions_present = true;
+        } else {
+            errors.push(new_compiler_diagnostic(
+                &diagnostics::COMPILER_OPTION_0_REQUIRES_A_VALUE_OF_TYPE_1,
+                &[&"contentMapper.outputExtensions", &"object or null"],
+            ));
         }
     }
     if let Some(options) = v.get("options") {
-        if !matches!(options, CompilerOptionsValue::Object(_)) {
+        if matches!(options, CompilerOptionsValue::Object(_)) {
+            mapper.definition.options = crate::tsconfigparsing::stringify_json(options);
+        } else {
             errors.push(new_compiler_diagnostic(
                 &diagnostics::COMPILER_OPTION_0_REQUIRES_A_VALUE_OF_TYPE_1,
                 &[&"contentMapper.options", &"object"],
             ));
-        } else {
-            mapper.definition.options = crate::tsconfigparsing::stringify_json(options);
         }
     }
     if !errors.is_empty() {
@@ -191,7 +187,7 @@ fn parse_string_string_map_strict(
 
 // parseStringArrayStrict returns the string slice and true only if value is an array whose
 // elements are all strings. A missing element or wrong element type yields false.
-pub(crate) fn parse_string_array_strict(value: &CompilerOptionsValue) -> Option<Vec<String>> {
+pub fn parse_string_array_strict(value: &CompilerOptionsValue) -> Option<Vec<String>> {
     let CompilerOptionsValue::Array(arr) = value else {
         return None;
     };
@@ -207,7 +203,7 @@ pub(crate) fn parse_string_array_strict(value: &CompilerOptionsValue) -> Option<
     Some(result)
 }
 
-pub(crate) fn parse_json_to_string_key(
+pub fn parse_json_to_string_key(
     json: &CompilerOptionsValue,
 ) -> OrderedMap<String, CompilerOptionsValue> {
     let mut result = OrderedMap::with_capacity_and_hasher(6, rustc_hash::FxBuildHasher);
@@ -249,13 +245,13 @@ pub(crate) fn parse_json_to_string_key(
     result
 }
 
-pub(crate) trait OptionParser {
+pub trait OptionParser {
     fn parse_option(&mut self, key: &str, value: &CompilerOptionsValue) -> Vec<P<Diagnostic>>;
     fn unknown_option_diagnostic(&self) -> &'static Message;
     fn unknown_did_you_mean_diagnostic(&self) -> &'static Message;
 }
 
-pub(crate) struct CompilerOptionsParser(pub(crate) CompilerOptions);
+pub struct CompilerOptionsParser(pub(crate) CompilerOptions);
 
 impl OptionParser for CompilerOptionsParser {
     fn parse_option(&mut self, key: &str, value: &CompilerOptionsValue) -> Vec<P<Diagnostic>> {
@@ -271,7 +267,7 @@ impl OptionParser for CompilerOptionsParser {
     }
 }
 
-pub(crate) struct TypeAcquisitionParser(pub(crate) TypeAcquisition);
+pub struct TypeAcquisitionParser(pub(crate) TypeAcquisition);
 
 impl OptionParser for TypeAcquisitionParser {
     fn parse_option(&mut self, key: &str, value: &CompilerOptionsValue) -> Vec<P<Diagnostic>> {
@@ -287,7 +283,7 @@ impl OptionParser for TypeAcquisitionParser {
     }
 }
 
-pub(crate) struct BuildOptionsParser(pub(crate) BuildOptions);
+pub struct BuildOptionsParser(pub(crate) BuildOptions);
 
 impl OptionParser for BuildOptionsParser {
     fn parse_option(&mut self, key: &str, value: &CompilerOptionsValue) -> Vec<P<Diagnostic>> {
@@ -317,7 +313,7 @@ pub fn parse_compiler_options(
 }
 
 // Go `parseCompilerOptions`.
-pub(crate) fn parse_compiler_options_worker(
+pub fn parse_compiler_options_worker(
     key: &str,
     value: &CompilerOptionsValue,
     all_options: &mut CompilerOptions,
@@ -630,7 +626,7 @@ pub fn parse_build_options(
 }
 
 // reflect.Value.IsZero for the field types of core.CompilerOptions.
-pub(crate) trait IsZero {
+pub trait IsZero {
     fn is_zero(&self) -> bool;
 }
 
@@ -834,7 +830,7 @@ impl<T: IsZero + ToOptionsValue> OptionFieldValue for T {
     }
 }
 
-pub(crate) trait ToOptionsValue {
+pub trait ToOptionsValue {
     fn to_options_value(&self) -> CompilerOptionsValue;
 }
 
@@ -962,7 +958,7 @@ pub fn for_each_compiler_option_value(
 // with optional awareness of explicitly set null values in the raw JSON.
 // Fields in the source options will overwrite the corresponding fields in the target options,
 // including when they are explicitly set to null in the raw configuration (if rawSource is provided).
-pub(crate) fn merge_compiler_options(
+pub fn merge_compiler_options(
     target_options: &mut CompilerOptions,
     source_options: Option<&CompilerOptions>,
     raw_source: Option<&CompilerOptionsValue>,
@@ -1001,7 +997,7 @@ pub(crate) fn merge_compiler_options(
     for_each_compiler_options_field!(merge_fields);
 }
 
-pub(crate) fn convert_to_options_with_absolute_paths(
+pub fn convert_to_options_with_absolute_paths(
     mut options_base: OrderedMap<String, CompilerOptionsValue>,
     option_map: &CommandLineOptionNameMap,
     cwd: &str,
@@ -1049,12 +1045,12 @@ pub fn convert_option_to_absolute_path(
                 ));
             }
         }
-    } else if option.is_file_path {
-        if let CompilerOptionsValue::String(value) = v {
-            return Some(CompilerOptionsValue::String(tspath::get_normalized_absolute_path(
-                value, cwd,
-            )));
-        }
+    } else if option.is_file_path
+        && let CompilerOptionsValue::String(value) = v
+    {
+        return Some(CompilerOptionsValue::String(tspath::get_normalized_absolute_path(
+            value, cwd,
+        )));
     }
     None
 }

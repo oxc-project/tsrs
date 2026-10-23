@@ -31,7 +31,7 @@ use crate::util::{
 };
 
 #[derive(Clone, Debug, Default)]
-pub(crate) struct Resolved {
+pub struct Resolved {
     path: String,
     extension: String,
     package_id: PackageId,
@@ -119,7 +119,7 @@ type ResolutionKindSpecificLoader<'l, 'r> =
     &'l mut dyn FnMut(&mut ResolutionState<'r>, Extensions, &str) -> Option<Resolved>;
 
 #[derive(Default)]
-pub(crate) struct Tracer {
+pub struct Tracer {
     traces: Vec<DiagAndArgs>,
 }
 
@@ -159,7 +159,7 @@ macro_rules! trace {
     };
 }
 
-pub(crate) struct ResolutionState<'r> {
+pub struct ResolutionState<'r> {
     resolver: &'r DefaultResolver<'r>,
     tracer: Option<Tracer>,
 
@@ -363,13 +363,13 @@ impl Tracer {
         &mut self,
         redirected_reference: Option<&dyn ResolvedProjectReference>,
     ) {
-        if let Some(redirected_reference) = redirected_reference {
-            if redirected_reference.compiler_options().is_some() {
-                self.write(
-                    &diagnostics::USING_COMPILER_OPTIONS_OF_PROJECT_REFERENCE_REDIRECT_0,
-                    &[&redirected_reference.config_name()],
-                );
-            }
+        if let Some(redirected_reference) = redirected_reference
+            && redirected_reference.compiler_options().is_some()
+        {
+            self.write(
+                &diagnostics::USING_COMPILER_OPTIONS_OF_PROJECT_REFERENCE_REDIRECT_0,
+                &[&redirected_reference.config_name()],
+            );
         }
     }
 }
@@ -396,10 +396,10 @@ impl DefaultResolver<'_> {
             from_inferred_types_containing_file,
         };
 
-        if trace_builder.is_none() {
-            if let Some(cached) = self.type_ref_directive_resolution_cache.get(&cache_key) {
-                return (cached, Vec::new());
-            }
+        if trace_builder.is_none()
+            && let Some(cached) = self.type_ref_directive_resolution_cache.get(&cache_key)
+        {
+            return (cached, Vec::new());
         }
 
         let compiler_options =
@@ -494,15 +494,15 @@ impl DefaultResolver<'_> {
         let mut trace_builder = self.new_trace_builder();
 
         // Look the cache up by the arguments: a hit allocates nothing (the owned key is built on a miss, below).
-        if trace_builder.is_none() {
-            if let Some(cached) = self.module_resolution_cache.get_parts(
+        if trace_builder.is_none()
+            && let Some(cached) = self.module_resolution_cache.get_parts(
                 containing_directory,
                 module_name,
                 resolution_mode,
                 crate::cache::redirect_config_name(redirected_reference),
-            ) {
-                return (cached, Vec::new());
-            }
+            )
+        {
+            return (cached, Vec::new());
         }
         let cache_key = ModuleResolutionCacheKey {
             containing_directory: containing_directory.to_string(),
@@ -519,16 +519,16 @@ impl DefaultResolver<'_> {
         }
 
         let module_resolution = compiler_options.get_module_resolution_kind();
-        if compiler_options.module_resolution != module_resolution {
+        if compiler_options.module_resolution == module_resolution {
             trace!(
                 trace_builder,
-                diagnostics::MODULE_RESOLUTION_KIND_IS_NOT_SPECIFIED_USING_0,
+                diagnostics::EXPLICITLY_SPECIFIED_MODULE_RESOLUTION_KIND_COLON_0,
                 module_resolution.string()
             );
         } else {
             trace!(
                 trace_builder,
-                diagnostics::EXPLICITLY_SPECIFIED_MODULE_RESOLUTION_KIND_COLON_0,
+                diagnostics::MODULE_RESOLUTION_KIND_IS_NOT_SPECIFIED_USING_0,
                 module_resolution.string()
             );
         }
@@ -556,15 +556,15 @@ impl DefaultResolver<'_> {
 
         if let Some(t) = trace_builder.as_mut() {
             if result.is_resolved() {
-                if !result.package_id.name.is_empty() {
-                    t.write(
-                        &diagnostics::MODULE_NAME_0_WAS_SUCCESSFULLY_RESOLVED_TO_1_WITH_PACKAGE_ID_2,
-                        &[&module_name, &result.resolved_file_name, &result.package_id],
-                    );
-                } else {
+                if result.package_id.name.is_empty() {
                     t.write(
                         &diagnostics::MODULE_NAME_0_WAS_SUCCESSFULLY_RESOLVED_TO_1,
                         &[&module_name, &result.resolved_file_name],
+                    );
+                } else {
+                    t.write(
+                        &diagnostics::MODULE_NAME_0_WAS_SUCCESSFULLY_RESOLVED_TO_1_WITH_PACKAGE_ID_2,
+                        &[&module_name, &result.resolved_file_name, &result.package_id],
                     );
                 }
             } else {
@@ -798,7 +798,12 @@ impl<'r> ResolutionState<'r> {
         from_inferred_types_containing_file: bool,
     ) -> ResolvedTypeReferenceDirective {
         // Primary lookup
-        if !type_roots.is_empty() {
+        if type_roots.is_empty() {
+            trace!(
+                self.tracer,
+                diagnostics::ROOT_DIRECTORY_CANNOT_BE_DETERMINED_SKIPPING_PRIMARY_SEARCH_PATHS
+            );
+        } else {
             trace!(
                 self.tracer,
                 diagnostics::RESOLVING_WITH_PRIMARY_SEARCH_PATH_0,
@@ -843,11 +848,6 @@ impl<'r> ResolutionState<'r> {
                     );
                 }
             }
-        } else {
-            trace!(
-                self.tracer,
-                diagnostics::ROOT_DIRECTORY_CANNOT_BE_DETERMINED_SKIPPING_PRIMARY_SEARCH_PATHS
-            );
         }
 
         // Secondary lookup
@@ -858,10 +858,7 @@ impl<'r> ResolutionState<'r> {
                 diagnostics::LOOKING_UP_IN_NODE_MODULES_FOLDER_INITIAL_LOCATION_0,
                 self.containing_directory
             );
-            if !tspath::is_external_module_name_relative(&self.name) {
-                resolved = self
-                    .load_module_from_nearest_node_modules_directory(false /*typesScopeOnly*/);
-            } else {
+            if tspath::is_external_module_name_relative(&self.name) {
                 let candidate =
                     normalize_path_for_cjs_resolution(&self.containing_directory, &self.name);
                 resolved = self.node_load_module_by_relative_name(
@@ -869,6 +866,9 @@ impl<'r> ResolutionState<'r> {
                     &candidate,
                     true, /*considerPackageJson*/
                 );
+            } else {
+                resolved = self
+                    .load_module_from_nearest_node_modules_directory(false /*typesScopeOnly*/);
             }
         } else {
             trace!(self.tracer, diagnostics::RESOLVING_TYPE_REFERENCE_DIRECTIVE_FOR_PROGRAM_THAT_SPECIFIES_CUSTOM_TYPE_ROOTS_SKIPPING_LOOKUP_IN_NODE_MODULES_FOLDER);
@@ -1003,43 +1003,7 @@ impl<'r> ResolutionState<'r> {
             return self.create_resolved_module_handling_symlink(resolved);
         }
 
-        if !tspath::is_external_module_name_relative(&self.name) {
-            if self.features.intersects(NodeResolutionFeatures::Imports)
-                && self.name.starts_with('#')
-            {
-                let resolved = self.load_module_from_imports();
-                if !resolved.should_continue_searching() {
-                    return self.create_resolved_module_handling_symlink(resolved);
-                }
-            }
-            if self.features.intersects(NodeResolutionFeatures::SelfName) {
-                let resolved = self.load_module_from_self_name_reference();
-                if !resolved.should_continue_searching() {
-                    return self.create_resolved_module_handling_symlink(resolved);
-                }
-            }
-            if self.name.contains(':') {
-                trace!(self.tracer, diagnostics::SKIPPING_MODULE_0_THAT_LOOKS_LIKE_AN_ABSOLUTE_URI_TARGET_FILE_TYPES_COLON_1, self.name, self.extensions);
-                return self.create_resolved_module(None, false);
-            }
-            trace!(
-                self.tracer,
-                diagnostics::LOADING_MODULE_0_FROM_NODE_MODULES_FOLDER_TARGET_FILE_TYPES_COLON_1,
-                self.name,
-                self.extensions
-            );
-            let resolved =
-                self.load_module_from_nearest_node_modules_directory(false /*typesScopeOnly*/);
-            if !resolved.should_continue_searching() {
-                return self.create_resolved_module_handling_symlink(resolved);
-            }
-            if self.extensions.intersects(Extensions::Declaration) {
-                let resolved = self.resolve_from_type_root();
-                if !resolved.should_continue_searching() {
-                    return self.create_resolved_module_handling_symlink(resolved);
-                }
-            }
-        } else {
+        if tspath::is_external_module_name_relative(&self.name) {
             let candidate =
                 normalize_path_for_cjs_resolution(&self.containing_directory, &self.name);
             let resolved =
@@ -1047,6 +1011,40 @@ impl<'r> ResolutionState<'r> {
             let is_external_library_import =
                 resolved.as_ref().is_some_and(|r| r.path.contains("/node_modules/"));
             return self.create_resolved_module(resolved, is_external_library_import);
+        }
+
+        if self.features.intersects(NodeResolutionFeatures::Imports) && self.name.starts_with('#') {
+            let resolved = self.load_module_from_imports();
+            if !resolved.should_continue_searching() {
+                return self.create_resolved_module_handling_symlink(resolved);
+            }
+        }
+        if self.features.intersects(NodeResolutionFeatures::SelfName) {
+            let resolved = self.load_module_from_self_name_reference();
+            if !resolved.should_continue_searching() {
+                return self.create_resolved_module_handling_symlink(resolved);
+            }
+        }
+        if self.name.contains(':') {
+            trace!(self.tracer, diagnostics::SKIPPING_MODULE_0_THAT_LOOKS_LIKE_AN_ABSOLUTE_URI_TARGET_FILE_TYPES_COLON_1, self.name, self.extensions);
+            return self.create_resolved_module(None, false);
+        }
+        trace!(
+            self.tracer,
+            diagnostics::LOADING_MODULE_0_FROM_NODE_MODULES_FOLDER_TARGET_FILE_TYPES_COLON_1,
+            self.name,
+            self.extensions
+        );
+        let resolved =
+            self.load_module_from_nearest_node_modules_directory(false /*typesScopeOnly*/);
+        if !resolved.should_continue_searching() {
+            return self.create_resolved_module_handling_symlink(resolved);
+        }
+        if self.extensions.intersects(Extensions::Declaration) {
+            let resolved = self.resolve_from_type_root();
+            if !resolved.should_continue_searching() {
+                return self.create_resolved_module_handling_symlink(resolved);
+            }
         }
         self.create_resolved_module(None, false)
     }
@@ -1071,12 +1069,12 @@ impl<'r> ResolutionState<'r> {
             return continue_searching();
         }
         let trailing_parts = &parts[name_parts.len()..];
-        let subpath = if !trailing_parts.is_empty() {
+        let subpath = if trailing_parts.is_empty() {
+            ".".to_string()
+        } else {
             let trailing: Vec<&str> =
                 trailing_parts.iter().map(std::string::String::as_str).collect();
             tspath::combine_paths(".", &trailing)
-        } else {
-            ".".to_string()
         };
         // Maybe TODO: splitting extensions into two priorities should be unnecessary, except
         // https://github.com/microsoft/TypeScript/issues/50762 makes the behavior different.
@@ -1188,19 +1186,19 @@ impl<'r> ResolutionState<'r> {
                 }
                 _ => {}
             }
-            if let Some(main_export) = main_export {
-                if main_export.type_() != JSONValueType::NotPresent {
-                    return self.load_module_from_target_export_or_import(
-                        ext,
-                        subpath,
-                        package_info,
-                        false, /*isImports*/
-                        main_export,
-                        "",
-                        false, /*isPattern*/
-                        ".",
-                    );
-                }
+            if let Some(main_export) = main_export
+                && main_export.type_() != JSONValueType::NotPresent
+            {
+                return self.load_module_from_target_export_or_import(
+                    ext,
+                    subpath,
+                    package_info,
+                    false, /*isImports*/
+                    main_export,
+                    "",
+                    false, /*isPattern*/
+                    ".",
+                );
             }
         } else if exports.type_() == JSONValueType::Object && exports.is_subpaths() {
             let result = self.load_module_from_exports_or_imports(
@@ -1232,19 +1230,20 @@ impl<'r> ResolutionState<'r> {
         scope: P<InfoCacheEntry>,
         is_imports: bool,
     ) -> Option<Resolved> {
-        if !module_name.ends_with('/') && !module_name.contains('*') {
-            if let Some(target) = lookup_table.get(module_name) {
-                return self.load_module_from_target_export_or_import(
-                    extensions,
-                    module_name,
-                    scope,
-                    is_imports,
-                    target,
-                    "",
-                    false, /*isPattern*/
-                    module_name,
-                );
-            }
+        if !module_name.ends_with('/')
+            && !module_name.contains('*')
+            && let Some(target) = lookup_table.get(module_name)
+        {
+            return self.load_module_from_target_export_or_import(
+                extensions,
+                module_name,
+                scope,
+                is_imports,
+                target,
+                "",
+                false, /*isPattern*/
+                module_name,
+            );
         }
 
         let mut expanding_keys: Vec<&'static str> = Vec::with_capacity(lookup_table.len());
@@ -1649,10 +1648,10 @@ impl<'r> ResolutionState<'r> {
         let compiler_options = self.compiler_options.get();
         // Config file output paths are processed to be relative to the host's current directory, while
         // otherwise the paths are resolved relative to the common source dir the compiler puts together
-        let current_dir = if !compiler_options.config_file_path.is_empty() {
-            self.current_directory()
-        } else {
+        let current_dir = if compiler_options.config_file_path.is_empty() {
             common_source_dir_guess
+        } else {
+            self.current_directory()
         };
         let mut candidate_directories = Vec::new();
         if !compiler_options.declaration_dir.is_empty() {
@@ -2049,11 +2048,11 @@ impl<'r> ResolutionState<'r> {
             return resolved;
         }
 
-        if !tspath::is_external_module_name_relative(&self.name) {
+        if tspath::is_external_module_name_relative(&self.name) {
+            self.try_load_module_using_root_dirs()
+        } else {
             // No more tryLoadModuleUsingBaseUrl.
             continue_searching()
-        } else {
-            self.try_load_module_using_root_dirs()
         }
     }
 
@@ -2123,14 +2122,14 @@ impl<'r> ResolutionState<'r> {
                 );
                 // A path mapping may have an extension
                 let extension_from_subst = tspath::try_get_extension_from_path(subst);
-                if !extension_from_subst.is_empty() {
-                    if let Some(path) = self.try_file(&candidate) {
-                        return Some(Resolved {
-                            path,
-                            extension: extension_from_subst.to_string(),
-                            ..Default::default()
-                        });
-                    }
+                if !extension_from_subst.is_empty()
+                    && let Some(path) = self.try_file(&candidate)
+                {
+                    return Some(Resolved {
+                        path,
+                        extension: extension_from_subst.to_string(),
+                        ..Default::default()
+                    });
                 }
                 // When the substitution path has an explicit extension, the extension came from the
                 // paths config, not the module specifier. Suppress resolvedUsingTsExtension in that case.
@@ -2685,10 +2684,9 @@ impl<'r> ResolutionState<'r> {
                     current_directory: String::new(),
                 },
             ) == std::cmp::Ordering::Equal
+                && let Some(file) = self.get_package_file(ext, package_info)
             {
-                if let Some(file) = self.get_package_file(ext, package_info) {
-                    package_file = file;
-                }
+                package_file = file;
             }
         }
 
@@ -2735,52 +2733,51 @@ impl<'r> ResolutionState<'r> {
             tspath::combine_paths(candidate, &["index"])
         };
 
-        if let Some(version_paths) = version_paths.filter(|v| v.exists()) {
-            if package_file.is_empty()
+        if let Some(version_paths) = version_paths.filter(|v| v.exists())
+            && (package_file.is_empty()
                 || tspath::contains_path(
                     candidate,
                     &package_file,
                     &tsrs_core::tspath::ComparePathsOptions::default(),
+                ))
+        {
+            let mut module_name = if package_file.is_empty() {
+                tspath::get_relative_path_from_directory(
+                    candidate,
+                    &index_path,
+                    &tsrs_core::tspath::ComparePathsOptions::default(),
                 )
-            {
-                let mut module_name = if !package_file.is_empty() {
-                    tspath::get_relative_path_from_directory(
-                        candidate,
-                        &package_file,
-                        &tsrs_core::tspath::ComparePathsOptions::default(),
-                    )
-                } else {
-                    tspath::get_relative_path_from_directory(
-                        candidate,
-                        &index_path,
-                        &tsrs_core::tspath::ComparePathsOptions::default(),
-                    )
-                };
-                if tspath::is_encoded_dynamic_file_name(candidate) {
-                    module_name = tspath::decode_dynamic_uri_path(&module_name);
-                }
-                trace!(
+            } else {
+                tspath::get_relative_path_from_directory(
+                    candidate,
+                    &package_file,
+                    &tsrs_core::tspath::ComparePathsOptions::default(),
+                )
+            };
+            if tspath::is_encoded_dynamic_file_name(candidate) {
+                module_name = tspath::decode_dynamic_uri_path(&module_name);
+            }
+            trace!(
                     self.tracer,
                     diagnostics::X_PACKAGE_JSON_HAS_A_TYPES_VERSIONS_ENTRY_0_THAT_MATCHES_COMPILER_VERSION_1_LOOKING_FOR_A_PATTERN_TO_MATCH_MODULE_NAME_2,
                     version_paths.version,
                     tsrs_core::version(),
                     module_name
                 );
-                let paths = version_paths.get_paths();
-                let path_patterns = try_parse_patterns(paths);
-                let result = self.try_load_module_using_paths(
-                    ext,
-                    &module_name,
-                    candidate,
-                    paths.unwrap(),
-                    &path_patterns,
-                    &mut |r, extensions, candidate| loader(r, extensions, candidate, &package_file),
-                );
-                if let Some(result) = result {
-                    // !!! are these asserts really necessary?
-                    assert!(result.package_id.name.is_empty(), "expected packageId to be empty");
-                    return Some(result);
-                }
+            let paths = version_paths.get_paths();
+            let path_patterns = try_parse_patterns(paths);
+            let result = self.try_load_module_using_paths(
+                ext,
+                &module_name,
+                candidate,
+                paths.unwrap(),
+                &path_patterns,
+                &mut |r, extensions, candidate| loader(r, extensions, candidate, &package_file),
+            );
+            if let Some(result) = result {
+                // !!! are these asserts really necessary?
+                assert!(result.package_id.name.is_empty(), "expected packageId to be empty");
+                return Some(result);
             }
         }
 
@@ -2843,14 +2840,13 @@ impl<'r> ResolutionState<'r> {
         if self.is_config_lookup
             && extensions.intersects(Extensions::Json)
             && tspath::file_extension_is(candidate, tspath::EXTENSION_JSON)
+            && let Some(path) = self.try_file(candidate)
         {
-            if let Some(path) = self.try_file(candidate) {
-                return Some(Resolved {
-                    path,
-                    extension: tspath::EXTENSION_JSON.to_string(),
-                    ..Default::default()
-                });
-            }
+            return Some(Resolved {
+                path,
+                extension: tspath::EXTENSION_JSON.to_string(),
+                ..Default::default()
+            });
         }
 
         self.load_module_from_file_no_implicit_extensions(extensions, candidate)
@@ -2962,23 +2958,23 @@ impl<'r> ResolutionState<'r> {
         if package_info.exists() {
             let package_info = package_info.unwrap();
             let package_json_content = package_info.contents.unwrap().get();
-            if let Some(name) = package_json_content.name.get_value() {
-                if let Some(version) = package_json_content.version.get_value() {
-                    let mut sub_module_name = "";
-                    if resolved_file_name.len() > package_info.package_directory.len() {
-                        sub_module_name = tsrs_core::alloc_str(
-                            &resolved_file_name[package_info.package_directory.len() + 1..],
-                        );
-                    }
-                    return PackageId {
-                        name: name.as_str(),
-                        version: version.as_str(),
-                        sub_module_name,
-                        peer_dependencies: alloc_string(
-                            &self.read_package_json_peer_dependencies(package_info),
-                        ),
-                    };
+            if let Some(name) = package_json_content.name.get_value()
+                && let Some(version) = package_json_content.version.get_value()
+            {
+                let mut sub_module_name = "";
+                if resolved_file_name.len() > package_info.package_directory.len() {
+                    sub_module_name = tsrs_core::alloc_str(
+                        &resolved_file_name[package_info.package_directory.len() + 1..],
+                    );
                 }
+                return PackageId {
+                    name: name.as_str(),
+                    version: version.as_str(),
+                    sub_module_name,
+                    peer_dependencies: alloc_string(
+                        &self.read_package_json_peer_dependencies(package_info),
+                    ),
+                };
             }
         }
         PackageId::default()
@@ -3153,7 +3149,7 @@ fn get_node_resolution_features(options: &CompilerOptions) -> NodeResolutionFeat
     features
 }
 
-pub(crate) fn move_to_next_directory_separator_if_available(
+pub fn move_to_next_directory_separator_if_available(
     path: &str,
     prev_separator_index: usize,
     is_folder: bool,
@@ -3376,15 +3372,15 @@ pub fn get_automatic_type_directive_names(
                             // See `createNotNeededPackageJSON` in the types-publisher` repo.
                             is_not_needed_package = package_json_content.typings.null;
                         }
-                        if !is_not_needed_package {
-                            let base_file_name = tspath::get_base_file_name(&normalized);
-                            if !base_file_name.starts_with('.') {
-                                Some(base_file_name)
-                            } else {
-                                None
-                            }
-                        } else {
+                        if is_not_needed_package {
                             None
+                        } else {
+                            let base_file_name = tspath::get_base_file_name(&normalized);
+                            if base_file_name.starts_with('.') {
+                                None
+                            } else {
+                                Some(base_file_name)
+                            }
                         }
                     },
                 ),

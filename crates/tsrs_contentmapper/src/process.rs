@@ -57,10 +57,10 @@ pub fn spawn_process(
         return Err("exec: no command".to_string());
     }
     // os.StartProcess checks the working directory before it starts the process.
-    if !dir.is_empty() {
-        if let Err(err) = std::fs::metadata(dir) {
-            return Err(format!("chdir {dir}: {}", errno_text(&err)));
-        }
+    if !dir.is_empty()
+        && let Err(err) = std::fs::metadata(dir)
+    {
+        return Err(format!("chdir {dir}: {}", errno_text(&err)));
     }
     // Go's child changes to cmd.Dir before it executes cmd.Path, so a relative path names a file in that directory.
     let mut program = PathBuf::from(&path);
@@ -187,8 +187,8 @@ fn look_path(file: &str) -> Result<String, String> {
     }
     let path = std::env::var_os("PATH").unwrap_or_default();
     // filepath.SplitList returns no elements for an empty list.
-    if !path.is_empty() {
-        if let Some(result) = std::env::split_paths(&path).into_iter().find_map(|dir| {
+    if !path.is_empty()
+        && let Some(result) = std::env::split_paths(&path).into_iter().find_map(|dir| {
             // Unix shell semantics: path element "" means "."
             let dir = if dir.as_os_str().is_empty() { PathBuf::from(".") } else { dir };
             let path = dir.join(file);
@@ -203,9 +203,9 @@ fn look_path(file: &str) -> Result<String, String> {
             }
 
             None
-        }) {
-            return result;
-        }
+        })
+    {
+        return result;
     }
     Err(format!("exec: {}: executable file not found in $PATH", quote(file)))
 }

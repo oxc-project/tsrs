@@ -337,13 +337,13 @@ pub fn split_units(
             },
         );
     } else {
-        if let Some(base_url) = harness_config.get("baseurl").cloned() {
-            if !tspath::is_rooted_disk_path(&base_url) {
-                harness_config.insert(
-                    "baseurl".to_string(),
-                    tspath::get_normalized_absolute_path(&base_url, &current_directory),
-                );
-            }
+        if let Some(base_url) = harness_config.get("baseurl").cloned()
+            && !tspath::is_rooted_disk_path(&base_url)
+        {
+            harness_config.insert(
+                "baseurl".to_string(),
+                tspath::get_normalized_absolute_path(&base_url, &current_directory),
+            );
         }
 
         let last_unit = units.last().unwrap();

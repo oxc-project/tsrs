@@ -91,7 +91,7 @@ impl LanguageService {
 }
 
 // source_map.go:65
-pub(crate) struct SourceMapScript {
+pub struct SourceMapScript {
     file_name: String,
     text: String,
 }

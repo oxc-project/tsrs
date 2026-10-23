@@ -17,9 +17,9 @@ use super::orchestrator::Orchestrator;
 use super::parsecache::ParseCache;
 use crate::tsc::ExtendedConfigCache;
 
-pub(crate) type MTimeCache = Arc<Mutex<FxHashMap<Path, Option<SystemTime>>>>;
+pub type MTimeCache = Arc<Mutex<FxHashMap<Path, Option<SystemTime>>>>;
 
-pub(crate) struct HostImpl {
+pub struct HostImpl {
     pub(crate) orchestrator: OnceLock<&'static Orchestrator>,
     pub(crate) host: Arc<dyn CompilerHost>,
     // The caching filesystem under `host` (Go `o.host.host.FS().(*cachedvfs.FS)`), cleared by `resetCaches`.
@@ -283,7 +283,7 @@ impl BuildInfoReader for HostImpl {
 }
 
 // `incremental.Host` over the orchestrator's host (Go passes `orchestrator.host` itself).
-pub(crate) struct IncrementalHost(pub(crate) &'static HostImpl);
+pub struct IncrementalHost(pub(crate) &'static HostImpl);
 
 impl tsrs_incremental::Host for IncrementalHost {
     fn fs(&self) -> &dyn FS {

@@ -28,13 +28,13 @@ pub trait FileSource: FileHandleSource + Send + Sync {
     fn get_accessible_entries(&self, path: &str) -> Entries;
 }
 
-pub(crate) struct CachedLayeredFileSystem {
+pub struct CachedLayeredFileSystem {
     fs: cachedvfs::FS<Arc<dyn LayeredFileSystem>>,
     layered: Arc<dyn LayeredFileSystem>,
 }
 
 // snapshotfs.go:38
-pub(crate) fn new_cached_layered_file_system(
+pub fn new_cached_layered_file_system(
     file_system: Arc<dyn LayeredFileSystem>,
 ) -> Arc<dyn LayeredFileSystem> {
     Arc::new(CachedLayeredFileSystem {
@@ -117,7 +117,7 @@ impl FS for CachedLayeredFileSystem {
 // It implements dirty.Cloneable so it can be used as a value in dirty.SyncMap.
 // (Go guards `paths` with a mutex; here it is only mutated through `&mut` inside a dirty-map change.)
 #[derive(Clone, Default)]
-pub(crate) struct RealpathAliasSet {
+pub struct RealpathAliasSet {
     pub(crate) paths: Set<Path>,
 }
 
@@ -156,7 +156,7 @@ pub struct SnapshotFS {
 // Go `func() FileHandle` built with `sync.OnceValue`.
 type MemoizedCachedFile = Arc<OnceLock<Option<Arc<dyn FileHandle>>>>;
 
-pub(crate) fn new_snapshot_fs(to_path: ToPath, fs: Arc<dyn LayeredFileSystem>) -> SnapshotFS {
+pub fn new_snapshot_fs(to_path: ToPath, fs: Arc<dyn LayeredFileSystem>) -> SnapshotFS {
     SnapshotFS {
         to_path,
         fs,
@@ -257,7 +257,7 @@ fn merge_cached_directory_entries(
     entries
 }
 
-pub(crate) struct SnapshotFSBuilder {
+pub struct SnapshotFSBuilder {
     pub(crate) fs: Arc<dyn LayeredFileSystem>,
     pub(crate) cache_files: dirty::SyncMap<Path, CachedFile>,
     pub(crate) cache_directories: dirty::Map<Path, CloneableMap<Path, String>>,
@@ -267,7 +267,7 @@ pub(crate) struct SnapshotFSBuilder {
 }
 
 // snapshotfs.go:186
-pub(crate) fn new_snapshot_fs_builder_from_source(
+pub fn new_snapshot_fs_builder_from_source(
     fs: Arc<dyn LayeredFileSystem>,
     cache_files: SharedMap<Path, CachedFile>,
     cache_directories: CacheDirectories,
@@ -415,10 +415,10 @@ impl SnapshotFSBuilder {
 
     // snapshotfs.go:305
     pub(crate) fn delete_cache_entry(&self, entry: &Arc<SyncMapEntry<Path, CachedFile>>) {
-        if let Some(file) = entry.value() {
-            if self.fs.file_exists(&file.base.file_name) {
-                self.source_backed_replacements.lock().unwrap().add(entry.key());
-            }
+        if let Some(file) = entry.value()
+            && self.fs.file_exists(&file.base.file_name)
+        {
+            self.source_backed_replacements.lock().unwrap().add(entry.key());
         }
         entry.delete();
     }
@@ -538,10 +538,10 @@ impl SnapshotFSBuilder {
     ) -> Option<Arc<dyn FileHandle>> {
         let mut file_name = String::new();
         entry.locked(&mut |e: &dyn Value<CachedFile>| {
-            if let Some(v) = e.value() {
-                if !v.matches_disk_text() {
-                    file_name.clone_from(&v.base.file_name);
-                }
+            if let Some(v) = e.value()
+                && !v.matches_disk_text()
+            {
+                file_name.clone_from(&v.base.file_name);
             }
         });
         if !file_name.is_empty() {
@@ -639,11 +639,11 @@ impl SnapshotFSBuilder {
             )]
             for uri in change.changed.keys() {
                 let path = (self.to_path)(&uri.file_name());
-                if let Some(file) = self.fs.get_file_by_path(&uri.file_name(), &path) {
-                    if file.is_overlay() {
-                        filtered_changed.add(uri.clone());
-                        continue;
-                    }
+                if let Some(file) = self.fs.get_file_by_path(&uri.file_name(), &path)
+                    && file.is_overlay()
+                {
+                    filtered_changed.add(uri.clone());
+                    continue;
                 }
                 let Some(entry) = self.cache_files.load(&path) else {
                     filtered_changed.add(uri.clone());
@@ -849,10 +849,10 @@ impl SnapshotFSBuilder {
         let children: Vec<Path> =
             dir_entry.value().map(|v| v.keys().cloned().collect()).unwrap_or_default();
         for child_path in children {
-            if let Some(entry) = self.cache_files.load(&child_path) {
-                if let Some(file) = entry.value() {
-                    files.add(lsconv::file_name_to_document_uri(&file.base.file_name));
-                }
+            if let Some(entry) = self.cache_files.load(&child_path)
+                && let Some(file) = entry.value()
+            {
+                files.add(lsconv::file_name_to_document_uri(&file.base.file_name));
             }
             self.collect_files_recursive(&child_path, files, previous_open_files, open_files);
         }
@@ -876,10 +876,10 @@ impl SnapshotFSBuilder {
                         // didOpen may differ from what was originally read from the source (e.g. the
                         // editor normalizes line endings, or the source file changed since the
                         // project was loaded). Mark it as Changed so the project rebuilds.
-                        if let Some(cached_file) = entry.original() {
-                            if open_file.hash() != cached_file.base.hash {
-                                change.changed.add(change.opened.clone());
-                            }
+                        if let Some(cached_file) = entry.original()
+                            && open_file.hash() != cached_file.base.hash
+                        {
+                            change.changed.add(change.opened.clone());
                         }
                         self.delete_cache_entry(entry);
                     }
@@ -898,10 +898,10 @@ impl SnapshotFSBuilder {
             let path = (self.to_path)(&file_name);
             // We may have ignored watcher events while the file was open, so force a reload.
             if let Some(fh) = self.get_cached_file(&file_name, &path, true /*forceReload*/) {
-                if let Some(previous_open_file) = previous_open_files.get(&path) {
-                    if fh.hash() != previous_open_file.hash() {
-                        change.changed.add(uri.clone());
-                    }
+                if let Some(previous_open_file) = previous_open_files.get(&path)
+                    && fh.hash() != previous_open_file.hash()
+                {
+                    change.changed.add(uri.clone());
                 }
                 continue;
             }
@@ -1024,7 +1024,7 @@ impl SnapshotFS {
 // snapshotfs.go:639
 // isRelevantExtension returns true if the given extension is a known TypeScript
 // or JavaScript extension that can affect the project.
-pub(crate) fn is_relevant_extension(ext: &str) -> bool {
+pub fn is_relevant_extension(ext: &str) -> bool {
     matches!(ext, ".js" | ".jsx" | ".mjs" | ".cjs" | ".ts" | ".tsx" | ".mts" | ".cts" | ".json")
 }
 
@@ -1032,7 +1032,7 @@ pub(crate) fn is_relevant_extension(ext: &str) -> bool {
 // isNodeModulesPath reports whether path is a node_modules directory itself or
 // lives inside one. Used to preserve node_modules watch deletions, whose package
 // files are read transiently and therefore never tracked in cacheDirectories.
-pub(crate) fn is_node_modules_path(path: &Path) -> bool {
+pub fn is_node_modules_path(path: &Path) -> bool {
     path.ends_with("/node_modules") || path.contains("/node_modules/")
 }
 
@@ -1053,7 +1053,7 @@ fn has_open_file_within(
 // sourceFS is a vfs.FS that sources files from a FileSource and tracks seen files.
 // (`tracking`, `source` and `seenFiles` are reassigned after construction by `compilerHost.freeze` and
 // `updateProgram`, hence the locks.)
-pub(crate) struct SourceFS {
+pub struct SourceFS {
     tracking: RwLock<bool>,
     to_path: ToPath,
     missing_directories: Option<Arc<SyncSet<Path>>>,
@@ -1062,11 +1062,7 @@ pub(crate) struct SourceFS {
 }
 
 // snapshotfs.go:777
-pub(crate) fn new_source_fs(
-    tracking: bool,
-    source: Arc<dyn FileSource>,
-    to_path: ToPath,
-) -> SourceFS {
+pub fn new_source_fs(tracking: bool, source: Arc<dyn FileSource>, to_path: ToPath) -> SourceFS {
     let (seen_files, missing_directories) = if tracking {
         (Some(Arc::new(SyncMap::default())), Some(Arc::new(SyncSet::default())))
     } else {
@@ -1130,20 +1126,20 @@ impl SourceFS {
         if self.seen_files().is_some_and(|s| s.load(path).is_some()) {
             return true;
         }
-        if let Some(missing_directories) = &self.missing_directories {
-            if !missing_directories.is_empty() {
-                let mut path = path.clone();
-                loop {
-                    if missing_directories.has(&path) {
-                        return true;
-                    }
-
-                    let parent = path.get_directory_path();
-                    if parent == path {
-                        break;
-                    }
-                    path = parent;
+        if let Some(missing_directories) = &self.missing_directories
+            && !missing_directories.is_empty()
+        {
+            let mut path = path.clone();
+            loop {
+                if missing_directories.has(&path) {
+                    return true;
                 }
+
+                let parent = path.get_directory_path();
+                if parent == path {
+                    break;
+                }
+                path = parent;
             }
         }
         false
@@ -1204,10 +1200,11 @@ impl FS for SourceFS {
     // snapshotfs.go:841
     fn directory_exists(&self, path: &str) -> bool {
         let exists = self.source().fs().directory_exists(path);
-        if !exists && *self.tracking.read().unwrap() {
-            if let Some(missing_directories) = &self.missing_directories {
-                missing_directories.add((self.to_path)(path));
-            }
+        if !exists
+            && *self.tracking.read().unwrap()
+            && let Some(missing_directories) = &self.missing_directories
+        {
+            missing_directories.add((self.to_path)(path));
         }
         exists
     }

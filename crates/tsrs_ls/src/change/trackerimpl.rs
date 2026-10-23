@@ -625,7 +625,7 @@ fn dedupe_identical_edits(mut edits: Vec<lsproto::TextEdit>) -> Vec<lsproto::Tex
 }
 
 // trackerimpl.go:96
-pub(crate) fn text_edits_conflict(
+pub fn text_edits_conflict(
     a: &lsproto::TextEdit,
     b: &lsproto::TextEdit,
     multiple_projections: bool,
@@ -668,9 +668,9 @@ pub fn get_format_code_settings_for_writing(
 }
 
 // trackerimpl.go:452
-pub(crate) fn has_comments_before_line_break(text: &str, start: u32) -> bool {
+pub fn has_comments_before_line_break(text: &str, start: u32) -> bool {
     if let Some(result) = text[start as usize..].chars().into_iter().find_map(|ch| {
-        if !stringutil::is_white_space_single_line(ch as u32) { Some(ch == '/') } else { None }
+        if stringutil::is_white_space_single_line(ch as u32) { None } else { Some(ch == '/') }
     }) {
         return result;
     }
@@ -678,7 +678,7 @@ pub(crate) fn has_comments_before_line_break(text: &str, start: u32) -> bool {
 }
 
 // trackerimpl.go:461
-pub(crate) fn need_semicolon_between(a: P<Node>, b: P<Node>) -> bool {
+pub fn need_semicolon_between(a: P<Node>, b: P<Node>) -> bool {
     (ast::is_property_signature_declaration(a) || ast::is_property_declaration(a))
         && ast::is_class_or_type_element(b)
         && b.name().unwrap().kind() == Kind::ComputedPropertyName

@@ -107,7 +107,7 @@ impl Script for P<SourceFile> {
 
 // The Go functions that return the `Script` interface return either the script they were given or an
 // `originalTextScript`.
-pub(crate) enum AnyScript<'a> {
+pub enum AnyScript<'a> {
     Script(&'a dyn Script),
     Original(OriginalTextScript<'a>),
 }
@@ -1021,7 +1021,7 @@ fn diagnostic_script_and_range(
 // originalTextScript presents a content-mapped file's original (untransformed) text as a Script, so that
 // ranges already mapped into that text convert to the correct line/character positions.
 // converters.go:596
-pub(crate) struct OriginalTextScript<'a> {
+pub struct OriginalTextScript<'a> {
     file_name: &'a str,
     text: &'a str,
 }

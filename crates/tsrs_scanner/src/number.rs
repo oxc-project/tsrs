@@ -2,7 +2,7 @@ use tsrs_core::jsnum::Number;
 
 /// Convert the scanner's unsigned, separator-free spelling. Recovery spellings
 /// outside this grammar are left to `jsnum::from_string`.
-pub(super) fn parse_literal(text: &str) -> Option<Number> {
+pub fn parse_literal(text: &str) -> Option<Number> {
     let bytes = text.as_bytes();
     let value = match bytes {
         [b'0', b'b' | b'B', digits @ ..] => parse_radix::<1>(digits)?,

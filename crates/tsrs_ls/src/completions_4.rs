@@ -306,7 +306,7 @@ fn create_simple_details(
 }
 
 // completions.go:5706
-pub(crate) fn create_completion_details(
+pub fn create_completion_details(
     mut item: lsproto::CompletionItem,
     detail: &str,
     documentation: &str,
@@ -618,14 +618,14 @@ fn is_module_specifier_missing_or_empty(specifier: Option<P<Node>>) -> bool {
 }
 
 // completions.go:5935
-pub(crate) fn has_doc_comment(file: P<SourceFile>, position: u32) -> bool {
+pub fn has_doc_comment(file: P<SourceFile>, position: u32) -> bool {
     let token = astnav::get_token_at_position(file, position);
     ast::find_ancestor(token, |n| n.is_jsdoc()).is_some()
 }
 
 // Get the corresponding JSDocTag node if the position is in a JSDoc comment
 // completions.go:5941
-pub(crate) fn get_jsdoc_tag_at_position(node: P<Node>, position: u32) -> Option<P<Node>> {
+pub fn get_jsdoc_tag_at_position(node: P<Node>, position: u32) -> Option<P<Node>> {
     ast::find_ancestor_or_quit(node, |n| {
         if ast::is_jsdoc_tag(n) && n.loc().contains_inclusive(position.into()) {
             return FindAncestorResult::True;
@@ -638,17 +638,17 @@ pub(crate) fn get_jsdoc_tag_at_position(node: P<Node>, position: u32) -> Option<
 }
 
 // completions.go:5953
-pub(crate) fn try_get_type_expression_from_tag(tag: P<Node>) -> Option<P<Node>> {
+pub fn try_get_type_expression_from_tag(tag: P<Node>) -> Option<P<Node>> {
     if is_tag_with_type_expression(tag) {
         let type_expression = if ast::is_jsdoc_template_tag(tag) {
             tag.as_jsdoc_template_tag().constraint
         } else {
             tag.type_expression()
         };
-        if let Some(type_expression) = type_expression {
-            if type_expression.kind() == Kind::JSDocTypeExpression {
-                return Some(type_expression);
-            }
+        if let Some(type_expression) = type_expression
+            && type_expression.kind() == Kind::JSDocTypeExpression
+        {
+            return Some(type_expression);
         }
     }
     if ast::is_jsdoc_augments_tag(tag) || ast::is_jsdoc_implements_tag(tag) {
@@ -814,17 +814,17 @@ fn js_doc_tag_completion_items() -> &'static [lsproto::CompletionItem] {
 }
 
 // completions.go:6118
-pub(crate) fn get_jsdoc_tag_name_completions() -> Vec<CompletionItem> {
+pub fn get_jsdoc_tag_name_completions() -> Vec<CompletionItem> {
     clone_items(js_doc_tag_name_completion_items())
 }
 
 // completions.go:6122
-pub(crate) fn get_jsdoc_tag_completions() -> Vec<CompletionItem> {
+pub fn get_jsdoc_tag_completions() -> Vec<CompletionItem> {
     clone_items(js_doc_tag_completion_items())
 }
 
 // completions.go:6126
-pub(crate) fn get_jsdoc_parameter_completions(
+pub fn get_jsdoc_parameter_completions(
     _ctx: &Context,
     file: P<SourceFile>,
     position: u32,
@@ -1270,7 +1270,7 @@ fn js_doc_param_element_worker(
 }
 
 // completions.go:6527
-pub(crate) fn get_jsdoc_parameter_name_completions(tag: P<Node>) -> Vec<CompletionItem> {
+pub fn get_jsdoc_parameter_name_completions(tag: P<Node>) -> Vec<CompletionItem> {
     if !ast::is_identifier(tag.name().unwrap()) {
         return Vec::new();
     }
@@ -1631,7 +1631,7 @@ fn entity_name_to_expression(
 
 // completions.go:6785 (Go keeps `baseWriter` and `writer.ChangeTrackerWriter` as the same pointer; here the base
 // writer lives inside `writer`)
-pub(crate) struct SnippetPrinter {
+pub struct SnippetPrinter {
     pub(crate) emit_context: P<EmitContext>,
     printer: Printer,
     writer: SnippetEmitTextWriter,
@@ -1704,7 +1704,7 @@ impl SnippetPrinter {
 }
 
 // completions.go:6836
-pub(crate) fn create_snippet_printer(
+pub fn create_snippet_printer(
     options: PrinterOptions,
     emit_context: Option<P<EmitContext>>,
 ) -> SnippetPrinter {
@@ -1737,14 +1737,14 @@ impl SnippetEmitTextWriter {
     // completions.go:6888
     fn escaping_write(&mut self, s: &str, write: impl FnOnce(&mut ChangeTrackerWriter)) {
         let escaped = escape_snippet_text(s);
-        if escaped != s {
+        if escaped == s {
+            write(&mut self.base);
+        } else {
             let start = self.base.get_text_pos();
             write(&mut self.base);
             let end = self.base.get_text_pos();
             self.escapes
                 .push(TextChange { new_text: escaped, text_range: TextRange::new(start, end) });
-        } else {
-            write(&mut self.base);
         }
     }
 }

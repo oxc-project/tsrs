@@ -27,7 +27,7 @@ static STATE: Mutex<State> = Mutex::new(State { received: false, hooks: Vec::new
         reason = "the signal thread waits for process interrupts until process exit"
     )
 )]
-pub(crate) fn notify_interrupts() {
+pub fn notify_interrupts() {
     #[cfg(unix)]
     {
         // SAFETY: sigset_t is a plain bit set that sigemptyset initializes; the calls only change
@@ -56,7 +56,7 @@ pub(crate) fn notify_interrupts() {
 }
 
 /// Runs `hook` once SIGINT or SIGTERM arrives, or now if one already has.
-pub(crate) fn on_interrupt(hook: impl FnOnce() + Send + 'static) {
+pub fn on_interrupt(hook: impl FnOnce() + Send + 'static) {
     let mut state = STATE.lock().unwrap_or_else(std::sync::PoisonError::into_inner);
     if state.received {
         drop(state);

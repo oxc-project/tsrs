@@ -7,7 +7,7 @@ use tsrs_vfs::{Entries, FS, FileInfo};
 // Record responses, not just successful file reads: config globs and module resolution also need
 // directory entries, failed probes, and the OS's symlink and case-sensitivity decisions.
 #[derive(Clone, Default)]
-pub(crate) struct SnapshotFs {
+pub struct SnapshotFs {
     case_sensitive: bool,
     files: FxHashMap<String, Option<String>>,
     file_exists: FxHashMap<String, bool>,
@@ -17,7 +17,7 @@ pub(crate) struct SnapshotFs {
     realpaths: FxHashMap<String, String>,
 }
 
-pub(crate) struct RecordingFs {
+pub struct RecordingFs {
     inner: Arc<dyn FS>,
     snapshot: Mutex<SnapshotFs>,
 }

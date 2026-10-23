@@ -335,15 +335,15 @@ fn find_super_statement_index_path_worker(
             let mut indices = indices;
             indices.push(i);
             return Some(indices);
-        } else if ast::is_try_statement(statement) {
-            if let Some(mut result) = find_super_statement_index_path_worker(
+        } else if ast::is_try_statement(statement)
+            && let Some(mut result) = find_super_statement_index_path_worker(
                 statement.as_try_statement().try_block.statements(),
                 0,
                 indices.clone(),
-            ) {
-                result.push(i);
-                return Some(result);
-            }
+            )
+        {
+            result.push(i);
+            return Some(result);
         }
     }
     None
@@ -373,10 +373,10 @@ pub fn move_range_past_modifiers(node: P<Node>) -> tsrs_core::TextRange {
         last_modifier = node.modifier_nodes().last().copied();
     }
 
-    if let Some(last_modifier) = last_modifier {
-        if !ast::position_is_synthesized(last_modifier.end()) {
-            return tsrs_core::TextRange::from_text_pos(last_modifier.end(), node.end());
-        }
+    if let Some(last_modifier) = last_modifier
+        && !ast::position_is_synthesized(last_modifier.end())
+    {
+        return tsrs_core::TextRange::from_text_pos(last_modifier.end(), node.end());
     }
     move_range_past_decorators(node)
 }
@@ -392,10 +392,10 @@ pub fn move_range_past_decorators(node: P<Node>) -> tsrs_core::TextRange {
         }
     }
 
-    if let Some(last_decorator) = last_decorator {
-        if !ast::position_is_synthesized(last_decorator.end()) {
-            return tsrs_core::TextRange::from_text_pos(last_decorator.end(), node.end());
-        }
+    if let Some(last_decorator) = last_decorator
+        && !ast::position_is_synthesized(last_decorator.end())
+    {
+        return tsrs_core::TextRange::from_text_pos(last_decorator.end(), node.end());
     }
     node.loc()
 }

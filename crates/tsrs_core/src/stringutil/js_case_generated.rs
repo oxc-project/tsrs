@@ -4,13 +4,13 @@
 use super::rangetable::{Range16, Range32, RangeTable};
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
-pub(crate) enum SpecialCasingCondition {
+pub enum SpecialCasingCondition {
     None,
     FinalSigma,
 }
 
 #[derive(Clone, Copy, Debug)]
-pub(crate) struct SpecialCasingMapping {
+pub struct SpecialCasingMapping {
     lower_offset: u16,
     upper_offset: u16,
     conditional_lower_offset: u16,
@@ -142,7 +142,7 @@ static CASING_STRINGS: &str = concat!(
 );
 
 // Sorted by code point; looked up with binary search.
-pub(crate) static SPECIAL_CASING_MAPPINGS: &[(u32, SpecialCasingMapping)] = &[
+pub static SPECIAL_CASING_MAPPINGS: &[(u32, SpecialCasingMapping)] = &[
     (
         0x41,
         SpecialCasingMapping {
@@ -35420,7 +35420,7 @@ static UNICODE_CASED_RANGES_R32: &[Range32] = &[
     Range32 { lo: 0x1F150, hi: 0x1F169, stride: 1 },
     Range32 { lo: 0x1F170, hi: 0x1F189, stride: 1 },
 ];
-pub(crate) static UNICODE_CASED_RANGES: RangeTable =
+pub static UNICODE_CASED_RANGES: RangeTable =
     RangeTable { r16: UNICODE_CASED_RANGES_R16, r32: UNICODE_CASED_RANGES_R32, latin_offset: 6 };
 
 static UNICODE_CASE_IGNORABLE_RANGES_R16: &[Range16] = &[
@@ -35804,7 +35804,7 @@ static UNICODE_CASE_IGNORABLE_RANGES_R32: &[Range32] = &[
     Range32 { lo: 0xE0021, hi: 0xE007F, stride: 1 },
     Range32 { lo: 0xE0100, hi: 0xE01EF, stride: 1 },
 ];
-pub(crate) static UNICODE_CASE_IGNORABLE_RANGES: RangeTable = RangeTable {
+pub static UNICODE_CASE_IGNORABLE_RANGES: RangeTable = RangeTable {
     r16: UNICODE_CASE_IGNORABLE_RANGES_R16,
     r32: UNICODE_CASE_IGNORABLE_RANGES_R32,
     latin_offset: 5,

@@ -1,7 +1,7 @@
 use crate::*;
 
 // util.go:9
-pub(crate) fn needs_scope_marker(result: P<Node>) -> bool {
+pub fn needs_scope_marker(result: P<Node>) -> bool {
     !ast::is_any_import_or_re_export(result)
         && !ast::is_export_assignment(result)
         && !ast::has_syntactic_modifier(result, ModifierFlags::Export)
@@ -9,7 +9,7 @@ pub(crate) fn needs_scope_marker(result: P<Node>) -> bool {
 }
 
 // util.go:13
-pub(crate) fn can_have_literal_initializer(resolver: Resolver, node: P<Node>) -> bool {
+pub fn can_have_literal_initializer(resolver: Resolver, node: P<Node>) -> bool {
     match node.kind() {
         Kind::PropertyDeclaration | Kind::PropertySignature => {
             resolver.get_effective_declaration_flags(node, ModifierFlags::Private).is_empty()
@@ -20,7 +20,7 @@ pub(crate) fn can_have_literal_initializer(resolver: Resolver, node: P<Node>) ->
 }
 
 // util.go:25
-pub(crate) fn can_produce_diagnostics(node: P<Node>) -> bool {
+pub fn can_produce_diagnostics(node: P<Node>) -> bool {
     ast::is_variable_declaration(node)
         || ast::is_property_declaration(node)
         || ast::is_property_signature_declaration(node)
@@ -48,14 +48,14 @@ pub(crate) fn can_produce_diagnostics(node: P<Node>) -> bool {
 }
 
 // util.go:52
-pub(crate) fn can_reuse_modifier_nodes(nodes: &[P<Node>]) -> bool {
+pub fn can_reuse_modifier_nodes(nodes: &[P<Node>]) -> bool {
     !(nodes
         .iter()
         .any(|&node| ast::is_modifier(node) && node.flags().intersects(NodeFlags::Reparsed)))
 }
 
 // util.go:61
-pub(crate) fn is_declaration_and_not_visible(
+pub fn is_declaration_and_not_visible(
     emit_context: P<EmitContext>,
     resolver: Resolver,
     node: P<Node>,
@@ -77,7 +77,7 @@ pub(crate) fn is_declaration_and_not_visible(
 }
 
 // util.go:87
-pub(crate) fn get_binding_name_visible(resolver: Resolver, elem: P<Node>) -> bool {
+pub fn get_binding_name_visible(resolver: Resolver, elem: P<Node>) -> bool {
     if ast::is_omitted_expression(elem) {
         return false;
     }
@@ -95,7 +95,7 @@ pub(crate) fn get_binding_name_visible(resolver: Resolver, elem: P<Node>) -> boo
 }
 
 // util.go:109
-pub(crate) fn is_enclosing_declaration(node: P<Node>) -> bool {
+pub fn is_enclosing_declaration(node: P<Node>) -> bool {
     ast::is_source_file(node)
         || ast::is_type_alias_declaration(node)
         || ast::is_js_type_alias_declaration(node)
@@ -109,7 +109,7 @@ pub(crate) fn is_enclosing_declaration(node: P<Node>) -> bool {
 }
 
 // util.go:122
-pub(crate) fn is_always_type(node: P<Node>) -> bool {
+pub fn is_always_type(node: P<Node>) -> bool {
     if node.kind() == Kind::InterfaceDeclaration {
         return true;
     }
@@ -117,7 +117,7 @@ pub(crate) fn is_always_type(node: P<Node>) -> bool {
 }
 
 // util.go:129
-pub(crate) fn mask_modifier_flags(
+pub fn mask_modifier_flags(
     node: P<Node>,
     modifier_mask: ModifierFlags,
     modifier_additions: ModifierFlags,
@@ -135,7 +135,7 @@ pub(crate) fn mask_modifier_flags(
 }
 
 // util.go:142
-pub(crate) fn unwrap_parenthesized_expression(o: P<Node>) -> P<Node> {
+pub fn unwrap_parenthesized_expression(o: P<Node>) -> P<Node> {
     let mut o = o;
     while o.kind() == Kind::ParenthesizedExpression {
         o = o.expression().unwrap();
@@ -144,7 +144,7 @@ pub(crate) fn unwrap_parenthesized_expression(o: P<Node>) -> P<Node> {
 }
 
 // util.go:149
-pub(crate) fn is_private_method_type_parameter(resolver: Resolver, node: P<Node>) -> bool {
+pub fn is_private_method_type_parameter(resolver: Resolver, node: P<Node>) -> bool {
     let parent = node.parent().unwrap();
     parent.kind() == Kind::MethodDeclaration
         && !resolver.get_effective_declaration_flags(parent, ModifierFlags::Private).is_empty()
@@ -153,7 +153,7 @@ pub(crate) fn is_private_method_type_parameter(resolver: Resolver, node: P<Node>
 // util.go:153
 // Returns true if expando properties should be emitted for this function.
 // Properties are emitted if any overload in the symbol has a body (implementation).
-pub(crate) fn should_emit_function_properties(input: P<Node>) -> bool {
+pub fn should_emit_function_properties(input: P<Node>) -> bool {
     if input.body().is_some() {
         return true;
     }
@@ -165,12 +165,12 @@ pub(crate) fn should_emit_function_properties(input: P<Node>) -> bool {
 }
 
 // util.go:164
-pub(crate) fn is_scope_marker(node: P<Node>) -> bool {
+pub fn is_scope_marker(node: P<Node>) -> bool {
     ast::is_export_assignment(node) || ast::is_export_declaration(node)
 }
 
 // util.go:168
-pub(crate) fn has_scope_marker(statements: Option<P<NodeList>>) -> bool {
+pub fn has_scope_marker(statements: Option<P<NodeList>>) -> bool {
     let Some(statements) = statements else {
         return false;
     };

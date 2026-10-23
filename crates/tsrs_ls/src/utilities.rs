@@ -47,30 +47,30 @@ pub fn is_in_string(
     position: u32,
     previous_token: Option<P<Node>>,
 ) -> bool {
-    if let Some(previous_token) = previous_token {
-        if ast::is_string_text_containing_node(previous_token) {
-            let start =
-                astnav::get_start_of_node(previous_token, source_file, false /*includeJSDoc*/);
-            let end = previous_token.end().expect_source("parsed tokens have source positions");
+    if let Some(previous_token) = previous_token
+        && ast::is_string_text_containing_node(previous_token)
+    {
+        let start =
+            astnav::get_start_of_node(previous_token, source_file, false /*includeJSDoc*/);
+        let end = previous_token.end().expect_source("parsed tokens have source positions");
 
-            // To be "in" one of these literals, the position has to be:
-            //   1. entirely within the token text.
-            //   2. at the end position of an unterminated token.
-            //   3. at the end of a regular expression (due to trailing flags like '/foo/g').
-            if start < position && position < end {
-                return true;
-            }
+        // To be "in" one of these literals, the position has to be:
+        //   1. entirely within the token text.
+        //   2. at the end position of an unterminated token.
+        //   3. at the end of a regular expression (due to trailing flags like '/foo/g').
+        if start < position && position < end {
+            return true;
+        }
 
-            if position == end {
-                return ast::is_unterminated_literal(previous_token);
-            }
+        if position == end {
+            return ast::is_unterminated_literal(previous_token);
         }
     }
     false
 }
 
 // utilities.go:47
-pub(crate) fn is_module_specifier_like(node: P<Node>) -> bool {
+pub fn is_module_specifier_like(node: P<Node>) -> bool {
     if !ast::is_string_literal_like(node) {
         return false;
     }
@@ -88,9 +88,7 @@ pub(crate) fn is_module_specifier_like(node: P<Node>) -> bool {
 }
 
 // utilities.go:61
-pub(crate) fn get_non_module_symbol_of_merged_module_symbol(
-    symbol: P<Symbol>,
-) -> Option<P<Symbol>> {
+pub fn get_non_module_symbol_of_merged_module_symbol(symbol: P<Symbol>) -> Option<P<Symbol>> {
     if symbol.declarations().is_empty()
         || !symbol.flags().intersects(SymbolFlags::Module | SymbolFlags::Transient)
     {
@@ -109,25 +107,22 @@ pub(crate) fn get_non_module_symbol_of_merged_module_symbol(
 }
 
 // utilities.go:72
-pub(crate) fn get_local_symbol_for_export_specifier(
+pub fn get_local_symbol_for_export_specifier(
     reference_location: P<Node>,
     reference_symbol: Option<P<Symbol>>,
     export_specifier: P<Node>,
     ch: &mut Checker,
 ) -> Option<P<Symbol>> {
-    if is_export_specifier_alias(reference_location, export_specifier) {
-        if let Some(symbol) = ch.get_export_specifier_local_target_symbol(export_specifier) {
-            return Some(symbol);
-        }
+    if is_export_specifier_alias(reference_location, export_specifier)
+        && let Some(symbol) = ch.get_export_specifier_local_target_symbol(export_specifier)
+    {
+        return Some(symbol);
     }
     reference_symbol
 }
 
 // utilities.go:81
-pub(crate) fn is_export_specifier_alias(
-    reference_location: P<Node>,
-    export_specifier: P<Node>,
-) -> bool {
+pub fn is_export_specifier_alias(reference_location: P<Node>, export_specifier: P<Node>) -> bool {
     let spec = export_specifier.as_export_specifier();
     debug::assert(
         spec.property_name == Some(reference_location)
@@ -145,7 +140,7 @@ pub(crate) fn is_export_specifier_alias(
 }
 
 // utilities.go:95
-pub(crate) fn is_in_comment(
+pub fn is_in_comment(
     file: P<SourceFile>,
     position: u32,
     token_at_position: P<Node>,
@@ -159,11 +154,7 @@ pub(crate) fn is_in_comment(
 }
 
 // utilities.go:99
-pub(crate) fn position_belongs_to_node(
-    candidate: P<Node>,
-    position: u32,
-    file: P<SourceFile>,
-) -> bool {
+pub fn position_belongs_to_node(candidate: P<Node>, position: u32, file: P<SourceFile>) -> bool {
     lsutil::position_belongs_to_node(candidate, position, file)
 }
 
@@ -175,7 +166,7 @@ pub struct PossibleTypeArgumentInfo {
 
 // Get info for an expression like `f <` that may be the start of type arguments.
 // utilities.go:109
-pub(crate) fn get_possible_type_arguments_info(
+pub fn get_possible_type_arguments_info(
     token_in: Option<P<Node>>,
     source_file: P<SourceFile>,
 ) -> Option<PossibleTypeArgumentInfo> {
@@ -202,13 +193,13 @@ pub(crate) fn get_possible_type_arguments_info(
                     source_file,
                     t.pos().expect_source("parsed tokens have source positions"),
                 );
-                if let Some(q) = tok {
-                    if q.kind() == Kind::QuestionDotToken {
-                        tok = astnav::find_preceding_token(
-                            source_file,
-                            q.pos().expect_source("parsed tokens have source positions"),
-                        );
-                    }
+                if let Some(q) = tok
+                    && q.kind() == Kind::QuestionDotToken
+                {
+                    tok = astnav::find_preceding_token(
+                        source_file,
+                        q.pos().expect_source("parsed tokens have source positions"),
+                    );
                 }
                 let ident = tok?;
                 if !ast::is_identifier(ident) {
@@ -277,7 +268,7 @@ pub(crate) fn get_possible_type_arguments_info(
 }
 
 // utilities.go:188
-pub(crate) fn is_name_of_module_declaration(node: P<Node>) -> bool {
+pub fn is_name_of_module_declaration(node: P<Node>) -> bool {
     let parent = node.parent().unwrap();
     if parent.kind() != Kind::ModuleDeclaration {
         return false;
@@ -286,19 +277,19 @@ pub(crate) fn is_name_of_module_declaration(node: P<Node>) -> bool {
 }
 
 // utilities.go:195
-pub(crate) fn is_expression_of_external_module_import_equals_declaration(node: P<Node>) -> bool {
+pub fn is_expression_of_external_module_import_equals_declaration(node: P<Node>) -> bool {
     let grand_parent = node.parent().unwrap().parent().unwrap();
     ast::is_external_module_import_equals_declaration(grand_parent)
         && ast::get_external_module_import_equals_declaration_expression(grand_parent) == Some(node)
 }
 
 // utilities.go:199
-pub(crate) fn is_namespace_reference(node: P<Node>) -> bool {
+pub fn is_namespace_reference(node: P<Node>) -> bool {
     is_qualified_name_namespace_reference(node) || is_property_access_namespace_reference(node)
 }
 
 // utilities.go:203
-pub(crate) fn is_qualified_name_namespace_reference(node: P<Node>) -> bool {
+pub fn is_qualified_name_namespace_reference(node: P<Node>) -> bool {
     let mut root = node;
     let mut is_last_clause = true;
     if root.parent().unwrap().kind() == Kind::QualifiedName {
@@ -316,7 +307,7 @@ pub(crate) fn is_qualified_name_namespace_reference(node: P<Node>) -> bool {
 }
 
 // utilities.go:217
-pub(crate) fn is_property_access_namespace_reference(node: P<Node>) -> bool {
+pub fn is_property_access_namespace_reference(node: P<Node>) -> bool {
     let mut root = node;
     let mut is_last_clause = true;
     if root.parent().unwrap().kind() == Kind::PropertyAccessExpression {
@@ -347,7 +338,7 @@ pub(crate) fn is_property_access_namespace_reference(node: P<Node>) -> bool {
 }
 
 // utilities.go:238
-pub(crate) fn is_this(node: P<Node>) -> bool {
+pub fn is_this(node: P<Node>) -> bool {
     match node.kind() {
         Kind::ThisKeyword => {
             // case ast.KindThisType: TODO: GH#9267
@@ -362,7 +353,7 @@ pub(crate) fn is_this(node: P<Node>) -> bool {
 }
 
 // utilities.go:251
-pub(crate) fn is_type_reference(mut node: P<Node>) -> bool {
+pub fn is_type_reference(mut node: P<Node>) -> bool {
     if ast::is_right_side_of_qualified_name_or_property_access(node) {
         node = node.parent().unwrap();
     }
@@ -385,7 +376,7 @@ pub(crate) fn is_type_reference(mut node: P<Node>) -> bool {
 }
 
 // utilities.go:274
-pub(crate) fn is_in_right_side_of_internal_import_equals_declaration(mut node: P<Node>) -> bool {
+pub fn is_in_right_side_of_internal_import_equals_declaration(mut node: P<Node>) -> bool {
     if node.parent().is_none() {
         return false;
     }
@@ -424,7 +415,7 @@ impl LanguageService {
 }
 
 // utilities.go:293
-pub(crate) fn create_range_from_node(node: P<Node>, file: P<SourceFile>) -> TextRange {
+pub fn create_range_from_node(node: P<Node>, file: P<SourceFile>) -> TextRange {
     TextRange::new(
         scanner::get_token_pos_of_node(node, file, false /*includeJSDoc*/),
         node.end().expect_source("parsed nodes have source positions"),
@@ -462,7 +453,7 @@ impl LanguageService {
 }
 
 // utilities.go:309
-pub(crate) fn quote(file: P<SourceFile>, preferences: &UserPreferences, text: &str) -> String {
+pub fn quote(file: P<SourceFile>, preferences: &UserPreferences, text: &str) -> String {
     // Editors can pass in undefined or empty string - we want to infer the preference in those cases.
     let quote_preference = lsutil::get_quote_preference(file, preferences);
     let mut quoted = tsrs_core::json::marshal_indent(
@@ -502,12 +493,12 @@ const TYPE_KEYWORDS: &[Kind] = &[
 ];
 
 // utilities.go:342
-pub(crate) fn is_type_keyword(kind: Kind) -> bool {
+pub fn is_type_keyword(kind: Kind) -> bool {
     TYPE_KEYWORDS.contains(&kind)
 }
 
 // utilities.go:350
-pub(crate) fn is_literal_name_of_property_declaration_or_index_access(node: P<Node>) -> bool {
+pub fn is_literal_name_of_property_declaration_or_index_access(node: P<Node>) -> bool {
     // utilities
     let parent = node.parent().unwrap();
     match parent.kind() {
@@ -530,7 +521,7 @@ pub(crate) fn is_literal_name_of_property_declaration_or_index_access(node: P<No
 }
 
 // utilities.go:374
-pub(crate) fn is_object_binding_element_without_property_name(binding_element: P<Node>) -> bool {
+pub fn is_object_binding_element_without_property_name(binding_element: P<Node>) -> bool {
     binding_element.kind() == Kind::BindingElement
         && binding_element.parent().unwrap().kind() == Kind::ObjectBindingPattern
         && binding_element.name().unwrap().kind() == Kind::Identifier
@@ -538,7 +529,7 @@ pub(crate) fn is_object_binding_element_without_property_name(binding_element: P
 }
 
 // utilities.go:381
-pub(crate) fn is_right_side_of_property_access(node: P<Node>) -> bool {
+pub fn is_right_side_of_property_access(node: P<Node>) -> bool {
     match node.parent() {
         Some(parent) => {
             parent.kind() == Kind::PropertyAccessExpression && parent.name() == Some(node)
@@ -548,7 +539,7 @@ pub(crate) fn is_right_side_of_property_access(node: P<Node>) -> bool {
 }
 
 // utilities.go:385
-pub(crate) fn is_static_symbol(symbol: P<Symbol>) -> bool {
+pub fn is_static_symbol(symbol: P<Symbol>) -> bool {
     let Some(value_declaration) = symbol.value_declaration() else {
         return false;
     };
@@ -557,7 +548,7 @@ pub(crate) fn is_static_symbol(symbol: P<Symbol>) -> bool {
 }
 
 // utilities.go:393
-pub(crate) fn is_implementation(node: P<Node>) -> bool {
+pub fn is_implementation(node: P<Node>) -> bool {
     if node.flags().intersects(NodeFlags::Ambient) {
         return !(node.kind() == Kind::InterfaceDeclaration
             || node.kind() == Kind::TypeAliasDeclaration);
@@ -572,7 +563,7 @@ pub(crate) fn is_implementation(node: P<Node>) -> bool {
 }
 
 // utilities.go:409
-pub(crate) fn is_implementation_expression(node: P<Node>) -> bool {
+pub fn is_implementation_expression(node: P<Node>) -> bool {
     match node.kind() {
         Kind::ParenthesizedExpression => is_implementation_expression(node.expression().unwrap()),
         Kind::ArrowFunction
@@ -585,36 +576,33 @@ pub(crate) fn is_implementation_expression(node: P<Node>) -> bool {
 }
 
 // utilities.go:420
-pub(crate) fn is_readonly_type_operator(node: P<Node>) -> bool {
+pub fn is_readonly_type_operator(node: P<Node>) -> bool {
     node.kind() == Kind::ReadonlyKeyword
         && node.parent().unwrap().kind() == Kind::TypeOperator
         && node.parent().unwrap().as_type_operator_node().operator == Kind::ReadonlyKeyword
 }
 
 // utilities.go:424
-pub(crate) fn is_jump_statement_target(node: P<Node>) -> bool {
+pub fn is_jump_statement_target(node: P<Node>) -> bool {
     node.kind() == Kind::Identifier
         && ast::is_break_or_continue_statement(node.parent().unwrap())
         && node.parent().unwrap().label() == Some(node)
 }
 
 // utilities.go:428
-pub(crate) fn is_label_of_labeled_statement(node: P<Node>) -> bool {
+pub fn is_label_of_labeled_statement(node: P<Node>) -> bool {
     node.kind() == Kind::Identifier
         && node.parent().unwrap().kind() == Kind::LabeledStatement
         && node.parent().unwrap().label() == Some(node)
 }
 
 // utilities.go:432
-pub(crate) fn find_reference_in_position(
-    refs: &[P<FileReference>],
-    pos: u32,
-) -> Option<P<FileReference>> {
+pub fn find_reference_in_position(refs: &[P<FileReference>], pos: u32) -> Option<P<FileReference>> {
     refs.iter().copied().find(|r| r.text_range.contains_inclusive(pos.into()))
 }
 
 // utilities.go:436
-pub(crate) fn get_containing_node_if_in_heritage_clause(node: P<Node>) -> Option<P<Node>> {
+pub fn get_containing_node_if_in_heritage_clause(node: P<Node>) -> Option<P<Node>> {
     if node.kind() == Kind::Identifier
         || node.kind() == Kind::QualifiedName
         || node.kind() == Kind::PropertyAccessExpression
@@ -635,7 +623,7 @@ pub(crate) fn get_containing_node_if_in_heritage_clause(node: P<Node>) -> Option
 }
 
 // utilities.go:448
-pub(crate) fn get_container_node(node: P<Node>) -> Option<P<Node>> {
+pub fn get_container_node(node: P<Node>) -> Option<P<Node>> {
     let parent = node.parent();
     if let Some(result) = std::iter::successors(parent, |p| p.parent()).find_map(|p| {
         match p.kind() {
@@ -661,7 +649,7 @@ pub(crate) fn get_container_node(node: P<Node>) -> Option<P<Node>> {
 }
 
 // utilities.go:459
-pub(crate) fn get_adjusted_location(
+pub fn get_adjusted_location(
     node: P<Node>,
     for_rename: bool,
     mut source_file: Option<P<SourceFile>>,
@@ -731,22 +719,22 @@ pub(crate) fn get_adjusted_location(
         // import /**/type { [|name|] } from ...;
         // import /**/type { propertyName as [|name|] } from ...;
         // import /**/type ... from "[|module|]";
-        if ast::is_import_clause(parent) && parent.is_type_only() {
-            if let Some(location) =
+        if ast::is_import_clause(parent)
+            && parent.is_type_only()
+            && let Some(location) =
                 get_adjusted_location_for_import_declaration(parent.parent().unwrap(), for_rename)
-            {
-                return location;
-            }
+        {
+            return location;
         }
         // export /**/type { [|name|] } from ...;
         // export /**/type { propertyName as [|name|] } from ...;
         // export /**/type * from "[|module|]";
         // export /**/type * as ... from "[|module|]";
-        if ast::is_export_declaration(parent) && parent.is_type_only() {
-            if let Some(location) = get_adjusted_location_for_export_declaration(parent, for_rename)
-            {
-                return location;
-            }
+        if ast::is_export_declaration(parent)
+            && parent.is_type_only()
+            && let Some(location) = get_adjusted_location_for_export_declaration(parent, for_rename)
+        {
+            return location;
         }
     }
 
@@ -762,12 +750,11 @@ pub(crate) fn get_adjusted_location(
         {
             return parent.name().unwrap();
         }
-        if parent.kind() == Kind::ExportDeclaration {
-            if let Some(export_clause) = parent.as_export_declaration().export_clause {
-                if export_clause.kind() == Kind::NamespaceExport {
-                    return export_clause.name().unwrap();
-                }
-            }
+        if parent.kind() == Kind::ExportDeclaration
+            && let Some(export_clause) = parent.as_export_declaration().export_clause
+            && export_clause.kind() == Kind::NamespaceExport
+        {
+            return export_clause.name().unwrap();
         }
     }
 
@@ -776,10 +763,11 @@ pub(crate) fn get_adjusted_location(
     // /**/import { propertyName as [|name|] } from ...;
     // /**/import ... from "[|module|]";
     // /**/import "[|module|]";
-    if node.kind() == Kind::ImportKeyword && parent.kind() == Kind::ImportDeclaration {
-        if let Some(location) = get_adjusted_location_for_import_declaration(parent, for_rename) {
-            return location;
-        }
+    if node.kind() == Kind::ImportKeyword
+        && parent.kind() == Kind::ImportDeclaration
+        && let Some(location) = get_adjusted_location_for_import_declaration(parent, for_rename)
+    {
+        return location;
     }
 
     if node.kind() == Kind::ExportKeyword {
@@ -787,11 +775,10 @@ pub(crate) fn get_adjusted_location(
         // /**/export { propertyName as [|name|] } ...;
         // /**/export * from "[|module|]";
         // /**/export * as ... from "[|module|]";
-        if parent.kind() == Kind::ExportDeclaration {
-            if let Some(location) = get_adjusted_location_for_export_declaration(parent, for_rename)
-            {
-                return location;
-            }
+        if parent.kind() == Kind::ExportDeclaration
+            && let Some(location) = get_adjusted_location_for_export_declaration(parent, for_rename)
+        {
+            return location;
         }
         // NOTE: We don't adjust the location of the `default` keyword as that is handled specially by `getSymbolAtLocation`.
         // /**/export default [|name|];
@@ -809,12 +796,11 @@ pub(crate) fn get_adjusted_location(
     }
     // import ... /**/from "[|module|]";
     // export ... /**/from "[|module|]";
-    if node.kind() == Kind::FromKeyword {
-        if parent.kind() == Kind::ImportDeclaration || parent.kind() == Kind::ExportDeclaration {
-            if let Some(module_specifier) = parent.module_specifier() {
-                return module_specifier;
-            }
-        }
+    if node.kind() == Kind::FromKeyword
+        && (parent.kind() == Kind::ImportDeclaration || parent.kind() == Kind::ExportDeclaration)
+        && let Some(module_specifier) = parent.module_specifier()
+    {
+        return module_specifier;
     }
     // class ... /**/extends [|name|] ...
     // class ... /**/implements [|name|] ...
@@ -845,12 +831,11 @@ pub(crate) fn get_adjusted_location(
     }
     if node.kind() == Kind::ExtendsKeyword {
         // ... <T /**/extends [|U|]> ...
-        if parent.kind() == Kind::TypeParameter {
-            if let Some(constraint) = parent.as_type_parameter_declaration().constraint {
-                if constraint.kind() == Kind::TypeReference {
-                    return constraint.as_type_reference_node().type_name;
-                }
-            }
+        if parent.kind() == Kind::TypeParameter
+            && let Some(constraint) = parent.as_type_parameter_declaration().constraint
+            && constraint.kind() == Kind::TypeReference
+        {
+            return constraint.as_type_reference_node().type_name;
         }
         // ... T /**/extends [|U|] ? ...
         if parent.kind() == Kind::ConditionalType {
@@ -875,29 +860,20 @@ pub(crate) fn get_adjusted_location(
     if node.kind() == Kind::KeyOfKeyword
         && parent.kind() == Kind::TypeOperator
         && parent.as_type_operator_node().operator == Kind::KeyOfKeyword
+        && let Some(parent_type) = parent.type_node()
+        && parent_type.kind() == Kind::TypeReference
     {
-        if let Some(parent_type) = parent.type_node() {
-            if parent_type.kind() == Kind::TypeReference {
-                return parent_type.as_type_reference_node().type_name;
-            }
-        }
+        return parent_type.as_type_reference_node().type_name;
     }
     // /**/readonly [|name|][]
     if node.kind() == Kind::ReadonlyKeyword
         && parent.kind() == Kind::TypeOperator
         && parent.as_type_operator_node().operator == Kind::ReadonlyKeyword
+        && let Some(parent_type) = parent.type_node()
+        && parent_type.kind() == Kind::ArrayType
+        && parent_type.as_array_type_node().element_type.kind() == Kind::TypeReference
     {
-        if let Some(parent_type) = parent.type_node() {
-            if parent_type.kind() == Kind::ArrayType
-                && parent_type.as_array_type_node().element_type.kind() == Kind::TypeReference
-            {
-                return parent_type
-                    .as_array_type_node()
-                    .element_type
-                    .as_type_reference_node()
-                    .type_name;
-            }
-        }
+        return parent_type.as_array_type_node().element_type.as_type_reference_node().type_name;
     }
 
     if !for_rename {
@@ -911,16 +887,15 @@ pub(crate) fn get_adjusted_location(
         // /**/yield [|name|]
         // /**/yield obj.[|name|]
         // /**/delete obj.[|name|]
-        if node.kind() == Kind::NewKeyword && parent.kind() == Kind::NewExpression
+        if (node.kind() == Kind::NewKeyword && parent.kind() == Kind::NewExpression
             || node.kind() == Kind::VoidKeyword && parent.kind() == Kind::VoidExpression
             || node.kind() == Kind::TypeOfKeyword && parent.kind() == Kind::TypeOfExpression
             || node.kind() == Kind::AwaitKeyword && parent.kind() == Kind::AwaitExpression
             || node.kind() == Kind::YieldKeyword && parent.kind() == Kind::YieldExpression
-            || node.kind() == Kind::DeleteKeyword && parent.kind() == Kind::DeleteExpression
+            || node.kind() == Kind::DeleteKeyword && parent.kind() == Kind::DeleteExpression)
+            && let Some(expr) = parent.expression()
         {
-            if let Some(expr) = parent.expression() {
-                return ast::skip_outer_expressions(expr, ast::OuterExpressionKinds::All);
-            }
+            return ast::skip_outer_expressions(expr, ast::OuterExpressionKinds::All);
         }
 
         // left /**/in [|name|]
@@ -936,12 +911,12 @@ pub(crate) fn get_adjusted_location(
         }
 
         // left /**/as [|name|]
-        if node.kind() == Kind::AsKeyword && parent.kind() == Kind::AsExpression {
-            if let Some(as_expr_type) = parent.type_node() {
-                if as_expr_type.kind() == Kind::TypeReference {
-                    return as_expr_type.as_type_reference_node().type_name;
-                }
-            }
+        if node.kind() == Kind::AsKeyword
+            && parent.kind() == Kind::AsExpression
+            && let Some(as_expr_type) = parent.type_node()
+            && as_expr_type.kind() == Kind::TypeReference
+        {
+            return as_expr_type.as_type_reference_node().type_name;
         }
 
         // for (... /**/in [|name|])
@@ -960,7 +935,7 @@ pub(crate) fn get_adjusted_location(
 }
 
 // utilities.go:681
-pub(crate) fn get_adjusted_location_for_declaration(
+pub fn get_adjusted_location_for_declaration(
     node: P<Node>,
     for_rename: bool,
     source_file: P<SourceFile>,
@@ -991,7 +966,7 @@ pub(crate) fn get_adjusted_location_for_declaration(
 }
 
 // utilities.go:705
-pub(crate) fn get_adjusted_location_for_import_declaration(
+pub fn get_adjusted_location_for_import_declaration(
     node: P<Node>,
     for_rename: bool,
 ) -> Option<P<Node>> {
@@ -1038,7 +1013,7 @@ pub(crate) fn get_adjusted_location_for_import_declaration(
 }
 
 // utilities.go:748
-pub(crate) fn get_adjusted_location_for_export_declaration(
+pub fn get_adjusted_location_for_export_declaration(
     node: P<Node>,
     for_rename: bool,
 ) -> Option<P<Node>> {
@@ -1072,7 +1047,7 @@ pub(crate) fn get_adjusted_location_for_export_declaration(
 }
 
 // utilities.go:792
-pub(crate) fn get_meaning_from_location(node: P<Node>) -> SemanticMeaning {
+pub fn get_meaning_from_location(node: P<Node>) -> SemanticMeaning {
     // todo: check if this function needs to be changed for jsdoc updates
     let node = get_adjusted_location(
         ast::get_reparsed_node_for_node(node).unwrap(),
@@ -1112,10 +1087,10 @@ pub(crate) fn get_meaning_from_location(node: P<Node>) -> SemanticMeaning {
                 None
             };
         }
-        if let Some(name) = name {
-            if name.parent().unwrap().kind() == Kind::ImportEqualsDeclaration {
-                return SemanticMeaning::All;
-            }
+        if let Some(name) = name
+            && name.parent().unwrap().kind() == Kind::ImportEqualsDeclaration
+        {
+            return SemanticMeaning::All;
         }
         return SemanticMeaning::Namespace;
     }
@@ -1142,7 +1117,7 @@ pub(crate) fn get_meaning_from_location(node: P<Node>) -> SemanticMeaning {
 }
 
 // utilities.go:846
-pub(crate) fn get_meaning_from_declaration(node: P<Node>) -> SemanticMeaning {
+pub fn get_meaning_from_declaration(node: P<Node>) -> SemanticMeaning {
     match node.kind() {
         Kind::VariableDeclaration
         | Kind::Parameter
@@ -1188,7 +1163,7 @@ pub(crate) fn get_meaning_from_declaration(node: P<Node>) -> SemanticMeaning {
 }
 
 // utilities.go:880
-pub(crate) fn get_intersecting_meaning_from_declarations(
+pub fn get_intersecting_meaning_from_declarations(
     node: Option<P<Node>>,
     symbol: P<Symbol>,
     default_meaning: SemanticMeaning,
@@ -1234,7 +1209,7 @@ pub(crate) fn get_intersecting_meaning_from_declarations(
 
 // Returns the node in an `extends` or `implements` clause of a class or interface.
 // utilities.go:922
-pub(crate) fn get_all_super_type_nodes(node: P<Node>) -> Vec<P<Node>> {
+pub fn get_all_super_type_nodes(node: P<Node>) -> Vec<P<Node>> {
     if ast::is_interface_declaration(node) {
         return ast::get_heritage_elements(node, Kind::ExtendsKeyword).to_vec();
     }
@@ -1248,7 +1223,7 @@ pub(crate) fn get_all_super_type_nodes(node: P<Node>) -> Vec<P<Node>> {
 }
 
 // utilities.go:935
-pub(crate) fn get_parent_symbols_of_property_access(
+pub fn get_parent_symbols_of_property_access(
     location: P<Node>,
     symbol: P<Symbol>,
     ch: &mut Checker,
@@ -1281,7 +1256,7 @@ pub(crate) fn get_parent_symbols_of_property_access(
 //
 //	The value of previousIterationSymbol is undefined when the function is first called.
 // utilities.go:962
-pub(crate) fn get_property_symbols_from_base_types(
+pub fn get_property_symbols_from_base_types(
     symbol: P<Symbol>,
     property_name: &str,
     checker: &mut Checker,
@@ -1310,8 +1285,7 @@ pub(crate) fn get_property_symbols_from_base_types(
                     // Visit the typeReference as well to see if it directly or indirectly uses that property
                     if let Some(property_symbol) =
                         checker.get_property_of_type_exported(property_type, property_name)
-                    {
-                        if let Some(result) = checker
+                        && let Some(result) = checker
                             .get_root_symbols(property_symbol)
                             .into_iter()
                             .find_map(|root_symbol| {
@@ -1321,9 +1295,8 @@ pub(crate) fn get_property_symbols_from_base_types(
 
                                 None
                             })
-                        {
-                            return result;
-                        }
+                    {
+                        return result;
                     }
                     if let Some(result) =
                         recur(property_type_symbol, property_name, checker, cb, seen)
@@ -1340,7 +1313,7 @@ pub(crate) fn get_property_symbols_from_base_types(
 }
 
 // utilities.go:995
-pub(crate) fn get_property_symbol_from_binding_element(
+pub fn get_property_symbol_from_binding_element(
     checker: &mut Checker,
     binding_element: P<Node>,
 ) -> Option<P<Symbol>> {
@@ -1349,24 +1322,21 @@ pub(crate) fn get_property_symbol_from_binding_element(
 }
 
 // utilities.go:1002
-pub(crate) fn get_property_symbol_of_object_binding_pattern_without_property_name(
+pub fn get_property_symbol_of_object_binding_pattern_without_property_name(
     symbol: P<Symbol>,
     checker: &mut Checker,
 ) -> Option<P<Symbol>> {
     let binding_element = ast::get_declaration_of_kind(symbol, Kind::BindingElement);
-    if let Some(binding_element) = binding_element {
-        if is_object_binding_element_without_property_name(binding_element) {
-            return get_property_symbol_from_binding_element(checker, binding_element);
-        }
+    if let Some(binding_element) = binding_element
+        && is_object_binding_element_without_property_name(binding_element)
+    {
+        return get_property_symbol_from_binding_element(checker, binding_element);
     }
     None
 }
 
 // utilities.go:1010
-pub(crate) fn get_target_label(
-    reference_node: Option<P<Node>>,
-    label_name: &str,
-) -> Option<P<Node>> {
+pub fn get_target_label(reference_node: Option<P<Node>>, label_name: &str) -> Option<P<Node>> {
     // todo: rewrite as `ast.FindAncestor`
     if let Some(result) = std::iter::successors(reference_node, |n| n.parent()).find_map(|n| {
         if n.kind() == Kind::LabeledStatement && n.label().unwrap().text() == label_name {
@@ -1381,18 +1351,18 @@ pub(crate) fn get_target_label(
 }
 
 // utilities.go:1021
-pub(crate) fn skip_constraint(t: P<Type>, type_checker: &mut Checker) -> P<Type> {
-    if t.is_type_parameter() {
-        if let Some(c) = type_checker.get_base_constraint_of_type_exported(t) {
-            return c;
-        }
+pub fn skip_constraint(t: P<Type>, type_checker: &mut Checker) -> P<Type> {
+    if t.is_type_parameter()
+        && let Some(c) = type_checker.get_base_constraint_of_type_exported(t)
+    {
+        return c;
     }
     t
 }
 
 // utilities.go:1031
 #[derive(Default)]
-pub(crate) struct CaseClauseTrackerState {
+pub struct CaseClauseTrackerState {
     existing_strings: FxHashSet<String>,
     // jsnum.Number keys compared by f64 value, like Go float64 map keys (NaN never matches, -0 == 0)
     existing_numbers: Vec<jsnum::Number>,
@@ -1400,14 +1370,14 @@ pub(crate) struct CaseClauseTrackerState {
 }
 
 // utilities.go:1037-1047: `trackerAddValue` = string | jsnum.Number, `trackerHasValue` = string | jsnum.Number | jsnum.PseudoBigInt
-pub(crate) enum TrackerValue {
+pub enum TrackerValue {
     String(String),
     Number(jsnum::Number),
     BigInt(PseudoBigInt),
 }
 
 // utilities.go:1043
-pub(crate) trait CaseClauseTracker {
+pub trait CaseClauseTracker {
     fn add_value(&mut self, value: TrackerValue);
     fn has_value(&self, value: &TrackerValue) -> bool;
 }
@@ -1447,7 +1417,7 @@ impl CaseClauseTracker for CaseClauseTrackerState {
 }
 
 // utilities.go:1072
-pub(crate) fn new_case_clause_tracker(
+pub fn new_case_clause_tracker(
     type_checker: &mut Checker,
     clauses: &[P<Node>],
 ) -> Box<dyn CaseClauseTracker> {
@@ -1471,24 +1441,23 @@ pub(crate) fn new_case_clause_tracker(
             } else {
                 let symbol =
                     type_checker.get_symbol_at_location_exported(clause.expression().unwrap());
-                if let Some(symbol) = symbol {
-                    if let Some(value_declaration) = symbol.value_declaration() {
-                        if ast::is_enum_member(value_declaration) {
-                            let enum_value = type_checker.get_constant_value(value_declaration);
-                            match enum_value {
-                                Some(LiteralValue::String(s)) => {
-                                    c.add_value(TrackerValue::String(s.to_string()));
-                                }
-                                Some(LiteralValue::Number(n)) => {
-                                    c.add_value(TrackerValue::Number(n));
-                                }
-                                Some(LiteralValue::Boolean(_)) => panic!("Unsupported type: bool"),
-                                Some(LiteralValue::BigInt(_)) => {
-                                    panic!("Unsupported type: jsnum.PseudoBigInt")
-                                }
-                                None => {}
-                            }
+                if let Some(symbol) = symbol
+                    && let Some(value_declaration) = symbol.value_declaration()
+                    && ast::is_enum_member(value_declaration)
+                {
+                    let enum_value = type_checker.get_constant_value(value_declaration);
+                    match enum_value {
+                        Some(LiteralValue::String(s)) => {
+                            c.add_value(TrackerValue::String(s.to_string()));
                         }
+                        Some(LiteralValue::Number(n)) => {
+                            c.add_value(TrackerValue::Number(n));
+                        }
+                        Some(LiteralValue::Boolean(_)) => panic!("Unsupported type: bool"),
+                        Some(LiteralValue::BigInt(_)) => {
+                            panic!("Unsupported type: jsnum.PseudoBigInt")
+                        }
+                        None => {}
                     }
                 }
             }
@@ -1503,16 +1472,12 @@ pub fn range_contains_range(r1: TextRange, r2: TextRange) -> bool {
 }
 
 // utilities.go:1109
-pub(crate) fn start_end_contains_range(
-    start: TextPos,
-    end: TextPos,
-    text_range: TextRange,
-) -> bool {
+pub fn start_end_contains_range(start: TextPos, end: TextPos, text_range: TextRange) -> bool {
     start <= text_range.pos() && end >= text_range.end()
 }
 
 // utilities.go:1113
-pub(crate) fn get_possible_generic_signatures(
+pub fn get_possible_generic_signatures(
     called: P<Node>,
     type_argument_count: usize,
     c: &mut Checker,
@@ -1542,7 +1507,7 @@ pub(crate) fn get_possible_generic_signatures(
 }
 
 // utilities.go:1129
-pub(crate) fn remove_optionality(
+pub fn remove_optionality(
     t: P<Type>,
     is_optional_expression: bool,
     is_optional_chain: bool,
@@ -1557,17 +1522,17 @@ pub(crate) fn remove_optionality(
 }
 
 // utilities.go:1138
-pub(crate) fn is_no_substitution_template_literal(node: P<Node>) -> bool {
+pub fn is_no_substitution_template_literal(node: P<Node>) -> bool {
     node.kind() == Kind::NoSubstitutionTemplateLiteral
 }
 
 // utilities.go:1142
-pub(crate) fn is_tagged_template_expression(node: P<Node>) -> bool {
+pub fn is_tagged_template_expression(node: P<Node>) -> bool {
     node.kind() == Kind::TaggedTemplateExpression
 }
 
 // utilities.go:1146
-pub(crate) fn is_inside_template_literal(
+pub fn is_inside_template_literal(
     node: P<Node>,
     position: u32,
     source_file: P<SourceFile>,
@@ -1580,17 +1545,17 @@ pub(crate) fn is_inside_template_literal(
 
 // Pseudo-literals
 // utilities.go:1151
-pub(crate) fn is_template_head(node: P<Node>) -> bool {
+pub fn is_template_head(node: P<Node>) -> bool {
     node.kind() == Kind::TemplateHead
 }
 
 // utilities.go:1155
-pub(crate) fn is_template_tail(node: P<Node>) -> bool {
+pub fn is_template_tail(node: P<Node>) -> bool {
     node.kind() == Kind::TemplateTail
 }
 
 // utilities.go:1159
-pub(crate) fn find_preceding_matching_token(
+pub fn find_preceding_matching_token(
     token: P<Node>,
     matching_token_kind: Kind,
     source_file: P<SourceFile>,
@@ -1610,10 +1575,10 @@ pub(crate) fn find_preceding_matching_token(
             source_file,
             u32::try_from(best_guess_index + 1).expect("source position exceeds u32"),
         );
-        if let Some(node_at_guess) = node_at_guess {
-            if node_at_guess.kind() == matching_token_kind {
-                return Some(node_at_guess);
-            }
+        if let Some(node_at_guess) = node_at_guess
+            && node_at_guess.kind() == matching_token_kind
+        {
+            return Some(node_at_guess);
         }
     }
     let token_kind = token.kind();
@@ -1637,7 +1602,7 @@ pub(crate) fn find_preceding_matching_token(
 }
 
 // utilities.go:1193
-pub(crate) fn find_containing_list(node: P<Node>, file: P<SourceFile>) -> Option<P<NodeList>> {
+pub fn find_containing_list(node: P<Node>, file: P<SourceFile>) -> Option<P<NodeList>> {
     // The node might be a list element (nonsynthetic) or a comma (synthetic). Either way, it will
     // be parented by the container of the SyntaxList, not the SyntaxList itself.
     let list: std::rc::Rc<std::cell::Cell<Option<P<NodeList>>>> = std::rc::Rc::default();
@@ -1647,10 +1612,10 @@ pub(crate) fn find_containing_list(node: P<Node>, file: P<SourceFile>) -> Option
     let node_loc = node.loc();
     let visit_nodes: astnav::VisitNodesFn =
         std::rc::Rc::new(move |nodes: Option<P<NodeList>>, _visitor: &mut ast::NodeVisitor| {
-            if let Some(n) = nodes {
-                if range_contains_range(n.loc.get(), node_loc) {
-                    list_ref.set(Some(n));
-                }
+            if let Some(n) = nodes
+                && range_contains_range(n.loc.get(), node_loc)
+            {
+                list_ref.set(Some(n));
             }
             nodes
         });
@@ -1664,7 +1629,7 @@ pub(crate) fn find_containing_list(node: P<Node>, file: P<SourceFile>) -> Option
 }
 
 // utilities.go:1210
-pub(crate) fn get_leading_comment_ranges_of_node(
+pub fn get_leading_comment_ranges_of_node(
     node: P<Node>,
     file: P<SourceFile>,
 ) -> Option<scanner::CommentRangeIter> {
@@ -1679,10 +1644,7 @@ pub(crate) fn get_leading_comment_ranges_of_node(
 
 // Equivalent to Strada's `node.getChildren()` for non-JSDoc nodes.
 // utilities.go:1218
-pub(crate) fn get_children_from_non_jsdoc_node(
-    node: P<Node>,
-    source_file: P<SourceFile>,
-) -> Vec<P<Node>> {
+pub fn get_children_from_non_jsdoc_node(node: P<Node>, source_file: P<SourceFile>) -> Vec<P<Node>> {
     let mut child_nodes: Vec<P<Node>> = Vec::new();
     node.for_each_child(&mut |child| {
         child_nodes.push(child);
@@ -1736,7 +1698,7 @@ pub(crate) fn get_children_from_non_jsdoc_node(
 
 // Returns the containing object literal property declaration given a possible name node, e.g. "a" in x = { "a": 1 }
 // utilities.go:1258
-pub(crate) fn get_containing_object_literal_element(node: P<Node>) -> Option<P<Node>> {
+pub fn get_containing_object_literal_element(node: P<Node>) -> Option<P<Node>> {
     let element = get_containing_object_literal_element_worker(node);
     if let Some(element) = element {
         let parent = element.parent().unwrap();
@@ -1748,7 +1710,7 @@ pub(crate) fn get_containing_object_literal_element(node: P<Node>) -> Option<P<N
 }
 
 // utilities.go:1266
-pub(crate) fn get_containing_object_literal_element_worker(node: P<Node>) -> Option<P<Node>> {
+pub fn get_containing_object_literal_element_worker(node: P<Node>) -> Option<P<Node>> {
     let mut fallthrough = false;
     match node.kind() {
         Kind::StringLiteral | Kind::NoSubstitutionTemplateLiteral | Kind::NumericLiteral => {
@@ -1778,7 +1740,7 @@ pub(crate) fn get_containing_object_literal_element_worker(node: P<Node>) -> Opt
 }
 
 // utilities.go:1284
-pub(crate) fn is_object_literal_or_jsx_element(node: P<Node>) -> bool {
+pub fn is_object_literal_or_jsx_element(node: P<Node>) -> bool {
     ast::is_object_literal_element(node)
         || ast::is_jsx_attribute(node)
         || ast::is_jsx_spread_attribute(node)
@@ -1786,7 +1748,7 @@ pub(crate) fn is_object_literal_or_jsx_element(node: P<Node>) -> bool {
 
 // FindAllReferences.toContextSpan
 // utilities.go:1297
-pub(crate) fn to_context_range(
+pub fn to_context_range(
     text_range: Option<TextRange>,
     context_file: P<SourceFile>,
     context: Option<P<Node>>,
@@ -1804,7 +1766,7 @@ pub(crate) fn to_context_range(
 }
 
 // utilities.go:1310
-pub(crate) fn get_reference_at_position(
+pub fn get_reference_at_position(
     source_file: P<SourceFile>,
     position: u32,
     program: &Program,
@@ -1830,14 +1792,13 @@ pub(crate) fn get_reference_at_position(
                 type_reference_directive,
                 source_file,
             )
+            && let Some(file) = program.get_source_file(reference.resolved_file_name)
         {
-            if let Some(file) = program.get_source_file(reference.resolved_file_name) {
-                return Some(RefInfo {
-                    reference: Some(type_reference_directive),
-                    file_name: file.file_name().to_string(),
-                    file: Some(file),
-                });
-            }
+            return Some(RefInfo {
+                reference: Some(type_reference_directive),
+                file_name: file.file_name().to_string(),
+                file: Some(file),
+            });
         }
         return None;
     }
@@ -1883,7 +1844,7 @@ pub(crate) fn get_reference_at_position(
 }
 
 // utilities.go:1357
-pub(crate) fn get_contextual_type_from_parent(
+pub fn get_contextual_type_from_parent(
     node: P<Node>,
     type_checker: &mut Checker,
     context_flags: ContextFlags,
@@ -1908,7 +1869,7 @@ pub(crate) fn get_contextual_type_from_parent(
 }
 
 // utilities.go:1377
-pub(crate) fn get_contextual_type_from_parent_or_ancestor_type_node(
+pub fn get_contextual_type_from_parent_or_ancestor_type_node(
     node: P<Node>,
     type_checker: &mut Checker,
 ) -> Option<P<Type>> {
@@ -1931,7 +1892,7 @@ pub(crate) fn get_contextual_type_from_parent_or_ancestor_type_node(
 }
 
 // utilities.go:1394
-pub(crate) fn get_ancestor_type_node(node: P<Node>) -> Option<P<Node>> {
+pub fn get_ancestor_type_node(node: P<Node>) -> Option<P<Node>> {
     let mut last_type_node: Option<P<Node>> = None;
     ast::find_ancestor(node, |n| {
         if ast::is_type_node(n) {
@@ -1946,7 +1907,7 @@ pub(crate) fn get_ancestor_type_node(node: P<Node>) -> Option<P<Node>> {
 }
 
 // utilities.go:1406
-pub(crate) fn is_source_file_with_global_exports(node: Option<P<Node>>) -> bool {
+pub fn is_source_file_with_global_exports(node: Option<P<Node>>) -> bool {
     match node {
         Some(node) => ast::is_source_file(node) && node.as_source_file().global_exports().is_some(),
         None => false,

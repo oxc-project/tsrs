@@ -349,11 +349,11 @@ impl Session {
             std::mem::replace(&mut user_config.workspace_user_preferences, config.clone())
         };
 
-        if !config.locale.is_empty() {
-            if let Some(client) = &self.client {
-                // (Content mappers are not ported: Go forwards a changed locale to the content mapper host.)
-                client.set_locale(&config.locale);
-            }
+        if !config.locale.is_empty()
+            && let Some(client) = &self.client
+        {
+            // (Content mappers are not ported: Go forwards a changed locale to the content mapper host.)
+            client.set_locale(&config.locale);
         }
 
         // Tell the client to re-request certain commands depending on user preference changes.
@@ -544,9 +544,7 @@ impl Session {
                     // Extensionless paths might be directories.
                     // For creations/changes, we can check the file system.
                     // For deletions, consult the current snapshot cache to avoid treating extensionless file deletions as relevant.
-                    if kind != FileChangeKind::WatchDelete {
-                        has_relevant_change = self.fs.directory_exists(&file_name);
-                    } else {
+                    if kind == FileChangeKind::WatchDelete {
                         let snapshot = self.snapshot();
                         if snapshot.fs.cache_directories.contains_key(&path)
                             || snapshot.has_overlay_within(&path)
@@ -554,6 +552,8 @@ impl Session {
                         {
                             has_relevant_change = true;
                         }
+                    } else {
+                        has_relevant_change = self.fs.directory_exists(&file_name);
                     }
                 } else if let Some(i) = i {
                     let extensions: Vec<&str> =
@@ -655,12 +655,11 @@ impl Session {
             if s.options.logging_enabled {
                 s.logger.log("Running scheduled diagnostics refresh");
             }
-            if let Some(client) = &s.client {
-                if let Err(err) = client.refresh_diagnostics(&s.background_context()) {
-                    if s.options.logging_enabled {
-                        s.logger.logf(format_args!("Error refreshing diagnostics: {err}"));
-                    }
-                }
+            if let Some(client) = &s.client
+                && let Err(err) = client.refresh_diagnostics(&s.background_context())
+                && s.options.logging_enabled
+            {
+                s.logger.logf(format_args!("Error refreshing diagnostics: {err}"));
             }
         });
     }
@@ -768,10 +767,10 @@ impl Session {
         if state.closed {
             return;
         }
-        if let Some(timer) = state.timer.take() {
-            if timer.stop() {
-                state.pending -= 1;
-            }
+        if let Some(timer) = state.timer.take()
+            && timer.stop()
+        {
+            state.pending -= 1;
         }
 
         state.generation += 1;
@@ -818,12 +817,12 @@ impl Session {
     // session.go:694
     fn cancel_idle_cache_clean(&self) {
         let mut state = self.idle_cache_clean.lock().unwrap();
-        if let Some(timer) = state.timer.take() {
-            if timer.stop() {
-                state.pending -= 1;
-                if state.pending == 0 {
-                    self.idle_cache_clean_done.notify_all();
-                }
+        if let Some(timer) = state.timer.take()
+            && timer.stop()
+        {
+            state.pending -= 1;
+            if state.pending == 0 {
+                self.idle_cache_clean_done.notify_all();
             }
         }
     }
@@ -832,10 +831,10 @@ impl Session {
     fn close_idle_cache_clean(&self) {
         let mut state = self.idle_cache_clean.lock().unwrap();
         state.closed = true;
-        if let Some(timer) = state.timer.take() {
-            if timer.stop() {
-                state.pending -= 1;
-            }
+        if let Some(timer) = state.timer.take()
+            && timer.stop()
+        {
+            state.pending -= 1;
         }
         while state.pending != 0 {
             state = self.idle_cache_clean_done.wait(state).unwrap();
@@ -986,12 +985,12 @@ impl Session {
             if caller_ref {
                 snapshot.deref();
             }
-            if let Some(file) = snapshot.get_file(&uri.file_name()) {
-                if file.kind() == ScriptKind::Unknown {
-                    return Err(lsproto::Error::new(format!(
-                        "{ERR_NO_PROJECT_FOR_UNKNOWN_SCRIPT_KIND}: no project found for URI {uri}"
-                    )));
-                }
+            if let Some(file) = snapshot.get_file(&uri.file_name())
+                && file.kind() == ScriptKind::Unknown
+            {
+                return Err(lsproto::Error::new(format!(
+                    "{ERR_NO_PROJECT_FOR_UNKNOWN_SCRIPT_KIND}: no project found for URI {uri}"
+                )));
             }
             return Err(lsproto::Error::new(format!("no project found for URI {uri}")));
         };
@@ -1436,7 +1435,7 @@ impl Session {
     ) -> Option<Arc<Snapshot>> {
         let mut guard = self.snapshot.write().unwrap();
         let old_snapshot = Arc::clone(guard.as_ref().expect("session is closed"));
-        let ctx = if !has_locale(ctx) { self.with_current_locale(ctx) } else { ctx.clone() };
+        let ctx = if has_locale(ctx) { ctx.clone() } else { self.with_current_locale(ctx) };
         let warm_change = WarmChange::of(&change);
         let new_snapshot = old_snapshot.clone_snapshot(
             &ctx,
@@ -1489,12 +1488,11 @@ impl Session {
                 s.log_project_changes(&old_snapshot, &new_snapshot);
                 s.logger.log("");
             }
-            if s.options.watch_enabled {
-                if let Err(err) = s.update_watches(&old_snapshot, &new_snapshot) {
-                    if s.options.logging_enabled {
-                        s.logger.log(&err);
-                    }
-                }
+            if s.options.watch_enabled
+                && let Err(err) = s.update_watches(&old_snapshot, &new_snapshot)
+                && s.options.logging_enabled
+            {
+                s.logger.log(&err);
             }
             let _ = s.update_content_mapper_registrations(ctx, &new_snapshot);
             s.publish_program_diagnostics(&old_snapshot, &new_snapshot);
@@ -1558,7 +1556,9 @@ impl Session {
                         self.logger.log("");
                     }
                 }
-                if !watch_errors.is_empty() {
+                if watch_errors.is_empty() {
+                    self.watches.clear_pending(&w.watcher_id);
+                } else {
                     // Roll back ALL newly-acquired watchers on any failure to keep
                     // refcounts clean. On retry, Acquire will see them as new again.
                     // Re-registering an already-registered watcher with the client
@@ -1568,8 +1568,6 @@ impl Session {
                     }
                     self.watches.mark_pending(w.watcher_id.clone());
                     errors.extend(watch_errors);
-                } else {
-                    self.watches.clear_pending(&w.watcher_id);
                 }
                 if !w.ignored_paths.is_empty() {
                     self.logger.logf(format_args!(
@@ -2050,14 +2048,12 @@ impl Session {
         old_prefs: &UserPreferences,
         new_prefs: &UserPreferences,
     ) {
-        if old_prefs.inlay_hints != new_prefs.inlay_hints {
-            if let Some(client) = &self.client {
-                if let Err(err) = client.refresh_inlay_hints(&self.background_context()) {
-                    if self.options.logging_enabled {
-                        self.logger.logf(format_args!("Error refreshing inlay hints: {err}"));
-                    }
-                }
-            }
+        if old_prefs.inlay_hints != new_prefs.inlay_hints
+            && let Some(client) = &self.client
+            && let Err(err) = client.refresh_inlay_hints(&self.background_context())
+            && self.options.logging_enabled
+        {
+            self.logger.logf(format_args!("Error refreshing inlay hints: {err}"));
         }
     }
 
@@ -2067,14 +2063,12 @@ impl Session {
         old_prefs: &UserPreferences,
         new_prefs: &UserPreferences,
     ) {
-        if old_prefs.code_lens != new_prefs.code_lens {
-            if let Some(client) = &self.client {
-                if let Err(err) = client.refresh_code_lens(&self.background_context()) {
-                    if self.options.logging_enabled {
-                        self.logger.logf(format_args!("Error refreshing code lens: {err}"));
-                    }
-                }
-            }
+        if old_prefs.code_lens != new_prefs.code_lens
+            && let Some(client) = &self.client
+            && let Err(err) = client.refresh_code_lens(&self.background_context())
+            && self.options.logging_enabled
+        {
+            self.logger.logf(format_args!("Error refreshing code lens: {err}"));
         }
     }
 
@@ -2112,20 +2106,19 @@ impl Session {
                 return;
             }
             for old_project in old_snapshot.project_collection.projects_by_id().values() {
-                if let Some(configured_id) = old_project.id().configured() {
-                    if old_snapshot
+                if let Some(configured_id) = old_project.id().configured()
+                    && old_snapshot
                         .project_collection
                         .get_open_configured_projects()
                         .has(&configured_id)
-                    {
-                        let config_file_path = old_project.config_file_path().clone();
-                        self.publish_project_diagnostics(
-                            &self.background_context(),
-                            &config_file_path,
-                            &[],
-                            &old_snapshot.converters(),
-                        );
-                    }
+                {
+                    let config_file_path = old_project.config_file_path().clone();
+                    self.publish_project_diagnostics(
+                        &self.background_context(),
+                        &config_file_path,
+                        &[],
+                        &old_snapshot.converters(),
+                    );
                 }
             }
             return;
@@ -2230,19 +2223,18 @@ impl Session {
             diagnostics.iter().map(|&diag| lsconv::diagnostic_to_lsp_push(&ctx, converters, diag)),
         );
 
-        if let Some(client) = &self.client {
-            if let Err(err) = client.publish_diagnostics(
+        if let Some(client) = &self.client
+            && let Err(err) = client.publish_diagnostics(
                 &ctx,
                 lsproto::PublishDiagnosticsParams {
                     uri: lsconv::file_name_to_document_uri(config_file_path),
                     version: None,
                     diagnostics: lsp_diagnostics,
                 },
-            ) {
-                if self.options.logging_enabled {
-                    self.logger.logf(format_args!("Error publishing diagnostics: {err}"));
-                }
-            }
+            )
+            && self.options.logging_enabled
+        {
+            self.logger.logf(format_args!("Error publishing diagnostics: {err}"));
         }
     }
 

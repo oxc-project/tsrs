@@ -94,7 +94,6 @@ impl ParseConfigHost for ParseConfigHostImpl {
 }
 
 fn project_files() -> Vec<(String, String)> {
-    let mut files = Vec::new();
     fn walk(dir: &std::path::Path, rel: &str, files: &mut Vec<(String, String)>) {
         for entry in std::fs::read_dir(dir).unwrap() {
             let entry = entry.unwrap();
@@ -107,6 +106,8 @@ fn project_files() -> Vec<(String, String)> {
             }
         }
     }
+
+    let mut files = Vec::new();
     walk(&std::path::Path::new(DIR).join("proj"), "", &mut files);
     files
 }
@@ -174,14 +175,14 @@ fn position_of(text: &str, caret: &str) -> lsproto::Position {
 // Sorts completion list items the way clients (and fourslash) do, then renders the result as JSON.
 fn normalize(result: &Value) -> String {
     let mut result = result.clone();
-    if let Value::Object(m) = &mut result {
-        if let Some(Value::Array(items)) = m.get("items") {
-            let mut parsed: Vec<lsproto::CompletionItem> =
-                items.iter().map(|i| lsproto::CompletionItem::from_json(i).unwrap()).collect();
-            parsed.sort_by(compare_completion_entries);
-            let sorted: Vec<Value> = parsed.iter().map(tsrs_lsproto::Json::to_json).collect();
-            m.insert("items".to_string(), Value::Array(sorted));
-        }
+    if let Value::Object(m) = &mut result
+        && let Some(Value::Array(items)) = m.get("items")
+    {
+        let mut parsed: Vec<lsproto::CompletionItem> =
+            items.iter().map(|i| lsproto::CompletionItem::from_json(i).unwrap()).collect();
+        parsed.sort_by(compare_completion_entries);
+        let sorted: Vec<Value> = parsed.iter().map(tsrs_lsproto::Json::to_json).collect();
+        m.insert("items".to_string(), Value::Array(sorted));
     }
     json::marshal(&result).unwrap()
 }

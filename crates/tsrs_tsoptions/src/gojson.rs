@@ -326,11 +326,12 @@ pub fn compiler_option_to_go_json(options: &CompilerOptions, name: &str) -> Opti
 
 /// JSON names and Go integer widths of the core.CompilerOptions fields Go decodes from JSON integers.
 pub fn compiler_options_integer_fields() -> Vec<(&'static str, u32)> {
-    let mut out = Vec::new();
-    let options = tsrs_core::CompilerOptions::default();
     fn bits<T: GoJson>(_: &T) -> u32 {
         T::INTEGER_BITS
     }
+
+    let mut out = Vec::new();
+    let options = tsrs_core::CompilerOptions::default();
     macro_rules! fields {
         ($($field:ident: $json:literal,)*) => {
             $(if bits(&options.$field) != 0 { out.push(($json, bits(&options.$field))); })*

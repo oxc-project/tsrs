@@ -13,7 +13,7 @@ use tsrs_vfs::FS;
 
 use super::host::HostImpl;
 
-pub(crate) struct CompilerHostImpl {
+pub struct CompilerHostImpl {
     pub(crate) host: &'static HostImpl,
     pub(crate) trace: Box<dyn Fn(&'static Message, &[&dyn std::fmt::Display]) + Send + Sync>,
     pub(crate) content_mapper_project: Option<Arc<dyn Project>>,

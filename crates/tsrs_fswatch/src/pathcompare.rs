@@ -6,14 +6,14 @@ use crate::canonicalize::{NATIVE_PATH_FOLDING, fold_native_path};
 use crate::watcher::{is_in_directory_or_self, join_path_suffix, rebase_path};
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug, Default)]
-pub(crate) struct BytePathComparer {
+pub struct BytePathComparer {
     pub(crate) ignore_case: bool,
 }
 
 // Watch roots are prepared before publication and are immutable thereafter.
 // Event paths are local to one routing operation and folded only on demand.
 #[derive(Clone, Default)]
-pub(crate) struct ComparisonPath<'c> {
+pub struct ComparisonPath<'c> {
     pub(crate) path: String,
     pub(crate) folded: String,
     pub(crate) ready: bool,
@@ -22,7 +22,7 @@ pub(crate) struct ComparisonPath<'c> {
 
 // Shared only within a synchronous callback/termination pass, never published
 // to a subscriber or stored on a watch.
-pub(crate) type ComparisonCache = FxHashMap<String, String>;
+pub type ComparisonCache = FxHashMap<String, String>;
 
 impl ComparisonPath<'_> {
     pub(crate) fn new(path: &str) -> ComparisonPath<'static> {
@@ -32,12 +32,12 @@ impl ComparisonPath<'_> {
     // pathcompare.go:34
     pub(crate) fn fold(&mut self) -> String {
         if !self.ready {
-            if let Some(cache) = self.cache {
-                if let Some(folded) = cache.lock().unwrap().get(&self.path) {
-                    self.folded = folded.clone();
-                    self.ready = true;
-                    return self.folded.clone();
-                }
+            if let Some(cache) = self.cache
+                && let Some(folded) = cache.lock().unwrap().get(&self.path)
+            {
+                self.folded = folded.clone();
+                self.ready = true;
+                return self.folded.clone();
             }
             self.folded = fold_native_path(&self.path);
             self.ready = true;

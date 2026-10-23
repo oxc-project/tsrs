@@ -18,7 +18,7 @@ pub struct MetadataSerializerContext {
 }
 
 // typeserializer.go:26
-pub(crate) fn new_metadata_serializer(
+pub fn new_metadata_serializer(
     resolver: Resolver,
     f: &'static printer::NodeFactory,
     ec: P<EmitContext>,
@@ -192,12 +192,12 @@ fn get_parameters_of_decorated_declaration(
     node: P<Node>,
     container: Option<P<Node>>,
 ) -> Option<P<NodeList>> {
-    if let Some(container) = container {
-        if node.kind() == Kind::GetAccessor {
-            let acc = ast::get_all_accessor_declarations(container.members(), node);
-            if let Some(set_accessor) = acc.set_accessor {
-                return set_accessor.parameter_list();
-            }
+    if let Some(container) = container
+        && node.kind() == Kind::GetAccessor
+    {
+        let acc = ast::get_all_accessor_declarations(container.members(), node);
+        if let Some(set_accessor) = acc.set_accessor {
+            return set_accessor.parameter_list();
         }
     }
     node.parameter_list()

@@ -104,11 +104,12 @@ mod tests {
 
     #[test]
     fn test_ordered_map() {
-        let mut m: OrderedMap<i32, String> = OrderedMap::default();
-        assert!(!m.has(&1));
         const N: i32 = 1000;
         const START: i32 = 1;
         const END: i32 = START + N;
+
+        let mut m: OrderedMap<i32, String> = OrderedMap::default();
+        assert!(!m.has(&1));
         // Seed the map with ascending keys and values for easier testing.
         m.extend((START..END).map(|i| (i, pad_int(i))));
         assert_eq!(m.size(), N as usize);

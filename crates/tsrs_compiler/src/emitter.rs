@@ -8,7 +8,7 @@ use tsrs_core::tspath::{self, ComparePathsOptions};
 use crate::outputpaths;
 use crate::program::Program;
 
-pub(crate) fn source_file_may_be_emitted(
+pub fn source_file_may_be_emitted(
     source_file: P<SourceFile>,
     host: &Program,
     force_dts_emit: bool,
@@ -100,7 +100,7 @@ pub(crate) fn source_file_may_be_emitted(
     true
 }
 
-pub(crate) fn get_source_files_to_emit(
+pub fn get_source_files_to_emit(
     host: &Program,
     target_source_files: Option<&[P<SourceFile>]>,
     force_dts_emit: bool,
@@ -119,7 +119,7 @@ fn is_source_file_not_json(file: P<SourceFile>) -> bool {
 }
 
 // emitter.go:566. Runs inside the caller's `CheckerSlot::lend` (the host's resolver borrows the checker from it).
-pub(crate) fn get_declaration_diagnostics(
+pub fn get_declaration_diagnostics(
     host: &'static crate::emithost::EmitHost,
     program: &Program,
     file: P<SourceFile>,
@@ -193,7 +193,7 @@ mod emit {
     }
 
     // emitter.go:33
-    pub(crate) struct Emitter<'a> {
+    pub struct Emitter<'a> {
         pub(crate) host: &'static EmitHost,
         pub(crate) emit_only: EmitOnly,
         pub(crate) emitter_diagnostics: DiagnosticsCollection,
@@ -210,7 +210,7 @@ mod emit {
     }
 
     /// `TSRS_EMIT_MEM=1`: per file, the arena bytes its emit used in its region and outside it (stderr, `emitmem`).
-    pub(crate) fn emit_mem_log() -> bool {
+    pub fn emit_mem_log() -> bool {
         static ON: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
         *ON.get_or_init(|| std::env::var_os("TSRS_EMIT_MEM").is_some_and(|v| v == "1"))
     }
@@ -218,7 +218,7 @@ mod emit {
     // tsrs-only: what printing a transformed file needs. Go prints and writes each file while it still holds the
     // file's checker; tsrs splits `emit` into `transform` (needs the checker) and `print` (does not), so that
     // `Program::emit` can print and write on another thread while the checker transforms the next file.
-    pub(crate) struct PendingPrint {
+    pub struct PendingPrint {
         source_file: P<SourceFile>,
         emit_context: P<EmitContext>,
         printer_options: PrinterOptions,
@@ -586,7 +586,9 @@ mod emit {
                 }
 
                 // Write the source map
-                if !source_map_file_path.is_empty() {
+                if source_map_file_path.is_empty() {
+                    self.times.add(EmitPhase::SourceMap, source_map_start);
+                } else {
                     let source_map = source_map_generator.string();
                     self.times.add(EmitPhase::SourceMap, source_map_start);
                     let err = self.write_text(
@@ -608,8 +610,6 @@ mod emit {
                             self.emit_result.emitted_files.push(source_map_file_path.to_string());
                         }
                     }
-                } else {
-                    self.times.add(EmitPhase::SourceMap, source_map_start);
                 }
             } else {
                 writer.write_line();
@@ -756,16 +756,14 @@ mod emit {
 
     // emitter.go:295
     // Go `declarationMapSource`: the original (content-mapped) source a declaration map points at.
-    pub(crate) struct DeclarationMapSource {
+    pub struct DeclarationMapSource {
         pub(crate) file_name: String,
         pub(crate) text: &'static str,
         pub(crate) line_map: Vec<u32>,
     }
 
     // emitter.go:301
-    pub(crate) fn new_declaration_map_source(
-        source_file: P<SourceFile>,
-    ) -> &'static DeclarationMapSource {
+    pub fn new_declaration_map_source(source_file: P<SourceFile>) -> &'static DeclarationMapSource {
         let text = source_file.original_text();
         P::new(DeclarationMapSource {
             file_name: source_file.original_file_name().to_string(),
@@ -811,7 +809,7 @@ mod emit {
     }
 
     // emitter.go:116
-    pub(crate) fn get_script_transformers(
+    pub fn get_script_transformers(
         emit_context: P<EmitContext>,
         host: &'static EmitHost,
         source_file: P<SourceFile>,
@@ -897,7 +895,7 @@ mod emit {
     }
 
     // emitter.go:444
-    pub(crate) fn should_emit_source_maps(
+    pub fn should_emit_source_maps(
         map_options: &CompilerOptions,
         source_file: P<SourceFile>,
     ) -> bool {
@@ -906,7 +904,7 @@ mod emit {
     }
 
     // emitter.go:449
-    pub(crate) fn get_source_root(map_options: &CompilerOptions) -> String {
+    pub fn get_source_root(map_options: &CompilerOptions) -> String {
         // Normalize source root and make sure it has trailing "/" so that it can be used to combine paths with the
         // relative paths of the sources list in the sourcemap
         let mut source_root = tspath::normalize_slashes(&map_options.source_root);

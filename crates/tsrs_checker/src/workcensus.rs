@@ -34,10 +34,11 @@ pub fn slow_threshold_ns() -> u64 {
 
 /// The output file; None unless the binary was built with `-p tsrs_checker --features tsrs_checker/work-census` and `TSRS_WORK_CENSUS` is set.
 pub fn census_path() -> Option<&'static str> {
+    static PATH: OnceLock<Option<String>> = OnceLock::new();
+
     if !cfg!(feature = "work-census") {
         return None;
     }
-    static PATH: OnceLock<Option<String>> = OnceLock::new();
     PATH.get_or_init(|| {
         std::env::var("TSRS_WORK_CENSUS").ok().filter(|v| !v.is_empty() && v != "0")
     })
@@ -360,15 +361,16 @@ const KIND_LABELS: [&str; 12] = [
 ];
 
 pub(crate) fn type_identity(t: P<Type>) -> (Option<P<Symbol>>, u8) {
-    if let Some(alias) = t.alias() {
-        if let Some(s) = alias.symbol() {
-            return (Some(s), 0);
-        }
+    use crate::types::TypeFlags;
+
+    if let Some(alias) = t.alias()
+        && let Some(s) = alias.symbol()
+    {
+        return (Some(s), 0);
     }
     if let Some(s) = t.symbol() {
         return (Some(s), 0);
     }
-    use crate::types::TypeFlags;
     let f = t.flags();
     let k = if f.intersects(TypeFlags::Object) {
         0
@@ -441,10 +443,9 @@ fn enclosing_declaration_name(node: P<Node>) -> String {
                 | ast::Kind::VariableDeclaration
                 | ast::Kind::PropertySignature
                 | ast::Kind::PropertyDeclaration
-        ) {
-            if let Some(name) = ast::get_name_of_declaration(cur) {
-                return Some(tsrs_scanner::get_text_of_node(name));
-            }
+        ) && let Some(name) = ast::get_name_of_declaration(cur)
+        {
+            return Some(tsrs_scanner::get_text_of_node(name));
         }
 
         None

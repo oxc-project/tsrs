@@ -190,10 +190,10 @@ impl Context {
         let cur = self.node.as_ref();
         if let Some(value) =
             std::iter::successors(cur, |node| node.parent.node.as_ref()).find_map(|node| {
-                if let CtxKind::Value(id, value) = &node.kind {
-                    if *id == TypeId::of::<T>() {
-                        return Some(value.downcast_ref::<T>());
-                    }
+                if let CtxKind::Value(id, value) = &node.kind
+                    && *id == TypeId::of::<T>()
+                {
+                    return Some(value.downcast_ref::<T>());
                 }
                 None
             })

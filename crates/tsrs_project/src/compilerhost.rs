@@ -21,7 +21,7 @@ use crate::snapshotfs::{FileHandleSource, SnapshotFS, SourceFS, new_source_fs};
 
 // The parts of the ProjectCollectionBuilder the host uses while the program is built (Go keeps the whole
 // builder pointer and clears it in `freeze`).
-pub(crate) struct HostBuilder {
+pub struct HostBuilder {
     pub(crate) parse_cache: Arc<ParseCache>,
     pub(crate) parse_cache_journal: Arc<ParseCacheJournal>,
     pub(crate) config_file_registry_builder: Arc<ConfigFileRegistryBuilder>,
@@ -29,7 +29,7 @@ pub(crate) struct HostBuilder {
 }
 
 // compilerhost.go:21 (Go's configFilePath field is never read)
-pub(crate) struct CompilerHostImpl {
+pub struct CompilerHostImpl {
     current_directory: String,
     pub(crate) session_options: Arc<SessionOptions>,
 
@@ -43,7 +43,7 @@ pub(crate) struct CompilerHostImpl {
 }
 
 // compilerhost.go:36
-pub(crate) fn new_compiler_host(
+pub fn new_compiler_host(
     current_directory: &str,
     project: &Project,
     builder: &ProjectCollectionBuilder,

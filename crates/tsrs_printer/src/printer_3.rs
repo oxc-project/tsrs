@@ -266,10 +266,12 @@ impl Printer {
                 //          a
                 //          /* End of parameter a */ -> this comment isn't considered to be trailing comment of parameter "a" due to newline
                 //          ,
-                if format.intersects(ListFormat::DelimitersMask) && previous.end() != parent_end {
-                    if !self.comments_disabled && self.should_emit_trailing_comments(previous) {
-                        self.emit_leading_comments(previous.end(), false /*elided*/);
-                    }
+                if format.intersects(ListFormat::DelimitersMask)
+                    && previous.end() != parent_end
+                    && !self.comments_disabled
+                    && self.should_emit_trailing_comments(previous)
+                {
+                    self.emit_leading_comments(previous.end(), false /*elided*/);
                 }
 
                 self.write_delimiter(format);
@@ -356,20 +358,19 @@ impl Printer {
         //          2
         //          /* end of element 2 */
         //       ];
-        if let Some(previous) = previous_sibling {
-            if parent_end != previous.end()
-                && format.intersects(ListFormat::DelimitersMask)
-                && !skip_trailing_comments
+        if let Some(previous) = previous_sibling
+            && parent_end != previous.end()
+            && format.intersects(ListFormat::DelimitersMask)
+            && !skip_trailing_comments
+        {
+            let comments_pos = if emit_trailing_comma
+                && children_text_range.end().source_offset().is_some_and(|end| end > 0)
             {
-                let comments_pos = if emit_trailing_comma
-                    && children_text_range.end().source_offset().is_some_and(|end| end > 0)
-                {
-                    children_text_range.end()
-                } else {
-                    previous.end()
-                };
-                self.emit_leading_comments(comments_pos, false /*elided*/);
-            }
+                children_text_range.end()
+            } else {
+                previous.end()
+            };
+            self.emit_leading_comments(comments_pos, false /*elided*/);
         }
 
         // Decrease the indent, if requested.
@@ -782,14 +783,14 @@ impl Printer {
         if flags.intersects(tokenEmitFlags::NoComments) || self.comments_disabled {
             // Still skip trivia so that the returned pos correctly identifies the token position.
             // This is needed for trailing source map positions (writeTokenText advances pos by token length).
-            if let Some(current_source_file) = self.current_source_file() {
-                if !position_is_synthesized(pos) {
-                    pos = scanner::skip_trivia(
-                        current_source_file.text(),
-                        pos.expect_source("source tokens have source positions"),
-                    )
-                    .into();
-                }
+            if let Some(current_source_file) = self.current_source_file()
+                && !position_is_synthesized(pos)
+            {
+                pos = scanner::skip_trivia(
+                    current_source_file.text(),
+                    pos.expect_source("source tokens have source positions"),
+                )
+                .into();
             }
             return (None, pos);
         }
@@ -1031,7 +1032,7 @@ impl Printer {
     }
 }
 
-pub(crate) fn format_synthesized_comment(comment: &SynthesizedComment) -> String {
+pub fn format_synthesized_comment(comment: &SynthesizedComment) -> String {
     if comment.kind == Kind::MultiLineCommentTrivia {
         return format!("/*{}*/", comment.text);
     }
@@ -1358,7 +1359,7 @@ impl Printer {
 
 #[repr(u32)]
 #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Debug)]
-pub(crate) enum CommentSeparator {
+pub enum CommentSeparator {
     None,
     Before,
     After,
@@ -1518,7 +1519,9 @@ impl Printer {
 
     // printer.go:5904
     pub(crate) fn emit_source_pos(&mut self, source: Option<SourceMapSource>, pos: TextPos) {
-        if !same_source_map_source(source, self.source_map_source) {
+        if same_source_map_source(source, self.source_map_source) {
+            self.emit_pos(pos);
+        } else {
             let saved_source_map_source = self.source_map_source;
             let saved_source_map_source_index = self.source_map_source_index;
             let saved_source_map_line_char_cache = self.source_map_line_char_cache.take();
@@ -1527,8 +1530,6 @@ impl Printer {
             self.source_map_source = saved_source_map_source;
             self.source_map_source_index = saved_source_map_source_index;
             self.source_map_line_char_cache = saved_source_map_line_char_cache;
-        } else {
-            self.emit_pos(pos);
         }
     }
 
@@ -1608,14 +1609,14 @@ impl Printer {
         if has_loc {
             pos = loc.pos();
         }
-        if !pos.is_synthetic() {
-            if let Some(current_source_file) = self.current_source_file() {
-                pos = scanner::skip_trivia(
-                    current_source_file.text(),
-                    pos.expect_source("source tokens have source positions"),
-                )
-                .into();
-            }
+        if !pos.is_synthetic()
+            && let Some(current_source_file) = self.current_source_file()
+        {
+            pos = scanner::skip_trivia(
+                current_source_file.text(),
+                pos.expect_source("source tokens have source positions"),
+            )
+            .into();
         }
         if !emit_flags.intersects(EmitFlags::NoTokenLeadingSourceMaps) && !pos.is_synthetic() {
             self.emit_source_pos(self.source_map_source, pos);
@@ -1995,7 +1996,7 @@ bitflags::bitflags! {
     }
 }
 
-pub(crate) fn get_opening_bracket(format: ListFormat) -> &'static str {
+pub fn get_opening_bracket(format: ListFormat) -> &'static str {
     let brackets = format & ListFormat::BracketsMask;
     if brackets == ListFormat::Braces {
         "{"
@@ -2010,7 +2011,7 @@ pub(crate) fn get_opening_bracket(format: ListFormat) -> &'static str {
     }
 }
 
-pub(crate) fn get_closing_bracket(format: ListFormat) -> &'static str {
+pub fn get_closing_bracket(format: ListFormat) -> &'static str {
     let brackets = format & ListFormat::BracketsMask;
     if brackets == ListFormat::Braces {
         "}"

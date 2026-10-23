@@ -109,7 +109,7 @@ impl Readable<'_> {
 }
 
 // readablebuildinfo.go:375
-pub(crate) fn to_readable_file_emit_kind(file_emit_kind: FileEmitKind) -> String {
+pub fn to_readable_file_emit_kind(file_emit_kind: FileEmitKind) -> String {
     let mut builder = String::new();
     let mut add_flags = |flags: &str| {
         if !builder.is_empty() {
@@ -148,7 +148,7 @@ pub(crate) fn to_readable_file_emit_kind(file_emit_kind: FileEmitKind) -> String
 }
 
 // readablebuildinfo.go:240
-pub(crate) fn to_readable_build_info(build_info: &BuildInfo, build_info_text: &str) -> String {
+pub fn to_readable_build_info(build_info: &BuildInfo, build_info_text: &str) -> String {
     let file_ids_list: Vec<Vec<String>> = build_info
         .file_ids_list
         .iter()

@@ -221,20 +221,20 @@ pub fn format_diagnostic_with_color_and_context(
     );
     write_flattened_diagnostic_message(output, diagnostic, &format_opts.new_line);
 
-    if let Some(file) = diagnostic_file(diagnostic) {
-        if diagnostic.code() != diagnostics::FILE_APPEARS_TO_BE_BINARY.code() {
-            w!(output, "{}", format_opts.new_line);
-            write_code_snippet(
-                output,
-                &file,
-                diagnostic_pos(diagnostic),
-                diagnostic_len(diagnostic),
-                get_category_format(diagnostic.category()),
-                "",
-                format_opts,
-            );
-            w!(output, "{}", format_opts.new_line);
-        }
+    if let Some(file) = diagnostic_file(diagnostic)
+        && diagnostic.code() != diagnostics::FILE_APPEARS_TO_BE_BINARY.code()
+    {
+        w!(output, "{}", format_opts.new_line);
+        write_code_snippet(
+            output,
+            &file,
+            diagnostic_pos(diagnostic),
+            diagnostic_len(diagnostic),
+            get_category_format(diagnostic.category()),
+            "",
+            format_opts,
+        );
+        w!(output, "{}", format_opts.new_line);
     }
 
     let related = diagnostic.related_information();

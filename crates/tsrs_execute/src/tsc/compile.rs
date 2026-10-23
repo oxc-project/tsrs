@@ -50,7 +50,7 @@ pub trait System: Sync {
 }
 
 /// Uses the command's clock only when compilation statistics were requested.
-pub(crate) struct DiagnosticTimer<'a> {
+pub struct DiagnosticTimer<'a> {
     sys: &'a dyn System,
     start: Option<Instant>,
 }
@@ -106,7 +106,7 @@ pub fn new_content_mapper_host(
 // Go's `defer contentMapperProject.Close()` (tsc.go:300, 358) and the close of the host, which Go leaves to the
 // command's context (it is cancelled when the process ends): the project is closed first, then the host, on every
 // way out of the compilation. A host that is still open keeps its mapper processes running.
-pub(crate) struct ContentMapperCloser {
+pub struct ContentMapperCloser {
     pub(crate) host: Option<Arc<dyn contentmapper::Host>>,
     pub(crate) project: Option<Arc<dyn contentmapper::Project>>,
 }

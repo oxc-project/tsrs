@@ -173,16 +173,16 @@ impl Common {
                 continue;
             }
 
-            if entry_type.intersects(FileMode::Irregular) {
-                if let Some(is_reparse_point) = self.is_reparse_point {
-                    // Could be a Windows junction or other reparse point.
-                    // Check using the OS-specific helper.
-                    let full_path = format!("{}/{}", path, entry.name);
-                    if is_reparse_point(&full_path) {
-                        if let Some(stat) = self.stat(&full_path) {
-                            add_to_result(&mut result, &mut symlinks, &entry.name, stat.mode, true);
-                        }
-                    }
+            if entry_type.intersects(FileMode::Irregular)
+                && let Some(is_reparse_point) = self.is_reparse_point
+            {
+                // Could be a Windows junction or other reparse point.
+                // Check using the OS-specific helper.
+                let full_path = format!("{}/{}", path, entry.name);
+                if is_reparse_point(&full_path)
+                    && let Some(stat) = self.stat(&full_path)
+                {
+                    add_to_result(&mut result, &mut symlinks, &entry.name, stat.mode, true);
                 }
             }
         }

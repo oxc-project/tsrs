@@ -52,7 +52,7 @@ use crate::regexp::{RegExpParser, RegularExpressionFlags, char_code_to_reg_exp_f
 use crate::utilities::token_is_identifier_or_keyword;
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
-pub(crate) enum IdentifierVariant {
+pub enum IdentifierVariant {
     Standard,
     #[expect(
         clippy::upper_case_acronyms,
@@ -95,7 +95,7 @@ pub struct ScanError {
 macro_rules! keywords {
     ($($text:literal => $kind:ident,)*) => {
         const KEYWORDS: &[(&str, Kind)] = &[$(($text, Kind::$kind),)*];
-        pub(crate) static TEXT_TO_KEYWORD: &[(&str, Kind)] = KEYWORDS;
+        pub static TEXT_TO_KEYWORD: &[(&str, Kind)] = KEYWORDS;
     };
 }
 
@@ -128,7 +128,7 @@ static KEYWORD_TABLE: [u8; 256] = {
 
 /// Go `textToKeyword[s]` (zero value `KindUnknown` when absent).
 #[inline]
-pub(crate) fn text_to_keyword(s: &str) -> Kind {
+pub fn text_to_keyword(s: &str) -> Kind {
     let b = s.as_bytes();
     if b.len() < 2 {
         return Kind::Unknown;
@@ -392,7 +392,7 @@ static BYTE_HANDLERS: [ByteHandler; 256] = {
     table
 };
 
-pub(crate) const RUNE_SELF: Rune = 0x80;
+pub const RUNE_SELF: Rune = 0x80;
 
 /// `[A-Za-z0-9_$]` by byte.
 static ASCII_IDENTIFIER_PART: [bool; 256] = {
@@ -417,7 +417,7 @@ static ASCII_JSDOC_COMMENT_TEXT: [[bool; 256]; 2] = {
     }
     tables
 };
-pub(crate) const RUNE_ERROR: Rune = 0xFFFD;
+pub const RUNE_ERROR: Rune = 0xFFFD;
 
 static STRING_LITERAL_END: [[bool; 256]; 2] = {
     let mut table = [[false; 256]; 2];
@@ -436,7 +436,7 @@ static STRING_LITERAL_END: [[bool; 256]; 2] = {
 /// Go `utf8.DecodeRuneInString` over raw bytes: `(RuneError, 0)` for empty input,
 /// `(RuneError, 1)` for an invalid encoding.
 #[inline]
-pub(crate) fn decode_rune(b: &[u8]) -> (Rune, usize) {
+pub fn decode_rune(b: &[u8]) -> (Rune, usize) {
     let Some(&b0) = b.first() else {
         return (RUNE_ERROR, 0);
     };
@@ -491,7 +491,7 @@ fn decode_rune_slow(b: &[u8]) -> (Rune, usize) {
 }
 
 /// Go `utf8.DecodeLastRuneInString`.
-pub(crate) fn decode_last_rune(b: &[u8]) -> (Rune, usize) {
+pub fn decode_last_rune(b: &[u8]) -> (Rune, usize) {
     let end = b.len();
     if end == 0 {
         return (RUNE_ERROR, 0);
@@ -517,12 +517,12 @@ pub(crate) fn decode_last_rune(b: &[u8]) -> (Rune, usize) {
 
 /// Go `string(r)`: invalid code points (surrogates, out of range) become U+FFFD.
 #[inline]
-pub(crate) fn rune_to_char(r: Rune) -> char {
+pub fn rune_to_char(r: Rune) -> char {
     char::from_u32(r).unwrap_or('\u{FFFD}')
 }
 
 #[inline]
-pub(crate) fn rune_string(r: Rune) -> String {
+pub fn rune_string(r: Rune) -> String {
     rune_to_char(r).to_string()
 }
 
@@ -1311,11 +1311,11 @@ impl Scanner {
                 if self.char_at(1) == Some(b'B') || self.char_at(1) == Some(b'b') {
                     self.state.pos += 2;
                     let (value, has_digits) = self.scan_binary_or_octal_digits(2, "0b");
-                    if !has_digits {
+                    if has_digits {
+                        self.state.token_value = value;
+                    } else {
                         self.error(&diagnostics::BINARY_DIGIT_EXPECTED);
                         self.state.token_value = "0b0";
-                    } else {
-                        self.state.token_value = value;
                     }
                     self.state.token_flags |= TokenFlags::BinarySpecifier;
                     break 'digit self.scan_big_int_suffix();
@@ -1323,11 +1323,11 @@ impl Scanner {
                 if self.char_at(1) == Some(b'O') || self.char_at(1) == Some(b'o') {
                     self.state.pos += 2;
                     let (value, has_digits) = self.scan_binary_or_octal_digits(8, "0o");
-                    if !has_digits {
+                    if has_digits {
+                        self.state.token_value = value;
+                    } else {
                         self.error(&diagnostics::OCTAL_DIGIT_EXPECTED);
                         self.state.token_value = "0o0";
-                    } else {
-                        self.state.token_value = value;
                     }
                     self.state.token_flags |= TokenFlags::OctalSpecifier;
                     break 'digit self.scan_big_int_suffix();
@@ -2256,19 +2256,19 @@ impl Scanner {
             }
             return true;
         }
-        if ch == '\\' as Rune {
-            if let Some(escaped) = self.scan_identifier_escape(
+        if ch == '\\' as Rune
+            && let Some(escaped) = self.scan_identifier_escape(
                 is_identifier_start,
                 variant == IdentifierVariant::RegExpGroupName,
-            ) {
-                let mut value =
-                    ArenaStringBuilder::with_capacity((self.state.pos - start) as usize * 2);
-                value.push_str(self.slice(start, identifier_start));
-                value.push(rune_to_char(escaped));
-                value.push_str(self.scan_identifier_parts(variant));
-                self.state.token_value = value.into_str();
-                return true;
-            }
+            )
+        {
+            let mut value =
+                ArenaStringBuilder::with_capacity((self.state.pos - start) as usize * 2);
+            value.push_str(self.slice(start, identifier_start));
+            value.push(rune_to_char(escaped));
+            value.push_str(self.scan_identifier_parts(variant));
+            self.state.token_value = value.into_str();
+            return true;
         }
         false
     }
@@ -2335,12 +2335,11 @@ impl Scanner {
             let _ = self.scan_unicode_escape(false);
             // scanLowSurrogateEscape also accepts the braced form used in string literals,
             // but RegExpIdentifierName does not allow it.
-            if self.char_at(2) != Some(b'{') {
-                if let Some(code_point) = self.scan_low_surrogate_escape(escaped) {
-                    if is_valid(code_point) {
-                        return Some(code_point);
-                    }
-                }
+            if self.char_at(2) != Some(b'{')
+                && let Some(code_point) = self.scan_low_surrogate_escape(escaped)
+                && is_valid(code_point)
+            {
+                return Some(code_point);
             }
             self.state.pos = saved_pos;
             self.state.token_flags = saved_token_flags;
@@ -2625,11 +2624,10 @@ impl Scanner {
                     // In string literals, a high surrogate \u{...} followed by a low
                     // surrogate escape forms a single code point, exactly as adjacent
                     // UTF-16 code units would in a JavaScript string.
-                    if !flags.intersects(EscapeSequenceScanningFlags::RegularExpression) && stringutil::is_high_surrogate(code_point) {
-                        if let Some(combined) = self.scan_low_surrogate_escape(code_point) {
+                    if !flags.intersects(EscapeSequenceScanningFlags::RegularExpression) && stringutil::is_high_surrogate(code_point)
+                        && let Some(combined) = self.scan_low_surrogate_escape(code_point) {
                             return Cow::Owned(rune_string(combined));
                         }
-                    }
                     return Cow::Owned(stringutil::encode_js_string_rune(code_point));
                 }
                 let Some(code_point) = code_point else {
@@ -3286,7 +3284,7 @@ pub fn is_valid_identifier(s: &str) -> bool {
 }
 
 // Section 6.1.4
-pub(crate) fn is_word_character(ch: Rune) -> bool {
+pub fn is_word_character(ch: Rune) -> bool {
     stringutil::is_ascii_letter(ch) || stringutil::is_digit(ch) || ch == '_' as Rune
 }
 
@@ -3451,7 +3449,7 @@ pub fn skip_trivia_ex(text: &str, pos: u32, options: Option<&SkipTriviaOptions>)
 const MERGE_CONFLICT_MARKER_LENGTH: u32 = "<<<<<<<".len() as u32;
 const MAX_ASCII_CHARACTER: u8 = 127;
 
-pub(crate) fn is_conflict_marker_trivia(text: &str, pos: u32) -> bool {
+pub fn is_conflict_marker_trivia(text: &str, pos: u32) -> bool {
     let bytes = text.as_bytes();
     let len = bytes.len() as u32;
 
@@ -3484,7 +3482,7 @@ pub(crate) fn is_conflict_marker_trivia(text: &str, pos: u32) -> bool {
     false
 }
 
-pub(crate) fn scan_conflict_marker_trivia(
+pub fn scan_conflict_marker_trivia(
     text: &str,
     pos: u32,
     report_error: Option<&mut dyn FnMut(&'static Message, u32, u32)>,
@@ -3529,7 +3527,7 @@ pub(crate) fn scan_conflict_marker_trivia(
     pos
 }
 
-pub(crate) fn is_shebang_trivia(text: &str, pos: u32) -> bool {
+pub fn is_shebang_trivia(text: &str, pos: u32) -> bool {
     let bytes = text.as_bytes();
     if bytes.len() < 2 {
         return false;
@@ -3538,7 +3536,7 @@ pub(crate) fn is_shebang_trivia(text: &str, pos: u32) -> bool {
     bytes[0] == b'#' && bytes[1] == b'!'
 }
 
-pub(crate) fn scan_shebang_trivia(text: &str, pos: u32) -> u32 {
+pub fn scan_shebang_trivia(text: &str, pos: u32) -> u32 {
     let bytes = text.as_bytes();
     let mut pos = pos + 2;
     while (pos as usize) < bytes.len() {
@@ -3620,22 +3618,22 @@ fn get_error_range_for_arrow_function(source_file: P<SourceFile>, node: P<Node>)
         node.pos().expect_source("parsed nodes have source positions"),
     );
     let body = node.body();
-    if let Some(body) = body {
-        if body.kind() == Kind::Block {
-            let start_line = get_ecma_line_of_position(
-                &*source_file,
-                body.pos().expect_source("parsed nodes have source positions"),
-            );
-            let end_line = get_ecma_line_of_position(
-                &*source_file,
-                body.end().expect_source("parsed nodes have source positions"),
-            );
-            if start_line < end_line {
-                // The arrow function spans multiple lines, make the error span be the first line, inclusive.
-                let end =
-                    get_ecma_end_line_position(source_file, start_line).map_or(pos, |end| end + 1);
-                return TextRange::new(pos, end);
-            }
+    if let Some(body) = body
+        && body.kind() == Kind::Block
+    {
+        let start_line = get_ecma_line_of_position(
+            &*source_file,
+            body.pos().expect_source("parsed nodes have source positions"),
+        );
+        let end_line = get_ecma_line_of_position(
+            &*source_file,
+            body.end().expect_source("parsed nodes have source positions"),
+        );
+        if start_line < end_line {
+            // The arrow function spans multiple lines, make the error span be the first line, inclusive.
+            let end =
+                get_ecma_end_line_position(source_file, start_line).map_or(pos, |end| end + 1);
+            return TextRange::new(pos, end);
         }
     }
     TextRange::new(pos, node.end().expect_source("parsed nodes have source positions"))
@@ -3666,10 +3664,10 @@ fn find_originating_jsdoc_satisfies_tag(
                         first_satisfies_tag = Some(tag);
                     }
                     let type_expr = tag.as_jsdoc_satisfies_tag().type_expression;
-                    if let Some(t) = type_expr.type_node() {
-                        if t.loc() == target_type.loc() {
-                            return Some(tag);
-                        }
+                    if let Some(t) = type_expr.type_node()
+                        && t.loc() == target_type.loc()
+                    {
+                        return Some(tag);
                     }
                 }
             }

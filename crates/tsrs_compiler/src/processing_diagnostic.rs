@@ -13,13 +13,13 @@ use crate::file_include::{
 use crate::program::Program;
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
-pub(crate) enum ProcessingDiagnosticKind {
+pub enum ProcessingDiagnosticKind {
     UnknownReference,
     ExplainingFileInclude,
 }
 
 #[derive(Clone)]
-pub(crate) struct ProcessingDiagnostic {
+pub struct ProcessingDiagnostic {
     pub(crate) kind: ProcessingDiagnosticKind,
     pub(crate) reason: Option<P<FileIncludeReason>>,
     pub(crate) explanation: Option<IncludeExplainingDiagnostic>,
@@ -52,7 +52,7 @@ impl ProcessingDiagnostic {
 }
 
 #[derive(Clone)]
-pub(crate) struct IncludeExplainingDiagnostic {
+pub struct IncludeExplainingDiagnostic {
     pub(crate) file: Option<Path>,
     pub(crate) diagnostic_reason: Option<P<FileIncludeReason>>,
     pub(crate) message: &'static Message,
@@ -83,10 +83,10 @@ impl ProcessingDiagnostic {
                             std::cmp::Ord::cmp,
                         )
                         .unwrap_or("");
-                        let message = if !suggestion.is_empty() {
-                            &diagnostics::CANNOT_FIND_LIB_DEFINITION_FOR_0_DID_YOU_MEAN_1
-                        } else {
+                        let message = if suggestion.is_empty() {
                             &diagnostics::CANNOT_FIND_LIB_DEFINITION_FOR_0
+                        } else {
+                            &diagnostics::CANNOT_FIND_LIB_DEFINITION_FOR_0_DID_YOU_MEAN_1
                         };
                         loc.diagnostic_at(message, &[&lib_name, &suggestion])
                     }
@@ -137,12 +137,11 @@ impl ProcessingDiagnostic {
                         .is_synthetic
                 {
                     *preferred_location = Some(include_reason);
-                } else if *preferred_location != Some(include_reason) {
-                    if let Some(info) =
+                } else if *preferred_location != Some(include_reason)
+                    && let Some(info) =
                         program.include_processor.get_related_info(include_reason, program)
-                    {
-                        related_info.get_or_insert_with(Vec::new).push(info);
-                    }
+                {
+                    related_info.get_or_insert_with(Vec::new).push(info);
                 }
             };
 
@@ -178,15 +177,15 @@ impl ProcessingDiagnostic {
         }
         let seen_len = seen_reasons.len();
         let mut chain: Option<Vec<P<Diagnostic>>> = None;
-        if let Some(include_details) = &include_details {
-            if preferred_location.is_none() || seen_len != 1 {
-                let file_reason = new_compiler_diagnostic(
-                    &diagnostics::THE_FILE_IS_IN_THE_PROGRAM_BECAUSE_COLON,
-                    &[],
-                );
-                file_reason.set_message_chain(include_details);
-                chain = Some(vec![file_reason]);
-            }
+        if let Some(include_details) = &include_details
+            && (preferred_location.is_none() || seen_len != 1)
+        {
+            let file_reason = new_compiler_diagnostic(
+                &diagnostics::THE_FILE_IS_IN_THE_PROGRAM_BECAUSE_COLON,
+                &[],
+            );
+            file_reason.set_message_chain(include_details);
+            chain = Some(vec![file_reason]);
         }
         if let Some(redirect_info) = redirect_info {
             chain.get_or_insert_with(Vec::new).extend(redirect_info);

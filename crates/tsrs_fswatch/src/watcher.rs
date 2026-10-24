@@ -960,7 +960,7 @@ pub trait WatcherImpl: Send + Sync + 'static {
 // Concrete backends embed it and override subscribe/closeWatch/start.
 #[derive(Default)]
 pub struct WatcherBase {
-    mu: Mutex<WatcherBaseState>,
+    pub(crate) mu: Mutex<WatcherBaseState>,
     started: Mutex<bool>,
     started_cv: Condvar,
 }

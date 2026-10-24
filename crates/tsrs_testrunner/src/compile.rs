@@ -218,6 +218,11 @@ fn compile_files_ex(
     symlinks: &BTreeMap<String, String>,
     tsconfig: Option<P<ParsedCommandLine>>,
 ) -> CompilationResult {
+    // tsrs-only: the scheduling sweep overrides upstream's program concurrency without changing the fixture.
+    if let Some(count) = crate::test_checkers() {
+        compiler_options.checkers = Some(count);
+        compiler_options.single_threaded = Tristate::False;
+    }
     let mut program_file_names = Vec::new();
     program_file_names.extend(input_files.iter().filter_map(|file| {
         let file_name = tspath::get_normalized_absolute_path(&file.unit_name, current_directory);
@@ -382,7 +387,7 @@ fn create_program(
     config: P<ParsedCommandLine>,
 ) -> &'static compiler::Program {
     let mut opts = compiler::ProgramOptions::new(config, host);
-    if test_program_is_single_threaded() {
+    if crate::test_checkers().is_none() && test_program_is_single_threaded() {
         opts.single_threaded = Tristate::True;
     }
     compiler::new_program(opts)

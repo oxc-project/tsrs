@@ -130,14 +130,7 @@ jobs:
       - name: Make correctness binaries executable
         run: chmod +x target/ci/tsrs target/ci/tsrs-test
 
-      - name: Conformance suite (all baselines)
-        run: .github/scripts/conformance-gate.sh
-
-      - name: Conformance suite (all baselines, default checker mode)
-        env:
-          TS_TEST_PROGRAM_SINGLE_THREADED: "false"
-          TSRS_HISTORY: canonical
-          TSRS_TEST_RESULTS: ${{ github.workspace }}/target/test-results-default
+      - name: Conformance suite (both checker modes and scheduling sweep)
         run: .github/scripts/conformance-gate.sh
 
       - name: Regression cases
@@ -157,6 +150,7 @@ jobs:
             target/test-results/summary.json
             target/test-results-default/*.txt
             target/test-results-default/summary.json
+            target/test-results-determinism/
           if-no-files-found: ignore
 
   node-api-clients:

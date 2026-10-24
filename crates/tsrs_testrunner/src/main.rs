@@ -35,7 +35,8 @@ use crate::harnessutil::OptionTable;
 
 const USAGE: &str = "usage:
   tsrs-test run [--suite compiler|conformance|all] [--filter <substr|regex>] [--list <file>]
-                [--jobs N] [--timeout S] [--recycle N] [--mem-limit MB] [--json <path>] [--panic-summary]
+                [--jobs N] [--checkers N] [--timeout S] [--recycle N] [--mem-limit MB] [--json <path>] [--panic-summary]
+                                      --checkers: override the program's checker count (1..256), with parallel programs
                 [--baselines all|types,symbols,js,jsmap,sourcemap | --types --symbols --js]
                                       all: compare errors, types, symbols, JavaScript/declarations and source maps
                   (js: emit through Go's pre-/post-emit programs, docs/EMIT.md section 8)
@@ -66,6 +67,13 @@ pub const EXTRA_JS: u8 = 4;
 // `.js.map` and `.sourcemap.txt` baselines (docs/EMIT.md section 8); they need the same emitting compilation.
 pub const EXTRA_JSMAP: u8 = 8;
 pub const EXTRA_SOURCEMAP: u8 = 16;
+
+// Set before compiling, and forwarded to worker processes; unset keeps the upstream harness defaults.
+static TEST_CHECKERS: std::sync::OnceLock<i64> = std::sync::OnceLock::new();
+
+fn test_checkers() -> Option<i64> {
+    TEST_CHECKERS.get().copied()
+}
 
 pub fn extra_baselines() -> u8 {
     EXTRA_BASELINES.load(std::sync::atomic::Ordering::Relaxed)
@@ -110,7 +118,15 @@ fn worker_args() -> Vec<String> {
             },
         ),
     );
-    if kinds.is_empty() { Vec::new() } else { vec!["--baselines".to_string(), kinds.join(",")] }
+    let mut args = if kinds.is_empty() {
+        Vec::new()
+    } else {
+        vec!["--baselines".to_string(), kinds.join(",")]
+    };
+    if let Some(count) = test_checkers() {
+        args.extend(["--checkers".to_string(), count.to_string()]);
+    }
+    args
 }
 
 struct Args {
@@ -528,6 +544,13 @@ fn main() {
     }
     let cmd = argv.remove(0);
     let mut args = Args { rest: argv };
+    if let Some(count) = args.num("--checkers") {
+        let Ok(count @ 1..=256) = u16::try_from(count) else {
+            eprintln!("--checkers: expected a number from 1 to 256");
+            std::process::exit(2);
+        };
+        TEST_CHECKERS.set(i64::from(count)).unwrap();
+    }
     for arg in &args.rest {
         if matches!(arg.split('=').next(), Some("--oracle" | "--options" | "--syntax-only")) {
             eprintln!(

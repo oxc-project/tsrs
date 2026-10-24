@@ -90,22 +90,34 @@ package version; [the compatibility guide](docs/COMPATIBILITY.md) distinguishes 
 With the [reference checkout](#reference-compiler) ready:
 
 ```sh
-./target/debug/tsrs-test run --suite all --baselines all          # every supported baseline; lists in target/test-results/
+TSRS_TEST=target/debug/tsrs-test .github/scripts/conformance-gate.sh # both checker modes and the scheduling sweep
+./target/debug/tsrs-test run --suite all --baselines all          # Go history only; lists in target/test-results/
 ./target/debug/tsrs-test run --filter <substring>                 # one test or a cluster
 ./target/debug/tsrs-test show <suite/name>                        # expected vs actual
 ./target/debug/tsrs-test run --suite all --baselines types,symbols # type and symbol baselines
 .github/scripts/go-fourslash-gate.sh             # language-server suite (Go assertions, Rust LSP)
-TSRS_TEST=target/debug/tsrs-test .github/scripts/conformance-gate.sh # errors, types, symbols, emit and source maps
 tools/regressions.sh target/debug/tsrs                            # testdata/regressions (CI runs it too)
 cargo run --profile dev -p tsrs_determinism -- check --tsrs target/debug/tsrs # committed tsgo snapshots
 cargo test --locked                                             # all workspace unit and integration tests (CI)
 ```
 
-CI and release BOLT gates compare every supported compiler baseline in both tsgo's checker history and the default
-mode (`TS_TEST_PROGRAM_SINGLE_THREADED=false TSRS_HISTORY=canonical`). `--baselines all` includes errors, types,
-symbols, JavaScript/declaration emit, JavaScript maps and source-map records. The runner exits unsuccessfully on any
-baseline difference, crash, timeout or empty selection. The gate also rejects a testdata checkout at a different
-TypeScript source pin. Unsupported cases remain reported as skips.
+The conformance gate, also run by CI and release BOLT, compares every supported compiler baseline in tsgo's checker
+history and in the default CLI mode with work stealing. It then repeats the upstream fixtures listed in
+`testdata/checker-determinism.txt` at 4 and 8 checkers, with ten default runs and eight seeded assignments per count.
+`--baselines all` includes errors, types, symbols, JavaScript/declaration emit, JavaScript maps and source-map
+records. The runner exits unsuccessfully on any baseline difference, crash, timeout or empty selection. The gate also
+rejects a testdata checkout at a different TypeScript source pin. Unsupported cases remain reported as skips.
+
+The raw `tsrs-test` command keeps upstream's single-threaded Go history so baseline differences are reproducible.
+Schedule-dependent output in the default mode is a defect; add its upstream reproduction to
+`testdata/checker-determinism.txt`. `--mode go|default|determinism`, `--filter`, `--list`, `--default-reps` and
+`--seeds` narrow a local gate run. Results go to `target/test-results/`, `target/test-results-default/` and
+`target/test-results-determinism/<run>/`. Replay a seeded failure with:
+
+```sh
+TSRS_HISTORY=canonical TSRS_CHECKER_ASSIGNMENT=random:4 \
+  target/debug/tsrs-test run --baselines all --checkers 4 --filter <name>
+```
 
 The Node API job verifies generated compiler sources and the vendored SDK, then runs all existing upstream client
 and local parity cases against both the Go oracle and tsrs.
@@ -128,7 +140,7 @@ Capture its combined stdout and stderr, replacing the case's absolute directory 
 - CI builds the CLI and conformance runner once with `--profile ci` in `build-correctness`; conformance, regressions
   and determinism use those same binaries. The Linux checks have separate Rust caches: `lint` runs Clippy and source checks;
   `test` runs Rust checks and all workspace tests, compiler conformance in
-  both checker modes, and regressions; `determinism` compares every benchmark project against committed snapshots
+  both checker modes with the focused upstream scheduling sweep, and regressions; `determinism` compares every benchmark project against committed snapshots
   from the root pnpm TypeScript release matching Cargo metadata, using Go, locality and default scheduling at four and
   all available CPU checkers, three runs each, plus three fixed random assignments per count. It also sweeps every
   regression fixture under default and seeded random scheduling at two and four checkers. Diagnostic order and exit

@@ -1,0 +1,19 @@
+# Upstream cases with diagnostic ordering, caching, flaky diagnostics or cross-file emit regressions.
+# File names select every configuration variant. Add new upstream scheduling reproductions here.
+# All upstream cases also run once in the default CLI mode through the normal conformance gate.
+declarationMapCrossFileNodeReuse.ts
+flakyDiagnosticsJsClassPropertyInitializedToUndefined.ts
+mergedInterfaceAugmentationDiagnostics.ts
+mergedInterfaceDefaultLibraryDiagnostics.ts
+mergedInterfaceInheritanceDiagnostics.ts
+noFlakyDiagnosticsExpressionNameShadowedInBody1.ts
+noFlakyDiagnosticsTypeofImportTypeQualifier1.ts
+noFlakyDiagnosticsTypeofImportTypeQualifier2.ts
+noFlakyDiagnosticsUntypedModule1.ts
+noFlakyDiagnosticsUntypedModule2.ts
+noFlakyDiagnosticsUntypedModule3.ts
+objectLiteralNormalization.ts
+simplifiedConditionalTypeWritingCache.ts
+stableTypeMapperOrdering.ts
+sourceMapValidationModule.ts
+undefinedPropertyDeclarationOrder.ts

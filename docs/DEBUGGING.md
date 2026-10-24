@@ -40,7 +40,9 @@ understand, read both versions and the Go source; do not blindly take one side.
 
 ## Running tests
 
-- Full suite: `./target/debug/tsrs-test run --suite all` -> summary table; per-class name lists in
+- Full gate: `.github/scripts/conformance-gate.sh` runs every baseline in both checker modes, then the scheduling
+  sweep ([options and replay](../CONTRIBUTING.md#run-the-tests)).
+- Full suite in Go history: `./target/debug/tsrs-test run --suite all` -> summary table; per-class name lists in
   `target/test-results/{pass,codes,fail,crash,timeout}.txt`; `summary.json` has the first difference per test.
 - One test / a cluster: `tsrs-test run --filter <substring|regex>`, `tsrs-test show <suite/name>` (expected vs actual),
   `tsrs-test crashes --top 20` (panics grouped by location).
@@ -72,8 +74,9 @@ symbol/type/instantiation counters and peak memory do: compare them against `tsg
 (or `TSRS_CHECKER_ASSIGNMENT=go`). `go` also preserves Go's checker history (`tsrs_core::compat`), so it is the mode
 for byte-identity with tsgo (with `--noLazyMembers`
 where an instantiation depth limit is reached: lazy members change which instantiations a checker has cached,
-notes/open-history-dependence.md section 6). The conformance, fourslash and tsc harnesses run in it; set
-`TSRS_CHECKER_ASSIGNMENT=locality` to run them in the default mode.
+notes/open-history-dependence.md section 6). The conformance, fourslash and tsc harnesses run in it;
+`TS_TEST_PROGRAM_SINGLE_THREADED=false TSRS_HISTORY=canonical` runs `tsrs-test` in the default mode, as the conformance
+gate does.
 `TSRS_CHECKER_ASSIGNMENT=random:<seed>` puts each file on a random checker with a random visit order in each checker:
 the default mode must print the same text for every seed and checker count. Single-threaded runs have no assignment.
 Without a named assignment the type-check pass also steals work: a checker that has run out of files takes unstarted
@@ -81,6 +84,7 @@ files from the back of the busiest checker (notes/perf-checker-stealing.md). Out
 counters vary from run to run; naming an assignment (`--checkerAssignment locality`) turns stealing off for fully
 reproducible counters. `TSRS_HISTORY=canonical` runs the tsgo-baseline harnesses in the default mode, stealing
 included, without naming an assignment.
+`tsrs-test --checkers N` sets each test program's checker count and enables parallel programs.
 Each checker begins the type-check pass with the files of its queue whose static weight exceeds 1/200 of an average
 checker's share, heaviest first, then the rest in program order (notes/perf-checker-64.md,
 notes/perf-heavy-first-threshold.md); `TSRS_HEAVY_SHARE_DIVISOR=<n>` changes the divisor for experiments.

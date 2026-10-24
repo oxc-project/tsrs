@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Compare every supported compiler baseline against the pinned upstream fixtures.
+# Compare pinned upstream baselines in Go and CLI modes, then stress scheduling regressions.
 set -euo pipefail
 cd "$(dirname "$0")/../.."
 
@@ -11,5 +11,4 @@ if [ "$(git -C "$TSRS_TESTDATA" rev-parse HEAD)" != "$commit" ]; then
   exit 1
 fi
 
-# tsrs-test fails on any difference, crash, timeout, or empty selection.
-exec "${TSRS_TEST:-target/debug/tsrs-test}" run --suite all --baselines all --timeout "${TEST_TIMEOUT:-120}"
+exec node tools/ci/conformance.mjs "$@"

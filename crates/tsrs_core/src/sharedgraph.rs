@@ -346,6 +346,11 @@ pub fn enter_overlay(overlay: &Overlay) {
     CURRENT.with(|c| c.set(std::ptr::from_ref(overlay)));
 }
 
+/// Forgets the overlay `enter_overlay` set, for a thread that outlives its checker (a reused checker thread).
+pub fn leave_overlay() {
+    CURRENT.with(|c| c.set(std::ptr::null()));
+}
+
 /// The overlay of the checker this thread runs, if any. Without one (the main thread sorting diagnostics after the
 /// pass), frozen objects read as the seed left them.
 #[inline]

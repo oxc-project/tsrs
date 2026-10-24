@@ -157,32 +157,87 @@ fn run_work_group(single_threaded: bool, count: usize, task: impl Fn(usize) + Sy
         (0..count).for_each(task);
         return;
     }
-    std::thread::scope(|s| {
-        let task = &task;
-        let handles: Vec<_> = (0..count)
-            .map(|i| {
-                std::thread::Builder::new()
-                    .name(format!("checker-{i}"))
-                    .stack_size(CHECKER_STACK_SIZE)
-                    .spawn_scoped(s, move || {
-                        tsrs_ast::use_id_blocks();
-                        task(i);
-                        // The next pass's thread (or checker) continues in this thread's arena.
-                        tsrs_core::ptr::release_own_arena();
-                    })
-                    .expect("failed to spawn checker thread")
-            })
-            .collect();
-        let mut panic = None;
-        for handle in handles {
-            if let Err(payload) = handle.join() {
-                panic.get_or_insert(payload);
+    let task: &(dyn Fn(usize) + Sync) = &task;
+    // SAFETY: this function returns only after every job dispatched below has reported on `done`, panics included
+    // (`run_checker_job` reports after `catch_unwind`), so no job uses `task` after it is gone.
+    let task = unsafe {
+        std::mem::transmute::<&(dyn Fn(usize) + Sync), &'static (dyn Fn(usize) + Sync)>(task)
+    };
+    let (done_tx, done) = std::sync::mpsc::channel::<std::thread::Result<()>>();
+    let mut dispatched = 0;
+    let mut spawn_error = None;
+    for i in 0..count {
+        let done_tx = done_tx.clone();
+        let job: CheckerJob = Box::new(move || {
+            let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                tsrs_ast::use_id_blocks();
+                task(i);
+            }));
+            let reusable = result.is_ok();
+            if reusable {
+                tsrs_ast::stop_id_blocks();
+                tsrs_core::sharedgraph::leave_overlay();
+                // The next pass's thread (or checker) continues in this thread's arena.
+                tsrs_core::ptr::release_own_arena();
             }
+            let _ = done_tx.send(result);
+            reusable
+        });
+        if let Err(err) = run_checker_job(job) {
+            spawn_error = Some(err);
+            break;
         }
-        if let Some(payload) = panic {
-            std::panic::resume_unwind(payload);
+        dispatched += 1;
+    }
+    drop(done_tx);
+    let mut panic = None;
+    for _ in 0..dispatched {
+        if let Err(payload) = done.recv().expect("a checker job ended without reporting") {
+            panic.get_or_insert(payload);
         }
-    });
+    }
+    if let Some(err) = spawn_error {
+        panic!("failed to spawn checker thread: {err}");
+    }
+    if let Some(payload) = panic {
+        std::panic::resume_unwind(payload);
+    }
+}
+
+/// A work-group task; returns whether its thread may run another (not after a panic).
+type CheckerJob = Box<dyn FnOnce() -> bool + Send>;
+
+/// Checker threads waiting for a job, each with a `CHECKER_STACK_SIZE` stack. `tsc -b` runs several work groups per
+/// project, and a new thread per task cost a thread creation and a stack unmap (a TLB shootdown on every core that
+/// runs one of the process's threads) for each.
+static IDLE_CHECKER_THREADS: Mutex<Vec<std::sync::mpsc::Sender<CheckerJob>>> =
+    Mutex::new(Vec::new());
+
+/// Runs `job` on an idle checker thread, or on a new one when none is idle, so that every job of a group has a
+/// thread of its own, as with a thread per job.
+fn run_checker_job(job: CheckerJob) -> std::io::Result<()> {
+    let idle = IDLE_CHECKER_THREADS.lock().unwrap().pop();
+    let job = match idle {
+        Some(idle) => match idle.send(job) {
+            Ok(()) => return Ok(()),
+            Err(std::sync::mpsc::SendError(job)) => job,
+        },
+        None => job,
+    };
+    let (tx, rx) = std::sync::mpsc::channel::<CheckerJob>();
+    std::thread::Builder::new().name("checker".to_string()).stack_size(CHECKER_STACK_SIZE).spawn(
+        move || {
+            let mut job = job;
+            while job() {
+                IDLE_CHECKER_THREADS.lock().unwrap().push(tx.clone());
+                match rx.recv() {
+                    Ok(next) => job = next,
+                    Err(_) => return,
+                }
+            }
+        },
+    )?;
+    Ok(())
 }
 
 // A checker is mutated only while its mutex is held, by exactly one thread at a time; the pool

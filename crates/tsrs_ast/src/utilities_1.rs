@@ -113,6 +113,14 @@ pub fn use_id_blocks() {
     ID_BLOCK_MODE.set(true);
 }
 
+/// Ends `use_id_blocks` on the current thread and drops the rest of its blocks, as the thread's exit would: a reused
+/// checker thread must not hand out ids from a block it took in an earlier group.
+pub fn stop_id_blocks() {
+    ID_BLOCK_MODE.set(false);
+    NODE_ID_BLOCK.set((0, 0));
+    SYMBOL_ID_BLOCK.set((0, 0));
+}
+
 #[inline]
 fn next_id(counter: &AtomicU64, block: &'static std::thread::LocalKey<Cell<(u64, u64)>>) -> u64 {
     if !ID_BLOCK_MODE.get() {

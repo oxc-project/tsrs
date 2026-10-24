@@ -2,13 +2,14 @@
 //
 //   scanner_oracle dump FILE        print the token streams of FILE
 //   scanner_oracle hash < filelist  print "hash path" for every file named on stdin
+// Use owned-dump/owned-hash to run the same passes with source-borrowing owned text.
 
 use std::fmt::Write as _;
 use std::io::{BufRead, Write as _};
 
 use tsrs_ast::Kind;
 use tsrs_core::LanguageVariant;
-use tsrs_scanner::Scanner;
+use tsrs_scanner::{OwnedScanner, ScanError, Scanner};
 
 fn escape(sb: &mut String, s: &str) {
     for &b in s.as_bytes() {
@@ -50,11 +51,8 @@ fn is_regex_context(prev: Kind) -> bool {
     )
 }
 
-fn flush_errors(sb: &mut String, s: &mut Scanner) {
-    if !s.has_errors() {
-        return;
-    }
-    for e in s.take_errors() {
+fn flush_errors(sb: &mut String, errors: Vec<ScanError>) {
+    for e in errors {
         let _ = write!(sb, "E {} {} {}", e.message.code(), e.start, e.length);
         for a in &e.args {
             sb.push(' ');
@@ -64,85 +62,90 @@ fn flush_errors(sb: &mut String, s: &mut Scanner) {
     }
 }
 
-fn pass(sb: &mut String, text: &'static str, variant: LanguageVariant, mode: i32) {
-    let _ = writeln!(sb, "P {mode}");
-    let mut s = Scanner::new();
-    s.set_text(text);
-    s.set_language_variant(variant);
-    s.set_skip_trivia(mode != 2);
-    if mode == 4 {
-        s.set_script_target(tsrs_core::ScriptTarget::ES5);
-    }
-    s.set_on_error(true);
-    let mut prev = Kind::Unknown;
-    let mut stack: Vec<bool> = Vec::new();
-    loop {
-        let mut tok = s.scan();
-        if mode >= 3 {
-            match tok {
-                Kind::SlashToken | Kind::SlashEqualsToken => {
-                    if is_regex_context(prev) {
-                        flush_errors(sb, &mut s);
-                        tok = s.re_scan_slash_token(true);
-                    }
-                }
-                Kind::GreaterThanToken => tok = s.re_scan_greater_than_token(),
-                Kind::TemplateHead => stack.push(true),
-                Kind::OpenBraceToken => stack.push(false),
-                Kind::CloseBraceToken => {
-                    if let Some(top) = stack.pop()
-                        && top
-                    {
-                        flush_errors(sb, &mut s);
-                        tok = s.re_scan_template_token(false);
-                        if tok == Kind::TemplateMiddle {
-                            stack.push(true);
+// Expand the same oracle driver for the actual production scanner and the owned
+// scanner. A generic arena policy would bypass the production implementation.
+macro_rules! pass {
+    ($sb:expr, $scanner:expr, $variant:expr, $mode:expr) => {{
+        let sb = $sb;
+        let mut s = $scanner;
+        let variant = $variant;
+        let mode = $mode;
+        let _ = writeln!(sb, "P {mode}");
+        s.set_language_variant(variant);
+        s.set_skip_trivia(mode != 2);
+        if mode == 4 {
+            s.set_script_target(tsrs_core::ScriptTarget::ES5);
+        }
+        s.set_on_error(true);
+        let mut prev = Kind::Unknown;
+        let mut stack: Vec<bool> = Vec::new();
+        loop {
+            let mut tok = s.scan();
+            if mode >= 3 {
+                match tok {
+                    Kind::SlashToken | Kind::SlashEqualsToken => {
+                        if is_regex_context(prev) {
+                            flush_errors(sb, s.take_errors());
+                            tok = s.re_scan_slash_token(true);
                         }
                     }
+                    Kind::GreaterThanToken => tok = s.re_scan_greater_than_token(),
+                    Kind::TemplateHead => stack.push(true),
+                    Kind::OpenBraceToken => stack.push(false),
+                    Kind::CloseBraceToken => {
+                        if let Some(top) = stack.pop() {
+                            if top {
+                                flush_errors(sb, s.take_errors());
+                                tok = s.re_scan_template_token(false);
+                                if tok == Kind::TemplateMiddle {
+                                    stack.push(true);
+                                }
+                            }
+                        }
+                    }
+                    _ => {}
                 }
-                _ => {}
+            }
+            flush_errors(sb, s.take_errors());
+            let _ = write!(
+                sb,
+                "{} {} {} {} ",
+                tok as i16,
+                s.token_start(),
+                s.token_end(),
+                s.token_flags().bits()
+            );
+            escape(sb, s.token_value_ref());
+            sb.push('\n');
+            if tok == Kind::EndOfFile {
+                break;
+            }
+            if !matches!(
+                tok,
+                Kind::WhitespaceTrivia
+                    | Kind::NewLineTrivia
+                    | Kind::SingleLineCommentTrivia
+                    | Kind::MultiLineCommentTrivia
+                    | Kind::ConflictMarkerTrivia
+            ) {
+                prev = tok;
             }
         }
-        flush_errors(sb, &mut s);
-        let _ = write!(
-            sb,
-            "{} {} {} {} ",
-            tok as i16,
-            s.token_start(),
-            s.token_end(),
-            s.token_flags().bits()
-        );
-        escape(sb, s.token_value());
-        sb.push('\n');
-        if tok == Kind::EndOfFile {
-            break;
+        for d in s.comment_directives() {
+            let _ = writeln!(
+                sb,
+                "D {} {} {}",
+                d.kind as i32,
+                d.loc.pos().expect_source("comment directives have source positions"),
+                d.loc.end().expect_source("comment directives have source positions")
+            );
         }
-        if !matches!(
-            tok,
-            Kind::WhitespaceTrivia
-                | Kind::NewLineTrivia
-                | Kind::SingleLineCommentTrivia
-                | Kind::MultiLineCommentTrivia
-                | Kind::ConflictMarkerTrivia
-        ) {
-            prev = tok;
-        }
-    }
-    for d in s.comment_directives() {
-        let _ = writeln!(
-            sb,
-            "D {} {} {}",
-            d.kind as i32,
-            d.loc.pos().expect_source("comment directives have source positions"),
-            d.loc.end().expect_source("comment directives have source positions")
-        );
-    }
+    }};
 }
 
-fn dump(path: &str) -> Result<String, String> {
+fn dump(path: &str, owned: bool) -> Result<String, String> {
     let data = std::fs::read(path).map_err(|e| e.to_string())?;
     let text = String::from_utf8(data).map_err(|_| format!("{path}: not UTF-8"))?;
-    let text: &'static str = Box::leak(text.into_boxed_str());
     #[expect(
         clippy::case_sensitive_file_extension_comparisons,
         reason = "The oracle follows Go's case-sensitive fixture suffix selection for JSX scanning."
@@ -153,8 +156,19 @@ fn dump(path: &str) -> Result<String, String> {
         LanguageVariant::Standard
     };
     let mut sb = String::new();
-    for mode in 1..=4 {
-        pass(&mut sb, text, variant, mode);
+    if owned {
+        for mode in 1..=4 {
+            let mut scanner = OwnedScanner::new();
+            scanner.set_text(&text);
+            pass!(&mut sb, scanner, variant, mode);
+        }
+    } else {
+        let text: &'static str = Box::leak(text.into_boxed_str());
+        for mode in 1..=4 {
+            let mut scanner = Scanner::new();
+            scanner.set_text(text);
+            pass!(&mut sb, scanner, variant, mode);
+        }
     }
     Ok(sb)
 }
@@ -171,7 +185,7 @@ fn fnv64a(data: &[u8]) -> u64 {
 fn main() {
     let args: Vec<String> = std::env::args().collect();
     match args[1].as_str() {
-        "dump" => match dump(&args[2]) {
+        "dump" | "owned-dump" => match dump(&args[2], args[1] == "owned-dump") {
             Ok(out) => {
                 std::io::stdout().write_all(out.as_bytes()).unwrap();
             }
@@ -180,13 +194,13 @@ fn main() {
                 std::process::exit(1);
             }
         },
-        "hash" => {
+        "hash" | "owned-hash" => {
             let stdin = std::io::stdin();
             let stdout = std::io::stdout();
             let mut w = std::io::BufWriter::new(stdout.lock());
             for line in stdin.lock().lines() {
                 let path = line.unwrap();
-                match dump(&path) {
+                match dump(&path, args[1] == "owned-hash") {
                     Ok(out) => {
                         writeln!(w, "{:016x} {}", fnv64a(out.as_bytes()), path).unwrap();
                     }

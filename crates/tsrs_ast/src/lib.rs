@@ -14,6 +14,7 @@ pub mod nodeflags;
 pub mod parseoptions;
 pub mod positionmap;
 pub mod precedence;
+pub mod storage;
 pub mod subtreefacts;
 pub mod symbol;
 pub mod symbolflags;

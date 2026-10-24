@@ -3,6 +3,8 @@
 //   ast_oracle dump FILE [FLAGS]   print the AST dump of FILE
 //   ast_oracle hash < list         print "hash path" for every "path[\tFLAGS]" line on stdin
 //   ast_oracle bench [ROUNDS] < list   parse every listed file (single thread) and report time
+//   ast_oracle entity-dump FILE / entity-hash < list   isolated name grammar
+// Prefix entity-dump/entity-hash with owned- to exercise the owned parser context.
 //
 // Everything runs on a thread with a large stack: Go's goroutine stacks grow, the Rust parser recurses
 // on the native stack.
@@ -35,6 +37,7 @@ unsafe impl std::alloc::GlobalAlloc for CountingAlloc {
 #[global_allocator]
 static GLOBAL: CountingAlloc = CountingAlloc;
 
+mod entity;
 mod fields;
 
 use std::fmt::Write as _;
@@ -66,6 +69,14 @@ fn escape(sb: &mut String, s: &str) {
 
 fn kind_name(k: Kind) -> String {
     format!("{k:?}")
+}
+
+fn diagnostic_length(diag: &Diagnostic) -> i64 {
+    // Recovery can skip trivia past a missing node's end. Go exposes that signed
+    // length; observe the stored endpoints without requiring an ordered range.
+    diag.loc()
+        .and_then(|loc| Some(i64::from(loc.source_end()?) - i64::from(loc.source_pos()?)))
+        .unwrap_or(-1)
 }
 
 pub(crate) trait ListArg {
@@ -206,7 +217,7 @@ impl Dumper {
                 diag.code(),
                 diag.category() as i32,
                 diag.pos().map_or(-1_i64, i64::from),
-                diag.len().map_or(-1_i64, i64::from)
+                diagnostic_length(diag)
             );
             escape(&mut self.sb, diag.message_text());
             let _ = write!(self.sb, " C{} R", diag.message_chain().len());
@@ -216,7 +227,7 @@ impl Dumper {
                     " {}:{}:{}",
                     r.code(),
                     r.pos().map_or(-1_i64, i64::from),
-                    r.len().map_or(-1_i64, i64::from)
+                    diagnostic_length(r)
                 );
             }
             self.sb.push('\n');
@@ -362,9 +373,14 @@ fn split_line(line: &str) -> (&str, &str) {
 fn run() {
     let args: Vec<String> = std::env::args().collect();
     match args[1].as_str() {
-        "dump" => {
+        mode @ ("dump" | "entity-dump" | "owned-entity-dump") => {
             let flags = args.get(3).map_or("-", std::string::String::as_str);
-            match dump(&args[2], flags) {
+            let output = if mode == "dump" {
+                dump(&args[2], flags)
+            } else {
+                entity::dump(&args[2], mode.starts_with("owned-"))
+            };
+            match output {
                 Ok(out) => {
                     std::io::stdout().write_all(out.as_bytes()).unwrap();
                 }
@@ -374,7 +390,7 @@ fn run() {
                 }
             }
         }
-        "hash" => {
+        mode @ ("hash" | "entity-hash" | "owned-entity-hash") => {
             let stdin = std::io::stdin();
             let stdout = std::io::stdout();
             let mut w = std::io::BufWriter::new(stdout.lock());
@@ -382,7 +398,13 @@ fn run() {
                 let line = line.unwrap();
                 let (path, flags) = split_line(&line);
                 // A panic in one file must not hide the results for the others.
-                let result = std::panic::catch_unwind(|| dump(path, flags));
+                let result = std::panic::catch_unwind(|| {
+                    if mode == "hash" {
+                        dump(path, flags)
+                    } else {
+                        entity::dump(path, mode.starts_with("owned-"))
+                    }
+                });
                 match result {
                     Ok(Ok(out)) => {
                         let _ = writeln!(w, "{:016x} {}", fnv64a(out.as_bytes()), path);

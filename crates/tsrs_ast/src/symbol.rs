@@ -1010,6 +1010,11 @@ impl<'a> HashedName<'a> {
         HashedName { name, hash: hash_name(name) }
     }
 
+    #[inline]
+    pub fn name(&self) -> &'a str {
+        self.name
+    }
+
     /// The name's 32-bit hash (the one symbol tables use).
     #[inline]
     pub fn hash(&self) -> u32 {

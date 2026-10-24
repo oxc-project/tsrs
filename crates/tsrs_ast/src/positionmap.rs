@@ -48,6 +48,12 @@ pub fn compute_position_map(text: &str) -> PositionMap {
 }
 
 impl PositionMap {
+    /// Requested entry buffer bytes (live, capacity), excluding this header.
+    pub(crate) fn entry_buffer_sizes(&self) -> (usize, usize) {
+        let width = size_of::<PositionMapEntry>();
+        (self.entries.len() * width, self.entries.capacity() * width)
+    }
+
     pub fn is_ascii_only(&self) -> bool {
         self.ascii_only
     }

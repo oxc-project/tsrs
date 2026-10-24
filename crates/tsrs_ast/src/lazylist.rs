@@ -37,7 +37,7 @@ pub const PENDING: u8 = 0;
 pub const DEFERRED: u8 = 1;
 const UNBOUND: u8 = 2;
 const FORCING: u8 = 3;
-const DONE: u8 = 4;
+pub const DONE: u8 = 4;
 /// `FORCING`, with at least one reader committed to waiting on the record's stripe.
 const FORCING_WITH_WAITERS: u8 = 5;
 

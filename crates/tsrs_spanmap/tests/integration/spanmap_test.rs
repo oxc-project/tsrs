@@ -24,6 +24,67 @@ fn source_end(range: tsrs_core::TextRange) -> u32 {
     range.end().expect_source("test ranges have source positions")
 }
 
+#[test]
+fn owned_span_maps_retain_buffers_and_initialize_indexes_after_input_disposal() {
+    use std::sync::{Arc, Barrier};
+    let input = String::from("[[8,7,0,2,2],[0,2,2,2,0,0]]");
+    let map = Arc::new(unmarshal_owned(input.as_bytes()).unwrap());
+    drop(input);
+    let weak = Arc::downgrade(&map);
+    assert_eq!(map.memory().allocations, 1);
+    assert_eq!(map.memory().live_bytes, 2 * size_of::<Segment>());
+    let barrier = Barrier::new(4);
+    std::thread::scope(|scope| {
+        let readers: Vec<_> = std::iter::repeat_with(|| {
+            scope.spawn(|| {
+                barrier.wait();
+                assert_eq!(map.original_to_virtual_positions(0, Feature::Hover)[0].position, 8);
+                assert_eq!(
+                    map.virtual_to_original_span(new_text_range(8, 15)),
+                    (new_text_range(0, 2), Fidelity::Atom)
+                );
+                map.orig_index()
+            })
+        })
+        .take(4)
+        .collect();
+        for reader in readers {
+            assert!(std::ptr::eq(reader.join().unwrap(), map.orig_index()));
+        }
+    });
+    assert_eq!(map.memory().allocations, 3);
+    assert_eq!(map.memory().live_bytes, 4 * size_of::<Segment>() + 4 * size_of::<u32>());
+    drop(map);
+    assert!(weak.upgrade().is_none());
+}
+
+#[test]
+fn owned_decoding_preserves_legacy_tuple_errors_and_features() {
+    for input in [
+        "null",
+        "[]",
+        "[[0,1,0,1,0]]",
+        "[[0,1,0,1,0,0]]",
+        "[[0,1,0,1,9,-1]]",
+        "[[0,-1,0,1,0]]",
+        "[[0,1,-1,1,0]]",
+        "[[0,1,0,-1,0]]",
+        "[[-1,1,0,1,0]]",
+        "[[0,1,0,1]]",
+        "[[0.0,1,0,1,0]]",
+        "[[2147483648,1,0,1,0]]",
+    ] {
+        match (unmarshal(input.as_bytes()), unmarshal_owned(input.as_bytes())) {
+            (Ok(legacy), Ok(owned)) => {
+                assert_eq!(legacy.segments(), owned.segments(), "{input}");
+                assert_eq!(legacy.marshal(), owned.marshal(), "{input}");
+            }
+            (Err(legacy), Err(owned)) => assert_eq!(legacy, owned, "{input}"),
+            result => panic!("owned/legacy decode mismatch for {input}: {result:?}"),
+        }
+    }
+}
+
 // spanmap_test.go:11
 #[test]
 fn test_virtual_to_original_span_verbatim() {

@@ -7,6 +7,7 @@
 //	tsrs-oracle-ast split OUTDIR < list materialize the units of every test case named on stdin under
 //	                                    OUTDIR and print a file list ("path\tFLAGS") for hash/dump
 //	tsrs-oracle-ast bench < list        parse every listed file once (single goroutine) and report time
+//	tsrs-oracle-ast entity-dump FILE    dump ParseIsolatedEntityName (entity-hash reads a file list)
 //
 // FLAGS selects the ExternalModuleIndicatorOptions the file is parsed with: "-" (none), "j" (JSX),
 // "f" (Force), "jf" (both). Files are read like the compiler reads them (osvfs: UTF-16 BOM decoding,
@@ -91,11 +92,10 @@ func textRange(v reflect.Value) (int64, int64) {
 }
 
 func (d *dumper) fields(n *ast.Node) {
-	data := reflect.ValueOf(n).Elem().FieldByName("data")
-	if data.IsNil() {
+	s := nodeData(n)
+	if !s.IsValid() {
 		return
 	}
-	s := data.Elem().Elem()
 	specs, ok := nodeFields[s.Type().Name()]
 	if !ok {
 		return
@@ -212,12 +212,21 @@ func parseFlags(flags string) ast.ExternalModuleIndicatorOptions {
 }
 
 func parse(path string, flags string) (*ast.SourceFile, bool) {
-	text, ok := osvfs.FS().ReadFile(path)
+	fileName := rootedFilePath(path)
+	text, ok := osvfs.FS().ReadFile(fileName)
 	if !ok {
 		return nil, false
 	}
-	opts := ast.SourceFileParseOptions{FileName: path, Path: tspath.Path(path), ExternalModuleIndicatorOptions: parseFlags(flags)}
-	return parser.ParseSourceFile(opts, text, core.EnsureScriptKindFromFileName(path)), true
+	opts := ast.SourceFileParseOptions{FileName: fileName, PathKey: tspath.CaseSensitive.PathKey(fileName.AsPath()), ExternalModuleIndicatorOptions: parseFlags(flags)}
+	return parser.ParseSourceFile(opts, text, core.EnsureScriptKindFromFileName(fileName)), true
+}
+
+func rootedFilePath(path string) tspath.RootedFilePath {
+	absolute, err := filepath.Abs(path)
+	if err != nil {
+		panic(err)
+	}
+	return tspath.RootedFilePathFromAbsolute(absolute)
 }
 
 func dump(path string, flags string) (string, error) {
@@ -297,7 +306,7 @@ var jsxOptionValues = map[string]bool{"react-jsx": true, "react-jsxdev": true}
 // Materializes the units of one test case under dir. Unit names are sanitized to stay inside dir and
 // prefixed with their index so that repeated names do not collide.
 func split(outDir string, casePath string, w *bufio.Writer) {
-	content, ok := osvfs.FS().ReadFile(casePath)
+	content, ok := osvfs.FS().ReadFile(rootedFilePath(casePath))
 	if !ok {
 		fmt.Fprintln(os.Stderr, "cannot read", casePath)
 		return
@@ -349,27 +358,70 @@ func split(outDir string, casePath string, w *bufio.Writer) {
 	}
 }
 
+func entityDump(path string) (string, error) {
+	text, ok := osvfs.FS().ReadFile(rootedFilePath(path))
+	if !ok {
+		return "", fmt.Errorf("cannot read %s", path)
+	}
+	root := parser.ParseIsolatedEntityName(text)
+	if root == nil {
+		return "INVALID\n", nil
+	}
+	var sb strings.Builder
+	var visit func(*ast.Node, int, *ast.Node)
+	visit = func(node *ast.Node, depth int, parent *ast.Node) {
+		fmt.Fprintf(&sb, "N%d %s %d %d %x ", depth, kindName(node.Kind), node.Pos(), node.End(), uint32(node.Flags))
+		text := ""
+		if node.Kind == ast.KindIdentifier || node.Kind == ast.KindPrivateIdentifier {
+			text = node.Text()
+		}
+		escape(&sb, text)
+		if node.Parent != parent {
+			sb.WriteString(" P!")
+		}
+		sb.WriteByte('\n')
+		node.ForEachChild(func(child *ast.Node) bool {
+			visit(child, depth+1, node)
+			return false
+		})
+	}
+	visit(root, 0, nil)
+	return sb.String(), nil
+}
+
 func main() {
 	switch os.Args[1] {
-	case "dump":
+	case "dump", "entity-dump":
 		flags := "-"
 		if len(os.Args) > 3 {
 			flags = os.Args[3]
 		}
-		out, err := dump(os.Args[2], flags)
+		var out string
+		var err error
+		if os.Args[1] == "entity-dump" {
+			out, err = entityDump(os.Args[2])
+		} else {
+			out, err = dump(os.Args[2], flags)
+		}
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
 		}
 		os.Stdout.WriteString(out)
-	case "hash":
+	case "hash", "entity-hash":
 		in := bufio.NewScanner(os.Stdin)
 		in.Buffer(make([]byte, 1<<20), 1<<20)
 		w := bufio.NewWriter(os.Stdout)
 		defer w.Flush()
 		for in.Scan() {
 			path, flags := splitLine(in.Text())
-			out, err := dump(path, flags)
+			var out string
+			var err error
+			if os.Args[1] == "entity-hash" {
+				out, err = entityDump(path)
+			} else {
+				out, err = dump(path, flags)
+			}
 			if err != nil {
 				fmt.Fprintln(os.Stderr, err)
 				continue
@@ -397,12 +449,13 @@ func main() {
 		total := 0
 		for in.Scan() {
 			path, flags := splitLine(in.Text())
-			text, ok := osvfs.FS().ReadFile(path)
+			fileName := rootedFilePath(path)
+			text, ok := osvfs.FS().ReadFile(fileName)
 			if !ok {
 				continue
 			}
 			total += len(text)
-			inputs = append(inputs, input{path, text, ast.SourceFileParseOptions{FileName: path, Path: tspath.Path(path), ExternalModuleIndicatorOptions: parseFlags(flags)}})
+			inputs = append(inputs, input{path, text, ast.SourceFileParseOptions{FileName: fileName, PathKey: tspath.CaseSensitive.PathKey(fileName.AsPath()), ExternalModuleIndicatorOptions: parseFlags(flags)}})
 		}
 		rounds := 1
 		if len(os.Args) > 2 {
@@ -412,7 +465,7 @@ func main() {
 			start := time.Now()
 			nodes := 0
 			for _, in := range inputs {
-				f := parser.ParseSourceFile(in.opts, in.text, core.EnsureScriptKindFromFileName(in.path))
+				f := parser.ParseSourceFile(in.opts, in.text, core.EnsureScriptKindFromFileName(in.opts.FileName))
 				nodes += f.NodeCount
 			}
 			el := time.Since(start)

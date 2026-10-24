@@ -20,7 +20,7 @@ impl Parser {
 
     // The file's reparse cloner, built on first use.
     fn reparse_cloner(&mut self) -> &mut ast::deepclone::ReparseCloner {
-        let factory = &self.factory;
+        let factory = &mut self.factory;
         self.reparse_cloner.get_or_insert_with(|| factory.reparse_cloner())
     }
 
@@ -878,7 +878,7 @@ impl Parser {
         self.finish_mutated_node(target);
     }
 
-    fn make_question_if_optional(&self, parameter: P<Node>) -> Option<P<Node>> {
+    pub(crate) fn make_question_if_optional(&mut self, parameter: P<Node>) -> Option<P<Node>> {
         let data = parameter.as_jsdoc_parameter_or_property_tag();
         let mut question_token = None;
         if data.is_bracketed
@@ -908,7 +908,7 @@ impl Parser {
         assert
     }
 
-    fn create_export_modifier(&self, location_node: P<Node>) -> P<ModifierList> {
+    pub(crate) fn create_export_modifier(&mut self, location_node: P<Node>) -> P<ModifierList> {
         let export_modifier = self.factory.new_modifier(Kind::ExportKeyword);
         export_modifier.set_loc(location_node.loc());
         export_modifier.set_flags(self.context_flags | NodeFlags::Reparsed);

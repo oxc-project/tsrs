@@ -1,6 +1,16 @@
 mod ast_test;
 mod deepclone_test;
 mod diagnostic_test;
+mod isolated;
 mod positionmap_test;
+mod storage_binding;
+mod storage_borrows;
+mod storage_deferred;
+mod storage_helpers;
+mod storage_mapped_source;
+mod storage_owners;
+mod storage_source_file;
+mod storage_speculation;
+mod storage_test;
 mod symbol_test;
 mod utilities_1_id_generator_tests;

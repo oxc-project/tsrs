@@ -1,8 +1,9 @@
 // tsrs-oracle-binder: binder oracle for the Rust binder port.
 //
 // Usage:
-//   tsrs-oracle-binder dump FILE        print the binder dump of FILE
-//   tsrs-oracle-binder hash < filelist  print "hash path" for every file named on stdin
+//
+//	tsrs-oracle-binder dump FILE        print the binder dump of FILE
+//	tsrs-oracle-binder hash < filelist  print "hash path" for every file named on stdin
 //
 // Each test file is split into units at `// @filename: NAME` lines (the text before the first such line
 // is a unit named after the test file); every unit is parsed as /oracle/NAME and bound. The dump lists, in
@@ -98,24 +99,24 @@ func (d *dumper) table(tag string, t ast.SymbolTable) {
 			d.sb.WriteByte(' ')
 		}
 		escape(&d.sb, name)
-		fmt.Fprintf(&d.sb, ":%x", uint32(t[name].Flags))
+		fmt.Fprintf(&d.sb, ":%x", uint32(t[name].Flags()))
 	}
 	d.sb.WriteString("}")
 }
 
 func (d *dumper) symbol(tag string, s *ast.Symbol) {
 	d.sb.WriteString(" " + tag + "(")
-	escape(&d.sb, s.Name)
-	fmt.Fprintf(&d.sb, " %x %d %s", uint32(s.Flags), len(s.Declarations), nodeRef(s.ValueDeclaration))
-	if s.Parent != nil {
+	escape(&d.sb, s.Name())
+	fmt.Fprintf(&d.sb, " %x %d %s", uint32(s.Flags()), len(s.Declarations()), nodeRef(s.ValueDeclaration()))
+	if s.Parent() != nil {
 		d.sb.WriteString(" p=")
-		escape(&d.sb, s.Parent.Name)
+		escape(&d.sb, s.Parent().Name())
 	}
-	if s.ExportSymbol != nil {
-		fmt.Fprintf(&d.sb, " x=%x", uint32(s.ExportSymbol.Flags))
+	if s.ExportSymbol() != nil {
+		fmt.Fprintf(&d.sb, " x=%x", uint32(s.ExportSymbol().Flags()))
 	}
-	d.table("X", s.Exports)
-	d.table("M", s.Members)
+	d.table("X", s.Exports())
+	d.table("M", s.Members())
 	d.sb.WriteString(")")
 }
 
@@ -225,16 +226,16 @@ func dump(path string) (string, error) {
 }
 
 func dumpUnit(out *strings.Builder, name string, text string) {
-	fileName := tspath.NormalizePath("/oracle/" + strings.TrimLeft(name, "/"))
+	fileName := tspath.RootedFilePathFromAbsolute("/oracle/" + strings.TrimLeft(name, "/"))
 	out.WriteString("U ")
-	escape(out, fileName)
+	escape(out, fileName.AsString())
 	out.WriteByte('\n')
 	scriptKind := core.GetScriptKindFromFileName(fileName)
 	if scriptKind == core.ScriptKindUnknown {
 		out.WriteString("skipped\n")
 		return
 	}
-	opts := ast.SourceFileParseOptions{FileName: fileName, Path: tspath.Path(fileName)}
+	opts := ast.SourceFileParseOptions{FileName: fileName, PathKey: tspath.CaseSensitive.PathKey(fileName.AsPath())}
 	file := parser.ParseSourceFile(opts, text, scriptKind)
 	binder.BindSourceFile(file)
 	d := &dumper{ids: make(map[*ast.FlowNode]int)}

@@ -157,6 +157,15 @@ pub struct SpanMap {
     original_index: OnceLock<OriginalIndex>,
 }
 
+/// Requested owned buffers, excluding allocator overhead and any Arc control block.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct SpanMapMemory {
+    pub inline_bytes: usize,
+    pub live_bytes: usize,
+    pub capacity_bytes: usize,
+    pub allocations: usize,
+}
+
 // Validation failures. A content mapper is required to provide a valid span map; these describe the
 // ways a map can be malformed, so the compiler can attribute the failure to the mapper precisely and
 // point the mapper's author at the offending location.
@@ -305,12 +314,36 @@ pub fn validate(m: Option<&SpanMap>, virtual_: &str, original: &str) -> Option<M
 // virtual text that correspond to the original; anything not covered maps as synthesized.
 // spanmap.go:222 (Go's pdqsort, so segments with equal virtual starts keep Go's order.)
 pub fn new(segments: &[Segment]) -> P<SpanMap> {
-    let mut sorted = segments.to_vec();
-    goslices::sort_func(&mut sorted, |a, b| a.virtual_start.cmp(&b.virtual_start));
-    P::new(SpanMap { segments: sorted, original_index: OnceLock::new() })
+    P::new(SpanMap::new_owned(segments))
 }
 
 impl SpanMap {
+    /// The same constructor as `new`, returning ordinary owned storage.
+    pub fn new_owned(segments: &[Segment]) -> Self {
+        let mut sorted = segments.to_vec();
+        goslices::sort_func(&mut sorted, |a, b| a.virtual_start.cmp(&b.virtual_start));
+        Self { segments: sorted, original_index: OnceLock::new() }
+    }
+
+    /// Counts both segment buffers and the interval tree, when initialized.
+    pub fn memory(&self) -> SpanMapMemory {
+        let mut memory = SpanMapMemory {
+            inline_bytes: size_of::<Self>(),
+            live_bytes: self.segments.len() * size_of::<Segment>(),
+            capacity_bytes: self.segments.capacity() * size_of::<Segment>(),
+            allocations: usize::from(self.segments.capacity() != 0),
+        };
+        if let Some(index) = self.original_index.get() {
+            memory.live_bytes += index.segments.len() * size_of::<Segment>()
+                + index.max_ends.len() * size_of::<u32>();
+            memory.capacity_bytes += index.segments.capacity() * size_of::<Segment>()
+                + index.max_ends.capacity() * size_of::<u32>();
+            memory.allocations += usize::from(index.segments.capacity() != 0)
+                + usize::from(index.max_ends.capacity() != 0);
+        }
+        memory
+    }
+
     // Segments returns the map's segments ordered by virtual start.
     // spanmap.go:231
     pub fn segments(&self) -> Vec<Segment> {
@@ -906,7 +939,7 @@ impl SpanMap {
     // construction, so the first lookup remains O(n log n); later point lookups visit only tree branches that can
     // contain a match.
     // spanmap.go:663
-    fn orig_index(&self) -> &OriginalIndex {
+    pub fn orig_index(&self) -> &OriginalIndex {
         self.original_index.get_or_init(|| {
             let mut segments = self.segments.clone();
             goslices::sort_func(&mut segments, |a, b| {
@@ -1072,6 +1105,11 @@ fn source_range(range: TextRange) -> (u32, u32) {
 // explicit feature mask, including FeatureNone.
 // spanmap.go:776
 pub fn unmarshal(data: &[u8]) -> Result<P<SpanMap>, String> {
+    unmarshal_owned(data).map(P::new)
+}
+
+/// Decodes the same tuple format as `unmarshal` into ordinary owned storage.
+pub fn unmarshal_owned(data: &[u8]) -> Result<SpanMap, String> {
     let tuples = unmarshal_int32_tuples(data)?;
     let mut segments = Vec::with_capacity(tuples.len());
     segments = tuples.iter().enumerate().try_fold(segments, |mut segments, (i, t)| {
@@ -1100,7 +1138,7 @@ pub fn unmarshal(data: &[u8]) -> Result<P<SpanMap>, String> {
         segments.push(segment);
         Ok::<_, String>(segments)
     })?;
-    Ok(new(&segments))
+    Ok(SpanMap::new_owned(&segments))
 }
 
 // Go `json.Unmarshal(data, &tuples)` with `tuples [][]int32` (encoding/json/v2): null decodes to an empty slice, a

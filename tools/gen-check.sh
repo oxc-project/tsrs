@@ -16,6 +16,7 @@ cd "$(dirname "$0")/.."
 generators=(
   "node tools/gen-ast/gen-ast.ts"
   "node tools/gen-ast/gen-flags.ts"
+  "node tools/gen-scanner.mjs"
   "node crates/tsrs_api_codec/gen/gen-codec.ts"
   "cargo run --quiet --locked -p tsrs_generate_stringutil -- --write"
   "node tools/gen-diagnostics/gen.mjs"

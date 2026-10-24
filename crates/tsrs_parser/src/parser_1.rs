@@ -786,11 +786,11 @@ impl Parser {
         result.node_count.set(self.factory.node_count());
         result.text_count.set(self.factory.text_count());
         result.identifier_count.set(self.identifier_count);
-        result.set_jsdoc_cache(self.create_jsdoc_cache());
-        // For non-JS files, enable lazy JSDoc parsing on demand
+        // For non-JS files, enable lazy JSDoc parsing on demand (before the cache is stored: it picks the map).
         if !self.is_java_script() {
             result.set_has_lazy_jsdoc(true);
         }
+        result.set_jsdoc_cache(self.create_jsdoc_cache());
         self.reparsed_clones.sort_by(|a, b| ast::compare_node_positions(*a, *b));
         result.reparsed_clones.set(alloc_slice(&self.reparsed_clones));
         ast::set_external_module_indicator(&result, self.opts.external_module_indicator_options);

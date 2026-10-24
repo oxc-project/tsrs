@@ -231,7 +231,7 @@ pub struct ExtendedConfigCacheEntry {
 impl ExtendedConfigCacheEntry {
     pub fn extended_file_names(&self) -> Vec<String> {
         if let Some(extended_result) = self.extended_result {
-            return extended_result.extended_source_files.borrow().clone();
+            return extended_result.extended_source_files.lock().unwrap().clone();
         }
         Vec::new()
     }
@@ -394,18 +394,19 @@ fn initializer_of(property_assignment: P<Node>) -> P<Node> {
     property_assignment.initializer().unwrap()
 }
 
-// Filled while the config is parsed; read-only (and read by checker threads) afterwards.
+// Filled while the config is parsed (and again when it is parsed again); read-only (and read by checker threads)
+// afterwards. The two filled-in fields are `Mutex`es: config parsing is a cold path.
 pub struct TsConfigSourceFile {
-    pub extended_source_files: tsrs_core::FrozenCell<Vec<String>>,
-    pub(crate) config_file_specs: tsrs_core::FrozenCell<Option<ConfigFileSpecs>>,
+    pub extended_source_files: std::sync::Mutex<Vec<String>>,
+    pub(crate) config_file_specs: std::sync::Mutex<Option<ConfigFileSpecs>>,
     pub source_file: P<SourceFile>,
 }
 
 impl TsConfigSourceFile {
     pub fn new(source_file: P<SourceFile>) -> P<TsConfigSourceFile> {
         P::new(TsConfigSourceFile {
-            extended_source_files: tsrs_core::FrozenCell::new(Vec::new()),
-            config_file_specs: tsrs_core::FrozenCell::new(None),
+            extended_source_files: std::sync::Mutex::new(Vec::new()),
+            config_file_specs: std::sync::Mutex::new(None),
             source_file,
         })
     }
@@ -1582,7 +1583,12 @@ fn get_extended_config(
     {
         result.extended_source_files.insert(extended_result.source_file.file_name().to_string());
         result.extended_source_files.extend(
-            extended_result.extended_source_files.borrow().iter().map(std::clone::Clone::clone),
+            extended_result
+                .extended_source_files
+                .lock()
+                .unwrap()
+                .iter()
+                .map(std::clone::Clone::clone),
         );
     }
     (cache_entry.get().extended_config.as_ref(), errors)
@@ -1739,7 +1745,7 @@ fn parse_config(
             );
         }
         if let Some(source_file) = source_file {
-            let mut extended_source_files = source_file.extended_source_files.borrow_mut();
+            let mut extended_source_files = source_file.extended_source_files.lock().unwrap();
             #[expect(
                 clippy::iter_over_hash_type,
                 reason = "each file is inserted at its sorted position"
@@ -2113,7 +2119,7 @@ fn parse_json_config_file_content_worker(
     };
 
     if let Some(source_file) = source_file {
-        *source_file.config_file_specs.borrow_mut() = Some(config_file_specs.clone());
+        *source_file.config_file_specs.lock().unwrap() = Some(config_file_specs.clone());
     }
 
     let content_mapper_source_file = source_file.map(|f| f.source_file);

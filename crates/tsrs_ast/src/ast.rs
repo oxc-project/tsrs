@@ -8,9 +8,8 @@ use rustc_hash::FxHashMap;
 use tsrs_core::collections::Set;
 use tsrs_core::tspath::Path;
 use tsrs_core::{
-    FrozenCell, LanguageVariant, OwnedCell, P, ResolutionMode, ScriptKind, TextPos, TextRange,
-    ThinSlice, Tristate, alloc_slice, alloc_str, alloc_vec, compute_ecma_line_starts,
-    undefined_text_range,
+    LanguageVariant, OwnedCell, P, ResolutionMode, ScriptKind, TextPos, TextRange, ThinSlice,
+    Tristate, alloc_slice, alloc_str, alloc_vec, compute_ecma_line_starts, undefined_text_range,
 };
 use tsrs_diagnostics as diagnostics;
 use tsrs_spanmap::SpanMap;
@@ -1532,7 +1531,7 @@ impl Node {
         if file.has_lazy_jsdoc.get() {
             return file.resolve_jsdoc(self.as_p());
         }
-        file.jsdoc_cache.borrow().get(&self.as_p()).copied().unwrap_or(&[])
+        file.parsed_jsdoc(self.as_p())
     }
 
     // EagerJSDoc returns JSDoc nodes that have already been parsed and cached,
@@ -1549,10 +1548,9 @@ impl Node {
             },
         };
         if file.has_lazy_jsdoc.get() {
-            let _guard = file.jsdoc_mu.read().unwrap();
-            return file.jsdoc_cache.borrow().get(&self.as_p()).copied().unwrap_or(&[]);
+            return file.lazy_jsdoc_cache.read().unwrap().get(&self.as_p()).copied().unwrap_or(&[]);
         }
-        file.jsdoc_cache.borrow().get(&self.as_p()).copied().unwrap_or(&[])
+        file.parsed_jsdoc(self.as_p())
     }
 }
 
@@ -1952,9 +1950,11 @@ pub struct SourceFile {
     pub module_augmentations: OwnedCell<&'static [P<Node>]>, // []ModuleName
     pub ambient_module_names: OwnedCell<&'static [&'static str]>,
     pub comment_directives: OwnedCell<&'static [CommentDirective]>,
-    // Written by the parser; with lazy JSDoc, also by any checker thread under `jsdoc_mu` (Go `jsdocMu`).
-    jsdoc_cache: FrozenCell<FxHashMap<P<Node>, &'static [P<Node>]>>,
-    jsdoc_mu: RwLock<()>,
+    // Go `jsdocCache`, in one of two forms per file. Without lazy JSDoc (JS files): the JSDoc the parser attached,
+    // set once by `set_jsdoc_cache` and read without a lock. With lazy JSDoc: the parser's entries plus the ones
+    // `resolve_jsdoc` parses on demand from any checker thread, under the lock (Go `jsdocMu`).
+    jsdoc_cache: OnceLock<FxHashMap<P<Node>, &'static [P<Node>]>>,
+    lazy_jsdoc_cache: RwLock<FxHashMap<P<Node>, &'static [P<Node>]>>,
     has_lazy_jsdoc: OwnedCell<bool>,
     identifiers: OnceLock<Set<&'static str>>,
     // ast.go:2517 nameTableOnce/nameTable (Go map, random order; insertion order here)
@@ -2051,8 +2051,8 @@ impl NodeFactory {
                 module_augmentations: OwnedCell::new(&[]),
                 ambient_module_names: OwnedCell::new(&[]),
                 comment_directives: OwnedCell::new(&[]),
-                jsdoc_cache: FrozenCell::new(FxHashMap::default()),
-                jsdoc_mu: RwLock::new(()),
+                jsdoc_cache: OnceLock::new(),
+                lazy_jsdoc_cache: RwLock::new(FxHashMap::default()),
                 has_lazy_jsdoc: OwnedCell::new(false),
                 identifiers: OnceLock::new(),
                 name_table: OnceLock::new(),
@@ -2361,8 +2361,24 @@ impl SourceFile {
         self.jsdoc_diagnostics.set(alloc_slice(diags));
     }
 
+    /// Stores the `JSDoc` the parser attached while parsing. The parser calls it once per file, after
+    /// `set_has_lazy_jsdoc`, which decides which map holds the entries.
     pub fn set_jsdoc_cache(&self, cache: FxHashMap<P<Node>, &'static [P<Node>]>) {
-        *self.jsdoc_cache.borrow_mut() = cache;
+        if self.has_lazy_jsdoc.get() {
+            let mut lazy = self.lazy_jsdoc_cache.write().unwrap();
+            assert!(lazy.is_empty(), "SourceFile JSDoc cache set twice");
+            *lazy = cache;
+        } else {
+            let set = self.jsdoc_cache.set(cache);
+            assert!(set.is_ok(), "SourceFile JSDoc cache set twice");
+        }
+    }
+
+    /// The `JSDoc` the parser attached to `n` in a file without lazy `JSDoc`. No lock: the map is set once,
+    /// before the file is shared.
+    #[inline]
+    fn parsed_jsdoc(&self, n: P<Node>) -> &'static [P<Node>] {
+        self.jsdoc_cache.get().and_then(|cache| cache.get(&n)).copied().unwrap_or(&[])
     }
 
     pub fn set_has_lazy_jsdoc(&self, lazy: bool) {
@@ -2377,20 +2393,20 @@ impl SourceFile {
         };
         // Fast path: check cache under read lock
         {
-            let _guard = self.jsdoc_mu.read().unwrap();
-            if let Some(&jsdocs) = self.jsdoc_cache.borrow().get(&n) {
+            let cache = self.lazy_jsdoc_cache.read().unwrap();
+            if let Some(&jsdocs) = cache.get(&n) {
                 return jsdocs;
             }
         }
         // Slow path: parse and cache under write lock
         let _region = self.owner_region();
-        let _guard = self.jsdoc_mu.write().unwrap();
+        let mut cache = self.lazy_jsdoc_cache.write().unwrap();
         // Double-check after acquiring write lock
-        if let Some(&jsdocs) = self.jsdoc_cache.borrow().get(&n) {
+        if let Some(&jsdocs) = cache.get(&n) {
             return jsdocs;
         }
         let jsdocs = alloc_vec(parse(self, n));
-        self.jsdoc_cache.borrow_mut_locked().insert(n, jsdocs);
+        cache.insert(n, jsdocs);
         jsdocs
     }
 

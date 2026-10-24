@@ -5,10 +5,14 @@
 //! cannot express that, because its borrow counter is written even by `borrow()`, so concurrent readers
 //! race on it. `FrozenCell` has the same `borrow()` / `borrow_mut()` surface without a runtime flag.
 //!
+//! Its one user is `SymbolTable` (`tsrs_ast/src/symbol.rs`). Shared data that is still written after binding
+//! does not use it: a `SourceFile`'s `JSDoc` cache is a `OnceLock` map (files without lazy `JSDoc`) or an
+//! `RwLock`ed map (files with it), and `TsConfigSourceFile` keeps its two filled-in fields in `Mutex`es (#646).
+//!
 //! Contract (see "Threading" in docs/PORTING.md):
-//! - `borrow_mut()` is only called by the thread that owns the object: the parser/binder while the file
-//!   is being built, or a checker on objects it created itself (transient symbols, its own tables).
-//!   Once a file is bound, its nodes and binder symbols are never written again.
+//! - `borrow_mut()` is only called by the thread that owns the object: the binder while the file is being
+//!   bound, or a checker on tables it created itself. Once a file is bound, its binder symbol tables are
+//!   never written again.
 //! - A `borrow_mut()` guard is never held across a call that may read or write the same cell (same rule
 //!   as for `RefCell`).
 //!
@@ -91,30 +95,6 @@ impl<T> FrozenCell<T> {
         }
         FrozenRefMut {
             // SAFETY: see the module contract; only the owning thread writes, and no other borrow is live.
-            value: unsafe { &mut *self.value.get() },
-            #[cfg(any(debug_assertions, feature = "checked-cells"))]
-            state: &self.state,
-        }
-    }
-
-    /// `borrow_mut` for a cell of a shared object whose every access after binding happens under one lock
-    /// (Go guards such lazily filled caches with a mutex, e.g. `SourceFile.jsdocMu`); the caller holds that
-    /// lock exclusively.
-    #[inline]
-    pub fn borrow_mut_locked(&self) -> FrozenRefMut<'_, T> {
-        #[cfg(any(debug_assertions, feature = "checked-cells"))]
-        {
-            if self
-                .state
-                // Failure only reports that another borrow is active; it does not expose the value.
-                .compare_exchange(0, EXCLUSIVE_BORROW, Ordering::Acquire, Ordering::Relaxed)
-                .is_err()
-            {
-                panic!("FrozenCell already borrowed");
-            }
-        }
-        FrozenRefMut {
-            // SAFETY: the caller's exclusive lock excludes every other access.
             value: unsafe { &mut *self.value.get() },
             #[cfg(any(debug_assertions, feature = "checked-cells"))]
             state: &self.state,

@@ -958,7 +958,8 @@ impl Snapshot {
             if let Some(command_line) = config.command_line
                 && let Some(config_file) = command_line.config_file
             {
-                for file in config_file.extended_source_files.borrow().iter() {
+                let extended_source_files = config_file.extended_source_files.lock().unwrap();
+                for file in extended_source_files.iter() {
                     store.extended_config_cache.add_owner(&(store.to_path)(file), new_snapshot.id);
                 }
             }

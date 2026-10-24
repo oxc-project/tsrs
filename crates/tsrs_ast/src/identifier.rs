@@ -36,7 +36,7 @@ struct SourceTextSlot {
 
 // Zero-initialized, so untouched pages cost nothing. A text is registered by the thread that parses it, before any
 // identifier of it exists; other threads reach those identifiers only through the synchronization that hands them
-// the AST (end of the parse phase, `jsdoc_mu`), so relaxed accesses suffice.
+// the AST (end of the parse phase, the lazy JSDoc cache's lock), so relaxed accesses suffice.
 static SOURCE_TEXTS: [SourceTextSlot; SOURCE_TEXTS_CAP] = [const {
     SourceTextSlot { ptr: AtomicPtr::new(std::ptr::null_mut()), len: AtomicUsize::new(0) }
 }; SOURCE_TEXTS_CAP];

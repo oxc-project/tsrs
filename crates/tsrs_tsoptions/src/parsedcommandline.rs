@@ -339,7 +339,7 @@ impl ParsedCommandLine {
         self.wildcard_directories
             .get_or_init(|| {
                 let config_file = self.config_file.unwrap();
-                let specs = config_file.config_file_specs.borrow();
+                let specs = config_file.config_file_specs.lock().unwrap();
                 let specs = specs.as_ref().unwrap();
                 get_wildcard_directories(
                     &specs.validated_include_specs,
@@ -511,7 +511,7 @@ impl ParsedCommandLine {
     pub fn extended_source_files(&self) -> Vec<String> {
         match self.config_file {
             None => Vec::new(),
-            Some(config_file) => config_file.extended_source_files.borrow().clone(),
+            Some(config_file) => config_file.extended_source_files.lock().unwrap().clone(),
         }
     }
 
@@ -542,7 +542,7 @@ impl ParsedCommandLine {
 
         {
             let config_file = self.config_file.unwrap();
-            let specs = config_file.config_file_specs.borrow();
+            let specs = config_file.config_file_specs.lock().unwrap();
             if specs.as_ref().unwrap().validated_include_specs.iter().any(|include| {
                 if !include.contains(['*', '?']) && !vfsmatch::is_implicit_glob(include) {
                     let include_path = tspath::to_path(
@@ -602,13 +602,13 @@ impl ParsedCommandLine {
 
     pub fn get_matched_file_spec(&self, file_name: &str) -> String {
         let config_file = self.config_file.unwrap();
-        let specs = config_file.config_file_specs.borrow();
+        let specs = config_file.config_file_specs.lock().unwrap();
         specs.as_ref().unwrap().get_matched_file_spec(file_name, &self.compare_paths_options)
     }
 
     pub fn get_matched_include_spec(&self, file_name: &str) -> (String, bool) {
         let config_file = self.config_file.unwrap();
-        let specs = config_file.config_file_specs.borrow();
+        let specs = config_file.config_file_specs.lock().unwrap();
         let specs = specs.as_ref().unwrap();
         if specs.validated_include_specs.is_empty() {
             return (String::new(), false);
@@ -626,7 +626,7 @@ impl ParsedCommandLine {
         let mut parsed_config = self.parsed_config.clone();
         let config_file = self.config_file.unwrap();
         let (file_names, literal_file_names_len) = {
-            let specs = config_file.config_file_specs.borrow();
+            let specs = config_file.config_file_specs.lock().unwrap();
             get_file_names_from_config_specs(
                 specs.as_ref().unwrap(),
                 self.get_current_directory(),

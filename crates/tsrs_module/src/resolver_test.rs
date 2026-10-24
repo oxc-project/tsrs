@@ -323,7 +323,7 @@ fn test_resolution_data_caches() {
     let mut paths = new_ordered_map_with_size_hint(1);
     paths.insert("alias/*".to_string(), Some(vec!["./*".to_string()]));
     resolver.get_parsed_patterns_for_paths(&CompilerOptions {
-        paths: Some(paths),
+        paths: Some(std::sync::Arc::new(paths)),
         ..Default::default()
     });
     assert_eq!(resolver.module_resolution_cache.size(), 1);

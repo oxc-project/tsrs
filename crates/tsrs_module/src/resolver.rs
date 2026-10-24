@@ -3187,7 +3187,7 @@ impl DefaultResolver<'_> {
         &self,
         compiler_options: &CompilerOptions,
     ) -> P<ParsedPatterns> {
-        self.parsed_patterns_for_paths.get(compiler_options.paths.as_ref())
+        self.parsed_patterns_for_paths.get(compiler_options.paths.as_deref())
     }
 }
 

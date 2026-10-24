@@ -1,6 +1,6 @@
 use std::fmt::Display;
 use std::fmt::Write as _;
-use std::sync::LazyLock;
+use std::sync::{Arc, LazyLock};
 
 use rustc_hash::{FxHashMap, FxHashSet};
 use tsrs_ast::{
@@ -2890,12 +2890,21 @@ fn handle_option_config_dir_template_substitution(
     // !!! don't hardcode this; use options declarations?
 
     if let Some(paths) = &mut compiler_options.paths {
-        for (_, v) in paths.iter_mut() {
+        // Go `handleOptionConfigDirTemplateSubstitution` clones the `paths` map only when at least one
+        // `${configDir}` substitution is required, so inherited maps stay shared otherwise.
+        let mut substitutions: Vec<(String, Option<Vec<String>>)> = Vec::new();
+        for (k, v) in paths.iter() {
             if let Some(substitution) = v
-                .as_deref()
+                .as_ref()
                 .and_then(|v| get_substituted_string_array_with_config_dir_template(v, base_path))
             {
-                *v = Some(substitution);
+                substitutions.push((k.clone(), Some(substitution)));
+            }
+        }
+        if !substitutions.is_empty() {
+            let paths = Arc::make_mut(paths);
+            for (k, substitution) in substitutions {
+                paths.insert(k, substitution);
             }
         }
     }

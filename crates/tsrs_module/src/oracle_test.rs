@@ -155,7 +155,7 @@ fn run(scenario: &Json) -> Vec<(String, String, String)> {
             let Json::Array(pair) = entry else { panic!("bad paths entry") };
             (str_of(Some(&pair[0])), Some(strings_of(Some(&pair[1])).unwrap_or_default()))
         }));
-        options.paths = Some(paths);
+        options.paths = Some(std::sync::Arc::new(paths));
     }
     let options = P::new(options);
     let resolver = new_resolver(ResolverOptions::new(host, options));

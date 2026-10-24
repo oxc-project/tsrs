@@ -439,7 +439,7 @@ pub fn parse_compiler_options_worker(
         }
         "outFile" => all_options.out_file = parse_string(value),
         "noResolve" => all_options.no_resolve = parse_tristate(value),
-        "paths" => all_options.paths = parse_string_map(value),
+        "paths" => all_options.paths = parse_string_map(value).map(std::sync::Arc::new),
         "plugins" => {
             // Native TypeScript does not load plugins; retain them only so tools can report the incompatibility.
             if matches!(value, CompilerOptionsValue::NilArray) {
@@ -874,6 +874,24 @@ impl ToOptionsValue for Option<i32> {
 }
 
 impl ToOptionsValue for Option<OrderedMap<String, Option<Vec<String>>>> {
+    fn to_options_value(&self) -> CompilerOptionsValue {
+        match self {
+            Some(m) => CompilerOptionsValue::Object(
+                m.iter()
+                    .map(|(k, v)| {
+                        (
+                            k.clone(),
+                            CompilerOptionsValue::StringArray(v.clone().unwrap_or_default()),
+                        )
+                    })
+                    .collect(),
+            ),
+            None => CompilerOptionsValue::Null,
+        }
+    }
+}
+
+impl ToOptionsValue for Option<std::sync::Arc<OrderedMap<String, Option<Vec<String>>>>> {
     fn to_options_value(&self) -> CompilerOptionsValue {
         match self {
             Some(m) => CompilerOptionsValue::Object(

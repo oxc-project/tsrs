@@ -2442,6 +2442,63 @@ fn test_extended_config_config_dir_paths_are_not_cached() {
 }
 
 #[test]
+fn test_extended_config_paths_are_shared_when_not_substituted() {
+    use std::sync::Arc;
+
+    let files: &[(&str, &str)] = &[
+        (
+            "/tsconfig.base.json",
+            r#"{
+  "compilerOptions": {
+    "paths": {
+      "@pkg/*": ["./src/*"]
+    }
+  }
+}"#,
+        ),
+        (
+            "/packages/a/tsconfig.json",
+            r#"{
+  "extends": "../../tsconfig.base.json"
+}"#,
+        ),
+        (
+            "/packages/b/tsconfig.json",
+            r#"{
+  "extends": "../../tsconfig.base.json"
+}"#,
+        ),
+        ("/packages/a/index.ts", "export {}"),
+        ("/packages/b/index.ts", "export {}"),
+    ];
+
+    let host = new_vfs_parse_config_host(files, "/", true /*useCaseSensitiveFileNames*/);
+    let cache = MemoCache::default();
+    let parse_config = |config_file_name: &str| -> ParsedCommandLine {
+        let (parsed, errors) = get_parsed_command_line_of_config_file(
+            config_file_name,
+            None,
+            None,
+            host,
+            Some(&cache),
+        );
+        assert!(errors.is_empty(), "unexpected errors parsing {config_file_name}: {errors:?}");
+        parsed.unwrap()
+    };
+
+    let parsed_a = parse_config("/packages/a/tsconfig.json");
+    let parsed_b = parse_config("/packages/b/tsconfig.json");
+    let options_a = parsed_a.compiler_options().unwrap();
+    let options_b = parsed_b.compiler_options().unwrap();
+    let paths_a = options_a.paths.as_ref().unwrap();
+    let paths_b = options_b.paths.as_ref().unwrap();
+    assert!(
+        Arc::ptr_eq(paths_a, paths_b),
+        "inherited paths map should be shared between projects when no substitution is required"
+    );
+}
+
+#[test]
 fn test_custom_conditions_null_override() {
     let files: &[(&str, &str)] = &[
         (

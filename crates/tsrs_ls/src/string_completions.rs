@@ -829,7 +829,7 @@ impl LanguageService {
             Some(checker),
         );
 
-        let paths_size = options.paths.as_ref().map_or(0, indexmap::IndexMap::len);
+        let paths_size = options.paths.as_ref().map_or(0, |paths| paths.len());
         if is_path_relative_to_script(&literal_value)
             || (paths_size == 0
                 && (tspath::is_rooted_disk_path(&literal_value) || tspath::is_url(&literal_value)))

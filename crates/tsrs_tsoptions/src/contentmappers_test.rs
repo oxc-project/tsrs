@@ -442,7 +442,7 @@ fn test_transform_identity_hashes_declared_options_json() {
         strict: Tristate::False,
         jsx: JsxEmit::PRESERVE,
         lib: Some(vec!["es2022".to_string(), "dom".to_string()]),
-        paths: Some(paths),
+        paths: Some(std::sync::Arc::new(paths)),
         ..Default::default()
     };
 

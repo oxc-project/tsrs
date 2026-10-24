@@ -2015,7 +2015,7 @@ impl Program {
 
         if let Some(paths) = &options.paths {
             let paths_base_path = options.get_paths_base_path(self.get_current_directory());
-            for (key, value) in paths {
+            for (key, value) in paths.iter() {
                 // !!! This code does not handle cases where where the path mappings have the wrong types,
                 // as that information is mostly lost during the parsing process.
                 if !has_zero_or_one_asterisk_character(key) {

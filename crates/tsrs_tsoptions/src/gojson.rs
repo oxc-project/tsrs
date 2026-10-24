@@ -185,6 +185,23 @@ impl GoJson for Option<OrderedMap<String, Option<Vec<String>>>> {
     }
 }
 
+impl GoJson for Option<std::sync::Arc<OrderedMap<String, Option<Vec<String>>>>> {
+    fn to_go_json(&self) -> Option<Value> {
+        self.as_ref().map(|m| {
+            let mut o = JsonMap::new();
+            // encoding/json/v2 marshals a nil slice as `[]` (and unmarshals `null` to nil).
+            o.extend(
+                m.iter().map(|(k, v)| (k.clone(), strings_to(v.as_deref().unwrap_or_default()))),
+            );
+            Value::Object(o)
+        })
+    }
+    fn from_go_json(value: &Value, field: &str) -> Result<Self, String> {
+        Option::<OrderedMap<String, Option<Vec<String>>>>::from_go_json(value, field)
+            .map(|m| m.map(std::sync::Arc::new))
+    }
+}
+
 impl GoJson for Option<Vec<PluginImport>> {
     fn to_go_json(&self) -> Option<Value> {
         self.as_ref().map(|v| {
@@ -450,7 +467,8 @@ mod tests {
         let mut paths = OrderedMap::default();
         paths.insert("@nil/*".to_string(), None);
         paths.insert("@empty/*".to_string(), Some(Vec::new()));
-        let options = CompilerOptions { paths: Some(paths), ..Default::default() };
+        let options =
+            CompilerOptions { paths: Some(std::sync::Arc::new(paths)), ..Default::default() };
         assert_eq!(
             tsrs_core::json::marshal(&compiler_options_to_go_json(&options)).unwrap(),
             r#"{"paths":{"@nil/*":[],"@empty/*":[]}}"#

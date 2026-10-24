@@ -749,6 +749,9 @@ struct GlobVisitor {
     listings: FxHashMap<String, PrefetchedListing>,
 }
 
+// Directory listings `prefetch_listings` reads on the calling thread before the rest of the tree fans out on rayon.
+const INLINE_PREFETCH_LISTINGS: usize = 64;
+
 // A directory listing read ahead, with the matching that the visit of the directory does on it.
 struct PrefetchedListing {
     entries: Entries,
@@ -779,15 +782,21 @@ impl GlobVisitor {
             directory_matcher: &'a GlobMatcher,
             listings: std::sync::Mutex<FxHashMap<String, PrefetchedListing>>,
         }
-        // `live_files` / `live_directories`: the parent directory's live excludes (`GlobMatcher::live_excludes`).
-        fn walk<'s>(
-            s: &rayon::Scope<'s>,
-            w: &'s Walk<'s>,
+        // A directory to read, with its parent's live excludes (`GlobMatcher::live_excludes`; `None` for a base path).
+        struct Pending {
             path: String,
             depth: usize,
-            live_files: Option<&[u32]>,
-            live_directories: Option<&[u32]>,
-        ) {
+            live: Option<(Vec<u32>, Vec<u32>)>,
+        }
+        // Reads and matches one listing and returns the subdirectories to read next.
+        fn read(w: &Walk<'_>, pending: Pending) -> Vec<Pending> {
+            let Pending { path, depth, live } = pending;
+            let (live_files, live_directories) = match &live {
+                Some((files, directories)) => {
+                    (Some(files.as_slice()), Some(directories.as_slice()))
+                }
+                None => (None, None),
+            };
             let entries = w.host.get_accessible_entries(&path);
             let prefix = ensure_trailing_slash(&path);
             let live_files = w.file_matcher.live_excludes(live_files, &prefix);
@@ -808,6 +817,7 @@ impl GlobVisitor {
                 .collect();
             let child_depth = if depth == UNLIMITED_DEPTH { UNLIMITED_DEPTH } else { depth - 1 };
             let mut directories = Vec::new();
+            let mut children = Vec::new();
             if child_depth != 0 {
                 directories = entries
                     .directories
@@ -823,18 +833,10 @@ impl GlobVisitor {
                 if let Some(symlinks) = &entries.symlinks {
                     for (dir, &matched) in entries.directories.iter().zip(&directories) {
                         if matched && !symlinks.contains(dir) {
-                            let child = format!("{prefix}{dir}");
-                            let (live_files, live_directories) =
-                                (live_files.clone(), live_directories.clone());
-                            s.spawn(move |s| {
-                                walk(
-                                    s,
-                                    w,
-                                    child,
-                                    child_depth,
-                                    Some(&live_files),
-                                    Some(&live_directories),
-                                );
+                            children.push(Pending {
+                                path: format!("{prefix}{dir}"),
+                                depth: child_depth,
+                                live: Some((live_files.clone(), live_directories.clone())),
                             });
                         }
                     }
@@ -844,6 +846,12 @@ impl GlobVisitor {
                 .lock()
                 .unwrap()
                 .insert(path, PrefetchedListing { entries, files, directories });
+            children
+        }
+        fn walk<'s>(s: &rayon::Scope<'s>, w: &'s Walk<'s>, pending: Pending) {
+            for child in read(w, pending) {
+                s.spawn(move |s| walk(s, w, child));
+            }
         }
         let w = Walk {
             host,
@@ -853,15 +861,28 @@ impl GlobVisitor {
             listings: std::sync::Mutex::new(FxHashMap::default()),
         };
         let mut seen: FxHashSet<&str> = FxHashSet::default();
-        rayon::scope(|s| {
-            for path in base_paths {
-                if seen.insert(path) {
-                    let path = path.clone();
+        let mut queue: std::collections::VecDeque<Pending> = base_paths
+            .iter()
+            .filter(|path| seen.insert(path))
+            .map(|path| Pending { path: path.clone(), depth, live: None })
+            .collect();
+        // `tsc -b` expands one small include per project on each builder, where a hand-off to the pool per project
+        // costs more than the reads; only a larger tree fans out.
+        let mut read_inline = 0;
+        while read_inline < INLINE_PREFETCH_LISTINGS
+            && let Some(pending) = queue.pop_front()
+        {
+            queue.extend(read(&w, pending));
+            read_inline += 1;
+        }
+        if !queue.is_empty() {
+            rayon::scope(|s| {
+                for pending in queue {
                     let w = &w;
-                    s.spawn(move |s| walk(s, w, path, depth, None, None));
+                    s.spawn(move |s| walk(s, w, pending));
                 }
-            }
-        });
+            });
+        }
         self.listings = w.listings.into_inner().unwrap();
     }
 }

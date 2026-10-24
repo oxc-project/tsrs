@@ -5,6 +5,34 @@ change are identified separately from measurements of the packaged release. For 
 see the [compatibility table](COMPATIBILITY.md); detailed investigations are indexed in the
 [engineering notes](../notes/README.md). The early development log follows the release entries.
 
+## 2026-10-23: 0.19.0 beta preparation
+
+The release candidate remains `0.19.0-ts7.1.0-beta`, with all nine npm packages prepared for `latest` and
+GitHub configured to create a prerelease. npm's `beta` tag is assigned manually. The playground continues to deploy
+after publication. 0.18.0 remains the published release until this candidate ships.
+
+The candidate adds a project-local VS Code SDK launcher on macOS and Linux, prebuilt Intel macOS and Windows x64
+packages, and the compiler/build fixes described in the [release notes](releases/0.19.0.md). The CLI returns its
+exit status through the C runtime so Windows PGO training can write profiles. Failed Fourslash groups print
+their diagnostics in the job logs.
+
+The refreshed candidate also includes LSP API sessions over projects and unsaved editor files, mapper-contribution
+validation, the Cloudflare Workers WASM host fix, lazy declaration parsing for eligible incremental/project builds,
+and UTF-8 parent-path normalization. Language-server mapper execution remains unported. Compact instantiated symbols,
+shared reparse cloners and borrowed config/resolver hosts are included; the [release notes](releases/0.19.0.md) link
+the individual measurements. This refresh is based on main `19ba8864`; the TypeScript pin, package version and
+publishing tags are unchanged.
+
+The dev build and smoke checks pass. Using main's optimized `ci` correctness profile, local validation passes all
+1,242 workspace tests (four existing tests are ignored), every compiler baseline in both checker histories, and
+4,092 Go Fourslash groups with 470 skipped and no failures. All 48 regression projects, Clippy, source/script checks,
+workflow validation and SDK freshness pass. The packed macOS arm64 consumer passes all 25 CLI/Node API steps with
+disk libraries; a client imported from `tsrs/async` also attaches through the installed SDK's LSP API pipe, reads
+unsaved editor text, and closes with the existing LSP exit status.
+
+Native Windows PGO training and Linux PGO/BOLT gates still require a successful release-workflow run; local
+validation does not establish those platform-specific results.
+
 ## 2026-10-22: 0.19.0 source upgrade candidate
 
 The source and package metadata now target `microsoft/TypeScript@3e9236361fa97a9e6c685f4833ac457ae2d8c50a`

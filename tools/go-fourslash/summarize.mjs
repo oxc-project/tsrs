@@ -40,18 +40,31 @@ export function summarize(events, minimum = 0) {
             groups.filter((n) => effective.get(n) === "pass").length < minimum,
     };
 }
+
+function reportFailures(events) {
+    const successful = new Set(
+        events.filter((e) => e.Test && ["pass", "skip"].includes(e.Action)).map((e) => e.Test),
+    );
+    for (const event of events)
+        if (event.Output && !successful.has(event.Test?.split("/")[0])) process.stderr.write(event.Output);
+}
+
 if (isMain(import.meta.url))
     main(() => {
         const a = args("Summarize go test -json coverage. <results.jsonl>", { "min-pass": 0 });
         requireValue(a._.length === 1, "one results file is required");
+        const events = [];
         let result;
         try {
-            result = summarize(read(a._[0]).trim().split("\n").filter(Boolean).map(JSON.parse), a["min-pass"]);
+            for (const line of read(a._[0]).split("\n").filter((line) => line.trim())) events.push(JSON.parse(line));
+            result = summarize(events, a["min-pass"]);
         } catch (error) {
+            reportFailures(events);
             console.error(error.message);
             process.exitCode = 2;
             return;
         }
+        if (result.failed) reportFailures(events);
         console.log("Go top-level outcomes:", result.raw);
         console.log("Coverage (parents with only skipped subtests count as skipped):", result.counts);
         console.log("Parents with only skipped subtests:", result.skippedParents);

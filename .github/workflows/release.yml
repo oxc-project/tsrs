@@ -1,5 +1,5 @@
 # Builds the tsrs binaries and the WebAssembly module, publishes the npm packages, then creates the GitHub release,
-# using docs/releases/<workspace version>.md for its notes. Bump the root package.json version on main to release;
+# using docs/releases/<workspace version>.md for its notes. Update root package.json on main to release an unpublished version;
 # it must match the npm version npm/build.mjs derives from Cargo.toml. The conformance and fourslash gates run here on the BOLT-optimized
 # GNU binaries (.github/scripts/bolt.sh). The macOS and Windows binaries get the smoke tests below; Windows also
 # trains on the conformance suite. The broader WebAssembly differential gate
@@ -633,7 +633,7 @@ jobs:
           VERSION: ${{ needs.version.outputs.crate_version }}
         run: >-
           gh release create "v$VERSION" --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA"
-          --title "$VERSION" --notes-file "docs/releases/$VERSION.md" --prerelease=false --latest
+          --title "$VERSION" --notes-file "docs/releases/$VERSION.md" --prerelease --latest=false
 
   playground:
     needs: github-release

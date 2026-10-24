@@ -10,6 +10,6 @@ status=0
 "$node" tools/go-fourslash/run.mjs --work "$work" \
   --server "${TSRS_FOURSLASH_SERVER:-target/debug/fourslash_server}" \
   -- -json > "$work/results.jsonl" 2> "$work/runner.log" || status=$?
-cat "$work/runner.log"
+cat "$work/runner.log" >&2
 "$node" tools/go-fourslash/summarize.mjs "$work/results.jsonl" --min-pass "${MIN_PASS:-4092}"
 exit "$status"

@@ -1,12 +1,13 @@
 // Port of execute/build/host.go.
 
-use std::sync::{Arc, Mutex, OnceLock};
+use std::sync::{Arc, Mutex, OnceLock, RwLock};
 use std::time::{Duration, SystemTime};
 
 use rustc_hash::FxHashMap;
 use tsrs_ast::{SourceFile, SourceFileParseOptions};
 use tsrs_compiler::CompilerHost;
 use tsrs_core::P;
+use tsrs_core::collections::SyncMap;
 use tsrs_core::tspath::{self, Path};
 use tsrs_diagnostics::Message;
 use tsrs_incremental::{BuildInfo, BuildInfoReader};
@@ -17,7 +18,7 @@ use super::orchestrator::Orchestrator;
 use super::parsecache::ParseCache;
 use crate::tsc::ExtendedConfigCache;
 
-pub type MTimeCache = Arc<Mutex<FxHashMap<Path, Option<SystemTime>>>>;
+pub type MTimeCache = Arc<SyncMap<Path, Option<SystemTime>>>;
 
 pub struct HostImpl {
     pub(crate) orchestrator: OnceLock<&'static Orchestrator>,
@@ -32,7 +33,8 @@ pub struct HostImpl {
 
     // caches that stay as long as they are needed
     pub(crate) resolved_references: ParseCache<Path, Option<P<ParsedCommandLine>>>,
-    pub(crate) m_times: Mutex<MTimeCache>,
+    // Read by every builder for every input and output; written only when a build or watch cycle starts over.
+    pub(crate) m_times: RwLock<MTimeCache>,
 
     // tsrs-only, watch mode: every parsed file and the modification time it was read at, kept across build cycles
     // (`get_watch_source_file`).
@@ -105,20 +107,17 @@ impl HostImpl {
         store: bool,
     ) -> Option<SystemTime> {
         let path = self.o().to_path(file);
-        let m_times = self.m_times.lock().unwrap().clone();
-        if let Some(existing) = m_times.lock().unwrap().get(&path) {
-            return *existing;
+        let m_times = self.m_times.read().unwrap().clone();
+        if let Some(existing) = m_times.load(&path) {
+            return existing;
         }
-        let mut found = None;
-        if let Some(old_cache) = old_cache {
-            found = old_cache.lock().unwrap().get(&path).copied();
-        }
-        let mut m_time = match found {
+        let found = old_cache.and_then(|old_cache| old_cache.load(&path));
+        let m_time = match found {
             Some(m_time) => m_time,
             None => tsrs_incremental::get_m_time(&*self.host, file),
         };
         if store {
-            m_time = *m_times.lock().unwrap().entry(path).or_insert(m_time);
+            return m_times.load_or_store(path, m_time).0;
         }
         m_time
     }
@@ -126,15 +125,14 @@ impl HostImpl {
     // host.go:137
     pub(crate) fn store_m_time(&self, file: &str, m_time: SystemTime) {
         let path = self.o().to_path(file);
-        self.m_times.lock().unwrap().lock().unwrap().insert(path, Some(m_time));
+        self.m_times.read().unwrap().store(path, Some(m_time));
     }
 
     // host.go:142
     pub(crate) fn store_m_time_from_old_cache(&self, file: &str, old_cache: &MTimeCache) {
         let path = self.o().to_path(file);
-        let m_time = old_cache.lock().unwrap().get(&path).copied();
-        if let Some(m_time) = m_time {
-            self.m_times.lock().unwrap().lock().unwrap().insert(path, m_time);
+        if let Some(m_time) = old_cache.load(&path) {
+            self.m_times.read().unwrap().store(path, m_time);
         }
     }
 

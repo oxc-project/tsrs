@@ -745,9 +745,8 @@ impl CommandLineTesting for TestSys {
             if let Some(cache) = m_times_cache {
                 let path =
                     tspath::to_path(file, &self.cwd, self.fs.use_case_sensitive_file_names());
-                let mut cache = cache.lock().unwrap();
-                if cache.contains_key(&path) {
-                    cache.insert(path, Some(now));
+                if cache.load(&path).is_some() {
+                    cache.store(path, Some(now));
                 }
             }
         }

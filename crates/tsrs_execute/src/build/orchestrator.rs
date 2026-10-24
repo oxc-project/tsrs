@@ -362,7 +362,7 @@ impl Orchestrator {
             task.reset_status();
             task.reset_config(self, &path);
         }
-        *self.host().m_times.lock().unwrap() = Arc::new(Mutex::new(FxHashMap::default()));
+        *self.host().m_times.write().unwrap() = Arc::default();
         self.reset_caches();
     }
 
@@ -1055,10 +1055,7 @@ impl Orchestrator {
 
     // orchestrator.go:498
     fn update_watch(&self) {
-        let old_cache = std::mem::replace(
-            &mut *self.host().m_times.lock().unwrap(),
-            Arc::new(Mutex::new(FxHashMap::default())),
-        );
+        let old_cache = std::mem::take(&mut *self.host().m_times.write().unwrap());
         let order = self.order.lock().unwrap().clone();
         for config in order {
             self.get_task(&self.to_path(&config)).update_watch(self, &old_cache);
@@ -1762,7 +1759,7 @@ pub fn new_orchestrator(opts: Options) -> &'static Orchestrator {
         source_files: ParseCache::default(),
         config_times: Mutex::new(FxHashMap::default()),
         resolved_references: ParseCache::default(),
-        m_times: Mutex::new(Arc::new(Mutex::new(FxHashMap::default()))),
+        m_times: std::sync::RwLock::new(Arc::default()),
         watch_source_files: watch.then(|| Mutex::new(FxHashMap::default())),
         watch_file_regions: crate::watchmem::FileRegions::default(),
     }));

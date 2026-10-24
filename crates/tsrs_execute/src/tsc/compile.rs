@@ -200,7 +200,7 @@ pub type SyncWriter = std::sync::Arc<dyn Fn(&str) + Send + Sync>;
 
 // The build host's mtime cache (Go `*collections.SyncMap[tspath.Path, time.Time]`, zero time = None).
 pub type MTimesCache = std::sync::Arc<
-    std::sync::Mutex<rustc_hash::FxHashMap<tsrs_core::tspath::Path, Option<std::time::SystemTime>>>,
+    tsrs_core::collections::SyncMap<tsrs_core::tspath::Path, Option<std::time::SystemTime>>,
 >;
 
 // emit.go:21 GetTraceWithWriterFromSys

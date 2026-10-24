@@ -3,6 +3,9 @@
 // every program and exhausts the arena reservation. The runs below use TSRS_ARENA_POISON=1 (freed arena memory is
 // filled and kept), so a read of a freed program's data crashes or prints garbage instead of passing by luck.
 //
+// Diagnostics that outlive the program used to keep the program's whole loader region alive.  They are now "detached"
+// before the region is freed: each retained diagnostic gets a minimal copy of the source file it points to (just name,
+// text, and line map).  The error-summary tests below exercise those detached copies.
 // Graph: a; b references a; c references a and b. One builder, so the projects build in that order.
 
 use std::path::{Path, PathBuf};
@@ -66,8 +69,8 @@ fn stdout(out: &Output) -> String {
     plain
 }
 
-// The error summary reads the files of the errors after their programs were freed: a project that reported
-// diagnostics keeps the regions its files were parsed into.
+// The error summary reads the files of the errors after their programs were freed.  The diagnostics are detached
+// before the program's loader regions are dropped, so their lightweight source-file copies must satisfy the summary.
 #[test]
 fn error_summary_reads_the_files_of_freed_programs() {
     let dir = graph(

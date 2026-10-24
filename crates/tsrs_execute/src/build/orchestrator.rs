@@ -820,6 +820,11 @@ impl Orchestrator {
             task.clean_project(self, path);
         } else {
             task.get().build_project(self, path);
+            if self.opts.testing.is_none() && self.frees_built_programs() {
+                // The error summary outlives the program; replace file references with lightweight copies so the
+                // program's loader regions can be dropped without invalidating the retained diagnostics.
+                task.detach_diagnostic_files();
+            }
         }
         if self.opts.testing.is_none() {
             // The program is only needed by Testing.OnProgram at report time; drop it now so a task

@@ -4,7 +4,9 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex, OnceLock};
 use std::time::SystemTime;
 
-use tsrs_ast::{Diagnostic, new_compiler_diagnostic};
+use rustc_hash::FxHashMap;
+
+use tsrs_ast::{Diagnostic, NodeFactory, detach_diagnostic_source_files, new_compiler_diagnostic};
 use tsrs_compiler::{ProgramOptions, WriteFileData, new_program};
 use tsrs_core::P;
 use tsrs_core::arena::Region;
@@ -155,9 +157,6 @@ pub struct BuildTask {
     watch_changes: Mutex<Option<Vec<(Path, tsrs_fswatch::EventKind)>>>,
     // tsrs-only, watch mode: the task built a program this cycle (reset by the orchestrator each cycle).
     pub(crate) built_program: AtomicBool,
-    // tsrs-only: the file loader regions of a freed program whose task reported diagnostics, which point at the files
-    // in them (`free_built_program`).
-    diagnostic_file_regions: Mutex<Option<Arc<tsrs_compiler::ProgramRegions>>>,
 }
 
 // tsrs-only (watch mode): what a task's full build allocated beside its program, which the programs `reuse_program`
@@ -199,7 +198,6 @@ impl BuildTask {
             watch_incremental: Mutex::new(None),
             watch_changes: Mutex::new(None),
             built_program: AtomicBool::new(false),
-            diagnostic_file_regions: Mutex::new(None),
         }
     }
 
@@ -542,8 +540,24 @@ impl BuildTask {
     // exhausts the arena reservation.
     //
     // The task's diagnostics stay (the build's error summary reads them): they escape the checker regions when made,
-    // but they point at their files, which the file loader parsed into `regions`, so a task that reported any keeps
-    // those. The declaration and JSON files projects share are in regions of their own (`host::get_source_file`).
+    // but they point at their files, which the file loader parsed into `regions`.  Before the regions are freed,
+    // `detach_diagnostic_files` replaces those file references with minimal copies that hold only what the diagnostic
+    // writer needs (file name, text, line map).  The declaration and JSON files projects share are in regions of their
+    // own (`host::get_source_file`).
+    pub(crate) fn detach_diagnostic_files(&self) {
+        let _diag_scope = tsrs_core::arena::escape_for_diagnostic();
+        let factory = NodeFactory::default();
+        let mut cache = FxHashMap::default();
+        let mut errors = self.errors.lock().unwrap();
+        for i in 0..errors.len() {
+            errors[i] = detach_diagnostic_source_files(errors[i], &factory, &mut cache);
+        }
+    }
+
+    #[expect(
+        clippy::unused_self,
+        reason = "Keeps the same method-call site as before the region-detaching change."
+    )]
     pub(crate) fn free_built_program(
         &self,
         program: P<tsrs_incremental::Program>,
@@ -556,9 +570,9 @@ impl BuildTask {
         // SAFETY: a full build (`new_program`; batch builds never reuse a program), so it shares nothing with another
         // version, and no checker handle of it is held once its task is built.
         unsafe { tsrs_compiler::free_unshared_program(compiler_program) };
-        if !self.errors.lock().unwrap().is_empty() {
-            *self.diagnostic_file_regions.lock().unwrap() = regions;
-        }
+        // The diagnostics were detached in `build_or_clean_project` before this runs, so the loader regions can be
+        // dropped regardless of whether any diagnostics were reported.
+        drop(regions);
     }
 
     // tsrs-only (watch mode): adds the files the task's program, its last full build's processed-file data and the

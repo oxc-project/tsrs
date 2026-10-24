@@ -8,7 +8,7 @@ use tsrs_core::tspath::Path;
 use tsrs_core::{OwnedCell, P, ResolutionMode, TextRange, alloc_slice, alloc_str};
 use tsrs_diagnostics::{self as diagnostics, Category, Key, Message};
 
-use crate::SourceFile;
+use crate::{Kind, NodeFactory, SourceFile};
 
 // RepopulateDiagnosticKind indicates the kind of repopulation for a diagnostic chain entry.
 #[repr(i32)]
@@ -243,6 +243,75 @@ impl DiagnosticExt for P<Diagnostic> {
             ),
         })
     }
+}
+
+/// tsrs-only: a lightweight `SourceFile` copy that keeps only what the diagnostic writer and error summary
+/// need (file name, text, and the lazily-computed line map).  It does not keep the original AST, binder
+/// data, or checker state, so a project whose diagnostics are converted with this can have its loader
+/// regions freed.
+fn detached_source_file_for_diagnostic(
+    file: P<SourceFile>,
+    factory: &NodeFactory,
+    cache: &mut FxHashMap<P<SourceFile>, P<SourceFile>>,
+) -> P<SourceFile> {
+    if let Some(copy) = cache.get(&file) {
+        return *copy;
+    }
+    let text = alloc_str(file.original_text());
+    let opts = file.parse_options().clone();
+    let statements = factory.new_node_list(vec![]);
+    let end_of_file_token = factory.new_token(Kind::EndOfFile);
+    let copy =
+        factory.new_source_file(opts, text, statements, end_of_file_token).as_source_file_p();
+    cache.insert(file, copy);
+    copy
+}
+
+/// tsrs-only: detach a diagnostic from its original source files.
+///
+/// Replace every `SourceFile` reference in `diagnostic` (and its message chain / related information)
+/// with a minimal copy allocated in the current region.  After this the diagnostic no longer depends
+/// on the program region that originally parsed the file, so that region can be dropped.
+#[expect(
+    clippy::implicit_hasher,
+    reason = "FxHashMap is the project-wide hash map; callers always use it, and generalizing would add noise for this tsrs-only helper."
+)]
+pub fn detach_diagnostic_source_files(
+    diagnostic: P<Diagnostic>,
+    factory: &NodeFactory,
+    cache: &mut FxHashMap<P<SourceFile>, P<SourceFile>>,
+) -> P<Diagnostic> {
+    let file =
+        diagnostic.file().map(|file| detached_source_file_for_diagnostic(file, factory, cache));
+    let message_chain: Vec<P<Diagnostic>> = diagnostic
+        .message_chain()
+        .iter()
+        .map(|&d| detach_diagnostic_source_files(d, factory, cache))
+        .collect();
+    let related_information: Vec<P<Diagnostic>> = diagnostic
+        .related_information()
+        .iter()
+        .map(|&d| detach_diagnostic_source_files(d, factory, cache))
+        .collect();
+    P::new(Diagnostic {
+        file: OwnedCell::new(file),
+        loc: OwnedCell::new(diagnostic.loc()),
+        code: diagnostic.code(),
+        category: OwnedCell::new(diagnostic.category()),
+        source: OwnedCell::new(alloc_str(diagnostic.source())),
+        message: diagnostic.message(),
+        message_text: OwnedCell::new(alloc_str(diagnostic.message_text())),
+        message_key: diagnostic.message_key(),
+        message_args: diagnostic.message_args().to_vec(),
+        message_chain: OwnedCell::new(alloc_slice(&message_chain)),
+        related_information: OwnedCell::new(alloc_slice(&related_information)),
+        reports_unnecessary: diagnostic.reports_unnecessary(),
+        reports_deprecated: diagnostic.reports_deprecated(),
+        skipped_on_no_emit: OwnedCell::new(diagnostic.skipped_on_no_emit()),
+        repopulate_info: OwnedCell::new(
+            diagnostic.repopulate_info().map(|info| tsrs_core::alloc(info.clone())),
+        ),
+    })
 }
 
 impl Diagnostic {

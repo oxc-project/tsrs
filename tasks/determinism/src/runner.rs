@@ -7,14 +7,19 @@ use std::time::{Duration, Instant};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
+mod conformance;
 mod regressions;
 
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 const FLAGS: &[&str] = &["--noEmit", "--incremental", "false", "--pretty", "false"];
 const ASSIGNMENTS: &[&str] = &["go", "locality", "default", "random"];
 const REPETITIONS: usize = 3;
+const OPTIONS: &[&str] =
+    &["--projects", "--tsrs", "--work-dir", "--snapshots-dir", "--out-dir", "--timeout"];
 const USAGE: &str = "tsrs_determinism <plan|snapshot|check|regressions> [--projects all|a,b] [--tsrs BIN]\n\
-    [--work-dir DIR] [--snapshots-dir DIR] [--out-dir DIR] [--timeout SECONDS]";
+    [--work-dir DIR] [--snapshots-dir DIR] [--out-dir DIR] [--timeout SECONDS]\n\
+tsrs_determinism conformance [--mode all|go|default|determinism] [--tsrs-test BIN] [--testdata DIR]\n\
+    [--out-dir DIR] [--list FILE] [--filter PATTERN] [--jobs N] [--default-reps N] [--seeds N] [--timeout SECONDS]";
 
 #[derive(Deserialize)]
 struct Input {
@@ -85,10 +90,13 @@ pub fn main(args: &[String]) -> Result<()> {
         println!("{USAGE}");
         return Ok(());
     }
+    if mode == "conformance" {
+        return conformance::run(&repo_root()?, &options(rest, conformance::OPTIONS)?);
+    }
     if !matches!(mode.as_str(), "plan" | "snapshot" | "check" | "regressions") {
         return Err(USAGE.into());
     }
-    let options = options(rest)?;
+    let options = options(rest, OPTIONS)?;
     let root = repo_root()?;
     let selected = options.get("--projects").map_or("all", String::as_str);
     let names = if mode == "regressions" {
@@ -142,14 +150,11 @@ pub fn main(args: &[String]) -> Result<()> {
     }
 }
 
-fn options(args: &[String]) -> Result<BTreeMap<String, String>> {
+fn options(args: &[String], allowed: &[&str]) -> Result<BTreeMap<String, String>> {
     let mut result = BTreeMap::new();
     let mut args = args.iter();
     while let Some(name) = args.next() {
-        if !matches!(
-            name.as_str(),
-            "--projects" | "--tsrs" | "--work-dir" | "--snapshots-dir" | "--out-dir" | "--timeout"
-        ) {
+        if !allowed.contains(&name.as_str()) {
             return Err(format!("unknown option {name}; {USAGE}").into());
         }
         let value = args

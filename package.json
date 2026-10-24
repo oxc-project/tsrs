@@ -37,7 +37,7 @@
         "fourslash": "node tools/go-fourslash/run.mjs",
         "fourslash:summarize": "node tools/go-fourslash/summarize.mjs",
         "fourslash:gate": "bash .github/scripts/go-fourslash-gate.sh",
-        "ci:conformance": "bash .github/scripts/conformance-gate.sh",
+        "ci:conformance": "cargo run --profile dev -p tsrs_determinism -- conformance",
         "ci:diagnostics": "node tools/ci/compare_diagnostics.mjs",
         "ci:skip-marker": "node tools/ci/skip_marker.mjs",
         "ci:determinism": "cargo run --profile dev -p tsrs_determinism -- check && cargo run --profile dev -p tsrs_determinism -- regressions",

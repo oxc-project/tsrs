@@ -113,7 +113,7 @@ Seeded fuzz and mutation generators use a deterministic JavaScript PRNG, so a se
 
 | Root command | Entry point |
 | --- | --- |
-| `pnpm ci:conformance` | `bash .github/scripts/conformance-gate.sh` |
+| `pnpm ci:conformance` | Conformance gate in both checker modes and upstream scheduling sweep in `tasks/determinism` |
 | `pnpm ci:diagnostics` | `node tools/ci/compare_diagnostics.mjs` |
 | `pnpm ci:skip-marker` | `node tools/ci/skip_marker.mjs` |
 | `pnpm ci:determinism` | Benchmark tsgo snapshot matrix and regression scheduling sweep in `tasks/determinism` |

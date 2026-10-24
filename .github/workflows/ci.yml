@@ -85,8 +85,6 @@ jobs:
     needs: build-correctness
     runs-on: ubuntu-latest
     timeout-minutes: 60
-    env:
-      TSRS_TEST: target/ci/tsrs-test
     steps:
       - uses: taiki-e/checkout-action@7d1e50e93dc4fb3bba58f85018fadf77898aee8b # v1.4.2
 
@@ -128,10 +126,10 @@ jobs:
           path: target/ci
 
       - name: Make correctness binaries executable
-        run: chmod +x target/ci/tsrs target/ci/tsrs-test
+        run: chmod +x target/ci/tsrs target/ci/tsrs-test target/ci/tsrs_determinism
 
       - name: Conformance suite (both checker modes and scheduling sweep)
-        run: .github/scripts/conformance-gate.sh
+        run: target/ci/tsrs_determinism conformance --tsrs-test target/ci/tsrs-test
 
       - name: Regression cases
         run: tools/regressions.sh target/ci/tsrs

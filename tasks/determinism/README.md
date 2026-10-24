@@ -9,6 +9,10 @@ and incomplete runs always fail.
 A separate regression sweep checks fixture expectations across default and seeded
 random schedules, so focused reproductions retain multithreaded coverage.
 
+The `conformance` command runs the compiler conformance gate in tsgo's checker
+history and in the default CLI mode, then sweeps selected upstream scheduling
+regressions across checker counts and seeded assignments.
+
 The expectation is one committed JSON snapshot per project in `snapshots/`.
 Snapshots come from the upstream native Go compiler with `--singleThreaded`.
 They are independent of the tsrs binary being checked. Updating snapshots does
@@ -25,6 +29,7 @@ target/debug/tsrs_determinism plan
 target/debug/tsrs_determinism check
 target/debug/tsrs_determinism check --projects webpack --tsrs target/debug/tsrs
 target/debug/tsrs_determinism regressions
+target/debug/tsrs_determinism conformance
 ```
 
 The task prepares the selected benchmark checkouts using the existing benchmark
@@ -123,6 +128,52 @@ Results default to `target/determinism/regressions/`, with a separate summary an
 per-fixture logs, JSON and diffs. CI runs the sweep in the same determinism job,
 including when a benchmark comparison fails, and uploads it with the benchmark results.
 
+## Conformance gate
+
+The `conformance` command runs `tsrs-test` over the upstream compiler and
+conformance suites, without benchmark preparation or the npm compiler:
+
+```sh
+target/debug/tsrs_determinism conformance
+target/debug/tsrs_determinism conformance --mode determinism
+target/debug/tsrs_determinism conformance --filter stableTypeMapperOrdering --default-reps 1 --seeds 1
+```
+
+It first checks that the testdata checkout is at `[workspace.metadata.typescript].commit`.
+It then compares every supported baseline (`--baselines all`) with upstream twice: in
+tsgo's single-threaded checker history, and in the default CLI mode with canonical
+history and work stealing. Last, it repeats the fixtures in
+`testdata/checker-determinism.txt` at 4 and 8 checkers, with ten default-scheduler
+runs and eight seeded random assignments per count. Every run compares with the
+upstream baselines, so a crash shared by all schedules still fails. Add new
+upstream scheduling reproductions to that list.
+
+Each run sets `TSRS_TESTDATA`, `TSRS_TEST_RESULTS`, `TS_TEST_PROGRAM_SINGLE_THREADED`,
+`TSRS_HISTORY` and `TSRS_CHECKER_ASSIGNMENT`; other environment variables, such as
+experiment flags, pass through. Results go to `target/test-results/` for Go history,
+`target/test-results-default/` and `target/test-results-determinism/<run>/`, each
+with `tsrs-test`'s lists and `summary.json`. The command continues after a failed
+run and exits unsuccessfully if any run failed. CI runs it in the `test` job, and
+release BOLT runs it on the optimized `tsrs-test`. Replay a failed sweep run such as
+`random-8-3` with:
+
+```sh
+TSRS_HISTORY=canonical TSRS_CHECKER_ASSIGNMENT=random:3 \
+  target/debug/tsrs-test run --baselines all --checkers 8 --filter <name>
+```
+
+| Option | Default |
+| --- | --- |
+| `--mode all\|go\|default\|determinism` | `all` |
+| `--tsrs-test BIN` | `target/debug/tsrs-test` |
+| `--testdata DIR` | `ts-ref/tsc/testdata` |
+| `--out-dir DIR` | `target/test-results`; the other runs append `-default` and `-determinism` |
+| `--list FILE`, `--filter PATTERN` | every test; the sweep uses `testdata/checker-determinism.txt` unless one is given |
+| `--jobs N` | `tsrs-test`'s default |
+| `--default-reps N` | `10` |
+| `--seeds N` | `8` |
+| `--timeout SECONDS` | `120` per test |
+
 ## Comparisons and failures
 
 Snapshots retain diagnostic lines and their indented continuation lines in order,
@@ -151,8 +202,9 @@ diff before changing expectations. A compiler mismatch is a failing parity case.
 
 ## Options
 
-All commands accept `--projects all|name,...` (default: all). Benchmark names run
-in catalog order; `regressions` selects fixture names in alphabetical order.
+The benchmark and regression commands accept `--projects all|name,...` (default:
+all). Benchmark names run in catalog order; `regressions` selects fixture names in
+alphabetical order.
 `snapshot`, `check` and `regressions` also accept:
 
 | Option | Default |

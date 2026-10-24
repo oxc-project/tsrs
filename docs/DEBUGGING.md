@@ -40,8 +40,8 @@ understand, read both versions and the Go source; do not blindly take one side.
 
 ## Running tests
 
-- Full gate: `.github/scripts/conformance-gate.sh` runs every baseline in both checker modes, then the scheduling
-  sweep ([options and replay](../CONTRIBUTING.md#run-the-tests)).
+- Full gate: `cargo run --profile dev -p tsrs_determinism -- conformance` runs every baseline in both checker modes,
+  then the scheduling sweep ([options and replay](../tasks/determinism/README.md#conformance-gate)).
 - Full suite in Go history: `./target/debug/tsrs-test run --suite all` -> summary table; per-class name lists in
   `target/test-results/{pass,codes,fail,crash,timeout}.txt`; `summary.json` has the first difference per test.
 - One test / a cluster: `tsrs-test run --filter <substring|regex>`, `tsrs-test show <suite/name>` (expected vs actual),

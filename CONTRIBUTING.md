@@ -90,7 +90,7 @@ package version; [the compatibility guide](docs/COMPATIBILITY.md) distinguishes 
 With the [reference checkout](#reference-compiler) ready:
 
 ```sh
-TSRS_TEST=target/debug/tsrs-test .github/scripts/conformance-gate.sh # both checker modes and the scheduling sweep
+cargo run --profile dev -p tsrs_determinism -- conformance       # both checker modes and the scheduling sweep
 ./target/debug/tsrs-test run --suite all --baselines all          # Go history only; lists in target/test-results/
 ./target/debug/tsrs-test run --filter <substring>                 # one test or a cluster
 ./target/debug/tsrs-test show <suite/name>                        # expected vs actual
@@ -101,8 +101,9 @@ cargo run --profile dev -p tsrs_determinism -- check --tsrs target/debug/tsrs # 
 cargo test --locked                                             # all workspace unit and integration tests (CI)
 ```
 
-The conformance gate, also run by CI and release BOLT, compares every supported compiler baseline in tsgo's checker
-history and in the default CLI mode with work stealing. It then repeats the upstream fixtures listed in
+The conformance gate in [the determinism task](tasks/determinism/README.md#conformance-gate), also run by CI and
+release BOLT, compares every supported compiler baseline in tsgo's checker history and in the default CLI mode with
+work stealing. It then repeats the upstream fixtures listed in
 `testdata/checker-determinism.txt` at 4 and 8 checkers, with ten default runs and eight seeded assignments per count.
 `--baselines all` includes errors, types, symbols, JavaScript/declaration emit, JavaScript maps and source-map
 records. The runner exits unsuccessfully on any baseline difference, crash, timeout or empty selection. The gate also
@@ -110,14 +111,8 @@ rejects a testdata checkout at a different TypeScript source pin. Unsupported ca
 
 The raw `tsrs-test` command keeps upstream's single-threaded Go history so baseline differences are reproducible.
 Schedule-dependent output in the default mode is a defect; add its upstream reproduction to
-`testdata/checker-determinism.txt`. `--mode go|default|determinism`, `--filter`, `--list`, `--default-reps` and
-`--seeds` narrow a local gate run. Results go to `target/test-results/`, `target/test-results-default/` and
-`target/test-results-determinism/<run>/`. Replay a seeded failure with:
-
-```sh
-TSRS_HISTORY=canonical TSRS_CHECKER_ASSIGNMENT=random:4 \
-  target/debug/tsrs-test run --baselines all --checkers 4 --filter <name>
-```
+`testdata/checker-determinism.txt`. The [task guide](tasks/determinism/README.md#conformance-gate) lists the gate's
+options, result directories and replay command.
 
 The Node API job verifies generated compiler sources and the vendored SDK, then runs all existing upstream client
 and local parity cases against both the Go oracle and tsrs.

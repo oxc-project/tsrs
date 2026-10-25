@@ -425,8 +425,19 @@ const _: () = assert!(std::mem::size_of::<SymbolMap>() == 24);
 #[cfg(target_pointer_width = "32")]
 const _: () = assert!(std::mem::size_of::<SymbolMap>() == 16);
 
+// SAFETY: `entries.cap` is a `u32` whose bit 31 `EntryVec` masks out of every read and keeps in every write
+// (`capacity()` / `store_cap`), so the bit is the cell's to set and clear; lookups never read `cap`.
+unsafe impl tsrs_core::WriteFlag for SymbolMap {
+    const FLAG_OFFSET: usize = std::mem::offset_of!(SymbolMap, entries.cap);
+    const FLAG: u32 = EntryVec::WRITE_FLAG;
+}
+
 /// `Vec<SymbolMapEntry>` with a `u32` length and capacity (16 bytes instead of 24; 3.5M symbol tables on the private monorepo).
 /// Grows like `Vec` (`push` doubles from 4; `reserve_exact` adds exactly).
+///
+/// Bit 31 of `cap` is the table's `FrozenCell` write flag (`WriteFlag for SymbolMap`): the one word of a table
+/// that lookups never read, so the flag costs no memory and readers nothing. `capacity()` masks it out and
+/// `store_cap` keeps it; nothing else touches `cap`.
 struct EntryVec {
     ptr: std::ptr::NonNull<SymbolMapEntry>,
     len: u32,
@@ -440,6 +451,8 @@ impl Default for EntryVec {
 }
 
 impl EntryVec {
+    const WRITE_FLAG: u32 = 1 << 31;
+
     fn with_capacity(n: usize) -> EntryVec {
         let mut v = EntryVec::default();
         v.reserve_exact(n);
@@ -448,7 +461,12 @@ impl EntryVec {
 
     #[inline]
     fn capacity(&self) -> usize {
-        self.cap as usize
+        (self.cap & !Self::WRITE_FLAG) as usize
+    }
+
+    #[inline]
+    fn store_cap(&mut self, cap: u32) {
+        self.cap = cap | (self.cap & Self::WRITE_FLAG);
     }
 
     fn layout(cap: usize) -> std::alloc::Layout {
@@ -458,35 +476,38 @@ impl EntryVec {
     /// Makes room for at least `additional` more entries, allocating exactly that much when it grows.
     fn reserve_exact(&mut self, additional: usize) {
         let needed = self.len as usize + additional;
-        if needed > self.cap as usize {
+        if needed > self.capacity() {
             self.set_capacity(needed);
         }
     }
 
     fn set_capacity(&mut self, cap: usize) {
-        let cap32 = u32::try_from(cap).expect("symbol table with more than u32::MAX entries");
-        let ptr = if self.cap == 0 {
+        let cap32 = u32::try_from(cap)
+            .ok()
+            .filter(|c| c & Self::WRITE_FLAG == 0)
+            .expect("symbol table with 2^31 entries or more");
+        let ptr = if self.capacity() == 0 {
             // SAFETY: `cap` > 0 entries of a non-zero-sized type.
             unsafe { std::alloc::alloc(Self::layout(cap)) }
         } else {
-            // SAFETY: `ptr` was allocated with the layout of `self.cap` entries.
+            // SAFETY: `ptr` was allocated with the layout of `capacity()` entries.
             unsafe {
                 std::alloc::realloc(
                     self.ptr.as_ptr().cast(),
-                    Self::layout(self.cap as usize),
+                    Self::layout(self.capacity()),
                     Self::layout(cap).size(),
                 )
             }
         };
         self.ptr = std::ptr::NonNull::new(ptr.cast())
             .unwrap_or_else(|| std::alloc::handle_alloc_error(Self::layout(cap)));
-        self.cap = cap32;
+        self.store_cap(cap32);
     }
 
     #[inline]
     fn push(&mut self, e: SymbolMapEntry) {
-        if self.len == self.cap {
-            self.set_capacity((self.cap as usize * 2).max(4));
+        if self.len as usize == self.capacity() {
+            self.set_capacity((self.capacity() * 2).max(4));
         }
         // SAFETY: `len` < `cap`.
         unsafe { self.ptr.as_ptr().add(self.len as usize).write(e) };
@@ -534,10 +555,10 @@ impl Clone for EntryVec {
 
 impl Drop for EntryVec {
     fn drop(&mut self) {
-        if self.cap != 0 {
-            // SAFETY: allocated with the layout of `cap` entries.
+        if self.capacity() != 0 {
+            // SAFETY: allocated with the layout of `capacity()` entries.
             unsafe {
-                std::alloc::dealloc(self.ptr.as_ptr().cast(), Self::layout(self.cap as usize));
+                std::alloc::dealloc(self.ptr.as_ptr().cast(), Self::layout(self.capacity()));
             };
         }
     }

@@ -3,7 +3,8 @@
 //! Go's AST nodes and binder symbols are written while a file is parsed and bound and are then read
 //! concurrently by every checker, with no synchronization: they are frozen by convention. `RefCell`
 //! cannot express that, because its borrow counter is written even by `borrow()`, so concurrent readers
-//! race on it. `FrozenCell` has the same `borrow()` / `borrow_mut()` surface without a runtime flag.
+//! race on it. `FrozenCell` has the same `borrow()` / `borrow_mut()` surface; its `borrow()` does no
+//! bookkeeping.
 //!
 //! Its one user is `SymbolTable` (`tsrs_ast/src/symbol.rs`). Shared data that is still written after binding
 //! does not use it: a `SourceFile`'s `JSDoc` cache is a `OnceLock` map (files without lazy `JSDoc`) or an
@@ -16,20 +17,44 @@
 //! - A `borrow_mut()` guard is never held across a call that may read or write the same cell (same rule
 //!   as for `RefCell`).
 //!
-//! Builds with `debug_assertions` or the `checked-cells` feature keep an atomic borrow counter and panic
-//! on aliasing violations, like `RefCell` but without a data race; release builds do no bookkeeping.
+//! Every build catches a second `borrow_mut()` while a `borrow_mut()` guard is live (#646's Miri
+//! reproduction), on the same thread or from another one: `borrow_mut` panics instead of handing out a
+//! second `&mut`. The flag that says a guard is live is a spare bit of the value itself (`WriteFlag`), so
+//! the cell is no larger than its value, and `borrow()` never touches it, so readers pay nothing; for the
+//! same reason a `borrow()` that overlaps a `borrow_mut()` is not caught here. Builds with
+//! `debug_assertions` or the `checked-cells` feature add an atomic borrow counter that catches that too,
+//! like `RefCell` but without a data race.
 
 use std::cell::{Cell, UnsafeCell};
 use std::fmt;
 use std::ops::{Deref, DerefMut};
+use std::sync::atomic::{AtomicU32, Ordering};
 
 #[cfg(any(debug_assertions, feature = "checked-cells"))]
-use std::sync::atomic::{AtomicUsize, Ordering};
+use std::sync::atomic::AtomicUsize;
 
 #[cfg(any(debug_assertions, feature = "checked-cells"))]
 const EXCLUSIVE_BORROW: usize = usize::MAX;
 
-pub struct FrozenCell<T> {
+/// Where a `FrozenCell<T>` keeps the flag that marks a live `borrow_mut` guard: a spare bit of a `u32` field
+/// of `T`.
+///
+/// The cell is then no larger than its value (a `SymbolTable` is 24 bytes, and a large project has millions).
+/// The cell sets the bit when it creates a guard and clears it when the guard drops, both with atomic
+/// operations on that field; `borrow()` never touches it.
+///
+/// # Safety
+/// `T` has a `u32` field at byte offset `FLAG_OFFSET`, and `T`'s own code never changes bit `FLAG` of it:
+/// its reads of the field mask the bit out and its writes keep it, so the flag survives whatever the value
+/// does to itself while a guard is live. Nothing outside the cell reads the bit.
+pub unsafe trait WriteFlag {
+    /// Byte offset of the `u32` field holding the flag.
+    const FLAG_OFFSET: usize;
+    /// The flag bit within that field.
+    const FLAG: u32;
+}
+
+pub struct FrozenCell<T: WriteFlag> {
     value: UnsafeCell<T>,
     #[cfg(any(debug_assertions, feature = "checked-cells"))]
     state: AtomicUsize, // 1..EXCLUSIVE_BORROW: shared borrow count; EXCLUSIVE_BORROW: exclusive borrow
@@ -37,18 +62,45 @@ pub struct FrozenCell<T> {
 
 // SAFETY: shared access is read-only except through `borrow_mut`, whose callers follow the ownership
 // contract in the module docs (only the owning thread writes, and never while other threads can read).
-unsafe impl<T: Send + Sync> Sync for FrozenCell<T> {}
+unsafe impl<T: WriteFlag + Send + Sync> Sync for FrozenCell<T> {}
 // SAFETY: the cell owns its `T` like an `UnsafeCell<T>`, so it is `Send` when `T` is.
-unsafe impl<T: Send> Send for FrozenCell<T> {}
+unsafe impl<T: WriteFlag + Send> Send for FrozenCell<T> {}
 
-impl<T> FrozenCell<T> {
+#[cold]
+#[inline(never)]
+fn already_borrowed() -> ! {
+    panic!("FrozenCell already borrowed")
+}
+
+impl<T: WriteFlag> FrozenCell<T> {
     #[inline]
-    pub const fn new(value: T) -> FrozenCell<T> {
+    pub fn new(mut value: T) -> FrozenCell<T> {
+        // The flag travels with the value: one moved out of a cell by `replace` while its guard was live
+        // still has the bit set. A cell starts with it clear.
+        // SAFETY: `WriteFlag`'s contract: a `u32` field of `T` at `FLAG_OFFSET`.
+        unsafe { *Self::flag_word(&raw mut value) &= !T::FLAG };
         FrozenCell {
             value: UnsafeCell::new(value),
             #[cfg(any(debug_assertions, feature = "checked-cells"))]
             state: AtomicUsize::new(0),
         }
+    }
+
+    /// The flag word (`WriteFlag`) of the value at `value`, by pointer: no reference to the value is
+    /// created, because a `borrow_mut` guard may hold one.
+    #[inline]
+    fn flag_word(value: *mut T) -> *mut u32 {
+        value.wrapping_byte_add(T::FLAG_OFFSET).cast()
+    }
+
+    /// The cell's flag word as an atomic, for `borrow_mut` and its guard's `Drop`.
+    #[inline]
+    fn write_flag(&self) -> &AtomicU32 {
+        // SAFETY: `WriteFlag`'s contract puts a `u32` field (so an aligned one) at `FLAG_OFFSET` of the
+        // value, which lives as long as `self`. Every access to the field from the cell is atomic; the value's
+        // own non-atomic accesses to it go through a `borrow_mut` guard, on the thread holding the guard,
+        // sequenced between the atomic operations that create and release it.
+        unsafe { AtomicU32::from_ptr(Self::flag_word(self.value.get())) }
     }
 
     #[inline]
@@ -90,14 +142,19 @@ impl<T> FrozenCell<T> {
                 .compare_exchange(0, EXCLUSIVE_BORROW, Ordering::Acquire, Ordering::Relaxed)
                 .is_err()
             {
-                panic!("FrozenCell already borrowed");
+                already_borrowed();
             }
         }
+        // Acquire pairs with the guard's Release: a guard another thread dropped handed its writes over before
+        // this one writes. The bit already set means a guard is live, and no second `&mut` is created.
+        if self.write_flag().fetch_or(T::FLAG, Ordering::Acquire) & T::FLAG != 0 {
+            already_borrowed();
+        }
         FrozenRefMut {
-            // SAFETY: see the module contract; only the owning thread writes, and no other borrow is live.
+            // SAFETY: see the module contract; only the owning thread writes, and the flag says no other
+            // `borrow_mut` guard is live.
             value: unsafe { &mut *self.value.get() },
-            #[cfg(any(debug_assertions, feature = "checked-cells"))]
-            state: &self.state,
+            cell: self,
         }
     }
 
@@ -108,14 +165,14 @@ impl<T> FrozenCell<T> {
     }
 }
 
-impl<T: Default> Default for FrozenCell<T> {
+impl<T: WriteFlag + Default> Default for FrozenCell<T> {
     #[inline]
     fn default() -> Self {
         FrozenCell::new(T::default())
     }
 }
 
-impl<T: fmt::Debug> fmt::Debug for FrozenCell<T> {
+impl<T: WriteFlag + fmt::Debug> fmt::Debug for FrozenCell<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_tuple("FrozenCell").field(&*self.borrow()).finish()
     }
@@ -143,13 +200,14 @@ impl<T> Drop for FrozenRef<'_, T> {
     }
 }
 
-pub struct FrozenRefMut<'a, T> {
+pub struct FrozenRefMut<'a, T: WriteFlag> {
     value: &'a mut T,
-    #[cfg(any(debug_assertions, feature = "checked-cells"))]
-    state: &'a AtomicUsize,
+    // `Drop` clears the flag through the cell, not through `value`: a second `borrow_mut` that found the flag
+    // set has touched the value's memory, which under the aliasing rules retires `value`.
+    cell: &'a FrozenCell<T>,
 }
 
-impl<T> Deref for FrozenRefMut<'_, T> {
+impl<T: WriteFlag> Deref for FrozenRefMut<'_, T> {
     type Target = T;
     #[inline]
     fn deref(&self) -> &T {
@@ -157,18 +215,21 @@ impl<T> Deref for FrozenRefMut<'_, T> {
     }
 }
 
-impl<T> DerefMut for FrozenRefMut<'_, T> {
+impl<T: WriteFlag> DerefMut for FrozenRefMut<'_, T> {
     #[inline]
     fn deref_mut(&mut self) -> &mut T {
         self.value
     }
 }
 
-#[cfg(any(debug_assertions, feature = "checked-cells"))]
-impl<T> Drop for FrozenRefMut<'_, T> {
+impl<T: WriteFlag> Drop for FrozenRefMut<'_, T> {
     #[inline]
     fn drop(&mut self) {
-        self.state.store(0, Ordering::Release);
+        // Release pairs with the Acquire in `borrow_mut`: the next guard, on any thread, sees these writes.
+        self.cell.write_flag().fetch_and(!T::FLAG, Ordering::Release);
+        #[cfg(any(debug_assertions, feature = "checked-cells"))]
+        // Release, as for the flag.
+        self.cell.state.store(0, Ordering::Release);
     }
 }
 

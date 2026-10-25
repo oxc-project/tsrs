@@ -35,6 +35,9 @@ jobs:
           cargo miri setup
           # Miri cannot model the compressed pointers' PROT_NONE reservation.
           cargo miri test --locked -p tsrs_core --features plain-ptrs --test integration arena_test::
+          # FrozenCell in both configurations: the write flag alone, and with the checked-cells borrow counter.
+          cargo miri test --locked -p tsrs_core --features plain-ptrs --test integration frozen_test::
+          cargo miri test --locked -p tsrs_core --features plain-ptrs,checked-cells --test integration frozen_test::
           # Require the known protected-borrow violation, not just any command failure.
           if cargo miri test --locked -p tsrs_core --features plain-ptrs --test integration \
               arena_test::miri_rejects_freeing_a_reference_parameter -- --exact --ignored > "$RUNNER_TEMP/miri-negative.log" 2>&1; then

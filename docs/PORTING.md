@@ -137,18 +137,23 @@ Cell types for shared objects (`tsrs_core::frozen`):
 
 - `OwnedCell<T>`: `Cell` API (`get`/`set`/`replace`) for `Copy` fields of shared objects. Only the owner writes:
   the parser/binder before the file is bound, or a checker on objects it created.
-- `FrozenCell<T>`: `RefCell` API (`borrow`/`borrow_mut`) without a runtime borrow flag, for collections in shared
-  objects. `RefCell` cannot be used there: its flag is written by `borrow()`, so concurrent readers race. Same owner
-  rule for `borrow_mut`. Never hold a `borrow_mut` guard across a call that reads the same cell. Its one user is
-  `SymbolTable`; shared data that is written after binding uses std locks instead (the `SourceFile` JSDoc caches,
-  `TsConfigSourceFile`).
+- `FrozenCell<T>`: `RefCell` API (`borrow`/`borrow_mut`) whose `borrow()` does no bookkeeping, for collections in
+  shared objects. `RefCell` cannot be used there: its flag is written by `borrow()`, so concurrent readers race. Same
+  owner rule for `borrow_mut`. Never hold a `borrow_mut` guard across a call that reads the same cell. A second
+  `borrow_mut` while a `borrow_mut` guard is live panics in every build (same thread or another): the flag is a
+  spare bit of the value (`WriteFlag`; for a `SymbolTable`, bit 31 of its entry capacity, the one word lookups never
+  read), so it costs no memory and readers never touch it. A `borrow()` that overlaps a `borrow_mut` is caught only
+  in checked builds. Its one user is `SymbolTable`; shared data that is written after binding uses std locks
+  instead (the `SourceFile` JSDoc caches, `TsConfigSourceFile`).
 - `Cell`/`RefCell` stay fine for checker-owned objects (types, links, checker state).
 
 Checking the contract: build with `--features tsrs_core/checked-cells` (or a debug build) and run with
 `TSRS_CHECK_SHARED=1`. The pool then binds all files, records every arena allocation made so far as shared, and
 any `OwnedCell::set` / `FrozenCell::borrow_mut` on such an object panics with a backtrace pointing at the write.
-Checked builds also keep an atomic borrow counter in `FrozenCell` to catch aliasing like `RefCell` does. That
-counter is only in checked builds because readers pay for it (notes/unsafe-audit.md has the measurement).
+Checked builds also keep an atomic borrow counter in `FrozenCell` to catch every aliasing like `RefCell` does, not
+only a second `borrow_mut`. That counter is only in checked builds because readers pay for it (notes/unsafe-audit.md
+has the measurement). The Miri job (`.github/workflows/miri.yml`) runs the `FrozenCell` tests, the double `borrow_mut`
+included, in both configurations: with the write flag alone and with `checked-cells`.
 CI also runs the [ThreadSanitizer gate](DEBUGGING.md#data-races-threadsanitizer-tasksthread_sanitizer) on Linux.
 Use that gate to check cross-thread accesses; macOS sanitizer availability depends on the installed toolchain.
 

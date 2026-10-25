@@ -23,7 +23,7 @@ pub use ptr::{
 };
 
 pub mod frozen;
-pub use frozen::{FrozenCell, FrozenRef, FrozenRefMut, OwnedCell, OwnedTaggedStrCell};
+pub use frozen::{FrozenCell, FrozenRef, FrozenRefMut, OwnedCell, OwnedTaggedStrCell, WriteFlag};
 
 pub mod collections;
 pub mod compat;

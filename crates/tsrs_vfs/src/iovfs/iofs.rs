@@ -1,9 +1,8 @@
-use std::sync::Arc;
 use std::time::SystemTime;
 
 use tsrs_core::tspath;
 
-use crate::internal::{self, Common, IoDirEntry, IoFS};
+use crate::internal::{self, Common, IoDirEntry, IoFS, RootFor};
 use crate::{Entries, FS, FileInfo, FileMode, FsError};
 
 pub trait RealpathFS: IoFS {
@@ -28,56 +27,57 @@ pub trait WritableFS: IoFS {
 //
 // From does not actually handle case-insensitivity; ensure the passed in [fs.FS]
 // respects case-insensitive file names if needed. Consider using [vfstest.FromMap] for testing.
-pub fn from<T: IoFS + 'static>(fsys: T, use_case_sensitive_file_names: bool) -> IoVFS<T> {
-    let fsys = Arc::new(fsys);
-    let root_fsys = Arc::clone(&fsys);
+pub fn from<T: IoFS>(fsys: T, use_case_sensitive_file_names: bool) -> IoVFS<T> {
     IoVFS {
-        common: Common {
-            root_for: Box::new(move |root: &str| -> Option<Box<dyn IoFS>> {
-                if root == "/" {
-                    return Some(Box::new(Arc::clone(&root_fsys)));
-                }
-
-                let p = tspath::remove_trailing_directory_separator(root);
-                if !internal::valid_path(p) {
-                    if tspath::is_url(root) {
-                        return None;
-                    }
-                    panic!(
-                        "vfs: failed to create sub file system for {p:?}: sub {p}: invalid argument"
-                    );
-                }
-                if p == "." {
-                    return Some(Box::new(Arc::clone(&root_fsys)));
-                }
-                Some(Box::new(SubFS { fsys: Arc::clone(&root_fsys), dir: p.to_string() }))
-            }),
-            is_reparse_point: None,
-        },
+        common: Common { root_for: SubRoots { fsys }, is_reparse_point: None },
         use_case_sensitive_file_names,
-        fsys,
     }
 }
 
-// fs.Sub
-struct SubFS<T: IoFS> {
-    fsys: Arc<T>,
-    dir: String,
+// fs.Sub(fsys, root) for each root; "/" and "." are fsys itself.
+struct SubRoots<T: IoFS> {
+    fsys: T,
 }
 
-impl<T: IoFS> SubFS<T> {
+impl<T: IoFS> RootFor for SubRoots<T> {
+    fn with_root<R>(&self, root: &str, f: impl FnOnce(&dyn IoFS) -> R) -> Option<R> {
+        if root == "/" {
+            return Some(f(&self.fsys));
+        }
+
+        let p = tspath::remove_trailing_directory_separator(root);
+        if !internal::valid_path(p) {
+            if tspath::is_url(root) {
+                return None;
+            }
+            panic!("vfs: failed to create sub file system for {p:?}: sub {p}: invalid argument");
+        }
+        if p == "." {
+            return Some(f(&self.fsys));
+        }
+        Some(f(&SubFS { fsys: &self.fsys, dir: p }))
+    }
+}
+
+// fs.Sub, lent by SubRoots for one operation.
+struct SubFS<'a, T: IoFS> {
+    fsys: &'a T,
+    dir: &'a str,
+}
+
+impl<T: IoFS> SubFS<'_, T> {
     fn full_name(&self, name: &str) -> Result<String, FsError> {
         if !internal::valid_path(name) {
             return Err(FsError::Invalid);
         }
         if name == "." {
-            return Ok(self.dir.clone());
+            return Ok(self.dir.to_string());
         }
         Ok(format!("{}/{}", self.dir, name))
     }
 }
 
-impl<T: IoFS> IoFS for SubFS<T> {
+impl<T: IoFS> IoFS for SubFS<'_, T> {
     fn stat(&self, name: &str) -> Result<FileInfo, FsError> {
         let full = self.full_name(name)?;
         self.fsys.stat(&full)
@@ -95,10 +95,9 @@ impl<T: IoFS> IoFS for SubFS<T> {
 }
 
 pub struct IoVFS<T: IoFS> {
-    common: Common,
+    common: Common<SubRoots<T>>,
 
     use_case_sensitive_file_names: bool,
-    fsys: Arc<T>,
 }
 
 fn cut_slash(path: &str) -> (&str, bool) {
@@ -110,11 +109,11 @@ fn cut_slash(path: &str) -> (&str, bool) {
 
 impl<T: IoFS> IoVFS<T> {
     pub fn fsys(&self) -> &T {
-        &self.fsys
+        &self.common.root_for.fsys
     }
 
     fn realpath_impl(&self, path: &str) -> Result<String, FsError> {
-        match self.fsys.as_realpath_fs() {
+        match self.fsys().as_realpath_fs() {
             Some(fsys) => {
                 let (rest, had_slash) = cut_slash(path);
                 let rp = fsys.realpath(rest)?;
@@ -128,7 +127,7 @@ impl<T: IoFS> IoVFS<T> {
     }
 
     fn writable(&self, what: &str) -> &dyn WritableFS {
-        match self.fsys.as_writable_fs() {
+        match self.fsys().as_writable_fs() {
             Some(fsys) => fsys,
             None => panic!("{what} not supported"),
         }
@@ -203,10 +202,10 @@ impl<T: IoFS> FS for IoVFS<T> {
     }
 
     fn realpath(&self, path: &str) -> String {
-        let (root, rest) = internal::split_path(path);
+        let split = internal::split_path(path);
         // splitPath normalizes the path into parts (e.g. "c:/foo/bar" -> "c:/", "foo/bar")
         // Put them back together to call realpath.
-        match self.realpath_impl(&format!("{root}{rest}")) {
+        match self.realpath_impl(&format!("{}{}", split.root(), split.rest())) {
             Ok(realpath) => realpath,
             Err(_) => path.to_string(),
         }

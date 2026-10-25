@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::borrow::Cow;
 
 use rustc_hash::FxHashSet;
 use tsrs_core::tspath;
@@ -34,32 +34,6 @@ pub trait IoFS: Send + Sync {
     }
 }
 
-impl<T: IoFS + ?Sized> IoFS for Arc<T> {
-    fn stat(&self, name: &str) -> Result<FileInfo, FsError> {
-        (**self).stat(name)
-    }
-
-    fn file_type(&self, name: &str) -> Result<FileMode, FsError> {
-        (**self).file_type(name)
-    }
-
-    fn read_dir(&self, name: &str) -> Result<Vec<IoDirEntry>, FsError> {
-        (**self).read_dir(name)
-    }
-
-    fn read_file(&self, name: &str) -> Result<Vec<u8>, FsError> {
-        (**self).read_file(name)
-    }
-
-    fn as_realpath_fs(&self) -> Option<&dyn crate::iovfs::RealpathFS> {
-        (**self).as_realpath_fs()
-    }
-
-    fn as_writable_fs(&self) -> Option<&dyn crate::iovfs::WritableFS> {
-        (**self).as_writable_fs()
-    }
-}
-
 // IoDirEntry is the part of fs.DirEntry that Common uses.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct IoDirEntry {
@@ -82,10 +56,17 @@ pub fn valid_path(name: &str) -> bool {
         && !tspath::has_relative_path_segment(name)
 }
 
-pub type RootForFn = Box<dyn Fn(&str) -> Option<Box<dyn IoFS>> + Send + Sync>;
+// RootFor lends the io/fs view of one path root for one operation: os.DirFS(root) on the OS, fs.Sub(fsys, root)
+// over an IoFS, the host's root in WebAssembly. The view borrows the root instead of owning a copy in a box, so a
+// probe (`file_exists`, `directory_exists`, `stat`) allocates nothing before the joined path it hands the system.
+pub trait RootFor: Send + Sync {
+    // Calls f with the file system serving root (a root as `split_path` returns it: "/", "c:/", "//server/share/"),
+    // or returns None when no file system serves it.
+    fn with_root<T>(&self, root: &str, f: impl FnOnce(&dyn IoFS) -> T) -> Option<T>;
+}
 
-pub struct Common {
-    pub root_for: RootForFn,
+pub struct Common<R: RootFor> {
+    pub root_for: R,
     pub is_reparse_point: Option<fn(&str) -> bool>,
 }
 
@@ -95,43 +76,61 @@ pub fn root_length(p: &str) -> usize {
     l.len()
 }
 
-pub fn split_path(p: &str) -> (String, String) {
-    let p = tspath::normalize_path(p);
-    let l = root_length(&p);
-    let root_name = p[..l].to_string();
-    let rest = tspath::remove_trailing_directory_separator(&p[l..]).to_string();
-    (root_name, rest)
+// SplitPath is a normalized absolute path split into its root and the rest without its trailing separator:
+// "/a/b/" -> ("/", "a/b"), "c:/a" -> ("c:/", "a"). It borrows the path when that is already normal (the resolver
+// probes combined, normalized paths), copying only one with a backslash, a "." or ".." segment or a doubled
+// separator.
+pub struct SplitPath<'a> {
+    normalized: Cow<'a, str>,
+    root_length: usize,
 }
 
-impl Common {
-    fn root_and_path(&self, path: &str) -> (Option<Box<dyn IoFS>>, String, String) {
-        let (root_name, mut rest) = split_path(path);
-        if rest.is_empty() {
-            rest = ".".to_string();
-        }
-        ((self.root_for)(&root_name), root_name, rest)
+impl SplitPath<'_> {
+    pub fn root(&self) -> &str {
+        &self.normalized[..self.root_length]
+    }
+
+    pub fn rest(&self) -> &str {
+        tspath::remove_trailing_directory_separator(&self.normalized[self.root_length..])
+    }
+}
+
+pub fn split_path(p: &str) -> SplitPath<'_> {
+    let normalized = tspath::normalize_path_cow(p);
+    let root_length = root_length(&normalized);
+    SplitPath { normalized, root_length }
+}
+
+impl<R: RootFor> Common<R> {
+    // Calls f with the file system of path's root and path's io/fs name in it, or returns None when no file system
+    // serves the root.
+    fn with_root_and_path<T>(&self, path: &str, f: impl FnOnce(&dyn IoFS, &str) -> T) -> Option<T> {
+        let split = split_path(path);
+        let rest = match split.rest() {
+            "" => ".",
+            rest => rest,
+        };
+        self.root_for.with_root(split.root(), |fsys| f(fsys, rest))
     }
 
     pub fn stat(&self, path: &str) -> Option<FileInfo> {
-        let (fsys, _, rest) = self.root_and_path(path);
-        let fsys = fsys?;
-        fsys.stat(&rest).ok()
+        self.with_root_and_path(path, |fsys, rest| fsys.stat(rest).ok())?
     }
 
     pub fn file_exists(&self, path: &str) -> bool {
-        let (fsys, _, rest) = self.root_and_path(path);
-        let Some(fsys) = fsys else {
-            return false;
-        };
-        matches!(fsys.file_type(&rest), Ok(mode) if !mode.is_dir())
+        self.with_root_and_path(
+            path,
+            |fsys, rest| matches!(fsys.file_type(rest), Ok(mode) if !mode.is_dir()),
+        )
+        .unwrap_or(false)
     }
 
     pub fn directory_exists(&self, path: &str) -> bool {
-        let (fsys, _, rest) = self.root_and_path(path);
-        let Some(fsys) = fsys else {
-            return false;
-        };
-        matches!(fsys.file_type(&rest), Ok(mode) if mode.is_dir())
+        self.with_root_and_path(
+            path,
+            |fsys, rest| matches!(fsys.file_type(rest), Ok(mode) if mode.is_dir()),
+        )
+        .unwrap_or(false)
     }
 
     pub fn get_accessible_entries(&self, path: &str) -> Entries {
@@ -192,19 +191,12 @@ impl Common {
     }
 
     fn get_entries(&self, path: &str) -> Vec<IoDirEntry> {
-        let (fsys, _, rest) = self.root_and_path(path);
-        let Some(fsys) = fsys else {
-            return Vec::new();
-        };
-
-        fsys.read_dir(&rest).unwrap_or_default()
+        self.with_root_and_path(path, |fsys, rest| fsys.read_dir(rest).unwrap_or_default())
+            .unwrap_or_default()
     }
 
     pub fn read_file(&self, path: &str) -> Option<String> {
-        let (fsys, _, rest) = self.root_and_path(path);
-        let fsys = fsys?;
-
-        let b = fsys.read_file(&rest).ok()?;
+        let b = self.with_root_and_path(path, |fsys, rest| fsys.read_file(rest).ok()).flatten()?;
 
         if b.is_empty() {
             return Some(String::new());

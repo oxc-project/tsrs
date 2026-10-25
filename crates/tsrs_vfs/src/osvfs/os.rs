@@ -5,7 +5,7 @@ use std::time::SystemTime;
 
 use tsrs_core::{stringutil, tspath};
 
-use crate::internal::{self, Common, IoDirEntry, IoFS};
+use crate::internal::{self, Common, IoDirEntry, IoFS, RootFor};
 use crate::{Entries, FS, FileInfo, FileMode, FsError};
 
 // FS creates a new FS from the OS file system.
@@ -14,16 +14,20 @@ pub fn fs() -> &'static dyn FS {
 }
 
 static OS_VFS: LazyLock<OsFS> = LazyLock::new(|| OsFS {
-    common: Common {
-        root_for: Box::new(|root: &str| {
-            Some(Box::new(DirFS { dir: root.to_string() }) as Box<dyn IoFS>)
-        }),
-        is_reparse_point: Some(is_reparse_point),
-    },
+    common: Common { root_for: OsRoots, is_reparse_point: Some(is_reparse_point) },
 });
 
 pub struct OsFS {
-    common: Common,
+    common: Common<OsRoots>,
+}
+
+// The OS serves every root: os.DirFS(root) for each.
+struct OsRoots;
+
+impl RootFor for OsRoots {
+    fn with_root<T>(&self, root: &str, f: impl FnOnce(&dyn IoFS) -> T) -> Option<T> {
+        Some(f(&DirFS { dir: root }))
+    }
 }
 
 // Go computes this right at startup to minimize the chance that executable gets moved or deleted.
@@ -477,12 +481,12 @@ impl OsFS {
     }
 }
 
-// DirFS is os.DirFS: an io/fs view of the OS file system rooted at dir.
-struct DirFS {
-    dir: String,
+// DirFS is os.DirFS: an io/fs view of the OS file system rooted at dir, lent by OsRoots for one operation.
+struct DirFS<'a> {
+    dir: &'a str,
 }
 
-impl DirFS {
+impl DirFS<'_> {
     fn join(&self, name: &str) -> Result<String, FsError> {
         if self.dir.is_empty() {
             return Err(FsError::Other("os: DirFS with empty root".to_string()));
@@ -492,7 +496,7 @@ impl DirFS {
         }
         // One allocation of the final size (module resolution stats and reads thousands of paths).
         let mut full = String::with_capacity(self.dir.len() + 1 + name.len());
-        full.push_str(&self.dir);
+        full.push_str(self.dir);
         let last = self.dir.as_bytes()[self.dir.len() - 1];
         if !(last == b'/' || (cfg!(windows) && last == b'\\')) {
             full.push(std::path::MAIN_SEPARATOR);
@@ -589,7 +593,7 @@ fn base(path: &str) -> String {
     }
 }
 
-impl IoFS for DirFS {
+impl IoFS for DirFS<'_> {
     fn stat(&self, name: &str) -> Result<FileInfo, FsError> {
         let full = self.join(name)?;
         let md = fs::metadata(&full).map_err(io_error)?;

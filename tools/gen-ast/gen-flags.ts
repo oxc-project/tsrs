@@ -40,7 +40,13 @@ function genKind() {
     out += "impl Kind {\n";
     const rustConsts = constantNames(consts.map(([n]) => n));
     for (const [n, v] of consts) out += `    pub const ${rustConsts.get(n)}: Kind = Kind::${rustConsts.get(v) ?? v};\n`;
-    out += "\n    #[inline]\n    pub fn from_i16(v: i16) -> Kind {\n        assert!(v >= 0 && v <= Kind::Count as i16);\n        // SAFETY: Kind is repr(i16) with contiguous discriminants 0..=Count.\n        unsafe { std::mem::transmute::<i16, Kind>(v) }\n    }\n}\n\n";
+    // The match is the identity on the discriminant, so LLVM compiles it to one range check and no table
+    // (notes/unsafe-audit.md, "Enum-from-integer decodes"); a transmute would skip only that check.
+    out += "\n    /// The kind whose discriminant is `v` (`0..=Count`); panics on any other value.\n";
+    out += "    #[inline]\n    pub fn from_i16(v: i16) -> Kind {\n        match v {\n";
+    out += names.map((n, i) => `            ${i} => Kind::${n},`).join("\n");
+    out += "\n            _ => not_a_kind(v),\n        }\n    }\n}\n\n";
+    out += "#[cold]\n#[inline(never)]\nfn not_a_kind(v: i16) -> ! {\n    panic!(\"not a Kind discriminant: {v}\")\n}\n\n";
     const aliases = src.slice(src.indexOf("type ("));
     for (const m of aliases.matchAll(/^\t(\w+)\s+= Kind(.*)$/gm)) out += `pub type ${m[1]} = Kind;\n`;
     fs.writeFileSync(path.join(outDir, "kind.rs"), out);

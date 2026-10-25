@@ -62,8 +62,22 @@ are where a lifetime fix starts. Each is one safe API, not many unsafe blocks.
 - **`new_ad_hoc_message`**: removed. It leaked one `Message` and its text per call; now `Message::ad_hoc` builds the
   value and `tsrs_ast::new_ad_hoc_message` allocates it and its text in the arena with the diagnostics that use it.
   Only tests and the test runner call it.
-- **Enum-from-integer transmutes** (`Kind`, `NodeDataTag`, the codec's `kind_from_u32`): a checked table costs a
-  bounds check per decode, unmeasured.
+- **Enum-from-integer decodes** (`Kind`, `NodeDataTag`, the codec's `kind_from_u32`), measured 2026-10-24. The safe
+  form is a `match` that maps every discriminant to its variant: LLVM folds the identity map into one range check
+  (`cmp #353; b.hs <panic>` for `Kind`, `cmp #194` for `NodeDataTag`), so a decode costs two instructions more than
+  the transmute, one of them a never-taken branch. The cold sites converted: `Kind::from_i16` (generated, called by
+  the language server, the API and the pool statistics) is that `match`, and the codec's `kind_from_u32` is a range
+  check over it; the two `Kind` transmutes there and the codec's inventory rows are gone. The hot sites stayed:
+  `NodeHeaderWord::kind` and `::data_tag` decode the node header word on every `node.kind()` and every generated
+  accessor. With both checked, single-threaded instructions on webpack rose 4.7% (median of 7 interleaved pairs,
+  0 of 7 lower; the 7 checked runs 11.49-11.61 G never overlapped the 7 base runs 10.89-11.29 G), typeorm 4.1%
+  (2 of 7 lower), mui-docs 1.1% (2 of 7 lower). With only `data_tag` checked: webpack 0.9% (0 of 7 lower, run floors
+  2.2%), typeorm 1.4%, mui-docs 0.3%, so about 3% of webpack's instructions are `kind` decodes and 2% `data_tag`
+  decodes. Default-checker peak RSS unchanged, output byte-identical. Both rows are now `keep`; the precondition is a
+  `debug_assert!` at each site instead of prose. The counts came from `/usr/bin/time -l` on a machine at load ~100
+  with swap full, which counts kernel work too (base run spread 2-11%), so the medians are coarse; the
+  non-overlapping webpack runs carry the verdict. The only free safe form left for `data_tag` would pad
+  `NodeDataTag` to 256 variants so the identity `match` is total; not done.
 
 ## Kept as they are
 

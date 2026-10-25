@@ -570,9 +570,12 @@ impl NodeHeaderWord {
         )
     }
 
+    /// Decoded without a range check: `Kind::from_i16`'s check measured +3% instructions on webpack here
+    /// (notes/unsafe-audit.md, "Enum-from-integer decodes").
     #[inline]
     fn kind(self) -> Kind {
         let v = (self.0 >> Self::KIND_SHIFT) as u16 & ((1 << Self::KIND_BITS) - 1);
+        debug_assert!(v <= Kind::Count as u16);
         // SAFETY: the bits were stored from a `Kind` (repr(i16), contiguous discriminants 0..=Count < 2^9).
         unsafe { std::mem::transmute::<i16, Kind>(v as i16) }
     }
@@ -597,10 +600,14 @@ impl NodeHeaderWord {
         self.0 & Self::TRAILING_COMMA_BIT != 0
     }
 
+    /// Decoded without a range check: a checked identity match measured +2% instructions on webpack here
+    /// (notes/unsafe-audit.md, "Enum-from-integer decodes").
     #[inline]
     fn data_tag(self) -> NodeDataTag {
+        let v = (self.0 >> Self::TAG_SHIFT) as u8;
+        debug_assert!(v < NodeDataTag::COUNT);
         // SAFETY: the bits were stored from a `NodeDataTag` (repr(u8)).
-        unsafe { std::mem::transmute::<u8, NodeDataTag>((self.0 >> Self::TAG_SHIFT) as u8) }
+        unsafe { std::mem::transmute::<u8, NodeDataTag>(v) }
     }
 
     #[inline]

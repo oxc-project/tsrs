@@ -770,6 +770,11 @@ function genNodeDataEnum() {
     for (const e of EXTRA_DATA) w(`    ${e},`);
     w("}");
     w();
+    w("impl NodeDataTag {");
+    w("    /// The number of variants: every `u8` below it is a tag (`NodeHeaderWord::data_tag` checks this in debug builds).");
+    w(`    pub(crate) const COUNT: u8 = ${nodes.length + EXTRA_DATA.length};`);
+    w("}");
+    w();
     for (const n of nodes) {
         if (isEmptyLayout(layouts.get(n.name)!)) continue;
         w(`impl NodePayload for ${n.name} {`);

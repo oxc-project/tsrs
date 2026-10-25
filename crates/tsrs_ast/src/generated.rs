@@ -6370,6 +6370,11 @@ pub(crate) enum NodeDataTag {
     FlowReduceLabelData,
 }
 
+impl NodeDataTag {
+    /// The number of variants: every `u8` below it is a tag (`NodeHeaderWord::data_tag` checks this in debug builds).
+    pub(crate) const COUNT: u8 = 194;
+}
+
 impl NodePayload for Identifier {
     const TAG: NodeDataTag = NodeDataTag::Identifier;
 }

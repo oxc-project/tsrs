@@ -509,6 +509,15 @@ with the switch off, which is why it is not in the default build.
   constituents' members for those, so the shortcut would skip resolution) were not built; the strict application
   projects (typeorm, mui-docs) ask mostly for `NE` facts or of unions that really are nullable, so there is
   nothing more to take there.
+- Front-end VFS probes and package.json lookups (notes/perf-vfs-probes.md, landed): `RootFor::with_root` lends a
+  probe the root's io/fs view (`DirFS`, `SubFS`, `HostRoot` borrowing the root) instead of boxing a copy, `split_path`
+  borrows an already normal path, `InfoCache::get` hashes `to_path_cow`'s text against the `Path` keys and
+  `get_package_json_info` joins `package.json` in the resolver's scratch string. Heap allocations -5.0% cal-diy,
+  -6.0% typeorm, -1.8% webpack (full check; -17.3% / -3.4% / -9.1% front end only), diagnostics identical,
+  instructions -0.09% to -0.17% medians inside a +-1.5% spread on a loaded machine, default-checker RSS noise.
+  Do not redo those sites. Left, with the reason, in the note: the joined path per probe (the system call needs
+  it), the lowercase key copy on case-insensitive hosts, and cal-diy's +3.9 MB single-threaded RSS (two more
+  mimalloc pages for identical live data; not purgeable).
 - From notes/perf-icount-alloc.md (exact VM counts, locality mode, a large private monorepo at 8 checkers): the
   arguments of a pending type alias held as a `Cow` (the alias's own list when unchanged, a pooled buffer when
   changed), together with pooled lists for template-literal instantiation: +0.20%, and +0.26% with the helpers out

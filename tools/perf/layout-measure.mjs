@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import path from "node:path";
 import { ROOT, args, required, requireValue, runAsync, write, writeJSON, main } from "../lib/cli.mjs";
-import { projects, command, timed, publicRun, median, fmt, pct, table, machineInfo } from "./common.mjs";
+import { baseEnv, projects, command, timed, publicRun, median, fmt, pct, table, machineInfo } from "./common.mjs";
 const EVENTS = "instructions,cycles,iTLB-load-misses,L1-icache-load-misses";
 main(async () => {
     const a = args("Interleaved measurements of several tsrs builds; first --bin is the baseline.", {
@@ -61,7 +61,7 @@ main(async () => {
         for (const k of a["identity-checkers"].split(",")) {
             const outputs = {};
             for (const n of names) {
-                const r = await runAsync(command(bins[n], p, k, false), { cwd: p.cwd, check: false });
+                const r = await runAsync(command(bins[n], p, k, false), { cwd: p.cwd, env: baseEnv(), check: false });
                 outputs[n] = `${r.stdout}${r.stderr}\nexit ${r.code}\n`;
                 write(path.join(out, "logs", `out-${n}-${p.name}-${k}.txt`), outputs[n]);
             }
@@ -80,7 +80,7 @@ main(async () => {
                 const file = path.join(out, "logs", `perf-${n}-${p.name}.csv`);
                 const r = await runAsync(
                     [a.perf, "stat", "-x", ",", "-o", file, "-e", EVENTS, "--", ...command(bins[n], p, 1)],
-                    { cwd: p.cwd, check: false },
+                    { cwd: p.cwd, env: baseEnv(), check: false },
                 );
                 const fs = await import("node:fs");
                 const text = fs.existsSync(file) ? fs.readFileSync(file, "utf8") : r.stderr;

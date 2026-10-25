@@ -12,12 +12,14 @@ export const pct = (base, value) =>
     delta(base, value) === null ? "n/a" : `${delta(base, value) >= 0 ? "+" : ""}${delta(base, value).toFixed(1)}%`;
 export const fmt = (v, n = 3) => (v == null ? "n/a" : v.toFixed(n));
 export const hash = (text) => createHash("sha256").update(diagnostics(text).join("\n")).digest("hex").slice(0, 16);
-export const baseEnv = (mimalloc = false) =>
-    Object.fromEntries(
+export const baseEnv = (mimalloc = false) => ({
+    ...Object.fromEntries(
         Object.entries(process.env).filter(
             ([k]) => !k.startsWith("TSRS_") && (!mimalloc || !k.startsWith("MIMALLOC_")),
         ),
-    );
+    ),
+    TSRS_FAST: "1",
+});
 export function positiveList(text) {
     const values = text.split(",").map(Number);
     requireValue(
@@ -102,7 +104,7 @@ export function vmstat() {
         return {};
     }
 }
-export async function timed(cmd, { cwd, env, log, timeout = 900, sample, sampleMs } = {}) {
+export async function timed(cmd, { cwd, env = baseEnv(), log, timeout = 900, sample, sampleMs } = {}) {
     const before = vmstat(),
         r = await measureAsync(cmd, { cwd, env, timeout, sample, sampleMs }),
         after = vmstat();

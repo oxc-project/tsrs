@@ -2,7 +2,7 @@ import { spawn } from 'node:child_process';
 import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import os from 'node:os';
-import { BENCH, REPO, TIMED_FLAGS, catalog, exec, fileSha, log, machine, mean, median, now, prepare, projectPath, readJson, requireValue, selectProjects, stamp, values, writeJson } from './lib.mjs';
+import { BENCH, REPO, TIMED_FLAGS, catalog, cleanEnvironment, exec, fileSha, log, machine, mean, median, now, prepare, projectPath, readJson, requireValue, selectProjects, stamp, values, writeJson } from './lib.mjs';
 import { hyperfine, installCompilers, measureOne } from './runner.mjs';
 import { loadBundle } from './results.mjs';
 
@@ -32,14 +32,15 @@ export async function compare(options) {
   const hf = await hyperfine(work, options.hyperfine), threads = values(options.threads, ['default', '4', '8', '16', 'all']).map(t => t === 'all' ? String(os.availableParallelism()) : t);
   requireValue(threads.every(t => t === 'default' || /^\d+$/.test(t)), 'Invalid --threads');
   const reps = number(options.reps, 20);
-  const run = { schemaVersion: 2, kind: 'compare', status: 'running', startedAt: now(), machine: machine(), projects, compilers: compilerInfo, settings: { threads, reps }, samples: [], preflight: {} };
+  const { env, removed } = cleanEnvironment();
+  const run = { schemaVersion: 2, kind: 'compare', status: 'running', startedAt: now(), machine: machine(), projects, compilers: compilerInfo, settings: { threads, reps, tsrsFast: true }, environment: { TSRS_FAST: env.TSRS_FAST }, clearedEnvironmentVariables: removed, samples: [], preflight: {} };
   await writeJson(path.join(out, 'run.json'), run);
   for (const project of projects) {
     const { cwd, config } = projectPath(project, work);
     run.preflight[project.name] = {};
     for (const id of selected) {
       const argv = id === 'bun' ? [executable[id], 'check', '-p', config, '--no-pretty', '--all'] : [executable[id], '-p', config, ...TIMED_FLAGS, '--extendedDiagnostics'];
-      const check = await exec(argv, { cwd, timeout: 900, accept: [0, 1, 2], logFile: path.join(out, project.name, `${id}-preflight.log`) });
+      const check = await exec(argv, { cwd, env, timeout: 900, accept: [0, 1, 2], logFile: path.join(out, project.name, `${id}-preflight.log`) });
       const text = check.stdout + check.stderr;
       requireValue(!failure(text), `${project.name}/${id} crashed in preflight`);
       run.preflight[project.name][id] = { exitCode: check.code, files: Number(text.match(/^Files:\s+(\d+)/m)?.[1] ?? text.match(/(?:checked|No type errors in) ([\d,]+) files?/i)?.[1]?.replaceAll(',', '') ?? 0), diagnostics: errors(text) };
@@ -50,7 +51,7 @@ export async function compare(options) {
         const flags = mode === 'default' ? [] : id === 'bun' ? ['--threads', mode] : ['--checkers', mode];
         const argv = id === 'bun' ? [executable[id], 'check', '-p', config, '--no-pretty', '--all', ...flags] : [executable[id], '-p', config, ...TIMED_FLAGS, ...flags];
         const prefix = path.join(out, project.name, `${mode}-${id}-${rep + 1}`);
-        const sample = await measureOne(hf, argv, { cwd, output: `${prefix}.json`, logFile: `${prefix}.log`, name: id });
+        const sample = await measureOne(hf, argv, { cwd, env, output: `${prefix}.json`, logFile: `${prefix}.log`, name: id });
         requireValue(sample.exitCode === run.preflight[project.name][id].exitCode, `${project.name}/${id}: exit status changed`);
         run.samples.push({ project: project.name, compiler: id, mode, repetition: rep + 1, ...sample });
       }
@@ -58,7 +59,7 @@ export async function compare(options) {
     await writeJson(path.join(out, 'run.json'), run);
   }
   run.status = 'complete'; run.completedAt = now(); await writeJson(path.join(out, 'run.json'), run);
-  const lines = ['# Head-to-head comparison', '', `Measured ${run.startedAt} on ${run.machine.label}.`, '', '| Project | Threads | Compiler | Wall time | Peak RSS | Instructions |', '| --- | --- | --- | ---: | ---: | ---: |'];
+  const lines = ['# Head-to-head comparison', '', `Measured ${run.startedAt} on ${run.machine.label}.`, 'tsrs uses fast mode (TSRS_FAST=1).', '', '| Project | Threads | Compiler | Wall time | Peak RSS | Instructions |', '| --- | --- | --- | ---: | ---: | ---: |'];
   for (const project of projects) for (const mode of threads) for (const id of selected) {
     const group = run.samples.filter(s => s.project === project.name && s.mode === mode && s.compiler === id);
     lines.push(`| ${project.name} | ${mode} | ${id} | ${mean(group.map(s => s.wallSeconds)).toFixed(3)} s | ${(mean(group.map(s => s.peakRssBytes)) / 2 ** 30).toFixed(3)} GiB | ${Math.round(mean(group.map(s => s.instructions))).toLocaleString('en-US')} |`);
@@ -72,10 +73,10 @@ async function rss(pid) {
   catch { try { const result = await exec(['ps', '-o', 'rss=', '-p', String(pid)], { accept: [0, 1] }); return Number(result.stdout.trim()) * 1024 || null; } catch { return null; } }
 }
 
-export async function watchSession(exe, cwd, config, leaf, { edits, quiet, timeout }, logFile) {
+export async function watchSession(exe, cwd, config, leaf, { edits, quiet, timeout, env }, logFile) {
   const original = await readFile(leaf);
   const started = performance.now(), command = [exe, '--watch', '-p', config, '--noEmit', '--preserveWatchOutput', '--pretty', 'false'];
-  const child = spawn(command[0], command.slice(1), { cwd, detached: true, stdio: ['ignore', 'pipe', 'pipe'] });
+  const child = spawn(command[0], command.slice(1), { cwd, env, detached: true, stdio: ['ignore', 'pipe', 'pipe'] });
   let buffer = '', observed = [], peak = 0, closed = false, exitCode = null;
   child.on('error', error => { closed = true; exitCode = error.code; });
   const poll = setInterval(async () => { try { peak = Math.max(peak, await rss(child.pid) ?? 0); } catch {} }, 50);
@@ -142,19 +143,20 @@ export async function watch(options) {
     tsgo = installed.executables.typescript_1;
   }
   const compilers = { tsgo, tsrs }, reps = number(options.reps, 3), tsgoReps = number(options['tsgo-reps'], reps);
-  const settings = { reps, tsgoReps, edits: number(options.edits, 5, 0), quiet: Number(options.quiet ?? 2), timeout: Number(options.timeout ?? 600) };
-  const run = { schemaVersion: 2, kind: 'watch', status: 'running', startedAt: now(), machine: machine(), projects: [project], compilers: Object.fromEntries(await Promise.all(Object.entries(compilers).map(async ([id, exe]) => [id, { binary: exe, sha256: await fileSha(exe) }]))), settings, samples: [] };
+  const settings = { reps, tsgoReps, edits: number(options.edits, 5, 0), quiet: Number(options.quiet ?? 2), timeout: Number(options.timeout ?? 600), tsrsFast: true };
+  const { env, removed } = cleanEnvironment();
+  const run = { schemaVersion: 2, kind: 'watch', status: 'running', startedAt: now(), machine: machine(), projects: [project], compilers: Object.fromEntries(await Promise.all(Object.entries(compilers).map(async ([id, exe]) => [id, { binary: exe, sha256: await fileSha(exe) }]))), settings, environment: { TSRS_FAST: env.TSRS_FAST }, clearedEnvironmentVariables: removed, samples: [] };
   await writeJson(path.join(out, 'run.json'), run);
   for (let rep = 0; rep < Math.max(reps, tsgoReps); rep++) {
     for (const id of rep % 2 ? ['tsrs', 'tsgo'] : ['tsgo', 'tsrs']) {
       if (rep >= (id === 'tsgo' ? tsgoReps : reps)) continue;
-      const result = await watchSession(compilers[id], cwd, config, leaf, settings, path.join(out, `${id}-${rep + 1}.log`));
+      const result = await watchSession(compilers[id], cwd, config, leaf, { ...settings, env }, path.join(out, `${id}-${rep + 1}.log`));
       run.samples.push({ project: projectName, compiler: id, repetition: rep + 1, ...result });
       await writeJson(path.join(out, 'run.json'), run);
     }
   }
   run.status = 'complete'; run.completedAt = now(); await writeJson(path.join(out, 'run.json'), run);
-  const lines = ['# Watch benchmark', '', `Measured ${run.startedAt} on ${run.machine.label}.`, '', '| Compiler | Successful sessions | Startup | First edit | Repeat edit | Type error | Peak RSS |', '| --- | ---: | ---: | ---: | ---: | ---: | ---: |'];
+  const lines = ['# Watch benchmark', '', `Measured ${run.startedAt} on ${run.machine.label}.`, 'tsrs uses fast mode (TSRS_FAST=1).', '', '| Compiler | Successful sessions | Startup | First edit | Repeat edit | Type error | Peak RSS |', '| --- | ---: | ---: | ---: | ---: | ---: | ---: |'];
   for (const id of ['tsgo', 'tsrs']) { const samples = run.samples.filter(s => s.compiler === id && s.ok); lines.push(`| ${id} | ${samples.length} | ${median(samples.map(s => s.initialSeconds))?.toFixed(3) ?? 'n/a'} s | ${median(samples.map(s => s.firstEditSeconds))?.toFixed(3) ?? 'n/a'} s | ${median(samples.map(s => s.repeatEditSeconds))?.toFixed(3) ?? 'n/a'} s | ${median(samples.map(s => s.typeErrorSeconds))?.toFixed(3) ?? 'n/a'} s | ${((median(samples.map(s => s.peakRssBytes)) ?? 0) / 2 ** 30).toFixed(3)} GiB |`); }
   await writeFile(path.join(out, 'report.md'), lines.join('\n') + '\n');
   requireValue(run.samples.every(s => s.ok), `Some watch sessions failed; see ${out}`);

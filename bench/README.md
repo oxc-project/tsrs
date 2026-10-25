@@ -2,6 +2,18 @@
 
 All benchmark tools run through `node bench/bench.mjs` from the repository root. Node 24 is required. `projects.json` pins public repositories, commits, type-check paths and dependency installation commands; `overlays/` supplies TypeScript 7 configuration adjustments. The benchmark never changes these inputs during a measurement.
 
+The compiler benchmarks explicitly enable **tsrs fast mode**: external CLI runs use `TSRS_FAST=1`, and the
+in-process CodSpeed benchmarks pass `--fast` during both capture and measurement. This covers compile, comparison,
+watch, PR baseline/candidate runs, and CodSpeed simulation/memory/walltime. Compiler experiment variables are
+cleared before external benchmark runs, then the preset is enabled. Explicit benchmark checker counts still apply;
+default-count runs use the fast preset's adaptive count. See [fast-mode side effects](../docs/USAGE.md#side-effects).
+
+The environment opt-in lets the same runner compare older main/release binaries that do not recognize `--fast`:
+those versions ignore `TSRS_FAST` and keep their then-default optimized behavior. New bundles record the preset
+in their settings and environment, and new charts label tsrs as `tsrs (fast)`. Historical results retain their
+recorded settings and labels. Generic `count` and `measure` wrappers run the supplied command unchanged; pass
+`--fast` or set `TSRS_FAST=1` explicitly when using them for tsrs.
+
 ## Inputs and outputs
 
 | Command | Inputs | Output |
@@ -76,7 +88,8 @@ For the full project list, run `node bench/bench.mjs plan --projects all` and re
 
 `run` calls `prepare` automatically. Defaults are TypeScript `next`, `vscode,mui-docs,webpack,t3code-server`, four checkers, available worker CPUs, ten measured runs, and three warmups. It also accepts `--memory-gib N`, `--work-dir`, `--out-dir`, `--hyperfine`, and `--dry-run`. `--memory-gib` applies the soft `--maxMemory` and `GOMEMLIMIT` budgets.
 
-Every timed compiler invocation uses `-p <project> --noEmit --incremental false --pretty false --checkers <N>`. `--extendedDiagnostics` runs separately for file and diagnostic counts; adding it to a timed command would change compiler work at exit. Hyperfine measures wall time, retired instructions, peak RSS, and exit status. A hardware-counter probe fails before the matrix if those counters are unavailable. Diagnostic exits 1 and 2 are valid; crashes, changing exit codes, and missing samples are rejected.
+Every timed compiler invocation uses `-p <project> --noEmit --incremental false --pretty false --checkers <N>`;
+tsrs runs with `TSRS_FAST=1` in both preflight and measured invocations. `--extendedDiagnostics` runs separately for file and diagnostic counts; adding it to a timed command would change compiler work at exit. Hyperfine measures wall time, retired instructions, peak RSS, and exit status. A hardware-counter probe fails before the matrix if those counters are unavailable. Diagnostic exits 1 and 2 are valid; crashes, changing exit codes, and missing samples are rejected.
 
 ## Merge independent project runs
 
@@ -111,7 +124,7 @@ and probe workflows remain disabled under `.github/workflows/*.bak`.
 
 ```bash
 # One Linux command, with instructions and RSS in a bundle:
-node bench/bench.mjs count --output-dir /tmp/count -- /path/to/tsrs -p /path/to/project --singleThreaded --noEmit
+TSRS_FAST=1 node bench/bench.mjs count --output-dir /tmp/count -- /path/to/tsrs -p /path/to/project --singleThreaded --noEmit
 
 # Head-to-head comparison over thread counts:
 node bench/bench.mjs compare --tsrs target/release/tsrs --bun /path/to/bun \
@@ -128,7 +141,7 @@ node bench/bench.mjs regressions --results-dir bench/results
 
 ## CodSpeed simulation
 
-`.github/workflows/codspeed.yml` runs a separate single-threaded compiler benchmark on `Compiler-Unions`, `xstate-main`, `webpack`, and `drizzle-orm`. `tsrs_bench` first captures the project's filesystem responses, then measures fresh parses, binds, checks, and diagnostic formatting from that immutable snapshot. Capture and output verification are outside the measured region; an unrecorded file request or changed result fails the benchmark. This is a separate baseline from the CLI wall-time measurements above.
+`.github/workflows/benchmark.yml` runs a separate single-threaded compiler benchmark on `Compiler-Unions`, `xstate-main`, `webpack`, and `drizzle-orm`. `tsrs_bench` first captures the project's filesystem responses, then measures fresh parses, binds, checks, and diagnostic formatting from that immutable snapshot. Both invocations use `--fast`. Capture and output verification are outside the measured region; an unrecorded file request or changed result fails the benchmark. The `compiler_default` benchmark also uses `--fast`, with its adaptive checker count, for peak memory and optional walltime. These are separate baselines from the CLI wall-time measurements above.
 
 From the repository root, install `cargo-codspeed` and prepare one project before running the simulation locally:
 

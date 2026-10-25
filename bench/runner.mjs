@@ -140,12 +140,12 @@ export async function runCompile({ cfg, projects, work, out, versions, tsrsVersi
   const source = path.join(out, stamp()); await mkdir(source, { recursive: true });
   const hf = await hyperfine(work, hyperfinePath);
   const { executables, compilers } = await installCompilers(work, source, versions, tsrsVersion, localTsrs);
-  const settings = { checkers, workers, memoryGiB: memoryGiB ?? null, runs, warmup };
+  const settings = { checkers, workers, memoryGiB: memoryGiB ?? null, runs, warmup, tsrsFast: true };
   const { env, removed } = cleanEnvironment(workers, memoryGiB);
   const cells = projects.map(project => {
     const { cwd, config } = projectPath(project, work);
     const commands = Object.fromEntries(Object.entries(executables).map(([id, exe]) => [id, [exe, '-p', config, ...TIMED_FLAGS, '--checkers', String(checkers), ...(id === 'tsrs' && memoryGiB ? ['--maxMemory', `${memoryGiB}G`] : [])]]));
-    return { project: project.name, cwd, commands, environment: { GOMAXPROCS: env.GOMAXPROCS, RAYON_NUM_THREADS: env.RAYON_NUM_THREADS, GOMEMLIMIT: env.GOMEMLIMIT ?? null } };
+    return { project: project.name, cwd, commands, environment: { TSRS_FAST: env.TSRS_FAST, GOMAXPROCS: env.GOMAXPROCS, RAYON_NUM_THREADS: env.RAYON_NUM_THREADS, GOMEMLIMIT: env.GOMEMLIMIT ?? null } };
   });
   const machine = (await import('./lib.mjs')).machine();
   const run = { schemaVersion: 2, kind: 'compile', status: 'prepared', preparedAt: now(), machine, suite: cfg.suite, projects, compilers, settings, hyperfine: { version: (await exec([hf, '--version'])).stdout.trim(), sha256: await fileSha(hf) }, clearedEnvironmentVariables: removed, cells, preflight: {}, samples: [] };
@@ -153,7 +153,7 @@ export async function runCompile({ cfg, projects, work, out, versions, tsrsVersi
   try { run.rustc = (await exec(['rustc', '-V'], { cwd: REPO })).stdout.trim(); } catch { run.rustc = null; }
   await writeJson(path.join(source, 'run.json'), run);
   if (dryRun) {
-    for (const cell of cells) process.stdout.write(`${cell.cwd}: ${Object.values(cell.commands).map(shellJoin).join(' | ')}\n`);
+    for (const cell of cells) process.stdout.write(`${cell.cwd}: TSRS_FAST=1 ${Object.values(cell.commands).map(shellJoin).join(' | ')}\n`);
     return source;
   }
   run.status = 'running'; run.startedAt = now(); await writeJson(path.join(source, 'run.json'), run);

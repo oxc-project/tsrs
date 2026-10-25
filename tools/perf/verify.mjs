@@ -2,7 +2,7 @@
 // Interleave baseline/candidate runs and require identical ordered diagnostics and exit codes.
 import path from "node:path";
 import { ROOT, args, required, json, write, writeJSON, run, main, isMain, requireValue } from "../lib/cli.mjs";
-import { projects, command, timed, publicRun, diagnostics, median, pct, fmt, table, machineInfo } from "./common.mjs";
+import { baseEnv, projects, command, timed, publicRun, diagnostics, median, pct, fmt, table, machineInfo } from "./common.mjs";
 import { measure } from "../../bench/measure.mjs";
 export function firstDifference(a, b) {
     for (let i = 0; i < Math.max(a.length, b.length); i++)
@@ -98,7 +98,7 @@ if (isMain(import.meta.url))
             checkers,
             reps: a.reps,
             poison: a.poison,
-            flags: "--noEmit --incremental false --pretty false",
+            flags: "TSRS_FAST=1 --noEmit --incremental false --pretty false",
             projects: {},
             runs: [],
         };
@@ -156,7 +156,7 @@ if (isMain(import.meta.url))
             for (const w of ["base", "new"]) {
                 const r = measure(command(bins[w], p, 1), {
                         cwd: p.cwd,
-                        env: { ...process.env, RAYON_NUM_THREADS: "1" },
+                        env: { ...baseEnv(), RAYON_NUM_THREADS: "1" },
                         timeout: a.timeout,
                         instructions: true,
                     }),
@@ -182,7 +182,7 @@ if (isMain(import.meta.url))
             });
             if (a.poison) {
                 const ref = runs[16]?.base[0] ?? (await once("base", 16, "poison-reference-base")),
-                    r = await once("new", 16, "poison-new", { ...process.env, TSRS_ARENA_POISON: "1" });
+                    r = await once("new", 16, "poison-new", { ...baseEnv(), TSRS_ARENA_POISON: "1" });
                 cells.push({
                     kind: "poison",
                     checkers: 16,

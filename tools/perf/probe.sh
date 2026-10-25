@@ -12,6 +12,7 @@
 #   BENCH_WORK  bench/.work with the projects set up (node bench/bench.mjs prepare --projects vscode)
 #   PROBE_OUT   output directory
 set -euo pipefail
+export TSRS_FAST=1
 : "${TSRS_BIN:?}" "${BENCH_WORK:?}" "${PROBE_OUT:?}"
 mkdir -p "$PROBE_OUT"
 proj="$BENCH_WORK/solutions/vscode"

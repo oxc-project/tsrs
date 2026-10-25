@@ -32,7 +32,7 @@ function svg(width, height, title, description, draw, theme = 'light') {
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" font-family="system-ui, sans-serif" role="img" aria-labelledby="title description">\n<title id="title">${esc(title)}</title>\n<desc id="description">${esc(description)}</desc>\n${parts.join('\n')}\n</svg>\n`;
 }
 
-function compilerLabel(data, id) { const info = data.compilers[id]; return id === 'tsrs' ? 'tsrs' : id === 'bun' ? `bun check ${info.version ?? ''}` : `TypeScript ${info.version}`; }
+function compilerLabel(data, id) { const info = data.compilers[id]; return id === 'tsrs' ? (data.settings.tsrsFast ? 'tsrs (fast)' : 'tsrs') : id === 'bun' ? `bun check ${info.version ?? ''}` : `TypeScript ${info.version}`; }
 function color(id) { return COLORS[id] ?? '#91b8e3'; }
 function row(data, project, compiler) { return data.rows.find(r => r.project === project && r.compiler === compiler); }
 function titleBlock(parts, palette, width, title, subtitle) {
@@ -110,9 +110,9 @@ function scatterChart(data, theme) {
   });
   const width = 1200, height = 830, left = 140, top = 150, plotWidth = 900, plotHeight = 560;
   const xmax = Math.max(1, ...points.map(p => p.speed)) * 1.15, ymax = Math.max(1, ...points.map(p => p.memory)) * 1.15;
-  const description = points.map(p => `${p.name}: tsrs ${p.speed.toFixed(2)} times faster and ${p.memory.toFixed(2)} times less peak memory than ${compilerLabel(data, reference)}`).join('. ') + '.';
-  return svg(width, height, `tsrs vs ${compilerLabel(data, reference)}`, description, (parts, palette) => {
-    titleBlock(parts, palette, width, `tsrs vs ${compilerLabel(data, reference)}`, `Mean wall time and peak memory on ${data.machine.label}. Higher and farther right is better.`);
+  const description = points.map(p => `${p.name}: ${compilerLabel(data, 'tsrs')} ${p.speed.toFixed(2)} times faster and ${p.memory.toFixed(2)} times less peak memory than ${compilerLabel(data, reference)}`).join('. ') + '.';
+  return svg(width, height, `${compilerLabel(data, 'tsrs')} vs ${compilerLabel(data, reference)}`, description, (parts, palette) => {
+    titleBlock(parts, palette, width, `${compilerLabel(data, 'tsrs')} vs ${compilerLabel(data, reference)}`, `Mean wall time and peak memory on ${data.machine.label}. Higher and farther right is better.`);
     for (let i = 0; i <= 5; i++) {
       const x = left + i * plotWidth / 5, y = top + i * plotHeight / 5;
       line(parts, x, top, x, top + plotHeight, palette.grid);
@@ -132,6 +132,7 @@ function scatterChart(data, theme) {
 
 function report(data) {
   const lines = ['# Benchmark results', '', `Measured ${data.measuredAt} on ${data.machine.label}.`, '', `Arithmetic means of ${data.settings.runs} runs after ${data.settings.warmup} warmups per compiler and project. Projects are never averaged together.`, '', `${data.settings.checkers} checkers and ${data.settings.workers} worker CPUs per compiler.`, ''];
+  if (data.settings.tsrsFast) lines.push('tsrs runs in fast mode (`TSRS_FAST=1`); TypeScript keeps its own checker behavior.', '');
   if (data.measuredCommit) lines.push(`tsrs commit: \`${data.measuredCommit}\`.`, '');
   if (data.runUrl) lines.push(`[Benchmark run and raw-data artifacts](${data.runUrl}).`, '');
   lines.push('[Methodology](README.md).', '', '![All measured compiler versions](benchmark.svg)', '', '<picture>', '  <source media="(prefers-color-scheme: dark)" srcset="large-projects-dark.svg">', '  <img alt="Type-check speedup against peak-memory ratio" src="large-projects.svg">', '</picture>', '', '<picture>', '  <source media="(prefers-color-scheme: dark)" srcset="per-project-time-dark.svg">', '  <img alt="Check time by project" src="per-project-time.svg">', '</picture>', '', '<picture>', '  <source media="(prefers-color-scheme: dark)" srcset="per-project-memory-dark.svg">', '  <img alt="Peak memory by project" src="per-project-memory.svg">', '</picture>', '', '| Project | Compiler | Wall time | Peak memory | Instructions | Files | Diagnostics |', '| --- | --- | ---: | ---: | ---: | ---: | ---: |');

@@ -54,7 +54,7 @@ fn main() {
     }
     assert!(
         std::env::var_os("RAYON_NUM_THREADS").is_none(),
-        "unset RAYON_NUM_THREADS to use the CLI's default parallelism"
+        "unset RAYON_NUM_THREADS to use fast mode's default parallelism"
     );
     let name = std::env::var("TSRS_BENCH_PROJECT")
         .expect("set TSRS_BENCH_PROJECT to the project to benchmark");

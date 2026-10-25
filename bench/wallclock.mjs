@@ -16,6 +16,7 @@ import {
     isMain,
 } from "../tools/lib/cli.mjs";
 import { hyperfine, measureOne } from "./runner.mjs";
+import { cleanEnvironment } from "./lib.mjs";
 const BENCH = path.join(ROOT, "bench"),
     API = "https://api.github.com",
     MARKER = "<!-- tsrs-wallclock-benchmark -->",
@@ -127,10 +128,10 @@ async function decide() {
                 workload: {
                     build: "cargo build --release --locked -p tsrs_cli",
                     commands: [
-                        "tsrs -p <project> --noEmit --incremental false --pretty false",
-                        "tsrs -p <project> --noEmit --incremental true --tsBuildInfoFile <fresh file> --pretty false",
+                        "TSRS_FAST=1 tsrs -p <project> --noEmit --incremental false --pretty false",
+                        "TSRS_FAST=1 tsrs -p <project> --noEmit --incremental true --tsBuildInfoFile <fresh file> --pretty false",
                     ],
-                    checker_count: "default for wall time/RSS; --singleThreaded for instructions",
+                    checker_count: "fast-mode default for wall time/RSS; --singleThreaded for instructions",
                     metrics: ["wall time", "peak RSS", "single-threaded instructions"],
                     projects: json(path.join(BENCH, "projects.json")).projects.map((p) => p.name),
                     harnesses: [
@@ -195,8 +196,10 @@ async function measure(a) {
     fs.rmSync(a.out, { force: true });
     const work = path.resolve(a["work-dir"]),
         hf = await hyperfine(work);
+    const { env, removed } = cleanEnvironment();
     // Fail before project setup if this runner cannot read hardware counters.
     await measureOne(hf, [process.execPath, "-e", "let n = 0; for (let i = 0; i < 100000; i++) n += i;"], {
+        env,
         output: suffix(a.out, ".probe.json"),
     });
     run(["node", path.join(BENCH, "bench.mjs"), "prepare", "--projects", a.project, "--work-dir", work], {
@@ -228,7 +231,7 @@ async function measure(a) {
     for (const single of [false, true]) {
         for (const [name, cmd] of Object.entries(commands)) {
             reset();
-            const p = run([...cmd, ...(single ? ["--singleThreaded"] : [])], { cwd, check: false });
+            const p = run([...cmd, ...(single ? ["--singleThreaded"] : [])], { cwd, env, check: false });
             (single ? singleExits : exits)[name] = p.code;
             fs.writeFileSync(suffix(a.out, `.${name}${single ? ".single" : ""}.log`), p.stdout + p.stderr);
             requireValue([0, 1, 2].includes(p.code), `${cmd[0]} failed before timing: exit ${p.code}`);
@@ -238,6 +241,7 @@ async function measure(a) {
         reset();
         const r = await measureOne(hf, [...commands[name], ...(single ? ["--singleThreaded"] : [])], {
             cwd,
+            env,
             name,
             accept: [(single ? singleExits : exits)[name]],
             output: suffix(a.out, `.${name}.${single ? "single" : "default"}.${i}.json`),
@@ -259,6 +263,8 @@ async function measure(a) {
     const partial = {
         project: a.project,
         mode: a.mode,
+        environment: { TSRS_FAST: env.TSRS_FAST },
+        clearedEnvironmentVariables: removed,
         ...Object.fromEntries(
             ["main", "pr"].map((name) => [
                 name,
@@ -314,7 +320,7 @@ export function renderReport(a) {
             return `${value > 0 ? "+" : ""}${value.toFixed(digits)}%`;
         };
     lines.push(
-        "Release builds with Hyperfine 2 hardware counters. After warming each binary, ten alternating main/PR pairs measure wall time and peak RSS at the default checker count; three separate pairs measure single-threaded instructions.",
+        "Release builds in fast mode (TSRS_FAST=1) with Hyperfine 2 hardware counters. After warming each binary, ten alternating main/PR pairs measure wall time and peak RSS at the fast preset's checker count; three separate pairs measure single-threaded instructions.",
         "Incremental runs start with fresh build info before every invocation; check runs disable incremental compilation.",
         "",
         "| Project | Mode | Wall time Δ | Peak RSS Δ | Instructions Δ |",

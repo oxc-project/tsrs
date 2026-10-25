@@ -263,12 +263,14 @@ impl InfoCache {
     }
 
     pub(crate) fn get(&self, package_json_path: &str) -> Option<P<InfoCacheEntry>> {
-        let key = tspath::to_path(
+        // The key's text without the `Path` (an `Arc` per lookup; most lookups hit): borrowed from the argument
+        // on a case-sensitive host, the lowercase copy elsewhere.
+        let key = tspath::to_path_cow(
             package_json_path,
             &self.current_directory,
             self.use_case_sensitive_file_names,
         );
-        self.cache.load(&key)
+        self.cache.load::<str>(&key)
     }
 
     fn set(&self, package_json_path: &str, info: P<InfoCacheEntry>) -> P<InfoCacheEntry> {

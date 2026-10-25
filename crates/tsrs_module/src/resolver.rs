@@ -2897,10 +2897,21 @@ impl<'r> ResolutionState<'r> {
     }
 
     fn get_package_json_info(&mut self, package_directory: &str) -> Option<P<InfoCacheEntry>> {
-        let package_json_path = tspath::combine_paths(package_directory, &["package.json"]);
+        // The package.json path in a scratch string: the lookup walks every ancestor directory of a candidate,
+        // and a hit (most lookups) keeps nothing of the path.
+        with_path_buffer(PathBuffer::PackageJson, |package_json_path| {
+            tspath::combine_paths_into(package_json_path, package_directory, &["package.json"]);
+            self.get_package_json_info_at(package_directory, package_json_path)
+        })
+    }
 
+    fn get_package_json_info_at(
+        &mut self,
+        package_directory: &str,
+        package_json_path: &str,
+    ) -> Option<P<InfoCacheEntry>> {
         if let Some(existing) =
-            InfoCache::get(&self.resolver.package_json_info_cache, &package_json_path)
+            InfoCache::get(&self.resolver.package_json_info_cache, package_json_path)
         {
             if existing.contents.is_some() {
                 trace!(
@@ -2921,26 +2932,29 @@ impl<'r> ResolutionState<'r> {
         }
 
         let directory_exists = self.fs().directory_exists(package_directory);
-        if directory_exists && self.fs().file_exists(&package_json_path) {
+        if directory_exists && self.fs().file_exists(package_json_path) {
             // Ignore error
-            let contents = self.fs().read_file(&package_json_path).unwrap_or_default();
+            let contents = self.fs().read_file(package_json_path).unwrap_or_default();
             let parsed = packagejson::parse(&contents);
             trace!(self.tracer, diagnostics::FOUND_PACKAGE_JSON_AT_0, package_json_path);
             let parseable = parsed.is_ok();
-            let result = self.resolver.package_json_info_cache.get_or_insert_with(
-                &package_json_path,
-                || InfoCacheEntry {
-                    package_directory: tsrs_core::alloc_str(package_directory),
-                    directory_exists: true,
-                    contents: Some(P::new(PackageJson::new(parsed.unwrap_or_default(), parseable))),
-                },
-            );
+            let result =
+                self.resolver.package_json_info_cache.get_or_insert_with(package_json_path, || {
+                    InfoCacheEntry {
+                        package_directory: tsrs_core::alloc_str(package_directory),
+                        directory_exists: true,
+                        contents: Some(P::new(PackageJson::new(
+                            parsed.unwrap_or_default(),
+                            parseable,
+                        ))),
+                    }
+                });
             return Some(with_package_directory(result, package_directory));
         }
         if directory_exists {
             trace!(self.tracer, diagnostics::FILE_0_DOES_NOT_EXIST, package_json_path);
         }
-        self.resolver.package_json_info_cache.get_or_insert_with(&package_json_path, || {
+        self.resolver.package_json_info_cache.get_or_insert_with(package_json_path, || {
             InfoCacheEntry {
                 package_directory: tsrs_core::alloc_str(package_directory),
                 directory_exists,

@@ -4,10 +4,11 @@ use std::cell::Cell;
 pub enum PathBuffer {
     Extension,
     Suffix,
+    PackageJson,
 }
 
 thread_local! {
-    static PATHS: [Cell<String>; 2] = const { [const { Cell::new(String::new()) }; 2] };
+    static PATHS: [Cell<String>; 3] = const { [const { Cell::new(String::new()) }; 3] };
 }
 
 // Like oxc-resolver's scratch paths, keep capacity across requests on each worker. Take the buffer out before

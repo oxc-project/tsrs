@@ -28,7 +28,7 @@ by `--fast` or `TSRS_FAST=1`; both names refer to the same settings in this tabl
 | --- | --- | --- |
 | Checker count without `--checkers` | 4 | 4. `--fast` uses every core up to 16, then the greater of 16 and half the cores, capped at 32 and one checker per 32 checked files (floor 4). `--build` keeps 4 per project in either mode. Both compilers finally clamp to 1–256 and the file count |
 | How files are split across checkers | FENNEL association | The same by default. `--fast` uses directory-subtree groups with work stealing, file splitting and module affinity when eligible. Explicit `--checkerAssignment` / `TSRS_CHECKER_ASSIGNMENT` overrides the preset and disables stealing |
-| Checker history | tsgo's: which file reports some diagnostics depends on check order | The same by default. `--fast` enables canonical history and tsrs-only checker caches (inference, union, indexed access and flow memos). `go` assignment restores tsgo's history ([details](../notes/fix-history-dependent-diagnostics.md)) |
+| Checker history | tsgo's: which file reports some diagnostics depends on check order | The same by default. `--fast` enables canonical history and tsrs-only checker caches (inference-walk, union-front and indexed-access). `go` assignment restores tsgo's history ([details](../notes/fix-history-dependent-diagnostics.md)) |
 | Lazy checker members | Eager member instantiation | Eager by default. `--fast` or `--lazyMembers` enables lazy members; `--noLazyMembers` / `TSRS_LAZY_MEMBERS=0` overrides the preset. Reduced instantiation can change diagnostics near a depth limit ([known exceptions](../notes/open-history-dependence.md)) |
 | Additional memory-saving modes | No corresponding tsrs switches | With `--fast`: lazy `.d.ts` members on eligible batch/incremental checks and non-watch builds with `skipLibCheck` or `noCheck`, plus freeing finished leaf files on eligible `--noEmit` runs. `--maxMemory` remains an explicit target |
 | Types, Symbols and Instantiations counters | Counts the work of its checkers | Counts tsrs's work; checker count, assignment, caches and lazy members can all change the values. Matching `--checkers` alone does not make these counters identical |
@@ -62,8 +62,10 @@ by `--fast` or `TSRS_FAST=1`; both names refer to the same settings in this tabl
 The preset is supported by ordinary compilation, watch and build mode. `--fast` works in response files and is
 not a `tsconfig.json` compiler option. An explicit `--fast` value overrides `TSRS_FAST`; per-feature flags and
 environment overrides take precedence over the preset. `--fast false` leaves those individual settings in effect.
-Compiler checking options stay as configured. Internal optimizations that preserve compiler behavior stay enabled
-in both modes; runtime/platform differences and unsupported features below are unchanged.
+Compiler checking options stay as configured. Internal optimizations that preserve compiler behavior, including
+control-flow memoization, stay enabled in both modes. Memory targets, persistent cost caches and experimental
+features still require their own settings; see [preset boundaries and eligibility](USAGE.md#performance-options).
+Runtime/platform differences and unsupported features below are unchanged.
 
 The tsrs-only flags are described in [Performance options](USAGE.md#performance-options). Sources:
 [`checkerpool.rs`](../crates/tsrs_compiler/src/checkerpool.rs),

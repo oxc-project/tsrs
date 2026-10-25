@@ -31,7 +31,7 @@ per watched file; tsrs raises its descriptor limit as far as the system allows a
 
 The defaults and fast preset described here are **unreleased**, available in source builds. The default uses
 pinned TypeScript's four checkers, file assignment and checker history, with eager members. Internal optimizations
-that preserve compiler behavior remain enabled in both modes.
+that preserve compiler behavior, including control-flow memoization and parallel parsing, remain enabled in both modes.
 
 `--fast` or `TSRS_FAST=1` enables the fast preset for compilation, watch and `--build`:
 
@@ -39,14 +39,22 @@ that preserve compiler behavior remain enabled in both modes.
 | --- | --- | --- |
 | Checker count | 4, capped by file count | Adapts to CPU and project size, up to 32; `--build` keeps 4 per project |
 | Scheduling | Go's file assignment and visit order | Directory locality, work stealing, and file splitting/module affinity when eligible |
-| Checker history and caches | Go's behavior | Canonical handling of selected history-dependent cases and additional checker caches |
-| Type members | Eager | Lazy resolution and instantiation |
+| Checker history | Go's behavior | Canonical handling of selected history-dependent cases |
+| Additional checker caches | Union-front, indexed-access and inference-walk caches off | Those three caches on |
+| Type members | Eager | Lazy resolution and instantiation, including tuples, conditional/inference mappers and property-cache optimizations |
 | Declaration parsing | Eager | Lazy `.d.ts` member parsing in batch/incremental compilation and non-watch builds when declaration checking is skipped |
 | Finished leaf files | Retained | Freed on eligible non-incremental, non-watch `--noEmit` runs |
 
 The preset keeps compiler options such as `strict`, `skipLibCheck` and `noCheck` as configured. Lazy declaration
 parsing requires `skipLibCheck` or `noCheck`; in build mode every built project must qualify. Memory targets and
-persistent cost caches require their own size or path.
+persistent cost caches require their own size or path. Experimental shared type graphs and the
+`TSRS_LAZY_HAS_PROP` optimization remain off; see [internal switches](DEBUGGING.md#fast-mode-and-reference-defaults).
+
+Leaf freeing requires a Unix build with compressed pointers, canonical history, and a non-incremental,
+non-watch `--noEmit` run without declaration output or `--explainFiles`. By default, the checker upper bound
+computed before files are loaded must be at most 16; reducing the count later for a small program does not
+enable it. `TSRS_FREE_LEAVES=1` bypasses that count limit only. See the
+[full eligibility rules](DEBUGGING.md#freeing-checked-leaf-files-tsrs_free_leaves).
 
 ### Side effects
 

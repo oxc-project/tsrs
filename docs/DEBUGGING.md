@@ -63,6 +63,14 @@ reference. `--noLazyMembers` / `TSRS_LAZY_MEMBERS=0` overrides the fast preset. 
 the environment preset but leaves per-feature overrides in effect. See [performance options](USAGE.md#performance-options)
 for the full preset and its diagnostic, memory, counter and cache-reuse effects.
 
+The lazy-member master switch also enables `TSRS_LAZY_TUPLES`, `TSRS_LAZY_COND_MAPPER`,
+`TSRS_LAZY_PROP_CACHE`, `TSRS_LAZY_UNMATCHED`, `TSRS_LAZY_EMPTY` and `TSRS_LAZY_INFERENCE_MAPPERS` by default.
+Each accepts `0` to disable it; all require the master switch. `TSRS_LAZY_HAS_PROP` remains off unless explicitly
+set to `1` with lazy members enabled ([implementation](../crates/tsrs_core/src/lazymembers.rs)).
+The experimental shared type graph also remains off: it requires both a build with
+`--features tsrs_core/shared-graph` and `TSRS_SHARED_GRAPH=1`
+([implementation](../crates/tsrs_compiler/src/sharedgraph.rs)).
+
 The conformance gate runs Go history with eager members (`TSRS_FAST=0`) and canonical history with lazy members
 (`TSRS_FAST=1`); neither may lose passes. The raw harness retains single-threaded programs unless
 `TS_TEST_PROGRAM_SINGLE_THREADED=false` or `tsrs-test --checkers N` enables parallel checking. It still accepts
@@ -91,26 +99,28 @@ files from the back of the busiest checker (notes/perf-checker-stealing.md). Cou
 naming an assignment (`--checkerAssignment locality`) turns stealing off and fixes the file placement and visit
 order. The scheduling gate checks output stability; this does not remove the known history-dependent cases.
 `tsrs-test --checkers N` sets each test program's checker count and enables parallel programs.
-Each checker begins the type-check pass with the files of its queue whose static weight exceeds 1/200 of an average
-checker's share, heaviest first, then the rest in program order (notes/perf-checker-64.md,
+With work stealing enabled, each checker begins the type-check pass with the files of its queue whose static
+weight exceeds 1/200 of an average checker's share, heaviest first, then the rest in program order (notes/perf-checker-64.md,
 notes/perf-heavy-first-threshold.md); `TSRS_HEAVY_SHARE_DIVISOR=<n>` changes the divisor for experiments.
 `--checkerCostCache <file>` (opt-in, locality only) balances the checkers on the previous run's per-file CPU times
 (notes/perf-balance.md).
-From 16 checkers on, the locality placement also counts the modules (files and their imports, library declaration
-files included) a group shares with each checker, then moves groups while that lowers the modules held per checker
+From 16 checkers on (or 8 for programs with at least 24,000 checked files), the locality placement also counts
+the modules (files and their imports, library declaration files included) a group shares with each checker,
+then moves groups while that lowers the modules held per checker
 (notes/perf-clustered-assignment.md); `TSRS_MODULE_AFFINITY=off` restores the placement by import edges alone, and
 `TSRS_MODULE_AFFINITY=<mu>`, `TSRS_MODULE_AFFINITY_GAMMA=<g>` and `TSRS_MODULE_AFFINITY_PASSES=<n>` are for experiments.
-From 16 checkers on, a thief also keeps stealing from the checker it stole from last while that checker has at least
-half the busiest one's work left; `TSRS_STEAL_STICKY=0` picks the busiest checker for every file. From 8 to 15
+At the same checker/file thresholds, a thief also keeps stealing from the checker it stole from last while that
+checker has at least half the busiest one's work left; `TSRS_STEAL_STICKY=0` picks the busiest checker for every file. From 8 to 15
 checkers at most a quarter of the checkers take files from any one checker at a time (notes/perf-icount-assign.md);
 `TSRS_STEAL_MAX_THIEVES=<m>` sets that limit at every checker count, `0` for none.
 
 ## Why a TS2590 comes and goes: `TSRS_TRACE_UNION_REDUCTION`
 
-By default a TS2590 no longer depends on the checker assignment: a result computed while one was reported is not
-cached, so every file that evaluates the type reports it, once per too-complex type at the first site that evaluated
-it (`Checker::too_complex_since`, `flush_too_complex_reports`, notes/open-history-dependence.md section 4). The trace below is for `--checkerAssignment go`, which keeps Go's caches and so Go's first-evaluation-only
-reports, and for finding which union a TS2590 is about.
+With fast mode's canonical history, a result computed while a TS2590 was reported is not cached, so every file
+that evaluates the type reports it, once per too-complex type at the first site that evaluated it
+(`Checker::too_complex_since`, `flush_too_complex_reports`, notes/open-history-dependence.md section 4).
+The default Go history keeps Go's caches and first-evaluation-only reports. The trace below helps explain those
+reports and identify which union a TS2590 is about. Other known history-dependent cases remain in fast mode.
 
 TS2590 ("Expression produces a union type that is too complex to represent") comes from two places. `removeSubtypes`
 gives up when, after 100,000 comparisons, the comparisons per constituent so far times the union's length exceed
@@ -289,8 +299,9 @@ those counts.
 ## The flow memo and its shadow mode
 
 Control flow analysis keeps the result of a sub-walk (the type at a flow node for one reference) across walks
-(`crates/tsrs_checker/src/flowmemo.rs`, notes/perf-flow-union-inference.md). It is on with `--fast`; it must never change
-output. Environment switches, read once per process:
+(`crates/tsrs_checker/src/flowmemo.rs`, notes/perf-flow-union-inference.md). It is on by default in both modes,
+including Go-compatible history; `--fast false` does not disable it. It must never change output.
+Environment switches, read once per process:
 
 - `TSRS_FLOW_MEMO=0`: off. Every walk is Go's walk. Use it to tell whether a difference comes from the memo.
 - `TSRS_FLOW_MEMO=shadow`: every memo answer is also walked for real, and the walked result is the one used; a
@@ -319,6 +330,10 @@ same either way.
 | `TSRS_UNION_CACHE` | unset (off in Go history, on in fast mode), `0`/`off`, `1`/`on` (on in every mode), `shadow` | `shadow` also computes the uncached answer at every hit and panics if it is a different type (the panic names the input type ids, the reduction and both answers) |
 | `TSRS_UNION_CACHE_STATS` | `1` | at exit, one line on stderr: lookups, hits, stores, why misses were not stored, calls that bypass the cache (shadow mode prints it too) |
 | `TSRS_UNION_CACHE_BITS` | default `10` | log2 of the table size. Larger tables hit slightly more often (2^12: 0.03% fewer instructions) but cost up to 2 MiB of RSS per checker (an allocation above mimalloc's medium size) |
+
+The indexed-access memo has the same history-dependent default: off in Go history, on in canonical history.
+`TSRS_IA_MEMO=0` / `off` disables it, `1` / `on` enables it in either mode, and `shadow` checks cached answers
+against an uncached evaluation ([implementation](../crates/tsrs_checker/src/unioncache.rs)).
 
 To audit a change near union construction, run the suite and a corpus with `TSRS_UNION_CACHE=shadow`: the result trees
 and the diagnostics must equal a `TSRS_UNION_CACHE=0` run, with no panics (`tsrs-test run --panic-summary`). A shadow
@@ -356,8 +371,8 @@ walk to reach an entry computes it as `hasMatchingRecursionIdentity` would.
 
 ## Freeing checked leaf files: `TSRS_FREE_LEAVES`
 
-In fast mode, a CLI `--noEmit` check with at most 16 checkers (`MAX_DEFAULT_CHECKERS`: above that it costs vscode
-2.4-3.9% wall time, so it is off unless `TSRS_FREE_LEAVES=1`; notes/mem-leaf-regions-cost.md) parses each TypeScript
+In fast mode, a CLI `--noEmit` check with a checker upper bound of at most 16 (`MAX_DEFAULT_CHECKERS`: above that
+it costs vscode 2.4-3.9% wall time, so it is off unless `TSRS_FREE_LEAVES=1`; notes/mem-leaf-regions-cost.md) parses each TypeScript
 root file whose path predicts a leaf (tests, specs, stories, mocks: `PREDICTED_LEAF_PATTERNS`) into a region of its
 own and frees the tree and binder output of each leaf
 among them as soon as its diagnostics are collected (`crates/tsrs_compiler/src/fileregions.rs`,
@@ -368,11 +383,13 @@ the same. It is off with declaration emit (`declaration`, `composite`), `--expla
 watch, Go-compatible history (the default or `--checkerAssignment go`), in the language server, the API and the
 test harnesses, under the debug modes that walk files or checker tables after the check (`TSRS_FILE_TIMES` and the work census),
 and in builds without compressed pointers (`plain-ptrs`, non-unix): there a freed region's memory stays mapped and the heap its values owned is reused, so a stale read would see a live object, and nothing would be
-saved. Asking a program for one freed leaf's diagnostics after the pass panics (the tree is gone); the CLI never does.
+saved. The upper bound is computed before loading files: one for `--singleThreaded`, the explicit `--checkers`
+value, or the machine-based fast count. A later reduction for a small program does not enable freeing.
+Asking a program for one freed leaf's diagnostics after the pass panics (the tree is gone); the CLI never does.
 
 | variable | values | effect |
 | --- | --- | --- |
-| `TSRS_FREE_LEAVES` | a comma list of: unset (free with at most 16 checkers), `1` (free at any count), `0`, `keep`, `stats`, `all` | `0`: no file regions (the layout before). `keep` (any count): file regions and the leaf marks, nothing freed (what the regions alone cost). `all` (any count): every TypeScript root file gets a region, not only the predicted ones (frees every leaf, but moves every tree out of the huge-page thread arenas: +6-9% wall time on vscode at 32 checkers on Linux against +2.5-5% predicted). `stats`: one line on stderr: the leaves freed and the ones the prediction missed (with their share of the leaves' nodes), the bytes their regions used, all file regions' bytes, and the arena address space the run used. Example: `TSRS_FREE_LEAVES=all,stats` |
+| `TSRS_FREE_LEAVES` | a comma list of: unset (free with a checker upper bound of at most 16), `1` (free at any count), `0`, `keep`, `stats`, `all` | `0`: no file regions (the layout before). `keep` (any count): file regions and the leaf marks, nothing freed (what the regions alone cost). `all` (any count): every TypeScript root file gets a region, not only the predicted ones (frees every leaf, but moves every tree out of the huge-page thread arenas: +6-9% wall time on vscode at 32 checkers on Linux against +2.5-5% predicted). `stats`: one line on stderr: the leaves freed and the ones the prediction missed (with their share of the leaves' nodes), the bytes their regions used, all file regions' bytes, and the arena address space the run used. Example: `TSRS_FREE_LEAVES=all,stats` |
 
 The variables above only apply when leaf freeing is eligible; `TSRS_FREE_LEAVES=1` does not bypass Go history or
 the other exclusions.
@@ -409,7 +426,8 @@ testdata/regressions/lazy-dts-members holds the cases where a lazy list could di
 ## Checking a heavy declaration file on several checkers: `TSRS_SPLIT_FILES`
 
 In the type-check pass with stealing (`--fast` with more than one checker), a checked declaration file that
-weighs at least 40% of an average checker's share is cut into contiguous statement ranges of about 1/8 of a share
+weighs at least 40% of an average checker's share (80% for default library files) is cut into contiguous
+statement ranges of about 1/8 of a share
 (`crates/tsrs_compiler/src/splitcheck.rs`, notes/perf-next-heavy-files.md). The checker that owns the file checks the
 first range; each other range is a queue item at the front of another checker's queue, which checks only those
 statements (`Checker::check_source_file_piece`) and hands its diagnostics for the file to the owner. The owner adds
@@ -426,8 +444,8 @@ server).
 | `TSRS_SPLIT_PIECE_DIVISOR` | default `8` | range size: 1/n of an average checker's share |
 
 After a change to what checking a declaration statement reads or writes outside the statement, run the conformance
-suite in the default checker mode with forced splits and compare its lists with an unsplit run:
-`TS_TEST_PROGRAM_SINGLE_THREADED=false TSRS_HISTORY=canonical TSRS_SPLIT_FILES=force:3,shadow tsrs-test run --suite all
+suite in fast mode with forced splits and compare its lists with an unsplit run:
+`TS_TEST_PROGRAM_SINGLE_THREADED=false TSRS_FAST=1 TSRS_SPLIT_FILES=force:3,shadow tsrs-test run --suite all
 --baselines types,symbols --panic-summary` against the same with `TSRS_SPLIT_FILES=0` (about 630 declaration files in
 330 test programs are split). `cargo test -p tsrs_cli --test split_check` runs testdata/split-check in every mode
 against tsgo-ref's output.

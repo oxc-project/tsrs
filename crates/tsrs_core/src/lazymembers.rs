@@ -1,5 +1,5 @@
 // Port of microsoft/TypeScript#64475 (lazy member tables of instantiated class/interface references) and #64526
-// (lazy members of `{ [P in keyof T]: X }` mapped types). On by default; `--noLazyMembers` or `TSRS_LAZY_MEMBERS=0`
+// (lazy members of `{ [P in keyof T]: X }` mapped types). Enabled by `--fast`; `--noLazyMembers` or `TSRS_LAZY_MEMBERS=0`
 // turns it off, which restores the reference (tsgo) behavior exactly. See notes/lazy-members.md.
 //
 // Follow-up candidates (notes/mem-lazy.md) each have their own switch below. A candidate only takes effect when the
@@ -16,11 +16,13 @@ pub fn set_from_cli(on: bool) {
 }
 
 pub fn enabled() -> bool {
-    static ENV: OnceLock<bool> = OnceLock::new();
+    static ENV: OnceLock<Option<bool>> = OnceLock::new();
     match CLI.load(Ordering::Relaxed) {
         1 => true,
         2 => false,
-        _ => *ENV.get_or_init(|| std::env::var("TSRS_LAZY_MEMBERS").map_or(true, |v| v != "0")),
+        _ => ENV
+            .get_or_init(|| std::env::var("TSRS_LAZY_MEMBERS").ok().map(|v| v != "0"))
+            .unwrap_or_else(crate::fast::enabled),
     }
 }
 

@@ -29,6 +29,13 @@ use crate::tsconfigparsing::{
     is_network_path_value, validate_json_option_value,
 };
 
+// CLI-only tsrs preset. Keep it out of the upstream compiler/config declarations and serialized compiler options.
+static FAST_OPTION: CommandLineOption = CommandLineOption {
+    name: "fast",
+    kind: CommandLineOptionKind::Boolean,
+    ..CommandLineOption::DEFAULT
+};
+
 impl CommandLineParser {
     pub(crate) fn alternate_mode(&self) -> Option<&'static AlternateModeDiagnostics> {
         self.worker_diagnostics.did_you_mean.alternate_mode.as_ref()
@@ -200,10 +207,15 @@ impl CommandLineParser {
                 }
                 b'-' => {
                     let input_option_name = get_input_option_name(s);
-                    let opt = self.options_map.get_option_declaration_from_name(
-                        input_option_name,
-                        true, /*allowShort*/
-                    );
+                    let opt = self
+                        .options_map
+                        .get_option_declaration_from_name(
+                            input_option_name,
+                            true, /*allowShort*/
+                        )
+                        .or_else(|| {
+                            input_option_name.eq_ignore_ascii_case("fast").then_some(&FAST_OPTION)
+                        });
                     if let Some(opt) = opt {
                         i = self.parse_option_value(
                             args,

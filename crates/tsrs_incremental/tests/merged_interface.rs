@@ -13,6 +13,8 @@ use tsrs_incremental::{
 // ownership across export alias and cache-policy changes. This uses the real filesystem and build-info writer.
 #[test]
 fn in_memory_interface_diagnostics_preserve_first_declaration_across_cache_policies() {
+    tsrs_core::fast::set_enabled(true);
+    tsrs_core::compat::set_go_compatible_history(false);
     let dir = std::env::temp_dir().join(format!("tsrs-in-memory-merged-{}", std::process::id()));
     std::fs::create_dir_all(dir.join("node_modules/p")).unwrap();
     let dir = dir.canonicalize().unwrap();
@@ -272,7 +274,7 @@ fn in_memory_interface_diagnostics_preserve_first_declaration_across_cache_polic
         SemanticDiagnosticsState::NotCached,
         "CLI must refresh an API-shaped disk cache"
     );
-    assert_eq!(state(loaded, "f.ts"), SemanticDiagnosticsState::Reused);
+    assert_eq!(state(loaded, "f.ts"), SemanticDiagnosticsState::NotCached);
     assert_eq!(sites(loaded), expected);
     emit(loaded);
     assert_eq!(std::fs::read_to_string(&build_info_path).unwrap(), serialized);
@@ -351,7 +353,7 @@ fn in_memory_interface_diagnostics_preserve_first_declaration_across_cache_polic
         SemanticDiagnosticsState::NotCached,
         "default history must refresh an untagged Go cache"
     );
-    assert_eq!(state(default, "f.ts"), SemanticDiagnosticsState::Reused);
+    assert_eq!(state(default, "f.ts"), SemanticDiagnosticsState::NotCached);
     assert_eq!(sites(default), expected);
     emit(default);
     assert_eq!(std::fs::read_to_string(&build_info_path).unwrap(), serialized);

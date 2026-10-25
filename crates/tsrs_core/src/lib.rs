@@ -30,6 +30,7 @@ pub use frozen::{
 pub mod collections;
 pub mod compat;
 pub mod debug;
+pub mod fast;
 pub mod festats;
 pub mod glob;
 pub mod gocompat;

@@ -4,7 +4,7 @@
 // `// @ts-ignore`; x/zz.ts evaluates it again without one. Go reports TS2590 only the first time a checker evaluates
 // the type, because the error type it returns is cached one level up (the intersection split, the relation), so
 // tsgo-ref reports x/zz.ts at 3 checkers and nothing at 1 or 2, and tsrs with work stealing reported it in about half
-// of the runs. By default tsrs no longer caches a result computed while a TS2590 was reported, so every file that
+// of the runs. With --fast tsrs no longer caches a result computed while a TS2590 was reported, so every file that
 // evaluates the type reports it, once per type at the first site, whatever the assignment; `--checkerAssignment go`
 // keeps Go's behaviour (notes/open-history-dependence.md section 4).
 
@@ -16,7 +16,7 @@ fn run(args: &[&str]) -> (bool, String) {
         .join("../../testdata/regressions/union-too-complex-cross-product");
     let out = Command::new(env!("CARGO_BIN_EXE_tsrs"))
         .current_dir(case)
-        .args(["-p", ".", "--pretty", "false"])
+        .args(["-p", ".", "--pretty", "false", "--fast"])
         .args(args)
         .env_remove("TSRS_CHECKER_ASSIGNMENT")
         .env_remove("TSRS_HISTORY")

@@ -102,12 +102,11 @@ pub const MAX_DEFAULT_CHECKERS: usize = 16;
 /// Keeps lazy declaration parsing within its supported CLI modes.
 ///
 /// Whether the CLI may parse declaration-file member lists lazily (notes/mem-lazy-dts-members.md):
-/// `TSRS_LAZY_DTS=0` turns it off, and so does the shared-object check, which freezes the whole program.
+/// Enabled by `--fast` or `TSRS_LAZY_DTS=1`; the shared-object check freezes the whole program and disables it.
 pub fn lazy_dts_allowed() -> bool {
-    if std::env::var_os("TSRS_LAZY_DTS").is_some_and(|v| v == "0" || v == "off") {
-        return false;
-    }
-    !tsrs_core::ptr::shared_check::enabled()
+    let enabled = std::env::var_os("TSRS_LAZY_DTS")
+        .map_or_else(tsrs_core::fast::enabled, |v| v != "0" && v != "off");
+    enabled && !tsrs_core::ptr::shared_check::enabled()
 }
 
 /// Enables lazy declaration parsing for subsequent CLI programs.

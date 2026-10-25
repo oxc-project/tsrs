@@ -405,6 +405,9 @@ fn check_project(settings: &Settings, input: &Input, cases: &mut Vec<Case>) -> R
             for repetition in 1..=REPETITIONS {
                 let label = format!("{assignment}-{count_label}-{repetition}");
                 let mut flags = vec!["--checkers".into(), count.to_string()];
+                if assignment != "go" {
+                    flags.push("--fast".into());
+                }
                 if assignment != "default" {
                     flags.push("--checkerAssignment".into());
                     flags.push(if assignment == "random" {

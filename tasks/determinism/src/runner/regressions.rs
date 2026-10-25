@@ -41,12 +41,17 @@ pub(super) fn run(settings: &Settings, names: &[String]) -> Result<()> {
             identity: serde_json::Value::Null,
             regression: true,
         };
-        let mut reference =
-            invoke(settings, &input, &settings.tsrs, &["--singleThreaded".into()], "single")?;
+        let mut reference = invoke(
+            settings,
+            &input,
+            &settings.tsrs,
+            &["--singleThreaded".into(), "--fast".into()],
+            "single",
+        )?;
         let mut failure = reference.failure.clone();
         let output = full_output(settings, &input, "single")?;
         // These fixtures include intentional canonical-history differences from Go. Keep their checked-in
-        // expectations and compare schedules in the default history, as the previous determinism gate did.
+        // expectations and compare schedules in fast history, as the previous determinism gate did.
         let expected = fs::read_to_string(input.cwd.join("expected.txt"))?.replace("\r\n", "\n");
         if failure.is_none() && output.trim_end_matches('\n') != expected.trim_end_matches('\n') {
             write_diff(settings, &input, "single", &expected, &output)?;
@@ -64,7 +69,7 @@ pub(super) fn run(settings: &Settings, names: &[String]) -> Result<()> {
                         (format!("random-{count}-{seed}"), Some(format!("random:{seed}")))
                     }));
                 for (label, assignment) in variants {
-                    let mut flags = vec!["--checkers".into(), count.to_string()];
+                    let mut flags = vec!["--checkers".into(), count.to_string(), "--fast".into()];
                     if let Some(assignment) = assignment {
                         flags.extend(["--checkerAssignment".into(), assignment]);
                     }

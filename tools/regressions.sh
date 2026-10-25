@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Runs every testdata/regressions/<case> (a tsconfig.json project whose expected.txt is tsgo-ref's output) with the
-# given tsrs binary and reports the cases whose output differs.
+# given tsrs binary in fast mode and reports the cases whose output differs. A few fixtures intentionally exercise
+# canonical-history differences; the conformance gate separately checks the default Go history.
 #   tools/regressions.sh [path/to/tsrs]   (default: target/release/tsrs)
 set -uo pipefail
 repo="$(cd "$(dirname "$0")/.." && pwd)"
@@ -10,7 +11,7 @@ for dir in "$repo"/testdata/regressions/*/; do
   name="$(basename "$dir")"
   # Resolution traces print absolute paths; expected.txt has <dir> for the case's directory.
   here="$(cd "$dir" && pwd -P)"
-  actual="$(cd "$here" && "$tsrs" -p . --pretty false --singleThreaded 2>&1)"
+  actual="$(cd "$here" && "$tsrs" -p . --pretty false --singleThreaded --fast 2>&1)"
   actual="${actual//"$here"/<dir>}"
   if [ "$actual" == "$(cat "$dir/expected.txt")" ]; then
     echo "pass $name"

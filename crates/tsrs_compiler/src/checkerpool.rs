@@ -905,7 +905,7 @@ impl CheckerPoolImpl {
     // forEachCheckerGroupDo runs one task per checker in parallel. Each task iterates the provided files,
     // processing only those assigned to its checker. Within each checker's set, files are visited in their original
     // order (`visit_order`), except that the type-check pass with stealing starts each checker on its heavy files
-    // (heavy_files_first). Output does not depend on the order in the default mode (notes/perf-order-independence.md);
+    // (heavy_files_first). Output does not depend on the order in fast mode (notes/perf-order-independence.md);
     // program order keeps Go's history under `--checkerAssignment go` and the counters stable.
     pub(crate) fn for_each_checker_group_do(
         &self,
@@ -1861,8 +1861,8 @@ pub fn write_cost_cache(program: &'static Program) {
 // tsrs-only: how files are assigned to checkers. `--checkerAssignment <name>` (CLI) or
 // TSRS_CHECKER_ASSIGNMENT=<name> (any binary). The assignment never changes what a file's diagnostics are, only
 // which checker computes them (and so how much checker state is duplicated across checkers).
-//   locality (default): directory-subtree groups packed onto checkers with Go's FENNEL (below)
-//   go:                 Go's createCheckers association (FENNEL over single files in program order)
+//   locality (--fast):  directory-subtree groups packed onto checkers with Go's FENNEL (below)
+//   go (default):       Go's createCheckers association (FENNEL over single files in program order)
 //   file:<path>:        one checker index per line by program file index (experiments)
 //   random:<seed>:      a random checker per file and a random visit order in each checker, drawn from the seed
 //                       (debug: output must not depend on the assignment)
@@ -1888,7 +1888,7 @@ pub fn set_checker_assignment_from_cli(name: &str) -> bool {
 
 fn parse_checker_assignment(name: &str) -> Option<CheckerAssignment> {
     match name {
-        "" | "locality" => Some(CheckerAssignment::Locality),
+        "locality" => Some(CheckerAssignment::Locality),
         "go" => Some(CheckerAssignment::Go),
         _ => match name.strip_prefix("random:") {
             Some(seed) => seed.parse::<u64>().ok().map(CheckerAssignment::Random),
@@ -1902,6 +1902,13 @@ fn checker_assignment() -> CheckerAssignment {
         Some(name) => name.clone(),
         None => std::env::var("TSRS_CHECKER_ASSIGNMENT").unwrap_or_default(),
     };
+    if name.is_empty() {
+        return if tsrs_core::fast::enabled() {
+            CheckerAssignment::Locality
+        } else {
+            CheckerAssignment::Go
+        };
+    }
     parse_checker_assignment(&name).unwrap_or_else(|| {
         panic!("unknown checker assignment {name:?} (locality, go, file:<path>, random:<seed>)")
     })
@@ -1938,7 +1945,7 @@ pub fn use_go_default_checker_count() {
     GO_DEFAULT_CHECKER_COUNT.store(true, std::sync::atomic::Ordering::Relaxed);
 }
 
-// tsrs-only: the checker count when neither --checkers nor --singleThreaded is given. Go always uses 4. Here: half the
+// tsrs-only: --fast's checker count when neither --checkers nor --singleThreaded is given. The default is Go's 4. Fast mode uses half the
 // available parallelism but every core up to SMALL_MACHINE_CHECKERS, at least Go's 4 and at most MAX_DEFAULT_CHECKERS,
 // and no more than one checker per MIN_CHECKED_FILES_PER_DEFAULT_CHECKER type-checked files, so small programs keep
 // Go's 4: 4 checkers on 4 cores, 8 on 8, 16 on 16 to 33, 32 on 64 or more. Diagnostics do not depend on the count
@@ -1964,7 +1971,9 @@ fn default_checker_count(program: &Program) -> i64 {
 
 // `default_checker_count` before the program's files are known: what the machine allows (the file count only lowers it).
 fn default_checker_count_by_machine() -> i64 {
-    if GO_DEFAULT_CHECKER_COUNT.load(std::sync::atomic::Ordering::Relaxed) {
+    if !tsrs_core::fast::enabled()
+        || GO_DEFAULT_CHECKER_COUNT.load(std::sync::atomic::Ordering::Relaxed)
+    {
         return GO_DEFAULT_CHECKERS;
     }
     default_checkers_for_parallelism(

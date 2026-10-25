@@ -102,7 +102,7 @@ cargo test --locked                                             # all workspace 
 ```
 
 The conformance gate in [the determinism task](tasks/determinism/README.md#conformance-gate), also run by CI and
-release BOLT, compares every supported compiler baseline in tsgo's checker history and in the default CLI mode with
+release BOLT, compares every supported compiler baseline in tsgo's default checker history and in `--fast` mode with
 work stealing. It then repeats the upstream fixtures listed in
 `testdata/checker-determinism.txt` at 4 and 8 checkers, with ten default runs and eight seeded assignments per count.
 `--baselines all` includes errors, types, symbols, JavaScript/declaration emit, JavaScript maps and source-map
@@ -110,7 +110,7 @@ records. The runner exits unsuccessfully on any baseline difference, crash, time
 rejects a testdata checkout at a different TypeScript source pin. Unsupported cases remain reported as skips.
 
 The raw `tsrs-test` command keeps upstream's single-threaded Go history so baseline differences are reproducible.
-Schedule-dependent output in the default mode is a defect; add its upstream reproduction to
+Schedule-dependent output in fast mode is a defect; add its upstream reproduction to
 `testdata/checker-determinism.txt`. The [task guide](tasks/determinism/README.md#conformance-gate) lists the gate's
 options, result directories and replay command.
 

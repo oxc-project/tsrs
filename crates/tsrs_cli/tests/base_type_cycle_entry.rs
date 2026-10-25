@@ -4,7 +4,7 @@
 // read-env.ts enters at `Env` (then `ProcessEnv` inherits `Env`'s optional `NODE_ENV`), spawn.ts at `ProcessEnv` (then
 // it inherits `RequiredEnv`'s required one and spawn.ts gets a TS2322). So spawn.ts's error depends on whether
 // read-env.ts was checked before it on its checker (tsgo-ref: no error at 1-5 checkers, an error at 8 and 16;
-// expected.txt is its output at 8). By default tsrs enters every cycle at the member declared first in program order
+// expected.txt is its output at 8). With --fast tsrs enters every cycle at the member declared first in program order
 // (`ProcessEnv`, which is also what tsgo-ref does with `--skipLibCheck false`); `--checkerAssignment go` keeps Go's
 // behaviour (notes/fix-history-dependent-diagnostics.md).
 
@@ -18,7 +18,7 @@ fn case() -> std::path::PathBuf {
 fn run(args: &[&str]) -> String {
     let out = Command::new(env!("CARGO_BIN_EXE_tsrs"))
         .current_dir(case())
-        .args(["-p", ".", "--pretty", "false"])
+        .args(["-p", ".", "--pretty", "false", "--fast"])
         .args(args)
         .env_remove("TSRS_CHECKER_ASSIGNMENT")
         .env_remove("TSRS_HISTORY")

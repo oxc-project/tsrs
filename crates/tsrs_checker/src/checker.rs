@@ -1308,7 +1308,7 @@ pub struct Checker {
         crate::basedmap::Based<FxHashMap<P<Type>, PackedMap<CacheHashKey, P<Type>>>, P<Type>>,
     pub(crate) lazy_mapped_tables:
         crate::basedmap::Based<FxHashMap<P<Type>, std::rc::Rc<LazyMappedTable>>, P<Type>>,
-    /// `tsrs_core::lazymembers::enabled()` (default on; `--noLazyMembers` / `TSRS_LAZY_MEMBERS=0`): no lazy
+    /// `tsrs_core::lazymembers::enabled()` (`--fast` / `--lazyMembers`; `TSRS_LAZY_MEMBERS` overrides the preset): no lazy
     /// table is created when false.
     pub(crate) lazy_members: bool,
     /// Counter for mapped types whose members are being resolved (see `resolve_mapped_type_members`).

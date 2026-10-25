@@ -32,6 +32,7 @@ fn run_with(
         checkers,
         "--maxMemory",
         "1M",
+        "--fast",
     ]);
     cmd.env("TSRS_RETIRE_MIN", "0");
     if extended {

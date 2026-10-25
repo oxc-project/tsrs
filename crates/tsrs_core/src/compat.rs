@@ -2,7 +2,7 @@
 //!
 //! A few checker caches in typescript-go let the printed output depend on what the checker happened to see first,
 //! so with several checkers the text depends on which checker checked which file. tsrs makes those caches a function
-//! of the program alone by default ("canonical"). `--checkerAssignment go` / `TSRS_CHECKER_ASSIGNMENT=go` keep Go's
+//! of the program alone with `--fast` ("canonical"). The default and `--checkerAssignment go` keep Go's
 //! behaviour, bug for bug, for byte-identity with tsgo: the conformance, fourslash and tsc harnesses run that way,
 //! because their baselines are tsgo's output with one checker in program order. Every place that has the two
 //! behaviours asks `go_compatible_history()`.
@@ -15,14 +15,16 @@ const GO: u8 = 2;
 
 static MODE: AtomicU8 = AtomicU8::new(UNSET);
 
-/// Whether checker caches keep typescript-go's history-dependent behaviour. Unless set explicitly, true exactly when
-/// `TSRS_CHECKER_ASSIGNMENT=go`.
+/// Whether checker caches keep typescript-go's history-dependent behaviour. Explicit assignments override `--fast`.
 pub fn go_compatible_history() -> bool {
     // A plain flag set before any checker exists; nothing is published through it.
     match MODE.load(Ordering::Relaxed) {
         UNSET => {
-            let go = std::env::var("TSRS_CHECKER_ASSIGNMENT").is_ok_and(|v| v == "go");
-            // Racing first readers compute the same value from the environment.
+            let go = std::env::var("TSRS_CHECKER_ASSIGNMENT")
+                .ok()
+                .filter(|v| !v.is_empty())
+                .map_or_else(|| !crate::fast::enabled(), |v| v == "go");
+            // Racing first readers see the same configuration, set before any checker starts.
             MODE.store(if go { GO } else { CANONICAL }, Ordering::Relaxed);
             go
         }
@@ -45,5 +47,6 @@ pub fn set_go_compatible_history(on: bool) {
 pub fn use_go_history_for_tsgo_baselines() {
     let other = std::env::var("TSRS_CHECKER_ASSIGNMENT").is_ok_and(|v| !v.is_empty() && v != "go")
         || std::env::var("TSRS_HISTORY").is_ok_and(|v| v == "canonical");
+    crate::fast::set_enabled(other);
     set_go_compatible_history(!other);
 }

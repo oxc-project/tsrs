@@ -19,6 +19,7 @@ fn shared() -> RwLockReadGuard<'static, ()> {
 struct Watch {
     child: Child,
     lines: Receiver<String>,
+    cycle_timeout: Duration,
     // The watch's own decisions (TS_WATCH_DEBUG), for failure messages.
     log: Vec<String>,
 }
@@ -54,7 +55,7 @@ impl Watch {
                 }
             }
         });
-        Watch { child, lines, log: Vec::new() }
+        Watch { child, lines, cycle_timeout: Duration::from_secs(15), log: Vec::new() }
     }
 
     // The error lines of the next cycle.
@@ -63,7 +64,7 @@ impl Watch {
         loop {
             let line = self
                 .lines
-                .recv_timeout(Duration::from_secs(15))
+                .recv_timeout(self.cycle_timeout)
                 .unwrap_or_else(|_| panic!("no cycle; watch log:\n{}", self.log.join("\n")));
             if line.starts_with("[watch] ") {
                 if !line.contains("watching directory") && !line.contains("resolved ") {
@@ -300,6 +301,9 @@ fn an_edit_during_the_first_build_is_seen(args: &[&str]) {
         std::fs::write(dir.join("src/a.ts"), "export const a = 1;\n").unwrap();
         std::thread::sleep(Duration::from_millis(300));
         let mut watch = Watch::spawn(&dir, args);
+        // Eager TypeScript defaults take longer on this deep-tuple fixture than the fast preset. Size the
+        // deadline from the fresh build already measured above, as we do the edit delay.
+        watch.cycle_timeout = (build_time * 2).max(Duration::from_secs(15));
         std::thread::sleep(build_time.mul_f64(fraction));
         std::fs::write(dir.join("src/a.ts"), format!("export const a = 1;{ERR}")).unwrap();
         if !watch.next_cycle().is_empty() {
@@ -539,10 +543,12 @@ fn edits_after_the_first_build_are_seen(args: &[&str]) {
 fn edits_after_the_first_build_are_seen_in_watch() {
     let _shared = shared();
     edits_after_the_first_build_are_seen(&["--watch", "-p", "."]);
+    edits_after_the_first_build_are_seen(&["--watch", "-p", ".", "--fast"]);
 }
 
 #[test]
 fn edits_after_the_first_build_are_seen_in_build_watch() {
     let _shared = shared();
     edits_after_the_first_build_are_seen(&["-b", ".", "--watch"]);
+    edits_after_the_first_build_are_seen(&["-b", ".", "--watch", "--fast"]);
 }

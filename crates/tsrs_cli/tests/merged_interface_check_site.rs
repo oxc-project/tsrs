@@ -18,7 +18,7 @@ fn run(name: &str, args: &[&str]) -> String {
 fn run_in(dir: &Path, args: &[&str]) -> String {
     let out = Command::new(env!("CARGO_BIN_EXE_tsrs"))
         .current_dir(dir)
-        .args(["-p", ".", "--pretty", "false"])
+        .args(["-p", ".", "--pretty", "false", "--fast"])
         .args(args)
         .env_remove("TSRS_CHECKER_ASSIGNMENT")
         .env_remove("TSRS_HISTORY")

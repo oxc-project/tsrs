@@ -3,7 +3,7 @@
 // Go marshals these types with encoding/json/v2 (`omitzero` fields, custom MarshalJSON for the tuple shapes).
 // Rust builds the same `json::Value` tree by hand, field by field in Go's declaration order, so that
 // `json::marshal` produces Go's exact bytes in Go-compatible history. Unmarshaling follows the Go
-// `UnmarshalJSON` fallbacks; default history adds an optional tsrs canonical-cache proof.
+// `UnmarshalJSON` fallbacks; opt-in modes add a performance-policy marker and canonical-cache proof.
 
 use rustc_hash::FxHashMap;
 use tsrs_ast::RepopulateDiagnosticKind;
@@ -643,8 +643,10 @@ pub struct BuildInfo {
     pub package_jsons: Option<Vec<String>>,
     pub missing_package_jsons: Option<Vec<String>>,
     pub(crate) content_mapper_identities: Option<Vec<String>>,
-    // Default-history cache proof; Go-compatible history leaves it empty and omits it.
+    // Fast-history cache proof; Go-compatible history leaves it empty and omits it.
     pub tsrs_canonical_check_signature: String,
+    // Omitted with TypeScript defaults. Also covers non-incremental build caches and lazy-member overrides.
+    pub(crate) tsrs_performance: String,
 
     // IncrementalProgram info
     pub file_names: Vec<String>,
@@ -667,6 +669,15 @@ pub struct BuildInfo {
 }
 
 impl BuildInfo {
+    pub(crate) fn performance_mode(canonical: bool) -> &'static str {
+        match (canonical, tsrs_core::lazymembers::enabled()) {
+            (false, false) => "",
+            (false, true) => "lazy",
+            (true, false) => "canonical",
+            (true, true) => "canonical,lazy",
+        }
+    }
+
     // Go `json.Marshal(buildInfo)`.
     pub fn marshal_json(&self) -> Value {
         let mut o = Obj::default();
@@ -678,6 +689,7 @@ impl BuildInfo {
         o.opt_strings("missingPackageJsons", self.missing_package_jsons.as_deref());
         o.opt_strings("contentMapperIdentities", self.content_mapper_identities.as_deref());
         o.str("tsrsCanonicalCheckSignature", &self.tsrs_canonical_check_signature);
+        o.str("tsrsPerformance", &self.tsrs_performance);
         if !self.file_names.is_empty() {
             o.set("fileNames", strings(&self.file_names));
         }
@@ -728,15 +740,17 @@ impl BuildInfo {
         canonical_diagnostics: bool,
     ) -> Result<BuildInfo, String> {
         let o = as_object(data)?;
-        // tsrs-only: tagged CLI diagnostics cannot be reused by API or Go history, even with a malformed proof.
-        if (!canonical_diagnostics || tsrs_core::compat::go_compatible_history())
-            && o.contains_key("tsrsCanonicalCheckSignature")
+        // Both directions require a fresh check: canonical diagnostics cannot be reused by Go/API history,
+        // and a fast invocation must not reuse diagnostics computed with the TypeScript defaults.
+        let canonical = canonical_diagnostics && !tsrs_core::compat::go_compatible_history();
+        let tsrs_performance = get_string(o, "tsrsPerformance")?;
+        if tsrs_performance != Self::performance_mode(canonical)
+            || !canonical && o.contains_key("tsrsCanonicalCheckSignature")
         {
-            return Err(
-                "canonical build info cannot be reused with this diagnostic policy".to_string()
-            );
+            return Err("build info cannot be reused with this diagnostic policy".to_string());
         }
         Ok(BuildInfo {
+            tsrs_performance,
             version: get_string(o, "version")?,
             errors: get_bool(o, "errors")?,
             check_pending: get_bool(o, "checkPending")?,
@@ -817,6 +831,7 @@ impl BuildInfo {
         w.opt_strings("missingPackageJsons", self.missing_package_jsons.as_deref());
         w.opt_strings("contentMapperIdentities", self.content_mapper_identities.as_deref());
         w.str("tsrsCanonicalCheckSignature", &self.tsrs_canonical_check_signature);
+        w.str("tsrsPerformance", &self.tsrs_performance);
         if !self.file_names.is_empty() {
             w.strings("fileNames", &self.file_names);
         }
@@ -1432,6 +1447,7 @@ mod tests {
             missing_package_jsons: Some(vec![]),
             content_mapper_identities: None,
             tsrs_canonical_check_signature: "go4-v1:0123456789abcdef0123456789abcdef".into(),
+            tsrs_performance: "canonical,lazy".into(),
             file_names: vec!["lib.d.ts".into(), "../src/a.ts".into(), "../src/ü \"q\".ts".into()],
             file_infos: vec![
                 info("v1", "v1", false, ModuleKind::COMMON_JS),
@@ -1480,10 +1496,17 @@ mod tests {
         for build_info in [full, empty, bare] {
             let expected = tsrs_core::json::marshal(&build_info.marshal_json()).unwrap();
             assert_eq!(build_info.marshal(), expected);
-            assert_eq!(
-                BuildInfo::unmarshal(&expected).unwrap().tsrs_canonical_check_signature,
-                build_info.tsrs_canonical_check_signature
-            );
+            if build_info.tsrs_canonical_check_signature.is_empty() {
+                assert_eq!(
+                    BuildInfo::unmarshal(&expected).unwrap().tsrs_canonical_check_signature,
+                    build_info.tsrs_canonical_check_signature
+                );
+            } else {
+                assert!(
+                    BuildInfo::unmarshal(&expected).is_err(),
+                    "default history rejects fast caches"
+                );
+            }
         }
     }
 }

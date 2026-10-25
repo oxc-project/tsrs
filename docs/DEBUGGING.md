@@ -55,34 +55,34 @@ understand, read both versions and the Go source; do not blindly take one side.
   same verified pin. Oracle tools for scanner/parser/binder/module resolution/printer live in `tools/oracle/` with
   binaries in `$TSRS_WORK/bin/`.
 
-## Lazy member resolution (default on) and the opt-out mode
+## Lazy member resolution (`--fast`) and reference defaults
 
 tsrs ports microsoft/TypeScript#64475 + #64526 (lazy member tables, `tsrs_core::lazymembers`, notes/lazy-members.md)
-and runs them **by default**. `--noLazyMembers` / `TSRS_LAZY_MEMBERS=0` turns them off and restores the reference
-behavior exactly (same counters, same baselines). The no-regression check above is therefore run twice before a push:
-`TSRS_LAZY_MEMBERS=0 tsrs-test run --suite all --baselines types,symbols` must match the previous opt-out pass lists
-exactly (that is the reference-equivalence gate), and the default run must not lose passes either. Comparisons
-against `tsgo-ref` counters (symbols/types/instantiations) use the opt-out mode; with the default mode tsrs creates
+and enables them with **`--fast` or `--lazyMembers`**. Eager members are the default, as in the pinned reference.
+`--noLazyMembers` / `TSRS_LAZY_MEMBERS=0` overrides the fast preset. The conformance gate runs both the default
+Go history with eager members and `TSRS_HISTORY=canonical` with lazy members; neither may lose passes.
+Comparisons against `tsgo-ref` counters (symbols/types/instantiations) use matching checker counts and Go history
+with eager members. With lazy members tsrs creates
 fewer symbols, types and instantiations than `tsgo-ref` (it equals tsgo with both PRs applied).
 
 ## Checker assignment (multi-checker counters)
 
-With more than one checker, tsrs assigns files to checkers by directory locality by default
-(`--checkerAssignment locality`, notes/mem-assignment.md); Go uses FENNEL over single files. Diagnostics and emitted
-files do not depend on the assignment (notes/perf-order-independence.md), but multi-checker
+The default uses Go's FENNEL assignment and checker history. `--fast` assigns files by directory locality
+(`--checkerAssignment locality` selects the static variant, notes/mem-assignment.md). In fast history, diagnostics and emitted
+files do not depend on the assignment apart from known exceptions (notes/perf-order-independence.md), but multi-checker
 symbol/type/instantiation counters and peak memory do: compare them against `tsgo-ref` with `--checkerAssignment go`
 (or `TSRS_CHECKER_ASSIGNMENT=go`). `go` also preserves Go's checker history (`tsrs_core::compat`), so it is the mode
 for byte-identity with tsgo (with `--noLazyMembers`
 where an instantiation depth limit is reached: lazy members change which instantiations a checker has cached,
 notes/open-history-dependence.md section 6). The conformance, fourslash and tsc harnesses run in it;
-`TS_TEST_PROGRAM_SINGLE_THREADED=false TSRS_HISTORY=canonical` runs `tsrs-test` in the default mode, as the conformance
+`TS_TEST_PROGRAM_SINGLE_THREADED=false TSRS_HISTORY=canonical` runs `tsrs-test` in fast mode, as the conformance
 gate does.
 `TSRS_CHECKER_ASSIGNMENT=random:<seed>` puts each file on a random checker with a random visit order in each checker:
-the default mode must print the same text for every seed and checker count. Single-threaded runs have no assignment.
-Without a named assignment the type-check pass also steals work: a checker that has run out of files takes unstarted
+fast mode must print the same text for every seed and checker count. Single-threaded runs have no assignment.
+In fast mode without a named assignment the type-check pass also steals work: a checker that has run out of files takes unstarted
 files from the back of the busiest checker (notes/perf-checker-stealing.md). Output is unchanged by it, but the
 counters vary from run to run; naming an assignment (`--checkerAssignment locality`) turns stealing off for fully
-reproducible counters. `TSRS_HISTORY=canonical` runs the tsgo-baseline harnesses in the default mode, stealing
+reproducible counters. `TSRS_HISTORY=canonical` runs the tsgo-baseline harnesses in fast mode, stealing
 included, without naming an assignment.
 `tsrs-test --checkers N` sets each test program's checker count and enables parallel programs.
 Each checker begins the type-check pass with the files of its queue whose static weight exceeds 1/200 of an average
@@ -283,7 +283,7 @@ those counts.
 ## The flow memo and its shadow mode
 
 Control flow analysis keeps the result of a sub-walk (the type at a flow node for one reference) across walks
-(`crates/tsrs_checker/src/flowmemo.rs`, notes/perf-flow-union-inference.md). It is on by default; it must never change
+(`crates/tsrs_checker/src/flowmemo.rs`, notes/perf-flow-union-inference.md). It is on with `--fast`; it must never change
 output. Environment switches, read once per process:
 
 - `TSRS_FLOW_MEMO=0`: off. Every walk is Go's walk. Use it to tell whether a difference comes from the memo.
@@ -304,7 +304,7 @@ them with the memo on, off and in shadow mode.
 in input order, the reduction mode and the alias (symbol and type arguments), at most 8 words. A call is stored only if
 it created no type other than the union it returns, instantiated nothing, took neither the template-literal nor the
 constrained-type-variable reduction, and did not return `errorType` (the TS2590 path); the module comment has the
-argument for why a hit then returns exactly what the uncached call would. On by default, off under
+argument for why a hit then returns exactly what the uncached call would. On with `--fast`, off under
 `--checkerAssignment go`. Diagnostics, `.types`/`.symbols` output and the `Types`/`Instantiations` counters are the
 same either way.
 
@@ -328,7 +328,7 @@ candidate lists, priority and `topLevel`, and whether it cleared the cached infe
 took at least 16 `inferFromTypes` steps (and an earlier walk to the same target did too), created no type, symbol or signature, instantiated nothing, added no
 diagnostic, took no impure union reduction, read no transient state (the flow memo's taint frame around it), did not
 start inside an instantiation and, if it started with the instantiation count at 0, checked no expression; the
-module comment has the argument. On by default, off under `--checkerAssignment go`. It pays where one generic call is
+module comment has the argument. On with `--fast`, off under `--checkerAssignment go`. It pays where one generic call is
 inferred many times from the same contextual type (vscode's `mapSessionEvents.test.ts`:
 notes/perf-heavy-files-infer-memo.md).
 
@@ -397,7 +397,7 @@ testdata/regressions/lazy-dts-members holds the cases where a lazy list could di
 
 ## Checking a heavy declaration file on several checkers: `TSRS_SPLIT_FILES`
 
-In the type-check pass with stealing (the default mode with more than one checker), a checked declaration file that
+In the type-check pass with stealing (`--fast` with more than one checker), a checked declaration file that
 weighs at least 40% of an average checker's share is cut into contiguous statement ranges of about 1/8 of a share
 (`crates/tsrs_compiler/src/splitcheck.rs`, notes/perf-next-heavy-files.md). The checker that owns the file checks the
 first range; each other range is a queue item at the front of another checker's queue, which checks only those

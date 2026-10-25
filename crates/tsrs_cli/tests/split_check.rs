@@ -15,7 +15,7 @@ use std::process::Command;
 
 fn run(case: &Path, mode: &str, stats: &Path) -> String {
     let out = Command::new(env!("CARGO_BIN_EXE_tsrs"))
-        .args(["-p", ".", "--pretty", "false", "--checkers", "4"])
+        .args(["-p", ".", "--pretty", "false", "--checkers", "4", "--fast"])
         .current_dir(case)
         .env("TSRS_SPLIT_FILES", format!("{mode},stats:{}", stats.display()))
         .env_remove("TSRS_CHECKER_ASSIGNMENT")

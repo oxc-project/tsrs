@@ -10,7 +10,7 @@ use std::process::Command;
 
 fn run(case: &Path, mode: &str) -> String {
     let out = Command::new(env!("CARGO_BIN_EXE_tsrs"))
-        .args(["-p", ".", "--pretty", "false"])
+        .args(["-p", ".", "--pretty", "false", "--fast"])
         .current_dir(case)
         .env("TSRS_FLOW_MEMO", mode)
         .output()

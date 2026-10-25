@@ -28,6 +28,8 @@ pub fn snapshot_to_build_info(
     let mut build_info = BuildInfo {
         version: tsrs_core::version().to_string(),
         content_mapper_identities,
+        tsrs_performance: BuildInfo::performance_mode(program.uses_canonical_diagnostics())
+            .to_string(),
         ..Default::default()
     };
     let mut to = ToBuildInfo {

@@ -181,7 +181,7 @@ mod tests {
         let exe = std::env::current_exe().unwrap().parent().unwrap().parent().unwrap().join("tsrs");
         let cli = || {
             let output = std::process::Command::new(&exe)
-                .args(["-p", ".", "--pretty", "false"])
+                .args(["-p", ".", "--pretty", "false", "--fast"])
                 .current_dir(&dir)
                 .output()
                 .unwrap();

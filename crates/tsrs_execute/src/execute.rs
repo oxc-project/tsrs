@@ -61,6 +61,7 @@ pub(crate) fn command_line_with_testing(
             "-b" | "--b" | "-build" | "--build" => {
                 let host = parse_config_host(sys);
                 let mut command = tsoptions::parse_build_command_line(&command_line_args, host);
+                configure_performance(&command.raw);
                 if tsrs_core::NO_THREADS {
                     command.compiler_options.single_threaded = tsrs_core::Tristate::True;
                 }
@@ -128,10 +129,17 @@ pub(crate) fn command_line_with_testing(
     }
     let host = parse_config_host(sys);
     let mut command = tsoptions::parse_command_line(&args, host);
+    configure_performance(&command.raw);
     if tsrs_core::NO_THREADS {
         force_single_threaded(&mut command);
     }
     tsc_compilation(sys, host, P::new(command), testing)
+}
+
+fn configure_performance(raw: &CompilerOptionsValue) {
+    let fast = matches!(raw, CompilerOptionsValue::Object(options)
+        if matches!(options.get("fast"), Some(CompilerOptionsValue::Bool(true))));
+    tsrs_core::fast::set_enabled(fast);
 }
 
 /// `tsrs_core::NO_THREADS`: `--singleThreaded`, set on the parsed options so every reader agrees (a config file
@@ -176,7 +184,7 @@ fn tsc_compilation(
 
     if command_line_options.help.is_true() || command_line_options.all.is_true() {
         print_version(sys);
-        sys.write("Usage: tsrs [-p <project>] [options] [files...]\n  Compiles like `tsc`. See `tsc --help` for options.\n");
+        sys.write("Usage: tsrs [-p <project>] [options] [files...]\n  Compiles like `tsc`. See `tsc --help` for options.\n  --fast  Enable tsrs performance modes that may differ from pinned TypeScript behavior.\n");
         return CommandLineResult { watcher: None, status: ExitStatus::Success };
     }
 
@@ -640,7 +648,7 @@ fn tsc_build_compilation(
 
     if build_command.compiler_options.help.is_true() {
         print_version(sys);
-        sys.write("Usage: tsrs -b [projects...] [options]\n  See `tsc -b --help` for options.\n");
+        sys.write("Usage: tsrs -b [projects...] [options]\n  See `tsc -b --help` for options.\n  --fast  Enable tsrs performance modes that may differ from pinned TypeScript behavior.\n");
         return CommandLineResult { watcher: None, status: ExitStatus::Success };
     }
     // tsrs-only: no file watching backend on this platform (Windows; Go has ReadDirectoryChangesW).

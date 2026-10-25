@@ -387,6 +387,18 @@ fn single_file_diagnostics_of_a_freed_leaf_panic() {
 // (checkerpool.rs `inherited_associations`) instead of computing its own, once that pool has assigned its files.
 #[test]
 fn a_reused_program_keeps_the_checker_assignment() {
+    // Assignment is process-wide; exercise both defaults without racing the other compiler tests.
+    let Ok(assignment) = std::env::var("TSRS_CHECKER_ASSIGNMENT") else {
+        for assignment in ["go", "locality"] {
+            let output = std::process::Command::new(std::env::current_exe().unwrap())
+                .args(["--exact", "program_test::a_reused_program_keeps_the_checker_assignment"])
+                .env("TSRS_CHECKER_ASSIGNMENT", assignment)
+                .output()
+                .unwrap();
+            assert!(output.status.success(), "{assignment}: {output:?}");
+        }
+        return;
+    };
     let files = [
         ("/src/tsconfig.json", r#"{"compilerOptions":{"noLib":true,"types":[],"checkers":2}}"#),
         ("/src/a.ts", "export const a = 1;"),
@@ -411,7 +423,10 @@ fn a_reused_program_keeps_the_checker_assignment() {
     let (cloned, _, reused) = p.reuse_program(&a, host_for(&edited), None, None);
     assert!(reused);
     let cloned = cloned.unwrap();
-    assert_eq!(cloned.pool().inherited_associations.as_deref(), Some(associations.as_slice()));
+    assert_eq!(
+        cloned.pool().inherited_associations.as_deref(),
+        (assignment == "locality").then_some(associations.as_slice())
+    );
     assert_eq!(cloned.pool().state().associations, associations);
 }
 

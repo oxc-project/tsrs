@@ -1,9 +1,10 @@
 //! Go-compatible check history (notes/perf-order-independence.md).
 //!
 //! A few checker caches in typescript-go let the printed output depend on what the checker happened to see first,
-//! so with several checkers the text depends on which checker checked which file. tsrs makes those caches a function
-//! of the program alone with `--fast` ("canonical"). The default and `--checkerAssignment go` keep Go's
-//! behaviour, bug for bug, for byte-identity with tsgo: the conformance, fourslash and tsc harnesses run that way,
+//! so changing checker count or file order can change diagnostics in TypeScript itself. The default and
+//! `--checkerAssignment go` preserve that upstream behavior. `--fast` ("canonical") removes selected history
+//! dependencies; other upstream cases remain (notes/open-history-dependence.md). For byte-identity with tsgo,
+//! compare the same inputs, checker count and file order. The conformance, fourslash and tsc harnesses use Go history,
 //! because their baselines are tsgo's output with one checker in program order. Every place that has the two
 //! behaviours asks `go_compatible_history()`.
 
@@ -42,7 +43,7 @@ pub fn set_go_compatible_history(on: bool) {
 ///
 /// For harnesses whose baselines are tsgo's output: Go's behaviour unless `TSRS_CHECKER_ASSIGNMENT` names
 /// another assignment, `TSRS_HISTORY=canonical` or `TSRS_FAST=1` (then the canonical behaviour, to measure how
-/// the baselines differ from it). Without a named assignment, default scheduling includes stealing.
+/// the baselines differ from it). Fast-mode scheduling includes stealing without a named assignment.
 /// Explicit Go assignment/history overrides the fast preset's history.
 pub fn use_go_history_for_tsgo_baselines() {
     let assignment = std::env::var("TSRS_CHECKER_ASSIGNMENT").unwrap_or_default();

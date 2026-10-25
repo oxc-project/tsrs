@@ -22,8 +22,8 @@ We aim to release a stable version against TypeScript 7.1 with 100% conformance.
 See [compatibility and evidence](https://github.com/oxc-project/tsrs/blob/main/docs/COMPATIBILITY.md)
 for supported features and known gaps.
 
-The default checker settings follow the pinned TypeScript reference, including its sensitivity to checker count
-and file order. Matching those settings does not guarantee deterministic results for every program. See
+Default mode preserves the pinned TypeScript compiler's checker behavior, including known diagnostic differences
+when checker count or file order changes. This sensitivity is inherited from TypeScript itself. See
 [differences from pinned TypeScript](https://github.com/oxc-project/tsrs/blob/main/docs/DEFAULTS.md) for the remaining
 runtime differences and unsupported features.
 
@@ -71,10 +71,11 @@ still require an explicit size or path; experimental shared type graphs and `TSR
 
 Fast mode has these side effects:
 
-- **Diagnostics can differ from TypeScript.** In known cases involving check order, recursive types or
-  instantiation depth limits, errors can appear, disappear, move or have different message text. The exit status
-  can change too. Fast mode reduces some check-order dependencies, but does not guarantee identical results
-  across every run or checker count. See the [known cases](https://github.com/oxc-project/tsrs/blob/main/notes/open-history-dependence.md).
+- **Diagnostics can differ from TypeScript.** TypeScript itself has cases whose diagnostics depend on checker
+  count or file order. Fast mode changes scheduling, checker history and lazy instantiation. In known check-order,
+  recursive-type and instantiation-limit cases, errors can appear, disappear, move or have different message
+  text, and the exit status can change. See the
+  [known cases](https://github.com/oxc-project/tsrs/blob/main/notes/open-history-dependence.md).
 - **CPU and memory use change.** More checkers and caches can use more memory even with lazy allocation and
   file freeing. Faster execution or lower peak memory is not guaranteed for every project.
 - **Compiler statistics change.** Lazy member resolution and additional caches change the work performed, so

@@ -84,7 +84,9 @@ Older experiment notes may call the optimized mode "default"; read their measure
 
 ## Checker assignment (multi-checker counters)
 
-The default uses Go's FENNEL assignment and checker history. Fast mode assigns files by directory locality
+The default uses Go's FENNEL assignment and checker history, preserving TypeScript's own diagnostic sensitivity
+to checker count and file order. Compare with the reference using the same count and input order.
+Fast mode assigns files by directory locality
 (`--checkerAssignment locality` selects the static variant, notes/mem-assignment.md). Canonical history removes
 selected assignment dependencies, but known cases still change diagnostics or exit status across schedules
 (notes/open-history-dependence.md). Multi-checker symbol/type/instantiation counters and peak memory depend on
@@ -92,12 +94,16 @@ the assignment too. `--checkerAssignment go` (or `TSRS_CHECKER_ASSIGNMENT=go`) s
 even in fast mode, but does not disable lazy members; use `--fast false` with other overrides unset for the reference
 defaults. The conformance, fourslash and tsc harnesses use Go history by default.
 `TS_TEST_PROGRAM_SINGLE_THREADED=false TSRS_FAST=1` runs `tsrs-test` with the fast scheduler.
-`TSRS_CHECKER_ASSIGNMENT=random:<seed>` puts each file on a random checker with a random visit order in each checker:
-fast mode must print the same text for every seed and checker count. Single-threaded runs have no assignment.
+`TSRS_CHECKER_ASSIGNMENT=random:<seed>` puts each file on a random checker with a random visit order in each checker.
+The scheduling gate requires identical diagnostics for its selected fixtures across seeds and checker counts;
+the upstream history-dependent cases listed above remain outside that guarantee. Single-threaded runs have no assignment.
 In fast mode without a named assignment the type-check pass also steals work: a checker that has run out of files takes unstarted
 files from the back of the busiest checker (notes/perf-checker-stealing.md). Counters can vary from run to run;
 naming an assignment (`--checkerAssignment locality`) turns stealing off and fixes the file placement and visit
 order. The scheduling gate checks output stability; this does not remove the known history-dependent cases.
+Work stealing can change assignment and visit order between identical fast-mode invocations, exposing those
+cases; [the sequelize investigation](../notes/open-history-dependence.md#2-sequelize-a-circular-property-type-entered-from-different-places)
+records output variants under stealing. This is separate from varying checker counts or file order in default mode.
 `tsrs-test --checkers N` sets each test program's checker count and enables parallel programs.
 With work stealing enabled, each checker begins the type-check pass with the files of its queue whose static
 weight exceeds 1/200 of an average checker's share, heaviest first, then the rest in program order (notes/perf-checker-64.md,

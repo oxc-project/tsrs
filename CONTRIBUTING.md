@@ -18,6 +18,10 @@ Every reproduction and fix must use that exact reference. [Prepare and verify th
 before comparing behavior or generating expected output. Use the same input files, configuration, working directory
 and compiler flags on both sides.
 
+TypeScript itself has known diagnostic differences when checker count or file order changes; tsrs's default
+mode preserves this upstream behavior. Match those conditions when checking parity. Differences between
+configurations alone do not establish varying diagnostics on repeated identical runs.
+
 - A difference from `tsgo` at that commit (diagnostics, their order, message text, exit code) is a tsrs bug, even
   when the tsrs output looks more reasonable. A fix makes tsrs do what the Go code does, not what seems right.
 - Port the Go function you are fixing; keep its name, structure and control flow (`docs/PORTING.md`). Do not

@@ -905,8 +905,8 @@ impl CheckerPoolImpl {
     // forEachCheckerGroupDo runs one task per checker in parallel. Each task iterates the provided files,
     // processing only those assigned to its checker. Within each checker's set, files are visited in their original
     // order (`visit_order`), except that the type-check pass with stealing starts each checker on its heavy files
-    // (heavy_files_first). Output does not depend on the order in fast mode (notes/perf-order-independence.md);
-    // program order keeps Go's history under `--checkerAssignment go` and the counters stable.
+    // (heavy_files_first). Fast mode removes selected order dependencies, but TypeScript's own history-dependent
+    // cases remain (notes/open-history-dependence.md). Program order preserves Go's history in the default mode.
     pub(crate) fn for_each_checker_group_do(
         &self,
         files: &[P<SourceFile>],
@@ -1211,10 +1211,10 @@ impl PoolState {
 
 // tsrs-only: dynamic scheduling (notes/perf-checker-stealing.md, after tsrslint's scheduler). Each checker runs the files
 // assigned to it from the front of its queue; a checker that runs out takes not-yet-started files from the back of the
-// queue with the most work left. Diagnostics and emit do not depend on which checker runs a file
-// (notes/perf-order-independence.md); the --extendedDiagnostics counters do, so they vary from run to run. Off when an
-// assignment is named (`--checkerAssignment` / TSRS_CHECKER_ASSIGNMENT: the fully deterministic static modes, also
-// for the oracles and harnesses) and under Go's check history.
+// queue with the most work left. This can vary assignment and visit order between runs; the known upstream
+// history-dependent cases can then vary diagnostics (notes/open-history-dependence.md), and the
+// --extendedDiagnostics counters can vary too. Off under Go's check history and when an assignment is named
+// (`--checkerAssignment` / TSRS_CHECKER_ASSIGNMENT fixes placement and visit order for the oracles and harnesses).
 fn stealing_enabled() -> bool {
     let named = CLI_CHECKER_ASSIGNMENT.get().is_some()
         || std::env::var("TSRS_CHECKER_ASSIGNMENT").is_ok_and(|v| !v.is_empty());
@@ -1582,7 +1582,7 @@ impl CheckerPool for CheckerPoolImpl {
 }
 
 // The order in which a checker group visits `count` files: program order, or with `TSRS_CHECKER_ASSIGNMENT=random:<seed>`
-// a permutation drawn from the seed (a debug mode that checks that output does not depend on the visit order).
+// a permutation drawn from the seed (a debug mode that probes visit-order sensitivity).
 fn visit_order(count: usize) -> Vec<usize> {
     let mut order: Vec<usize> = (0..count).collect();
     if let CheckerAssignment::Random(seed) = checker_assignment() {
@@ -1859,13 +1859,14 @@ pub fn write_cost_cache(program: &'static Program) {
 }
 
 // tsrs-only: how files are assigned to checkers. `--checkerAssignment <name>` (CLI) or
-// TSRS_CHECKER_ASSIGNMENT=<name> (any binary). The assignment never changes what a file's diagnostics are, only
-// which checker computes them (and so how much checker state is duplicated across checkers).
+// TSRS_CHECKER_ASSIGNMENT=<name> (any binary). Assignment changes which checker computes a file's diagnostics and
+// how much state is duplicated. TypeScript's own history-dependent cases can also change diagnostics when the
+// assignment or visit order changes (notes/open-history-dependence.md).
 //   locality (--fast):  directory-subtree groups packed onto checkers with Go's FENNEL (below)
 //   go (default):       Go's createCheckers association (FENNEL over single files in program order)
 //   file:<path>:        one checker index per line by program file index (experiments)
 //   random:<seed>:      a random checker per file and a random visit order in each checker, drawn from the seed
-//                       (debug: output must not depend on the assignment)
+//                       (debug: probes assignment and visit-order sensitivity)
 pub enum CheckerAssignment {
     Locality,
     Go,
@@ -1948,10 +1949,10 @@ pub fn use_go_default_checker_count() {
 // tsrs-only: --fast's checker count when neither --checkers nor --singleThreaded is given. The default is Go's 4. Fast mode uses half the
 // available parallelism but every core up to SMALL_MACHINE_CHECKERS, at least Go's 4 and at most MAX_DEFAULT_CHECKERS,
 // and no more than one checker per MIN_CHECKED_FILES_PER_DEFAULT_CHECKER type-checked files, so small programs keep
-// Go's 4: 4 checkers on 4 cores, 8 on 8, 16 on 16 to 33, 32 on 64 or more. Diagnostics do not depend on the count
-// (except for the known file-order cases in README.md's capability table); the --extendedDiagnostics Types / Symbols /
-// Instantiations counters do (each checker counts what it creates), so they depend on the machine unless --checkers
-// is given.
+// Go's 4: 4 checkers on 4 cores, 8 on 8, 16 on 16 to 33, 32 on 64 or more. TypeScript's own history-dependent cases can
+// change diagnostics with the count (notes/open-history-dependence.md). The --extendedDiagnostics Types / Symbols /
+// Instantiations counters also depend on the count (each checker counts what it creates), and therefore on the
+// machine unless --checkers is given.
 fn default_checker_count(program: &Program) -> i64 {
     let by_machine = default_checker_count_by_machine();
     if by_machine <= GO_DEFAULT_CHECKERS {

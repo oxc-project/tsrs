@@ -18,6 +18,11 @@ JavaScript checking, class fields and declaration emit. CLI builds default to fo
 `--singleThreaded`. Library selection follows the target. Ordinary language-server formatting defaults remain
 four spaces and `"\n"`; the limits below apply to explicit client settings.
 
+TypeScript's checker caches make some diagnostics depend on checker count and file order. Default mode
+preserves this upstream behavior. The [recorded cases](../notes/open-history-dependence.md) compare different
+counts, assignments and visit orders; such differences alone do not establish varying diagnostics across
+repeated default-mode runs with identical inputs and settings.
+
 ## Command line
 
 The source build defaults to the pinned TypeScript checker settings. The **unreleased** fast preset is enabled

@@ -33,6 +33,9 @@ The defaults and fast preset described here are **unreleased**, available in sou
 pinned TypeScript's four checkers, file assignment and checker history, with eager members. Internal optimizations
 that preserve compiler behavior, including control-flow memoization and parallel parsing, remain enabled in both modes.
 
+TypeScript itself can report different diagnostics when checker count or file order changes. Default mode
+preserves this upstream behavior; see the [known cases](../notes/open-history-dependence.md).
+
 `--fast` or `TSRS_FAST=1` enables the fast preset for compilation, watch and `--build`:
 
 | Setting | Default | Fast preset |
@@ -58,9 +61,10 @@ enable it. `TSRS_FREE_LEAVES=1` bypasses that count limit only. See the
 
 ### Side effects
 
-- Known check-order, recursive-type and instantiation-depth cases can add or remove diagnostics, change their
-  locations or message text, and change the exit status. Fast mode does not guarantee deterministic output for
-  every program; see [known cases](../notes/open-history-dependence.md) and the
+- TypeScript's own checker-count and file-order sensitivity also applies to tsrs. Fast mode additionally changes
+  scheduling, checker history and lazy instantiation. Known check-order, recursive-type and instantiation-limit
+  cases can add or remove diagnostics, change their locations or message text, and change the exit status;
+  see [known cases](../notes/open-history-dependence.md) and the
   [compatibility table](COMPATIBILITY.md#what-it-does-and-doesnt-do).
 - More checker threads can use more memory. The balance between parallelism, caches and memory-saving modes
   depends on the workload; faster execution or lower peak memory is not guaranteed for every project.

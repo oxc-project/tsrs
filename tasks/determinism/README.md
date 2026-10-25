@@ -6,6 +6,12 @@ repeated runs. Every project in `bench/projects.json` is covered: currently 19
 projects and 456 comparisons. Compiler errors are valid results; compiler crashes
 and incomplete runs always fail.
 
+These comparisons check parity, stability across configurations, and repeated-run stability separately.
+TypeScript itself has [known diagnostic differences](../../notes/open-history-dependence.md) when checker count
+or file order changes; tsrs's default mode preserves that upstream behavior. Passing this catalog establishes
+the results for the inputs and configurations it covers. Fast-mode work stealing can vary assignment and visit
+order between otherwise identical runs, which is why the matrix also repeats them.
+
 A separate regression sweep checks fixture expectations in fast mode across its
 unnamed and seeded random schedules, so focused reproductions retain multithreaded coverage.
 

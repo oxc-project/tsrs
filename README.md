@@ -71,7 +71,7 @@ still require an explicit size or path; experimental shared type graphs and `TSR
 
 Fast mode has these side effects:
 
-- **Diagnostics can differ from TypeScript.** TypeScript itself has cases whose diagnostics depend on checker
+- **Check order can affect diagnostics.** TypeScript itself has cases whose diagnostics depend on checker
   count or file order. Fast mode changes scheduling, checker history and lazy instantiation. In known check-order,
   recursive-type and instantiation-limit cases, errors can appear, disappear, move or have different message
   text, and the exit status can change. See the
@@ -83,13 +83,6 @@ Fast mode has these side effects:
   vary between runs.
 - **Switching modes can require a fresh check.** Incremental and build caches with incompatible checker-history
   or lazy-member settings are discarded, so the next build can take longer.
-
-The preset works with compilation, watch, build mode and response files, subject to the conditions above.
-`--fast` is a CLI option, not a `tsconfig.json` option. Only `TSRS_FAST=1` enables the environment preset;
-an explicit `--fast false` overrides it. Individual feature settings still apply: for example,
-`--fast --noLazyMembers` keeps eager type members. See
-[performance options](https://github.com/oxc-project/tsrs/blob/main/docs/USAGE.md#performance-options) for
-precedence rules, tuning controls and detailed eligibility restrictions.
 
 <a href="https://github.com/oxc-project/tsrs/blob/main/bench/RESULTS.md">
   <picture>

@@ -76,8 +76,9 @@ Fast mode has these side effects:
   recursive-type and instantiation-limit cases, errors can appear, disappear, move or have different message
   text, and the exit status can change. See the
   [known cases](https://github.com/oxc-project/tsrs/blob/main/notes/open-history-dependence.md).
-- **CPU and memory use change.** More checkers and caches can use more memory even with lazy allocation and
-  file freeing. Faster execution or lower peak memory is not guaranteed for every project.
+- **CPU and memory use change.** Fast mode reduces memory use through lazy type members, lazy declaration
+  parsing and freeing finished leaf files where eligible. Additional checkers and caches can offset those
+  savings; the overall speed and peak-memory impact depends on the project.
 - **Compiler statistics change.** Lazy member resolution and additional caches change the work performed, so
   type, symbol and instantiation counts can differ from TypeScript's. Work stealing can also make these counters
   vary between runs.

@@ -66,8 +66,9 @@ enable it. `TSRS_FREE_LEAVES=1` bypasses that count limit only. See the
   cases can add or remove diagnostics, change their locations or message text, and change the exit status;
   see [known cases](../notes/open-history-dependence.md) and the
   [compatibility table](COMPATIBILITY.md#what-it-does-and-doesnt-do).
-- More checker threads can use more memory. The balance between parallelism, caches and memory-saving modes
-  depends on the workload; faster execution or lower peak memory is not guaranteed for every project.
+- Fast mode reduces memory use through lazy type members, lazy declaration parsing and freeing finished leaf
+  files where eligible. Additional checker threads and caches can offset those savings; the overall speed and
+  peak-memory impact depends on the workload.
 - Type, symbol and instantiation counters reflect different work. Work stealing can make counters vary between
   runs even when diagnostics match.
 - Changing checker history or lazy-member settings rejects incompatible `.tsbuildinfo` caches. Switching the

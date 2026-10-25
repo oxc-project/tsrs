@@ -340,6 +340,14 @@ jobs:
           $raw = Join-Path $env:RUNNER_TEMP "pgo/raw"
           & ./.github/scripts/pgo-train-windows.ps1 -BinDir $bin -RawDir $raw
 
+      - name: Upload Windows conformance results
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: windows-conformance-results
+          path: ${{ runner.temp }}/pgo/test-results/
+          if-no-files-found: ignore
+
       - name: Merge profiles
         id: profile
         shell: pwsh

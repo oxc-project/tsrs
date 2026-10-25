@@ -505,9 +505,10 @@ impl Checker {
         key
     }
 
-    /// An identifier or `this` packs into the key exactly: [root symbol (0 for `this`) | declared type id | initial
-    /// type id | flow container], with bit 63 clear. A property access chain's structure is hashed (xxh3-128 of the
-    /// serialized key, as Go hashes its flow cache keys) with bit 63 set, so it never equals a packed key.
+    /// With 32-bit pointer keys, an identifier or `this` packs into the key exactly: [root symbol (0 for `this`) |
+    /// declared type id | initial type id | flow container], with bit 63 clear. Wider pointers and property access
+    /// chains are hashed (xxh3-128 of the serialized key, as Go hashes its flow cache keys) with bit 63 set, so they
+    /// never equal a packed key.
     fn compute_flow_memo_key(&mut self, f: P<FlowState>) -> Option<u128> {
         let reference = f.reference.get().unwrap();
         let declared = f.declared_type.get().unwrap().id.0;
@@ -518,7 +519,7 @@ impl Checker {
             Kind::ThisKeyword => 0,
             _ => return self.compute_hashed_flow_memo_key(f),
         };
-        if declared < 1 << 31 {
+        if tsrs_core::PKey::BITS <= 32 && declared < 1 << 31 {
             Some(
                 ((root as u128) << 96)
                     | ((declared as u128) << 64)

@@ -29,9 +29,10 @@ per watched file; tsrs raises its descriptor limit as far as the system allows a
 
 ## Performance options
 
-The defaults and fast preset described here are **unreleased**, available in source builds. The default uses
-pinned TypeScript's four checkers, file assignment and checker history, with eager members. Internal optimizations
-that preserve compiler behavior, including control-flow memoization and parallel parsing, remain enabled in both modes.
+The defaults and fast preset described here are included in the **0.19.0 beta candidate**, available in source builds
+until publication. The default uses pinned TypeScript's four checkers, file assignment and checker history, with
+eager members. Internal optimizations that preserve compiler behavior, including control-flow memoization and
+parallel parsing, remain enabled in both modes.
 
 TypeScript itself can report different diagnostics when checker count or file order changes. Default mode
 preserves this upstream behavior; see the [known cases](../notes/open-history-dependence.md).

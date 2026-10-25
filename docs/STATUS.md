@@ -14,6 +14,11 @@ flags override the preset; an explicit `--fast` value overrides `TSRS_FAST`. It 
 build mode; build mode keeps four checkers per project. Switching history or lazy-member settings rejects
 incompatible persisted diagnostics in either direction.
 
+Fast mode can change diagnostics and exit status in known history/depth-limit cases, use more memory with more
+checkers, and change compiler counters between runs. Compiler checking options stay as configured. The
+[README](../README.md#fast-mode) summarizes these side effects; [usage](USAGE.md#precedence-and-scope) explains
+scope and precedence, including individual overrides that remain active under `--fast false`.
+
 Dev-profile validation against `3e9236361fa9` retains all 13,700 error, 12,998 type, 12,998 symbol, 13,626 emit,
 149 JavaScript-map and 156 source-map-record passes in both modes. Initial timeouts passed on focused retries with
 a longer limit. All 50 regression fixtures, 16 macOS watch cases (including fast watch/build-watch edits), the

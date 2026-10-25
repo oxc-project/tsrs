@@ -150,6 +150,11 @@ stays on oxc's allowlist: changing eager `unwrap_or(f())` evaluation can change 
 
 ## Techniques
 
+The [fast preset](USAGE.md#performance-options) (`--fast` or `TSRS_FAST=1`) opts into adaptive scheduling, lazy
+checker members, additional checker caches and eligible memory-saving modes. The table below records techniques
+and their historical measurements; it does not mean every technique runs with the reference-default settings.
+Build-level optimizations, arena layouts and behavior-preserving optimizations remain enabled in both modes.
+
 In place:
 
 | Technique | Evidence here | Also in |

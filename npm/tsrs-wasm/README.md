@@ -29,6 +29,11 @@ The command reads and writes the real file system, prints the compiler's output 
 or trap (such as a stack overflow or running out of memory) exits with 5 and a message on stderr; ordinary compiler
 statuses are 0-4. Unsupported modes can also exit with 5.
 
+The unreleased source build supports `--fast` and `TSRS_FAST=1`, with the same
+[diagnostic, counter and incremental-cache side effects](https://github.com/oxc-project/tsrs/blob/main/README.md#fast-mode)
+as native tsrs. WebAssembly remains single-threaded in both modes. The CLI inherits the shell environment;
+`--fast false` overrides the environment preset.
+
 ## API
 
 ```js
@@ -57,7 +62,8 @@ Options:
 - `cwd`: defaults to the process's current directory on Node's real file system, or `/` with in-memory files.
 - `files`: absolute paths to contents (`string` or `Uint8Array`), replacing access to the real file system.
 - `diagnostics`: `"text"` (default) or `"json"` (the TypeScript API's diagnostic shape, with UTF-16 positions).
-- `env`: environment variables visible to the compiler; none are passed by default.
+- `env`: environment variables visible to the compiler; none are passed by default. For example,
+  `env: { TSRS_FAST: "1" }` enables the fast preset in source builds, or pass `"--fast"` in the argument array.
 - `tty`, `caseInsensitive`: control terminal formatting and file-system case sensitivity.
 - Node: `stdout` / `stderr` can be `"inherit"` to write to the process's fds; output is collected otherwise.
   `stackSizeMb` sets the worker's stack size (default 256 MB).

@@ -55,35 +55,41 @@ understand, read both versions and the Go source; do not blindly take one side.
   same verified pin. Oracle tools for scanner/parser/binder/module resolution/printer live in `tools/oracle/` with
   binaries in `$TSRS_WORK/bin/`.
 
-## Lazy member resolution (`--fast`) and reference defaults
+## Fast mode and reference defaults
 
 tsrs ports microsoft/TypeScript#64475 + #64526 (lazy member tables, `tsrs_core::lazymembers`, notes/lazy-members.md)
-and enables them with **`--fast` or `--lazyMembers`**. Eager members are the default, as in the pinned reference.
-`--noLazyMembers` / `TSRS_LAZY_MEMBERS=0` overrides the fast preset. The conformance gate runs both the default
-Go history with eager members and `TSRS_HISTORY=canonical` with lazy members; neither may lose passes.
-Comparisons against `tsgo-ref` counters (symbols/types/instantiations) use matching checker counts and Go history
-with eager members. With lazy members tsrs creates
-fewer symbols, types and instantiations than `tsgo-ref` (it equals tsgo with both PRs applied).
+and enables them with **`--fast`, `TSRS_FAST=1` or `--lazyMembers`**. Eager members are the default, as in the pinned
+reference. `--noLazyMembers` / `TSRS_LAZY_MEMBERS=0` overrides the fast preset. An explicit `--fast false` disables
+the environment preset but leaves per-feature overrides in effect. See [performance options](USAGE.md#performance-options)
+for the full preset and its diagnostic, memory, counter and cache-reuse effects.
+
+The conformance gate runs Go history with eager members (`TSRS_FAST=0`) and canonical history with lazy members
+(`TSRS_FAST=1`); neither may lose passes. The raw harness retains single-threaded programs unless
+`TS_TEST_PROGRAM_SINGLE_THREADED=false` or `tsrs-test --checkers N` enables parallel checking. It still accepts
+`TSRS_HISTORY=canonical` as a legacy way to select the optimized mode. Explicit Go history/assignment overrides the
+fast preset's history without disabling its lazy members.
+
+For counter comparisons against `tsgo-ref`, leave experiment variables unset, disable the fast preset, and match
+checker counts. Lazy members create fewer symbols, types and instantiations. Matching checker settings does not
+promise identical runtime or allocation statistics; [DEFAULTS.md](DEFAULTS.md#command-line) explains the differences.
+Older experiment notes may call the optimized mode "default"; read their measurements against the recorded commit.
 
 ## Checker assignment (multi-checker counters)
 
-The default uses Go's FENNEL assignment and checker history. `--fast` assigns files by directory locality
-(`--checkerAssignment locality` selects the static variant, notes/mem-assignment.md). In fast history, diagnostics and emitted
-files do not depend on the assignment apart from known exceptions (notes/perf-order-independence.md), but multi-checker
-symbol/type/instantiation counters and peak memory do: compare them against `tsgo-ref` with `--checkerAssignment go`
-(or `TSRS_CHECKER_ASSIGNMENT=go`). `go` also preserves Go's checker history (`tsrs_core::compat`), so it is the mode
-for byte-identity with tsgo (with `--noLazyMembers`
-where an instantiation depth limit is reached: lazy members change which instantiations a checker has cached,
-notes/open-history-dependence.md section 6). The conformance, fourslash and tsc harnesses run in it;
-`TS_TEST_PROGRAM_SINGLE_THREADED=false TSRS_HISTORY=canonical` runs `tsrs-test` in fast mode, as the conformance
-gate does.
+The default uses Go's FENNEL assignment and checker history. Fast mode assigns files by directory locality
+(`--checkerAssignment locality` selects the static variant, notes/mem-assignment.md). Canonical history removes
+selected assignment dependencies, but known cases still change diagnostics or exit status across schedules
+(notes/open-history-dependence.md). Multi-checker symbol/type/instantiation counters and peak memory depend on
+the assignment too. `--checkerAssignment go` (or `TSRS_CHECKER_ASSIGNMENT=go`) selects Go's assignment and history
+even in fast mode, but does not disable lazy members; use `--fast false` with other overrides unset for the reference
+defaults. The conformance, fourslash and tsc harnesses use Go history by default.
+`TS_TEST_PROGRAM_SINGLE_THREADED=false TSRS_FAST=1` runs `tsrs-test` with the fast scheduler.
 `TSRS_CHECKER_ASSIGNMENT=random:<seed>` puts each file on a random checker with a random visit order in each checker:
 fast mode must print the same text for every seed and checker count. Single-threaded runs have no assignment.
 In fast mode without a named assignment the type-check pass also steals work: a checker that has run out of files takes unstarted
-files from the back of the busiest checker (notes/perf-checker-stealing.md). Output is unchanged by it, but the
-counters vary from run to run; naming an assignment (`--checkerAssignment locality`) turns stealing off for fully
-reproducible counters. `TSRS_HISTORY=canonical` runs the tsgo-baseline harnesses in fast mode, stealing
-included, without naming an assignment.
+files from the back of the busiest checker (notes/perf-checker-stealing.md). Counters can vary from run to run;
+naming an assignment (`--checkerAssignment locality`) turns stealing off and fixes the file placement and visit
+order. The scheduling gate checks output stability; this does not remove the known history-dependent cases.
 `tsrs-test --checkers N` sets each test program's checker count and enables parallel programs.
 Each checker begins the type-check pass with the files of its queue whose static weight exceeds 1/200 of an average
 checker's share, heaviest first, then the rest in program order (notes/perf-checker-64.md,
@@ -290,7 +296,7 @@ output. Environment switches, read once per process:
 - `TSRS_FLOW_MEMO=shadow`: every memo answer is also walked for real, and the walked result is the one used; a
   different type, an incomplete result or a different full reference key (the stored key bytes against the walk's)
   panics with the reference, the flow node, and where the stored answer came from. Output equals `TSRS_FLOW_MEMO=0`.
-  Run it over the suite (`TSRS_FLOW_MEMO=shadow tsrs-test run --suite all --baselines types,symbols --panic-summary`)
+  Run it over the suite (`TSRS_FAST=1 TSRS_FLOW_MEMO=shadow tsrs-test run --suite all --baselines types,symbols --panic-summary`)
   and the corpora after any change to the checker that could affect what a flow walk reads.
 - `TSRS_FLOW_MEMO_BITS=<8..24>`: log2 of the table's slots (default 12, 32 bytes each).
 
@@ -310,7 +316,7 @@ same either way.
 
 | variable | values | effect |
 | --- | --- | --- |
-| `TSRS_UNION_CACHE` | unset (on; off under `--checkerAssignment go`), `0`/`off`, `1`/`on` (on in every mode), `shadow` | `shadow` also computes the uncached answer at every hit and panics if it is a different type (the panic names the input type ids, the reduction and both answers) |
+| `TSRS_UNION_CACHE` | unset (off in Go history, on in fast mode), `0`/`off`, `1`/`on` (on in every mode), `shadow` | `shadow` also computes the uncached answer at every hit and panics if it is a different type (the panic names the input type ids, the reduction and both answers) |
 | `TSRS_UNION_CACHE_STATS` | `1` | at exit, one line on stderr: lookups, hits, stores, why misses were not stored, calls that bypass the cache (shadow mode prints it too) |
 | `TSRS_UNION_CACHE_BITS` | default `10` | log2 of the table size. Larger tables hit slightly more often (2^12: 0.03% fewer instructions) but cost up to 2 MiB of RSS per checker (an allocation above mimalloc's medium size) |
 
@@ -334,7 +340,7 @@ notes/perf-heavy-files-infer-memo.md).
 
 | variable | values | effect |
 | --- | --- | --- |
-| `TSRS_INFER_MEMO` | unset (on; off under `--checkerAssignment go`), `0`/`off`, `1`/`on` (on in every mode), `shadow` | `shadow` also walks every hit from the same starting state and panics unless the walk again creates nothing but lazy member symbols, has no other effects and ends in the stored outcome (the panic names the type ids and both outcomes) |
+| `TSRS_INFER_MEMO` | unset (off in Go history, on in fast mode), `0`/`off`, `1`/`on` (on in every mode), `shadow` | `shadow` also walks every hit from the same starting state and panics unless the walk again creates nothing but lazy member symbols, has no other effects and ends in the stored outcome (the panic names the type ids and both outcomes) |
 | `TSRS_INFER_MEMO_STATS` | `1` | at exit, one line on stderr: lookups, hits, the `inferFromTypes` steps the hits skipped, stores, and why long walks were not stored (shadow mode prints it too) |
 | `TSRS_INFER_MEMO_MIN_STEPS` | default `16` | the shortest walk (in `inferFromTypes` steps) that is stored; lower stores more walks (more memory, more lookups that pay) |
 
@@ -350,16 +356,17 @@ walk to reach an entry computes it as `hasMatchingRecursionIdentity` would.
 
 ## Freeing checked leaf files: `TSRS_FREE_LEAVES`
 
-A CLI `--noEmit` check with at most 16 checkers (`MAX_DEFAULT_CHECKERS`: above that it costs vscode 2.4-3.9% wall time,
-so it is off unless `TSRS_FREE_LEAVES=1`; notes/mem-leaf-regions-cost.md) parses each TypeScript root file whose path predicts a leaf (tests, specs,
-stories, mocks: `PREDICTED_LEAF_PATTERNS`) into a region of its own and frees the tree and binder output of each leaf
+In fast mode, a CLI `--noEmit` check with at most 16 checkers (`MAX_DEFAULT_CHECKERS`: above that it costs vscode
+2.4-3.9% wall time, so it is off unless `TSRS_FREE_LEAVES=1`; notes/mem-leaf-regions-cost.md) parses each TypeScript
+root file whose path predicts a leaf (tests, specs, stories, mocks: `PREDICTED_LEAF_PATTERNS`) into a region of its
+own and frees the tree and binder output of each leaf
 among them as soon as its diagnostics are collected (`crates/tsrs_compiler/src/fileregions.rs`,
 notes/mem-free-leaf-files.md). A leaf is a checked TypeScript module that no other file refers to and that exports
 only its own declarations; on vscode 2,289 of the 2,337 leaves are predicted (99.2% of the leaves' nodes). Other files
 are parsed into the thread arenas as before. The text, the `SourceFile` and the diagnostics are kept, so the report is
 the same. It is off with declaration emit (`declaration`, `composite`), `--explainFiles`, `--incremental`, `--build`,
-`--checkerAssignment go`, in the language server, the API and the test harnesses, under the debug modes that walk
-files or checker tables after the check (`TSRS_FILE_TIMES` and the work census),
+watch, Go-compatible history (the default or `--checkerAssignment go`), in the language server, the API and the
+test harnesses, under the debug modes that walk files or checker tables after the check (`TSRS_FILE_TIMES` and the work census),
 and in builds without compressed pointers (`plain-ptrs`, non-unix): there a freed region's memory stays mapped and the heap its values owned is reused, so a stale read would see a live object, and nothing would be
 saved. Asking a program for one freed leaf's diagnostics after the pass panics (the tree is gone); the CLI never does.
 
@@ -367,28 +374,32 @@ saved. Asking a program for one freed leaf's diagnostics after the pass panics (
 | --- | --- | --- |
 | `TSRS_FREE_LEAVES` | a comma list of: unset (free with at most 16 checkers), `1` (free at any count), `0`, `keep`, `stats`, `all` | `0`: no file regions (the layout before). `keep` (any count): file regions and the leaf marks, nothing freed (what the regions alone cost). `all` (any count): every TypeScript root file gets a region, not only the predicted ones (frees every leaf, but moves every tree out of the huge-page thread arenas: +6-9% wall time on vscode at 32 checkers on Linux against +2.5-5% predicted). `stats`: one line on stderr: the leaves freed and the ones the prediction missed (with their share of the leaves' nodes), the bytes their regions used, all file regions' bytes, and the arena address space the run used. Example: `TSRS_FREE_LEAVES=all,stats` |
 
+The variables above only apply when leaf freeing is eligible; `TSRS_FREE_LEAVES=1` does not bypass Go history or
+the other exclusions.
+
 After a change that reads a file after the check pass (a new report, a new whole-program loop in the checker, such as
-`getAlternativeContainingModules`'s), run a corpus with `TSRS_ARENA_POISON=1`: a freed region is then filled with
-`0xA5` and kept, so a read of a freed leaf crashes. The output must equal a `TSRS_FREE_LEAVES=0` run. `cargo test
+`getAlternativeContainingModules`'s), run a corpus in fast mode with `TSRS_ARENA_POISON=1`: a freed region is then
+filled with `0xA5` and kept, so a read of a freed leaf crashes. The output must equal a `TSRS_FREE_LEAVES=0` run. `cargo test
 -p tsrs_cli --test free_leaf_files` covers the checker's loop over every module
 (testdata/regressions/leaf-alternative-containers) and a structurally identical instantiation after a freed leaf
 (leaf-structural-instantiation).
 
 ## Declaration-file member lists parsed on first use: `TSRS_LAZY_DTS`
 
-A CLI compile (not `--incremental`, `--build` or watch) in which no declaration file is type-checked (`skipLibCheck`
-or `noCheck`) parses the member list of each interface, class and type literal of a declaration file, and keeps it
-only as a record (position, parser context, binder state) when nothing in it reaches outside the list: the first
+Fast mode or `TSRS_LAZY_DTS=1` enables lazy declaration parsing for batch and incremental CLI compilation when no
+declaration file is type-checked (`skipLibCheck` or `noCheck`). Non-watch `--build` also enables it when every built
+project qualifies (notes/mem-lazy-dts-build.md). It parses each interface, class and type-literal member list and
+keeps it only as a record (position, parser context, binder state) when nothing in it reaches outside the list: the first
 reader of the list's nodes or of the owner symbol's members parses and binds it again (`crates/tsrs_ast/src/lazylist.rs`,
 `parse_member_list_lazily` in the parser, `bind_lazy_member_list` in the binder; notes/mem-lazy-dts-members.md). Before the checkers of a multi-checker pass start, the lists of the global libraries (default and `lib` files, type
 reference directives and what they reference) and of interfaces merged into the global scope are forced in parallel,
 so that the checkers do not wait for one another on them (`force_shared_lists`; `TSRS_LAZY_DTS_SHARED=0` skips the
-global libraries). Output is the same; `--extendedDiagnostics` `Symbols` counts only the lists that were bound. Off in the language server, the
-API and the test harnesses, and under `TSRS_CHECK_SHARED=1`.
+global libraries). Output is the same; `--extendedDiagnostics` `Symbols` counts only the lists that were bound.
+Off in watch, the language server, the API and the test harnesses, and under `TSRS_CHECK_SHARED=1`.
 
 | variable | values | effect |
 | --- | --- | --- |
-| `TSRS_LAZY_DTS` | unset (on when it applies), `0`/`off`, `force` (`tsrs-test` only) | `force` in `tsrs-test`: every declaration file's lists are lazy, checked files included, so the checker and the `.types` / `.symbols` walks force them all: the result trees must equal a run without it |
+| `TSRS_LAZY_DTS` | unset (follows fast preset), `1` (on when eligible), `0`/`off` (off), `force` (`tsrs-test` only) | `force` in `tsrs-test`: every declaration file's lists are lazy, checked files included, so the checker and the `.types` / `.symbols` walks force them all: the result trees must equal a run without it |
 
 After a change to what the binder does for members of interfaces, classes or type literals, or to what a member list
 can contain, run the suite with `TSRS_LAZY_DTS=force` (also with `TS_TEST_PROGRAM_SINGLE_THREADED=false`) and a corpus

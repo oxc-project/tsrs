@@ -111,13 +111,15 @@ programs and file versions ([LSP.md](LSP.md#memory-management)). The rules are:
 ### Threading
 
 Parsing and binding run per file (in parallel) and finish before checking. Checking runs on N checkers
-(`--checkers N`, `--singleThreaded` = 1; both default to 4, while `--fast` uses max(cores/2, min(cores, 16)), clamped to
-4..32, then capped at one checker per 32 type-checked files (but not below 4), then at most the file count; 4 in build
-mode: `default_checker_count`), each on its own OS thread with a 512 MB stack (`tsrs_compiler::checkerpool`). Files use Go's assignment and history by default.
-With `--fast`, files are assigned by directory locality; a checker that runs out steals unstarted files from the busiest one
-(notes/perf-checker-stealing.md), which is safe because output does not depend on which checker checks a file
-(notes/perf-order-independence.md; `--checkerAssignment go` keeps Go's assignment and history). Each thread allocates in its own leak arena;
-`P<T>` is `Send + Sync` by decree, so the compiler does not police sharing. The rules:
+(`--checkers N`, default 4; `--singleThreaded` = 1). Fast mode (`--fast` or `TSRS_FAST=1`) uses
+max(cores/2, min(cores, 16)), clamped to 4..32, then capped at one checker per 32 type-checked files (floor 4);
+build mode keeps 4 per project. All modes finally cap the count to the program's file count. Each checker has
+its own OS thread with a 512 MB stack (`tsrs_compiler::checkerpool`). Files use Go's assignment and history by default.
+In fast mode, files are assigned by directory locality; a checker that runs out steals unstarted files from the
+busiest one (notes/perf-checker-stealing.md). Canonical history removes selected order dependencies, but known
+exceptions remain (notes/open-history-dependence.md). Explicit `--checkerAssignment go` keeps Go's assignment and
+history; every named assignment disables stealing. Each thread allocates in its own leak arena; `P<T>` is
+`Send + Sync` by decree, so the compiler does not police sharing. The rules:
 
 - **Shared, frozen after binding**: AST nodes and node lists, `SourceFile`, binder symbols and symbol tables,
   flow nodes, parse/bind diagnostics, `TsConfigSourceFile`. Their mutable fields are written by the parser/binder

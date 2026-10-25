@@ -17,6 +17,15 @@ The main package name is set in `npm/tsrs/package.json`; platform packages are `
 
 The repository's root `README.md` is also the main package README. `npm/build.mjs` copies it into the staged package.
 
+## Compiler defaults and fast mode
+
+The unreleased source build uses the pinned TypeScript checker defaults. `--fast` or `TSRS_FAST=1` opts into
+adaptive checker counts, lazy members, additional caches and eligible memory-saving modes; `--fast false`
+overrides the environment preset. Known cases can change diagnostics and exit status, resource use and compiler
+counters; switching modes can invalidate incremental caches. The launcher forwards CLI arguments and environment
+variables to the compiler. See the [main README](../README.md#fast-mode) and
+[performance options](../docs/USAGE.md#performance-options) for side effects and per-feature overrides.
+
 ## How the launcher finds the binary
 
 `bin/tsrs` -> `lib/tsrs.js` -> `lib/getExePath.js`:

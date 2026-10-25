@@ -152,16 +152,20 @@ variants in `incremental.NewProgram` like Go's `createProgram` (with `testBuildI
 order with Go's `omitzero` rules (nil vs empty kept where Go distinguishes them, e.g. `fileInfos: []`) and the
 tuple encodings of the custom `MarshalJSON`s; unmarshaling follows the `UnmarshalJSON` fallbacks.
 
-The default CLI can add an optional canonical-check signature to build info for safe warm reuse. Go-history
-and API formats retain their reference behavior; see
+The default CLI format follows Go. Fast mode (`--fast` or `TSRS_FAST=1`) records its checker-history and
+lazy-member settings in `tsrsPerformance`; canonical CLI diagnostics also record `tsrsCanonicalCheckSignature`
+for safe warm reuse. The reader rejects caches with incompatible settings in either direction, including in
+non-incremental `--build` projects. Switching modes can therefore require a fresh check. API builds omit the
+canonical CLI signature. See [the preset's scope and overrides](USAGE.md#precedence-and-scope) and
 [the incremental diagnostic rules](../notes/fix-history-dependent-diagnostics.md).
 
 ### Version
 
 The tsbuildinfo `version` is `core::version()` as in Go. Go's release builds stamp it with ldflags
 (the matching npm package built from the pinned commit: `7.1.0-beta`); tsrs reads `TSRS_TS_VERSION` at build time for
-the same purpose (source default `7.1.0-beta`), so a tsrs built with the tsgo version reads and writes
-tsbuildinfo files that tsgo accepts, and vice versa. Different versions simply rebuild from scratch, as in Go. Release
+the same purpose (source default `7.1.0-beta`). Matching versions allow reuse when the diagnostic policy is also
+compatible; fast mode rejects untagged reference caches and tsrs with the reference defaults rejects fast-mode caches.
+Different versions simply rebuild from scratch, as in Go. Release
 builds stamp `[workspace.metadata.typescript] nightly` (Cargo.toml), which now names the matching prerelease package;
 release.yml checks that it was built from
 the pinned commit (or a later one that changes nothing under tsc/) and that the binaries report it.

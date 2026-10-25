@@ -1,7 +1,12 @@
 # open-history-dependence: four cases whose output still depends on the checker assignment (not fixed), and two fixed
 
+> These measurements predate `--fast` and use the commits and releases recorded below. "Default mode" here
+> describes the optimized checker behavior that was then the default. Current source builds use Go's checker
+> defaults and opt into the optimized preset with `--fast` or `TSRS_FAST=1`; see
+> [current usage and side effects](../docs/USAGE.md#performance-options).
+
 notes/perf-order-independence.md made diagnostics a function of the program on the corpora it tested, and the README
-says output does not depend on the checker count. Three bench candidates show that this does not hold in general:
+then claimed output did not depend on the checker count. Three bench candidates show that this does not hold in general:
 TanStack/router and sequelize (from the bun-check project scouts) and rxjs (found by the excalidraw work, PR #212). All
 three are typescript-go's own history dependence: tsgo-ref also prints different output at different checker counts, or
 tsrs prints the same output under `--checkerAssignment go` when the files are visited in the same order. None of them is

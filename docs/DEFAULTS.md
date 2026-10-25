@@ -20,6 +20,10 @@ four spaces and `"\n"`; the limits below apply to explicit client settings.
 
 ## Command line
 
+The source build defaults to the pinned TypeScript checker settings. The **unreleased** fast preset is enabled
+by `--fast` or `TSRS_FAST=1`; both names refer to the same settings in this table. See
+[side effects and precedence](USAGE.md#side-effects) before enabling it.
+
 | setting | tsgo | tsrs |
 | --- | --- | --- |
 | Checker count without `--checkers` | 4 | 4. `--fast` uses every core up to 16, then the greater of 16 and half the cores, capped at 32 and one checker per 32 checked files (floor 4). `--build` keeps 4 per project in either mode. Both compilers finally clamp to 1–256 and the file count |
@@ -55,11 +59,11 @@ four spaces and `"\n"`; the limits below apply to explicit client settings.
 | Arguments that aren't UTF-8 (Unix) | Accepted as byte strings | Panic while collecting arguments, before the compilation thread starts (normally exit status 101) |
 | tsrs-only flags with `-b` | — | The tsrs-only flags (`--checkerAssignment`, `--checkerCostCache`, `--maxMemory`, `--lazyMembers`, `--noLazyMembers`) are rejected with TS5072 |
 
-`--fast` is supported by ordinary compilation, watch and build mode, including response files and `--fast false`.
-`TSRS_FAST=1` enables the same preset; an explicit `--fast` value overrides the environment.
-It leaves compiler checking options unchanged. Per-feature flags and environment overrides take precedence over
-the preset. Internal optimizations that preserve compiler behavior stay enabled in both modes; runtime/platform
-differences and unsupported features below are unchanged.
+The preset is supported by ordinary compilation, watch and build mode. `--fast` works in response files and is
+not a `tsconfig.json` compiler option. An explicit `--fast` value overrides `TSRS_FAST`; per-feature flags and
+environment overrides take precedence over the preset. `--fast false` leaves those individual settings in effect.
+Compiler checking options stay as configured. Internal optimizations that preserve compiler behavior stay enabled
+in both modes; runtime/platform differences and unsupported features below are unchanged.
 
 The tsrs-only flags are described in [Performance options](USAGE.md#performance-options). Sources:
 [`checkerpool.rs`](../crates/tsrs_compiler/src/checkerpool.rs),
@@ -164,10 +168,11 @@ tsrs-only variables that change behavior:
 
 | variable | default | effect |
 | --- | --- | --- |
-| `TSRS_FAST` | off | `1` enables the fast preset; `--fast` / `--fast false` takes precedence |
-| `TSRS_CHECKER_ASSIGNMENT` | `go`; `locality` with `--fast` | Explicit assignments override the preset; `go` uses tsgo's file split and checker history |
+| `TSRS_FAST` | off | Only `1` enables the fast preset; an explicit `--fast` value takes precedence |
+| `TSRS_CHECKER_ASSIGNMENT` | `go`; `locality` in fast mode | Explicit assignments override the preset and disable stealing; `go` uses tsgo's file split and checker history |
 | `TSRS_MAX_MEMORY` | off | Same as `--maxMemory` |
-| `TSRS_LAZY_MEMBERS` | off; on with `--fast` | Same as `--lazyMembers` / `--noLazyMembers`; explicit CLI flags win |
+| `TSRS_LAZY_MEMBERS` | off; on in fast mode | Same as `--lazyMembers` / `--noLazyMembers`; explicit CLI flags win |
+| `TSRS_LAZY_DTS` | off; on in eligible fast-mode compilations | `1` enables lazy declaration member parsing; `0` / `off` disables it even in fast mode. Requires skipped declaration checking; unavailable in watch, LSP and API modes |
 | `TSRS_LIB_PATH` | unset | Directory to load the default libs from |
 | `TSRS_WATCH_BACKEND` | unset | `kqueue` uses the macOS fallback watcher |
 | `TSRS_BINARY` | unset | Path of the binary the npm launcher runs |

@@ -6,11 +6,11 @@ repeated runs. Every project in `bench/projects.json` is covered: currently 19
 projects and 456 comparisons. Compiler errors are valid results; compiler crashes
 and incomplete runs always fail.
 
-A separate regression sweep checks fixture expectations across default and seeded
-random schedules, so focused reproductions retain multithreaded coverage.
+A separate regression sweep checks fixture expectations in fast mode across its
+unnamed and seeded random schedules, so focused reproductions retain multithreaded coverage.
 
 The `conformance` command runs the compiler conformance gate in tsgo's checker
-history and in the default CLI mode, then sweeps selected upstream scheduling
+history and in fast mode, then sweeps selected upstream scheduling
 regressions across checker counts and seeded assignments.
 
 The expectation is one committed JSON snapshot per project in `snapshots/`.
@@ -72,7 +72,8 @@ package, binary SHA-256, and Cargo source pin.
 ## Comparison matrix
 
 Each tsrs invocation uses `-p <project> --noEmit --incremental false --pretty false`
-and one row of the following matrix, in table order:
+and one row of the following matrix, in table order. Go rows use the reference
+defaults; every other row adds `--fast`:
 
 | `--checkerAssignment` | `--checkers` | Repetitions |
 | --- | --- | --- |
@@ -80,8 +81,8 @@ and one row of the following matrix, in table order:
 | `go` | max | 3 |
 | `locality` | 4 | 3 |
 | `locality` | max | 3 |
-| omitted (default scheduler) | 4 | 3 |
-| omitted (default scheduler) | max | 3 |
+| omitted (fast scheduler) | 4 | 3 |
+| omitted (fast scheduler) | max | 3 |
 | `random:1`, `random:2`, `random:3` | 4 | 1 per seed |
 | `random:1`, `random:2`, `random:3` | max | 1 per seed |
 
@@ -92,10 +93,10 @@ Projects and compiler invocations run sequentially in catalog and matrix order.
 CI checks the full catalog in one task invocation, sharing one tooling install
 and benchmark cache, and uploads one combined results artifact.
 
-Named assignments disable work stealing. The default rows omit the assignment
-flag, exercising the production scheduler and timing-dependent work stealing.
+Named assignments disable work stealing. The rows labelled `default` in task
+output use `--fast` and omit the assignment flag, exercising timing-dependent work stealing.
 Each random seed varies both checker ownership and file visit order. Fixed seeds
-make that permutation reproducible; repeating default runs samples the scheduler's
+make that permutation reproducible; repeating fast-mode runs samples the scheduler's
 timing. Seeds do not make dynamic thread scheduling reproducible or enumerate all
 possible schedules. The random run's label and recorded command include the seed
 (for example, `random-max-2` uses `--checkerAssignment random:2`). All variants
@@ -111,13 +112,13 @@ target/debug/tsrs_determinism regressions
 target/debug/tsrs_determinism regressions --projects union-too-complex-cross-product
 ```
 
-First it runs `-p <fixture> --pretty false --singleThreaded` and compares the full
+First it runs `-p <fixture> --pretty false --singleThreaded --fast` and compares the full
 combined output with the fixture's committed `expected.txt`, normalizing CRLF and
 the absolute fixture directory to `<dir>`. As in `tools/regressions.sh`, the
 `expected.txt` comparison ignores trailing newlines; schedule comparisons retain
 them. It then compares the full ordered output and exit status with that checked
 single-threaded run under 2 and 4 checkers:
-three default scheduler runs and one run each for `random:1` through `random:6`.
+three unnamed scheduler runs and one run each for `random:1` through `random:6`, all with `--fast`.
 That is 19 invocations per fixture. Crashes, timeouts and incomplete runs fail.
 
 These fixtures retain their existing expectations because some exercise intentional
@@ -141,24 +142,27 @@ target/debug/tsrs_determinism conformance --filter stableTypeMapperOrdering --de
 
 It first checks that the testdata checkout is at `[workspace.metadata.typescript].commit`.
 It then compares every supported baseline (`--baselines all`) with upstream twice: in
-tsgo's single-threaded checker history, and in the default CLI mode with canonical
-history and work stealing. Last, it repeats the fixtures in
-`testdata/checker-determinism.txt` at 4 and 8 checkers, with ten default-scheduler
+tsgo's single-threaded checker history with eager members, and in fast mode with canonical
+history, lazy members and work stealing. Last, it repeats the fixtures in
+`testdata/checker-determinism.txt` at 4 and 8 checkers, with ten fast-scheduler
 runs and eight seeded random assignments per count. Every run compares with the
 upstream baselines, so a crash shared by all schedules still fails. Add new
 upstream scheduling reproductions to that list.
 
 Each run sets `TSRS_TESTDATA`, `TSRS_TEST_RESULTS`, `TS_TEST_PROGRAM_SINGLE_THREADED`,
-`TSRS_HISTORY` and `TSRS_CHECKER_ASSIGNMENT`; other environment variables, such as
+`TSRS_FAST`, `TSRS_HISTORY` and `TSRS_CHECKER_ASSIGNMENT`; other environment variables, such as
 experiment flags, pass through. Results go to `target/test-results/` for Go history,
 `target/test-results-default/` and `target/test-results-determinism/<run>/`, each
-with `tsrs-test`'s lists and `summary.json`. The command continues after a failed
+with `tsrs-test`'s lists and `summary.json`. The `default` mode name and output suffix
+are retained for compatibility; they select fast mode, not the ordinary CLI defaults.
+The driver sets `TSRS_FAST=0` for Go history and `TSRS_FAST=1` for fast-mode runs,
+overriding an inherited preset. The command continues after a failed
 run and exits unsuccessfully if any run failed. CI runs it in the `test` job, and
 release BOLT runs it on the optimized `tsrs-test`. Replay a failed sweep run such as
 `random-8-3` with:
 
 ```sh
-TSRS_HISTORY=canonical TSRS_CHECKER_ASSIGNMENT=random:3 \
+TSRS_FAST=1 TSRS_HISTORY=canonical TSRS_CHECKER_ASSIGNMENT=random:3 \
   target/debug/tsrs-test run --baselines all --checkers 8 --filter <name>
 ```
 

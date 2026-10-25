@@ -6,6 +6,10 @@
 > four-checker reporting sites described below. Canonical mode still checks each declaring file for index-constraint
 > errors. The investigation and measurements below describe the earlier pinned compiler and remain historical
 > evidence; current conformance is recorded in [the port log](typescript-623-ports.md).
+>
+> "Default mode" below names the optimized checker behavior used at the time. It is now opt-in through `--fast`
+> or `TSRS_FAST=1`; ordinary compilation follows Go's checker defaults. Current cache metadata and mode-switching
+> rules are documented in [incremental compilation](../docs/EMIT.md#json).
 
 PR 163 (split default library files when they weigh most of a share) ran pr-verify, and on nuxt at 32 checkers one run
 of three printed three errors instead of four: the TS2320 at `packages/nuxt/src/app/types/augments.ts(8,13)` (`Interface

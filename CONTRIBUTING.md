@@ -102,14 +102,17 @@ cargo test --locked                                             # all workspace 
 ```
 
 The conformance gate in [the determinism task](tasks/determinism/README.md#conformance-gate), also run by CI and
-release BOLT, compares every supported compiler baseline in tsgo's default checker history and in `--fast` mode with
-work stealing. It then repeats the upstream fixtures listed in
-`testdata/checker-determinism.txt` at 4 and 8 checkers, with ten default runs and eight seeded assignments per count.
+release BOLT, compares every supported compiler baseline in tsgo's checker history with eager members and in fast
+mode with lazy members and work stealing. The driver sets `TSRS_FAST=0` and `1` explicitly for those runs. It then
+repeats the upstream fixtures listed in `testdata/checker-determinism.txt` at 4 and 8 checkers, with ten fast-mode
+scheduler runs and eight seeded assignments per count.
 `--baselines all` includes errors, types, symbols, JavaScript/declaration emit, JavaScript maps and source-map
 records. The runner exits unsuccessfully on any baseline difference, crash, timeout or empty selection. The gate also
 rejects a testdata checkout at a different TypeScript source pin. Unsupported cases remain reported as skips.
 
-The raw `tsrs-test` command keeps upstream's single-threaded Go history so baseline differences are reproducible.
+Without environment overrides, the raw `tsrs-test` command keeps upstream's single-threaded Go history so baseline
+differences are reproducible. `TSRS_FAST=1` enables the fast preset; also set `TS_TEST_PROGRAM_SINGLE_THREADED=false`
+to exercise parallel scheduling. Explicit history/assignment overrides still apply.
 Schedule-dependent output in fast mode is a defect; add its upstream reproduction to
 `testdata/checker-determinism.txt`. The [task guide](tasks/determinism/README.md#conformance-gate) lists the gate's
 options, result directories and replay command.
@@ -136,10 +139,10 @@ Capture its combined stdout and stderr, replacing the case's absolute directory 
   and determinism use those same binaries. The Linux checks have separate Rust caches: `lint` runs Clippy and source checks;
   `test` runs Rust checks and all workspace tests, compiler conformance in
   both checker modes with the focused upstream scheduling sweep, and regressions; `determinism` compares every benchmark project against committed snapshots
-  from the root pnpm TypeScript release matching Cargo metadata, using Go, locality and default scheduling at four and
-  all available CPU checkers, three runs each, plus three fixed random assignments per count. It also sweeps every
-  regression fixture under default and seeded random scheduling at two and four checkers. Diagnostic order and exit
-  status must match; crashes and incomplete runs fail.
+  from the root pnpm TypeScript release matching Cargo metadata, using Go defaults and fast-mode locality/unnamed
+  scheduling at four and all available CPU checkers, three runs each, plus three fixed random assignments per count.
+  It also sweeps every regression fixture in fast mode under its unnamed and seeded random schedules at two and four
+  checkers. Diagnostic order and exit status must match; crashes and incomplete runs fail.
   The separate `thread-sanitizer` job builds the compiler and standard library with the pinned nightly sanitizer,
   then runs type checking, emit, incremental builds, watch edits and LSP edits through `tasks/thread_sanitizer`.
   Reports and failures are retained in its artifact; any sanitizer report or failed workload fails the job.

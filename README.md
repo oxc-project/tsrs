@@ -16,41 +16,6 @@ pnpm exec tsrs --noEmit
 You can try `tsrs` today and give us feedback on performance, memory usage, and conformance.
 Try checking and emitting code in the [browser playground](https://tsrs-playground.void.app).
 
-## Fast mode
-
-The following defaults and opt-in preset are **unreleased** and available in source builds.
-
-By default, tsrs follows the pinned TypeScript compiler's checker settings: four checkers, Go's file assignment
-and checker history, and eager type members. `--fast` opts into adaptive parallelism, lazy type members,
-additional checker caches, and eligible memory-saving modes:
-
-```sh
-pnpm exec tsrs --noEmit --fast
-# Or enable the same preset through the environment:
-TSRS_FAST=1 pnpm exec tsrs --noEmit
-```
-
-Fast mode has these side effects:
-
-- **Diagnostics can differ from TypeScript.** In known cases involving check order, recursive types or
-  instantiation depth limits, errors can appear, disappear, move or have different message text. The exit status
-  can change too. Fast mode reduces some check-order dependencies, but does not guarantee identical results
-  across every run or checker count. See the [known cases](https://github.com/oxc-project/tsrs/blob/main/notes/open-history-dependence.md).
-- **CPU and memory use change.** The checker count adapts to the machine and project, up to 32. More checkers
-  can use more memory even with the memory-saving optimizations. Use `--checkers N` to set the count or
-  `--singleThreaded` to use one thread; `--build` keeps four checkers per project unless overridden.
-- **Compiler statistics change.** Lazy member resolution and additional caches change the work performed, so
-  type, symbol and instantiation counts can differ from TypeScript's. Work stealing can also make these counters
-  vary between runs.
-- **Switching modes can require a fresh check.** Incremental and build caches with incompatible checker-history
-  or lazy-member settings are discarded, so the next build can take longer.
-
-Fast mode works with compilation, watch, build mode and response files. It keeps your `tsconfig.json` checking
-options, including `strict`, `skipLibCheck` and `noCheck`, as configured. An explicit `--fast false` overrides
-`TSRS_FAST=1`; individual feature overrides still apply. See
-[performance options](https://github.com/oxc-project/tsrs/blob/main/docs/USAGE.md#performance-options) for the full
-preset, precedence rules and tuning controls.
-
 ## Conformance
 
 We aim to release a stable version against TypeScript 7.1 with 100% conformance.
@@ -61,6 +26,69 @@ The default checker settings follow the pinned TypeScript reference, including i
 and file order. Matching those settings does not guarantee deterministic results for every program. See
 [differences from pinned TypeScript](https://github.com/oxc-project/tsrs/blob/main/docs/DEFAULTS.md) for the remaining
 runtime differences and unsupported features.
+
+## Fast mode
+
+The following defaults and opt-in preset are **unreleased** and available in source builds.
+
+By default, tsrs follows the pinned TypeScript compiler's checker settings: four checkers (capped by file count),
+Go's file assignment and checker history, and eager type members. Enable the fast preset with `--fast` or
+`TSRS_FAST=1`:
+
+```sh
+pnpm exec tsrs --noEmit --fast
+# Or enable the same preset through the environment:
+TSRS_FAST=1 pnpm exec tsrs --noEmit
+```
+
+With no individual feature overrides, fast mode enables:
+
+- **Adaptive checker counts.** One checker per core up to 16 cores; above that, the greater of 16 and half the
+  cores, rounded down. The count stays between 4 and 32 before file-count limits: small programs reduce it toward
+  4 to allow at least 32 checked files per checker, and it never exceeds the total file count. `--build` keeps
+  four checkers per project. `--checkers N` overrides the count; `--singleThreaded` uses one.
+- **Locality scheduling and work stealing.** Groups nearby files on the same checker, starts heavy files first,
+  and lets idle checkers take unstarted work. Heavy declaration files can be checked in pieces across checkers.
+  Module affinity groups files that use the same modules, starting at 16 checkers, or 8 for programs with at
+  least 24,000 checked files. An explicit `--checkerAssignment` / `TSRS_CHECKER_ASSIGNMENT` disables stealing
+  and file splitting.
+- **Canonical checker history and additional caches.** Changes selected history-dependent checks to reduce
+  dependence on check order, and enables union-front, indexed-access and inference-walk caches.
+- **Lazy type members.** Resolves and instantiates class/interface, mapped-type and tuple members as needed.
+  Also defers conditional/inference mappers and property-cache allocation, and avoids unnecessary member
+  instantiation during unmatched-property and empty-object checks.
+- **Lazy declaration parsing.** Parses `.d.ts` member lists on first use when `skipLibCheck` or `noCheck` is
+  already enabled. Applies to batch and incremental compilation, and non-watch `--build` when every built
+  project skips declaration checking. Watch, language-server and API modes keep eager declaration parsing.
+- **Freeing finished leaf files.** Releases trees and binder data for selected unreferenced TypeScript modules during
+  non-incremental, non-watch `--noEmit` compilation, without declaration output or `--explainFiles`. Requires
+  Unix with compressed pointers and a checker upper bound of at most 16, computed before files are loaded.
+  It is disabled in `--build`.
+
+The preset keeps `strict`, `skipLibCheck`, `noCheck` and other checking options as configured. Control-flow
+memoization and parallel parsing are enabled in both modes. Memory targets and persistent checker-cost caches
+still require an explicit size or path; experimental shared type graphs and `TSRS_LAZY_HAS_PROP` remain off.
+
+Fast mode has these side effects:
+
+- **Diagnostics can differ from TypeScript.** In known cases involving check order, recursive types or
+  instantiation depth limits, errors can appear, disappear, move or have different message text. The exit status
+  can change too. Fast mode reduces some check-order dependencies, but does not guarantee identical results
+  across every run or checker count. See the [known cases](https://github.com/oxc-project/tsrs/blob/main/notes/open-history-dependence.md).
+- **CPU and memory use change.** More checkers and caches can use more memory even with lazy allocation and
+  file freeing. Faster execution or lower peak memory is not guaranteed for every project.
+- **Compiler statistics change.** Lazy member resolution and additional caches change the work performed, so
+  type, symbol and instantiation counts can differ from TypeScript's. Work stealing can also make these counters
+  vary between runs.
+- **Switching modes can require a fresh check.** Incremental and build caches with incompatible checker-history
+  or lazy-member settings are discarded, so the next build can take longer.
+
+The preset works with compilation, watch, build mode and response files, subject to the conditions above.
+`--fast` is a CLI option, not a `tsconfig.json` option. Only `TSRS_FAST=1` enables the environment preset;
+an explicit `--fast false` overrides it. Individual feature settings still apply: for example,
+`--fast --noLazyMembers` keeps eager type members. See
+[performance options](https://github.com/oxc-project/tsrs/blob/main/docs/USAGE.md#performance-options) for
+precedence rules, tuning controls and detailed eligibility restrictions.
 
 <a href="https://github.com/oxc-project/tsrs/blob/main/bench/RESULTS.md">
   <picture>

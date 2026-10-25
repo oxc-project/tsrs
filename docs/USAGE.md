@@ -36,7 +36,9 @@ lazy declaration parsing and leaf-file freeing. Checking settings such as `skipL
 configured. Known history and instantiation-depth cases can produce different diagnostics; see the
 [compatibility table](COMPATIBILITY.md#what-it-does-and-doesnt-do).
 
-The preset accepts `--fast false` and works in response files. Explicit feature flags and their environment
+`TSRS_FAST=1` enables the same preset through the environment; unset or `0` keeps it off. An explicit `--fast`
+value overrides `TSRS_FAST`, so `TSRS_FAST=1 tsrs --fast false` uses the default preset.
+The flag works in response files. Explicit feature flags and their environment
 overrides take precedence regardless of where `--fast` appears. Memory targets and persistent cost caches still
 require their own size or path. Internal optimizations that preserve compiler behavior remain enabled in both modes.
 

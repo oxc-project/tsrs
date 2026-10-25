@@ -137,9 +137,11 @@ pub(crate) fn command_line_with_testing(
 }
 
 fn configure_performance(raw: &CompilerOptionsValue) {
-    let fast = matches!(raw, CompilerOptionsValue::Object(options)
-        if matches!(options.get("fast"), Some(CompilerOptionsValue::Bool(true))));
-    tsrs_core::fast::set_enabled(fast);
+    if let CompilerOptionsValue::Object(options) = raw
+        && let Some(fast) = options.get("fast")
+    {
+        tsrs_core::fast::set_enabled(matches!(fast, CompilerOptionsValue::Bool(true)));
+    }
 }
 
 /// `tsrs_core::NO_THREADS`: `--singleThreaded`, set on the parsed options so every reader agrees (a config file

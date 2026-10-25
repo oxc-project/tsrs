@@ -56,6 +56,7 @@ four spaces and `"\n"`; the limits below apply to explicit client settings.
 | tsrs-only flags with `-b` | — | The tsrs-only flags (`--checkerAssignment`, `--checkerCostCache`, `--maxMemory`, `--lazyMembers`, `--noLazyMembers`) are rejected with TS5072 |
 
 `--fast` is supported by ordinary compilation, watch and build mode, including response files and `--fast false`.
+`TSRS_FAST=1` enables the same preset; an explicit `--fast` value overrides the environment.
 It leaves compiler checking options unchanged. Per-feature flags and environment overrides take precedence over
 the preset. Internal optimizations that preserve compiler behavior stay enabled in both modes; runtime/platform
 differences and unsupported features below are unchanged.
@@ -163,6 +164,7 @@ tsrs-only variables that change behavior:
 
 | variable | default | effect |
 | --- | --- | --- |
+| `TSRS_FAST` | off | `1` enables the fast preset; `--fast` / `--fast false` takes precedence |
 | `TSRS_CHECKER_ASSIGNMENT` | `go`; `locality` with `--fast` | Explicit assignments override the preset; `go` uses tsgo's file split and checker history |
 | `TSRS_MAX_MEMORY` | off | Same as `--maxMemory` |
 | `TSRS_LAZY_MEMBERS` | off; on with `--fast` | Same as `--lazyMembers` / `--noLazyMembers`; explicit CLI flags win |

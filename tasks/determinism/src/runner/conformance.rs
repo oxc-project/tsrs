@@ -110,12 +110,14 @@ fn invoke(settings: &Settings, label: &str, results: &Path, history: History) ->
     match history {
         History::Go => {
             command
+                .env("TSRS_FAST", "0")
                 .env("TS_TEST_PROGRAM_SINGLE_THREADED", "true")
                 .env("TSRS_HISTORY", "go")
                 .env("TSRS_CHECKER_ASSIGNMENT", "go");
         }
         History::Default { checkers, assignment } => {
             command
+                .env("TSRS_FAST", "1")
                 .env("TS_TEST_PROGRAM_SINGLE_THREADED", "false")
                 .env("TSRS_HISTORY", "canonical");
             match assignment {

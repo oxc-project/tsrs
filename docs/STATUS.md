@@ -8,10 +8,11 @@ see the [compatibility table](COMPATIBILITY.md); detailed investigations are ind
 ## 2026-10-25: TypeScript defaults and opt-in fast mode (unreleased)
 
 Ordinary compilation now uses the pinned TypeScript defaults: four checkers, Go's file assignment and checker
-history, and eager members. `--fast` opts into adaptive checker counts, locality scheduling with work stealing,
-canonical history and caches, lazy members, and eligible memory-saving modes. Explicit feature flags override the
-preset. It works in response files, watch and build mode; build mode keeps four checkers per project. Switching
-history or lazy-member settings rejects incompatible persisted diagnostics in either direction.
+history, and eager members. `--fast` or `TSRS_FAST=1` opts into adaptive checker counts, locality scheduling with
+work stealing, canonical history and caches, lazy members, and eligible memory-saving modes. Explicit feature
+flags override the preset; an explicit `--fast` value overrides `TSRS_FAST`. It works in response files, watch and
+build mode; build mode keeps four checkers per project. Switching history or lazy-member settings rejects
+incompatible persisted diagnostics in either direction.
 
 Dev-profile validation against `3e9236361fa9` retains all 13,700 error, 12,998 type, 12,998 symbol, 13,626 emit,
 149 JavaScript-map and 156 source-map-record passes in both modes. Initial timeouts passed on focused retries with

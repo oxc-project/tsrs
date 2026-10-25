@@ -41,12 +41,14 @@ pub fn set_go_compatible_history(on: bool) {
 /// Selects the checker history required by tsgo reference baselines.
 ///
 /// For harnesses whose baselines are tsgo's output: Go's behaviour unless `TSRS_CHECKER_ASSIGNMENT` names
-/// another assignment or `TSRS_HISTORY=canonical` (then the canonical behaviour, to measure how the baselines
-/// differ from it; the latter without naming an assignment, so the default scheduling, stealing included, is
-/// used).
+/// another assignment, `TSRS_HISTORY=canonical` or `TSRS_FAST=1` (then the canonical behaviour, to measure how
+/// the baselines differ from it). Without a named assignment, default scheduling includes stealing.
+/// Explicit Go assignment/history overrides the fast preset's history.
 pub fn use_go_history_for_tsgo_baselines() {
-    let other = std::env::var("TSRS_CHECKER_ASSIGNMENT").is_ok_and(|v| !v.is_empty() && v != "go")
-        || std::env::var("TSRS_HISTORY").is_ok_and(|v| v == "canonical");
-    crate::fast::set_enabled(other);
-    set_go_compatible_history(!other);
+    let assignment = std::env::var("TSRS_CHECKER_ASSIGNMENT").unwrap_or_default();
+    let history = std::env::var("TSRS_HISTORY").unwrap_or_default();
+    let canonical = !assignment.is_empty() && assignment != "go" || history == "canonical";
+    let fast = canonical || crate::fast::enabled();
+    crate::fast::set_enabled(fast);
+    set_go_compatible_history(!canonical && (assignment == "go" || history == "go" || !fast));
 }

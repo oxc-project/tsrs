@@ -168,3 +168,63 @@ and `tsrs_tsoptions`: missing AST-navigation/formatting/stack-sanitizer fixtures
 baselines under the original `ts-ref`. All twenty failures reproduce with the exact baseline source restored for
 a targeted run; that sandboxed baseline run also has five socket/watcher failures. Candidate sources were restored
 afterward. The full workspace suite is therefore not green in this checkout; no candidate-only failure was found.
+
+## Follow-up: direct hashbrown checker caches
+
+A second review screened replacing 20 private checker caches in `checker.rs` with
+`hashbrown::HashMap<K, V, FxBuildHasher>`, retaining the existing keys, values, hashing, lookup and insertion
+logic. The comparison isolates the map implementation: baseline `0bc31e12` already includes the four
+`SmallVec` buffers above. No new dependency or unsafe code was involved. This trial was not retained.
+
+Both binaries used the release/debug-symbol configuration above on the same machine. All 19 catalog checkouts
+were reverified at their pins. Each cell had a warmup and three alternating baseline/candidate pairs, with
+`TSRS_FAST=1 --singleThreaded` for instructions and literal CLI defaults (`TSRS_FAST=0`) for default peak RSS
+and wall time. No builds or correctness suites overlapped the measurements. Drizzle was again excluded for the
+same configuration errors. Baseline and candidate diagnostics and exit statuses matched in every cell.
+
+| Project | Single-thread instructions, G | Default peak RSS, MiB | Default wall, ms |
+| --- | ---: | ---: | ---: |
+| vscode | 80.68965 → 80.67026 (-0.024%) | 2403.80 → 2411.23 (+0.309%) | 2459.098 → 2456.511 (-0.105%) |
+| xstate-main | 6.08348 → 6.08422 (+0.012%) | 267.91 → 267.34 (-0.210%) | 193.558 → 192.939 (-0.319%) |
+| webpack | 10.75128 → 10.74887 (-0.022%) | 404.98 → 405.41 (+0.104%) | 301.920 → 305.461 (+1.173%) |
+| mui-docs | 37.72510 → 37.72715 (+0.005%) | 1325.45 → 1324.91 (-0.041%) | 1578.855 → 1590.724 (+0.752%) |
+| Compiler | 1.68424 → 1.68425 (+0.001%) | 78.13 → 77.83 (-0.380%) | 64.486 → 64.636 (+0.233%) |
+| Compiler-Unions | 2.85007 → 2.85016 (+0.003%) | 81.69 → 81.64 (-0.057%) | 93.130 → 96.454 (+3.569%) |
+| cal-diy | 31.91295 → 31.92624 (+0.042%) | 1353.13 → 1342.20 (-0.807%) | 1133.137 → 1138.676 (+0.489%) |
+| formbricks-web | 40.88797 → 41.21125 (+0.791%) | 1986.41 → 1987.52 (+0.056%) | 1361.055 → 1354.238 (-0.501%) |
+| supabase-studio | 45.25005 → 45.25699 (+0.015%) | 1407.92 → 1407.81 (-0.008%) | 1648.037 → 1647.322 (-0.043%) |
+| t3code-server | 39.67342 → 39.67039 (-0.008%) | 1864.53 → 1864.05 (-0.026%) | 2046.426 → 2057.305 (+0.532%) |
+| mikro-orm | 47.00451 → 47.00800 (+0.007%) | 1628.67 → 1631.31 (+0.162%) | 1600.814 → 1615.993 (+0.948%) |
+| next-packages-next | 17.02396 → 17.02281 (-0.007%) | 603.67 → 602.31 (-0.225%) | 673.173 → 672.633 (-0.080%) |
+| next-root | 16.65489 → 16.65562 (+0.004%) | 469.52 → 469.36 (-0.033%) | 524.019 → 522.789 (-0.235%) |
+| storybook | 9.98712 → 9.98724 (+0.001%) | 446.16 → 446.61 (+0.102%) | 299.203 → 298.742 (-0.154%) |
+| nuxt | 10.64946 → 10.64916 (-0.003%) | 427.63 → 429.31 (+0.395%) | 340.705 → 337.796 (-0.854%) |
+| playwright | 7.52142 → 7.52146 (+0.001%) | 368.53 → 367.80 (-0.199%) | 251.549 → 251.416 (-0.053%) |
+| drizzle-orm | Configuration rejected | — | — |
+| typeorm | 7.75008 → 7.74927 (-0.010%) | 237.03 → 236.47 (-0.237%) | 259.330 → 260.864 (+0.592%) |
+| date-fns | 3.26109 → 3.26145 (+0.011%) | 146.22 → 146.53 (+0.214%) | 127.508 → 124.597 (-2.283%) |
+
+Single-threaded median instructions increased on 12/18 measured projects. The range was -0.024% to +0.791%,
+with a median change of +0.002%; no project reduced instructions in all three matched pairs. Formbricks had
+substantial variation within each binary (baseline 40.239–41.259 G; candidate 40.175–41.239 G), so its +0.791%
+median is not a repeatable regression claim. Single-threaded wall changes ranged from -2.890% to +6.943%
+(median -0.206%), with only two projects improving in all three pairs.
+
+Default peak RSS changed -0.807% to +0.395% (median -0.030%): 11/18 median values decreased, but only one
+project decreased in every pair. Default wall changed -2.283% to +3.569% (median -0.048%), with none improving
+in every pair. Single-threaded RSS was slightly lower on 17/18 (median -0.018%), but only seven did so in every
+pair. These mixed results do not establish a repeatable speed or default-memory benefit, so the original Fx maps
+were restored. This does not rule out a different cache-specific use of hashbrown's APIs; it rules out adopting
+this group solely by replacing its map type.
+
+The candidate passed `cargo check -p tsrs_checker` and the catalog diagnostic comparison. Because the trial
+was discarded, it did not proceed to another full conformance run. The retained implementation and its correctness
+results above are unchanged. Local evidence: `bench/.work/data-structures-hashbrown-20261026/`, including saved
+binaries, `candidate.patch`, the 20 field names, `paired.mjs`, per-run counter output and `catalog-summary.json`.
+
+Reproduce the two parts of the comparison from the saved artifacts:
+
+```sh
+node bench/.work/data-structures-hashbrown-20261026/paired.mjs Compiler,Compiler-Unions,xstate-main,vscode,t3code-server 3 candidate single,reference screen
+node bench/.work/data-structures-hashbrown-20261026/paired.mjs webpack,mui-docs,cal-diy,formbricks-web,supabase-studio,mikro-orm,next-packages-next,next-root,storybook,nuxt,playwright,drizzle-orm,typeorm,date-fns 3 candidate single,reference catalog-rest
+```

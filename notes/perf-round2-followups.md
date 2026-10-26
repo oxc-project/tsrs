@@ -140,6 +140,11 @@ with the switch off, which is why it is not in the default build.
 
 ## Measured and rejected (do not redo)
 
+- Direct `hashbrown::HashMap` with Fx hashing for 20 private checker caches
+  (`notes/data-structure-review.md`, follow-up): three paired runs on 18 catalog projects increased median
+  single-threaded instructions on 12; none reduced instructions in every pair. Default RSS and wall time were
+  mixed. Original maps restored; revisit with a cache-specific API or workload benefit, not a map-type swap alone.
+
 - Unicode normalization library cleanup ([rust-stdlib-normalization.md](rust-stdlib-normalization.md)), applied at
   the user's request: unicode-normalization 0.1.25 matches the existing Unicode 17 NFD output. Five-pair Mac
   screening on Compiler/Compiler-Unions: -0.017% to -0.011% single instructions, -0.198% to -0.056% default RSS;

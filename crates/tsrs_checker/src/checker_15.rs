@@ -2245,7 +2245,7 @@ impl Checker {
         // parameter type 'T extends string | undefined' with a contextual type 'string', we substitute
         // 'string | undefined' to give control flow analysis the opportunity to narrow to type 'string'.
         let substitute_constraints = !check_mode.intersects(CheckMode::Inferential)
-            && self.some_generic_type_with_union_constraint(t)
+            && some_type(self, t, super::checker::Checker::is_generic_type_with_union_constraint)
             && (self.is_constraint_position(t, reference)
                 || self.has_contextual_type_with_no_generic_types(reference, check_mode));
         if substitute_constraints {
@@ -2265,7 +2265,8 @@ impl Checker {
         if Self::is_no_infer_type(t) {
             t = t.as_substitution_type().base_type.get().unwrap();
         }
-        let position_read = self.some_generic_type_with_union_constraint(t);
+        let position_read =
+            some_type(self, t, super::checker::Checker::is_generic_type_with_union_constraint);
         let substitute_constraints = position_read
             && (self.is_constraint_position(t, reference)
                 || self.has_contextual_type_with_no_generic_types(reference, CheckMode::Normal));
@@ -2300,34 +2301,6 @@ impl Checker {
                     );
                     self.is_generic_index_type(index_type)
                 })
-    }
-
-    /// tsrs: `someType(t, isGenericTypeWithUnionConstraint)` for the declared type of a reference. The walk asks
-    /// every constituent of a union whether it is instantiable (2.6M constituent calls per check of the
-    /// Compiler-Unions benchmark, nearly all on unions of plain object types). A union whose
-    /// `couldContainTypeVariables` memo is computed and false answers false without the walk: the memo is true
-    /// whenever a constituent is instantiable, except for a non-generic top-level alias, whose constituents cannot
-    /// name a type variable and whose instantiable constituents are therefore pattern literal types, each its own
-    /// base constraint. The memo is read, never computed here (computing it resolves type arguments), like the
-    /// same test in `checker_07.rs`.
-    #[inline]
-    fn some_generic_type_with_union_constraint(&mut self, t: P<Type>) -> bool {
-        if t.flags().intersects(TypeFlags::Union)
-            && t.object_flags_lazy()
-                & (ObjectFlags::CouldContainTypeVariablesComputed
-                    | ObjectFlags::CouldContainTypeVariables)
-                == ObjectFlags::CouldContainTypeVariablesComputed
-        {
-            if cfg!(debug_assertions) {
-                let walked = some_type(self, t, Self::is_generic_type_with_union_constraint);
-                assert!(
-                    !walked,
-                    "a union without type variables has a constituent with a union constraint"
-                );
-            }
-            return false;
-        }
-        some_type(self, t, Self::is_generic_type_with_union_constraint)
     }
 
     // checker.go:32008

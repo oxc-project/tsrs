@@ -14,6 +14,9 @@ import (
 // a fresh LSP server; only the process and immutable parsed files are reused.
 const subprocessWorkerCases = 32
 
+// Instrumented PGO and BOLT training workers write their profiles while exiting.
+const subprocessWorkerExitTimeout = time.Minute
+
 var subprocessWorkers = make(chan *subprocessWorker, 4)
 
 type subprocessWorker struct {
@@ -90,7 +93,7 @@ func (w *subprocessWorker) close(kill bool) error {
 		w.input.Close()
 		select {
 		case <-w.finished:
-		case <-time.After(5 * time.Second):
+		case <-time.After(subprocessWorkerExitTimeout):
 			w.cmd.Process.Kill()
 			<-w.finished
 		}

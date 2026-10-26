@@ -83,6 +83,13 @@ inherits = "release"
 lto = "off"
 codegen-units = 16
 
+# Workspace tests in CI: `ci` code generation with the debug assertions and overflow checks that local `cargo test`
+# runs, so checks such as FrozenCell's borrow counter stay covered.
+[profile.ci-test]
+inherits = "ci"
+debug-assertions = true
+overflow-checks = true
+
 # Release binaries (.github/workflows/release.yml) build with this profile twice, for PGO: -Cprofile-generate,
 # training run, -Cprofile-use (notes/perf-pgo.md), then BOLT on Linux. Instrumented builds override rustc's LTO to
 # thin, keeping the Cargo profile identical for PGO symbol matching. tools/wasm/build.sh applies its target-specific

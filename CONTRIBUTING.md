@@ -48,7 +48,8 @@ tools/gen-check.sh                                # generated code matches its g
 ```
 
 Use the `dev` profile while editing and testing. It uses Cargo's default development settings with debug information
-disabled. CI uses the optimized `ci` profile without LTO for workspace tests, compiler conformance and determinism.
+disabled. CI uses the optimized `ci` profile without LTO for compiler conformance and determinism, and `ci-test`, which
+adds debug assertions and overflow checks, for workspace tests.
 Build `--release` for performance measurements: its fat LTO and single codegen unit are what ships.
 
 The language-server test server and WebAssembly module have separate builds:

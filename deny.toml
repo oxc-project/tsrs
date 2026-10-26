@@ -22,6 +22,3 @@ wildcards = "allow"
 unknown-registry = "deny"
 unknown-git = "deny"
 allow-registry = ["https://github.com/rust-lang/crates.io-index"]
-# Temporary source for the published criterion2 3.0.5 release while its registry index entry is missing.
-allow-git = ["https://github.com/Boshen/criterion2.rs"]
-required-git-spec = "rev"

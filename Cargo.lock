@@ -198,7 +198,8 @@ dependencies = [
 [[package]]
 name = "criterion2"
 version = "3.0.5"
-source = "git+https://github.com/Boshen/criterion2.rs?rev=aed944386d8401f4863d44da636499cdff10f4f6#aed944386d8401f4863d44da636499cdff10f4f6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c05b34b35eab2582f4aa64f19d973691ba520ef499916322575403c55da3b1c9"
 dependencies = [
  "bpaf",
  "cast",

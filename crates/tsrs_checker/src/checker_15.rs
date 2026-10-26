@@ -2302,27 +2302,19 @@ impl Checker {
                 })
     }
 
-    /// tsrs: `someType(t, isGenericTypeWithUnionConstraint)` for the declared type of a reference. The walk asks
-    /// every constituent of a union whether it is instantiable (2.6M constituent calls per check of the
-    /// Compiler-Unions benchmark, nearly all on unions of plain object types). A union whose
-    /// `couldContainTypeVariables` memo is computed and false answers false without the walk: the memo is true
-    /// whenever a constituent is instantiable, except for a non-generic top-level alias, whose constituents cannot
-    /// name a type variable and whose instantiable constituents are therefore pattern literal types, each its own
-    /// base constraint. The memo is read, never computed here (computing it resolves type arguments), like the
-    /// same test in `checker_07.rs`.
+    /// A union type is a generic type with a union constraint only when one of its constituents is instantiable, or is
+    /// an intersection that might contain one, so the walk is skipped for unions with neither.
     #[inline]
     fn some_generic_type_with_union_constraint(&mut self, t: P<Type>) -> bool {
         if t.flags().intersects(TypeFlags::Union)
-            && t.object_flags_lazy()
-                & (ObjectFlags::CouldContainTypeVariablesComputed
-                    | ObjectFlags::CouldContainTypeVariables)
-                == ObjectFlags::CouldContainTypeVariablesComputed
+            && !t.object_flags().intersects(ObjectFlags::ContainsIntersections)
+            && !t.as_union_type().contains_instantiables()
         {
             if cfg!(debug_assertions) {
                 let walked = some_type(self, t, Self::is_generic_type_with_union_constraint);
                 assert!(
                     !walked,
-                    "a union without type variables has a constituent with a union constraint"
+                    "a union without instantiable or intersection constituents has a constituent with a union constraint"
                 );
             }
             return false;

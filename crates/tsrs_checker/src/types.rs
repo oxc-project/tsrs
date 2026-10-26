@@ -2660,10 +2660,13 @@ struct IntersectionRare {
     unique_literal_filled_instantiation: OvCell<Option<P<Type>>>, // Instantiation with type parameters mapped to never type
 }
 
-/// The tail pointer (8-aligned, null while absent) with bit 0 set for an intersection.
+/// The tail pointer (8-aligned, null while absent) with bit 0 set for an intersection and, for a union, bit 1 set
+/// when some constituent is instantiable (Go's `UnionType.containsInstantiables`).
 struct UnionOrIntersectionRareWord(OvExact<RawWord>);
 
 const RARE_INTERSECTION: usize = 1;
+const RARE_CONTAINS_INSTANTIABLES: usize = 2;
+const RARE_TAGS: usize = RARE_INTERSECTION | RARE_CONTAINS_INSTANTIABLES;
 
 impl Default for UnionOrIntersectionRareWord {
     #[inline]
@@ -2680,7 +2683,7 @@ impl UnionOrIntersectionType {
     #[inline]
     fn rare(&self) -> Option<&'static UnionOrIntersectionRare> {
         let p: *const UnionOrIntersectionRare =
-            self.rare.0.get().ptr::<UnionOrIntersectionRare>().map_addr(|a| a & !RARE_INTERSECTION);
+            self.rare.0.get().ptr::<UnionOrIntersectionRare>().map_addr(|a| a & !RARE_TAGS);
         // SAFETY: a non-null address is the tail allocated by `rare_for_write` (never freed).
         (!p.is_null()).then(|| unsafe { &*p })
     }
@@ -2692,13 +2695,13 @@ impl UnionOrIntersectionType {
         if let Some(r) = self.rare() {
             return r;
         }
-        let kind = self.rare.0.get().0 & RARE_INTERSECTION;
-        let p: *const UnionOrIntersectionRare = if kind != 0 {
+        let tags = self.rare.0.get().0 & RARE_TAGS;
+        let p: *const UnionOrIntersectionRare = if tags & RARE_INTERSECTION != 0 {
             std::ptr::from_ref::<IntersectionRare>(P::new(IntersectionRare::default()).get()).cast()
         } else {
             std::ptr::from_ref::<UnionRare>(P::new(UnionRare::default()).get()).cast()
         };
-        self.rare.0.set(RawWord::from_ptr(p.map_addr(|a| a | kind)));
+        self.rare.0.set(RawWord::from_ptr(p.map_addr(|a| a | tags)));
         // SAFETY: just allocated; `repr(C)` with the shared part first.
         unsafe { &*p }
     }
@@ -2757,6 +2760,16 @@ const _: () = assert!(std::mem::size_of::<UnionType>() == 24);
 const _: () = assert!(std::mem::size_of::<UnionType>() == 16);
 
 impl UnionType {
+    /// Whether some constituent is instantiable, set by `get_union_type_from_sorted_list`.
+    #[inline]
+    pub(crate) fn contains_instantiables(&self) -> bool {
+        self.union_or_intersection_type.rare.0.get().0 & RARE_CONTAINS_INSTANTIABLES != 0
+    }
+    #[inline]
+    pub(crate) fn set_contains_instantiables(&self) {
+        let word = self.union_or_intersection_type.rare.0.get().0;
+        self.union_or_intersection_type.rare.0.set(RawWord(word | RARE_CONTAINS_INSTANTIABLES));
+    }
     #[inline]
     fn union_rare(&self) -> Option<&'static UnionRare> {
         debug_assert!(!self.union_or_intersection_type.is_intersection_data());

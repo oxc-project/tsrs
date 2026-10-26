@@ -229,6 +229,9 @@ impl Checker {
         if NON_NULLABLE_KINDS.contains(kinds) {
             t.object_flags.set(t.object_flags() | ObjectFlags::NonNullableUnion);
         }
+        if kinds.intersects(TypeFlags::Instantiable) {
+            t.as_union_type().set_contains_instantiables();
+        }
         t.as_union_type().set_origin(origin);
         t.set_alias(alias.alias());
         if types.len() == 2

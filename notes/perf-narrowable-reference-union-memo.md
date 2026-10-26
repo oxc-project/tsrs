@@ -4,6 +4,14 @@ Measured 2026-10-22 at `c6695157` (main after #680 and #699) on an 18-core Apple
 other agents, following the owner's performance guide (profile first, attribute, smallest change, before/after
 numbers).
 
+**Update (2026-10-26): the `couldContainTypeVariables` test below is not exact.** A non-generic top-level alias can
+hold `NoInfer<...>` over object types, a substitution type whose base constraint is the wrapped union. The walk
+answers true for it while the memo is false, so in
+`type U = NoInfer<{ kind: "a"; a: number } | { kind: "b"; b: number }> | { kind: "c" }` a parameter `u: U` lost
+its narrowing by `u.kind === "a"` (the debug assertion fires on it). The shortcut now reads a summary set when the
+union is built, `ObjectFlags::ContainsInstantiables` together with `ContainsIntersections`, which is exactly the
+condition under which the walk can answer true. The Go checker takes the same fix in microsoft/TypeScript#64958.
+
 ## Finding
 
 A CPU-time profile (`samply`, single-threaded, `RAYON_NUM_THREADS=1 --singleThreaded`) of the four projects is flat

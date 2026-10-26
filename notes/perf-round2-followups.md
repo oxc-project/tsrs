@@ -140,6 +140,17 @@ with the switch off, which is why it is not in the default build.
 
 ## Measured and rejected (do not redo)
 
+- Collection redesign trials on `f9a7c8d6` (`notes/data-structure-redesigns.md`): papaya 0.2.5 and scc 3.8.8
+  adapters do not preserve vacant-insertion Clone-panic/lock-poisoning behavior. Papaya also regresses the
+  seven-project instruction/RSS screen. A poisoning-compatible parking_lot 0.12.5 adapter adds no consistent
+  benefit over lazy groups of std RwLocks in a direct comparison. Keep std locks and the existing hash table.
+  Persistent scoped/project maps (rpds 1.2.1), ThinVec NodeBuilderContext fields, inline-one/ThinVec multimap
+  values and consolidating SyncMap snapshot vectors show mixed or noisy results; the census finds little
+  inherited copying in the exercised LSP workloads. Declaration-queue VecDeque costs +0.110%, +1.768% and
+  +4.321% instructions at measured queue lengths of 512, 2,048 and 4,096. Revisit these specific designs with a
+  changed workload, an adapter preserving the required contract, or evidence isolating a new bottleneck.
+  The selected lazy shard allocation, smaller link chunks and Fx-hashed ordered watcher events are separate.
+
 - Additional collection trials on `5b0ebd42` (`notes/data-structure-followups.md`): four/eight-handle inference
   buffers and sixteen-flag boolean SmallVec do not show a broad, repeatable instruction reduction in two
   full-catalog batches. Seven-project screens also reject larger union-merge capacities, mixin flags, borrowed

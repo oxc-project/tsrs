@@ -38,7 +38,9 @@ const _: () =
 #[cfg(target_pointer_width = "32")]
 const _: () = assert!(std::mem::size_of::<LinkSlot>() == 8);
 
-const LINK_CHUNK_SHIFT: u32 = 10;
+// Bound unused tails in short stores while keeping every allocated value at a stable address.
+// Measurements: notes/data-structure-redesigns.md.
+const LINK_CHUNK_SHIFT: u32 = 6;
 const LINK_CHUNK: usize = 1 << LINK_CHUNK_SHIFT;
 
 impl<K: 'static, V: 'static> Default for LinkStore<K, V> {

@@ -1308,7 +1308,6 @@ dependencies = [
 name = "tsrs_lsp"
 version = "0.20.0"
 dependencies = [
- "indexmap",
  "rustc-hash",
  "tsrs_api",
  "tsrs_api_transport",

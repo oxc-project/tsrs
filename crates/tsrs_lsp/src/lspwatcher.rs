@@ -5,8 +5,8 @@
 use std::sync::{Arc, Mutex, Weak};
 use std::time::Duration;
 
-use indexmap::IndexMap;
 use rustc_hash::FxHashMap;
+use tsrs_core::collections::{OrderedMap, new_ordered_map_with_size_hint};
 use tsrs_core::tspath;
 use tsrs_fswatch as fswatch;
 use tsrs_ls::lsconv;
@@ -70,7 +70,7 @@ struct WatcherState {
     closed: bool,
 
     // Pending batch state, protected by mu.
-    pending: Option<IndexMap<String, lsproto::FileEvent>>,
+    pending: Option<OrderedMap<String, lsproto::FileEvent>>,
     flush_timer: Option<Timer>,
 }
 
@@ -274,7 +274,8 @@ impl Watcher {
         if st.closed {
             return;
         }
-        let pending = st.pending.get_or_insert_with(|| IndexMap::with_capacity(events.len()));
+        let pending =
+            st.pending.get_or_insert_with(|| new_ordered_map_with_size_hint(events.len()));
         pending.extend(events.iter().filter_map(|event| {
             let change_type = match event.kind {
                 fswatch::EventKind::UPDATE => {
@@ -341,7 +342,7 @@ impl Watcher {
         if st.closed {
             return;
         }
-        let pending = st.pending.get_or_insert_with(|| IndexMap::with_capacity(paths.len()));
+        let pending = st.pending.get_or_insert_with(|| new_ordered_map_with_size_hint(paths.len()));
         for path in paths {
             let uri = lsconv::file_name_to_document_uri(path);
             if pending.contains_key(&uri.0) {

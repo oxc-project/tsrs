@@ -324,7 +324,7 @@ impl Checker {
         }
         // The flattened list is a sequence of ascending runs: a new run starts at an input whose first constituent is
         // below the last one before it.
-        let mut run_starts: Vec<usize> = Vec::new();
+        let mut run_starts: SmallVec<[usize; 4]> = SmallVec::new();
         let mut last_type: Option<P<Type>> = None;
         for &t in source_types {
             if Some(t) != last_type {
@@ -1668,7 +1668,7 @@ fn merge_ascending_runs(c: &mut Checker, types: &mut Vec<P<Type>>, run_starts: &
         types.insert(i, t);
         return;
     }
-    let mut bounds: Vec<usize> = Vec::with_capacity(run_starts.len() + 2);
+    let mut bounds: SmallVec<[usize; 4]> = SmallVec::with_capacity(run_starts.len() + 2);
     bounds.push(0);
     bounds.extend_from_slice(run_starts);
     bounds.push(n);
@@ -1676,7 +1676,7 @@ fn merge_ascending_runs(c: &mut Checker, types: &mut Vec<P<Type>>, run_starts: &
     let mut dst: Vec<P<Type>> = Vec::with_capacity(n);
     while bounds.len() > 2 {
         let runs = bounds.len() - 1;
-        let mut next: Vec<usize> = Vec::with_capacity(runs / 2 + 2);
+        let mut next: SmallVec<[usize; 4]> = SmallVec::with_capacity(runs / 2 + 2);
         next.push(0);
         dst.clear();
         let mut j = 0;

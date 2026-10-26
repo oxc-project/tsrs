@@ -77,16 +77,12 @@ tsrs_contentmappertest = { path = "crates/tsrs_contentmappertest" }
 [profile.dev]
 debug = false
 
-# Optimized correctness binaries without release LTO; measured in notes/dev-loop-build.md.
+# Optimized correctness binaries without release LTO, keeping the debug assertions and overflow checks that local
+# `cargo test` runs; build times measured in notes/dev-loop-build.md.
 [profile.ci]
 inherits = "release"
 lto = "off"
 codegen-units = 16
-
-# Workspace tests in CI: `ci` code generation with the debug assertions and overflow checks that local `cargo test`
-# runs, so checks such as FrozenCell's borrow counter stay covered.
-[profile.ci-test]
-inherits = "ci"
 debug-assertions = true
 overflow-checks = true
 

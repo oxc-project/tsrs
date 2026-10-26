@@ -1,9 +1,9 @@
 # Using tsrs
 
-Install tsrs in your project, then run it in place of `tsc`:
+Install the 0.19.0 beta in your project, then run it in place of `tsc`:
 
 ```sh
-pnpm add -D tsrs
+pnpm add -D tsrs@0.19.0-ts7.1.0-beta
 pnpm exec tsrs -p path/to/project           # compile
 pnpm exec tsrs -p path/to/project --noEmit  # type check only
 pnpm exec tsrs -p path/to/project --fast    # opt into tsrs performance modes
@@ -11,7 +11,7 @@ pnpm exec tsrs -p . --extendedDiagnostics   # counters and timings
 pnpm exec tsrs --version
 ```
 
-You can also run it without installing it in the project: `pnpm dlx tsrs -p .`.
+You can also run it without installing it in the project: `pnpm dlx tsrs@0.19.0-ts7.1.0-beta -p .`.
 Your existing `tsconfig.json` controls compilation. tsrs emits JavaScript and declarations according to those
 options by default, just like `tsc`; pass `--noEmit` when you only want type checking.
 
@@ -29,8 +29,7 @@ per watched file; tsrs raises its descriptor limit as far as the system allows a
 
 ## Performance options
 
-The defaults and fast preset described here are included in the **0.19.0 beta candidate**, available in source builds
-until publication. The default uses pinned TypeScript's four checkers, file assignment and checker history, with
+The **0.19.0 beta** defaults to pinned TypeScript's four checkers, file assignment and checker history, with
 eager members. Internal optimizations that preserve compiler behavior, including control-flow memoization and
 parallel parsing, remain enabled in both modes.
 
@@ -118,7 +117,7 @@ rejected with `--build`; use the supported environment overrides where applicabl
 ## Native packages
 
 The launcher installs the appropriate optional `@tsrs/<os>-<arch>[-<libc>]` dependency for your platform.
-See the [compatibility table](COMPATIBILITY.md#what-it-does-and-doesnt-do) for released platform support.
+See the [compatibility table](COMPATIBILITY.md#what-it-does-and-doesnt-do) for platform support and limitations.
 Set `TSRS_BINARY=/path/to/tsrs` to run a locally built binary through the same launcher.
 
 The package version includes the TypeScript version it ports: `0.19.0-ts7.1.0-beta` means tsrs 0.19.0 following

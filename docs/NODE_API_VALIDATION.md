@@ -2,9 +2,10 @@
 
 How the `tsrs --api` server is validated against the pinned TypeScript 7 native API
 (microsoft/TypeScript `3e9236361fa97a9e6c685f4833ac457ae2d8c50a`, the commit in `Cargo.toml`). The
-contract itself is `docs/NODE_API.md`; this file covers the independent evidence. Historical runs below used
-the earlier `b85298b6a81f` pin; current source-upgrade runs are recorded in the
-[port log](../notes/typescript-623-ports.md).
+contract itself is [NODE_API.md](NODE_API.md); this file covers the independent evidence. The
+[beta SDK inventory](../npm/sdk/METHODS.md) records 968/968 passing tests on both servers at the current pin.
+Historical runs below used the earlier `b85298b6a81f` pin; the
+[port log](../notes/typescript-623-ports.md) records the source-upgrade runs.
 
 ## Principles
 
@@ -12,9 +13,8 @@ the earlier `b85298b6a81f` pin; current source-upgrade runs are recorded in the
   npm package.
 - The client is the pinned upstream client (`ts-ref/packages/typescript/src/api`), unmodified. The harness
   never ships a second client; the shipped SDK (`npm/tsrs`) is a copy of the pinned client, byte for byte
-  except two documented patches (`npm/sdk/patches`: async client connection loss, vscode-jsonrpc write
-  error), checked by `node npm/sdk/sync-upstream.mjs --check`; the saved package-validation jobs separately exercise
-  the packed SDK when restored.
+  except the [documented adaptations](../npm/README.md#js-api-sync-async-ast-and-related-exports), checked by
+  `node npm/sdk/sync-upstream.mjs --check`. The release workflow separately exercises the packed SDK.
 - Tests are the upstream suites (`packages/typescript/test/{sync,async}`) plus harness tests in
   `tools/node-api/tests`, all run by `node --test` against real server processes. Every harness test
   must pass on the Go oracle before it can be used against tsrs.
@@ -27,8 +27,8 @@ the earlier `b85298b6a81f` pin; current source-upgrade runs are recorded in the
 ```sh
 tools/node-api/setup.sh                       # ts-ref at the pin, pnpm install, Go oracle -> tools/node-api/.work/oracle/tsc
 node tools/node-api/run-upstream.mjs --binary tools/node-api/.work/oracle/tsc --label go-oracle
-cargo build --release -p tsrs_cli
-node tools/node-api/run-upstream.mjs --binary target/release/tsrs --label tsrs
+cargo build --profile dev -p tsrs_cli -p tsrs_testrunner
+node tools/node-api/run-upstream.mjs --binary target/debug/tsrs --label tsrs
 node tools/node-api/inventory.mjs --oracle go-oracle --candidate tsrs --md /tmp/inventory.md --json /tmp/inventory.json
 ```
 
@@ -44,7 +44,7 @@ filter that matches no file is an error.
 
 The run is bounded three ways:
 
-- `--test-timeout` fails an individual hung async test.
+- `--test-timeout-sec` fails an individual hung async test.
 - The idle watchdog kills the run's whole process group when no new result appears for `--idle-sec`. This
   covers a test blocked in a synchronous read, or a file process that never exits.
 - `--timeout-min` caps the total run time.

@@ -5,6 +5,17 @@ change are identified separately from measurements of the packaged release. For 
 see the [compatibility table](COMPATIBILITY.md); detailed investigations are indexed in the
 [engineering notes](../notes/README.md). The early development log follows the release entries.
 
+## 0.19.0 beta
+
+The beta package version is `0.19.0-ts7.1.0-beta`, targeting TypeScript `7.1.0-beta` at `3e9236361fa9`.
+The [release notes](releases/0.19.0.md) cover installation, TypeScript-compatible defaults, the opt-in fast preset,
+API changes, platform support and known gaps. The release workflow publishes nine npm packages with the `latest`
+tag, creates a GitHub prerelease and then deploys the playground; npm's `beta` tag is assigned manually.
+
+Since the October 25 refresh, flow-memo keys preserve full-width pointers on Windows and other plain-pointer
+builds (#786), and Rust dependencies have been updated (#784). The dated entries below preserve validation
+results and release-preparation state at their recorded revisions.
+
 ## 2026-10-25: 0.19.0 beta refresh
 
 The release candidate remains `0.19.0-ts7.1.0-beta`, rebased onto main `b938b0a2`. All nine npm packages are

@@ -146,7 +146,8 @@ Checking the contract: build with `--features tsrs_core/checked-cells` (or a deb
 `TSRS_CHECK_SHARED=1`. The pool then binds all files, records every arena allocation made so far as shared, and
 any `OwnedCell::set` / `FrozenCell::borrow_mut` on such an object panics with a backtrace pointing at the write.
 Checked builds also keep an atomic borrow counter in `FrozenCell` to catch aliasing like `RefCell` does.
-ThreadSanitizer is not usable here (the installed nightly's TSan runtime crashes at startup on this macOS).
+CI also runs the [ThreadSanitizer gate](DEBUGGING.md#data-races-threadsanitizer-tasksthread_sanitizer) on Linux.
+Use that gate to check cross-thread accesses; macOS sanitizer availability depends on the installed toolchain.
 
 ### Function signatures
 

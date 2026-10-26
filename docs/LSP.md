@@ -1,8 +1,8 @@
 # The language server (`tsrs --lsp -stdio`)
 
 tsrs provides diagnostics, hover, go to definition, references, rename, completions with auto-imports, code fixes
-and formatting through the TypeScript 7 language-server protocol. The in-progress source upgrade passes 4,088 of
-4,558 fourslash groups; see [known gaps](#known-gaps) and the
+and formatting through the TypeScript 7 language-server protocol. The recorded 0.19.0 beta validation passes 4,092 of
+4,562 fourslash groups; see [known gaps](#known-gaps) and the
 [compatibility table](COMPATIBILITY.md#what-it-does-and-doesnt-do).
 
 ## Editor setup
@@ -15,8 +15,9 @@ editors' documented mechanisms.
 **VS Code** — the TypeScript 7 extension (`TypeScriptTeam.native-preview`, source in
 `ts-ref/packages/vscode-typescript`) starts `<tsdk>/tsgo --lsp --stdio` when `js/ts.tsdk.path` points at a directory
 that contains an executable named `tsgo` or `tsc` (`src/util.ts`: `tsdkConfigSources`, `packagedExeBaseNames`).
-Starting with 0.19.0, the npm package includes `tsdk/tsgo` for macOS and Linux. Install `tsrs` as a dev dependency
-and commit this `.vscode/settings.json` so each teammate's editor uses the version in the project's lockfile:
+The 0.19.0 beta includes `tsdk/tsgo` for macOS and Linux. Install it with
+`pnpm add -D tsrs@0.19.0-ts7.1.0-beta` and commit this `.vscode/settings.json` so each teammate's editor uses the
+version in the project's lockfile:
 
 ```jsonc
 {
@@ -250,7 +251,8 @@ index 0, as in Go), so `sort_symbols` uses Go's pdqsort port there (`checker::Pr
 
 ## Fourslash
 
-The Go subprocess runner passes **4,088 groups, with 0 failures and 470 skips** at the in-progress source revision.
+The [recorded beta validation](STATUS.md#2026-10-25-0190-beta-refresh) passes **4,092 groups, with 0 failures and 470 skips**
+through the Go subprocess runner.
 Its state snapshots preserve the upstream project-state assertions. Go's `@tsc` setup helper builds fixtures for
 eight groups unsupported by the former translated harness; their LSP requests run against Rust. See the
 [runner guide](../tools/go-fourslash/README.md)

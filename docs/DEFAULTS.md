@@ -25,9 +25,8 @@ repeated default-mode runs with identical inputs and settings.
 
 ## Command line
 
-The 0.19.0 beta candidate defaults to the pinned TypeScript checker settings. Its opt-in fast preset is enabled
-by `--fast` or `TSRS_FAST=1`; these settings are available in source builds until publication. Both names refer to
-the same settings in this table. See
+The 0.19.0 beta defaults to the pinned TypeScript checker settings. Its opt-in fast preset is enabled
+by `--fast` or `TSRS_FAST=1`. Both names refer to the same settings in this table. See
 [side effects and precedence](USAGE.md#side-effects) before enabling it.
 
 | setting | tsgo | tsrs |

@@ -2,14 +2,13 @@
 
 ## JavaScript API
 
-Install the package with `pnpm add -D tsrs`. `require("tsrs")` exports `version`, `typescriptVersion` and
+Install the beta with `pnpm add -D tsrs@0.19.0-ts7.1.0-beta`. `require("tsrs")` exports `version`, `typescriptVersion` and
 `typescriptCommit`.
 
 The package also ships TypeScript 7's programmatic API, copied from microsoft/TypeScript
-`packages/typescript` under the same subpaths as the `typescript` 7 package. The
-[commit-by-commit migration](../notes/typescript-623-ports.md) advanced the SDK with each API commit;
-[`UPSTREAM.json`](../npm/tsrs/UPSTREAM.json) records the copied SDK revision. The 0.19.0 source pin is
-`3e9236361fa9`, while the last published release, 0.18.0, uses the earlier pin:
+`packages/typescript` under the same subpaths as the `typescript` 7 package. Both the compiler and SDK follow
+`3e9236361fa9` (TypeScript 7.1 beta); [`UPSTREAM.json`](../npm/tsrs/UPSTREAM.json) records the copied SDK revision
+and adaptations.
 
 | subpath | contents |
 | --- | --- |
@@ -41,7 +40,7 @@ that uses the remote declaration's owning API. It returns the binder symbol from
 synthetic and configuration declarations have no cached file owner, and a released or replaced file cannot be
 looked up after its cached result is gone.
 
-The source-31 API reports `caseSensitivity` as TypeScript's enum in its `initialize` response.
+The API reports `caseSensitivity` as TypeScript's enum in its `initialize` response.
 Inferred projects omit `configFileName`; snapshot program and transpile requests accept raw compiler
 options, with relative option paths resolved from the API server's current directory. Document
 identifiers must contain a non-empty file name or URI.
@@ -50,20 +49,21 @@ The code is TypeScript's, with one intentional difference: if the server process
 every pending and later request with an error starting `API server connection lost: ` instead of leaving them
 pending forever (see [npm packaging](../npm/README.md)).
 
-The source-50 module loader accepts full `typescript/*` specifiers and resolves them through the
+The module loader accepts full `typescript/*` specifiers and resolves them through the
 selected package manifest. Passing a `tsrs` installation's `package.json` loads `tsrs/*` from that
 installation. This is a package-side helper; tsrs does not supply the upstream VS Code extension's SDK event,
 API-pipe lifecycle, or in-place-upgrade restart handling.
 
-Source 58 promotes these entry points to the upstream beta names. It also removes deprecated `openProject`,
+The 0.19.0 beta uses the upstream beta entry-point names. It removes deprecated `openProject`,
 `Project.rootFiles` / `.compilerOptions`, and the `Snapshot.internal` formatting alias; use `openProjects`,
 `project.parsedCommandLine`, and `project.languageService.formatNodeForInsertion`. The server's project response
 no longer sends the removed duplicate fields. The API is served by the `tsrs` binary (`tsrs --api`), whose
-coverage of the protocol is still incomplete; [the method inventory](../npm/sdk/METHODS.md) tracks the published
-base per method, and the coverage matrix below tracks the incremental port.
-Source 102 makes sync API generators single-use across `API.batch` calls. Reusing an instance, even after its first
+coverage of the protocol is still incomplete. [The method inventory](../npm/sdk/METHODS.md) records requests from
+the pinned SDK suite, and the [coverage matrix](#coverage-matrix) records implementation status and gaps.
+
+Sync API generators are single-use across `API.batch` calls. Reusing an instance, even after its first
 batch completes, throws `Cannot execute the same generator instance more than once`, as in upstream TypeScript.
-Source 109 adds `TS_API_TIMING_DIR`: a nonempty directory enables timing collection even with `collectTiming: false`.
+`TS_API_TIMING_DIR` set to a nonempty directory enables timing collection even with `collectTiming: false`.
 Each sync or async API client writes one uniquely named JSON snapshot when closed, with client timing and either
 server timing or a server timing error. Repeated `close()` calls do not write another snapshot. An external socket
 server with timing disabled still yields the client's measured snapshot. After a synchronous filesystem callback
@@ -89,7 +89,12 @@ means a core Rust test against a real compiler session exercises it; `partial` m
 and dispatched but only covered by the upstream Node suites, a lane's own unit tests, or has a documented
 divergence. Unimplemented methods return an explicit `api: unsupported: ...` error, never a fake success.
 
-Evidence at merge time (pinned upstream client, `node tools/node-api/run-upstream.mjs
+The [recorded beta SDK inventory](../npm/sdk/METHODS.md) has 968/968 passing tests on both tsgo and tsrs,
+with successful responses for 170 of 177 methods. Methods absent from that suite need separate evidence;
+passing client assertions alone does not establish byte-level response parity. See
+[API validation](NODE_API_VALIDATION.md) for the oracle comparison and historical runs.
+
+Historical evidence from the initial API merge (pinned upstream client, `node tools/node-api/run-upstream.mjs
 --binary target/debug/tsrs --label tsrs --suite upstream --filter <file>`): `test/sync/api.test.ts` 339/339 (three
 consecutive runs; one earlier run had a single unreproduced failure), `test/async/api.test.ts` 348/348,
 `sync/ast` 111/111, `sync/astnav` + `async/astnav` 4/4 each, `sync/api-generators` 43/43, parity `rss` 2/2.
@@ -158,7 +163,7 @@ The transport does not depend on `tsrs_api`. It defines its own handler/conn tra
 - deterministic shutdown: EOF on input ends `run` with `Ok`, malformed frames end it with an error
   without writing non-protocol bytes to stdout.
 
-Source 101 makes `--api --pipe <path>` create a new private directory on Unix, with a socket at
+`--api --pipe <path>` creates a new private directory on Unix, with a socket at
 `<path>/socket` (`0700` directory, `0600` socket); an existing path is an error. On Windows,
 `<path>` is a named pipe restricted to the current user. The spawned sync client gives its
 Windows pipe a random 128-bit suffix. LSP `custom/initializeAPISession` returns the same private pipe transport for an API session over the language
@@ -213,10 +218,10 @@ Core provides (stable API for the checker lane):
 
 ## Coverage matrix
 
-The protocol port through source 29 has 177 `Method` constants (core 58, checker 119). Kept in sync with
+The pinned protocol has 177 `Method` constants (core 58, checker 119). Kept in sync with
 `crates/tsrs_api/src/methods.rs`.
 
-Source 29 adds checker-scoped `getMergedSymbol`, `getSymbolOfNode`,
+Checker-scoped methods include `getMergedSymbol`, `getSymbolOfNode`,
 `getSymbolOfDeclarationForChecker`, and `getParentOfSymbolForChecker`. All resolve handles in the requested
 snapshot and project. The node/declaration and parent methods return `null` when no symbol exists; the
 existing core `getSymbolOfDeclaration` instead retrieves a binder symbol from a cached source file.

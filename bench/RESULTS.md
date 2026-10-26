@@ -1,8 +1,9 @@
 # Benchmark results
 
 The tables below are a historical snapshot comparing tsrs, TypeScript 7 (tsgo) and `bun check` on seventeen projects.
-Benchmark CI is disabled. The default-settings table runs each compiler at its own checker count (tsgo 4, tsrs up to one per
-core); the `--checkers` 4, 8 and 16 tables run both at the same count. See [the methodology](README.md) for
+These measurements predate the 0.19.0 beta and its opt-in fast mode. The default-settings table runs each compiler
+at its then-default checker count (tsgo 4, tsrs up to one per core); the `--checkers` 4, 8 and 16 tables run both at
+the same count. See [the methodology](README.md) for
 the commands, pinned projects, hardware and measurement details, and [archived runs](https://github.com/oxc-project/tsrs/tree/94e7305f0f067e9f68570798c0498e03c7e423eb/bench/results) for other thread
 counts and instruction counts.
 

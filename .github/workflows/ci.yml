@@ -18,7 +18,7 @@ concurrency:
 jobs:
   lint:
     name: Lint
-    runs-on: ubuntu-latest
+    runs-on: namespace-profile-linux-x64-default
     timeout-minutes: 30
     steps:
       - uses: taiki-e/checkout-action@7d1e50e93dc4fb3bba58f85018fadf77898aee8b # v1.4.2
@@ -30,10 +30,10 @@ jobs:
         run: node tools/lint/source.mjs --self-test && node tools/lint/source.mjs && node tools/check-scripts.mjs
         background: true
 
-      - uses: oxc-project/setup-rust@3d6fb132fbe7cdcb66bf8ec193911c2945369d12 # v1.0.17
+      - uses: namespacelabs/nscloud-cache-action@1124a6f3ce44e5cf84cc22111530961f4d2a15f9 # v1.7.0
         with:
-          save-cache: ${{ github.ref_name == 'main' }}
-          cache-key: warm-lint
+          path: /home/runner/.rustup
+          cache: rust
 
       - name: Clippy
         run: cargo clippy --locked --all-targets --config 'build.warnings="deny"'
@@ -56,15 +56,15 @@ jobs:
 
   build-correctness:
     name: Build correctness binaries
-    runs-on: ubuntu-latest
+    runs-on: namespace-profile-linux-x64-default
     timeout-minutes: 30
     steps:
       - uses: taiki-e/checkout-action@7d1e50e93dc4fb3bba58f85018fadf77898aee8b # v1.4.2
 
-      - uses: oxc-project/setup-rust@3d6fb132fbe7cdcb66bf8ec193911c2945369d12 # v1.0.17
+      - uses: namespacelabs/nscloud-cache-action@1124a6f3ce44e5cf84cc22111530961f4d2a15f9 # v1.7.0
         with:
-          save-cache: ${{ github.ref_name == 'main' }}
-          cache-key: warm-correctness-ci
+          path: /home/runner/.rustup
+          cache: rust
 
       - name: Build correctness binaries
         run: cargo build --profile ci --locked -p tsrs_cli -p tsrs_testrunner -p tsrs_determinism
@@ -83,7 +83,7 @@ jobs:
   test:
     name: Test Linux
     needs: build-correctness
-    runs-on: ubuntu-latest
+    runs-on: namespace-profile-linux-x64-default
     timeout-minutes: 60
     steps:
       - uses: taiki-e/checkout-action@7d1e50e93dc4fb3bba58f85018fadf77898aee8b # v1.4.2
@@ -92,10 +92,10 @@ jobs:
       # Keep action steps sequential so readers cannot observe a truncated event payload.
       - uses: oxc-project/setup-node@f46a72f95efdc55273fcd042d61c84e723b2892c # v1.4.1
 
-      - uses: oxc-project/setup-rust@3d6fb132fbe7cdcb66bf8ec193911c2945369d12 # v1.0.17
+      - uses: namespacelabs/nscloud-cache-action@1124a6f3ce44e5cf84cc22111530961f4d2a15f9 # v1.7.0
         with:
-          save-cache: ${{ github.ref_name == 'main' }}
-          cache-key: warm-test-ci
+          path: /home/runner/.rustup
+          cache: rust
 
       - name: Read TypeScript reference commit
         id: ts
@@ -153,7 +153,7 @@ jobs:
 
   node-api-clients:
     name: Node API clients and parity
-    runs-on: ubuntu-latest
+    runs-on: namespace-profile-linux-x64-default
     timeout-minutes: 90
     permissions:
       contents: read
@@ -190,10 +190,10 @@ jobs:
           go-version-file: ts-ref/tsc/go.mod
           cache-dependency-path: ts-ref/tsc/go.sum
 
-      - uses: oxc-project/setup-rust@3d6fb132fbe7cdcb66bf8ec193911c2945369d12 # v1.0.17
+      - uses: namespacelabs/nscloud-cache-action@1124a6f3ce44e5cf84cc22111530961f4d2a15f9 # v1.7.0
         with:
-          save-cache: ${{ github.ref_name == 'main' }}
-          cache-key: warm-node-api-clients
+          path: /home/runner/.rustup
+          cache: rust
 
       - name: Set up pinned upstream client and Go oracle
         run: tools/node-api/setup.sh
@@ -241,7 +241,7 @@ jobs:
 
   fourslash:
     name: Fourslash
-    runs-on: ubuntu-latest
+    runs-on: namespace-profile-linux-x64-default
     timeout-minutes: 60
     env:
       # Match the runner's cache directory so setup-go restores and saves its build cache.
@@ -250,10 +250,10 @@ jobs:
       - uses: taiki-e/checkout-action@7d1e50e93dc4fb3bba58f85018fadf77898aee8b # v1.4.2
 
       # As above, setup and checkout actions must not race on GITHUB_EVENT_PATH.
-      - uses: oxc-project/setup-rust@3d6fb132fbe7cdcb66bf8ec193911c2945369d12 # v1.0.17
+      - uses: namespacelabs/nscloud-cache-action@1124a6f3ce44e5cf84cc22111530961f4d2a15f9 # v1.7.0
         with:
-          save-cache: ${{ github.ref_name == 'main' }}
-          cache-key: warm-fourslash
+          path: /home/runner/.rustup
+          cache: rust
 
       - uses: oxc-project/setup-node@f46a72f95efdc55273fcd042d61c84e723b2892c # v1.4.1
 
@@ -302,7 +302,7 @@ jobs:
 
   thread-sanitizer:
     name: ThreadSanitizer
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     timeout-minutes: 90
     permissions:
       contents: read

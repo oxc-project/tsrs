@@ -29,7 +29,7 @@ jobs:
       (github.event.action != 'created' ||
        (github.event.comment.user.login != 'github-actions[bot]' &&
         github.event.comment.user.login != 'oxc-guard[bot]'))
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     # GitHub App installation tokens expire after one hour.
     timeout-minutes: 55
     permissions:

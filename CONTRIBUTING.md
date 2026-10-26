@@ -160,9 +160,11 @@ Capture its combined stdout and stderr, replacing the case's absolute directory 
   `benchmark.yml` asks Clef whether a push or PR needs measurement, then builds all release benchmark artifacts in one
   job before sharding CodSpeed and PR comparisons. Cross-compiler reports run only by manual dispatch and remain in
   workflow artifacts without opening update PRs. Manual dispatch forces measurement; unavailable Clef decisions run
-  benchmarks. PR comparisons and cross-compiler reports share the plain release CLI. Measured main
-  pushes cache it for the exact commit and build configuration; misses build the base in the same job. Benchmark project
-  and Node API harness caches are saved on main pushes and restored by PRs.
+  benchmarks. PR comparisons and cross-compiler reports share the plain release CLI.
+  PR comparisons report single-threaded wall time and instruction counts alongside default-checker wall time and
+  peak RSS, using ten alternating base/PR pairs per configuration by default.
+  Measured main pushes cache it for the exact commit and build configuration; misses build the base in the same job.
+  Benchmark project and Node API harness caches are saved on main pushes and restored by PRs.
   Autofix removes unused Cargo dependencies and updates the lock file on pull requests; merge groups reject pending fixes.
   Auxiliary workflow definitions preserved as `.github/workflows/*.yml.bak` do not run
   automatically or by manual dispatch. Restore the original `.yml` filename to re-enable one.

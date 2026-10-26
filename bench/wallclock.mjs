@@ -131,8 +131,8 @@ async function decide() {
                         "TSRS_FAST=1 tsrs -p <project> --noEmit --incremental false --pretty false",
                         "TSRS_FAST=1 tsrs -p <project> --noEmit --incremental true --tsBuildInfoFile <fresh file> --pretty false",
                     ],
-                    checker_count: "fast-mode default for wall time/RSS; --singleThreaded for instructions",
-                    metrics: ["wall time", "peak RSS", "single-threaded instructions"],
+                    checker_count: "fast-mode default for wall time/RSS; --singleThreaded for wall time/instructions",
+                    metrics: ["default and single-threaded wall time", "peak RSS", "single-threaded instructions"],
                     projects: json(path.join(BENCH, "projects.json")).projects.map((p) => p.name),
                     harnesses: [
                         "PR check and incremental comparisons",
@@ -143,7 +143,7 @@ async function decide() {
                 files: changes,
             },
             names = ["wall_time_impact", "rss_impact", "instructions_impact"],
-            metrics = ["wall time", "peak RSS", "single-threaded instruction count"];
+            metrics = ["default and single-threaded wall time", "peak RSS", "single-threaded instruction count"];
         const questions = Object.fromEntries(
             names.map((name, i) => [
                 name,
@@ -255,7 +255,7 @@ async function measure(a) {
         for (const name of order) pair[name] = await sample(name, i, false);
         pairs.push(pair);
     }
-    for (let i = 0; i < 3; i++) {
+    for (let i = 0; i < a.runs; i++) {
         for (const name of i % 2 ? ["pr", "main"] : ["main", "pr"])
             counted[name].push(await sample(name, i, true));
     }
@@ -270,15 +270,18 @@ async function measure(a) {
                 name,
                 {
                     median_s: median(pairs.map((p) => p[name].wallSeconds)),
+                    single_median_s: median(counted[name].map((r) => r.wallSeconds)),
                     peak_rss_bytes: median(pairs.map((p) => p[name].peakRssBytes)),
                     instructions: median(counted[name].map((r) => r.instructions)),
                 },
             ]),
         ),
         pair_ratios: pairs.map((p) => p.pr.wallSeconds / p.main.wallSeconds),
+        single_pair_ratios: counted.main.map((r, i) => counted.pr[i].wallSeconds / r.wallSeconds),
         instruction_ratios: counted.main.map((r, i) => counted.pr[i].instructions / r.instructions),
         instruction_pairs: counted.main.length,
         timing_pairs: pairs.length,
+        single_timing_pairs: counted.main.length,
         rss_runs: pairs.length,
         main_exit: exits.main,
         pr_exit: exits.pr,
@@ -320,11 +323,11 @@ export function renderReport(a) {
             return `${value > 0 ? "+" : ""}${value.toFixed(digits)}%`;
         };
     lines.push(
-        "Release builds in fast mode (TSRS_FAST=1) with Hyperfine 2 hardware counters. After warming each binary, ten alternating main/PR pairs measure wall time and peak RSS at the fast preset's checker count; three separate pairs measure single-threaded instructions.",
+        "Release builds in fast mode (TSRS_FAST=1) with Hyperfine 2 hardware counters. After warming each binary, alternating main/PR pairs measure wall time at both the fast preset's default checker count and with --singleThreaded, with ten pairs per configuration by default. Instructions come from the single-threaded runs; peak RSS comes from the default-count runs.",
         "Incremental runs start with fresh build info before every invocation; check runs disable incremental compilation.",
         "",
-        "| Project | Mode | Wall time Δ | Peak RSS Δ | Instructions Δ |",
-        "| --- | --- | ---: | ---: | ---: |",
+        "| Project | Mode | Single-thread wall time Δ | Single-thread instructions Δ | Default wall time Δ | Default peak RSS Δ |",
+        "| --- | --- | ---: | ---: | ---: | ---: |",
     );
     for (const { name, mode } of workloads()) {
         try {
@@ -335,39 +338,49 @@ export function renderReport(a) {
                     Array.isArray(d.pair_ratios) &&
                     d.pair_ratios.length === d.timing_pairs &&
                     d.timing_pairs >= 2 &&
+                    Array.isArray(d.single_pair_ratios) &&
+                    d.single_pair_ratios.length === d.single_timing_pairs &&
+                    d.single_timing_pairs === d.timing_pairs &&
                     d.rss_runs >= 1,
                 "incomplete samples",
             );
             for (const side of ["main", "pr"]) {
                 positive(d[side].median_s);
+                positive(d[side].single_median_s);
                 positive(d[side].peak_rss_bytes);
+                positive(d[side].instructions);
+                // An even number of integer samples can have a fractional median.
                 requireValue(
-                    Number.isSafeInteger(d[side].instructions) && d[side].instructions > 0,
+                    d[side].instructions <= Number.MAX_SAFE_INTEGER,
                     "invalid instruction count",
                 );
             }
             d.pair_ratios.forEach(positive);
+            d.single_pair_ratios.forEach(positive);
             d.instruction_ratios.forEach(positive);
-            requireValue(d.instruction_ratios.length === 3 && d.instruction_pairs === 3, "incomplete instruction samples");
+            requireValue(
+                d.instruction_ratios.length === d.instruction_pairs && d.instruction_pairs === d.single_timing_pairs,
+                "incomplete instruction samples",
+            );
             for (const k of ["diagnostics_match", "count_exit_match", "count_diagnostics_match"])
                 requireValue(typeof d[k] === "boolean", "invalid diagnostic comparison");
             requireValue(Number.isInteger(d.main_exit) && Number.isInteger(d.pr_exit), "invalid exits");
             lines.push(
-                `| ${name} | ${mode} | ${pct((median(d.pair_ratios) - 1) * 100)} | ${pct((d.pr.peak_rss_bytes / d.main.peak_rss_bytes - 1) * 100)} | ${pct((median(d.instruction_ratios) - 1) * 100, 3)} |`,
+                `| ${name} | ${mode} | ${pct((median(d.single_pair_ratios) - 1) * 100)} | ${pct((median(d.instruction_ratios) - 1) * 100, 3)} | ${pct((median(d.pair_ratios) - 1) * 100)} | ${pct((d.pr.peak_rss_bytes / d.main.peak_rss_bytes - 1) * 100)} |`,
             );
             measured.push(
-                `| ${name} | ${mode} | ${d.main.median_s.toFixed(3)} → ${d.pr.median_s.toFixed(3)} | ${(d.main.peak_rss_bytes / 2 ** 20).toFixed(1)} → ${(d.pr.peak_rss_bytes / 2 ** 20).toFixed(1)} | ${d.main.instructions.toLocaleString("en-US")} → ${d.pr.instructions.toLocaleString("en-US")} |`,
+                `| ${name} | ${mode} | ${d.main.single_median_s.toFixed(3)} → ${d.pr.single_median_s.toFixed(3)} | ${d.main.instructions.toLocaleString("en-US")} → ${d.pr.instructions.toLocaleString("en-US")} | ${d.main.median_s.toFixed(3)} → ${d.pr.median_s.toFixed(3)} | ${(d.main.peak_rss_bytes / 2 ** 20).toFixed(1)} → ${(d.pr.peak_rss_bytes / 2 ** 20).toFixed(1)} |`,
             );
             if (!d.diagnostics_match || d.main_exit !== d.pr_exit || !d.count_exit_match || !d.count_diagnostics_match)
                 mismatched.push(`${name} (${mode})`);
         } catch {
             missing.push(`${name} (${mode})`);
-            lines.push(`| ${name} | ${mode} | failed | — | — |`);
+            lines.push(`| ${name} | ${mode} | failed | — | — | — |`);
         }
     }
     lines.push(
         "",
-        "Negative means the PR used less; positive means it used more. Deltas are medians of paired PR/main ratios for wall time and instructions. Shared CI machines and parallel scheduling add noise to small changes.",
+        "Negative means the PR used less; positive means it used more. Deltas are medians of paired PR/main ratios for wall time and instructions. Single-threaded runs reduce scheduling noise; shared CI machines can still add noise to wall time.",
     );
     if (mismatched.length) lines.push(`Diagnostics or exit status differed on: ${mismatched.join(", ")}.`);
     if (missing.length)
@@ -378,8 +391,8 @@ export function renderReport(a) {
             "<details>",
             "<summary>Measured medians (main → PR)</summary>",
             "",
-            "| Project | Mode | Wall time (s) | Peak RSS (MiB) | Instructions |",
-            "| --- | --- | ---: | ---: | ---: |",
+            "| Project | Mode | Single-thread wall time (s) | Single-thread instructions | Default wall time (s) | Default peak RSS (MiB) |",
+            "| --- | --- | ---: | ---: | ---: | ---: |",
             ...measured,
             "",
             "</details>",

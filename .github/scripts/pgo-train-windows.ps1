@@ -33,3 +33,4 @@ foreach ($prefix in @("suite", "cli")) {
     $profiles = @(Get-ChildItem $RawDir -Filter "$prefix-*.profraw" | Where-Object Length -gt 0)
     if ($profiles.Count -eq 0) { throw "no nonempty $prefix profile" }
 }
+exit 0

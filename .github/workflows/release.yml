@@ -642,7 +642,7 @@ jobs:
           VERSION: ${{ needs.version.outputs.crate_version }}
         run: >-
           gh release create "v$VERSION" --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA"
-          --title "$VERSION" --notes-file "docs/releases/$VERSION.md" --prerelease --latest=false
+          --title "$VERSION" --notes-file "docs/releases/$VERSION.md" --latest
 
   playground:
     needs: github-release

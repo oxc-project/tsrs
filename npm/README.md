@@ -205,8 +205,8 @@ To prepare a release, bump `[workspace.package] version` in `Cargo.toml`, refres
    platform packages skipped on a re-run.
    Dry runs skip this check. Releases publish directly, without a staged approval step.
 5. waits for all published packages to be available on npm, creates the GitHub release tagged `v<workspace version>`
-   with the version alone as its title and `docs/releases/<workspace version>.md` as its notes, then deploys the
-   browser playground.
+   with the version alone as its title and `docs/releases/<workspace version>.md` as its notes, marks it as the
+   latest GitHub release, then deploys the browser playground.
 
 The conformance and Go fourslash gates run on the GNU Linux release runners (`bolt.sh`), with Fourslash driving
 the BOLT-optimized `fourslash_server` task binary. Unix PGO training uses the same Go harness. The macOS binaries get only the

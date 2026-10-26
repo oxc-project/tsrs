@@ -140,6 +140,13 @@ with the switch off, which is why it is not in the default build.
 
 ## Measured and rejected (do not redo)
 
+- Additional collection trials on `5b0ebd42` (`notes/data-structure-followups.md`): four/eight-handle inference
+  buffers and sixteen-flag boolean SmallVec do not show a broad, repeatable instruction reduction in two
+  full-catalog batches. Seven-project screens also reject larger union-merge capacities, mixin flags, borrowed
+  resolver keys, inline file-include reasons, deferred type-argument lists and diagnostic collision lists.
+  The last two targets are cold in the allocation census. Revisit with a changed workload, allocation profile or
+  API benefit; see the note for the individual measurements and the selected alternatives.
+
 - Direct `hashbrown::HashMap` with Fx hashing for 20 private checker caches
   (`notes/data-structure-review.md`, follow-up): three paired runs on 18 catalog projects increased median
   single-threaded instructions on 12; none reduced instructions in every pair. Default RSS and wall time were

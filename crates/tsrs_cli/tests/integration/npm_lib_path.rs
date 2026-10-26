@@ -1,8 +1,10 @@
 // Library selection follows the build mode: npm (noembed) binaries read libraries beside the executable;
 // standalone embedded binaries use bundled libraries even when disk libraries are present.
 
+use std::io::ErrorKind;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Output};
+use std::time::{Duration, Instant};
 
 use tsrs_vfs::osvfs;
 
@@ -38,12 +40,25 @@ fn install_binary(dir: &Path) -> PathBuf {
 }
 
 fn run(exe: &Path, dir: &Path) -> Output {
-    Command::new(exe)
+    let mut command = Command::new(exe);
+    command
         .args(["-p", "tsconfig.json", "--pretty", "false", "--listFiles"])
         .current_dir(dir.join("project"))
-        .env_remove("TSRS_LIB_PATH")
-        .output()
-        .unwrap()
+        .env_remove("TSRS_LIB_PATH");
+    // A concurrent fork can inherit the copied executable's writable descriptor until it execs.
+    // Retry that transient launch error; compiler failures and other launch errors still fail immediately.
+    let deadline = Instant::now() + Duration::from_secs(1);
+    loop {
+        match command.output() {
+            Ok(output) => return output,
+            Err(err)
+                if err.kind() == ErrorKind::ExecutableFileBusy && Instant::now() < deadline =>
+            {
+                std::thread::sleep(Duration::from_millis(10));
+            }
+            Err(err) => panic!("failed to run {}: {err}", exe.display()),
+        }
+    }
 }
 
 fn list_files(exe: &Path, dir: &Path) -> Vec<String> {

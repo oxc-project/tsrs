@@ -42,7 +42,8 @@ unicode-id-start = "=1.1.2"
 # Pin Unicode 17 behavior; unicode-normalization is the development-only parity oracle.
 icu_normalizer = { version = "=2.3.0", default-features = false, features = ["compiled_data"] }
 unicode-normalization = "=0.1.25"
-codspeed = "6.0.0"
+# Match criterion2's CodSpeed dependency so both benchmarks link one CodSpeed runtime.
+codspeed = "4.7.0"
 flate2 = "1"
 libc = "0.2"
 regex = "1"

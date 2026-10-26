@@ -364,6 +364,9 @@ impl Checker {
         node: P<Node>,
         contextual_type: P<Type>,
     ) -> P<Type> {
+        if !crate::relater_1::is_discriminable_union(contextual_type) {
+            return self.remove_non_discriminable_constituents(contextual_type);
+        }
         let key = DiscriminatedContextualTypeKey {
             node_id: ast::get_node_id(node),
             type_id: contextual_type.id,

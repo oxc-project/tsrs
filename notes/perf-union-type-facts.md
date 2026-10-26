@@ -126,7 +126,7 @@ sampled self time, which counts the misses. Cycles could not be measured on the 
 
 - A 32-bit OR of constituent flags per union, which would also answer `maybeTypeOfKind` for unions without
   intersection constituents: `UnionType` is 24 bytes with no padding and the `Type` header has 3 spare bytes, so
-  it costs a word per union (1.07M unions on the private monorepo). One bit answers the hot question.
+  it costs a word per union, which adds up on a large private monorepo. One bit answers the hot question.
 - Answering the `NE` masks from the summary (`getNonNullableType`'s filter): exact in value for these kinds, but
   the walk resolves the object constituents' members for them, so the shortcut would skip resolution.
 - `getIntersectionTypeFacts` is unchanged (the base-constraint concern above).

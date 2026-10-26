@@ -17,7 +17,7 @@ tsrs_vfs.workspace = true
 tsrs_module.workspace = true
 tsrs_tsoptions.workspace = true
 tsrs_compiler.workspace = true
-tsrs_execute = { path = "../tsrs_execute" }
+tsrs_execute.workspace = true
 tsrs_checker.workspace = true
 # checker lane: GetTouchingPropertyName, JSDoc tags / documentation comments
 tsrs_astnav.workspace = true
@@ -32,7 +32,7 @@ tsrs_api_codec.workspace = true
 tsrs_api_transport.workspace = true
 
 [dev-dependencies]
-serde_json = "1"
+serde_json.workspace = true
 
 [lib]
 doctest = false

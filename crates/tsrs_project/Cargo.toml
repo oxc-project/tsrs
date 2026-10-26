@@ -25,7 +25,7 @@ tsrs_lsproto.workspace = true
 tsrs_ls.workspace = true
 tsrs_projectutil.workspace = true
 rustc-hash.workspace = true
-xxhash-rust = { version = "0.8", features = ["xxh3"] }
+xxhash-rust.workspace = true
 
 [lib]
 doctest = false

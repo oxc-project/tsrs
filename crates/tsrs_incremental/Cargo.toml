@@ -23,7 +23,7 @@ tsrs_contentmapper.workspace = true
 rustc-hash.workspace = true
 rayon.workspace = true
 bitflags.workspace = true
-xxhash-rust = { version = "0.8", features = ["xxh3"] }
+xxhash-rust.workspace = true
 
 [dev-dependencies]
 tsrs_parser.workspace = true

@@ -42,6 +42,27 @@ unicode-id-start = "=1.1.2"
 # Pin Unicode 17 behavior; unicode-normalization is the development-only parity oracle.
 icu_normalizer = { version = "=2.3.0", default-features = false, features = ["compiled_data"] }
 unicode-normalization = "=0.1.25"
+codspeed = "6.0.0"
+flate2 = "1"
+libc = "0.2"
+regex = "1"
+rustix = { version = "1.1.5", features = ["fs"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = { version = "1", features = ["raw_value"] }
+sha2 = "0.11"
+similar = "3"
+tar = { version = "0.4", default-features = false }
+ureq = { version = "3", default-features = false, features = ["rustls"] }
+windows-sys = { version = "0.61.2", features = [
+    "Win32_Foundation",
+    "Win32_Security",
+    "Win32_Security_Authorization",
+    "Win32_Storage_FileSystem",
+    "Win32_System_IO",
+    "Win32_System_Pipes",
+    "Win32_System_Threading",
+] }
+xxhash-rust = { version = "0.8", features = ["xxh3", "const_xxh3"] }
 tsrs_core = { path = "crates/tsrs_core" }
 tsrs_diagnostics = { path = "crates/tsrs_diagnostics" }
 tsrs_spanmap = { path = "crates/tsrs_spanmap" }
@@ -73,6 +94,8 @@ tsrs_api_codec = { path = "crates/tsrs_api_codec" }
 tsrs_ipc = { path = "crates/tsrs_ipc" }
 tsrs_contentmapper = { path = "crates/tsrs_contentmapper" }
 tsrs_contentmappertest = { path = "crates/tsrs_contentmappertest" }
+tsrs_execute = { path = "crates/tsrs_execute" }
+tsrs_fswatch = { path = "crates/tsrs_fswatch" }
 
 [profile.dev]
 debug = false

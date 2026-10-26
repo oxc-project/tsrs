@@ -12,12 +12,12 @@ workspace = true
 
 [dependencies]
 tsrs_core.workspace = true
-tsrs_execute = { path = "../tsrs_execute" }
+tsrs_execute.workspace = true
 tsrs_vfs.workspace = true
 rustc-hash.workspace = true
 
 [dev-dependencies]
-codspeed = "6.0.0"
+codspeed.workspace = true
 criterion2.workspace = true
 mimalloc-safe.workspace = true
 

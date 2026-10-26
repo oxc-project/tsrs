@@ -13,7 +13,7 @@ workspace = true
 rustc-hash.workspace = true
 tsrs_core.workspace = true
 # kqueue / inotify / pipe / pathconf / stat bindings (Go: golang.org/x/sys/unix).
-libc = "0.2"
+libc.workspace = true
 
 [lib]
 doctest = false

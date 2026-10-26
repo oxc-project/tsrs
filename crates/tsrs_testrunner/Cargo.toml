@@ -23,9 +23,9 @@ tsrs_checker.workspace = true
 tsrs_incremental.workspace = true
 tsrs_scanner.workspace = true
 tsrs_sourcemap.workspace = true
-regex = "1"
-serde_json = "1"
-similar = "3"
+regex.workspace = true
+serde_json.workspace = true
+similar.workspace = true
 indexmap.workspace = true
 mimalloc-safe.workspace = true
 

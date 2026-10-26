@@ -16,9 +16,9 @@ tsrs_compiler.workspace = true
 tsrs_lsp.workspace = true
 tsrs_api.workspace = true
 tsrs_api_transport.workspace = true
-tsrs_execute = { path = "../tsrs_execute" }
+tsrs_execute.workspace = true
 mimalloc-safe.workspace = true
-libc = "0.2"
+libc.workspace = true
 
 [features]
 noembed = ["tsrs_vfs/noembed"]

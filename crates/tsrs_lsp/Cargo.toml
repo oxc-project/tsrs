@@ -20,7 +20,7 @@ tsrs_project.workspace = true
 tsrs_tsoptions.workspace = true
 tsrs_api.workspace = true
 tsrs_api_transport.workspace = true
-tsrs_fswatch = { path = "../tsrs_fswatch" }
+tsrs_fswatch.workspace = true
 rustc-hash.workspace = true
 indexmap.workspace = true
 

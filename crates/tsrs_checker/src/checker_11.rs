@@ -427,15 +427,15 @@ impl Checker {
 /// `collections.OrderedMap[string, int]` in `somePropertyReducesToNever`).
 #[derive(Default)]
 pub struct NameCounts {
-    lists: Vec<&'static [P<Symbol>]>,
+    pub lists: Vec<&'static [P<Symbol>]>,
     /// (name, name hash, count), in first-occurrence order.
-    entries: Vec<(&'static str, u32, i32)>,
+    pub entries: Vec<(&'static str, u32, i32)>,
     /// Open addressing over `entries`: 0 is empty, otherwise an entry index plus one.
-    table: Vec<u32>,
+    pub table: Vec<u32>,
 }
 
 impl NameCounts {
-    fn count_lists(&mut self, total: usize) {
+    pub fn count_lists(&mut self, total: usize) {
         self.entries.clear();
         let size = (total * 2).max(16).next_power_of_two();
         self.table.clear();
@@ -3672,49 +3672,4 @@ impl Checker {
 pub fn is_tuple_type(t: P<Type>) -> bool {
     t.object_flags().intersects(ObjectFlags::Reference)
         && t.target().unwrap().object_flags().intersects(ObjectFlags::Tuple)
-}
-
-#[cfg(test)]
-mod property_counts_tests {
-    use super::*;
-
-    #[test]
-    fn ordered_counts_reuse_without_leaking_nested_state() {
-        let first = Symbol::new(SymbolFlags::Property, "first");
-        let second = Symbol::new(SymbolFlags::Property, "second");
-        let third = Symbol::new(SymbolFlags::Property, "third");
-
-        let mut outer = NameCounts::default();
-        outer.lists.push(alloc_slice(&[second, first]));
-        outer.lists.push(alloc_slice(&[first, third, second]));
-        outer.count_lists(5);
-        assert_eq!(
-            outer.entries.iter().map(|&(name, _, count)| (name, count)).collect::<Vec<_>>(),
-            [("second", 2), ("first", 2), ("third", 1)]
-        );
-
-        let mut inner = NameCounts::default();
-        inner.lists.push(alloc_slice(&[third, first, third]));
-        inner.count_lists(3);
-        assert_eq!(
-            inner.entries.iter().map(|&(name, _, count)| (name, count)).collect::<Vec<_>>(),
-            [("third", 2), ("first", 1)]
-        );
-        assert_eq!(
-            outer.entries.iter().map(|&(name, _, count)| (name, count)).collect::<Vec<_>>(),
-            [("second", 2), ("first", 2), ("third", 1)]
-        );
-
-        let entries = outer.entries.as_ptr();
-        let table = outer.table.as_ptr();
-        outer.lists.clear();
-        outer.lists.push(alloc_slice(&[first, third]));
-        outer.count_lists(2);
-        assert_eq!(outer.entries.as_ptr(), entries);
-        assert_eq!(outer.table.as_ptr(), table);
-        assert_eq!(
-            outer.entries.iter().map(|&(name, _, count)| (name, count)).collect::<Vec<_>>(),
-            [("first", 1), ("third", 1)]
-        );
-    }
 }

@@ -268,13 +268,13 @@ pub struct DefaultResolver<'h> {
     pub(crate) resolution_data: P<ResolutionData>,
     host: &'h dyn ResolutionHost,
     // reportDiagnostic: DiagnosticReporter
-    pub(crate) module_resolution_cache: ModuleResolutionCache,
-    pub(crate) type_ref_directive_resolution_cache: TypeRefDirectiveResolutionCache,
+    pub module_resolution_cache: ModuleResolutionCache,
+    pub type_ref_directive_resolution_cache: TypeRefDirectiveResolutionCache,
 
     // Cached representations for `core.CompilerOptions.paths`, keyed by the
     // path mappings themselves. This does not handle other path patterns such
     // as `typesVersions`.
-    pub(crate) parsed_patterns_for_paths: ParsedPatternsCache,
+    pub parsed_patterns_for_paths: ParsedPatternsCache,
 
     // `get_conditions` per (options, resolution mode), shared by the resolutions that use it.
     conditions_cache: SyncMap<(usize, ResolutionMode), std::sync::Arc<[String]>>,
@@ -3186,8 +3186,8 @@ pub fn move_to_next_directory_separator_if_available(
 
 #[derive(Debug, Default)]
 pub struct ParsedPatterns {
-    matchable_string_set: Set<String>,
-    patterns: Vec<Pattern>,
+    pub matchable_string_set: Set<String>,
+    pub patterns: Vec<Pattern>,
     // tsrs-only: the positions in `patterns` by the text before the star, and the lengths of those prefixes, longest
     // first. The best match (`find_best_pattern_match`: the longest prefix, then the first pattern) is the first
     // pattern that matches among those whose prefix starts the candidate, tried from the longest prefix: a few
@@ -3197,7 +3197,7 @@ pub struct ParsedPatterns {
 }
 
 impl DefaultResolver<'_> {
-    pub(crate) fn get_parsed_patterns_for_paths(
+    pub fn get_parsed_patterns_for_paths(
         &self,
         compiler_options: &CompilerOptions,
     ) -> P<ParsedPatterns> {
@@ -3300,7 +3300,7 @@ fn normalize_path_for_cjs_resolution(containing_directory: &str, module_name: &s
 // tsrs-only: the last element of `tspath::get_path_components(path, "")` for a path with forward slashes (as
 // `combine_paths` returns it), without building the list (one string per component, on every relative import):
 // the last "/"-separated part after the root, one trailing empty part dropped, or the root when nothing follows it.
-fn last_path_component(path: &str) -> &str {
+pub fn last_path_component(path: &str) -> &str {
     let root_length = tspath::get_root_length(path);
     let rest = &path[root_length..];
     if rest.is_empty() {
@@ -3867,78 +3867,5 @@ impl ResolutionState<'_> {
         }
 
         None
-    }
-}
-
-#[cfg(test)]
-mod last_path_component_test {
-    use super::*;
-
-    #[test]
-    fn matches_the_last_path_component() {
-        for path in [
-            "/",
-            "/a",
-            "/a/",
-            "/a/.",
-            "/a/..",
-            "/a/./",
-            "/a/../",
-            "/a//",
-            "/a/b/c.ts",
-            "/a/b//",
-            "c:/",
-            "c:/x/..",
-            "//server/share/x",
-            "file:///a/b",
-            "a",
-            "a/",
-            "",
-            ".",
-            "..",
-            "./",
-            "/.",
-            "/..",
-        ] {
-            let parts = tspath::get_path_components(path, "");
-            assert_eq!(last_path_component(path), parts[parts.len() - 1], "{path:?}");
-        }
-    }
-}
-
-#[cfg(test)]
-mod match_pattern_or_exact_test {
-    use super::*;
-
-    #[test]
-    fn matches_like_find_best_pattern_match() {
-        let mut paths: OrderedMap<String, Vec<String>> = OrderedMap::default();
-        for key in
-            ["@a/*", "@a/b/*", "@a/b/*.js", "*", "@a/b/c", "@a/*/d", "x*", "@a/b/*", "@a/bc*"]
-        {
-            paths.insert(key.to_string(), vec![]);
-        }
-        let parsed = try_parse_patterns(Some(&paths));
-        for candidate in [
-            "@a/b/c",
-            "@a/b/x",
-            "@a/b/x.js",
-            "@a/q/d",
-            "@a/bcd",
-            "xyz",
-            "zzz",
-            "@a/",
-            "@a",
-            "",
-            "@a/b/",
-        ] {
-            let expected = if parsed.matchable_string_set.m.contains(candidate) {
-                Pattern { text: candidate.to_string(), kind: PatternKind::Exact }
-            } else {
-                tsrs_core::find_best_pattern_match(&parsed.patterns, |p| p, candidate)
-                    .unwrap_or_default()
-            };
-            assert_eq!(match_pattern_or_exact(&parsed, candidate), expected, "{candidate}");
-        }
     }
 }

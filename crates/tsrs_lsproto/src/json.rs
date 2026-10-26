@@ -184,7 +184,7 @@ pub(crate) fn is_null(v: &Value) -> bool {
 }
 
 // jsontext.Kind of a value: 'n', 't', 'f', '"', '0', '{', '['.
-pub(crate) fn kind(v: &Value) -> u8 {
+pub fn kind(v: &Value) -> u8 {
     match v {
         Value::Null => b'n',
         Value::Bool(true) => b't',
@@ -585,22 +585,22 @@ impl<K: JsonKey, V: Json> Json for OrderedMap<K, V> {
 }
 
 // Builds a JSON object in Go struct field order.
-pub(crate) struct ObjectWriter {
+pub struct ObjectWriter {
     m: JsonMap,
 }
 
 impl ObjectWriter {
-    pub(crate) fn new(capacity: usize) -> ObjectWriter {
+    pub fn new(capacity: usize) -> ObjectWriter {
         ObjectWriter { m: JsonMap::with_capacity(capacity) }
     }
 
     // A field without omitzero.
-    pub(crate) fn field<T: Json>(&mut self, name: &str, v: &T) {
+    pub fn field<T: Json>(&mut self, name: &str, v: &T) {
         self.m.insert(name.to_string(), v.to_json());
     }
 
     // A pointer/slice/map/interface field with omitzero: omitted when nil.
-    pub(crate) fn opt<T: Json>(&mut self, name: &str, v: Option<&T>) {
+    pub fn opt<T: Json>(&mut self, name: &str, v: Option<&T>) {
         if let Some(v) = v {
             self.m.insert(name.to_string(), v.to_json());
         }
@@ -617,7 +617,7 @@ impl ObjectWriter {
         self.m.insert(name.to_string(), v);
     }
 
-    pub(crate) fn finish(self) -> Value {
+    pub fn finish(self) -> Value {
         Value::Object(self.m)
     }
 }

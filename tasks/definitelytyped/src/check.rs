@@ -344,7 +344,7 @@ fn is_out_of_range_expect_error(diagnostic: &Value) -> bool {
     !range.test(&version)
 }
 
-fn pinned_typescript_version() -> Option<String> {
+pub fn pinned_typescript_version() -> Option<String> {
     let manifest = include_str!("../../../Cargo.toml");
     let section = manifest.split("[workspace.metadata.typescript]").nth(1)?;
     let line = section.lines().find(|line| line.trim_start().starts_with("version = "))?;
@@ -392,7 +392,7 @@ fn validate_tsconfig(dt: &Path, config: &str, raw: &Value, outcome: &mut Compile
     }
 }
 
-fn lint_disable(text: &str) -> Option<usize> {
+pub fn lint_disable(text: &str) -> Option<usize> {
     let mut from = 0;
     while let Some(relative) = text[from..].find("eslint-disable") {
         let start = from + relative;
@@ -607,7 +607,7 @@ fn check_assertions(
     Ok(())
 }
 
-fn parse_assertions(text: &str) -> (BTreeMap<usize, String>, Vec<usize>) {
+pub fn parse_assertions(text: &str) -> (BTreeMap<usize, String>, Vec<usize>) {
     let mut assertions = BTreeMap::new();
     let mut duplicates = Vec::new();
     for (line, content) in text.lines().enumerate() {
@@ -626,7 +626,7 @@ fn parse_assertions(text: &str) -> (BTreeMap<usize, String>, Vec<usize>) {
     (assertions, duplicates)
 }
 
-fn utf16_to_byte(text: &str, pos: u32) -> usize {
+pub fn utf16_to_byte(text: &str, pos: u32) -> usize {
     let mut count = 0;
     for (byte, ch) in text.char_indices() {
         if count >= pos {
@@ -637,23 +637,21 @@ fn utf16_to_byte(text: &str, pos: u32) -> usize {
     text.len()
 }
 
-#[cfg(test)]
-fn byte_to_utf16(text: &str, byte: usize) -> u32 {
+pub fn byte_to_utf16(text: &str, byte: usize) -> u32 {
     text[..byte.min(text.len())].encode_utf16().count() as u32
 }
 
-#[cfg(test)]
-fn line_of_utf16(text: &str, pos: u32) -> usize {
+pub fn line_of_utf16(text: &str, pos: u32) -> usize {
     text[..utf16_to_byte(text, pos)].bytes().filter(|&c| c == b'\n').count()
 }
 
-struct TextIndex {
+pub struct TextIndex {
     boundaries: Vec<(u32, usize)>,
     lines: Vec<usize>,
 }
 
 impl TextIndex {
-    fn new(text: &str) -> Self {
+    pub fn new(text: &str) -> Self {
         let mut boundaries = Vec::with_capacity(text.len() / 2);
         let mut utf16 = 0;
         let mut lines = vec![0];
@@ -668,24 +666,24 @@ impl TextIndex {
         Self { boundaries, lines }
     }
 
-    fn byte_at(&self, position: u32) -> usize {
+    pub fn byte_at(&self, position: u32) -> usize {
         let index = self.boundaries.partition_point(|&(utf16, _)| utf16 <= position);
         self.boundaries[index.saturating_sub(1)].1
     }
 
-    fn utf16_at(&self, byte: usize) -> u32 {
+    pub fn utf16_at(&self, byte: usize) -> u32 {
         let index = self.boundaries.partition_point(|&(_, boundary)| boundary <= byte);
         self.boundaries[index.saturating_sub(1)].0
     }
 
-    fn line_at(&self, byte: usize) -> usize {
+    pub fn line_at(&self, byte: usize) -> usize {
         self.lines.partition_point(|&start| start <= byte).saturating_sub(1)
     }
 }
 
 // Port of lintCorsa's normalizedCorsaTypeToString: transform the parsed type
 // before printing, including nested unions and type literals.
-fn normalize_type(input: &str) -> String {
+pub fn normalize_type(input: &str) -> String {
     let region = tsrs_core::arena::Region::new(64 << 10);
     let _scope = region.enter();
     let source = format!("declare var x: {input};");
@@ -782,68 +780,4 @@ fn normalize_type(input: &str) -> String {
     let mut visitor = new_node_visitor(Some(transform), Some(factory), NodeVisitorHooks::default());
     let transformed = visitor.visit_node(Some(type_node)).unwrap();
     printer.borrow_mut().emit(transformed, Some(file))
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn assertions_follow_upstream_line_rules() {
-        let (assertions, duplicates) = parse_assertions(
-            "// $ExpectType number\nfoo; // $ExpectType string\n  // $ExpectType boolean\nbar; // $ExpectType null\n",
-        );
-        assert!(assertions.is_empty());
-        assert_eq!(duplicates, vec![1, 3]);
-    }
-
-    #[test]
-    fn assertion_after_url_uses_the_comment_delimiter() {
-        let (assertions, duplicates) =
-            parse_assertions("const url = \"https://example.test\"; // $ExpectType string\n");
-        assert_eq!(assertions.get(&0).map(String::as_str), Some("string"));
-        assert_eq!(duplicates, Vec::<usize>::new());
-    }
-
-    #[test]
-    fn utf16_positions_account_for_astral_text() {
-        let text = "a😀b\n";
-        assert_eq!(utf16_to_byte(text, 3), 5);
-        assert_eq!(byte_to_utf16(text, 5), 3);
-        assert_eq!(line_of_utf16(text, 4), 0);
-        let index = TextIndex::new(text);
-        assert_eq!(index.byte_at(3), 5);
-        assert_eq!(index.utf16_at(5), 3);
-        assert_eq!(index.line_at(6), 0);
-    }
-
-    #[test]
-    fn expected_type_normalizes_unions_and_readonly_arrays() {
-        assert_eq!(normalize_type("string | number"), normalize_type("number | string"));
-        assert_eq!(normalize_type("readonly string[]"), normalize_type("ReadonlyArray<string>"));
-        assert_eq!(
-            normalize_type("Array<string | number>"),
-            normalize_type("Array<number | string>")
-        );
-        assert_eq!(
-            normalize_type("{ b: string; a: number }"),
-            normalize_type("{ a: number; b: string }")
-        );
-        assert_eq!(normalize_type("'hello'"), normalize_type("\"hello\""));
-    }
-
-    #[test]
-    fn lint_disable_allows_line_and_rule_scopes() {
-        assert_eq!(lint_disable("/* eslint-disable */"), Some(3));
-        assert_eq!(lint_disable("// eslint-disable-next-line"), None);
-        assert_eq!(lint_disable("// eslint-disable rule"), None);
-    }
-
-    #[test]
-    fn typescript_version_ranges_parse_like_expect_error_rules() {
-        let version =
-            tsrs_core::semver::try_parse_version(&pinned_typescript_version().unwrap()).unwrap();
-        assert!(tsrs_core::semver::try_parse_version_range(">=7.0").unwrap().test(&version));
-        assert!(!tsrs_core::semver::try_parse_version_range(">=7.2").unwrap().test(&version));
-    }
 }

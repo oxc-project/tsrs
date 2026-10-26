@@ -1,0 +1,1207 @@
+// Integrated regression tests through core's real `Session` (codec node handles, source-file
+// descriptors and leases, transport-independent request dispatch), compared with responses recorded
+// from the source-phase-import Go session (testdata/go_probe/go_shapes_2f9fd09a.jsonl).
+// Source31 tightens DocumentIdentifier decoding; its three changed responses are recorded
+// separately in go_shapes_ed4807212c_docid.jsonl, verified against exact-source Go.
+//
+// Compared as JSON values after one normalization: ids that are per-process or per-checker counters
+// (type / signature / symbol ids, source-file node ids) are renamed per line in order of first
+// appearance, so identity relations (e.g. `target == id`, `freshType == regularType`) are still
+// checked, but absolute counter values are not; the same applies to the symbol id embedded in the
+// escaped name of a well-known-symbol member (`__@iterator@<id>`). Node handles, content hashes, flags, names, values,
+// field presence (encoding/json v2 omitempty / nil-slice rules) and error texts are compared as is.
+
+use rustc_hash::FxHashMap;
+use std::sync::Arc;
+
+use tsrs_core::json::{self, JsonMap, Value};
+use tsrs_vfs::{FS, bundled, vfstest};
+
+use tsrs_api::handler::{Handler, Response};
+use tsrs_api::session::{Session, SessionOptions};
+
+const MAIN: &str = include_str!(concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/src/checker/testdata/go_probe/fixture/main.ts"
+));
+const TYPES: &str = include_str!(concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/src/checker/testdata/go_probe/fixture/types.d.ts"
+));
+const TSCONFIG: &str = include_str!(concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/src/checker/testdata/go_probe/fixture/tsconfig.json"
+));
+const OTHER: &str = include_str!(concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/src/checker/testdata/go_probe/fixture/other.ts"
+));
+const GO_SHAPES: &str = include_str!(concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/src/checker/testdata/go_probe/go_shapes_2f9fd09a.jsonl"
+));
+const GO_SHAPES_SOURCE31_DOCID: &str = include_str!(concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/src/checker/testdata/go_probe/go_shapes_ed4807212c_docid.jsonl"
+));
+
+const ID_KEYS: &[&str] = &[
+    "id",
+    "target",
+    "freshType",
+    "regularType",
+    "thisType",
+    "typeParameter",
+    "constraintType",
+    "nameType",
+    "templateType",
+    "objectType",
+    "indexType",
+    "checkType",
+    "extendsType",
+    "baseType",
+    "substConstraint",
+    "unknown",
+    "undefined",
+    "arguments",
+];
+const ID_ARRAY_KEYS: &[&str] =
+    &["typeParameters", "outerTypeParameters", "localTypeParameters", "aliasTypeArguments"];
+
+#[derive(Default)]
+struct Ids {
+    numbers: FxHashMap<u64, usize>,
+    symbols: FxHashMap<u64, usize>,
+    strings: FxHashMap<String, usize>,
+}
+
+/// Keys whose object values are symbol references (their `id` is a symbol id, a separate counter).
+const SYMBOL_KEYS: &[&str] = &[
+    "symbol",
+    "aliasSymbol",
+    "parent",
+    "exportSymbol",
+    "reference",
+    "thisParameter",
+    "parameters",
+];
+
+impl Ids {
+    fn num(&mut self, n: f64) -> Value {
+        let next = self.numbers.len() + 1;
+        Value::String(format!("#{}", self.numbers.entry(n as u64).or_insert(next)))
+    }
+    fn sym(&mut self, n: f64) -> Value {
+        let next = self.symbols.len() + 1;
+        Value::String(format!("$${}", self.symbols.entry(n as u64).or_insert(next)))
+    }
+    fn str(&mut self, s: &str) -> Value {
+        let next = self.strings.len() + 1;
+        Value::String(format!("@{}", self.strings.entry(s.to_string()).or_insert(next)))
+    }
+}
+
+fn normalize(v: &Value, ids: &mut Ids, in_symbol: bool) -> Value {
+    match v {
+        Value::Object(o) => {
+            let mut out = JsonMap::new();
+            // Visit keys sorted so first-appearance numbering does not depend on field order.
+            let mut keys: Vec<&str> = o.keys().collect();
+            keys.sort_unstable();
+            out.extend(keys.into_iter().map(|k| {
+                let child = &o[k];
+                let nv = match (k, child) {
+                    ("id", Value::Number(n)) if in_symbol => ids.sym(*n),
+                    (key, Value::Number(n)) if ID_KEYS.contains(&key) => ids.num(*n),
+                    (key, Value::Array(a)) if ID_ARRAY_KEYS.contains(&key) => Value::Array(
+                        a.iter()
+                            .map(|x| if let Value::Number(n) = x { ids.num(*n) } else { x.clone() })
+                            .collect(),
+                    ),
+                    ("file" | "nodeId", Value::String(s)) => ids.str(s),
+                    // Escaped names of well-known-symbol members embed the unique ES symbol's
+                    // process-wide symbol id: `__@iterator@1360`.
+                    ("name", Value::String(s))
+                        if s.starts_with("__@")
+                            && s.rfind('@').is_some_and(|i| {
+                                i > 2 && s[i + 1..].bytes().all(|b| b.is_ascii_digit())
+                            }) =>
+                    {
+                        let i = s.rfind('@').unwrap();
+                        Value::String(format!("{}@<symbol id>", &s[..i]))
+                    }
+                    (key, _) => normalize(child, ids, SYMBOL_KEYS.contains(&key)),
+                };
+                (k.to_string(), nv)
+            }));
+            Value::Object(out)
+        }
+        Value::Array(a) => Value::Array(a.iter().map(|x| normalize(x, ids, in_symbol)).collect()),
+        other => other.clone(),
+    }
+}
+
+pub(super) struct S {
+    pub(super) session: Arc<Session>,
+    pub(super) snapshot: f64,
+    pub(super) project: String,
+    lines: Vec<(String, Value)>,
+}
+
+fn utf16_pos(text: &str, needle: &str) -> usize {
+    text[..text.find(needle).unwrap_or_else(|| panic!("{needle:?}"))].encode_utf16().count()
+}
+
+pub(super) fn get(v: &Value, k: &str) -> Value {
+    match v {
+        Value::Object(o) => o.get(k).cloned().unwrap_or(Value::Null),
+        _ => Value::Null,
+    }
+}
+
+impl S {
+    pub(super) fn call(&self, method: &str, params: &Value) -> Result<Value, String> {
+        let text = json::marshal(params).unwrap();
+        match self.session.handle_request(method, text.as_bytes()) {
+            Ok(Response::Json(t)) => Ok(json::unmarshal(&t).unwrap()),
+            Ok(Response::Binary(b)) => panic!("{method}: unexpected binary ({} bytes)", b.len()),
+            Err(e) => Err(e.to_string().lines().next().unwrap_or_default().to_string()),
+        }
+    }
+
+    fn call_raw(&self, method: &str, raw: &str) -> Result<Value, String> {
+        match self.session.handle_request(method, raw.as_bytes()) {
+            Ok(Response::Json(t)) => Ok(json::unmarshal(&t).unwrap()),
+            Ok(Response::Binary(b)) => panic!("{method}: unexpected binary ({} bytes)", b.len()),
+            Err(e) => Err(e.to_string().lines().next().unwrap_or_default().to_string()),
+        }
+    }
+
+    fn sp(&self, extra: &[(&str, Value)]) -> Value {
+        let mut o = JsonMap::new();
+        o.insert("snapshot".to_string(), Value::Number(self.snapshot));
+        o.insert("project".to_string(), Value::String(self.project.clone()));
+        o.extend(extra.iter().map(|(k, v)| (k.to_string(), v.clone())));
+        Value::Object(o)
+    }
+
+    pub(super) fn at(&self, needle: &str) -> Value {
+        self.sp(&[
+            ("file", Value::String("/p/main.ts".into())),
+            ("position", Value::Number(utf16_pos(MAIN, needle) as f64)),
+        ])
+    }
+
+    fn sym_ref(&self, needle: &str) -> Value {
+        get(&self.call("getSymbolAtPosition", &self.at(needle)).unwrap(), "reference")
+    }
+
+    #[expect(
+        clippy::needless_pass_by_value,
+        reason = "Probe requests take temporary owned JSON fixtures, matching the request-building API throughout this suite."
+    )]
+    fn shape(&mut self, label: &str, method: &str, params: Value) -> Value {
+        match self.call(method, &params) {
+            Ok(r) => {
+                self.lines.push((format!("shape:{label}"), r.clone()));
+                r
+            }
+            Err(e) => {
+                self.lines.push((format!("shape:{label}"), obj(&[("error", Value::String(e))])));
+                Value::Null
+            }
+        }
+    }
+
+    #[expect(
+        clippy::needless_pass_by_value,
+        reason = "Probe requests take temporary owned JSON fixtures, matching the request-building API throughout this suite."
+    )]
+    fn wrong(&mut self, label: &str, method: &str, params: Value) {
+        let r = match self.call(method, &params) {
+            Ok(r) => obj(&[("result", r)]),
+            Err(e) => obj(&[("error", Value::String(e))]),
+        };
+        self.lines.push((format!("wrong:{label}"), r));
+    }
+}
+
+pub(super) fn obj(pairs: &[(&str, Value)]) -> Value {
+    let mut o = JsonMap::new();
+    o.extend(pairs.iter().map(|(k, v)| (k.to_string(), v.clone())));
+    Value::Object(o)
+}
+
+fn n(x: impl Into<f64>) -> Value {
+    Value::Number(x.into())
+}
+
+fn session() -> S {
+    session_with(&[], &["/p/tsconfig.json"])
+}
+
+/// A session over the fixture (plus `extra` files) with one snapshot opening `configs`; `S.project`
+/// is the `/p` project.
+pub(super) fn session_with(extra: &[(&str, &str)], configs: &[&str]) -> S {
+    let mut files = vec![
+        ("/p/tsconfig.json", TSCONFIG),
+        ("/p/main.ts", MAIN),
+        ("/p/types.d.ts", TYPES),
+        ("/p/other.ts", OTHER),
+    ];
+    files.extend_from_slice(extra);
+    let fs: Arc<dyn FS> = Arc::new(bundled::wrap_fs(vfstest::from_map(
+        files.iter().map(|(k, v)| (k.to_string(), v.to_string())),
+        false,
+    )));
+    let session =
+        Session::new(SessionOptions::new("/".to_string(), bundled::lib_path(), fs, false));
+    let mut s = S { session, snapshot: 0.0, project: String::new(), lines: Vec::new() };
+    let open = Value::Array(configs.iter().map(|c| Value::String(c.to_string())).collect());
+    let snap = s.call("createSnapshot", &obj(&[("openProjects", open)])).unwrap();
+    s.snapshot = match get(&snap, "snapshot") {
+        Value::Number(x) => x,
+        other => panic!("{other:?}"),
+    };
+    let Value::Array(projects) = get(&snap, "projects") else { panic!("no projects") };
+    s.project = projects
+        .iter()
+        .find_map(|p| match get(p, "id") {
+            Value::String(id) if id.starts_with("/p/") => Some(id),
+            _ => None,
+        })
+        .expect("/p project");
+    s
+}
+
+fn number_value(value: &Value) -> f64 {
+    match value {
+        Value::Number(number) => *number,
+        other => panic!("expected number, got {other:?}"),
+    }
+}
+
+fn array_value(value: &Value) -> &[Value] {
+    match value {
+        Value::Array(items) => items,
+        other => panic!("expected array, got {other:?}"),
+    }
+}
+
+#[test]
+fn completion_symbols_require_preparation_in_the_same_snapshot() {
+    let files = [
+        ("/p/tsconfig.json", r#"{"compilerOptions":{"module":"esnext","target":"esnext"}}"#),
+        ("/p/src/main.ts", "someV"),
+        ("/p/src/export.ts", "export const someValue = 1;"),
+    ];
+    let fs: Arc<dyn FS> = Arc::new(bundled::wrap_fs(vfstest::from_map(
+        files.into_iter().map(|(name, text)| (name.to_string(), text.to_string())),
+        true,
+    )));
+    let session =
+        Session::new(SessionOptions::new("/".to_string(), bundled::lib_path(), fs, false));
+    let mut s = S { session, snapshot: 0.0, project: String::new(), lines: Vec::new() };
+    let unprepared = s
+        .call(
+            "createSnapshot",
+            &obj(&[
+                ("openProjects", Value::Array(vec![Value::String("/p/tsconfig.json".into())])),
+                (
+                    "userPreferences",
+                    obj(&[("includeCompletionsForModuleExports", Value::Bool(true))]),
+                ),
+            ]),
+        )
+        .unwrap();
+    s.snapshot = number_value(&get(&unprepared, "snapshot"));
+    let project = s
+        .call(
+            "getDefaultProjectForFile",
+            &obj(&[("snapshot", n(s.snapshot)), ("file", Value::String("/p/src/main.ts".into()))]),
+        )
+        .unwrap();
+    s.project = match get(&project, "id") {
+        Value::String(id) => id,
+        other => panic!("missing project ID: {other:?}"),
+    };
+    let completion_params = |snapshot: f64, project: &str, include_symbol: bool| {
+        obj(&[
+            ("snapshot", n(snapshot)),
+            ("project", Value::String(project.into())),
+            ("file", Value::String("/p/src/main.ts".into())),
+            ("position", n(5.0)),
+            ("includeSymbol", Value::Bool(include_symbol)),
+        ])
+    };
+    let err = s
+        .call("getCompletionsAtPosition", &completion_params(s.snapshot, &s.project, true))
+        .unwrap_err();
+    assert!(err.contains("snapshot is not prepared for auto-imports"), "{err}");
+    let retried = s
+        .call("getCompletionsAtPosition", &completion_params(s.snapshot, &s.project, false))
+        .unwrap();
+    assert!(
+        array_value(&get(&retried, "entries"))
+            .iter()
+            .any(|entry| get(entry, "name") == Value::String("someValue".into()))
+    );
+
+    let prepared = s
+        .call(
+            "updateSnapshot",
+            &obj(&[
+                ("snapshot", n(s.snapshot)),
+                ("changes", obj(&[("prepareAutoImports", Value::String("/p/src/main.ts".into()))])),
+            ]),
+        )
+        .unwrap();
+    let prepared_id = number_value(&get(&prepared, "snapshot"));
+    let completions = s
+        .call("getCompletionsAtPosition", &completion_params(prepared_id, &s.project, true))
+        .unwrap();
+    assert!(
+        array_value(&get(&completions, "entries"))
+            .iter()
+            .any(|entry| get(entry, "name") == Value::String("someValue".into()))
+    );
+}
+
+#[test]
+fn snapshot_preferences_control_auto_import_completions() {
+    let files = [
+        ("/p/tsconfig.json", r#"{"compilerOptions":{"module":"esnext","target":"esnext"}}"#),
+        ("/p/src/main.ts", "someV"),
+        ("/p/src/export.ts", "export const someValue = 1;"),
+    ];
+    let fs: Arc<dyn FS> = Arc::new(bundled::wrap_fs(vfstest::from_map(
+        files.into_iter().map(|(name, text)| (name.to_string(), text.to_string())),
+        true,
+    )));
+    let session =
+        Session::new(SessionOptions::new("/".to_string(), bundled::lib_path(), fs, false));
+    let s = S { session, snapshot: 0.0, project: String::new(), lines: Vec::new() };
+    let disabled = s
+        .call(
+            "createSnapshot",
+            &obj(&[
+                ("openProjects", Value::Array(vec![Value::String("/p/tsconfig.json".into())])),
+                (
+                    "userPreferences",
+                    obj(&[("includeCompletionsForModuleExports", Value::Bool(false))]),
+                ),
+            ]),
+        )
+        .unwrap();
+    let disabled_id = number_value(&get(&disabled, "snapshot"));
+    let project = s
+        .call(
+            "getDefaultProjectForFile",
+            &obj(&[("snapshot", n(disabled_id)), ("file", Value::String("/p/src/main.ts".into()))]),
+        )
+        .unwrap();
+    let project_id = match get(&project, "id") {
+        Value::String(id) => id,
+        other => panic!("missing project ID: {other:?}"),
+    };
+    let completions = |snapshot| {
+        s.call(
+            "getCompletionsAtPosition",
+            &obj(&[
+                ("snapshot", n(snapshot)),
+                ("project", Value::String(project_id.clone())),
+                ("file", Value::String("/p/src/main.ts".into())),
+                ("position", n(5.0)),
+                ("includeSymbol", Value::Bool(true)),
+            ]),
+        )
+        .unwrap()
+    };
+    let disabled_completions = completions(disabled_id);
+    assert!(
+        !array_value(&get(&disabled_completions, "entries"))
+            .iter()
+            .any(|entry| get(entry, "name") == Value::String("someValue".into()))
+    );
+
+    let enabled = s
+        .call(
+            "updateSnapshot",
+            &obj(&[
+                ("snapshot", n(disabled_id)),
+                (
+                    "changes",
+                    obj(&[
+                        (
+                            "userPreferences",
+                            obj(&[("includeCompletionsForModuleExports", Value::Bool(true))]),
+                        ),
+                        ("prepareAutoImports", Value::String("/p/src/main.ts".into())),
+                    ]),
+                ),
+            ]),
+        )
+        .unwrap();
+    let enabled_completions = completions(number_value(&get(&enabled, "snapshot")));
+    assert!(
+        array_value(&get(&enabled_completions, "entries"))
+            .iter()
+            .any(|entry| get(entry, "name") == Value::String("someValue".into()))
+    );
+}
+
+#[test]
+fn fresh_snapshots_prepare_dependency_imports_while_creating_programs() {
+    for update in [false, true] {
+        let files = [
+            ("/home/projects/MixedCase/tsconfig.json", "{}"),
+            ("/home/projects/MixedCase/index.ts", "packageV"),
+            ("/home/projects/MixedCase/package.json", r#"{"dependencies":{"my-pkg":"1.0.0"}}"#),
+            (
+                "/home/projects/MixedCase/node_modules/my-pkg/package.json",
+                r#"{"name":"my-pkg","version":"1.0.0","types":"index.d.ts"}"#,
+            ),
+            (
+                "/home/projects/MixedCase/node_modules/my-pkg/index.d.ts",
+                "export declare const packageValue: number;",
+            ),
+            ("/home/projects/synthetic.ts", "export const x = 1;"),
+        ];
+        let fs: Arc<dyn FS> = Arc::new(bundled::wrap_fs(vfstest::from_map(
+            files.into_iter().map(|(name, text)| (name.to_string(), text.to_string())),
+            true,
+        )));
+        let session =
+            Session::new(SessionOptions::new("/".to_string(), bundled::lib_path(), fs, false));
+        let s = S { session, snapshot: 0.0, project: String::new(), lines: Vec::new() };
+        let changes = obj(&[
+            (
+                "openProjects",
+                Value::Array(vec![Value::String("/home/projects/MixedCase/tsconfig.json".into())]),
+            ),
+            ("prepareAutoImports", Value::String("/home/projects/MixedCase/index.ts".into())),
+            (
+                "createPrograms",
+                Value::Array(vec![obj(&[
+                    (
+                        "rootFiles",
+                        Value::Array(vec![Value::String("/home/projects/synthetic.ts".into())]),
+                    ),
+                    ("compilerOptions", obj(&[("noLib", Value::Bool(true))])),
+                ])]),
+            ),
+        ]);
+        let response = if update {
+            let base = s.call("createSnapshot", &obj(&[])).unwrap();
+            s.call(
+                "updateSnapshot",
+                &obj(&[("snapshot", get(&base, "snapshot")), ("changes", changes)]),
+            )
+            .unwrap()
+        } else {
+            s.call("createSnapshot", &changes).unwrap()
+        };
+        assert_eq!(array_value(&get(&get(&response, "operation"), "createdPrograms")).len(), 1);
+        let snapshot_id = get(&response, "snapshot");
+        let project = s
+            .call(
+                "getDefaultProjectForFile",
+                &obj(&[
+                    ("snapshot", snapshot_id.clone()),
+                    ("file", Value::String("/home/projects/MixedCase/index.ts".into())),
+                ]),
+            )
+            .unwrap();
+        let completions = s
+            .call(
+                "getCompletionsAtPosition",
+                &obj(&[
+                    ("snapshot", snapshot_id),
+                    ("project", get(&project, "id")),
+                    ("file", Value::String("/home/projects/MixedCase/index.ts".into())),
+                    ("position", n(8.0)),
+                    ("includeSymbol", Value::Bool(true)),
+                ]),
+            )
+            .unwrap();
+        assert!(
+            array_value(&get(&completions, "entries"))
+                .iter()
+                .any(|entry| get(entry, "name") == Value::String("packageValue".into())),
+            "update={update}: {completions:?}"
+        );
+    }
+}
+
+#[test]
+fn fresh_unprepared_snapshot_retries_dependency_imports_without_symbols() {
+    let files = [
+        ("/home/projects/MixedCase/tsconfig.json", "{}"),
+        ("/home/projects/MixedCase/index.ts", "packageV"),
+        ("/home/projects/MixedCase/package.json", r#"{"dependencies":{"my-pkg":"1.0.0"}}"#),
+        (
+            "/home/projects/MixedCase/node_modules/my-pkg/package.json",
+            r#"{"name":"my-pkg","version":"1.0.0","types":"index.d.ts"}"#,
+        ),
+        (
+            "/home/projects/MixedCase/node_modules/my-pkg/index.d.ts",
+            "export declare const packageValue: number;",
+        ),
+    ];
+    let fs: Arc<dyn FS> = Arc::new(bundled::wrap_fs(vfstest::from_map(
+        files.into_iter().map(|(name, text)| (name.to_string(), text.to_string())),
+        true,
+    )));
+    let session =
+        Session::new(SessionOptions::new("/".to_string(), bundled::lib_path(), fs, false));
+    let s = S { session, snapshot: 0.0, project: String::new(), lines: Vec::new() };
+    let created = s
+        .call(
+            "createSnapshot",
+            &obj(&[(
+                "openProjects",
+                Value::Array(vec![Value::String("/home/projects/MixedCase/tsconfig.json".into())]),
+            )]),
+        )
+        .unwrap();
+    let snapshot = get(&created, "snapshot");
+    let project = s
+        .call(
+            "getDefaultProjectForFile",
+            &obj(&[
+                ("snapshot", snapshot.clone()),
+                ("file", Value::String("/home/projects/MixedCase/index.ts".into())),
+            ]),
+        )
+        .unwrap();
+    let completions = s
+        .call(
+            "getCompletionsAtPosition",
+            &obj(&[
+                ("snapshot", snapshot),
+                ("project", get(&project, "id")),
+                ("file", Value::String("/home/projects/MixedCase/index.ts".into())),
+                ("position", n(8.0)),
+                ("includeSymbol", Value::Bool(false)),
+            ]),
+        )
+        .unwrap();
+    assert!(
+        array_value(&get(&completions, "entries"))
+            .iter()
+            .any(|entry| get(entry, "name") == Value::String("packageValue".into())),
+        "{completions:?}"
+    );
+}
+
+/// Same request sequence as `TestTsrsCheckerShapes` in `testdata/go_probe/zz_tsrs_probe_test.go`.
+fn shapes() -> Vec<(String, Value)> {
+    let mut s = session();
+    let lit = s.shape("type.literal", "getTypeAtPosition", s.at("lit ="));
+    let boxt = s.shape("type.reference", "getTypeAtPosition", s.at("box:"));
+    s.shape("type.union", "getTypeAtPosition", s.at("maybe:"));
+    s.shape("type.bigint", "getTypeAtPosition", s.at("big ="));
+    let pair =
+        s.call("getDeclaredTypeOfSymbol", &s.sp(&[("symbol", s.sym_ref("Pair<A, B>"))])).unwrap();
+    s.shape("type.tupleTarget", "getTargetOfType", s.sp(&[("objectId", get(&pair, "id"))]));
+    let box_target =
+        s.shape("type.interfaceTarget", "getTargetOfType", s.sp(&[("objectId", get(&boxt, "id"))]));
+    s.shape(
+        "type.typeParameter",
+        "getLocalTypeParametersOfType",
+        s.sp(&[("objectId", get(&box_target, "id"))]),
+    );
+    s.shape("type.thisType", "getThisTypeOfType", s.sp(&[("objectId", get(&box_target, "id"))]));
+    for (label, needle) in [
+        ("type.mapped", "M = "),
+        ("type.conditional", "C<T> ="),
+        ("type.templateLiteral", "TL = "),
+        ("type.indexedAccess", "IA<T, K"),
+    ] {
+        let params = s.sp(&[("symbol", s.sym_ref(needle))]);
+        s.shape(label, "getDeclaredTypeOfSymbol", params);
+    }
+    let str_t = s.call("getStringType", &s.sp(&[])).unwrap();
+    s.shape("type.intrinsic", "getStringType", s.sp(&[]));
+    s.shape("indexInfos", "getIndexInfosOfType", s.sp(&[("type", get(&boxt, "id"))]));
+    s.shape(
+        "indexInfo.number.none",
+        "getIndexInfoOfType",
+        s.sp(&[("type", get(&str_t, "id")), ("kind", n(1))]),
+    );
+    s.shape("symbol.variable", "getSymbolAtPosition", s.at("box:"));
+    s.shape("symbol.class", "getSymbolAtPosition", s.at("Dog extends"));
+    s.shape(
+        "symbol.global",
+        "resolveName",
+        s.sp(&[
+            ("name", Value::String("Array".into())),
+            ("meaning", n(tsrs_ast::SymbolFlags::Type.bits())),
+        ]),
+    );
+    s.shape(
+        "symbol.none",
+        "resolveName",
+        s.sp(&[
+            ("name", Value::String("nope".into())),
+            ("meaning", n(tsrs_ast::SymbolFlags::Value.bits())),
+        ]),
+    );
+    s.shape("members.empty", "getMembersOfSymbol", obj(&[("symbol", s.sym_ref("box:"))]));
+    s.shape("exports.empty", "getExportsOfSymbol", obj(&[("symbol", s.sym_ref("box:"))]));
+    s.shape("properties.empty", "getPropertiesOfType", s.sp(&[("type", get(&str_t, "id"))]));
+    s.shape("typeArguments", "getTypeArguments", s.sp(&[("type", get(&boxt, "id"))]));
+    s.shape(
+        "aliasTypeArguments.empty",
+        "getAliasTypeArgumentsOfType",
+        s.sp(&[("objectId", get(&boxt, "id"))]),
+    );
+    let over = s.call("getTypeAtPosition", &s.at("over(x: string)")).unwrap();
+    let sigs = s.shape(
+        "signatures",
+        "getSignaturesOfType",
+        s.sp(&[("type", get(&over, "id")), ("kind", n(0))]),
+    );
+    s.shape(
+        "signatures.construct.empty",
+        "getSignaturesOfType",
+        s.sp(&[("type", get(&over, "id")), ("kind", n(1))]),
+    );
+    let sig0 = match &sigs {
+        Value::Array(a) => a[0].clone(),
+        other => panic!("{other:?}"),
+    };
+    s.shape(
+        "signature.typeParameters.empty",
+        "getTypeParametersOfSignature",
+        s.sp(&[("objectId", get(&sig0, "id"))]),
+    );
+    s.shape(
+        "signature.thisParameter.none",
+        "getThisParameterOfSignature",
+        s.sp(&[("objectId", get(&sig0, "id"))]),
+    );
+    let is_str = s.call("getTypeAtPosition", &s.at("isStr(")).unwrap();
+    let is_str_sigs = s
+        .call("getSignaturesOfType", &s.sp(&[("type", get(&is_str, "id")), ("kind", n(0))]))
+        .unwrap();
+    let is_str_sig = match &is_str_sigs {
+        Value::Array(a) => a[0].clone(),
+        other => panic!("{other:?}"),
+    };
+    s.shape(
+        "typePredicate",
+        "getTypePredicateOfSignature",
+        s.sp(&[("signature", get(&is_str_sig, "id"))]),
+    );
+    s.shape(
+        "typePredicate.none",
+        "getTypePredicateOfSignature",
+        s.sp(&[("signature", get(&sig0, "id"))]),
+    );
+    s.shape("jsDocTags", "getJsDocTags", s.sp(&[("symbol", s.sym_ref("Animal {"))]));
+    s.shape("jsDocTags.none", "getJsDocTags", s.sp(&[("symbol", s.sym_ref("box:"))]));
+    s.shape("exportsOfModule.none", "getExportsOfModule", s.sp(&[("symbol", s.sym_ref("box:"))]));
+    s.shape("baseTypes.none", "getBaseTypes", s.sp(&[("type", get(&box_target, "id"))]));
+    let first_decl = |s: &S, needle: &str| match get(
+        &s.call("getSymbolAtPosition", &s.at(needle)).unwrap(),
+        "declarations",
+    ) {
+        Value::Array(a) => a[0].clone(),
+        other => panic!("{other:?}"),
+    };
+    let box_decl = first_decl(&s, "box:");
+    let red_decl = first_decl(&s, "Red =");
+    s.shape("constantValue.none", "getConstantValue", s.sp(&[("location", box_decl)]));
+    s.shape("constantValue.number", "getConstantValue", s.sp(&[("location", red_decl)]));
+    s.shape(
+        "completions",
+        "getCompletionsAtPosition",
+        s.sp(&[
+            ("file", Value::String("/p/main.ts".into())),
+            ("position", n((utf16_pos(MAIN, "box.value") + 4) as f64)),
+        ]),
+    );
+    s.shape("wellKnownSignatures", "getWellKnownSignatures", s.sp(&[]));
+
+    let (lit_id, obj_id) = (get(&lit, "id"), get(&boxt, "id"));
+    let o = |k: &str| k.to_string();
+    let _ = o;
+    for (label, method, key, id) in [
+        ("getTypeArguments(literal)", "getTypeArguments", "type", &lit_id),
+        ("getBaseTypes(literal)", "getBaseTypes", "type", &lit_id),
+        ("getTargetOfType(literal)", "getTargetOfType", "objectId", &lit_id),
+        ("getFreshTypeOfType(object)", "getFreshTypeOfType", "objectId", &obj_id),
+        ("getRegularTypeOfType(object)", "getRegularTypeOfType", "objectId", &obj_id),
+        ("getTypesOfType(literal)", "getTypesOfType", "objectId", &lit_id),
+        ("getTypeParametersOfType(literal)", "getTypeParametersOfType", "objectId", &lit_id),
+        (
+            "getOuterTypeParametersOfType(literal)",
+            "getOuterTypeParametersOfType",
+            "objectId",
+            &lit_id,
+        ),
+        (
+            "getLocalTypeParametersOfType(literal)",
+            "getLocalTypeParametersOfType",
+            "objectId",
+            &lit_id,
+        ),
+        ("getThisTypeOfType(literal)", "getThisTypeOfType", "objectId", &lit_id),
+        ("getObjectTypeOfType(literal)", "getObjectTypeOfType", "objectId", &lit_id),
+        ("getIndexTypeOfType(literal)", "getIndexTypeOfType", "objectId", &lit_id),
+        ("getCheckTypeOfType(literal)", "getCheckTypeOfType", "objectId", &lit_id),
+        ("getExtendsTypeOfType(literal)", "getExtendsTypeOfType", "objectId", &lit_id),
+        ("getBaseTypeOfType(literal)", "getBaseTypeOfType", "objectId", &lit_id),
+        ("getConstraintOfType(literal)", "getConstraintOfType", "objectId", &lit_id),
+        (
+            "getTypeParameterOfMappedType(literal)",
+            "getTypeParameterOfMappedType",
+            "objectId",
+            &lit_id,
+        ),
+        (
+            "getConstraintTypeOfMappedType(literal)",
+            "getConstraintTypeOfMappedType",
+            "objectId",
+            &lit_id,
+        ),
+        ("getNameTypeOfMappedType(literal)", "getNameTypeOfMappedType", "objectId", &lit_id),
+        (
+            "getTemplateTypeOfMappedType(literal)",
+            "getTemplateTypeOfMappedType",
+            "objectId",
+            &lit_id,
+        ),
+        (
+            "getTrueTypeOfConditionalType(literal)",
+            "getTrueTypeOfConditionalType",
+            "objectId",
+            &lit_id,
+        ),
+        (
+            "getFalseTypeOfConditionalType(literal)",
+            "getFalseTypeOfConditionalType",
+            "objectId",
+            &lit_id,
+        ),
+        (
+            "getConstraintOfTypeParameter(literal)",
+            "getConstraintOfTypeParameter",
+            "objectId",
+            &lit_id,
+        ),
+        (
+            "getDefaultFromTypeParameter(literal)",
+            "getDefaultFromTypeParameter",
+            "objectId",
+            &lit_id,
+        ),
+    ] {
+        let params = s.sp(&[(key, id.clone())]);
+        s.wrong(label, method, params);
+    }
+    let p = s.sp(&[("type", obj_id.clone()), ("kind", n(7))]);
+    s.wrong("getSignaturesOfType(kind 7)", "getSignaturesOfType", p);
+    let p = s.sp(&[("type", obj_id.clone()), ("kind", n(7))]);
+    s.wrong("getIndexInfoOfType(kind 7)", "getIndexInfoOfType", p);
+    let p = s.sp(&[("signature", get(&sig0, "id")), ("kind", n(100_000))]);
+    s.wrong("signatureToSignatureDeclaration(kind 100000)", "signatureToSignatureDeclaration", p);
+    let p = s.sp(&[("signature", get(&sig0, "id")), ("index", n(-1))]);
+    s.wrong("getParameterType(index -1)", "getParameterType", p);
+
+    // Missing / null / empty parameter values (same raw payloads as the Go probe).
+    let sp = format!(
+        r#""snapshot":{},"project":{}"#,
+        json::marshal(&n(s.snapshot)).unwrap(),
+        json::marshal_string(&s.project)
+    );
+    for (method, raw) in [
+        ("getSymbolAtPosition", r#"{<sp>,"position":0}"#),
+        ("getSymbolAtPosition", r#"{<sp>,"file":null,"position":0}"#),
+        ("getSymbolAtPosition", r#"{<sp>,"file":{},"position":0}"#),
+        ("getSymbolAtPosition", r#"{<sp>,"file":{"uri":null},"position":0}"#),
+        ("getSymbolAtPosition", r#"{<sp>,"file":5,"position":0}"#),
+        ("getSymbolAtPosition", "null"),
+        ("getSymbolsOfSourceFiles", r#"{<sp>,"files":[null]}"#),
+        ("getSymbolsOfSourceFiles", r#"{<sp>,"files":[{}]}"#),
+        ("getSymbolsOfSourceFiles", r#"{<sp>,"files":null}"#),
+        ("resolveName", r#"{<sp>,"name":"Array","meaning":788968,"file":null,"position":0}"#),
+        (
+            "resolveName",
+            r#"{<sp>,"name":"box","meaning":111551,"file":"/p/main.ts","position":null}"#,
+        ),
+        ("getSymbolsInScope", r#"{<sp>,"file":null,"position":0,"meaning":1}"#),
+        ("getSymbolsAtPositions", r#"{<sp>,"file":"/p/main.ts","positions":null}"#),
+        ("getTypesOfSymbols", r#"{<sp>,"symbols":[null]}"#),
+        ("getTypeOfSymbol", r#"{<sp>,"symbol":null}"#),
+        ("getSymbolAtLocation", r#"{<sp>,"location":null}"#),
+        ("getSymbolAtPosition", r#"{<sp>,"file":true,"position":0}"#),
+        ("getSymbolAtPosition", r#"{<sp>,"file":[],"position":0}"#),
+    ] {
+        let r = match s.call_raw(method, &raw.replace("<sp>", &sp)) {
+            Ok(r) => obj(&[("result", r)]),
+            Err(e) => obj(&[("error", Value::String(e))]),
+        };
+        s.lines.push((format!("params:{method} {raw}"), r));
+    }
+    s.lines
+}
+
+#[test]
+fn session_responses_match_go_with_source31_document_identifiers() {
+    let ours: FxHashMap<String, Value> = shapes().into_iter().collect();
+    let source31_docid: FxHashMap<String, Value> = GO_SHAPES_SOURCE31_DOCID
+        .lines()
+        .filter(|line| !line.is_empty())
+        .map(|line| {
+            let value = json::unmarshal(line).unwrap();
+            let Value::String(query) = get(&value, "q") else { panic!() };
+            (query, get(&value, "r"))
+        })
+        .collect();
+    if let Ok(out) = std::env::var("TSRS_CHECKER_SHAPES_OUT") {
+        let mut text = String::new();
+        text = ours.iter().fold(text, |mut text, (q, r)| {
+            text.push_str(
+                &json::marshal(&obj(&[("q", Value::String(q.clone())), ("r", r.clone())])).unwrap(),
+            );
+            text.push('\n');
+
+            text
+        });
+        std::fs::write(out, text).unwrap();
+    }
+    let mut diffs = Vec::new();
+    let mut compared = 0;
+    let mut source31_overrides_compared = 0;
+    for line in GO_SHAPES.lines().filter(|l| !l.is_empty()) {
+        let v = json::unmarshal(line).unwrap();
+        let Value::String(q) = get(&v, "q") else { panic!() };
+        let go = match source31_docid.get(&q) {
+            Some(response) => {
+                source31_overrides_compared += 1;
+                response.clone()
+            }
+            None => get(&v, "r"),
+        };
+        let Some(rs) = ours.get(&q) else {
+            diffs.push(format!("{q}: missing"));
+            continue;
+        };
+        compared += 1;
+        let (mut go_n, mut rs_n) =
+            (normalize(&go, &mut Ids::default(), false), normalize(rs, &mut Ids::default(), false));
+        // Go's json/v2 decoder picks "cannot unmarshal" or "unable to unmarshal" per process (observed
+        // both on regeneration); the rest of the text is compared exactly.
+        for v in [&mut go_n, &mut rs_n] {
+            if let Value::Object(o) = v
+                && let Some(Value::String(e)) = o.get_mut("error")
+            {
+                *e = e.replace("json: unable to unmarshal", "json: cannot unmarshal");
+            }
+        }
+        if go_n != rs_n {
+            diffs.push(format!(
+                "{q}\n  go: {}\n  rs: {}",
+                json::marshal(&go_n).unwrap(),
+                json::marshal(&rs_n).unwrap()
+            ));
+        }
+    }
+    assert_eq!(compared, GO_SHAPES.lines().filter(|l| !l.is_empty()).count());
+    assert_eq!(source31_overrides_compared, source31_docid.len());
+    assert!(
+        diffs.is_empty(),
+        "{} of {compared} differ from pinned Go:\n{}",
+        diffs.len(),
+        diffs.join("\n")
+    );
+}
+
+/// Exact uint64 handles through core's Session: values above 2^53 must reach the lookup unrounded (pinned Go
+/// reports the exact number), and small handles keep working. Recorded against pinned Go with
+/// `testdata/node/numeric_ids_raw.mjs` over raw sync/async payloads.
+#[test]
+fn uint64_handles_above_2_pow_53_are_looked_up_exactly() {
+    let s = session();
+    let raw = |method: &str, params: String| s.call_raw(method, &params);
+    let sp = format!(
+        r#""snapshot":{},"project":{}"#,
+        json::marshal(&n(s.snapshot)).unwrap(),
+        json::marshal_string(&s.project)
+    );
+    // Small handles are unaffected (and register the project's type/signature registries first).
+    let t = s.call("getTypeAtPosition", &s.at("box:")).unwrap();
+    assert_eq!(
+        raw(
+            "typeToString",
+            format!(r#"{{{sp},"type":{}}}"#, json::marshal(&get(&t, "id")).unwrap())
+        ),
+        Ok(Value::String("Box<number>".into()))
+    );
+    let over = s.call("getTypeAtPosition", &s.at("over(x: string)")).unwrap();
+    let Value::Array(sigs) = s
+        .call("getSignaturesOfType", &s.sp(&[("type", get(&over, "id")), ("kind", n(0))]))
+        .unwrap()
+    else {
+        panic!()
+    };
+    let ret = raw(
+        "getReturnTypeOfSignature",
+        format!(r#"{{{sp},"objectId":{}}}"#, json::marshal(&get(&sigs[0], "id")).unwrap()),
+    )
+    .unwrap();
+    assert_eq!(get(&ret, "flags"), Value::Number(32.0), "string return type");
+    for id in ["9007199254740993", "9007199254740992", "18446744073709551615"] {
+        assert_eq!(
+            raw(
+                "getTypeAtPosition",
+                format!(
+                    r#"{{"snapshot":{id},"project":{},"file":"/p/main.ts","position":0}}"#,
+                    json::marshal_string(&s.project)
+                )
+            ),
+            Err(format!("api: client error: snapshot {id} not found"))
+        );
+        assert_eq!(
+            raw("getReturnTypeOfSignature", format!(r#"{{{sp},"objectId":{id}}}"#)),
+            Err(format!("api: client error: signature handle {id} not found in project registry"))
+        );
+        assert_eq!(
+            raw("getRestTypeOfSignature", format!(r#"{{{sp},"signature":{id}}}"#)),
+            Err(format!("api: client error: signature handle {id} not found in project registry"))
+        );
+        // Escaped member names reach the same exact literal.
+        assert_eq!(
+            raw(
+                "getTypeAtPosition",
+                format!(
+                    r#"{{"snap\u0073hot":{id},"project":{},"file":"/p/main.ts","position":0}}"#,
+                    json::marshal_string(&s.project)
+                )
+            ),
+            Err(format!("api: client error: snapshot {id} not found"))
+        );
+    }
+    // Type ids are uint32: above it is an invalid request (decode error), at the bound a lookup.
+    assert!(
+        raw("typeToString", format!(r#"{{{sp},"type":4294967296}}"#))
+            .unwrap_err()
+            .starts_with("api: invalid request: ")
+    );
+    assert_eq!(
+        raw("typeToString", format!(r#"{{{sp},"type":4294967295}}"#)),
+        Err("api: client error: type handle 4294967295 not found in project registry".to_string())
+    );
+
+    // Nested symbol references (and import-adder actions) read their own exact literals, never a same-named
+    // top-level field (core integration of predecode::exact_u64(object, key) at any depth).
+    let snap = json::marshal(&n(s.snapshot)).unwrap();
+    let project = json::marshal_string(&s.project);
+    for id in ["9007199254740993", "18446744073709551615"] {
+        let symbol = format!(r#"{{"kind":1,"snapshot":{snap},"project":{project},"id":{id}}}"#);
+        let missing =
+            Err(format!("api: client error: symbol handle {id} not found in snapshot registry"));
+        assert_eq!(raw("getTypeOfSymbol", format!(r#"{{{sp},"symbol":{symbol}}}"#)), missing);
+        assert_eq!(raw("getTypesOfSymbols", format!(r#"{{{sp},"symbols":[{symbol}]}}"#)), missing);
+        let r = raw(
+            "getImportAdderEdits",
+            format!(
+                r#"{{{sp},"file":"/p/main.ts","actions":[{{"kind":"importSymbol","symbol":{symbol}}}]}}"#
+            ),
+        );
+        assert!(matches!(&r, Err(e) if e.contains(id)), "{r:?}");
+        // The nested snapshot is exact too, and is not taken from the top-level `snapshot` literal.
+        let r = raw(
+            "getParentOfSymbol",
+            format!(
+                r#"{{"snapshot":{snap},"symbol":{{"kind":1,"snapshot":{id},"project":{project},"id":1}}}}"#
+            ),
+        );
+        assert_eq!(r, Err(format!("api: client error: snapshot {id} not found")));
+    }
+    for bad in ["1e3", "1.0", "18446744073709551616"] {
+        let symbol = format!(r#"{{"kind":1,"snapshot":{snap},"project":{project},"id":{bad}}}"#);
+        for (method, params) in [
+            ("getTypeOfSymbol", format!(r#"{{{sp},"symbol":{symbol}}}"#)),
+            ("getTypesOfSymbols", format!(r#"{{{sp},"symbols":[{symbol}]}}"#)),
+            (
+                "getImportAdderEdits",
+                format!(
+                    r#"{{{sp},"file":"/p/main.ts","actions":[{{"kind":"importSymbol","symbol":{symbol}}}]}}"#
+                ),
+            ),
+        ] {
+            let e = raw(method, params).unwrap_err();
+            assert!(
+                e.starts_with("api: invalid request: failed to unmarshal"),
+                "{method} {bad}: {e}"
+            );
+        }
+    }
+}
+
+/// Full type responses (objectFlags included) for the cases in `testdata/go_probe/flags/cases.txt`, compared
+/// with `go_flags_b85298b6.jsonl` recorded by `TestTsrsCheckerFlags` (same fixtures, same request order).
+#[test]
+fn type_flags_and_tuple_targets_match_pinned_go() {
+    const CASES: &str = include_str!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/src/checker/testdata/go_probe/flags/cases.txt"
+    ));
+    const GOLDEN: &str = include_str!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/src/checker/testdata/go_probe/go_flags_b85298b6.jsonl"
+    ));
+    let files = [
+        (
+            "/t/tsconfig.json",
+            include_str!(concat!(
+                env!("CARGO_MANIFEST_DIR"),
+                "/src/checker/testdata/go_probe/flags/t/tsconfig.json"
+            )),
+        ),
+        (
+            "/t/main.ts",
+            include_str!(concat!(
+                env!("CARGO_MANIFEST_DIR"),
+                "/src/checker/testdata/go_probe/flags/t/main.ts"
+            )),
+        ),
+        (
+            "/m/tsconfig.json",
+            include_str!(concat!(
+                env!("CARGO_MANIFEST_DIR"),
+                "/src/checker/testdata/go_probe/flags/m/tsconfig.json"
+            )),
+        ),
+        (
+            "/m/models.ts",
+            include_str!(concat!(
+                env!("CARGO_MANIFEST_DIR"),
+                "/src/checker/testdata/go_probe/flags/m/models.ts"
+            )),
+        ),
+    ];
+    let fs: Arc<dyn FS> = Arc::new(bundled::wrap_fs(vfstest::from_map(
+        files.iter().map(|(k, v)| (k.to_string(), v.to_string())),
+        false,
+    )));
+    let session =
+        Session::new(SessionOptions::new("/".to_string(), bundled::lib_path(), fs, false));
+    let s = S {
+        session: std::sync::Arc::clone(&session),
+        snapshot: 0.0,
+        project: String::new(),
+        lines: Vec::new(),
+    };
+    let mut snaps = FxHashMap::default();
+    snaps.extend((["t", "m"]).into_iter().map(|fx| {
+        let r = s
+            .call(
+                "createSnapshot",
+                &obj(&[(
+                    "openProjects",
+                    Value::Array(vec![Value::String(format!("/{fx}/tsconfig.json"))]),
+                )]),
+            )
+            .unwrap();
+        let Value::Number(snap) = get(&r, "snapshot") else { panic!() };
+        let Value::Array(projects) = get(&r, "projects") else { panic!() };
+        let Value::String(project) = get(&projects[0], "id") else { panic!() };
+        (fx, (snap, project))
+    }));
+    let mut ours = Vec::new();
+    for line in CASES.lines().filter(|l| !l.is_empty()) {
+        let f: Vec<&str> = line.split('\t').collect();
+        let (fx, file, needle, kind, method) = (f[0], f[1], f[2], f[3], f[4]);
+        let (snap, project) = snaps[fx].clone();
+        let program = session
+            .snapshot_data(snap as u64)
+            .unwrap()
+            .get_program(&tsrs_project::ID(project.clone()))
+            .unwrap();
+        let sf = program.get_source_file(&format!("/{fx}/{file}")).unwrap();
+        let text = sf.text();
+        let mut pos = text.find(needle).unwrap() + needle.len();
+        if kind != "alias" {
+            pos -= 1;
+        }
+        let pos = u32::try_from(pos).expect("test source fits in a source position");
+        let mut node = Some(tsrs_astnav::get_touching_property_name(sf, pos));
+        while let Some(n) = node {
+            if kind == "alias"
+                && n.parent().is_some_and(|p| p.kind() == tsrs_ast::Kind::TypeAliasDeclaration)
+            {
+                break;
+            }
+            if kind == "ArrayLiteralExpression"
+                && n.kind() == tsrs_ast::Kind::ArrayLiteralExpression
+            {
+                break;
+            }
+            node = n.parent();
+        }
+        let handle = session.node_handle_from(node.unwrap()).unwrap();
+        let sp = |extra: (&str, Value)| {
+            obj(&[("snapshot", n(snap)), ("project", Value::String(project.clone())), extra])
+        };
+        let (method, prop) = match method.split_once("+prop:") {
+            Some((m, p)) => (m, Some(p)),
+            None => (method, None),
+        };
+        let label = format!("{fx}/{file} {method} @{needle}");
+        let mut r = s.call(method, &sp(("location", Value::String(handle.clone())))).unwrap();
+        if let Some(prop) = prop {
+            s.call(
+                "getPropertyOfType",
+                &obj(&[
+                    ("snapshot", n(snap)),
+                    ("project", Value::String(project.clone())),
+                    ("type", get(&r, "id")),
+                    ("name", Value::String(prop.into())),
+                ]),
+            )
+            .unwrap();
+            r = s.call(method, &sp(("location", Value::String(handle)))).unwrap();
+        }
+        ours.push((label.clone(), r.clone()));
+        if get(&r, "target") != Value::Null {
+            ours.push((
+                format!("{label} target"),
+                s.call("getTargetOfType", &sp(("objectId", get(&r, "id")))).unwrap(),
+            ));
+        }
+    }
+    let golden: Vec<(String, Value)> = GOLDEN
+        .lines()
+        .filter(|l| !l.is_empty())
+        .map(|l| {
+            let v = json::unmarshal(l).unwrap();
+            let Value::String(q) = get(&v, "q") else { panic!() };
+            (q, get(&v, "r"))
+        })
+        .collect();
+    assert_eq!(golden.len(), ours.len(), "{ours:#?}");
+    let mut diffs = Vec::new();
+    for ((gq, go), (rq, rs)) in golden.iter().zip(&ours) {
+        assert_eq!(gq, rq);
+        let (go_n, rs_n) =
+            (normalize(go, &mut Ids::default(), false), normalize(rs, &mut Ids::default(), false));
+        if go_n != rs_n {
+            diffs.push(format!(
+                "{gq}\n  go: {}\n  rs: {}",
+                json::marshal(&go_n).unwrap(),
+                json::marshal(&rs_n).unwrap()
+            ));
+        }
+    }
+    assert!(
+        diffs.is_empty(),
+        "{} of {} differ from pinned Go:\n{}",
+        diffs.len(),
+        golden.len(),
+        diffs.join("\n")
+    );
+}

@@ -19,7 +19,7 @@ pub const UNIT_SHIFT: u32 = 3;
 /// 2^32 units: 32 GiB.
 pub const RESERVE: usize = 1 << (32 + UNIT_SHIFT);
 /// Chunk sizes and offsets are multiples of this (a multiple of every supported page size).
-const GRANULE: usize = 64 << 10;
+pub const GRANULE: usize = 64 << 10;
 /// Size and alignment of `huge` chunks: on Linux the transparent huge page of a 4 KiB-page kernel (x86-64, arm64).
 ///
 /// A fault gets a huge page only if the aligned 2 MiB around it lies inside one advised read-write mapping, so a chunk
@@ -53,15 +53,15 @@ pub fn base() -> *mut u8 {
     std::ptr::with_exposed_provenance_mut(BASE_ADDR)
 }
 
-struct Chunks {
+pub struct Chunks {
     /// Offset of the first never-used byte.
-    next: usize,
+    pub next: usize,
     /// Released ranges, offset -> length (coalesced).
-    free: BTreeMap<usize, usize>,
+    pub free: BTreeMap<usize, usize>,
     /// Bytes handed out and not released.
-    live: usize,
+    pub live: usize,
     /// Highest `next` so far.
-    peak: usize,
+    pub peak: usize,
 }
 
 static CHUNKS: Mutex<Chunks> =
@@ -147,7 +147,7 @@ fn decommit(p: *mut u8, len: usize) {
 impl Chunks {
     /// Offset (a multiple of `align`) of a free range of `size` bytes (both multiples of `GRANULE`): first fit among
     /// the released ranges, else the end. What alignment skips stays free. `None` when the reservation is exhausted.
-    fn take(&mut self, size: usize, align: usize) -> Option<usize> {
+    pub fn take(&mut self, size: usize, align: usize) -> Option<usize> {
         let found = self.free.iter().find_map(|(&off, &len)| {
             let start = off.next_multiple_of(align);
             (start + size <= off + len).then_some((off, len, start))
@@ -179,7 +179,7 @@ impl Chunks {
     }
 
     /// Returns the range `off .. off + size` (from `take`), merged with its free neighbours.
-    fn put(&mut self, mut off: usize, size: usize) {
+    pub fn put(&mut self, mut off: usize, size: usize) {
         self.live -= size;
         let mut len = size;
         if let Some((&prev, &prev_len)) = self.free.range(..off).next_back()
@@ -200,10 +200,12 @@ impl Chunks {
     }
 }
 
-/// A committed, zero-filled chunk of at least `size` bytes, `GRANULE`-aligned. With `huge` (large thread-arena chunks,
+/// A committed, zero-filled chunk of at least `size` bytes, `GRANULE`-aligned.
+///
+/// With `huge` (large thread-arena chunks,
 /// which are never released): `HUGE_CHUNK`-aligned, a multiple of it, and on Linux advised for transparent huge pages;
 /// callers round `size` to `HUGE_CHUNK` themselves so that they use the whole chunk.
-pub(crate) fn alloc_chunk(size: usize, huge: bool) -> *mut u8 {
+pub fn alloc_chunk(size: usize, huge: bool) -> *mut u8 {
     let align = if huge { HUGE_CHUNK } else { GRANULE };
     let size = size.next_multiple_of(align);
     let mut c = CHUNKS.lock().unwrap_or_else(std::sync::PoisonError::into_inner);
@@ -227,7 +229,7 @@ pub(crate) fn alloc_chunk(size: usize, huge: bool) -> *mut u8 {
 ///
 /// # Safety
 /// Nothing may use the chunk afterwards.
-pub(crate) unsafe fn release_chunk(p: *mut u8, size: usize) {
+pub unsafe fn release_chunk(p: *mut u8, size: usize) {
     let size = size.next_multiple_of(GRANULE);
     decommit(p, size);
     let off = p.addr() - base().addr();
@@ -236,7 +238,7 @@ pub(crate) unsafe fn release_chunk(p: *mut u8, size: usize) {
 
 /// The system page size (16 KiB on Apple silicon, 4 KiB on most Linux machines).
 #[cfg(unix)]
-pub(crate) fn page_size() -> usize {
+pub fn page_size() -> usize {
     static PAGE_SIZE: std::sync::OnceLock<usize> = std::sync::OnceLock::new();
     *PAGE_SIZE.get_or_init(|| {
         // SAFETY: sysconf reads a system constant.
@@ -292,78 +294,4 @@ pub fn reserved_in_use() -> usize {
 /// How far into the reservation chunks have ever been carved (released ranges are reused before it grows).
 pub fn reserved_high_water() -> usize {
     CHUNKS.lock().unwrap_or_else(std::sync::PoisonError::into_inner).peak
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn released_ranges_are_reused_and_coalesced() {
-        let mut c = Chunks { next: GRANULE, free: BTreeMap::new(), live: 0, peak: GRANULE };
-        let a = c.take(GRANULE, GRANULE).unwrap();
-        let b = c.take(3 * GRANULE, GRANULE).unwrap();
-        let d = c.take(GRANULE, GRANULE).unwrap();
-        assert_eq!((a, b, d), (GRANULE, 2 * GRANULE, 5 * GRANULE));
-        c.put(a, GRANULE);
-        c.put(b, 3 * GRANULE);
-        assert_eq!(c.free.len(), 1);
-        assert_eq!(c.take(4 * GRANULE, GRANULE), Some(a));
-        c.put(d, GRANULE);
-        assert_eq!(c.next, d);
-        assert_eq!(c.live, 4 * GRANULE);
-        assert_eq!(c.take(RESERVE, GRANULE), None);
-    }
-
-    #[test]
-    fn aligned_takes_leave_the_skipped_range_free() {
-        const A: usize = 32 * GRANULE;
-        let mut c = Chunks { next: GRANULE, free: BTreeMap::new(), live: 0, peak: GRANULE };
-        let small = c.take(GRANULE, GRANULE).unwrap();
-        let big = c.take(A, A).unwrap();
-        assert_eq!((small, big), (GRANULE, A));
-        // The gap between them serves unaligned takes first, then aligned ones fit only past `big`.
-        assert_eq!(
-            c.free.iter().map(|(&o, &l)| (o, l)).collect::<Vec<_>>(),
-            [(2 * GRANULE, A - 2 * GRANULE)]
-        );
-        assert_eq!(c.take(3 * GRANULE, GRANULE), Some(2 * GRANULE));
-        assert_eq!(c.take(GRANULE, A), Some(2 * A));
-        assert_eq!(c.live, 5 * GRANULE + A);
-        // Everything back: the free ranges coalesce and `next` returns to the start.
-        c.put(big, A);
-        c.put(2 * A, GRANULE);
-        c.put(2 * GRANULE, 3 * GRANULE);
-        c.put(small, GRANULE);
-        assert_eq!((c.next, c.live, c.free.len()), (GRANULE, 0, 0));
-        // A released range is reused at its first aligned offset, its unaligned head stays free.
-        let x = c.take(A, GRANULE).unwrap();
-        let y = c.take(GRANULE, GRANULE).unwrap();
-        c.put(x, A);
-        assert_eq!(c.take(A / 2, A / 2), Some(A / 2));
-        assert_eq!(
-            c.free.iter().map(|(&o, &l)| (o, l)).collect::<Vec<_>>(),
-            [(GRANULE, A / 2 - GRANULE), (A, GRANULE)]
-        );
-        assert!(y > x);
-    }
-
-    #[test]
-    fn chunks_are_committed_and_zeroed() {
-        let p = alloc_chunk(1, false);
-        // SAFETY: fresh, committed.
-        unsafe {
-            assert_eq!(*p.add(GRANULE - 1), 0);
-            p.write(7);
-            release_chunk(p, 1);
-        }
-        assert!(p.addr() - base().addr() >= GRANULE);
-        let h = alloc_chunk(HUGE_CHUNK, true);
-        assert_eq!((h.addr() - base().addr()) % HUGE_CHUNK, 0);
-        // SAFETY: fresh, committed.
-        unsafe {
-            assert_eq!(*h.add(HUGE_CHUNK - 1), 0);
-            h.write(7);
-        }
-    }
 }

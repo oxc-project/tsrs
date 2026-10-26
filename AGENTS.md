@@ -19,6 +19,20 @@ Build with `cargo build --profile dev -p tsrs_cli -p tsrs_testrunner` and run `t
 `--release`: an edit rebuilds in seconds instead of minutes, with the same test results (notes/dev-loop-build.md).
 Use `--release` only for performance numbers.
 
+## Tests
+
+Do not add unit tests: no `#[test]`, `#[cfg(test)]` or `cfg!(test)` in `src`. Use an integration test or a fixture.
+
+- Each crate has one test binary, `tests/integration/main.rs`. Add a test as a module under `tests/integration/`.
+- Prefer a fixture when the test checks compiler or language-server output: a `testdata/regressions` case, or the
+  conformance or fourslash suites.
+- Keep `test = false` on every `[lib]` and `[[bin]]`: `cargo test` then builds no unit-test harness, and a unit test
+  would never run (`tools/lint/source.mjs` rejects one).
+- When a test needs internals, make the item `pub` instead of adding a test-only path.
+- A test that changes process-wide state (fast mode, checker history, RSS) runs alone in a child process, as
+  `isolated::in_child` does in the tsrs_fswatch, tsrs_incremental, tsrs_api and tsrs_cli tests.
+- tsrs_wasm keeps its unit tests: it is cdylib only, so no integration test can link it.
+
 ## Lint
 
 Run `cargo clippy --all-targets --config 'build.warnings="deny"'` and

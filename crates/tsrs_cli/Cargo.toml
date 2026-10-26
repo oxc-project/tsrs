@@ -26,6 +26,11 @@ noembed = ["tsrs_vfs/noembed"]
 # blocks; mimalloc's memory looks like one long-lived region to them).
 system-alloc = []
 
+[lib]
+test = false
+doctest = false
+
 [[bin]]
 name = "tsrs"
 path = "src/main.rs"
+test = false

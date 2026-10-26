@@ -63,7 +63,7 @@ static IS_FILE_SYSTEM_CASE_SENSITIVE: LazyLock<bool> = LazyLock::new(|| {
 });
 
 // Convert all lowercase chars to uppercase, and vice-versa
-fn swap_case(str: &str) -> String {
+pub fn swap_case(str: &str) -> String {
     let mut out = String::with_capacity(str.len());
     for r in str.chars() {
         let r = r as stringutil::Rune;
@@ -156,7 +156,7 @@ pub fn get_global_typings_cache_location() -> String {
     global_typings_cache_location(user_cache_dir().as_deref())
 }
 
-fn global_typings_cache_location(cache_dir: Option<&str>) -> String {
+pub fn global_typings_cache_location(cache_dir: Option<&str>) -> String {
     let Some(cache_dir) = cache_dir.filter(|cache_dir| {
         tspath::path_is_absolute(cache_dir)
             && !(tspath::is_url(cache_dir) && cache_dir.contains(['?', '#']))
@@ -365,7 +365,7 @@ fn abs(path: &str) -> io::Result<String> {
 }
 
 // path.Clean (Unix semantics; on Windows the realpath result is already clean).
-fn clean(path: &str) -> String {
+pub fn clean(path: &str) -> String {
     if cfg!(windows) {
         return path.to_string();
     }
@@ -653,11 +653,3 @@ fn metadata_file_type(path: &str) -> Result<FileMode, FsError> {
 fn metadata_file_type(path: &str) -> Result<FileMode, FsError> {
     fs::metadata(path).map(|md| file_type_mode(md.file_type())).map_err(io_error)
 }
-
-#[cfg(test)]
-#[path = "os_test.rs"]
-mod os_test;
-
-#[cfg(test)]
-#[path = "realpath_test.rs"]
-mod realpath_test;

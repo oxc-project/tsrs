@@ -33,10 +33,10 @@ pub struct SnapshotHost {
     pub(crate) to_path: ToPath,
     pub(crate) fs: Arc<dyn FS>,
 
-    pub(crate) parse_cache: Arc<ParseCache>,
+    pub parse_cache: Arc<ParseCache>,
     pub(crate) content_mapped_parse_cache: Arc<ContentMappedParseCache>,
     pub(crate) extended_config_cache: Arc<ExtendedConfigCache>,
-    pub(crate) program_counter: ProgramCounter,
+    pub program_counter: ProgramCounter,
     // (Content mappers are not ported: Go's `contentMapperHost` is always nil here.)
     snapshot_id: AtomicU64,
 }

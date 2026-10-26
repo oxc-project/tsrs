@@ -1171,6 +1171,10 @@ pub fn get_declaration_modifier_flags_from_symbol(s: P<Symbol>) -> ModifierFlags
 /// The `Private` and `Protected` bits of `get_declaration_modifier_flags_from_symbol(s)`. A declared symbol whose parent
 /// is not a class has neither (its accessibility modifiers are dropped below), so its declaration is not read.
 #[inline]
+#[expect(
+    clippy::too_long_first_doc_paragraph,
+    reason = "Public for the integration tests; the comment keeps its upstream wording."
+)]
 pub fn get_declaration_non_public_flags_from_symbol(s: P<Symbol>) -> ModifierFlags {
     if !s.check_flags().intersects(CheckFlags::Synthetic)
         && !s.parent().is_some_and(|p| p.flags().intersects(SymbolFlags::Class))

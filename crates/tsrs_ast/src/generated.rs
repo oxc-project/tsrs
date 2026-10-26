@@ -6173,7 +6173,7 @@ pub enum NodeData {
 /// Which data struct follows a node's header (one variant per `NodeData` variant).
 #[repr(u8)]
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
-pub(crate) enum NodeDataTag {
+pub enum NodeDataTag {
     Token,
     Identifier,
     PrivateIdentifier,

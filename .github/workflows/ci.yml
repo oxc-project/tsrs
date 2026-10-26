@@ -52,7 +52,8 @@ jobs:
           cache-key: api-transport-windows
       - name: Check checker layout
         run: cargo check --locked -p tsrs_checker --config 'build.warnings="deny"'
-      - run: cargo test --locked -p tsrs_api_transport --lib --config 'build.warnings="deny"'
+      # The transport tests that ran as its unit tests, now in the crate's integration binary.
+      - run: cargo test --locked -p tsrs_api_transport --test integration --config 'build.warnings="deny"' -- base64_test strictjson_test transport_windows_test
 
   build-correctness:
     name: Build correctness binaries
@@ -80,9 +81,8 @@ jobs:
           if-no-files-found: error
           retention-days: 1
 
-  test:
-    name: Test Linux
-    needs: build-correctness
+  workspace-tests:
+    name: Workspace tests
     runs-on: namespace-profile-linux-x64-default
     timeout-minutes: 60
     steps:
@@ -101,7 +101,7 @@ jobs:
         id: ts
         run: echo "commit=$(node npm/build.mjs --print-typescript-commit)" >> "$GITHUB_OUTPUT"
 
-      # The conformance suite and workspace tests need the pinned upstream fixtures.
+      # Workspace tests need the pinned upstream fixtures and clients.
       - name: Check out TypeScript test fixtures and clients
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -111,14 +111,37 @@ jobs:
           fetch-depth: 1
           persist-credentials: false
 
-      - name: cargo check
-        run: cargo check --profile ci --locked --config 'build.warnings="deny"'
-
+      # Warnings fail the build; Lint's clippy covers the targets no test builds (tool binaries without tests).
       - name: cargo test (workspace)
-        run: cargo test --profile ci --locked
+        run: cargo test --profile ci --locked --config 'build.warnings="deny"'
 
-      # Restore after workspace tests, which may build a different CLI dependency feature set.
-      # Conformance, regressions and determinism must exercise the same compiled CLI.
+      - name: npm library paths (noembed)
+        run: cargo test --profile ci --locked -p tsrs_cli --features noembed --test integration npm_lib_path
+
+  conformance:
+    name: Conformance
+    needs: build-correctness
+    runs-on: namespace-profile-linux-x64-default
+    timeout-minutes: 60
+    steps:
+      - uses: taiki-e/checkout-action@7d1e50e93dc4fb3bba58f85018fadf77898aee8b # v1.4.2
+
+      - uses: oxc-project/setup-node@f46a72f95efdc55273fcd042d61c84e723b2892c # v1.4.1
+
+      - name: Read TypeScript reference commit
+        id: ts
+        run: echo "commit=$(node npm/build.mjs --print-typescript-commit)" >> "$GITHUB_OUTPUT"
+
+      - name: Check out TypeScript test fixtures
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: microsoft/TypeScript
+          ref: ${{ steps.ts.outputs.commit }}
+          path: ts-ref
+          fetch-depth: 1
+          persist-credentials: false
+
+      # Conformance, regressions and determinism exercise the same compiled CLI.
       - name: Download correctness binaries
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
@@ -134,10 +157,6 @@ jobs:
       - name: Regression cases
         run: tools/regressions.sh target/ci/tsrs
 
-      # Finish using the embedded CLI before switching its dependency features.
-      - name: npm library paths (noembed)
-        run: cargo test --profile ci --locked -p tsrs_cli --features noembed --test npm_lib_path
-
       - name: Upload conformance results
         if: failure()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -150,6 +169,26 @@ jobs:
             target/test-results-default/summary.json
             target/test-results-determinism/
           if-no-files-found: ignore
+
+  # The required Linux test check. Skipped jobs count as passing required checks, so this runs
+  # after any outcome and fails unless both jobs succeeded.
+  test:
+    name: Test Linux
+    needs: [workspace-tests, conformance]
+    if: always()
+    runs-on: namespace-profile-linux-x64-default
+    timeout-minutes: 5
+    steps:
+      - name: Require workspace tests and conformance
+        env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          for result in $RESULTS; do
+            if [ "$result" != success ]; then
+              echo "::error::workspace tests or conformance finished with $result"
+              exit 1
+            fi
+          done
 
   node-api-clients:
     name: Node API clients and parity

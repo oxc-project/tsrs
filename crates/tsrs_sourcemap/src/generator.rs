@@ -95,7 +95,7 @@ pub struct Generator {
 // `sources_content` is Go's `[]*string` with `omitzero`: None (nil) is omitted from the JSON, Some(vec![]) is not.
 #[derive(Clone, Debug, PartialEq, Eq, Default)]
 pub struct RawSourceMap {
-    pub(crate) version: u32,
+    pub version: u32,
     pub file: String,
     pub source_root: String,
     pub sources: Vec<String>,
@@ -610,7 +610,3 @@ fn base64_format_encode(value: u8) -> char {
         _ => panic!("not a base64 value"),
     }
 }
-
-#[cfg(test)]
-#[path = "generator_test.rs"]
-mod generator_test;

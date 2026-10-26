@@ -21,7 +21,7 @@ pub use ptr::{
     arena_rewindable, free_raw, free_slice_ptr,
 };
 
-mod frozen;
+pub mod frozen;
 pub use frozen::{
     FrozenCell, FrozenRef, FrozenRefMut, OwnedCell, OwnedPSliceCell, OwnedSliceCell, OwnedStrCell,
     OwnedTaggedStrCell,
@@ -47,21 +47,21 @@ pub mod stringutil;
 pub mod tspath;
 pub mod utf8;
 
-mod bfs;
+pub mod bfs;
 mod binarysearch;
 mod buildoptions;
-mod compileroptions;
+pub mod compileroptions;
 pub mod context;
 #[path = "core.rs"]
-mod core_go;
+pub mod core_go;
 mod languagevariant;
-mod linkstore;
+pub mod linkstore;
 mod nodemodules;
-mod pattern;
+pub mod pattern;
 mod projectreference;
 mod scriptkind;
 mod stack;
-mod text;
+pub mod text;
 mod textchange;
 mod tristate;
 mod typeacquisition;

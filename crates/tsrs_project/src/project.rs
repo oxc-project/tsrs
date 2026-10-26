@@ -194,7 +194,7 @@ pub struct Project {
     pub command_line: Option<P<ParsedCommandLine>>,
     // Go: `commandLineWithTypingsFiles` + `commandLineWithTypingsFilesOnce`.
     command_line_with_typings_files: Arc<OnceLock<P<ParsedCommandLine>>>,
-    pub(crate) program: Option<&'static Program>,
+    pub program: Option<&'static Program>,
     // The kind of update that was performed on the program last time it was updated.
     pub(crate) program_update_kind: ProgramUpdateKind,
     // The ID of the snapshot that created the program stored in this project.
@@ -208,7 +208,7 @@ pub struct Project {
     pub(crate) content_mapper_watch: Option<Arc<WatchedFiles<Vec<String>>>>,
     pub(crate) content_mapper_watched_files: Option<Arc<Set<Path>>>,
 
-    pub(crate) checker_pool: Option<Arc<CheckerPoolImpl>>,
+    pub checker_pool: Option<Arc<CheckerPoolImpl>>,
     // Memory regions (not in Go): owns the program and what is freed with it (memregions.rs).
     pub(crate) program_owner: Option<Arc<ProgramOwner>>,
 

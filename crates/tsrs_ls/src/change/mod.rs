@@ -1,10 +1,8 @@
 // Go internal/ls/change.
 
 mod delete;
-mod tracker;
-mod trackerimpl;
-#[cfg(test)]
-mod trackerimpl_test;
+pub mod tracker;
+pub mod trackerimpl;
 
 pub use tracker::*;
 pub(crate) use trackerimpl::get_format_code_settings_for_writing;

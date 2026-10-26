@@ -27,7 +27,7 @@ struct Slots {
 }
 
 thread_local! {
-    static HOLDS_SLOT: Cell<bool> = const { Cell::new(false) };
+    pub static HOLDS_SLOT: Cell<bool> = const { Cell::new(false) };
 }
 
 fn get_slots() -> &'static Slots {
@@ -97,11 +97,6 @@ impl Drop for ReacquireOnDrop {
     }
 }
 
-#[cfg(test)]
-fn capacity() -> usize {
+pub fn capacity() -> usize {
     get_slots().capacity
 }
-
-#[cfg(test)]
-#[path = "runslots_test.rs"]
-mod runslots_test;

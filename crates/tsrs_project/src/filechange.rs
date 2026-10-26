@@ -30,21 +30,21 @@ impl FileChangeKind {
 
 #[derive(Clone, Debug, Default)]
 pub struct FileChange {
-    pub(crate) kind: FileChangeKind,
-    pub(crate) uri: lsproto::DocumentUri,
-    pub(crate) version: i32,    // Only set for Open/Change
-    pub(crate) content: String, // Only set for Open
-    pub(crate) language_kind: lsproto::LanguageKind, // Only set for Open
-    pub(crate) changes: Vec<lsproto::TextDocumentContentChangePartialOrWholeDocument>, // Only set for Change
+    pub kind: FileChangeKind,
+    pub uri: lsproto::DocumentUri,
+    pub version: i32,                         // Only set for Open/Change
+    pub content: String,                      // Only set for Open
+    pub language_kind: lsproto::LanguageKind, // Only set for Open
+    pub changes: Vec<lsproto::TextDocumentContentChangePartialOrWholeDocument>, // Only set for Change
 }
 
 #[derive(Clone, Debug, Default)]
 pub struct FileChangeSummary {
     // Only one file can be opened at a time per request
-    pub(crate) opened: lsproto::DocumentUri,
+    pub opened: lsproto::DocumentUri,
     // Reopened is set if a close and open occurred for the same file in a single batch of changes.
     pub(crate) reopened: lsproto::DocumentUri,
-    pub(crate) closed: Set<lsproto::DocumentUri>,
+    pub closed: Set<lsproto::DocumentUri>,
     pub changed: Set<lsproto::DocumentUri>,
     // Only set when file watching is enabled
     pub created: Set<lsproto::DocumentUri>,
@@ -66,7 +66,7 @@ impl FileChangeSummary {
     }
 
     // filechange.go:66
-    pub(crate) fn is_empty(&self) -> bool {
+    pub fn is_empty(&self) -> bool {
         !self.invalidate_all
             && self.opened.0.is_empty()
             && self.reopened.0.is_empty()

@@ -641,6 +641,11 @@ pub fn raw_value_at<'a>(raw: &'a [u8], pointer: &str) -> Option<&'a [u8]> {
 /// Checks `params` (an object, or `{}` for `null`) against the method's pinned params struct, nested api structs
 /// included. `raw` is the request payload the value was parsed from. Returns the number literals by pointer.
 /// `lexemes` are the request's inexact number literals (`strictjson::Decoded::lexemes`); it returns them.
+#[expect(clippy::implicit_hasher, reason = "Public for the integration tests.")]
+#[expect(
+    clippy::too_long_first_doc_paragraph,
+    reason = "Public for the integration tests; the comment keeps its upstream wording."
+)]
 pub fn predecode(
     method: &str,
     go_type: &str,
@@ -717,6 +722,7 @@ fn index_objects(v: &Value, pointer: &mut String, out: &mut FxHashMap<usize, Str
 
 /// Makes `root` (the parsed params, alive and unmodified until the guard drops), its raw payload and number
 /// literals the current request.
+#[expect(clippy::implicit_hasher, reason = "Public for the integration tests.")]
 pub fn enter_request(raw: &[u8], lexemes: FxHashMap<String, String>, root: &Value) -> RequestGuard {
     let mut objects = FxHashMap::default();
     if !lexemes.is_empty() {
@@ -765,7 +771,7 @@ pub fn current_batch_params() -> Vec<Option<Vec<u8>>> {
     FRAMES.with(|f| f.borrow().last().map(|frame| batch_params(&frame.raw)).unwrap_or_default())
 }
 
-fn batch_params(raw: &[u8]) -> Vec<Option<Vec<u8>>> {
+pub fn batch_params(raw: &[u8]) -> Vec<Option<Vec<u8>>> {
     let Some(requests) = raw_value_at(raw, "/requests") else {
         return Vec::new();
     };
@@ -817,49 +823,5 @@ fn batch_params(raw: &[u8]) -> Vec<Option<Vec<u8>>> {
                 out.push(None);
             }
         }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use tsrs_core::json::Value;
-
-    #[test]
-    fn exact_literals_by_object_identity() {
-        let raw = br#"{"snapshot":9007199254740993,"inner":{"snapshot":9007199254740992},"list":[{"snapshot":9007199254740995}]}"#;
-        let Ok(decoded) = tsrs_api_transport::strictjson::decode(raw) else { panic!("valid") };
-        let root = decoded.value;
-        let _g = super::enter_request(raw, decoded.lexemes, &root);
-        assert_eq!(super::exact_u64(&root, "snapshot"), Some(9_007_199_254_740_993));
-        let Value::Object(o) = &root else { unreachable!() };
-        assert_eq!(
-            super::exact_u64(o.get("inner").unwrap(), "snapshot"),
-            Some(9_007_199_254_740_992)
-        );
-        let Value::Array(list) = o.get("list").unwrap() else { unreachable!() };
-        assert_eq!(super::exact_u64(&list[0], "snapshot"), Some(9_007_199_254_740_995));
-        // A copy outside the tree has no recorded literal.
-        let copy = o.get("inner").unwrap().clone();
-        assert_eq!(super::exact_u64(&copy, "snapshot"), None);
-    }
-
-    #[test]
-    fn raw_values_by_pointer() {
-        let raw = br#"{"requests":[{"method":"a","params":{"x":1e3}},{"par\u0061ms": {"snapshot":9007199254740993} ,"method":"b"}]}"#;
-        assert_eq!(super::raw_value_at(raw, "/requests/0/params"), Some(&br#"{"x":1e3}"#[..]));
-        assert_eq!(
-            super::raw_value_at(raw, "/requests/1/params"),
-            Some(&br#"{"snapshot":9007199254740993}"#[..])
-        );
-        assert_eq!(super::raw_value_at(raw, "/requests/2/params"), None);
-        assert_eq!(super::raw_value_at(raw, "/requests/0/nope"), None);
-        let params = super::batch_params(raw);
-        assert_eq!(params.len(), 2);
-        assert_eq!(params[0].as_deref(), Some(&br#"{"x":1e3}"#[..]));
-        assert_eq!(params[1].as_deref(), Some(&br#"{"snapshot":9007199254740993}"#[..]));
-        assert_eq!(
-            super::batch_params(br#"{"requests":[1,{"method":"ping"},null]}"#),
-            vec![None, None, None]
-        );
     }
 }

@@ -454,7 +454,7 @@ impl CacheHashKey {
 impl KeyBuilder {
     // checker.go:17713
     #[inline]
-    pub(crate) fn hash(&mut self) -> CacheHashKey {
+    pub fn hash(&mut self) -> CacheHashKey {
         if self.overflow_buffer.is_none() {
             return CacheHashKey::hash_128(&self.inline_buffer[..self.inline_length]);
         }
@@ -493,7 +493,7 @@ impl KeyBuilder {
 
     // checker.go:17727
     #[inline]
-    pub(crate) fn write_byte(&mut self, c: u8) {
+    pub fn write_byte(&mut self, c: u8) {
         if self.inline_length == self.inline_buffer.len() {
             self.spill();
         }
@@ -503,7 +503,7 @@ impl KeyBuilder {
 
     // checker.go:17735
     #[inline]
-    pub(crate) fn write_string(&mut self, s: &str) {
+    pub fn write_string(&mut self, s: &str) {
         if self.inline_length + s.len() > self.inline_buffer.len() {
             self.spill();
             if s.len() > self.inline_buffer.len() {
@@ -518,7 +518,7 @@ impl KeyBuilder {
 
     // checker.go:17746
     #[inline]
-    fn write_uint32(&mut self, v: u32) {
+    pub fn write_uint32(&mut self, v: u32) {
         if self.inline_length + 4 > self.inline_buffer.len() {
             self.spill();
         }
@@ -558,7 +558,7 @@ impl KeyBuilder {
 
     // checker.go:17774
     #[inline]
-    fn write_types(&mut self, types: &[P<Type>]) {
+    pub fn write_types(&mut self, types: &[P<Type>]) {
         self.reserve(8 + 4 * types.len());
         self.write_usize(types.len());
         for &t in types {
@@ -3482,6 +3482,10 @@ impl Checker {
 /// a table can be dropped from `lazy_member_tables` (resolved in full) while callers still hold it, which an `Rc`
 /// used to cover; the arena keeps it alive instead, and the one-word slices keep it at 80 bytes (an `Rc` box was
 /// 168, rounded up to 192 by mimalloc).
+#[expect(
+    clippy::too_long_first_doc_paragraph,
+    reason = "Public for the integration tests; the comment keeps its upstream wording."
+)]
 pub struct LazyMemberTable {
     mapper: P<TypeMapper>,
     // Go `ready` plus the fields prepareLazyMembers fills in before it sets `ready`.
@@ -4256,76 +4260,4 @@ pub struct ResolvedPropertySource {
     t: P<Type>,
     members: Option<P<SymbolTable>>,
     epoch: u32,
-}
-
-#[cfg(test)]
-mod key_builder_tests {
-    use super::*;
-
-    fn types(count: usize) -> Vec<P<Type>> {
-        (0..count)
-            .map(|i| {
-                Type::alloc(
-                    TypeFlags::Any,
-                    ObjectFlags::None,
-                    TypeId(u32::try_from(i + 1).unwrap()),
-                    IntrinsicType::default(),
-                )
-            })
-            .collect()
-    }
-
-    #[test]
-    fn type_list_keys_keep_the_go_byte_stream_across_spills() {
-        for count in [0, 1, 46, 47, 256, 4096] {
-            let types = types(count);
-            let prefix = "x".repeat(count);
-            let mut expected = prefix.as_bytes().to_vec();
-            expected.push(17);
-            expected.extend_from_slice(&123u32.to_le_bytes());
-            expected.extend_from_slice(&(count as u64).to_le_bytes());
-            for t in &types {
-                expected.extend_from_slice(&t.id.0.to_le_bytes());
-            }
-            expected.extend_from_slice(b"suffix");
-
-            let mut builder = KeyBuilder::default();
-            builder.write_string(&prefix);
-            builder.write_byte(17);
-            builder.write_uint32(123);
-            builder.write_types(&types);
-            builder.write_string("suffix");
-            let hash = CacheHashKey::hash_128(&expected);
-            assert_eq!(builder.hash(), hash, "type count {count}");
-            assert_eq!(builder.hash(), hash, "repeat hash, type count {count}");
-
-            builder.write_byte(b'!');
-            expected.push(b'!');
-            assert_eq!(builder.hash(), CacheHashKey::hash_128(&expected));
-        }
-    }
-
-    #[test]
-    fn type_list_keys_reserve_before_spilling() {
-        for count in [0, 1, 8, 46, 47, 256, 4096] {
-            let types = types(count);
-            let size = 8 + 4 * count;
-            let mut builder = KeyBuilder::default();
-            builder.write_types(&types);
-            assert_eq!(builder.overflow_buffer.is_some(), size > builder.inline_buffer.len());
-            let pointer = builder.overflow_buffer.as_ref().map(Vec::as_ptr);
-            if let Some(overflow) = &builder.overflow_buffer {
-                assert!(overflow.capacity() >= size, "type count {count}");
-            }
-            let mut expected = Vec::with_capacity(size);
-            expected.extend_from_slice(&(count as u64).to_le_bytes());
-            for t in &types {
-                expected.extend_from_slice(&t.id.0.to_le_bytes());
-            }
-            assert_eq!(builder.hash(), CacheHashKey::hash_128(&expected));
-            assert_eq!(builder.overflow_buffer.as_ref().map(Vec::as_ptr), pointer);
-            assert_eq!(builder.hash(), CacheHashKey::hash_128(&expected));
-            assert_eq!(get_type_list_key(&types), CacheHashKey::hash_128(&expected));
-        }
-    }
 }

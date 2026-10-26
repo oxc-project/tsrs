@@ -1,9 +1,9 @@
-mod big;
+pub mod big;
 #[expect(
     clippy::module_inception,
     reason = "The module path preserves the upstream Go package and file layout."
 )]
-mod jsnum;
+pub mod jsnum;
 mod math;
 mod pseudobigint;
 mod string;
@@ -11,12 +11,3 @@ mod string;
 pub use jsnum::*;
 pub use pseudobigint::*;
 pub use string::*;
-
-#[cfg(test)]
-mod jsnum_test;
-#[cfg(test)]
-mod pseudobigint_test;
-#[cfg(test)]
-mod ryu_test;
-#[cfg(test)]
-mod string_test;

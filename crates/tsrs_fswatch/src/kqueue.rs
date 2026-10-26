@@ -110,7 +110,7 @@ fn err_out_of_descriptors(path: &str, err: &Error) -> Error {
     )
 }
 
-fn close_fd(fd: i32) {
+pub fn close_fd(fd: i32) {
     // SAFETY: closing an fd this backend opened and still tracks.
     unsafe { libc::close(fd) };
 }
@@ -144,34 +144,34 @@ fn kevent_register(kq: i32, ev: &libc::kevent) -> Result<(), Error> {
 
 // dirEntry tracks a watched path for kqueue's fd↔path mapping.
 #[derive(Clone)]
-struct DirEntry {
-    path: String,
-    watch_path: String,
-    is_dir: bool,
-    state: Option<i32>, // stores the open fd
+pub struct DirEntry {
+    pub path: String,
+    pub watch_path: String,
+    pub is_dir: bool,
+    pub state: Option<i32>, // stores the open fd
 }
 
-type EntriesID = u64;
+pub type EntriesID = u64;
 
 #[derive(Clone)]
-struct KqueueSubscription {
-    id: u64,
-    dir_watch: Arc<DirWatch>,
-    path: String,
-    entries: EntriesID,
+pub struct KqueueSubscription {
+    pub id: u64,
+    pub dir_watch: Arc<DirWatch>,
+    pub path: String,
+    pub entries: EntriesID,
 }
 
 #[derive(Default)]
-struct KqState {
-    subs_by_path: FxHashMap<String, Vec<KqueueSubscription>>, // multimap<path, sub>
-    fd_to_entry: FxHashMap<i32, (EntriesID, String)>,
-    entry_maps: FxHashMap<EntriesID, FxHashMap<String, DirEntry>>,
+pub struct KqState {
+    pub subs_by_path: FxHashMap<String, Vec<KqueueSubscription>>, // multimap<path, sub>
+    pub fd_to_entry: FxHashMap<i32, (EntriesID, String)>,
+    pub entry_maps: FxHashMap<EntriesID, FxHashMap<String, DirEntry>>,
 }
 
 pub struct KqueueBackend {
     base: WatcherBase,
 
-    mu: Mutex<KqState>, // local lock for kqueue-specific maps
+    pub mu: Mutex<KqState>, // local lock for kqueue-specific maps
     kq: AtomicI32,
     // pipeFDs[0] is read in the start thread only. pipeFDs[1] is written
     // by shutdown (any thread) to wake the loop, so it lives in
@@ -190,7 +190,7 @@ pub fn init(mut w: PlatformWatcher) -> PlatformWatcher {
 }
 
 // kqueue.go:133
-fn new_kqueue_backend() -> KqueueBackend {
+pub fn new_kqueue_backend() -> KqueueBackend {
     KqueueBackend {
         base: WatcherBase::default(),
         mu: Mutex::new(KqState::default()),
@@ -204,7 +204,7 @@ fn new_kqueue_backend() -> KqueueBackend {
 }
 
 impl KqueueBackend {
-    fn next_id(&self) -> u64 {
+    pub fn next_id(&self) -> u64 {
         self.next_id.fetch_add(1, Ordering::Relaxed)
     }
 
@@ -333,7 +333,7 @@ impl KqueueBackend {
     }
 
     // kqueue.go:234
-    fn close_subscriptions(&self) {
+    pub fn close_subscriptions(&self) {
         let mut st = self.mu.lock().unwrap();
         // tsrs-only: subscriptions outlive descriptor replacement. Close the current owned descriptors, not
         // Go's cached subscription fd, which may already have been reused by an unrelated Rust File/ReadDir.
@@ -756,7 +756,7 @@ fn fstat(fd: i32) -> Option<(u64, u64)> {
 }
 
 impl KqState {
-    fn set_entry_state(&mut self, map_id: EntriesID, path: &str, state: Option<i32>) {
+    pub fn set_entry_state(&mut self, map_id: EntriesID, path: &str, state: Option<i32>) {
         if let Some(e) = self.entry_maps.get_mut(&map_id).and_then(|m| m.get_mut(path)) {
             e.state = state;
         }
@@ -794,7 +794,7 @@ impl KqState {
     }
 
     // kqueue.go:408
-    fn close_entry_locked(&mut self, map_id: EntriesID, path: &str) {
+    pub fn close_entry_locked(&mut self, map_id: EntriesID, path: &str) {
         let Some(e) = self.entry_maps.get_mut(&map_id).and_then(|m| m.get_mut(path)) else {
             return;
         };
@@ -1041,7 +1041,3 @@ impl WatcherImpl for KqueueBackend {
         Ok(())
     }
 }
-
-#[cfg(all(test, target_os = "macos"))]
-#[path = "kqueue_test.rs"]
-mod tests;

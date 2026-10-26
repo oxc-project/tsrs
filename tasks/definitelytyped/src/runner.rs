@@ -13,10 +13,10 @@ use crate::api::Result;
 use crate::check::{CompilerOutcome, PackageResult, check_package};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-struct Manifest {
-    dt_commit: String,
-    typescript_commit: String,
-    packages: Vec<String>,
+pub struct Manifest {
+    pub dt_commit: String,
+    pub typescript_commit: String,
+    pub packages: Vec<String>,
 }
 
 pub fn main(args: &[String]) -> Result<()> {
@@ -107,7 +107,7 @@ fn discover(dt: &Path) -> Result<Vec<String>> {
     Ok(packages.into_iter().collect())
 }
 
-fn is_version_directory(name: &str) -> bool {
+pub fn is_version_directory(name: &str) -> bool {
     let Some(version) = name.strip_prefix('v') else { return false };
     let mut parts = version.split('.');
     let major = parts.next().unwrap_or("");
@@ -148,7 +148,7 @@ fn read_manifest(path: &Path) -> Result<Manifest> {
     Ok(serde_json::from_slice(&fs::read(path)?)?)
 }
 
-fn shard_packages(manifest: &Manifest, index: usize, count: usize) -> Vec<(usize, String)> {
+pub fn shard_packages(manifest: &Manifest, index: usize, count: usize) -> Vec<(usize, String)> {
     let mut groups = BTreeMap::<String, Vec<(usize, String)>>::new();
     for (package_index, name) in manifest.packages.iter().enumerate() {
         groups
@@ -447,23 +447,4 @@ fn report(args: &[String]) -> Result<()> {
         return Err("conformance run has incomplete packages".into());
     }
     Ok(())
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn versions_and_shards_stay_together() {
-        assert!(is_version_directory("v2"));
-        assert!(is_version_directory("v2.1"));
-        assert!(!is_version_directory("v2.x"));
-        let manifest = Manifest {
-            dt_commit: String::new(),
-            typescript_commit: String::new(),
-            packages: vec!["a".into(), "a/v1".into(), "b".into()],
-        };
-        assert_eq!(shard_packages(&manifest, 0, 2).len(), 2);
-        assert_eq!(shard_packages(&manifest, 1, 2).len(), 1);
-    }
 }

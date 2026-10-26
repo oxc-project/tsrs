@@ -200,7 +200,7 @@ impl Converters {
     // declaration mapping) to an lsproto.Position. Positions in content-mapped files are mapped through
     // the file's span map; positions in normal files return FidelityExact.
     // converters.go:89
-    pub(crate) fn to_lsp_position(
+    pub fn to_lsp_position(
         &self,
         script: &dyn Script,
         position: TextPos,
@@ -682,7 +682,7 @@ fn url_path_escape(s: &str) -> String {
 
 impl Converters {
     // converters.go:366
-    pub(crate) fn line_and_character_to_position(
+    pub fn line_and_character_to_position(
         &self,
         script: &dyn Script,
         line_and_character: lsproto::Position,

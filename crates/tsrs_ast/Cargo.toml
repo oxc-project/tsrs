@@ -19,4 +19,5 @@ bitflags.workspace = true
 memchr.workspace = true
 
 [lib]
+test = false
 doctest = false

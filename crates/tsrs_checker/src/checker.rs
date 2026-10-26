@@ -315,8 +315,8 @@ bitflags! {
 
 #[derive(Default)]
 pub struct InferenceContext {
-    pub(crate) inferences: PSliceCell<P<InferenceInfo>>, // Inferences made for each type parameter
-    pub(crate) flags: Cell<InferenceFlags>,              // Inference flags
+    pub inferences: PSliceCell<P<InferenceInfo>>, // Inferences made for each type parameter
+    pub(crate) flags: Cell<InferenceFlags>,       // Inference flags
     pub(crate) signature: Cell<Option<P<Signature>>>, // Generic signature for which inferences are made (if any)
     pub(crate) compare_types: Cell<Option<TypeComparer>>, // Type comparer function
     // Mapper that fixes inferences / that doesn't: created on first use with `TSRS_LAZY_INFERENCE_MAPPERS` (`mapper()`,
@@ -373,7 +373,7 @@ impl InferenceContext {
     }
 
     /// Whether one of the context's inference mappers escaped (it may be used after its creator is done).
-    pub(crate) fn escaped(&self) -> bool {
+    pub fn escaped(&self) -> bool {
         self.rare.get() & RARE_ESCAPED != 0
     }
 
@@ -398,13 +398,13 @@ impl InferenceContext {
     }
 
     /// The context's own inference mappers, when created (for recycling).
-    pub(crate) fn own_mappers(&self) -> [Option<P<TypeMapper>>; 2] {
+    pub fn own_mappers(&self) -> [Option<P<TypeMapper>>; 2] {
         [self.mapper.get(), self.non_fixing_mapper.get()]
     }
 
     /// Go `context.mapper`, the mapper that fixes inferences. Go creates it with the context; here it may be created
     /// on the first call (candidate B2), once, so every caller gets the same mapper.
-    pub(crate) fn mapper(&self) -> Option<P<TypeMapper>> {
+    pub fn mapper(&self) -> Option<P<TypeMapper>> {
         if self.mapper.get().is_none() {
             let m = new_inference_type_mapper(self.as_p(), true /*fixing*/);
             if self.escaped() {
@@ -416,7 +416,7 @@ impl InferenceContext {
     }
 
     /// Go `context.nonFixingMapper` (created like `mapper()`).
-    pub(crate) fn non_fixing_mapper(&self) -> Option<P<TypeMapper>> {
+    pub fn non_fixing_mapper(&self) -> Option<P<TypeMapper>> {
         if self.non_fixing_mapper.get().is_none() {
             let m = new_inference_type_mapper(self.as_p(), false /*fixing*/);
             if self.escaped() {
@@ -498,7 +498,7 @@ impl InferenceContext {
     /// its own inference mappers, its inference infos and their candidate lists, its info slice and its tail. Its
     /// creator guarantees that nothing else holds it (no live inference-context stack entry, no clone that shares
     /// state: clones copy their infos). Contexts that escaped are kept.
-    pub(crate) fn recycle(n: P<InferenceContext>) {
+    pub fn recycle(n: P<InferenceContext>) {
         if n.escaped() {
             return;
         }
@@ -621,7 +621,7 @@ impl<T: Copy + PartialEq> LazyVec<T> {
 
 #[derive(Default)]
 pub struct InferenceInfo {
-    pub(crate) type_parameter: Cell<Option<P<Type>>>, // Type parameter for which inferences are being made
+    pub type_parameter: Cell<Option<P<Type>>>, // Type parameter for which inferences are being made
     pub(crate) candidates: LazyVec<P<Type>>, // Candidates in covariant positions in decreasing depth order
     pub(crate) contra_candidates: LazyVec<P<Type>>, // Candidates in contravariant positions
     pub(crate) inferred_type: Cell<Option<P<Type>>>, // Cache for resolved inferred type
@@ -651,7 +651,7 @@ enum InferencePriorityRepr {
 pub struct InferencePriority(InferencePriorityRepr);
 
 impl InferencePriority {
-    pub(crate) const CIRCULARITY: Self = Self(InferencePriorityRepr::Circularity);
+    pub const CIRCULARITY: Self = Self(InferencePriorityRepr::Circularity);
     pub(crate) const NONE: Self = Self::from_bits(0);
     pub(crate) const NAKED_TYPE_VARIABLE: Self = Self::from_bits(1 << 0); // Naked type variable in union or intersection type
     pub(crate) const SPECULATIVE_TUPLE: Self = Self::from_bits(1 << 1); // Speculative tuple inference
@@ -669,7 +669,7 @@ impl InferencePriority {
     pub(crate) const ALWAYS_STRICT: Self = Self::from_bits(1 << 10); // Always use strict rules for contravariant inferences
     pub(crate) const MAX_VALUE: Self = Self::from_bits(1 << 11); // Seed for inference priority tracking
 
-    const fn from_bits(bits: u16) -> Self {
+    pub const fn from_bits(bits: u16) -> Self {
         assert!(bits <= u16::MAX >> 1, "inference priority exceeds u16 storage");
         Self(InferencePriorityRepr::Bits(
             std::num::NonZeroU16::new((bits << 1) | 1)
@@ -694,12 +694,12 @@ impl InferencePriority {
         }
     }
 
-    pub(crate) fn intersects(self, other: Self) -> bool {
+    pub fn intersects(self, other: Self) -> bool {
         // The low bit marks finite values, not a flag. Circularity's zero key intersects nothing.
         self.order_key() & other.order_key() & !1 != 0
     }
 
-    pub(crate) fn memo_bits(self) -> u32 {
+    pub fn memo_bits(self) -> u32 {
         self.bits().map_or(u32::MAX, u32::from)
     }
 }
@@ -748,49 +748,6 @@ impl std::ops::BitOr for InferencePriority {
                 Self(InferencePriorityRepr::Bits(left | right))
             }
             _ => Self::CIRCULARITY,
-        }
-    }
-}
-
-#[cfg(test)]
-mod inference_priority_tests {
-    use super::InferencePriority;
-
-    #[test]
-    fn reachable_priorities_match_integer_semantics() {
-        // Circularity keeps its sentinel behavior; finite flags follow the integer operations below.
-        let circularity = InferencePriority::CIRCULARITY;
-        assert_eq!(InferencePriority::default().memo_bits(), 0);
-        assert_eq!(circularity.memo_bits(), u32::MAX);
-        assert_eq!(circularity.cmp(&circularity), std::cmp::Ordering::Equal);
-        assert_eq!(circularity.min(circularity), circularity);
-        assert_eq!(circularity | circularity, circularity);
-        assert!(!circularity.intersects(circularity));
-        assert_eq!(InferencePriority::from_bits(0x7fff).memo_bits(), 0x7fff);
-        for bits in [0x8000, u16::MAX] {
-            assert!(std::panic::catch_unwind(|| InferencePriority::from_bits(bits)).is_err());
-        }
-        // All OR combinations of the twelve public flag bits, including MaxValue.
-        for left_bits in 0..4096u16 {
-            let left = InferencePriority::from_bits(left_bits);
-            assert_eq!(left.memo_bits(), u32::from(left_bits));
-            assert_eq!(circularity.cmp(&left), (-1i32).cmp(&i32::from(left_bits)));
-            assert_eq!(left.cmp(&circularity), i32::from(left_bits).cmp(&-1));
-            assert_ne!(left, circularity);
-            assert_eq!(left.min(circularity), circularity);
-            assert_eq!(circularity.min(left), circularity);
-            assert_eq!(left | circularity, circularity);
-            assert_eq!(circularity | left, circularity);
-            assert!(!left.intersects(circularity));
-            assert!(!circularity.intersects(left));
-            for right_bits in 0..4096u16 {
-                let right = InferencePriority::from_bits(right_bits);
-                assert_eq!((left | right).memo_bits(), u32::from(left_bits | right_bits));
-                assert_eq!(left.cmp(&right), i32::from(left_bits).cmp(&i32::from(right_bits)));
-                assert_eq!(left == right, left_bits == right_bits);
-                assert_eq!(left.min(right).memo_bits(), u32::from(left_bits.min(right_bits)));
-                assert_eq!(left.intersects(right), left_bits & right_bits != 0);
-            }
         }
     }
 }
@@ -3433,7 +3390,7 @@ impl CacheHashKey {
         CacheHashKey { hi: (v >> 64) as u64, lo: v as u64 }
     }
     /// Go `xxh3.Hash128(b)`.
-    pub(crate) fn hash_128(b: &[u8]) -> CacheHashKey {
+    pub fn hash_128(b: &[u8]) -> CacheHashKey {
         CacheHashKey::from_u128(xxhash_rust::xxh3::xxh3_128(b))
     }
     /// Go `xxh3.HashString128(s)` (usable in constants).
@@ -3445,8 +3402,8 @@ impl CacheHashKey {
 /// Go `keyBuilder`; its methods are in `checker_09.rs`.
 pub struct KeyBuilder {
     pub(crate) inline_length: usize,
-    pub(crate) overflow_buffer: Option<Vec<u8>>, // Go nil slice = no overflow yet
-    pub(crate) inline_buffer: [u8; 192],
+    pub overflow_buffer: Option<Vec<u8>>, // Go nil slice = no overflow yet
+    pub inline_buffer: [u8; 192],
 }
 
 impl Default for KeyBuilder {

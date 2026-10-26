@@ -292,20 +292,20 @@ fn get_all_module_paths_worker(
 // containsIgnoredPath checks if a path contains patterns that should be ignored.
 // This is a local helper that duplicates tspath.ContainsIgnoredPath for performance.
 // specifiers.go:252
-fn contains_ignored_path(s: &str) -> bool {
+pub fn contains_ignored_path(s: &str) -> bool {
     s.contains("/node_modules/.") || s.contains("/.git") || s.contains(".#")
 }
 
 // ContainsNodeModules checks if a path contains the node_modules directory.
 // specifiers.go:259
-fn contains_node_modules(s: &str) -> bool {
+pub fn contains_node_modules(s: &str) -> bool {
     s.contains("/node_modules/")
 }
 
 // GetEachFileNameOfModule returns all possible file paths for a module, including symlink alternatives.
 // This function handles symlink resolution and provides multiple path options for module resolution.
 // specifiers.go:265
-fn get_each_file_name_of_module(
+pub fn get_each_file_name_of_module(
     importing_file_name: &str,
     imported_file_name: &str,
     host: &dyn ModuleSpecifierGenerationHost,
@@ -1503,7 +1503,7 @@ fn validate_ending(
 }
 
 // specifiers.go:1204
-fn try_get_module_name_from_exports_or_imports(
+pub fn try_get_module_name_from_exports_or_imports(
     options: &CompilerOptions,
     host: &dyn ModuleSpecifierGenerationHost,
     target_file_path: &str,
@@ -1901,7 +1901,3 @@ fn get_module_specifier_with_preferences(
         false,
     )
 }
-
-#[cfg(test)]
-#[path = "specifiers_test.rs"]
-mod specifiers_test;

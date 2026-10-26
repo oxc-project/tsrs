@@ -4,7 +4,7 @@ package api
 // (ts-ref/tsc/internal/api) by regen.sh, which removes it again afterwards. Drives the pinned Go API
 // session over its JSON request surface with the fixture in ./fixture and the needles in needles.txt,
 // and writes go_probe_b85298b6.jsonl. The request sequence mirrors probe_lines() in
-// crates/tsrs_api/src/checker/tests.rs; keep both in sync.
+// crates/tsrs_api/tests/integration/checker_test.rs; keep both in sync.
 
 import (
 	"context"

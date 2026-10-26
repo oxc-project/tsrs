@@ -321,7 +321,7 @@ pub fn get_output_declaration_file_name_worker(
     )
 }
 
-pub(crate) fn get_external_output_file_name(
+pub fn get_external_output_file_name(
     input_file_name: &str,
     options: &CompilerOptions,
     host: &dyn OutputPathsHost,

@@ -1,11 +1,8 @@
 mod number;
 mod regexp;
-mod scanner;
+pub mod scanner;
 mod unicodeproperties;
-mod utilities;
+pub mod utilities;
 
 pub use scanner::*;
 pub use utilities::*;
-
-#[cfg(test)]
-mod scanner_test;

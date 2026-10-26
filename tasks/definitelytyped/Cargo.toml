@@ -20,3 +20,12 @@ tsrs_core.workspace = true
 tsrs_parser.workspace = true
 tsrs_printer.workspace = true
 tsrs_scanner.workspace = true
+
+[lib]
+test = false
+doctest = false
+
+[[bin]]
+name = "tsrs_definitelytyped"
+path = "src/main.rs"
+test = false

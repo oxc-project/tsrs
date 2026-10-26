@@ -7,7 +7,7 @@
 
 mod compare;
 mod preferences;
-mod specifiers;
+pub mod specifiers;
 mod types;
 mod util;
 

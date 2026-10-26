@@ -40,6 +40,7 @@ pub struct Diag {
 }
 
 impl Diag {
+    #[expect(clippy::len_without_is_empty, reason = "Public for the integration tests.")]
     pub fn len(&self) -> Option<u32> {
         Some(self.end?.saturating_sub(self.pos?))
     }

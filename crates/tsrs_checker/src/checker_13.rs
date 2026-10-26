@@ -1809,6 +1809,10 @@ fn contains_regular_literal_type(
 /// (`Program::source_files_complete`). tsrs-only: `contains_type` for each source type binary-searches the target
 /// with `compare_types`; in sorted lists each source type can only be found after the previous one's position, so a
 /// forward scan by identity answers the same with no comparisons. Used when the scan is the cheaper of the two.
+#[expect(
+    clippy::too_long_first_doc_paragraph,
+    reason = "Public for the integration tests; the comment keeps its upstream wording."
+)]
 pub fn is_sorted_subset(source: &[P<Type>], target: &[P<Type>]) -> bool {
     let mut rest = target;
     !(source.iter().any(|&t| {

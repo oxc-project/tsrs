@@ -16,6 +16,11 @@ tsrs_tsoptions.workspace = true
 tsrs_project.workspace = true
 tsrs_lsp.workspace = true
 
+[lib]
+test = false
+doctest = false
+
 [[bin]]
 name = "fourslash_server"
 path = "src/main.rs"
+test = false

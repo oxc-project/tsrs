@@ -5,10 +5,10 @@
 // Definition, Manifest, IsSupportedVirtualExtension, OptionPathSegment) is tsrs_tsoptions::contentmappers; it is
 // re-exported here so that `contentmapper::Mapper` reads as in Go.
 
-mod host;
-mod hostimpl;
-mod process;
-mod transform;
+pub mod host;
+pub mod hostimpl;
+pub mod process;
+pub mod transform;
 
 pub use host::*;
 pub use hostimpl::*;
@@ -17,10 +17,3 @@ pub use transform::*;
 pub use tsrs_tsoptions::{
     Definition, Manifest, Mapper, OptionPathSegment, is_supported_virtual_extension,
 };
-
-#[cfg(test)]
-mod host_test;
-#[cfg(test)]
-mod process_test;
-#[cfg(test)]
-mod transform_test;

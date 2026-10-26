@@ -169,7 +169,7 @@ pub struct Overlay {
 }
 
 // overlayfs.go:130
-fn new_overlay(file_name: String, content: String, version: i32, kind: ScriptKind) -> Overlay {
+pub fn new_overlay(file_name: String, content: String, version: i32, kind: ScriptKind) -> Overlay {
     let hash = hash_string_128(&content);
     Overlay {
         base: FileBase::new(file_name, content, hash),
@@ -634,10 +634,7 @@ struct FileEvents {
 
 impl OverlayFS {
     // overlayfs.go:407
-    pub(crate) fn process_changes(
-        &self,
-        changes: &[FileChange],
-    ) -> (FileChangeSummary, OverlayMap) {
+    pub fn process_changes(&self, changes: &[FileChange]) -> (FileChangeSummary, OverlayMap) {
         let mut st = self.mu.write().unwrap();
 
         let mut result = FileChangeSummary::default();
@@ -878,7 +875,3 @@ impl OverlayFS {
         (result, new_overlays)
     }
 }
-
-#[cfg(test)]
-#[path = "overlayfs_test.rs"]
-mod overlayfs_test;

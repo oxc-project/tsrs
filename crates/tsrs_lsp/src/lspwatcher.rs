@@ -19,7 +19,7 @@ use tsrs_vfs::{FS, walk_dir};
 // first batch a short grace window so adjacent filesystem bursts coalesce.
 const THROTTLE_WINDOW: Duration = Duration::from_millis(75);
 
-pub(crate) trait WatcherBackend: Send + Sync {
+pub trait WatcherBackend: Send + Sync {
     fn watch_directory(
         &self,
         dir: &str,
@@ -115,7 +115,7 @@ struct WatchState {
 // lspwatcher.go:91
 // New constructs a Watcher backed by internal/fswatch's platform-default
 // watcher implementation.
-pub(crate) fn new(fs: Arc<dyn FS>, on_changes: OnChanges, logger: Arc<dyn Logger>) -> Arc<Watcher> {
+pub fn new(fs: Arc<dyn FS>, on_changes: OnChanges, logger: Arc<dyn Logger>) -> Arc<Watcher> {
     new_with_fs_watcher(fs, fswatch::default(), on_changes, logger)
 }
 
@@ -133,7 +133,7 @@ fn new_with_fs_watcher(
 }
 
 // lspwatcher.go:102
-pub(crate) fn new_with_backend(
+pub fn new_with_backend(
     fs: Arc<dyn FS>,
     backend: Box<dyn WatcherBackend>,
     on_changes: OnChanges,
@@ -160,7 +160,7 @@ impl Watcher {
     // failure (e.g. resource exhaustion while watching an existing directory)
     // causes WatchFiles to roll back the whole id and return an error, so the
     // session's pending/retry path re-registers it on the next reevaluation.
-    pub(crate) fn watch_files(
+    pub fn watch_files(
         &self,
         id: &str,
         file_system_watchers: &[lsproto::FileSystemWatcher],
@@ -231,7 +231,7 @@ impl Watcher {
 
     // lspwatcher.go:178
     // UnwatchFiles tears down all subscriptions associated with id.
-    pub(crate) fn unwatch_files(&self, id: &str) -> Result<(), String> {
+    pub fn unwatch_files(&self, id: &str) -> Result<(), String> {
         let mut st = self.mu.lock().unwrap();
         let Some(watches) = st.watches.as_mut().and_then(|w| w.remove(id)) else {
             return Err(format!("lspwatcher: no watcher with id {id:?}"));
@@ -245,7 +245,7 @@ impl Watcher {
 
     // lspwatcher.go:194
     // Close removes every subscription. Safe to call multiple times.
-    pub(crate) fn close(&self) {
+    pub fn close(&self) {
         let mut st = self.mu.lock().unwrap();
         if st.closed {
             return;
@@ -657,7 +657,6 @@ fn effective_kind(file_system_watcher: &lsproto::FileSystemWatcher) -> lsproto::
     )
 }
 
-#[cfg(test)]
-pub(crate) fn root_from_glob_for_test(pattern: &str) -> String {
+pub fn root_from_glob_for_test(pattern: &str) -> String {
     root_from_glob(pattern)
 }

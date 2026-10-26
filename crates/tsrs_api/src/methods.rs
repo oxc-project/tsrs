@@ -24,12 +24,12 @@ pub enum Status {
 }
 
 pub struct MethodInfo {
-    pub(crate) name: &'static str,
-    pub(crate) owner: Owner,
+    pub name: &'static str,
+    pub owner: Owner,
     pub status: Status,
 }
 
-pub(crate) const METHODS: [MethodInfo; 177] = [
+pub const METHODS: [MethodInfo; 177] = [
     MethodInfo { name: "release", owner: Owner::Core, status: Status::Supported },
     MethodInfo { name: "releaseSourceFile", owner: Owner::Core, status: Status::Supported },
     MethodInfo { name: "retainSourceFile", owner: Owner::Core, status: Status::Partial },

@@ -551,7 +551,7 @@ impl SpanMap {
     // AliasForVirtualSpan returns the alias segment exactly covering r. Partial overlap does not qualify:
     // diagnostic text may be substituted only when the diagnostic identifies the complete virtual alias.
     // spanmap.go:364
-    pub(crate) fn alias_for_virtual_span(&self, r: TextRange) -> Option<Segment> {
+    pub fn alias_for_virtual_span(&self, r: TextRange) -> Option<Segment> {
         let (start, end) = source_range(r);
         let (index, inside) = self.segment_index_at(start);
         if !inside {

@@ -79,8 +79,7 @@ impl<K: Hash + Eq + Clone + Send + Sync, T: Cloneable + Clone> SyncMapEntry<K, T
         self.key.clone()
     }
 
-    #[cfg(test)]
-    fn proxy_for(&self) -> Option<Arc<SyncMapEntry<K, T>>> {
+    pub fn proxy_for(&self) -> Option<Arc<SyncMapEntry<K, T>>> {
         self.mu.lock().unwrap().proxy_for.clone()
     }
 
@@ -484,7 +483,3 @@ impl<K: Hash + Eq + Clone + Send + Sync, T: Cloneable + Clone> SyncMap<K, T> {
         self.finalize_with_hooks(hooks)
     }
 }
-
-#[cfg(test)]
-#[path = "syncmap_test.rs"]
-mod syncmap_test;

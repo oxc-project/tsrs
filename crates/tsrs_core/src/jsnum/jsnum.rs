@@ -5,7 +5,7 @@ use super::big;
 use super::math;
 
 pub const MAX_SAFE_INTEGER: Number = Number(((1u64 << 53) - 1) as f64);
-pub(super) const MIN_SAFE_INTEGER: Number = Number(-MAX_SAFE_INTEGER.0);
+pub const MIN_SAFE_INTEGER: Number = Number(-MAX_SAFE_INTEGER.0);
 
 // Number represents a JS-like number.
 //
@@ -60,7 +60,7 @@ impl Neg for Number {
     }
 }
 
-pub(super) fn nan() -> Number {
+pub fn nan() -> Number {
     Number(f64::from_bits(0x7FF8_0000_0000_0001))
 }
 
@@ -70,7 +70,7 @@ impl Number {
     }
 }
 
-pub(super) fn inf(sign: i32) -> Number {
+pub fn inf(sign: i32) -> Number {
     if sign >= 0 { Number(f64::INFINITY) } else { Number(f64::NEG_INFINITY) }
 }
 
@@ -98,7 +98,7 @@ impl Number {
         clippy::float_cmp,
         reason = "Exact equality preserves JavaScript numeric identity; an epsilon comparison would merge distinct values."
     )]
-    pub(crate) fn to_int32(self) -> i32 {
+    pub fn to_int32(self) -> i32 {
         let mut x = self.0;
 
         // Fast path: if the number is in the range (-2^31, 2^32), i.e. an SMI,
@@ -181,7 +181,6 @@ impl Number {
     }
 }
 
-#[cfg(test)] // only tests use it, in Go too
 pub const NEGATIVE_ZERO: Number = Number(-0.0);
 
 impl Number {

@@ -104,7 +104,7 @@ cargo run --profile dev -p tsrs_determinism -- conformance       # both checker 
 .github/scripts/go-fourslash-gate.sh             # language-server suite (Go assertions, Rust LSP)
 tools/regressions.sh target/debug/tsrs                            # testdata/regressions (CI runs it too)
 cargo run --profile dev -p tsrs_determinism -- check --tsrs target/debug/tsrs # committed tsgo snapshots
-cargo test --locked                                             # all workspace unit and integration tests (CI)
+cargo test --locked                                             # every crate's integration test binary (CI)
 ```
 
 The conformance gate in [the determinism task](tasks/determinism/README.md#conformance-gate), also run by CI and
@@ -136,6 +136,12 @@ For a bug outside the suite, add a reproduction under `testdata/regressions/<nam
 Capture its combined stdout and stderr, replacing the case's absolute directory path with `<dir>` to match
 `tools/regressions.sh`.
 
+Rust tests live in each crate's one integration test binary, `tests/integration/main.rs`: add a module there for
+code the fixtures cannot reach. Do not add unit tests in `src`. Every `[lib]` and `[[bin]]` sets `test = false`, so
+they would never run, and `tools/lint/source.mjs` rejects them. A test that changes process-wide state (fast mode,
+checker history, write settling, RSS) runs alone in a child process, as `isolated::in_child` in tsrs_fswatch's tests
+does.
+
 ## Landing changes
 
 - Changes target `main`. CI (`.github/workflows/ci.yml`, on GitHub Actions) runs on pushes
@@ -143,8 +149,10 @@ Capture its combined stdout and stderr, replacing the case's absolute directory 
   follow the repository's approval setting, run with read-only tokens and never get repository secrets.
 - CI builds the CLI and conformance runner once with `--profile ci` in `build-correctness`; conformance, regressions
   and determinism use those same binaries. The Linux checks have separate Rust caches: `lint` runs Clippy and source checks;
-  `test` runs Rust checks and all workspace tests, compiler conformance in
-  both checker modes with the focused upstream scheduling sweep, and regressions; `determinism` compares every benchmark project against committed snapshots
+  `workspace-tests` runs all workspace tests with warnings denied; `conformance` runs beside it with compiler
+  conformance in both checker modes with the focused upstream scheduling sweep, and regressions; `test` (the
+  required Test Linux check) passes only when both succeed;
+  `determinism` compares every benchmark project against committed snapshots
   from the root pnpm TypeScript release matching Cargo metadata, using Go defaults and fast-mode locality/unnamed
   scheduling at four and all available CPU checkers, three runs each, plus three fixed random assignments per count.
   It also sweeps every regression fixture in fast mode under its unnamed and seeded random schedules at two and four

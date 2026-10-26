@@ -129,7 +129,11 @@ fn panic_message(p: &(dyn std::any::Any + Send)) -> String {
 /// The printer's panics print a node kind with `{:?}` (`TypeLiteral`); Go's `%v` of `ast.Kind` prints
 /// `KindTypeLiteral`. Rewrites a trailing kind name in the recovered message only (printer output itself is
 /// unchanged).
-fn go_kind_text(message: &str) -> String {
+#[expect(
+    clippy::too_long_first_doc_paragraph,
+    reason = "Public for the integration tests; the comment keeps its upstream wording."
+)]
+pub fn go_kind_text(message: &str) -> String {
     if let Some((head, tail)) = message.rsplit_once(": ") {
         let is_kind_name = !tail.is_empty()
             && tail.chars().next().is_some_and(|c| c.is_ascii_uppercase())
@@ -139,20 +143,4 @@ fn go_kind_text(message: &str) -> String {
         }
     }
     message.to_string()
-}
-
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn go_kind_text() {
-        assert_eq!(
-            super::go_kind_text("unexpected node: TypeLiteral"),
-            "unexpected node: KindTypeLiteral"
-        );
-        assert_eq!(
-            super::go_kind_text("unexpected node: KindTypeLiteral"),
-            "unexpected node: KindTypeLiteral"
-        );
-        assert_eq!(super::go_kind_text("index out of range: 3"), "index out of range: 3");
-    }
 }

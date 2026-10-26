@@ -65,6 +65,10 @@ pub type CheckerResult<T> = Result<T, CheckerError>;
 /// (typeToTypeNode / signatureToSignatureDeclaration); the transport sends it as raw binary (msgpack)
 /// or as `{ "data": base64 }` (JSON-RPC), exactly like Go's `RawBinary` / `SourceFileResponse`.
 #[derive(Clone, Debug, PartialEq)]
+#[expect(
+    clippy::too_long_first_doc_paragraph,
+    reason = "Public for the integration tests; the comment keeps its upstream wording."
+)]
 pub enum CheckerResponse {
     Json(Value),
     EncodedNode(Vec<u8>),

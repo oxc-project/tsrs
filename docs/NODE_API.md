@@ -238,11 +238,11 @@ existing core `getSymbolOfDeclaration` instead retrieves a binder symbol from a 
 | 8 | `createSnapshot` | core | supported | program_test, module_resolution_test, requestfs_test (full/layer request filesystems, removedPaths) |
 | 9 | `updateSnapshot` | core | supported | program_test, requestfs_test (layers compacted over full, retained base, release of base, fileNotifications expanded to request-symlink aliases) |
 | 10 | `getCurrentLanguageServerSnapshot` | core | supported | session_apistate_test (port of Go's session_apistate_test.go: pending LSP changes, per-session open/close ownership, created programs released on close, standalone sessions rejected); tsrs_lsp server_apisession_test (`custom/initializeAPISession`, open-file overlays over the socket, shutdown) |
-| 11 | `createBuildOrchestrator` | core | supported | tsrs_cli api::tests and tsrs_lsp server_apisession_test (shared in-process build backend; fresh orchestrator per call instead of Go's recheckAllProjects reuse) |
-| 12 | `disposeBuildOrchestrator` | core | supported | tsrs_cli api::tests |
-| 13 | `build` | core | supported | tsrs_cli api::tests (references, up-to-date rebuild) |
-| 14 | `buildReferences` | core | supported | tsrs_cli api::tests |
-| 15 | `cleanBuild` | core | supported | tsrs_cli api::tests |
+| 11 | `createBuildOrchestrator` | core | supported | tsrs_cli api_test and tsrs_lsp server_apisession_test (shared in-process build backend; fresh orchestrator per call instead of Go's recheckAllProjects reuse) |
+| 12 | `disposeBuildOrchestrator` | core | supported | tsrs_cli api_test |
+| 13 | `build` | core | supported | tsrs_cli api_test (references, up-to-date rebuild) |
+| 14 | `buildReferences` | core | supported | tsrs_cli api_test |
+| 15 | `cleanBuild` | core | supported | tsrs_cli api_test |
 | 16 | `cleanReferences` | core | partial | ported Go clean(onlyReferences); no dedicated test |
 | 17 | `createModuleResolver` | core | supported | module_resolution_test (default, static entries, callback; custom resolutions skip disk-layout import diagnostics under `rewriteRelativeImportExtensions`) |
 | 18 | `releaseModuleResolver` | core | supported | module_resolution_test |
@@ -408,7 +408,7 @@ existing core `getSymbolOfDeclaration` instead retrieves a binder symbol from a 
 
 ## Request-filesystem regression fixtures
 
-`cargo test -p tsrs_api --test requestfs_differential` runs the production request filesystem against 11
+`cargo test -p tsrs_api --test integration requestfs_differential` runs the production request filesystem against 11
 pinned-Go scenarios (20 updates, 142 filesystem queries and every update's change summary), plus layering over
 real files and symlinks. No Cargo feature is needed. Fixtures and their generator are in
 `crates/tsrs_api/tests/fixtures/`: place `requestfs_gen.go.txt` in the pinned
@@ -428,7 +428,7 @@ real files and symlinks. No Cargo feature is needed. Fixtures and their generato
   builds programs single-threaded, so `--builders` and checker parallelism do not speed up API builds and
   `singleThreaded` is forced on (it does not appear in outputs or build info). The output files, `.tsbuildinfo`
   included, and the exit status are byte-identical to `tsrs -b` on the same graph
-  (`api_build_outputs_match_cli_build`), and up-to-date rebuilds build nothing (`api::tests`). This is what
+  (`api_build_outputs_match_cli_build`), and up-to-date rebuilds build nothing (`api_test`). This is what
   makes per-build memory freeable; it trades build throughput for bounded memory.
 - Build orchestration runs the `tsc -b` orchestrator in-process through `tsrs_api::build::BuildBackend`.
   Every API session installs this backend by default, including library and LSP-attached sessions; embedding hosts

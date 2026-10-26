@@ -15,6 +15,10 @@
 //! keeps its region, a leaf that was not predicted is not freed. After a leaf's semantic diagnostics are collected (the
 //! pass's callback), `free` drops its region with `Region::retire_on_free`: its pages go back to the system and its
 //! address range is never reused. Every other region lives for the rest of the process, as the thread arenas did.
+#![expect(
+    clippy::too_long_first_doc_paragraph,
+    reason = "Public for the integration tests; the comment keeps its upstream wording."
+)]
 
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::{LazyLock, Mutex};
@@ -84,10 +88,10 @@ static LEAF_NODES: AtomicUsize = AtomicUsize::new(0);
 pub struct LeafSettings {
     pub mode: LeafMode,
     /// `stats_report` reports.
-    pub(crate) stats: bool,
+    pub stats: bool,
     /// Every TypeScript root file gets a region, not only the predicted ones (`PREDICTED_LEAF_PATTERNS`): for
     /// measurement; it frees the leaves the prediction misses, but moves every tree out of the thread arenas.
-    pub(crate) every_file: bool,
+    pub every_file: bool,
 }
 
 /// The most checkers for which leaf freeing is on by default (`leaf_settings_from_env`). Measured with one binary,
@@ -97,6 +101,10 @@ pub struct LeafSettings {
 /// and more checkers free leaves in a more scattered order). The README bench's +21% on the 8-vCPU runner was a
 /// slower runner and a PGO build without its training profiles (#153), not freeing. `TSRS_FREE_LEAVES=1` turns it on
 /// at any count.
+#[expect(
+    clippy::too_long_first_doc_paragraph,
+    reason = "Public for the integration tests; the comment keeps its upstream wording."
+)]
 pub const MAX_DEFAULT_CHECKERS: usize = 16;
 
 /// Keeps lazy declaration parsing within its supported CLI modes.
@@ -141,6 +149,10 @@ static LAZY_DTS: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::
 ///
 /// Forcing a list early changes nothing observable (`lazylist`). `TSRS_LAZY_DTS_SHARED=0` forces only the
 /// merges.
+#[expect(
+    clippy::too_long_first_doc_paragraph,
+    reason = "Public for the integration tests; the comment keeps its upstream wording."
+)]
 pub fn force_shared_lists(program: &crate::program::Program) {
     use rayon::prelude::*;
 
@@ -343,6 +355,10 @@ fn stats() -> bool {
 /// program (`root`, its include reason): only a file parsed for one can be a leaf, as a file parsed for an import or a
 /// reference has a referrer, so only it gets a region (`wants_region`). In a monorepo app most files come from other
 /// packages through imports (cal-diy: 2,643 of 3,550 files), and their regions would cost and free nothing.
+#[expect(
+    clippy::too_long_first_doc_paragraph,
+    reason = "Public for the integration tests; the comment keeps its upstream wording."
+)]
 pub fn parse_task<T>(root: bool, parse: impl FnOnce() -> T) -> T {
     // Relaxed: see `enable`.
     if !root || !REGIONS_ON.load(Ordering::Relaxed) {
@@ -371,6 +387,10 @@ fn first_chunk(text_len: usize) -> usize {
 /// file's region is then carved right after this one's last used byte instead of after an unused tail and its partly
 /// used page. Binding on the same thread right away (the parallel loader) grows the region into the space just given
 /// back.
+#[expect(
+    clippy::too_long_first_doc_paragraph,
+    reason = "Public for the integration tests; the comment keeps its upstream wording."
+)]
 pub fn parse(opts: SourceFileParseOptions, text: String, script_kind: ScriptKind) -> P<SourceFile> {
     let region = Region::new_scratch_in_large_slabs(first_chunk(text.len()));
     let file = {
@@ -497,6 +517,10 @@ pub fn classify(program: &Program) -> bool {
 /// checker pool creates its checkers and assigns them files (checkerpool.rs `create_checkers`), so that it is not
 /// one more serial step between them and the pass (vscode: 4-5 ms on the 64-vCPU runner, about 1% of the check time
 /// at 32 checkers). Does nothing for a program that frees nothing.
+#[expect(
+    clippy::too_long_first_doc_paragraph,
+    reason = "Public for the integration tests; the comment keeps its upstream wording."
+)]
 pub fn prepare(program: &Program) {
     if program.leaf_files != LeafMode::Off {
         // Not under the lock: binding (`bind`) takes it, and creating a checker may bind.
@@ -652,6 +676,10 @@ fn adds_nothing(program: &Program, file: P<SourceFile>) -> bool {
 /// One atomic load for any other file.
 /// Whether `file` was parsed into a region of its own: it may be freed once checked (the shared-graph seed must not
 /// check it, sharedgraph.rs).
+#[expect(
+    clippy::too_long_first_doc_paragraph,
+    reason = "Public for the integration tests; the comment keeps its upstream wording."
+)]
 pub fn has_region(file: P<SourceFile>) -> bool {
     region_candidate(file.file_name(), file.script_kind.get())
         && REGIONS.lock().unwrap().contains_key(&file)

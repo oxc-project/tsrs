@@ -58,7 +58,7 @@ fn get_include_base_path(absolute: &str) -> String {
 }
 
 // getBasePaths computes the unique non-wildcard base paths amongst the provided include patterns.
-fn get_base_paths(
+pub fn get_base_paths(
     path: &str,
     includes: &[impl AsRef<str>],
     use_case_sensitive_file_names: bool,
@@ -107,7 +107,7 @@ fn get_base_paths(
 
 // globPattern is a compiled glob pattern for matching file paths without regex.
 #[derive(Clone, Debug)]
-struct GlobPattern {
+pub struct GlobPattern {
     components: Vec<Component>, // path segments to match (e.g., ["src", "**", "*.ts"])
     is_exclude: bool,           // exclude patterns have different matching rules
     case_sensitive: bool,
@@ -149,7 +149,7 @@ enum SegmentKind {
 
 // compileGlobPattern compiles a glob spec (e.g., "src/**/*.ts") into a pattern.
 // Returns None if the pattern would match nothing.
-fn compile_glob_pattern(
+pub fn compile_glob_pattern(
     spec: &str,
     base_path: &str,
     usage: Usage,
@@ -252,7 +252,7 @@ fn parse_segments(s: &str) -> Vec<Segment> {
 
 impl GlobPattern {
     // matches returns true if path matches this pattern.
-    fn matches(&self, path: &str) -> bool {
+    pub fn matches(&self, path: &str) -> bool {
         self.match_path_parts(path, "", 0, 0, false)
     }
 
@@ -543,7 +543,7 @@ fn next_path_part_single(s: &str, mut offset: usize) -> Option<(usize, usize, us
 
 // The part is returned as a byte range of the virtual string prefix+suffix
 // (it never spans both).
-fn next_path_part_parts(
+pub fn next_path_part_parts(
     prefix: &str,
     suffix: &str,
     mut offset: usize,
@@ -607,7 +607,7 @@ fn is_package_folder(name: &str) -> bool {
     }
 }
 
-fn ensure_trailing_slash(s: &str) -> String {
+pub fn ensure_trailing_slash(s: &str) -> String {
     if !s.is_empty() && !s.ends_with('/') {
         return format!("{s}/");
     }
@@ -959,7 +959,7 @@ impl GlobVisitor {
     }
 }
 
-fn match_files(
+pub fn match_files(
     path: &str,
     extensions: &[impl AsRef<str>],
     excludes: &[impl AsRef<str>],
@@ -1054,7 +1054,3 @@ pub fn new_spec_matcher(
     }
     Some(SpecMatcher { patterns })
 }
-
-#[cfg(test)]
-#[path = "vfsmatch_test.rs"]
-mod vfsmatch_test;

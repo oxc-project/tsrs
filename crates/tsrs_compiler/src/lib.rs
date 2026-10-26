@@ -1,28 +1,22 @@
-mod affinity;
+pub mod affinity;
 mod checker_program;
-mod checkerpool;
-#[cfg(test)]
-mod contentmapper_test;
+pub mod checkerpool;
 pub mod diagnosticwriter;
 mod emithost;
 mod emitter;
 mod file_include;
-mod fileloader;
-mod fileregions;
+pub mod fileloader;
+pub mod fileregions;
 mod filesparser;
 mod host;
 mod includeprocessor;
-#[cfg(test)]
-mod modulespecifiers_oracle_test;
 mod processing_diagnostic;
 mod program;
-mod program_emit;
-#[cfg(test)]
-mod program_test;
+pub mod program_emit;
 mod programlike;
 mod programregions;
-mod projectreferencedtsfakinghost;
-mod projectreferencefilemapper;
+pub mod projectreferencedtsfakinghost;
+pub mod projectreferencefilemapper;
 mod projectreferenceparser;
 mod sharedgraph;
 mod splitcheck;

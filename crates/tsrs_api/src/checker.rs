@@ -7,22 +7,17 @@
 // borrow snapshots, node handles, source-file descriptors and the AST encoder for one request;
 // `SessionHost` adapts core's `Session` to it.
 
-mod dispatch;
+pub mod dispatch;
 mod handlers_ls;
 mod handlers_symbols;
 mod handlers_types;
 pub mod host;
-mod json;
-mod lease;
+pub mod json;
+pub mod lease;
 mod params;
 pub mod registry;
-mod setup;
+pub mod setup;
 mod symbol_index;
-
-#[cfg(test)] // the method inventory that tests.rs checks against core's dispatch
-pub mod coverage_table;
-#[cfg(test)]
-pub mod coverage_types;
 
 use std::sync::Arc;
 
@@ -47,8 +42,12 @@ use crate::wire::Obj;
 /// creates it with `Default` when a snapshot is registered and drops it with the snapshot; dropping
 /// releases every registered pointer.
 #[derive(Default)]
+#[expect(
+    clippy::too_long_first_doc_paragraph,
+    reason = "Public for the integration tests; the comment keeps its upstream wording."
+)]
 pub struct CheckerSnapshotState {
-    registry: Arc<CheckerRegistry>,
+    pub registry: Arc<CheckerRegistry>,
 }
 
 impl Drop for CheckerSnapshotState {
@@ -185,7 +184,7 @@ impl CheckerHost for SessionHost<'_> {
 }
 
 /// Standard base64 with padding (Go `base64.StdEncoding`).
-fn base64_encode(data: &[u8]) -> String {
+pub fn base64_encode(data: &[u8]) -> String {
     const ALPHABET: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
     let mut out = String::with_capacity(data.len().div_ceil(3) * 4);
     out.extend(data.chunks(3).flat_map(|chunk| {
@@ -200,12 +199,3 @@ fn base64_encode(data: &[u8]) -> String {
     }));
     out
 }
-
-#[cfg(test)]
-mod lease_tests;
-#[cfg(test)]
-mod lifetime_tests;
-#[cfg(test)]
-mod session_tests;
-#[cfg(test)]
-mod tests;

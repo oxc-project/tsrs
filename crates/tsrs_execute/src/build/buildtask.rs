@@ -40,8 +40,8 @@ pub enum BuildKind {
 }
 
 pub struct UpstreamTask {
-    pub(crate) task: P<BuildTask>,
-    pub(crate) ref_index: usize,
+    pub task: P<BuildTask>,
+    pub ref_index: usize,
 }
 
 pub struct BuildInfoEntry {
@@ -119,9 +119,9 @@ impl CloseSignal {
 }
 
 pub struct BuildTask {
-    pub(crate) config: String,
+    pub config: String,
     pub(crate) resolved: Mutex<Option<P<ParsedCommandLine>>>,
-    pub(crate) up_stream: Mutex<Vec<UpstreamTask>>,
+    pub up_stream: Mutex<Vec<UpstreamTask>>,
     pub(crate) down_stream: Mutex<Vec<P<BuildTask>>>, // Only set and used in watch mode
     status: Mutex<Option<UpToDateStatus>>,
     pub(crate) done: CloseSignal,
@@ -174,7 +174,7 @@ fn diag(message: &'static Message, args: &[&dyn std::fmt::Display]) -> P<Diagnos
 }
 
 impl BuildTask {
-    pub(crate) fn new(config: String, is_initial_cycle: bool) -> BuildTask {
+    pub fn new(config: String, is_initial_cycle: bool) -> BuildTask {
         BuildTask {
             config,
             resolved: Mutex::new(None),
@@ -1791,65 +1791,9 @@ pub fn is_content_mapper_supplemental_build_info_path<'a>(
 
 // Whether a changed file that is not a file of a program could change its module resolution: a file module
 // resolution could find, or a package.json.
-fn could_change_resolution(path: &Path) -> bool {
+pub fn could_change_resolution(path: &Path) -> bool {
     tspath::get_base_file_name(path.as_str()) == "package.json"
         || [".ts", ".tsx", ".mts", ".cts", ".js", ".jsx", ".mjs", ".cjs", ".json"]
             .iter()
             .any(|ext| tspath::file_extension_is(path.as_str(), ext))
-}
-
-#[cfg(test)]
-mod buildtask_contentmapper_test {
-    use tsrs_core::tspath::Path;
-
-    use super::is_content_mapper_supplemental_build_info_path;
-
-    // buildtask_contentmapper_test.go:11. A build info file entry that names a supplemental output of a root file
-    // (`<root>.<n>.<ext>`) is skipped when the file is gone, instead of making the build out of date; anything else
-    // must still be checked.
-    #[test]
-    fn test_is_content_mapper_supplemental_build_info_path() {
-        let roots = [Path::new("/src/app.vue"), Path::new("/src/index.ts")];
-        let path = Path::new;
-
-        assert!(is_content_mapper_supplemental_build_info_path(&path("/src/app.vue.0.ts"), &roots));
-        assert!(is_content_mapper_supplemental_build_info_path(
-            &path("/src/app.vue.12.mts"),
-            &roots
-        ));
-        assert!(!is_content_mapper_supplemental_build_info_path(&path("/src/app.vue.ts"), &roots));
-        assert!(!is_content_mapper_supplemental_build_info_path(
-            &path("/src/app.vue.0.txt"),
-            &roots
-        ));
-        assert!(!is_content_mapper_supplemental_build_info_path(
-            &path("/src/other.vue.0.ts"),
-            &roots
-        ));
-    }
-}
-
-#[cfg(test)]
-mod could_change_resolution_test {
-    use tsrs_core::tspath::Path;
-
-    use super::could_change_resolution;
-
-    #[test]
-    fn paths_module_resolution_could_find() {
-        for path in [
-            "/a/b.ts",
-            "/a/b.d.ts",
-            "/a/b.tsx",
-            "/a/b.mts",
-            "/a/b.cjs",
-            "/a/b.json",
-            "/a/package.json",
-        ] {
-            assert!(could_change_resolution(&Path::new(path)), "{path}");
-        }
-        for path in ["/a/b.md", "/a/b.css", "/a/b.tsbuildinfo", "/a/b.js.map", "/a/4913"] {
-            assert!(!could_change_resolution(&Path::new(path)), "{path}");
-        }
-    }
 }

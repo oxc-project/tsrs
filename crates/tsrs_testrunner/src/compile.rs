@@ -135,6 +135,10 @@ pub struct CompilationResult {
 /// compares only the `.d.ts` outputs with the `.d.ts` sections of the reference `.js` baseline
 /// (`compiler_runner::extract_dts_block`). Not a gate: forcing the option can change diagnostics. Write the
 /// results elsewhere (`TSRS_TEST_RESULTS=...`).
+#[expect(
+    clippy::too_long_first_doc_paragraph,
+    reason = "Public for the integration tests; the comment keeps its upstream wording."
+)]
 pub fn dts_only_mode() -> bool {
     static ON: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
     *ON.get_or_init(|| std::env::var("TSRS_TEST_DTS_ONLY").as_deref() == Ok("1"))

@@ -1,8 +1,8 @@
 mod dynamic;
-mod extension;
-mod extensionrewrite;
+pub mod extension;
+pub mod extensionrewrite;
 mod ignoredpaths;
-mod path;
+pub mod path;
 mod rooted_path;
 
 pub use dynamic::*;

@@ -20,7 +20,7 @@ impl Obj {
     }
 
     /// Response field names are literals, which the map borrows.
-    pub(crate) fn set(&mut self, key: &'static str, value: Value) {
+    pub fn set(&mut self, key: &'static str, value: Value) {
         self.map.insert(key, value);
     }
 
@@ -54,7 +54,7 @@ impl Obj {
         self.map.append(other.map);
     }
 
-    pub(crate) fn build(self) -> Value {
+    pub fn build(self) -> Value {
         Value::Object(self.map)
     }
 

@@ -19,9 +19,6 @@ crates/tsrs_api_transport/src/transport_windows.rs	current_user_sid	block	bounda
 crates/tsrs_api_transport/src/transport_windows.rs	current_user_sid	block	boundary	the aligned allocation has at least `bytes` writable bytes and lives through SID conversion.	keep	Win32 boundary with owned handles, aligned live buffers and paired LocalFree
 crates/tsrs_api_transport/src/transport_windows.rs	current_user_sid	block	boundary	the process pseudo-handle is valid; `raw_token` is a writable out-parameter.	keep	Win32 boundary with owned handles, aligned live buffers and paired LocalFree
 crates/tsrs_api_transport/src/transport_windows.rs	current_user_sid	block	boundary	the successful call filled an aligned TOKEN_USER at the start of this allocation.	keep	Win32 boundary with owned handles, aligned live buffers and paired LocalFree
-crates/tsrs_api_transport/src/transport_windows.rs	dacl_sddl	block	test	`descriptor` is a live security descriptor and `raw_sddl` is a writable	keep	Win32 boundary with owned handles, aligned live buffers and paired LocalFree
-crates/tsrs_api_transport/src/transport_windows.rs	dacl_sddl	block	test	the conversion returned a NUL-terminated UTF-16 string held by `_allocation`.	keep	Win32 boundary with owned handles, aligned live buffers and paired LocalFree
-crates/tsrs_api_transport/src/transport_windows.rs	private_pipe_accepts_current_user_with_one_protected_ace	block	test	`pipe` owns a live named-pipe handle, and `descriptor` is a writable	keep	Win32 boundary with owned handles, aligned live buffers and paired LocalFree
 crates/tsrs_api_transport/src/transport_windows.rs	private_security_descriptor	block	boundary	SDDL is NUL-terminated and both output pointers are valid. Windows allocates the	keep	Win32 boundary with owned handles, aligned live buffers and paired LocalFree
 crates/tsrs_ast/src/ast.rs	Node::as_flow_reduce_label_data_p	block	logic	as in `as_source_file_p`.	keep	tagged word decode; the tag is written only by this type's constructors
 crates/tsrs_ast/src/ast.rs	Node::as_p	block	logic	see above; nodes are never freed or moved.	keep	tagged word decode; the tag is written only by this type's constructors
@@ -41,8 +38,6 @@ crates/tsrs_ast/src/ast.rs	new_node_with_rare_plain	block	logic	as in `new_node_
 crates/tsrs_ast/src/ast.rs	new_node_with_rare_scratch	block	logic	as in `new_node_with_rare_hooked`, but this allocation is owned by the active scratch region.	keep	tagged word decode; the tag is written only by this type's constructors
 crates/tsrs_ast/src/ast.rs	rare_tail	block	logic	data structs are created only inside a `NodeAlloc<T>` or `NodeAllocRare<T, _>` (both `repr(C)`, header	keep	tagged word decode; the tag is written only by this type's constructors
 crates/tsrs_ast/src/ast.rs	rare_tail	block	logic	the rare bit is set only by `new_node_with_rare`, which allocated the tail at this offset.	keep	tagged word decode; the tag is written only by this type's constructors
-crates/tsrs_ast/src/ast.rs	symbol_table_indexed_order_and_delete	leak	test		keep	test-only leak or syscall
-crates/tsrs_ast/src/ast.rs	symbol_table_long_names_share_the_capped_length	leak	test		keep	test-only leak or syscall
 crates/tsrs_ast/src/flow.rs	FlowNode::antecedent	block	logic	a non-label's link is 0 or the antecedent stored by `new`.	keep	tagged word decode; the tag is written only by this type's constructors
 crates/tsrs_ast/src/flow.rs	FlowNode::antecedents	block	logic	a label's link is 0 or the list stored by `set_antecedents`.	keep	tagged word decode; the tag is written only by this type's constructors
 crates/tsrs_ast/src/identifier.rs	Identifier::node	block	logic	identifiers are created only by `new_node` inside a `NodeAlloc` (`repr(C)`, header first), so the	keep	tagged word decode; the tag is written only by this type's constructors
@@ -75,8 +70,6 @@ crates/tsrs_ast/src/symbol.rs	impl Send for EntryVec	impl	logic	an `EntryVec` ow
 crates/tsrs_ast/src/symbol.rs	impl Send for ExtraSlot	impl	logic	an `ExtraSlot` owns its `SymbolMapExtra` like a `Box` (or holds plain bits).	keep	hand-rolled Vec / Box for a compact symbol table; sound on its own
 crates/tsrs_ast/src/symbol.rs	impl Sync for EntryVec	impl	logic	as for the `Vec` it stands for: through `&EntryVec` the plain-word entries are only read.	keep	hand-rolled Vec / Box for a compact symbol table; sound on its own
 crates/tsrs_ast/src/symbol.rs	impl Sync for ExtraSlot	impl	logic	as for the `Box` it stands for: `SymbolMapExtra` has no interior mutability, and through `&ExtraSlot` it	keep	hand-rolled Vec / Box for a compact symbol table; sound on its own
-crates/tsrs_ast/src/symbol.rs	index_finds_every_key_through_growth_and_deletes	leak	test		keep	test-only leak or syscall
-crates/tsrs_ast/src/symbol.rs	name_filter_keeps_every_key	leak	test		keep	test-only leak or syscall
 crates/tsrs_bench/src/lib.rs	BenchmarkSystem::new	leak	ownership		keep	test runner, bench or wasm one-shot; process lifetime
 crates/tsrs_binder/src/binder.rs	Binder::recycle_flow_label	block	logic	a label's antecedent list cells are referenced only by the label (combineFlowLists copies	keep	arena recycling of a block this call made; the abort-build conformance gate and the ref-param lint guard it
 crates/tsrs_binder/src/binder.rs	Binder::recycle_flow_label	block	logic	never an antecedent (no Referenced flag), not held by the binder, and its creator dropped it.	keep	arena recycling of a block this call made; the abort-build conformance gate and the ref-param lint guard it
@@ -113,7 +106,6 @@ crates/tsrs_checker/src/links.rs	copy_cells_bitwise	fn	logic	`V` holds only `Cel
 crates/tsrs_checker/src/links.rs	copy_link_from	block	logic	a record of `Cell`s of `Copy` values (listed by hand in links.rs).	keep	link-store index arithmetic; bounds measured (notes/lint-paydown-compiler.md); bitwise Cell copy from the frozen seed
 crates/tsrs_checker/src/links.rs	keyed_at	block	logic	`chunk` is the first slot of a `LINK_CHUNK`-slot array, and the offset is below `LINK_CHUNK`.	keep	link-store index arithmetic; bounds measured (notes/lint-paydown-compiler.md); bitwise Cell copy from the frozen seed
 crates/tsrs_checker/src/links.rs	keyed_at	block	logic	every stored index is below the store's `len`, and `chunks` holds `LINK_CHUNK` values per started chunk.	keep	link-store index arithmetic; bounds measured (notes/lint-paydown-compiler.md); bitwise Cell copy from the frozen seed
-crates/tsrs_checker/src/links.rs	node_value_link_fork_copies_a_frozen_record_on_first_write	leak	test		keep	process-lifetime test fixture required by the static fork or orchestrator API
 crates/tsrs_checker/src/mapper.rs	TypeMapper::data	block	logic	the words were encoded for this tag by the constructors below.	keep	tagged word decode; the tag is written only by this type's constructors
 crates/tsrs_checker/src/mapper.rs	recycle_mapper	fn	logic	The caller created `m` and is done with it; mappers that did not escape are referenced only by locals of finis	keep	arena recycling of a block this call made; the abort-build conformance gate and the ref-param lint guard it; unsafe fn with contract
 crates/tsrs_checker/src/mapper.rs	recycle_mapper_with_targets	block	logic	a one-type list is not kept by the simple mapper made from it.	keep	arena recycling of a block this call made; the abort-build conformance gate and the ref-param lint guard it; unsafe fn with contract
@@ -157,8 +149,6 @@ crates/tsrs_checker/src/types.rs	restore	block	logic	this function's contract: `
 crates/tsrs_checker/src/types.rs	restore	fn	logic		keep	tagged word decode; the tag is written only by this type's constructors
 crates/tsrs_checker/src/types.rs	restore_bits	block	logic	this function's contract: `bits` is 0 or the bits of a `P<T>`.	keep	tagged word decode; the tag is written only by this type's constructors
 crates/tsrs_checker/src/types.rs	restore_bits	fn	logic		keep	tagged word decode; the tag is written only by this type's constructors
-crates/tsrs_cli/src/api.rs	(file)	extern	test		keep	test-only leak or syscall
-crates/tsrs_cli/src/api.rs	rss_kib	block	test	glibc `malloc_trim` has no preconditions.	keep	test-only leak or syscall
 crates/tsrs_cli/src/lsp.rs	(file)	extern	boundary		keep	OS, FFI or allocator call
 crates/tsrs_cli/src/lsp.rs	is_process_alive	block	boundary	kill(2) with signal 0 only checks for the existence of the process and sends nothing.	keep	OS, FFI or allocator call
 crates/tsrs_cli/src/main.rs	main	leak	ownership		keep	process-lifetime by design; one allocation, no growth (CLI host)
@@ -173,12 +163,12 @@ crates/tsrs_compiler/src/checkerpool.rs	CheckerHandle::deref	block	logic	`from_r
 crates/tsrs_compiler/src/checkerpool.rs	CheckerHandle::deref_mut	block	logic	`from_raw`'s contract: the checker is alive and exclusively ours until release.	safe-api-possible	a handle built from a raw checker pointer; lifetime is a pool lease / held checker, enforced at run time, not by the type
 crates/tsrs_compiler/src/checkerpool.rs	CheckerHandle::from_raw	fn	logic	Until `release` runs, the caller guarantees that `checker` stays alive and that nothing else accesses it	safe-api-possible	a handle built from a raw checker pointer; lifetime is a pool lease / held checker, enforced at run time, not by the type
 crates/tsrs_compiler/src/checkerpool.rs	CheckerPoolImpl::create_checkers	leak	ownership		safe-api-possible	Box<[CheckerSlot]> leaked so handles need no pool borrow; an Arc<[CheckerSlot]> does the same
+crates/tsrs_compiler/src/checkerpool.rs	PoolState::drop	block	ownership	`checkers` came from `Box::leak` of a boxed slice in `create_checkers`, and no handle borrowing a	safe-api-possible	Box<[CheckerSlot]> leaked so handles need no pool borrow; an Arc<[CheckerSlot]> does the same
+crates/tsrs_compiler/src/checkerpool.rs	PoolState::drop	from_raw	ownership		safe-api-possible	Box<[CheckerSlot]> leaked so handles need no pool borrow; an Arc<[CheckerSlot]> does the same
 crates/tsrs_compiler/src/checkerpool.rs	impl Send for CheckerSlot	impl	logic	the checker's non-`Send` parts are reachable only from the checker, which is reached only through the mutex.	keep	checker crosses threads only under its mutex / after the seed is frozen
 crates/tsrs_compiler/src/checkerpool.rs	impl Send for PooledChecker	impl	logic	the checker's `Rc`s and closures are reachable only from the checker, and the pool lets one thread at a time	keep	checker crosses threads only under its mutex / after the seed is frozen
 crates/tsrs_compiler/src/checkerpool.rs	impl Sync for CheckerSlot	impl	logic	every access to the checker holds its mutex, and no reference outlives the guard (see above).	keep	checker crosses threads only under its mutex / after the seed is frozen
 crates/tsrs_compiler/src/checkerpool.rs	impl Sync for PooledChecker	impl	logic	a `&PooledChecker` is only used by the thread that holds the checker (see above).	keep	checker crosses threads only under its mutex / after the seed is frozen
-crates/tsrs_compiler/src/checkerpool.rs	PoolState::drop	block	ownership	`checkers` came from `Box::leak` of a boxed slice in `create_checkers`, and no handle borrowing a	safe-api-possible	Box<[CheckerSlot]> leaked so handles need no pool borrow; an Arc<[CheckerSlot]> does the same
-crates/tsrs_compiler/src/checkerpool.rs	PoolState::drop	from_raw	ownership		safe-api-possible	Box<[CheckerSlot]> leaked so handles need no pool borrow; an Arc<[CheckerSlot]> does the same
 crates/tsrs_compiler/src/checkerpool.rs	thread_cpu_seconds	block	boundary	clock_gettime writes one timespec through the valid pointer.	keep	clock_gettime
 crates/tsrs_compiler/src/checkerpool.rs	thread_cpu_seconds	extern	boundary		keep	clock_gettime
 crates/tsrs_compiler/src/fileloader.rs	FreeMapperOnUnwind::drop	block	ownership	loading unwound, so no program was created from this mapper; the resolver and loader that	safe-api-possible	reclaimed through free_program / SharedProgramData; an owner type makes the reclaim a Drop
@@ -209,7 +199,6 @@ crates/tsrs_compiler/src/program.rs	free_unshared_program	fn	ownership	As `free_
 crates/tsrs_compiler/src/program.rs	new_program	leak	ownership		defect-risk	a safe fn returns &'static Program that free_program later frees; 152 signatures carry the view
 crates/tsrs_compiler/src/program.rs	new_program	leak	ownership	#2	defect-risk	a safe fn returns &'static Program that free_program later frees; 152 signatures carry the view
 crates/tsrs_compiler/src/projectreferencedtsfakinghost.rs	new_project_reference_dts_faking_host	leak	ownership		safe-api-possible	reclaimed through free_program / SharedProgramData; an owner type makes the reclaim a Drop
-crates/tsrs_compiler/src/projectreferencedtsfakinghost.rs	symlinked_directory_first_seen_in_a_region_is_not_kept_there	leak	test		keep	test-only leak or syscall
 crates/tsrs_compiler/src/projectreferencefilemapper.rs	resolution_host_for	leak	ownership		safe-api-possible	reclaimed through free_program / SharedProgramData; an owner type makes the reclaim a Drop
 crates/tsrs_compiler/src/sharedgraph.rs	impl Send for Base	impl	logic	the base is frozen: no thread writes it after `seed` returns, and forks only read it.	keep	checker crosses threads only under its mutex / after the seed is frozen
 crates/tsrs_compiler/src/sharedgraph.rs	impl Send for SeedOut	impl	logic	the checker is handed from the seed thread, which ends, to the thread that freezes it; nothing else refers	keep	checker crosses threads only under its mutex / after the seed is frozen
@@ -231,26 +220,18 @@ crates/tsrs_core/src/arena.rs	Arena::push_free	block	core-allocator	the block is
 crates/tsrs_core/src/arena.rs	Arena::push_free	fn	core-allocator	`p` points to a dead block of `class * 8` bytes, 8-aligned.	keep	arena, region and handle internals with stated invariants; Miri covers only the arena tests today (#379)
 crates/tsrs_core/src/arena.rs	RegionInner::drop	block	core-allocator	`len` values of the entry's type were allocated at `ptr` in this region and never dropped (a	keep	arena, region and handle internals with stated invariants; Miri covers only the arena tests today (#379)
 crates/tsrs_core/src/arena.rs	RegionInner::drop	block	core-allocator	the used part of a chunk of this region; nothing may use it any more.	keep	arena, region and handle internals with stated invariants; Miri covers only the arena tests today (#379)
-crates/tsrs_core/src/arena.rs	a_callee_frees_a_slice_passed_as_a_raw_pointer	block	test	`s` is not used again.	keep	test-only leak or syscall
 crates/tsrs_core/src/arena.rs	current_region	block	core-allocator	a non-null `CURRENT` is the thread arena or the arena of a region kept alive by an entered scope.	keep	arena, region and handle internals with stated invariants; Miri covers only the arena tests today (#379)
 crates/tsrs_core/src/arena.rs	drop_slice	block	core-allocator	this function's contract.	keep	arena, region and handle internals with stated invariants; Miri covers only the arena tests today (#379)
 crates/tsrs_core/src/arena.rs	drop_slice	fn	core-allocator	`ptr` holds `len` live `T`s that are never used again (a region's drop list, run once when it is freed).	keep	arena, region and handle internals with stated invariants; Miri covers only the arena tests today (#379)
 crates/tsrs_core/src/arena.rs	free_block	block	core-allocator	a dead block of `class * 8` bytes (`free_class`), 8-aligned (checked above).	keep	arena, region and handle internals with stated invariants; Miri covers only the arena tests today (#379)
 crates/tsrs_core/src/arena.rs	free_block	block	core-allocator	the block is `size` dead bytes (this function's contract), written through the chunk's provenance.	keep	arena, region and handle internals with stated invariants; Miri covers only the arena tests today (#379)
 crates/tsrs_core/src/arena.rs	free_block	fn	core-allocator	Nothing may use the block afterwards: no live object or local may point into it.	keep	arena, region and handle internals with stated invariants; Miri covers only the arena tests today (#379)
-crates/tsrs_core/src/arena.rs	free_list_reuses_blocks_of_the_same_size	block	test	`a` is not used again.	keep	test-only leak or syscall
-crates/tsrs_core/src/arena.rs	free_list_reuses_blocks_of_the_same_size	block	test	`s` is not used again (not even for its address: Miri).	keep	test-only leak or syscall
 crates/tsrs_core/src/arena.rs	give_back	block	core-allocator	whole pages inside retired spans: chunks and slabs nothing uses any more, never handed out	keep	arena, region and handle internals with stated invariants; Miri covers only the arena tests today (#379)
 crates/tsrs_core/src/arena.rs	impl Send for RegionInner	impl	core-allocator	the arena's cells are only touched by the thread holding `lock` (or, before the region is shared, by its	keep	arena, region and handle internals with stated invariants; Miri covers only the arena tests today (#379)
 crates/tsrs_core/src/arena.rs	impl Send for SpareArena	impl	core-allocator	a spare arena has no owner: the thread that gave it back reaches it no more (its own-arena slot is cleared	keep	arena, region and handle internals with stated invariants; Miri covers only the arena tests today (#379)
 crates/tsrs_core/src/arena.rs	impl Sync for RegionInner	impl	core-allocator	as for `Send`: shared handles reach the arena's cells only while holding `lock`.	keep	arena, region and handle internals with stated invariants; Miri covers only the arena tests today (#379)
 crates/tsrs_core/src/arena.rs	os_chunk	block	core-allocator	non-zero size.	keep	arena, region and handle internals with stated invariants; Miri covers only the arena tests today (#379)
 crates/tsrs_core/src/arena.rs	own_slab	block	core-allocator	just made.	keep	arena, region and handle internals with stated invariants; Miri covers only the arena tests today (#379)
-crates/tsrs_core/src/arena.rs	recycle_list	block	test	deliberately wrong: `s` is a protected borrow of the block for this whole call.	keep	test-only leak or syscall
-crates/tsrs_core/src/arena.rs	recycle_list	block	test	this function's contract.	keep	test-only leak or syscall
-crates/tsrs_core/src/arena.rs	recycle_list	fn	test	`s` is a whole arena slice that nothing uses afterwards.	keep	test-only leak or syscall
-crates/tsrs_core/src/arena.rs	region_free_lists_and_rewinds_stay_in_the_region	block	test	a is no longer accessed after this call, so its region block can be recycled.	keep	test-only leak or syscall
-crates/tsrs_core/src/arena.rs	region_free_lists_and_rewinds_stay_in_the_region	block	test	c is no longer accessed; its region retains the drop entry for the Rc payload.	keep	test-only leak or syscall
 crates/tsrs_core/src/arena.rs	rewind	block	core-allocator	`now .. now + len` is the range allocated since the checkpoint, in the current chunk.	keep	arena, region and handle internals with stated invariants; Miri covers only the arena tests today (#379)
 crates/tsrs_core/src/arena.rs	rewind	block	core-allocator	as above.	keep	arena, region and handle internals with stated invariants; Miri covers only the arena tests today (#379)
 crates/tsrs_core/src/arena.rs	scratch_contains	block	core-allocator	the scratch region is kept alive by its entered scope on this thread, which alone uses its arena.	keep	arena, region and handle internals with stated invariants; Miri covers only the arena tests today (#379)
@@ -349,14 +330,9 @@ crates/tsrs_core/src/ptr.rs	impl Sync for SlicePair<A, B>	impl	core-allocator	as
 crates/tsrs_core/src/ptr.rs	impl Sync for StaticSlicePtr<T>	impl	core-allocator	as for `Send`; the slice is never written through.	defect-risk	Send/Sync by decree: safe code can hand a checker-owned object to another thread; only the checked-cells build catches it
 crates/tsrs_core/src/ptr.rs	impl Sync for ThinSlice<T>	impl	core-allocator	as for `Send`; the slice is never written through.	defect-risk	Send/Sync by decree: safe code can hand a checker-owned object to another thread; only the checked-cells build catches it
 crates/tsrs_core/src/ptr.rs	new_thread_arena	leak	core-allocator		keep	process-lifetime by design; one allocation, no growth
-crates/tsrs_core/src/ptr.rs	packed_str	leak	test		keep	test-only leak or syscall
-crates/tsrs_core/src/ptr.rs	packed_str	leak	test	#2	keep	test-only leak or syscall
-crates/tsrs_core/src/ptr.rs	thin_slices_keep_identity	leak	test		keep	test-only leak or syscall
 crates/tsrs_core/src/ptr.rs	with_arena	block	core-allocator	non-null `CURRENT` is the thread arena or a region kept alive by the entered scope.	keep	arena, region and handle internals with stated invariants; Miri covers only the arena tests today (#379)
 crates/tsrs_core/src/ptr.rs	with_scratch_arena	block	core-allocator	the scratch region is kept alive (and locked by this thread) by its entered `ScratchScope`.	keep	arena, region and handle internals with stated invariants; Miri covers only the arena tests today (#379)
 crates/tsrs_core/src/reserve.rs	alloc_chunk	block	core-allocator	inside the reservation.	keep	arena, region and handle internals with stated invariants; Miri covers only the arena tests today (#379)
-crates/tsrs_core/src/reserve.rs	chunks_are_committed_and_zeroed	block	test	fresh, committed.	keep	test-only leak or syscall
-crates/tsrs_core/src/reserve.rs	chunks_are_committed_and_zeroed	block	test	fresh, committed. #2	keep	test-only leak or syscall
 crates/tsrs_core/src/reserve.rs	commit	block	core-allocator	`p .. p + len` lies inside the reservation and is not in use.	keep	arena, region and handle internals with stated invariants; Miri covers only the arena tests today (#379)
 crates/tsrs_core/src/reserve.rs	commit	block	core-allocator	`p .. p + len` lies inside the reservation. Advice only: it fails on kernels without THP and does	keep	arena, region and handle internals with stated invariants; Miri covers only the arena tests today (#379)
 crates/tsrs_core/src/reserve.rs	decommit	block	core-allocator	`p .. p + len` lies inside the reservation and nothing uses it any more.	keep	arena, region and handle internals with stated invariants; Miri covers only the arena tests today (#379)
@@ -403,7 +379,6 @@ crates/tsrs_execute/src/build/orchestrator.rs	free_api_orchestrator	from_raw	own
 crates/tsrs_execute/src/build/orchestrator.rs	free_api_orchestrator	from_raw	ownership	as above.	safe-api-possible	a program owner type with Drop (#646 milestone 1) replaces this manual free
 crates/tsrs_execute/src/build/orchestrator.rs	new_orchestrator	leak	ownership		safe-api-possible	paired with free_api_orchestrator; a program owner type with Drop (#646 milestone 1) replaces this manual free
 crates/tsrs_execute/src/build/orchestrator.rs	new_orchestrator	leak	ownership	#2	safe-api-possible	paired with free_api_orchestrator; a program owner type with Drop (#646 milestone 1) replaces this manual free
-crates/tsrs_execute/src/build/orchestrator.rs	schedules_full_selected_and_references_only_graphs_by_dependency_depth	leak	test		keep	process-lifetime test fixture required by the static fork or orchestrator API
 crates/tsrs_execute/src/execute.rs	parse_config_host	leak	ownership		keep	process-lifetime by design; one allocation, no growth (tsc host; the server does not use it)
 crates/tsrs_execute/src/sys.rs	exit_on_broken_pipe	block	boundary	signal and raise take integer arguments only; the default action of SIGPIPE ends the process.	keep	libc call with plain-data arguments
 crates/tsrs_execute/src/tsc/compile.rs	format_local_time_03_04_05_pm	block	boundary	`libc::tm` is C integers (and, on some platforms, a nullable `char *`), for which all zeros is valid.	keep	libc call with plain-data arguments
@@ -411,8 +386,6 @@ crates/tsrs_execute/src/tsc/compile.rs	format_local_time_03_04_05_pm	block	bound
 crates/tsrs_execute/src/tsc/statistics.rs	memory_used_bytes	block	boundary	`info` is a writable proc_taskinfo of `size` bytes, as PROC_PIDTASKINFO requires.	keep	libc call with plain-data arguments
 crates/tsrs_execute/src/tsc/statistics.rs	memory_used_bytes	block	boundary	proc_taskinfo is plain integers, for which all zeroes is a valid value.	keep	libc call with plain-data arguments
 crates/tsrs_execute/src/tsc/statistics.rs	memory_used_bytes	block	boundary	sysconf has no preconditions.	keep	libc call with plain-data arguments
-crates/tsrs_execute/src/tsctests/mod.rs	new_test_sys	leak	ownership		keep	test runner, bench or wasm one-shot; process lifetime
-crates/tsrs_execute/src/tsctests/mod.rs	tsctests	block	boundary	scenarios stays immutable and alive until every scoped worker ends; the inner thread is joined below.	keep	scoped thread lifetime extension; the join is in the same function
 crates/tsrs_execute/src/watcher.rs	Watcher::install_program	block	ownership	`new` was created from it, and nothing else holds it: the watcher's only reference was	safe-api-possible	a program owner type with Drop (#646 milestone 1) replaces this manual free
 crates/tsrs_execute/src/watcher.rs	Watcher::install_program	block	ownership	every program since the previous full build shared this data, and each was freed when the	safe-api-possible	a program owner type with Drop (#646 milestone 1) replaces this manual free
 crates/tsrs_execute/src/watcher.rs	Watcher::install_program	block	ownership	nothing refers to the old compiler program any more: the watcher's only reference was	safe-api-possible	a program owner type with Drop (#646 milestone 1) replaces this manual free
@@ -421,6 +394,11 @@ crates/tsrs_fswatch/src/fsevents_darwin_ffi.rs	(file)	extern	boundary		keep	OS, 
 crates/tsrs_fswatch/src/fsevents_darwin_ffi.rs	(file)	extern	boundary	#2	keep	OS, FFI or allocator call
 crates/tsrs_fswatch/src/fsevents_darwin_ffi.rs	(file)	extern	boundary	#3	keep	OS, FFI or allocator call
 crates/tsrs_fswatch/src/fsevents_darwin_ffi.rs	CFRef::drop	block	boundary	`CFRef` is only constructed from a non-NULL object returned by a CF "Create"/"Copy" function,	keep	OS, FFI or allocator call
+crates/tsrs_fswatch/src/fsevents_darwin_ffi.rs	FsEventsCallbackPayload::flag	block	boundary	FSEvents passes `num_events` flags; callers index below `num_events`.	keep	OS, FFI or allocator call
+crates/tsrs_fswatch/src/fsevents_darwin_ffi.rs	FsEventsCallbackPayload::id	block	boundary	as `flag`.	keep	OS, FFI or allocator call
+crates/tsrs_fswatch/src/fsevents_darwin_ffi.rs	FsEventsCallbackPayload::path_nfc	block	boundary	with kFSEventStreamCreateFlagUseCFTypes `paths` is a CFArray of `num_events` CFStrings, valid for	keep	OS, FFI or allocator call
+crates/tsrs_fswatch/src/fsevents_darwin_ffi.rs	StreamCallback::close	block	boundary	the queue was created by `new_stream_callback` and is released exactly once.	keep	OS, FFI or allocator call
+crates/tsrs_fswatch/src/fsevents_darwin_ffi.rs	StreamCallback::wait_dispatch_queue	block	boundary	`queue` is a live queue owned by this callback; the work function does nothing.	keep	OS, FFI or allocator call
 crates/tsrs_fswatch/src/fsevents_darwin_ffi.rs	cf_array_create	block	boundary	`ptrs` holds `ptrs.len()` valid CF objects for the duration of the call.	keep	OS, FFI or allocator call
 crates/tsrs_fswatch/src/fsevents_darwin_ffi.rs	cf_string_create	block	boundary	`cstr` is NUL-terminated and outlives the call; NULL allocator = default.	keep	OS, FFI or allocator call
 crates/tsrs_fswatch/src/fsevents_darwin_ffi.rs	cf_string_create_mutable_copy	block	boundary	`src` is a valid CFString (callers pass objects they own or borrow for the call).	keep	OS, FFI or allocator call
@@ -429,9 +407,6 @@ crates/tsrs_fswatch/src/fsevents_darwin_ffi.rs	cf_string_to_go	block	boundary	`s
 crates/tsrs_fswatch/src/fsevents_darwin_ffi.rs	create_and_start_stream	block	boundary	`ctx` is copied by FSEventStreamCreate; `paths_to_watch` is a valid CFArray of CFStrings; `info`	keep	OS, FFI or allocator call
 crates/tsrs_fswatch/src/fsevents_darwin_ffi.rs	create_and_start_stream	block	boundary	`stream` was just created; `cb.queue` is a live serial queue.	keep	OS, FFI or allocator call
 crates/tsrs_fswatch/src/fsevents_darwin_ffi.rs	fold_native_path	block	boundary	`mut_` is a CFMutableString; NULL locale = canonical folding.	keep	OS, FFI or allocator call
-crates/tsrs_fswatch/src/fsevents_darwin_ffi.rs	FsEventsCallbackPayload::flag	block	boundary	FSEvents passes `num_events` flags; callers index below `num_events`.	keep	OS, FFI or allocator call
-crates/tsrs_fswatch/src/fsevents_darwin_ffi.rs	FsEventsCallbackPayload::id	block	boundary	as `flag`.	keep	OS, FFI or allocator call
-crates/tsrs_fswatch/src/fsevents_darwin_ffi.rs	FsEventsCallbackPayload::path_nfc	block	boundary	with kFSEventStreamCreateFlagUseCFTypes `paths` is a CFArray of `num_events` CFStrings, valid for	keep	OS, FFI or allocator call
 crates/tsrs_fswatch/src/fsevents_darwin_ffi.rs	fs_events_callback_c	block	boundary	`info` is the `streamCallback` passed to FSEventStreamCreate; it stays alive until	keep	OS, FFI or allocator call
 crates/tsrs_fswatch/src/fsevents_darwin_ffi.rs	fs_events_get_current_event_id	block	boundary	no arguments, no preconditions.	keep	OS, FFI or allocator call
 crates/tsrs_fswatch/src/fsevents_darwin_ffi.rs	impl Send for FsEventStream	impl	boundary	FSEventStream functions may be called from any thread once the stream is scheduled on a dispatch queue.	keep	OS, FFI or allocator call
@@ -440,10 +415,7 @@ crates/tsrs_fswatch/src/fsevents_darwin_ffi.rs	impl Sync for FsEventStream	impl	
 crates/tsrs_fswatch/src/fsevents_darwin_ffi.rs	impl Sync for StreamCallback	impl	boundary	as for Send: the queue handle is thread-safe and `watches` is never mutated after creation.	keep	OS, FFI or allocator call
 crates/tsrs_fswatch/src/fsevents_darwin_ffi.rs	new_stream_callback	block	boundary	NULL = DISPATCH_QUEUE_SERIAL; the returned attribute is a static libdispatch object (not released).	keep	OS, FFI or allocator call
 crates/tsrs_fswatch/src/fsevents_darwin_ffi.rs	new_stream_callback	block	boundary	`label` is NUL-terminated; `attr` is a serial queue attribute.	keep	OS, FFI or allocator call
-crates/tsrs_fswatch/src/fsevents_darwin_ffi.rs	StreamCallback::close	block	boundary	the queue was created by `new_stream_callback` and is released exactly once.	keep	OS, FFI or allocator call
-crates/tsrs_fswatch/src/fsevents_darwin_ffi.rs	StreamCallback::wait_dispatch_queue	block	boundary	`queue` is a live queue owned by this callback; the work function does nothing.	keep	OS, FFI or allocator call
 crates/tsrs_fswatch/src/fsevents_darwin_ffi.rs	teardown_stream	block	boundary	`stream` is a started stream that is torn down exactly once (the caller swapped it out).	keep	OS, FFI or allocator call
-crates/tsrs_fswatch/src/inotify_linux.rs	close_fd	block	boundary	closing an fd this backend opened.	keep	OS, FFI or allocator call
 crates/tsrs_fswatch/src/inotify_linux.rs	InotifyBackend::close_watch	block	boundary	removing a watch descriptor of our own inotify instance.	keep	OS, FFI or allocator call
 crates/tsrs_fswatch/src/inotify_linux.rs	InotifyBackend::handle_events	block	boundary	`buf` is a writable buffer of `buf.len()` bytes.	keep	OS, FFI or allocator call
 crates/tsrs_fswatch/src/inotify_linux.rs	InotifyBackend::handle_events	block	boundary	the kernel writes whole `inotify_event` records; `offset` is at a record start.	keep	OS, FFI or allocator call
@@ -453,15 +425,16 @@ crates/tsrs_fswatch/src/inotify_linux.rs	InotifyBackend::run_loop	block	boundary
 crates/tsrs_fswatch/src/inotify_linux.rs	InotifyBackend::run_loop	block	boundary	plain syscall.	keep	OS, FFI or allocator call
 crates/tsrs_fswatch/src/inotify_linux.rs	InotifyBackend::shutdown	block	boundary	writing one byte from a live buffer to our own pipe.	keep	OS, FFI or allocator call
 crates/tsrs_fswatch/src/inotify_linux.rs	InotifyBackend::watch_dir	block	boundary	`cpath` is NUL-terminated and outlives the call.	keep	OS, FFI or allocator call
-crates/tsrs_fswatch/src/kqueue.rs	close_fd	block	boundary	closing an fd this backend opened and still tracks.	keep	OS, FFI or allocator call
-crates/tsrs_fswatch/src/kqueue.rs	fstat	block	boundary	`st` is a live, writable `stat` out-parameter for the call; `fd` is an fd this backend owns.	keep	OS, FFI or allocator call
-crates/tsrs_fswatch/src/kqueue.rs	fstat	block	boundary	zeroed `stat` is a valid out-parameter; `fd` is an fd this backend owns.	keep	OS, FFI or allocator call
-crates/tsrs_fswatch/src/kqueue.rs	kevent_register	block	boundary	one valid change, no event list.	keep	OS, FFI or allocator call
+crates/tsrs_fswatch/src/inotify_linux.rs	close_fd	block	boundary	closing an fd this backend opened.	keep	OS, FFI or allocator call
 crates/tsrs_fswatch/src/kqueue.rs	KqueueBackend::run_loop	block	boundary	`events` has room for `events.len()` results.	keep	OS, FFI or allocator call
 crates/tsrs_fswatch/src/kqueue.rs	KqueueBackend::run_loop	block	boundary	`pipe_fds` has room for two fds.	keep	OS, FFI or allocator call
 crates/tsrs_fswatch/src/kqueue.rs	KqueueBackend::run_loop	block	boundary	plain syscall.	keep	OS, FFI or allocator call
 crates/tsrs_fswatch/src/kqueue.rs	KqueueBackend::run_loop	block	boundary	zeroed kevent structs are valid.	keep	OS, FFI or allocator call
 crates/tsrs_fswatch/src/kqueue.rs	KqueueBackend::shutdown	block	boundary	writing one byte from a live buffer to our own pipe.	keep	OS, FFI or allocator call
+crates/tsrs_fswatch/src/kqueue.rs	close_fd	block	boundary	closing an fd this backend opened and still tracks.	keep	OS, FFI or allocator call
+crates/tsrs_fswatch/src/kqueue.rs	fstat	block	boundary	`st` is a live, writable `stat` out-parameter for the call; `fd` is an fd this backend owns.	keep	OS, FFI or allocator call
+crates/tsrs_fswatch/src/kqueue.rs	fstat	block	boundary	zeroed `stat` is a valid out-parameter; `fd` is an fd this backend owns.	keep	OS, FFI or allocator call
+crates/tsrs_fswatch/src/kqueue.rs	kevent_register	block	boundary	one valid change, no event list.	keep	OS, FFI or allocator call
 crates/tsrs_fswatch/src/kqueue.rs	new_kevent	block	boundary	`kevent` is a plain C struct; all-zero is a valid value.	keep	OS, FFI or allocator call
 crates/tsrs_fswatch/src/kqueue.rs	open_for_events	block	boundary	`cpath` is NUL-terminated and outlives the call.	keep	OS, FFI or allocator call
 crates/tsrs_fswatch/src/kqueue.rs	raise_open_file_limit	block	boundary	`lim` is a live, writable rlimit out-parameter.	keep	OS, FFI or allocator call
@@ -486,9 +459,9 @@ crates/tsrs_ls/src/format/rulecontext.rs	option_equals	leak	ownership		safe-api-
 crates/tsrs_lsproto/src/lsp.rs	intern	leak	ownership		safe-api-possible	owned by ordinary Rust ownership in Boshen's #638
 crates/tsrs_parser/src/parser_1.rs	missing_list_nodes	block	logic	a zero-length slice needs only a non-null pointer aligned for `P<Node>`; a `usize`	keep	dangling non-null pointer for an empty slice
 crates/tsrs_printer/src/emitcontext.rs	EmitContext::new_node_visitor	block	logic	an EmitContext is only created by `new_emit_context_in` (`new_emit_context` /	keep	self-referential writer borrow inside one call; scoped
-crates/tsrs_printer/src/printer_3.rs	Printer::source_map_generator	block	logic	`source_map_generator` is only set by `write`, from a `&mut SourceMapGenerator` that outlives the	keep	self-referential writer borrow inside one call; scoped
 crates/tsrs_printer/src/printer_3.rs	BorrowedWriter::r	block	logic	see `w`.	keep	self-referential writer borrow inside one call; scoped
 crates/tsrs_printer/src/printer_3.rs	BorrowedWriter::w	block	logic	`Printer::write` stores this adapter in `Printer::writer` only while it holds the `&mut` borrow the	keep	self-referential writer borrow inside one call; scoped
+crates/tsrs_printer/src/printer_3.rs	Printer::source_map_generator	block	logic	`source_map_generator` is only set by `write`, from a `&mut SourceMapGenerator` that outlives the	keep	self-referential writer borrow inside one call; scoped
 crates/tsrs_project/src/background/queue.rs	worker_pool	leak	ownership		safe-api-possible	owned by ordinary Rust ownership in Boshen's #638
 crates/tsrs_project/src/background/timer.rs	timer_thread	leak	ownership		safe-api-possible	owned by ordinary Rust ownership in Boshen's #638
 crates/tsrs_project/src/checkerpool.rs	CheckerPoolImpl::create_release	block	logic	checker `index` is marked held (`heldBy[index]`) until `release` runs, and held checkers are never	safe-api-possible	lifetime is a pool lease / held checker, enforced at run time, not by the type

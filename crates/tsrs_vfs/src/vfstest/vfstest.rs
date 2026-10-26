@@ -158,7 +158,7 @@ fn from_map_with_clock_option<K: AsRef<str>, F: Into<MapFile>>(
     iovfs::from(mapfs, use_case_sensitive_file_names)
 }
 
-fn convert_map_fs(input: Vec<(String, MapFile)>, use_case_sensitive_file_names: bool) -> MapFS {
+pub fn convert_map_fs(input: Vec<(String, MapFile)>, use_case_sensitive_file_names: bool) -> MapFS {
     let m = MapFS {
         inner: RwLock::new(MapFSInner::default()),
         use_case_sensitive_file_names,
@@ -773,7 +773,3 @@ impl WritableFS for MapFS {
         MapFS::chtimes(self, path, a_time, m_time)
     }
 }
-
-#[cfg(test)]
-#[path = "vfstest_test.rs"]
-mod vfstest_test;

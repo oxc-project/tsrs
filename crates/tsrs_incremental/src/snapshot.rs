@@ -19,10 +19,10 @@ use crate::referencemap::ReferenceMap;
 
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct FileInfo {
-    pub(crate) version: String,
-    pub(crate) signature: String,
-    pub(crate) affects_global_scope: bool,
-    pub(crate) implied_node_format: ResolutionMode,
+    pub version: String,
+    pub signature: String,
+    pub affects_global_scope: bool,
+    pub implied_node_format: ResolutionMode,
 }
 
 impl FileInfo {
@@ -424,18 +424,18 @@ pub struct Snapshot {
     // These are the fields that get serialized
 
     // Information of the file eg. its version, signature etc
-    pub(crate) file_infos: SyncMap<Path, FileInfo>,
+    pub file_infos: SyncMap<Path, FileInfo>,
     pub(crate) options: Cell<Option<P<CompilerOptions>>>,
     //  Contains the map of ReferencedSet=Referenced files of the file if module emit is enabled
-    pub(crate) referenced_map: ReferenceMap,
+    pub referenced_map: ReferenceMap,
     // Cache of semantic diagnostics for files with their Path being the key
-    pub(crate) semantic_diagnostics_per_file: SyncMap<Path, DiagnosticsCache>,
+    pub semantic_diagnostics_per_file: SyncMap<Path, DiagnosticsCache>,
     // Cache of dts emit diagnostics for files with their Path being the key
-    pub(crate) emit_diagnostics_per_file: SyncMap<Path, DiagnosticsCache>,
+    pub emit_diagnostics_per_file: SyncMap<Path, DiagnosticsCache>,
     // The map has key by source file's path that has been changed
-    pub(crate) changed_files_set: SyncSet<Path>,
+    pub changed_files_set: SyncSet<Path>,
     // Files pending to be emitted
-    pub(crate) affected_files_pending_emit: SyncMap<Path, FileEmitKind>,
+    pub affected_files_pending_emit: SyncMap<Path, FileEmitKind>,
     // Name of the file whose dts was the latest to change
     pub(crate) latest_changed_dts_file: RefCell<String>,
     // Hash of d.ts emitted for the file, use to track when emit of d.ts changes
@@ -457,7 +457,7 @@ pub struct Snapshot {
     // Program order, also recoverable from build info's fileNames/fileInfos, for history-dependent diagnostics.
     pub(crate) file_order: Vec<Path>,
     // true if build info emit is pending
-    pub(crate) build_info_emit_pending: Cell<bool>,
+    pub build_info_emit_pending: Cell<bool>,
     pub(crate) has_errors_from_old_state: Cell<Tristate>,
     pub(crate) has_semantic_errors_from_old_state: Cell<bool>,
     pub(crate) package_jsons_from_old_state: RefCell<Option<Vec<String>>>,

@@ -2,26 +2,16 @@
 // tracking.
 
 mod affectedfileshandler;
-mod buildinfo;
-#[cfg(test)]
-mod buildinfo_contentmapper_test;
+pub mod buildinfo;
 mod buildinfotosnapshot;
 pub mod emit;
 mod emitfileshandler;
-#[cfg(test)]
-mod emitfileshandler_test;
-mod host;
+pub mod host;
 mod incremental;
-mod program;
+pub mod program;
 mod programtosnapshot;
-#[cfg(test)]
-mod programtosnapshot_test;
 mod referencemap;
-#[cfg(test)]
-mod signatures_test;
-mod snapshot;
-#[cfg(test)]
-mod snapshot_test;
+pub mod snapshot;
 mod snapshottobuildinfo;
 
 pub use buildinfo::*;

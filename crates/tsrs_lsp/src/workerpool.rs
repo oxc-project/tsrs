@@ -85,12 +85,10 @@ fn worker_loop(pool: &'static WorkerPool) {
     }
 }
 
-#[cfg(test)]
 pub fn max_idle_threads() -> usize {
     get_pool().max_idle_threads
 }
 
-#[cfg(test)]
 pub fn threads() -> usize {
     get_pool().state.lock().unwrap().threads
 }

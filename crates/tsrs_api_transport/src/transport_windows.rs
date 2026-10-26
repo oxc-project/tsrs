@@ -27,7 +27,7 @@ use windows_sys::Win32::System::Pipes::{
 use windows_sys::Win32::System::Threading::{GetCurrentProcess, OpenProcessToken};
 
 /// A Win32 allocation returned by an SDDL conversion function.
-struct LocalAllocation(*mut c_void);
+pub struct LocalAllocation(pub *mut c_void);
 
 impl Drop for LocalAllocation {
     fn drop(&mut self) {
@@ -101,7 +101,7 @@ fn current_user_sid() -> io::Result<String> {
 
 /// Construct the upstream `D:P(A;;GA;;;current-user-SID)` descriptor. The protected DACL has
 /// exactly one access-control entry, so an inherited grant cannot expose the API pipe.
-fn private_security_descriptor() -> io::Result<LocalAllocation> {
+pub fn private_security_descriptor() -> io::Result<LocalAllocation> {
     let mut sddl: Vec<u16> =
         format!("D:P(A;;GA;;;{})", current_user_sid()?).encode_utf16().collect();
     sddl.push(0);
@@ -125,17 +125,17 @@ fn private_security_descriptor() -> io::Result<LocalAllocation> {
 
 /// A listener owns its first pipe instance from bind until the single accept. This makes the
 /// name available before the client tries to connect, matching the Go listener contract.
-pub(super) struct PipeListener {
+pub struct PipeListener {
     path: PathBuf,
-    pipe: Mutex<Option<File>>,
+    pub pipe: Mutex<Option<File>>,
 }
 
 impl PipeListener {
-    pub(super) fn bind_private(name: &str) -> io::Result<Self> {
+    pub fn bind_private(name: &str) -> io::Result<Self> {
         Self::bind(Path::new(&format!(r"\\.\pipe\{name}")))
     }
 
-    pub(super) fn bind(path: &Path) -> io::Result<Self> {
+    pub fn bind(path: &Path) -> io::Result<Self> {
         let mut wide_path: Vec<u16> = path.as_os_str().encode_wide().collect();
         if wide_path.is_empty() || wide_path.contains(&0) {
             return Err(io::Error::new(io::ErrorKind::InvalidInput, "invalid pipe path"));
@@ -171,11 +171,11 @@ impl PipeListener {
         Ok(Self { path: path.to_path_buf(), pipe: Mutex::new(Some(pipe)) })
     }
 
-    pub(super) fn path(&self) -> &Path {
+    pub fn path(&self) -> &Path {
         &self.path
     }
 
-    pub(super) fn accept(&self) -> io::Result<super::Stream> {
+    pub fn accept(&self) -> io::Result<super::Stream> {
         let pipe = self
             .pipe
             .lock()
@@ -229,110 +229,5 @@ impl Write for SharedPipe {
     fn flush(&mut self) -> io::Result<()> {
         let mut file = self.0.as_ref();
         file.flush()
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use std::fs::OpenOptions;
-
-    use windows_sys::Win32::Security::Authorization::{
-        ConvertSecurityDescriptorToStringSecurityDescriptorW, GetSecurityInfo, SE_FILE_OBJECT,
-    };
-    use windows_sys::Win32::Security::DACL_SECURITY_INFORMATION;
-
-    fn dacl_sddl(descriptor: *mut c_void) -> String {
-        let mut raw_sddl = ptr::null_mut();
-        // SAFETY: `descriptor` is a live security descriptor and `raw_sddl` is a writable
-        // out-parameter. The returned string is freed with LocalFree below.
-        assert_ne!(
-            unsafe {
-                ConvertSecurityDescriptorToStringSecurityDescriptorW(
-                    descriptor,
-                    SDDL_REVISION_1,
-                    DACL_SECURITY_INFORMATION,
-                    &mut raw_sddl,
-                    ptr::null_mut(),
-                )
-            },
-            0,
-            "{}",
-            io::Error::last_os_error()
-        );
-        let _allocation = LocalAllocation(raw_sddl.cast());
-        let mut units = Vec::new();
-        let mut cursor = raw_sddl;
-        // SAFETY: the conversion returned a NUL-terminated UTF-16 string held by `_allocation`.
-        unsafe {
-            while *cursor != 0 {
-                units.push(*cursor);
-                cursor = cursor.add(1);
-            }
-        }
-        String::from_utf16(&units).expect("Windows returned valid UTF-16 SDDL")
-    }
-
-    #[test]
-    fn private_pipe_accepts_current_user_with_one_protected_ace() {
-        let nonce = std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .expect("system clock is after epoch")
-            .as_nanos();
-        let listener =
-            PipeListener::bind_private(&format!("tsrs-api-{nonce}-{}", std::process::id()))
-                .expect("bind private pipe");
-        assert!(listener.path().to_string_lossy().starts_with(r"\\.\pipe\"));
-        assert!(PipeListener::bind(listener.path()).is_err(), "the pipe name cannot be rebound");
-
-        let actual = {
-            let guard = listener.pipe.lock().expect("listener lock");
-            let pipe = guard.as_ref().expect("listener owns first instance");
-            let mut descriptor = ptr::null_mut();
-            // SAFETY: `pipe` owns a live named-pipe handle, and `descriptor` is a writable
-            // out-parameter. GetSecurityInfo allocates a self-relative descriptor.
-            let status = unsafe {
-                GetSecurityInfo(
-                    pipe.as_raw_handle(),
-                    SE_FILE_OBJECT,
-                    DACL_SECURITY_INFORMATION,
-                    ptr::null_mut(),
-                    ptr::null_mut(),
-                    ptr::null_mut(),
-                    ptr::null_mut(),
-                    &mut descriptor,
-                )
-            };
-            assert_eq!(status, 0, "{}", io::Error::from_raw_os_error(status as i32));
-            let _allocation = LocalAllocation(descriptor);
-            dacl_sddl(descriptor)
-        };
-        let expected_descriptor = private_security_descriptor().expect("current-user DACL");
-        let expected = dacl_sddl(expected_descriptor.0);
-        // Windows can expand generic-all access to file-all access on a named-pipe handle.
-        let normalize_access = |sddl: &str| sddl.replace(";;FA;;;", ";;GA;;;");
-        assert_eq!(
-            normalize_access(&actual),
-            normalize_access(&expected),
-            "pipe DACL: {actual}; generated DACL: {expected}"
-        );
-        assert!(actual.starts_with("D:P("), "DACL must be protected: {actual}");
-        assert_eq!(actual.matches('(').count(), 1, "expected one access-control entry: {actual}");
-
-        let path = listener.path().to_path_buf();
-        let server = std::thread::spawn(move || {
-            let mut stream = listener.accept().expect("accept current-user client");
-            let mut request = [0; 4];
-            stream.reader.read_exact(&mut request).expect("read request");
-            assert_eq!(&request, b"ping");
-            stream.writer.write_all(b"pong").expect("write response");
-        });
-        let mut client =
-            OpenOptions::new().read(true).write(true).open(path).expect("current user can connect");
-        client.write_all(b"ping").expect("write request");
-        let mut response = [0; 4];
-        client.read_exact(&mut response).expect("read response");
-        assert_eq!(&response, b"pong");
-        server.join().expect("server thread");
     }
 }

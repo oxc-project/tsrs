@@ -38,7 +38,7 @@ impl ProgramCounter {
     }
 
     // programcounter.go:44
-    pub(crate) fn len(&self) -> usize {
+    pub fn len(&self) -> usize {
         self.mu.lock().unwrap().len()
     }
 }

@@ -188,7 +188,8 @@ impl<K: Hash + Eq + Clone, V: Clone, AcquireArgs> RefCountCache<K, V, AcquireArg
         }
     }
 
-    pub(crate) fn len(&self) -> usize {
+    #[expect(clippy::len_without_is_empty, reason = "Public for the integration tests.")]
+    pub fn len(&self) -> usize {
         self.entries.size()
     }
 }

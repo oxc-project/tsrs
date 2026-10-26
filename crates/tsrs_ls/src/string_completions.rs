@@ -2692,7 +2692,3 @@ impl LanguageService {
         Some(PathCompletions { entries: to_path_completions(names), replacement_span })
     }
 }
-
-#[cfg(test)]
-#[path = "string_completions_test.rs"]
-mod string_completions_test;

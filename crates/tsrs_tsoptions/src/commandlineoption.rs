@@ -60,13 +60,13 @@ pub enum DefaultValueDescription {
 #[derive(Debug)]
 pub struct CommandLineOption {
     pub name: &'static str,
-    pub(crate) short_name: &'static str,
+    pub short_name: &'static str,
     pub kind: CommandLineOptionKind,
 
     // used in parsing
     pub is_file_path: bool,
     pub is_tsconfig_only: bool,
-    pub(crate) is_command_line_only: bool,
+    pub is_command_line_only: bool,
 
     // used in output
     pub description: Option<&'static Message>,
@@ -77,44 +77,36 @@ pub struct CommandLineOption {
     pub category: Option<&'static Message>,
 
     // What kind of extra validation `validateJsonOptionValue` should do
-    pub(crate) extra_validation: ExtraValidation,
+    pub extra_validation: ExtraValidation,
 
     // checks that option with number type has value >= minValue
-    pub(crate) min_value: i32,
+    pub min_value: i32,
 
     // true or undefined
     // used for configDirTemplateSubstitutionOptions
-    #[expect(
-        dead_code,
-        reason = "unused in Go too; kept so the option tables match declscompiler.go"
-    )]
-    pub(crate) allow_config_dir_template_substitution: bool,
+    pub allow_config_dir_template_substitution: bool,
 
     // used for filter in compilerrunner
-    pub(crate) affects_declaration_path: bool,
+    pub affects_declaration_path: bool,
     pub affects_program_structure: bool,
-    pub(crate) affects_semantic_diagnostics: bool,
+    pub affects_semantic_diagnostics: bool,
     pub affects_build_info: bool,
     pub affects_bind_diagnostics: bool,
     pub affects_source_file: bool,
     pub affects_module_resolution: bool,
-    pub(crate) affects_emit: bool,
+    pub affects_emit: bool,
 
-    pub(crate) allow_js_flag: bool,
-    pub(crate) strict_flag: bool,
+    pub allow_js_flag: bool,
+    pub strict_flag: bool,
 
     // used in transpileoptions worker
     // todo: revisit to see if this can be reduced to boolean
-    #[expect(
-        dead_code,
-        reason = "unused in Go too; kept so the option tables match declscompiler.go"
-    )]
-    pub(crate) transpile_option_value: Tristate,
+    pub transpile_option_value: Tristate,
 
     // used for CommandLineOptionTypeList
-    pub(crate) list_preserve_falsy_values: bool,
+    pub list_preserve_falsy_values: bool,
     // used for COMPILER_OPTIONS_DECLARATION
-    pub(crate) element_options: Option<CommandLineOptionNameMap>,
+    pub element_options: Option<CommandLineOptionNameMap>,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
@@ -370,7 +362,7 @@ pub enum CompilerOptionsValue {
 }
 
 impl CompilerOptionsValue {
-    pub(crate) fn is_null(&self) -> bool {
+    pub fn is_null(&self) -> bool {
         matches!(self, CompilerOptionsValue::Null)
     }
 
@@ -388,7 +380,7 @@ impl CompilerOptionsValue {
         }
     }
 
-    pub(crate) fn as_object(&self) -> Option<&OrderedMap<String, CompilerOptionsValue>> {
+    pub fn as_object(&self) -> Option<&OrderedMap<String, CompilerOptionsValue>> {
         match self {
             CompilerOptionsValue::Object(m) => Some(m),
             _ => None,

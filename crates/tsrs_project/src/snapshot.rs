@@ -51,7 +51,7 @@ pub struct Snapshot {
     // Immutable state, cloned between snapshots
     pub(crate) fs: Arc<SnapshotFS>,
     pub project_collection: Arc<ProjectCollection>,
-    pub(crate) config_file_registry: Arc<ConfigFileRegistry>,
+    pub config_file_registry: Arc<ConfigFileRegistry>,
     pub(crate) auto_imports: Option<Arc<autoimport::Registry>>,
     pub(crate) auto_imports_watch: Option<Arc<WatchedFiles<FxHashMap<Path, String>>>>,
     compiler_options_for_inferred_projects: Option<P<CompilerOptions>>,
@@ -1056,8 +1056,7 @@ impl Snapshot {
         }
     }
 
-    #[cfg(test)]
-    pub(crate) fn ref_count(&self) -> u32 {
+    pub fn ref_count(&self) -> u32 {
         self.ref_count.load(Ordering::SeqCst)
     }
 }

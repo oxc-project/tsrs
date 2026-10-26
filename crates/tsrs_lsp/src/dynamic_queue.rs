@@ -43,7 +43,7 @@ pub fn new_dynamic_queue<T: Send + 'static>() -> DynamicQueue<T> {
 
 impl<T: Send + 'static> DynamicQueue<T> {
     // dynamic_queue.go:35
-    pub(crate) fn put(&self, ctx: &Context, item: T) -> Result<(), ContextError> {
+    pub fn put(&self, ctx: &Context, item: T) -> Result<(), ContextError> {
         if let Some(err) = ctx.err() {
             return Err(err);
         }
@@ -57,7 +57,7 @@ impl<T: Send + 'static> DynamicQueue<T> {
     }
 
     // dynamic_queue.go:50
-    pub(crate) fn get(&self, ctx: &Context) -> Result<T, ContextError> {
+    pub fn get(&self, ctx: &Context) -> Result<T, ContextError> {
         if let Some(err) = ctx.err() {
             return Err(err);
         }
@@ -76,7 +76,7 @@ impl<T: Send + 'static> DynamicQueue<T> {
     }
 
     // dynamic_queue.go:76
-    pub(crate) fn get_any(&self, _ctx: &Context) -> MutexGuard<'_, DynamicQueueState<T>> {
+    pub fn get_any(&self, _ctx: &Context) -> MutexGuard<'_, DynamicQueueState<T>> {
         // The state is only ever held for a push or a pop, so taking it never waits on another caller for
         // long; Go's select on ctx.Done() is the check before taking it (Put/Get) and the ready wait below.
         self.inner.state.lock().unwrap()
@@ -101,8 +101,8 @@ impl<T: Send + 'static> DynamicQueue<T> {
         )
     }
 
-    #[cfg(test)]
-    pub(crate) fn len(&self) -> usize {
+    #[expect(clippy::len_without_is_empty, reason = "Public for the integration tests.")]
+    pub fn len(&self) -> usize {
         self.inner.state.lock().unwrap().items.len()
     }
 }

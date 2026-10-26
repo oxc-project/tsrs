@@ -26,10 +26,10 @@ pub trait WatchBackend: Send + Sync {
 
 /// Go `watchmanager.WatchDirectoryRequest`.
 pub struct WatchDirectoryRequest {
-    pub(crate) dir: String,
-    pub(crate) callback: WatchCallback,
-    pub(crate) recursive: bool,
-    pub(crate) ignore: Option<IgnoreFunc>,
+    pub dir: String,
+    pub callback: WatchCallback,
+    pub recursive: bool,
+    pub ignore: Option<IgnoreFunc>,
 }
 
 /// Go `FSWatchBackend`.

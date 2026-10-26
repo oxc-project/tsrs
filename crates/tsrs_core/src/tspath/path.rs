@@ -434,7 +434,7 @@ fn reduced_path_components_of_combined(path: &str) -> Vec<&str> {
     reduced
 }
 
-fn reduce_path_components(components: &[String]) -> Vec<String> {
+pub fn reduce_path_components(components: &[String]) -> Vec<String> {
     if components.is_empty() {
         return Vec::new();
     }
@@ -1556,7 +1556,3 @@ pub fn compare_number_of_directory_separators(path1: &str, path2: &str) -> Order
         .count()
         .cmp(&memchr::memchr_iter(b'/', path2.as_bytes()).count())
 }
-
-#[cfg(test)]
-#[path = "path_test.rs"]
-mod path_test;

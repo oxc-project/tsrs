@@ -1,7 +1,7 @@
 // Test-only subprocess entry point for tools/go-fourslash. The Go harness owns the VFS.
 
 #[cfg(unix)]
-mod unix;
+use tsrs_fourslash_server::unix;
 
 fn main() {
     #[cfg(unix)]

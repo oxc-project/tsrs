@@ -15,4 +15,5 @@ tsrs_vfs.workspace = true
 rustc-hash.workspace = true
 
 [lib]
+test = false
 doctest = false

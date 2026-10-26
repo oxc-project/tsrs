@@ -522,7 +522,7 @@ struct WatcherState {
 const RECURSIVE_CONSOLIDATE_THRESHOLD: usize = 10;
 
 impl PlatformWatcher {
-    fn new(name: &'static str) -> PlatformWatcher {
+    pub fn new(name: &'static str) -> PlatformWatcher {
         PlatformWatcher {
             name,
             mu: Mutex::new(WatcherState::default()),
@@ -655,7 +655,7 @@ impl PlatformWatcher {
     }
 
     // watcher.go:429
-    fn get_or_create_dir_watch(
+    pub fn get_or_create_dir_watch(
         &self,
         dir: &str,
         physical_dir: &str,
@@ -1071,10 +1071,6 @@ pub fn watch_remove(impl_: &Arc<dyn WatcherImpl>, w: &Arc<DirWatch>) {
 }
 
 // watcher.go:775
-#[expect(
-    dead_code,
-    reason = "its only Go caller, windows.go (windowsSubscription.fatal), is not ported"
-)]
 pub fn handle_watcher_error(impl_: &Arc<dyn WatcherImpl>, werr: &DirWatchError) {
     watch_remove(impl_, &werr.dir_watch);
     let err = Error::wrap2(
@@ -1110,10 +1106,6 @@ pub struct Callback {
 // dirWatchError associates an error with a specific directory watch.
 pub struct DirWatchError {
     err: Error,
-    #[expect(
-        dead_code,
-        reason = "read only by handle_watcher_error, whose Go caller (windows.go) is not ported"
-    )]
     dir_watch: Arc<DirWatch>,
 }
 
@@ -1127,12 +1119,12 @@ impl From<DirWatchError> for Error {
 // and a reference to the shared debouncer. Each watched directory has one.
 pub struct DirWatch {
     // dir is the caller-visible watch root used in delivered event paths.
-    pub(crate) dir: String,
+    pub dir: String,
     // physicalDir is the path passed to OS watcher APIs. It differs from dir
     // when dir or an ancestor is a symlink or reparse point to a directory.
     pub(crate) physical_dir: String,
     pub(crate) recursive: bool,
-    pub(crate) events: EventList,
+    pub events: EventList,
     pub(crate) comparer: BytePathComparer,
     #[cfg(target_os = "macos")] // read only by the FSEvents backend
     pub(crate) dir_fold: String,
@@ -1159,7 +1151,7 @@ static NEXT_DIR_WATCH_KEY: AtomicU64 = AtomicU64::new(1);
 
 impl DirWatch {
     // watcher.go:834 (newDirWatch + setComparer + the fields getOrCreateDirWatch assigns before publishing it)
-    pub(crate) fn new(
+    pub fn new(
         dir: String,
         physical_dir: String,
         db: &Arc<Debounce>,
@@ -1439,7 +1431,7 @@ impl DirWatch {
     }
 
     // watcher.go:1128
-    pub(crate) fn add_callback(
+    pub fn add_callback(
         &self,
         dir: &str,
         physical_dir: &str,
@@ -1494,13 +1486,11 @@ impl DirWatch {
         }
     }
 
-    #[cfg(test)]
-    pub(crate) fn trigger_callbacks_for_test(&self) {
+    pub fn trigger_callbacks_for_test(&self) {
         self.trigger_callbacks();
     }
 
-    #[cfg(test)]
-    pub(crate) fn destroy_debounce_for_test(&self) {
+    pub fn destroy_debounce_for_test(&self) {
         self.destroy_debounce();
     }
 }
@@ -1764,7 +1754,3 @@ pub fn filepath_dir(path: &str) -> String {
     let i = path.rfind('/').map_or(0, |i| i + 1);
     filepath_clean(&path[..i])
 }
-
-#[cfg(all(test, target_os = "macos"))]
-#[path = "watcher_consolidation_test.rs"]
-mod consolidation_tests;

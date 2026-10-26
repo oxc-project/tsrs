@@ -6,7 +6,7 @@ records the current baseline counts and limitations.
 
 `noEmit`, `emitDeclarationOnly`, `noEmitOnError`, `incremental` and `composite` control what is written. An
 incremental `--noEmit` run can still write `.tsbuildinfo`, as in Go. The former `TSRS_EMIT` environment variable
-has no effect; `crates/tsrs_cli/tests/default_emit.rs` covers that behavior.
+has no effect; `crates/tsrs_cli/tests/integration/default_emit.rs` covers that behavior.
 
 The [original port plan](history/EMIT.md) is kept separately. The rules for maintaining the port are in
 [PORTING.md](PORTING.md); the reference commit and matching npm package are pinned in `Cargo.toml`.

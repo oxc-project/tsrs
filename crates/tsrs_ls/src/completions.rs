@@ -436,7 +436,7 @@ bitflags::bitflags! {
     // completions.go:295
     #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Default)]
     #[expect(non_camel_case_types, reason = "Keep the upstream bitflags type name.")]
-    pub(crate) struct symbolOriginInfoKind: u32 {
+    pub struct symbolOriginInfoKind: u32 {
         const ThisType = 1 << 0;
         const SymbolMember = 1 << 1;
         const Promise = 1 << 2;
@@ -454,7 +454,6 @@ pub enum SymbolOriginData {
     #[default]
     None,
     ObjectLiteralMethod(SymbolOriginInfoObjectLiteralMethod),
-    #[expect(dead_code, reason = "see symbolOriginInfoTypeOnlyAlias")]
     TypeOnlyAlias(SymbolOriginInfoTypeOnlyAlias),
     ComputedPropertyName(SymbolOriginInfoComputedPropertyName),
 }

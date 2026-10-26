@@ -7,13 +7,13 @@ use crate::contentmappers::Mapper;
 #[derive(Clone, Debug, Default)]
 pub struct ParsedOptions {
     pub compiler_options: Option<P<CompilerOptions>>,
-    pub(crate) type_acquisition: Option<TypeAcquisition>,
+    pub type_acquisition: Option<TypeAcquisition>,
 
     pub file_names: Vec<String>,
-    pub(crate) project_references: Vec<ProjectReference>,
+    pub project_references: Vec<ProjectReference>,
     // Go keeps `ProjectReferences` nil when the config has no "references" (build mode treats files: [] plus
     // references: [] as a solution).
-    pub(crate) project_references_is_nil: bool,
+    pub project_references_is_nil: bool,
     // Go `[]*Mapper`: the copies of a config (`reload_file_names_of_parsed_command_line`) share the mappers. A content
     // mapper project knows the mappers it was made with by address (hostimpl.rs `mapper_key`).
     pub content_mappers: Arc<[Mapper]>,
@@ -34,28 +34,5 @@ impl ParsedOptions {
             && self.project_references == other.project_references
             && self.project_references_is_nil == other.project_references_is_nil
             && self.content_mappers == other.content_mappers
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn type_acquisition_empty_lists_compare_equal() {
-        let a = ParsedOptions {
-            type_acquisition: Some(TypeAcquisition::default()),
-            ..ParsedOptions::default()
-        };
-        let b = ParsedOptions {
-            type_acquisition: Some(TypeAcquisition {
-                include: Some(Vec::new()),
-                exclude: Some(Vec::new()),
-                ..TypeAcquisition::default()
-            }),
-            ..ParsedOptions::default()
-        };
-        assert!(a.equals(&b));
-        assert!(b.equals(&a));
     }
 }

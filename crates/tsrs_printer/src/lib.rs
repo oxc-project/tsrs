@@ -60,24 +60,24 @@
 //! Not ported: source-map name indices (Go's `emitPosName`/`emitSourcePosName` are commented out), `emitresolver.go`
 //! (the Rust form is `tsrs_transformers::Resolver`), `JSDoc` emit (`emitJSDocNode` panics like Go).
 
-mod changetrackerwriter;
-mod emitcontext;
-mod emitflags;
-mod emittextwriter;
-mod factory;
-mod factory_2;
-mod generatedidentifierflags;
-mod helpers;
-mod helpers_defs;
-mod namegenerator;
-mod printer_1;
+pub mod changetrackerwriter;
+pub mod emitcontext;
+pub mod emitflags;
+pub mod emittextwriter;
+pub mod factory;
+pub mod factory_2;
+pub mod generatedidentifierflags;
+pub mod helpers;
+pub mod helpers_defs;
+pub mod namegenerator;
+pub mod printer_1;
 mod printer_2;
-mod printer_3;
-mod semicolon_writer;
-mod singlelinestringwriter;
-mod syntheticfile;
-mod textwriter;
-mod utilities;
+pub mod printer_3;
+pub mod semicolon_writer;
+pub mod singlelinestringwriter;
+pub mod syntheticfile;
+pub mod textwriter;
+pub mod utilities;
 
 pub use changetrackerwriter::*;
 pub use emitcontext::*;
@@ -96,9 +96,3 @@ pub use singlelinestringwriter::*;
 pub use syntheticfile::*;
 pub use textwriter::*;
 pub use utilities::*;
-
-#[cfg(test)]
-mod printer_test;
-
-#[cfg(test)]
-mod utilities_test;

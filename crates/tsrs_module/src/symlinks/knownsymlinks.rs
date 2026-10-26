@@ -35,8 +35,8 @@ pub struct KnownSymlinks {
     directories_by_realpath: SyncMap<Path, P<SyncSet<String>>>,
     files: SyncMap<Path, String>,
     files_by_realpath: SyncMap<Path, P<SyncSet<String>>>,
-    cwd: String,
-    use_case_sensitive_file_names: bool,
+    pub cwd: String,
+    pub use_case_sensitive_file_names: bool,
 }
 
 impl KnownSymlinks {
@@ -173,7 +173,7 @@ impl KnownSymlinks {
         }
     }
 
-    fn guess_directory_symlink(&self, a: &str, b: &str, cwd: &str) -> (String, String) {
+    pub fn guess_directory_symlink(&self, a: &str, b: &str, cwd: &str) -> (String, String) {
         let mut a_parts =
             tspath::get_path_components(&tspath::get_normalized_absolute_path(a, cwd), "");
         let mut b_parts =
@@ -204,14 +204,10 @@ impl KnownSymlinks {
         (String::new(), String::new())
     }
 
-    fn is_node_modules_or_scoped_package_directory(&self, s: &str) -> bool {
+    pub fn is_node_modules_or_scoped_package_directory(&self, s: &str) -> bool {
         !s.is_empty()
             && (tspath::get_canonical_file_name(s, self.use_case_sensitive_file_names)
                 == "node_modules"
                 || s.starts_with('@'))
     }
 }
-
-#[cfg(test)]
-#[path = "knownsymlinks_test.rs"]
-mod knownsymlinks_test;

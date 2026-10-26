@@ -319,7 +319,7 @@ pub fn get_document_position_mapper(
 }
 
 // source_mapper.go:257
-fn convert_document_to_source_mapper(
+pub fn convert_document_to_source_mapper(
     host: &dyn Host,
     contents: &str,
     map_file_name: &str,
@@ -392,7 +392,7 @@ fn try_get_source_mapping_url_(host: &dyn Host, file_name: &str) -> String {
 
 // source_mapper.go:290
 // Equivalent to /^data:(?:application\/json;(?:charset=[uU][tT][fF]-8;)?base64,([A-Za-z0-9+/=]+)$)?/
-fn try_parse_base64_url(url: &str) -> (&str, bool) {
+pub fn try_parse_base64_url(url: &str) -> (&str, bool) {
     let Some(url) = url.strip_prefix("data:") else {
         return ("", false);
     };
@@ -428,7 +428,7 @@ fn try_parse_base64_url(url: &str) -> (&str, bool) {
 
 // Go encoding/base64 StdEncoding.DecodeString for input already restricted to [A-Za-z0-9+/=] (so no newlines to
 // skip): padded quanta of four, '=' only as "xx==" or "xxx=" in the last quantum, nonzero trailing bits accepted.
-fn base64_std_decode_string(s: &str) -> Option<Vec<u8>> {
+pub fn base64_std_decode_string(s: &str) -> Option<Vec<u8>> {
     let src = s.as_bytes();
     if !src.len().is_multiple_of(4) {
         return None;
@@ -461,7 +461,3 @@ fn base64_std_decode_string(s: &str) -> Option<Vec<u8>> {
     }
     Some(out)
 }
-
-#[cfg(test)]
-#[path = "source_mapper_test.rs"]
-mod source_mapper_test;

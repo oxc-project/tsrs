@@ -15,7 +15,7 @@ pub trait Named {
 // word starting with that letter.
 #[derive(Clone)]
 pub struct Index<T: Named + Clone> {
-    pub(crate) entries: Vec<T>,
+    pub entries: Vec<T>,
     index: FxHashMap<Rune, Vec<usize>>,
 }
 
@@ -46,7 +46,7 @@ fn to_lower(r: Rune) -> Rune {
 
 impl<T: Named + Clone> Index<T> {
     // index.go:24
-    pub(crate) fn find(&self, name: &str, case_sensitive: bool) -> Vec<T> {
+    pub fn find(&self, name: &str, case_sensitive: bool) -> Vec<T> {
         if self.entries.is_empty() || name.is_empty() {
             return Vec::new();
         }
@@ -80,7 +80,7 @@ impl<T: Named + Clone> Index<T> {
     // the first character of 'prefix', and whose name contains all characters
     // of 'prefix' in order (case-insensitive). If 'filter' is provided, only entries
     // for which filter(entry) returns true are included.
-    pub(crate) fn search_word_prefix(&self, prefix: &str) -> Vec<T> {
+    pub fn search_word_prefix(&self, prefix: &str) -> Vec<T> {
         if self.entries.is_empty() {
             return Vec::new();
         }
@@ -119,14 +119,13 @@ impl<T: Named + Clone> Index<T> {
         results
     }
 
-    #[cfg(test)]
-    pub(crate) fn index_len(&self) -> usize {
+    pub fn index_len(&self) -> usize {
         self.index.len()
     }
 
     // index.go:122
     // insertAsWords adds a value to the index keyed by the first letter of each word in its name.
-    pub(crate) fn insert_as_words(&mut self, value: T) {
+    pub fn insert_as_words(&mut self, value: T) {
         let name = value.name().to_string();
         assert!(!name.is_empty(), "Cannot index entry with empty name");
         let entry_index = self.entries.len();
@@ -161,7 +160,7 @@ impl<T: Named + Clone> Index<T> {
     // index.go:156
     // Clone creates a new Index containing only entries for which filter returns true.
     #[must_use]
-    pub(crate) fn clone_filtered(&self, filter: impl Fn(&T) -> bool) -> Index<T> {
+    pub fn clone_filtered(&self, filter: impl Fn(&T) -> bool) -> Index<T> {
         let mut new_idx =
             Index { entries: Vec::with_capacity(self.entries.len()), index: FxHashMap::default() };
 

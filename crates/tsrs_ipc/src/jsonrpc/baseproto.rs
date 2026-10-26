@@ -34,7 +34,7 @@ pub fn new_reader<R: Read>(r: R) -> Reader<R> {
 impl<R: Read> Reader<R> {
     // baseproto.go:34
     // Read reads the next message payload.
-    pub(crate) fn read(&mut self) -> Result<Vec<u8>, Error> {
+    pub fn read(&mut self) -> Result<Vec<u8>, Error> {
         let mut content_length: i64 = 0;
 
         loop {
@@ -110,7 +110,7 @@ pub fn new_writer<W: Write>(w: W) -> Writer<W> {
 impl<W: Write> Writer<W> {
     // baseproto.go:91
     // Write writes a message payload with Content-Length header.
-    pub(crate) fn write(&mut self, data: &[u8]) -> Result<(), Error> {
+    pub fn write(&mut self, data: &[u8]) -> Result<(), Error> {
         if let Some(err) = &self.err {
             return Err(err.clone());
         }

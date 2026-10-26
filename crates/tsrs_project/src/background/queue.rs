@@ -85,7 +85,7 @@ pub fn new_queue() -> Queue {
 
 impl Queue {
     // queue.go:20
-    pub(crate) fn enqueue(&self, ctx: &Context, f: impl FnOnce(&Context) + Send + 'static) {
+    pub fn enqueue(&self, ctx: &Context, f: impl FnOnce(&Context) + Send + 'static) {
         let closed = self.closed.read().unwrap();
         if *closed {
             return;
@@ -117,7 +117,7 @@ impl Queue {
     // queue.go:44
     // Wait waits for all active tasks to complete.
     // It does not prevent new tasks from being enqueued while waiting.
-    pub(crate) fn wait(&self) {
+    pub fn wait(&self) {
         // Waits for background workers, without holding a run slot (`tsrs_core::runslots`).
         tsrs_core::runslots::blocking(|| {
             let mut count = self.pending.count.lock().unwrap();
@@ -128,7 +128,7 @@ impl Queue {
     }
 
     // queue.go:48
-    pub(crate) fn close(&self) {
+    pub fn close(&self) {
         *self.closed.write().unwrap() = true;
         self.wait();
     }
@@ -146,7 +146,3 @@ impl Drop for ScopeDone {
         }
     }
 }
-
-#[cfg(test)]
-#[path = "queue_test.rs"]
-mod queue_test;

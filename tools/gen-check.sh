@@ -8,7 +8,7 @@
 #   tools/gen-check.sh --write   regenerate only (leaves the result in the working tree)
 #
 # Not covered (hand-run tooling): the oracle-only files under tools/oracle and crates/*/tests,
-# crates/tsrs_api/src/checker/coverage_table.rs (written from proto.go), and the `BEGIN GENERATED` regions that
+# crates/tsrs_api/tests/integration/checker/coverage_table.rs (written from proto.go), and the `BEGIN GENERATED` regions that
 # tools/gen-tsoptions writes in crates/tsrs_tsoptions/src.
 set -euo pipefail
 cd "$(dirname "$0")/.."

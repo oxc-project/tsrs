@@ -17,8 +17,10 @@ struct State {
 
 static STATE: Mutex<State> = Mutex::new(State { received: false, hooks: Vec::new() });
 
-/// Starts catching SIGINT and SIGTERM. Call it before the process starts any other thread: threads inherit
-/// the signal mask, and a thread that does not block the signals would take them with their default action.
+/// Starts catching SIGINT and SIGTERM.
+///
+/// Call it before the process starts any other thread: threads inherit the signal mask, and a thread that does not
+/// block the signals would take them with their default action.
 /// Child processes start with an empty mask (`std::process::Command` resets it).
 #[cfg_attr(
     unix,

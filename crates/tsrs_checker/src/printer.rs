@@ -1365,25 +1365,6 @@ pub const ST_KIND_RESOLVED_EXPORTS: SymbolTableID = 4 << ST_KIND_SHIFT; // resol
 // stKindMask extracts the kind bits from a symbolTableID.
 pub const ST_KIND_MASK: SymbolTableID = !((1 << ST_KIND_SHIFT) - 1);
 
-#[cfg(test)]
-mod symbol_table_kind_tests {
-    use super::*;
-
-    #[test]
-    fn mask_extracts_every_table_kind_without_source_id_bits() {
-        let source_id = 0x12345;
-        for kind in [
-            ST_KIND_LOCALS,
-            ST_KIND_EXPORTS,
-            ST_KIND_MEMBERS,
-            ST_KIND_GLOBALS,
-            ST_KIND_RESOLVED_EXPORTS,
-        ] {
-            assert_eq!((kind | source_id) & ST_KIND_MASK, kind);
-        }
-    }
-}
-
 // symbolaccessibility.go:417
 pub fn symbol_table_id_from_locals(node: P<Node>) -> SymbolTableID {
     ST_KIND_LOCALS | ast::get_node_id(node).0
@@ -2295,6 +2276,10 @@ impl ModuleExportIndex {
 /// (target, entry) pairs sorted by target with a stable sort, so each target's entries are adjacent and in table
 /// order. One allocation of 8 bytes per entry instead of a hash map with a `Vec` per target (the index is built in
 /// every checker; most tables are small and most targets have one entry).
+#[expect(
+    clippy::too_long_first_doc_paragraph,
+    reason = "Public for the integration tests; the comment keeps its upstream wording."
+)]
 pub struct ExportsByTarget {
     len: usize,
     entries: Box<[(P<Symbol>, P<Symbol>)]>,

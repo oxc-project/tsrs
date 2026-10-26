@@ -43,7 +43,7 @@ pub struct ModuleSpecifiersResult {
 
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct ModulePath {
-    pub(crate) file_name: String,
+    pub file_name: String,
     pub(crate) is_in_node_modules: bool,
     pub(crate) is_redirect: bool,
 }
@@ -234,7 +234,7 @@ pub struct NodeModulePathParts {
     pub top_level_node_modules_index: usize,
     pub top_level_package_name_index: usize,
     pub package_root_index: Option<usize>,
-    pub(crate) file_name_index: usize,
+    pub file_name_index: usize,
 }
 
 #[repr(u8)]

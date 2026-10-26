@@ -6,10 +6,7 @@
 //! `generated.rs` is produced by `tools/gen-diagnostics/gen.mjs`; do not edit it by hand.
 
 mod diagnostics;
-mod generated;
+pub mod generated;
 
 pub use diagnostics::*;
 pub use generated::*;
-
-#[cfg(test)]
-mod tests;

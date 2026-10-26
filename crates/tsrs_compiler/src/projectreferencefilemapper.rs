@@ -61,7 +61,7 @@ pub fn as_resolved_project_reference(
 }
 
 impl ProjectReferenceFileMapper {
-    pub(crate) fn new(
+    pub fn new(
         config: P<ParsedCommandLine>,
         use_source_of_project_reference: bool,
     ) -> ProjectReferenceFileMapper {

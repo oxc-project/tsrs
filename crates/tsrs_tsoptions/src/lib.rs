@@ -1,39 +1,24 @@
-mod commandlineoption;
-mod commandlineparser;
-mod contentmappers;
-mod declsbuild;
-mod declscompiler;
+pub mod commandlineoption;
+pub mod commandlineparser;
+pub mod contentmappers;
+pub mod declsbuild;
+pub mod declscompiler;
 mod declstypeacquisition;
-mod diagnostics;
-mod enummaps;
-mod errors;
-mod namemap;
-mod parsedbuildcommandline;
-mod parsedcommandline;
-mod parsedoptions;
-mod parsinghelpers;
-mod tsconfigparsing;
-mod wildcarddirectories;
+pub mod diagnostics;
+pub mod enummaps;
+pub mod errors;
+pub mod namemap;
+pub mod parsedbuildcommandline;
+pub mod parsedcommandline;
+pub mod parsedoptions;
+pub mod parsinghelpers;
+pub mod tsconfigparsing;
+pub mod wildcarddirectories;
 
 pub mod gojson;
 pub mod outputpaths;
 
 pub mod tsoptionstest;
-
-#[cfg(test)]
-mod commandlineparser_test;
-#[cfg(test)]
-mod contentmappers_test;
-#[cfg(test)]
-mod decls_test;
-#[cfg(test)]
-mod parsinghelpers_test;
-#[cfg(test)]
-mod testutil;
-#[cfg(test)]
-mod tsconfigparsing_test;
-#[cfg(test)]
-mod wildcarddirectories_test;
 
 pub use commandlineoption::*;
 pub use commandlineparser::*;

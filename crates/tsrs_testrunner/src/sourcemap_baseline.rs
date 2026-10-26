@@ -169,7 +169,7 @@ fn base64_encode_chunk(s: &str) -> String {
 }
 
 // Go net/url QueryEscape (encodeQueryComponent mode).
-fn query_escape(s: &str) -> String {
+pub fn query_escape(s: &str) -> String {
     let mut out = String::with_capacity(s.len());
     for &c in s.as_bytes() {
         if c.is_ascii_alphanumeric() || c == b'-' || c == b'_' || c == b'.' || c == b'~' {
@@ -185,7 +185,7 @@ fn query_escape(s: &str) -> String {
 }
 
 // Go net/url QueryUnescape.
-fn query_unescape(s: &str) -> Result<Vec<u8>, String> {
+pub fn query_unescape(s: &str) -> Result<Vec<u8>, String> {
     let b = s.as_bytes();
     let mut out = Vec::with_capacity(b.len());
     let mut i = 0;
@@ -266,16 +266,4 @@ pub fn do_sourcemap_record_baseline(
     }
 
     (baseline_path, actual)
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn query_round_trip_is_identity() {
-        for s in ["a b+c%d", "héllo\r\n\t~", ""] {
-            assert_eq!(query_unescape(&query_escape(s)).unwrap(), s.as_bytes());
-        }
-    }
 }

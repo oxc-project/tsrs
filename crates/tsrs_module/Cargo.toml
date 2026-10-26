@@ -19,4 +19,5 @@ hashbrown.workspace = true
 bitflags.workspace = true
 
 [lib]
+test = false
 doctest = false

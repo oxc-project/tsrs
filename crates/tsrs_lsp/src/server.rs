@@ -217,12 +217,12 @@ pub fn to_writer(w: impl Write + Send + 'static) -> Box<dyn Writer> {
 pub struct Server {
     r: Mutex<Option<Box<dyn Reader>>>,
     w: Mutex<Box<dyn Writer>>,
-    pub(crate) background_ctx: OnceLock<Context>,
+    pub background_ctx: OnceLock<Context>,
 
     stderr: Mutex<Box<dyn Write + Send>>,
 
     logger: Arc<LoggerImpl>,
-    pub(crate) init_started: AtomicBool,
+    pub init_started: AtomicBool,
     client_seq: AtomicU64,
     request_queue: DynamicQueue<Arc<RequestMessage>>,
     pub(crate) outgoing_queue: DynamicQueue<Message>,
@@ -284,7 +284,7 @@ pub struct Server {
     flake_logging: OnceLock<lsproto::DiagnosticFlakeLogLevel>,
 
     // apiSessions holds active API sessions keyed by their ID
-    pub(crate) api_sessions: Mutex<FxHashMap<String, Arc<ApiSessionState>>>,
+    pub api_sessions: Mutex<FxHashMap<String, Arc<ApiSessionState>>>,
 }
 
 // server.go:256
@@ -445,12 +445,11 @@ impl Server {
         self.session.get().expect("the session is created by the initialized notification")
     }
 
-    #[cfg(test)]
-    pub(crate) fn set_session_for_test(&self, session: Arc<project::Session>) {
+    pub fn set_session_for_test(&self, session: Arc<project::Session>) {
         let _ = self.session.set(session);
     }
 
-    pub(crate) fn logger_arc(&self) -> Arc<LoggerImpl> {
+    pub fn logger_arc(&self) -> Arc<LoggerImpl> {
         Arc::clone(&self.logger)
     }
 
@@ -1501,7 +1500,7 @@ impl Server {
     }
 
     // server.go:1029
-    pub(crate) fn write_loop(&self, ctx: &Context) -> Result<(), Error> {
+    pub fn write_loop(&self, ctx: &Context) -> Result<(), Error> {
         loop {
             let msg = self.outgoing_queue.get(ctx)?;
             let result = self.w.lock().unwrap().write(&msg);
@@ -1625,7 +1624,7 @@ impl Server {
 
     // server.go:1138
     // send writes a message to the outgoing queue, respecting context cancellation.
-    pub(crate) fn send(&self, msg: Message) -> Result<(), Error> {
+    pub fn send(&self, msg: Message) -> Result<(), Error> {
         self.outgoing_queue.put(&self.background_ctx(), msg).map_err(Error::from)
     }
 
@@ -3224,7 +3223,7 @@ impl Server {
     }
 
     // server.go:2421
-    pub(crate) fn close_api_sessions(&self) {
+    pub fn close_api_sessions(&self) {
         let api_sessions: Vec<Arc<ApiSessionState>> =
             self.api_sessions.lock().unwrap().drain().map(|(_, state)| state).collect();
         for state in api_sessions {

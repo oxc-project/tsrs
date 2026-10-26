@@ -4,6 +4,3 @@
 mod spanmap;
 
 pub use spanmap::*;
-
-#[cfg(test)]
-mod spanmap_test;

@@ -35,8 +35,8 @@ struct NestedEmitState {
 }
 
 pub struct Program {
-    pub(crate) snapshot: P<Snapshot>,
-    pub(crate) program: Option<&'static CompilerProgram>,
+    pub snapshot: P<Snapshot>,
+    pub program: Option<&'static CompilerProgram>,
     pub(crate) host: Option<Box<dyn Host + Send + Sync>>,
 
     // Testing data

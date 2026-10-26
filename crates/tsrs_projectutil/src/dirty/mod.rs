@@ -3,10 +3,10 @@
 mod r#box;
 mod cloneablemap;
 mod entry;
-mod interfaces;
-mod map;
+pub mod interfaces;
+pub mod map;
 mod mapbuilder;
-mod syncmap;
+pub mod syncmap;
 mod util;
 
 pub use r#box::*;

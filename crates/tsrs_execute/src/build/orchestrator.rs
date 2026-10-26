@@ -105,8 +105,8 @@ pub struct Orchestrator {
     pub(crate) content_mapper_host: Mutex<Option<Arc<dyn tsrs_contentmapper::Host>>>,
 
     // order generation result
-    tasks: Mutex<FxHashMap<Path, P<BuildTask>>>,
-    order: Mutex<Vec<String>>,
+    pub tasks: Mutex<FxHashMap<Path, P<BuildTask>>>,
+    pub order: Mutex<Vec<String>>,
     errors: Mutex<Vec<P<Diagnostic>>>,
     graph_generated: AtomicBool,
     // Set when a builder thread panicked (see range_tasks).
@@ -149,7 +149,7 @@ impl Orchestrator {
     }
 
     // orchestrator.go:98
-    pub(crate) fn to_path(&self, file_name: &str) -> Path {
+    pub fn to_path(&self, file_name: &str) -> Path {
         tspath::to_path(
             file_name,
             &self.compare_paths_options.current_directory,
@@ -168,7 +168,7 @@ impl Orchestrator {
     }
 
     // orchestrator.go:131
-    fn compute_schedule_order(&self, order: &[String]) -> Vec<String> {
+    pub fn compute_schedule_order(&self, order: &[String]) -> Vec<String> {
         let mut entries: Vec<(String, usize)> = Vec::with_capacity(order.len());
         let mut depths: FxHashMap<P<BuildTask>, usize> = FxHashMap::default();
         for config in order {
@@ -738,7 +738,7 @@ impl Orchestrator {
     }
 
     // orchestrator.go:925
-    fn range_tasks(&'static self, order: &[String], f: &(dyn Fn(&Path, P<BuildTask>) + Sync)) {
+    pub fn range_tasks(&'static self, order: &[String], f: &(dyn Fn(&Path, P<BuildTask>) + Sync)) {
         let mut num_routines = 4;
         if self.api_mode.load(Ordering::SeqCst) {
             // API builds: one task region is entered at a time. Concurrent tasks could each wait to enter the
@@ -1769,68 +1769,4 @@ pub fn new_orchestrator(opts: Options) -> &'static Orchestrator {
     let _ = h.orchestrator.set(orchestrator);
     let _ = orchestrator.host.set(h);
     orchestrator
-}
-
-#[cfg(test)]
-mod scheduling_tests {
-    use super::*;
-    use crate::build::buildtask::UpstreamTask;
-
-    #[test]
-    fn schedules_full_selected_and_references_only_graphs_by_dependency_depth() {
-        let sys: &'static dyn System = Box::leak(Box::new(crate::sys::new_system()));
-        let host = crate::execute::parse_config_host(sys);
-        let command = P::new(tsrs_tsoptions::parse_build_command_line(
-            &["--build".into(), "--builders".into(), "1".into()],
-            host,
-        ));
-        let orchestrator = new_orchestrator(Options { sys, command, testing: None });
-
-        let names = ["Leaf", "Middle", "Independent", "Root", "Other"];
-        let mut tasks = FxHashMap::default();
-        for name in names {
-            let config = format!("/project/{name}/tsconfig.json");
-            let task = P::new(BuildTask::new(config.clone(), true));
-            orchestrator.tasks.lock().unwrap().insert(orchestrator.to_path(&config), task);
-            tasks.insert(name, task);
-            orchestrator.order.lock().unwrap().push(config);
-        }
-        tasks["Middle"]
-            .up_stream
-            .lock()
-            .unwrap()
-            .push(UpstreamTask { task: tasks["Leaf"], ref_index: 0 });
-        tasks["Root"].up_stream.lock().unwrap().extend([
-            UpstreamTask { task: tasks["Middle"], ref_index: 0 },
-            UpstreamTask { task: tasks["Independent"], ref_index: 1 },
-        ]);
-
-        let full = orchestrator.order();
-        let selected = full[..4].to_vec();
-        let references = full[..3].to_vec();
-        let project_names = |order: Vec<String>| -> Vec<String> {
-            order.iter().map(|config| config.split('/').nth(2).unwrap().to_string()).collect()
-        };
-        assert_eq!(
-            project_names(orchestrator.compute_schedule_order(&full)),
-            ["Leaf", "Independent", "Other", "Middle", "Root"]
-        );
-        assert_eq!(
-            project_names(orchestrator.compute_schedule_order(&selected)),
-            ["Leaf", "Independent", "Middle", "Root"]
-        );
-        let schedule = orchestrator.compute_schedule_order(&references);
-        assert_eq!(project_names(schedule.clone()), ["Leaf", "Independent", "Middle"]);
-
-        // A single builder takes exactly the selected projects in their computed order.
-        let dispatched = Mutex::new(Vec::new());
-        orchestrator.range_tasks(&schedule, &|_, task| {
-            dispatched.lock().unwrap().push(task.config.clone());
-        });
-        assert_eq!(
-            project_names(dispatched.into_inner().unwrap()),
-            ["Leaf", "Independent", "Middle"]
-        );
-        assert_eq!(project_names(orchestrator.order()), names);
-    }
 }

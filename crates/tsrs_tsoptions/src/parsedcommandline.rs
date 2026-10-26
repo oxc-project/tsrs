@@ -51,26 +51,26 @@ pub struct ParsedCommandLine {
     pub raw: CompilerOptionsValue,
     pub compile_on_save: Option<bool>,
 
-    pub(crate) compare_paths_options: ComparePathsOptions,
-    pub(crate) wildcard_directories: OnceLock<Option<OrderedMap<String, bool>>>,
-    pub(crate) include_globs: OnceLock<Vec<Glob>>,
+    pub compare_paths_options: ComparePathsOptions,
+    pub wildcard_directories: OnceLock<Option<OrderedMap<String, bool>>>,
+    pub include_globs: OnceLock<Vec<Glob>>,
 
-    pub(crate) source_and_output_maps: OnceLock<SourceAndOutputMaps>,
+    pub source_and_output_maps: OnceLock<SourceAndOutputMaps>,
 
-    pub(crate) common_source_directory: OnceLock<String>,
+    pub common_source_directory: OnceLock<String>,
     // Go appends checkSourceFilesBelongToPath diagnostics to Errors from inside CommonSourceDirectory's
     // sync.Once; they are kept here and reported after Errors by GetConfigFileParsingDiagnostics.
-    pub(crate) common_source_directory_errors: Mutex<Vec<P<Diagnostic>>>,
+    pub common_source_directory_errors: Mutex<Vec<P<Diagnostic>>>,
 
-    pub(crate) resolved_project_reference_paths: OnceLock<Vec<String>>,
+    pub resolved_project_reference_paths: OnceLock<Vec<String>>,
 
-    pub(crate) literal_file_names_len: usize,
-    pub(crate) file_names_by_path: OnceLock<FxHashMap<Path, String>>, // maps file names to their paths, used for quick lookups
-    pub(crate) content_mapper_extension_rewrites: OnceLock<Vec<ExtensionRewrite>>,
+    pub literal_file_names_len: usize,
+    pub file_names_by_path: OnceLock<FxHashMap<Path, String>>, // maps file names to their paths, used for quick lookups
+    pub content_mapper_extension_rewrites: OnceLock<Vec<ExtensionRewrite>>,
 }
 
 impl ParsedCommandLine {
-    pub(crate) fn empty() -> ParsedCommandLine {
+    pub fn empty() -> ParsedCommandLine {
         ParsedCommandLine {
             parsed_config: ParsedOptions::default(),
             config_file: None,
@@ -712,44 +712,5 @@ impl OutputPathsHost for ParsedCommandLine {
 
     fn use_case_sensitive_file_names(&self) -> bool {
         ParsedCommandLine::use_case_sensitive_file_names(self)
-    }
-}
-
-#[cfg(test)]
-mod common_source_directory_region_test {
-    use tsrs_core::arena::Region;
-    use tsrs_core::tspath::ComparePathsOptions;
-    use tsrs_core::{CompilerOptions, P};
-
-    use super::new_parsed_command_line;
-
-    // The first `common_source_directory` call can come from a checker (a `rewriteRelativeImportExtensions` import into
-    // a referenced project) while its region is the allocation target; the rootDir errors it records are read later
-    // from the command line, which outlives that region.
-    #[test]
-    fn root_dir_errors_are_not_kept_in_the_asking_region() {
-        let options =
-            P::new(CompilerOptions { root_dir: "/lib".to_string(), ..Default::default() });
-        let compare = ComparePathsOptions {
-            use_case_sensitive_file_names: true,
-            current_directory: "/".to_string(),
-        };
-        let config = P::new(new_parsed_command_line(
-            options,
-            vec!["/lib/a.ts".to_string(), "/shared/s.ts".to_string()],
-            Vec::new(),
-            compare,
-        ));
-        let region = Region::new(1 << 20);
-        {
-            let _scope = region.enter();
-            assert_eq!(config.common_source_directory(), "/lib/");
-        }
-        let diagnostics = config.get_config_file_parsing_diagnostics();
-        assert_eq!(diagnostics.len(), 1);
-        assert!(
-            Region::containing(diagnostics[0].addr()).is_none_or(|r| !r.ptr_eq(&region)),
-            "rootDir error allocated in the region"
-        );
     }
 }

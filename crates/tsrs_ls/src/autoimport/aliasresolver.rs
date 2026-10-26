@@ -43,6 +43,7 @@ pub struct AliasResolver {
 }
 
 // aliasresolver.go:33
+#[expect(clippy::implicit_hasher, reason = "Public for the integration tests.")]
 pub fn new_alias_resolver(
     root_files: Vec<P<SourceFile>>,
     symlinks: FxHashMap<Path, PathAndFileName>,

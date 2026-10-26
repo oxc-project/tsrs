@@ -11,7 +11,7 @@
 #   git clone --filter=blob:none https://github.com/microsoft/TypeScript.git ts-ref
 #   git -C ts-ref checkout b85298b6a81f772d080b0455de0ca9d744cd6fd6
 #   crates/tsrs_api/src/checker/testdata/go_probe/regen.sh
-#   cargo test -p tsrs_api --lib checker::tests::pinned_go_differential
+#   cargo test -p tsrs_api --test integration checker_test::pinned_go_differential
 set -euo pipefail
 
 here=$(cd "$(dirname "$0")" && pwd)

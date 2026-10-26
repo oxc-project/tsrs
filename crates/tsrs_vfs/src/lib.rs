@@ -1,5 +1,5 @@
-mod vfs;
-mod walkdir;
+pub mod vfs;
+pub mod walkdir;
 
 pub use vfs::*;
 pub use walkdir::*;
@@ -13,6 +13,3 @@ pub mod trackingvfs;
 pub mod vfsmatch;
 pub mod vfstest;
 pub mod wrapvfs;
-
-#[cfg(test)]
-mod walkdir_test;

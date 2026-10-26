@@ -67,8 +67,8 @@ impl EventList {
     // create records a new-file event for path. Both create and update
     // produce EventUpdate externally; sequence state tracks coalescing
     // (create+delete within a batch cancels out).
-    #[cfg(any(unix, test))]
-    pub(crate) fn create(&self, path: &str) {
+    #[cfg(unix)]
+    pub fn create(&self, path: &str) {
         let mut el = self.mu.lock().unwrap();
         let seq = el.next_seq_locked();
         el.create_locked(path, seq);
@@ -76,8 +76,8 @@ impl EventList {
 
     // event.go:79
     // update records an update event for path.
-    #[cfg(any(unix, test))]
-    pub(crate) fn update(&self, path: &str) {
+    #[cfg(unix)]
+    pub fn update(&self, path: &str) {
         let mut el = self.mu.lock().unwrap();
         let seq = el.next_seq_locked();
         el.update_locked(path, seq);
@@ -102,8 +102,8 @@ impl EventList {
 
     // event.go:106
     // remove records a delete event for path.
-    #[cfg(any(unix, test))]
-    pub(crate) fn remove(&self, path: &str) {
+    #[cfg(unix)]
+    pub fn remove(&self, path: &str) {
         let mut el = self.mu.lock().unwrap();
         let seq = el.next_seq_locked();
         el.remove_locked(path, seq);
@@ -141,15 +141,14 @@ impl EventList {
     // event.go:142
     // size returns the number of tracked entries (including ones that may
     // cancel out in getEvents).
-    pub(crate) fn size(&self) -> usize {
+    pub fn size(&self) -> usize {
         self.mu.lock().unwrap().entries.len()
     }
 
     // event.go:168
     // getEvents returns a snapshot of events, skipping entries that were both
     // created and deleted. Order is not guaranteed.
-    #[cfg(test)] // only tests call it, in Go too
-    pub(crate) fn get_events(&self) -> Vec<Event> {
+    pub fn get_events(&self) -> Vec<Event> {
         self.mu.lock().unwrap().snapshot_locked()
     }
 
@@ -157,7 +156,7 @@ impl EventList {
     // drain atomically snapshots all pending events and the stored error,
     // then clears the list. This prevents events added between a separate
     // getEvents+clear from being silently dropped.
-    pub(crate) fn drain(&self) -> (Vec<Event>, Option<Error>) {
+    pub fn drain(&self) -> (Vec<Event>, Option<Error>) {
         let mut el = self.mu.lock().unwrap();
         let out = el.snapshot_locked();
         let err = el.err.take();
@@ -166,11 +165,7 @@ impl EventList {
     }
 
     // event.go:187
-    #[cfg(test)] // only its ported test calls it: trigger_callbacks makes the snapshots outside the lock (`drain_entries`)
-    pub(crate) fn drain_for_sequences(
-        &self,
-        start_seqs: &[u64],
-    ) -> (Vec<Vec<Event>>, Option<Error>) {
+    pub fn drain_for_sequences(&self, start_seqs: &[u64]) -> (Vec<Vec<Event>>, Option<Error>) {
         let mut el = self.mu.lock().unwrap();
         let out = start_seqs.iter().map(|&start_seq| el.snapshot_since_locked(start_seq)).collect();
         let err = el.err.take();
@@ -192,8 +187,8 @@ impl EventList {
 
     // event.go:201
     // setError stores the first error encountered (later errors are ignored).
-    #[cfg(any(unix, test))]
-    pub(crate) fn set_error(&self, err: Error) {
+    #[cfg(unix)]
+    pub fn set_error(&self, err: Error) {
         let mut el = self.mu.lock().unwrap();
         if el.err.is_none() {
             el.err = Some(err);
@@ -202,26 +197,25 @@ impl EventList {
 
     // event.go:210
     // hasError reports whether an error has been recorded.
-    pub(crate) fn has_error(&self) -> bool {
+    pub fn has_error(&self) -> bool {
         self.mu.lock().unwrap().err.is_some()
     }
 
     // event.go:217
     // getError returns the stored error (or nil if none).
-    #[cfg(test)] // only tests call it, in Go too
-    pub(crate) fn get_error(&self) -> Option<Error> {
+    pub fn get_error(&self) -> Option<Error> {
         self.mu.lock().unwrap().err.clone()
     }
 
     // event.go:235
-    pub(crate) fn sequence(&self) -> u64 {
+    pub fn sequence(&self) -> u64 {
         self.mu.lock().unwrap().seq
     }
 }
 
 impl EventListState {
     // event.go:65
-    #[cfg(any(unix, test))]
+    #[cfg(unix)]
     fn create_locked(&mut self, path: &str, seq: u64) {
         let entry = self.get_or_create(path);
         if entry.is_deleted() {
@@ -237,7 +231,7 @@ impl EventListState {
     }
 
     // event.go:101
-    #[cfg(any(unix, test))]
+    #[cfg(unix)]
     fn update_locked(&mut self, path: &str, seq: u64) {
         self.get_or_create(path).updated_seq = seq;
     }
@@ -291,7 +285,7 @@ impl EventListState {
 
 impl EventEntry {
     // event.go:252
-    #[cfg(any(unix, test))]
+    #[cfg(unix)]
     fn is_deleted(&self) -> bool {
         self.deleted_seq > self.created_seq && self.deleted_seq > self.updated_seq
     }

@@ -92,10 +92,10 @@ impl fmt::Display for ID {
 // ResponseError represents a JSON-RPC error response.
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct ResponseError {
-    pub(crate) code: i32,
-    pub(crate) message: String,
+    pub code: i32,
+    pub message: String,
     // Go `Data any`: None is a nil Data (omitted; a JSON null decodes to it).
-    pub(crate) data: Option<Value>,
+    pub data: Option<Value>,
 }
 
 impl ResponseError {
@@ -168,27 +168,27 @@ pub const CODE_INTERNAL_ERROR: i32 = -32603;
 pub struct Message {
     pub id: Option<ID>,
     pub method: String,
-    pub(crate) params: Option<Value>,
-    pub(crate) result: Option<Value>,
-    pub(crate) error: Option<ResponseError>,
+    pub params: Option<Value>,
+    pub result: Option<Value>,
+    pub error: Option<ResponseError>,
 }
 
 impl Message {
     // jsonrpc.go:160
     // IsRequest returns true if this message is a request (has ID and method).
-    pub(crate) fn is_request(&self) -> bool {
+    pub fn is_request(&self) -> bool {
         self.id.is_some() && !self.method.is_empty()
     }
 
     // jsonrpc.go:165
     // IsNotification returns true if this message is a notification (has method but no ID).
-    pub(crate) fn is_notification(&self) -> bool {
+    pub fn is_notification(&self) -> bool {
         self.id.is_none() && !self.method.is_empty()
     }
 
     // jsonrpc.go:170
     // IsResponse returns true if this message is a response (has ID but no method).
-    pub(crate) fn is_response(&self) -> bool {
+    pub fn is_response(&self) -> bool {
         self.id.is_some() && self.method.is_empty()
     }
 
@@ -221,7 +221,7 @@ impl Message {
 
     // Go `json.Unmarshal(data, &m)`. Unknown members are ignored and a JSON null decodes as the zero Message, as
     // json/v2 does.
-    pub(crate) fn unmarshal(data: &[u8]) -> Result<Message, Error> {
+    pub fn unmarshal(data: &[u8]) -> Result<Message, Error> {
         let text = tsrs_core::utf8::basic::from_utf8(data)
             .map_err(|_| Error::new("jsontext: invalid UTF-8 within message"))?;
         let mut m = Message::default();
@@ -258,9 +258,9 @@ impl Message {
 // RequestMessage is a convenience type for creating request/notification messages.
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct RequestMessage {
-    pub(crate) id: Option<ID>,
-    pub(crate) method: String,
-    pub(crate) params: Option<Value>,
+    pub id: Option<ID>,
+    pub method: String,
+    pub params: Option<Value>,
 }
 
 impl RequestMessage {
@@ -274,9 +274,9 @@ impl RequestMessage {
 // ResponseMessage is a convenience type for creating response messages.
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct ResponseMessage {
-    pub(crate) id: Option<ID>,
-    pub(crate) result: Option<Value>,
-    pub(crate) error: Option<ResponseError>,
+    pub id: Option<ID>,
+    pub result: Option<Value>,
+    pub error: Option<ResponseError>,
 }
 
 impl ResponseMessage {

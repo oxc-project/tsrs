@@ -192,7 +192,7 @@ pub struct Session {
     // pendingFileChanges are accumulated from textDocument/* events delivered
     // by the LSP server through DidOpenFile(), DidChangeFile(), etc. They are
     // applied to the next snapshot update.
-    pub(crate) pending_file_changes: Mutex<Vec<FileChange>>,
+    pub pending_file_changes: Mutex<Vec<FileChange>>,
 
     // pendingATAChanges are produced by Automatic Type Acquisition (ATA)
     // installations and applied to the next snapshot update.

@@ -27,6 +27,10 @@ fn rooted_option(path: &str, cwd: &str) -> String {
 /// Go `RawCompilerOptions.Finalize`, for the path-valued fields accepted by
 /// the API. This runs only on API input; parsed tsconfig options already have
 /// their own base directory and must not be resolved against the server cwd.
+#[expect(
+    clippy::too_long_first_doc_paragraph,
+    reason = "Public for the integration tests; the comment keeps its upstream wording."
+)]
 pub fn compiler_options_from_raw(value: &Value, cwd: &str) -> ApiResult<CompilerOptions> {
     let mut options =
         gojson::compiler_options_from_go_json(value).map_err(ApiError::invalid_request)?;
@@ -60,27 +64,4 @@ pub fn compiler_options_from_raw(value: &Value, cwd: &str) -> ApiResult<Compiler
     options.map_root = tspath::normalize_slashes(&options.map_root);
     options.source_root = tspath::normalize_slashes(&options.source_root);
     Ok(options)
-}
-
-#[cfg(test)]
-mod tests {
-    use tsrs_core::json;
-
-    use super::compiler_options_from_raw;
-
-    #[test]
-    fn resolves_api_path_options_against_server_cwd() {
-        let input = json::unmarshal(
-            r#"{"outDir":"dist","rootDirs":["src","${configDir}/generated"],"tsBuildInfoFile":"cache/build.tsbuildinfo","sourceRoot":"sources\\mapped","configFilePath":"","pathsBasePath":"config","NoImplicitAny":true}"#,
-        )
-        .unwrap();
-        let options = compiler_options_from_raw(&input, "/project").unwrap();
-        assert_eq!(options.out_dir, "/project/dist");
-        assert_eq!(options.root_dirs.unwrap(), ["/project/src", "/project/generated"]);
-        assert_eq!(options.ts_build_info_file, "/project/cache/build.tsbuildinfo");
-        assert_eq!(options.source_root, "sources/mapped");
-        assert_eq!(options.config_file_path, "");
-        assert_eq!(options.paths_base_path, "/project/config");
-        assert_eq!(options.no_implicit_any, tsrs_core::Tristate::Unknown);
-    }
 }

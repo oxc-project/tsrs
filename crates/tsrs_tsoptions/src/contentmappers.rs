@@ -177,7 +177,7 @@ impl Mapper {
     // whole CompilerOptions when a mapper depends on few options (or none).
     // contentmapper.go:119 (Go finds each field by its json tag through reflection, `compilerOptionFields`;
     // `gojson::compiler_option_to_go_json` does that lookup and the marshaling. The values are raw JSON text.)
-    pub(crate) fn marshal_declared_options(
+    pub fn marshal_declared_options(
         &self,
         options: Option<&CompilerOptions>,
     ) -> Result<OrderedMap<String, String>, String> {

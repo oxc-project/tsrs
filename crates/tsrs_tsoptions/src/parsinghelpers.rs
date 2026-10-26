@@ -674,6 +674,7 @@ impl_is_zero_for_enum!(
 );
 
 // Every exported field of core.CompilerOptions in declaration order, with its JSON name.
+#[macro_export]
 macro_rules! for_each_compiler_options_field {
     ($m:ident) => {
         $m! {
@@ -813,7 +814,7 @@ macro_rules! for_each_compiler_options_field {
     };
 }
 
-pub(crate) use for_each_compiler_options_field;
+pub use crate::for_each_compiler_options_field;
 
 // A field of core.CompilerOptions seen through reflection (Go reflect.Value): IsZero and Interface.
 pub trait OptionFieldValue {

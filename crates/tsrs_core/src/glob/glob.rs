@@ -143,7 +143,7 @@ fn read_range_rune(input: &str) -> Result<(Rune, usize), String> {
     Ok((r, sz))
 }
 
-const ERR_BAD_RANGE: &str = "'[' patterns must be of the form [x-y]";
+pub const ERR_BAD_RANGE: &str = "'[' patterns must be of the form [x-y]";
 const ERR_INVALID_UTF8: &str = "invalid UTF-8 encoding";
 
 impl Glob {
@@ -154,7 +154,7 @@ impl Glob {
         &pattern[end..]
     }
 
-    fn string(&self) -> String {
+    pub fn string(&self) -> String {
         let mut b = String::new();
         b.extend(self.elems.iter().map(Element::string));
         b
@@ -348,58 +348,4 @@ fn split(input: &[u8]) -> (&[u8], &[u8]) {
         return (first, &input[j..]);
     }
     (first, b"")
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    fn matches(pattern: &str, input: &str) -> bool {
-        parse(pattern).unwrap().match_(input)
-    }
-
-    #[test]
-    fn test_parse_round_trip() {
-        for pattern in ["**/*.{ts,js}", "a/b/c", "example.[0-9]", "src/**/?.d.ts", "{a,{b,c}}/*"] {
-            assert_eq!(parse(pattern).unwrap().string(), pattern);
-        }
-    }
-
-    #[test]
-    fn test_parse_errors() {
-        assert_eq!(parse("a**").unwrap_err(), "** may only be adjacent to '/'");
-        assert_eq!(parse("**a").unwrap_err(), "** may only be adjacent to '/'");
-        assert_eq!(parse("{a,b").unwrap_err(), "unmatched '{'");
-        assert_eq!(parse("[a]").unwrap_err(), ERR_BAD_RANGE);
-        assert_eq!(parse("[").unwrap_err(), ERR_BAD_RANGE);
-        assert_eq!(parse("[a-").unwrap_err(), ERR_BAD_RANGE);
-        assert!(parse("a,b}").is_ok());
-    }
-
-    #[test]
-    fn test_match() {
-        // `**/*.{ts,js}` matches all TypeScript and JavaScript files
-        assert!(matches("**/*.{ts,js}", "a.ts"));
-        assert!(matches("**/*.{ts,js}", "src/deep/a.js"));
-        assert!(!matches("**/*.{ts,js}", "src/a.tsx"));
-        // `example.[0-9]` to match on `example.0`, `example.1`, …
-        assert!(matches("example.[0-9]", "example.0"));
-        assert!(matches("example.[0-9]", "example.9"));
-        assert!(!matches("example.[0-9]", "example.a"));
-        // '/' matches one or more literal slashes.
-        assert!(matches("a/b", "a//b"));
-        assert!(!matches("a/b", "ab"));
-        // `?` matches one character in a path segment
-        assert!(matches("a?c", "abc"));
-        assert!(!matches("a?c", "a/c"));
-        // `*` matches within a path segment only
-        assert!(matches("src/*.ts", "src/a.ts"));
-        assert!(!matches("src/*.ts", "src/x/a.ts"));
-        assert!(matches("src/*", "src/anything"));
-        // **/a matches "a"; trailing ** matches everything
-        assert!(matches("**/a", "a"));
-        assert!(matches("**/a", "x/y/a"));
-        assert!(matches("src/**", "src/x/y"));
-        assert!(matches("/dir/**/*", "/dir/a/b.ts"));
-    }
 }

@@ -66,7 +66,7 @@ fn is_valid_create_script_kind(k: ScriptKind) -> bool {
 }
 
 /// Go `newSourceFileDescriptor` as the wire object.
-pub(crate) fn source_file_descriptor(file: P<SourceFile>) -> Value {
+pub fn source_file_descriptor(file: P<SourceFile>) -> Value {
     let o = file.parse_options();
     let key = u32::from(o.external_module_indicator_options.jsx)
         | (u32::from(o.external_module_indicator_options.force) << 1);
@@ -82,7 +82,7 @@ pub(crate) fn source_file_descriptor(file: P<SourceFile>) -> Value {
 
 /// `source_file_descriptor(file) == *descriptor` without building the descriptor: the same six members,
 /// with equal values.
-pub(crate) fn source_file_descriptor_matches(file: P<SourceFile>, descriptor: &Value) -> bool {
+pub fn source_file_descriptor_matches(file: P<SourceFile>, descriptor: &Value) -> bool {
     // Six distinct member names, each one of the descriptor's six, are exactly its members.
     let Value::Object(members) = descriptor else { return false };
     if members.len() != 6 {
@@ -232,7 +232,7 @@ impl Session {
     }
 
     /// Go `nodeHandleFrom`.
-    pub(crate) fn node_handle_from(&self, node: P<Node>) -> ApiResult<String> {
+    pub fn node_handle_from(&self, node: P<Node>) -> ApiResult<String> {
         let file = tsrs_ast::get_source_file_of_node(node)
             .ok_or_else(|| ApiError::internal("node has no source file"))?;
         let table = self.node_index_table(file);

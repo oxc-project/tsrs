@@ -196,7 +196,7 @@ pub struct Program {
     pub(crate) opts: ProgramConfig,
     host: Arc<dyn CompilerHost>,
     resolution_host: &'static dyn ResolutionHost,
-    pub(crate) resolution_data: P<module::ResolutionData>,
+    pub resolution_data: P<module::ResolutionData>,
     // Always set once the program is constructed (see `init_checker_pool`).
     checker_pool: OnceLock<ProgramCheckerPool>,
     pub(crate) include_processor: IncludeProcessor,
@@ -247,7 +247,7 @@ pub struct Program {
     pub(crate) tsgo_check_slots: OnceLock<FxHashMap<P<SourceFile>, (u32, u32)>>,
     // tsrs-only: the import graph those slots are computed from (`checkerpool::get_import_adjacency`), which a program
     // made by `reuse_program` takes over: it has the same files at the same indices with the same imports.
-    pub(crate) tsgo_import_adjacency: OnceLock<Arc<[Vec<usize>]>>,
+    pub tsgo_import_adjacency: OnceLock<Arc<[Vec<usize>]>>,
     // tsrs-only: `ProgramOptions::checker_recycling`.
     pub(crate) checker_recycling: bool,
     canonical_diagnostics: bool,
@@ -907,7 +907,7 @@ impl Program {
     }
 
     // Go `p.compilerCheckerPool` (nil when the program was created with `CreateCheckerPool`).
-    pub(crate) fn compiler_checker_pool(&self) -> Option<&CheckerPoolImpl> {
+    pub fn compiler_checker_pool(&self) -> Option<&CheckerPoolImpl> {
         match self.checker_pool.get() {
             Some(ProgramCheckerPool::Compiler(pool)) => Some(pool),
             _ => None,
@@ -915,7 +915,7 @@ impl Program {
     }
 
     // The built-in pool, for the CLI's statistics; panics on a program with an external pool.
-    pub(crate) fn pool(&self) -> &CheckerPoolImpl {
+    pub fn pool(&self) -> &CheckerPoolImpl {
         self.compiler_checker_pool().expect("program uses an external checker pool")
     }
 
@@ -1269,9 +1269,7 @@ impl Program {
         self.get_resolved_module(file, module_specifier.text(), mode)
     }
 
-    pub(crate) fn get_resolved_modules(
-        &self,
-    ) -> &FxHashMap<Path, ModeAwareCache<P<ResolvedModule>>> {
+    pub fn get_resolved_modules(&self) -> &FxHashMap<Path, ModeAwareCache<P<ResolvedModule>>> {
         &self.resolved_modules
     }
 

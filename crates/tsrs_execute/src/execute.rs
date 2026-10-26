@@ -18,13 +18,13 @@ use crate::tsc::{
 };
 
 // The system doubles as the config-parsing host (Go's tsc.System satisfies tsoptions.ParseConfigHost).
-pub(crate) struct SysParseConfigHost {
+pub struct SysParseConfigHost {
     sys: &'static dyn System,
     fs: Arc<dyn FS>,
 }
 
 /// The config parse host for `sys` (leaked: tsoptions keeps it for the parsed command line's lifetime).
-pub(crate) fn parse_config_host(sys: &'static dyn System) -> &'static SysParseConfigHost {
+pub fn parse_config_host(sys: &'static dyn System) -> &'static SysParseConfigHost {
     Box::leak(Box::new(SysParseConfigHost { sys, fs: sys.fs() }))
 }
 
@@ -51,7 +51,7 @@ pub fn command_line(sys: &'static dyn System, command_line_args: Vec<String>) ->
 }
 
 // tsc.go:56 CommandLine(ctx, sys, commandLineArgs, testing)
-pub(crate) fn command_line_with_testing(
+pub fn command_line_with_testing(
     sys: &'static dyn System,
     command_line_args: Vec<String>,
     testing: Option<&'static dyn tsc::CommandLineTesting>,

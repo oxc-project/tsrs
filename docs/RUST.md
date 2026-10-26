@@ -64,7 +64,7 @@ An upgrade is a pull request of its own:
 
 ## Source checks
 
-`tools/lint/source.mjs` (CI: the `lint` job; after Bun's `test/internal/source-lints/`) checks four things
+`tools/lint/source.mjs` (CI: the `lint` job; after Bun's `test/internal/source-lints/`) checks five things
 clippy cannot express:
 
 - **`unsafe impl Send` / `Sync`.** `tools/lint/send_sync.tsv` lists all of them (31 on 2026-10-10). Adding or removing
@@ -88,8 +88,13 @@ clippy cannot express:
   `safe-api-possible`, `defect-risk`, `unknown`) and a note that `--update` preserves. A site that appears or
   disappears fails until `--update` records it; a new row starts with the verdict `unknown` and the check names it
   until someone classifies it. The classification and its findings are in `notes/unsafe-audit.md` (issue #646).
+- **Test layout.** Each crate has one test binary, `tests/integration/main.rs`, so `cargo test` compiles no unit-test
+  harness per crate. A `[lib]` or `[[bin]]` without `test = false`, a `.rs` file directly under `tests/` (unless the
+  crate's test target has `harness = false`), and `#[test]`, `#[cfg(test)]` or `cfg!(test)` in `src` fail: with
+  `test = false` a unit test would never run. tsrs_wasm is exempt; it is cdylib only, so no integration test can
+  link it.
 
-Source checks cover `crates/*/src` and `tasks/*/src`. Test files and generated files are not scanned.
+The other source checks cover `crates/*/src` and `tasks/*/src`. Test files and generated files are not scanned.
 
 ## What the lints check
 

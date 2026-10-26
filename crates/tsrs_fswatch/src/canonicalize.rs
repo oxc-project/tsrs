@@ -20,7 +20,7 @@ pub fn canonicalize_path(p: &str) -> String {
 #[cfg(target_os = "macos")]
 impl PlatformWatcher {
     // canonicalize_darwin.go:17
-    pub(crate) fn path_comparer(&self, dir: &str) -> Result<BytePathComparer, Error> {
+    pub fn path_comparer(&self, dir: &str) -> Result<BytePathComparer, Error> {
         if self.name != "fsevents" && self.name != "kqueue" {
             return Ok(BytePathComparer::default());
         }

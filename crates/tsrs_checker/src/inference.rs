@@ -2111,7 +2111,7 @@ impl Checker {
 
     // inference.go:1258
     // n and the result are Option (Go checks n for nil; callers pass getInferenceContext results).
-    pub(crate) fn clone_inference_context(
+    pub fn clone_inference_context(
         n: Option<P<InferenceContext>>,
         extra_flags: InferenceFlags,
     ) -> Option<P<InferenceContext>> {
@@ -2151,7 +2151,7 @@ impl Checker {
     }
 
     // inference.go:1273
-    pub(crate) fn new_inference_context_worker(
+    pub fn new_inference_context_worker(
         inferences: &[P<InferenceInfo>],
         signature: Option<P<Signature>>,
         flags: InferenceFlags,

@@ -225,7 +225,7 @@ memory mapped. Run the recycling and language-server lifetime regressions after 
 ```sh
 cargo build --profile dev -p tsrs_cli -p tsrs_testrunner
 cargo test -p tsrs_core
-cargo test -p tsrs_cli --test recycle_checkers --test free_leaf_files --test lsp_edit_resolutions
+cargo test -p tsrs_cli --test integration -- recycle_checkers free_leaf_files lsp_edit_resolutions
 ```
 
 The CLI regressions exercise normal and poison modes. These checks exercise stale accesses; they do not scan the
@@ -317,7 +317,7 @@ Environment switches, read once per process:
   and the corpora after any change to the checker that could affect what a flow walk reads.
 - `TSRS_FLOW_MEMO_BITS=<8..24>`: log2 of the table's slots (default 12, 32 bytes each).
 
-testdata/flow-memo holds the hazard cases (each with tsgo's output); `cargo test -p tsrs_cli --test flow_memo` runs
+testdata/flow-memo holds the hazard cases (each with tsgo's output); `cargo test -p tsrs_cli --test integration flow_memo` runs
 them with the memo on, off and in shadow mode.
 
 ## The union front cache and its shadow mode: `TSRS_UNION_CACHE`
@@ -403,7 +403,7 @@ the other exclusions.
 After a change that reads a file after the check pass (a new report, a new whole-program loop in the checker, such as
 `getAlternativeContainingModules`'s), run a corpus in fast mode with `TSRS_ARENA_POISON=1`: a freed region is then
 filled with `0xA5` and kept, so a read of a freed leaf crashes. The output must equal a `TSRS_FREE_LEAVES=0` run. `cargo test
--p tsrs_cli --test free_leaf_files` covers the checker's loop over every module
+-p tsrs_cli --test integration free_leaf_files` covers the checker's loop over every module
 (testdata/regressions/leaf-alternative-containers) and a structurally identical instantiation after a freed leaf
 (leaf-structural-instantiation).
 
@@ -453,7 +453,7 @@ After a change to what checking a declaration statement reads or writes outside 
 suite in fast mode with forced splits and compare its lists with an unsplit run:
 `TS_TEST_PROGRAM_SINGLE_THREADED=false TSRS_FAST=1 TSRS_SPLIT_FILES=force:3,shadow tsrs-test run --suite all
 --baselines types,symbols --panic-summary` against the same with `TSRS_SPLIT_FILES=0` (about 630 declaration files in
-330 test programs are split). `cargo test -p tsrs_cli --test split_check` runs testdata/split-check in every mode
+330 test programs are split). `cargo test -p tsrs_cli --test integration split_check` runs testdata/split-check in every mode
 against tsgo-ref's output.
 
 ## Data races: ThreadSanitizer (`tasks/thread_sanitizer`)

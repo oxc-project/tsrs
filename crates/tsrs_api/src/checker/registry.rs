@@ -46,11 +46,6 @@ pub struct CheckerRegistry {
 }
 
 impl CheckerRegistry {
-    #[cfg(test)]
-    pub(crate) fn new() -> CheckerRegistry {
-        CheckerRegistry::default()
-    }
-
     /// Drops every registered pointer. Runs when the snapshot's `SnapshotData` is dropped.
     pub fn release(&self) {
         let mut st = self.lock();
@@ -80,8 +75,7 @@ impl CheckerRegistry {
         Ok(())
     }
 
-    #[cfg(test)]
-    pub(crate) fn is_released(&self) -> bool {
+    pub fn is_released(&self) -> bool {
         self.lock().released
     }
 

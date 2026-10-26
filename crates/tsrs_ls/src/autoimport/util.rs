@@ -214,6 +214,7 @@ pub fn get_resolved_package_names(ctx: &Context, program: &'static Program) -> S
 // from a program's project references to the provided map.
 // This is used during node_modules bucket building to redirect extraction
 // from output files to source files when the output is from a project reference.
+#[expect(clippy::implicit_hasher, reason = "Public for the integration tests.")]
 pub fn add_project_reference_output_mappings(
     program: &'static Program,
     result: &mut FxHashMap<Path, String>,

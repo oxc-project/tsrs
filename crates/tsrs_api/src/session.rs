@@ -57,7 +57,7 @@ impl SessionOptions {
 
 /// Go `snapshotOpenState`: projects/files this client opened in a snapshot lineage.
 #[derive(Clone, Default)]
-pub(crate) struct OpenState {
+pub struct OpenState {
     pub open_projects: tsrs_core::collections::Set<tsrs_core::tspath::Path>,
     pub open_files: tsrs_core::collections::Set<tsrs_core::tspath::Path>,
 }
@@ -65,7 +65,7 @@ pub(crate) struct OpenState {
 /// Go `snapshotData`: one registered snapshot plus its per-snapshot registries.
 pub struct SnapshotData {
     pub handle: SnapshotID,
-    pub(crate) snapshot: Arc<Snapshot>,
+    pub snapshot: Arc<Snapshot>,
     /// Request filesystem the snapshot was created with (inherited by updates), if any.
     pub(crate) file_system: Option<Arc<crate::requestfs::RequestFileSystem>>,
     pub(crate) open_state: OpenState,
@@ -106,7 +106,7 @@ pub struct CheckerSetup {
 /// Go `Session.openProjects` / `openFiles` / `createdPrograms`, guarded by `languageServerUpdateMu`: the canonical
 /// LSP-state resources owned by this API client.
 #[derive(Default)]
-pub(crate) struct LanguageServerState {
+pub struct LanguageServerState {
     pub open_state: OpenState,
     pub created_programs: tsrs_core::collections::Set<tsrs_project::SyntheticProjectID>,
 }
@@ -116,7 +116,7 @@ pub struct Session {
     pub(crate) snapshot_host: Arc<SnapshotHost>,
     /// Go `projectSession`: the language server's project session, for sessions created by `new_lsp_session`.
     pub(crate) project_session: Option<Arc<tsrs_project::Session>>,
-    pub(crate) language_server: Mutex<LanguageServerState>,
+    pub language_server: Mutex<LanguageServerState>,
     pub(crate) parse_config_host: crate::config::ApiParseConfigHost,
     binary_responses: bool,
     /// Registered snapshots with their API reference count (Go `snapshotData.refCount`).

@@ -4,16 +4,16 @@ pub mod background;
 pub use tsrs_projectutil::dirty;
 pub use tsrs_projectutil::logging;
 
-mod client;
-mod extendedconfigcache;
-mod filechange;
-mod overlayfs;
-mod ownercache;
-mod parsecache;
+pub mod client;
+pub mod extendedconfigcache;
+pub mod filechange;
+pub mod overlayfs;
+pub mod ownercache;
+pub mod parsecache;
 mod programcounter;
-mod refcountcache;
-mod snapshotfs;
-mod watch;
+pub mod refcountcache;
+pub mod snapshotfs;
+pub mod watch;
 
 pub use client::*;
 pub use extendedconfigcache::*;
@@ -25,19 +25,19 @@ pub use refcountcache::*;
 pub use snapshotfs::*;
 pub use watch::*;
 
-mod ata;
+pub mod ata;
 mod autoimport;
-mod checkerpool;
+pub mod checkerpool;
 mod compilerhost;
-mod configfileregistry;
+pub mod configfileregistry;
 mod configfileregistrybuilder;
 mod memregions;
-mod project;
-mod projectcollection;
+pub mod project;
+pub mod projectcollection;
 mod projectcollectionbuilder;
-mod session;
-mod snapshot;
-mod snapshothost;
+pub mod session;
+pub mod snapshot;
+pub mod snapshothost;
 
 pub use ata::*;
 pub use checkerpool::*;
@@ -48,12 +48,3 @@ pub use projectcollectionbuilder::ProjectCollectionBuilder;
 pub use session::*;
 pub use snapshot::*;
 pub use snapshothost::*;
-
-#[cfg(test)]
-mod projectcollectionbuilder_test;
-#[cfg(test)]
-mod projecttestutil;
-#[cfg(test)]
-mod session_test;
-#[cfg(test)]
-mod snapshot_test;

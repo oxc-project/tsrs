@@ -282,6 +282,50 @@ const tsv = (file) =>
               .filter((l) => l.trim() && !l.startsWith("#"))
               .map((l) => l.split("\t"))
         : [];
+// Tests live in each crate's one integration binary, tests/integration/main.rs (AGENTS.md). Every [lib] and [[bin]]
+// sets `test = false`, so cargo builds no unit-test harness, and a unit test in src would never run.
+// tsrs_wasm is cdylib only (its wasm fat LTO excludes an rlib), so no integration test can link it.
+const UNIT_TEST_CRATES = new Set(["crates/tsrs_wasm"]),
+    UNIT_TEST = /#\[test\]|#\[cfg(?:_attr)?\((?:[^\]]*[(,\s])?test\b|\bcfg!\(\s*test\s*\)/;
+function testLayout() {
+    const problems = [];
+    for (const base of ["crates", "tasks"]) {
+        const folder = path.join(ROOT, base);
+        if (!fs.existsSync(folder)) continue;
+        for (const entry of fs.readdirSync(folder).sort()) {
+            const crate = `${base}/${entry}`,
+                manifest = path.join(folder, entry, "Cargo.toml");
+            if (!fs.existsSync(manifest) || UNIT_TEST_CRATES.has(crate)) continue;
+            const toml = read(manifest),
+                section = (name) =>
+                    [...toml.matchAll(new RegExp(`^\\[${name}\\]\\n((?:(?!\\[)[^\\n]*\\n?)*)`, "gm"))].map((m) => m[1]),
+                untested = (body) => /^test\s*=\s*false\s*$/m.test(body);
+            if (fs.existsSync(path.join(folder, entry, "src/lib.rs")) && !section("lib").some(untested))
+                problems.push(`${crate}/Cargo.toml: [lib] needs test = false (tests go in tests/integration)`);
+            const bins = section("\\[bin\\]");
+            if ((fs.existsSync(path.join(folder, entry, "src/main.rs")) && !bins.length) || !bins.every(untested))
+                problems.push(`${crate}/Cargo.toml: every [[bin]] needs test = false (tests go in tests/integration)`);
+            const tests = path.join(folder, entry, "tests");
+            if (fs.existsSync(tests) && !/^harness\s*=\s*false\s*$/m.test(toml))
+                for (const file of fs.readdirSync(tests).filter((name) => name.endsWith(".rs")))
+                    problems.push(
+                        `${crate}/tests/${file}: move it under tests/integration (one test binary per crate)`,
+                    );
+            const src = path.join(folder, entry, "src");
+            if (!fs.existsSync(src)) continue;
+            for (const file of walk(src, (name) => name.endsWith(".rs")))
+                read(file)
+                    .split("\n")
+                    .forEach((line, i) => {
+                        if (UNIT_TEST.test(codePart(line)))
+                            problems.push(
+                                `${path.relative(ROOT, file)}:${i + 1}: a unit test never runs; use tests/integration:\n  ${line.trim()}`,
+                            );
+                    });
+        }
+    }
+    return problems;
+}
 const key = (row) => JSON.stringify(row);
 const sortRows = (rows) =>
     rows.sort((a, b) => {
@@ -292,7 +336,7 @@ const sortRows = (rows) =>
         return a.length - b.length;
     });
 main(() => {
-    const a = args("Check Send/Sync, atomic comments, reference frees and unsafe site inventories.", {
+    const a = args("Check Send/Sync, atomic comments, reference frees, unsafe site inventories and the test layout.", {
         update: false,
         "allow-increase": false,
         "self-test": false,
@@ -467,7 +511,7 @@ main(() => {
         console.log(`source checks: ${inventory.length} Send/Sync impls, ${sites.size} unsafe sites recorded`);
         return;
     }
-    const problems = [];
+    const problems = testLayout();
     const old = new Set(tsv(path.join(dir, "send_sync.tsv")).map(key)),
         current = new Set(inventory.map(key));
     for (const [rel, n, line] of frees)
@@ -502,6 +546,6 @@ main(() => {
         process.exitCode = 1;
     } else
         console.log(
-            `source checks: ok (${files} files, ${inventory.length} Send/Sync impls, ${[...atomics.values()].reduce((s, a) => s + a.length, 0)} uncommented orderings, ${sites.size} unsafe sites, no arena free of a reference parameter)`,
+            `source checks: ok (${files} files, ${inventory.length} Send/Sync impls, ${[...atomics.values()].reduce((s, a) => s + a.length, 0)} uncommented orderings, ${sites.size} unsafe sites, no arena free of a reference parameter, tests only in integration binaries)`,
         );
 });

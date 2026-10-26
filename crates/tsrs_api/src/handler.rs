@@ -22,7 +22,7 @@ pub enum ErrorKind {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ApiError {
-    pub(crate) kind: ErrorKind,
+    pub kind: ErrorKind,
     pub(crate) message: String,
 }
 

@@ -1,6 +1,6 @@
 > Historical integration review. The duplicate transport request-filesystem implementation and its `requestfs`
 > feature have since been removed. The fixture comparisons below now run against `tsrs_api::requestfs` in
-> `crates/tsrs_api/tests/requestfs_differential.rs`; the fixtures and generator live beside that test.
+> `crates/tsrs_api/tests/integration/requestfs_differential.rs`; the fixtures and generator live beside that test.
 
 # Runtime integration review for core candidate a9b4354
 

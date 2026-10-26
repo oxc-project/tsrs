@@ -1,8 +1,8 @@
 mod decoder;
-mod generator;
+pub mod generator;
 mod lineinfo;
 mod source;
-mod source_mapper;
+pub mod source_mapper;
 mod util;
 pub use decoder::*;
 pub use generator::*;

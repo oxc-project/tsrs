@@ -1,7 +1,7 @@
 // Formats every file listed on stdin (one path per line) with FormatDocument and prints, per file, one line:
 //   <path>\t<edits>
 // where <edits> is the concatenation of "pos,end,<json-quoted newText>;" for each edit. Used to compare
-// tsrs_ls::format against the Go formatter (crates/tsrs_ls/src/format/oracle_test.rs).
+// tsrs_ls::format against the Go formatter (crates/tsrs_ls/tests/integration/format/oracle_test.rs).
 //
 // Copy to ts-ref/tsc/cmd/tsrs-oracle-format/main.go and run with GOTOOLCHAIN=auto go run ./cmd/tsrs-oracle-format.
 package main

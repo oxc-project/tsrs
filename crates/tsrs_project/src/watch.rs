@@ -100,8 +100,8 @@ impl WatchRegistry {
 
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct PatternsAndIgnored {
-    pub(crate) directories_outside_workspace: Vec<String>,
-    pub(crate) patterns_inside_workspace: Vec<String>,
+    pub directories_outside_workspace: Vec<String>,
+    pub patterns_inside_workspace: Vec<String>,
     pub(crate) ignored: FxHashSet<String>,
 }
 
@@ -242,8 +242,8 @@ pub fn new_watched_files_for_paths(
 #[derive(Clone, Debug, Default)]
 pub struct Watchers {
     pub(crate) watcher_id: WatcherID,
-    pub(crate) workspace_watchers: Vec<lsproto::FileSystemWatcher>,
-    pub(crate) outside_workspace_watchers: Vec<lsproto::FileSystemWatcher>,
+    pub workspace_watchers: Vec<lsproto::FileSystemWatcher>,
+    pub outside_workspace_watchers: Vec<lsproto::FileSystemWatcher>,
     pub(crate) ignored_paths: FxHashSet<String>,
 }
 
@@ -255,7 +255,7 @@ fn sorted_compact(mut v: Vec<String>) -> Vec<String> {
 
 impl<T> WatchedFiles<T> {
     // watch.go:218
-    pub(crate) fn watchers(&self) -> Watchers {
+    pub fn watchers(&self) -> Watchers {
         self.compute_watchers_once.call_once(|| {
             let mut st = self.mu.write().unwrap();
             let result = (self.compute_glob_patterns)(&self.input);
@@ -345,7 +345,7 @@ impl<T> WatchedFiles<T> {
     }
 
     // watch.go:281
-    pub(crate) fn clone_with(&self, input: T) -> Arc<WatchedFiles<T>> {
+    pub fn clone_with(&self, input: T) -> Arc<WatchedFiles<T>> {
         let st = self.mu.read().unwrap();
         Arc::new(WatchedFiles {
             name: self.name.clone(),
@@ -596,10 +596,6 @@ fn perceived_os_root_length_for_watching(path_components: &[String]) -> usize {
 pub fn get_recursive_glob_pattern(directory: &str) -> String {
     format!("{}/{}", tspath::remove_trailing_directory_separator(directory), "**/*")
 }
-
-#[cfg(test)]
-#[path = "watch_test.rs"]
-mod watch_test;
 
 // watch.go:464
 // recursiveDirectoryGlobPattern returns the string form of a recursive watcher

@@ -19,6 +19,7 @@ use tsrs_core::*;
 //   type sortedSymbolNamePair (nodebuilderimpl.go:1081)
 
 // nodebuilderimpl.go:125
+#[expect(clippy::implicit_hasher, reason = "Public for the integration tests.")]
 pub fn new_node_builder_impl(
     ch: &Checker,
     e: P<EmitContext>,

@@ -1,11 +1,11 @@
-mod compare;
+pub mod compare;
 mod identifier;
-mod js_case;
+pub mod js_case;
 mod js_case_generated;
-mod norm;
+pub mod norm;
 mod norm_generated;
-mod rangetable;
-mod util;
+pub mod rangetable;
+pub mod util;
 
 pub use compare::*;
 pub use identifier::*;

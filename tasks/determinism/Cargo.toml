@@ -13,3 +13,8 @@ workspace = true
 serde.workspace = true
 serde_json.workspace = true
 similar.workspace = true
+
+[[bin]]
+name = "tsrs_determinism"
+path = "src/main.rs"
+test = false

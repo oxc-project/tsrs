@@ -34,10 +34,10 @@ jobs:
         run: |
           cargo miri setup
           # Miri cannot model the compressed pointers' PROT_NONE reservation.
-          cargo miri test --locked -p tsrs_core --features plain-ptrs --lib arena::tests
+          cargo miri test --locked -p tsrs_core --features plain-ptrs --test integration arena_test::
           # Require the known protected-borrow violation, not just any command failure.
-          if cargo miri test --locked -p tsrs_core --features plain-ptrs --lib \
-              arena::tests::miri_rejects_freeing_a_reference_parameter -- --exact --ignored > "$RUNNER_TEMP/miri-negative.log" 2>&1; then
+          if cargo miri test --locked -p tsrs_core --features plain-ptrs --test integration \
+              arena_test::miri_rejects_freeing_a_reference_parameter -- --exact --ignored > "$RUNNER_TEMP/miri-negative.log" 2>&1; then
             cat "$RUNNER_TEMP/miri-negative.log"
             echo "::error::Miri accepted a free of a protected reference parameter"
             exit 1

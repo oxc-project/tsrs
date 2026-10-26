@@ -1,14 +1,14 @@
 // Go internal/lsp/lsproto and internal/jsonrpc (docs/LSP.md).
 
-mod baseproto;
-mod error;
+pub mod baseproto;
+pub mod error;
 pub mod json;
 pub mod jsonrpc;
-mod lsp;
-mod lsp_generated;
-mod lsproto_jsonrpc;
-mod structcodec;
-mod util;
+pub mod lsp;
+pub mod lsp_generated;
+pub mod lsproto_jsonrpc;
+pub mod structcodec;
+pub mod util;
 
 pub use baseproto::*;
 pub use error::*;
@@ -17,10 +17,3 @@ pub use lsp::*;
 pub use lsp_generated::*;
 pub use lsproto_jsonrpc::*;
 pub use util::*;
-
-#[cfg(test)]
-mod baseproto_test;
-#[cfg(test)]
-mod lsp_json_test;
-#[cfg(test)]
-mod lsp_test;

@@ -4,10 +4,7 @@
 #[global_allocator]
 static GLOBAL: mimalloc_safe::MiMalloc = mimalloc_safe::MiMalloc;
 
-mod api;
-mod lsp;
-mod signals;
-
+use tsrs_cli::{api, lsp, signals};
 use tsrs_execute::{execute, sys, tsc};
 
 // TSRS_MEM_SPLIT (tsrs_core::memsplit): mimalloc's view of its heap, every page of every thread.

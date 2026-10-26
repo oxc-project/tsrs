@@ -26,4 +26,5 @@ tsrs_parser.workspace = true
 tsrs_vfs.workspace = true
 
 [lib]
+test = false
 doctest = false

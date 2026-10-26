@@ -331,7 +331,6 @@ impl FsEventsCallbackPayload {
 }
 
 // Keep the borrowed CF objects and arrays alive while a test exercises the real event classifier.
-#[cfg(test)]
 pub fn dispatch_test_event(cb: &StreamCallback, path: &str, flags: u32) {
     let path = cf_string_create(path).unwrap();
     let paths = cf_array_create(std::slice::from_ref(&path)).unwrap();
@@ -535,7 +534,6 @@ pub fn teardown_stream(stream: FsEventStream, cb: Option<&mut Box<StreamCallback
     }
 }
 
-#[cfg(test)]
 pub fn dispatch_test_events(cb: &StreamCallback, events: &[(&str, u32)]) {
     let path_refs: Vec<_> =
         events.iter().map(|(path, _)| cf_string_create(path).unwrap()).collect();

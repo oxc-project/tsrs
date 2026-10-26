@@ -3,13 +3,13 @@
 // read/write stream, the async connection (concurrent calls, incoming requests answered by a Handler, termination on
 // EOF or a read error) and the jsonrpc message types. Package ipc is the crate root; package jsonrpc is `jsonrpc`.
 
-mod conn;
-mod conn_async;
-mod error;
+pub mod conn;
+pub mod conn_async;
+pub mod error;
 pub mod jsonrpc;
-mod protocol;
-mod protocol_jsonrpc;
-mod stream;
+pub mod protocol;
+pub mod protocol_jsonrpc;
+pub mod stream;
 
 pub use conn::*;
 pub use conn_async::*;
@@ -17,9 +17,6 @@ pub use error::*;
 pub use protocol::*;
 pub use protocol_jsonrpc::*;
 pub use stream::*;
-
-#[cfg(test)]
-mod conn_async_test;
 
 use std::sync::{Mutex, MutexGuard, PoisonError};
 

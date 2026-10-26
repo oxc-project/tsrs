@@ -79,7 +79,7 @@ pub struct RefInfo {
 #[derive(Clone)]
 pub struct SymbolAndEntries {
     definition: Option<Definition>,
-    pub(crate) references: Vec<Rc<ReferenceEntry>>,
+    pub references: Vec<Rc<ReferenceEntry>>,
 }
 
 // findallreferences.go:60
@@ -857,14 +857,14 @@ pub struct SymbolEntryTransformOptions {
 #[derive(Clone, Default)]
 pub struct SymbolAndEntriesData {
     pub(crate) original_node: Option<P<Node>>,
-    pub(crate) symbols_and_entries: Vec<SymbolAndEntries>,
+    pub symbols_and_entries: Vec<SymbolAndEntries>,
     position: u32,
 }
 
 impl LanguageService {
     // Go returns `(data, found)`; callers ignore `data` when not found, so the port returns `Option`.
     // findallreferences.go:644
-    pub(crate) fn provide_symbols_and_entries(
+    pub fn provide_symbols_and_entries(
         &self,
         ctx: &Context,
         uri: &lsproto::DocumentUri,

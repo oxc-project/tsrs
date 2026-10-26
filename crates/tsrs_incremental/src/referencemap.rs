@@ -57,7 +57,7 @@ impl RefSet {
         self.shared.as_ref().map(|shared| (shared, self.skip.as_ref()))
     }
 
-    pub(crate) fn iter(&self) -> impl Iterator<Item = &Path> {
+    pub fn iter(&self) -> impl Iterator<Item = &Path> {
         let skip = self.skip.as_ref();
         self.own.keys().iter().chain(
             self.shared
@@ -97,7 +97,7 @@ impl ReferenceMap {
     }
 
     // referencemap.go:22
-    pub(crate) fn get_references(&self, path: &Path) -> Option<Arc<RefSet>> {
+    pub fn get_references(&self, path: &Path) -> Option<Arc<RefSet>> {
         self.references.load(path)
     }
 

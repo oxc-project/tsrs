@@ -21,4 +21,5 @@ rustc-hash.workspace = true
 xxhash-rust.workspace = true
 
 [lib]
+test = false
 doctest = false

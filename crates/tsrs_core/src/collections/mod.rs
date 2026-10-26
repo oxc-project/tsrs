@@ -1,9 +1,9 @@
-mod cow;
+pub mod cow;
 mod multimap;
-mod ordered_map;
-mod ordered_set;
-mod set;
-mod syncmap;
+pub mod ordered_map;
+pub mod ordered_set;
+pub mod set;
+pub mod syncmap;
 mod syncset;
 
 pub use cow::*;

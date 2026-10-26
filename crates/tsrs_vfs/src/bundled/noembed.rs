@@ -1,6 +1,6 @@
 use std::io;
 use std::path::{Path, PathBuf};
-use std::sync::LazyLock;
+use std::sync::OnceLock;
 
 use tsrs_core::tspath;
 
@@ -11,11 +11,16 @@ pub fn wrap_fs<T: FS>(fs: T) -> T {
 }
 
 // bundled/noembed.go: libPath is evaluated once, including the executable realpath
-// and the misplaced-executable check. Tests use the source libraries, like Go.
-static LIB_PATH: LazyLock<String> = LazyLock::new(|| {
-    if cfg!(test) {
-        return super::testing_lib_path();
-    }
+// and the misplaced-executable check.
+static LIB_PATH: OnceLock<String> = OnceLock::new();
+
+/// Makes `lib_path` the source libraries, as Go's tests get them (`testing.Testing()`). Tests call it before
+/// anything reads `lib_path`.
+pub fn use_testing_lib_path() {
+    let _ = LIB_PATH.set(super::testing_lib_path());
+}
+
+fn executable_lib_path() -> String {
     let exe = std::env::current_exe()
         .and_then(|path| executable_realpath(&path))
         .expect("bundled: failed to get executable path");
@@ -27,9 +32,9 @@ static LIB_PATH: LazyLock<String> = LazyLock::new(|| {
         libdts.display()
     );
     tspath::normalize_slashes(&dir.to_string_lossy())
-});
+}
 
-pub(super) fn executable_realpath(path: &Path) -> io::Result<PathBuf> {
+pub fn executable_realpath(path: &Path) -> io::Result<PathBuf> {
     // nativepath.Realpath removes Windows verbatim prefixes before paths reach
     // the compiler's filesystem, which rejects device and network paths.
     #[cfg(windows)]
@@ -43,7 +48,7 @@ pub(super) fn executable_realpath(path: &Path) -> io::Result<PathBuf> {
 }
 
 pub fn lib_path() -> String {
-    LIB_PATH.clone()
+    LIB_PATH.get_or_init(executable_lib_path).clone()
 }
 
 // The suite runners still mount bundled paths when training a noembed compiler.

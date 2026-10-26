@@ -18,10 +18,10 @@ pub mod handler;
 pub mod methods;
 pub mod module_resolution;
 pub(crate) mod paramfields;
-pub(crate) mod predecode;
-mod printing;
+pub mod predecode;
+pub mod printing;
 pub(crate) mod program;
-mod raw_options;
+pub mod raw_options;
 pub mod requestfs;
 mod resolution;
 pub mod session;
@@ -30,10 +30,7 @@ pub mod sourcefiles;
 pub mod transpile;
 pub mod wire;
 
-pub(crate) mod checker;
-
-#[cfg(test)]
-mod session_apistate_test;
+pub mod checker;
 
 pub use handler::{ApiError, ApiResult, ClientConn, ErrorKind, Handler, Response};
 pub use session::{Session, SessionOptions};

@@ -499,6 +499,10 @@ const TYPE_RESPONSE_FIELD_ORDER: &[&str] = &[
 
 /// Go `checkerSetup{sd, snapshot, program, projectID}.resolveSymbolHandle(ref)`: snapshot-owned references
 /// must name this snapshot; file-owned references must name a file of `program` with an identical descriptor.
+#[expect(
+    clippy::too_long_first_doc_paragraph,
+    reason = "Public for the integration tests; the comment keeps its upstream wording."
+)]
 pub fn resolve_symbol_for_program(
     sd: &SnapshotCtx,
     program: &'static Program,

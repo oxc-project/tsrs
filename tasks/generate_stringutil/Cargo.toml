@@ -17,6 +17,11 @@ sha2.workspace = true
 tar.workspace = true
 ureq.workspace = true
 
-[[test]]
-name = "verify"
-path = "verify.rs"
+[lib]
+test = false
+doctest = false
+
+[[bin]]
+name = "tsrs_generate_stringutil"
+path = "src/main.rs"
+test = false

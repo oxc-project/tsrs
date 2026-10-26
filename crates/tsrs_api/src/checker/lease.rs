@@ -139,7 +139,6 @@ impl Drop for ApiCheckerLease {
     }
 }
 
-#[cfg(test)]
 pub fn is_tracked(program: &'static Program) -> bool {
     lock_gates()
         .as_ref()

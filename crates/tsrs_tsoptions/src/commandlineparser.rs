@@ -41,7 +41,7 @@ impl CommandLineParser {
         self.worker_diagnostics.did_you_mean.alternate_mode.as_ref()
     }
 
-    pub(crate) fn options_declarations(&self) -> &'static [&'static CommandLineOption] {
+    pub fn options_declarations(&self) -> &'static [&'static CommandLineOption] {
         &self.worker_diagnostics.did_you_mean.option_declarations
     }
 
@@ -56,13 +56,13 @@ impl CommandLineParser {
 
 // The Go struct also holds the file system; here it is passed to the methods that read response files.
 pub struct CommandLineParser {
-    pub(crate) worker_diagnostics: &'static ParseCommandLineWorkerDiagnostics,
-    pub(crate) options_map: NameMap,
-    pub(crate) current_directory: String,
-    pub(crate) options: OrderedMap<String, CompilerOptionsValue>,
-    pub(crate) file_names: Vec<String>,
-    pub(crate) errors: Vec<P<Diagnostic>>,
-    pub(crate) response_file_stack: FxHashSet<Path>,
+    pub worker_diagnostics: &'static ParseCommandLineWorkerDiagnostics,
+    pub options_map: NameMap,
+    pub current_directory: String,
+    pub options: OrderedMap<String, CompilerOptionsValue>,
+    pub file_names: Vec<String>,
+    pub errors: Vec<P<Diagnostic>>,
+    pub response_file_stack: FxHashSet<Path>,
 }
 
 pub fn parse_command_line(
@@ -193,7 +193,7 @@ fn parse_command_line_worker(
 }
 
 impl CommandLineParser {
-    pub(crate) fn parse_strings(&mut self, args: &[String], fs: Option<&dyn FS>) {
+    pub fn parse_strings(&mut self, args: &[String], fs: Option<&dyn FS>) {
         let mut i = 0;
         while i < args.len() {
             let s = &args[i];

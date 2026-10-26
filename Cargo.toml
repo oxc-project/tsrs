@@ -21,7 +21,7 @@ commit = "3e9236361fa97a9e6c685f4833ac457ae2d8c50a"
 nightly = "7.1.0-beta"
 
 [workspace.dependencies]
-criterion2 = { version = "3.0.4", default-features = false } # Benchmarking
+criterion2 = { version = "3.0.5", default-features = false } # Benchmarking
 base64 = { version = "0.23.1", default-features = false, features = ["std"] }
 rustc-hash = "2"
 indexmap = "2"
@@ -43,7 +43,7 @@ unicode-id-start = "=1.1.2"
 icu_normalizer = { version = "=2.3.0", default-features = false, features = ["compiled_data"] }
 unicode-normalization = "=0.1.25"
 # Match criterion2's CodSpeed dependency so both benchmarks link one CodSpeed runtime.
-codspeed = "4.7.0"
+codspeed = "6.0.0"
 flate2 = "1"
 libc = "0.2"
 regex = "1"

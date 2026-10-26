@@ -40,8 +40,8 @@ $ tsgo b.ts --strict --noEmit
 b.ts(2,3): error TS2339: Property 'missing' does not exist on type '{ status: string; user?: undefined; } | { status: string; user: number; }'.
 ```
 
-With several checkers the same thing happens across checkers. On a 38k-file program with ~40k errors, 3 messages in 3
-files print differently between `--checkers 1`, 2, 4, 8 and 12. Within one file it also leaks across statements:
+With several checkers the same thing happens across checkers. On a large private monorepo, messages
+print differently between `--checkers 1`, 2, 4, 8 and 12. Within one file it also leaks across statements:
 `conformance/objectLiteralNormalization` prints `c3: { a: number; b: number; } | { b?: undefined; a?: undefined; }`
 because `b` was first cached on line 1 and `a` on line 10. Its `.symbols` baseline lists the stale line-1 declaration
 for `a2.b` and `d1.pos.b`.
@@ -59,6 +59,6 @@ Fix: key the cache by the property it stands for, so the added property always s
 ```
 
 (`undefinedProperties` becomes `map[*ast.Symbol]*ast.Symbol`.) With it the repro prints `{ status: string; user?:
-undefined; }` in both runs, and the 38k-file program prints the same text for any checker count and assignment. In the
+undefined; }` in both runs, and the large private monorepo prints the same text for any checker count and assignment. In the
 test suite only `objectLiteralNormalization` changes: its `.types`, `.symbols` and `.js` (declaration) baselines move to
 source order, for example `{ a?: undefined; b?: undefined; }`.

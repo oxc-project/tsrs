@@ -15,8 +15,9 @@ measurement scripts were removed.
 
 It keeps the result of every recursive `getTypeAtFlowNode` call (a "frame") of a keyed walk across walks, keyed by
 (flow node, reference key). The reference key covers the root symbol, the property names, the declared type, the
-initial type and the flow container. `upstream/flow-memo.md` has the pattern, the seven exactness conditions and the
-results. `docs/DEBUGGING.md` ("The flow memo and its shadow mode") has the switches and how to read a shadow failure.
+initial type and the flow container. [The flow memo write-up](flow-memo.md) has the pattern, the seven exactness
+conditions and the results. `docs/DEBUGGING.md` ("The flow memo and its shadow mode") has the switches and how to
+read a shadow failure.
 
 ### Where the code is
 

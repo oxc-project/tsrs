@@ -834,7 +834,8 @@ threads on the large codebase and lose on small ones (notes/perf-checker-stealin
 On the 40k-error corpus, tsgo and tsrs printed different text for `--checkers 1, 2, 4, 8, 12, 16`: four distinct
 outputs, 2-6 lines each. The cause is one tsgo cache. `getUndefinedProperty` keeps the filled-in `x?: undefined` of
 widened object literals per name, with the declaration of the first `x` a checker saw, and properties are sorted by
-declaration. By default tsrs keys it by the property it stands for (one line; `upstream/determinism-undefined-property.md`).
+declaration. By default tsrs keys it by the property it stands for
+(one line; [upstream bug report](../notes/determinism-undefined-property.md)).
 Output is then a function of the program alone: identical for N = 1-16 x 20 random assignments
 (`TSRS_CHECKER_ASSIGNMENT=random:<seed>`) on the error-rich corpora, and for conformance run with 4 checkers per test
 and random assignments. `--checkerAssignment go` keeps tsgo's cache; the conformance, fourslash and tsc harnesses run

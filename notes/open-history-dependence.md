@@ -62,8 +62,9 @@ such entries when the test file came first, among them `TRouter`, `InferFileRout
 `noConstraintType`. The index check at link.ts(519,13) relates `"types"` to `keyof ResolveRoute<...>` through that
 constraint, and fails.
 
-A two-file reduction and the write-up for typescript-go are in upstream/determinism-base-constraint-depth.md: tsgo-ref
-prints a TS2339 that the program does not have at 1, 2 and 4 checkers and not at 3, 8 and 16; tsrs prints it
+A two-file reduction and the write-up for typescript-go are in
+[the base-constraint bug report](determinism-base-constraint-depth.md): tsgo-ref prints a TS2339 that the program
+does not have at 1, 2 and 4 checkers and not at 3, 8 and 16; tsrs prints it
 single-threaded and not at 4 checkers. TypeScript 5.9.3 prints nothing: its `getRecursionIdentity` gives an indexed
 access the identity of its object type, not of the type parameter's symbol, so a chain never cuts the type parameter
 itself (it caches cut results the same way, though).
@@ -209,8 +210,8 @@ own recursion identity (`getRecursionIdentityFromTarget`). Whether `Observable<n
 before the comparison instantiated it, and the elaboration stops one level earlier or later. On `zip-all.spec.ts(99,50)`
 the relater's source stack holds `Observable<number>` with the flag single-threaded and without it in Go mode at 4
 checkers (a temporary trace of the stacks). The three-file reduction is in
-upstream/determinism-type-reference-from-type-node.md: tsgo prints `buf().buf().grp` at 1 and 2 checkers and
-`buf().grp` at 3 and 4, and so does tsrs in both modes.
+[the type-reference bug report](determinism-type-reference-from-type-node.md): tsgo prints `buf().buf().grp`
+at 1 and 2 checkers and `buf().grp` at 3 and 4, and so does tsrs in both modes.
 
 The repo-conformance run 38278199589 (tsrs d4940027, rxjs `54796b38a57e`, `packages/rxjs/tsconfig.json`, 22,030
 errors) flagged three of these (`zip-all.spec.ts` 99, 194, 227). tsgo itself prints 5 diagnostics differently at 1 and
@@ -227,7 +228,7 @@ tools/ci/determinism.sh requires every case to print the same at 2 and 4 checker
 (section 5). `tools/ci/determinism.sh` compares every
 `testdata/regressions` case at 2 and 4 checkers and under random assignments with its single-threaded output, so a case
 that still depends on the assignment would fail it. The router reduction is in
-upstream/determinism-base-constraint-depth.md, ready to become a case with whichever fix lands.
+[the base-constraint bug report](determinism-base-constraint-depth.md), ready to become a case with whichever fix lands.
 
 ## Reproduce
 
@@ -348,15 +349,16 @@ resolved `appPlugin` yet, `appPluginOriginal.withOverrides` in the test file che
 it; that initializer's error is filed against `plugin.ts` and dropped (this checker does not check it), and its count
 stays above 5,000,000, so the next instantiation in the test file's expression reports TS2589 there with a stack 0
 deep and returns the error type. A checker that checked `plugin.ts` first has the type cached and reports nothing.
-upstream/determinism-instantiation-count.md has a two-file reduction: tsgo prints the second file's TS2589 at 8 and 16
-checkers and not at 1-4, or single-threaded when that file comes first.
+[The instantiation-count bug report](determinism-instantiation-count.md) has a two-file reduction: tsgo prints the
+second file's TS2589 at 8 and 16 checkers and not at 1-4, or single-threaded when that file comes first.
 
 The fix: by default `check_expression_ex` and `check_source_element` clear the count on exit as well as entry
 (`end_instantiation_count`), so the caller never inherits the nested check's work; `--checkerAssignment go` keeps
 Go's count on exit. The caller's earlier work is discarded too, as it already is in Go on entry to the nested check.
 Restoring the caller's earlier count would accumulate a call's parameter- and return-type work across checking an
 argument, adding a TS2589 even when Go is silent at every checker count. The confirmed one-file reduction is
-`testdata/regressions/instantiation-count-call-argument`; upstream/determinism-instantiation-count.md describes it.
+`testdata/regressions/instantiation-count-call-argument`;
+[the instantiation-count bug report](determinism-instantiation-count.md) describes it.
 Clearing on exit can remove an error when a nested check's work plus the caller's subsequent work exceeds the
 budget, even if neither alone does. It does not change the instantiation-stack depth guard or the total counter.
 

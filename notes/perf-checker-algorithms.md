@@ -119,7 +119,7 @@ that has to replay its side effects.** Code: `perf/algo-cond-prefilter` (f49df2b
 A timing experiment that also skipped the lookups (deciding from the discriminant property alone; not cache-identical,
 40 extra instantiations on big) took -20% of the synthetic N x M term and -1.1% instructions on big single-threaded.
 That is roughly what an upstream version could get, since the Go checker does not promise identical relation-cache
-contents (`upstream/algo-01-conditional-discriminant-false-test.md`).
+contents.
 
 ## A2 (measured and rejected): skipping non-matching constituents
 

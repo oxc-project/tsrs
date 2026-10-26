@@ -10,7 +10,6 @@ main(() => {
         "tools",
         "tasks",
         "bench",
-        "upstream/tools",
         ".github/scripts",
         "npm",
         "crates/tsrs_api_codec/gen",

@@ -250,14 +250,6 @@ Seeded fuzz and mutation generators use a deterministic JavaScript PRNG, so a se
 | `vp run wasm:bench` | `node tools/wasm/bench.mjs` |
 | `vp run wasm:serve-example` | `node npm/tsrs-wasm/examples/browser/serve.mjs` |
 
-## upstream
-
-| Root command | Entry point |
-| --- | --- |
-| `vp run upstream:measure` | `node upstream/tools/measure.mjs` |
-| `vp run upstream:summarize` | `node upstream/tools/summarize.mjs` |
-| `vp run upstream:testfiles` | `bash upstream/tools/testfiles.sh` |
-
 ## npm
 
 | Root command | Entry point |

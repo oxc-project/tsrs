@@ -41,8 +41,9 @@ checker. It copies the declarations of the first property named `x` that the che
 `get_named_members` sorts a widened literal's properties by first declaration (`compare_symbols`: file index, then
 position). So `x?: undefined` sorts at the declaration of whatever `x` that checker happened to see first. That can be
 in another file, or in an earlier statement of the same file. A two-file repro (no import between the files) and the
-one-line fix are in `upstream/determinism-undefined-property.md`: tsgo prints `{ user?: undefined; status: string; }`
-for `b.ts` when `a.ts` is in the program and `{ status: string; user?: undefined; }` when it is not.
+one-line fix are in [the upstream bug report](determinism-undefined-property.md): tsgo prints
+`{ user?: undefined; status: string; }` for `b.ts` when `a.ts` is in the program and
+`{ status: string; user?: undefined; }` when it is not.
 
 ## The fix and the compatibility mode
 

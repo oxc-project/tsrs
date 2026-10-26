@@ -70,7 +70,7 @@ were produced by the first walk (Go deduplicates them).
 | --- | --- | --- | --- |
 | webpack | 10.93 G | 10.18 G | -6.9% |
 | vscode (`src`) | 89.5 G | 86.7 G | -3.1% |
-| 38k-file private monorepo | 227.7 G | 226.1 G | -0.7% |
+| large private monorepo | 227.7 G | 226.1 G | -0.7% |
 | mui (`docs`) | 43.8 G | 43.6 G | -0.5% |
 | xstate | 5.35 G | 5.36 G | +0.1% |
 
@@ -81,7 +81,7 @@ release builds) gave the following instruction deltas:
 | --- | --- | --- |
 | webpack | -5.0% | -4.5% |
 | vscode | -2.2% | -2.1% |
-| 38k-file monorepo | -0.4% | -0.3% |
+| large private monorepo | -0.4% | -0.3% |
 | mui | -2.1% | +0.1% |
 | xstate | +0.1% | +0.05% |
 

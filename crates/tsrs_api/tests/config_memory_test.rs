@@ -25,8 +25,10 @@ fn repeated_config_parsing_reclaims_memory() {
         std::env::var("TSRS_API_STRESS").ok().and_then(|v| v.parse().ok()).unwrap_or(300);
     let req = format!("{{\"file\":{}}}", quote(&cfg));
     let first = call(&s, "parseConfigFile", &req);
+    // Warm both request paths before measuring their steady-state memory growth.
     for _ in 0..10 {
-        call(&s, "parseConfigFile", &req);
+        assert_eq!(call(&s, "parseConfigFile", &req), first);
+        call(&s, "readConfigFile", &req);
     }
     let before = rss_kib();
     for _ in 0..n {

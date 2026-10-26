@@ -4,9 +4,15 @@
 The [architecture](ast-soa-architecture.md) and [migration plan](plan-ast-soa-migration.md) remain the target.
 The migration is incomplete; the production compiler still uses the existing arena AST. Neither M0 nor M1 has
 met its exit conditions. There is no whole-compiler owned-backend performance/RSS result. The previous 89-body
-preparation failed the memory gate: Compiler-Unions single-checker RSS increased in all twelve repeat pairs
-(median +264 KiB), against a zero-median identical-baseline control. The current 236-body preparation has
-not been measured; no current production migration change is accepted for landing.
+preparation recorded higher Compiler-Unions single-checker RSS in all twelve repeat pairs
+(median +264 KiB), against a zero-median identical-baseline control. The rebased 236-body preparation has a
+small repeatable RSS increase: Compiler single-checker RSS increases in all six screen pairs and all twelve repeat
+pairs (repeat median +192 KiB), against a zero-median identical-baseline control. Compiler-Unions has a
++200 KiB repeat median with twelve positive pairs, although its initial screen was mixed. See the
+[matched comparison](ast-soa-performance.md#rebased-236-body-checkpoint). The
+[practical-impact review](ast-soa-performance.md#review-of-the-checkpoints-practical-impact) recommends continuing
+the experimental migration while tracking this approximately 0.19 MiB signal. The final no-regression
+requirement remains open; the owned compiler is not yet measured or accepted as a production replacement.
 
 ## Git checkpoint rebased onto main
 
@@ -20,9 +26,10 @@ changes, 105 AST tests, 42 parser tests, 15 scanner tests, 33 span-map tests, th
 68 rejection cases, the lazy-binding contract, dev CLI/runner/oracle builds, all 50 regressions, and all 3,802
 targeted AST inputs against both pinned Go and the pre-rebase oracle results. Provenance is recorded locally in
 `target/ast-soa-scanner/rebase-validation.json`. The earlier full conformance and fuzz runs belong to their
-pre-rebase source snapshots; they were not rerun for this checkpoint. Release performance and memory were not
-remeasured. Acceptance requires fresh comparisons against this rebased main; historical measurements remain
-historical evidence and do not clear the no-regression gate.
+pre-rebase source snapshots; they were not rerun for this checkpoint. Fresh matched release comparisons against
+this rebased main are recorded in the [performance note](ast-soa-performance.md#rebased-236-body-checkpoint).
+The repeatable Compiler RSS increase is small and remains tracked. Historical comparisons remain separate
+evidence, and the complete owned compiler is still unmeasured.
 
 ## Implemented foundation
 
@@ -890,7 +897,7 @@ the control (5/12 positive), so attribution remains unresolved. Single-threaded 
 The no-regression gate is unpassed. These runs measure legacy production preparation, not an owned compiler;
 neither unrelated improvements nor passing ownership-container tests clear the remaining gates.
 
-The current 89-body type/import/expression preparation also completes all 19 catalog projects with six
+The earlier 89-body type/import/expression preparation also completes all 19 catalog projects with six
 balanced pairs in both checker modes: 456 measurements with matching output/status and checked binary hashes.
 The [performance note](ast-soa-performance.md#current-typeimportexpression-preparation) records the complete
 table. VS Code and Compiler-Unions single-checker instructions increase in all six pairs; Compiler-Unions

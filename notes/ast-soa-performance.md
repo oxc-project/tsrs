@@ -676,8 +676,198 @@ and ambient mutations copy keys before construction/writes, without adding norma
 parser/node/store fields. The existing diagnostic suggestion allocations remain. Invalid-name diagnostics keep
 the cooked scanner value intact instead of transferring it away before recovery.
 
-This source differs from both the measured 89-body binary and the subsequently validated 150-body source. It
-has no matched release instruction, wall-time or RSS measurement. Neither structural similarities nor passing
-legacy parity checks establish the no-regression requirement. The preceding repeatable memory increase remains
-unresolved, and the actual owned compiler and its retention costs remain unmeasured. This is experimental
-integration work; no production landing or performance/memory acceptance is claimed.
+This pre-rebase source differs from both the measured 89-body binary and the subsequently validated 150-body
+source. It had no matched release instruction, wall-time or RSS measurement at this stage. Neither structural
+similarities nor passing legacy parity checks establish the no-regression requirement. The actual owned
+compiler and its retention costs remain unmeasured. The fresh rebased comparison follows below; no production
+landing or performance/memory acceptance is claimed.
+
+## Rebased 236-body checkpoint
+
+2026-10-24. Baseline: `66119d706aada74470984b8c1c0595179060a2d9` (the rebased main parent).
+Candidate: `fe05a033c8e181f7a14019a81075562a79f325f4` (`refactor(ast): add owned storage and prepare parser migration`).
+This comparison measures the committed parser/scanner preparation and unused owned-storage foundations.
+The production compiler still allocates arena ASTs; the complete owned parser, Program/binder integration and
+retained-memory lifecycle are absent from this measurement. This is a fresh baseline and candidate; the prior
+89-body comparison above is historical evidence, not a directly comparable before/after result.
+
+Both binaries were built with Rust 1.99.1, the same locked dependencies and configuration, fat LTO, one codegen
+unit, no incremental compilation, and full release debug symbols with stripping disabled:
+
+```sh
+cargo build --profile release --locked --offline \
+  --config profile.release.debug=true --config profile.release.strip=false \
+  --target-dir /Users/bchen/github/tsrs5/target/ast-soa-rebased-build -p tsrs_cli
+```
+
+| Binary | SHA-256 |
+| --- | --- |
+| `target/ast-soa-bench/rebased-236/baseline-tsrs` | `23d98d49b3c8e65a622d1c271a55c86fd9e92c7fb179eded1c603ae077c3b997` |
+| `target/ast-soa-bench/rebased-236/candidate-tsrs` | `41f3b0f018dd061389969c44d441ac17f8a8dbaba000c45e4a7afe0a1acaedaf` |
+
+The host was Darwin arm64 25.6.0 with 12 logical CPUs and 48 GiB RAM. Hyperfine 2.0.0 measured wall time,
+retired instructions and peak RSS for both single-threaded and default-checker runs. Rayon and GOMAXPROCS were
+fixed to 12 for both binaries; inherited compiler/allocator tuning variables were cleared consistently.
+All 19 public catalog projects used their recorded pinned revisions and existing benchmark overlays/dependencies.
+Flags were `-p <config> --noEmit --incremental false --pretty false`, plus `--singleThreaded` in single mode.
+No builds or correctness tests ran concurrently with measurement.
+
+Each project/mode received one untimed warmup per binary and exact stdout/stderr/exit-status comparison.
+Six pairs per project/mode alternated baseline/candidate and candidate/baseline order (456 measurements).
+Twelve selected project/mode combinations then received twelve more balanced pairs (288 measurements), followed
+by twelve-pair controls using the exact same baseline executable under both labels (288 measurements).
+Every warmup output/status matched. All 1,032 raw results were checked against their hashes, commands, metric
+units, exit codes and paired reports; binary identities, source commits/trees, build configurations and current
+workload pins were rechecked. Values below are medians of paired percentage changes, so they can differ from
+the percentage change between independent before/after medians. Positive values are increases.
+
+Catalog screen:
+
+| Project | Single instructions | Single peak RSS | Default peak RSS | Default wall |
+| --- | ---: | ---: | ---: | ---: |
+| vscode | -1.104% | +0.176% | -0.371% | -3.936% |
+| xstate-main | +1.195% | +0.031% | +0.133% | -1.989% |
+| webpack | -0.016% | +0.262% | -0.193% | +1.478% |
+| mui-docs | +0.012% | -0.005% | -0.099% | +0.405% |
+| Compiler | -0.047% | +0.364% | +0.365% | -0.244% |
+| Compiler-Unions | -0.002% | -0.052% | +0.332% | -0.156% |
+| cal-diy | -0.100% | +0.005% | +0.947% | +0.405% |
+| formbricks-web | -0.065% | +0.030% | -0.397% | -0.237% |
+| supabase-studio | +0.822% | +0.025% | -0.012% | -0.050% |
+| t3code-server | +0.003% | +0.103% | +0.497% | +1.555% |
+| mikro-orm | -0.004% | -0.278% | -0.226% | -0.917% |
+| next-packages-next | -0.041% | +0.018% | +0.092% | +6.181% |
+| next-root | -0.552% | -0.113% | -1.295% | -0.435% |
+| storybook | -0.166% | -0.235% | -0.117% | -1.335% |
+| nuxt | -0.093% | +0.422% | +0.073% | -1.964% |
+| playwright | -0.036% | -0.103% | -1.490% | +0.679% |
+| drizzle-orm | -0.138% | +0.211% | +0.760% | -0.021% |
+| typeorm | +1.292% | +0.134% | -0.137% | -0.888% |
+| date-fns | -0.024% | +0.101% | +0.109% | +0.130% |
+
+Absolute catalog medians (baseline → candidate); instructions are single-threaded, RSS and wall use default checkers:
+
+| Project | Instructions (G) | Peak RSS (MiB) | Wall (ms) |
+| --- | ---: | ---: | ---: |
+| vscode | 81.954877 → 81.046146 | 1994.766 → 1988.914 | 2244.616 → 2149.154 |
+| xstate-main | 6.144338 → 6.293407 | 246.367 → 246.289 | 190.684 → 185.754 |
+| webpack | 10.999139 → 10.850660 | 452.031 → 452.938 | 203.985 → 201.361 |
+| mui-docs | 38.096608 → 38.347903 | 1449.602 → 1450.086 | 2939.335 → 2954.115 |
+| Compiler | 1.701832 → 1.701099 | 75.063 → 75.273 | 57.476 → 57.760 |
+| Compiler-Unions | 2.895529 → 2.895133 | 79.992 → 80.266 | 86.225 → 85.808 |
+| cal-diy | 32.020176 → 31.983207 | 1619.531 → 1635.453 | 1853.106 → 1864.534 |
+| formbricks-web | 41.267708 → 41.234450 | 1793.203 → 1787.422 | 2087.995 → 2044.819 |
+| supabase-studio | 45.660402 → 46.372305 | 1532.391 → 1534.375 | 2454.454 → 2451.047 |
+| t3code-server | 39.997649 → 39.999377 | 1878.086 → 1889.773 | 1527.515 → 1548.345 |
+| mikro-orm | 47.501238 → 47.502631 | 1766.750 → 1762.781 | 925.777 → 918.224 |
+| next-packages-next | 17.114129 → 17.106135 | 596.508 → 600.000 | 467.108 → 484.145 |
+| next-root | 16.472439 → 16.454602 | 435.148 → 430.742 | 699.009 → 695.767 |
+| storybook | 10.013470 → 10.002041 | 446.953 → 444.680 | 528.302 → 511.232 |
+| nuxt | 10.724928 → 10.724978 | 461.492 → 460.219 | 666.591 → 673.534 |
+| playwright | 7.572945 → 7.564041 | 408.781 → 403.992 | 177.331 → 178.519 |
+| drizzle-orm | 1.663706 → 1.682129 | 91.516 → 92.172 | 50.841 → 51.219 |
+| typeorm | 8.146400 → 8.243824 | 241.539 → 241.125 | 495.979 → 489.684 |
+| date-fns | 3.264226 → 3.263122 | 137.914 → 137.719 | 243.007 → 228.749 |
+
+Focused repeats and identical-baseline controls (12 pairs each). `RSS +` counts pairs with higher candidate-label RSS.
+Default-mode instruction counts are included as observations; the instruction gate uses single-threaded runs.
+
+| Workload / mode | Comparison | Instructions | Peak RSS | RSS delta (KiB) | RSS + | Wall |
+| --- | --- | ---: | ---: | ---: | ---: | ---: |
+| xstate-main / single | Candidate | -0.049% | +0.125% | +224 | 8/12 | -0.242% |
+| xstate-main / single | Same baseline | -0.103% | +0.232% | +416 | 8/12 | -0.387% |
+| Compiler / single | Candidate | -0.007% | +0.336% | +192 | 12/12 | +0.441% |
+| Compiler / single | Same baseline | +0.009% | +0.000% | +0 | 3/12 | +0.398% |
+| Compiler / default | Candidate | +0.014% | +0.104% | +80 | 9/12 | +0.453% |
+| Compiler / default | Same baseline | +0.068% | -0.250% | -192 | 4/12 | -0.882% |
+| Compiler-Unions / single | Candidate | -0.004% | +0.327% | +200 | 12/12 | -0.371% |
+| Compiler-Unions / single | Same baseline | +0.010% | +0.013% | +8 | 6/12 | +1.028% |
+| Compiler-Unions / default | Candidate | +0.091% | +0.343% | +280 | 9/12 | +1.107% |
+| Compiler-Unions / default | Same baseline | -0.001% | +0.078% | +64 | 6/12 | +0.339% |
+| cal-diy / single | Candidate | +0.019% | +0.113% | +872 | 8/12 | -0.154% |
+| cal-diy / single | Same baseline | -0.117% | +0.087% | +672 | 7/12 | -0.078% |
+| cal-diy / default | Candidate | -0.013% | +0.012% | +200 | 6/12 | +0.690% |
+| cal-diy / default | Same baseline | +0.620% | +0.349% | +5,808 | 7/12 | -1.324% |
+| supabase-studio / single | Candidate | +0.036% | +0.024% | +208 | 7/12 | -0.573% |
+| supabase-studio / single | Same baseline | +0.315% | -0.070% | -616 | 3/12 | -2.051% |
+| t3code-server / default | Candidate | -0.292% | -0.223% | -4,328 | 5/12 | -0.443% |
+| t3code-server / default | Same baseline | +0.141% | +0.255% | +4,920 | 8/12 | +1.497% |
+| next-packages-next / default | Candidate | +0.072% | +0.202% | +1,240 | 8/12 | -0.651% |
+| next-packages-next / default | Same baseline | +0.973% | +1.208% | +7,352 | 7/12 | -1.371% |
+| drizzle-orm / default | Candidate | -0.138% | -0.185% | -176 | 5/12 | -0.218% |
+| drizzle-orm / default | Same baseline | -0.090% | -0.352% | -336 | 5/12 | -0.588% |
+| typeorm / single | Candidate | +0.016% | +0.297% | +568 | 8/12 | -0.211% |
+| typeorm / single | Same baseline | -1.336% | +0.083% | +160 | 6/12 | -2.689% |
+
+**This checkpoint has a small, repeatable preparation RSS increase.** Compiler single-checker RSS increases in all six screen
+pairs (median +208 KiB / +0.364%) and all twelve repeat pairs (median +192 KiB / +0.336%). Its identical-baseline
+control has zero median change, three positive pairs, eight equal pairs and one negative pair. Repeat increases
+range from 176 to 256 KiB; control changes range from -16 to +32 KiB. This is a repeatable checkpoint cost of
+about 0.19 MiB on a 56 MiB run. Literal zero increase is not demonstrated for these binaries. The practical
+increase is small; it does not establish a growing AST allocation cost or invalidate the owned-storage design.
+
+Compiler-Unions single-checker RSS also increases in every repeat pair, by 176 to 448 KiB (median +200 KiB /
++0.327%). Its control has a +8 KiB / +0.013% median, six positive, four equal and two negative pairs, ranging
+from -240 to +224 KiB. The initial six-pair screen was mixed (two positive, four negative; median -32 KiB /
+-0.052%), so this workload is less consistent across stages than Compiler. Its positive repeat remains an
+additional unresolved memory signal; these measurements do not identify a heap allocation, field or code page
+as the cause. Independent median RSS values for the two single-checker repeats are:
+
+| Workload | Baseline peak RSS (MiB) | Candidate peak RSS (MiB) | Median paired RSS increase (KiB) |
+| --- | ---: | ---: | ---: |
+| Compiler | 55.773 | 55.969 | +192 |
+| Compiler-Unions | 59.766 | 59.969 | +200 |
+
+The initial xstate, Supabase and TypeORM single-threaded instruction increases do not repeat consistently.
+Cal-diy's default instruction/RSS increases, T3's default wall increase, Drizzle's default RSS increase and
+Next's default wall increase also lose consistent sign in the focused repeat. Positive medians in the table
+are retained as open observations. These runs establish neither a general speedup nor the absence of every
+runtime regression. Identical-baseline controls characterize variation; their percentages are not subtracted
+from the candidate results. The final no-regression requirement remains open, and the complete owned compiler
+remains unmeasured. The rejected source-organization/inlining experiments above remain rejected; further
+optimization needs causal evidence.
+
+Reproduction and evidence are local ignored artifacts under `target/ast-soa-bench/rebased-236/`:
+`build.json` records both builds; `screen/`, `followup/` and `control/` retain raw Hyperfine JSON, output,
+metadata and reports; `verification.json` records final checks and artifact hashes. Each stage's `report.md`
+includes absolute before/after values for all three metrics in every measured checker mode. The retained
+`baseline-src` worktree identifies the before source. Scripts are `build.mjs`, `compare.mjs`, `report.mjs`
+and `verify.mjs`; the original screen harness is retained in `screen/`.
+
+```sh
+node target/ast-soa-bench/rebased-236/compare.mjs --stage <new-stage> --pairs 6
+node target/ast-soa-bench/rebased-236/report.mjs <new-stage>
+```
+
+Use a new stage name to rerun rather than reuse recorded samples. Focused selection adds
+`--pairs 12 --cells <project:mode,...>`; an identical-baseline control also adds `--control`.
+
+## Review of the checkpoint's practical impact
+
+2026-10-25. The earlier blanket failure verdict overstated the practical significance of this preparation
+measurement. The measured Compiler increase remains reproducible, so it should not be dismissed as noise.
+Its median is 192 KiB (0.1875 MiB); Compiler-Unions' repeat median is 200 KiB (0.1953 MiB), with the mixed initial
+screen documented above. The current evidence supports continuing the experimental migration while tracking
+this small cost. It does not certify the final no-performance/no-memory-regression requirement.
+
+The measurement harness uses matched release configurations, alternating binary order, output/status checks
+and valid hardware-counter results. No calculation or binary-identity error was found. Controls ran in a later
+block, and only one release build per revision on one macOS host was measured; these runs establish repeatability
+for the retained binaries, not the cause of the difference or its behavior across rebuilds/platforms.
+
+A source inspection against the baseline finds the legacy `tsrs_ast/src/ast.rs` unchanged. Production Scanner,
+ScannerState and SavedScannerState fields are unchanged. Parser replaces NodeFactory with a single-field
+ParserFactory wrapper and removes `current_parent`; it adds no field. Program, CLI and production binder code
+do not select AstStore or OwnedParser. These facts do not establish identical transient allocations or stack
+behavior, but the measurements cannot be used as evidence of an integrated SoA representation's memory cost.
+
+Mach-O inspection of the retained executables finds +10,240 bytes of machine code, +16 KiB in the `__TEXT`
+segment, unchanged `__DATA` and `__DATA_CONST` segment sizes, and +16 KiB in the `__LINKEDIT` virtual mapping.
+The executable file grows by 26,128 bytes. These are image sizes, not resident-page measurements; they do not
+explain or attribute the approximately 200 KiB RSS difference. Inspection results and binary hashes are retained
+in `target/ast-soa-bench/rebased-236/review.json`.
+
+The main remaining performance question is the cost of the completed owned compiler: compact edges and node
+columns, text/list capacities, binding metadata, lazy fragments, and release/retention behavior under real
+Program workloads. Continue that integration and compare it against the retained baseline. Avoid further
+source-organization or inlining changes aimed only at this small unexplained RSS signal without causal evidence.

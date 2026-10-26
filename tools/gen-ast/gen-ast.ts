@@ -765,7 +765,7 @@ function genNodeDataEnum() {
     w("/// Which data struct follows a node's header (one variant per `NodeData` variant).");
     w("#[repr(u8)]");
     w("#[derive(Clone, Copy, PartialEq, Eq, Debug)]");
-    w("pub(crate) enum NodeDataTag {");
+    w("pub enum NodeDataTag {");
     for (const n of nodes) w(`    ${n.name},`);
     for (const e of EXTRA_DATA) w(`    ${e},`);
     w("}");

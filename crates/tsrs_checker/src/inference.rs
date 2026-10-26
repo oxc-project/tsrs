@@ -715,7 +715,7 @@ impl Checker {
             } else {
                 std::slice::from_ref(&source)
             };
-            let mut matched = vec![false; sources.len()];
+            let mut matched = smallbitvec::SmallBitVec::from_elem(sources.len(), false);
             let mut inference_circularity = false;
             // First infer to types that are not naked type variables. For each source type we
             // track whether inferences were made from that particular type to some target with
@@ -731,7 +731,7 @@ impl Checker {
                         n.inference_priority.set(InferencePriority::MAX_VALUE);
                         self.infer_from_types(n, *element, t);
                         if n.inference_priority.get() == n.priority.get() {
-                            matched[i] = true;
+                            matched.set(i, true);
                         }
                         inference_circularity = inference_circularity
                             || n.inference_priority.get() == InferencePriority::CIRCULARITY;

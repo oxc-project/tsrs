@@ -31,6 +31,7 @@ tsrs_astnav.workspace = true
 rustc-hash.workspace = true
 hashbrown.workspace = true
 smallvec.workspace = true
+smallbitvec.workspace = true
 bitflags.workspace = true
 xxhash-rust.workspace = true
 

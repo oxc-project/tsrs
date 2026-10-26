@@ -32,7 +32,6 @@
     "json5": "2.2.3",
     "marked": "18.1.1",
     "sass": "1.106.1",
-    "typescript": "6.0.3",
-    "vite-plus": "catalog:"
+    "typescript": "6.0.3"
   }
 }

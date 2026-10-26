@@ -191,7 +191,7 @@ function prepare(module, request, host, io) {
         }
     };
 
-    const imports = { tsrs_host: { fs: fsCall, fs_take: (ptr) => bytes().set(staged, ptr) }, wasi_snapshot_preview1: {} };
+    const imports = { tsrs_host: { fs: fsCall, fs_take: (ptr) => bytes(ptr).set(staged) }, wasi_snapshot_preview1: {} };
     for (const imp of WebAssembly.Module.imports(module)) {
         if (imp.module === "wasi_snapshot_preview1") {
             imports.wasi_snapshot_preview1[imp.name] = wasi[imp.name] ?? (() => ENOSYS);

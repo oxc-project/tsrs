@@ -1074,6 +1074,7 @@ dependencies = [
  "bitflags",
  "hashbrown",
  "rustc-hash",
+ "smallvec",
  "tsrs_ast",
  "tsrs_astnav",
  "tsrs_binder",

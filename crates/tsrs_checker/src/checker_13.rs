@@ -1,4 +1,5 @@
 use crate::*;
+use smallvec::SmallVec;
 use tsrs_ast as ast;
 use tsrs_ast::*;
 use tsrs_core::*;
@@ -1570,7 +1571,8 @@ impl Checker {
     ) -> P<Type> {
         if t.flags().intersects(TypeFlags::Union) {
             let types = t.types();
-            let filtered: Vec<P<Type>> = types.iter().copied().filter(|&u| f(self, u)).collect();
+            let filtered: SmallVec<[P<Type>; 4]> =
+                types.iter().copied().filter(|&u| f(self, u)).collect();
             // core.Same(types, filtered): core.Filter returns its input when nothing was removed.
             if filtered.len() == types.len() {
                 return t;
@@ -1584,7 +1586,7 @@ impl Checker {
                 // Otherwise, if we have exactly one type left in the origin set, return that as the filtered type.
                 // Otherwise, construct a new filtered origin type.
                 let origin_types = origin.types();
-                let origin_filtered: Vec<P<Type>> = origin_types
+                let origin_filtered: SmallVec<[P<Type>; 4]> = origin_types
                     .iter()
                     .copied()
                     .filter(|&u| u.flags().intersects(TypeFlags::Union) || f(self, u))

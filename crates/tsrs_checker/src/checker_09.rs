@@ -1,4 +1,5 @@
 use crate::*;
+use smallvec::SmallVec;
 use tsrs_ast::*;
 use tsrs_core::*;
 use tsrs_diagnostics as diagnostics;
@@ -3207,7 +3208,7 @@ impl Checker {
     ) -> Option<P<IndexInfo>> {
         // Index signatures for type 'string' are considered only when no other index signatures apply.
         let mut string_index_info: Option<P<IndexInfo>> = None;
-        let mut applicable_infos: Vec<P<IndexInfo>> = Vec::new();
+        let mut applicable_infos: SmallVec<[P<IndexInfo>; 4]> = SmallVec::new();
         for &info in index_infos {
             if info.key_type.get() == Some(self.string_type) {
                 string_index_info = Some(info);
@@ -3230,7 +3231,8 @@ impl Checker {
             1 => Some(applicable_infos[0]),
             _ => {
                 let mut is_readonly = true;
-                let mut types: Vec<P<Type>> = Vec::with_capacity(applicable_infos.len());
+                let mut types: SmallVec<[P<Type>; 4]> =
+                    SmallVec::with_capacity(applicable_infos.len());
                 types.extend(applicable_infos.iter().map(|info| {
                     let value_type = info.value_type();
                     is_readonly &= info.is_readonly();

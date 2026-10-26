@@ -7,6 +7,7 @@ in-process CodSpeed benchmarks pass `--fast` during both capture and measurement
 watch, PR baseline/candidate runs, and CodSpeed simulation/memory/walltime. Compiler experiment variables are
 cleared before external benchmark runs, then the preset is enabled. Explicit benchmark checker counts still apply;
 default-count runs use the fast preset's adaptive count. See [fast-mode side effects](../docs/USAGE.md#side-effects).
+The `release` comparison is the exception: it measures published tsrs both in its default mode and with `--fast`.
 
 The environment opt-in lets the same runner compare older main/release binaries that do not recognize `--fast`:
 those versions ignore `TSRS_FAST` and keep their then-default optimized behavior. New bundles record the preset
@@ -21,8 +22,9 @@ recorded settings and labels. Generic `count` and `measure` wrappers run the sup
 | `plan` | Project names and `projects.json` | Selected names and cache keys on stdout; no checkout or install |
 | `prepare` | Project names, catalog and overlays | Cached checkouts and dependencies in `bench/.work/` |
 | `run` | Prepared projects, compiler versions or binary, settings and Hyperfine 2 | One ignored `bench/results/<timestamp>/` bundle |
+| `release` | Prepared projects, npm release tags and Hyperfine 2 | One ignored bundle comparing TypeScript, tsrs and tsrs `--fast` |
 | `merge` | Complete per-project bundles | One validated combined bundle |
-| `render` | A complete bundle or `publication.json` | `RESULTS.md`, seven SVGs, `publication.json` and render manifest |
+| `render` | A complete bundle or `publication.json` | `RESULTS.md`, three SVGs, `publication.json` and render manifest |
 | `verify-images` | `publication.json` and an existing publication directory | Re-renders from the JSON and compares every SVG and the report |
 | `compare`, `watch`, `count` | Compiler commands and settings | Versioned bundles with individual samples and logs |
 | `history`, `regressions` | Saved bundles or historical JSON | Reports on stdout; `regressions --comment` is opt-in |
@@ -33,14 +35,14 @@ recorded settings and labels. Generic `count` and `measure` wrappers run the sup
 
 ## Reproduce the published SVGs without benchmarking
 
-Each new publication commits `bench/publication.json`, `bench/RESULTS.md`, and seven SVGs. The JSON contains full-precision chart values and labels, so reproduction requires no compiler, project checkout, Hyperfine, or benchmark machine. From the repository root, with Node 24:
+Each publication commits `bench/publication.json`, `bench/RESULTS.md`, and three SVGs: the `benchmark.svg` bar chart and the light and dark `large-projects` speed-vs-memory charts. The JSON contains full-precision chart values and labels, so reproduction requires no compiler, project checkout, Hyperfine, or benchmark machine. From the repository root, with Node 24:
 
 ```bash
 node bench/bench.mjs render bench/publication.json --output-dir bench/.work/reproduced
 node bench/bench.mjs verify-images bench/publication.json --against bench
 ```
 
-The first command writes fresh SVGs and a report to `bench/.work/reproduced/`. The second independently renders from the JSON and compares all seven SVGs and `RESULTS.md` byte for byte with the committed files in `bench/`. A successful check prints `Reproduced 7 SVGs and RESULTS.md`.
+The first command writes fresh SVGs and a report to `bench/.work/reproduced/`. The second independently renders from the JSON and compares all three SVGs and `RESULTS.md` byte for byte with the committed files in `bench/`. A successful check prints `Reproduced 3 SVGs and RESULTS.md`.
 
 The JSON records hashes of the renderer source and lockfile. SVG text uses the viewer's default system fonts, so rendering needs no bundled font files. If `render` reports that the renderer source differs, reproduce from its recorded Git revision in a separate worktree. This leaves your current checkout intact:
 
@@ -58,11 +60,21 @@ git worktree add --detach "$renderer_worktree" "$renderer_revision"
 )
 ```
 
-The six SVGs committed before this JavaScript migration have no `publication.json`. They are historical images and cannot be reproduced from committed chart data. The commands above apply after the first new benchmark publication.
+## Compare npm releases
+
+The committed `RESULTS.md` comes from `release`, which installs published packages and measures TypeScript, tsrs in its default mode and tsrs with `--fast` on every project it selects:
+
+```bash
+bundle=$(node bench/bench.mjs release \
+  --typescript-version 7.1.0-beta --tsrs-version 0.20.0-ts7.1.0-beta | tail -n 1)
+node bench/bench.mjs render "$bundle" --output-dir bench/.work/release-publication
+```
+
+By default each command is `-p <project> --noEmit --incremental false --pretty false`, with `--fast` added for the fast tsrs run. It passes no `--checkers` and sets no `GOMAXPROCS` or `RAYON_NUM_THREADS`, so each compiler uses its own default checker count on every core. `--checkers 1,2,4,8 --workers 8` instead measures fixed checker counts on a fixed number of threads; the speed-vs-memory chart then joins each project's checker counts. Values are medians of `--runs` interleaved runs (10) and `--typescript-runs` for TypeScript (5). Before every timed run the runner waits until other processes use at most `--quiet-cores` CPU cores (1.5), for up to `--quiet-wait` seconds (180), and records the runs that started after the wait expired. The bar chart covers every selected project; the speed-vs-memory chart shows default tsrs against TypeScript for `--scatter-projects`, at most seven.
 
 ## Generate a fresh local publication
 
-This measures compilers on **your machine** and creates a new set of seven SVGs. It does not reproduce CI's numerical results. Requirements: Node 24, pnpm, npm, git, Rust, and Hyperfine 2 with hardware counters. On macOS ARM64, the runner can download a checksum-verified Hyperfine 2.0.0 binary; elsewhere install Hyperfine 2 or pass `--hyperfine /path/to/hyperfine`. TypeScript 7 native packages support macOS/Linux ARM64/x64.
+This measures compilers on **your machine** and creates a new set of three SVGs. It does not reproduce CI's numerical results. Requirements: Node 24, pnpm, npm, git, Rust, and Hyperfine 2 with hardware counters. On macOS ARM64, the runner can download a checksum-verified Hyperfine 2.0.0 binary; elsewhere install Hyperfine 2 or pass `--hyperfine /path/to/hyperfine`. TypeScript 7 native packages support macOS/Linux ARM64/x64.
 
 This complete example measures the public `webpack` project against a local release build of tsrs and TypeScript 7.0.2:
 
@@ -154,5 +166,3 @@ RAYON_NUM_THREADS=1 TSRS_BENCH_PROJECT=Compiler-Unions \
 ```
 
 Outside CodSpeed's Linux instrumentation, the last command exercises capture, replay, and output verification without reporting performance measurements. Use `--profile dev` for local correctness builds. CI uses the release profile without PGO and keeps debug symbols for flame graphs.
-
-The current committed `RESULTS.md` and its SVGs are historical until a real run replaces them. Do not regenerate them from synthetic measurements.

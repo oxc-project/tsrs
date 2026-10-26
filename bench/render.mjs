@@ -1,6 +1,7 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { BENCH, fileSha, requireValue, writeJson } from './lib.mjs';
+import { releaseAssets } from './release.mjs';
 import { readPublication, rendererIdentity } from './results.mjs';
 
 const COLORS = { tsrs: '#0d6a73', bun: '#c2255c', typescript_1: '#3178c6', typescript_2: '#76a7d7', typescript_3: '#18405f' };
@@ -71,36 +72,6 @@ function barChart(data) {
   });
 }
 
-function projectChart(data, metric, theme) {
-  const key = metric === 'time' ? 'wallSeconds' : 'peakRssBytes', unit = metric === 'time' ? 's' : 'GiB';
-  const title = metric === 'time' ? 'Check time by project' : 'Peak memory by project';
-  const reference = data.compilerOrder.find(id => id !== 'tsrs');
-  const projects = data.projects.map(p => p.name).toSorted((a, b) => row(data, b, reference)[key] - row(data, a, reference)[key]);
-  const width = 1200, rowHeight = Math.max(48, data.compilerOrder.length * 12 + 10), height = 185 + projects.length * rowHeight + 65;
-  const max = Math.max(...data.rows.map(r => key === 'peakRssBytes' ? r[key] / GIB : r[key])) * 1.16;
-  const description = projects.map(name => `${name}: ${data.compilerOrder.map(id => `${compilerLabel(data, id)} ${(key === 'peakRssBytes' ? row(data, name, id)[key] / GIB : row(data, name, id)[key]).toFixed(2)} ${unit}`).join(', ')}`).join('. ') + '. Lower is better.';
-  return svg(width, height, title, description, (parts, palette) => {
-    titleBlock(parts, palette, width, title, `${data.settings.checkers} checkers per compiler; mean of ${data.settings.runs} runs.`);
-    let lx = 45;
-    for (const id of data.compilerOrder) { rect(parts, lx, 119, 12, 12, color(id)); label(parts, compilerLabel(data, id), lx + 20, 131, 12, palette.fg); lx += 205; }
-    const left = 205, plotWidth = 890;
-    for (let tick = 0; tick <= 4; tick++) {
-      const x = left + tick * plotWidth / 4;
-      line(parts, x, 166, x, height - 65, palette.grid);
-      label(parts, `${(max * tick / 4).toFixed(1)} ${unit}`, x, height - 44, 11, palette.muted, { anchor: 'middle' });
-    }
-    for (const [i, name] of projects.entries()) {
-      const y = 170 + i * rowHeight;
-      label(parts, name, 188, y + 21, 12, palette.fg, { anchor: 'end' });
-      for (const [j, id] of data.compilerOrder.entries()) {
-        const raw = row(data, name, id)[key], value = key === 'peakRssBytes' ? raw / GIB : raw;
-        const bar = value / max * plotWidth;
-        rect(parts, left, y + j * 12, bar, 9, color(id));
-      }
-    }
-  }, theme);
-}
-
 function scatterChart(data, theme) {
   const reference = data.compilerOrder.find(id => id !== 'tsrs');
   requireValue(reference, 'A TypeScript compiler is required for the scatter chart');
@@ -135,7 +106,7 @@ function report(data) {
   if (data.settings.tsrsFast) lines.push('tsrs runs in fast mode (`TSRS_FAST=1`); TypeScript keeps its own checker behavior.', '');
   if (data.measuredCommit) lines.push(`tsrs commit: \`${data.measuredCommit}\`.`, '');
   if (data.runUrl) lines.push(`[Benchmark run and raw-data artifacts](${data.runUrl}).`, '');
-  lines.push('[Methodology](README.md).', '', '![All measured compiler versions](benchmark.svg)', '', '<picture>', '  <source media="(prefers-color-scheme: dark)" srcset="large-projects-dark.svg">', '  <img alt="Type-check speedup against peak-memory ratio" src="large-projects.svg">', '</picture>', '', '<picture>', '  <source media="(prefers-color-scheme: dark)" srcset="per-project-time-dark.svg">', '  <img alt="Check time by project" src="per-project-time.svg">', '</picture>', '', '<picture>', '  <source media="(prefers-color-scheme: dark)" srcset="per-project-memory-dark.svg">', '  <img alt="Peak memory by project" src="per-project-memory.svg">', '</picture>', '', '| Project | Compiler | Wall time | Peak memory | Instructions | Files | Diagnostics |', '| --- | --- | ---: | ---: | ---: | ---: | ---: |');
+  lines.push('[Methodology](README.md).', '', '![All measured compiler versions](benchmark.svg)', '', '<picture>', '  <source media="(prefers-color-scheme: dark)" srcset="large-projects-dark.svg">', '  <img alt="Type-check speedup against peak-memory ratio" src="large-projects.svg">', '</picture>', '', '| Project | Compiler | Wall time | Peak memory | Instructions | Files | Diagnostics |', '| --- | --- | ---: | ---: | ---: | ---: | ---: |');
   for (const project of data.projects) for (const id of data.compilerOrder) {
     const item = row(data, project.name, id);
     lines.push(`| ${project.name} | ${compilerLabel(data, id)} | ${item.wallSeconds.toFixed(3)} s | ${(item.peakRssBytes / GIB).toFixed(3)} GiB | ${item.instructions == null ? 'n/a' : Math.round(item.instructions).toLocaleString('en-US')} | ${item.files ?? 'n/a'} | ${item.diagnostics ?? 'n/a'} |`);
@@ -145,20 +116,16 @@ function report(data) {
 }
 
 export async function render(input, output, { commit, runUrl } = {}) {
-  const renderer = await rendererIdentity([path.join(BENCH, 'render.mjs'), path.join(BENCH, 'results.mjs'), path.join(BENCH, 'lib.mjs'), path.join(BENCH, '..', 'pnpm-lock.yaml')]);
+  const renderer = await rendererIdentity([path.join(BENCH, 'render.mjs'), path.join(BENCH, 'results.mjs'), path.join(BENCH, 'lib.mjs'), path.join(BENCH, 'release.mjs'), path.join(BENCH, '..', 'pnpm-lock.yaml')]);
   const data = await readPublication(input, renderer);
   if (commit) data.measuredCommit = commit;
   if (runUrl) data.runUrl = runUrl;
   if (data.renderer) requireValue(data.renderer.sha256 === renderer.sha256, `Renderer source differs; check out ${data.renderer.revision}`);
   await mkdir(output, { recursive: true });
-  const assets = {
+  const assets = data.kind === 'release-publication' ? releaseAssets(data) : {
     'benchmark.svg': barChart(data),
     'large-projects.svg': scatterChart(data, 'light'),
     'large-projects-dark.svg': scatterChart(data, 'dark'),
-    'per-project-time.svg': projectChart(data, 'time', 'light'),
-    'per-project-time-dark.svg': projectChart(data, 'time', 'dark'),
-    'per-project-memory.svg': projectChart(data, 'memory', 'light'),
-    'per-project-memory-dark.svg': projectChart(data, 'memory', 'dark'),
     'RESULTS.md': report(data),
   };
   await writeJson(path.join(output, 'publication.json'), data);
@@ -166,7 +133,7 @@ export async function render(input, output, { commit, runUrl } = {}) {
   for (const [name, content] of Object.entries(assets)) { await writeFile(path.join(output, name), content); hashes[name] = await fileSha(path.join(output, name)); }
   const means = data.rows.map(r => ({ ...r, peakRssGiB: r.peakRssBytes / GIB }));
   await writeJson(path.join(output, 'means.json'), means);
-  await writeFile(path.join(output, 'means.csv'), ['project,compiler,wall_seconds,instructions,peak_rss_bytes,files,diagnostics', ...means.map(r => [r.project, r.compiler, r.wallSeconds, r.instructions, r.peakRssBytes, r.files, r.diagnostics].join(','))].join('\n') + '\n');
+  await writeFile(path.join(output, 'means.csv'), ['project,checkers,compiler,wall_seconds,instructions,peak_rss_bytes,files,diagnostics', ...means.map(r => [r.project, r.checkers ?? data.settings.checkers, r.compiler, r.wallSeconds, r.instructions, r.peakRssBytes, r.files, r.diagnostics].join(','))].join('\n') + '\n');
   await writeJson(path.join(output, 'render-manifest.json'), { publicationSha256: await fileSha(path.join(output, 'publication.json')), renderer, assets: hashes });
   return { output, assets: hashes };
 }

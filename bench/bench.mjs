@@ -4,6 +4,7 @@ import path from 'node:path';
 import { BENCH, REPO, cacheKeys, catalog, cleanEnvironment, exec, fileSha, log, machine, now, parseArgs, prepare, projectPath, requireValue, selectProjects, stamp, values, writeJson } from './lib.mjs';
 import { hyperfine, measureOne, runCompile } from './runner.mjs';
 import { loadBundle, mergeBundles } from './results.mjs';
+import { release } from './release.mjs';
 
 const usage = `Benchmark tools (Node 24)
 
@@ -13,6 +14,9 @@ const usage = `Benchmark tools (Node 24)
   node bench/bench.mjs run [--projects names] [--typescript-versions versions] [--tsrs binary | --tsrs-version tag]
                          [--checkers N] [--workers N] [--memory-gib N] [--runs N] [--warmup N]
                          [--work-dir path] [--out-dir path] [--hyperfine path] [--dry-run]
+  node bench/bench.mjs release [--projects names] [--scatter-projects names] [--typescript-version tag] [--tsrs-version tag]
+                         [--checkers default|N,...] [--detail-checkers default|N] [--workers N] [--runs N] [--typescript-runs N]
+                         [--quiet-cores N] [--quiet-wait seconds] [--work-dir path] [--out-dir path] [--hyperfine path]
   node bench/bench.mjs merge <bundle...> --output-dir path
   node bench/bench.mjs render <bundle|publication.json> --output-dir path
   node bench/bench.mjs verify-images <publication.json> --against directory
@@ -30,10 +34,9 @@ async function verifyImages(input, against) {
   requireValue(against, 'verify-images requires --against');
   const destination = path.join(BENCH, '.work', `verify-images-${stamp()}`);
   const { render } = await import('./render.mjs');
-  await render(input, destination);
-  const names = ['RESULTS.md', 'benchmark.svg', 'large-projects.svg', 'large-projects-dark.svg', 'per-project-time.svg', 'per-project-time-dark.svg', 'per-project-memory.svg', 'per-project-memory-dark.svg'];
+  const names = Object.keys((await render(input, destination)).assets);
   for (const name of names) requireValue(await fileSha(path.join(destination, name)) === await fileSha(path.join(against, name)), `Image reproduction differs: ${name}`);
-  process.stdout.write(`Reproduced ${names.length - 1} SVGs and RESULTS.md from ${input}\n`);
+  process.stdout.write(`Reproduced ${names.filter(name => name.endsWith('.svg')).length} SVGs and RESULTS.md from ${input}\n`);
 }
 
 async function count(options) {
@@ -55,7 +58,7 @@ async function main() {
   const [command, ...args] = process.argv.slice(2);
   if (!command || ['help', '--help', '-h'].includes(command)) { process.stdout.write(usage); return; }
   if (command === 'machine') { process.stdout.write(JSON.stringify(machine()) + '\n'); return; }
-  const { options, positional } = parseArgs(args, ['projects', 'repos', 'typescript-versions']);
+  const { options, positional } = parseArgs(args, ['projects', 'repos', 'typescript-versions', 'scatter-projects']);
   const work = path.resolve(options['work-dir'] ?? path.join(BENCH, '.work'));
   if (command === 'plan' || command === 'prepare' || command === 'run') {
     const cfg = await catalog();
@@ -74,6 +77,7 @@ async function main() {
     process.stdout.write(`${source}\n`);
     return;
   }
+  if (command === 'release') { await release(options); return; }
   if (command === 'merge') { await mergeBundles(positional.map(p => path.resolve(p)), path.resolve(options['output-dir'] ?? '')); return; }
   if (command === 'render') { requireValue(positional.length === 1, 'render requires a bundle or publication.json'); const { render } = await import('./render.mjs'); await render(path.resolve(positional[0]), path.resolve(options['output-dir'] ?? BENCH), { commit: options.commit, runUrl: options['run-url'] }); return; }
   if (command === 'verify-images') { requireValue(positional.length === 1, 'verify-images requires publication.json'); await verifyImages(path.resolve(positional[0]), options.against && path.resolve(options.against)); return; }

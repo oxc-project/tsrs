@@ -1,0 +1,713 @@
+{
+  "schemaVersion": 1,
+  "kind": "release-publication",
+  "measuredAt": "2026-10-26T15:28:50.079Z",
+  "completedAt": "2026-10-26T15:45:19.721Z",
+  "machine": {
+    "platform": "Darwin arm64",
+    "cpus": 12,
+    "cpu": "Apple M4 Pro",
+    "memory_gb": 48,
+    "label": "local machine (Apple M4 Pro, 12 cores, 48 GB)"
+  },
+  "settings": {
+    "workers": null,
+    "runs": 10,
+    "typescriptRuns": 5,
+    "scatterCheckers": [
+      "default"
+    ],
+    "detailCheckers": "default",
+    "quietCores": 1.5,
+    "quietWaitSeconds": 900
+  },
+  "environment": {
+    "GOMAXPROCS": null,
+    "RAYON_NUM_THREADS": null,
+    "TSRS_FAST": null
+  },
+  "hyperfine": "hyperfine 2.0.0",
+  "compilers": {
+    "typescript": {
+      "package": "@typescript/typescript-darwin-arm64",
+      "version": "7.1.0-beta",
+      "label": "TypeScript",
+      "requested": "typescript@7.1.0-beta",
+      "tarball": "https://registry.npmjs.org/@typescript/typescript-darwin-arm64/-/typescript-darwin-arm64-7.1.0-beta.tgz",
+      "integrity": "sha512-q7mxblcyX0E7hXsY4k+Q6KWKK5mGmfVq+BDesdTgRVgjodk27aIxER77Zyj9+TgSTlCje8F7+JM6f6hl2BuNdw==",
+      "sha256": "29f5eb8daa5c8cf6ef1c0cb79fbcf47c0cfdf26edabdf148bb779d0b2d56cebc",
+      "version_output": "Version 7.1.0-beta"
+    },
+    "tsrs": {
+      "package": "@tsrs/darwin-arm64",
+      "version": "0.20.0-ts7.1.0-beta",
+      "label": "tsrs",
+      "requested": "@tsrs/darwin-arm64@0.20.0-ts7.1.0-beta",
+      "tarball": "https://registry.npmjs.org/@tsrs/darwin-arm64/-/darwin-arm64-0.20.0-ts7.1.0-beta.tgz",
+      "integrity": "sha512-mhHj8QGUmdJDBvJEnMXx5P/jvAKXYU3hy/z3qxrWBo8XHlbLES32PgC0ZpTRbJA960ReTpVqqvCOYaC6EL32/Q==",
+      "sha256": "d6d149d8cce39e69e46d9e4c4a76fc4c2f5fd5785d856a0cf286971c12861767",
+      "version_output": "Version 7.1.0-beta (tsrs 0.20.0-ts7.1.0-beta, microsoft/TypeScript@3e9236361fa9)"
+    }
+  },
+  "projects": [
+    {
+      "name": "vscode",
+      "project": "src",
+      "commit": "9cf0128b9822dcd8a533f08ef7312956a4390301",
+      "overlaySha256": null,
+      "scatter": true,
+      "checkers": [
+        "default"
+      ]
+    },
+    {
+      "name": "mui-docs",
+      "project": "docs",
+      "commit": "6780195595c12252a130aa5ae5c5bd461229c6b7",
+      "overlaySha256": null,
+      "scatter": true,
+      "checkers": [
+        "default"
+      ]
+    },
+    {
+      "name": "t3code-server",
+      "project": "apps/server",
+      "commit": "9bd1d8009a6b7c50f9dd9458e2bf27d481ff3b43",
+      "overlaySha256": null,
+      "scatter": true,
+      "checkers": [
+        "default"
+      ]
+    },
+    {
+      "name": "supabase-studio",
+      "project": "apps/studio",
+      "commit": "12afe399995143a2cc699eabbbd29596f4e64945",
+      "overlaySha256": null,
+      "scatter": true,
+      "checkers": [
+        "default"
+      ]
+    },
+    {
+      "name": "playwright",
+      "project": ".",
+      "commit": "d469960fdfc461e2d5795a3fa48a58a52a91ecaf",
+      "overlaySha256": null,
+      "scatter": true,
+      "checkers": [
+        "default"
+      ]
+    },
+    {
+      "name": "typeorm",
+      "project": "packages/typeorm",
+      "commit": "fe92394287516feeada6e9c308ebe22deca2458e",
+      "overlaySha256": "db6224934f2a60f5",
+      "scatter": true,
+      "checkers": [
+        "default"
+      ]
+    },
+    {
+      "name": "date-fns",
+      "project": "pkgs/core",
+      "commit": "717ce0a807ea4c6b540d015b5c408723175b2838",
+      "overlaySha256": null,
+      "scatter": true,
+      "checkers": [
+        "default"
+      ]
+    },
+    {
+      "name": "nuxt",
+      "project": ".",
+      "commit": "85b8d54f6ce49f4d0f199e90513b1e5d5fa22196",
+      "overlaySha256": null,
+      "scatter": false,
+      "checkers": [
+        "default"
+      ]
+    },
+    {
+      "name": "xstate-main",
+      "project": ".",
+      "commit": "fbee62e7c1586315ed478c2fedf530d7e0ff5a3e",
+      "overlaySha256": null,
+      "scatter": false,
+      "checkers": [
+        "default"
+      ]
+    },
+    {
+      "name": "formbricks-web",
+      "project": "apps/web/tsconfig.typecheck.json",
+      "commit": "ec45c28e4d20bd9daf3191c991b67981aabf5db8",
+      "overlaySha256": "635fefae1e3bede6",
+      "scatter": false,
+      "checkers": [
+        "default"
+      ]
+    },
+    {
+      "name": "cal-diy",
+      "project": "apps/web",
+      "commit": "54343aa685ae8f33159d2f485ec4a57bad5c574a",
+      "overlaySha256": "bd8a78fb6c563ab5",
+      "scatter": false,
+      "checkers": [
+        "default"
+      ]
+    }
+  ],
+  "samples": {
+    "total": 275,
+    "contended": 0
+  },
+  "rows": [
+    {
+      "project": "vscode",
+      "checkers": "default",
+      "compiler": "typescript",
+      "wallSeconds": 4.99129575,
+      "peakRssBytes": 5913886720,
+      "instructions": 246023146950,
+      "runs": 5,
+      "exitCode": 2,
+      "diagnostics": 371,
+      "diagnosticCodes": {
+        "TS18048": 5,
+        "TS2304": 16,
+        "TS2307": 53,
+        "TS2322": 2,
+        "TS2339": 10,
+        "TS2344": 1,
+        "TS2345": 12,
+        "TS2349": 1,
+        "TS2416": 1,
+        "TS2503": 127,
+        "TS2554": 1,
+        "TS2698": 1,
+        "TS7006": 141
+      },
+      "diagnosticsSha256": "e0597cd75c337fee"
+    },
+    {
+      "project": "vscode",
+      "checkers": "default",
+      "compiler": "tsrs",
+      "wallSeconds": 2.8881850415,
+      "peakRssBytes": 2525331456,
+      "instructions": 84015143117,
+      "runs": 10,
+      "exitCode": 2,
+      "diagnostics": 371,
+      "diagnosticCodes": {
+        "TS18048": 5,
+        "TS2304": 16,
+        "TS2307": 53,
+        "TS2322": 2,
+        "TS2339": 10,
+        "TS2344": 1,
+        "TS2345": 12,
+        "TS2349": 1,
+        "TS2416": 1,
+        "TS2503": 127,
+        "TS2554": 1,
+        "TS2698": 1,
+        "TS7006": 141
+      },
+      "diagnosticsSha256": "e0597cd75c337fee"
+    },
+    {
+      "project": "vscode",
+      "checkers": "default",
+      "compiler": "tsrs_fast",
+      "wallSeconds": 2.0089043125000003,
+      "peakRssBytes": 2099150848,
+      "instructions": 79525813957,
+      "runs": 10,
+      "exitCode": 2,
+      "diagnostics": 371,
+      "diagnosticCodes": {
+        "TS18048": 5,
+        "TS2304": 16,
+        "TS2307": 53,
+        "TS2322": 2,
+        "TS2339": 10,
+        "TS2344": 1,
+        "TS2345": 12,
+        "TS2349": 1,
+        "TS2416": 1,
+        "TS2503": 127,
+        "TS2554": 1,
+        "TS2698": 1,
+        "TS7006": 141
+      },
+      "diagnosticsSha256": "e0597cd75c337fee"
+    },
+    {
+      "project": "mui-docs",
+      "checkers": "default",
+      "compiler": "typescript",
+      "wallSeconds": 4.804904084,
+      "peakRssBytes": 3478945792,
+      "instructions": 214139845375,
+      "runs": 5,
+      "exitCode": 0,
+      "diagnostics": 0,
+      "diagnosticCodes": {},
+      "diagnosticsSha256": "4f53cda18c2baa0c"
+    },
+    {
+      "project": "mui-docs",
+      "checkers": "default",
+      "compiler": "tsrs",
+      "wallSeconds": 3.0363169369999996,
+      "peakRssBytes": 1385840640,
+      "instructions": 58655455031,
+      "runs": 10,
+      "exitCode": 0,
+      "diagnostics": 0,
+      "diagnosticCodes": {},
+      "diagnosticsSha256": "4f53cda18c2baa0c"
+    },
+    {
+      "project": "mui-docs",
+      "checkers": "default",
+      "compiler": "tsrs_fast",
+      "wallSeconds": 2.8042125625,
+      "peakRssBytes": 1513365504,
+      "instructions": 83679837618,
+      "runs": 10,
+      "exitCode": 0,
+      "diagnostics": 0,
+      "diagnosticCodes": {},
+      "diagnosticsSha256": "4f53cda18c2baa0c"
+    },
+    {
+      "project": "t3code-server",
+      "checkers": "default",
+      "compiler": "typescript",
+      "wallSeconds": 6.47055175,
+      "peakRssBytes": 4480974848,
+      "instructions": 364713577977,
+      "runs": 5,
+      "exitCode": 2,
+      "diagnostics": 6,
+      "diagnosticCodes": {
+        "TS2304": 3,
+        "TS2322": 1,
+        "TS7006": 2
+      },
+      "diagnosticsSha256": "17c4ff4c7f990211"
+    },
+    {
+      "project": "t3code-server",
+      "checkers": "default",
+      "compiler": "tsrs",
+      "wallSeconds": 1.6984333335000001,
+      "peakRssBytes": 1949294592,
+      "instructions": 75705536627,
+      "runs": 10,
+      "exitCode": 2,
+      "diagnostics": 6,
+      "diagnosticCodes": {
+        "TS2304": 3,
+        "TS2322": 1,
+        "TS7006": 2
+      },
+      "diagnosticsSha256": "17c4ff4c7f990211"
+    },
+    {
+      "project": "t3code-server",
+      "checkers": "default",
+      "compiler": "tsrs_fast",
+      "wallSeconds": 1.3222205835,
+      "peakRssBytes": 1973977088,
+      "instructions": 107249286302.5,
+      "runs": 10,
+      "exitCode": 2,
+      "diagnostics": 6,
+      "diagnosticCodes": {
+        "TS2304": 3,
+        "TS2322": 1,
+        "TS7006": 2
+      },
+      "diagnosticsSha256": "17c4ff4c7f990211"
+    },
+    {
+      "project": "supabase-studio",
+      "checkers": "default",
+      "compiler": "typescript",
+      "wallSeconds": 4.400882208,
+      "peakRssBytes": 3492397056,
+      "instructions": 184699861393,
+      "runs": 5,
+      "exitCode": 2,
+      "diagnostics": 9,
+      "diagnosticCodes": {
+        "TS7031": 9
+      },
+      "diagnosticsSha256": "32fbeecb2f83667c"
+    },
+    {
+      "project": "supabase-studio",
+      "checkers": "default",
+      "compiler": "tsrs",
+      "wallSeconds": 2.876105292,
+      "peakRssBytes": 1477263360,
+      "instructions": 57286503013.5,
+      "runs": 10,
+      "exitCode": 2,
+      "diagnostics": 9,
+      "diagnosticCodes": {
+        "TS7031": 9
+      },
+      "diagnosticsSha256": "32fbeecb2f83667c"
+    },
+    {
+      "project": "supabase-studio",
+      "checkers": "default",
+      "compiler": "tsrs_fast",
+      "wallSeconds": 2.34483625,
+      "peakRssBytes": 1598906368,
+      "instructions": 66707757550,
+      "runs": 10,
+      "exitCode": 2,
+      "diagnostics": 9,
+      "diagnosticCodes": {
+        "TS7031": 9
+      },
+      "diagnosticsSha256": "32fbeecb2f83667c"
+    },
+    {
+      "project": "playwright",
+      "checkers": "default",
+      "compiler": "typescript",
+      "wallSeconds": 0.5453645,
+      "peakRssBytes": 790593536,
+      "instructions": 30805518335,
+      "runs": 5,
+      "exitCode": 0,
+      "diagnostics": 0,
+      "diagnosticCodes": {},
+      "diagnosticsSha256": "4f53cda18c2baa0c"
+    },
+    {
+      "project": "playwright",
+      "checkers": "default",
+      "compiler": "tsrs",
+      "wallSeconds": 0.21950727050000002,
+      "peakRssBytes": 377495552,
+      "instructions": 8696797681,
+      "runs": 10,
+      "exitCode": 0,
+      "diagnostics": 0,
+      "diagnosticCodes": {},
+      "diagnosticsSha256": "4f53cda18c2baa0c"
+    },
+    {
+      "project": "playwright",
+      "checkers": "default",
+      "compiler": "tsrs_fast",
+      "wallSeconds": 0.150760834,
+      "peakRssBytes": 431734784,
+      "instructions": 10675651196,
+      "runs": 10,
+      "exitCode": 0,
+      "diagnostics": 0,
+      "diagnosticCodes": {},
+      "diagnosticsSha256": "4f53cda18c2baa0c"
+    },
+    {
+      "project": "typeorm",
+      "checkers": "default",
+      "compiler": "typescript",
+      "wallSeconds": 0.652349625,
+      "peakRssBytes": 492830720,
+      "instructions": 19878118119,
+      "runs": 5,
+      "exitCode": 2,
+      "diagnostics": 31,
+      "diagnosticCodes": {
+        "TS1192": 1,
+        "TS2503": 30
+      },
+      "diagnosticsSha256": "faf290dd0f867793"
+    },
+    {
+      "project": "typeorm",
+      "checkers": "default",
+      "compiler": "tsrs",
+      "wallSeconds": 0.478323771,
+      "peakRssBytes": 243392512,
+      "instructions": 7335895865,
+      "runs": 10,
+      "exitCode": 2,
+      "diagnostics": 31,
+      "diagnosticCodes": {
+        "TS1192": 1,
+        "TS2503": 30
+      },
+      "diagnosticsSha256": "faf290dd0f867793"
+    },
+    {
+      "project": "typeorm",
+      "checkers": "default",
+      "compiler": "tsrs_fast",
+      "wallSeconds": 0.46185977100000003,
+      "peakRssBytes": 254148608,
+      "instructions": 7727170325.5,
+      "runs": 10,
+      "exitCode": 2,
+      "diagnostics": 31,
+      "diagnosticCodes": {
+        "TS1192": 1,
+        "TS2503": 30
+      },
+      "diagnosticsSha256": "faf290dd0f867793"
+    },
+    {
+      "project": "date-fns",
+      "checkers": "default",
+      "compiler": "typescript",
+      "wallSeconds": 0.264352125,
+      "peakRssBytes": 278429696,
+      "instructions": 8517566040,
+      "runs": 5,
+      "exitCode": 2,
+      "diagnostics": 1,
+      "diagnosticCodes": {
+        "TS6379": 1
+      },
+      "diagnosticsSha256": "f4980d0f4a97178f"
+    },
+    {
+      "project": "date-fns",
+      "checkers": "default",
+      "compiler": "tsrs",
+      "wallSeconds": 0.208414979,
+      "peakRssBytes": 147505152,
+      "instructions": 3030435063,
+      "runs": 10,
+      "exitCode": 2,
+      "diagnostics": 1,
+      "diagnosticCodes": {
+        "TS6379": 1
+      },
+      "diagnosticsSha256": "f4980d0f4a97178f"
+    },
+    {
+      "project": "date-fns",
+      "checkers": "default",
+      "compiler": "tsrs_fast",
+      "wallSeconds": 0.21363785400000002,
+      "peakRssBytes": 144711680,
+      "instructions": 3141279349.5,
+      "runs": 10,
+      "exitCode": 2,
+      "diagnostics": 1,
+      "diagnosticCodes": {
+        "TS6379": 1
+      },
+      "diagnosticsSha256": "f4980d0f4a97178f"
+    },
+    {
+      "project": "nuxt",
+      "checkers": "default",
+      "compiler": "typescript",
+      "wallSeconds": 0.8000288750000001,
+      "peakRssBytes": 975552512,
+      "instructions": 39526505579,
+      "runs": 5,
+      "exitCode": 2,
+      "diagnostics": 1,
+      "diagnosticCodes": {
+        "TS2307": 1
+      },
+      "diagnosticsSha256": "cd76ef27a3a202e1"
+    },
+    {
+      "project": "nuxt",
+      "checkers": "default",
+      "compiler": "tsrs",
+      "wallSeconds": 0.6375041665000001,
+      "peakRssBytes": 446185472,
+      "instructions": 12332864949,
+      "runs": 10,
+      "exitCode": 2,
+      "diagnostics": 1,
+      "diagnosticCodes": {
+        "TS2307": 1
+      },
+      "diagnosticsSha256": "cd76ef27a3a202e1"
+    },
+    {
+      "project": "nuxt",
+      "checkers": "default",
+      "compiler": "tsrs_fast",
+      "wallSeconds": 0.5804676665,
+      "peakRssBytes": 485859328,
+      "instructions": 15203309093.5,
+      "runs": 10,
+      "exitCode": 2,
+      "diagnostics": 1,
+      "diagnosticCodes": {
+        "TS2307": 1
+      },
+      "diagnosticsSha256": "cd76ef27a3a202e1"
+    },
+    {
+      "project": "xstate-main",
+      "checkers": "default",
+      "compiler": "typescript",
+      "wallSeconds": 0.419657416,
+      "peakRssBytes": 587005952,
+      "instructions": 22525515392,
+      "runs": 5,
+      "exitCode": 0,
+      "diagnostics": 0,
+      "diagnosticCodes": {},
+      "diagnosticsSha256": "4f53cda18c2baa0c"
+    },
+    {
+      "project": "xstate-main",
+      "checkers": "default",
+      "compiler": "tsrs",
+      "wallSeconds": 0.1765942285,
+      "peakRssBytes": 278519808,
+      "instructions": 6634949588,
+      "runs": 10,
+      "exitCode": 0,
+      "diagnostics": 0,
+      "diagnosticCodes": {},
+      "diagnosticsSha256": "4f53cda18c2baa0c"
+    },
+    {
+      "project": "xstate-main",
+      "checkers": "default",
+      "compiler": "tsrs_fast",
+      "wallSeconds": 0.1303770625,
+      "peakRssBytes": 259334144,
+      "instructions": 6983643034,
+      "runs": 10,
+      "exitCode": 0,
+      "diagnostics": 0,
+      "diagnosticCodes": {},
+      "diagnosticsSha256": "4f53cda18c2baa0c"
+    },
+    {
+      "project": "formbricks-web",
+      "checkers": "default",
+      "compiler": "typescript",
+      "wallSeconds": 3.419169083,
+      "peakRssBytes": 4497817600,
+      "instructions": 180998892986,
+      "runs": 5,
+      "exitCode": 0,
+      "diagnostics": 0,
+      "diagnosticCodes": {},
+      "diagnosticsSha256": "4f53cda18c2baa0c"
+    },
+    {
+      "project": "formbricks-web",
+      "checkers": "default",
+      "compiler": "tsrs",
+      "wallSeconds": 2.262949375,
+      "peakRssBytes": 2080169984,
+      "instructions": 52287214259,
+      "runs": 10,
+      "exitCode": 0,
+      "diagnostics": 0,
+      "diagnosticCodes": {},
+      "diagnosticsSha256": "4f53cda18c2baa0c"
+    },
+    {
+      "project": "formbricks-web",
+      "checkers": "default",
+      "compiler": "tsrs_fast",
+      "wallSeconds": 1.905827792,
+      "peakRssBytes": 1877024768,
+      "instructions": 59357402069,
+      "runs": 10,
+      "exitCode": 0,
+      "diagnostics": 0,
+      "diagnosticCodes": {},
+      "diagnosticsSha256": "4f53cda18c2baa0c"
+    },
+    {
+      "project": "cal-diy",
+      "checkers": "default",
+      "compiler": "typescript",
+      "wallSeconds": 2.695816834,
+      "peakRssBytes": 3297902592,
+      "instructions": 158039474428,
+      "runs": 5,
+      "exitCode": 2,
+      "diagnostics": 136,
+      "diagnosticCodes": {
+        "TS2307": 5,
+        "TS2339": 75,
+        "TS2578": 1,
+        "TS7006": 22,
+        "TS7016": 28,
+        "TS7031": 5
+      },
+      "diagnosticsSha256": "f93a696d7f4328fb"
+    },
+    {
+      "project": "cal-diy",
+      "checkers": "default",
+      "compiler": "tsrs",
+      "wallSeconds": 2.0180020835,
+      "peakRssBytes": 1406664704,
+      "instructions": 45740543237.5,
+      "runs": 10,
+      "exitCode": 2,
+      "diagnostics": 136,
+      "diagnosticCodes": {
+        "TS2307": 5,
+        "TS2339": 75,
+        "TS2578": 1,
+        "TS7006": 22,
+        "TS7016": 28,
+        "TS7031": 5
+      },
+      "diagnosticsSha256": "f93a696d7f4328fb"
+    },
+    {
+      "project": "cal-diy",
+      "checkers": "default",
+      "compiler": "tsrs_fast",
+      "wallSeconds": 1.7974309375,
+      "peakRssBytes": 1694859264,
+      "instructions": 62553637761.5,
+      "runs": 10,
+      "exitCode": 2,
+      "diagnostics": 136,
+      "diagnosticCodes": {
+        "TS2307": 5,
+        "TS2339": 75,
+        "TS2578": 1,
+        "TS7006": 22,
+        "TS7016": 28,
+        "TS7031": 5
+      },
+      "diagnosticsSha256": "f93a696d7f4328fb"
+    }
+  ],
+  "sourceBundleSha256": "c3d7230cff0cee8afd7adc12be11c664e5492b4aca51bc41d45b6acc55e513cb",
+  "renderer": {
+    "revision": "d197eeea709616d61930c2bd5eac048471e404b8",
+    "files": {
+      "render.mjs": "1bcb61138d924bf83c8a581e57d900e92340e142c7aa4e7960550053c6f6571f",
+      "results.mjs": "8fc9f5c6ff0546647346388069e4fbbf0cc15c0e6fe26d440893edc2a4317a72",
+      "lib.mjs": "9575f389d7eef9336abc42b3e83dea9d7cd8b589899dcd119e386de3944eed1f",
+      "release.mjs": "37d2178621ded5c631b5b0351fe11d3ba6ad23746bf35aa05cdc58e10f327ee2",
+      "pnpm-lock.yaml": "48110ed5c03db98e9e397964e936a48f332226a063026c7f200290cd31438af1"
+    },
+    "sha256": "3153aaed8874e5b0e7589b99c40bb3598feac055d9ede8e92687981733dced48"
+  }
+}

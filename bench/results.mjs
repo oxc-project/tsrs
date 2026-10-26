@@ -2,11 +2,13 @@ import { cp, mkdir, readdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { exec, fileSha, mean, readJson, requireValue, sha, writeJson } from './lib.mjs';
 import { hyperfineResults } from './runner.mjs';
+import { releasePublication, validateRelease, validateReleasePublication } from './release.mjs';
 
 export async function loadBundle(source) {
   const run = await readJson(path.join(source, 'run.json'));
   requireValue(run.schemaVersion === 2 && run.status === 'complete', `${source}: incomplete or unsupported bundle`);
-  requireValue(['compile', 'compare', 'watch', 'count'].includes(run.kind), `${source}: unsupported benchmark kind`);
+  requireValue(['compile', 'compare', 'watch', 'count', 'release'].includes(run.kind), `${source}: unsupported benchmark kind`);
+  if (run.kind === 'release') validateRelease(run, source);
   if (run.kind === 'compile') {
     const names = Object.keys(run.compilers), projects = run.projects.map(p => p.name);
     requireValue(projects.length && new Set(projects).size === projects.length, `${source}: duplicate projects`);
@@ -91,6 +93,7 @@ export async function readPublication(source, renderer) {
   const { existsSync } = await import('node:fs');
   if (existsSync(path.join(source, 'run.json'))) {
     const run = await loadBundle(source);
+    if (run.kind === 'release') return releasePublication(run, await fileSha(path.join(source, 'run.json')), renderer);
     return publicationFromRun(run, await fileSha(path.join(source, 'run.json')), renderer);
   }
   if (existsSync(path.join(source, 'metadata.json'))) {
@@ -111,6 +114,11 @@ export async function readPublication(source, renderer) {
     return { schemaVersion: 1, kind: 'publication', measuredAt: meta.started_utc, machine: meta.machine, settings: { checkers: meta.settings.checkers, workers: meta.settings.workers, memoryGiB: meta.settings.memory_gib, runs: meta.runs, warmup: meta.warmup }, projects: meta.projects.map(p => ({ name: p.name, commit: p.commit, overlaySha256: p.overlay_sha256 ?? null })), compilerOrder, compilers: meta.compilers, rows, sourceBundleSha256: await fileSha(path.join(source, 'raw.json')), renderer };
   }
   const publication = await readJson(source);
+  if (publication.kind === 'release-publication') {
+    requireValue(publication.schemaVersion === 1, `${source}: unsupported publication`);
+    validateReleasePublication(publication, source);
+    return publication;
+  }
   if (publication.tsrs && publication.projects && !publication.schemaVersion) {
     const names = Object.keys(publication.projects);
     const modes = ['checkers8', 'checkers4', 'checkers2', 'checkers1', 'wide', 'default'];

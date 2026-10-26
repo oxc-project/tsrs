@@ -167,7 +167,7 @@ function buildSdk(tscPath) {
     }
     fs.rmSync(path.join(pkgDir, "dist"), { recursive: true, force: true });
     fs.rmSync(path.join(pkgDir, "tsconfig.tsbuildinfo"), { force: true });
-    const isJs = /\.[cm]?js$/.test(tsc);
+    const isJs = tscPath === undefined || /\.[cm]?js$/.test(tsc);
     execFileSync(isJs ? process.execPath : tsc, [...(isJs ? [tsc] : []), "-b", path.join(pkgDir, "tsconfig.json")], { stdio: "inherit" });
     // Type-check the declarations consumers receive after stripInternal removes private API surfaces.
     execFileSync(isJs ? process.execPath : tsc, [...(isJs ? [tsc] : []), "-p", path.join(pkgDir, "tsconfig.dist.json")], { stdio: "inherit" });

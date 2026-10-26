@@ -571,14 +571,27 @@ impl Checker {
     // relater.go:2867
     fn is_type_subset_of_union(&mut self, source: P<Type>, target: P<Type>) -> bool {
         if source.flags().intersects(TypeFlags::Union) {
-            let (n, m) = (source.types().len(), target.types().len());
-            // A scan touches each target type at most once; the searches cost about log2(m) comparisons per source
-            // type, each far more than an identity test.
-            if n * m.bit_width() as usize * 8 >= m && self.program.source_files_complete() {
-                return crate::checker_13::is_sorted_subset(source.types(), target.types());
-            }
-            if source.types().iter().any(|&t| !contains_type(self, target.types(), t)) {
+            let (source_types, mut target_types) = (source.types(), target.types());
+            if source_types.len() > target_types.len() {
                 return false;
+            }
+            // Scan by identity unless a few source types are looked for in a large target. A CompareTypes call costs
+            // roughly 8 pointer comparisons, so there a binary search is cheaper than walking the target.
+            if source_types.len() * target_types.len().bit_width() as usize * 8
+                >= target_types.len()
+            {
+                return crate::checker_13::is_sorted_subset(source_types, target_types);
+            }
+            for &t in source_types {
+                let (i, found) =
+                    tsrs_core::goslices::binary_search_func(target_types, &t, |&probe, &t| {
+                        compare_types(self, Some(probe), Some(t))
+                    });
+                if !found {
+                    return false;
+                }
+                // Union types are sorted by CompareTypes, so the next source type can only appear after this one.
+                target_types = &target_types[i + 1..];
             }
             return true;
         }

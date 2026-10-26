@@ -1805,8 +1805,7 @@ fn contains_regular_literal_type(
     contains_type(c, types, regular)
 }
 
-/// Whether every type of the sorted, unique `source` is in the sorted, unique `target`, under a total order
-/// (`Program::source_files_complete`). tsrs-only: `contains_type` for each source type binary-searches the target
+/// Whether every type of the sorted, unique `source` is in the sorted, unique `target`. tsrs-only: `contains_type` for each source type binary-searches the target
 /// with `compare_types`; in sorted lists each source type can only be found after the previous one's position, so a
 /// forward scan by identity answers the same with no comparisons. Used when the scan is the cheaper of the two.
 pub fn is_sorted_subset(source: &[P<Type>], target: &[P<Type>]) -> bool {

@@ -1,0 +1,60 @@
+crates/tsrs_checker/src/checker.rs
+  s_dc69f4488b866e::t_cd4d2ad9bc9a7d 1344
+crates/tsrs_checker/src/checker_09.rs
+  s_dc69f4488b866e::t_807a3af5b0a028 958,2748,3147,4026
+crates/tsrs_checker/src/checker_11.rs
+  s_dc69f4488b866e::t_b765afa07babd4 550,948,2695,3658
+crates/tsrs_checker/src/checker_12.rs
+  s_dc69f4488b866e::t_c245b400302fba 35,285
+  s_dc69f4488b866e::t_b4e7ff73317ff9 3099
+crates/tsrs_checker/src/checker_13.rs
+  s_dc69f4488b866e::t_9f0c138cafe945 3456
+crates/tsrs_checker/src/checker_14.rs
+  s_dc69f4488b866e::t_201201d731782f 2240
+  s_dc69f4488b866e::t_7bd392491309ec 2961
+crates/tsrs_checker/src/checker_15.rs
+  s_dc69f4488b866e::t_75b66f7359440e 1923
+  s_dc69f4488b866e::t_e8d56aa1353d8b 1122
+crates/tsrs_checker/src/flow.rs
+  s_dc69f4488b866e::t_80baf2abbb33c3 3090,3637
+crates/tsrs_checker/src/lib.rs
+  s_dc69f4488b866e::t_adcb07c06aa934 181
+crates/tsrs_lint/src/engine.rs
+  s_dc69f4488b866e::t_fd76f70605dcef 241-242,244
+crates/tsrs_lint/src/payload.rs
+  s_dc69f4488b866e::t_03e052a989522b 4,28,53,67,88,99
+crates/tsrs_lint/src/protocol.rs
+  s_dc69f4488b866e::t_b350d7f6a8396d 5,69,74,88,97,100,104,119,123
+crates/tsrs_lint/src/rules/consistent_return.rs
+  s_dc69f4488b866e::t_9a2a3b0e0563f1 115,202
+crates/tsrs_checker/src/checker_02.rs
+  s_dc69f4488b866e::t_685362855c7ce3 42
+crates/tsrs_lint/src/rules/no_array_delete.rs
+  s_dc69f4488b866e::t_4da22cf9e38425 34
+crates/tsrs_checker/src/checker_04.rs
+  s_dc69f4488b866e::t_3da8dddd0dacfd 3350
+crates/tsrs_checker/src/checker_07.rs
+  s_dc69f4488b866e::t_43540e2ad2cfa7 2125
+crates/tsrs_checker/src/checker_08.rs
+  s_dc69f4488b866e::t_644fb8f9476eba 2365
+crates/tsrs_ast/src/precedence.rs
+  s_dc69f4488b866e::t_b8df2364bdd794 107
+crates/tsrs_lint/src/rules/no_meaningless_void_operator.rs
+  s_dc69f4488b866e::t_861eac6f03aae3 37
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "d28a94ed06daa48aa3f6954c8bf1dab84b8e346b",
+  "prompts": {},
+  "sessions": {
+    "s_dc69f4488b866e": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a17f28-42af-7890-a3ce-6985ae0ec4b9",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Cameron <cclark@cloudflare.com>"
+    }
+  }
+}

@@ -1,6 +1,6 @@
 import { chmod, mkdir, readFile, rename, writeFile } from 'node:fs/promises';
 import path from 'node:path';
-import { BENCH, REPO, TIMED_FLAGS, cleanEnvironment, copyFile, exec, fileSha, log, nativePlatform, now, projectPath, quote, readJson, requireValue, shellJoin, stamp, which, writeJson } from './lib.mjs';
+import { BENCH, REPO, TIMED_FLAGS, cleanEnvironment, copyFile, exec, exists, fileSha, log, nativePlatform, now, projectPath, quote, readJson, requireValue, shellJoin, stamp, which, writeJson } from './lib.mjs';
 
 const METRICS = 'time_wall_clock:s,instructions:B,memory_peak_resident:GiB';
 const REGISTRY = 'https://registry.npmjs.org/';
@@ -71,8 +71,11 @@ export async function installCompilers(work, source, versions, tsrsVersion, loca
     await writeJson(path.join(folder, 'package.json'), { name: 'tsrs-benchmark', private: true });
     await exec(['npm', 'install', '--prefix', folder, '--registry', REGISTRY, '--cache', path.join(work, 'npm-cache'), '--ignore-scripts', '--no-audit', '--no-fund', '--save-exact', ...all.map(p => `${p.name}@${p.version}`)], { timeout: 1200, inherit: true });
     await copyFile(path.join(folder, 'package-lock.json'), path.join(source, `${id}-package-lock.json`));
-    const exe = path.join(folder, 'node_modules', installed.name, name === 'typescript' ? 'lib/tsc' : 'tsrs');
-    requireValue((await readJson(path.join(folder, 'node_modules', installed.name, 'package.json'))).version === installed.version, `Installed ${id} version mismatch`);
+    const packageDir = path.join(folder, 'node_modules', installed.name);
+    let exe = path.join(packageDir, 'lib', name === 'typescript' ? 'tsc' : 'tsrs');
+    // Older tsrs releases placed the executable at the package root.
+    if (name !== 'typescript' && !exists(exe)) exe = path.join(packageDir, 'tsrs');
+    requireValue((await readJson(path.join(packageDir, 'package.json'))).version === installed.version, `Installed ${id} version mismatch`);
     executables[id] = exe; packages[id] = all;
     compilers[id] = { package: installed.name, version: installed.version, label, requested: `${name}@${tag}`, dist: installed.dist, binary: exe, sha256: await fileSha(exe), version_output: (await exec([exe, '--version'])).stdout.trim() };
   }

@@ -135,7 +135,8 @@
       "repo": "https://github.com/drizzle-team/drizzle-orm.git",
       "commit": "15454dbe49d827c6081f3d0231e2e7985e517295",
       "project": "drizzle-orm/tsconfig.build.json",
-      "install": "pnpm --pm-on-fail=ignore dlx pnpm@10.6.3 install --frozen-lockfile --ignore-scripts"
+      "install": "pnpm --pm-on-fail=ignore dlx pnpm@10.6.3 install --frozen-lockfile --ignore-scripts",
+      "overlay": "bench/overlays/drizzle-orm"
     },
     {
       "name": "typeorm",

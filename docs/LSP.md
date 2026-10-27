@@ -16,8 +16,7 @@ editors' documented mechanisms.
 `ts-ref/packages/vscode-typescript`) starts `<tsdk>/tsgo --lsp --stdio` (`tsgo.exe` on Windows) when
 `js/ts.tsdk.path` points at a directory that contains an executable named `tsgo` or `tsc` (`.exe` on Windows;
 `src/util.ts`: `tsdkConfigSources`, `packagedExeBaseNames`).
-The 0.20.0 beta includes `tsdk/tsgo` for macOS and Linux. Current source builds also provide an explicit
-setup command for `tsdk/tsgo.exe` on Windows x64. Install the published beta with
+The 0.20.0 beta includes `tsdk/tsgo` for macOS and Linux. Install the published beta with
 `pnpm add -D tsrs@0.20.0-ts7.1.0-beta` and commit this `.vscode/settings.json` so each teammate's editor uses the
 version in the project's lockfile:
 
@@ -29,18 +28,31 @@ version in the project's lockfile:
 }
 ```
 
-The extension asks for workspace trust and consent before running a workspace SDK. The launcher uses the
-installed package's platform binary, just like `pnpm exec tsrs`; it does not add a `tsgo` command to
-`node_modules/.bin`. Windows support is pending the next npm release. After installing or upgrading a
-release with Windows SDK support, run this setup command on Windows:
+Current source builds follow TypeScript's platform-package layout: the native `tsgo` (`tsgo.exe` on Windows)
+and default libraries ship together in each `@tsrs/<platform>/lib` directory. The CLI and Node API resolve
+that same executable. This layout, including Windows SDK support, is pending the next npm release.
+
+On **Windows x64**, use the native platform package's `lib` directory. For a release with this layout, add
+`@tsrs/win32-x64` as a direct optional dependency at the same version as `tsrs`, so npm and pnpm both expose
+the project-local path. Replace `VERSION` with that version and keep both packages at the same version when upgrading:
 
 ```sh
-node node_modules/tsrs/lib/setupTsdk.js
+pnpm add -O --save-exact @tsrs/win32-x64@VERSION
 ```
 
-The command links the native binary and its default libraries into `tsdk` (copies them if hard links
-are unavailable).
-Close the language server before upgrading or rerunning setup if Windows reports that the executable is in use.
+Use these VS Code settings on Windows:
+
+```jsonc
+{
+  "js/ts.experimental.useTsgo": true,
+  "js/ts.tsdk.path": "./node_modules/@tsrs/win32-x64/lib"
+}
+```
+
+The extension asks for workspace trust and consent before running a workspace SDK. Its automatic package
+resolver is specific to `@typescript` packages; pointing at the native `lib` directory uses its executable
+discovery instead. The macOS/Linux `tsrs/tsdk` launcher delegates to the same platform binary, just like
+`pnpm exec tsrs`. Neither layout adds a `tsgo` command to `node_modules/.bin`.
 
 For an older npm release or a local build on macOS/Linux, create a symlink instead:
 

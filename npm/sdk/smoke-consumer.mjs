@@ -50,6 +50,7 @@ try {
     }
 
     const { default: getExePath } = await import(pathToFileURL(path.join(dir, "node_modules/tsrs/lib/getExePath.js")));
+    const { getPlatformPackageName } = await import(pathToFileURL(path.join(dir, "node_modules/tsrs/lib/platform.js")));
     const exe = getExePath();
     if (args.includes("--noembed")) {
         const binary = fs.readFileSync(exe);
@@ -64,12 +65,11 @@ try {
     const cliVersion = run(bin, ["--version"], { shell: process.platform === "win32" }).trim();
     console.log(cliVersion);
 
-    // Windows SDK setup is explicit; running it again must be safe.
-    const setup = path.join(dir, "node_modules/tsrs/lib/setupTsdk.js");
-    const sdk = path.join(dir, "node_modules/tsrs/tsdk", process.platform === "win32" ? "tsgo.exe" : "tsgo");
-    run(process.execPath, [setup]);
-    run(process.execPath, [setup]);
-    if (!fs.existsSync(sdk)) throw new Error("SDK missing after setup");
+    // VS Code can discover the platform package's lib directory immediately after installation.
+    const nativeSdk = path.join(dir, "node_modules", getPlatformPackageName(), "lib", process.platform === "win32" ? "tsgo.exe" : "tsgo");
+    if (fs.realpathSync(nativeSdk) !== fs.realpathSync(exe)) throw new Error("CLI/API and native SDK resolve different binaries");
+    const sdk = process.platform === "win32" ? nativeSdk : path.join(dir, "node_modules/tsrs/tsdk/tsgo");
+    if (run(nativeSdk, ["--version"]).trim() !== cliVersion) throw new Error("Native SDK version differs from the CLI");
     if (run(sdk, ["--version"]).trim() !== cliVersion) throw new Error("SDK version differs from the CLI");
     fs.writeFileSync(path.join(dir, "bad.ts"), 'const x: number = "no";\n');
     const sdkBad = spawnSync(sdk, ["--noEmit", "--ignoreConfig", "bad.ts"], { cwd: dir, encoding: "utf8" });

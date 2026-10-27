@@ -298,15 +298,17 @@ function main() {
         const platform = `${os}-${cpu}${libc ? `-${libc === "glibc" ? "gnu" : libc}` : ""}`;
         const platformName = `@tsrs/${platform}`;
         const dir = path.join(opts.out, `${baseName}-${platform}`);
-        fs.mkdirSync(dir, { recursive: true });
+        const libDir = path.join(dir, "lib");
+        fs.mkdirSync(libDir, { recursive: true });
 
-        const exeName = os === "win32" ? "tsrs.exe" : "tsrs";
-        fs.copyFileSync(binary, path.join(dir, exeName));
-        fs.chmodSync(path.join(dir, exeName), 0o755);
+        // Match TypeScript's platform-package layout and VS Code's native SDK discovery.
+        const exeName = os === "win32" ? "tsgo.exe" : "tsgo";
+        fs.copyFileSync(binary, path.join(libDir, exeName));
+        fs.chmodSync(path.join(libDir, exeName), 0o755);
         // The binary reads the default libraries from its own directory when they are there (bundled::default_lib_path),
         // so listings, diagnostics and tsbuildinfo name the same real paths as the npm tsgo.
         const libNames = fs.readdirSync(libsDir).filter(name => name.endsWith(".d.ts")).sort();
-        for (const libName of libNames) fs.copyFileSync(path.join(libsDir, libName), path.join(dir, libName));
+        for (const libName of libNames) fs.copyFileSync(path.join(libsDir, libName), path.join(libDir, libName));
         fs.writeFileSync(path.join(dir, "LICENSE"), license);
         fs.writeFileSync(path.join(dir, "NOTICE.txt"), notice);
         const readme = fs.readFileSync(path.join(npmDir, "platform", "README.md"), "utf8")
@@ -321,7 +323,7 @@ function main() {
             ...common,
             description: `The ${platform} binary for ${name}`,
             preferUnplugged: true,
-            files: [exeName, "NOTICE.txt", ...libNames],
+            files: ["lib", "NOTICE.txt"],
             exports: { "./package.json": "./package.json" },
             os: [os],
             cpu: [cpu],

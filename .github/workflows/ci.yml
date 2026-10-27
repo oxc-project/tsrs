@@ -90,7 +90,7 @@ jobs:
 
       # Actions share GITHUB_EVENT_PATH, which the runner rewrites when a step starts.
       # Keep action steps sequential so readers cannot observe a truncated event payload.
-      - uses: oxc-project/setup-node@f46a72f95efdc55273fcd042d61c84e723b2892c # v1.4.1
+      - uses: ./.github/actions/setup-node-tools
 
       - uses: namespacelabs/nscloud-cache-action@1124a6f3ce44e5cf84cc22111530961f4d2a15f9 # v1.7.0
         with:
@@ -110,6 +110,10 @@ jobs:
           path: ts-ref
           fetch-depth: 1
           persist-credentials: false
+
+      - name: Install declaration bundler fixture dependencies
+        working-directory: crates/tsrs_dts/tests/dependencies
+        run: vp install --frozen-lockfile --ignore-scripts --no-optional
 
       # Warnings fail the build; Lint's clippy covers the targets no test builds (tool binaries without tests).
       - name: cargo test (workspace)

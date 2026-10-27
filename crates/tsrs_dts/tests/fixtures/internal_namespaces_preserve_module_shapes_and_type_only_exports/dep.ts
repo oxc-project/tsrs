@@ -1,0 +1,1 @@
+import type { Back } from './cycle.js'; export interface Item { value: string; back?: Back } export const version = 1; export function create(): Item { return { value: 'ok' } } class Hidden { private brand!: void; value = 1 } export type { Hidden }; const secret = 1;

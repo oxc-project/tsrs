@@ -1,0 +1,10 @@
+{
+  "entries": [
+    "index.ts",
+    "other.ts",
+    "empty.ts"
+  ],
+  "absent": [
+    "DROP_MULTI"
+  ]
+}

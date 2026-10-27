@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "strict": true,
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "noEmitOnError": true,
+    "noCheck": false,
+    "skipLibCheck": false,
+    "skipDefaultLibCheck": false,
+    "rootDir": "src",
+    "outDir": "out",
+    "types": []
+  },
+  "contentMappers": [{
+    "package": "@vue/content-mapper",
+    "extensions": [".vue"],
+    "options": { "target": 3.5, "languageFeatures": false }
+  }],
+  "include": ["src/**/*"]
+}

@@ -1,0 +1,12 @@
+{
+  "entries": [
+    "index.ts"
+  ],
+  "contains": [
+    "typeof ",
+    "marker: number"
+  ],
+  "absent": [
+    "REMOVE_ME"
+  ]
+}

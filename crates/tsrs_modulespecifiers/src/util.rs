@@ -142,7 +142,7 @@ pub(crate) fn ensure_path_is_non_module_name(path: &str) -> String {
 }
 
 // util.go:143
-pub(crate) fn get_js_extension_for_declaration_file_extension(ext: &str) -> String {
+pub fn get_js_extension_for_declaration_file_extension(ext: &str) -> String {
     match ext {
         tspath::EXTENSION_DTS => tspath::EXTENSION_JS.to_string(),
         tspath::EXTENSION_DMTS => tspath::EXTENSION_MJS.to_string(),

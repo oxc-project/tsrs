@@ -66,6 +66,8 @@ Seeded fuzz and mutation generators use a deterministic JavaScript PRNG, so a se
 | `vp run test:bench` | `node --test bench/bench.test.mjs` |
 | `vp run test:regressions` | `bash tools/regressions.sh` |
 | `vp run test:contentmapper` | `bash tools/contentmapper-e2e.sh` |
+| `vp run test:dts` | `node tools/dts-test.mjs` |
+| `vp run test:dts:vue` | `node tools/dts-test.mjs --suite vue` |
 
 ## bench
 

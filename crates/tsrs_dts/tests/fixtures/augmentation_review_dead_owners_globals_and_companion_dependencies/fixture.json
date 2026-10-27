@@ -1,0 +1,9 @@
+{
+  "absent": [
+    "DEAD_MEMBER"
+  ],
+  "entries": [
+    "index.ts"
+  ],
+  "consumerStage": "generated"
+}

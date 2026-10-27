@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "target": "es2022",
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "types": [],
+    "paths": {
+      "@internal/*": [
+        "./src/shared/*"
+      ]
+    },
+    "rootDirs": [
+      "./src/app",
+      "./src/generated"
+    ]
+  },
+  "include": [
+    "src/**/*.ts"
+  ]
+}

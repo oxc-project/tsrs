@@ -1197,6 +1197,27 @@ dependencies = [
 ]
 
 [[package]]
+name = "tsrs_dts"
+version = "0.20.0"
+dependencies = [
+ "rustc-hash",
+ "tsrs_ast",
+ "tsrs_checker",
+ "tsrs_compiler",
+ "tsrs_contentmapper",
+ "tsrs_core",
+ "tsrs_declarations",
+ "tsrs_execute",
+ "tsrs_incremental",
+ "tsrs_modulespecifiers",
+ "tsrs_printer",
+ "tsrs_scanner",
+ "tsrs_sourcemap",
+ "tsrs_tsoptions",
+ "tsrs_vfs",
+]
+
+[[package]]
 name = "tsrs_execute"
 version = "0.20.0"
 dependencies = [

@@ -1,0 +1,9 @@
+{
+  "files": 1,
+  "absent": [
+    "@internal"
+  ],
+  "entries": [
+    "index.ts"
+  ]
+}

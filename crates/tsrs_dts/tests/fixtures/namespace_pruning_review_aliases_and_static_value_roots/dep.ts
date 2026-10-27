@@ -1,0 +1,1 @@
+class Client { private brand!: void; value = 1 } namespace Other { export type Type = Client } export namespace N { export import Alias = Other.Type; export interface Box { ref: Alias } export interface Dead { DROP_MEMBER: true } } export class Factory { static make(): Client { return new Client() } }

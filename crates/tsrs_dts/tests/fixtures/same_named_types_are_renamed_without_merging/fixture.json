@@ -1,0 +1,14 @@
+{
+  "entries": [
+    "index.ts"
+  ],
+  "contains": [
+    "ClientOptions",
+    "ServerOptions",
+    "endpoint: string",
+    "port: number"
+  ],
+  "occurrences": {
+    "interface ": 2
+  }
+}

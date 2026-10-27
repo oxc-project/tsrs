@@ -1,0 +1,1 @@
+export { UsesFoo } from "./mod";

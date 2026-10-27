@@ -86,17 +86,7 @@ const TAG_VALUE_FIRST: u8 = 2;
 impl Symbol {
     /// Allocates a fresh symbol (Go `&ast.Symbol{Flags: flags, Name: name}`).
     pub fn new(flags: SymbolFlags, name: &'static str) -> P<Symbol> {
-        let allocation = P::new(SymbolWithData {
-            symbol: Symbol {
-                flags: OwnedCell::new(flags),
-                check_flags_and_kind: OwnedCell::new(0),
-                id: AtomicU32::new(0),
-                parent_or_tables: OwnedCell::new(0),
-            },
-            data: SymbolData { name: OwnedTaggedStrCell::new(name), ..Default::default() },
-        });
-        // SAFETY: SymbolWithData is repr(C) with the 8-aligned Symbol header first.
-        let s = unsafe { allocation.cast::<Symbol>() };
+        let s = Symbol::alloc(flags, name);
         if tsrs_core::sharedgraph::on_seed_thread() {
             crate::get_symbol_id(s);
         }
@@ -105,14 +95,24 @@ impl Symbol {
 
     /// A symbol table's stand-in for `target` stored under `name`, another name than the target's (Go
     /// `SymbolFlagsNameProxy`). It is internal to `SymbolTable`, which returns `target` for it, and it gets no id: it
-    /// is never seen outside the table.
-    fn new_name_proxy(name: &'static str, target: P<Symbol>) -> P<Symbol> {
+    /// is never seen outside the table. It is allocated where the table at `table` lives, which may outlive the
+    /// current allocation target.
+    fn new_name_proxy(name: &'static str, target: P<Symbol>, table: usize) -> P<Symbol> {
+        let _owner = tsrs_core::arena::enter_table_owner(table);
+        let proxy = Symbol::alloc(SymbolFlags::empty(), name);
+        proxy.set_parent(Some(target));
+        proxy
+    }
+
+    /// An ordinary data owner without an id.
+    #[inline]
+    fn alloc(flags: SymbolFlags, name: &'static str) -> P<Symbol> {
         let allocation = P::new(SymbolWithData {
             symbol: Symbol {
-                flags: OwnedCell::new(SymbolFlags::empty()),
+                flags: OwnedCell::new(flags),
                 check_flags_and_kind: OwnedCell::new(0),
                 id: AtomicU32::new(0),
-                parent_or_tables: OwnedCell::new(target.key()),
+                parent_or_tables: OwnedCell::new(0),
             },
             data: SymbolData { name: OwnedTaggedStrCell::new(name), ..Default::default() },
         });
@@ -150,7 +150,7 @@ impl Symbol {
     #[inline]
     pub fn own_data(&self) -> &SymbolData {
         debug_assert!(!self.shares_data());
-        // SAFETY: only new and new_shared_data construct Symbol. An ordinary header is the first
+        // SAFETY: only alloc (behind new and new_name_proxy) and new_shared_data construct Symbol. An ordinary header is the first
         // field of SymbolWithData, whose live payload is at this offset in the same arena allocation.
         unsafe {
             tsrs_core::ptr::arena_neighbor(
@@ -618,9 +618,9 @@ impl SymbolMapEntry {
 
     /// An entry for `symbol` under `key`, through a name proxy when the key is not the symbol's name.
     #[inline]
-    fn new(key: &'static str, symbol: P<Symbol>, print: KeyPrint) -> SymbolMapEntry {
+    fn new(key: &'static str, symbol: P<Symbol>, print: KeyPrint, table: usize) -> SymbolMapEntry {
         let mut e = SymbolMapEntry(print.0 << Self::LEN_SHIFT);
-        e.set_symbol(key, symbol);
+        e.set_symbol(key, symbol, table);
         e
     }
 
@@ -636,8 +636,7 @@ impl SymbolMapEntry {
     fn symbol(self) -> P<Symbol> {
         let stored = self.stored();
         if self.is_proxy() {
-            // SAFETY: a name proxy's field holds the key of the symbol it stands for (a live symbol).
-            return unsafe { P::from_key(stored.parent_or_tables.get()) };
+            return stored.parent().expect("a name proxy's parent is the symbol it stands for");
         }
         stored
     }
@@ -648,13 +647,14 @@ impl SymbolMapEntry {
         self.stored().name()
     }
 
-    /// Stores `symbol` for `key`, through a name proxy when the key is not the symbol's name.
+    /// Stores `symbol` for `key`, through a name proxy when the key is not the symbol's name. `table` is the address
+    /// of the table holding the entry.
     #[inline]
-    fn set_symbol(&mut self, key: &'static str, symbol: P<Symbol>) {
+    fn set_symbol(&mut self, key: &'static str, symbol: P<Symbol>, table: usize) {
         let (stored, proxy) = if same_text(symbol.name(), key) {
             (symbol, 0)
         } else {
-            (Symbol::new_name_proxy(key, symbol), Self::PROXY_BIT)
+            (Symbol::new_name_proxy(key, symbol, table), Self::PROXY_BIT)
         };
         self.0 = self.0 & !(Self::ADDR_MASK | Self::PROXY_BIT) | Self::addr_bits(stored) | proxy;
     }
@@ -927,11 +927,12 @@ impl SymbolMap {
     }
 
     fn insert(&mut self, name: &'static str, symbol: P<Symbol>) {
+        let table = std::ptr::from_ref(self) as usize;
         let hash = hash_name(name);
         if let Some(i) = if self.extra.may_contain(hash) { self.search(name, hash) } else { None } {
             // Go keeps the stored key; it is no longer the new symbol's name when that differs.
             let key = self.entries[i].key();
-            self.entries[i].set_symbol(key, symbol);
+            self.entries[i].set_symbol(key, symbol, table);
             return;
         }
         let i = self.entries.len();
@@ -944,7 +945,7 @@ impl SymbolMap {
             // symbols (locals of small functions, members of small object literals).
             self.entries.reserve_exact(1);
         }
-        self.entries.push(SymbolMapEntry::new(name, symbol, KeyPrint::of(name, hash)));
+        self.entries.push(SymbolMapEntry::new(name, symbol, KeyPrint::of(name, hash), table));
         self.extra.add_to_filter(hash);
         if let Some(SymbolMapExtra { index: Some(index) }) = self.extra.get_mut() {
             let entries = &self.entries;

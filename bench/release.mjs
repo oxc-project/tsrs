@@ -128,10 +128,10 @@ export async function release(options) {
         log(`${project.name} ${modeLabel(checkers)} ${compiler}: preflight exit ${result.code}, ${keys.length} errors`);
       }
     }
-    for (let rep = 0; rep < settings.runs; rep++) {
+    for (let rep = 0; rep < Math.max(settings.runs, settings.typescriptRuns); rep++) {
       const order = COMPILERS.slice(rep % COMPILERS.length).concat(COMPILERS.slice(0, rep % COMPILERS.length));
       for (const checkers of modes) for (const compiler of order) {
-        if (compiler === 'typescript' && rep >= settings.typescriptRuns) continue;
+        if (rep >= (compiler === 'typescript' ? settings.typescriptRuns : settings.runs)) continue;
         const context = `${project.name} ${modeLabel(checkers)} ${compiler} run ${rep + 1}`;
         const check = run.preflight[project.name][checkers][compiler];
         const quiet = await waitQuiet(context, settings.quietCores, settings.quietWaitSeconds);
@@ -200,7 +200,7 @@ const WIDTH = 1200, HEIGHT = 884;
 const PLOT_LEFT = 130, PLOT_RIGHT = 1140, PLOT_TOP = 205, PLOT_BOTTOM = 720;
 const LEGEND_Y = 139, LEGEND_ROW = 34, LEGEND_GAP = 36;
 const BAR_TOP = 214, BAR_HEIGHT = 12, BAR_GAP = 5, BAR_PITCH = 76;
-const SPEED_TICKS = [1, 1.5, 2, 3, 4, 5, 6, 8, 10, 15, 20, 30, 40, 50];
+const SPEED_TICKS = [0.1, 0.2, 0.3, 0.5, 0.75, 1, 1.5, 2, 3, 4, 5, 6, 8, 10, 15, 20, 30, 40, 50];
 
 const f1 = value => value.toFixed(1);
 const g = value => String(Number(value.toPrecision(6)));
@@ -305,10 +305,14 @@ function scatterChart(ctx, theme) {
     return { checkers, speed: cell.typescript.wallSeconds / cell.tsrs.wallSeconds, memory: cell.typescript.peakRssBytes / cell.tsrs.peakRssBytes, cell };
   })]));
   const all = Object.values(series).flat();
-  const xEnd = SPEED_TICKS.find(tick => tick >= Math.max(...all.map(p => p.speed)) * 1.08) ?? SPEED_TICKS.at(-1);
-  const ySpan = Math.max(...all.map(p => p.memory)) - 1, yStep = niceStep(Math.max(ySpan, 0.5) * 8 / 10);
-  const yEnd = 1 + Math.ceil(Math.max(ySpan, 0.5) / yStep + 0.5) * yStep;
-  const xOf = value => PLOT_LEFT + (PLOT_RIGHT - PLOT_LEFT) * Math.log(Math.max(value, 1)) / Math.log(xEnd);
+  const speeds = all.map(p => p.speed), memories = all.map(p => p.memory);
+  const speedMin = Math.min(...speeds), memoryMin = Math.min(...memories), memoryMax = Math.max(...memories);
+  const xStart = speedMin >= 1 ? 1 : SPEED_TICKS.findLast(tick => tick <= speedMin / 1.08) ?? speedMin / 1.08;
+  const xEnd = SPEED_TICKS.find(tick => tick > 1 && tick >= Math.max(...speeds) * 1.08) ?? SPEED_TICKS.at(-1);
+  const yStep = niceStep(Math.max(memoryMax - Math.min(memoryMin, 1), 0.5) * 8 / 10);
+  const yEnd = 1 + Math.ceil(Math.max(memoryMax - 1, 0.5) / yStep + 0.5) * yStep;
+  const yStart = memoryMin >= 1 ? 1 : Math.max(0, 1 - Math.ceil((1 - memoryMin) / yStep + 0.5) * yStep);
+  const xOf = value => PLOT_LEFT + (PLOT_RIGHT - PLOT_LEFT) * Math.log(value / xStart) / Math.log(xEnd / xStart);
   const rows = [[]];
   for (const name of names) {
     const width = 20 + textWidth(ctx.label(name), 19);
@@ -316,13 +320,14 @@ function scatterChart(ctx, theme) {
     rows.at(-1).push([name, width]);
   }
   const plotTop = PLOT_TOP + LEGEND_ROW * (rows.length - 1);
-  const yOf = value => PLOT_BOTTOM - (PLOT_BOTTOM - plotTop) * (Math.max(value, 1) - 1) / (yEnd - 1);
+  const yOf = value => PLOT_BOTTOM - (PLOT_BOTTOM - plotTop) * (value - yStart) / (yEnd - yStart);
   const projectColors = Object.fromEntries(names.map((name, i) => [name, colors.projects[i]]));
   const counts = `${checkerCounts.slice(0, -1).join(', ')}${checkerCounts.length > 1 ? ' and ' : ''}${checkerCounts.at(-1)}`;
   const format = row => `${row.wallSeconds.toFixed(2)} s, ${(row.peakRssBytes / GIB).toFixed(2)} GiB`;
   const details = names.map(name => `${ctx.label(name)}: ${series[name].map(p => `${sweep ? `--checkers ${p.checkers}: ` : ''}${p.speed.toFixed(1)}x faster, ${p.memory.toFixed(1)}x less memory (TypeScript ${format(p.cell.typescript)}; tsrs ${format(p.cell.tsrs)})`).join('; ')}.`);
   const title = `tsrs vs ${ctx.typescript}`;
-  const description = `How many times faster default tsrs type-checks than ${ctx.typescript}, against how many times less peak memory it uses, both compilers ${sweep ? `at --checkers ${counts}` : 'with default settings'} on ${ctx.machinePhrase}. Both axes start at 1x, parity with TypeScript; the speed axis is logarithmic. Up and to the right is better. ${details.join(' ')} ${ctx.reps[0].toUpperCase()}${ctx.reps.slice(1)}. ${ctx.scatterFooter} Machine: ${ctx.machineLine}.`;
+  const axes = xStart === 1 && yStart === 1 ? 'Both axes start at 1x, parity with TypeScript' : 'Dashed lines mark 1x, parity with TypeScript; points below 1x are slower or use more memory than TypeScript';
+  const description = `How many times faster default tsrs type-checks than ${ctx.typescript}, against how many times less peak memory it uses, both compilers ${sweep ? `at --checkers ${counts}` : 'with default settings'} on ${ctx.machinePhrase}. ${axes}; the speed axis is logarithmic. Up and to the right is better. ${details.join(' ')} ${ctx.reps[0].toUpperCase()}${ctx.reps.slice(1)}. ${ctx.scatterFooter} Machine: ${ctx.machineLine}.`;
   const metadata = `Generated by bench/release.mjs; modes: ${checkerCounts.map(c => (c === DEFAULT_MODE ? c : `checkers${c}`)).join(', ')}; typescript@${data.compilers.typescript.version}; tsrs@${data.compilers.tsrs.version}; measured: ${ctx.time}. Details: https://github.com/oxc-project/tsrs/blob/main/bench/RESULTS.md`;
   const svg = root(WIDTH, HEIGHT, title, description, metadata, colors);
   const drawing = header(svg, colors, title, 'Speed vs peak memory', `Both compilers ${sweep ? 'at the same checker count' : 'with default settings'} on ${ctx.machinePhrase}`);
@@ -344,16 +349,18 @@ function scatterChart(ctx, theme) {
     }
   }
   const grid = element(drawing, 'g', { 'data-role': 'grid' });
-  for (let k = 0; k <= Math.round((yEnd - 1) / yStep); k++) {
-    const value = 1 + k * yStep, y = yOf(value);
+  for (let k = 0; k <= Math.round((yEnd - yStart) / yStep); k++) {
+    const value = yStart + k * yStep, y = yOf(value);
     if (k) element(grid, 'line', { x1: PLOT_LEFT, y1: f1(y), x2: PLOT_RIGHT, y2: f1(y), stroke: colors.grid, 'stroke-width': 1.5 });
     text(grid, PLOT_LEFT - 18, f1(y + 7), `${g(value)}x`, 19, 400, colors.muted, 'end');
   }
-  for (const value of SPEED_TICKS.filter(tick => tick <= xEnd)) {
+  for (const value of SPEED_TICKS.filter(tick => tick >= xStart && tick <= xEnd)) {
     const x = xOf(value);
     element(grid, 'line', { x1: f1(x), y1: PLOT_BOTTOM, x2: f1(x), y2: PLOT_BOTTOM + 8, stroke: colors.axis, 'stroke-width': 1.5 });
     text(grid, f1(x), PLOT_BOTTOM + 36, `${g(value)}x`, 19, 400, colors.muted, 'middle');
   }
+  if (xStart < 1) element(grid, 'line', { 'data-role': 'parity', x1: f1(xOf(1)), y1: plotTop, x2: f1(xOf(1)), y2: PLOT_BOTTOM, stroke: colors.axis, 'stroke-width': 1.5, 'stroke-dasharray': '6 6' });
+  if (yStart < 1) element(grid, 'line', { 'data-role': 'parity', x1: PLOT_LEFT, y1: f1(yOf(1)), x2: PLOT_RIGHT, y2: f1(yOf(1)), stroke: colors.axis, 'stroke-width': 1.5, 'stroke-dasharray': '6 6' });
   element(grid, 'path', { d: `M${PLOT_LEFT} ${plotTop}V${PLOT_BOTTOM}H${PLOT_RIGHT}`, fill: 'none', stroke: colors.axis, 'stroke-width': 1.5 });
   text(grid, (PLOT_LEFT + PLOT_RIGHT) / 2, PLOT_BOTTOM + 84, `Times faster than ${ctx.typescript}, log scale`, 21, 400, undefined, 'middle');
   text(grid, 0, 0, `Times less peak memory than ${ctx.typescript}`, 21, 400, undefined, 'middle').attrs.transform = `translate(${PLOT_LEFT - 78} ${(plotTop + PLOT_BOTTOM) / 2}) rotate(-90)`;

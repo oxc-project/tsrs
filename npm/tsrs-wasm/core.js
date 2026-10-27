@@ -51,6 +51,9 @@ function prepare(module, request, host, io) {
     let memory;
     const view = () => new DataView(memory.buffer);
     const bytes = (ptr = 0, len) => new Uint8Array(memory.buffer, ptr >>> 0, len);
+    const getUint32 = (ptr) => view().getUint32(ptr >>> 0, true);
+    const setUint32 = (ptr, value) => view().setUint32(ptr >>> 0, value, true);
+    const setBigUint64 = (ptr, value) => view().setBigUint64(ptr >>> 0, value, true);
     const env = Object.entries(io.env ?? {}).map(([k, v]) => encoder.encode(`${k}=${v}\0`));
     const stdout = io.stdout ?? (() => {});
     const stderr = io.stderr ?? (() => {});
@@ -59,38 +62,38 @@ function prepare(module, request, host, io) {
 
     const wasi = {
         args_sizes_get(argc, size) {
-            view().setUint32(argc, 0, true);
-            view().setUint32(size, 0, true);
+            setUint32(argc, 0);
+            setUint32(size, 0);
             return ESUCCESS;
         },
         args_get() {
             return ESUCCESS;
         },
         environ_sizes_get(count, size) {
-            view().setUint32(count, env.length, true);
-            view().setUint32(size, env.reduce((n, e) => n + e.length, 0), true);
+            setUint32(count, env.length);
+            setUint32(size, env.reduce((n, e) => n + e.length, 0));
             return ESUCCESS;
         },
         environ_get(ptrs, buf) {
-            let p = buf;
+            let p = buf >>> 0;
             env.forEach((e, i) => {
-                view().setUint32(ptrs + i * 4, p, true);
-                bytes().set(e, p);
+                setUint32(ptrs + i * 4, p);
+                bytes(p, e.length).set(e);
                 p += e.length;
             });
             return ESUCCESS;
         },
         clock_time_get(id, _precision, out) {
-            view().setBigUint64(out, nowNs(id === 0), true);
+            setBigUint64(out, nowNs(id === 0));
             return ESUCCESS;
         },
         clock_res_get(_id, out) {
-            view().setBigUint64(out, 1000n, true);
+            setBigUint64(out, 1000n);
             return ESUCCESS;
         },
         random_get(ptr, len) {
             for (let off = 0; off < len; off += 65536) {
-                crypto.getRandomValues(new Uint8Array(memory.buffer, ptr + off, Math.min(65536, len - off)));
+                crypto.getRandomValues(bytes(ptr + off, Math.min(65536, len - off)));
             }
             return ESUCCESS;
         },
@@ -100,13 +103,13 @@ function prepare(module, request, host, io) {
             }
             let total = 0;
             for (let i = 0; i < count; i++) {
-                const ptr = view().getUint32(iovs + i * 8, true);
-                const len = view().getUint32(iovs + i * 8 + 4, true);
-                const chunk = bytes().slice(ptr, ptr + len);
+                const ptr = getUint32(iovs + i * 8);
+                const len = getUint32(iovs + i * 8 + 4);
+                const chunk = bytes(ptr, len).slice();
                 (fd === 1 ? stdout : stderr)(chunk);
                 total += len;
             }
-            view().setUint32(written, total, true);
+            setUint32(written, total);
             return ESUCCESS;
         },
         fd_fdstat_get(fd, out) {
@@ -114,11 +117,9 @@ function prepare(module, request, host, io) {
                 return EBADF;
             }
             // filetype: 2 = character device (a tty), 0 = unknown.
-            const v = view();
-            for (let i = 0; i < 24; i++) {
-                v.setUint8(out + i, 0);
-            }
-            v.setUint8(out, fd === 1 && tty ? 2 : 0);
+            const stat = bytes(out, 24);
+            stat.fill(0);
+            stat[0] = fd === 1 && tty ? 2 : 0;
             return ESUCCESS;
         },
         fd_prestat_get() {
@@ -191,7 +192,7 @@ function prepare(module, request, host, io) {
         }
     };
 
-    const imports = { tsrs_host: { fs: fsCall, fs_take: (ptr) => bytes().set(staged, ptr) }, wasi_snapshot_preview1: {} };
+    const imports = { tsrs_host: { fs: fsCall, fs_take: (ptr) => bytes(ptr, staged.length).set(staged) }, wasi_snapshot_preview1: {} };
     for (const imp of WebAssembly.Module.imports(module)) {
         if (imp.module === "wasi_snapshot_preview1") {
             imports.wasi_snapshot_preview1[imp.name] = wasi[imp.name] ?? (() => ENOSYS);
@@ -212,11 +213,10 @@ function prepare(module, request, host, io) {
         const fields = [request.cwd, String(request.flags ?? 0), ...request.args];
         const req = encoder.encode(fields.join("\0"));
         const ptr = instance.exports.tsrs_input(req.length);
-        bytes().set(req, ptr);
+        bytes(ptr, req.length).set(req);
         io.beforeRun?.(memory);
         exitCode = instance.exports.tsrs_run();
-        const out = instance.exports.tsrs_output();
-        reply = bytes().slice(out, out + instance.exports.tsrs_output_len());
+        reply = bytes(instance.exports.tsrs_output(), instance.exports.tsrs_output_len()).slice();
     } catch (e) {
         if (e instanceof WasiExit) {
             exitCode = e.code;

@@ -5,7 +5,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { test } from "node:test";
 import { Worker } from "node:worker_threads";
-import { EXIT_CRASHED, memoryFileSystem, runTsc } from "../core.js";
+import { EXIT_CRASHED, makeRequest, memoryFileSystem, parseReply, runTsc } from "../core.js";
 import { loadModule, tsc } from "../node.js";
 import { bin, pkg, project, rm, runBin, runNative, tree } from "./helpers.mjs";
 
@@ -199,6 +199,17 @@ test("a trap exits with EXIT_CRASHED and a message", () => {
     const r = runTsc(new WebAssembly.Module(new Uint8Array(bytes)), { cwd: "/", args: [], flags: 0 }, memoryFileSystem(), { stderr: (c) => err.push(c) });
     assert.equal(r.exitCode, EXIT_CRASHED);
     assert.match(Buffer.concat(err).toString(), /^error: tsrs\.wasm trapped \(RuntimeError: unreachable/);
+});
+
+// Regression: wasm32 addresses at or above 2 GiB reach JavaScript as negative numbers, so the host failed to copy a
+// file into the module or misread its reply there (issue #806). Growing memory by 2 GiB before the run puts the
+// module's later allocations above 0x80000000.
+test("host buffers at or above 2 GiB", () => {
+    const files = { "/p/a.ts": `/*${"a".repeat(1024 * 1024)}*/\nconst s: string = 1;\n` };
+    const request = makeRequest(["/p/a.ts", "--noEmit"], { cwd: "/p", json: true });
+    const r = runTsc(loadModule(), request, memoryFileSystem(files), { beforeRun: (memory) => memory.grow(32768) });
+    assert.equal(r.exitCode, 2);
+    assert.deepEqual(parseReply(r.reply).map((d) => d.code), [2322]);
 });
 
 // Regression: the engine's own stack running out (a RangeError, not a RuntimeError) also rejects instead of exiting

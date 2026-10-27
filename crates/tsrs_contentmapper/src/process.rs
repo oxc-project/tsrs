@@ -49,10 +49,10 @@ pub fn spawn_process(
     dir: &str,
     stderr: Option<Box<dyn Write + Send>>,
 ) -> Result<ReadWriteCloser, String> {
-    // exec.Command(command[0], command[1:]...): a name without a slash is looked up in PATH.
+    // exec.Command(command[0], command[1:]...): only a bare name is looked up in PATH.
     let name = command[0].as_str();
-    let path =
-        if !name.is_empty() && !name.contains('/') { look_path(name)? } else { name.to_string() };
+    let has_directory = name.contains('/') || (cfg!(windows) && name.contains(['\\', ':']));
+    let path = if !name.is_empty() && !has_directory { look_path(name)? } else { name.to_string() };
     if path.is_empty() {
         return Err("exec: no command".to_string());
     }
@@ -178,40 +178,93 @@ fn file_already_closed() -> io::Error {
     io::Error::new(io::ErrorKind::BrokenPipe, "file already closed")
 }
 
-// exec.LookPath on Unix (os/exec/lp_unix.go lookPath) for a name without a slash, with its error texts
-// (`exec: "name": <reason>`, exec.Error).
+// exec.LookPath for a bare name, with its error texts (`exec: "name": <reason>`, exec.Error).
 fn look_path(file: &str) -> Result<String, String> {
+    let not_found = if cfg!(windows) {
+        "executable file not found in %PATH%"
+    } else {
+        "executable file not found in $PATH"
+    };
     // validateLookPath
     if matches!(file, "" | "." | "..") {
-        return Err(format!("exec: {}: executable file not found in $PATH", quote(file)));
+        return Err(format!("exec: {}: {not_found}", quote(file)));
     }
+    #[cfg(windows)]
+    let exts = path_ext(&std::env::var("PATHEXT").unwrap_or_default());
     let path = std::env::var_os("PATH").unwrap_or_default();
     // filepath.SplitList returns no elements for an empty list.
     if !path.is_empty()
         && let Some(result) = std::env::split_paths(&path).into_iter().find_map(|dir| {
+            // Windows skips empty PATH entries (os/exec/lp_windows.go lookPathExts).
+            if cfg!(windows) && dir.as_os_str().is_empty() {
+                return None;
+            }
             // Unix shell semantics: path element "" means "."
             let dir = if dir.as_os_str().is_empty() { PathBuf::from(".") } else { dir };
             let path = dir.join(file);
-            if is_executable(&path) {
-                if !path.is_absolute() {
-                    return Some(Err(format!(
-                        "exec: {}: cannot run executable found relative to current directory",
-                        quote(file)
-                    )));
-                }
-                return Some(Ok(path.to_string_lossy().into_owned()));
+            #[cfg(windows)]
+            let path = find_executable(&path, &exts)?;
+            #[cfg(not(windows))]
+            if !is_executable(&path) {
+                return None;
             }
-
-            None
+            if !path.is_absolute() {
+                return Some(Err(format!(
+                    "exec: {}: cannot run executable found relative to current directory",
+                    quote(file)
+                )));
+            }
+            Some(Ok(path.to_string_lossy().into_owned()))
         })
     {
         return result;
     }
-    Err(format!("exec: {}: executable file not found in $PATH", quote(file)))
+    Err(format!("exec: {}: {not_found}", quote(file)))
+}
+
+// os/exec/lp_windows.go pathExt. Take the environment value separately so the extension rules can be checked on
+// every host without changing process-wide state.
+pub fn path_ext(value: &str) -> Vec<String> {
+    if value.is_empty() {
+        return [".com", ".exe", ".bat", ".cmd"].map(str::to_string).to_vec();
+    }
+    value
+        .to_lowercase()
+        .split(';')
+        .filter(|ext| !ext.is_empty())
+        .map(|ext| if ext.starts_with('.') { ext.to_string() } else { format!(".{ext}") })
+        .collect()
+}
+
+// os/exec/lp_windows.go findExecutable. PATH search discards candidate errors and only needs the successful path.
+pub fn find_executable(file: &Path, exts: &[String]) -> Option<PathBuf> {
+    let chk_stat = |path: &Path| std::fs::metadata(path).is_ok_and(|metadata| !metadata.is_dir());
+    if exts.is_empty() {
+        return chk_stat(file).then(|| file.to_path_buf());
+    }
+    // hasExt: a dot must follow the final drive or directory separator, including for dot-prefixed filenames.
+    let name = file.to_string_lossy();
+    let has_ext = name
+        .rfind('.')
+        .is_some_and(|dot| name.rfind([':', '\\', '/']).is_none_or(|separator| separator < dot));
+    if has_ext && chk_stat(file) {
+        return Some(file.to_path_buf());
+    }
+    // Keep checking extensions so names such as "foo.bat.exe" resolve when asked for "foo.bat".
+    for ext in exts {
+        let mut candidate = file.as_os_str().to_os_string();
+        candidate.push(ext);
+        let candidate = PathBuf::from(candidate);
+        if chk_stat(&candidate) {
+            return Some(candidate);
+        }
+    }
+    None
 }
 
 // os/exec/lp_unix.go findExecutable: an existing file that is not a directory and has an execute bit (Go asks
 // eaccess(2) first and falls back to the bits).
+#[cfg(not(windows))]
 fn is_executable(file: &Path) -> bool {
     let Ok(metadata) = std::fs::metadata(file) else {
         return false;

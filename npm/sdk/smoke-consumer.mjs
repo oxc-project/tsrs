@@ -65,11 +65,14 @@ try {
     const cliVersion = run(bin, ["--version"], { shell: process.platform === "win32" }).trim();
     console.log(cliVersion);
 
-    // VS Code can discover the platform package's lib directory immediately after installation.
-    const nativeSdk = path.join(dir, "node_modules", getPlatformPackageName(), "lib", process.platform === "win32" ? "tsgo.exe" : "tsgo");
-    if (fs.realpathSync(nativeSdk) !== fs.realpathSync(exe)) throw new Error("CLI/API and native SDK resolve different binaries");
-    const sdk = process.platform === "win32" ? nativeSdk : path.join(dir, "node_modules/tsrs/tsdk/tsgo");
-    if (run(nativeSdk, ["--version"]).trim() !== cliVersion) throw new Error("Native SDK version differs from the CLI");
+    // CLI/API keep using tsrs; Windows also ships the executable name VS Code discovers.
+    const nativeExe = path.join(dir, "node_modules", getPlatformPackageName(), "lib", process.platform === "win32" ? "tsrs.exe" : "tsrs");
+    if (fs.realpathSync(nativeExe) !== fs.realpathSync(exe)) throw new Error("CLI/API must resolve the tsrs executable");
+    const sdk = process.platform === "win32" ? path.join(path.dirname(nativeExe), "tsgo.exe") : path.join(dir, "node_modules/tsrs/tsdk/tsgo");
+    if (process.platform === "win32" && !fs.readFileSync(sdk).equals(fs.readFileSync(nativeExe))) {
+        throw new Error("Windows SDK compatibility executable differs from tsrs.exe");
+    }
+    if (run(nativeExe, ["--version"]).trim() !== cliVersion) throw new Error("Native executable version differs from the CLI");
     if (run(sdk, ["--version"]).trim() !== cliVersion) throw new Error("SDK version differs from the CLI");
     fs.writeFileSync(path.join(dir, "bad.ts"), 'const x: number = "no";\n');
     const sdkBad = spawnSync(sdk, ["--noEmit", "--ignoreConfig", "bad.ts"], { cwd: dir, encoding: "utf8" });

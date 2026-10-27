@@ -28,9 +28,10 @@ version in the project's lockfile:
 }
 ```
 
-Current source builds follow TypeScript's platform-package layout: the native `tsgo` (`tsgo.exe` on Windows)
+Current source builds follow TypeScript's platform-package layout: the native `tsrs` (`tsrs.exe` on Windows)
 and default libraries ship together in each `@tsrs/<platform>/lib` directory. The CLI and Node API resolve
-that same executable. This layout, including Windows SDK support, is pending the next npm release.
+`tsrs[.exe]`. Windows packages also include an identical `tsgo.exe` for VS Code's native SDK discovery.
+This layout, including Windows SDK support, is pending the next npm release.
 
 On **Windows x64**, use the native platform package's `lib` directory. For a release with this layout, add
 `@tsrs/win32-x64` as a direct optional dependency at the same version as `tsrs`, so npm and pnpm both expose

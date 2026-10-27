@@ -301,10 +301,14 @@ function main() {
         const libDir = path.join(dir, "lib");
         fs.mkdirSync(libDir, { recursive: true });
 
-        // Match TypeScript's platform-package layout and VS Code's native SDK discovery.
-        const exeName = os === "win32" ? "tsgo.exe" : "tsgo";
+        // Match TypeScript's platform-package layout while keeping the tsrs executable name.
+        const exeName = os === "win32" ? "tsrs.exe" : "tsrs";
         fs.copyFileSync(binary, path.join(libDir, exeName));
         fs.chmodSync(path.join(libDir, exeName), 0o755);
+        if (os === "win32") {
+            // VS Code's native SDK discovery only accepts tsc.exe or tsgo.exe.
+            fs.copyFileSync(path.join(libDir, exeName), path.join(libDir, "tsgo.exe"));
+        }
         // The binary reads the default libraries from its own directory when they are there (bundled::default_lib_path),
         // so listings, diagnostics and tsbuildinfo name the same real paths as the npm tsgo.
         const libNames = fs.readdirSync(libsDir).filter(name => name.endsWith(".d.ts")).sort();

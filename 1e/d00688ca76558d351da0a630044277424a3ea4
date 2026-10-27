@@ -1,0 +1,41 @@
+crates/tsrs_checker/src/checker.rs
+  s_dc69f4488b866e::t_cd4d2ad9bc9a7d 1344
+crates/tsrs_checker/src/checker_09.rs
+  s_dc69f4488b866e::t_807a3af5b0a028 958,2748,3151,4030
+crates/tsrs_checker/src/checker_11.rs
+  s_dc69f4488b866e::t_b765afa07babd4 550,948,2695,3658
+crates/tsrs_checker/src/checker_12.rs
+  s_dc69f4488b866e::t_c245b400302fba 35,285
+crates/tsrs_checker/src/checker_13.rs
+  s_dc69f4488b866e::t_9f0c138cafe945 3456
+crates/tsrs_checker/src/checker_14.rs
+  s_dc69f4488b866e::t_201201d731782f 2240
+crates/tsrs_checker/src/checker_15.rs
+  s_dc69f4488b866e::t_75b66f7359440e 1923
+crates/tsrs_checker/src/flow.rs
+  s_dc69f4488b866e::t_80baf2abbb33c3 3090,3637
+crates/tsrs_checker/src/lib.rs
+  s_dc69f4488b866e::t_adcb07c06aa934 181
+crates/tsrs_lint/src/engine.rs
+  s_dc69f4488b866e::t_fd76f70605dcef 241-242,244
+crates/tsrs_lint/src/payload.rs
+  s_dc69f4488b866e::t_03e052a989522b 4,28,53,67,88,99
+crates/tsrs_lint/src/protocol.rs
+  s_dc69f4488b866e::t_b350d7f6a8396d 5,69,74,88,97,100,104,119,123
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "1ed00688ca76558d351da0a630044277424a3ea4",
+  "prompts": {},
+  "sessions": {
+    "s_dc69f4488b866e": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a17f28-42af-7890-a3ce-6985ae0ec4b9",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Cameron <cclark@cloudflare.com>"
+    }
+  }
+}

@@ -34,7 +34,7 @@ pub fn enabled() -> bool {
 /// `TSRS_MEM_SPLIT=purge`: after the `check end` report, the allocator purges every arena's freed memory
 /// (`mi_collect(true)`) and the split is printed again, which shows how much of the heap's resident rest is
 /// freed memory not yet given back.
-pub fn purge_after_check() -> bool {
+fn purge_after_check() -> bool {
     mode() == 2
 }
 
@@ -161,7 +161,22 @@ struct ArenaTotals {
     huge_current: usize,
 }
 
+/// The `check end` report (on the type-check pass's last checker thread, while the others are parked), and with
+/// `TSRS_MEM_SPLIT=purge` the report again after the allocator purged its freed memory.
+pub fn report_check_end() {
+    report("check end");
+    if purge_after_check() {
+        heap_collect(true);
+        report("check end, after mi_collect(true)");
+    }
+}
+
 /// Prints the split for point `what` on stderr.
+///
+/// It walks every heap page and reads every thread arena, so no other thread may allocate meanwhile: the callers'
+/// other threads are parked or done. A program's points run only for a program alone in its process (`tsrs_compiler`
+/// checkerpool.rs `reports_mem_split`), and a session that frees programs frees them in place (`tsrs_execute`
+/// watchmem.rs `Freer`).
 pub fn report(what: &str) {
     if !enabled() {
         return;
@@ -191,7 +206,8 @@ pub fn report(what: &str) {
     #[cfg(compressed_ptrs)]
     let _ =
         writeln!(out, "  reservation: {} MiB in chunks", mib(crate::reserve::reserved_in_use()));
-    let heap = HEAP_STATS.get().map(|f| f());
+    // mimalloc's debug build asserts that the walking thread owns each page it visits.
+    let heap = HEAP_STATS.get().filter(|_| !cfg!(debug_assertions)).map(|f| f());
     if let Some(h) = heap {
         let _ = writeln!(
             out,
@@ -200,6 +216,11 @@ pub fn report(what: &str) {
             mib(h.capacity),
             mib(h.used),
             mib(h.resident)
+        );
+    } else if HEAP_STATS.get().is_some() {
+        let _ = writeln!(
+            out,
+            "  heap: not walked (debug build: mimalloc asserts page ownership in the walk)"
         );
     }
     // Relaxed (both): the checker threads added to them before the barrier this report runs behind.

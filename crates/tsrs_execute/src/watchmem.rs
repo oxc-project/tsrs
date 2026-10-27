@@ -99,7 +99,8 @@ pub struct Freer {
 impl Freer {
     pub(crate) fn new(in_place: bool) -> Freer {
         Freer {
-            in_place: in_place || tsrs_core::NO_THREADS,
+            // `TSRS_MEM_SPLIT`: a report must not run while the free thread frees, and should see the frees done.
+            in_place: in_place || tsrs_core::NO_THREADS || tsrs_core::memsplit::enabled(),
             tx: std::sync::OnceLock::new(),
             bounded_pending: Arc::new(AtomicUsize::new(0)),
         }

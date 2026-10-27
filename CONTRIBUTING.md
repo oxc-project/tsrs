@@ -151,7 +151,8 @@ does.
   and determinism use those same binaries. The Linux checks have separate Rust caches: `lint` runs Clippy and source checks;
   `workspace-tests` runs all workspace tests with warnings denied; `conformance` runs beside it with compiler
   conformance in both checker modes with the focused upstream scheduling sweep, and regressions; `test` (the
-  required Test Linux check) passes only when both succeed;
+  required Test Linux check) passes only when both succeed. `check-windows` checks all workspace targets on Windows
+  with warnings denied;
   `determinism` compares every benchmark project against committed snapshots
   from the root pnpm TypeScript release matching Cargo metadata, using Go defaults and fast-mode locality/unnamed
   scheduling at four and all available CPU checkers, three runs each, plus three fixed random assignments per count.

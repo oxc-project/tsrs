@@ -40,8 +40,8 @@ jobs:
 
       - wait: source-checks
 
-  api-transport-windows:
-    name: API transport Windows
+  check-windows:
+    name: Check Windows
     runs-on: windows-latest
     timeout-minutes: 30
     steps:
@@ -49,9 +49,9 @@ jobs:
       - uses: oxc-project/setup-rust@3d6fb132fbe7cdcb66bf8ec193911c2945369d12 # v1.0.17
         with:
           save-cache: ${{ github.ref_name == 'main' }}
-          cache-key: api-transport-windows
-      - name: Check checker layout and API transport
-        run: cargo check --locked -p tsrs_checker -p tsrs_api_transport --all-targets --config 'build.warnings="deny"'
+          cache-key: check-windows
+      - name: Check workspace
+        run: cargo check --locked --all-targets --config 'build.warnings="deny"'
 
   build-correctness:
     name: Build correctness binaries

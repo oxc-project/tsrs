@@ -39,7 +39,7 @@ Compare it with the TypeScript Go compiler at the exact
 checkout and binary in `<triageDir>/ts-ref` when present. Otherwise make a sparse
 checkout there, then build `./cmd/tsc` from its `tsc` directory with
 `GOTOOLCHAIN=auto GOWORK=off`. Keep generated binaries and scratch data under
-`triageDir`.
+`<triageDir>`, never elsewhere in the repository.
 
 Use `target/debug/` binaries consistently. Reserve release builds for
 performance measurements or a demonstrated profile-specific failure.

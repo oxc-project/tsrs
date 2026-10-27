@@ -37,9 +37,11 @@ revision before the ratchet script exists, run the full Clippy command in
 `docs/RUST.md` instead. Run any generated-code freshness check relevant to the
 edited files.
 
-Do not claim success when a required check failed. Remove reproduction files,
-build artifacts, debug output, and instrumentation from tracked changes. Review
-`git diff` and `git status`, but do not commit or push.
+Do not claim success when a required check failed. Remove instrumentation from
+source, and move reproduction files, build artifacts, and debug output into
+`<triageDir>` or delete them. Every entry left in
+`git status --short --untracked-files=all` is committed, so it must list only
+the fix's source, regression, and documentation changes. Do not commit or push.
 
 Append the changed behavior, Go function followed, test evidence, commands and
 results, and final diff summary to `report.md`. Return `fixed: true` only when

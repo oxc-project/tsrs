@@ -40,12 +40,12 @@ export default function getExePath() {
         );
     }
 
-    let exe = path.join(packageDir, "lib", exeName);
+    let exe = path.join(packageDir, exeName);
     if (process.platform === "win32" && exe.length >= 248) {
         exe = "\\\\?\\" + exe;
     }
     if (!fs.existsSync(exe)) {
-        throw new Error(`${platformPackageName} is installed at ${packageDir} but has no lib/${exeName}.`);
+        throw new Error(`${platformPackageName} is installed at ${packageDir} but has no ${exeName}.`);
     }
     return exe;
 }

@@ -298,21 +298,19 @@ function main() {
         const platform = `${os}-${cpu}${libc ? `-${libc === "glibc" ? "gnu" : libc}` : ""}`;
         const platformName = `@tsrs/${platform}`;
         const dir = path.join(opts.out, `${baseName}-${platform}`);
-        const libDir = path.join(dir, "lib");
-        fs.mkdirSync(libDir, { recursive: true });
+        fs.mkdirSync(dir, { recursive: true });
 
-        // Match TypeScript's platform-package layout while keeping the tsrs executable name.
         const exeName = os === "win32" ? "tsrs.exe" : "tsrs";
-        fs.copyFileSync(binary, path.join(libDir, exeName));
-        fs.chmodSync(path.join(libDir, exeName), 0o755);
+        fs.copyFileSync(binary, path.join(dir, exeName));
+        fs.chmodSync(path.join(dir, exeName), 0o755);
         if (os === "win32") {
             // VS Code's native SDK discovery only accepts tsc.exe or tsgo.exe.
-            fs.copyFileSync(path.join(libDir, exeName), path.join(libDir, "tsgo.exe"));
+            fs.copyFileSync(path.join(dir, exeName), path.join(dir, "tsgo.exe"));
         }
         // The binary reads the default libraries from its own directory when they are there (bundled::default_lib_path),
         // so listings, diagnostics and tsbuildinfo name the same real paths as the npm tsgo.
         const libNames = fs.readdirSync(libsDir).filter(name => name.endsWith(".d.ts")).sort();
-        for (const libName of libNames) fs.copyFileSync(path.join(libsDir, libName), path.join(libDir, libName));
+        for (const libName of libNames) fs.copyFileSync(path.join(libsDir, libName), path.join(dir, libName));
         fs.writeFileSync(path.join(dir, "LICENSE"), license);
         fs.writeFileSync(path.join(dir, "NOTICE.txt"), notice);
         const readme = fs.readFileSync(path.join(npmDir, "platform", "README.md"), "utf8")
@@ -327,7 +325,7 @@ function main() {
             ...common,
             description: `The ${platform} binary for ${name}`,
             preferUnplugged: true,
-            files: ["lib", "NOTICE.txt"],
+            files: [exeName, ...(os === "win32" ? ["tsgo.exe"] : []), "NOTICE.txt", ...libNames],
             exports: { "./package.json": "./package.json" },
             os: [os],
             cpu: [cpu],

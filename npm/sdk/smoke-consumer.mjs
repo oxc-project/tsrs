@@ -66,7 +66,7 @@ try {
     console.log(cliVersion);
 
     // CLI/API keep using tsrs; Windows also ships the executable name VS Code discovers.
-    const nativeExe = path.join(dir, "node_modules", getPlatformPackageName(), "lib", process.platform === "win32" ? "tsrs.exe" : "tsrs");
+    const nativeExe = path.join(dir, "node_modules", getPlatformPackageName(), process.platform === "win32" ? "tsrs.exe" : "tsrs");
     if (fs.realpathSync(nativeExe) !== fs.realpathSync(exe)) throw new Error("CLI/API must resolve the tsrs executable");
     const sdk = process.platform === "win32" ? path.join(path.dirname(nativeExe), "tsgo.exe") : path.join(dir, "node_modules/tsrs/tsdk/tsgo");
     if (process.platform === "win32" && !fs.readFileSync(sdk).equals(fs.readFileSync(nativeExe))) {

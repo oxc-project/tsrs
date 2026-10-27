@@ -28,12 +28,11 @@ version in the project's lockfile:
 }
 ```
 
-Current source builds follow TypeScript's platform-package layout: the native `tsrs` (`tsrs.exe` on Windows)
-and default libraries ship together in each `@tsrs/<platform>/lib` directory. The CLI and Node API resolve
-`tsrs[.exe]`. Windows packages also include an identical `tsgo.exe` for VS Code's native SDK discovery.
-This layout, including Windows SDK support, is pending the next npm release.
+The native `tsrs` (`tsrs.exe` on Windows) and default libraries ship together at each `@tsrs/<platform>`
+package root. The CLI and Node API resolve `tsrs[.exe]`. Current source builds also include an identical
+`tsgo.exe` in Windows packages for VS Code's native SDK discovery, pending the next npm release.
 
-On **Windows x64**, use the native platform package's `lib` directory. For a release with this layout, add
+On **Windows x64**, use the native platform package's root directory. For a release with Windows SDK support, add
 `@tsrs/win32-x64` as a direct optional dependency at the same version as `tsrs`, so npm and pnpm both expose
 the project-local path. Replace `VERSION` with that version and keep both packages at the same version when upgrading:
 
@@ -46,12 +45,12 @@ Use these VS Code settings on Windows:
 ```jsonc
 {
   "js/ts.experimental.useTsgo": true,
-  "js/ts.tsdk.path": "./node_modules/@tsrs/win32-x64/lib"
+  "js/ts.tsdk.path": "./node_modules/@tsrs/win32-x64"
 }
 ```
 
 The extension asks for workspace trust and consent before running a workspace SDK. Its automatic package
-resolver is specific to `@typescript` packages; pointing at the native `lib` directory uses its executable
+resolver is specific to `@typescript` packages; pointing at the native package directory uses its executable
 discovery instead. The macOS/Linux `tsrs/tsdk` launcher delegates to the same platform binary, just like
 `pnpm exec tsrs`. Neither layout adds a `tsgo` command to `node_modules/.bin`.
 

@@ -1,0 +1,19 @@
+crates/tsrs_lint/src/rules/no_meaningless_void_operator.rs
+  s_dc69f4488b866e::t_861eac6f03aae3 37
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "2a33b2a32122d16f2fef26ebeb4ce27fe6faa1ce",
+  "prompts": {},
+  "sessions": {
+    "s_dc69f4488b866e": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a17f28-42af-7890-a3ce-6985ae0ec4b9",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Cameron <cclark@cloudflare.com>"
+    }
+  }
+}
